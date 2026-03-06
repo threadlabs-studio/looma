@@ -52,7 +52,7 @@ Default slot (typically one native `<input>` child).
   <TabItem value="react" label="React">
 
 ```tsx
-import { Input } from "@ui/react";
+import { Input } from "@looma/react";
 
 export function Example() {
   return (
@@ -68,7 +68,7 @@ export function Example() {
 
 ```ts
 import { h } from "vue";
-import { Input } from "@ui/vue";
+import { Input } from "@looma/vue";
 
 export const Example = { setup: () => () => h(Input, { value: "hello" }, () => h("input", { type: "text", name: "title" })) };
 ```

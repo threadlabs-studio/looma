@@ -1,5 +1,5 @@
-import "@ui/layout";
-import "@ui/core";
+import "@looma/layout";
+import "@looma/core";
 import {
   createElement,
   forwardRef,

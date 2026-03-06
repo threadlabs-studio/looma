@@ -51,7 +51,7 @@ Default slot; expects `ui-menu-item` descendants.
   <TabItem value="react" label="React">
 
 ```tsx
-import { Menu, MenuItem } from "@ui/react";
+import { Menu, MenuItem } from "@looma/react";
 
 export function Example() {
   return (
@@ -68,7 +68,7 @@ export function Example() {
 
 ```ts
 import { h } from "vue";
-import { Menu, MenuItem } from "@ui/vue";
+import { Menu, MenuItem } from "@looma/vue";
 
 export const Example = {
   setup() {
@@ -85,7 +85,7 @@ export const Example = {
 
 ```svelte
 <script lang="ts">
-  import { bindAdapter } from "@ui/svelte";
+  import { bindAdapter } from "@looma/svelte";
   const options = { onSelect: (detail: unknown) => console.log(detail) };
 </script>
 

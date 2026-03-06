@@ -52,7 +52,7 @@ Default slot with authored trigger/content children.
   <TabItem value="react" label="React">
 
 ```tsx
-import { Disclosure } from "@ui/react";
+import { Disclosure } from "@looma/react";
 
 export function Example() {
   return (
@@ -69,7 +69,7 @@ export function Example() {
 
 ```ts
 import { h } from "vue";
-import { Disclosure } from "@ui/vue";
+import { Disclosure } from "@looma/vue";
 
 export const Example = {
   setup() {
@@ -89,7 +89,7 @@ export const Example = {
 
 ```svelte
 <script lang="ts">
-  import { bindAdapter } from "@ui/svelte";
+  import { bindAdapter } from "@looma/svelte";
   const options = { onOpen: (detail: unknown) => console.log(detail) };
 </script>
 

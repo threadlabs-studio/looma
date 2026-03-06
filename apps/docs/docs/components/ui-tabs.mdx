@@ -55,7 +55,7 @@ Default slot with authored tablist/tabs/panels.
   <TabItem value="react" label="React">
 
 ```tsx
-import { Tabs as UITabs } from "@ui/react";
+import { Tabs as UITabs } from "@looma/react";
 
 export function Example() {
   return <UITabs onSelect={(detail) => console.log(detail)}>...</UITabs>;
@@ -67,7 +67,7 @@ export function Example() {
 
 ```ts
 import { h } from "vue";
-import { Tabs as UITabs } from "@ui/vue";
+import { Tabs as UITabs } from "@looma/vue";
 
 export const Example = { setup: () => () => h(UITabs, { onSelect: (detail: unknown) => console.log(detail) }) };
 ```
@@ -77,7 +77,7 @@ export const Example = { setup: () => () => h(UITabs, { onSelect: (detail: unkno
 
 ```svelte
 <script lang="ts">
-  import { bindAdapter } from "@ui/svelte";
+  import { bindAdapter } from "@looma/svelte";
   const options = { onSelect: (detail: unknown) => console.log(detail) };
 </script>
 

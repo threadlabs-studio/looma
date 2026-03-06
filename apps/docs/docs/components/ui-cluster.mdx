@@ -52,7 +52,7 @@ Default slot only.
   <TabItem value="react" label="React">
 
 ```tsx
-import { Cluster } from "@ui/react";
+import { Cluster } from "@looma/react";
 
 export function Example() {
   return <Cluster gap="s" justify="between">...</Cluster>;
@@ -64,7 +64,7 @@ export function Example() {
 
 ```ts
 import { h } from "vue";
-import { Cluster } from "@ui/vue";
+import { Cluster } from "@looma/vue";
 
 export const Example = { setup: () => () => h(Cluster, { gap: "s", justify: "between" }) };
 ```

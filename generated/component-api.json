@@ -3,7 +3,7 @@
   "components": [
     {
       "tag": "ui-avatar",
-      "package": "@ui/core",
+      "package": "@looma/core",
       "className": "UIAvatarElement",
       "description": "Image and fallback initials primitive for identity surfaces such as profiles and assignees.",
       "attributes": [
@@ -64,7 +64,7 @@
     },
     {
       "tag": "ui-badge",
-      "package": "@ui/core",
+      "package": "@looma/core",
       "className": "UIBadgeElement",
       "description": "Lightweight status and label primitive with minimal styling hooks.",
       "attributes": [
@@ -103,7 +103,7 @@
     },
     {
       "tag": "ui-button",
-      "package": "@ui/core",
+      "package": "@looma/core",
       "className": "UIButtonElement",
       "description": "Essential button primitive that enhances semantic button markup and styling hooks.",
       "attributes": [
@@ -153,7 +153,7 @@
     },
     {
       "tag": "ui-center",
-      "package": "@ui/layout",
+      "package": "@looma/layout",
       "className": "UICenterElement",
       "description": "Container primitive for readable measure and horizontal gutters.",
       "attributes": [
@@ -188,7 +188,7 @@
     },
     {
       "tag": "ui-checkbox",
-      "package": "@ui/core",
+      "package": "@looma/core",
       "className": "UICheckboxElement",
       "description": "Form control primitive for boolean and mixed selection state.",
       "attributes": [
@@ -278,7 +278,7 @@
     },
     {
       "tag": "ui-cluster",
-      "package": "@ui/layout",
+      "package": "@looma/layout",
       "className": "UIClusterElement",
       "description": "Cluster layout primitive for wrapping item groups with shared alignment controls.",
       "attributes": [
@@ -322,7 +322,7 @@
     },
     {
       "tag": "ui-dialog",
-      "package": "@ui/core",
+      "package": "@looma/core",
       "className": "UIDialogElement",
       "description": "Overlay primitive that coordinates native `dialog` behavior with shared overlay stack rules.",
       "attributes": [
@@ -379,7 +379,7 @@
     },
     {
       "tag": "ui-disclosure",
-      "package": "@ui/core",
+      "package": "@looma/core",
       "className": "UIDisclosureElement",
       "description": "Progressively enhances a button/content pair into an accessible disclosure.",
       "attributes": [
@@ -436,7 +436,7 @@
     },
     {
       "tag": "ui-form-field",
-      "package": "@ui/core",
+      "package": "@looma/core",
       "className": "UIFormFieldElement",
       "description": "Form-field composition primitive that links label/control/description semantics.",
       "attributes": [
@@ -486,7 +486,7 @@
     },
     {
       "tag": "ui-grid",
-      "package": "@ui/layout",
+      "package": "@looma/layout",
       "className": "UIGridElement",
       "description": "Responsive auto-fit grid primitive.",
       "attributes": [
@@ -521,7 +521,7 @@
     },
     {
       "tag": "ui-inline",
-      "package": "@ui/layout",
+      "package": "@looma/layout",
       "className": "UIInlineElement",
       "description": "Inline layout primitive for row-style content with wrapping support.",
       "attributes": [
@@ -574,7 +574,7 @@
     },
     {
       "tag": "ui-input",
-      "package": "@ui/core",
+      "package": "@looma/core",
       "className": "UIInputElement",
       "description": "Essential text-input primitive that mirrors value/state to native input controls.",
       "attributes": [
@@ -646,7 +646,7 @@
     },
     {
       "tag": "ui-menu",
-      "package": "@ui/core",
+      "package": "@looma/core",
       "className": "UIMenuElement",
       "description": "Menu container primitive that manages focus and selection across `ui-menu-item` children.",
       "attributes": [
@@ -698,7 +698,7 @@
     },
     {
       "tag": "ui-menu-item",
-      "package": "@ui/core",
+      "package": "@looma/core",
       "className": "UIMenuItemElement",
       "description": "Focusable menu item primitive intended for use inside `ui-menu`.",
       "attributes": [
@@ -730,7 +730,7 @@
     },
     {
       "tag": "ui-popover",
-      "package": "@ui/core",
+      "package": "@looma/core",
       "className": "UIPopoverElement",
       "description": "Non-modal overlay primitive with shared open/close overlay lifecycle.",
       "attributes": [
@@ -776,7 +776,7 @@
     },
     {
       "tag": "ui-radio",
-      "package": "@ui/core",
+      "package": "@looma/core",
       "className": "UIRadioElement",
       "description": "Radio control primitive for mutually exclusive options, typically composed within `ui-radio-group`.",
       "attributes": [
@@ -866,7 +866,7 @@
     },
     {
       "tag": "ui-radio-group",
-      "package": "@ui/core",
+      "package": "@looma/core",
       "className": "UIRadioGroupElement",
       "description": "Grouped selection primitive that coordinates `ui-radio` descendants, keyboard navigation, and normalized selection events.",
       "attributes": [
@@ -959,7 +959,7 @@
     },
     {
       "tag": "ui-separator",
-      "package": "@ui/layout",
+      "package": "@looma/layout",
       "className": "UISeparatorElement",
       "description": "Semantic separator primitive with horizontal and vertical orientations.",
       "attributes": [
@@ -992,7 +992,7 @@
     },
     {
       "tag": "ui-stack",
-      "package": "@ui/layout",
+      "package": "@looma/layout",
       "className": "UIStackElement",
       "description": "Vertical layout primitive that owns spacing between children.",
       "attributes": [
@@ -1036,7 +1036,7 @@
     },
     {
       "tag": "ui-switch",
-      "package": "@ui/core",
+      "package": "@looma/core",
       "className": "UISwitchElement",
       "description": "Binary control primitive that reflects switch semantics for checked state.",
       "attributes": [
@@ -1115,7 +1115,7 @@
     },
     {
       "tag": "ui-tabs",
-      "package": "@ui/core",
+      "package": "@looma/core",
       "className": "UITabsElement",
       "description": "Tablist primitive that synchronizes tab focus, selection, and panel visibility.",
       "attributes": [
@@ -1174,7 +1174,7 @@
     },
     {
       "tag": "ui-toast-region",
-      "package": "@ui/core",
+      "package": "@looma/core",
       "className": "UIToastRegionElement",
       "description": "Live-region container primitive for stackable dismissible toasts.",
       "attributes": [
@@ -1221,7 +1221,7 @@
     },
     {
       "tag": "ui-tooltip",
-      "package": "@ui/core",
+      "package": "@looma/core",
       "className": "UITooltipElement",
       "description": "Contextual overlay primitive that links descriptive content to a trigger element.",
       "attributes": [

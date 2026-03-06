@@ -1,5 +1,5 @@
 {
-  "name": "@ui/tokens",
+  "name": "@looma/tokens",
   "version": "0.0.0",
   "type": "module",
   "sideEffects": [

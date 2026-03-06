@@ -1,0 +1,12 @@
+---
+description: Looma uses .cursor as AI guidance source of truth
+alwaysApply: true
+---
+
+# Source of Truth
+
+- Keep all active AI guidance in `.cursor`.
+- Use `.cursor/rules` for repository-level instruction policy.
+- Use `.cursor/agents` and `.cursor/skills` for reusable workflows.
+
+If legacy guidance exists elsewhere, prefer `.cursor` content.

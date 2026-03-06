@@ -50,7 +50,7 @@ Default slot only.
   <TabItem value="react" label="React">
 
 ```tsx
-import { Popover } from "@ui/react";
+import { Popover } from "@looma/react";
 
 export function Example() {
   return <Popover onOpen={(detail) => console.log(detail)}>Help content</Popover>;
@@ -62,7 +62,7 @@ export function Example() {
 
 ```ts
 import { h } from "vue";
-import { Popover } from "@ui/vue";
+import { Popover } from "@looma/vue";
 
 export const Example = { setup: () => () => h(Popover, { onOpen: (detail: unknown) => console.log(detail) }, "Help content") };
 ```
@@ -72,7 +72,7 @@ export const Example = { setup: () => () => h(Popover, { onOpen: (detail: unknow
 
 ```svelte
 <script lang="ts">
-  import { bindAdapter } from "@ui/svelte";
+  import { bindAdapter } from "@looma/svelte";
   const options = { onOpen: (detail: unknown) => console.log(detail) };
 </script>
 

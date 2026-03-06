@@ -38,7 +38,10 @@ Default slot. Typically contains a native `<button>`.
 
 ```html
 <ui-button variant="solid" size="sm">
-  <button type="button">Save</button>
+  <button type="button" aria-label="Save page">
+    <span aria-hidden="true">✦</span>
+    Save page
+  </button>
 </ui-button>
 ```
 
@@ -48,12 +51,15 @@ Default slot. Typically contains a native `<button>`.
   <TabItem value="react" label="React">
 
 ```tsx
-import { Button } from "@ui/react";
+import { Button } from "@looma/react";
 
 export function Example() {
   return (
     <Button variant="solid" size="sm">
-      <button type="button">Save</button>
+      <button type="button" aria-label="Save page">
+        <span aria-hidden="true">✦</span>
+        Save page
+      </button>
     </Button>
   );
 }
@@ -64,9 +70,20 @@ export function Example() {
 
 ```ts
 import { h } from "vue";
-import { Button } from "@ui/vue";
+import { Button } from "@looma/vue";
 
-export const Example = { setup: () => () => h(Button, { variant: "solid", size: "sm" }, () => h("button", { type: "button" }, "Save")) };
+export const Example = {
+  setup: () => () =>
+    h(
+      Button,
+      { variant: "solid", size: "sm" },
+      () =>
+        h("button", { type: "button", "aria-label": "Save page" }, [
+          h("span", { "aria-hidden": "true" }, "✦"),
+          " Save page"
+        ])
+    )
+};
 ```
 
   </TabItem>

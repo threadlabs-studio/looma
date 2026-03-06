@@ -1,0 +1,27 @@
+---
+description: Keep Looma reusable while supporting Knit as primary consumer
+alwaysApply: true
+---
+
+# Cross-Project Product Boundary (Looma <-> Knit)
+
+Looma is the official UI library of Knit, and also a general-purpose library for non-Knit apps.
+
+Sibling app repository: `../knit`
+
+## API Scope Rules
+
+- Build reusable primitives and options first.
+- Avoid domain-specific naming tied to Knit entities or routes.
+- Support Knit through theming, composition, and examples, not domain-coupled APIs.
+
+## Promotion Rules
+
+- Promote generic components/options discovered in Knit usage.
+- Keep Knit business logic and domain orchestration in `../knit`.
+- Prefer additive APIs (slots/props/events) over app-specific branching.
+
+## Docs Guidance
+
+- Examples can subtly reflect Knit visual style and icon usage.
+- Keep wording and API contracts framework- and app-agnostic.

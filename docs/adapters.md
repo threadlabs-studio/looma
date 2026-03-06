@@ -6,7 +6,7 @@ Keep framework adapters thin and mechanical: they pass props/attributes/children
 
 ## Adapter Mapping Matrix
 
-| Core Tag | React (`@ui/react`) | Vue (`@ui/vue`) | Svelte (`@ui/svelte`) |
+| Core Tag | React (`@looma/react`) | Vue (`@looma/vue`) | Svelte (`@looma/svelte`) |
 | --- | --- | --- | --- |
 | `ui-stack` | `Stack` | `Stack` | native element + `bindAdapter` |
 | `ui-inline` | `Inline` | `Inline` | native element + `bindAdapter` |
@@ -53,7 +53,7 @@ Adapters preserve core event names and detail payloads:
 ### React
 
 ```tsx
-import { Disclosure, Tabs, Button } from "@ui/react";
+import { Disclosure, Tabs, Button } from "@looma/react";
 
 export function Example() {
   return (
@@ -72,7 +72,7 @@ export function Example() {
 
 ```ts
 import { h } from "vue";
-import { Disclosure, Menu, MenuItem } from "@ui/vue";
+import { Disclosure, Menu, MenuItem } from "@looma/vue";
 
 export const Example = {
   setup() {
@@ -94,7 +94,7 @@ export const Example = {
 
 ```svelte
 <script lang="ts">
-  import { bindAdapter } from "@ui/svelte";
+  import { bindAdapter } from "@looma/svelte";
 
   const disclosureOptions = {
     onOpen: (detail) => console.log("open", detail),

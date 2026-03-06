@@ -1,5 +1,5 @@
 {
-  "name": "@ui/svelte",
+  "name": "@looma/svelte",
   "version": "0.0.0",
   "type": "module",
   "exports": {
@@ -15,8 +15,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@ui/core": "workspace:*",
-    "@ui/layout": "workspace:*"
+    "@looma/core": "workspace:*",
+    "@looma/layout": "workspace:*"
   },
   "peerDependencies": {
     "svelte": "^5.0.0"

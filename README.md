@@ -1,16 +1,16 @@
-# UI Monorepo
+# Looma Monorepo
 
-Stack-agnostic UI library based on web standards and Open UI principles.
+Looma is a stack-agnostic UI library based on web standards and Open UI principles.
 
 ## Packages
 
-- `@ui/core`: light DOM web components and behavior primitives.
-- `@ui/tokens`: CSS tokens and themes.
-- `@ui/layout`: layout primitives with no external margins.
-- `@ui/react`: thin React adapter.
-- `@ui/vue`: thin Vue adapter.
-- `@ui/svelte`: thin Svelte adapter.
-- `@ui/docs`: docs and examples.
+- `@looma/core`: light DOM web components and behavior primitives.
+- `@looma/tokens`: CSS tokens and themes.
+- `@looma/layout`: layout primitives with no external margins.
+- `@looma/react`: thin React adapter.
+- `@looma/vue`: thin Vue adapter.
+- `@looma/svelte`: thin Svelte adapter.
+- `@looma/docs`: docs and examples.
 
 ## Core Rules
 

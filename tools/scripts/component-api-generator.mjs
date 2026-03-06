@@ -7,11 +7,11 @@ const repoRoot = path.resolve(__dirname, "../..");
 
 const SOURCE_FILES = [
   {
-    packageName: "@ui/core",
+    packageName: "@looma/core",
     sourcePath: "packages/core/src/index.ts"
   },
   {
-    packageName: "@ui/layout",
+    packageName: "@looma/layout",
     sourcePath: "packages/layout/src/index.ts"
   }
 ];

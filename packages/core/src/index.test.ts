@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import "./index";
 
-describe("@ui/core primitives", () => {
+describe("@looma/core primitives", () => {
   beforeEach(() => {
     document.body.innerHTML = "";
   });

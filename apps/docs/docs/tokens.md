@@ -1,13 +1,13 @@
 # Tokens
 
-`@ui/tokens` ships CSS-only tokens and themes with deterministic layering.
+`@looma/tokens` ships CSS-only tokens and themes with deterministic layering.
 
 ## Files
 
-- `@ui/tokens/tokens.css`: primitive + semantic defaults.
-- `@ui/tokens/theme-light.css`: explicit light mode overrides.
-- `@ui/tokens/theme-dark.css`: dark mode overrides.
-- `@ui/tokens/theme-high-contrast.css`: high-contrast overrides.
+- `@looma/tokens/tokens.css`: primitive + semantic defaults.
+- `@looma/tokens/theme-light.css`: explicit light mode overrides.
+- `@looma/tokens/theme-dark.css`: dark mode overrides.
+- `@looma/tokens/theme-high-contrast.css`: high-contrast overrides.
 
 ## Layer Order
 

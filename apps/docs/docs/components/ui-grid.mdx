@@ -48,7 +48,7 @@ Default slot only.
   <TabItem value="react" label="React">
 
 ```tsx
-import { Grid } from "@ui/react";
+import { Grid } from "@looma/react";
 
 export function Example() {
   return <Grid gap="m" min="md">...</Grid>;
@@ -60,7 +60,7 @@ export function Example() {
 
 ```ts
 import { h } from "vue";
-import { Grid } from "@ui/vue";
+import { Grid } from "@looma/vue";
 
 export const Example = { setup: () => () => h(Grid, { gap: "m", min: "md" }) };
 ```

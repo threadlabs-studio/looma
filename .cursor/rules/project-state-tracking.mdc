@@ -7,6 +7,12 @@ alwaysApply: true
 
 After every meaningful implementation task, update `PROJECT_STATE.md` in the repo root.
 
+Cross-project context:
+
+- Looma's primary consumer is Knit at `../knit`.
+- Record whether a change is generic (stays in Looma) or app-domain (stays in Knit).
+- When relevant, note downstream Knit impact and any follow-up task in `../knit`.
+
 ## Required Updates
 
 - Update `Last Updated` with current date/time (local).

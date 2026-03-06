@@ -55,7 +55,7 @@ Default slot (typically contains one native `<dialog>` child).
   <TabItem value="react" label="React">
 
 ```tsx
-import { Dialog } from "@ui/react";
+import { Dialog } from "@looma/react";
 
 export function Example() {
   return <Dialog onClose={(detail) => console.log(detail)}>...</Dialog>;
@@ -67,7 +67,7 @@ export function Example() {
 
 ```ts
 import { h } from "vue";
-import { Dialog } from "@ui/vue";
+import { Dialog } from "@looma/vue";
 
 export const Example = { setup: () => () => h(Dialog, { onClose: (detail: unknown) => console.log(detail) }) };
 ```
@@ -77,7 +77,7 @@ export const Example = { setup: () => () => h(Dialog, { onClose: (detail: unknow
 
 ```svelte
 <script lang="ts">
-  import { bindAdapter } from "@ui/svelte";
+  import { bindAdapter } from "@looma/svelte";
   const options = { onClose: (detail: unknown) => console.log(detail) };
 </script>
 

@@ -2272,7 +2272,7 @@ class UIRadioGroupElement extends UIPrimitiveElement {
       this.syncInitialValue();
       this.syncSelection();
     });
-    this.#observer.observe(this, { childList: true, subtree: true, attributes: true });
+    this.#observer.observe(this, { childList: true, subtree: true });
     this.#initialized = true;
   }
 
@@ -2377,7 +2377,9 @@ class UIRadioGroupElement extends UIPrimitiveElement {
   }
 
   private getRadios(): UIRadioElement[] {
-    return Array.from(this.querySelectorAll<UIRadioElement>("ui-radio"));
+    return Array.from(this.querySelectorAll("ui-radio")).filter(
+      (radio): radio is UIRadioElement => radio instanceof UIRadioElement
+    );
   }
 
   private syncInitialValue(): void {

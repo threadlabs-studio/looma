@@ -56,7 +56,7 @@ Default slot; expects `ui-radio` children.
   <TabItem value="react" label="React">
 
 ```tsx
-import { RadioGroup, Radio } from "@ui/react";
+import { RadioGroup, Radio } from "@looma/react";
 
 export function Example() {
   return (
@@ -73,7 +73,7 @@ export function Example() {
 
 ```ts
 import { h } from "vue";
-import { RadioGroup, Radio } from "@ui/vue";
+import { RadioGroup, Radio } from "@looma/vue";
 
 export const Example = {
   setup: () => () =>
@@ -89,7 +89,7 @@ export const Example = {
 
 ```svelte
 <script lang="ts">
-  import { bindAdapter } from "@ui/svelte";
+  import { bindAdapter } from "@looma/svelte";
   const options = { onSelect: (detail) => console.log(detail) };
 </script>
 

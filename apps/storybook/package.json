@@ -1,5 +1,5 @@
 {
-  "name": "@ui/storybook",
+  "name": "@looma/storybook",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -13,9 +13,9 @@
     "typecheck": "echo \"storybook: typecheck not configured\""
   },
   "dependencies": {
-    "@ui/core": "workspace:*",
-    "@ui/layout": "workspace:*",
-    "@ui/tokens": "workspace:*"
+    "@looma/core": "workspace:*",
+    "@looma/layout": "workspace:*",
+    "@looma/tokens": "workspace:*"
   },
   "devDependencies": {
     "@storybook/addon-essentials": "^8.6.14",

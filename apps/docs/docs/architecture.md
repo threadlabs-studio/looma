@@ -1,6 +1,8 @@
 # Architecture
 
-Granola UI is organized as a platform-first monorepo where authored SSR HTML is canonical and runtime JavaScript progressively enhances behavior.
+Looma UI is organized as a platform-first monorepo where authored SSR HTML is canonical and runtime JavaScript progressively enhances behavior.
+
+It is the official UI library of [Knit](https://knit.wiki), but all public APIs remain domain-neutral so the same components can be used across non-Knit applications.
 
 ## Package Topology
 
@@ -18,18 +20,18 @@ packages/svelte
 ## Dependency Flow
 
 ```txt
-@ui/tokens -> @ui/layout -> apps/docs/apps/storybook
+@looma/tokens -> @looma/layout -> apps/docs/apps/storybook
         \         \
-         \         -> @ui/core -> @ui/react
-          \                     -> @ui/vue
-           \                    -> @ui/svelte
+         \         -> @looma/core -> @looma/react
+          \                     -> @looma/vue
+           \                    -> @looma/svelte
             --------------------> docs apps
 ```
 
 ## Responsibilities
 
-- `@ui/tokens`: semantic design tokens and theme files.
-- `@ui/layout`: spacing/layout primitives with the no-external-margin rule.
-- `@ui/core`: light DOM primitives and essentials.
-- `@ui/react`, `@ui/vue`, `@ui/svelte`: thin adapters with parity contracts.
-- `@ui/docs`, `@ui/storybook`: documentation surfaces for reference and testing.
+- `@looma/tokens`: semantic design tokens and theme files.
+- `@looma/layout`: spacing/layout primitives with the no-external-margin rule.
+- `@looma/core`: light DOM primitives and essentials.
+- `@looma/react`, `@looma/vue`, `@looma/svelte`: thin adapters with parity contracts.
+- `@looma/docs`, `@looma/storybook`: documentation surfaces for reference and testing.

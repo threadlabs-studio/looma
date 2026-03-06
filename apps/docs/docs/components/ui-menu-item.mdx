@@ -47,7 +47,7 @@ Default slot for menu item label/content.
   <TabItem value="react" label="React">
 
 ```tsx
-import { MenuItem } from "@ui/react";
+import { MenuItem } from "@looma/react";
 
 export function Example() {
   return <MenuItem value="edit">Edit</MenuItem>;
@@ -59,7 +59,7 @@ export function Example() {
 
 ```ts
 import { h } from "vue";
-import { MenuItem } from "@ui/vue";
+import { MenuItem } from "@looma/vue";
 
 export const Example = { setup: () => () => h(MenuItem, { value: "edit" }, () => "Edit") };
 ```

@@ -2,10 +2,10 @@ import type { Config } from "@docusaurus/types";
 import type * as Preset from "@docusaurus/preset-classic";
 
 const config: Config = {
-  title: "Granola UI Docs",
+  title: "Looma UI Docs",
   tagline: "SSR-first web component contracts",
   favicon: "img/favicon.ico",
-  url: "https://granola-ui.local",
+  url: "https://looma-ui.local",
   baseUrl: "/",
   onBrokenLinks: "throw",
   markdown: {
@@ -35,12 +35,17 @@ const config: Config = {
   ],
   themeConfig: {
     navbar: {
-      title: "Granola UI",
+      title: "Looma UI",
       items: [
         {
           to: "/",
           label: "Docs",
           position: "left"
+        },
+        {
+          href: "https://knit.wiki",
+          label: "Knit",
+          position: "right"
         }
       ]
     },

@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import "../src/index";
 
-describe("@ui/layout primitives", () => {
+describe("@looma/layout primitives", () => {
   beforeEach(() => {
     document.body.innerHTML = "";
   });
@@ -48,7 +48,7 @@ describe("@ui/layout primitives", () => {
   });
 });
 
-describe("@ui/layout css policy", () => {
+describe("@looma/layout css policy", () => {
   it("does not introduce external margins for spacing", () => {
     const css = readFileSync("src/layout.css", "utf8");
     const marginDeclarations = Array.from(css.matchAll(/\bmargin\s*:\s*([^;]+);/g)).map((match) =>

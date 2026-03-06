@@ -44,7 +44,7 @@ Default slot for badge text/content.
   <TabItem value="react" label="React">
 
 ```tsx
-import { Badge } from "@ui/react";
+import { Badge } from "@looma/react";
 
 export function Example() {
   return <Badge tone="accent">Beta</Badge>;
@@ -56,7 +56,7 @@ export function Example() {
 
 ```ts
 import { h } from "vue";
-import { Badge } from "@ui/vue";
+import { Badge } from "@looma/vue";
 
 export const Example = {
   setup: () => () => h(Badge, { tone: "accent" }, () => "Beta")

@@ -52,7 +52,7 @@ Default slot only (natural children).
   <TabItem value="react" label="React">
 
 ```tsx
-import { Inline } from "@ui/react";
+import { Inline } from "@looma/react";
 
 export function Example() {
   return <Inline gap="s" wrap="wrap">...</Inline>;
@@ -64,7 +64,7 @@ export function Example() {
 
 ```ts
 import { h } from "vue";
-import { Inline } from "@ui/vue";
+import { Inline } from "@looma/vue";
 
 export const Example = { setup: () => () => h(Inline, { gap: "s", wrap: "wrap" }) };
 ```

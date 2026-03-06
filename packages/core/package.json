@@ -1,5 +1,5 @@
 {
-  "name": "@ui/core",
+  "name": "@looma/core",
   "version": "0.0.0",
   "type": "module",
   "exports": {

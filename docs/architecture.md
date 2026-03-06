@@ -27,27 +27,27 @@ packages/svelte
 Level 2: dependency flow
 
 ```txt
-@ui/tokens  --->  @ui/layout  --->  apps/docs
+@looma/tokens  --->  @looma/layout  --->  apps/docs
       \              \
-       \              ---> @ui/core ---> @ui/react
-        \                              -> @ui/vue
-         \                             -> @ui/svelte
+       \              ---> @looma/core ---> @looma/react
+        \                              -> @looma/vue
+         \                             -> @looma/svelte
           ---------------------------------> apps/docs
 ```
 
 ## Package Responsibilities
 
-- `@ui/tokens`: theme variables, semantic scales, color/motion/contrast foundations.
-- `@ui/layout`: layout primitives that own spacing with `gap` and never external margins.
-- `@ui/core`: behavior and semantics primitives in light DOM web components.
-- `@ui/react`, `@ui/vue`, `@ui/svelte`: thin adapters that map props/events to core.
-- `@ui/docs`: usage guides, SSR examples, accessibility behavior reference.
+- `@looma/tokens`: theme variables, semantic scales, color/motion/contrast foundations.
+- `@looma/layout`: layout primitives that own spacing with `gap` and never external margins.
+- `@looma/core`: behavior and semantics primitives in light DOM web components.
+- `@looma/react`, `@looma/vue`, `@looma/svelte`: thin adapters that map props/events to core.
+- `@looma/docs`: usage guides, SSR examples, accessibility behavior reference.
 
 ## Token Flow
 
-- `@ui/tokens` defines primitive and semantic CSS variables in `@layer tokens`.
+- `@looma/tokens` defines primitive and semantic CSS variables in `@layer tokens`.
 - Theme files override semantics in `@layer theme`.
-- `@ui/layout` and `@ui/core` consume semantic tokens in `@layer components`.
+- `@looma/layout` and `@looma/core` consume semantic tokens in `@layer components`.
 - Apps may add utility classes in `@layer utilities`.
 
 ## Adapter Flow

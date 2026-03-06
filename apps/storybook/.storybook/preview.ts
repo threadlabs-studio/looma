@@ -1,12 +1,12 @@
 import type { Preview } from "@storybook/web-components-vite";
 
-import "@ui/tokens/tokens.css";
-import "@ui/tokens/theme-light.css";
-import "@ui/tokens/theme-dark.css";
-import "@ui/layout/layout.css";
-import "@ui/core/styles.css";
-import "@ui/layout";
-import "@ui/core";
+import "@looma/tokens/tokens.css";
+import "@looma/tokens/theme-light.css";
+import "@looma/tokens/theme-dark.css";
+import "@looma/layout/layout.css";
+import "@looma/core/styles.css";
+import "@looma/layout";
+import "@looma/core";
 
 const preview: Preview = {
   parameters: {

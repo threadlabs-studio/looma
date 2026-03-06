@@ -1,16 +1,27 @@
 # PROJECT_STATE
 
-Last Updated: 2026-03-06 22:29 PST
+Last Updated: 2026-03-06 10:13 PST
 Status: Active
 
 ## Current Focus
 
-- Stabilize M5 expansion across core, docs, and Storybook with generated API metadata as source of truth.
-- Keep CI enforcing docs/API drift detection and full workspace verification.
+- Complete Looma rebrand/scope migration (`@ui/*` -> `@looma/*`) and verify all workspace scripts after rename.
+- Harden Vue adapter parity for Knit migration readiness while keeping public APIs app-agnostic.
 
 ## Recent Progress
 
-- M5 core expansion completed for `@ui/core`:
+- Looma pivot foundation updates completed:
+  - Migrated package scope and imports across workspace from `@ui/*` to `@looma/*`.
+  - Rebranded docs/site metadata from Granola to Looma and updated docs-domain placeholder.
+  - Added cross-project rules clarifying Looma/Knit boundaries and promotion expectations.
+- Vue adapter parity + verification improvements:
+  - Added Vue exports for `RadioGroup`, `Radio`, `Badge`, and `Avatar` in `packages/vue/src/index.ts`.
+  - Added real Vue adapter tests in `packages/vue/src/index.test.ts` and enabled `vitest` test script in `packages/vue/package.json`.
+  - Updated adapter parity docs to reflect current Vue export coverage.
+- Docs positioning updates:
+  - Added official Knit relationship statement + link (`https://knit.wiki`) in docs.
+  - Added subtle Knit-style icon treatment in component examples while keeping API wording generic.
+- M5 core expansion completed for `@looma/core`:
   - Added `ui-tooltip`, `ui-toast-region`, `ui-checkbox`, and `ui-switch` custom elements in `packages/core/src/index.ts` with light-DOM, accessibility-first behavior.
   - Added component tests in `packages/core/src/index.test.ts` and contract READMEs under `packages/core/src/ui-*/README.md`.
 - API metadata enrichment completed:
@@ -55,13 +66,20 @@ Status: Active
 
 ## Verification Snapshot
 
+- Re-verified after Looma pivot foundation updates:
+  - `pnpm install --no-frozen-lockfile`: pass
+  - `pnpm typecheck`: pass
+  - `pnpm --filter @looma/vue test`: pass
+  - `pnpm build:docs`: pass
+  - `pnpm build:storybook`: pass
+  - Stale token scan (`Granola`, `granola`, `@ui/` across tracked files): no matches
 - `pnpm generate:api`: pass
 - `pnpm check:docs-sync`: pass
 - Workspace `pnpm typecheck`: pass
 - Workspace `pnpm build`: pass
 - Workspace `pnpm test`: pass
-- `@ui/docs` build: pass
-- `@ui/storybook` build: pass
+- `@looma/docs` build: pass
+- `@looma/storybook` build: pass
 - Re-verified after final sync wiring:
   - `pnpm generate:api`: pass
   - `pnpm check:docs-sync`: pass
@@ -90,6 +108,6 @@ Status: Active
 
 ## Next Up
 
-1. Define M6 component candidates and write contracts before implementation.
-2. Add adapter-focused tests for React/Vue/Svelte callback mapping on `change`/`dismiss`.
-3. Introduce CI job split (fast checks vs full build) for quicker PR feedback.
+1. Start Knit primitive replacement wave (toast/dialog/menu/button/input) on top of Looma.
+2. Close remaining React wrapper parity for `ui-radio-group`, `ui-radio`, `ui-badge`, and `ui-avatar`.
+3. Define M6 promotion candidates from Knit (`AvatarGroup`, FAB, search/command shell).

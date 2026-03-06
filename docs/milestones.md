@@ -23,7 +23,7 @@ Ship v1 in four delivery milestones after baseline specs and repository skeleton
 
 ### Tokens/Theming Agent
 
-- Implement `@ui/tokens` CSS layers and theme files.
+- Implement `@looma/tokens` CSS layers and theme files.
 - Validate color contrast and reduced motion behavior.
 - Provide semantic token mapping docs and examples.
 

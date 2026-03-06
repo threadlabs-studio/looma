@@ -1,5 +1,5 @@
-import "@ui/layout";
-import "@ui/core";
+import "@looma/layout";
+import "@looma/core";
 import {
   defineComponent,
   h,
@@ -144,6 +144,10 @@ export const Tooltip = createAdapterComponent("ui-tooltip", "Tooltip");
 export const ToastRegion = createAdapterComponent("ui-toast-region", "ToastRegion");
 export const Checkbox = createAdapterComponent("ui-checkbox", "Checkbox");
 export const Switch = createAdapterComponent("ui-switch", "Switch");
+export const RadioGroup = createAdapterComponent("ui-radio-group", "RadioGroup");
+export const Radio = createAdapterComponent("ui-radio", "Radio");
+export const Badge = createAdapterComponent("ui-badge", "Badge");
+export const Avatar = createAdapterComponent("ui-avatar", "Avatar");
 
 export const ADAPTER_COMPONENT_TAG_MAP = {
   Stack: "ui-stack",
@@ -164,7 +168,11 @@ export const ADAPTER_COMPONENT_TAG_MAP = {
   Tooltip: "ui-tooltip",
   ToastRegion: "ui-toast-region",
   Checkbox: "ui-checkbox",
-  Switch: "ui-switch"
+  Switch: "ui-switch",
+  RadioGroup: "ui-radio-group",
+  Radio: "ui-radio",
+  Badge: "ui-badge",
+  Avatar: "ui-avatar"
 } as const;
 
 export const VUE_ADAPTER_NOTE =
