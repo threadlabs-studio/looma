@@ -27,6 +27,10 @@ Keep framework adapters thin and mechanical: they pass props/attributes/children
 | `ui-toast-region` | `ToastRegion` | `ToastRegion` | native element + `bindAdapter` |
 | `ui-checkbox` | `Checkbox` | `Checkbox` | native element + `bindAdapter` |
 | `ui-switch` | `Switch` | `Switch` | native element + `bindAdapter` |
+| `ui-radio-group` | _pending wrapper export_ | _pending wrapper export_ | native element + `bindAdapter` |
+| `ui-radio` | _pending wrapper export_ | _pending wrapper export_ | native element + `bindAdapter` |
+| `ui-badge` | _pending wrapper export_ | _pending wrapper export_ | native element + `bindAdapter` |
+| `ui-avatar` | _pending wrapper export_ | _pending wrapper export_ | native element + `bindAdapter` |
 
 ## Event Parity
 

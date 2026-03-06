@@ -1,0 +1,103 @@
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# ui-radio-group
+
+Grouped selection primitive that coordinates `ui-radio` descendants, keyboard navigation, and normalized selection events.
+
+## Component Reference
+
+<ComponentExamplesApiTabs component="ui-radio-group" />
+
+## Attributes
+
+| Name | Type | Default |
+| --- | --- | --- |
+| `value` | `string` | `""` |
+| `name` | `string` | `""` |
+| `disabled` | `boolean` | `false` |
+| `required` | `boolean` | `false` |
+| `orientation` | `"horizontal" \| "vertical"` | `"horizontal"` |
+
+## Properties
+
+| Name | Type |
+| --- | --- |
+| `value` | `string` |
+| `name` | `string` |
+| `disabled` | `boolean` |
+| `required` | `boolean` |
+| `orientation` | `"horizontal" \| "vertical"` |
+
+## Events
+
+| Name | Detail |
+| --- | --- |
+| `select` | `{ value, previousValue, trigger }` |
+| `change` | `{ checked, value, trigger }` |
+
+## Slots
+
+Default slot; expects `ui-radio` children.
+
+## SSR Markup
+
+```html
+<ui-radio-group value="starter" name="plan">
+  <ui-radio value="starter">Starter</ui-radio>
+  <ui-radio value="pro">Pro</ui-radio>
+</ui-radio-group>
+```
+
+## Framework Snippets
+
+<Tabs>
+  <TabItem value="react" label="React">
+
+```tsx
+import { RadioGroup, Radio } from "@ui/react";
+
+export function Example() {
+  return (
+    <RadioGroup value="starter" onSelect={(detail) => console.log(detail)}>
+      <Radio value="starter">Starter</Radio>
+      <Radio value="pro">Pro</Radio>
+    </RadioGroup>
+  );
+}
+```
+
+  </TabItem>
+  <TabItem value="vue" label="Vue">
+
+```ts
+import { h } from "vue";
+import { RadioGroup, Radio } from "@ui/vue";
+
+export const Example = {
+  setup: () => () =>
+    h(RadioGroup, { value: "starter", onSelect: (detail: unknown) => console.log(detail) }, () => [
+      h(Radio, { value: "starter" }, () => "Starter"),
+      h(Radio, { value: "pro" }, () => "Pro")
+    ])
+};
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<script lang="ts">
+  import { bindAdapter } from "@ui/svelte";
+  const options = { onSelect: (detail) => console.log(detail) };
+</script>
+
+<ui-radio-group value="starter" use:bindAdapter={options}>
+  <ui-radio value="starter">Starter</ui-radio>
+  <ui-radio value="pro">Pro</ui-radio>
+</ui-radio-group>
+```
+
+  </TabItem>
+</Tabs>

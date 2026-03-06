@@ -25,6 +25,10 @@ Adapters must remain thin wrappers around the same light DOM contracts.
 | `ui-toast-region` | `ToastRegion` | `ToastRegion` | native element + `bindAdapter` |
 | `ui-checkbox` | `Checkbox` | `Checkbox` | native element + `bindAdapter` |
 | `ui-switch` | `Switch` | `Switch` | native element + `bindAdapter` |
+| `ui-radio-group` | _pending wrapper export_ | _pending wrapper export_ | native element + `bindAdapter` |
+| `ui-radio` | _pending wrapper export_ | _pending wrapper export_ | native element + `bindAdapter` |
+| `ui-badge` | _pending wrapper export_ | _pending wrapper export_ | native element + `bindAdapter` |
+| `ui-avatar` | _pending wrapper export_ | _pending wrapper export_ | native element + `bindAdapter` |
 
 ## Event Parity
 
@@ -35,3 +39,5 @@ Adapters must remain thin wrappers around the same light DOM contracts.
 - `dismiss`: `{ id, reason, trigger }`
 
 Adapters must not introduce behavior divergence or Shadow DOM.
+
+M6 note: until React/Vue wrapper exports are added, use native custom elements for these tags; Svelte should continue using `bindAdapter` on native elements for event/prop mapping.

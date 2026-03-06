@@ -29,6 +29,11 @@ interface ToggleChangeDetail {
   trigger: PrimitiveTrigger;
 }
 
+interface AvatarState {
+  hasImage: boolean;
+  fallbackText: string;
+}
+
 interface ToastDismissDetail {
   id: string;
   reason: PrimitiveReason;
@@ -79,6 +84,14 @@ function eventToTrigger(event: Event): PrimitiveTrigger {
 
 function isActivationKey(event: KeyboardEvent): boolean {
   return event.key === "Enter" || event.key === " ";
+}
+
+function isHorizontalArrowKey(event: KeyboardEvent): boolean {
+  return event.key === "ArrowRight" || event.key === "ArrowLeft";
+}
+
+function isVerticalArrowKey(event: KeyboardEvent): boolean {
+  return event.key === "ArrowDown" || event.key === "ArrowUp";
 }
 
 function normalizeOrientation(value: string | null): "horizontal" | "vertical" {
@@ -942,6 +955,20 @@ function syncBooleanAttribute(element: HTMLElement, name: string, value: boolean
     return;
   }
   element.removeAttribute(name);
+}
+
+function toInitials(value: string): string {
+  const tokens = value
+    .trim()
+    .split(/\s+/)
+    .filter((token) => token.length > 0);
+  if (tokens.length === 0) {
+    return "?";
+  }
+  if (tokens.length === 1) {
+    return tokens[0]!.slice(0, 2).toUpperCase();
+  }
+  return `${tokens[0]![0] ?? ""}${tokens[1]![0] ?? ""}`.toUpperCase();
 }
 
 function isLabelableControl(element: HTMLElement): boolean {
@@ -2000,6 +2027,673 @@ class UISwitchElement extends UIPrimitiveElement {
   };
 }
 
+class UIRadioElement extends UIPrimitiveElement {
+  static get observedAttributes(): string[] {
+    return ["checked", "default-checked", "disabled", "required", "value", "name"];
+  }
+
+  #input: HTMLInputElement | null = null;
+  #observer: MutationObserver | null = null;
+  #ownsTabIndex = false;
+  #syncingFromGroup = false;
+
+  connectedCallback(): void {
+    this.resolveInput();
+    this.attachInputListeners();
+    this.addEventListener("click", this.onClick);
+    this.addEventListener("keydown", this.onKeydown);
+    if (!this.hasAttribute("checked") && this.defaultChecked) {
+      this.checked = true;
+    }
+    this.syncState();
+    this.#observer = new MutationObserver(() => {
+      const previousInput = this.#input;
+      this.resolveInput();
+      if (previousInput !== this.#input) {
+        this.detachInputListeners(previousInput);
+        this.attachInputListeners();
+      }
+      this.syncState();
+    });
+    this.#observer.observe(this, { childList: true, subtree: true });
+  }
+
+  disconnectedCallback(): void {
+    this.detachInputListeners(this.#input);
+    this.removeEventListener("click", this.onClick);
+    this.removeEventListener("keydown", this.onKeydown);
+    this.#observer?.disconnect();
+    this.#observer = null;
+  }
+
+  get checked(): boolean {
+    return this.getBooleanAttribute("checked");
+  }
+
+  set checked(value: boolean) {
+    this.setBooleanAttribute("checked", value);
+  }
+
+  get defaultChecked(): boolean {
+    return this.getBooleanAttribute("default-checked");
+  }
+
+  set defaultChecked(value: boolean) {
+    this.setBooleanAttribute("default-checked", value);
+  }
+
+  get disabled(): boolean {
+    return this.getBooleanAttribute("disabled");
+  }
+
+  set disabled(value: boolean) {
+    this.setBooleanAttribute("disabled", value);
+  }
+
+  get required(): boolean {
+    return this.getBooleanAttribute("required");
+  }
+
+  set required(value: boolean) {
+    this.setBooleanAttribute("required", value);
+  }
+
+  get value(): string {
+    return this.getAttribute("value") ?? "on";
+  }
+
+  set value(next: string) {
+    this.setStringAttribute("value", next);
+  }
+
+  get name(): string {
+    return this.getStringAttribute("name");
+  }
+
+  set name(next: string) {
+    this.setStringAttribute("name", next);
+  }
+
+  attributeChangedCallback(_name: string, oldValue: string | null, newValue: string | null): void {
+    if (oldValue === newValue) {
+      return;
+    }
+    this.syncState();
+    if (this.#syncingFromGroup) {
+      return;
+    }
+    const group = this.closest("ui-radio-group");
+    if (group instanceof UIRadioGroupElement) {
+      group.syncSelectionFromChildren("programmatic");
+    }
+  }
+
+  setCheckedFromGroup(next: boolean, trigger: PrimitiveTrigger): void {
+    const changed = this.checked !== next;
+    this.#syncingFromGroup = true;
+    this.checked = next;
+    this.#syncingFromGroup = false;
+    this.syncState();
+    if (changed) {
+      this.emitChange(trigger);
+    }
+  }
+
+  syncGroupState(group: UIRadioGroupElement | null, selected: boolean): void {
+    const disabled = this.disabled || group?.disabled === true;
+    const required = this.required || group?.required === true;
+    const nextName = this.name || group?.name || "";
+    const enabledRadios = group?.getEnabledRadios() ?? [];
+    const selectedRadio = enabledRadios.find((radio) => radio.checked) ?? enabledRadios[0] ?? null;
+    const focusable = !disabled && selectedRadio === this;
+
+    if (this.#input) {
+      this.#input.type = "radio";
+      this.#input.checked = selected;
+      this.#input.defaultChecked = this.defaultChecked;
+      this.#input.disabled = disabled;
+      this.#input.required = required;
+      this.#input.value = this.value;
+      this.#input.name = nextName;
+    } else {
+      if (!this.hasAttribute("role")) {
+        this.setAttribute("role", "radio");
+      }
+      this.setAttribute("aria-checked", String(selected));
+      this.setAttribute("aria-disabled", String(disabled));
+      if (!this.hasAttribute("tabindex")) {
+        this.tabIndex = focusable ? 0 : -1;
+        this.#ownsTabIndex = true;
+      } else if (this.#ownsTabIndex) {
+        this.tabIndex = focusable ? 0 : -1;
+      }
+    }
+
+    syncBooleanAttribute(this, "data-checked", selected);
+    syncBooleanAttribute(this, "data-disabled", disabled);
+  }
+
+  private emitChange(trigger: PrimitiveTrigger): void {
+    dispatchPrimitiveEvent<ToggleChangeDetail>(this, "change", {
+      checked: this.checked,
+      value: this.value,
+      trigger
+    });
+  }
+
+  private resolveInput(): void {
+    this.#input = this.querySelector('input[type="radio"], input:not([type])');
+  }
+
+  private attachInputListeners(): void {
+    this.#input?.addEventListener("change", this.onNativeChange);
+  }
+
+  private detachInputListeners(input: HTMLInputElement | null): void {
+    input?.removeEventListener("change", this.onNativeChange);
+  }
+
+  private syncState(): void {
+    const group = this.closest("ui-radio-group");
+    const selectedValue =
+      group instanceof UIRadioGroupElement && group.value.length > 0 ? group.value : this.value;
+    this.syncGroupState(group instanceof UIRadioGroupElement ? group : null, selectedValue === this.value);
+  }
+
+  private requestSelection(trigger: PrimitiveTrigger): void {
+    if (this.disabled) {
+      return;
+    }
+    const group = this.closest("ui-radio-group");
+    if (group instanceof UIRadioGroupElement) {
+      group.selectRadio(this, trigger);
+      return;
+    }
+    if (this.checked) {
+      return;
+    }
+    this.checked = true;
+    this.syncState();
+    this.emitChange(trigger);
+  }
+
+  private onNativeChange = (): void => {
+    if (!this.#input) {
+      return;
+    }
+    this.checked = this.#input.checked;
+    if (this.#input.value !== this.value) {
+      this.value = this.#input.value;
+    }
+    this.syncState();
+    const group = this.closest("ui-radio-group");
+    if (group instanceof UIRadioGroupElement) {
+      group.selectRadio(this, "programmatic");
+      return;
+    }
+    this.emitChange("programmatic");
+  };
+
+  private onClick = (event: Event): void => {
+    if (this.#input) {
+      return;
+    }
+    event.preventDefault();
+    this.requestSelection(eventToTrigger(event));
+  };
+
+  private onKeydown = (event: KeyboardEvent): void => {
+    if (this.#input || !isActivationKey(event)) {
+      return;
+    }
+    event.preventDefault();
+    this.requestSelection("keyboard");
+  };
+}
+
+class UIRadioGroupElement extends UIPrimitiveElement {
+  static get observedAttributes(): string[] {
+    return ["value", "name", "disabled", "required", "orientation"];
+  }
+
+  #initialized = false;
+  #pendingSelect: { trigger: PrimitiveTrigger; previousValue?: string } | null = null;
+  #observer: MutationObserver | null = null;
+
+  connectedCallback(): void {
+    if (!this.hasAttribute("role")) {
+      this.setAttribute("role", "radiogroup");
+    }
+    this.syncInitialValue();
+    this.syncSelection();
+    this.addEventListener("click", this.onClick);
+    this.addEventListener("keydown", this.onKeydown);
+    this.#observer = new MutationObserver(() => {
+      this.syncInitialValue();
+      this.syncSelection();
+    });
+    this.#observer.observe(this, { childList: true, subtree: true, attributes: true });
+    this.#initialized = true;
+  }
+
+  disconnectedCallback(): void {
+    this.removeEventListener("click", this.onClick);
+    this.removeEventListener("keydown", this.onKeydown);
+    this.#observer?.disconnect();
+    this.#observer = null;
+  }
+
+  get value(): string {
+    return this.getStringAttribute("value");
+  }
+
+  set value(next: string) {
+    this.activateValue(next, { trigger: "programmatic" });
+  }
+
+  get name(): string {
+    return this.getStringAttribute("name");
+  }
+
+  set name(next: string) {
+    this.setStringAttribute("name", next);
+  }
+
+  get disabled(): boolean {
+    return this.getBooleanAttribute("disabled");
+  }
+
+  set disabled(value: boolean) {
+    this.setBooleanAttribute("disabled", value);
+  }
+
+  get required(): boolean {
+    return this.getBooleanAttribute("required");
+  }
+
+  set required(value: boolean) {
+    this.setBooleanAttribute("required", value);
+  }
+
+  get orientation(): "horizontal" | "vertical" {
+    return normalizeOrientation(this.getAttribute("orientation"));
+  }
+
+  set orientation(value: "horizontal" | "vertical") {
+    this.setStringAttribute("orientation", normalizeOrientation(value));
+  }
+
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+    if (oldValue === newValue) {
+      return;
+    }
+
+    this.syncSelection();
+
+    if (name !== "value" || !this.#initialized) {
+      return;
+    }
+
+    const pending = this.#pendingSelect ?? { trigger: "programmatic" };
+    this.#pendingSelect = null;
+
+    const selectDetail: SelectDetail = {
+      value: this.value,
+      trigger: pending.trigger
+    };
+    if (pending.previousValue) {
+      selectDetail.previousValue = pending.previousValue;
+    }
+    dispatchPrimitiveEvent<SelectDetail>(this, "select", selectDetail);
+    dispatchPrimitiveEvent<ToggleChangeDetail>(this, "change", {
+      checked: true,
+      value: this.value,
+      trigger: pending.trigger
+    });
+  }
+
+  getEnabledRadios(): UIRadioElement[] {
+    return this.getRadios().filter((radio) => !radio.disabled);
+  }
+
+  selectRadio(radio: UIRadioElement, trigger: PrimitiveTrigger): void {
+    if (radio.disabled) {
+      return;
+    }
+    this.activateValue(radio.value, { trigger });
+  }
+
+  syncSelectionFromChildren(trigger: PrimitiveTrigger): void {
+    const checked = this.getRadios().find((radio) => radio.checked);
+    if (!checked) {
+      if (this.value.length > 0) {
+        this.#pendingSelect = { trigger, previousValue: this.value };
+        this.removeAttribute("value");
+      }
+      this.syncSelection();
+      return;
+    }
+    this.activateValue(checked.value, { trigger });
+  }
+
+  private getRadios(): UIRadioElement[] {
+    return Array.from(this.querySelectorAll<UIRadioElement>("ui-radio"));
+  }
+
+  private syncInitialValue(): void {
+    if (this.hasAttribute("value")) {
+      return;
+    }
+    const radios = this.getRadios();
+    const checked = radios.find((radio) => radio.checked) ?? radios.find((radio) => radio.defaultChecked);
+    if (!checked) {
+      return;
+    }
+    this.setAttribute("value", checked.value);
+  }
+
+  private syncSelection(): void {
+    this.setAttribute("aria-orientation", this.orientation);
+    const radios = this.getRadios();
+    if (radios.length === 0) {
+      return;
+    }
+
+    const selected = radios.find((radio) => radio.value === this.value) ?? null;
+    if (!selected && this.value.length > 0) {
+      this.removeAttribute("value");
+      return;
+    }
+
+    for (const radio of radios) {
+      const checked = selected ? radio === selected : false;
+      radio.setCheckedFromGroup(checked, "programmatic");
+      radio.syncGroupState(this, checked);
+    }
+  }
+
+  private activateValue(nextValue: string, action: { trigger: PrimitiveTrigger }): void {
+    const radios = this.getRadios();
+    const nextRadio = radios.find((radio) => radio.value === nextValue && !radio.disabled);
+    if (!nextRadio) {
+      return;
+    }
+
+    const previousValue = this.value;
+    if (previousValue === nextRadio.value) {
+      this.syncSelection();
+      return;
+    }
+
+    this.#pendingSelect = { trigger: action.trigger };
+    if (previousValue.length > 0) {
+      this.#pendingSelect.previousValue = previousValue;
+    }
+    this.setAttribute("value", nextRadio.value);
+  }
+
+  private focusRadio(radio: UIRadioElement): void {
+    const input = radio.querySelector<HTMLInputElement>('input[type="radio"], input:not([type])');
+    if (input instanceof HTMLElement && !input.disabled) {
+      input.focus();
+      return;
+    }
+    radio.focus();
+  }
+
+  private getNavigableRadios(): UIRadioElement[] {
+    return this.getEnabledRadios();
+  }
+
+  private onClick = (event: Event): void => {
+    const target = event.target;
+    if (!(target instanceof Element) || this.disabled) {
+      return;
+    }
+    const radio = target.closest("ui-radio");
+    if (!(radio instanceof UIRadioElement)) {
+      return;
+    }
+    this.selectRadio(radio, eventToTrigger(event));
+  };
+
+  private onKeydown = (event: KeyboardEvent): void => {
+    if (this.disabled) {
+      return;
+    }
+    const target = event.target;
+    if (!(target instanceof Element)) {
+      return;
+    }
+    const currentRadio = target.closest("ui-radio");
+    if (!(currentRadio instanceof UIRadioElement)) {
+      return;
+    }
+
+    const radios = this.getNavigableRadios();
+    const currentIndex = radios.indexOf(currentRadio);
+    if (currentIndex < 0) {
+      return;
+    }
+
+    const horizontal = this.orientation === "horizontal";
+    const canMoveForward =
+      (horizontal && event.key === "ArrowRight") || (!horizontal && event.key === "ArrowDown");
+    const canMoveBackward =
+      (horizontal && event.key === "ArrowLeft") || (!horizontal && event.key === "ArrowUp");
+
+    let nextRadio: UIRadioElement | undefined;
+    if (canMoveForward) {
+      nextRadio = radios[(currentIndex + 1) % radios.length];
+    } else if (canMoveBackward) {
+      nextRadio = radios[(currentIndex - 1 + radios.length) % radios.length];
+    } else if (event.key === "Home") {
+      [nextRadio] = radios;
+    } else if (event.key === "End") {
+      nextRadio = radios.at(-1);
+    } else if (
+      (horizontal && isVerticalArrowKey(event)) ||
+      (!horizontal && isHorizontalArrowKey(event))
+    ) {
+      return;
+    } else {
+      return;
+    }
+
+    if (!nextRadio) {
+      return;
+    }
+
+    event.preventDefault();
+    this.selectRadio(nextRadio, "keyboard");
+    this.focusRadio(nextRadio);
+  };
+}
+
+class UIBadgeElement extends UIPrimitiveElement {
+  static get observedAttributes(): string[] {
+    return ["variant", "tone"];
+  }
+
+  connectedCallback(): void {
+    this.syncState();
+  }
+
+  get variant(): string {
+    return this.getStringAttribute("variant");
+  }
+
+  set variant(value: string) {
+    this.setStringAttribute("variant", value);
+  }
+
+  get tone(): string {
+    return this.getStringAttribute("tone");
+  }
+
+  set tone(value: string) {
+    this.setStringAttribute("tone", value);
+  }
+
+  attributeChangedCallback(_name: string, oldValue: string | null, newValue: string | null): void {
+    if (oldValue === newValue) {
+      return;
+    }
+    this.syncState();
+  }
+
+  private syncState(): void {
+    setOptionalStringAttribute(this, "data-variant", this.variant);
+    setOptionalStringAttribute(this, "data-tone", this.tone);
+  }
+}
+
+class UIAvatarElement extends UIPrimitiveElement {
+  static get observedAttributes(): string[] {
+    return ["src", "alt", "name", "fallback"];
+  }
+
+  #image: HTMLImageElement | null = null;
+  #fallback: HTMLElement | null = null;
+  #observer: MutationObserver | null = null;
+
+  connectedCallback(): void {
+    this.resolveParts();
+    this.attachImageListeners();
+    this.syncState();
+    this.#observer = new MutationObserver(() => {
+      const previousImage = this.#image;
+      this.resolveParts();
+      if (previousImage !== this.#image) {
+        this.detachImageListeners(previousImage);
+        this.attachImageListeners();
+      }
+      this.syncState();
+    });
+    this.#observer.observe(this, { childList: true, subtree: true, attributes: true });
+  }
+
+  disconnectedCallback(): void {
+    this.detachImageListeners(this.#image);
+    this.#observer?.disconnect();
+    this.#observer = null;
+  }
+
+  get src(): string {
+    return this.getStringAttribute("src");
+  }
+
+  set src(value: string) {
+    this.setStringAttribute("src", value);
+  }
+
+  get alt(): string {
+    return this.getStringAttribute("alt");
+  }
+
+  set alt(value: string) {
+    this.setStringAttribute("alt", value);
+  }
+
+  get name(): string {
+    return this.getStringAttribute("name");
+  }
+
+  set name(value: string) {
+    this.setStringAttribute("name", value);
+  }
+
+  get fallback(): string {
+    return this.getStringAttribute("fallback");
+  }
+
+  set fallback(value: string) {
+    this.setStringAttribute("fallback", value);
+  }
+
+  attributeChangedCallback(_name: string, oldValue: string | null, newValue: string | null): void {
+    if (oldValue === newValue) {
+      return;
+    }
+    this.syncState();
+  }
+
+  private resolveParts(): void {
+    this.#image = this.querySelector("img");
+    this.#fallback = this.querySelector<HTMLElement>("[data-ui-avatar-fallback]");
+    if (!this.#fallback) {
+      const fallback = this.ownerDocument?.createElement("span");
+      if (!fallback) {
+        return;
+      }
+      fallback.setAttribute("data-ui-avatar-fallback", "");
+      this.append(fallback);
+      this.#fallback = fallback;
+    }
+  }
+
+  private attachImageListeners(): void {
+    this.#image?.addEventListener("load", this.onImageLoad);
+    this.#image?.addEventListener("error", this.onImageError);
+  }
+
+  private detachImageListeners(image: HTMLImageElement | null): void {
+    image?.removeEventListener("load", this.onImageLoad);
+    image?.removeEventListener("error", this.onImageError);
+  }
+
+  private computeState(): AvatarState {
+    const fallbackText = this.fallback || toInitials(this.name || this.alt);
+    const imageSrc = this.src;
+
+    if (this.#image) {
+      if (imageSrc.length > 0 && this.#image.getAttribute("src") !== imageSrc) {
+        this.#image.setAttribute("src", imageSrc);
+      }
+      const alt = this.alt || this.name || "Avatar";
+      this.#image.setAttribute("alt", alt);
+      const hasImage = imageSrc.length > 0 && this.#image.complete && this.#image.naturalWidth > 0;
+      return { hasImage, fallbackText };
+    }
+
+    return { hasImage: false, fallbackText };
+  }
+
+  private syncState(): void {
+    const state = this.computeState();
+    if (this.#fallback) {
+      this.#fallback.textContent = state.fallbackText;
+      this.#fallback.hidden = state.hasImage;
+      this.#fallback.setAttribute("aria-hidden", String(state.hasImage));
+    }
+
+    if (this.#image) {
+      this.#image.hidden = !state.hasImage;
+      this.#image.setAttribute("aria-hidden", String(!state.hasImage));
+    }
+
+    const label = this.alt || this.name || "Avatar";
+    this.setAttribute("aria-label", label);
+    syncBooleanAttribute(this, "data-has-image", state.hasImage);
+  }
+
+  private onImageLoad = (): void => {
+    this.syncState();
+  };
+
+  private onImageError = (): void => {
+    syncBooleanAttribute(this, "data-has-image", false);
+    if (this.#fallback) {
+      this.#fallback.hidden = false;
+      this.#fallback.setAttribute("aria-hidden", "false");
+    }
+    if (this.#image) {
+      this.#image.hidden = true;
+      this.#image.setAttribute("aria-hidden", "true");
+    }
+  };
+}
+
 const definitions: ReadonlyArray<readonly [string, CustomElementConstructor]> = [
   ["ui-disclosure", UIDisclosureElement],
   ["ui-tabs", UITabsElement],
@@ -2013,7 +2707,11 @@ const definitions: ReadonlyArray<readonly [string, CustomElementConstructor]> = 
   ["ui-tooltip", UITooltipElement],
   ["ui-toast-region", UIToastRegionElement],
   ["ui-checkbox", UICheckboxElement],
-  ["ui-switch", UISwitchElement]
+  ["ui-switch", UISwitchElement],
+  ["ui-radio-group", UIRadioGroupElement],
+  ["ui-radio", UIRadioElement],
+  ["ui-badge", UIBadgeElement],
+  ["ui-avatar", UIAvatarElement]
 ];
 
 for (const [tag, constructor] of definitions) {

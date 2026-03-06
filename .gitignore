@@ -6,6 +6,9 @@
 # Node artifact files
 node_modules/
 dist/
+apps/docs/.docusaurus/
+apps/docs/build/
+apps/storybook/storybook-static/
 
 # Compiled Java class files
 *.class

@@ -1,0 +1,91 @@
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# ui-avatar
+
+Image and fallback initials primitive for identity surfaces such as profiles and assignees.
+
+## Component Reference
+
+<ComponentExamplesApiTabs component="ui-avatar" />
+
+## Attributes
+
+| Name | Type | Default |
+| --- | --- | --- |
+| `src` | `string` | `""` |
+| `alt` | `string` | `""` |
+| `name` | `string` | `""` |
+| `fallback` | `string` | `""` |
+
+## Properties
+
+| Name | Type |
+| --- | --- |
+| `src` | `string` |
+| `alt` | `string` |
+| `name` | `string` |
+| `fallback` | `string` |
+
+## Events
+
+None.
+
+## Slots
+
+Default slot; typically includes an `<img>` with optional fallback content.
+
+## SSR Markup
+
+```html
+<ui-avatar name="Alex Morgan" src="/avatars/alex.png" alt="Alex Morgan">
+  <img />
+  <span data-ui-avatar-fallback></span>
+</ui-avatar>
+```
+
+## Framework Snippets
+
+<Tabs>
+  <TabItem value="react" label="React">
+
+```tsx
+import { Avatar } from "@ui/react";
+
+export function Example() {
+  return (
+    <Avatar name="Alex Morgan" src="/avatars/alex.png" alt="Alex Morgan">
+      <img />
+    </Avatar>
+  );
+}
+```
+
+  </TabItem>
+  <TabItem value="vue" label="Vue">
+
+```ts
+import { h } from "vue";
+import { Avatar } from "@ui/vue";
+
+export const Example = {
+  setup: () => () =>
+    h(Avatar, { name: "Alex Morgan", src: "/avatars/alex.png", alt: "Alex Morgan" }, () => [
+      h("img")
+    ])
+};
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<ui-avatar name="Alex Morgan" src="/avatars/alex.png" alt="Alex Morgan">
+  <img />
+  <span data-ui-avatar-fallback></span>
+</ui-avatar>
+```
+
+  </TabItem>
+</Tabs>

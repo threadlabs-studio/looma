@@ -354,4 +354,79 @@ describe("@ui/core primitives", () => {
     expect(toggle.getAttribute("aria-checked")).toBe("true");
     expect(events).toEqual([{ checked: true, value: "notifications", trigger: "keyboard" }]);
   });
+
+  it("emits radio-group select/change details and syncs checked state", () => {
+    document.body.innerHTML = `
+      <ui-radio-group value="alpha" orientation="horizontal" name="plan">
+        <ui-radio value="alpha">Alpha</ui-radio>
+        <ui-radio value="beta">Beta</ui-radio>
+      </ui-radio-group>
+    `;
+
+    const group = document.querySelector("ui-radio-group") as HTMLElement & { value: string };
+    const radios = Array.from(group.querySelectorAll("ui-radio")) as Array<HTMLElement & { checked: boolean }>;
+    const selectedEvents: Array<{ value: string; previousValue?: string; trigger: string }> = [];
+    const changeEvents: Array<{ checked: boolean; value: string; trigger: string }> = [];
+
+    group.addEventListener("select", (event) => {
+      if (!(event instanceof CustomEvent)) {
+        return;
+      }
+      selectedEvents.push(event.detail as { value: string; previousValue?: string; trigger: string });
+    });
+    group.addEventListener("change", (event) => {
+      if (!(event instanceof CustomEvent)) {
+        return;
+      }
+      changeEvents.push(event.detail as { checked: boolean; value: string; trigger: string });
+    });
+
+    expect(radios[0]?.checked).toBe(true);
+    expect(radios[1]?.checked).toBe(false);
+
+    radios[1]?.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true }));
+
+    expect(group.value).toBe("alpha");
+    radios[0]?.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+    expect(group.value).toBe("beta");
+    expect(radios[0]?.checked).toBe(false);
+    expect(radios[1]?.checked).toBe(true);
+    expect(selectedEvents.at(-1)).toEqual({ value: "beta", previousValue: "alpha", trigger: "keyboard" });
+    expect(changeEvents.at(-1)).toEqual({ checked: true, value: "beta", trigger: "keyboard" });
+  });
+
+  it("syncs ui-badge styling hooks from variant and tone", () => {
+    document.body.innerHTML = `<ui-badge variant="subtle" tone="accent">New</ui-badge>`;
+
+    const badge = document.querySelector("ui-badge") as HTMLElement & { variant: string; tone: string };
+
+    expect(badge.getAttribute("data-variant")).toBe("subtle");
+    expect(badge.getAttribute("data-tone")).toBe("accent");
+
+    badge.variant = "solid";
+    badge.tone = "";
+
+    expect(badge.getAttribute("data-variant")).toBe("solid");
+    expect(badge.hasAttribute("data-tone")).toBe(false);
+  });
+
+  it("shows avatar fallback initials when image fails", () => {
+    document.body.innerHTML = `
+      <ui-avatar name="Alex Morgan" src="/broken.png">
+        <img />
+      </ui-avatar>
+    `;
+
+    const avatar = document.querySelector("ui-avatar") as HTMLElement;
+    const image = avatar.querySelector("img") as HTMLImageElement;
+    const fallback = avatar.querySelector("[data-ui-avatar-fallback]") as HTMLElement;
+
+    expect(fallback.textContent).toBe("AM");
+
+    image.dispatchEvent(new Event("error"));
+
+    expect(image.hidden).toBe(true);
+    expect(fallback.hidden).toBe(false);
+    expect(avatar.getAttribute("data-has-image")).toBeNull();
+  });
 });

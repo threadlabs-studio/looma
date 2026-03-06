@@ -2,6 +2,106 @@
   "schemaVersion": 1,
   "components": [
     {
+      "tag": "ui-avatar",
+      "package": "@ui/core",
+      "className": "UIAvatarElement",
+      "description": "Image and fallback initials primitive for identity surfaces such as profiles and assignees.",
+      "attributes": [
+        {
+          "name": "alt",
+          "property": "alt",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "fallback",
+          "property": "fallback",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "name",
+          "property": "name",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "src",
+          "property": "src",
+          "type": "string",
+          "default": ""
+        }
+      ],
+      "properties": [
+        {
+          "name": "alt",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "fallback",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "src",
+          "type": "string",
+          "default": ""
+        }
+      ],
+      "events": [],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Default child content."
+        }
+      ]
+    },
+    {
+      "tag": "ui-badge",
+      "package": "@ui/core",
+      "className": "UIBadgeElement",
+      "description": "Lightweight status and label primitive with minimal styling hooks.",
+      "attributes": [
+        {
+          "name": "tone",
+          "property": "tone",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "variant",
+          "property": "variant",
+          "type": "string",
+          "default": ""
+        }
+      ],
+      "properties": [
+        {
+          "name": "tone",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "variant",
+          "type": "string",
+          "default": ""
+        }
+      ],
+      "events": [],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Default child content."
+        }
+      ]
+    },
+    {
       "tag": "ui-button",
       "package": "@ui/core",
       "className": "UIButtonElement",
@@ -665,6 +765,189 @@
           "detailType": "OpenCloseDetail",
           "detailSchema": "{ open: boolean; reason: PrimitiveReason; trigger: PrimitiveTrigger }",
           "detailDocs": "Emitted when the component transitions to an open state."
+        }
+      ],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Default child content."
+        }
+      ]
+    },
+    {
+      "tag": "ui-radio",
+      "package": "@ui/core",
+      "className": "UIRadioElement",
+      "description": "Radio control primitive for mutually exclusive options, typically composed within `ui-radio-group`.",
+      "attributes": [
+        {
+          "name": "checked",
+          "property": "checked",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "default-checked",
+          "property": "defaultChecked",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "disabled",
+          "property": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "name",
+          "property": "name",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "required",
+          "property": "required",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "value",
+          "property": "value",
+          "type": "string",
+          "default": "on"
+        }
+      ],
+      "properties": [
+        {
+          "name": "checked",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "defaultChecked",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "default": "on"
+        }
+      ],
+      "events": [
+        {
+          "name": "change",
+          "detailType": "ToggleChangeDetail",
+          "detailSchema": "{ checked: boolean; value: string; trigger: PrimitiveTrigger }",
+          "detailDocs": "Emitted when a toggleable control changes checked state."
+        }
+      ],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Default child content."
+        }
+      ]
+    },
+    {
+      "tag": "ui-radio-group",
+      "package": "@ui/core",
+      "className": "UIRadioGroupElement",
+      "description": "Grouped selection primitive that coordinates `ui-radio` descendants, keyboard navigation, and normalized selection events.",
+      "attributes": [
+        {
+          "name": "disabled",
+          "property": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "name",
+          "property": "name",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "orientation",
+          "property": "orientation",
+          "type": "\"horizontal\" | \"vertical\"",
+          "default": "horizontal",
+          "options": [
+            "horizontal",
+            "vertical"
+          ]
+        },
+        {
+          "name": "required",
+          "property": "required",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "value",
+          "property": "value",
+          "type": "string",
+          "default": ""
+        }
+      ],
+      "properties": [
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "orientation",
+          "type": "\"horizontal\" | \"vertical\"",
+          "default": "horizontal",
+          "options": [
+            "horizontal",
+            "vertical"
+          ]
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "default": ""
+        }
+      ],
+      "events": [
+        {
+          "name": "change",
+          "detailType": "ToggleChangeDetail",
+          "detailSchema": "{ checked: boolean; value: string; trigger: PrimitiveTrigger }",
+          "detailDocs": "Emitted when a toggleable control changes checked state."
+        },
+        {
+          "name": "select",
+          "detailType": "SelectDetail",
+          "detailSchema": "{ value: string; previousValue?: string; trigger: PrimitiveTrigger }",
+          "detailDocs": "Emitted when a selectable option becomes active."
         }
       ],
       "slots": [

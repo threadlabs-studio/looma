@@ -38,7 +38,9 @@ const sidebars: SidebarsConfig = {
         "components/ui-tooltip",
         "components/ui-toast-region",
         "components/ui-menu",
-        "components/ui-menu-item"
+        "components/ui-menu-item",
+        "components/ui-badge",
+        "components/ui-avatar"
       ]
     },
     {
@@ -49,7 +51,9 @@ const sidebars: SidebarsConfig = {
         "components/ui-input",
         "components/ui-form-field",
         "components/ui-checkbox",
-        "components/ui-switch"
+        "components/ui-switch",
+        "components/ui-radio-group",
+        "components/ui-radio"
       ]
     }
   ]

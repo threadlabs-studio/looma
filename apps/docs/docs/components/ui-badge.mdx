@@ -1,0 +1,74 @@
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# ui-badge
+
+Lightweight status and label primitive with minimal styling hooks.
+
+## Component Reference
+
+<ComponentExamplesApiTabs component="ui-badge" />
+
+## Attributes
+
+| Name | Type | Default |
+| --- | --- | --- |
+| `variant` | `string` | `""` |
+| `tone` | `string` | `""` |
+
+## Properties
+
+| Name | Type |
+| --- | --- |
+| `variant` | `string` |
+| `tone` | `string` |
+
+## Events
+
+None.
+
+## Slots
+
+Default slot for badge text/content.
+
+## SSR Markup
+
+```html
+<ui-badge variant="subtle" tone="accent">Beta</ui-badge>
+```
+
+## Framework Snippets
+
+<Tabs>
+  <TabItem value="react" label="React">
+
+```tsx
+import { Badge } from "@ui/react";
+
+export function Example() {
+  return <Badge tone="accent">Beta</Badge>;
+}
+```
+
+  </TabItem>
+  <TabItem value="vue" label="Vue">
+
+```ts
+import { h } from "vue";
+import { Badge } from "@ui/vue";
+
+export const Example = {
+  setup: () => () => h(Badge, { tone: "accent" }, () => "Beta")
+};
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<ui-badge tone="accent">Beta</ui-badge>
+```
+
+  </TabItem>
+</Tabs>

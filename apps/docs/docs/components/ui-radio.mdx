@@ -1,0 +1,99 @@
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# ui-radio
+
+Radio control primitive for mutually exclusive options, typically composed within `ui-radio-group`.
+
+## Component Reference
+
+<ComponentExamplesApiTabs component="ui-radio" />
+
+## Attributes
+
+| Name | Type | Default |
+| --- | --- | --- |
+| `checked` | `boolean` | `false` |
+| `default-checked` | `boolean` | `false` |
+| `disabled` | `boolean` | `false` |
+| `required` | `boolean` | `false` |
+| `value` | `string` | `"on"` |
+| `name` | `string` | `""` |
+
+## Properties
+
+| Name | Type |
+| --- | --- |
+| `checked` | `boolean` |
+| `defaultChecked` | `boolean` |
+| `disabled` | `boolean` |
+| `required` | `boolean` |
+| `value` | `string` |
+| `name` | `string` |
+
+## Events
+
+| Name | Detail |
+| --- | --- |
+| `change` | `{ checked, value, trigger }` |
+
+## Slots
+
+Default slot. Often wraps a native `<input type="radio">`.
+
+## SSR Markup
+
+```html
+<ui-radio value="starter">
+  <input type="radio" name="plan" />
+  Starter
+</ui-radio>
+```
+
+## Framework Snippets
+
+<Tabs>
+  <TabItem value="react" label="React">
+
+```tsx
+import { Radio } from "@ui/react";
+
+export function Example() {
+  return (
+    <Radio value="starter">
+      <input type="radio" name="plan" />
+      Starter
+    </Radio>
+  );
+}
+```
+
+  </TabItem>
+  <TabItem value="vue" label="Vue">
+
+```ts
+import { h } from "vue";
+import { Radio } from "@ui/vue";
+
+export const Example = {
+  setup: () => () =>
+    h(Radio, { value: "starter" }, () => [
+      h("input", { type: "radio", name: "plan" }),
+      "Starter"
+    ])
+};
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<ui-radio value="starter">
+  <input type="radio" name="plan" />
+  Starter
+</ui-radio>
+```
+
+  </TabItem>
+</Tabs>
