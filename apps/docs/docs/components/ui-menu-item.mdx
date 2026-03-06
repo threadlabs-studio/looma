@@ -1,0 +1,70 @@
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+# ui-menu-item
+
+Focusable menu item primitive intended for use inside `ui-menu`.
+
+## Attributes
+
+| Name | Type | Default |
+| --- | --- | --- |
+| `value` | `string` | text content |
+| `disabled` | `boolean` | `false` |
+
+## Properties
+
+| Name | Type |
+| --- | --- |
+| `value` | `string` |
+| `disabled` | `boolean` |
+
+## Events
+
+No direct custom events (selection is emitted by parent `ui-menu`).
+
+## Slots
+
+Default slot for menu item label/content.
+
+## SSR Markup
+
+```html
+<ui-menu role="menu">
+  <ui-menu-item value="edit">Edit</ui-menu-item>
+  <ui-menu-item value="archive" disabled>Archive</ui-menu-item>
+</ui-menu>
+```
+
+## Framework Snippets
+
+<Tabs>
+  <TabItem value="react" label="React">
+
+```tsx
+import { MenuItem } from "@ui/react";
+
+export function Example() {
+  return <MenuItem value="edit">Edit</MenuItem>;
+}
+```
+
+  </TabItem>
+  <TabItem value="vue" label="Vue">
+
+```ts
+import { h } from "vue";
+import { MenuItem } from "@ui/vue";
+
+export const Example = { setup: () => () => h(MenuItem, { value: "edit" }, () => "Edit") };
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<ui-menu-item value="edit">Edit</ui-menu-item>
+```
+
+  </TabItem>
+</Tabs>

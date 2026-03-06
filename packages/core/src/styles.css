@@ -1,0 +1,133 @@
+@layer components {
+  ui-button,
+  ui-input,
+  ui-form-field,
+  ui-disclosure,
+  ui-popover,
+  ui-dialog,
+  ui-tabs,
+  ui-menu,
+  ui-menu-item {
+    box-sizing: border-box;
+    margin: 0;
+  }
+
+  ui-button {
+    display: inline-flex;
+    vertical-align: middle;
+    color: var(--ui-text-primary);
+  }
+
+  ui-button > button {
+    appearance: none;
+    border: 1px solid var(--ui-border-default);
+    border-radius: var(--ui-radius-1);
+    background: var(--ui-surface-default);
+    color: inherit;
+    font: inherit;
+    line-height: 1.2;
+    padding: var(--ui-space-2) var(--ui-space-3);
+    cursor: pointer;
+    transition:
+      background-color var(--ui-motion-fast) var(--ui-motion-ease),
+      border-color var(--ui-motion-fast) var(--ui-motion-ease),
+      color var(--ui-motion-fast) var(--ui-motion-ease),
+      box-shadow var(--ui-motion-fast) var(--ui-motion-ease);
+    margin: 0;
+  }
+
+  ui-button[data-size="sm"] > button {
+    padding: var(--ui-space-1) var(--ui-space-2);
+    font-size: 0.875rem;
+  }
+
+  ui-button[data-size="lg"] > button {
+    padding: var(--ui-space-3) var(--ui-space-4);
+    font-size: 1rem;
+  }
+
+  ui-button[data-variant="solid"] > button {
+    border-color: var(--ui-accent-solid);
+    background: var(--ui-accent-solid);
+    color: var(--ui-text-on-accent);
+  }
+
+  ui-button[data-variant="solid"] > button:hover:enabled {
+    background: var(--ui-accent-hover);
+    border-color: var(--ui-accent-hover);
+  }
+
+  ui-button[data-variant="solid"] > button:active:enabled {
+    background: var(--ui-accent-active);
+    border-color: var(--ui-accent-active);
+  }
+
+  ui-button > button:focus-visible,
+  ui-input > input:focus-visible {
+    outline: 2px solid var(--ui-focus-ring);
+    outline-offset: 2px;
+  }
+
+  ui-button > button:disabled,
+  ui-button[data-disabled] {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  ui-input {
+    display: inline-flex;
+    color: var(--ui-text-primary);
+  }
+
+  ui-input > input {
+    width: 100%;
+    appearance: none;
+    border: 1px solid var(--ui-border-default);
+    border-radius: var(--ui-radius-1);
+    background: var(--ui-surface-default);
+    color: inherit;
+    font: inherit;
+    line-height: 1.4;
+    padding: var(--ui-space-2) var(--ui-space-3);
+    margin: 0;
+    transition:
+      border-color var(--ui-motion-fast) var(--ui-motion-ease),
+      box-shadow var(--ui-motion-fast) var(--ui-motion-ease),
+      background-color var(--ui-motion-fast) var(--ui-motion-ease);
+  }
+
+  ui-input[invalid] > input,
+  ui-form-field[invalid] ui-input > input,
+  ui-form-field[invalid] input,
+  ui-input > input[aria-invalid="true"] {
+    border-color: var(--ui-accent-active);
+  }
+
+  ui-input > input:disabled {
+    background: var(--ui-surface-muted);
+    color: var(--ui-text-muted);
+    cursor: not-allowed;
+  }
+
+  ui-form-field {
+    display: grid;
+    gap: var(--ui-space-2);
+    color: var(--ui-text-primary);
+  }
+
+  ui-form-field > label {
+    color: var(--ui-text-secondary);
+    font-size: 0.95rem;
+  }
+
+  ui-form-field [data-slot="help"] {
+    color: var(--ui-text-muted);
+    font-size: 0.875rem;
+  }
+
+  ui-form-field [data-slot="error"],
+  ui-form-field [role="alert"] {
+    color: var(--ui-accent-active);
+    font-size: 0.875rem;
+  }
+}

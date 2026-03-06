@@ -1,0 +1,81 @@
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+# ui-input
+
+Essential text-input primitive that mirrors value/state to native input controls.
+
+## Attributes
+
+| Name | Type | Default |
+| --- | --- | --- |
+| `value` | `string` | empty |
+| `default-value` | `string` | empty |
+| `disabled` | `boolean` | `false` |
+| `readonly` | `boolean` | `false` |
+| `invalid` | `boolean` | `false` |
+
+## Properties
+
+| Name | Type |
+| --- | --- |
+| `value` | `string` |
+| `defaultValue` | `string` |
+| `disabled` | `boolean` |
+| `readOnly` | `boolean` |
+| `invalid` | `boolean` |
+
+## Events
+
+Uses native `input` and `change` behavior via internal control synchronization.
+
+## Slots
+
+Default slot (typically one native `<input>` child).
+
+## SSR Markup
+
+```html
+<ui-input value="hello">
+  <input type="text" name="title" />
+</ui-input>
+```
+
+## Framework Snippets
+
+<Tabs>
+  <TabItem value="react" label="React">
+
+```tsx
+import { Input } from "@ui/react";
+
+export function Example() {
+  return (
+    <Input value="hello">
+      <input type="text" name="title" />
+    </Input>
+  );
+}
+```
+
+  </TabItem>
+  <TabItem value="vue" label="Vue">
+
+```ts
+import { h } from "vue";
+import { Input } from "@ui/vue";
+
+export const Example = { setup: () => () => h(Input, { value: "hello" }, () => h("input", { type: "text", name: "title" })) };
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<ui-input value="hello">
+  <input type="text" name="title" />
+</ui-input>
+```
+
+  </TabItem>
+</Tabs>

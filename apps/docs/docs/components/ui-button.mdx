@@ -1,0 +1,77 @@
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+# ui-button
+
+Essential button primitive that enhances semantic button markup and styling hooks.
+
+## Attributes
+
+| Name | Type | Default |
+| --- | --- | --- |
+| `variant` | `string` | empty |
+| `size` | `string` | empty |
+| `disabled` | `boolean` | `false` |
+
+## Properties
+
+| Name | Type |
+| --- | --- |
+| `variant` | `string` |
+| `size` | `string` |
+| `disabled` | `boolean` |
+
+## Events
+
+Uses native click/keyboard activation semantics.
+
+## Slots
+
+Default slot. Typically contains a native `<button>`.
+
+## SSR Markup
+
+```html
+<ui-button variant="solid" size="sm">
+  <button type="button">Save</button>
+</ui-button>
+```
+
+## Framework Snippets
+
+<Tabs>
+  <TabItem value="react" label="React">
+
+```tsx
+import { Button } from "@ui/react";
+
+export function Example() {
+  return (
+    <Button variant="solid" size="sm">
+      <button type="button">Save</button>
+    </Button>
+  );
+}
+```
+
+  </TabItem>
+  <TabItem value="vue" label="Vue">
+
+```ts
+import { h } from "vue";
+import { Button } from "@ui/vue";
+
+export const Example = { setup: () => () => h(Button, { variant: "solid", size: "sm" }, () => h("button", { type: "button" }, "Save")) };
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<ui-button variant="solid" size="sm">
+  <button type="button">Save</button>
+</ui-button>
+```
+
+  </TabItem>
+</Tabs>

@@ -1,0 +1,133 @@
+{
+  "docusaurus-plugin-content-docs": {
+    "default": {
+      "path": "/",
+      "versions": [
+        {
+          "name": "current",
+          "label": "Next",
+          "isLast": true,
+          "path": "/",
+          "mainDocId": "getting-started",
+          "docs": [
+            {
+              "id": "adapter-parity",
+              "path": "/adapter-parity",
+              "sidebar": "docs"
+            },
+            {
+              "id": "architecture",
+              "path": "/architecture",
+              "sidebar": "docs"
+            },
+            {
+              "id": "components/ui-button",
+              "path": "/components/ui-button",
+              "sidebar": "docs"
+            },
+            {
+              "id": "components/ui-center",
+              "path": "/components/ui-center",
+              "sidebar": "docs"
+            },
+            {
+              "id": "components/ui-cluster",
+              "path": "/components/ui-cluster",
+              "sidebar": "docs"
+            },
+            {
+              "id": "components/ui-dialog",
+              "path": "/components/ui-dialog",
+              "sidebar": "docs"
+            },
+            {
+              "id": "components/ui-disclosure",
+              "path": "/components/ui-disclosure",
+              "sidebar": "docs"
+            },
+            {
+              "id": "components/ui-form-field",
+              "path": "/components/ui-form-field",
+              "sidebar": "docs"
+            },
+            {
+              "id": "components/ui-grid",
+              "path": "/components/ui-grid",
+              "sidebar": "docs"
+            },
+            {
+              "id": "components/ui-inline",
+              "path": "/components/ui-inline",
+              "sidebar": "docs"
+            },
+            {
+              "id": "components/ui-input",
+              "path": "/components/ui-input",
+              "sidebar": "docs"
+            },
+            {
+              "id": "components/ui-menu",
+              "path": "/components/ui-menu",
+              "sidebar": "docs"
+            },
+            {
+              "id": "components/ui-menu-item",
+              "path": "/components/ui-menu-item",
+              "sidebar": "docs"
+            },
+            {
+              "id": "components/ui-popover",
+              "path": "/components/ui-popover",
+              "sidebar": "docs"
+            },
+            {
+              "id": "components/ui-separator",
+              "path": "/components/ui-separator",
+              "sidebar": "docs"
+            },
+            {
+              "id": "components/ui-stack",
+              "path": "/components/ui-stack",
+              "sidebar": "docs"
+            },
+            {
+              "id": "components/ui-tabs",
+              "path": "/components/ui-tabs",
+              "sidebar": "docs"
+            },
+            {
+              "id": "conventions",
+              "path": "/conventions",
+              "sidebar": "docs"
+            },
+            {
+              "id": "getting-started",
+              "path": "/",
+              "sidebar": "docs"
+            },
+            {
+              "id": "overlay-contract",
+              "path": "/overlay-contract",
+              "sidebar": "docs"
+            },
+            {
+              "id": "tokens",
+              "path": "/tokens",
+              "sidebar": "docs"
+            }
+          ],
+          "draftIds": [],
+          "sidebars": {
+            "docs": {
+              "link": {
+                "path": "/",
+                "label": "getting-started"
+              }
+            }
+          }
+        }
+      ],
+      "breadcrumbs": true
+    }
+  }
+}

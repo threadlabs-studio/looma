@@ -1,0 +1,94 @@
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+# ui-menu
+
+Menu container primitive that manages focus and selection across `ui-menu-item` children.
+
+## Attributes
+
+| Name | Type | Default |
+| --- | --- | --- |
+| `open` | `boolean` | `false` |
+| `default-open` | `boolean` | `false` |
+
+## Properties
+
+| Name | Type |
+| --- | --- |
+| `open` | `boolean` |
+| `defaultOpen` | `boolean` |
+
+## Events
+
+| Name | Detail |
+| --- | --- |
+| `open` | `{ open: true, reason, trigger }` |
+| `close` | `{ open: false, reason, trigger }` |
+| `select` | `{ value, trigger }` |
+
+## Slots
+
+Default slot; expects `ui-menu-item` descendants.
+
+## SSR Markup
+
+```html
+<ui-menu role="menu" aria-label="Actions">
+  <ui-menu-item value="edit">Edit</ui-menu-item>
+  <ui-menu-item value="archive">Archive</ui-menu-item>
+</ui-menu>
+```
+
+## Framework Snippets
+
+<Tabs>
+  <TabItem value="react" label="React">
+
+```tsx
+import { Menu, MenuItem } from "@ui/react";
+
+export function Example() {
+  return (
+    <Menu onSelect={(detail) => console.log(detail)}>
+      <MenuItem value="edit">Edit</MenuItem>
+      <MenuItem value="archive">Archive</MenuItem>
+    </Menu>
+  );
+}
+```
+
+  </TabItem>
+  <TabItem value="vue" label="Vue">
+
+```ts
+import { h } from "vue";
+import { Menu, MenuItem } from "@ui/vue";
+
+export const Example = {
+  setup() {
+    return () =>
+      h(Menu, { onSelect: (detail: unknown) => console.log(detail) }, {
+        default: () => [h(MenuItem, { value: "edit" }, () => "Edit"), h(MenuItem, { value: "archive" }, () => "Archive")]
+      });
+  }
+};
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<script lang="ts">
+  import { bindAdapter } from "@ui/svelte";
+  const options = { onSelect: (detail: unknown) => console.log(detail) };
+</script>
+
+<ui-menu use:bindAdapter={options}>
+  <ui-menu-item value="edit">Edit</ui-menu-item>
+  <ui-menu-item value="archive">Archive</ui-menu-item>
+</ui-menu>
+```
+
+  </TabItem>
+</Tabs>

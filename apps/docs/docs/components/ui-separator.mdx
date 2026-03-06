@@ -1,0 +1,66 @@
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+# ui-separator
+
+Semantic separator primitive with horizontal and vertical orientations.
+
+## Attributes
+
+| Name | Type | Default | Notes |
+| --- | --- | --- | --- |
+| `orientation` | `horizontal \| vertical` | `horizontal` | Reflected in `aria-orientation` when role is `separator`. |
+| `role` | `separator \| string` | `separator` | Non-separator role suppresses ARIA orientation reflection. |
+
+## Properties
+
+| Name | Type |
+| --- | --- |
+| `orientation` | `string` |
+
+## Events
+
+No custom events.
+
+## Slots
+
+No slots.
+
+## SSR Markup
+
+```html
+<ui-separator orientation="horizontal"></ui-separator>
+```
+
+## Framework Snippets
+
+<Tabs>
+  <TabItem value="react" label="React">
+
+```tsx
+import { Separator } from "@ui/react";
+
+export function Example() {
+  return <Separator orientation="vertical" style={{ blockSize: "2rem" }} />;
+}
+```
+
+  </TabItem>
+  <TabItem value="vue" label="Vue">
+
+```ts
+import { h } from "vue";
+import { Separator } from "@ui/vue";
+
+export const Example = { setup: () => () => h(Separator, { orientation: "vertical" }) };
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<ui-separator orientation="vertical"></ui-separator>
+```
+
+  </TabItem>
+</Tabs>

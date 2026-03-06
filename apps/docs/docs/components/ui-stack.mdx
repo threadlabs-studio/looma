@@ -1,0 +1,85 @@
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+# ui-stack
+
+Vertical layout primitive that owns spacing between children.
+
+## Attributes
+
+| Name | Type | Default | Notes |
+| --- | --- | --- | --- |
+| `gap` | `xs \| s \| m \| l \| xl \| string` | `m` | Maps to component spacing tokens. |
+| `align` | `start \| center \| end \| stretch` | `stretch` | Cross-axis alignment. |
+| `justify` | `start \| center \| end \| between` | `start` | Main-axis distribution. |
+
+## Properties
+
+| Name | Type |
+| --- | --- |
+| `gap` | `string` |
+| `align` | `string` |
+| `justify` | `string` |
+
+## Events
+
+No custom events.
+
+## Slots
+
+Default slot only (natural children).
+
+## SSR Markup
+
+```html
+<ui-stack gap="m" align="stretch">
+  <h2>Profile</h2>
+  <p>Manage your account settings.</p>
+  <button type="button">Save</button>
+</ui-stack>
+```
+
+## Framework Snippets
+
+<Tabs>
+  <TabItem value="react" label="React">
+
+```tsx
+import { Stack } from "@ui/react";
+
+export function Example() {
+  return (
+    <Stack gap="m">
+      <h2>Profile</h2>
+      <p>Manage your account settings.</p>
+    </Stack>
+  );
+}
+```
+
+  </TabItem>
+  <TabItem value="vue" label="Vue">
+
+```ts
+import { h } from "vue";
+import { Stack } from "@ui/vue";
+
+export const Example = {
+  setup() {
+    return () => h(Stack, { gap: "m" }, { default: () => [h("h2", "Profile"), h("p", "Manage your account settings.")] });
+  }
+};
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<ui-stack gap="m">
+  <h2>Profile</h2>
+  <p>Manage your account settings.</p>
+</ui-stack>
+```
+
+  </TabItem>
+</Tabs>

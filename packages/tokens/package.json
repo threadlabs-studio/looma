@@ -1,0 +1,21 @@
+{
+  "name": "@ui/tokens",
+  "version": "0.0.0",
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "exports": {
+    ".": "./src/tokens.css",
+    "./tokens.css": "./src/tokens.css",
+    "./theme-light.css": "./src/theme-light.css",
+    "./theme-dark.css": "./src/theme-dark.css",
+    "./theme-high-contrast.css": "./src/theme-high-contrast.css"
+  },
+  "scripts": {
+    "build": "echo \"tokens: css-only package\"",
+    "lint": "echo \"tokens: no lint configured\"",
+    "test": "echo \"tokens: no tests yet\"",
+    "typecheck": "echo \"tokens: no typecheck\""
+  }
+}

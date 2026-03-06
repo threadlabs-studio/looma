@@ -1,0 +1,71 @@
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+# ui-grid
+
+Responsive auto-fit grid primitive.
+
+## Attributes
+
+| Name | Type | Default | Notes |
+| --- | --- | --- | --- |
+| `gap` | `xs \| s \| m \| l \| string` | `m` | Grid gutter size. |
+| `min` | `sm \| md \| lg \| string` | `md` | Minimum column width token. |
+
+## Properties
+
+| Name | Type |
+| --- | --- |
+| `gap` | `string` |
+| `min` | `string` |
+
+## Events
+
+No custom events.
+
+## Slots
+
+Default slot only.
+
+## SSR Markup
+
+```html
+<ui-grid gap="m" min="md">
+  <article>Card A</article>
+  <article>Card B</article>
+  <article>Card C</article>
+</ui-grid>
+```
+
+## Framework Snippets
+
+<Tabs>
+  <TabItem value="react" label="React">
+
+```tsx
+import { Grid } from "@ui/react";
+
+export function Example() {
+  return <Grid gap="m" min="md">...</Grid>;
+}
+```
+
+  </TabItem>
+  <TabItem value="vue" label="Vue">
+
+```ts
+import { h } from "vue";
+import { Grid } from "@ui/vue";
+
+export const Example = { setup: () => () => h(Grid, { gap: "m", min: "md" }) };
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<ui-grid gap="m" min="md">...</ui-grid>
+```
+
+  </TabItem>
+</Tabs>

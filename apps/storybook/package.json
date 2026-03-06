@@ -1,0 +1,27 @@
+{
+  "name": "@ui/storybook",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "storybook dev -p 6006",
+    "build": "storybook build",
+    "lint": "echo \"storybook: lint not configured\"",
+    "test": "echo \"storybook: tests not configured\"",
+    "typecheck": "echo \"storybook: typecheck not configured\""
+  },
+  "dependencies": {
+    "@ui/core": "workspace:*",
+    "@ui/layout": "workspace:*",
+    "@ui/tokens": "workspace:*"
+  },
+  "devDependencies": {
+    "@storybook/addon-essentials": "^8.6.14",
+    "@storybook/web-components": "^8.6.14",
+    "@storybook/web-components-vite": "^8.6.14",
+    "@types/node": "^22.15.30",
+    "storybook": "^8.6.14",
+    "typescript": "^5.9.2",
+    "vite": "^6"
+  }
+}

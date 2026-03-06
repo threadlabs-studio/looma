@@ -1,0 +1,78 @@
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+# ui-popover
+
+Non-modal overlay primitive with shared open/close overlay lifecycle.
+
+## Attributes
+
+| Name | Type | Default |
+| --- | --- | --- |
+| `open` | `boolean` | `false` |
+| `default-open` | `boolean` | `false` |
+
+## Properties
+
+| Name | Type |
+| --- | --- |
+| `open` | `boolean` |
+| `defaultOpen` | `boolean` |
+
+## Events
+
+| Name | Detail |
+| --- | --- |
+| `open` | `{ open: true, reason, trigger }` |
+| `close` | `{ open: false, reason, trigger }` |
+
+## Slots
+
+Default slot only.
+
+## SSR Markup
+
+```html
+<button type="button" popovertarget="help-popover">Help</button>
+<ui-popover id="help-popover" popover="manual">
+  Keyboard shortcuts and tips.
+</ui-popover>
+```
+
+## Framework Snippets
+
+<Tabs>
+  <TabItem value="react" label="React">
+
+```tsx
+import { Popover } from "@ui/react";
+
+export function Example() {
+  return <Popover onOpen={(detail) => console.log(detail)}>Help content</Popover>;
+}
+```
+
+  </TabItem>
+  <TabItem value="vue" label="Vue">
+
+```ts
+import { h } from "vue";
+import { Popover } from "@ui/vue";
+
+export const Example = { setup: () => () => h(Popover, { onOpen: (detail: unknown) => console.log(detail) }, "Help content") };
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<script lang="ts">
+  import { bindAdapter } from "@ui/svelte";
+  const options = { onOpen: (detail: unknown) => console.log(detail) };
+</script>
+
+<ui-popover use:bindAdapter={options}>Help content</ui-popover>
+```
+
+  </TabItem>
+</Tabs>

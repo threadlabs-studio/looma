@@ -1,0 +1,21 @@
+@layer base {
+  @media (prefers-contrast: more) {
+    :root:not([data-contrast]) {
+      --ui-text-primary: #000000;
+      --ui-text-secondary: #111111;
+      --ui-text-muted: #222222;
+      --ui-border-default: #000000;
+      --ui-border-strong: #000000;
+      --ui-focus-ring: #0000ff;
+    }
+  }
+
+  [data-contrast="high"] {
+    --ui-text-primary: #000000;
+    --ui-text-secondary: #111111;
+    --ui-text-muted: #222222;
+    --ui-border-default: #000000;
+    --ui-border-strong: #000000;
+    --ui-focus-ring: #0000ff;
+  }
+}

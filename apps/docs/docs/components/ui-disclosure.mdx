@@ -1,0 +1,98 @@
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+# ui-disclosure
+
+Progressively enhances a button/content pair into an accessible disclosure.
+
+## Attributes
+
+| Name | Type | Default |
+| --- | --- | --- |
+| `open` | `boolean` | `false` |
+| `default-open` | `boolean` | `false` |
+| `disabled` | `boolean` | `false` |
+
+## Properties
+
+| Name | Type |
+| --- | --- |
+| `open` | `boolean` |
+| `defaultOpen` | `boolean` |
+| `disabled` | `boolean` |
+
+## Events
+
+| Name | Detail |
+| --- | --- |
+| `open` | `{ open: true, reason, trigger }` |
+| `close` | `{ open: false, reason, trigger }` |
+
+## Slots
+
+Default slot with authored trigger/content children.
+
+## SSR Markup
+
+```html
+<ui-disclosure>
+  <button type="button" aria-controls="faq-a1">What is light DOM?</button>
+  <div id="faq-a1" hidden>Inspectable SSR markup with progressive behavior.</div>
+</ui-disclosure>
+```
+
+## Framework Snippets
+
+<Tabs>
+  <TabItem value="react" label="React">
+
+```tsx
+import { Disclosure } from "@ui/react";
+
+export function Example() {
+  return (
+    <Disclosure onOpen={(detail) => console.log(detail)}>
+      <button type="button" aria-controls="faq-a1">What is light DOM?</button>
+      <div id="faq-a1" hidden>Inspectable SSR markup with progressive behavior.</div>
+    </Disclosure>
+  );
+}
+```
+
+  </TabItem>
+  <TabItem value="vue" label="Vue">
+
+```ts
+import { h } from "vue";
+import { Disclosure } from "@ui/vue";
+
+export const Example = {
+  setup() {
+    return () =>
+      h(Disclosure, { onOpen: (detail: unknown) => console.log(detail) }, {
+        default: () => [
+          h("button", { type: "button", "aria-controls": "faq-a1" }, "What is light DOM?"),
+          h("div", { id: "faq-a1", hidden: true }, "Inspectable SSR markup with progressive behavior.")
+        ]
+      });
+  }
+};
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<script lang="ts">
+  import { bindAdapter } from "@ui/svelte";
+  const options = { onOpen: (detail: unknown) => console.log(detail) };
+</script>
+
+<ui-disclosure use:bindAdapter={options}>
+  <button type="button" aria-controls="faq-a1">What is light DOM?</button>
+  <div id="faq-a1" hidden>Inspectable SSR markup with progressive behavior.</div>
+</ui-disclosure>
+```
+
+  </TabItem>
+</Tabs>

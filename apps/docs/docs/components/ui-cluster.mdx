@@ -1,0 +1,75 @@
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+# ui-cluster
+
+Cluster layout primitive for wrapping item groups with shared alignment controls.
+
+## Attributes
+
+| Name | Type | Default |
+| --- | --- | --- |
+| `gap` | `xs \| s \| m \| string` | `s` |
+| `align` | `start \| center \| end \| stretch` | `center` |
+| `justify` | `start \| center \| end \| between` | `start` |
+
+## Properties
+
+| Name | Type |
+| --- | --- |
+| `gap` | `string` |
+| `align` | `string` |
+| `justify` | `string` |
+
+## Events
+
+No custom events.
+
+## Slots
+
+Default slot only.
+
+## SSR Markup
+
+```html
+<ui-cluster gap="s" justify="between">
+  <span>Status: Active</span>
+  <ui-inline gap="s">
+    <button type="button">Save</button>
+    <button type="button">Cancel</button>
+  </ui-inline>
+</ui-cluster>
+```
+
+## Framework Snippets
+
+<Tabs>
+  <TabItem value="react" label="React">
+
+```tsx
+import { Cluster } from "@ui/react";
+
+export function Example() {
+  return <Cluster gap="s" justify="between">...</Cluster>;
+}
+```
+
+  </TabItem>
+  <TabItem value="vue" label="Vue">
+
+```ts
+import { h } from "vue";
+import { Cluster } from "@ui/vue";
+
+export const Example = { setup: () => () => h(Cluster, { gap: "s", justify: "between" }) };
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<ui-cluster gap="s" justify="between">...</ui-cluster>
+```
+
+  </TabItem>
+</Tabs>

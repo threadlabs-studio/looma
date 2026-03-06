@@ -1,0 +1,17 @@
+{
+  "name": "ui-monorepo",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Stack-agnostic UI library built on web standards and Open UI principles.",
+  "packageManager": "pnpm@10.7.0",
+  "scripts": {
+    "build": "pnpm -r run build",
+    "dev:docs": "pnpm --filter @ui/docs dev",
+    "dev:storybook": "pnpm --filter @ui/storybook dev",
+    "build:docs": "pnpm --filter @ui/docs build",
+    "build:storybook": "pnpm --filter @ui/storybook build",
+    "lint": "pnpm -r run lint",
+    "test": "pnpm -r run test",
+    "typecheck": "pnpm -r run typecheck"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "id": "components/ui-menu",
+  "title": "ui-menu",
+  "description": "Menu container primitive that manages focus and selection across ui-menu-item children.",
+  "source": "@site/docs/components/ui-menu.mdx",
+  "sourceDirName": "components",
+  "slug": "/components/ui-menu",
+  "permalink": "/components/ui-menu",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "docs",
+  "previous": {
+    "title": "ui-popover",
+    "permalink": "/components/ui-popover"
+  },
+  "next": {
+    "title": "ui-menu-item",
+    "permalink": "/components/ui-menu-item"
+  }
+}

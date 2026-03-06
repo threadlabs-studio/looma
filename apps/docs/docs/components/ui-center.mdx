@@ -1,0 +1,70 @@
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+# ui-center
+
+Container primitive for readable measure and horizontal gutters.
+
+## Attributes
+
+| Name | Type | Default |
+| --- | --- | --- |
+| `measure` | `narrow \| wide \| string` | `65ch` |
+| `gutters` | `s \| m \| l \| string` | `m` |
+
+## Properties
+
+| Name | Type |
+| --- | --- |
+| `measure` | `string` |
+| `gutters` | `string` |
+
+## Events
+
+No custom events.
+
+## Slots
+
+Default slot only.
+
+## SSR Markup
+
+```html
+<ui-center measure="wide" gutters="m">
+  <h1>Page Title</h1>
+  <p>Readable line length with consistent side gutters.</p>
+</ui-center>
+```
+
+## Framework Snippets
+
+<Tabs>
+  <TabItem value="react" label="React">
+
+```tsx
+import { Center } from "@ui/react";
+
+export function Example() {
+  return <Center measure="wide" gutters="m">...</Center>;
+}
+```
+
+  </TabItem>
+  <TabItem value="vue" label="Vue">
+
+```ts
+import { h } from "vue";
+import { Center } from "@ui/vue";
+
+export const Example = { setup: () => () => h(Center, { measure: "wide", gutters: "m" }) };
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<ui-center measure="wide" gutters="m">...</ui-center>
+```
+
+  </TabItem>
+</Tabs>

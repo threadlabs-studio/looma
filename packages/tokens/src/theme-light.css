@@ -1,0 +1,19 @@
+@layer base {
+  :root,
+  [data-theme="light"] {
+    color-scheme: light;
+    --ui-surface-canvas: #ffffff;
+    --ui-surface-default: #ffffff;
+    --ui-surface-muted: #f5f7fb;
+    --ui-surface-elevated: #ffffff;
+
+    --ui-text-primary: #101828;
+    --ui-text-secondary: #344054;
+    --ui-text-muted: #667085;
+    --ui-text-on-accent: #ffffff;
+
+    --ui-border-subtle: #e4e7ec;
+    --ui-border-default: #d0d5dd;
+    --ui-border-strong: #98a2b3;
+  }
+}

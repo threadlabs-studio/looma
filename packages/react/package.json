@@ -1,0 +1,29 @@
+{
+  "name": "@ui/react",
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "test": "echo \"react adapter: tests not configured yet\"",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@ui/core": "workspace:*",
+    "@ui/layout": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "~19.2.14",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.2"
+  }
+}

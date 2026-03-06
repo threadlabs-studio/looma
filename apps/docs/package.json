@@ -1,0 +1,24 @@
+{
+  "name": "@ui/docs",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "docusaurus start --port 4173",
+    "build": "docusaurus build",
+    "lint": "echo \"docs: lint not configured\"",
+    "test": "echo \"docs: tests not configured yet\"",
+    "typecheck": "echo \"docs: typecheck not configured\""
+  },
+  "dependencies": {
+    "@docusaurus/core": "^3.9.2",
+    "@docusaurus/preset-classic": "^3.9.2",
+    "@mdx-js/react": "^3.1.0",
+    "@ui/core": "workspace:*",
+    "@ui/layout": "workspace:*",
+    "@ui/tokens": "workspace:*"
+  },
+  "devDependencies": {
+    "@docusaurus/module-type-aliases": "^3.9.2",
+    "typescript": "^5.9.2"
+  }
+}

@@ -1,0 +1,83 @@
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+# ui-tabs
+
+Tablist primitive that synchronizes tab focus, selection, and panel visibility.
+
+## Attributes
+
+| Name | Type | Default |
+| --- | --- | --- |
+| `value` | `string` | first tab id |
+| `default-value` | `string` | empty |
+| `orientation` | `horizontal \| vertical` | `horizontal` |
+
+## Properties
+
+| Name | Type |
+| --- | --- |
+| `value` | `string` |
+| `defaultValue` | `string` |
+| `orientation` | `"horizontal" \| "vertical"` |
+
+## Events
+
+| Name | Detail |
+| --- | --- |
+| `select` | `{ value, previousValue?, trigger }` |
+
+## Slots
+
+Default slot with authored tablist/tabs/panels.
+
+## SSR Markup
+
+```html
+<ui-tabs>
+  <div role="tablist" aria-label="Sections">
+    <button role="tab" id="tab-overview" aria-controls="panel-overview">Overview</button>
+    <button role="tab" id="tab-details" aria-controls="panel-details">Details</button>
+  </div>
+  <section role="tabpanel" id="panel-overview" aria-labelledby="tab-overview">Overview content</section>
+  <section role="tabpanel" id="panel-details" aria-labelledby="tab-details" hidden>Details content</section>
+</ui-tabs>
+```
+
+## Framework Snippets
+
+<Tabs>
+  <TabItem value="react" label="React">
+
+```tsx
+import { Tabs as UITabs } from "@ui/react";
+
+export function Example() {
+  return <UITabs onSelect={(detail) => console.log(detail)}>...</UITabs>;
+}
+```
+
+  </TabItem>
+  <TabItem value="vue" label="Vue">
+
+```ts
+import { h } from "vue";
+import { Tabs as UITabs } from "@ui/vue";
+
+export const Example = { setup: () => () => h(UITabs, { onSelect: (detail: unknown) => console.log(detail) }) };
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<script lang="ts">
+  import { bindAdapter } from "@ui/svelte";
+  const options = { onSelect: (detail: unknown) => console.log(detail) };
+</script>
+
+<ui-tabs use:bindAdapter={options}>...</ui-tabs>
+```
+
+  </TabItem>
+</Tabs>

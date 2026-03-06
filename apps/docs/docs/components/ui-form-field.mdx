@@ -1,0 +1,104 @@
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+# ui-form-field
+
+Form-field composition primitive that links label/control/description semantics.
+
+## Attributes
+
+| Name | Type | Default |
+| --- | --- | --- |
+| `invalid` | `boolean` | `false` |
+| `required` | `boolean` | `false` |
+| `disabled` | `boolean` | `false` |
+
+## Properties
+
+| Name | Type |
+| --- | --- |
+| `invalid` | `boolean` |
+| `required` | `boolean` |
+| `disabled` | `boolean` |
+
+## Events
+
+No custom events.
+
+## Slots
+
+Default slot; recommended children:
+
+- `label`
+- control (`ui-input`, `input`, `textarea`, `select`, `button`)
+- optional help/error text with `data-slot="help"` and `data-slot="error"`
+
+## SSR Markup
+
+```html
+<ui-form-field required>
+  <label for="email">Email</label>
+  <ui-input>
+    <input id="email" name="email" type="email" />
+  </ui-input>
+  <small data-slot="help">We only use this for account notifications.</small>
+</ui-form-field>
+```
+
+## Framework Snippets
+
+<Tabs>
+  <TabItem value="react" label="React">
+
+```tsx
+import { FormField, Input } from "@ui/react";
+
+export function Example() {
+  return (
+    <FormField required>
+      <label htmlFor="email">Email</label>
+      <Input>
+        <input id="email" name="email" type="email" />
+      </Input>
+      <small data-slot="help">We only use this for account notifications.</small>
+    </FormField>
+  );
+}
+```
+
+  </TabItem>
+  <TabItem value="vue" label="Vue">
+
+```ts
+import { h } from "vue";
+import { FormField, Input } from "@ui/vue";
+
+export const Example = {
+  setup() {
+    return () =>
+      h(FormField, { required: true }, {
+        default: () => [
+          h("label", { for: "email" }, "Email"),
+          h(Input, null, () => h("input", { id: "email", name: "email", type: "email" })),
+          h("small", { "data-slot": "help" }, "We only use this for account notifications.")
+        ]
+      });
+  }
+};
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<ui-form-field required>
+  <label for="email">Email</label>
+  <ui-input>
+    <input id="email" name="email" type="email" />
+  </ui-input>
+  <small data-slot="help">We only use this for account notifications.</small>
+</ui-form-field>
+```
+
+  </TabItem>
+</Tabs>
