@@ -5,6 +5,8 @@ export interface SvelteAdapterEventMap {
   open: { open: boolean; reason: string; trigger: string };
   close: { open: boolean; reason: string; trigger: string };
   select: { value: string; previousValue?: string; trigger: string };
+  change: { checked: boolean; value: string; trigger: string };
+  dismiss: { id: string; reason: string; trigger: string };
 }
 
 export type AdapterTagName =
@@ -22,7 +24,11 @@ export type AdapterTagName =
   | "ui-menu-item"
   | "ui-button"
   | "ui-input"
-  | "ui-form-field";
+  | "ui-form-field"
+  | "ui-tooltip"
+  | "ui-toast-region"
+  | "ui-checkbox"
+  | "ui-switch";
 
 export type AdapterPropsRecord = Record<string, string | number | boolean | null | undefined>;
 
@@ -30,6 +36,8 @@ export type AdapterEventHandlers = {
   onOpen?: (detail: SvelteAdapterEventMap["open"]) => void;
   onClose?: (detail: SvelteAdapterEventMap["close"]) => void;
   onSelect?: (detail: SvelteAdapterEventMap["select"]) => void;
+  onChange?: (detail: SvelteAdapterEventMap["change"]) => void;
+  onDismiss?: (detail: SvelteAdapterEventMap["dismiss"]) => void;
 };
 
 export type SvelteAdapterOptions = AdapterEventHandlers & {
@@ -92,6 +100,22 @@ function bindEvents(node: HTMLElement, handlers: AdapterEventHandlers): Cleanup 
             handlers.onSelect?.((event as CustomEvent<SvelteAdapterEventMap["select"]>).detail);
           })
         : undefined
+    ],
+    [
+      "change",
+      typeof handlers.onChange === "function"
+        ? ((event: Event) => {
+            handlers.onChange?.((event as CustomEvent<SvelteAdapterEventMap["change"]>).detail);
+          })
+        : undefined
+    ],
+    [
+      "dismiss",
+      typeof handlers.onDismiss === "function"
+        ? ((event: Event) => {
+            handlers.onDismiss?.((event as CustomEvent<SvelteAdapterEventMap["dismiss"]>).detail);
+          })
+        : undefined
     ]
   ];
 
@@ -152,7 +176,11 @@ export const ADAPTER_COMPONENT_TAG_MAP = {
   MenuItem: "ui-menu-item",
   Button: "ui-button",
   Input: "ui-input",
-  FormField: "ui-form-field"
+  FormField: "ui-form-field",
+  Tooltip: "ui-tooltip",
+  ToastRegion: "ui-toast-region",
+  Checkbox: "ui-checkbox",
+  Switch: "ui-switch"
 } as const;
 
 export const SVELTE_ADAPTER_NOTE =

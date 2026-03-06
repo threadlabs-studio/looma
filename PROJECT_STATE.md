@@ -1,6 +1,6 @@
 # PROJECT_STATE
 
-Last Updated: 2026-03-05 22:15 PST
+Last Updated: 2026-03-06 22:29 PST
 Status: Active
 
 ## Current Focus
@@ -20,6 +20,11 @@ Status: Active
   - Added Docusaurus component pages and sidebar entries for `ui-tooltip`, `ui-toast-region`, `ui-checkbox`, and `ui-switch`.
   - Added Storybook stories for all four components using generated metadata helper utilities.
 - CI docs-sync enforcement added:
+- Adapter M5 parity completed:
+  - Added React/Vue exports for `Tooltip`, `ToastRegion`, `Checkbox`, and `Switch`.
+  - Extended Svelte adapter tag/event support for M5 (`change` and `dismiss` callbacks included).
+- Edge-case verification expanded:
+  - Added tooltip focus/escape test coverage and toast multi-item lifecycle tests in `packages/core/src/index.test.ts`.
   - Added `.github/workflows/ci.yml` running install, `generate:api`, `check:docs-sync`, `typecheck`, `build`, and `test`.
 - Docs/API sync pipeline implemented:
   - Added deterministic generator/check scripts in `tools/scripts` with root commands (`generate:api`, `check:docs-sync`, `generate:docs`).
@@ -69,6 +74,12 @@ Status: Active
   - `pnpm typecheck`: pass
   - `pnpm build`: pass
   - `pnpm test`: pass
+- Re-verified after adapter parity + edge-case test additions:
+  - `pnpm generate:api`: pass
+  - `pnpm check:docs-sync`: pass
+  - `pnpm typecheck`: pass
+  - `pnpm build`: pass
+  - `pnpm test`: pass
 - Notes:
   - Storybook emits non-blocking upstream warnings (`eval` and large chunk warnings) during build.
 
@@ -79,6 +90,6 @@ Status: Active
 
 ## Next Up
 
-1. Add adapter-level wrappers/examples for M5 components in React/Vue/Svelte packages where missing.
-2. Expand tests for tooltip focus/escape edge cases and toast lifecycle scenarios.
-3. Define M6 component candidates and write contracts before implementation.
+1. Define M6 component candidates and write contracts before implementation.
+2. Add adapter-focused tests for React/Vue/Svelte callback mapping on `change`/`dismiss`.
+3. Introduce CI job split (fast checks vs full build) for quicker PR feedback.

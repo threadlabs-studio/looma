@@ -16,12 +16,16 @@ export interface AdapterEventMap {
   open: { open: boolean; reason: string; trigger: string };
   close: { open: boolean; reason: string; trigger: string };
   select: { value: string; previousValue?: string; trigger: string };
+  change: { checked: boolean; value: string; trigger: string };
+  dismiss: { id: string; reason: string; trigger: string };
 }
 
 type AdapterCallbacks = {
   onOpen?: (detail: AdapterEventMap["open"]) => void;
   onClose?: (detail: AdapterEventMap["close"]) => void;
   onSelect?: (detail: AdapterEventMap["select"]) => void;
+  onChange?: (detail: AdapterEventMap["change"]) => void;
+  onDismiss?: (detail: AdapterEventMap["dismiss"]) => void;
 };
 
 export type AdapterProps = Omit<HTMLAttributes<HTMLElement>, "children" | "onClose" | "onSelect"> &
@@ -44,7 +48,7 @@ function assignRef<T>(ref: Ref<T> | undefined, value: T | null): void {
 
 function createAdapterComponent(tagName: string, displayName: string): AdapterComponent {
   const Component = forwardRef<HTMLElement, AdapterProps>(
-    ({ children, onOpen, onClose, onSelect, ...rest }, forwardedRef) => {
+    ({ children, onOpen, onClose, onSelect, onChange, onDismiss, ...rest }, forwardedRef) => {
       const elementRef = useRef<HTMLElement | null>(null);
 
       const refCallback: RefCallback<HTMLElement> = (node) => {
@@ -69,6 +73,18 @@ function createAdapterComponent(tagName: string, displayName: string): AdapterCo
             onSelect
               ? (event) => onSelect((event as CustomEvent<AdapterEventMap["select"]>).detail)
               : undefined
+          ],
+          [
+            "change",
+            onChange
+              ? (event) => onChange((event as CustomEvent<AdapterEventMap["change"]>).detail)
+              : undefined
+          ],
+          [
+            "dismiss",
+            onDismiss
+              ? (event) => onDismiss((event as CustomEvent<AdapterEventMap["dismiss"]>).detail)
+              : undefined
           ]
         ];
 
@@ -85,7 +101,7 @@ function createAdapterComponent(tagName: string, displayName: string): AdapterCo
             }
           }
         };
-      }, [onOpen, onClose, onSelect]);
+      }, [onOpen, onClose, onSelect, onChange, onDismiss]);
 
       return createElement(tagName, { ...rest, ref: refCallback }, children);
     }
@@ -111,6 +127,10 @@ export const MenuItem = createAdapterComponent("ui-menu-item", "MenuItem");
 export const Button = createAdapterComponent("ui-button", "Button");
 export const Input = createAdapterComponent("ui-input", "Input");
 export const FormField = createAdapterComponent("ui-form-field", "FormField");
+export const Tooltip = createAdapterComponent("ui-tooltip", "Tooltip");
+export const ToastRegion = createAdapterComponent("ui-toast-region", "ToastRegion");
+export const Checkbox = createAdapterComponent("ui-checkbox", "Checkbox");
+export const Switch = createAdapterComponent("ui-switch", "Switch");
 
 export const ADAPTER_COMPONENT_TAG_MAP = {
   Stack: "ui-stack",
@@ -127,7 +147,11 @@ export const ADAPTER_COMPONENT_TAG_MAP = {
   MenuItem: "ui-menu-item",
   Button: "ui-button",
   Input: "ui-input",
-  FormField: "ui-form-field"
+  FormField: "ui-form-field",
+  Tooltip: "ui-tooltip",
+  ToastRegion: "ui-toast-region",
+  Checkbox: "ui-checkbox",
+  Switch: "ui-switch"
 } as const;
 
 export type ReactAdapterNote =

@@ -12,12 +12,16 @@ export interface VueAdapterEventMap {
   open: { open: boolean; reason: string; trigger: string };
   close: { open: boolean; reason: string; trigger: string };
   select: { value: string; previousValue?: string; trigger: string };
+  change: { checked: boolean; value: string; trigger: string };
+  dismiss: { id: string; reason: string; trigger: string };
 }
 
 type AdapterCallbacks = {
   onOpen?: (detail: VueAdapterEventMap["open"]) => void;
   onClose?: (detail: VueAdapterEventMap["close"]) => void;
   onSelect?: (detail: VueAdapterEventMap["select"]) => void;
+  onChange?: (detail: VueAdapterEventMap["change"]) => void;
+  onDismiss?: (detail: VueAdapterEventMap["dismiss"]) => void;
 };
 
 export type AdapterAttrs = AdapterCallbacks & Record<string, unknown>;
@@ -66,6 +70,18 @@ function createAdapterComponent(tagName: string, displayName: string) {
             typeof callbackAttrs.onSelect === "function"
               ? (event) => callbackAttrs.onSelect?.((event as CustomEvent<VueAdapterEventMap["select"]>).detail)
               : undefined
+          ],
+          [
+            "change",
+            typeof callbackAttrs.onChange === "function"
+              ? (event) => callbackAttrs.onChange?.((event as CustomEvent<VueAdapterEventMap["change"]>).detail)
+              : undefined
+          ],
+          [
+            "dismiss",
+            typeof callbackAttrs.onDismiss === "function"
+              ? (event) => callbackAttrs.onDismiss?.((event as CustomEvent<VueAdapterEventMap["dismiss"]>).detail)
+              : undefined
           ]
         ];
 
@@ -86,10 +102,12 @@ function createAdapterComponent(tagName: string, displayName: string) {
 
       return () => {
         const callbackAttrs = attrs as AdapterAttrs;
-        const { onOpen, onClose, onSelect, ...forwardedAttrs } = callbackAttrs;
+        const { onOpen, onClose, onSelect, onChange, onDismiss, ...forwardedAttrs } = callbackAttrs;
         void onOpen;
         void onClose;
         void onSelect;
+        void onChange;
+        void onDismiss;
 
         return h(
           tagName,
@@ -122,6 +140,10 @@ export const MenuItem = createAdapterComponent("ui-menu-item", "MenuItem");
 export const Button = createAdapterComponent("ui-button", "Button");
 export const Input = createAdapterComponent("ui-input", "Input");
 export const FormField = createAdapterComponent("ui-form-field", "FormField");
+export const Tooltip = createAdapterComponent("ui-tooltip", "Tooltip");
+export const ToastRegion = createAdapterComponent("ui-toast-region", "ToastRegion");
+export const Checkbox = createAdapterComponent("ui-checkbox", "Checkbox");
+export const Switch = createAdapterComponent("ui-switch", "Switch");
 
 export const ADAPTER_COMPONENT_TAG_MAP = {
   Stack: "ui-stack",
@@ -138,7 +160,11 @@ export const ADAPTER_COMPONENT_TAG_MAP = {
   MenuItem: "ui-menu-item",
   Button: "ui-button",
   Input: "ui-input",
-  FormField: "ui-form-field"
+  FormField: "ui-form-field",
+  Tooltip: "ui-tooltip",
+  ToastRegion: "ui-toast-region",
+  Checkbox: "ui-checkbox",
+  Switch: "ui-switch"
 } as const;
 
 export const VUE_ADAPTER_NOTE =

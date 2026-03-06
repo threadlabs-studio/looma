@@ -21,11 +21,17 @@ Adapters must remain thin wrappers around the same light DOM contracts.
 | `ui-button` | `Button` | `Button` | native element + `bindAdapter` |
 | `ui-input` | `Input` | `Input` | native element + `bindAdapter` |
 | `ui-form-field` | `FormField` | `FormField` | native element + `bindAdapter` |
+| `ui-tooltip` | `Tooltip` | `Tooltip` | native element + `bindAdapter` |
+| `ui-toast-region` | `ToastRegion` | `ToastRegion` | native element + `bindAdapter` |
+| `ui-checkbox` | `Checkbox` | `Checkbox` | native element + `bindAdapter` |
+| `ui-switch` | `Switch` | `Switch` | native element + `bindAdapter` |
 
 ## Event Parity
 
 - `open`: `{ open: true, reason, trigger }`
 - `close`: `{ open: false, reason, trigger }`
 - `select`: `{ value, previousValue, trigger }`
+- `change`: `{ checked, value, trigger }`
+- `dismiss`: `{ id, reason, trigger }`
 
 Adapters must not introduce behavior divergence or Shadow DOM.

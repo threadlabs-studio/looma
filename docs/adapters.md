@@ -23,6 +23,10 @@ Keep framework adapters thin and mechanical: they pass props/attributes/children
 | `ui-button` | `Button` | `Button` | native element + `bindAdapter` |
 | `ui-input` | `Input` | `Input` | native element + `bindAdapter` |
 | `ui-form-field` | `FormField` | `FormField` | native element + `bindAdapter` |
+| `ui-tooltip` | `Tooltip` | `Tooltip` | native element + `bindAdapter` |
+| `ui-toast-region` | `ToastRegion` | `ToastRegion` | native element + `bindAdapter` |
+| `ui-checkbox` | `Checkbox` | `Checkbox` | native element + `bindAdapter` |
+| `ui-switch` | `Switch` | `Switch` | native element + `bindAdapter` |
 
 ## Event Parity
 
@@ -31,6 +35,8 @@ Adapters preserve core event names and detail payloads:
 - `open` -> `{ open: true, reason, trigger }`
 - `close` -> `{ open: false, reason, trigger }`
 - `select` -> `{ value, previousValue, trigger }`
+- `change` -> `{ checked, value, trigger }`
+- `dismiss` -> `{ id, reason, trigger }`
 
 ## SSR Contract Reminder
 

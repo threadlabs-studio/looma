@@ -224,6 +224,25 @@ describe("@ui/core primitives", () => {
     ]);
   });
 
+  it("supports tooltip focus open and escape close with focus return", () => {
+    document.body.innerHTML = `
+      <button id="focus-trigger" type="button">Focus me</button>
+      <ui-tooltip for="focus-trigger">Focus tooltip copy</ui-tooltip>
+      <button id="after-trigger" type="button">After</button>
+    `;
+
+    const trigger = document.getElementById("focus-trigger") as HTMLButtonElement;
+    const tooltip = document.querySelector("ui-tooltip") as HTMLElement & { open: boolean };
+
+    trigger.focus();
+    trigger.dispatchEvent(new FocusEvent("focusin", { bubbles: true }));
+    expect(tooltip.open).toBe(true);
+
+    tooltip.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    expect(tooltip.open).toBe(false);
+    expect(document.activeElement).toBe(trigger);
+  });
+
   it("manages toast region visibility and dismiss events", () => {
     document.body.innerHTML = `
       <ui-toast-region>
@@ -247,6 +266,45 @@ describe("@ui/core primitives", () => {
     expect(region.open).toBe(false);
     expect(region.querySelector("[data-ui-toast]")).toBeNull();
     expect(dismissed).toEqual([{ id: "toast-a", reason: "action", trigger: "pointer" }]);
+  });
+
+  it("keeps toast region open until last toast is dismissed", () => {
+    document.body.innerHTML = `
+      <ui-toast-region>
+        <div id="toast-1" data-ui-toast>
+          First
+          <button type="button" data-ui-toast-dismiss aria-label="Dismiss first">Dismiss</button>
+        </div>
+        <div id="toast-2" data-ui-toast>
+          Second
+          <button type="button" data-ui-toast-dismiss aria-label="Dismiss second">Dismiss</button>
+        </div>
+      </ui-toast-region>
+    `;
+
+    const region = document.querySelector("ui-toast-region") as HTMLElement & { open: boolean };
+    const dismissButtons = Array.from(
+      region.querySelectorAll<HTMLButtonElement>("[data-ui-toast-dismiss]")
+    );
+    const dismissedIds: string[] = [];
+
+    region.addEventListener("dismiss", (event) => {
+      if (!(event instanceof CustomEvent)) {
+        return;
+      }
+      dismissedIds.push((event.detail as { id: string }).id);
+    });
+
+    expect(region.open).toBe(true);
+
+    dismissButtons[0]?.click();
+    expect(region.open).toBe(true);
+    expect(region.querySelectorAll("[data-ui-toast]").length).toBe(1);
+
+    dismissButtons[1]?.click();
+    expect(region.open).toBe(false);
+    expect(region.querySelectorAll("[data-ui-toast]").length).toBe(0);
+    expect(dismissedIds).toEqual(["toast-1", "toast-2"]);
   });
 
   it("syncs ui-checkbox checked state and emits change detail", () => {
