@@ -1,12 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/web-components-vite";
+import {
+  createComponentArgTypes,
+  createComponentDocsParameters
+} from "../shared/componentApi";
 
 const meta = {
   title: "Layout/ui-center",
   tags: ["autodocs"],
-  argTypes: {
-    measure: { control: "text" },
-    gutters: { control: "text" }
-  },
+  argTypes: createComponentArgTypes("ui-center"),
+  parameters: createComponentDocsParameters("ui-center"),
   render: ({ measure, gutters }) => `
     <ui-center measure="${measure}" gutters="${gutters}">
       <h2 style="margin: 0;">Centered Content</h2>

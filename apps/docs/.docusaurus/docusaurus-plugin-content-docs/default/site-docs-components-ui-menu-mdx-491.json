@@ -13,8 +13,8 @@
   "frontMatter": {},
   "sidebar": "docs",
   "previous": {
-    "title": "ui-popover",
-    "permalink": "/components/ui-popover"
+    "title": "ui-toast-region",
+    "permalink": "/components/ui-toast-region"
   },
   "next": {
     "title": "ui-menu-item",

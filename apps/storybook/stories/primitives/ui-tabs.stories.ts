@@ -1,11 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/web-components-vite";
+import {
+  createComponentArgTypes,
+  createComponentDocsParameters
+} from "../shared/componentApi";
 
 const meta = {
   title: "Primitives/ui-tabs",
   tags: ["autodocs"],
-  argTypes: {
-    orientation: { control: "radio", options: ["horizontal", "vertical"] }
-  },
+  argTypes: createComponentArgTypes("ui-tabs"),
+  parameters: createComponentDocsParameters("ui-tabs"),
   render: ({ orientation }) => `
     <ui-tabs orientation="${orientation}">
       <div role="tablist" aria-label="Sections">

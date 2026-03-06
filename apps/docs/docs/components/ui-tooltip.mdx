@@ -1,0 +1,90 @@
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# ui-tooltip
+
+Contextual overlay primitive that links descriptive content to a trigger element.
+
+## Component Reference
+
+<ComponentExamplesApiTabs component="ui-tooltip" />
+
+## Attributes
+
+| Name | Type | Default |
+| --- | --- | --- |
+| `for` | `string` | empty |
+| `open` | `boolean` | `false` |
+| `default-open` | `boolean` | `false` |
+
+## Properties
+
+| Name | Type |
+| --- | --- |
+| `for` | `string` |
+| `open` | `boolean` |
+| `defaultOpen` | `boolean` |
+
+## Events
+
+| Name | Detail |
+| --- | --- |
+| `open` | `{ open: true, reason, trigger }` |
+| `close` | `{ open: false, reason, trigger }` |
+
+## Slots
+
+Default slot for tooltip content.
+
+## SSR Markup
+
+```html
+<button id="help-trigger" type="button">Help</button>
+<ui-tooltip for="help-trigger">Helpful guidance.</ui-tooltip>
+```
+
+## Framework Snippets
+
+<Tabs>
+  <TabItem value="react" label="React">
+
+```tsx
+import { Tooltip } from "@ui/react";
+
+export function Example() {
+  return (
+    <>
+      <button id="help-trigger" type="button">Help</button>
+      <Tooltip for="help-trigger">Helpful guidance.</Tooltip>
+    </>
+  );
+}
+```
+
+  </TabItem>
+  <TabItem value="vue" label="Vue">
+
+```ts
+import { h } from "vue";
+import { Tooltip } from "@ui/vue";
+
+export const Example = {
+  setup: () => () =>
+    h("div", [
+      h("button", { id: "help-trigger", type: "button" }, "Help"),
+      h(Tooltip, { for: "help-trigger" }, () => "Helpful guidance.")
+    ])
+};
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<button id="help-trigger" type="button">Help</button>
+<ui-tooltip for="help-trigger">Helpful guidance.</ui-tooltip>
+```
+
+  </TabItem>
+</Tabs>

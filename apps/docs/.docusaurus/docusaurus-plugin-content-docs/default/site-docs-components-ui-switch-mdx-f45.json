@@ -1,0 +1,19 @@
+{
+  "id": "components/ui-switch",
+  "title": "ui-switch",
+  "description": "Binary control primitive that reflects switch semantics for checked state.",
+  "source": "@site/docs/components/ui-switch.mdx",
+  "sourceDirName": "components",
+  "slug": "/components/ui-switch",
+  "permalink": "/components/ui-switch",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "docs",
+  "previous": {
+    "title": "ui-checkbox",
+    "permalink": "/components/ui-checkbox"
+  }
+}

@@ -1,12 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/web-components-vite";
+import {
+  createComponentArgTypes,
+  createComponentDocsParameters
+} from "../shared/componentApi";
 
 const meta = {
   title: "Primitives/ui-dialog",
   tags: ["autodocs"],
-  argTypes: {
-    open: { control: "boolean" },
-    modal: { control: "boolean" }
-  },
+  argTypes: createComponentArgTypes("ui-dialog"),
+  parameters: createComponentDocsParameters("ui-dialog"),
   render: ({ open, modal }) => `
     <ui-dialog ${open ? "open" : ""} ${modal ? "" : 'modal="false"'}>
       <dialog>

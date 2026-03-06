@@ -1,0 +1,997 @@
+{
+  "schemaVersion": 1,
+  "components": [
+    {
+      "tag": "ui-button",
+      "package": "@ui/core",
+      "className": "UIButtonElement",
+      "description": "Essential button primitive that enhances semantic button markup and styling hooks.",
+      "attributes": [
+        {
+          "name": "disabled",
+          "property": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "size",
+          "property": "size",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "variant",
+          "property": "variant",
+          "type": "string",
+          "default": ""
+        }
+      ],
+      "properties": [
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "size",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "variant",
+          "type": "string",
+          "default": ""
+        }
+      ],
+      "events": [],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Default child content."
+        }
+      ]
+    },
+    {
+      "tag": "ui-center",
+      "package": "@ui/layout",
+      "className": "UICenterElement",
+      "description": "Container primitive for readable measure and horizontal gutters.",
+      "attributes": [
+        {
+          "name": "gutters",
+          "property": "gutters",
+          "type": "string"
+        },
+        {
+          "name": "measure",
+          "property": "measure",
+          "type": "string"
+        }
+      ],
+      "properties": [
+        {
+          "name": "gutters",
+          "type": "string"
+        },
+        {
+          "name": "measure",
+          "type": "string"
+        }
+      ],
+      "events": [],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Default child content."
+        }
+      ]
+    },
+    {
+      "tag": "ui-checkbox",
+      "package": "@ui/core",
+      "className": "UICheckboxElement",
+      "description": "Form control primitive for boolean and mixed selection state.",
+      "attributes": [
+        {
+          "name": "checked",
+          "property": "checked",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "default-checked",
+          "property": "defaultChecked",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "disabled",
+          "property": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "indeterminate",
+          "property": "indeterminate",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "required",
+          "property": "required",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "value",
+          "property": "value",
+          "type": "string",
+          "default": "on"
+        }
+      ],
+      "properties": [
+        {
+          "name": "checked",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "defaultChecked",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "indeterminate",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "default": "on"
+        }
+      ],
+      "events": [
+        {
+          "name": "change",
+          "detailType": "ToggleChangeDetail",
+          "detailSchema": "{ checked: boolean; value: string; trigger: PrimitiveTrigger }",
+          "detailDocs": "Emitted when a toggleable control changes checked state."
+        }
+      ],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Default child content."
+        }
+      ]
+    },
+    {
+      "tag": "ui-cluster",
+      "package": "@ui/layout",
+      "className": "UIClusterElement",
+      "description": "Cluster layout primitive for wrapping item groups with shared alignment controls.",
+      "attributes": [
+        {
+          "name": "align",
+          "property": "align",
+          "type": "string"
+        },
+        {
+          "name": "gap",
+          "property": "gap",
+          "type": "string"
+        },
+        {
+          "name": "justify",
+          "property": "justify",
+          "type": "string"
+        }
+      ],
+      "properties": [
+        {
+          "name": "align",
+          "type": "string"
+        },
+        {
+          "name": "gap",
+          "type": "string"
+        },
+        {
+          "name": "justify",
+          "type": "string"
+        }
+      ],
+      "events": [],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Default child content."
+        }
+      ]
+    },
+    {
+      "tag": "ui-dialog",
+      "package": "@ui/core",
+      "className": "UIDialogElement",
+      "description": "Overlay primitive that coordinates native `dialog` behavior with shared overlay stack rules.",
+      "attributes": [
+        {
+          "name": "modal",
+          "property": "modal",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "name": "open",
+          "property": "open",
+          "type": "boolean",
+          "default": false
+        }
+      ],
+      "properties": [
+        {
+          "name": "defaultOpen",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "modal",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "default": false
+        }
+      ],
+      "events": [
+        {
+          "name": "close",
+          "detailType": "OpenCloseDetail",
+          "detailSchema": "{ open: boolean; reason: PrimitiveReason; trigger: PrimitiveTrigger }",
+          "detailDocs": "Emitted when the component transitions to a closed state."
+        },
+        {
+          "name": "open",
+          "detailType": "OpenCloseDetail",
+          "detailSchema": "{ open: boolean; reason: PrimitiveReason; trigger: PrimitiveTrigger }",
+          "detailDocs": "Emitted when the component transitions to an open state."
+        }
+      ],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Default child content."
+        }
+      ]
+    },
+    {
+      "tag": "ui-disclosure",
+      "package": "@ui/core",
+      "className": "UIDisclosureElement",
+      "description": "Progressively enhances a button/content pair into an accessible disclosure.",
+      "attributes": [
+        {
+          "name": "disabled",
+          "property": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "open",
+          "property": "open",
+          "type": "boolean",
+          "default": false
+        }
+      ],
+      "properties": [
+        {
+          "name": "defaultOpen",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "default": false
+        }
+      ],
+      "events": [
+        {
+          "name": "close",
+          "detailType": "OpenCloseDetail",
+          "detailSchema": "{ open: boolean; reason: PrimitiveReason; trigger: PrimitiveTrigger }",
+          "detailDocs": "Emitted when the component transitions to a closed state."
+        },
+        {
+          "name": "open",
+          "detailType": "OpenCloseDetail",
+          "detailSchema": "{ open: boolean; reason: PrimitiveReason; trigger: PrimitiveTrigger }",
+          "detailDocs": "Emitted when the component transitions to an open state."
+        }
+      ],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Default child content."
+        }
+      ]
+    },
+    {
+      "tag": "ui-form-field",
+      "package": "@ui/core",
+      "className": "UIFormFieldElement",
+      "description": "Form-field composition primitive that links label/control/description semantics.",
+      "attributes": [
+        {
+          "name": "disabled",
+          "property": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "invalid",
+          "property": "invalid",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "required",
+          "property": "required",
+          "type": "boolean",
+          "default": false
+        }
+      ],
+      "properties": [
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "invalid",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "default": false
+        }
+      ],
+      "events": [],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Default child content."
+        }
+      ]
+    },
+    {
+      "tag": "ui-grid",
+      "package": "@ui/layout",
+      "className": "UIGridElement",
+      "description": "Responsive auto-fit grid primitive.",
+      "attributes": [
+        {
+          "name": "gap",
+          "property": "gap",
+          "type": "string"
+        },
+        {
+          "name": "min",
+          "property": "min",
+          "type": "string"
+        }
+      ],
+      "properties": [
+        {
+          "name": "gap",
+          "type": "string"
+        },
+        {
+          "name": "min",
+          "type": "string"
+        }
+      ],
+      "events": [],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Default child content."
+        }
+      ]
+    },
+    {
+      "tag": "ui-inline",
+      "package": "@ui/layout",
+      "className": "UIInlineElement",
+      "description": "Inline layout primitive for row-style content with wrapping support.",
+      "attributes": [
+        {
+          "name": "align",
+          "property": "align",
+          "type": "string"
+        },
+        {
+          "name": "gap",
+          "property": "gap",
+          "type": "string"
+        },
+        {
+          "name": "justify",
+          "property": "justify",
+          "type": "string"
+        },
+        {
+          "name": "wrap",
+          "property": "wrap",
+          "type": "string"
+        }
+      ],
+      "properties": [
+        {
+          "name": "align",
+          "type": "string"
+        },
+        {
+          "name": "gap",
+          "type": "string"
+        },
+        {
+          "name": "justify",
+          "type": "string"
+        },
+        {
+          "name": "wrap",
+          "type": "string"
+        }
+      ],
+      "events": [],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Default child content."
+        }
+      ]
+    },
+    {
+      "tag": "ui-input",
+      "package": "@ui/core",
+      "className": "UIInputElement",
+      "description": "Essential text-input primitive that mirrors value/state to native input controls.",
+      "attributes": [
+        {
+          "name": "default-value",
+          "property": "defaultValue",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "disabled",
+          "property": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "invalid",
+          "property": "invalid",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "readonly",
+          "property": "readOnly",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "value",
+          "property": "value",
+          "type": "string",
+          "default": ""
+        }
+      ],
+      "properties": [
+        {
+          "name": "defaultValue",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "invalid",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "default": ""
+        }
+      ],
+      "events": [],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Default child content."
+        }
+      ]
+    },
+    {
+      "tag": "ui-menu",
+      "package": "@ui/core",
+      "className": "UIMenuElement",
+      "description": "Menu container primitive that manages focus and selection across `ui-menu-item` children.",
+      "attributes": [
+        {
+          "name": "open",
+          "property": "open",
+          "type": "boolean",
+          "default": false
+        }
+      ],
+      "properties": [
+        {
+          "name": "defaultOpen",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "default": false
+        }
+      ],
+      "events": [
+        {
+          "name": "close",
+          "detailType": "OpenCloseDetail",
+          "detailSchema": "{ open: boolean; reason: PrimitiveReason; trigger: PrimitiveTrigger }",
+          "detailDocs": "Emitted when the component transitions to a closed state."
+        },
+        {
+          "name": "open",
+          "detailType": "OpenCloseDetail",
+          "detailSchema": "{ open: boolean; reason: PrimitiveReason; trigger: PrimitiveTrigger }",
+          "detailDocs": "Emitted when the component transitions to an open state."
+        },
+        {
+          "name": "select",
+          "detailType": "SelectDetail",
+          "detailSchema": "{ value: string; previousValue?: string; trigger: PrimitiveTrigger }",
+          "detailDocs": "Emitted when a selectable option becomes active."
+        }
+      ],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Default child content."
+        }
+      ]
+    },
+    {
+      "tag": "ui-menu-item",
+      "package": "@ui/core",
+      "className": "UIMenuItemElement",
+      "description": "Focusable menu item primitive intended for use inside `ui-menu`.",
+      "attributes": [
+        {
+          "name": "disabled",
+          "property": "disabled",
+          "type": "boolean",
+          "default": false
+        }
+      ],
+      "properties": [
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "events": [],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Default child content."
+        }
+      ]
+    },
+    {
+      "tag": "ui-popover",
+      "package": "@ui/core",
+      "className": "UIPopoverElement",
+      "description": "Non-modal overlay primitive with shared open/close overlay lifecycle.",
+      "attributes": [
+        {
+          "name": "open",
+          "property": "open",
+          "type": "boolean",
+          "default": false
+        }
+      ],
+      "properties": [
+        {
+          "name": "defaultOpen",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "default": false
+        }
+      ],
+      "events": [
+        {
+          "name": "close",
+          "detailType": "OpenCloseDetail",
+          "detailSchema": "{ open: boolean; reason: PrimitiveReason; trigger: PrimitiveTrigger }",
+          "detailDocs": "Emitted when the component transitions to a closed state."
+        },
+        {
+          "name": "open",
+          "detailType": "OpenCloseDetail",
+          "detailSchema": "{ open: boolean; reason: PrimitiveReason; trigger: PrimitiveTrigger }",
+          "detailDocs": "Emitted when the component transitions to an open state."
+        }
+      ],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Default child content."
+        }
+      ]
+    },
+    {
+      "tag": "ui-separator",
+      "package": "@ui/layout",
+      "className": "UISeparatorElement",
+      "description": "Semantic separator primitive with horizontal and vertical orientations.",
+      "attributes": [
+        {
+          "name": "orientation",
+          "property": "orientation",
+          "type": "string",
+          "default": "horizontal"
+        },
+        {
+          "name": "role",
+          "property": "role",
+          "type": "string"
+        }
+      ],
+      "properties": [
+        {
+          "name": "orientation",
+          "type": "string",
+          "default": "horizontal"
+        }
+      ],
+      "events": [],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Default child content."
+        }
+      ]
+    },
+    {
+      "tag": "ui-stack",
+      "package": "@ui/layout",
+      "className": "UIStackElement",
+      "description": "Vertical layout primitive that owns spacing between children.",
+      "attributes": [
+        {
+          "name": "align",
+          "property": "align",
+          "type": "string"
+        },
+        {
+          "name": "gap",
+          "property": "gap",
+          "type": "string"
+        },
+        {
+          "name": "justify",
+          "property": "justify",
+          "type": "string"
+        }
+      ],
+      "properties": [
+        {
+          "name": "align",
+          "type": "string"
+        },
+        {
+          "name": "gap",
+          "type": "string"
+        },
+        {
+          "name": "justify",
+          "type": "string"
+        }
+      ],
+      "events": [],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Default child content."
+        }
+      ]
+    },
+    {
+      "tag": "ui-switch",
+      "package": "@ui/core",
+      "className": "UISwitchElement",
+      "description": "Binary control primitive that reflects switch semantics for checked state.",
+      "attributes": [
+        {
+          "name": "checked",
+          "property": "checked",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "default-checked",
+          "property": "defaultChecked",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "disabled",
+          "property": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "required",
+          "property": "required",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "value",
+          "property": "value",
+          "type": "string",
+          "default": "on"
+        }
+      ],
+      "properties": [
+        {
+          "name": "checked",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "defaultChecked",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "default": "on"
+        }
+      ],
+      "events": [
+        {
+          "name": "change",
+          "detailType": "ToggleChangeDetail",
+          "detailSchema": "{ checked: boolean; value: string; trigger: PrimitiveTrigger }",
+          "detailDocs": "Emitted when a toggleable control changes checked state."
+        }
+      ],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Default child content."
+        }
+      ]
+    },
+    {
+      "tag": "ui-tabs",
+      "package": "@ui/core",
+      "className": "UITabsElement",
+      "description": "Tablist primitive that synchronizes tab focus, selection, and panel visibility.",
+      "attributes": [
+        {
+          "name": "orientation",
+          "property": "orientation",
+          "type": "\"horizontal\" | \"vertical\"",
+          "default": "horizontal",
+          "options": [
+            "horizontal",
+            "vertical"
+          ]
+        },
+        {
+          "name": "value",
+          "property": "value",
+          "type": "string",
+          "default": ""
+        }
+      ],
+      "properties": [
+        {
+          "name": "defaultValue",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "orientation",
+          "type": "\"horizontal\" | \"vertical\"",
+          "default": "horizontal",
+          "options": [
+            "horizontal",
+            "vertical"
+          ]
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "default": ""
+        }
+      ],
+      "events": [
+        {
+          "name": "select",
+          "detailType": "SelectDetail",
+          "detailSchema": "{ value: string; previousValue?: string; trigger: PrimitiveTrigger }",
+          "detailDocs": "Emitted when a selectable option becomes active."
+        }
+      ],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Default child content."
+        }
+      ]
+    },
+    {
+      "tag": "ui-toast-region",
+      "package": "@ui/core",
+      "className": "UIToastRegionElement",
+      "description": "Live-region container primitive for stackable dismissible toasts.",
+      "attributes": [
+        {
+          "name": "open",
+          "property": "open",
+          "type": "boolean",
+          "default": false
+        }
+      ],
+      "properties": [
+        {
+          "name": "open",
+          "type": "boolean",
+          "default": false
+        }
+      ],
+      "events": [
+        {
+          "name": "close",
+          "detailType": "OpenCloseDetail",
+          "detailSchema": "{ open: boolean; reason: PrimitiveReason; trigger: PrimitiveTrigger }",
+          "detailDocs": "Emitted when the component transitions to a closed state."
+        },
+        {
+          "name": "dismiss",
+          "detailType": "ToastDismissDetail",
+          "detailSchema": "{ id: string; reason: PrimitiveReason; trigger: PrimitiveTrigger }",
+          "detailDocs": "Emitted when a toast item is dismissed from its region."
+        },
+        {
+          "name": "open",
+          "detailType": "OpenCloseDetail",
+          "detailSchema": "{ open: boolean; reason: PrimitiveReason; trigger: PrimitiveTrigger }",
+          "detailDocs": "Emitted when the component transitions to an open state."
+        }
+      ],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Default child content."
+        }
+      ]
+    },
+    {
+      "tag": "ui-tooltip",
+      "package": "@ui/core",
+      "className": "UITooltipElement",
+      "description": "Contextual overlay primitive that links descriptive content to a trigger element.",
+      "attributes": [
+        {
+          "name": "for",
+          "property": "for",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "open",
+          "property": "open",
+          "type": "boolean",
+          "default": false
+        }
+      ],
+      "properties": [
+        {
+          "name": "defaultOpen",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "for",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "default": false
+        }
+      ],
+      "events": [
+        {
+          "name": "close",
+          "detailType": "OpenCloseDetail",
+          "detailSchema": "{ open: boolean; reason: PrimitiveReason; trigger: PrimitiveTrigger }",
+          "detailDocs": "Emitted when the component transitions to a closed state."
+        },
+        {
+          "name": "open",
+          "detailType": "OpenCloseDetail",
+          "detailSchema": "{ open: boolean; reason: PrimitiveReason; trigger: PrimitiveTrigger }",
+          "detailDocs": "Emitted when the component transitions to an open state."
+        }
+      ],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Default child content."
+        }
+      ]
+    }
+  ]
+}

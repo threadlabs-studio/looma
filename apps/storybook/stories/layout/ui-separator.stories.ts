@@ -1,11 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/web-components-vite";
+import {
+  createComponentArgTypes,
+  createComponentDocsParameters
+} from "../shared/componentApi";
 
 const meta = {
   title: "Layout/ui-separator",
   tags: ["autodocs"],
-  argTypes: {
-    orientation: { control: "radio", options: ["horizontal", "vertical"] }
-  },
+  argTypes: createComponentArgTypes("ui-separator"),
+  parameters: createComponentDocsParameters("ui-separator"),
   render: ({ orientation }) => `
     <div style="display: flex; align-items: center; gap: 1rem; ${orientation === "vertical" ? "height: 3rem;" : ""}">
       <span>Before</span>

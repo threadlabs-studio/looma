@@ -1,0 +1,99 @@
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# ui-toast-region
+
+Live-region container primitive for stackable dismissible toasts.
+
+## Component Reference
+
+<ComponentExamplesApiTabs component="ui-toast-region" />
+
+## Attributes
+
+| Name | Type | Default |
+| --- | --- | --- |
+| `open` | `boolean` | `false` |
+
+## Properties
+
+| Name | Type |
+| --- | --- |
+| `open` | `boolean` |
+
+## Events
+
+| Name | Detail |
+| --- | --- |
+| `open` | `{ open: true, reason, trigger }` |
+| `close` | `{ open: false, reason, trigger }` |
+| `dismiss` | `{ id, reason, trigger }` |
+
+## Slots
+
+Default slot with toast nodes marked using `data-ui-toast`.
+
+## SSR Markup
+
+```html
+<ui-toast-region>
+  <div id="saved-toast" data-ui-toast>
+    Profile saved.
+    <button type="button" data-ui-toast-dismiss aria-label="Dismiss">Dismiss</button>
+  </div>
+</ui-toast-region>
+```
+
+## Framework Snippets
+
+<Tabs>
+  <TabItem value="react" label="React">
+
+```tsx
+import { ToastRegion } from "@ui/react";
+
+export function Example() {
+  return (
+    <ToastRegion>
+      <div data-ui-toast>
+        Saved.
+        <button type="button" data-ui-toast-dismiss aria-label="Dismiss">Dismiss</button>
+      </div>
+    </ToastRegion>
+  );
+}
+```
+
+  </TabItem>
+  <TabItem value="vue" label="Vue">
+
+```ts
+import { h } from "vue";
+import { ToastRegion } from "@ui/vue";
+
+export const Example = {
+  setup: () => () =>
+    h(ToastRegion, {}, () =>
+      h("div", { "data-ui-toast": "" }, [
+        "Saved.",
+        h("button", { type: "button", "data-ui-toast-dismiss": "", "aria-label": "Dismiss" }, "Dismiss")
+      ])
+    )
+};
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<ui-toast-region>
+  <div data-ui-toast>
+    Saved.
+    <button type="button" data-ui-toast-dismiss aria-label="Dismiss">Dismiss</button>
+  </div>
+</ui-toast-region>
+```
+
+  </TabItem>
+</Tabs>

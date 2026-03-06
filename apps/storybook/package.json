@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "storybook dev -p 6006",
     "build": "storybook build",
+    "generate:api": "pnpm --dir ../.. generate:api",
+    "check:docs-sync": "pnpm --dir ../.. check:docs-sync",
     "lint": "echo \"storybook: lint not configured\"",
     "test": "echo \"storybook: tests not configured\"",
     "typecheck": "echo \"storybook: typecheck not configured\""

@@ -6,7 +6,14 @@ const sidebars: SidebarsConfig = {
     {
       type: "category",
       label: "Foundations",
-      items: ["architecture", "conventions", "tokens", "overlay-contract", "adapter-parity"]
+      items: [
+        "architecture",
+        "conventions",
+        "tokens",
+        "overlay-contract",
+        "adapter-parity",
+        "docs-api-sync"
+      ]
     },
     {
       type: "category",
@@ -28,6 +35,8 @@ const sidebars: SidebarsConfig = {
         "components/ui-tabs",
         "components/ui-dialog",
         "components/ui-popover",
+        "components/ui-tooltip",
+        "components/ui-toast-region",
         "components/ui-menu",
         "components/ui-menu-item"
       ]
@@ -35,7 +44,13 @@ const sidebars: SidebarsConfig = {
     {
       type: "category",
       label: "Essentials",
-      items: ["components/ui-button", "components/ui-input", "components/ui-form-field"]
+      items: [
+        "components/ui-button",
+        "components/ui-input",
+        "components/ui-form-field",
+        "components/ui-checkbox",
+        "components/ui-switch"
+      ]
     }
   ]
 };

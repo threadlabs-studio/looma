@@ -31,6 +31,11 @@
               "sidebar": "docs"
             },
             {
+              "id": "components/ui-checkbox",
+              "path": "/components/ui-checkbox",
+              "sidebar": "docs"
+            },
+            {
               "id": "components/ui-cluster",
               "path": "/components/ui-cluster",
               "sidebar": "docs"
@@ -91,13 +96,33 @@
               "sidebar": "docs"
             },
             {
+              "id": "components/ui-switch",
+              "path": "/components/ui-switch",
+              "sidebar": "docs"
+            },
+            {
               "id": "components/ui-tabs",
               "path": "/components/ui-tabs",
               "sidebar": "docs"
             },
             {
+              "id": "components/ui-toast-region",
+              "path": "/components/ui-toast-region",
+              "sidebar": "docs"
+            },
+            {
+              "id": "components/ui-tooltip",
+              "path": "/components/ui-tooltip",
+              "sidebar": "docs"
+            },
+            {
               "id": "conventions",
               "path": "/conventions",
+              "sidebar": "docs"
+            },
+            {
+              "id": "docs-api-sync",
+              "path": "/docs-api-sync",
               "sidebar": "docs"
             },
             {

@@ -1,0 +1,30 @@
+---
+description: Keep PROJECT_STATE.md current after meaningful tasks
+alwaysApply: true
+---
+
+# Project State Tracking
+
+After every meaningful implementation task, update `PROJECT_STATE.md` in the repo root.
+
+## Required Updates
+
+- Update `Last Updated` with current date/time (local).
+- Add a short entry to `Recent Progress` (what changed + why).
+- Update `Current Focus` and `Next Up` to reflect real priority.
+- Record verification status in `Verification Snapshot` (build/typecheck/tests/docs/storybook as relevant).
+- If blockers exist, add them under `Risks / Blockers` with owner and next action.
+
+## Update Style
+
+- Keep entries concise and factual (1-3 bullets per section change).
+- Do not rewrite the entire file if only one section changed.
+- Preserve existing history; append new entries instead of deleting prior context.
+- Never claim a check passed unless it was actually run.
+
+## End-of-Task Checklist
+
+Before finishing a task, confirm:
+1. `PROJECT_STATE.md` reflects the latest state.
+2. Next actionable items are explicit.
+3. Any incomplete work is clearly called out.

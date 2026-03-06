@@ -1,0 +1,97 @@
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# ui-switch
+
+Binary control primitive that reflects switch semantics for checked state.
+
+## Component Reference
+
+<ComponentExamplesApiTabs component="ui-switch" />
+
+## Attributes
+
+| Name | Type | Default |
+| --- | --- | --- |
+| `checked` | `boolean` | `false` |
+| `default-checked` | `boolean` | `false` |
+| `disabled` | `boolean` | `false` |
+| `required` | `boolean` | `false` |
+| `value` | `string` | `on` |
+
+## Properties
+
+| Name | Type |
+| --- | --- |
+| `checked` | `boolean` |
+| `defaultChecked` | `boolean` |
+| `disabled` | `boolean` |
+| `required` | `boolean` |
+| `value` | `string` |
+
+## Events
+
+| Name | Detail |
+| --- | --- |
+| `change` | `{ checked, value, trigger }` |
+
+## Slots
+
+Default slot. Typically wraps a native `<input type="checkbox">`.
+
+## SSR Markup
+
+```html
+<ui-switch value="notifications">
+  <input type="checkbox" name="notifications" />
+  Enable notifications
+</ui-switch>
+```
+
+## Framework Snippets
+
+<Tabs>
+  <TabItem value="react" label="React">
+
+```tsx
+import { Switch } from "@ui/react";
+
+export function Example() {
+  return (
+    <Switch value="notifications">
+      <input type="checkbox" name="notifications" />
+      Enable notifications
+    </Switch>
+  );
+}
+```
+
+  </TabItem>
+  <TabItem value="vue" label="Vue">
+
+```ts
+import { h } from "vue";
+import { Switch } from "@ui/vue";
+
+export const Example = {
+  setup: () => () =>
+    h(Switch, { value: "notifications" }, () => [
+      h("input", { type: "checkbox", name: "notifications" }),
+      "Enable notifications"
+    ])
+};
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<ui-switch value="notifications">
+  <input type="checkbox" name="notifications" />
+  Enable notifications
+</ui-switch>
+```
+
+  </TabItem>
+</Tabs>

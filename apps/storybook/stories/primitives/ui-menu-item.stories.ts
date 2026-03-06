@@ -1,12 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/web-components-vite";
+import {
+  createComponentArgTypes,
+  createComponentDocsParameters
+} from "../shared/componentApi";
 
 const meta = {
   title: "Primitives/ui-menu-item",
   tags: ["autodocs"],
-  argTypes: {
-    value: { control: "text" },
-    disabled: { control: "boolean" }
-  },
+  argTypes: createComponentArgTypes("ui-menu-item"),
+  parameters: createComponentDocsParameters("ui-menu-item"),
   render: ({ value, disabled }) => `
     <ui-menu role="menu" aria-label="Single item menu">
       <ui-menu-item value="${value}" ${disabled ? "disabled" : ""}>${value}</ui-menu-item>

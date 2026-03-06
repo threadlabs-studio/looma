@@ -195,4 +195,105 @@ describe("@ui/core primitives", () => {
     buttonWrapper.disabled = false;
     expect(innerButton?.disabled).toBe(false);
   });
+
+  it("opens and closes tooltip from trigger interactions", () => {
+    document.body.innerHTML = `
+      <button id="tooltip-trigger" type="button">Info</button>
+      <ui-tooltip for="tooltip-trigger">Tooltip copy</ui-tooltip>
+    `;
+
+    const trigger = document.getElementById("tooltip-trigger");
+    const tooltip = document.querySelector("ui-tooltip") as HTMLElement & { open: boolean };
+    const events: Array<{ open: boolean; reason: string; trigger: string }> = [];
+    tooltip.addEventListener("open", (event) => {
+      const custom = event as CustomEvent<{ open: boolean; reason: string; trigger: string }>;
+      events.push(custom.detail);
+    });
+    tooltip.addEventListener("close", (event) => {
+      const custom = event as CustomEvent<{ open: boolean; reason: string; trigger: string }>;
+      events.push(custom.detail);
+    });
+
+    trigger?.dispatchEvent(new PointerEvent("pointerenter", { bubbles: true }));
+    expect(tooltip.open).toBe(true);
+    trigger?.dispatchEvent(new PointerEvent("pointerleave", { bubbles: true }));
+    expect(tooltip.open).toBe(false);
+    expect(events).toEqual([
+      { open: true, reason: "action", trigger: "pointer" },
+      { open: false, reason: "action", trigger: "pointer" }
+    ]);
+  });
+
+  it("manages toast region visibility and dismiss events", () => {
+    document.body.innerHTML = `
+      <ui-toast-region>
+        <div id="toast-a" data-ui-toast>
+          Saved
+          <button type="button" data-ui-toast-dismiss>Dismiss</button>
+        </div>
+      </ui-toast-region>
+    `;
+
+    const region = document.querySelector("ui-toast-region") as HTMLElement & { open: boolean };
+    const dismissButton = region.querySelector("[data-ui-toast-dismiss]") as HTMLButtonElement;
+    const dismissed: Array<{ id: string; reason: string; trigger: string }> = [];
+    region.addEventListener("dismiss", (event) => {
+      const custom = event as CustomEvent<{ id: string; reason: string; trigger: string }>;
+      dismissed.push(custom.detail);
+    });
+
+    expect(region.open).toBe(true);
+    dismissButton.click();
+    expect(region.open).toBe(false);
+    expect(region.querySelector("[data-ui-toast]")).toBeNull();
+    expect(dismissed).toEqual([{ id: "toast-a", reason: "action", trigger: "pointer" }]);
+  });
+
+  it("syncs ui-checkbox checked state and emits change detail", () => {
+    document.body.innerHTML = `
+      <ui-checkbox value="newsletter">
+        <input type="checkbox" />
+      </ui-checkbox>
+    `;
+
+    const checkbox = document.querySelector("ui-checkbox") as HTMLElement & {
+      checked: boolean;
+      value: string;
+    };
+    const input = checkbox.querySelector("input");
+    const events: Array<{ checked: boolean; value: string; trigger: string }> = [];
+    checkbox.addEventListener("change", (event) => {
+      if (!(event instanceof CustomEvent)) {
+        return;
+      }
+      events.push(event.detail as { checked: boolean; value: string; trigger: string });
+    });
+
+    expect(checkbox.checked).toBe(false);
+    input?.click();
+    expect(checkbox.checked).toBe(true);
+    expect(events).toEqual([{ checked: true, value: "newsletter", trigger: "programmatic" }]);
+  });
+
+  it("supports fallback switch keyboard toggle and emits change", () => {
+    document.body.innerHTML = `<ui-switch value="notifications"></ui-switch>`;
+
+    const toggle = document.querySelector("ui-switch") as HTMLElement & {
+      checked: boolean;
+    };
+    const events: Array<{ checked: boolean; value: string; trigger: string }> = [];
+    toggle.addEventListener("change", (event) => {
+      if (!(event instanceof CustomEvent)) {
+        return;
+      }
+      events.push(event.detail as { checked: boolean; value: string; trigger: string });
+    });
+
+    toggle.dispatchEvent(new KeyboardEvent("keydown", { key: " ", bubbles: true }));
+
+    expect(toggle.checked).toBe(true);
+    expect(toggle.getAttribute("role")).toBe("switch");
+    expect(toggle.getAttribute("aria-checked")).toBe("true");
+    expect(events).toEqual([{ checked: true, value: "notifications", trigger: "keyboard" }]);
+  });
 });

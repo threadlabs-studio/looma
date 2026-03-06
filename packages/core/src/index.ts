@@ -23,6 +23,18 @@ interface SelectDetail {
   trigger: PrimitiveTrigger;
 }
 
+interface ToggleChangeDetail {
+  checked: boolean;
+  value: string;
+  trigger: PrimitiveTrigger;
+}
+
+interface ToastDismissDetail {
+  id: string;
+  reason: PrimitiveReason;
+  trigger: PrimitiveTrigger;
+}
+
 interface OpenAction {
   reason: PrimitiveReason;
   trigger: PrimitiveTrigger;
@@ -1395,6 +1407,599 @@ class UIFormFieldElement extends UIPrimitiveElement {
   }
 }
 
+class UITooltipElement extends UIOverlayElement {
+  static get observedAttributes(): string[] {
+    return [OPEN_ATTRIBUTE, "for"];
+  }
+
+  #trigger: HTMLElement | null = null;
+  #managedDescriptionId: string | null = null;
+
+  connectedCallback(): void {
+    if (!this.hasAttribute("role")) {
+      this.setAttribute("role", "tooltip");
+    }
+    if (!this.id) {
+      this.id = createId("tooltip");
+    }
+    this.resolveTrigger();
+    this.attachListeners();
+    super.connectedCallback();
+  }
+
+  disconnectedCallback(): void {
+    this.detachListeners();
+    this.clearTriggerDescription();
+    super.disconnectedCallback();
+  }
+
+  get for(): string {
+    return this.getStringAttribute("for");
+  }
+
+  set for(value: string) {
+    this.setStringAttribute("for", value);
+  }
+
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+    if (name === "for" && oldValue !== newValue) {
+      this.resolveTrigger();
+      this.syncOpenState();
+      return;
+    }
+    super.attributeChangedCallback(name, oldValue, newValue);
+  }
+
+  protected onOpen(): void {
+    this.hidden = false;
+    this.ensureTriggerDescription();
+  }
+
+  protected onClose(): void {
+    this.hidden = true;
+  }
+
+  private resolveTrigger(): void {
+    this.detachListeners();
+    this.clearTriggerDescription();
+
+    const triggerId = this.for;
+    if (triggerId.length > 0) {
+      this.#trigger = this.ownerDocument?.getElementById(triggerId) ?? null;
+    } else {
+      const fallbackTrigger = this.previousElementSibling;
+      this.#trigger = fallbackTrigger instanceof HTMLElement ? fallbackTrigger : null;
+    }
+    this.attachListeners();
+  }
+
+  private attachListeners(): void {
+    this.#trigger?.addEventListener("pointerenter", this.onTriggerPointerEnter);
+    this.#trigger?.addEventListener("pointerleave", this.onTriggerPointerLeave);
+    this.#trigger?.addEventListener("focusin", this.onTriggerFocusIn);
+    this.#trigger?.addEventListener("focusout", this.onTriggerFocusOut);
+    this.addEventListener("keydown", this.onTooltipKeydown);
+  }
+
+  private detachListeners(): void {
+    this.#trigger?.removeEventListener("pointerenter", this.onTriggerPointerEnter);
+    this.#trigger?.removeEventListener("pointerleave", this.onTriggerPointerLeave);
+    this.#trigger?.removeEventListener("focusin", this.onTriggerFocusIn);
+    this.#trigger?.removeEventListener("focusout", this.onTriggerFocusOut);
+    this.removeEventListener("keydown", this.onTooltipKeydown);
+  }
+
+  private ensureTriggerDescription(): void {
+    if (!this.#trigger || !this.id) {
+      return;
+    }
+    const existingIds = splitWhitespaceList(this.#trigger.getAttribute("aria-describedby"));
+    const merged = mergeTokenLists(existingIds, [this.id]);
+    this.#trigger.setAttribute("aria-describedby", merged.join(" "));
+    this.#managedDescriptionId = this.id;
+  }
+
+  private clearTriggerDescription(): void {
+    if (!this.#trigger || !this.#managedDescriptionId) {
+      return;
+    }
+    const describedByIds = splitWhitespaceList(this.#trigger.getAttribute("aria-describedby"));
+    const filtered = describedByIds.filter((id) => id !== this.#managedDescriptionId);
+    if (filtered.length === 0) {
+      this.#trigger.removeAttribute("aria-describedby");
+    } else {
+      this.#trigger.setAttribute("aria-describedby", filtered.join(" "));
+    }
+    this.#managedDescriptionId = null;
+  }
+
+  private onTriggerPointerEnter = (): void => {
+    this.setOpen(true, { reason: "action", trigger: "pointer" });
+  };
+
+  private onTriggerPointerLeave = (): void => {
+    this.setOpen(false, { reason: "action", trigger: "pointer" });
+  };
+
+  private onTriggerFocusIn = (): void => {
+    this.setOpen(true, { reason: "action", trigger: "keyboard" });
+  };
+
+  private onTriggerFocusOut = (event: FocusEvent): void => {
+    const relatedTarget = event.relatedTarget;
+    if (relatedTarget instanceof Node && this.contains(relatedTarget)) {
+      return;
+    }
+    this.setOpen(false, { reason: "action", trigger: "keyboard" });
+  };
+
+  private onTooltipKeydown = (event: KeyboardEvent): void => {
+    if (event.key !== "Escape") {
+      return;
+    }
+    event.preventDefault();
+    this.setOpen(false, { reason: "escape", trigger: "keyboard" });
+    this.#trigger?.focus();
+  };
+}
+
+class UIToastRegionElement extends UIPrimitiveElement {
+  static get observedAttributes(): string[] {
+    return [OPEN_ATTRIBUTE];
+  }
+
+  #initialized = false;
+  #pendingAction: OpenAction | null = null;
+  #observer: MutationObserver | null = null;
+
+  connectedCallback(): void {
+    if (!this.hasAttribute("role")) {
+      this.setAttribute("role", "region");
+    }
+    if (!this.hasAttribute("aria-live")) {
+      this.setAttribute("aria-live", "polite");
+    }
+    this.addEventListener("click", this.onClick);
+    this.syncRegionState();
+    this.syncOpenFromToasts({ reason: "programmatic", trigger: "programmatic" });
+    this.#observer = new MutationObserver(() => {
+      this.syncOpenFromToasts({ reason: "action", trigger: "programmatic" });
+    });
+    this.#observer.observe(this, { childList: true, subtree: true });
+    this.#initialized = true;
+  }
+
+  disconnectedCallback(): void {
+    this.removeEventListener("click", this.onClick);
+    this.#observer?.disconnect();
+    this.#observer = null;
+  }
+
+  get open(): boolean {
+    return this.getBooleanAttribute(OPEN_ATTRIBUTE);
+  }
+
+  set open(value: boolean) {
+    this.setOpen(value, { reason: "programmatic", trigger: "programmatic" });
+  }
+
+  attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+    if (name !== OPEN_ATTRIBUTE || oldValue === newValue) {
+      return;
+    }
+    const action = this.#pendingAction ?? {
+      reason: "programmatic",
+      trigger: "programmatic"
+    };
+    this.#pendingAction = null;
+    this.syncRegionState();
+    if (!this.#initialized) {
+      return;
+    }
+    dispatchPrimitiveEvent<OpenCloseDetail>(this, this.open ? "open" : "close", {
+      open: this.open,
+      reason: action.reason,
+      trigger: action.trigger
+    });
+  }
+
+  private getToasts(): HTMLElement[] {
+    return Array.from(this.children).filter((child) => {
+      if (!(child instanceof HTMLElement)) {
+        return false;
+      }
+      return child.hasAttribute("data-ui-toast") || child.getAttribute("role") === "alert";
+    }) as HTMLElement[];
+  }
+
+  private setOpen(next: boolean, action: OpenAction): void {
+    if (this.open === next) {
+      this.syncRegionState();
+      return;
+    }
+    this.#pendingAction = action;
+    this.setBooleanAttribute(OPEN_ATTRIBUTE, next);
+  }
+
+  private syncOpenFromToasts(action: OpenAction): void {
+    this.setOpen(this.getToasts().length > 0, action);
+  }
+
+  private syncRegionState(): void {
+    this.hidden = !this.open;
+  }
+
+  private onClick = (event: Event): void => {
+    const target = event.target;
+    if (!(target instanceof Element)) {
+      return;
+    }
+    const dismissButton = target.closest("[data-ui-toast-dismiss]");
+    if (!(dismissButton instanceof HTMLElement)) {
+      return;
+    }
+    const toast = dismissButton.closest("[data-ui-toast]");
+    if (!(toast instanceof HTMLElement)) {
+      return;
+    }
+    const toastId = toast.id || createId("toast");
+    if (!toast.id) {
+      toast.id = toastId;
+    }
+    toast.remove();
+    this.syncOpenFromToasts({ reason: "action", trigger: eventToTrigger(event) });
+    dispatchPrimitiveEvent<ToastDismissDetail>(this, "dismiss", {
+      id: toastId,
+      reason: "action",
+      trigger: eventToTrigger(event)
+    });
+  };
+}
+
+class UICheckboxElement extends UIPrimitiveElement {
+  static get observedAttributes(): string[] {
+    return ["checked", "default-checked", "disabled", "required", "value", "indeterminate"];
+  }
+
+  #input: HTMLInputElement | null = null;
+  #observer: MutationObserver | null = null;
+  #ownsTabIndex = false;
+
+  connectedCallback(): void {
+    this.resolveInput();
+    this.attachInputListeners();
+    this.addEventListener("click", this.onClick);
+    this.addEventListener("keydown", this.onKeydown);
+    this.syncState();
+    this.#observer = new MutationObserver(() => {
+      const previousInput = this.#input;
+      this.resolveInput();
+      if (previousInput !== this.#input) {
+        this.detachInputListeners(previousInput);
+        this.attachInputListeners();
+      }
+      this.syncState();
+    });
+    this.#observer.observe(this, { childList: true, subtree: true });
+  }
+
+  disconnectedCallback(): void {
+    this.detachInputListeners(this.#input);
+    this.removeEventListener("click", this.onClick);
+    this.removeEventListener("keydown", this.onKeydown);
+    this.#observer?.disconnect();
+    this.#observer = null;
+  }
+
+  get checked(): boolean {
+    return this.getBooleanAttribute("checked");
+  }
+
+  set checked(value: boolean) {
+    this.setBooleanAttribute("checked", value);
+  }
+
+  get defaultChecked(): boolean {
+    return this.getBooleanAttribute("default-checked");
+  }
+
+  set defaultChecked(value: boolean) {
+    this.setBooleanAttribute("default-checked", value);
+  }
+
+  get disabled(): boolean {
+    return this.getBooleanAttribute("disabled");
+  }
+
+  set disabled(value: boolean) {
+    this.setBooleanAttribute("disabled", value);
+  }
+
+  get required(): boolean {
+    return this.getBooleanAttribute("required");
+  }
+
+  set required(value: boolean) {
+    this.setBooleanAttribute("required", value);
+  }
+
+  get value(): string {
+    return this.getAttribute("value") ?? "on";
+  }
+
+  set value(next: string) {
+    this.setStringAttribute("value", next);
+  }
+
+  get indeterminate(): boolean {
+    return this.getBooleanAttribute("indeterminate");
+  }
+
+  set indeterminate(value: boolean) {
+    this.setBooleanAttribute("indeterminate", value);
+  }
+
+  attributeChangedCallback(oldName: string, oldValue: string | null, newValue: string | null): void {
+    if (oldValue === newValue) {
+      return;
+    }
+    this.syncState();
+  }
+
+  private resolveInput(): void {
+    this.#input = this.querySelector('input[type="checkbox"], input:not([type])');
+  }
+
+  private attachInputListeners(): void {
+    this.#input?.addEventListener("change", this.onNativeChange);
+  }
+
+  private detachInputListeners(input: HTMLInputElement | null): void {
+    input?.removeEventListener("change", this.onNativeChange);
+  }
+
+  private syncState(): void {
+    if (!this.#input) {
+      if (!this.hasAttribute("role")) {
+        this.setAttribute("role", "checkbox");
+      }
+      this.setAttribute("aria-checked", String(this.checked));
+      this.setAttribute("aria-disabled", String(this.disabled));
+      if (!this.hasAttribute("tabindex")) {
+        this.tabIndex = this.disabled ? -1 : 0;
+        this.#ownsTabIndex = true;
+      } else if (this.#ownsTabIndex) {
+        this.tabIndex = this.disabled ? -1 : 0;
+      }
+      return;
+    }
+
+    this.#input.type = "checkbox";
+    this.#input.checked = this.checked;
+    this.#input.defaultChecked = this.defaultChecked;
+    this.#input.disabled = this.disabled;
+    this.#input.required = this.required;
+    this.#input.value = this.value;
+    this.#input.indeterminate = this.indeterminate;
+    this.setAttribute("aria-checked", this.indeterminate ? "mixed" : String(this.checked));
+    this.setAttribute("aria-disabled", String(this.disabled));
+  }
+
+  private emitChange(trigger: PrimitiveTrigger): void {
+    dispatchPrimitiveEvent<ToggleChangeDetail>(this, "change", {
+      checked: this.checked,
+      value: this.value,
+      trigger
+    });
+  }
+
+  private toggleChecked(trigger: PrimitiveTrigger): void {
+    if (this.disabled) {
+      return;
+    }
+    this.indeterminate = false;
+    this.checked = !this.checked;
+    this.syncState();
+    this.emitChange(trigger);
+  }
+
+  private onNativeChange = (): void => {
+    if (!this.#input) {
+      return;
+    }
+    this.checked = this.#input.checked;
+    this.indeterminate = this.#input.indeterminate;
+    if (this.#input.value !== this.value) {
+      this.value = this.#input.value;
+    }
+    this.syncState();
+    this.emitChange("programmatic");
+  };
+
+  private onClick = (event: Event): void => {
+    if (this.#input) {
+      return;
+    }
+    event.preventDefault();
+    this.toggleChecked(eventToTrigger(event));
+  };
+
+  private onKeydown = (event: KeyboardEvent): void => {
+    if (this.#input || !isActivationKey(event)) {
+      return;
+    }
+    event.preventDefault();
+    this.toggleChecked("keyboard");
+  };
+}
+
+class UISwitchElement extends UIPrimitiveElement {
+  static get observedAttributes(): string[] {
+    return ["checked", "default-checked", "disabled", "required", "value"];
+  }
+
+  #input: HTMLInputElement | null = null;
+  #observer: MutationObserver | null = null;
+  #ownsTabIndex = false;
+
+  connectedCallback(): void {
+    this.resolveInput();
+    this.attachInputListeners();
+    this.addEventListener("click", this.onClick);
+    this.addEventListener("keydown", this.onKeydown);
+    this.syncState();
+    this.#observer = new MutationObserver(() => {
+      const previousInput = this.#input;
+      this.resolveInput();
+      if (previousInput !== this.#input) {
+        this.detachInputListeners(previousInput);
+        this.attachInputListeners();
+      }
+      this.syncState();
+    });
+    this.#observer.observe(this, { childList: true, subtree: true });
+  }
+
+  disconnectedCallback(): void {
+    this.detachInputListeners(this.#input);
+    this.removeEventListener("click", this.onClick);
+    this.removeEventListener("keydown", this.onKeydown);
+    this.#observer?.disconnect();
+    this.#observer = null;
+  }
+
+  get checked(): boolean {
+    return this.getBooleanAttribute("checked");
+  }
+
+  set checked(value: boolean) {
+    this.setBooleanAttribute("checked", value);
+  }
+
+  get defaultChecked(): boolean {
+    return this.getBooleanAttribute("default-checked");
+  }
+
+  set defaultChecked(value: boolean) {
+    this.setBooleanAttribute("default-checked", value);
+  }
+
+  get disabled(): boolean {
+    return this.getBooleanAttribute("disabled");
+  }
+
+  set disabled(value: boolean) {
+    this.setBooleanAttribute("disabled", value);
+  }
+
+  get required(): boolean {
+    return this.getBooleanAttribute("required");
+  }
+
+  set required(value: boolean) {
+    this.setBooleanAttribute("required", value);
+  }
+
+  get value(): string {
+    return this.getAttribute("value") ?? "on";
+  }
+
+  set value(next: string) {
+    this.setStringAttribute("value", next);
+  }
+
+  attributeChangedCallback(oldName: string, oldValue: string | null, newValue: string | null): void {
+    if (oldValue === newValue) {
+      return;
+    }
+    this.syncState();
+  }
+
+  private resolveInput(): void {
+    this.#input = this.querySelector('input[type="checkbox"], input:not([type])');
+  }
+
+  private attachInputListeners(): void {
+    this.#input?.addEventListener("change", this.onNativeChange);
+  }
+
+  private detachInputListeners(input: HTMLInputElement | null): void {
+    input?.removeEventListener("change", this.onNativeChange);
+  }
+
+  private syncState(): void {
+    if (!this.#input) {
+      if (!this.hasAttribute("role")) {
+        this.setAttribute("role", "switch");
+      }
+      this.setAttribute("aria-checked", String(this.checked));
+      this.setAttribute("aria-disabled", String(this.disabled));
+      if (!this.hasAttribute("tabindex")) {
+        this.tabIndex = this.disabled ? -1 : 0;
+        this.#ownsTabIndex = true;
+      } else if (this.#ownsTabIndex) {
+        this.tabIndex = this.disabled ? -1 : 0;
+      }
+      return;
+    }
+
+    this.#input.type = "checkbox";
+    this.#input.checked = this.checked;
+    this.#input.defaultChecked = this.defaultChecked;
+    this.#input.disabled = this.disabled;
+    this.#input.required = this.required;
+    this.#input.value = this.value;
+    this.setAttribute("role", "switch");
+    this.setAttribute("aria-checked", String(this.checked));
+    this.setAttribute("aria-disabled", String(this.disabled));
+  }
+
+  private emitChange(trigger: PrimitiveTrigger): void {
+    dispatchPrimitiveEvent<ToggleChangeDetail>(this, "change", {
+      checked: this.checked,
+      value: this.value,
+      trigger
+    });
+  }
+
+  private toggleChecked(trigger: PrimitiveTrigger): void {
+    if (this.disabled) {
+      return;
+    }
+    this.checked = !this.checked;
+    this.syncState();
+    this.emitChange(trigger);
+  }
+
+  private onNativeChange = (): void => {
+    if (!this.#input) {
+      return;
+    }
+    this.checked = this.#input.checked;
+    if (this.#input.value !== this.value) {
+      this.value = this.#input.value;
+    }
+    this.syncState();
+    this.emitChange("programmatic");
+  };
+
+  private onClick = (event: Event): void => {
+    if (this.#input) {
+      return;
+    }
+    event.preventDefault();
+    this.toggleChecked(eventToTrigger(event));
+  };
+
+  private onKeydown = (event: KeyboardEvent): void => {
+    if (this.#input || !isActivationKey(event)) {
+      return;
+    }
+    event.preventDefault();
+    this.toggleChecked("keyboard");
+  };
+}
+
 const definitions: ReadonlyArray<readonly [string, CustomElementConstructor]> = [
   ["ui-disclosure", UIDisclosureElement],
   ["ui-tabs", UITabsElement],
@@ -1404,7 +2009,11 @@ const definitions: ReadonlyArray<readonly [string, CustomElementConstructor]> = 
   ["ui-menu-item", UIMenuItemElement],
   ["ui-button", UIButtonElement],
   ["ui-input", UIInputElement],
-  ["ui-form-field", UIFormFieldElement]
+  ["ui-form-field", UIFormFieldElement],
+  ["ui-tooltip", UITooltipElement],
+  ["ui-toast-region", UIToastRegionElement],
+  ["ui-checkbox", UICheckboxElement],
+  ["ui-switch", UISwitchElement]
 ];
 
 for (const [tag, constructor] of definitions) {

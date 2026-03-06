@@ -4,15 +4,15 @@ import ComponentCreator from '@docusaurus/ComponentCreator';
 export default [
   {
     path: '/',
-    component: ComponentCreator('/', 'b85'),
+    component: ComponentCreator('/', '2da'),
     routes: [
       {
         path: '/',
-        component: ComponentCreator('/', '34f'),
+        component: ComponentCreator('/', '4b2'),
         routes: [
           {
             path: '/',
-            component: ComponentCreator('/', '3f8'),
+            component: ComponentCreator('/', 'a2b'),
             routes: [
               {
                 path: '/adapter-parity',
@@ -35,6 +35,12 @@ export default [
               {
                 path: '/components/ui-center',
                 component: ComponentCreator('/components/ui-center', 'c49'),
+                exact: true,
+                sidebar: "docs"
+              },
+              {
+                path: '/components/ui-checkbox',
+                component: ComponentCreator('/components/ui-checkbox', 'bc0'),
                 exact: true,
                 sidebar: "docs"
               },
@@ -111,14 +117,38 @@ export default [
                 sidebar: "docs"
               },
               {
+                path: '/components/ui-switch',
+                component: ComponentCreator('/components/ui-switch', 'dbc'),
+                exact: true,
+                sidebar: "docs"
+              },
+              {
                 path: '/components/ui-tabs',
                 component: ComponentCreator('/components/ui-tabs', '8b9'),
                 exact: true,
                 sidebar: "docs"
               },
               {
+                path: '/components/ui-toast-region',
+                component: ComponentCreator('/components/ui-toast-region', '3c9'),
+                exact: true,
+                sidebar: "docs"
+              },
+              {
+                path: '/components/ui-tooltip',
+                component: ComponentCreator('/components/ui-tooltip', '78a'),
+                exact: true,
+                sidebar: "docs"
+              },
+              {
                 path: '/conventions',
                 component: ComponentCreator('/conventions', '801'),
+                exact: true,
+                sidebar: "docs"
+              },
+              {
+                path: '/docs-api-sync',
+                component: ComponentCreator('/docs-api-sync', 'ecb'),
                 exact: true,
                 sidebar: "docs"
               },

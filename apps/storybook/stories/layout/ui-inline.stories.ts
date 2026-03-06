@@ -1,14 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/web-components-vite";
+import {
+  createComponentArgTypes,
+  createComponentDocsParameters
+} from "../shared/componentApi";
 
 const meta = {
   title: "Layout/ui-inline",
   tags: ["autodocs"],
-  argTypes: {
-    gap: { control: "text" },
-    align: { control: "text" },
-    justify: { control: "text" },
-    wrap: { control: "text" }
-  },
+  argTypes: createComponentArgTypes("ui-inline"),
+  parameters: createComponentDocsParameters("ui-inline"),
   render: ({ gap, align, justify, wrap }) => `
     <ui-inline gap="${gap}" align="${align}" justify="${justify}" wrap="${wrap}">
       <button type="button">Edit</button>

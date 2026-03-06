@@ -1,12 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/web-components-vite";
+import {
+  createComponentArgTypes,
+  createComponentDocsParameters
+} from "../shared/componentApi";
 
 const meta = {
   title: "Primitives/ui-disclosure",
   tags: ["autodocs"],
-  argTypes: {
-    open: { control: "boolean" },
-    disabled: { control: "boolean" }
-  },
+  argTypes: createComponentArgTypes("ui-disclosure"),
+  parameters: createComponentDocsParameters("ui-disclosure"),
   render: ({ open, disabled }) => `
     <ui-disclosure ${open ? "open" : ""} ${disabled ? "disabled" : ""}>
       <button type="button" aria-controls="disclosure-panel">Toggle details</button>

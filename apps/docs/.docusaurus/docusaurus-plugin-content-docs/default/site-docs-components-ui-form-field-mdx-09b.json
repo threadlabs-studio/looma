@@ -15,5 +15,9 @@
   "previous": {
     "title": "ui-input",
     "permalink": "/components/ui-input"
+  },
+  "next": {
+    "title": "ui-checkbox",
+    "permalink": "/components/ui-checkbox"
   }
 }

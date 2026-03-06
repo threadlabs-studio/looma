@@ -1,13 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/web-components-vite";
+import {
+  createComponentArgTypes,
+  createComponentDocsParameters
+} from "../shared/componentApi";
 
 const meta = {
   title: "Layout/ui-cluster",
   tags: ["autodocs"],
-  argTypes: {
-    gap: { control: "text" },
-    align: { control: "text" },
-    justify: { control: "text" }
-  },
+  argTypes: createComponentArgTypes("ui-cluster"),
+  parameters: createComponentDocsParameters("ui-cluster"),
   render: ({ gap, align, justify }) => `
     <ui-cluster gap="${gap}" align="${align}" justify="${justify}">
       <span>Status: Active</span>

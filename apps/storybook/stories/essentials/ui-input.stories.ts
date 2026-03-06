@@ -1,14 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/web-components-vite";
+import {
+  createComponentArgTypes,
+  createComponentDocsParameters
+} from "../shared/componentApi";
 
 const meta = {
   title: "Essentials/ui-input",
   tags: ["autodocs"],
-  argTypes: {
-    value: { control: "text" },
-    disabled: { control: "boolean" },
-    readonly: { control: "boolean" },
-    invalid: { control: "boolean" }
-  },
+  argTypes: createComponentArgTypes("ui-input"),
+  parameters: createComponentDocsParameters("ui-input"),
   render: ({ value, disabled, readonly, invalid }) => `
     <ui-input value="${value}" ${disabled ? "disabled" : ""} ${readonly ? "readonly" : ""} ${invalid ? "invalid" : ""}>
       <input type="text" name="field" />

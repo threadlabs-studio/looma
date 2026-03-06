@@ -1,0 +1,99 @@
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# ui-checkbox
+
+Form control primitive for boolean and mixed selection state.
+
+## Component Reference
+
+<ComponentExamplesApiTabs component="ui-checkbox" />
+
+## Attributes
+
+| Name | Type | Default |
+| --- | --- | --- |
+| `checked` | `boolean` | `false` |
+| `default-checked` | `boolean` | `false` |
+| `disabled` | `boolean` | `false` |
+| `required` | `boolean` | `false` |
+| `value` | `string` | `on` |
+| `indeterminate` | `boolean` | `false` |
+
+## Properties
+
+| Name | Type |
+| --- | --- |
+| `checked` | `boolean` |
+| `defaultChecked` | `boolean` |
+| `disabled` | `boolean` |
+| `required` | `boolean` |
+| `value` | `string` |
+| `indeterminate` | `boolean` |
+
+## Events
+
+| Name | Detail |
+| --- | --- |
+| `change` | `{ checked, value, trigger }` |
+
+## Slots
+
+Default slot. Typically wraps a native `<input type="checkbox">`.
+
+## SSR Markup
+
+```html
+<ui-checkbox value="newsletter">
+  <input type="checkbox" name="newsletter" />
+  Subscribe to updates
+</ui-checkbox>
+```
+
+## Framework Snippets
+
+<Tabs>
+  <TabItem value="react" label="React">
+
+```tsx
+import { Checkbox } from "@ui/react";
+
+export function Example() {
+  return (
+    <Checkbox value="newsletter">
+      <input type="checkbox" name="newsletter" />
+      Subscribe to updates
+    </Checkbox>
+  );
+}
+```
+
+  </TabItem>
+  <TabItem value="vue" label="Vue">
+
+```ts
+import { h } from "vue";
+import { Checkbox } from "@ui/vue";
+
+export const Example = {
+  setup: () => () =>
+    h(Checkbox, { value: "newsletter" }, () => [
+      h("input", { type: "checkbox", name: "newsletter" }),
+      "Subscribe to updates"
+    ])
+};
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<ui-checkbox value="newsletter">
+  <input type="checkbox" name="newsletter" />
+  Subscribe to updates
+</ui-checkbox>
+```
+
+  </TabItem>
+</Tabs>

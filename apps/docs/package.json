@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "docusaurus start --port 4173",
     "build": "docusaurus build",
+    "generate:api": "pnpm --dir ../.. generate:api",
+    "check:docs-sync": "pnpm --dir ../.. check:docs-sync",
     "lint": "echo \"docs: lint not configured\"",
     "test": "echo \"docs: tests not configured yet\"",
     "typecheck": "echo \"docs: typecheck not configured\""

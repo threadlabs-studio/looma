@@ -1,13 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/web-components-vite";
+import {
+  createComponentArgTypes,
+  createComponentDocsParameters
+} from "../shared/componentApi";
 
 const meta = {
   title: "Layout/ui-stack",
   tags: ["autodocs"],
-  argTypes: {
-    gap: { control: "text" },
-    align: { control: "text" },
-    justify: { control: "text" }
-  },
+  argTypes: createComponentArgTypes("ui-stack"),
+  parameters: createComponentDocsParameters("ui-stack"),
   render: ({ gap, align, justify }) => `
     <ui-stack gap="${gap}" align="${align}" justify="${justify}">
       <div>Header</div>
