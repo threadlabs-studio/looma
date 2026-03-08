@@ -45,7 +45,9 @@ interface ComponentApiMetadata {
 const metadata = componentApi as ComponentApiMetadata;
 
 function SectionHeader({ title }: { title: string }): JSX.Element {
-  return <h3>{title}</h3>;
+  return (
+    <h3 style={{ marginTop: "1.5rem", marginBottom: "0.5rem" }}>{title}</h3>
+  );
 }
 
 export function ComponentApi({ component }: ComponentApiProps): JSX.Element {
@@ -56,18 +58,19 @@ export function ComponentApi({ component }: ComponentApiProps): JSX.Element {
   }
 
   return (
-    <div>
+    <div className="looma-api">
       {api.description ? <p>{api.description}</p> : null}
-      <p>
-        <strong>Package:</strong> <code>{api.package}</code> <strong>Class:</strong>{" "}
-        <code>{api.className}</code>
+      <p style={{ fontSize: "0.875rem", color: "var(--ifm-font-color-secondary)" }}>
+        <strong>Package:</strong> <code>{api.package}</code>
+        {" · "}
+        <strong>Class:</strong> <code>{api.className}</code>
       </p>
 
       <SectionHeader title="Attributes" />
       {api.attributes.length === 0 ? (
         <p>No observed attributes.</p>
       ) : (
-        <table>
+        <table className="looma-api-table">
           <thead>
             <tr>
               <th>Name</th>
@@ -105,7 +108,7 @@ export function ComponentApi({ component }: ComponentApiProps): JSX.Element {
       {api.properties.length === 0 ? (
         <p>No public properties.</p>
       ) : (
-        <table>
+        <table className="looma-api-table">
           <thead>
             <tr>
               <th>Name</th>
@@ -139,7 +142,7 @@ export function ComponentApi({ component }: ComponentApiProps): JSX.Element {
       {api.events.length === 0 ? (
         <p>No custom events.</p>
       ) : (
-        <table>
+        <table className="looma-api-table">
           <thead>
             <tr>
               <th>Name</th>

@@ -1,0 +1,95 @@
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# Avatar Group
+
+Container that displays overlapping avatars with an optional "+N" overflow pill when the count exceeds the visible maximum.
+
+## Component Reference
+
+<ComponentExamplesApiTabs component="ui-avatar-group" />
+
+## Attributes
+
+| Name | Type | Default |
+| --- | --- | --- |
+| `max` | `number` | `5` |
+| `label` | `string` | `"People"` |
+
+## Properties
+
+| Name | Type |
+| --- | --- |
+| `max` | `number` |
+| `label` | `string` |
+
+## Events
+
+None.
+
+## Slots
+
+Default slot: direct children are shown as overlapping avatars; only the first `max` are visible, with a "+N" pill for the rest.
+
+## SSR Markup
+
+```html
+<ui-avatar-group max="5" label="People">
+  <ui-avatar name="Alex" src="/a.png" alt="Alex">
+    <img />
+    <span data-ui-avatar-fallback></span>
+  </ui-avatar>
+  <ui-avatar name="Sam" src="/b.png" alt="Sam">
+    <img />
+    <span data-ui-avatar-fallback></span>
+  </ui-avatar>
+</ui-avatar-group>
+```
+
+## Framework Snippets
+
+<Tabs groupId="framework" defaultValue="vue">
+  <TabItem value="vue" label="Vue">
+
+```vue
+<script setup lang="ts">
+import { AvatarGroup, Avatar } from "@looma/vue";
+</script>
+
+<template>
+  <AvatarGroup :max="5" label="People">
+    <Avatar name="Alex" src="/a.png" alt="Alex"><img /></Avatar>
+    <Avatar name="Sam" src="/b.png" alt="Sam"><img /></Avatar>
+  </AvatarGroup>
+</template>
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<ui-avatar-group max="5" label="People">
+  <ui-avatar name="Alex" src="/a.png" alt="Alex"><img /><span data-ui-avatar-fallback></span></ui-avatar>
+  <ui-avatar name="Sam" src="/b.png" alt="Sam"><img /><span data-ui-avatar-fallback></span></ui-avatar>
+</ui-avatar-group>
+```
+
+  </TabItem>
+  <TabItem value="react" label="React">
+
+```tsx
+import { AvatarGroup, Avatar } from "@looma/react";
+
+export function Example() {
+  return (
+    <AvatarGroup max={5} label="People">
+      <Avatar name="Alex" src="/a.png" alt="Alex"><img /></Avatar>
+      <Avatar name="Sam" src="/b.png" alt="Sam"><img /></Avatar>
+    </AvatarGroup>
+  );
+}
+```
+
+  </TabItem>
+</Tabs>

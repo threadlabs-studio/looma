@@ -2,7 +2,7 @@ import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
-# ui-radio
+# Radio
 
 Radio control primitive for mutually exclusive options, typically composed within `ui-radio-group`.
 
@@ -53,7 +53,33 @@ Default slot. Often wraps a native `<input type="radio">`.
 
 ## Framework Snippets
 
-<Tabs>
+<Tabs groupId="framework" defaultValue="vue">
+  <TabItem value="vue" label="Vue">
+
+```vue
+<script setup lang="ts">
+import { Radio } from "@looma/vue";
+</script>
+
+<template>
+  <Radio value="starter">
+    <input type="radio" name="plan" />
+    Starter
+  </Radio>
+</template>
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<ui-radio value="starter">
+  <input type="radio" name="plan" />
+  Starter
+</ui-radio>
+```
+
+  </TabItem>
   <TabItem value="react" label="React">
 
 ```tsx
@@ -67,32 +93,6 @@ export function Example() {
     </Radio>
   );
 }
-```
-
-  </TabItem>
-  <TabItem value="vue" label="Vue">
-
-```ts
-import { h } from "vue";
-import { Radio } from "@looma/vue";
-
-export const Example = {
-  setup: () => () =>
-    h(Radio, { value: "starter" }, () => [
-      h("input", { type: "radio", name: "plan" }),
-      "Starter"
-    ])
-};
-```
-
-  </TabItem>
-  <TabItem value="svelte" label="Svelte">
-
-```svelte
-<ui-radio value="starter">
-  <input type="radio" name="plan" />
-  Starter
-</ui-radio>
 ```
 
   </TabItem>

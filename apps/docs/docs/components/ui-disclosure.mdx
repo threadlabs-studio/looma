@@ -2,7 +2,7 @@ import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
-# ui-disclosure
+# Disclosure
 
 Progressively enhances a button/content pair into an accessible disclosure.
 
@@ -48,40 +48,24 @@ Default slot with authored trigger/content children.
 
 ## Framework Snippets
 
-<Tabs>
-  <TabItem value="react" label="React">
-
-```tsx
-import { Disclosure } from "@looma/react";
-
-export function Example() {
-  return (
-    <Disclosure onOpen={(detail) => console.log(detail)}>
-      <button type="button" aria-controls="faq-a1">What is light DOM?</button>
-      <div id="faq-a1" hidden>Inspectable SSR markup with progressive behavior.</div>
-    </Disclosure>
-  );
-}
-```
-
-  </TabItem>
+<Tabs groupId="framework" defaultValue="vue">
   <TabItem value="vue" label="Vue">
 
-```ts
-import { h } from "vue";
+```vue
+<script setup lang="ts">
 import { Disclosure } from "@looma/vue";
 
-export const Example = {
-  setup() {
-    return () =>
-      h(Disclosure, { onOpen: (detail: unknown) => console.log(detail) }, {
-        default: () => [
-          h("button", { type: "button", "aria-controls": "faq-a1" }, "What is light DOM?"),
-          h("div", { id: "faq-a1", hidden: true }, "Inspectable SSR markup with progressive behavior.")
-        ]
-      });
-  }
-};
+function onOpen(detail: unknown) {
+  console.log(detail);
+}
+</script>
+
+<template>
+  <Disclosure @open="onOpen">
+    <button type="button" aria-controls="faq-a1">What is light DOM?</button>
+    <div id="faq-a1" hidden>Inspectable SSR markup with progressive behavior.</div>
+  </Disclosure>
+</template>
 ```
 
   </TabItem>
@@ -97,6 +81,22 @@ export const Example = {
   <button type="button" aria-controls="faq-a1">What is light DOM?</button>
   <div id="faq-a1" hidden>Inspectable SSR markup with progressive behavior.</div>
 </ui-disclosure>
+```
+
+  </TabItem>
+  <TabItem value="react" label="React">
+
+```tsx
+import { Disclosure } from "@looma/react";
+
+export function Example() {
+  return (
+    <Disclosure onOpen={(detail) => console.log(detail)}>
+      <button type="button" aria-controls="faq-a1">What is light DOM?</button>
+      <div id="faq-a1" hidden>Inspectable SSR markup with progressive behavior.</div>
+    </Disclosure>
+  );
+}
 ```
 
   </TabItem>

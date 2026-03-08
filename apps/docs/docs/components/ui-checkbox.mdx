@@ -2,7 +2,7 @@ import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
-# ui-checkbox
+# Checkbox
 
 Form control primitive for boolean and mixed selection state.
 
@@ -46,14 +46,48 @@ Default slot. Typically wraps a native `<input type="checkbox">`.
 
 ```html
 <ui-checkbox value="newsletter">
-  <input type="checkbox" name="newsletter" />
-  Subscribe to updates
+  <label>
+    <input type="checkbox" name="newsletter" />
+    <span>Subscribe to updates</span>
+  </label>
 </ui-checkbox>
 ```
 
+Wrap the input and label text in a `<label>` so clicking the text toggles the checkbox.
+
 ## Framework Snippets
 
-<Tabs>
+<Tabs groupId="framework" defaultValue="vue">
+  <TabItem value="vue" label="Vue">
+
+```vue
+<script setup lang="ts">
+import { Checkbox } from "@looma/vue";
+</script>
+
+<template>
+  <Checkbox value="newsletter">
+    <label>
+      <input type="checkbox" name="newsletter" />
+      <span>Subscribe to updates</span>
+    </label>
+  </Checkbox>
+</template>
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<ui-checkbox value="newsletter">
+  <label>
+    <input type="checkbox" name="newsletter" />
+    <span>Subscribe to updates</span>
+  </label>
+</ui-checkbox>
+```
+
+  </TabItem>
   <TabItem value="react" label="React">
 
 ```tsx
@@ -62,37 +96,13 @@ import { Checkbox } from "@looma/react";
 export function Example() {
   return (
     <Checkbox value="newsletter">
-      <input type="checkbox" name="newsletter" />
-      Subscribe to updates
+      <label>
+        <input type="checkbox" name="newsletter" />
+        <span>Subscribe to updates</span>
+      </label>
     </Checkbox>
   );
 }
-```
-
-  </TabItem>
-  <TabItem value="vue" label="Vue">
-
-```ts
-import { h } from "vue";
-import { Checkbox } from "@looma/vue";
-
-export const Example = {
-  setup: () => () =>
-    h(Checkbox, { value: "newsletter" }, () => [
-      h("input", { type: "checkbox", name: "newsletter" }),
-      "Subscribe to updates"
-    ])
-};
-```
-
-  </TabItem>
-  <TabItem value="svelte" label="Svelte">
-
-```svelte
-<ui-checkbox value="newsletter">
-  <input type="checkbox" name="newsletter" />
-  Subscribe to updates
-</ui-checkbox>
 ```
 
   </TabItem>

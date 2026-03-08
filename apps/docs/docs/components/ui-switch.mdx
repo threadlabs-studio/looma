@@ -2,7 +2,7 @@ import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
-# ui-switch
+# Switch
 
 Binary control primitive that reflects switch semantics for checked state.
 
@@ -51,7 +51,33 @@ Default slot. Typically wraps a native `<input type="checkbox">`.
 
 ## Framework Snippets
 
-<Tabs>
+<Tabs groupId="framework" defaultValue="vue">
+  <TabItem value="vue" label="Vue">
+
+```vue
+<script setup lang="ts">
+import { Switch } from "@looma/vue";
+</script>
+
+<template>
+  <Switch value="notifications">
+    <input type="checkbox" name="notifications" />
+    Enable notifications
+  </Switch>
+</template>
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<ui-switch value="notifications">
+  <input type="checkbox" name="notifications" />
+  Enable notifications
+</ui-switch>
+```
+
+  </TabItem>
   <TabItem value="react" label="React">
 
 ```tsx
@@ -65,32 +91,6 @@ export function Example() {
     </Switch>
   );
 }
-```
-
-  </TabItem>
-  <TabItem value="vue" label="Vue">
-
-```ts
-import { h } from "vue";
-import { Switch } from "@looma/vue";
-
-export const Example = {
-  setup: () => () =>
-    h(Switch, { value: "notifications" }, () => [
-      h("input", { type: "checkbox", name: "notifications" }),
-      "Enable notifications"
-    ])
-};
-```
-
-  </TabItem>
-  <TabItem value="svelte" label="Svelte">
-
-```svelte
-<ui-switch value="notifications">
-  <input type="checkbox" name="notifications" />
-  Enable notifications
-</ui-switch>
 ```
 
   </TabItem>

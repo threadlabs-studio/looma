@@ -29,23 +29,19 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: "category",
-      label: "Primitives",
+      label: "Overlay",
       items: [
-        "components/ui-disclosure",
-        "components/ui-tabs",
         "components/ui-dialog",
         "components/ui-popover",
         "components/ui-tooltip",
         "components/ui-toast-region",
         "components/ui-menu",
-        "components/ui-menu-item",
-        "components/ui-badge",
-        "components/ui-avatar"
+        "components/ui-menu-item"
       ]
     },
     {
       type: "category",
-      label: "Essentials",
+      label: "Forms",
       items: [
         "components/ui-button",
         "components/ui-input",
@@ -54,6 +50,17 @@ const sidebars: SidebarsConfig = {
         "components/ui-switch",
         "components/ui-radio-group",
         "components/ui-radio"
+      ]
+    },
+    {
+      type: "category",
+      label: "Display",
+      items: [
+        "components/ui-badge",
+        "components/ui-avatar",
+        "components/ui-avatar-group",
+        "components/ui-disclosure",
+        "components/ui-tabs"
       ]
     }
   ]

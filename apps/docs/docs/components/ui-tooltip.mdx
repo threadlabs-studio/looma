@@ -2,7 +2,7 @@ import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
-# ui-tooltip
+# Tooltip
 
 Contextual overlay primitive that links descriptive content to a trigger element.
 
@@ -46,7 +46,31 @@ Default slot for tooltip content.
 
 ## Framework Snippets
 
-<Tabs>
+<Tabs groupId="framework" defaultValue="vue">
+  <TabItem value="vue" label="Vue">
+
+```vue
+<script setup lang="ts">
+import { Tooltip } from "@looma/vue";
+</script>
+
+<template>
+  <div>
+    <button id="help-trigger" type="button">Help</button>
+    <Tooltip for="help-trigger">Helpful guidance.</Tooltip>
+  </div>
+</template>
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<button id="help-trigger" type="button">Help</button>
+<ui-tooltip for="help-trigger">Helpful guidance.</ui-tooltip>
+```
+
+  </TabItem>
   <TabItem value="react" label="React">
 
 ```tsx
@@ -60,30 +84,6 @@ export function Example() {
     </>
   );
 }
-```
-
-  </TabItem>
-  <TabItem value="vue" label="Vue">
-
-```ts
-import { h } from "vue";
-import { Tooltip } from "@looma/vue";
-
-export const Example = {
-  setup: () => () =>
-    h("div", [
-      h("button", { id: "help-trigger", type: "button" }, "Help"),
-      h(Tooltip, { for: "help-trigger" }, () => "Helpful guidance.")
-    ])
-};
-```
-
-  </TabItem>
-  <TabItem value="svelte" label="Svelte">
-
-```svelte
-<button id="help-trigger" type="button">Help</button>
-<ui-tooltip for="help-trigger">Helpful guidance.</ui-tooltip>
 ```
 
   </TabItem>

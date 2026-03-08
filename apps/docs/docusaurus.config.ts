@@ -17,6 +17,12 @@ const config: Config = {
     defaultLocale: "en",
     locales: ["en"]
   },
+  clientModules: [require.resolve("./src/prism-languages.ts")],
+  stylesheets: [
+    {
+      href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    }
+  ],
   presets: [
     [
       "classic",
@@ -34,6 +40,10 @@ const config: Config = {
     ]
   ],
   themeConfig: {
+    colorMode: {
+      defaultMode: "light",
+      respectPrefersColorScheme: true
+    },
     navbar: {
       title: "Looma UI",
       items: [
@@ -54,6 +64,30 @@ const config: Config = {
         hideable: false,
         autoCollapseCategories: false
       }
+    },
+    prism: {
+      additionalLanguages: ["tsx", "jsx"]
+    },
+    footer: {
+      style: "light",
+      links: [
+        {
+          title: "Docs",
+          items: [
+            { label: "Getting Started", to: "/" },
+            { label: "Architecture", to: "/architecture" },
+            { label: "Tokens", to: "/tokens" }
+          ]
+        },
+        {
+          title: "Resources",
+          items: [
+            { label: "Knit", href: "https://knit.wiki" },
+            { label: "GitHub", href: "https://github.com" }
+          ]
+        }
+      ],
+      copyright: "Looma UI — SSR-first web components."
     }
   } satisfies Preset.ThemeConfig
 };

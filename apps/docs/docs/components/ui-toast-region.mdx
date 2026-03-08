@@ -2,7 +2,7 @@ import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
-# ui-toast-region
+# Toast Region
 
 Live-region container primitive for stackable dismissible toasts.
 
@@ -47,7 +47,37 @@ Default slot with toast nodes marked using `data-ui-toast`.
 
 ## Framework Snippets
 
-<Tabs>
+<Tabs groupId="framework" defaultValue="vue">
+  <TabItem value="vue" label="Vue">
+
+```vue
+<script setup lang="ts">
+import { ToastRegion } from "@looma/vue";
+</script>
+
+<template>
+  <ToastRegion>
+    <div data-ui-toast>
+      Saved.
+      <button type="button" data-ui-toast-dismiss aria-label="Dismiss">Dismiss</button>
+    </div>
+  </ToastRegion>
+</template>
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<ui-toast-region>
+  <div data-ui-toast>
+    Saved.
+    <button type="button" data-ui-toast-dismiss aria-label="Dismiss">Dismiss</button>
+  </div>
+</ui-toast-region>
+```
+
+  </TabItem>
   <TabItem value="react" label="React">
 
 ```tsx
@@ -63,36 +93,6 @@ export function Example() {
     </ToastRegion>
   );
 }
-```
-
-  </TabItem>
-  <TabItem value="vue" label="Vue">
-
-```ts
-import { h } from "vue";
-import { ToastRegion } from "@looma/vue";
-
-export const Example = {
-  setup: () => () =>
-    h(ToastRegion, {}, () =>
-      h("div", { "data-ui-toast": "" }, [
-        "Saved.",
-        h("button", { type: "button", "data-ui-toast-dismiss": "", "aria-label": "Dismiss" }, "Dismiss")
-      ])
-    )
-};
-```
-
-  </TabItem>
-  <TabItem value="svelte" label="Svelte">
-
-```svelte
-<ui-toast-region>
-  <div data-ui-toast>
-    Saved.
-    <button type="button" data-ui-toast-dismiss aria-label="Dismiss">Dismiss</button>
-  </div>
-</ui-toast-region>
 ```
 
   </TabItem>

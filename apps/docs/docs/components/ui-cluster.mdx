@@ -2,7 +2,7 @@ import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
-# ui-cluster
+# Cluster
 
 Cluster layout primitive for wrapping item groups with shared alignment controls.
 
@@ -48,7 +48,33 @@ Default slot only.
 
 ## Framework Snippets
 
-<Tabs>
+<Tabs groupId="framework" defaultValue="vue">
+  <TabItem value="vue" label="Vue">
+
+```vue
+<script setup lang="ts">
+import { Cluster, Inline } from "@looma/vue";
+</script>
+
+<template>
+  <Cluster gap="s" justify="between">
+    <span>Status: Active</span>
+    <Inline gap="s">
+      <button type="button">Save</button>
+      <button type="button">Cancel</button>
+    </Inline>
+  </Cluster>
+</template>
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<ui-cluster gap="s" justify="between">...</ui-cluster>
+```
+
+  </TabItem>
   <TabItem value="react" label="React">
 
 ```tsx
@@ -57,23 +83,6 @@ import { Cluster } from "@looma/react";
 export function Example() {
   return <Cluster gap="s" justify="between">...</Cluster>;
 }
-```
-
-  </TabItem>
-  <TabItem value="vue" label="Vue">
-
-```ts
-import { h } from "vue";
-import { Cluster } from "@looma/vue";
-
-export const Example = { setup: () => () => h(Cluster, { gap: "s", justify: "between" }) };
-```
-
-  </TabItem>
-  <TabItem value="svelte" label="Svelte">
-
-```svelte
-<ui-cluster gap="s" justify="between">...</ui-cluster>
 ```
 
   </TabItem>

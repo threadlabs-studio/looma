@@ -2,7 +2,7 @@ import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
-# ui-popover
+# Popover
 
 Non-modal overlay primitive with shared open/close overlay lifecycle.
 
@@ -46,25 +46,21 @@ Default slot only.
 
 ## Framework Snippets
 
-<Tabs>
-  <TabItem value="react" label="React">
-
-```tsx
-import { Popover } from "@looma/react";
-
-export function Example() {
-  return <Popover onOpen={(detail) => console.log(detail)}>Help content</Popover>;
-}
-```
-
-  </TabItem>
+<Tabs groupId="framework" defaultValue="vue">
   <TabItem value="vue" label="Vue">
 
-```ts
-import { h } from "vue";
+```vue
+<script setup lang="ts">
 import { Popover } from "@looma/vue";
 
-export const Example = { setup: () => () => h(Popover, { onOpen: (detail: unknown) => console.log(detail) }, "Help content") };
+function onOpen(detail: unknown) {
+  console.log(detail);
+}
+</script>
+
+<template>
+  <Popover @open="onOpen">Help content</Popover>
+</template>
 ```
 
   </TabItem>
@@ -77,6 +73,17 @@ export const Example = { setup: () => () => h(Popover, { onOpen: (detail: unknow
 </script>
 
 <ui-popover use:bindAdapter={options}>Help content</ui-popover>
+```
+
+  </TabItem>
+  <TabItem value="react" label="React">
+
+```tsx
+import { Popover } from "@looma/react";
+
+export function Example() {
+  return <Popover onOpen={(detail) => console.log(detail)}>Help content</Popover>;
+}
 ```
 
   </TabItem>

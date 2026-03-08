@@ -1,14 +1,224 @@
+/**
+ * Looma Docs — Material-first + PrimeVue-practical hybrid.
+ * Visual hierarchy and layout only; Looma components stay as-is.
+ */
+
+/* ---------------------------------------------------------------------------
+   Typography (Material-like hierarchy)
+   --------------------------------------------------------------------------- */
 :root {
-  --ifm-color-primary: #385cff;
-  --ifm-color-primary-dark: #2f4fe5;
-  --ifm-color-primary-darker: #2946cc;
-  --ifm-color-primary-darkest: #223bad;
-  --ifm-color-primary-light: #5271ff;
-  --ifm-color-primary-lighter: #6c86ff;
-  --ifm-color-primary-lightest: #91a5ff;
-  --ifm-code-font-size: 0.92rem;
+  --ifm-font-family-base: "Inter", system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, sans-serif;
+  --ifm-font-family-monospace: "JetBrains Mono", "Fira Code", ui-monospace,
+    SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  --ifm-font-size-base: 16px;
+  --ifm-line-height-base: 1.6;
+  --ifm-heading-font-weight: 600;
+  --ifm-heading-line-height: 1.25;
+  --ifm-h1-font-size: 2rem;
+  --ifm-h2-font-size: 1.5rem;
+  --ifm-h3-font-size: 1.25rem;
+  --ifm-h4-font-size: 1.125rem;
+  --ifm-h5-font-size: 1rem;
+  --ifm-h6-font-size: 0.875rem;
+  --ifm-code-font-size: 0.875rem;
+}
+
+/* ---------------------------------------------------------------------------
+   Colors — distinctive, not boring
+   --------------------------------------------------------------------------- */
+:root {
+  --ifm-color-primary: #6366f1;
+  --ifm-color-primary-dark: #4f46e5;
+  --ifm-color-primary-darker: #4338ca;
+  --ifm-color-primary-darkest: #3730a3;
+  --ifm-color-primary-light: #818cf8;
+  --ifm-color-primary-lighter: #a5b4fc;
+  --ifm-color-primary-lightest: #c7d2fe;
+  --ifm-link-color: #6366f1;
+  --ifm-link-hover-color: #4f46e5;
 }
 
 [data-theme="dark"] {
-  --ifm-color-primary: #91a5ff;
+  --ifm-color-primary: #a5b4fc;
+  --ifm-color-primary-dark: #818cf8;
+  --ifm-color-primary-darker: #6366f1;
+  --ifm-color-primary-darkest: #4f46e5;
+  --ifm-link-color: #a5b4fc;
+  --ifm-link-hover-color: #c7d2fe;
+}
+
+/* ---------------------------------------------------------------------------
+   Spacing rhythm (Material-like generous spacing)
+   --------------------------------------------------------------------------- */
+:root {
+  --docs-spacing-xs: 0.5rem;
+  --docs-spacing-sm: 1rem;
+  --docs-spacing-md: 1.5rem;
+  --docs-spacing-lg: 2rem;
+  --docs-spacing-xl: 3rem;
+}
+
+/* Section separation */
+.theme-doc-markdown h2 {
+  margin-top: var(--docs-spacing-xl);
+  padding-top: var(--docs-spacing-md);
+  border-top: 1px solid var(--ifm-toc-border-color);
+}
+
+.theme-doc-markdown h2:first-of-type {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.theme-doc-markdown h3 {
+  margin-top: var(--docs-spacing-lg);
+}
+
+.theme-doc-markdown p + p,
+.theme-doc-markdown ul + p,
+.theme-doc-markdown table + p {
+  margin-top: var(--docs-spacing-sm);
+}
+
+/* ---------------------------------------------------------------------------
+   API tables (PrimeVue-practical: dense, scannable)
+   --------------------------------------------------------------------------- */
+.theme-doc-markdown table,
+.looma-api-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.theme-doc-markdown thead th,
+.looma-api-table thead th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--ifm-font-color-base);
+  padding: 0.5rem 0.75rem;
+  border-bottom: 2px solid var(--ifm-table-border-color);
+  background: var(--ifm-table-stripe-background);
+}
+
+.theme-doc-markdown tbody td,
+.looma-api-table tbody td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--ifm-table-border-color);
+  vertical-align: top;
+}
+
+.theme-doc-markdown tbody tr:hover,
+.looma-api-table tbody tr:hover {
+  background: var(--ifm-table-stripe-background);
+}
+
+.theme-doc-markdown table code,
+.looma-api-table code {
+  font-size: 0.8125rem;
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+  background: var(--ifm-code-background);
+}
+
+/* ---------------------------------------------------------------------------
+   Code blocks (clear hierarchy, copy-friendly)
+   --------------------------------------------------------------------------- */
+.theme-doc-markdown pre {
+  border-radius: 8px;
+  padding: var(--docs-spacing-md);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.theme-doc-markdown .prism-code {
+  margin: var(--docs-spacing-sm) 0;
+}
+
+/* ---------------------------------------------------------------------------
+   Component page structure
+   --------------------------------------------------------------------------- */
+.looma-component-header {
+  margin-bottom: var(--docs-spacing-lg);
+}
+
+.looma-component-header .component-tag {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.875rem;
+  color: var(--ifm-color-primary);
+  margin-bottom: var(--docs-spacing-xs);
+}
+
+.looma-component-header h1 {
+  margin-bottom: var(--docs-spacing-xs);
+}
+
+.looma-component-header p {
+  color: var(--ifm-font-color-secondary);
+  font-size: 1rem;
+  max-width: 60ch;
+}
+
+.looma-import-block {
+  margin: var(--docs-spacing-md) 0;
+  padding: var(--docs-spacing-sm);
+  background: var(--ifm-code-background);
+  border-radius: 8px;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.875rem;
+}
+
+/* ---------------------------------------------------------------------------
+   Navbar & sidebar polish
+   --------------------------------------------------------------------------- */
+.navbar {
+  box-shadow: 0 1px 0 var(--ifm-toc-border-color);
+  background: linear-gradient(
+    135deg,
+    var(--ifm-navbar-background-color) 0%,
+    color-mix(in srgb, var(--ifm-color-primary) 8%, var(--ifm-navbar-background-color)) 100%
+  );
+}
+
+.menu__link {
+  font-size: 0.9375rem;
+}
+
+.menu__link--active {
+  font-weight: 600;
+  color: var(--ifm-color-primary);
+}
+
+/* ---------------------------------------------------------------------------
+   Live examples
+   --------------------------------------------------------------------------- */
+.looma-live-example {
+  margin: var(--docs-spacing-md) 0;
+  padding: var(--docs-spacing-md);
+  background: var(--ifm-background-surface-color);
+  border: 1px solid var(--ifm-toc-border-color);
+  border-radius: 12px;
+}
+
+.looma-live-example-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ifm-color-content-secondary);
+  margin-bottom: var(--docs-spacing-sm);
+}
+
+.looma-live-example-preview {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--docs-spacing-sm);
+}
+
+.looma-live-example-loading {
+  color: var(--ifm-color-content-secondary);
+  font-size: 0.875rem;
 }

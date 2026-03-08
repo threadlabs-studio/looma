@@ -25,10 +25,11 @@ Adapters must remain thin wrappers around the same light DOM contracts.
 | `ui-toast-region` | `ToastRegion` | `ToastRegion` | native element + `bindAdapter` |
 | `ui-checkbox` | `Checkbox` | `Checkbox` | native element + `bindAdapter` |
 | `ui-switch` | `Switch` | `Switch` | native element + `bindAdapter` |
-| `ui-radio-group` | _pending wrapper export_ | `RadioGroup` | native element + `bindAdapter` |
-| `ui-radio` | _pending wrapper export_ | `Radio` | native element + `bindAdapter` |
-| `ui-badge` | _pending wrapper export_ | `Badge` | native element + `bindAdapter` |
-| `ui-avatar` | _pending wrapper export_ | `Avatar` | native element + `bindAdapter` |
+| `ui-radio-group` | `RadioGroup` | `RadioGroup` | native element + `bindAdapter` |
+| `ui-radio` | `Radio` | `Radio` | native element + `bindAdapter` |
+| `ui-badge` | `Badge` | `Badge` | native element + `bindAdapter` |
+| `ui-avatar` | `Avatar` | `Avatar` | native element + `bindAdapter` |
+| `ui-avatar-group` | `AvatarGroup` | `AvatarGroup` | native element + `bindAdapter` |
 
 ## Event Parity
 
@@ -40,4 +41,4 @@ Adapters must remain thin wrappers around the same light DOM contracts.
 
 Adapters must not introduce behavior divergence or Shadow DOM.
 
-M6 note: React wrapper exports for `ui-radio-group`, `ui-radio`, `ui-badge`, and `ui-avatar` are still pending. Until then, use native custom elements for those tags in React, and continue using `bindAdapter` on native elements in Svelte.
+M6 note: React and Vue now have full wrapper parity for current core tags. Svelte remains intentionally element-first (`bindAdapter` over native elements) by design.

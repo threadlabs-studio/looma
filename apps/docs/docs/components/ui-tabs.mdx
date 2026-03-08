@@ -2,7 +2,7 @@ import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
-# ui-tabs
+# Tabs
 
 Tablist primitive that synchronizes tab focus, selection, and panel visibility.
 
@@ -51,25 +51,28 @@ Default slot with authored tablist/tabs/panels.
 
 ## Framework Snippets
 
-<Tabs>
-  <TabItem value="react" label="React">
-
-```tsx
-import { Tabs as UITabs } from "@looma/react";
-
-export function Example() {
-  return <UITabs onSelect={(detail) => console.log(detail)}>...</UITabs>;
-}
-```
-
-  </TabItem>
+<Tabs groupId="framework" defaultValue="vue">
   <TabItem value="vue" label="Vue">
 
-```ts
-import { h } from "vue";
+```vue
+<script setup lang="ts">
 import { Tabs as UITabs } from "@looma/vue";
 
-export const Example = { setup: () => () => h(UITabs, { onSelect: (detail: unknown) => console.log(detail) }) };
+function onSelect(detail: unknown) {
+  console.log(detail);
+}
+</script>
+
+<template>
+  <UITabs @select="onSelect">
+    <div role="tablist" aria-label="Sections">
+      <button role="tab" id="tab-overview" aria-controls="panel-overview">Overview</button>
+      <button role="tab" id="tab-details" aria-controls="panel-details">Details</button>
+    </div>
+    <section role="tabpanel" id="panel-overview" aria-labelledby="tab-overview">Overview content</section>
+    <section role="tabpanel" id="panel-details" aria-labelledby="tab-details" hidden>Details content</section>
+  </UITabs>
+</template>
 ```
 
   </TabItem>
@@ -82,6 +85,17 @@ export const Example = { setup: () => () => h(UITabs, { onSelect: (detail: unkno
 </script>
 
 <ui-tabs use:bindAdapter={options}>...</ui-tabs>
+```
+
+  </TabItem>
+  <TabItem value="react" label="React">
+
+```tsx
+import { Tabs as UITabs } from "@looma/react";
+
+export function Example() {
+  return <UITabs onSelect={(detail) => console.log(detail)}>...</UITabs>;
+}
 ```
 
   </TabItem>

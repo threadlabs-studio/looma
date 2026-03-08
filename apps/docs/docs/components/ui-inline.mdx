@@ -2,7 +2,7 @@ import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
-# ui-inline
+# Inline
 
 Inline layout primitive for row-style content with wrapping support.
 
@@ -48,25 +48,21 @@ Default slot only (natural children).
 
 ## Framework Snippets
 
-<Tabs>
-  <TabItem value="react" label="React">
-
-```tsx
-import { Inline } from "@looma/react";
-
-export function Example() {
-  return <Inline gap="s" wrap="wrap">...</Inline>;
-}
-```
-
-  </TabItem>
+<Tabs groupId="framework" defaultValue="vue">
   <TabItem value="vue" label="Vue">
 
-```ts
-import { h } from "vue";
+```vue
+<script setup lang="ts">
 import { Inline } from "@looma/vue";
+</script>
 
-export const Example = { setup: () => () => h(Inline, { gap: "s", wrap: "wrap" }) };
+<template>
+  <Inline gap="s" wrap="wrap">
+    <button type="button">Edit</button>
+    <button type="button">Share</button>
+    <button type="button">Archive</button>
+  </Inline>
+</template>
 ```
 
   </TabItem>
@@ -77,6 +73,17 @@ export const Example = { setup: () => () => h(Inline, { gap: "s", wrap: "wrap" }
   <button type="button">Edit</button>
   <button type="button">Share</button>
 </ui-inline>
+```
+
+  </TabItem>
+  <TabItem value="react" label="React">
+
+```tsx
+import { Inline } from "@looma/react";
+
+export function Example() {
+  return <Inline gap="s" wrap="wrap">...</Inline>;
+}
 ```
 
   </TabItem>

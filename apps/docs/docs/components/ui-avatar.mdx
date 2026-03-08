@@ -2,7 +2,7 @@ import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
-# ui-avatar
+# Avatar
 
 Image and fallback initials primitive for identity surfaces such as profiles and assignees.
 
@@ -47,7 +47,32 @@ Default slot; typically includes an `<img>` with optional fallback content.
 
 ## Framework Snippets
 
-<Tabs>
+<Tabs groupId="framework" defaultValue="vue">
+  <TabItem value="vue" label="Vue">
+
+```vue
+<script setup lang="ts">
+import { Avatar } from "@looma/vue";
+</script>
+
+<template>
+  <Avatar name="Alex Morgan" src="/avatars/alex.png" alt="Alex Morgan">
+    <img />
+  </Avatar>
+</template>
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<ui-avatar name="Alex Morgan" src="/avatars/alex.png" alt="Alex Morgan">
+  <img />
+  <span data-ui-avatar-fallback></span>
+</ui-avatar>
+```
+
+  </TabItem>
   <TabItem value="react" label="React">
 
 ```tsx
@@ -60,31 +85,6 @@ export function Example() {
     </Avatar>
   );
 }
-```
-
-  </TabItem>
-  <TabItem value="vue" label="Vue">
-
-```ts
-import { h } from "vue";
-import { Avatar } from "@looma/vue";
-
-export const Example = {
-  setup: () => () =>
-    h(Avatar, { name: "Alex Morgan", src: "/avatars/alex.png", alt: "Alex Morgan" }, () => [
-      h("img")
-    ])
-};
-```
-
-  </TabItem>
-  <TabItem value="svelte" label="Svelte">
-
-```svelte
-<ui-avatar name="Alex Morgan" src="/avatars/alex.png" alt="Alex Morgan">
-  <img />
-  <span data-ui-avatar-fallback></span>
-</ui-avatar>
 ```
 
   </TabItem>

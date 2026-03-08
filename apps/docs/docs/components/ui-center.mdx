@@ -2,7 +2,7 @@ import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
-# ui-center
+# Center
 
 Container primitive for readable measure and horizontal gutters.
 
@@ -43,7 +43,30 @@ Default slot only.
 
 ## Framework Snippets
 
-<Tabs>
+<Tabs groupId="framework" defaultValue="vue">
+  <TabItem value="vue" label="Vue">
+
+```vue
+<script setup lang="ts">
+import { Center } from "@looma/vue";
+</script>
+
+<template>
+  <Center measure="wide" gutters="m">
+    <h1>Page Title</h1>
+    <p>Readable line length with consistent side gutters.</p>
+  </Center>
+</template>
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<ui-center measure="wide" gutters="m">...</ui-center>
+```
+
+  </TabItem>
   <TabItem value="react" label="React">
 
 ```tsx
@@ -52,23 +75,6 @@ import { Center } from "@looma/react";
 export function Example() {
   return <Center measure="wide" gutters="m">...</Center>;
 }
-```
-
-  </TabItem>
-  <TabItem value="vue" label="Vue">
-
-```ts
-import { h } from "vue";
-import { Center } from "@looma/vue";
-
-export const Example = { setup: () => () => h(Center, { measure: "wide", gutters: "m" }) };
-```
-
-  </TabItem>
-  <TabItem value="svelte" label="Svelte">
-
-```svelte
-<ui-center measure="wide" gutters="m">...</ui-center>
 ```
 
   </TabItem>

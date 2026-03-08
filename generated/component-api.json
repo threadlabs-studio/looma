@@ -63,6 +63,43 @@
       ]
     },
     {
+      "tag": "ui-avatar-group",
+      "package": "@looma/core",
+      "className": "UIAvatarGroupElement",
+      "description": "Container that displays overlapping avatars with an optional \"+N\" overflow pill when the count exceeds the visible maximum.",
+      "attributes": [
+        {
+          "name": "label",
+          "property": "label",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "max",
+          "property": "max",
+          "type": "number"
+        }
+      ],
+      "properties": [
+        {
+          "name": "label",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "max",
+          "type": "number"
+        }
+      ],
+      "events": [],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Default child content."
+        }
+      ]
+    },
+    {
       "tag": "ui-badge",
       "package": "@looma/core",
       "className": "UIBadgeElement",
@@ -327,6 +364,12 @@
       "description": "Overlay primitive that coordinates native `dialog` behavior with shared overlay stack rules.",
       "attributes": [
         {
+          "name": "dismissible",
+          "property": "dismissible",
+          "type": "boolean",
+          "default": true
+        },
+        {
           "name": "modal",
           "property": "modal",
           "type": "boolean",
@@ -344,6 +387,11 @@
           "name": "defaultOpen",
           "type": "boolean",
           "default": false
+        },
+        {
+          "name": "dismissible",
+          "type": "boolean",
+          "default": true
         },
         {
           "name": "modal",

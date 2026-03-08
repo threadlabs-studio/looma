@@ -2,7 +2,7 @@ import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
-# ui-radio-group
+# Radio Group
 
 Grouped selection primitive that coordinates `ui-radio` descendants, keyboard navigation, and normalized selection events.
 
@@ -52,36 +52,24 @@ Default slot; expects `ui-radio` children.
 
 ## Framework Snippets
 
-<Tabs>
-  <TabItem value="react" label="React">
-
-```tsx
-import { RadioGroup, Radio } from "@looma/react";
-
-export function Example() {
-  return (
-    <RadioGroup value="starter" onSelect={(detail) => console.log(detail)}>
-      <Radio value="starter">Starter</Radio>
-      <Radio value="pro">Pro</Radio>
-    </RadioGroup>
-  );
-}
-```
-
-  </TabItem>
+<Tabs groupId="framework" defaultValue="vue">
   <TabItem value="vue" label="Vue">
 
-```ts
-import { h } from "vue";
+```vue
+<script setup lang="ts">
 import { RadioGroup, Radio } from "@looma/vue";
 
-export const Example = {
-  setup: () => () =>
-    h(RadioGroup, { value: "starter", onSelect: (detail: unknown) => console.log(detail) }, () => [
-      h(Radio, { value: "starter" }, () => "Starter"),
-      h(Radio, { value: "pro" }, () => "Pro")
-    ])
-};
+function onSelect(detail: unknown) {
+  console.log(detail);
+}
+</script>
+
+<template>
+  <RadioGroup value="starter" name="plan" @select="onSelect">
+    <Radio value="starter">Starter</Radio>
+    <Radio value="pro">Pro</Radio>
+  </RadioGroup>
+</template>
 ```
 
   </TabItem>
@@ -97,6 +85,22 @@ export const Example = {
   <ui-radio value="starter">Starter</ui-radio>
   <ui-radio value="pro">Pro</ui-radio>
 </ui-radio-group>
+```
+
+  </TabItem>
+  <TabItem value="react" label="React">
+
+```tsx
+import { RadioGroup, Radio } from "@looma/react";
+
+export function Example() {
+  return (
+    <RadioGroup value="starter" onSelect={(detail) => console.log(detail)}>
+      <Radio value="starter">Starter</Radio>
+      <Radio value="pro">Pro</Radio>
+    </RadioGroup>
+  );
+}
 ```
 
   </TabItem>

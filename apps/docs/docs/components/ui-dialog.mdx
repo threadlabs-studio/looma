@@ -2,7 +2,7 @@ import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
-# ui-dialog
+# Dialog
 
 Overlay primitive that coordinates native `dialog` behavior with shared overlay stack rules.
 
@@ -51,25 +51,27 @@ Default slot (typically contains one native `<dialog>` child).
 
 ## Framework Snippets
 
-<Tabs>
-  <TabItem value="react" label="React">
-
-```tsx
-import { Dialog } from "@looma/react";
-
-export function Example() {
-  return <Dialog onClose={(detail) => console.log(detail)}>...</Dialog>;
-}
-```
-
-  </TabItem>
+<Tabs groupId="framework" defaultValue="vue">
   <TabItem value="vue" label="Vue">
 
-```ts
-import { h } from "vue";
+```vue
+<script setup lang="ts">
 import { Dialog } from "@looma/vue";
 
-export const Example = { setup: () => () => h(Dialog, { onClose: (detail: unknown) => console.log(detail) }) };
+function onClose(detail: unknown) {
+  console.log(detail);
+}
+</script>
+
+<template>
+  <Dialog @close="onClose">
+    <dialog>
+      <h2>Settings</h2>
+      <p>Dialog body copy.</p>
+      <button value="close">Close</button>
+    </dialog>
+  </Dialog>
+</template>
 ```
 
   </TabItem>
@@ -82,6 +84,17 @@ export const Example = { setup: () => () => h(Dialog, { onClose: (detail: unknow
 </script>
 
 <ui-dialog use:bindAdapter={options}>...</ui-dialog>
+```
+
+  </TabItem>
+  <TabItem value="react" label="React">
+
+```tsx
+import { Dialog } from "@looma/react";
+
+export function Example() {
+  return <Dialog onClose={(detail) => console.log(detail)}>...</Dialog>;
+}
 ```
 
   </TabItem>

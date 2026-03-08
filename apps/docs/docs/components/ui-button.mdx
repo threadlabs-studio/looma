@@ -2,37 +2,36 @@ import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
-# ui-button
+<div className="looma-component-header">
+
+<p className="component-tag">&lt;ui-button&gt;</p>
+
+# Button
 
 Essential button primitive that enhances semantic button markup and styling hooks.
 
-## Component Reference
+**Import:** `import "@looma/core"` — or use `Button` from `@looma/react`, `@looma/vue`, or `@looma/svelte`.
 
-<ComponentExamplesApiTabs component="ui-button" />
+</div>
 
-## Attributes
+## Examples & API
 
-| Name | Type | Default |
-| --- | --- | --- |
-| `variant` | `string` | empty |
-| `size` | `string` | empty |
-| `disabled` | `boolean` | `false` |
-
-## Properties
-
-| Name | Type |
-| --- | --- |
-| `variant` | `string` |
-| `size` | `string` |
-| `disabled` | `boolean` |
-
-## Events
-
-Uses native click/keyboard activation semantics.
-
-## Slots
-
-Default slot. Typically contains a native `<button>`.
+<ComponentExamplesApiTabs
+  component="ui-button"
+  preview={
+    <>
+      <ui-button variant="solid" size="sm">
+        <button type="button">Save</button>
+      </ui-button>
+      <ui-button variant="outline" size="sm">
+        <button type="button">Cancel</button>
+      </ui-button>
+      <ui-button variant="ghost" size="sm">
+        <button type="button">Ghost</button>
+      </ui-button>
+    </>
+  }
+/>
 
 ## SSR Markup
 
@@ -47,7 +46,34 @@ Default slot. Typically contains a native `<button>`.
 
 ## Framework Snippets
 
-<Tabs>
+<Tabs groupId="framework" defaultValue="vue">
+  <TabItem value="vue" label="Vue">
+
+```vue
+<script setup lang="ts">
+import { Button } from "@looma/vue";
+</script>
+
+<template>
+  <Button variant="solid" size="sm">
+    <button type="button" aria-label="Save page">
+      <span aria-hidden="true">✦</span>
+      Save page
+    </button>
+  </Button>
+</template>
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<ui-button variant="solid" size="sm">
+  <button type="button">Save</button>
+</ui-button>
+```
+
+  </TabItem>
   <TabItem value="react" label="React">
 
 ```tsx
@@ -63,36 +89,6 @@ export function Example() {
     </Button>
   );
 }
-```
-
-  </TabItem>
-  <TabItem value="vue" label="Vue">
-
-```ts
-import { h } from "vue";
-import { Button } from "@looma/vue";
-
-export const Example = {
-  setup: () => () =>
-    h(
-      Button,
-      { variant: "solid", size: "sm" },
-      () =>
-        h("button", { type: "button", "aria-label": "Save page" }, [
-          h("span", { "aria-hidden": "true" }, "✦"),
-          " Save page"
-        ])
-    )
-};
-```
-
-  </TabItem>
-  <TabItem value="svelte" label="Svelte">
-
-```svelte
-<ui-button variant="solid" size="sm">
-  <button type="button">Save</button>
-</ui-button>
 ```
 
   </TabItem>

@@ -2,7 +2,7 @@ import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
-# ui-badge
+# Badge
 
 Lightweight status and label primitive with minimal styling hooks.
 
@@ -40,7 +40,27 @@ Default slot for badge text/content.
 
 ## Framework Snippets
 
-<Tabs>
+<Tabs groupId="framework" defaultValue="vue">
+  <TabItem value="vue" label="Vue">
+
+```vue
+<script setup lang="ts">
+import { Badge } from "@looma/vue";
+</script>
+
+<template>
+  <Badge tone="accent">Beta</Badge>
+</template>
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<ui-badge tone="accent">Beta</ui-badge>
+```
+
+  </TabItem>
   <TabItem value="react" label="React">
 
 ```tsx
@@ -49,25 +69,6 @@ import { Badge } from "@looma/react";
 export function Example() {
   return <Badge tone="accent">Beta</Badge>;
 }
-```
-
-  </TabItem>
-  <TabItem value="vue" label="Vue">
-
-```ts
-import { h } from "vue";
-import { Badge } from "@looma/vue";
-
-export const Example = {
-  setup: () => () => h(Badge, { tone: "accent" }, () => "Beta")
-};
-```
-
-  </TabItem>
-  <TabItem value="svelte" label="Svelte">
-
-```svelte
-<ui-badge tone="accent">Beta</ui-badge>
 ```
 
   </TabItem>

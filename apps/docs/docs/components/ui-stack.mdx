@@ -2,7 +2,7 @@ import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
-# ui-stack
+# Stack
 
 Vertical layout primitive that owns spacing between children.
 
@@ -46,7 +46,34 @@ Default slot only (natural children).
 
 ## Framework Snippets
 
-<Tabs>
+<Tabs groupId="framework" defaultValue="vue">
+  <TabItem value="vue" label="Vue">
+
+```vue
+<script setup lang="ts">
+import { Stack } from "@looma/vue";
+</script>
+
+<template>
+  <Stack gap="m">
+    <h2>Profile</h2>
+    <p>Manage your account settings.</p>
+    <button type="button">Save</button>
+  </Stack>
+</template>
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<ui-stack gap="m">
+  <h2>Profile</h2>
+  <p>Manage your account settings.</p>
+</ui-stack>
+```
+
+  </TabItem>
   <TabItem value="react" label="React">
 
 ```tsx
@@ -60,30 +87,6 @@ export function Example() {
     </Stack>
   );
 }
-```
-
-  </TabItem>
-  <TabItem value="vue" label="Vue">
-
-```ts
-import { h } from "vue";
-import { Stack } from "@looma/vue";
-
-export const Example = {
-  setup() {
-    return () => h(Stack, { gap: "m" }, { default: () => [h("h2", "Profile"), h("p", "Manage your account settings.")] });
-  }
-};
-```
-
-  </TabItem>
-  <TabItem value="svelte" label="Svelte">
-
-```svelte
-<ui-stack gap="m">
-  <h2>Profile</h2>
-  <p>Manage your account settings.</p>
-</ui-stack>
 ```
 
   </TabItem>

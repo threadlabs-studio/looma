@@ -2,7 +2,7 @@ import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
-# ui-form-field
+# Form Field
 
 Form-field composition primitive that links label/control/description semantics.
 
@@ -52,7 +52,39 @@ Default slot; recommended children:
 
 ## Framework Snippets
 
-<Tabs>
+<Tabs groupId="framework" defaultValue="vue">
+  <TabItem value="vue" label="Vue">
+
+```vue
+<script setup lang="ts">
+import { FormField, Input } from "@looma/vue";
+</script>
+
+<template>
+  <FormField required>
+    <label for="email">Email</label>
+    <Input>
+      <input id="email" name="email" type="email" />
+    </Input>
+    <small data-slot="help">We only use this for account notifications.</small>
+  </FormField>
+</template>
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<ui-form-field required>
+  <label for="email">Email</label>
+  <ui-input>
+    <input id="email" name="email" type="email" />
+  </ui-input>
+  <small data-slot="help">We only use this for account notifications.</small>
+</ui-form-field>
+```
+
+  </TabItem>
   <TabItem value="react" label="React">
 
 ```tsx
@@ -69,40 +101,6 @@ export function Example() {
     </FormField>
   );
 }
-```
-
-  </TabItem>
-  <TabItem value="vue" label="Vue">
-
-```ts
-import { h } from "vue";
-import { FormField, Input } from "@looma/vue";
-
-export const Example = {
-  setup() {
-    return () =>
-      h(FormField, { required: true }, {
-        default: () => [
-          h("label", { for: "email" }, "Email"),
-          h(Input, null, () => h("input", { id: "email", name: "email", type: "email" })),
-          h("small", { "data-slot": "help" }, "We only use this for account notifications.")
-        ]
-      });
-  }
-};
-```
-
-  </TabItem>
-  <TabItem value="svelte" label="Svelte">
-
-```svelte
-<ui-form-field required>
-  <label for="email">Email</label>
-  <ui-input>
-    <input id="email" name="email" type="email" />
-  </ui-input>
-  <small data-slot="help">We only use this for account notifications.</small>
-</ui-form-field>
 ```
 
   </TabItem>

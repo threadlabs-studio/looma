@@ -2,7 +2,7 @@ import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
-# ui-input
+# Input
 
 Essential text-input primitive that mirrors value/state to native input controls.
 
@@ -48,7 +48,31 @@ Default slot (typically one native `<input>` child).
 
 ## Framework Snippets
 
-<Tabs>
+<Tabs groupId="framework" defaultValue="vue">
+  <TabItem value="vue" label="Vue">
+
+```vue
+<script setup lang="ts">
+import { Input } from "@looma/vue";
+</script>
+
+<template>
+  <Input value="hello">
+    <input type="text" name="title" />
+  </Input>
+</template>
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<ui-input value="hello">
+  <input type="text" name="title" />
+</ui-input>
+```
+
+  </TabItem>
   <TabItem value="react" label="React">
 
 ```tsx
@@ -61,25 +85,6 @@ export function Example() {
     </Input>
   );
 }
-```
-
-  </TabItem>
-  <TabItem value="vue" label="Vue">
-
-```ts
-import { h } from "vue";
-import { Input } from "@looma/vue";
-
-export const Example = { setup: () => () => h(Input, { value: "hello" }, () => h("input", { type: "text", name: "title" })) };
-```
-
-  </TabItem>
-  <TabItem value="svelte" label="Svelte">
-
-```svelte
-<ui-input value="hello">
-  <input type="text" name="title" />
-</ui-input>
 ```
 
   </TabItem>

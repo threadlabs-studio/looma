@@ -2,7 +2,7 @@ import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
-# ui-separator
+# Separator
 
 Semantic separator primitive with horizontal and vertical orientations.
 
@@ -39,7 +39,27 @@ No slots.
 
 ## Framework Snippets
 
-<Tabs>
+<Tabs groupId="framework" defaultValue="vue">
+  <TabItem value="vue" label="Vue">
+
+```vue
+<script setup lang="ts">
+import { Separator } from "@looma/vue";
+</script>
+
+<template>
+  <Separator orientation="vertical" />
+</template>
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<ui-separator orientation="vertical"></ui-separator>
+```
+
+  </TabItem>
   <TabItem value="react" label="React">
 
 ```tsx
@@ -48,23 +68,6 @@ import { Separator } from "@looma/react";
 export function Example() {
   return <Separator orientation="vertical" style={{ blockSize: "2rem" }} />;
 }
-```
-
-  </TabItem>
-  <TabItem value="vue" label="Vue">
-
-```ts
-import { h } from "vue";
-import { Separator } from "@looma/vue";
-
-export const Example = { setup: () => () => h(Separator, { orientation: "vertical" }) };
-```
-
-  </TabItem>
-  <TabItem value="svelte" label="Svelte">
-
-```svelte
-<ui-separator orientation="vertical"></ui-separator>
 ```
 
   </TabItem>

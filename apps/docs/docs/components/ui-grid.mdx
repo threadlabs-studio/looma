@@ -2,7 +2,7 @@ import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
-# ui-grid
+# Grid
 
 Responsive auto-fit grid primitive.
 
@@ -44,7 +44,31 @@ Default slot only.
 
 ## Framework Snippets
 
-<Tabs>
+<Tabs groupId="framework" defaultValue="vue">
+  <TabItem value="vue" label="Vue">
+
+```vue
+<script setup lang="ts">
+import { Grid } from "@looma/vue";
+</script>
+
+<template>
+  <Grid gap="m" min="md">
+    <article>Card A</article>
+    <article>Card B</article>
+    <article>Card C</article>
+  </Grid>
+</template>
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<ui-grid gap="m" min="md">...</ui-grid>
+```
+
+  </TabItem>
   <TabItem value="react" label="React">
 
 ```tsx
@@ -53,23 +77,6 @@ import { Grid } from "@looma/react";
 export function Example() {
   return <Grid gap="m" min="md">...</Grid>;
 }
-```
-
-  </TabItem>
-  <TabItem value="vue" label="Vue">
-
-```ts
-import { h } from "vue";
-import { Grid } from "@looma/vue";
-
-export const Example = { setup: () => () => h(Grid, { gap: "m", min: "md" }) };
-```
-
-  </TabItem>
-  <TabItem value="svelte" label="Svelte">
-
-```svelte
-<ui-grid gap="m" min="md">...</ui-grid>
 ```
 
   </TabItem>

@@ -2,7 +2,7 @@ import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
-# ui-menu-item
+# Menu Item
 
 Focusable menu item primitive intended for use inside `ui-menu`.
 
@@ -43,7 +43,30 @@ Default slot for menu item label/content.
 
 ## Framework Snippets
 
-<Tabs>
+<Tabs groupId="framework" defaultValue="vue">
+  <TabItem value="vue" label="Vue">
+
+```vue
+<script setup lang="ts">
+import { Menu, MenuItem } from "@looma/vue";
+</script>
+
+<template>
+  <Menu role="menu">
+    <MenuItem value="edit">Edit</MenuItem>
+    <MenuItem value="archive" disabled>Archive</MenuItem>
+  </Menu>
+</template>
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<ui-menu-item value="edit">Edit</ui-menu-item>
+```
+
+  </TabItem>
   <TabItem value="react" label="React">
 
 ```tsx
@@ -52,23 +75,6 @@ import { MenuItem } from "@looma/react";
 export function Example() {
   return <MenuItem value="edit">Edit</MenuItem>;
 }
-```
-
-  </TabItem>
-  <TabItem value="vue" label="Vue">
-
-```ts
-import { h } from "vue";
-import { MenuItem } from "@looma/vue";
-
-export const Example = { setup: () => () => h(MenuItem, { value: "edit" }, () => "Edit") };
-```
-
-  </TabItem>
-  <TabItem value="svelte" label="Svelte">
-
-```svelte
-<ui-menu-item value="edit">Edit</ui-menu-item>
 ```
 
   </TabItem>
