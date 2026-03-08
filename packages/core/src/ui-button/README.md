@@ -14,7 +14,7 @@ Styled action button with semantic button behavior.
 
 ## Attributes
 
-- `variant`: visual style token
+- `variant`: visual style token — `solid`, `destructive`, or `ghost` (transparent, for toolbars)
 - `size`: size token
 - `disabled`: boolean
 

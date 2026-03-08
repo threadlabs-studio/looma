@@ -1,0 +1,35 @@
+:host {
+  display: inline-grid;
+  place-items: center;
+  overflow: hidden;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--ui-border-default);
+  background: var(--ui-surface-muted);
+  color: var(--ui-text-secondary);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.avatar {
+  display: contents;
+}
+
+.avatar img {
+  grid-area: 1 / 1;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+
+.avatar .fallback {
+  grid-area: 1 / 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 100%;
+  block-size: 100%;
+}

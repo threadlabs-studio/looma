@@ -1,0 +1,14 @@
+:host {
+  display: inline-block;
+  border: 1px solid var(--ui-border-default);
+  border-radius: var(--ui-radius-2);
+  background: var(--ui-surface-elevated);
+  color: var(--ui-text-primary);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  font-size: var(--ui-font-size-sm);
+  box-shadow: var(--ui-shadow-md);
+}
+
+:host([hidden]) {
+  display: none !important;
+}

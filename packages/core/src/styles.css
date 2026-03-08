@@ -1,4 +1,5 @@
-@layer components {
+/* Unlayered: isolation contract (hard guarantees). Layered rules lose to unlayered page CSS. */
+:where(
   ui-button,
   ui-input,
   ui-form-field,
@@ -15,11 +16,135 @@
   ui-radio-group,
   ui-radio,
   ui-badge,
-  ui-avatar {
-    box-sizing: border-box;
-    margin: 0;
-  }
+  ui-avatar,
+  ui-avatar-group
+),
+:where(
+  ui-button,
+  ui-input,
+  ui-form-field,
+  ui-disclosure,
+  ui-popover,
+  ui-dialog,
+  ui-tabs,
+  ui-menu,
+  ui-menu-item,
+  ui-tooltip,
+  ui-toast-region,
+  ui-checkbox,
+  ui-switch,
+  ui-radio-group,
+  ui-radio,
+  ui-badge,
+  ui-avatar,
+  ui-avatar-group
+) *,
+:where(
+  ui-button,
+  ui-input,
+  ui-form-field,
+  ui-disclosure,
+  ui-popover,
+  ui-dialog,
+  ui-tabs,
+  ui-menu,
+  ui-menu-item,
+  ui-tooltip,
+  ui-toast-region,
+  ui-checkbox,
+  ui-switch,
+  ui-radio-group,
+  ui-radio,
+  ui-badge,
+  ui-avatar,
+  ui-avatar-group
+) *::before,
+:where(
+  ui-button,
+  ui-input,
+  ui-form-field,
+  ui-disclosure,
+  ui-popover,
+  ui-dialog,
+  ui-tabs,
+  ui-menu,
+  ui-menu-item,
+  ui-tooltip,
+  ui-toast-region,
+  ui-checkbox,
+  ui-switch,
+  ui-radio-group,
+  ui-radio,
+  ui-badge,
+  ui-avatar,
+  ui-avatar-group
+) *::after {
+  box-sizing: border-box;
+}
 
+:where(
+  ui-button,
+  ui-input,
+  ui-form-field,
+  ui-disclosure,
+  ui-popover,
+  ui-dialog,
+  ui-tabs,
+  ui-menu,
+  ui-menu-item,
+  ui-tooltip,
+  ui-toast-region,
+  ui-checkbox,
+  ui-switch,
+  ui-radio-group,
+  ui-radio,
+  ui-badge,
+  ui-avatar,
+  ui-avatar-group
+) {
+  all: revert;
+  box-sizing: border-box;
+  margin: 0;
+  font-family: var(--ui-font-family-sans);
+  font-size: var(--ui-font-size-md);
+  line-height: var(--ui-line-height-md);
+  color: var(--ui-text-primary);
+}
+
+:where(
+  ui-button,
+  ui-input,
+  ui-form-field,
+  ui-disclosure,
+  ui-popover,
+  ui-dialog,
+  ui-tabs,
+  ui-menu,
+  ui-menu-item,
+  ui-tooltip,
+  ui-toast-region,
+  ui-checkbox,
+  ui-switch,
+  ui-radio-group,
+  ui-radio,
+  ui-badge,
+  ui-avatar,
+  ui-avatar-group
+)[data-ui-inherit-typography] {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  font-weight: inherit;
+  color: inherit;
+  direction: inherit;
+  writing-mode: inherit;
+  text-orientation: inherit;
+  text-rendering: inherit;
+  font-feature-settings: inherit;
+  font-variation-settings: inherit;
+}
+
+@layer components {
   ui-button {
     display: inline-flex;
     vertical-align: middle;
@@ -29,11 +154,12 @@
   ui-button > button {
     appearance: none;
     border: 1px solid var(--ui-border-default);
-    border-radius: var(--ui-radius-1);
+    border-radius: var(--ui-radius-2);
     background: var(--ui-surface-default);
     color: inherit;
     font: inherit;
-    line-height: 1.2;
+    font-weight: var(--ui-font-medium, 500);
+    line-height: var(--ui-line-height-tight);
     padding: var(--ui-space-2) var(--ui-space-3);
     cursor: pointer;
     transition:
@@ -54,20 +180,66 @@
     font-size: 1rem;
   }
 
+  ui-button > button:hover:enabled {
+    background: var(--ui-surface-muted);
+    border-color: var(--ui-border-strong);
+  }
+
+  ui-button > button:active:enabled {
+    background: var(--ui-surface-subtle);
+  }
+
   ui-button[data-variant="solid"] > button {
     border-color: var(--ui-accent-solid);
     background: var(--ui-accent-solid);
     color: var(--ui-text-on-accent);
+    box-shadow: var(--ui-shadow-xs);
   }
 
   ui-button[data-variant="solid"] > button:hover:enabled {
     background: var(--ui-accent-hover);
     border-color: var(--ui-accent-hover);
+    box-shadow: var(--ui-shadow-sm);
   }
 
   ui-button[data-variant="solid"] > button:active:enabled {
     background: var(--ui-accent-active);
     border-color: var(--ui-accent-active);
+    box-shadow: none;
+  }
+
+  ui-button[data-variant="destructive"] > button {
+    border-color: var(--ui-danger-solid);
+    background: var(--ui-danger-solid);
+    color: var(--ui-text-on-accent);
+    box-shadow: var(--ui-shadow-xs);
+  }
+
+  ui-button[data-variant="destructive"] > button:hover:enabled {
+    background: var(--ui-danger-hover);
+    border-color: var(--ui-danger-hover);
+    box-shadow: var(--ui-shadow-sm);
+  }
+
+  ui-button[data-variant="destructive"] > button:active:enabled {
+    background: var(--ui-danger-hover);
+    border-color: var(--ui-danger-hover);
+    box-shadow: none;
+  }
+
+  ui-button[data-variant="ghost"] > button {
+    border-color: transparent;
+    background: transparent;
+  }
+
+  ui-button[data-variant="ghost"] > button:hover:enabled {
+    background: var(--ui-surface-muted);
+    border-color: transparent;
+  }
+
+  ui-button[data-variant="ghost"] > button:active:enabled {
+    background: var(--ui-surface-subtle);
+    border-color: transparent;
   }
 
   ui-button > button:focus-visible,
@@ -91,17 +263,26 @@
     width: 100%;
     appearance: none;
     border: 1px solid var(--ui-border-default);
-    border-radius: var(--ui-radius-1);
+    border-radius: var(--ui-radius-2);
     background: var(--ui-surface-default);
     color: inherit;
     font: inherit;
-    line-height: 1.4;
+    line-height: var(--ui-line-height-md);
     padding: var(--ui-space-2) var(--ui-space-3);
     margin: 0;
     transition:
       border-color var(--ui-motion-fast) var(--ui-motion-ease),
       box-shadow var(--ui-motion-fast) var(--ui-motion-ease),
       background-color var(--ui-motion-fast) var(--ui-motion-ease);
+  }
+
+  ui-input > input:hover:not(:focus):not(:disabled) {
+    border-color: var(--ui-border-strong);
+  }
+
+  ui-input > input:focus {
+    border-color: var(--ui-focus-ring);
+    box-shadow: 0 0 0 3px var(--ui-accent-soft);
   }
 
   ui-input[invalid] > input,
@@ -139,18 +320,226 @@
     font-size: 0.875rem;
   }
 
+  ui-disclosure {
+    display: block;
+  }
+
+  ui-disclosure [aria-expanded] {
+    cursor: pointer;
+  }
+
+  ui-disclosure [hidden] {
+    display: none;
+  }
+
   ui-tooltip {
     display: inline-block;
     border: 1px solid var(--ui-border-default);
-    border-radius: var(--ui-radius-1);
-    background: var(--ui-surface-default);
+    border-radius: var(--ui-radius-2);
+    background: var(--ui-surface-elevated);
     color: var(--ui-text-primary);
-    padding: var(--ui-space-1) var(--ui-space-2);
+    padding: var(--ui-space-2) var(--ui-space-3);
+    font-size: var(--ui-font-size-sm);
+    box-shadow: var(--ui-shadow-md);
+  }
+
+  ui-tooltip[hidden] {
+    display: none !important;
+  }
+
+  ui-menu {
+    display: flex;
+    flex-direction: column;
+    min-width: 12rem;
+    padding: var(--ui-space-1);
+    background: var(--ui-surface-elevated);
+    border: 1px solid var(--ui-border-default);
+    border-radius: var(--ui-radius-3);
+    box-shadow: var(--ui-shadow-lg);
+  }
+
+  ui-menu-item {
+    display: block;
+    width: 100%;
+    padding: var(--ui-space-2) var(--ui-space-3);
+    text-align: left;
+    background: none;
+    border: none;
+    border-radius: var(--ui-radius-2);
+    color: var(--ui-text-primary);
+    font-size: var(--ui-font-size-md);
+    font-weight: var(--ui-font-medium, 500);
+    cursor: pointer;
+    transition:
+      background-color var(--ui-motion-fast) var(--ui-motion-ease),
+      color var(--ui-motion-fast) var(--ui-motion-ease);
+  }
+
+  ui-menu-item:hover:not([aria-disabled="true"]) {
+    background: var(--ui-surface-subtle);
+  }
+
+  ui-menu-item[aria-disabled="true"] {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  ui-popover {
+    padding: var(--ui-space-3);
+    background: var(--ui-surface-elevated);
+    border: 1px solid var(--ui-border-default);
+    border-radius: var(--ui-radius-3);
+    box-shadow: var(--ui-shadow-lg);
+    max-width: min(20rem, 90vw);
+  }
+
+  ui-tabs {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  ui-tabs[orientation="vertical"] {
+    flex-direction: row;
+  }
+
+  ui-tabs [role="tablist"] {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--ui-border-default);
+  }
+
+  ui-tabs[orientation="vertical"] [role="tablist"] {
+    flex-direction: column;
+    border-bottom: none;
+    border-inline-end: 1px solid var(--ui-border-default);
+  }
+
+  ui-tabs button[role="tab"],
+  ui-tabs [role="tab"],
+  ui-tabs ui-button > button[role="tab"] {
+    padding: var(--ui-space-2) var(--ui-space-3);
+    font-size: var(--ui-font-size-sm);
+    font-weight: var(--ui-font-medium, 500);
+    color: var(--ui-text-secondary);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    cursor: pointer;
+    transition: color var(--ui-motion-fast) var(--ui-motion-ease);
+    box-shadow: none;
+  }
+
+  ui-tabs button[role="tab"]:hover,
+  ui-tabs [role="tab"]:hover,
+  ui-tabs ui-button > button[role="tab"]:hover {
+    color: var(--ui-text-primary);
+  }
+
+  ui-tabs button[role="tab"][aria-selected="true"],
+  ui-tabs [role="tab"][aria-selected="true"],
+  ui-tabs ui-button > button[role="tab"][aria-selected="true"] {
+    color: var(--ui-accent-solid);
+    border-bottom-color: var(--ui-accent-solid);
+  }
+
+  ui-tabs[orientation="vertical"] button[role="tab"],
+  ui-tabs[orientation="vertical"] [role="tab"],
+  ui-tabs[orientation="vertical"] ui-button > button[role="tab"] {
+    border-bottom: none;
+    border-inline-end: 2px solid transparent;
+    margin-bottom: 0;
+    margin-inline-end: -1px;
+  }
+
+  ui-tabs[orientation="vertical"] button[role="tab"][aria-selected="true"],
+  ui-tabs[orientation="vertical"] [role="tab"][aria-selected="true"],
+  ui-tabs[orientation="vertical"] ui-button > button[role="tab"][aria-selected="true"] {
+    border-inline-end-color: var(--ui-accent-solid);
+  }
+
+  ui-tabs [role="tabpanel"] {
+    padding: var(--ui-space-4);
+  }
+
+  /* Dialog: hidden when closed so multiple instances don’t stack in layout */
+  ui-dialog:not([open]) {
+    display: none;
+  }
+
+  ui-dialog[open] {
+    display: block;
+  }
+
+  /* Dialog shell (Knit .dialog-shell): overlay, centering, padding.
+   * Layout stays in base so dialog doesn’t snap mid-exit when [open] is removed.
+   * Entry: @starting-style inside dialog[open]. Exit: dialog:not([open]).
+   * display + overlay allow-discrete keep dialog visible during exit animation. */
+  ui-dialog > dialog {
+    --ui-dialog-duration: var(--ui-motion-base);
+    position: fixed;
+    inset: var(--ui-space-4);
+    width: min(100%, 440px);
+    max-width: min(100%, 440px);
+    margin: auto;
+    padding: var(--ui-space-4);
+    background: var(--ui-surface-elevated);
+    border: 1px solid var(--ui-border-default);
+    border-radius: var(--ui-radius-dialog);
+    box-shadow: var(--ui-shadow-dialog);
+    visibility: hidden;
+    pointer-events: none;
+    opacity: 0;
+    transform: scale(0.96);
+    transition:
+      opacity var(--ui-dialog-duration) var(--ui-motion-ease),
+      transform var(--ui-dialog-duration) var(--ui-motion-ease),
+      visibility var(--ui-dialog-duration),
+      display var(--ui-dialog-duration) var(--ui-motion-ease) allow-discrete,
+      overlay var(--ui-dialog-duration) var(--ui-motion-ease) allow-discrete;
+  }
+
+  ui-dialog > dialog[open] {
+    visibility: visible;
+    pointer-events: auto;
+    opacity: 1;
+    transform: scale(1);
+    @starting-style {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+  }
+
+  ui-dialog > dialog::backdrop {
+    background-color: transparent;
+    transition:
+      background-color var(--ui-dialog-duration) var(--ui-motion-ease),
+      display var(--ui-dialog-duration) var(--ui-motion-ease) allow-discrete,
+      overlay var(--ui-dialog-duration) var(--ui-motion-ease) allow-discrete;
+  }
+
+  ui-dialog > dialog[open]::backdrop {
+    background-color: var(--ui-overlay-backdrop);
+    @starting-style {
+      background-color: transparent;
+    }
   }
 
   ui-toast-region {
+    position: fixed;
+    top: var(--ui-space-4);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
     display: grid;
     gap: var(--ui-space-2);
+    max-width: min(24rem, 90vw);
+    pointer-events: none;
+  }
+
+  ui-toast-region > * {
+    pointer-events: auto;
   }
 
   ui-toast-region [data-ui-toast] {
@@ -159,10 +548,27 @@
     gap: var(--ui-space-2);
     align-items: start;
     border: 1px solid var(--ui-border-default);
-    border-radius: var(--ui-radius-1);
-    padding: var(--ui-space-2) var(--ui-space-3);
-    background: var(--ui-surface-default);
+    border-radius: var(--ui-radius-3);
+    padding: var(--ui-space-3) var(--ui-space-4);
+    background: var(--ui-surface-elevated);
     color: var(--ui-text-primary);
+    box-shadow: var(--ui-shadow-lg);
+    animation: ui-toast-enter 0.25s var(--ui-motion-ease) forwards;
+  }
+
+  @keyframes ui-toast-enter {
+    from {
+      opacity: 0;
+      transform: translateY(-0.5rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  ui-toast-region [data-ui-toast][aria-hidden="true"] {
+    display: none;
   }
 
   ui-toast-region [data-ui-toast-dismiss] {
@@ -185,6 +591,60 @@
   ui-switch[aria-disabled="true"] {
     opacity: 0.6;
     cursor: not-allowed;
+  }
+
+  ui-checkbox input[type="checkbox"] {
+    accent-color: var(--ui-accent-solid);
+    width: 1.125em;
+    height: 1.125em;
+    cursor: pointer;
+  }
+
+  ui-checkbox input[type="checkbox"]:focus-visible,
+  ui-switch input[type="checkbox"]:focus-visible {
+    outline: 2px solid var(--ui-accent-solid);
+    outline-offset: 2px;
+  }
+
+  ui-switch input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    display: block;
+    position: relative;
+    width: 2.25rem;
+    height: 1.25rem;
+    padding: 0;
+    border: 1px solid var(--ui-border-default);
+    border-radius: 999px;
+    background: var(--ui-surface-muted);
+    cursor: pointer;
+    transition:
+      background-color var(--ui-motion-fast) var(--ui-motion-ease),
+      border-color var(--ui-motion-fast) var(--ui-motion-ease);
+  }
+
+  ui-switch input[type="checkbox"]::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 0.875rem;
+    height: 0.875rem;
+    border-radius: 999px;
+    background: var(--ui-surface-default);
+    border: 1px solid var(--ui-border-default);
+    transition: transform var(--ui-motion-fast) var(--ui-motion-ease);
+  }
+
+  ui-switch input[type="checkbox"]:checked {
+    background: var(--ui-accent-solid);
+    border-color: var(--ui-accent-solid);
+  }
+
+  ui-switch input[type="checkbox"]:checked::after {
+    transform: translateX(calc(2.25rem - 0.875rem - 4px));
+    background: var(--ui-text-on-accent);
+    border-color: var(--ui-text-on-accent);
   }
 
   ui-radio-group {
@@ -232,6 +692,60 @@
     color: var(--ui-text-on-accent);
   }
 
+  ui-badge[data-tone="danger"] {
+    background: var(--ui-danger-solid);
+    border-color: var(--ui-danger-solid);
+    color: var(--ui-text-on-accent);
+  }
+
+  ui-badge[data-tone="success"] {
+    background: var(--ui-success-solid);
+    border-color: var(--ui-success-solid);
+    color: var(--ui-text-on-accent);
+  }
+
+  ui-badge[data-tone="warning"] {
+    background: var(--ui-warning-solid);
+    border-color: var(--ui-warning-solid);
+    color: var(--ui-text-primary);
+  }
+
+  ui-badge[data-tone="info"] {
+    background: var(--ui-info-solid);
+    border-color: var(--ui-info-solid);
+    color: var(--ui-text-on-accent);
+  }
+
+  ui-badge[data-variant="subtle"][data-tone="accent"] {
+    background: var(--ui-accent-soft);
+    border-color: var(--ui-accent-soft);
+    color: var(--ui-accent-solid);
+  }
+
+  ui-badge[data-variant="subtle"][data-tone="danger"] {
+    background: var(--ui-danger-soft);
+    border-color: var(--ui-danger-soft);
+    color: var(--ui-danger-solid);
+  }
+
+  ui-badge[data-variant="subtle"][data-tone="success"] {
+    background: var(--ui-success-soft);
+    border-color: var(--ui-success-soft);
+    color: var(--ui-success-solid);
+  }
+
+  ui-badge[data-variant="subtle"][data-tone="warning"] {
+    background: var(--ui-warning-soft);
+    border-color: var(--ui-warning-soft);
+    color: var(--ui-warning-solid);
+  }
+
+  ui-badge[data-variant="subtle"][data-tone="info"] {
+    background: var(--ui-info-soft);
+    border-color: var(--ui-info-soft);
+    color: var(--ui-info-solid);
+  }
+
   ui-avatar {
     display: inline-grid;
     place-items: center;
@@ -260,5 +774,75 @@
     justify-content: center;
     inline-size: 100%;
     block-size: 100%;
+  }
+
+  ui-avatar-group {
+    display: flex;
+    align-items: center;
+    flex-direction: row-reverse;
+    gap: 0;
+  }
+
+  ui-avatar-group > *:not([data-ui-avatar-group-overflow]) {
+    margin-inline-end: -0.5rem;
+    flex-shrink: 0;
+  }
+
+  ui-avatar-group > *:last-child:not([data-ui-avatar-group-overflow]) {
+    margin-inline-end: 0;
+  }
+
+  ui-avatar-group [data-ui-avatar-group-overflow] {
+    margin-inline-end: -0.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+    border-radius: 999px;
+    border: 1px solid var(--ui-border-default);
+    background: var(--ui-surface-muted);
+    color: var(--ui-text-secondary);
+    font: inherit;
+    font-size: 0.75rem;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+}
+
+@layer utilities {
+  [data-ui-font-stack="system"],
+  .ui-font-system {
+    --ui-font-family-sans: var(--ui-font-stack-system);
+  }
+
+  [data-ui-font-stack="neo-grotesque"],
+  .ui-font-neo-grotesque {
+    --ui-font-family-sans: var(--ui-font-stack-neo-grotesque);
+  }
+
+  [data-ui-font-stack="humanist"],
+  .ui-font-humanist {
+    --ui-font-family-sans: var(--ui-font-stack-humanist);
+  }
+
+  [data-ui-font-stack="rounded"],
+  .ui-font-rounded {
+    --ui-font-family-sans: var(--ui-font-stack-rounded);
+  }
+
+  .ui-scope {
+    font-family: var(--ui-font-family-sans);
+    font-size: var(--ui-font-size-md);
+    line-height: var(--ui-line-height-md);
+    color: var(--ui-text-primary);
+    background: var(--ui-surface-canvas);
+  }
+
+  .ui-scope,
+  .ui-scope *,
+  .ui-scope *::before,
+  .ui-scope *::after {
+    box-sizing: border-box;
   }
 }

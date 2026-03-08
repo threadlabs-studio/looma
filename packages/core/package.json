@@ -2,23 +2,40 @@
   "name": "@looma/core",
   "version": "0.0.0",
   "type": "module",
+  "description": "Looma UI primitives built with Stencil",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.js",
+  "types": "dist/types/index.d.ts",
+  "collection": "dist/collection/collection-manifest.json",
+  "collection:main": "dist/collection/index.js",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs.js"
+    },
+    "./loader": {
+      "types": "./loader/index.d.ts",
+      "import": "./loader/index.js",
+      "require": "./loader/index.cjs.js"
     },
     "./styles.css": "./src/styles.css"
   },
+  "files": [
+    "dist/",
+    "loader/",
+    "src/styles.css"
+  ],
   "scripts": {
-    "build": "tsup src/index.ts --format esm --dts --clean",
-    "lint": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run --environment jsdom",
+    "build": "stencil build && tsup src/index.ts --format esm,cjs --dts --outDir dist",
+    "start": "stencil build --dev --watch --serve",
+    "test": "stencil test --spec",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
-    "jsdom": "^27.0.0",
+    "@stencil/core": "^4.27.1",
     "tsup": "^8.5.0",
-    "typescript": "^5.9.2",
-    "vitest": "^3.2.4"
+    "@types/node": "^22.13.5",
+    "typescript": "^5.9.2"
   }
 }

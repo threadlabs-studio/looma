@@ -1,0 +1,101 @@
+:host {
+  display: inline-flex;
+  vertical-align: middle;
+  color: var(--ui-text-primary);
+}
+
+::slotted(button) {
+  appearance: none;
+  border: 1px solid var(--ui-border-default);
+  border-radius: var(--ui-radius-2);
+  background: var(--ui-surface-default);
+  color: inherit;
+  font: inherit;
+  font-weight: var(--ui-font-medium, 500);
+  line-height: var(--ui-line-height-tight);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  cursor: pointer;
+  transition:
+    background-color var(--ui-motion-fast) var(--ui-motion-ease),
+    border-color var(--ui-motion-fast) var(--ui-motion-ease),
+    color var(--ui-motion-fast) var(--ui-motion-ease),
+    box-shadow var(--ui-motion-fast) var(--ui-motion-ease);
+  margin: 0;
+}
+
+:host([data-size='sm'])::slotted(button) {
+  padding: var(--ui-space-1) var(--ui-space-2);
+  font-size: 0.875rem;
+}
+
+:host([data-size='lg'])::slotted(button) {
+  padding: var(--ui-space-3) var(--ui-space-4);
+  font-size: 1rem;
+}
+
+::slotted(button:hover:enabled) {
+  background: var(--ui-surface-muted);
+  border-color: var(--ui-border-strong);
+}
+
+::slotted(button:active:enabled) {
+  background: var(--ui-surface-subtle);
+}
+
+:host([data-variant='solid'])::slotted(button) {
+  border-color: var(--ui-accent-solid);
+  background: var(--ui-accent-solid);
+  color: var(--ui-text-on-accent);
+  box-shadow: var(--ui-shadow-xs);
+}
+
+:host([data-variant='solid'])::slotted(button:hover:enabled) {
+  background: var(--ui-accent-hover);
+  border-color: var(--ui-accent-hover);
+  box-shadow: var(--ui-shadow-sm);
+}
+
+:host([data-variant='solid'])::slotted(button:active:enabled) {
+  background: var(--ui-accent-active);
+  border-color: var(--ui-accent-active);
+  box-shadow: none;
+}
+
+:host([data-variant='destructive'])::slotted(button) {
+  border-color: var(--ui-danger-solid);
+  background: var(--ui-danger-solid);
+  color: var(--ui-text-on-accent);
+  box-shadow: var(--ui-shadow-xs);
+}
+
+:host([data-variant='destructive'])::slotted(button:hover:enabled) {
+  background: var(--ui-danger-hover);
+  border-color: var(--ui-danger-hover);
+  box-shadow: var(--ui-shadow-sm);
+}
+
+:host([data-variant='ghost'])::slotted(button) {
+  border-color: transparent;
+  background: transparent;
+}
+
+:host([data-variant='ghost'])::slotted(button:hover:enabled) {
+  background: var(--ui-surface-muted);
+  border-color: transparent;
+}
+
+:host([data-variant='ghost'])::slotted(button:active:enabled) {
+  background: var(--ui-surface-subtle);
+  border-color: transparent;
+}
+
+::slotted(button:focus-visible) {
+  outline: 2px solid var(--ui-focus-ring);
+  outline-offset: 2px;
+}
+
+::slotted(button:disabled),
+:host([data-disabled]) {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

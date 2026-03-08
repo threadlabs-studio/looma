@@ -1,0 +1,22 @@
+:host {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-2);
+  color: var(--ui-text-primary);
+}
+
+:host([data-disabled='true']),
+:host([aria-disabled='true']) {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+::slotted(input[type='radio']) {
+  accent-color: var(--ui-accent-solid);
+  cursor: pointer;
+}
+
+::slotted(input[type='radio']:focus-visible) {
+  outline: 2px solid var(--ui-accent-solid);
+  outline-offset: 2px;
+}

@@ -1,0 +1,8 @@
+:host {
+  padding: var(--ui-space-3);
+  background: var(--ui-surface-elevated);
+  border: 1px solid var(--ui-border-default);
+  border-radius: var(--ui-radius-3);
+  box-shadow: var(--ui-shadow-lg);
+  max-width: min(20rem, 90vw);
+}

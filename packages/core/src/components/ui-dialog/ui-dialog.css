@@ -1,0 +1,57 @@
+:host {
+  display: block;
+}
+
+:host:not([open]) {
+  display: none;
+}
+
+:host dialog {
+  --ui-dialog-duration: var(--ui-motion-base);
+  position: fixed;
+  inset: var(--ui-space-4);
+  width: min(100%, 440px);
+  max-width: min(100%, 440px);
+  margin: auto;
+  padding: var(--ui-space-4);
+  background: var(--ui-surface-elevated);
+  border: 1px solid var(--ui-border-default);
+  border-radius: var(--ui-radius-dialog);
+  box-shadow: var(--ui-shadow-dialog);
+  visibility: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.96);
+  transition:
+    opacity var(--ui-dialog-duration) var(--ui-motion-ease),
+    transform var(--ui-dialog-duration) var(--ui-motion-ease),
+    visibility var(--ui-dialog-duration),
+    display var(--ui-dialog-duration) var(--ui-motion-ease) allow-discrete,
+    overlay var(--ui-dialog-duration) var(--ui-motion-ease) allow-discrete;
+}
+
+:host dialog[open] {
+  visibility: visible;
+  pointer-events: auto;
+  opacity: 1;
+  transform: scale(1);
+  @starting-style {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+:host dialog::backdrop {
+  background-color: transparent;
+  transition:
+    background-color var(--ui-dialog-duration) var(--ui-motion-ease),
+    display var(--ui-dialog-duration) var(--ui-motion-ease) allow-discrete,
+    overlay var(--ui-dialog-duration) var(--ui-motion-ease) allow-discrete;
+}
+
+:host dialog[open]::backdrop {
+  background-color: var(--ui-overlay-backdrop);
+  @starting-style {
+    background-color: transparent;
+  }
+}

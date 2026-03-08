@@ -429,4 +429,29 @@ describe("@looma/core primitives", () => {
     expect(fallback.hidden).toBe(false);
     expect(avatar.getAttribute("data-has-image")).toBeNull();
   });
+
+  it("avatar-group shows first max children and overflow pill", () => {
+    document.body.innerHTML = `
+      <ui-avatar-group max="3" label="People">
+        <ui-avatar name="A"><span data-ui-avatar-fallback></span></ui-avatar>
+        <ui-avatar name="B"><span data-ui-avatar-fallback></span></ui-avatar>
+        <ui-avatar name="C"><span data-ui-avatar-fallback></span></ui-avatar>
+        <ui-avatar name="D"><span data-ui-avatar-fallback></span></ui-avatar>
+      </ui-avatar-group>
+    `;
+
+    const group = document.querySelector("ui-avatar-group") as HTMLElement;
+    const overflow = group.querySelector("[data-ui-avatar-group-overflow]");
+    const avatars = Array.from(group.querySelectorAll("ui-avatar"));
+
+    expect(group.getAttribute("role")).toBe("list");
+    expect(group.getAttribute("aria-label")).toBe("People");
+    expect(avatars.length).toBe(4);
+    expect(avatars[0].hidden).toBe(false);
+    expect(avatars[1].hidden).toBe(false);
+    expect(avatars[2].hidden).toBe(false);
+    expect(avatars[3].hidden).toBe(true);
+    expect(overflow).toBeTruthy();
+    expect(overflow?.textContent).toBe("+1");
+  });
 });

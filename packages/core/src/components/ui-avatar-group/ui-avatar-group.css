@@ -1,0 +1,32 @@
+:host {
+  display: flex;
+  align-items: center;
+  flex-direction: row-reverse;
+  gap: 0;
+}
+
+::slotted(*:not([data-ui-avatar-group-overflow])) {
+  margin-inline-end: -0.5rem;
+  flex-shrink: 0;
+}
+
+::slotted(*:last-of-type:not([data-ui-avatar-group-overflow])) {
+  margin-inline-end: 0;
+}
+
+.overflow {
+  margin-inline-end: -0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--ui-border-default);
+  background: var(--ui-surface-muted);
+  color: var(--ui-text-secondary);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}

@@ -20,7 +20,7 @@ Provide accessible modal and non-modal dialog behavior with focus management.
 
 - `open`: boolean
 - `modal`: boolean (default true)
-- `dismissible`: boolean (default false)
+- `dismissible`: boolean (default true) — close on backdrop click and Escape when true
 
 ## Properties
 
@@ -38,10 +38,12 @@ Provide accessible modal and non-modal dialog behavior with focus management.
 
 - Default slot for dialog content.
 
-## Keyboard Behavior
+## Keyboard & pointer behavior
 
-- `Escape` closes dialog if closable.
-- Focus is trapped when modal.
+- `Escape` closes dialog when `dismissible` is true.
+- Backdrop click closes dialog when `dismissible` is true.
+- On open, focus moves to the first focusable element inside the dialog (or the dialog element).
+- Focus is trapped when modal (native dialog behavior).
 
 ## ARIA
 

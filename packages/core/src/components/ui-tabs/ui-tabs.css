@@ -1,0 +1,65 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+:host([data-orientation='vertical']) {
+  flex-direction: row;
+}
+
+::slotted([role='tablist']) {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--ui-border-default);
+}
+
+:host([data-orientation='vertical']) ::slotted([role='tablist']) {
+  flex-direction: column;
+  border-bottom: none;
+  border-inline-end: 1px solid var(--ui-border-default);
+}
+
+::slotted(button[role='tab']),
+::slotted([role='tab']),
+::slotted(ui-button) button[role='tab'] {
+  padding: var(--ui-space-2) var(--ui-space-3);
+  font-size: var(--ui-font-size-sm);
+  font-weight: var(--ui-font-medium, 500);
+  color: var(--ui-text-secondary);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
+  transition: color var(--ui-motion-fast) var(--ui-motion-ease);
+  box-shadow: none;
+}
+
+::slotted(button[role='tab']:hover),
+::slotted([role='tab']:hover) {
+  color: var(--ui-text-primary);
+}
+
+::slotted(button[role='tab'][aria-selected='true']),
+::slotted([role='tab'][aria-selected='true']) {
+  color: var(--ui-accent-solid);
+  border-bottom-color: var(--ui-accent-solid);
+}
+
+:host([data-orientation='vertical']) ::slotted(button[role='tab']),
+:host([data-orientation='vertical']) ::slotted([role='tab']) {
+  border-bottom: none;
+  border-inline-end: 2px solid transparent;
+  margin-bottom: 0;
+  margin-inline-end: -1px;
+}
+
+:host([data-orientation='vertical']) ::slotted(button[role='tab'][aria-selected='true']),
+:host([data-orientation='vertical']) ::slotted([role='tab'][aria-selected='true']) {
+  border-inline-end-color: var(--ui-accent-solid);
+}
+
+::slotted([role='tabpanel']) {
+  padding: var(--ui-space-4);
+}

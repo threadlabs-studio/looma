@@ -1,0 +1,24 @@
+:host {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-2);
+  color: var(--ui-text-primary);
+}
+
+:host([aria-disabled='true']),
+:host([data-disabled='true']) {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+::slotted(input[type='checkbox']) {
+  accent-color: var(--ui-accent-solid);
+  width: 1.125em;
+  height: 1.125em;
+  cursor: pointer;
+}
+
+::slotted(input[type='checkbox']:focus-visible) {
+  outline: 2px solid var(--ui-accent-solid);
+  outline-offset: 2px;
+}

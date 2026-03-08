@@ -8,10 +8,14 @@ Checkbox primitive that mirrors checked state and emits normalized change detail
 
 ```html
 <ui-checkbox value="newsletter">
-  <input type="checkbox" name="newsletter" />
-  Subscribe to product updates
+  <label>
+    <input type="checkbox" name="newsletter" />
+    <span>Subscribe to product updates</span>
+  </label>
 </ui-checkbox>
 ```
+
+Wrap the input and label text in a `<label>` so clicking the text toggles the checkbox. Use `<span>` for the text.
 
 ## Attributes
 

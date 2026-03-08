@@ -1,0 +1,46 @@
+:host {
+  display: inline-flex;
+  color: var(--ui-text-primary);
+}
+
+::slotted(input) {
+  width: 100%;
+  appearance: none;
+  border: 1px solid var(--ui-border-default);
+  border-radius: var(--ui-radius-2);
+  background: var(--ui-surface-default);
+  color: inherit;
+  font: inherit;
+  line-height: var(--ui-line-height-md);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  margin: 0;
+  transition:
+    border-color var(--ui-motion-fast) var(--ui-motion-ease),
+    box-shadow var(--ui-motion-fast) var(--ui-motion-ease),
+    background-color var(--ui-motion-fast) var(--ui-motion-ease);
+}
+
+::slotted(input:hover:not(:focus):not(:disabled)) {
+  border-color: var(--ui-border-strong);
+}
+
+::slotted(input:focus) {
+  border-color: var(--ui-focus-ring);
+  box-shadow: 0 0 0 3px var(--ui-accent-soft);
+}
+
+:host([data-invalid='true'])::slotted(input),
+::slotted(input[aria-invalid='true']) {
+  border-color: var(--ui-accent-active);
+}
+
+::slotted(input:disabled) {
+  background: var(--ui-surface-muted);
+  color: var(--ui-text-muted);
+  cursor: not-allowed;
+}
+
+::slotted(input:focus-visible) {
+  outline: 2px solid var(--ui-focus-ring);
+  outline-offset: 2px;
+}

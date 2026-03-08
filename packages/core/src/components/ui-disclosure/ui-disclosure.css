@@ -1,0 +1,7 @@
+:host {
+  display: block;
+}
+
+::slotted([hidden]) {
+  display: none !important;
+}
