@@ -1,0 +1,18 @@
+# Looma Component API
+
+## Props as Initial Values
+
+- Props/attributes are **initial values only**. Do not use `reflect: true` on stateful props.
+- Components do not reflect internal state back to the DOM.
+- Use `@State() internalX` for mutable state; sync from prop via `@Watch('prop')`.
+
+## Events for State Changes
+
+- State changes are communicated via events with consistent payload shapes.
+- All state-change events include `trigger: 'keyboard' | 'pointer' | 'programmatic'`.
+- See `docs/event-schema.md` for payload shapes.
+
+## Adapter Generation
+
+- Event schema is deterministic; adapters can be generated algorithmically.
+- Map props → attributes (one-way), events → callbacks (typed detail).
