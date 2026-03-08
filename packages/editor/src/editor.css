@@ -1,0 +1,196 @@
+/**
+ * Looma editor styles (tokens-based).
+ * Tables, context menu, insert-table grid. Use with ProseMirror/Tiptap content.
+ */
+
+/* Table context menu */
+.ui-editor-table-context-menu {
+  min-width: 12rem;
+  padding: var(--ui-space-1, 4px);
+  background: var(--ui-surface, #fff);
+  border: 1px solid var(--ui-border, #e5e7eb);
+  border-radius: var(--ui-radius-md, 6px);
+  box-shadow: var(--ui-shadow-lg, 0 10px 15px -3px rgb(0 0 0 / 0.1));
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ui-editor-table-context-menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: var(--ui-space-2, 8px) var(--ui-space-3, 12px);
+  border: none;
+  border-radius: var(--ui-radius-sm, 4px);
+  background: none;
+  font-size: var(--ui-text-sm, 0.875rem);
+  cursor: pointer;
+  color: var(--ui-text, #111);
+}
+
+.ui-editor-table-context-menu button:hover:not(:disabled) {
+  background: var(--ui-surface-hover, #f3f4f6);
+}
+
+.ui-editor-table-context-menu button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.ui-editor-table-context-menu__sep {
+  height: 1px;
+  background: var(--ui-border, #e5e7eb);
+  margin: var(--ui-space-1, 4px) 0;
+}
+
+/* Insert table grid */
+.ui-editor-insert-table-grid {
+  padding: var(--ui-space-3, 12px);
+  background: var(--ui-surface, #fff);
+  border: 1px solid var(--ui-border, #e5e7eb);
+  border-radius: var(--ui-radius-md, 6px);
+  box-shadow: var(--ui-shadow-lg, 0 10px 15px -3px rgb(0 0 0 / 0.1));
+}
+
+.ui-editor-insert-table-grid__hint {
+  margin: 0 0 var(--ui-space-2, 8px);
+  font-size: var(--ui-text-sm, 0.875rem);
+  color: var(--ui-text-muted, #6b7280);
+}
+
+.ui-editor-insert-table-grid__grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1.25rem);
+  grid-template-rows: repeat(8, 1.25rem);
+  gap: 2px;
+  margin-bottom: var(--ui-space-2, 8px);
+}
+
+.ui-editor-insert-table-grid__cell {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 1px solid var(--ui-border, #e5e7eb);
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.ui-editor-insert-table-grid__cell--selected {
+  background: var(--ui-accent, #3b82f6);
+  border-color: var(--ui-accent, #3b82f6);
+}
+
+.ui-editor-insert-table-grid__header {
+  display: block;
+  margin-bottom: var(--ui-space-2, 8px);
+  font-size: var(--ui-text-sm, 0.875rem);
+  cursor: pointer;
+}
+
+.ui-editor-insert-table-grid button {
+  width: 100%;
+  padding: var(--ui-space-2, 8px) var(--ui-space-3, 12px);
+  border: 1px solid var(--ui-border, #e5e7eb);
+  border-radius: var(--ui-radius-sm, 4px);
+  background: var(--ui-accent, #3b82f6);
+  color: var(--ui-accent-contrast, #fff);
+  font-size: var(--ui-text-sm, 0.875rem);
+  cursor: pointer;
+}
+
+.ui-editor-insert-table-grid button:hover {
+  filter: brightness(1.05);
+}
+
+/* Table overlay controls */
+.ui-editor-table-overlay {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.ui-editor-table-overlay__rows,
+.ui-editor-table-overlay__cols {
+  pointer-events: none;
+  position: absolute;
+  display: grid;
+  gap: 0;
+}
+
+.ui-editor-table-overlay__rows {
+  inset: 0 auto 0 calc(-1 * var(--ui-space-7, 28px));
+  width: var(--ui-space-6, 24px);
+  grid-template-rows: repeat(var(--ui-editor-table-overlay-row-boundaries, 1), 1fr);
+}
+
+.ui-editor-table-overlay__cols {
+  inset: calc(-1 * var(--ui-space-7, 28px)) 0 auto 0;
+  height: var(--ui-space-6, 24px);
+  grid-template-columns: repeat(var(--ui-editor-table-overlay-col-boundaries, 1), 1fr);
+}
+
+.ui-editor-table-overlay__control {
+  pointer-events: auto;
+  place-self: center;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid var(--ui-border, #e5e7eb);
+  border-radius: 999px;
+  background: var(--ui-surface, #fff);
+  color: var(--ui-text-muted, #6b7280);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.ui-editor-table-overlay__control::before {
+  content: "+";
+  font-size: 18px;
+  line-height: 1;
+}
+
+.ui-editor-table-overlay__control:hover {
+  opacity: 1;
+  color: var(--ui-accent, #3b82f6);
+  border-color: var(--ui-accent, #3b82f6);
+}
+
+/* ProseMirror table (for when Looma editor content is rendered) */
+.ProseMirror table {
+  border-collapse: collapse;
+  margin: 1em 0;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.ProseMirror th,
+.ProseMirror td {
+  border: 1px solid var(--ui-border, #e5e7eb);
+  padding: var(--ui-space-2, 8px) var(--ui-space-3, 12px);
+  vertical-align: top;
+  min-width: 80px;
+}
+
+.ProseMirror th {
+  font-weight: 600;
+  background: var(--ui-surface-hover, #f3f4f6);
+}
+
+.ProseMirror .selectedCell {
+  background: var(--ui-accent-subtle, rgba(59, 130, 246, 0.1));
+}
+
+.ProseMirror .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  cursor: col-resize;
+  background: var(--ui-accent, #3b82f6);
+}
