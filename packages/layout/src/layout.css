@@ -1,13 +1,36 @@
-@layer components {
-  ui-stack,
-  ui-inline,
-  ui-cluster,
-  ui-grid,
-  ui-center {
-    margin: 0;
-    box-sizing: border-box;
-  }
+/* Unlayered: isolation contract (hard guarantees). */
+:where(ui-stack, ui-inline, ui-cluster, ui-grid, ui-center, ui-separator),
+:where(ui-stack, ui-inline, ui-cluster, ui-grid, ui-center, ui-separator) *,
+:where(ui-stack, ui-inline, ui-cluster, ui-grid, ui-center, ui-separator) *::before,
+:where(ui-stack, ui-inline, ui-cluster, ui-grid, ui-center, ui-separator) *::after {
+  box-sizing: border-box;
+}
 
+:where(ui-stack, ui-inline, ui-cluster, ui-grid, ui-center, ui-separator) {
+  all: revert;
+  box-sizing: border-box;
+  margin: 0;
+  font-family: var(--ui-font-family-sans);
+  font-size: var(--ui-font-size-md);
+  line-height: var(--ui-line-height-md);
+  color: var(--ui-text-primary);
+}
+
+:where(ui-stack, ui-inline, ui-cluster, ui-grid, ui-center, ui-separator)[data-ui-inherit-typography] {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  font-weight: inherit;
+  color: inherit;
+  direction: inherit;
+  writing-mode: inherit;
+  text-orientation: inherit;
+  text-rendering: inherit;
+  font-feature-settings: inherit;
+  font-variation-settings: inherit;
+}
+
+@layer components {
   ui-stack {
     --ui-layout-gap: var(--ui-space-4, 1rem);
     --ui-layout-align: stretch;

@@ -9,6 +9,7 @@
     "generate:api": "node ./tools/scripts/generate-component-api.mjs",
     "generate:docs": "pnpm generate:api",
     "check:docs-sync": "node ./tools/scripts/check-docs-sync.mjs",
+    "check:mutation-observer": "node ./tools/scripts/check-mutation-observer.mjs",
     "dev:docs": "pnpm --filter @looma/docs dev",
     "dev:storybook": "pnpm --filter @looma/storybook dev",
     "build:docs": "pnpm --filter @looma/docs build",

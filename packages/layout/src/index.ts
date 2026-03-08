@@ -17,6 +17,7 @@ function normalizeOrientation(value: string | null): string {
   return value === ORIENTATION_VERTICAL ? ORIENTATION_VERTICAL : ORIENTATION_HORIZONTAL;
 }
 
+if (typeof HTMLElement !== "undefined") {
 class UILayoutElement extends HTMLElement {
   protected getPrimitiveAttribute(name: PrimitiveAttribute): string {
     return this.getAttribute(name) ?? "";
@@ -228,6 +229,7 @@ for (const [tag, constructor] of definitions) {
   if (!customElements.get(tag)) {
     customElements.define(tag, constructor);
   }
+}
 }
 
 export function registerLayoutPrimitives(): void {

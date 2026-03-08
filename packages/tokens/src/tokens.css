@@ -1,15 +1,72 @@
 @layer tokens {
   :root {
+    --ui-font-stack-system: system-ui, sans-serif;
+    --ui-font-stack-neo-grotesque:
+      Inter,
+      Roboto,
+      "Helvetica Neue",
+      "Arial Nova",
+      "Nimbus Sans",
+      Arial,
+      sans-serif;
+    --ui-font-stack-humanist:
+      Seravek,
+      "Gill Sans Nova",
+      Ubuntu,
+      Calibri,
+      "DejaVu Sans",
+      source-sans-pro,
+      sans-serif;
+    --ui-font-stack-rounded:
+      ui-rounded,
+      "Hiragino Maru Gothic ProN",
+      Quicksand,
+      Comfortaa,
+      Manjari,
+      "Arial Rounded MT",
+      "Arial Rounded MT Bold",
+      Calibri,
+      source-sans-pro,
+      sans-serif;
+    --ui-font-family-sans: var(--ui-font-stack-neo-grotesque);
+    --ui-font-size-xs: 0.75rem;
+    --ui-font-size-sm: 0.875rem;
+    --ui-font-size-md: 1rem;
+    --ui-font-size-lg: 1.125rem;
+    --ui-font-size-xl: 1.25rem;
+    --ui-font-size-2xl: 1.5rem;
+    --ui-line-height-tight: 1.2;
+    --ui-line-height-md: 1.4;
+    --ui-line-height-relaxed: 1.6;
+
+    --ui-font-normal: 400;
+    --ui-font-medium: 500;
+    --ui-font-semibold: 600;
+    --ui-font-bold: 700;
+
     --ui-space-1: 0.25rem;
     --ui-space-2: 0.5rem;
     --ui-space-3: 0.75rem;
     --ui-space-4: 1rem;
     --ui-space-5: 1.5rem;
     --ui-space-6: 2rem;
+    --ui-space-7: 2.5rem;
+    --ui-space-8: 3rem;
 
     --ui-radius-1: 0.25rem;
     --ui-radius-2: 0.5rem;
+    --ui-radius-3: 0.75rem;
+    --ui-radius-4: 1rem;
+    --ui-radius-dialog: 1rem;
     --ui-radius-round: 999px;
+
+    --ui-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --ui-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+    --ui-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+    --ui-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.06);
+    --ui-shadow-xl: 0 16px 40px rgba(0, 0, 0, 0.14), 0 8px 16px rgba(0, 0, 0, 0.08);
+    --ui-shadow-dialog: var(--ui-shadow-xl);
+    --ui-overlay-backdrop: rgba(0, 0, 0, 0.4);
 
     --ui-motion-fast: 120ms;
     --ui-motion-base: 180ms;
@@ -17,23 +74,34 @@
 
     --ui-surface-canvas: #ffffff;
     --ui-surface-default: #ffffff;
-    --ui-surface-muted: #f5f7fb;
+    --ui-surface-muted: #f8f8f6;
+    --ui-surface-subtle: #f0f0ec;
     --ui-surface-elevated: #ffffff;
 
-    --ui-text-primary: #101828;
-    --ui-text-secondary: #344054;
-    --ui-text-muted: #667085;
+    --ui-text-primary: #1a1a1a;
+    --ui-text-secondary: #5c5c5c;
+    --ui-text-muted: #9b9b9b;
     --ui-text-on-accent: #ffffff;
 
-    --ui-border-subtle: #e4e7ec;
-    --ui-border-default: #d0d5dd;
-    --ui-border-strong: #98a2b3;
-    --ui-focus-ring: #2e90fa;
+    --ui-border-subtle: #ecece8;
+    --ui-border-default: #e4e4e0;
+    --ui-border-strong: #c8c8c4;
+    --ui-focus-ring: #0066cc;
 
-    --ui-accent-solid: #2e90fa;
-    --ui-accent-hover: #1570ef;
-    --ui-accent-active: #175cd3;
-    --ui-accent-soft: #eff8ff;
+    --ui-accent-solid: #0066cc;
+    --ui-accent-hover: #0052a3;
+    --ui-accent-active: #003d7a;
+    --ui-accent-soft: #e8f0fb;
+
+    --ui-danger-solid: #cc3300;
+    --ui-danger-hover: #a32900;
+    --ui-danger-soft: #fdf0ed;
+    --ui-success-solid: #007a33;
+    --ui-success-soft: #edf7f1;
+    --ui-warning-solid: #cc8800;
+    --ui-warning-soft: #fdf7e6;
+    --ui-info-solid: #0066cc;
+    --ui-info-soft: #e8f0fb;
   }
 
   @supports (color: oklch(0.5 0.1 240)) {
@@ -41,6 +109,7 @@
       --ui-surface-canvas: oklch(0.99 0.01 250);
       --ui-surface-default: oklch(1 0 0);
       --ui-surface-muted: oklch(0.97 0.01 250);
+      --ui-surface-subtle: oklch(0.95 0.01 250);
       --ui-surface-elevated: oklch(1 0 0);
 
       --ui-text-primary: oklch(0.23 0.02 260);
@@ -57,6 +126,16 @@
       --ui-accent-hover: oklch(0.57 0.2 250);
       --ui-accent-active: oklch(0.52 0.2 250);
       --ui-accent-soft: oklch(0.95 0.03 250);
+
+      --ui-danger-solid: oklch(0.55 0.2 25);
+      --ui-danger-hover: oklch(0.5 0.2 25);
+      --ui-danger-soft: oklch(0.97 0.02 25);
+      --ui-success-solid: oklch(0.5 0.15 145);
+      --ui-success-soft: oklch(0.96 0.03 145);
+      --ui-warning-solid: oklch(0.7 0.15 85);
+      --ui-warning-soft: oklch(0.97 0.04 85);
+      --ui-info-solid: oklch(0.62 0.18 250);
+      --ui-info-soft: oklch(0.95 0.03 250);
     }
   }
 
