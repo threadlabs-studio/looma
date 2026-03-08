@@ -5,7 +5,7 @@ import {
 } from "../shared/componentApi";
 
 const meta = {
-  title: "Essentials/ui-checkbox",
+  title: "Forms/Checkbox",
   tags: ["autodocs"],
   argTypes: createComponentArgTypes("ui-checkbox"),
   parameters: createComponentDocsParameters("ui-checkbox"),
@@ -17,8 +17,10 @@ const meta = {
       ${indeterminate ? "indeterminate" : ""}
       value="${value}"
     >
-      <input type="checkbox" />
-      Receive updates
+      <label>
+        <input type="checkbox" />
+        <span>Receive updates</span>
+      </label>
     </ui-checkbox>
   `
 } satisfies Meta;

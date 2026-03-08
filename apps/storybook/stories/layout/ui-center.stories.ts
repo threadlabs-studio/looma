@@ -5,7 +5,7 @@ import {
 } from "../shared/componentApi";
 
 const meta = {
-  title: "Layout/ui-center",
+  title: "Layout/Center",
   tags: ["autodocs"],
   argTypes: createComponentArgTypes("ui-center"),
   parameters: createComponentDocsParameters("ui-center"),

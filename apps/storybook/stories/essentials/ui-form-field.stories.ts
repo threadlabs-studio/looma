@@ -5,7 +5,7 @@ import {
 } from "../shared/componentApi";
 
 const meta = {
-  title: "Essentials/ui-form-field",
+  title: "Forms/Form Field",
   tags: ["autodocs"],
   argTypes: createComponentArgTypes("ui-form-field"),
   parameters: createComponentDocsParameters("ui-form-field"),

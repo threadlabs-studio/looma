@@ -5,7 +5,7 @@ import {
 } from "../shared/componentApi";
 
 const meta = {
-  title: "Primitives/ui-menu",
+  title: "Overlay/Menu",
   tags: ["autodocs"],
   argTypes: createComponentArgTypes("ui-menu"),
   parameters: createComponentDocsParameters("ui-menu"),

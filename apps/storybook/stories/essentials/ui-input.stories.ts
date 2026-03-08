@@ -5,7 +5,7 @@ import {
 } from "../shared/componentApi";
 
 const meta = {
-  title: "Essentials/ui-input",
+  title: "Forms/Input",
   tags: ["autodocs"],
   argTypes: createComponentArgTypes("ui-input"),
   parameters: createComponentDocsParameters("ui-input"),

@@ -14,8 +14,10 @@
   },
   "dependencies": {
     "@looma/core": "workspace:*",
+    "@looma/editor": "workspace:*",
     "@looma/layout": "workspace:*",
-    "@looma/tokens": "workspace:*"
+    "@looma/tokens": "workspace:*",
+    "animejs": "~4.3.6"
   },
   "devDependencies": {
     "@storybook/addon-essentials": "^8.6.14",

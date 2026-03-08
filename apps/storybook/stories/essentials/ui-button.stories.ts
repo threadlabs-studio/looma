@@ -5,7 +5,7 @@ import {
 } from "../shared/componentApi";
 
 const meta = {
-  title: "Essentials/ui-button",
+  title: "Forms/Button",
   tags: ["autodocs"],
   argTypes: createComponentArgTypes("ui-button"),
   parameters: createComponentDocsParameters("ui-button"),

@@ -5,7 +5,7 @@ import {
 } from "../shared/componentApi";
 
 const meta = {
-  title: "Primitives/ui-popover",
+  title: "Overlay/Popover",
   tags: ["autodocs"],
   argTypes: createComponentArgTypes("ui-popover"),
   parameters: createComponentDocsParameters("ui-popover"),

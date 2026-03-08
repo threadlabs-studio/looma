@@ -5,13 +5,13 @@ import {
 } from "../shared/componentApi";
 
 const meta = {
-  title: "Primitives/ui-disclosure",
+  title: "Display/Disclosure",
   tags: ["autodocs"],
   argTypes: createComponentArgTypes("ui-disclosure"),
   parameters: createComponentDocsParameters("ui-disclosure"),
   render: ({ open, disabled }) => `
     <ui-disclosure ${open ? "open" : ""} ${disabled ? "disabled" : ""}>
-      <button type="button" aria-controls="disclosure-panel">Toggle details</button>
+      <ui-button><button type="button" aria-controls="disclosure-panel">Toggle details</button></ui-button>
       <div id="disclosure-panel" hidden>Progressive enhancement disclosure content.</div>
     </ui-disclosure>
   `

@@ -5,7 +5,7 @@ import {
 } from "../shared/componentApi";
 
 const meta = {
-  title: "Primitives/ui-dialog",
+  title: "Overlay/Dialog",
   tags: ["autodocs"],
   argTypes: createComponentArgTypes("ui-dialog"),
   parameters: createComponentDocsParameters("ui-dialog"),
@@ -14,7 +14,7 @@ const meta = {
       <dialog>
         <h3>Dialog title</h3>
         <p>Overlay contract example.</p>
-        <button type="button">Close</button>
+        <ui-button><button type="button">Close</button></ui-button>
       </dialog>
     </ui-dialog>
   `

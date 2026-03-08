@@ -5,7 +5,7 @@ import {
 } from "../shared/componentApi";
 
 const meta = {
-  title: "Layout/ui-grid",
+  title: "Layout/Grid",
   tags: ["autodocs"],
   argTypes: createComponentArgTypes("ui-grid"),
   parameters: createComponentDocsParameters("ui-grid"),

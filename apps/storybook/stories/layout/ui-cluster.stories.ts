@@ -5,15 +5,15 @@ import {
 } from "../shared/componentApi";
 
 const meta = {
-  title: "Layout/ui-cluster",
+  title: "Layout/Cluster",
   tags: ["autodocs"],
   argTypes: createComponentArgTypes("ui-cluster"),
   parameters: createComponentDocsParameters("ui-cluster"),
   render: ({ gap, align, justify }) => `
     <ui-cluster gap="${gap}" align="${align}" justify="${justify}">
       <span>Status: Active</span>
-      <button type="button">Save</button>
-      <button type="button">Cancel</button>
+      <ui-button><button type="button">Save</button></ui-button>
+      <ui-button><button type="button">Cancel</button></ui-button>
     </ui-cluster>
   `
 } satisfies Meta;

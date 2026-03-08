@@ -5,7 +5,7 @@ import {
 } from "../shared/componentApi";
 
 const meta = {
-  title: "Essentials/ui-radio-group",
+  title: "Forms/Radio Group",
   tags: ["autodocs"],
   argTypes: createComponentArgTypes("ui-radio-group"),
   parameters: createComponentDocsParameters("ui-radio-group"),

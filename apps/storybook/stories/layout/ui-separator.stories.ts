@@ -5,7 +5,7 @@ import {
 } from "../shared/componentApi";
 
 const meta = {
-  title: "Layout/ui-separator",
+  title: "Layout/Separator",
   tags: ["autodocs"],
   argTypes: createComponentArgTypes("ui-separator"),
   parameters: createComponentDocsParameters("ui-separator"),

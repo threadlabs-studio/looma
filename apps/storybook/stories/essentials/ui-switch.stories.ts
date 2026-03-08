@@ -5,7 +5,7 @@ import {
 } from "../shared/componentApi";
 
 const meta = {
-  title: "Essentials/ui-switch",
+  title: "Forms/Switch",
   tags: ["autodocs"],
   argTypes: createComponentArgTypes("ui-switch"),
   parameters: createComponentDocsParameters("ui-switch"),

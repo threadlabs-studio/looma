@@ -1,0 +1,25 @@
+/* Storybook showcase: Knit-style unified typography and colors. */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+:root {
+  --ui-font-family-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --ui-surface-canvas: #fafaf8;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--ui-surface-canvas);
+  color: var(--ui-text-primary);
+  font-family: var(--ui-font-family-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+#storybook-root,
+#storybook-docs {
+  font-family: inherit;
+  color: inherit;
+}

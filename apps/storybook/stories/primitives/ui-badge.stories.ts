@@ -5,7 +5,7 @@ import {
 } from "../shared/componentApi";
 
 const meta = {
-  title: "Primitives/ui-badge",
+  title: "Display/Badge",
   tags: ["autodocs"],
   argTypes: createComponentArgTypes("ui-badge"),
   parameters: createComponentDocsParameters("ui-badge"),
@@ -24,4 +24,18 @@ export const Default: Story = {
     variant: "subtle",
     tone: "accent"
   }
+};
+
+export const Variants: Story = {
+  render: () => `
+    <div style="display: flex; flex-wrap: wrap; gap: var(--ui-space-2); align-items: center;">
+      <ui-badge tone="accent">Accent</ui-badge>
+      <ui-badge tone="danger">Danger</ui-badge>
+      <ui-badge tone="success">Success</ui-badge>
+      <ui-badge tone="warning">Warning</ui-badge>
+      <ui-badge tone="info">Info</ui-badge>
+      <ui-badge variant="subtle" tone="accent">Subtle accent</ui-badge>
+      <ui-badge variant="subtle" tone="danger">Subtle danger</ui-badge>
+    </div>
+  `
 };

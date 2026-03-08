@@ -5,15 +5,15 @@ import {
 } from "../shared/componentApi";
 
 const meta = {
-  title: "Layout/ui-inline",
+  title: "Layout/Inline",
   tags: ["autodocs"],
   argTypes: createComponentArgTypes("ui-inline"),
   parameters: createComponentDocsParameters("ui-inline"),
   render: ({ gap, align, justify, wrap }) => `
     <ui-inline gap="${gap}" align="${align}" justify="${justify}" wrap="${wrap}">
-      <button type="button">Edit</button>
-      <button type="button">Share</button>
-      <button type="button">Archive</button>
+      <ui-button><button type="button">Edit</button></ui-button>
+      <ui-button><button type="button">Share</button></ui-button>
+      <ui-button><button type="button">Archive</button></ui-button>
     </ui-inline>
   `
 } satisfies Meta;

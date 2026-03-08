@@ -5,7 +5,7 @@ import {
 } from "../shared/componentApi";
 
 const meta = {
-  title: "Layout/ui-stack",
+  title: "Layout/Stack",
   tags: ["autodocs"],
   argTypes: createComponentArgTypes("ui-stack"),
   parameters: createComponentDocsParameters("ui-stack"),
