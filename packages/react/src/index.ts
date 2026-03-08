@@ -1,5 +1,8 @@
+// Side-effect imports register custom elements in the browser only.
+// In SSR (Node), @looma/core and @looma/layout no-op via typeof HTMLElement guards.
 import "@looma/layout";
 import "@looma/core";
+import "@looma/editor";
 import {
   createElement,
   forwardRef,
@@ -12,12 +15,31 @@ import {
   type RefCallback
 } from "react";
 
+export interface TableContextMenuActionEventDetail {
+  action: string;
+}
+
+export interface InsertTableEventDetail {
+  rows: number;
+  cols: number;
+  withHeaderRow: boolean;
+}
+
+export interface TableOverlayActionEventDetail {
+  action: string;
+  boundaryIndex: number;
+}
+
 export interface AdapterEventMap {
   open: { open: boolean; reason: string; trigger: string };
   close: { open: boolean; reason: string; trigger: string };
   select: { value: string; previousValue?: string; trigger: string };
   change: { checked: boolean; value: string; trigger: string };
+  input: { value: string; trigger: string };
   dismiss: { id: string; reason: string; trigger: string };
+  tableAction: TableContextMenuActionEventDetail;
+  insertTable: InsertTableEventDetail;
+  tableOverlayAction: TableOverlayActionEventDetail;
 }
 
 type AdapterCallbacks = {
@@ -25,10 +47,17 @@ type AdapterCallbacks = {
   onClose?: (detail: AdapterEventMap["close"]) => void;
   onSelect?: (detail: AdapterEventMap["select"]) => void;
   onChange?: (detail: AdapterEventMap["change"]) => void;
+  onInput?: (detail: AdapterEventMap["input"]) => void;
   onDismiss?: (detail: AdapterEventMap["dismiss"]) => void;
+  onTableAction?: (detail: AdapterEventMap["tableAction"]) => void;
+  onInsertTable?: (detail: AdapterEventMap["insertTable"]) => void;
+  onTableOverlayAction?: (detail: AdapterEventMap["tableOverlayAction"]) => void;
 };
 
-export type AdapterProps = Omit<HTMLAttributes<HTMLElement>, "children" | "onClose" | "onSelect"> &
+export type AdapterProps = Omit<
+  HTMLAttributes<HTMLElement>,
+  "children" | "onClose" | "onSelect" | "onChange"
+> &
   AdapterCallbacks & {
     children?: ReactNode;
   };
@@ -48,7 +77,22 @@ function assignRef<T>(ref: Ref<T> | undefined, value: T | null): void {
 
 function createAdapterComponent(tagName: string, displayName: string): AdapterComponent {
   const Component = forwardRef<HTMLElement, AdapterProps>(
-    ({ children, onOpen, onClose, onSelect, onChange, onDismiss, ...rest }, forwardedRef) => {
+    (
+      {
+        children,
+        onOpen,
+        onClose,
+        onSelect,
+        onChange,
+        onInput,
+        onDismiss,
+        onTableAction,
+        onInsertTable,
+        onTableOverlayAction,
+        ...rest
+      },
+      forwardedRef
+    ) => {
       const elementRef = useRef<HTMLElement | null>(null);
 
       const refCallback: RefCallback<HTMLElement> = (node) => {
@@ -81,9 +125,38 @@ function createAdapterComponent(tagName: string, displayName: string): AdapterCo
               : undefined
           ],
           [
+            "input",
+            onInput
+              ? (event) => onInput((event as CustomEvent<AdapterEventMap["input"]>).detail)
+              : undefined
+          ],
+          [
             "dismiss",
             onDismiss
               ? (event) => onDismiss((event as CustomEvent<AdapterEventMap["dismiss"]>).detail)
+              : undefined
+          ],
+          [
+            "looma-editor-table-action",
+            onTableAction
+              ? (event) =>
+                  onTableAction((event as CustomEvent<AdapterEventMap["tableAction"]>).detail)
+              : undefined
+          ],
+          [
+            "looma-editor-insert-table",
+            onInsertTable
+              ? (event) =>
+                  onInsertTable((event as CustomEvent<AdapterEventMap["insertTable"]>).detail)
+              : undefined
+          ],
+          [
+            "looma-editor-table-overlay-action",
+            onTableOverlayAction
+              ? (event) =>
+                  onTableOverlayAction(
+                    (event as CustomEvent<AdapterEventMap["tableOverlayAction"]>).detail
+                  )
               : undefined
           ]
         ];
@@ -101,7 +174,17 @@ function createAdapterComponent(tagName: string, displayName: string): AdapterCo
             }
           }
         };
-      }, [onOpen, onClose, onSelect, onChange, onDismiss]);
+      }, [
+        onOpen,
+        onClose,
+        onSelect,
+        onChange,
+        onInput,
+        onDismiss,
+        onTableAction,
+        onInsertTable,
+        onTableOverlayAction
+      ]);
 
       return createElement(tagName, { ...rest, ref: refCallback }, children);
     }
@@ -131,6 +214,20 @@ export const Tooltip = createAdapterComponent("ui-tooltip", "Tooltip");
 export const ToastRegion = createAdapterComponent("ui-toast-region", "ToastRegion");
 export const Checkbox = createAdapterComponent("ui-checkbox", "Checkbox");
 export const Switch = createAdapterComponent("ui-switch", "Switch");
+export const RadioGroup = createAdapterComponent("ui-radio-group", "RadioGroup");
+export const Radio = createAdapterComponent("ui-radio", "Radio");
+export const Badge = createAdapterComponent("ui-badge", "Badge");
+export const Avatar = createAdapterComponent("ui-avatar", "Avatar");
+export const AvatarGroup = createAdapterComponent("ui-avatar-group", "AvatarGroup");
+export const EditorTableContextMenu = createAdapterComponent(
+  "ui-editor-table-context-menu",
+  "EditorTableContextMenu"
+);
+export const EditorInsertTableGrid = createAdapterComponent(
+  "ui-editor-insert-table-grid",
+  "EditorInsertTableGrid"
+);
+export const EditorTableOverlay = createAdapterComponent("ui-editor-table-overlay", "EditorTableOverlay");
 
 export const ADAPTER_COMPONENT_TAG_MAP = {
   Stack: "ui-stack",
@@ -151,7 +248,15 @@ export const ADAPTER_COMPONENT_TAG_MAP = {
   Tooltip: "ui-tooltip",
   ToastRegion: "ui-toast-region",
   Checkbox: "ui-checkbox",
-  Switch: "ui-switch"
+  Switch: "ui-switch",
+  RadioGroup: "ui-radio-group",
+  Radio: "ui-radio",
+  Badge: "ui-badge",
+  Avatar: "ui-avatar",
+  AvatarGroup: "ui-avatar-group",
+  EditorTableContextMenu: "ui-editor-table-context-menu",
+  EditorInsertTableGrid: "ui-editor-insert-table-grid",
+  EditorTableOverlay: "ui-editor-table-overlay"
 } as const;
 
 export type ReactAdapterNote =

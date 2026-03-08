@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@looma/core": "workspace:*",
+    "@looma/editor": "workspace:*",
     "@looma/layout": "workspace:*"
   },
   "peerDependencies": {

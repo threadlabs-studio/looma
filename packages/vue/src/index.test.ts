@@ -4,6 +4,7 @@ import { createApp, h, type App } from "vue";
 import {
   ADAPTER_COMPONENT_TAG_MAP,
   Avatar,
+  AvatarGroup,
   Badge,
   Button,
   Menu,
@@ -38,11 +39,12 @@ afterEach(() => {
 });
 
 describe("@looma/vue adapter", () => {
-  it("includes parity exports for radio, badge, and avatar tags", () => {
+  it("includes parity exports for radio, badge, avatar, and avatar-group tags", () => {
     expect(ADAPTER_COMPONENT_TAG_MAP.RadioGroup).toBe("ui-radio-group");
     expect(ADAPTER_COMPONENT_TAG_MAP.Radio).toBe("ui-radio");
     expect(ADAPTER_COMPONENT_TAG_MAP.Badge).toBe("ui-badge");
     expect(ADAPTER_COMPONENT_TAG_MAP.Avatar).toBe("ui-avatar");
+    expect(ADAPTER_COMPONENT_TAG_MAP.AvatarGroup).toBe("ui-avatar-group");
   });
 
   it("renders wrappers with forwarded attrs and default slot content", () => {

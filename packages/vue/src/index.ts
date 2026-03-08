@@ -1,5 +1,8 @@
+// Side-effect imports register custom elements in the browser only.
+// In SSR (Node), @looma/core and @looma/layout no-op via typeof HTMLElement guards.
 import "@looma/layout";
 import "@looma/core";
+import "@looma/editor";
 import {
   defineComponent,
   h,
@@ -8,12 +11,31 @@ import {
   type ComponentPublicInstance
 } from "vue";
 
+export interface TableContextMenuActionEventDetail {
+  action: string;
+}
+
+export interface InsertTableEventDetail {
+  rows: number;
+  cols: number;
+  withHeaderRow: boolean;
+}
+
+export interface TableOverlayActionEventDetail {
+  action: string;
+  boundaryIndex: number;
+}
+
 export interface VueAdapterEventMap {
   open: { open: boolean; reason: string; trigger: string };
   close: { open: boolean; reason: string; trigger: string };
   select: { value: string; previousValue?: string; trigger: string };
   change: { checked: boolean; value: string; trigger: string };
+  input: { value: string; trigger: string };
   dismiss: { id: string; reason: string; trigger: string };
+  tableAction: TableContextMenuActionEventDetail;
+  insertTable: InsertTableEventDetail;
+  tableOverlayAction: TableOverlayActionEventDetail;
 }
 
 type AdapterCallbacks = {
@@ -21,7 +43,11 @@ type AdapterCallbacks = {
   onClose?: (detail: VueAdapterEventMap["close"]) => void;
   onSelect?: (detail: VueAdapterEventMap["select"]) => void;
   onChange?: (detail: VueAdapterEventMap["change"]) => void;
+  onInput?: (detail: VueAdapterEventMap["input"]) => void;
   onDismiss?: (detail: VueAdapterEventMap["dismiss"]) => void;
+  onTableAction?: (detail: VueAdapterEventMap["tableAction"]) => void;
+  onInsertTable?: (detail: VueAdapterEventMap["insertTable"]) => void;
+  onTableOverlayAction?: (detail: VueAdapterEventMap["tableOverlayAction"]) => void;
 };
 
 export type AdapterAttrs = AdapterCallbacks & Record<string, unknown>;
@@ -78,9 +104,42 @@ function createAdapterComponent(tagName: string, displayName: string) {
               : undefined
           ],
           [
+            "input",
+            typeof callbackAttrs.onInput === "function"
+              ? (event) => callbackAttrs.onInput?.((event as CustomEvent<VueAdapterEventMap["input"]>).detail)
+              : undefined
+          ],
+          [
             "dismiss",
             typeof callbackAttrs.onDismiss === "function"
               ? (event) => callbackAttrs.onDismiss?.((event as CustomEvent<VueAdapterEventMap["dismiss"]>).detail)
+              : undefined
+          ],
+          [
+            "looma-editor-table-action",
+            typeof callbackAttrs.onTableAction === "function"
+              ? (event) =>
+                  callbackAttrs.onTableAction?.(
+                    (event as CustomEvent<VueAdapterEventMap["tableAction"]>).detail
+                  )
+              : undefined
+          ],
+          [
+            "looma-editor-insert-table",
+            typeof callbackAttrs.onInsertTable === "function"
+              ? (event) =>
+                  callbackAttrs.onInsertTable?.(
+                    (event as CustomEvent<VueAdapterEventMap["insertTable"]>).detail
+                  )
+              : undefined
+          ],
+          [
+            "looma-editor-table-overlay-action",
+            typeof callbackAttrs.onTableOverlayAction === "function"
+              ? (event) =>
+                  callbackAttrs.onTableOverlayAction?.(
+                    (event as CustomEvent<VueAdapterEventMap["tableOverlayAction"]>).detail
+                  )
               : undefined
           ]
         ];
@@ -102,12 +161,27 @@ function createAdapterComponent(tagName: string, displayName: string) {
 
       return () => {
         const callbackAttrs = attrs as AdapterAttrs;
-        const { onOpen, onClose, onSelect, onChange, onDismiss, ...forwardedAttrs } = callbackAttrs;
+        const {
+          onOpen,
+          onClose,
+          onSelect,
+          onChange,
+          onInput,
+          onDismiss,
+          onTableAction,
+          onInsertTable,
+          onTableOverlayAction,
+          ...forwardedAttrs
+        } = callbackAttrs;
         void onOpen;
         void onClose;
         void onSelect;
         void onChange;
+        void onInput;
         void onDismiss;
+        void onTableAction;
+        void onInsertTable;
+        void onTableOverlayAction;
 
         return h(
           tagName,
@@ -148,6 +222,16 @@ export const RadioGroup = createAdapterComponent("ui-radio-group", "RadioGroup")
 export const Radio = createAdapterComponent("ui-radio", "Radio");
 export const Badge = createAdapterComponent("ui-badge", "Badge");
 export const Avatar = createAdapterComponent("ui-avatar", "Avatar");
+export const AvatarGroup = createAdapterComponent("ui-avatar-group", "AvatarGroup");
+export const EditorTableContextMenu = createAdapterComponent(
+  "ui-editor-table-context-menu",
+  "EditorTableContextMenu"
+);
+export const EditorInsertTableGrid = createAdapterComponent(
+  "ui-editor-insert-table-grid",
+  "EditorInsertTableGrid"
+);
+export const EditorTableOverlay = createAdapterComponent("ui-editor-table-overlay", "EditorTableOverlay");
 
 export const ADAPTER_COMPONENT_TAG_MAP = {
   Stack: "ui-stack",
@@ -172,7 +256,11 @@ export const ADAPTER_COMPONENT_TAG_MAP = {
   RadioGroup: "ui-radio-group",
   Radio: "ui-radio",
   Badge: "ui-badge",
-  Avatar: "ui-avatar"
+  Avatar: "ui-avatar",
+  AvatarGroup: "ui-avatar-group",
+  EditorTableContextMenu: "ui-editor-table-context-menu",
+  EditorInsertTableGrid: "ui-editor-insert-table-grid",
+  EditorTableOverlay: "ui-editor-table-overlay"
 } as const;
 
 export const VUE_ADAPTER_NOTE =
