@@ -44,12 +44,13 @@ Goal: move the editor plan from shipped Looma primitives to real app usage in Kn
 Primary scope:
 
 - Replace Knit-local editor table UI pieces with Looma editor components where Phase 1 already exists.
+- Replace Knit-local slash menu presentation with a Looma editor primitive while keeping Knit command/state ownership.
 - Register Looma extension helpers from `@looma/editor/extensions` in Knit.
 - Wire `handleTableOverlayAction(editor, detail)` in Knit.
 
 Done gate:
 
-- Knit imports and uses `@looma/editor` for Phase 1 table primitives.
+- Knit imports and uses `@looma/editor` for shipped Phase 1 slash/table primitives.
 - Knit no longer carries duplicate local implementations for the migrated Phase 1 editor surfaces.
 - `pnpm --filter @looma/editor build`: pass
 - Knit typecheck for the integrated editor flows: pass

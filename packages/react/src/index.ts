@@ -30,6 +30,20 @@ export interface TableOverlayActionEventDetail {
   boundaryIndex: number;
 }
 
+export interface SlashMenuItem {
+  title: string;
+  description: string;
+  icon: string;
+}
+
+export interface SlashMenuHighlightEventDetail {
+  index: number;
+}
+
+export interface SlashMenuSelectEventDetail {
+  index: number;
+}
+
 export interface AdapterEventMap {
   open: { open: boolean; reason: string; trigger: string };
   close: { open: boolean; reason: string; trigger: string };
@@ -40,6 +54,8 @@ export interface AdapterEventMap {
   tableAction: TableContextMenuActionEventDetail;
   insertTable: InsertTableEventDetail;
   tableOverlayAction: TableOverlayActionEventDetail;
+  slashMenuHighlight: SlashMenuHighlightEventDetail;
+  slashMenuSelect: SlashMenuSelectEventDetail;
 }
 
 type AdapterCallbacks = {
@@ -52,6 +68,8 @@ type AdapterCallbacks = {
   onTableAction?: (detail: AdapterEventMap["tableAction"]) => void;
   onInsertTable?: (detail: AdapterEventMap["insertTable"]) => void;
   onTableOverlayAction?: (detail: AdapterEventMap["tableOverlayAction"]) => void;
+  onSlashMenuHighlight?: (detail: AdapterEventMap["slashMenuHighlight"]) => void;
+  onSlashMenuSelect?: (detail: AdapterEventMap["slashMenuSelect"]) => void;
 };
 
 export type AdapterProps = Omit<
@@ -89,6 +107,8 @@ function createAdapterComponent(tagName: string, displayName: string): AdapterCo
         onTableAction,
         onInsertTable,
         onTableOverlayAction,
+        onSlashMenuHighlight,
+        onSlashMenuSelect,
         ...rest
       },
       forwardedRef
@@ -158,6 +178,24 @@ function createAdapterComponent(tagName: string, displayName: string): AdapterCo
                     (event as CustomEvent<AdapterEventMap["tableOverlayAction"]>).detail
                   )
               : undefined
+          ],
+          [
+            "looma-editor-slash-menu-highlight",
+            onSlashMenuHighlight
+              ? (event) =>
+                  onSlashMenuHighlight(
+                    (event as CustomEvent<AdapterEventMap["slashMenuHighlight"]>).detail
+                  )
+              : undefined
+          ],
+          [
+            "looma-editor-slash-menu-select",
+            onSlashMenuSelect
+              ? (event) =>
+                  onSlashMenuSelect(
+                    (event as CustomEvent<AdapterEventMap["slashMenuSelect"]>).detail
+                  )
+              : undefined
           ]
         ];
 
@@ -183,7 +221,9 @@ function createAdapterComponent(tagName: string, displayName: string): AdapterCo
         onDismiss,
         onTableAction,
         onInsertTable,
-        onTableOverlayAction
+        onTableOverlayAction,
+        onSlashMenuHighlight,
+        onSlashMenuSelect
       ]);
 
       return createElement(tagName, { ...rest, ref: refCallback }, children);
@@ -229,6 +269,104 @@ export const EditorInsertTableGrid = createAdapterComponent(
 );
 export const EditorTableOverlay = createAdapterComponent("ui-editor-table-overlay", "EditorTableOverlay");
 
+export type EditorSlashMenuProps = Omit<AdapterProps, "children"> & {
+  open?: boolean;
+  query?: string;
+  items?: SlashMenuItem[];
+  selectedIndex?: number;
+  anchorRect?: DOMRect | null;
+};
+
+export const EditorSlashMenu = forwardRef<HTMLElement, EditorSlashMenuProps>(
+  (
+    {
+      onSlashMenuHighlight,
+      onSlashMenuSelect,
+      open = false,
+      query = "",
+      items = [],
+      selectedIndex = 0,
+      anchorRect = null,
+      ...rest
+    },
+    forwardedRef
+  ) => {
+    const elementRef = useRef<HTMLElement | null>(null);
+
+    const refCallback: RefCallback<HTMLElement> = (node) => {
+      elementRef.current = node;
+      assignRef(forwardedRef, node);
+    };
+
+    useEffect(() => {
+      const element = elementRef.current as
+        | (HTMLElement & {
+            open: boolean;
+            query: string;
+            items: SlashMenuItem[];
+            selectedIndex: number;
+            anchorRect: DOMRect | null;
+          })
+        | null;
+      if (!element) {
+        return;
+      }
+
+      element.open = open;
+      element.query = query;
+      element.items = items;
+      element.selectedIndex = selectedIndex;
+      element.anchorRect = anchorRect;
+    }, [anchorRect, items, open, query, selectedIndex]);
+
+    useEffect(() => {
+      const element = elementRef.current;
+      if (!element) {
+        return;
+      }
+
+      const handlers: Array<[string, ((event: Event) => void) | undefined]> = [
+        [
+          "looma-editor-slash-menu-highlight",
+          onSlashMenuHighlight
+            ? (event) =>
+                onSlashMenuHighlight(
+                  (event as CustomEvent<AdapterEventMap["slashMenuHighlight"]>).detail
+                )
+            : undefined
+        ],
+        [
+          "looma-editor-slash-menu-select",
+          onSlashMenuSelect
+            ? (event) =>
+                onSlashMenuSelect(
+                  (event as CustomEvent<AdapterEventMap["slashMenuSelect"]>).detail
+                )
+            : undefined
+        ]
+      ];
+
+      for (const [eventName, handler] of handlers) {
+        if (handler) {
+          element.addEventListener(eventName, handler);
+        }
+      }
+
+      return () => {
+        for (const [eventName, handler] of handlers) {
+          if (handler) {
+            element.removeEventListener(eventName, handler);
+          }
+        }
+      };
+    }, [onSlashMenuHighlight, onSlashMenuSelect]);
+
+    return createElement("ui-editor-slash-menu", { ...rest, ref: refCallback });
+  }
+);
+
+EditorSlashMenu.displayName = "EditorSlashMenu";
+
 export const ADAPTER_COMPONENT_TAG_MAP = {
   Stack: "ui-stack",
   Inline: "ui-inline",
@@ -254,6 +392,7 @@ export const ADAPTER_COMPONENT_TAG_MAP = {
   Badge: "ui-badge",
   Avatar: "ui-avatar",
   AvatarGroup: "ui-avatar-group",
+  EditorSlashMenu: "ui-editor-slash-menu",
   EditorTableContextMenu: "ui-editor-table-context-menu",
   EditorInsertTableGrid: "ui-editor-insert-table-grid",
   EditorTableOverlay: "ui-editor-table-overlay"

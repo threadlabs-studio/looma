@@ -6,6 +6,7 @@ import "@looma/editor";
 import {
   defineComponent,
   h,
+  type PropType,
   shallowRef,
   watchEffect,
   type ComponentPublicInstance
@@ -26,6 +27,20 @@ export interface TableOverlayActionEventDetail {
   boundaryIndex: number;
 }
 
+export interface SlashMenuItem {
+  title: string;
+  description: string;
+  icon: string;
+}
+
+export interface SlashMenuHighlightEventDetail {
+  index: number;
+}
+
+export interface SlashMenuSelectEventDetail {
+  index: number;
+}
+
 export interface VueAdapterEventMap {
   open: { open: boolean; reason: string; trigger: string };
   close: { open: boolean; reason: string; trigger: string };
@@ -36,6 +51,8 @@ export interface VueAdapterEventMap {
   tableAction: TableContextMenuActionEventDetail;
   insertTable: InsertTableEventDetail;
   tableOverlayAction: TableOverlayActionEventDetail;
+  slashMenuHighlight: SlashMenuHighlightEventDetail;
+  slashMenuSelect: SlashMenuSelectEventDetail;
 }
 
 type AdapterCallbacks = {
@@ -48,6 +65,8 @@ type AdapterCallbacks = {
   onTableAction?: (detail: VueAdapterEventMap["tableAction"]) => void;
   onInsertTable?: (detail: VueAdapterEventMap["insertTable"]) => void;
   onTableOverlayAction?: (detail: VueAdapterEventMap["tableOverlayAction"]) => void;
+  onSlashMenuHighlight?: (detail: VueAdapterEventMap["slashMenuHighlight"]) => void;
+  onSlashMenuSelect?: (detail: VueAdapterEventMap["slashMenuSelect"]) => void;
 };
 
 export type AdapterAttrs = AdapterCallbacks & Record<string, unknown>;
@@ -141,6 +160,24 @@ function createAdapterComponent(tagName: string, displayName: string) {
                     (event as CustomEvent<VueAdapterEventMap["tableOverlayAction"]>).detail
                   )
               : undefined
+          ],
+          [
+            "looma-editor-slash-menu-highlight",
+            typeof callbackAttrs.onSlashMenuHighlight === "function"
+              ? (event) =>
+                  callbackAttrs.onSlashMenuHighlight?.(
+                    (event as CustomEvent<VueAdapterEventMap["slashMenuHighlight"]>).detail
+                  )
+              : undefined
+          ],
+          [
+            "looma-editor-slash-menu-select",
+            typeof callbackAttrs.onSlashMenuSelect === "function"
+              ? (event) =>
+                  callbackAttrs.onSlashMenuSelect?.(
+                    (event as CustomEvent<VueAdapterEventMap["slashMenuSelect"]>).detail
+                  )
+              : undefined
           ]
         ];
 
@@ -171,6 +208,8 @@ function createAdapterComponent(tagName: string, displayName: string) {
           onTableAction,
           onInsertTable,
           onTableOverlayAction,
+          onSlashMenuHighlight,
+          onSlashMenuSelect,
           ...forwardedAttrs
         } = callbackAttrs;
         void onOpen;
@@ -182,6 +221,8 @@ function createAdapterComponent(tagName: string, displayName: string) {
         void onTableAction;
         void onInsertTable;
         void onTableOverlayAction;
+        void onSlashMenuHighlight;
+        void onSlashMenuSelect;
 
         return h(
           tagName,
@@ -197,6 +238,99 @@ function createAdapterComponent(tagName: string, displayName: string) {
     }
   });
 }
+
+export const EditorSlashMenu = defineComponent({
+  name: "EditorSlashMenu",
+  inheritAttrs: false,
+  props: {
+    open: { type: Boolean, default: false },
+    query: { type: String, default: "" },
+    items: { type: Array as PropType<SlashMenuItem[]>, default: () => [] },
+    selectedIndex: { type: Number, default: 0 },
+    anchorRect: { type: Object as PropType<DOMRect | null>, default: null }
+  },
+  setup(props, { attrs }) {
+    const elementRef = shallowRef<HTMLElement | null>(null);
+
+    watchEffect(() => {
+      const element = elementRef.value as
+        | (HTMLElement & {
+            open: boolean;
+            query: string;
+            items: SlashMenuItem[];
+            selectedIndex: number;
+            anchorRect: DOMRect | null;
+          })
+        | null;
+      if (!element) {
+        return;
+      }
+
+      element.open = props.open;
+      element.query = props.query;
+      element.items = props.items;
+      element.selectedIndex = props.selectedIndex;
+      element.anchorRect = props.anchorRect;
+    });
+
+    watchEffect((onCleanup) => {
+      const element = elementRef.value;
+      if (!element) {
+        return;
+      }
+
+      const callbackAttrs = attrs as AdapterAttrs;
+      const handlers: Array<[string, ((event: Event) => void) | undefined]> = [
+        [
+          "looma-editor-slash-menu-highlight",
+          typeof callbackAttrs.onSlashMenuHighlight === "function"
+            ? (event) =>
+                callbackAttrs.onSlashMenuHighlight?.(
+                  (event as CustomEvent<VueAdapterEventMap["slashMenuHighlight"]>).detail
+                )
+            : undefined
+        ],
+        [
+          "looma-editor-slash-menu-select",
+          typeof callbackAttrs.onSlashMenuSelect === "function"
+            ? (event) =>
+                callbackAttrs.onSlashMenuSelect?.(
+                  (event as CustomEvent<VueAdapterEventMap["slashMenuSelect"]>).detail
+                )
+            : undefined
+        ]
+      ];
+
+      for (const [eventName, handler] of handlers) {
+        if (handler) {
+          element.addEventListener(eventName, handler);
+        }
+      }
+
+      onCleanup(() => {
+        for (const [eventName, handler] of handlers) {
+          if (handler) {
+            element.removeEventListener(eventName, handler);
+          }
+        }
+      });
+    });
+
+    return () => {
+      const callbackAttrs = attrs as AdapterAttrs;
+      const { onSlashMenuHighlight, onSlashMenuSelect, ...forwardedAttrs } = callbackAttrs;
+      void onSlashMenuHighlight;
+      void onSlashMenuSelect;
+
+      return h("ui-editor-slash-menu", {
+        ...forwardedAttrs,
+        ref: (value: Element | ComponentPublicInstance | null) => {
+          elementRef.value = toHTMLElement(value);
+        }
+      });
+    };
+  }
+});
 
 export const Stack = createAdapterComponent("ui-stack", "Stack");
 export const Inline = createAdapterComponent("ui-inline", "Inline");
@@ -258,6 +392,7 @@ export const ADAPTER_COMPONENT_TAG_MAP = {
   Badge: "ui-badge",
   Avatar: "ui-avatar",
   AvatarGroup: "ui-avatar-group",
+  EditorSlashMenu: "ui-editor-slash-menu",
   EditorTableContextMenu: "ui-editor-table-context-menu",
   EditorInsertTableGrid: "ui-editor-insert-table-grid",
   EditorTableOverlay: "ui-editor-table-overlay"

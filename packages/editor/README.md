@@ -4,7 +4,7 @@ Confluence / Notion-like block editor UI for Looma, built on **open-source Tipta
 
 ## Status
 
-**Shipped (first slice):** Extension preset (inline code, CodeBlock, list Enter/Backspace behavior, tables), table context menu + insert-table grid + table overlay web components, editor CSS, and `handleTableOverlayAction(editor, detail)` for mapping overlay boundary clicks to Tiptap row/column commands. Apps use the preset and web components; they bind data and event listeners only. See [Editor Roadmap](../../docs/editor-roadmap.md) for full scope and phases.
+**Shipped (first slice):** Extension preset (inline code, CodeBlock, list Enter/Backspace behavior, tables), slash menu web component, table context menu + insert-table grid + table overlay web components, editor CSS, and `handleTableOverlayAction(editor, detail)` for mapping overlay boundary clicks to Tiptap row/column commands. Apps use the preset and web components; they bind data and event listeners only. See [Editor Roadmap](../../docs/editor-roadmap.md) for full scope and phases.
 
 ## Scope (from roadmap)
 
@@ -22,7 +22,7 @@ Confluence / Notion-like block editor UI for Looma, built on **open-source Tipta
 | Looma | App (e.g. Knit) |
 |-------|------------------|
 | **Extension preset** `getDefaultEditorExtensions()` from `@looma/editor/extensions` | Creates `Editor` with Looma preset (+ app-specific extensions); **binds content and onUpdate** (e.g. save) |
-| **Web components** `ui-editor-table-context-menu`, `ui-editor-insert-table-grid`, `ui-editor-table-overlay` (+ more to come) | Mounts components; **binds event listeners** (e.g. `onTableOverlayAction` → `handleTableOverlayAction(editor, e.detail)`) |
+| **Web components** `ui-editor-slash-menu`, `ui-editor-table-context-menu`, `ui-editor-insert-table-grid`, `ui-editor-table-overlay` (+ more to come) | Mounts components; **binds event listeners** (e.g. `onTableOverlayAction` → `handleTableOverlayAction(editor, e.detail)`) |
 | **Editor CSS** `@looma/editor/editor.css` | Imports styles; theming, layout |
 | **Vue/React adapters** (in `@looma/vue` / `@looma/react`) | Wire vanilla editor to web components; app uses adapter and binds data + listeners only |
 
@@ -30,7 +30,7 @@ Confluence / Notion-like block editor UI for Looma, built on **open-source Tipta
 
 - **Extensions:** `import { getDefaultEditorExtensions, handleTableOverlayAction } from '@looma/editor/extensions'`. Use `getDefaultEditorExtensions()` when creating the editor. When handling `looma-editor-table-overlay-action`, call `handleTableOverlayAction(editor, e.detail)` to run the correct Tiptap row/column command.
 - **Vanilla JS:** Create the editor with `new Editor({ extensions: getDefaultEditorExtensions(), content, ... })` from `@tiptap/core`; import the custom elements from `@looma/editor` and wire commands to their events.
-- **With Vue/React:** Use the editor adapters from `@looma/vue` or `@looma/react` (e.g. `EditorTableOverlay`, `EditorTableContextMenu`, `EditorInsertTableGrid`), which render the web components and accept an `editor` prop plus event handlers (`onTableOverlayAction`, etc.).
+- **With Vue/React:** Use the editor adapters from `@looma/vue` or `@looma/react` (e.g. `EditorSlashMenu`, `EditorTableOverlay`, `EditorTableContextMenu`, `EditorInsertTableGrid`), which render the web components and accept event handlers (`onSlashMenuSelect`, `onTableOverlayAction`, etc.).
 
 ## Docs
 

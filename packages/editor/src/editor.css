@@ -1,7 +1,163 @@
 /**
  * Looma editor styles (tokens-based).
- * Tables, context menu, insert-table grid. Use with ProseMirror/Tiptap content.
+ * Tables, context menu, insert-table grid, slash menu. Use with ProseMirror/Tiptap content.
  */
+
+/* Slash menu */
+ui-editor-slash-menu {
+  user-select: none;
+}
+
+.ui-editor-slash-menu {
+  background: var(--ui-surface, #fff);
+  border: 1px solid var(--ui-border, #e5e7eb);
+  border-radius: var(--ui-radius-xl, 1rem);
+  box-shadow: var(--ui-shadow-lg, 0 8px 24px rgb(0 0 0 / 0.12));
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 767px) {
+  .ui-editor-slash-menu {
+    border-radius: var(--ui-radius-xl, 1rem) var(--ui-radius-xl, 1rem) 0 0;
+    border-bottom: none;
+  }
+}
+
+.ui-editor-slash-menu__header {
+  display: none;
+  align-items: center;
+  gap: var(--ui-space-2, 8px);
+  padding: var(--ui-space-3, 12px) var(--ui-space-4, 16px);
+  border-bottom: 1px solid var(--ui-border, #e5e7eb);
+  font-size: var(--ui-font-size-xs, 0.75rem);
+  color: var(--ui-text-muted, #6b7280);
+  font-weight: var(--ui-font-semibold, 600);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+@media (max-width: 767px) {
+  .ui-editor-slash-menu__header {
+    display: flex;
+  }
+}
+
+.ui-editor-slash-menu__header-query {
+  background: var(--ui-surface-hover, #f3f4f6);
+  border-radius: var(--ui-radius-sm, 4px);
+  padding: 0.1em 0.4em;
+  font-family: var(--ui-font-family-mono, ui-monospace, monospace);
+  font-size: var(--ui-font-size-xs, 0.75rem);
+  color: var(--ui-accent, #3b82f6);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.ui-editor-slash-menu__list {
+  list-style: none;
+  margin: 0;
+  padding: var(--ui-space-1, 4px) 0;
+  overflow-y: auto;
+  max-height: 280px;
+  overscroll-behavior: contain;
+}
+
+@media (max-width: 767px) {
+  .ui-editor-slash-menu__list {
+    max-height: calc(60dvh - 80px);
+    padding: var(--ui-space-1, 4px) 0 var(--ui-space-2, 8px);
+  }
+}
+
+.ui-editor-slash-menu__item {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-3, 12px);
+  padding: var(--ui-space-2, 8px) var(--ui-space-3, 12px);
+  min-height: 44px;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+
+.ui-editor-slash-menu__item--active {
+  background: var(--ui-accent-subtle, rgb(59 130 246 / 0.1));
+}
+
+.ui-editor-slash-menu__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--ui-surface-hover, #f3f4f6);
+  border: 1px solid var(--ui-border, #e5e7eb);
+  border-radius: var(--ui-radius-md, 6px);
+  font-size: var(--ui-font-size-sm, 0.875rem);
+  font-weight: var(--ui-font-bold, 700);
+  color: var(--ui-text-secondary, #4b5563);
+  font-family: var(--ui-font-family-mono, ui-monospace, monospace);
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.ui-editor-slash-menu__item--active .ui-editor-slash-menu__icon {
+  background: var(--ui-accent, #3b82f6);
+  border-color: var(--ui-accent, #3b82f6);
+  color: var(--ui-accent-contrast, #fff);
+}
+
+.ui-editor-slash-menu__body {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.ui-editor-slash-menu__title {
+  font-size: var(--ui-font-size-sm, 0.875rem);
+  font-weight: var(--ui-font-medium, 500);
+  color: var(--ui-text, #111827);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ui-editor-slash-menu__description {
+  font-size: var(--ui-font-size-xs, 0.75rem);
+  color: var(--ui-text-muted, #6b7280);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ui-editor-slash-menu__footer {
+  display: none;
+  padding: var(--ui-space-2, 8px) var(--ui-space-3, 12px);
+  border-top: 1px solid var(--ui-border, #e5e7eb);
+  font-size: var(--ui-font-size-xs, 0.75rem);
+  color: var(--ui-text-muted, #6b7280);
+}
+
+@media (min-width: 768px) {
+  .ui-editor-slash-menu__footer {
+    display: block;
+  }
+}
+
+.ui-editor-slash-menu kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--ui-font-family-mono, ui-monospace, monospace);
+  font-size: 10px;
+  background: var(--ui-surface-hover, #f3f4f6);
+  border: 1px solid var(--ui-border, #e5e7eb);
+  border-radius: 3px;
+  padding: 0 3px;
+  color: var(--ui-text-secondary, #4b5563);
+}
 
 /* Table context menu */
 .ui-editor-table-context-menu {

@@ -8,9 +8,9 @@
 
 ## Status snapshot
 
-- **Shipped now:** default extension preset (including CodeBlock), inline code mark, list Enter/Backspace behavior extension, table context menu + insert-table grid + table overlay web components, editor CSS, Vue/React editor event wiring for table primitives, and `handleTableOverlayAction(editor, detail)` helper in `@looma/editor/extensions` for mapping overlay boundary clicks to exact Tiptap row/column commands.
-- **App integration status:** Knit now uses Looma’s editor preset plus the shipped Phase 1 table primitives (insert-table grid, table overlay, table context menu, and `handleTableOverlayAction`) in its page editor flow. Slash menu, formatting toolbar, and other editor UI are still app-local.
-- **Next in Phase 1:** harden the Knit integration, verify behavior in real flows, and continue moving remaining editor UI toward Looma ownership where it belongs.
+- **Shipped now:** default extension preset (including CodeBlock), inline code mark, list Enter/Backspace behavior extension, slash menu web component, table context menu + insert-table grid + table overlay web components, editor CSS, Vue/React editor event wiring for the shipped primitives, and `handleTableOverlayAction(editor, detail)` helper in `@looma/editor/extensions` for mapping overlay boundary clicks to exact Tiptap row/column commands.
+- **App integration status:** Knit now uses Looma’s editor preset plus Looma-owned slash menu and table primitives in its page editor flow. Formatting toolbar command definitions and broader editor UX are still partly app-local.
+- **Next in Phase 1:** harden the Knit integration in real flows, then continue promoting toolbar/block-menu UI into Looma ownership.
 
 ---
 
