@@ -1,6 +1,6 @@
 # Component Roadmap
 
-Last updated: 2026-03-06
+Last updated: 2026-03-28
 
 This is the editable plan for Looma components across current shipping scope and near-term promotions from Knit.
 
@@ -66,9 +66,13 @@ These are candidates to promote into Looma after generic API extraction:
 - Completed:
   - Toast mount moved from `vue-sonner` to Looma `ToastRegion`
   - `BaseDialog` moved to Looma `Dialog` wrapper base
+  - Toolbar/editor action button base moved to Looma `Button` (`ToolbarBtn`)
+  - Tree/context menus in `CollectionGroup`, `FolderTreeNode`, and `PageTreeItem` moved to Looma `Menu` + `MenuItem`
+  - Knit editor now uses `@looma/editor` Phase 1 table primitives and extension preset in the page editor flow
 - In progress:
-  - Menu/context surfaces in tree items -> Looma `Menu` + `MenuItem`
-  - Primitive normalization (`Button`/`Input`/`FormField`) in high-use flows
+  - Primitive normalization (`Button`/`Input`/`FormField`) in high-use flows such as sidebar dialogs and settings
+- Not started:
+  - Promotion work for `FloatingActionButton`, command/search shell, generic search result row, and top bar shell
 
 ## Future: Docs Site in Looma
 

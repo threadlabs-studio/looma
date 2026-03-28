@@ -1,19 +1,22 @@
 # PROJECT_STATE
 
-Last Updated: 2026-03-08 (Stencil pipeline)
+Last Updated: 2026-03-28 (planning sync)
 Status: Active
 
 ## Current Focus
 
-- @looma/core fully converted to Stencil; vanilla implementation removed.
-- Complete Looma rebrand/scope migration (`@ui/*` -> `@looma/*`) and verify all workspace scripts after rename.
-- Harden Vue adapter parity for Knit migration readiness while keeping public APIs app-agnostic.
-- Keep an editable component roadmap in `docs/component-roadmap.md` for planning and prioritization.
-- Advance `@looma/editor` Phase 1 parity (tables + list behavior) for Knit migration readiness.
-- Keep Storybook and Docusaurus component taxonomy/naming aligned (human labels, stable `ui-*` ids).
+- Keep planning docs aligned with actual shipped Looma surface and current Knit migration status.
+- Continue the Knit primitive replacement wave where Looma primitives are already viable.
+- Start M6 promotions from Knit only after generic API extraction is clear (`FloatingActionButton`, command/search shell, generic search result row, top bar shell).
+- Move `@looma/editor` from shipped Phase 1 primitives into real app integration, starting with Knit table UI wiring.
+- Keep Storybook and Docusaurus taxonomy/naming aligned (human labels, stable `ui-*` ids).
 
 ## Recent Progress
 
+- Planning sync:
+  - React and Vue wrapper parity for current shipped core tags is complete; old parity follow-up notes are now stale.
+  - Verified Knit now consumes Looma `ToastRegion`, `Dialog`, `Button`, `Input`, `FormField`, `Menu`, and `MenuItem` in several high-use flows.
+  - Knit page editing now uses `@looma/editor` Phase 1 table primitives and Looma’s shared extension preset; broader editor UI migration is still incomplete.
 - @looma/core fully rebuilt with Stencil:
   - All 18 components converted; vanilla impl removed; `packages/core-stencil` deleted.
   - Strong contracts, no MutationObservers, shadow DOM per component.
@@ -222,8 +225,10 @@ Status: Active
 
 ## Next Up
 
-1. Start Knit primitive replacement wave (toast/dialog/menu/button/input) on top of Looma.
-2. Close remaining React wrapper parity for `ui-radio-group`, `ui-radio`, `ui-badge`, and `ui-avatar`.
-3. Define M6 promotion candidates from Knit (`AvatarGroup`, FAB, search/command shell).
-4. Wire `handleTableOverlayAction` in Knit (or other apps): add table extensions, overlay component, and `onTableOverlayAction` handler.
+Execution order + done gates live in `docs/milestones.md`.
+
+1. Finish the Knit primitive replacement wave beyond the already-migrated toast, dialog base, toolbar button, and tree menus.
+2. Harden the Knit `@looma/editor` integration and continue migrating the remaining editor UI that should move out of app-local ownership.
+3. Define and prioritize the first M6 promotions from Knit: `FloatingActionButton`, command/search shell, generic search result row, and top bar shell.
+4. Keep `docs/component-roadmap.md`, `docs/editor-roadmap.md`, and `knit/docs/looma-migration-inventory.md` synchronized as migration status changes.
 5. Add a docs/storybook convention note to keep future component labels human-readable while preserving stable `ui-*` doc ids and tags.

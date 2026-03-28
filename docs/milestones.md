@@ -1,76 +1,96 @@
 # Milestone Plan
 
-## Plan
+Last updated: 2026-03-28
 
-Ship v1 in four delivery milestones after baseline specs and repository skeleton are stable.
+This file has two jobs:
 
-## Task Breakdown With Checkpoints
+- Preserve the historical Looma foundation milestones that are already complete.
+- Define the current staged execution plan with explicit done gates.
 
-- Checkpoint 1: Milestone 0 complete with CI baseline.
-- Checkpoint 2: Milestone 1 complete with tokens + layout.
-- Checkpoint 3: Milestone 2 complete with core primitives.
-- Checkpoint 4: Milestone 3 complete with styled essentials.
-- Checkpoint 5: Milestone 4 complete with adapters + docs parity.
+## Historical Milestones (Complete)
 
-## Agent Task Split
+- M0 Specs and Skeleton: complete
+- M1 Tokens + Layout: complete
+- M2 Core Primitives: complete
+- M3 Styled Essentials: complete
+- M4 Adapters + Docs: complete
+- M5 Expansion (`ui-tooltip`, `ui-toast-region`, `ui-checkbox`, `ui-switch`): complete
 
-### Spec Agent
+These milestones established the current shipped core surface. See `PROJECT_STATE.md` for detailed verification history.
 
-- Deliver `docs/conventions.md`.
-- Deliver `docs/overlay-contract.md`.
-- Deliver component qualification guide and contract template.
-- Review API consistency across all packages.
+## Current Staged Plan
 
-### Tokens/Theming Agent
+### Stage 1: Finish Knit Primitive Replacement Wave
 
-- Implement `@looma/tokens` CSS layers and theme files.
-- Validate color contrast and reduced motion behavior.
-- Provide semantic token mapping docs and examples.
+Goal: finish the migration of the obvious high-use Knit surfaces onto Looma primitives without changing Knit semantics.
 
-### Layout Agent
+Primary scope:
 
-- Implement `ui-stack`, `ui-inline`, `ui-cluster`, `ui-grid`, `ui-center`, `ui-separator`.
-- Ensure mobile-first behavior and no external margins.
-- Add contract README files for each layout primitive.
+- Complete remaining `Button` / `Input` / `FormField` normalization in high-use Knit flows.
+- Keep migrated surfaces visually aligned with Knit.
+- Keep `docs/component-roadmap.md` and `knit/docs/looma-migration-inventory.md` synchronized as each surface lands.
 
-### Primitives Agent
+Done gate:
 
-- Implement `ui-disclosure`, `ui-tabs`, `ui-dialog`, `ui-popover`, `ui-menu`/`ui-menu-item`.
-- Implement overlay manager per overlay contract.
-- Add keyboard/focus/a11y tests.
+- Targeted Knit flows use Looma primitives for the agreed replacement wave.
+- No regression in current Looma docs/storybook coverage for the affected primitives.
+- `pnpm --filter @looma/docs build`: pass
+- `pnpm --filter @looma/storybook build`: pass
 
-### Adapters + Docs Agent
+### Stage 2: Integrate `@looma/editor` Phase 1 In Knit
 
-- Implement thin wrappers for React/Vue/Svelte for shipped components.
-- Build docs playground with SSR-first copy-paste examples.
-- Add API mapping matrices and adapter parity tests.
+Goal: move the editor plan from shipped Looma primitives to real app usage in Knit.
 
-## Milestone 0: Specs and Skeleton
+Primary scope:
 
-- Repo scaffold with workspace tooling.
-- Baseline package build scripts.
-- Docs stubs for conventions, overlay, architecture, milestones.
-- CI baseline for typecheck/build/test.
+- Replace Knit-local editor table UI pieces with Looma editor components where Phase 1 already exists.
+- Register Looma extension helpers from `@looma/editor/extensions` in Knit.
+- Wire `handleTableOverlayAction(editor, detail)` in Knit.
 
-## Milestone 1: Tokens + Layout
+Done gate:
 
-- Tokens package ships light/dark themes.
-- Layout primitives ship with contracts and demos.
-- No-margin composition demo page in docs.
+- Knit imports and uses `@looma/editor` for Phase 1 table primitives.
+- Knit no longer carries duplicate local implementations for the migrated Phase 1 editor surfaces.
+- `pnpm --filter @looma/editor build`: pass
+- Knit typecheck for the integrated editor flows: pass
 
-## Milestone 2: Core Primitives
+### Stage 3: First M6 Promotions From Knit
 
-- Disclosure, tabs, dialog, popover, menu shipped.
-- Overlay contract implemented.
-- Focus and keyboard behavior tested.
+Goal: promote the first clearly reusable Knit patterns into Looma with domain-neutral APIs.
 
-## Milestone 3: Styled Essentials
+Priority queue:
 
-- Button, input, form-field shipped.
-- Accessibility validation and examples added.
+1. `FloatingActionButton`
+2. Command/search shell
+3. Generic search result row
+4. Slot-based app top bar shell
 
-## Milestone 4: Adapters + Docs
+Done gate for each promoted component:
 
-- React/Vue/Svelte wrappers for shipped components.
-- SSR contract examples published for each component.
-- Adapter parity matrix and copy-paste framework snippets published.
+- API is domain-neutral and passes the promotion checklist in `docs/component-roadmap.md`.
+- Core implementation ships in Looma with contract README and generated API metadata.
+- React and Vue adapters exist when the component needs wrappers.
+- Docs page and Storybook story ship in the same change.
+
+Stage completion gate:
+
+- At least one M6 candidate is fully promoted and adopted back in Knit.
+
+### Stage 4: Quality And Dogfooding Follow-Through
+
+Goal: keep Looma authoritative and sustainable after the next migration wave.
+
+Primary scope:
+
+- Keep docs/storybook naming, examples, and generated API metadata aligned.
+- Continue validating Looma against real Knit usage instead of synthetic-only examples.
+- Identify whether the Docusaurus site shell should start consuming Looma components.
+
+Done gate:
+
+- Planning docs stay synchronized across `PROJECT_STATE.md`, `docs/component-roadmap.md`, `docs/editor-roadmap.md`, and Knit migration docs.
+- Docs and Storybook builds remain green after the promotion/integration work.
+
+## Practical Rule
+
+Do not start a later stage before the previous stage has a credible pass on its done gate, unless the work is independent and clearly non-blocking.

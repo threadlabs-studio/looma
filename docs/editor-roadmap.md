@@ -2,14 +2,15 @@
 
 **Goal:** Replicate Confluence / Notion-like editor UX using **only open-source Tiptap extensions**, build the Vue UI ourselves, and **distribute it with Looma** so any app (e.g. Knit) can consume a first-class block editor without paying for Tiptap’s paid templates or Cloud.
 
-**Last updated:** 2026-03-07
+**Last updated:** 2026-03-28
 
 ---
 
 ## Status snapshot
 
 - **Shipped now:** default extension preset (including CodeBlock), inline code mark, list Enter/Backspace behavior extension, table context menu + insert-table grid + table overlay web components, editor CSS, Vue/React editor event wiring for table primitives, and `handleTableOverlayAction(editor, detail)` helper in `@looma/editor/extensions` for mapping overlay boundary clicks to exact Tiptap row/column commands.
-- **Next in Phase 1:** apps (e.g. Knit) wire table overlay + `handleTableOverlayAction` into their editor; add table to slash command and toolbar.
+- **App integration status:** Knit now uses Looma’s editor preset plus the shipped Phase 1 table primitives (insert-table grid, table overlay, table context menu, and `handleTableOverlayAction`) in its page editor flow. Slash menu, formatting toolbar, and other editor UI are still app-local.
+- **Next in Phase 1:** harden the Knit integration, verify behavior in real flows, and continue moving remaining editor UI toward Looma ownership where it belongs.
 
 ---
 
