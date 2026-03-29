@@ -23,16 +23,25 @@ class UIEditorTableOverlayElement extends HTMLElement {
 
   #rows = DEFAULT_ROWS;
   #cols = DEFAULT_COLS;
+  #activeControlKey: string | null = null;
 
   connectedCallback(): void {
     this.#rows = this.#readBoundedNumber("rows", DEFAULT_ROWS);
     this.#cols = this.#readBoundedNumber("cols", DEFAULT_COLS);
     this.render();
     this.addEventListener("click", this.onClick);
+    this.addEventListener("pointerover", this.onPointerOver);
+    this.addEventListener("pointerout", this.onPointerOut);
+    this.addEventListener("focusin", this.onFocusIn);
+    this.addEventListener("focusout", this.onFocusOut);
   }
 
   disconnectedCallback(): void {
     this.removeEventListener("click", this.onClick);
+    this.removeEventListener("pointerover", this.onPointerOver);
+    this.removeEventListener("pointerout", this.onPointerOut);
+    this.removeEventListener("focusin", this.onFocusIn);
+    this.removeEventListener("focusout", this.onFocusOut);
   }
 
   attributeChangedCallback(name: string): void {
@@ -70,28 +79,80 @@ class UIEditorTableOverlayElement extends HTMLElement {
     );
   };
 
+  private onPointerOver = (event: PointerEvent): void => {
+    const control = (event.target as HTMLElement).closest<HTMLElement>("[data-control-key]");
+    this.#setActiveControl(control?.dataset.controlKey ?? null);
+  };
+
+  private onPointerOut = (event: PointerEvent): void => {
+    const relatedTarget = event.relatedTarget;
+    const nextControl =
+      relatedTarget instanceof Element
+        ? relatedTarget.closest<HTMLElement>("[data-control-key]")
+        : null;
+    this.#setActiveControl(nextControl?.dataset.controlKey ?? null);
+  };
+
+  private onFocusIn = (event: FocusEvent): void => {
+    const control = (event.target as HTMLElement).closest<HTMLElement>("[data-control-key]");
+    this.#setActiveControl(control?.dataset.controlKey ?? null);
+  };
+
+  private onFocusOut = (event: FocusEvent): void => {
+    const relatedTarget = event.relatedTarget;
+    const nextControl =
+      relatedTarget instanceof Element
+        ? relatedTarget.closest<HTMLElement>("[data-control-key]")
+        : null;
+    this.#setActiveControl(nextControl?.dataset.controlKey ?? null);
+  };
+
+  #setActiveControl(controlKey: string | null): void {
+    if (this.#activeControlKey === controlKey) {
+      return;
+    }
+    this.#activeControlKey = controlKey;
+    this.#syncActiveControl();
+  }
+
+  #syncActiveControl(): void {
+    const controls = this.querySelectorAll<HTMLElement>("[data-control-key]");
+    controls.forEach((control) => {
+      control.dataset.active =
+        this.#activeControlKey && control.dataset.controlKey === this.#activeControlKey
+          ? "true"
+          : "false";
+    });
+  }
+
   private render(): void {
     const open = this.hasAttribute("open") && this.getAttribute("open") !== "false";
     this.hidden = !open;
-    if (!open) return;
+    if (!open) {
+      this.#setActiveControl(null);
+      return;
+    }
 
     let html = '<div class="ui-editor-table-overlay" aria-hidden="true">';
     html += `<div class="ui-editor-table-overlay__rows" style="--ui-editor-table-overlay-row-boundaries:${this.#rows + 1};">`;
     for (let i = 0; i <= this.#rows; i++) {
       const action = i === 0 ? "add-row-before" : "add-row-after";
-      html += `<button type="button" class="ui-editor-table-overlay__control ui-editor-table-overlay__control--row" data-action="${action}" data-boundary-index="${i}" aria-label="Add row"></button>`;
+      const controlKey = `row:${i}`;
+      html += `<button type="button" class="ui-editor-table-overlay__control ui-editor-table-overlay__control--row" data-action="${action}" data-boundary-index="${i}" data-control-key="${controlKey}" data-active="${this.#activeControlKey === controlKey ? "true" : "false"}" aria-label="Add row"><span class="ui-editor-table-overlay__handle" aria-hidden="true">+</span></button>`;
     }
     html += "</div>";
 
     html += `<div class="ui-editor-table-overlay__cols" style="--ui-editor-table-overlay-col-boundaries:${this.#cols + 1};">`;
     for (let i = 0; i <= this.#cols; i++) {
       const action = i === 0 ? "add-column-before" : "add-column-after";
-      html += `<button type="button" class="ui-editor-table-overlay__control ui-editor-table-overlay__control--col" data-action="${action}" data-boundary-index="${i}" aria-label="Add column"></button>`;
+      const controlKey = `col:${i}`;
+      html += `<button type="button" class="ui-editor-table-overlay__control ui-editor-table-overlay__control--col" data-action="${action}" data-boundary-index="${i}" data-control-key="${controlKey}" data-active="${this.#activeControlKey === controlKey ? "true" : "false"}" aria-label="Add column"><span class="ui-editor-table-overlay__handle" aria-hidden="true">+</span></button>`;
     }
     html += "</div>";
     html += "</div>";
 
     this.innerHTML = html;
+    this.#syncActiveControl();
   }
 }
 

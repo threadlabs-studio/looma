@@ -11,6 +11,13 @@ import type {
 
 const TAG = "ui-editor-table-toolbar";
 
+type TableToolbarActionItem = {
+  action: TableContextMenuAction;
+  label: string;
+  can: string;
+  tone?: "danger";
+};
+
 function dispatchTableAction(element: HTMLElement, action: TableContextMenuAction): void {
   element.dispatchEvent(
     new CustomEvent<TableContextMenuActionEventDetail>("looma-editor-table-action", {
@@ -140,22 +147,38 @@ class UIEditorTableToolbarElement extends HTMLElement {
       }>
     ).filter((action) => this.getBoolAttr(action.can));
 
-    const overflowActions = (
-      [
-        { action: "add-row-before", label: "Add row above", can: "can-add-row-before" },
-        { action: "add-column-before", label: "Add column left", can: "can-add-column-before" },
-        { action: "merge-cells", label: "Merge cells", can: "can-merge-cells" },
-        { action: "split-cell", label: "Split cell", can: "can-split-cell" },
-        { action: "delete-row", label: "Delete row", can: "can-delete-row", tone: "danger" },
-        { action: "delete-column", label: "Delete column", can: "can-delete-column", tone: "danger" },
-        { action: "delete-table", label: "Delete table", can: "can-delete-table", tone: "danger" },
-      ] satisfies Array<{
-        action: TableContextMenuAction;
-        label: string;
-        can: string;
-        tone?: "danger";
-      }>
-    ).filter((action) => this.getBoolAttr(action.can));
+    const overflowSections = [
+      {
+        heading: "Structure",
+        actions: [
+          { action: "add-row-before", label: "Add row above", can: "can-add-row-before" },
+          { action: "add-column-before", label: "Add column left", can: "can-add-column-before" },
+        ] satisfies TableToolbarActionItem[],
+      },
+      {
+        heading: "Cells",
+        actions: [
+          { action: "merge-cells", label: "Merge cells", can: "can-merge-cells" },
+          { action: "split-cell", label: "Split cell", can: "can-split-cell" },
+        ] satisfies TableToolbarActionItem[],
+      },
+      {
+        heading: "Table",
+        actions: [
+          { action: "delete-row", label: "Delete row", can: "can-delete-row", tone: "danger" },
+          { action: "delete-column", label: "Delete column", can: "can-delete-column", tone: "danger" },
+          { action: "delete-table", label: "Delete table", can: "can-delete-table", tone: "danger" },
+        ] satisfies TableToolbarActionItem[],
+      },
+    ] satisfies Array<{
+      heading: string;
+      actions: TableToolbarActionItem[];
+    }>;
+
+    const availableOverflowSections = overflowSections.map((section) => ({
+      ...section,
+      actions: section.actions.filter((action) => this.getBoolAttr(action.can)),
+    })).filter((section) => section.actions.length > 0);
 
     this.innerHTML = [
       '<div class="ui-editor-table-toolbar" role="toolbar" aria-label="Table actions">',
@@ -176,24 +199,33 @@ class UIEditorTableToolbarElement extends HTMLElement {
         )
         .join(""),
       structuralActions.length > 0 ? "</div>" : "",
-      overflowActions.length > 0 ? '<div class="ui-editor-table-toolbar__sep" aria-hidden="true"></div>' : "",
-      overflowActions.length > 0 ? '<div class="ui-editor-table-toolbar__overflow">' : "",
-      overflowActions.length > 0
+      availableOverflowSections.length > 0 ? '<div class="ui-editor-table-toolbar__sep" aria-hidden="true"></div>' : "",
+      availableOverflowSections.length > 0 ? '<div class="ui-editor-table-toolbar__overflow">' : "",
+      availableOverflowSections.length > 0
         ? `<button type="button" class="ui-editor-table-toolbar__more" data-action="toggle-overflow" aria-haspopup="menu" aria-expanded="${this.#overflowOpen ? "true" : "false"}">More</button>`
         : "",
-      overflowActions.length > 0 && this.#overflowOpen
+      availableOverflowSections.length > 0 && this.#overflowOpen
         ? [
             '<div class="ui-editor-table-toolbar__menu" role="menu" aria-label="More table actions">',
-            overflowActions
-              .map(
-                (action) =>
-                  `<button type="button" role="menuitem" data-action="${action.action}"${action.tone ? ` data-tone="${action.tone}"` : ""}>${action.label}</button>`
+            availableOverflowSections
+              .map((section) =>
+                [
+                  '<div class="ui-editor-table-toolbar__menu-section" role="none">',
+                  `<div class="ui-editor-table-toolbar__menu-heading" role="presentation">${section.heading}</div>`,
+                  section.actions
+                    .map((action) => {
+                      const tone = "tone" in action ? action.tone : undefined;
+                      return `<button type="button" role="menuitem" data-action="${action.action}"${tone ? ` data-tone="${tone}"` : ""}>${action.label}</button>`;
+                    })
+                    .join(""),
+                  "</div>",
+                ].join("")
               )
               .join(""),
             "</div>",
           ].join("")
         : "",
-      overflowActions.length > 0 ? "</div>" : "",
+      availableOverflowSections.length > 0 ? "</div>" : "",
       "</div>",
     ].join("");
   }
