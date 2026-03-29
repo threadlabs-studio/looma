@@ -63,9 +63,28 @@ class UIEditorInsertTableGridElement extends HTMLElement {
   private onMouseOver(e: MouseEvent): void {
     const cell = (e.target as HTMLElement).closest("[data-row][data-col]");
     if (cell) {
-      this.#selectedRows = parseInt(cell.getAttribute("data-row") ?? "1", 10);
-      this.#selectedCols = parseInt(cell.getAttribute("data-col") ?? "1", 10);
-      this.render();
+      const nextRows = parseInt(cell.getAttribute("data-row") ?? "1", 10);
+      const nextCols = parseInt(cell.getAttribute("data-col") ?? "1", 10);
+      if (nextRows === this.#selectedRows && nextCols === this.#selectedCols) {
+        return;
+      }
+      this.#selectedRows = nextRows;
+      this.#selectedCols = nextCols;
+      this.updateSelectionPreview();
+    }
+  }
+
+  private updateSelectionPreview(): void {
+    const hint = this.querySelector(".ui-editor-insert-table-grid__hint");
+    if (hint) {
+      hint.textContent = `${this.#selectedRows} × ${this.#selectedCols}`;
+    }
+
+    const cells = this.querySelectorAll<HTMLElement>("[data-row][data-col]");
+    for (const cell of cells) {
+      const row = parseInt(cell.getAttribute("data-row") ?? "1", 10);
+      const col = parseInt(cell.getAttribute("data-col") ?? "1", 10);
+      cell.classList.toggle("ui-editor-insert-table-grid__cell--selected", row <= this.#selectedRows && col <= this.#selectedCols);
     }
   }
 
@@ -97,6 +116,8 @@ class UIEditorInsertTableGridElement extends HTMLElement {
         this.#withHeaderRow = checkbox.checked;
       });
     }
+
+    this.updateSelectionPreview();
   }
 }
 
