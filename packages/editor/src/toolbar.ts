@@ -5,6 +5,7 @@
 
 const TAG = "ui-editor-toolbar";
 
+if (typeof HTMLElement !== "undefined") {
 class UIEditorToolbarElement extends HTMLElement {
   connectedCallback(): void {
     if (!this.hasAttribute("role")) {
@@ -20,5 +21,4 @@ class UIEditorToolbarElement extends HTMLElement {
 if (typeof window !== "undefined" && !customElements.get(TAG)) {
   customElements.define(TAG, UIEditorToolbarElement);
 }
-
-export { UIEditorToolbarElement };
+}

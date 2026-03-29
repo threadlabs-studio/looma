@@ -42,6 +42,7 @@ function escapeHtml(value: string): string {
     .replaceAll("'", "&#39;");
 }
 
+if (typeof HTMLElement !== "undefined") {
 class UIEditorSlashMenuElement extends HTMLElement {
   #open = false;
   #query = "";
@@ -261,5 +262,4 @@ class UIEditorSlashMenuElement extends HTMLElement {
 if (typeof window !== "undefined" && !customElements.get(TAG)) {
   customElements.define(TAG, UIEditorSlashMenuElement);
 }
-
-export { UIEditorSlashMenuElement };
+}

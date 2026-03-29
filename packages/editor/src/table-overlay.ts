@@ -15,6 +15,7 @@ export interface TableOverlayActionEventDetail {
   boundaryIndex: number;
 }
 
+if (typeof HTMLElement !== "undefined") {
 class UIEditorTableOverlayElement extends HTMLElement {
   static get observedAttributes(): string[] {
     return ["open", "rows", "cols"];
@@ -97,5 +98,4 @@ class UIEditorTableOverlayElement extends HTMLElement {
 if (typeof window !== "undefined" && !customElements.get(TAG)) {
   customElements.define(TAG, UIEditorTableOverlayElement);
 }
-
-export { UIEditorTableOverlayElement };
+}

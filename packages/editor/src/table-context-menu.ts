@@ -31,6 +31,7 @@ function dispatchTableAction(element: HTMLElement, action: TableContextMenuActio
   );
 }
 
+if (typeof HTMLElement !== "undefined") {
 class UIEditorTableContextMenuElement extends HTMLElement {
   static get observedAttributes(): string[] {
     return [
@@ -107,5 +108,4 @@ class UIEditorTableContextMenuElement extends HTMLElement {
 if (typeof window !== "undefined" && !customElements.get(TAG)) {
   customElements.define(TAG, UIEditorTableContextMenuElement);
 }
-
-export { UIEditorTableContextMenuElement };
+}

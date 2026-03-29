@@ -14,6 +14,7 @@ export interface InsertTableEventDetail {
   withHeaderRow: boolean;
 }
 
+if (typeof HTMLElement !== "undefined") {
 class UIEditorInsertTableGridElement extends HTMLElement {
   static get observedAttributes(): string[] {
     return ["open", "max-rows", "max-cols"];
@@ -102,5 +103,4 @@ class UIEditorInsertTableGridElement extends HTMLElement {
 if (typeof window !== "undefined" && !customElements.get(TAG)) {
   customElements.define(TAG, UIEditorInsertTableGridElement);
 }
-
-export { UIEditorInsertTableGridElement };
+}
