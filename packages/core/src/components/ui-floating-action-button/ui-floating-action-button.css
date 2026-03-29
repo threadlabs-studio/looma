@@ -1,0 +1,70 @@
+:host {
+  position: fixed;
+  inset-block-end: calc(
+    var(--ui-floating-action-button-bottom, var(--ui-space-6, 1.5rem)) + env(safe-area-inset-bottom)
+  );
+  inset-inline-end: var(--ui-floating-action-button-inline-end, var(--ui-space-5, 1.25rem));
+  inline-size: var(--ui-floating-action-button-size, 56px);
+  block-size: var(--ui-floating-action-button-size, 56px);
+  display: inline-flex;
+  z-index: var(--ui-floating-action-button-z-index, 100);
+}
+
+button {
+  appearance: none;
+  inline-size: 100%;
+  block-size: 100%;
+  border: none;
+  border-radius: 999px;
+  margin: 0;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ui-floating-action-button-bg, var(--ui-accent-solid));
+  color: var(--ui-floating-action-button-color, var(--ui-text-on-accent));
+  box-shadow: var(
+    --ui-floating-action-button-shadow,
+    0 4px 12px color-mix(in srgb, var(--ui-accent-solid) 40%, transparent)
+  );
+  cursor: pointer;
+  transition:
+    background-color var(--ui-motion-fast, 160ms) var(--ui-motion-ease, ease),
+    transform var(--ui-motion-fast, 160ms) var(--ui-motion-ease, ease),
+    box-shadow var(--ui-motion-fast, 160ms) var(--ui-motion-ease, ease);
+}
+
+button:hover:enabled {
+  background: var(--ui-floating-action-button-hover-bg, var(--ui-accent-hover));
+  box-shadow: var(
+    --ui-floating-action-button-hover-shadow,
+    0 6px 16px color-mix(in srgb, var(--ui-accent-solid) 50%, transparent)
+  );
+}
+
+button:active:enabled {
+  transform: scale(var(--ui-floating-action-button-active-scale, 0.94));
+}
+
+button:focus-visible {
+  outline: 2px solid var(--ui-focus-ring);
+  outline-offset: 2px;
+}
+
+button:disabled,
+:host([disabled]) {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+::slotted(svg) {
+  inline-size: var(--ui-floating-action-button-icon-size, 24px);
+  block-size: var(--ui-floating-action-button-icon-size, 24px);
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  :host([mobile-only]) {
+    display: none;
+  }
+}

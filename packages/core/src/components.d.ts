@@ -104,6 +104,20 @@ export namespace Components {
          */
         "open": boolean;
     }
+    interface UiFloatingActionButton {
+        /**
+          * @default false
+         */
+        "disabled": boolean;
+        /**
+          * @default ''
+         */
+        "label": string;
+        /**
+          * @default false
+         */
+        "mobileOnly": boolean;
+    }
     interface UiFormField {
         /**
           * @default false
@@ -318,6 +332,12 @@ declare global {
         prototype: HTMLUiDisclosureElement;
         new (): HTMLUiDisclosureElement;
     };
+    interface HTMLUiFloatingActionButtonElement extends Components.UiFloatingActionButton, HTMLStencilElement {
+    }
+    var HTMLUiFloatingActionButtonElement: {
+        prototype: HTMLUiFloatingActionButtonElement;
+        new (): HTMLUiFloatingActionButtonElement;
+    };
     interface HTMLUiFormFieldElement extends Components.UiFormField, HTMLStencilElement {
     }
     var HTMLUiFormFieldElement: {
@@ -392,6 +412,7 @@ declare global {
         "ui-checkbox": HTMLUiCheckboxElement;
         "ui-dialog": HTMLUiDialogElement;
         "ui-disclosure": HTMLUiDisclosureElement;
+        "ui-floating-action-button": HTMLUiFloatingActionButtonElement;
         "ui-form-field": HTMLUiFormFieldElement;
         "ui-input": HTMLUiInputElement;
         "ui-menu": HTMLUiMenuElement;
@@ -503,6 +524,20 @@ declare namespace LocalJSX {
           * @default false
          */
         "open"?: boolean;
+    }
+    interface UiFloatingActionButton {
+        /**
+          * @default false
+         */
+        "disabled"?: boolean;
+        /**
+          * @default ''
+         */
+        "label"?: string;
+        /**
+          * @default false
+         */
+        "mobileOnly"?: boolean;
     }
     interface UiFormField {
         /**
@@ -713,6 +748,11 @@ declare namespace LocalJSX {
         "defaultOpen": boolean;
         "disabled": boolean;
     }
+    interface UiFloatingActionButtonAttributes {
+        "disabled": boolean;
+        "mobileOnly": boolean;
+        "label": string;
+    }
     interface UiFormFieldAttributes {
         "invalid": boolean;
         "disabled": boolean;
@@ -781,6 +821,7 @@ declare namespace LocalJSX {
         "ui-checkbox": Omit<UiCheckbox, keyof UiCheckboxAttributes> & { [K in keyof UiCheckbox & keyof UiCheckboxAttributes]?: UiCheckbox[K] } & { [K in keyof UiCheckbox & keyof UiCheckboxAttributes as `attr:${K}`]?: UiCheckboxAttributes[K] } & { [K in keyof UiCheckbox & keyof UiCheckboxAttributes as `prop:${K}`]?: UiCheckbox[K] };
         "ui-dialog": Omit<UiDialog, keyof UiDialogAttributes> & { [K in keyof UiDialog & keyof UiDialogAttributes]?: UiDialog[K] } & { [K in keyof UiDialog & keyof UiDialogAttributes as `attr:${K}`]?: UiDialogAttributes[K] } & { [K in keyof UiDialog & keyof UiDialogAttributes as `prop:${K}`]?: UiDialog[K] };
         "ui-disclosure": Omit<UiDisclosure, keyof UiDisclosureAttributes> & { [K in keyof UiDisclosure & keyof UiDisclosureAttributes]?: UiDisclosure[K] } & { [K in keyof UiDisclosure & keyof UiDisclosureAttributes as `attr:${K}`]?: UiDisclosureAttributes[K] } & { [K in keyof UiDisclosure & keyof UiDisclosureAttributes as `prop:${K}`]?: UiDisclosure[K] };
+        "ui-floating-action-button": Omit<UiFloatingActionButton, keyof UiFloatingActionButtonAttributes> & { [K in keyof UiFloatingActionButton & keyof UiFloatingActionButtonAttributes]?: UiFloatingActionButton[K] } & { [K in keyof UiFloatingActionButton & keyof UiFloatingActionButtonAttributes as `attr:${K}`]?: UiFloatingActionButtonAttributes[K] } & { [K in keyof UiFloatingActionButton & keyof UiFloatingActionButtonAttributes as `prop:${K}`]?: UiFloatingActionButton[K] };
         "ui-form-field": Omit<UiFormField, keyof UiFormFieldAttributes> & { [K in keyof UiFormField & keyof UiFormFieldAttributes]?: UiFormField[K] } & { [K in keyof UiFormField & keyof UiFormFieldAttributes as `attr:${K}`]?: UiFormFieldAttributes[K] } & { [K in keyof UiFormField & keyof UiFormFieldAttributes as `prop:${K}`]?: UiFormField[K] };
         "ui-input": Omit<UiInput, keyof UiInputAttributes> & { [K in keyof UiInput & keyof UiInputAttributes]?: UiInput[K] } & { [K in keyof UiInput & keyof UiInputAttributes as `attr:${K}`]?: UiInputAttributes[K] } & { [K in keyof UiInput & keyof UiInputAttributes as `prop:${K}`]?: UiInput[K] };
         "ui-menu": Omit<UiMenu, keyof UiMenuAttributes> & { [K in keyof UiMenu & keyof UiMenuAttributes]?: UiMenu[K] } & { [K in keyof UiMenu & keyof UiMenuAttributes as `attr:${K}`]?: UiMenuAttributes[K] } & { [K in keyof UiMenu & keyof UiMenuAttributes as `prop:${K}`]?: UiMenu[K] };
@@ -805,6 +846,7 @@ declare module "@stencil/core" {
             "ui-checkbox": LocalJSX.IntrinsicElements["ui-checkbox"] & JSXBase.HTMLAttributes<HTMLUiCheckboxElement>;
             "ui-dialog": LocalJSX.IntrinsicElements["ui-dialog"] & JSXBase.HTMLAttributes<HTMLUiDialogElement>;
             "ui-disclosure": LocalJSX.IntrinsicElements["ui-disclosure"] & JSXBase.HTMLAttributes<HTMLUiDisclosureElement>;
+            "ui-floating-action-button": LocalJSX.IntrinsicElements["ui-floating-action-button"] & JSXBase.HTMLAttributes<HTMLUiFloatingActionButtonElement>;
             "ui-form-field": LocalJSX.IntrinsicElements["ui-form-field"] & JSXBase.HTMLAttributes<HTMLUiFormFieldElement>;
             "ui-input": LocalJSX.IntrinsicElements["ui-input"] & JSXBase.HTMLAttributes<HTMLUiInputElement>;
             "ui-menu": LocalJSX.IntrinsicElements["ui-menu"] & JSXBase.HTMLAttributes<HTMLUiMenuElement>;

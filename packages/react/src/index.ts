@@ -259,6 +259,10 @@ export const Radio = createAdapterComponent("ui-radio", "Radio");
 export const Badge = createAdapterComponent("ui-badge", "Badge");
 export const Avatar = createAdapterComponent("ui-avatar", "Avatar");
 export const AvatarGroup = createAdapterComponent("ui-avatar-group", "AvatarGroup");
+export const FloatingActionButton = createAdapterComponent(
+  "ui-floating-action-button",
+  "FloatingActionButton"
+);
 export const EditorToolbar = createAdapterComponent("ui-editor-toolbar", "EditorToolbar");
 export const EditorTableContextMenu = createAdapterComponent(
   "ui-editor-table-context-menu",
@@ -393,6 +397,7 @@ export const ADAPTER_COMPONENT_TAG_MAP = {
   Badge: "ui-badge",
   Avatar: "ui-avatar",
   AvatarGroup: "ui-avatar-group",
+  FloatingActionButton: "ui-floating-action-button",
   EditorToolbar: "ui-editor-toolbar",
   EditorSlashMenu: "ui-editor-slash-menu",
   EditorTableContextMenu: "ui-editor-table-context-menu",

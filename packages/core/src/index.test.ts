@@ -196,6 +196,27 @@ describe("@looma/core primitives", () => {
     expect(innerButton?.disabled).toBe(false);
   });
 
+  it("wires floating action button label and disabled state to the inner button", () => {
+    document.body.innerHTML = `
+      <ui-floating-action-button label="Create new page" mobile-only disabled>
+        <svg aria-hidden="true" viewBox="0 0 24 24"></svg>
+      </ui-floating-action-button>
+    `;
+
+    const wrapper = document.querySelector("ui-floating-action-button") as HTMLElement & {
+      disabled: boolean;
+    };
+    const button = wrapper.shadowRoot?.querySelector("button");
+
+    expect(wrapper).toBeTruthy();
+    expect(wrapper.getAttribute("mobile-only")).not.toBeNull();
+    expect(button?.getAttribute("aria-label")).toBe("Create new page");
+    expect(button?.disabled).toBe(true);
+
+    wrapper.disabled = false;
+    expect(button?.disabled).toBe(false);
+  });
+
   it("opens and closes tooltip from trigger interactions", () => {
     document.body.innerHTML = `
       <button id="tooltip-trigger" type="button">Info</button>

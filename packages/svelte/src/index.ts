@@ -28,7 +28,8 @@ export type AdapterTagName =
   | "ui-tooltip"
   | "ui-toast-region"
   | "ui-checkbox"
-  | "ui-switch";
+  | "ui-switch"
+  | "ui-floating-action-button";
 
 export type AdapterPropsRecord = Record<string, string | number | boolean | null | undefined>;
 
@@ -180,7 +181,8 @@ export const ADAPTER_COMPONENT_TAG_MAP = {
   Tooltip: "ui-tooltip",
   ToastRegion: "ui-toast-region",
   Checkbox: "ui-checkbox",
-  Switch: "ui-switch"
+  Switch: "ui-switch",
+  FloatingActionButton: "ui-floating-action-button"
 } as const;
 
 export const SVELTE_ADAPTER_NOTE =

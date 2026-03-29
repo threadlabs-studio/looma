@@ -19,6 +19,7 @@ Source of truth: `generated/component-api.json`
 - `ui-cluster`
 - `ui-dialog`
 - `ui-disclosure`
+- `ui-floating-action-button`
 - `ui-form-field`
 - `ui-grid`
 - `ui-inline`
@@ -56,7 +57,7 @@ We are building Confluence/Notion-like editor UI in Looma using **open-source Ti
 These are candidates to promote into Looma after generic API extraction:
 
 1. ~~`AvatarGroup` / `AvatarStack`~~ — **shipped** as `ui-avatar-group` (slot-based, domain-neutral).
-2. `FloatingActionButton`
+2. ~~`FloatingActionButton`~~ — **shipped** as `ui-floating-action-button`
 3. Command/Search shell (from `SearchOverlay`)
 4. Generic search result row
 5. Slot-based app top bar shell
@@ -69,10 +70,11 @@ These are candidates to promote into Looma after generic API extraction:
   - Toolbar/editor action button base moved to Looma `Button` (`ToolbarBtn`)
   - Tree/context menus in `CollectionGroup`, `FolderTreeNode`, and `PageTreeItem` moved to Looma `Menu` + `MenuItem`
   - Knit editor now uses `@looma/editor` toolbar shell plus Phase 1 slash/table primitives and extension preset in the page editor flow
+  - Floating action button pattern promoted into Looma and consumed by Knit via the shared primitive
 - In progress:
   - Primitive normalization (`Button`/`Input`/`FormField`) in high-use flows such as sidebar dialogs and settings
 - Not started:
-  - Promotion work for `FloatingActionButton`, command/search shell, generic search result row, and top bar shell
+  - Promotion work for command/search shell, generic search result row, and top bar shell
 
 ## Future: Docs Site in Looma
 

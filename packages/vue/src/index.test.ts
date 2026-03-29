@@ -7,6 +7,7 @@ import {
   AvatarGroup,
   Badge,
   Button,
+  FloatingActionButton,
   Menu,
   MenuItem,
   Radio,
@@ -45,6 +46,7 @@ describe("@looma/vue adapter", () => {
     expect(ADAPTER_COMPONENT_TAG_MAP.Badge).toBe("ui-badge");
     expect(ADAPTER_COMPONENT_TAG_MAP.Avatar).toBe("ui-avatar");
     expect(ADAPTER_COMPONENT_TAG_MAP.AvatarGroup).toBe("ui-avatar-group");
+    expect(ADAPTER_COMPONENT_TAG_MAP.FloatingActionButton).toBe("ui-floating-action-button");
   });
 
   it("renders wrappers with forwarded attrs and default slot content", () => {
@@ -95,5 +97,20 @@ describe("@looma/vue adapter", () => {
     expect(host.querySelector("ui-radio")).toBeTruthy();
     expect(host.querySelector("ui-badge")?.textContent).toContain("Draft");
     expect(host.querySelector("ui-avatar")?.getAttribute("name")).toBe("Taylor Reed");
+  });
+
+  it("renders the floating action button wrapper as the native custom element", () => {
+    const { host } = mount(() =>
+      h(
+        FloatingActionButton,
+        { label: "Create new page", "mobile-only": true },
+        () => h("svg", { viewBox: "0 0 24 24", "aria-hidden": "true" })
+      )
+    );
+
+    const fab = host.querySelector("ui-floating-action-button");
+    expect(fab).toBeTruthy();
+    expect(fab?.getAttribute("label")).toBe("Create new page");
+    expect(fab?.hasAttribute("mobile-only")).toBe(true);
   });
 });
