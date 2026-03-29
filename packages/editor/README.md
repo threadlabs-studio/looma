@@ -4,7 +4,7 @@ Confluence / Notion-like block editor UI for Looma, built on **open-source Tipta
 
 ## Status
 
-**Shipped (first slice):** Extension preset (inline code, CodeBlock, list Enter/Backspace behavior, tables), slash menu web component, toolbar shell, table context menu + insert-table grid + table overlay web components, editor CSS, `handleTableOverlayAction(editor, detail)` for mapping overlay boundary clicks to Tiptap row/column commands, and `insertTableAtRange(editor, range, options)` for stable slash-triggered table insertion. Apps use the preset and web components; they bind data and event listeners only. See [Editor Roadmap](../../docs/editor-roadmap.md) for full scope and phases.
+**Shipped (first slice):** Extension preset (inline code, CodeBlock, list Enter/Backspace behavior, tables), slash menu web component, toolbar shell, table context menu + table toolbar + insert-table grid + table overlay web components, editor CSS, `handleTableOverlayAction(editor, detail)` for mapping overlay boundary clicks to Tiptap row/column commands, and `insertTableAtRange(editor, range, options)` for stable slash-triggered table insertion. Apps use the preset and web components; they bind data and event listeners only. See [Editor Roadmap](../../docs/editor-roadmap.md) for full scope and phases.
 
 ## Scope (from roadmap)
 
@@ -22,7 +22,7 @@ Confluence / Notion-like block editor UI for Looma, built on **open-source Tipta
 | Looma | App (e.g. Knit) |
 |-------|------------------|
 | **Extension preset** `getDefaultEditorExtensions()` from `@looma/editor/extensions` | Creates `Editor` with Looma preset (+ app-specific extensions); **binds content and onUpdate** (e.g. save) |
-| **Web components** `ui-editor-toolbar`, `ui-editor-slash-menu`, `ui-editor-table-context-menu`, `ui-editor-insert-table-grid`, `ui-editor-table-overlay` (+ more to come) | Mounts components; **binds event listeners** (e.g. `onTableOverlayAction` → `handleTableOverlayAction(editor, e.detail)`) |
+| **Web components** `ui-editor-toolbar`, `ui-editor-slash-menu`, `ui-editor-table-context-menu`, `ui-editor-table-toolbar`, `ui-editor-insert-table-grid`, `ui-editor-table-overlay` (+ more to come) | Mounts components; **binds event listeners** (e.g. `onTableOverlayAction` → `handleTableOverlayAction(editor, e.detail)`) |
 | **Editor CSS** `@looma/editor/editor.css` | Imports styles; theming, layout |
 | **Vue/React adapters** (in `@looma/vue` / `@looma/react`) | Wire vanilla editor to web components; app uses adapter and binds data + listeners only |
 

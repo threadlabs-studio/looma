@@ -53,7 +53,7 @@ Wrapper naming policy:
 
 ## Editor (Tiptap) — @looma/editor
 
-We are building Confluence/Notion-like editor UI in Looma using **open-source Tiptap only** (no paid templates or Cloud). Package: `packages/editor` (`@looma/editor`). All editor UI is **web components** (custom elements); **Vue and React adapters** in `@looma/vue` / `@looma/react` wire the Tiptap editor to them. Scope: slash menu, tables with hover “+” and context menu, list behavior, block menu, formatting toolbar, optional emoji/mentions. Domain-neutral; apps wire save, upload, presence. Current shipped editor slice includes the toolbar shell, slash menu, table context menu, insert-table grid, and table overlay components plus adapter event wiring. See **[Editor Roadmap](./editor-roadmap.md)** for full scope, phases, and Looma vs app split.
+We are building Confluence/Notion-like editor UI in Looma using **open-source Tiptap only** (no paid templates or Cloud). Package: `packages/editor` (`@looma/editor`). All editor UI is **web components** (custom elements); **Vue and React adapters** in `@looma/vue` / `@looma/react` wire the Tiptap editor to them. Scope: slash menu, tables with hover “+” and context menu, list behavior, block menu, formatting toolbar, optional emoji/mentions. Domain-neutral; apps wire save, upload, presence. Current shipped editor slice includes the toolbar shell, slash menu, table context menu, table toolbar, insert-table grid, and table overlay components plus adapter event wiring. See **[Editor Roadmap](./editor-roadmap.md)** for full scope, phases, and Looma vs app split.
 
 ## Planned Promotions From Knit (Candidate Queue)
 

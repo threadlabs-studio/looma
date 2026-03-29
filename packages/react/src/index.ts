@@ -271,6 +271,10 @@ export const EditorTableContextMenu = createAdapterComponent(
   "ui-editor-table-context-menu",
   "EditorTableContextMenu"
 );
+export const EditorTableToolbar = createAdapterComponent(
+  "ui-editor-table-toolbar",
+  "EditorTableToolbar"
+);
 export const EditorInsertTableGrid = createAdapterComponent(
   "ui-editor-insert-table-grid",
   "EditorInsertTableGrid"
@@ -407,6 +411,7 @@ export const ADAPTER_COMPONENT_TAG_MAP = {
   EditorToolbar: "ui-editor-toolbar",
   EditorSlashMenu: "ui-editor-slash-menu",
   EditorTableContextMenu: "ui-editor-table-context-menu",
+  EditorTableToolbar: "ui-editor-table-toolbar",
   EditorInsertTableGrid: "ui-editor-insert-table-grid",
   EditorTableOverlay: "ui-editor-table-overlay"
 } as const;
