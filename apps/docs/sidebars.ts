@@ -12,7 +12,8 @@ const sidebars: SidebarsConfig = {
         "tokens",
         "overlay-contract",
         "adapter-parity",
-        "docs-api-sync"
+        "docs-api-sync",
+        "component-library-audit"
       ]
     },
     {

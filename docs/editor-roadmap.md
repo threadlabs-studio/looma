@@ -115,6 +115,51 @@ Looma’s editor package exposes **custom elements** (and editor styles); **adap
 
 ---
 
+## Ecosystem parity gaps
+
+Source: [Component Library Audit](./component-library-audit.md), benchmarked against Tiptap open-source docs, BlockNote, Plate, and Lexical.
+
+The editor ecosystem splits into two broad camps:
+
+- Tiptap and Lexical provide strong editing foundations but expect more UI to be app-owned
+- BlockNote and Plate ship more ready-made menus, toolbars, and editor-side recipes
+
+For Looma, the gap is not editor-core capability. The gap is reusable editor UI ownership.
+
+### P0
+
+- **Block menu / block side menu**
+  - Strong recurrence in BlockNote and Plate
+  - Looma should ship a reusable gutter-side block affordance for duplicate, delete, and "turn into"
+- **Floating toolbar**
+  - Strong recurrence in Tiptap examples, BlockNote, and Plate
+  - Looma should ship a selection-driven toolbar primitive rather than keeping this app-local
+- **Link editing UI**
+  - Common in richer editors, often as a toolbar popover or hover toolbar
+  - Looma should ship a domain-neutral link editing surface instead of leaving link edit UI entirely to apps
+
+### P1
+
+- **Mentions**
+  - Common enough across richer ecosystems to stay on the Looma roadmap
+  - Keep app-provided data; Looma owns the menu UI and event contract
+- **Emoji**
+  - Common enough to keep as a Looma-owned grid suggestion/menu primitive
+  - BlockNote's emoji grid pattern is a useful benchmark for navigation and filtering
+- **Table action depth**
+  - Tables are partly shipped now, but parity is not complete until richer structural actions are consistently covered and documented
+
+### P2
+
+- **Default toolbar taxonomy**
+  - Define a stable Looma default action grouping for mark buttons, block transforms, list controls, and link actions
+- **Default slash grouping**
+  - Add a grouped-item contract for slash menu sections, aliases, and richer metadata
+- **Selection-aware table/link polish**
+  - Keep deeper affordances in scope only after block menu and floating toolbar land
+
+---
+
 ## Contract (Looma editor API)
 
 - **Web components:** All editor UI in Looma is **custom elements**. Vue and React **adapters** (in `@looma/vue` / `@looma/react`) wrap them and wire Tiptap—same pattern as the rest of Looma (e.g. `ui-dialog` + Vue Dialog adapter).
