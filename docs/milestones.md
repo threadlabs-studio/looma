@@ -65,7 +65,7 @@ Priority queue:
 1. `FloatingActionButton` (shipped)
 2. Slot-based app top bar shell (shipped)
 3. Command/search shell (shipped)
-4. Generic search result row
+4. Generic search result row (shipped)
 
 Done gate for each promoted component:
 
@@ -76,7 +76,7 @@ Done gate for each promoted component:
 
 Stage completion gate:
 
-- At least one M6 candidate is fully promoted and adopted back in Knit.
+- The first M6 promotion queue (`FloatingActionButton`, top bar shell, search shell, generic search result row) is fully promoted and adopted back in Knit.
 - Progress continues to be reflected in `docs/component-roadmap.md` and Knit’s `docs/looma-migration-inventory.md`.
 
 ### Stage 4: Quality And Dogfooding Follow-Through

@@ -838,6 +838,61 @@
       ]
     },
     {
+      "tag": "ui-search-result-row",
+      "package": "@looma/core",
+      "className": "UISearchResultRowElement",
+      "description": "Presentational row shell for command and search results. It owns row layout, hover and selected states, and optional leading, meta, excerpt, and trailing regions while apps keep result shaping and highlighting.",
+      "attributes": [
+        {
+          "name": "disabled",
+          "property": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "selected",
+          "property": "selected",
+          "type": "boolean",
+          "default": false
+        }
+      ],
+      "properties": [
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "selected",
+          "type": "boolean",
+          "default": false
+        }
+      ],
+      "events": [],
+      "slots": [
+        {
+          "name": "leading",
+          "description": "Leading icon or avatar."
+        },
+        {
+          "name": "title",
+          "description": "Main title content."
+        },
+        {
+          "name": "meta",
+          "description": "Optional secondary metadata line."
+        },
+        {
+          "name": "excerpt",
+          "description": "Optional supporting excerpt."
+        },
+        {
+          "name": "trailing",
+          "description": "Optional trailing affordance."
+        }
+      ]
+    },
+    {
       "tag": "ui-search-shell",
       "package": "@looma/core",
       "className": "UISearchShellElement",

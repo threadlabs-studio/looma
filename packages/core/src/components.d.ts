@@ -232,6 +232,16 @@ export namespace Components {
          */
         "value": string;
     }
+    interface UiSearchResultRow {
+        /**
+          * @default false
+         */
+        "disabled": boolean;
+        /**
+          * @default false
+         */
+        "selected": boolean;
+    }
     interface UiSearchShell {
     }
     interface UiSwitch {
@@ -384,6 +394,12 @@ declare global {
         prototype: HTMLUiRadioGroupElement;
         new (): HTMLUiRadioGroupElement;
     };
+    interface HTMLUiSearchResultRowElement extends Components.UiSearchResultRow, HTMLStencilElement {
+    }
+    var HTMLUiSearchResultRowElement: {
+        prototype: HTMLUiSearchResultRowElement;
+        new (): HTMLUiSearchResultRowElement;
+    };
     interface HTMLUiSearchShellElement extends Components.UiSearchShell, HTMLStencilElement {
     }
     var HTMLUiSearchShellElement: {
@@ -436,6 +452,7 @@ declare global {
         "ui-popover": HTMLUiPopoverElement;
         "ui-radio": HTMLUiRadioElement;
         "ui-radio-group": HTMLUiRadioGroupElement;
+        "ui-search-result-row": HTMLUiSearchResultRowElement;
         "ui-search-shell": HTMLUiSearchShellElement;
         "ui-switch": HTMLUiSwitchElement;
         "ui-tabs": HTMLUiTabsElement;
@@ -671,6 +688,16 @@ declare namespace LocalJSX {
          */
         "value"?: string;
     }
+    interface UiSearchResultRow {
+        /**
+          * @default false
+         */
+        "disabled"?: boolean;
+        /**
+          * @default false
+         */
+        "selected"?: boolean;
+    }
     interface UiSearchShell {
     }
     interface UiSwitch {
@@ -814,6 +841,10 @@ declare namespace LocalJSX {
         "disabled": boolean;
         "required": boolean;
     }
+    interface UiSearchResultRowAttributes {
+        "disabled": boolean;
+        "selected": boolean;
+    }
     interface UiSwitchAttributes {
         "checked": boolean;
         "defaultChecked": boolean;
@@ -851,6 +882,7 @@ declare namespace LocalJSX {
         "ui-popover": Omit<UiPopover, keyof UiPopoverAttributes> & { [K in keyof UiPopover & keyof UiPopoverAttributes]?: UiPopover[K] } & { [K in keyof UiPopover & keyof UiPopoverAttributes as `attr:${K}`]?: UiPopoverAttributes[K] } & { [K in keyof UiPopover & keyof UiPopoverAttributes as `prop:${K}`]?: UiPopover[K] };
         "ui-radio": Omit<UiRadio, keyof UiRadioAttributes> & { [K in keyof UiRadio & keyof UiRadioAttributes]?: UiRadio[K] } & { [K in keyof UiRadio & keyof UiRadioAttributes as `attr:${K}`]?: UiRadioAttributes[K] } & { [K in keyof UiRadio & keyof UiRadioAttributes as `prop:${K}`]?: UiRadio[K] };
         "ui-radio-group": Omit<UiRadioGroup, keyof UiRadioGroupAttributes> & { [K in keyof UiRadioGroup & keyof UiRadioGroupAttributes]?: UiRadioGroup[K] } & { [K in keyof UiRadioGroup & keyof UiRadioGroupAttributes as `attr:${K}`]?: UiRadioGroupAttributes[K] } & { [K in keyof UiRadioGroup & keyof UiRadioGroupAttributes as `prop:${K}`]?: UiRadioGroup[K] };
+        "ui-search-result-row": Omit<UiSearchResultRow, keyof UiSearchResultRowAttributes> & { [K in keyof UiSearchResultRow & keyof UiSearchResultRowAttributes]?: UiSearchResultRow[K] } & { [K in keyof UiSearchResultRow & keyof UiSearchResultRowAttributes as `attr:${K}`]?: UiSearchResultRowAttributes[K] } & { [K in keyof UiSearchResultRow & keyof UiSearchResultRowAttributes as `prop:${K}`]?: UiSearchResultRow[K] };
         "ui-search-shell": UiSearchShell;
         "ui-switch": Omit<UiSwitch, keyof UiSwitchAttributes> & { [K in keyof UiSwitch & keyof UiSwitchAttributes]?: UiSwitch[K] } & { [K in keyof UiSwitch & keyof UiSwitchAttributes as `attr:${K}`]?: UiSwitchAttributes[K] } & { [K in keyof UiSwitch & keyof UiSwitchAttributes as `prop:${K}`]?: UiSwitch[K] };
         "ui-tabs": Omit<UiTabs, keyof UiTabsAttributes> & { [K in keyof UiTabs & keyof UiTabsAttributes]?: UiTabs[K] } & { [K in keyof UiTabs & keyof UiTabsAttributes as `attr:${K}`]?: UiTabsAttributes[K] } & { [K in keyof UiTabs & keyof UiTabsAttributes as `prop:${K}`]?: UiTabs[K] };
@@ -878,6 +910,7 @@ declare module "@stencil/core" {
             "ui-popover": LocalJSX.IntrinsicElements["ui-popover"] & JSXBase.HTMLAttributes<HTMLUiPopoverElement>;
             "ui-radio": LocalJSX.IntrinsicElements["ui-radio"] & JSXBase.HTMLAttributes<HTMLUiRadioElement>;
             "ui-radio-group": LocalJSX.IntrinsicElements["ui-radio-group"] & JSXBase.HTMLAttributes<HTMLUiRadioGroupElement>;
+            "ui-search-result-row": LocalJSX.IntrinsicElements["ui-search-result-row"] & JSXBase.HTMLAttributes<HTMLUiSearchResultRowElement>;
             "ui-search-shell": LocalJSX.IntrinsicElements["ui-search-shell"] & JSXBase.HTMLAttributes<HTMLUiSearchShellElement>;
             "ui-switch": LocalJSX.IntrinsicElements["ui-switch"] & JSXBase.HTMLAttributes<HTMLUiSwitchElement>;
             "ui-tabs": LocalJSX.IntrinsicElements["ui-tabs"] & JSXBase.HTMLAttributes<HTMLUiTabsElement>;

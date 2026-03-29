@@ -1,0 +1,101 @@
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# Search Result Row
+
+Presentational row shell for command/search results. It owns row layout, spacing, hover/selected states, and optional leading/meta/excerpt/trailing regions while apps keep result shaping and highlighting.
+
+## Component Reference
+
+<ComponentExamplesApiTabs component="ui-search-result-row" />
+
+## Attributes
+
+- `disabled`: disables the row button.
+- `selected`: applies the active/focused row state.
+
+## Properties
+
+- `disabled`: `boolean`
+- `selected`: `boolean`
+
+## Events
+
+None.
+
+## Slots
+
+- `leading`: leading icon or avatar.
+- `title`: required main title content.
+- `meta`: optional secondary metadata line.
+- `excerpt`: optional supporting excerpt.
+- `trailing`: optional trailing affordance such as an arrow.
+
+## SSR Markup
+
+```html
+<ui-search-result-row selected>
+  <span slot="leading">📄</span>
+  <p slot="title">Project brief</p>
+  <p slot="meta">General</p>
+  <p slot="excerpt">Shared notes and action items.</p>
+  <svg slot="trailing" aria-hidden="true"></svg>
+</ui-search-result-row>
+```
+
+## Framework Snippets
+
+<Tabs groupId="framework" defaultValue="vue">
+  <TabItem value="vue" label="Vue">
+
+```vue
+<script setup lang="ts">
+import { SearchResultRow } from "@looma/vue";
+</script>
+
+<template>
+  <SearchResultRow :selected="true">
+    <span slot="leading">📄</span>
+    <p slot="title">Project brief</p>
+    <p slot="meta">General</p>
+    <p slot="excerpt">Shared notes and action items.</p>
+    <svg slot="trailing" aria-hidden="true"></svg>
+  </SearchResultRow>
+</template>
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<ui-search-result-row selected>
+  <span slot="leading">📄</span>
+  <p slot="title">Project brief</p>
+  <p slot="meta">General</p>
+  <p slot="excerpt">Shared notes and action items.</p>
+  <svg slot="trailing" aria-hidden="true"></svg>
+</ui-search-result-row>
+```
+
+  </TabItem>
+  <TabItem value="react" label="React">
+
+```tsx
+import { SearchResultRow } from "@looma/react";
+
+export function Example() {
+  return (
+    <SearchResultRow selected>
+      <span slot="leading">📄</span>
+      <p slot="title">Project brief</p>
+      <p slot="meta">General</p>
+      <p slot="excerpt">Shared notes and action items.</p>
+      <svg slot="trailing" aria-hidden="true" />
+    </SearchResultRow>
+  );
+}
+```
+
+  </TabItem>
+</Tabs>
