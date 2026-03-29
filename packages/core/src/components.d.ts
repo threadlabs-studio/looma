@@ -232,6 +232,8 @@ export namespace Components {
          */
         "value": string;
     }
+    interface UiSearchShell {
+    }
     interface UiSwitch {
         /**
           * @default false
@@ -382,6 +384,12 @@ declare global {
         prototype: HTMLUiRadioGroupElement;
         new (): HTMLUiRadioGroupElement;
     };
+    interface HTMLUiSearchShellElement extends Components.UiSearchShell, HTMLStencilElement {
+    }
+    var HTMLUiSearchShellElement: {
+        prototype: HTMLUiSearchShellElement;
+        new (): HTMLUiSearchShellElement;
+    };
     interface HTMLUiSwitchElement extends Components.UiSwitch, HTMLStencilElement {
     }
     var HTMLUiSwitchElement: {
@@ -428,6 +436,7 @@ declare global {
         "ui-popover": HTMLUiPopoverElement;
         "ui-radio": HTMLUiRadioElement;
         "ui-radio-group": HTMLUiRadioGroupElement;
+        "ui-search-shell": HTMLUiSearchShellElement;
         "ui-switch": HTMLUiSwitchElement;
         "ui-tabs": HTMLUiTabsElement;
         "ui-toast-region": HTMLUiToastRegionElement;
@@ -662,6 +671,8 @@ declare namespace LocalJSX {
          */
         "value"?: string;
     }
+    interface UiSearchShell {
+    }
     interface UiSwitch {
         /**
           * @default false
@@ -840,6 +851,7 @@ declare namespace LocalJSX {
         "ui-popover": Omit<UiPopover, keyof UiPopoverAttributes> & { [K in keyof UiPopover & keyof UiPopoverAttributes]?: UiPopover[K] } & { [K in keyof UiPopover & keyof UiPopoverAttributes as `attr:${K}`]?: UiPopoverAttributes[K] } & { [K in keyof UiPopover & keyof UiPopoverAttributes as `prop:${K}`]?: UiPopover[K] };
         "ui-radio": Omit<UiRadio, keyof UiRadioAttributes> & { [K in keyof UiRadio & keyof UiRadioAttributes]?: UiRadio[K] } & { [K in keyof UiRadio & keyof UiRadioAttributes as `attr:${K}`]?: UiRadioAttributes[K] } & { [K in keyof UiRadio & keyof UiRadioAttributes as `prop:${K}`]?: UiRadio[K] };
         "ui-radio-group": Omit<UiRadioGroup, keyof UiRadioGroupAttributes> & { [K in keyof UiRadioGroup & keyof UiRadioGroupAttributes]?: UiRadioGroup[K] } & { [K in keyof UiRadioGroup & keyof UiRadioGroupAttributes as `attr:${K}`]?: UiRadioGroupAttributes[K] } & { [K in keyof UiRadioGroup & keyof UiRadioGroupAttributes as `prop:${K}`]?: UiRadioGroup[K] };
+        "ui-search-shell": UiSearchShell;
         "ui-switch": Omit<UiSwitch, keyof UiSwitchAttributes> & { [K in keyof UiSwitch & keyof UiSwitchAttributes]?: UiSwitch[K] } & { [K in keyof UiSwitch & keyof UiSwitchAttributes as `attr:${K}`]?: UiSwitchAttributes[K] } & { [K in keyof UiSwitch & keyof UiSwitchAttributes as `prop:${K}`]?: UiSwitch[K] };
         "ui-tabs": Omit<UiTabs, keyof UiTabsAttributes> & { [K in keyof UiTabs & keyof UiTabsAttributes]?: UiTabs[K] } & { [K in keyof UiTabs & keyof UiTabsAttributes as `attr:${K}`]?: UiTabsAttributes[K] } & { [K in keyof UiTabs & keyof UiTabsAttributes as `prop:${K}`]?: UiTabs[K] };
         "ui-toast-region": Omit<UiToastRegion, keyof UiToastRegionAttributes> & { [K in keyof UiToastRegion & keyof UiToastRegionAttributes]?: UiToastRegion[K] } & { [K in keyof UiToastRegion & keyof UiToastRegionAttributes as `attr:${K}`]?: UiToastRegionAttributes[K] } & { [K in keyof UiToastRegion & keyof UiToastRegionAttributes as `prop:${K}`]?: UiToastRegion[K] };
@@ -866,6 +878,7 @@ declare module "@stencil/core" {
             "ui-popover": LocalJSX.IntrinsicElements["ui-popover"] & JSXBase.HTMLAttributes<HTMLUiPopoverElement>;
             "ui-radio": LocalJSX.IntrinsicElements["ui-radio"] & JSXBase.HTMLAttributes<HTMLUiRadioElement>;
             "ui-radio-group": LocalJSX.IntrinsicElements["ui-radio-group"] & JSXBase.HTMLAttributes<HTMLUiRadioGroupElement>;
+            "ui-search-shell": LocalJSX.IntrinsicElements["ui-search-shell"] & JSXBase.HTMLAttributes<HTMLUiSearchShellElement>;
             "ui-switch": LocalJSX.IntrinsicElements["ui-switch"] & JSXBase.HTMLAttributes<HTMLUiSwitchElement>;
             "ui-tabs": LocalJSX.IntrinsicElements["ui-tabs"] & JSXBase.HTMLAttributes<HTMLUiTabsElement>;
             "ui-toast-region": LocalJSX.IntrinsicElements["ui-toast-region"] & JSXBase.HTMLAttributes<HTMLUiToastRegionElement>;

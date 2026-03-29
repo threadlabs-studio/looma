@@ -64,7 +64,7 @@ Priority queue:
 
 1. `FloatingActionButton` (shipped)
 2. Slot-based app top bar shell (shipped)
-3. Command/search shell
+3. Command/search shell (shipped)
 4. Generic search result row
 
 Done gate for each promoted component:

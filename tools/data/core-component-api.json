@@ -838,6 +838,37 @@
       ]
     },
     {
+      "tag": "ui-search-shell",
+      "package": "@looma/core",
+      "className": "UISearchShellElement",
+      "description": "Overlay shell for search and command-palette experiences. It owns the backdrop/panel layout and responsive fullscreen behavior while apps keep query state, result rendering, and routing.",
+      "attributes": [],
+      "properties": [],
+      "events": [],
+      "slots": [
+        {
+          "name": "backdrop",
+          "description": "Backdrop layer behind the panel."
+        },
+        {
+          "name": "search",
+          "description": "Search input/header row."
+        },
+        {
+          "name": "status",
+          "description": "Optional loading or status row."
+        },
+        {
+          "name": "body",
+          "description": "Results, recent searches, or empty states."
+        },
+        {
+          "name": "footer",
+          "description": "Optional footer row."
+        }
+      ]
+    },
+    {
       "tag": "ui-switch",
       "package": "@looma/core",
       "className": "UISwitchElement",
@@ -976,33 +1007,6 @@
       ]
     },
     {
-      "tag": "ui-top-bar",
-      "package": "@looma/core",
-      "className": "UITopBarElement",
-      "description": "Mobile-first navigation shell with slots for leading controls, title content, an optional search affordance, and trailing actions.",
-      "attributes": [],
-      "properties": [],
-      "events": [],
-      "slots": [
-        {
-          "name": "default",
-          "description": "Title and main content region."
-        },
-        {
-          "name": "leading",
-          "description": "Leading affordance such as a navigation or back button."
-        },
-        {
-          "name": "search",
-          "description": "Optional search affordance."
-        },
-        {
-          "name": "actions",
-          "description": "Trailing actions."
-        }
-      ]
-    },
-    {
       "tag": "ui-toast-region",
       "package": "@looma/core",
       "className": "UIToastRegionElement",
@@ -1103,6 +1107,33 @@
         {
           "name": "default",
           "description": "Default child content."
+        }
+      ]
+    },
+    {
+      "tag": "ui-top-bar",
+      "package": "@looma/core",
+      "className": "UITopBarElement",
+      "description": "Mobile-first navigation shell with slots for leading controls, title content, an optional search affordance, and trailing actions.",
+      "attributes": [],
+      "properties": [],
+      "events": [],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Title and main content region."
+        },
+        {
+          "name": "leading",
+          "description": "Leading affordance such as a navigation or back button."
+        },
+        {
+          "name": "search",
+          "description": "Optional search affordance."
+        },
+        {
+          "name": "actions",
+          "description": "Trailing actions."
         }
       ]
     }

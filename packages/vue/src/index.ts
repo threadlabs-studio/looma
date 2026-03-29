@@ -381,6 +381,7 @@ export const FloatingActionButton = createAdapterComponent(
   "ui-floating-action-button",
   "FloatingActionButton"
 );
+export const SearchShell = createAdapterComponent("ui-search-shell", "SearchShell");
 export const TopBar = createAdapterComponent("ui-top-bar", "TopBar");
 export const EditorToolbar = createAdapterComponent("ui-editor-toolbar", "EditorToolbar");
 export const EditorTableContextMenu = createAdapterComponent(
@@ -419,6 +420,7 @@ export const ADAPTER_COMPONENT_TAG_MAP = {
   Avatar: "ui-avatar",
   AvatarGroup: "ui-avatar-group",
   FloatingActionButton: "ui-floating-action-button",
+  SearchShell: "ui-search-shell",
   TopBar: "ui-top-bar",
   EditorToolbar: "ui-editor-toolbar",
   EditorSlashMenu: "ui-editor-slash-menu",

@@ -1006,6 +1006,37 @@
       ]
     },
     {
+      "tag": "ui-search-shell",
+      "package": "@looma/core",
+      "className": "UISearchShellElement",
+      "description": "Overlay shell for search and command-palette experiences. It owns the backdrop/panel layout and responsive fullscreen behavior while apps keep query state, result rendering, and routing.",
+      "attributes": [],
+      "properties": [],
+      "events": [],
+      "slots": [
+        {
+          "name": "backdrop",
+          "description": "Backdrop layer behind the panel."
+        },
+        {
+          "name": "search",
+          "description": "Search input/header row."
+        },
+        {
+          "name": "status",
+          "description": "Optional loading or status row."
+        },
+        {
+          "name": "body",
+          "description": "Results, recent searches, or empty states."
+        },
+        {
+          "name": "footer",
+          "description": "Optional footer row."
+        }
+      ]
+    },
+    {
       "tag": "ui-separator",
       "package": "@looma/layout",
       "className": "UISeparatorElement",

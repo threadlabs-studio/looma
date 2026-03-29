@@ -29,6 +29,7 @@ Source of truth: `generated/component-api.json`
 - `ui-popover`
 - `ui-radio`
 - `ui-radio-group`
+- `ui-search-shell`
 - `ui-separator`
 - `ui-stack`
 - `ui-switch`
@@ -59,7 +60,7 @@ These are candidates to promote into Looma after generic API extraction:
 
 1. ~~`AvatarGroup` / `AvatarStack`~~ — **shipped** as `ui-avatar-group` (slot-based, domain-neutral).
 2. ~~`FloatingActionButton`~~ — **shipped** as `ui-floating-action-button`
-3. Command/Search shell (from `SearchOverlay`)
+3. ~~Command/Search shell (from `SearchOverlay`)~~ — **shipped** as `ui-search-shell`
 4. Generic search result row
 5. ~~Slot-based app top bar shell~~ — **shipped** as `ui-top-bar`
 
@@ -73,10 +74,11 @@ These are candidates to promote into Looma after generic API extraction:
   - Knit editor now uses `@looma/editor` toolbar shell plus Phase 1 slash/table primitives and extension preset in the page editor flow
   - Floating action button pattern promoted into Looma and consumed by Knit via the shared primitive
   - Mobile app top bar shell promoted into Looma and consumed by Knit via the shared primitive
+  - Search overlay shell promoted into Looma and consumed by Knit while query/result behavior stays app-local
 - In progress:
   - Primitive normalization (`Button`/`Input`/`FormField`) in high-use flows such as sidebar dialogs and settings
 - Not started:
-  - Promotion work for command/search shell and generic search result row
+  - Promotion work for generic search result row
 
 ## Future: Docs Site in Looma
 

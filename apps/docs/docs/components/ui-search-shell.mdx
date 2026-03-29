@@ -1,0 +1,95 @@
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# Search Shell
+
+Overlay shell for search and command-palette experiences. It owns the backdrop/panel layout and responsive fullscreen behavior while apps keep query state, result rendering, and routing.
+
+## Component Reference
+
+<ComponentExamplesApiTabs component="ui-search-shell" />
+
+## Attributes
+
+None.
+
+## Properties
+
+None.
+
+## Events
+
+None.
+
+## Slots
+
+- `backdrop`: backdrop layer behind the panel.
+- `search`: search input/header row.
+- `status`: optional loading/status row.
+- `body`: results, recent searches, or empty states.
+- `footer`: optional footer row.
+
+## SSR Markup
+
+```html
+<ui-search-shell>
+  <button slot="backdrop" type="button" aria-label="Close search"></button>
+  <div slot="search">…search input row…</div>
+  <div slot="body">…results…</div>
+  <div slot="footer">Press ⌘K to toggle</div>
+</ui-search-shell>
+```
+
+## Framework Snippets
+
+<Tabs groupId="framework" defaultValue="vue">
+  <TabItem value="vue" label="Vue">
+
+```vue
+<script setup lang="ts">
+import { SearchShell } from "@looma/vue";
+</script>
+
+<template>
+  <SearchShell role="dialog" aria-modal="true" aria-label="Search">
+    <button slot="backdrop" type="button" aria-label="Close search" />
+    <div slot="search">…search input row…</div>
+    <div slot="body">…results…</div>
+    <div slot="footer">Press ⌘K to toggle</div>
+  </SearchShell>
+</template>
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<ui-search-shell role="dialog" aria-modal="true" aria-label="Search">
+  <button slot="backdrop" type="button" aria-label="Close search"></button>
+  <div slot="search">…search input row…</div>
+  <div slot="body">…results…</div>
+  <div slot="footer">Press ⌘K to toggle</div>
+</ui-search-shell>
+```
+
+  </TabItem>
+  <TabItem value="react" label="React">
+
+```tsx
+import { SearchShell } from "@looma/react";
+
+export function Example() {
+  return (
+    <SearchShell role="dialog" aria-modal="true" aria-label="Search">
+      <button slot="backdrop" type="button" aria-label="Close search" />
+      <div slot="search">…search input row…</div>
+      <div slot="body">…results…</div>
+      <div slot="footer">Press ⌘K to toggle</div>
+    </SearchShell>
+  );
+}
+```
+
+  </TabItem>
+</Tabs>
