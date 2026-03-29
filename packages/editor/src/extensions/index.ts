@@ -11,3 +11,10 @@ export {
   insertTableAtRange,
   type InsertTableAtRangeOptions,
 } from "./table-commands";
+export {
+  getActiveTableCellAlignment,
+  LoomaTableCell,
+  LoomaTableHeader,
+  setActiveTableCellAlignment,
+  type TableCellAlignment,
+} from "./table-formatting";

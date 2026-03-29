@@ -32,9 +32,8 @@ import Code from "@tiptap/extension-code";
 import CodeBlock from "@tiptap/extension-code-block";
 import Table from "@tiptap/extension-table";
 import TableRow from "@tiptap/extension-table-row";
-import TableHeader from "@tiptap/extension-table-header";
-import TableCell from "@tiptap/extension-table-cell";
 import { LoomaListBehavior } from "./list-behavior";
+import { LoomaTableCell, LoomaTableHeader } from "./table-formatting";
 
 export interface DefaultEditorExtensionsOptions {
   placeholder?: string;
@@ -91,8 +90,8 @@ export function getDefaultEditorExtensions(
     }),
     Table.configure({ resizable: true }),
     TableRow,
-    TableHeader,
-    TableCell,
+    LoomaTableHeader,
+    LoomaTableCell,
     LoomaListBehavior,
   ];
 }

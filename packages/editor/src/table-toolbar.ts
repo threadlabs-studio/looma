@@ -26,18 +26,25 @@ class UIEditorTableToolbarElement extends HTMLElement {
   static get observedAttributes(): string[] {
     return [
       "open",
+      "cell-alignment",
       "can-add-row-after",
       "can-add-column-after",
-      "can-delete-row",
-      "can-delete-column",
-      "can-delete-table",
-      "can-merge-cells",
-      "can-split-cell",
     ];
   }
 
   private getBoolAttr(name: string): boolean {
     return this.hasAttribute(name) && this.getAttribute(name) !== "false";
+  }
+
+  private getAlignmentAttr(): TableContextMenuAction {
+    const value = this.getAttribute("cell-alignment");
+    if (value === "center") {
+      return "align-center";
+    }
+    if (value === "right") {
+      return "align-right";
+    }
+    return "align-left";
   }
 
   connectedCallback(): void {
@@ -70,31 +77,46 @@ class UIEditorTableToolbarElement extends HTMLElement {
       return;
     }
 
-    const actions = (
+    const activeAlignment = this.getAlignmentAttr();
+    const alignmentActions = [
+      { action: "align-left", label: "Left" },
+      { action: "align-center", label: "Center" },
+      { action: "align-right", label: "Right" },
+    ] satisfies Array<{
+      action: TableContextMenuAction;
+      label: string;
+    }>;
+
+    const structuralActions = (
       [
         { action: "add-row-after", label: "Add row", can: "can-add-row-after" },
         { action: "add-column-after", label: "Add column", can: "can-add-column-after" },
-        { action: "merge-cells", label: "Merge", can: "can-merge-cells" },
-        { action: "split-cell", label: "Split", can: "can-split-cell" },
-        { action: "delete-row", label: "Delete row", can: "can-delete-row" },
-        { action: "delete-column", label: "Delete column", can: "can-delete-column" },
-        { action: "delete-table", label: "Delete table", can: "can-delete-table", tone: "danger" },
       ] satisfies Array<{
         action: TableContextMenuAction;
         label: string;
         can: string;
-        tone?: string;
       }>
     ).filter((action) => this.getBoolAttr(action.can));
 
     this.innerHTML = [
       '<div class="ui-editor-table-toolbar" role="toolbar" aria-label="Table actions">',
-      actions
+      '<div class="ui-editor-table-toolbar__group" role="group" aria-label="Cell alignment">',
+      alignmentActions
         .map(
           (action) =>
-            `<button type="button" data-action="${action.action}"${action.tone ? ` data-tone="${action.tone}"` : ""}>${action.label}</button>`
+            `<button type="button" data-action="${action.action}" aria-pressed="${action.action === activeAlignment ? "true" : "false"}" data-active="${action.action === activeAlignment ? "true" : "false"}">${action.label}</button>`
         )
         .join(""),
+      "</div>",
+      structuralActions.length > 0 ? '<div class="ui-editor-table-toolbar__sep" aria-hidden="true"></div>' : "",
+      structuralActions.length > 0 ? '<div class="ui-editor-table-toolbar__group" role="group" aria-label="Table structure">' : "",
+      structuralActions
+        .map(
+          (action) =>
+            `<button type="button" data-action="${action.action}">${action.label}</button>`
+        )
+        .join(""),
+      structuralActions.length > 0 ? "</div>" : "",
       "</div>",
     ].join("");
   }

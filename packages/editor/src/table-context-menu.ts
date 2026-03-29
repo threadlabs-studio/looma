@@ -7,6 +7,9 @@
 const TAG = "ui-editor-table-context-menu";
 
 export type TableContextMenuAction =
+  | "align-left"
+  | "align-center"
+  | "align-right"
   | "add-row-before"
   | "add-row-after"
   | "add-column-before"
