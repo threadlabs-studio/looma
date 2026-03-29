@@ -101,7 +101,7 @@ Acceptance notes:
 
 ### E-TBL-004: Toolbar icon rendering still looks off compared with the pre-Looma editor
 
-Status: open
+Status: closed (2026-03-29)
 
 Observed behavior:
 
@@ -112,9 +112,11 @@ Expected behavior:
 - Toolbar buttons should read as visually crisp and uniform at a glance.
 - Icon sizing, optical alignment, and stroke/fill language should be consistent across the toolbar.
 
-Current implementation note:
+Resolution notes:
 
-- The toolbar currently mixes custom inline SVGs with both fill-based and stroke-based icons, and the current adapter/button composition still needs polish.
+- Looma’s shared toolbar shell now enforces more stable sizing and non-shrinking child layout.
+- Knit’s remaining app-local formatting actions now use one consistent Lucide icon set instead of mixed inline fill/stroke/text glyph icons.
+- Browser verification passed against the real page editor in Knit.
 
 Acceptance notes:
 

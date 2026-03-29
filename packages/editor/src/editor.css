@@ -15,15 +15,22 @@ ui-editor-toolbar {
   z-index: var(--ui-editor-toolbar-z-index, 10);
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: var(--ui-editor-toolbar-gap, 2px);
   padding:
     var(--ui-editor-toolbar-padding-block, 6px)
     var(--ui-editor-toolbar-padding-inline, 12px);
+  min-height: var(--ui-editor-toolbar-min-height, 48px);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  white-space: nowrap;
   background: var(--ui-editor-toolbar-bg, var(--ui-surface, #fff));
   border-bottom: 1px solid var(--ui-editor-toolbar-border, var(--ui-border, #e5e7eb));
+}
+
+ui-editor-toolbar > * {
+  flex: 0 0 auto;
 }
 
 ui-editor-toolbar::-webkit-scrollbar {
@@ -37,6 +44,7 @@ ui-editor-toolbar::-webkit-scrollbar {
     bottom: env(safe-area-inset-bottom);
     left: 0;
     right: 0;
+    min-height: var(--ui-editor-toolbar-mobile-min-height, 56px);
     border-top: 1px solid var(--ui-editor-toolbar-border, var(--ui-border, #e5e7eb));
     border-bottom: none;
     box-shadow: var(--ui-editor-toolbar-mobile-shadow, 0 -2px 8px rgb(0 0 0 / 0.06));
@@ -273,6 +281,10 @@ ui-editor-toolbar::-webkit-scrollbar {
 }
 
 .ui-editor-table-toolbar button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
   border: 1px solid transparent;
   border-radius: var(--ui-radius-sm, 4px);
   background: transparent;
@@ -280,6 +292,7 @@ ui-editor-toolbar::-webkit-scrollbar {
   cursor: pointer;
   font-size: var(--ui-text-sm, 0.875rem);
   font-weight: 500;
+  line-height: 1;
   padding: var(--ui-space-1-5, 6px) var(--ui-space-2, 8px);
   white-space: nowrap;
 }
