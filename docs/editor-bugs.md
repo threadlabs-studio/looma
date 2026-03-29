@@ -1,0 +1,120 @@
+# Editor Bugs
+
+Last updated: 2026-03-29
+
+This file tracks shared Looma editor defects that are visible in Knit and other consuming apps.
+
+## Open
+
+### E-TBL-001: Slash-triggered table picker anchors to toolbar instead of the slash context
+
+Status: open
+
+Observed behavior:
+
+- Choosing `Table` from the slash menu opens the insert-table picker near the toolbar anchor instead of near the slash menu / insertion point.
+
+Expected behavior:
+
+- Slash-triggered table insertion should feel local to the slash action.
+- Either:
+  - the picker opens adjacent to the slash menu / caret location, or
+  - `/table` inserts a sensible default table immediately and skips the separate picker.
+
+Current implementation note:
+
+- Knit currently dispatches `knit:open-table-picker` from the slash flow, and the toolbar owns the picker anchor. That coupling makes the picker appear detached from the slash interaction.
+
+Acceptance notes:
+
+- A slash-triggered table action must no longer jump the user to a visually unrelated anchor.
+- Desktop and mobile behavior must be intentionally specified, not incidental.
+
+### E-TBL-002: Insert-table grid uses hover-only selection with no pinning step
+
+Status: open
+
+Observed behavior:
+
+- The grid expands as the pointer moves.
+- Moving from the grid down to `Insert table` can change the selected dimensions on the way to the button.
+
+Expected behavior:
+
+- The user must be able to lock in a row/column size before confirming insertion.
+- Acceptable patterns:
+  - click a grid size to pin, then click `Insert table`, or
+  - click a grid size and insert immediately, or
+  - keep hover preview but make confirmation occur without the pointer crossing live selection cells.
+
+Current implementation note:
+
+- `ui-editor-insert-table-grid` currently treats hover as the live source of truth for `rows` and `cols`.
+
+Acceptance notes:
+
+- The chosen dimensions must remain stable while the user moves to the confirmation control.
+- Keyboard selection and touch behavior should be defined as part of the fix.
+
+### E-TBL-003: Table overlay and options model are placeholder-quality, not Confluence-quality
+
+Status: open
+
+Observed behavior:
+
+- Row/column insert controls are large, persistent, and not visually tied to individual boundaries the way Confluence does it.
+- Table options are routed through a cell context menu, which makes structural actions feel hidden and cell formatting/table structure feel mixed together.
+
+Expected behavior:
+
+- Row and column insertion affordances should appear on hover near the specific row/column boundary they affect.
+- Structural table actions should be easier to discover than a right-click-only cell menu.
+- Cell-specific actions and table-structure actions should not be forced into one overloaded entry point.
+
+Design direction to evaluate:
+
+- Keep hover boundary controls for insert-row / insert-column.
+- Add a lightweight table toolbar or action strip when selection is inside a table for structural actions:
+  - add/delete row
+  - add/delete column
+  - header row / header column
+  - merge / split
+  - table delete
+- Reserve the cell menu for cell-scoped actions such as background color, merge/split, and future cell formatting.
+
+Current implementation note:
+
+- `ui-editor-table-overlay` is still a Phase 1 primitive and does not yet match the Confluence interaction model in spacing, discoverability, or hover behavior.
+
+Acceptance notes:
+
+- Hovering a row/column boundary should clearly preview the affected line.
+- Insert controls should appear where the action will apply, not as oversized always-on buttons.
+- The primary structural actions must be discoverable without requiring right-click hunting.
+
+### E-TBL-004: Toolbar icon rendering still looks off compared with the pre-Looma editor
+
+Status: open
+
+Observed behavior:
+
+- Toolbar icons still look slightly wrong in size, alignment, or stroke/fill consistency compared with the earlier Knit editor.
+
+Expected behavior:
+
+- Toolbar buttons should read as visually crisp and uniform at a glance.
+- Icon sizing, optical alignment, and stroke/fill language should be consistent across the toolbar.
+
+Current implementation note:
+
+- The toolbar currently mixes custom inline SVGs with both fill-based and stroke-based icons, and the current adapter/button composition still needs polish.
+
+Acceptance notes:
+
+- Run a visual audit of all toolbar icons together, not one-by-one.
+- Normalize icon box, stroke width, fill/stroke policy, and button centering.
+
+## Notes
+
+- These are shared Looma editor issues even when first reported from Knit.
+- Do not mark Phase 1 table UX as hardened until the open table items above are closed in real browser testing.

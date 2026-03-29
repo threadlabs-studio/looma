@@ -220,7 +220,7 @@ Status: Active
 
 ## Risks / Blockers
 
-- No blocking issues right now.
+- Shared editor UX still has open defects found through Knit dogfooding. See `docs/editor-bugs.md`.
 - Generated docs/storybook build artifacts are tracked in this repo and change alongside source edits.
 
 ## Next Up
@@ -228,7 +228,7 @@ Status: Active
 Execution order + done gates live in `docs/milestones.md`.
 
 1. Finish the Knit primitive replacement wave beyond the already-migrated toast, dialog base, toolbar button, and tree menus.
-2. Harden the Knit `@looma/editor` integration and continue migrating the remaining editor UI that should move out of app-local ownership.
+2. Close the open shared editor defects in `docs/editor-bugs.md`, then continue migrating the remaining editor UI that should move out of app-local ownership.
 3. Continue the Knit-to-Looma promotion work from the now-complete first M6 queue into the next generic surfaces, while the primitive normalization wave continues in Knit.
 4. Keep `docs/component-roadmap.md`, `docs/editor-roadmap.md`, and `knit/docs/looma-migration-inventory.md` synchronized as migration status changes.
 5. Add a docs/storybook convention note to keep future component labels human-readable while preserving stable `ui-*` doc ids and tags.
