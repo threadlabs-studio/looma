@@ -8,6 +8,49 @@ ui-editor-slash-menu {
   user-select: none;
 }
 
+/* Toolbar shell */
+ui-editor-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--ui-editor-toolbar-z-index, 10);
+  display: flex;
+  align-items: center;
+  gap: var(--ui-editor-toolbar-gap, 2px);
+  padding:
+    var(--ui-editor-toolbar-padding-block, 6px)
+    var(--ui-editor-toolbar-padding-inline, 12px);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  background: var(--ui-editor-toolbar-bg, var(--ui-surface, #fff));
+  border-bottom: 1px solid var(--ui-editor-toolbar-border, var(--ui-border, #e5e7eb));
+}
+
+ui-editor-toolbar::-webkit-scrollbar {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  ui-editor-toolbar {
+    position: fixed;
+    top: auto;
+    bottom: env(safe-area-inset-bottom);
+    left: 0;
+    right: 0;
+    border-top: 1px solid var(--ui-editor-toolbar-border, var(--ui-border, #e5e7eb));
+    border-bottom: none;
+    box-shadow: var(--ui-editor-toolbar-mobile-shadow, 0 -2px 8px rgb(0 0 0 / 0.06));
+  }
+}
+
+.ui-editor-toolbar__divider {
+  width: 1px;
+  height: 20px;
+  background: var(--ui-editor-toolbar-divider, var(--ui-border, #e5e7eb));
+  flex-shrink: 0;
+  margin: 0 var(--ui-editor-toolbar-divider-margin, 4px);
+}
+
 .ui-editor-slash-menu {
   background: var(--ui-surface, #fff);
   border: 1px solid var(--ui-border, #e5e7eb);

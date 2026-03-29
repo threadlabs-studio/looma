@@ -45,12 +45,13 @@ Primary scope:
 
 - Replace Knit-local editor table UI pieces with Looma editor components where Phase 1 already exists.
 - Replace Knit-local slash menu presentation with a Looma editor primitive while keeping Knit command/state ownership.
+- Replace Knit-local toolbar shell presentation with a Looma editor primitive while keeping Knit command ownership.
 - Register Looma extension helpers from `@looma/editor/extensions` in Knit.
 - Wire `handleTableOverlayAction(editor, detail)` in Knit.
 
 Done gate:
 
-- Knit imports and uses `@looma/editor` for shipped Phase 1 slash/table primitives.
+- Knit imports and uses `@looma/editor` for shipped toolbar/slash/table primitives.
 - Knit no longer carries duplicate local implementations for the migrated Phase 1 editor surfaces.
 - `pnpm --filter @looma/editor build`: pass
 - Knit typecheck for the integrated editor flows: pass
