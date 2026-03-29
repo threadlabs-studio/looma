@@ -62,10 +62,10 @@ Goal: promote the first clearly reusable Knit patterns into Looma with domain-ne
 
 Priority queue:
 
-1. `FloatingActionButton`
-2. Command/search shell
-3. Generic search result row
-4. Slot-based app top bar shell
+1. `FloatingActionButton` (shipped)
+2. Slot-based app top bar shell (shipped)
+3. Command/search shell
+4. Generic search result row
 
 Done gate for each promoted component:
 
@@ -77,6 +77,7 @@ Done gate for each promoted component:
 Stage completion gate:
 
 - At least one M6 candidate is fully promoted and adopted back in Knit.
+- Progress continues to be reflected in `docs/component-roadmap.md` and Knit’s `docs/looma-migration-inventory.md`.
 
 ### Stage 4: Quality And Dogfooding Follow-Through
 

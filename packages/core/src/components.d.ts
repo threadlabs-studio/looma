@@ -288,6 +288,8 @@ export namespace Components {
          */
         "open": boolean;
     }
+    interface UiTopBar {
+    }
 }
 declare global {
     interface HTMLUiAvatarElement extends Components.UiAvatar, HTMLStencilElement {
@@ -404,6 +406,12 @@ declare global {
         prototype: HTMLUiTooltipElement;
         new (): HTMLUiTooltipElement;
     };
+    interface HTMLUiTopBarElement extends Components.UiTopBar, HTMLStencilElement {
+    }
+    var HTMLUiTopBarElement: {
+        prototype: HTMLUiTopBarElement;
+        new (): HTMLUiTopBarElement;
+    };
     interface HTMLElementTagNameMap {
         "ui-avatar": HTMLUiAvatarElement;
         "ui-avatar-group": HTMLUiAvatarGroupElement;
@@ -424,6 +432,7 @@ declare global {
         "ui-tabs": HTMLUiTabsElement;
         "ui-toast-region": HTMLUiToastRegionElement;
         "ui-tooltip": HTMLUiTooltipElement;
+        "ui-top-bar": HTMLUiTopBarElement;
     }
 }
 declare namespace LocalJSX {
@@ -709,6 +718,8 @@ declare namespace LocalJSX {
          */
         "open"?: boolean;
     }
+    interface UiTopBar {
+    }
 
     interface UiAvatarAttributes {
         "src": string;
@@ -833,6 +844,7 @@ declare namespace LocalJSX {
         "ui-tabs": Omit<UiTabs, keyof UiTabsAttributes> & { [K in keyof UiTabs & keyof UiTabsAttributes]?: UiTabs[K] } & { [K in keyof UiTabs & keyof UiTabsAttributes as `attr:${K}`]?: UiTabsAttributes[K] } & { [K in keyof UiTabs & keyof UiTabsAttributes as `prop:${K}`]?: UiTabs[K] };
         "ui-toast-region": Omit<UiToastRegion, keyof UiToastRegionAttributes> & { [K in keyof UiToastRegion & keyof UiToastRegionAttributes]?: UiToastRegion[K] } & { [K in keyof UiToastRegion & keyof UiToastRegionAttributes as `attr:${K}`]?: UiToastRegionAttributes[K] } & { [K in keyof UiToastRegion & keyof UiToastRegionAttributes as `prop:${K}`]?: UiToastRegion[K] };
         "ui-tooltip": Omit<UiTooltip, keyof UiTooltipAttributes> & { [K in keyof UiTooltip & keyof UiTooltipAttributes]?: UiTooltip[K] } & { [K in keyof UiTooltip & keyof UiTooltipAttributes as `attr:${K}`]?: UiTooltipAttributes[K] } & { [K in keyof UiTooltip & keyof UiTooltipAttributes as `prop:${K}`]?: UiTooltip[K] };
+        "ui-top-bar": UiTopBar;
     }
 }
 export { LocalJSX as JSX };
@@ -858,6 +870,7 @@ declare module "@stencil/core" {
             "ui-tabs": LocalJSX.IntrinsicElements["ui-tabs"] & JSXBase.HTMLAttributes<HTMLUiTabsElement>;
             "ui-toast-region": LocalJSX.IntrinsicElements["ui-toast-region"] & JSXBase.HTMLAttributes<HTMLUiToastRegionElement>;
             "ui-tooltip": LocalJSX.IntrinsicElements["ui-tooltip"] & JSXBase.HTMLAttributes<HTMLUiTooltipElement>;
+            "ui-top-bar": LocalJSX.IntrinsicElements["ui-top-bar"] & JSXBase.HTMLAttributes<HTMLUiTopBarElement>;
         }
     }
 }

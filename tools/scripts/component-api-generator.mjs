@@ -5,14 +5,16 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "../..");
 
-const SOURCE_FILES = [
+const SOURCE_FILES = [];
+
+// Core/layout API metadata is curated in static JSON until the generator grows
+// a reliable parser for the current Stencil/web-component source layout.
+const STATIC_COMPONENT_METADATA_FILES = [
   {
-    packageName: "@looma/core",
-    sourcePath: "packages/core/src/index.ts"
+    metadataPath: "tools/data/core-component-api.json"
   },
   {
-    packageName: "@looma/layout",
-    sourcePath: "packages/layout/src/index.ts"
+    metadataPath: "tools/data/layout-component-api.json"
   }
 ];
 
@@ -406,6 +408,12 @@ function compareByName(left, right) {
 export async function generateComponentApiMetadata() {
   const descriptions = await readComponentDocDescriptions();
   const components = [];
+
+  for (const metadataFile of STATIC_COMPONENT_METADATA_FILES) {
+    const absolutePath = path.join(repoRoot, metadataFile.metadataPath);
+    const metadata = JSON.parse(await readFile(absolutePath, "utf8"));
+    components.push(...metadata.components);
+  }
 
   for (const sourceFile of SOURCE_FILES) {
     const absolutePath = path.join(repoRoot, sourceFile.sourcePath);

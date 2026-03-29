@@ -229,6 +229,6 @@ Execution order + done gates live in `docs/milestones.md`.
 
 1. Finish the Knit primitive replacement wave beyond the already-migrated toast, dialog base, toolbar button, and tree menus.
 2. Harden the Knit `@looma/editor` integration and continue migrating the remaining editor UI that should move out of app-local ownership.
-3. Define and prioritize the first M6 promotions from Knit: `FloatingActionButton`, command/search shell, generic search result row, and top bar shell.
+3. Continue the M6 promotion queue from Knit, with `FloatingActionButton` and the top bar shell already shipped, and command/search shell plus generic search result row next.
 4. Keep `docs/component-roadmap.md`, `docs/editor-roadmap.md`, and `knit/docs/looma-migration-inventory.md` synchronized as migration status changes.
 5. Add a docs/storybook convention note to keep future component labels human-readable while preserving stable `ui-*` doc ids and tags.

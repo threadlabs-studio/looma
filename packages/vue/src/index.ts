@@ -4,8 +4,10 @@ import "@looma/layout";
 import "@looma/core";
 import "@looma/editor";
 import {
+  cloneVNode,
   defineComponent,
   h,
+  isVNode,
   type PropType,
   shallowRef,
   watchEffect,
@@ -224,6 +226,24 @@ function createAdapterComponent(tagName: string, displayName: string) {
         void onSlashMenuHighlight;
         void onSlashMenuSelect;
 
+        const children = Object.entries(slots).flatMap(([slotName, slotFn]) => {
+          if (!slotFn) {
+            return [];
+          }
+
+          return slotFn().map((node) => {
+            if (slotName === "default") {
+              return node;
+            }
+
+            if (isVNode(node)) {
+              return cloneVNode(node, { slot: slotName });
+            }
+
+            return h("span", { slot: slotName }, node);
+          });
+        });
+
         return h(
           tagName,
           {
@@ -232,7 +252,7 @@ function createAdapterComponent(tagName: string, displayName: string) {
               elementRef.value = toHTMLElement(value);
             }
           },
-          slots.default ? slots.default() : undefined
+          children.length > 0 ? children : undefined
         );
       };
     }
@@ -361,6 +381,7 @@ export const FloatingActionButton = createAdapterComponent(
   "ui-floating-action-button",
   "FloatingActionButton"
 );
+export const TopBar = createAdapterComponent("ui-top-bar", "TopBar");
 export const EditorToolbar = createAdapterComponent("ui-editor-toolbar", "EditorToolbar");
 export const EditorTableContextMenu = createAdapterComponent(
   "ui-editor-table-context-menu",
@@ -398,6 +419,7 @@ export const ADAPTER_COMPONENT_TAG_MAP = {
   Avatar: "ui-avatar",
   AvatarGroup: "ui-avatar-group",
   FloatingActionButton: "ui-floating-action-button",
+  TopBar: "ui-top-bar",
   EditorToolbar: "ui-editor-toolbar",
   EditorSlashMenu: "ui-editor-slash-menu",
   EditorTableContextMenu: "ui-editor-table-context-menu",

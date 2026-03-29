@@ -1,0 +1,94 @@
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# Top Bar
+
+Mobile-first navigation shell with slots for leading controls, title content, an optional search affordance, and trailing actions.
+
+## Component Reference
+
+<ComponentExamplesApiTabs component="ui-top-bar" />
+
+## Attributes
+
+None.
+
+## Properties
+
+None.
+
+## Events
+
+None.
+
+## Slots
+
+- Default slot: title/content region.
+- `leading`: leading affordance such as a drawer trigger.
+- `search`: optional search trigger.
+- `actions`: trailing actions.
+
+## SSR Markup
+
+```html
+<ui-top-bar>
+  <button slot="leading" type="button" aria-label="Open navigation">☰</button>
+  <h1>Project Atlas</h1>
+  <button slot="search" type="button" aria-label="Search">⌕</button>
+  <button slot="actions" type="button" aria-label="Share">Share</button>
+</ui-top-bar>
+```
+
+## Framework Snippets
+
+<Tabs groupId="framework" defaultValue="vue">
+  <TabItem value="vue" label="Vue">
+
+```vue
+<script setup lang="ts">
+import { TopBar } from "@looma/vue";
+</script>
+
+<template>
+  <TopBar>
+    <button slot="leading" type="button" aria-label="Open navigation">☰</button>
+    <h1>Project Atlas</h1>
+    <button slot="search" type="button" aria-label="Search">⌕</button>
+    <button slot="actions" type="button" aria-label="Share">Share</button>
+  </TopBar>
+</template>
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<ui-top-bar>
+  <button slot="leading" type="button" aria-label="Open navigation">☰</button>
+  <h1>Project Atlas</h1>
+  <button slot="search" type="button" aria-label="Search">⌕</button>
+  <button slot="actions" type="button" aria-label="Share">Share</button>
+</ui-top-bar>
+```
+
+  </TabItem>
+  <TabItem value="react" label="React">
+
+```tsx
+import { TopBar } from "@looma/react";
+
+export function Example() {
+  return (
+    <TopBar>
+      <button slot="leading" type="button" aria-label="Open navigation">☰</button>
+      <h1>Project Atlas</h1>
+      <button slot="search" type="button" aria-label="Search">⌕</button>
+      <button slot="actions" type="button" aria-label="Share">Share</button>
+    </TopBar>
+  );
+}
+```
+
+  </TabItem>
+</Tabs>

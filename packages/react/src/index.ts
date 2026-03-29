@@ -263,6 +263,7 @@ export const FloatingActionButton = createAdapterComponent(
   "ui-floating-action-button",
   "FloatingActionButton"
 );
+export const TopBar = createAdapterComponent("ui-top-bar", "TopBar");
 export const EditorToolbar = createAdapterComponent("ui-editor-toolbar", "EditorToolbar");
 export const EditorTableContextMenu = createAdapterComponent(
   "ui-editor-table-context-menu",
@@ -398,6 +399,7 @@ export const ADAPTER_COMPONENT_TAG_MAP = {
   Avatar: "ui-avatar",
   AvatarGroup: "ui-avatar-group",
   FloatingActionButton: "ui-floating-action-button",
+  TopBar: "ui-top-bar",
   EditorToolbar: "ui-editor-toolbar",
   EditorSlashMenu: "ui-editor-slash-menu",
   EditorTableContextMenu: "ui-editor-table-context-menu",

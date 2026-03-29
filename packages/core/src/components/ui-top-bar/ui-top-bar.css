@@ -1,0 +1,43 @@
+:host {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: var(--ui-top-bar-z-index, 100);
+  display: block;
+}
+
+.top-bar {
+  min-block-size: var(--ui-top-bar-height, 56px);
+  display: flex;
+  align-items: center;
+  gap: var(--ui-top-bar-gap, var(--ui-space-3, 0.75rem));
+  padding-inline: var(--ui-top-bar-padding-inline, var(--ui-space-4, 1rem));
+  background: var(--ui-top-bar-bg, var(--ui-surface, #ffffff));
+  border-block-end: 1px solid var(--ui-top-bar-border, var(--ui-border, #e5e7eb));
+}
+
+.top-bar__leading,
+.top-bar__search,
+.top-bar__actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.top-bar__actions {
+  gap: var(--ui-top-bar-actions-gap, var(--ui-space-1, 0.25rem));
+}
+
+.top-bar__title {
+  min-inline-size: 0;
+  flex: 1;
+}
+
+[hidden] {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  :host {
+    display: none;
+  }
+}
