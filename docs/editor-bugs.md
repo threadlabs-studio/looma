@@ -89,7 +89,7 @@ Current implementation note:
 - `ui-editor-table-overlay` is still a Phase 1 primitive and does not yet match the Confluence interaction model in spacing, discoverability, or hover behavior.
 - Row and column boundary controls now behave as hover-only line affordances instead of persistent visible buttons.
 - Looma now keeps the floating table toolbar scoped to active table selection only and uses it for quick actions such as cell alignment and simple row/column insertion.
-- The heavier row/column delete, merge/split, and other overflow actions remain in the right-click menu.
+- The heavier row/column delete, merge/split, and other overflow actions are now available from a toolbar overflow menu as well as the right-click menu.
 - Looma now also normalizes resized column widths back into the active table so the table stays full-width inside the editor after drag-resize completes.
 - The full Confluence-style hover-line interaction model and richer structural options model are still not complete.
 
