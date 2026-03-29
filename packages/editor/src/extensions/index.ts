@@ -9,9 +9,11 @@ export {
 export {
   handleTableOverlayAction,
   insertTableAtRange,
+  normalizeActiveTableColumnWidths,
   type InsertTableAtRangeOptions,
 } from "./table-commands";
 export {
+  LoomaTable,
   getActiveTableCellAlignment,
   LoomaTableCell,
   LoomaTableHeader,

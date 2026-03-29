@@ -386,7 +386,7 @@ ui-editor-toolbar::-webkit-scrollbar {
   border: none;
   background: none;
   cursor: pointer;
-  opacity: 0.12;
+  opacity: 1;
   transition:
     opacity var(--ui-motion-fast, 120ms) ease,
     transform var(--ui-motion-fast, 120ms) ease,
@@ -408,17 +408,15 @@ ui-editor-toolbar::-webkit-scrollbar {
   font-size: 14px;
   line-height: 1;
   box-shadow: var(--ui-shadow-sm, 0 2px 8px rgb(0 0 0 / 0.08));
+  opacity: 0;
+  transition:
+    opacity var(--ui-motion-fast, 120ms) ease,
+    transform var(--ui-motion-fast, 120ms) ease,
+    color var(--ui-motion-fast, 120ms) ease;
 }
 
-.ui-editor-table-overlay:hover .ui-editor-table-overlay__control {
-  opacity: 0.28;
-}
-
-.ui-editor-table-overlay__control:hover {
+.ui-editor-table-overlay__control:is(:hover, :focus-visible)::before {
   opacity: 1;
-}
-
-.ui-editor-table-overlay__control:hover::before {
   color: var(--ui-accent, #3b82f6);
   transform: scale(1.04);
 }
@@ -448,11 +446,14 @@ ui-editor-toolbar::-webkit-scrollbar {
   background: color-mix(in srgb, var(--ui-accent, #3b82f6) 45%, transparent);
   border-radius: 999px;
   opacity: 0;
-  transition: opacity var(--ui-motion-fast, 120ms) ease;
+  transition:
+    opacity var(--ui-motion-fast, 120ms) ease,
+    background var(--ui-motion-fast, 120ms) ease;
 }
 
-.ui-editor-table-overlay__control--row:hover::after {
+.ui-editor-table-overlay__control--row:is(:hover, :focus-visible)::after {
   opacity: 1;
+  background: color-mix(in srgb, var(--ui-accent, #3b82f6) 70%, transparent);
 }
 
 .ui-editor-table-overlay__control--col {
@@ -480,16 +481,20 @@ ui-editor-toolbar::-webkit-scrollbar {
   background: color-mix(in srgb, var(--ui-accent, #3b82f6) 45%, transparent);
   border-radius: 999px;
   opacity: 0;
-  transition: opacity var(--ui-motion-fast, 120ms) ease;
+  transition:
+    opacity var(--ui-motion-fast, 120ms) ease,
+    background var(--ui-motion-fast, 120ms) ease;
 }
 
-.ui-editor-table-overlay__control--col:hover::after {
+.ui-editor-table-overlay__control--col:is(:hover, :focus-visible)::after {
   opacity: 1;
+  background: color-mix(in srgb, var(--ui-accent, #3b82f6) 70%, transparent);
 }
 
 .ProseMirror .tableWrapper {
   max-width: 100%;
-  overflow-x: clip;
+  overflow-x: hidden;
+  overflow-y: visible;
 }
 
 /* ProseMirror table (for when Looma editor content is rendered) */
@@ -498,7 +503,7 @@ ui-editor-toolbar::-webkit-scrollbar {
   margin: 0;
   width: 100% !important;
   min-width: 100%;
-  max-width: 100%;
+  max-width: 100% !important;
   table-layout: fixed;
 }
 

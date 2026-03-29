@@ -1,8 +1,14 @@
 import type { Editor } from "@tiptap/core";
+import TableBase from "@tiptap/extension-table";
 import TableCellBase from "@tiptap/extension-table-cell";
 import TableHeaderBase from "@tiptap/extension-table-header";
 
 export type TableCellAlignment = "left" | "center" | "right";
+
+export const LoomaTable = TableBase.configure({
+  resizable: true,
+  lastColumnResizable: false,
+});
 
 function normalizeTableCellAlignment(value: unknown): TableCellAlignment | null {
   if (value === "left" || value === "center" || value === "right") {

@@ -105,6 +105,9 @@ importers:
       '@looma/tokens':
         specifier: workspace:*
         version: link:../tokens
+      prosemirror-tables:
+        specifier: ^1.8.5
+        version: 1.8.5
     devDependencies:
       '@tiptap/core':
         specifier: ^2.11.5

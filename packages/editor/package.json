@@ -26,7 +26,8 @@
   },
   "dependencies": {
     "@looma/core": "workspace:*",
-    "@looma/tokens": "workspace:*"
+    "@looma/tokens": "workspace:*",
+    "prosemirror-tables": "^1.8.5"
   },
   "peerDependencies": {
     "@tiptap/core": ">=2.0.0",
