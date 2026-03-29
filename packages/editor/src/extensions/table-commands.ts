@@ -3,12 +3,18 @@
  * Use with looma-editor-table-overlay-action: call this from the adapter's handler.
  */
 
-import type { Editor } from "@tiptap/core";
+import type { Editor, Range } from "@tiptap/core";
 import type { TableOverlayActionEventDetail } from "../table-overlay";
 
 interface TableNode {
   child: (i: number) => { nodeSize: number; child: (j: number) => { nodeSize: number }; childCount: number };
   childCount: number;
+}
+
+export interface InsertTableAtRangeOptions {
+  rows?: number;
+  cols?: number;
+  withHeaderRow?: boolean;
 }
 
 /**
@@ -44,6 +50,27 @@ function findTable(editor: Editor): { pos: number; node: ReturnType<Editor["stat
     }
   }
   return null;
+}
+
+/**
+ * Deletes a slash-command range (or other inline trigger text) and inserts a table.
+ * Use this when apps want a stable default `/table` behavior without owning table policy.
+ */
+export function insertTableAtRange(
+  editor: Editor,
+  range: Range,
+  options: InsertTableAtRangeOptions = {}
+): boolean {
+  const rows = Math.min(10, Math.max(1, options.rows ?? 3));
+  const cols = Math.min(10, Math.max(1, options.cols ?? 3));
+  const withHeaderRow = options.withHeaderRow ?? true;
+
+  return editor
+    .chain()
+    .focus()
+    .deleteRange(range)
+    .insertTable({ rows, cols, withHeaderRow })
+    .run();
 }
 
 /**

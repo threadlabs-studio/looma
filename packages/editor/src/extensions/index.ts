@@ -6,4 +6,8 @@ export {
   getDefaultEditorExtensions,
   type DefaultEditorExtensionsOptions,
 } from "./preset";
-export { handleTableOverlayAction } from "./table-commands";
+export {
+  handleTableOverlayAction,
+  insertTableAtRange,
+  type InsertTableAtRangeOptions,
+} from "./table-commands";

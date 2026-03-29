@@ -8,7 +8,7 @@ This file tracks shared Looma editor defects that are visible in Knit and other 
 
 ### E-TBL-001: Slash-triggered table picker anchors to toolbar instead of the slash context
 
-Status: open
+Status: closed
 
 Observed behavior:
 
@@ -21,9 +21,10 @@ Expected behavior:
   - the picker opens adjacent to the slash menu / caret location, or
   - `/table` inserts a sensible default table immediately and skips the separate picker.
 
-Current implementation note:
+Resolution:
 
-- Knit currently dispatches `knit:open-table-picker` from the slash flow, and the toolbar owns the picker anchor. That coupling makes the picker appear detached from the slash interaction.
+- `/table` now uses the shared Looma helper `insertTableAtRange(editor, range)` to insert a stable default table directly from the slash interaction.
+- The slash flow no longer jumps to a toolbar-owned picker anchor.
 
 Acceptance notes:
 
@@ -32,7 +33,7 @@ Acceptance notes:
 
 ### E-TBL-002: Insert-table grid uses hover-only selection with no pinning step
 
-Status: open
+Status: closed
 
 Observed behavior:
 
@@ -47,9 +48,10 @@ Expected behavior:
   - click a grid size and insert immediately, or
   - keep hover preview but make confirmation occur without the pointer crossing live selection cells.
 
-Current implementation note:
+Resolution:
 
-- `ui-editor-insert-table-grid` currently treats hover as the live source of truth for `rows` and `cols`.
+- `ui-editor-insert-table-grid` now treats hover as preview only and click as the commit step for `rows` and `cols`.
+- The inserted size stays stable while moving from the grid to the confirmation button.
 
 Acceptance notes:
 

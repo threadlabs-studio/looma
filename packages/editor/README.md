@@ -4,7 +4,7 @@ Confluence / Notion-like block editor UI for Looma, built on **open-source Tipta
 
 ## Status
 
-**Shipped (first slice):** Extension preset (inline code, CodeBlock, list Enter/Backspace behavior, tables), slash menu web component, toolbar shell, table context menu + insert-table grid + table overlay web components, editor CSS, and `handleTableOverlayAction(editor, detail)` for mapping overlay boundary clicks to Tiptap row/column commands. Apps use the preset and web components; they bind data and event listeners only. See [Editor Roadmap](../../docs/editor-roadmap.md) for full scope and phases.
+**Shipped (first slice):** Extension preset (inline code, CodeBlock, list Enter/Backspace behavior, tables), slash menu web component, toolbar shell, table context menu + insert-table grid + table overlay web components, editor CSS, `handleTableOverlayAction(editor, detail)` for mapping overlay boundary clicks to Tiptap row/column commands, and `insertTableAtRange(editor, range, options)` for stable slash-triggered table insertion. Apps use the preset and web components; they bind data and event listeners only. See [Editor Roadmap](../../docs/editor-roadmap.md) for full scope and phases.
 
 ## Scope (from roadmap)
 
@@ -28,7 +28,7 @@ Confluence / Notion-like block editor UI for Looma, built on **open-source Tipta
 
 ## Usage
 
-- **Extensions:** `import { getDefaultEditorExtensions, handleTableOverlayAction } from '@looma/editor/extensions'`. Use `getDefaultEditorExtensions()` when creating the editor. When handling `looma-editor-table-overlay-action`, call `handleTableOverlayAction(editor, e.detail)` to run the correct Tiptap row/column command.
+- **Extensions:** `import { getDefaultEditorExtensions, handleTableOverlayAction, insertTableAtRange } from '@looma/editor/extensions'`. Use `getDefaultEditorExtensions()` when creating the editor. When handling `looma-editor-table-overlay-action`, call `handleTableOverlayAction(editor, e.detail)` to run the correct Tiptap row/column command. Use `insertTableAtRange(editor, range)` when `/table` should insert a stable default table instead of opening app-owned UI somewhere else.
 - **Vanilla JS:** Create the editor with `new Editor({ extensions: getDefaultEditorExtensions(), content, ... })` from `@tiptap/core`; import the custom elements from `@looma/editor` and wire commands to their events.
 - **With Vue/React:** Use the editor adapters from `@looma/vue` or `@looma/react` (e.g. `EditorToolbar`, `EditorSlashMenu`, `EditorTableOverlay`, `EditorTableContextMenu`, `EditorInsertTableGrid`), which render the web components and accept event handlers (`onSlashMenuSelect`, `onTableOverlayAction`, etc.).
 

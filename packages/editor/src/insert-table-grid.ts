@@ -24,7 +24,10 @@ class UIEditorInsertTableGridElement extends HTMLElement {
   #maxCols = DEFAULT_MAX_COLS;
   #selectedRows = 3;
   #selectedCols = 3;
+  #previewRows: number | null = null;
+  #previewCols: number | null = null;
   #withHeaderRow = true;
+  #selectionPinned = false;
 
   connectedCallback(): void {
     this.#maxRows = Math.min(10, Math.max(1, parseInt(this.getAttribute("max-rows") ?? String(DEFAULT_MAX_ROWS), 10) || DEFAULT_MAX_ROWS));
@@ -46,6 +49,17 @@ class UIEditorInsertTableGridElement extends HTMLElement {
   }
 
   private onClick(e: MouseEvent): void {
+    const cell = (e.target as HTMLElement).closest("[data-row][data-col]");
+    if (cell) {
+      this.#selectedRows = parseInt(cell.getAttribute("data-row") ?? "1", 10);
+      this.#selectedCols = parseInt(cell.getAttribute("data-col") ?? "1", 10);
+      this.#previewRows = null;
+      this.#previewCols = null;
+      this.#selectionPinned = true;
+      this.updateSelectionPreview();
+      return;
+    }
+
     const target = (e.target as HTMLElement).closest("[data-insert-table]");
     if (target) {
       const checkbox = this.querySelector('input[type="checkbox"]') as HTMLInputElement | null;
@@ -61,30 +75,38 @@ class UIEditorInsertTableGridElement extends HTMLElement {
   }
 
   private onMouseOver(e: MouseEvent): void {
+    if (this.#selectionPinned) {
+      return;
+    }
+
     const cell = (e.target as HTMLElement).closest("[data-row][data-col]");
     if (cell) {
       const nextRows = parseInt(cell.getAttribute("data-row") ?? "1", 10);
       const nextCols = parseInt(cell.getAttribute("data-col") ?? "1", 10);
-      if (nextRows === this.#selectedRows && nextCols === this.#selectedCols) {
+      if (nextRows === this.#previewRows && nextCols === this.#previewCols) {
         return;
       }
-      this.#selectedRows = nextRows;
-      this.#selectedCols = nextCols;
+      this.#previewRows = nextRows;
+      this.#previewCols = nextCols;
       this.updateSelectionPreview();
     }
   }
 
   private updateSelectionPreview(): void {
+    const activeRows = this.#previewRows ?? this.#selectedRows;
+    const activeCols = this.#previewCols ?? this.#selectedCols;
     const hint = this.querySelector(".ui-editor-insert-table-grid__hint");
     if (hint) {
-      hint.textContent = `${this.#selectedRows} × ${this.#selectedCols}`;
+      hint.textContent = this.#selectionPinned
+        ? `${this.#selectedRows} × ${this.#selectedCols} selected`
+        : `${activeRows} × ${activeCols}`;
     }
 
     const cells = this.querySelectorAll<HTMLElement>("[data-row][data-col]");
     for (const cell of cells) {
       const row = parseInt(cell.getAttribute("data-row") ?? "1", 10);
       const col = parseInt(cell.getAttribute("data-col") ?? "1", 10);
-      cell.classList.toggle("ui-editor-insert-table-grid__cell--selected", row <= this.#selectedRows && col <= this.#selectedCols);
+      cell.classList.toggle("ui-editor-insert-table-grid__cell--selected", row <= activeRows && col <= activeCols);
     }
   }
 
