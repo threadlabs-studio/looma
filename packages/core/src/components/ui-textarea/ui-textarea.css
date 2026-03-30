@@ -1,0 +1,48 @@
+:host {
+  display: inline-flex;
+  color: var(--ui-text-primary);
+}
+
+::slotted(textarea) {
+  width: 100%;
+  appearance: none;
+  border: 1px solid var(--ui-border-default);
+  border-radius: var(--ui-radius-2);
+  background: var(--ui-surface-default);
+  color: inherit;
+  font: inherit;
+  line-height: var(--ui-line-height-md);
+  min-block-size: calc(var(--ui-space-12, 3rem) * 2);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  margin: 0;
+  resize: vertical;
+  transition:
+    border-color var(--ui-motion-fast) var(--ui-motion-ease),
+    box-shadow var(--ui-motion-fast) var(--ui-motion-ease),
+    background-color var(--ui-motion-fast) var(--ui-motion-ease);
+}
+
+::slotted(textarea:hover:not(:focus):not(:disabled)) {
+  border-color: var(--ui-border-strong);
+}
+
+::slotted(textarea:focus) {
+  border-color: var(--ui-focus-ring);
+  box-shadow: 0 0 0 3px var(--ui-accent-soft);
+}
+
+:host([data-invalid='true'])::slotted(textarea),
+::slotted(textarea[aria-invalid='true']) {
+  border-color: var(--ui-accent-active);
+}
+
+::slotted(textarea:disabled) {
+  background: var(--ui-surface-muted);
+  color: var(--ui-text-muted);
+  cursor: not-allowed;
+}
+
+::slotted(textarea:focus-visible) {
+  outline: 2px solid var(--ui-focus-ring);
+  outline-offset: 2px;
+}

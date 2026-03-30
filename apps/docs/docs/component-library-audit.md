@@ -50,11 +50,7 @@ The recurring baseline across the audited libraries is:
 
 ### Current mismatches in Looma's own source of truth
 
-These are planning gaps before they are implementation gaps:
-
-1. `ui-floating-action-button` exists in code and the roadmap, but is missing from `generated/component-api.json` and the public docs site.
-2. The roadmap claims full React and Vue parity, while `docs/adapters.md` still marks some wrapper exports as pending.
-3. `ui-search-shell`, `ui-search-result-row`, and `ui-top-bar` have public docs pages, but they are not discoverable from the current sidebar.
+There is no active docs/API mismatch in the shipped surface right now. The real requirement is to keep generated metadata, adapter docs, and sidebar discoverability aligned as new primitives land.
 
 ### Looma is directionally right on naming
 
@@ -71,9 +67,8 @@ The bigger issue is family coverage and feature depth, not naming drift.
 
 ### P0
 
-- Fix the source-of-truth mismatches for floating action button and wrapper parity docs
+- Keep generated metadata, adapter docs, and sidebar discoverability aligned as new primitives ship
 - Add missing high-frequency primitives:
-  - `Textarea`
   - `Select` / `Listbox`
   - `Combobox` after the simpler select path is stable
 - Deepen current high-frequency primitives:
@@ -107,13 +102,13 @@ The bigger issue is family coverage and feature depth, not naming drift.
 | --- | --- | --- |
 | Layout primitives | Shipped | Keep |
 | Button / input / field / checkbox / radio / switch | Shipped | Keep and deepen |
-| Textarea | Missing | Add |
+| Textarea | Shipped | Extend later |
 | Select / listbox / combobox | Missing | Add next |
 | Dialog / popover / tooltip / menu / tabs / toast | Shipped | Keep and deepen |
 | Disclosure / accordion | Partly shipped | Extend only if grouped usage becomes common |
 | Badge / avatar / avatar group | Shipped | Keep |
 | Top bar / search shell / result row | Shipped as recipe-level primitives | Keep as recipe-level |
-| Floating action button | Shipped in code, missing from generated/public docs | Fix docs parity |
+| Floating action button | Shipped | Keep |
 | Editor toolbar / slash menu / table controls | Partly shipped | Keep |
 | Editor floating toolbar / block menu / link editing | Planned or missing | Prioritize |
 

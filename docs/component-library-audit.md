@@ -24,18 +24,14 @@ This audit compares Looma's shipped and proposed component surface against a bro
 ### Shipped now
 
 - Layout: `ui-stack`, `ui-inline`, `ui-cluster`, `ui-grid`, `ui-center`, `ui-separator`
-- Forms/actions: `ui-button`, `ui-input`, `ui-form-field`, `ui-checkbox`, `ui-radio`, `ui-radio-group`, `ui-switch`
+- Forms/actions: `ui-button`, `ui-icon-button`, `ui-input`, `ui-textarea`, `ui-form-field`, `ui-checkbox`, `ui-radio`, `ui-radio-group`, `ui-switch`
 - Overlay/display/navigation: `ui-dialog`, `ui-popover`, `ui-tooltip`, `ui-menu`, `ui-menu-item`, `ui-disclosure`, `ui-tabs`, `ui-toast-region`, `ui-badge`, `ui-avatar`, `ui-avatar-group`
-- App-shell / recipe level: `ui-search-shell`, `ui-search-result-row`, `ui-top-bar`
+- App-shell / recipe level: `ui-floating-action-button`, `ui-search-shell`, `ui-search-result-row`, `ui-top-bar`
 - Editor: `ui-editor-toolbar`, `ui-editor-slash-menu`, `ui-editor-table-context-menu`, `ui-editor-table-toolbar`, `ui-editor-insert-table-grid`, `ui-editor-table-overlay`
 
 ### Source-of-truth mismatches
 
-These should be treated as audit findings, not papered over.
-
-1. `ui-floating-action-button` exists in core source, tests, and the roadmap, but it is missing from `generated/component-api.json` and the public docs site.
-2. `docs/component-roadmap.md` says React and Vue wrappers have full parity, but `docs/adapters.md` still marks several wrapper exports as pending.
-3. `ui-search-shell`, `ui-search-result-row`, and `ui-top-bar` have public docs pages but are not surfaced in the docs sidebar, so the published docs do not reflect the full shipped/public surface.
+No active mismatch is open after syncing generated metadata, adapter docs, and public docs discoverability for the shipped surface. Keep this section empty unless a real drift appears again.
 
 ## Cross-Library Patterns
 
@@ -106,13 +102,13 @@ The ecosystem converges on a few patterns:
 
 | Family | External names seen | Common features / API patterns | Looma status | Recommendation |
 | --- | --- | --- | --- | --- |
-| Button | `Button`, `ActionButton`, `IconButton`, `sp-button`, `fast-button`, `sl-button`, `q-btn` | `variant`, `size`, `color`/`tone`, loading, disabled, icon slots, link mode, grouped buttons | Shipped as `ui-button` | Extend: add explicit loading and icon-slot conventions to roadmap |
+| Button | `Button`, `ActionButton`, `IconButton`, `sp-button`, `fast-button`, `sl-button`, `q-btn` | `variant`, `size`, `color`/`tone`, loading, disabled, icon slots, link mode, grouped buttons | Shipped as `ui-button` and `ui-icon-button` | Extend: add explicit loading and icon-slot conventions to roadmap |
 | Text input | `Input`, `TextField`, `InputText`, `QInput`, `sl-input`, `sp-textfield` | `value`, `defaultValue`, `disabled`, `readonly`, `invalid`, placeholder, clearable, full-width/fluid, size, variant | Shipped as `ui-input` | Extend: plan `clearable`, `size`, and explicit `prefix`/`suffix` or adornment pattern |
 | Field wrapper | `Field`, `FormField`, `TextField`, `FormControl`, `QField` | label, help text, error text, required, invalid, disabled, orientation, slot/part composition | Shipped as `ui-form-field` | Keep; treat as Looma's canonical field wrapper |
 | Checkbox | `Checkbox`, `CheckboxCard` | `checked/defaultChecked`, disabled, invalid, indeterminate, value, label composition | Shipped as `ui-checkbox` | Keep |
 | Radio / radio group | `Radio`, `RadioGroup`, segmented/choice variants | `value`, `name`, `orientation`, `disabled`, `required`, `onChange`/`onSelectionChange` | Shipped as `ui-radio` and `ui-radio-group` | Keep |
 | Switch | `Switch`, `Toggle`, `ToggleSwitch` | `checked/defaultChecked`, disabled, required, labeling, size | Shipped as `ui-switch` | Keep |
-| Textarea | `Textarea`, `TextArea`, `QInput type=textarea`, `sl-textarea` | rows, auto-resize, invalid, resize behavior, count/help integration | Missing | Add to component roadmap as a common baseline primitive |
+| Textarea | `Textarea`, `TextArea`, `QInput type=textarea`, `sl-textarea` | rows, auto-resize, invalid, resize behavior, count/help integration | Shipped as `ui-textarea` | Extend later with auto-resize and count/help guidance |
 | Select / listbox / combobox | `Select`, `Listbox`, `ComboBox`, `QSelect`, `fast-select`, `sp-picker`, `sl-select` | controlled selection, option identity, filtering/search, disabled items, sections, keyboard nav, empty state | Missing | Add as a major next-wave family; start with the simpler select/listbox path |
 
 ### Overlay, navigation, display
@@ -129,13 +125,13 @@ The ecosystem converges on a few patterns:
 | Badge / chip / tag | `Badge`, `Chip`, `Tag`, `StatusLight` | variant, tone/severity/color, removable/closable, selectable, icon support, pill/rounded | Shipped as `ui-badge` | Extend: plan whether dismissible/selectable chip stays separate from badge |
 | Avatar / avatar group | `Avatar`, `AvatarGroup`, `User`, identity badge | image/fallback, label, size, status, overflow count | Shipped as `ui-avatar` and `ui-avatar-group` | Keep |
 | Top bar / app bar | `App Bar`, `Top Nav`, `Header`, `Top Nav Item` | leading actions, title slot, search slot, trailing actions, sticky behavior, responsive collapse | Shipped as `ui-top-bar` | Keep as recipe-level Looma primitive; no rename needed |
-| Floating action button | `Floating Action Button`, `FAB`, `Speed Dial`, `QFab` | primary action, expandable sub-actions, hide/show label, icon-only, sticky positioning, mobile emphasis | Shipped in code, missing in generated/public docs | Keep and fix source-of-truth gaps before further planning |
+| Floating action button | `Floating Action Button`, `FAB`, `Speed Dial`, `QFab` | primary action, expandable sub-actions, hide/show label, icon-only, sticky positioning, mobile emphasis | Shipped as `ui-floating-action-button` | Keep |
 
 ### Search and command-shell recipes
 
 | Family | External names seen | Common features / API patterns | Looma status | Recommendation |
 | --- | --- | --- | --- | --- |
-| Search shell / command palette | command palette, search dialog, omnibox, quick search | open state, keyboard shortcut, search slot, grouped results, loading/empty/footer slots, responsive dialog behavior | Shipped as `ui-search-shell` | Keep as recipe-level primitive; add docs/sidebar visibility and optional feature checklist |
+| Search shell / command palette | command palette, search dialog, omnibox, quick search | open state, keyboard shortcut, search slot, grouped results, loading/empty/footer slots, responsive dialog behavior | Shipped as `ui-search-shell` | Keep as recipe-level primitive; add optional feature checklist as usage grows |
 | Result row / list item | list row, command item, option row, action row | selected/active state, disabled, leading/trailing visuals, metadata, excerpt/description | Shipped as `ui-search-result-row` | Keep; add optional keyboard/selection-state guidance in roadmap |
 
 ### Editor primitives
@@ -157,12 +153,11 @@ The ecosystem converges on a few patterns:
 
 ### P0: baseline gaps to close next
 
-1. Fix documentation and API source mismatches:
-   - `ui-floating-action-button`
-   - adapter parity claims
-   - missing sidebar exposure for shipped recipe-level components
+1. Keep documentation and API source-of-truth aligned as new primitives ship:
+   - generated metadata
+   - adapter parity docs
+   - docs/sidebar discoverability
 2. Add missing high-frequency form families:
-   - `Textarea`
    - `Select` / `Listbox`
    - `Combobox` after select/listbox baseline is stable
 3. Deepen existing high-frequency primitives:
@@ -205,8 +200,8 @@ The ecosystem converges on a few patterns:
 ### Component roadmap
 
 - Add a benchmark-driven gap section with P0/P1/P2 priorities
-- Move `Textarea`, `Select/Listbox`, and `Combobox` into the candidate queue
-- Add a "source-of-truth fixes" item for `ui-floating-action-button` and docs parity
+- Move `Select/Listbox` and `Combobox` into the candidate queue
+- Add a "source-of-truth fixes" item for adapter parity docs and future docs/API drift
 - Keep `ui-top-bar`, `ui-search-shell`, and `ui-search-result-row` as recipe-level Looma primitives rather than forcing them into lower-level generic abstractions
 
 ### Editor roadmap

@@ -45,12 +45,24 @@ const sidebars: SidebarsConfig = {
       label: "Forms",
       items: [
         "components/ui-button",
+        "components/ui-icon-button",
         "components/ui-input",
+        "components/ui-textarea",
         "components/ui-form-field",
         "components/ui-checkbox",
         "components/ui-switch",
         "components/ui-radio-group",
         "components/ui-radio"
+      ]
+    },
+    {
+      type: "category",
+      label: "Recipes",
+      items: [
+        "components/ui-floating-action-button",
+        "components/ui-search-shell",
+        "components/ui-search-result-row",
+        "components/ui-top-bar"
       ]
     },
     {

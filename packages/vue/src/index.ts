@@ -366,7 +366,9 @@ export const Popover = createAdapterComponent("ui-popover", "Popover");
 export const Menu = createAdapterComponent("ui-menu", "Menu");
 export const MenuItem = createAdapterComponent("ui-menu-item", "MenuItem");
 export const Button = createAdapterComponent("ui-button", "Button");
+export const IconButton = createAdapterComponent("ui-icon-button", "IconButton");
 export const Input = createAdapterComponent("ui-input", "Input");
+export const Textarea = createAdapterComponent("ui-textarea", "Textarea");
 export const FormField = createAdapterComponent("ui-form-field", "FormField");
 export const Tooltip = createAdapterComponent("ui-tooltip", "Tooltip");
 export const ToastRegion = createAdapterComponent("ui-toast-region", "ToastRegion");
@@ -413,7 +415,9 @@ export const ADAPTER_COMPONENT_TAG_MAP = {
   Menu: "ui-menu",
   MenuItem: "ui-menu-item",
   Button: "ui-button",
+  IconButton: "ui-icon-button",
   Input: "ui-input",
+  Textarea: "ui-textarea",
   FormField: "ui-form-field",
   Tooltip: "ui-tooltip",
   ToastRegion: "ui-toast-region",

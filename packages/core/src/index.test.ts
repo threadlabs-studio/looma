@@ -217,6 +217,54 @@ describe("@looma/core primitives", () => {
     expect(button?.disabled).toBe(false);
   });
 
+  it("wires icon button label and disabled state to the inner button", () => {
+    document.body.innerHTML = `
+      <ui-icon-button label="Search" variant="outline" size="lg" disabled>
+        <svg aria-hidden="true" viewBox="0 0 24 24"></svg>
+      </ui-icon-button>
+    `;
+
+    const wrapper = document.querySelector("ui-icon-button") as HTMLElement & {
+      disabled: boolean;
+    };
+    const button = wrapper.shadowRoot?.querySelector("button");
+
+    expect(wrapper.getAttribute("variant")).toBe("outline");
+    expect(wrapper.getAttribute("size")).toBe("lg");
+    expect(button?.getAttribute("aria-label")).toBe("Search");
+    expect(button?.disabled).toBe(true);
+
+    wrapper.disabled = false;
+    expect(button?.disabled).toBe(false);
+  });
+
+  it("syncs textarea value, rows, and invalid state to the inner textarea", () => {
+    document.body.innerHTML = `
+      <ui-textarea value="Initial copy" rows="6" invalid>
+        <textarea name="notes"></textarea>
+      </ui-textarea>
+    `;
+
+    const wrapper = document.querySelector("ui-textarea") as HTMLElement & {
+      value: string;
+      rows: number;
+      invalid: boolean;
+    };
+    const textarea = wrapper.querySelector("textarea");
+
+    expect(textarea?.value).toBe("Initial copy");
+    expect(textarea?.rows).toBe(6);
+    expect(textarea?.getAttribute("aria-invalid")).toBe("true");
+
+    wrapper.value = "Updated copy";
+    wrapper.rows = 3;
+    wrapper.invalid = false;
+
+    expect(textarea?.value).toBe("Updated copy");
+    expect(textarea?.rows).toBe(3);
+    expect(textarea?.getAttribute("aria-invalid")).toBe("false");
+  });
+
   it("opens and closes tooltip from trigger interactions", () => {
     document.body.innerHTML = `
       <button id="tooltip-trigger" type="button">Info</button>

@@ -23,7 +23,9 @@ export type AdapterTagName =
   | "ui-menu"
   | "ui-menu-item"
   | "ui-button"
+  | "ui-icon-button"
   | "ui-input"
+  | "ui-textarea"
   | "ui-form-field"
   | "ui-tooltip"
   | "ui-toast-region"
@@ -176,7 +178,9 @@ export const ADAPTER_COMPONENT_TAG_MAP = {
   Menu: "ui-menu",
   MenuItem: "ui-menu-item",
   Button: "ui-button",
+  IconButton: "ui-icon-button",
   Input: "ui-input",
+  Textarea: "ui-textarea",
   FormField: "ui-form-field",
   Tooltip: "ui-tooltip",
   ToastRegion: "ui-toast-region",

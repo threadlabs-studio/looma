@@ -1,6 +1,6 @@
 # Component Roadmap
 
-Last updated: 2026-03-28
+Last updated: 2026-03-29
 
 This is the editable plan for Looma components across current shipping scope and near-term promotions from Knit.
 
@@ -21,6 +21,7 @@ Source of truth: `generated/component-api.json`
 - `ui-disclosure`
 - `ui-floating-action-button`
 - `ui-form-field`
+- `ui-icon-button`
 - `ui-grid`
 - `ui-inline`
 - `ui-input`
@@ -38,6 +39,7 @@ Source of truth: `generated/component-api.json`
 - `ui-top-bar`
 - `ui-toast-region`
 - `ui-tooltip`
+- `ui-textarea`
 
 ## Master Component Checklist
 
@@ -62,14 +64,14 @@ Conventions for this checklist:
 ### Forms and actions
 
 - [x] Button
-- [ ] IconButton
+- [x] IconButton
 - [x] Input
 - [x] FormField
 - [x] Checkbox
 - [x] Radio
 - [x] RadioGroup
 - [x] Switch
-- [ ] Textarea
+- [x] Textarea
 - [ ] Select
 - [ ] Listbox
 - [ ] Combobox
@@ -96,7 +98,6 @@ Conventions for this checklist:
 - [x] AvatarGroup
 - [x] TopBar
 - [x] FloatingActionButton
-  Docs/API sync still needs to be fixed so this matches generated metadata and public docs.
 
 ### Search and app-shell recipes
 
@@ -152,11 +153,8 @@ Source: [Component Library Audit](./component-library-audit.md), based on offici
 ### P0
 
 - Fix source-of-truth mismatches before planning further promotions:
-  - `ui-floating-action-button` exists in code/roadmap but is missing from generated API metadata and the public docs site
-  - wrapper parity claims in this roadmap should match `docs/adapters.md`
-  - shipped recipe-level docs pages (`ui-search-shell`, `ui-search-result-row`, `ui-top-bar`) should be discoverable in the docs site
+  - keep generated API metadata, adapter docs, and docs discoverability aligned as new primitives ship
 - Add missing high-frequency form primitives:
-  - `Textarea`
   - `Select` / `Listbox`
   - `Combobox` after select/listbox baseline is stable
 - Deepen existing high-frequency primitives:
@@ -198,6 +196,7 @@ Source: [Component Library Audit](./component-library-audit.md), based on offici
   - Search result row promoted into Looma and consumed by Knit while result shaping and highlighting stay app-local
 - In progress:
   - Primitive normalization (`Button`/`Input`/`FormField`) in high-use flows such as sidebar dialogs and settings
+  - `IconButton` adoption in high-use shell controls while preserving Knit’s exact spacing and behavior
 
 ## Future: Docs Site in Looma
 

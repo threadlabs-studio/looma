@@ -1,0 +1,93 @@
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# Textarea
+
+Multiline text-input primitive that mirrors value, rows, disabled, readonly, and invalid state to a native `<textarea>`.
+
+## Component Reference
+
+<ComponentExamplesApiTabs component="ui-textarea" />
+
+## Attributes
+
+| Name | Type | Default |
+| --- | --- | --- |
+| `value` | `string` | empty |
+| `default-value` | `string` | empty |
+| `disabled` | `boolean` | `false` |
+| `readonly` | `boolean` | `false` |
+| `invalid` | `boolean` | `false` |
+| `rows` | `number` | `4` |
+
+## Properties
+
+| Name | Type |
+| --- | --- |
+| `value` | `string` |
+| `defaultValue` | `string` |
+| `disabled` | `boolean` |
+| `readOnly` | `boolean` |
+| `invalid` | `boolean` |
+| `rows` | `number` |
+
+## Events
+
+Uses native `input` and `change` behavior via internal control synchronization.
+
+## Slots
+
+Default slot (typically one native `<textarea>` child).
+
+## SSR Markup
+
+```html
+<ui-textarea value="Notes" rows="5">
+  <textarea name="notes"></textarea>
+</ui-textarea>
+```
+
+## Framework Snippets
+
+<Tabs groupId="framework" defaultValue="vue">
+  <TabItem value="vue" label="Vue">
+
+```vue
+<script setup lang="ts">
+import { Textarea } from "@looma/vue";
+</script>
+
+<template>
+  <Textarea value="Notes" :rows="5">
+    <textarea name="notes" />
+  </Textarea>
+</template>
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<ui-textarea value="Notes" rows="5">
+  <textarea name="notes"></textarea>
+</ui-textarea>
+```
+
+  </TabItem>
+  <TabItem value="react" label="React">
+
+```tsx
+import { Textarea } from "@looma/react";
+
+export function Example() {
+  return (
+    <Textarea value="Notes" rows={5}>
+      <textarea name="notes" />
+    </Textarea>
+  );
+}
+```
+
+  </TabItem>
+</Tabs>

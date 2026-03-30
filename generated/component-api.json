@@ -483,6 +483,56 @@
       ]
     },
     {
+      "tag": "ui-floating-action-button",
+      "package": "@looma/core",
+      "className": "UIFloatingActionButtonElement",
+      "description": "Primary floating action primitive for mobile-first create or compose affordances.",
+      "attributes": [
+        {
+          "name": "disabled",
+          "property": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "label",
+          "property": "label",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "mobile-only",
+          "property": "mobileOnly",
+          "type": "boolean",
+          "default": false
+        }
+      ],
+      "properties": [
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "mobileOnly",
+          "type": "boolean",
+          "default": false
+        }
+      ],
+      "events": [],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Default child content."
+        }
+      ]
+    },
+    {
       "tag": "ui-form-field",
       "package": "@looma/core",
       "className": "UIFormFieldElement",
@@ -564,6 +614,87 @@
         {
           "name": "default",
           "description": "Default child content."
+        }
+      ]
+    },
+    {
+      "tag": "ui-icon-button",
+      "package": "@looma/core",
+      "className": "UIIconButtonElement",
+      "description": "Icon-only button primitive with stable square sizing for compact actions and shell controls.",
+      "attributes": [
+        {
+          "name": "disabled",
+          "property": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "label",
+          "property": "label",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "size",
+          "property": "size",
+          "type": "string",
+          "default": "md",
+          "options": [
+            "sm",
+            "md",
+            "lg"
+          ]
+        },
+        {
+          "name": "variant",
+          "property": "variant",
+          "type": "string",
+          "default": "ghost",
+          "options": [
+            "ghost",
+            "outline",
+            "solid"
+          ]
+        }
+      ],
+      "properties": [
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "size",
+          "type": "\"sm\" | \"md\" | \"lg\"",
+          "default": "md",
+          "options": [
+            "sm",
+            "md",
+            "lg"
+          ]
+        },
+        {
+          "name": "variant",
+          "type": "\"ghost\" | \"outline\" | \"solid\"",
+          "default": "ghost",
+          "options": [
+            "ghost",
+            "outline",
+            "solid"
+          ]
+        }
+      ],
+      "events": [],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Icon content, typically a single SVG."
         }
       ]
     },
@@ -1299,6 +1430,89 @@
           "detailDocs": "Emitted when a selectable option becomes active."
         }
       ],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Default child content."
+        }
+      ]
+    },
+    {
+      "tag": "ui-textarea",
+      "package": "@looma/core",
+      "className": "UITextareaElement",
+      "description": "Multiline text-input primitive that mirrors value and state to native textarea controls.",
+      "attributes": [
+        {
+          "name": "default-value",
+          "property": "defaultValue",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "disabled",
+          "property": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "invalid",
+          "property": "invalid",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "readonly",
+          "property": "readOnly",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "rows",
+          "property": "rows",
+          "type": "number",
+          "default": 4
+        },
+        {
+          "name": "value",
+          "property": "value",
+          "type": "string",
+          "default": ""
+        }
+      ],
+      "properties": [
+        {
+          "name": "defaultValue",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "invalid",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "rows",
+          "type": "number",
+          "default": 4
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "default": ""
+        }
+      ],
+      "events": [],
       "slots": [
         {
           "name": "default",

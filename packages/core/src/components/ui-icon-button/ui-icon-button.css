@@ -1,0 +1,92 @@
+:host {
+  display: inline-flex;
+  color: var(--ui-text-secondary);
+}
+
+button {
+  appearance: none;
+  inline-size: var(--ui-icon-button-size, 2.5rem);
+  block-size: var(--ui-icon-button-size, 2.5rem);
+  min-inline-size: var(--ui-icon-button-size, 2.5rem);
+  min-block-size: var(--ui-icon-button-size, 2.5rem);
+  padding: 0;
+  margin: 0;
+  border: 1px solid transparent;
+  border-radius: var(--ui-icon-button-radius, var(--ui-radius-2));
+  background: var(--ui-icon-button-bg, transparent);
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background-color var(--ui-motion-fast) var(--ui-motion-ease),
+    border-color var(--ui-motion-fast) var(--ui-motion-ease),
+    color var(--ui-motion-fast) var(--ui-motion-ease),
+    box-shadow var(--ui-motion-fast) var(--ui-motion-ease),
+    transform var(--ui-motion-fast) var(--ui-motion-ease);
+}
+
+:host([size='sm']) button {
+  inline-size: var(--ui-icon-button-size-sm, 2rem);
+  block-size: var(--ui-icon-button-size-sm, 2rem);
+  min-inline-size: var(--ui-icon-button-size-sm, 2rem);
+  min-block-size: var(--ui-icon-button-size-sm, 2rem);
+}
+
+:host([size='lg']) button {
+  inline-size: var(--ui-icon-button-size-lg, 2.75rem);
+  block-size: var(--ui-icon-button-size-lg, 2.75rem);
+  min-inline-size: var(--ui-icon-button-size-lg, 2.75rem);
+  min-block-size: var(--ui-icon-button-size-lg, 2.75rem);
+}
+
+:host([variant='outline']) button {
+  border-color: var(--ui-icon-button-border, var(--ui-border-default));
+  background: var(--ui-icon-button-outline-bg, var(--ui-surface-default));
+  color: var(--ui-icon-button-outline-color, var(--ui-text-primary));
+}
+
+:host([variant='solid']) button {
+  background: var(--ui-icon-button-solid-bg, var(--ui-accent-solid));
+  color: var(--ui-icon-button-solid-color, var(--ui-text-on-accent));
+  box-shadow: var(
+    --ui-icon-button-solid-shadow,
+    0 1px 2px color-mix(in srgb, var(--ui-accent-solid) 18%, transparent)
+  );
+}
+
+button:hover:enabled {
+  background: var(--ui-icon-button-hover-bg, var(--ui-surface-muted));
+  color: var(--ui-icon-button-hover-color, var(--ui-text-primary));
+}
+
+:host([variant='outline']) button:hover:enabled {
+  border-color: var(--ui-icon-button-hover-border, var(--ui-border-strong));
+}
+
+:host([variant='solid']) button:hover:enabled {
+  background: var(--ui-icon-button-solid-hover-bg, var(--ui-accent-hover));
+}
+
+button:active:enabled {
+  transform: scale(var(--ui-icon-button-active-scale, 0.96));
+}
+
+button:focus-visible {
+  outline: 2px solid var(--ui-focus-ring);
+  outline-offset: 2px;
+}
+
+button:disabled,
+:host([disabled]) {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+::slotted(svg) {
+  inline-size: var(--ui-icon-button-icon-size, 1.125rem);
+  block-size: var(--ui-icon-button-icon-size, 1.125rem);
+  flex-shrink: 0;
+  stroke-width: var(--ui-icon-button-icon-stroke-width, 1.75);
+}

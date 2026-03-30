@@ -21,16 +21,23 @@ Keep framework adapters thin and mechanical: they pass props/attributes/children
 | `ui-menu` | `Menu` | `Menu` | native element + `bindAdapter` |
 | `ui-menu-item` | `MenuItem` | `MenuItem` | native element + `bindAdapter` |
 | `ui-button` | `Button` | `Button` | native element + `bindAdapter` |
+| `ui-icon-button` | `IconButton` | `IconButton` | native element + `bindAdapter` |
 | `ui-input` | `Input` | `Input` | native element + `bindAdapter` |
+| `ui-textarea` | `Textarea` | `Textarea` | native element + `bindAdapter` |
 | `ui-form-field` | `FormField` | `FormField` | native element + `bindAdapter` |
 | `ui-tooltip` | `Tooltip` | `Tooltip` | native element + `bindAdapter` |
 | `ui-toast-region` | `ToastRegion` | `ToastRegion` | native element + `bindAdapter` |
 | `ui-checkbox` | `Checkbox` | `Checkbox` | native element + `bindAdapter` |
 | `ui-switch` | `Switch` | `Switch` | native element + `bindAdapter` |
-| `ui-radio-group` | _pending wrapper export_ | _pending wrapper export_ | native element + `bindAdapter` |
-| `ui-radio` | _pending wrapper export_ | _pending wrapper export_ | native element + `bindAdapter` |
-| `ui-badge` | _pending wrapper export_ | _pending wrapper export_ | native element + `bindAdapter` |
-| `ui-avatar` | _pending wrapper export_ | _pending wrapper export_ | native element + `bindAdapter` |
+| `ui-radio-group` | `RadioGroup` | `RadioGroup` | native element + `bindAdapter` |
+| `ui-radio` | `Radio` | `Radio` | native element + `bindAdapter` |
+| `ui-badge` | `Badge` | `Badge` | native element + `bindAdapter` |
+| `ui-avatar` | `Avatar` | `Avatar` | native element + `bindAdapter` |
+| `ui-avatar-group` | `AvatarGroup` | `AvatarGroup` | native element + `bindAdapter` |
+| `ui-floating-action-button` | `FloatingActionButton` | `FloatingActionButton` | native element + `bindAdapter` |
+| `ui-search-shell` | `SearchShell` | `SearchShell` | native element + `bindAdapter` |
+| `ui-search-result-row` | `SearchResultRow` | `SearchResultRow` | native element + `bindAdapter` |
+| `ui-top-bar` | `TopBar` | `TopBar` | native element + `bindAdapter` |
 
 ## Event Parity
 
