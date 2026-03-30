@@ -90,6 +90,7 @@ Current implementation note:
 - Row and column boundary controls now behave as hover-only line affordances instead of persistent visible buttons.
 - The overlay now keeps a single active boundary at a time, with the insert handle tied to the hovered row/column line instead of a blanket of visually equivalent controls.
 - Looma now keeps the floating table toolbar scoped to active table selection only and uses it for quick actions such as cell alignment and simple row/column insertion.
+- Cell background is now a shared cell-scoped action in the right-click menu instead of being mixed into the quick toolbar or structural overflow.
 - The heavier row/column delete, merge/split, and other overflow actions are now available from a grouped toolbar overflow menu as well as the right-click menu.
 - The right-click menu now hides unavailable actions and groups the remaining actions by structure/table intent instead of presenting one long partially-disabled list.
 - Looma now also normalizes resized column widths back into the active table so the table stays full-width inside the editor after drag-resize completes.
