@@ -24,6 +24,13 @@ export interface TableContextMenuActionEventDetail {
   action: TableContextMenuAction;
 }
 
+type TableContextMenuItem = {
+  action: TableContextMenuAction;
+  label: string;
+  can: string;
+  tone?: "danger";
+};
+
 function dispatchTableAction(element: HTMLElement, action: TableContextMenuAction): void {
   element.dispatchEvent(
     new CustomEvent<TableContextMenuActionEventDetail>("looma-editor-table-action", {
@@ -81,26 +88,55 @@ class UIEditorTableContextMenuElement extends HTMLElement {
     this.hidden = !open;
     if (!open) return;
 
-    const actions: { action: TableContextMenuAction; label: string; can: string }[] = [
-      { action: "add-row-before", label: "Add row above", can: "can-add-row-before" },
-      { action: "add-row-after", label: "Add row below", can: "can-add-row-after" },
-      { action: "add-column-before", label: "Add column left", can: "can-add-column-before" },
-      { action: "add-column-after", label: "Add column right", can: "can-add-column-after" },
-      { action: "delete-row", label: "Delete row", can: "can-delete-row" },
-      { action: "delete-column", label: "Delete column", can: "can-delete-column" },
-      { action: "delete-table", label: "Delete table", can: "can-delete-table" },
-      { action: "merge-cells", label: "Merge cells", can: "can-merge-cells" },
-      { action: "split-cell", label: "Split cell", can: "can-split-cell" },
-    ];
+    const sections = [
+      {
+        heading: "Structure",
+        actions: [
+          { action: "add-row-before", label: "Add row above", can: "can-add-row-before" },
+          { action: "add-row-after", label: "Add row below", can: "can-add-row-after" },
+          { action: "add-column-before", label: "Add column left", can: "can-add-column-before" },
+          { action: "add-column-after", label: "Add column right", can: "can-add-column-after" },
+        ] satisfies TableContextMenuItem[],
+      },
+      {
+        heading: "Cells",
+        actions: [
+          { action: "merge-cells", label: "Merge cells", can: "can-merge-cells" },
+          { action: "split-cell", label: "Split cell", can: "can-split-cell" },
+        ] satisfies TableContextMenuItem[],
+      },
+      {
+        heading: "Table",
+        actions: [
+          { action: "delete-row", label: "Delete row", can: "can-delete-row", tone: "danger" },
+          { action: "delete-column", label: "Delete column", can: "can-delete-column", tone: "danger" },
+          { action: "delete-table", label: "Delete table", can: "can-delete-table", tone: "danger" },
+        ] satisfies TableContextMenuItem[],
+      },
+    ] satisfies Array<{
+      heading: string;
+      actions: TableContextMenuItem[];
+    }>;
 
-    const sep1 = 4;
-    const sep2 = 7;
+    const availableSections = sections
+      .map((section) => ({
+        ...section,
+        actions: section.actions.filter((action) => this.getBoolAttr(action.can)),
+      }))
+      .filter((section) => section.actions.length > 0);
 
     let html = '<div class="ui-editor-table-context-menu" role="menu">';
-    actions.forEach((item, i) => {
-      if (i === sep1 || i === sep2) html += '<div class="ui-editor-table-context-menu__sep"></div>';
-      const disabled = !this.getBoolAttr(item.can);
-      html += `<button type="button" role="menuitem" data-action="${item.action}" ${disabled ? "disabled" : ""}>${item.label}</button>`;
+    availableSections.forEach((section, sectionIndex) => {
+      if (sectionIndex > 0) {
+        html += '<div class="ui-editor-table-context-menu__sep"></div>';
+      }
+      html += '<div class="ui-editor-table-context-menu__section" role="none">';
+      html += `<div class="ui-editor-table-context-menu__heading" role="presentation">${section.heading}</div>`;
+      section.actions.forEach((action) => {
+        const tone = "tone" in action ? action.tone : undefined;
+        html += `<button type="button" role="menuitem" data-action="${action.action}"${tone ? ` data-tone="${tone}"` : ""}>${action.label}</button>`;
+      });
+      html += "</div>";
     });
     html += "</div>";
 

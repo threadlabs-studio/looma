@@ -240,9 +240,17 @@ ui-editor-toolbar::-webkit-scrollbar {
   background: var(--ui-surface-hover, #f3f4f6);
 }
 
-.ui-editor-table-context-menu button:disabled {
-  opacity: 0.5;
-  cursor: default;
+.ui-editor-table-context-menu button[data-tone="danger"] {
+  color: var(--ui-danger, #dc2626);
+}
+
+.ui-editor-table-context-menu__heading {
+  padding: var(--ui-space-1, 4px) var(--ui-space-3, 12px) var(--ui-space-1, 4px) var(--ui-space-2, 8px);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ui-text-muted, #6b7280);
 }
 
 .ui-editor-table-context-menu__sep {
