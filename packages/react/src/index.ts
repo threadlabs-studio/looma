@@ -250,6 +250,7 @@ export const MenuItem = createAdapterComponent("ui-menu-item", "MenuItem");
 export const Button = createAdapterComponent("ui-button", "Button");
 export const IconButton = createAdapterComponent("ui-icon-button", "IconButton");
 export const Input = createAdapterComponent("ui-input", "Input");
+export const Select = createAdapterComponent("ui-select", "Select");
 export const Textarea = createAdapterComponent("ui-textarea", "Textarea");
 export const FormField = createAdapterComponent("ui-form-field", "FormField");
 export const Tooltip = createAdapterComponent("ui-tooltip", "Tooltip");
@@ -397,6 +398,7 @@ export const ADAPTER_COMPONENT_TAG_MAP = {
   Button: "ui-button",
   IconButton: "ui-icon-button",
   Input: "ui-input",
+  Select: "ui-select",
   Textarea: "ui-textarea",
   FormField: "ui-form-field",
   Tooltip: "ui-tooltip",

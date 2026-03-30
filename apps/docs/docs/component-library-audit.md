@@ -69,7 +69,7 @@ The bigger issue is family coverage and feature depth, not naming drift.
 
 - Keep generated metadata, adapter docs, and sidebar discoverability aligned as new primitives ship
 - Add missing high-frequency primitives:
-  - `Select` / `Listbox`
+  - `Listbox`
   - `Combobox` after the simpler select path is stable
 - Deepen current high-frequency primitives:
   - `ui-button`: loading and icon-placement guidance
@@ -103,7 +103,7 @@ The bigger issue is family coverage and feature depth, not naming drift.
 | Layout primitives | Shipped | Keep |
 | Button / input / field / checkbox / radio / switch | Shipped | Keep and deepen |
 | Textarea | Shipped | Extend later |
-| Select / listbox / combobox | Missing | Add next |
+| Select / listbox / combobox | Partly shipped via `ui-select` | Add listbox/combobox depth next |
 | Dialog / popover / tooltip / menu / tabs / toast | Shipped | Keep and deepen |
 | Disclosure / accordion | Partly shipped | Extend only if grouped usage becomes common |
 | Badge / avatar / avatar group | Shipped | Keep |

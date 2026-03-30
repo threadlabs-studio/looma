@@ -23,6 +23,7 @@ Keep framework adapters thin and mechanical: they pass props/attributes/children
 | `ui-button` | `Button` | `Button` | native element + `bindAdapter` |
 | `ui-icon-button` | `IconButton` | `IconButton` | native element + `bindAdapter` |
 | `ui-input` | `Input` | `Input` | native element + `bindAdapter` |
+| `ui-select` | `Select` | `Select` | native element + `bindAdapter` |
 | `ui-textarea` | `Textarea` | `Textarea` | native element + `bindAdapter` |
 | `ui-form-field` | `FormField` | `FormField` | native element + `bindAdapter` |
 | `ui-tooltip` | `Tooltip` | `Tooltip` | native element + `bindAdapter` |

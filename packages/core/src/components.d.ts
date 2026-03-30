@@ -262,6 +262,28 @@ export namespace Components {
     }
     interface UiSearchShell {
     }
+    interface UiSelect {
+        /**
+          * @default ''
+         */
+        "defaultValue": string;
+        /**
+          * @default false
+         */
+        "disabled": boolean;
+        /**
+          * @default false
+         */
+        "invalid": boolean;
+        /**
+          * @default false
+         */
+        "required": boolean;
+        /**
+          * @default ''
+         */
+        "value": string;
+    }
     interface UiSwitch {
         /**
           * @default false
@@ -456,6 +478,12 @@ declare global {
         prototype: HTMLUiSearchShellElement;
         new (): HTMLUiSearchShellElement;
     };
+    interface HTMLUiSelectElement extends Components.UiSelect, HTMLStencilElement {
+    }
+    var HTMLUiSelectElement: {
+        prototype: HTMLUiSelectElement;
+        new (): HTMLUiSelectElement;
+    };
     interface HTMLUiSwitchElement extends Components.UiSwitch, HTMLStencilElement {
     }
     var HTMLUiSwitchElement: {
@@ -511,6 +539,7 @@ declare global {
         "ui-radio-group": HTMLUiRadioGroupElement;
         "ui-search-result-row": HTMLUiSearchResultRowElement;
         "ui-search-shell": HTMLUiSearchShellElement;
+        "ui-select": HTMLUiSelectElement;
         "ui-switch": HTMLUiSwitchElement;
         "ui-tabs": HTMLUiTabsElement;
         "ui-textarea": HTMLUiTextareaElement;
@@ -776,6 +805,28 @@ declare namespace LocalJSX {
     }
     interface UiSearchShell {
     }
+    interface UiSelect {
+        /**
+          * @default ''
+         */
+        "defaultValue"?: string;
+        /**
+          * @default false
+         */
+        "disabled"?: boolean;
+        /**
+          * @default false
+         */
+        "invalid"?: boolean;
+        /**
+          * @default false
+         */
+        "required"?: boolean;
+        /**
+          * @default ''
+         */
+        "value"?: string;
+    }
     interface UiSwitch {
         /**
           * @default false
@@ -953,6 +1004,13 @@ declare namespace LocalJSX {
         "disabled": boolean;
         "selected": boolean;
     }
+    interface UiSelectAttributes {
+        "value": string;
+        "defaultValue": string;
+        "disabled": boolean;
+        "invalid": boolean;
+        "required": boolean;
+    }
     interface UiSwitchAttributes {
         "checked": boolean;
         "defaultChecked": boolean;
@@ -1001,6 +1059,7 @@ declare namespace LocalJSX {
         "ui-radio-group": Omit<UiRadioGroup, keyof UiRadioGroupAttributes> & { [K in keyof UiRadioGroup & keyof UiRadioGroupAttributes]?: UiRadioGroup[K] } & { [K in keyof UiRadioGroup & keyof UiRadioGroupAttributes as `attr:${K}`]?: UiRadioGroupAttributes[K] } & { [K in keyof UiRadioGroup & keyof UiRadioGroupAttributes as `prop:${K}`]?: UiRadioGroup[K] };
         "ui-search-result-row": Omit<UiSearchResultRow, keyof UiSearchResultRowAttributes> & { [K in keyof UiSearchResultRow & keyof UiSearchResultRowAttributes]?: UiSearchResultRow[K] } & { [K in keyof UiSearchResultRow & keyof UiSearchResultRowAttributes as `attr:${K}`]?: UiSearchResultRowAttributes[K] } & { [K in keyof UiSearchResultRow & keyof UiSearchResultRowAttributes as `prop:${K}`]?: UiSearchResultRow[K] };
         "ui-search-shell": UiSearchShell;
+        "ui-select": Omit<UiSelect, keyof UiSelectAttributes> & { [K in keyof UiSelect & keyof UiSelectAttributes]?: UiSelect[K] } & { [K in keyof UiSelect & keyof UiSelectAttributes as `attr:${K}`]?: UiSelectAttributes[K] } & { [K in keyof UiSelect & keyof UiSelectAttributes as `prop:${K}`]?: UiSelect[K] };
         "ui-switch": Omit<UiSwitch, keyof UiSwitchAttributes> & { [K in keyof UiSwitch & keyof UiSwitchAttributes]?: UiSwitch[K] } & { [K in keyof UiSwitch & keyof UiSwitchAttributes as `attr:${K}`]?: UiSwitchAttributes[K] } & { [K in keyof UiSwitch & keyof UiSwitchAttributes as `prop:${K}`]?: UiSwitch[K] };
         "ui-tabs": Omit<UiTabs, keyof UiTabsAttributes> & { [K in keyof UiTabs & keyof UiTabsAttributes]?: UiTabs[K] } & { [K in keyof UiTabs & keyof UiTabsAttributes as `attr:${K}`]?: UiTabsAttributes[K] } & { [K in keyof UiTabs & keyof UiTabsAttributes as `prop:${K}`]?: UiTabs[K] };
         "ui-textarea": Omit<UiTextarea, keyof UiTextareaAttributes> & { [K in keyof UiTextarea & keyof UiTextareaAttributes]?: UiTextarea[K] } & { [K in keyof UiTextarea & keyof UiTextareaAttributes as `attr:${K}`]?: UiTextareaAttributes[K] } & { [K in keyof UiTextarea & keyof UiTextareaAttributes as `prop:${K}`]?: UiTextarea[K] };
@@ -1031,6 +1090,7 @@ declare module "@stencil/core" {
             "ui-radio-group": LocalJSX.IntrinsicElements["ui-radio-group"] & JSXBase.HTMLAttributes<HTMLUiRadioGroupElement>;
             "ui-search-result-row": LocalJSX.IntrinsicElements["ui-search-result-row"] & JSXBase.HTMLAttributes<HTMLUiSearchResultRowElement>;
             "ui-search-shell": LocalJSX.IntrinsicElements["ui-search-shell"] & JSXBase.HTMLAttributes<HTMLUiSearchShellElement>;
+            "ui-select": LocalJSX.IntrinsicElements["ui-select"] & JSXBase.HTMLAttributes<HTMLUiSelectElement>;
             "ui-switch": LocalJSX.IntrinsicElements["ui-switch"] & JSXBase.HTMLAttributes<HTMLUiSwitchElement>;
             "ui-tabs": LocalJSX.IntrinsicElements["ui-tabs"] & JSXBase.HTMLAttributes<HTMLUiTabsElement>;
             "ui-textarea": LocalJSX.IntrinsicElements["ui-textarea"] & JSXBase.HTMLAttributes<HTMLUiTextareaElement>;

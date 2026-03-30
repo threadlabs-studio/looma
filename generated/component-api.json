@@ -1223,6 +1223,78 @@
       ]
     },
     {
+      "tag": "ui-select",
+      "package": "@looma/core",
+      "className": "UISelectElement",
+      "description": "Native-select wrapper primitive that mirrors state to a slotted select while applying shared Looma styling.",
+      "attributes": [
+        {
+          "name": "default-value",
+          "property": "defaultValue",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "disabled",
+          "property": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "invalid",
+          "property": "invalid",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "required",
+          "property": "required",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "value",
+          "property": "value",
+          "type": "string",
+          "default": ""
+        }
+      ],
+      "properties": [
+        {
+          "name": "defaultValue",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "invalid",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "default": ""
+        }
+      ],
+      "events": [],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Default child content."
+        }
+      ]
+    },
+    {
       "tag": "ui-separator",
       "package": "@looma/layout",
       "className": "UISeparatorElement",

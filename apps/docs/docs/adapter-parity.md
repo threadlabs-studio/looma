@@ -19,7 +19,10 @@ Adapters must remain thin wrappers around the same light DOM contracts.
 | `ui-menu` | `Menu` | `Menu` | native element + `bindAdapter` |
 | `ui-menu-item` | `MenuItem` | `MenuItem` | native element + `bindAdapter` |
 | `ui-button` | `Button` | `Button` | native element + `bindAdapter` |
+| `ui-icon-button` | `IconButton` | `IconButton` | native element + `bindAdapter` |
 | `ui-input` | `Input` | `Input` | native element + `bindAdapter` |
+| `ui-select` | `Select` | `Select` | native element + `bindAdapter` |
+| `ui-textarea` | `Textarea` | `Textarea` | native element + `bindAdapter` |
 | `ui-form-field` | `FormField` | `FormField` | native element + `bindAdapter` |
 | `ui-tooltip` | `Tooltip` | `Tooltip` | native element + `bindAdapter` |
 | `ui-toast-region` | `ToastRegion` | `ToastRegion` | native element + `bindAdapter` |
@@ -30,6 +33,10 @@ Adapters must remain thin wrappers around the same light DOM contracts.
 | `ui-badge` | `Badge` | `Badge` | native element + `bindAdapter` |
 | `ui-avatar` | `Avatar` | `Avatar` | native element + `bindAdapter` |
 | `ui-avatar-group` | `AvatarGroup` | `AvatarGroup` | native element + `bindAdapter` |
+| `ui-floating-action-button` | `FloatingActionButton` | `FloatingActionButton` | native element + `bindAdapter` |
+| `ui-search-shell` | `SearchShell` | `SearchShell` | native element + `bindAdapter` |
+| `ui-search-result-row` | `SearchResultRow` | `SearchResultRow` | native element + `bindAdapter` |
+| `ui-top-bar` | `TopBar` | `TopBar` | native element + `bindAdapter` |
 
 ## Event Parity
 

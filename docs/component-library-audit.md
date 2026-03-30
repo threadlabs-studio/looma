@@ -24,7 +24,7 @@ This audit compares Looma's shipped and proposed component surface against a bro
 ### Shipped now
 
 - Layout: `ui-stack`, `ui-inline`, `ui-cluster`, `ui-grid`, `ui-center`, `ui-separator`
-- Forms/actions: `ui-button`, `ui-icon-button`, `ui-input`, `ui-textarea`, `ui-form-field`, `ui-checkbox`, `ui-radio`, `ui-radio-group`, `ui-switch`
+- Forms/actions: `ui-button`, `ui-icon-button`, `ui-input`, `ui-select`, `ui-textarea`, `ui-form-field`, `ui-checkbox`, `ui-radio`, `ui-radio-group`, `ui-switch`
 - Overlay/display/navigation: `ui-dialog`, `ui-popover`, `ui-tooltip`, `ui-menu`, `ui-menu-item`, `ui-disclosure`, `ui-tabs`, `ui-toast-region`, `ui-badge`, `ui-avatar`, `ui-avatar-group`
 - App-shell / recipe level: `ui-floating-action-button`, `ui-search-shell`, `ui-search-result-row`, `ui-top-bar`
 - Editor: `ui-editor-toolbar`, `ui-editor-slash-menu`, `ui-editor-table-context-menu`, `ui-editor-table-toolbar`, `ui-editor-insert-table-grid`, `ui-editor-table-overlay`
@@ -109,7 +109,7 @@ The ecosystem converges on a few patterns:
 | Radio / radio group | `Radio`, `RadioGroup`, segmented/choice variants | `value`, `name`, `orientation`, `disabled`, `required`, `onChange`/`onSelectionChange` | Shipped as `ui-radio` and `ui-radio-group` | Keep |
 | Switch | `Switch`, `Toggle`, `ToggleSwitch` | `checked/defaultChecked`, disabled, required, labeling, size | Shipped as `ui-switch` | Keep |
 | Textarea | `Textarea`, `TextArea`, `QInput type=textarea`, `sl-textarea` | rows, auto-resize, invalid, resize behavior, count/help integration | Shipped as `ui-textarea` | Extend later with auto-resize and count/help guidance |
-| Select / listbox / combobox | `Select`, `Listbox`, `ComboBox`, `QSelect`, `fast-select`, `sp-picker`, `sl-select` | controlled selection, option identity, filtering/search, disabled items, sections, keyboard nav, empty state | Missing | Add as a major next-wave family; start with the simpler select/listbox path |
+| Select / listbox / combobox | `Select`, `Listbox`, `ComboBox`, `QSelect`, `fast-select`, `sp-picker`, `sl-select` | controlled selection, option identity, filtering/search, disabled items, sections, keyboard nav, empty state | Partly shipped via `ui-select` | Add listbox/combobox depth after the native-select baseline is stable |
 
 ### Overlay, navigation, display
 
@@ -158,7 +158,7 @@ The ecosystem converges on a few patterns:
    - adapter parity docs
    - docs/sidebar discoverability
 2. Add missing high-frequency form families:
-   - `Select` / `Listbox`
+   - `Listbox`
    - `Combobox` after select/listbox baseline is stable
 3. Deepen existing high-frequency primitives:
    - `ui-button`: loading, icon placement, link-mode guidance
@@ -200,7 +200,7 @@ The ecosystem converges on a few patterns:
 ### Component roadmap
 
 - Add a benchmark-driven gap section with P0/P1/P2 priorities
-- Move `Select/Listbox` and `Combobox` into the candidate queue
+- Move `Listbox` and `Combobox` into the candidate queue
 - Add a "source-of-truth fixes" item for adapter parity docs and future docs/API drift
 - Keep `ui-top-bar`, `ui-search-shell`, and `ui-search-result-row` as recipe-level Looma primitives rather than forcing them into lower-level generic abstractions
 

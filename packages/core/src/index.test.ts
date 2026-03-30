@@ -179,6 +179,38 @@ describe("@looma/core primitives", () => {
     expect(input?.getAttribute("aria-invalid")).toBe("true");
   });
 
+  it("reflects select wrapper properties to inner select element", () => {
+    document.body.innerHTML = `
+      <ui-select>
+        <select name="role">
+          <option value="viewer">Viewer</option>
+          <option value="editor">Editor</option>
+        </select>
+      </ui-select>
+    `;
+
+    const wrapper = document.querySelector("ui-select") as HTMLElement & {
+      value: string;
+      defaultValue: string;
+      disabled: boolean;
+      invalid: boolean;
+      required: boolean;
+    };
+    const select = wrapper.querySelector("select");
+
+    wrapper.value = "editor";
+    wrapper.defaultValue = "viewer";
+    wrapper.disabled = true;
+    wrapper.invalid = true;
+    wrapper.required = true;
+
+    expect(select).toBeTruthy();
+    expect(select?.value).toBe("editor");
+    expect(select?.disabled).toBe(true);
+    expect(select?.required).toBe(true);
+    expect(select?.getAttribute("aria-invalid")).toBe("true");
+  });
+
   it("propagates disabled state from ui-button to native button", () => {
     document.body.innerHTML = `
       <ui-button disabled>

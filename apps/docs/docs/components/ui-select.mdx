@@ -1,0 +1,107 @@
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# Select
+
+Native-select wrapper primitive that mirrors value and state to a slotted `<select>` while applying shared Looma styling.
+
+## Component Reference
+
+<ComponentExamplesApiTabs component="ui-select" />
+
+## Attributes
+
+| Name | Type | Default |
+| --- | --- | --- |
+| `value` | `string` | empty |
+| `default-value` | `string` | empty |
+| `disabled` | `boolean` | `false` |
+| `required` | `boolean` | `false` |
+| `invalid` | `boolean` | `false` |
+
+## Properties
+
+| Name | Type |
+| --- | --- |
+| `value` | `string` |
+| `defaultValue` | `string` |
+| `disabled` | `boolean` |
+| `required` | `boolean` |
+| `invalid` | `boolean` |
+
+## Events
+
+Uses native `input` and `change` behavior via internal control synchronization.
+
+## Slots
+
+Default slot (typically one native `<select>` child).
+
+## SSR Markup
+
+```html
+<ui-select value="editor">
+  <select name="role">
+    <option value="viewer">Viewer</option>
+    <option value="editor">Editor</option>
+    <option value="admin">Admin</option>
+  </select>
+</ui-select>
+```
+
+## Framework Snippets
+
+<Tabs groupId="framework" defaultValue="vue">
+  <TabItem value="vue" label="Vue">
+
+```vue
+<script setup lang="ts">
+import { Select } from "@looma/vue";
+</script>
+
+<template>
+  <Select value="editor">
+    <select name="role">
+      <option value="viewer">Viewer</option>
+      <option value="editor">Editor</option>
+      <option value="admin">Admin</option>
+    </select>
+  </Select>
+</template>
+```
+
+  </TabItem>
+  <TabItem value="svelte" label="Svelte">
+
+```svelte
+<ui-select value="editor">
+  <select name="role">
+    <option value="viewer">Viewer</option>
+    <option value="editor">Editor</option>
+    <option value="admin">Admin</option>
+  </select>
+</ui-select>
+```
+
+  </TabItem>
+  <TabItem value="react" label="React">
+
+```tsx
+import { Select } from "@looma/react";
+
+export function Example() {
+  return (
+    <Select value="editor">
+      <select name="role">
+        <option value="viewer">Viewer</option>
+        <option value="editor">Editor</option>
+        <option value="admin">Admin</option>
+      </select>
+    </Select>
+  );
+}
+```
+
+  </TabItem>
+</Tabs>

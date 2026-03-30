@@ -32,6 +32,7 @@ Source of truth: `generated/component-api.json`
 - `ui-radio-group`
 - `ui-search-result-row`
 - `ui-search-shell`
+- `ui-select`
 - `ui-separator`
 - `ui-stack`
 - `ui-switch`
@@ -72,7 +73,7 @@ Conventions for this checklist:
 - [x] RadioGroup
 - [x] Switch
 - [x] Textarea
-- [ ] Select
+- [x] Select
 - [ ] Listbox
 - [ ] Combobox
 
@@ -155,7 +156,7 @@ Source: [Component Library Audit](./component-library-audit.md), based on offici
 - Fix source-of-truth mismatches before planning further promotions:
   - keep generated API metadata, adapter docs, and docs discoverability aligned as new primitives ship
 - Add missing high-frequency form primitives:
-  - `Select` / `Listbox`
+  - `Listbox`
   - `Combobox` after select/listbox baseline is stable
 - Deepen existing high-frequency primitives:
   - `Button`: loading and icon-placement guidance
@@ -197,6 +198,7 @@ Source: [Component Library Audit](./component-library-audit.md), based on offici
 - In progress:
   - Primitive normalization (`Button`/`Input`/`FormField`) in high-use flows such as sidebar dialogs and settings
   - `IconButton` adoption in high-use shell controls while preserving Knit’s exact spacing and behavior
+  - `Select` adoption in settings and sidebar dialogs while keeping domain behavior app-local
 
 ## Future: Docs Site in Looma
 
