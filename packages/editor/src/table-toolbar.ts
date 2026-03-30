@@ -156,13 +156,6 @@ class UIEditorTableToolbarElement extends HTMLElement {
         ] satisfies TableToolbarActionItem[],
       },
       {
-        heading: "Cells",
-        actions: [
-          { action: "merge-cells", label: "Merge cells", can: "can-merge-cells" },
-          { action: "split-cell", label: "Split cell", can: "can-split-cell" },
-        ] satisfies TableToolbarActionItem[],
-      },
-      {
         heading: "Table",
         actions: [
           { action: "delete-row", label: "Delete row", can: "can-delete-row", tone: "danger" },
@@ -202,7 +195,7 @@ class UIEditorTableToolbarElement extends HTMLElement {
       availableOverflowSections.length > 0 ? '<div class="ui-editor-table-toolbar__sep" aria-hidden="true"></div>' : "",
       availableOverflowSections.length > 0 ? '<div class="ui-editor-table-toolbar__overflow">' : "",
       availableOverflowSections.length > 0
-        ? `<button type="button" class="ui-editor-table-toolbar__more" data-action="toggle-overflow" aria-haspopup="menu" aria-expanded="${this.#overflowOpen ? "true" : "false"}">More</button>`
+        ? `<button type="button" class="ui-editor-table-toolbar__more" data-action="toggle-overflow" aria-haspopup="menu" aria-expanded="${this.#overflowOpen ? "true" : "false"}">Table options</button>`
         : "",
       availableOverflowSections.length > 0 && this.#overflowOpen
         ? [
