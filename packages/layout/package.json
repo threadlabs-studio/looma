@@ -2,6 +2,21 @@
   "name": "@looma/layout",
   "version": "0.0.0",
   "type": "module",
+  "description": "Marginless Looma layout primitives for framework-neutral UI composition.",
+  "license": "MIT",
+  "author": "Threadlabs Studio",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/threadlabs-studio/looma.git",
+    "directory": "packages/layout"
+  },
+  "bugs": {
+    "url": "https://github.com/threadlabs-studio/looma/issues"
+  },
+  "homepage": "https://github.com/threadlabs-studio/looma/tree/main/packages/layout#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "sideEffects": [
     "./dist/layout.css",
     "./src/layout.css"
@@ -14,6 +29,10 @@
     },
     "./layout.css": "./src/layout.css"
   },
+  "files": [
+    "dist/",
+    "src/layout.css"
+  ],
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts --clean",
     "lint": "tsc -p tsconfig.json --noEmit",

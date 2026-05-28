@@ -24,3 +24,8 @@ Looma is a stack-agnostic UI library based on web standards and Open UI principl
 ## Docs
 
 - `docs/adapters.md`: framework adapter mapping matrix and parity snippets.
+- `docs/public-release.md`: public GitHub and npm release readiness notes.
+
+## License
+
+MIT. See [LICENSE](./LICENSE).

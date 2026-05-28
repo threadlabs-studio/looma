@@ -3,6 +3,20 @@
   "version": "0.0.0",
   "type": "module",
   "description": "Looma UI primitives built with Stencil",
+  "license": "MIT",
+  "author": "Threadlabs Studio",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/threadlabs-studio/looma.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/threadlabs-studio/looma/issues"
+  },
+  "homepage": "https://github.com/threadlabs-studio/looma/tree/main/packages/core#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "dist/index.cjs.js",
   "module": "dist/index.js",
   "types": "dist/types/index.d.ts",

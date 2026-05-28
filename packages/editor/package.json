@@ -3,6 +3,20 @@
   "version": "0.0.0",
   "type": "module",
   "description": "Confluence/Notion-like editor UI as web components: slash menu, tables, block menu, toolbar. Vue/React adapters in @looma/vue / @looma/react.",
+  "license": "MIT",
+  "author": "Threadlabs Studio",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/threadlabs-studio/looma.git",
+    "directory": "packages/editor"
+  },
+  "bugs": {
+    "url": "https://github.com/threadlabs-studio/looma/issues"
+  },
+  "homepage": "https://github.com/threadlabs-studio/looma/tree/main/packages/editor#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "sideEffects": [
     "./dist/editor.css",
     "./src/editor.css",
@@ -19,6 +33,10 @@
     },
     "./editor.css": "./src/editor.css"
   },
+  "files": [
+    "dist/",
+    "src/editor.css"
+  ],
   "scripts": {
     "build": "tsup src/index.ts src/extensions/index.ts --format esm --dts --clean",
     "lint": "tsc -p tsconfig.json --noEmit",

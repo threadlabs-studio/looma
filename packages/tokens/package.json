@@ -2,6 +2,21 @@
   "name": "@looma/tokens",
   "version": "0.0.0",
   "type": "module",
+  "description": "CSS tokens and themes for Looma components.",
+  "license": "MIT",
+  "author": "Threadlabs Studio",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/threadlabs-studio/looma.git",
+    "directory": "packages/tokens"
+  },
+  "bugs": {
+    "url": "https://github.com/threadlabs-studio/looma/issues"
+  },
+  "homepage": "https://github.com/threadlabs-studio/looma/tree/main/packages/tokens#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "sideEffects": [
     "*.css"
   ],
@@ -12,6 +27,9 @@
     "./theme-dark.css": "./src/theme-dark.css",
     "./theme-high-contrast.css": "./src/theme-high-contrast.css"
   },
+  "files": [
+    "src/*.css"
+  ],
   "scripts": {
     "build": "echo \"tokens: css-only package\"",
     "lint": "echo \"tokens: no lint configured\"",
