@@ -11,6 +11,7 @@ const COMPONENT_TAGS = [
   "ui-form-field",
   "ui-icon-button",
   "ui-input",
+  "ui-context-menu",
   "ui-menu",
   "ui-menu-item",
   "ui-popover",
@@ -147,6 +148,30 @@ describe("@looma/core primitives", () => {
     await flushStencil();
 
     expect(events).toEqual([{ value: "edit", trigger: "keyboard" }]);
+  });
+
+  it("does not emit menu select for disabled menu items", async () => {
+    await render(`
+      <ui-menu>
+        <ui-menu-item value="edit">Edit</ui-menu-item>
+        <ui-menu-item value="delete" disabled>Delete</ui-menu-item>
+      </ui-menu>
+    `);
+
+    const menu = document.querySelector("ui-menu");
+    const disabledItem = menu?.querySelector("ui-menu-item[value='delete']");
+    const events: Array<{ value: string; trigger: string }> = [];
+
+    menu?.addEventListener("select", (event) => {
+      const custom = event as CustomEvent<{ value: string; trigger: string }>;
+      events.push(custom.detail);
+    });
+
+    disabledItem?.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+    disabledItem?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    await flushStencil();
+
+    expect(events).toEqual([]);
   });
 
   it("emits open/close contract payload for overlays", async () => {
@@ -629,5 +654,122 @@ describe("@looma/core primitives", () => {
     expect(avatars[3].hidden).toBe(true);
     expect(overflow).toBeTruthy();
     expect(overflow?.textContent).toBe("+1");
+  });
+
+  it("opens context menu on right-click and emits select/close on item activation", async () => {
+    await render(`
+      <div id="context-menu-target" style="width:200px;height:100px;background:#eee;">
+        Right-click me
+      </div>
+      <ui-context-menu>
+        <ui-menu-item value="edit">Edit</ui-menu-item>
+        <ui-menu-item value="delete">Delete</ui-menu-item>
+      </ui-context-menu>
+    `);
+
+    const target = document.getElementById("context-menu-target");
+    const contextMenu = document.querySelector("ui-context-menu") as HTMLElement & { open: boolean };
+    // ui-menu is inside ui-context-menu's shadow DOM; ui-menu-item children are slotted light DOM
+    const firstItem = contextMenu?.querySelector("ui-menu-item");
+    const selectEvents: Array<{ value: string; trigger: string }> = [];
+    const closeEvents: Array<{ open: boolean; reason: string; trigger: string }> = [];
+
+    contextMenu?.addEventListener("select", (event) => {
+      const custom = event as CustomEvent<{ value: string; trigger: string }>;
+      selectEvents.push(custom.detail);
+    });
+    contextMenu?.addEventListener("close", (event) => {
+      const custom = event as CustomEvent<{ open: boolean; reason: string; trigger: string }>;
+      closeEvents.push(custom.detail);
+    });
+
+    // Right-click the target to open the context menu
+    target?.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, clientX: 100, clientY: 50 }));
+    await flushStencil();
+
+    expect(contextMenu?.getAttribute("data-open")).toBe("");
+    expect(selectEvents).toEqual([]);
+    expect(closeEvents).toEqual([]);
+
+    // Activate the first menu item via keyboard
+    // Dispatch on the ui-menu-item in the light DOM; the event bubbles through
+    // the shadow boundary to ui-menu's keydown handler inside the shadow DOM
+    firstItem?.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true, composed: true }));
+    await flushStencil();
+
+    expect(selectEvents).toEqual([{ value: "edit", trigger: "keyboard" }]);
+    expect(closeEvents.length).toBeGreaterThanOrEqual(1);
+    expect(closeEvents[0].open).toBe(false);
+  });
+
+  it("does not select or close from disabled context menu items", async () => {
+    await render(`
+      <div id="disabled-context-target" style="width:200px;height:100px;background:#eee;">
+        Right-click me
+      </div>
+      <ui-context-menu>
+        <ui-menu-item value="delete" disabled>Delete</ui-menu-item>
+      </ui-context-menu>
+    `);
+
+    const target = document.getElementById("disabled-context-target");
+    const contextMenu = document.querySelector("ui-context-menu") as HTMLElement;
+    const disabledItem = contextMenu?.querySelector("ui-menu-item");
+    const selectEvents: Array<{ value: string; trigger: string }> = [];
+    const closeEvents: Array<{ open: boolean; reason: string; trigger: string }> = [];
+
+    contextMenu?.addEventListener("select", (event) => {
+      const custom = event as CustomEvent<{ value: string; trigger: string }>;
+      selectEvents.push(custom.detail);
+    });
+    contextMenu?.addEventListener("close", (event) => {
+      const custom = event as CustomEvent<{ open: boolean; reason: string; trigger: string }>;
+      closeEvents.push(custom.detail);
+    });
+
+    target?.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, clientX: 100, clientY: 50 }));
+    await flushStencil();
+    expect(contextMenu?.getAttribute("data-open")).toBe("");
+
+    disabledItem?.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true, composed: true }));
+    disabledItem?.dispatchEvent(new MouseEvent("click", { bubbles: true, composed: true }));
+    await flushStencil();
+
+    expect(selectEvents).toEqual([]);
+    expect(closeEvents).toEqual([]);
+    expect(contextMenu?.getAttribute("data-open")).toBe("");
+  });
+
+  it("closes context menu on Escape key", async () => {
+    await render(`
+      <div id="escape-target" style="width:200px;height:100px;background:#eee;">
+        Right-click me
+      </div>
+      <ui-context-menu>
+        <ui-menu-item value="rename">Rename</ui-menu-item>
+      </ui-context-menu>
+    `);
+
+    const target = document.getElementById("escape-target");
+    const contextMenu = document.querySelector("ui-context-menu") as HTMLElement & { open: boolean };
+    const closeEvents: Array<{ open: boolean; reason: string; trigger: string }> = [];
+
+    contextMenu?.addEventListener("close", (event) => {
+      const custom = event as CustomEvent<{ open: boolean; reason: string; trigger: string }>;
+      closeEvents.push(custom.detail);
+    });
+
+    // Open via right-click
+    target?.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, clientX: 100, clientY: 50 }));
+    await flushStencil();
+    expect(contextMenu?.getAttribute("data-open")).toBe("");
+
+    // Close via Escape
+    contextMenu?.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    await flushStencil();
+
+    expect(closeEvents.length).toBeGreaterThanOrEqual(1);
+    expect(closeEvents[0].open).toBe(false);
+    expect(closeEvents[0].reason).toBe("escape");
   });
 });

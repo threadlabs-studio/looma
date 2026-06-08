@@ -247,6 +247,7 @@ export const Dialog = createAdapterComponent("ui-dialog", "Dialog");
 export const Popover = createAdapterComponent("ui-popover", "Popover");
 export const Menu = createAdapterComponent("ui-menu", "Menu");
 export const MenuItem = createAdapterComponent("ui-menu-item", "MenuItem");
+export const ContextMenu = createAdapterComponent("ui-context-menu", "ContextMenu");
 export const Button = createAdapterComponent("ui-button", "Button");
 export const IconButton = createAdapterComponent("ui-icon-button", "IconButton");
 export const Input = createAdapterComponent("ui-input", "Input");
