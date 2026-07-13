@@ -1,0 +1,13 @@
+:host {
+  position: fixed;
+  z-index: var(--ui-z-overlay, 1000);
+  min-width: 12rem;
+}
+
+:host([data-open]) {
+  display: block;
+}
+
+:host(:not([data-open])) {
+  display: none !important;
+}

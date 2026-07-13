@@ -415,6 +415,7 @@ export const ADAPTER_COMPONENT_TAG_MAP = {
   Popover: "ui-popover",
   Menu: "ui-menu",
   MenuItem: "ui-menu-item",
+  ContextMenu: "ui-context-menu",
   Button: "ui-button",
   IconButton: "ui-icon-button",
   Input: "ui-input",

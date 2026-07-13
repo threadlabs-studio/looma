@@ -9,6 +9,7 @@
   ui-tabs,
   ui-menu,
   ui-menu-item,
+  ui-context-menu,
   ui-tooltip,
   ui-toast-region,
   ui-checkbox,
@@ -29,6 +30,7 @@
   ui-tabs,
   ui-menu,
   ui-menu-item,
+  ui-context-menu,
   ui-tooltip,
   ui-toast-region,
   ui-checkbox,
@@ -49,6 +51,7 @@
   ui-tabs,
   ui-menu,
   ui-menu-item,
+  ui-context-menu,
   ui-tooltip,
   ui-toast-region,
   ui-checkbox,
@@ -69,6 +72,7 @@
   ui-tabs,
   ui-menu,
   ui-menu-item,
+  ui-context-menu,
   ui-tooltip,
   ui-toast-region,
   ui-checkbox,
@@ -92,6 +96,7 @@
   ui-tabs,
   ui-menu,
   ui-menu-item,
+  ui-context-menu,
   ui-tooltip,
   ui-toast-region,
   ui-checkbox,
@@ -121,6 +126,7 @@
   ui-tabs,
   ui-menu,
   ui-menu-item,
+  ui-context-menu,
   ui-tooltip,
   ui-toast-region,
   ui-checkbox,
@@ -391,6 +397,16 @@
     border-radius: var(--ui-radius-3);
     box-shadow: var(--ui-shadow-lg);
     max-width: min(20rem, 90vw);
+  }
+
+  ui-context-menu {
+    position: fixed;
+    z-index: var(--ui-z-overlay, 1000);
+    min-width: 12rem;
+  }
+
+  ui-context-menu:not([data-open]) {
+    display: none !important;
   }
 
   ui-tabs {

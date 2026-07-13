@@ -1,4 +1,4 @@
-# ui-menu
+# ui-context-menu
 
 
 
@@ -15,15 +15,15 @@
 
 ## Dependencies
 
-### Used by
+### Depends on
 
- - [ui-context-menu](../ui-context-menu)
+- [ui-menu](../ui-menu)
 
 ### Graph
 ```mermaid
 graph TD;
   ui-context-menu --> ui-menu
-  style ui-menu fill:#f9f,stroke:#333,stroke-width:4px
+  style ui-context-menu fill:#f9f,stroke:#333,stroke-width:4px
 ```
 
 ----------------------------------------------

@@ -1,6 +1,6 @@
 # Component Roadmap
 
-Last updated: 2026-03-29
+Last updated: 2026-06-04
 
 This is the editable plan for Looma components across current shipping scope and near-term promotions from Knit.
 
@@ -25,6 +25,7 @@ Source of truth: `generated/component-api.json`
 - `ui-grid`
 - `ui-inline`
 - `ui-input`
+- `ui-context-menu`
 - `ui-menu`
 - `ui-menu-item`
 - `ui-popover`
@@ -87,7 +88,7 @@ Conventions for this checklist:
 - [x] Tooltip
 - [x] Menu
 - [x] MenuItem
-- [ ] ContextMenu
+- [x] ContextMenu
 - [ ] DropdownMenu trigger/content recipe
 - [x] Tabs
 - [x] Disclosure

@@ -33,12 +33,19 @@ export class UIMenu {
   }
 
   private getItems(): HTMLElement[] {
+    const slot = this.host.shadowRoot?.querySelector('slot');
+    if (slot) {
+      const nodes = (slot as HTMLSlotElement).assignedNodes({ flatten: true });
+      return nodes.filter(
+        (n): n is HTMLElement => n.nodeType === Node.ELEMENT_NODE && (n as HTMLElement).tagName === 'UI-MENU-ITEM'
+      );
+    }
     return Array.from(this.host.querySelectorAll('ui-menu-item'));
   }
 
   private onItemClick = (e: Event) => {
     const item = (e.target as HTMLElement).closest?.('ui-menu-item');
-    if (!item || item.getRootNode() !== this.host.getRootNode()) return;
+    if (!item) return;
     if (item.getAttribute('aria-disabled') === 'true') return;
     const value = item.getAttribute('value') ?? item.getAttribute('data-value') ?? '';
     dispatchDetail(this.host, 'select', { value, trigger: eventToTrigger(e) });

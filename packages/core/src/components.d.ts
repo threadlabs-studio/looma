@@ -72,6 +72,16 @@ export namespace Components {
          */
         "value": string;
     }
+    interface UiContextMenu {
+        /**
+          * @default false
+         */
+        "defaultOpen": boolean;
+        /**
+          * @default false
+         */
+        "open": boolean;
+    }
     interface UiDialog {
         /**
           * @default false
@@ -400,6 +410,12 @@ declare global {
         prototype: HTMLUiCheckboxElement;
         new (): HTMLUiCheckboxElement;
     };
+    interface HTMLUiContextMenuElement extends Components.UiContextMenu, HTMLStencilElement {
+    }
+    var HTMLUiContextMenuElement: {
+        prototype: HTMLUiContextMenuElement;
+        new (): HTMLUiContextMenuElement;
+    };
     interface HTMLUiDialogElement extends Components.UiDialog, HTMLStencilElement {
     }
     var HTMLUiDialogElement: {
@@ -526,6 +542,7 @@ declare global {
         "ui-badge": HTMLUiBadgeElement;
         "ui-button": HTMLUiButtonElement;
         "ui-checkbox": HTMLUiCheckboxElement;
+        "ui-context-menu": HTMLUiContextMenuElement;
         "ui-dialog": HTMLUiDialogElement;
         "ui-disclosure": HTMLUiDisclosureElement;
         "ui-floating-action-button": HTMLUiFloatingActionButtonElement;
@@ -614,6 +631,16 @@ declare namespace LocalJSX {
           * @default 'on'
          */
         "value"?: string;
+    }
+    interface UiContextMenu {
+        /**
+          * @default false
+         */
+        "defaultOpen"?: boolean;
+        /**
+          * @default false
+         */
+        "open"?: boolean;
     }
     interface UiDialog {
         /**
@@ -939,6 +966,10 @@ declare namespace LocalJSX {
         "required": boolean;
         "value": string;
     }
+    interface UiContextMenuAttributes {
+        "open": boolean;
+        "defaultOpen": boolean;
+    }
     interface UiDialogAttributes {
         "open": boolean;
         "defaultOpen": boolean;
@@ -1046,6 +1077,7 @@ declare namespace LocalJSX {
         "ui-badge": Omit<UiBadge, keyof UiBadgeAttributes> & { [K in keyof UiBadge & keyof UiBadgeAttributes]?: UiBadge[K] } & { [K in keyof UiBadge & keyof UiBadgeAttributes as `attr:${K}`]?: UiBadgeAttributes[K] } & { [K in keyof UiBadge & keyof UiBadgeAttributes as `prop:${K}`]?: UiBadge[K] };
         "ui-button": Omit<UiButton, keyof UiButtonAttributes> & { [K in keyof UiButton & keyof UiButtonAttributes]?: UiButton[K] } & { [K in keyof UiButton & keyof UiButtonAttributes as `attr:${K}`]?: UiButtonAttributes[K] } & { [K in keyof UiButton & keyof UiButtonAttributes as `prop:${K}`]?: UiButton[K] };
         "ui-checkbox": Omit<UiCheckbox, keyof UiCheckboxAttributes> & { [K in keyof UiCheckbox & keyof UiCheckboxAttributes]?: UiCheckbox[K] } & { [K in keyof UiCheckbox & keyof UiCheckboxAttributes as `attr:${K}`]?: UiCheckboxAttributes[K] } & { [K in keyof UiCheckbox & keyof UiCheckboxAttributes as `prop:${K}`]?: UiCheckbox[K] };
+        "ui-context-menu": Omit<UiContextMenu, keyof UiContextMenuAttributes> & { [K in keyof UiContextMenu & keyof UiContextMenuAttributes]?: UiContextMenu[K] } & { [K in keyof UiContextMenu & keyof UiContextMenuAttributes as `attr:${K}`]?: UiContextMenuAttributes[K] } & { [K in keyof UiContextMenu & keyof UiContextMenuAttributes as `prop:${K}`]?: UiContextMenu[K] };
         "ui-dialog": Omit<UiDialog, keyof UiDialogAttributes> & { [K in keyof UiDialog & keyof UiDialogAttributes]?: UiDialog[K] } & { [K in keyof UiDialog & keyof UiDialogAttributes as `attr:${K}`]?: UiDialogAttributes[K] } & { [K in keyof UiDialog & keyof UiDialogAttributes as `prop:${K}`]?: UiDialog[K] };
         "ui-disclosure": Omit<UiDisclosure, keyof UiDisclosureAttributes> & { [K in keyof UiDisclosure & keyof UiDisclosureAttributes]?: UiDisclosure[K] } & { [K in keyof UiDisclosure & keyof UiDisclosureAttributes as `attr:${K}`]?: UiDisclosureAttributes[K] } & { [K in keyof UiDisclosure & keyof UiDisclosureAttributes as `prop:${K}`]?: UiDisclosure[K] };
         "ui-floating-action-button": Omit<UiFloatingActionButton, keyof UiFloatingActionButtonAttributes> & { [K in keyof UiFloatingActionButton & keyof UiFloatingActionButtonAttributes]?: UiFloatingActionButton[K] } & { [K in keyof UiFloatingActionButton & keyof UiFloatingActionButtonAttributes as `attr:${K}`]?: UiFloatingActionButtonAttributes[K] } & { [K in keyof UiFloatingActionButton & keyof UiFloatingActionButtonAttributes as `prop:${K}`]?: UiFloatingActionButton[K] };
@@ -1077,6 +1109,7 @@ declare module "@stencil/core" {
             "ui-badge": LocalJSX.IntrinsicElements["ui-badge"] & JSXBase.HTMLAttributes<HTMLUiBadgeElement>;
             "ui-button": LocalJSX.IntrinsicElements["ui-button"] & JSXBase.HTMLAttributes<HTMLUiButtonElement>;
             "ui-checkbox": LocalJSX.IntrinsicElements["ui-checkbox"] & JSXBase.HTMLAttributes<HTMLUiCheckboxElement>;
+            "ui-context-menu": LocalJSX.IntrinsicElements["ui-context-menu"] & JSXBase.HTMLAttributes<HTMLUiContextMenuElement>;
             "ui-dialog": LocalJSX.IntrinsicElements["ui-dialog"] & JSXBase.HTMLAttributes<HTMLUiDialogElement>;
             "ui-disclosure": LocalJSX.IntrinsicElements["ui-disclosure"] & JSXBase.HTMLAttributes<HTMLUiDisclosureElement>;
             "ui-floating-action-button": LocalJSX.IntrinsicElements["ui-floating-action-button"] & JSXBase.HTMLAttributes<HTMLUiFloatingActionButtonElement>;
