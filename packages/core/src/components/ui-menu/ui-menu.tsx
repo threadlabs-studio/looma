@@ -33,20 +33,22 @@ export class UIMenu {
   }
 
   private getItems(): HTMLElement[] {
-    const slot = this.host.shadowRoot?.querySelector('slot');
-    if (slot) {
-      const nodes = (slot as HTMLSlotElement).assignedNodes({ flatten: true });
-      return nodes.filter(
-        (n): n is HTMLElement => n.nodeType === Node.ELEMENT_NODE && (n as HTMLElement).tagName === 'UI-MENU-ITEM'
-      );
-    }
     return Array.from(this.host.querySelectorAll('ui-menu-item'));
+  }
+
+  private isItemDisabled(item: HTMLElement): boolean {
+    return (
+      item.getAttribute('aria-disabled') === 'true' ||
+      item.hasAttribute('disabled') ||
+      item.getAttribute('disabled') === 'true' ||
+      (item as HTMLElement & { disabled?: boolean }).disabled === true
+    );
   }
 
   private onItemClick = (e: Event) => {
     const item = (e.target as HTMLElement).closest?.('ui-menu-item');
-    if (!item) return;
-    if (item.getAttribute('aria-disabled') === 'true') return;
+    if (!item || item.getRootNode() !== this.host.getRootNode()) return;
+    if (this.isItemDisabled(item)) return;
     const value = item.getAttribute('value') ?? item.getAttribute('data-value') ?? '';
     dispatchDetail(this.host, 'select', { value, trigger: eventToTrigger(e) });
     dispatchDetail(this.host, 'close', {
@@ -58,7 +60,7 @@ export class UIMenu {
   };
 
   private onKeydown = (e: KeyboardEvent) => {
-    const items = this.getItems().filter((i) => i.getAttribute('aria-disabled') !== 'true');
+    const items = this.getItems().filter((i) => !this.isItemDisabled(i));
     if (items.length === 0) return;
     const target = (e.target as HTMLElement).closest?.('ui-menu-item');
     const currentIndex = target && target instanceof HTMLElement ? items.indexOf(target) : -1;

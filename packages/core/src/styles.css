@@ -150,6 +150,33 @@
   font-variation-settings: inherit;
 }
 
+:where(ui-menu > ui-menu-item, ui-context-menu > ui-menu-item) {
+  display: block;
+  width: 100%;
+  padding: var(--ui-space-2) var(--ui-space-3);
+  text-align: left;
+  background: none;
+  border: none;
+  border-radius: var(--ui-radius-2);
+  color: var(--ui-text-primary);
+  font-size: var(--ui-font-size-md);
+  font-weight: var(--ui-font-medium, 500);
+  cursor: pointer;
+  transition:
+    background-color var(--ui-motion-fast) var(--ui-motion-ease),
+    color var(--ui-motion-fast) var(--ui-motion-ease);
+}
+
+:where(ui-menu > ui-menu-item, ui-context-menu > ui-menu-item):hover:not([aria-disabled="true"]):not([disabled]) {
+  background: var(--ui-surface-subtle);
+}
+
+:where(ui-menu > ui-menu-item, ui-context-menu > ui-menu-item)[aria-disabled="true"],
+:where(ui-menu > ui-menu-item, ui-context-menu > ui-menu-item)[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 @layer components {
   ui-button {
     display: inline-flex;
@@ -381,11 +408,12 @@
       color var(--ui-motion-fast) var(--ui-motion-ease);
   }
 
-  ui-menu-item:hover:not([aria-disabled="true"]) {
+  ui-menu-item:hover:not([aria-disabled="true"]):not([disabled]) {
     background: var(--ui-surface-subtle);
   }
 
-  ui-menu-item[aria-disabled="true"] {
+  ui-menu-item[aria-disabled="true"],
+  ui-menu-item[disabled] {
     opacity: 0.6;
     cursor: not-allowed;
   }

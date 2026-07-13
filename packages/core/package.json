@@ -30,14 +30,17 @@
     "build": "stencil build && tsup src/index.ts --format esm,cjs --dts --outDir dist",
     "start": "stencil build --dev --watch --serve",
     "test": "vitest run",
+    "test:browser": "vitest run --config vitest.browser.config.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
     "@stencil/core": "^4.27.1",
     "@types/node": "^22.13.5",
+    "@vitest/browser": "~3.2.6",
     "jsdom": "^27.0.0",
+    "playwright": "~1.60.0",
     "tsup": "^8.5.0",
     "typescript": "^5.9.2",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.6"
   }
 }

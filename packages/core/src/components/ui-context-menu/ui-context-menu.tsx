@@ -46,7 +46,7 @@ export class UIContextMenu {
     this.resolveTrigger();
     this.attachTriggerListeners();
     this.host.addEventListener('keydown', this.onKeydown);
-    this.host.addEventListener('select', this.onMenuSelect);
+    this.host.addEventListener('click', this.onItemClick);
     this.syncOverlay();
   }
 
@@ -59,7 +59,7 @@ export class UIContextMenu {
   disconnectedCallback() {
     this.detachTriggerListeners();
     this.host.removeEventListener('keydown', this.onKeydown);
-    this.host.removeEventListener('select', this.onMenuSelect);
+    this.host.removeEventListener('click', this.onItemClick);
     closeOverlay(this.overlayId);
   }
 
@@ -100,17 +100,53 @@ export class UIContextMenu {
     });
   }
 
+  private isItemDisabled(item: HTMLElement): boolean {
+    return (
+      item.getAttribute('aria-disabled') === 'true' ||
+      item.hasAttribute('disabled') ||
+      item.getAttribute('disabled') === 'true' ||
+      (item as HTMLElement & { disabled?: boolean }).disabled === true
+    );
+  }
+
   private onKeydown = (e: KeyboardEvent) => {
     if (e.key === 'Escape') {
       requestTopOverlayClose('escape', 'keyboard');
+      return;
+    }
+    // Bridge slotted ui-menu-item activation: ui-menu's own keydown handler
+    // cannot find slotted children via querySelector, so we handle Enter/Space
+    // on the host and dispatch select/close from the context menu.
+    if (e.key === 'Enter' || e.key === ' ') {
+      const target = (e.target as HTMLElement).closest?.('ui-menu-item');
+      if (!target) return;
+      if (this.isItemDisabled(target)) return;
+      e.preventDefault();
+      const value = target.getAttribute('value') ?? target.getAttribute('data-value') ?? '';
+      dispatchDetail(this.host, 'select', { value, trigger: 'keyboard' });
+      dispatchDetail(this.host, 'close', {
+        open: false,
+        reason: 'action',
+        trigger: 'keyboard',
+      });
+      this.internalOpen = false;
+      this.syncOverlay();
     }
   };
 
-  private onMenuSelect = (e: CustomEvent) => {
-    const detail = e.detail;
-    dispatchDetail(this.host, 'select', {
-      value: detail.value,
-      trigger: detail.trigger,
+  private onItemClick = (e: MouseEvent) => {
+    // Bridge slotted ui-menu-item click activation: ui-menu's own click handler
+    // cannot find slotted children via querySelector, so we handle clicks on
+    // the host and dispatch select/close from the context menu.
+    const item = (e.target as HTMLElement).closest?.('ui-menu-item');
+    if (!item) return;
+    if (this.isItemDisabled(item)) return;
+    const value = item.getAttribute('value') ?? item.getAttribute('data-value') ?? '';
+    dispatchDetail(this.host, 'select', { value, trigger: 'pointer' });
+    dispatchDetail(this.host, 'close', {
+      open: false,
+      reason: 'action',
+      trigger: 'pointer',
     });
     this.internalOpen = false;
     this.syncOverlay();
@@ -129,14 +165,10 @@ export class UIContextMenu {
           display: this.internalOpen ? 'block' : 'none',
         }}
       >
-        <ui-menu open={this.internalOpen} ref={(el) => { this.menuEl = el; }}>
+        <ui-menu open={this.internalOpen}>
           <slot />
         </ui-menu>
       </Host>
     );
-  }
-
-  componentDidRender() {
-    this.attachMenuListener();
   }
 }
