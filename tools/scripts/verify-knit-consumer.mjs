@@ -28,6 +28,11 @@ function hasArgument(name) {
   return process.argv.includes(name);
 }
 
+function sanitizeRegistryLog(chunks, token) {
+  const output = chunks.join("");
+  return token ? output.replaceAll(token, "[redacted]") : output;
+}
+
 function run(command, args, options = {}) {
   process.stdout.write(`\n$ ${command} ${args.join(" ")}\n`);
   const result = spawnSync(command, args, {
@@ -374,7 +379,7 @@ async function main() {
     await stopProcess(registryProcess);
     registryProcess = undefined;
     const registryLogPath = path.join(evidenceDirectory, "verdaccio.log");
-    const sanitizedRegistryLog = registryLog.join("").replaceAll(registryToken, "[redacted]");
+    const sanitizedRegistryLog = sanitizeRegistryLog(registryLog, registryToken);
     await writeFile(registryLogPath, sanitizedRegistryLog, "utf8");
 
     const evidence = {
@@ -420,7 +425,7 @@ async function main() {
   } finally {
     await stopProcess(registryProcess);
     if (registryLog.length > 0) {
-      const sanitizedRegistryLog = registryLog.join("").replaceAll(registryToken, "[redacted]");
+      const sanitizedRegistryLog = sanitizeRegistryLog(registryLog, registryToken);
       await writeFile(path.join(evidenceDirectory, "verdaccio.log"), sanitizedRegistryLog, "utf8");
     }
     if (worktreeAttached) {

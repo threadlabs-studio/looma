@@ -102,8 +102,10 @@ test("the Knit artifact proof is isolated, fail-closed, and exercises the releas
     readFile(path.join(repoRoot, "tests/release/registry/verdaccio.yaml"), "utf8"),
     readFile(path.join(repoRoot, "tests/release/registry/.npmrc"), "utf8")
   ]);
-  const scripts = JSON.parse(rootPackage).scripts;
+  const packageJson = JSON.parse(rootPackage);
+  const scripts = packageJson.scripts;
 
+  assert.equal(packageJson.devDependencies.verdaccio, "6.8.0");
   assert.equal(scripts["release:verify-knit"], "node tools/scripts/verify-knit-consumer.mjs");
   assert.equal(
     scripts["release:inspect-knit"],
@@ -115,6 +117,7 @@ test("the Knit artifact proof is isolated, fail-closed, and exercises the releas
   assert.match(script, /test:gate:unit/);
   assert.match(script, /skipFullKnitUnit/);
   assert.match(script, /fullKnitUnitSuitePassed/);
+  assert.match(script, /function sanitizeRegistryLog/);
   assert.match(script, /getDefaultEditorExtensions/);
   assert.match(script, /renderToString/);
   assert.match(script, /RELEASE_NODE_MAJOR = 20/);

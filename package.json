@@ -29,6 +29,6 @@
     "typecheck": "pnpm -r run typecheck"
   },
   "devDependencies": {
-    "verdaccio": "6.10.1"
+    "verdaccio": "6.8.0"
   }
 }
