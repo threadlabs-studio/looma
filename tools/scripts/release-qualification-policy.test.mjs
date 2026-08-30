@@ -122,6 +122,22 @@ test("the Knit artifact proof is isolated, fail-closed, and exercises the releas
   assert.match(script, /test:gate:unit/);
   assert.match(script, /skipFullKnitUnit/);
   assert.match(script, /fullKnitUnitSuitePassed/);
+  assert.match(script, /result: qualificationResult/);
+  assert.match(
+    script,
+    /fullKnitUnitSuitePassed: qualificationResult === "passed" && !skipFullKnitUnit/
+  );
+  assert.match(
+    script,
+    /finalReleaseGateRequired: qualificationResult !== "passed" \|\| skipFullKnitUnit/
+  );
+  assert.match(script, /failure: qualificationFailure/);
+  assert.match(script, /await Promise\.all\(\[\s*rm\(evidencePath, \{ force: true \}\)/);
+  assert.match(script, /try \{\s*assert\(\s*nodeMajor === RELEASE_NODE_MAJOR/);
+  assert.match(
+    script,
+    /try \{[\s\S]*await writeFile\(evidencePath,[\s\S]*\} finally \{[\s\S]*worktree", "remove"/
+  );
   assert.match(script, /function sanitizeRegistryLog/);
   assert.match(script, /getDefaultEditorExtensions/);
   assert.match(script, /renderToString/);

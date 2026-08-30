@@ -227,43 +227,85 @@ async function validateInstalledGraph(worktreeDirectory) {
 }
 
 async function main() {
+  const evidencePath = path.join(evidenceDirectory, "knit-consumer.json");
+  const copiedLockPath = path.join(evidenceDirectory, "knit-pnpm-lock.yaml");
+  const registryLogPath = path.join(evidenceDirectory, "verdaccio.log");
+  await mkdir(evidenceDirectory, { recursive: true });
+  await Promise.all([
+    rm(evidencePath, { force: true }),
+    rm(copiedLockPath, { force: true }),
+    rm(registryLogPath, { force: true })
+  ]);
+
   const nodeMajor = Number.parseInt(process.versions.node.split(".")[0] ?? "", 10);
-  assert(
-    nodeMajor === RELEASE_NODE_MAJOR,
-    `Knit release qualification requires Node ${RELEASE_NODE_MAJOR}.x; current runtime is ${process.version}`
-  );
   const allowIneligibleArtifacts = hasArgument("--allow-ineligible-artifacts");
   const skipFullKnitUnit = hasArgument("--skip-full-knit-unit");
-  assert(
-    !skipFullKnitUnit || allowIneligibleArtifacts,
-    "--skip-full-knit-unit is permitted only for an explicitly ineligible inspection rehearsal"
-  );
-  const knitDirectory = path.resolve(process.env.LOOMA_KNIT_DIR ?? defaultKnitDirectory);
-  assert(knitDirectory !== repoRoot, "Knit directory cannot be the Looma repository");
-
-  const manifest = await validateManifest(allowIneligibleArtifacts);
-  const loomaCommit = run("git", ["rev-parse", "HEAD"], { capture: true });
-  assert(manifest.sourceCommit === loomaCommit, "release manifest does not describe the current Looma commit");
-  const knitCommit = run("git", ["-C", knitDirectory, "rev-parse", "HEAD"], { capture: true });
-  const knitLiveStatus = run("git", ["-C", knitDirectory, "status", "--porcelain"], { capture: true });
-
-  const temporaryRoot = await mkdtemp(path.join(tmpdir(), "looma-knit-release-"));
-  const knitWorktree = path.join(temporaryRoot, "knit");
-  const registryStorage = path.join(temporaryRoot, "registry-storage");
-  const pnpmStore = path.join(temporaryRoot, "pnpm-store");
   const registryLog = [];
+  let manifest;
+  let loomaCommit = null;
+  let knitCommit = null;
+  let knitLiveStatus = "";
+  let knitDirectory;
+  let temporaryRoot;
+  let knitWorktree;
+  let registryStorage;
+  let pnpmStore;
   let registryToken = "";
   let worktreeAttached = false;
   let registryProcess;
+  let detachedKnitSourceClean = false;
+  let installed;
+  let qualificationError;
+  let qualificationResult = "failed";
+  let qualificationFailure = null;
+  const commands = [];
+  const gateResults = {
+    installPassed: false,
+    installedGraphPassed: false,
+    buildPassed: false,
+    typecheckPassed: false,
+    ssrProofPassed: false,
+    signupCriticalTestsPassed: false,
+    fullKnitUnitSuitePassed: false
+  };
 
-  await mkdir(evidenceDirectory, { recursive: true });
+  function runGate(gate, command, args, options) {
+    commands.push([command, args]);
+    const output = run(command, args, options);
+    gateResults[gate] = true;
+    return output;
+  }
+
   try {
+    assert(
+      nodeMajor === RELEASE_NODE_MAJOR,
+      `Knit release qualification requires Node ${RELEASE_NODE_MAJOR}.x; current runtime is ${process.version}`
+    );
+    assert(
+      !skipFullKnitUnit || allowIneligibleArtifacts,
+      "--skip-full-knit-unit is permitted only for an explicitly ineligible inspection rehearsal"
+    );
+    knitDirectory = path.resolve(process.env.LOOMA_KNIT_DIR ?? defaultKnitDirectory);
+    assert(knitDirectory !== repoRoot, "Knit directory cannot be the Looma repository");
+
+    manifest = await validateManifest(allowIneligibleArtifacts);
+    loomaCommit = run("git", ["rev-parse", "HEAD"], { capture: true });
+    assert(manifest.sourceCommit === loomaCommit, "release manifest does not describe the current Looma commit");
+    knitCommit = run("git", ["-C", knitDirectory, "rev-parse", "HEAD"], { capture: true });
+    knitLiveStatus = run("git", ["-C", knitDirectory, "status", "--porcelain"], { capture: true });
+
+    temporaryRoot = await mkdtemp(path.join(tmpdir(), "looma-knit-release-"));
+    knitWorktree = path.join(temporaryRoot, "knit");
+    registryStorage = path.join(temporaryRoot, "registry-storage");
+    pnpmStore = path.join(temporaryRoot, "pnpm-store");
+
     run("git", ["-C", knitDirectory, "worktree", "add", "--detach", knitWorktree, knitCommit]);
     worktreeAttached = true;
     assert(
       run("git", ["-C", knitWorktree, "status", "--porcelain"], { capture: true }) === "",
       "detached Knit source worktree was not clean"
     );
+    detachedKnitSourceClean = true;
 
     const registryPort = await availablePort();
     const registryUrl = `http://127.0.0.1:${registryPort}/`;
@@ -353,55 +395,77 @@ async function main() {
       "tests/unit/components/collection-group.render.test.ts",
       "tests/unit/layouts/auth-layout.render.test.ts"
     ];
-    const commands = [
-      installCommand,
-      ["pnpm", ["build:release"]],
-      ["pnpm", ["typecheck"]],
-      ["node", [path.relative(path.join(knitWorktree, "web"), ssrProofPath)]],
-      ["pnpm", ["-F", "web", "exec", "vitest", "run", ...signupCriticalTests]]
-    ];
-    run(...installCommand, { cwd: knitWorktree, env: fixtureEnvironment });
-    const installed = await validateInstalledGraph(knitWorktree);
-    for (const [command, args] of commands.slice(1)) {
-      run(command, args, {
-        cwd: command === "node" ? path.join(knitWorktree, "web") : knitWorktree,
+    runGate("installPassed", ...installCommand, { cwd: knitWorktree, env: fixtureEnvironment });
+    installed = await validateInstalledGraph(knitWorktree);
+    gateResults.installedGraphPassed = true;
+    runGate("buildPassed", "pnpm", ["build:release"], {
+      cwd: knitWorktree,
+      env: fixtureEnvironment
+    });
+    runGate("typecheckPassed", "pnpm", ["typecheck"], {
+      cwd: knitWorktree,
+      env: fixtureEnvironment
+    });
+    runGate("ssrProofPassed", "node", [path.relative(path.join(knitWorktree, "web"), ssrProofPath)], {
+      cwd: path.join(knitWorktree, "web"),
+      env: fixtureEnvironment
+    });
+    runGate("signupCriticalTestsPassed", "pnpm", [
+      "-F",
+      "web",
+      "exec",
+      "vitest",
+      "run",
+      ...signupCriticalTests
+    ], {
+      cwd: knitWorktree,
+      env: fixtureEnvironment
+    });
+    if (!skipFullKnitUnit) {
+      const fullUnitCommand = ["pnpm", ["-F", "web", "test:gate:unit", "--", "--run"]];
+      runGate("fullKnitUnitSuitePassed", ...fullUnitCommand, {
+        cwd: knitWorktree,
         env: fixtureEnvironment
       });
     }
-    if (!skipFullKnitUnit) {
-      const fullUnitCommand = ["pnpm", ["-F", "web", "test:gate:unit", "--", "--run"]];
-      run(...fullUnitCommand, { cwd: knitWorktree, env: fixtureEnvironment });
-      commands.push(fullUnitCommand);
-    }
+    qualificationResult = "passed";
+  } catch (error) {
+    qualificationError = error;
+    const message = error instanceof Error ? error.message : String(error);
+    qualificationFailure = sanitizeRegistryLog([message.split("\n")[0]], registryToken);
+  }
 
-    const copiedLockPath = path.join(evidenceDirectory, "knit-pnpm-lock.yaml");
-    await writeFile(copiedLockPath, installed.lockfile, "utf8");
+  try {
     await stopProcess(registryProcess);
     registryProcess = undefined;
-    const registryLogPath = path.join(evidenceDirectory, "verdaccio.log");
+    if (installed) {
+      await writeFile(copiedLockPath, installed.lockfile, "utf8");
+    }
     const sanitizedRegistryLog = sanitizeRegistryLog(registryLog, registryToken);
     await writeFile(registryLogPath, sanitizedRegistryLog, "utf8");
-
     const evidence = {
       schemaVersion: 1,
       createdAt: new Date().toISOString(),
-      releaseEligibleArtifacts: manifest.releaseEligible,
-      releaseExceptions: manifest.exceptions,
+      result: qualificationResult,
+      failure: qualificationFailure,
+      releaseEligibleArtifacts: manifest?.releaseEligible ?? false,
+      releaseExceptions: manifest?.exceptions ?? [],
       loomaCommit,
       knitCommit,
       nodeVersion: process.versions.node,
-      detachedKnitSourceClean: true,
+      detachedKnitSourceClean,
       liveKnitWorktreeDirtyFiles: knitLiveStatus ? knitLiveStatus.split("\n").length : 0,
       qualificationMode: skipFullKnitUnit ? "inspection-rehearsal" : "release-gate",
-      fullKnitUnitSuitePassed: !skipFullKnitUnit,
-      finalReleaseGateRequired: skipFullKnitUnit,
+      fullKnitUnitSuitePassed: qualificationResult === "passed" && !skipFullKnitUnit,
+      finalReleaseGateRequired: qualificationResult !== "passed" || skipFullKnitUnit,
+      gateResults,
       registryPolicy: {
         config: path.relative(repoRoot, registryConfigPath),
         loomaScopePublicFallback: false,
         otherDependenciesProxy: "https://registry.npmjs.org/"
       },
       acceptedConsumerException: "Knit declares @vitejs/plugin-vue 5 beside Vite 7; Looma validation runs with strict peer failure disabled and proves Looma peers through build, typecheck, SSR, and test execution.",
-      packages: manifest.packages.map(({ name, version, tarball, sha256: hash }) => ({
+      packages: (manifest?.packages ?? []).map(({ name, version, tarball, sha256: hash }) => ({
         name,
         version,
         tarball,
@@ -409,34 +473,35 @@ async function main() {
       })),
       commands: commands.map(([command, args]) => `${command} ${args.join(" ")}`),
       evidence: {
-        knitLockfile: path.relative(repoRoot, copiedLockPath),
-        knitLockfileSha256: await sha256(copiedLockPath),
+        knitLockfile: installed ? path.relative(repoRoot, copiedLockPath) : null,
+        knitLockfileSha256: installed ? await sha256(copiedLockPath) : null,
         registryLog: path.relative(repoRoot, registryLogPath),
         registryLogSha256: await sha256(registryLogPath)
       }
     };
-    const evidencePath = path.join(evidenceDirectory, "knit-consumer.json");
     await writeFile(evidencePath, `${JSON.stringify(evidence, null, 2)}\n`, "utf8");
-    process.stdout.write(`\nKnit consumed all five Looma ${RELEASE_VERSION} artifacts from the isolated registry.\n`);
-    if (skipFullKnitUnit) {
-      process.stdout.write("Inspection rehearsal only: the final release gate still requires an eligible manifest and the complete Knit unit suite.\n");
-    }
-    process.stdout.write(`Evidence: ${path.relative(repoRoot, evidencePath)}\n`);
   } finally {
-    await stopProcess(registryProcess);
-    if (registryLog.length > 0) {
-      const sanitizedRegistryLog = sanitizeRegistryLog(registryLog, registryToken);
-      await writeFile(path.join(evidenceDirectory, "verdaccio.log"), sanitizedRegistryLog, "utf8");
-    }
     if (worktreeAttached) {
       run("git", ["-C", knitDirectory, "worktree", "remove", "--force", knitWorktree]);
     }
-    assert(
-      temporaryRoot.startsWith(`${tmpdir()}${path.sep}looma-knit-release-`),
-      "refusing to remove an unexpected temporary directory"
-    );
-    await rm(temporaryRoot, { recursive: true, force: true });
+    if (temporaryRoot) {
+      assert(
+        temporaryRoot.startsWith(`${tmpdir()}${path.sep}looma-knit-release-`),
+        "refusing to remove an unexpected temporary directory"
+      );
+      await rm(temporaryRoot, { recursive: true, force: true });
+    }
   }
+
+  if (qualificationError) {
+    process.stderr.write(`Qualification evidence: ${path.relative(repoRoot, evidencePath)}\n`);
+    throw qualificationError;
+  }
+  process.stdout.write(`\nKnit consumed all five Looma ${RELEASE_VERSION} artifacts from the isolated registry.\n`);
+  if (skipFullKnitUnit) {
+    process.stdout.write("Inspection rehearsal only: the final release gate still requires an eligible manifest and the complete Knit unit suite.\n");
+  }
+  process.stdout.write(`Evidence: ${path.relative(repoRoot, evidencePath)}\n`);
 }
 
 main().catch((error) => {
