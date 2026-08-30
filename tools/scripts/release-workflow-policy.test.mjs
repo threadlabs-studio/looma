@@ -13,7 +13,8 @@ const docsProductionWorkflow = await readFile(
 );
 const prepareJob = workflow.match(/\n  prepare:[\s\S]*?\n  publish:/)?.[0] ?? "";
 const publishJob = workflow.match(/\n  publish:[\s\S]*?\n  promote:/)?.[0] ?? "";
-const promoteJob = workflow.match(/\n  promote:[\s\S]*$/)?.[0] ?? "";
+const promoteJob = workflow.match(/\n  promote:[\s\S]*?(?=\n  release-record:|$)/)?.[0] ?? "";
+const releaseRecordJob = workflow.match(/\n  release-record:[\s\S]*$/)?.[0] ?? "";
 const promotionEvidenceUpload = promoteJob.match(
   /- name: Upload latest-promotion evidence[\s\S]*?retention-days: 30/
 )?.[0] ?? "";
@@ -97,13 +98,17 @@ test("checkout credentials are disabled and publication has only required permis
   assert.equal(disabledCredentialCount, checkoutCount);
   assert.match(prepareJob, /permissions:\n\s+actions: read\n\s+contents: read/);
   assert.match(publishJob, /permissions:\n\s+contents: read\n\s+id-token: write/);
-  assert.doesNotMatch(workflow, /contents:\s+write/);
+  for (const job of [prepareJob, publishJob, promoteJob]) {
+    assert.doesNotMatch(job, /contents:\s+write/);
+  }
   assert.doesNotMatch(workflow, /packages:\s+write/);
   assert.match(publishJob, /registry-url: https:\/\/registry\.npmjs\.org\//);
   assert.match(promoteJob, /permissions:\n\s+actions: read\n\s+contents: read\n\s+steps:/);
   assert.doesNotMatch(promoteJob, /id-token: write/);
   assert.match(promoteJob, /needs:[\s\S]*?- publish/);
   assert.match(promoteJob, /NODE_AUTH_TOKEN: \$\{\{ secrets\.NPM_TOKEN \}\}/);
+  assert.match(releaseRecordJob, /permissions:\n\s+actions: read\n\s+contents: write/);
+  assert.doesNotMatch(releaseRecordJob, /id-token: write|packages: write/);
 });
 
 test("release pack, publish, and promotion jobs use the exact declared Node runtime", () => {

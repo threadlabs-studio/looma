@@ -147,6 +147,30 @@ hashes and locations before the first `latest` mutation.
 - [ ] Public install docs and hosted component docs resolve and match the released contract.
 - [ ] Owner approves promotion of the same immutable versions from `candidate` to `latest`.
 
+## Immutable Release Record Gates
+
+The release record job runs only after the promotion job succeeds. It downloads
+the exact Candidate manifest from the recorded Candidate workflow run and the
+promotion ledger from the same promotion workflow run, then validates both
+before any tag or GitHub Release mutation. A retry may resume only when an
+existing lightweight tag points to the manifest source commit and existing
+release metadata or attachments match the approved record exactly.
+
+- [ ] The promotion ledger reports `succeeded` / `registry-verified` for the
+  exact five-package manifest and proves both `candidate` and `latest` at `0.1.0`.
+- [ ] The ledger binds the public Knit evidence SHA-256 and URL, hosted-docs
+  evidence SHA-256 and URL, production docs URL, and canonical Candidate run URL.
+- [ ] Lightweight tag `v0.1.0` is absent or points directly to the exact manifest
+  source commit; an annotated or mismatched tag is a hard stop.
+- [ ] GitHub Release `Looma v0.1.0 Candidate` uses the matching tag and the
+  `CHANGELOG.md` Candidate notes without replacing a mismatched existing record.
+- [ ] The exact `release-manifest.json` and `registry-promotion.json` bytes are
+  attached; retries skip matching assets and reject mismatched same-name assets.
+- [ ] The workflow summary records the canonical GitHub Release URL.
+
+These gates describe required remote evidence; none is complete until the
+protected promotion and release-record jobs have run successfully.
+
 ## Current npm Platform Requirements
 
 For the protected workflow, verify the current npm requirements immediately before

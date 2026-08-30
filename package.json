@@ -44,6 +44,7 @@
     "release:verify-public-consumer": "node tools/scripts/verify-public-consumer.mjs",
     "release:verify-hosted-docs": "node tools/scripts/verify-hosted-docs.mjs",
     "release:promote": "node tools/scripts/promote-release.mjs",
+    "release:record": "node tools/scripts/finalize-release.mjs",
     "release:verify:dirty": "node tools/scripts/verify-packages.mjs --output-dir .release/artifacts --allow-dirty",
     "test": "node --test tools/scripts/*.test.mjs && pnpm build && pnpm -r run test",
     "test:browser": "pnpm --filter @looma/core test:browser && pnpm --filter @looma/editor test:browser && pnpm --filter @looma/vue test:browser && pnpm --filter @looma/docs test:browser",

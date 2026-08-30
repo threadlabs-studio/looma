@@ -305,3 +305,57 @@ jobs:
           path: .release/evidence/registry-promotion.json
           if-no-files-found: error
           retention-days: 30
+
+  release-record:
+    if: needs.promote.result == 'success'
+    needs: promote
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - name: Checkout the same approved release commit
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 20.19.6
+
+      - name: Download exact release manifest from Candidate run
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: looma-0.1.0-candidate
+          path: .release/artifacts/
+          run-id: ${{ inputs.candidate_workflow_run_id }}
+          github-token: ${{ github.token }}
+
+      - name: Download promotion evidence from this run
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: looma-0.1.0-registry-promotion-evidence
+          path: .release/evidence/
+          run-id: ${{ github.run_id }}
+          github-token: ${{ github.token }}
+
+      - name: Validate immutable release record plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node tools/scripts/finalize-release.mjs
+
+      - name: Create or resume immutable release record
+        id: release-record
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LOOMA_RELEASE_RECORD: approved
+        run: node tools/scripts/finalize-release.mjs --execute
+
+      - name: Link release record in the job summary
+        env:
+          RELEASE_URL: ${{ steps.release-record.outputs.release_url }}
+        run: |
+          echo "Looma Candidate release record: ${RELEASE_URL}" >> "$GITHUB_STEP_SUMMARY"
