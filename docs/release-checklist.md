@@ -25,18 +25,20 @@ authorization error), so package-name absence does not prove scope ownership.
 - [x] Layout's formerly false CommonJS export now points to a real CJS build required by the docs server bundle.
 - [x] Source-derived classification enforces generated API, docs, navigation,
   supported Vue map/export, and required contract README coverage for all 38 published tags.
-- [ ] All five manifests use synchronized `0.1.0`, public access, complete metadata,
+- [x] All five manifests use synchronized `0.1.0`, public access, complete metadata,
   correct peer/internal ranges, and exact export maps.
-- [ ] Every packed artifact contains runtime output, types, styles, README, and license,
+- [x] Every packed artifact contains runtime output, types, styles, README, and license,
   and excludes tests, local config, secrets, and source-only material.
 - [x] Package DAG and dependency-first publish order are derived from the packed manifests.
 - [x] Local inspection packs the five exact `0.1.0` artifacts, rewrites internal
   workspace ranges to exact `0.1.0`, rejects empty/forbidden/missing files, and
   records SHA-256, byte size, source commit, and toolchain.
 
-Current artifact exception: the local manifest is intentionally
-`releaseEligible: false` until the source tree is clean and an owner-approved
-root/package license is present.
+Current artifact evidence: `release:verify` under Node 20 at Looma commit
+`82902f2a9201814e0bd753dbaf4eb75ba645977b` produced an eligible five-package
+manifest and checksummed tarballs. The run used explicitly labeled rehearsal
+approver identities, so it proves the source and package mechanics but does not
+replace the accountable owners required in the protected publication run.
 
 ## Verification Gates
 
@@ -54,16 +56,19 @@ output immutability, rejects skipped required suites, and runs core, editor, and
 Vue browser qualification. The exact Stencil CJS filename diagnostic is the sole
 allowlisted build warning; any additional Stencil warning fails the build.
 
-The `release:inspect-knit` rehearsal now publishes the five checksummed local
+The eligible `release:verify-knit` gate publishes the five checksummed local
 artifacts to a disposable loopback registry with no `@looma` public fallback,
 then installs them into a detached clean Knit checkout with a fresh pnpm store.
-Against Knit commit `d2b4822746efe4652aea83ad7f7481bd32ebf23d`, the rehearsal
+Canonical Knit commit `61af185b6fbaa435c2b1d572dcfc78759b7aed0c`
 passes the production build, typecheck, SSR rendering for all eight consumed
-Looma surfaces, and 83 signup-critical tests. Evidence is written under the
-ignored `.release/evidence/` directory. This does not check the gate above:
-`release:verify-knit` remains fail-closed until the release manifest is eligible
-and Knit's complete unit suite passes from committed source. Five corresponding
-Knit unit-test adaptations currently exist only as uncommitted owner work.
+Looma surfaces, and all 85 signup-critical tests, but its full unit gate fails in
+four component-render tests. A temporary Git snapshot containing the five
+existing owner edits (tree `66492332afa5712b95be512aa483665c8bbcb1c8`)
+passes the same complete artifact gate, including all 238 unit tests. The
+temporary worktree was removed and the owner files were not staged or changed.
+The gate above remains unchecked until those edits are committed on Knit and the
+eligible command passes from that canonical commit. Evidence is written under
+the ignored `.release/evidence/` directory.
 
 ## Documentation Gates
 
