@@ -2,7 +2,7 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 # Context Menu
 
-Pointer-anchored action menu that uses Looma's shared overlay dismissal and menu-selection behavior.
+Action menu with a visible keyboard/touch trigger plus supplemental pointer-context support.
 
 ## Component Reference
 
@@ -10,12 +10,12 @@ Pointer-anchored action menu that uses Looma's shared overlay dismissal and menu
 
 ## Semantics And SSR Markup
 
-The element listens for the browser `contextmenu` event on its parent. Keep a visible trigger or equivalent action path because context menus are not reliably discoverable on touch or without JavaScript.
+Put a native button in the `trigger` slot. The optional `for` attribute adds `contextmenu` handling to a larger region without replacing that visible action path.
 
 ```html
-<div class="document-row">
-  <button type="button">Document actions</button>
-  <ui-context-menu>
+<div class="document-row" id="document-row">
+  <ui-context-menu for="document-row">
+    <button slot="trigger" type="button">Document actions</button>
     <ui-menu-item value="rename">Rename</ui-menu-item>
     <ui-menu-item value="delete">Delete</ui-menu-item>
   </ui-context-menu>
@@ -24,11 +24,13 @@ The element listens for the browser `contextmenu` event on its parent. Keep a vi
 
 ## Interaction Contract
 
-- Pointer context-menu opens at the pointer coordinates.
+- The visible trigger opens by click/touch activation, `Enter`, `Space`, or `ArrowDown` and focuses the first enabled item.
+- Pointer context-menu on the optional `for` target opens at the pointer coordinates.
 - `Enter` or `Space` activates the focused enabled item; `Escape` dismisses.
+- Selection, cancellation, and outside press return focus to the visible trigger.
 - `open`, `close`, and `select` events use the same trigger/reason vocabulary as Looma menus.
 - Disabled items do not emit selection.
-- Touch long-press behavior is browser-dependent; an essential action needs another visible control.
+- Touch uses the visible native trigger; browser-dependent long-press behavior is supplemental only.
 - Before upgrade, the author-provided item text remains in light DOM, but positioning, dismissal, and selection behavior do not. Do not rely on this element as the only no-JS action path.
 
 ## Vue
@@ -40,8 +42,8 @@ import { ContextMenu, MenuItem } from "@looma/vue";
 
 <template>
   <div class="document-row">
-    <button type="button">Document actions</button>
     <ContextMenu @select="({ value }) => runAction(value)">
+      <button slot="trigger" type="button">Document actions</button>
       <MenuItem value="rename">Rename</MenuItem>
       <MenuItem value="delete">Delete</MenuItem>
     </ContextMenu>

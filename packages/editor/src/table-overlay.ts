@@ -133,7 +133,7 @@ class UIEditorTableOverlayElement extends HTMLElement {
       return;
     }
 
-    let html = '<div class="ui-editor-table-overlay" aria-hidden="true">';
+    let html = '<div class="ui-editor-table-overlay" aria-label="Table insertion controls">';
     html += `<div class="ui-editor-table-overlay__rows" style="--ui-editor-table-overlay-row-boundaries:${this.#rows + 1};">`;
     for (let i = 0; i <= this.#rows; i++) {
       const action = i === 0 ? "add-row-before" : "add-row-after";

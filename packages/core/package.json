@@ -40,7 +40,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "stencil build && tsup src/index.ts --format esm,cjs --dts --outDir dist",
+    "build": "node ../../tools/scripts/run-stencil-build.mjs && tsup src/index.ts --format esm,cjs --dts --outDir dist",
     "start": "stencil build --dev --watch --serve",
     "test": "pnpm build && vitest run",
     "test:browser": "pnpm build && vitest run --config vitest.browser.config.ts",
@@ -50,6 +50,7 @@
     "@stencil/core": "^4.27.1",
     "@types/node": "^22.13.5",
     "@vitest/browser": "~3.2.6",
+    "axe-core": "^4.10.3",
     "jsdom": "^27.0.0",
     "playwright": "~1.60.0",
     "tsup": "^8.5.0",

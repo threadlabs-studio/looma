@@ -29,11 +29,19 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Install Chromium
+        run: pnpm --filter @looma/core exec playwright install --with-deps chromium
+
       - name: Generate API metadata
         run: pnpm generate:api
 
       - name: Check docs sync
         run: pnpm check:docs-sync
+
+      - name: Check API generation is immutable
+        run: |
+          pnpm generate:api
+          git diff --exit-code -- generated/component-api.json
 
       - name: Typecheck
         run: pnpm typecheck
@@ -41,5 +49,11 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Check generated contracts remain immutable
+        run: git diff --exit-code -- generated packages/core/src/components
+
       - name: Test
         run: pnpm test
+
+      - name: Test release browser contracts
+        run: pnpm test:browser

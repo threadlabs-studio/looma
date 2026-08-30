@@ -42,10 +42,17 @@ root/package license is present.
 
 - [ ] Declared Node/pnpm runtime passes clean build, lint, typecheck, and tests.
 - [ ] Docs generation is deterministic and leaves a clean tree.
-- [ ] Unit, accessibility, adapter-render, SSR-import, and required browser gates pass.
-- [ ] A clean external fixture installs only approved tarballs and consumes every public entry/style.
+- [x] Unit, accessibility, adapter-render, SSR-import, and required Chromium browser gates pass locally without required skips.
+- [x] A clean external fixture installs only approved tarballs and consumes every public entry/style.
 - [ ] Knit installs only the approved tarballs and passes build plus release-critical browser/component gates.
-- [ ] E-TBL-003 is fixed or explicitly accepted with browser and data-integrity evidence.
+- [x] E-TBL-003 is explicitly accepted as a Candidate visual limitation with
+  browser accessibility/keyboard evidence and Tiptap data-integrity proof.
+
+The remaining declared-runtime and clean-generation checks require the committed
+U4 tree to pass the Node 20 CI job. The job installs Chromium, checks generated
+output immutability, rejects skipped required suites, and runs core, editor, and
+Vue browser qualification. The exact Stencil CJS filename diagnostic is the sole
+allowlisted build warning; any additional Stencil warning fails the build.
 
 ## Publication Controls
 

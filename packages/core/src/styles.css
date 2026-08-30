@@ -518,8 +518,7 @@
 
   /* Dialog shell (Knit .dialog-shell): overlay, centering, padding.
    * Layout stays in base so dialog doesn’t snap mid-exit when [open] is removed.
-   * Entry: @starting-style inside dialog[open]. Exit: dialog:not([open]).
-   * display + overlay allow-discrete keep dialog visible during exit animation. */
+   * Keyframes provide a broadly tool-compatible entry transition. */
   ui-dialog > dialog {
     --ui-dialog-duration: var(--ui-motion-base);
     position: fixed;
@@ -549,7 +548,11 @@
     pointer-events: auto;
     opacity: 1;
     transform: scale(1);
-    @starting-style {
+    animation: ui-dialog-enter var(--ui-dialog-duration) var(--ui-motion-ease);
+  }
+
+  @keyframes ui-dialog-enter {
+    from {
       opacity: 0;
       transform: scale(0.96);
     }
@@ -565,7 +568,11 @@
 
   ui-dialog > dialog[open]::backdrop {
     background-color: var(--ui-overlay-backdrop);
-    @starting-style {
+    animation: ui-dialog-backdrop-enter var(--ui-dialog-duration) var(--ui-motion-ease);
+  }
+
+  @keyframes ui-dialog-backdrop-enter {
+    from {
       background-color: transparent;
     }
   }

@@ -48,10 +48,11 @@ is a release defect, not a reason to silently shrink the source inventory.
 
 ## Accepted And Deferred Product Surface
 
-- `E-TBL-003` is an open editor polish gap. It may be accepted for Candidate only
-  after browser evidence proves the current table model is discoverable enough
-  for the documented flow and does not cause data loss or corruption. Otherwise
-  it must be fixed before release.
+- `E-TBL-003` is an accepted Candidate visual-polish limitation. Chromium proves
+  the visible structural toolbar, keyboard dimension picker, and keyboard-operable
+  insertion overlay; Tiptap round-trip tests prove add-row/add-column operations
+  retain existing table and surrounding content. Confluence-level polish remains
+  deferred, while data loss or corruption remains release-blocking.
 - AlertDialog, Listbox, Combobox, Drawer/Sheet, HoverCard, CommandPalette,
   Accordion group API, interactive Chip/Tag behavior, block menu, floating editor
   toolbar, link editor, mentions, and emoji picker are deferred roadmap items.
@@ -78,9 +79,21 @@ is a release defect, not a reason to silently shrink the source inventory.
 | SSR imports through Knit graph | Passing for core/editor/editor extensions/Vue | Must repeat from clean tarball fixture |
 | Package names publicly absent | Observed via unauthenticated npm lookup | Authenticated namespace ownership/publish authorization required |
 | ContextMenu projections | API metadata, docs, navigation, contract README, Vue map/export, and render test complete | Must stay clean through publication |
-| Browser/a11y/adapter/package gates | Existing evidence is partial | U4 must supply all promised non-placeholder gates |
-| Editor E-TBL-003 | Open | Fix or explicit owner acceptance backed by browser/data-integrity evidence |
+| Browser/a11y/adapter/package gates | Chromium interaction and axe checks pass for representative core/editor surfaces; Vue registers and renders the supported baseline without warnings; Node imports public core and packed graph entries without DOM globals | Keep mandatory, unskipped, and warning-clean in CI |
+| Editor E-TBL-003 | Accepted Candidate visual limitation with Chromium and Tiptap data-integrity evidence | Do not claim Confluence parity; any data loss remains release-blocking |
 | Packed package graph | Five local `0.1.0` tarballs pass content/export/DAG/hash inspection | License approval, clean protected build, and external/Knit fixtures remain |
+
+Automated accessibility does not replace manual assistive-technology, forced-color,
+zoom/reflow, or platform long-press checks. Those are documented manual Candidate
+checks for the public docs and consumer pass; essential actions do not depend on
+long-press because ContextMenu and editor table controls provide visible native
+buttons.
+
+The core build has one narrowly handled Stencil diagnostic: Stencil recommends
+`dist/index.cjs.js`, but that filename is not executable as CommonJS under this
+package's `type: module`. The release uses the tested real `dist/index.cjs` target,
+and the warning policy fails if this diagnostic changes or any additional Stencil
+warning appears.
 
 No row in this matrix authorizes registry mutation. Publication occurs only after
 the separate release checklist is fully approved.

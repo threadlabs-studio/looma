@@ -2,6 +2,8 @@ import { Component, Prop, Element, State, Watch, Host, h } from '@stencil/core';
 import { openOverlay, closeOverlay, requestTopOverlayClose } from '../../overlay/manager';
 import { dispatchDetail } from '../../utils/events';
 
+type ContextMenuTrigger = 'keyboard' | 'pointer' | 'programmatic';
+
 @Component({
   tag: 'ui-context-menu',
   styleUrl: 'ui-context-menu.css',
@@ -10,13 +12,18 @@ import { dispatchDetail } from '../../utils/events';
 export class UIContextMenu {
   @Element() host: HTMLElement;
 
+  /** Controls the menu when the consumer owns open state. */
   @Prop() open = false;
+  /** Opens the menu on first client render. */
   @Prop({ attribute: 'default-open' }) defaultOpen = false;
+  /** Optional id of the region that should also respond to a context-menu gesture. */
+  @Prop() for?: string;
 
   @State() internalOpen = false;
 
   private overlayId = `ui-context-menu-${Math.random().toString(36).slice(2, 11)}`;
   private trigger: HTMLElement | null = null;
+  private contextTarget: HTMLElement | null = null;
   private pointerX = 0;
   private pointerY = 0;
 
@@ -25,15 +32,22 @@ export class UIContextMenu {
     this.internalOpen = this.open;
   }
 
+  @Watch('for')
+  syncTarget() {
+    this.resolveTargets();
+    this.attachTargetListeners();
+  }
+
   @Watch('internalOpen')
   syncOverlay() {
+    this.syncTriggerState();
     if (this.internalOpen) {
       openOverlay({
         id: this.overlayId,
         modal: false,
         element: this.host,
         dismissible: true,
-        requestClose: (reason, trigger) => this.handleRequestClose(reason, trigger),
+        requestClose: (reason, trigger) => this.closeMenu(reason, trigger),
       });
     } else {
       closeOverlay(this.overlayId);
@@ -43,62 +57,121 @@ export class UIContextMenu {
   componentDidLoad() {
     this.syncFromProp();
     this.internalOpen = this.internalOpen || this.defaultOpen;
-    this.resolveTrigger();
-    this.attachTriggerListeners();
-    this.host.addEventListener('keydown', this.onKeydown);
-    this.host.addEventListener('click', this.onItemClick);
+    this.resolveTargets();
+    this.attachTargetListeners();
+    this.syncTriggerState();
     this.syncOverlay();
   }
 
   componentDidUpdate() {
-    this.resolveTrigger();
-    this.attachTriggerListeners();
-    this.syncOverlay();
+    this.resolveTargets();
+    this.attachTargetListeners();
+    this.syncTriggerState();
   }
 
   disconnectedCallback() {
-    this.detachTriggerListeners();
-    this.host.removeEventListener('keydown', this.onKeydown);
-    this.host.removeEventListener('click', this.onItemClick);
+    this.detachTargetListeners();
     closeOverlay(this.overlayId);
   }
 
-  private resolveTrigger() {
-    this.trigger = this.host.parentElement;
+  private resolveTargets() {
+    const previousTrigger = this.trigger;
+    const previousContextTarget = this.contextTarget;
+    const explicitTrigger = this.host.querySelector<HTMLElement>('[slot="trigger"]');
+    const referencedTarget = this.for ? document.getElementById(this.for) : null;
+
+    this.trigger = explicitTrigger;
+    this.contextTarget = referencedTarget ?? explicitTrigger ?? this.host.parentElement;
+
+    if (previousTrigger !== this.trigger || previousContextTarget !== this.contextTarget) {
+      previousTrigger?.removeEventListener('click', this.onTriggerClick);
+      previousTrigger?.removeEventListener('keydown', this.onTriggerKeydown);
+      previousContextTarget?.removeEventListener('contextmenu', this.onContextMenu);
+    }
   }
 
-  private attachTriggerListeners() {
-    this.detachTriggerListeners();
+  private attachTargetListeners() {
+    this.detachTargetListeners();
+    this.trigger?.addEventListener('click', this.onTriggerClick);
+    this.trigger?.addEventListener('keydown', this.onTriggerKeydown);
+    this.contextTarget?.addEventListener('contextmenu', this.onContextMenu);
+  }
+
+  private detachTargetListeners() {
+    this.trigger?.removeEventListener('click', this.onTriggerClick);
+    this.trigger?.removeEventListener('keydown', this.onTriggerKeydown);
+    this.contextTarget?.removeEventListener('contextmenu', this.onContextMenu);
+  }
+
+  private syncTriggerState() {
     if (!this.trigger) return;
-    this.trigger.addEventListener('contextmenu', this.onContextMenu);
+    this.trigger.setAttribute('aria-haspopup', 'menu');
+    this.trigger.setAttribute('aria-expanded', this.internalOpen ? 'true' : 'false');
   }
 
-  private detachTriggerListeners() {
-    if (!this.trigger) return;
-    this.trigger.removeEventListener('contextmenu', this.onContextMenu);
+  private getItems(): HTMLElement[] {
+    return Array.from(this.host.querySelectorAll<HTMLElement>('ui-menu-item')).filter(
+      (item) => !this.isItemDisabled(item),
+    );
   }
 
-  private onContextMenu = (e: MouseEvent) => {
-    e.preventDefault();
-    this.pointerX = e.clientX;
-    this.pointerY = e.clientY;
+  private focusFirstItem() {
+    requestAnimationFrame(() => this.getItems()[0]?.focus());
+  }
+
+  private openMenu(x: number, y: number, trigger: ContextMenuTrigger) {
+    this.pointerX = x;
+    this.pointerY = y;
     this.internalOpen = true;
     dispatchDetail(this.host, 'open', {
       open: true,
       reason: 'action',
-      trigger: 'pointer',
+      trigger,
     });
-    this.syncOverlay();
-  };
+    this.focusFirstItem();
+  }
 
-  private handleRequestClose(reason: string, trigger: string) {
+  private openFromTrigger(trigger: ContextMenuTrigger) {
+    if (!this.trigger) return;
+    const rect = this.trigger.getBoundingClientRect();
+    this.openMenu(rect.left, rect.bottom, trigger);
+  }
+
+  private closeMenu(reason: string, trigger: string, returnFocus = true) {
+    if (!this.internalOpen) return;
     this.internalOpen = false;
     dispatchDetail(this.host, 'close', {
       open: false,
       reason: reason as 'programmatic' | 'light-dismiss' | 'escape' | 'action',
-      trigger: trigger as 'keyboard' | 'pointer' | 'programmatic',
+      trigger: trigger as ContextMenuTrigger,
     });
+    if (returnFocus) {
+      this.trigger?.focus();
+    }
   }
+
+  private onTriggerClick = (event: MouseEvent) => {
+    if (this.internalOpen) {
+      this.closeMenu('action', event.detail === 0 ? 'keyboard' : 'pointer');
+      return;
+    }
+    this.openFromTrigger(event.detail === 0 ? 'keyboard' : 'pointer');
+  };
+
+  private onTriggerKeydown = (event: KeyboardEvent) => {
+    if (event.key !== 'Enter' && event.key !== ' ' && event.key !== 'ArrowDown') return;
+    event.preventDefault();
+    if (!this.internalOpen) {
+      this.openFromTrigger('keyboard');
+      return;
+    }
+    this.focusFirstItem();
+  };
+
+  private onContextMenu = (event: MouseEvent) => {
+    event.preventDefault();
+    this.openMenu(event.clientX, event.clientY, 'pointer');
+  };
 
   private isItemDisabled(item: HTMLElement): boolean {
     return (
@@ -109,65 +182,48 @@ export class UIContextMenu {
     );
   }
 
-  private onKeydown = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
+  private onKeydown = (event: KeyboardEvent) => {
+    if (!this.internalOpen) return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
       requestTopOverlayClose('escape', 'keyboard');
       return;
     }
-    // Bridge slotted ui-menu-item activation: ui-menu's own keydown handler
-    // cannot find slotted children via querySelector, so we handle Enter/Space
-    // on the host and dispatch select/close from the context menu.
-    if (e.key === 'Enter' || e.key === ' ') {
-      const target = (e.target as HTMLElement).closest?.('ui-menu-item');
-      if (!target) return;
-      if (this.isItemDisabled(target)) return;
-      e.preventDefault();
+    if (event.key === 'Enter' || event.key === ' ') {
+      const target = (event.target as HTMLElement).closest?.('ui-menu-item');
+      if (!target || this.isItemDisabled(target)) return;
+      event.preventDefault();
       const value = target.getAttribute('value') ?? target.getAttribute('data-value') ?? '';
       dispatchDetail(this.host, 'select', { value, trigger: 'keyboard' });
-      dispatchDetail(this.host, 'close', {
-        open: false,
-        reason: 'action',
-        trigger: 'keyboard',
-      });
-      this.internalOpen = false;
-      this.syncOverlay();
+      this.closeMenu('action', 'keyboard');
     }
   };
 
-  private onItemClick = (e: MouseEvent) => {
-    // Bridge slotted ui-menu-item click activation: ui-menu's own click handler
-    // cannot find slotted children via querySelector, so we handle clicks on
-    // the host and dispatch select/close from the context menu.
-    const item = (e.target as HTMLElement).closest?.('ui-menu-item');
-    if (!item) return;
-    if (this.isItemDisabled(item)) return;
+  private onItemClick = (event: MouseEvent) => {
+    const item = (event.target as HTMLElement).closest?.('ui-menu-item');
+    if (!item || this.isItemDisabled(item)) return;
     const value = item.getAttribute('value') ?? item.getAttribute('data-value') ?? '';
     dispatchDetail(this.host, 'select', { value, trigger: 'pointer' });
-    dispatchDetail(this.host, 'close', {
-      open: false,
-      reason: 'action',
-      trigger: 'pointer',
-    });
-    this.internalOpen = false;
-    this.syncOverlay();
+    this.closeMenu('action', 'pointer');
   };
 
   render() {
     return (
       <Host
-        role="menu"
         data-open={this.internalOpen ? '' : undefined}
         onKeyDown={this.onKeydown}
-        style={{
-          position: 'fixed',
-          left: `${this.pointerX}px`,
-          top: `${this.pointerY}px`,
-          display: this.internalOpen ? 'block' : 'none',
-        }}
+        onClick={this.onItemClick}
       >
-        <ui-menu open={this.internalOpen}>
-          <slot />
-        </ui-menu>
+        <slot name="trigger" />
+        <div
+          class="menu"
+          data-open={this.internalOpen ? '' : undefined}
+          style={{ left: `${this.pointerX}px`, top: `${this.pointerY}px` }}
+        >
+          <ui-menu open={this.internalOpen}>
+            <slot />
+          </ui-menu>
+        </div>
       </Host>
     );
   }

@@ -52,6 +52,7 @@ Resolution:
 
 - `ui-editor-insert-table-grid` now treats hover as preview only and click as the commit step for `rows` and `cols`.
 - The inserted size stays stable while moving from the grid to the confirmation button.
+- Dimension cells are native, named toggle buttons, so keyboard and touch users can pin the same dimensions before confirmation.
 
 Acceptance notes:
 
@@ -60,12 +61,11 @@ Acceptance notes:
 
 ### E-TBL-003: Table overlay and options model are placeholder-quality, not Confluence-quality
 
-Status: open
+Status: accepted Candidate limitation (2026-08-30)
 
-Release 1 classification: unresolved Candidate decision. Fix before release, or
-accept explicitly only after real-browser evidence proves the documented table
-flow remains usable and content round-trips without loss or corruption. Visual
-polish alone may be deferred; data integrity may not.
+Release 1 classification: Confluence-level visual polish is deferred. Candidate
+acceptance is limited to the qualified flow below; data loss or corruption is
+not accepted.
 
 Observed behavior:
 
@@ -102,11 +102,24 @@ Current implementation note:
 - Looma now also normalizes resized column widths back into the active table so the table stays full-width inside the editor after drag-resize completes.
 - The full Confluence-style hover-line interaction model and richer structural options model are still not complete.
 
+Release evidence:
+
+- Chromium exercises keyboard dimension selection, the visible structural toolbar,
+  destructive-intent dispatch, and keyboard activation of row insertion controls.
+- Automated browser accessibility checks pass for the toolbar, table menu, insert
+  grid, and insertion overlay without disabled rules.
+- Tiptap data-integrity tests add rows and columns to a populated table and prove
+  every existing cell plus surrounding document content survives serialization.
+- Destructive controls emit one explicit app-owned intent and do not mutate editor
+  state on their own.
+
 Acceptance notes:
 
 - Hovering a row/column boundary should clearly preview the affected line.
 - Insert controls should appear where the action will apply, not as oversized always-on buttons.
 - The primary structural actions must be discoverable without requiring right-click hunting.
+- Visual parity with Confluence remains explicitly outside Candidate R1 and must
+  not be described as complete in public documentation.
 
 ### E-TBL-004: Toolbar icon rendering still looks off compared with the pre-Looma editor
 

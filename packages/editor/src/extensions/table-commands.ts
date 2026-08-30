@@ -105,10 +105,10 @@ function normalizeColumnWidths(widths: number[], availableWidth: number, minWidt
 }
 
 /**
- * Returns the position of the first cell in the given row of a ProseMirror table.
+ * Returns a valid text-selection position inside the first paragraph of a cell.
  * Assumes no colSpan/rowSpan for simplicity.
  */
-function getCellPosInTable(
+function getTextPositionInCell(
   tablePos: number,
   table: TableNode,
   rowIndex: number,
@@ -122,7 +122,9 @@ function getCellPosInTable(
   for (let c = 0; c < colIndex; c++) {
     pos += row.child(c).nodeSize;
   }
-  return pos + 1;
+  // `pos` is inside the table before the row. Cross the row, cell, and
+  // paragraph boundaries so TextSelection never lands on a tableRow.
+  return pos + 3;
 }
 
 /**
@@ -266,28 +268,28 @@ export function handleTableOverlayAction(
     case "add-row-before": {
       const rowIndex = Math.min(boundaryIndex, rows - 1);
       if (rowIndex < 0) return false;
-      cellPos = getCellPosInTable(tablePos, table as TableNode, rowIndex, 0);
+      cellPos = getTextPositionInCell(tablePos, table as TableNode, rowIndex, 0);
       command = () => editor.chain().focus().setTextSelection(cellPos).addRowBefore().run();
       break;
     }
     case "add-row-after": {
       const rowIndex = Math.min(boundaryIndex, rows - 1);
       if (rowIndex < 0) return false;
-      cellPos = getCellPosInTable(tablePos, table as TableNode, rowIndex, 0);
+      cellPos = getTextPositionInCell(tablePos, table as TableNode, rowIndex, 0);
       command = () => editor.chain().focus().setTextSelection(cellPos).addRowAfter().run();
       break;
     }
     case "add-column-before": {
       const colIndex = Math.min(boundaryIndex, cols - 1);
       if (colIndex < 0) return false;
-      cellPos = getCellPosInTable(tablePos, table as TableNode, 0, colIndex);
+      cellPos = getTextPositionInCell(tablePos, table as TableNode, 0, colIndex);
       command = () => editor.chain().focus().setTextSelection(cellPos).addColumnBefore().run();
       break;
     }
     case "add-column-after": {
       const colIndex = Math.min(boundaryIndex, cols - 1);
       if (colIndex < 0) return false;
-      cellPos = getCellPosInTable(tablePos, table as TableNode, 0, colIndex);
+      cellPos = getTextPositionInCell(tablePos, table as TableNode, 0, colIndex);
       command = () => editor.chain().focus().setTextSelection(cellPos).addColumnAfter().run();
       break;
     }

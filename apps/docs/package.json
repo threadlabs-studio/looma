@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "scripts": {
     "dev": "docusaurus start --port 4173",
-    "build": "docusaurus build",
+    "build": "BROWSERSLIST_IGNORE_OLD_DATA=true docusaurus build",
     "generate:api": "pnpm --dir ../.. generate:api",
     "check:docs-sync": "pnpm --dir ../.. check:docs-sync",
     "lint": "echo \"docs: lint not configured\"",

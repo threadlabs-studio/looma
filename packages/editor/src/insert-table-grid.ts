@@ -106,7 +106,9 @@ class UIEditorInsertTableGridElement extends HTMLElement {
     for (const cell of cells) {
       const row = parseInt(cell.getAttribute("data-row") ?? "1", 10);
       const col = parseInt(cell.getAttribute("data-col") ?? "1", 10);
-      cell.classList.toggle("ui-editor-insert-table-grid__cell--selected", row <= activeRows && col <= activeCols);
+      const selected = row <= activeRows && col <= activeCols;
+      cell.classList.toggle("ui-editor-insert-table-grid__cell--selected", selected);
+      cell.setAttribute("aria-pressed", selected ? "true" : "false");
     }
   }
 
@@ -117,11 +119,11 @@ class UIEditorInsertTableGridElement extends HTMLElement {
 
     let html = '<div class="ui-editor-insert-table-grid">';
     html += `<p class="ui-editor-insert-table-grid__hint">${this.#selectedRows} × ${this.#selectedCols}</p>`;
-    html += '<div class="ui-editor-insert-table-grid__grid">';
+    html += '<div class="ui-editor-insert-table-grid__grid" role="group" aria-label="Table dimensions">';
     for (let r = 1; r <= this.#maxRows; r++) {
       for (let c = 1; c <= this.#maxCols; c++) {
         const selected = r <= this.#selectedRows && c <= this.#selectedCols;
-        html += `<span data-row="${r}" data-col="${c}" class="ui-editor-insert-table-grid__cell${selected ? " ui-editor-insert-table-grid__cell--selected" : ""}"></span>`;
+        html += `<button type="button" data-row="${r}" data-col="${c}" aria-label="${r} rows by ${c} columns" aria-pressed="${selected ? "true" : "false"}" class="ui-editor-insert-table-grid__cell${selected ? " ui-editor-insert-table-grid__cell--selected" : ""}"></button>`;
       }
     }
     html += "</div>";

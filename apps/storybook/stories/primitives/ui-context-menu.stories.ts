@@ -12,7 +12,7 @@ const meta = {
   render: () => `
     <div style="padding: 2rem;">
       <p style="margin-bottom: 1rem; color: var(--ui-text-secondary); font-size: 0.875rem;">
-        Right-click the box below to open the context menu.
+        Use the visible action button, or right-click the larger region.
       </p>
       <div
         id="context-menu-demo-target"
@@ -30,14 +30,14 @@ const meta = {
           user-select: none;
         "
       >
-        Right-click area
+        <ui-context-menu for="context-menu-demo-target">
+          <button slot="trigger" type="button">Document actions</button>
+          <ui-menu-item value="edit">Edit</ui-menu-item>
+          <ui-menu-item value="duplicate">Duplicate</ui-menu-item>
+          <ui-menu-item value="archive">Archive</ui-menu-item>
+          <ui-menu-item value="delete" disabled>Delete</ui-menu-item>
+        </ui-context-menu>
       </div>
-      <ui-context-menu>
-        <ui-menu-item value="edit">Edit</ui-menu-item>
-        <ui-menu-item value="duplicate">Duplicate</ui-menu-item>
-        <ui-menu-item value="archive">Archive</ui-menu-item>
-        <ui-menu-item value="delete" disabled>Delete</ui-menu-item>
-      </ui-context-menu>
     </div>
   `
 } satisfies Meta;

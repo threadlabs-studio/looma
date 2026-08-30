@@ -74,10 +74,16 @@ export namespace Components {
     }
     interface UiContextMenu {
         /**
+          * Opens the menu on first client render.
           * @default false
          */
         "defaultOpen": boolean;
         /**
+          * Optional id of the region that should also respond to a context-menu gesture.
+         */
+        "for"?: string;
+        /**
+          * Controls the menu when the consumer owns open state.
           * @default false
          */
         "open": boolean;
@@ -634,10 +640,16 @@ declare namespace LocalJSX {
     }
     interface UiContextMenu {
         /**
+          * Opens the menu on first client render.
           * @default false
          */
         "defaultOpen"?: boolean;
         /**
+          * Optional id of the region that should also respond to a context-menu gesture.
+         */
+        "for"?: string;
+        /**
+          * Controls the menu when the consumer owns open state.
           * @default false
          */
         "open"?: boolean;
@@ -969,6 +981,7 @@ declare namespace LocalJSX {
     interface UiContextMenuAttributes {
         "open": boolean;
         "defaultOpen": boolean;
+        "for": string;
     }
     interface UiDialogAttributes {
         "open": boolean;
