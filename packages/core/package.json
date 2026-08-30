@@ -29,8 +29,8 @@
   "scripts": {
     "build": "stencil build && tsup src/index.ts --format esm,cjs --dts --outDir dist",
     "start": "stencil build --dev --watch --serve",
-    "test": "vitest run",
-    "test:browser": "vitest run --config vitest.browser.config.ts",
+    "test": "pnpm build && vitest run",
+    "test:browser": "pnpm build && vitest run --config vitest.browser.config.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {

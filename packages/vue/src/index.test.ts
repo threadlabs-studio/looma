@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, type App } from "vue";
 
+vi.mock("@looma/layout", () => ({}));
+vi.mock("@looma/core", () => ({}));
+vi.mock("@looma/editor", () => ({}));
+
 import {
   ADAPTER_COMPONENT_TAG_MAP,
   Avatar,

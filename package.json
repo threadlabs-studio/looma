@@ -15,7 +15,7 @@
     "build:docs": "pnpm --filter @looma/docs build",
     "build:storybook": "pnpm --filter @looma/storybook build",
     "lint": "pnpm -r run lint",
-    "test": "pnpm -r run test",
+    "test": "pnpm build && pnpm -r run test",
     "typecheck": "pnpm -r run typecheck"
   }
 }
