@@ -16,6 +16,7 @@ const manifestPath = path.join(artifactDirectory, "release-manifest.json");
 const registryConfigPath = path.join(repoRoot, "tests/release/registry/verdaccio.yaml");
 const npmrcPath = path.join(repoRoot, "tests/release/registry/.npmrc");
 const defaultKnitDirectory = path.resolve(repoRoot, "../knit");
+const RELEASE_NODE_MAJOR = 20;
 
 function assert(condition, message) {
   if (!condition) {
@@ -221,6 +222,11 @@ async function validateInstalledGraph(worktreeDirectory) {
 }
 
 async function main() {
+  const nodeMajor = Number.parseInt(process.versions.node.split(".")[0] ?? "", 10);
+  assert(
+    nodeMajor === RELEASE_NODE_MAJOR,
+    `Knit release qualification requires Node ${RELEASE_NODE_MAJOR}.x; current runtime is ${process.version}`
+  );
   const allowIneligibleArtifacts = hasArgument("--allow-ineligible-artifacts");
   const skipFullKnitUnit = hasArgument("--skip-full-knit-unit");
   assert(
@@ -309,11 +315,12 @@ async function main() {
     const fixtureEnvironment = {
       ...registryEnvironment,
       CI: "1",
-      NUXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
+      NUXT_PUBLIC_SUPABASE_URL: "https://knit-release.supabase.co",
       NUXT_PUBLIC_SUPABASE_KEY: "release-fixture-public-key",
+      NUXT_PUBLIC_GOOGLE_CLIENT_ID: "123456789-release_fixture.apps.googleusercontent.com",
       NUXT_SUPABASE_SECRET_KEY: "release-fixture-secret-key",
       NUXT_AUTH_HANDOFF_ENCRYPTION_KEY: Buffer.alloc(32, 7).toString("base64"),
-      NUXT_PUBLIC_SITE_URL: "http://localhost:3000"
+      NUXT_PUBLIC_SITE_URL: "https://knit.release.invalid"
     };
     const installCommand = [
       "pnpm",
@@ -343,7 +350,7 @@ async function main() {
     ];
     const commands = [
       installCommand,
-      ["pnpm", ["build"]],
+      ["pnpm", ["build:release"]],
       ["pnpm", ["typecheck"]],
       ["node", [path.relative(path.join(knitWorktree, "web"), ssrProofPath)]],
       ["pnpm", ["-F", "web", "exec", "vitest", "run", ...signupCriticalTests]]
@@ -377,6 +384,7 @@ async function main() {
       releaseExceptions: manifest.exceptions,
       loomaCommit,
       knitCommit,
+      nodeVersion: process.versions.node,
       detachedKnitSourceClean: true,
       liveKnitWorktreeDirtyFiles: knitLiveStatus ? knitLiveStatus.split("\n").length : 0,
       qualificationMode: skipFullKnitUnit ? "inspection-rehearsal" : "release-gate",

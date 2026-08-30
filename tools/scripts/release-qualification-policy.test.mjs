@@ -117,7 +117,10 @@ test("the Knit artifact proof is isolated, fail-closed, and exercises the releas
   assert.match(script, /fullKnitUnitSuitePassed/);
   assert.match(script, /getDefaultEditorExtensions/);
   assert.match(script, /renderToString/);
-  assert.match(script, /pnpm", \["build"/);
+  assert.match(script, /RELEASE_NODE_MAJOR = 20/);
+  assert.match(script, /process\.versions\.node/);
+  assert.match(script, /NUXT_PUBLIC_GOOGLE_CLIENT_ID/);
+  assert.match(script, /pnpm", \["build:release"/);
   assert.match(script, /pnpm", \["typecheck"/);
 
   const loomaPolicy = registryConfig.match(/'@looma\/\*':[\s\S]*?\n\s*'\*\*':/)?.[0] ?? "";
