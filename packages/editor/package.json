@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Open-source Tiptap editor UI elements, styles, presets, and table helpers for Looma.",
+  "license": "MIT",
+  "author": "Threadlabs Studio",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/threadlabs-studio/looma.git",

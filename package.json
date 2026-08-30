@@ -3,6 +3,22 @@
   "private": true,
   "version": "0.1.0",
   "description": "Stack-agnostic UI library built on web standards and Open UI principles.",
+  "license": "MIT",
+  "author": "Threadlabs Studio",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/threadlabs-studio/looma.git"
+  },
+  "bugs": {
+    "url": "https://github.com/threadlabs-studio/looma/issues"
+  },
+  "homepage": "https://github.com/threadlabs-studio/looma#readme",
+  "keywords": [
+    "looma",
+    "web-components",
+    "ui",
+    "design-system"
+  ],
   "packageManager": "pnpm@10.7.0",
   "engines": {
     "node": ">=20"

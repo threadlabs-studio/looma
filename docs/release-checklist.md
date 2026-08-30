@@ -77,7 +77,7 @@ Knit unit-test adaptations currently exist only as uncommitted owner work.
   320-CSS-pixel reflow checks; install-path navigation is covered in the same suite.
 - [x] A manual, protected `docs-preview` Pages workflow builds a no-index Candidate
   preview with every third-party action pinned to a full SHA.
-- [ ] The owner-approved license exists and every package README links to it.
+- [x] The owner-approved MIT license exists and every package README links to it.
 - [ ] The protected no-index preview has been deployed and reviewed at the
   recorded workflow URL.
 

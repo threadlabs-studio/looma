@@ -2,12 +2,30 @@
   "name": "@looma/svelte",
   "version": "0.0.0",
   "type": "module",
+  "description": "Thin Svelte helpers for Looma web components.",
+  "license": "MIT",
+  "author": "Threadlabs Studio",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/threadlabs-studio/looma.git",
+    "directory": "packages/svelte"
+  },
+  "bugs": {
+    "url": "https://github.com/threadlabs-studio/looma/issues"
+  },
+  "homepage": "https://github.com/threadlabs-studio/looma/tree/main/packages/svelte#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     }
   },
+  "files": [
+    "dist/"
+  ],
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts --clean",
     "lint": "tsc -p tsconfig.json --noEmit",

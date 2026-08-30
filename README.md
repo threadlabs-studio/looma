@@ -3,8 +3,8 @@
 Looma is a stack-agnostic UI library based on web standards and Open UI principles.
 
 > **Publication status:** Release 1 packages are not on npm yet. The Candidate is
-> blocked on license approval, authenticated `@looma` scope ownership, and named
-> protected-environment approvers.
+> blocked on authenticated namespace ownership and named protected-environment
+> approvers. The repository license is approved as MIT.
 
 ## Install after Candidate publication
 
@@ -58,7 +58,11 @@ authorization are an explicit release prerequisite. See the
 - `docs/architecture.md`: package and runtime architecture.
 - `docs/adapters.md`: supported adapter contract and repository-preview status.
 - `docs/component-qualification-guide.md`: Candidate and Stable evidence rules.
+- `docs/public-release.md`: original public-repository and namespace-decision notes.
 
 Source: [threadlabs-studio/looma](https://github.com/threadlabs-studio/looma) ·
-[Issues](https://github.com/threadlabs-studio/looma/issues). The legal license
-link will be added only after owner approval; its absence blocks publication.
+[Issues](https://github.com/threadlabs-studio/looma/issues).
+
+## License
+
+MIT. See [LICENSE](./LICENSE).

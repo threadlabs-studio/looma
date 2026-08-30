@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "description": "Supported Vue 3 adapters for Looma layout, core, and editor elements.",
   "type": "module",
+  "license": "MIT",
+  "author": "Threadlabs Studio",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/threadlabs-studio/looma.git",
