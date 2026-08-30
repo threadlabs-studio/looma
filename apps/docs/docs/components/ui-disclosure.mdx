@@ -53,7 +53,7 @@ Default slot with authored trigger/content children.
 
 ```vue
 <script setup lang="ts">
-import { Disclosure } from "@looma/vue";
+import { Disclosure } from "@threadlabs/looma-vue";
 
 function onOpen(detail: unknown) {
   console.log(detail);
@@ -73,7 +73,7 @@ function onOpen(detail: unknown) {
 
 ```svelte
 <script lang="ts">
-  import { bindAdapter } from "@looma/svelte";
+  import { bindAdapter } from "@threadlabs/looma-svelte";
   const options = { onOpen: (detail: unknown) => console.log(detail) };
 </script>
 
@@ -87,7 +87,7 @@ function onOpen(detail: unknown) {
   <TabItem value="react" label="React">
 
 ```tsx
-import { Disclosure } from "@looma/react";
+import { Disclosure } from "@threadlabs/looma-react";
 
 export function Example() {
   return (

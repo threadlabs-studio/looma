@@ -1,4 +1,4 @@
-# @looma/core
+# @threadlabs/looma-core
 
 Looma's Candidate web-component surface: 26 Stencil elements with shadow-root behavior and consumer-authored semantic light-DOM fallback.
 
@@ -7,15 +7,15 @@ Release status: Candidate `0.1.0`, not Stable.
 ## Install
 
 ```sh
-pnpm add @looma/core @looma/tokens
+pnpm add @threadlabs/looma-core @threadlabs/looma-tokens
 ```
 
 ## Use
 
 ```ts
-import "@looma/tokens/tokens.css";
-import "@looma/core/styles.css";
-import "@looma/core";
+import "@threadlabs/looma-tokens/tokens.css";
+import "@threadlabs/looma-core/styles.css";
+import "@threadlabs/looma-core";
 ```
 
 ```html

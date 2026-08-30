@@ -6,9 +6,9 @@ Adapters translate framework props, slots, and callbacks to Looma custom-element
 
 | Adapter | Status | Release 1 promise |
 | --- | --- | --- |
-| `@looma/vue` | Published Candidate | Named wrappers for all 38 published layout, core, and editor elements |
-| `@looma/react` | Deferred repository preview | Not published or supported in Release 1 |
-| `@looma/svelte` | Deferred repository preview | Not published or supported in Release 1 |
+| `@threadlabs/looma-vue` | Published Candidate | Named wrappers for all 38 published layout, core, and editor elements |
+| `@threadlabs/looma-react` | Deferred repository preview | Not published or supported in Release 1 |
+| `@threadlabs/looma-svelte` | Deferred repository preview | Not published or supported in Release 1 |
 
 Some component pages retain React or Svelte snippets as implementation previews. Those snippets are explicitly outside the installable R1 surface; Vue and direct custom-element examples are the supported paths.
 

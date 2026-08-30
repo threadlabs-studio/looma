@@ -12,7 +12,7 @@ import { packagePublicationState, scopeAuthorization } from "./registry-prefligh
 import { loadApprovedRelease } from "./verify-registry-release.mjs";
 
 const expectedRegistry = "https://registry.npmjs.org/";
-const scopeName = "looma";
+const scopeName = "threadlabs";
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDirectory, "../..");
 

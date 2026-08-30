@@ -66,7 +66,7 @@ test("the install path exposes supported packages and the Candidate boundary", a
 }) => {
   await page.goto("./");
 
-  await expect(page.getByText("@looma/vue", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("@threadlabs/looma-vue", { exact: true }).first()).toBeVisible();
   await expect(page.locator("body")).not.toContainText(
     /not published yet|publication pending|become usable when the Candidate is published/i
   );

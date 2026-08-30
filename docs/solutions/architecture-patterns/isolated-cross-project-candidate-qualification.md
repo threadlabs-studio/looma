@@ -53,7 +53,7 @@ pnpm release:verify
 
 Before testing Knit, verify every tarball against the release manifest. Publish only those tarballs, in manifest-derived dependency order, to a disposable loopback registry under the local `candidate` tag.
 
-The registry policy in [`tests/release/registry/verdaccio.yaml`](../../../tests/release/registry/verdaccio.yaml) deliberately gives `@looma/*` no npmjs uplink while allowing unrelated dependencies to proxy normally. A missing Looma artifact must fail instead of being silently repaired by a public package.
+The registry policy in [`tests/release/registry/verdaccio.yaml`](../../../tests/release/registry/verdaccio.yaml) deliberately gives `@threadlabs/looma-*` no npmjs uplink while allowing unrelated dependencies to proxy normally. A missing Looma artifact must fail instead of being silently repaired by a public package.
 
 ### Test a committed Knit snapshot, not live WIP
 

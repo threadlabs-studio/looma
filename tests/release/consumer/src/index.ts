@@ -1,13 +1,13 @@
-import "@looma/core";
-import "@looma/editor";
-import "@looma/layout";
+import "@threadlabs/looma-core";
+import "@threadlabs/looma-editor";
+import "@threadlabs/looma-layout";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
-import { defineCustomElements } from "@looma/core/loader";
-import type { SlashMenuItem } from "@looma/editor";
-import { getDefaultEditorExtensions } from "@looma/editor/extensions";
-import { Button, ContextMenu, EditorToolbar, Stack } from "@looma/vue";
+import { defineCustomElements } from "@threadlabs/looma-core/loader";
+import type { SlashMenuItem } from "@threadlabs/looma-editor";
+import { getDefaultEditorExtensions } from "@threadlabs/looma-editor/extensions";
+import { Button, ContextMenu, EditorToolbar, Stack } from "@threadlabs/looma-vue";
 import { createSSRApp, h } from "vue";
 import { renderToString } from "@vue/server-renderer";
 
@@ -21,15 +21,15 @@ if (extensions.length === 0 || slashItems.length === 0 || typeof defineCustomEle
 }
 
 const require = createRequire(import.meta.url);
-require("@looma/core");
-require("@looma/layout");
+require("@threadlabs/looma-core");
+require("@threadlabs/looma-layout");
 
 for (const styleExport of [
-  "@looma/tokens/tokens.css",
-  "@looma/tokens/theme-light.css",
-  "@looma/layout/layout.css",
-  "@looma/core/styles.css",
-  "@looma/editor/editor.css"
+  "@threadlabs/looma-tokens/tokens.css",
+  "@threadlabs/looma-tokens/theme-light.css",
+  "@threadlabs/looma-layout/layout.css",
+  "@threadlabs/looma-core/styles.css",
+  "@threadlabs/looma-editor/editor.css"
 ]) {
   const styleUrl = import.meta.resolve(styleExport);
   const styleBytes = await readFile(fileURLToPath(styleUrl));

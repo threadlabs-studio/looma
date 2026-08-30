@@ -8,17 +8,17 @@ security, artifact, consumer, documentation, and rollback gates.
 
 - [x] Canonical source repository identified as `threadlabs-studio/looma` on GitHub.
 - [x] Unauthenticated public lookup returns no existing package for the five planned names.
-- [ ] An authenticated npm owner confirms control of the `@looma` scope.
+- [x] An authenticated npm owner confirms control of the `@threadlabs` scope.
 - [ ] The release identity can publish all five exact package names.
-- [ ] The owner approves `@looma` as the permanent public namespace.
+- [x] The owner approves `@threadlabs/looma-*` as the permanent public namespace.
 - [ ] npm account 2FA and the first-publication bootstrap method are approved.
 - [ ] The bootstrap credential is short-lived, publish-only, environment-protected,
   absent from forks/PRs/logs, and scheduled for immediate revocation.
 
-Current blocker: this host is authenticated to npm as `matthew-dean`, but
-`npm team ls looma` is forbidden and the identity is not an `@looma` owner or
-collaborator. The account owns the empty `@threadlabs` organization, but using
-that fallback requires the dedicated namespace migration and owner approval.
+Namespace ownership is resolved: this host is authenticated as `matthew-dean`,
+an owner of the `@threadlabs` organization, and the dedicated migration is owner
+approved. Publication remains gated on the protected release identity proving it
+can publish all five exact names and satisfying the bootstrap credential controls.
 
 ## Contract And Package Gates
 
@@ -61,7 +61,7 @@ Vue browser qualification. The exact Stencil CJS filename diagnostic is the sole
 allowlisted build warning; any additional Stencil warning fails the build.
 
 The eligible `release:verify-knit` gate publishes the five checksummed local
-artifacts to a disposable loopback registry with no `@looma` public fallback,
+artifacts to a disposable loopback registry with no `@threadlabs/looma-*` public fallback,
 then installs them into a detached clean Knit checkout with a fresh pnpm store.
 Canonical Knit commit `3d2cfbb092a83ba0a053178f88a84baf33d548e9`
 passes the production build, typecheck, SSR rendering for all eight consumed

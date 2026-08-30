@@ -8,18 +8,19 @@ promise that every repository package and roadmap item is supported.
 
 | Package/workspace | R1 classification | Format and DOM contract | Required proof |
 | --- | --- | --- | --- |
-| `@looma/tokens` | Published Candidate | CSS-only | Package integrity |
-| `@looma/layout` | Published Candidate | ESM + CJS; six light-DOM elements | Package integrity, SSR import, docs server consumption, existing behavior tests |
-| `@looma/core` | Published Candidate | ESM + real CJS targets; 26 shadow-DOM elements with slotted semantic light-DOM fallback | Behavioral qualification |
-| `@looma/editor` | Published Candidate | ESM; six guarded light-DOM elements plus extension helpers and CSS | Behavioral qualification, including accepted limits |
-| `@looma/vue` | Published Candidate | ESM Vue adapter | Behavioral qualification for all published tags and Knit consumption |
-| `@looma/react` | Internal/deferred | Repository preview only | Not an R1 gate or public promise |
-| `@looma/svelte` | Internal/deferred | Repository preview only | Not an R1 gate or public promise |
+| `@threadlabs/looma-tokens` | Published Candidate | CSS-only | Package integrity |
+| `@threadlabs/looma-layout` | Published Candidate | ESM + CJS; six light-DOM elements | Package integrity, SSR import, docs server consumption, existing behavior tests |
+| `@threadlabs/looma-core` | Published Candidate | ESM + real CJS targets; 26 shadow-DOM elements with slotted semantic light-DOM fallback | Behavioral qualification |
+| `@threadlabs/looma-editor` | Published Candidate | ESM; six guarded light-DOM elements plus extension helpers and CSS | Behavioral qualification, including accepted limits |
+| `@threadlabs/looma-vue` | Published Candidate | ESM Vue adapter | Behavioral qualification for all published tags and Knit consumption |
+| `@threadlabs/looma-react` | Internal/deferred | Repository preview only | Not an R1 gate or public promise |
+| `@threadlabs/looma-svelte` | Internal/deferred | Repository preview only | Not an R1 gate or public promise |
 | docs, Storybook, examples, tooling | Internal | Private workspaces | Release tooling/docs gates only |
 
-The names use the intended `@looma` namespace. Public registry lookup currently
-returns no package for the five planned names, but namespace ownership and publish
-authorization remain unverified until an authenticated owner preflight passes.
+The names use the owner-approved `@threadlabs/looma-*` namespace. Public registry
+lookup currently returns no package for the five planned names, and the authenticated
+operator owns the scope. Exact-name publish authorization still requires the protected
+owner preflight before registry mutation.
 
 ## Published Source Elements
 
@@ -66,8 +67,8 @@ is a release defect, not a reason to silently shrink the source inventory.
   author-provided semantic light DOM through slots.
 - No-JS fallback is the author's semantic light DOM, not Looma's shadow output.
 - Public imports must be SSR-safe at module evaluation time.
-- Knit has demonstrated server-process imports of its linked `@looma/core`,
-  `@looma/editor`, `@looma/editor/extensions`, and `@looma/vue` entry graph. The
+- Knit has demonstrated server-process imports of its linked `@threadlabs/looma-core`,
+  `@threadlabs/looma-editor`, `@threadlabs/looma-editor/extensions`, and `@threadlabs/looma-vue` entry graph. The
   release gate repeats that proof from packed artifacts outside the workspace.
 
 ## Proof Status At Contract Freeze

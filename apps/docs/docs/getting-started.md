@@ -17,15 +17,15 @@ These instructions target the exact Candidate `0.1.0` graph. Before adopting it,
 Use Node 20 or newer and Vue 3.5 or newer:
 
 ```bash npm2yarn
-npm install vue@^3.5 @looma/vue @looma/core @looma/editor @looma/layout @looma/tokens
+npm install vue@^3.5 @threadlabs/looma-vue @threadlabs/looma-core @threadlabs/looma-editor @threadlabs/looma-layout @threadlabs/looma-tokens
 ```
 
-The editor declares its Tiptap 2 extension set as peer dependencies. Current npm and pnpm clients install compatible peers automatically. If your package manager disables peer installation, install every peer listed by `npm view @looma/editor peerDependencies` before importing `@looma/editor/extensions`.
+The editor declares its Tiptap 2 extension set as peer dependencies. Current npm and pnpm clients install compatible peers automatically. If your package manager disables peer installation, install every peer listed by `npm view @threadlabs/looma-editor peerDependencies` before importing `@threadlabs/looma-editor/extensions`.
 
 For direct custom-element use without Vue or the editor:
 
 ```bash npm2yarn
-npm install @looma/core @looma/layout @looma/tokens
+npm install @threadlabs/looma-core @threadlabs/looma-layout @threadlabs/looma-tokens
 ```
 
 ## Import styles and register elements
@@ -33,15 +33,15 @@ npm install @looma/core @looma/layout @looma/tokens
 Import global package CSS once in the browser entry for your application:
 
 ```ts
-import "@looma/tokens/tokens.css";
-import "@looma/tokens/theme-light.css";
-import "@looma/layout/layout.css";
-import "@looma/core/styles.css";
-import "@looma/editor/editor.css";
+import "@threadlabs/looma-tokens/tokens.css";
+import "@threadlabs/looma-tokens/theme-light.css";
+import "@threadlabs/looma-layout/layout.css";
+import "@threadlabs/looma-core/styles.css";
+import "@threadlabs/looma-editor/editor.css";
 
-import "@looma/layout";
-import "@looma/core";
-import "@looma/editor";
+import "@threadlabs/looma-layout";
+import "@threadlabs/looma-core";
+import "@threadlabs/looma-editor";
 ```
 
 Choose only one Looma theme file unless your application supplies its own semantic-token values. Importing the public modules during server rendering is supported; registration and DOM behavior wait for a browser.
@@ -52,7 +52,7 @@ Looma wrappers preserve native, authored markup. That markup is the semantic fal
 
 ```vue
 <script setup lang="ts">
-import { Button, Stack } from "@looma/vue";
+import { Button, Stack } from "@threadlabs/looma-vue";
 </script>
 
 <template>
@@ -67,9 +67,9 @@ import { Button, Stack } from "@looma/vue";
 
 ## Know the Candidate boundary
 
-- `@looma/tokens`, `@looma/layout`, `@looma/core`, `@looma/editor`, and `@looma/vue` are the complete R1 public graph.
+- `@threadlabs/looma-tokens`, `@threadlabs/looma-layout`, `@threadlabs/looma-core`, `@threadlabs/looma-editor`, and `@threadlabs/looma-vue` are the complete R1 public graph.
 - Core elements enhance consumer-authored semantic light DOM with shadow-root behavior. Layout and editor elements remain light DOM.
-- `@looma/react` and `@looma/svelte` are repository previews, not R1 packages.
+- `@threadlabs/looma-react` and `@threadlabs/looma-svelte` are repository previews, not R1 packages.
 - Editor table UI is keyboard and touch operable and protected by content-integrity tests, but Confluence-level polish remains deferred.
 - Looma does not own saves, uploads, collaboration, presence, workspace/page concepts, or app-specific commands.
 

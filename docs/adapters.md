@@ -8,9 +8,9 @@ different behavior.
 
 | Adapter | Release 1 status | Public support promise |
 | --- | --- | --- |
-| `@looma/vue` | Published Candidate | Qualified for the public layout, core, and editor surface used by Knit |
-| `@looma/react` | Internal/deferred preview | Repository code only; not published or supported in Release 1 |
-| `@looma/svelte` | Internal/deferred preview | Repository code only; not published or supported in Release 1 |
+| `@threadlabs/looma-vue` | Published Candidate | Qualified for the public layout, core, and editor surface used by Knit |
+| `@threadlabs/looma-react` | Internal/deferred preview | Repository code only; not published or supported in Release 1 |
+| `@threadlabs/looma-svelte` | Internal/deferred preview | Repository code only; not published or supported in Release 1 |
 
 Repository presence is not release qualification. React and Svelte API parity,
 tests, and public documentation remain follow-up work.
@@ -52,7 +52,7 @@ the editor element's custom-event detail.
 
 ```ts
 import { h } from "vue";
-import { Disclosure } from "@looma/vue";
+import { Disclosure } from "@threadlabs/looma-vue";
 
 export const Example = {
   setup() {

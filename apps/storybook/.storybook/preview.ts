@@ -8,7 +8,7 @@ import "../../../packages/tokens/src/theme-dark.css";
 import "../../../packages/layout/src/layout.css";
 import "../../../packages/core/src/styles.css";
 import "../../../packages/editor/src/editor.css";
-import { defineCustomElements } from "@looma/core/loader";
+import { defineCustomElements } from "@threadlabs/looma-core/loader";
 import "../../../packages/layout/src/index.ts";
 import "../../../packages/core/src/index.ts";
 import "../../../packages/editor/src/index.ts";

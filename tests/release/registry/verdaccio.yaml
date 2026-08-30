@@ -14,7 +14,7 @@ uplinks:
     cache: false
 
 packages:
-  '@looma/*':
+  '@threadlabs/looma-*':
     access: $all
     publish: $all
     unpublish: $all

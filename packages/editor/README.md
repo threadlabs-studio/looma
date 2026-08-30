@@ -1,31 +1,31 @@
-# @looma/editor
+# @threadlabs/looma-editor
 
-Candidate editor UI elements, styles, Tiptap 2 presets, and table helpers for Looma. The package uses Tiptap's vanilla `Editor`; `@looma/vue` is the supported Release 1 adapter.
+Candidate editor UI elements, styles, Tiptap 2 presets, and table helpers for Looma. The package uses Tiptap's vanilla `Editor`; `@threadlabs/looma-vue` is the supported Release 1 adapter.
 
 Release status: Candidate `0.1.0`, not Stable.
 
 ## Install
 
 ```sh
-pnpm add @looma/editor @looma/core @looma/tokens @tiptap/core
+pnpm add @threadlabs/looma-editor @threadlabs/looma-core @threadlabs/looma-tokens @tiptap/core
 ```
 
-Standard npm and pnpm clients install the declared Tiptap extension peers automatically. If peer installation is disabled, install every package returned by `npm view @looma/editor peerDependencies` before importing `@looma/editor/extensions`.
+Standard npm and pnpm clients install the declared Tiptap extension peers automatically. If peer installation is disabled, install every package returned by `npm view @threadlabs/looma-editor peerDependencies` before importing `@threadlabs/looma-editor/extensions`.
 
 ## Import
 
 ```ts
-import "@looma/tokens/tokens.css";
-import "@looma/core/styles.css";
-import "@looma/editor/editor.css";
-import "@looma/core";
-import "@looma/editor";
+import "@threadlabs/looma-tokens/tokens.css";
+import "@threadlabs/looma-core/styles.css";
+import "@threadlabs/looma-editor/editor.css";
+import "@threadlabs/looma-core";
+import "@threadlabs/looma-editor";
 
 import {
   getDefaultEditorExtensions,
   handleTableOverlayAction,
   insertTableAtRange
-} from "@looma/editor/extensions";
+} from "@threadlabs/looma-editor/extensions";
 ```
 
 ## Candidate surface

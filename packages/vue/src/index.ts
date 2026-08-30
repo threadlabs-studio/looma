@@ -1,8 +1,8 @@
 // Side-effect imports register custom elements in the browser only.
-// In SSR (Node), @looma/core and @looma/layout no-op via typeof HTMLElement guards.
-import "@looma/layout";
-import "@looma/core";
-import "@looma/editor";
+// In SSR (Node), @threadlabs/looma-core and @threadlabs/looma-layout no-op via typeof HTMLElement guards.
+import "@threadlabs/looma-layout";
+import "@threadlabs/looma-core";
+import "@threadlabs/looma-editor";
 import {
   cloneVNode,
   defineComponent,

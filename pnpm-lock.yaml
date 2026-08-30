@@ -20,18 +20,18 @@ importers:
       '@docusaurus/preset-classic':
         specifier: ^3.9.2
         version: 3.9.2(@algolia/client-search@5.49.1)(@mdx-js/react@3.1.1(@types/react@19.2.14)(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(search-insights@2.17.3)(typescript@5.9.3)
-      '@looma/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@looma/layout':
-        specifier: workspace:*
-        version: link:../../packages/layout
-      '@looma/tokens':
-        specifier: workspace:*
-        version: link:../../packages/tokens
       '@mdx-js/react':
         specifier: ^3.1.0
         version: 3.1.1(@types/react@19.2.14)(react@19.2.4)
+      '@threadlabs/looma-core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@threadlabs/looma-layout':
+        specifier: workspace:*
+        version: link:../../packages/layout
+      '@threadlabs/looma-tokens':
+        specifier: workspace:*
+        version: link:../../packages/tokens
       prism-svelte:
         specifier: ^0.5.0
         version: 0.5.0
@@ -54,16 +54,16 @@ importers:
 
   apps/storybook:
     dependencies:
-      '@looma/core':
+      '@threadlabs/looma-core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@looma/editor':
+      '@threadlabs/looma-editor':
         specifier: workspace:*
         version: link:../../packages/editor
-      '@looma/layout':
+      '@threadlabs/looma-layout':
         specifier: workspace:*
         version: link:../../packages/layout
-      '@looma/tokens':
+      '@threadlabs/looma-tokens':
         specifier: workspace:*
         version: link:../../packages/tokens
       animejs:
@@ -127,10 +127,10 @@ importers:
 
   packages/editor:
     dependencies:
-      '@looma/core':
+      '@threadlabs/looma-core':
         specifier: workspace:*
         version: link:../core
-      '@looma/tokens':
+      '@threadlabs/looma-tokens':
         specifier: workspace:*
         version: link:../tokens
       prosemirror-tables:
@@ -269,13 +269,13 @@ importers:
 
   packages/react:
     dependencies:
-      '@looma/core':
+      '@threadlabs/looma-core':
         specifier: workspace:*
         version: link:../core
-      '@looma/editor':
+      '@threadlabs/looma-editor':
         specifier: workspace:*
         version: link:../editor
-      '@looma/layout':
+      '@threadlabs/looma-layout':
         specifier: workspace:*
         version: link:../layout
       react:
@@ -294,10 +294,10 @@ importers:
 
   packages/svelte:
     dependencies:
-      '@looma/core':
+      '@threadlabs/looma-core':
         specifier: workspace:*
         version: link:../core
-      '@looma/layout':
+      '@threadlabs/looma-layout':
         specifier: workspace:*
         version: link:../layout
       svelte:
@@ -315,13 +315,13 @@ importers:
 
   packages/vue:
     dependencies:
-      '@looma/core':
+      '@threadlabs/looma-core':
         specifier: workspace:*
         version: link:../core
-      '@looma/editor':
+      '@threadlabs/looma-editor':
         specifier: workspace:*
         version: link:../editor
-      '@looma/layout':
+      '@threadlabs/looma-layout':
         specifier: workspace:*
         version: link:../layout
       vue:

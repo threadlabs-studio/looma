@@ -144,9 +144,9 @@ Wrapper naming policy:
 - Do not prefix wrapper names with `Ui` (`UiStack`, `UiDialog`, etc. are disallowed).
 - Keep shared names domain-neutral (`Avatar`, `AvatarGroup`) and avoid app semantics like `Presence*`.
 
-## Editor (Tiptap) — @looma/editor
+## Editor (Tiptap) — @threadlabs/looma-editor
 
-We are building Confluence/Notion-like editor UI in Looma using **open-source Tiptap only** (no paid templates or Cloud). Package: `packages/editor` (`@looma/editor`). All editor UI is **web components** (custom elements); the Vue adapter wires the R1 supported integration, while the React adapter remains an internal preview. Scope: slash menu, tables with hover “+” and context menu, list behavior, block menu, formatting toolbar, optional emoji/mentions. Domain-neutral; apps wire save, upload, presence. Current shipped editor slice includes the toolbar shell, slash menu, table context menu, table toolbar, insert-table grid, and table overlay components plus adapter event wiring. See **[Editor Roadmap](./editor-roadmap.md)** for full scope, phases, and Looma vs app split.
+We are building Confluence/Notion-like editor UI in Looma using **open-source Tiptap only** (no paid templates or Cloud). Package: `packages/editor` (`@threadlabs/looma-editor`). All editor UI is **web components** (custom elements); the Vue adapter wires the R1 supported integration, while the React adapter remains an internal preview. Scope: slash menu, tables with hover “+” and context menu, list behavior, block menu, formatting toolbar, optional emoji/mentions. Domain-neutral; apps wire save, upload, presence. Current shipped editor slice includes the toolbar shell, slash menu, table context menu, table toolbar, insert-table grid, and table overlay components plus adapter event wiring. See **[Editor Roadmap](./editor-roadmap.md)** for full scope, phases, and Looma vs app split.
 
 ## Planned Promotions From Knit (Candidate Queue)
 
@@ -201,7 +201,7 @@ Source: [Component Library Audit](./component-library-audit.md), based on offici
   - `BaseDialog` moved to Looma `Dialog` wrapper base
   - Toolbar/editor action button base moved to Looma `Button` (`ToolbarBtn`)
   - Tree/context menus in `CollectionGroup`, `FolderTreeNode`, and `PageTreeItem` moved to Looma `Menu` + `MenuItem`
-  - Knit editor now uses `@looma/editor` toolbar shell plus Phase 1 slash/table primitives and extension preset in the page editor flow
+  - Knit editor now uses `@threadlabs/looma-editor` toolbar shell plus Phase 1 slash/table primitives and extension preset in the page editor flow
   - Floating action button pattern promoted into Looma and consumed by Knit via the shared primitive
   - Mobile app top bar shell promoted into Looma and consumed by Knit via the shared primitive
   - Search overlay shell promoted into Looma and consumed by Knit while query/result behavior stays app-local

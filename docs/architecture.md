@@ -7,11 +7,11 @@ the package graph used and proven by Knit.
 ## Release 1 Package Graph
 
 ```txt
-@looma/tokens ──> @looma/layout
+@threadlabs/looma-tokens ──> @threadlabs/looma-layout
        │
-       ├────────> @looma/core ──> @looma/editor
+       ├────────> @threadlabs/looma-core ──> @threadlabs/looma-editor
        │                 │                │
-       └─────────────────┴────────────────┴──> @looma/vue ──> Knit
+       └─────────────────┴────────────────┴──> @threadlabs/looma-vue ──> Knit
 ```
 
 The repository also contains React and Svelte adapters, docs, and Storybook
@@ -20,14 +20,14 @@ packages.
 
 ## Package Responsibilities
 
-- `@looma/tokens`: CSS-only primitive and semantic variables plus theme files.
-- `@looma/layout`: ESM and CommonJS light-DOM custom elements that own spacing through `gap`
+- `@threadlabs/looma-tokens`: CSS-only primitive and semantic variables plus theme files.
+- `@threadlabs/looma-layout`: ESM and CommonJS light-DOM custom elements that own spacing through `gap`
   and never add external margins.
-- `@looma/core`: web components whose behavior and styles live in shadow roots.
+- `@threadlabs/looma-core`: web components whose behavior and styles live in shadow roots.
   Their slots preserve consumer-authored semantic light DOM.
-- `@looma/editor`: ESM light-DOM custom elements, editor styles, and domain-neutral
+- `@threadlabs/looma-editor`: ESM light-DOM custom elements, editor styles, and domain-neutral
   Tiptap helpers. Save, upload, collaboration, and presence remain app concerns.
-- `@looma/vue`: ESM wrappers that map Vue props, slots, and events to the public
+- `@threadlabs/looma-vue`: ESM wrappers that map Vue props, slots, and events to the public
   layout, core, and editor elements.
 
 ## DOM And Progressive-Enhancement Contract
@@ -58,9 +58,9 @@ Release documentation follows built artifacts, not a blanket format claim:
 
 ## Token Flow
 
-- `@looma/tokens` defines primitive and semantic CSS variables in `@layer tokens`.
+- `@threadlabs/looma-tokens` defines primitive and semantic CSS variables in `@layer tokens`.
 - Theme files override semantics in `@layer theme`.
-- `@looma/layout`, `@looma/core`, and `@looma/editor` consume semantic tokens.
+- `@threadlabs/looma-layout`, `@threadlabs/looma-core`, and `@threadlabs/looma-editor` consume semantic tokens.
 - Apps may add their own utility layer and override documented tokens.
 
 ## Contract Ownership

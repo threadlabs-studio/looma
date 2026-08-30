@@ -56,7 +56,7 @@ Default slot (typically contains one native `<dialog>` child).
 
 ```vue
 <script setup lang="ts">
-import { Dialog } from "@looma/vue";
+import { Dialog } from "@threadlabs/looma-vue";
 
 function onClose(detail: unknown) {
   console.log(detail);
@@ -79,7 +79,7 @@ function onClose(detail: unknown) {
 
 ```svelte
 <script lang="ts">
-  import { bindAdapter } from "@looma/svelte";
+  import { bindAdapter } from "@threadlabs/looma-svelte";
   const options = { onClose: (detail: unknown) => console.log(detail) };
 </script>
 
@@ -90,7 +90,7 @@ function onClose(detail: unknown) {
   <TabItem value="react" label="React">
 
 ```tsx
-import { Dialog } from "@looma/react";
+import { Dialog } from "@threadlabs/looma-react";
 
 export function Example() {
   return <Dialog onClose={(detail) => console.log(detail)}>...</Dialog>;

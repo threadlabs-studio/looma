@@ -1,5 +1,5 @@
 /**
- * @looma/core
+ * @threadlabs/looma-core
  *
  * Importing this module registers components and exports the overlay manager.
  */

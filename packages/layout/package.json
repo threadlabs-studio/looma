@@ -1,5 +1,5 @@
 {
-  "name": "@looma/layout",
+  "name": "@threadlabs/looma-layout",
   "version": "0.1.0",
   "description": "Light-DOM layout primitives with token-driven gaps and no external margins.",
   "type": "module",

@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, type App } from "vue";
 
-vi.mock("@looma/layout", () => ({}));
-vi.mock("@looma/core", () => ({}));
-vi.mock("@looma/editor", () => ({}));
+vi.mock("@threadlabs/looma-layout", () => ({}));
+vi.mock("@threadlabs/looma-core", () => ({}));
+vi.mock("@threadlabs/looma-editor", () => ({}));
 
 import {
   ADAPTER_COMPONENT_TAG_MAP,
@@ -44,7 +44,7 @@ afterEach(() => {
   document.body.innerHTML = "";
 });
 
-describe("@looma/vue adapter", () => {
+describe("@threadlabs/looma-vue adapter", () => {
   it("includes parity exports for radio, badge, avatar, and avatar-group tags", () => {
     expect(ADAPTER_COMPONENT_TAG_MAP.RadioGroup).toBe("ui-radio-group");
     expect(ADAPTER_COMPONENT_TAG_MAP.Radio).toBe("ui-radio");

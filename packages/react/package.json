@@ -1,5 +1,5 @@
 {
-  "name": "@looma/react",
+  "name": "@threadlabs/looma-react",
   "version": "0.0.0",
   "type": "module",
   "description": "Thin React adapters for Looma web components.",
@@ -33,9 +33,9 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@looma/core": "workspace:*",
-    "@looma/editor": "workspace:*",
-    "@looma/layout": "workspace:*"
+    "@threadlabs/looma-core": "workspace:*",
+    "@threadlabs/looma-editor": "workspace:*",
+    "@threadlabs/looma-layout": "workspace:*"
   },
   "peerDependencies": {
     "react": "^19.0.0"

@@ -1,4 +1,4 @@
-# @looma/layout
+# @threadlabs/looma-layout
 
 Six light-DOM layout elements that use token-driven gaps and never add external margins.
 
@@ -7,15 +7,15 @@ Release status: Candidate `0.1.0`. The public elements are `ui-stack`, `ui-inlin
 ## Install
 
 ```sh
-pnpm add @looma/layout @looma/tokens
+pnpm add @threadlabs/looma-layout @threadlabs/looma-tokens
 ```
 
 ## Use
 
 ```ts
-import "@looma/tokens/tokens.css";
-import "@looma/layout/layout.css";
-import "@looma/layout";
+import "@threadlabs/looma-tokens/tokens.css";
+import "@threadlabs/looma-layout/layout.css";
+import "@threadlabs/looma-layout";
 ```
 
 ```html

@@ -1,5 +1,5 @@
 {
-  "name": "@looma/svelte",
+  "name": "@threadlabs/looma-svelte",
   "version": "0.0.0",
   "type": "module",
   "description": "Thin Svelte helpers for Looma web components.",
@@ -33,8 +33,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@looma/core": "workspace:*",
-    "@looma/layout": "workspace:*"
+    "@threadlabs/looma-core": "workspace:*",
+    "@threadlabs/looma-layout": "workspace:*"
   },
   "peerDependencies": {
     "svelte": "^5.0.0"

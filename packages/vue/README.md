@@ -1,4 +1,4 @@
-# @looma/vue
+# @threadlabs/looma-vue
 
 The supported Vue 3 adapter for Looma Release 1. It maps Vue props, slots, and callbacks to the public layout, core, and editor custom elements without owning divergent behavior.
 
@@ -7,14 +7,14 @@ Release status: Candidate `0.1.0`. Browser registration/render and linked-worksp
 ## Install
 
 ```sh
-pnpm add vue @looma/vue @looma/core @looma/editor @looma/layout @looma/tokens
+pnpm add vue @threadlabs/looma-vue @threadlabs/looma-core @threadlabs/looma-editor @threadlabs/looma-layout @threadlabs/looma-tokens
 ```
 
 ## Use
 
 ```vue
 <script setup lang="ts">
-import { Button } from "@looma/vue";
+import { Button } from "@threadlabs/looma-vue";
 </script>
 
 <template>

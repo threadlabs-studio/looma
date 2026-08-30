@@ -12,13 +12,13 @@ Candidate availability is defined by the npm `candidate` dist-tag resolving this
 
 | Package | Candidate contract |
 | --- | --- |
-| `@looma/tokens` | CSS tokens plus light, dark, and high-contrast themes |
-| `@looma/layout` | ESM and CommonJS; six light-DOM layout elements |
-| `@looma/core` | ESM and CommonJS; 26 shadow-root elements with semantic slotted fallback |
-| `@looma/editor` | ESM; six light-DOM editor elements, CSS, Tiptap 2 presets, and table helpers |
-| `@looma/vue` | ESM; Vue 3 wrappers for every published layout, core, and editor element |
+| `@threadlabs/looma-tokens` | CSS tokens plus light, dark, and high-contrast themes |
+| `@threadlabs/looma-layout` | ESM and CommonJS; six light-DOM layout elements |
+| `@threadlabs/looma-core` | ESM and CommonJS; 26 shadow-root elements with semantic slotted fallback |
+| `@threadlabs/looma-editor` | ESM; six light-DOM editor elements, CSS, Tiptap 2 presets, and table helpers |
+| `@threadlabs/looma-vue` | ESM; Vue 3 wrappers for every published layout, core, and editor element |
 
-`@looma/react` and `@looma/svelte` are deferred repository previews. Docs, Storybook, examples, and tooling are private workspaces.
+`@threadlabs/looma-react` and `@threadlabs/looma-svelte` are deferred repository previews. Docs, Storybook, examples, and tooling are private workspaces.
 
 ## Qualified behavior
 

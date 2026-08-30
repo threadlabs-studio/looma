@@ -179,7 +179,7 @@ jobs:
         with:
           node-version: 20.19.6
           registry-url: https://registry.npmjs.org/
-          scope: '@looma'
+          scope: '@threadlabs'
 
       - name: Use trusted-publishing-capable npm CLI
         run: npm install --global npm@11.5.1
@@ -258,7 +258,7 @@ jobs:
         with:
           node-version: 20.19.6
           registry-url: https://registry.npmjs.org/
-          scope: '@looma'
+          scope: '@threadlabs'
 
       - name: Use current npm release client
         run: npm install --global npm@11.5.1

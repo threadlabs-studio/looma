@@ -1,5 +1,5 @@
 {
-  "name": "@looma/vue",
+  "name": "@threadlabs/looma-vue",
   "version": "0.1.0",
   "description": "Supported Vue 3 adapters for Looma layout, core, and editor elements.",
   "type": "module",
@@ -36,9 +36,9 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@looma/core": "workspace:*",
-    "@looma/editor": "workspace:*",
-    "@looma/layout": "workspace:*"
+    "@threadlabs/looma-core": "workspace:*",
+    "@threadlabs/looma-editor": "workspace:*",
+    "@threadlabs/looma-layout": "workspace:*"
   },
   "peerDependencies": {
     "vue": "^3.5.0"

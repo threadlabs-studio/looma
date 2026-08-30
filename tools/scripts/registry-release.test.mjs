@@ -13,7 +13,7 @@ import {
 import { fetchRegistryPackage } from "./verify-registry-release.mjs";
 
 const releaseVersion = "0.1.0";
-const packageNames = ["@looma/tokens", "@looma/layout", "@looma/core", "@looma/editor", "@looma/vue"];
+const packageNames = ["@threadlabs/looma-tokens", "@threadlabs/looma-layout", "@threadlabs/looma-core", "@threadlabs/looma-editor", "@threadlabs/looma-vue"];
 const promotionEvidence = {
   candidateWorkflowRunId: "123456789",
   candidateWorkflowRunUrl: "https://github.com/threadlabs-studio/looma/actions/runs/123456789",
@@ -39,7 +39,7 @@ function manifest() {
       name,
       version: releaseVersion,
       integrity: `sha512-${name}`,
-      tarball: `${name.slice(7)}-${releaseVersion}.tgz`,
+      tarball: `${name.replace(/^@/, "").replace("/", "-")}-${releaseVersion}.tgz`,
       sha256: `${publishIndex}`.repeat(64)
     }))
   };
@@ -52,11 +52,11 @@ function sourcePackages() {
     license: "MIT",
     repository: { url: "git+https://github.com/threadlabs-studio/looma.git" },
     homepage: "https://github.com/threadlabs-studio/looma#readme",
-    peerDependencies: name === "@looma/vue" ? { vue: "^3.5.0" } : {},
-    dependencies: name === "@looma/editor"
-      ? { "@looma/core": "workspace:*", "@looma/tokens": "workspace:*" }
-      : name === "@looma/vue"
-        ? { "@looma/core": "workspace:*", "@looma/editor": "workspace:*", "@looma/layout": "workspace:*" }
+    peerDependencies: name === "@threadlabs/looma-vue" ? { vue: "^3.5.0" } : {},
+    dependencies: name === "@threadlabs/looma-editor"
+      ? { "@threadlabs/looma-core": "workspace:*", "@threadlabs/looma-tokens": "workspace:*" }
+      : name === "@threadlabs/looma-vue"
+        ? { "@threadlabs/looma-core": "workspace:*", "@threadlabs/looma-editor": "workspace:*", "@threadlabs/looma-layout": "workspace:*" }
         : {}
   }]));
 }
@@ -70,11 +70,11 @@ function registryPackages() {
     license: "MIT",
     repository: { url: "git+https://github.com/threadlabs-studio/looma.git" },
     homepage: "https://github.com/threadlabs-studio/looma#readme",
-    peerDependencies: name === "@looma/vue" ? { vue: "^3.5.0" } : {},
-    dependencies: name === "@looma/editor"
-      ? { "@looma/core": releaseVersion, "@looma/tokens": releaseVersion }
-      : name === "@looma/vue"
-        ? { "@looma/core": releaseVersion, "@looma/editor": releaseVersion, "@looma/layout": releaseVersion }
+    peerDependencies: name === "@threadlabs/looma-vue" ? { vue: "^3.5.0" } : {},
+    dependencies: name === "@threadlabs/looma-editor"
+      ? { "@threadlabs/looma-core": releaseVersion, "@threadlabs/looma-tokens": releaseVersion }
+      : name === "@threadlabs/looma-vue"
+        ? { "@threadlabs/looma-core": releaseVersion, "@threadlabs/looma-editor": releaseVersion, "@threadlabs/looma-layout": releaseVersion }
         : {},
     distTags: { candidate: releaseVersion },
     provenancePredicateType: "https://slsa.dev/provenance/v1"
@@ -92,13 +92,13 @@ test("accepts the complete public candidate graph", () => {
 
 test("reports integrity, metadata, dependency, tag, access, and provenance drift together", () => {
   const registry = registryPackages();
-  registry["@looma/editor"].integrity = "sha512-wrong";
-  registry["@looma/editor"].license = "Apache-2.0";
-  registry["@looma/editor"].dependencies["@looma/core"] = "^0.1.0";
-  registry["@looma/editor"].distTags.candidate = "0.0.9";
-  registry["@looma/tokens"].public = false;
-  registry["@looma/editor"].provenancePredicateType = null;
-  registry["@looma/vue"].peerDependencies.vue = ">=3";
+  registry["@threadlabs/looma-editor"].integrity = "sha512-wrong";
+  registry["@threadlabs/looma-editor"].license = "Apache-2.0";
+  registry["@threadlabs/looma-editor"].dependencies["@threadlabs/looma-core"] = "^0.1.0";
+  registry["@threadlabs/looma-editor"].distTags.candidate = "0.0.9";
+  registry["@threadlabs/looma-tokens"].public = false;
+  registry["@threadlabs/looma-editor"].provenancePredicateType = null;
+  registry["@threadlabs/looma-vue"].peerDependencies.vue = ">=3";
 
   const issues = collectRegistryReleaseIssues({
     manifest: manifest(),
@@ -107,26 +107,26 @@ test("reports integrity, metadata, dependency, tag, access, and provenance drift
     requiredTags: ["candidate"]
   });
 
-  for (const fragment of ["integrity", "license", "@looma/core", "candidate", "public", "provenance", "peer dependencies"]) {
+  for (const fragment of ["integrity", "license", "@threadlabs/looma-core", "candidate", "public", "provenance", "peer dependencies"]) {
     assert.ok(issues.some((issue) => issue.includes(fragment)), `missing ${fragment} issue`);
   }
 });
 
 test("plans dependency-order promotion and exact rollback for absent or previous latest tags", () => {
   const registry = registryPackages();
-  registry["@looma/layout"].distTags.latest = "0.0.9";
+  registry["@threadlabs/looma-layout"].distTags.latest = "0.0.9";
   const operations = promotionOperations(manifest(), registry);
 
   assert.deepEqual(operations.map(({ name, version, previousLatest }) => ({ name, version, previousLatest })), [
-    { name: "@looma/tokens", version: releaseVersion, previousLatest: null },
-    { name: "@looma/layout", version: releaseVersion, previousLatest: "0.0.9" },
-    { name: "@looma/core", version: releaseVersion, previousLatest: null },
-    { name: "@looma/editor", version: releaseVersion, previousLatest: null },
-    { name: "@looma/vue", version: releaseVersion, previousLatest: null }
+    { name: "@threadlabs/looma-tokens", version: releaseVersion, previousLatest: null },
+    { name: "@threadlabs/looma-layout", version: releaseVersion, previousLatest: "0.0.9" },
+    { name: "@threadlabs/looma-core", version: releaseVersion, previousLatest: null },
+    { name: "@threadlabs/looma-editor", version: releaseVersion, previousLatest: null },
+    { name: "@threadlabs/looma-vue", version: releaseVersion, previousLatest: null }
   ]);
   assert.deepEqual(rollbackOperations(operations.slice(0, 2)), [
-    { action: "restore", name: "@looma/layout", tag: "latest", version: "0.0.9" },
-    { action: "remove", name: "@looma/tokens", tag: "latest" }
+    { action: "restore", name: "@threadlabs/looma-layout", tag: "latest", version: "0.0.9" },
+    { action: "remove", name: "@threadlabs/looma-tokens", tag: "latest" }
   ]);
 });
 
@@ -139,7 +139,7 @@ test("does not promote packages already pointing latest at the approved version"
 test("creates a durable promotion ledger from the exact approved graph and prior tags", () => {
   const releaseManifest = manifest();
   const registry = registryPackages();
-  registry["@looma/layout"].distTags.latest = "0.0.9";
+  registry["@threadlabs/looma-layout"].distTags.latest = "0.0.9";
   const tagSnapshot = Object.fromEntries(packageNames.map((name) => [
     name,
     registry[name].distTags
@@ -224,8 +224,8 @@ test("checkpoints successful promotion through public registry verification", ()
 });
 
 test("reads the full npm packument shape used for metadata and provenance proof", async () => {
-  const entry = await fetchRegistryPackage("@looma/core", releaseVersion, async (url, options) => {
-    assert.equal(url.toString(), "https://registry.npmjs.org/%40looma%2Fcore");
+  const entry = await fetchRegistryPackage("@threadlabs/looma-core", releaseVersion, async (url, options) => {
+    assert.equal(url.toString(), "https://registry.npmjs.org/%40threadlabs%2Flooma-core");
     assert.equal(options.headers.accept, "application/json");
     return {
       ok: true,
@@ -233,7 +233,7 @@ test("reads the full npm packument shape used for metadata and provenance proof"
         "dist-tags": { candidate: releaseVersion },
         versions: {
           [releaseVersion]: {
-            name: "@looma/core",
+            name: "@threadlabs/looma-core",
             version: releaseVersion,
             license: "MIT",
             repository: { url: "git+https://github.com/threadlabs-studio/looma.git" },
@@ -257,7 +257,7 @@ test("reads the full npm packument shape used for metadata and provenance proof"
 
 test("restores every attempted tag when promotion fails partway through", async () => {
   const registry = registryPackages();
-  registry["@looma/layout"].distTags.latest = "0.0.9";
+  registry["@threadlabs/looma-layout"].distTags.latest = "0.0.9";
   const operations = promotionOperations(manifest(), registry).slice(0, 3);
   const promoted = [];
   const rolledBack = [];
@@ -268,7 +268,7 @@ test("restores every attempted tag when promotion fails partway through", async 
       operations,
       promote: async (operation) => {
         promoted.push(operation.name);
-        if (operation.name === "@looma/layout") throw new Error("registry write became ambiguous");
+        if (operation.name === "@threadlabs/looma-layout") throw new Error("registry write became ambiguous");
       },
       verify: async () => assert.fail("verification must not run after a failed write"),
       rollback: async (operation) => rolledBack.push(operation),
@@ -277,10 +277,10 @@ test("restores every attempted tag when promotion fails partway through", async 
     }),
     /registry write became ambiguous[\s\S]*restored to the recorded snapshot/
   );
-  assert.deepEqual(promoted, ["@looma/tokens", "@looma/layout"]);
+  assert.deepEqual(promoted, ["@threadlabs/looma-tokens", "@threadlabs/looma-layout"]);
   assert.deepEqual(rolledBack, [
-    { action: "restore", name: "@looma/layout", tag: "latest", version: "0.0.9" },
-    { action: "remove", name: "@looma/tokens", tag: "latest" }
+    { action: "restore", name: "@threadlabs/looma-layout", tag: "latest", version: "0.0.9" },
+    { action: "remove", name: "@threadlabs/looma-tokens", tag: "latest" }
   ]);
   assert.deepEqual(checkpoints.map((checkpoint) => checkpoint.type), [
     "promotion-operation-attempted",
@@ -327,7 +327,7 @@ test("checkpoints verification and rollback failures for manual recovery", async
   let ledger = createPromotionLedger({
     manifest: manifest(),
     manifestPath: ".release/artifacts/release-manifest.json",
-    tagSnapshot: { "@looma/tokens": { candidate: releaseVersion } },
+    tagSnapshot: { "@threadlabs/looma-tokens": { candidate: releaseVersion } },
     operations,
     promotionEvidence,
     now: "2026-08-30T01:00:00.000Z"
@@ -343,7 +343,7 @@ test("checkpoints verification and rollback failures for manual recovery", async
       rollback: async () => {
         throw new Error("rollback command denied");
       },
-      verifyRollback: async () => ["@looma/tokens: latest did not return to the recorded snapshot"],
+      verifyRollback: async () => ["@threadlabs/looma-tokens: latest did not return to the recorded snapshot"],
       onCheckpoint: async (checkpoint) => {
         checkpoints.push(checkpoint);
         ledger = applyPromotionLedgerCheckpoint(
@@ -372,7 +372,7 @@ test("checkpoints verification and rollback failures for manual recovery", async
   assert.equal(ledger.operationStates[0].status, "applied");
   assert.equal(ledger.rollback.operations[0].status, "failed");
   assert.deepEqual(ledger.rollback.verification.failures, [
-    "@looma/tokens: latest did not return to the recorded snapshot"
+    "@threadlabs/looma-tokens: latest did not return to the recorded snapshot"
   ]);
 });
 

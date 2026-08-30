@@ -56,7 +56,7 @@ Default slot with authored tablist/tabs/panels.
 
 ```vue
 <script setup lang="ts">
-import { Tabs as UITabs } from "@looma/vue";
+import { Tabs as UITabs } from "@threadlabs/looma-vue";
 
 function onSelect(detail: unknown) {
   console.log(detail);
@@ -80,7 +80,7 @@ function onSelect(detail: unknown) {
 
 ```svelte
 <script lang="ts">
-  import { bindAdapter } from "@looma/svelte";
+  import { bindAdapter } from "@threadlabs/looma-svelte";
   const options = { onSelect: (detail: unknown) => console.log(detail) };
 </script>
 
@@ -91,7 +91,7 @@ function onSelect(detail: unknown) {
   <TabItem value="react" label="React">
 
 ```tsx
-import { Tabs as UITabs } from "@looma/react";
+import { Tabs as UITabs } from "@threadlabs/looma-react";
 
 export function Example() {
   return <UITabs onSelect={(detail) => console.log(detail)}>...</UITabs>;

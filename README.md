@@ -9,13 +9,13 @@ Looma is a stack-agnostic UI library based on web standards and Open UI principl
 ## Install the Candidate
 
 ```sh
-npm install vue@^3.5 @looma/vue @looma/core @looma/editor @looma/layout @looma/tokens
+npm install vue@^3.5 @threadlabs/looma-vue @threadlabs/looma-core @threadlabs/looma-editor @threadlabs/looma-layout @threadlabs/looma-tokens
 ```
 
 For direct custom-element use without Vue or the editor:
 
 ```sh
-npm install @looma/core @looma/layout @looma/tokens
+npm install @threadlabs/looma-core @threadlabs/looma-layout @threadlabs/looma-tokens
 ```
 
 Import tokens, one theme, component styles, and the element entry points once in
@@ -27,17 +27,17 @@ for the exact imports and a Vue example.
 Looma Release 1 is a public npm **Candidate `0.1.0`**, not a claim that every
 component or framework adapter is Stable. The intended public package graph is:
 
-- `@looma/tokens`: CSS tokens and themes.
-- `@looma/layout`: light-DOM layout primitives with no external margins.
-- `@looma/core`: shadow-DOM web components that enhance consumer-authored semantic light DOM.
-- `@looma/editor`: light-DOM editor elements and Tiptap extension helpers.
-- `@looma/vue`: the supported Release 1 framework adapter.
+- `@threadlabs/looma-tokens`: CSS tokens and themes.
+- `@threadlabs/looma-layout`: light-DOM layout primitives with no external margins.
+- `@threadlabs/looma-core`: shadow-DOM web components that enhance consumer-authored semantic light DOM.
+- `@threadlabs/looma-editor`: light-DOM editor elements and Tiptap extension helpers.
+- `@threadlabs/looma-vue`: the supported Release 1 framework adapter.
 
-`@looma/react` and `@looma/svelte` remain repository previews and are not part
+`@threadlabs/looma-react` and `@threadlabs/looma-svelte` remain repository previews and are not part
 of the Release 1 public package set. Apps and documentation workspaces are private.
 
-The `@looma` namespace is the intended namespace, but npm ownership and publish
-authorization are an explicit release prerequisite. See the
+The owner-approved public namespace is `@threadlabs/looma-*`. Registry mutation
+still requires the protected release authorization and evidence gates. See the
 [Release 1 support matrix](docs/release-support-matrix.md) and
 [release checklist](docs/release-checklist.md) for the exact promise and gate status.
 

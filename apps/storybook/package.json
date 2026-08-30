@@ -1,5 +1,5 @@
 {
-  "name": "@looma/storybook",
+  "name": "@threadlabs/looma-storybook",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -13,10 +13,10 @@
     "typecheck": "echo \"storybook: typecheck not configured\""
   },
   "dependencies": {
-    "@looma/core": "workspace:*",
-    "@looma/editor": "workspace:*",
-    "@looma/layout": "workspace:*",
-    "@looma/tokens": "workspace:*",
+    "@threadlabs/looma-core": "workspace:*",
+    "@threadlabs/looma-editor": "workspace:*",
+    "@threadlabs/looma-layout": "workspace:*",
+    "@threadlabs/looma-tokens": "workspace:*",
     "animejs": "~4.3.6"
   },
   "devDependencies": {

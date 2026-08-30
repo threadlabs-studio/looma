@@ -138,14 +138,14 @@ async function discoverSourceComponents() {
       const source = await readFile(path.join(componentDirectory, componentEntry.name), "utf8");
       const match = source.match(/tag:\s*["'](ui-[a-z0-9-]+)["']/);
       if (match) {
-        components.push({ tag: match[1], package: "@looma/core" });
+        components.push({ tag: match[1], package: "@threadlabs/looma-core" });
       }
     }
   }
 
   const layoutSource = await readFile(path.join(repoRoot, "packages/layout/src/index.ts"), "utf8");
   for (const match of layoutSource.matchAll(/\[\s*"(ui-[a-z0-9-]+)"\s*,/g)) {
-    components.push({ tag: match[1], package: "@looma/layout" });
+    components.push({ tag: match[1], package: "@threadlabs/looma-layout" });
   }
 
   const editorDirectory = path.join(repoRoot, "packages/editor/src");
@@ -157,7 +157,7 @@ async function discoverSourceComponents() {
     const source = await readFile(path.join(editorDirectory, entry.name), "utf8");
     const match = source.match(/const TAG = "(ui-editor-[a-z0-9-]+)";/);
     if (match) {
-      components.push({ tag: match[1], package: "@looma/editor" });
+      components.push({ tag: match[1], package: "@threadlabs/looma-editor" });
     }
   }
 
@@ -726,7 +726,7 @@ export async function generateComponentApiMetadata() {
   const repositoryProjections = await readRepositoryProjectionTags();
   const requiredContractReadmeTags = Object.entries(classifications)
     .filter(([, value]) => classificationStatus(value) === "published")
-    .filter(([, value]) => typeof value === "object" && value?.package === "@looma/core")
+    .filter(([, value]) => typeof value === "object" && value?.package === "@threadlabs/looma-core")
     .map(([tag]) => tag);
 
   validateComponentProjections({

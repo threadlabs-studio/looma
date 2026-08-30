@@ -17,11 +17,11 @@ test("Candidate changelog records the exact R1 support boundary without claiming
   assert.match(changelog, /^# Changelog/m);
   assert.match(changelog, /^## v0\.1\.0 Candidate$/m);
   for (const packageName of [
-    "@looma/tokens",
-    "@looma/layout",
-    "@looma/core",
-    "@looma/editor",
-    "@looma/vue"
+    "@threadlabs/looma-tokens",
+    "@threadlabs/looma-layout",
+    "@threadlabs/looma-core",
+    "@threadlabs/looma-editor",
+    "@threadlabs/looma-vue"
   ]) {
     assert.match(changelog, new RegExp(packageName.replace("/", "\\/")));
   }

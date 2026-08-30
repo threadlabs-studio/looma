@@ -8,7 +8,7 @@ Status: Active
 - Keep planning docs aligned with actual shipped Looma surface and current Knit migration status.
 - Continue the Knit primitive replacement wave where Looma primitives are already viable.
 - Start M6 promotions from Knit only after generic API extraction is clear (`FloatingActionButton`, command/search shell, generic search result row, top bar shell).
-- Move `@looma/editor` from shipped Phase 1 primitives into real app integration, starting with Knit table UI wiring.
+- Move `@threadlabs/looma-editor` from shipped Phase 1 primitives into real app integration, starting with Knit table UI wiring.
 - Keep Storybook and Docusaurus taxonomy/naming aligned (human labels, stable `ui-*` ids).
 
 ## Recent Progress
@@ -16,11 +16,11 @@ Status: Active
 - Planning sync:
   - React and Vue wrapper parity for current shipped core tags is complete; old parity follow-up notes are now stale.
   - Verified Knit now consumes Looma `ToastRegion`, `Dialog`, `Button`, `Input`, `FormField`, `Menu`, and `MenuItem` in several high-use flows.
-  - Knit page editing now uses `@looma/editor` Phase 1 table primitives and Looma’s shared extension preset; broader editor UI migration is still incomplete.
-- @looma/core fully rebuilt with Stencil:
+  - Knit page editing now uses `@threadlabs/looma-editor` Phase 1 table primitives and Looma’s shared extension preset; broader editor UI migration is still incomplete.
+- @threadlabs/looma-core fully rebuilt with Stencil:
   - All 18 components converted; vanilla impl removed; `packages/core-stencil` deleted.
   - Strong contracts, no MutationObservers, shadow DOM per component.
-  - Consumers call `defineCustomElements()` from `@looma/core/loader`; main entry exports overlay manager.
+  - Consumers call `defineCustomElements()` from `@threadlabs/looma-core/loader`; main entry exports overlay manager.
 - Button ghost variant added for toolbar use:
   - `ui-button[data-variant="ghost"]` in `packages/core/src/styles.css` — transparent background, hover/active states.
   - Updated `ui-button/README.md` to document `ghost` variant.
@@ -37,9 +37,9 @@ Status: Active
   - Showcase stories: Form (validation), Dialog (actions), Menu (icons) in `apps/storybook/stories/`.
   - Updated `docs/design-upgrade.md` to mark all items done.
 - Editor extensions Phase 1 completion:
-  - Added `handleTableOverlayAction(editor, detail)` in `@looma/editor/extensions` to map overlay boundary clicks to exact Tiptap `addRowBefore`/`addRowAfter`/`addColumnBefore`/`addColumnAfter` commands.
+  - Added `handleTableOverlayAction(editor, detail)` in `@threadlabs/looma-editor/extensions` to map overlay boundary clicks to exact Tiptap `addRowBefore`/`addRowAfter`/`addColumnBefore`/`addColumnAfter` commands.
   - Added CodeBlock to `getDefaultEditorExtensions()` preset (basic code block; apps can replace with CodeBlockLowlight for syntax highlighting).
-  - Consolidated extensions export: `@looma/editor/extensions` now exports preset + table-commands from a single entry point.
+  - Consolidated extensions export: `@threadlabs/looma-editor/extensions` now exports preset + table-commands from a single entry point.
 - Storybook showcase enhancements:
   - Added ui-menu and ui-menu-item styles in `packages/core/src/styles.css` (dropdown container, item padding, hover, disabled).
   - Added Anime.js overlay enter animations in `apps/storybook/.storybook/overlay-animate.ts` for ui-menu and ui-popover (mirrors Knit useAnimeEnter).
@@ -75,24 +75,24 @@ Status: Active
   - Updated Storybook story titles to the same semantic groups while keeping human component labels (no `ui-*` in visible names).
   - Updated Storybook sort order to `Layout`, `Forms`, `Overlay`, `Display`, `Editor`.
 - Docs/Storybook naming + grouping alignment completed:
-  - Updated Storybook `preview.ts` to load editor source directly from `packages/editor/src` (`editor.css` + `index`) instead of `@looma/editor` dist imports, preventing stale-dist dynamic import failures.
+  - Updated Storybook `preview.ts` to load editor source directly from `packages/editor/src` (`editor.css` + `index`) instead of `@threadlabs/looma-editor` dist imports, preventing stale-dist dynamic import failures.
   - Renamed all component story titles from `Group/ui-*` to human labels (for example `Layout/Cluster`, `Essentials/Form Field`, `Primitives/Toast Region`).
   - Reorganized docs sidebar component categories to `Layout`, `Primitives`, and `Essentials` to match Storybook taxonomy.
   - Updated all `apps/docs/docs/components/ui-*.mdx` H1 headings from `ui-*` slugs to human names while keeping component ids/tags unchanged.
 - Editor Storybook workflow added:
   - Added `Editor/Table Primitives Playground` story in `apps/storybook/stories/editor/table-primitives-playground.stories.ts` for `ui-editor-table-context-menu`, `ui-editor-insert-table-grid`, and `ui-editor-table-overlay`.
   - Added live event log wiring in-story for `looma-editor-table-action`, `looma-editor-insert-table`, and `looma-editor-table-overlay-action`.
-  - Updated Storybook preview to load `@looma/editor` and `@looma/editor/editor.css` globally and include an `Editor` story section in sort order.
+  - Updated Storybook preview to load `@threadlabs/looma-editor` and `@threadlabs/looma-editor/editor.css` globally and include an `Editor` story section in sort order.
 - Editor Phase 1 table UI + adapter wiring progress:
   - Added `ui-editor-table-overlay` web component with row/column boundary "+" controls and `looma-editor-table-overlay-action` events.
   - Added Vue/React editor wrappers (`EditorTableContextMenu`, `EditorInsertTableGrid`, `EditorTableOverlay`) and typed callbacks for table events (`onTableAction`, `onInsertTable`, `onTableOverlayAction`).
-  - Updated editor/component roadmaps and `@looma/editor` README to reflect shipped table overlay + adapter event wiring.
-- Editor parity progress in `@looma/editor`:
+  - Updated editor/component roadmaps and `@threadlabs/looma-editor` README to reflect shipped table overlay + adapter event wiring.
+- Editor parity progress in `@threadlabs/looma-editor`:
   - Added inline code support (`@tiptap/extension-code`) to `getDefaultEditorExtensions()`.
   - Added a Looma list behavior extension to keep Enter in list/task items and exit empty list items with Backspace.
   - Updated editor roadmap/README status snapshots to reflect shipped extension-level behavior.
 - Looma pivot foundation updates completed:
-  - Migrated package scope and imports across workspace from `@ui/*` to `@looma/*`.
+  - Migrated package scope and imports across workspace from `@ui/*` to `@threadlabs/looma-*`.
   - Rebranded docs/site metadata from Granola to Looma and updated docs-domain placeholder.
   - Added cross-project rules clarifying Looma/Knit boundaries and promotion expectations.
 - Vue adapter parity + verification improvements:
@@ -102,7 +102,7 @@ Status: Active
 - Docs positioning updates:
   - Added official Knit relationship statement + link (`https://knit.wiki`) in docs.
   - Added subtle Knit-style icon treatment in component examples while keeping API wording generic.
-- M5 core expansion completed for `@looma/core`:
+- M5 core expansion completed for `@threadlabs/looma-core`:
   - Added `ui-tooltip`, `ui-toast-region`, `ui-checkbox`, and `ui-switch` custom elements in `packages/core/src/index.ts` with light-DOM, accessibility-first behavior.
   - Added component tests in `packages/core/src/index.test.ts` and contract READMEs under `packages/core/src/ui-*/README.md`.
 - API metadata enrichment completed:
@@ -150,7 +150,7 @@ Status: Active
 - Re-verified after Looma pivot foundation updates:
   - `pnpm install --no-frozen-lockfile`: pass
   - `pnpm typecheck`: pass
-  - `pnpm --filter @looma/vue test`: pass
+  - `pnpm --filter @threadlabs/looma-vue test`: pass
   - `pnpm build:docs`: pass
   - `pnpm build:storybook`: pass
   - Stale token scan (`Granola`, `granola`, `@ui/` across tracked files): no matches
@@ -159,8 +159,8 @@ Status: Active
 - Workspace `pnpm typecheck`: pass
 - Workspace `pnpm build`: pass
 - Workspace `pnpm test`: pass
-- `@looma/docs` build: pass
-- `@looma/storybook` build: pass
+- `@threadlabs/looma-docs` build: pass
+- `@threadlabs/looma-storybook` build: pass
 - Re-verified after final sync wiring:
   - `pnpm generate:api`: pass
   - `pnpm check:docs-sync`: pass
@@ -181,40 +181,40 @@ Status: Active
   - `pnpm test`: pass
 - Re-verified after editor extension parity updates:
   - `pnpm install --no-frozen-lockfile`: pass
-  - `pnpm --filter @looma/editor typecheck`: pass
-  - `pnpm --filter @looma/editor build`: pass
+  - `pnpm --filter @threadlabs/looma-editor typecheck`: pass
+  - `pnpm --filter @threadlabs/looma-editor build`: pass
 - Re-verified after editor table overlay + adapter wiring updates:
   - `pnpm install --no-frozen-lockfile`: pass
-  - `pnpm --filter @looma/editor typecheck`: pass
-  - `pnpm --filter @looma/editor build`: pass
-  - `pnpm --filter @looma/vue typecheck`: pass
-  - `pnpm --filter @looma/vue build`: pass
-  - `pnpm --filter @looma/vue test`: pass
-  - `pnpm --filter @looma/react typecheck`: pass
-  - `pnpm --filter @looma/react build`: pass
+  - `pnpm --filter @threadlabs/looma-editor typecheck`: pass
+  - `pnpm --filter @threadlabs/looma-editor build`: pass
+  - `pnpm --filter @threadlabs/looma-vue typecheck`: pass
+  - `pnpm --filter @threadlabs/looma-vue build`: pass
+  - `pnpm --filter @threadlabs/looma-vue test`: pass
+  - `pnpm --filter @threadlabs/looma-react typecheck`: pass
+  - `pnpm --filter @threadlabs/looma-react build`: pass
 - Re-verified after Storybook editor playground setup:
   - `pnpm install --no-frozen-lockfile`: pass
-  - `pnpm --filter @looma/storybook build`: pass
+  - `pnpm --filter @threadlabs/looma-storybook build`: pass
 - Re-verified after docs/storybook naming and grouping alignment:
-  - `pnpm --filter @looma/storybook build`: pass
-  - `pnpm --filter @looma/docs build`: pass
+  - `pnpm --filter @threadlabs/looma-storybook build`: pass
+  - `pnpm --filter @threadlabs/looma-docs build`: pass
 - Re-verified after semantic taxonomy reset (`Forms/Overlay/Display`):
-  - `pnpm --filter @looma/storybook build`: pass
-  - `pnpm --filter @looma/docs build`: pass
+  - `pnpm --filter @threadlabs/looma-storybook build`: pass
+  - `pnpm --filter @threadlabs/looma-docs build`: pass
 - Re-verified after Storybook styling reliability fix:
-  - `pnpm --filter @looma/storybook build`: pass
+  - `pnpm --filter @threadlabs/looma-storybook build`: pass
 - Re-verified after light-DOM reset + typography contract update:
-  - `pnpm --filter @looma/storybook build`: pass
-  - `pnpm --filter @looma/docs build`: pass
+  - `pnpm --filter @threadlabs/looma-storybook build`: pass
+  - `pnpm --filter @threadlabs/looma-docs build`: pass
 - Re-verified after formal convention + utility pattern docs:
-  - `pnpm --filter @looma/storybook build`: pass
-  - `pnpm --filter @looma/docs build`: pass
+  - `pnpm --filter @threadlabs/looma-storybook build`: pass
+  - `pnpm --filter @threadlabs/looma-docs build`: pass
 - Re-verified after font stack preset utilities/docs:
-  - `pnpm --filter @looma/storybook build`: pass
-  - `pnpm --filter @looma/docs build`: pass
+  - `pnpm --filter @threadlabs/looma-storybook build`: pass
+  - `pnpm --filter @threadlabs/looma-docs build`: pass
 - Re-verified after hybrid layer strategy:
-  - `pnpm --filter @looma/storybook build`: pass
-  - `pnpm --filter @looma/docs build`: pass
+  - `pnpm --filter @threadlabs/looma-storybook build`: pass
+  - `pnpm --filter @threadlabs/looma-docs build`: pass
 - Notes:
   - Storybook emits non-blocking upstream warnings (`eval` and large chunk warnings) during build.
 

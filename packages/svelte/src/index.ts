@@ -1,5 +1,5 @@
-import "@looma/layout";
-import "@looma/core";
+import "@threadlabs/looma-layout";
+import "@threadlabs/looma-core";
 
 export interface SvelteAdapterEventMap {
   open: { open: boolean; reason: string; trigger: string };

@@ -145,7 +145,7 @@ async function validateManifest(allowIneligibleArtifacts) {
 async function rewriteKnitToRegistry(worktreeDirectory) {
   const packagePath = path.join(worktreeDirectory, "web/package.json");
   const packageJson = JSON.parse(await readFile(packagePath, "utf8"));
-  for (const packageName of ["@looma/core", "@looma/editor", "@looma/vue"]) {
+  for (const packageName of ["@threadlabs/looma-core", "@threadlabs/looma-editor", "@threadlabs/looma-vue"]) {
     assert(packageName in packageJson.dependencies, `Knit does not declare ${packageName}`);
     packageJson.dependencies[packageName] = RELEASE_VERSION;
   }
@@ -158,8 +158,8 @@ async function writeKnitSsrProof(worktreeDirectory) {
 import assert from "node:assert/strict";
 import { createSSRApp, h } from "vue";
 import { renderToString } from "vue/server-renderer";
-import "@looma/editor";
-import { getDefaultEditorExtensions } from "@looma/editor/extensions";
+import "@threadlabs/looma-editor";
+import { getDefaultEditorExtensions } from "@threadlabs/looma-editor/extensions";
 import {
   EditorTableOverlay,
   EditorToolbar,
@@ -169,7 +169,7 @@ import {
   SearchShell,
   ToastRegion,
   TopBar
-} from "@looma/vue";
+} from "@threadlabs/looma-vue";
 
 const extensions = getDefaultEditorExtensions();
 assert.ok(Array.isArray(extensions) && extensions.length > 0, "editor extension preset is empty");
@@ -211,7 +211,7 @@ async function validateInstalledGraph(worktreeDirectory) {
   }
 
   const resolutions = {};
-  for (const packageName of ["@looma/core", "@looma/editor", "@looma/vue"]) {
+  for (const packageName of ["@threadlabs/looma-core", "@threadlabs/looma-editor", "@threadlabs/looma-vue"]) {
     const packageDirectory = await realpath(path.join(worktreeDirectory, "web/node_modules", packageName));
     assert(
       packageDirectory.startsWith(canonicalWorktreeDirectory + path.sep),

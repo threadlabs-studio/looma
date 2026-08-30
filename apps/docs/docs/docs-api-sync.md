@@ -20,6 +20,6 @@ The generator also reads the intro line from each component MDX page to keep sho
 
 ## Updating Component APIs
 
-1. Update component class attributes/properties/events in `@looma/core` or `@looma/layout`.
+1. Update component class attributes/properties/events in `@threadlabs/looma-core` or `@threadlabs/looma-layout`.
 2. Regenerate metadata with `pnpm generate:api`.
 3. Run `pnpm check:docs-sync` and commit generated output.

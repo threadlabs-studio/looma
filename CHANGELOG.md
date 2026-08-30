@@ -5,11 +5,11 @@
 Looma Release 1 defines a synchronized Candidate package graph for Vue 3 and
 direct custom-element consumers:
 
-- `@looma/tokens`
-- `@looma/layout`
-- `@looma/core`
-- `@looma/editor`
-- `@looma/vue`
+- `@threadlabs/looma-tokens`
+- `@threadlabs/looma-layout`
+- `@threadlabs/looma-core`
+- `@threadlabs/looma-editor`
+- `@threadlabs/looma-vue`
 
 Candidate means this graph is installable and qualified for its documented
 surface, while APIs may still change before Stable. It does not imply completion
@@ -26,5 +26,5 @@ and [Candidate support boundary](https://threadlabs-studio.github.io/looma/docs/
 before adoption.
 
 ```sh
-pnpm add @looma/tokens@candidate @looma/layout@candidate @looma/core@candidate @looma/editor@candidate @looma/vue@candidate
+pnpm add @threadlabs/looma-tokens@candidate @threadlabs/looma-layout@candidate @threadlabs/looma-core@candidate @threadlabs/looma-editor@candidate @threadlabs/looma-vue@candidate
 ```

@@ -49,7 +49,7 @@ const waitFor = async (predicate: () => boolean, label: string) => {
   throw new Error(`Timed out waiting for ${label}`);
 };
 
-describe("@looma/core primitives", () => {
+describe("@threadlabs/looma-core primitives", () => {
   beforeAll(async () => {
     await Promise.all(COMPONENT_TAGS.map((tag) => customElements.whenDefined(tag)));
     await flushStencil();

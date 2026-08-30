@@ -1,7 +1,7 @@
 export const RELEASE_VERSION = "0.1.0";
 export const RELEASE_PACKAGES = [
   {
-    name: "@looma/tokens",
+    name: "@threadlabs/looma-tokens",
     directory: "packages/tokens",
     requiredFiles: [
       "package/package.json",
@@ -13,7 +13,7 @@ export const RELEASE_PACKAGES = [
     ]
   },
   {
-    name: "@looma/layout",
+    name: "@threadlabs/looma-layout",
     directory: "packages/layout",
     requiredFiles: [
       "package/package.json",
@@ -25,7 +25,7 @@ export const RELEASE_PACKAGES = [
     ]
   },
   {
-    name: "@looma/core",
+    name: "@threadlabs/looma-core",
     directory: "packages/core",
     requiredFiles: [
       "package/package.json",
@@ -40,7 +40,7 @@ export const RELEASE_PACKAGES = [
     ]
   },
   {
-    name: "@looma/editor",
+    name: "@threadlabs/looma-editor",
     directory: "packages/editor",
     requiredFiles: [
       "package/package.json",
@@ -53,7 +53,7 @@ export const RELEASE_PACKAGES = [
     ]
   },
   {
-    name: "@looma/vue",
+    name: "@threadlabs/looma-vue",
     directory: "packages/vue",
     requiredFiles: [
       "package/package.json",

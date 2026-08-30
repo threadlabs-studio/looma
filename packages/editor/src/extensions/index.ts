@@ -1,5 +1,5 @@
 /**
- * @looma/editor/extensions — extension preset and table command helpers.
+ * @threadlabs/looma-editor/extensions — extension preset and table command helpers.
  */
 
 export {

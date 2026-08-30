@@ -51,7 +51,7 @@ Default slot only.
 
 ```vue
 <script setup lang="ts">
-import { Popover } from "@looma/vue";
+import { Popover } from "@threadlabs/looma-vue";
 
 function onOpen(detail: unknown) {
   console.log(detail);
@@ -68,7 +68,7 @@ function onOpen(detail: unknown) {
 
 ```svelte
 <script lang="ts">
-  import { bindAdapter } from "@looma/svelte";
+  import { bindAdapter } from "@threadlabs/looma-svelte";
   const options = { onOpen: (detail: unknown) => console.log(detail) };
 </script>
 
@@ -79,7 +79,7 @@ function onOpen(detail: unknown) {
   <TabItem value="react" label="React">
 
 ```tsx
-import { Popover } from "@looma/react";
+import { Popover } from "@threadlabs/looma-react";
 
 export function Example() {
   return <Popover onOpen={(detail) => console.log(detail)}>Help content</Popover>;

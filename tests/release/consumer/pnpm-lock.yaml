@@ -5,31 +5,31 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  '@looma/core': file:../../../.release/artifacts/looma-core-0.1.0.tgz
-  '@looma/editor': file:../../../.release/artifacts/looma-editor-0.1.0.tgz
-  '@looma/layout': file:../../../.release/artifacts/looma-layout-0.1.0.tgz
-  '@looma/tokens': file:../../../.release/artifacts/looma-tokens-0.1.0.tgz
-  '@looma/vue': file:../../../.release/artifacts/looma-vue-0.1.0.tgz
+  '@threadlabs/looma-core': file:../../../.release/artifacts/threadlabs-looma-core-0.1.0.tgz
+  '@threadlabs/looma-editor': file:../../../.release/artifacts/threadlabs-looma-editor-0.1.0.tgz
+  '@threadlabs/looma-layout': file:../../../.release/artifacts/threadlabs-looma-layout-0.1.0.tgz
+  '@threadlabs/looma-tokens': file:../../../.release/artifacts/threadlabs-looma-tokens-0.1.0.tgz
+  '@threadlabs/looma-vue': file:../../../.release/artifacts/threadlabs-looma-vue-0.1.0.tgz
 
 importers:
 
   .:
     dependencies:
-      '@looma/core':
-        specifier: file:../../../.release/artifacts/looma-core-0.1.0.tgz
-        version: file:../../../.release/artifacts/looma-core-0.1.0.tgz
-      '@looma/editor':
-        specifier: file:../../../.release/artifacts/looma-editor-0.1.0.tgz
-        version: file:../../../.release/artifacts/looma-editor-0.1.0.tgz(a393420904dd8ce836ba5309b6fc8df9)
-      '@looma/layout':
-        specifier: file:../../../.release/artifacts/looma-layout-0.1.0.tgz
-        version: file:../../../.release/artifacts/looma-layout-0.1.0.tgz
-      '@looma/tokens':
-        specifier: file:../../../.release/artifacts/looma-tokens-0.1.0.tgz
-        version: file:../../../.release/artifacts/looma-tokens-0.1.0.tgz
-      '@looma/vue':
-        specifier: file:../../../.release/artifacts/looma-vue-0.1.0.tgz
-        version: file:../../../.release/artifacts/looma-vue-0.1.0.tgz(f5af074c263cc93f37acb002f7818139)
+      '@threadlabs/looma-core':
+        specifier: file:../../../.release/artifacts/threadlabs-looma-core-0.1.0.tgz
+        version: file:../../../.release/artifacts/threadlabs-looma-core-0.1.0.tgz
+      '@threadlabs/looma-editor':
+        specifier: file:../../../.release/artifacts/threadlabs-looma-editor-0.1.0.tgz
+        version: file:../../../.release/artifacts/threadlabs-looma-editor-0.1.0.tgz(a393420904dd8ce836ba5309b6fc8df9)
+      '@threadlabs/looma-layout':
+        specifier: file:../../../.release/artifacts/threadlabs-looma-layout-0.1.0.tgz
+        version: file:../../../.release/artifacts/threadlabs-looma-layout-0.1.0.tgz
+      '@threadlabs/looma-tokens':
+        specifier: file:../../../.release/artifacts/threadlabs-looma-tokens-0.1.0.tgz
+        version: file:../../../.release/artifacts/threadlabs-looma-tokens-0.1.0.tgz
+      '@threadlabs/looma-vue':
+        specifier: file:../../../.release/artifacts/threadlabs-looma-vue-0.1.0.tgz
+        version: file:../../../.release/artifacts/threadlabs-looma-vue-0.1.0.tgz(f5af074c263cc93f37acb002f7818139)
       '@tiptap/core':
         specifier: ^2.27.2
         version: 2.27.2(@tiptap/pm@2.27.2)
@@ -69,13 +69,16 @@ packages:
   '@jridgewell/sourcemap-codec@1.6.0':
     resolution: {integrity: sha512-T7jf+5zgsZHwNJ4lvQ7/aezbyk0nNX+zJVWpmHA7VYsEx7a7qr5Rg5IbtJFqkgze5Y2sruq1RUY8Q837Od7iFw==}
 
-  '@looma/core@file:../../../.release/artifacts/looma-core-0.1.0.tgz':
-    resolution: {integrity: sha512-k8NP6Yj1t2/YvOso37hulxGkK3dbRf6VqyDikLK7gfLXKJQT/PqkvF2iixUAQnl4fJnl1MzRnn6F0yTY//+2zg==, tarball: file:../../../.release/artifacts/looma-core-0.1.0.tgz}
+  '@remirror/core-constants@3.0.0':
+    resolution: {integrity: sha512-42aWfPrimMfDKDi4YegyS7x+/0tlzaqwPQCULLanv3DMIlu96KTJR0fM5isWX2UViOqlGnX6YFgqWepcX+XMNg==}
+
+  '@threadlabs/looma-core@file:../../../.release/artifacts/threadlabs-looma-core-0.1.0.tgz':
+    resolution: {integrity: sha512-2j+3MySCvJqK5xFxV2rswJ6kQ0SR+aABtOuS9lUomwBsiL/UA2ZpprNnUdbY8LQ0+2HJRZsL/e+q6SDQ8YzqZw==, tarball: file:../../../.release/artifacts/threadlabs-looma-core-0.1.0.tgz}
     version: 0.1.0
     engines: {node: '>=20'}
 
-  '@looma/editor@file:../../../.release/artifacts/looma-editor-0.1.0.tgz':
-    resolution: {integrity: sha512-j6oxTvqIH09847MbBBk7v7rvAyGMnhRy+qoMoWeqUEY3hX3/CdWEUMFa0bA0DGk7iW7OW4Z15fWkRTGQKBEUTQ==, tarball: file:../../../.release/artifacts/looma-editor-0.1.0.tgz}
+  '@threadlabs/looma-editor@file:../../../.release/artifacts/threadlabs-looma-editor-0.1.0.tgz':
+    resolution: {integrity: sha512-8BWH1daeclIwtI+0mQUxUBxfwFGQROTQ3n/YEJHqTW3lLWfPeiKH4IM+eKWl7mQrpQy7Fe/3TOCgeiKL+HY2Hw==, tarball: file:../../../.release/artifacts/threadlabs-looma-editor-0.1.0.tgz}
     version: 0.1.0
     engines: {node: '>=20'}
     peerDependencies:
@@ -111,25 +114,22 @@ packages:
       '@tiptap/extension-typography': '>=2 <3'
       '@tiptap/extension-underline': '>=2 <3'
 
-  '@looma/layout@file:../../../.release/artifacts/looma-layout-0.1.0.tgz':
-    resolution: {integrity: sha512-q7ypAZc61jWL3I5KpAFXaGrdV46IbQuOHOnFk6C7coC/vYa1/tJwC8Pb8WPnDjNJ84vWpH1DpXXHbsdwQsbjbw==, tarball: file:../../../.release/artifacts/looma-layout-0.1.0.tgz}
+  '@threadlabs/looma-layout@file:../../../.release/artifacts/threadlabs-looma-layout-0.1.0.tgz':
+    resolution: {integrity: sha512-4IC5V6kEQHpIxdhTGa2VZXqCihttxtmYow1Ta1vfcIizTo/WIjsZhAZsB6/HbA6qISh1+rQoTE0YimNtA//DpA==, tarball: file:../../../.release/artifacts/threadlabs-looma-layout-0.1.0.tgz}
     version: 0.1.0
     engines: {node: '>=20'}
 
-  '@looma/tokens@file:../../../.release/artifacts/looma-tokens-0.1.0.tgz':
-    resolution: {integrity: sha512-4pdkbD8IXw/9K1MD3ZLRh4kyjwbbtebehFzb8eYq5kyD9ez8uvugF0CR2Y/e6NGzr26GUd9h5Gc44OC7ST5c5g==, tarball: file:../../../.release/artifacts/looma-tokens-0.1.0.tgz}
+  '@threadlabs/looma-tokens@file:../../../.release/artifacts/threadlabs-looma-tokens-0.1.0.tgz':
+    resolution: {integrity: sha512-324LQ7ipeTFbsoyu36jf/IXt94G/JSRKY6v+54rqdCBfIWlvNkSUXQ5rgXxCIIX3G8OqlwUFf3X+fgMRreOHRQ==, tarball: file:../../../.release/artifacts/threadlabs-looma-tokens-0.1.0.tgz}
     version: 0.1.0
     engines: {node: '>=20'}
 
-  '@looma/vue@file:../../../.release/artifacts/looma-vue-0.1.0.tgz':
-    resolution: {integrity: sha512-cUOK+KiN2dtB1PUEHPEumtC5x919T98CXqy63G7jZQBGsKx7AJ3soiE2lj1tAvKhurX5Jy09l/OoUNopW0jpKw==, tarball: file:../../../.release/artifacts/looma-vue-0.1.0.tgz}
+  '@threadlabs/looma-vue@file:../../../.release/artifacts/threadlabs-looma-vue-0.1.0.tgz':
+    resolution: {integrity: sha512-t0nkCngPhPaQa+dQkCgLL2rvMqlTO4hBEnjJ4gpdNIdL9K688rJujAfrs0G1k6oeSsA1tysQ50sKKXfmKSMh7A==, tarball: file:../../../.release/artifacts/threadlabs-looma-vue-0.1.0.tgz}
     version: 0.1.0
     engines: {node: '>=20'}
     peerDependencies:
       vue: ^3.5.0
-
-  '@remirror/core-constants@3.0.0':
-    resolution: {integrity: sha512-42aWfPrimMfDKDi4YegyS7x+/0tlzaqwPQCULLanv3DMIlu96KTJR0fM5isWX2UViOqlGnX6YFgqWepcX+XMNg==}
 
   '@tiptap/core@2.27.2':
     resolution: {integrity: sha512-ABL1N6eoxzDzC1bYvkMbvyexHacszsKdVPYqhl5GwHLOvpZcv9VE9QaKwDILTyz5voCA0lGcAAXZp+qnXOk5lQ==}
@@ -500,12 +500,14 @@ snapshots:
 
   '@jridgewell/sourcemap-codec@1.6.0': {}
 
-  '@looma/core@file:../../../.release/artifacts/looma-core-0.1.0.tgz': {}
+  '@remirror/core-constants@3.0.0': {}
 
-  '@looma/editor@file:../../../.release/artifacts/looma-editor-0.1.0.tgz(a393420904dd8ce836ba5309b6fc8df9)':
+  '@threadlabs/looma-core@file:../../../.release/artifacts/threadlabs-looma-core-0.1.0.tgz': {}
+
+  '@threadlabs/looma-editor@file:../../../.release/artifacts/threadlabs-looma-editor-0.1.0.tgz(a393420904dd8ce836ba5309b6fc8df9)':
     dependencies:
-      '@looma/core': file:../../../.release/artifacts/looma-core-0.1.0.tgz
-      '@looma/tokens': file:../../../.release/artifacts/looma-tokens-0.1.0.tgz
+      '@threadlabs/looma-core': file:../../../.release/artifacts/threadlabs-looma-core-0.1.0.tgz
+      '@threadlabs/looma-tokens': file:../../../.release/artifacts/threadlabs-looma-tokens-0.1.0.tgz
       '@tiptap/core': 2.27.2(@tiptap/pm@2.27.2)
       '@tiptap/extension-blockquote': 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))
       '@tiptap/extension-bold': 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))
@@ -539,15 +541,15 @@ snapshots:
       '@tiptap/extension-underline': 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))
       prosemirror-tables: 1.8.5
 
-  '@looma/layout@file:../../../.release/artifacts/looma-layout-0.1.0.tgz': {}
+  '@threadlabs/looma-layout@file:../../../.release/artifacts/threadlabs-looma-layout-0.1.0.tgz': {}
 
-  '@looma/tokens@file:../../../.release/artifacts/looma-tokens-0.1.0.tgz': {}
+  '@threadlabs/looma-tokens@file:../../../.release/artifacts/threadlabs-looma-tokens-0.1.0.tgz': {}
 
-  '@looma/vue@file:../../../.release/artifacts/looma-vue-0.1.0.tgz(f5af074c263cc93f37acb002f7818139)':
+  '@threadlabs/looma-vue@file:../../../.release/artifacts/threadlabs-looma-vue-0.1.0.tgz(f5af074c263cc93f37acb002f7818139)':
     dependencies:
-      '@looma/core': file:../../../.release/artifacts/looma-core-0.1.0.tgz
-      '@looma/editor': file:../../../.release/artifacts/looma-editor-0.1.0.tgz(a393420904dd8ce836ba5309b6fc8df9)
-      '@looma/layout': file:../../../.release/artifacts/looma-layout-0.1.0.tgz
+      '@threadlabs/looma-core': file:../../../.release/artifacts/threadlabs-looma-core-0.1.0.tgz
+      '@threadlabs/looma-editor': file:../../../.release/artifacts/threadlabs-looma-editor-0.1.0.tgz(a393420904dd8ce836ba5309b6fc8df9)
+      '@threadlabs/looma-layout': file:../../../.release/artifacts/threadlabs-looma-layout-0.1.0.tgz
       vue: 3.5.42(typescript@5.9.3)
     transitivePeerDependencies:
       - '@tiptap/core'
@@ -581,8 +583,6 @@ snapshots:
       - '@tiptap/extension-text'
       - '@tiptap/extension-typography'
       - '@tiptap/extension-underline'
-
-  '@remirror/core-constants@3.0.0': {}
 
   '@tiptap/core@2.27.2(@tiptap/pm@2.27.2)':
     dependencies:

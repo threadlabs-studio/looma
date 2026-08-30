@@ -34,10 +34,10 @@ Done gate:
 
 - Targeted Knit flows use Looma primitives for the agreed replacement wave.
 - No regression in current Looma docs/storybook coverage for the affected primitives.
-- `pnpm --filter @looma/docs build`: pass
-- `pnpm --filter @looma/storybook build`: pass
+- `pnpm --filter @threadlabs/looma-docs build`: pass
+- `pnpm --filter @threadlabs/looma-storybook build`: pass
 
-### Stage 2: Integrate `@looma/editor` Phase 1 In Knit
+### Stage 2: Integrate `@threadlabs/looma-editor` Phase 1 In Knit
 
 Goal: move the editor plan from shipped Looma primitives to real app usage in Knit.
 
@@ -46,14 +46,14 @@ Primary scope:
 - Replace Knit-local editor table UI pieces with Looma editor components where Phase 1 already exists.
 - Replace Knit-local slash menu presentation with a Looma editor primitive while keeping Knit command/state ownership.
 - Replace Knit-local toolbar shell presentation with a Looma editor primitive while keeping Knit command ownership.
-- Register Looma extension helpers from `@looma/editor/extensions` in Knit.
+- Register Looma extension helpers from `@threadlabs/looma-editor/extensions` in Knit.
 - Wire `handleTableOverlayAction(editor, detail)` in Knit.
 
 Done gate:
 
-- Knit imports and uses `@looma/editor` for shipped toolbar/slash/table primitives.
+- Knit imports and uses `@threadlabs/looma-editor` for shipped toolbar/slash/table primitives.
 - Knit no longer carries duplicate local implementations for the migrated Phase 1 editor surfaces.
-- `pnpm --filter @looma/editor build`: pass
+- `pnpm --filter @threadlabs/looma-editor build`: pass
 - Knit typecheck for the integrated editor flows: pass
 
 ### Stage 3: First M6 Promotions From Knit

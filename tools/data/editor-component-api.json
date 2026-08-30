@@ -2,7 +2,7 @@
   "components": [
     {
       "tag": "ui-editor-insert-table-grid",
-      "package": "@looma/editor",
+      "package": "@threadlabs/looma-editor",
       "className": "UIEditorInsertTableGridElement",
       "description": "Keyboard- and pointer-operable grid for selecting table dimensions before insertion.",
       "attributes": [
@@ -23,7 +23,7 @@
     },
     {
       "tag": "ui-editor-slash-menu",
-      "package": "@looma/editor",
+      "package": "@threadlabs/looma-editor",
       "className": "UIEditorSlashMenuElement",
       "description": "Responsive slash-command suggestion surface positioned from an app-provided editor anchor.",
       "attributes": [],
@@ -52,7 +52,7 @@
     },
     {
       "tag": "ui-editor-table-context-menu",
-      "package": "@looma/editor",
+      "package": "@threadlabs/looma-editor",
       "className": "UIEditorTableContextMenuElement",
       "description": "Cell-scoped and structural table action menu with capability-controlled actions.",
       "attributes": [
@@ -81,7 +81,7 @@
     },
     {
       "tag": "ui-editor-table-overlay",
-      "package": "@looma/editor",
+      "package": "@threadlabs/looma-editor",
       "className": "UIEditorTableOverlayElement",
       "description": "Boundary-aligned controls for inserting rows or columns around an active table.",
       "attributes": [
@@ -102,7 +102,7 @@
     },
     {
       "tag": "ui-editor-table-toolbar",
-      "package": "@looma/editor",
+      "package": "@threadlabs/looma-editor",
       "className": "UIEditorTableToolbarElement",
       "description": "Selection-aware table toolbar for alignment and discoverable structural actions.",
       "attributes": [
@@ -131,7 +131,7 @@
     },
     {
       "tag": "ui-editor-toolbar",
-      "package": "@looma/editor",
+      "package": "@threadlabs/looma-editor",
       "className": "UIEditorToolbarElement",
       "description": "Slot-based semantic toolbar shell for app-owned editor commands.",
       "attributes": [],

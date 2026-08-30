@@ -19,7 +19,7 @@ test("release qualification is wired to Node 20, Chromium, and non-placeholder g
   assert.match(workflow, /git diff --exit-code -- generated packages\/core\/src\/components/);
   assert.equal(
     JSON.parse(rootPackage).scripts["test:browser"],
-    "pnpm --filter @looma/core test:browser && pnpm --filter @looma/editor test:browser && pnpm --filter @looma/vue test:browser && pnpm --filter @looma/docs test:browser"
+    "pnpm --filter @threadlabs/looma-core test:browser && pnpm --filter @threadlabs/looma-editor test:browser && pnpm --filter @threadlabs/looma-vue test:browser && pnpm --filter @threadlabs/looma-docs test:browser"
   );
   assert.equal(JSON.parse(editorPackage).scripts.test, "vitest run");
 });
@@ -52,13 +52,13 @@ test("public Candidate documentation is install-first, time-stable, and fail-clo
 
   assert.match(rootReadme, /confirm.+candidate.+dist-tag/is);
   assert.doesNotMatch(rootReadme, /not on npm yet|install after Candidate publication/i);
-  assert.match(gettingStarted, /npm install vue@\^3\.5 @looma\/vue/);
+  assert.match(gettingStarted, /npm install vue@\^3\.5 @threadlabs\/looma-vue/);
   assert.doesNotMatch(gettingStarted, /^pnpm install$/m);
   assert.match(gettingStarted, /React and Svelte.+not published or supported/);
   assert.match(supportPage, /Candidate `0\.1\.0`/);
 
   for (const packageName of releasePackages) {
-    const scopedName = `@looma/${packageName}`;
+    const scopedName = `@threadlabs/looma-${packageName}`;
     assert.match(gettingStarted + supportPage, new RegExp(scopedName.replace("/", "\\/")));
 
     const readme = await readFile(
@@ -147,11 +147,11 @@ test("the Knit artifact proof is isolated, fail-closed, and exercises the releas
   assert.match(script, /pnpm", \["build:release"/);
   assert.match(script, /pnpm", \["typecheck"/);
 
-  const loomaPolicy = registryConfig.match(/'@looma\/\*':[\s\S]*?\n\s*'\*\*':/)?.[0] ?? "";
+  const loomaPolicy = registryConfig.match(/'@threadlabs\/looma-\*':[\s\S]*?\n\s*'\*\*':/)?.[0] ?? "";
   assert.match(loomaPolicy, /access: \$all/);
   assert.match(loomaPolicy, /publish: \$all/);
   assert.doesNotMatch(loomaPolicy, /proxy:/);
-  assert.match(npmrc, /@looma:registry=\$\{LOOMA_REGISTRY_URL\}/);
+  assert.match(npmrc, /@threadlabs:registry=\$\{LOOMA_REGISTRY_URL\}/);
   assert.match(script, /--config\.auto-install-peers=true/);
   assert.match(script, /--config\.prefer-workspace-packages=false/);
   assert.match(script, /--config\.link-workspace-packages=false/);

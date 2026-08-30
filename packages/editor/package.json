@@ -1,5 +1,5 @@
 {
-  "name": "@looma/editor",
+  "name": "@threadlabs/looma-editor",
   "version": "0.1.0",
   "type": "module",
   "description": "Open-source Tiptap editor UI elements, styles, presets, and table helpers for Looma.",
@@ -48,8 +48,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@looma/core": "workspace:*",
-    "@looma/tokens": "workspace:*",
+    "@threadlabs/looma-core": "workspace:*",
+    "@threadlabs/looma-tokens": "workspace:*",
     "prosemirror-tables": "^1.8.5"
   },
   "peerDependencies": {

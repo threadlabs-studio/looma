@@ -9,12 +9,11 @@ implementation roadmap so package ownership decisions stay visible.
 - The repository license is MIT.
 - Package manifests include GitHub repository, issues, homepage, and MIT
   license metadata.
-- The R1 package graph and protected release workflow target five `@looma/*`
+- The R1 package graph and protected release workflow target five `@threadlabs/looma-*`
   Candidate packages: tokens, layout, core, editor, and Vue.
 - Unauthenticated registry lookups report all five names as unpublished. This
   host is authenticated to npm as `matthew-dean`, with account-level 2FA set to
-  `auth-and-writes`, but that identity is not a member of the existing `@looma`
-  organization and cannot configure or publish its package graph.
+  `auth-and-writes`, and that identity owns the `@threadlabs` organization.
 - The canonical GitHub repository is public, but its release commit has not
   been pushed to `main`, no protected environments exist, and GitHub Pages is
   not configured.
@@ -23,28 +22,22 @@ implementation roadmap so package ownership decisions stay visible.
 
 The implemented R1 contract uses these names:
 
-- `@looma/tokens`
-- `@looma/layout`
-- `@looma/core`
-- `@looma/editor`
-- `@looma/vue`
+- `@threadlabs/looma-tokens`
+- `@threadlabs/looma-layout`
+- `@threadlabs/looma-core`
+- `@threadlabs/looma-editor`
+- `@threadlabs/looma-vue`
 
-The owner must explicitly approve `@looma` as the permanent namespace and prove
-that a different release identity can publish all five names. The authenticated
-`matthew-dean` identity is an owner of the currently empty `@threadlabs`
-organization, making names such as `@threadlabs/looma-core` the verified
-owner-controlled fallback. That fallback is not approved by this document and
-is not equivalent to the implemented package graph.
-
-Do not rename package manifests piecemeal. A fallback decision requires one
-dedicated migration covering manifests, internal dependencies, Knit, generated
-API metadata, examples, docs, the lockfile, release policy, and registry tests.
-React and Svelte remain unpublished in R1 regardless of namespace.
+The owner approved `@threadlabs/looma-*` as the permanent public namespace after
+the authenticated release identity could not prove access to the existing
+`@looma` organization. The migration is intentionally atomic across manifests,
+internal dependencies, Knit, generated API metadata, examples, docs, lockfiles,
+release policy, and registry tests. React and Svelte remain unpublished in R1.
 
 ## Before First Publish
 
-1. Authenticate an npm owner on a secure operator host and approve either the
-   implemented `@looma/*` graph or a dedicated `@threadlabs/looma-*` migration.
+1. Authenticate the `@threadlabs` npm owner on a secure operator host and prove
+   the protected release identity can publish all five exact package names.
 2. Configure the GitHub `ci`, `docs-preview`, `docs-production`, and
    `npm-release` environments and required approvers described in the release
    checklist.

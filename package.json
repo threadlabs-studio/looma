@@ -29,10 +29,10 @@
     "generate:docs": "pnpm generate:api",
     "check:docs-sync": "node ./tools/scripts/check-docs-sync.mjs",
     "check:mutation-observer": "node ./tools/scripts/check-mutation-observer.mjs",
-    "dev:docs": "pnpm --filter @looma/docs dev",
-    "dev:storybook": "pnpm --filter @looma/storybook dev",
-    "build:docs": "pnpm --filter @looma/docs build",
-    "build:storybook": "pnpm --filter @looma/storybook build",
+    "dev:docs": "pnpm --filter @threadlabs/looma-docs dev",
+    "dev:storybook": "pnpm --filter @threadlabs/looma-storybook dev",
+    "build:docs": "pnpm --filter @threadlabs/looma-docs build",
+    "build:storybook": "pnpm --filter @threadlabs/looma-storybook build",
     "lint": "pnpm -r run lint",
     "release:registry-preflight": "node tools/scripts/registry-preflight.mjs",
     "release:validate-dispatch": "node tools/scripts/release-dispatch.mjs",
@@ -47,7 +47,7 @@
     "release:record": "node tools/scripts/finalize-release.mjs",
     "release:verify:dirty": "node tools/scripts/verify-packages.mjs --output-dir .release/artifacts --allow-dirty",
     "test": "node --test tools/scripts/*.test.mjs && pnpm build && pnpm -r run test",
-    "test:browser": "pnpm --filter @looma/core test:browser && pnpm --filter @looma/editor test:browser && pnpm --filter @looma/vue test:browser && pnpm --filter @looma/docs test:browser",
+    "test:browser": "pnpm --filter @threadlabs/looma-core test:browser && pnpm --filter @threadlabs/looma-editor test:browser && pnpm --filter @threadlabs/looma-vue test:browser && pnpm --filter @threadlabs/looma-docs test:browser",
     "typecheck": "pnpm -r run typecheck"
   },
   "devDependencies": {

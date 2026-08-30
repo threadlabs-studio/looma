@@ -19,12 +19,12 @@ afterEach(async () => {
   vi.restoreAllMocks();
 });
 
-describe("@looma/vue release registration (real browser)", () => {
+describe("@threadlabs/looma-vue release registration (real browser)", () => {
   it("registers and renders the supported baseline without warnings or duplicate-definition errors", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
     const adapter = await import("./index");
-    const { defineCustomElements } = await import("@looma/core/loader");
+    const { defineCustomElements } = await import("@threadlabs/looma-core/loader");
 
     expect(() => defineCustomElements()).not.toThrow();
     expect(() => defineCustomElements()).not.toThrow();

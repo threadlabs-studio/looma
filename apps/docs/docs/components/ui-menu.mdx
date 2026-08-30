@@ -52,7 +52,7 @@ Default slot; expects `ui-menu-item` descendants.
 
 ```vue
 <script setup lang="ts">
-import { Menu, MenuItem } from "@looma/vue";
+import { Menu, MenuItem } from "@threadlabs/looma-vue";
 
 function onSelect(detail: unknown) {
   console.log(detail);
@@ -72,7 +72,7 @@ function onSelect(detail: unknown) {
 
 ```svelte
 <script lang="ts">
-  import { bindAdapter } from "@looma/svelte";
+  import { bindAdapter } from "@threadlabs/looma-svelte";
   const options = { onSelect: (detail: unknown) => console.log(detail) };
 </script>
 
@@ -86,7 +86,7 @@ function onSelect(detail: unknown) {
   <TabItem value="react" label="React">
 
 ```tsx
-import { Menu, MenuItem } from "@looma/react";
+import { Menu, MenuItem } from "@threadlabs/looma-react";
 
 export function Example() {
   return (
