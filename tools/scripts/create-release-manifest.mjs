@@ -111,7 +111,7 @@ export function createReleaseManifest({
       tarball: entry.tarball,
       sha256: entry.sha256,
       bytes: entry.bytes,
-      files: [...entry.tarEntries].sort()
+      files: entry.tarEntries.toSorted()
     }))
   };
 }
