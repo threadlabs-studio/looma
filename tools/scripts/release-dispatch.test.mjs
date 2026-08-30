@@ -20,15 +20,45 @@ const promotionInput = {
   githubRepository: "threadlabs-studio/looma"
 };
 
-test("allows preparation-only and Candidate-only dispatches", () => {
+test("allows preparation without CI evidence and Candidate publication with an exact CI run", () => {
   assert.equal(validateReleaseDispatch({
     publishCandidate: false,
     promoteLatest: false
   }).mode, "prepare");
-  assert.equal(validateReleaseDispatch({
+
+  const candidate = validateReleaseDispatch({
     publishCandidate: "true",
-    promoteLatest: "false"
-  }).mode, "publish-candidate");
+    promoteLatest: "false",
+    ciWorkflowRunId: "246801357"
+  });
+
+  assert.equal(candidate.mode, "publish-candidate");
+  assert.equal(candidate.ciWorkflowRunId, "246801357");
+});
+
+test("requires a positive numeric CI workflow run ID only for Candidate publication", () => {
+  for (const ciWorkflowRunId of [undefined, "", "0", "12.3", "abc", " 123"])
+    assert.throws(
+      () => validateReleaseDispatch({
+        publishCandidate: true,
+        promoteLatest: false,
+        ciWorkflowRunId
+      }),
+      /ciWorkflowRunId.*positive numeric GitHub Actions run ID/i
+    );
+
+  assert.equal(validateReleaseDispatch({
+    publishCandidate: false,
+    promoteLatest: false,
+    ciWorkflowRunId: ""
+  }).mode, "prepare");
+
+  assert.equal(validateReleaseDispatch({
+    publishCandidate: false,
+    promoteLatest: true,
+    ciWorkflowRunId: "",
+    ...promotionInput
+  }).mode, "promote-latest");
 });
 
 test("rejects publishing Candidate and promoting latest in one dispatch", () => {

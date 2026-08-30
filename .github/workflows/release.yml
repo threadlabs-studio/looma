@@ -13,6 +13,11 @@ on:
         required: true
         default: false
         type: boolean
+      ci_workflow_run_id:
+        description: Successful CI push run for main at this exact commit; required only for Candidate publication
+        required: false
+        default: ''
+        type: string
       candidate_workflow_run_id:
         description: Prior successful Candidate workflow run ID; required only for promotion
         required: false
@@ -77,6 +82,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
+      actions: read
       contents: read
     steps:
       - name: Checkout reviewed commit
@@ -90,13 +96,14 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 22.14.0
+          node-version: 20.19.6
           cache: pnpm
 
       - name: Validate separate release dispatch and promotion evidence
         env:
           LOOMA_PUBLISH_CANDIDATE: ${{ inputs.publish_candidate }}
           LOOMA_PROMOTE_LATEST: ${{ inputs.promote_latest }}
+          LOOMA_CI_WORKFLOW_RUN_ID: ${{ inputs.ci_workflow_run_id }}
           LOOMA_CANDIDATE_WORKFLOW_RUN_ID: ${{ inputs.candidate_workflow_run_id }}
           LOOMA_PUBLIC_KNIT_EVIDENCE_SHA256: ${{ inputs.public_knit_evidence_sha256 }}
           LOOMA_PUBLIC_KNIT_EVIDENCE_URL: ${{ inputs.public_knit_evidence_url }}
@@ -104,6 +111,25 @@ jobs:
           LOOMA_HOSTED_DOCS_EVIDENCE_URL: ${{ inputs.hosted_docs_evidence_url }}
           LOOMA_HOSTED_DOCS_URL: ${{ inputs.hosted_docs_url }}
         run: pnpm release:validate-dispatch
+
+      - name: Validate successful main CI for this exact commit
+        if: inputs.publish_candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LOOMA_CI_WORKFLOW_RUN_ID: ${{ inputs.ci_workflow_run_id }}
+          LOOMA_EXPECTED_HEAD_SHA: ${{ github.sha }}
+        run: |
+          ci_run="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${LOOMA_CI_WORKFLOW_RUN_ID}")"
+          if ! jq -e --arg expected_sha "$LOOMA_EXPECTED_HEAD_SHA" '
+            .path == ".github/workflows/ci.yml"
+            and .event == "push"
+            and .head_branch == "main"
+            and .conclusion == "success"
+            and .head_sha == $expected_sha
+          ' <<<"$ci_run" > /dev/null; then
+            echo "CI run must be a successful ci.yml push for main at the exact release commit" >&2
+            exit 1
+          fi
 
       - name: Use trusted-publishing-capable npm CLI
         if: inputs.promote_latest == false
@@ -151,7 +177,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 22.14.0
+          node-version: 20.19.6
           registry-url: https://registry.npmjs.org/
           scope: '@looma'
 
@@ -230,7 +256,7 @@ jobs:
       - name: Setup Node and authenticated npm registry
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 22.14.0
+          node-version: 20.19.6
           registry-url: https://registry.npmjs.org/
           scope: '@looma'
 

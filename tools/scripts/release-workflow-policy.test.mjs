@@ -23,6 +23,9 @@ const candidateEvidenceUpload = publishJob.match(
 const candidateConsumerEvidenceUpload = publishJob.match(
   /- name: Upload candidate public-consumer evidence[\s\S]*?retention-days: 30/
 )?.[0] ?? "";
+const ciRunValidation = prepareJob.match(
+  /- name: Validate successful main CI for this exact commit[\s\S]*?(?=\n\s+- name:)/
+)?.[0] ?? "";
 
 test("release workflow is manual, main-only, serialized, and environment-protected", () => {
   assert.match(workflow, /workflow_dispatch:/);
@@ -34,6 +37,7 @@ test("release workflow is manual, main-only, serialized, and environment-protect
 });
 
 test("Candidate publication and latest promotion are separate validated dispatches", () => {
+  assert.match(workflow, /ci_workflow_run_id:/);
   assert.match(workflow, /candidate_workflow_run_id:/);
   assert.match(workflow, /public_knit_evidence_sha256:/);
   assert.match(workflow, /public_knit_evidence_url:/);
@@ -45,6 +49,7 @@ test("Candidate publication and latest promotion are separate validated dispatch
   const releaseVerification = workflow.indexOf("pnpm release:verify");
   assert.ok(validation >= 0);
   assert.ok(releaseVerification > validation);
+  assert.match(prepareJob, /LOOMA_CI_WORKFLOW_RUN_ID: \$\{\{ inputs\.ci_workflow_run_id \}\}/);
   for (const step of [
     "Use trusted-publishing-capable npm CLI",
     "Install dependencies",
@@ -56,6 +61,25 @@ test("Candidate publication and latest promotion are separate validated dispatch
       new RegExp(`- name: ${step}\\n\\s+if: inputs\\.promote_latest == false`)
     );
   }
+});
+
+test("Candidate publication is bound to a successful push CI run for main at the exact release SHA", () => {
+  assert.match(ciRunValidation, /if: inputs\.publish_candidate/);
+  assert.match(ciRunValidation, /GH_TOKEN: \$\{\{ github\.token \}\}/);
+  assert.match(ciRunValidation, /LOOMA_CI_WORKFLOW_RUN_ID: \$\{\{ inputs\.ci_workflow_run_id \}\}/);
+  assert.match(ciRunValidation, /LOOMA_EXPECTED_HEAD_SHA: \$\{\{ github\.sha \}\}/);
+  assert.match(ciRunValidation, /gh api ["']repos\/\$\{GITHUB_REPOSITORY\}\/actions\/runs\/\$\{LOOMA_CI_WORKFLOW_RUN_ID\}["']/);
+  assert.match(ciRunValidation, /\.path == "\.github\/workflows\/ci\.yml"/);
+  assert.match(ciRunValidation, /\.event == "push"/);
+  assert.match(ciRunValidation, /\.head_branch == "main"/);
+  assert.match(ciRunValidation, /\.conclusion == "success"/);
+  assert.match(ciRunValidation, /\.head_sha == \$expected_sha/);
+
+  const ciValidation = prepareJob.indexOf("Validate successful main CI for this exact commit");
+  const artifactPreparation = prepareJob.indexOf("Use trusted-publishing-capable npm CLI");
+  assert.ok(ciValidation >= 0);
+  assert.ok(artifactPreparation > ciValidation);
+  assert.match(publishJob, /needs: prepare/);
 });
 
 test("every third-party action is pinned to a full commit SHA", () => {
@@ -71,6 +95,7 @@ test("checkout credentials are disabled and publication has only required permis
   const checkoutCount = [...workflow.matchAll(/actions\/checkout@/g)].length;
   const disabledCredentialCount = [...workflow.matchAll(/persist-credentials:\s+false/g)].length;
   assert.equal(disabledCredentialCount, checkoutCount);
+  assert.match(prepareJob, /permissions:\n\s+actions: read\n\s+contents: read/);
   assert.match(publishJob, /permissions:\n\s+contents: read\n\s+id-token: write/);
   assert.doesNotMatch(workflow, /contents:\s+write/);
   assert.doesNotMatch(workflow, /packages:\s+write/);
@@ -79,6 +104,14 @@ test("checkout credentials are disabled and publication has only required permis
   assert.doesNotMatch(promoteJob, /id-token: write/);
   assert.match(promoteJob, /needs:[\s\S]*?- publish/);
   assert.match(promoteJob, /NODE_AUTH_TOKEN: \$\{\{ secrets\.NPM_TOKEN \}\}/);
+});
+
+test("release pack, publish, and promotion jobs use the exact declared Node runtime", () => {
+  for (const job of [prepareJob, publishJob, promoteJob]) {
+    assert.match(job, /node-version: 20\.19\.6/);
+    assert.doesNotMatch(job, /node-version: (?!20\.19\.6)/);
+  }
+  assert.match(workflow, /npm install --global npm@11\.5\.1/);
 });
 
 test("promotion downloads immutable bytes from the prior Candidate workflow run", () => {

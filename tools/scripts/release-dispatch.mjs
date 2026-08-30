@@ -11,6 +11,13 @@ function dispatchBoolean(value, name) {
   throw new Error(`${name} must be true or false`);
 }
 
+function githubActionsRunId(value, name) {
+  if (typeof value !== "string" || !RUN_ID_PATTERN.test(value)) {
+    throw new Error(`${name} must be a positive numeric GitHub Actions run ID`);
+  }
+  return value;
+}
+
 function sha256(value, name) {
   if (typeof value !== "string" || !SHA256_PATTERN.test(value)) {
     throw new Error(`${name} must be a 64-hex SHA-256 digest`);
@@ -49,9 +56,7 @@ export function validatePromotionEvidence({
   githubServerUrl,
   githubRepository
 }) {
-  if (typeof candidateWorkflowRunId !== "string" || !RUN_ID_PATTERN.test(candidateWorkflowRunId)) {
-    throw new Error("candidateWorkflowRunId must be a positive numeric GitHub Actions run ID");
-  }
+  githubActionsRunId(candidateWorkflowRunId, "candidateWorkflowRunId");
   if (typeof githubRepository !== "string" || !REPOSITORY_PATTERN.test(githubRepository)) {
     throw new Error("githubRepository must be an owner/repository pair");
   }
@@ -112,6 +117,7 @@ export function validatePromotionEvidenceRecord(evidence) {
 export function validateReleaseDispatch({
   publishCandidate,
   promoteLatest,
+  ciWorkflowRunId,
   ...promotionInput
 }) {
   const publish = dispatchBoolean(publishCandidate, "publishCandidate");
@@ -127,9 +133,18 @@ export function validateReleaseDispatch({
       promotionEvidence: validatePromotionEvidence(promotionInput)
     };
   }
+  if (publish) {
+    return {
+      mode: "publish-candidate",
+      publishCandidate: true,
+      promoteLatest: false,
+      ciWorkflowRunId: githubActionsRunId(ciWorkflowRunId, "ciWorkflowRunId"),
+      promotionEvidence: null
+    };
+  }
   return {
-    mode: publish ? "publish-candidate" : "prepare",
-    publishCandidate: publish,
+    mode: "prepare",
+    publishCandidate: false,
     promoteLatest: false,
     promotionEvidence: null
   };
@@ -139,6 +154,7 @@ function main() {
   const dispatch = validateReleaseDispatch({
     publishCandidate: process.env.LOOMA_PUBLISH_CANDIDATE,
     promoteLatest: process.env.LOOMA_PROMOTE_LATEST,
+    ciWorkflowRunId: process.env.LOOMA_CI_WORKFLOW_RUN_ID,
     candidateWorkflowRunId: process.env.LOOMA_CANDIDATE_WORKFLOW_RUN_ID,
     publicKnitEvidenceSha256: process.env.LOOMA_PUBLIC_KNIT_EVIDENCE_SHA256,
     publicKnitEvidenceUrl: process.env.LOOMA_PUBLIC_KNIT_EVIDENCE_URL,

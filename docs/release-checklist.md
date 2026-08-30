@@ -51,7 +51,9 @@ replace the accountable owners required in the protected publication run.
   browser accessibility/keyboard evidence and Tiptap data-integrity proof.
 
 The remaining declared-runtime and clean-generation checks require the committed
-U4 tree to pass the Node 20 CI job. The job installs Chromium, checks generated
+release tree to pass the Node 20 CI job. Record the exact successful `ci.yml`
+push run ID for `main`; its `head_sha` must equal the release workflow commit.
+The job installs Chromium, checks generated
 output immutability, rejects skipped required suites, and runs core, editor, and
 Vue browser qualification. The exact Stencil CJS filename diagnostic is the sole
 allowlisted build warning; any additional Stencil warning fails the build.
@@ -98,19 +100,23 @@ production indexing and any canonical-domain cutover belong to U7.
 ## Publication Controls
 
 Candidate publication and `latest` promotion are two separate manual workflow
-dispatches. The Candidate dispatch may set only `publish_candidate`; record its
-successful workflow run ID after the immutable artifact set, registry evidence,
-and public-consumer evidence upload. The later promotion dispatch sets only
-`promote_latest` and supplies that prior run ID, the SHA-256 and HTTPS location
-of the public-registry Knit evidence, the SHA-256 and HTTPS location of the
-hosted-docs evidence (both without embedded credentials), and the separately
-verified HTTPS production docs URL. The workflow downloads the exact Candidate
-run artifacts, and the promotion ledger records the canonical Actions run URL
-and all supplied evidence hashes and locations before the first `latest`
-mutation.
+dispatches. The Candidate dispatch sets `publish_candidate` and supplies
+`ci_workflow_run_id` for the successful `ci.yml` push on `main` whose `head_sha`
+is the exact release commit. Preparation-only and promotion-only dispatches may
+leave that input empty. Record the successful Candidate workflow run ID after
+the immutable artifact set, registry evidence, and public-consumer evidence
+upload. The later promotion dispatch sets only `promote_latest` and supplies
+that prior Candidate run ID, the SHA-256 and HTTPS location of the public-registry
+Knit evidence, the SHA-256 and HTTPS location of the hosted-docs evidence (both
+without embedded credentials), and the separately verified HTTPS production
+docs URL. The workflow downloads the exact Candidate run artifacts, and the
+promotion ledger records the canonical Actions run URL and all supplied evidence
+hashes and locations before the first `latest` mutation.
 
 - [x] The release workflow is manual, main-only, serialized, environment-gated,
   and declares minimal per-job permissions.
+- [ ] The Candidate dispatch records the exact successful `ci.yml` push run ID
+  for `main`, and that run's `head_sha` equals the release workflow commit.
 - [x] Third-party actions are pinned to full commit SHAs and checkout credentials are not persisted.
 - [x] The generated manifest captures approved tarballs, their sorted file
   inventories and SHA-256 hashes, source commit, toolchain, dependency-first
@@ -145,8 +151,8 @@ mutation.
 
 For the protected workflow, verify the current npm requirements immediately before
 publication. The present design assumes a GitHub-hosted runner, exact repository
-and workflow binding, `id-token: write` plus `contents: read`, npm CLI 11.5.1 or
-newer, Node 22.14 or newer for trusted publishing, and matching public repository
+and workflow binding, `id-token: write` plus `contents: read`, npm CLI 11.5.1,
+exact Node 20.19.6 for pack/publish/promotion jobs, and matching public repository
 metadata for automatic provenance. Configure each trusted publisher with
 `release.yml`, the `npm-release` environment, and the `npm publish` allowed action.
 Scoped public packages require public access. npm commands other than publish
