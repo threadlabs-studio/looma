@@ -1,10 +1,12 @@
 import { spawnSync } from "node:child_process";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
+  applyPromotionLedgerCheckpoint,
   collectRegistryReleaseIssues,
+  createPromotionLedger,
   executePromotionPlan,
   promotionOperations,
 } from "./registry-release.mjs";
@@ -52,16 +54,27 @@ function applyRollback(operation) {
 
 async function waitForRegistry(approvedRelease, attempts = 12) {
   let latestState;
+  let latestIssues = [];
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     latestState = await fetchRegistryRelease(approvedRelease);
-    const issues = collectRegistryReleaseIssues({
+    latestIssues = collectRegistryReleaseIssues({
       ...latestState,
       requiredTags: ["candidate", "latest"]
     });
-    if (issues.length === 0) return latestState;
+    if (latestIssues.length === 0) return { state: latestState, issues: latestIssues };
     if (attempt < attempts - 1) await new Promise((resolve) => setTimeout(resolve, 500));
   }
-  return latestState;
+  return { state: latestState, issues: latestIssues };
+}
+
+async function writePromotionLedger(outputPath, ledger) {
+  await mkdir(path.dirname(outputPath), { recursive: true });
+  const temporaryPath = `${outputPath}.${process.pid}.tmp`;
+  await writeFile(temporaryPath, `${JSON.stringify(ledger, null, 2)}\n`, {
+    encoding: "utf8",
+    flush: true
+  });
+  await rename(temporaryPath, outputPath);
 }
 
 async function main() {
@@ -101,15 +114,24 @@ async function main() {
   }
   run("npm", ["whoami", "--registry", registry]);
 
-  const { after } = await executePromotionPlan({
+  const tagSnapshot = Object.fromEntries(before.manifest.packages.map((releasePackage) => [
+    releasePackage.name,
+    before.registryPackages[releasePackage.name]?.distTags ?? {}
+  ]));
+  let promotionLedger = createPromotionLedger({
+    manifest: before.manifest,
+    manifestPath: path.relative(repoRoot, manifestPath),
+    tagSnapshot,
+    operations,
+    now: new Date().toISOString()
+  });
+  await writePromotionLedger(outputPath, promotionLedger);
+
+  await executePromotionPlan({
     operations,
     promote: async (operation) => applyPromotion(operation),
     verify: async () => {
-      const state = await waitForRegistry(approvedRelease);
-      const issues = collectRegistryReleaseIssues({
-        ...state,
-        requiredTags: ["candidate", "latest"]
-      });
+      const { state, issues } = await waitForRegistry(approvedRelease);
       if (issues.length > 0) {
         throw new Error(`post-promotion verification failed:\n- ${issues.join("\n- ")}`);
       }
@@ -133,27 +155,26 @@ async function main() {
         if (attempt < 11) await new Promise((resolve) => setTimeout(resolve, 500));
       }
       return failures;
+    },
+    onCheckpoint: async (checkpoint) => {
+      const ledgerCheckpoint = checkpoint.type === "promotion-verification-succeeded"
+        ? {
+            type: checkpoint.type,
+            verification: registryEvidence({
+              manifest: checkpoint.result.manifest,
+              registryPackages: checkpoint.result.registryPackages,
+              requiredTags: ["candidate", "latest"]
+            })
+          }
+        : checkpoint;
+      promotionLedger = applyPromotionLedgerCheckpoint(
+        promotionLedger,
+        ledgerCheckpoint,
+        new Date().toISOString()
+      );
+      await writePromotionLedger(outputPath, promotionLedger);
     }
   });
-
-  const tagSnapshot = Object.fromEntries(before.manifest.packages.map((releasePackage) => [
-    releasePackage.name,
-    before.registryPackages[releasePackage.name]?.distTags ?? {}
-  ]));
-  await mkdir(path.dirname(outputPath), { recursive: true });
-  await writeFile(outputPath, `${JSON.stringify({
-    schemaVersion: 1,
-    promotedAt: new Date().toISOString(),
-    sourceCommit: before.manifest.sourceCommit,
-    approvals: before.manifest.approvals,
-    tagSnapshot,
-    changedPackages: operations.map((operation) => operation.name),
-    verification: registryEvidence({
-      manifest: after.manifest,
-      registryPackages: after.registryPackages,
-      requiredTags: ["candidate", "latest"]
-    })
-  }, null, 2)}\n`, "utf8");
   process.stdout.write(`Promoted and verified ${before.manifest.releaseVersion} as latest for all ${before.manifest.packages.length} Looma packages.\n`);
 }
 

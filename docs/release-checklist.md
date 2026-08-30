@@ -100,6 +100,10 @@ production indexing and any canonical-domain cutover belong to U7.
   repository, homepage, exact internal-dependency, dist-tag, or provenance drift.
 - [x] Latest promotion snapshots every prior tag, runs in dependency order, and
   restores every changed tag if a command or post-promotion verification fails.
+- [x] Before the first `latest` mutation, promotion durably writes the approved
+  artifact graph, accountable approvals, exact prior tags, and planned operations;
+  every mutation, verification, and rollback checkpoint updates that evidence,
+  and the workflow uploads it even when promotion fails.
 - [ ] The protected-run manifest also records evidence locations and accountable
   npm, documentation, and Knit approval owners.
 - [ ] The repository owner configures the protected `npm-release` environment,

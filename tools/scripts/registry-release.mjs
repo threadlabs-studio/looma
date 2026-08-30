@@ -24,6 +24,146 @@ function stableObject(value) {
   return Object.fromEntries(Object.entries(object(value)).sort(([left], [right]) => left.localeCompare(right)));
 }
 
+function errorMessage(error) {
+  return error instanceof Error ? error.message : String(error);
+}
+
+export function createPromotionLedger({ manifest: manifestValue, manifestPath, tagSnapshot, operations, now }) {
+  const manifest = object(manifestValue);
+  return {
+    schemaVersion: 1,
+    evidenceType: "registry-promotion-ledger",
+    status: "planned",
+    state: "promotion-planned",
+    createdAt: now,
+    updatedAt: now,
+    sourceCommit: manifest.sourceCommit,
+    releaseVersion: manifest.releaseVersion,
+    approvals: structuredClone(object(manifest.approvals)),
+    releaseManifest: {
+      path: manifestPath,
+      schemaVersion: manifest.schemaVersion,
+      createdAt: manifest.createdAt ?? null,
+      evidence: structuredClone(object(manifest.evidence)),
+      packages: structuredClone(Array.isArray(manifest.packages) ? manifest.packages : [])
+    },
+    tagSnapshot: structuredClone(tagSnapshot),
+    plannedOperations: structuredClone(operations),
+    changedPackages: operations.map((operation) => operation.name),
+    promotedAt: null,
+    operationStates: operations.map((operation) => ({
+      ...structuredClone(operation),
+      status: "planned"
+    })),
+    rollback: {
+      status: "not-required",
+      operations: [],
+      verification: null
+    },
+    failure: null,
+    verification: null,
+    checkpoints: [{ type: "ledger-created", at: now }]
+  };
+}
+
+function promotionOperationState(ledger, operation) {
+  return ledger.operationStates.find((entry) =>
+    entry.name === operation.name
+      && entry.version === operation.version
+      && entry.tag === operation.tag
+  );
+}
+
+function rollbackOperationState(ledger, operation) {
+  return ledger.rollback.operations.findLast((entry) =>
+    entry.name === operation.name
+      && entry.tag === operation.tag
+      && entry.action === operation.action
+  );
+}
+
+export function applyPromotionLedgerCheckpoint(ledgerValue, checkpointValue, at) {
+  const ledger = structuredClone(ledgerValue);
+  const checkpoint = object(checkpointValue);
+  const operation = checkpoint.operation ? structuredClone(checkpoint.operation) : null;
+  const record = { type: checkpoint.type, at };
+  if (operation) record.operation = operation;
+  if (checkpoint.error) record.error = checkpoint.error;
+  if (Array.isArray(checkpoint.failures)) record.failures = structuredClone(checkpoint.failures);
+  ledger.updatedAt = at;
+  ledger.checkpoints.push(record);
+
+  switch (checkpoint.type) {
+    case "promotion-operation-attempted": {
+      ledger.status = "in-progress";
+      ledger.state = "promoting";
+      const state = promotionOperationState(ledger, operation);
+      if (state) Object.assign(state, { status: "attempted", attemptedAt: at });
+      break;
+    }
+    case "promotion-operation-applied": {
+      const state = promotionOperationState(ledger, operation);
+      if (state) Object.assign(state, { status: "applied", appliedAt: at });
+      break;
+    }
+    case "promotion-verification-attempted":
+      ledger.state = "verifying-registry";
+      break;
+    case "promotion-verification-succeeded":
+      ledger.status = "succeeded";
+      ledger.state = "registry-verified";
+      ledger.promotedAt = at;
+      ledger.verification = structuredClone(checkpoint.verification);
+      break;
+    case "promotion-verification-failed":
+      ledger.state = "registry-verification-failed";
+      ledger.failure = checkpoint.error;
+      break;
+    case "promotion-failed":
+      ledger.status = "recovering";
+      ledger.state = "rollback-in-progress";
+      ledger.failure = checkpoint.error;
+      ledger.rollback.status = "in-progress";
+      break;
+    case "rollback-operation-attempted":
+      ledger.rollback.operations.push({
+        ...operation,
+        status: "attempted",
+        attemptedAt: at
+      });
+      break;
+    case "rollback-operation-applied": {
+      const state = rollbackOperationState(ledger, operation);
+      if (state) Object.assign(state, { status: "applied", appliedAt: at });
+      break;
+    }
+    case "rollback-operation-failed": {
+      const state = rollbackOperationState(ledger, operation);
+      if (state) Object.assign(state, { status: "failed", failedAt: at, error: checkpoint.error });
+      break;
+    }
+    case "rollback-verification-attempted":
+      ledger.rollback.status = "verifying";
+      break;
+    case "rollback-verification-succeeded":
+      ledger.status = "rolled-back";
+      ledger.state = "tag-snapshot-restored";
+      ledger.rollback.status = "verified";
+      ledger.rollback.verification = { verifiedAt: at, failures: [] };
+      break;
+    case "rollback-verification-failed":
+      ledger.status = "rollback-failed";
+      ledger.state = "manual-recovery-required";
+      ledger.rollback.status = "failed";
+      ledger.rollback.verification = {
+        verifiedAt: at,
+        failures: structuredClone(checkpoint.failures ?? [])
+      };
+      break;
+  }
+  return ledger;
+}
+
 export function collectRegistryReleaseIssues({
   manifest: manifestValue,
   sourcePackages: sourcePackagesValue,
@@ -150,36 +290,68 @@ export async function executePromotionPlan({
   promote,
   verify,
   rollback,
-  verifyRollback
+  verifyRollback,
+  onCheckpoint = async () => {}
 }) {
   const attempted = [];
+  const recoveryCheckpoint = async (checkpoint) => {
+    try {
+      await onCheckpoint(checkpoint);
+    } catch {
+      // Recovery must continue even if a later evidence checkpoint cannot be persisted.
+    }
+  };
   try {
     for (const operation of operations) {
+      await onCheckpoint({ type: "promotion-operation-attempted", operation });
       attempted.push(operation);
       await promote(operation);
+      await onCheckpoint({ type: "promotion-operation-applied", operation });
     }
-    return { after: await verify(), attempted };
+    await onCheckpoint({ type: "promotion-verification-attempted" });
+    let after;
+    try {
+      after = await verify();
+    } catch (error) {
+      await recoveryCheckpoint({ type: "promotion-verification-failed", error: errorMessage(error) });
+      throw error;
+    }
+    await onCheckpoint({ type: "promotion-verification-succeeded", result: after });
+    return { after, attempted };
   } catch (error) {
+    await recoveryCheckpoint({ type: "promotion-failed", error: errorMessage(error) });
     const commandFailures = [];
     for (const operation of rollbackOperations(attempted)) {
+      await recoveryCheckpoint({ type: "rollback-operation-attempted", operation });
       try {
         await rollback(operation);
-      } catch {
+        await recoveryCheckpoint({ type: "rollback-operation-applied", operation });
+      } catch (rollbackError) {
         commandFailures.push(operation.name);
+        await recoveryCheckpoint({
+          type: "rollback-operation-failed",
+          operation,
+          error: errorMessage(rollbackError)
+        });
       }
     }
     let stateFailures;
+    await recoveryCheckpoint({ type: "rollback-verification-attempted" });
     try {
       stateFailures = await verifyRollback(attempted);
+      await recoveryCheckpoint(stateFailures.length === 0
+        ? { type: "rollback-verification-succeeded" }
+        : { type: "rollback-verification-failed", failures: stateFailures });
     } catch (rollbackError) {
       stateFailures = [
         ...commandFailures.map((name) => `${name}: rollback command failed`),
-        `rollback state could not be verified: ${rollbackError instanceof Error ? rollbackError.message : String(rollbackError)}`
+        `rollback state could not be verified: ${errorMessage(rollbackError)}`
       ];
+      await recoveryCheckpoint({ type: "rollback-verification-failed", failures: stateFailures });
     }
     const rollbackMessage = stateFailures.length === 0
       ? "Applied latest tags were restored to the recorded snapshot."
       : `Rollback failures require owner intervention:\n- ${stateFailures.join("\n- ")}`;
-    throw new Error(`${error instanceof Error ? error.message : String(error)}\n${rollbackMessage}`);
+    throw new Error(`${errorMessage(error)}\n${rollbackMessage}`);
   }
 }

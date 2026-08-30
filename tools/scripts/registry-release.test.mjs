@@ -3,7 +3,9 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import {
+  applyPromotionLedgerCheckpoint,
   collectRegistryReleaseIssues,
+  createPromotionLedger,
   executePromotionPlan,
   promotionOperations,
   rollbackOperations
@@ -19,12 +21,17 @@ function manifest() {
     releaseVersion,
     releaseEligible: true,
     sourceCommit: "a".repeat(40),
+    createdAt: "2026-08-30T00:00:00.000Z",
+    approvals: { npm: "npm-owner", documentation: "docs-owner", knit: "knit-owner" },
+    evidence: { releaseChecklist: "docs/release-checklist.md" },
     plannedTags: { initial: "candidate", promoted: "latest" },
     packages: packageNames.map((name, publishIndex) => ({
       publishIndex,
       name,
       version: releaseVersion,
-      integrity: `sha512-${name}`
+      integrity: `sha512-${name}`,
+      tarball: `${name.slice(7)}-${releaseVersion}.tgz`,
+      sha256: `${publishIndex}`.repeat(64)
     }))
   };
 }
@@ -120,6 +127,73 @@ test("does not promote packages already pointing latest at the approved version"
   assert.deepEqual(promotionOperations(manifest(), registry), []);
 });
 
+test("creates a durable promotion ledger from the exact approved graph and prior tags", () => {
+  const releaseManifest = manifest();
+  const registry = registryPackages();
+  registry["@looma/layout"].distTags.latest = "0.0.9";
+  const tagSnapshot = Object.fromEntries(packageNames.map((name) => [
+    name,
+    registry[name].distTags
+  ]));
+  const operations = promotionOperations(releaseManifest, registry);
+
+  const ledger = createPromotionLedger({
+    manifest: releaseManifest,
+    manifestPath: ".release/artifacts/release-manifest.json",
+    tagSnapshot,
+    operations,
+    now: "2026-08-30T01:00:00.000Z"
+  });
+
+  assert.equal(ledger.schemaVersion, 1);
+  assert.equal(ledger.status, "planned");
+  assert.equal(ledger.state, "promotion-planned");
+  assert.equal(ledger.createdAt, "2026-08-30T01:00:00.000Z");
+  assert.equal(ledger.updatedAt, ledger.createdAt);
+  assert.equal(ledger.sourceCommit, releaseManifest.sourceCommit);
+  assert.equal(ledger.releaseVersion, releaseVersion);
+  assert.deepEqual(ledger.approvals, releaseManifest.approvals);
+  assert.deepEqual(ledger.tagSnapshot, tagSnapshot);
+  assert.deepEqual(ledger.plannedOperations, operations);
+  assert.deepEqual(ledger.changedPackages, operations.map((operation) => operation.name));
+  assert.equal(ledger.promotedAt, null);
+  assert.equal(ledger.releaseManifest.path, ".release/artifacts/release-manifest.json");
+  assert.deepEqual(ledger.releaseManifest.packages, releaseManifest.packages);
+});
+
+test("checkpoints successful promotion through public registry verification", () => {
+  const releaseManifest = manifest();
+  const registry = registryPackages();
+  const operations = promotionOperations(releaseManifest, registry);
+  const base = createPromotionLedger({
+    manifest: releaseManifest,
+    manifestPath: ".release/artifacts/release-manifest.json",
+    tagSnapshot: Object.fromEntries(packageNames.map((name) => [name, registry[name].distTags])),
+    operations,
+    now: "2026-08-30T01:00:00.000Z"
+  });
+  const attempted = applyPromotionLedgerCheckpoint(base, {
+    type: "promotion-operation-attempted",
+    operation: operations[0]
+  }, "2026-08-30T01:00:01.000Z");
+  const applied = applyPromotionLedgerCheckpoint(attempted, {
+    type: "promotion-operation-applied",
+    operation: operations[0]
+  }, "2026-08-30T01:00:02.000Z");
+  const verified = applyPromotionLedgerCheckpoint(applied, {
+    type: "promotion-verification-succeeded",
+    verification: { schemaVersion: 1, packages: packageNames }
+  }, "2026-08-30T01:00:03.000Z");
+
+  assert.equal(verified.status, "succeeded");
+  assert.equal(verified.state, "registry-verified");
+  assert.equal(verified.operationStates[0].status, "applied");
+  assert.equal(verified.operationStates[0].attemptedAt, "2026-08-30T01:00:01.000Z");
+  assert.equal(verified.operationStates[0].appliedAt, "2026-08-30T01:00:02.000Z");
+  assert.equal(verified.promotedAt, "2026-08-30T01:00:03.000Z");
+  assert.deepEqual(verified.verification, { schemaVersion: 1, packages: packageNames });
+});
+
 test("reads the full npm packument shape used for metadata and provenance proof", async () => {
   const entry = await fetchRegistryPackage("@looma/core", releaseVersion, async (url, options) => {
     assert.equal(url.toString(), "https://registry.npmjs.org/%40looma%2Fcore");
@@ -158,6 +232,7 @@ test("restores every attempted tag when promotion fails partway through", async 
   const operations = promotionOperations(manifest(), registry).slice(0, 3);
   const promoted = [];
   const rolledBack = [];
+  const checkpoints = [];
 
   await assert.rejects(
     executePromotionPlan({
@@ -168,7 +243,8 @@ test("restores every attempted tag when promotion fails partway through", async 
       },
       verify: async () => assert.fail("verification must not run after a failed write"),
       rollback: async (operation) => rolledBack.push(operation),
-      verifyRollback: async () => []
+      verifyRollback: async () => [],
+      onCheckpoint: async (checkpoint) => checkpoints.push(checkpoint)
     }),
     /registry write became ambiguous[\s\S]*restored to the recorded snapshot/
   );
@@ -176,6 +252,97 @@ test("restores every attempted tag when promotion fails partway through", async 
   assert.deepEqual(rolledBack, [
     { action: "restore", name: "@looma/layout", tag: "latest", version: "0.0.9" },
     { action: "remove", name: "@looma/tokens", tag: "latest" }
+  ]);
+  assert.deepEqual(checkpoints.map((checkpoint) => checkpoint.type), [
+    "promotion-operation-attempted",
+    "promotion-operation-applied",
+    "promotion-operation-attempted",
+    "promotion-failed",
+    "rollback-operation-attempted",
+    "rollback-operation-applied",
+    "rollback-operation-attempted",
+    "rollback-operation-applied",
+    "rollback-verification-attempted",
+    "rollback-verification-succeeded"
+  ]);
+});
+
+test("does not begin a registry mutation when its attempted checkpoint cannot persist", async () => {
+  const operations = promotionOperations(manifest(), registryPackages()).slice(0, 1);
+  let promoted = false;
+
+  await assert.rejects(
+    executePromotionPlan({
+      operations,
+      promote: async () => {
+        promoted = true;
+      },
+      verify: async () => assert.fail("verification must not run"),
+      rollback: async () => assert.fail("no operation was attempted, so rollback must not run"),
+      verifyRollback: async (attempted) => {
+        assert.deepEqual(attempted, []);
+        return [];
+      },
+      onCheckpoint: async ({ type }) => {
+        if (type === "promotion-operation-attempted") throw new Error("evidence disk unavailable");
+      }
+    }),
+    /evidence disk unavailable[\s\S]*restored to the recorded snapshot/
+  );
+  assert.equal(promoted, false);
+});
+
+test("checkpoints verification and rollback failures for manual recovery", async () => {
+  const operations = promotionOperations(manifest(), registryPackages()).slice(0, 1);
+  const checkpoints = [];
+  let ledger = createPromotionLedger({
+    manifest: manifest(),
+    manifestPath: ".release/artifacts/release-manifest.json",
+    tagSnapshot: { "@looma/tokens": { candidate: releaseVersion } },
+    operations,
+    now: "2026-08-30T01:00:00.000Z"
+  });
+
+  await assert.rejects(
+    executePromotionPlan({
+      operations,
+      promote: async () => {},
+      verify: async () => {
+        throw new Error("latest verification timed out");
+      },
+      rollback: async () => {
+        throw new Error("rollback command denied");
+      },
+      verifyRollback: async () => ["@looma/tokens: latest did not return to the recorded snapshot"],
+      onCheckpoint: async (checkpoint) => {
+        checkpoints.push(checkpoint);
+        ledger = applyPromotionLedgerCheckpoint(
+          ledger,
+          checkpoint,
+          `2026-08-30T01:00:${String(checkpoints.length).padStart(2, "0")}.000Z`
+        );
+      }
+    }),
+    /latest verification timed out[\s\S]*Rollback failures require owner intervention/
+  );
+
+  assert.deepEqual(checkpoints.map((checkpoint) => checkpoint.type), [
+    "promotion-operation-attempted",
+    "promotion-operation-applied",
+    "promotion-verification-attempted",
+    "promotion-verification-failed",
+    "promotion-failed",
+    "rollback-operation-attempted",
+    "rollback-operation-failed",
+    "rollback-verification-attempted",
+    "rollback-verification-failed"
+  ]);
+  assert.equal(ledger.status, "rollback-failed");
+  assert.equal(ledger.state, "manual-recovery-required");
+  assert.equal(ledger.operationStates[0].status, "applied");
+  assert.equal(ledger.rollback.operations[0].status, "failed");
+  assert.deepEqual(ledger.rollback.verification.failures, [
+    "@looma/tokens: latest did not return to the recorded snapshot"
   ]);
 });
 
