@@ -41,14 +41,17 @@ test("required release suites contain no skipped or todo scenarios", async () =>
   }
 });
 
-test("public Candidate documentation is install-first and fail-closed", async () => {
+test("public Candidate documentation is install-first, time-stable, and fail-closed", async () => {
   const releasePackages = ["tokens", "layout", "core", "editor", "vue"];
-  const [gettingStarted, supportPage, rootLicense] = await Promise.all([
+  const [rootReadme, gettingStarted, supportPage, rootLicense] = await Promise.all([
+    readFile(path.join(repoRoot, "README.md"), "utf8"),
     readFile(path.join(repoRoot, "apps/docs/docs/getting-started.md"), "utf8"),
     readFile(path.join(repoRoot, "apps/docs/docs/release-1-support.md"), "utf8"),
     readFile(path.join(repoRoot, "LICENSE"), "utf8").catch(() => null)
   ]);
 
+  assert.match(rootReadme, /confirm.+candidate.+dist-tag/is);
+  assert.doesNotMatch(rootReadme, /not on npm yet|install after Candidate publication/i);
   assert.match(gettingStarted, /npm install vue@\^3\.5 @looma\/vue/);
   assert.doesNotMatch(gettingStarted, /^pnpm install$/m);
   assert.match(gettingStarted, /React and Svelte.+not published or supported/);

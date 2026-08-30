@@ -2,11 +2,11 @@
 
 Looma is a stack-agnostic UI library based on web standards and Open UI principles.
 
-> **Publication status:** Release 1 packages are not on npm yet. The Candidate is
-> blocked on authenticated namespace ownership and named protected-environment
-> approvers. The repository license is approved as MIT.
+> **Candidate availability:** Before installing, confirm that npm's `candidate`
+> dist-tag resolves the complete synchronized `0.1.0` package graph. A source or
+> documentation preview can exist before that registry gate passes.
 
-## Install after Candidate publication
+## Install the Candidate
 
 ```sh
 npm install vue@^3.5 @looma/vue @looma/core @looma/editor @looma/layout @looma/tokens
