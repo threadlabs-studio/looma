@@ -1,6 +1,6 @@
 # Editor Bugs
 
-Last updated: 2026-03-29
+Last updated: 2026-08-30
 
 This file tracks shared Looma editor defects that are visible in Knit and other consuming apps.
 
@@ -61,6 +61,11 @@ Acceptance notes:
 ### E-TBL-003: Table overlay and options model are placeholder-quality, not Confluence-quality
 
 Status: open
+
+Release 1 classification: unresolved Candidate decision. Fix before release, or
+accept explicitly only after real-browser evidence proves the documented table
+flow remains usable and content round-trips without loss or corruption. Visual
+polish alone may be deferred; data integrity may not.
 
 Observed behavior:
 

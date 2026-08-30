@@ -1,14 +1,24 @@
 # Component Roadmap
 
-Last updated: 2026-06-04
+Last updated: 2026-08-30
 
 This is the editable plan for Looma components across current shipping scope and near-term promotions from Knit.
 
 **Component system and when to add components:** See [Component System and When to Add Components](./component-system.md) for hierarchy, design rules (no external margins, tokens, dark mode, API conventions), and when to build in Looma vs in a consuming app (e.g. Knit).
 
+## Release 1 Classification
+
+The [Release 1 support matrix](./release-support-matrix.md) is the authority for
+Candidate publication. The 6 layout, 26 core, and 6 editor source elements listed
+there are published Candidate surface. Missing roadmap families remain deferred
+and do not block R1. React and Svelte are repository previews; Vue is the only
+supported framework adapter in R1.
+
 ## Current Shipped Components
 
-Source of truth: `generated/component-api.json`
+This readable list is expected to match source-derived API metadata. Source tags
+remain authoritative when generated metadata is incomplete; R1's completeness
+gate must reject any mismatch instead of silently omitting a component.
 
 - `ui-avatar`
 - `ui-avatar-group`
@@ -124,9 +134,9 @@ Conventions for this checklist:
 
 ## Adapter Coverage
 
-- React wrappers: full parity for current shipped core tags.
-- Vue wrappers: full parity for current shipped core tags.
-- Svelte: element-first by design (`bindAdapter` with native custom elements).
+- Vue wrappers: R1 Candidate surface; completeness is a release gate.
+- React wrappers: internal/deferred preview for R1.
+- Svelte bindings: internal/deferred preview for R1.
 
 Wrapper naming policy:
 
@@ -136,7 +146,7 @@ Wrapper naming policy:
 
 ## Editor (Tiptap) — @looma/editor
 
-We are building Confluence/Notion-like editor UI in Looma using **open-source Tiptap only** (no paid templates or Cloud). Package: `packages/editor` (`@looma/editor`). All editor UI is **web components** (custom elements); **Vue and React adapters** in `@looma/vue` / `@looma/react` wire the Tiptap editor to them. Scope: slash menu, tables with hover “+” and context menu, list behavior, block menu, formatting toolbar, optional emoji/mentions. Domain-neutral; apps wire save, upload, presence. Current shipped editor slice includes the toolbar shell, slash menu, table context menu, table toolbar, insert-table grid, and table overlay components plus adapter event wiring. See **[Editor Roadmap](./editor-roadmap.md)** for full scope, phases, and Looma vs app split.
+We are building Confluence/Notion-like editor UI in Looma using **open-source Tiptap only** (no paid templates or Cloud). Package: `packages/editor` (`@looma/editor`). All editor UI is **web components** (custom elements); the Vue adapter wires the R1 supported integration, while the React adapter remains an internal preview. Scope: slash menu, tables with hover “+” and context menu, list behavior, block menu, formatting toolbar, optional emoji/mentions. Domain-neutral; apps wire save, upload, presence. Current shipped editor slice includes the toolbar shell, slash menu, table context menu, table toolbar, insert-table grid, and table overlay components plus adapter event wiring. See **[Editor Roadmap](./editor-roadmap.md)** for full scope, phases, and Looma vs app split.
 
 ## Planned Promotions From Knit (Candidate Queue)
 

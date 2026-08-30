@@ -2,7 +2,7 @@
 
 **Goal:** Replicate Confluence / Notion-like editor UX using **only open-source Tiptap extensions**, build the Vue UI ourselves, and **distribute it with Looma** so any app (e.g. Knit) can consume a first-class block editor without paying for Tiptap’s paid templates or Cloud.
 
-**Last updated:** 2026-03-29
+**Last updated:** 2026-08-30
 
 ---
 
@@ -12,6 +12,18 @@
 - **App integration status:** Knit now uses Looma’s editor preset plus Looma-owned toolbar/slash/table primitives in its page editor flow. Formatting toolbar command definitions and broader editor UX are still partly app-local.
 - **Current open defects:** see [Editor Bugs](./editor-bugs.md) for the remaining table overlay UX issues found during real Knit usage.
 - **Next in Phase 1:** close the open table UX defects from real Knit usage, then continue promoting block-menu and richer toolbar UI into Looma ownership.
+
+## Release 1 Classification
+
+The six implemented editor elements and the documented extension/helper exports
+are published Candidate surface through `@looma/editor`; Vue is the supported R1
+adapter. React integration remains internal/deferred even where repository code
+already exists. All later phases and ecosystem-parity gaps below are deferred.
+
+E-TBL-003 is not silently waived: release must either fix it or record explicit
+owner acceptance after browser evidence establishes an adequate Candidate flow
+and no content loss or corruption. See the
+[Release 1 support matrix](./release-support-matrix.md).
 
 ---
 
@@ -40,7 +52,7 @@ How we use it:
 | **Custom block UI** | Block handle, table “+” overlays, custom image/code-block UI. Use [Node views → Vue](https://tiptap.dev/docs/editor/extensions/custom-extensions/node-views/vue) in the **Vue adapter**; the UI itself is implemented as Looma **web components**. |
 | **Marks** | Inline code, highlight, link. Use [Mark API](https://tiptap.dev/docs/editor/extensions/custom-extensions/mark-api) or stock extensions; extend only when we need different behavior. |
 
-We **do not** depend on Tiptap’s paid UI or Cloud. We use only the open-source editor, extensions, and the custom-extension docs. In Looma we ship **web components** for editor UI; **Vue/React adapters** (in `@looma/vue` / `@looma/react`) wire Tiptap to those elements.
+We **do not** depend on Tiptap’s paid UI or Cloud. We use only the open-source editor, extensions, and the custom-extension docs. In Looma we ship **web components** for editor UI; Vue is the supported R1 adapter and React is an internal/deferred preview.
 
 ---
 
@@ -48,13 +60,15 @@ We **do not** depend on Tiptap’s paid UI or Cloud. We use only the open-source
 
 - Editor **primitives** (slash menu, block handle, table overlay, context menus, toolbar shell) are reusable across apps—not Knit-specific.
 - Keeps Looma as the place for shared UI; Knit (and others) wire domain behavior (save, image upload, presence) on top.
-- **Web components first:** All Looma editor UI is implemented as **custom elements**; Vue and React **adapters** (same pattern as the rest of Looma) wire Tiptap to them. Token-styled, accessible; no dependency on Tiptap’s paid Notion-like template.
+- **Web components first:** All Looma editor UI is implemented as **custom elements**.
+  Vue is the supported R1 integration; React remains a repository preview.
+  Token-styled, accessible; no dependency on Tiptap’s paid Notion-like template.
 
 ---
 
 ## Scope: Confluence / Notion parity (open source only)
 
-All of the following are achievable with **open-source** Tiptap extensions + **Looma web components**. No Tiptap Cloud or paid templates. **Vue/React adapters** (in `@looma/vue` / `@looma/react`) connect the editor instance to these elements.
+All of the following are achievable with **open-source** Tiptap extensions + **Looma web components**. No Tiptap Cloud or paid templates. The supported Vue adapter connects the editor instance to these elements in R1; the React integration remains deferred.
 
 | Feature | Description | Looma delivers |
 |--------|--------------|----------------|
@@ -82,7 +96,7 @@ Collaboration (cursors, presence), save, and image upload are **app responsibili
 | Layer | Looma | App (e.g. Knit) |
 |-------|-------|------------------|
 | **Web components** | Slash menu, block handle, block/table context menus, table overlay (hover “+”), toolbar, insert-table grid picker, (optional) floating toolbar, emoji picker, mention list | PageEditor layout, “Saving…” indicator, any app-specific blocks |
-| **Vue/React adapters** | In `@looma/vue` / `@looma/react`: wrappers that pass editor instance and wire commands to the editor **web components** | Uses adapters when rendering editor UI (e.g. `<LoomaEditorToolbar :editor="editor" />` that mounts the web component and connects Tiptap) |
+| **Framework adapters** | `@looma/vue` supplies the supported R1 wrappers; `@looma/react` remains an internal preview | Uses an adapter when rendering editor UI (e.g. a Vue toolbar wrapper that mounts the web component and connects Tiptap) |
 | **Extensions** | Document which extensions to use; optional “preset” that returns extension list (app still creates editor) | useEditor/createEditor: registers Looma-recommended extensions + app-specific (e.g. placeholder text from route) |
 | **Styles** | Editor CSS (tokens-based): table, slash menu, block handle, selection | App theme; can override tokens |
 | **Behavior** | None: no save, no upload, no presence | Save on delay, image upload to app API, presence (Supabase or other) |
@@ -97,7 +111,7 @@ Looma’s editor package exposes **custom elements** (and editor styles); **adap
 - **Contents:** **Web components** (custom elements) for editor UI only—no Vue/React in this package. Dependencies: `@looma/core`, `@looma/tokens`. **No** direct Tiptap dependency in the package. Adapters (in `@looma/vue` / `@looma/react`) create or receive the **Vanilla JavaScript** Tiptap `Editor` (from `@tiptap/core`) and wire it to these elements.
 - **Exports:** Custom elements (e.g. slash menu, table overlay, toolbar, block handle, context menus, grid picker), editor styles (CSS using tokens), and optionally extension preset (documentation or a shared config the app imports).
 
-**Vue/React adapters** for the editor live in `@looma/vue` and `@looma/react` (same pattern as Button, Dialog, etc.): they render the editor web components and connect a Tiptap `Editor` instance via props/events.
+Editor adapters live beside their framework packages: `@looma/vue` is the R1 supported surface, while `@looma/react` is internal/deferred. They render the editor web components and connect a Tiptap `Editor` instance via props/events.
 
 **Phased delivery:**
 

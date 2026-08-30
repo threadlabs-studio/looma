@@ -10,12 +10,12 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
-      "require": "./dist/index.js"
+      "require": "./dist/index.cjs"
     },
     "./layout.css": "./src/layout.css"
   },
   "scripts": {
-    "build": "tsup src/index.ts --format esm --dts --clean",
+    "build": "tsup src/index.ts --format esm,cjs --dts --clean",
     "lint": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run --environment jsdom",
     "typecheck": "tsc -p tsconfig.json --noEmit"

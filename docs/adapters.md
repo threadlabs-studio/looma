@@ -1,117 +1,78 @@
-# Adapter Parity Guide
+# Adapter Contract
 
-## Plan
+Looma adapters are thin translations over the same custom-element contracts.
+They pass attributes, properties, events, and slots through without owning
+different behavior.
 
-Keep framework adapters thin and mechanical: they pass props/attributes/children to the same light-DOM custom elements and map core DOM events to framework callback style.
+## Release 1 Support
 
-## Adapter Mapping Matrix
+| Adapter | Release 1 status | Public support promise |
+| --- | --- | --- |
+| `@looma/vue` | Published Candidate | Qualified for the public layout, core, and editor surface used by Knit |
+| `@looma/react` | Internal/deferred preview | Repository code only; not published or supported in Release 1 |
+| `@looma/svelte` | Internal/deferred preview | Repository code only; not published or supported in Release 1 |
 
-| Core Tag | React (`@looma/react`) | Vue (`@looma/vue`) | Svelte (`@looma/svelte`) |
-| --- | --- | --- | --- |
-| `ui-stack` | `Stack` | `Stack` | native element + `bindAdapter` |
-| `ui-inline` | `Inline` | `Inline` | native element + `bindAdapter` |
-| `ui-cluster` | `Cluster` | `Cluster` | native element + `bindAdapter` |
-| `ui-grid` | `Grid` | `Grid` | native element + `bindAdapter` |
-| `ui-center` | `Center` | `Center` | native element + `bindAdapter` |
-| `ui-separator` | `Separator` | `Separator` | native element + `bindAdapter` |
-| `ui-disclosure` | `Disclosure` | `Disclosure` | native element + `bindAdapter` |
-| `ui-tabs` | `Tabs` | `Tabs` | native element + `bindAdapter` |
-| `ui-dialog` | `Dialog` | `Dialog` | native element + `bindAdapter` |
-| `ui-popover` | `Popover` | `Popover` | native element + `bindAdapter` |
-| `ui-menu` | `Menu` | `Menu` | native element + `bindAdapter` |
-| `ui-menu-item` | `MenuItem` | `MenuItem` | native element + `bindAdapter` |
-| `ui-button` | `Button` | `Button` | native element + `bindAdapter` |
-| `ui-icon-button` | `IconButton` | `IconButton` | native element + `bindAdapter` |
-| `ui-input` | `Input` | `Input` | native element + `bindAdapter` |
-| `ui-select` | `Select` | `Select` | native element + `bindAdapter` |
-| `ui-textarea` | `Textarea` | `Textarea` | native element + `bindAdapter` |
-| `ui-form-field` | `FormField` | `FormField` | native element + `bindAdapter` |
-| `ui-tooltip` | `Tooltip` | `Tooltip` | native element + `bindAdapter` |
-| `ui-toast-region` | `ToastRegion` | `ToastRegion` | native element + `bindAdapter` |
-| `ui-checkbox` | `Checkbox` | `Checkbox` | native element + `bindAdapter` |
-| `ui-switch` | `Switch` | `Switch` | native element + `bindAdapter` |
-| `ui-radio-group` | `RadioGroup` | `RadioGroup` | native element + `bindAdapter` |
-| `ui-radio` | `Radio` | `Radio` | native element + `bindAdapter` |
-| `ui-badge` | `Badge` | `Badge` | native element + `bindAdapter` |
-| `ui-avatar` | `Avatar` | `Avatar` | native element + `bindAdapter` |
-| `ui-avatar-group` | `AvatarGroup` | `AvatarGroup` | native element + `bindAdapter` |
-| `ui-floating-action-button` | `FloatingActionButton` | `FloatingActionButton` | native element + `bindAdapter` |
-| `ui-search-shell` | `SearchShell` | `SearchShell` | native element + `bindAdapter` |
-| `ui-search-result-row` | `SearchResultRow` | `SearchResultRow` | native element + `bindAdapter` |
-| `ui-top-bar` | `TopBar` | `TopBar` | native element + `bindAdapter` |
+Repository presence is not release qualification. React and Svelte API parity,
+tests, and public documentation remain follow-up work.
+
+## Vue Mapping
+
+Release 1 requires a named Vue wrapper for every published layout and core tag
+and every published editor element. The generated/source-derived completeness
+gate is the authority; this table is a readable summary.
+
+| Element family | Elements | Vue contract |
+| --- | --- | --- |
+| Layout | `ui-stack`, `ui-inline`, `ui-cluster`, `ui-grid`, `ui-center`, `ui-separator` | `Stack`, `Inline`, `Cluster`, `Grid`, `Center`, `Separator` |
+| Actions and forms | `ui-button`, `ui-icon-button`, `ui-input`, `ui-select`, `ui-textarea`, `ui-form-field`, `ui-checkbox`, `ui-switch`, `ui-radio`, `ui-radio-group` | Same names in PascalCase |
+| Overlays and navigation | `ui-dialog`, `ui-popover`, `ui-menu`, `ui-menu-item`, `ui-context-menu`, `ui-tooltip`, `ui-tabs`, `ui-disclosure` | Same names in PascalCase |
+| Display and app shell | `ui-avatar`, `ui-avatar-group`, `ui-badge`, `ui-toast-region`, `ui-floating-action-button`, `ui-search-shell`, `ui-search-result-row`, `ui-top-bar` | Same names in PascalCase |
+| Editor | `ui-editor-toolbar`, `ui-editor-slash-menu`, `ui-editor-table-context-menu`, `ui-editor-table-toolbar`, `ui-editor-insert-table-grid`, `ui-editor-table-overlay` | `Editor*` named wrappers |
+
+`ui-context-menu` is source-published but its Vue named export is currently a
+known completeness gap. Release unit U2 must close it before Candidate publication.
 
 ## Event Parity
 
-Adapters preserve core event names and detail payloads:
+Adapters preserve core event names and detail payloads. Where an element emits
+`open`, `close`, `select`, `change`, or `dismiss`, the Vue wrapper must forward
+that event without changing its detail schema. Editor wrappers likewise preserve
+the editor element's custom-event detail.
 
-- `open` -> `{ open: true, reason, trigger }`
-- `close` -> `{ open: false, reason, trigger }`
-- `select` -> `{ value, previousValue, trigger }`
-- `change` -> `{ checked, value, trigger }`
-- `dismiss` -> `{ id, reason, trigger }`
+## SSR And Fallback Rules
 
-## SSR Contract Reminder
+- Adapter modules must import in a server process without browser globals.
+- Layout and editor elements use light DOM; core elements use shadow roots after
+  upgrade and preserve consumer-authored semantic content through slots.
+- Adapters must not replace semantic fallback content with framework-only markup.
+- Without JavaScript, the semantic light DOM remains; custom-element interaction,
+  shadow styling, and adapter event translation do not.
 
-- Author semantic HTML first.
-- Keep light DOM structure identical to core contracts.
-- Adapters must not introduce shadow DOM or framework-only interaction behavior.
-
-## Usage Snippets
-
-### React
-
-```tsx
-import { Disclosure, Tabs, Button } from "@looma/react";
-
-export function Example() {
-  return (
-    <Disclosure
-      onOpen={(detail) => console.log("open", detail)}
-      onClose={(detail) => console.log("close", detail)}
-    >
-      <button type="button" aria-controls="faq-a1">What is light DOM?</button>
-      <div id="faq-a1" hidden>It keeps SSR markup inspectable and portable.</div>
-    </Disclosure>
-  );
-}
-```
-
-### Vue
+## Vue Example
 
 ```ts
 import { h } from "vue";
-import { Disclosure, Menu, MenuItem } from "@looma/vue";
+import { Disclosure } from "@looma/vue";
 
 export const Example = {
   setup() {
     return () =>
-      h(Disclosure, {
-        onOpen: (detail) => console.log("open", detail),
-        onClose: (detail) => console.log("close", detail)
-      }, {
-        default: () => [
-          h("button", { type: "button", "aria-controls": "faq-a1" }, "What is light DOM?"),
-          h("div", { id: "faq-a1", hidden: true }, "It keeps SSR markup inspectable and portable.")
-        ]
-      });
+      h(
+        Disclosure,
+        {
+          onOpen: (detail) => console.log("open", detail),
+          onClose: (detail) => console.log("close", detail)
+        },
+        {
+          default: () => [
+            h("button", { type: "button", "aria-controls": "faq-a1" }, "Question"),
+            h("div", { id: "faq-a1", hidden: true }, "Answer")
+          ]
+        }
+      );
   }
 };
 ```
 
-### Svelte
-
-```svelte
-<script lang="ts">
-  import { bindAdapter } from "@looma/svelte";
-
-  const disclosureOptions = {
-    onOpen: (detail) => console.log("open", detail),
-    onClose: (detail) => console.log("close", detail)
-  };
-</script>
-
-<ui-disclosure use:bindAdapter={disclosureOptions}>
-  <button type="button" aria-controls="faq-a1">What is light DOM?</button>
-  <div id="faq-a1" hidden>It keeps SSR markup inspectable and portable.</div>
-</ui-disclosure>
-```
+React and Svelte examples are intentionally omitted from the Release 1 install
+path because those adapters are deferred.
