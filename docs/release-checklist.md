@@ -92,6 +92,18 @@ production indexing and any canonical-domain cutover belong to U7.
 
 ## Publication Controls
 
+Candidate publication and `latest` promotion are two separate manual workflow
+dispatches. The Candidate dispatch may set only `publish_candidate`; record its
+successful workflow run ID after the immutable artifact set, registry evidence,
+and public-consumer evidence upload. The later promotion dispatch sets only
+`promote_latest` and supplies that prior run ID, the SHA-256 and HTTPS location
+of the public-registry Knit evidence, the SHA-256 and HTTPS location of the
+hosted-docs evidence (both without embedded credentials), and the separately
+verified HTTPS production docs URL. The workflow downloads the exact Candidate
+run artifacts, and the promotion ledger records the canonical Actions run URL
+and all supplied evidence hashes and locations before the first `latest`
+mutation.
+
 - [x] The release workflow is manual, main-only, serialized, environment-gated,
   and declares minimal per-job permissions.
 - [x] Third-party actions are pinned to full commit SHAs and checkout credentials are not persisted.

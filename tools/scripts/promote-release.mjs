@@ -11,6 +11,7 @@ import {
   promotionOperations,
 } from "./registry-release.mjs";
 import { argumentValue } from "./publish-release.mjs";
+import { promotionEvidenceFromEnvironment } from "./release-dispatch.mjs";
 import {
   assertPathInsideRepository,
   fetchRegistryRelease,
@@ -79,6 +80,9 @@ async function writePromotionLedger(outputPath, ledger) {
 
 async function main() {
   const execute = process.argv.includes("--execute");
+  const promotionEvidence = execute
+    ? promotionEvidenceFromEnvironment()
+    : null;
   const manifestPath = path.resolve(
     repoRoot,
     argumentValue("--manifest", ".release/artifacts/release-manifest.json")
@@ -123,6 +127,7 @@ async function main() {
     manifestPath: path.relative(repoRoot, manifestPath),
     tagSnapshot,
     operations,
+    promotionEvidence,
     now: new Date().toISOString()
   });
   await writePromotionLedger(outputPath, promotionLedger);

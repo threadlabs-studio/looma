@@ -35,6 +35,7 @@
     "build:storybook": "pnpm --filter @looma/storybook build",
     "lint": "pnpm -r run lint",
     "release:registry-preflight": "node tools/scripts/registry-preflight.mjs",
+    "release:validate-dispatch": "node tools/scripts/release-dispatch.mjs",
     "release:inspect": "node tools/scripts/verify-packages.mjs --output-dir .release/artifacts --allow-dirty --allow-missing-license --allow-missing-approvals",
     "release:inspect-knit": "node tools/scripts/verify-knit-consumer.mjs --allow-ineligible-artifacts --skip-full-knit-unit",
     "release:verify": "node tools/scripts/verify-packages.mjs --output-dir .release/artifacts",

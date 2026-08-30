@@ -1,4 +1,5 @@
 import { RELEASE_PACKAGE_NAMES, RELEASE_VERSION } from "./release-config.mjs";
+import { validatePromotionEvidenceRecord } from "./release-dispatch.mjs";
 
 const PROVENANCE_PREDICATE = "https://slsa.dev/provenance/v1";
 
@@ -28,7 +29,14 @@ function errorMessage(error) {
   return error instanceof Error ? error.message : String(error);
 }
 
-export function createPromotionLedger({ manifest: manifestValue, manifestPath, tagSnapshot, operations, now }) {
+export function createPromotionLedger({
+  manifest: manifestValue,
+  manifestPath,
+  tagSnapshot,
+  operations,
+  promotionEvidence,
+  now
+}) {
   const manifest = object(manifestValue);
   return {
     schemaVersion: 1,
@@ -40,6 +48,7 @@ export function createPromotionLedger({ manifest: manifestValue, manifestPath, t
     sourceCommit: manifest.sourceCommit,
     releaseVersion: manifest.releaseVersion,
     approvals: structuredClone(object(manifest.approvals)),
+    promotionEvidence: validatePromotionEvidenceRecord(promotionEvidence),
     releaseManifest: {
       path: manifestPath,
       schemaVersion: manifest.schemaVersion,

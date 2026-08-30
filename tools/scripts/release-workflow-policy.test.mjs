@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const workflow = await readFile(new URL("../../.github/workflows/release.yml", import.meta.url), "utf8");
+const prepareJob = workflow.match(/\n  prepare:[\s\S]*?\n  publish:/)?.[0] ?? "";
 const publishJob = workflow.match(/\n  publish:[\s\S]*?\n  promote:/)?.[0] ?? "";
 const promoteJob = workflow.match(/\n  promote:[\s\S]*$/)?.[0] ?? "";
 const promotionEvidenceUpload = promoteJob.match(
@@ -24,6 +25,31 @@ test("release workflow is manual, main-only, serialized, and environment-protect
   assert.match(workflow, /environment: npm-release/);
 });
 
+test("Candidate publication and latest promotion are separate validated dispatches", () => {
+  assert.match(workflow, /candidate_workflow_run_id:/);
+  assert.match(workflow, /public_knit_evidence_sha256:/);
+  assert.match(workflow, /public_knit_evidence_url:/);
+  assert.match(workflow, /hosted_docs_evidence_sha256:/);
+  assert.match(workflow, /hosted_docs_evidence_url:/);
+  assert.match(workflow, /hosted_docs_url:/);
+
+  const validation = workflow.indexOf("pnpm release:validate-dispatch");
+  const releaseVerification = workflow.indexOf("pnpm release:verify");
+  assert.ok(validation >= 0);
+  assert.ok(releaseVerification > validation);
+  for (const step of [
+    "Use trusted-publishing-capable npm CLI",
+    "Install dependencies",
+    "Verify and pack exact release bytes",
+    "Upload immutable release artifact set"
+  ]) {
+    assert.match(
+      prepareJob,
+      new RegExp(`- name: ${step}\\n\\s+if: inputs\\.promote_latest == false`)
+    );
+  }
+});
+
 test("every third-party action is pinned to a full commit SHA", () => {
   const uses = [...workflow.matchAll(/uses:\s+([^\s#]+)/g)].map((match) => match[1]);
   assert.ok(uses.length > 0);
@@ -41,10 +67,28 @@ test("checkout credentials are disabled and publication has only required permis
   assert.doesNotMatch(workflow, /contents:\s+write/);
   assert.doesNotMatch(workflow, /packages:\s+write/);
   assert.match(publishJob, /registry-url: https:\/\/registry\.npmjs\.org\//);
-  assert.match(promoteJob, /permissions:\n\s+contents: read\n\s+steps:/);
+  assert.match(promoteJob, /permissions:\n\s+actions: read\n\s+contents: read\n\s+steps:/);
   assert.doesNotMatch(promoteJob, /id-token: write/);
   assert.match(promoteJob, /needs:[\s\S]*?- publish/);
   assert.match(promoteJob, /NODE_AUTH_TOKEN: \$\{\{ secrets\.NPM_TOKEN \}\}/);
+});
+
+test("promotion downloads immutable bytes from the prior Candidate workflow run", () => {
+  const currentRunUpload = workflow.match(
+    /- name: Upload immutable release artifact set[\s\S]*?retention-days: 30/
+  )?.[0] ?? "";
+  const download = promoteJob.match(
+    /- name: Download approved release bytes from Candidate run[\s\S]*?github-token: \$\{\{ github\.token \}\}/
+  )?.[0] ?? "";
+  assert.match(currentRunUpload, /if: inputs\.promote_latest == false/);
+  assert.match(download, /run-id: \$\{\{ inputs\.candidate_workflow_run_id \}\}/);
+  assert.match(download, /github-token: \$\{\{ github\.token \}\}/);
+  assert.match(promoteJob, /LOOMA_CANDIDATE_WORKFLOW_RUN_ID: \$\{\{ inputs\.candidate_workflow_run_id \}\}/);
+  assert.match(promoteJob, /LOOMA_PUBLIC_KNIT_EVIDENCE_SHA256: \$\{\{ inputs\.public_knit_evidence_sha256 \}\}/);
+  assert.match(promoteJob, /LOOMA_PUBLIC_KNIT_EVIDENCE_URL: \$\{\{ inputs\.public_knit_evidence_url \}\}/);
+  assert.match(promoteJob, /LOOMA_HOSTED_DOCS_EVIDENCE_SHA256: \$\{\{ inputs\.hosted_docs_evidence_sha256 \}\}/);
+  assert.match(promoteJob, /LOOMA_HOSTED_DOCS_EVIDENCE_URL: \$\{\{ inputs\.hosted_docs_evidence_url \}\}/);
+  assert.match(promoteJob, /LOOMA_HOSTED_DOCS_URL: \$\{\{ inputs\.hosted_docs_url \}\}/);
 });
 
 test("publication consumes the verified manifest and starts on candidate", () => {

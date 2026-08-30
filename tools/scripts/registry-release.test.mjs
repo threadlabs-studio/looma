@@ -14,6 +14,15 @@ import { fetchRegistryPackage } from "./verify-registry-release.mjs";
 
 const releaseVersion = "0.1.0";
 const packageNames = ["@looma/tokens", "@looma/layout", "@looma/core", "@looma/editor", "@looma/vue"];
+const promotionEvidence = {
+  candidateWorkflowRunId: "123456789",
+  candidateWorkflowRunUrl: "https://github.com/threadlabs-studio/looma/actions/runs/123456789",
+  publicKnitEvidenceSha256: "a".repeat(64),
+  publicKnitEvidenceUrl: "https://github.com/threadlabs-studio/knit/actions/runs/987654321/artifacts/1234",
+  hostedDocsEvidenceSha256: "b".repeat(64),
+  hostedDocsEvidenceUrl: "https://github.com/threadlabs-studio/looma/actions/runs/123456789/artifacts/5678",
+  hostedDocsUrl: "https://threadlabs-studio.github.io/looma/"
+};
 
 function manifest() {
   return {
@@ -142,6 +151,7 @@ test("creates a durable promotion ledger from the exact approved graph and prior
     manifestPath: ".release/artifacts/release-manifest.json",
     tagSnapshot,
     operations,
+    promotionEvidence,
     now: "2026-08-30T01:00:00.000Z"
   });
 
@@ -156,9 +166,27 @@ test("creates a durable promotion ledger from the exact approved graph and prior
   assert.deepEqual(ledger.tagSnapshot, tagSnapshot);
   assert.deepEqual(ledger.plannedOperations, operations);
   assert.deepEqual(ledger.changedPackages, operations.map((operation) => operation.name));
+  assert.deepEqual(ledger.promotionEvidence, promotionEvidence);
   assert.equal(ledger.promotedAt, null);
   assert.equal(ledger.releaseManifest.path, ".release/artifacts/release-manifest.json");
   assert.deepEqual(ledger.releaseManifest.packages, releaseManifest.packages);
+});
+
+test("refuses to create the initial promotion ledger without canonical prerequisite evidence", () => {
+  assert.throws(
+    () => createPromotionLedger({
+      manifest: manifest(),
+      manifestPath: ".release/artifacts/release-manifest.json",
+      tagSnapshot: {},
+      operations: [],
+      promotionEvidence: {
+        ...promotionEvidence,
+        candidateWorkflowRunUrl: "https://github.com/threadlabs-studio/looma/actions/runs/987654321"
+      },
+      now: "2026-08-30T01:00:00.000Z"
+    }),
+    /candidateWorkflowRunUrl does not match candidateWorkflowRunId/
+  );
 });
 
 test("checkpoints successful promotion through public registry verification", () => {
@@ -170,6 +198,7 @@ test("checkpoints successful promotion through public registry verification", ()
     manifestPath: ".release/artifacts/release-manifest.json",
     tagSnapshot: Object.fromEntries(packageNames.map((name) => [name, registry[name].distTags])),
     operations,
+    promotionEvidence,
     now: "2026-08-30T01:00:00.000Z"
   });
   const attempted = applyPromotionLedgerCheckpoint(base, {
@@ -300,6 +329,7 @@ test("checkpoints verification and rollback failures for manual recovery", async
     manifestPath: ".release/artifacts/release-manifest.json",
     tagSnapshot: { "@looma/tokens": { candidate: releaseVersion } },
     operations,
+    promotionEvidence,
     now: "2026-08-30T01:00:00.000Z"
   });
 

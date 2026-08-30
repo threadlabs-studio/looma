@@ -13,6 +13,36 @@ on:
         required: true
         default: false
         type: boolean
+      candidate_workflow_run_id:
+        description: Prior successful Candidate workflow run ID; required only for promotion
+        required: false
+        default: ''
+        type: string
+      public_knit_evidence_sha256:
+        description: SHA-256 of the public-registry Knit verification evidence; required only for promotion
+        required: false
+        default: ''
+        type: string
+      public_knit_evidence_url:
+        description: HTTPS location of public Knit evidence without embedded credentials; promotion only
+        required: false
+        default: ''
+        type: string
+      hosted_docs_evidence_sha256:
+        description: SHA-256 of the hosted production-docs verification evidence; required only for promotion
+        required: false
+        default: ''
+        type: string
+      hosted_docs_evidence_url:
+        description: HTTPS location of docs evidence without embedded credentials; promotion only
+        required: false
+        default: ''
+        type: string
+      hosted_docs_url:
+        description: Verified HTTPS production documentation URL; required only for promotion
+        required: false
+        default: ''
+        type: string
       authentication:
         description: Use bootstrap only for first publication; trusted for configured packages
         required: true
@@ -63,13 +93,28 @@ jobs:
           node-version: 22.14.0
           cache: pnpm
 
+      - name: Validate separate release dispatch and promotion evidence
+        env:
+          LOOMA_PUBLISH_CANDIDATE: ${{ inputs.publish_candidate }}
+          LOOMA_PROMOTE_LATEST: ${{ inputs.promote_latest }}
+          LOOMA_CANDIDATE_WORKFLOW_RUN_ID: ${{ inputs.candidate_workflow_run_id }}
+          LOOMA_PUBLIC_KNIT_EVIDENCE_SHA256: ${{ inputs.public_knit_evidence_sha256 }}
+          LOOMA_PUBLIC_KNIT_EVIDENCE_URL: ${{ inputs.public_knit_evidence_url }}
+          LOOMA_HOSTED_DOCS_EVIDENCE_SHA256: ${{ inputs.hosted_docs_evidence_sha256 }}
+          LOOMA_HOSTED_DOCS_EVIDENCE_URL: ${{ inputs.hosted_docs_evidence_url }}
+          LOOMA_HOSTED_DOCS_URL: ${{ inputs.hosted_docs_url }}
+        run: pnpm release:validate-dispatch
+
       - name: Use trusted-publishing-capable npm CLI
+        if: inputs.promote_latest == false
         run: npm install --global npm@11.5.1
 
       - name: Install dependencies
+        if: inputs.promote_latest == false
         run: pnpm install --frozen-lockfile
 
       - name: Verify and pack exact release bytes
+        if: inputs.promote_latest == false
         env:
           LOOMA_NPM_APPROVER: ${{ inputs.npm_approver }}
           LOOMA_DOCS_APPROVER: ${{ inputs.documentation_approver }}
@@ -77,6 +122,7 @@ jobs:
         run: pnpm release:verify
 
       - name: Upload immutable release artifact set
+        if: inputs.promote_latest == false
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: looma-0.1.0-candidate
@@ -170,6 +216,7 @@ jobs:
     timeout-minutes: 15
     environment: npm-release
     permissions:
+      actions: read
       contents: read
     steps:
       - name: Checkout the approved release commit
@@ -190,11 +237,13 @@ jobs:
       - name: Use current npm release client
         run: npm install --global npm@11.5.1
 
-      - name: Download approved release bytes
+      - name: Download approved release bytes from Candidate run
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: looma-0.1.0-candidate
           path: .release/artifacts/
+          run-id: ${{ inputs.candidate_workflow_run_id }}
+          github-token: ${{ github.token }}
 
       - name: Reverify clean public-registry consumer before promotion
         run: pnpm release:verify-public-consumer
@@ -203,6 +252,12 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           LOOMA_RELEASE_PROMOTE: approved
+          LOOMA_CANDIDATE_WORKFLOW_RUN_ID: ${{ inputs.candidate_workflow_run_id }}
+          LOOMA_PUBLIC_KNIT_EVIDENCE_SHA256: ${{ inputs.public_knit_evidence_sha256 }}
+          LOOMA_PUBLIC_KNIT_EVIDENCE_URL: ${{ inputs.public_knit_evidence_url }}
+          LOOMA_HOSTED_DOCS_EVIDENCE_SHA256: ${{ inputs.hosted_docs_evidence_sha256 }}
+          LOOMA_HOSTED_DOCS_EVIDENCE_URL: ${{ inputs.hosted_docs_evidence_url }}
+          LOOMA_HOSTED_DOCS_URL: ${{ inputs.hosted_docs_url }}
         run: node tools/scripts/promote-release.mjs --execute
 
       - name: Upload pre-promotion public-consumer evidence
