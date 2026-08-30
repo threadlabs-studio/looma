@@ -1,6 +1,7 @@
 import { spawnSync } from "node:child_process";
 
 import { RELEASE_PACKAGES } from "./release-config.mjs";
+import { scopeAuthorization } from "./registry-preflight-policy.mjs";
 
 const expectedRegistry = "https://registry.npmjs.org/";
 const scopeName = "looma";
@@ -36,9 +37,9 @@ async function main() {
     throw new Error("npm whoami returned an empty username");
   }
 
-  let scopeAuthorization;
+  let authorization;
   if (username === scopeName) {
-    scopeAuthorization = { kind: "user-scope", role: "owner" };
+    authorization = scopeAuthorization({ username, scopeName });
   } else {
     const membershipResult = run(
       "npm",
@@ -49,14 +50,7 @@ async function main() {
       throw new Error(`npm identity ${username} cannot prove membership in @${scopeName}`);
     }
     const membership = parseJson(membershipResult.stdout, "npm org membership");
-    const role =
-      typeof membership === "string"
-        ? membership
-        : membership?.[username] ?? membership?.role ?? membership?.org?.role;
-    if (!role) {
-      throw new Error(`npm identity ${username} has no reported role in @${scopeName}`);
-    }
-    scopeAuthorization = { kind: "organization", role };
+    authorization = scopeAuthorization({ username, scopeName, membership });
   }
 
   const profileResult = run(
@@ -92,7 +86,7 @@ async function main() {
         registry,
         username,
         scope: `@${scopeName}`,
-        scopeAuthorization,
+        scopeAuthorization: authorization,
         twoFactorMode,
         packages,
         mutationPerformed: false
