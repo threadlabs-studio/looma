@@ -90,8 +90,12 @@ production indexing and any canonical-domain cutover belong to U7.
 - [x] The release workflow is manual, main-only, serialized, environment-gated,
   and declares minimal per-job permissions.
 - [x] Third-party actions are pinned to full commit SHAs and checkout credentials are not persisted.
-- [x] The generated manifest captures approved tarballs, SHA-256 hashes, source
-  commit, toolchain, dependency-first package order, and planned tags.
+- [x] The generated manifest captures approved tarballs, their sorted file
+  inventories and SHA-256 hashes, source commit, toolchain, dependency-first
+  package order, and planned tags.
+- [x] Authenticated registry preflight requires a scope owner and resumes a
+  partial Candidate publication only when existing package bytes match the
+  approved tarballs exactly.
 - [x] Candidate verification fails on public-access, integrity, license,
   repository, homepage, exact internal-dependency, dist-tag, or provenance drift.
 - [x] Latest promotion snapshots every prior tag, runs in dependency order, and
