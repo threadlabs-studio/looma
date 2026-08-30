@@ -239,7 +239,8 @@ async function main() {
       packageJson: packedPackageJson,
       tarball,
       sha256: await sha256File(tarballPath),
-      bytes: fileStats.size
+      bytes: fileStats.size,
+      tarEntries
     });
   }
 

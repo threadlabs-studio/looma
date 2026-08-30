@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { topologicallySortPackages } from "./create-release-manifest.mjs";
+import { createReleaseManifest, topologicallySortPackages } from "./create-release-manifest.mjs";
 
 function entry(name, dependencies = {}) {
   return { packageJson: { name, dependencies } };
@@ -42,4 +42,31 @@ test("rejects an internal release dependency cycle", () => {
       ]),
     /dependency cycle: @looma\/core, @looma\/editor/
   );
+});
+
+test("records a deterministic inventory of every packed file", () => {
+  const manifest = createReleaseManifest({
+    sourceCommit: "a".repeat(40),
+    nodeVersion: "v20.19.6",
+    pnpmVersion: "10.15.0",
+    npmVersion: "10.8.2",
+    packages: [
+      {
+        packageJson: { name: "@looma/tokens", version: "0.1.0" },
+        tarball: "looma-tokens-0.1.0.tgz",
+        sha256: "b".repeat(64),
+        bytes: 123,
+        tarEntries: ["package/package.json", "package/LICENSE", "package/dist/tokens.css"]
+      }
+    ],
+    releaseEligible: true,
+    approvals: { npm: "owner", documentation: "docs", knit: "knit" },
+    evidence: {}
+  });
+
+  assert.deepEqual(manifest.packages[0].files, [
+    "package/LICENSE",
+    "package/dist/tokens.css",
+    "package/package.json"
+  ]);
 });

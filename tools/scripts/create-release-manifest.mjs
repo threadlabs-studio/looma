@@ -110,7 +110,8 @@ export function createReleaseManifest({
       internalDependencies: internalDependencies(entry.packageJson),
       tarball: entry.tarball,
       sha256: entry.sha256,
-      bytes: entry.bytes
+      bytes: entry.bytes,
+      files: [...entry.tarEntries].sort()
     }))
   };
 }
