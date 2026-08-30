@@ -94,3 +94,38 @@ test("the no-index Candidate docs preview is manual, protected, and SHA-pinned",
     assert.match(action, /^[^@]+@[a-f0-9]{40}$/);
   }
 });
+
+test("the Knit artifact proof is isolated, fail-closed, and exercises the release consumer", async () => {
+  const [rootPackage, script, registryConfig, npmrc] = await Promise.all([
+    readFile(path.join(repoRoot, "package.json"), "utf8"),
+    readFile(path.join(repoRoot, "tools/scripts/verify-knit-consumer.mjs"), "utf8"),
+    readFile(path.join(repoRoot, "tests/release/registry/verdaccio.yaml"), "utf8"),
+    readFile(path.join(repoRoot, "tests/release/registry/.npmrc"), "utf8")
+  ]);
+  const scripts = JSON.parse(rootPackage).scripts;
+
+  assert.equal(scripts["release:verify-knit"], "node tools/scripts/verify-knit-consumer.mjs");
+  assert.equal(
+    scripts["release:inspect-knit"],
+    "node tools/scripts/verify-knit-consumer.mjs --allow-ineligible-artifacts --skip-full-knit-unit"
+  );
+  assert.match(script, /worktree", "add", "--detach"/);
+  assert.match(script, /manifest\.sourceCommit === loomaCommit/);
+  assert.match(script, /--store-dir/);
+  assert.match(script, /test:gate:unit/);
+  assert.match(script, /skipFullKnitUnit/);
+  assert.match(script, /fullKnitUnitSuitePassed/);
+  assert.match(script, /getDefaultEditorExtensions/);
+  assert.match(script, /renderToString/);
+  assert.match(script, /pnpm", \["build"/);
+  assert.match(script, /pnpm", \["typecheck"/);
+
+  const loomaPolicy = registryConfig.match(/'@looma\/\*':[\s\S]*?\n\s*'\*\*':/)?.[0] ?? "";
+  assert.match(loomaPolicy, /access: \$all/);
+  assert.match(loomaPolicy, /publish: \$all/);
+  assert.doesNotMatch(loomaPolicy, /proxy:/);
+  assert.match(npmrc, /@looma:registry=\$\{LOOMA_REGISTRY_URL\}/);
+  assert.match(script, /--config\.auto-install-peers=true/);
+  assert.match(script, /--config\.prefer-workspace-packages=false/);
+  assert.match(script, /--config\.link-workspace-packages=false/);
+});

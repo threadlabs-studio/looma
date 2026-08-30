@@ -54,6 +54,17 @@ output immutability, rejects skipped required suites, and runs core, editor, and
 Vue browser qualification. The exact Stencil CJS filename diagnostic is the sole
 allowlisted build warning; any additional Stencil warning fails the build.
 
+The `release:inspect-knit` rehearsal now publishes the five checksummed local
+artifacts to a disposable loopback registry with no `@looma` public fallback,
+then installs them into a detached clean Knit checkout with a fresh pnpm store.
+Against Knit commit `d2b4822746efe4652aea83ad7f7481bd32ebf23d`, the rehearsal
+passes the production build, typecheck, SSR rendering for all eight consumed
+Looma surfaces, and 83 signup-critical tests. Evidence is written under the
+ignored `.release/evidence/` directory. This does not check the gate above:
+`release:verify-knit` remains fail-closed until the release manifest is eligible
+and Knit's complete unit suite passes from committed source. Five corresponding
+Knit unit-test adaptations currently exist only as uncommitted owner work.
+
 ## Documentation Gates
 
 - [x] Getting Started begins with the supported registry install path, required
