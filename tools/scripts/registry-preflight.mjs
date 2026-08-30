@@ -1,10 +1,20 @@
 import { spawnSync } from "node:child_process";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-import { RELEASE_PACKAGES } from "./release-config.mjs";
-import { scopeAuthorization } from "./registry-preflight-policy.mjs";
+import { argumentValue } from "./publish-release.mjs";
+import {
+  assertExactReleasePackageSet,
+  RELEASE_PACKAGES,
+  RELEASE_VERSION
+} from "./release-config.mjs";
+import { packagePublicationState, scopeAuthorization } from "./registry-preflight-policy.mjs";
+import { loadApprovedRelease } from "./verify-registry-release.mjs";
 
 const expectedRegistry = "https://registry.npmjs.org/";
 const scopeName = "looma";
+const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
+const repoRoot = path.resolve(scriptDirectory, "../..");
 
 function run(command, args, { allowFailure = false } = {}) {
   const result = spawnSync(command, args, { encoding: "utf8", env: process.env });
@@ -27,6 +37,22 @@ function isNotFound(result) {
 }
 
 async function main() {
+  const manifestPath = path.resolve(
+    repoRoot,
+    argumentValue("--manifest", ".release/artifacts/release-manifest.json")
+  );
+  const approvedRelease = await loadApprovedRelease({ manifestPath });
+  if (approvedRelease.manifest.releaseEligible !== true) {
+    throw new Error("release manifest must be eligible before registry preflight");
+  }
+  if (approvedRelease.manifest.releaseVersion !== RELEASE_VERSION) {
+    throw new Error(`release manifest version must be ${RELEASE_VERSION}`);
+  }
+  assertExactReleasePackageSet(approvedRelease.manifest.packages);
+  const approvedPackages = new Map(
+    approvedRelease.manifest.packages.map((releasePackage) => [releasePackage.name, releasePackage])
+  );
+
   const registry = run("npm", ["config", "get", "registry"]).stdout.trim();
   if (registry !== expectedRegistry) {
     throw new Error(`npm registry must be ${expectedRegistry}, received ${registry}`);
@@ -66,18 +92,51 @@ async function main() {
 
   const packages = [];
   for (const releasePackage of RELEASE_PACKAGES) {
-    const result = run(
+    const approvedPackage = approvedPackages.get(releasePackage.name);
+    if (!approvedPackage) {
+      throw new Error(`release manifest is missing ${releasePackage.name}`);
+    }
+    const packageResult = run(
       "npm",
-      ["view", releasePackage.name, "version", "--json", "--registry", expectedRegistry],
+      ["view", releasePackage.name, "versions", "--json", "--registry", expectedRegistry],
       { allowFailure: true }
     );
-    if (result.status === 0) {
-      throw new Error(`${releasePackage.name} already exists on npm; first-publication preflight stopped`);
+    if (packageResult.status !== 0 && !isNotFound(packageResult)) {
+      throw new Error(
+        `${releasePackage.name} registry state could not be verified\n${packageResult.stderr ?? ""}`
+      );
     }
-    if (!isNotFound(result)) {
-      throw new Error(`${releasePackage.name} availability could not be verified\n${result.stderr ?? ""}`);
+
+    let registryIntegrity = null;
+    const packageExists = packageResult.status === 0;
+    if (packageExists) {
+      const integrityResult = run(
+        "npm",
+        [
+          "view",
+          `${releasePackage.name}@${RELEASE_VERSION}`,
+          "dist.integrity",
+          "--json",
+          "--registry",
+          expectedRegistry
+        ],
+        { allowFailure: true }
+      );
+      if (integrityResult.status === 0) {
+        registryIntegrity = parseJson(integrityResult.stdout, `${releasePackage.name} integrity`);
+      } else if (!isNotFound(integrityResult)) {
+        throw new Error(
+          `${releasePackage.name}@${RELEASE_VERSION} integrity could not be verified\n${integrityResult.stderr ?? ""}`
+        );
+      }
     }
-    packages.push({ name: releasePackage.name, available: true });
+    packages.push(packagePublicationState({
+      name: releasePackage.name,
+      version: RELEASE_VERSION,
+      packageExists,
+      approvedIntegrity: approvedPackage.integrity,
+      registryIntegrity
+    }));
   }
 
   process.stdout.write(

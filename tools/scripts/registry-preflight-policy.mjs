@@ -20,3 +20,27 @@ export function scopeAuthorization({ username, scopeName, membership }) {
   }
   return { kind: "organization", role };
 }
+
+export function packagePublicationState({
+  name,
+  version,
+  packageExists,
+  approvedIntegrity,
+  registryIntegrity
+}) {
+  if (!packageExists) {
+    return { name, version, state: "available" };
+  }
+  if (!registryIntegrity) {
+    throw new Error(`${name} already exists but ${version} is not published`);
+  }
+  if (registryIntegrity !== approvedIntegrity) {
+    throw new Error(`${name}@${version} exists with bytes that differ from the approved tarball`);
+  }
+  return {
+    name,
+    version,
+    state: "already-published",
+    integrity: registryIntegrity
+  };
+}

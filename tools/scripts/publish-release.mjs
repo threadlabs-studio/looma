@@ -5,7 +5,11 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { RELEASE_PACKAGES, RELEASE_VERSION } from "./release-config.mjs";
+import {
+  assertExactReleasePackageSet,
+  RELEASE_PACKAGES,
+  RELEASE_VERSION
+} from "./release-config.mjs";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDirectory, "../..");
@@ -77,11 +81,7 @@ async function main() {
   if (tag !== "candidate") {
     throw new Error("initial publication may only use the candidate dist-tag");
   }
-  const expectedPackageNames = RELEASE_PACKAGES.map((entry) => entry.name);
-  const manifestPackageNames = manifest.packages.map((entry) => entry.name);
-  if (JSON.stringify(manifestPackageNames.sort()) !== JSON.stringify([...expectedPackageNames].sort())) {
-    throw new Error("release manifest does not contain the exact approved package set");
-  }
+  assertExactReleasePackageSet(manifest.packages);
 
   const publishedBefore = new Set();
   for (const [index, releasePackage] of manifest.packages.entries()) {

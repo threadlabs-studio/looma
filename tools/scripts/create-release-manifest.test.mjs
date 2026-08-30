@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { createReleaseManifest, topologicallySortPackages } from "./create-release-manifest.mjs";
+import { assertExactReleasePackageSet } from "./release-config.mjs";
 
 function entry(name, dependencies = {}) {
   return { packageJson: { name, dependencies } };
@@ -69,4 +70,20 @@ test("records a deterministic inventory of every packed file", () => {
     "package/dist/tokens.css",
     "package/package.json"
   ]);
+});
+
+test("accepts only the exact configured release package set", () => {
+  const packages = [
+    "@looma/tokens",
+    "@looma/layout",
+    "@looma/core",
+    "@looma/editor",
+    "@looma/vue"
+  ].map((name) => ({ name }));
+
+  assert.doesNotThrow(() => assertExactReleasePackageSet(packages));
+  assert.throws(
+    () => assertExactReleasePackageSet([...packages.slice(0, -1), { name: "@looma/unexpected" }]),
+    /does not contain the exact approved package set/
+  );
 });

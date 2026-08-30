@@ -67,3 +67,11 @@ export const RELEASE_PACKAGES = [
 export const RELEASE_PACKAGE_NAMES = new Set(
   RELEASE_PACKAGES.map((releasePackage) => releasePackage.name)
 );
+
+export function assertExactReleasePackageSet(packages) {
+  const actualNames = packages.map((entry) => entry?.name).toSorted();
+  const expectedNames = [...RELEASE_PACKAGE_NAMES].toSorted();
+  if (JSON.stringify(actualNames) !== JSON.stringify(expectedNames)) {
+    throw new Error("release manifest does not contain the exact approved package set");
+  }
+}
