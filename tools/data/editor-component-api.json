@@ -1,0 +1,145 @@
+{
+  "components": [
+    {
+      "tag": "ui-editor-insert-table-grid",
+      "package": "@looma/editor",
+      "className": "UIEditorInsertTableGridElement",
+      "description": "Keyboard- and pointer-operable grid for selecting table dimensions before insertion.",
+      "attributes": [
+        { "name": "max-cols", "property": "maxCols", "type": "number", "default": 8 },
+        { "name": "max-rows", "property": "maxRows", "type": "number", "default": 8 },
+        { "name": "open", "property": "open", "type": "boolean", "default": false }
+      ],
+      "properties": [],
+      "events": [
+        {
+          "name": "looma-editor-insert-table",
+          "detailType": "InsertTableEventDetail",
+          "detailSchema": "{ rows: number; cols: number; withHeaderRow: boolean }",
+          "detailDocs": "Emitted when the user confirms the selected table dimensions."
+        }
+      ],
+      "slots": []
+    },
+    {
+      "tag": "ui-editor-slash-menu",
+      "package": "@looma/editor",
+      "className": "UIEditorSlashMenuElement",
+      "description": "Responsive slash-command suggestion surface positioned from an app-provided editor anchor.",
+      "attributes": [],
+      "properties": [
+        { "name": "anchorRect", "type": "DOMRect | null", "default": null },
+        { "name": "items", "type": "SlashMenuItem[]", "default": [] },
+        { "name": "open", "type": "boolean", "default": false },
+        { "name": "query", "type": "string", "default": "" },
+        { "name": "selectedIndex", "type": "number", "default": 0 }
+      ],
+      "events": [
+        {
+          "name": "looma-editor-slash-menu-highlight",
+          "detailType": "SlashMenuHighlightEventDetail",
+          "detailSchema": "{ index: number }",
+          "detailDocs": "Emitted when pointer navigation changes the highlighted suggestion."
+        },
+        {
+          "name": "looma-editor-slash-menu-select",
+          "detailType": "SlashMenuSelectEventDetail",
+          "detailSchema": "{ index: number }",
+          "detailDocs": "Emitted when the user selects a slash-command suggestion."
+        }
+      ],
+      "slots": []
+    },
+    {
+      "tag": "ui-editor-table-context-menu",
+      "package": "@looma/editor",
+      "className": "UIEditorTableContextMenuElement",
+      "description": "Cell-scoped and structural table action menu with capability-controlled actions.",
+      "attributes": [
+        { "name": "can-add-column-after", "property": "canAddColumnAfter", "type": "boolean", "default": false },
+        { "name": "can-add-column-before", "property": "canAddColumnBefore", "type": "boolean", "default": false },
+        { "name": "can-add-row-after", "property": "canAddRowAfter", "type": "boolean", "default": false },
+        { "name": "can-add-row-before", "property": "canAddRowBefore", "type": "boolean", "default": false },
+        { "name": "can-delete-column", "property": "canDeleteColumn", "type": "boolean", "default": false },
+        { "name": "can-delete-row", "property": "canDeleteRow", "type": "boolean", "default": false },
+        { "name": "can-delete-table", "property": "canDeleteTable", "type": "boolean", "default": false },
+        { "name": "can-merge-cells", "property": "canMergeCells", "type": "boolean", "default": false },
+        { "name": "can-split-cell", "property": "canSplitCell", "type": "boolean", "default": false },
+        { "name": "cell-background", "property": "cellBackground", "type": "string", "default": "" },
+        { "name": "open", "property": "open", "type": "boolean", "default": false }
+      ],
+      "properties": [],
+      "events": [
+        {
+          "name": "looma-editor-table-action",
+          "detailType": "TableContextMenuActionEventDetail",
+          "detailSchema": "{ action: TableContextMenuAction }",
+          "detailDocs": "Emitted when the user invokes an available table or cell action."
+        }
+      ],
+      "slots": []
+    },
+    {
+      "tag": "ui-editor-table-overlay",
+      "package": "@looma/editor",
+      "className": "UIEditorTableOverlayElement",
+      "description": "Boundary-aligned controls for inserting rows or columns around an active table.",
+      "attributes": [
+        { "name": "cols", "property": "cols", "type": "number", "default": 3 },
+        { "name": "open", "property": "open", "type": "boolean", "default": false },
+        { "name": "rows", "property": "rows", "type": "number", "default": 3 }
+      ],
+      "properties": [],
+      "events": [
+        {
+          "name": "looma-editor-table-overlay-action",
+          "detailType": "TableOverlayActionEventDetail",
+          "detailSchema": "{ action: TableOverlayAction; boundaryIndex: number }",
+          "detailDocs": "Emitted with the insertion direction and affected table boundary."
+        }
+      ],
+      "slots": []
+    },
+    {
+      "tag": "ui-editor-table-toolbar",
+      "package": "@looma/editor",
+      "className": "UIEditorTableToolbarElement",
+      "description": "Selection-aware table toolbar for alignment and discoverable structural actions.",
+      "attributes": [
+        { "name": "can-add-column-after", "property": "canAddColumnAfter", "type": "boolean", "default": false },
+        { "name": "can-add-column-before", "property": "canAddColumnBefore", "type": "boolean", "default": false },
+        { "name": "can-add-row-after", "property": "canAddRowAfter", "type": "boolean", "default": false },
+        { "name": "can-add-row-before", "property": "canAddRowBefore", "type": "boolean", "default": false },
+        { "name": "can-delete-column", "property": "canDeleteColumn", "type": "boolean", "default": false },
+        { "name": "can-delete-row", "property": "canDeleteRow", "type": "boolean", "default": false },
+        { "name": "can-delete-table", "property": "canDeleteTable", "type": "boolean", "default": false },
+        { "name": "can-merge-cells", "property": "canMergeCells", "type": "boolean", "default": false },
+        { "name": "can-split-cell", "property": "canSplitCell", "type": "boolean", "default": false },
+        { "name": "cell-alignment", "property": "cellAlignment", "type": "\"left\" | \"center\" | \"right\"", "default": "left" },
+        { "name": "open", "property": "open", "type": "boolean", "default": false }
+      ],
+      "properties": [],
+      "events": [
+        {
+          "name": "looma-editor-table-action",
+          "detailType": "TableContextMenuActionEventDetail",
+          "detailSchema": "{ action: TableContextMenuAction }",
+          "detailDocs": "Emitted when the user invokes an available table action."
+        }
+      ],
+      "slots": []
+    },
+    {
+      "tag": "ui-editor-toolbar",
+      "package": "@looma/editor",
+      "className": "UIEditorToolbarElement",
+      "description": "Slot-based semantic toolbar shell for app-owned editor commands.",
+      "attributes": [],
+      "properties": [],
+      "events": [],
+      "slots": [
+        { "name": "default", "description": "App-owned editor command controls." }
+      ]
+    }
+  ]
+}

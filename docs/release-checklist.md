@@ -23,7 +23,8 @@ authorization error), so package-name absence does not prove scope ownership.
 - [x] Public R1 package set and deferred workspaces are classified.
 - [x] DOM, SSR/no-JS, and module-format promises match current source/build output.
 - [x] Layout's formerly false CommonJS export now points to a real CJS build required by the docs server bundle.
-- [ ] Generated API, docs, navigation, and supported Vue projections cover every published tag.
+- [x] Source-derived classification enforces generated API, docs, navigation,
+  supported Vue map/export, and required contract README coverage for all 38 published tags.
 - [ ] All five manifests use synchronized `0.1.0`, public access, complete metadata,
   correct peer/internal ranges, and exact export maps.
 - [ ] Every packed artifact contains runtime output, types, styles, README, and license,

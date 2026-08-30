@@ -1,0 +1,50 @@
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# Context Menu
+
+Pointer-anchored action menu that uses Looma's shared overlay dismissal and menu-selection behavior.
+
+## Component Reference
+
+<ComponentExamplesApiTabs component="ui-context-menu" />
+
+## Semantics And SSR Markup
+
+The element listens for the browser `contextmenu` event on its parent. Keep a visible trigger or equivalent action path because context menus are not reliably discoverable on touch or without JavaScript.
+
+```html
+<div class="document-row">
+  <button type="button">Document actions</button>
+  <ui-context-menu>
+    <ui-menu-item value="rename">Rename</ui-menu-item>
+    <ui-menu-item value="delete">Delete</ui-menu-item>
+  </ui-context-menu>
+</div>
+```
+
+## Interaction Contract
+
+- Pointer context-menu opens at the pointer coordinates.
+- `Enter` or `Space` activates the focused enabled item; `Escape` dismisses.
+- `open`, `close`, and `select` events use the same trigger/reason vocabulary as Looma menus.
+- Disabled items do not emit selection.
+- Touch long-press behavior is browser-dependent; an essential action needs another visible control.
+- Before upgrade, the author-provided item text remains in light DOM, but positioning, dismissal, and selection behavior do not. Do not rely on this element as the only no-JS action path.
+
+## Vue
+
+```vue
+<script setup lang="ts">
+import { ContextMenu, MenuItem } from "@looma/vue";
+</script>
+
+<template>
+  <div class="document-row">
+    <button type="button">Document actions</button>
+    <ContextMenu @select="({ value }) => runAction(value)">
+      <MenuItem value="rename">Rename</MenuItem>
+      <MenuItem value="delete">Delete</MenuItem>
+    </ContextMenu>
+  </div>
+</template>
+```

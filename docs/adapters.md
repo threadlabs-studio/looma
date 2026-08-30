@@ -29,8 +29,8 @@ gate is the authority; this table is a readable summary.
 | Display and app shell | `ui-avatar`, `ui-avatar-group`, `ui-badge`, `ui-toast-region`, `ui-floating-action-button`, `ui-search-shell`, `ui-search-result-row`, `ui-top-bar` | Same names in PascalCase |
 | Editor | `ui-editor-toolbar`, `ui-editor-slash-menu`, `ui-editor-table-context-menu`, `ui-editor-table-toolbar`, `ui-editor-insert-table-grid`, `ui-editor-table-overlay` | `Editor*` named wrappers |
 
-`ui-context-menu` is source-published but its Vue named export is currently a
-known completeness gap. Release unit U2 must close it before Candidate publication.
+The source-derived completeness gate rejects a missing map entry or named Vue
+export, including for `ui-context-menu` and the editor elements.
 
 ## Event Parity
 

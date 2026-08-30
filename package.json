@@ -15,7 +15,7 @@
     "build:docs": "pnpm --filter @looma/docs build",
     "build:storybook": "pnpm --filter @looma/storybook build",
     "lint": "pnpm -r run lint",
-    "test": "pnpm build && pnpm -r run test",
+    "test": "node --test tools/scripts/component-api-generator.test.mjs && pnpm build && pnpm -r run test",
     "typecheck": "pnpm -r run typecheck"
   }
 }

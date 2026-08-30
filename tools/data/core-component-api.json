@@ -328,6 +328,64 @@
       ]
     },
     {
+      "tag": "ui-context-menu",
+      "package": "@looma/core",
+      "className": "UIContextMenuElement",
+      "description": "Pointer-anchored action menu that preserves menu keyboard selection and shared overlay dismissal behavior.",
+      "attributes": [
+        {
+          "name": "default-open",
+          "property": "defaultOpen",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "open",
+          "property": "open",
+          "type": "boolean",
+          "default": false
+        }
+      ],
+      "properties": [
+        {
+          "name": "defaultOpen",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "default": false
+        }
+      ],
+      "events": [
+        {
+          "name": "close",
+          "detailType": "OpenCloseDetail",
+          "detailSchema": "{ open: boolean; reason: PrimitiveReason; trigger: PrimitiveTrigger }",
+          "detailDocs": "Emitted when the context menu closes."
+        },
+        {
+          "name": "open",
+          "detailType": "OpenCloseDetail",
+          "detailSchema": "{ open: boolean; reason: PrimitiveReason; trigger: PrimitiveTrigger }",
+          "detailDocs": "Emitted when a pointer context-menu action opens the menu."
+        },
+        {
+          "name": "select",
+          "detailType": "SelectDetail",
+          "detailSchema": "{ value: string; trigger: PrimitiveTrigger }",
+          "detailDocs": "Emitted when a menu item is activated."
+        }
+      ],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Context-menu items, normally `ui-menu-item` elements."
+        }
+      ]
+    },
+    {
       "tag": "ui-dialog",
       "package": "@looma/core",
       "className": "UIDialogElement",

@@ -73,11 +73,11 @@ is a release defect, not a reason to silently shrink the source inventory.
 
 | Evidence | Current status | Release requirement |
 | --- | --- | --- |
-| Exact source inventory | Recorded above | Automated completeness gate still required |
+| Exact source inventory | Source-derived classification and projection gate passing for all 38 tags | Must stay clean through publication |
 | Knit linked-workspace build | Passing | Must repeat against approved packed artifacts |
 | SSR imports through Knit graph | Passing for core/editor/editor extensions/Vue | Must repeat from clean tarball fixture |
 | Package names publicly absent | Observed via unauthenticated npm lookup | Authenticated namespace ownership/publish authorization required |
-| ContextMenu projections | Incomplete | Must be complete before Candidate |
+| ContextMenu projections | API metadata, docs, navigation, contract README, Vue map/export, and render test complete | Must stay clean through publication |
 | Browser/a11y/adapter/package gates | Existing evidence is partial | U4 must supply all promised non-placeholder gates |
 | Editor E-TBL-003 | Open | Fix or explicit owner acceptance backed by browser/data-integrity evidence |
 

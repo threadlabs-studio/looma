@@ -1,0 +1,19 @@
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# Editor Table Overlay
+
+Boundary-aligned controls for inserting rows and columns around the active table.
+
+## Component Reference
+
+<ComponentExamplesApiTabs component="ui-editor-table-overlay" />
+
+## Runtime Contract
+
+Set `open`, `rows`, and `cols` from the active table. Activating a boundary control emits `looma-editor-table-overlay-action` with `{ action, boundaryIndex }`; the app maps that detail to the editor command.
+
+Pointer hover and keyboard focus reveal the affected boundary. Focus must remain reachable without hover, and touch integrations need a visible table-toolbar path because hover does not exist. The overlay is client-generated enhancement UI and has no no-JS fallback. The editor table content remains independent of it.
+
+## Candidate Limitation
+
+E-TBL-003 tracks the remaining Confluence-quality boundary and discoverability work. Candidate acceptance requires real-browser and content-integrity evidence.

@@ -37,7 +37,8 @@ const sidebars: SidebarsConfig = {
         "components/ui-tooltip",
         "components/ui-toast-region",
         "components/ui-menu",
-        "components/ui-menu-item"
+        "components/ui-menu-item",
+        "components/ui-context-menu"
       ]
     },
     {
@@ -75,6 +76,18 @@ const sidebars: SidebarsConfig = {
         "components/ui-avatar-group",
         "components/ui-disclosure",
         "components/ui-tabs"
+      ]
+    },
+    {
+      type: "category",
+      label: "Editor",
+      items: [
+        "components/ui-editor-toolbar",
+        "components/ui-editor-slash-menu",
+        "components/ui-editor-insert-table-grid",
+        "components/ui-editor-table-toolbar",
+        "components/ui-editor-table-context-menu",
+        "components/ui-editor-table-overlay"
       ]
     }
   ]

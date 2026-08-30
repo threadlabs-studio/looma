@@ -15,8 +15,203 @@ const STATIC_COMPONENT_METADATA_FILES = [
   },
   {
     metadataPath: "tools/data/layout-component-api.json"
+  },
+  {
+    metadataPath: "tools/data/editor-component-api.json"
   }
 ];
+
+const RELEASE_CLASSIFICATION_PATH = "tools/data/component-release-classification.json";
+
+function duplicates(values) {
+  const seen = new Set();
+  const duplicateValues = new Set();
+  for (const value of values) {
+    if (seen.has(value)) {
+      duplicateValues.add(value);
+    }
+    seen.add(value);
+  }
+  return [...duplicateValues].sort();
+}
+
+function classificationStatus(value) {
+  return typeof value === "string" ? value : value?.status;
+}
+
+function pushSetDifference(errors, label, expected, actual) {
+  const actualSet = new Set(actual);
+  const missing = expected.filter((tag) => !actualSet.has(tag));
+  if (missing.length > 0) {
+    errors.push(`${label} missing published tags: ${missing.join(", ")}`);
+  }
+
+  const expectedSet = new Set(expected);
+  const extra = [...new Set(actual)].filter((tag) => !expectedSet.has(tag)).sort();
+  if (extra.length > 0) {
+    errors.push(`${label} includes non-published tags: ${extra.join(", ")}`);
+  }
+
+  const duplicateTags = duplicates(actual);
+  if (duplicateTags.length > 0) {
+    errors.push(`${label} duplicate tags: ${duplicateTags.join(", ")}`);
+  }
+}
+
+export function validateComponentProjections({
+  sourceTags,
+  classifications,
+  metadataTags,
+  documentationTags,
+  navigationTags,
+  adapterTags,
+  adapterMapTags = adapterTags,
+  requiredContractReadmeTags = [],
+  contractReadmeTags = []
+}) {
+  const errors = [];
+  const sortedSourceTags = [...sourceTags].sort();
+  const sourceSet = new Set(sortedSourceTags);
+  const classificationTags = Object.keys(classifications).sort();
+  const allowedStatuses = new Set(["published", "internal", "deferred"]);
+
+  const duplicateSourceTags = duplicates(sourceTags);
+  if (duplicateSourceTags.length > 0) {
+    errors.push(`source duplicate tags: ${duplicateSourceTags.join(", ")}`);
+  }
+
+  const unclassified = sortedSourceTags.filter((tag) => !(tag in classifications));
+  if (unclassified.length > 0) {
+    errors.push(`unclassified source tags: ${unclassified.join(", ")}`);
+  }
+
+  const classificationsWithoutSource = classificationTags.filter((tag) => !sourceSet.has(tag));
+  if (classificationsWithoutSource.length > 0) {
+    errors.push(`classifications without source tags: ${classificationsWithoutSource.join(", ")}`);
+  }
+
+  const invalidClassifications = classificationTags.filter(
+    (tag) => !allowedStatuses.has(classificationStatus(classifications[tag]))
+  );
+  if (invalidClassifications.length > 0) {
+    errors.push(`invalid tag classifications: ${invalidClassifications.join(", ")}`);
+  }
+
+  const publishedTags = classificationTags.filter(
+    (tag) => classificationStatus(classifications[tag]) === "published"
+  );
+
+  pushSetDifference(errors, "metadata", publishedTags, metadataTags);
+  pushSetDifference(errors, "documentation", publishedTags, documentationTags);
+  pushSetDifference(errors, "navigation", publishedTags, navigationTags);
+  pushSetDifference(errors, "adapter map", publishedTags, adapterMapTags);
+  pushSetDifference(errors, "adapter", publishedTags, adapterTags);
+
+  const readmeSet = new Set(contractReadmeTags);
+  const missingReadmes = requiredContractReadmeTags
+    .filter((tag) => !readmeSet.has(tag))
+    .sort();
+  if (missingReadmes.length > 0) {
+    errors.push(`contract README missing required tags: ${missingReadmes.join(", ")}`);
+  }
+
+  if (errors.length > 0) {
+    throw new Error(`Component release projections are incomplete:\n- ${errors.join("\n- ")}`);
+  }
+}
+
+async function discoverSourceComponents() {
+  const components = [];
+
+  const coreDirectory = path.join(repoRoot, "packages/core/src/components");
+  const coreEntries = await readdir(coreDirectory, { withFileTypes: true });
+  for (const entry of coreEntries) {
+    if (!entry.isDirectory()) {
+      continue;
+    }
+    const componentDirectory = path.join(coreDirectory, entry.name);
+    const componentEntries = await readdir(componentDirectory, { withFileTypes: true });
+    for (const componentEntry of componentEntries) {
+      if (!componentEntry.isFile() || !componentEntry.name.endsWith(".tsx")) {
+        continue;
+      }
+      const source = await readFile(path.join(componentDirectory, componentEntry.name), "utf8");
+      const match = source.match(/tag:\s*["'](ui-[a-z0-9-]+)["']/);
+      if (match) {
+        components.push({ tag: match[1], package: "@looma/core" });
+      }
+    }
+  }
+
+  const layoutSource = await readFile(path.join(repoRoot, "packages/layout/src/index.ts"), "utf8");
+  for (const match of layoutSource.matchAll(/\[\s*"(ui-[a-z0-9-]+)"\s*,/g)) {
+    components.push({ tag: match[1], package: "@looma/layout" });
+  }
+
+  const editorDirectory = path.join(repoRoot, "packages/editor/src");
+  const editorEntries = await readdir(editorDirectory, { withFileTypes: true });
+  for (const entry of editorEntries) {
+    if (!entry.isFile() || !entry.name.endsWith(".ts")) {
+      continue;
+    }
+    const source = await readFile(path.join(editorDirectory, entry.name), "utf8");
+    const match = source.match(/const TAG = "(ui-editor-[a-z0-9-]+)";/);
+    if (match) {
+      components.push({ tag: match[1], package: "@looma/editor" });
+    }
+  }
+
+  return components.sort((left, right) => left.tag.localeCompare(right.tag));
+}
+
+async function readRepositoryProjectionTags() {
+  const docsDirectory = path.join(repoRoot, "apps/docs/docs/components");
+  const docEntries = await readdir(docsDirectory, { withFileTypes: true });
+  const documentationTags = docEntries
+    .filter((entry) => entry.isFile() && entry.name.endsWith(".mdx"))
+    .map((entry) => entry.name.replace(/\.mdx$/, ""));
+
+  const sidebarSource = await readFile(path.join(repoRoot, "apps/docs/sidebars.ts"), "utf8");
+  const navigationTags = [...sidebarSource.matchAll(/"components\/(ui-[a-z0-9-]+)"/g)].map(
+    (match) => match[1]
+  );
+
+  const adapterSource = await readFile(path.join(repoRoot, "packages/vue/src/index.ts"), "utf8");
+  const exportedNames = new Set(
+    [...adapterSource.matchAll(/export const ([A-Za-z0-9_]+)\s*=/g)].map((match) => match[1])
+  );
+  const adapterMapBlock = adapterSource.match(
+    /export const ADAPTER_COMPONENT_TAG_MAP = \{([\s\S]*?)\} as const;/
+  )?.[1] ?? "";
+  const adapterEntries = [...adapterMapBlock.matchAll(/([A-Za-z0-9_]+): "(ui-[a-z0-9-]+)"/g)].map(
+    (match) => ({ name: match[1], tag: match[2] })
+  );
+
+  const coreContractDirectory = path.join(repoRoot, "packages/core/src");
+  const coreContractEntries = await readdir(coreContractDirectory, { withFileTypes: true });
+  const contractReadmeTags = [];
+  for (const entry of coreContractEntries) {
+    if (!entry.isDirectory() || !entry.name.startsWith("ui-")) {
+      continue;
+    }
+    try {
+      await readFile(path.join(coreContractDirectory, entry.name, "README.md"), "utf8");
+      contractReadmeTags.push(entry.name);
+    } catch {
+      // The completeness error below reports required missing contracts by tag.
+    }
+  }
+
+  return {
+    documentationTags,
+    navigationTags,
+    adapterMapTags: adapterEntries.map((entry) => entry.tag),
+    adapterTags: adapterEntries
+      .filter((entry) => exportedNames.has(entry.name))
+      .map((entry) => entry.tag),
+    contractReadmeTags
+  };
+}
 
 function normalizeWhitespace(value) {
   return value.replace(/\s+/g, " ").trim();
@@ -508,6 +703,43 @@ export async function generateComponentApiMetadata() {
   }
 
   components.sort((left, right) => left.tag.localeCompare(right.tag));
+
+  const sourceComponents = await discoverSourceComponents();
+  const classificationsDocument = JSON.parse(
+    await readFile(path.join(repoRoot, RELEASE_CLASSIFICATION_PATH), "utf8")
+  );
+  const classifications = classificationsDocument.tags ?? {};
+  const sourcePackageByTag = new Map(
+    sourceComponents.map((component) => [component.tag, component.package])
+  );
+  const packageMismatches = Object.entries(classifications)
+    .filter(([, value]) => typeof value === "object" && value?.package)
+    .filter(([tag, value]) => sourcePackageByTag.get(tag) !== value.package)
+    .map(([tag]) => tag)
+    .sort();
+  if (packageMismatches.length > 0) {
+    throw new Error(
+      `Component release classifications have wrong source packages: ${packageMismatches.join(", ")}`
+    );
+  }
+
+  const repositoryProjections = await readRepositoryProjectionTags();
+  const requiredContractReadmeTags = Object.entries(classifications)
+    .filter(([, value]) => classificationStatus(value) === "published")
+    .filter(([, value]) => typeof value === "object" && value?.package === "@looma/core")
+    .map(([tag]) => tag);
+
+  validateComponentProjections({
+    sourceTags: sourceComponents.map((component) => component.tag),
+    classifications,
+    metadataTags: components.map((component) => component.tag),
+    documentationTags: repositoryProjections.documentationTags,
+    navigationTags: repositoryProjections.navigationTags,
+    adapterMapTags: repositoryProjections.adapterMapTags,
+    adapterTags: repositoryProjections.adapterTags,
+    requiredContractReadmeTags,
+    contractReadmeTags: repositoryProjections.contractReadmeTags
+  });
 
   return {
     schemaVersion: 1,
