@@ -42,6 +42,65 @@ Theme is applied via token overrides (e.g. `.dark` or `[data-theme="dark"]`). Th
 
 Interactive components support consistent props where applicable: `variant` (e.g. primary | secondary | ghost | danger), `size` (sm | md | lg), `disabled`, `loading`. Use typed `defineProps` (or equivalent) and stable event payloads. See [Conventions](./conventions.md).
 
+## Docs and Storybook naming convention
+
+Every component in Looma gets a docs page and a Storybook story. Use this convention to keep human-readable labels for titles and navigation while preserving stable `ui-*` IDs for filenames, tags, and API references.
+
+| Surface | What to use | Example |
+|---------|-------------|---------|
+| **MDX filename** | The stable `ui-*` tag name, lowercase, kebab-case | `ui-context-menu.mdx` |
+| **Page title (H1)** | Human-readable name | `Context Menu` |
+| **Component tag display** | `<ui-*>` tag inside a `.looma-component-header` wrapper with `<p className="component-tag">` | `<p className="component-tag">&lt;ui-context-menu&gt;</p>` |
+| **ComponentExamplesApiTabs `component` prop** | The `ui-*` tag name | `component="ui-context-menu"` |
+| **Storybook story title** | Human-readable name | `Context Menu` |
+| **Storybook story ID / component identifier** | The `ui-*` tag name | `ui-context-menu` |
+
+### Example: `ui-context-menu`
+
+**MDX file:** `apps/docs/docs/components/ui-context-menu.mdx`
+
+```mdx
+<div className="looma-component-header">
+
+<p className="component-tag">&lt;ui-context-menu&gt;</p>
+
+# Context Menu
+
+Right-click context menu for actions and navigation.
+
+**Import:** `import "@looma/core"` — or use `ContextMenu` from `@looma/react`, `@looma/vue`, or `@looma/svelte`.
+
+</div>
+
+## Examples & API
+
+<ComponentExamplesApiTabs
+  component="ui-context-menu"
+  preview={
+    <ui-context-menu>
+      {/* preview content */}
+    </ui-context-menu>
+  }
+/>
+```
+
+**Storybook story:**
+
+```ts
+// ContextMenu.stories.ts
+export default {
+  title: "Components/Context Menu",
+  id: "ui-context-menu",
+  component: "ui-context-menu",
+};
+```
+
+### Rationale
+
+- **Filenames and IDs use `ui-*`** so URLs, file paths, and API references stay stable even if the display name changes later.
+- **Titles and story names are human-readable** so navigation, page headings, and Storybook sidebar are clear to all readers.
+- **The `.looma-component-header` wrapper** groups the tag badge and title visually, matching the existing docs page layout.
+
 ## Summary
 
 | Layer        | Looma                          | App (e.g. Knit)                          |
