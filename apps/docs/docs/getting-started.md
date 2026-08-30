@@ -6,9 +6,9 @@ slug: /
 
 Looma Release 1 is a Candidate `0.1.0` package set for Vue 3 and direct custom-element use. It is not Stable yet. React and Svelte adapters shown elsewhere in this repository are previews and are not published or supported in Release 1.
 
-:::caution Publication pending
+:::caution Confirm the Candidate tag
 
-These commands become usable when the Candidate is published to npm. The repository is licensed under MIT; publication remains blocked on permanent namespace approval, authenticated scope ownership, and protected release-environment approval. Do not depend on an unpublished registry package.
+These instructions target the exact Candidate `0.1.0` graph. Before adopting it, confirm that npm resolves every listed package at `0.1.0` under the `candidate` dist-tag. Preview documentation can be built before that registry gate; production documentation is published only after the gate passes.
 
 :::
 

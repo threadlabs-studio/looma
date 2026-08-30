@@ -85,8 +85,10 @@ test("the no-index Candidate docs preview is manual, protected, and SHA-pinned",
   assert.doesNotMatch(workflow, /pull_request:/);
   assert.doesNotMatch(workflow, /\n\s+push:/);
   assert.match(workflow, /name: docs-preview/);
-  assert.match(config, /noindex,nofollow/);
-  assert.match(config, /Release 1 Candidate preview/);
+  assert.match(workflow, /LOOMA_DOCS_RELEASE_MODE: preview/);
+  assert.match(config, /LOOMA_DOCS_RELEASE_MODE must be preview or candidate/);
+  assert.match(config, /isCandidateRelease \? "index,follow" : "noindex,nofollow"/);
+  assert.match(config, /Release 1 Candidate documentation preview/);
 
   const uses = [...workflow.matchAll(/uses:\s+([^\s#]+)/g)].map((match) => match[1]);
   assert.ok(uses.length > 0);

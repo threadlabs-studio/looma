@@ -73,7 +73,7 @@ the ignored `.release/evidence/` directory.
 ## Documentation Gates
 
 - [x] Getting Started begins with the supported registry install path, required
-  styles/entry imports, a Vue example, and the pre-publication warning.
+  styles/entry imports, a Vue example, and a time-stable Candidate availability guard.
 - [x] Public docs and package READMEs distinguish the five Candidate packages
   from deferred React/Svelte previews and expose accepted editor limitations.
 - [x] Package README links are absolute and identify the canonical repository,
@@ -82,9 +82,14 @@ the ignored `.release/evidence/` directory.
   320-CSS-pixel reflow checks; install-path navigation is covered in the same suite.
 - [x] A manual, protected `docs-preview` Pages workflow builds a no-index Candidate
   preview with every third-party action pinned to a full SHA.
+- [x] A separate protected `docs-production` workflow downloads the exact prior
+  Candidate artifacts, checks manifest/registry evidence against that source commit,
+  builds indexable docs, verifies hosted routes, and uploads hashed JSON evidence.
 - [x] The owner-approved MIT license exists and every package README links to it.
 - [ ] The protected no-index preview has been deployed and reviewed at the
   recorded workflow URL.
+- [ ] Production Candidate docs have been deployed and their hosted-docs evidence
+  artifact URL and SHA-256 have been recorded for the promotion dispatch.
 
 The preview configuration targets `https://threadlabs-studio.github.io/looma/`.
 That address is not claimed as reachable evidence until the manual workflow runs;

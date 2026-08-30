@@ -2,9 +2,9 @@
 
 Release 1 is a synchronized public npm **Candidate `0.1.0`** for the smallest Looma graph required by Knit. Candidate means the surface is usable and qualified but can still change before Stable; it is not semver `1.0.0`.
 
-:::caution Not published yet
+:::caution Candidate availability
 
-The repository is licensed under MIT. Registry publication remains blocked until the permanent namespace is approved, an authenticated owner proves that scope, and the protected npm release environment has named approvers. The docs describe the reviewed Candidate contract, not a package that is already available.
+Candidate availability is defined by the npm `candidate` dist-tag resolving this complete `0.1.0` package graph. A preview build describes the reviewed contract without asserting registry availability; the production build is deployed only from the same source commit after public Candidate verification.
 
 :::
 

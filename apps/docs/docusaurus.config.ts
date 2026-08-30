@@ -1,6 +1,16 @@
 import type { Config } from "@docusaurus/types";
 import type * as Preset from "@docusaurus/preset-classic";
 
+const docsReleaseMode = process.env.LOOMA_DOCS_RELEASE_MODE ?? "preview";
+
+if (docsReleaseMode !== "preview" && docsReleaseMode !== "candidate") {
+  throw new Error(
+    `LOOMA_DOCS_RELEASE_MODE must be preview or candidate; received ${JSON.stringify(docsReleaseMode)}`
+  );
+}
+
+const isCandidateRelease = docsReleaseMode === "candidate";
+
 const config: Config = {
   title: "Looma UI Docs",
   tagline: "SSR-first web component contracts",
@@ -12,7 +22,7 @@ const config: Config = {
       tagName: "meta",
       attributes: {
         name: "robots",
-        content: "noindex,nofollow"
+        content: isCandidateRelease ? "index,follow" : "noindex,nofollow"
       }
     }
   ],
@@ -50,9 +60,10 @@ const config: Config = {
   ],
   themeConfig: {
     announcementBar: {
-      id: "looma-r1-candidate-preview",
-      content:
-        'Release 1 Candidate preview — packages are not published yet. <a href="/looma/release-1-support">Read the support boundary and open gates.</a>',
+      id: `looma-r1-${docsReleaseMode}`,
+      content: isCandidateRelease
+        ? 'Release 1 Candidate 0.1.0 is available on npm under the candidate tag. <a href="/looma/release-1-support">Read the support boundary.</a>'
+        : 'Release 1 Candidate documentation preview — confirm registry availability before installing. <a href="/looma/release-1-support">Read the support boundary.</a>',
       backgroundColor: "#312e81",
       textColor: "#ffffff",
       isCloseable: false

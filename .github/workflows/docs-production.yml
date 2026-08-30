@@ -1,0 +1,143 @@
+name: Docs Candidate Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      candidate_workflow_run_id:
+        description: Prior successful Release Candidate workflow run ID
+        required: true
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: looma-docs-production
+  cancel-in-progress: false
+
+jobs:
+  deploy-and-verify:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: docs-production
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      actions: read
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - name: Resolve successful Candidate workflow run
+        id: candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CANDIDATE_WORKFLOW_RUN_ID: ${{ inputs.candidate_workflow_run_id }}
+        run: |
+          case "$CANDIDATE_WORKFLOW_RUN_ID" in
+            ''|*[!0-9]*) echo "Candidate workflow run ID must be numeric" >&2; exit 1 ;;
+          esac
+          candidate_run="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${CANDIDATE_WORKFLOW_RUN_ID}")"
+          test "$(jq -r .path <<<"$candidate_run")" = ".github/workflows/release.yml"
+          test "$(jq -r .event <<<"$candidate_run")" = "workflow_dispatch"
+          test "$(jq -r .head_branch <<<"$candidate_run")" = "main"
+          test "$(jq -r .conclusion <<<"$candidate_run")" = "success"
+          source_commit="$(jq -r .head_sha <<<"$candidate_run")"
+          test -n "$source_commit"
+          echo "source_commit=$source_commit" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout exact Candidate source commit
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ steps.candidate.outputs.source_commit }}
+          persist-credentials: false
+
+      - name: Download exact release artifact from Candidate run
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: looma-0.1.0-candidate
+          path: .release/artifacts/
+          run-id: ${{ inputs.candidate_workflow_run_id }}
+          github-token: ${{ github.token }}
+
+      - name: Require public Candidate registry evidence from the same run
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: looma-0.1.0-registry-candidate-evidence
+          path: .release/evidence/candidate-registry/
+          run-id: ${{ inputs.candidate_workflow_run_id }}
+          github-token: ${{ github.token }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22.14.0
+          cache: pnpm
+
+      - name: Verify manifest source equals checkout
+        run: |
+          node tools/scripts/verify-hosted-docs.mjs \
+            --manifest .release/artifacts/release-manifest.json \
+            --checkout-commit "$(git rev-parse HEAD)" \
+            --registry-evidence .release/evidence/candidate-registry/registry-candidate.json \
+            --manifest-only
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Configure Pages
+        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
+
+      - name: Build indexable Candidate docs
+        env:
+          LOOMA_DOCS_URL: https://threadlabs-studio.github.io
+          LOOMA_DOCS_BASE_URL: /looma/
+          LOOMA_DOCS_RELEASE_MODE: candidate
+        run: pnpm --filter @looma/docs build
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: apps/docs/build
+
+      - name: Deploy Candidate docs
+        id: deployment
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
+
+      - name: Verify hosted Candidate docs
+        id: verify
+        env:
+          DEPLOYED_DOCS_URL: ${{ steps.deployment.outputs.page_url }}
+          WORKFLOW_RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          node tools/scripts/verify-hosted-docs.mjs \
+            --base-url "$DEPLOYED_DOCS_URL" \
+            --manifest .release/artifacts/release-manifest.json \
+            --checkout-commit "$(git rev-parse HEAD)" \
+            --registry-evidence .release/evidence/candidate-registry/registry-candidate.json \
+            --workflow-run-url "$WORKFLOW_RUN_URL" \
+            --output .release/evidence/hosted-docs.json
+
+      - name: Upload hosted-docs evidence
+        if: always() && steps.verify.outcome != 'skipped'
+        id: evidence-upload
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: looma-0.1.0-hosted-docs-evidence
+          path: .release/evidence/hosted-docs.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish evidence links
+        if: always() && steps.evidence-upload.outputs.artifact-url != ''
+        env:
+          DEPLOYED_DOCS_URL: ${{ steps.deployment.outputs.page_url }}
+          EVIDENCE_ARTIFACT_URL: ${{ steps.evidence-upload.outputs.artifact-url }}
+        run: |
+          echo "Hosted docs: $DEPLOYED_DOCS_URL" >> "$GITHUB_STEP_SUMMARY"
+          echo "Verification evidence: $EVIDENCE_ARTIFACT_URL" >> "$GITHUB_STEP_SUMMARY"

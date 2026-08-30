@@ -39,6 +39,7 @@ jobs:
         env:
           LOOMA_DOCS_URL: https://threadlabs-studio.github.io
           LOOMA_DOCS_BASE_URL: /looma/
+          LOOMA_DOCS_RELEASE_MODE: preview
         run: pnpm --filter @looma/docs build
 
       - name: Upload Pages artifact

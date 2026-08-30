@@ -3,6 +3,14 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const workflow = await readFile(new URL("../../.github/workflows/release.yml", import.meta.url), "utf8");
+const docsPreviewWorkflow = await readFile(
+  new URL("../../.github/workflows/docs-preview.yml", import.meta.url),
+  "utf8"
+);
+const docsProductionWorkflow = await readFile(
+  new URL("../../.github/workflows/docs-production.yml", import.meta.url),
+  "utf8"
+);
 const prepareJob = workflow.match(/\n  prepare:[\s\S]*?\n  publish:/)?.[0] ?? "";
 const publishJob = workflow.match(/\n  publish:[\s\S]*?\n  promote:/)?.[0] ?? "";
 const promoteJob = workflow.match(/\n  promote:[\s\S]*$/)?.[0] ?? "";
@@ -138,4 +146,38 @@ test("candidate evidence upload includes the public consumer result and lockfile
 test("promotion evidence is uploaded even when promotion or rollback fails", () => {
   assert.match(promotionEvidenceUpload, /if: always\(\)/);
   assert.match(promotionEvidenceUpload, /if-no-files-found: error/);
+});
+
+test("docs preview explicitly builds non-indexable preview content", () => {
+  assert.match(docsPreviewWorkflow, /LOOMA_DOCS_RELEASE_MODE: preview/);
+});
+
+test("production docs use a protected manual same-commit Candidate deployment", () => {
+  assert.match(docsProductionWorkflow, /workflow_dispatch:/);
+  assert.doesNotMatch(docsProductionWorkflow, /pull_request:|\n\s+push:/);
+  assert.match(docsProductionWorkflow, /candidate_workflow_run_id:/);
+  assert.match(docsProductionWorkflow, /github\.ref == 'refs\/heads\/main'/);
+  assert.match(docsProductionWorkflow, /environment:\n\s+name: docs-production/);
+  assert.match(docsProductionWorkflow, /actions: read/);
+  assert.match(docsProductionWorkflow, /run-id: \$\{\{ inputs\.candidate_workflow_run_id \}\}/);
+  assert.match(docsProductionWorkflow, /github-token: \$\{\{ github\.token \}\}/);
+  assert.match(docsProductionWorkflow, /--checkout-commit "\$\(git rev-parse HEAD\)"/);
+  assert.match(docsProductionWorkflow, /--manifest-only/);
+  assert.match(docsProductionWorkflow, /--registry-evidence \.release\/evidence\/candidate-registry\/registry-candidate\.json/);
+  assert.match(docsProductionWorkflow, /LOOMA_DOCS_RELEASE_MODE: candidate/);
+  assert.match(docsProductionWorkflow, /verify-hosted-docs\.mjs/);
+  assert.match(docsProductionWorkflow, /hosted-docs\.json/);
+  assert.match(docsProductionWorkflow, /steps\.evidence-upload\.outputs\.artifact-url/);
+});
+
+test("production docs pin actions and disable checkout credentials", () => {
+  const uses = [...docsProductionWorkflow.matchAll(/uses:\s+([^\s#]+)/g)].map(
+    (match) => match[1]
+  );
+  assert.ok(uses.length > 0);
+  for (const action of uses) {
+    assert.match(action, /^[^@]+@[a-f0-9]{40}$/);
+  }
+  assert.doesNotMatch(docsProductionWorkflow, /uses:\s+[^\s]+@v\d/);
+  assert.match(docsProductionWorkflow, /persist-credentials:\s+false/);
 });

@@ -1,6 +1,11 @@
 import { expect, test, type Page } from "@playwright/test";
 import axe from "axe-core";
 
+const releaseMode = process.env.LOOMA_DOCS_RELEASE_MODE ?? "preview";
+const expectedAnnouncement = releaseMode === "candidate"
+  ? "Release 1 Candidate 0.1.0 is available"
+  : "Release 1 Candidate documentation preview";
+
 const candidatePages = [
   { path: "./", heading: "Getting Started" },
   { path: "release-1-support", heading: "Release 1 Support and Limitations" },
@@ -38,7 +43,14 @@ for (const candidatePage of candidatePages) {
       page.getByRole("heading", { level: 1, name: candidatePage.heading })
     ).toBeVisible();
     await expect(page.getByRole("main")).toBeVisible();
-    await expect(page.getByText("Release 1 Candidate preview")).toBeVisible();
+    await expect(page.getByText(expectedAnnouncement, { exact: false })).toBeVisible();
+
+    const robotsContent = await page.locator('meta[name="robots"]').getAttribute("content");
+    if (releaseMode === "preview") {
+      expect(robotsContent).toMatch(/noindex/i);
+    } else {
+      expect(robotsContent).not.toMatch(/noindex/i);
+    }
 
     const horizontalOverflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth
@@ -55,7 +67,9 @@ test("the install path exposes supported packages and the Candidate boundary", a
   await page.goto("./");
 
   await expect(page.getByText("@looma/vue", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("Publication pending")).toBeVisible();
+  await expect(page.locator("body")).not.toContainText(
+    /not published yet|publication pending|become usable when the Candidate is published/i
+  );
   const supportLink = page
     .locator("main")
     .getByRole("link", { name: "Release 1 support and limitations", exact: true });
