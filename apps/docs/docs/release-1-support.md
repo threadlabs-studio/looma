@@ -4,7 +4,7 @@ Release 1 is a synchronized public npm **Candidate `0.1.0`** for the smallest Lo
 
 :::caution Not published yet
 
-Registry publication remains blocked until a legal license is approved, an authenticated owner proves the `@looma` scope, and the protected npm release environment has named approvers. The docs describe the reviewed Candidate contract, not a package that is already available.
+The repository is licensed under MIT. Registry publication remains blocked until the permanent namespace is approved, an authenticated owner proves that scope, and the protected npm release environment has named approvers. The docs describe the reviewed Candidate contract, not a package that is already available.
 
 :::
 
@@ -45,4 +45,4 @@ AlertDialog, Listbox, Combobox, Drawer/Sheet, HoverCard, CommandPalette, Accordi
 - [Issue tracker](https://github.com/threadlabs-studio/looma/issues)
 - [Release checklist](https://github.com/threadlabs-studio/looma/blob/main/docs/release-checklist.md)
 
-The legal license link will be added only after the owner selects and approves the license; that unresolved choice deliberately prevents publication.
+[MIT license](https://github.com/threadlabs-studio/looma/blob/main/LICENSE)

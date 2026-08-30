@@ -8,7 +8,7 @@ Looma Release 1 is a Candidate `0.1.0` package set for Vue 3 and direct custom-e
 
 :::caution Publication pending
 
-These commands become usable when the Candidate is published to npm. Publication is currently blocked on license approval, authenticated `@looma` scope ownership, and protected release-environment approval. Do not depend on an unpublished registry package.
+These commands become usable when the Candidate is published to npm. The repository is licensed under MIT; publication remains blocked on permanent namespace approval, authenticated scope ownership, and protected release-environment approval. Do not depend on an unpublished registry package.
 
 :::
 
