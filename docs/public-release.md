@@ -11,9 +11,10 @@ implementation roadmap so package ownership decisions stay visible.
   license metadata.
 - The R1 package graph and protected release workflow target five `@looma/*`
   Candidate packages: tokens, layout, core, editor, and Vue.
-- Unauthenticated registry lookups report all five names as unpublished, but
-  this host is not authenticated to npm and therefore cannot prove ownership
-  or publication rights for the `@looma` scope.
+- Unauthenticated registry lookups report all five names as unpublished. This
+  host is authenticated to npm as `matthew-dean`, with account-level 2FA set to
+  `auth-and-writes`, but that identity is not a member of the existing `@looma`
+  organization and cannot configure or publish its package graph.
 - The canonical GitHub repository is public, but its release commit has not
   been pushed to `main`, no protected environments exist, and GitHub Pages is
   not configured.
@@ -29,10 +30,11 @@ The implemented R1 contract uses these names:
 - `@looma/vue`
 
 The owner must explicitly approve `@looma` as the permanent namespace and prove
-that the release identity can publish all five names. A previously identified
-fallback is the owner-controlled `@threadlabs` organization, using names such as
-`@threadlabs/looma-core`. That fallback is not approved by this document and is
-not equivalent to the implemented package graph.
+that a different release identity can publish all five names. The authenticated
+`matthew-dean` identity is an owner of the currently empty `@threadlabs`
+organization, making names such as `@threadlabs/looma-core` the verified
+owner-controlled fallback. That fallback is not approved by this document and
+is not equivalent to the implemented package graph.
 
 Do not rename package manifests piecemeal. A fallback decision requires one
 dedicated migration covering manifests, internal dependencies, Knit, generated

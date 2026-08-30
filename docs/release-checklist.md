@@ -15,8 +15,10 @@ security, artifact, consumer, documentation, and rollback gates.
 - [ ] The bootstrap credential is short-lived, publish-only, environment-protected,
   absent from forks/PRs/logs, and scheduled for immediate revocation.
 
-Current blocker: this host is not authenticated to npm (`npm whoami` returns an
-authorization error), so package-name absence does not prove scope ownership.
+Current blocker: this host is authenticated to npm as `matthew-dean`, but
+`npm team ls looma` is forbidden and the identity is not an `@looma` owner or
+collaborator. The account owns the empty `@threadlabs` organization, but using
+that fallback requires the dedicated namespace migration and owner approval.
 
 ## Contract And Package Gates
 
@@ -35,7 +37,7 @@ authorization error), so package-name absence does not prove scope ownership.
   records SHA-256, byte size, source commit, and toolchain.
 
 Current artifact evidence: `release:verify` under Node 20 at Looma commit
-`82902f2a9201814e0bd753dbaf4eb75ba645977b` produced an eligible five-package
+`6bf39cd809c69e6f2f1fa1f37b7e48391a794829` produced an eligible five-package
 manifest and checksummed tarballs. The run used explicitly labeled rehearsal
 approver identities, so it proves the source and package mechanics but does not
 replace the accountable owners required in the protected publication run.
@@ -61,12 +63,12 @@ allowlisted build warning; any additional Stencil warning fails the build.
 The eligible `release:verify-knit` gate publishes the five checksummed local
 artifacts to a disposable loopback registry with no `@looma` public fallback,
 then installs them into a detached clean Knit checkout with a fresh pnpm store.
-Canonical Knit commit `61af185b6fbaa435c2b1d572dcfc78759b7aed0c`
+Canonical Knit commit `3d2cfbb092a83ba0a053178f88a84baf33d548e9`
 passes the production build, typecheck, SSR rendering for all eight consumed
-Looma surfaces, and all 85 signup-critical tests, but its full unit gate fails in
+Looma surfaces, and all 89 signup-critical tests, but its full unit gate fails in
 four component-render tests. A temporary Git snapshot containing the five
-existing owner edits (tree `66492332afa5712b95be512aa483665c8bbcb1c8`)
-passes the same complete artifact gate, including all 238 unit tests. The
+existing owner edits (commit `652fb42fdddb045ab8490c0afab5dc16120a3bc8`)
+passes the same complete artifact gate, including all 266 unit tests. The
 temporary worktree was removed and the owner files were not staged or changed.
 The gate above remains unchecked until those edits are committed on Knit and the
 eligible command passes from that canonical commit. Evidence is written under
