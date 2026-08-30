@@ -99,6 +99,9 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+
       - name: Setup Node
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
@@ -137,11 +140,24 @@ jobs:
       - name: Verify public candidate metadata, integrity, tags, and provenance
         run: node tools/scripts/verify-registry-release.mjs --tag candidate
 
+      - name: Verify clean public-registry consumer
+        run: pnpm release:verify-public-consumer
+
       - name: Upload candidate registry evidence
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: looma-0.1.0-registry-candidate-evidence
           path: .release/evidence/registry-candidate.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload candidate public-consumer evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: looma-0.1.0-public-consumer-candidate-evidence
+          path: |
+            .release/evidence/public-consumer.json
+            .release/evidence/public-consumer-pnpm-lock.yaml
           if-no-files-found: error
           retention-days: 30
 
@@ -161,6 +177,9 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+
       - name: Setup Node and authenticated npm registry
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
@@ -177,11 +196,25 @@ jobs:
           name: looma-0.1.0-candidate
           path: .release/artifacts/
 
+      - name: Reverify clean public-registry consumer before promotion
+        run: pnpm release:verify-public-consumer
+
       - name: Promote the complete graph and restore prior tags on failure
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           LOOMA_RELEASE_PROMOTE: approved
         run: node tools/scripts/promote-release.mjs --execute
+
+      - name: Upload pre-promotion public-consumer evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: looma-0.1.0-pre-promotion-public-consumer-evidence
+          path: |
+            .release/evidence/public-consumer.json
+            .release/evidence/public-consumer-pnpm-lock.yaml
+          if-no-files-found: error
+          retention-days: 30
 
       - name: Upload latest-promotion evidence
         if: always()

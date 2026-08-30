@@ -135,3 +135,23 @@ test("the Knit artifact proof is isolated, fail-closed, and exercises the releas
   assert.match(script, /--config\.prefer-workspace-packages=false/);
   assert.match(script, /--config\.link-workspace-packages=false/);
 });
+
+test("the public consumer command is a separate fail-closed registry gate", async () => {
+  const [rootPackage, script] = await Promise.all([
+    readFile(path.join(repoRoot, "package.json"), "utf8"),
+    readFile(path.join(repoRoot, "tools/scripts/verify-public-consumer.mjs"), "utf8")
+  ]);
+  const scripts = JSON.parse(rootPackage).scripts;
+
+  assert.equal(
+    scripts["release:verify-public-consumer"],
+    "node tools/scripts/verify-public-consumer.mjs"
+  );
+  assert.match(script, /https:\/\/registry\.npmjs\.org\//);
+  assert.match(script, /--prefer-offline=false/);
+  assert.match(script, /--config\.prefer-workspace-packages=false/);
+  assert.match(script, /--config\.link-workspace-packages=false/);
+  assert.match(script, /NPM_CONFIG_USERCONFIG/);
+  assert.match(script, /NODE_AUTH_TOKEN/);
+  assert.match(script, /finally/);
+});

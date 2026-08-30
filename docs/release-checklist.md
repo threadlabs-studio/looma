@@ -110,6 +110,11 @@ production indexing and any canonical-domain cutover belong to U7.
   required approvers, and first-publication credential or trusted publisher.
 - [ ] Initial publication uses the non-default `candidate` dist-tag.
 - [ ] Registry integrity matches the approved tarballs before any tag promotion.
+- [ ] A fresh-store, credential-free public consumer installs the exact manifest
+  versions from npm, passes typecheck and SSR/import proof, and records its lockfile
+  after Candidate verification and again immediately before `latest` promotion.
+- [ ] Knit installs the public registry versions and repeats its release-critical
+  build, SSR, and signup-flow gates; local-registry proof does not satisfy this gate.
 - [ ] Trusted publishing is configured for each package after bootstrap and bootstrap reuse fails after revocation.
 - [ ] Public install docs and hosted component docs resolve and match the released contract.
 - [ ] Owner approves promotion of the same immutable versions from `candidate` to `latest`.
