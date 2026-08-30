@@ -23,6 +23,8 @@
     "release:inspect-knit": "node tools/scripts/verify-knit-consumer.mjs --allow-ineligible-artifacts --skip-full-knit-unit",
     "release:verify": "node tools/scripts/verify-packages.mjs --output-dir .release/artifacts",
     "release:verify-knit": "node tools/scripts/verify-knit-consumer.mjs",
+    "release:verify-registry": "node tools/scripts/verify-registry-release.mjs",
+    "release:promote": "node tools/scripts/promote-release.mjs",
     "release:verify:dirty": "node tools/scripts/verify-packages.mjs --output-dir .release/artifacts --allow-dirty",
     "test": "node --test tools/scripts/*.test.mjs && pnpm build && pnpm -r run test",
     "test:browser": "pnpm --filter @looma/core test:browser && pnpm --filter @looma/editor test:browser && pnpm --filter @looma/vue test:browser && pnpm --filter @looma/docs test:browser",

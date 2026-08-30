@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
+import { createReadStream } from "node:fs";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -23,16 +24,21 @@ function run(command, args, { allowFailure = false, stdio = "pipe" } = {}) {
   return result;
 }
 
-function argumentValue(name, fallback) {
+export function argumentValue(name, fallback) {
   const index = process.argv.indexOf(name);
   return index >= 0 ? process.argv[index + 1] : fallback;
 }
 
-async function fileDigests(filePath) {
-  const bytes = await readFile(filePath);
+export async function fileDigests(filePath) {
+  const sha256 = createHash("sha256");
+  const sha512 = createHash("sha512");
+  for await (const chunk of createReadStream(filePath)) {
+    sha256.update(chunk);
+    sha512.update(chunk);
+  }
   return {
-    sha256: createHash("sha256").update(bytes).digest("hex"),
-    integrity: `sha512-${createHash("sha512").update(bytes).digest("base64")}`
+    sha256: sha256.digest("hex"),
+    integrity: `sha512-${sha512.digest("base64")}`
   };
 }
 
@@ -147,7 +153,10 @@ async function main() {
   }
 }
 
-main().catch((error) => {
-  process.stderr.write(`${error instanceof Error ? error.stack : String(error)}\n`);
-  process.exitCode = 1;
-});
+const invokedPath = process.argv[1] ? path.resolve(process.argv[1]) : "";
+if (invokedPath === fileURLToPath(import.meta.url)) {
+  main().catch((error) => {
+    process.stderr.write(`${error instanceof Error ? error.stack : String(error)}\n`);
+    process.exitCode = 1;
+  });
+}

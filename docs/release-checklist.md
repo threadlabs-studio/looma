@@ -92,6 +92,10 @@ production indexing and any canonical-domain cutover belong to U7.
 - [x] Third-party actions are pinned to full commit SHAs and checkout credentials are not persisted.
 - [x] The generated manifest captures approved tarballs, SHA-256 hashes, source
   commit, toolchain, dependency-first package order, and planned tags.
+- [x] Candidate verification fails on public-access, integrity, license,
+  repository, homepage, exact internal-dependency, dist-tag, or provenance drift.
+- [x] Latest promotion snapshots every prior tag, runs in dependency order, and
+  restores every changed tag if a command or post-promotion verification fails.
 - [ ] The protected-run manifest also records evidence locations and accountable
   npm, documentation, and Knit approval owners.
 - [ ] The repository owner configures the protected `npm-release` environment,
@@ -108,7 +112,12 @@ For the protected workflow, verify the current npm requirements immediately befo
 publication. The present design assumes a GitHub-hosted runner, exact repository
 and workflow binding, `id-token: write` plus `contents: read`, npm CLI 11.5.1 or
 newer, Node 22.14 or newer for trusted publishing, and matching public repository
-metadata for automatic provenance. Scoped public packages require public access.
+metadata for automatic provenance. Configure each trusted publisher with
+`release.yml`, the `npm-release` environment, and the `npm publish` allowed action.
+Scoped public packages require public access. npm commands other than publish
+require traditional authentication, so `latest` promotion uses the protected,
+short-expiry bootstrap credential before it is revoked; OIDC cannot authorize
+`npm dist-tag` commands.
 
 Authoritative references:
 

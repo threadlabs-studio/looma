@@ -8,6 +8,11 @@ on:
         required: true
         default: false
         type: boolean
+      promote_latest:
+        description: Promote the verified candidate graph to latest with rollback on partial failure
+        required: true
+        default: false
+        type: boolean
       authentication:
         description: Use bootstrap only for first publication; trusted for configured packages
         required: true
@@ -98,6 +103,8 @@ jobs:
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22.14.0
+          registry-url: https://registry.npmjs.org/
+          scope: '@looma'
 
       - name: Use trusted-publishing-capable npm CLI
         run: npm install --global npm@11.5.1
@@ -126,3 +133,60 @@ jobs:
         env:
           LOOMA_RELEASE_PUBLISH: approved
         run: node tools/scripts/publish-release.mjs --execute --tag candidate
+
+      - name: Verify public candidate metadata, integrity, tags, and provenance
+        run: node tools/scripts/verify-registry-release.mjs --tag candidate
+
+      - name: Upload candidate registry evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: looma-0.1.0-registry-candidate-evidence
+          path: .release/evidence/registry-candidate.json
+          if-no-files-found: error
+          retention-days: 30
+
+  promote:
+    if: always() && inputs.promote_latest && needs.prepare.result == 'success' && (needs.publish.result == 'success' || needs.publish.result == 'skipped')
+    needs:
+      - prepare
+      - publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: npm-release
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout the approved release commit
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Node and authenticated npm registry
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22.14.0
+          registry-url: https://registry.npmjs.org/
+          scope: '@looma'
+
+      - name: Use current npm release client
+        run: npm install --global npm@11.5.1
+
+      - name: Download approved release bytes
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: looma-0.1.0-candidate
+          path: .release/artifacts/
+
+      - name: Promote the complete graph and restore prior tags on failure
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          LOOMA_RELEASE_PROMOTE: approved
+        run: node tools/scripts/promote-release.mjs --execute
+
+      - name: Upload latest-promotion evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: looma-0.1.0-registry-promotion-evidence
+          path: .release/evidence/registry-promotion.json
+          if-no-files-found: error
+          retention-days: 30

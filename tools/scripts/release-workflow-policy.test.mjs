@@ -3,6 +3,8 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const workflow = await readFile(new URL("../../.github/workflows/release.yml", import.meta.url), "utf8");
+const publishJob = workflow.match(/\n  publish:[\s\S]*?\n  promote:/)?.[0] ?? "";
+const promoteJob = workflow.match(/\n  promote:[\s\S]*$/)?.[0] ?? "";
 
 test("release workflow is manual, main-only, serialized, and environment-protected", () => {
   assert.match(workflow, /workflow_dispatch:/);
@@ -26,9 +28,14 @@ test("checkout credentials are disabled and publication has only required permis
   const checkoutCount = [...workflow.matchAll(/actions\/checkout@/g)].length;
   const disabledCredentialCount = [...workflow.matchAll(/persist-credentials:\s+false/g)].length;
   assert.equal(disabledCredentialCount, checkoutCount);
-  assert.match(workflow, /publish:[\s\S]*?permissions:\n\s+contents: read\n\s+id-token: write/);
+  assert.match(publishJob, /permissions:\n\s+contents: read\n\s+id-token: write/);
   assert.doesNotMatch(workflow, /contents:\s+write/);
   assert.doesNotMatch(workflow, /packages:\s+write/);
+  assert.match(publishJob, /registry-url: https:\/\/registry\.npmjs\.org\//);
+  assert.match(promoteJob, /permissions:\n\s+contents: read\n\s+steps:/);
+  assert.doesNotMatch(promoteJob, /id-token: write/);
+  assert.match(promoteJob, /needs:[\s\S]*?- publish/);
+  assert.match(promoteJob, /NODE_AUTH_TOKEN: \$\{\{ secrets\.NPM_TOKEN \}\}/);
 });
 
 test("publication consumes the verified manifest and starts on candidate", () => {
