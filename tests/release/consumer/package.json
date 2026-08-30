@@ -1,0 +1,34 @@
+{
+  "name": "looma-release-consumer-fixture",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "packageManager": "pnpm@10.7.0",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "verify:ssr": "node --experimental-strip-types src/index.ts"
+  },
+  "dependencies": {
+    "@looma/core": "file:../../../.release/artifacts/looma-core-0.1.0.tgz",
+    "@looma/editor": "file:../../../.release/artifacts/looma-editor-0.1.0.tgz",
+    "@looma/layout": "file:../../../.release/artifacts/looma-layout-0.1.0.tgz",
+    "@looma/tokens": "file:../../../.release/artifacts/looma-tokens-0.1.0.tgz",
+    "@looma/vue": "file:../../../.release/artifacts/looma-vue-0.1.0.tgz",
+    "@tiptap/core": "^2.27.2",
+    "@vue/server-renderer": "^3.5.0",
+    "vue": "^3.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.5",
+    "typescript": "^5.9.2"
+  },
+  "pnpm": {
+    "overrides": {
+      "@looma/core": "file:../../../.release/artifacts/looma-core-0.1.0.tgz",
+      "@looma/editor": "file:../../../.release/artifacts/looma-editor-0.1.0.tgz",
+      "@looma/layout": "file:../../../.release/artifacts/looma-layout-0.1.0.tgz",
+      "@looma/tokens": "file:../../../.release/artifacts/looma-tokens-0.1.0.tgz",
+      "@looma/vue": "file:../../../.release/artifacts/looma-vue-0.1.0.tgz"
+    }
+  }
+}

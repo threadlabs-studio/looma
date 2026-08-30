@@ -29,7 +29,14 @@ authorization error), so package-name absence does not prove scope ownership.
   correct peer/internal ranges, and exact export maps.
 - [ ] Every packed artifact contains runtime output, types, styles, README, and license,
   and excludes tests, local config, secrets, and source-only material.
-- [ ] Package DAG and publish order are derived from the packed manifests.
+- [x] Package DAG and dependency-first publish order are derived from the packed manifests.
+- [x] Local inspection packs the five exact `0.1.0` artifacts, rewrites internal
+  workspace ranges to exact `0.1.0`, rejects empty/forbidden/missing files, and
+  records SHA-256, byte size, source commit, and toolchain.
+
+Current artifact exception: the local manifest is intentionally
+`releaseEligible: false` until the source tree is clean and an owner-approved
+root/package license is present.
 
 ## Verification Gates
 
@@ -42,10 +49,15 @@ authorization error), so package-name absence does not prove scope ownership.
 
 ## Publication Controls
 
-- [ ] A protected manual GitHub release workflow uses the reviewed commit and minimal permissions.
-- [ ] Third-party actions are pinned to full commit SHAs and checkout credentials are not persisted.
-- [ ] Approved tarballs, SHA-256 hashes, source commit, toolchain, package order,
-  planned tags, evidence, and accountable owners are captured in an immutable manifest.
+- [x] The release workflow is manual, main-only, serialized, environment-gated,
+  and declares minimal per-job permissions.
+- [x] Third-party actions are pinned to full commit SHAs and checkout credentials are not persisted.
+- [x] The generated manifest captures approved tarballs, SHA-256 hashes, source
+  commit, toolchain, dependency-first package order, and planned tags.
+- [ ] The protected-run manifest also records evidence locations and accountable
+  npm, documentation, and Knit approval owners.
+- [ ] The repository owner configures the protected `npm-release` environment,
+  required approvers, and first-publication credential or trusted publisher.
 - [ ] Initial publication uses the non-default `candidate` dist-tag.
 - [ ] Registry integrity matches the approved tarballs before any tag promotion.
 - [ ] Trusted publishing is configured for each package after bootstrap and bootstrap reuse fails after revocation.

@@ -1,7 +1,26 @@
 {
   "name": "@looma/layout",
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "description": "Light-DOM layout primitives with token-driven gaps and no external margins.",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/threadlabs-studio/looma.git",
+    "directory": "packages/layout"
+  },
+  "homepage": "https://github.com/threadlabs-studio/looma#readme",
+  "bugs": {
+    "url": "https://github.com/threadlabs-studio/looma/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "files": [
+    "dist/",
+    "src/layout.css",
+    "README.md"
+  ],
   "sideEffects": [
     "./dist/layout.css",
     "./src/layout.css"
@@ -25,5 +44,8 @@
     "tsup": "^8.5.0",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

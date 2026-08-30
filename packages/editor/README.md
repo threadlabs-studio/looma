@@ -4,7 +4,15 @@ Confluence / Notion-like block editor UI for Looma, built on **open-source Tipta
 
 ## Status
 
-**Shipped (first slice):** Extension preset (inline code, CodeBlock, list Enter/Backspace behavior, tables), slash menu web component, toolbar shell, table context menu + table toolbar + insert-table grid + table overlay web components, editor CSS, `handleTableOverlayAction(editor, detail)` for mapping overlay boundary clicks to Tiptap row/column commands, and `insertTableAtRange(editor, range, options)` for stable slash-triggered table insertion. Apps use the preset and web components; they bind data and event listeners only. See [Editor Roadmap](../../docs/editor-roadmap.md) for full scope and phases.
+Candidate `0.1.0`, not Stable. **Shipped (first slice):** Extension preset (inline code, CodeBlock, list Enter/Backspace behavior, tables), slash menu web component, toolbar shell, table context menu + table toolbar + insert-table grid + table overlay web components, editor CSS, `handleTableOverlayAction(editor, detail)` for mapping overlay boundary clicks to Tiptap row/column commands, and `insertTableAtRange(editor, range, options)` for stable slash-triggered table insertion. Apps use the preset and web components; they bind data and event listeners only. See [Editor Roadmap](../../docs/editor-roadmap.md) for full scope and phases.
+
+## Install
+
+```sh
+pnpm add @looma/editor @looma/core @looma/tokens @tiptap/core
+```
+
+Install the Tiptap extension peers used by `@looma/editor/extensions`; the exact peer list is declared in the package manifest.
 
 ## Scope (from roadmap)
 

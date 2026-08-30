@@ -80,6 +80,7 @@ is a release defect, not a reason to silently shrink the source inventory.
 | ContextMenu projections | API metadata, docs, navigation, contract README, Vue map/export, and render test complete | Must stay clean through publication |
 | Browser/a11y/adapter/package gates | Existing evidence is partial | U4 must supply all promised non-placeholder gates |
 | Editor E-TBL-003 | Open | Fix or explicit owner acceptance backed by browser/data-integrity evidence |
+| Packed package graph | Five local `0.1.0` tarballs pass content/export/DAG/hash inspection | License approval, clean protected build, and external/Knit fixtures remain |
 
 No row in this matrix authorizes registry mutation. Publication occurs only after
 the separate release checklist is fully approved.

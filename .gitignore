@@ -9,6 +9,7 @@ dist/
 apps/docs/.docusaurus/
 apps/docs/build/
 apps/storybook/storybook-static/
+.release/
 
 # Compiled Java class files
 *.class
@@ -50,4 +51,3 @@ Thumbs.db
 *.flv
 *.mov
 *.wmv
-
