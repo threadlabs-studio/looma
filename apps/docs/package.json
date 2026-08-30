@@ -9,6 +9,7 @@
     "check:docs-sync": "pnpm --dir ../.. check:docs-sync",
     "lint": "echo \"docs: lint not configured\"",
     "test": "echo \"docs: tests not configured yet\"",
+    "test:browser": "playwright test",
     "typecheck": "echo \"docs: typecheck not configured\""
   },
   "dependencies": {
@@ -23,6 +24,8 @@
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^3.9.2",
+    "@playwright/test": "~1.60.0",
+    "axe-core": "^4.10.3",
     "typescript": "^5.9.2"
   }
 }

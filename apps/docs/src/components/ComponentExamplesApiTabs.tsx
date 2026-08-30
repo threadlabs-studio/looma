@@ -21,8 +21,9 @@ export function ComponentExamplesApiTabs({
         {preview ? <LiveExample>{preview}</LiveExample> : null}
         <p>
           See <a href="#ssr-markup">SSR Markup</a> and{" "}
-          <a href="#framework-snippets">Framework Snippets</a> below. Run{" "}
-          <code>pnpm dev:storybook</code> for interactive examples.
+          <a href="#framework-snippets">Framework Snippets</a> below. Vue and
+          direct custom-element examples are supported in Release 1; React and
+          Svelte snippets are repository previews.
         </p>
       </TabItem>
       <TabItem value="api" label="API">

@@ -1,37 +1,37 @@
 # Architecture
 
-Looma UI is organized as a platform-first monorepo where authored SSR HTML is canonical and runtime JavaScript progressively enhances behavior.
+Looma is an SSR-first component system. Consumer-authored semantic HTML is the fallback contract; browser JavaScript progressively enhances it.
 
-It is the official UI library of [Knit](https://knit.wiki), but all public APIs remain domain-neutral so the same components can be used across non-Knit applications.
+It is the UI library used by [Knit](https://knit.wiki), but its public APIs remain domain-neutral.
 
-## Package Topology
+## Release 1 package graph
 
-```txt
-apps/docs
-apps/storybook
-packages/tokens
-packages/layout
-packages/core
-packages/react
-packages/vue
-packages/svelte
+```text
+@looma/tokens
+├── @looma/layout
+│   └── @looma/core
+│       └── @looma/editor
+└───────────┘
+
+@looma/vue → layout + core + editor
 ```
 
-## Dependency Flow
-
-```txt
-@looma/tokens -> @looma/layout -> apps/docs/apps/storybook
-        \         \
-         \         -> @looma/core -> @looma/react
-          \                     -> @looma/vue
-           \                    -> @looma/svelte
-            --------------------> docs apps
-```
+The five packages above are the complete public Candidate graph. Docs, Storybook, examples, tooling, `@looma/react`, and `@looma/svelte` are private or deferred workspaces.
 
 ## Responsibilities
 
-- `@looma/tokens`: semantic design tokens and theme files.
-- `@looma/layout`: spacing/layout primitives with the no-external-margin rule.
-- `@looma/core`: light DOM primitives and essentials.
-- `@looma/react`, `@looma/vue`, `@looma/svelte`: thin adapters with parity contracts.
-- `@looma/docs`, `@looma/storybook`: documentation surfaces for reference and testing.
+- `@looma/tokens`: CSS semantic tokens plus light, dark, and high-contrast themes.
+- `@looma/layout`: six light-DOM spacing and layout elements with no external margins.
+- `@looma/core`: 26 shadow-root elements that preserve authored semantic light DOM through slots.
+- `@looma/editor`: six guarded light-DOM editor elements, editor styles, Tiptap 2 presets, and table helpers.
+- `@looma/vue`: the supported Vue 3 translation over layout, core, and editor contracts.
+
+## SSR and upgrade contract
+
+- Public entry points must evaluate without `window`, `document`, or custom-element globals.
+- Authored semantic content remains meaningful before upgrade and if JavaScript fails.
+- Core styling and interaction appear inside shadow roots after upgrade; authored content remains slotted light DOM.
+- Layout and editor elements use light DOM.
+- Adapters forward attributes, properties, events, and slots without introducing another behavior model.
+
+See [Release 1 support and limitations](./release-1-support.md) for the exact published surface and evidence boundary.

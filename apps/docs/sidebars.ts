@@ -3,6 +3,7 @@ import type { SidebarsConfig } from "@docusaurus/plugin-content-docs";
 const sidebars: SidebarsConfig = {
   docs: [
     "getting-started",
+    "release-1-support",
     {
       type: "category",
       label: "Foundations",

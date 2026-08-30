@@ -2,7 +2,7 @@
 
 The supported Vue 3 adapter for Looma Release 1. It maps Vue props, slots, and callbacks to the public layout, core, and editor custom elements without owning divergent behavior.
 
-Release status: Candidate `0.1.0`, qualified against Knit. React and Svelte adapters are not part of the R1 public package set.
+Release status: Candidate `0.1.0`. Browser registration/render and linked-workspace Knit qualification pass; packed-artifact Knit qualification remains a publication gate. React and Svelte adapters are not part of the R1 public package set.
 
 ## Install
 
@@ -26,4 +26,6 @@ import { Button } from "@looma/vue";
 
 Import the required token/component CSS from their owning packages. The adapter and its public dependency graph must remain safe to import during SSR.
 
-See the [adapter contract](../../docs/adapters.md) and [R1 support matrix](../../docs/release-support-matrix.md).
+See the [adapter contract](https://github.com/threadlabs-studio/looma/blob/main/docs/adapters.md), [public Candidate docs](https://threadlabs-studio.github.io/looma/), and [R1 support matrix](https://github.com/threadlabs-studio/looma/blob/main/docs/release-support-matrix.md). Report problems in the [issue tracker](https://github.com/threadlabs-studio/looma/issues).
+
+The legal license link is intentionally pending owner approval; publication is blocked until it is present.

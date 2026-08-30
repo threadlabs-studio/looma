@@ -8,6 +8,8 @@ node_modules/
 dist/
 apps/docs/.docusaurus/
 apps/docs/build/
+apps/docs/playwright-report/
+apps/docs/test-results/
 apps/storybook/storybook-static/
 .release/
 

@@ -1,10 +1,8 @@
 # @looma/editor
 
-Confluence / Notion-like block editor UI for Looma, built on **open-source Tiptap** only. The **base** is Tiptap’s **Vanilla JavaScript** API ([docs](https://tiptap.dev/docs/editor/getting-started/install/vanilla-javascript)): the core `Editor` instance from `@tiptap/core`. All editor UI is **web components** (custom elements). `@looma/vue` is the supported Release 1 adapter; the React adapter remains an internal/deferred repository preview.
+Candidate editor UI elements, styles, Tiptap 2 presets, and table helpers for Looma. The package uses Tiptap's vanilla `Editor`; `@looma/vue` is the supported Release 1 adapter.
 
-## Status
-
-Candidate `0.1.0`, not Stable. **Shipped (first slice):** Extension preset (inline code, CodeBlock, list Enter/Backspace behavior, tables), slash menu web component, toolbar shell, table context menu + table toolbar + insert-table grid + table overlay web components, editor CSS, `handleTableOverlayAction(editor, detail)` for mapping overlay boundary clicks to Tiptap row/column commands, and `insertTableAtRange(editor, range, options)` for stable slash-triggered table insertion. Apps use the preset and web components; they bind data and event listeners only. See [Editor Roadmap](../../docs/editor-roadmap.md) for full scope and phases.
+Release status: Candidate `0.1.0`, not Stable.
 
 ## Install
 
@@ -12,41 +10,40 @@ Candidate `0.1.0`, not Stable. **Shipped (first slice):** Extension preset (inli
 pnpm add @looma/editor @looma/core @looma/tokens @tiptap/core
 ```
 
-Install the Tiptap extension peers used by `@looma/editor/extensions`; the exact peer list is declared in the package manifest.
+Standard npm and pnpm clients install the declared Tiptap extension peers automatically. If peer installation is disabled, install every package returned by `npm view @looma/editor peerDependencies` before importing `@looma/editor/extensions`.
 
-## Scope (from roadmap)
+## Import
 
-- Slash commands (`/` menu) — **web component** + adapter
-- Tables: hover “+” add row/column, context menu, resize, merge/split — **web components** + adapter
-- List behavior: Enter = new list item (no paragraph gap) — extension/keymap
-- Block menu: duplicate, delete, “Turn into” — **web components** + adapter
-- Formatting toolbar, optional floating toolbar — **web components** + adapter
-- Inline code, code block, links, image (app provides upload)
-- Optional: emoji picker, @mentions — **web components** + adapter
-- All styling via Looma tokens; 44px touch targets; domain-neutral API
+```ts
+import "@looma/tokens/tokens.css";
+import "@looma/core/styles.css";
+import "@looma/editor/editor.css";
+import "@looma/core";
+import "@looma/editor";
 
-## What Looma provides vs what the app does
+import {
+  getDefaultEditorExtensions,
+  handleTableOverlayAction,
+  insertTableAtRange
+} from "@looma/editor/extensions";
+```
 
-| Looma | App (e.g. Knit) |
-|-------|------------------|
-| **Extension preset** `getDefaultEditorExtensions()` from `@looma/editor/extensions` | Creates `Editor` with Looma preset (+ app-specific extensions); **binds content and onUpdate** (e.g. save) |
-| **Web components** `ui-editor-toolbar`, `ui-editor-slash-menu`, `ui-editor-table-context-menu`, `ui-editor-table-toolbar`, `ui-editor-insert-table-grid`, `ui-editor-table-overlay` (+ more to come) | Mounts components; **binds event listeners** (e.g. `onTableOverlayAction` → `handleTableOverlayAction(editor, e.detail)`) |
-| **Editor CSS** `@looma/editor/editor.css` | Imports styles; theming, layout |
-| **Vue adapter** (in `@looma/vue`) | Supported R1 wiring from the vanilla editor to web components; app binds data + listeners only |
+## Candidate surface
 
-## Usage
+- Six custom elements: toolbar, slash menu, table context menu, table toolbar, insert-table grid, and table overlay.
+- `getDefaultEditorExtensions()` for the qualified Tiptap 2 extension preset.
+- `handleTableOverlayAction(editor, detail)` for boundary row/column actions.
+- `insertTableAtRange(editor, range, options)` for stable table insertion.
+- Token-aligned editor CSS.
 
-- **Extensions:** `import { getDefaultEditorExtensions, handleTableOverlayAction, insertTableAtRange } from '@looma/editor/extensions'`. Use `getDefaultEditorExtensions()` when creating the editor. When handling `looma-editor-table-overlay-action`, call `handleTableOverlayAction(editor, e.detail)` to run the correct Tiptap row/column command. Use `insertTableAtRange(editor, range)` when `/table` should insert a stable default table instead of opening app-owned UI somewhere else.
-- **Vanilla JS:** Create the editor with `new Editor({ extensions: getDefaultEditorExtensions(), content, ... })` from `@tiptap/core`; import the custom elements from `@looma/editor` and wire commands to their events.
-- **With Vue:** Use the supported editor adapters from `@looma/vue` (e.g. `EditorToolbar`, `EditorSlashMenu`, `EditorTableOverlay`, `EditorTableContextMenu`, `EditorInsertTableGrid`), which render the web components and accept event handlers (`onSlashMenuSelect`, `onTableOverlayAction`, etc.). React integration is not part of the R1 public promise.
+The app creates the Tiptap editor, owns content and persistence, supplies command state, maps emitted intent to commands, and restores focus. Looma does not own saves, uploads, collaboration, or app-specific commands.
 
-## Docs
+## Accepted limitation
 
-- [Editor Roadmap](../../docs/editor-roadmap.md) — full scope, phases, Looma vs app split; **base:** [Tiptap Vanilla JavaScript](https://tiptap.dev/docs/editor/getting-started/install/vanilla-javascript); **extensions:** [Custom extensions](https://tiptap.dev/docs/editor/extensions/custom-extensions)
-- [Component Roadmap](../../docs/component-roadmap.md) — where editor fits in Looma
+Table controls have visible keyboard/touch paths and content-integrity coverage, but Confluence-level boundary polish and discoverability remain deferred under `E-TBL-003`. Data loss or corruption is not an accepted limitation.
 
-## Dependencies
+Block menus, floating toolbars, link editing, mentions, and emoji picking are roadmap items—not Candidate claims. React integration remains a deferred repository preview.
 
-- **Main entry** (`@looma/editor`): `@looma/core`, `@looma/tokens`. Registers web components; **no** Tiptap in main bundle.
-- **Extensions entry** (`@looma/editor/extensions`): **peer** dependencies on `@tiptap/core` and all extension packages. Install Tiptap in the app when using `getDefaultEditorExtensions()`.
-- **App:** Uses Looma preset + web components; binds content, onUpdate, and event listeners only. No editor logic in the app.
+See the [public Candidate docs](https://threadlabs-studio.github.io/looma/), [editor evidence](https://github.com/threadlabs-studio/looma/blob/main/docs/editor-bugs.md), and [R1 support matrix](https://github.com/threadlabs-studio/looma/blob/main/docs/release-support-matrix.md). Report problems in the [issue tracker](https://github.com/threadlabs-studio/looma/issues).
+
+The legal license link is intentionally pending owner approval; publication is blocked until it is present.

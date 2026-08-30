@@ -1,51 +1,32 @@
-# Adapter Parity
+# Adapter Support
 
-Adapters must remain thin wrappers around the same light DOM contracts.
+Adapters translate framework props, slots, and callbacks to Looma custom-element contracts. They do not own separate component behavior.
 
-## Mapping Matrix
+## Release 1 status
 
-| Core Tag | React (`@looma/react`) | Vue (`@looma/vue`) | Svelte (`@looma/svelte`) |
-| --- | --- | --- | --- |
-| `ui-stack` | `Stack` | `Stack` | native element + `bindAdapter` |
-| `ui-inline` | `Inline` | `Inline` | native element + `bindAdapter` |
-| `ui-cluster` | `Cluster` | `Cluster` | native element + `bindAdapter` |
-| `ui-grid` | `Grid` | `Grid` | native element + `bindAdapter` |
-| `ui-center` | `Center` | `Center` | native element + `bindAdapter` |
-| `ui-separator` | `Separator` | `Separator` | native element + `bindAdapter` |
-| `ui-disclosure` | `Disclosure` | `Disclosure` | native element + `bindAdapter` |
-| `ui-tabs` | `Tabs` | `Tabs` | native element + `bindAdapter` |
-| `ui-dialog` | `Dialog` | `Dialog` | native element + `bindAdapter` |
-| `ui-popover` | `Popover` | `Popover` | native element + `bindAdapter` |
-| `ui-menu` | `Menu` | `Menu` | native element + `bindAdapter` |
-| `ui-menu-item` | `MenuItem` | `MenuItem` | native element + `bindAdapter` |
-| `ui-button` | `Button` | `Button` | native element + `bindAdapter` |
-| `ui-icon-button` | `IconButton` | `IconButton` | native element + `bindAdapter` |
-| `ui-input` | `Input` | `Input` | native element + `bindAdapter` |
-| `ui-select` | `Select` | `Select` | native element + `bindAdapter` |
-| `ui-textarea` | `Textarea` | `Textarea` | native element + `bindAdapter` |
-| `ui-form-field` | `FormField` | `FormField` | native element + `bindAdapter` |
-| `ui-tooltip` | `Tooltip` | `Tooltip` | native element + `bindAdapter` |
-| `ui-toast-region` | `ToastRegion` | `ToastRegion` | native element + `bindAdapter` |
-| `ui-checkbox` | `Checkbox` | `Checkbox` | native element + `bindAdapter` |
-| `ui-switch` | `Switch` | `Switch` | native element + `bindAdapter` |
-| `ui-radio-group` | `RadioGroup` | `RadioGroup` | native element + `bindAdapter` |
-| `ui-radio` | `Radio` | `Radio` | native element + `bindAdapter` |
-| `ui-badge` | `Badge` | `Badge` | native element + `bindAdapter` |
-| `ui-avatar` | `Avatar` | `Avatar` | native element + `bindAdapter` |
-| `ui-avatar-group` | `AvatarGroup` | `AvatarGroup` | native element + `bindAdapter` |
-| `ui-floating-action-button` | `FloatingActionButton` | `FloatingActionButton` | native element + `bindAdapter` |
-| `ui-search-shell` | `SearchShell` | `SearchShell` | native element + `bindAdapter` |
-| `ui-search-result-row` | `SearchResultRow` | `SearchResultRow` | native element + `bindAdapter` |
-| `ui-top-bar` | `TopBar` | `TopBar` | native element + `bindAdapter` |
+| Adapter | Status | Release 1 promise |
+| --- | --- | --- |
+| `@looma/vue` | Published Candidate | Named wrappers for all 38 published layout, core, and editor elements |
+| `@looma/react` | Deferred repository preview | Not published or supported in Release 1 |
+| `@looma/svelte` | Deferred repository preview | Not published or supported in Release 1 |
 
-## Event Parity
+Some component pages retain React or Svelte snippets as implementation previews. Those snippets are explicitly outside the installable R1 surface; Vue and direct custom-element examples are the supported paths.
 
-- `open`: `{ open: true, reason, trigger }`
-- `close`: `{ open: false, reason, trigger }`
-- `select`: `{ value, previousValue, trigger }`
-- `change`: `{ checked, value, trigger }`
-- `dismiss`: `{ id, reason, trigger }`
+## Vue mapping
 
-Adapters must not introduce behavior divergence or Shadow DOM.
+The source-derived release check requires a named Vue projection and export for every published element:
 
-M6 note: React and Vue now have full wrapper parity for current core tags. Svelte remains intentionally element-first (`bindAdapter` over native elements) by design.
+| Family | Published elements | Vue names |
+| --- | --- | --- |
+| Layout | `ui-stack`, `ui-inline`, `ui-cluster`, `ui-grid`, `ui-center`, `ui-separator` | `Stack`, `Inline`, `Cluster`, `Grid`, `Center`, `Separator` |
+| Actions and forms | `ui-button`, `ui-icon-button`, `ui-input`, `ui-select`, `ui-textarea`, `ui-form-field`, `ui-checkbox`, `ui-switch`, `ui-radio`, `ui-radio-group` | Same names in PascalCase |
+| Overlays and navigation | `ui-dialog`, `ui-popover`, `ui-menu`, `ui-menu-item`, `ui-context-menu`, `ui-tooltip`, `ui-tabs`, `ui-disclosure` | Same names in PascalCase |
+| Display and app shell | `ui-avatar`, `ui-avatar-group`, `ui-badge`, `ui-toast-region`, `ui-floating-action-button`, `ui-search-shell`, `ui-search-result-row`, `ui-top-bar` | Same names in PascalCase |
+| Editor | Six `ui-editor-*` elements | `Editor*` named wrappers |
+
+## Event and SSR rules
+
+- Vue wrappers preserve Looma event names and detail payloads.
+- Adapter modules must import in a server process without browser globals.
+- Wrappers preserve authored semantic fallback content instead of replacing it with framework-only markup.
+- A missing projection or named export is a release defect.

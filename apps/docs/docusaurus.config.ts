@@ -5,8 +5,17 @@ const config: Config = {
   title: "Looma UI Docs",
   tagline: "SSR-first web component contracts",
   favicon: "img/favicon.ico",
-  url: "https://looma-ui.local",
-  baseUrl: "/",
+  url: process.env.LOOMA_DOCS_URL ?? "https://threadlabs-studio.github.io",
+  baseUrl: process.env.LOOMA_DOCS_BASE_URL ?? "/looma/",
+  headTags: [
+    {
+      tagName: "meta",
+      attributes: {
+        name: "robots",
+        content: "noindex,nofollow"
+      }
+    }
+  ],
   onBrokenLinks: "throw",
   markdown: {
     hooks: {
@@ -40,6 +49,14 @@ const config: Config = {
     ]
   ],
   themeConfig: {
+    announcementBar: {
+      id: "looma-r1-candidate-preview",
+      content:
+        'Release 1 Candidate preview — packages are not published yet. <a href="/looma/release-1-support">Read the support boundary and open gates.</a>',
+      backgroundColor: "#312e81",
+      textColor: "#ffffff",
+      isCloseable: false
+    },
     colorMode: {
       defaultMode: "light",
       respectPrefersColorScheme: true
@@ -83,7 +100,10 @@ const config: Config = {
           title: "Resources",
           items: [
             { label: "Knit", href: "https://knit.wiki" },
-            { label: "GitHub", href: "https://github.com" }
+            {
+              label: "GitHub",
+              href: "https://github.com/threadlabs-studio/looma"
+            }
           ]
         }
       ],

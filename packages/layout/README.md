@@ -27,4 +27,6 @@ import "@looma/layout";
 
 The elements preserve their child markup before upgrade. Both ESM and CommonJS entry points are real build targets because the documentation server bundle consumes CommonJS.
 
-See the [R1 support matrix](../../docs/release-support-matrix.md).
+See the [R1 support matrix](https://github.com/threadlabs-studio/looma/blob/main/docs/release-support-matrix.md) and [component docs](https://threadlabs-studio.github.io/looma/). Report problems in the [issue tracker](https://github.com/threadlabs-studio/looma/issues).
+
+The legal license link is intentionally pending owner approval; publication is blocked until it is present.
