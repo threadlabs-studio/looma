@@ -10,14 +10,12 @@ Candidate availability is defined by the npm `candidate` dist-tag resolving `@th
 
 ## Public entries
 
-| Entry | Candidate contract |
-| --- | --- |
-| `@threadlabs/looma` and `/core` | ESM and CommonJS; 26 shadow-root elements with semantic slotted fallback |
-| `@threadlabs/looma/layout` | ESM and CommonJS; six light-DOM layout elements |
-| `@threadlabs/looma/editor` | ESM; six light-DOM editor elements without a Tiptap requirement |
-| `@threadlabs/looma/editor/extensions` | ESM; optional Tiptap 2 presets and table helpers |
-| `@threadlabs/looma/vue` | ESM; optional Vue 3 wrappers for every published element |
-| `@threadlabs/looma/*.css` | Tokens, themes, layout, core, and editor styles |
+- **`@threadlabs/looma` and `/core`** — ESM and CommonJS; 26 shadow-root elements with semantic slotted fallback.
+- **`@threadlabs/looma/layout`** — ESM and CommonJS; six light-DOM layout elements.
+- **`@threadlabs/looma/editor`** — ESM; six light-DOM editor elements without a Tiptap requirement.
+- **`@threadlabs/looma/editor/extensions`** — ESM; optional Tiptap 2 presets and table helpers.
+- **`@threadlabs/looma/vue`** — ESM; optional Vue 3 wrappers for every published element.
+- **`@threadlabs/looma/*.css`** — Tokens, themes, layout, core, and editor styles.
 
 React and Svelte adapters are deferred internal repository previews. Docs, Storybook, examples, and tooling are private workspaces.
 
