@@ -87,7 +87,7 @@
   "scripts": {
     "build": "node ../../tools/scripts/build-facade.mjs",
     "test": "node --test ../../tools/scripts/facade-*.test.mjs",
-    "typecheck": "node ../../tools/scripts/verify-facade.mjs --types-only"
+    "typecheck": "node ../../tools/scripts/verify-facade.mjs --definition-only"
   },
   "peerDependencies": {
     "@tiptap/core": ">=2 <3",

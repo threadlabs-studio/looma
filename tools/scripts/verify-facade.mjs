@@ -36,7 +36,7 @@ async function runtimeFiles(root, entry) {
   return result;
 }
 
-export async function verifyFacade({ repoRoot, typesOnly = false }) {
+export async function verifyFacade({ repoRoot, definitionOnly = false, typesOnly = false }) {
   const facadeRoot = path.join(repoRoot, "packages/looma");
   const [manifest, assembly] = await Promise.all([
     readJson(path.join(facadeRoot, "package.json")),
@@ -45,6 +45,8 @@ export async function verifyFacade({ repoRoot, typesOnly = false }) {
 
   assert.equal(manifest.name, assembly.package);
   assert.deepEqual(Object.keys(manifest.exports), assembly.exports);
+
+  if (definitionOnly) return;
 
   for (const [exportName, definition] of Object.entries(manifest.exports)) {
     for (const { condition, target } of exportTargets(definition)) {
@@ -92,7 +94,11 @@ export async function verifyFacade({ repoRoot, typesOnly = false }) {
 
 async function main() {
   const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
-  await verifyFacade({ repoRoot, typesOnly: process.argv.includes("--types-only") });
+  await verifyFacade({
+    repoRoot,
+    definitionOnly: process.argv.includes("--definition-only"),
+    typesOnly: process.argv.includes("--types-only"),
+  });
   console.log("Looma facade verification passed");
 }
 

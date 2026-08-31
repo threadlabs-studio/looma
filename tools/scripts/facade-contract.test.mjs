@@ -1,8 +1,11 @@
 import assert from "node:assert/strict";
-import { readdir, readFile } from "node:fs/promises";
+import { copyFile, mkdir, mkdtemp, readdir, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+
+import { verifyFacade } from "./verify-facade.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const facadeDirectory = path.join(repoRoot, "packages/looma");
@@ -98,4 +101,19 @@ test("the assembly mapping covers every explicit facade export", async () => {
     ),
   );
   assert.equal(path.basename(facadeDirectory), "looma");
+});
+
+test("facade definition verification does not require assembled output", async (context) => {
+  const fixtureRoot = await mkdtemp(path.join(tmpdir(), "looma-facade-definition-"));
+  context.after(() => rm(fixtureRoot, { recursive: true, force: true }));
+
+  const fixtureFacade = path.join(fixtureRoot, "packages/looma");
+  await mkdir(fixtureFacade, { recursive: true });
+  await Promise.all(
+    ["package.json", "facade-assembly.json"].map((file) =>
+      copyFile(path.join(facadeDirectory, file), path.join(fixtureFacade, file))
+    ),
+  );
+
+  await verifyFacade({ repoRoot: fixtureRoot, definitionOnly: true });
 });
