@@ -1,5 +1,8 @@
 # @threadlabs/looma-vue
 
+> Internal implementation workspace. Consumers install `@threadlabs/looma` and
+> import `@threadlabs/looma/vue`.
+
 The supported Vue 3 adapter for Looma Release 1. It maps Vue props, slots, and callbacks to the public layout, core, and editor custom elements without owning divergent behavior.
 
 Release status: Candidate `0.1.0`. Browser registration/render and linked-workspace Knit qualification pass; packed-artifact Knit qualification remains a publication gate. React and Svelte adapters are not part of the R1 public package set.

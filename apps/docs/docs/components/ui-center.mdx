@@ -1,5 +1,3 @@
-import Tabs from "@theme/Tabs";
-import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
 # Center
@@ -43,12 +41,9 @@ Default slot only.
 
 ## Framework Snippets
 
-<Tabs groupId="framework" defaultValue="vue">
-  <TabItem value="vue" label="Vue">
-
 ```vue
 <script setup lang="ts">
-import { Center } from "@threadlabs/looma-vue";
+import { Center } from "@threadlabs/looma/vue";
 </script>
 
 <template>
@@ -58,24 +53,3 @@ import { Center } from "@threadlabs/looma-vue";
   </Center>
 </template>
 ```
-
-  </TabItem>
-  <TabItem value="svelte" label="Svelte">
-
-```svelte
-<ui-center measure="wide" gutters="m">...</ui-center>
-```
-
-  </TabItem>
-  <TabItem value="react" label="React">
-
-```tsx
-import { Center } from "@threadlabs/looma-react";
-
-export function Example() {
-  return <Center measure="wide" gutters="m">...</Center>;
-}
-```
-
-  </TabItem>
-</Tabs>

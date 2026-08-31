@@ -1,5 +1,3 @@
-import Tabs from "@theme/Tabs";
-import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
 # Stack
@@ -46,12 +44,9 @@ Default slot only (natural children).
 
 ## Framework Snippets
 
-<Tabs groupId="framework" defaultValue="vue">
-  <TabItem value="vue" label="Vue">
-
 ```vue
 <script setup lang="ts">
-import { Stack } from "@threadlabs/looma-vue";
+import { Stack } from "@threadlabs/looma/vue";
 </script>
 
 <template>
@@ -62,32 +57,3 @@ import { Stack } from "@threadlabs/looma-vue";
   </Stack>
 </template>
 ```
-
-  </TabItem>
-  <TabItem value="svelte" label="Svelte">
-
-```svelte
-<ui-stack gap="m">
-  <h2>Profile</h2>
-  <p>Manage your account settings.</p>
-</ui-stack>
-```
-
-  </TabItem>
-  <TabItem value="react" label="React">
-
-```tsx
-import { Stack } from "@threadlabs/looma-react";
-
-export function Example() {
-  return (
-    <Stack gap="m">
-      <h2>Profile</h2>
-      <p>Manage your account settings.</p>
-    </Stack>
-  );
-}
-```
-
-  </TabItem>
-</Tabs>

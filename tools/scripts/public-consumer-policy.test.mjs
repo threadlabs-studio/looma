@@ -11,13 +11,7 @@ import {
   validatePublicConsumerManifest
 } from "./verify-public-consumer.mjs";
 
-const releaseNames = [
-  "@threadlabs/looma-tokens",
-  "@threadlabs/looma-layout",
-  "@threadlabs/looma-core",
-  "@threadlabs/looma-editor",
-  "@threadlabs/looma-vue"
-];
+const releaseNames = ["@threadlabs/looma"];
 
 function releaseManifest(overrides = {}) {
   return {
@@ -60,7 +54,7 @@ test("accepts an eligible current manifest and derives exact public dependencies
   const rewritten = rewriteConsumerManifest({
     name: "fixture",
     dependencies: Object.fromEntries(releaseNames.map((name) => [name, "file:artifact.tgz"])),
-    pnpm: { overrides: { "@threadlabs/looma-core": "file:artifact.tgz" } }
+    pnpm: { overrides: { "@threadlabs/looma": "file:artifact.tgz" } }
   }, manifest);
   assert.deepEqual(
     Object.fromEntries(releaseNames.map((name) => [name, rewritten.dependencies[name]])),
@@ -98,25 +92,25 @@ test("rejects ineligible and stale release manifests", () => {
 test("rejects local Looma lockfile resolutions", () => {
   const lockfile = publicLockfile().replace(
     "specifier: 0.1.0\n        version: 0.1.0",
-    "specifier: file:../../../.release/artifacts/looma-tokens-0.1.0.tgz\n        version: file:../../../.release/artifacts/looma-tokens-0.1.0.tgz"
+    "specifier: file:../../../.release/artifacts/looma-0.1.0.tgz\n        version: file:../../../.release/artifacts/looma-0.1.0.tgz"
   );
   assert.throws(
     () => validatePublicConsumerLockfile(lockfile, releaseManifest()),
-    /@threadlabs\/looma-tokens.*forbidden local or repository resolution/
+    /@threadlabs\/looma.*forbidden local or repository resolution/
   );
 });
 
 test("rejects exact-version drift in the lockfile and installed graph", () => {
   assert.throws(
     () => validatePublicConsumerLockfile(publicLockfile("0.1.1"), releaseManifest()),
-    /@threadlabs\/looma-tokens.*exact 0\.1\.0/
+    /@threadlabs\/looma.*exact 0\.1\.0/
   );
   assert.throws(
     () => validateInstalledReleasePackages(
-      releaseNames.map((name) => ({ name, version: name === "@threadlabs/looma-vue" ? "0.1.1" : "0.1.0" })),
+      releaseNames.map((name) => ({ name, version: "0.1.1" })),
       releaseManifest()
     ),
-    /@threadlabs\/looma-vue installed 0\.1\.1 instead of 0\.1\.0/
+    /@threadlabs\/looma installed 0\.1\.1 instead of 0\.1\.0/
   );
 });
 
@@ -140,9 +134,9 @@ test("builds deterministic evidence from manifest identities and public resoluti
   assert.equal(evidence.registry, "https://registry.npmjs.org/");
   assert.equal(evidence.sourceCommit, manifest.sourceCommit);
   assert.deepEqual(evidence.manifest.packages[0], {
-    name: "@threadlabs/looma-tokens",
+    name: "@threadlabs/looma",
     version: "0.1.0",
-    tarball: "threadlabs-looma-tokens-0.1.0.tgz",
+    tarball: "threadlabs-looma-0.1.0.tgz",
     sha256: "1".repeat(64)
   });
   assert.equal(evidence.result, "passed");

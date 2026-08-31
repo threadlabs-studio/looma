@@ -42,39 +42,31 @@ test("required release suites contain no skipped or todo scenarios", async () =>
 });
 
 test("public Candidate documentation is install-first, time-stable, and fail-closed", async () => {
-  const releasePackages = ["tokens", "layout", "core", "editor", "vue"];
-  const [rootReadme, gettingStarted, supportPage, rootLicense] = await Promise.all([
+  const [rootReadme, gettingStarted, supportPage, facadeReadme, releaseChecklist] = await Promise.all([
     readFile(path.join(repoRoot, "README.md"), "utf8"),
     readFile(path.join(repoRoot, "apps/docs/docs/getting-started.md"), "utf8"),
     readFile(path.join(repoRoot, "apps/docs/docs/release-1-support.md"), "utf8"),
-    readFile(path.join(repoRoot, "LICENSE"), "utf8").catch(() => null)
+    readFile(path.join(repoRoot, "packages/looma/README.md"), "utf8"),
+    readFile(path.join(repoRoot, "docs/release-checklist.md"), "utf8")
   ]);
 
   assert.match(rootReadme, /confirm.+candidate.+dist-tag/is);
   assert.doesNotMatch(rootReadme, /not on npm yet|install after Candidate publication/i);
-  assert.match(gettingStarted, /npm install vue@\^3\.5 @threadlabs\/looma-vue/);
+  assert.match(gettingStarted, /pnpm add @threadlabs\/looma/);
   assert.doesNotMatch(gettingStarted, /^pnpm install$/m);
-  assert.match(gettingStarted, /React and Svelte.+not published or supported/);
+  assert.match(gettingStarted, /Vue and Tiptap are optional peers/);
+  assert.match(gettingStarted, /@threadlabs\/looma\/editor\/extensions/);
+  assert.match(gettingStarted, /@threadlabs\/looma\/vue/);
   assert.match(supportPage, /Candidate `0\.1\.0`/);
-
-  for (const packageName of releasePackages) {
-    const scopedName = `@threadlabs/looma-${packageName}`;
-    assert.match(gettingStarted + supportPage, new RegExp(scopedName.replace("/", "\\/")));
-
-    const readme = await readFile(
-      path.join(repoRoot, `packages/${packageName}/README.md`),
-      "utf8"
-    );
-    assert.match(readme, /Candidate `0\.1\.0`/);
-    assert.match(readme, /## Install/);
-    assert.match(readme, /https:\/\/github\.com\/threadlabs-studio\/looma/);
-    assert.match(readme, /https:\/\/github\.com\/threadlabs-studio\/looma\/issues/);
-    if (rootLicense) {
-      assert.match(readme, /https:\/\/github\.com\/threadlabs-studio\/looma\/blob\/main\/LICENSE/);
-    } else {
-      assert.match(readme, /license link is intentionally pending owner approval/);
-    }
-  }
+  assert.match(facadeReadme, /pnpm add @threadlabs\/looma/);
+  assert.match(releaseChecklist, /`@threadlabs\/looma` Candidate tarball/);
+  assert.match(releaseChecklist, /superseded\s+`@threadlabs\/looma-\*` identity/);
+  assert.match(releaseChecklist, /pgTAP RLS suite/);
+  assert.match(releaseChecklist, /signup\/authoring\s+browser flow/);
+  assert.doesNotMatch(
+    rootReadme + gettingStarted + supportPage + releaseChecklist,
+    /@threadlabs\/looma-(?:tokens|layout|core|editor|vue|react|svelte)/
+  );
 });
 
 test("the no-index Candidate docs preview is manual, protected, and SHA-pinned", async () => {
@@ -117,11 +109,23 @@ test("the Knit artifact proof is isolated, fail-closed, and exercises the releas
     "node tools/scripts/verify-knit-consumer.mjs --allow-ineligible-artifacts --skip-full-knit-unit"
   );
   assert.match(script, /worktree", "add", "--detach"/);
+  assert.match(script, /temporaryDirectory = path\.join\(repoRoot, "\.release\/tmp"\)/);
+  assert.match(script, /pgTAP files are visible to the database test container/);
+  assert.match(script, /temporaryRoot\.startsWith\(`\$\{temporaryDirectory\}/);
   assert.match(script, /manifest\.sourceCommit === loomaCommit/);
   assert.match(script, /--store-dir/);
   assert.match(script, /test:gate:unit/);
   assert.match(script, /skipFullKnitUnit/);
   assert.match(script, /fullKnitUnitSuitePassed/);
+  assert.match(script, /databaseMigrationsPassed/);
+  assert.match(script, /databaseRlsPassed/);
+  assert.match(script, /databaseTestFiles\.length > 0/);
+  assert.match(script, /Files=\(\\d\+\), Tests=\(\\d\+\),/);
+  assert.match(script, /pgTAP executed no assertions/);
+  assert.match(script, /browserSignupFlowPassed/);
+  assert.match(script, /test:e2e:local:required/);
+  assert.match(script, /db:start/);
+  assert.match(script, /db:test/);
   assert.match(script, /result: qualificationResult/);
   assert.match(
     script,
@@ -129,7 +133,7 @@ test("the Knit artifact proof is isolated, fail-closed, and exercises the releas
   );
   assert.match(
     script,
-    /finalReleaseGateRequired: qualificationResult !== "passed" \|\| skipFullKnitUnit/
+    /qualificationResult !== "passed" \|\| skipFullKnitUnit \|\| !Object\.values\(gateResults\)\.every\(Boolean\)/
   );
   assert.match(script, /failure: qualificationFailure/);
   assert.match(script, /await Promise\.all\(\[\s*rm\(evidencePath, \{ force: true \}\)/);
@@ -147,14 +151,23 @@ test("the Knit artifact proof is isolated, fail-closed, and exercises the releas
   assert.match(script, /pnpm", \["build:release"/);
   assert.match(script, /pnpm", \["typecheck"/);
 
-  const loomaPolicy = registryConfig.match(/'@threadlabs\/looma-\*':[\s\S]*?\n\s*'\*\*':/)?.[0] ?? "";
-  assert.match(loomaPolicy, /access: \$all/);
-  assert.match(loomaPolicy, /publish: \$all/);
-  assert.doesNotMatch(loomaPolicy, /proxy:/);
+  const facadePolicy = registryConfig.match(/'@threadlabs\/looma':[\s\S]*?\n\s*'@threadlabs\/looma-\*':/)?.[0] ?? "";
+  const rejectedOldIdentityPolicy = registryConfig.match(/'@threadlabs\/looma-\*':[\s\S]*?\n\s*'\*\*':/)?.[0] ?? "";
+  const unrelatedPolicy = registryConfig.match(/'\*\*':[\s\S]*$/)?.[0] ?? "";
+  assert.match(facadePolicy, /access: \$all/);
+  assert.match(facadePolicy, /publish: \$all/);
+  assert.doesNotMatch(facadePolicy, /proxy:/);
+  assert.match(rejectedOldIdentityPolicy, /publish: nobody/);
+  assert.doesNotMatch(rejectedOldIdentityPolicy, /proxy:/);
+  assert.match(unrelatedPolicy, /proxy: npmjs/);
   assert.match(npmrc, /@threadlabs:registry=\$\{LOOMA_REGISTRY_URL\}/);
   assert.match(script, /--config\.auto-install-peers=true/);
   assert.match(script, /--config\.prefer-workspace-packages=false/);
   assert.match(script, /--config\.link-workspace-packages=false/);
+  assert.match(script, /RELEASE_PACKAGE_NAME/);
+  assert.match(script, /\$\{RELEASE_PACKAGE_NAME\}\/editor\/extensions/);
+  assert.match(script, /\$\{RELEASE_PACKAGE_NAME\}\/vue/);
+  assert.doesNotMatch(script, /@threadlabs\/looma-(?:core|editor|layout|tokens|vue)/);
 });
 
 test("the public consumer command is a separate fail-closed registry gate", async () => {

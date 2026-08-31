@@ -1,33 +1,29 @@
 # Architecture
 
 Looma uses semantic, server-renderable HTML as its source of truth and upgrades
-that HTML with package-specific behavior. Release 1 deliberately publishes only
-the package graph used and proven by Knit.
+that HTML with package-specific behavior. Release 1 publishes one facade package
+whose explicit subpaths preserve those runtime boundaries.
 
-## Release 1 Package Graph
+## Release 1 Public Package
 
-```txt
-@threadlabs/looma-tokens ──> @threadlabs/looma-layout
-       │
-       ├────────> @threadlabs/looma-core ──> @threadlabs/looma-editor
-       │                 │                │
-       └─────────────────┴────────────────┴──> @threadlabs/looma-vue ──> Knit
-```
+`@threadlabs/looma` is the only public artifact. Consumers select core, layout,
+editor, editor-extension, Vue, loader, and CSS behavior through explicit
+`@threadlabs/looma/*` subpaths.
 
 The repository also contains React and Svelte adapters, docs, and Storybook
-workspaces. They are internal/deferred for Release 1 and are not public Candidate
-packages.
+workspaces. All implementation workspaces and deferred adapters are internal for
+Release 1 and are not public Candidate packages.
 
 ## Package Responsibilities
 
-- `@threadlabs/looma-tokens`: CSS-only primitive and semantic variables plus theme files.
-- `@threadlabs/looma-layout`: ESM and CommonJS light-DOM custom elements that own spacing through `gap`
+- `@threadlabs/looma/*.css`: CSS-only primitive and semantic variables, themes, and component styles.
+- `@threadlabs/looma/layout`: ESM and CommonJS light-DOM custom elements that own spacing through `gap`
   and never add external margins.
-- `@threadlabs/looma-core`: web components whose behavior and styles live in shadow roots.
+- `@threadlabs/looma` and `@threadlabs/looma/core`: web components whose behavior and styles live in shadow roots.
   Their slots preserve consumer-authored semantic light DOM.
-- `@threadlabs/looma-editor`: ESM light-DOM custom elements, editor styles, and domain-neutral
+- `@threadlabs/looma/editor`: ESM light-DOM custom elements and editor styles; `@threadlabs/looma/editor/extensions` provides optional domain-neutral
   Tiptap helpers. Save, upload, collaboration, and presence remain app concerns.
-- `@threadlabs/looma-vue`: ESM wrappers that map Vue props, slots, and events to the public
+- `@threadlabs/looma/vue`: ESM wrappers that map Vue props, slots, and events to the public
   layout, core, and editor elements.
 
 ## DOM And Progressive-Enhancement Contract
@@ -58,9 +54,9 @@ Release documentation follows built artifacts, not a blanket format claim:
 
 ## Token Flow
 
-- `@threadlabs/looma-tokens` defines primitive and semantic CSS variables in `@layer tokens`.
+- `@threadlabs/looma/tokens.css` defines primitive and semantic CSS variables in `@layer tokens`.
 - Theme files override semantics in `@layer theme`.
-- `@threadlabs/looma-layout`, `@threadlabs/looma-core`, and `@threadlabs/looma-editor` consume semantic tokens.
+- The facade layout, core, and editor entries consume semantic tokens.
 - Apps may add their own utility layer and override documented tokens.
 
 ## Contract Ownership

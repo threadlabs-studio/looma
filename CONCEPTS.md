@@ -21,7 +21,10 @@ An explicitly declared Looma package or component contract whose evidence covers
 A Candidate evidence profile for Looma behavior that combines package-integrity proof with contract, interaction, accessibility, adapter, and priority-consumer evidence.
 
 ### Consumer qualification
-The release process that proves exact Candidate artifacts work in an independently versioned priority consumer without workspace coupling, shared installation state, or fallback to other Looma artifacts.
+The release process that proves exact Candidate artifacts work through the deepest release-critical gates of a Priority Consumer without workspace coupling, shared installation state, or artifact fallback.
+
+### Priority Consumer
+An independently versioned product selected to exercise the deepest supported product boundary for a library release.
 
 ### Release evidence
 The source- and artifact-bound record of qualification inputs and gate outcomes used to make a release decision.
@@ -30,12 +33,12 @@ New evidence for an attempted qualification replaces older evidence, including w
 
 ### Public Facade
 The single consumer-facing package that projects selected, explicit entrypoints
-from Looma's private modular workspaces. For Release 1, this is
-`@threadlabs/looma`; internal workspace identities are implementation details,
-not separate products consumers must coordinate.
+from private modular workspaces; internal workspace identities remain
+implementation details rather than separate products consumers coordinate.
 
 ### Facade Assembly
 The deterministic build step that gathers declared JavaScript, declarations,
 loaders, and CSS from private workspaces into the Public Facade, rewrites only
-declared internal specifiers, and verifies that the packed artifact exactly
-matches its export and dependency-boundary contracts.
+declared internal specifiers, and verifies the assembled tree against its export
+and dependency boundaries. Release qualification separately verifies the packed
+artifact.

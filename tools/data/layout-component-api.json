@@ -2,7 +2,7 @@
   "components": [
     {
       "tag": "ui-center",
-      "package": "@threadlabs/looma-layout",
+      "package": "@threadlabs/looma/layout",
       "className": "UICenterElement",
       "description": "Container primitive for readable measure and horizontal gutters.",
       "attributes": [
@@ -37,7 +37,7 @@
     },
     {
       "tag": "ui-cluster",
-      "package": "@threadlabs/looma-layout",
+      "package": "@threadlabs/looma/layout",
       "className": "UIClusterElement",
       "description": "Cluster layout primitive for wrapping item groups with shared alignment controls.",
       "attributes": [
@@ -81,7 +81,7 @@
     },
     {
       "tag": "ui-grid",
-      "package": "@threadlabs/looma-layout",
+      "package": "@threadlabs/looma/layout",
       "className": "UIGridElement",
       "description": "Responsive auto-fit grid primitive.",
       "attributes": [
@@ -116,7 +116,7 @@
     },
     {
       "tag": "ui-inline",
-      "package": "@threadlabs/looma-layout",
+      "package": "@threadlabs/looma/layout",
       "className": "UIInlineElement",
       "description": "Inline layout primitive for row-style content with wrapping support.",
       "attributes": [
@@ -169,7 +169,7 @@
     },
     {
       "tag": "ui-separator",
-      "package": "@threadlabs/looma-layout",
+      "package": "@threadlabs/looma/layout",
       "className": "UISeparatorElement",
       "description": "Semantic separator primitive with horizontal and vertical orientations.",
       "attributes": [
@@ -202,7 +202,7 @@
     },
     {
       "tag": "ui-stack",
-      "package": "@threadlabs/looma-layout",
+      "package": "@threadlabs/looma/layout",
       "className": "UIStackElement",
       "description": "Vertical layout primitive that owns spacing between children.",
       "attributes": [

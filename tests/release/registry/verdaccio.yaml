@@ -14,10 +14,15 @@ uplinks:
     cache: false
 
 packages:
-  '@threadlabs/looma-*':
+  '@threadlabs/looma':
     access: $all
     publish: $all
     unpublish: $all
+
+  '@threadlabs/looma-*':
+    access: $all
+    publish: nobody
+    unpublish: nobody
 
   '**':
     access: $all

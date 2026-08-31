@@ -1,22 +1,32 @@
 import { spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { mkdtemp, mkdir, readFile, realpath, rm, writeFile } from "node:fs/promises";
+import { access, mkdtemp, mkdir, readFile, readdir, realpath, rm, writeFile } from "node:fs/promises";
 import { createServer } from "node:net";
-import { tmpdir } from "node:os";
+import { homedir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { RELEASE_PACKAGE_NAMES, RELEASE_VERSION } from "./release-config.mjs";
+import {
+  assertExactReleasePackageSet,
+  RELEASE_PACKAGE_NAMES,
+  RELEASE_VERSION
+} from "./release-config.mjs";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDirectory, "../..");
 const artifactDirectory = path.join(repoRoot, ".release/artifacts");
 const evidenceDirectory = path.join(repoRoot, ".release/evidence");
+const temporaryDirectory = path.join(repoRoot, ".release/tmp");
 const manifestPath = path.join(artifactDirectory, "release-manifest.json");
 const registryConfigPath = path.join(repoRoot, "tests/release/registry/verdaccio.yaml");
 const npmrcPath = path.join(repoRoot, "tests/release/registry/.npmrc");
 const defaultKnitDirectory = path.resolve(repoRoot, "../knit");
 const RELEASE_NODE_MAJOR = 20;
+const [RELEASE_PACKAGE_NAME, ...additionalReleasePackageNames] = RELEASE_PACKAGE_NAMES;
+
+if (!RELEASE_PACKAGE_NAME || additionalReleasePackageNames.length > 0) {
+  throw new Error("Knit qualification requires exactly one public Looma package");
+}
 
 function assert(condition, message) {
   if (!condition) {
@@ -85,6 +95,84 @@ async function waitForRegistry(registryUrl, registryProcess) {
   throw new Error("Verdaccio did not become ready within 30 seconds");
 }
 
+async function waitForHttp(url, child, logChunks) {
+  const deadline = Date.now() + 60_000;
+  while (Date.now() < deadline) {
+    if (child.exitCode !== null) {
+      throw new Error(`Knit dev server exited before becoming ready (${child.exitCode})`);
+    }
+    try {
+      const response = await fetch(url);
+      if (response.ok) return;
+    } catch {
+      // The loopback listener may not be bound yet.
+    }
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  throw new Error(`Knit dev server did not become ready within 60 seconds\n${logChunks.join("").slice(-4_000)}`);
+}
+
+function commandSucceeds(command, args, options = {}) {
+  return spawnSync(command, args, {
+    cwd: options.cwd ?? repoRoot,
+    env: options.env ?? process.env,
+    stdio: "ignore"
+  }).status === 0;
+}
+
+async function resolveDockerEnvironment() {
+  if (commandSucceeds("docker", ["info"])) return { ...process.env };
+
+  const colimaSocket = path.join(homedir(), ".colima/default/docker.sock");
+  try {
+    await access(colimaSocket);
+  } catch {
+    throw new Error("Docker is unavailable and the default Colima socket does not exist");
+  }
+
+  const environment = { ...process.env, DOCKER_HOST: `unix://${colimaSocket}` };
+  assert(
+    commandSucceeds("docker", ["info"], { env: environment }),
+    "Colima is installed but its Docker socket is not ready"
+  );
+  process.stdout.write(`Using Colima Docker socket ${colimaSocket} for detached database gates.\n`);
+  return environment;
+}
+
+function replaceTomlValue(source, section, key, value) {
+  const escapedSection = section.replaceAll(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const expression = new RegExp(`(\\[${escapedSection}\\][\\s\\S]*?^${key}\\s*=\\s*)[^\\n]+`, "m");
+  assert(expression.test(source), `Supabase config is missing [${section}] ${key}`);
+  return source.replace(expression, `$1${value}`);
+}
+
+async function configureIsolatedSupabase(worktreeDirectory, browserUrl) {
+  const configPath = path.join(worktreeDirectory, "supabase/config.toml");
+  const [apiPort, dbPort, shadowPort, studioPort, smtpPort, analyticsPort] = await Promise.all(
+    Array.from({ length: 6 }, () => availablePort())
+  );
+  let config = await readFile(configPath, "utf8");
+  config = config.replace(/^project_id\s*=\s*.+$/m, `project_id = "looma-knit-release-${process.pid}"`);
+  config = replaceTomlValue(config, "api", "port", apiPort);
+  config = replaceTomlValue(config, "db", "port", dbPort);
+  config = replaceTomlValue(config, "db", "shadow_port", shadowPort);
+  config = replaceTomlValue(config, "studio", "port", studioPort);
+  config = replaceTomlValue(config, "local_smtp", "port", smtpPort);
+  config = replaceTomlValue(config, "analytics", "port", analyticsPort);
+  config = replaceTomlValue(config, "auth", "site_url", JSON.stringify(browserUrl));
+  config = replaceTomlValue(config, "auth", "additional_redirect_urls", JSON.stringify([browserUrl]));
+  await writeFile(configPath, config, "utf8");
+}
+
+function parseEnvironmentOutput(output) {
+  const values = {};
+  for (const line of output.split("\n")) {
+    const match = /^([A-Z0-9_]+)="(.*)"$/.exec(line.trim());
+    if (match) values[match[1]] = match[2];
+  }
+  return values;
+}
+
 async function createFixtureRegistryToken(registryUrl) {
   const username = "looma-release-fixture";
   const response = await fetch(new URL(`-/user/org.couchdb.user:${username}`, registryUrl), {
@@ -128,12 +216,7 @@ async function validateManifest(allowIneligibleArtifacts) {
     allowIneligibleArtifacts || manifest.releaseEligible === true,
     `release manifest is not eligible: ${(manifest.exceptions ?? []).join("; ")}`
   );
-  assert(manifest.packages?.length === RELEASE_PACKAGE_NAMES.size, "release manifest package count differs from R1");
-
-  const names = new Set(manifest.packages.map((entry) => entry.name));
-  for (const packageName of RELEASE_PACKAGE_NAMES) {
-    assert(names.has(packageName), `release manifest is missing ${packageName}`);
-  }
+  assertExactReleasePackageSet(manifest.packages ?? []);
   for (const entry of manifest.packages) {
     assert(entry.version === RELEASE_VERSION, `${entry.name} is not ${RELEASE_VERSION}`);
     const tarballPath = path.join(artifactDirectory, entry.tarball);
@@ -145,10 +228,13 @@ async function validateManifest(allowIneligibleArtifacts) {
 async function rewriteKnitToRegistry(worktreeDirectory) {
   const packagePath = path.join(worktreeDirectory, "web/package.json");
   const packageJson = JSON.parse(await readFile(packagePath, "utf8"));
-  for (const packageName of ["@threadlabs/looma-core", "@threadlabs/looma-editor", "@threadlabs/looma-vue"]) {
-    assert(packageName in packageJson.dependencies, `Knit does not declare ${packageName}`);
-    packageJson.dependencies[packageName] = RELEASE_VERSION;
-  }
+  const packageName = RELEASE_PACKAGE_NAME;
+  assert(packageName in packageJson.dependencies, `Knit does not declare ${packageName}`);
+  assert(
+    !Object.keys(packageJson.dependencies).some((name) => /^@threadlabs\/looma-/.test(name)),
+    "Knit still declares a superseded Looma package identity"
+  );
+  packageJson.dependencies[packageName] = RELEASE_VERSION;
   await writeFile(packagePath, `${JSON.stringify(packageJson, null, 2)}\n`, "utf8");
 }
 
@@ -158,8 +244,8 @@ async function writeKnitSsrProof(worktreeDirectory) {
 import assert from "node:assert/strict";
 import { createSSRApp, h } from "vue";
 import { renderToString } from "vue/server-renderer";
-import "@threadlabs/looma-editor";
-import { getDefaultEditorExtensions } from "@threadlabs/looma-editor/extensions";
+import "${RELEASE_PACKAGE_NAME}/editor";
+import { getDefaultEditorExtensions } from "${RELEASE_PACKAGE_NAME}/editor/extensions";
 import {
   EditorTableOverlay,
   EditorToolbar,
@@ -169,7 +255,7 @@ import {
   SearchShell,
   ToastRegion,
   TopBar
-} from "@threadlabs/looma-vue";
+} from "${RELEASE_PACKAGE_NAME}/vue";
 
 const extensions = getDefaultEditorExtensions();
 assert.ok(Array.isArray(extensions) && extensions.length > 0, "editor extension preset is empty");
@@ -203,7 +289,6 @@ async function validateInstalledGraph(worktreeDirectory) {
   const lockPath = path.join(worktreeDirectory, "pnpm-lock.yaml");
   const lockfile = await readFile(lockPath, "utf8");
   const canonicalWorktreeDirectory = await realpath(worktreeDirectory);
-  const canonicalRepoRoot = await realpath(repoRoot);
   assert(!/(?:link|workspace|file):[^\n]*looma/i.test(lockfile), "Knit lockfile retained a local Looma reference");
   for (const packageName of RELEASE_PACKAGE_NAMES) {
     const escapedName = packageName.replace("/", "\\/");
@@ -211,13 +296,12 @@ async function validateInstalledGraph(worktreeDirectory) {
   }
 
   const resolutions = {};
-  for (const packageName of ["@threadlabs/looma-core", "@threadlabs/looma-editor", "@threadlabs/looma-vue"]) {
+  for (const packageName of RELEASE_PACKAGE_NAMES) {
     const packageDirectory = await realpath(path.join(worktreeDirectory, "web/node_modules", packageName));
     assert(
       packageDirectory.startsWith(canonicalWorktreeDirectory + path.sep),
       `${packageName} resolved outside the isolated Knit worktree: ${packageDirectory}`
     );
-    assert(!packageDirectory.startsWith(canonicalRepoRoot + path.sep), `${packageName} resolved to Looma source`);
     const packageJson = JSON.parse(await readFile(path.join(packageDirectory, "package.json"), "utf8"));
     assert(packageJson.version === RELEASE_VERSION, `${packageName} installed ${packageJson.version}`);
     resolutions[packageName] = packageDirectory;
@@ -255,6 +339,9 @@ async function main() {
   let registryProcess;
   let detachedKnitSourceClean = false;
   let installed;
+  let knitDevProcess;
+  let supabaseStarted = false;
+  let dockerEnvironment;
   let qualificationError;
   let qualificationResult = "failed";
   let qualificationFailure = null;
@@ -266,7 +353,10 @@ async function main() {
     typecheckPassed: false,
     ssrProofPassed: false,
     signupCriticalTestsPassed: false,
-    fullKnitUnitSuitePassed: false
+    fullKnitUnitSuitePassed: false,
+    databaseMigrationsPassed: false,
+    databaseRlsPassed: false,
+    browserSignupFlowPassed: false
   };
 
   function runGate(gate, command, args, options) {
@@ -294,7 +384,11 @@ async function main() {
     knitCommit = run("git", ["-C", knitDirectory, "rev-parse", "HEAD"], { capture: true });
     knitLiveStatus = run("git", ["-C", knitDirectory, "status", "--porcelain"], { capture: true });
 
-    temporaryRoot = await mkdtemp(path.join(tmpdir(), "looma-knit-release-"));
+    // Colima shares /Users with its VM, but not macOS's private temporary
+    // directories. Keep the detached consumer under this ignored release area
+    // so pgTAP files are visible to the database test container.
+    await mkdir(temporaryDirectory, { recursive: true });
+    temporaryRoot = await mkdtemp(path.join(temporaryDirectory, "knit-consumer-"));
     knitWorktree = path.join(temporaryRoot, "knit");
     registryStorage = path.join(temporaryRoot, "registry-storage");
     pnpmStore = path.join(temporaryRoot, "pnpm-store");
@@ -427,6 +521,97 @@ async function main() {
         cwd: knitWorktree,
         env: fixtureEnvironment
       });
+
+      const resolvedDockerEnvironment = await resolveDockerEnvironment();
+      dockerEnvironment = {
+        ...fixtureEnvironment,
+        ...(resolvedDockerEnvironment.DOCKER_HOST
+          ? { DOCKER_HOST: resolvedDockerEnvironment.DOCKER_HOST }
+          : {})
+      };
+      const browserPort = await availablePort();
+      const browserUrl = `http://localhost:${browserPort}`;
+      await configureIsolatedSupabase(knitWorktree, browserUrl);
+      runGate("databaseMigrationsPassed", "pnpm", ["db:start"], {
+        cwd: knitWorktree,
+        env: dockerEnvironment
+      });
+      supabaseStarted = true;
+      const databaseTestFiles = (await readdir(path.join(knitWorktree, "supabase/tests"), {
+        withFileTypes: true
+      }))
+        .filter((entry) => entry.isFile() && entry.name.endsWith(".sql"))
+        .map((entry) => entry.name)
+        .toSorted();
+      assert(databaseTestFiles.length > 0, "detached Knit checkout contains no pgTAP SQL files");
+      commands.push(["pnpm", ["db:test"]]);
+      const databaseTestOutput = run("pnpm", ["db:test"], {
+        cwd: knitWorktree,
+        env: dockerEnvironment,
+        capture: true
+      });
+      process.stdout.write(`${databaseTestOutput}\n`);
+      const databaseTestSummary = /Files=(\d+), Tests=(\d+),/.exec(databaseTestOutput);
+      assert(databaseTestSummary, "pgTAP output did not include its file and assertion summary");
+      assert(
+        Number(databaseTestSummary[1]) === databaseTestFiles.length,
+        `pgTAP executed ${databaseTestSummary[1]} of ${databaseTestFiles.length} discovered SQL files`
+      );
+      assert(Number(databaseTestSummary[2]) > 0, "pgTAP executed no assertions");
+      gateResults.databaseRlsPassed = true;
+
+      const supabaseStatus = parseEnvironmentOutput(
+        run("pnpm", ["exec", "supabase", "status", "-o", "env"], {
+          cwd: knitWorktree,
+          env: dockerEnvironment,
+          capture: true
+        })
+      );
+      assert(supabaseStatus.API_URL, "Supabase status did not report API_URL");
+      assert(supabaseStatus.ANON_KEY, "Supabase status did not report ANON_KEY");
+      assert(supabaseStatus.SERVICE_ROLE_KEY, "Supabase status did not report SERVICE_ROLE_KEY");
+      const browserEnvironment = {
+        ...dockerEnvironment,
+        E2E_BASE_URL: browserUrl,
+        NUXT_PUBLIC_SITE_URL: browserUrl,
+        NUXT_PUBLIC_SUPABASE_URL: supabaseStatus.API_URL,
+        NUXT_PUBLIC_SUPABASE_KEY: supabaseStatus.ANON_KEY,
+        NUXT_SUPABASE_SECRET_KEY: supabaseStatus.SERVICE_ROLE_KEY
+      };
+      const devLog = [];
+      knitDevProcess = spawn(
+        "pnpm",
+        [
+          "-F",
+          "web",
+          "exec",
+          "nuxt",
+          "dev",
+          "--dotenv",
+          "../.env",
+          "--host",
+          "localhost",
+          "--port",
+          String(browserPort)
+        ],
+        { cwd: knitWorktree, env: browserEnvironment, stdio: ["ignore", "pipe", "pipe"] }
+      );
+      for (const stream of [knitDevProcess.stdout, knitDevProcess.stderr]) {
+        stream.setEncoding("utf8");
+        stream.on("data", (chunk) => devLog.push(chunk));
+      }
+      await waitForHttp(browserUrl, knitDevProcess, devLog);
+      runGate("browserSignupFlowPassed", "pnpm", ["-F", "web", "test:e2e:local:required"], {
+        cwd: knitWorktree,
+        env: browserEnvironment
+      });
+      await stopProcess(knitDevProcess);
+      knitDevProcess = undefined;
+      run("pnpm", ["exec", "supabase", "stop", "--no-backup"], {
+        cwd: knitWorktree,
+        env: dockerEnvironment
+      });
+      supabaseStarted = false;
     }
     qualificationResult = "passed";
   } catch (error) {
@@ -457,11 +642,12 @@ async function main() {
       liveKnitWorktreeDirtyFiles: knitLiveStatus ? knitLiveStatus.split("\n").length : 0,
       qualificationMode: skipFullKnitUnit ? "inspection-rehearsal" : "release-gate",
       fullKnitUnitSuitePassed: qualificationResult === "passed" && !skipFullKnitUnit,
-      finalReleaseGateRequired: qualificationResult !== "passed" || skipFullKnitUnit,
+      finalReleaseGateRequired:
+        qualificationResult !== "passed" || skipFullKnitUnit || !Object.values(gateResults).every(Boolean),
       gateResults,
       registryPolicy: {
         config: path.relative(repoRoot, registryConfigPath),
-        loomaScopePublicFallback: false,
+        loomaPackagePublicFallback: false,
         otherDependenciesProxy: "https://registry.npmjs.org/"
       },
       acceptedConsumerException: "Knit declares @vitejs/plugin-vue 5 beside Vite 7; Looma validation runs with strict peer failure disabled and proves Looma peers through build, typecheck, SSR, and test execution.",
@@ -481,12 +667,20 @@ async function main() {
     };
     await writeFile(evidencePath, `${JSON.stringify(evidence, null, 2)}\n`, "utf8");
   } finally {
+    await stopProcess(knitDevProcess);
+    if (supabaseStarted && knitWorktree) {
+      spawnSync("pnpm", ["exec", "supabase", "stop", "--no-backup"], {
+        cwd: knitWorktree,
+        env: dockerEnvironment,
+        stdio: "inherit"
+      });
+    }
     if (worktreeAttached) {
       run("git", ["-C", knitDirectory, "worktree", "remove", "--force", knitWorktree]);
     }
     if (temporaryRoot) {
       assert(
-        temporaryRoot.startsWith(`${tmpdir()}${path.sep}looma-knit-release-`),
+        temporaryRoot.startsWith(`${temporaryDirectory}${path.sep}knit-consumer-`),
         "refusing to remove an unexpected temporary directory"
       );
       await rm(temporaryRoot, { recursive: true, force: true });
@@ -497,9 +691,9 @@ async function main() {
     process.stderr.write(`Qualification evidence: ${path.relative(repoRoot, evidencePath)}\n`);
     throw qualificationError;
   }
-  process.stdout.write(`\nKnit consumed all five Looma ${RELEASE_VERSION} artifacts from the isolated registry.\n`);
+  process.stdout.write(`\nKnit consumed ${RELEASE_PACKAGE_NAME}@${RELEASE_VERSION} from the isolated registry.\n`);
   if (skipFullKnitUnit) {
-    process.stdout.write("Inspection rehearsal only: the final release gate still requires an eligible manifest and the complete Knit unit suite.\n");
+    process.stdout.write("Inspection rehearsal only: the final release gate still requires an eligible manifest plus the complete Knit unit, browser, migration, and RLS suites.\n");
   }
   process.stdout.write(`Evidence: ${path.relative(repoRoot, evidencePath)}\n`);
 }

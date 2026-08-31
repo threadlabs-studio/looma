@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
-import { readdir, readFile, stat } from "node:fs/promises";
+import { readdir, readFile, rm, stat } from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
 import { promisify } from "node:util";
@@ -48,10 +48,16 @@ async function hashTree(directory) {
 }
 
 test("facade assembly is deterministic, self-contained, and boundary-safe", async () => {
-  const command = [path.join(repoRoot, "tools/scripts/build-facade.mjs"), "--skip-workspace-build"];
-  await execFileAsync(process.execPath, command, { cwd: repoRoot });
+  const buildCommand = [path.join(repoRoot, "tools/scripts/build-facade.mjs")];
+  const assembleCommand = [...buildCommand, "--skip-workspace-build"];
+  await Promise.all(
+    ["core", "layout", "editor", "vue"].map((workspace) =>
+      rm(path.join(repoRoot, "packages", workspace, "dist"), { recursive: true, force: true })
+    )
+  );
+  await execFileAsync(process.execPath, buildCommand, { cwd: repoRoot });
   const firstHash = await hashTree(facadeRoot);
-  await execFileAsync(process.execPath, command, { cwd: repoRoot });
+  await execFileAsync(process.execPath, assembleCommand, { cwd: repoRoot });
   const secondHash = await hashTree(facadeRoot);
 
   assert.equal(secondHash, firstHash);
@@ -73,7 +79,7 @@ test("facade assembly is deterministic, self-contained, and boundary-safe", asyn
   assert.doesNotMatch(vue, /@threadlabs\/looma-(?:core|editor|layout)/);
 
   for (const relativePath of [
-    "dist/types/index.d.ts",
+    "dist/index.d.ts",
     "loader/index.js",
     "loader/index.cjs.js",
     "loader/index.d.ts",

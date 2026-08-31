@@ -3,7 +3,7 @@
   "components": [
     {
       "tag": "ui-avatar",
-      "package": "@threadlabs/looma-core",
+      "package": "@threadlabs/looma",
       "className": "UIAvatarElement",
       "description": "Image and fallback initials primitive for identity surfaces such as profiles and assignees.",
       "attributes": [
@@ -64,7 +64,7 @@
     },
     {
       "tag": "ui-avatar-group",
-      "package": "@threadlabs/looma-core",
+      "package": "@threadlabs/looma",
       "className": "UIAvatarGroupElement",
       "description": "Container that displays overlapping avatars with an optional \"+N\" overflow pill when the count exceeds the visible maximum.",
       "attributes": [
@@ -101,7 +101,7 @@
     },
     {
       "tag": "ui-badge",
-      "package": "@threadlabs/looma-core",
+      "package": "@threadlabs/looma",
       "className": "UIBadgeElement",
       "description": "Lightweight status and label primitive with minimal styling hooks.",
       "attributes": [
@@ -140,7 +140,7 @@
     },
     {
       "tag": "ui-button",
-      "package": "@threadlabs/looma-core",
+      "package": "@threadlabs/looma",
       "className": "UIButtonElement",
       "description": "Essential button primitive that enhances semantic button markup and styling hooks.",
       "attributes": [
@@ -190,7 +190,7 @@
     },
     {
       "tag": "ui-center",
-      "package": "@threadlabs/looma-layout",
+      "package": "@threadlabs/looma/layout",
       "className": "UICenterElement",
       "description": "Container primitive for readable measure and horizontal gutters.",
       "attributes": [
@@ -225,7 +225,7 @@
     },
     {
       "tag": "ui-checkbox",
-      "package": "@threadlabs/looma-core",
+      "package": "@threadlabs/looma",
       "className": "UICheckboxElement",
       "description": "Form control primitive for boolean and mixed selection state.",
       "attributes": [
@@ -315,7 +315,7 @@
     },
     {
       "tag": "ui-cluster",
-      "package": "@threadlabs/looma-layout",
+      "package": "@threadlabs/looma/layout",
       "className": "UIClusterElement",
       "description": "Cluster layout primitive for wrapping item groups with shared alignment controls.",
       "attributes": [
@@ -359,7 +359,7 @@
     },
     {
       "tag": "ui-context-menu",
-      "package": "@threadlabs/looma-core",
+      "package": "@threadlabs/looma",
       "className": "UIContextMenuElement",
       "description": "Pointer-anchored action menu that preserves menu keyboard selection and shared overlay dismissal behavior.",
       "attributes": [
@@ -417,7 +417,7 @@
     },
     {
       "tag": "ui-dialog",
-      "package": "@threadlabs/looma-core",
+      "package": "@threadlabs/looma",
       "className": "UIDialogElement",
       "description": "Overlay primitive that coordinates native `dialog` behavior with shared overlay stack rules.",
       "attributes": [
@@ -485,7 +485,7 @@
     },
     {
       "tag": "ui-disclosure",
-      "package": "@threadlabs/looma-core",
+      "package": "@threadlabs/looma",
       "className": "UIDisclosureElement",
       "description": "Progressively enhances a button/content pair into an accessible disclosure.",
       "attributes": [
@@ -542,7 +542,7 @@
     },
     {
       "tag": "ui-editor-insert-table-grid",
-      "package": "@threadlabs/looma-editor",
+      "package": "@threadlabs/looma/editor",
       "className": "UIEditorInsertTableGridElement",
       "description": "Keyboard- and pointer-operable grid for selecting table dimensions before insertion.",
       "attributes": [
@@ -578,7 +578,7 @@
     },
     {
       "tag": "ui-editor-slash-menu",
-      "package": "@threadlabs/looma-editor",
+      "package": "@threadlabs/looma/editor",
       "className": "UIEditorSlashMenuElement",
       "description": "Responsive slash-command suggestion surface positioned from an app-provided editor anchor.",
       "attributes": [],
@@ -627,7 +627,7 @@
     },
     {
       "tag": "ui-editor-table-context-menu",
-      "package": "@threadlabs/looma-editor",
+      "package": "@threadlabs/looma/editor",
       "className": "UIEditorTableContextMenuElement",
       "description": "Cell-scoped and structural table action menu with capability-controlled actions.",
       "attributes": [
@@ -711,7 +711,7 @@
     },
     {
       "tag": "ui-editor-table-overlay",
-      "package": "@threadlabs/looma-editor",
+      "package": "@threadlabs/looma/editor",
       "className": "UIEditorTableOverlayElement",
       "description": "Boundary-aligned controls for inserting rows or columns around an active table.",
       "attributes": [
@@ -747,7 +747,7 @@
     },
     {
       "tag": "ui-editor-table-toolbar",
-      "package": "@threadlabs/looma-editor",
+      "package": "@threadlabs/looma/editor",
       "className": "UIEditorTableToolbarElement",
       "description": "Selection-aware table toolbar for alignment and discoverable structural actions.",
       "attributes": [
@@ -831,7 +831,7 @@
     },
     {
       "tag": "ui-editor-toolbar",
-      "package": "@threadlabs/looma-editor",
+      "package": "@threadlabs/looma/editor",
       "className": "UIEditorToolbarElement",
       "description": "Slot-based semantic toolbar shell for app-owned editor commands.",
       "attributes": [],
@@ -846,7 +846,7 @@
     },
     {
       "tag": "ui-floating-action-button",
-      "package": "@threadlabs/looma-core",
+      "package": "@threadlabs/looma",
       "className": "UIFloatingActionButtonElement",
       "description": "Primary floating action primitive for mobile-first create or compose affordances.",
       "attributes": [
@@ -896,7 +896,7 @@
     },
     {
       "tag": "ui-form-field",
-      "package": "@threadlabs/looma-core",
+      "package": "@threadlabs/looma",
       "className": "UIFormFieldElement",
       "description": "Form-field composition primitive that links label/control/description semantics.",
       "attributes": [
@@ -946,7 +946,7 @@
     },
     {
       "tag": "ui-grid",
-      "package": "@threadlabs/looma-layout",
+      "package": "@threadlabs/looma/layout",
       "className": "UIGridElement",
       "description": "Responsive auto-fit grid primitive.",
       "attributes": [
@@ -981,7 +981,7 @@
     },
     {
       "tag": "ui-icon-button",
-      "package": "@threadlabs/looma-core",
+      "package": "@threadlabs/looma",
       "className": "UIIconButtonElement",
       "description": "Icon-only button primitive with stable square sizing for compact actions and shell controls.",
       "attributes": [
@@ -1062,7 +1062,7 @@
     },
     {
       "tag": "ui-inline",
-      "package": "@threadlabs/looma-layout",
+      "package": "@threadlabs/looma/layout",
       "className": "UIInlineElement",
       "description": "Inline layout primitive for row-style content with wrapping support.",
       "attributes": [
@@ -1115,7 +1115,7 @@
     },
     {
       "tag": "ui-input",
-      "package": "@threadlabs/looma-core",
+      "package": "@threadlabs/looma",
       "className": "UIInputElement",
       "description": "Essential text-input primitive that mirrors value/state to native input controls.",
       "attributes": [
@@ -1187,7 +1187,7 @@
     },
     {
       "tag": "ui-menu",
-      "package": "@threadlabs/looma-core",
+      "package": "@threadlabs/looma",
       "className": "UIMenuElement",
       "description": "Menu container primitive that manages focus and selection across `ui-menu-item` children.",
       "attributes": [
@@ -1239,7 +1239,7 @@
     },
     {
       "tag": "ui-menu-item",
-      "package": "@threadlabs/looma-core",
+      "package": "@threadlabs/looma",
       "className": "UIMenuItemElement",
       "description": "Focusable menu item primitive intended for use inside `ui-menu`.",
       "attributes": [
@@ -1271,7 +1271,7 @@
     },
     {
       "tag": "ui-popover",
-      "package": "@threadlabs/looma-core",
+      "package": "@threadlabs/looma",
       "className": "UIPopoverElement",
       "description": "Non-modal overlay primitive with shared open/close overlay lifecycle.",
       "attributes": [
@@ -1317,7 +1317,7 @@
     },
     {
       "tag": "ui-radio",
-      "package": "@threadlabs/looma-core",
+      "package": "@threadlabs/looma",
       "className": "UIRadioElement",
       "description": "Radio control primitive for mutually exclusive options, typically composed within `ui-radio-group`.",
       "attributes": [
@@ -1407,7 +1407,7 @@
     },
     {
       "tag": "ui-radio-group",
-      "package": "@threadlabs/looma-core",
+      "package": "@threadlabs/looma",
       "className": "UIRadioGroupElement",
       "description": "Grouped selection primitive that coordinates `ui-radio` descendants, keyboard navigation, and normalized selection events.",
       "attributes": [
@@ -1500,7 +1500,7 @@
     },
     {
       "tag": "ui-search-result-row",
-      "package": "@threadlabs/looma-core",
+      "package": "@threadlabs/looma",
       "className": "UISearchResultRowElement",
       "description": "Presentational row shell for command and search results. It owns row layout, hover and selected states, and optional leading, meta, excerpt, and trailing regions while apps keep result shaping and highlighting.",
       "attributes": [
@@ -1555,7 +1555,7 @@
     },
     {
       "tag": "ui-search-shell",
-      "package": "@threadlabs/looma-core",
+      "package": "@threadlabs/looma",
       "className": "UISearchShellElement",
       "description": "Overlay shell for search and command-palette experiences. It owns the backdrop/panel layout and responsive fullscreen behavior while apps keep query state, result rendering, and routing.",
       "attributes": [],
@@ -1586,7 +1586,7 @@
     },
     {
       "tag": "ui-select",
-      "package": "@threadlabs/looma-core",
+      "package": "@threadlabs/looma",
       "className": "UISelectElement",
       "description": "Native-select wrapper primitive that mirrors state to a slotted select while applying shared Looma styling.",
       "attributes": [
@@ -1658,7 +1658,7 @@
     },
     {
       "tag": "ui-separator",
-      "package": "@threadlabs/looma-layout",
+      "package": "@threadlabs/looma/layout",
       "className": "UISeparatorElement",
       "description": "Semantic separator primitive with horizontal and vertical orientations.",
       "attributes": [
@@ -1691,7 +1691,7 @@
     },
     {
       "tag": "ui-stack",
-      "package": "@threadlabs/looma-layout",
+      "package": "@threadlabs/looma/layout",
       "className": "UIStackElement",
       "description": "Vertical layout primitive that owns spacing between children.",
       "attributes": [
@@ -1735,7 +1735,7 @@
     },
     {
       "tag": "ui-switch",
-      "package": "@threadlabs/looma-core",
+      "package": "@threadlabs/looma",
       "className": "UISwitchElement",
       "description": "Binary control primitive that reflects switch semantics for checked state.",
       "attributes": [
@@ -1814,7 +1814,7 @@
     },
     {
       "tag": "ui-tabs",
-      "package": "@threadlabs/looma-core",
+      "package": "@threadlabs/looma",
       "className": "UITabsElement",
       "description": "Tablist primitive that synchronizes tab focus, selection, and panel visibility.",
       "attributes": [
@@ -1873,7 +1873,7 @@
     },
     {
       "tag": "ui-textarea",
-      "package": "@threadlabs/looma-core",
+      "package": "@threadlabs/looma",
       "className": "UITextareaElement",
       "description": "Multiline text-input primitive that mirrors value and state to native textarea controls.",
       "attributes": [
@@ -1956,7 +1956,7 @@
     },
     {
       "tag": "ui-toast-region",
-      "package": "@threadlabs/looma-core",
+      "package": "@threadlabs/looma",
       "className": "UIToastRegionElement",
       "description": "Live-region container primitive for stackable dismissible toasts.",
       "attributes": [
@@ -2003,7 +2003,7 @@
     },
     {
       "tag": "ui-tooltip",
-      "package": "@threadlabs/looma-core",
+      "package": "@threadlabs/looma",
       "className": "UITooltipElement",
       "description": "Contextual overlay primitive that links descriptive content to a trigger element.",
       "attributes": [
@@ -2060,7 +2060,7 @@
     },
     {
       "tag": "ui-top-bar",
-      "package": "@threadlabs/looma-core",
+      "package": "@threadlabs/looma",
       "className": "UITopBarElement",
       "description": "Mobile-first navigation shell with slots for leading controls, title content, an optional search affordance, and trailing actions.",
       "attributes": [],

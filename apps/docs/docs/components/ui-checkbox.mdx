@@ -1,5 +1,3 @@
-import Tabs from "@theme/Tabs";
-import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
 # Checkbox
@@ -57,12 +55,9 @@ Wrap the input and label text in a `<label>` so clicking the text toggles the ch
 
 ## Framework Snippets
 
-<Tabs groupId="framework" defaultValue="vue">
-  <TabItem value="vue" label="Vue">
-
 ```vue
 <script setup lang="ts">
-import { Checkbox } from "@threadlabs/looma-vue";
+import { Checkbox } from "@threadlabs/looma/vue";
 </script>
 
 <template>
@@ -74,36 +69,3 @@ import { Checkbox } from "@threadlabs/looma-vue";
   </Checkbox>
 </template>
 ```
-
-  </TabItem>
-  <TabItem value="svelte" label="Svelte">
-
-```svelte
-<ui-checkbox value="newsletter">
-  <label>
-    <input type="checkbox" name="newsletter" />
-    <span>Subscribe to updates</span>
-  </label>
-</ui-checkbox>
-```
-
-  </TabItem>
-  <TabItem value="react" label="React">
-
-```tsx
-import { Checkbox } from "@threadlabs/looma-react";
-
-export function Example() {
-  return (
-    <Checkbox value="newsletter">
-      <label>
-        <input type="checkbox" name="newsletter" />
-        <span>Subscribe to updates</span>
-      </label>
-    </Checkbox>
-  );
-}
-```
-
-  </TabItem>
-</Tabs>

@@ -1,5 +1,3 @@
-import Tabs from "@theme/Tabs";
-import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
 # Select
@@ -52,12 +50,9 @@ Default slot (typically one native `<select>` child).
 
 ## Framework Snippets
 
-<Tabs groupId="framework" defaultValue="vue">
-  <TabItem value="vue" label="Vue">
-
 ```vue
 <script setup lang="ts">
-import { Select } from "@threadlabs/looma-vue";
+import { Select } from "@threadlabs/looma/vue";
 </script>
 
 <template>
@@ -70,38 +65,3 @@ import { Select } from "@threadlabs/looma-vue";
   </Select>
 </template>
 ```
-
-  </TabItem>
-  <TabItem value="svelte" label="Svelte">
-
-```svelte
-<ui-select value="editor">
-  <select name="role">
-    <option value="viewer">Viewer</option>
-    <option value="editor">Editor</option>
-    <option value="admin">Admin</option>
-  </select>
-</ui-select>
-```
-
-  </TabItem>
-  <TabItem value="react" label="React">
-
-```tsx
-import { Select } from "@threadlabs/looma-react";
-
-export function Example() {
-  return (
-    <Select value="editor">
-      <select name="role">
-        <option value="viewer">Viewer</option>
-        <option value="editor">Editor</option>
-        <option value="admin">Admin</option>
-      </select>
-    </Select>
-  );
-}
-```
-
-  </TabItem>
-</Tabs>

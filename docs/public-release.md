@@ -9,9 +9,9 @@ implementation roadmap so package ownership decisions stay visible.
 - The repository license is MIT.
 - Package manifests include GitHub repository, issues, homepage, and MIT
   license metadata.
-- The R1 package graph and protected release workflow target five `@threadlabs/looma-*`
-  Candidate packages: tokens, layout, core, editor, and Vue.
-- Unauthenticated registry lookups report all five names as unpublished. This
+- The R1 package graph and protected release workflow target one Candidate
+  package, `@threadlabs/looma`, with explicit core, layout, editor, Vue, and CSS subpaths.
+- Unauthenticated registry lookup reports the name as unpublished. This
   host is authenticated to npm as `matthew-dean`, with account-level 2FA set to
   `auth-and-writes`, and that identity owns the `@threadlabs` organization.
 - The canonical GitHub repository is public, but its release commit has not
@@ -20,15 +20,12 @@ implementation roadmap so package ownership decisions stay visible.
 
 ## Npm Namespace Decision
 
-The implemented R1 contract uses these names:
+The implemented R1 contract uses `@threadlabs/looma` as its sole public package.
+Consumers select `@threadlabs/looma/core`, `/layout`, `/editor`,
+`/editor/extensions`, `/vue`, or an explicit CSS subpath. The private workspace
+names are assembly inputs, not consumer identities.
 
-- `@threadlabs/looma-tokens`
-- `@threadlabs/looma-layout`
-- `@threadlabs/looma-core`
-- `@threadlabs/looma-editor`
-- `@threadlabs/looma-vue`
-
-The owner approved `@threadlabs/looma-*` as the permanent public namespace after
+The owner approved `@threadlabs/looma` as the permanent public identity after
 the authenticated release identity could not prove access to the existing
 `@looma` organization. The migration is intentionally atomic across manifests,
 internal dependencies, Knit, generated API metadata, examples, docs, lockfiles,
@@ -37,7 +34,7 @@ release policy, and registry tests. React and Svelte remain unpublished in R1.
 ## Before First Publish
 
 1. Authenticate the `@threadlabs` npm owner on a secure operator host and prove
-   the protected release identity can publish all five exact package names.
+   the protected release identity can publish the exact package name.
 2. Configure the GitHub `ci`, `docs-preview`, `docs-production`, and
    `npm-release` environments and required approvers described in the release
    checklist.
@@ -47,7 +44,7 @@ release policy, and registry tests. React and Svelte remain unpublished in R1.
 5. Run `pnpm install --frozen-lockfile`, `pnpm generate:api`,
    `pnpm check:docs-sync`, `pnpm typecheck`, `pnpm build`, `pnpm test`,
    `pnpm build:docs`, and `pnpm build:storybook`.
-6. Publish the exact approved tarballs under `candidate` only after explicit
+6. Publish the exact approved tarball under `candidate` only after explicit
    registry authorization and every pre-publication gate passes.
 
 The detailed go/no-go source is [Release 1 Checklist](./release-checklist.md).

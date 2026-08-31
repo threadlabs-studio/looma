@@ -17,12 +17,12 @@
   },
   "main": "dist/index.cjs",
   "module": "dist/index.js",
-  "types": "dist/types/index.d.ts",
+  "types": "dist/index.d.ts",
   "collection": "dist/collection/collection-manifest.json",
   "collection:main": "dist/collection/index.js",
   "exports": {
     ".": {
-      "types": "./dist/types/index.d.ts",
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
@@ -39,7 +39,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "node ../../tools/scripts/run-stencil-build.mjs && tsup src/index.ts --format esm,cjs --dts --outDir dist",
+    "build": "node ../../tools/scripts/run-stencil-build.mjs && tsup index.ts --format esm,cjs --dts --outDir dist",
     "start": "stencil build --dev --watch --serve",
     "test": "pnpm build && vitest run",
     "test:browser": "pnpm build && vitest run --config vitest.browser.config.ts",

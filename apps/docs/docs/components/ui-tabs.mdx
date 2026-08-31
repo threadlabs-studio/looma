@@ -1,5 +1,3 @@
-import Tabs from "@theme/Tabs";
-import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
 # Tabs
@@ -51,12 +49,9 @@ Default slot with authored tablist/tabs/panels.
 
 ## Framework Snippets
 
-<Tabs groupId="framework" defaultValue="vue">
-  <TabItem value="vue" label="Vue">
-
 ```vue
 <script setup lang="ts">
-import { Tabs as UITabs } from "@threadlabs/looma-vue";
+import { Tabs as UITabs } from "@threadlabs/looma/vue";
 
 function onSelect(detail: unknown) {
   console.log(detail);
@@ -74,29 +69,3 @@ function onSelect(detail: unknown) {
   </UITabs>
 </template>
 ```
-
-  </TabItem>
-  <TabItem value="svelte" label="Svelte">
-
-```svelte
-<script lang="ts">
-  import { bindAdapter } from "@threadlabs/looma-svelte";
-  const options = { onSelect: (detail: unknown) => console.log(detail) };
-</script>
-
-<ui-tabs use:bindAdapter={options}>...</ui-tabs>
-```
-
-  </TabItem>
-  <TabItem value="react" label="React">
-
-```tsx
-import { Tabs as UITabs } from "@threadlabs/looma-react";
-
-export function Example() {
-  return <UITabs onSelect={(detail) => console.log(detail)}>...</UITabs>;
-}
-```
-
-  </TabItem>
-</Tabs>

@@ -1,5 +1,9 @@
 # PROJECT_STATE
 
+> **Current projection:** `@threadlabs/looma` is the sole public Release 1
+> artifact. Older five-package references below are retained as implementation
+> history or private workspace/build evidence, not as consumer guidance.
+
 Last Updated: 2026-08-30
 Status: Release 1 Candidate locally qualified; protected publication pending
 

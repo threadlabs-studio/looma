@@ -1,5 +1,3 @@
-import Tabs from "@theme/Tabs";
-import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
 # Search Result Row
@@ -46,12 +44,9 @@ None.
 
 ## Framework Snippets
 
-<Tabs groupId="framework" defaultValue="vue">
-  <TabItem value="vue" label="Vue">
-
 ```vue
 <script setup lang="ts">
-import { SearchResultRow } from "@threadlabs/looma-vue";
+import { SearchResultRow } from "@threadlabs/looma/vue";
 </script>
 
 <template>
@@ -64,38 +59,3 @@ import { SearchResultRow } from "@threadlabs/looma-vue";
   </SearchResultRow>
 </template>
 ```
-
-  </TabItem>
-  <TabItem value="svelte" label="Svelte">
-
-```svelte
-<ui-search-result-row selected>
-  <span slot="leading">📄</span>
-  <p slot="title">Project brief</p>
-  <p slot="meta">General</p>
-  <p slot="excerpt">Shared notes and action items.</p>
-  <svg slot="trailing" aria-hidden="true"></svg>
-</ui-search-result-row>
-```
-
-  </TabItem>
-  <TabItem value="react" label="React">
-
-```tsx
-import { SearchResultRow } from "@threadlabs/looma-react";
-
-export function Example() {
-  return (
-    <SearchResultRow selected>
-      <span slot="leading">📄</span>
-      <p slot="title">Project brief</p>
-      <p slot="meta">General</p>
-      <p slot="excerpt">Shared notes and action items.</p>
-      <svg slot="trailing" aria-hidden="true" />
-    </SearchResultRow>
-  );
-}
-```
-
-  </TabItem>
-</Tabs>

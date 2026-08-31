@@ -1,5 +1,3 @@
-import Tabs from "@theme/Tabs";
-import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
 # Menu Item
@@ -43,12 +41,9 @@ Default slot for menu item label/content.
 
 ## Framework Snippets
 
-<Tabs groupId="framework" defaultValue="vue">
-  <TabItem value="vue" label="Vue">
-
 ```vue
 <script setup lang="ts">
-import { Menu, MenuItem } from "@threadlabs/looma-vue";
+import { Menu, MenuItem } from "@threadlabs/looma/vue";
 </script>
 
 <template>
@@ -58,24 +53,3 @@ import { Menu, MenuItem } from "@threadlabs/looma-vue";
   </Menu>
 </template>
 ```
-
-  </TabItem>
-  <TabItem value="svelte" label="Svelte">
-
-```svelte
-<ui-menu-item value="edit">Edit</ui-menu-item>
-```
-
-  </TabItem>
-  <TabItem value="react" label="React">
-
-```tsx
-import { MenuItem } from "@threadlabs/looma-react";
-
-export function Example() {
-  return <MenuItem value="edit">Edit</MenuItem>;
-}
-```
-
-  </TabItem>
-</Tabs>

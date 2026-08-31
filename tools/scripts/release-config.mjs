@@ -1,65 +1,33 @@
 export const RELEASE_VERSION = "0.1.0";
 export const RELEASE_PACKAGES = [
   {
-    name: "@threadlabs/looma-tokens",
-    directory: "packages/tokens",
+    name: "@threadlabs/looma",
+    directory: "packages/looma",
     requiredFiles: [
       "package/package.json",
       "package/README.md",
-      "package/src/tokens.css",
-      "package/src/theme-light.css",
-      "package/src/theme-dark.css",
-      "package/src/theme-high-contrast.css"
-    ]
-  },
-  {
-    name: "@threadlabs/looma-layout",
-    directory: "packages/layout",
-    requiredFiles: [
-      "package/package.json",
-      "package/README.md",
+      "package/LICENSE",
       "package/dist/index.js",
       "package/dist/index.cjs",
       "package/dist/index.d.ts",
-      "package/src/layout.css"
-    ]
-  },
-  {
-    name: "@threadlabs/looma-core",
-    directory: "packages/core",
-    requiredFiles: [
-      "package/package.json",
-      "package/README.md",
-      "package/dist/index.js",
-      "package/dist/index.cjs",
-      "package/dist/types/index.d.ts",
       "package/loader/index.js",
-      "package/loader/index.cjs.js",
       "package/loader/index.d.ts",
-      "package/src/styles.css"
-    ]
-  },
-  {
-    name: "@threadlabs/looma-editor",
-    directory: "packages/editor",
-    requiredFiles: [
-      "package/package.json",
-      "package/README.md",
-      "package/dist/index.js",
-      "package/dist/index.d.ts",
-      "package/dist/extensions/index.js",
-      "package/dist/extensions/index.d.ts",
-      "package/src/editor.css"
-    ]
-  },
-  {
-    name: "@threadlabs/looma-vue",
-    directory: "packages/vue",
-    requiredFiles: [
-      "package/package.json",
-      "package/README.md",
-      "package/dist/index.js",
-      "package/dist/index.d.ts"
+      "package/layout/index.js",
+      "package/layout/index.cjs",
+      "package/layout/index.d.ts",
+      "package/editor/index.js",
+      "package/editor/index.d.ts",
+      "package/editor/extensions/index.js",
+      "package/editor/extensions/index.d.ts",
+      "package/vue/index.js",
+      "package/vue/index.d.ts",
+      "package/tokens.css",
+      "package/theme-light.css",
+      "package/theme-dark.css",
+      "package/theme-high-contrast.css",
+      "package/layout.css",
+      "package/styles.css",
+      "package/editor.css"
     ]
   }
 ];

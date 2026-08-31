@@ -1,5 +1,3 @@
-import Tabs from "@theme/Tabs";
-import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
 # Textarea
@@ -50,12 +48,9 @@ Default slot (typically one native `<textarea>` child).
 
 ## Framework Snippets
 
-<Tabs groupId="framework" defaultValue="vue">
-  <TabItem value="vue" label="Vue">
-
 ```vue
 <script setup lang="ts">
-import { Textarea } from "@threadlabs/looma-vue";
+import { Textarea } from "@threadlabs/looma/vue";
 </script>
 
 <template>
@@ -64,30 +59,3 @@ import { Textarea } from "@threadlabs/looma-vue";
   </Textarea>
 </template>
 ```
-
-  </TabItem>
-  <TabItem value="svelte" label="Svelte">
-
-```svelte
-<ui-textarea value="Notes" rows="5">
-  <textarea name="notes"></textarea>
-</ui-textarea>
-```
-
-  </TabItem>
-  <TabItem value="react" label="React">
-
-```tsx
-import { Textarea } from "@threadlabs/looma-react";
-
-export function Example() {
-  return (
-    <Textarea value="Notes" rows={5}>
-      <textarea name="notes" />
-    </Textarea>
-  );
-}
-```
-
-  </TabItem>
-</Tabs>

@@ -1,5 +1,3 @@
-import Tabs from "@theme/Tabs";
-import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
 # Avatar Group
@@ -49,12 +47,9 @@ Default slot: direct children are shown as overlapping avatars; only the first `
 
 ## Framework Snippets
 
-<Tabs groupId="framework" defaultValue="vue">
-  <TabItem value="vue" label="Vue">
-
 ```vue
 <script setup lang="ts">
-import { AvatarGroup, Avatar } from "@threadlabs/looma-vue";
+import { AvatarGroup, Avatar } from "@threadlabs/looma/vue";
 </script>
 
 <template>
@@ -64,32 +59,3 @@ import { AvatarGroup, Avatar } from "@threadlabs/looma-vue";
   </AvatarGroup>
 </template>
 ```
-
-  </TabItem>
-  <TabItem value="svelte" label="Svelte">
-
-```svelte
-<ui-avatar-group max="5" label="People">
-  <ui-avatar name="Alex" src="/a.png" alt="Alex"><img /><span data-ui-avatar-fallback></span></ui-avatar>
-  <ui-avatar name="Sam" src="/b.png" alt="Sam"><img /><span data-ui-avatar-fallback></span></ui-avatar>
-</ui-avatar-group>
-```
-
-  </TabItem>
-  <TabItem value="react" label="React">
-
-```tsx
-import { AvatarGroup, Avatar } from "@threadlabs/looma-react";
-
-export function Example() {
-  return (
-    <AvatarGroup max={5} label="People">
-      <Avatar name="Alex" src="/a.png" alt="Alex"><img /></Avatar>
-      <Avatar name="Sam" src="/b.png" alt="Sam"><img /></Avatar>
-    </AvatarGroup>
-  );
-}
-```
-
-  </TabItem>
-</Tabs>

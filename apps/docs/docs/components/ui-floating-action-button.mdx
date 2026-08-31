@@ -1,5 +1,3 @@
-import Tabs from "@theme/Tabs";
-import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
 <div className="looma-component-header">
@@ -10,7 +8,7 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 Primary floating action primitive for mobile-first create or compose affordances.
 
-**Import:** `import "@threadlabs/looma-core"` — or use `FloatingActionButton` from `@threadlabs/looma-react`, `@threadlabs/looma-vue`, or `@threadlabs/looma-svelte`.
+**Import:** `import "@threadlabs/looma"` — or use `FloatingActionButton` from `@threadlabs/looma/vue`.
 
 </div>
 
@@ -39,12 +37,9 @@ Primary floating action primitive for mobile-first create or compose affordances
 
 ## Framework Snippets
 
-<Tabs groupId="framework" defaultValue="vue">
-  <TabItem value="vue" label="Vue">
-
 ```vue
 <script setup lang="ts">
-import { FloatingActionButton } from "@threadlabs/looma-vue";
+import { FloatingActionButton } from "@threadlabs/looma/vue";
 </script>
 
 <template>
@@ -55,34 +50,3 @@ import { FloatingActionButton } from "@threadlabs/looma-vue";
   </FloatingActionButton>
 </template>
 ```
-
-  </TabItem>
-  <TabItem value="svelte" label="Svelte">
-
-```svelte
-<ui-floating-action-button label="Create new page" mobile-only>
-  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
-    <path d="M12 5v14M5 12h14" stroke="currentColor" />
-  </svg>
-</ui-floating-action-button>
-```
-
-  </TabItem>
-  <TabItem value="react" label="React">
-
-```tsx
-import { FloatingActionButton } from "@threadlabs/looma-react";
-
-export function Example() {
-  return (
-    <FloatingActionButton label="Create new page" mobileOnly>
-      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
-        <path d="M12 5v14M5 12h14" stroke="currentColor" />
-      </svg>
-    </FloatingActionButton>
-  );
-}
-```
-
-  </TabItem>
-</Tabs>

@@ -1,13 +1,15 @@
 ---
 module: release-tooling
 date: 2026-08-30
+last_updated: 2026-08-31
 problem_type: architecture_pattern
 component: development_workflow
 severity: medium
 applies_when:
-  - "A library must qualify exact release artifacts against an independently versioned priority consumer before publication."
-  - "Consumer work in progress must be recorded for auditability but excluded from canonical release proof."
-  - "Workspace links, shared caches, or public-registry fallback could hide package or dependency defects."
+  - "A public facade is assembled from private workspaces and must be qualified as the bytes consumers actually install."
+  - "An independently versioned priority consumer supplies release-critical build, unit, database, and browser gates."
+  - "Workspace links, shared stores, registry fallback, or source-tree imports could hide package defects."
+  - "Containerized tests need files from a detached checkout on a host path shared into the Docker-compatible VM."
 root_cause: missing_workflow_step
 resolution_type: workflow_improvement
 related_components:
@@ -17,138 +19,212 @@ related_components:
 tags:
   - release-qualification
   - cross-project-testing
-  - candidate-artifacts
-  - verdaccio
-  - pnpm
+  - exact-artifacts
+  - facade-package
+  - colima
+  - pgtap
   - knit
   - evidence-integrity
-  - clean-consumer
 ---
 
 # Qualify Exact Candidate Artifacts Through a Clean Priority Consumer
 
 ## Context
 
-Looma's release boundary is not complete when its packages merely build and test in their own workspace. Knit is the priority product and the deepest known consumer, so a Looma Candidate must prove that the exact package bytes work in a real application without resolving back to Looma source.
+Looma's release boundary is its single public `@threadlabs/looma` facade, not
+the private workspaces that produce it. The package exposes explicit root,
+core, loader, layout, editor, editor-extension, Vue, and stylesheet subpaths
+(`packages/looma/package.json:21`, `packages/looma/package.json:24`), while the
+release configuration admits exactly one public artifact and enumerates the
+runtime, type, and style files required in its tarball
+(`tools/scripts/release-config.mjs:2`, `tools/scripts/release-config.mjs:39`).
 
-The boundary is intentionally asymmetric. Knit supplies the most demanding product-level proof, but Knit-owned authentication, workspace, page, and data behavior remains outside Looma's product scope. Knit demand decides whether Looma's generic artifacts are fit to release; it does not put Knit vocabulary or business rules into Looma APIs.
+A green Looma workspace build cannot prove that boundary. Source imports,
+workspace resolution, a sibling checkout, or an existing package store can all
+make code work without proving that the packed bytes have complete exports and
+survive installation by a real consumer. Earlier planning found the same blind
+spot in Knit: linked source dependencies and mocked registration imports exposed
+the migration seams but did not execute the bytes that would be published
+(session history).
 
-Earlier session history reinforces two related controls. Evidence from one source commit cannot qualify another, and independently required evidence must be uploaded separately so one present file cannot mask another missing file. Local tarball qualification also remains distinct from post-publication public-registry qualification; the latter cannot run before the packages exist publicly. (session history)
+Knit is the priority consumer, so Looma treats the exact facade tarball and a
+committed Knit snapshot as one cross-project qualification unit. The verifier
+binds the manifest to the current Looma commit, checks the tarball digest, and
+creates a clean detached Knit worktree at the recorded Knit commit
+(`tools/scripts/verify-knit-consumer.mjs:212`,
+`tools/scripts/verify-knit-consumer.mjs:383`,
+`tools/scripts/verify-knit-consumer.mjs:396`). This is deeper than package
+loading: Knit's release path also depends on Nuxt build behavior, Vue SSR, unit
+contracts, Supabase migrations, RLS, Realtime, and a real browser.
+
+This pattern proves local exact-artifact qualification. It does not claim that
+either repository is merged, that the Candidate is published to npm, or that a
+protected deployment is active.
 
 ## Guidance
 
-Treat cross-project qualification as a chain of custody for release bytes, not as a convenient test run.
+### Make exact installed bytes the subject of the test
 
-### Bind one artifact set to one source state
+Validate the release manifest before starting the consumer. Require the expected
+version and exact approved package set, then recompute the tarball SHA-256 and
+compare it with the manifest (`tools/scripts/verify-knit-consumer.mjs:212`,
+`tools/scripts/verify-knit-consumer.mjs:219`,
+`tools/scripts/verify-knit-consumer.mjs:223`). Publish that tarball—not rebuilt
+output—to a disposable loopback registry under the local Candidate tag
+(`tools/scripts/verify-knit-consumer.mjs:404`,
+`tools/scripts/verify-knit-consumer.mjs:434`).
 
-Build and pack the Candidate once. Inspect each packed manifest and tarball, require exact synchronized internal versions, and record a source commit plus SHA-256 for every artifact. The release manifest is the identity of the candidate set; do not silently rebuild between qualification and publication.
+Rewrite only the detached consumer's dependency to the exact release version
+and reject superseded package identities (`tools/scripts/verify-knit-consumer.mjs:228`).
+Install with a fresh store, workspace preference and linking disabled, and
+store-integrity verification enabled (`tools/scripts/verify-knit-consumer.mjs:466`).
+After installation:
 
-The package verifier implements this in [`tools/scripts/verify-packages.mjs`](../../../tools/scripts/verify-packages.mjs). The authoritative release sequence starts with:
+- reject `link:`, `workspace:`, and `file:` Looma references in the lockfile;
+- require the exact Candidate version;
+- prove the installed package resolves inside the detached Knit checkout; and
+- preserve the generated lockfile as evidence rather than changing Knit's
+  source lockfile (`tools/scripts/verify-knit-consumer.mjs:288`).
 
-```sh
-pnpm release:verify
-```
+That closes the loophole where a test says "installed" but actually executes
+sibling source. Local development may still use a `file:` dependency for fast
+iteration; it is a different resolver path and cannot qualify the release.
 
-### Let only the approved bytes satisfy the Looma scope
+### Carry the same candidate through every consumer layer
 
-Before testing Knit, verify every tarball against the release manifest. Publish only those tarballs, in manifest-derived dependency order, to a disposable loopback registry under the local `candidate` tag.
+Do not stop after import or compile checks. The same detached installation must
+pass the production build, typecheck, SSR proof, signup-critical unit tests, and
+complete unit suite before any environment-dependent gate starts
+(`tools/scripts/verify-knit-consumer.mjs:481`,
+`tools/scripts/verify-knit-consumer.mjs:495`,
+`tools/scripts/verify-knit-consumer.mjs:518`). The generated SSR proof imports
+editor extensions and Vue adapters from the public facade and renders the Looma
+surfaces Knit actually consumes (`tools/scripts/verify-knit-consumer.mjs:241`,
+`tools/scripts/verify-knit-consumer.mjs:263`).
 
-The registry policy in [`tests/release/registry/verdaccio.yaml`](../../../tests/release/registry/verdaccio.yaml) deliberately gives `@threadlabs/looma-*` no npmjs uplink while allowing unrelated dependencies to proxy normally. A missing Looma artifact must fail instead of being silently repaired by a public package.
+Then start an isolated Supabase stack from that same detached checkout, run its
+migrations and complete pgTAP suite, require the reported file count to match
+every discovered SQL test and the assertion count to be nonzero, feed the
+resulting local API URL and keys
+into a Knit dev server, and execute the required Playwright signup, workspace,
+and authoring flow (`tools/scripts/verify-knit-consumer.mjs:525`,
+`tools/scripts/verify-knit-consumer.mjs:535`,
+`tools/scripts/verify-knit-consumer.mjs:545`,
+`tools/scripts/verify-knit-consumer.mjs:586`). Allocate ports dynamically and
+rewrite local auth origins so concurrent or stale developer services cannot
+satisfy the run accidentally (`tools/scripts/verify-knit-consumer.mjs:149`).
+Keep the runtime topology faithful: Knit enables Supabase Realtime because its
+presence behavior expects it
+([Knit Supabase config](../../../../knit/supabase/config.toml#L23)).
 
-### Test a committed Knit snapshot, not live WIP
+### Treat container-visible filesystem topology as test configuration
 
-Record Knit's current commit and live status, then create a detached worktree at that exact commit and require it to be clean. Rewrite Looma dependency specifications only in the temporary checkout. The live dirty-file count belongs in the evidence for transparency, but the live files are not qualification input.
+On macOS, an ordinary host temporary directory is not automatically a valid
+fixture location for a Colima-backed container. During this qualification, the
+instructive failure was
+deceptive: Supabase started and migrations applied, yet `supabase test db`
+returned `NOTESTS` because the pgTAP SQL files lived under a private temporary
+path that the Colima VM did not share. That was a mount-visibility failure, not
+evidence that the database had no tests.
 
-This split preserves both truths: the developer may have valuable work in progress, and release proof must still be reproducible from a committed state.
+Place detached consumers under Looma's ignored `.release/tmp` directory inside
+`/Users`, which Colima shares with its VM. The verifier makes that location
+explicit and documents why the database test container must see it
+(`tools/scripts/verify-knit-consumer.mjs:19`,
+`tools/scripts/verify-knit-consumer.mjs:387`). Prefer the active Docker
+environment, but when it is unavailable, detect and validate Colima's default
+socket rather than mutating the developer's global Docker context
+(`tools/scripts/verify-knit-consumer.mjs:123`).
 
-### Make the install prove isolation
+### Make late gates fail closed and observable
 
-Install in the detached checkout with a fresh package store, workspace preference and linking disabled, and store-integrity verification enabled. After installation:
+Represent install, installed graph, build, typecheck, SSR, critical units, full
+units, migrations, RLS, and browser behavior as separate gates
+(`tools/scripts/verify-knit-consumer.mjs:349`). A successful early gate must not
+erase a later failure. The final release gate remains required when the run
+failed, the full suite was skipped, or any gate is false
+(`tools/scripts/verify-knit-consumer.mjs:613`,
+`tools/scripts/verify-knit-consumer.mjs:627`).
 
-- reject local Looma references in the generated lockfile;
-- require the entire Candidate package graph at the expected version;
-- prove direct Looma dependencies resolve inside the isolated Knit checkout; and
-- preserve the generated lockfile as evidence rather than changing Knit's source lockfile.
-
-### Run gates from shallow to deep
-
-[`tools/scripts/verify-knit-consumer.mjs`](../../../tools/scripts/verify-knit-consumer.mjs) runs the consumer gates in this order:
-
-1. install and installed-graph validation;
-2. production build;
-3. typecheck;
-4. SSR proof for the Knit-consumed Looma surfaces;
-5. the explicitly enumerated signup-critical tests; and
-6. the complete Knit unit suite.
-
-Run the full gate under the repository's declared Node 20 runtime:
-
-```sh
-pnpm release:verify-knit
-```
-
-Inspection mode may skip the full suite only in an explicitly ineligible inspection rehearsal. It always records that the final release gate is still required while preserving the manifest's eligibility as a separate fact. Inspection output is diagnostic evidence, never final release evidence.
-
-### Replace stale success with current failure evidence
-
-Clear prior consumer evidence, copied lockfile, and registry log before attempting qualification. Every controlled failure must write a new result, a sanitized failure, the per-gate map, available source identities, live Knit dirty-file count, artifact hashes, executed commands, and evidence hashes. Cleanup of the registry, temporary worktree, and guarded temporary directory must run even when qualification fails.
-
-Commit `f78a2e9` on the release branch added this fail-closed behavior. That is a local branch fact, not a claim that the change is merged or published.
-
-A trustworthy partial result looks like this:
-
-```json
-{
-  "result": "failed",
-  "gateResults": {
-    "installPassed": true,
-    "installedGraphPassed": true,
-    "buildPassed": true,
-    "typecheckPassed": true,
-    "ssrProofPassed": true,
-    "signupCriticalTestsPassed": true,
-    "fullKnitUnitSuitePassed": false
-  },
-  "finalReleaseGateRequired": true
-}
-```
-
-Read the gate map rather than a green subset or an old headline. The mutable current status belongs in [`docs/release-checklist.md`](../../release-checklist.md); this learning documents the durable method.
+Preserve the commit identities, package digest, installed lockfile hash,
+executed commands, and per-gate results. Clear older evidence before each attempt
+so a current failure cannot coexist with a stale green record
+(`tools/scripts/verify-knit-consumer.mjs:317`,
+`tools/scripts/verify-knit-consumer.mjs:620`,
+`tools/scripts/verify-knit-consumer.mjs:642`). Always stop the app and Supabase
+stack and remove the detached worktree and guarded temporary directory, including
+after failure (`tools/scripts/verify-knit-consumer.mjs:651`).
 
 ## Why This Matters
 
-Workspace tests cannot prove that packed manifests are correct, runtime files are present, exports resolve from tarballs, internal versions are exact, or an independent application can consume the artifacts. A shared cache, sibling link, or public fallback can produce convincing but irrelevant success.
+Exact-tarball installation catches missing assembled files, incorrect subpath
+exports, missing runtime dependencies exercised by the consumer, stale
+identities, and accidental workspace coupling.
+A detached committed consumer keeps unrelated Knit work in progress from
+changing the proof while still exercising the product that matters most.
 
-Using Knit at the release boundary puts product pressure at the right layer. Looma stays generic, while its Candidate must survive the build, type, SSR, and behavior demands of the application that relies on it most.
+The environment gates catch a different class of release failure. Build and SSR
+can succeed even when migrations do not apply, RLS blocks workspace provisioning,
+Realtime-dependent behavior is unavailable, or signup fails in Chromium.
+Conversely, `NOTESTS` can look like missing database coverage when the defect is
+the host-to-VM mount boundary. Treating ports, Docker socket selection, shared
+filesystem roots, auth origins, and enabled services as first-class inputs makes
+these failures diagnosable instead of flaky.
 
-Failure evidence is part of the release control, not merely logging. A failed run must replace stale success-looking artifacts with a commit-bound red record; otherwise a clean temporary environment can coexist with an ambiguous and unsafe release decision.
+This proof remains intentionally local. Installing the published Candidate from
+npm and running protected deployment/promotion gates are separate release
+boundaries (`docs/release-checklist.md:77`, `docs/release-checklist.md:145`).
 
 ## When to Apply
 
-- A library release depends materially on a separately versioned application.
-- Approval must cover the exact tarball bytes that may be published.
-- Scoped packages could fall back to a public registry and hide a missing Candidate artifact.
-- The consumer checkout may contain unrelated live work that cannot contaminate canonical proof.
-- Several increasingly expensive gates need trustworthy partial results when a late gate fails.
+- A library consolidates private workspaces behind one public facade and package
+  assembly can diverge from source layout.
+- A release depends materially on a separately versioned application whose
+  deepest risks appear only after database or browser startup.
+- Local development uses `file:`, `link:`, or workspace resolution, so a normal
+  consumer build cannot prove registry-install behavior.
+- Docker or a VM-backed runtime must read tests or fixtures created by a host-side
+  qualification script.
+- A late failing gate must leave enough commit-bound evidence to distinguish
+  artifact, consumer, database, browser, and infrastructure failures.
 
-Do not apply this pattern by copying consumer domain concepts into the library. Add or refine generic Looma APIs only when Knit exposes a reusable need; keep Knit-specific correctness in Knit and make it evidence at the boundary.
+Use a shallower consumer proof only when the artifact has no environment-dependent
+priority consumer. Even then, exact packed-byte installation plus lockfile and
+realpath isolation are the minimum proof of a package boundary.
 
 ## Examples
 
-The pre-publication sequence is:
+The intended local sequence is:
 
 ```sh
 pnpm release:verify
 pnpm release:verify-knit
 ```
 
-The first command creates and verifies one exact Candidate artifact set. The second qualifies that set through a detached clean Knit commit. Neither command publishes to npm.
+The first command creates and verifies the Candidate tarball. The second runs
+the detached Knit qualification (`package.json:43`, `package.json:44`). Neither
+command publishes to npm.
 
-An unsafe shortcut installs Knit from the live developer checkout with its existing store and ordinary registry fallback, then reports a green build. That result cannot distinguish artifact correctness from workspace links, cached packages, public versions, or uncommitted fixes.
+An unsafe shortcut runs Knit from its live sibling `file:` dependency and reports
+a green build. Knit's development manifest deliberately uses that local dependency
+for iteration ([Knit web manifest](../../../../knit/web/package.json#L33)), while qualification rewrites only
+the detached copy to `0.1.0`, disables workspace linking, and rejects local Looma
+references afterward (`tools/scripts/verify-knit-consumer.mjs:228`,
+`tools/scripts/verify-knit-consumer.mjs:466`,
+`tools/scripts/verify-knit-consumer.mjs:288`).
+
+Another unsafe shortcut creates the detached worktree under the operating
+system's private temporary directory. With Colima, the application and migrations
+may look healthy while containerized pgTAP sees no SQL files. Put the worktree
+under the repository's ignored `.release/tmp`, isolate Supabase ports, and run
+the browser against the keys returned by that exact stack
+(`tools/scripts/verify-knit-consumer.mjs:387`,
+`tools/scripts/verify-knit-consumer.mjs:532`,
+`tools/scripts/verify-knit-consumer.mjs:545`).
 
 ## Related
 
 - [Release 1 Checklist](../../release-checklist.md) — mutable go/no-go status and current evidence
-- [Release 1 Plan](../../plans/2026-08-30-0109-feat-looma-r1-release-plan.md) — design intent and release-unit boundaries
-- [Component Qualification Guide](../../component-qualification-guide.md) — Candidate evidence profiles
+- [Release 1 Plan](../../plans/2026-08-31-1018-refactor-public-facade-package-plan.md) — singleton-facade design intent and release-unit boundaries
+- [npm identity migration](npm-namespace-is-artifact-graph-identity.md) — graph-wide handling for package identity changes
 - [Public Release Runbook](../../public-release.md) — protected publication and promotion flow

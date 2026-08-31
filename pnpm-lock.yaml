@@ -23,15 +23,9 @@ importers:
       '@mdx-js/react':
         specifier: ^3.1.0
         version: 3.1.1(@types/react@19.2.14)(react@19.2.4)
-      '@threadlabs/looma-core':
+      '@threadlabs/looma':
         specifier: workspace:*
-        version: link:../../packages/core
-      '@threadlabs/looma-layout':
-        specifier: workspace:*
-        version: link:../../packages/layout
-      '@threadlabs/looma-tokens':
-        specifier: workspace:*
-        version: link:../../packages/tokens
+        version: link:../../packages/looma
       prism-svelte:
         specifier: ^0.5.0
         version: 0.5.0

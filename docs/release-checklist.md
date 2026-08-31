@@ -62,23 +62,26 @@ output immutability, rejects skipped required suites, and runs core, editor, and
 Vue browser qualification. The exact Stencil CJS filename diagnostic is the sole
 allowlisted build warning; any additional Stencil warning fails the build.
 
-The eligible `release:verify-knit` gate publishes the five checksummed local
-artifacts to a disposable loopback registry with no `@threadlabs/looma-*`
-public fallback, then installs them into a detached clean Knit checkout with a
-fresh pnpm store and linking disabled. The committed Knit release branch,
-including the five owner render-test updates and the namespace migration, passes
-the production build, typecheck, SSR rendering for all eight consumed Looma
-surfaces, all 89 signup-critical tests, and the complete 266-test unit suite.
-Evidence under the ignored `.release/evidence/` directory binds the exact Looma
-and Knit commits for each run. This closes local exact-artifact qualification;
-it does not close the separate public-registry gate below.
+The eligible `release:verify-knit` gate publishes the checksummed
+`@threadlabs/looma` Candidate tarball to a disposable loopback registry. It
+rejects public fallback for that package and every superseded
+`@threadlabs/looma-*` identity, then installs the facade into a detached clean
+Knit checkout with a fresh pnpm store and linking disabled. The detached
+checkout passes the production build, typecheck, SSR rendering for all eight
+consumed Looma surfaces, signup-critical tests, and the complete unit suite. It
+also applies every migration to an isolated Colima/Docker-backed Supabase stack,
+runs the pgTAP RLS suite, and exercises the required local signup/authoring
+browser flow. Evidence under the ignored `.release/evidence/` directory binds
+the exact Looma commit, Knit commit, artifact digest, installed lockfile,
+commands, and per-gate results for each run. This closes local exact-artifact
+qualification; it does not close the separate public-registry gate below.
 
 ## Documentation Gates
 
 - [x] Getting Started begins with the supported registry install path, required
   styles/entry imports, a Vue example, and a time-stable Candidate availability guard.
-- [x] Public docs and package READMEs distinguish the five Candidate packages
-  from deferred React/Svelte previews and expose accepted editor limitations.
+- [x] Public docs and package READMEs distinguish the singleton Candidate facade
+  from private workspaces and deferred React/Svelte previews, and expose accepted editor limitations.
 - [x] Package README links are absolute and identify the canonical repository,
   issue tracker, documentation, and Candidate support status.
 - [x] Getting Started, Release 1 support, and ContextMenu pass Chromium axe and

@@ -1,5 +1,3 @@
-import Tabs from "@theme/Tabs";
-import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
 # Dialog
@@ -51,12 +49,9 @@ Default slot (typically contains one native `<dialog>` child).
 
 ## Framework Snippets
 
-<Tabs groupId="framework" defaultValue="vue">
-  <TabItem value="vue" label="Vue">
-
 ```vue
 <script setup lang="ts">
-import { Dialog } from "@threadlabs/looma-vue";
+import { Dialog } from "@threadlabs/looma/vue";
 
 function onClose(detail: unknown) {
   console.log(detail);
@@ -73,29 +68,3 @@ function onClose(detail: unknown) {
   </Dialog>
 </template>
 ```
-
-  </TabItem>
-  <TabItem value="svelte" label="Svelte">
-
-```svelte
-<script lang="ts">
-  import { bindAdapter } from "@threadlabs/looma-svelte";
-  const options = { onClose: (detail: unknown) => console.log(detail) };
-</script>
-
-<ui-dialog use:bindAdapter={options}>...</ui-dialog>
-```
-
-  </TabItem>
-  <TabItem value="react" label="React">
-
-```tsx
-import { Dialog } from "@threadlabs/looma-react";
-
-export function Example() {
-  return <Dialog onClose={(detail) => console.log(detail)}>...</Dialog>;
-}
-```
-
-  </TabItem>
-</Tabs>

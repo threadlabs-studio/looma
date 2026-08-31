@@ -1,5 +1,3 @@
-import Tabs from "@theme/Tabs";
-import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
 <div className="looma-component-header">
@@ -10,7 +8,7 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 Icon-only button primitive with stable square sizing and variant tokens for shell controls, compact actions, and editor chrome.
 
-**Import:** `import "@threadlabs/looma-core"` — or use `IconButton` from `@threadlabs/looma-react`, `@threadlabs/looma-vue`, or `@threadlabs/looma-svelte`.
+**Import:** `import "@threadlabs/looma"` — or use `IconButton` from `@threadlabs/looma/vue`.
 
 </div>
 
@@ -58,12 +56,9 @@ Icon-only button primitive with stable square sizing and variant tokens for shel
 
 ## Framework Snippets
 
-<Tabs groupId="framework" defaultValue="vue">
-  <TabItem value="vue" label="Vue">
-
 ```vue
 <script setup lang="ts">
-import { IconButton } from "@threadlabs/looma-vue";
+import { IconButton } from "@threadlabs/looma/vue";
 </script>
 
 <template>
@@ -75,36 +70,3 @@ import { IconButton } from "@threadlabs/looma-vue";
   </IconButton>
 </template>
 ```
-
-  </TabItem>
-  <TabItem value="svelte" label="Svelte">
-
-```svelte
-<ui-icon-button label="Search" variant="ghost">
-  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
-    <circle cx="11" cy="11" r="7" stroke="currentColor" />
-    <path d="m20 20-3.5-3.5" stroke="currentColor" />
-  </svg>
-</ui-icon-button>
-```
-
-  </TabItem>
-  <TabItem value="react" label="React">
-
-```tsx
-import { IconButton } from "@threadlabs/looma-react";
-
-export function Example() {
-  return (
-    <IconButton label="Search" variant="ghost">
-      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
-        <circle cx="11" cy="11" r="7" stroke="currentColor" />
-        <path d="m20 20-3.5-3.5" stroke="currentColor" />
-      </svg>
-    </IconButton>
-  );
-}
-```
-
-  </TabItem>
-</Tabs>

@@ -4,27 +4,21 @@ Looma is an SSR-first component system. Consumer-authored semantic HTML is the f
 
 It is the UI library used by [Knit](https://knit.wiki), but its public APIs remain domain-neutral.
 
-## Release 1 package graph
+## Release 1 public package
 
-```text
-@threadlabs/looma-tokens
-├── @threadlabs/looma-layout
-│   └── @threadlabs/looma-core
-│       └── @threadlabs/looma-editor
-└───────────┘
-
-@threadlabs/looma-vue → layout + core + editor
-```
-
-The five packages above are the complete public Candidate graph. Docs, Storybook, examples, tooling, `@threadlabs/looma-react`, and `@threadlabs/looma-svelte` are private or deferred workspaces.
+`@threadlabs/looma` is the complete public Candidate artifact. Its explicit
+subpaths keep core, layout, editor, Vue, and CSS boundaries discoverable without
+exposing the private workspace graph. Docs, Storybook, examples, tooling, and
+deferred adapters remain internal workspaces.
 
 ## Responsibilities
 
-- `@threadlabs/looma-tokens`: CSS semantic tokens plus light, dark, and high-contrast themes.
-- `@threadlabs/looma-layout`: six light-DOM spacing and layout elements with no external margins.
-- `@threadlabs/looma-core`: 26 shadow-root elements that preserve authored semantic light DOM through slots.
-- `@threadlabs/looma-editor`: six guarded light-DOM editor elements, editor styles, Tiptap 2 presets, and table helpers.
-- `@threadlabs/looma-vue`: the supported Vue 3 translation over layout, core, and editor contracts.
+- `@threadlabs/looma/*.css`: CSS semantic tokens, themes, and component styles.
+- `@threadlabs/looma/layout`: six light-DOM spacing and layout elements with no external margins.
+- `@threadlabs/looma`: 26 shadow-root elements that preserve authored semantic light DOM through slots.
+- `@threadlabs/looma/editor`: six guarded light-DOM editor elements and editor styles, without a Tiptap requirement.
+- `@threadlabs/looma/editor/extensions`: optional Tiptap 2 presets and table helpers.
+- `@threadlabs/looma/vue`: the supported Vue 3 translation over layout, core, and editor contracts.
 
 ## SSR and upgrade contract
 

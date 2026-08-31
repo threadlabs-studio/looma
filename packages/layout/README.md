@@ -1,5 +1,8 @@
 # @threadlabs/looma-layout
 
+> Internal implementation workspace. Consumers install `@threadlabs/looma` and
+> import `@threadlabs/looma/layout` or `@threadlabs/looma/layout.css`.
+
 Six light-DOM layout elements that use token-driven gaps and never add external margins.
 
 Release status: Candidate `0.1.0`. The public elements are `ui-stack`, `ui-inline`, `ui-cluster`, `ui-grid`, `ui-center`, and `ui-separator`.

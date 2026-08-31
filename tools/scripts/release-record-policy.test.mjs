@@ -16,15 +16,8 @@ const releaseRecordJob = workflow.match(/\n  release-record:[\s\S]*$/)?.[0] ?? "
 test("Candidate changelog records the exact R1 support boundary without claiming remote completion", () => {
   assert.match(changelog, /^# Changelog/m);
   assert.match(changelog, /^## v0\.1\.0 Candidate$/m);
-  for (const packageName of [
-    "@threadlabs/looma-tokens",
-    "@threadlabs/looma-layout",
-    "@threadlabs/looma-core",
-    "@threadlabs/looma-editor",
-    "@threadlabs/looma-vue"
-  ]) {
-    assert.match(changelog, new RegExp(packageName.replace("/", "\\/")));
-  }
+  assert.match(changelog, /one Candidate package[\s\S]*@threadlabs\/looma/);
+  assert.doesNotMatch(changelog, /@threadlabs\/looma-(?:tokens|layout|core|editor|vue)/);
   assert.match(changelog, /E-TBL-003/);
   assert.match(changelog, /React[\s\S]*Svelte|Svelte[\s\S]*React/);
   assert.match(changelog, /https:\/\/threadlabs-studio\.github\.io\/looma\//);

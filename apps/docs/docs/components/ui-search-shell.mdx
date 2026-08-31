@@ -1,5 +1,3 @@
-import Tabs from "@theme/Tabs";
-import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
 # Search Shell
@@ -43,12 +41,9 @@ None.
 
 ## Framework Snippets
 
-<Tabs groupId="framework" defaultValue="vue">
-  <TabItem value="vue" label="Vue">
-
 ```vue
 <script setup lang="ts">
-import { SearchShell } from "@threadlabs/looma-vue";
+import { SearchShell } from "@threadlabs/looma/vue";
 </script>
 
 <template>
@@ -60,36 +55,3 @@ import { SearchShell } from "@threadlabs/looma-vue";
   </SearchShell>
 </template>
 ```
-
-  </TabItem>
-  <TabItem value="svelte" label="Svelte">
-
-```svelte
-<ui-search-shell role="dialog" aria-modal="true" aria-label="Search">
-  <button slot="backdrop" type="button" aria-label="Close search"></button>
-  <div slot="search">…search input row…</div>
-  <div slot="body">…results…</div>
-  <div slot="footer">Press ⌘K to toggle</div>
-</ui-search-shell>
-```
-
-  </TabItem>
-  <TabItem value="react" label="React">
-
-```tsx
-import { SearchShell } from "@threadlabs/looma-react";
-
-export function Example() {
-  return (
-    <SearchShell role="dialog" aria-modal="true" aria-label="Search">
-      <button slot="backdrop" type="button" aria-label="Close search" />
-      <div slot="search">…search input row…</div>
-      <div slot="body">…results…</div>
-      <div slot="footer">Press ⌘K to toggle</div>
-    </SearchShell>
-  );
-}
-```
-
-  </TabItem>
-</Tabs>

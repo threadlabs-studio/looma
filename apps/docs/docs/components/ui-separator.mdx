@@ -1,5 +1,3 @@
-import Tabs from "@theme/Tabs";
-import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
 # Separator
@@ -39,36 +37,12 @@ No slots.
 
 ## Framework Snippets
 
-<Tabs groupId="framework" defaultValue="vue">
-  <TabItem value="vue" label="Vue">
-
 ```vue
 <script setup lang="ts">
-import { Separator } from "@threadlabs/looma-vue";
+import { Separator } from "@threadlabs/looma/vue";
 </script>
 
 <template>
   <Separator orientation="vertical" />
 </template>
 ```
-
-  </TabItem>
-  <TabItem value="svelte" label="Svelte">
-
-```svelte
-<ui-separator orientation="vertical"></ui-separator>
-```
-
-  </TabItem>
-  <TabItem value="react" label="React">
-
-```tsx
-import { Separator } from "@threadlabs/looma-react";
-
-export function Example() {
-  return <Separator orientation="vertical" style={{ blockSize: "2rem" }} />;
-}
-```
-
-  </TabItem>
-</Tabs>

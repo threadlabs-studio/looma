@@ -9,11 +9,7 @@
     "verify:ssr": "node --experimental-strip-types src/index.ts"
   },
   "dependencies": {
-    "@threadlabs/looma-core": "file:../../../.release/artifacts/threadlabs-looma-core-0.1.0.tgz",
-    "@threadlabs/looma-editor": "file:../../../.release/artifacts/threadlabs-looma-editor-0.1.0.tgz",
-    "@threadlabs/looma-layout": "file:../../../.release/artifacts/threadlabs-looma-layout-0.1.0.tgz",
-    "@threadlabs/looma-tokens": "file:../../../.release/artifacts/threadlabs-looma-tokens-0.1.0.tgz",
-    "@threadlabs/looma-vue": "file:../../../.release/artifacts/threadlabs-looma-vue-0.1.0.tgz",
+    "@threadlabs/looma": "file:../../../.release/artifacts/threadlabs-looma-0.1.0.tgz",
     "@tiptap/core": "^2.27.2",
     "@vue/server-renderer": "^3.5.0",
     "vue": "^3.5.0"
@@ -24,11 +20,7 @@
   },
   "pnpm": {
     "overrides": {
-      "@threadlabs/looma-core": "file:../../../.release/artifacts/threadlabs-looma-core-0.1.0.tgz",
-      "@threadlabs/looma-editor": "file:../../../.release/artifacts/threadlabs-looma-editor-0.1.0.tgz",
-      "@threadlabs/looma-layout": "file:../../../.release/artifacts/threadlabs-looma-layout-0.1.0.tgz",
-      "@threadlabs/looma-tokens": "file:../../../.release/artifacts/threadlabs-looma-tokens-0.1.0.tgz",
-      "@threadlabs/looma-vue": "file:../../../.release/artifacts/threadlabs-looma-vue-0.1.0.tgz"
+      "@threadlabs/looma": "file:../../../.release/artifacts/threadlabs-looma-0.1.0.tgz"
     }
   }
 }

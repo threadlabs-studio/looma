@@ -1,5 +1,3 @@
-import Tabs from "@theme/Tabs";
-import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
 # Radio Group
@@ -52,12 +50,9 @@ Default slot; expects `ui-radio` children.
 
 ## Framework Snippets
 
-<Tabs groupId="framework" defaultValue="vue">
-  <TabItem value="vue" label="Vue">
-
 ```vue
 <script setup lang="ts">
-import { RadioGroup, Radio } from "@threadlabs/looma-vue";
+import { RadioGroup, Radio } from "@threadlabs/looma/vue";
 
 function onSelect(detail: unknown) {
   console.log(detail);
@@ -71,37 +66,3 @@ function onSelect(detail: unknown) {
   </RadioGroup>
 </template>
 ```
-
-  </TabItem>
-  <TabItem value="svelte" label="Svelte">
-
-```svelte
-<script lang="ts">
-  import { bindAdapter } from "@threadlabs/looma-svelte";
-  const options = { onSelect: (detail) => console.log(detail) };
-</script>
-
-<ui-radio-group value="starter" use:bindAdapter={options}>
-  <ui-radio value="starter">Starter</ui-radio>
-  <ui-radio value="pro">Pro</ui-radio>
-</ui-radio-group>
-```
-
-  </TabItem>
-  <TabItem value="react" label="React">
-
-```tsx
-import { RadioGroup, Radio } from "@threadlabs/looma-react";
-
-export function Example() {
-  return (
-    <RadioGroup value="starter" onSelect={(detail) => console.log(detail)}>
-      <Radio value="starter">Starter</Radio>
-      <Radio value="pro">Pro</Radio>
-    </RadioGroup>
-  );
-}
-```
-
-  </TabItem>
-</Tabs>

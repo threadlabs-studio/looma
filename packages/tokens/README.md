@@ -1,5 +1,8 @@
 # @threadlabs/looma-tokens
 
+> Internal implementation workspace. Consumers install `@threadlabs/looma` and
+> import its explicit token and theme CSS subpaths.
+
 CSS-only design tokens and light, dark, and high-contrast themes for Looma.
 
 Release status: Candidate `0.1.0`. The API may evolve before Stable.

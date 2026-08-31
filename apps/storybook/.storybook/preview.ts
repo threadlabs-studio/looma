@@ -10,7 +10,7 @@ import "../../../packages/core/src/styles.css";
 import "../../../packages/editor/src/editor.css";
 import { defineCustomElements } from "@threadlabs/looma-core/loader";
 import "../../../packages/layout/src/index.ts";
-import "../../../packages/core/src/index.ts";
+import "../../../packages/core/index.ts";
 import "../../../packages/editor/src/index.ts";
 
 defineCustomElements();

@@ -3,19 +3,23 @@
 Looma is a stack-agnostic UI library based on web standards and Open UI principles.
 
 > **Candidate availability:** Before installing, confirm that npm's `candidate`
-> dist-tag resolves the complete synchronized `0.1.0` package graph. A source or
+> dist-tag resolves `@threadlabs/looma@0.1.0`. A source or
 > documentation preview can exist before that registry gate passes.
 
 ## Install the Candidate
 
 ```sh
-npm install vue@^3.5 @threadlabs/looma-vue @threadlabs/looma-core @threadlabs/looma-editor @threadlabs/looma-layout @threadlabs/looma-tokens
+pnpm add @threadlabs/looma
 ```
 
-For direct custom-element use without Vue or the editor:
+The root package and core, layout, CSS, and editor-base subpaths require no
+framework install. Add Vue or the Tiptap 2 peers only when using
+`@threadlabs/looma/vue` or `@threadlabs/looma/editor/extensions`.
 
-```sh
-npm install @threadlabs/looma-core @threadlabs/looma-layout @threadlabs/looma-tokens
+```ts
+import { openOverlay } from "@threadlabs/looma";
+import "@threadlabs/looma/tokens.css";
+import "@threadlabs/looma/theme-light.css";
 ```
 
 Import tokens, one theme, component styles, and the element entry points once in
@@ -25,18 +29,19 @@ for the exact imports and a Vue example.
 ## Release 1
 
 Looma Release 1 is a public npm **Candidate `0.1.0`**, not a claim that every
-component or framework adapter is Stable. The intended public package graph is:
+component or framework adapter is Stable. The sole public package is
+`@threadlabs/looma`, with explicit subpaths:
 
-- `@threadlabs/looma-tokens`: CSS tokens and themes.
-- `@threadlabs/looma-layout`: light-DOM layout primitives with no external margins.
-- `@threadlabs/looma-core`: shadow-DOM web components that enhance consumer-authored semantic light DOM.
-- `@threadlabs/looma-editor`: light-DOM editor elements and Tiptap extension helpers.
-- `@threadlabs/looma-vue`: the supported Release 1 framework adapter.
+- `@threadlabs/looma` and `@threadlabs/looma/core`: core web components and overlay APIs.
+- `@threadlabs/looma/layout`: light-DOM layout primitives with no external margins.
+- `@threadlabs/looma/editor` and `@threadlabs/looma/editor/extensions`: editor elements and optional Tiptap helpers.
+- `@threadlabs/looma/vue`: the supported Release 1 framework adapter.
+- Explicit `.css` subpaths provide tokens, themes, layout, core, and editor styles.
 
-`@threadlabs/looma-react` and `@threadlabs/looma-svelte` remain repository previews and are not part
-of the Release 1 public package set. Apps and documentation workspaces are private.
+React and Svelte adapters remain internal repository previews and are not part
+of the Release 1 public package. Apps and documentation workspaces are private.
 
-The owner-approved public namespace is `@threadlabs/looma-*`. Registry mutation
+The owner-approved public identity is `@threadlabs/looma`. Registry mutation
 still requires the protected release authorization and evidence gates. See the
 [Release 1 support matrix](docs/release-support-matrix.md) and
 [release checklist](docs/release-checklist.md) for the exact promise and gate status.

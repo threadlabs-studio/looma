@@ -18,9 +18,7 @@
     "@docusaurus/core": "^3.9.2",
     "@docusaurus/preset-classic": "^3.9.2",
     "@mdx-js/react": "^3.1.0",
-    "@threadlabs/looma-core": "workspace:*",
-    "@threadlabs/looma-layout": "workspace:*",
-    "@threadlabs/looma-tokens": "workspace:*"
+    "@threadlabs/looma": "workspace:*"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^3.9.2",

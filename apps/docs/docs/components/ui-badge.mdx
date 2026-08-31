@@ -1,5 +1,3 @@
-import Tabs from "@theme/Tabs";
-import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
 # Badge
@@ -40,36 +38,12 @@ Default slot for badge text/content.
 
 ## Framework Snippets
 
-<Tabs groupId="framework" defaultValue="vue">
-  <TabItem value="vue" label="Vue">
-
 ```vue
 <script setup lang="ts">
-import { Badge } from "@threadlabs/looma-vue";
+import { Badge } from "@threadlabs/looma/vue";
 </script>
 
 <template>
   <Badge tone="accent">Beta</Badge>
 </template>
 ```
-
-  </TabItem>
-  <TabItem value="svelte" label="Svelte">
-
-```svelte
-<ui-badge tone="accent">Beta</ui-badge>
-```
-
-  </TabItem>
-  <TabItem value="react" label="React">
-
-```tsx
-import { Badge } from "@threadlabs/looma-react";
-
-export function Example() {
-  return <Badge tone="accent">Beta</Badge>;
-}
-```
-
-  </TabItem>
-</Tabs>

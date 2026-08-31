@@ -24,7 +24,7 @@ Release 1 uses two honest Candidate evidence profiles:
 
 ### Package-integrity Candidate
 
-Used by `@threadlabs/looma-tokens` and `@threadlabs/looma-layout`:
+Used by the CSS and `/layout` surfaces of `@threadlabs/looma`:
 
 - public manifest, license, repository, and export metadata are correct;
 - packed contents contain every documented runtime/style/type entry;
@@ -34,7 +34,8 @@ Used by `@threadlabs/looma-tokens` and `@threadlabs/looma-layout`:
 
 ### Behavioral Candidate
 
-Used by `@threadlabs/looma-core`, `@threadlabs/looma-editor`, and `@threadlabs/looma-vue`. It includes all
+Used by the root, `/core`, `/editor`, `/editor/extensions`, and `/vue` surfaces
+of `@threadlabs/looma`. It includes all
 package-integrity evidence plus:
 
 - source tags and public projections are complete and classified;

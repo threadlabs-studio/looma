@@ -1,13 +1,13 @@
 # Tokens
 
-`@threadlabs/looma-tokens` ships CSS-only tokens and themes with deterministic layering.
+`@threadlabs/looma` ships CSS-only token and theme subpaths with deterministic layering.
 
 ## Files
 
-- `@threadlabs/looma-tokens/tokens.css`: primitive + semantic defaults.
-- `@threadlabs/looma-tokens/theme-light.css`: explicit light mode overrides.
-- `@threadlabs/looma-tokens/theme-dark.css`: dark mode overrides.
-- `@threadlabs/looma-tokens/theme-high-contrast.css`: high-contrast overrides.
+- `@threadlabs/looma/tokens.css`: primitive + semantic defaults.
+- `@threadlabs/looma/theme-light.css`: explicit light mode overrides.
+- `@threadlabs/looma/theme-dark.css`: dark mode overrides.
+- `@threadlabs/looma/theme-high-contrast.css`: high-contrast overrides.
 
 ## Layer Order
 

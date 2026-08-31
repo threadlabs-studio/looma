@@ -1,24 +1,25 @@
 # Release 1 Support and Limitations
 
-Release 1 is a synchronized public npm **Candidate `0.1.0`** for the smallest Looma graph required by Knit. Candidate means the surface is usable and qualified but can still change before Stable; it is not semver `1.0.0`.
+Release 1 is a public npm **Candidate `0.1.0`** for the smallest Looma surface required by Knit. Candidate means the surface is usable and qualified but can still change before Stable; it is not semver `1.0.0`.
 
 :::caution Candidate availability
 
-Candidate availability is defined by the npm `candidate` dist-tag resolving this complete `0.1.0` package graph. A preview build describes the reviewed contract without asserting registry availability; the production build is deployed only from the same source commit after public Candidate verification.
+Candidate availability is defined by the npm `candidate` dist-tag resolving `@threadlabs/looma@0.1.0`. A preview build describes the reviewed contract without asserting registry availability; the production build is deployed only from the same source commit after public Candidate verification.
 
 :::
 
-## Public package set
+## Public entries
 
-| Package | Candidate contract |
+| Entry | Candidate contract |
 | --- | --- |
-| `@threadlabs/looma-tokens` | CSS tokens plus light, dark, and high-contrast themes |
-| `@threadlabs/looma-layout` | ESM and CommonJS; six light-DOM layout elements |
-| `@threadlabs/looma-core` | ESM and CommonJS; 26 shadow-root elements with semantic slotted fallback |
-| `@threadlabs/looma-editor` | ESM; six light-DOM editor elements, CSS, Tiptap 2 presets, and table helpers |
-| `@threadlabs/looma-vue` | ESM; Vue 3 wrappers for every published layout, core, and editor element |
+| `@threadlabs/looma` and `/core` | ESM and CommonJS; 26 shadow-root elements with semantic slotted fallback |
+| `@threadlabs/looma/layout` | ESM and CommonJS; six light-DOM layout elements |
+| `@threadlabs/looma/editor` | ESM; six light-DOM editor elements without a Tiptap requirement |
+| `@threadlabs/looma/editor/extensions` | ESM; optional Tiptap 2 presets and table helpers |
+| `@threadlabs/looma/vue` | ESM; optional Vue 3 wrappers for every published element |
+| `@threadlabs/looma/*.css` | Tokens, themes, layout, core, and editor styles |
 
-`@threadlabs/looma-react` and `@threadlabs/looma-svelte` are deferred repository previews. Docs, Storybook, examples, and tooling are private workspaces.
+React and Svelte adapters are deferred internal repository previews. Docs, Storybook, examples, and tooling are private workspaces.
 
 ## Qualified behavior
 

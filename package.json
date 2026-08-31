@@ -24,7 +24,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "pnpm -r --filter '!@threadlabs/looma' run build && node tools/scripts/build-facade.mjs --skip-workspace-build",
+    "build": "pnpm -r --filter './packages/**' --filter '!@threadlabs/looma' run build && node tools/scripts/build-facade.mjs --skip-workspace-build && pnpm -r --filter './apps/**' run build",
     "build:facade": "node tools/scripts/build-facade.mjs",
     "test:facade-consumer": "node tools/scripts/verify-facade-consumer.mjs",
     "generate:api": "node ./tools/scripts/generate-component-api.mjs",
