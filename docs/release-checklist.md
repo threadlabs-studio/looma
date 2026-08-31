@@ -36,11 +36,12 @@ can publish all five exact names and satisfying the bootstrap credential control
   workspace ranges to exact `0.1.0`, rejects empty/forbidden/missing files, and
   records SHA-256, byte size, source commit, and toolchain.
 
-Current artifact evidence: `release:verify` under Node 20 at Looma commit
-`6bf39cd809c69e6f2f1fa1f37b7e48391a794829` produced an eligible five-package
-manifest and checksummed tarballs. The run used explicitly labeled rehearsal
-approver identities, so it proves the source and package mechanics but does not
-replace the accountable owners required in the protected publication run.
+Current local artifact evidence: `release:verify` under Node 20 on the committed
+release branch produces an eligible five-package manifest and checksummed
+`@threadlabs/looma-*` tarballs. The exact Looma source commit is bound inside
+the generated manifest. The rehearsal uses explicitly labeled local approver
+identities, so it proves source and package mechanics but does not replace the
+accountable owners required in the protected publication run.
 
 ## Verification Gates
 
@@ -48,7 +49,8 @@ replace the accountable owners required in the protected publication run.
 - [ ] Docs generation is deterministic and leaves a clean tree.
 - [x] Unit, accessibility, adapter-render, SSR-import, and required Chromium browser gates pass locally without required skips.
 - [x] A clean external fixture installs only approved tarballs and consumes every public entry/style.
-- [ ] Knit installs only the approved tarballs and passes build plus release-critical browser/component gates.
+- [x] Knit installs only the approved tarballs and passes production build,
+  typecheck, eight SSR surfaces, signup-critical tests, and the complete unit suite.
 - [x] E-TBL-003 is explicitly accepted as a Candidate visual limitation with
   browser accessibility/keyboard evidence and Tiptap data-integrity proof.
 
@@ -61,18 +63,15 @@ Vue browser qualification. The exact Stencil CJS filename diagnostic is the sole
 allowlisted build warning; any additional Stencil warning fails the build.
 
 The eligible `release:verify-knit` gate publishes the five checksummed local
-artifacts to a disposable loopback registry with no `@threadlabs/looma-*` public fallback,
-then installs them into a detached clean Knit checkout with a fresh pnpm store.
-Canonical Knit commit `3d2cfbb092a83ba0a053178f88a84baf33d548e9`
-passes the production build, typecheck, SSR rendering for all eight consumed
-Looma surfaces, and all 89 signup-critical tests, but its full unit gate fails in
-four component-render tests. A temporary Git snapshot containing the five
-existing owner edits (commit `652fb42fdddb045ab8490c0afab5dc16120a3bc8`)
-passes the same complete artifact gate, including all 266 unit tests. The
-temporary worktree was removed and the owner files were not staged or changed.
-The gate above remains unchecked until those edits are committed on Knit and the
-eligible command passes from that canonical commit. Evidence is written under
-the ignored `.release/evidence/` directory.
+artifacts to a disposable loopback registry with no `@threadlabs/looma-*`
+public fallback, then installs them into a detached clean Knit checkout with a
+fresh pnpm store and linking disabled. The committed Knit release branch,
+including the five owner render-test updates and the namespace migration, passes
+the production build, typecheck, SSR rendering for all eight consumed Looma
+surfaces, all 89 signup-critical tests, and the complete 266-test unit suite.
+Evidence under the ignored `.release/evidence/` directory binds the exact Looma
+and Knit commits for each run. This closes local exact-artifact qualification;
+it does not close the separate public-registry gate below.
 
 ## Documentation Gates
 

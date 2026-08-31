@@ -1,18 +1,35 @@
 # PROJECT_STATE
 
-Last Updated: 2026-03-28 (planning sync)
-Status: Active
+Last Updated: 2026-08-30
+Status: Release 1 Candidate locally qualified; protected publication pending
 
 ## Current Focus
 
-- Keep planning docs aligned with actual shipped Looma surface and current Knit migration status.
-- Continue the Knit primitive replacement wave where Looma primitives are already viable.
-- Start M6 promotions from Knit only after generic API extraction is clear (`FloatingActionButton`, command/search shell, generic search result row, top bar shell).
-- Move `@threadlabs/looma-editor` from shipped Phase 1 primitives into real app integration, starting with Knit table UI wiring.
-- Keep Storybook and Docusaurus taxonomy/naming aligned (human labels, stable `ui-*` ids).
+- Preserve the qualified five-package `@threadlabs/looma-*` Candidate graph.
+- Configure the protected npm release identity, accountable approvers, and
+  first-publication credential or trusted-publisher path.
+- Publish the exact qualified `0.1.0` artifacts under `candidate` only after
+  explicit owner authorization, then run credential-free public consumers,
+  hosted-docs proof, Knit public-registry qualification, and promotion controls.
+- Keep React and Svelte deferred while Release 1 covers tokens, layout, core,
+  editor, and Vue.
 
 ## Recent Progress
 
+- Release 1 namespace and local qualification:
+  - Owner approved `@threadlabs/looma-*` as the permanent public namespace;
+    public, deferred, and private workspace identities now use the same graph.
+  - Package manifests, internal dependencies, imports, release policy and
+    workflows, generated metadata, docs, examples, tarball expectations,
+    fixtures, tests, and checked lockfiles were migrated together.
+  - `release:verify` produces an eligible five-package `0.1.0` artifact set
+    under Node 20 using explicitly labeled local rehearsal approvers.
+  - `release:verify-knit` installs those exact tarballs through a disposable
+    no-fallback registry into a detached clean Knit checkout with linking
+    disabled; production build, typecheck, eight SSR surfaces, 89
+    signup-critical tests, and all 266 unit tests pass.
+  - Public npm publication, public-registry consumption, hosted docs,
+    `candidate`/`latest` promotion, and immutable release records remain open.
 - Planning sync:
   - React and Vue wrapper parity for current shipped core tags is complete; old parity follow-up notes are now stale.
   - Verified Knit now consumes Looma `ToastRegion`, `Dialog`, `Button`, `Input`, `FormField`, `Menu`, and `MenuItem` in several high-use flows.
@@ -220,15 +237,26 @@ Status: Active
 
 ## Risks / Blockers
 
+- Protected npm release identity, 2FA/bootstrap controls, accountable approvers,
+  and repository environments are not yet proven for the five exact names.
+- No package has been published. Public-registry, hosted-docs, promotion, and
+  immutable-release evidence cannot exist until an explicitly authorized
+  protected Candidate run succeeds.
 - Shared editor UX still has open defects found through Knit dogfooding. See `docs/editor-bugs.md`.
 - Generated docs/storybook build artifacts are tracked in this repo and change alongside source edits.
 
 ## Next Up
 
-Execution order + done gates live in `docs/milestones.md`.
+Release order and evidence gates live in `docs/release-checklist.md`; product
+milestones remain in `docs/milestones.md`.
 
-1. Finish the Knit primitive replacement wave beyond the already-migrated toast, dialog base, toolbar button, and tree menus.
-2. Close the open shared editor defects in `docs/editor-bugs.md`, then continue migrating the remaining editor UI that should move out of app-local ownership.
-3. Continue the Knit-to-Looma promotion work from the now-complete first M6 queue into the next generic surfaces, while the primitive normalization wave continues in Knit.
-4. Keep `docs/component-roadmap.md`, `docs/editor-roadmap.md`, and `knit/docs/looma-migration-inventory.md` synchronized as migration status changes.
-5. Add a docs/storybook convention note to keep future component labels human-readable while preserving stable `ui-*` doc ids and tags.
+1. Configure and verify the protected npm release environment, accountable
+   approvers, 2FA/bootstrap controls, and publish rights for all five names.
+2. With explicit owner authorization, run the exact Candidate workflow from a
+   successful `main` CI commit and publish only under `candidate`.
+3. Run credential-free public consumers, hosted-docs proof, and Knit
+   public-registry qualification against those immutable versions.
+4. Promote the same bytes to `latest` only after approval, then write the
+   immutable tag, GitHub Release, manifest, and promotion ledger.
+5. Resume the Knit primitive replacement and editor-defect queues without
+   expanding the Release 1 package boundary.
