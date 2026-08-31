@@ -47,17 +47,16 @@ test("Stencil builds remove stale release output without touching package source
   }
 });
 
-test("Stencil uses a source-only tsconfig so root facade entry types cannot leak host paths", async () => {
+test("Stencil and pre-build typecheck use the source-only compiler config", async () => {
   const repoRoot = path.resolve(import.meta.dirname, "../..");
-  const stencilConfig = await readFile(
-    path.join(repoRoot, "packages/core/stencil.config.ts"),
-    "utf8"
-  );
-  const compilerTsconfig = JSON.parse(
-    await readFile(path.join(repoRoot, "packages/core/tsconfig.stencil.json"), "utf8")
-  );
+  const [stencilConfig, compilerTsconfig, packageJson] = await Promise.all([
+    readFile(path.join(repoRoot, "packages/core/stencil.config.ts"), "utf8"),
+    readFile(path.join(repoRoot, "packages/core/tsconfig.stencil.json"), "utf8").then(JSON.parse),
+    readFile(path.join(repoRoot, "packages/core/package.json"), "utf8").then(JSON.parse),
+  ]);
 
   assert.match(stencilConfig, /tsconfig:\s*['"]tsconfig\.stencil\.json['"]/);
   assert.deepEqual(compilerTsconfig.include, ["src"]);
   assert.equal(compilerTsconfig.extends, "./tsconfig.json");
+  assert.equal(packageJson.scripts.typecheck, "tsc -p tsconfig.stencil.json --noEmit");
 });

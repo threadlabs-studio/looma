@@ -43,7 +43,7 @@
     "start": "stencil build --dev --watch --serve",
     "test": "pnpm build && vitest run",
     "test:browser": "pnpm build && vitest run --config vitest.browser.config.ts",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.stencil.json --noEmit"
   },
   "devDependencies": {
     "@stencil/core": "^4.27.1",
