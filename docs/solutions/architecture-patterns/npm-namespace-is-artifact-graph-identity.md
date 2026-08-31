@@ -1,15 +1,16 @@
 ---
 title: Treat an npm namespace change as an artifact-graph identity migration
 date: 2026-08-30
+last_updated: 2026-08-31
 category: architecture-patterns
 module: release-tooling
 problem_type: architecture_pattern
 component: development_workflow
 severity: medium
 applies_when:
-  - A scoped package family must move to a different npm namespace without leaving stale artifact identities behind.
-  - Release tooling, generated metadata, checked lockfiles, and an independently versioned consumer all encode package names.
-  - The migrated package set must be qualified as exact Candidate artifacts before public publication.
+  - A public package must move to a different npm namespace without leaving stale artifact identities behind.
+  - Private workspaces, public subpath exports, release tooling, generated metadata, lockfiles, and an independently versioned consumer all encode package names.
+  - The migrated artifact must be qualified as exact packed bytes before public publication.
 root_cause: missing_workflow_step
 resolution_type: workflow_improvement
 related_components:
@@ -20,9 +21,9 @@ tags:
   - npm-namespace
   - package-identity
   - artifact-graph
+  - public-facade
   - release-tooling
   - cross-project-testing
-  - candidate-artifacts
   - knit
   - evidence-integrity
 ---
@@ -31,185 +32,198 @@ tags:
 
 ## Context
 
-Looma Release 1 is a synchronized five-package Candidate graph—
-`@threadlabs/looma-tokens`, `@threadlabs/looma-layout`,
-`@threadlabs/looma-core`, `@threadlabs/looma-editor`, and
-`@threadlabs/looma-vue`—rather than a collection of unrelated packages. The
-release configuration names that exact public set and rejects additions or
-omissions
-(`tools/scripts/release-config.mjs:1`). The Vue adapter imports other Looma
-packages for registration side effects (`packages/vue/src/index.ts:1`), while
-the editor declares internal package dependencies
-(`packages/editor/package.json:50`). Package names therefore participate in
-both dependency and runtime-import edges.
+An npm package name is not a label attached to finished code. It is an identity
+shared by package manifests, dependency and import edges, registry policy,
+generated metadata, lockfiles, release evidence, documentation, and consumers.
+Changing it safely therefore requires migrating the whole Package Identity
+Graph rather than performing a repository-wide text replacement.
 
-The graph extends beyond public packages. Deferred adapters, private apps, and
-shared tooling also have workspace identities (`packages/react/package.json:1`,
-`packages/svelte/package.json:1`, `apps/docs/package.json:1`,
-`tools/tsconfig/package.json:1`). The release support matrix distinguishes the
-five Candidate packages from deferred and private workspaces
-(`docs/release-support-matrix.md:7`). Renaming only the public manifests would
-leave the workspace split across two identity systems.
+Looma makes the distinction especially important. Its public Release 1 surface
+is one package, `@threadlabs/looma`, with explicit root, core, loader, layout,
+editor, editor-extension, Vue, and stylesheet subpaths
+(`packages/looma/package.json:24`). Core, layout, editor, Vue, and tokens remain
+private workspaces whose package identities are assembly inputs rather than
+separate products. The release configuration consequently admits exactly one
+public artifact and rejects a manifest with any additional public package
+identity (`tools/scripts/release-config.mjs:2`,
+`tools/scripts/release-config.mjs:39`).
 
-Knit adds a separately versioned consumer graph. It keys its Looma dependencies
-under `@threadlabs/looma-*` while retaining sibling `link:` specifiers for local
-development ([Knit web manifest, line 32](../../../../knit/web/package.json#L32)).
-Product code imports the Vue adapter by that identity
-([Knit app entry, line 13](../../../../knit/web/app/app.vue#L13)), unit setup
-mocks the transitive registration packages by identity
-([Knit Looma unit setup, line 1](../../../../knit/web/tests/setup/looma-unit.ts#L1)),
-and Vitest inlines the installed adapter so those imports cross the intended
-mock boundary
-([Knit Vitest configuration, line 19](../../../../knit/web/vitest.config.ts#L19)).
-A namespace change is consequently a
-producer, consumer, build, test-isolation, and release-preflight change.
+This architecture superseded an unpublished five-package Candidate graph. The
+underlying lesson did not change: names still participate in executable edges.
+What changed was the public boundary. Internal names now terminate during
+facade assembly, which rewrites declared internal specifiers and then rejects
+private Looma package identities in assembled runtime files
+(`tools/scripts/build-facade.mjs:50`, `tools/scripts/verify-facade.mjs:75`).
 
-Earlier release planning encoded the old namespace before ownership was proven.
-That made scope availability a late discovery after manifests, documentation,
+Knit extends the graph into a separately versioned consumer. It declares one
+direct Looma dependency ([Knit web manifest](../../../../knit/web/package.json#L33))
+and imports public subpaths such as `@threadlabs/looma/vue`
+([Knit app entry](../../../../knit/web/app/app.vue#L14)). Its unit-test boundary
+mocks other facade subpaths by the same public identity
+([Knit Looma setup](../../../../knit/web/tests/setup/looma-unit.ts#L3)). A package
+rename or public-boundary change is therefore simultaneously a producer,
+consumer, bundler, test-isolation, registry, and release-evidence migration.
+
+Earlier release planning encoded a namespace before ownership was proven. That
+made namespace availability a late discovery after manifests, documentation,
 fixtures, and automation had already absorbed the identity (session history).
-The durable correction is to treat namespace ownership as an early zero-mutation
-preflight and any later rename as an atomic package-identity migration.
+The durable correction is to make ownership a zero-mutation preflight and to
+treat any later change as an atomic identity-graph migration.
 
 ## Guidance
 
-### 1. Freeze the intended identity graph
+### Freeze the intended public boundary before renaming
 
-Write down every workspace identity, not only packages intended for immediate
-publication. Classify each node as public now, public later, or permanently
-private. Use one authoritative release-package set for the public subgraph; in
-Looma it couples each package name to its source directory and required tarball
-contents (`tools/scripts/release-config.mjs:1`).
+Classify every workspace as public now, public later, or permanently private.
+Then write the public graph down in one authoritative release configuration.
+Do not infer publication from a workspace package name: private workspaces may
+retain useful development identities while a facade is the sole installable
+product.
+
+For a facade, define subpaths as part of the one public identity. A consumer
+should install `@threadlabs/looma` once and import capabilities from explicit
+exports such as `@threadlabs/looma/editor/extensions` or
+`@threadlabs/looma/vue`; it should not coordinate internal workspace versions.
+The facade manifest is the public contract, and its export map must agree with
+the assembly declaration (`tools/scripts/verify-facade.mjs:39`).
 
 Inventory every identity-bearing edge before editing:
 
-- package `name` values and internal dependency keys;
-- source, type, subpath, and dynamic imports plus test mocks;
+- package `name` values and dependency keys;
+- public subpath exports and internal assembly rewrites;
+- source, type, dynamic, and test-mock imports;
 - workspace filters and script selectors;
-- registry scope configuration, routing, and publication policy;
-- release allowlists, dependency-order logic, tarball paths, and manifests;
-- generated metadata, documentation examples, and install commands;
-- consumer manifests, preflight allowlists, bundler/test boundaries, fixtures,
-  and checked lockfiles.
+- registry scope routing, ownership checks, and publication policy;
+- release allowlists, tarball names, manifests, and evidence;
+- generated metadata, documentation examples, and install commands; and
+- consumer manifests, bundler boundaries, checked lockfiles, and release
+  preflight allowlists.
 
-### 2. Change sources before projections
+### Prove namespace ownership before mutation
 
-Start with package manifests and the authoritative release configuration. Change
-internal dependency keys and source imports together so the workspace graph
-continues to resolve. Then update projections: consumers, docs, examples, tests,
-generated outputs, and lockfiles.
+Before changing any source file, authenticate to the target registry and prove
+the expected organization membership and package availability without
+publishing. Keep this probe read-only and record which identity was checked.
+Namespace ownership is a release prerequisite, not a packaging implementation
+detail.
 
-Do not hand-edit a generated file as a substitute for changing its source.
-Looma generates `generated/component-api.json` from its metadata generator
-(`tools/scripts/generate-component-api.mjs:1`), and the sync check fails when
-the checked output differs (`tools/scripts/check-docs-sync.mjs:1`). Regenerate
-each checked lockfile from its own manifest as well. Knit's ordinary lockfile
-records development links
-([Knit lockfile, line 35](../../../../knit/pnpm-lock.yaml#L35)), while Looma's packed
-consumer lockfile records renamed tarballs
-(`tests/release/consumer/pnpm-lock.yaml:8`); the resolution modes differ, but
-the package identities must agree.
+Registry configuration must move with the identity. The disposable release
+registry should deny public fallback for the Looma scope while allowing
+unrelated dependencies to proxy normally
+(`tests/release/registry/verdaccio.yaml:11`). Otherwise a missing Candidate can
+be silently supplied by another registry and create false qualification.
 
-### 3. Move registry and workflow policy with the names
+### Change authoritative sources before projections
 
-The npm scope is executable policy. Registry preflight proves organization
-membership and checks every configured package identity before reporting that no
-mutation occurred (`tools/scripts/registry-preflight.mjs:39`). The protected
-workflow configures the same scope before preflight and Candidate publication
-(`.github/workflows/release.yml:174`).
+Start with workspace manifests, the facade manifest and assembly map, and the
+authoritative release configuration. Change dependency keys, imports, export
+maps, and assembly rewrites as one coherent unit so the build graph remains
+resolvable. Then update projections: consumers, docs, examples, tests, generated
+outputs, and lockfiles.
 
-Move local isolation policy too. The disposable registry gives the Looma scope
-no public fallback while unrelated dependencies may proxy normally
-(`tests/release/registry/verdaccio.yaml:11`), and its npm configuration routes
-that scope to the disposable registry (`tests/release/registry/.npmrc:1`). This
-prevents a missed local artifact from being silently supplied elsewhere.
+Do not hand-edit a generated file instead of changing its source. Regenerate
+checked API metadata from the repository generator and let the synchronization
+test prove it is current (`tools/scripts/component-api-generator.mjs:1`).
+Regenerate each lockfile from its own manifest too: Knit's development lockfile
+may correctly record a local facade dependency while isolated release evidence
+must record the exact registry version. Those resolver modes differ, but the
+public package identity must agree.
 
-### 4. Rebuild and inspect packed identities
+### Terminate private identities at facade assembly
 
-Build and pack only after the source graph is coherent. Inspect packed manifests
-instead of assuming workspace manifests describe published bytes. Looma derives
-tarball names from scoped package names, requires the exact Candidate set, and
-requires internal release dependencies to resolve to exact synchronized versions
-(`tools/scripts/verify-packages.mjs:44`, `tools/scripts/verify-packages.mjs:62`).
+Build the private workspaces before assembling the public package. Copy only
+declared outputs, apply only declared specifier rewrites, and verify every
+export target exists (`tools/scripts/build-facade.mjs:15`,
+`tools/scripts/build-facade.mjs:56`, `tools/scripts/verify-facade.mjs:49`).
+Reject private package specifiers in JavaScript, declarations, loaders, and CSS,
+and preserve dependency boundaries: the root/core entry must not acquire Vue or
+Tiptap, and the base editor entry must remain Tiptap-free
+(`tools/scripts/verify-facade.mjs:75`, `tools/scripts/verify-facade.mjs:84`).
 
-Generate the release manifest from those exact bytes. Looma derives dependency
-order from internal package names and records source identity, toolchain, tarball
-name, digest, and internal dependencies (`tools/scripts/create-release-manifest.mjs:6`).
-This turns a source-tree convention into a verifiable artifact graph.
+This assembled-tree proof is necessary but not sufficient. Packing is a later
+boundary: inspect the packed manifest, require all configured runtime and type
+files, verify every declared export target exists in the tarball, reject source
+and test leakage, and compute the digest from the exact bytes
+(`tools/scripts/verify-packages.mjs:62`,
+`tools/scripts/verify-packages.mjs:83`,
+`tools/scripts/verify-packages.mjs:210`).
 
-### 5. Qualify exact bytes outside workspace links
+### Qualify the exact renamed artifact through the consumer
 
-Do not use a successful linked development build as release proof. Knit keeps
-sibling links for local work, but its release preflight accepts only exact
-registry versions for its three Looma runtime dependencies—core, editor, and
-Vue ([Knit release preflight, line 81](../../../../knit/scripts/release-preflight.mjs#L81)).
-The qualification runner rewrites
-only a detached Knit checkout, rejects local Looma protocols, and proves the
-installed packages resolve inside that isolated checkout
-(`tools/scripts/verify-knit-consumer.mjs:145`,
-`tools/scripts/verify-knit-consumer.mjs:202`).
+Do not accept a successful sibling-link build as release proof. The isolated
+qualifier binds the release manifest to the current Looma commit, publishes the
+exact tarball to a disposable registry, rewrites only a detached Knit checkout
+to the exact version, and rejects local Looma protocols afterward
+(`tools/scripts/verify-knit-consumer.mjs:381`,
+`tools/scripts/verify-knit-consumer.mjs:396`,
+`tools/scripts/verify-knit-consumer.mjs:466`).
 
-Install with a fresh store and linking disabled, then validate the installed
-graph, production build, typecheck, SSR surfaces, signup-critical tests, and the
-complete unit suite (`tools/scripts/verify-knit-consumer.mjs:372`,
-`tools/scripts/verify-knit-consumer.mjs:398`). This gate proves local Candidate
-artifacts only. It does not prove a merge, deploy, npm publication, or
-credential-free public-registry install.
+Install with a fresh store and linking disabled. Then prove the installed
+package resolves inside the detached checkout and carry that same installation
+through production build, typecheck, SSR, critical and complete units,
+migrations, pgTAP/RLS, and browser signup and authoring flows. This is the point
+at which a source-level rename becomes a qualified artifact-graph migration.
+The exact-artifact method and environment requirements are documented in
+[Isolated cross-project Candidate qualification](isolated-cross-project-candidate-qualification.md).
 
-### 6. Classify old-name residue
+### Classify old-name residue rather than demanding zero matches
 
-Search both repositories for the old scope after regeneration. Do not demand
-blind zero matches: historical decisions, migration plans, negative policy
-assertions, and unrelated DOM/event strings can retain similar text. Classify
-each hit as executable identity, generated projection, current documentation,
-historical record, negative assertion, or unrelated string. Only the first
-three normally require migration.
+Search producer and consumer repositories after regeneration. Classify each
+match as executable identity, generated projection, current documentation,
+historical record, negative policy assertion, or unrelated string. Executable
+identity, generated projection, and current documentation normally migrate.
+Historical plans and policy assertions may intentionally retain superseded
+names to explain or reject them.
+
+This distinction matters when a facade replaces several public packages. The
+old names can remain valid as private workspace identities and as forbidden
+specifier patterns even though they are no longer valid consumer dependencies.
+Blind replacement would erase the assembly boundary the migration is meant to
+enforce.
 
 ## Why This Matters
 
-Workspace links can make an incomplete rename appear healthy. They can resolve
-source directories even when a packed package has the wrong name, stale
-dependency metadata, obsolete generated output, or an old tarball filename.
-The isolated verifier's lockfile and realpath checks exist because an ordinary
-workspace build does not prove artifact identity
-(`tools/scripts/verify-knit-consumer.mjs:202`).
+Workspace resolution can make a partial migration appear healthy. It can load
+sibling source even when a packed package has the wrong name, a missing subpath,
+stale generated output, an obsolete lockfile edge, or private imports that no
+consumer can resolve. A single public facade reduces consumer coordination, but
+it also concentrates responsibility in assembly and export-map correctness.
 
-Generated files and lockfiles are executable or published projections of the
-graph. Registry scope mismatches are higher-risk still because they sit on the
-mutation boundary. Aligning the workflow scope, ownership preflight, release
-allowlist, local no-fallback policy, and consumer preflight makes a rename
-reviewable and makes first publication fail closed.
+Registry mismatches are higher risk because they sit on the mutation boundary.
+Aligning ownership preflight, release allowlists, no-fallback policy, packed
+identity, consumer preflight, and evidence makes first publication fail closed.
+The result proves local Candidate bytes; it does not by itself prove npm
+publication, merge state, or a protected deployment.
 
 ## When to Apply
 
-- Moving packages to a new npm organization or owner-controlled scope.
-- Renaming a package that participates in an internal package DAG.
-- Splitting or consolidating a monorepo's public package family.
-- Changing a public package name consumed by another repository.
+- Moving a public package to a new npm organization or owner-controlled scope.
+- Consolidating several installable packages behind one public facade.
+- Renaming a package with public subpaths or internal assembly inputs.
+- Changing a package identity consumed by another repository.
 - Preparing a first publication after linked workspaces were the normal mode.
 
 Use a smaller procedure only when the identity is provably leaf-local: no
 internal dependents, external consumer, generated metadata, checked lockfile,
-registry policy, or release artifact tooling.
+registry policy, release artifact tooling, or public subpaths.
 
 ## Examples
 
-For `@threadlabs/looma-editor`, the identity appears in its manifest and internal
-dependencies (`packages/editor/package.json:1`,
-`packages/editor/package.json:50`), in Vue's registration imports
-(`packages/vue/src/index.ts:1`), in packed-consumer imports and tarball
-dependencies (`tests/release/consumer/src/index.ts:1`,
-`tests/release/consumer/package.json:11`), and in Knit's
-[manifest](../../../../knit/web/package.json#L32) and
-[release preflight](../../../../knit/scripts/release-preflight.mjs#L81).
-Missing any edge produces a split
-identity graph.
+For local development, Knit intentionally uses a sibling `file:` dependency on
+`@threadlabs/looma`. Product code imports its Vue and editor surfaces through
+public subpaths, while tests mock selected registration subpaths. For release
+qualification, the verifier changes only a detached Knit manifest to exact
+`0.1.0`, installs through a no-fallback disposable registry, and proves the
+installed package path is inside that checkout. This preserves fast iteration
+without treating local filesystem resolution as artifact evidence.
 
-For local development, keep Knit's sibling links but make them ineligible for a
-release build. For qualification, install the already-approved tarballs in a
-detached clean Knit checkout through a disposable no-fallback registry with
-linking disabled, then exercise the real consumer gates. This preserves fast
-local iteration while basing the release decision on the bytes users would
-install.
+When replacing the earlier five-package public graph, the safe migration was
+not to delete every `@threadlabs/looma-*` string. Those names remain legitimate
+inside private workspace manifests and facade assembly sources. The public
+release set, consumer dependency, public imports, registry artifact, and exact
+qualification evidence moved to `@threadlabs/looma`; the verifier retained a
+negative pattern that fails if a private workspace identity leaks into assembled
+consumer bytes (`tools/scripts/verify-facade.mjs:6`).
 
 ## Related
 
