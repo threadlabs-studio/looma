@@ -80,6 +80,22 @@ function validatePackedManifest(packageJson) {
   }
 }
 
+export function findForbiddenTarballEntries(entries) {
+  const forbiddenPatterns = [
+    /(^|\/)\.env(?:\.|$)/,
+    /(^|\/)\.git(?:\/|$)/,
+    /(^|\/)\.stencil(?:\/|$)/,
+    /(^|\/)node_modules(?:\/|$)/,
+    /(^|\/)(?:test|tests|__tests__)(?:\/|$)/,
+    /(^|\/)tsconfig(?:\.[^/]*)?\.json$/,
+    /(^|\/)vitest(?:\.[^/]*)?\.config\.[^/]+$/,
+    /(^|\/)src\/.*\.(?:ts|tsx)$/,
+    /(^|\/)types\/(?:Users|home)\/[^/]+(?:\/|$)/,
+    /(^|\/)types\/[A-Za-z]:\//
+  ];
+  return entries.filter((entry) => forbiddenPatterns.some((pattern) => pattern.test(entry)));
+}
+
 function validateTarballContents(releasePackage, packageJson, entries, requireLicense) {
   const entrySet = new Set(entries);
   for (const requiredFile of releasePackage.requiredFiles) {
@@ -89,18 +105,7 @@ function validateTarballContents(releasePackage, packageJson, entries, requireLi
     assert(entrySet.has("package/LICENSE"), `${packageJson.name} tarball is missing package/LICENSE`);
   }
 
-  const forbiddenPatterns = [
-    /(^|\/)\.env(?:\.|$)/,
-    /(^|\/)\.git(?:\/|$)/,
-    /(^|\/)node_modules(?:\/|$)/,
-    /(^|\/)(?:test|tests|__tests__)(?:\/|$)/,
-    /(^|\/)tsconfig(?:\.[^/]*)?\.json$/,
-    /(^|\/)vitest(?:\.[^/]*)?\.config\.[^/]+$/,
-    /(^|\/)src\/.*\.(?:ts|tsx)$/
-  ];
-  const forbiddenEntries = entries.filter((entry) =>
-    forbiddenPatterns.some((pattern) => pattern.test(entry))
-  );
+  const forbiddenEntries = findForbiddenTarballEntries(entries);
   assert(
     forbiddenEntries.length === 0,
     `${packageJson.name} tarball includes forbidden files: ${forbiddenEntries.join(", ")}`
@@ -277,7 +282,9 @@ async function main() {
   }
 }
 
-main().catch((error) => {
-  process.stderr.write(`${error instanceof Error ? error.stack : String(error)}\n`);
-  process.exitCode = 1;
-});
+if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
+  main().catch((error) => {
+    process.stderr.write(`${error instanceof Error ? error.stack : String(error)}\n`);
+    process.exitCode = 1;
+  });
+}

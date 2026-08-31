@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { rm } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -18,11 +19,17 @@ export function findUnhandledStencilWarnings(output) {
   return [`Stencil emitted ${warningCount} unhandled warning(s).`];
 }
 
+export async function cleanStencilOutput(packageDirectory = process.cwd()) {
+  await rm(path.join(packageDirectory, "dist"), { recursive: true, force: true });
+}
+
 async function main() {
   const pnpmCli = process.env.npm_execpath;
   if (!pnpmCli) {
     throw new Error("npm_execpath is unavailable; run this command through pnpm");
   }
+
+  await cleanStencilOutput();
 
   const child = spawn(process.execPath, [pnpmCli, "exec", "stencil", "build"], {
     cwd: process.cwd(),
