@@ -34,8 +34,7 @@
     },
     "./loader": {
       "types": "./loader/index.d.ts",
-      "import": "./loader/index.js",
-      "require": "./loader/index.cjs.js"
+      "import": "./loader/index.js"
     },
     "./layout": {
       "types": "./layout/index.d.ts",
@@ -90,9 +89,6 @@
     "test": "node --test ../../tools/scripts/facade-*.test.mjs",
     "typecheck": "node ../../tools/scripts/verify-facade.mjs --types-only"
   },
-  "dependencies": {
-    "prosemirror-tables": "^1.8.5"
-  },
   "peerDependencies": {
     "@tiptap/core": ">=2 <3",
     "@tiptap/extension-blockquote": ">=2 <3",
@@ -125,6 +121,8 @@
     "@tiptap/extension-text": ">=2 <3",
     "@tiptap/extension-typography": ">=2 <3",
     "@tiptap/extension-underline": ">=2 <3",
+    "@tiptap/pm": ">=2 <3",
+    "prosemirror-tables": "^1.8.5",
     "vue": "^3.5.0"
   },
   "peerDependenciesMeta": {
@@ -159,6 +157,8 @@
     "@tiptap/extension-text": { "optional": true },
     "@tiptap/extension-typography": { "optional": true },
     "@tiptap/extension-underline": { "optional": true },
+    "@tiptap/pm": { "optional": true },
+    "prosemirror-tables": { "optional": true },
     "vue": { "optional": true }
   },
   "engines": {

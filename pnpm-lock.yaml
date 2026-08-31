@@ -362,6 +362,9 @@ importers:
       '@tiptap/extension-underline':
         specifier: '>=2 <3'
         version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))
+      '@tiptap/pm':
+        specifier: '>=2 <3'
+        version: 2.27.2
       prosemirror-tables:
         specifier: ^1.8.5
         version: 1.8.5

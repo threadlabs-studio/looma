@@ -64,6 +64,9 @@ test("the facade declares the exact public subpath and peer contract", async () 
   assert.equal(manifest.exports["./vue"].import, "./vue/index.js");
   assert.equal(manifest.peerDependenciesMeta.vue.optional, true);
   assert.equal(manifest.peerDependenciesMeta["@tiptap/core"].optional, true);
+  assert.equal(manifest.peerDependenciesMeta["@tiptap/pm"].optional, true);
+  assert.equal(manifest.peerDependenciesMeta["prosemirror-tables"].optional, true);
+  assert.equal(manifest.dependencies, undefined);
   assert.ok(manifest.sideEffects.includes("./vue/index.js"));
   assert.ok(manifest.sideEffects.includes("./*.css"));
   assert.equal(manifest.publishConfig.access, "public");

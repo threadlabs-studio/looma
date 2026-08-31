@@ -6,6 +6,12 @@
 # Node artifact files
 node_modules/
 dist/
+packages/looma/loader/
+packages/looma/layout/
+packages/looma/editor/
+packages/looma/vue/
+packages/looma/LICENSE
+packages/looma/*.css
 apps/docs/.docusaurus/
 apps/docs/build/
 apps/docs/playwright-report/
