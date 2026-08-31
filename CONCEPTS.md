@@ -4,6 +4,16 @@ Shared domain vocabulary for this project — entities, named processes, and sta
 
 ## Release qualification
 
+### Package Identity Graph
+The package identities and their dependency, import, registry-policy,
+generated-output, and consumer references that must agree for one release
+artifact set to remain installable and verifiable.
+
+### Package Identity Migration
+A coordinated change to every affected node and edge in a Package Identity
+Graph, completed by requalifying the resulting exact artifacts in an isolated
+consumer.
+
 ### Candidate
 An explicitly declared Looma package or component contract whose evidence covers its supported consumers while allowing documented limitations short of Stable guarantees.
 
