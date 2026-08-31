@@ -1,6 +1,7 @@
 {
   "name": "@threadlabs/looma-editor",
   "version": "0.1.0",
+  "private": true,
   "type": "module",
   "description": "Open-source Tiptap editor UI elements, styles, presets, and table helpers for Looma.",
   "license": "MIT",
@@ -13,10 +14,6 @@
   "homepage": "https://github.com/threadlabs-studio/looma#readme",
   "bugs": {
     "url": "https://github.com/threadlabs-studio/looma/issues"
-  },
-  "publishConfig": {
-    "access": "public",
-    "provenance": true
   },
   "files": [
     "dist/",

@@ -1,0 +1,167 @@
+{
+  "name": "@threadlabs/looma",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Looma web components, layout primitives, editor UI, and supported Vue adapters.",
+  "license": "MIT",
+  "author": "Threadlabs Studio",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/threadlabs-studio/looma.git",
+    "directory": "packages/looma"
+  },
+  "homepage": "https://github.com/threadlabs-studio/looma#readme",
+  "bugs": {
+    "url": "https://github.com/threadlabs-studio/looma/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./core": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./loader": {
+      "types": "./loader/index.d.ts",
+      "import": "./loader/index.js",
+      "require": "./loader/index.cjs.js"
+    },
+    "./layout": {
+      "types": "./layout/index.d.ts",
+      "import": "./layout/index.js",
+      "require": "./layout/index.cjs"
+    },
+    "./editor": {
+      "types": "./editor/index.d.ts",
+      "import": "./editor/index.js"
+    },
+    "./editor/extensions": {
+      "types": "./editor/extensions/index.d.ts",
+      "import": "./editor/extensions/index.js"
+    },
+    "./vue": {
+      "types": "./vue/index.d.ts",
+      "import": "./vue/index.js"
+    },
+    "./tokens.css": "./tokens.css",
+    "./theme-light.css": "./theme-light.css",
+    "./theme-dark.css": "./theme-dark.css",
+    "./theme-high-contrast.css": "./theme-high-contrast.css",
+    "./layout.css": "./layout.css",
+    "./styles.css": "./styles.css",
+    "./editor.css": "./editor.css"
+  },
+  "files": [
+    "dist/",
+    "loader/",
+    "layout/",
+    "editor/",
+    "vue/",
+    "tokens.css",
+    "theme-light.css",
+    "theme-dark.css",
+    "theme-high-contrast.css",
+    "layout.css",
+    "styles.css",
+    "editor.css",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": [
+    "./dist/index.js",
+    "./layout/index.js",
+    "./editor/index.js",
+    "./vue/index.js",
+    "./*.css"
+  ],
+  "scripts": {
+    "build": "node ../../tools/scripts/build-facade.mjs",
+    "test": "node --test ../../tools/scripts/facade-*.test.mjs",
+    "typecheck": "node ../../tools/scripts/verify-facade.mjs --types-only"
+  },
+  "dependencies": {
+    "prosemirror-tables": "^1.8.5"
+  },
+  "peerDependencies": {
+    "@tiptap/core": ">=2 <3",
+    "@tiptap/extension-blockquote": ">=2 <3",
+    "@tiptap/extension-bold": ">=2 <3",
+    "@tiptap/extension-bullet-list": ">=2 <3",
+    "@tiptap/extension-code": ">=2 <3",
+    "@tiptap/extension-code-block": ">=2 <3",
+    "@tiptap/extension-document": ">=2 <3",
+    "@tiptap/extension-dropcursor": ">=2 <3",
+    "@tiptap/extension-gapcursor": ">=2 <3",
+    "@tiptap/extension-hard-break": ">=2 <3",
+    "@tiptap/extension-heading": ">=2 <3",
+    "@tiptap/extension-highlight": ">=2 <3",
+    "@tiptap/extension-history": ">=2 <3",
+    "@tiptap/extension-horizontal-rule": ">=2 <3",
+    "@tiptap/extension-image": ">=2 <3",
+    "@tiptap/extension-italic": ">=2 <3",
+    "@tiptap/extension-link": ">=2 <3",
+    "@tiptap/extension-list-item": ">=2 <3",
+    "@tiptap/extension-ordered-list": ">=2 <3",
+    "@tiptap/extension-paragraph": ">=2 <3",
+    "@tiptap/extension-placeholder": ">=2 <3",
+    "@tiptap/extension-strike": ">=2 <3",
+    "@tiptap/extension-table": ">=2 <3",
+    "@tiptap/extension-table-cell": ">=2 <3",
+    "@tiptap/extension-table-header": ">=2 <3",
+    "@tiptap/extension-table-row": ">=2 <3",
+    "@tiptap/extension-task-item": ">=2 <3",
+    "@tiptap/extension-task-list": ">=2 <3",
+    "@tiptap/extension-text": ">=2 <3",
+    "@tiptap/extension-typography": ">=2 <3",
+    "@tiptap/extension-underline": ">=2 <3",
+    "vue": "^3.5.0"
+  },
+  "peerDependenciesMeta": {
+    "@tiptap/core": { "optional": true },
+    "@tiptap/extension-blockquote": { "optional": true },
+    "@tiptap/extension-bold": { "optional": true },
+    "@tiptap/extension-bullet-list": { "optional": true },
+    "@tiptap/extension-code": { "optional": true },
+    "@tiptap/extension-code-block": { "optional": true },
+    "@tiptap/extension-document": { "optional": true },
+    "@tiptap/extension-dropcursor": { "optional": true },
+    "@tiptap/extension-gapcursor": { "optional": true },
+    "@tiptap/extension-hard-break": { "optional": true },
+    "@tiptap/extension-heading": { "optional": true },
+    "@tiptap/extension-highlight": { "optional": true },
+    "@tiptap/extension-history": { "optional": true },
+    "@tiptap/extension-horizontal-rule": { "optional": true },
+    "@tiptap/extension-image": { "optional": true },
+    "@tiptap/extension-italic": { "optional": true },
+    "@tiptap/extension-link": { "optional": true },
+    "@tiptap/extension-list-item": { "optional": true },
+    "@tiptap/extension-ordered-list": { "optional": true },
+    "@tiptap/extension-paragraph": { "optional": true },
+    "@tiptap/extension-placeholder": { "optional": true },
+    "@tiptap/extension-strike": { "optional": true },
+    "@tiptap/extension-table": { "optional": true },
+    "@tiptap/extension-table-cell": { "optional": true },
+    "@tiptap/extension-table-header": { "optional": true },
+    "@tiptap/extension-table-row": { "optional": true },
+    "@tiptap/extension-task-item": { "optional": true },
+    "@tiptap/extension-task-list": { "optional": true },
+    "@tiptap/extension-text": { "optional": true },
+    "@tiptap/extension-typography": { "optional": true },
+    "@tiptap/extension-underline": { "optional": true },
+    "vue": { "optional": true }
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

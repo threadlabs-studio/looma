@@ -1,6 +1,7 @@
 {
   "name": "@threadlabs/looma-vue",
   "version": "0.1.0",
+  "private": true,
   "description": "Supported Vue 3 adapters for Looma layout, core, and editor elements.",
   "type": "module",
   "license": "MIT",
@@ -13,10 +14,6 @@
   "homepage": "https://github.com/threadlabs-studio/looma#readme",
   "bugs": {
     "url": "https://github.com/threadlabs-studio/looma/issues"
-  },
-  "publishConfig": {
-    "access": "public",
-    "provenance": true
   },
   "files": [
     "dist/",

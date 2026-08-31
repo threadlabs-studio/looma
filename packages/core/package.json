@@ -1,6 +1,7 @@
 {
   "name": "@threadlabs/looma-core",
   "version": "0.1.0",
+  "private": true,
   "type": "module",
   "description": "SSR-first Looma web components with semantic light-DOM fallback contracts.",
   "license": "MIT",
@@ -13,10 +14,6 @@
   "homepage": "https://github.com/threadlabs-studio/looma#readme",
   "bugs": {
     "url": "https://github.com/threadlabs-studio/looma/issues"
-  },
-  "publishConfig": {
-    "access": "public",
-    "provenance": true
   },
   "main": "dist/index.cjs",
   "module": "dist/index.js",

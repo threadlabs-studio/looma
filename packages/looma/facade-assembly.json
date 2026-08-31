@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "package": "@threadlabs/looma",
+  "exports": [
+    ".",
+    "./core",
+    "./loader",
+    "./layout",
+    "./editor",
+    "./editor/extensions",
+    "./vue",
+    "./tokens.css",
+    "./theme-light.css",
+    "./theme-dark.css",
+    "./theme-high-contrast.css",
+    "./layout.css",
+    "./styles.css",
+    "./editor.css"
+  ],
+  "copies": [
+    { "source": "packages/core/dist", "target": "packages/looma/dist" },
+    { "source": "packages/core/loader", "target": "packages/looma/loader" },
+    { "source": "packages/layout/dist", "target": "packages/looma/layout" },
+    { "source": "packages/editor/dist", "target": "packages/looma/editor" },
+    { "source": "packages/vue/dist", "target": "packages/looma/vue" },
+    { "source": "packages/tokens/src/tokens.css", "target": "packages/looma/tokens.css" },
+    { "source": "packages/tokens/src/theme-light.css", "target": "packages/looma/theme-light.css" },
+    { "source": "packages/tokens/src/theme-dark.css", "target": "packages/looma/theme-dark.css" },
+    { "source": "packages/tokens/src/theme-high-contrast.css", "target": "packages/looma/theme-high-contrast.css" },
+    { "source": "packages/layout/src/layout.css", "target": "packages/looma/layout.css" },
+    { "source": "packages/core/src/styles.css", "target": "packages/looma/styles.css" },
+    { "source": "packages/editor/src/editor.css", "target": "packages/looma/editor.css" },
+    { "source": "LICENSE", "target": "packages/looma/LICENSE" }
+  ],
+  "rewrites": [
+    { "from": "@threadlabs/looma-layout", "to": "@threadlabs/looma/layout" },
+    { "from": "@threadlabs/looma-core", "to": "@threadlabs/looma/core" },
+    { "from": "@threadlabs/looma-editor", "to": "@threadlabs/looma/editor" }
+  ]
+}

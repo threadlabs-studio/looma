@@ -1,6 +1,7 @@
 {
   "name": "@threadlabs/looma-tokens",
   "version": "0.1.0",
+  "private": true,
   "description": "CSS design tokens and light, dark, and high-contrast themes for Looma.",
   "type": "module",
   "license": "MIT",
@@ -13,10 +14,6 @@
   "homepage": "https://github.com/threadlabs-studio/looma#readme",
   "bugs": {
     "url": "https://github.com/threadlabs-studio/looma/issues"
-  },
-  "publishConfig": {
-    "access": "public",
-    "provenance": true
   },
   "files": [
     "src/*.css",
