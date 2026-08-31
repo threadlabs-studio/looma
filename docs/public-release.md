@@ -15,8 +15,12 @@ implementation roadmap so package ownership decisions stay visible.
   host is authenticated to npm as `matthew-dean`, with account-level 2FA set to
   `auth-and-writes`, and that identity owns the `@threadlabs` organization.
 - The canonical GitHub repository is public, but its release commit has not
-  been pushed to `main`, no protected environments exist, and GitHub Pages is
-  not configured.
+  been pushed to `main`.
+- GitHub Pages is configured for Actions at
+  `https://threadlabs-studio.github.io/looma/`. The `docs-preview`,
+  `docs-production`, and `npm-release` environments exist and require review
+  from the repository owner. No workflow has been approved or deployed yet.
+- No repository-level npm bootstrap secret or trusted publisher is configured.
 
 ## Npm Namespace Decision
 
@@ -35,9 +39,9 @@ release policy, and registry tests. React and Svelte remain unpublished in R1.
 
 1. Authenticate the `@threadlabs` npm owner on a secure operator host and prove
    the protected release identity can publish the exact package name.
-2. Configure the GitHub `ci`, `docs-preview`, `docs-production`, and
-   `npm-release` environments and required approvers described in the release
-   checklist.
+2. Confirm the configured `docs-preview`, `docs-production`, and `npm-release`
+   environments and owner reviewer remain intact. CI is an ordinary required
+   check, not an approval-gated deployment environment.
 3. Push the reviewed release branch, merge it to `main`, and record the exact
    successful `ci.yml` run for the release commit.
 4. Run the protected no-index docs preview and record owner review.

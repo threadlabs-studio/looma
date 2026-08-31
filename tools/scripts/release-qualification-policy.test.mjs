@@ -63,6 +63,10 @@ test("public Candidate documentation is install-first, time-stable, and fail-clo
   assert.match(releaseChecklist, /superseded\s+`@threadlabs\/looma-\*` identity/);
   assert.match(releaseChecklist, /pgTAP RLS suite/);
   assert.match(releaseChecklist, /signup\/authoring\s+browser flow/);
+  assert.match(releaseChecklist, /`releaseEligible: false`/);
+  assert.match(releaseChecklist, /`finalReleaseGateRequired: false`/);
+  assert.match(releaseChecklist, /protected `release:verify` dispatch becomes\s+eligible only/is);
+  assert.doesNotMatch(releaseChecklist, /eligible singleton manifest/i);
   assert.doesNotMatch(
     rootReadme + gettingStarted + supportPage + releaseChecklist,
     /@threadlabs\/looma-(?:tokens|layout|core|editor|vue|react|svelte)/
