@@ -7,7 +7,7 @@ whose explicit subpaths preserve those runtime boundaries.
 ## Release 1 Public Package
 
 `@threadlabs/looma` is the only public artifact. Consumers select core, layout,
-editor, editor-extension, Vue, loader, and CSS behavior through explicit
+editor, low-level editor UI, editor-extension, Vue, loader, and CSS behavior through explicit
 `@threadlabs/looma/*` subpaths.
 
 The repository also contains React and Svelte adapters, docs, and Storybook
@@ -21,10 +21,11 @@ Release 1 and are not public Candidate packages.
   and never add external margins.
 - `@threadlabs/looma` and `@threadlabs/looma/core`: web components whose behavior and styles live in shadow roots.
   Their slots preserve consumer-authored semantic light DOM.
-- `@threadlabs/looma/editor`: ESM light-DOM custom elements and editor styles; `@threadlabs/looma/editor/extensions` provides optional domain-neutral
-  Tiptap helpers. Save, upload, collaboration, and presence remain app concerns.
-- `@threadlabs/looma/vue`: ESM wrappers that map Vue props, slots, and events to the public
-  layout, core, and editor elements.
+- `@threadlabs/looma/editor`: the complete ESM Tiptap-backed editor surface: light-DOM custom elements, the extension preset, and command helpers.
+- `@threadlabs/looma/editor/ui`: the low-level Tiptap-independent custom-element chrome for advanced composition.
+- `@threadlabs/looma/editor/extensions`: the focused domain-neutral Tiptap preset and command-helper surface. Save, upload, collaboration, and presence remain app concerns.
+- `@threadlabs/looma/vue`: ESM wrappers for public layout and core elements, with no editor or Tiptap edge.
+- `@threadlabs/looma/vue/editor`: the Tiptap-backed Vue editor integration; it re-exports the Looma editor helpers and maps Vue props and events to editor elements.
 
 ## DOM And Progressive-Enhancement Contract
 

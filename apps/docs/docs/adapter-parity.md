@@ -6,7 +6,8 @@ Adapters translate framework props, slots, and callbacks to Looma custom-element
 
 | Adapter | Status | Release 1 promise |
 | --- | --- | --- |
-| `@threadlabs/looma/vue` | Published Candidate | Named wrappers for all 38 published layout, core, and editor elements |
+| `@threadlabs/looma/vue` | Published Candidate | Named wrappers for 32 published layout and core elements |
+| `@threadlabs/looma/vue/editor` | Published Candidate | Named wrappers for all 6 published editor elements plus Looma editor helpers |
 | React | Deferred internal preview | Not published or supported in Release 1 |
 | Svelte | Deferred internal preview | Not published or supported in Release 1 |
 

@@ -8,7 +8,8 @@ different behavior.
 
 | Adapter | Release 1 status | Public support promise |
 | --- | --- | --- |
-| `@threadlabs/looma/vue` | Published Candidate subpath | Qualified for the public layout, core, and editor surface used by Knit |
+| `@threadlabs/looma/vue` | Published Candidate subpath | Qualified for public layout and core wrappers without the editor graph |
+| `@threadlabs/looma/vue/editor` | Published Candidate subpath | Qualified for consumer-facing Tiptap-backed Vue editor helpers and wrappers; the internal Knit harness supplies additional deep-integration evidence |
 | React | Internal/deferred preview | Repository code only; not published or supported in Release 1 |
 | Svelte | Internal/deferred preview | Repository code only; not published or supported in Release 1 |
 

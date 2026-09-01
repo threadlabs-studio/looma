@@ -34,7 +34,7 @@ Used by the CSS and `/layout` surfaces of `@threadlabs/looma`:
 
 ### Behavioral Candidate
 
-Used by the root, `/core`, `/editor`, `/editor/extensions`, and `/vue` surfaces
+Used by the root, `/core`, `/editor`, `/editor/ui`, `/editor/extensions`, `/vue`, and `/vue/editor` surfaces
 of `@threadlabs/looma`. It includes all
 package-integrity evidence plus:
 

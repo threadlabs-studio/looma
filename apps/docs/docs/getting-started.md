@@ -20,14 +20,30 @@ Use Node 20 or newer:
 pnpm add @threadlabs/looma
 ```
 
-Vue and Tiptap are optional peers. Install Vue 3.5 or newer only when using
-`@threadlabs/looma/vue`. Install the Tiptap 2 peers listed by
-`npm view @threadlabs/looma peerDependencies` only when using
-`@threadlabs/looma/editor/extensions` (current npm and pnpm clients normally
-install compatible peers automatically).
+Vue and Tiptap are optional to Looma as a whole. The general Vue adapters need
+only Vue 3.5 or newer and do not load the editor graph:
+
+```bash npm2yarn
+pnpm add @threadlabs/looma vue@^3.5.0
+```
+
+The Vue editor entry adds Tiptap 2. Pin Tiptap's official Vue lifecycle package
+to the supported 2.x line:
+
+```bash npm2yarn
+pnpm add @threadlabs/looma vue@^3.5.0 @tiptap/vue-3@^2.11.5
+```
+
+Also install the optional Tiptap peers listed by
+`npm view @threadlabs/looma peerDependencies`, keeping every `@tiptap/*` package
+on a compatible 2.x version. Those peers are optional at the package level so
+core-only and general `/vue` consumers do not install an editor stack.
+`@tiptap/vue-3` is explicit because the consuming application—not Looma—owns
+Tiptap's Vue editor lifecycle and `EditorContent`.
 
 The root package, `@threadlabs/looma/core`, `@threadlabs/looma/layout`, and
-`@threadlabs/looma/editor` work without Vue or Tiptap.
+`@threadlabs/looma/vue` work without Tiptap. Looma's `/editor` and
+`/vue/editor` entries are Tiptap-backed by design.
 
 ## Import styles and register elements
 
@@ -64,6 +80,19 @@ import { Button, Stack } from "@threadlabs/looma/vue";
     </Button>
   </Stack>
 </template>
+```
+
+For a Vue editor, use Tiptap's official lifecycle components with Looma's
+editor-specific Vue entry:
+
+```ts
+import { useEditor, EditorContent } from "@tiptap/vue-3";
+import {
+  EditorToolbar,
+  getDefaultEditorExtensions,
+} from "@threadlabs/looma/vue/editor";
+
+const editor = useEditor({ extensions: getDefaultEditorExtensions() });
 ```
 
 ## Know the Candidate boundary

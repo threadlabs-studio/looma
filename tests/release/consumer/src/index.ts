@@ -1,13 +1,15 @@
 import "@threadlabs/looma";
-import "@threadlabs/looma/editor";
 import "@threadlabs/looma/layout";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import { defineCustomElements } from "@threadlabs/looma/loader";
-import type { SlashMenuItem } from "@threadlabs/looma/editor";
-import { getDefaultEditorExtensions } from "@threadlabs/looma/editor/extensions";
-import { Button, ContextMenu, EditorToolbar, Stack } from "@threadlabs/looma/vue";
+import { Button, ContextMenu, Stack } from "@threadlabs/looma/vue";
+import {
+  EditorToolbar,
+  getDefaultEditorExtensions,
+  type SlashMenuItem,
+} from "@threadlabs/looma/vue/editor";
 import { createSSRApp, h } from "vue";
 import { renderToString } from "@vue/server-renderer";
 

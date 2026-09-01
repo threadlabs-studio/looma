@@ -18,13 +18,15 @@ consumer.
 An explicitly declared Looma package or component contract whose evidence covers its supported consumers while allowing documented limitations short of Stable guarantees.
 
 ### Behavioral Candidate
-A Candidate evidence profile for Looma behavior that combines package-integrity proof with contract, interaction, accessibility, adapter, and priority-consumer evidence.
+A Candidate evidence profile for Looma behavior that combines package-integrity proof with contract, interaction, accessibility, adapter, and integration-harness evidence.
 
 ### Consumer qualification
-The release process that proves exact Candidate artifacts work through the deepest release-critical gates of a Priority Consumer without workspace coupling, shared installation state, or artifact fallback.
+The release process that proves exact Candidate artifacts work through independent consumer checks and the deepest release-critical gates of an Integration Harness without workspace coupling, shared installation state, or artifact fallback.
 
-### Priority Consumer
-An independently versioned product selected to exercise the deepest supported product boundary for a library release.
+### Integration Harness
+An independently versioned real application used internally to exercise a library's deepest supported integration boundary without defining the library's audience or public API.
+
+*Avoid as audience labels:* Priority Consumer, Knit developer
 
 ### Release evidence
 The source- and artifact-bound record of qualification inputs and gate outcomes used to make a release decision.
