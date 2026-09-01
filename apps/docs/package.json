@@ -1,14 +1,15 @@
 {
-  "name": "@looma/docs",
+  "name": "@threadlabs/looma-docs",
   "private": true,
   "version": "0.0.0",
   "scripts": {
     "dev": "docusaurus start --port 4173",
-    "build": "docusaurus build",
+    "build": "BROWSERSLIST_IGNORE_OLD_DATA=true docusaurus build",
     "generate:api": "pnpm --dir ../.. generate:api",
     "check:docs-sync": "pnpm --dir ../.. check:docs-sync",
     "lint": "echo \"docs: lint not configured\"",
     "test": "echo \"docs: tests not configured yet\"",
+    "test:browser": "playwright test",
     "typecheck": "echo \"docs: typecheck not configured\""
   },
   "dependencies": {
@@ -17,12 +18,12 @@
     "@docusaurus/core": "^3.9.2",
     "@docusaurus/preset-classic": "^3.9.2",
     "@mdx-js/react": "^3.1.0",
-    "@looma/core": "workspace:*",
-    "@looma/layout": "workspace:*",
-    "@looma/tokens": "workspace:*"
+    "@threadlabs/looma": "workspace:*"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^3.9.2",
+    "@playwright/test": "~1.60.0",
+    "axe-core": "^4.10.3",
     "typescript": "^5.9.2"
   }
 }

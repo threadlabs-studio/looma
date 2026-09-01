@@ -11,6 +11,13 @@ import type {
 
 const TAG = "ui-editor-table-toolbar";
 
+type TableToolbarActionItem = {
+  action: TableContextMenuAction;
+  label: string;
+  can: string;
+  tone?: "danger";
+};
+
 function dispatchTableAction(element: HTMLElement, action: TableContextMenuAction): void {
   element.dispatchEvent(
     new CustomEvent<TableContextMenuActionEventDetail>("looma-editor-table-action", {
@@ -23,12 +30,21 @@ function dispatchTableAction(element: HTMLElement, action: TableContextMenuActio
 
 if (typeof HTMLElement !== "undefined") {
 class UIEditorTableToolbarElement extends HTMLElement {
+  #overflowOpen = false;
+
   static get observedAttributes(): string[] {
     return [
       "open",
       "cell-alignment",
       "can-add-row-after",
       "can-add-column-after",
+      "can-add-row-before",
+      "can-add-column-before",
+      "can-delete-row",
+      "can-delete-column",
+      "can-delete-table",
+      "can-merge-cells",
+      "can-split-cell",
     ];
   }
 
@@ -50,10 +66,12 @@ class UIEditorTableToolbarElement extends HTMLElement {
   connectedCallback(): void {
     this.render();
     this.addEventListener("click", this.onClick);
+    document.addEventListener("pointerdown", this.onDocumentPointerDown, true);
   }
 
   disconnectedCallback(): void {
     this.removeEventListener("click", this.onClick);
+    document.removeEventListener("pointerdown", this.onDocumentPointerDown, true);
   }
 
   attributeChangedCallback(): void {
@@ -62,18 +80,49 @@ class UIEditorTableToolbarElement extends HTMLElement {
 
   private onClick = (event: MouseEvent): void => {
     const target = (event.target as HTMLElement).closest<HTMLElement>("[data-action]");
-    const action = target?.dataset.action as TableContextMenuAction | undefined;
+    if (!target) {
+      return;
+    }
+
+    if (target.dataset.action === "toggle-overflow") {
+      this.#overflowOpen = !this.#overflowOpen;
+      this.render();
+      return;
+    }
+
+    const action = target.dataset.action as TableContextMenuAction | undefined;
     if (!action) {
       return;
     }
 
+    this.#overflowOpen = false;
+    this.render();
     dispatchTableAction(this, action);
+  };
+
+  private onDocumentPointerDown = (event: PointerEvent): void => {
+    if (!this.#overflowOpen) {
+      return;
+    }
+
+    const path = typeof event.composedPath === "function" ? event.composedPath() : [];
+    if (path.includes(this)) {
+      return;
+    }
+
+    if (event.target instanceof Node && this.contains(event.target)) {
+      return;
+    }
+
+    this.#overflowOpen = false;
+    this.render();
   };
 
   private render(): void {
     const open = this.getBoolAttr("open");
     this.hidden = !open;
     if (!open) {
+      this.#overflowOpen = false;
       return;
     }
 
@@ -98,6 +147,32 @@ class UIEditorTableToolbarElement extends HTMLElement {
       }>
     ).filter((action) => this.getBoolAttr(action.can));
 
+    const overflowSections = [
+      {
+        heading: "Structure",
+        actions: [
+          { action: "add-row-before", label: "Add row above", can: "can-add-row-before" },
+          { action: "add-column-before", label: "Add column left", can: "can-add-column-before" },
+        ] satisfies TableToolbarActionItem[],
+      },
+      {
+        heading: "Table",
+        actions: [
+          { action: "delete-row", label: "Delete row", can: "can-delete-row", tone: "danger" },
+          { action: "delete-column", label: "Delete column", can: "can-delete-column", tone: "danger" },
+          { action: "delete-table", label: "Delete table", can: "can-delete-table", tone: "danger" },
+        ] satisfies TableToolbarActionItem[],
+      },
+    ] satisfies Array<{
+      heading: string;
+      actions: TableToolbarActionItem[];
+    }>;
+
+    const availableOverflowSections = overflowSections.map((section) => ({
+      ...section,
+      actions: section.actions.filter((action) => this.getBoolAttr(action.can)),
+    })).filter((section) => section.actions.length > 0);
+
     this.innerHTML = [
       '<div class="ui-editor-table-toolbar" role="toolbar" aria-label="Table actions">',
       '<div class="ui-editor-table-toolbar__group" role="group" aria-label="Cell alignment">',
@@ -117,6 +192,33 @@ class UIEditorTableToolbarElement extends HTMLElement {
         )
         .join(""),
       structuralActions.length > 0 ? "</div>" : "",
+      availableOverflowSections.length > 0 ? '<div class="ui-editor-table-toolbar__sep" aria-hidden="true"></div>' : "",
+      availableOverflowSections.length > 0 ? '<div class="ui-editor-table-toolbar__overflow">' : "",
+      availableOverflowSections.length > 0
+        ? `<button type="button" class="ui-editor-table-toolbar__more" data-action="toggle-overflow" aria-haspopup="menu" aria-expanded="${this.#overflowOpen ? "true" : "false"}">Table options</button>`
+        : "",
+      availableOverflowSections.length > 0 && this.#overflowOpen
+        ? [
+            '<div class="ui-editor-table-toolbar__menu" role="menu" aria-label="More table actions">',
+            availableOverflowSections
+              .map((section) =>
+                [
+                  '<div class="ui-editor-table-toolbar__menu-section" role="none">',
+                  `<div class="ui-editor-table-toolbar__menu-heading" role="presentation">${section.heading}</div>`,
+                  section.actions
+                    .map((action) => {
+                      const tone = "tone" in action ? action.tone : undefined;
+                      return `<button type="button" role="menuitem" data-action="${action.action}"${tone ? ` data-tone="${tone}"` : ""}>${action.label}</button>`;
+                    })
+                    .join(""),
+                  "</div>",
+                ].join("")
+              )
+              .join(""),
+            "</div>",
+          ].join("")
+        : "",
+      availableOverflowSections.length > 0 ? "</div>" : "",
       "</div>",
     ].join("");
   }

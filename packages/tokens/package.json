@@ -1,8 +1,9 @@
 {
-  "name": "@looma/tokens",
-  "version": "0.0.0",
+  "name": "@threadlabs/looma-tokens",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CSS design tokens and light, dark, and high-contrast themes for Looma.",
   "type": "module",
-  "description": "CSS tokens and themes for Looma components.",
   "license": "MIT",
   "author": "Threadlabs Studio",
   "repository": {
@@ -10,13 +11,14 @@
     "url": "git+https://github.com/threadlabs-studio/looma.git",
     "directory": "packages/tokens"
   },
+  "homepage": "https://github.com/threadlabs-studio/looma#readme",
   "bugs": {
     "url": "https://github.com/threadlabs-studio/looma/issues"
   },
-  "homepage": "https://github.com/threadlabs-studio/looma/tree/main/packages/tokens#readme",
-  "publishConfig": {
-    "access": "public"
-  },
+  "files": [
+    "src/*.css",
+    "README.md"
+  ],
   "sideEffects": [
     "*.css"
   ],
@@ -27,13 +29,13 @@
     "./theme-dark.css": "./src/theme-dark.css",
     "./theme-high-contrast.css": "./src/theme-high-contrast.css"
   },
-  "files": [
-    "src/*.css"
-  ],
   "scripts": {
     "build": "echo \"tokens: css-only package\"",
     "lint": "echo \"tokens: no lint configured\"",
     "test": "echo \"tokens: no tests yet\"",
     "typecheck": "echo \"tokens: no typecheck\""
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

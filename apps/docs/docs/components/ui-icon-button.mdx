@@ -1,0 +1,72 @@
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+<div className="looma-component-header">
+
+<p className="component-tag">&lt;ui-icon-button&gt;</p>
+
+# Icon Button
+
+Icon-only button primitive with stable square sizing and variant tokens for shell controls, compact actions, and editor chrome.
+
+**Import:** `import "@threadlabs/looma"` — or use `IconButton` from `@threadlabs/looma/vue`.
+
+</div>
+
+## Examples & API
+
+<ComponentExamplesApiTabs
+  component="ui-icon-button"
+  preview={
+    <>
+      <ui-icon-button label="Search">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+          <circle cx="11" cy="11" r="7" stroke="currentColor" />
+          <path d="m20 20-3.5-3.5" stroke="currentColor" strokeLinecap="round" />
+        </svg>
+      </ui-icon-button>
+      <ui-icon-button label="Open settings" variant="outline">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M12 3.75v2.5m0 11.5v2.5m8.25-8.25h-2.5M6.25 12H3.75m14.084 5.834-1.768-1.768M7.934 7.934 6.166 6.166m11.668 0-1.768 1.768M7.934 16.066l-1.768 1.768"
+            stroke="currentColor"
+            strokeLinecap="round"
+          />
+          <circle cx="12" cy="12" r="3.5" stroke="currentColor" />
+        </svg>
+      </ui-icon-button>
+      <ui-icon-button label="Add page" variant="solid">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+          <path d="M12 5v14M5 12h14" stroke="currentColor" strokeLinecap="round" />
+        </svg>
+      </ui-icon-button>
+    </>
+  }
+/>
+
+## SSR Markup
+
+```html
+<ui-icon-button label="Search" variant="ghost" size="md">
+  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+    <circle cx="11" cy="11" r="7" stroke="currentColor" />
+    <path d="m20 20-3.5-3.5" stroke="currentColor" />
+  </svg>
+</ui-icon-button>
+```
+
+## Framework Snippets
+
+```vue
+<script setup lang="ts">
+import { IconButton } from "@threadlabs/looma/vue";
+</script>
+
+<template>
+  <IconButton label="Search" variant="ghost">
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+      <circle cx="11" cy="11" r="7" stroke="currentColor" />
+      <path d="m20 20-3.5-3.5" stroke="currentColor" />
+    </svg>
+  </IconButton>
+</template>
+```

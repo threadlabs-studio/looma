@@ -1,8 +1,9 @@
 {
-  "name": "@looma/vue",
-  "version": "0.0.0",
+  "name": "@threadlabs/looma-vue",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Supported Vue 3 adapters for Looma layout, core, and editor elements.",
   "type": "module",
-  "description": "Thin Vue adapters for Looma web components.",
   "license": "MIT",
   "author": "Threadlabs Studio",
   "repository": {
@@ -10,40 +11,44 @@
     "url": "git+https://github.com/threadlabs-studio/looma.git",
     "directory": "packages/vue"
   },
+  "homepage": "https://github.com/threadlabs-studio/looma#readme",
   "bugs": {
     "url": "https://github.com/threadlabs-studio/looma/issues"
   },
-  "homepage": "https://github.com/threadlabs-studio/looma/tree/main/packages/vue#readme",
-  "publishConfig": {
-    "access": "public"
-  },
+  "files": [
+    "dist/",
+    "README.md"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     }
   },
-  "files": [
-    "dist/"
-  ],
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts --clean",
     "lint": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run --environment jsdom",
+    "test": "vitest run",
+    "test:browser": "vitest run --config vitest.browser.config.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@looma/core": "workspace:*",
-    "@looma/editor": "workspace:*",
-    "@looma/layout": "workspace:*"
+    "@threadlabs/looma-core": "workspace:*",
+    "@threadlabs/looma-editor": "workspace:*",
+    "@threadlabs/looma-layout": "workspace:*"
   },
   "peerDependencies": {
     "vue": "^3.5.0"
   },
   "devDependencies": {
+    "@vitest/browser": "~3.2.6",
     "jsdom": "^26.1.0",
+    "playwright": "~1.60.0",
     "tsup": "^8.5.0",
     "typescript": "^5.9.2",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.6"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

@@ -1,0 +1,38 @@
+storage: ./storage
+
+web:
+  enable: false
+
+auth:
+  htpasswd:
+    file: ./htpasswd
+    max_users: 1
+
+uplinks:
+  npmjs:
+    url: https://registry.npmjs.org/
+    cache: false
+
+packages:
+  '@threadlabs/looma':
+    access: $all
+    publish: $all
+    unpublish: $all
+
+  '@threadlabs/looma-*':
+    access: $all
+    publish: nobody
+    unpublish: nobody
+
+  '**':
+    access: $all
+    publish: $authenticated
+    unpublish: $authenticated
+    proxy: npmjs
+
+log:
+  type: stdout
+  format: pretty
+  level: http
+
+max_body_size: 20mb

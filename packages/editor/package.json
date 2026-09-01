@@ -1,8 +1,9 @@
 {
-  "name": "@looma/editor",
-  "version": "0.0.0",
+  "name": "@threadlabs/looma-editor",
+  "version": "0.1.0",
+  "private": true,
   "type": "module",
-  "description": "Confluence/Notion-like editor UI as web components: slash menu, tables, block menu, toolbar. Vue/React adapters in @looma/vue / @looma/react.",
+  "description": "Open-source Tiptap editor UI elements, styles, presets, and table helpers for Looma.",
   "license": "MIT",
   "author": "Threadlabs Studio",
   "repository": {
@@ -10,17 +11,20 @@
     "url": "git+https://github.com/threadlabs-studio/looma.git",
     "directory": "packages/editor"
   },
+  "homepage": "https://github.com/threadlabs-studio/looma#readme",
   "bugs": {
     "url": "https://github.com/threadlabs-studio/looma/issues"
   },
-  "homepage": "https://github.com/threadlabs-studio/looma/tree/main/packages/editor#readme",
-  "publishConfig": {
-    "access": "public"
-  },
+  "files": [
+    "dist/",
+    "src/editor.css",
+    "README.md"
+  ],
   "sideEffects": [
-    "./dist/editor.css",
+    "./dist/index.js",
     "./src/editor.css",
-    "**/*.ts"
+    "./dist/editor.css",
+    "./src/*.ts"
   ],
   "exports": {
     ".": {
@@ -33,53 +37,54 @@
     },
     "./editor.css": "./src/editor.css"
   },
-  "files": [
-    "dist/",
-    "src/editor.css"
-  ],
   "scripts": {
     "build": "tsup src/index.ts src/extensions/index.ts --format esm --dts --clean",
     "lint": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:browser": "vitest run --config vitest.browser.config.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@looma/core": "workspace:*",
-    "@looma/tokens": "workspace:*"
+    "@threadlabs/looma-core": "workspace:*",
+    "@threadlabs/looma-tokens": "workspace:*",
+    "prosemirror-tables": "^1.8.5"
   },
   "peerDependencies": {
-    "@tiptap/core": ">=2.0.0",
-    "@tiptap/extension-blockquote": ">=2.0.0",
-    "@tiptap/extension-bold": ">=2.0.0",
-    "@tiptap/extension-bullet-list": ">=2.0.0",
-    "@tiptap/extension-code": ">=2.0.0",
-    "@tiptap/extension-code-block": ">=2.0.0",
-    "@tiptap/extension-document": ">=2.0.0",
-    "@tiptap/extension-dropcursor": ">=2.0.0",
-    "@tiptap/extension-gapcursor": ">=2.0.0",
-    "@tiptap/extension-hard-break": ">=2.0.0",
-    "@tiptap/extension-heading": ">=2.0.0",
-    "@tiptap/extension-highlight": ">=2.0.0",
-    "@tiptap/extension-history": ">=2.0.0",
-    "@tiptap/extension-horizontal-rule": ">=2.0.0",
-    "@tiptap/extension-image": ">=2.0.0",
-    "@tiptap/extension-italic": ">=2.0.0",
-    "@tiptap/extension-link": ">=2.0.0",
-    "@tiptap/extension-list-item": ">=2.0.0",
-    "@tiptap/extension-ordered-list": ">=2.0.0",
-    "@tiptap/extension-paragraph": ">=2.0.0",
-    "@tiptap/extension-placeholder": ">=2.0.0",
-    "@tiptap/extension-strike": ">=2.0.0",
-    "@tiptap/extension-table": ">=2.0.0",
-    "@tiptap/extension-table-cell": ">=2.0.0",
-    "@tiptap/extension-table-header": ">=2.0.0",
-    "@tiptap/extension-table-row": ">=2.0.0",
-    "@tiptap/extension-task-item": ">=2.0.0",
-    "@tiptap/extension-task-list": ">=2.0.0",
-    "@tiptap/extension-text": ">=2.0.0",
-    "@tiptap/extension-typography": ">=2.0.0",
-    "@tiptap/extension-underline": ">=2.0.0"
+    "@tiptap/core": ">=2 <3",
+    "@tiptap/extension-blockquote": ">=2 <3",
+    "@tiptap/extension-bold": ">=2 <3",
+    "@tiptap/extension-bullet-list": ">=2 <3",
+    "@tiptap/extension-code": ">=2 <3",
+    "@tiptap/extension-code-block": ">=2 <3",
+    "@tiptap/extension-document": ">=2 <3",
+    "@tiptap/extension-dropcursor": ">=2 <3",
+    "@tiptap/extension-gapcursor": ">=2 <3",
+    "@tiptap/extension-hard-break": ">=2 <3",
+    "@tiptap/extension-heading": ">=2 <3",
+    "@tiptap/extension-highlight": ">=2 <3",
+    "@tiptap/extension-history": ">=2 <3",
+    "@tiptap/extension-horizontal-rule": ">=2 <3",
+    "@tiptap/extension-image": ">=2 <3",
+    "@tiptap/extension-italic": ">=2 <3",
+    "@tiptap/extension-link": ">=2 <3",
+    "@tiptap/extension-list-item": ">=2 <3",
+    "@tiptap/extension-ordered-list": ">=2 <3",
+    "@tiptap/extension-paragraph": ">=2 <3",
+    "@tiptap/extension-placeholder": ">=2 <3",
+    "@tiptap/extension-strike": ">=2 <3",
+    "@tiptap/extension-table": ">=2 <3",
+    "@tiptap/extension-table-cell": ">=2 <3",
+    "@tiptap/extension-table-header": ">=2 <3",
+    "@tiptap/extension-table-row": ">=2 <3",
+    "@tiptap/extension-task-item": ">=2 <3",
+    "@tiptap/extension-task-list": ">=2 <3",
+    "@tiptap/extension-text": ">=2 <3",
+    "@tiptap/extension-typography": ">=2 <3",
+    "@tiptap/extension-underline": ">=2 <3"
   },
   "devDependencies": {
+    "@vitest/browser": "~3.2.6",
+    "axe-core": "^4.10.3",
     "@tiptap/core": "^2.11.5",
     "@tiptap/extension-blockquote": "^2.11.5",
     "@tiptap/extension-bold": "^2.11.5",
@@ -111,7 +116,13 @@
     "@tiptap/extension-text": "^2.11.5",
     "@tiptap/extension-typography": "^2.11.5",
     "@tiptap/extension-underline": "^2.11.5",
+    "jsdom": "^27.0.0",
+    "playwright": "~1.60.0",
     "tsup": "^8.5.0",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.6"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

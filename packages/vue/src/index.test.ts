@@ -1,12 +1,17 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, type App } from "vue";
 
+vi.mock("@threadlabs/looma-layout", () => ({}));
+vi.mock("@threadlabs/looma-core", () => ({}));
+vi.mock("@threadlabs/looma-editor", () => ({}));
+
 import {
   ADAPTER_COMPONENT_TAG_MAP,
   Avatar,
   AvatarGroup,
   Badge,
   Button,
+  ContextMenu,
   FloatingActionButton,
   Menu,
   MenuItem,
@@ -39,7 +44,7 @@ afterEach(() => {
   document.body.innerHTML = "";
 });
 
-describe("@looma/vue adapter", () => {
+describe("@threadlabs/looma-vue adapter", () => {
   it("includes parity exports for radio, badge, avatar, and avatar-group tags", () => {
     expect(ADAPTER_COMPONENT_TAG_MAP.RadioGroup).toBe("ui-radio-group");
     expect(ADAPTER_COMPONENT_TAG_MAP.Radio).toBe("ui-radio");
@@ -47,6 +52,7 @@ describe("@looma/vue adapter", () => {
     expect(ADAPTER_COMPONENT_TAG_MAP.Avatar).toBe("ui-avatar");
     expect(ADAPTER_COMPONENT_TAG_MAP.AvatarGroup).toBe("ui-avatar-group");
     expect(ADAPTER_COMPONENT_TAG_MAP.FloatingActionButton).toBe("ui-floating-action-button");
+    expect(ADAPTER_COMPONENT_TAG_MAP.ContextMenu).toBe("ui-context-menu");
   });
 
   it("renders wrappers with forwarded attrs and default slot content", () => {
@@ -74,6 +80,27 @@ describe("@looma/vue adapter", () => {
 
     const menu = host.querySelector("ui-menu");
     menu?.dispatchEvent(
+      new CustomEvent("select", {
+        detail: { value: "rename", trigger: "keyboard" },
+        bubbles: true,
+        composed: true
+      })
+    );
+
+    expect(onSelect).toHaveBeenCalledWith({ value: "rename", trigger: "keyboard" });
+  });
+
+  it("renders the context-menu named export and forwards selection details", () => {
+    const onSelect = vi.fn();
+    const { host } = mount(() =>
+      h(ContextMenu, { onSelect }, () => h(MenuItem, { value: "rename" }, () => "Rename"))
+    );
+
+    const contextMenu = host.querySelector("ui-context-menu");
+    expect(contextMenu).toBeTruthy();
+    expect(contextMenu?.querySelector("ui-menu-item")?.textContent).toContain("Rename");
+
+    contextMenu?.dispatchEvent(
       new CustomEvent("select", {
         detail: { value: "rename", trigger: "keyboard" },
         bubbles: true,

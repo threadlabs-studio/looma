@@ -1,0 +1,62 @@
+:host {
+  display: inline-flex;
+  color: var(--ui-text-primary);
+}
+
+::slotted(select) {
+  width: 100%;
+  appearance: none;
+  border: 1px solid var(--ui-border-default);
+  border-radius: var(--ui-radius-2);
+  background-color: var(--ui-surface-default);
+  color: inherit;
+  font: inherit;
+  line-height: var(--ui-line-height-md);
+  padding-block: var(--ui-select-padding-block, var(--ui-space-2));
+  padding-inline-start: var(--ui-select-padding-inline-start, var(--ui-space-3));
+  padding-inline-end: var(--ui-select-padding-inline-end, calc(var(--ui-space-6) + var(--ui-space-3)));
+  margin: 0;
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    calc(100% - 1rem) calc(50% - 2px),
+    calc(100% - 0.7rem) calc(50% - 2px);
+  background-size: 0.35rem 0.35rem, 0.35rem 0.35rem;
+  background-repeat: no-repeat;
+  transition:
+    border-color var(--ui-motion-fast) var(--ui-motion-ease),
+    box-shadow var(--ui-motion-fast) var(--ui-motion-ease),
+    background-color var(--ui-motion-fast) var(--ui-motion-ease);
+}
+
+::slotted(select:hover:not(:focus):not(:disabled)) {
+  border-color: var(--ui-border-strong);
+}
+
+::slotted(select:focus) {
+  border-color: var(--ui-focus-ring);
+  box-shadow: 0 0 0 3px var(--ui-accent-soft);
+}
+
+:host([data-invalid='true'])::slotted(select),
+::slotted(select[aria-invalid='true']) {
+  border-color: var(--ui-accent-active);
+}
+
+::slotted(select:disabled) {
+  background-color: var(--ui-surface-muted);
+  color: var(--ui-text-muted);
+  cursor: not-allowed;
+}
+
+::slotted(select:focus-visible) {
+  outline: 2px solid var(--ui-focus-ring);
+  outline-offset: 2px;
+}
+
+::slotted(select[multiple]),
+::slotted(select[size]:not([size='1'])) {
+  background-image: none;
+  padding-inline-end: var(--ui-select-padding-inline-start, var(--ui-space-3));
+}

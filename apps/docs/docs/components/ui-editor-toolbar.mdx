@@ -1,0 +1,24 @@
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# Editor Toolbar
+
+Semantic, slot-based toolbar frame for app-owned editor command controls.
+
+## Component Reference
+
+<ComponentExamplesApiTabs component="ui-editor-toolbar" />
+
+## SSR And No-JS Contract
+
+```html
+<ui-editor-toolbar aria-label="Text formatting">
+  <button type="button" aria-pressed="false">Bold</button>
+  <button type="button" aria-pressed="false">Italic</button>
+</ui-editor-toolbar>
+```
+
+The slotted buttons are the semantic fallback. Upgrade supplies the toolbar role and default label when the author omits them; apps own command state, focus behavior, and Tiptap wiring. Keep controls keyboard-operable and at least 44px on touch layouts.
+
+## Vue
+
+Use `EditorToolbar` from `@threadlabs/looma/vue`; pass real button controls through its default slot and keep editor commands in the app.

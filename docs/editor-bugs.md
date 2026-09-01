@@ -1,6 +1,6 @@
 # Editor Bugs
 
-Last updated: 2026-03-29
+Last updated: 2026-08-30
 
 This file tracks shared Looma editor defects that are visible in Knit and other consuming apps.
 
@@ -52,6 +52,7 @@ Resolution:
 
 - `ui-editor-insert-table-grid` now treats hover as preview only and click as the commit step for `rows` and `cols`.
 - The inserted size stays stable while moving from the grid to the confirmation button.
+- Dimension cells are native, named toggle buttons, so keyboard and touch users can pin the same dimensions before confirmation.
 
 Acceptance notes:
 
@@ -60,7 +61,11 @@ Acceptance notes:
 
 ### E-TBL-003: Table overlay and options model are placeholder-quality, not Confluence-quality
 
-Status: open
+Status: accepted Candidate limitation (2026-08-30)
+
+Release 1 classification: Confluence-level visual polish is deferred. Candidate
+acceptance is limited to the qualified flow below; data loss or corruption is
+not accepted.
 
 Observed behavior:
 
@@ -87,19 +92,38 @@ Design direction to evaluate:
 Current implementation note:
 
 - `ui-editor-table-overlay` is still a Phase 1 primitive and does not yet match the Confluence interaction model in spacing, discoverability, or hover behavior.
+- Row and column boundary controls now behave as hover-only line affordances instead of persistent visible buttons.
+- The overlay now keeps a single active boundary at a time, with the insert handle tied to the hovered row/column line instead of a blanket of visually equivalent controls.
 - Looma now keeps the floating table toolbar scoped to active table selection only and uses it for quick actions such as cell alignment and simple row/column insertion.
-- The heavier row/column delete, merge/split, and other overflow actions remain in the right-click menu.
-- The full hover-line interaction model and resize polish are still not complete.
+- Looma’s shared toolbar overflow is now explicitly structural-only; cell-specific actions such as merge/split and background color live in the cell context menu instead of being duplicated in the floating bar.
+- Cell background is now a shared cell-scoped action in the right-click menu instead of being mixed into the quick toolbar or structural overflow.
+- The heavier row/column delete, merge/split, and other overflow actions are now available from a grouped toolbar overflow menu as well as the right-click menu.
+- The right-click menu now hides unavailable actions and groups the remaining actions by structure/table intent instead of presenting one long partially-disabled list.
+- Looma now also normalizes resized column widths back into the active table so the table stays full-width inside the editor after drag-resize completes.
+- The full Confluence-style hover-line interaction model and richer structural options model are still not complete.
+
+Release evidence:
+
+- Chromium exercises keyboard dimension selection, the visible structural toolbar,
+  destructive-intent dispatch, and keyboard activation of row insertion controls.
+- Automated browser accessibility checks pass for the toolbar, table menu, insert
+  grid, and insertion overlay without disabled rules.
+- Tiptap data-integrity tests add rows and columns to a populated table and prove
+  every existing cell plus surrounding document content survives serialization.
+- Destructive controls emit one explicit app-owned intent and do not mutate editor
+  state on their own.
 
 Acceptance notes:
 
 - Hovering a row/column boundary should clearly preview the affected line.
 - Insert controls should appear where the action will apply, not as oversized always-on buttons.
 - The primary structural actions must be discoverable without requiring right-click hunting.
+- Visual parity with Confluence remains explicitly outside Candidate R1 and must
+  not be described as complete in public documentation.
 
 ### E-TBL-004: Toolbar icon rendering still looks off compared with the pre-Looma editor
 
-Status: open
+Status: closed (2026-03-29)
 
 Observed behavior:
 
@@ -110,9 +134,11 @@ Expected behavior:
 - Toolbar buttons should read as visually crisp and uniform at a glance.
 - Icon sizing, optical alignment, and stroke/fill language should be consistent across the toolbar.
 
-Current implementation note:
+Resolution notes:
 
-- The toolbar currently mixes custom inline SVGs with both fill-based and stroke-based icons, and the current adapter/button composition still needs polish.
+- Looma’s shared toolbar shell now enforces more stable sizing and non-shrinking child layout.
+- Knit’s remaining app-local formatting actions now use one consistent Lucide icon set instead of mixed inline fill/stroke/text glyph icons.
+- Browser verification passed against the real page editor in Knit.
 
 Acceptance notes:
 

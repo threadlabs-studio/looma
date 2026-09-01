@@ -2,7 +2,7 @@
   "components": [
     {
       "tag": "ui-avatar",
-      "package": "@looma/core",
+      "package": "@threadlabs/looma",
       "className": "UIAvatarElement",
       "description": "Image and fallback initials primitive for identity surfaces such as profiles and assignees.",
       "attributes": [
@@ -63,7 +63,7 @@
     },
     {
       "tag": "ui-avatar-group",
-      "package": "@looma/core",
+      "package": "@threadlabs/looma",
       "className": "UIAvatarGroupElement",
       "description": "Container that displays overlapping avatars with an optional \"+N\" overflow pill when the count exceeds the visible maximum.",
       "attributes": [
@@ -100,7 +100,7 @@
     },
     {
       "tag": "ui-badge",
-      "package": "@looma/core",
+      "package": "@threadlabs/looma",
       "className": "UIBadgeElement",
       "description": "Lightweight status and label primitive with minimal styling hooks.",
       "attributes": [
@@ -139,7 +139,7 @@
     },
     {
       "tag": "ui-button",
-      "package": "@looma/core",
+      "package": "@threadlabs/looma",
       "className": "UIButtonElement",
       "description": "Essential button primitive that enhances semantic button markup and styling hooks.",
       "attributes": [
@@ -188,8 +188,58 @@
       ]
     },
     {
+      "tag": "ui-floating-action-button",
+      "package": "@threadlabs/looma",
+      "className": "UIFloatingActionButtonElement",
+      "description": "Primary floating action primitive for mobile-first create or compose affordances.",
+      "attributes": [
+        {
+          "name": "disabled",
+          "property": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "label",
+          "property": "label",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "mobile-only",
+          "property": "mobileOnly",
+          "type": "boolean",
+          "default": false
+        }
+      ],
+      "properties": [
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "mobileOnly",
+          "type": "boolean",
+          "default": false
+        }
+      ],
+      "events": [],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Default child content."
+        }
+      ]
+    },
+    {
       "tag": "ui-checkbox",
-      "package": "@looma/core",
+      "package": "@threadlabs/looma",
       "className": "UICheckboxElement",
       "description": "Form control primitive for boolean and mixed selection state.",
       "attributes": [
@@ -278,8 +328,66 @@
       ]
     },
     {
+      "tag": "ui-context-menu",
+      "package": "@threadlabs/looma",
+      "className": "UIContextMenuElement",
+      "description": "Pointer-anchored action menu that preserves menu keyboard selection and shared overlay dismissal behavior.",
+      "attributes": [
+        {
+          "name": "default-open",
+          "property": "defaultOpen",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "open",
+          "property": "open",
+          "type": "boolean",
+          "default": false
+        }
+      ],
+      "properties": [
+        {
+          "name": "defaultOpen",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "default": false
+        }
+      ],
+      "events": [
+        {
+          "name": "close",
+          "detailType": "OpenCloseDetail",
+          "detailSchema": "{ open: boolean; reason: PrimitiveReason; trigger: PrimitiveTrigger }",
+          "detailDocs": "Emitted when the context menu closes."
+        },
+        {
+          "name": "open",
+          "detailType": "OpenCloseDetail",
+          "detailSchema": "{ open: boolean; reason: PrimitiveReason; trigger: PrimitiveTrigger }",
+          "detailDocs": "Emitted when a pointer context-menu action opens the menu."
+        },
+        {
+          "name": "select",
+          "detailType": "SelectDetail",
+          "detailSchema": "{ value: string; trigger: PrimitiveTrigger }",
+          "detailDocs": "Emitted when a menu item is activated."
+        }
+      ],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Context-menu items, normally `ui-menu-item` elements."
+        }
+      ]
+    },
+    {
       "tag": "ui-dialog",
-      "package": "@looma/core",
+      "package": "@threadlabs/looma",
       "className": "UIDialogElement",
       "description": "Overlay primitive that coordinates native `dialog` behavior with shared overlay stack rules.",
       "attributes": [
@@ -347,7 +455,7 @@
     },
     {
       "tag": "ui-disclosure",
-      "package": "@looma/core",
+      "package": "@threadlabs/looma",
       "className": "UIDisclosureElement",
       "description": "Progressively enhances a button/content pair into an accessible disclosure.",
       "attributes": [
@@ -404,7 +512,7 @@
     },
     {
       "tag": "ui-form-field",
-      "package": "@looma/core",
+      "package": "@threadlabs/looma",
       "className": "UIFormFieldElement",
       "description": "Form-field composition primitive that links label/control/description semantics.",
       "attributes": [
@@ -454,7 +562,7 @@
     },
     {
       "tag": "ui-input",
-      "package": "@looma/core",
+      "package": "@threadlabs/looma",
       "className": "UIInputElement",
       "description": "Essential text-input primitive that mirrors value/state to native input controls.",
       "attributes": [
@@ -525,8 +633,145 @@
       ]
     },
     {
+      "tag": "ui-select",
+      "package": "@threadlabs/looma",
+      "className": "UISelectElement",
+      "description": "Native-select wrapper primitive that mirrors state to a slotted select while applying shared Looma styling.",
+      "attributes": [
+        {
+          "name": "default-value",
+          "property": "defaultValue",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "disabled",
+          "property": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "invalid",
+          "property": "invalid",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "required",
+          "property": "required",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "value",
+          "property": "value",
+          "type": "string",
+          "default": ""
+        }
+      ],
+      "properties": [
+        {
+          "name": "defaultValue",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "invalid",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "default": ""
+        }
+      ],
+      "events": [],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Default child content."
+        }
+      ]
+    },
+    {
+      "tag": "ui-icon-button",
+      "package": "@threadlabs/looma",
+      "className": "UIIconButtonElement",
+      "description": "Icon-only button primitive with stable square sizing for compact actions and shell controls.",
+      "attributes": [
+        {
+          "name": "disabled",
+          "property": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "label",
+          "property": "label",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "size",
+          "property": "size",
+          "type": "string",
+          "default": "md",
+          "options": ["sm", "md", "lg"]
+        },
+        {
+          "name": "variant",
+          "property": "variant",
+          "type": "string",
+          "default": "ghost",
+          "options": ["ghost", "outline", "solid"]
+        }
+      ],
+      "properties": [
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "size",
+          "type": "\"sm\" | \"md\" | \"lg\"",
+          "default": "md",
+          "options": ["sm", "md", "lg"]
+        },
+        {
+          "name": "variant",
+          "type": "\"ghost\" | \"outline\" | \"solid\"",
+          "default": "ghost",
+          "options": ["ghost", "outline", "solid"]
+        }
+      ],
+      "events": [],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Icon content, typically a single SVG."
+        }
+      ]
+    },
+    {
       "tag": "ui-menu",
-      "package": "@looma/core",
+      "package": "@threadlabs/looma",
       "className": "UIMenuElement",
       "description": "Menu container primitive that manages focus and selection across `ui-menu-item` children.",
       "attributes": [
@@ -578,7 +823,7 @@
     },
     {
       "tag": "ui-menu-item",
-      "package": "@looma/core",
+      "package": "@threadlabs/looma",
       "className": "UIMenuItemElement",
       "description": "Focusable menu item primitive intended for use inside `ui-menu`.",
       "attributes": [
@@ -610,7 +855,7 @@
     },
     {
       "tag": "ui-popover",
-      "package": "@looma/core",
+      "package": "@threadlabs/looma",
       "className": "UIPopoverElement",
       "description": "Non-modal overlay primitive with shared open/close overlay lifecycle.",
       "attributes": [
@@ -656,7 +901,7 @@
     },
     {
       "tag": "ui-radio",
-      "package": "@looma/core",
+      "package": "@threadlabs/looma",
       "className": "UIRadioElement",
       "description": "Radio control primitive for mutually exclusive options, typically composed within `ui-radio-group`.",
       "attributes": [
@@ -746,7 +991,7 @@
     },
     {
       "tag": "ui-radio-group",
-      "package": "@looma/core",
+      "package": "@threadlabs/looma",
       "className": "UIRadioGroupElement",
       "description": "Grouped selection primitive that coordinates `ui-radio` descendants, keyboard navigation, and normalized selection events.",
       "attributes": [
@@ -839,7 +1084,7 @@
     },
     {
       "tag": "ui-search-result-row",
-      "package": "@looma/core",
+      "package": "@threadlabs/looma",
       "className": "UISearchResultRowElement",
       "description": "Presentational row shell for command and search results. It owns row layout, hover and selected states, and optional leading, meta, excerpt, and trailing regions while apps keep result shaping and highlighting.",
       "attributes": [
@@ -894,7 +1139,7 @@
     },
     {
       "tag": "ui-search-shell",
-      "package": "@looma/core",
+      "package": "@threadlabs/looma",
       "className": "UISearchShellElement",
       "description": "Overlay shell for search and command-palette experiences. It owns the backdrop/panel layout and responsive fullscreen behavior while apps keep query state, result rendering, and routing.",
       "attributes": [],
@@ -925,7 +1170,7 @@
     },
     {
       "tag": "ui-switch",
-      "package": "@looma/core",
+      "package": "@threadlabs/looma",
       "className": "UISwitchElement",
       "description": "Binary control primitive that reflects switch semantics for checked state.",
       "attributes": [
@@ -1004,7 +1249,7 @@
     },
     {
       "tag": "ui-tabs",
-      "package": "@looma/core",
+      "package": "@threadlabs/looma",
       "className": "UITabsElement",
       "description": "Tablist primitive that synchronizes tab focus, selection, and panel visibility.",
       "attributes": [
@@ -1063,7 +1308,7 @@
     },
     {
       "tag": "ui-toast-region",
-      "package": "@looma/core",
+      "package": "@threadlabs/looma",
       "className": "UIToastRegionElement",
       "description": "Live-region container primitive for stackable dismissible toasts.",
       "attributes": [
@@ -1110,7 +1355,7 @@
     },
     {
       "tag": "ui-tooltip",
-      "package": "@looma/core",
+      "package": "@threadlabs/looma",
       "className": "UITooltipElement",
       "description": "Contextual overlay primitive that links descriptive content to a trigger element.",
       "attributes": [
@@ -1167,7 +1412,7 @@
     },
     {
       "tag": "ui-top-bar",
-      "package": "@looma/core",
+      "package": "@threadlabs/looma",
       "className": "UITopBarElement",
       "description": "Mobile-first navigation shell with slots for leading controls, title content, an optional search affordance, and trailing actions.",
       "attributes": [],
@@ -1189,6 +1434,89 @@
         {
           "name": "actions",
           "description": "Trailing actions."
+        }
+      ]
+    },
+    {
+      "tag": "ui-textarea",
+      "package": "@threadlabs/looma",
+      "className": "UITextareaElement",
+      "description": "Multiline text-input primitive that mirrors value and state to native textarea controls.",
+      "attributes": [
+        {
+          "name": "default-value",
+          "property": "defaultValue",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "disabled",
+          "property": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "invalid",
+          "property": "invalid",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "readonly",
+          "property": "readOnly",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "rows",
+          "property": "rows",
+          "type": "number",
+          "default": 4
+        },
+        {
+          "name": "value",
+          "property": "value",
+          "type": "string",
+          "default": ""
+        }
+      ],
+      "properties": [
+        {
+          "name": "defaultValue",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "invalid",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "rows",
+          "type": "number",
+          "default": 4
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "default": ""
+        }
+      ],
+      "events": [],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Default child content."
         }
       ]
     }
