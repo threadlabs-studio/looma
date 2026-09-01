@@ -1,8 +1,9 @@
 {
-  "name": "@looma/layout",
-  "version": "0.0.0",
+  "name": "@threadlabs/looma-layout",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Light-DOM layout primitives with token-driven gaps and no external margins.",
   "type": "module",
-  "description": "Marginless Looma layout primitives for framework-neutral UI composition.",
   "license": "MIT",
   "author": "Threadlabs Studio",
   "repository": {
@@ -10,13 +11,15 @@
     "url": "git+https://github.com/threadlabs-studio/looma.git",
     "directory": "packages/layout"
   },
+  "homepage": "https://github.com/threadlabs-studio/looma#readme",
   "bugs": {
     "url": "https://github.com/threadlabs-studio/looma/issues"
   },
-  "homepage": "https://github.com/threadlabs-studio/looma/tree/main/packages/layout#readme",
-  "publishConfig": {
-    "access": "public"
-  },
+  "files": [
+    "dist/",
+    "src/layout.css",
+    "README.md"
+  ],
   "sideEffects": [
     "./dist/layout.css",
     "./src/layout.css"
@@ -25,16 +28,12 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
-      "require": "./dist/index.js"
+      "require": "./dist/index.cjs"
     },
     "./layout.css": "./src/layout.css"
   },
-  "files": [
-    "dist/",
-    "src/layout.css"
-  ],
   "scripts": {
-    "build": "tsup src/index.ts --format esm --dts --clean",
+    "build": "tsup src/index.ts --format esm,cjs --dts --clean",
     "lint": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run --environment jsdom",
     "typecheck": "tsc -p tsconfig.json --noEmit"
@@ -44,5 +43,8 @@
     "tsup": "^8.5.0",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

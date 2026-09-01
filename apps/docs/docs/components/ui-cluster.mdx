@@ -1,5 +1,3 @@
-import Tabs from "@theme/Tabs";
-import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
 # Cluster
@@ -48,12 +46,9 @@ Default slot only.
 
 ## Framework Snippets
 
-<Tabs groupId="framework" defaultValue="vue">
-  <TabItem value="vue" label="Vue">
-
 ```vue
 <script setup lang="ts">
-import { Cluster, Inline } from "@looma/vue";
+import { Cluster, Inline } from "@threadlabs/looma/vue";
 </script>
 
 <template>
@@ -66,24 +61,3 @@ import { Cluster, Inline } from "@looma/vue";
   </Cluster>
 </template>
 ```
-
-  </TabItem>
-  <TabItem value="svelte" label="Svelte">
-
-```svelte
-<ui-cluster gap="s" justify="between">...</ui-cluster>
-```
-
-  </TabItem>
-  <TabItem value="react" label="React">
-
-```tsx
-import { Cluster } from "@looma/react";
-
-export function Example() {
-  return <Cluster gap="s" justify="between">...</Cluster>;
-}
-```
-
-  </TabItem>
-</Tabs>

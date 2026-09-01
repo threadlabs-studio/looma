@@ -14,12 +14,12 @@ export function LiveExample({ children, label }: LiveExampleProps): JSX.Element 
 
   useEffect(() => {
     void Promise.all([
-      import("@looma/tokens/tokens.css"),
-      import("@looma/tokens/theme-light.css"),
-      import("@looma/layout/layout.css"),
-      import("@looma/core/styles.css"),
-      import("@looma/layout"),
-      import("@looma/core")
+      import("@threadlabs/looma/tokens.css"),
+      import("@threadlabs/looma/theme-light.css"),
+      import("@threadlabs/looma/layout.css"),
+      import("@threadlabs/looma/styles.css"),
+      import("@threadlabs/looma/layout"),
+      import("@threadlabs/looma")
     ]).then(() => setReady(true));
   }, []);
 

@@ -30,10 +30,9 @@ import Typography from "@tiptap/extension-typography";
 import Placeholder from "@tiptap/extension-placeholder";
 import Code from "@tiptap/extension-code";
 import CodeBlock from "@tiptap/extension-code-block";
-import Table from "@tiptap/extension-table";
 import TableRow from "@tiptap/extension-table-row";
 import { LoomaListBehavior } from "./list-behavior";
-import { LoomaTableCell, LoomaTableHeader } from "./table-formatting";
+import { LoomaTable, LoomaTableCell, LoomaTableHeader } from "./table-formatting";
 
 export interface DefaultEditorExtensionsOptions {
   placeholder?: string;
@@ -88,7 +87,7 @@ export function getDefaultEditorExtensions(
         node.type.name === "paragraph" ? placeholder : "",
       emptyNodeClass: "is-editor-empty",
     }),
-    Table.configure({ resizable: true }),
+    LoomaTable,
     TableRow,
     LoomaTableHeader,
     LoomaTableCell,

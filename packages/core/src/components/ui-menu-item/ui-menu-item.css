@@ -15,11 +15,12 @@
     color var(--ui-motion-fast) var(--ui-motion-ease);
 }
 
-:host(:hover:not([aria-disabled='true'])) {
+:host(:hover:not([aria-disabled='true']):not([disabled])) {
   background: var(--ui-surface-subtle);
 }
 
-:host([aria-disabled='true']) {
+:host([aria-disabled='true']),
+:host([disabled]) {
   opacity: 0.6;
   cursor: not-allowed;
 }

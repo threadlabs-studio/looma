@@ -15,15 +15,22 @@ ui-editor-toolbar {
   z-index: var(--ui-editor-toolbar-z-index, 10);
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: var(--ui-editor-toolbar-gap, 2px);
   padding:
     var(--ui-editor-toolbar-padding-block, 6px)
     var(--ui-editor-toolbar-padding-inline, 12px);
+  min-height: var(--ui-editor-toolbar-min-height, 48px);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  white-space: nowrap;
   background: var(--ui-editor-toolbar-bg, var(--ui-surface, #fff));
   border-bottom: 1px solid var(--ui-editor-toolbar-border, var(--ui-border, #e5e7eb));
+}
+
+ui-editor-toolbar > * {
+  flex: 0 0 auto;
 }
 
 ui-editor-toolbar::-webkit-scrollbar {
@@ -37,6 +44,7 @@ ui-editor-toolbar::-webkit-scrollbar {
     bottom: env(safe-area-inset-bottom);
     left: 0;
     right: 0;
+    min-height: var(--ui-editor-toolbar-mobile-min-height, 56px);
     border-top: 1px solid var(--ui-editor-toolbar-border, var(--ui-border, #e5e7eb));
     border-bottom: none;
     box-shadow: var(--ui-editor-toolbar-mobile-shadow, 0 -2px 8px rgb(0 0 0 / 0.06));
@@ -205,11 +213,21 @@ ui-editor-toolbar::-webkit-scrollbar {
 /* Table context menu */
 .ui-editor-table-context-menu {
   min-width: 12rem;
+  max-height: min(28rem, calc(100vh - 24px));
   padding: var(--ui-space-1, 4px);
   background: var(--ui-surface, #fff);
   border: 1px solid var(--ui-border, #e5e7eb);
   border-radius: var(--ui-radius-md, 6px);
   box-shadow: var(--ui-shadow-lg, 0 10px 15px -3px rgb(0 0 0 / 0.1));
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+.ui-editor-table-context-menu__section {
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -232,9 +250,62 @@ ui-editor-toolbar::-webkit-scrollbar {
   background: var(--ui-surface-hover, #f3f4f6);
 }
 
-.ui-editor-table-context-menu button:disabled {
-  opacity: 0.5;
-  cursor: default;
+.ui-editor-table-context-menu button[data-selected="true"] {
+  background: var(--ui-accent-subtle, rgb(59 130 246 / 0.1));
+}
+
+.ui-editor-table-context-menu button[data-tone="danger"] {
+  color: var(--ui-danger, #dc2626);
+}
+
+.ui-editor-table-context-menu__swatches {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.ui-editor-table-context-menu__swatch-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-2, 8px);
+}
+
+.ui-editor-table-context-menu__swatch {
+  display: inline-flex;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--ui-border, #d1d5db);
+  background: var(--ui-editor-table-context-swatch, #fff);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.35);
+  flex-shrink: 0;
+}
+
+.ui-editor-table-context-menu__swatch--default {
+  position: relative;
+  background:
+    linear-gradient(
+      135deg,
+      transparent calc(50% - 1px),
+      var(--ui-text-muted, #6b7280) calc(50% - 1px),
+      var(--ui-text-muted, #6b7280) calc(50% + 1px),
+      transparent calc(50% + 1px)
+    ),
+    var(--ui-surface, #fff);
+}
+
+.ui-editor-table-context-menu__swatch-label {
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.ui-editor-table-context-menu__heading {
+  padding: var(--ui-space-1, 4px) var(--ui-space-3, 12px) var(--ui-space-1, 4px) var(--ui-space-2, 8px);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ui-text-muted, #6b7280);
 }
 
 .ui-editor-table-context-menu__sep {
@@ -268,7 +339,15 @@ ui-editor-toolbar::-webkit-scrollbar {
   background: var(--ui-border, #e5e7eb);
 }
 
+.ui-editor-table-toolbar__overflow {
+  position: relative;
+}
+
 .ui-editor-table-toolbar button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
   border: 1px solid transparent;
   border-radius: var(--ui-radius-sm, 4px);
   background: transparent;
@@ -276,6 +355,7 @@ ui-editor-toolbar::-webkit-scrollbar {
   cursor: pointer;
   font-size: var(--ui-text-sm, 0.875rem);
   font-weight: 500;
+  line-height: 1;
   padding: var(--ui-space-1-5, 6px) var(--ui-space-2, 8px);
   white-space: nowrap;
 }
@@ -285,13 +365,56 @@ ui-editor-toolbar::-webkit-scrollbar {
 }
 
 .ui-editor-table-toolbar button[data-active="true"] {
-  background: var(--ui-accent-subtle, rgba(59, 130, 246, 0.12));
-  border-color: color-mix(in srgb, var(--ui-accent, #3b82f6) 25%, transparent);
-  color: var(--ui-accent, #3b82f6);
+  background: var(--ui-accent-soft, var(--ui-accent-subtle, #e8f0fb));
+  border-color: var(--ui-accent-solid, #0066cc);
+  color: var(--ui-accent-active, #003d7a);
 }
 
 .ui-editor-table-toolbar button[data-tone="danger"] {
   color: var(--ui-danger, #dc2626);
+}
+
+.ui-editor-table-toolbar__more::after {
+  content: "▾";
+  margin-left: var(--ui-space-1, 4px);
+  font-size: 0.75em;
+}
+
+.ui-editor-table-toolbar__menu {
+  position: absolute;
+  top: calc(100% + var(--ui-space-2, 8px));
+  right: 0;
+  min-width: 12rem;
+  padding: var(--ui-space-1, 4px);
+  background: var(--ui-surface, #fff);
+  border: 1px solid var(--ui-border, #e5e7eb);
+  border-radius: var(--ui-radius-md, 6px);
+  box-shadow: var(--ui-shadow-lg, 0 10px 15px -3px rgb(0 0 0 / 0.1));
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 2;
+}
+
+.ui-editor-table-toolbar__menu-section + .ui-editor-table-toolbar__menu-section {
+  margin-top: var(--ui-space-1, 4px);
+  padding-top: var(--ui-space-1, 4px);
+  border-top: 1px solid color-mix(in srgb, var(--ui-border, #e5e7eb) 80%, transparent);
+}
+
+.ui-editor-table-toolbar__menu-heading {
+  padding: var(--ui-space-1, 4px) var(--ui-space-2, 8px);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ui-text-muted, #6b7280);
+}
+
+.ui-editor-table-toolbar__menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
 }
 
 /* Insert table grid */
@@ -320,14 +443,16 @@ ui-editor-toolbar::-webkit-scrollbar {
 .ui-editor-insert-table-grid__cell {
   width: 1.25rem;
   height: 1.25rem;
+  padding: 0;
   border: 1px solid var(--ui-border, #e5e7eb);
   border-radius: 2px;
+  background: var(--ui-surface, #fff);
   cursor: pointer;
 }
 
 .ui-editor-insert-table-grid__cell--selected {
-  background: var(--ui-accent, #3b82f6);
-  border-color: var(--ui-accent, #3b82f6);
+  background: var(--ui-accent-solid, var(--ui-accent, #0066cc));
+  border-color: var(--ui-accent-solid, var(--ui-accent, #0066cc));
 }
 
 .ui-editor-insert-table-grid__header {
@@ -337,18 +462,18 @@ ui-editor-toolbar::-webkit-scrollbar {
   cursor: pointer;
 }
 
-.ui-editor-insert-table-grid button {
+.ui-editor-insert-table-grid [data-insert-table] {
   width: 100%;
   padding: var(--ui-space-2, 8px) var(--ui-space-3, 12px);
   border: 1px solid var(--ui-border, #e5e7eb);
   border-radius: var(--ui-radius-sm, 4px);
-  background: var(--ui-accent, #3b82f6);
+  background: var(--ui-accent-solid, var(--ui-accent, #0066cc));
   color: var(--ui-accent-contrast, #fff);
   font-size: var(--ui-text-sm, 0.875rem);
   cursor: pointer;
 }
 
-.ui-editor-insert-table-grid button:hover {
+.ui-editor-insert-table-grid [data-insert-table]:hover {
   filter: brightness(1.05);
 }
 
@@ -386,15 +511,14 @@ ui-editor-toolbar::-webkit-scrollbar {
   border: none;
   background: none;
   cursor: pointer;
-  opacity: 0.12;
+  outline: none;
   transition:
     opacity var(--ui-motion-fast, 120ms) ease,
     transform var(--ui-motion-fast, 120ms) ease,
     color var(--ui-motion-fast, 120ms) ease;
 }
 
-.ui-editor-table-overlay__control::before {
-  content: "+";
+.ui-editor-table-overlay__handle {
   position: absolute;
   display: inline-flex;
   align-items: center;
@@ -408,17 +532,16 @@ ui-editor-toolbar::-webkit-scrollbar {
   font-size: 14px;
   line-height: 1;
   box-shadow: var(--ui-shadow-sm, 0 2px 8px rgb(0 0 0 / 0.08));
+  opacity: 0;
+  transition:
+    opacity var(--ui-motion-fast, 120ms) ease,
+    transform var(--ui-motion-fast, 120ms) ease,
+    color var(--ui-motion-fast, 120ms) ease;
+  pointer-events: none;
 }
 
-.ui-editor-table-overlay:hover .ui-editor-table-overlay__control {
-  opacity: 0.28;
-}
-
-.ui-editor-table-overlay__control:hover {
+.ui-editor-table-overlay__control:is([data-active="true"], :focus-visible) .ui-editor-table-overlay__handle {
   opacity: 1;
-}
-
-.ui-editor-table-overlay__control:hover::before {
   color: var(--ui-accent, #3b82f6);
   transform: scale(1.04);
 }
@@ -431,7 +554,7 @@ ui-editor-toolbar::-webkit-scrollbar {
   margin-top: -8px;
 }
 
-.ui-editor-table-overlay__control--row::before {
+.ui-editor-table-overlay__control--row .ui-editor-table-overlay__handle {
   top: 50%;
   left: calc(-1 * var(--ui-space-6, 24px));
   transform: translateY(-50%);
@@ -448,11 +571,14 @@ ui-editor-toolbar::-webkit-scrollbar {
   background: color-mix(in srgb, var(--ui-accent, #3b82f6) 45%, transparent);
   border-radius: 999px;
   opacity: 0;
-  transition: opacity var(--ui-motion-fast, 120ms) ease;
+  transition:
+    opacity var(--ui-motion-fast, 120ms) ease,
+    background var(--ui-motion-fast, 120ms) ease;
 }
 
-.ui-editor-table-overlay__control--row:hover::after {
+.ui-editor-table-overlay__control--row:is([data-active="true"], :focus-visible)::after {
   opacity: 1;
+  background: color-mix(in srgb, var(--ui-accent, #3b82f6) 70%, transparent);
 }
 
 .ui-editor-table-overlay__control--col {
@@ -463,7 +589,7 @@ ui-editor-toolbar::-webkit-scrollbar {
   margin-left: -8px;
 }
 
-.ui-editor-table-overlay__control--col::before {
+.ui-editor-table-overlay__control--col .ui-editor-table-overlay__handle {
   top: calc(-1 * var(--ui-space-6, 24px));
   left: 50%;
   transform: translateX(-50%);
@@ -480,16 +606,20 @@ ui-editor-toolbar::-webkit-scrollbar {
   background: color-mix(in srgb, var(--ui-accent, #3b82f6) 45%, transparent);
   border-radius: 999px;
   opacity: 0;
-  transition: opacity var(--ui-motion-fast, 120ms) ease;
+  transition:
+    opacity var(--ui-motion-fast, 120ms) ease,
+    background var(--ui-motion-fast, 120ms) ease;
 }
 
-.ui-editor-table-overlay__control--col:hover::after {
+.ui-editor-table-overlay__control--col:is([data-active="true"], :focus-visible)::after {
   opacity: 1;
+  background: color-mix(in srgb, var(--ui-accent, #3b82f6) 70%, transparent);
 }
 
 .ProseMirror .tableWrapper {
   max-width: 100%;
-  overflow-x: clip;
+  overflow-x: hidden;
+  overflow-y: visible;
 }
 
 /* ProseMirror table (for when Looma editor content is rendered) */
@@ -498,7 +628,7 @@ ui-editor-toolbar::-webkit-scrollbar {
   margin: 0;
   width: 100% !important;
   min-width: 100%;
-  max-width: 100%;
+  max-width: 100% !important;
   table-layout: fixed;
 }
 

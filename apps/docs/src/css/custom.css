@@ -28,15 +28,15 @@
    Colors — distinctive, not boring
    --------------------------------------------------------------------------- */
 :root {
-  --ifm-color-primary: #6366f1;
-  --ifm-color-primary-dark: #4f46e5;
-  --ifm-color-primary-darker: #4338ca;
-  --ifm-color-primary-darkest: #3730a3;
+  --ifm-color-primary: #4f46e5;
+  --ifm-color-primary-dark: #4338ca;
+  --ifm-color-primary-darker: #3730a3;
+  --ifm-color-primary-darkest: #312e81;
   --ifm-color-primary-light: #818cf8;
   --ifm-color-primary-lighter: #a5b4fc;
   --ifm-color-primary-lightest: #c7d2fe;
-  --ifm-link-color: #6366f1;
-  --ifm-link-hover-color: #4f46e5;
+  --ifm-link-color: #4f46e5;
+  --ifm-link-hover-color: #3730a3;
 }
 
 [data-theme="dark"] {
@@ -134,6 +134,33 @@
 
 .theme-doc-markdown .prism-code {
   margin: var(--docs-spacing-sm) 0;
+}
+
+/* Docusaurus' default light syntax palette misses WCAG AA for HTML tokens. */
+.prism-code .token.tag,
+.prism-code .token.selector {
+  color: #e9d5ff !important;
+}
+
+.prism-code .token.attr-value,
+.prism-code .token.string {
+  color: #bbf7d0 !important;
+}
+
+[data-theme="dark"] .prism-code .token.tag,
+[data-theme="dark"] .prism-code .token.selector {
+  color: #e9d5ff !important;
+}
+
+[data-theme="dark"] .prism-code .token.attr-value,
+[data-theme="dark"] .prism-code .token.string {
+  color: #bbf7d0 !important;
+}
+
+/* Links in prose remain identifiable when color perception is unavailable. */
+.theme-doc-markdown a:not(.hash-link) {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
 }
 
 /* ---------------------------------------------------------------------------

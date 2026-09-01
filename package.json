@@ -1,7 +1,7 @@
 {
   "name": "looma-monorepo",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Stack-agnostic UI library built on web standards and Open UI principles.",
   "license": "MIT",
   "author": "Threadlabs Studio",
@@ -20,18 +20,39 @@
     "design-system"
   ],
   "packageManager": "pnpm@10.7.0",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
-    "build": "pnpm -r run build",
+    "build": "pnpm -r --filter './packages/**' --filter '!@threadlabs/looma' run build && node tools/scripts/build-facade.mjs --skip-workspace-build && pnpm -r --filter './apps/**' run build",
+    "build:facade": "node tools/scripts/build-facade.mjs",
+    "test:facade-consumer": "node tools/scripts/verify-facade-consumer.mjs",
     "generate:api": "node ./tools/scripts/generate-component-api.mjs",
     "generate:docs": "pnpm generate:api",
     "check:docs-sync": "node ./tools/scripts/check-docs-sync.mjs",
     "check:mutation-observer": "node ./tools/scripts/check-mutation-observer.mjs",
-    "dev:docs": "pnpm --filter @looma/docs dev",
-    "dev:storybook": "pnpm --filter @looma/storybook dev",
-    "build:docs": "pnpm --filter @looma/docs build",
-    "build:storybook": "pnpm --filter @looma/storybook build",
+    "dev:docs": "pnpm --filter @threadlabs/looma-docs dev",
+    "dev:storybook": "pnpm --filter @threadlabs/looma-storybook dev",
+    "build:docs": "pnpm --filter @threadlabs/looma-docs build",
+    "build:storybook": "pnpm --filter @threadlabs/looma-storybook build",
     "lint": "pnpm -r run lint",
-    "test": "pnpm -r run test",
+    "release:registry-preflight": "node tools/scripts/registry-preflight.mjs",
+    "release:validate-dispatch": "node tools/scripts/release-dispatch.mjs",
+    "release:inspect": "node tools/scripts/verify-packages.mjs --output-dir .release/artifacts --allow-dirty --allow-missing-license --allow-missing-approvals",
+    "release:inspect-knit": "node tools/scripts/verify-knit-consumer.mjs --allow-ineligible-artifacts --skip-full-knit-unit",
+    "release:verify": "node tools/scripts/verify-packages.mjs --output-dir .release/artifacts",
+    "release:verify-knit": "node tools/scripts/verify-knit-consumer.mjs",
+    "release:verify-registry": "node tools/scripts/verify-registry-release.mjs",
+    "release:verify-public-consumer": "node tools/scripts/verify-public-consumer.mjs",
+    "release:verify-hosted-docs": "node tools/scripts/verify-hosted-docs.mjs",
+    "release:promote": "node tools/scripts/promote-release.mjs",
+    "release:record": "node tools/scripts/finalize-release.mjs",
+    "release:verify:dirty": "node tools/scripts/verify-packages.mjs --output-dir .release/artifacts --allow-dirty",
+    "test": "node --test tools/scripts/*.test.mjs && pnpm build && pnpm -r run test",
+    "test:browser": "pnpm --filter @threadlabs/looma-core test:browser && pnpm --filter @threadlabs/looma-editor test:browser && pnpm --filter @threadlabs/looma-vue test:browser && pnpm --filter @threadlabs/looma-docs test:browser",
     "typecheck": "pnpm -r run typecheck"
+  },
+  "devDependencies": {
+    "verdaccio": "6.8.0"
   }
 }

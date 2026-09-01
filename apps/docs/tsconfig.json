@@ -1,8 +1,10 @@
 {
   "extends": "../../tools/tsconfig/base.json",
-  "include": ["docusaurus.config.ts", "sidebars.ts"]
-}
-{
-  "extends": "../../tools/tsconfig/base.json",
-  "include": ["src", "vite.config.ts"]
+  "include": [
+    "docusaurus.config.ts",
+    "playwright.config.ts",
+    "sidebars.ts",
+    "src",
+    "tests"
+  ]
 }

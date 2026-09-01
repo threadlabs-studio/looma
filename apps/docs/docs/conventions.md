@@ -34,11 +34,11 @@ These conventions keep contracts stable across core components and framework ada
 
 Components do not set external margins. Layout primitives own inter-component rhythm via `gap`.
 
-## Light-DOM Isolation Contract
+## DOM and style isolation contract
 
-Looma components are light-DOM custom elements (not shadow DOM). To keep behavior predictable across host apps:
+Layout and editor elements use light DOM. Core elements attach shadow roots after upgrade while preserving consumer-authored semantic content through slots. To keep host integration predictable:
 
-- Each Looma host applies a scoped reset (`all: revert`) and re-adds required defaults from Looma tokens.
+- Light-DOM Looma hosts apply a scoped reset (`all: revert`) and re-add required defaults from Looma tokens.
 - Each Looma host uses token-driven typography/color by default (`--ui-font-*`, `--ui-text-*`).
 - Component subtrees use scoped border-box (`host`, `host *`, `host *::before`, `host *::after`).
 - We do not apply a global page reset from Looma packages.

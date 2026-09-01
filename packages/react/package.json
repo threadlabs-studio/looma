@@ -1,6 +1,7 @@
 {
-  "name": "@looma/react",
+  "name": "@threadlabs/looma-react",
   "version": "0.0.0",
+  "private": true,
   "type": "module",
   "description": "Thin React adapters for Looma web components.",
   "license": "MIT",
@@ -14,9 +15,6 @@
     "url": "https://github.com/threadlabs-studio/looma/issues"
   },
   "homepage": "https://github.com/threadlabs-studio/looma/tree/main/packages/react#readme",
-  "publishConfig": {
-    "access": "public"
-  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -33,9 +31,9 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@looma/core": "workspace:*",
-    "@looma/editor": "workspace:*",
-    "@looma/layout": "workspace:*"
+    "@threadlabs/looma-core": "workspace:*",
+    "@threadlabs/looma-editor": "workspace:*",
+    "@threadlabs/looma-layout": "workspace:*"
   },
   "peerDependencies": {
     "react": "^19.0.0"

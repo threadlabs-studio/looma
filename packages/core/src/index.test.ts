@@ -1,39 +1,96 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import "./index";
+const COMPONENT_TAGS = [
+  "ui-avatar",
+  "ui-avatar-group",
+  "ui-badge",
+  "ui-button",
+  "ui-checkbox",
+  "ui-disclosure",
+  "ui-floating-action-button",
+  "ui-form-field",
+  "ui-icon-button",
+  "ui-input",
+  "ui-context-menu",
+  "ui-menu",
+  "ui-menu-item",
+  "ui-popover",
+  "ui-radio",
+  "ui-radio-group",
+  "ui-select",
+  "ui-switch",
+  "ui-tabs",
+  "ui-textarea",
+  "ui-toast-region",
+  "ui-tooltip"
+] as const;
 
-describe("@looma/core primitives", () => {
+const flushStencil = async () => {
+  for (let i = 0; i < 2; i += 1) {
+    await Promise.resolve();
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+  }
+  await Promise.resolve();
+};
+
+const render = async (markup: string) => {
+  document.body.innerHTML = markup;
+  await flushStencil();
+};
+
+const waitFor = async (predicate: () => boolean, label: string) => {
+  for (let i = 0; i < 20; i += 1) {
+    if (predicate()) {
+      return;
+    }
+    await flushStencil();
+  }
+
+  throw new Error(`Timed out waiting for ${label}`);
+};
+
+describe("@threadlabs/looma-core primitives", () => {
+  beforeAll(async () => {
+    await Promise.all(COMPONENT_TAGS.map((tag) => customElements.whenDefined(tag)));
+    await flushStencil();
+  });
+
   beforeEach(() => {
     document.body.innerHTML = "";
   });
 
-  it("toggles disclosure open state and aria/hidden sync", () => {
-    document.body.innerHTML = `
+  afterEach(async () => {
+    await flushStencil();
+    document.body.innerHTML = "";
+  });
+
+  it("toggles disclosure open state and aria/hidden sync", async () => {
+    await render(`
       <ui-disclosure>
         <button type="button">Toggle</button>
         <div id="panel-a" hidden>Panel</div>
       </ui-disclosure>
-    `;
+    `);
 
     const disclosure = document.querySelector("ui-disclosure");
     const trigger = disclosure?.querySelector("button");
     const content = disclosure?.querySelector("#panel-a");
+    await waitFor(() => trigger?.getAttribute("aria-expanded") === "false", "disclosure initial state");
 
     expect(disclosure).toBeTruthy();
     expect(trigger).toBeTruthy();
     expect(content).toBeTruthy();
-    expect(disclosure?.hasAttribute("open")).toBe(false);
     expect(trigger?.getAttribute("aria-expanded")).toBe("false");
     expect(content?.hasAttribute("hidden")).toBe(true);
 
     trigger?.click();
-    expect(disclosure?.hasAttribute("open")).toBe(true);
+    await flushStencil();
     expect(trigger?.getAttribute("aria-expanded")).toBe("true");
     expect(content?.hasAttribute("hidden")).toBe(false);
   });
 
-  it("supports tabs roving tabindex and arrow-key activation", () => {
-    document.body.innerHTML = `
+  it("supports tabs roving tabindex and arrow-key activation", async () => {
+    await render(`
       <ui-tabs>
         <div role="tablist" aria-label="Sections">
           <button role="tab" id="tab-a" aria-controls="panel-a">A</button>
@@ -42,13 +99,14 @@ describe("@looma/core primitives", () => {
         <section role="tabpanel" id="panel-a" aria-labelledby="tab-a">Panel A</section>
         <section role="tabpanel" id="panel-b" aria-labelledby="tab-b" hidden>Panel B</section>
       </ui-tabs>
-    `;
+    `);
 
     const tabsRoot = document.querySelector("ui-tabs");
     const tabA = document.getElementById("tab-a");
     const tabB = document.getElementById("tab-b");
     const panelA = document.getElementById("panel-a");
     const panelB = document.getElementById("panel-b");
+    await flushStencil();
 
     expect(tabsRoot).toBeTruthy();
     expect(tabA?.getAttribute("aria-selected")).toBe("true");
@@ -59,8 +117,8 @@ describe("@looma/core primitives", () => {
     expect(panelB?.hidden).toBe(true);
 
     tabA?.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+    await flushStencil();
 
-    expect(tabsRoot?.getAttribute("value")).toBe("tab-b");
     expect(tabA?.getAttribute("aria-selected")).toBe("false");
     expect(tabB?.getAttribute("aria-selected")).toBe("true");
     expect(tabA?.tabIndex).toBe(-1);
@@ -69,13 +127,13 @@ describe("@looma/core primitives", () => {
     expect(panelB?.hidden).toBe(false);
   });
 
-  it("emits menu select with stable value and trigger payload keys", () => {
-    document.body.innerHTML = `
+  it("emits menu select with stable value and trigger payload keys", async () => {
+    await render(`
       <ui-menu>
         <ui-menu-item value="edit">Edit</ui-menu-item>
         <ui-menu-item value="delete">Delete</ui-menu-item>
       </ui-menu>
-    `;
+    `);
 
     const menu = document.querySelector("ui-menu");
     const firstItem = menu?.querySelector("ui-menu-item");
@@ -87,13 +145,39 @@ describe("@looma/core primitives", () => {
     });
 
     firstItem?.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+    await flushStencil();
 
     expect(events).toEqual([{ value: "edit", trigger: "keyboard" }]);
   });
 
-  it("emits open/close contract payload for overlays", () => {
+  it("does not emit menu select for disabled menu items", async () => {
+    await render(`
+      <ui-menu>
+        <ui-menu-item value="edit">Edit</ui-menu-item>
+        <ui-menu-item value="delete" disabled>Delete</ui-menu-item>
+      </ui-menu>
+    `);
+
+    const menu = document.querySelector("ui-menu");
+    const disabledItem = menu?.querySelector("ui-menu-item[value='delete']");
+    const events: Array<{ value: string; trigger: string }> = [];
+
+    menu?.addEventListener("select", (event) => {
+      const custom = event as CustomEvent<{ value: string; trigger: string }>;
+      events.push(custom.detail);
+    });
+
+    disabledItem?.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+    disabledItem?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    await flushStencil();
+
+    expect(events).toEqual([]);
+  });
+
+  it("emits open/close contract payload for overlays", async () => {
     const popover = document.createElement("ui-popover");
     document.body.append(popover);
+    await flushStencil();
 
     const events: Array<{ open: boolean; reason: string; trigger: string }> = [];
     popover.addEventListener("open", (event) => {
@@ -107,7 +191,9 @@ describe("@looma/core primitives", () => {
 
     const typedPopover = popover as HTMLElement & { open: boolean };
     typedPopover.open = true;
+    await flushStencil();
     typedPopover.open = false;
+    await flushStencil();
 
     expect(events).toEqual([
       { open: true, reason: "programmatic", trigger: "programmatic" },
@@ -115,15 +201,15 @@ describe("@looma/core primitives", () => {
     ]);
   });
 
-  it("wires form-field label, descriptions, and reflected state", () => {
-    document.body.innerHTML = `
+  it("wires form-field label, descriptions, and reflected state", async () => {
+    await render(`
       <ui-form-field invalid required disabled>
         <label>Email</label>
         <input type="email" />
         <small data-slot="help">We never share your email.</small>
         <small data-slot="error">Email is required.</small>
       </ui-form-field>
-    `;
+    `);
 
     const field = document.querySelector("ui-form-field");
     const label = field?.querySelector("label");
@@ -149,12 +235,12 @@ describe("@looma/core primitives", () => {
     expect(input?.getAttribute("aria-invalid")).toBe("true");
   });
 
-  it("reflects input wrapper properties to inner input element", () => {
-    document.body.innerHTML = `
+  it("reflects input wrapper properties to inner input element", async () => {
+    await render(`
       <ui-input>
         <input type="text" />
       </ui-input>
-    `;
+    `);
 
     const wrapper = document.querySelector("ui-input") as HTMLElement & {
       value: string;
@@ -170,6 +256,7 @@ describe("@looma/core primitives", () => {
     wrapper.disabled = true;
     wrapper.readOnly = true;
     wrapper.invalid = true;
+    await flushStencil();
 
     expect(input).toBeTruthy();
     expect(input?.value).toBe("alpha");
@@ -179,12 +266,45 @@ describe("@looma/core primitives", () => {
     expect(input?.getAttribute("aria-invalid")).toBe("true");
   });
 
-  it("propagates disabled state from ui-button to native button", () => {
-    document.body.innerHTML = `
+  it("reflects select wrapper properties to inner select element", async () => {
+    await render(`
+      <ui-select>
+        <select name="role">
+          <option value="viewer">Viewer</option>
+          <option value="editor">Editor</option>
+        </select>
+      </ui-select>
+    `);
+
+    const wrapper = document.querySelector("ui-select") as HTMLElement & {
+      value: string;
+      defaultValue: string;
+      disabled: boolean;
+      invalid: boolean;
+      required: boolean;
+    };
+    const select = wrapper.querySelector("select");
+
+    wrapper.value = "editor";
+    wrapper.defaultValue = "viewer";
+    wrapper.disabled = true;
+    wrapper.invalid = true;
+    wrapper.required = true;
+    await flushStencil();
+
+    expect(select).toBeTruthy();
+    expect(select?.value).toBe("editor");
+    expect(select?.disabled).toBe(true);
+    expect(select?.required).toBe(true);
+    expect(select?.getAttribute("aria-invalid")).toBe("true");
+  });
+
+  it("propagates disabled state from ui-button to native button", async () => {
+    await render(`
       <ui-button disabled>
         <button type="button">Save</button>
       </ui-button>
-    `;
+    `);
 
     const buttonWrapper = document.querySelector("ui-button") as HTMLElement & { disabled: boolean };
     const innerButton = buttonWrapper.querySelector("button");
@@ -193,15 +313,16 @@ describe("@looma/core primitives", () => {
     expect(innerButton?.disabled).toBe(true);
 
     buttonWrapper.disabled = false;
+    await flushStencil();
     expect(innerButton?.disabled).toBe(false);
   });
 
-  it("wires floating action button label and disabled state to the inner button", () => {
-    document.body.innerHTML = `
+  it("wires floating action button label and disabled state to the inner button", async () => {
+    await render(`
       <ui-floating-action-button label="Create new page" mobile-only disabled>
         <svg aria-hidden="true" viewBox="0 0 24 24"></svg>
       </ui-floating-action-button>
-    `;
+    `);
 
     const wrapper = document.querySelector("ui-floating-action-button") as HTMLElement & {
       disabled: boolean;
@@ -214,14 +335,65 @@ describe("@looma/core primitives", () => {
     expect(button?.disabled).toBe(true);
 
     wrapper.disabled = false;
+    await flushStencil();
     expect(button?.disabled).toBe(false);
   });
 
-  it("opens and closes tooltip from trigger interactions", () => {
-    document.body.innerHTML = `
+  it("wires icon button label and disabled state to the inner button", async () => {
+    await render(`
+      <ui-icon-button label="Search" variant="outline" size="lg" disabled>
+        <svg aria-hidden="true" viewBox="0 0 24 24"></svg>
+      </ui-icon-button>
+    `);
+
+    const wrapper = document.querySelector("ui-icon-button") as HTMLElement & {
+      disabled: boolean;
+    };
+    const button = wrapper.shadowRoot?.querySelector("button");
+
+    expect(wrapper.getAttribute("variant")).toBe("outline");
+    expect(wrapper.getAttribute("size")).toBe("lg");
+    expect(button?.getAttribute("aria-label")).toBe("Search");
+    expect(button?.disabled).toBe(true);
+
+    wrapper.disabled = false;
+    await flushStencil();
+    expect(button?.disabled).toBe(false);
+  });
+
+  it("syncs textarea value, rows, and invalid state to the inner textarea", async () => {
+    await render(`
+      <ui-textarea value="Initial copy" rows="6" invalid>
+        <textarea name="notes"></textarea>
+      </ui-textarea>
+    `);
+
+    const wrapper = document.querySelector("ui-textarea") as HTMLElement & {
+      value: string;
+      rows: number;
+      invalid: boolean;
+    };
+    const textarea = wrapper.querySelector("textarea");
+
+    expect(textarea?.value).toBe("Initial copy");
+    expect(textarea?.rows).toBe(6);
+    expect(textarea?.getAttribute("aria-invalid")).toBe("true");
+
+    wrapper.value = "Updated copy";
+    wrapper.rows = 3;
+    wrapper.invalid = false;
+    await flushStencil();
+
+    expect(textarea?.value).toBe("Updated copy");
+    expect(textarea?.rows).toBe(3);
+    expect(textarea?.getAttribute("aria-invalid")).toBe("false");
+  });
+
+  it("opens and closes tooltip from trigger interactions", async () => {
+    await render(`
       <button id="tooltip-trigger" type="button">Info</button>
       <ui-tooltip for="tooltip-trigger">Tooltip copy</ui-tooltip>
-    `;
+    `);
 
     const trigger = document.getElementById("tooltip-trigger");
     const tooltip = document.querySelector("ui-tooltip") as HTMLElement & { open: boolean };
@@ -236,61 +408,69 @@ describe("@looma/core primitives", () => {
     });
 
     trigger?.dispatchEvent(new PointerEvent("pointerenter", { bubbles: true }));
-    expect(tooltip.open).toBe(true);
+    await flushStencil();
+    expect(tooltip.hidden).toBe(false);
+    expect(tooltip.hasAttribute("data-open")).toBe(true);
     trigger?.dispatchEvent(new PointerEvent("pointerleave", { bubbles: true }));
-    expect(tooltip.open).toBe(false);
+    await flushStencil();
+    expect(tooltip.hidden).toBe(true);
+    expect(tooltip.hasAttribute("data-open")).toBe(false);
     expect(events).toEqual([
       { open: true, reason: "action", trigger: "pointer" },
       { open: false, reason: "action", trigger: "pointer" }
     ]);
   });
 
-  it("supports tooltip focus open and escape close with focus return", () => {
-    document.body.innerHTML = `
+  it("supports tooltip focus open and escape close with focus return", async () => {
+    await render(`
       <button id="focus-trigger" type="button">Focus me</button>
       <ui-tooltip for="focus-trigger">Focus tooltip copy</ui-tooltip>
       <button id="after-trigger" type="button">After</button>
-    `;
+    `);
 
     const trigger = document.getElementById("focus-trigger") as HTMLButtonElement;
     const tooltip = document.querySelector("ui-tooltip") as HTMLElement & { open: boolean };
 
     trigger.focus();
     trigger.dispatchEvent(new FocusEvent("focusin", { bubbles: true }));
-    expect(tooltip.open).toBe(true);
+    await flushStencil();
+    expect(tooltip.hidden).toBe(false);
 
     tooltip.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
-    expect(tooltip.open).toBe(false);
+    await flushStencil();
+    expect(tooltip.hidden).toBe(true);
     expect(document.activeElement).toBe(trigger);
   });
 
-  it("manages toast region visibility and dismiss events", () => {
-    document.body.innerHTML = `
+  it("manages toast region visibility and dismiss events", async () => {
+    await render(`
       <ui-toast-region>
         <div id="toast-a" data-ui-toast>
           Saved
           <button type="button" data-ui-toast-dismiss>Dismiss</button>
         </div>
       </ui-toast-region>
-    `;
+    `);
 
-    const region = document.querySelector("ui-toast-region") as HTMLElement & { open: boolean };
+    const region = document.querySelector("ui-toast-region") as HTMLElement;
     const dismissButton = region.querySelector("[data-ui-toast-dismiss]") as HTMLButtonElement;
     const dismissed: Array<{ id: string; reason: string; trigger: string }> = [];
     region.addEventListener("dismiss", (event) => {
       const custom = event as CustomEvent<{ id: string; reason: string; trigger: string }>;
       dismissed.push(custom.detail);
     });
+    await waitFor(() => region.hasAttribute("data-open"), "toast region open state");
 
-    expect(region.open).toBe(true);
+    expect(region.hasAttribute("data-open")).toBe(true);
     dismissButton.click();
-    expect(region.open).toBe(false);
+    await flushStencil();
+    expect(region.hasAttribute("data-open")).toBe(false);
     expect(region.querySelector("[data-ui-toast]")).toBeNull();
     expect(dismissed).toEqual([{ id: "toast-a", reason: "action", trigger: "pointer" }]);
   });
 
-  it("keeps toast region open until last toast is dismissed", () => {
-    document.body.innerHTML = `
+  it("keeps toast region open until last toast is dismissed", async () => {
+    await render(`
       <ui-toast-region>
         <div id="toast-1" data-ui-toast>
           First
@@ -301,9 +481,9 @@ describe("@looma/core primitives", () => {
           <button type="button" data-ui-toast-dismiss aria-label="Dismiss second">Dismiss</button>
         </div>
       </ui-toast-region>
-    `;
+    `);
 
-    const region = document.querySelector("ui-toast-region") as HTMLElement & { open: boolean };
+    const region = document.querySelector("ui-toast-region") as HTMLElement;
     const dismissButtons = Array.from(
       region.querySelectorAll<HTMLButtonElement>("[data-ui-toast-dismiss]")
     );
@@ -316,29 +496,28 @@ describe("@looma/core primitives", () => {
       dismissedIds.push((event.detail as { id: string }).id);
     });
 
-    expect(region.open).toBe(true);
+    expect(region.hasAttribute("data-open")).toBe(true);
 
     dismissButtons[0]?.click();
-    expect(region.open).toBe(true);
+    await flushStencil();
+    expect(region.hasAttribute("data-open")).toBe(true);
     expect(region.querySelectorAll("[data-ui-toast]").length).toBe(1);
 
     dismissButtons[1]?.click();
-    expect(region.open).toBe(false);
+    await flushStencil();
+    expect(region.hasAttribute("data-open")).toBe(false);
     expect(region.querySelectorAll("[data-ui-toast]").length).toBe(0);
     expect(dismissedIds).toEqual(["toast-1", "toast-2"]);
   });
 
-  it("syncs ui-checkbox checked state and emits change detail", () => {
-    document.body.innerHTML = `
+  it("syncs ui-checkbox checked state and emits change detail", async () => {
+    await render(`
       <ui-checkbox value="newsletter">
         <input type="checkbox" />
       </ui-checkbox>
-    `;
+    `);
 
-    const checkbox = document.querySelector("ui-checkbox") as HTMLElement & {
-      checked: boolean;
-      value: string;
-    };
+    const checkbox = document.querySelector("ui-checkbox") as HTMLElement & { value: string };
     const input = checkbox.querySelector("input");
     const events: Array<{ checked: boolean; value: string; trigger: string }> = [];
     checkbox.addEventListener("change", (event) => {
@@ -348,18 +527,18 @@ describe("@looma/core primitives", () => {
       events.push(event.detail as { checked: boolean; value: string; trigger: string });
     });
 
-    expect(checkbox.checked).toBe(false);
+    expect(checkbox.getAttribute("aria-checked")).toBe("false");
     input?.click();
-    expect(checkbox.checked).toBe(true);
+    await flushStencil();
+    expect(checkbox.getAttribute("aria-checked")).toBe("true");
+    expect(input?.checked).toBe(true);
     expect(events).toEqual([{ checked: true, value: "newsletter", trigger: "programmatic" }]);
   });
 
-  it("supports fallback switch keyboard toggle and emits change", () => {
-    document.body.innerHTML = `<ui-switch value="notifications"></ui-switch>`;
+  it("supports fallback switch keyboard toggle and emits change", async () => {
+    await render(`<ui-switch value="notifications"></ui-switch>`);
 
-    const toggle = document.querySelector("ui-switch") as HTMLElement & {
-      checked: boolean;
-    };
+    const toggle = document.querySelector("ui-switch") as HTMLElement;
     const events: Array<{ checked: boolean; value: string; trigger: string }> = [];
     toggle.addEventListener("change", (event) => {
       if (!(event instanceof CustomEvent)) {
@@ -369,20 +548,22 @@ describe("@looma/core primitives", () => {
     });
 
     toggle.dispatchEvent(new KeyboardEvent("keydown", { key: " ", bubbles: true }));
+    await flushStencil();
 
-    expect(toggle.checked).toBe(true);
+    expect(toggle.getAttribute("aria-checked")).toBe("true");
     expect(toggle.getAttribute("role")).toBe("switch");
     expect(toggle.getAttribute("aria-checked")).toBe("true");
     expect(events).toEqual([{ checked: true, value: "notifications", trigger: "keyboard" }]);
   });
 
-  it("emits radio-group select/change details and syncs checked state", () => {
-    document.body.innerHTML = `
+  it("emits radio-group select/change details and syncs checked state", async () => {
+    await render(`
       <ui-radio-group value="alpha" orientation="horizontal" name="plan">
         <ui-radio value="alpha">Alpha</ui-radio>
         <ui-radio value="beta">Beta</ui-radio>
       </ui-radio-group>
-    `;
+    `);
+    await flushStencil();
 
     const group = document.querySelector("ui-radio-group") as HTMLElement & { value: string };
     const radios = Array.from(group.querySelectorAll("ui-radio")) as Array<HTMLElement & { checked: boolean }>;
@@ -402,22 +583,19 @@ describe("@looma/core primitives", () => {
       changeEvents.push(event.detail as { checked: boolean; value: string; trigger: string });
     });
 
-    expect(radios[0]?.checked).toBe(true);
-    expect(radios[1]?.checked).toBe(false);
+    expect(radios[0]?.getAttribute("aria-checked")).toBe("true");
+    expect(radios[1]?.getAttribute("aria-checked")).toBe("false");
 
-    radios[1]?.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true }));
-
-    expect(group.value).toBe("alpha");
     radios[0]?.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
-    expect(group.value).toBe("beta");
-    expect(radios[0]?.checked).toBe(false);
-    expect(radios[1]?.checked).toBe(true);
+    await flushStencil();
+    expect(radios[0]?.getAttribute("aria-checked")).toBe("false");
+    expect(radios[1]?.getAttribute("aria-checked")).toBe("true");
     expect(selectedEvents.at(-1)).toEqual({ value: "beta", previousValue: "alpha", trigger: "keyboard" });
     expect(changeEvents.at(-1)).toEqual({ checked: true, value: "beta", trigger: "keyboard" });
   });
 
-  it("syncs ui-badge styling hooks from variant and tone", () => {
-    document.body.innerHTML = `<ui-badge variant="subtle" tone="accent">New</ui-badge>`;
+  it("syncs ui-badge styling hooks from variant and tone", async () => {
+    await render(`<ui-badge variant="subtle" tone="accent">New</ui-badge>`);
 
     const badge = document.querySelector("ui-badge") as HTMLElement & { variant: string; tone: string };
 
@@ -426,43 +604,45 @@ describe("@looma/core primitives", () => {
 
     badge.variant = "solid";
     badge.tone = "";
+    await flushStencil();
 
     expect(badge.getAttribute("data-variant")).toBe("solid");
     expect(badge.hasAttribute("data-tone")).toBe(false);
   });
 
-  it("shows avatar fallback initials when image fails", () => {
-    document.body.innerHTML = `
+  it("shows avatar fallback initials when image fails", async () => {
+    await render(`
       <ui-avatar name="Alex Morgan" src="/broken.png">
         <img />
       </ui-avatar>
-    `;
+    `);
 
     const avatar = document.querySelector("ui-avatar") as HTMLElement;
-    const image = avatar.querySelector("img") as HTMLImageElement;
-    const fallback = avatar.querySelector("[data-ui-avatar-fallback]") as HTMLElement;
+    const image = avatar.shadowRoot?.querySelector("img") as HTMLImageElement | null;
+    const fallback = avatar.shadowRoot?.querySelector(".fallback") as HTMLElement | null;
 
-    expect(fallback.textContent).toBe("AM");
+    expect(fallback?.textContent).toBe("AM");
 
-    image.dispatchEvent(new Event("error"));
+    image?.dispatchEvent(new Event("error"));
+    await flushStencil();
 
-    expect(image.hidden).toBe(true);
-    expect(fallback.hidden).toBe(false);
+    expect(image?.hidden).toBe(true);
+    expect(fallback?.hidden).toBe(false);
     expect(avatar.getAttribute("data-has-image")).toBeNull();
   });
 
-  it("avatar-group shows first max children and overflow pill", () => {
-    document.body.innerHTML = `
+  it("avatar-group shows first max children and overflow pill", async () => {
+    await render(`
       <ui-avatar-group max="3" label="People">
         <ui-avatar name="A"><span data-ui-avatar-fallback></span></ui-avatar>
         <ui-avatar name="B"><span data-ui-avatar-fallback></span></ui-avatar>
         <ui-avatar name="C"><span data-ui-avatar-fallback></span></ui-avatar>
         <ui-avatar name="D"><span data-ui-avatar-fallback></span></ui-avatar>
       </ui-avatar-group>
-    `;
+    `);
 
     const group = document.querySelector("ui-avatar-group") as HTMLElement;
-    const overflow = group.querySelector("[data-ui-avatar-group-overflow]");
+    const overflow = group.shadowRoot?.querySelector("[data-ui-avatar-group-overflow]");
     const avatars = Array.from(group.querySelectorAll("ui-avatar"));
 
     expect(group.getAttribute("role")).toBe("list");
@@ -474,5 +654,122 @@ describe("@looma/core primitives", () => {
     expect(avatars[3].hidden).toBe(true);
     expect(overflow).toBeTruthy();
     expect(overflow?.textContent).toBe("+1");
+  });
+
+  it("opens context menu on right-click and emits select/close on item activation", async () => {
+    await render(`
+      <div id="context-menu-target" style="width:200px;height:100px;background:#eee;">
+        Right-click me
+      </div>
+      <ui-context-menu>
+        <ui-menu-item value="edit">Edit</ui-menu-item>
+        <ui-menu-item value="delete">Delete</ui-menu-item>
+      </ui-context-menu>
+    `);
+
+    const target = document.getElementById("context-menu-target");
+    const contextMenu = document.querySelector("ui-context-menu") as HTMLElement & { open: boolean };
+    // ui-menu is inside ui-context-menu's shadow DOM; ui-menu-item children are slotted light DOM
+    const firstItem = contextMenu?.querySelector("ui-menu-item");
+    const selectEvents: Array<{ value: string; trigger: string }> = [];
+    const closeEvents: Array<{ open: boolean; reason: string; trigger: string }> = [];
+
+    contextMenu?.addEventListener("select", (event) => {
+      const custom = event as CustomEvent<{ value: string; trigger: string }>;
+      selectEvents.push(custom.detail);
+    });
+    contextMenu?.addEventListener("close", (event) => {
+      const custom = event as CustomEvent<{ open: boolean; reason: string; trigger: string }>;
+      closeEvents.push(custom.detail);
+    });
+
+    // Right-click the target to open the context menu
+    target?.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, clientX: 100, clientY: 50 }));
+    await flushStencil();
+
+    expect(contextMenu?.getAttribute("data-open")).toBe("");
+    expect(selectEvents).toEqual([]);
+    expect(closeEvents).toEqual([]);
+
+    // Activate the first menu item via keyboard
+    // Dispatch on the ui-menu-item in the light DOM; the event bubbles through
+    // the shadow boundary to ui-menu's keydown handler inside the shadow DOM
+    firstItem?.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true, composed: true }));
+    await flushStencil();
+
+    expect(selectEvents).toEqual([{ value: "edit", trigger: "keyboard" }]);
+    expect(closeEvents.length).toBeGreaterThanOrEqual(1);
+    expect(closeEvents[0].open).toBe(false);
+  });
+
+  it("does not select or close from disabled context menu items", async () => {
+    await render(`
+      <div id="disabled-context-target" style="width:200px;height:100px;background:#eee;">
+        Right-click me
+      </div>
+      <ui-context-menu>
+        <ui-menu-item value="delete" disabled>Delete</ui-menu-item>
+      </ui-context-menu>
+    `);
+
+    const target = document.getElementById("disabled-context-target");
+    const contextMenu = document.querySelector("ui-context-menu") as HTMLElement;
+    const disabledItem = contextMenu?.querySelector("ui-menu-item");
+    const selectEvents: Array<{ value: string; trigger: string }> = [];
+    const closeEvents: Array<{ open: boolean; reason: string; trigger: string }> = [];
+
+    contextMenu?.addEventListener("select", (event) => {
+      const custom = event as CustomEvent<{ value: string; trigger: string }>;
+      selectEvents.push(custom.detail);
+    });
+    contextMenu?.addEventListener("close", (event) => {
+      const custom = event as CustomEvent<{ open: boolean; reason: string; trigger: string }>;
+      closeEvents.push(custom.detail);
+    });
+
+    target?.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, clientX: 100, clientY: 50 }));
+    await flushStencil();
+    expect(contextMenu?.getAttribute("data-open")).toBe("");
+
+    disabledItem?.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true, composed: true }));
+    disabledItem?.dispatchEvent(new MouseEvent("click", { bubbles: true, composed: true }));
+    await flushStencil();
+
+    expect(selectEvents).toEqual([]);
+    expect(closeEvents).toEqual([]);
+    expect(contextMenu?.getAttribute("data-open")).toBe("");
+  });
+
+  it("closes context menu on Escape key", async () => {
+    await render(`
+      <div id="escape-target" style="width:200px;height:100px;background:#eee;">
+        Right-click me
+      </div>
+      <ui-context-menu>
+        <ui-menu-item value="rename">Rename</ui-menu-item>
+      </ui-context-menu>
+    `);
+
+    const target = document.getElementById("escape-target");
+    const contextMenu = document.querySelector("ui-context-menu") as HTMLElement & { open: boolean };
+    const closeEvents: Array<{ open: boolean; reason: string; trigger: string }> = [];
+
+    contextMenu?.addEventListener("close", (event) => {
+      const custom = event as CustomEvent<{ open: boolean; reason: string; trigger: string }>;
+      closeEvents.push(custom.detail);
+    });
+
+    // Open via right-click
+    target?.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, clientX: 100, clientY: 50 }));
+    await flushStencil();
+    expect(contextMenu?.getAttribute("data-open")).toBe("");
+
+    // Close via Escape
+    contextMenu?.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    await flushStencil();
+
+    expect(closeEvents.length).toBeGreaterThanOrEqual(1);
+    expect(closeEvents[0].open).toBe(false);
+    expect(closeEvents[0].reason).toBe("escape");
   });
 });

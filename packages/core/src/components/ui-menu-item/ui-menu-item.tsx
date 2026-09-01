@@ -6,7 +6,7 @@ import { Component, Prop, Host, h } from '@stencil/core';
   shadow: true,
 })
 export class UIMenuItem {
-  @Prop() disabled = false;
+  @Prop({ reflect: true }) disabled = false;
   @Prop() value = '';
 
   render() {

@@ -72,6 +72,22 @@ export namespace Components {
          */
         "value": string;
     }
+    interface UiContextMenu {
+        /**
+          * Opens the menu on first client render.
+          * @default false
+         */
+        "defaultOpen": boolean;
+        /**
+          * Optional id of the region that should also respond to a context-menu gesture.
+         */
+        "for"?: string;
+        /**
+          * Controls the menu when the consumer owns open state.
+          * @default false
+         */
+        "open": boolean;
+    }
     interface UiDialog {
         /**
           * @default false
@@ -131,6 +147,24 @@ export namespace Components {
           * @default false
          */
         "required": boolean;
+    }
+    interface UiIconButton {
+        /**
+          * @default false
+         */
+        "disabled": boolean;
+        /**
+          * @default ''
+         */
+        "label": string;
+        /**
+          * @default 'md'
+         */
+        "size": 'sm' | 'md' | 'lg';
+        /**
+          * @default 'ghost'
+         */
+        "variant": 'ghost' | 'outline' | 'solid';
     }
     interface UiInput {
         /**
@@ -244,6 +278,28 @@ export namespace Components {
     }
     interface UiSearchShell {
     }
+    interface UiSelect {
+        /**
+          * @default ''
+         */
+        "defaultValue": string;
+        /**
+          * @default false
+         */
+        "disabled": boolean;
+        /**
+          * @default false
+         */
+        "invalid": boolean;
+        /**
+          * @default false
+         */
+        "required": boolean;
+        /**
+          * @default ''
+         */
+        "value": string;
+    }
     interface UiSwitch {
         /**
           * @default false
@@ -275,6 +331,32 @@ export namespace Components {
           * @default 'horizontal'
          */
         "orientation": 'horizontal' | 'vertical';
+        /**
+          * @default ''
+         */
+        "value": string;
+    }
+    interface UiTextarea {
+        /**
+          * @default ''
+         */
+        "defaultValue": string;
+        /**
+          * @default false
+         */
+        "disabled": boolean;
+        /**
+          * @default false
+         */
+        "invalid": boolean;
+        /**
+          * @default false
+         */
+        "readOnly": boolean;
+        /**
+          * @default 4
+         */
+        "rows": number;
         /**
           * @default ''
          */
@@ -334,6 +416,12 @@ declare global {
         prototype: HTMLUiCheckboxElement;
         new (): HTMLUiCheckboxElement;
     };
+    interface HTMLUiContextMenuElement extends Components.UiContextMenu, HTMLStencilElement {
+    }
+    var HTMLUiContextMenuElement: {
+        prototype: HTMLUiContextMenuElement;
+        new (): HTMLUiContextMenuElement;
+    };
     interface HTMLUiDialogElement extends Components.UiDialog, HTMLStencilElement {
     }
     var HTMLUiDialogElement: {
@@ -357,6 +445,12 @@ declare global {
     var HTMLUiFormFieldElement: {
         prototype: HTMLUiFormFieldElement;
         new (): HTMLUiFormFieldElement;
+    };
+    interface HTMLUiIconButtonElement extends Components.UiIconButton, HTMLStencilElement {
+    }
+    var HTMLUiIconButtonElement: {
+        prototype: HTMLUiIconButtonElement;
+        new (): HTMLUiIconButtonElement;
     };
     interface HTMLUiInputElement extends Components.UiInput, HTMLStencilElement {
     }
@@ -406,6 +500,12 @@ declare global {
         prototype: HTMLUiSearchShellElement;
         new (): HTMLUiSearchShellElement;
     };
+    interface HTMLUiSelectElement extends Components.UiSelect, HTMLStencilElement {
+    }
+    var HTMLUiSelectElement: {
+        prototype: HTMLUiSelectElement;
+        new (): HTMLUiSelectElement;
+    };
     interface HTMLUiSwitchElement extends Components.UiSwitch, HTMLStencilElement {
     }
     var HTMLUiSwitchElement: {
@@ -417,6 +517,12 @@ declare global {
     var HTMLUiTabsElement: {
         prototype: HTMLUiTabsElement;
         new (): HTMLUiTabsElement;
+    };
+    interface HTMLUiTextareaElement extends Components.UiTextarea, HTMLStencilElement {
+    }
+    var HTMLUiTextareaElement: {
+        prototype: HTMLUiTextareaElement;
+        new (): HTMLUiTextareaElement;
     };
     interface HTMLUiToastRegionElement extends Components.UiToastRegion, HTMLStencilElement {
     }
@@ -442,10 +548,12 @@ declare global {
         "ui-badge": HTMLUiBadgeElement;
         "ui-button": HTMLUiButtonElement;
         "ui-checkbox": HTMLUiCheckboxElement;
+        "ui-context-menu": HTMLUiContextMenuElement;
         "ui-dialog": HTMLUiDialogElement;
         "ui-disclosure": HTMLUiDisclosureElement;
         "ui-floating-action-button": HTMLUiFloatingActionButtonElement;
         "ui-form-field": HTMLUiFormFieldElement;
+        "ui-icon-button": HTMLUiIconButtonElement;
         "ui-input": HTMLUiInputElement;
         "ui-menu": HTMLUiMenuElement;
         "ui-menu-item": HTMLUiMenuItemElement;
@@ -454,8 +562,10 @@ declare global {
         "ui-radio-group": HTMLUiRadioGroupElement;
         "ui-search-result-row": HTMLUiSearchResultRowElement;
         "ui-search-shell": HTMLUiSearchShellElement;
+        "ui-select": HTMLUiSelectElement;
         "ui-switch": HTMLUiSwitchElement;
         "ui-tabs": HTMLUiTabsElement;
+        "ui-textarea": HTMLUiTextareaElement;
         "ui-toast-region": HTMLUiToastRegionElement;
         "ui-tooltip": HTMLUiTooltipElement;
         "ui-top-bar": HTMLUiTopBarElement;
@@ -528,6 +638,22 @@ declare namespace LocalJSX {
          */
         "value"?: string;
     }
+    interface UiContextMenu {
+        /**
+          * Opens the menu on first client render.
+          * @default false
+         */
+        "defaultOpen"?: boolean;
+        /**
+          * Optional id of the region that should also respond to a context-menu gesture.
+         */
+        "for"?: string;
+        /**
+          * Controls the menu when the consumer owns open state.
+          * @default false
+         */
+        "open"?: boolean;
+    }
     interface UiDialog {
         /**
           * @default false
@@ -587,6 +713,24 @@ declare namespace LocalJSX {
           * @default false
          */
         "required"?: boolean;
+    }
+    interface UiIconButton {
+        /**
+          * @default false
+         */
+        "disabled"?: boolean;
+        /**
+          * @default ''
+         */
+        "label"?: string;
+        /**
+          * @default 'md'
+         */
+        "size"?: 'sm' | 'md' | 'lg';
+        /**
+          * @default 'ghost'
+         */
+        "variant"?: 'ghost' | 'outline' | 'solid';
     }
     interface UiInput {
         /**
@@ -700,6 +844,28 @@ declare namespace LocalJSX {
     }
     interface UiSearchShell {
     }
+    interface UiSelect {
+        /**
+          * @default ''
+         */
+        "defaultValue"?: string;
+        /**
+          * @default false
+         */
+        "disabled"?: boolean;
+        /**
+          * @default false
+         */
+        "invalid"?: boolean;
+        /**
+          * @default false
+         */
+        "required"?: boolean;
+        /**
+          * @default ''
+         */
+        "value"?: string;
+    }
     interface UiSwitch {
         /**
           * @default false
@@ -731,6 +897,32 @@ declare namespace LocalJSX {
           * @default 'horizontal'
          */
         "orientation"?: 'horizontal' | 'vertical';
+        /**
+          * @default ''
+         */
+        "value"?: string;
+    }
+    interface UiTextarea {
+        /**
+          * @default ''
+         */
+        "defaultValue"?: string;
+        /**
+          * @default false
+         */
+        "disabled"?: boolean;
+        /**
+          * @default false
+         */
+        "invalid"?: boolean;
+        /**
+          * @default false
+         */
+        "readOnly"?: boolean;
+        /**
+          * @default 4
+         */
+        "rows"?: number;
         /**
           * @default ''
          */
@@ -786,6 +978,11 @@ declare namespace LocalJSX {
         "required": boolean;
         "value": string;
     }
+    interface UiContextMenuAttributes {
+        "open": boolean;
+        "defaultOpen": boolean;
+        "for": string;
+    }
     interface UiDialogAttributes {
         "open": boolean;
         "defaultOpen": boolean;
@@ -806,6 +1003,12 @@ declare namespace LocalJSX {
         "invalid": boolean;
         "disabled": boolean;
         "required": boolean;
+    }
+    interface UiIconButtonAttributes {
+        "disabled": boolean;
+        "label": string;
+        "size": 'sm' | 'md' | 'lg';
+        "variant": 'ghost' | 'outline' | 'solid';
     }
     interface UiInputAttributes {
         "value": string;
@@ -845,6 +1048,13 @@ declare namespace LocalJSX {
         "disabled": boolean;
         "selected": boolean;
     }
+    interface UiSelectAttributes {
+        "value": string;
+        "defaultValue": string;
+        "disabled": boolean;
+        "invalid": boolean;
+        "required": boolean;
+    }
     interface UiSwitchAttributes {
         "checked": boolean;
         "defaultChecked": boolean;
@@ -856,6 +1066,14 @@ declare namespace LocalJSX {
         "value": string;
         "defaultValue": string;
         "orientation": 'horizontal' | 'vertical';
+    }
+    interface UiTextareaAttributes {
+        "value": string;
+        "defaultValue": string;
+        "disabled": boolean;
+        "invalid": boolean;
+        "readOnly": boolean;
+        "rows": number;
     }
     interface UiToastRegionAttributes {
         "open": boolean;
@@ -872,10 +1090,12 @@ declare namespace LocalJSX {
         "ui-badge": Omit<UiBadge, keyof UiBadgeAttributes> & { [K in keyof UiBadge & keyof UiBadgeAttributes]?: UiBadge[K] } & { [K in keyof UiBadge & keyof UiBadgeAttributes as `attr:${K}`]?: UiBadgeAttributes[K] } & { [K in keyof UiBadge & keyof UiBadgeAttributes as `prop:${K}`]?: UiBadge[K] };
         "ui-button": Omit<UiButton, keyof UiButtonAttributes> & { [K in keyof UiButton & keyof UiButtonAttributes]?: UiButton[K] } & { [K in keyof UiButton & keyof UiButtonAttributes as `attr:${K}`]?: UiButtonAttributes[K] } & { [K in keyof UiButton & keyof UiButtonAttributes as `prop:${K}`]?: UiButton[K] };
         "ui-checkbox": Omit<UiCheckbox, keyof UiCheckboxAttributes> & { [K in keyof UiCheckbox & keyof UiCheckboxAttributes]?: UiCheckbox[K] } & { [K in keyof UiCheckbox & keyof UiCheckboxAttributes as `attr:${K}`]?: UiCheckboxAttributes[K] } & { [K in keyof UiCheckbox & keyof UiCheckboxAttributes as `prop:${K}`]?: UiCheckbox[K] };
+        "ui-context-menu": Omit<UiContextMenu, keyof UiContextMenuAttributes> & { [K in keyof UiContextMenu & keyof UiContextMenuAttributes]?: UiContextMenu[K] } & { [K in keyof UiContextMenu & keyof UiContextMenuAttributes as `attr:${K}`]?: UiContextMenuAttributes[K] } & { [K in keyof UiContextMenu & keyof UiContextMenuAttributes as `prop:${K}`]?: UiContextMenu[K] };
         "ui-dialog": Omit<UiDialog, keyof UiDialogAttributes> & { [K in keyof UiDialog & keyof UiDialogAttributes]?: UiDialog[K] } & { [K in keyof UiDialog & keyof UiDialogAttributes as `attr:${K}`]?: UiDialogAttributes[K] } & { [K in keyof UiDialog & keyof UiDialogAttributes as `prop:${K}`]?: UiDialog[K] };
         "ui-disclosure": Omit<UiDisclosure, keyof UiDisclosureAttributes> & { [K in keyof UiDisclosure & keyof UiDisclosureAttributes]?: UiDisclosure[K] } & { [K in keyof UiDisclosure & keyof UiDisclosureAttributes as `attr:${K}`]?: UiDisclosureAttributes[K] } & { [K in keyof UiDisclosure & keyof UiDisclosureAttributes as `prop:${K}`]?: UiDisclosure[K] };
         "ui-floating-action-button": Omit<UiFloatingActionButton, keyof UiFloatingActionButtonAttributes> & { [K in keyof UiFloatingActionButton & keyof UiFloatingActionButtonAttributes]?: UiFloatingActionButton[K] } & { [K in keyof UiFloatingActionButton & keyof UiFloatingActionButtonAttributes as `attr:${K}`]?: UiFloatingActionButtonAttributes[K] } & { [K in keyof UiFloatingActionButton & keyof UiFloatingActionButtonAttributes as `prop:${K}`]?: UiFloatingActionButton[K] };
         "ui-form-field": Omit<UiFormField, keyof UiFormFieldAttributes> & { [K in keyof UiFormField & keyof UiFormFieldAttributes]?: UiFormField[K] } & { [K in keyof UiFormField & keyof UiFormFieldAttributes as `attr:${K}`]?: UiFormFieldAttributes[K] } & { [K in keyof UiFormField & keyof UiFormFieldAttributes as `prop:${K}`]?: UiFormField[K] };
+        "ui-icon-button": Omit<UiIconButton, keyof UiIconButtonAttributes> & { [K in keyof UiIconButton & keyof UiIconButtonAttributes]?: UiIconButton[K] } & { [K in keyof UiIconButton & keyof UiIconButtonAttributes as `attr:${K}`]?: UiIconButtonAttributes[K] } & { [K in keyof UiIconButton & keyof UiIconButtonAttributes as `prop:${K}`]?: UiIconButton[K] };
         "ui-input": Omit<UiInput, keyof UiInputAttributes> & { [K in keyof UiInput & keyof UiInputAttributes]?: UiInput[K] } & { [K in keyof UiInput & keyof UiInputAttributes as `attr:${K}`]?: UiInputAttributes[K] } & { [K in keyof UiInput & keyof UiInputAttributes as `prop:${K}`]?: UiInput[K] };
         "ui-menu": Omit<UiMenu, keyof UiMenuAttributes> & { [K in keyof UiMenu & keyof UiMenuAttributes]?: UiMenu[K] } & { [K in keyof UiMenu & keyof UiMenuAttributes as `attr:${K}`]?: UiMenuAttributes[K] } & { [K in keyof UiMenu & keyof UiMenuAttributes as `prop:${K}`]?: UiMenu[K] };
         "ui-menu-item": Omit<UiMenuItem, keyof UiMenuItemAttributes> & { [K in keyof UiMenuItem & keyof UiMenuItemAttributes]?: UiMenuItem[K] } & { [K in keyof UiMenuItem & keyof UiMenuItemAttributes as `attr:${K}`]?: UiMenuItemAttributes[K] } & { [K in keyof UiMenuItem & keyof UiMenuItemAttributes as `prop:${K}`]?: UiMenuItem[K] };
@@ -884,8 +1104,10 @@ declare namespace LocalJSX {
         "ui-radio-group": Omit<UiRadioGroup, keyof UiRadioGroupAttributes> & { [K in keyof UiRadioGroup & keyof UiRadioGroupAttributes]?: UiRadioGroup[K] } & { [K in keyof UiRadioGroup & keyof UiRadioGroupAttributes as `attr:${K}`]?: UiRadioGroupAttributes[K] } & { [K in keyof UiRadioGroup & keyof UiRadioGroupAttributes as `prop:${K}`]?: UiRadioGroup[K] };
         "ui-search-result-row": Omit<UiSearchResultRow, keyof UiSearchResultRowAttributes> & { [K in keyof UiSearchResultRow & keyof UiSearchResultRowAttributes]?: UiSearchResultRow[K] } & { [K in keyof UiSearchResultRow & keyof UiSearchResultRowAttributes as `attr:${K}`]?: UiSearchResultRowAttributes[K] } & { [K in keyof UiSearchResultRow & keyof UiSearchResultRowAttributes as `prop:${K}`]?: UiSearchResultRow[K] };
         "ui-search-shell": UiSearchShell;
+        "ui-select": Omit<UiSelect, keyof UiSelectAttributes> & { [K in keyof UiSelect & keyof UiSelectAttributes]?: UiSelect[K] } & { [K in keyof UiSelect & keyof UiSelectAttributes as `attr:${K}`]?: UiSelectAttributes[K] } & { [K in keyof UiSelect & keyof UiSelectAttributes as `prop:${K}`]?: UiSelect[K] };
         "ui-switch": Omit<UiSwitch, keyof UiSwitchAttributes> & { [K in keyof UiSwitch & keyof UiSwitchAttributes]?: UiSwitch[K] } & { [K in keyof UiSwitch & keyof UiSwitchAttributes as `attr:${K}`]?: UiSwitchAttributes[K] } & { [K in keyof UiSwitch & keyof UiSwitchAttributes as `prop:${K}`]?: UiSwitch[K] };
         "ui-tabs": Omit<UiTabs, keyof UiTabsAttributes> & { [K in keyof UiTabs & keyof UiTabsAttributes]?: UiTabs[K] } & { [K in keyof UiTabs & keyof UiTabsAttributes as `attr:${K}`]?: UiTabsAttributes[K] } & { [K in keyof UiTabs & keyof UiTabsAttributes as `prop:${K}`]?: UiTabs[K] };
+        "ui-textarea": Omit<UiTextarea, keyof UiTextareaAttributes> & { [K in keyof UiTextarea & keyof UiTextareaAttributes]?: UiTextarea[K] } & { [K in keyof UiTextarea & keyof UiTextareaAttributes as `attr:${K}`]?: UiTextareaAttributes[K] } & { [K in keyof UiTextarea & keyof UiTextareaAttributes as `prop:${K}`]?: UiTextarea[K] };
         "ui-toast-region": Omit<UiToastRegion, keyof UiToastRegionAttributes> & { [K in keyof UiToastRegion & keyof UiToastRegionAttributes]?: UiToastRegion[K] } & { [K in keyof UiToastRegion & keyof UiToastRegionAttributes as `attr:${K}`]?: UiToastRegionAttributes[K] } & { [K in keyof UiToastRegion & keyof UiToastRegionAttributes as `prop:${K}`]?: UiToastRegion[K] };
         "ui-tooltip": Omit<UiTooltip, keyof UiTooltipAttributes> & { [K in keyof UiTooltip & keyof UiTooltipAttributes]?: UiTooltip[K] } & { [K in keyof UiTooltip & keyof UiTooltipAttributes as `attr:${K}`]?: UiTooltipAttributes[K] } & { [K in keyof UiTooltip & keyof UiTooltipAttributes as `prop:${K}`]?: UiTooltip[K] };
         "ui-top-bar": UiTopBar;
@@ -900,10 +1122,12 @@ declare module "@stencil/core" {
             "ui-badge": LocalJSX.IntrinsicElements["ui-badge"] & JSXBase.HTMLAttributes<HTMLUiBadgeElement>;
             "ui-button": LocalJSX.IntrinsicElements["ui-button"] & JSXBase.HTMLAttributes<HTMLUiButtonElement>;
             "ui-checkbox": LocalJSX.IntrinsicElements["ui-checkbox"] & JSXBase.HTMLAttributes<HTMLUiCheckboxElement>;
+            "ui-context-menu": LocalJSX.IntrinsicElements["ui-context-menu"] & JSXBase.HTMLAttributes<HTMLUiContextMenuElement>;
             "ui-dialog": LocalJSX.IntrinsicElements["ui-dialog"] & JSXBase.HTMLAttributes<HTMLUiDialogElement>;
             "ui-disclosure": LocalJSX.IntrinsicElements["ui-disclosure"] & JSXBase.HTMLAttributes<HTMLUiDisclosureElement>;
             "ui-floating-action-button": LocalJSX.IntrinsicElements["ui-floating-action-button"] & JSXBase.HTMLAttributes<HTMLUiFloatingActionButtonElement>;
             "ui-form-field": LocalJSX.IntrinsicElements["ui-form-field"] & JSXBase.HTMLAttributes<HTMLUiFormFieldElement>;
+            "ui-icon-button": LocalJSX.IntrinsicElements["ui-icon-button"] & JSXBase.HTMLAttributes<HTMLUiIconButtonElement>;
             "ui-input": LocalJSX.IntrinsicElements["ui-input"] & JSXBase.HTMLAttributes<HTMLUiInputElement>;
             "ui-menu": LocalJSX.IntrinsicElements["ui-menu"] & JSXBase.HTMLAttributes<HTMLUiMenuElement>;
             "ui-menu-item": LocalJSX.IntrinsicElements["ui-menu-item"] & JSXBase.HTMLAttributes<HTMLUiMenuItemElement>;
@@ -912,8 +1136,10 @@ declare module "@stencil/core" {
             "ui-radio-group": LocalJSX.IntrinsicElements["ui-radio-group"] & JSXBase.HTMLAttributes<HTMLUiRadioGroupElement>;
             "ui-search-result-row": LocalJSX.IntrinsicElements["ui-search-result-row"] & JSXBase.HTMLAttributes<HTMLUiSearchResultRowElement>;
             "ui-search-shell": LocalJSX.IntrinsicElements["ui-search-shell"] & JSXBase.HTMLAttributes<HTMLUiSearchShellElement>;
+            "ui-select": LocalJSX.IntrinsicElements["ui-select"] & JSXBase.HTMLAttributes<HTMLUiSelectElement>;
             "ui-switch": LocalJSX.IntrinsicElements["ui-switch"] & JSXBase.HTMLAttributes<HTMLUiSwitchElement>;
             "ui-tabs": LocalJSX.IntrinsicElements["ui-tabs"] & JSXBase.HTMLAttributes<HTMLUiTabsElement>;
+            "ui-textarea": LocalJSX.IntrinsicElements["ui-textarea"] & JSXBase.HTMLAttributes<HTMLUiTextareaElement>;
             "ui-toast-region": LocalJSX.IntrinsicElements["ui-toast-region"] & JSXBase.HTMLAttributes<HTMLUiToastRegionElement>;
             "ui-tooltip": LocalJSX.IntrinsicElements["ui-tooltip"] & JSXBase.HTMLAttributes<HTMLUiTooltipElement>;
             "ui-top-bar": LocalJSX.IntrinsicElements["ui-top-bar"] & JSXBase.HTMLAttributes<HTMLUiTopBarElement>;

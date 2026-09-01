@@ -1,0 +1,21 @@
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# Editor Insert Table Grid
+
+Grid picker for committing table dimensions and optional header-row intent.
+
+## Component Reference
+
+<ComponentExamplesApiTabs component="ui-editor-insert-table-grid" />
+
+## Runtime Contract
+
+Set `open`, `max-rows`, and `max-cols` as attributes. Hover previews dimensions; selecting a cell pins them so moving to the confirmation control cannot change the result. Confirmation emits `looma-editor-insert-table` with `{ rows, cols, withHeaderRow }`.
+
+The app owns the Tiptap insertion command and focus restoration. Touch users select by tapping; keyboard access must reach the dimension cells, header-row control, and confirmation action in a logical order.
+
+This is client-generated editor UI and has no meaningful no-JS fallback. Keep a conventional insert-table command available in the surrounding editor. The module is safe to import during SSR.
+
+## Vue
+
+Use `EditorInsertTableGrid` from `@threadlabs/looma/vue` and map the emitted detail to `insertTableAtRange` or the app's equivalent command.

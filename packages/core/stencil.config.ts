@@ -2,6 +2,7 @@ import { Config } from '@stencil/core';
 
 export const config: Config = {
   namespace: 'looma',
+  tsconfig: 'tsconfig.stencil.json',
   outputTargets: [
     {
       type: 'dist',

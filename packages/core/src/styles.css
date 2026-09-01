@@ -9,6 +9,7 @@
   ui-tabs,
   ui-menu,
   ui-menu-item,
+  ui-context-menu,
   ui-tooltip,
   ui-toast-region,
   ui-checkbox,
@@ -29,6 +30,7 @@
   ui-tabs,
   ui-menu,
   ui-menu-item,
+  ui-context-menu,
   ui-tooltip,
   ui-toast-region,
   ui-checkbox,
@@ -49,6 +51,7 @@
   ui-tabs,
   ui-menu,
   ui-menu-item,
+  ui-context-menu,
   ui-tooltip,
   ui-toast-region,
   ui-checkbox,
@@ -69,6 +72,7 @@
   ui-tabs,
   ui-menu,
   ui-menu-item,
+  ui-context-menu,
   ui-tooltip,
   ui-toast-region,
   ui-checkbox,
@@ -92,6 +96,7 @@
   ui-tabs,
   ui-menu,
   ui-menu-item,
+  ui-context-menu,
   ui-tooltip,
   ui-toast-region,
   ui-checkbox,
@@ -121,6 +126,7 @@
   ui-tabs,
   ui-menu,
   ui-menu-item,
+  ui-context-menu,
   ui-tooltip,
   ui-toast-region,
   ui-checkbox,
@@ -142,6 +148,33 @@
   text-rendering: inherit;
   font-feature-settings: inherit;
   font-variation-settings: inherit;
+}
+
+:where(ui-menu > ui-menu-item, ui-context-menu > ui-menu-item) {
+  display: block;
+  width: 100%;
+  padding: var(--ui-space-2) var(--ui-space-3);
+  text-align: left;
+  background: none;
+  border: none;
+  border-radius: var(--ui-radius-2);
+  color: var(--ui-text-primary);
+  font-size: var(--ui-font-size-md);
+  font-weight: var(--ui-font-medium, 500);
+  cursor: pointer;
+  transition:
+    background-color var(--ui-motion-fast) var(--ui-motion-ease),
+    color var(--ui-motion-fast) var(--ui-motion-ease);
+}
+
+:where(ui-menu > ui-menu-item, ui-context-menu > ui-menu-item):hover:not([aria-disabled="true"]):not([disabled]) {
+  background: var(--ui-surface-subtle);
+}
+
+:where(ui-menu > ui-menu-item, ui-context-menu > ui-menu-item)[aria-disabled="true"],
+:where(ui-menu > ui-menu-item, ui-context-menu > ui-menu-item)[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 @layer components {
@@ -375,11 +408,12 @@
       color var(--ui-motion-fast) var(--ui-motion-ease);
   }
 
-  ui-menu-item:hover:not([aria-disabled="true"]) {
+  ui-menu-item:hover:not([aria-disabled="true"]):not([disabled]) {
     background: var(--ui-surface-subtle);
   }
 
-  ui-menu-item[aria-disabled="true"] {
+  ui-menu-item[aria-disabled="true"],
+  ui-menu-item[disabled] {
     opacity: 0.6;
     cursor: not-allowed;
   }
@@ -391,6 +425,16 @@
     border-radius: var(--ui-radius-3);
     box-shadow: var(--ui-shadow-lg);
     max-width: min(20rem, 90vw);
+  }
+
+  ui-context-menu {
+    position: fixed;
+    z-index: var(--ui-z-overlay, 1000);
+    min-width: 12rem;
+  }
+
+  ui-context-menu:not([data-open]) {
+    display: none !important;
   }
 
   ui-tabs {
@@ -474,8 +518,7 @@
 
   /* Dialog shell (Knit .dialog-shell): overlay, centering, padding.
    * Layout stays in base so dialog doesn’t snap mid-exit when [open] is removed.
-   * Entry: @starting-style inside dialog[open]. Exit: dialog:not([open]).
-   * display + overlay allow-discrete keep dialog visible during exit animation. */
+   * Keyframes provide a broadly tool-compatible entry transition. */
   ui-dialog > dialog {
     --ui-dialog-duration: var(--ui-motion-base);
     position: fixed;
@@ -505,7 +548,11 @@
     pointer-events: auto;
     opacity: 1;
     transform: scale(1);
-    @starting-style {
+    animation: ui-dialog-enter var(--ui-dialog-duration) var(--ui-motion-ease);
+  }
+
+  @keyframes ui-dialog-enter {
+    from {
       opacity: 0;
       transform: scale(0.96);
     }
@@ -521,7 +568,11 @@
 
   ui-dialog > dialog[open]::backdrop {
     background-color: var(--ui-overlay-backdrop);
-    @starting-style {
+    animation: ui-dialog-backdrop-enter var(--ui-dialog-duration) var(--ui-motion-ease);
+  }
+
+  @keyframes ui-dialog-backdrop-enter {
+    from {
       background-color: transparent;
     }
   }

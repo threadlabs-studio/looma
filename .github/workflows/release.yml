@@ -1,0 +1,361 @@
+name: Release Candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish_candidate:
+        description: Publish the approved tarballs to the npm candidate tag
+        required: true
+        default: false
+        type: boolean
+      promote_latest:
+        description: Promote the verified candidate graph to latest with rollback on partial failure
+        required: true
+        default: false
+        type: boolean
+      ci_workflow_run_id:
+        description: Successful CI push run for main at this exact commit; required only for Candidate publication
+        required: false
+        default: ''
+        type: string
+      candidate_workflow_run_id:
+        description: Prior successful Candidate workflow run ID; required only for promotion
+        required: false
+        default: ''
+        type: string
+      public_knit_evidence_sha256:
+        description: SHA-256 of the public-registry Knit verification evidence; required only for promotion
+        required: false
+        default: ''
+        type: string
+      public_knit_evidence_url:
+        description: HTTPS location of public Knit evidence without embedded credentials; promotion only
+        required: false
+        default: ''
+        type: string
+      hosted_docs_evidence_sha256:
+        description: SHA-256 of the hosted production-docs verification evidence; required only for promotion
+        required: false
+        default: ''
+        type: string
+      hosted_docs_evidence_url:
+        description: HTTPS location of docs evidence without embedded credentials; promotion only
+        required: false
+        default: ''
+        type: string
+      hosted_docs_url:
+        description: Verified HTTPS production documentation URL; required only for promotion
+        required: false
+        default: ''
+        type: string
+      authentication:
+        description: Use bootstrap only for first publication; trusted for configured packages
+        required: true
+        default: bootstrap
+        type: choice
+        options:
+          - bootstrap
+          - trusted
+      npm_approver:
+        description: Accountable npm release approver
+        required: true
+        type: string
+      documentation_approver:
+        description: Accountable public documentation approver
+        required: true
+        type: string
+      knit_approver:
+        description: Accountable Knit consumer-validation approver
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: looma-npm-release
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Checkout reviewed commit
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 20.19.6
+          cache: pnpm
+
+      - name: Validate separate release dispatch and promotion evidence
+        env:
+          LOOMA_PUBLISH_CANDIDATE: ${{ inputs.publish_candidate }}
+          LOOMA_PROMOTE_LATEST: ${{ inputs.promote_latest }}
+          LOOMA_CI_WORKFLOW_RUN_ID: ${{ inputs.ci_workflow_run_id }}
+          LOOMA_CANDIDATE_WORKFLOW_RUN_ID: ${{ inputs.candidate_workflow_run_id }}
+          LOOMA_PUBLIC_KNIT_EVIDENCE_SHA256: ${{ inputs.public_knit_evidence_sha256 }}
+          LOOMA_PUBLIC_KNIT_EVIDENCE_URL: ${{ inputs.public_knit_evidence_url }}
+          LOOMA_HOSTED_DOCS_EVIDENCE_SHA256: ${{ inputs.hosted_docs_evidence_sha256 }}
+          LOOMA_HOSTED_DOCS_EVIDENCE_URL: ${{ inputs.hosted_docs_evidence_url }}
+          LOOMA_HOSTED_DOCS_URL: ${{ inputs.hosted_docs_url }}
+        run: pnpm release:validate-dispatch
+
+      - name: Validate successful main CI for this exact commit
+        if: inputs.publish_candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LOOMA_CI_WORKFLOW_RUN_ID: ${{ inputs.ci_workflow_run_id }}
+          LOOMA_EXPECTED_HEAD_SHA: ${{ github.sha }}
+        run: |
+          ci_run="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${LOOMA_CI_WORKFLOW_RUN_ID}")"
+          if ! jq -e --arg expected_sha "$LOOMA_EXPECTED_HEAD_SHA" '
+            .path == ".github/workflows/ci.yml"
+            and .event == "push"
+            and .head_branch == "main"
+            and .conclusion == "success"
+            and .head_sha == $expected_sha
+          ' <<<"$ci_run" > /dev/null; then
+            echo "CI run must be a successful ci.yml push for main at the exact release commit" >&2
+            exit 1
+          fi
+
+      - name: Use trusted-publishing-capable npm CLI
+        if: inputs.promote_latest == false
+        run: npm install --global npm@11.5.1
+
+      - name: Install dependencies
+        if: inputs.promote_latest == false
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify and pack exact release bytes
+        if: inputs.promote_latest == false
+        env:
+          LOOMA_NPM_APPROVER: ${{ inputs.npm_approver }}
+          LOOMA_DOCS_APPROVER: ${{ inputs.documentation_approver }}
+          LOOMA_KNIT_APPROVER: ${{ inputs.knit_approver }}
+        run: pnpm release:verify
+
+      - name: Upload immutable release artifact set
+        if: inputs.promote_latest == false
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: looma-0.1.0-candidate
+          path: .release/artifacts/
+          if-no-files-found: error
+          retention-days: 30
+
+  publish:
+    if: inputs.publish_candidate
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: npm-release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout the same reviewed commit
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 20.19.6
+          registry-url: https://registry.npmjs.org/
+          scope: '@threadlabs'
+
+      - name: Use trusted-publishing-capable npm CLI
+        run: npm install --global npm@11.5.1
+
+      - name: Download approved release bytes
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: looma-0.1.0-candidate
+          path: .release/artifacts/
+
+      - name: Prove first-publication scope ownership and name availability
+        if: inputs.authentication == 'bootstrap'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: node tools/scripts/registry-preflight.mjs
+
+      - name: Publish exact bytes with the bootstrap credential
+        if: inputs.authentication == 'bootstrap'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          LOOMA_RELEASE_PUBLISH: approved
+        run: node tools/scripts/publish-release.mjs --execute --tag candidate
+
+      - name: Publish exact bytes with trusted publishing
+        if: inputs.authentication == 'trusted'
+        env:
+          LOOMA_RELEASE_PUBLISH: approved
+        run: node tools/scripts/publish-release.mjs --execute --tag candidate
+
+      - name: Verify public candidate metadata, integrity, tags, and provenance
+        run: node tools/scripts/verify-registry-release.mjs --tag candidate
+
+      - name: Verify clean public-registry consumer
+        run: pnpm release:verify-public-consumer
+
+      - name: Upload candidate registry evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: looma-0.1.0-registry-candidate-evidence
+          path: .release/evidence/registry-candidate.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload candidate public-consumer evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: looma-0.1.0-public-consumer-candidate-evidence
+          path: |
+            .release/evidence/public-consumer.json
+            .release/evidence/public-consumer-pnpm-lock.yaml
+          if-no-files-found: error
+          retention-days: 30
+
+  promote:
+    if: always() && inputs.promote_latest && needs.prepare.result == 'success' && (needs.publish.result == 'success' || needs.publish.result == 'skipped')
+    needs:
+      - prepare
+      - publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: npm-release
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Checkout the approved release commit
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+
+      - name: Setup Node and authenticated npm registry
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 20.19.6
+          registry-url: https://registry.npmjs.org/
+          scope: '@threadlabs'
+
+      - name: Use current npm release client
+        run: npm install --global npm@11.5.1
+
+      - name: Download approved release bytes from Candidate run
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: looma-0.1.0-candidate
+          path: .release/artifacts/
+          run-id: ${{ inputs.candidate_workflow_run_id }}
+          github-token: ${{ github.token }}
+
+      - name: Reverify clean public-registry consumer before promotion
+        run: pnpm release:verify-public-consumer
+
+      - name: Promote the complete graph and restore prior tags on failure
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          LOOMA_RELEASE_PROMOTE: approved
+          LOOMA_CANDIDATE_WORKFLOW_RUN_ID: ${{ inputs.candidate_workflow_run_id }}
+          LOOMA_PUBLIC_KNIT_EVIDENCE_SHA256: ${{ inputs.public_knit_evidence_sha256 }}
+          LOOMA_PUBLIC_KNIT_EVIDENCE_URL: ${{ inputs.public_knit_evidence_url }}
+          LOOMA_HOSTED_DOCS_EVIDENCE_SHA256: ${{ inputs.hosted_docs_evidence_sha256 }}
+          LOOMA_HOSTED_DOCS_EVIDENCE_URL: ${{ inputs.hosted_docs_evidence_url }}
+          LOOMA_HOSTED_DOCS_URL: ${{ inputs.hosted_docs_url }}
+        run: node tools/scripts/promote-release.mjs --execute
+
+      - name: Upload pre-promotion public-consumer evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: looma-0.1.0-pre-promotion-public-consumer-evidence
+          path: |
+            .release/evidence/public-consumer.json
+            .release/evidence/public-consumer-pnpm-lock.yaml
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload latest-promotion evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: looma-0.1.0-registry-promotion-evidence
+          path: .release/evidence/registry-promotion.json
+          if-no-files-found: error
+          retention-days: 30
+
+  release-record:
+    if: needs.promote.result == 'success'
+    needs: promote
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - name: Checkout the same approved release commit
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 20.19.6
+
+      - name: Download exact release manifest from Candidate run
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: looma-0.1.0-candidate
+          path: .release/artifacts/
+          run-id: ${{ inputs.candidate_workflow_run_id }}
+          github-token: ${{ github.token }}
+
+      - name: Download promotion evidence from this run
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: looma-0.1.0-registry-promotion-evidence
+          path: .release/evidence/
+          run-id: ${{ github.run_id }}
+          github-token: ${{ github.token }}
+
+      - name: Validate immutable release record plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node tools/scripts/finalize-release.mjs
+
+      - name: Create or resume immutable release record
+        id: release-record
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LOOMA_RELEASE_RECORD: approved
+        run: node tools/scripts/finalize-release.mjs --execute
+
+      - name: Link release record in the job summary
+        env:
+          RELEASE_URL: ${{ steps.release-record.outputs.release_url }}
+        run: |
+          echo "Looma Candidate release record: ${RELEASE_URL}" >> "$GITHUB_STEP_SUMMARY"

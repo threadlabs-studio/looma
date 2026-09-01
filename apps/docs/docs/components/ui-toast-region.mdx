@@ -1,5 +1,3 @@
-import Tabs from "@theme/Tabs";
-import TabItem from "@theme/TabItem";
 import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
 
 # Toast Region
@@ -47,12 +45,9 @@ Default slot with toast nodes marked using `data-ui-toast`.
 
 ## Framework Snippets
 
-<Tabs groupId="framework" defaultValue="vue">
-  <TabItem value="vue" label="Vue">
-
 ```vue
 <script setup lang="ts">
-import { ToastRegion } from "@looma/vue";
+import { ToastRegion } from "@threadlabs/looma/vue";
 </script>
 
 <template>
@@ -64,36 +59,3 @@ import { ToastRegion } from "@looma/vue";
   </ToastRegion>
 </template>
 ```
-
-  </TabItem>
-  <TabItem value="svelte" label="Svelte">
-
-```svelte
-<ui-toast-region>
-  <div data-ui-toast>
-    Saved.
-    <button type="button" data-ui-toast-dismiss aria-label="Dismiss">Dismiss</button>
-  </div>
-</ui-toast-region>
-```
-
-  </TabItem>
-  <TabItem value="react" label="React">
-
-```tsx
-import { ToastRegion } from "@looma/react";
-
-export function Example() {
-  return (
-    <ToastRegion>
-      <div data-ui-toast>
-        Saved.
-        <button type="button" data-ui-toast-dismiss aria-label="Dismiss">Dismiss</button>
-      </div>
-    </ToastRegion>
-  );
-}
-```
-
-  </TabItem>
-</Tabs>

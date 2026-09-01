@@ -1,8 +1,9 @@
 {
-  "name": "@looma/core",
-  "version": "0.0.0",
+  "name": "@threadlabs/looma-core",
+  "version": "0.1.0",
+  "private": true,
   "type": "module",
-  "description": "Looma UI primitives built with Stencil",
+  "description": "SSR-first Looma web components with semantic light-DOM fallback contracts.",
   "license": "MIT",
   "author": "Threadlabs Studio",
   "repository": {
@@ -10,46 +11,52 @@
     "url": "git+https://github.com/threadlabs-studio/looma.git",
     "directory": "packages/core"
   },
+  "homepage": "https://github.com/threadlabs-studio/looma#readme",
   "bugs": {
     "url": "https://github.com/threadlabs-studio/looma/issues"
   },
-  "homepage": "https://github.com/threadlabs-studio/looma/tree/main/packages/core#readme",
-  "publishConfig": {
-    "access": "public"
-  },
-  "main": "dist/index.cjs.js",
+  "main": "dist/index.cjs",
   "module": "dist/index.js",
-  "types": "dist/types/index.d.ts",
+  "types": "dist/index.d.ts",
   "collection": "dist/collection/collection-manifest.json",
   "collection:main": "dist/collection/index.js",
   "exports": {
     ".": {
-      "types": "./dist/types/index.d.ts",
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
-      "require": "./dist/index.cjs.js"
+      "require": "./dist/index.cjs"
     },
     "./loader": {
       "types": "./loader/index.d.ts",
-      "import": "./loader/index.js",
-      "require": "./loader/index.cjs.js"
+      "import": "./loader/index.js"
     },
     "./styles.css": "./src/styles.css"
   },
   "files": [
     "dist/",
     "loader/",
-    "src/styles.css"
+    "src/styles.css",
+    "README.md"
   ],
   "scripts": {
-    "build": "stencil build && tsup src/index.ts --format esm,cjs --dts --outDir dist",
+    "build": "node ../../tools/scripts/run-stencil-build.mjs && tsup index.ts --format esm,cjs --dts --outDir dist",
     "start": "stencil build --dev --watch --serve",
-    "test": "stencil test --spec",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "test": "pnpm build && vitest run",
+    "test:browser": "pnpm build && vitest run --config vitest.browser.config.ts",
+    "typecheck": "tsc -p tsconfig.stencil.json --noEmit"
   },
   "devDependencies": {
     "@stencil/core": "^4.27.1",
-    "tsup": "^8.5.0",
     "@types/node": "^22.13.5",
-    "typescript": "^5.9.2"
+    "@vitest/browser": "~3.2.6",
+    "axe-core": "^4.10.3",
+    "jsdom": "^27.0.0",
+    "playwright": "~1.60.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.6"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

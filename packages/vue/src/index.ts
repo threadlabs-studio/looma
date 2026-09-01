@@ -1,8 +1,8 @@
 // Side-effect imports register custom elements in the browser only.
-// In SSR (Node), @looma/core and @looma/layout no-op via typeof HTMLElement guards.
-import "@looma/layout";
-import "@looma/core";
-import "@looma/editor";
+// In SSR (Node), @threadlabs/looma-core and @threadlabs/looma-layout no-op via typeof HTMLElement guards.
+import "@threadlabs/looma-layout";
+import "@threadlabs/looma-core";
+import "@threadlabs/looma-editor";
 import {
   cloneVNode,
   defineComponent,
@@ -365,8 +365,12 @@ export const Dialog = createAdapterComponent("ui-dialog", "Dialog");
 export const Popover = createAdapterComponent("ui-popover", "Popover");
 export const Menu = createAdapterComponent("ui-menu", "Menu");
 export const MenuItem = createAdapterComponent("ui-menu-item", "MenuItem");
+export const ContextMenu = createAdapterComponent("ui-context-menu", "ContextMenu");
 export const Button = createAdapterComponent("ui-button", "Button");
+export const IconButton = createAdapterComponent("ui-icon-button", "IconButton");
 export const Input = createAdapterComponent("ui-input", "Input");
+export const Select = createAdapterComponent("ui-select", "Select");
+export const Textarea = createAdapterComponent("ui-textarea", "Textarea");
 export const FormField = createAdapterComponent("ui-form-field", "FormField");
 export const Tooltip = createAdapterComponent("ui-tooltip", "Tooltip");
 export const ToastRegion = createAdapterComponent("ui-toast-region", "ToastRegion");
@@ -412,8 +416,12 @@ export const ADAPTER_COMPONENT_TAG_MAP = {
   Popover: "ui-popover",
   Menu: "ui-menu",
   MenuItem: "ui-menu-item",
+  ContextMenu: "ui-context-menu",
   Button: "ui-button",
+  IconButton: "ui-icon-button",
   Input: "ui-input",
+  Select: "ui-select",
+  Textarea: "ui-textarea",
   FormField: "ui-form-field",
   Tooltip: "ui-tooltip",
   ToastRegion: "ui-toast-region",

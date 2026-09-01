@@ -1,0 +1,19 @@
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# Editor Table Toolbar
+
+Selection-aware quick toolbar for table alignment and structural actions.
+
+## Component Reference
+
+<ComponentExamplesApiTabs component="ui-editor-table-toolbar" />
+
+## Runtime Contract
+
+The app sets `open`, current cell alignment, and the `can-*` capability attributes. Only available actions are rendered. Invoking one emits `looma-editor-table-action` with `{ action }`; the app executes the matching Tiptap command and restores editor focus.
+
+The toolbar is an enhancement, not the table's semantic content. It renders only after client upgrade and therefore needs an equivalent keyboard-reachable command path. Touch targets must remain at least 44px. The module is safe to import during SSR.
+
+## Candidate Limitation
+
+The toolbar does not by itself provide Confluence-level table discoverability. E-TBL-003 accepts that visual limitation for Candidate because Chromium and Tiptap content-integrity evidence pass; loss or corruption remains release-blocking.

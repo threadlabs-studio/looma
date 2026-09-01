@@ -1,0 +1,52 @@
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+<div className="looma-component-header">
+
+<p className="component-tag">&lt;ui-floating-action-button&gt;</p>
+
+# Floating Action Button
+
+Primary floating action primitive for mobile-first create or compose affordances.
+
+**Import:** `import "@threadlabs/looma"` — or use `FloatingActionButton` from `@threadlabs/looma/vue`.
+
+</div>
+
+## Examples & API
+
+<ComponentExamplesApiTabs
+  component="ui-floating-action-button"
+  preview={
+    <ui-floating-action-button label="Create new page" mobile-only>
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+        <path d="M12 5v14M5 12h14" stroke="currentColor" strokeLinecap="round" />
+      </svg>
+    </ui-floating-action-button>
+  }
+/>
+
+## SSR Markup
+
+```html
+<ui-floating-action-button label="Create new page" mobile-only>
+  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+    <path d="M12 5v14M5 12h14" stroke="currentColor" />
+  </svg>
+</ui-floating-action-button>
+```
+
+## Framework Snippets
+
+```vue
+<script setup lang="ts">
+import { FloatingActionButton } from "@threadlabs/looma/vue";
+</script>
+
+<template>
+  <FloatingActionButton label="Create new page" mobile-only>
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+      <path d="M12 5v14M5 12h14" stroke="currentColor" />
+    </svg>
+  </FloatingActionButton>
+</template>
+```

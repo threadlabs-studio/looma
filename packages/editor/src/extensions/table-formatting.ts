@@ -1,8 +1,24 @@
 import type { Editor } from "@tiptap/core";
+import TableBase from "@tiptap/extension-table";
 import TableCellBase from "@tiptap/extension-table-cell";
 import TableHeaderBase from "@tiptap/extension-table-header";
 
 export type TableCellAlignment = "left" | "center" | "right";
+export type TableCellBackground = string | null;
+
+export const TABLE_CELL_BACKGROUND_PRESETS = {
+  none: null,
+  gray: "#f3f4f6",
+  yellow: "#fef3c7",
+  blue: "#dbeafe",
+  green: "#dcfce7",
+  red: "#fee2e2",
+} as const;
+
+export const LoomaTable = TableBase.configure({
+  resizable: true,
+  lastColumnResizable: false,
+});
 
 function normalizeTableCellAlignment(value: unknown): TableCellAlignment | null {
   if (value === "left" || value === "center" || value === "right") {
@@ -11,17 +27,51 @@ function normalizeTableCellAlignment(value: unknown): TableCellAlignment | null 
   return null;
 }
 
+function normalizeTableCellBackground(value: unknown): TableCellBackground {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : null;
+}
+
+function renderTableCellStyle(attributes: {
+  textAlign?: unknown;
+  backgroundColor?: unknown;
+}): string | null {
+  const styleFragments: string[] = [];
+  const textAlign = normalizeTableCellAlignment(attributes.textAlign);
+  const backgroundColor = normalizeTableCellBackground(attributes.backgroundColor);
+
+  if (textAlign && textAlign !== "left") {
+    styleFragments.push(`text-align: ${textAlign}`);
+  }
+
+  if (backgroundColor) {
+    styleFragments.push(`background-color: ${backgroundColor}`);
+  }
+
+  return styleFragments.length > 0 ? `${styleFragments.join("; ")};` : null;
+}
+
 const tableAlignmentAttributes = {
   textAlign: {
     default: null,
     parseHTML: (element: HTMLElement) =>
       normalizeTableCellAlignment(element.style.textAlign),
-    renderHTML: (attributes: { textAlign?: unknown }) => {
-      const textAlign = normalizeTableCellAlignment(attributes.textAlign);
-      if (!textAlign || textAlign === "left") {
-        return {};
-      }
-      return { style: `text-align: ${textAlign}` };
+    renderHTML: (attributes: { textAlign?: unknown; backgroundColor?: unknown }) => {
+      const style = renderTableCellStyle(attributes);
+      return style ? { style } : {};
+    },
+  },
+  backgroundColor: {
+    default: null,
+    parseHTML: (element: HTMLElement) =>
+      normalizeTableCellBackground(element.style.backgroundColor),
+    renderHTML: (attributes: { textAlign?: unknown; backgroundColor?: unknown }) => {
+      const style = renderTableCellStyle(attributes);
+      return style ? { style } : {};
     },
   },
 };
@@ -57,6 +107,19 @@ export function getActiveTableCellAlignment(editor: Editor): TableCellAlignment 
   return "left";
 }
 
+export function getActiveTableCellBackground(editor: Editor): TableCellBackground {
+  const { $from } = editor.state.selection;
+
+  for (let depth = $from.depth; depth > 0; depth -= 1) {
+    const node = $from.node(depth);
+    if (node.type.name === "tableCell" || node.type.name === "tableHeader") {
+      return normalizeTableCellBackground(node.attrs.backgroundColor);
+    }
+  }
+
+  return null;
+}
+
 export function setActiveTableCellAlignment(
   editor: Editor,
   alignment: TableCellAlignment
@@ -69,6 +132,27 @@ export function setActiveTableCellAlignment(
 
   if (editor.isActive("tableCell")) {
     return editor.chain().focus().updateAttributes("tableCell", { textAlign }).run();
+  }
+
+  return false;
+}
+
+export function setActiveTableCellBackground(
+  editor: Editor,
+  backgroundColor: TableCellBackground
+): boolean {
+  const normalizedBackgroundColor = normalizeTableCellBackground(backgroundColor);
+
+  if (editor.isActive("tableHeader")) {
+    return editor.chain().focus().updateAttributes("tableHeader", {
+      backgroundColor: normalizedBackgroundColor,
+    }).run();
+  }
+
+  if (editor.isActive("tableCell")) {
+    return editor.chain().focus().updateAttributes("tableCell", {
+      backgroundColor: normalizedBackgroundColor,
+    }).run();
   }
 
   return false;

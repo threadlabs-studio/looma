@@ -1,5 +1,5 @@
-import "@looma/layout";
-import "@looma/core";
+import "@threadlabs/looma-layout";
+import "@threadlabs/looma-core";
 
 export interface SvelteAdapterEventMap {
   open: { open: boolean; reason: string; trigger: string };
@@ -23,7 +23,10 @@ export type AdapterTagName =
   | "ui-menu"
   | "ui-menu-item"
   | "ui-button"
+  | "ui-icon-button"
   | "ui-input"
+  | "ui-select"
+  | "ui-textarea"
   | "ui-form-field"
   | "ui-tooltip"
   | "ui-toast-region"
@@ -176,7 +179,10 @@ export const ADAPTER_COMPONENT_TAG_MAP = {
   Menu: "ui-menu",
   MenuItem: "ui-menu-item",
   Button: "ui-button",
+  IconButton: "ui-icon-button",
   Input: "ui-input",
+  Select: "ui-select",
+  Textarea: "ui-textarea",
   FormField: "ui-form-field",
   Tooltip: "ui-tooltip",
   ToastRegion: "ui-toast-region",
