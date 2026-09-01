@@ -56,7 +56,7 @@ facade assembly, which rewrites declared internal specifiers and then rejects
 private Looma package identities in assembled runtime files
 (`tools/scripts/build-facade.mjs:50`, `tools/scripts/verify-facade.mjs:75`).
 
-Knit extends the graph into a separately versioned consumer. It declares one
+Knit extends the graph through a separately versioned internal integration harness. It declares one
 direct Looma dependency ([Knit web manifest](../../../../knit/web/package.json#L33))
 and imports public subpaths such as `@threadlabs/looma/vue`
 ([Knit app entry](../../../../knit/web/app/app.vue#L14)). Its unit-test boundary

@@ -14,7 +14,7 @@ execution: code
 
 **Objective:** Make Looma's public surface and Knit's integration release-ready so package complexity does not block the path to real signups.
 
-**Means:** Replace Looma's unpublished five-package public Candidate with one coherent public package, `@threadlabs/looma`, preserve private internal workspaces, migrate Knit to that contract, and requalify the exact artifact in an isolated consumer with no Looma registry fallback.
+**Means:** Replace Looma's unpublished five-package public Candidate with one coherent public package, `@threadlabs/looma`, preserve private internal workspaces, migrate Knit to that contract, and requalify the exact artifact in an isolated Knit integration harness with no Looma registry fallback.
 
 ## Product Contract
 
@@ -95,7 +95,8 @@ The implementation depends on the current Looma workspace builds, pnpm, Node pac
 
 ```mermaid
 flowchart LR
-  Consumer["Knit / external consumer"] --> Facade["@threadlabs/looma"]
+  Consumer["External consuming application"] --> Facade["@threadlabs/looma"]
+  Harness["Private Knit integration harness"] --> Facade
   Facade --> Root[". / core"]
   Facade --> Loader["loader"]
   Facade --> Layout["layout"]
