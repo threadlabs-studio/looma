@@ -14,13 +14,17 @@ implementation roadmap so package ownership decisions stay visible.
 - Unauthenticated registry lookup reports the name as unpublished. This
   host is authenticated to npm as `matthew-dean`, with account-level 2FA set to
   `auth-and-writes`, and that identity owns the `@threadlabs` organization.
-- The canonical GitHub repository is public, but its release commit has not
-  been pushed to `main`.
+- The canonical GitHub repository is public and the current release workflow is
+  on `main` behind exact-commit CI and protected-environment approval gates.
 - GitHub Pages is configured for Actions at
   `https://threadlabs-studio.github.io/looma/`. The `docs-preview`,
   `docs-production`, and `npm-release` environments exist and require review
-  from the repository owner. No workflow has been approved or deployed yet.
-- No repository-level npm bootstrap secret or trusted publisher is configured.
+  from the repository owner.
+- The protected `npm-release` environment contains separate npm credentials:
+  `NPM_PREFLIGHT_TOKEN` for identity, organization, profile, and name-availability
+  reads, and short-lived `NPM_TOKEN` for package-scoped Bypass 2FA publication and
+  promotion. No repository-level npm credential is used, and the trusted publisher
+  cannot be configured until `@threadlabs/looma` exists.
 
 ## Npm Namespace Decision
 
@@ -38,8 +42,11 @@ release policy, and registry tests. React and Svelte remain unpublished in R1.
 
 ## Before First Publish
 
-1. Authenticate the `@threadlabs` npm owner on a secure operator host and prove
-   the protected release identity can publish the exact package name.
+1. Keep both protected credentials bound to the same `@threadlabs` npm owner.
+   Verify `NPM_PREFLIGHT_TOKEN` can run the read-only namespace and account probes.
+   Treat the guarded `candidate` publish as the first capability proof for the
+   package-scoped `NPM_TOKEN`, because npm blocks those identity probes for the
+   Bypass 2FA publishing token.
 2. Confirm the configured `docs-preview`, `docs-production`, and `npm-release`
    environments and owner reviewer remain intact. CI is an ordinary required
    check, not an approval-gated deployment environment.

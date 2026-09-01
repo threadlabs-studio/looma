@@ -39,6 +39,15 @@ const releasePackagingJob = ciWorkflow.match(
 const ciReleaseVerification = releasePackagingJob.match(
   /- name: Verify release packaging[\s\S]*?(?=\n\s+- name:|$)/
 )?.[0] ?? "";
+const bootstrapPreflight = publishJob.match(
+  /- name: Prove first-publication scope ownership and name availability[\s\S]*?(?=\n\s+- name:)/
+)?.[0] ?? "";
+const bootstrapPublish = publishJob.match(
+  /- name: Publish exact bytes with the bootstrap credential[\s\S]*?(?=\n\s+- name:)/
+)?.[0] ?? "";
+const trustedPublish = publishJob.match(
+  /- name: Publish exact bytes with trusted publishing[\s\S]*?(?=\n\s+- name:)/
+)?.[0] ?? "";
 
 test("release workflow is manual, main-only, serialized, and environment-protected", () => {
   assert.match(workflow, /workflow_dispatch:/);
@@ -142,6 +151,17 @@ test("checkout credentials are disabled and publication has only required permis
   assert.match(promoteJob, /NODE_AUTH_TOKEN: \$\{\{ secrets\.NPM_TOKEN \}\}/);
   assert.match(releaseRecordJob, /permissions:\n\s+actions: read\n\s+contents: write/);
   assert.doesNotMatch(releaseRecordJob, /id-token: write|packages: write/);
+});
+
+test("bootstrap identity preflight is isolated from the bypass-2FA publishing credential", () => {
+  assert.match(bootstrapPreflight, /NODE_AUTH_TOKEN: \$\{\{ secrets\.NPM_PREFLIGHT_TOKEN \}\}/);
+  assert.doesNotMatch(bootstrapPreflight, /secrets\.NPM_TOKEN/);
+  assert.match(bootstrapPublish, /NODE_AUTH_TOKEN: \$\{\{ secrets\.NPM_TOKEN \}\}/);
+  assert.doesNotMatch(bootstrapPublish, /secrets\.NPM_PREFLIGHT_TOKEN/);
+  assert.equal([...workflow.matchAll(/secrets\.NPM_PREFLIGHT_TOKEN/g)].length, 1);
+  assert.equal([...workflow.matchAll(/secrets\.NPM_TOKEN/g)].length, 2);
+  assert.doesNotMatch(trustedPublish, /NODE_AUTH_TOKEN|secrets\./);
+  assert.doesNotMatch(publishJob, /\n    env:\n/);
 });
 
 test("release pack, publish, and promotion jobs use the exact declared Node runtime", () => {
