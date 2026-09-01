@@ -26,7 +26,7 @@ The release process that proves exact Candidate artifacts work through independe
 ### Integration Harness
 An independently versioned real application used internally to exercise a library's deepest supported integration boundary without defining the library's audience or public API.
 
-*Avoid:* Priority Consumer
+*Avoid as audience labels:* Priority Consumer, Knit developer
 
 ### Release evidence
 The source- and artifact-bound record of qualification inputs and gate outcomes used to make a release decision.

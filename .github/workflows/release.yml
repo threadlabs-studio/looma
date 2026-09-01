@@ -65,7 +65,7 @@ on:
         required: true
         type: string
       knit_approver:
-        description: Accountable Knit consumer-validation approver
+        description: Accountable Knit integration-harness qualification approver
         required: true
         type: string
 

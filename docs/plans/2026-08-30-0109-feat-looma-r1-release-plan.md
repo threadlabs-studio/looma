@@ -13,12 +13,12 @@ deepened: 2026-08-30
 
 ## Goal Capsule
 
-- **Objective:** Knit and external consumers can install a truthful, reproducible first Looma package release from a public registry.
+- **Objective:** External applications can install a truthful, reproducible first Looma package release from a public registry, while Knit qualifies the deepest supported integration internally.
 - **Means:** Define a `0.1.0` Candidate support contract, close generated-contract gaps, add package/release mechanics, and verify packed artifacts in clean consumers (KTD1–KTD6).
-- **Authority:** Knit release needs prioritize the qualified surface; Looma's component qualification and component contract guides govern proof; published package metadata and docs must match runtime behavior.
-- **Execution profile:** Correct the contract, qualify the release surface, pack-test, make Knit the deepest pre-publication consumer gate, publish, then verify registry and documentation results.
+- **Authority:** Looma consumer needs define the public surface; Knit's release needs prioritize which supported combinations receive the deepest internal proof; Looma's component qualification and component contract guides govern that proof; published package metadata and docs must match runtime behavior.
+- **Execution profile:** Correct the contract, qualify the release surface, pack-test, use Knit as the deepest pre-publication integration harness, publish, then verify registry and documentation results.
 - **Stop conditions:** Stop publication for stale API metadata, inaccurate architecture claims, broken exports, missing npm ownership/provenance, failed clean install, or unresolved critical editor data loss.
-- **Tail ownership:** The orchestrator owns registry verification, Knit consumer confirmation, documentation reachability, and the release record.
+- **Tail ownership:** The orchestrator owns registry verification, Knit integration-harness confirmation, documentation reachability, and the release record.
 
 ---
 
@@ -26,7 +26,7 @@ deepened: 2026-08-30
 
 ### Summary
 
-Looma R1 is public npm `0.1.0` Candidate, not a claim that the entire component roadmap is stable. Public distribution and install-first documentation are deliberate product goals beyond Knit's immediate dependency need, but Knit remains the release-priority consumer. R1 publishes only the runtime graph Knit needs with an explicit support matrix.
+Looma R1 is public npm `0.1.0` Candidate, not a claim that the entire component roadmap is stable. Public distribution and install-first documentation serve arbitrary consuming applications, not a hypothetical Knit-developer audience. Knit is the private integration harness that determines which supported combinations receive the deepest R1 qualification.
 
 ### Problem Frame
 
@@ -35,7 +35,7 @@ Looma builds and tests locally, but every package is still `0.0.0`, there is no 
 ### Key Decisions
 
 - **R1 is Candidate `0.1.0`, not semver `1.0.0`.** The first release exposes useful packages while retaining room to close full Stable qualification gaps. Governs R1, R5, R8.
-- **Knit drives the published boundary.** Tokens and layout receive deep package-integrity qualification; core, editor, and Vue additionally receive deep behavioral qualification. React and Svelte remain in the repository but do not publish in R1. Governs R2, R5.
+- **Knit prioritizes proof without defining the public boundary.** Tokens and layout receive deep package-integrity qualification; core, editor, and Vue additionally receive deep behavioral qualification because the internal Knit harness exercises them. React and Svelte remain in the repository but do not publish in R1. Governs R2, R5.
 - **The component backlog does not block R1.** AlertDialog, Listbox, Combobox, Drawer, HoverCard, and later editor primitives remain roadmap work. Governs R9.
 
 ### Requirements
@@ -59,14 +59,14 @@ Looma builds and tests locally, but every package is still `0.0.0`, there is no 
 
 - R10. CI runs build, docs-sync immutability, unit, SSR import, adapter render, accessibility, and real-browser overlay gates on the declared Node runtime.
 - R11. A clean external fixture installs packed tarballs, imports every public entry, renders the Vue baseline, and consumes styles without workspace links.
-- R12. Knit installs the released core/editor/Vue artifacts and passes its build and signup-critical gates before Looma R1 is declared complete.
+- R12. A detached Knit integration harness installs the released core/editor/Vue artifacts and passes its build and signup-critical gates before Looma R1 is declared complete.
 - R13. Public installation docs and hosted component documentation are reachable at production URLs and match package names and support status.
 
 ### Success Criteria
 
 - Registry metadata and downloaded tarballs report `0.1.0`, public access, license, repository, and provenance for every published package.
 - A clean consumer with no Looma source tree installs and imports every public entry.
-- Knit replaces sibling links with registry versions and completes its clean build.
+- The detached Knit harness replaces sibling links with registry versions and completes its clean build.
 - Generated component API count and names match the shipped source tags, including ContextMenu.
 - Published docs make Candidate support and deferred surfaces visible, describe the real shadow-DOM fallback contract, and provide copyable install/import guidance.
 
@@ -97,7 +97,7 @@ Looma builds and tests locally, but every package is still `0.0.0`, there is no 
 - A zero-mutation registry preflight confirms `@looma` scope ownership, exact package-name availability, public-package rights, 2FA/token policy, trusted-publishing eligibility, canonical repository identity, and an owner-approved fallback namespace before U1 starts.
 - npm ownership and protected release-environment credentials for the `@looma` scope.
 - A stable public documentation host and canonical repository URL.
-- The Knit R1 branch is available as the release-candidate consumer.
+- The Knit R1 branch is available as the release-candidate integration harness.
 
 ---
 
@@ -120,7 +120,7 @@ flowchart TB
   M --> B[Topological build]
   B --> T[Package tarballs]
   T --> C[Clean adapter consumer]
-  T --> K[Standalone Knit consumer]
+  T --> K[Detached Knit integration harness]
   C --> G{Release gates pass}
   K --> G
   G --> P[Public npm publication]
@@ -254,7 +254,7 @@ Correct completeness and architecture contracts before packaging, because packag
 - **Dependencies:** U5, U6.
 - **Files:** `CHANGELOG.md`, `package.json`, `packages/*/package.json`, `.github/workflows/release.yml`.
 - **Approach:** Publish exact manifest tarballs in dependency order under `candidate`, compare registry integrity after each write, reinstall the complete candidate graph into clean fixtures and Knit, cut over and verify production docs, then promote the same versions to `latest`. Create the immutable release record/tag, configure trusted publishing for every package, revoke the bootstrap token and prove reuse fails, and record accepted Candidate limitations.
-- **Execution note:** Registry writes occur only after all dry-run, clean-consumer, and Knit evidence is attached to the release candidate.
+- **Execution note:** Registry writes occur only after all dry-run, clean-consumer, and Knit integration-harness evidence is attached to the release candidate.
 - **Test scenarios:**
   - Registry versions, `candidate` dist-tags, access, integrity, provenance, and dependency ranges match the approved release before any `latest` promotion.
   - A new cache-empty consumer installs from npm and repeats AE1.
@@ -278,9 +278,9 @@ Correct completeness and architecture contracts before packaging, because packag
 | SSR and adapter matrix | U4 | Supported core/editor/Vue imports and renders pass without workspace coupling. |
 | Real-browser/a11y gates | U4 | Required overlay, focus, keyboard, touch, and accessibility scenarios pass without skips. |
 | Pack inspection and clean consumer | U3, U6 | Tarball contents/exports/dependencies pass outside the workspace. |
-| Standalone Knit consumer | U6, U7 | Knit installs, builds, and passes signup-critical component tests using only approved/public artifacts. |
+| Detached Knit integration harness | U6, U7 | Knit installs, builds, and passes signup-critical component tests using only approved/public artifacts. |
 | Candidate registry verification | U7 | Every exact tarball has matching public metadata, integrity, provenance, dependency ranges, and `candidate` tag before graph promotion. |
-| Promotion ledger | U7 | Named npm/docs/Knit owners approve the complete graph; docs and `latest` promotion preserve a restorable snapshot. |
+| Promotion ledger | U7 | Accountable npm/docs approvers accept the complete graph and recorded Knit-harness evidence; docs and `latest` promotion preserve a restorable snapshot. |
 | Support/architecture claim review | U1, U5 | A named reviewer confirms package support, module-format, and DOM claims against source, build output, and qualification evidence. |
 | Hosted docs verification | U7 | Canonical production docs URLs and install examples are reachable and correct before `latest` promotion. |
 

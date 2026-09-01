@@ -64,6 +64,15 @@ This pattern proves local exact-artifact qualification. It does not claim that
 either repository is merged, that the Candidate is published to npm, or that a
 protected deployment is active.
 
+The same distinction must govern developer-experience language. Do not reason
+about what “a Knit developer must carry”: Knit has no external developer persona
+and its complete dependency graph is intentionally deep. Ask instead what an
+arbitrary consuming application installs for each public Looma import. A core
+consumer should not pay for Vue or Tiptap; an editor consumer has deliberately
+selected Tiptap-backed behavior; and a Vue editor consumer has deliberately
+selected both Vue and Tiptap. Knit proves the last combination without turning
+it into the default or the definition of Looma's audience.
+
 ## Guidance
 
 ### Make exact installed bytes the subject of the test
