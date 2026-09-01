@@ -10,7 +10,6 @@ packages/looma/loader/
 packages/looma/layout/
 packages/looma/editor/
 packages/looma/vue/
-packages/looma/LICENSE
 packages/looma/*.css
 apps/docs/.docusaurus/
 apps/docs/build/

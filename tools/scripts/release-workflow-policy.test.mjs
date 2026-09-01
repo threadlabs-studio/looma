@@ -1,8 +1,14 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 
 const workflow = await readFile(new URL("../../.github/workflows/release.yml", import.meta.url), "utf8");
+const ciWorkflow = await readFile(new URL("../../.github/workflows/ci.yml", import.meta.url), "utf8");
+const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
+const rootLicense = await readFile(new URL("../../LICENSE", import.meta.url));
+const packageLicense = await readFile(new URL("../../packages/looma/LICENSE", import.meta.url));
 const docsPreviewWorkflow = await readFile(
   new URL("../../.github/workflows/docs-preview.yml", import.meta.url),
   "utf8"
@@ -26,6 +32,12 @@ const candidateConsumerEvidenceUpload = publishJob.match(
 )?.[0] ?? "";
 const ciRunValidation = prepareJob.match(
   /- name: Validate successful main CI for this exact commit[\s\S]*?(?=\n\s+- name:)/
+)?.[0] ?? "";
+const releasePackagingJob = ciWorkflow.match(
+  /\n  release-package:[\s\S]*?(?=\n  [a-zA-Z0-9_-]+:|$)/
+)?.[0] ?? "";
+const ciReleaseVerification = releasePackagingJob.match(
+  /- name: Verify release packaging[\s\S]*?(?=\n\s+- name:|$)/
 )?.[0] ?? "";
 
 test("release workflow is manual, main-only, serialized, and environment-protected", () => {
@@ -62,6 +74,27 @@ test("Candidate publication and latest promotion are separate validated dispatch
       new RegExp(`- name: ${step}\\n\\s+if: inputs\\.promote_latest == false`)
     );
   }
+});
+
+test("ordinary CI qualifies the same tracked package inputs used by release", () => {
+  assert.match(releasePackagingJob, /node-version: 20\.19\.6/);
+  assert.match(releasePackagingJob, /npm install --global npm@11\.5\.1/);
+  assert.match(releasePackagingJob, /pnpm install --frozen-lockfile/);
+  assert.doesNotMatch(releasePackagingJob, /pnpm (?:build|test)/);
+  assert.match(ciReleaseVerification, /^\s+run: pnpm release:verify$/m);
+  assert.doesNotMatch(ciReleaseVerification, /release:verify:/);
+  for (const approver of [
+    "LOOMA_NPM_APPROVER",
+    "LOOMA_DOCS_APPROVER",
+    "LOOMA_KNIT_APPROVER"
+  ]) {
+    assert.match(ciReleaseVerification, new RegExp(`${approver}: CI`));
+  }
+  execFileSync("git", ["ls-files", "--error-unmatch", "packages/looma/LICENSE"], {
+    cwd: repoRoot,
+    stdio: "ignore"
+  });
+  assert.deepEqual(packageLicense, rootLicense);
 });
 
 test("Candidate publication is bound to a successful push CI run for main at the exact release SHA", () => {
