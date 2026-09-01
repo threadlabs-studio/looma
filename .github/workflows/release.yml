@@ -193,7 +193,7 @@ jobs:
       - name: Prove first-publication scope ownership and name availability
         if: inputs.authentication == 'bootstrap'
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PREFLIGHT_TOKEN }}
         run: node tools/scripts/registry-preflight.mjs
 
       - name: Publish exact bytes with the bootstrap credential

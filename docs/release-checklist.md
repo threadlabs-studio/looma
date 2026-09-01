@@ -11,14 +11,20 @@ security, artifact, consumer, documentation, and rollback gates.
 - [x] An authenticated npm owner confirms control of the `@threadlabs` scope.
 - [ ] The protected release identity can publish the exact `@threadlabs/looma` package name.
 - [x] The owner approves `@threadlabs/looma` as the permanent public identity.
-- [ ] npm account 2FA and the first-publication bootstrap method are approved.
-- [ ] The bootstrap credential is short-lived, publish-only, environment-protected,
-  absent from forks/PRs/logs, and scheduled for immediate revocation.
+- [x] npm account 2FA and the two-credential first-publication bootstrap method are approved.
+- [x] `NPM_PREFLIGHT_TOKEN` is environment-protected and can read the npm identity,
+  `@threadlabs` owner membership, account 2FA policy, and package-name availability.
+- [x] `NPM_TOKEN` is a short-lived, package-scoped, bypass-2FA credential that is
+  environment-protected, absent from forks/PRs/logs, and scheduled for revocation
+  immediately after Candidate publication and `latest` promotion.
 
-Namespace ownership is resolved: this host is authenticated as `matthew-dean`,
-an owner of the `@threadlabs` organization, and the dedicated migration is owner
-approved. Publication remains gated on the protected release identity proving it
-can publish the exact package and satisfying the bootstrap credential controls.
+Namespace ownership is resolved: both protected credentials were created for the
+`matthew-dean` npm account, an owner of the `@threadlabs` organization, and the
+dedicated migration is owner approved. Current npm policy does not let the
+bypass-2FA publishing token run the identity, organization, or profile probes.
+The separate preflight credential proves namespace ownership without mutation;
+the publishing credential's package capability is first exercised by the guarded
+`candidate` publish and remains unproven until that publish succeeds.
 
 ## Contract And Package Gates
 
@@ -142,8 +148,11 @@ hashes and locations before the first `latest` mutation.
   npm, documentation, and Knit approval owners.
 - [x] The repository owner configures the protected `npm-release` environment
   and required reviewer.
-- [ ] A short-lived first-publication credential is stored in that environment;
-  after bootstrap, replace it with the repository-bound trusted publisher.
+- [x] The protected environment stores separate `NPM_PREFLIGHT_TOKEN` and
+  short-lived `NPM_TOKEN` credentials for identity proof and mutation respectively.
+- [ ] After bootstrap, configure the repository-bound trusted publisher and revoke
+  `NPM_TOKEN`; retain or rotate `NPM_PREFLIGHT_TOKEN` only while read-oriented
+  namespace checks remain part of the release workflow.
 - [ ] Initial publication uses the non-default `candidate` dist-tag.
 - [ ] Registry integrity matches the approved tarball before any tag promotion.
 - [ ] A fresh-store, credential-free public consumer installs the exact manifest
@@ -185,11 +194,14 @@ For the protected workflow, verify the current npm requirements immediately befo
 publication. The present design assumes a GitHub-hosted runner, exact repository
 and workflow binding, `id-token: write` plus `contents: read`, npm CLI 11.5.1,
 exact Node 20.19.6 for pack/publish/promotion jobs, and matching public repository
-metadata for automatic provenance. Configure the trusted publisher with
+metadata for automatic provenance. `NPM_PREFLIGHT_TOKEN` must support `npm whoami`,
+`npm org ls`, `npm profile get`, and authenticated package metadata reads.
+`NPM_TOKEN` must be limited to the `@threadlabs` package scope with Bypass 2FA and
+must never reach the trusted-publishing step. Configure the trusted publisher with
 `release.yml`, the `npm-release` environment, and the `npm publish` allowed action.
 The scoped public package requires public access. npm commands other than publish
 require traditional authentication, so `latest` promotion uses the protected,
-short-expiry bootstrap credential before it is revoked; OIDC cannot authorize
+short-expiry publishing credential before it is revoked; OIDC cannot authorize
 `npm dist-tag` commands.
 
 Authoritative references:
