@@ -32,6 +32,15 @@ async function installConsumer(directory) {
   );
 }
 
+async function assertPackagesAbsent(directory, packages, consumerLabel) {
+  for (const packageName of packages) {
+    await assert.rejects(
+      access(path.join(directory, "node_modules", packageName)),
+      `${packageName} must not be installed for ${consumerLabel}`,
+    );
+  }
+}
+
 async function verifyMinimalConsumer(directory, tarball) {
   await mkdir(directory, { recursive: true });
   await writeJson(path.join(directory, "package.json"), {
@@ -46,6 +55,7 @@ async function verifyMinimalConsumer(directory, tarball) {
       `import { closeOverlay } from "@threadlabs/looma/core";\n` +
       `await import("@threadlabs/looma/loader");\n` +
       `await import("@threadlabs/looma/layout");\n` +
+      `await import("@threadlabs/looma/editor/ui");\n` +
       `if (typeof openOverlay !== "function" || typeof closeOverlay !== "function") process.exit(1);\n` +
       `if (!import.meta.resolve("@threadlabs/looma/tokens.css").endsWith("tokens.css")) process.exit(1);\n`,
   );
@@ -87,12 +97,61 @@ async function verifyMinimalConsumer(directory, tarball) {
     await readFile(path.join(directory, "node_modules/@threadlabs/looma/package.json"), "utf8"),
   );
   assert.equal(installed.name, "@threadlabs/looma");
-  for (const forbidden of ["vue", "@tiptap/core", "prosemirror-tables"]) {
-    await assert.rejects(
-      access(path.join(directory, "node_modules", forbidden)),
-      `${forbidden} must not be installed for a core-only consumer`,
-    );
-  }
+  await assertPackagesAbsent(
+    directory,
+    ["vue", "@tiptap/core", "prosemirror-tables"],
+    "a core-only consumer",
+  );
+}
+
+async function verifyVueOnlyConsumer(directory, tarball, facadeManifest) {
+  await mkdir(directory, { recursive: true });
+  await writeJson(path.join(directory, "package.json"), {
+    name: "looma-vue-only-consumer",
+    private: true,
+    type: "module",
+    dependencies: {
+      "@threadlabs/looma": `file:${tarball}`,
+      vue: facadeManifest.peerDependencies.vue,
+    },
+  });
+  await writeFile(
+    path.join(directory, "index.mjs"),
+    `import { Button, TopBar } from "@threadlabs/looma/vue";\n` +
+      `await import("@threadlabs/looma/editor/ui");\n` +
+      `if (!Button || !TopBar) process.exit(1);\n`,
+  );
+  await writeFile(
+    path.join(directory, "index.ts"),
+    `import { Button, TopBar } from "@threadlabs/looma/vue";\n` +
+      `import type { InsertTableEventDetail } from "@threadlabs/looma/editor/ui";\n` +
+      `const detail: InsertTableEventDetail = { rows: 2, cols: 3, withHeaderRow: true };\n` +
+      `void Button;\nvoid TopBar;\nvoid detail;\n`,
+  );
+  await writeJson(path.join(directory, "tsconfig.json"), {
+    compilerOptions: {
+      lib: ["ES2022", "DOM"],
+      module: "ESNext",
+      moduleResolution: "Bundler",
+      noEmit: true,
+      strict: true,
+      target: "ES2022",
+    },
+    include: ["index.ts"],
+  });
+
+  await installConsumer(directory);
+  await run(process.execPath, ["index.mjs"], directory);
+  await run(
+    pnpm,
+    ["--filter", "@threadlabs/looma-core", "exec", "tsc", "-p", path.join(directory, "tsconfig.json")],
+    repoRoot,
+  );
+  await assertPackagesAbsent(
+    directory,
+    ["@tiptap/core", "@tiptap/pm", "prosemirror-tables"],
+    "a Vue-only consumer",
+  );
 }
 
 async function verifyPeerConsumer(directory, tarball, facadeManifest) {
@@ -103,20 +162,33 @@ async function verifyPeerConsumer(directory, tarball, facadeManifest) {
     type: "module",
     dependencies: {
       "@threadlabs/looma": `file:${tarball}`,
+      "@tiptap/vue-3": "^2.11.5",
       ...facadeManifest.peerDependencies,
     },
   });
   await writeFile(
     path.join(directory, "index.mjs"),
-    `import { TopBar } from "@threadlabs/looma/vue";\n` +
-      `import { getDefaultEditorExtensions } from "@threadlabs/looma/editor/extensions";\n` +
-      `if (!TopBar || typeof getDefaultEditorExtensions !== "function") process.exit(1);\n`,
+    `import { EditorContent, useEditor } from "@tiptap/vue-3";\n` +
+      `import { getDefaultEditorExtensions as getEditorExtensions } from "@threadlabs/looma/editor";\n` +
+      `import { getDefaultEditorExtensions as getExtensionPreset } from "@threadlabs/looma/editor/extensions";\n` +
+      `import { TopBar } from "@threadlabs/looma/vue";\n` +
+      `import { EditorToolbar, getDefaultEditorExtensions } from "@threadlabs/looma/vue/editor";\n` +
+      `const editorExtensions = getEditorExtensions();\n` +
+      `const extensionPreset = getExtensionPreset();\n` +
+      `if (typeof useEditor !== "function" || !EditorContent || !TopBar || !EditorToolbar) process.exit(1);\n` +
+      `if (!Array.isArray(editorExtensions) || editorExtensions.length === 0) process.exit(1);\n` +
+      `if (!Array.isArray(extensionPreset) || extensionPreset.length === 0) process.exit(1);\n` +
+      `if (typeof getDefaultEditorExtensions !== "function") process.exit(1);\n`,
   );
   await writeFile(
     path.join(directory, "index.ts"),
-    `import { TopBar } from "@threadlabs/looma/vue";\n` +
-      `import { getDefaultEditorExtensions } from "@threadlabs/looma/editor/extensions";\n` +
-      `void TopBar;\nvoid getDefaultEditorExtensions;\n`,
+    `import { EditorContent, useEditor } from "@tiptap/vue-3";\n` +
+      `import { getDefaultEditorExtensions as getEditorExtensions } from "@threadlabs/looma/editor";\n` +
+      `import { getDefaultEditorExtensions as getExtensionPreset } from "@threadlabs/looma/editor/extensions";\n` +
+      `import { TopBar } from "@threadlabs/looma/vue";\n` +
+      `import { EditorToolbar, getDefaultEditorExtensions } from "@threadlabs/looma/vue/editor";\n` +
+      `void EditorContent;\nvoid useEditor;\nvoid getEditorExtensions;\nvoid getExtensionPreset;\nvoid TopBar;\n` +
+      `void EditorToolbar;\nvoid getDefaultEditorExtensions;\n`,
   );
   await writeJson(path.join(directory, "tsconfig.json"), {
     compilerOptions: {
@@ -151,6 +223,7 @@ async function main() {
     const facadeManifest = JSON.parse(await readFile(path.join(facadeRoot, "package.json"), "utf8"));
 
     await verifyMinimalConsumer(path.join(temporaryRoot, "minimal"), tarball);
+    await verifyVueOnlyConsumer(path.join(temporaryRoot, "vue-only"), tarball, facadeManifest);
     await verifyPeerConsumer(path.join(temporaryRoot, "peers"), tarball, facadeManifest);
     console.log("Packed Looma facade consumer matrix passed");
   } finally {
