@@ -16,9 +16,11 @@ deferred adapters remain internal workspaces.
 - `@threadlabs/looma/*.css`: CSS semantic tokens, themes, and component styles.
 - `@threadlabs/looma/layout`: six light-DOM spacing and layout elements with no external margins.
 - `@threadlabs/looma`: 26 shadow-root elements that preserve authored semantic light DOM through slots.
-- `@threadlabs/looma/editor`: six guarded light-DOM editor elements and editor styles, without a Tiptap requirement.
-- `@threadlabs/looma/editor/extensions`: optional Tiptap 2 presets and table helpers.
-- `@threadlabs/looma/vue`: the supported Vue 3 translation over layout, core, and editor contracts.
+- `@threadlabs/looma/editor`: the complete Tiptap-backed editor API.
+- `@threadlabs/looma/editor/ui`: low-level editor web-component chrome without the Tiptap integration.
+- `@threadlabs/looma/editor/extensions`: focused Tiptap 2 presets and table helpers.
+- `@threadlabs/looma/vue`: the supported Vue 3 translation over layout and core contracts, without the editor graph.
+- `@threadlabs/looma/vue/editor`: the supported Vue 3 editor integration.
 
 ## SSR and upgrade contract
 

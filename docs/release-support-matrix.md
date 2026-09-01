@@ -61,8 +61,8 @@ is a release defect, not a reason to silently shrink the source inventory.
   author-provided semantic light DOM through slots.
 - No-JS fallback is the author's semantic light DOM, not Looma's shadow output.
 - Public imports must be SSR-safe at module evaluation time.
-- Knit must demonstrate server-process imports of `@threadlabs/looma`,
-  `@threadlabs/looma/editor`, `@threadlabs/looma/editor/extensions`, and `@threadlabs/looma/vue`. The
+- The internal Knit qualification harness must demonstrate server-process imports of `@threadlabs/looma`,
+  `@threadlabs/looma/editor`, `@threadlabs/looma/editor/ui`, `@threadlabs/looma/editor/extensions`, `@threadlabs/looma/vue`, and `@threadlabs/looma/vue/editor`. The
   release gate repeats that proof from packed artifacts outside the workspace.
 
 ## Proof Status At Contract Freeze

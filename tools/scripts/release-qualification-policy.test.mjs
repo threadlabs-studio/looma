@@ -54,8 +54,13 @@ test("public Candidate documentation is install-first, time-stable, and fail-clo
   assert.doesNotMatch(rootReadme, /not on npm yet|install after Candidate publication/i);
   assert.match(gettingStarted, /pnpm add @threadlabs\/looma/);
   assert.doesNotMatch(gettingStarted, /^pnpm install$/m);
-  assert.match(gettingStarted, /Vue and Tiptap are optional peers/);
-  assert.match(gettingStarted, /@threadlabs\/looma\/editor\/extensions/);
+  assert.match(gettingStarted, /Vue and Tiptap are optional to Looma as a whole/);
+  assert.match(
+    gettingStarted,
+    /pnpm add @threadlabs\/looma vue@\^3\.5\.0 @tiptap\/vue-3@\^2\.11\.5/
+  );
+  assert.match(gettingStarted, /consuming application.not Looma.owns/);
+  assert.match(gettingStarted, /@threadlabs\/looma\/editor/);
   assert.match(gettingStarted, /@threadlabs\/looma\/vue/);
   assert.match(supportPage, /Candidate `0\.1\.0`/);
   assert.match(facadeReadme, /pnpm add @threadlabs\/looma/);
@@ -71,6 +76,24 @@ test("public Candidate documentation is install-first, time-stable, and fail-clo
     rootReadme + gettingStarted + supportPage + releaseChecklist,
     /@threadlabs\/looma-(?:tokens|layout|core|editor|vue|react|svelte)/
   );
+});
+
+test("the packed facade consumer matrix pins every editor and Vue entry", async () => {
+  const script = await readFile(
+    path.join(repoRoot, "tools/scripts/verify-facade-consumer.mjs"),
+    "utf8"
+  );
+
+  for (const subpath of ["editor", "editor/ui", "editor/extensions", "vue", "vue/editor"]) {
+    const exactImport = new RegExp(
+      `["']@threadlabs/looma/${subpath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}["']`,
+      "g"
+    );
+    assert.ok(
+      [...script.matchAll(exactImport)].length >= 2,
+      `${subpath} must be covered by runtime and typecheck consumers`
+    );
+  }
 });
 
 test("the no-index Candidate docs preview is manual, protected, and SHA-pinned", async () => {
@@ -169,8 +192,11 @@ test("the Knit artifact proof is isolated, fail-closed, and exercises the releas
   assert.match(script, /--config\.prefer-workspace-packages=false/);
   assert.match(script, /--config\.link-workspace-packages=false/);
   assert.match(script, /RELEASE_PACKAGE_NAME/);
-  assert.match(script, /\$\{RELEASE_PACKAGE_NAME\}\/editor\/extensions/);
-  assert.match(script, /\$\{RELEASE_PACKAGE_NAME\}\/vue/);
+  assert.match(script, /\$\{RELEASE_PACKAGE_NAME\}\/editor"/);
+  assert.match(script, /\$\{RELEASE_PACKAGE_NAME\}\/editor\/ui"/);
+  assert.match(script, /\$\{RELEASE_PACKAGE_NAME\}\/editor\/extensions"/);
+  assert.match(script, /\$\{RELEASE_PACKAGE_NAME\}\/vue"/);
+  assert.match(script, /\$\{RELEASE_PACKAGE_NAME\}\/vue\/editor"/);
   assert.doesNotMatch(script, /@threadlabs\/looma-(?:core|editor|layout|tokens|vue)/);
 });
 

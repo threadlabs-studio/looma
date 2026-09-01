@@ -40,7 +40,8 @@ Graph rather than performing a repository-wide text replacement.
 
 Looma makes the distinction especially important. Its public Release 1 surface
 is one package, `@threadlabs/looma`, with explicit root, core, loader, layout,
-editor, editor-extension, Vue, and stylesheet subpaths
+editor, low-level editor UI, editor-extension, general Vue, Vue editor, and
+stylesheet subpaths
 (`packages/looma/package.json:24`). Core, layout, editor, Vue, and tokens remain
 private workspaces whose package identities are assembly inputs rather than
 separate products. The release configuration consequently admits exactly one
@@ -82,8 +83,9 @@ product.
 
 For a facade, define subpaths as part of the one public identity. A consumer
 should install `@threadlabs/looma` once and import capabilities from explicit
-exports such as `@threadlabs/looma/editor/extensions` or
-`@threadlabs/looma/vue`; it should not coordinate internal workspace versions.
+exports such as `@threadlabs/looma/editor`, `@threadlabs/looma/editor/ui`,
+`@threadlabs/looma/vue`, or `@threadlabs/looma/vue/editor`; it should not
+coordinate internal workspace versions.
 The facade manifest is the public contract, and its export map must agree with
 the assembly declaration (`tools/scripts/verify-facade.mjs:39`).
 
@@ -137,7 +139,9 @@ export target exists (`tools/scripts/build-facade.mjs:15`,
 `tools/scripts/build-facade.mjs:56`, `tools/scripts/verify-facade.mjs:49`).
 Reject private package specifiers in JavaScript, declarations, loaders, and CSS,
 and preserve dependency boundaries: the root/core entry must not acquire Vue or
-Tiptap, and the base editor entry must remain Tiptap-free
+Tiptap, `/vue` must not acquire the editor graph, `/editor` and `/vue/editor`
+must retain their intended Tiptap edges, and only the low-level `/editor/ui`
+entry must remain Tiptap-free
 (`tools/scripts/verify-facade.mjs:75`, `tools/scripts/verify-facade.mjs:84`).
 
 This assembled-tree proof is necessary but not sufficient. Packing is a later

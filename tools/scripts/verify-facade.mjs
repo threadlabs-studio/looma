@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile, readdir, stat } from "node:fs/promises";
+import { readFile, readdir, realpath, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -34,6 +34,189 @@ async function runtimeFiles(root, entry) {
   }
   await visit(entryPath);
   return result;
+}
+
+function moduleSpecifiers(source) {
+  const specifiers = [];
+  const patterns = [
+    /\b(?:import|export)\s+(?:[^"'`;]*?\sfrom\s*)?["']([^"']+)["']/g,
+    /\brequire\(\s*["']([^"']+)["']\s*\)/g,
+    /\bimport\(\s*["']([^"']+)["']\s*\)/g,
+  ];
+  for (const pattern of patterns) {
+    for (const match of source.matchAll(pattern)) specifiers.push(match[1]);
+  }
+  return specifiers;
+}
+
+function isPathInside(root, candidate) {
+  const relative = path.relative(root, candidate);
+  return relative !== "" && relative !== ".." &&
+    !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative);
+}
+
+function graphPathLabel(facadeRoot, filePath) {
+  const relative = path.relative(facadeRoot, filePath);
+  return relative && !relative.startsWith("..") ? relative : filePath;
+}
+
+function graphFileCandidates(targetPath, importerPath) {
+  const candidates = [];
+  const declarationGraph = /\.d\.(?:c|m)?ts$/.test(importerPath);
+  const extension = path.extname(targetPath);
+
+  if (declarationGraph) {
+    if (/\.(?:c|m)?js$/.test(targetPath)) {
+      candidates.push(targetPath.replace(/\.(?:c|m)?js$/, ".d.ts"));
+    } else if (!extension) {
+      candidates.push(`${targetPath}.d.ts`, path.join(targetPath, "index.d.ts"));
+    }
+  }
+
+  candidates.push(targetPath);
+  if (!extension) {
+    candidates.push(
+      `${targetPath}.js`,
+      `${targetPath}.cjs`,
+      `${targetPath}.mjs`,
+      path.join(targetPath, "index.js"),
+      path.join(targetPath, "index.cjs"),
+      path.join(targetPath, "index.mjs"),
+    );
+  }
+  return [...new Set(candidates)];
+}
+
+async function isFile(filePath) {
+  try {
+    return (await stat(filePath)).isFile();
+  } catch (error) {
+    if (error && typeof error === "object" && error.code === "ENOENT") return false;
+    throw error;
+  }
+}
+
+async function resolveGraphFile({
+  targetPath,
+  importerPath,
+  specifier,
+  entryPath,
+  facadeRoot,
+  canonicalFacadeRoot,
+}) {
+  const entryLabel = graphPathLabel(facadeRoot, entryPath);
+  const importerLabel = graphPathLabel(facadeRoot, importerPath);
+  const candidates = graphFileCandidates(targetPath, importerPath);
+
+  for (const candidate of candidates) {
+    assert.ok(
+      isPathInside(facadeRoot, candidate),
+      `module graph ${entryLabel} escapes the facade root while resolving ${specifier} from ${importerLabel}`,
+    );
+    if (!(await isFile(candidate))) continue;
+
+    const canonicalCandidate = await realpath(candidate);
+    assert.ok(
+      isPathInside(canonicalFacadeRoot, canonicalCandidate),
+      `module graph ${entryLabel} escapes the facade root through ${specifier} from ${importerLabel}`,
+    );
+    return canonicalCandidate;
+  }
+
+  assert.fail(
+    `module graph ${entryLabel} cannot resolve ${specifier} from ${importerLabel} inside the facade root`,
+  );
+}
+
+function selfExportTarget(specifier, importerPath, manifest, entryPath, facadeRoot) {
+  const exportName = specifier === manifest.name
+    ? "."
+    : `.${specifier.slice(manifest.name.length)}`;
+  const definition = manifest.exports?.[exportName];
+  assert.ok(
+    definition,
+    `module graph ${graphPathLabel(facadeRoot, entryPath)} reaches undeclared self export ${specifier} from ${graphPathLabel(facadeRoot, importerPath)}`,
+  );
+
+  const targets = exportTargets(definition);
+  const conditions = /\.d\.(?:c|m)?ts$/.test(importerPath)
+    ? ["types", "import", "default", "require", null]
+    : path.extname(importerPath) === ".cjs"
+      ? ["require", "default", "import", "types", null]
+      : ["import", "default", "require", "types", null];
+  for (const condition of conditions) {
+    const match = targets.find((target) => target.condition === condition);
+    if (match) return match.target;
+  }
+
+  assert.fail(
+    `module graph ${graphPathLabel(facadeRoot, entryPath)} has no resolvable export target for ${specifier}`,
+  );
+}
+
+export async function moduleGraph(entryPath, { facadeRoot, manifest }) {
+  const resolvedFacadeRoot = path.resolve(facadeRoot);
+  const canonicalFacadeRoot = await realpath(resolvedFacadeRoot);
+  const canonicalEntryPath = await resolveGraphFile({
+    targetPath: path.resolve(entryPath),
+    importerPath: path.resolve(entryPath),
+    specifier: "<entry>",
+    entryPath: path.resolve(entryPath),
+    facadeRoot: resolvedFacadeRoot,
+    canonicalFacadeRoot,
+  });
+  const pending = [canonicalEntryPath];
+  const visited = new Set();
+  const specifiers = new Set();
+
+  while (pending.length > 0) {
+    const filePath = pending.pop();
+    if (visited.has(filePath)) continue;
+    visited.add(filePath);
+
+    const source = await readFile(filePath, "utf8");
+    for (const specifier of moduleSpecifiers(source)) {
+      specifiers.add(specifier);
+      if (/[*?{}[\]]/.test(specifier)) continue;
+
+      let targetPath;
+      if (specifier.startsWith(".")) {
+        targetPath = path.resolve(path.dirname(filePath), specifier);
+      } else if (
+        specifier === manifest.name || specifier.startsWith(`${manifest.name}/`)
+      ) {
+        targetPath = path.resolve(
+          canonicalFacadeRoot,
+          selfExportTarget(
+            specifier,
+            filePath,
+            manifest,
+            canonicalEntryPath,
+            canonicalFacadeRoot,
+          ),
+        );
+      } else {
+        continue;
+      }
+
+      pending.push(await resolveGraphFile({
+        targetPath,
+        importerPath: filePath,
+        specifier,
+        entryPath: canonicalEntryPath,
+        facadeRoot: canonicalFacadeRoot,
+        canonicalFacadeRoot,
+      }));
+    }
+  }
+
+  return { specifiers };
+}
+
+function assertGraphOmits(graph, forbidden, label) {
+  for (const specifier of graph.specifiers) {
+    assert.doesNotMatch(specifier, forbidden, `${label} reaches forbidden module ${specifier}`);
+  }
 }
 
 export async function verifyFacade({ repoRoot, definitionOnly = false, typesOnly = false }) {
@@ -83,13 +266,33 @@ export async function verifyFacade({ repoRoot, definitionOnly = false, typesOnly
     );
   }
 
-  const [rootEsm, rootCjs, editorBase] = await Promise.all([
-    readFile(path.join(facadeRoot, "dist/index.js"), "utf8"),
-    readFile(path.join(facadeRoot, "dist/index.cjs"), "utf8"),
-    readFile(path.join(facadeRoot, "editor/index.js"), "utf8"),
+  const [rootEsm, rootCjs, editor, editorUi, vue, vueTypes, vueEditor] = await Promise.all([
+    moduleGraph(path.join(facadeRoot, "dist/index.js"), { facadeRoot, manifest }),
+    moduleGraph(path.join(facadeRoot, "dist/index.cjs"), { facadeRoot, manifest }),
+    moduleGraph(path.join(facadeRoot, "editor/index.js"), { facadeRoot, manifest }),
+    moduleGraph(path.join(facadeRoot, "editor/ui.js"), { facadeRoot, manifest }),
+    moduleGraph(path.join(facadeRoot, "vue/index.js"), { facadeRoot, manifest }),
+    moduleGraph(path.join(facadeRoot, "vue/index.d.ts"), { facadeRoot, manifest }),
+    moduleGraph(path.join(facadeRoot, "vue/editor/index.js"), { facadeRoot, manifest }),
   ]);
-  assert.doesNotMatch(rootEsm + rootCjs, /(?:from|require\(|import\().*(?:vue|@tiptap\/)/);
-  assert.doesNotMatch(editorBase, /(?:from|require\(|import\().*@tiptap\//);
+  const rootForbidden = /(?:^|\/|@)vue(?:$|\/|-)|@tiptap\/|^prosemirror-/;
+  const generalVueForbidden = /@threadlabs\/looma\/editor(?:$|\/)|@tiptap\/|^prosemirror-/;
+  assertGraphOmits(rootEsm, rootForbidden, "root ESM graph");
+  assertGraphOmits(rootCjs, rootForbidden, "root CommonJS graph");
+  assert.ok(
+    [...editor.specifiers].some((specifier) => specifier.startsWith("@tiptap/")),
+    "editor graph does not reach a Tiptap module",
+  );
+  assertGraphOmits(editorUi, /@tiptap\/|^prosemirror-/, "editor UI graph");
+  assertGraphOmits(vue, generalVueForbidden, "Vue graph");
+  assertGraphOmits(vueTypes, generalVueForbidden, "Vue type graph");
+  assert.ok(
+    [...vueEditor.specifiers].some(
+      (specifier) => specifier === "@threadlabs/looma/editor" ||
+        specifier.startsWith("@threadlabs/looma/editor/"),
+    ),
+    "Vue editor graph does not reach the Looma editor entrypoint",
+  );
 }
 
 async function main() {

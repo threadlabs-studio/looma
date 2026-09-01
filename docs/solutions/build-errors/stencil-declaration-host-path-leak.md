@@ -161,6 +161,6 @@ consumer or registry.
 
 ## Related Issues
 
-- [Qualify Exact Candidate Artifacts Through a Clean Priority Consumer](../architecture-patterns/isolated-cross-project-candidate-qualification.md)
+- [Qualify Exact Candidate Artifacts Through a Clean Integration Harness](../architecture-patterns/isolated-cross-project-candidate-qualification.md)
 - [Treat an npm namespace change as an artifact-graph identity migration](../architecture-patterns/npm-namespace-is-artifact-graph-identity.md)
 - No matching GitHub issue was found during the documentation pass.

@@ -45,6 +45,10 @@
       "types": "./editor/index.d.ts",
       "import": "./editor/index.js"
     },
+    "./editor/ui": {
+      "types": "./editor/ui.d.ts",
+      "import": "./editor/ui.js"
+    },
     "./editor/extensions": {
       "types": "./editor/extensions/index.d.ts",
       "import": "./editor/extensions/index.js"
@@ -52,6 +56,10 @@
     "./vue": {
       "types": "./vue/index.d.ts",
       "import": "./vue/index.js"
+    },
+    "./vue/editor": {
+      "types": "./vue/editor/index.d.ts",
+      "import": "./vue/editor/index.js"
     },
     "./tokens.css": "./tokens.css",
     "./theme-light.css": "./theme-light.css",
@@ -80,8 +88,9 @@
   "sideEffects": [
     "./dist/index.js",
     "./layout/index.js",
-    "./editor/index.js",
+    "./editor/*.js",
     "./vue/index.js",
+    "./vue/editor/*.js",
     "./*.css"
   ],
   "scripts": {

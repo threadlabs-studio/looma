@@ -62,20 +62,24 @@ test("facade assembly is deterministic, self-contained, and boundary-safe", asyn
 
   assert.equal(secondHash, firstHash);
 
-  const [rootEsm, rootCjs, editor, extensions, vue] = await Promise.all([
+  const [rootEsm, rootCjs, editor, editorUi, extensions, vue, vueEditor] = await Promise.all([
     readFile(path.join(facadeRoot, "dist/index.js"), "utf8"),
     readFile(path.join(facadeRoot, "dist/index.cjs"), "utf8"),
     readFile(path.join(facadeRoot, "editor/index.js"), "utf8"),
+    readFile(path.join(facadeRoot, "editor/ui.js"), "utf8"),
     readFile(path.join(facadeRoot, "editor/extensions/index.js"), "utf8"),
     readFile(path.join(facadeRoot, "vue/index.js"), "utf8"),
+    readFile(path.join(facadeRoot, "vue/editor/index.js"), "utf8"),
   ]);
 
   assert.doesNotMatch(rootEsm + rootCjs, /(?:from|require\(|import\().*(?:vue|@tiptap\/)/);
-  assert.doesNotMatch(editor, /(?:from|require\(|import\().*@tiptap\//);
-  assert.match(extensions, /@tiptap\/extension-document/);
+  assert.match(editor, /getDefaultEditorExtensions/);
+  assert.doesNotMatch(editorUi, /(?:from|require\(|import\().*@tiptap\//);
+  assert.match(extensions, /getDefaultEditorExtensions/);
   assert.match(vue, /@threadlabs\/looma\/layout/);
   assert.match(vue, /@threadlabs\/looma\/core/);
-  assert.match(vue, /@threadlabs\/looma\/editor/);
+  assert.doesNotMatch(vue, /@threadlabs\/looma\/editor|@tiptap\//);
+  assert.match(vueEditor, /@threadlabs\/looma\/editor/);
   assert.doesNotMatch(vue, /@threadlabs\/looma-(?:core|editor|layout)/);
 
   for (const relativePath of [
@@ -87,8 +91,10 @@ test("facade assembly is deterministic, self-contained, and boundary-safe", asyn
     "layout/index.cjs",
     "layout/index.d.ts",
     "editor/index.d.ts",
+    "editor/ui.d.ts",
     "editor/extensions/index.d.ts",
     "vue/index.d.ts",
+    "vue/editor/index.d.ts",
   ]) {
     assert.equal((await stat(path.join(facadeRoot, relativePath))).isFile(), true, relativePath);
   }

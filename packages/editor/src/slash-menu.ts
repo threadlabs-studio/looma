@@ -23,6 +23,54 @@ export interface SlashMenuSelectEventDetail {
   index: number;
 }
 
+/**
+ * A viewport rectangle accepted by the slash-menu anchor.
+ *
+ * Browser DOMRect objects satisfy both variants. Plain rectangles from Tiptap
+ * and ProseMirror are also supported when they provide either edge coordinates
+ * or an origin plus dimensions.
+ */
+export type SlashMenuAnchorRect =
+  | Pick<DOMRectReadOnly, "left" | "top" | "right" | "bottom">
+  | Pick<DOMRectReadOnly, "x" | "y" | "width" | "height">;
+
+interface NormalizedSlashMenuAnchorRect {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+}
+
+function finiteCoordinate(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function normalizeAnchorRect(
+  value: SlashMenuAnchorRect | null,
+): NormalizedSlashMenuAnchorRect | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const rect = value as Partial<DOMRectReadOnly>;
+  const x = finiteCoordinate(rect.x);
+  const y = finiteCoordinate(rect.y);
+  const width = finiteCoordinate(rect.width);
+  const height = finiteCoordinate(rect.height);
+  const left = finiteCoordinate(rect.left) ?? x;
+  const top = finiteCoordinate(rect.top) ?? y;
+  const right = finiteCoordinate(rect.right) ??
+    (left !== null && width !== null ? left + width : null);
+  const bottom = finiteCoordinate(rect.bottom) ??
+    (top !== null && height !== null ? top + height : null);
+
+  if (left === null || top === null || right === null || bottom === null) {
+    return null;
+  }
+
+  return { left, top, right, bottom };
+}
+
 function dispatchSlashMenuEvent<T>(element: HTMLElement, name: string, detail: T): void {
   element.dispatchEvent(
     new CustomEvent<T>(name, {
@@ -48,7 +96,8 @@ class UIEditorSlashMenuElement extends HTMLElement {
   #query = "";
   #items: SlashMenuItem[] = [];
   #selectedIndex = 0;
-  #anchorRect: DOMRect | null = null;
+  #anchorRect: SlashMenuAnchorRect | null = null;
+  #normalizedAnchorRect: NormalizedSlashMenuAnchorRect | null = null;
 
   get open(): boolean {
     return this.#open;
@@ -86,12 +135,14 @@ class UIEditorSlashMenuElement extends HTMLElement {
     this.render();
   }
 
-  get anchorRect(): DOMRect | null {
+  get anchorRect(): SlashMenuAnchorRect | null {
     return this.#anchorRect;
   }
 
-  set anchorRect(value: DOMRect | null) {
-    this.#anchorRect = value instanceof DOMRect ? value : null;
+  set anchorRect(value: SlashMenuAnchorRect | null) {
+    const normalized = normalizeAnchorRect(value);
+    this.#anchorRect = normalized ? value : null;
+    this.#normalizedAnchorRect = normalized;
     this.render();
   }
 
@@ -161,7 +212,7 @@ class UIEditorSlashMenuElement extends HTMLElement {
   };
 
   private applyHostPosition(): void {
-    const rect = this.#anchorRect;
+    const rect = this.#normalizedAnchorRect;
     if (!rect) {
       this.style.display = "none";
       return;
@@ -211,7 +262,7 @@ class UIEditorSlashMenuElement extends HTMLElement {
   }
 
   private render(): void {
-    const visible = this.#open && this.#items.length > 0 && this.#anchorRect;
+    const visible = this.#open && this.#items.length > 0 && this.#normalizedAnchorRect;
     this.hidden = !visible;
 
     if (!visible) {

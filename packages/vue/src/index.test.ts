@@ -3,8 +3,6 @@ import { createApp, h, type App } from "vue";
 
 vi.mock("@threadlabs/looma-layout", () => ({}));
 vi.mock("@threadlabs/looma-core", () => ({}));
-vi.mock("@threadlabs/looma-editor", () => ({}));
-
 import {
   ADAPTER_COMPONENT_TAG_MAP,
   Avatar,
