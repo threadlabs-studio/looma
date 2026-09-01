@@ -7,7 +7,7 @@ component: development_workflow
 severity: medium
 applies_when:
   - "A public facade is assembled from private workspaces and must be qualified as the bytes consumers actually install."
-  - "An independently versioned priority consumer supplies release-critical build, unit, database, and browser gates."
+  - "An independently versioned integration harness supplies release-critical build, unit, database, and browser gates."
   - "Workspace links, shared stores, registry fallback, or source-tree imports could hide package defects."
   - "Containerized tests need files from a detached checkout on a host path shared into the Docker-compatible VM."
 root_cause: missing_workflow_step
@@ -27,13 +27,14 @@ tags:
   - evidence-integrity
 ---
 
-# Qualify Exact Candidate Artifacts Through a Clean Priority Consumer
+# Qualify Exact Candidate Artifacts Through a Clean Integration Harness
 
 ## Context
 
 Looma's release boundary is its single public `@threadlabs/looma` facade, not
 the private workspaces that produce it. The package exposes explicit root,
-core, loader, layout, editor, editor-extension, Vue, and stylesheet subpaths
+core, loader, layout, editor, low-level editor UI, editor-extension, general
+Vue, Vue editor, and stylesheet subpaths
 (`packages/looma/package.json:21`, `packages/looma/package.json:24`), while the
 release configuration admits exactly one public artifact and enumerates the
 runtime, type, and style files required in its tarball
@@ -47,8 +48,10 @@ spot in Knit: linked source dependencies and mocked registration imports exposed
 the migration seams but did not execute the bytes that would be published
 (session history).
 
-Knit is the priority consumer, so Looma treats the exact facade tarball and a
-committed Knit snapshot as one cross-project qualification unit. The verifier
+Looma's audience is arbitrary consuming applications. Knit is our independently
+versioned deep-integration and exact-artifact qualification harness, so the
+release process treats the exact facade tarball and a committed Knit snapshot
+as one cross-project qualification unit. The verifier
 binds the manifest to the current Looma commit, checks the tarball digest, and
 creates a clean detached Knit worktree at the recorded Knit commit
 (`tools/scripts/verify-knit-consumer.mjs:212`,
@@ -60,6 +63,15 @@ contracts, Supabase migrations, RLS, Realtime, and a real browser.
 This pattern proves local exact-artifact qualification. It does not claim that
 either repository is merged, that the Candidate is published to npm, or that a
 protected deployment is active.
+
+The same distinction must govern developer-experience language. Do not reason
+about what “a Knit developer must carry”: Knit has no external developer persona
+and its complete dependency graph is intentionally deep. Ask instead what an
+arbitrary consuming application installs for each public Looma import. A core
+consumer should not pay for Vue or Tiptap; an editor consumer has deliberately
+selected Tiptap-backed behavior; and a Vue editor consumer has deliberately
+selected both Vue and Tiptap. Knit proves the last combination without turning
+it into the default or the definition of Looma's audience.
 
 ## Guidance
 
@@ -98,8 +110,9 @@ complete unit suite before any environment-dependent gate starts
 (`tools/scripts/verify-knit-consumer.mjs:481`,
 `tools/scripts/verify-knit-consumer.mjs:495`,
 `tools/scripts/verify-knit-consumer.mjs:518`). The generated SSR proof imports
-editor extensions and Vue adapters from the public facade and renders the Looma
-surfaces Knit actually consumes (`tools/scripts/verify-knit-consumer.mjs:241`,
+the editor, low-level editor UI, editor extensions, general Vue adapter, and Vue
+editor adapter from the public facade and renders representative Looma surfaces
+through Knit (`tools/scripts/verify-knit-consumer.mjs:241`,
 `tools/scripts/verify-knit-consumer.mjs:263`).
 
 Then start an isolated Supabase stack from that same detached checkout, run its
@@ -160,8 +173,9 @@ after failure (`tools/scripts/verify-knit-consumer.mjs:651`).
 Exact-tarball installation catches missing assembled files, incorrect subpath
 exports, missing runtime dependencies exercised by the consumer, stale
 identities, and accidental workspace coupling.
-A detached committed consumer keeps unrelated Knit work in progress from
-changing the proof while still exercising the product that matters most.
+A detached committed harness keeps unrelated Knit work in progress from
+changing the proof while still exercising Looma through a real, complex
+application integration.
 
 The environment gates catch a different class of release failure. Build and SSR
 can succeed even when migrations do not apply, RLS blocks workspace provisioning,
@@ -179,7 +193,7 @@ boundaries (`docs/release-checklist.md:77`, `docs/release-checklist.md:145`).
 
 - A library consolidates private workspaces behind one public facade and package
   assembly can diverge from source layout.
-- A release depends materially on a separately versioned application whose
+- A release uses a separately versioned application harness whose
   deepest risks appear only after database or browser startup.
 - Local development uses `file:`, `link:`, or workspace resolution, so a normal
   consumer build cannot prove registry-install behavior.
@@ -189,7 +203,7 @@ boundaries (`docs/release-checklist.md:77`, `docs/release-checklist.md:145`).
   artifact, consumer, database, browser, and infrastructure failures.
 
 Use a shallower consumer proof only when the artifact has no environment-dependent
-priority consumer. Even then, exact packed-byte installation plus lockfile and
+integration harness. Even then, exact packed-byte installation plus lockfile and
 realpath isolation are the minimum proof of a package boundary.
 
 ## Examples

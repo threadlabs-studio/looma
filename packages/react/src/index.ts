@@ -2,7 +2,7 @@
 // In SSR (Node), @threadlabs/looma-core and @threadlabs/looma-layout no-op via typeof HTMLElement guards.
 import "@threadlabs/looma-layout";
 import "@threadlabs/looma-core";
-import "@threadlabs/looma-editor";
+import "@threadlabs/looma-editor/ui";
 import {
   createElement,
   forwardRef,

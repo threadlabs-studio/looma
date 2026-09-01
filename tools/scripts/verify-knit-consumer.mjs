@@ -1,4 +1,4 @@
-import { spawn, spawnSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { access, mkdtemp, mkdir, readFile, readdir, realpath, rm, writeFile } from "node:fs/promises";
 import { createServer } from "node:net";
@@ -11,6 +11,7 @@ import {
   RELEASE_PACKAGE_NAMES,
   RELEASE_VERSION
 } from "./release-config.mjs";
+import { spawnManaged, stopProcess } from "./managed-process.mjs";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDirectory, "../..");
@@ -195,20 +196,6 @@ async function createFixtureRegistryToken(registryUrl) {
   return token;
 }
 
-async function stopProcess(child) {
-  if (!child || child.exitCode !== null) {
-    return;
-  }
-  child.kill("SIGTERM");
-  await Promise.race([
-    new Promise((resolve) => child.once("exit", resolve)),
-    new Promise((resolve) => setTimeout(resolve, 5_000))
-  ]);
-  if (child.exitCode === null) {
-    child.kill("SIGKILL");
-  }
-}
-
 async function validateManifest(allowIneligibleArtifacts) {
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
   assert(manifest.releaseVersion === RELEASE_VERSION, "release manifest version is not 0.1.0");
@@ -244,11 +231,10 @@ async function writeKnitSsrProof(worktreeDirectory) {
 import assert from "node:assert/strict";
 import { createSSRApp, h } from "vue";
 import { renderToString } from "vue/server-renderer";
-import "${RELEASE_PACKAGE_NAME}/editor";
-import { getDefaultEditorExtensions } from "${RELEASE_PACKAGE_NAME}/editor/extensions";
+import { getDefaultEditorExtensions as getEditorExtensions } from "${RELEASE_PACKAGE_NAME}/editor";
+import "${RELEASE_PACKAGE_NAME}/editor/ui";
+import { getDefaultEditorExtensions as getExtensionPreset } from "${RELEASE_PACKAGE_NAME}/editor/extensions";
 import {
-  EditorTableOverlay,
-  EditorToolbar,
   FloatingActionButton,
   Menu,
   MenuItem,
@@ -256,9 +242,23 @@ import {
   ToastRegion,
   TopBar
 } from "${RELEASE_PACKAGE_NAME}/vue";
+import {
+  EditorTableOverlay,
+  EditorToolbar,
+  getDefaultEditorExtensions as getVueEditorExtensions
+} from "${RELEASE_PACKAGE_NAME}/vue/editor";
 
-const extensions = getDefaultEditorExtensions();
-assert.ok(Array.isArray(extensions) && extensions.length > 0, "editor extension preset is empty");
+for (const [entrypoint, getExtensions] of [
+  ["editor", getEditorExtensions],
+  ["editor/extensions", getExtensionPreset],
+  ["vue/editor", getVueEditorExtensions]
+]) {
+  const extensions = getExtensions();
+  assert.ok(
+    Array.isArray(extensions) && extensions.length > 0,
+    entrypoint + " extension preset is empty"
+  );
+}
 
 const cases = [
   [TopBar, "ui-top-bar"],
@@ -411,7 +411,7 @@ async function main() {
       VERDACCIO_STORAGE_PATH: registryStorage
     };
 
-    registryProcess = spawn(
+    registryProcess = spawnManaged(
       "pnpm",
       ["exec", "verdaccio", "--config", runtimeRegistryConfigPath, "--listen", `127.0.0.1:${registryPort}`],
       { cwd: repoRoot, env: registryEnvironment, stdio: ["ignore", "pipe", "pipe"] }
@@ -579,7 +579,7 @@ async function main() {
         NUXT_SUPABASE_SECRET_KEY: supabaseStatus.SERVICE_ROLE_KEY
       };
       const devLog = [];
-      knitDevProcess = spawn(
+      knitDevProcess = spawnManaged(
         "pnpm",
         [
           "-F",

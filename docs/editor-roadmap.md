@@ -32,8 +32,8 @@ and no content loss or corruption. See the
 The Looma editor is built on Tiptap’s **Vanilla JavaScript** API, not the Vue or React bindings. The contract for all editor web components and adapters is the core **`Editor`** instance from `@tiptap/core` (`new Editor({ extensions, content, ... })`).
 
 - **Docs:** [Tiptap — Vanilla JavaScript](https://tiptap.dev/docs/editor/getting-started/install/vanilla-javascript)
-- **Why:** Looma is web-component-first and framework-agnostic. The editor core is the same in every environment; Vue and React **adapters** create or receive that vanilla `Editor` instance and pass it to the web components. No framework-specific editor API in Looma’s editor package.
-- **In apps:** Knit (Vue) can still use `@tiptap/vue-3`’s `useEditor()` to create and manage the editor—it returns the same `Editor` instance. The adapter then passes that instance into Looma’s web components. The **base** we design and document against is vanilla; framework integrations are a thin layer on top.
+- **Why:** Looma is web-component-first and framework-agnostic. The editor core is the same in every environment. Looma supplies editor UI, presets, and commands; it does not wrap a framework's editor lifecycle.
+- **In Vue apps:** Consumers install `@tiptap/vue-3@^2.11.5` and keep all `@tiptap/*` packages on the supported 2.x line. They use Tiptap's official `useEditor()` and `EditorContent` APIs, while `@threadlabs/looma/vue/editor` supplies Looma's editor UI wrappers and re-exports the framework-neutral Looma helpers. The consuming app connects wrapper events to commands on its Tiptap `Editor` instance. Our internal Knit harness exercises this contract deeply, but Looma's public surface is designed for arbitrary consuming applications.
 
 ---
 
@@ -96,22 +96,22 @@ Collaboration (cursors, presence), save, and image upload are **app responsibili
 | Layer | Looma | App (e.g. Knit) |
 |-------|-------|------------------|
 | **Web components** | Slash menu, block handle, block/table context menus, table overlay (hover “+”), toolbar, insert-table grid picker, (optional) floating toolbar, emoji picker, mention list | PageEditor layout, “Saving…” indicator, any app-specific blocks |
-| **Framework adapters** | `@threadlabs/looma/vue` supplies the supported R1 wrappers; the private React workspace remains an internal preview | Uses an adapter when rendering editor UI (e.g. a Vue toolbar wrapper that mounts the web component and connects Tiptap) |
+| **Framework adapters** | `@threadlabs/looma/vue/editor` supplies the supported R1 editor UI wrappers; the private React workspace remains an internal preview | Uses `@tiptap/vue-3` for editor lifecycle/content and connects Looma wrapper events to the Tiptap editor instance |
 | **Extensions** | Document which extensions to use; optional “preset” that returns extension list (app still creates editor) | useEditor/createEditor: registers Looma-recommended extensions + app-specific (e.g. placeholder text from route) |
 | **Styles** | Editor CSS (tokens-based): table, slash menu, block handle, selection | App theme; can override tokens |
 | **Behavior** | None: no save, no upload, no presence | Save on delay, image upload to app API, presence (Supabase or other) |
 
-Looma’s `/editor` subpath exposes **custom elements** (and editor styles); the adapter in `@threadlabs/looma/vue` wires the **vanilla** Tiptap `Editor` instance to them. The app creates the editor (vanilla `new Editor()` or framework `useEditor()`) and owns its lifecycle.
+Looma’s `/editor` subpath exposes the complete framework-neutral Tiptap-backed editor surface: **custom elements**, extension presets, and command helpers. `@threadlabs/looma/vue/editor` re-exports those helpers and supplies Vue wrappers for the elements. The app creates the editor (vanilla `new Editor()` or framework `useEditor()`) and owns its lifecycle. Advanced consumers can import the raw custom-element chrome from `/editor/ui` without loading the Tiptap integration.
 
 ---
 
 ## Public surface: `@threadlabs/looma/editor`
 
 - **Location:** `packages/editor/`
-- **Contents:** **Web components** (custom elements) for editor UI only—no Vue/React in this subpath. Core elements and tokens come from the same facade package. **No** direct Tiptap dependency in `/editor`; optional Tiptap peers are isolated to `/editor/extensions`. The `/vue` adapter creates or receives the **Vanilla JavaScript** Tiptap `Editor` (from `@tiptap/core`) and wires it to these elements.
-- **Exports:** Custom elements (e.g. slash menu, table overlay, toolbar, block handle, context menus, grid picker), editor styles (CSS using tokens), and optionally extension preset (documentation or a shared config the app imports).
+- **Contents:** the Tiptap-backed Looma editor API with **web components**, the default extension preset, and shared commands. No Vue or React runtime is included. Core elements and tokens come from the same facade package. `/editor/ui` preserves a low-level Tiptap-independent boundary for custom composition; `/editor/extensions` preserves a focused deep import for presets and commands.
+- **Exports:** Custom elements (e.g. slash menu, table overlay, toolbar, block handle, context menus, grid picker), editor styles (CSS using tokens), the extension preset, and shared command helpers.
 
-Editor adapters live at `@threadlabs/looma/vue`; the private React workspace is internal/deferred. They render the editor web components and connect a Tiptap `Editor` instance via props/events.
+Vue editor adapters live at `@threadlabs/looma/vue/editor`; the private React workspace is internal/deferred. They render the editor web components and connect a Tiptap `Editor` instance via props/events.
 
 **Phased delivery:**
 
@@ -176,7 +176,7 @@ For Looma, the gap is not editor-core capability. The gap is reusable editor UI 
 
 ## Contract (Looma editor API)
 
-- **Web components:** All editor UI in Looma is **custom elements**. The supported Vue adapter at `@threadlabs/looma/vue` wraps them and wires Tiptap—the same pattern as the rest of Looma (for example, `ui-dialog` plus the Vue Dialog adapter).
+- **Web components:** All editor UI in Looma is **custom elements**. The supported Vue editor adapter at `@threadlabs/looma/vue/editor` wraps them and wires Tiptap; the general `/vue` entry remains editor-free.
 - **Domain-neutral:** No Knit/page/workspace in element attributes or adapter props. Use slots/events or callbacks (e.g. `onImageUpload?: (file: File) => Promise<string>`) for app-specific behavior in the adapter.
 - **Token-based styling:** All colors, spacing, radius from Looma tokens; no raw hex or app-specific classes in the package.
 - **Accessibility:** Keyboard nav, ARIA, 44px touch targets where applicable (per product steering).

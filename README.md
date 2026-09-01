@@ -12,9 +12,13 @@ Looma is a stack-agnostic UI library based on web standards and Open UI principl
 pnpm add @threadlabs/looma
 ```
 
-The root package and core, layout, CSS, and editor-base subpaths require no
-framework install. Add Vue or the Tiptap 2 peers only when using
-`@threadlabs/looma/vue` or `@threadlabs/looma/editor/extensions`.
+The root package and core, layout, and CSS subpaths require no framework or
+editor install. `@threadlabs/looma/vue` adds only Vue 3.5 or newer. Looma's editor
+is a Tiptap editor, so `@threadlabs/looma/editor` requires the declared Tiptap 2
+peers. `@threadlabs/looma/vue/editor` adds those Tiptap 2 peers plus
+`@tiptap/vue-3@^2.11.5` for Tiptap's official `useEditor` and `EditorContent`
+lifecycle APIs. The advanced
+`@threadlabs/looma/editor/ui` subpath exposes only raw web-component chrome.
 
 ```ts
 import { openOverlay } from "@threadlabs/looma";
@@ -34,8 +38,11 @@ component or framework adapter is Stable. The sole public package is
 
 - `@threadlabs/looma` and `@threadlabs/looma/core`: core web components and overlay APIs.
 - `@threadlabs/looma/layout`: light-DOM layout primitives with no external margins.
-- `@threadlabs/looma/editor` and `@threadlabs/looma/editor/extensions`: editor elements and optional Tiptap helpers.
-- `@threadlabs/looma/vue`: the supported Release 1 framework adapter.
+- `@threadlabs/looma/editor`: the complete Tiptap-backed editor surface, including elements, extension presets, and commands.
+- `@threadlabs/looma/editor/ui`: low-level editor web-component chrome without the Tiptap integration.
+- `@threadlabs/looma/editor/extensions`: the focused extension preset and command-helper subpath.
+- `@threadlabs/looma/vue`: general Vue adapters without the editor graph.
+- `@threadlabs/looma/vue/editor`: the supported Vue editor integration, including Looma editor helpers and wrappers.
 - Explicit `.css` subpaths provide tokens, themes, layout, core, and editor styles.
 
 React and Svelte adapters remain internal repository previews and are not part

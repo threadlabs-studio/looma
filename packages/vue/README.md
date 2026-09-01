@@ -1,23 +1,36 @@
 # @threadlabs/looma-vue
 
 > Internal implementation workspace. Consumers install `@threadlabs/looma` and
-> import `@threadlabs/looma/vue`.
+> import `@threadlabs/looma/vue` for general adapters or
+> `@threadlabs/looma/vue/editor` for the Vue editor integration.
 
-The supported Vue 3 adapter for Looma Release 1. It maps Vue props, slots, and callbacks to the public layout, core, and editor custom elements without owning divergent behavior.
+The supported Vue 3 adapter for Looma Release 1. `/vue` maps Vue props, slots, and callbacks to layout and core elements without loading the editor graph. `/vue/editor` supplies the Tiptap-backed editor helpers and wrappers.
 
 Release status: Candidate `0.1.0`. Browser registration/render and linked-workspace Knit qualification pass; packed-artifact Knit qualification remains a publication gate. React and Svelte adapters are not part of the R1 public package set.
 
 ## Install
 
+For the general adapter, which has no editor or Tiptap dependency:
+
 ```sh
-pnpm add vue @threadlabs/looma-vue @threadlabs/looma-core @threadlabs/looma-editor @threadlabs/looma-layout @threadlabs/looma-tokens
+pnpm add @threadlabs/looma vue@^3.5.0
 ```
+
+For `@threadlabs/looma/vue/editor`, keep the official Vue integration and all
+other `@tiptap/*` peers on the supported Tiptap 2 line:
+
+```sh
+pnpm add @threadlabs/looma vue@^3.5.0 @tiptap/vue-3@^2.11.5
+```
+
+Install the remaining optional editor peers reported by
+`npm view @threadlabs/looma peerDependencies` at compatible 2.x versions.
 
 ## Use
 
 ```vue
 <script setup lang="ts">
-import { Button } from "@threadlabs/looma-vue";
+import { Button } from "@threadlabs/looma/vue";
 </script>
 
 <template>

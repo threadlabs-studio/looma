@@ -25,8 +25,9 @@ implementation roadmap so package ownership decisions stay visible.
 ## Npm Namespace Decision
 
 The implemented R1 contract uses `@threadlabs/looma` as its sole public package.
-Consumers select `@threadlabs/looma/core`, `/layout`, `/editor`,
-`/editor/extensions`, `/vue`, or an explicit CSS subpath. The private workspace
+Consumers select `@threadlabs/looma/core`, `/layout`, the complete Tiptap-backed
+`/editor`, its low-level `/editor/ui` or focused `/editor/extensions` subpaths,
+general `/vue`, Tiptap-backed `/vue/editor`, or an explicit CSS subpath. The private workspace
 names are assembly inputs, not consumer identities.
 
 The owner approved `@threadlabs/looma` as the permanent public identity after

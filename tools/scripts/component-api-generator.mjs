@@ -191,15 +191,23 @@ async function readRepositoryProjectionTags() {
     (match) => match[1]
   );
 
-  const adapterSource = await readFile(path.join(repoRoot, "packages/vue/src/index.ts"), "utf8");
+  const adapterSources = await Promise.all([
+    readFile(path.join(repoRoot, "packages/vue/src/index.ts"), "utf8"),
+    readFile(path.join(repoRoot, "packages/vue/src/editor/index.ts"), "utf8"),
+  ]);
   const exportedNames = new Set(
-    [...adapterSource.matchAll(/export const ([A-Za-z0-9_]+)\s*=/g)].map((match) => match[1])
+    adapterSources.flatMap((source) =>
+      [...source.matchAll(/export const ([A-Za-z0-9_]+)\s*=/g)].map((match) => match[1])
+    )
   );
-  const adapterMapBlock = adapterSource.match(
-    /export const ADAPTER_COMPONENT_TAG_MAP = \{([\s\S]*?)\} as const;/
-  )?.[1] ?? "";
-  const adapterEntries = [...adapterMapBlock.matchAll(/([A-Za-z0-9_]+): "(ui-[a-z0-9-]+)"/g)].map(
-    (match) => ({ name: match[1], tag: match[2] })
+  const adapterEntries = adapterSources.flatMap((source) =>
+    [...source.matchAll(
+      /export const (?:ADAPTER_COMPONENT_TAG_MAP|EDITOR_ADAPTER_COMPONENT_TAG_MAP) = \{([\s\S]*?)\} as const;/g
+    )].flatMap((mapMatch) =>
+      [...mapMatch[1].matchAll(/([A-Za-z0-9_]+): "(ui-[a-z0-9-]+)"/g)].map(
+        (match) => ({ name: match[1], tag: match[2] })
+      )
+    )
   );
 
   const coreContractDirectory = path.join(repoRoot, "packages/core/src");

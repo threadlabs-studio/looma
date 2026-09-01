@@ -1,15 +1,56 @@
 import { userEvent } from "@vitest/browser/context";
 import axe from "axe-core";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import "../src/editor.css";
 import "../src/index";
+import type { SlashMenuAnchorRect } from "../src/index";
 
 beforeEach(() => {
   document.body.innerHTML = "";
 });
 
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
 describe("editor release interactions (real browser)", () => {
+  it("positions the slash menu from DOMRect and Tiptap rect-like anchors", () => {
+    vi.spyOn(window, "innerWidth", "get").mockReturnValue(1280);
+    vi.spyOn(window, "innerHeight", "get").mockReturnValue(720);
+    document.body.innerHTML = "<ui-editor-slash-menu></ui-editor-slash-menu>";
+    const slashMenu = document.querySelector("ui-editor-slash-menu") as HTMLElement & {
+      open: boolean;
+      items: Array<{ title: string; description: string; icon: string }>;
+      anchorRect: SlashMenuAnchorRect | null;
+    };
+    slashMenu.open = true;
+    slashMenu.items = [{ title: "Paragraph", description: "Plain text", icon: "paragraph" }];
+
+    const domRect = new DOMRect(12, 24, 30, 18);
+    slashMenu.anchorRect = domRect;
+    expect(slashMenu.anchorRect).toBe(domRect);
+    expect(slashMenu.hidden).toBe(false);
+    expect(slashMenu.style.left).toBe("12px");
+    expect(slashMenu.style.top).toBe("50px");
+
+    const tiptapRect = {
+      x: 64,
+      y: 80,
+      width: 1,
+      height: 16,
+      top: 80,
+      right: 65,
+      bottom: 96,
+      left: 64,
+    };
+    slashMenu.anchorRect = tiptapRect;
+    expect(slashMenu.anchorRect).toBe(tiptapRect);
+    expect(slashMenu.hidden).toBe(false);
+    expect(slashMenu.style.left).toBe("64px");
+    expect(slashMenu.style.top).toBe("104px");
+  });
+
   it("supports keyboard dimension selection and stable table insertion intent", async () => {
     document.body.innerHTML = '<ui-editor-insert-table-grid open max-rows="3" max-cols="3"></ui-editor-insert-table-grid>';
     const grid = document.querySelector("ui-editor-insert-table-grid")!;
