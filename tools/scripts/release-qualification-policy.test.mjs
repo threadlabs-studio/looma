@@ -7,10 +7,11 @@ import { fileURLToPath } from "node:url";
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
 test("release qualification is wired to Node 20, Chromium, and non-placeholder gates", async () => {
-  const [workflow, rootPackage, editorPackage] = await Promise.all([
+  const [workflow, rootPackage, editorPackage, consumerPackage] = await Promise.all([
     readFile(path.join(repoRoot, ".github/workflows/ci.yml"), "utf8"),
     readFile(path.join(repoRoot, "package.json"), "utf8"),
     readFile(path.join(repoRoot, "packages/editor/package.json"), "utf8"),
+    readFile(path.join(repoRoot, "tests/release/consumer/package.json"), "utf8"),
   ]);
 
   assert.match(workflow, /node-version: 20/);
@@ -22,6 +23,11 @@ test("release qualification is wired to Node 20, Chromium, and non-placeholder g
     "pnpm --filter @threadlabs/looma-core test:browser && pnpm --filter @threadlabs/looma-editor test:browser && pnpm --filter @threadlabs/looma-vue test:browser && pnpm --filter @threadlabs/looma-docs test:browser"
   );
   assert.equal(JSON.parse(editorPackage).scripts.test, "vitest run");
+  assert.doesNotMatch(
+    JSON.parse(consumerPackage).scripts["verify:ssr"],
+    /experimental-strip-types/,
+    "the public consumer must execute on the Node 20 release runtime"
+  );
 });
 
 test("required release suites contain no skipped or todo scenarios", async () => {
