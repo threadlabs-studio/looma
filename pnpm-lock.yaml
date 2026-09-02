@@ -127,9 +127,6 @@ importers:
       '@threadlabs/looma-tokens':
         specifier: workspace:*
         version: link:../tokens
-      prosemirror-tables:
-        specifier: ^1.8.5
-        version: 1.8.5
     devDependencies:
       '@tiptap/core':
         specifier: ^2.11.5
@@ -224,6 +221,9 @@ importers:
       '@tiptap/extension-underline':
         specifier: ^2.11.5
         version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))
+      '@tiptap/pm':
+        specifier: ^2.11.5
+        version: 2.27.2
       '@vitest/browser':
         specifier: ~3.2.6
         version: 3.2.6(playwright@1.60.0)(vite@7.3.1(@types/node@25.3.5)(jiti@1.21.7)(terser@5.46.0))(vitest@3.2.6)
@@ -266,102 +266,9 @@ importers:
       '@tiptap/core':
         specifier: '>=2 <3'
         version: 2.27.2(@tiptap/pm@2.27.2)
-      '@tiptap/extension-blockquote':
-        specifier: '>=2 <3'
-        version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))
-      '@tiptap/extension-bold':
-        specifier: '>=2 <3'
-        version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))
-      '@tiptap/extension-bullet-list':
-        specifier: '>=2 <3'
-        version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))
-      '@tiptap/extension-code':
-        specifier: '>=2 <3'
-        version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))
-      '@tiptap/extension-code-block':
-        specifier: '>=2 <3'
-        version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))(@tiptap/pm@2.27.2)
-      '@tiptap/extension-document':
-        specifier: '>=2 <3'
-        version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))
-      '@tiptap/extension-dropcursor':
-        specifier: '>=2 <3'
-        version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))(@tiptap/pm@2.27.2)
-      '@tiptap/extension-gapcursor':
-        specifier: '>=2 <3'
-        version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))(@tiptap/pm@2.27.2)
-      '@tiptap/extension-hard-break':
-        specifier: '>=2 <3'
-        version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))
-      '@tiptap/extension-heading':
-        specifier: '>=2 <3'
-        version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))
-      '@tiptap/extension-highlight':
-        specifier: '>=2 <3'
-        version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))
-      '@tiptap/extension-history':
-        specifier: '>=2 <3'
-        version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))(@tiptap/pm@2.27.2)
-      '@tiptap/extension-horizontal-rule':
-        specifier: '>=2 <3'
-        version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))(@tiptap/pm@2.27.2)
-      '@tiptap/extension-image':
-        specifier: '>=2 <3'
-        version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))
-      '@tiptap/extension-italic':
-        specifier: '>=2 <3'
-        version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))
-      '@tiptap/extension-link':
-        specifier: '>=2 <3'
-        version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))(@tiptap/pm@2.27.2)
-      '@tiptap/extension-list-item':
-        specifier: '>=2 <3'
-        version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))
-      '@tiptap/extension-ordered-list':
-        specifier: '>=2 <3'
-        version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))
-      '@tiptap/extension-paragraph':
-        specifier: '>=2 <3'
-        version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))
-      '@tiptap/extension-placeholder':
-        specifier: '>=2 <3'
-        version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))(@tiptap/pm@2.27.2)
-      '@tiptap/extension-strike':
-        specifier: '>=2 <3'
-        version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))
-      '@tiptap/extension-table':
-        specifier: '>=2 <3'
-        version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))(@tiptap/pm@2.27.2)
-      '@tiptap/extension-table-cell':
-        specifier: '>=2 <3'
-        version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))
-      '@tiptap/extension-table-header':
-        specifier: '>=2 <3'
-        version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))
-      '@tiptap/extension-table-row':
-        specifier: '>=2 <3'
-        version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))
-      '@tiptap/extension-task-item':
-        specifier: '>=2 <3'
-        version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))(@tiptap/pm@2.27.2)
-      '@tiptap/extension-task-list':
-        specifier: '>=2 <3'
-        version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))
-      '@tiptap/extension-text':
-        specifier: '>=2 <3'
-        version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))
-      '@tiptap/extension-typography':
-        specifier: '>=2 <3'
-        version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))
-      '@tiptap/extension-underline':
-        specifier: '>=2 <3'
-        version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))
       '@tiptap/pm':
         specifier: '>=2 <3'
         version: 2.27.2
-      prosemirror-tables:
-        specifier: ^1.8.5
-        version: 1.8.5
       vue:
         specifier: ^3.5.0
         version: 3.5.29(typescript@5.9.3)
