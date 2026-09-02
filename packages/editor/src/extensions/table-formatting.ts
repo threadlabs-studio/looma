@@ -1,4 +1,4 @@
-import type { Editor } from "@tiptap/core";
+import type { AnyExtension, Editor } from "@tiptap/core";
 import TableBase from "@tiptap/extension-table";
 import TableCellBase from "@tiptap/extension-table-cell";
 import TableHeaderBase from "@tiptap/extension-table-header";
@@ -15,7 +15,7 @@ export const TABLE_CELL_BACKGROUND_PRESETS = {
   red: "#fee2e2",
 } as const;
 
-export const LoomaTable = TableBase.configure({
+export const LoomaTable: AnyExtension = TableBase.configure({
   resizable: true,
   lastColumnResizable: false,
 });
@@ -76,7 +76,7 @@ const tableAlignmentAttributes = {
   },
 };
 
-export const LoomaTableHeader = TableHeaderBase.extend({
+export const LoomaTableHeader: AnyExtension = TableHeaderBase.extend({
   addAttributes() {
     return {
       ...this.parent?.(),
@@ -85,7 +85,7 @@ export const LoomaTableHeader = TableHeaderBase.extend({
   },
 });
 
-export const LoomaTableCell = TableCellBase.extend({
+export const LoomaTableCell: AnyExtension = TableCellBase.extend({
   addAttributes() {
     return {
       ...this.parent?.(),

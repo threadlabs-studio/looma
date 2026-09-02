@@ -1,6 +1,6 @@
 /**
  * Default Tiptap extension preset for Looma editor.
- * Uses Vanilla JS Tiptap API; apps install @tiptap/core and extensions and pass this to Editor.
+ * Uses the Vanilla JS Tiptap API; apps provide @tiptap/core and Looma ships the preset extensions.
  */
 
 import type { AnyExtension } from "@tiptap/core";
