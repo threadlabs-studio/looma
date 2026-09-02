@@ -41,7 +41,7 @@ const ciReleaseVerification = releasePackagingJob.match(
   /- name: Verify release packaging[\s\S]*?(?=\n\s+- name:|$)/
 )?.[0] ?? "";
 const bootstrapPreflight = publishJob.match(
-  /- name: Prove first-publication scope ownership and name availability[\s\S]*?(?=\n\s+- name:)/
+  /- name: Prove scope ownership and release version availability[\s\S]*?(?=\n\s+- name:)/
 )?.[0] ?? "";
 const bootstrapPublish = publishJob.match(
   /- name: Publish exact bytes with the bootstrap credential[\s\S]*?(?=\n\s+- name:)/

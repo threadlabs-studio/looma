@@ -13,7 +13,7 @@ security, artifact, consumer, documentation, and rollback gates.
 - [x] The protected release identity published the exact `@threadlabs/looma`
   package name during the `0.1.0` rehearsal.
 - [x] The owner approves `@threadlabs/looma` as the permanent public identity.
-- [x] npm account 2FA and the two-credential first-publication bootstrap method are approved.
+- [x] npm account 2FA and the two-credential bootstrap method are approved.
 - [x] `NPM_PREFLIGHT_TOKEN` is environment-protected and can read the npm identity,
   `@threadlabs` owner membership, account 2FA policy, and package-name availability.
 - [x] `NPM_TOKEN` is a short-lived, package-scoped, bypass-2FA credential that is
@@ -206,7 +206,7 @@ metadata for automatic provenance. `NPM_PREFLIGHT_TOKEN` must support `npm whoam
 `npm org ls`, and authenticated package metadata reads. It is deliberately a
 read-only granular token, so the preflight does not require npm account-profile
 access. The short-lived bootstrap publishing token, not the preflight identity,
-is the credential whose Bypass 2FA setting matters for first publication.
+is the credential whose Bypass 2FA setting matters for bootstrap publication.
 `NPM_TOKEN` must be limited to the `@threadlabs` package scope with Bypass 2FA and
 must never reach the trusted-publishing step. Configure the trusted publisher with
 `release.yml`, the `npm-release` environment, and the `npm publish` allowed action.
