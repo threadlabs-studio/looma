@@ -32,7 +32,7 @@ export function packagePublicationState({
     return { name, version, state: "available" };
   }
   if (!registryIntegrity) {
-    throw new Error(`${name} already exists but ${version} is not published`);
+    return { name, version, state: "version-available" };
   }
   if (registryIntegrity !== approvedIntegrity) {
     throw new Error(`${name}@${version} exists with bytes that differ from the approved tarball`);

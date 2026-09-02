@@ -190,7 +190,7 @@ jobs:
           name: looma-0.1.1-candidate
           path: .release/artifacts/
 
-      - name: Prove first-publication scope ownership and name availability
+      - name: Prove scope ownership and release version availability
         if: inputs.authentication == 'bootstrap'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_PREFLIGHT_TOKEN }}
