@@ -248,6 +248,10 @@ test("promotion evidence is uploaded even when promotion or rollback fails", () 
 
 test("docs preview explicitly builds non-indexable preview content", () => {
   assert.match(docsPreviewWorkflow, /LOOMA_DOCS_RELEASE_MODE: preview/);
+  const facadeBuild = docsPreviewWorkflow.indexOf("run: pnpm build:facade");
+  const docsBuild = docsPreviewWorkflow.indexOf("run: pnpm --filter @threadlabs/looma-docs build");
+  assert.ok(facadeBuild >= 0, "docs preview must build the workspace facade");
+  assert.ok(docsBuild > facadeBuild, "docs preview must build the facade before Docusaurus");
 });
 
 test("production docs use a protected manual same-commit Candidate deployment", () => {
@@ -263,6 +267,12 @@ test("production docs use a protected manual same-commit Candidate deployment", 
   assert.match(docsProductionWorkflow, /--manifest-only/);
   assert.match(docsProductionWorkflow, /--registry-evidence \.release\/evidence\/candidate-registry\/registry-candidate\.json/);
   assert.match(docsProductionWorkflow, /LOOMA_DOCS_RELEASE_MODE: candidate/);
+  const facadeBuild = docsProductionWorkflow.indexOf("run: pnpm build:facade");
+  const docsBuild = docsProductionWorkflow.indexOf(
+    "run: pnpm --filter @threadlabs/looma-docs build"
+  );
+  assert.ok(facadeBuild >= 0, "production docs must build the workspace facade");
+  assert.ok(docsBuild > facadeBuild, "production docs must build the facade before Docusaurus");
   assert.match(docsProductionWorkflow, /verify-hosted-docs\.mjs/);
   assert.match(docsProductionWorkflow, /hosted-docs\.json/);
   assert.match(docsProductionWorkflow, /steps\.evidence-upload\.outputs\.artifact-url/);
