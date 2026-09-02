@@ -210,6 +210,11 @@ Bypass 2FA tokens will be restricted by January 2027. The bootstrap credential
 is therefore a one-release migration tool, not a durable automation dependency:
 complete trusted-publisher setup, promotion, and token revocation during R1, and
 do not design later releases around the availability of Bypass 2FA tokens.
+Newly published packages are also held for npm publish-time malware scanning before
+they become readable or installable, typically for about five minutes and sometimes
+for 15 minutes or more. Candidate publication must recognize a matching dist-tag as
+a pending immutable write, publish the remaining graph without re-uploading that
+version, and wait for the full graph concurrently before registry verification.
 
 Authoritative references:
 
@@ -218,3 +223,4 @@ Authoritative references:
 - [Generating provenance statements](https://docs.npmjs.com/generating-provenance-statements/)
 - [Requiring two-factor authentication](https://docs.npmjs.com/requiring-2fa-for-package-publishing-and-settings-modification/)
 - [Staged publishing](https://docs.npmjs.com/staged-publishing/)
+- [npm publish-time malware scanning](https://github.blog/changelog/2026-07-28-npm-publish-time-malware-scanning-and-dual-use-metadata/)
