@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 
 const workflow = await readFile(new URL("../../.github/workflows/release.yml", import.meta.url), "utf8");
 const ciWorkflow = await readFile(new URL("../../.github/workflows/ci.yml", import.meta.url), "utf8");
+const registryPreflight = await readFile(new URL("./registry-preflight.mjs", import.meta.url), "utf8");
 const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
 const rootLicense = await readFile(new URL("../../LICENSE", import.meta.url));
 const packageLicense = await readFile(new URL("../../packages/looma/LICENSE", import.meta.url));
@@ -162,6 +163,11 @@ test("bootstrap identity preflight is isolated from the bypass-2FA publishing cr
   assert.equal([...workflow.matchAll(/secrets\.NPM_TOKEN/g)].length, 2);
   assert.doesNotMatch(trustedPublish, /NODE_AUTH_TOKEN|secrets\./);
   assert.doesNotMatch(publishJob, /\n    env:\n/);
+});
+
+test("read-only registry preflight does not require npm account-profile access", () => {
+  assert.doesNotMatch(registryPreflight, /\["profile", "get"/);
+  assert.doesNotMatch(registryPreflight, /twoFactorMode/);
 });
 
 test("release pack, publish, and promotion jobs use the exact declared Node runtime", () => {
