@@ -72,8 +72,25 @@ test("the facade declares the exact public subpath and peer contract", async () 
   assert.equal(manifest.peerDependenciesMeta.vue.optional, true);
   assert.equal(manifest.peerDependenciesMeta["@tiptap/core"].optional, true);
   assert.equal(manifest.peerDependenciesMeta["@tiptap/pm"].optional, true);
-  assert.equal(manifest.peerDependenciesMeta["prosemirror-tables"].optional, true);
-  assert.equal(manifest.dependencies, undefined);
+  assert.deepEqual(Object.keys(manifest.peerDependencies).sort(), [
+    "@tiptap/core",
+    "@tiptap/pm",
+    "vue",
+  ]);
+  for (const dependency of [
+    "@tiptap/extension-document",
+    "@tiptap/extension-paragraph",
+    "@tiptap/extension-text",
+    "@tiptap/extension-table",
+    "prosemirror-tables",
+  ]) {
+    assert.match(
+      manifest.dependencies[dependency],
+      /^\^/,
+      `${dependency} must install with Looma's editor implementation`,
+    );
+    assert.equal(manifest.peerDependenciesMeta[dependency], undefined);
+  }
   assert.ok(manifest.sideEffects.includes("./editor/*.js"));
   assert.ok(manifest.sideEffects.includes("./vue/index.js"));
   assert.ok(manifest.sideEffects.includes("./vue/editor/*.js"));

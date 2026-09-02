@@ -198,7 +198,10 @@ async function createFixtureRegistryToken(registryUrl) {
 
 async function validateManifest(allowIneligibleArtifacts) {
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
-  assert(manifest.releaseVersion === RELEASE_VERSION, "release manifest version is not 0.1.0");
+  assert(
+    manifest.releaseVersion === RELEASE_VERSION,
+    `release manifest version is not ${RELEASE_VERSION}`
+  );
   assert(
     allowIneligibleArtifacts || manifest.releaseEligible === true,
     `release manifest is not eligible: ${(manifest.exceptions ?? []).join("; ")}`

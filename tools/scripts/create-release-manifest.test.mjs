@@ -22,8 +22,8 @@ test("records a deterministic inventory of every packed file", () => {
     npmVersion: "10.8.2",
     packages: [
       {
-        packageJson: { name: "@threadlabs/looma", version: "0.1.0" },
-        tarball: "threadlabs-looma-0.1.0.tgz",
+        packageJson: { name: "@threadlabs/looma", version: "0.1.1" },
+        tarball: "threadlabs-looma-0.1.1.tgz",
         sha256: "b".repeat(64),
         bytes: 123,
         tarEntries: ["package/package.json", "package/LICENSE", "package/dist/tokens.css"]

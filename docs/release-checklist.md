@@ -1,15 +1,17 @@
 # Release 1 Checklist
 
-This is the go/no-go ledger for Looma Candidate `0.1.0`. A checked source or build
+This is the go/no-go ledger for Looma Candidate `0.1.1`. A checked source or build
 item is evidence, not permission to publish. Registry mutation requires all owner,
 security, artifact, consumer, documentation, and rollback gates.
 
 ## Registry And Ownership Preflight
 
 - [x] Canonical source repository identified as `threadlabs-studio/looma` on GitHub.
-- [x] Unauthenticated public lookup returns no existing package for `@threadlabs/looma`.
+- [x] `@threadlabs/looma` is controlled by the approved owner; the defective
+  `0.1.0` rehearsal artifact is superseded and must not be treated as Release 1.
 - [x] An authenticated npm owner confirms control of the `@threadlabs` scope.
-- [ ] The protected release identity can publish the exact `@threadlabs/looma` package name.
+- [x] The protected release identity published the exact `@threadlabs/looma`
+  package name during the `0.1.0` rehearsal.
 - [x] The owner approves `@threadlabs/looma` as the permanent public identity.
 - [x] npm account 2FA and the two-credential first-publication bootstrap method are approved.
 - [x] `NPM_PREFLIGHT_TOKEN` is environment-protected and can read the npm identity,
@@ -33,11 +35,11 @@ the publishing credential's package capability is first exercised by the guarded
 - [x] Layout's formerly false CommonJS export now points to a real CJS build required by the docs server bundle.
 - [x] Source-derived classification enforces generated API, docs, navigation,
   supported Vue map/export, and required contract README coverage for all 38 published tags.
-- [x] The public facade manifest uses `0.1.0`, public access, complete metadata,
+- [x] The public facade manifest uses `0.1.1`, public access, complete metadata,
   correct peer ranges, and the exact export map; assembly workspaces remain private.
 - [x] The packed artifact contains runtime output, types, styles, README, and license,
   and excludes tests, local config, secrets, and source-only material.
-- [x] Local inspection assembles and packs the exact `@threadlabs/looma@0.1.0`
+- [x] Local inspection assembles and packs the exact `@threadlabs/looma@0.1.1`
   facade, rejects empty/forbidden/missing files and private-workspace leakage,
   and records SHA-256, byte size, source commit, and toolchain.
 
@@ -112,6 +114,12 @@ production indexing and any canonical-domain cutover belong to U7.
 
 ## Publication Controls
 
+The first `0.1.0` publish proved namespace ownership and provenance, then failed
+the credential-free consumer because the editor's concrete Tiptap extensions
+were optional peers and therefore absent. npm versions are immutable. `0.1.0`
+is rejected as Release 1; the corrected dependency graph is qualified and
+published as `0.1.1` without reusing the defective version.
+
 Candidate publication and `latest` promotion are two separate manual workflow
 dispatches. The Candidate dispatch sets `publish_candidate` and supplies
 `ci_workflow_run_id` for the successful `ci.yml` push on `main` whose `head_sha`
@@ -174,12 +182,12 @@ existing lightweight tag points to the manifest source commit and existing
 release metadata or attachments match the approved record exactly.
 
 - [ ] The promotion ledger reports `succeeded` / `registry-verified` for the
-  exact singleton manifest and proves both `candidate` and `latest` at `0.1.0`.
+  exact singleton manifest and proves both `candidate` and `latest` at `0.1.1`.
 - [ ] The ledger binds the public Knit evidence SHA-256 and URL, hosted-docs
   evidence SHA-256 and URL, production docs URL, and canonical Candidate run URL.
-- [ ] Lightweight tag `v0.1.0` is absent or points directly to the exact manifest
+- [ ] Lightweight tag `v0.1.1` is absent or points directly to the exact manifest
   source commit; an annotated or mismatched tag is a hard stop.
-- [ ] GitHub Release `Looma v0.1.0 Candidate` uses the matching tag and the
+- [ ] GitHub Release `Looma v0.1.1 Candidate` uses the matching tag and the
   `CHANGELOG.md` Candidate notes without replacing a mismatched existing record.
 - [ ] The exact `release-manifest.json` and `registry-promotion.json` bytes are
   attached; retries skip matching assets and reject mismatched same-name assets.

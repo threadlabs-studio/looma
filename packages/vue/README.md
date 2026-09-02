@@ -6,7 +6,7 @@
 
 The supported Vue 3 adapter for Looma Release 1. `/vue` maps Vue props, slots, and callbacks to layout and core elements without loading the editor graph. `/vue/editor` supplies the Tiptap-backed editor helpers and wrappers.
 
-Release status: Candidate `0.1.0`. Browser registration/render and linked-workspace Knit qualification pass; packed-artifact Knit qualification remains a publication gate. React and Svelte adapters are not part of the R1 public package set.
+Release status: Candidate `0.1.1`. Browser registration/render and linked-workspace Knit qualification pass; packed-artifact Knit qualification remains a publication gate. React and Svelte adapters are not part of the R1 public package set.
 
 ## Install
 
