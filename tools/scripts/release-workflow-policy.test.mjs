@@ -200,6 +200,7 @@ test("publication consumes the verified manifest and starts on candidate", () =>
   assert.match(workflow, /pnpm release:verify/);
   assert.match(workflow, /actions\/upload-artifact@/);
   assert.match(workflow, /actions\/download-artifact@/);
+  assert.match(publishJob, /timeout-minutes: 30/);
   assert.match(workflow, /publish-release\.mjs --execute --tag candidate/);
   assert.doesNotMatch(workflow, /--tag latest/);
 });
