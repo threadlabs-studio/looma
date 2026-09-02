@@ -45,12 +45,12 @@ test("marks an unused package name as available", () => {
   assert.deepEqual(
     packagePublicationState({
       name: "@threadlabs/looma",
-      version: "0.1.0",
+      version: "0.1.1",
       packageExists: false,
       approvedIntegrity: "sha512-approved",
       registryIntegrity: null
     }),
-    { name: "@threadlabs/looma", version: "0.1.0", state: "available" }
+    { name: "@threadlabs/looma", version: "0.1.1", state: "available" }
   );
 });
 
@@ -58,14 +58,14 @@ test("allows resume when an existing release has the approved bytes", () => {
   assert.deepEqual(
     packagePublicationState({
       name: "@threadlabs/looma",
-      version: "0.1.0",
+      version: "0.1.1",
       packageExists: true,
       approvedIntegrity: "sha512-approved",
       registryIntegrity: "sha512-approved"
     }),
     {
       name: "@threadlabs/looma",
-      version: "0.1.0",
+      version: "0.1.1",
       state: "already-published",
       integrity: "sha512-approved"
     }
@@ -76,12 +76,12 @@ test("rejects an occupied package without the release version", () => {
   assert.throws(
     () => packagePublicationState({
       name: "@threadlabs/looma",
-      version: "0.1.0",
+      version: "0.1.1",
       packageExists: true,
       approvedIntegrity: "sha512-approved",
       registryIntegrity: null
     }),
-    /already exists but 0\.1\.0 is not published/
+    /already exists but 0\.1\.1 is not published/
   );
 });
 
@@ -89,7 +89,7 @@ test("rejects an existing release with different bytes", () => {
   assert.throws(
     () => packagePublicationState({
       name: "@threadlabs/looma",
-      version: "0.1.0",
+      version: "0.1.1",
       packageExists: true,
       approvedIntegrity: "sha512-approved",
       registryIntegrity: "sha512-other"

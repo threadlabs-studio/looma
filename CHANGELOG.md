@@ -1,6 +1,22 @@
 # Changelog
 
+## v0.1.1 Candidate
+
+Looma Release 1 publishes one installable package with the same supported
+subpaths introduced in `0.1.0`. The editor dependency contract is corrected so
+the concrete Tiptap extensions used by Looma's preset install with the package;
+consumers provide only their compatible Tiptap core or framework lifecycle
+package. The protected release proof also runs its external SSR consumer on the
+declared Node 20 runtime.
+
+`0.1.0` reached npm during the first publication rehearsal but failed the clean
+public-consumer gate. It is superseded by this Candidate and is not a supported
+Release 1 artifact.
+
 ## v0.1.0 Candidate
+
+> Deprecated: the package omitted runtime dependencies required by its editor
+> entry. Use `0.1.1` or the `candidate` tag after qualification completes.
 
 Looma Release 1 defines one Candidate package for direct custom-element consumers
 and supported Vue 3 applications:

@@ -4,11 +4,11 @@ slug: /
 
 # Getting Started
 
-Looma Release 1 is a Candidate `0.1.0` package for Vue 3 and direct custom-element use. It is not Stable yet. React and Svelte adapters in the repository are internal previews and are not published or supported in Release 1.
+Looma Release 1 is a Candidate `0.1.1` package for Vue 3 and direct custom-element use. It is not Stable yet. React and Svelte adapters in the repository are internal previews and are not published or supported in Release 1.
 
 :::caution Confirm the Candidate tag
 
-These instructions target the exact `@threadlabs/looma@0.1.0` Candidate. Before adopting it, confirm that npm resolves that package at `0.1.0` under the `candidate` dist-tag. Preview documentation can be built before that registry gate; production documentation is published only after the gate passes.
+These instructions target the exact `@threadlabs/looma@0.1.1` Candidate. Before adopting it, confirm that npm resolves that package at `0.1.1` under the `candidate` dist-tag. Preview documentation can be built before that registry gate; production documentation is published only after the gate passes.
 
 :::
 
@@ -34,12 +34,11 @@ to the supported 2.x line:
 pnpm add @threadlabs/looma vue@^3.5.0 @tiptap/vue-3@^2.11.5
 ```
 
-Also install the optional Tiptap peers listed by
-`npm view @threadlabs/looma peerDependencies`, keeping every `@tiptap/*` package
-on a compatible 2.x version. Those peers are optional at the package level so
-core-only and general `/vue` consumers do not install an editor stack.
-`@tiptap/vue-3` is explicit because the consuming application—not Looma—owns
-Tiptap's Vue editor lifecycle and `EditorContent`.
+Looma installs the concrete Tiptap extensions used by its editor preset. You do
+not need to enumerate those packages yourself. `@tiptap/vue-3` is explicit
+because the consuming application—not Looma—owns Tiptap's Vue editor lifecycle,
+`EditorContent`, and compatible Tiptap core. Applications that use `/editor`
+without Vue should install a compatible `@tiptap/core` 2.x instead.
 
 The root package, `@threadlabs/looma/core`, `@threadlabs/looma/layout`, and
 `@threadlabs/looma/vue` work without Tiptap. Looma's `/editor` and

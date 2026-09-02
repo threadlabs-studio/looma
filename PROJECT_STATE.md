@@ -4,17 +4,18 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-08-30
-Status: Release 1 Candidate locally qualified; protected publication pending
+Last Updated: 2026-09-02
+Status: `0.1.0` publication rejected by the clean-consumer gate; `0.1.1` correction in qualification
 
 ## Current Focus
 
-- Preserve the qualified five-package `@threadlabs/looma-*` Candidate graph.
-- Configure the protected npm release identity, accountable approvers, and
-  first-publication credential or trusted-publisher path.
-- Publish the exact qualified `0.1.0` artifacts under `candidate` only after
-  explicit owner authorization, then run credential-free public consumers,
-  hosted-docs proof, Knit public-registry qualification, and promotion controls.
+- Qualify the corrected singleton `@threadlabs/looma@0.1.1` Candidate after the
+  first public `0.1.0` artifact failed the clean-consumer editor import.
+- Complete npm trusted publishing and revoke the temporary bypass-2FA bootstrap
+  credential before its January 2027 restriction.
+- Publish the exact qualified `0.1.1` artifact under `candidate`, then run
+  credential-free public consumers, hosted-docs proof, Knit public-registry
+  qualification, and promotion controls.
 - Keep React and Svelte deferred while Release 1 covers tokens, layout, core,
   editor, and Vue.
 
