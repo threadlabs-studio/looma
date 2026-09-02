@@ -1,6 +1,7 @@
 ---
 title: Stop the Whole Process Tree for Release Fixture Services
 date: 2026-08-31
+last_updated: 2026-09-02
 category: runtime-errors
 module: release-tooling
 problem_type: runtime_error
@@ -36,6 +37,8 @@ the command itself remains alive, which hangs local release rehearsal and CI.
   lines but does not return to the shell.
 - Process inspection shows the wrapper was signaled while Verdaccio survived as
   a descendant and retained the runner's captured output pipes.
+- CI can intermittently report that a descendant survived even though the
+  wrapper has already emitted its exit event.
 
 ## What Didn't Work
 
@@ -43,6 +46,10 @@ the command itself remains alive, which hangs local release rehearsal and CI.
   the direct `pnpm` wrapper, not the service processes it launches.
 - A timeout race without clearing the losing timer also delays an otherwise
   successful Node command until the timer expires.
+- Waiting only for the wrapper's `exit` event returns before slower descendants
+  have finished handling the same process-group signal.
+- Using `kill(pid, 0)` as the test oracle counts a terminated zombie as alive
+  until the operating system reaps it.
 
 ## Solution
 
@@ -65,21 +72,28 @@ if (process.platform !== "win32" && child.pid) {
 }
 ```
 
-`stopProcess()` first signals the group with `SIGTERM`, escalates to `SIGKILL`
-after a bounded wait, and clears the wait timer as soon as the wrapper exits.
-Both Verdaccio and the temporary Knit development server use this helper.
+`stopProcess()` first signals the group with `SIGTERM`, waits for the whole
+process group rather than only its leader, and escalates that group to
+`SIGKILL` after a bounded wait. The POSIX regression test gives the descendant
+a delayed `SIGTERM` handler, then verifies that it is no longer running; this
+makes the wrapper-versus-descendant timing boundary deterministic without
+misclassifying zombies. Both Verdaccio and the temporary Knit development
+server use this helper.
 
 ## Why This Works
 
 The shell or package-manager wrapper and the service it starts share the new
-process group. A negative PID targets that group on POSIX systems, so descendants
-cannot keep stdout or stderr pipes open after cleanup. Clearing the unused timer
-also prevents a successful cleanup from extending the Node event loop.
+process group. A negative PID targets that group on POSIX systems, and waiting
+for the group closes the race where the leader exits before a descendant.
+Descendants therefore cannot keep stdout or stderr pipes open after cleanup.
+Clearing the unused timer also prevents a successful cleanup from extending the
+Node event loop.
 
 ## Prevention
 
-- Test fixture cleanup with a wrapper that launches its own long-lived child;
-  assert that stopping the wrapper also makes the descendant PID disappear.
+- Test fixture cleanup with a wrapper that launches a child whose graceful exit
+  is deliberately delayed; assert that stopping the wrapper waits until the
+  descendant is no longer running.
 - Use one lifecycle helper for every long-running subprocess started by release
   tooling rather than duplicating direct-child signal logic.
 - Verify the real qualification command returns with exit code zero and leaves
