@@ -79,17 +79,6 @@ async function main() {
     authorization = scopeAuthorization({ username, scopeName, membership });
   }
 
-  const profileResult = run(
-    "npm",
-    ["profile", "get", "--json", "--registry", expectedRegistry],
-    { allowFailure: true }
-  );
-  if (profileResult.status !== 0) {
-    throw new Error("npm profile policy could not be read for the release identity");
-  }
-  const profile = parseJson(profileResult.stdout, "npm profile");
-  const twoFactorMode = profile.tfa?.mode ?? profile.tfa ?? "unknown";
-
   const packages = [];
   for (const releasePackage of RELEASE_PACKAGES) {
     const approvedPackage = approvedPackages.get(releasePackage.name);
@@ -146,7 +135,6 @@ async function main() {
         username,
         scope: `@${scopeName}`,
         scopeAuthorization: authorization,
-        twoFactorMode,
         packages,
         mutationPerformed: false
       },

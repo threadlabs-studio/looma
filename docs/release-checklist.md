@@ -195,7 +195,10 @@ publication. The present design assumes a GitHub-hosted runner, exact repository
 and workflow binding, `id-token: write` plus `contents: read`, npm CLI 11.5.1,
 exact Node 20.19.6 for pack/publish/promotion jobs, and matching public repository
 metadata for automatic provenance. `NPM_PREFLIGHT_TOKEN` must support `npm whoami`,
-`npm org ls`, `npm profile get`, and authenticated package metadata reads.
+`npm org ls`, and authenticated package metadata reads. It is deliberately a
+read-only granular token, so the preflight does not require npm account-profile
+access. The short-lived bootstrap publishing token, not the preflight identity,
+is the credential whose Bypass 2FA setting matters for first publication.
 `NPM_TOKEN` must be limited to the `@threadlabs` package scope with Bypass 2FA and
 must never reach the trusted-publishing step. Configure the trusted publisher with
 `release.yml`, the `npm-release` environment, and the `npm publish` allowed action.
