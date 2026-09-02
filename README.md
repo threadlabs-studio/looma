@@ -3,7 +3,7 @@
 Looma is a stack-agnostic UI library based on web standards and Open UI principles.
 
 > **Candidate availability:** Before installing, confirm that npm's `candidate`
-> dist-tag resolves `@threadlabs/looma@0.1.0`. A source or
+> dist-tag resolves `@threadlabs/looma@0.1.1`. A source or
 > documentation preview can exist before that registry gate passes.
 
 ## Install the Candidate
@@ -13,10 +13,11 @@ pnpm add @threadlabs/looma
 ```
 
 The root package and core, layout, and CSS subpaths require no framework or
-editor install. `@threadlabs/looma/vue` adds only Vue 3.5 or newer. Looma's editor
-is a Tiptap editor, so `@threadlabs/looma/editor` requires the declared Tiptap 2
-peers. `@threadlabs/looma/vue/editor` adds those Tiptap 2 peers plus
-`@tiptap/vue-3@^2.11.5` for Tiptap's official `useEditor` and `EditorContent`
+editor import. `@threadlabs/looma/vue` adds only Vue 3.5 or newer. Looma's editor
+is a Tiptap editor: its concrete extension preset ships inside the editor
+subpath, while an
+editor consumer supplies a compatible Tiptap 2 core. `@threadlabs/looma/vue/editor`
+uses `@tiptap/vue-3@^2.11.5` for Tiptap's official `useEditor` and `EditorContent`
 lifecycle APIs. The advanced
 `@threadlabs/looma/editor/ui` subpath exposes only raw web-component chrome.
 
@@ -32,7 +33,7 @@ for the exact imports and a Vue example.
 
 ## Release 1
 
-Looma Release 1 is a public npm **Candidate `0.1.0`**, not a claim that every
+Looma Release 1 is a public npm **Candidate `0.1.1`**, not a claim that every
 component or framework adapter is Stable. The sole public package is
 `@threadlabs/looma`, with explicit subpaths:
 

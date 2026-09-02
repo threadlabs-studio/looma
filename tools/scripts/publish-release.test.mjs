@@ -10,8 +10,8 @@ test("treats a dist-tagged version as pending while npm scans it", () => {
   assert.deepEqual(
     classifyRegistryPublication({
       integrity: null,
-      distTags: { candidate: "0.1.0", latest: "0.1.0" },
-      version: "0.1.0"
+      distTags: { candidate: "0.1.1", latest: "0.1.1" },
+      version: "0.1.1"
     }),
     { status: "pending", integrity: null }
   );
@@ -22,7 +22,7 @@ test("treats a version with neither metadata nor a dist-tag as unpublished", () 
     classifyRegistryPublication({
       integrity: null,
       distTags: { candidate: "0.0.9" },
-      version: "0.1.0"
+      version: "0.1.1"
     }),
     { status: "unpublished", integrity: null }
   );
@@ -34,7 +34,7 @@ test("waits for npm scanning before comparing published bytes", async () => {
 
   const integrity = await waitForRegistryIntegrity({
     name: "@threadlabs/looma",
-    version: "0.1.0",
+    version: "0.1.1",
     expectedIntegrity: "sha512-approved",
     attempts: 3,
     lookup: () => observations.shift(),
@@ -53,7 +53,7 @@ test("fails immediately when npm exposes different immutable bytes", async () =>
   await assert.rejects(
     waitForRegistryIntegrity({
       name: "@threadlabs/looma",
-      version: "0.1.0",
+      version: "0.1.1",
       expectedIntegrity: "sha512-approved",
       attempts: 3,
       lookup: () => "sha512-different",
@@ -71,7 +71,7 @@ test("reports npm scanning when a published version never becomes visible", asyn
   await assert.rejects(
     waitForRegistryIntegrity({
       name: "@threadlabs/looma",
-      version: "0.1.0",
+      version: "0.1.1",
       expectedIntegrity: "sha512-approved",
       attempts: 2,
       lookup: () => null,

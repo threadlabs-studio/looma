@@ -4,7 +4,7 @@
  */
 
 import type { Editor, Range } from "@tiptap/core";
-import { TableMap } from "prosemirror-tables";
+import { TableMap } from "@tiptap/pm/tables";
 import type { TableOverlayActionEventDetail } from "../table-overlay";
 
 interface TableNode {

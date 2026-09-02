@@ -13,12 +13,12 @@ const packages = ["@future/tokens", "@future/core", "@future/vue"];
 function manifest(overrides = {}) {
   return {
     schemaVersion: 1,
-    releaseVersion: "0.1.0",
+    releaseVersion: "0.1.1",
     sourceCommit,
     packages: packages.map((name, publishIndex) => ({
       publishIndex,
       name,
-      version: "0.1.0"
+      version: "0.1.1"
     })),
     ...overrides
   };
@@ -45,8 +45,8 @@ async function withDocsServer(routeBodies, run) {
 
 function validRoutes() {
   return {
-    "/": html(`Getting Started Release 1 Candidate 0.1.0 ${packages.join(" ")}`),
-    "/release-1-support/": html(`Release 1 Support and Limitations Candidate 0.1.0 ${packages.join(" ")}`),
+    "/": html(`Getting Started Release 1 Candidate 0.1.1 ${packages.join(" ")}`),
+    "/release-1-support/": html(`Release 1 Support and Limitations Candidate 0.1.1 ${packages.join(" ")}`),
     "/components/ui-context-menu/": html("Context Menu Candidate contract")
   };
 }
@@ -56,13 +56,13 @@ function registryEvidence(overrides = {}) {
     schemaVersion: 1,
     registry: "https://registry.npmjs.org/",
     sourceCommit,
-    releaseVersion: "0.1.0",
+    releaseVersion: "0.1.1",
     requiredTags: ["candidate"],
     packages: packages.map((name) => ({
       name,
-      version: "0.1.0",
+      version: "0.1.1",
       integrity: `sha512-${name}`,
-      distTags: { candidate: "0.1.0" }
+      distTags: { candidate: "0.1.1" }
     })),
     ...overrides
   };
@@ -80,8 +80,8 @@ test("verifies key hosted routes from manifest-derived package identities", asyn
     });
 
     assert.equal(evidence.result, "passed");
-    assert.equal(evidence.releaseVersion, "0.1.0");
-    assert.deepEqual(evidence.packages, packages.map((name) => ({ name, version: "0.1.0" })));
+    assert.equal(evidence.releaseVersion, "0.1.1");
+    assert.deepEqual(evidence.packages, packages.map((name) => ({ name, version: "0.1.1" })));
     assert.deepEqual(evidence.routes.map(({ status }) => status), [200, 200, 200]);
     for (const route of evidence.routes) assert.match(route.sha256, /^[a-f0-9]{64}$/);
   });
@@ -90,7 +90,7 @@ test("verifies key hosted routes from manifest-derived package identities", asyn
 test("rejects noindex on any deployed key route", async () => {
   const routes = validRoutes();
   routes["/release-1-support/"] = html(
-    `Release 1 Support and Limitations Candidate 0.1.0 ${packages.join(" ")}`,
+    `Release 1 Support and Limitations Candidate 0.1.1 ${packages.join(" ")}`,
     '<meta name="robots" content="noindex,nofollow">'
   );
   await withDocsServer(routes, async (baseUrl) => {
@@ -104,7 +104,7 @@ test("rejects noindex on any deployed key route", async () => {
 test("rejects stale pre-publication wording", async () => {
   const routes = validRoutes();
   routes["/"] = html(
-    `Getting Started Release 1 Candidate 0.1.0 ${packages.join(" ")} Packages are not published yet.`
+    `Getting Started Release 1 Candidate 0.1.1 ${packages.join(" ")} Packages are not published yet.`
   );
   await withDocsServer(routes, async (baseUrl) => {
     await assert.rejects(
@@ -120,7 +120,7 @@ test("rejects package or version drift from the release manifest", async () => {
   await withDocsServer(routes, async (baseUrl) => {
     await assert.rejects(
       verifyHostedDocs({ baseUrl, manifest: manifest(), checkoutCommit: sourceCommit, attempts: 1 }),
-      /@future\/tokens|version 0\.1\.0/
+      /@future\/tokens|version 0\.1\.1/
     );
   });
 });
@@ -136,7 +136,7 @@ test("rejects a manifest from another checkout", async () => {
 
 test("rejects Candidate registry evidence that does not match the manifest graph", () => {
   const evidence = registryEvidence();
-  evidence.packages[0].distTags.candidate = "0.1.1";
+  evidence.packages[0].distTags.candidate = "0.1.2";
   assert.throws(
     () => validateCandidateRegistryEvidence(manifest(), evidence),
     /does not bind @future\/tokens to the candidate tag/
