@@ -77,20 +77,7 @@ test("the facade declares the exact public subpath and peer contract", async () 
     "@tiptap/pm",
     "vue",
   ]);
-  for (const dependency of [
-    "@tiptap/extension-document",
-    "@tiptap/extension-paragraph",
-    "@tiptap/extension-text",
-    "@tiptap/extension-table",
-    "prosemirror-tables",
-  ]) {
-    assert.match(
-      manifest.dependencies[dependency],
-      /^\^/,
-      `${dependency} must install with Looma's editor implementation`,
-    );
-    assert.equal(manifest.peerDependenciesMeta[dependency], undefined);
-  }
+  assert.equal(manifest.dependencies, undefined);
   assert.ok(manifest.sideEffects.includes("./editor/*.js"));
   assert.ok(manifest.sideEffects.includes("./vue/index.js"));
   assert.ok(manifest.sideEffects.includes("./vue/editor/*.js"));
@@ -124,6 +111,18 @@ test("the assembly mapping covers every explicit facade export", async () => {
     ),
   );
   assert.equal(path.basename(facadeDirectory), "looma");
+});
+
+test("the editor bundles its preset extensions but externalizes the host runtime", async () => {
+  const [config, tableCommands] = await Promise.all([
+    readFile(path.join(repoRoot, "packages/editor/tsup.config.ts"), "utf8"),
+    readFile(path.join(repoRoot, "packages/editor/src/extensions/table-commands.ts"), "utf8"),
+  ]);
+
+  assert.match(config, /noExternal:\s*\[\/\^@tiptap\\\/extension-/);
+  assert.match(config, /external:\s*\["@tiptap\/core", "@tiptap\/pm"\]/);
+  assert.match(tableCommands, /from "@tiptap\/pm\/tables"/);
+  assert.doesNotMatch(tableCommands, /prosemirror-tables/);
 });
 
 test("facade definition verification does not require assembled output", async (context) => {

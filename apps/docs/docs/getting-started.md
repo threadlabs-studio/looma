@@ -34,8 +34,9 @@ to the supported 2.x line:
 pnpm add @threadlabs/looma vue@^3.5.0 @tiptap/vue-3@^2.11.5
 ```
 
-Looma installs the concrete Tiptap extensions used by its editor preset. You do
-not need to enumerate those packages yourself. `@tiptap/vue-3` is explicit
+Looma ships the concrete Tiptap extensions used by its editor preset inside the
+editor subpath. You do not need to enumerate those packages yourself.
+`@tiptap/vue-3` is explicit
 because the consuming application—not Looma—owns Tiptap's Vue editor lifecycle,
 `EditorContent`, and compatible Tiptap core. Applications that use `/editor`
 without Vue should install a compatible `@tiptap/core` 2.x instead.

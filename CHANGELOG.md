@@ -4,7 +4,7 @@
 
 Looma Release 1 publishes one installable package with the same supported
 subpaths introduced in `0.1.0`. The editor dependency contract is corrected so
-the concrete Tiptap extensions used by Looma's preset install with the package;
+the concrete Tiptap extensions used by Looma's preset ship inside the editor subpath;
 consumers provide only their compatible Tiptap core or framework lifecycle
 package. The protected release proof also runs its external SSR consumer on the
 declared Node 20 runtime.

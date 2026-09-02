@@ -14,7 +14,8 @@ pnpm add @threadlabs/looma
 
 The root package and core, layout, and CSS subpaths require no framework or
 editor import. `@threadlabs/looma/vue` adds only Vue 3.5 or newer. Looma's editor
-is a Tiptap editor: its concrete extension preset installs with Looma, while an
+is a Tiptap editor: its concrete extension preset ships inside the editor
+subpath, while an
 editor consumer supplies a compatible Tiptap 2 core. `@threadlabs/looma/vue/editor`
 uses `@tiptap/vue-3@^2.11.5` for Tiptap's official `useEditor` and `EditorContent`
 lifecycle APIs. The advanced
