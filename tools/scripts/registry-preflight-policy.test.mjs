@@ -72,16 +72,16 @@ test("allows resume when an existing release has the approved bytes", () => {
   );
 });
 
-test("rejects an occupied package without the release version", () => {
-  assert.throws(
-    () => packagePublicationState({
+test("allows a new version of an existing owner-controlled package", () => {
+  assert.deepEqual(
+    packagePublicationState({
       name: "@threadlabs/looma",
       version: "0.1.1",
       packageExists: true,
       approvedIntegrity: "sha512-approved",
       registryIntegrity: null
     }),
-    /already exists but 0\.1\.1 is not published/
+    { name: "@threadlabs/looma", version: "0.1.1", state: "version-available" }
   );
 });
 
