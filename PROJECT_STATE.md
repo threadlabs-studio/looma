@@ -4,21 +4,22 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-03 15:44 PDT
-Status: `main` is prepared for `0.1.3`; public Candidate `0.1.2` is independently qualified in Knit; `0.1.1` remains `latest`
+Last Updated: 2026-09-03 17:30 PDT
+Status: responsive layout work targets Candidate `0.1.4`; public Candidate `0.1.3` is qualified; `0.1.1` remains `latest`
 
 ## Current Focus
 
-- Qualify the responsive layout and viewport-safety fixes for the next Looma
-  Candidate, then remove Knit’s temporary package patch after publication.
-- Decide whether to complete the frozen `0.1.2` promotion or supersede it with
-  a qualified `0.1.3` Candidate after the contextual-editing work on `main`.
-- If `0.1.2` remains the promotion target, refresh its production hosted-docs
-  evidence and run the owner-approved promotion with the public Knit evidence.
+- Publish the responsive layout and viewport-safety fixes as Candidate `0.1.4`,
+  then remove Knit’s temporary package patch and qualify the public bytes.
+- Decide whether Candidate `0.1.4` or an earlier immutable Candidate should be
+  promoted to `latest`; Candidate publication does not make that decision.
+- Before promotion, refresh the chosen immutable Candidate's production
+  hosted-docs evidence and run the owner-approved promotion with public Knit
+  evidence for those exact bytes.
 - Complete npm trusted publishing and revoke the temporary bypass-2FA bootstrap
   credential before its January 2027 restriction.
-- Keep qualified `0.1.1` under `latest` until the exact immutable `0.1.2`
-  Candidate completes its hosted-docs, promotion, and release-record gates.
+- Keep qualified `0.1.1` under `latest` until an exact immutable Candidate
+  completes its hosted-docs, promotion, and release-record gates.
 - Keep React and Svelte deferred while Release 1 covers tokens, layout, core,
   editor, and Vue.
 
@@ -38,8 +39,10 @@ Status: `main` is prepared for `0.1.3`; public Candidate `0.1.2` is independentl
     property-driven framework adapters can open dialogs without reflecting an
     `open` attribute.
 - Release 1 namespace and local qualification:
-  - `main` is prepared for `0.1.3` after contextual-editing improvements landed
-    in merge commit `5057d36ed1b877f8111e3683d5eeb367cef9dfcc`.
+  - `@threadlabs/looma@0.1.3` is published under `candidate` from exact commit
+    `48d86c1b2f8fa53111c56aad17becd00f4123cfb`. Candidate workflow run
+    `33809933800` and exact-main CI run `33809269643` passed.
+  - Responsive layout work advances the next immutable Candidate to `0.1.4`.
   - `@threadlabs/looma@0.1.2` is published under `candidate` from exact commit
     `976dabb49e165b521cc6efe4d8f1dfecd6cebd72`. Candidate workflow run
     `33790406837` and exact-main CI run `33789984966` passed.

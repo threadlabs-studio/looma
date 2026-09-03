@@ -2,7 +2,11 @@
 
 ## Unreleased
 
-Layout and common overlay surfaces now preserve their intended display modes
+No changes yet.
+
+## v0.1.4 Candidate
+
+Layout and common overlay surfaces preserve their intended display modes
 through Looma's light-DOM reset and stay within narrow or safe-area-constrained
 viewports. Grid minimums collapse without horizontal overflow, centered content
 remains fluid, mobile search fills the dynamic viewport, and fixed controls,
@@ -12,7 +16,7 @@ The layout package also adds intrinsic `ui-switcher`, `ui-sidebar`, and
 keyboard-focusable `ui-reel` primitives, with matching Vue, React, and Svelte
 adapter exports.
 
-Property-controlled dialogs now use their rendered `data-open` state for host
+Property-controlled dialogs use their rendered `data-open` state for host
 visibility, matching framework adapters that set the `open` property rather
 than reflecting an HTML attribute.
 
