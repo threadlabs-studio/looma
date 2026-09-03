@@ -1,6 +1,6 @@
 # Release 1 Checklist
 
-This is the go/no-go ledger for Looma Candidate `0.1.1`. A checked source or build
+This is the go/no-go ledger for Looma Candidate `0.1.2`. A checked source or build
 item is evidence, not permission to publish. Registry mutation requires all owner,
 security, artifact, consumer, documentation, and rollback gates.
 
@@ -35,11 +35,11 @@ the publishing credential's package capability is first exercised by the guarded
 - [x] Layout's formerly false CommonJS export now points to a real CJS build required by the docs server bundle.
 - [x] Source-derived classification enforces generated API, docs, navigation,
   supported Vue map/export, and required contract README coverage for all 38 published tags.
-- [x] The public facade manifest uses `0.1.1`, public access, complete metadata,
+- [x] The public facade manifest uses `0.1.2`, public access, complete metadata,
   correct peer ranges, and the exact export map; assembly workspaces remain private.
 - [x] The packed artifact contains runtime output, types, styles, README, and license,
   and excludes tests, local config, secrets, and source-only material.
-- [x] Local inspection assembles and packs the exact `@threadlabs/looma@0.1.1`
+- [x] Local inspection assembles and packs the exact `@threadlabs/looma@0.1.2`
   facade, rejects empty/forbidden/missing files and private-workspace leakage,
   and records SHA-256, byte size, source commit, and toolchain.
 
@@ -52,8 +52,8 @@ eligible only when it supplies those accountable owners.
 
 ## Verification Gates
 
-- [ ] Declared Node/pnpm runtime passes clean build, lint, typecheck, and tests.
-- [ ] Docs generation is deterministic and leaves a clean tree.
+- [x] Declared Node/pnpm runtime passes clean build, lint, typecheck, and tests.
+- [x] Docs generation is deterministic and leaves a clean tree.
 - [x] Unit, accessibility, adapter-render, SSR-import, and required Chromium browser gates pass locally without required skips.
 - [x] A clean external fixture installs only the approved tarball and consumes every public entry/style.
 - [x] Knit installs only the approved tarball and passes production build,
@@ -61,9 +61,8 @@ eligible only when it supplies those accountable owners.
 - [x] E-TBL-003 is explicitly accepted as a Candidate visual limitation with
   browser accessibility/keyboard evidence and Tiptap data-integrity proof.
 
-The remaining declared-runtime and clean-generation checks require the committed
-release tree to pass the Node 20 CI job. Record the exact successful `ci.yml`
-push run ID for `main`; its `head_sha` must equal the release workflow commit.
+The declared-runtime and clean-generation checks passed in exact-main CI run
+`33789984966` for commit `976dabb49e165b521cc6efe4d8f1dfecd6cebd72`.
 The job installs Chromium, checks generated
 output immutability, rejects skipped required suites, and runs core, editor, and
 Vue browser qualification. The exact Stencil CJS filename diagnostic is the sole
@@ -126,6 +125,11 @@ were optional peers and therefore absent. npm versions are immutable. `0.1.0`
 is rejected as Release 1; the corrected dependency graph is qualified and
 published as `0.1.1` without reusing the defective version.
 
+Candidate `0.1.2` carries the table context-menu viewport correction on top of
+that qualified public facade. It is published under `candidate`; `0.1.1`
+remains under `latest` until the current candidate completes its separate docs,
+Knit, promotion, and release-record gates.
+
 Candidate publication and `latest` promotion are two separate manual workflow
 dispatches. The Candidate dispatch sets `publish_candidate` and supplies
 `ci_workflow_run_id` for the successful `ci.yml` push on `main` whose `head_sha`
@@ -142,9 +146,9 @@ hashes and locations before the first `latest` mutation.
 
 - [x] The release workflow is manual, main-only, serialized, environment-gated,
   and declares minimal per-job permissions.
-- [x] Candidate workflow run `33695565959` validated exact-main CI run
-  `33695255002`; both bind source commit
-  `29149856d402c137b36f8ed45b1a61db485d5dec`.
+- [x] Candidate workflow run `33790406837` validated exact-main CI run
+  `33789984966`; both bind source commit
+  `976dabb49e165b521cc6efe4d8f1dfecd6cebd72`.
 - [x] Third-party actions are pinned to full commit SHAs and checkout credentials are not persisted.
 - [x] The generated manifest captures the approved tarball, its sorted file
   inventory and SHA-256 hash, source commit, toolchain, and planned tags.
@@ -179,16 +183,17 @@ hashes and locations before the first `latest` mutation.
   build, SSR compilation, and signup-critical unit-flow gates; local-registry
   proof does not satisfy this gate.
 - [ ] Trusted publishing is configured for `@threadlabs/looma` after bootstrap and bootstrap reuse fails after revocation.
-- [x] Public install docs and hosted component docs resolve and match the released contract.
+- [ ] Production hosted-docs evidence is refreshed for exact Candidate `0.1.2`.
 - [ ] Owner approves promotion of the same immutable versions from `candidate` to `latest`.
 
 The content-free public Knit proof is
-`docs/release-evidence/knit-public-registry-0.1.1.json`, SHA-256
-`f524eec96c288337b91ff6cc77ae2416de2bbf6f954f14a0eaaf4b174794c12c`.
-It binds private Knit commit `7f7cbbdb2ecd291a1b88d961dadac0464d066101`
-to a credential-free frozen install of the public `0.1.1` bytes, all 361 tests,
-typecheck, and a production Vercel-target build without claiming the remaining
-protected staging or launch gates.
+`docs/release-evidence/knit-public-registry-0.1.2.json`, SHA-256
+`b5357612c0397808de3dae76b612caf1270e93ef45231e454037d87394cf880b`.
+It binds private Knit commit `2207e9bc470bfe9807e7fba5c2033a4b5d15f725`
+to a credential-free frozen install of the public `0.1.2` bytes, 127 script and
+policy tests, 333 application unit tests, typecheck, lint, and a production
+Vercel-target build without claiming the remaining protected staging or launch
+gates.
 
 ## Immutable Release Record Gates
 
@@ -200,12 +205,12 @@ existing lightweight tag points to the manifest source commit and existing
 release metadata or attachments match the approved record exactly.
 
 - [ ] The promotion ledger reports `succeeded` / `registry-verified` for the
-  exact singleton manifest and proves both `candidate` and `latest` at `0.1.1`.
+  exact singleton manifest and proves both `candidate` and `latest` at `0.1.2`.
 - [ ] The ledger binds the public Knit evidence SHA-256 and URL, hosted-docs
   evidence SHA-256 and URL, production docs URL, and canonical Candidate run URL.
-- [ ] Lightweight tag `v0.1.1` is absent or points directly to the exact manifest
+- [ ] Lightweight tag `v0.1.2` is absent or points directly to the exact manifest
   source commit; an annotated or mismatched tag is a hard stop.
-- [ ] GitHub Release `Looma v0.1.1 Candidate` uses the matching tag and the
+- [ ] GitHub Release `Looma v0.1.2 Candidate` uses the matching tag and the
   `CHANGELOG.md` Candidate notes without replacing a mismatched existing record.
 - [ ] The exact `release-manifest.json` and `registry-promotion.json` bytes are
   attached; retries skip matching assets and reject mismatched same-name assets.
