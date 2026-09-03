@@ -11,6 +11,9 @@ import {
   Button,
   ContextMenu,
   FloatingActionButton,
+  Switcher,
+  Sidebar,
+  Reel,
   Menu,
   MenuItem,
   Radio,
@@ -51,6 +54,22 @@ describe("@threadlabs/looma-vue adapter", () => {
     expect(ADAPTER_COMPONENT_TAG_MAP.AvatarGroup).toBe("ui-avatar-group");
     expect(ADAPTER_COMPONENT_TAG_MAP.FloatingActionButton).toBe("ui-floating-action-button");
     expect(ADAPTER_COMPONENT_TAG_MAP.ContextMenu).toBe("ui-context-menu");
+    expect(ADAPTER_COMPONENT_TAG_MAP.Switcher).toBe("ui-switcher");
+    expect(ADAPTER_COMPONENT_TAG_MAP.Sidebar).toBe("ui-sidebar");
+    expect(ADAPTER_COMPONENT_TAG_MAP.Reel).toBe("ui-reel");
+  });
+
+  it("renders intrinsic layout wrappers as native tags", () => {
+    const { host } = mount(() =>
+      h(Switcher, { threshold: "sm" }, () => [
+        h(Sidebar, { side: "start" }, () => "Sidebar"),
+        h(Reel, { "item-width": "md" }, () => "Reel")
+      ])
+    );
+
+    expect(host.querySelector("ui-switcher[threshold='sm']")).toBeTruthy();
+    expect(host.querySelector("ui-sidebar[side='start']")).toBeTruthy();
+    expect(host.querySelector("ui-reel[item-width='md']")).toBeTruthy();
   });
 
   it("renders wrappers with forwarded attrs and default slot content", () => {

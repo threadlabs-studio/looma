@@ -31,6 +31,30 @@ describe("@threadlabs/looma-layout primitives", () => {
     expect(inline.wrap).toBe("wrap");
   });
 
+  it.each([
+    ["ui-switcher", "threshold", "threshold", "lg"],
+    ["ui-sidebar", "side", "side", "end"],
+    ["ui-reel", "itemWidth", "item-width", "md"]
+  ])("reflects the %s responsive attribute", (tag, property, attribute, value) => {
+    const element = document.createElement(tag) as HTMLElement & Record<string, string>;
+
+    element[property] = value;
+    expect(element.getAttribute(attribute)).toBe(value);
+
+    element[property] = "";
+    expect(element.hasAttribute(attribute)).toBe(false);
+  });
+
+  it("makes reels keyboard-focusable scroll regions without overwriting consumer labels", () => {
+    const reel = document.createElement("ui-reel");
+    reel.setAttribute("aria-label", "Recent pages");
+    document.body.append(reel);
+
+    expect(reel.getAttribute("role")).toBe("region");
+    expect(reel.getAttribute("tabindex")).toBe("0");
+    expect(reel.getAttribute("aria-label")).toBe("Recent pages");
+  });
+
   it("applies sensible separator accessibility defaults", () => {
     const separator = document.createElement("ui-separator") as HTMLElement & { orientation: string };
     document.body.append(separator);
@@ -62,6 +86,16 @@ describe("@threadlabs/looma-layout css policy", () => {
     expect(css).toContain("minmax(min(var(--ui-grid-min), 100%), 1fr)");
     expect(css).toMatch(/ui-center\s*{[\s\S]*?inline-size:\s*100%;/);
     expect(css).toMatch(/ui-center\s*{[\s\S]*?max-inline-size:\s*var\(--ui-center-measure\);/);
+  });
+
+  it("provides intrinsic switcher, sidebar, and reel layout contracts", () => {
+    const css = readFileSync("src/layout.css", "utf8");
+
+    expect(css).toMatch(/ui-switcher\s*>\s*\*\s*{[\s\S]*?flex-basis:\s*calc\(/);
+    expect(css).toMatch(/ui-sidebar\s*>\s*:\s*first-child/);
+    expect(css).toMatch(/ui-sidebar\[side="end"\]\s*>\s*:\s*last-child/);
+    expect(css).toMatch(/ui-reel\s*{[\s\S]*?overflow-x:\s*auto;/);
+    expect(css).toMatch(/ui-reel\[snap="start"\]\s*>\s*\*/);
   });
 
   it("does not introduce external margins for spacing", () => {

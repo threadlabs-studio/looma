@@ -15,6 +15,12 @@ breakpoint state.
   horizontal overflow.
 - `ui-center` fills the available inline size up to its measure, with gutters
   included in that measured box.
+- `ui-switcher` changes from equal-width siblings to a single column based on
+  its own available inline size, not a viewport media query.
+- `ui-sidebar` preserves a configurable minimum for its content child and wraps
+  the side region above or below it when the pair cannot fit.
+- `ui-reel` contains intentional horizontal overflow, remains keyboard
+  focusable, and optionally exposes inline scroll snapping.
 - Named spacing and measure attributes remain token-driven. Applications can
   tune the corresponding custom properties without coupling layout to a fixed
   viewport breakpoint.

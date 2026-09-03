@@ -21,12 +21,55 @@ describe("responsive light-DOM layout", () => {
       <ui-inline></ui-inline>
       <ui-grid></ui-grid>
       <ui-center></ui-center>
+      <ui-switcher></ui-switcher>
+      <ui-sidebar></ui-sidebar>
+      <ui-reel></ui-reel>
     `;
 
     expect(getComputedStyle(document.querySelector("ui-stack")!).display).toBe("flex");
     expect(getComputedStyle(document.querySelector("ui-inline")!).display).toBe("flex");
     expect(getComputedStyle(document.querySelector("ui-grid")!).display).toBe("grid");
     expect(getComputedStyle(document.querySelector("ui-center")!).display).toBe("block");
+    expect(getComputedStyle(document.querySelector("ui-switcher")!).display).toBe("flex");
+    expect(getComputedStyle(document.querySelector("ui-sidebar")!).display).toBe("flex");
+    expect(getComputedStyle(document.querySelector("ui-reel")!).display).toBe("flex");
+  });
+
+  it("switches children to a single column below its intrinsic threshold", () => {
+    document.body.innerHTML = `
+      <div style="inline-size: 280px">
+        <ui-switcher threshold="sm"><button>One</button><button>Two</button></ui-switcher>
+      </div>
+    `;
+
+    const children = document.querySelectorAll<HTMLElement>("ui-switcher > *");
+    expect(children[0]!.getBoundingClientRect().width).toBe(children[1]!.getBoundingClientRect().width);
+    expect(children[0]!.offsetTop).toBeLessThan(children[1]!.offsetTop);
+  });
+
+  it("keeps sidebar content above its intrinsic minimum", () => {
+    document.body.innerHTML = `
+      <div style="inline-size: 720px">
+        <ui-sidebar><aside>Navigation</aside><main>Content</main></ui-sidebar>
+      </div>
+    `;
+
+    const sidebar = document.querySelector<HTMLElement>("ui-sidebar")!;
+    const main = sidebar.querySelector<HTMLElement>("main")!;
+    expect(main.getBoundingClientRect().width).toBeGreaterThan(sidebar.getBoundingClientRect().width / 2);
+  });
+
+  it("contains reel overflow within the scrolling primitive", () => {
+    document.body.innerHTML = `
+      <div id="parent" style="inline-size: 320px">
+        <ui-reel item-width="md"><div>A</div><div>B</div><div>C</div></ui-reel>
+      </div>
+    `;
+
+    const parent = document.querySelector<HTMLElement>("#parent")!;
+    const reel = document.querySelector<HTMLElement>("ui-reel")!;
+    expect(reel.scrollWidth).toBeGreaterThan(reel.clientWidth);
+    expect(parent.scrollWidth).toBe(parent.clientWidth);
   });
 
   it("does not let a grid minimum overflow a narrow parent", () => {
