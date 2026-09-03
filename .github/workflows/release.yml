@@ -271,6 +271,23 @@ jobs:
           run-id: ${{ inputs.candidate_workflow_run_id }}
           github-token: ${{ github.token }}
 
+      - name: Resolve exact Candidate source commit
+        id: candidate-source
+        run: |
+          source_commit="$(jq -r '.sourceCommit' .release/artifacts/release-manifest.json)"
+          if [[ ! "$source_commit" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "Candidate manifest sourceCommit must be a full lowercase Git SHA" >&2
+            exit 1
+          fi
+          echo "source_commit=$source_commit" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout exact Candidate source commit
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ steps.candidate-source.outputs.source_commit }}
+          clean: false
+          persist-credentials: false
+
       - name: Reverify clean public-registry consumer before promotion
         run: pnpm release:verify-public-consumer
 
@@ -333,6 +350,23 @@ jobs:
           path: .release/artifacts/
           run-id: ${{ inputs.candidate_workflow_run_id }}
           github-token: ${{ github.token }}
+
+      - name: Resolve exact Candidate source commit
+        id: candidate-source
+        run: |
+          source_commit="$(jq -r '.sourceCommit' .release/artifacts/release-manifest.json)"
+          if [[ ! "$source_commit" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "Candidate manifest sourceCommit must be a full lowercase Git SHA" >&2
+            exit 1
+          fi
+          echo "source_commit=$source_commit" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout exact Candidate source commit
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ steps.candidate-source.outputs.source_commit }}
+          clean: false
+          persist-credentials: false
 
       - name: Download promotion evidence from this run
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4

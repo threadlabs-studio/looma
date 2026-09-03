@@ -196,6 +196,35 @@ test("promotion downloads immutable bytes from the prior Candidate workflow run"
   assert.match(promoteJob, /LOOMA_HOSTED_DOCS_URL: \$\{\{ inputs\.hosted_docs_url \}\}/);
 });
 
+test("promotion and release record execute from the immutable Candidate source", () => {
+  for (const [jobName, job, nextStep] of [
+    ["promotion", promoteJob, "Reverify clean public-registry consumer before promotion"],
+    ["release record", releaseRecordJob, "Download promotion evidence from this run"]
+  ]) {
+    const manifestDownload = job.indexOf("Download exact release manifest from Candidate run") >= 0
+      ? job.indexOf("Download exact release manifest from Candidate run")
+      : job.indexOf("Download approved release bytes from Candidate run");
+    const sourceResolution = job.indexOf("Resolve exact Candidate source commit");
+    const sourceCheckout = job.indexOf("Checkout exact Candidate source commit");
+    const continuation = job.indexOf(nextStep);
+    const sourceCheckoutStep = job.match(
+      /- name: Checkout exact Candidate source commit[\s\S]*?(?=\n\s+- name:)/
+    )?.[0] ?? "";
+
+    assert.ok(manifestDownload >= 0, `${jobName} must download the Candidate manifest`);
+    assert.ok(sourceResolution > manifestDownload, `${jobName} must resolve source after download`);
+    assert.ok(sourceCheckout > sourceResolution, `${jobName} must checkout the resolved source`);
+    assert.ok(continuation > sourceCheckout, `${jobName} must use Candidate source for execution`);
+    assert.match(job, /jq -r '\.sourceCommit' \.release\/artifacts\/release-manifest\.json/);
+    assert.match(
+      sourceCheckoutStep,
+      /ref: \$\{\{ steps\.candidate-source\.outputs\.source_commit \}\}/
+    );
+    assert.match(sourceCheckoutStep, /clean: false/);
+    assert.match(sourceCheckoutStep, /persist-credentials: false/);
+  }
+});
+
 test("publication consumes the verified manifest and starts on candidate", () => {
   assert.match(workflow, /pnpm release:verify/);
   assert.match(workflow, /actions\/upload-artifact@/);
