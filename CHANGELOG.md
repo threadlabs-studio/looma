@@ -12,6 +12,10 @@ The layout package also adds intrinsic `ui-switcher`, `ui-sidebar`, and
 keyboard-focusable `ui-reel` primitives, with matching Vue, React, and Svelte
 adapter exports.
 
+Property-controlled dialogs now use their rendered `data-open` state for host
+visibility, matching framework adapters that set the `open` property rather
+than reflecting an HTML attribute.
+
 ## v0.1.3 Candidate
 
 Buttons expose a typed `outline`, `solid`, `destructive`, and `ghost`

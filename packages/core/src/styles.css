@@ -514,11 +514,11 @@
   }
 
   /* Dialog: hidden when closed so multiple instances don’t stack in layout */
-  ui-dialog:not([open]) {
+  ui-dialog:not([data-open]) {
     display: none;
   }
 
-  ui-dialog[open] {
+  ui-dialog[data-open] {
     display: block;
   }
 

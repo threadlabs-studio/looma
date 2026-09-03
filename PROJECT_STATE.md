@@ -34,6 +34,9 @@ Status: `main` is prepared for `0.1.3`; public Candidate `0.1.2` is independentl
   - Added intrinsic Switcher, Sidebar, and Reel primitives across the custom
     element surface and framework adapters, including keyboard-accessible reel
     overflow and Chromium layout coverage.
+  - Aligned dialog host visibility with the rendered `data-open` state so
+    property-driven framework adapters can open dialogs without reflecting an
+    `open` attribute.
 - Release 1 namespace and local qualification:
   - `main` is prepared for `0.1.3` after contextual-editing improvements landed
     in merge commit `5057d36ed1b877f8111e3683d5eeb367cef9dfcc`.

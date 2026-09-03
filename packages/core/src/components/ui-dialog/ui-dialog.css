@@ -2,7 +2,7 @@
   display: block;
 }
 
-:host:not([open]) {
+:host:not([data-open]) {
   display: none;
 }
 
