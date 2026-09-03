@@ -26,21 +26,29 @@ async function artifactIntegrity(filePath, expectedSha256) {
 }
 
 export async function fetchRegistryPackage(name, version, fetchImpl = fetch) {
-  const response = await fetchImpl(new URL(encodeURIComponent(name), registry), {
+  const encodedName = encodeURIComponent(name);
+  const requestOptions = {
     cache: "no-store",
     headers: { accept: "application/json", "cache-control": "no-cache" }
-  });
-  if (!response.ok) {
+  };
+  const [packumentResponse, distTagsResponse] = await Promise.all([
+    fetchImpl(new URL(encodedName, registry), requestOptions),
+    fetchImpl(new URL(`-/package/${encodedName}/dist-tags`, registry), requestOptions)
+  ]);
+  if (!packumentResponse.ok) {
     return { name, version, public: false, distTags: {} };
   }
-  const packument = await response.json();
+  const [packument, distTags] = await Promise.all([
+    packumentResponse.json(),
+    distTagsResponse.ok ? distTagsResponse.json() : Promise.resolve({})
+  ]);
   const metadata = packument.versions?.[version];
   if (!metadata) {
     return {
       name,
       version,
       public: true,
-      distTags: packument["dist-tags"] ?? {}
+      distTags
     };
   }
   return {
@@ -54,7 +62,7 @@ export async function fetchRegistryPackage(name, version, fetchImpl = fetch) {
     dependencies: metadata.dependencies ?? {},
     optionalDependencies: metadata.optionalDependencies ?? {},
     peerDependencies: metadata.peerDependencies ?? {},
-    distTags: packument["dist-tags"] ?? {},
+    distTags,
     provenancePredicateType: metadata.dist?.attestations?.provenance?.predicateType ?? null
   };
 }
