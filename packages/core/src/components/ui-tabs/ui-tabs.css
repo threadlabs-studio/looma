@@ -11,6 +11,9 @@
 ::slotted([role='tablist']) {
   display: flex;
   gap: 0;
+  max-inline-size: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
   border-bottom: 1px solid var(--ui-border-default);
 }
 

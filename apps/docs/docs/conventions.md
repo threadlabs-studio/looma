@@ -38,7 +38,7 @@ Components do not set external margins. Layout primitives own inter-component rh
 
 Layout and editor elements use light DOM. Core elements attach shadow roots after upgrade while preserving consumer-authored semantic content through slots. To keep host integration predictable:
 
-- Light-DOM Looma hosts apply a scoped reset (`all: revert`) and re-add required defaults from Looma tokens.
+- Light-DOM Looma hosts apply a scoped reset (`all: revert-layer`) and re-add required defaults from Looma tokens.
 - Each Looma host uses token-driven typography/color by default (`--ui-font-*`, `--ui-text-*`).
 - Component subtrees use scoped border-box (`host`, `host *`, `host *::before`, `host *::after`).
 - We do not apply a global page reset from Looma packages.
@@ -47,7 +47,7 @@ Layout and editor elements use light DOM. Core elements attach shadow roots afte
 
 Looma uses a hybrid `@layer` approach so isolation stays robust while theming stays overridable:
 
-- **Unlayered (contract):** Host reset (`all: revert`), scoped box-sizing, core typography baseline, and `data-ui-inherit-typography` behavior. These rules are not in any layer so they reliably win over layered page CSS.
+- **Unlayered (contract):** Host reset (`all: revert-layer`), scoped box-sizing, core typography baseline, and `data-ui-inherit-typography` behavior. `revert-layer` removes unrelated unlayered defaults while revealing Looma's own component-layer display and sizing declarations; later unlayered page CSS can still compose the host.
 - **Layered (theme/variants):** Component visual styles (colors, borders, sizes, variants) and utilities (`.ui-scope`, `.ui-font-*`) live in `@layer components` and `@layer utilities`. Unlayered page CSS can override them for theming.
 
 ### Opt-in Typography Inheritance

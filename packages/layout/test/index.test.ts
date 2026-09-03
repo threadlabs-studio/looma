@@ -49,6 +49,21 @@ describe("@threadlabs/looma-layout primitives", () => {
 });
 
 describe("@threadlabs/looma-layout css policy", () => {
+  it("preserves component-layer display declarations through the light-DOM reset", () => {
+    const css = readFileSync("src/layout.css", "utf8");
+
+    expect(css).toContain("all: revert-layer;");
+    expect(css).not.toMatch(/all:\s*revert;/);
+  });
+
+  it("keeps grid columns and centered content inside narrow containers", () => {
+    const css = readFileSync("src/layout.css", "utf8");
+
+    expect(css).toContain("minmax(min(var(--ui-grid-min), 100%), 1fr)");
+    expect(css).toMatch(/ui-center\s*{[\s\S]*?inline-size:\s*100%;/);
+    expect(css).toMatch(/ui-center\s*{[\s\S]*?max-inline-size:\s*var\(--ui-center-measure\);/);
+  });
+
   it("does not introduce external margins for spacing", () => {
     const css = readFileSync("src/layout.css", "utf8");
     const marginDeclarations = Array.from(css.matchAll(/\bmargin\s*:\s*([^;]+);/g)).map((match) =>

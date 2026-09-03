@@ -1,4 +1,4 @@
-/* Unlayered: isolation contract (hard guarantees). Layered rules lose to unlayered page CSS. */
+/* Unlayered: box-model guarantees. Later page CSS can still compose component hosts. */
 :where(
   ui-button,
   ui-input,
@@ -107,7 +107,8 @@
   ui-avatar,
   ui-avatar-group
 ) {
-  all: revert;
+  /* Reveal Looma's component layer instead of reverting past it. */
+  all: revert-layer;
   box-sizing: border-box;
   margin: 0;
   font-family: var(--ui-font-family-sans);

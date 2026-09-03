@@ -15,6 +15,10 @@ Container primitive for readable measure and horizontal gutters.
 | `measure` | `narrow \| wide \| string` | `65ch` |
 | `gutters` | `s \| m \| l \| string` | `m` |
 
+Center fills the available width until it reaches its measure. Its gutters are
+part of that measured box, so the primitive stays viewport-safe when nested in
+narrow panels or application shells.
+
 ## Properties
 
 | Name | Type |
