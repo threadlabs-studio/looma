@@ -1,5 +1,25 @@
 # Changelog
 
+## Unreleased
+
+No changes yet.
+
+## v0.1.4 Candidate
+
+Layout and common overlay surfaces preserve their intended display modes
+through Looma's light-DOM reset and stay within narrow or safe-area-constrained
+viewports. Grid minimums collapse without horizontal overflow, centered content
+remains fluid, mobile search fills the dynamic viewport, and fixed controls,
+menus, popovers, tabs, and dialogs have explicit responsive bounds.
+
+The layout package also adds intrinsic `ui-switcher`, `ui-sidebar`, and
+keyboard-focusable `ui-reel` primitives, with matching Vue, React, and Svelte
+adapter exports.
+
+Property-controlled dialogs use their rendered `data-open` state for host
+visibility, matching framework adapters that set the `open` property rather
+than reflecting an HTML attribute.
+
 ## v0.1.3 Candidate
 
 Buttons expose a typed `outline`, `solid`, `destructive`, and `ghost`

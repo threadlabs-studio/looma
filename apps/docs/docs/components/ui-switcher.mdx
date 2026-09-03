@@ -1,0 +1,33 @@
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# Switcher
+
+Intrinsic equal-column layout that stacks when its own container becomes too narrow.
+
+## Component Reference
+
+<ComponentExamplesApiTabs component="ui-switcher" />
+
+Use `threshold="xs | sm | md | lg"`, `gap="xs | s | m | l"`, and
+`align="start | center | end"`. Override `--ui-switcher-threshold` when the
+named thresholds do not fit a composition.
+
+```html
+<ui-switcher threshold="sm" gap="m">
+  <article>Plan A</article>
+  <article>Plan B</article>
+</ui-switcher>
+```
+
+```vue
+<script setup lang="ts">
+import { Switcher } from "@threadlabs/looma/vue";
+</script>
+
+<template>
+  <Switcher threshold="sm" gap="m">
+    <article>Plan A</article>
+    <article>Plan B</article>
+  </Switcher>
+</template>
+```

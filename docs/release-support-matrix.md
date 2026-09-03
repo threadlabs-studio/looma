@@ -1,6 +1,6 @@
 # Release 1 Support Matrix
 
-Release 1 is a public npm **Candidate `0.1.3`** for the smallest Looma surface
+Release 1 is a public npm **Candidate `0.1.4`** for the smallest Looma surface
 needed by Knit. It is not semver `1.0.0`, a Stable declaration, or a
 promise that every repository package and roadmap item is supported.
 
@@ -20,7 +20,8 @@ authorization still requires the protected owner preflight before registry mutat
 
 ### Layout: published Candidate
 
-`ui-center`, `ui-cluster`, `ui-grid`, `ui-inline`, `ui-separator`, `ui-stack`.
+`ui-center`, `ui-cluster`, `ui-grid`, `ui-inline`, `ui-reel`, `ui-separator`,
+`ui-sidebar`, `ui-stack`, `ui-switcher`.
 
 ### Core: published Candidate
 
@@ -76,7 +77,7 @@ is a release defect, not a reason to silently shrink the source inventory.
 | ContextMenu projections | API metadata, docs, navigation, contract README, Vue map/export, and render test complete | Must stay clean through publication |
 | Browser/a11y/adapter/package gates | Chromium interaction and axe checks pass for representative core/editor surfaces; Vue registers and renders the supported baseline without warnings; Node imports public core and packed graph entries without DOM globals | Keep mandatory, unskipped, and warning-clean in CI |
 | Editor E-TBL-003 | Accepted Candidate visual limitation with Chromium and Tiptap data-integrity evidence | Do not claim Confluence parity; any data loss remains release-blocking |
-| Packed package | One local `@threadlabs/looma@0.1.3` tarball passes content/export/hash inspection | License approval, clean protected build, and external/Knit fixtures remain |
+| Packed package | One local `@threadlabs/looma@0.1.4` tarball passes content/export/hash inspection | License approval, clean protected build, and external/Knit fixtures remain |
 
 Automated accessibility does not replace manual assistive-technology, forced-color,
 zoom/reflow, or platform long-press checks. Those are documented manual Candidate

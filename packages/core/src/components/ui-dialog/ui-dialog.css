@@ -2,18 +2,24 @@
   display: block;
 }
 
-:host:not([open]) {
+:host:not([data-open]) {
   display: none;
 }
 
 :host dialog {
   --ui-dialog-duration: var(--ui-motion-base);
+  --ui-dialog-viewport-gap: var(--ui-space-4, 1rem);
   position: fixed;
-  inset: var(--ui-space-4);
-  width: min(100%, 440px);
-  max-width: min(100%, 440px);
+  inset: 0;
+  inline-size: min(
+    calc(100% - (var(--ui-dialog-viewport-gap) * 2)),
+    var(--ui-dialog-max-width, 440px)
+  );
+  max-inline-size: none;
+  max-block-size: calc(100dvh - (var(--ui-dialog-viewport-gap) * 2));
   margin: auto;
   padding: var(--ui-space-4);
+  overflow: auto;
   background: var(--ui-surface-elevated);
   border: 1px solid var(--ui-border-default);
   border-radius: var(--ui-radius-dialog);

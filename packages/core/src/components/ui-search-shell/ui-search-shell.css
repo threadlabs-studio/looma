@@ -53,7 +53,9 @@
 
   .search-shell__panel {
     inline-size: 100%;
-    max-block-size: 100dvh;
+    block-size: 100vh;
+    block-size: 100dvh;
+    max-block-size: none;
     border-radius: 0;
     border-inline: none;
     border-block-start: none;

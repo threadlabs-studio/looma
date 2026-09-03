@@ -1499,6 +1499,54 @@
       ]
     },
     {
+      "tag": "ui-reel",
+      "package": "@threadlabs/looma/layout",
+      "className": "UIReelElement",
+      "description": "Keyboard-focusable horizontal scrolling layout primitive.",
+      "attributes": [
+        {
+          "name": "gap",
+          "property": "gap",
+          "type": "string",
+          "default": "m"
+        },
+        {
+          "name": "item-width",
+          "property": "itemWidth",
+          "type": "string",
+          "default": "auto"
+        },
+        {
+          "name": "snap",
+          "property": "snap",
+          "type": "string"
+        }
+      ],
+      "properties": [
+        {
+          "name": "gap",
+          "type": "string",
+          "default": "m"
+        },
+        {
+          "name": "itemWidth",
+          "type": "string",
+          "default": "auto"
+        },
+        {
+          "name": "snap",
+          "type": "string"
+        }
+      ],
+      "events": [],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Horizontally scrolling child content."
+        }
+      ]
+    },
+    {
       "tag": "ui-search-result-row",
       "package": "@threadlabs/looma",
       "className": "UISearchResultRowElement",
@@ -1690,6 +1738,67 @@
       ]
     },
     {
+      "tag": "ui-sidebar",
+      "package": "@threadlabs/looma/layout",
+      "className": "UISidebarElement",
+      "description": "Intrinsic two-region layout that wraps when content would become too narrow.",
+      "attributes": [
+        {
+          "name": "align",
+          "property": "align",
+          "type": "string",
+          "default": "stretch"
+        },
+        {
+          "name": "gap",
+          "property": "gap",
+          "type": "string",
+          "default": "m"
+        },
+        {
+          "name": "side",
+          "property": "side",
+          "type": "string",
+          "default": "start"
+        },
+        {
+          "name": "width",
+          "property": "width",
+          "type": "string",
+          "default": "default"
+        }
+      ],
+      "properties": [
+        {
+          "name": "align",
+          "type": "string",
+          "default": "stretch"
+        },
+        {
+          "name": "gap",
+          "type": "string",
+          "default": "m"
+        },
+        {
+          "name": "side",
+          "type": "string",
+          "default": "start"
+        },
+        {
+          "name": "width",
+          "type": "string",
+          "default": "default"
+        }
+      ],
+      "events": [],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Exactly two children: side region then content, reversed by side=end."
+        }
+      ]
+    },
+    {
       "tag": "ui-stack",
       "package": "@threadlabs/looma/layout",
       "className": "UIStackElement",
@@ -1809,6 +1918,56 @@
         {
           "name": "default",
           "description": "Default child content."
+        }
+      ]
+    },
+    {
+      "tag": "ui-switcher",
+      "package": "@threadlabs/looma/layout",
+      "className": "UISwitcherElement",
+      "description": "Intrinsic layout that switches equal-width children to a single column below a threshold.",
+      "attributes": [
+        {
+          "name": "align",
+          "property": "align",
+          "type": "string",
+          "default": "stretch"
+        },
+        {
+          "name": "gap",
+          "property": "gap",
+          "type": "string",
+          "default": "m"
+        },
+        {
+          "name": "threshold",
+          "property": "threshold",
+          "type": "string",
+          "default": "sm"
+        }
+      ],
+      "properties": [
+        {
+          "name": "align",
+          "type": "string",
+          "default": "stretch"
+        },
+        {
+          "name": "gap",
+          "type": "string",
+          "default": "m"
+        },
+        {
+          "name": "threshold",
+          "type": "string",
+          "default": "sm"
+        }
+      ],
+      "events": [],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Sibling regions that share a row or stack."
         }
       ]
     },
