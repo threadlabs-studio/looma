@@ -4,24 +4,35 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-02
-Status: `0.1.0` publication rejected by the clean-consumer gate; `0.1.1` correction in qualification
+Last Updated: 2026-09-03
+Status: `main` is prepared for `0.1.3`; public Candidate `0.1.2` is independently qualified in Knit; `0.1.1` remains `latest`
 
 ## Current Focus
 
-- Qualify the corrected singleton `@threadlabs/looma@0.1.1` Candidate after the
-  first public `0.1.0` artifact failed the clean-consumer editor import.
+- Decide whether to complete the frozen `0.1.2` promotion or supersede it with
+  a qualified `0.1.3` Candidate after the contextual-editing work on `main`.
+- If `0.1.2` remains the promotion target, refresh its production hosted-docs
+  evidence and run the owner-approved promotion with the public Knit evidence.
 - Complete npm trusted publishing and revoke the temporary bypass-2FA bootstrap
   credential before its January 2027 restriction.
-- Publish the exact qualified `0.1.1` artifact under `candidate`, then run
-  credential-free public consumers, hosted-docs proof, Knit public-registry
-  qualification, and promotion controls.
+- Keep qualified `0.1.1` under `latest` until the exact immutable `0.1.2`
+  Candidate completes its hosted-docs, promotion, and release-record gates.
 - Keep React and Svelte deferred while Release 1 covers tokens, layout, core,
   editor, and Vue.
 
 ## Recent Progress
 
 - Release 1 namespace and local qualification:
+  - `main` is prepared for `0.1.3` after contextual-editing improvements landed
+    in merge commit `5057d36ed1b877f8111e3683d5eeb367cef9dfcc`.
+  - `@threadlabs/looma@0.1.2` is published under `candidate` from exact commit
+    `976dabb49e165b521cc6efe4d8f1dfecd6cebd72`. Candidate workflow run
+    `33790406837` and exact-main CI run `33789984966` passed.
+  - A credential-free detached Knit checkout at commit
+    `2207e9bc470bfe9807e7fba5c2033a4b5d15f725` installed the public `0.1.2`
+    bytes with a fresh store and no sibling Looma repository, then passed 460
+    tests, typecheck, lint, and the production build. The content-free proof is
+    stored under `docs/release-evidence/`.
   - Owner approved `@threadlabs/looma-*` as the permanent public namespace;
     public, deferred, and private workspace identities now use the same graph.
   - Package manifests, internal dependencies, imports, release policy and
