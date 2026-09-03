@@ -30,6 +30,37 @@ test("release qualification is wired to Node 20, Chromium, and non-placeholder g
   );
 });
 
+test("the required verify result gates lint, quality, and release packaging", async () => {
+  const [workflow, rootPackage, editorPackage] = await Promise.all([
+    readFile(path.join(repoRoot, ".github/workflows/ci.yml"), "utf8"),
+    readFile(path.join(repoRoot, "package.json"), "utf8"),
+    readFile(path.join(repoRoot, "packages/editor/package.json"), "utf8"),
+  ]);
+  const qualityJob = workflow.match(
+    /\n  quality:[\s\S]*?(?=\n  [a-zA-Z0-9_-]+:|$)/
+  )?.[0] ?? "";
+  const releasePackagingJob = workflow.match(
+    /\n  release-package:[\s\S]*?(?=\n  [a-zA-Z0-9_-]+:|$)/
+  )?.[0] ?? "";
+  const verifyJob = workflow.match(
+    /\n  verify:[\s\S]*?(?=\n  [a-zA-Z0-9_-]+:|$)/
+  )?.[0] ?? "";
+
+  assert.match(qualityJob, /run: pnpm lint/);
+  assert.equal(JSON.parse(rootPackage).scripts.lint, "pnpm -r run lint");
+  assert.match(JSON.parse(editorPackage).scripts.lint, /tsc .+ --noEmit/);
+  assert.match(releasePackagingJob, /run: pnpm release:verify/);
+  assert.match(verifyJob, /if: always\(\)/);
+  assert.match(verifyJob, /needs:[\s\S]*- quality[\s\S]*- release-package/);
+  assert.match(verifyJob, /QUALITY_RESULT: \$\{\{ needs\.quality\.result \}\}/);
+  assert.match(
+    verifyJob,
+    /RELEASE_PACKAGE_RESULT: \$\{\{ needs\.release-package\.result \}\}/
+  );
+  assert.match(verifyJob, /test "\$QUALITY_RESULT" = "success"/);
+  assert.match(verifyJob, /test "\$RELEASE_PACKAGE_RESULT" = "success"/);
+});
+
 test("required release suites contain no skipped or todo scenarios", async () => {
   const requiredSuites = [
     "packages/core/src/components/ui-context-menu/ui-context-menu.browser.test.ts",
