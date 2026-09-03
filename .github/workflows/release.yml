@@ -329,7 +329,7 @@ jobs:
           retention-days: 30
 
   release-record:
-    if: needs.promote.result == 'success'
+    if: always() && needs.promote.result == 'success'
     needs: promote
     runs-on: ubuntu-latest
     timeout-minutes: 10
