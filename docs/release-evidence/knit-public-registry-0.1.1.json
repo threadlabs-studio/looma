@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "knit-public-registry-consumer",
+  "generatedAt": "2026-09-03T00:04:47Z",
+  "result": "passed",
+  "scope": "Credential-free installation and build qualification of the public Looma Candidate in a detached Knit checkout",
+  "looma": {
+    "name": "@threadlabs/looma",
+    "version": "0.1.1",
+    "registryUrl": "https://registry.npmjs.org/",
+    "packageUrl": "https://www.npmjs.com/package/@threadlabs/looma/v/0.1.1",
+    "integrity": "sha512-F+itSGCgqU4tTcUg97MD8g+F19cw7dgl+5REQEXCASJ4R0nQJXwNZu+RNAXHZnXoXIXaMVv7zU0gkgHGBqryZg=="
+  },
+  "knit": {
+    "repository": "bitbucket.org/mdean-projects/knit",
+    "repositoryVisibility": "private",
+    "commit": "7f7cbbdb2ecd291a1b88d961dadac0464d066101",
+    "packageManifestSha256": "5fe47ddfeafa047f03487beaec4ac21b06ea3302803d0cb580f7994ff07eb1ca",
+    "lockfileSha256": "7753906e0cec1c3889497a5bc05b11f95e2d28ec149adc8e854ad94d36002e46"
+  },
+  "environment": {
+    "startedAt": "2026-09-03T00:04:07Z",
+    "completedAt": "2026-09-03T00:04:47Z",
+    "nodeVersion": "20.19.6",
+    "pnpmVersion": "10.19.0",
+    "detachedCheckout": true,
+    "trackedSourceCleanAfterQualification": true,
+    "siblingLoomaRepositoryPresent": false,
+    "npmUserConfig": "/dev/null",
+    "npmCredentialEnvironmentPresent": false
+  },
+  "gates": {
+    "frozenPublicRegistryInstall": "passed",
+    "installedPackageIdentity": "passed",
+    "scriptPolicyTests": {
+      "result": "passed",
+      "count": 86
+    },
+    "applicationUnitTests": {
+      "result": "passed",
+      "count": 275
+    },
+    "typecheck": "passed",
+    "productionVercelBuild": "passed"
+  },
+  "commands": [
+    "NPM_CONFIG_USERCONFIG=/dev/null pnpm install --frozen-lockfile",
+    "pnpm test",
+    "pnpm typecheck",
+    "pnpm -F web build",
+    "git diff --exit-code"
+  ],
+  "exclusions": [
+    "This package-consumer proof does not claim protected Vercel release configuration, a deployed Preview, Google signup acceptance, database audit, mobile acceptance, legal approval, production deployment, or external activation. Those remain Knit Release 1 gates."
+  ]
+}
