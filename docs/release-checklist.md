@@ -103,14 +103,20 @@ qualification; it does not close the separate public-registry gate below.
 - [x] GitHub Pages uses the Actions build source, and `docs-preview`,
   `docs-production`, and `npm-release` require repository-owner review.
 - [x] The owner-approved MIT license exists and every package README links to it.
-- [ ] The protected no-index preview has been deployed and reviewed at the
-  recorded workflow URL.
-- [ ] Production Candidate docs have been deployed and their hosted-docs evidence
-  artifact URL and SHA-256 have been recorded for the promotion dispatch.
+- [x] The owner-approved production deployment superseded the no-index preview:
+  it exercised the same clean Pages build at the exact Candidate source and then
+  passed the stronger indexable hosted-route verification. Do not replace the
+  verified production site with a later no-index preview.
+- [x] Production Candidate docs were deployed by workflow run `33697496658` to
+  `https://threadlabs-studio.github.io/looma/`. Hosted-docs artifact `9872344117`
+  contains `hosted-docs.json` with SHA-256
+  `f9153b3d6f855af7bbf83add8eeb0afd040e4f0cc87eb83c809add089092dc43`.
 
-The preview configuration targets `https://threadlabs-studio.github.io/looma/`.
-That address is not claimed as reachable evidence until the manual workflow runs;
-production indexing and any canonical-domain cutover belong to U7.
+The verified production Candidate documentation is reachable at
+`https://threadlabs-studio.github.io/looma/`. Workflow run `33697496658` proves
+the home page, Release 1 support page, and ContextMenu page return indexable 200
+responses from the exact Candidate source. Any canonical-domain cutover is a
+post-R1 concern.
 
 ## Publication Controls
 
@@ -136,8 +142,9 @@ hashes and locations before the first `latest` mutation.
 
 - [x] The release workflow is manual, main-only, serialized, environment-gated,
   and declares minimal per-job permissions.
-- [ ] The Candidate dispatch records the exact successful `ci.yml` push run ID
-  for `main`, and that run's `head_sha` equals the release workflow commit.
+- [x] Candidate workflow run `33695565959` validated exact-main CI run
+  `33695255002`; both bind source commit
+  `29149856d402c137b36f8ed45b1a61db485d5dec`.
 - [x] Third-party actions are pinned to full commit SHAs and checkout credentials are not persisted.
 - [x] The generated manifest captures the approved tarball, its sorted file
   inventory and SHA-256 hash, source commit, toolchain, and planned tags.
@@ -152,7 +159,7 @@ hashes and locations before the first `latest` mutation.
   artifact, accountable approvals, exact prior tags, and planned operations;
   every mutation, verification, and rollback checkpoint updates that evidence,
   and the workflow uploads it even when promotion fails.
-- [ ] The protected-run manifest also records evidence locations and accountable
+- [x] The protected-run manifest also records evidence locations and accountable
   npm, documentation, and Knit approval owners.
 - [x] The repository owner configures the protected `npm-release` environment
   and required reviewer.
@@ -161,16 +168,27 @@ hashes and locations before the first `latest` mutation.
 - [ ] After bootstrap, configure the repository-bound trusted publisher and revoke
   `NPM_TOKEN`; retain or rotate `NPM_PREFLIGHT_TOKEN` only while read-oriented
   namespace checks remain part of the release workflow.
-- [ ] Initial publication uses the non-default `candidate` dist-tag.
-- [ ] Registry integrity matches the approved tarball before any tag promotion.
-- [ ] A fresh-store, credential-free public consumer installs the exact manifest
-  versions from npm, passes typecheck and SSR/import proof, and records its lockfile
-  after Candidate verification and again immediately before `latest` promotion.
-- [ ] Knit installs the public registry versions and repeats its release-critical
-  build, SSR, and signup-flow gates; local-registry proof does not satisfy this gate.
+- [x] Initial publication uses the non-default `candidate` dist-tag.
+- [x] Registry integrity matches the approved tarball before any tag promotion.
+- [x] Candidate verification used a fresh store and no credentials to install the
+  exact manifest version from npm, pass typecheck and SSR/import proof, and record
+  its lockfile.
+- [ ] The protected promotion repeats the credential-free public-consumer proof
+  immediately before the first `latest` mutation.
+- [x] Knit installs the public registry version and repeats its release-critical
+  build, SSR compilation, and signup-critical unit-flow gates; local-registry
+  proof does not satisfy this gate.
 - [ ] Trusted publishing is configured for `@threadlabs/looma` after bootstrap and bootstrap reuse fails after revocation.
-- [ ] Public install docs and hosted component docs resolve and match the released contract.
+- [x] Public install docs and hosted component docs resolve and match the released contract.
 - [ ] Owner approves promotion of the same immutable versions from `candidate` to `latest`.
+
+The content-free public Knit proof is
+`docs/release-evidence/knit-public-registry-0.1.1.json`, SHA-256
+`f524eec96c288337b91ff6cc77ae2416de2bbf6f954f14a0eaaf4b174794c12c`.
+It binds private Knit commit `7f7cbbdb2ecd291a1b88d961dadac0464d066101`
+to a credential-free frozen install of the public `0.1.1` bytes, all 361 tests,
+typecheck, and a production Vercel-target build without claiming the remaining
+protected staging or launch gates.
 
 ## Immutable Release Record Gates
 
