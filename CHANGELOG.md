@@ -8,6 +8,10 @@ viewports. Grid minimums collapse without horizontal overflow, centered content
 remains fluid, mobile search fills the dynamic viewport, and fixed controls,
 menus, popovers, tabs, and dialogs have explicit responsive bounds.
 
+The layout package also adds intrinsic `ui-switcher`, `ui-sidebar`, and
+keyboard-focusable `ui-reel` primitives, with matching Vue, React, and Svelte
+adapter exports.
+
 ## v0.1.3 Candidate
 
 Buttons expose a typed `outline`, `solid`, `destructive`, and `ghost`

@@ -15,6 +15,9 @@ export type AdapterTagName =
   | "ui-cluster"
   | "ui-grid"
   | "ui-center"
+  | "ui-switcher"
+  | "ui-sidebar"
+  | "ui-reel"
   | "ui-separator"
   | "ui-disclosure"
   | "ui-tabs"
@@ -171,6 +174,9 @@ export const ADAPTER_COMPONENT_TAG_MAP = {
   Cluster: "ui-cluster",
   Grid: "ui-grid",
   Center: "ui-center",
+  Switcher: "ui-switcher",
+  Sidebar: "ui-sidebar",
+  Reel: "ui-reel",
   Separator: "ui-separator",
   Disclosure: "ui-disclosure",
   Tabs: "ui-tabs",

@@ -31,6 +31,9 @@ Status: `main` is prepared for `0.1.3`; public Candidate `0.1.2` is independentl
     search, menus, popovers, tabs, toasts, top bars, and floating actions for
     narrow viewports and safe areas.
   - Added source-policy tests and real Chromium coverage for computed layout.
+  - Added intrinsic Switcher, Sidebar, and Reel primitives across the custom
+    element surface and framework adapters, including keyboard-accessible reel
+    overflow and Chromium layout coverage.
 - Release 1 namespace and local qualification:
   - `main` is prepared for `0.1.3` after contextual-editing improvements landed
     in merge commit `5057d36ed1b877f8111e3683d5eeb367cef9dfcc`.

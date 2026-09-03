@@ -26,6 +26,9 @@ const sidebars: SidebarsConfig = {
         "components/ui-cluster",
         "components/ui-grid",
         "components/ui-center",
+        "components/ui-switcher",
+        "components/ui-sidebar",
+        "components/ui-reel",
         "components/ui-separator"
       ]
     },

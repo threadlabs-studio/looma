@@ -12,6 +12,9 @@ export const Inline = createAdapterComponent("ui-inline", "Inline");
 export const Cluster = createAdapterComponent("ui-cluster", "Cluster");
 export const Grid = createAdapterComponent("ui-grid", "Grid");
 export const Center = createAdapterComponent("ui-center", "Center");
+export const Switcher = createAdapterComponent("ui-switcher", "Switcher");
+export const Sidebar = createAdapterComponent("ui-sidebar", "Sidebar");
+export const Reel = createAdapterComponent("ui-reel", "Reel");
 export const Separator = createAdapterComponent("ui-separator", "Separator");
 export const Disclosure = createAdapterComponent("ui-disclosure", "Disclosure");
 export const Tabs = createAdapterComponent("ui-tabs", "Tabs");
@@ -49,6 +52,9 @@ export const ADAPTER_COMPONENT_TAG_MAP = {
   Cluster: "ui-cluster",
   Grid: "ui-grid",
   Center: "ui-center",
+  Switcher: "ui-switcher",
+  Sidebar: "ui-sidebar",
+  Reel: "ui-reel",
   Separator: "ui-separator",
   Disclosure: "ui-disclosure",
   Tabs: "ui-tabs",
