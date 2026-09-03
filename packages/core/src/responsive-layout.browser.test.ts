@@ -8,6 +8,17 @@ afterEach(() => {
 });
 
 describe("responsive light-DOM layout", () => {
+  it("shows a dialog controlled through its open property", async () => {
+    await customElements.whenDefined("ui-dialog");
+    const dialog = document.createElement("ui-dialog") as HTMLElement & { open: boolean };
+    document.body.append(dialog);
+
+    dialog.open = true;
+
+    await expect.poll(() => dialog.hasAttribute("data-open")).toBe(true);
+    expect(getComputedStyle(dialog).display).not.toBe("none");
+  });
+
   it("keeps core host display defaults after the scoped reset", async () => {
     await customElements.whenDefined("ui-button");
     document.body.innerHTML = "<ui-button><button type=\"button\">Save</button></ui-button>";

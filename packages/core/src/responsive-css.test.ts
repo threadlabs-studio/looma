@@ -8,6 +8,7 @@ describe("responsive core component CSS", () => {
   it("keeps dialogs inside both viewport axes", () => {
     const css = readComponentCss("ui-dialog");
 
+    expect(css).toContain(":host:not([data-open])");
     expect(css).toContain("calc(100% - (var(--ui-dialog-viewport-gap) * 2))");
     expect(css).toContain("calc(100dvh - (var(--ui-dialog-viewport-gap) * 2))");
   });
