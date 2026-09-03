@@ -281,6 +281,11 @@ jobs:
           fi
           echo "source_commit=$source_commit" >> "$GITHUB_OUTPUT"
 
+      - name: Snapshot current release tooling
+        run: |
+          mkdir -p .release/orchestrator
+          cp tools/scripts/*.mjs .release/orchestrator/
+
       - name: Checkout exact Candidate source commit
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -301,7 +306,7 @@ jobs:
           LOOMA_HOSTED_DOCS_EVIDENCE_SHA256: ${{ inputs.hosted_docs_evidence_sha256 }}
           LOOMA_HOSTED_DOCS_EVIDENCE_URL: ${{ inputs.hosted_docs_evidence_url }}
           LOOMA_HOSTED_DOCS_URL: ${{ inputs.hosted_docs_url }}
-        run: node tools/scripts/promote-release.mjs --execute
+        run: node .release/orchestrator/promote-release.mjs --execute
 
       - name: Upload pre-promotion public-consumer evidence
         if: always()
@@ -361,6 +366,11 @@ jobs:
           fi
           echo "source_commit=$source_commit" >> "$GITHUB_OUTPUT"
 
+      - name: Snapshot current release tooling
+        run: |
+          mkdir -p .release/orchestrator
+          cp tools/scripts/*.mjs .release/orchestrator/
+
       - name: Checkout exact Candidate source commit
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -379,14 +389,14 @@ jobs:
       - name: Validate immutable release record plan
         env:
           GH_TOKEN: ${{ github.token }}
-        run: node tools/scripts/finalize-release.mjs
+        run: node .release/orchestrator/finalize-release.mjs
 
       - name: Create or resume immutable release record
         id: release-record
         env:
           GH_TOKEN: ${{ github.token }}
           LOOMA_RELEASE_RECORD: approved
-        run: node tools/scripts/finalize-release.mjs --execute
+        run: node .release/orchestrator/finalize-release.mjs --execute
 
       - name: Link release record in the job summary
         env:

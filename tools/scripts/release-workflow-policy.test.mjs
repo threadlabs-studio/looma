@@ -197,14 +197,15 @@ test("promotion downloads immutable bytes from the prior Candidate workflow run"
 });
 
 test("promotion and release record execute from the immutable Candidate source", () => {
-  for (const [jobName, job, nextStep] of [
-    ["promotion", promoteJob, "Reverify clean public-registry consumer before promotion"],
-    ["release record", releaseRecordJob, "Download promotion evidence from this run"]
+  for (const [jobName, job, nextStep, releaseScript] of [
+    ["promotion", promoteJob, "Reverify clean public-registry consumer before promotion", "promote-release.mjs"],
+    ["release record", releaseRecordJob, "Download promotion evidence from this run", "finalize-release.mjs"]
   ]) {
     const manifestDownload = job.indexOf("Download exact release manifest from Candidate run") >= 0
       ? job.indexOf("Download exact release manifest from Candidate run")
       : job.indexOf("Download approved release bytes from Candidate run");
     const sourceResolution = job.indexOf("Resolve exact Candidate source commit");
+    const toolingSnapshot = job.indexOf("Snapshot current release tooling");
     const sourceCheckout = job.indexOf("Checkout exact Candidate source commit");
     const continuation = job.indexOf(nextStep);
     const sourceCheckoutStep = job.match(
@@ -213,6 +214,8 @@ test("promotion and release record execute from the immutable Candidate source",
 
     assert.ok(manifestDownload >= 0, `${jobName} must download the Candidate manifest`);
     assert.ok(sourceResolution > manifestDownload, `${jobName} must resolve source after download`);
+    assert.ok(toolingSnapshot > sourceResolution, `${jobName} must snapshot current tooling after source resolution`);
+    assert.ok(sourceCheckout > toolingSnapshot, `${jobName} must preserve current tooling before Candidate checkout`);
     assert.ok(sourceCheckout > sourceResolution, `${jobName} must checkout the resolved source`);
     assert.ok(continuation > sourceCheckout, `${jobName} must use Candidate source for execution`);
     assert.match(job, /jq -r '\.sourceCommit' \.release\/artifacts\/release-manifest\.json/);
@@ -222,6 +225,8 @@ test("promotion and release record execute from the immutable Candidate source",
     );
     assert.match(sourceCheckoutStep, /clean: false/);
     assert.match(sourceCheckoutStep, /persist-credentials: false/);
+    assert.match(job, /cp tools\/scripts\/\*\.mjs \.release\/orchestrator\//);
+    assert.match(job, new RegExp(`node \\.release/orchestrator/${releaseScript.replace(".", "\\.")}`));
   }
 });
 
@@ -250,7 +255,7 @@ test("public consumer proof runs after Candidate verification and immediately be
     "Reverify clean public-registry consumer before promotion"
   );
   const promotionMutation = promoteJob.indexOf(
-    "node tools\/scripts\/promote-release\.mjs --execute"
+    "node .release\/orchestrator\/promote-release.mjs --execute"
   );
   assert.ok(promotionConsumerVerification >= 0);
   assert.ok(promotionMutation > promotionConsumerVerification);
