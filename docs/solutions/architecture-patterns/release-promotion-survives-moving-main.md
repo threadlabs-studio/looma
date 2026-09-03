@@ -10,6 +10,7 @@ symptoms:
   - "A valid Candidate could no longer be promoted after a release-tooling fix advanced main."
   - "Promotion and release finalization checked out the workflow revision while validating an older manifest source commit."
   - "Checking out the Candidate fixed source identity but silently replaced newer release-tooling repairs with Candidate-era scripts."
+  - "A successful protected promotion could still fail while creating its immutable Git tag through the low-level refs API."
 root_cause: identity_mismatch
 resolution_type: workflow_change
 severity: high
@@ -71,6 +72,12 @@ snapshot, exact checkout, then the first source-sensitive operation. It also
 asserts that registry mutation and finalization invoke the snapshot rather than
 the Candidate-era copies in `tools/scripts`.
 
+Release finalization creates a missing tag through `gh release create --target`
+at the manifest's exact source commit and supplies the approved evidence assets
+in the same command. This uses GitHub's release API as the owner of both the tag
+and release transaction. When the tag already exists, the resume path retains
+`--verify-tag` and validates its exact commit before changing anything.
+
 ## Why This Works
 
 GitHub evaluates the workflow definition from the approved current `main`, so
@@ -101,6 +108,11 @@ This separates two identities that are both necessary:
   assume `clean: false` protects tracked scripts that the checkout replaces.
 - Exercise the release-resume path after any post-Candidate workflow repair and
   before the first registry tag mutation.
+- Create a new tag and release through one release API operation at the exact
+  manifest commit; avoid a separate low-level refs mutation that can fail after
+  all release evidence has already passed.
+- Attach the approved evidence while the release is created so repositories
+  with immutable releases do not publish an asset-less record first.
 - Keep downloaded release evidence in an ignored directory and explicitly
   preserve it across the exact-source checkout.
 
