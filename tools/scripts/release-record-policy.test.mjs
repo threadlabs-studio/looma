@@ -28,7 +28,7 @@ test("release record is a distinct post-promotion job with minimal write permiss
   assert.ok(releaseRecordJob, "release-record job is missing");
   assert.ok(workflow.indexOf("\n  release-record:") > workflow.indexOf("\n  promote:"));
   assert.match(releaseRecordJob, /needs: promote/);
-  assert.match(releaseRecordJob, /if: needs\.promote\.result == 'success'/);
+  assert.match(releaseRecordJob, /if: always\(\) && needs\.promote\.result == 'success'/);
   assert.match(releaseRecordJob, /permissions:\n\s+actions: read\n\s+contents: write/);
   assert.doesNotMatch(releaseRecordJob, /id-token: write|packages: write/);
   assert.doesNotMatch(promoteJob, /gh release|git\/refs|finalize-release/);
