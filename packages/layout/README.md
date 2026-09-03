@@ -5,7 +5,7 @@
 
 Nine light-DOM layout elements that use token-driven gaps and never add external margins.
 
-Workspace status: unreleased changes on top of Candidate `0.1.3`. The public
+Release target: Candidate `0.1.4`. The public
 elements in this workspace are `ui-stack`, `ui-inline`, `ui-cluster`, `ui-grid`,
 `ui-center`, `ui-switcher`, `ui-sidebar`, `ui-reel`, and `ui-separator`.
 
