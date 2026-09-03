@@ -15,6 +15,8 @@ implementation roadmap so package ownership decisions stay visible.
   verified package metadata, integrity, provenance, and a clean public-registry
   Knit consumer. Qualified `0.1.1` remains under `latest` until the protected
   promotion moves the same immutable `0.1.2` bytes.
+- Current `main` is prepared for unpublished `0.1.3` development after the
+  contextual-editing work. It does not alter the frozen public `0.1.2` bytes.
 - The canonical GitHub repository is public and the current release workflow is
   on `main` behind exact-commit CI and protected-environment approval gates.
 - GitHub Pages serves the verified indexable `0.1.1` documentation at
@@ -46,20 +48,23 @@ release policy, and registry tests. React and Svelte remain unpublished in R1.
 
 ## Release 1 Remaining Operator Sequence
 
-1. Use the manifest-bound promotion and release-finalization jobs, which execute
+1. Decide whether to promote frozen Candidate `0.1.2` or supersede it with a
+   separately published and qualified `0.1.3` Candidate.
+2. For a `0.1.2` promotion, use the manifest-bound promotion and
+   release-finalization jobs, which execute
    from the original Candidate commit even after release-tooling changes advance
    `main`.
-2. Supply the public Knit qualification record and hosted-docs artifact, with their
+3. Supply the public Knit qualification record and hosted-docs artifact, with their
    exact SHA-256 values and credential-free HTTPS locations, for the protected
    promotion dispatch.
-3. Re-run the clean public-registry consumer inside the promotion job, promote
+4. Re-run the clean public-registry consumer inside the promotion job, promote
    `0.1.2` from `candidate` to `latest`, verify both tags and integrity, and create
    the immutable tag and GitHub Release record from the Candidate source commit.
-4. Configure npm trusted publishing for the repository/workflow/environment
+5. Configure npm trusted publishing for the repository/workflow/environment
    binding, revoke `NPM_TOKEN`, and prove the retired bootstrap credential cannot
    be reused. Retain or rotate the read-only preflight credential only while the
    namespace checks require it.
-5. Keep the defective `0.1.0` migration notice and retain `0.1.1` as an
+6. Keep the defective `0.1.0` migration notice and retain `0.1.1` as an
    immutable prior release after `0.1.2` is verified under `latest`.
 
 The detailed go/no-go source is [Release 1 Checklist](./release-checklist.md).
