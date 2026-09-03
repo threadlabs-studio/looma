@@ -11,20 +11,23 @@ implementation roadmap so package ownership decisions stay visible.
   license metadata.
 - The R1 package graph and protected release workflow target one Candidate
   package, `@threadlabs/looma`, with explicit core, layout, editor, Vue, and CSS subpaths.
-- Unauthenticated registry lookup reports the name as unpublished. This
-  host is authenticated to npm as `matthew-dean`, with account-level 2FA set to
-  `auth-and-writes`, and that identity owns the `@threadlabs` organization.
+- `@threadlabs/looma@0.1.1` is public under the non-default `candidate` tag with
+  verified package metadata, integrity, provenance, and a clean public-registry
+  consumer. Defective `0.1.0` remains under `latest` until the protected
+  promotion moves the same immutable `0.1.1` bytes.
 - The canonical GitHub repository is public and the current release workflow is
   on `main` behind exact-commit CI and protected-environment approval gates.
-- GitHub Pages is configured for Actions at
-  `https://threadlabs-studio.github.io/looma/`. The `docs-preview`,
-  `docs-production`, and `npm-release` environments exist and require review
-  from the repository owner.
+- GitHub Pages serves the verified indexable Candidate documentation at
+  `https://threadlabs-studio.github.io/looma/`. Protected workflow run
+  `33697496658` bound the deployment and hosted-route evidence to the exact
+  `0.1.1` Candidate source. The `docs-preview`, `docs-production`, and
+  `npm-release` environments require review from the repository owner.
 - The protected `npm-release` environment contains separate npm credentials:
   `NPM_PREFLIGHT_TOKEN` for identity, organization, profile, and name-availability
   reads, and short-lived `NPM_TOKEN` for package-scoped Bypass 2FA publication and
-  promotion. No repository-level npm credential is used, and the trusted publisher
-  cannot be configured until `@threadlabs/looma` exists.
+  promotion. No repository-level npm credential is used. Now that the package
+  exists, trusted publishing must be configured and the bypass token revoked;
+  npm warns that Bypass 2FA tokens will be restricted by January 2027.
 
 ## Npm Namespace Decision
 
@@ -40,23 +43,22 @@ the authenticated release identity could not prove access to the existing
 internal dependencies, Knit, generated API metadata, examples, docs, lockfiles,
 release policy, and registry tests. React and Svelte remain unpublished in R1.
 
-## Before First Publish
+## Release 1 Remaining Operator Sequence
 
-1. Keep both protected credentials bound to the same `@threadlabs` npm owner.
-   Verify `NPM_PREFLIGHT_TOKEN` can run the read-only namespace and account probes.
-   Treat the guarded `candidate` publish as the first capability proof for the
-   package-scoped `NPM_TOKEN`, because npm blocks those identity probes for the
-   Bypass 2FA publishing token.
-2. Confirm the configured `docs-preview`, `docs-production`, and `npm-release`
-   environments and owner reviewer remain intact. CI is an ordinary required
-   check, not an approval-gated deployment environment.
-3. Push the reviewed release branch, merge it to `main`, and record the exact
-   successful `ci.yml` run for the release commit.
-4. Run the protected no-index docs preview and record owner review.
-5. Run `pnpm install --frozen-lockfile`, `pnpm generate:api`,
-   `pnpm check:docs-sync`, `pnpm typecheck`, `pnpm build`, `pnpm test`,
-   `pnpm build:docs`, and `pnpm build:storybook`.
-6. Publish the exact approved tarball under `candidate` only after explicit
-   registry authorization and every pre-publication gate passes.
+1. Use the manifest-bound promotion and release-finalization jobs, which execute
+   from the original Candidate commit even after release-tooling changes advance
+   `main`.
+2. Supply the public Knit qualification record and hosted-docs artifact, with their
+   exact SHA-256 values and credential-free HTTPS locations, for the protected
+   promotion dispatch.
+3. Re-run the clean public-registry consumer inside the promotion job, promote
+   `0.1.1` from `candidate` to `latest`, verify both tags and integrity, and create
+   the immutable tag and GitHub Release record from the Candidate source commit.
+4. Configure npm trusted publishing for the repository/workflow/environment
+   binding, revoke `NPM_TOKEN`, and prove the retired bootstrap credential cannot
+   be reused. Retain or rotate the read-only preflight credential only while the
+   namespace checks require it.
+5. Deprecate defective `0.1.0` with a migration message after `0.1.1` is verified
+   under `latest`.
 
 The detailed go/no-go source is [Release 1 Checklist](./release-checklist.md).
