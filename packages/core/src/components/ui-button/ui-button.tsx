@@ -21,7 +21,6 @@ export class UIButton {
   syncToButton() {
     const btn = this.getButton();
     if (!btn) return;
-    this.host.dataset.variant = this.variant;
     this.host.dataset.size = this.size || '';
     this.host.dataset.disabled = this.disabled ? 'true' : '';
     btn.disabled = this.disabled;
@@ -52,7 +51,6 @@ export class UIButton {
   render() {
     return (
       <Host
-        data-variant={this.variant}
         data-size={this.size || undefined}
         data-disabled={this.disabled ? '' : undefined}
         onKeyDown={this.onKeydown}
