@@ -215,14 +215,21 @@ test("checkpoints successful promotion through public registry verification", ()
   assert.deepEqual(verified.verification, { schemaVersion: 1, packages: packageNames });
 });
 
-test("reads the full npm packument shape used for metadata and provenance proof", async () => {
+test("reads metadata from the packument and tags from npm's uncached dist-tag endpoint", async () => {
+  const requestedUrls = [];
   const entry = await fetchRegistryPackage("@threadlabs/looma", releaseVersion, async (url, options) => {
-    assert.equal(url.toString(), "https://registry.npmjs.org/%40threadlabs%2Flooma");
+    requestedUrls.push(url.toString());
     assert.equal(options.headers.accept, "application/json");
+    if (url.pathname.startsWith("/-/package/")) {
+      return {
+        ok: true,
+        json: async () => ({ candidate: releaseVersion, latest: releaseVersion })
+      };
+    }
     return {
       ok: true,
       json: async () => ({
-        "dist-tags": { candidate: releaseVersion },
+        "dist-tags": { candidate: releaseVersion, latest: "0.1.0" },
         versions: {
           [releaseVersion]: {
             name: "@threadlabs/looma",
@@ -244,7 +251,11 @@ test("reads the full npm packument shape used for metadata and provenance proof"
   assert.equal(entry.public, true);
   assert.equal(entry.integrity, "sha512-core");
   assert.equal(entry.provenancePredicateType, "https://slsa.dev/provenance/v1");
-  assert.equal(entry.distTags.candidate, releaseVersion);
+  assert.deepEqual(entry.distTags, { candidate: releaseVersion, latest: releaseVersion });
+  assert.deepEqual(requestedUrls, [
+    "https://registry.npmjs.org/%40threadlabs%2Flooma",
+    "https://registry.npmjs.org/-/package/%40threadlabs%2Flooma/dist-tags"
+  ]);
 });
 
 test("restores the singleton tag when promotion fails", async () => {
