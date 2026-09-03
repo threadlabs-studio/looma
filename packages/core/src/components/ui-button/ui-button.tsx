@@ -9,7 +9,7 @@ import { isActivationKey } from '../../utils/events';
 export class UIButton {
   @Element() host: HTMLElement;
 
-  @Prop({ reflect: true }) variant: 'outline' | 'solid' | 'destructive' | 'ghost' = 'outline';
+  @Prop() variant: 'outline' | 'solid' | 'destructive' | 'ghost' = 'outline';
   @Prop() size?: string;
   @Prop() disabled = false;
 
