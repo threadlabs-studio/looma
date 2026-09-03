@@ -62,7 +62,9 @@ test("release record policy is fail-closed, resumable, and exposes the release U
   assert.match(finalizer, /\.release\/evidence\/registry-promotion\.json/);
   assert.match(finalizer, /LOOMA_RELEASE_RECORD/);
   assert.match(finalizer, /--execute/);
-  assert.match(finalizer, /refs\/tags\/\$\{record\.tag\}/);
+  assert.match(finalizer, /releaseCreationArguments[\s\S]*--target[\s\S]*record\.sourceCommit/);
+  assert.match(finalizer, /\.\.\.plan\.uploadAssets/);
+  assert.doesNotMatch(finalizer, /repos\/\$\{repository\}\/git\/refs/);
   assert.match(finalizer, /tag ref[\s\S]*does not point to|does not point to[\s\S]*tag ref/i);
   assert.match(finalizer, /release[\s\S]*does not match|does not match[\s\S]*release/i);
   assert.match(finalizer, /gh[\s\S]*release[\s\S]*upload/);

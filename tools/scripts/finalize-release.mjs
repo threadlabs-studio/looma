@@ -384,27 +384,23 @@ async function inspectRemoteRelease(record, repository) {
   return { tagRef, release, assets, assetNames };
 }
 
+export function releaseCreationArguments(record, repository, plan) {
+  return [
+    "release", "create", record.tag,
+    ...plan.uploadAssets,
+    "--repo", repository,
+    ...(plan.createTag ? ["--target", record.sourceCommit] : ["--verify-tag"]),
+    "--title", record.title,
+    "--notes", record.notes,
+    "--prerelease"
+  ];
+}
+
 function executeReleaseRecord(record, plan, repository) {
-  if (plan.createTag) {
-    ghApi(`repos/${repository}/git/refs`, {
-      method: "POST",
-      fields: [
-        ["ref", `refs/tags/${record.tag}`],
-        ["sha", record.sourceCommit]
-      ]
-    });
-  }
   if (plan.createRelease) {
-    run("gh", [
-      "release", "create", record.tag,
-      "--repo", repository,
-      "--verify-tag",
-      "--title", record.title,
-      "--notes", record.notes,
-      "--prerelease"
-    ]);
+    run("gh", releaseCreationArguments(record, repository, plan));
   }
-  for (const assetPath of plan.uploadAssets) {
+  for (const assetPath of plan.createRelease ? [] : plan.uploadAssets) {
     run("gh", ["release", "upload", record.tag, assetPath, "--repo", repository]);
   }
 }
