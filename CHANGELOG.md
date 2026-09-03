@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.2 Candidate
+
+Table context menus stay within the browser viewport when opened near an
+edge, so every available table action remains reachable without requiring a
+larger viewport.
+
 ## v0.1.1 Candidate
 
 Looma Release 1 publishes one installable package with the same supported

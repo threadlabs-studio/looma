@@ -104,6 +104,37 @@ describe("editor release interactions (real browser)", () => {
     expect(overlayActions).toEqual([{ action: "add-row-after", boundaryIndex: 1 }]);
   });
 
+  it("keeps the table context menu inside the viewport near the bottom-right edge", async () => {
+    const shell = document.createElement("div");
+    shell.style.position = "fixed";
+    shell.style.top = `${window.innerHeight - 8}px`;
+    shell.style.left = `${window.innerWidth - 8}px`;
+    shell.innerHTML = `
+      <ui-editor-table-context-menu
+        open
+        can-add-row-before
+        can-add-row-after
+        can-add-column-before
+        can-add-column-after
+        can-delete-row
+        can-delete-column
+        can-delete-table
+        can-merge-cells
+        can-split-cell
+      ></ui-editor-table-context-menu>
+    `;
+    document.body.append(shell);
+
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+
+    const menu = shell.querySelector<HTMLElement>(".ui-editor-table-context-menu")!;
+    const rect = menu.getBoundingClientRect();
+    expect(rect.left).toBeGreaterThanOrEqual(12);
+    expect(rect.top).toBeGreaterThanOrEqual(12);
+    expect(rect.right).toBeLessThanOrEqual(window.innerWidth - 12);
+    expect(rect.bottom).toBeLessThanOrEqual(window.innerHeight - 12);
+  });
+
   it("passes automated accessibility checks with no browser exceptions", async () => {
     document.body.innerHTML = `
       <main id="editor-browser-qualification">
