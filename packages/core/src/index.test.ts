@@ -324,7 +324,7 @@ describe("@threadlabs/looma-core primitives", () => {
     `);
 
     const wrappers = Array.from(document.querySelectorAll("ui-button"));
-    expect(wrappers[0]?.getAttribute("variant")).toBe("outline");
+    expect(wrappers[0]?.getAttribute("variant")).toBeNull();
     expect(wrappers[0]?.dataset.variant).toBe("outline");
     expect(wrappers[1]?.getAttribute("variant")).toBe("destructive");
     expect(wrappers[1]?.dataset.variant).toBe("destructive");
