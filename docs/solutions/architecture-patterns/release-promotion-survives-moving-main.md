@@ -1,6 +1,7 @@
 ---
 title: Bind release promotion to immutable Candidate source instead of moving main
 date: 2026-09-02
+last_updated: 2026-09-02
 category: architecture-patterns
 module: release-tooling
 problem_type: logic_error
@@ -8,6 +9,7 @@ component: development_workflow
 symptoms:
   - "A valid Candidate could no longer be promoted after a release-tooling fix advanced main."
   - "Promotion and release finalization checked out the workflow revision while validating an older manifest source commit."
+  - "Checking out the Candidate fixed source identity but silently replaced newer release-tooling repairs with Candidate-era scripts."
 root_cause: identity_mismatch
 resolution_type: workflow_change
 severity: high
@@ -54,27 +56,36 @@ the trusted orchestration definition rather than the release payload source.
 After downloading the immutable Candidate manifest, each source-sensitive job:
 
 1. Reads and validates the manifest's full lowercase Git SHA.
-2. Re-checks out that exact commit with pinned `actions/checkout`.
-3. Uses `clean: false` so the previously downloaded, ignored `.release`
+2. Snapshots the current reviewed release scripts into the ignored `.release`
+   orchestration area.
+3. Re-checks out that exact commit with pinned `actions/checkout`.
+4. Uses `clean: false` so the previously downloaded, ignored `.release`
    artifacts remain available.
-4. Runs public-consumer verification, promotion, or release finalization only
-   after the exact-source checkout.
+5. Runs Candidate product verification against that exact source tree, while
+   promotion and release finalization execute through the snapshotted current
+   orchestration scripts.
 
 The workflow-policy test asserts this order independently for the promotion and
-release-record jobs: manifest download, source resolution, exact checkout, then
-the first source-sensitive operation.
+release-record jobs: manifest download, source resolution, current-tooling
+snapshot, exact checkout, then the first source-sensitive operation. It also
+asserts that registry mutation and finalization invoke the snapshot rather than
+the Candidate-era copies in `tools/scripts`.
 
 ## Why This Works
 
 GitHub evaluates the workflow definition from the approved current `main`, so
-security and reliability fixes remain available. The later checkout changes the
-working tree used by repository scripts and changelog reads to the Candidate
-source recorded before publication. The immutable tarball and evidence remain
-outside tracked files and survive the source switch.
+security and reliability fixes remain available. The tooling snapshot preserves
+the code that implements those fixes before the later checkout changes the
+tracked working tree to the Candidate source recorded before publication. The
+current scripts still resolve the repository root, so they validate the exact
+Candidate package manifests, changelog, Git `HEAD`, immutable tarballs, and
+evidence while retaining current orchestration behavior.
 
 This separates two identities that are both necessary:
 
 - **orchestration revision** — the current reviewed workflow definition;
+- **orchestration tooling** — current reviewed release logic preserved across
+  the source checkout;
 - **release source revision** — the commit whose exact bytes were packed,
   published, documented, promoted, tagged, and recorded.
 
@@ -86,6 +97,8 @@ This separates two identities that are both necessary:
   rather than weakening the guard.
 - Test workflow step ordering whenever an artifact must be read before the
   correct checkout can be selected.
+- Preserve current release tooling before an immutable-source checkout; do not
+  assume `clean: false` protects tracked scripts that the checkout replaces.
 - Exercise the release-resume path after any post-Candidate workflow repair and
   before the first registry tag mutation.
 - Keep downloaded release evidence in an ignored directory and explicitly
