@@ -1,8 +1,11 @@
 # Release 1 Checklist
 
-This is the go/no-go ledger for Looma Candidate `0.1.2`. A checked source or build
-item is evidence, not permission to publish. Registry mutation requires all owner,
-security, artifact, consumer, documentation, and rollback gates.
+This is the go/no-go ledger for Looma Candidate `0.1.2`, frozen at source commit
+`976dabb49e165b521cc6efe4d8f1dfecd6cebd72`. Current `main` is prepared for
+unpublished `0.1.3` development; that does not change the immutable `0.1.2`
+registry bytes or satisfy any remaining promotion gate. A checked source or
+build item is evidence, not permission to publish. Registry mutation requires
+all owner, security, artifact, consumer, documentation, and rollback gates.
 
 ## Registry And Ownership Preflight
 
@@ -35,13 +38,15 @@ the publishing credential's package capability is first exercised by the guarded
 - [x] Layout's formerly false CommonJS export now points to a real CJS build required by the docs server bundle.
 - [x] Source-derived classification enforces generated API, docs, navigation,
   supported Vue map/export, and required contract README coverage for all 38 published tags.
-- [x] The public facade manifest uses `0.1.2`, public access, complete metadata,
-  correct peer ranges, and the exact export map; assembly workspaces remain private.
+- [x] The frozen Candidate facade manifest at `976dabb` uses `0.1.2`, public
+  access, complete metadata, correct peer ranges, and the exact export map;
+  assembly workspaces remain private.
 - [x] The packed artifact contains runtime output, types, styles, README, and license,
   and excludes tests, local config, secrets, and source-only material.
-- [x] Local inspection assembles and packs the exact `@threadlabs/looma@0.1.2`
-  facade, rejects empty/forbidden/missing files and private-workspace leakage,
-  and records SHA-256, byte size, source commit, and toolchain.
+- [x] Candidate inspection at `976dabb` assembles and packs the exact
+  `@threadlabs/looma@0.1.2` facade, rejects empty/forbidden/missing files and
+  private-workspace leakage, and records SHA-256, byte size, source commit, and
+  toolchain.
 
 Current local artifact evidence: the Node 20 inspection produced a checksummed
 singleton `@threadlabs/looma` Candidate tarball bound to the exact Looma source commit.
@@ -184,7 +189,8 @@ hashes and locations before the first `latest` mutation.
   proof does not satisfy this gate.
 - [ ] Trusted publishing is configured for `@threadlabs/looma` after bootstrap and bootstrap reuse fails after revocation.
 - [ ] Production hosted-docs evidence is refreshed for exact Candidate `0.1.2`.
-- [ ] Owner approves promotion of the same immutable versions from `candidate` to `latest`.
+- [ ] Owner approves promoting immutable `0.1.2` from `candidate` to `latest`
+  instead of superseding it with a separately qualified `0.1.3` Candidate.
 
 The content-free public Knit proof is
 `docs/release-evidence/knit-public-registry-0.1.2.json`, SHA-256

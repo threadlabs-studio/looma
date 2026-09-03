@@ -5,12 +5,14 @@
 > history or private workspace/build evidence, not as consumer guidance.
 
 Last Updated: 2026-09-03
-Status: `0.1.2` is published under `candidate` and independently qualified in Knit; promotion remains owner-controlled
+Status: `main` is prepared for `0.1.3`; public Candidate `0.1.2` is independently qualified in Knit; `0.1.1` remains `latest`
 
 ## Current Focus
 
-- Refresh production hosted-docs evidence for the exact `0.1.2` Candidate, then
-  run the owner-approved promotion workflow with the public Knit evidence.
+- Decide whether to complete the frozen `0.1.2` promotion or supersede it with
+  a qualified `0.1.3` Candidate after the contextual-editing work on `main`.
+- If `0.1.2` remains the promotion target, refresh its production hosted-docs
+  evidence and run the owner-approved promotion with the public Knit evidence.
 - Complete npm trusted publishing and revoke the temporary bypass-2FA bootstrap
   credential before its January 2027 restriction.
 - Keep qualified `0.1.1` under `latest` until the exact immutable `0.1.2`
@@ -21,6 +23,8 @@ Status: `0.1.2` is published under `candidate` and independently qualified in Kn
 ## Recent Progress
 
 - Release 1 namespace and local qualification:
+  - `main` is prepared for `0.1.3` after contextual-editing improvements landed
+    in merge commit `5057d36ed1b877f8111e3683d5eeb367cef9dfcc`.
   - `@threadlabs/looma@0.1.2` is published under `candidate` from exact commit
     `976dabb49e165b521cc6efe4d8f1dfecd6cebd72`. Candidate workflow run
     `33790406837` and exact-main CI run `33789984966` passed.
