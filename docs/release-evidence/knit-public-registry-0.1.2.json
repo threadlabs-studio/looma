@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "knit-public-registry-consumer",
+  "generatedAt": "2026-09-03T21:15:12Z",
+  "result": "passed",
+  "scope": "Credential-free installation and build qualification of the public Looma 0.1.2 Candidate in a detached Knit checkout",
+  "looma": {
+    "name": "@threadlabs/looma",
+    "version": "0.1.2",
+    "registryUrl": "https://registry.npmjs.org/",
+    "packageUrl": "https://www.npmjs.com/package/@threadlabs/looma/v/0.1.2",
+    "integrity": "sha512-+lHheOpJ2rPwXygUXpTKDvngx9B4TxAkrowFlT4RnTL+Bu1BmzaYLwG0G64rBJ2f+fMKVAbgr/sWLlqiCS6l5A=="
+  },
+  "knit": {
+    "repository": "bitbucket.org/mdean-projects/knit",
+    "repositoryVisibility": "private",
+    "branch": "feature/looma-0.1.2-consumer",
+    "commit": "2207e9bc470bfe9807e7fba5c2033a4b5d15f725",
+    "packageManifestSha256": "41c30c1fc856ee55714369e7c0048e86e8aebd5cb6084c8b0512b3dc5f07c861",
+    "lockfileSha256": "43282bd6398121a41c473919dab6e4254ee06bd4f72420c4b7ecb3f147aa7eb2"
+  },
+  "environment": {
+    "completedAt": "2026-09-03T21:15:12Z",
+    "nodeVersion": "24.20.0",
+    "pnpmVersion": "10.19.0",
+    "detachedCheckout": true,
+    "trackedSourceCleanAfterQualification": true,
+    "freshPnpmStore": true,
+    "siblingLoomaRepositoryPresent": false,
+    "npmUserConfig": "/dev/null",
+    "npmCredentialEnvironmentPresent": false
+  },
+  "gates": {
+    "frozenPublicRegistryInstall": "passed",
+    "installedPackageIdentity": "passed",
+    "scriptPolicyTests": {
+      "result": "passed",
+      "count": 127
+    },
+    "applicationUnitTests": {
+      "result": "passed",
+      "count": 333
+    },
+    "typecheck": "passed",
+    "lint": {
+      "result": "passed",
+      "errors": 0,
+      "preExistingWarnings": 3
+    },
+    "productionVercelBuild": "passed"
+  },
+  "commands": [
+    "NPM_CONFIG_USERCONFIG=/dev/null pnpm install --frozen-lockfile --store-dir {fresh-store}",
+    "pnpm test",
+    "pnpm typecheck",
+    "pnpm lint",
+    "pnpm -F web build",
+    "git status --short --untracked-files=all"
+  ],
+  "exclusions": [
+    "This package-consumer proof does not promote 0.1.2 from candidate to latest.",
+    "This package-consumer proof does not claim protected Vercel release configuration, completed Google signup acceptance, database audit, mobile acceptance, legal approval, production deployment, or external activation. Those remain Knit Release 1 gates."
+  ]
+}
