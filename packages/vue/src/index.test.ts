@@ -64,7 +64,16 @@ describe("@threadlabs/looma-vue adapter", () => {
     expect(wrapper).toBeTruthy();
     expect(wrapper?.getAttribute("variant")).toBe("solid");
     expect(wrapper?.getAttribute("size")).toBe("sm");
+    expect(wrapper?.getAttribute("data-allow-mismatch")).toBe("class");
     expect(button?.textContent).toBe("Save page");
+  });
+
+  it("lets consumers override the expected custom-element hydration mismatch", () => {
+    const { host } = mount(() =>
+      h(Button, { "data-allow-mismatch": "children" }, () => h("button", "Save page"))
+    );
+
+    expect(host.querySelector("ui-button")?.getAttribute("data-allow-mismatch")).toBe("children");
   });
 
   it("maps custom events to typed Vue callbacks", () => {
