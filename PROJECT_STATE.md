@@ -4,11 +4,13 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-03
+Last Updated: 2026-09-03 15:44 PDT
 Status: `main` is prepared for `0.1.3`; public Candidate `0.1.2` is independently qualified in Knit; `0.1.1` remains `latest`
 
 ## Current Focus
 
+- Qualify the responsive layout and viewport-safety fixes for the next Looma
+  Candidate, then remove Knit’s temporary package patch after publication.
 - Decide whether to complete the frozen `0.1.2` promotion or supersede it with
   a qualified `0.1.3` Candidate after the contextual-editing work on `main`.
 - If `0.1.2` remains the promotion target, refresh its production hosted-docs
@@ -22,6 +24,13 @@ Status: `main` is prepared for `0.1.3`; public Candidate `0.1.2` is independentl
 
 ## Recent Progress
 
+- Responsive layout hardening:
+  - Corrected the light-DOM reset so Looma component-layer display and sizing
+    declarations remain active while application CSS stays overridable.
+  - Made grid/center primitives intrinsically fluid and bounded dialogs,
+    search, menus, popovers, tabs, toasts, top bars, and floating actions for
+    narrow viewports and safe areas.
+  - Added source-policy tests and real Chromium coverage for computed layout.
 - Release 1 namespace and local qualification:
   - `main` is prepared for `0.1.3` after contextual-editing improvements landed
     in merge commit `5057d36ed1b877f8111e3683d5eeb367cef9dfcc`.
@@ -180,6 +189,13 @@ Status: `main` is prepared for `0.1.3`; public Candidate `0.1.2` is independentl
 
 ## Verification Snapshot
 
+- Responsive layout verification (2026-09-03):
+  - `pnpm --filter @threadlabs/looma-layout test`: pass (6 tests)
+  - `pnpm --filter @threadlabs/looma-layout typecheck`: pass
+  - `pnpm --filter @threadlabs/looma-layout build`: pass
+  - `pnpm --filter @threadlabs/looma-core test`: pass (31 tests)
+  - `pnpm --filter @threadlabs/looma-core typecheck`: pass
+  - `pnpm --filter @threadlabs/looma-core test:browser`: pass (9 Chromium tests)
 - Re-verified after Looma pivot foundation updates:
   - `pnpm install --no-frozen-lockfile`: pass
   - `pnpm typecheck`: pass

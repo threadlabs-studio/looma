@@ -1,4 +1,4 @@
-/* Unlayered: isolation contract (hard guarantees). */
+/* Unlayered: box-model guarantees that remain safe for host composition. */
 :where(ui-stack, ui-inline, ui-cluster, ui-grid, ui-center, ui-separator),
 :where(ui-stack, ui-inline, ui-cluster, ui-grid, ui-center, ui-separator) *,
 :where(ui-stack, ui-inline, ui-cluster, ui-grid, ui-center, ui-separator) *::before,
@@ -7,7 +7,8 @@
 }
 
 :where(ui-stack, ui-inline, ui-cluster, ui-grid, ui-center, ui-separator) {
-  all: revert;
+  /* Reveal Looma's component layer instead of reverting past it. */
+  all: revert-layer;
   box-sizing: border-box;
   margin: 0;
   font-family: var(--ui-font-family-sans);
@@ -31,6 +32,11 @@
 }
 
 @layer components {
+  :where(ui-stack, ui-inline, ui-cluster, ui-grid, ui-center, ui-separator) {
+    min-inline-size: 0;
+    max-inline-size: 100%;
+  }
+
   ui-stack {
     --ui-layout-gap: var(--ui-space-4, 1rem);
     --ui-layout-align: stretch;
@@ -79,7 +85,7 @@
     --ui-grid-min: 16rem;
     display: grid;
     gap: var(--ui-grid-gap);
-    grid-template-columns: repeat(auto-fit, minmax(var(--ui-grid-min), 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(var(--ui-grid-min), 100%), 1fr));
   }
 
   ui-grid[gap="xs"] { --ui-grid-gap: var(--ui-space-2, 0.5rem); }
@@ -94,6 +100,7 @@
     --ui-center-measure: 65ch;
     --ui-center-gutters: var(--ui-space-4, 1rem);
     display: block;
+    inline-size: 100%;
     max-inline-size: var(--ui-center-measure);
     margin-inline: auto;
     padding-inline: var(--ui-center-gutters);

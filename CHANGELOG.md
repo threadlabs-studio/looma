@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+Layout and common overlay surfaces now preserve their intended display modes
+through Looma's light-DOM reset and stay within narrow or safe-area-constrained
+viewports. Grid minimums collapse without horizontal overflow, centered content
+remains fluid, mobile search fills the dynamic viewport, and fixed controls,
+menus, popovers, tabs, and dialogs have explicit responsive bounds.
+
 ## v0.1.3 Candidate
 
 Buttons expose a typed `outline`, `solid`, `destructive`, and `ghost`

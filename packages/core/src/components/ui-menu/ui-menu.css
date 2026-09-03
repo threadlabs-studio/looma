@@ -1,7 +1,10 @@
 :host {
+  --ui-menu-viewport-gap: var(--ui-space-2, 0.5rem);
   display: flex;
   flex-direction: column;
-  min-width: 12rem;
+  inline-size: max-content;
+  min-inline-size: min(12rem, calc(100vw - (var(--ui-menu-viewport-gap) * 2)));
+  max-inline-size: calc(100vw - (var(--ui-menu-viewport-gap) * 2));
   padding: var(--ui-space-1);
   background: var(--ui-surface-elevated);
   border: 1px solid var(--ui-border-default);

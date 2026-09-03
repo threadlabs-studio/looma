@@ -6,11 +6,19 @@
 }
 
 .top-bar {
-  min-block-size: var(--ui-top-bar-height, 56px);
+  min-block-size: calc(var(--ui-top-bar-height, 56px) + env(safe-area-inset-top));
   display: flex;
   align-items: center;
   gap: var(--ui-top-bar-gap, var(--ui-space-3, 0.75rem));
-  padding-inline: var(--ui-top-bar-padding-inline, var(--ui-space-4, 1rem));
+  padding-block-start: env(safe-area-inset-top);
+  padding-inline-start: max(
+    var(--ui-top-bar-padding-inline, var(--ui-space-4, 1rem)),
+    env(safe-area-inset-left)
+  );
+  padding-inline-end: max(
+    var(--ui-top-bar-padding-inline, var(--ui-space-4, 1rem)),
+    env(safe-area-inset-right)
+  );
   background: var(--ui-top-bar-bg, var(--ui-surface, #ffffff));
   border-block-end: 1px solid var(--ui-top-bar-border, var(--ui-border, #e5e7eb));
 }
