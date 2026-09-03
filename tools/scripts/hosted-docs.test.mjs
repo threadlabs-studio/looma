@@ -136,7 +136,7 @@ test("rejects a manifest from another checkout", async () => {
 
 test("rejects Candidate registry evidence that does not match the manifest graph", () => {
   const evidence = registryEvidence();
-  evidence.packages[0].distTags.candidate = "0.1.2";
+  evidence.packages[0].distTags.candidate = "0.1.3";
   assert.throws(
     () => validateCandidateRegistryEvidence(manifest(), evidence),
     /does not bind @future\/tokens to the candidate tag/

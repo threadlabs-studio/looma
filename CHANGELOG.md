@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.1.3 Candidate
+
+Buttons expose a typed `outline`, `solid`, `destructive`, and `ghost`
+appearance contract with a more distinctive default theme. Editor consumers
+gain a reusable floating toolbar frame, compact table menus, precisely aligned
+table-edge insertion controls, and outline-free table editing.
+
 ## v0.1.2 Candidate
 
 Table context menus stay within the browser viewport when opened near an

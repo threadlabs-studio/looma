@@ -134,19 +134,19 @@ class UIEditorTableOverlayElement extends HTMLElement {
     }
 
     let html = '<div class="ui-editor-table-overlay" aria-label="Table insertion controls">';
-    html += `<div class="ui-editor-table-overlay__rows" style="--ui-editor-table-overlay-row-boundaries:${this.#rows + 1};">`;
+    html += '<div class="ui-editor-table-overlay__rows">';
     for (let i = 0; i <= this.#rows; i++) {
       const action = i === 0 ? "add-row-before" : "add-row-after";
       const controlKey = `row:${i}`;
-      html += `<button type="button" class="ui-editor-table-overlay__control ui-editor-table-overlay__control--row" data-action="${action}" data-boundary-index="${i}" data-control-key="${controlKey}" data-active="${this.#activeControlKey === controlKey ? "true" : "false"}" aria-label="Add row"><span class="ui-editor-table-overlay__handle" aria-hidden="true">+</span></button>`;
+      html += `<button type="button" class="ui-editor-table-overlay__control ui-editor-table-overlay__control--row" style="--ui-editor-table-overlay-boundary-index:${i};--ui-editor-table-overlay-segments:${this.#rows};" data-action="${action}" data-boundary-index="${i}" data-control-key="${controlKey}" data-active="${this.#activeControlKey === controlKey ? "true" : "false"}" aria-label="Add row"><span class="ui-editor-table-overlay__handle" aria-hidden="true">+</span></button>`;
     }
     html += "</div>";
 
-    html += `<div class="ui-editor-table-overlay__cols" style="--ui-editor-table-overlay-col-boundaries:${this.#cols + 1};">`;
+    html += '<div class="ui-editor-table-overlay__cols">';
     for (let i = 0; i <= this.#cols; i++) {
       const action = i === 0 ? "add-column-before" : "add-column-after";
       const controlKey = `col:${i}`;
-      html += `<button type="button" class="ui-editor-table-overlay__control ui-editor-table-overlay__control--col" data-action="${action}" data-boundary-index="${i}" data-control-key="${controlKey}" data-active="${this.#activeControlKey === controlKey ? "true" : "false"}" aria-label="Add column"><span class="ui-editor-table-overlay__handle" aria-hidden="true">+</span></button>`;
+      html += `<button type="button" class="ui-editor-table-overlay__control ui-editor-table-overlay__control--col" style="--ui-editor-table-overlay-boundary-index:${i};--ui-editor-table-overlay-segments:${this.#cols};" data-action="${action}" data-boundary-index="${i}" data-control-key="${controlKey}" data-active="${this.#activeControlKey === controlKey ? "true" : "false"}" aria-label="Add column"><span class="ui-editor-table-overlay__handle" aria-hidden="true">+</span></button>`;
     }
     html += "</div>";
     html += "</div>";

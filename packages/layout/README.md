@@ -5,7 +5,7 @@
 
 Six light-DOM layout elements that use token-driven gaps and never add external margins.
 
-Release status: Candidate `0.1.2`. The public elements are `ui-stack`, `ui-inline`, `ui-cluster`, `ui-grid`, `ui-center`, and `ui-separator`.
+Release status: Candidate `0.1.3`. The public elements are `ui-stack`, `ui-inline`, `ui-cluster`, `ui-grid`, `ui-center`, and `ui-separator`.
 
 ## Install
 
