@@ -7,11 +7,11 @@
 
 ## Properties
 
-| Property   | Attribute  | Description | Type      | Default     |
-| ---------- | ---------- | ----------- | --------- | ----------- |
-| `disabled` | `disabled` |             | `boolean` | `false`     |
-| `size`     | `size`     |             | `string`  | `undefined` |
-| `variant`  | `variant`  |             | `string`  | `undefined` |
+| Property   | Attribute  | Description | Type                                               | Default     |
+| ---------- | ---------- | ----------- | -------------------------------------------------- | ----------- |
+| `disabled` | `disabled` |             | `boolean`                                          | `false`     |
+| `size`     | `size`     |             | `string`                                           | `undefined` |
+| `variant`  | `variant`  |             | `"destructive" \| "ghost" \| "outline" \| "solid"` | `'outline'` |
 
 
 ----------------------------------------------
