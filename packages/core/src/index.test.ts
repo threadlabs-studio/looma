@@ -317,6 +317,19 @@ describe("@threadlabs/looma-core primitives", () => {
     expect(innerButton?.disabled).toBe(false);
   });
 
+  it("exposes an explicit outline default and destructive button intent", async () => {
+    await render(`
+      <ui-button><button type="button">Cancel</button></ui-button>
+      <ui-button variant="destructive"><button type="button">Delete workspace</button></ui-button>
+    `);
+
+    const wrappers = Array.from(document.querySelectorAll("ui-button"));
+    expect(wrappers[0]?.getAttribute("variant")).toBe("outline");
+    expect(wrappers[0]?.dataset.variant).toBe("outline");
+    expect(wrappers[1]?.getAttribute("variant")).toBe("destructive");
+    expect(wrappers[1]?.dataset.variant).toBe("destructive");
+  });
+
   it("wires floating action button label and disabled state to the inner button", async () => {
     await render(`
       <ui-floating-action-button label="Create new page" mobile-only disabled>

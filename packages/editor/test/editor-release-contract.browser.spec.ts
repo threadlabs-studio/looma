@@ -98,10 +98,32 @@ describe("editor release interactions (real browser)", () => {
     expect(tableActions).toEqual(["delete-table"]);
 
     const addRow = overlay.querySelector<HTMLButtonElement>("[data-control-key='row:1']")!;
+    const rowHandle = addRow.querySelector<HTMLElement>(".ui-editor-table-overlay__handle")!;
+    expect(addRow.style.getPropertyValue("--ui-editor-table-overlay-boundary-index")).toBe("1");
+    expect(addRow.style.getPropertyValue("--ui-editor-table-overlay-segments")).toBe("2");
+    expect(getComputedStyle(addRow).pointerEvents).toBe("none");
+    expect(getComputedStyle(rowHandle).pointerEvents).toBe("auto");
     addRow.focus();
     expect(addRow.dataset.active).toBe("true");
     await userEvent.keyboard("{Enter}");
     expect(overlayActions).toEqual([{ action: "add-row-after", boundaryIndex: 1 }]);
+  });
+
+  it("uses the shared floating toolbar frame without sticky or mobile-fixed positioning", () => {
+    document.body.innerHTML = '<ui-editor-toolbar floating><button type="button">Bold</button></ui-editor-toolbar>';
+    const toolbar = document.querySelector<HTMLElement>("ui-editor-toolbar")!;
+
+    expect(getComputedStyle(toolbar).position).toBe("static");
+    expect(getComputedStyle(toolbar).borderTopWidth).toBe("1px");
+    expect(getComputedStyle(toolbar).borderBottomWidth).toBe("1px");
+    expect(getComputedStyle(toolbar).overflowX).toBe("visible");
+  });
+
+  it("suppresses ProseMirror's blue node-selection outline for tables", () => {
+    document.body.innerHTML = '<div class="ProseMirror"><table class="ProseMirror-selectednode"><tbody><tr><td>Cell</td></tr></tbody></table></div>';
+    const table = document.querySelector<HTMLElement>("table")!;
+
+    expect(getComputedStyle(table).outlineStyle).toBe("none");
   });
 
   it("keeps the table context menu inside the viewport near the bottom-right edge", async () => {
