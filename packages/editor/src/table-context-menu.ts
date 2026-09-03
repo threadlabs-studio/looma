@@ -56,6 +56,8 @@ function dispatchTableAction(element: HTMLElement, action: TableContextMenuActio
 
 if (typeof HTMLElement !== "undefined") {
 class UIEditorTableContextMenuElement extends HTMLElement {
+  private positionFrame: number | null = null;
+
   static get observedAttributes(): string[] {
     return [
       "open",
@@ -79,10 +81,16 @@ class UIEditorTableContextMenuElement extends HTMLElement {
   connectedCallback(): void {
     this.render();
     this.addEventListener("click", this.onClick);
+    window.addEventListener("resize", this.scheduleViewportPosition);
   }
 
   disconnectedCallback(): void {
     this.removeEventListener("click", this.onClick);
+    window.removeEventListener("resize", this.scheduleViewportPosition);
+    if (this.positionFrame !== null) {
+      cancelAnimationFrame(this.positionFrame);
+      this.positionFrame = null;
+    }
   }
 
   attributeChangedCallback(): void {
@@ -97,6 +105,34 @@ class UIEditorTableContextMenuElement extends HTMLElement {
       dispatchTableAction(this, action);
     }
   }
+
+  private positionWithinViewport = (): void => {
+    this.positionFrame = null;
+    const menu = this.querySelector<HTMLElement>(".ui-editor-table-context-menu");
+    if (!menu) return;
+
+    menu.style.translate = "";
+    const rect = menu.getBoundingClientRect();
+    const gutter = 12;
+    const viewportWidth = window.visualViewport?.width ?? window.innerWidth;
+    const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+    const offsetX = rect.right > viewportWidth - gutter
+      ? viewportWidth - gutter - rect.right
+      : Math.max(0, gutter - rect.left);
+    const offsetY = rect.bottom > viewportHeight - gutter
+      ? viewportHeight - gutter - rect.bottom
+      : Math.max(0, gutter - rect.top);
+
+    if (offsetX !== 0 || offsetY !== 0) {
+      menu.style.translate = `${offsetX}px ${offsetY}px`;
+    }
+  };
+
+  private scheduleViewportPosition = (): void => {
+    if (!this.isConnected) return;
+    if (this.positionFrame !== null) cancelAnimationFrame(this.positionFrame);
+    this.positionFrame = requestAnimationFrame(this.positionWithinViewport);
+  };
 
   private render(): void {
     const open = this.getBoolAttr("open");
@@ -190,6 +226,7 @@ class UIEditorTableContextMenuElement extends HTMLElement {
     html += "</div>";
 
     this.innerHTML = html;
+    this.scheduleViewportPosition();
   }
 }
 
