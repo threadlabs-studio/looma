@@ -187,7 +187,7 @@
   ui-button > button {
     appearance: none;
     border: 1px solid var(--ui-border-default);
-    border-radius: var(--ui-radius-2);
+    border-radius: var(--ui-button-radius, var(--ui-radius-2));
     background: var(--ui-surface-default);
     color: inherit;
     font: inherit;
@@ -199,7 +199,8 @@
       background-color var(--ui-motion-fast) var(--ui-motion-ease),
       border-color var(--ui-motion-fast) var(--ui-motion-ease),
       color var(--ui-motion-fast) var(--ui-motion-ease),
-      box-shadow var(--ui-motion-fast) var(--ui-motion-ease);
+      box-shadow var(--ui-motion-fast) var(--ui-motion-ease),
+      transform var(--ui-motion-fast) var(--ui-motion-ease);
     margin: 0;
   }
 
@@ -226,38 +227,42 @@
     border-color: var(--ui-accent-solid);
     background: var(--ui-accent-solid);
     color: var(--ui-text-on-accent);
-    box-shadow: var(--ui-shadow-xs);
+    box-shadow: var(--ui-button-solid-shadow, inset 0 1px rgb(255 255 255 / 0.16), var(--ui-shadow-xs));
   }
 
   ui-button[data-variant="solid"] > button:hover:enabled {
     background: var(--ui-accent-hover);
     border-color: var(--ui-accent-hover);
     box-shadow: var(--ui-shadow-sm);
+    transform: translateY(-1px);
   }
 
   ui-button[data-variant="solid"] > button:active:enabled {
     background: var(--ui-accent-active);
     border-color: var(--ui-accent-active);
     box-shadow: none;
+    transform: translateY(0);
   }
 
   ui-button[data-variant="destructive"] > button {
     border-color: var(--ui-danger-solid);
     background: var(--ui-danger-solid);
     color: var(--ui-text-on-accent);
-    box-shadow: var(--ui-shadow-xs);
+    box-shadow: var(--ui-button-destructive-shadow, inset 0 1px rgb(255 255 255 / 0.14), var(--ui-shadow-xs));
   }
 
   ui-button[data-variant="destructive"] > button:hover:enabled {
     background: var(--ui-danger-hover);
     border-color: var(--ui-danger-hover);
     box-shadow: var(--ui-shadow-sm);
+    transform: translateY(-1px);
   }
 
   ui-button[data-variant="destructive"] > button:active:enabled {
     background: var(--ui-danger-hover);
     border-color: var(--ui-danger-hover);
     box-shadow: none;
+    transform: translateY(0);
   }
 
   ui-button[data-variant="ghost"] > button {

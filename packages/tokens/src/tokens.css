@@ -86,16 +86,16 @@
     --ui-border-subtle: #ecece8;
     --ui-border-default: #e4e4e0;
     --ui-border-strong: #c8c8c4;
-    --ui-focus-ring: #0066cc;
+    --ui-focus-ring: #5b55d6;
 
-    --ui-accent-solid: #0066cc;
-    --ui-accent-hover: #0052a3;
-    --ui-accent-active: #003d7a;
-    --ui-accent-soft: #e8f0fb;
+    --ui-accent-solid: #5b55d6;
+    --ui-accent-hover: #4b45bd;
+    --ui-accent-active: #3e399e;
+    --ui-accent-soft: #efeffc;
 
-    --ui-danger-solid: #cc3300;
-    --ui-danger-hover: #a32900;
-    --ui-danger-soft: #fdf0ed;
+    --ui-danger-solid: #b4233f;
+    --ui-danger-hover: #941d35;
+    --ui-danger-soft: #fceef1;
     --ui-success-solid: #007a33;
     --ui-success-soft: #edf7f1;
     --ui-warning-solid: #cc8800;
@@ -120,16 +120,16 @@
       --ui-border-subtle: oklch(0.9 0.01 250);
       --ui-border-default: oklch(0.84 0.01 250);
       --ui-border-strong: oklch(0.7 0.02 250);
-      --ui-focus-ring: oklch(0.62 0.18 250);
+      --ui-focus-ring: oklch(0.57 0.17 285);
 
-      --ui-accent-solid: oklch(0.62 0.18 250);
-      --ui-accent-hover: oklch(0.57 0.2 250);
-      --ui-accent-active: oklch(0.52 0.2 250);
-      --ui-accent-soft: oklch(0.95 0.03 250);
+      --ui-accent-solid: oklch(0.57 0.17 285);
+      --ui-accent-hover: oklch(0.52 0.18 285);
+      --ui-accent-active: oklch(0.46 0.16 285);
+      --ui-accent-soft: oklch(0.96 0.025 285);
 
-      --ui-danger-solid: oklch(0.55 0.2 25);
-      --ui-danger-hover: oklch(0.5 0.2 25);
-      --ui-danger-soft: oklch(0.97 0.02 25);
+      --ui-danger-solid: oklch(0.5 0.17 18);
+      --ui-danger-hover: oklch(0.44 0.16 18);
+      --ui-danger-soft: oklch(0.97 0.025 18);
       --ui-success-solid: oklch(0.5 0.15 145);
       --ui-success-soft: oklch(0.96 0.03 145);
       --ui-warning-solid: oklch(0.7 0.15 85);

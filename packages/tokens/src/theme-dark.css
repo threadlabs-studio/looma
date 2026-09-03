@@ -17,9 +17,9 @@
       --ui-border-default: #333330;
       --ui-border-strong: #4a4a46;
 
-      --ui-danger-solid: #ff6644;
-      --ui-danger-hover: #ff7755;
-      --ui-danger-soft: #2d1a16;
+      --ui-danger-solid: #ef6f86;
+      --ui-danger-hover: #f58a9d;
+      --ui-danger-soft: #321b22;
       --ui-success-solid: #33cc66;
       --ui-success-soft: #162a1f;
       --ui-warning-solid: #ffaa22;
@@ -46,9 +46,9 @@
     --ui-border-default: #333330;
     --ui-border-strong: #4a4a46;
 
-    --ui-danger-solid: #ff6644;
-    --ui-danger-hover: #ff7755;
-    --ui-danger-soft: #2d1a16;
+    --ui-danger-solid: #ef6f86;
+    --ui-danger-hover: #f58a9d;
+    --ui-danger-soft: #321b22;
     --ui-success-solid: #33cc66;
     --ui-success-soft: #162a1f;
     --ui-warning-solid: #ffaa22;
