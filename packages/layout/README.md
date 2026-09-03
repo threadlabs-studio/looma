@@ -5,7 +5,9 @@
 
 Nine light-DOM layout elements that use token-driven gaps and never add external margins.
 
-Release status: Candidate `0.1.3`. The public elements are `ui-stack`, `ui-inline`, `ui-cluster`, `ui-grid`, `ui-center`, `ui-switcher`, `ui-sidebar`, `ui-reel`, and `ui-separator`.
+Workspace status: unreleased changes on top of Candidate `0.1.3`. The public
+elements in this workspace are `ui-stack`, `ui-inline`, `ui-cluster`, `ui-grid`,
+`ui-center`, `ui-switcher`, `ui-sidebar`, `ui-reel`, and `ui-separator`.
 
 ## Install
 
@@ -22,7 +24,7 @@ import "@threadlabs/looma-layout";
 ```
 
 ```html
-<ui-stack gap="md">
+<ui-stack gap="m">
   <h2>Profile</h2>
   <p>Account details</p>
 </ui-stack>
