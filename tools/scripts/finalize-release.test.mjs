@@ -97,7 +97,31 @@ test("finalizer module exists and exports release validation and planning", () =
   assert.equal(finalizer.importError, undefined);
   assert.equal(typeof finalizer.validateReleaseRecord, "function");
   assert.equal(typeof finalizer.planReleaseRecord, "function");
+  assert.equal(typeof finalizer.releaseCreationArguments, "function");
   assert.equal(typeof finalizer.validateExecutionGuard, "function");
+});
+
+test("creates a missing exact tag through the release API with evidence attached", () => {
+  const record = {
+    tag: "v0.1.1",
+    title: "Looma v0.1.1 Candidate",
+    notes: "Release notes.",
+    sourceCommit,
+    assetPaths: Object.keys(assetHashes)
+  };
+
+  assert.deepEqual(finalizer.releaseCreationArguments(record, "threadlabs-studio/looma", {
+    createTag: true,
+    uploadAssets: record.assetPaths
+  }), [
+    "release", "create", record.tag,
+    ...record.assetPaths,
+    "--repo", "threadlabs-studio/looma",
+    "--target", sourceCommit,
+    "--title", record.title,
+    "--notes", record.notes,
+    "--prerelease"
+  ]);
 });
 
 test("requires the protected execute guard only for mutation mode", () => {
