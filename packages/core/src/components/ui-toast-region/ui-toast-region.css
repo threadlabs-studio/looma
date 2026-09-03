@@ -1,12 +1,13 @@
 :host {
   position: fixed;
-  top: var(--ui-space-4);
+  top: calc(var(--ui-space-4) + env(safe-area-inset-top));
   left: 50%;
   transform: translateX(-50%);
   z-index: 9999;
   display: grid;
   gap: var(--ui-space-2);
-  max-width: min(24rem, 90vw);
+  inline-size: min(24rem, calc(100vw - (var(--ui-space-4) * 2)));
+  max-inline-size: 100%;
   pointer-events: none;
 }
 

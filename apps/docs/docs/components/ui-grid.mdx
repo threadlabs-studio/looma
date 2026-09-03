@@ -15,6 +15,9 @@ Responsive auto-fit grid primitive.
 | `gap` | `xs \| s \| m \| l \| string` | `m` | Grid gutter size. |
 | `min` | `sm \| md \| lg \| string` | `md` | Minimum column width token. |
 
+The minimum is bounded by the grid's own available width. A narrow parent
+therefore produces one fluid column without horizontal overflow.
+
 ## Properties
 
 | Name | Type |

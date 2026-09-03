@@ -8,6 +8,11 @@ type PrimitiveAttribute =
   | "min"
   | "measure"
   | "gutters"
+  | "threshold"
+  | "side"
+  | "width"
+  | "item-width"
+  | "snap"
   | "orientation";
 
 const ORIENTATION_HORIZONTAL = "horizontal";
@@ -175,6 +180,52 @@ class UICenterElement extends UILayoutElement {
   }
 }
 
+class UISwitcherElement extends UILayoutElement {
+  static get observedAttributes(): PrimitiveAttribute[] {
+    return ["gap", "threshold", "align"];
+  }
+
+  get gap(): string { return this.getPrimitiveAttribute("gap"); }
+  set gap(value: string) { this.setPrimitiveAttribute("gap", value); }
+  get threshold(): string { return this.getPrimitiveAttribute("threshold"); }
+  set threshold(value: string) { this.setPrimitiveAttribute("threshold", value); }
+  get align(): string { return this.getPrimitiveAttribute("align"); }
+  set align(value: string) { this.setPrimitiveAttribute("align", value); }
+}
+
+class UISidebarElement extends UILayoutElement {
+  static get observedAttributes(): PrimitiveAttribute[] {
+    return ["gap", "side", "width", "align"];
+  }
+
+  get gap(): string { return this.getPrimitiveAttribute("gap"); }
+  set gap(value: string) { this.setPrimitiveAttribute("gap", value); }
+  get side(): string { return this.getPrimitiveAttribute("side"); }
+  set side(value: string) { this.setPrimitiveAttribute("side", value); }
+  get width(): string { return this.getPrimitiveAttribute("width"); }
+  set width(value: string) { this.setPrimitiveAttribute("width", value); }
+  get align(): string { return this.getPrimitiveAttribute("align"); }
+  set align(value: string) { this.setPrimitiveAttribute("align", value); }
+}
+
+class UIReelElement extends UILayoutElement {
+  static get observedAttributes(): PrimitiveAttribute[] {
+    return ["gap", "item-width", "snap"];
+  }
+
+  connectedCallback(): void {
+    if (!this.hasAttribute("role")) this.setAttribute("role", "region");
+    if (!this.hasAttribute("tabindex")) this.setAttribute("tabindex", "0");
+  }
+
+  get gap(): string { return this.getPrimitiveAttribute("gap"); }
+  set gap(value: string) { this.setPrimitiveAttribute("gap", value); }
+  get itemWidth(): string { return this.getPrimitiveAttribute("item-width"); }
+  set itemWidth(value: string) { this.setPrimitiveAttribute("item-width", value); }
+  get snap(): string { return this.getPrimitiveAttribute("snap"); }
+  set snap(value: string) { this.setPrimitiveAttribute("snap", value); }
+}
+
 class UISeparatorElement extends UILayoutElement {
   static get observedAttributes(): Array<PrimitiveAttribute | "role"> {
     return ["orientation", "role"];
@@ -222,6 +273,9 @@ const definitions = [
   ["ui-cluster", UIClusterElement],
   ["ui-grid", UIGridElement],
   ["ui-center", UICenterElement],
+  ["ui-switcher", UISwitcherElement],
+  ["ui-sidebar", UISidebarElement],
+  ["ui-reel", UIReelElement],
   ["ui-separator", UISeparatorElement]
 ] as const;
 

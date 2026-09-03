@@ -1,0 +1,32 @@
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# Reel
+
+Contained, keyboard-focusable horizontal scrolling for cards and other repeated items.
+
+## Component Reference
+
+<ComponentExamplesApiTabs component="ui-reel" />
+
+Give every reel a specific `aria-label` or `aria-labelledby` value. Named item
+widths are `sm`, `md`, and `lg`; `snap="start | center"` enables scroll snapping.
+
+```html
+<ui-reel item-width="md" gap="m" snap="start" aria-label="Recent pages">
+  <article>Page one</article>
+  <article>Page two</article>
+</ui-reel>
+```
+
+```vue
+<script setup lang="ts">
+import { Reel } from "@threadlabs/looma/vue";
+</script>
+
+<template>
+  <Reel item-width="md" gap="m" snap="start" aria-label="Recent pages">
+    <article>Page one</article>
+    <article>Page two</article>
+  </Reel>
+</template>
+```

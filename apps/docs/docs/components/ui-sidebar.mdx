@@ -1,0 +1,33 @@
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# Sidebar
+
+Intrinsic two-region layout that wraps before the main content becomes unusably narrow.
+
+## Component Reference
+
+<ComponentExamplesApiTabs component="ui-sidebar" />
+
+Provide exactly two children. `side="start"` treats the first as the side
+region; `side="end"` treats the last as the side region. Width options are
+`narrow`, default, and `wide`. Tune `--ui-sidebar-content-min` when needed.
+
+```html
+<ui-sidebar side="start" width="narrow" gap="m">
+  <aside>Filters</aside>
+  <main>Results</main>
+</ui-sidebar>
+```
+
+```vue
+<script setup lang="ts">
+import { Sidebar } from "@threadlabs/looma/vue";
+</script>
+
+<template>
+  <Sidebar side="start" width="narrow" gap="m">
+    <aside>Filters</aside>
+    <main>Results</main>
+  </Sidebar>
+</template>
+```
