@@ -35,6 +35,7 @@ test("release record is a distinct post-promotion job with minimal write permiss
 });
 
 test("release record downloads and validates the exact Candidate and promotion evidence", () => {
+  const orchestrator = "node .release/orchestrator/finalize-release.mjs";
   assert.match(releaseRecordJob, /Checkout the same approved release commit/);
   assert.match(releaseRecordJob, /ref: \$\{\{ github\.sha \}\}/);
   assert.match(releaseRecordJob, /persist-credentials: false/);
@@ -46,12 +47,12 @@ test("release record downloads and validates the exact Candidate and promotion e
     releaseRecordJob,
     /name: looma-0\.1\.1-registry-promotion-evidence[\s\S]*?path: \.release\/evidence\/[\s\S]*?run-id: \$\{\{ github\.run_id \}\}/
   );
-  assert.match(releaseRecordJob, /node tools\/scripts\/finalize-release\.mjs\n/);
+  assert.match(releaseRecordJob, /node \.release\/orchestrator\/finalize-release\.mjs\n/);
   assert.match(releaseRecordJob, /LOOMA_RELEASE_RECORD: approved/);
-  assert.match(releaseRecordJob, /node tools\/scripts\/finalize-release\.mjs --execute/);
+  assert.match(releaseRecordJob, /node \.release\/orchestrator\/finalize-release\.mjs --execute/);
   assert.ok(
-    releaseRecordJob.indexOf("node tools/scripts/finalize-release.mjs\n")
-      < releaseRecordJob.indexOf("node tools/scripts/finalize-release.mjs --execute")
+    releaseRecordJob.indexOf(`${orchestrator}\n`)
+      < releaseRecordJob.indexOf(`${orchestrator} --execute`)
   );
 });
 
