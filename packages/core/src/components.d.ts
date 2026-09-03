@@ -44,7 +44,10 @@ export namespace Components {
          */
         "disabled": boolean;
         "size"?: string;
-        "variant"?: string;
+        /**
+          * @default 'outline'
+         */
+        "variant": 'outline' | 'solid' | 'destructive' | 'ghost';
     }
     interface UiCheckbox {
         /**
@@ -610,7 +613,10 @@ declare namespace LocalJSX {
          */
         "disabled"?: boolean;
         "size"?: string;
-        "variant"?: string;
+        /**
+          * @default 'outline'
+         */
+        "variant"?: 'outline' | 'solid' | 'destructive' | 'ghost';
     }
     interface UiCheckbox {
         /**
@@ -966,7 +972,7 @@ declare namespace LocalJSX {
         "tone": string;
     }
     interface UiButtonAttributes {
-        "variant": string;
+        "variant": 'outline' | 'solid' | 'destructive' | 'ghost';
         "size": string;
         "disabled": boolean;
     }
