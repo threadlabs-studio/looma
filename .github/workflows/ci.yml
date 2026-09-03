@@ -7,7 +7,7 @@ on:
       - main
 
 jobs:
-  verify:
+  quality:
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -42,6 +42,9 @@ jobs:
         run: |
           pnpm generate:api
           git diff --exit-code -- generated/component-api.json
+
+      - name: Lint
+        run: pnpm lint
 
       - name: Typecheck
         run: pnpm typecheck
@@ -89,3 +92,20 @@ jobs:
           LOOMA_DOCS_APPROVER: CI
           LOOMA_KNIT_APPROVER: CI
         run: pnpm release:verify
+
+  verify:
+    if: always()
+    needs:
+      - quality
+      - release-package
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Require quality and release packaging
+        env:
+          QUALITY_RESULT: ${{ needs.quality.result }}
+          RELEASE_PACKAGE_RESULT: ${{ needs.release-package.result }}
+        run: |
+          test "$QUALITY_RESULT" = "success"
+          test "$RELEASE_PACKAGE_RESULT" = "success"
