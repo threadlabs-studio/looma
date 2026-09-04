@@ -9,6 +9,6 @@ export default defineConfig({
   format: ["esm"],
   dts: true,
   clean: true,
-  external: ["@tiptap/core", "@tiptap/pm"],
-  noExternal: [/^@tiptap\/extension-/],
+  external: ["@tiptap/core", "@tiptap/pm", "lowlight"],
+  noExternal: [/^@tiptap\/extension-/, "@tiptap/suggestion"],
 });

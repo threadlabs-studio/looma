@@ -4,8 +4,19 @@
  */
 
 import type { Editor, Range } from "@tiptap/core";
+import { TextSelection } from "@tiptap/pm/state";
 import { TableMap } from "@tiptap/pm/tables";
+import type { TableContextMenuActionEventDetail } from "../table-context-menu";
 import type { TableOverlayActionEventDetail } from "../table-overlay";
+import {
+  getActiveTableCellAlignment,
+  getActiveTableCellBackground,
+  setActiveTableCellAlignment,
+  setActiveTableCellBackground,
+  TABLE_CELL_BACKGROUND_PRESETS,
+  type TableCellAlignment,
+  type TableCellBackground,
+} from "./table-formatting";
 
 interface TableNode {
   child: (i: number) => { nodeSize: number; child: (j: number) => { nodeSize: number }; childCount: number };
@@ -16,6 +27,126 @@ export interface InsertTableAtRangeOptions {
   rows?: number;
   cols?: number;
   withHeaderRow?: boolean;
+}
+
+export interface TableActionCapabilities {
+  canAddRowBefore: boolean;
+  canAddRowAfter: boolean;
+  canAddColumnBefore: boolean;
+  canAddColumnAfter: boolean;
+  canDeleteRow: boolean;
+  canDeleteColumn: boolean;
+  canDeleteTable: boolean;
+  canMergeCells: boolean;
+  canSplitCell: boolean;
+}
+
+export interface ActiveTableUiState {
+  active: boolean;
+  showToolbar: boolean;
+  cellAlignment: TableCellAlignment;
+  cellBackground: TableCellBackground;
+  capabilities: TableActionCapabilities;
+}
+
+const NO_TABLE_CAPABILITIES: TableActionCapabilities = {
+  canAddRowBefore: false,
+  canAddRowAfter: false,
+  canAddColumnBefore: false,
+  canAddColumnAfter: false,
+  canDeleteRow: false,
+  canDeleteColumn: false,
+  canDeleteTable: false,
+  canMergeCells: false,
+  canSplitCell: false,
+};
+
+/** Text formatting belongs to actual text selections, not table CellSelections. */
+export function shouldShowTextFormattingToolbar(
+  editor: Editor,
+  from = editor.state.selection.from,
+  to = editor.state.selection.to
+): boolean {
+  return editor.isEditable
+    && editor.state.selection instanceof TextSelection
+    && from !== to;
+}
+
+/** Returns Looma's complete interaction state for the table containing the selection. */
+export function getActiveTableUiState(editor: Editor): ActiveTableUiState {
+  const active = editor.isActive("table");
+  if (!active) {
+    return {
+      active: false,
+      showToolbar: false,
+      cellAlignment: "left",
+      cellBackground: null,
+      capabilities: { ...NO_TABLE_CAPABILITIES },
+    };
+  }
+
+  return {
+    active: true,
+    showToolbar: true,
+    cellAlignment: getActiveTableCellAlignment(editor),
+    cellBackground: getActiveTableCellBackground(editor),
+    capabilities: {
+      canAddRowBefore: editor.can().addRowBefore(),
+      canAddRowAfter: editor.can().addRowAfter(),
+      canAddColumnBefore: editor.can().addColumnBefore(),
+      canAddColumnAfter: editor.can().addColumnAfter(),
+      canDeleteRow: editor.can().deleteRow(),
+      canDeleteColumn: editor.can().deleteColumn(),
+      canDeleteTable: editor.can().deleteTable(),
+      canMergeCells: editor.can().mergeCells(),
+      canSplitCell: editor.can().splitCell(),
+    },
+  };
+}
+
+/** Executes a toolbar/context-menu action using Looma's table behavior policy. */
+export function handleTableAction(
+  editor: Editor,
+  detail: TableContextMenuActionEventDetail
+): boolean {
+  switch (detail.action) {
+    case "align-left":
+      return setActiveTableCellAlignment(editor, "left");
+    case "align-center":
+      return setActiveTableCellAlignment(editor, "center");
+    case "align-right":
+      return setActiveTableCellAlignment(editor, "right");
+    case "background-none":
+      return setActiveTableCellBackground(editor, TABLE_CELL_BACKGROUND_PRESETS.none);
+    case "background-gray":
+      return setActiveTableCellBackground(editor, TABLE_CELL_BACKGROUND_PRESETS.gray);
+    case "background-yellow":
+      return setActiveTableCellBackground(editor, TABLE_CELL_BACKGROUND_PRESETS.yellow);
+    case "background-blue":
+      return setActiveTableCellBackground(editor, TABLE_CELL_BACKGROUND_PRESETS.blue);
+    case "background-green":
+      return setActiveTableCellBackground(editor, TABLE_CELL_BACKGROUND_PRESETS.green);
+    case "background-red":
+      return setActiveTableCellBackground(editor, TABLE_CELL_BACKGROUND_PRESETS.red);
+    case "add-row-before":
+      return editor.chain().focus().addRowBefore().run();
+    case "add-row-after":
+      return editor.chain().focus().addRowAfter().run();
+    case "add-column-before":
+      return editor.chain().focus().addColumnBefore().run();
+    case "add-column-after":
+      return editor.chain().focus().addColumnAfter().run();
+    case "delete-row":
+      return editor.chain().focus().deleteRow().run();
+    case "delete-column":
+      return editor.chain().focus().deleteColumn().run();
+    case "delete-table":
+      return editor.chain().focus().deleteTable().run();
+    case "merge-cells":
+      return editor.chain().focus().mergeCells().run();
+    case "split-cell":
+      return editor.chain().focus().splitCell().run();
+  }
 }
 
 function arrayEquals(left: number[] | null | undefined, right: number[]): boolean {
@@ -273,7 +404,7 @@ export function handleTableOverlayAction(
       break;
     }
     case "add-row-after": {
-      const rowIndex = Math.min(boundaryIndex, rows - 1);
+      const rowIndex = Math.min(boundaryIndex - 1, rows - 1);
       if (rowIndex < 0) return false;
       cellPos = getTextPositionInCell(tablePos, table as TableNode, rowIndex, 0);
       command = () => editor.chain().focus().setTextSelection(cellPos).addRowAfter().run();
@@ -287,7 +418,7 @@ export function handleTableOverlayAction(
       break;
     }
     case "add-column-after": {
-      const colIndex = Math.min(boundaryIndex, cols - 1);
+      const colIndex = Math.min(boundaryIndex - 1, cols - 1);
       if (colIndex < 0) return false;
       cellPos = getTextPositionInCell(tablePos, table as TableNode, 0, colIndex);
       command = () => editor.chain().focus().setTextSelection(cellPos).addColumnAfter().run();

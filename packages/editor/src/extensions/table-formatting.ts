@@ -2,18 +2,10 @@ import type { AnyExtension, Editor } from "@tiptap/core";
 import TableBase from "@tiptap/extension-table";
 import TableCellBase from "@tiptap/extension-table-cell";
 import TableHeaderBase from "@tiptap/extension-table-header";
+export { TABLE_CELL_BACKGROUND_PRESETS } from "../table-backgrounds";
 
 export type TableCellAlignment = "left" | "center" | "right";
 export type TableCellBackground = string | null;
-
-export const TABLE_CELL_BACKGROUND_PRESETS = {
-  none: null,
-  gray: "#f3f4f6",
-  yellow: "#fef3c7",
-  blue: "#dbeafe",
-  green: "#dcfce7",
-  red: "#fee2e2",
-} as const;
 
 export const LoomaTable: AnyExtension = TableBase.configure({
   resizable: true,

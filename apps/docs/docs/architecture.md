@@ -20,7 +20,7 @@ deferred adapters remain internal workspaces.
 - `@threadlabs/looma/editor/ui`: low-level editor web-component chrome without the Tiptap integration.
 - `@threadlabs/looma/editor/extensions`: focused Tiptap 2 presets and table helpers.
 - `@threadlabs/looma/vue`: the supported Vue 3 translation over layout and core contracts, without the editor graph.
-- `@threadlabs/looma/vue/editor`: the supported Vue 3 editor integration.
+- `@threadlabs/looma/vue/editor`: the supported turnkey Vue 3 editor integration, including the Tiptap lifecycle, commands, table editing, and themed controls.
 
 ## SSR and upgrade contract
 

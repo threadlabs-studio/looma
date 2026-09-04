@@ -4,18 +4,18 @@
  * Domain-neutral: no Tiptap dependency.
  */
 
+import {
+  TABLE_CELL_BACKGROUND_OPTIONS,
+  type TableCellBackgroundAction,
+} from "./table-backgrounds";
+
 const TAG = "ui-editor-table-context-menu";
 
 export type TableContextMenuAction =
   | "align-left"
   | "align-center"
   | "align-right"
-  | "background-none"
-  | "background-gray"
-  | "background-yellow"
-  | "background-blue"
-  | "background-green"
-  | "background-red"
+  | TableCellBackgroundAction
   | "add-row-before"
   | "add-row-after"
   | "add-column-before"
@@ -35,13 +35,6 @@ type TableContextMenuItem = {
   label: string;
   can: string;
   tone?: "danger";
-};
-
-type TableContextMenuBackgroundItem = {
-  action: TableContextMenuAction;
-  label: string;
-  value: string | null;
-  swatch: string | null;
 };
 
 function dispatchTableAction(element: HTMLElement, action: TableContextMenuAction): void {
@@ -141,19 +134,10 @@ class UIEditorTableContextMenuElement extends HTMLElement {
 
     const currentBackground = this.getAttribute("cell-background");
 
-    const backgroundActions = [
-      { action: "background-none", label: "Default", value: null, swatch: null },
-      { action: "background-gray", label: "Gray", value: "#f3f4f6", swatch: "#f3f4f6" },
-      { action: "background-yellow", label: "Yellow", value: "#fef3c7", swatch: "#fef3c7" },
-      { action: "background-blue", label: "Blue", value: "#dbeafe", swatch: "#dbeafe" },
-      { action: "background-green", label: "Green", value: "#dcfce7", swatch: "#dcfce7" },
-      { action: "background-red", label: "Red", value: "#fee2e2", swatch: "#fee2e2" },
-    ] satisfies TableContextMenuBackgroundItem[];
-
     const sections = [
       {
         heading: "Cell background",
-        backgrounds: backgroundActions,
+        backgrounds: TABLE_CELL_BACKGROUND_OPTIONS,
       },
       {
         heading: "Structure",
@@ -184,7 +168,7 @@ class UIEditorTableContextMenuElement extends HTMLElement {
       actions: TableContextMenuItem[];
     } | {
       heading: string;
-      backgrounds: TableContextMenuBackgroundItem[];
+      backgrounds: typeof TABLE_CELL_BACKGROUND_OPTIONS;
     }>;
 
     const availableSections = sections

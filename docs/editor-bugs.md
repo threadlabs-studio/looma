@@ -1,6 +1,6 @@
 # Editor Bugs
 
-Last updated: 2026-08-30
+Last updated: 2026-09-03
 
 This file tracks shared Looma editor defects that are visible in Knit and other consuming apps.
 
@@ -61,11 +61,7 @@ Acceptance notes:
 
 ### E-TBL-003: Table overlay and options model are placeholder-quality, not Confluence-quality
 
-Status: accepted Candidate limitation (2026-08-30)
-
-Release 1 classification: Confluence-level visual polish is deferred. Candidate
-acceptance is limited to the qualified flow below; data loss or corruption is
-not accepted.
+Status: closed for the 0.1.6 interaction contract (2026-09-03)
 
 Observed behavior:
 
@@ -89,9 +85,8 @@ Design direction to evaluate:
   - table delete
 - Reserve the cell menu for cell-scoped actions such as background color, merge/split, and future cell formatting.
 
-Current implementation note:
+Resolution:
 
-- `ui-editor-table-overlay` is still a Phase 1 primitive and does not yet match the Confluence interaction model in spacing, discoverability, or hover behavior.
 - Row and column boundary controls now behave as hover-only line affordances instead of persistent visible buttons.
 - The overlay now keeps a single active boundary at a time, with the insert handle tied to the hovered row/column line instead of a blanket of visually equivalent controls.
 - Looma now keeps the floating table toolbar scoped to active table selection only and uses it for quick actions such as cell alignment and simple row/column insertion.
@@ -100,7 +95,7 @@ Current implementation note:
 - The heavier row/column delete, merge/split, and other overflow actions are now available from a grouped toolbar overflow menu as well as the right-click menu.
 - The right-click menu now hides unavailable actions and groups the remaining actions by structure/table intent instead of presenting one long partially-disabled list.
 - Looma now also normalizes resized column widths back into the active table so the table stays full-width inside the editor after drag-resize completes.
-- The full Confluence-style hover-line interaction model and richer structural options model are still not complete.
+- `LoomaEditor` owns the complete selection, focus, command, overlay, toolbar, and context-menu interaction instead of requiring each host app to reconstruct it.
 
 Release evidence:
 
@@ -118,8 +113,7 @@ Acceptance notes:
 - Hovering a row/column boundary should clearly preview the affected line.
 - Insert controls should appear where the action will apply, not as oversized always-on buttons.
 - The primary structural actions must be discoverable without requiring right-click hunting.
-- Visual parity with Confluence remains explicitly outside Candidate R1 and must
-  not be described as complete in public documentation.
+- Visual identity is controlled through Looma semantic tokens, including host-theme overrides for every editor control state.
 
 ### E-TBL-004: Toolbar icon rendering still looks off compared with the pre-Looma editor
 
@@ -137,8 +131,8 @@ Expected behavior:
 Resolution notes:
 
 - Looma’s shared toolbar shell now enforces more stable sizing and non-shrinking child layout.
-- Knit’s remaining app-local formatting actions now use one consistent Lucide icon set instead of mixed inline fill/stroke/text glyph icons.
-- Browser verification passed against the real page editor in Knit.
+- The turnkey Looma editor now renders all formatting actions through the same Looma `IconButton` primitive and semantic token contract.
+- Browser verification passed both in Looma and against the real page editor in Knit, including a computed-style assertion on the rendered shadow-root button.
 
 Acceptance notes:
 

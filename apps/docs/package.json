@@ -1,7 +1,7 @@
 {
   "name": "@threadlabs/looma-docs",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.6",
   "scripts": {
     "dev": "docusaurus start --port 4173",
     "build": "BROWSERSLIST_IGNORE_OLD_DATA=true docusaurus build",

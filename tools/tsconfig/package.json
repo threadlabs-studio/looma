@@ -1,7 +1,7 @@
 {
   "name": "@threadlabs/looma-tsconfig",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.6",
   "exports": {
     "./base.json": "./base.json",
     "./library.json": "./library.json"

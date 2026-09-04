@@ -72,12 +72,14 @@ test("the facade declares the exact public subpath and peer contract", async () 
   assert.equal(manifest.peerDependenciesMeta.vue.optional, true);
   assert.equal(manifest.peerDependenciesMeta["@tiptap/core"].optional, true);
   assert.equal(manifest.peerDependenciesMeta["@tiptap/pm"].optional, true);
+  assert.equal(manifest.peerDependenciesMeta["@tiptap/vue-3"].optional, true);
   assert.deepEqual(Object.keys(manifest.peerDependencies).sort(), [
     "@tiptap/core",
     "@tiptap/pm",
+    "@tiptap/vue-3",
     "vue",
   ]);
-  assert.equal(manifest.dependencies, undefined);
+  assert.deepEqual(manifest.dependencies, { lowlight: "^3.3.0" });
   assert.ok(manifest.sideEffects.includes("./editor/*.js"));
   assert.ok(manifest.sideEffects.includes("./vue/index.js"));
   assert.ok(manifest.sideEffects.includes("./vue/editor/*.js"));
@@ -120,7 +122,7 @@ test("the editor bundles its preset extensions but externalizes the host runtime
   ]);
 
   assert.match(config, /noExternal:\s*\[\/\^@tiptap\\\/extension-/);
-  assert.match(config, /external:\s*\["@tiptap\/core", "@tiptap\/pm"\]/);
+  assert.match(config, /external:\s*\["@tiptap\/core", "@tiptap\/pm", "lowlight"\]/);
   assert.match(tableCommands, /from "@tiptap\/pm\/tables"/);
   assert.doesNotMatch(tableCommands, /prosemirror-tables/);
 });
@@ -166,7 +168,7 @@ test("module graph follows contained facade self-references and declaration chun
     ),
     writeFile(
       path.join(fixtureFacade, "vue/editor/index.js"),
-      'import "@tiptap/core";\n',
+      '/** @typedef {import("./type-only-module").Contract} Contract */\nimport "@tiptap/core";\n',
     ),
     writeFile(
       path.join(fixtureFacade, "vue/index.d.ts"),

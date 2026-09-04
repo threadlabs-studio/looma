@@ -10,7 +10,7 @@ Responsive suggestion surface for app-provided slash commands.
 
 ## Runtime Contract
 
-Apps set `open`, `query`, `items`, `selectedIndex`, and `anchorRect` as properties. The element emits `looma-editor-slash-menu-highlight` and `looma-editor-slash-menu-select` with `{ index }`; the app maps the index to its command and owns the editor mutation.
+Advanced consumers set `open`, `query`, `items`, `selectedIndex`, and `anchorRect` as properties. The element emits `looma-editor-slash-menu-highlight` and `looma-editor-slash-menu-select` with `{ index }`; custom integrations map the index to their command and own the editor mutation. `LoomaEditor` provides this integration by default.
 
 On desktop the menu positions near the supplied anchor. On narrow viewports it becomes a bottom surface. Pointer movement changes highlight; click selects. The editor integration owns arrow-key and Enter routing.
 
@@ -18,4 +18,4 @@ This is a client enhancement with no generated no-JS menu. The document content 
 
 ## Vue
 
-Use `EditorSlashMenu` from `@threadlabs/looma/vue/editor` and pass the vanilla Tiptap editor state through the documented properties and events.
+Most Vue consumers should use `LoomaEditor`. Advanced consumers can use `EditorSlashMenu` from `@threadlabs/looma/vue/editor` and pass custom Tiptap state through the documented properties and events.

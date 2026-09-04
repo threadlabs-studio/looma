@@ -4,11 +4,11 @@ slug: /
 
 # Getting Started
 
-Looma Release 1 is a Candidate `0.1.5` package for Vue 3 and direct custom-element use. It is not Stable yet. React and Svelte adapters in the repository are internal previews and are not published or supported in Release 1.
+Looma Release 1 is a Candidate `0.1.6` package for Vue 3 and direct custom-element use. It is not Stable yet. React and Svelte adapters in the repository are internal previews and are not published or supported in Release 1.
 
 :::caution Confirm the Candidate tag
 
-These instructions target the exact `@threadlabs/looma@0.1.5` Candidate. Before adopting it, confirm that npm resolves that package at `0.1.5` under the `candidate` dist-tag. Preview documentation can be built before that registry gate; production documentation is published only after the gate passes.
+These instructions target the exact `@threadlabs/looma@0.1.6` Candidate. Before adopting it, confirm that npm resolves that package at `0.1.6` under the `candidate` dist-tag. Preview documentation can be built before that registry gate; production documentation is published only after the gate passes.
 
 :::
 
@@ -36,10 +36,9 @@ pnpm add @threadlabs/looma vue@^3.5.0 @tiptap/vue-3@^2.11.5
 
 Looma ships the concrete Tiptap extensions used by its editor preset inside the
 editor subpath. You do not need to enumerate those packages yourself.
-`@tiptap/vue-3` is explicit
-because the consuming application—not Looma—owns Tiptap's Vue editor lifecycle,
-`EditorContent`, and compatible Tiptap core. Applications that use `/editor`
-without Vue should install a compatible `@tiptap/core` 2.x instead.
+`@tiptap/vue-3` is explicit because the turnkey `LoomaEditor` uses Tiptap's
+official Vue lifecycle. Applications that use `/editor` without Vue should
+install a compatible `@tiptap/core` 2.x instead.
 
 The root package, `@threadlabs/looma/core`, `@threadlabs/looma/layout`, and
 `@threadlabs/looma/vue` work without Tiptap. Looma's `/editor` and
@@ -82,17 +81,31 @@ import { Button, Stack } from "@threadlabs/looma/vue";
 </template>
 ```
 
-For a Vue editor, use Tiptap's official lifecycle components with Looma's
-editor-specific Vue entry:
+For a complete Vue editor, pass content and host integration callbacks to Looma:
+
+```vue
+<script setup lang="ts">
+import { ref } from "vue";
+import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+
+const content = ref({ type: "doc", content: [] });
+</script>
+
+<template>
+  <LoomaEditor
+    v-model="content"
+    :upload-image="async file => ({ url: await upload(file), alt: file.name })"
+  />
+</template>
+```
+
+To add only Looma table behavior to an existing Tiptap editor:
 
 ```ts
-import { useEditor, EditorContent } from "@tiptap/vue-3";
-import {
-  EditorToolbar,
-  getDefaultEditorExtensions,
-} from "@threadlabs/looma/vue/editor";
+import { Editor } from "@tiptap/core";
+import { LoomaTableKit } from "@threadlabs/looma/editor/extensions";
 
-const editor = useEditor({ extensions: getDefaultEditorExtensions() });
+const editor = new Editor({ extensions: [LoomaTableKit] });
 ```
 
 ## Know the Candidate boundary
@@ -100,7 +113,7 @@ const editor = useEditor({ extensions: getDefaultEditorExtensions() });
 - `@threadlabs/looma` is the complete R1 public package; supported capabilities live at its explicit subpaths.
 - Core elements enhance consumer-authored semantic light DOM with shadow-root behavior. Layout and editor elements remain light DOM.
 - React and Svelte adapters are internal repository previews, not R1 exports.
-- Editor table UI is keyboard and touch operable and protected by content-integrity tests, but Confluence-level polish remains deferred.
-- Looma does not own saves, uploads, collaboration, presence, workspace/page concepts, or app-specific commands.
+- `LoomaEditor` owns its Tiptap lifecycle, formatting controls, slash commands, focus behavior, image insertion, and table editing.
+- Hosts own persistence, upload transport, collaboration, presence, workspace/page concepts, and app-specific commands.
 
 Read the [Release 1 support and limitations](./release-1-support.md) before adopting the Candidate, then use the component pages for exact markup and API contracts.

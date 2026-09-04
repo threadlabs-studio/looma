@@ -89,9 +89,9 @@ describe("editor release data-integrity contract", () => {
     const editor = createTableEditor();
     selectFirstTableCell(editor);
 
-    expect(handleTableOverlayAction(editor, { action: "add-row-after", boundaryIndex: 0 })).toBe(true);
+    expect(handleTableOverlayAction(editor, { action: "add-row-after", boundaryIndex: 1 })).toBe(true);
     selectFirstTableCell(editor);
-    expect(handleTableOverlayAction(editor, { action: "add-column-after", boundaryIndex: 0 })).toBe(true);
+    expect(handleTableOverlayAction(editor, { action: "add-column-after", boundaryIndex: 1 })).toBe(true);
 
     expect(tableDimensions(editor)).toEqual({ rows: 3, cols: 3 });
     expect(editor.getText()).toContain("Before table");

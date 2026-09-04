@@ -3,6 +3,230 @@
  * Tables, context menu, insert-table grid, slash menu. Use with ProseMirror/Tiptap content.
  */
 
+/* Turnkey editor */
+.looma-editor {
+  position: relative;
+  min-width: 0;
+  color: var(--ui-text-primary);
+  font-family: var(--ui-font-family-sans);
+}
+
+.looma-editor .ProseMirror {
+  min-height: var(--ui-editor-content-min-height, 300px);
+  padding:
+    var(--ui-editor-content-padding-block, var(--ui-space-4))
+    var(--ui-editor-content-padding-inline, var(--ui-space-6));
+  outline: none;
+  color: var(--ui-editor-content-color, var(--ui-text-primary));
+  caret-color: var(--ui-editor-caret-color, var(--ui-accent-solid));
+  font-family: var(--ui-editor-font-family, var(--ui-font-family-sans));
+  font-size: var(--ui-editor-font-size, var(--ui-font-size-md));
+  line-height: var(--ui-editor-line-height, var(--ui-line-height-relaxed));
+}
+
+@media (max-width: 767px) {
+  .looma-editor .ProseMirror {
+    padding-bottom: var(--ui-editor-mobile-bottom-space, 80px);
+  }
+}
+
+.looma-editor .ProseMirror p {
+  margin: 0 0 var(--ui-editor-paragraph-gap, var(--ui-space-3));
+}
+
+.looma-editor .ProseMirror h1,
+.looma-editor .ProseMirror h2,
+.looma-editor .ProseMirror h3 {
+  color: inherit;
+  line-height: var(--ui-line-height-tight);
+}
+
+.looma-editor .ProseMirror h1 {
+  margin: var(--ui-space-6) 0 var(--ui-space-3);
+  font-size: var(--ui-font-size-2xl);
+  font-weight: var(--ui-font-bold);
+}
+
+.looma-editor .ProseMirror h2 {
+  margin: var(--ui-space-5) 0 var(--ui-space-2);
+  font-size: var(--ui-font-size-xl);
+  font-weight: var(--ui-font-semibold);
+}
+
+.looma-editor .ProseMirror h3 {
+  margin: var(--ui-space-4) 0 var(--ui-space-2);
+  font-size: var(--ui-font-size-lg);
+  font-weight: var(--ui-font-semibold);
+}
+
+.looma-editor .ProseMirror ul,
+.looma-editor .ProseMirror ol {
+  margin: 0 0 var(--ui-space-3);
+  padding-left: var(--ui-space-6);
+}
+
+.looma-editor .ProseMirror li {
+  margin-bottom: var(--ui-space-1);
+}
+
+.looma-editor .ProseMirror blockquote {
+  margin: var(--ui-space-4) 0;
+  padding-left: var(--ui-space-4);
+  border-left: 3px solid var(--ui-accent-solid);
+  color: var(--ui-text-secondary);
+  font-style: italic;
+}
+
+.looma-editor .ProseMirror pre {
+  margin: var(--ui-space-4) 0;
+  padding: var(--ui-space-4);
+  overflow-x: auto;
+  border: 1px solid var(--ui-border-default);
+  border-radius: var(--ui-radius-2);
+  background: var(--ui-surface-muted);
+  font-family: var(--ui-font-family-mono, ui-monospace, monospace);
+  font-size: var(--ui-font-size-sm);
+}
+
+.looma-editor .ProseMirror code {
+  padding: 0.1em 0.3em;
+  border-radius: var(--ui-radius-1);
+  background: var(--ui-surface-subtle);
+  font-family: var(--ui-font-family-mono, ui-monospace, monospace);
+  font-size: 0.9em;
+}
+
+.looma-editor .ProseMirror pre code {
+  padding: 0;
+  background: none;
+}
+
+.looma-editor .ProseMirror hr {
+  margin: var(--ui-space-6) 0;
+  border: 0;
+  border-top: 1px solid var(--ui-border-default);
+}
+
+.looma-editor .ProseMirror mark {
+  border-radius: var(--ui-radius-1);
+  background: var(--ui-editor-highlight-bg, var(--ui-warning-soft));
+}
+
+.looma-editor .ProseMirror a {
+  color: var(--ui-editor-link-color, var(--ui-accent-solid));
+  text-decoration: underline;
+}
+
+.looma-editor .ProseMirror ul[data-type="taskList"] {
+  padding-left: var(--ui-space-2);
+  list-style: none;
+}
+
+.looma-editor .ProseMirror ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ui-space-2);
+}
+
+.looma-editor .ProseMirror ul[data-type="taskList"] li > label {
+  margin-top: 3px;
+}
+
+.looma-editor .ProseMirror ul[data-type="taskList"] input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--ui-accent-solid);
+  cursor: pointer;
+}
+
+.looma-editor .ProseMirror .is-editor-empty:first-child::before {
+  float: left;
+  height: 0;
+  color: var(--ui-text-muted);
+  content: attr(data-placeholder);
+  pointer-events: none;
+}
+
+.looma-editor .ProseMirror img {
+  max-width: 100%;
+  margin: var(--ui-space-3) 0;
+  border-radius: var(--ui-radius-2);
+}
+
+.looma-editor__file-input {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.looma-editor__drop-overlay {
+  position: absolute;
+  z-index: var(--ui-editor-drop-overlay-z-index, 10);
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ui-space-3);
+  border: 2px dashed var(--ui-accent-solid);
+  border-radius: var(--ui-radius-2);
+  background: color-mix(in srgb, var(--ui-accent-soft) 92%, transparent);
+  color: var(--ui-accent-active);
+  font-size: var(--ui-font-size-sm);
+  font-weight: var(--ui-font-semibold);
+  pointer-events: none;
+}
+
+.looma-editor__drop-glyph {
+  font-size: var(--ui-font-size-2xl);
+}
+
+.looma-editor__toolbar-button {
+  --ui-icon-button-size-sm: var(--ui-editor-toolbar-button-size, 2rem);
+  --ui-icon-button-radius: var(--ui-editor-toolbar-button-radius, var(--ui-radius-1));
+  --ui-icon-button-icon-size: var(--ui-editor-toolbar-icon-size, 1rem);
+}
+
+.looma-editor__toolbar-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1em;
+  color: inherit;
+  font-family: var(--ui-font-family-sans);
+  font-size: var(--ui-editor-toolbar-glyph-size, 0.75rem);
+  font-weight: var(--ui-font-semibold);
+  line-height: 1;
+}
+
+.looma-editor__table-picker-anchor {
+  display: inline-flex;
+}
+
+.looma-editor__table-picker-popover,
+.looma-editor__table-toolbar-shell,
+.looma-editor__table-menu-shell {
+  z-index: var(--ui-editor-popover-z-index, 300);
+}
+
+.looma-editor__table-picker-popover {
+  min-width: 220px;
+}
+
+.looma-editor__table-toolbar-shell,
+.looma-editor__table-menu-shell,
+.looma-editor__table-overlay-shell {
+  position: fixed;
+}
+
+.looma-editor__table-overlay-shell {
+  z-index: var(--ui-editor-overlay-z-index, 299);
+  overflow: visible;
+  pointer-events: none;
+}
+
 /* Slash menu */
 ui-editor-slash-menu {
   user-select: none;
@@ -458,6 +682,36 @@ ui-editor-toolbar[floating] {
   text-align: left;
 }
 
+.ui-editor-table-toolbar__swatches {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2px;
+}
+
+.ui-editor-table-toolbar__swatch-button {
+  gap: var(--ui-space-1, 4px);
+  justify-content: flex-start !important;
+}
+
+.ui-editor-table-toolbar__swatch {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  border: 1px solid color-mix(in srgb, var(--ui-border, #e5e7eb) 80%, #000);
+  border-radius: 3px;
+  background: var(--ui-editor-table-toolbar-swatch);
+}
+
+.ui-editor-table-toolbar__swatch--default {
+  background:
+    linear-gradient(135deg, transparent 44%, var(--ui-danger, #dc2626) 46% 54%, transparent 56%),
+    var(--ui-surface, #fff);
+}
+
+.ui-editor-table-toolbar__swatch-button[data-selected="true"] {
+  background: var(--ui-accent-soft, var(--ui-accent-subtle, #e8f0fb));
+}
+
 /* Insert table grid */
 .ui-editor-insert-table-grid {
   padding: var(--ui-space-3, 12px);
@@ -584,6 +838,7 @@ ui-editor-toolbar[floating] {
 }
 
 .ui-editor-table-overlay__control--row {
+  pointer-events: auto;
   left: 0;
   right: 0;
   top: calc(var(--ui-editor-table-overlay-boundary-index) * 100% / var(--ui-editor-table-overlay-segments));
@@ -662,6 +917,11 @@ ui-editor-toolbar[floating] {
 }
 
 /* ProseMirror table (for when Looma editor content is rendered) */
+.ProseMirror:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
 .ProseMirror table {
   border-collapse: collapse;
   margin: 0;
@@ -684,6 +944,10 @@ ui-editor-toolbar[floating] {
   min-width: 80px;
   text-align: left;
   overflow-wrap: anywhere;
+}
+
+.ProseMirror :is(th, td) > p:last-child {
+  margin-bottom: 0;
 }
 
 .ProseMirror th {

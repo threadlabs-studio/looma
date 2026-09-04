@@ -21,7 +21,7 @@ Looma ships **atoms**, **layout primitives** (Stack, Inline, Grid, Center, Clust
 ## When an app (e.g. Knit) should create components
 
 - **Use Looma first:** For any UI that maps to a primitive (button, input, dialog, menu, form field, etc.), use or wrap Looma. Do not reimplement.
-- **Add app components when:** You need domain-specific molecules or organisms (PageCard, FolderTreeNode, EditorToolbar, Sidebar). Build them on top of Looma atoms and layout; keep styling on tokens and conventions below.
+- **Add app components when:** You need domain-specific molecules or organisms (PageCard, FolderTreeNode, workspace navigation). Build them on top of Looma atoms and layout; keep styling on tokens and conventions below. Shared editor UI belongs in Looma.
 - **Follow the same rules:** No external margins; use design tokens; support variant/size/disabled/loading where it makes sense. See [Conventions](./conventions.md) and [Tokens](./tokens.md).
 
 ## Design rules (Looma and apps)

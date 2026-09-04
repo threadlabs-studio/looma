@@ -13,6 +13,11 @@ import "./slash-menu";
 import "./toolbar";
 
 export type { TableContextMenuAction, TableContextMenuActionEventDetail } from "./table-context-menu";
+export {
+  TABLE_CELL_BACKGROUND_OPTIONS,
+  TABLE_CELL_BACKGROUND_PRESETS,
+  type TableCellBackgroundAction,
+} from "./table-backgrounds";
 export type { InsertTableEventDetail } from "./insert-table-grid";
 export type { TableOverlayAction, TableOverlayActionEventDetail } from "./table-overlay";
 export type { TableContextMenuActionEventDetail as TableToolbarActionEventDetail } from "./table-context-menu";

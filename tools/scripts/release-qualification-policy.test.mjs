@@ -6,6 +6,35 @@ import { fileURLToPath } from "node:url";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
+test("every workspace and release fixture reports the root release version", async () => {
+  const manifestPaths = [
+    "package.json",
+    "apps/docs/package.json",
+    "apps/storybook/package.json",
+    "packages/core/package.json",
+    "packages/editor/package.json",
+    "packages/layout/package.json",
+    "packages/looma/package.json",
+    "packages/react/package.json",
+    "packages/svelte/package.json",
+    "packages/tokens/package.json",
+    "packages/vue/package.json",
+    "tests/release/consumer/package.json",
+    "tools/tsconfig/package.json",
+  ];
+  const manifests = await Promise.all(
+    manifestPaths.map(async (manifestPath) => ({
+      manifestPath,
+      packageJson: JSON.parse(await readFile(path.join(repoRoot, manifestPath), "utf8")),
+    }))
+  );
+  const rootVersion = manifests[0].packageJson.version;
+
+  for (const { manifestPath, packageJson } of manifests) {
+    assert.equal(packageJson.version, rootVersion, `${manifestPath} drifted from ${rootVersion}`);
+  }
+});
+
 test("release qualification is wired to Node 20, Chromium, and non-placeholder gates", async () => {
   const [workflow, rootPackage, editorPackage, consumerPackage] = await Promise.all([
     readFile(path.join(repoRoot, ".github/workflows/ci.yml"), "utf8"),
@@ -96,10 +125,10 @@ test("public Candidate documentation is install-first, time-stable, and fail-clo
     gettingStarted,
     /pnpm add @threadlabs\/looma vue@\^3\.5\.0 @tiptap\/vue-3@\^2\.11\.5/
   );
-  assert.match(gettingStarted, /consuming application.not Looma.owns/);
+  assert.match(gettingStarted, /Hosts own persistence/);
   assert.match(gettingStarted, /@threadlabs\/looma\/editor/);
   assert.match(gettingStarted, /@threadlabs\/looma\/vue/);
-  assert.match(supportPage, /Candidate `0\.1\.5`/);
+  assert.match(supportPage, /Candidate `0\.1\.6`/);
   assert.match(facadeReadme, /pnpm add @threadlabs\/looma/);
   assert.match(releaseChecklist, /`@threadlabs\/looma` Candidate tarball/);
   assert.match(releaseChecklist, /superseded\s+`@threadlabs\/looma-\*` identity/);
