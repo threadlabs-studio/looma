@@ -4,6 +4,21 @@
 
 No changes yet.
 
+## v0.1.10 Candidate
+
+The turnkey Vue editor anticipates table actions with contextual guide dots,
+near-hover insertion and selection controls, direct-hover tooltips, exact
+merged-cell geometry, and reliable column dragging. Row, column, and cell
+selection can reach background, merge, split, clear, and logical-boundary
+insertion commands without giving up normal text editing.
+
+Core also introduces a themeable `ui-affordance-scope` and shared virtual
+proximity coordinator. One listener and one animation-frame batch per scope can
+reveal overlapping nearby actions without adding invisible hit targets, while
+touch and keyboard paths retain visible controls. Mobile editor controls use one
+scrollable, snap-aligned dock, and wide tables scroll as a whole around
+minimum-width cells.
+
 ## v0.1.9 Candidate
 
 The Vue `Sidebar` adapter declares its custom-element-owned light-DOM resize
