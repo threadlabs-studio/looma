@@ -125,10 +125,10 @@ test("public Candidate documentation is install-first, time-stable, and fail-clo
     gettingStarted,
     /pnpm add @threadlabs\/looma vue@\^3\.5\.0 @tiptap\/vue-3@\^2\.11\.5/
   );
-  assert.match(gettingStarted, /consuming application.not Looma.owns/);
+  assert.match(gettingStarted, /Hosts own persistence/);
   assert.match(gettingStarted, /@threadlabs\/looma\/editor/);
   assert.match(gettingStarted, /@threadlabs\/looma\/vue/);
-  assert.match(supportPage, /Candidate `0\.1\.5`/);
+  assert.match(supportPage, /Candidate `0\.1\.6`/);
   assert.match(facadeReadme, /pnpm add @threadlabs\/looma/);
   assert.match(releaseChecklist, /`@threadlabs\/looma` Candidate tarball/);
   assert.match(releaseChecklist, /superseded\s+`@threadlabs\/looma-\*` identity/);

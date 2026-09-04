@@ -37,6 +37,9 @@ async function runtimeFiles(root, entry) {
 }
 
 function moduleSpecifiers(source) {
+  // Build output can retain JSDoc such as `import("./type-only-module")`.
+  // Those references are not runtime graph edges and must not be resolved.
+  const runtimeSource = source.replace(/\/\*[\s\S]*?\*\//g, "");
   const specifiers = [];
   const patterns = [
     /\b(?:import|export)\s+(?:[^"'`;]*?\sfrom\s*)?["']([^"']+)["']/g,
@@ -44,7 +47,7 @@ function moduleSpecifiers(source) {
     /\bimport\(\s*["']([^"']+)["']\s*\)/g,
   ];
   for (const pattern of patterns) {
-    for (const match of source.matchAll(pattern)) specifiers.push(match[1]);
+    for (const match of runtimeSource.matchAll(pattern)) specifiers.push(match[1]);
   }
   return specifiers;
 }

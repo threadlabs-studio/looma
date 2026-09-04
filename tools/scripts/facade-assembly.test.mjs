@@ -71,14 +71,20 @@ test("facade assembly is deterministic, self-contained, and boundary-safe", asyn
     readFile(path.join(facadeRoot, "vue/index.js"), "utf8"),
     readFile(path.join(facadeRoot, "vue/editor/index.js"), "utf8"),
   ]);
+  const vueSharedChunk = vue.match(/from "(\.\/chunk-[^"]+\.js)"/)?.[1];
+  assert.ok(vueSharedChunk, "Vue entry must reference its shared adapter chunk");
+  const vueGraphSource = vue + await readFile(
+    path.join(facadeRoot, "vue", vueSharedChunk.slice(2)),
+    "utf8",
+  );
 
   assert.doesNotMatch(rootEsm + rootCjs, /(?:from|require\(|import\().*(?:vue|@tiptap\/)/);
   assert.match(editor, /getDefaultEditorExtensions/);
   assert.doesNotMatch(editorUi, /(?:from|require\(|import\().*@tiptap\//);
   assert.match(extensions, /getDefaultEditorExtensions/);
-  assert.match(vue, /@threadlabs\/looma\/layout/);
-  assert.match(vue, /@threadlabs\/looma\/core/);
-  assert.doesNotMatch(vue, /@threadlabs\/looma\/editor|@tiptap\//);
+  assert.match(vueGraphSource, /@threadlabs\/looma\/layout/);
+  assert.match(vueGraphSource, /@threadlabs\/looma\/core/);
+  assert.doesNotMatch(vueGraphSource, /@threadlabs\/looma\/editor|@tiptap\//);
   assert.match(vueEditor, /@threadlabs\/looma\/editor/);
   assert.doesNotMatch(vue, /@threadlabs\/looma-(?:core|editor|layout)/);
 

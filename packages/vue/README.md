@@ -4,7 +4,10 @@
 > import `@threadlabs/looma/vue` for general adapters or
 > `@threadlabs/looma/vue/editor` for the Vue editor integration.
 
-The supported Vue 3 adapter for Looma Release 1. `/vue` maps Vue props, slots, and callbacks to layout and core elements without loading the editor graph. `/vue/editor` supplies the Tiptap-backed editor helpers and wrappers.
+The supported Vue 3 adapter for Looma Release 1. `/vue` maps Vue props, slots,
+and callbacks to layout and core elements without loading the editor graph.
+`/vue/editor` exports `LoomaEditor`, a complete Tiptap editor, plus low-level
+wrappers for advanced composition.
 
 Release status: Candidate `0.1.6`. Browser registration/render and linked-workspace Knit qualification pass; packed-artifact Knit qualification remains a publication gate. React and Svelte adapters are not part of the R1 public package set.
 
@@ -39,6 +42,27 @@ import { Button } from "@threadlabs/looma/vue";
   </Button>
 </template>
 ```
+
+Use the turnkey editor when Looma should own the complete editing experience:
+
+```vue
+<script setup lang="ts">
+import { ref } from "vue";
+import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+
+const document = ref({ type: "doc", content: [] });
+</script>
+
+<template>
+  <LoomaEditor
+    v-model="document"
+    :upload-image="async file => ({ url: await upload(file), alt: file.name })"
+  />
+</template>
+```
+
+`LoomaEditor` owns formatting controls, slash commands, selection behavior, and
+table editing. The host owns persistence and implements the optional upload callback.
 
 Import the required token/component CSS from their owning packages. The adapter and its public dependency graph must remain safe to import during SSR.
 

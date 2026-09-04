@@ -102,6 +102,23 @@
     --ui-warning-soft: #fdf7e6;
     --ui-info-solid: #0066cc;
     --ui-info-soft: #e8f0fb;
+
+    /* Compatibility aliases used by the editor's public styling surface.
+       Each alias resolves through the canonical semantic token so an app only
+       needs to override the canonical Looma theme contract. */
+    --ui-surface: var(--ui-surface-elevated);
+    --ui-surface-hover: var(--ui-surface-muted);
+    --ui-text: var(--ui-text-primary);
+    --ui-border: var(--ui-border-default);
+    --ui-accent: var(--ui-accent-solid);
+    --ui-accent-subtle: var(--ui-accent-soft);
+    --ui-accent-contrast: var(--ui-text-on-accent);
+    --ui-danger: var(--ui-danger-solid);
+    --ui-radius-sm: var(--ui-radius-1);
+    --ui-radius-md: var(--ui-radius-2);
+    --ui-radius-lg: var(--ui-radius-3);
+    --ui-radius-xl: var(--ui-radius-4);
+    --ui-text-sm: var(--ui-font-size-sm);
   }
 
   @supports (color: oklch(0.5 0.1 240)) {

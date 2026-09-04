@@ -8,6 +8,7 @@ import type {
   TableContextMenuAction,
   TableContextMenuActionEventDetail,
 } from "./table-context-menu";
+import { TABLE_CELL_BACKGROUND_OPTIONS } from "./table-backgrounds";
 
 const TAG = "ui-editor-table-toolbar";
 
@@ -129,19 +130,6 @@ class UIEditorTableToolbarElement extends HTMLElement {
 
     const activeAlignment = this.getAlignmentAttr();
     const currentBackground = this.getAttribute("cell-background");
-    const backgroundActions = [
-      { action: "background-none", label: "Default", value: null, swatch: null },
-      { action: "background-gray", label: "Gray", value: "#f3f4f6", swatch: "#f3f4f6" },
-      { action: "background-yellow", label: "Yellow", value: "#fef3c7", swatch: "#fef3c7" },
-      { action: "background-blue", label: "Blue", value: "#dbeafe", swatch: "#dbeafe" },
-      { action: "background-green", label: "Green", value: "#dcfce7", swatch: "#dcfce7" },
-      { action: "background-red", label: "Red", value: "#fee2e2", swatch: "#fee2e2" },
-    ] satisfies Array<{
-      action: TableContextMenuAction;
-      label: string;
-      value: string | null;
-      swatch: string | null;
-    }>;
     const alignmentActions = [
       { action: "align-left", label: "Left" },
       { action: "align-center", label: "Center" },
@@ -223,7 +211,7 @@ class UIEditorTableToolbarElement extends HTMLElement {
             '<div class="ui-editor-table-toolbar__menu-section" role="none">',
             '<div class="ui-editor-table-toolbar__menu-heading" role="presentation">Background</div>',
             '<div class="ui-editor-table-toolbar__swatches" role="group" aria-label="Cell background">',
-            backgroundActions
+            TABLE_CELL_BACKGROUND_OPTIONS
               .map((background) => {
                 const isSelected = (background.value ?? "") === (currentBackground ?? "");
                 return `<button type="button" class="ui-editor-table-toolbar__swatch-button" role="menuitemradio" aria-checked="${isSelected ? "true" : "false"}" data-action="${background.action}"${isSelected ? ' data-selected="true"' : ""}><span class="ui-editor-table-toolbar__swatch${background.swatch ? "" : " ui-editor-table-toolbar__swatch--default"}"${background.swatch ? ` style="--ui-editor-table-toolbar-swatch:${background.swatch}"` : ""}></span><span>${background.label}</span></button>`;

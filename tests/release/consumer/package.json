@@ -20,7 +20,7 @@
   },
   "pnpm": {
     "overrides": {
-      "@threadlabs/looma": "file:../../../.release/artifacts/threadlabs-looma-0.1.5.tgz"
+      "@threadlabs/looma": "file:../../../.release/artifacts/threadlabs-looma-0.1.6.tgz"
     }
   }
 }

@@ -11,6 +11,12 @@ selections. The table toolbar exposes cell backgrounds and explicit merge/split
 actions, row-boundary hover reveals insertion controls, column boundaries retain
 drag resizing, and final paragraphs no longer add trailing space inside cells.
 
+Vue consumers can use `LoomaEditor` as a complete editor whose formatting,
+slash-command, upload, focus, and table-control behavior is owned by Looma.
+Existing Tiptap editors can adopt the same table behavior independently through
+`LoomaTableKit` or `getLoomaTableExtensions()`. All editor controls resolve through
+Looma semantic tokens so host theme overrides style the entire editor consistently.
+
 All workspace packages and repository fixtures share the release version so
 build and test output cannot misleadingly report an older internal version.
 

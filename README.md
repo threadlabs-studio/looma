@@ -3,7 +3,7 @@
 Looma is a stack-agnostic UI library based on web standards and Open UI principles.
 
 > **Candidate availability:** Before installing, confirm that npm's `candidate`
-> dist-tag resolves `@threadlabs/looma@0.1.5`. A source or
+> dist-tag resolves `@threadlabs/looma@0.1.6`. A source or
 > documentation preview can exist before that registry gate passes.
 
 ## Install the Candidate
@@ -17,8 +17,8 @@ editor import. `@threadlabs/looma/vue` adds only Vue 3.5 or newer. Looma's edito
 is a Tiptap editor: its concrete extension preset ships inside the editor
 subpath, while an
 editor consumer supplies a compatible Tiptap 2 core. `@threadlabs/looma/vue/editor`
-uses `@tiptap/vue-3@^2.11.5` for Tiptap's official `useEditor` and `EditorContent`
-lifecycle APIs. The advanced
+exports the turnkey `LoomaEditor` component and uses `@tiptap/vue-3@^2.11.5`
+for Tiptap's official lifecycle APIs. The advanced
 `@threadlabs/looma/editor/ui` subpath exposes only raw web-component chrome.
 
 ```ts
@@ -33,7 +33,7 @@ for the exact imports and a Vue example.
 
 ## Release 1
 
-Looma Release 1 is a public npm **Candidate `0.1.5`**, not a claim that every
+Looma Release 1 is a public npm **Candidate `0.1.6`**, not a claim that every
 component or framework adapter is Stable. The sole public package is
 `@threadlabs/looma`, with explicit subpaths:
 
@@ -41,9 +41,9 @@ component or framework adapter is Stable. The sole public package is
 - `@threadlabs/looma/layout`: light-DOM layout primitives with no external margins.
 - `@threadlabs/looma/editor`: the complete Tiptap-backed editor surface, including elements, extension presets, and commands.
 - `@threadlabs/looma/editor/ui`: low-level editor web-component chrome without the Tiptap integration.
-- `@threadlabs/looma/editor/extensions`: the focused extension preset and command-helper subpath.
+- `@threadlabs/looma/editor/extensions`: the focused extension preset, standalone `LoomaTableKit`, and command-helper subpath.
 - `@threadlabs/looma/vue`: general Vue adapters without the editor graph.
-- `@threadlabs/looma/vue/editor`: the supported Vue editor integration, including Looma editor helpers and wrappers.
+- `@threadlabs/looma/vue/editor`: the turnkey `LoomaEditor` plus advanced low-level Vue wrappers.
 - Explicit `.css` subpaths provide tokens, themes, layout, core, and editor styles.
 
 React and Svelte adapters remain internal repository previews and are not part

@@ -25,7 +25,7 @@ Release 1 and are not public Candidate packages.
 - `@threadlabs/looma/editor/ui`: the low-level Tiptap-independent custom-element chrome for advanced composition.
 - `@threadlabs/looma/editor/extensions`: the focused domain-neutral Tiptap preset and command-helper surface. Save, upload, collaboration, and presence remain app concerns.
 - `@threadlabs/looma/vue`: ESM wrappers for public layout and core elements, with no editor or Tiptap edge.
-- `@threadlabs/looma/vue/editor`: the Tiptap-backed Vue editor integration; it re-exports the Looma editor helpers and maps Vue props and events to editor elements.
+- `@threadlabs/looma/vue/editor`: the turnkey `LoomaEditor` Vue integration. It owns the Tiptap instance, default extensions, commands, selection/focus orchestration, and themed editor controls while exposing content and upload boundaries to the host.
 
 ## DOM And Progressive-Enhancement Contract
 
