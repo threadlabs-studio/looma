@@ -5,7 +5,7 @@
 
 Candidate editor UI elements, styles, Tiptap 2 presets, and table helpers for Looma. The package uses Tiptap's vanilla `Editor`; `@threadlabs/looma-vue` is the supported Release 1 adapter.
 
-Release status: Candidate `0.1.4`, not Stable.
+Release status: Candidate `0.1.5`, not Stable.
 
 ## Install
 

@@ -4,6 +4,12 @@
 
 No changes yet.
 
+## v0.1.5 Candidate
+
+Measured `ui-center` surfaces retain horizontal auto margins after Looma's
+light-DOM reset, so they center inside wider parents instead of sticking to the
+inline-start edge.
+
 ## v0.1.4 Candidate
 
 Layout and common overlay surfaces preserve their intended display modes

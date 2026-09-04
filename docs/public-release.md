@@ -11,15 +11,15 @@ implementation roadmap so package ownership decisions stay visible.
   license metadata.
 - The R1 package graph and protected release workflow target one Candidate
   package, `@threadlabs/looma`, with explicit core, layout, editor, Vue, and CSS subpaths.
-- `@threadlabs/looma@0.1.3` is public under the non-default `candidate` tag with
+- `@threadlabs/looma@0.1.4` is public under the non-default `candidate` tag with
   verified package metadata, integrity, provenance, and a clean public-registry
   Knit consumer. Qualified `0.1.1` remains under `latest` until the protected
   promotion moves an approved immutable Candidate.
-- Candidate `0.1.3` was published from commit
-  `48d86c1b2f8fa53111c56aad17becd00f4123cfb` by workflow run
-  `33809933800`, after exact-main CI run `33809269643` passed. Responsive
-  layout work advances the next release target to Candidate `0.1.4` without
-  altering the frozen public `0.1.3` bytes.
+- Candidate `0.1.4` was published from commit
+  `8b311ee842e6bb61c7fcb8058ce5568d482a8d35` by workflow run
+  `33818495158`, after exact-main CI run `33818256965` passed. The centered
+  layout cascade correction advances the next release target to Candidate
+  `0.1.5` without altering the frozen public `0.1.4` bytes.
 - The canonical GitHub repository is public and the current release workflow is
   on `main` behind exact-commit CI and protected-environment approval gates.
 - GitHub Pages serves the verified indexable `0.1.1` documentation at
@@ -51,7 +51,7 @@ release policy, and registry tests. React and Svelte remain unpublished in R1.
 
 ## Release 1 Remaining Operator Sequence
 
-1. Publish and qualify Candidate `0.1.4` from the exact responsive-layout source
+1. Publish and qualify Candidate `0.1.5` from the exact centered-layout source
    commit, including a clean public-registry Knit consumer.
 2. For any earlier Candidate promotion, use the manifest-bound promotion and
    release-finalization jobs, which execute

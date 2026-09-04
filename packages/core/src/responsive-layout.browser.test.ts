@@ -109,4 +109,23 @@ describe("responsive light-DOM layout", () => {
 
     expect(center.getBoundingClientRect().width).toBe(parent.getBoundingClientRect().width);
   });
+
+  it("centers a measured surface inside a wider parent", () => {
+    document.body.innerHTML = `
+      <div id="parent" style="inline-size: 900px">
+        <ui-center>Content</ui-center>
+      </div>
+    `;
+
+    const parent = document.querySelector<HTMLElement>("#parent")!;
+    const center = document.querySelector<HTMLElement>("ui-center")!;
+    const parentRect = parent.getBoundingClientRect();
+    const centerRect = center.getBoundingClientRect();
+    const startGap = centerRect.left - parentRect.left;
+    const endGap = parentRect.right - centerRect.right;
+
+    expect(centerRect.width).toBeLessThan(parentRect.width);
+    expect(startGap).toBeGreaterThan(0);
+    expect(startGap).toBeCloseTo(endGap, 5);
+  });
 });
