@@ -6,11 +6,16 @@ This doc describes the shared component hierarchy, design rules, and **when to b
 
 - **Atoms:** Button, Input, Badge, Icon, Checkbox, Radio, etc. — single-purpose, no layout assumptions.
 - **Molecules:** Composed from atoms; e.g. SearchInput, FormField, TagPicker. Still domain-neutral where possible.
-- **Organisms:** Full features (Editor, Sidebar, PageHeader). Usually app-specific; Looma only promotes when clearly reusable.
+- **Organisms:** Full features. Looma ships domain-neutral organisms such as its turnkey Editor; product-specific organisms such as a workspace tree or PageHeader stay in the app.
 - **Templates:** Layout shells (WorkspaceLayout, AuthLayout). App-owned.
 - **Pages:** Thin route components that wire templates and data. App-owned.
 
-Looma ships **atoms**, **layout primitives** (Stack, Inline, Grid, Center, Cluster), and **molecules** that are clearly reusable across apps. Organisms and above stay in the app unless they become generic enough to promote.
+Looma ships **atoms**, **layout primitives** (Stack, Inline, Grid, Center, Cluster, Switcher, Sidebar, Reel), reusable **molecules**, and deliberately complete domain-neutral organisms such as the editor. Product-domain organisms and all templates/pages stay in the app.
+
+Interactive atoms and molecules can participate in an explicit
+`ui-affordance-scope`. The scope supplies Looma's shared guide, proximity,
+direct-intent, and active-state language without changing layout or adding
+invisible hit targets. See [Anticipatory affordances](./anticipatory-affordances.md).
 
 ## When to add a component to Looma
 
@@ -21,7 +26,7 @@ Looma ships **atoms**, **layout primitives** (Stack, Inline, Grid, Center, Clust
 ## When an app (e.g. Knit) should create components
 
 - **Use Looma first:** For any UI that maps to a primitive (button, input, dialog, menu, form field, etc.), use or wrap Looma. Do not reimplement.
-- **Add app components when:** You need domain-specific molecules or organisms (PageCard, FolderTreeNode, workspace navigation). Build them on top of Looma atoms and layout; keep styling on tokens and conventions below. Shared editor UI belongs in Looma.
+- **Add app components when:** You need domain-specific molecules or organisms (PageCard, FolderTreeNode, workspace navigation). Build them on top of Looma atoms and layout; keep styling on tokens and conventions below. The app assembles the Looma editor, integrates data, and handles its events; it does not fork editor controls or behavior.
 - **Follow the same rules:** No external margins; use design tokens; support variant/size/disabled/loading where it makes sense. See [Conventions](./conventions.md) and [Tokens](./tokens.md).
 
 ## Design rules (Looma and apps)
@@ -49,7 +54,7 @@ Interactive components support consistent props where applicable: `variant` (e.g
 | Atoms       | ✅ Button, Input, Dialog, …     | Use Looma only                          |
 | Layout      | ✅ Stack, Inline, Grid, …       | Use Looma only                          |
 | Molecules   | Generic, reusable               | Domain molecules (PageCard, TreeItem…)  |
-| Organisms   | Rare promotions                 | Editor, Sidebar, PageHeader, …          |
+| Organisms   | Domain-neutral features (Editor) | Domain features (workspace tree, PageHeader) |
 | Templates   | —                               | WorkspaceLayout, AuthLayout             |
 | Pages       | —                               | Route components                        |
 

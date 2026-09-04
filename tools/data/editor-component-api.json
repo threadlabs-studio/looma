@@ -83,19 +83,26 @@
       "tag": "ui-editor-table-overlay",
       "package": "@threadlabs/looma/editor",
       "className": "UIEditorTableOverlayElement",
-      "description": "Boundary-aligned controls for inserting rows or columns around an active table.",
+      "description": "Anticipatory table affordances for insertion, row and column selection, and cell actions.",
       "attributes": [
         { "name": "cols", "property": "cols", "type": "number", "default": 3 },
         { "name": "open", "property": "open", "type": "boolean", "default": false },
         { "name": "rows", "property": "rows", "type": "number", "default": 3 }
       ],
-      "properties": [],
+      "properties": [
+        {
+          "name": "geometry",
+          "type": "TableOverlayGeometry | null",
+          "default": null,
+          "description": "Measured table boundaries and active-cell geometry supplied by the editor adapter."
+        }
+      ],
       "events": [
         {
           "name": "looma-editor-table-overlay-action",
           "detailType": "TableOverlayActionEventDetail",
-          "detailSchema": "{ action: TableOverlayAction; boundaryIndex: number }",
-          "detailDocs": "Emitted with the insertion direction and affected table boundary."
+          "detailSchema": "TableOverlayActionEventDetail",
+          "detailDocs": "Emitted for insertion, row or column selection, and active-cell menu intent."
         }
       ],
       "slots": []

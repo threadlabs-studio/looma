@@ -1,7 +1,7 @@
 import { userEvent } from "@vitest/browser/context";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, shallowRef, type App } from "vue";
-import type { SlashMenuAnchorRect } from "@threadlabs/looma-editor";
+import type { SlashMenuAnchorRect, TableOverlayGeometry } from "@threadlabs/looma-editor";
 
 const apps: App[] = [];
 
@@ -137,6 +137,18 @@ describe("@threadlabs/looma-vue release registration (real browser)", () => {
     const { EditorInsertTableGrid, EditorTableOverlay } = await import("./editor/index");
     const onInsertTable = vi.fn();
     const onTableOverlayAction = vi.fn();
+    const geometry: TableOverlayGeometry = {
+      rowBoundaries: [0, 82, 200],
+      columnBoundaries: [0, 154, 400],
+      activeCell: {
+        left: 154,
+        top: 82,
+        width: 246,
+        height: 118,
+        rowIndex: 1,
+        columnIndex: 1,
+      },
+    };
     const host = document.createElement("div");
     document.body.append(host);
     const app = createApp({
@@ -151,6 +163,7 @@ describe("@threadlabs/looma-vue release registration (real browser)", () => {
           open: true,
           rows: "2",
           cols: "2",
+          geometry,
           onTableOverlayAction,
         }),
       ]),
@@ -169,8 +182,15 @@ describe("@threadlabs/looma-vue release registration (real browser)", () => {
     expect(onInsertTable).toHaveBeenCalledOnce();
     expect(onInsertTable).toHaveBeenCalledWith({ rows: 3, cols: 2, withHeaderRow: true });
 
-    const overlay = host.querySelector("ui-editor-table-overlay")!;
-    await userEvent.click(overlay.querySelector<HTMLElement>("[data-control-key='row:1']")!);
+    const overlay = host.querySelector("ui-editor-table-overlay") as HTMLElement & {
+      geometry: TableOverlayGeometry | null;
+    };
+    expect(overlay.geometry).toBe(geometry);
+    expect(overlay.hasAttribute("geometry")).toBe(false);
+    expect(overlay.querySelector<HTMLElement>("[data-control-key='row:1']")?.style.top).toBe("82px");
+    await userEvent.click(
+      overlay.querySelector<HTMLElement>("[data-control-key='row:1'] .ui-editor-table-overlay__handle")!,
+    );
     expect(onTableOverlayAction).toHaveBeenCalledOnce();
     expect(onTableOverlayAction).toHaveBeenCalledWith({
       action: "add-row-after",

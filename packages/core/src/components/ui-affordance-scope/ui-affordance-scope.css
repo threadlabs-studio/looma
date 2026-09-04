@@ -1,0 +1,8 @@
+:host {
+  display: contents;
+  --ui-affordance-scope-engaged: 0;
+}
+
+:host([data-ui-interaction='engaged']) {
+  --ui-affordance-scope-engaged: 1;
+}

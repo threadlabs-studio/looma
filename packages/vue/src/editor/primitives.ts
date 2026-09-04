@@ -6,7 +6,11 @@ import {
   watchEffect,
   type ComponentPublicInstance,
 } from "vue";
-import type { SlashMenuAnchorRect, SlashMenuItem } from "@threadlabs/looma-editor";
+import type {
+  SlashMenuAnchorRect,
+  SlashMenuItem,
+  TableOverlayGeometry,
+} from "@threadlabs/looma-editor";
 import {
   createAdapterComponent,
   toHTMLElement,
@@ -127,7 +131,13 @@ export const EditorToolbar = createAdapterComponent("ui-editor-toolbar", "Editor
 export const EditorTableContextMenu = createAdapterComponent("ui-editor-table-context-menu", "EditorTableContextMenu", EDITOR_EVENT_BINDINGS);
 export const EditorTableToolbar = createAdapterComponent("ui-editor-table-toolbar", "EditorTableToolbar", EDITOR_EVENT_BINDINGS);
 export const EditorInsertTableGrid = createAdapterComponent("ui-editor-insert-table-grid", "EditorInsertTableGrid", EDITOR_EVENT_BINDINGS);
-export const EditorTableOverlay = createAdapterComponent("ui-editor-table-overlay", "EditorTableOverlay", EDITOR_EVENT_BINDINGS);
+export const EditorTableOverlay = createAdapterComponent(
+  "ui-editor-table-overlay",
+  "EditorTableOverlay",
+  EDITOR_EVENT_BINDINGS,
+  "class",
+  ["geometry"] satisfies readonly (keyof { geometry: TableOverlayGeometry | null })[],
+);
 
 export const EDITOR_ADAPTER_COMPONENT_TAG_MAP = {
   EditorToolbar: "ui-editor-toolbar",

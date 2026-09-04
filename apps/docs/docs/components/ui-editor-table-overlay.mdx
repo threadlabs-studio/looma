@@ -2,7 +2,8 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 # Editor Table Overlay
 
-Boundary-aligned controls for inserting rows and columns around the active table.
+Anticipatory table controls for exact-boundary insertion, row and column
+selection, and active-cell actions.
 
 ## Component Reference
 
@@ -10,12 +11,17 @@ Boundary-aligned controls for inserting rows and columns around the active table
 
 ## Runtime Contract
 
-`LoomaEditor` sets `open`, `rows`, and `cols` from the active table and maps
-boundary intent to Tiptap commands. Advanced consumers using the primitive
-directly receive `looma-editor-table-overlay-action` with
-`{ action, boundaryIndex }`.
+`LoomaEditor` measures the rendered table and supplies a typed `geometry`
+property, so controls follow non-uniform sizes and merged cells. It maps overlay
+intent to the Looma table extension commands. Advanced consumers using the
+primitive directly receive `looma-editor-table-overlay-action` for insertion,
+row or column selection, and the active-cell menu.
 
-Pointer hover and keyboard focus reveal the affected boundary. Focus must remain reachable without hover, and touch integrations need a visible table-toolbar path because hover does not exist. The overlay is client-generated enhancement UI and has no no-JS fallback. The editor table content remains independent of it.
+The interaction progresses from a persistent guide, through overlapping
+near-pointer disclosure, to a direct-hover line, handle, cursor, and tooltip.
+Keyboard focus exposes the same direct state. Touch integrations use the visible
+single table toolbar because hover does not exist. The overlay is client-generated
+enhancement UI and has no no-JS fallback; table content remains independent of it.
 
 Row and column insertion remains available from the visible table toolbar on
 touch devices. Pointer users also get boundary controls; native Tiptap column

@@ -16,7 +16,7 @@ The real button remains keyboard- and form-semantic without upgrade. Shadow styl
 
 ## API
 
-- Attributes/properties: `label`, `disabled`, `size` (`sm | md | lg`), `variant` (`ghost | outline | solid`).
+- Attributes/properties: `label`, `disabled`, `size` (`sm | md | lg`), `variant` (`ghost | outline | solid`), and `anticipatory` for use inside `ui-affordance-scope`.
 - Slot: one icon-bearing semantic control.
 - Events: native control events; no Looma custom event.
 

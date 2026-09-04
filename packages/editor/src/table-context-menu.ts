@@ -8,6 +8,7 @@ import {
   TABLE_CELL_BACKGROUND_OPTIONS,
   type TableCellBackgroundAction,
 } from "./table-backgrounds";
+import { clampRectToViewport, getVisualViewportRect } from "@threadlabs/looma-core";
 
 const TAG = "ui-editor-table-context-menu";
 
@@ -23,6 +24,7 @@ export type TableContextMenuAction =
   | "delete-row"
   | "delete-column"
   | "delete-table"
+  | "clear-cells"
   | "merge-cells"
   | "split-cell";
 
@@ -33,7 +35,7 @@ export interface TableContextMenuActionEventDetail {
 type TableContextMenuItem = {
   action: TableContextMenuAction;
   label: string;
-  can: string;
+  can?: string;
   tone?: "danger";
 };
 
@@ -110,18 +112,11 @@ class UIEditorTableContextMenuElement extends HTMLElement {
 
     menu.style.translate = "";
     const rect = menu.getBoundingClientRect();
-    const gutter = 12;
-    const visualViewport = window.visualViewport;
-    const viewportLeft = visualViewport?.offsetLeft ?? 0;
-    const viewportTop = visualViewport?.offsetTop ?? 0;
-    const viewportRight = viewportLeft + (visualViewport?.width ?? window.innerWidth);
-    const viewportBottom = viewportTop + (visualViewport?.height ?? window.innerHeight);
-    const offsetX = rect.right > viewportRight - gutter
-      ? viewportRight - gutter - rect.right
-      : Math.max(0, viewportLeft + gutter - rect.left);
-    const offsetY = rect.bottom > viewportBottom - gutter
-      ? viewportBottom - gutter - rect.bottom
-      : Math.max(0, viewportTop + gutter - rect.top);
+    const { x: offsetX, y: offsetY } = clampRectToViewport(
+      rect,
+      getVisualViewportRect(window),
+      12,
+    );
 
     if (offsetX !== 0 || offsetY !== 0) {
       menu.style.translate = `${offsetX}px ${offsetY}px`;
@@ -158,6 +153,7 @@ class UIEditorTableContextMenuElement extends HTMLElement {
       {
         heading: "Cells",
         actions: [
+          { action: "clear-cells", label: "Clear selected cells" },
           { action: "merge-cells", label: "Merge cells", can: "can-merge-cells" },
           { action: "split-cell", label: "Split cell", can: "can-split-cell" },
         ] satisfies TableContextMenuItem[],
@@ -186,7 +182,7 @@ class UIEditorTableContextMenuElement extends HTMLElement {
 
         return {
           ...section,
-          actions: section.actions.filter((action) => this.getBoolAttr(action.can)),
+          actions: section.actions.filter((action) => !action.can || this.getBoolAttr(action.can)),
         };
       })
       .filter((section) => ("backgrounds" in section ? section.backgrounds.length > 0 : section.actions.length > 0));
