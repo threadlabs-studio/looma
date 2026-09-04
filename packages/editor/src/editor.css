@@ -458,6 +458,36 @@ ui-editor-toolbar[floating] {
   text-align: left;
 }
 
+.ui-editor-table-toolbar__swatches {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2px;
+}
+
+.ui-editor-table-toolbar__swatch-button {
+  gap: var(--ui-space-1, 4px);
+  justify-content: flex-start !important;
+}
+
+.ui-editor-table-toolbar__swatch {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  border: 1px solid color-mix(in srgb, var(--ui-border, #e5e7eb) 80%, #000);
+  border-radius: 3px;
+  background: var(--ui-editor-table-toolbar-swatch);
+}
+
+.ui-editor-table-toolbar__swatch--default {
+  background:
+    linear-gradient(135deg, transparent 44%, var(--ui-danger, #dc2626) 46% 54%, transparent 56%),
+    var(--ui-surface, #fff);
+}
+
+.ui-editor-table-toolbar__swatch-button[data-selected="true"] {
+  background: var(--ui-accent-soft, var(--ui-accent-subtle, #e8f0fb));
+}
+
 /* Insert table grid */
 .ui-editor-insert-table-grid {
   padding: var(--ui-space-3, 12px);
@@ -584,6 +614,7 @@ ui-editor-toolbar[floating] {
 }
 
 .ui-editor-table-overlay__control--row {
+  pointer-events: auto;
   left: 0;
   right: 0;
   top: calc(var(--ui-editor-table-overlay-boundary-index) * 100% / var(--ui-editor-table-overlay-segments));
@@ -684,6 +715,10 @@ ui-editor-toolbar[floating] {
   min-width: 80px;
   text-align: left;
   overflow-wrap: anywhere;
+}
+
+.ProseMirror :is(th, td) > p:last-child {
+  margin-bottom: 0;
 }
 
 .ProseMirror th {

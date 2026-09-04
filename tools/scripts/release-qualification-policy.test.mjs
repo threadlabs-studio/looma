@@ -6,6 +6,35 @@ import { fileURLToPath } from "node:url";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
+test("every workspace and release fixture reports the root release version", async () => {
+  const manifestPaths = [
+    "package.json",
+    "apps/docs/package.json",
+    "apps/storybook/package.json",
+    "packages/core/package.json",
+    "packages/editor/package.json",
+    "packages/layout/package.json",
+    "packages/looma/package.json",
+    "packages/react/package.json",
+    "packages/svelte/package.json",
+    "packages/tokens/package.json",
+    "packages/vue/package.json",
+    "tests/release/consumer/package.json",
+    "tools/tsconfig/package.json",
+  ];
+  const manifests = await Promise.all(
+    manifestPaths.map(async (manifestPath) => ({
+      manifestPath,
+      packageJson: JSON.parse(await readFile(path.join(repoRoot, manifestPath), "utf8")),
+    }))
+  );
+  const rootVersion = manifests[0].packageJson.version;
+
+  for (const { manifestPath, packageJson } of manifests) {
+    assert.equal(packageJson.version, rootVersion, `${manifestPath} drifted from ${rootVersion}`);
+  }
+});
+
 test("release qualification is wired to Node 20, Chromium, and non-placeholder gates", async () => {
   const [workflow, rootPackage, editorPackage, consumerPackage] = await Promise.all([
     readFile(path.join(repoRoot, ".github/workflows/ci.yml"), "utf8"),

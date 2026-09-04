@@ -36,6 +36,7 @@ class UIEditorTableToolbarElement extends HTMLElement {
     return [
       "open",
       "cell-alignment",
+      "cell-background",
       "can-add-row-after",
       "can-add-column-after",
       "can-add-row-before",
@@ -127,6 +128,20 @@ class UIEditorTableToolbarElement extends HTMLElement {
     }
 
     const activeAlignment = this.getAlignmentAttr();
+    const currentBackground = this.getAttribute("cell-background");
+    const backgroundActions = [
+      { action: "background-none", label: "Default", value: null, swatch: null },
+      { action: "background-gray", label: "Gray", value: "#f3f4f6", swatch: "#f3f4f6" },
+      { action: "background-yellow", label: "Yellow", value: "#fef3c7", swatch: "#fef3c7" },
+      { action: "background-blue", label: "Blue", value: "#dbeafe", swatch: "#dbeafe" },
+      { action: "background-green", label: "Green", value: "#dcfce7", swatch: "#dcfce7" },
+      { action: "background-red", label: "Red", value: "#fee2e2", swatch: "#fee2e2" },
+    ] satisfies Array<{
+      action: TableContextMenuAction;
+      label: string;
+      value: string | null;
+      swatch: string | null;
+    }>;
     const alignmentActions = [
       { action: "align-left", label: "Left" },
       { action: "align-center", label: "Center" },
@@ -153,6 +168,13 @@ class UIEditorTableToolbarElement extends HTMLElement {
         actions: [
           { action: "add-row-before", label: "Add row above", can: "can-add-row-before" },
           { action: "add-column-before", label: "Add column left", can: "can-add-column-before" },
+        ] satisfies TableToolbarActionItem[],
+      },
+      {
+        heading: "Cells",
+        actions: [
+          { action: "merge-cells", label: "Merge selected cells", can: "can-merge-cells" },
+          { action: "split-cell", label: "Split merged cell", can: "can-split-cell" },
         ] satisfies TableToolbarActionItem[],
       },
       {
@@ -192,18 +214,27 @@ class UIEditorTableToolbarElement extends HTMLElement {
         )
         .join(""),
       structuralActions.length > 0 ? "</div>" : "",
-      availableOverflowSections.length > 0 ? '<div class="ui-editor-table-toolbar__sep" aria-hidden="true"></div>' : "",
-      availableOverflowSections.length > 0 ? '<div class="ui-editor-table-toolbar__overflow">' : "",
-      availableOverflowSections.length > 0
-        ? `<button type="button" class="ui-editor-table-toolbar__more" data-action="toggle-overflow" aria-haspopup="menu" aria-expanded="${this.#overflowOpen ? "true" : "false"}">Table options</button>`
-        : "",
-      availableOverflowSections.length > 0 && this.#overflowOpen
+      '<div class="ui-editor-table-toolbar__sep" aria-hidden="true"></div>',
+      '<div class="ui-editor-table-toolbar__overflow">',
+      `<button type="button" class="ui-editor-table-toolbar__more" data-action="toggle-overflow" aria-haspopup="menu" aria-expanded="${this.#overflowOpen ? "true" : "false"}">Table options</button>`,
+      this.#overflowOpen
         ? [
             '<div class="ui-editor-table-toolbar__menu" role="menu" aria-label="More table actions">',
+            '<div class="ui-editor-table-toolbar__menu-section" role="none">',
+            '<div class="ui-editor-table-toolbar__menu-heading" role="presentation">Background</div>',
+            '<div class="ui-editor-table-toolbar__swatches" role="group" aria-label="Cell background">',
+            backgroundActions
+              .map((background) => {
+                const isSelected = (background.value ?? "") === (currentBackground ?? "");
+                return `<button type="button" class="ui-editor-table-toolbar__swatch-button" role="menuitemradio" aria-checked="${isSelected ? "true" : "false"}" data-action="${background.action}"${isSelected ? ' data-selected="true"' : ""}><span class="ui-editor-table-toolbar__swatch${background.swatch ? "" : " ui-editor-table-toolbar__swatch--default"}"${background.swatch ? ` style="--ui-editor-table-toolbar-swatch:${background.swatch}"` : ""}></span><span>${background.label}</span></button>`;
+              })
+              .join(""),
+            "</div>",
+            "</div>",
             availableOverflowSections
               .map((section) =>
                 [
-                  '<div class="ui-editor-table-toolbar__menu-section" role="none">',
+                  '<div class="ui-editor-table-toolbar__menu-section ui-editor-table-toolbar__menu-section--divided" role="none">',
                   `<div class="ui-editor-table-toolbar__menu-heading" role="presentation">${section.heading}</div>`,
                   section.actions
                     .map((action) => {
@@ -218,7 +249,7 @@ class UIEditorTableToolbarElement extends HTMLElement {
             "</div>",
           ].join("")
         : "",
-      availableOverflowSections.length > 0 ? "</div>" : "",
+      "</div>",
       "</div>",
     ].join("");
   }

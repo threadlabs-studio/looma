@@ -4,6 +4,16 @@
 
 No changes yet.
 
+## v0.1.6 Candidate
+
+Table editing keeps structural and appearance controls available during cell
+selections. The table toolbar exposes cell backgrounds and explicit merge/split
+actions, row-boundary hover reveals insertion controls, column boundaries retain
+drag resizing, and final paragraphs no longer add trailing space inside cells.
+
+All workspace packages and repository fixtures share the release version so
+build and test output cannot misleadingly report an older internal version.
+
 ## v0.1.5 Candidate
 
 Measured `ui-center` surfaces retain horizontal auto margins after Looma's
