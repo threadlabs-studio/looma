@@ -11,7 +11,7 @@ const packageNames = RELEASE_PACKAGES.map(({ name }) => name);
 function manifest() {
   return {
     schemaVersion: 1,
-    releaseVersion: "0.1.4",
+    releaseVersion: "0.1.5",
     sourceCommit,
     releaseEligible: true,
     exceptions: [],
@@ -21,8 +21,8 @@ function manifest() {
     packages: packageNames.map((name, publishIndex) => ({
       publishIndex,
       name,
-      version: "0.1.4",
-      tarball: `${name.split("/")[1]}-0.1.4.tgz`,
+      version: "0.1.5",
+      tarball: `${name.split("/")[1]}-0.1.5.tgz`,
       sha256: String(publishIndex).repeat(64),
       bytes: 100 + publishIndex,
       files: ["package/package.json"]
@@ -37,7 +37,7 @@ function ledger(releaseManifest = manifest()) {
     status: "succeeded",
     state: "registry-verified",
     sourceCommit,
-    releaseVersion: "0.1.4",
+    releaseVersion: "0.1.5",
     approvals: structuredClone(releaseManifest.approvals),
     promotionEvidence: {
       candidateWorkflowRunId: "123",
@@ -74,20 +74,20 @@ function ledger(releaseManifest = manifest()) {
     verification: {
       schemaVersion: 1,
       sourceCommit,
-      releaseVersion: "0.1.4",
+      releaseVersion: "0.1.5",
       requiredTags: ["candidate", "latest"],
       packages: releaseManifest.packages.map((entry) => ({
         name: entry.name,
         version: entry.version,
         integrity: `sha512-${entry.publishIndex}`,
-        distTags: { candidate: "0.1.4", latest: "0.1.4" },
+        distTags: { candidate: "0.1.5", latest: "0.1.5" },
         provenancePredicateType: "https://slsa.dev/provenance/v1"
       }))
     }
   };
 }
 
-const changelog = `# Changelog\n\n## v0.1.4 Candidate\n\nRelease notes.\n\nSupport boundary.\n\n## v0.0.9\n\nOlder notes.\n`;
+const changelog = `# Changelog\n\n## v0.1.5 Candidate\n\nRelease notes.\n\nSupport boundary.\n\n## v0.0.9\n\nOlder notes.\n`;
 const assetHashes = {
   ".release/artifacts/release-manifest.json": "d".repeat(64),
   ".release/evidence/registry-promotion.json": "e".repeat(64)
@@ -103,8 +103,8 @@ test("finalizer module exists and exports release validation and planning", () =
 
 test("creates a missing exact tag through the release API with evidence attached", () => {
   const record = {
-    tag: "v0.1.4",
-    title: "Looma v0.1.4 Candidate",
+    tag: "v0.1.5",
+    title: "Looma v0.1.5 Candidate",
     notes: "Release notes.",
     sourceCommit,
     assetPaths: Object.keys(assetHashes)
@@ -144,8 +144,8 @@ test("validates one exact promoted graph and derives the immutable tag", () => {
     changelog,
     assetHashes
   });
-  assert.equal(record.tag, "v0.1.4");
-  assert.equal(record.title, "Looma v0.1.4 Candidate");
+  assert.equal(record.tag, "v0.1.5");
+  assert.equal(record.title, "Looma v0.1.5 Candidate");
   assert.equal(record.sourceCommit, sourceCommit);
   assert.equal(record.notes, "Release notes.\n\nSupport boundary.");
   assert.deepEqual(record.assetPaths, [
