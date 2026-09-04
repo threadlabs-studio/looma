@@ -10,10 +10,15 @@ export class UIIconButton {
   @Prop() label = '';
   @Prop({ reflect: true }) size: 'sm' | 'md' | 'lg' = 'md';
   @Prop({ reflect: true }) variant: 'ghost' | 'outline' | 'solid' = 'ghost';
+  /** Reveals this control through a surrounding ui-affordance-scope. */
+  @Prop({ reflect: true }) anticipatory = false;
 
   render() {
     return (
-      <Host data-disabled={this.disabled ? '' : undefined}>
+      <Host
+        data-disabled={this.disabled ? '' : undefined}
+        data-ui-affordance={this.anticipatory ? 'button' : undefined}
+      >
         <button type="button" aria-label={this.label || undefined} disabled={this.disabled}>
           <slot />
         </button>

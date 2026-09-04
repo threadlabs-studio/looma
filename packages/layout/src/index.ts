@@ -321,9 +321,14 @@ class UISidebarElement extends UILayoutElement {
     if (!this.resizeHandle) {
       this.resizeHandle = document.createElement("div");
       this.resizeHandle.setAttribute("data-ui-sidebar-resizer", "");
+      this.resizeHandle.setAttribute("data-ui-affordance", "resize");
       this.resizeHandle.setAttribute("role", "separator");
       this.resizeHandle.setAttribute("aria-orientation", "vertical");
       this.resizeHandle.setAttribute("tabindex", "0");
+      const guide = document.createElement("span");
+      guide.setAttribute("data-ui-guide", "");
+      guide.setAttribute("aria-hidden", "true");
+      this.resizeHandle.append(guide);
       this.append(this.resizeHandle);
     }
     this.resizeHandle.setAttribute("aria-label", this.getAttribute("resize-label") || "Resize sidebar");

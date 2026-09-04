@@ -5,7 +5,15 @@
 
 import type { Editor, Range } from "@tiptap/core";
 import { TextSelection } from "@tiptap/pm/state";
-import { TableMap } from "@tiptap/pm/tables";
+import {
+  addColumn,
+  addRow,
+  CellSelection,
+  cellAround,
+  deleteCellSelection,
+  TableMap,
+  type TableRect,
+} from "@tiptap/pm/tables";
 import type { TableContextMenuActionEventDetail } from "../table-context-menu";
 import type { TableOverlayActionEventDetail } from "../table-overlay";
 import {
@@ -18,10 +26,7 @@ import {
   type TableCellBackground,
 } from "./table-formatting";
 
-interface TableNode {
-  child: (i: number) => { nodeSize: number; child: (j: number) => { nodeSize: number }; childCount: number };
-  childCount: number;
-}
+type TableNode = ReturnType<Editor["state"]["selection"]["$from"]["node"]>;
 
 export interface InsertTableAtRangeOptions {
   rows?: number;
@@ -142,6 +147,14 @@ export function handleTableAction(
       return editor.chain().focus().deleteColumn().run();
     case "delete-table":
       return editor.chain().focus().deleteTable().run();
+    case "clear-cells": {
+      if (!(editor.state.selection instanceof CellSelection)) {
+        const cellPos = findSelectedCellPosition(editor);
+        if (cellPos === null) return false;
+        if (!editor.commands.setCellSelection({ anchorCell: cellPos })) return false;
+      }
+      return deleteCellSelection(editor.state, editor.view.dispatch);
+    }
     case "merge-cells":
       return editor.chain().focus().mergeCells().run();
     case "split-cell":
@@ -236,29 +249,6 @@ function normalizeColumnWidths(widths: number[], availableWidth: number, minWidt
 }
 
 /**
- * Returns a valid text-selection position inside the first paragraph of a cell.
- * Assumes no colSpan/rowSpan for simplicity.
- */
-function getTextPositionInCell(
-  tablePos: number,
-  table: TableNode,
-  rowIndex: number,
-  colIndex: number
-): number {
-  let pos = tablePos + 1;
-  for (let r = 0; r < rowIndex; r++) {
-    pos += table.child(r).nodeSize;
-  }
-  const row = table.child(rowIndex);
-  for (let c = 0; c < colIndex; c++) {
-    pos += row.child(c).nodeSize;
-  }
-  // `pos` is inside the table before the row. Cross the row, cell, and
-  // paragraph boundaries so TextSelection never lands on a tableRow.
-  return pos + 3;
-}
-
-/**
  * Finds the table containing the current selection and returns its position and node.
  */
 function findTable(editor: Editor): { pos: number; node: ReturnType<Editor["state"]["selection"]["$from"]["node"]> } | null {
@@ -270,6 +260,37 @@ function findTable(editor: Editor): { pos: number; node: ReturnType<Editor["stat
     }
   }
   return null;
+}
+
+function findSelectedCellPosition(editor: Editor): number | null {
+  return cellAround(editor.state.selection.$from)?.pos ?? null;
+}
+
+function selectTableAxis(
+  editor: Editor,
+  axis: "row" | "column",
+  rowIndex: number,
+  columnIndex: number,
+): boolean {
+  const tableInfo = findTable(editor);
+  if (!tableInfo) return false;
+  const { pos: tablePos, node: table } = tableInfo;
+  const map = TableMap.get(table);
+  const row = Math.min(Math.max(0, rowIndex), map.height - 1);
+  const column = Math.min(Math.max(0, columnIndex), map.width - 1);
+  const start = axis === "row"
+    ? map.positionAt(row, 0, table)
+    : map.positionAt(0, column, table);
+  const end = axis === "row"
+    ? map.positionAt(row, map.width - 1, table)
+    : map.positionAt(map.height - 1, column, table);
+  const tableStart = tablePos + 1;
+  if (!editor.commands.setCellSelection({
+    anchorCell: tableStart + start,
+    headCell: tableStart + end,
+  })) return false;
+  editor.commands.focus();
+  return true;
 }
 
 /**
@@ -387,46 +408,58 @@ export function handleTableOverlayAction(
   const tableInfo = findTable(editor);
   if (!tableInfo) return false;
 
-  const { action, boundaryIndex } = detail;
-  const { pos: tablePos, node: table } = tableInfo;
-  const rows = table.childCount;
-  const cols = rows > 0 ? (table.child(0) as { childCount: number }).childCount : 0;
+  const { action } = detail;
+  if (action === "select-row" || action === "select-column") {
+    return selectTableAxis(
+      editor,
+      action === "select-row" ? "row" : "column",
+      detail.rowIndex,
+      detail.columnIndex,
+    );
+  }
+  if (action === "open-cell-menu") return true;
+  if (!("boundaryIndex" in detail)) return false;
 
-  let cellPos: number;
-  let command: () => boolean;
+  const { boundaryIndex } = detail;
+  const { pos: tablePos, node: table } = tableInfo;
+  const map = TableMap.get(table);
+  const rect: TableRect = {
+    map,
+    table,
+    tableStart: tablePos + 1,
+    left: 0,
+    top: 0,
+    right: map.width,
+    bottom: map.height,
+  };
+  let transaction = editor.state.tr;
 
   switch (action) {
     case "add-row-before": {
-      const rowIndex = Math.min(boundaryIndex, rows - 1);
-      if (rowIndex < 0) return false;
-      cellPos = getTextPositionInCell(tablePos, table as TableNode, rowIndex, 0);
-      command = () => editor.chain().focus().setTextSelection(cellPos).addRowBefore().run();
+      if (boundaryIndex !== 0) return false;
+      transaction = addRow(transaction, rect, 0);
       break;
     }
     case "add-row-after": {
-      const rowIndex = Math.min(boundaryIndex - 1, rows - 1);
-      if (rowIndex < 0) return false;
-      cellPos = getTextPositionInCell(tablePos, table as TableNode, rowIndex, 0);
-      command = () => editor.chain().focus().setTextSelection(cellPos).addRowAfter().run();
+      if (boundaryIndex < 1 || boundaryIndex > map.height) return false;
+      transaction = addRow(transaction, rect, boundaryIndex);
       break;
     }
     case "add-column-before": {
-      const colIndex = Math.min(boundaryIndex, cols - 1);
-      if (colIndex < 0) return false;
-      cellPos = getTextPositionInCell(tablePos, table as TableNode, 0, colIndex);
-      command = () => editor.chain().focus().setTextSelection(cellPos).addColumnBefore().run();
+      if (boundaryIndex !== 0) return false;
+      transaction = addColumn(transaction, rect, 0);
       break;
     }
     case "add-column-after": {
-      const colIndex = Math.min(boundaryIndex - 1, cols - 1);
-      if (colIndex < 0) return false;
-      cellPos = getTextPositionInCell(tablePos, table as TableNode, 0, colIndex);
-      command = () => editor.chain().focus().setTextSelection(cellPos).addColumnAfter().run();
+      if (boundaryIndex < 1 || boundaryIndex > map.width) return false;
+      transaction = addColumn(transaction, rect, boundaryIndex);
       break;
     }
     default:
       return false;
   }
 
-  return command();
+  editor.view.dispatch(transaction);
+  editor.commands.focus();
+  return true;
 }

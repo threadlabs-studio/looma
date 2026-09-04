@@ -2,6 +2,34 @@
   "schemaVersion": 1,
   "components": [
     {
+      "tag": "ui-affordance-scope",
+      "package": "@threadlabs/looma",
+      "className": "UIAffordanceScopeElement",
+      "description": "Scope-level coordinator for lightweight, overlapping near-hover affordances.",
+      "attributes": [
+        {
+          "name": "near-radius",
+          "property": "nearRadius",
+          "type": "number",
+          "default": 32
+        }
+      ],
+      "properties": [
+        {
+          "name": "nearRadius",
+          "type": "number",
+          "default": 32
+        }
+      ],
+      "events": [],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Interactive descendants participating in the affordance scope."
+        }
+      ]
+    },
+    {
       "tag": "ui-avatar",
       "package": "@threadlabs/looma",
       "className": "UIAvatarElement",
@@ -713,7 +741,7 @@
       "tag": "ui-editor-table-overlay",
       "package": "@threadlabs/looma/editor",
       "className": "UIEditorTableOverlayElement",
-      "description": "Boundary-aligned controls for inserting rows or columns around an active table.",
+      "description": "Anticipatory table affordances for insertion, row and column selection, and cell actions.",
       "attributes": [
         {
           "name": "cols",
@@ -734,13 +762,20 @@
           "default": 3
         }
       ],
-      "properties": [],
+      "properties": [
+        {
+          "name": "geometry",
+          "type": "TableOverlayGeometry | null",
+          "default": null,
+          "description": "Measured table boundaries and active-cell geometry supplied by the editor adapter."
+        }
+      ],
       "events": [
         {
           "name": "looma-editor-table-overlay-action",
           "detailType": "TableOverlayActionEventDetail",
-          "detailSchema": "{ action: TableOverlayAction; boundaryIndex: number }",
-          "detailDocs": "Emitted with the insertion direction and affected table boundary."
+          "detailSchema": "TableOverlayActionEventDetail",
+          "detailDocs": "Emitted for insertion, row or column selection, and active-cell menu intent."
         }
       ],
       "slots": []
@@ -986,6 +1021,12 @@
       "description": "Icon-only button primitive with stable square sizing for compact actions and shell controls.",
       "attributes": [
         {
+          "name": "anticipatory",
+          "property": "anticipatory",
+          "type": "boolean",
+          "default": false
+        },
+        {
           "name": "disabled",
           "property": "disabled",
           "type": "boolean",
@@ -1021,6 +1062,11 @@
         }
       ],
       "properties": [
+        {
+          "name": "anticipatory",
+          "type": "boolean",
+          "default": false
+        },
         {
           "name": "disabled",
           "type": "boolean",

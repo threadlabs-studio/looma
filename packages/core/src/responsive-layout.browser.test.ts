@@ -36,6 +36,25 @@ describe("responsive light-DOM layout", () => {
     expect(getComputedStyle(document.querySelector("ui-button")!).display).toBe("inline-flex");
   });
 
+  it("keeps dormant anticipatory controls out of pointer hit testing", async () => {
+    await Promise.all([
+      customElements.whenDefined("ui-affordance-scope"),
+      customElements.whenDefined("ui-icon-button"),
+    ]);
+    document.body.innerHTML = `
+      <ui-affordance-scope>
+        <ui-icon-button anticipatory label="Add item">+</ui-icon-button>
+      </ui-affordance-scope>
+    `;
+    const icon = document.querySelector("ui-icon-button")!;
+    await expect.poll(() => icon.shadowRoot?.querySelector("button")).toBeTruthy();
+    const button = icon.shadowRoot!.querySelector("button")!;
+
+    expect(getComputedStyle(button).pointerEvents).toBe("none");
+    icon.setAttribute("data-ui-proximity", "near");
+    expect(getComputedStyle(button).pointerEvents).toBe("auto");
+  });
+
   it("keeps primitive display modes after the scoped reset", () => {
     document.body.innerHTML = `
       <ui-stack></ui-stack>

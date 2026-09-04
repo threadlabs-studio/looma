@@ -19,7 +19,15 @@ export {
   type TableCellBackgroundAction,
 } from "./table-backgrounds";
 export type { InsertTableEventDetail } from "./insert-table-grid";
-export type { TableOverlayAction, TableOverlayActionEventDetail } from "./table-overlay";
+export {
+  measureTableOverlayGeometry,
+  resolveTableCellAt,
+  type ActiveCellRect,
+  type TableInsertionAction,
+  type TableOverlayAction,
+  type TableOverlayActionEventDetail,
+  type TableOverlayGeometry,
+} from "./table-overlay";
 export type { TableContextMenuActionEventDetail as TableToolbarActionEventDetail } from "./table-context-menu";
 export type {
   SlashMenuAnchorRect,

@@ -1,0 +1,47 @@
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+<div className="looma-component-header">
+
+<p className="component-tag">&lt;ui-affordance-scope&gt;</p>
+
+# Affordance Scope
+
+A lightweight interaction scope that lets nearby controls anticipate pointer movement without adding listeners or hit regions to every control.
+
+**Import:** `import "@threadlabs/looma"` — or use `AffordanceScope` from `@threadlabs/looma/vue`.
+
+</div>
+
+## Examples & API
+
+<ComponentExamplesApiTabs
+  component="ui-affordance-scope"
+  preview={
+    <ui-affordance-scope near-radius="32">
+      <div style={{ display: "flex", gap: "3rem", padding: "2rem" }}>
+        <ui-icon-button anticipatory label="Add before">+</ui-icon-button>
+        <ui-icon-button anticipatory label="Add after">+</ui-icon-button>
+      </div>
+    </ui-affordance-scope>
+  }
+/>
+
+## Interaction model
+
+The scope listens once, schedules at most one calculation per animation frame, and caches descendant affordance geometry between layout changes. Every affordance within the configured radius receives the same presentation-only near state, so near regions can overlap naturally. Only the visible controls participate in hit testing.
+
+Pointer proximity is skipped for touch input. Keyboard focus and direct hover continue to reveal the real control.
+
+## Framework snippet
+
+```vue
+<script setup lang="ts">
+import { AffordanceScope, IconButton } from "@threadlabs/looma/vue";
+</script>
+
+<template>
+  <AffordanceScope :near-radius="32">
+    <IconButton anticipatory label="Add item">+</IconButton>
+  </AffordanceScope>
+</template>
+```

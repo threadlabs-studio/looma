@@ -24,9 +24,9 @@ gate is the authority; this table is a readable summary.
 
 | Element family | Elements | Vue contract |
 | --- | --- | --- |
-| Layout | `ui-stack`, `ui-inline`, `ui-cluster`, `ui-grid`, `ui-center`, `ui-separator` | `Stack`, `Inline`, `Cluster`, `Grid`, `Center`, `Separator` |
+| Layout | `ui-stack`, `ui-inline`, `ui-cluster`, `ui-grid`, `ui-center`, `ui-switcher`, `ui-sidebar`, `ui-reel`, `ui-separator` | Same names in PascalCase |
 | Actions and forms | `ui-button`, `ui-icon-button`, `ui-input`, `ui-select`, `ui-textarea`, `ui-form-field`, `ui-checkbox`, `ui-switch`, `ui-radio`, `ui-radio-group` | Same names in PascalCase |
-| Overlays and navigation | `ui-dialog`, `ui-popover`, `ui-menu`, `ui-menu-item`, `ui-context-menu`, `ui-tooltip`, `ui-tabs`, `ui-disclosure` | Same names in PascalCase |
+| Overlays, affordances, and navigation | `ui-affordance-scope`, `ui-dialog`, `ui-popover`, `ui-menu`, `ui-menu-item`, `ui-context-menu`, `ui-tooltip`, `ui-tabs`, `ui-disclosure` | Same names in PascalCase |
 | Display and app shell | `ui-avatar`, `ui-avatar-group`, `ui-badge`, `ui-toast-region`, `ui-floating-action-button`, `ui-search-shell`, `ui-search-result-row`, `ui-top-bar` | Same names in PascalCase |
 | Editor | `ui-editor-toolbar`, `ui-editor-slash-menu`, `ui-editor-table-context-menu`, `ui-editor-table-toolbar`, `ui-editor-insert-table-grid`, `ui-editor-table-overlay` | `Editor*` named wrappers |
 

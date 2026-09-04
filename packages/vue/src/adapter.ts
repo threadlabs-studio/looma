@@ -52,9 +52,11 @@ export function createAdapterComponent(
   displayName: string,
   additionalEventBindings: readonly AdapterEventBinding[] = [],
   defaultHydrationMismatch: string = "class",
+  propertyBindings: readonly string[] = [],
 ) {
   const eventBindings = [...BASE_EVENT_BINDINGS, ...additionalEventBindings];
   const callbackAttrs = new Set(eventBindings.map(([, callbackAttr]) => callbackAttr));
+  const propertyAttrs = new Set(propertyBindings);
 
   return defineComponent({
     name: displayName,
@@ -67,6 +69,12 @@ export function createAdapterComponent(
         if (!element) return;
 
         const adapterAttrs = attrs as AdapterAttrs;
+        const propertyTarget = element as unknown as Record<string, unknown>;
+        for (const propertyName of propertyBindings) {
+          if (propertyTarget[propertyName] !== adapterAttrs[propertyName]) {
+            propertyTarget[propertyName] = adapterAttrs[propertyName];
+          }
+        }
         const handlers: Array<[string, ((event: Event) => void) | undefined]> = eventBindings.map(
           ([eventName, callbackAttr]) => {
             const callback = adapterAttrs[callbackAttr];
@@ -92,7 +100,9 @@ export function createAdapterComponent(
 
       return () => {
         const forwardedAttrs = Object.fromEntries(
-          Object.entries(attrs).filter(([name]) => !callbackAttrs.has(name)),
+          Object.entries(attrs).filter(
+            ([name]) => !callbackAttrs.has(name) && !propertyAttrs.has(name),
+          ),
         );
 
         const children = Object.entries(slots).flatMap(([slotName, slotFn]) => {
