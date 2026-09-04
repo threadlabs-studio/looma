@@ -51,6 +51,7 @@ export function createAdapterComponent(
   tagName: string,
   displayName: string,
   additionalEventBindings: readonly AdapterEventBinding[] = [],
+  defaultHydrationMismatch: string = "class",
 ) {
   const eventBindings = [...BASE_EVENT_BINDINGS, ...additionalEventBindings];
   const callbackAttrs = new Set(eventBindings.map(([, callbackAttr]) => callbackAttr));
@@ -106,7 +107,7 @@ export function createAdapterComponent(
         return h(
           tagName,
           {
-            "data-allow-mismatch": forwardedAttrs["data-allow-mismatch"] ?? "class",
+            "data-allow-mismatch": forwardedAttrs["data-allow-mismatch"] ?? defaultHydrationMismatch,
             ...forwardedAttrs,
             ref: (value: Element | ComponentPublicInstance | null) => {
               elementRef.value = toHTMLElement(value);

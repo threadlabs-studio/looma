@@ -4,6 +4,14 @@
 
 No changes yet.
 
+## v0.1.9 Candidate
+
+The Vue `Sidebar` adapter declares its custom-element-owned light-DOM resize
+handle as an expected hydration difference. Nuxt and other server-rendered Vue
+applications can use the resizable sidebar without false hydration mismatch
+errors while retaining the pointer, keyboard, and persistent-width behavior
+introduced in `0.1.8`.
+
 ## v0.1.8 Candidate
 
 The `ui-sidebar` layout primitive supports opt-in pointer resizing with

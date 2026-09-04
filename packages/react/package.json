@@ -1,6 +1,6 @@
 {
   "name": "@threadlabs/looma-react",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "private": true,
   "type": "module",
   "description": "Thin React adapters for Looma web components.",
