@@ -15,7 +15,7 @@ const releaseRecordJob = workflow.match(/\n  release-record:[\s\S]*$/)?.[0] ?? "
 
 test("Candidate changelog records the exact R1 support boundary without claiming remote completion", () => {
   assert.match(changelog, /^# Changelog/m);
-  assert.match(changelog, /^## v0\.1\.4 Candidate$/m);
+  assert.match(changelog, /^## v0\.1\.5 Candidate$/m);
   assert.match(changelog, /one Candidate package[\s\S]*@threadlabs\/looma/);
   assert.doesNotMatch(changelog, /@threadlabs\/looma-(?:tokens|layout|core|editor|vue)/);
   assert.match(changelog, /E-TBL-003/);
@@ -41,11 +41,11 @@ test("release record downloads and validates the exact Candidate and promotion e
   assert.match(releaseRecordJob, /persist-credentials: false/);
   assert.match(
     releaseRecordJob,
-    /name: looma-0\.1\.4-candidate[\s\S]*?path: \.release\/artifacts\/[\s\S]*?run-id: \$\{\{ inputs\.candidate_workflow_run_id \}\}/
+    /name: looma-0\.1\.5-candidate[\s\S]*?path: \.release\/artifacts\/[\s\S]*?run-id: \$\{\{ inputs\.candidate_workflow_run_id \}\}/
   );
   assert.match(
     releaseRecordJob,
-    /name: looma-0\.1\.4-registry-promotion-evidence[\s\S]*?path: \.release\/evidence\/[\s\S]*?run-id: \$\{\{ github\.run_id \}\}/
+    /name: looma-0\.1\.5-registry-promotion-evidence[\s\S]*?path: \.release\/evidence\/[\s\S]*?run-id: \$\{\{ github\.run_id \}\}/
   );
   assert.match(releaseRecordJob, /node \.release\/orchestrator\/finalize-release\.mjs\n/);
   assert.match(releaseRecordJob, /LOOMA_RELEASE_RECORD: approved/);
