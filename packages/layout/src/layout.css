@@ -10,7 +10,6 @@
   /* Reveal Looma's component layer instead of reverting past it. */
   all: revert-layer;
   box-sizing: border-box;
-  margin: 0;
   font-family: var(--ui-font-family-sans);
   font-size: var(--ui-font-size-md);
   line-height: var(--ui-line-height-md);
@@ -35,6 +34,7 @@
   :where(ui-stack, ui-inline, ui-cluster, ui-grid, ui-center, ui-switcher, ui-sidebar, ui-reel, ui-separator) {
     min-inline-size: 0;
     max-inline-size: 100%;
+    margin: 0;
   }
 
   ui-stack {
