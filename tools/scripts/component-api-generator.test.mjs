@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { validateComponentProjections } from "./component-api-generator.mjs";
+import {
+  readRepositoryProjectionTags,
+  validateComponentProjections
+} from "./component-api-generator.mjs";
 
 const completeFixture = {
   sourceTags: ["ui-button"],
@@ -59,4 +62,11 @@ test("rejects duplicate projections instead of silently de-duplicating them", ()
 
 test("accepts a complete classified projection", () => {
   assert.doesNotThrow(() => validateComponentProjections(completeFixture));
+});
+
+test("discovers editor adapters after their implementation is split into primitives", async () => {
+  const projections = await readRepositoryProjectionTags();
+
+  assert.ok(projections.adapterMapTags.includes("ui-editor-toolbar"));
+  assert.ok(projections.adapterTags.includes("ui-editor-table-overlay"));
 });

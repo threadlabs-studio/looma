@@ -179,7 +179,7 @@ async function discoverSourceComponents() {
   return components.sort((left, right) => left.tag.localeCompare(right.tag));
 }
 
-async function readRepositoryProjectionTags() {
+export async function readRepositoryProjectionTags() {
   const docsDirectory = path.join(repoRoot, "apps/docs/docs/components");
   const docEntries = await readdir(docsDirectory, { withFileTypes: true });
   const documentationTags = docEntries
@@ -194,6 +194,7 @@ async function readRepositoryProjectionTags() {
   const adapterSources = await Promise.all([
     readFile(path.join(repoRoot, "packages/vue/src/index.ts"), "utf8"),
     readFile(path.join(repoRoot, "packages/vue/src/editor/index.ts"), "utf8"),
+    readFile(path.join(repoRoot, "packages/vue/src/editor/primitives.ts"), "utf8"),
   ]);
   const exportedNames = new Set(
     adapterSources.flatMap((source) =>
