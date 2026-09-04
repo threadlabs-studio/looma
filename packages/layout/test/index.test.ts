@@ -1,11 +1,18 @@
 import { readFileSync } from "node:fs";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import "../src/index";
 
 describe("@threadlabs/looma-layout primitives", () => {
   beforeEach(() => {
     document.body.innerHTML = "";
+    const values = new Map<string, string>();
+    vi.stubGlobal("localStorage", {
+      getItem: (key: string) => values.get(key) ?? null,
+      setItem: (key: string, value: string) => values.set(key, value),
+      removeItem: (key: string) => values.delete(key),
+      clear: () => values.clear(),
+    });
   });
 
   it("reflects ui-stack gap property to attribute and back", () => {
@@ -69,6 +76,44 @@ describe("@threadlabs/looma-layout primitives", () => {
 
     separator.setAttribute("role", "presentation");
     expect(separator.hasAttribute("aria-orientation")).toBe(false);
+  });
+
+  it("adds an accessible, keyboard-operable sidebar resize handle", () => {
+    const sidebar = document.createElement("ui-sidebar");
+    sidebar.setAttribute("resizable", "");
+    sidebar.setAttribute("storage-key", "docs-nav");
+    sidebar.innerHTML = "<aside>Navigation</aside><main>Content</main>";
+    const resizeEvents: Array<{ width: number; trigger: string }> = [];
+    sidebar.addEventListener("resize", (event) => {
+      resizeEvents.push((event as CustomEvent).detail);
+    });
+    document.body.append(sidebar);
+
+    const handle = sidebar.querySelector<HTMLElement>("[data-ui-sidebar-resizer]")!;
+    expect(handle).toBeTruthy();
+    expect(handle.getAttribute("role")).toBe("separator");
+    expect(handle.getAttribute("aria-orientation")).toBe("vertical");
+    expect(handle.getAttribute("tabindex")).toBe("0");
+    expect(handle.getAttribute("aria-label")).toBe("Resize sidebar");
+
+    handle.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+    expect(sidebar.style.getPropertyValue("--ui-sidebar-width")).toBe("304px");
+    expect(handle.getAttribute("aria-valuenow")).toBe("304");
+    expect(localStorage.getItem("looma:sidebar-width:docs-nav")).toBe("304");
+    expect(resizeEvents.at(-1)).toEqual({ width: 304, trigger: "keyboard" });
+  });
+
+  it("restores a persisted sidebar width and clamps it to current bounds", () => {
+    localStorage.setItem("looma:sidebar-width:project-nav", "900");
+    const sidebar = document.createElement("ui-sidebar");
+    sidebar.setAttribute("resizable", "");
+    sidebar.setAttribute("storage-key", "project-nav");
+    sidebar.setAttribute("max-width", "420");
+    sidebar.innerHTML = "<aside>Navigation</aside><main>Content</main>";
+    document.body.append(sidebar);
+
+    expect(sidebar.style.getPropertyValue("--ui-sidebar-width")).toBe("420px");
+    expect(sidebar.querySelector("[data-ui-sidebar-resizer]")?.getAttribute("aria-valuenow")).toBe("420");
   });
 });
 
