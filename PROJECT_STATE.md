@@ -4,27 +4,37 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-03 18:33 PDT
-Status: centered-layout correction targets Candidate `0.1.5`; public Candidate `0.1.4` is qualified; `0.1.1` remains `latest`
+Last Updated: 2026-09-04 15:12 PDT
+Status: public Candidate `0.1.10` and hosted docs are qualified; table-resize consumer correction is locally verified; `0.1.9` remains `latest`
 
 ## Current Focus
 
-- Publish the centered-layout cascade correction as Candidate `0.1.5`, then
-  qualify those public bytes in Knit.
-- Decide whether Candidate `0.1.5` or an earlier immutable Candidate should be
-  promoted to `latest`; Candidate publication does not make that decision.
+- Publish and qualify a patch that keeps Tiptap's structural table-cell minimum
+  width aligned with Looma's rendered 112px minimum so empty cells expose a
+  reliable column-resize handle in real consumers.
+- Publish the correction as the next Candidate, qualify its exact public bytes
+  in Knit, and then promote the verified Candidate to `latest`.
 - Before promotion, refresh the chosen immutable Candidate's production
   hosted-docs evidence and run the owner-approved promotion with public Knit
   evidence for those exact bytes.
 - Complete npm trusted publishing and revoke the temporary bypass-2FA bootstrap
   credential before its January 2027 restriction.
-- Keep qualified `0.1.1` under `latest` until an exact immutable Candidate
+- Keep qualified `0.1.9` under `latest` until an exact immutable Candidate
   completes its hosted-docs, promotion, and release-record gates.
 - Keep React and Svelte deferred while Release 1 covers tokens, layout, core,
   editor, and Vue.
 
 ## Recent Progress
 
+- Table resizing consumer correction:
+  - Reproduced the missing resize handle in Knit with the pointer targeting the
+    correct empty cell and the Tiptap resize handler running, while its sampled
+    coordinate resolved to the row instead of the cell.
+  - Aligned `LoomaTable`'s structural `cellMinWidth` with the 112px CSS default
+    and reduced Tiptap's coupled hover/probe width from 5px to 3px so the probe
+    remains inside empty minimum-width cells.
+  - Expanded real-browser coverage to an empty body-cell table and verified the
+    packed facade in Knit's exact editor flow, including a real column drag.
 - Responsive layout hardening:
   - Corrected the light-DOM reset so Looma component-layer display and sizing
     declarations remain active while application CSS stays overridable.
@@ -202,6 +212,14 @@ Status: centered-layout correction targets Candidate `0.1.5`; public Candidate `
 
 ## Verification Snapshot
 
+- Table resizing correction (2026-09-04):
+  - strengthened `@threadlabs/looma-vue` browser test: failed before the fix
+    with a 50px structural table minimum instead of the required 224px
+  - `pnpm lint`: pass
+  - `pnpm typecheck`: pass
+  - `pnpm test`: pass
+  - `pnpm test:browser`: pass (38 tests)
+  - packed facade consumed by Knit editor browser test: pass (1 test)
 - Responsive layout verification (2026-09-03):
   - `pnpm --filter @threadlabs/looma-layout test`: pass (6 tests)
   - `pnpm --filter @threadlabs/looma-layout typecheck`: pass
@@ -283,14 +301,16 @@ Status: centered-layout correction targets Candidate `0.1.5`; public Candidate `
 ## Risks / Blockers
 
 - Protected npm release identity, 2FA/bootstrap controls, accountable approvers,
-  and repository environments are not yet proven for the five exact names.
-- No package has been published. Public-registry, hosted-docs, promotion, and
-  immutable-release evidence cannot exist until an explicitly authorized
-  protected Candidate run succeeds.
+  and repository environments are proven for the singleton facade package.
+- Candidate `0.1.10` is published and hosted-docs-qualified; exact Knit
+  public-registry qualification and `latest` promotion remain open.
 - Shared editor UX still has open defects found through Knit dogfooding. See `docs/editor-bugs.md`.
 - Generated docs/storybook build artifacts are tracked in this repo and change alongside source edits.
 
 ## Next Up
+
+Complete the public table-resize patch, consume its exact registry artifact in
+Knit, and rerun Knit's complete browser gate before promotion.
 
 Release order and evidence gates live in `docs/release-checklist.md`; product
 milestones remain in `docs/milestones.md`.
