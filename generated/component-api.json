@@ -1741,7 +1741,7 @@
       "tag": "ui-sidebar",
       "package": "@threadlabs/looma/layout",
       "className": "UISidebarElement",
-      "description": "Intrinsic two-region layout that wraps when content would become too narrow.",
+      "description": "Intrinsic two-region layout with optional accessible, persistent resizing.",
       "attributes": [
         {
           "name": "align",
@@ -1766,6 +1766,36 @@
           "property": "width",
           "type": "string",
           "default": "default"
+        },
+        {
+          "name": "resizable",
+          "property": "resizable",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "storage-key",
+          "type": "string"
+        },
+        {
+          "name": "min-width",
+          "type": "number",
+          "default": 176
+        },
+        {
+          "name": "max-width",
+          "type": "number",
+          "default": 480
+        },
+        {
+          "name": "resize-step",
+          "type": "number",
+          "default": 16
+        },
+        {
+          "name": "resize-label",
+          "type": "string",
+          "default": "Resize sidebar"
         }
       ],
       "properties": [
@@ -1788,9 +1818,21 @@
           "name": "width",
           "type": "string",
           "default": "default"
+        },
+        {
+          "name": "resizable",
+          "type": "boolean",
+          "default": false
         }
       ],
-      "events": [],
+      "events": [
+        {
+          "name": "resize",
+          "detailType": "SidebarResizeDetail",
+          "detailSchema": "{ width: number; trigger: 'keyboard' | 'pointer' | 'programmatic' }",
+          "detailDocs": "Emitted as the side region changes width."
+        }
+      ],
       "slots": [
         {
           "name": "default",

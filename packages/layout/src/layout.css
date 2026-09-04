@@ -151,12 +151,13 @@
     align-items: var(--ui-sidebar-align);
   }
 
-  ui-sidebar > * { min-inline-size: 0; }
+  ui-sidebar > :not([data-ui-sidebar-resizer]) { min-inline-size: 0; }
   ui-sidebar > :first-child {
     flex-basis: var(--ui-sidebar-width);
     flex-grow: 1;
   }
-  ui-sidebar > :last-child {
+  ui-sidebar > :last-child:not([data-ui-sidebar-resizer]),
+  ui-sidebar[resizable] > :nth-last-child(2):not([data-ui-sidebar-resizer]) {
     flex-basis: 0;
     flex-grow: 999;
     min-inline-size: min(var(--ui-sidebar-content-min), 100%);
@@ -166,7 +167,8 @@
     flex-grow: 999;
     min-inline-size: min(var(--ui-sidebar-content-min), 100%);
   }
-  ui-sidebar[side="end"] > :last-child {
+  ui-sidebar[side="end"] > :last-child:not([data-ui-sidebar-resizer]),
+  ui-sidebar[side="end"][resizable] > :nth-last-child(2):not([data-ui-sidebar-resizer]) {
     flex-basis: var(--ui-sidebar-width);
     flex-grow: 1;
     min-inline-size: 0;
@@ -180,6 +182,49 @@
   ui-sidebar[align="start"] { --ui-sidebar-align: flex-start; }
   ui-sidebar[align="center"] { --ui-sidebar-align: center; }
   ui-sidebar[align="end"] { --ui-sidebar-align: flex-end; }
+  ui-sidebar[resizable] {
+    position: relative;
+    flex-wrap: nowrap;
+  }
+  ui-sidebar[resizable] > :first-child:not([data-ui-sidebar-resizer]) {
+    flex: 0 0 var(--ui-sidebar-width);
+  }
+  ui-sidebar[side="end"][resizable] > :first-child:not([data-ui-sidebar-resizer]) {
+    flex: 1 1 0;
+  }
+  ui-sidebar[side="end"][resizable] > :nth-last-child(2):not([data-ui-sidebar-resizer]) {
+    flex: 0 0 var(--ui-sidebar-width);
+  }
+  ui-sidebar > [data-ui-sidebar-resizer] {
+    position: absolute;
+    z-index: 1;
+    inset-block: 0;
+    inset-inline-start: var(--ui-sidebar-width);
+    inline-size: 8px;
+    min-inline-size: 8px;
+    transform: translateX(-50%);
+    cursor: col-resize;
+    touch-action: none;
+    outline: none;
+  }
+  ui-sidebar[side="end"] > [data-ui-sidebar-resizer] {
+    inset-inline-start: auto;
+    inset-inline-end: var(--ui-sidebar-width);
+    transform: translateX(50%);
+  }
+  ui-sidebar > [data-ui-sidebar-resizer]::after {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 3px;
+    inline-size: 2px;
+    background: transparent;
+    transition: background-color 120ms ease;
+  }
+  ui-sidebar > [data-ui-sidebar-resizer]:hover::after,
+  ui-sidebar > [data-ui-sidebar-resizer]:focus-visible::after {
+    background: var(--ui-color-focus, Highlight);
+  }
 
   ui-reel {
     --ui-reel-gap: var(--ui-space-4, 1rem);
