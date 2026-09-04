@@ -145,10 +145,10 @@ test("public Candidate documentation is install-first, time-stable, and fail-clo
 });
 
 test("the packed facade consumer matrix pins every editor and Vue entry", async () => {
-  const script = await readFile(
-    path.join(repoRoot, "tools/scripts/verify-facade-consumer.mjs"),
-    "utf8"
-  );
+  const [script, consumerPackage] = await Promise.all([
+    readFile(path.join(repoRoot, "tools/scripts/verify-facade-consumer.mjs"), "utf8"),
+    readFile(path.join(repoRoot, "tests/release/consumer/package.json"), "utf8").then(JSON.parse)
+  ]);
 
   for (const subpath of ["editor", "editor/ui", "editor/extensions", "vue", "vue/editor"]) {
     const exactImport = new RegExp(
@@ -160,6 +160,12 @@ test("the packed facade consumer matrix pins every editor and Vue entry", async 
       `${subpath} must be covered by runtime and typecheck consumers`
     );
   }
+
+  assert.match(
+    consumerPackage.dependencies["@tiptap/vue-3"],
+    /^\^2\./,
+    "the Vue editor consumer must install its declared Tiptap Vue peer"
+  );
 });
 
 test("the no-index Candidate docs preview is manual, protected, and SHA-pinned", async () => {
