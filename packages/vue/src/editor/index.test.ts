@@ -15,6 +15,19 @@ import {
 
 const apps: App[] = [];
 
+async function settleCustomElements(root: ParentNode): Promise<void> {
+  const elements = Array.from(root.querySelectorAll<HTMLElement>("*"));
+  await Promise.all(elements.map((element) => {
+    const componentOnReady = (element as HTMLElement & {
+      componentOnReady?: () => Promise<unknown>;
+    }).componentOnReady;
+    return componentOnReady?.call(element);
+  }));
+  // Stencil resolves componentOnReady before its app-level load event runs on
+  // the next task. Keep the jsdom window alive through that final dispatch.
+  await new Promise((resolve) => setTimeout(resolve, 0));
+}
+
 afterEach(() => {
   for (const app of apps.splice(0)) app.unmount();
   document.body.innerHTML = "";
@@ -27,7 +40,7 @@ describe("@threadlabs/looma-vue/editor adapter", () => {
     expect(EDITOR_ADAPTER_COMPONENT_TAG_MAP.EditorSlashMenu).toBe("ui-editor-slash-menu");
   });
 
-  it("renders the editor wrapper tags", () => {
+  it("renders the editor wrapper tags", async () => {
     const host = document.createElement("div");
     document.body.append(host);
     const app = createApp({
@@ -35,6 +48,7 @@ describe("@threadlabs/looma-vue/editor adapter", () => {
     });
     apps.push(app);
     app.mount(host);
+    await settleCustomElements(host);
 
     expect(host.querySelector("ui-editor-toolbar")).toBeTruthy();
     expect(host.querySelector("ui-editor-slash-menu")).toBeTruthy();
@@ -52,6 +66,7 @@ describe("@threadlabs/looma-vue/editor adapter", () => {
     });
     apps.push(app);
     app.mount(host);
+    await settleCustomElements(host);
 
     const toolbar = host.querySelector("ui-editor-toolbar");
     const detail = { action: "delete-table", trigger: "keyboard" };
@@ -71,7 +86,7 @@ describe("@threadlabs/looma-vue/editor adapter", () => {
     expect(secondHandler).toHaveBeenCalledOnce();
   });
 
-  it("forwards slash-menu events", () => {
+  it("forwards slash-menu events", async () => {
     const onSlashMenuHighlight = vi.fn();
     const onSlashMenuSelect = vi.fn();
     const items = [{ title: "Paragraph", description: "Plain text", icon: "paragraph" }];
@@ -91,6 +106,7 @@ describe("@threadlabs/looma-vue/editor adapter", () => {
     });
     apps.push(app);
     app.mount(host);
+    await settleCustomElements(host);
 
     const slashMenu = host.querySelector("ui-editor-slash-menu") as HTMLElement & {
       open: boolean;
