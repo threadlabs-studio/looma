@@ -4,6 +4,19 @@
 
 No changes yet.
 
+## v0.1.7 Candidate
+
+Mobile editors use the visual viewport when the software keyboard is open.
+The turnkey Vue editor presents exactly one touch-scrollable, snap-aligned dock
+above the keyboard, switches that dock between formatting and table actions,
+and provides a clear route back to formatting. Slash commands and table menus
+remain inside the visible viewport.
+
+Narrow tables retain useful cell widths inside a horizontal scroll wrapper;
+desktop table boundaries keep their hover insertion and drag-resize affordances.
+The dialog primitive can also forward an accessible label directly to its native
+dialog surface, avoiding nested application dialog shells.
+
 ## v0.1.6 Candidate
 
 Table editing keeps structural and appearance controls available during cell

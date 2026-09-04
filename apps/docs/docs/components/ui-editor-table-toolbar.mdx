@@ -18,3 +18,7 @@ consumers using the primitive directly receive `looma-editor-table-action` with
 The toolbar includes alignment, cell background, row/column insertion,
 merge/split, and deletion paths. It is an enhancement, not the table's semantic
 content. The module is safe to import during SSR.
+
+`LoomaEditor` places these actions in its single mobile dock when a table is
+selected. The dock is touch-scrollable and snap-aligned, and its Formatting
+control returns to text actions without discarding the table selection.

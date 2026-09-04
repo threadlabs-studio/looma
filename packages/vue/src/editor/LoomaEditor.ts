@@ -114,13 +114,19 @@ export const LoomaEditor = defineComponent({
     const tableToolbarShell = ref<HTMLElement | null>(null);
     const tableOverlayShell = ref<HTMLElement | null>(null);
     const tableMenuShell = ref<HTMLElement | null>(null);
+    const mobileToolbarShell = ref<HTMLElement | null>(null);
     const dragOver = ref(false);
     const uploading = ref(false);
     const tablePickerOpen = ref(false);
     const tablePickerStyle = ref<CSSProperties>({});
+    const mobileToolbarStyle = ref<CSSProperties>({});
+    const mobile = ref(false);
+    const editorFocused = ref(false);
+    const mobileToolbarMode = ref<"formatting" | "table">("formatting");
     let dragLeaveTimer: ReturnType<typeof setTimeout> | null = null;
     let tableResizeActive = false;
     let tableInteractionActive = false;
+    let mobileTableControlsDismissed = false;
 
     const slash = reactive<LoomaSlashMenuSnapshot>({
       active: false,
@@ -182,6 +188,30 @@ export const LoomaEditor = defineComponent({
       tableUi.alignment = "left";
       tableUi.background = null;
       tableUi.capabilities = { ...EMPTY_CAPABILITIES };
+      mobileTableControlsDismissed = false;
+      mobileToolbarMode.value = "formatting";
+    };
+
+    const updateMobileViewport = () => {
+      mobile.value = window.innerWidth <= 767;
+      if (!mobile.value) {
+        mobileToolbarStyle.value = {};
+        return;
+      }
+
+      nextTick(() => {
+        const viewport = window.visualViewport;
+        const viewportLeft = viewport?.offsetLeft ?? 0;
+        const viewportTop = viewport?.offsetTop ?? 0;
+        const viewportWidth = viewport?.width ?? window.innerWidth;
+        const viewportHeight = viewport?.height ?? window.innerHeight;
+        const toolbarHeight = mobileToolbarShell.value?.getBoundingClientRect().height || 56;
+        mobileToolbarStyle.value = {
+          left: `${viewportLeft}px`,
+          top: `${Math.max(viewportTop, viewportTop + viewportHeight - toolbarHeight)}px`,
+          width: `${viewportWidth}px`,
+        };
+      });
     };
 
     const updateTableUi = () => {
@@ -198,14 +228,16 @@ export const LoomaEditor = defineComponent({
         return;
       }
 
+      if (!mobileTableControlsDismissed) mobileToolbarMode.value = "table";
+
       const rect = table.getBoundingClientRect();
       const maxToolbarWidth = Math.min(420, window.innerWidth - 24);
       const toolbarLeft = Math.min(
         Math.max(12, rect.left + (rect.width - maxToolbarWidth) / 2),
         Math.max(12, window.innerWidth - maxToolbarWidth - 12),
       );
-      tableUi.toolbarOpen = state.showToolbar;
-      tableUi.overlayOpen = true;
+      tableUi.toolbarOpen = state.showToolbar && !mobile.value;
+      tableUi.overlayOpen = !mobile.value;
       tableUi.alignment = state.cellAlignment;
       tableUi.background = state.cellBackground;
       tableUi.capabilities = state.capabilities;
@@ -224,12 +256,25 @@ export const LoomaEditor = defineComponent({
       };
     };
 
+    const onEditorFocus = () => {
+      editorFocused.value = true;
+      updateTableUi();
+      updateMobileViewport();
+    };
+
+    const onEditorBlur = () => {
+      updateTableUi();
+      setTimeout(() => {
+        if (!tableInteractionActive && !editor.value?.isFocused) editorFocused.value = false;
+      }, 0);
+    };
+
     const bindEditorUi = (instance: Editor | undefined) => {
       if (!instance) return;
       instance.on("selectionUpdate", updateTableUi);
       instance.on("transaction", updateTableUi);
-      instance.on("focus", updateTableUi);
-      instance.on("blur", updateTableUi);
+      instance.on("focus", onEditorFocus);
+      instance.on("blur", onEditorBlur);
       nextTick(updateTableUi);
     };
 
@@ -237,8 +282,8 @@ export const LoomaEditor = defineComponent({
       if (!instance) return;
       instance.off("selectionUpdate", updateTableUi);
       instance.off("transaction", updateTableUi);
-      instance.off("focus", updateTableUi);
-      instance.off("blur", updateTableUi);
+      instance.off("focus", onEditorFocus);
+      instance.off("blur", onEditorBlur);
     };
 
     watch(editor, (instance, previous) => {
@@ -250,19 +295,32 @@ export const LoomaEditor = defineComponent({
       const anchor = tablePickerAnchor.value;
       if (!anchor) return;
       const rect = anchor.getBoundingClientRect();
+      const viewport = window.visualViewport;
+      const viewportLeft = viewport?.offsetLeft ?? 0;
+      const viewportTop = viewport?.offsetTop ?? 0;
+      const viewportWidth = viewport?.width ?? window.innerWidth;
+      const viewportHeight = viewport?.height ?? window.innerHeight;
       const width = 220;
-      const left = Math.min(Math.max(12, rect.left), Math.max(12, window.innerWidth - width - 12));
+      const left = Math.min(
+        Math.max(viewportLeft + 12, rect.left),
+        Math.max(viewportLeft + 12, viewportLeft + viewportWidth - width - 12),
+      );
       const popoverHeight = tablePickerPopover.value?.getBoundingClientRect().height || 300;
       const top = Math.min(
-        Math.max(12, rect.bottom + 8),
-        Math.max(12, window.innerHeight - popoverHeight - 12),
+        Math.max(viewportTop + 12, rect.bottom + 8),
+        Math.max(viewportTop + 12, viewportTop + viewportHeight - popoverHeight - 12),
       );
       tablePickerStyle.value = window.innerWidth <= 767
-        ? { position: "fixed", left: `${left}px`, bottom: `${Math.max(12, window.innerHeight - rect.top + 8)}px` }
+        ? {
+            position: "fixed",
+            left: `${left}px`,
+            top: `${Math.max(viewportTop + 12, viewportTop + viewportHeight - popoverHeight - 64)}px`,
+          }
         : { position: "fixed", top: `${top}px`, left: `${left}px` };
     };
 
     const onViewportChange = () => {
+      updateMobileViewport();
       updateTableUi();
       updateTablePickerPosition();
       tableUi.menuOpen = false;
@@ -275,7 +333,8 @@ export const LoomaEditor = defineComponent({
       );
       const inTableUi = inElement(tableToolbarShell.value)
         || inElement(tableOverlayShell.value)
-        || inElement(tableMenuShell.value);
+        || inElement(tableMenuShell.value)
+        || inElement(mobileToolbarShell.value);
       tableInteractionActive = inTableUi;
       if (inTableUi) setTimeout(() => { tableInteractionActive = false; }, 0);
 
@@ -309,8 +368,11 @@ export const LoomaEditor = defineComponent({
     };
 
     onMounted(() => {
+      updateMobileViewport();
       window.addEventListener("resize", onViewportChange);
       window.addEventListener("scroll", onViewportChange, true);
+      window.visualViewport?.addEventListener("resize", onViewportChange);
+      window.visualViewport?.addEventListener("scroll", onViewportChange);
       document.addEventListener("pointerdown", onDocumentPointerDown, true);
       document.addEventListener("pointerdown", onResizePointerDown, true);
       document.addEventListener("pointerup", onResizePointerUp, true);
@@ -318,6 +380,8 @@ export const LoomaEditor = defineComponent({
     onBeforeUnmount(() => {
       window.removeEventListener("resize", onViewportChange);
       window.removeEventListener("scroll", onViewportChange, true);
+      window.visualViewport?.removeEventListener("resize", onViewportChange);
+      window.visualViewport?.removeEventListener("scroll", onViewportChange);
       document.removeEventListener("pointerdown", onDocumentPointerDown, true);
       document.removeEventListener("pointerdown", onResizePointerDown, true);
       document.removeEventListener("pointerup", onResizePointerUp, true);
@@ -469,7 +533,7 @@ export const LoomaEditor = defineComponent({
         },
         onDrop,
       }, [
-        instance && props.editable
+        instance && props.editable && !mobile.value
           ? h(BubbleMenu, {
               editor: instance,
               pluginKey: "looma-text-formatting-menu",
@@ -484,6 +548,31 @@ export const LoomaEditor = defineComponent({
             }, { default: () => renderToolbar(instance) })
           : null,
         instance ? h(EditorContent, { editor: instance }) : null,
+        instance && props.editable && mobile.value && editorFocused.value
+          ? h("div", {
+              ref: mobileToolbarShell,
+              class: "looma-editor__mobile-toolbar-shell",
+              "data-mode": mobileToolbarMode.value,
+              style: mobileToolbarStyle.value,
+              role: "toolbar",
+              "aria-label": mobileToolbarMode.value === "table" ? "Table editing" : "Text formatting",
+            }, mobileToolbarMode.value === "table"
+              ? [
+                  h("button", {
+                    class: "looma-editor__mobile-toolbar-back",
+                    type: "button",
+                    "aria-label": "Formatting tools",
+                    onClick: () => {
+                      mobileTableControlsDismissed = true;
+                      mobileToolbarMode.value = "formatting";
+                      editor.value?.commands.focus();
+                      nextTick(updateMobileViewport);
+                    },
+                  }, "← Formatting"),
+                  h(EditorTableToolbar, tableProps),
+                ]
+              : [renderToolbar(instance)])
+          : null,
         h("input", {
           ref: fileInput,
           class: "looma-editor__file-input",

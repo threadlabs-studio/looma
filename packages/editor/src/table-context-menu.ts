@@ -75,11 +75,15 @@ class UIEditorTableContextMenuElement extends HTMLElement {
     this.render();
     this.addEventListener("click", this.onClick);
     window.addEventListener("resize", this.scheduleViewportPosition);
+    window.visualViewport?.addEventListener("resize", this.scheduleViewportPosition);
+    window.visualViewport?.addEventListener("scroll", this.scheduleViewportPosition);
   }
 
   disconnectedCallback(): void {
     this.removeEventListener("click", this.onClick);
     window.removeEventListener("resize", this.scheduleViewportPosition);
+    window.visualViewport?.removeEventListener("resize", this.scheduleViewportPosition);
+    window.visualViewport?.removeEventListener("scroll", this.scheduleViewportPosition);
     if (this.positionFrame !== null) {
       cancelAnimationFrame(this.positionFrame);
       this.positionFrame = null;
@@ -107,14 +111,17 @@ class UIEditorTableContextMenuElement extends HTMLElement {
     menu.style.translate = "";
     const rect = menu.getBoundingClientRect();
     const gutter = 12;
-    const viewportWidth = window.visualViewport?.width ?? window.innerWidth;
-    const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
-    const offsetX = rect.right > viewportWidth - gutter
-      ? viewportWidth - gutter - rect.right
-      : Math.max(0, gutter - rect.left);
-    const offsetY = rect.bottom > viewportHeight - gutter
-      ? viewportHeight - gutter - rect.bottom
-      : Math.max(0, gutter - rect.top);
+    const visualViewport = window.visualViewport;
+    const viewportLeft = visualViewport?.offsetLeft ?? 0;
+    const viewportTop = visualViewport?.offsetTop ?? 0;
+    const viewportRight = viewportLeft + (visualViewport?.width ?? window.innerWidth);
+    const viewportBottom = viewportTop + (visualViewport?.height ?? window.innerHeight);
+    const offsetX = rect.right > viewportRight - gutter
+      ? viewportRight - gutter - rect.right
+      : Math.max(0, viewportLeft + gutter - rect.left);
+    const offsetY = rect.bottom > viewportBottom - gutter
+      ? viewportBottom - gutter - rect.bottom
+      : Math.max(0, viewportTop + gutter - rect.top);
 
     if (offsetX !== 0 || offsetY !== 0) {
       menu.style.translate = `${offsetX}px ${offsetY}px`;

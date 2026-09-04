@@ -19,6 +19,16 @@ describe("responsive light-DOM layout", () => {
     expect(getComputedStyle(dialog).display).not.toBe("none");
   });
 
+  it("forwards the public label to the native dialog surface", async () => {
+    await customElements.whenDefined("ui-dialog");
+    const dialog = document.createElement("ui-dialog");
+    dialog.setAttribute("label", "Version history");
+    document.body.append(dialog);
+
+    await expect.poll(() => dialog.shadowRoot?.querySelector("dialog")?.getAttribute("aria-label"))
+      .toBe("Version history");
+  });
+
   it("keeps core host display defaults after the scoped reset", async () => {
     await customElements.whenDefined("ui-button");
     document.body.innerHTML = "<ui-button><button type=\"button\">Save</button></ui-button>";

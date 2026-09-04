@@ -221,6 +221,111 @@
   position: fixed;
 }
 
+.looma-editor__mobile-toolbar-shell {
+  position: fixed;
+  z-index: var(--ui-editor-mobile-toolbar-z-index, var(--ui-editor-popover-z-index, 300));
+  display: flex;
+  align-items: stretch;
+  min-height: var(--ui-editor-toolbar-mobile-min-height, 56px);
+  padding:
+    var(--ui-editor-mobile-toolbar-padding-block, 4px)
+    max(var(--ui-editor-mobile-toolbar-padding-inline, 8px), env(safe-area-inset-left));
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  background: var(--ui-editor-toolbar-bg, var(--ui-surface, #fff));
+  border-top: 1px solid var(--ui-editor-toolbar-border, var(--ui-border, #e5e7eb));
+  box-shadow: var(--ui-editor-toolbar-mobile-shadow, 0 -2px 8px rgb(0 0 0 / 0.06));
+}
+
+.looma-editor__mobile-toolbar-shell::-webkit-scrollbar {
+  display: none;
+}
+
+.looma-editor__mobile-toolbar-shell > *,
+.looma-editor__mobile-toolbar-shell button,
+.looma-editor__mobile-toolbar-shell ui-icon-button {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+}
+
+.looma-editor__mobile-toolbar-shell ui-editor-toolbar[floating] {
+  width: 100%;
+  max-width: none;
+  min-height: 100%;
+  padding: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.looma-editor__mobile-toolbar-shell ui-editor-toolbar[floating]::-webkit-scrollbar {
+  display: none;
+}
+
+.looma-editor__mobile-toolbar-shell .looma-editor__toolbar-button {
+  --ui-icon-button-size-sm: var(--ui-editor-toolbar-mobile-button-size, 44px);
+}
+
+.looma-editor__mobile-toolbar-back {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 var(--ui-space-3, 12px);
+  border: 0;
+  border-radius: var(--ui-radius-md, 6px);
+  background: transparent;
+  color: var(--ui-text-secondary, #4b5563);
+  cursor: pointer;
+  font: inherit;
+  white-space: nowrap;
+}
+
+.looma-editor__mobile-toolbar-back:is(:hover, :focus-visible) {
+  background: var(--ui-surface-hover, #f3f4f6);
+  color: var(--ui-text-primary, #111827);
+}
+
+.looma-editor__mobile-toolbar-shell .ui-editor-table-toolbar {
+  min-width: max-content;
+  min-height: 100%;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.looma-editor__mobile-toolbar-shell .ui-editor-table-toolbar button {
+  min-height: 44px;
+  background: transparent;
+}
+
+.looma-editor__mobile-toolbar-shell .ui-editor-table-toolbar button[data-active="true"],
+.looma-editor__mobile-toolbar-shell .ui-editor-table-toolbar button[data-selected="true"] {
+  background: var(--ui-accent-soft, var(--ui-accent-subtle, #e8f0fb));
+}
+
+.looma-editor__mobile-toolbar-shell .ui-editor-table-toolbar__menu {
+  top: auto;
+  right: 0;
+  bottom: calc(100% + var(--ui-space-2, 8px));
+  max-height: min(50dvh, 22rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
 .looma-editor__table-overlay-shell {
   z-index: var(--ui-editor-overlay-z-index, 299);
   overflow: visible;
@@ -912,8 +1017,10 @@ ui-editor-toolbar[floating] {
 
 .ProseMirror .tableWrapper {
   max-width: 100%;
-  overflow-x: hidden;
+  overflow-x: auto;
   overflow-y: visible;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* ProseMirror table (for when Looma editor content is rendered) */
@@ -925,9 +1032,9 @@ ui-editor-toolbar[floating] {
 .ProseMirror table {
   border-collapse: collapse;
   margin: 0;
-  width: 100% !important;
+  width: max-content !important;
   min-width: 100%;
-  max-width: 100% !important;
+  max-width: none !important;
   table-layout: fixed;
 }
 
@@ -941,7 +1048,7 @@ ui-editor-toolbar[floating] {
   border: 1px solid var(--ui-border, #e5e7eb);
   padding: var(--ui-space-2, 8px) var(--ui-space-3, 12px);
   vertical-align: top;
-  min-width: 80px;
+  min-width: var(--ui-editor-table-cell-min-width, 112px);
   text-align: left;
   overflow-wrap: anywhere;
 }
