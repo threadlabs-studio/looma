@@ -72,6 +72,12 @@ describe("@threadlabs/looma-vue adapter", () => {
     expect(host.querySelector("ui-reel[item-width='md']")).toBeTruthy();
   });
 
+  it("allows the resizable sidebar to progressively enhance its light DOM during hydration", () => {
+    const { host } = mount(() => h(Sidebar, { resizable: true }, () => h("main", "Content")));
+
+    expect(host.querySelector("ui-sidebar")?.getAttribute("data-allow-mismatch")).toBe("");
+  });
+
   it("renders wrappers with forwarded attrs and default slot content", () => {
     const { host } = mount(() =>
       h(Button, { variant: "solid", size: "sm" }, () => h("button", { type: "button" }, "Save page"))
