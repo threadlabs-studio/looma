@@ -4,6 +4,13 @@
 
 No changes yet.
 
+## v0.1.11 Candidate
+
+Empty body cells expose reliable column-resize handles in the turnkey Vue
+editor and the standalone Looma table extension. Tiptap's structural cell
+minimum matches Looma's rendered 112px minimum, and its inward boundary probe
+stays inside empty cells so a direct hover can begin a real column drag.
+
 ## v0.1.10 Candidate
 
 The turnkey Vue editor anticipates table actions with contextual guide dots,
