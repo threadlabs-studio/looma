@@ -73,10 +73,11 @@ describe("LoomaEditor (real browser)", () => {
     expect(getComputedStyle(activeBoldButton).getPropertyValue("--ui-accent-solid").trim())
       .toBe("rgb(109 74 255)");
 
-    editor!.chain().focus().insertTable({ rows: 2, cols: 2, withHeaderRow: true }).run();
+    editor!.chain().focus().insertTable({ rows: 2, cols: 2, withHeaderRow: false }).run();
     await flushBrowser();
     const table = host.querySelector(".ProseMirror table")!;
     expect(table.querySelectorAll("tr")).toHaveLength(2);
+    expect((table as HTMLTableElement).style.minWidth).toBe("224px");
     expect(document.querySelector("ui-editor-table-toolbar")).toBeTruthy();
     expect(document.querySelector("ui-editor-table-overlay")).toBeTruthy();
     expect(document.querySelector(".looma-editor__table-overlay-shell")?.hasAttribute("aria-hidden"))
@@ -91,7 +92,7 @@ describe("LoomaEditor (real browser)", () => {
     const firstCell = table.querySelector<HTMLTableCellElement>("th, td")!;
     const firstCellRect = firstCell.getBoundingClientRect();
     await userEvent.hover(firstCell, {
-      position: { x: firstCellRect.width - 4, y: firstCellRect.height / 2 },
+      position: { x: firstCellRect.width - 2, y: firstCellRect.height / 2 },
     } as Parameters<typeof userEvent.hover>[1]);
     await flushBrowser();
     const resizeHandle = table.querySelector<HTMLElement>(".column-resize-handle")!;

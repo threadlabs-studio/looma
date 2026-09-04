@@ -9,6 +9,10 @@ export type TableCellBackground = string | null;
 
 export const LoomaTable: AnyExtension = TableBase.configure({
   resizable: true,
+  // Tiptap also uses this as its inward coordinate probe. The 5px default can
+  // resolve to the row around an empty minimum-width cell instead of the cell.
+  handleWidth: 3,
+  cellMinWidth: 112,
   lastColumnResizable: false,
 });
 

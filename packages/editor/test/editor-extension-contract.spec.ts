@@ -8,6 +8,7 @@ import {
   getLoomaTableExtensions,
   handleTableAction,
   handleTableOverlayAction,
+  LoomaTable,
   LoomaTableKit,
   setActiveTableCellBackground,
 } from "../src/extensions";
@@ -26,6 +27,12 @@ describe("editor extension contract", () => {
     ]);
     expect(getDefaultEditorExtensions().map((extension) => extension.name))
       .toContain("loomaTableKit");
+    expect(LoomaTable.options).toMatchObject({
+      resizable: true,
+      handleWidth: 3,
+      cellMinWidth: 112,
+      lastColumnResizable: false,
+    });
   });
 
   it("provides working table commands without the complete editor preset", () => {
