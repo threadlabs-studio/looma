@@ -9,7 +9,7 @@ and callbacks to layout and core elements without loading the editor graph.
 `/vue/editor` exports `LoomaEditor`, a complete Tiptap editor, plus low-level
 wrappers for advanced composition.
 
-Release status: Candidate `0.1.6`. Browser registration/render and linked-workspace Knit qualification pass; packed-artifact Knit qualification remains a publication gate. React and Svelte adapters are not part of the R1 public package set.
+Release status: Candidate `0.1.7`. Browser registration/render and linked-workspace Knit qualification pass; packed-artifact Knit qualification remains a publication gate. React and Svelte adapters are not part of the R1 public package set.
 
 ## Install
 
@@ -63,6 +63,10 @@ const document = ref({ type: "doc", content: [] });
 
 `LoomaEditor` owns formatting controls, slash commands, selection behavior, and
 table editing. The host owns persistence and implements the optional upload callback.
+On mobile, it exposes one visual-viewport-aware toolbar above the keyboard. A
+table selection replaces formatting actions with table actions; the leading
+Formatting control returns to text controls. The toolbar is horizontally
+touch-scrollable and snap-aligned.
 
 Import the required token/component CSS from their owning packages. The adapter and its public dependency graph must remain safe to import during SSR.
 

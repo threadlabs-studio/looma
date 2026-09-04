@@ -154,6 +154,8 @@ class UIEditorSlashMenuElement extends HTMLElement {
     this.addEventListener("mouseover", this.onMouseOver);
     window.addEventListener("resize", this.onViewportChange);
     window.addEventListener("scroll", this.onViewportChange, true);
+    window.visualViewport?.addEventListener("resize", this.onViewportChange);
+    window.visualViewport?.addEventListener("scroll", this.onViewportChange);
     this.render();
   }
 
@@ -163,6 +165,8 @@ class UIEditorSlashMenuElement extends HTMLElement {
     this.removeEventListener("mouseover", this.onMouseOver);
     window.removeEventListener("resize", this.onViewportChange);
     window.removeEventListener("scroll", this.onViewportChange, true);
+    window.visualViewport?.removeEventListener("resize", this.onViewportChange);
+    window.visualViewport?.removeEventListener("scroll", this.onViewportChange);
   }
 
   private onMouseDown = (event: MouseEvent): void => {
@@ -218,20 +222,26 @@ class UIEditorSlashMenuElement extends HTMLElement {
       return;
     }
 
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
+    const visualViewport = window.visualViewport;
+    const viewportWidth = visualViewport?.width ?? window.innerWidth;
+    const viewportHeight = visualViewport?.height ?? window.innerHeight;
 
     this.style.display = "block";
     this.style.position = "fixed";
     this.style.zIndex = "500";
 
-    if (viewportWidth < MOBILE_BREAKPOINT) {
-      this.style.left = "0";
-      this.style.right = "0";
-      this.style.bottom = "0";
-      this.style.top = "";
-      this.style.width = "100%";
-      this.style.maxHeight = "60dvh";
+    if (window.innerWidth < MOBILE_BREAKPOINT) {
+      const toolbarReserve = 56;
+      const menuHeight = Math.min(
+        MENU_HEIGHT_ESTIMATE,
+        Math.max(0, viewportHeight - toolbarReserve),
+      );
+      this.style.left = `${visualViewport?.offsetLeft ?? 0}px`;
+      this.style.right = "";
+      this.style.bottom = "";
+      this.style.top = `${(visualViewport?.offsetTop ?? 0) + viewportHeight - menuHeight - toolbarReserve}px`;
+      this.style.width = `${viewportWidth}px`;
+      this.style.maxHeight = `${menuHeight}px`;
       return;
     }
 

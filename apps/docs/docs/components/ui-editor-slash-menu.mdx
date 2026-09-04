@@ -12,7 +12,7 @@ Responsive suggestion surface for app-provided slash commands.
 
 Advanced consumers set `open`, `query`, `items`, `selectedIndex`, and `anchorRect` as properties. The element emits `looma-editor-slash-menu-highlight` and `looma-editor-slash-menu-select` with `{ index }`; custom integrations map the index to their command and own the editor mutation. `LoomaEditor` provides this integration by default.
 
-On desktop the menu positions near the supplied anchor. On narrow viewports it becomes a bottom surface. Pointer movement changes highlight; click selects. The editor integration owns arrow-key and Enter routing.
+On desktop the menu positions near the supplied anchor. On narrow viewports it becomes a bottom surface constrained to the visual viewport above the mobile editor dock, including while a software keyboard is open. Pointer movement changes highlight; click selects. The editor integration owns arrow-key and Enter routing.
 
 This is a client enhancement with no generated no-JS menu. The document content and another insertion path must remain usable when it is absent. The module itself is safe to import during SSR.
 

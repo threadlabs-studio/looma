@@ -51,6 +51,34 @@ describe("editor release interactions (real browser)", () => {
     expect(slashMenu.style.top).toBe("104px");
   });
 
+  it("keeps the mobile slash menu inside the visible keyboard viewport", () => {
+    vi.spyOn(window, "innerWidth", "get").mockReturnValue(375);
+    vi.spyOn(window, "visualViewport", "get").mockReturnValue({
+      width: 375,
+      height: 420,
+      offsetLeft: 0,
+      offsetTop: 96,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    } as unknown as VisualViewport);
+    document.body.innerHTML = "<ui-editor-slash-menu></ui-editor-slash-menu>";
+    const slashMenu = document.querySelector("ui-editor-slash-menu") as HTMLElement & {
+      open: boolean;
+      items: Array<{ title: string; description: string; icon: string }>;
+      anchorRect: SlashMenuAnchorRect | null;
+    };
+
+    slashMenu.open = true;
+    slashMenu.items = [{ title: "Code block", description: "Preformatted code", icon: "{}" }];
+    slashMenu.anchorRect = new DOMRect(16, 300, 1, 18);
+
+    expect(slashMenu.style.left).toBe("0px");
+    expect(slashMenu.style.top).toBe("140px");
+    expect(slashMenu.style.bottom).toBe("");
+    expect(slashMenu.style.width).toBe("375px");
+    expect(slashMenu.style.maxHeight).toBe("320px");
+  });
+
   it("supports keyboard dimension selection and stable table insertion intent", async () => {
     document.body.innerHTML = '<ui-editor-insert-table-grid open max-rows="3" max-cols="3"></ui-editor-insert-table-grid>';
     const grid = document.querySelector("ui-editor-insert-table-grid")!;
@@ -158,6 +186,28 @@ describe("editor release interactions (real browser)", () => {
     const paragraph = document.querySelector<HTMLElement>("td > p")!;
 
     expect(getComputedStyle(paragraph).marginBottom).toBe("0px");
+  });
+
+  it("keeps narrow-screen tables readable inside a horizontal scroll wrapper", () => {
+    document.body.innerHTML = '<div class="ProseMirror"><div class="tableWrapper" style="width: 300px"><table><tbody><tr><td>Cell</td><td>Cell</td><td>Cell</td></tr></tbody></table></div></div>';
+    const wrapper = document.querySelector<HTMLElement>(".tableWrapper")!;
+    const table = wrapper.querySelector<HTMLTableElement>("table")!;
+    const cell = document.querySelector<HTMLElement>("td")!;
+
+    expect(getComputedStyle(wrapper).overflowX).toBe("auto");
+    expect(Number.parseFloat(getComputedStyle(cell).minWidth)).toBeGreaterThanOrEqual(112);
+    expect(table.scrollWidth).toBeGreaterThan(wrapper.clientWidth);
+    expect(getComputedStyle(cell).overflowX).not.toBe("auto");
+  });
+
+  it("makes mobile editor docks touch-scrollable with snap points", () => {
+    document.body.innerHTML = '<div class="looma-editor__mobile-toolbar-shell"><ui-editor-toolbar floating><button type="button">Bold</button><button type="button">Italic</button></ui-editor-toolbar></div>';
+    const toolbar = document.querySelector<HTMLElement>("ui-editor-toolbar")!;
+    const button = toolbar.querySelector<HTMLElement>("button")!;
+
+    expect(getComputedStyle(toolbar).overflowX).toBe("auto");
+    expect(getComputedStyle(toolbar).scrollSnapType).toContain("x");
+    expect(getComputedStyle(button).scrollSnapAlign).toBe("start");
   });
 
   it("keeps the table context menu inside the viewport near the bottom-right edge", async () => {

@@ -24,3 +24,9 @@ The slotted buttons are the semantic fallback. Upgrade supplies the toolbar role
 `LoomaEditor` renders this toolbar with Looma `IconButton` controls and owns the
 Tiptap commands. Advanced consumers can still use `EditorToolbar` from
 `@threadlabs/looma/vue/editor` and provide custom controls and command wiring through its default slot.
+
+On narrow screens, the turnkey editor presents one fixed dock inside the visual
+viewport, directly above the software keyboard. The dock uses ghost controls,
+horizontal touch scrolling, and CSS scroll snapping. A table selection swaps in
+table actions instead of stacking a second floating toolbar; Formatting returns
+to the text controls.

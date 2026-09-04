@@ -2,16 +2,16 @@
 
 **Goal:** Replicate Confluence / Notion-like editor UX using **only open-source Tiptap extensions**, build the Vue UI ourselves, and **distribute it with Looma** so any app (e.g. Knit) can consume a first-class block editor without paying for Tiptap’s paid templates or Cloud.
 
-**Last updated:** 2026-08-30
+**Last updated:** 2026-09-04
 
 ---
 
 ## Status snapshot
 
-- **Shipped now:** default extension preset (including CodeBlock), inline code mark, list Enter/Backspace behavior extension, slash menu web component, toolbar shell, table context menu + table toolbar + insert-table grid + table overlay web components, table cell alignment/background formatting helpers, editor CSS, Vue editor event wiring for the shipped primitives, and `handleTableOverlayAction(editor, detail)` / `insertTableAtRange(editor, range, options)` helpers in `@threadlabs/looma/editor/extensions` for shared table behaviors. The floating table toolbar is now intentionally structural-only, with cell-specific actions staying in the shared context menu.
-- **App integration status:** Knit now uses Looma’s editor preset plus Looma-owned toolbar/slash/table primitives in its page editor flow. Formatting toolbar command definitions and broader editor UX are still partly app-local.
+- **Shipped now:** a complete `LoomaEditor` component, the standalone table kit and slash-command extension, token-themed formatting and table controls, desktop selection/table affordances, and a visual-viewport-aware mobile editor surface. Mobile uses one touch-scrollable, snap-aligned dock above the software keyboard and switches that dock between formatting and table actions. Narrow tables scroll horizontally with useful minimum cell widths.
+- **App integration status:** Knit embeds `LoomaEditor` and supplies persistence, upload transport, collaboration, and document-domain events. Editor lifecycle, command wiring, selection/focus behavior, slash commands, formatting, and table editing remain Looma-owned.
 - **Current open defects:** see [Editor Bugs](./editor-bugs.md) for the remaining table overlay UX issues found during real Knit usage.
-- **Next in Phase 1:** close the open table UX defects from real Knit usage, then continue promoting block-menu and richer toolbar UI into Looma ownership.
+- **Next:** continue the documented block-menu, link-editing, mentions, and emoji roadmap without moving shared editor behavior back into an application.
 
 ## Release 1 Classification
 
