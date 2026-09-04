@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "knit-public-registry-consumer",
+  "generatedAt": "2026-09-04T02:08:03Z",
+  "result": "passed",
+  "scope": "Credential-free installation and build qualification of the public Looma 0.1.5 Candidate in a detached Knit checkout",
+  "looma": {
+    "name": "@threadlabs/looma",
+    "version": "0.1.5",
+    "registryUrl": "https://registry.npmjs.org/",
+    "packageUrl": "https://www.npmjs.com/package/@threadlabs/looma/v/0.1.5",
+    "integrity": "sha512-EwZwqWw3W4oRCAztpx5IhHn5DIRBGsG7x0rZmNwSNra+PSzSnS0udsV59wTktnOKg9Nj8LutY4Oh0/oy2LLnPA=="
+  },
+  "knit": {
+    "repository": "bitbucket.org/mdean-projects/knit",
+    "repositoryVisibility": "private",
+    "branch": "looma-knit-responsive-layout",
+    "commit": "cbcb969f86ce9956b048dd92dcbab23ce94ac960",
+    "packageManifestSha256": "2d47f3b8f35900fbd4ecc52e9b766456bbfe1d663d9a1b639dce13af184acced",
+    "lockfileSha256": "4798cfe71d4c142b2a6c147c5a65a0353fe944367091efb3a460581cca023335"
+  },
+  "environment": {
+    "completedAt": "2026-09-04T02:08:03Z",
+    "nodeVersion": "24.20.0",
+    "pnpmVersion": "10.19.0",
+    "detachedCheckout": true,
+    "trackedSourceCleanAfterQualification": true,
+    "freshPnpmStore": true,
+    "siblingLoomaRepositoryPresent": false,
+    "npmUserConfig": "/dev/null",
+    "npmCredentialEnvironmentPresent": false
+  },
+  "gates": {
+    "frozenPublicRegistryInstall": "passed",
+    "installedPackageIdentity": "passed",
+    "scriptPolicyTests": {
+      "result": "passed",
+      "count": 127
+    },
+    "applicationUnitTests": {
+      "result": "passed",
+      "count": 334
+    },
+    "typecheck": "passed",
+    "lint": {
+      "result": "passed",
+      "errors": 0,
+      "preExistingWarnings": 3
+    },
+    "productionVercelBuild": "passed"
+  },
+  "commands": [
+    "NPM_CONFIG_USERCONFIG=/dev/null fnm exec --using=24.20.0 pnpm install --frozen-lockfile --store-dir {fresh-store}",
+    "fnm exec --using=24.20.0 pnpm test",
+    "fnm exec --using=24.20.0 pnpm typecheck",
+    "fnm exec --using=24.20.0 pnpm lint",
+    "fnm exec --using=24.20.0 pnpm -F web build",
+    "git status --short --untracked-files=all"
+  ],
+  "exclusions": [
+    "This package-consumer proof does not promote 0.1.5 from candidate to latest.",
+    "This package-consumer proof does not claim completed Google signup acceptance, database audit, mobile acceptance, legal approval, production deployment, or external activation. Those remain Knit release gates."
+  ]
+}
