@@ -4,6 +4,13 @@
 
 No changes yet.
 
+## v0.1.8 Candidate
+
+The `ui-sidebar` layout primitive supports opt-in pointer resizing with
+configurable bounds and durable local-storage persistence. A visible separator
+handle exposes the same adjustment through keyboard controls, including Home,
+End, and arrow-key steps, so resizing does not depend on precise pointer input.
+
 ## v0.1.7 Candidate
 
 Mobile editors use the visual viewport when the software keyboard is open.
