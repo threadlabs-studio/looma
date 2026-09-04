@@ -2,6 +2,7 @@
   "extends": "../../tools/tsconfig/library.json",
   "compilerOptions": {
     "paths": {
+      "@threadlabs/looma-core": ["../core/index.ts"],
       "@threadlabs/looma-editor": ["../editor/src/index.ts"],
       "@threadlabs/looma-editor/ui": ["../editor/src/ui.ts"]
     }

@@ -15,7 +15,7 @@ const TAG = "ui-editor-table-toolbar";
 type TableToolbarActionItem = {
   action: TableContextMenuAction;
   label: string;
-  can: string;
+  can?: string;
   tone?: "danger";
 };
 
@@ -161,6 +161,7 @@ class UIEditorTableToolbarElement extends HTMLElement {
       {
         heading: "Cells",
         actions: [
+          { action: "clear-cells", label: "Clear selected cells" },
           { action: "merge-cells", label: "Merge selected cells", can: "can-merge-cells" },
           { action: "split-cell", label: "Split merged cell", can: "can-split-cell" },
         ] satisfies TableToolbarActionItem[],
@@ -180,7 +181,7 @@ class UIEditorTableToolbarElement extends HTMLElement {
 
     const availableOverflowSections = overflowSections.map((section) => ({
       ...section,
-      actions: section.actions.filter((action) => this.getBoolAttr(action.can)),
+      actions: section.actions.filter((action) => !action.can || this.getBoolAttr(action.can)),
     })).filter((section) => section.actions.length > 0);
 
     this.innerHTML = [

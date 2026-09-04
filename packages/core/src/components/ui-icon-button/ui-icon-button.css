@@ -3,6 +3,47 @@
   color: var(--ui-text-secondary);
 }
 
+:host([anticipatory]) {
+  position: relative;
+}
+
+:host([anticipatory])::before {
+  content: '';
+  position: absolute;
+  inset: 50% auto auto 50%;
+  z-index: 1;
+  inline-size: var(--ui-affordance-guide-size, 0.25rem);
+  block-size: var(--ui-affordance-guide-size, 0.25rem);
+  border-radius: var(--ui-radius-round, 999px);
+  background: var(--ui-affordance-guide-color, var(--ui-border-strong));
+  opacity: var(--ui-affordance-guide-opacity, 0.42);
+  transform: translate(-50%, -50%);
+  transition: opacity var(--ui-affordance-motion, var(--ui-motion-fast)) var(--ui-motion-ease);
+  pointer-events: none;
+}
+
+:host([anticipatory]) button {
+  opacity: 0;
+  transform: scale(0.72);
+  pointer-events: none;
+}
+
+:host([anticipatory][data-ui-proximity='near'])::before,
+:host([anticipatory]:focus-within)::before,
+:host([anticipatory]:hover)::before,
+:host([anticipatory][variant='solid'])::before {
+  opacity: 0;
+}
+
+:host([anticipatory][data-ui-proximity='near']) button,
+:host([anticipatory]:focus-within) button,
+:host([anticipatory]:hover) button,
+:host([anticipatory][variant='solid']) button {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
 button {
   appearance: none;
   inline-size: var(--ui-icon-button-size, 2.5rem);
@@ -25,6 +66,18 @@ button {
     color var(--ui-motion-fast) var(--ui-motion-ease),
     box-shadow var(--ui-motion-fast) var(--ui-motion-ease),
     transform var(--ui-motion-fast) var(--ui-motion-ease);
+}
+
+@media (hover: none), (pointer: coarse) {
+  :host([anticipatory])::before {
+    opacity: 0;
+  }
+
+  :host([anticipatory]) button {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+  }
 }
 
 :host([size='sm']) button {

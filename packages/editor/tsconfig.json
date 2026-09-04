@@ -1,4 +1,9 @@
 {
   "extends": "../../tools/tsconfig/library.json",
+  "compilerOptions": {
+    "paths": {
+      "@threadlabs/looma-core": ["../core/index.ts"]
+    }
+  },
   "include": ["src"]
 }

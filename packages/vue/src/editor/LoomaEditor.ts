@@ -19,14 +19,18 @@ import {
   getDefaultEditorExtensions,
   handleTableAction,
   handleTableOverlayAction,
+  measureTableOverlayGeometry,
   normalizeActiveTableColumnWidths,
+  resolveTableCellAt,
   shouldShowTextFormattingToolbar,
   type LoomaSlashMenuSnapshot,
+  type TableOverlayGeometry,
   type TableCellAlignment,
   type TableCellBackground,
   type TableActionCapabilities,
 } from "@threadlabs/looma-editor";
 import { IconButton } from "../index";
+import { clampRectToViewport, getVisualViewportRect } from "@threadlabs/looma-core";
 import {
   EditorInsertTableGrid,
   EditorSlashMenu,
@@ -69,13 +73,10 @@ function selectedTableElement(editor: Editor): HTMLTableElement | null {
   return element?.closest("table") as HTMLTableElement | null;
 }
 
-function selectedTableNode(editor: Editor) {
-  const { $from } = editor.state.selection;
-  for (let depth = $from.depth; depth > 0; depth -= 1) {
-    const node = $from.node(depth);
-    if (node.type.name === "table") return node;
-  }
-  return null;
+function selectedTableCellElement(editor: Editor): HTMLTableCellElement | null {
+  const { node } = editor.view.domAtPos(editor.state.selection.from);
+  const element = node instanceof HTMLElement ? node : node.parentElement;
+  return element?.closest("td, th") as HTMLTableCellElement | null;
 }
 
 export const LoomaEditor = defineComponent({
@@ -127,6 +128,8 @@ export const LoomaEditor = defineComponent({
     let tableResizeActive = false;
     let tableInteractionActive = false;
     let mobileTableControlsDismissed = false;
+    let hoveredTableCell: HTMLTableCellElement | null = null;
+    let tablePointerFrame: number | null = null;
 
     const slash = reactive<LoomaSlashMenuSnapshot>({
       active: false,
@@ -145,6 +148,7 @@ export const LoomaEditor = defineComponent({
       background: null as TableCellBackground,
       rows: 0,
       cols: 0,
+      geometry: null as TableOverlayGeometry | null,
       toolbarStyle: {} as CSSProperties,
       overlayStyle: {} as CSSProperties,
       menuStyle: {} as CSSProperties,
@@ -187,6 +191,7 @@ export const LoomaEditor = defineComponent({
       tableUi.menuOpen = false;
       tableUi.alignment = "left";
       tableUi.background = null;
+      tableUi.geometry = null;
       tableUi.capabilities = { ...EMPTY_CAPABILITIES };
       mobileTableControlsDismissed = false;
       mobileToolbarMode.value = "formatting";
@@ -200,16 +205,12 @@ export const LoomaEditor = defineComponent({
       }
 
       nextTick(() => {
-        const viewport = window.visualViewport;
-        const viewportLeft = viewport?.offsetLeft ?? 0;
-        const viewportTop = viewport?.offsetTop ?? 0;
-        const viewportWidth = viewport?.width ?? window.innerWidth;
-        const viewportHeight = viewport?.height ?? window.innerHeight;
+        const viewport = getVisualViewportRect(window);
         const toolbarHeight = mobileToolbarShell.value?.getBoundingClientRect().height || 56;
         mobileToolbarStyle.value = {
-          left: `${viewportLeft}px`,
-          top: `${Math.max(viewportTop, viewportTop + viewportHeight - toolbarHeight)}px`,
-          width: `${viewportWidth}px`,
+          left: `${viewport.left}px`,
+          top: `${Math.max(viewport.top, viewport.bottom - toolbarHeight)}px`,
+          width: `${viewport.width}px`,
         };
       });
     };
@@ -222,8 +223,7 @@ export const LoomaEditor = defineComponent({
       }
       const state = getActiveTableUiState(instance);
       const table = selectedTableElement(instance);
-      const tableNode = selectedTableNode(instance);
-      if (!state.active || !table || !tableNode) {
+      if (!state.active || !table) {
         closeTableUi();
         return;
       }
@@ -241,8 +241,14 @@ export const LoomaEditor = defineComponent({
       tableUi.alignment = state.cellAlignment;
       tableUi.background = state.cellBackground;
       tableUi.capabilities = state.capabilities;
-      tableUi.rows = tableNode.childCount;
-      tableUi.cols = tableNode.childCount ? tableNode.child(0).childCount : 0;
+      const selectedCell = selectedTableCellElement(instance);
+      const geometry = measureTableOverlayGeometry(
+        table,
+        hoveredTableCell && table.contains(hoveredTableCell) ? hoveredTableCell : selectedCell,
+      );
+      tableUi.rows = Math.max(0, geometry.rowBoundaries.length - 1);
+      tableUi.cols = Math.max(0, geometry.columnBoundaries.length - 1);
+      tableUi.geometry = geometry;
       tableUi.toolbarStyle = {
         top: `${rect.top > 76 ? rect.top - 52 : rect.bottom + 12}px`,
         left: `${toolbarLeft}px`,
@@ -295,26 +301,29 @@ export const LoomaEditor = defineComponent({
       const anchor = tablePickerAnchor.value;
       if (!anchor) return;
       const rect = anchor.getBoundingClientRect();
-      const viewport = window.visualViewport;
-      const viewportLeft = viewport?.offsetLeft ?? 0;
-      const viewportTop = viewport?.offsetTop ?? 0;
-      const viewportWidth = viewport?.width ?? window.innerWidth;
-      const viewportHeight = viewport?.height ?? window.innerHeight;
+      const viewport = getVisualViewportRect(window);
       const width = 220;
-      const left = Math.min(
-        Math.max(viewportLeft + 12, rect.left),
-        Math.max(viewportLeft + 12, viewportLeft + viewportWidth - width - 12),
-      );
       const popoverHeight = tablePickerPopover.value?.getBoundingClientRect().height || 300;
-      const top = Math.min(
-        Math.max(viewportTop + 12, rect.bottom + 8),
-        Math.max(viewportTop + 12, viewportTop + viewportHeight - popoverHeight - 12),
+      const target = {
+        left: rect.left,
+        top: rect.bottom + 8,
+        right: rect.left + width,
+        bottom: rect.bottom + 8 + popoverHeight,
+        width,
+        height: popoverHeight,
+      };
+      const offset = clampRectToViewport(
+        target,
+        viewport,
+        12,
       );
+      const left = target.left + offset.x;
+      const top = target.top + offset.y;
       tablePickerStyle.value = window.innerWidth <= 767
         ? {
             position: "fixed",
             left: `${left}px`,
-            top: `${Math.max(viewportTop + 12, viewportTop + viewportHeight - popoverHeight - 64)}px`,
+            top: `${Math.max(viewport.top + 12, viewport.bottom - popoverHeight - 64)}px`,
           }
         : { position: "fixed", top: `${top}px`, left: `${left}px` };
     };
@@ -387,6 +396,7 @@ export const LoomaEditor = defineComponent({
       document.removeEventListener("pointerup", onResizePointerUp, true);
       unbindEditorUi(editor.value);
       if (dragLeaveTimer) clearTimeout(dragLeaveTimer);
+      if (tablePointerFrame !== null) cancelAnimationFrame(tablePointerFrame);
     });
 
     const insertImage = async (file: File) => {
@@ -426,7 +436,10 @@ export const LoomaEditor = defineComponent({
         return;
       }
       event.preventDefault();
-      instance.chain().focus().setTextSelection(instance.view.posAtDOM(cell, 0) + 1).run();
+      const currentCell = selectedTableCellElement(instance);
+      if (currentCell !== cell && !cell.classList.contains("selectedCell")) {
+        instance.chain().focus().setTextSelection(instance.view.posAtDOM(cell, 0) + 1).run();
+      }
       updateTableUi();
       tableUi.menuOpen = true;
       tableUi.menuStyle = { top: `${event.clientY}px`, left: `${event.clientX}px` };
@@ -440,8 +453,57 @@ export const LoomaEditor = defineComponent({
     };
 
     const runOverlayAction = (detail: Parameters<typeof handleTableOverlayAction>[1]) => {
-      if (!editor.value) return;
-      handleTableOverlayAction(editor.value, detail);
+      const instance = editor.value;
+      if (!instance) return;
+      if (detail.action === "open-cell-menu") {
+        const selectedCell = selectedTableCellElement(instance);
+        const table = selectedTableElement(instance);
+        const cell = table
+          ? resolveTableCellAt(table, detail.rowIndex, detail.columnIndex) ?? selectedCell
+          : selectedCell;
+        if (cell && selectedCell !== cell && !cell.classList.contains("selectedCell")) {
+          instance.chain().focus().setTextSelection(instance.view.posAtDOM(cell, 0) + 1).run();
+        } else {
+          instance.commands.focus();
+        }
+        updateTableUi();
+        tableUi.menuStyle = {
+          top: `${detail.anchor.bottom + 4}px`,
+          left: `${detail.anchor.right}px`,
+        };
+        tableUi.menuOpen = true;
+        return;
+      }
+      handleTableOverlayAction(instance, detail);
+      nextTick(updateTableUi);
+    };
+
+    const onEditorPointerOver = (event: PointerEvent) => {
+      const cell = event.target instanceof HTMLElement
+        ? event.target.closest<HTMLTableCellElement>("td, th")
+        : null;
+      if (!cell) return;
+      if (cell === hoveredTableCell) return;
+      hoveredTableCell = cell;
+      if (tablePointerFrame !== null) return;
+      tablePointerFrame = requestAnimationFrame(() => {
+        tablePointerFrame = null;
+        updateTableUi();
+      });
+    };
+
+    const onEditorPointerLeave = (event: PointerEvent) => {
+      const next = event.relatedTarget;
+      if (
+        next instanceof Node
+        && (
+          tableOverlayShell.value?.contains(next)
+          || tableToolbarShell.value?.contains(next)
+          || tableMenuShell.value?.contains(next)
+        )
+      ) return;
+      if (!hoveredTableCell) return;
+      hoveredTableCell = null;
       nextTick(updateTableUi);
     };
 
@@ -523,6 +585,8 @@ export const LoomaEditor = defineComponent({
         ref: root,
         class: ["looma-editor", attrs.class, { "looma-editor--readonly": !props.editable, "looma-editor--drag-over": dragOver.value }],
         onContextmenu: onContextMenu,
+        onPointerover: onEditorPointerOver,
+        onPointerleave: onEditorPointerLeave,
         onDragover: (event: DragEvent) => {
           event.preventDefault();
           if (props.editable && Array.from(event.dataTransfer?.types ?? []).includes("Files")) dragOver.value = true;
@@ -631,6 +695,7 @@ export const LoomaEditor = defineComponent({
               open: true,
               rows: tableUi.rows,
               cols: tableUi.cols,
+              geometry: tableUi.geometry,
               onTableOverlayAction: runOverlayAction,
             })])
           : null,

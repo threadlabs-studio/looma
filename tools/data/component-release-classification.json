@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
   "tags": {
+    "ui-affordance-scope": { "status": "published", "package": "@threadlabs/looma" },
     "ui-avatar": { "status": "published", "package": "@threadlabs/looma" },
     "ui-avatar-group": { "status": "published", "package": "@threadlabs/looma" },
     "ui-badge": { "status": "published", "package": "@threadlabs/looma" },

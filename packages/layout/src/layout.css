@@ -218,12 +218,33 @@
     inset-block: 0;
     inset-inline-start: 3px;
     inline-size: 2px;
-    background: transparent;
-    transition: background-color 120ms ease;
+    background: color-mix(in srgb, var(--ui-affordance-guide-color, var(--ui-border-strong)) 45%, transparent);
+    opacity: var(--ui-affordance-guide-opacity, 0.42);
+    transition:
+      background-color var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease),
+      opacity var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease);
+  }
+  ui-sidebar > [data-ui-sidebar-resizer] > [data-ui-guide] {
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-start: 50%;
+    inline-size: 6px;
+    block-size: 22px;
+    border: 1px solid var(--ui-border-strong, #c8c8c4);
+    border-radius: var(--ui-radius-round, 999px);
+    background: var(--ui-surface-elevated, #fff);
+    opacity: 0;
+    transform: translate(-50%, -50%);
+    transition: opacity var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease);
+    pointer-events: none;
   }
   ui-sidebar > [data-ui-sidebar-resizer]:hover::after,
   ui-sidebar > [data-ui-sidebar-resizer]:focus-visible::after {
-    background: var(--ui-color-focus, Highlight);
+    background: var(--ui-affordance-direct-color, var(--ui-accent-solid, var(--ui-color-focus, Highlight)));
+    opacity: 1;
+  }
+  ui-sidebar > [data-ui-sidebar-resizer]:is(:hover, :focus-visible) > [data-ui-guide] {
+    opacity: 1;
   }
 
   ui-reel {

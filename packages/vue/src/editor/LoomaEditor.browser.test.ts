@@ -1,5 +1,6 @@
 import { userEvent } from "@vitest/browser/context";
 import type { Editor } from "@tiptap/core";
+import type { TableOverlayGeometry } from "@threadlabs/looma-editor";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, type App } from "vue";
 import { defineCustomElements } from "@threadlabs/looma-core/loader";
@@ -81,12 +82,96 @@ describe("LoomaEditor (real browser)", () => {
     expect(document.querySelector(".looma-editor__table-overlay-shell")?.hasAttribute("aria-hidden"))
       .toBe(false);
 
+    const overlay = document.querySelector("ui-editor-table-overlay") as HTMLElement & {
+      geometry: TableOverlayGeometry | null;
+    };
+    expect(overlay.geometry?.rowBoundaries).toHaveLength(3);
+    expect(overlay.geometry?.columnBoundaries).toHaveLength(3);
+
+    const firstCell = table.querySelector<HTMLTableCellElement>("th, td")!;
+    const firstCellRect = firstCell.getBoundingClientRect();
+    await userEvent.hover(firstCell, {
+      position: { x: firstCellRect.width - 4, y: firstCellRect.height / 2 },
+    } as Parameters<typeof userEvent.hover>[1]);
+    await flushBrowser();
+    const resizeHandle = table.querySelector<HTMLElement>(".column-resize-handle")!;
+    expect(resizeHandle).toBeTruthy();
+    expect(getComputedStyle(resizeHandle).cursor).toBe("col-resize");
+    expect(resizeHandle.getBoundingClientRect().width).toBeGreaterThanOrEqual(10);
+    const resizeRect = resizeHandle.getBoundingClientRect();
+    const resizeX = resizeRect.left + (resizeRect.width / 2);
+    const resizeY = firstCellRect.top + (firstCellRect.height / 2);
+    resizeHandle.dispatchEvent(new PointerEvent("pointerdown", {
+      bubbles: true,
+      clientX: resizeX,
+      clientY: resizeY,
+      pointerType: "mouse",
+    }));
+    resizeHandle.dispatchEvent(new MouseEvent("mousedown", {
+      bubbles: true,
+      clientX: resizeX,
+      clientY: resizeY,
+      button: 0,
+      buttons: 1,
+    }));
+    window.dispatchEvent(new MouseEvent("mousemove", {
+      clientX: resizeX + 48,
+      clientY: resizeY,
+      buttons: 1,
+    }));
+    window.dispatchEvent(new MouseEvent("mouseup", {
+      clientX: resizeX + 48,
+      clientY: resizeY,
+      button: 0,
+    }));
+    window.dispatchEvent(new PointerEvent("pointerup", {
+      clientX: resizeX + 48,
+      clientY: resizeY,
+      pointerType: "mouse",
+    }));
+    await flushBrowser();
+    expect(editor!.getJSON().content?.[1]?.content?.[0]?.content?.[0]?.attrs?.colwidth?.[0])
+      .toBeGreaterThan(firstCellRect.width);
+
+    const currentTable = host.querySelector<HTMLTableElement>(".ProseMirror table")!;
+    const secondCell = currentTable.querySelectorAll<HTMLTableCellElement>("th, td")[1]!;
+    expect([secondCell.closest("tr")?.rowIndex, secondCell.cellIndex]).toEqual([0, 1]);
+    await userEvent.hover(secondCell);
+    secondCell.dispatchEvent(new PointerEvent("pointerover", {
+      bubbles: true,
+      pointerType: "mouse",
+    }));
+    await flushBrowser();
+    const currentOverlay = document.querySelector<HTMLElement>("ui-editor-table-overlay")!;
+    const cellMenu = currentOverlay.querySelector<HTMLButtonElement>("[data-action='open-cell-menu']")!;
+    expect(cellMenu).toBeTruthy();
+    const overlayActions = vi.fn();
+    currentOverlay.addEventListener("looma-editor-table-overlay-action", overlayActions);
+    await userEvent.click(cellMenu);
+    await flushBrowser();
+    expect(overlayActions).toHaveBeenCalledOnce();
+    expect((overlayActions.mock.calls[0]?.[0] as CustomEvent).detail).toMatchObject({
+      action: "open-cell-menu",
+      rowIndex: 0,
+      columnIndex: 1,
+    });
+    const contextMenu = document.querySelector<HTMLElement>("ui-editor-table-context-menu")!;
+    expect(contextMenu).toBeTruthy();
+    await userEvent.click(
+      contextMenu.querySelector<HTMLButtonElement>("[data-action='background-yellow']")!,
+    );
+    await flushBrowser();
+    expect(
+      editor!.getJSON().content?.[1]?.content?.[0]?.content
+        ?.map((cell) => cell.attrs?.backgroundColor ?? null),
+    ).toEqual([null, "#fef3c7"]);
+
     const addRow = document.querySelector<HTMLElement>(
       'ui-editor-table-toolbar [data-action="add-row-after"]',
     )!;
     await userEvent.click(addRow);
     await flushBrowser();
-    expect(table.querySelectorAll("tr")).toHaveLength(3);
+    expect(currentTable.querySelectorAll("tr")).toHaveLength(3);
     expect(updates).toHaveBeenCalled();
   });
 

@@ -2,6 +2,11 @@
 
 Shared domain vocabulary for this project — entities, named processes, and status concepts with project-specific meaning. Seeded with core domain vocabulary, then accretes as ce-compound and ce-compound-refresh process learnings; direct edits are fine. Glossary only, not a spec or catch-all.
 
+## Interaction design
+
+### Anticipatory Affordance
+An interactive cue that progresses from a quiet guide through near and direct intent to an active state, while keeping only the visible control in the pointer hit-test region.
+
 ## Release qualification
 
 ### Package Identity Graph

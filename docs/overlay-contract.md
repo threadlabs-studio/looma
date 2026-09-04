@@ -54,6 +54,11 @@ Define one consistent overlay lifecycle for `ui-popover` and `ui-dialog`, with n
   - flip and shift behavior
 - No per-component ad hoc positioners.
 
+`getVisualViewportRect` and `clampRectToViewport` are the shared geometry
+primitives for floating UI. `createProximityCoordinator` uses the same viewport
+signals and frame scheduling for anticipatory controls; see
+[Anticipatory affordances](./anticipatory-affordances.md).
+
 ## Shared Events Contract
 
 - `open`: `{ open: true, reason, trigger }`

@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import "../src/editor.css";
 import "../src/index";
 import type { SlashMenuAnchorRect } from "../src/index";
+import { resolveTableCellAt } from "../src/ui";
 
 beforeEach(() => {
   document.body.innerHTML = "";
@@ -110,7 +111,15 @@ describe("editor release interactions (real browser)", () => {
           can-merge-cells
           can-split-cell
         ></ui-editor-table-toolbar>
-        <ui-editor-table-overlay open rows="2" cols="2" style="display:block;width:400px;height:200px"></ui-editor-table-overlay>
+        <ui-editor-table-overlay
+          open
+          rows="2"
+          cols="2"
+          row-boundaries="0,82,200"
+          column-boundaries="0,154,400"
+          active-cell="154,82,246,118,1,1"
+          style="display:block;width:400px;height:200px;margin:60px"
+        ></ui-editor-table-overlay>
         <button id="outside" type="button">Outside</button>
       </main>
     `;
@@ -151,17 +160,32 @@ describe("editor release interactions (real browser)", () => {
 
     const addRow = overlay.querySelector<HTMLButtonElement>("[data-control-key='row:1']")!;
     const rowHandle = addRow.querySelector<HTMLElement>(".ui-editor-table-overlay__handle")!;
-    expect(addRow.style.getPropertyValue("--ui-editor-table-overlay-boundary-index")).toBe("1");
-    expect(addRow.style.getPropertyValue("--ui-editor-table-overlay-segments")).toBe("2");
-    expect(getComputedStyle(addRow).pointerEvents).toBe("auto");
+    expect(addRow.style.top).toBe("82px");
+    expect(getComputedStyle(addRow).pointerEvents).toBe("none");
     expect(getComputedStyle(rowHandle).pointerEvents).toBe("auto");
-    await userEvent.hover(addRow);
+    expect(rowHandle.firstElementChild?.textContent).toBe("+");
+    expect(addRow.querySelector("[data-ui-guide]")).toBeTruthy();
+    await userEvent.hover(rowHandle);
     expect(addRow.dataset.active).toBe("true");
     await vi.waitFor(() => expect(getComputedStyle(rowHandle).opacity).toBe("1"));
-    addRow.focus();
+    rowHandle.focus();
     expect(addRow.dataset.active).toBe("true");
     await userEvent.keyboard("{Enter}");
     expect(overlayActions).toEqual([{ action: "add-row-after", boundaryIndex: 1 }]);
+
+    const cellMenu = overlay.querySelector<HTMLButtonElement>("[data-action='open-cell-menu']")!;
+    expect(cellMenu.getAttribute("aria-label")).toBe("Cell actions");
+    cellMenu.click();
+    expect(overlayActions.at(-1)).toMatchObject({
+      action: "open-cell-menu",
+      rowIndex: 1,
+      columnIndex: 1,
+    });
+
+    const rowSelector = overlay.querySelector<HTMLButtonElement>("[data-action='select-row']")!;
+    const columnSelector = overlay.querySelector<HTMLButtonElement>("[data-action='select-column']")!;
+    expect(rowSelector.title).toBe("Select row");
+    expect(columnSelector.title).toBe("Select column");
   });
 
   it("uses the shared floating toolbar frame without sticky or mobile-fixed positioning", () => {
@@ -172,6 +196,26 @@ describe("editor release interactions (real browser)", () => {
     expect(getComputedStyle(toolbar).borderTopWidth).toBe("1px");
     expect(getComputedStyle(toolbar).borderBottomWidth).toBe("1px");
     expect(getComputedStyle(toolbar).overflowX).toBe("visible");
+  });
+
+  it("resolves logical coordinates through merged table cells", () => {
+    document.body.innerHTML = `
+      <table>
+        <tbody>
+          <tr><td id="merged" rowspan="2" colspan="2">Merged</td><td id="right">Right</td></tr>
+          <tr><td id="lower-right">Lower right</td></tr>
+        </tbody>
+      </table>
+    `;
+    const table = document.querySelector("table")!;
+    const merged = document.querySelector<HTMLTableCellElement>("#merged")!;
+
+    expect(resolveTableCellAt(table, 0, 0)).toBe(merged);
+    expect(resolveTableCellAt(table, 0, 1)).toBe(merged);
+    expect(resolveTableCellAt(table, 1, 0)).toBe(merged);
+    expect(resolveTableCellAt(table, 1, 1)).toBe(merged);
+    expect(resolveTableCellAt(table, 0, 2)?.id).toBe("right");
+    expect(resolveTableCellAt(table, 1, 2)?.id).toBe("lower-right");
   });
 
   it("suppresses ProseMirror's blue node-selection outline for tables", () => {
@@ -239,6 +283,20 @@ describe("editor release interactions (real browser)", () => {
     expect(rect.top).toBeGreaterThanOrEqual(12);
     expect(rect.right).toBeLessThanOrEqual(window.innerWidth - 12);
     expect(rect.bottom).toBeLessThanOrEqual(window.innerHeight - 12);
+  });
+
+  it("offers the selected-cell command surface from the shared context menu", () => {
+    document.body.innerHTML = `
+      <ui-editor-table-context-menu
+        open
+        can-delete-row
+        can-delete-column
+      ></ui-editor-table-context-menu>
+    `;
+    const menu = document.querySelector("ui-editor-table-context-menu")!;
+    expect(menu.querySelector("[data-action='clear-cells']")?.textContent).toBe("Clear selected cells");
+    expect(menu.querySelector("[data-action='delete-row']")).toBeTruthy();
+    expect(menu.querySelector("[data-action='delete-column']")).toBeTruthy();
   });
 
   it("passes automated accessibility checks with no browser exceptions", async () => {

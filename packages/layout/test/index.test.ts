@@ -95,6 +95,8 @@ describe("@threadlabs/looma-layout primitives", () => {
     expect(handle.getAttribute("aria-orientation")).toBe("vertical");
     expect(handle.getAttribute("tabindex")).toBe("0");
     expect(handle.getAttribute("aria-label")).toBe("Resize sidebar");
+    expect(handle.getAttribute("data-ui-affordance")).toBe("resize");
+    expect(handle.querySelector("[data-ui-guide]")).toBeTruthy();
 
     handle.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
     expect(sidebar.style.getPropertyValue("--ui-sidebar-width")).toBe("304px");

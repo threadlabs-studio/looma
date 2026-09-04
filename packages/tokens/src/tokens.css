@@ -72,6 +72,15 @@
     --ui-motion-base: 180ms;
     --ui-motion-ease: cubic-bezier(0.2, 0, 0.2, 1);
 
+    /* Anticipatory interaction: guide → near → direct → active. */
+    --ui-affordance-guide-size: 0.25rem;
+    --ui-affordance-guide-opacity: 0.42;
+    --ui-affordance-guide-color: var(--ui-border-strong);
+    --ui-affordance-near-color: var(--ui-text-secondary);
+    --ui-affordance-direct-color: var(--ui-accent-solid);
+    --ui-affordance-active-color: var(--ui-accent-active);
+    --ui-affordance-motion: var(--ui-motion-fast);
+
     --ui-surface-canvas: #ffffff;
     --ui-surface-default: #ffffff;
     --ui-surface-muted: #f8f8f6;

@@ -3,6 +3,8 @@
  * Apps own the command list and suggestion state; Looma owns the chrome.
  */
 
+import { getVisualViewportRect } from "@threadlabs/looma-core";
+
 const TAG = "ui-editor-slash-menu";
 const MOBILE_BREAKPOINT = 768;
 const MENU_HEIGHT_ESTIMATE = 320;
@@ -222,9 +224,9 @@ class UIEditorSlashMenuElement extends HTMLElement {
       return;
     }
 
-    const visualViewport = window.visualViewport;
-    const viewportWidth = visualViewport?.width ?? window.innerWidth;
-    const viewportHeight = visualViewport?.height ?? window.innerHeight;
+    const viewport = getVisualViewportRect(window);
+    const viewportWidth = viewport.width;
+    const viewportHeight = viewport.height;
 
     this.style.display = "block";
     this.style.position = "fixed";
@@ -236,18 +238,18 @@ class UIEditorSlashMenuElement extends HTMLElement {
         MENU_HEIGHT_ESTIMATE,
         Math.max(0, viewportHeight - toolbarReserve),
       );
-      this.style.left = `${visualViewport?.offsetLeft ?? 0}px`;
+      this.style.left = `${viewport.left}px`;
       this.style.right = "";
       this.style.bottom = "";
-      this.style.top = `${(visualViewport?.offsetTop ?? 0) + viewportHeight - menuHeight - toolbarReserve}px`;
+      this.style.top = `${viewport.top + viewportHeight - menuHeight - toolbarReserve}px`;
       this.style.width = `${viewportWidth}px`;
       this.style.maxHeight = `${menuHeight}px`;
       return;
     }
 
     let top: number;
-    const spaceBelow = viewportHeight - rect.bottom - OFFSET;
-    const spaceAbove = rect.top - OFFSET;
+    const spaceBelow = viewport.bottom - rect.bottom - OFFSET;
+    const spaceAbove = rect.top - viewport.top - OFFSET;
 
     if (spaceBelow >= MENU_HEIGHT_ESTIMATE || spaceBelow >= spaceAbove) {
       top = rect.bottom + OFFSET;
@@ -256,14 +258,14 @@ class UIEditorSlashMenuElement extends HTMLElement {
     }
 
     let left = rect.left;
-    if (left + MENU_WIDTH > viewportWidth - 8) {
-      left = viewportWidth - MENU_WIDTH - 8;
+    if (left + MENU_WIDTH > viewport.right - 8) {
+      left = viewport.right - MENU_WIDTH - 8;
     }
-    if (left < 8) {
-      left = 8;
+    if (left < viewport.left + 8) {
+      left = viewport.left + 8;
     }
 
-    this.style.top = `${Math.max(8, top)}px`;
+    this.style.top = `${Math.max(viewport.top + 8, top)}px`;
     this.style.left = `${left}px`;
     this.style.right = "";
     this.style.bottom = "";

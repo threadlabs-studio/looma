@@ -6,6 +6,13 @@
  */
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
 export namespace Components {
+    interface UiAffordanceScope {
+        /**
+          * Distance outside each registered affordance that reveals its near state.
+          * @default 32
+         */
+        "nearRadius": number;
+    }
     interface UiAvatar {
         /**
           * @default ''
@@ -156,6 +163,11 @@ export namespace Components {
         "required": boolean;
     }
     interface UiIconButton {
+        /**
+          * Reveals this control through a surrounding ui-affordance-scope.
+          * @default false
+         */
+        "anticipatory": boolean;
         /**
           * @default false
          */
@@ -393,6 +405,12 @@ export namespace Components {
     }
 }
 declare global {
+    interface HTMLUiAffordanceScopeElement extends Components.UiAffordanceScope, HTMLStencilElement {
+    }
+    var HTMLUiAffordanceScopeElement: {
+        prototype: HTMLUiAffordanceScopeElement;
+        new (): HTMLUiAffordanceScopeElement;
+    };
     interface HTMLUiAvatarElement extends Components.UiAvatar, HTMLStencilElement {
     }
     var HTMLUiAvatarElement: {
@@ -550,6 +568,7 @@ declare global {
         new (): HTMLUiTopBarElement;
     };
     interface HTMLElementTagNameMap {
+        "ui-affordance-scope": HTMLUiAffordanceScopeElement;
         "ui-avatar": HTMLUiAvatarElement;
         "ui-avatar-group": HTMLUiAvatarGroupElement;
         "ui-badge": HTMLUiBadgeElement;
@@ -579,6 +598,13 @@ declare global {
     }
 }
 declare namespace LocalJSX {
+    interface UiAffordanceScope {
+        /**
+          * Distance outside each registered affordance that reveals its near state.
+          * @default 32
+         */
+        "nearRadius"?: number;
+    }
     interface UiAvatar {
         /**
           * @default ''
@@ -729,6 +755,11 @@ declare namespace LocalJSX {
         "required"?: boolean;
     }
     interface UiIconButton {
+        /**
+          * Reveals this control through a surrounding ui-affordance-scope.
+          * @default false
+         */
+        "anticipatory"?: boolean;
         /**
           * @default false
          */
@@ -965,6 +996,9 @@ declare namespace LocalJSX {
     interface UiTopBar {
     }
 
+    interface UiAffordanceScopeAttributes {
+        "nearRadius": number;
+    }
     interface UiAvatarAttributes {
         "src": string;
         "alt": string;
@@ -1024,6 +1058,7 @@ declare namespace LocalJSX {
         "label": string;
         "size": 'sm' | 'md' | 'lg';
         "variant": 'ghost' | 'outline' | 'solid';
+        "anticipatory": boolean;
     }
     interface UiInputAttributes {
         "value": string;
@@ -1100,6 +1135,7 @@ declare namespace LocalJSX {
     }
 
     interface IntrinsicElements {
+        "ui-affordance-scope": Omit<UiAffordanceScope, keyof UiAffordanceScopeAttributes> & { [K in keyof UiAffordanceScope & keyof UiAffordanceScopeAttributes]?: UiAffordanceScope[K] } & { [K in keyof UiAffordanceScope & keyof UiAffordanceScopeAttributes as `attr:${K}`]?: UiAffordanceScopeAttributes[K] } & { [K in keyof UiAffordanceScope & keyof UiAffordanceScopeAttributes as `prop:${K}`]?: UiAffordanceScope[K] };
         "ui-avatar": Omit<UiAvatar, keyof UiAvatarAttributes> & { [K in keyof UiAvatar & keyof UiAvatarAttributes]?: UiAvatar[K] } & { [K in keyof UiAvatar & keyof UiAvatarAttributes as `attr:${K}`]?: UiAvatarAttributes[K] } & { [K in keyof UiAvatar & keyof UiAvatarAttributes as `prop:${K}`]?: UiAvatar[K] };
         "ui-avatar-group": Omit<UiAvatarGroup, keyof UiAvatarGroupAttributes> & { [K in keyof UiAvatarGroup & keyof UiAvatarGroupAttributes]?: UiAvatarGroup[K] } & { [K in keyof UiAvatarGroup & keyof UiAvatarGroupAttributes as `attr:${K}`]?: UiAvatarGroupAttributes[K] } & { [K in keyof UiAvatarGroup & keyof UiAvatarGroupAttributes as `prop:${K}`]?: UiAvatarGroup[K] };
         "ui-badge": Omit<UiBadge, keyof UiBadgeAttributes> & { [K in keyof UiBadge & keyof UiBadgeAttributes]?: UiBadge[K] } & { [K in keyof UiBadge & keyof UiBadgeAttributes as `attr:${K}`]?: UiBadgeAttributes[K] } & { [K in keyof UiBadge & keyof UiBadgeAttributes as `prop:${K}`]?: UiBadge[K] };
@@ -1132,6 +1168,7 @@ export { LocalJSX as JSX };
 declare module "@stencil/core" {
     export namespace JSX {
         interface IntrinsicElements {
+            "ui-affordance-scope": LocalJSX.IntrinsicElements["ui-affordance-scope"] & JSXBase.HTMLAttributes<HTMLUiAffordanceScopeElement>;
             "ui-avatar": LocalJSX.IntrinsicElements["ui-avatar"] & JSXBase.HTMLAttributes<HTMLUiAvatarElement>;
             "ui-avatar-group": LocalJSX.IntrinsicElements["ui-avatar-group"] & JSXBase.HTMLAttributes<HTMLUiAvatarGroupElement>;
             "ui-badge": LocalJSX.IntrinsicElements["ui-badge"] & JSXBase.HTMLAttributes<HTMLUiBadgeElement>;

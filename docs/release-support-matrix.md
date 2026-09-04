@@ -25,7 +25,7 @@ authorization still requires the protected owner preflight before registry mutat
 
 ### Core: published Candidate
 
-`ui-avatar`, `ui-avatar-group`, `ui-badge`, `ui-button`, `ui-checkbox`,
+`ui-affordance-scope`, `ui-avatar`, `ui-avatar-group`, `ui-badge`, `ui-button`, `ui-checkbox`,
 `ui-context-menu`, `ui-dialog`, `ui-disclosure`, `ui-floating-action-button`,
 `ui-form-field`, `ui-icon-button`, `ui-input`, `ui-menu`, `ui-menu-item`,
 `ui-popover`, `ui-radio`, `ui-radio-group`, `ui-search-result-row`,
@@ -69,7 +69,7 @@ is a release defect, not a reason to silently shrink the source inventory.
 
 | Evidence | Current status | Release requirement |
 | --- | --- | --- |
-| Exact source inventory | Source-derived classification and projection gate passing for all 38 tags | Must stay clean through publication |
+| Exact source inventory | Source-derived classification and projection gate passing for all 42 tags | Must stay clean through publication |
 | Knit linked-workspace build | Passing | Must repeat against approved packed artifacts |
 | SSR imports through Knit graph | Passing for core/editor/editor extensions/Vue | Must repeat from clean tarball fixture |
 | Package names publicly absent | Observed via unauthenticated npm lookup | Authenticated namespace ownership/publish authorization required |

@@ -36,6 +36,7 @@ const sidebars: SidebarsConfig = {
       type: "category",
       label: "Overlay",
       items: [
+        "components/ui-affordance-scope",
         "components/ui-dialog",
         "components/ui-popover",
         "components/ui-tooltip",

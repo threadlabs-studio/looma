@@ -1,6 +1,7 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 const COMPONENT_TAGS = [
+  "ui-affordance-scope",
   "ui-avatar",
   "ui-avatar-group",
   "ui-badge",
@@ -87,6 +88,33 @@ describe("@threadlabs/looma-core primitives", () => {
     await flushStencil();
     expect(trigger?.getAttribute("aria-expanded")).toBe("true");
     expect(content?.hasAttribute("hidden")).toBe(false);
+  });
+
+  it("coordinates overlapping anticipatory controls from one container", async () => {
+    await render(`
+      <ui-affordance-scope near-radius="24">
+        <button id="near-a" data-ui-affordance>Add A</button>
+        <button id="near-b" data-ui-affordance>Add B</button>
+      </ui-affordance-scope>
+    `);
+    const scope = document.querySelector("ui-affordance-scope")!;
+    const first = document.getElementById("near-a")!;
+    const second = document.getElementById("near-b")!;
+    first.getBoundingClientRect = () => new DOMRect(40, 40, 20, 20);
+    second.getBoundingClientRect = () => new DOMRect(64, 40, 20, 20);
+    (scope as HTMLElement & { nearRadius: number }).nearRadius = 25;
+    await flushStencil();
+
+    first.dispatchEvent(new MouseEvent("pointermove", {
+      bubbles: true,
+      clientX: 62,
+      clientY: 50,
+    }));
+    await flushStencil();
+
+    expect(first.getAttribute("data-ui-proximity")).toBe("near");
+    expect(second.getAttribute("data-ui-proximity")).toBe("near");
+    expect(scope.getAttribute("data-ui-interaction")).toBe("engaged");
   });
 
   it("supports tabs roving tabindex and arrow-key activation", async () => {

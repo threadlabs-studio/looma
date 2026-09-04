@@ -33,6 +33,16 @@ const meta = {
     cols: { control: { type: "range", min: 1, max: 12, step: 1 } }
   },
   render: ({ contextMenuOpen, insertGridOpen, overlayOpen, rows, cols }: PlaygroundArgs) => {
+    const boundedRows = Math.max(1, rows);
+    const boundedCols = Math.max(1, cols);
+    const tableWidth = 720;
+    const tableHeight = 220;
+    const rowHeight = tableHeight / boundedRows;
+    const columnWidth = tableWidth / boundedCols;
+    const rowBoundaries = Array.from({ length: boundedRows + 1 }, (_, index) => index * rowHeight);
+    const columnBoundaries = Array.from({ length: boundedCols + 1 }, (_, index) => index * columnWidth);
+    const activeRow = Math.min(1, boundedRows - 1);
+    const activeColumn = Math.min(1, boundedCols - 1);
     const root = document.createElement("div");
     root.style.display = "grid";
     root.style.gap = "16px";
@@ -60,24 +70,24 @@ const meta = {
           <h3 style="margin:0;">Insert Table Grid</h3>
           <ui-editor-insert-table-grid
             ${insertGridOpen ? "open" : ""}
-            max-rows="${Math.max(1, rows)}"
-            max-cols="${Math.max(1, cols)}"
+            max-rows="${boundedRows}"
+            max-cols="${boundedCols}"
           ></ui-editor-insert-table-grid>
         </section>
       </div>
 
       <section style="display:grid;gap:8px;">
         <h3 style="margin:0;">Table Overlay</h3>
-        <div style="position:relative;height:220px;border:1px dashed var(--ui-border,#d1d5db);border-radius:8px;padding:24px;overflow:visible;">
-          <div style="position:absolute;inset:24px;">
+        <div style="position:relative;min-height:300px;padding:48px;overflow:auto;">
+          <div style="position:relative;width:${tableWidth}px;height:${tableHeight}px;background:var(--ui-surface,#fff);background-image:linear-gradient(to right,var(--ui-border,#d1d5db) 1px,transparent 1px),linear-gradient(to bottom,var(--ui-border,#d1d5db) 1px,transparent 1px);background-size:${columnWidth}px ${rowHeight}px;border-right:1px solid var(--ui-border,#d1d5db);border-bottom:1px solid var(--ui-border,#d1d5db);">
             <ui-editor-table-overlay
               ${overlayOpen ? "open" : ""}
-              rows="${Math.max(1, rows)}"
-              cols="${Math.max(1, cols)}"
+              rows="${boundedRows}"
+              cols="${boundedCols}"
+              row-boundaries="${rowBoundaries.join(",")}"
+              column-boundaries="${columnBoundaries.join(",")}"
+              active-cell="${activeColumn * columnWidth},${activeRow * rowHeight},${columnWidth},${rowHeight},${activeRow},${activeColumn}"
             ></ui-editor-table-overlay>
-          </div>
-          <div style="height:100%;display:flex;align-items:center;justify-content:center;color:var(--ui-text-muted,#6b7280);font-size:14px;">
-            Simulated table bounds for overlay interaction
           </div>
         </div>
       </section>

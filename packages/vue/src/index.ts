@@ -25,6 +25,7 @@ export const Popover = createAdapterComponent("ui-popover", "Popover");
 export const Menu = createAdapterComponent("ui-menu", "Menu");
 export const MenuItem = createAdapterComponent("ui-menu-item", "MenuItem");
 export const ContextMenu = createAdapterComponent("ui-context-menu", "ContextMenu");
+export const AffordanceScope = createAdapterComponent("ui-affordance-scope", "AffordanceScope");
 export const Button = createAdapterComponent("ui-button", "Button");
 export const IconButton = createAdapterComponent("ui-icon-button", "IconButton");
 export const Input = createAdapterComponent("ui-input", "Input");
@@ -65,6 +66,7 @@ export const ADAPTER_COMPONENT_TAG_MAP = {
   Menu: "ui-menu",
   MenuItem: "ui-menu-item",
   ContextMenu: "ui-context-menu",
+  AffordanceScope: "ui-affordance-scope",
   Button: "ui-button",
   IconButton: "ui-icon-button",
   Input: "ui-input",
