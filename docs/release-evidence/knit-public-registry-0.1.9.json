@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "knit-public-registry-consumer",
+  "generatedAt": "2026-09-04T20:29:16Z",
+  "result": "passed",
+  "scope": "Credential-free installation and build qualification of the public Looma 0.1.9 Candidate in a detached Knit checkout",
+  "looma": {
+    "name": "@threadlabs/looma",
+    "version": "0.1.9",
+    "registryUrl": "https://registry.npmjs.org/",
+    "packageUrl": "https://www.npmjs.com/package/@threadlabs/looma/v/0.1.9",
+    "integrity": "sha512-ZFsR4Vm64n/+x3nHv79I8mUJalfxhEDTb17LiB1u7UKhkNs+dsPi2i8rYrrQfeyNcvZhKWc7tf8I95giZwC1zA=="
+  },
+  "knit": {
+    "repository": "bitbucket.org/mdean-projects/knit",
+    "repositoryVisibility": "private",
+    "branch": "build-space-planet-game-bible",
+    "commit": "249f9a3a24af4832e2987e8a0fc1d184dd28e1c8",
+    "packageManifestSha256": "025c8b9b27135b84cab9a4f23852222559553cf3276bbe7ba7364cfa9d6e38bb",
+    "lockfileSha256": "9a8d19dd49c3488dd755e0c6c2c32deadf09433707bfa71a4ed7782b8f9d71fe"
+  },
+  "environment": {
+    "completedAt": "2026-09-04T20:29:16Z",
+    "nodeVersion": "24.20.0",
+    "pnpmVersion": "10.19.0",
+    "detachedCheckout": true,
+    "trackedSourceCleanAfterQualification": true,
+    "freshPnpmStore": true,
+    "siblingLoomaRepositoryPresent": false,
+    "npmUserConfig": "/dev/null",
+    "npmCredentialEnvironmentPresent": false,
+    "releaseBuildConfiguration": "Format-valid non-secret qualification values; no production credentials were used"
+  },
+  "gates": {
+    "frozenPublicRegistryInstall": "passed",
+    "installedPackageIdentity": "passed",
+    "scriptPolicyTests": {
+      "result": "passed",
+      "count": 140
+    },
+    "applicationUnitTests": {
+      "result": "passed",
+      "count": 377
+    },
+    "typecheck": "passed",
+    "lint": {
+      "result": "passed",
+      "errors": 0,
+      "preExistingWarnings": 3
+    },
+    "productionVercelBuild": "passed"
+  },
+  "commands": [
+    "NPM_CONFIG_USERCONFIG=/dev/null fnm exec --using=24.20.0 pnpm install --frozen-lockfile --store-dir {fresh-store}",
+    "fnm exec --using=24.20.0 pnpm test",
+    "fnm exec --using=24.20.0 pnpm typecheck",
+    "fnm exec --using=24.20.0 pnpm lint",
+    "fnm exec --using=24.20.0 pnpm build:release",
+    "git status --short --untracked-files=all"
+  ],
+  "exclusions": [
+    "This package-consumer proof does not promote 0.1.9 from candidate to latest.",
+    "This proof is scoped to public-package consumption; Knit Preview and Production deployment verification are maintained by Knit's separate revision-attested release flow."
+  ]
+}
