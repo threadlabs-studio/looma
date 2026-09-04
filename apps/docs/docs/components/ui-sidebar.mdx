@@ -12,10 +12,28 @@ Provide exactly two children. `side="start"` treats the first as the side
 region; `side="end"` treats the last as the side region. Width options are
 `narrow`, default, and `wide`. Tune `--ui-sidebar-content-min` when needed.
 
+Add `resizable` for an accessible vertical separator that works with pointer,
+Arrow keys, Home, and End. `storage-key` persists the chosen pixel width in local
+storage; make it stable and specific to the surface. `min-width`, `max-width`, and
+`resize-step` accept pixel numbers. Double-click resets the named width preset.
+
 ```html
 <ui-sidebar side="start" width="narrow" gap="m">
   <aside>Filters</aside>
   <main>Results</main>
+</ui-sidebar>
+```
+
+```html
+<ui-sidebar
+  resizable
+  storage-key="project-navigation"
+  min-width="200"
+  max-width="480"
+  resize-label="Resize project navigation"
+>
+  <aside>Navigation</aside>
+  <main>Document</main>
 </ui-sidebar>
 ```
 
