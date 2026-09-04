@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "knit-public-registry-consumer",
+  "generatedAt": "2026-09-04T22:47:57Z",
+  "result": "passed",
+  "scope": "Credential-free installation, browser qualification, and revision-attested Preview deployment of the public Looma 0.1.11 Candidate in Knit",
+  "looma": {
+    "name": "@threadlabs/looma",
+    "version": "0.1.11",
+    "registryUrl": "https://registry.npmjs.org/",
+    "packageUrl": "https://www.npmjs.com/package/@threadlabs/looma/v/0.1.11",
+    "integrity": "sha512-2PJNER6Rajblm1R7inIn7x7DRij8LrjDkwSRqYcBZKB8nYZh8DfJJkwYjN8d9vLd8plz+a9PAB6opR6fehxuUA==",
+    "candidateWorkflowUrl": "https://github.com/threadlabs-studio/looma/actions/runs/33925884224"
+  },
+  "knit": {
+    "repository": "bitbucket.org/mdean-projects/knit",
+    "repositoryVisibility": "private",
+    "branch": "main",
+    "commit": "2e1e715c4f243a76878b4930f8642e9e3f06c5e1",
+    "packageManifestSha256": "15d9874282e2d86679235be900070636504d92007f0559ede2d8e729738382c2",
+    "lockfileSha256": "f0317b9b47f0c28e0c03c6156711e13636f01acf712d74f378d00a82b31c6009"
+  },
+  "environment": {
+    "completedAt": "2026-09-04T22:47:57Z",
+    "nodeVersion": "24.20.0",
+    "pnpmVersion": "10.19.0",
+    "exactOriginMainRevision": true,
+    "trackedSourceCleanAfterQualification": true,
+    "generatedCachesClearedAfterRegistryInstall": true,
+    "registryPackageInspectedBeforeQualification": true,
+    "releaseBuildConfiguration": "Protected Vercel Preview configuration; no credential values are included in this record"
+  },
+  "gates": {
+    "exactPublicRegistryInstall": "passed",
+    "installedPackageIdentity": "passed",
+    "installedResizeOptions": {
+      "handleWidth": 3,
+      "cellMinWidth": 112
+    },
+    "scriptPolicyTests": {
+      "result": "passed",
+      "count": 143
+    },
+    "applicationUnitTests": {
+      "result": "passed",
+      "count": 435
+    },
+    "requiredBrowserMatrix": {
+      "result": "passed",
+      "count": 18,
+      "projects": [
+        "chromium",
+        "mobile-webkit",
+        "mobile-chromium"
+      ],
+      "tableColumnResizeDrag": "passed"
+    },
+    "typecheck": "passed",
+    "lint": {
+      "result": "passed",
+      "errors": 0,
+      "preExistingWarnings": 3
+    },
+    "productionVercelBuild": "passed",
+    "previewDeployment": {
+      "result": "passed",
+      "revision": "2e1e715c4f243a76878b4930f8642e9e3f06c5e1",
+      "deploymentId": "dpl_6J62CmDEkPVkc6NzfErnbaUXTaDT",
+      "deploymentUrl": "https://knit-oji4ilt24-matthewdeans-projects.vercel.app",
+      "rootUrl": "https://preview.knit.wiki",
+      "wildcardWorkspaceUrl": "https://beepbop.preview.knit.wiki"
+    }
+  },
+  "commands": [
+    "pnpm --dir web add --save-exact @threadlabs/looma@0.1.11",
+    "pnpm --dir web exec nuxi cleanup",
+    "pnpm test:scripts",
+    "pnpm -C web test:gate:unit",
+    "pnpm -C web test:gate:typecheck",
+    "pnpm lint",
+    "pnpm -C web build",
+    "pnpm -C web test:e2e:local:required",
+    "pnpm deploy:preview",
+    "curl --fail --silent --show-error https://preview.knit.wiki/api/release",
+    "curl --fail --silent --show-error https://beepbop.preview.knit.wiki/api/release"
+  ],
+  "exclusions": [
+    "This package-consumer proof does not itself promote 0.1.11 from candidate to latest.",
+    "Knit Production was not deployed; production promotion remains a separate, explicit Knit release operation.",
+    "No private Knit source, user content, credentials, or browser session data is included."
+  ]
+}
