@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "knit-public-registry-consumer",
+  "generatedAt": "2026-09-04T05:34:12Z",
+  "result": "passed",
+  "scope": "Credential-free installation and build qualification of the public Looma 0.1.6 Candidate in a detached Knit checkout",
+  "looma": {
+    "name": "@threadlabs/looma",
+    "version": "0.1.6",
+    "registryUrl": "https://registry.npmjs.org/",
+    "packageUrl": "https://www.npmjs.com/package/@threadlabs/looma/v/0.1.6",
+    "integrity": "sha512-p91sW9Rscm3C1lQayMId11gr4yO2ZFSNnz5KsdcRFp8yplwYdONs3l65b0P5LmlQsjtjvBu/0f5/zdXCdK1xwQ=="
+  },
+  "knit": {
+    "repository": "bitbucket.org/mdean-projects/knit",
+    "repositoryVisibility": "private",
+    "branch": "main",
+    "commit": "0b4e022fc75665ea94ad0d2b7911b89128eca01f",
+    "packageManifestSha256": "b1861c88b2da6fe0b1bd18c6bcbb5be4e0c041607157b93536ebc7cbb49f139f",
+    "lockfileSha256": "4b0279644a24ab63035c6b2501923861c25b4667b0ea362e168b11ff9115de35"
+  },
+  "environment": {
+    "completedAt": "2026-09-04T05:34:12Z",
+    "nodeVersion": "24.20.0",
+    "pnpmVersion": "10.19.0",
+    "detachedCheckout": true,
+    "trackedSourceCleanAfterQualification": true,
+    "freshPnpmStore": true,
+    "siblingLoomaRepositoryPresent": false,
+    "npmUserConfig": "/dev/null",
+    "npmCredentialEnvironmentPresent": false
+  },
+  "gates": {
+    "frozenPublicRegistryInstall": "passed",
+    "installedPackageIdentity": "passed",
+    "scriptPolicyTests": {
+      "result": "passed",
+      "count": 140
+    },
+    "applicationUnitTests": {
+      "result": "passed",
+      "count": 364
+    },
+    "typecheck": "passed",
+    "lint": {
+      "result": "passed",
+      "errors": 0,
+      "preExistingWarnings": 3
+    },
+    "productionVercelBuild": "passed"
+  },
+  "commands": [
+    "NPM_CONFIG_USERCONFIG=/dev/null fnm exec --using=24.20.0 pnpm install --frozen-lockfile --store-dir {fresh-store}",
+    "fnm exec --using=24.20.0 pnpm test",
+    "fnm exec --using=24.20.0 pnpm typecheck",
+    "fnm exec --using=24.20.0 pnpm lint",
+    "fnm exec --using=24.20.0 pnpm build:release",
+    "git status --short --untracked-files=all"
+  ],
+  "exclusions": [
+    "This package-consumer proof does not promote 0.1.6 from candidate to latest.",
+    "This proof is scoped to public-package consumption; Knit Preview and Production deployment verification are maintained by Knit's separate revision-attested release flow."
+  ]
+}
