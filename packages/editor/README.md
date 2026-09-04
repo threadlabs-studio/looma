@@ -5,7 +5,7 @@
 
 Candidate editor UI elements, styles, Tiptap 2 presets, slash commands, and table editing for Looma. The package uses Tiptap's vanilla `Editor`; the public facade's `/vue/editor` entry provides the turnkey Vue editor.
 
-Release status: Candidate `0.1.6`, not Stable.
+Release status: Candidate `0.1.7`, not Stable.
 
 ## Install
 
@@ -48,6 +48,12 @@ formatting controls, slash commands, and table actions. Host applications pass
 content and editability, receive document updates, and optionally provide an
 image-upload callback. Persistence, collaboration, workspace/page concepts, and
 app-specific commands remain host responsibilities.
+
+On narrow screens, `LoomaEditor` uses the browser visual viewport so its single
+formatting/table dock stays above the software keyboard. The dock is touch
+scrollable with CSS snap points. Slash and table popups use the same visible
+viewport boundary. Tables keep a useful minimum cell width and scroll within
+their wrapper instead of compressing every column.
 
 ## Accepted limitation
 

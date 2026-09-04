@@ -25,6 +25,7 @@ afterEach(async () => {
 describe("LoomaEditor (real browser)", () => {
   it("ships table editing and themes its Tiptap controls through Looma tokens", async () => {
     defineCustomElements();
+    vi.spyOn(window, "innerWidth", "get").mockReturnValue(1280);
     const host = document.createElement("div");
     host.style.setProperty("--ui-accent-solid", "rgb(109 74 255)");
     host.style.setProperty("--ui-surface-muted", "rgb(242 240 255)");
@@ -87,5 +88,55 @@ describe("LoomaEditor (real browser)", () => {
     await flushBrowser();
     expect(table.querySelectorAll("tr")).toHaveLength(3);
     expect(updates).toHaveBeenCalled();
+  });
+
+  it("uses one mobile dock and lets table users return to formatting", async () => {
+    defineCustomElements();
+    vi.spyOn(window, "innerWidth", "get").mockReturnValue(375);
+    vi.spyOn(window, "visualViewport", "get").mockReturnValue({
+      width: 375,
+      height: 420,
+      offsetLeft: 0,
+      offsetTop: 96,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    } as unknown as VisualViewport);
+    const host = document.createElement("div");
+    document.body.append(host);
+
+    let editor: Editor | null = null;
+    const app = createApp({
+      render: () => h(LoomaEditor, {
+        modelValue: {
+          type: "doc",
+          content: [{ type: "paragraph", content: [{ type: "text", text: "Mobile" }] }],
+        },
+        onReady: (instance: Editor) => { editor = instance; },
+      }),
+    });
+    apps.push(app);
+    app.mount(host);
+    await customElements.whenDefined("ui-editor-table-toolbar");
+    await flushBrowser();
+
+    editor!.chain().focus().setTextSelection({ from: 1, to: 3 }).run();
+    await flushBrowser();
+    expect(document.querySelectorAll(".looma-editor__mobile-toolbar-shell")).toHaveLength(1);
+    expect(document.querySelector('.looma-editor__mobile-toolbar-shell[data-mode="formatting"]')).toBeTruthy();
+    expect(document.querySelector('.looma-editor__mobile-toolbar-shell ui-icon-button[title="Bold"]')).toBeTruthy();
+
+    editor!.chain().focus().insertTable({ rows: 2, cols: 2, withHeaderRow: true }).run();
+    await flushBrowser();
+    expect(document.querySelectorAll(".looma-editor__mobile-toolbar-shell")).toHaveLength(1);
+    expect(document.querySelector('.looma-editor__mobile-toolbar-shell[data-mode="table"]')).toBeTruthy();
+    expect(document.querySelector('.looma-editor__mobile-toolbar-shell ui-editor-table-toolbar')).toBeTruthy();
+    expect(document.querySelector(".looma-editor__table-overlay-shell")).toBeNull();
+
+    const formatting = document.querySelector<HTMLButtonElement>(".looma-editor__mobile-toolbar-back")!;
+    expect(formatting.textContent).toContain("Formatting");
+    await userEvent.click(formatting);
+    await flushBrowser();
+    expect(document.querySelector('.looma-editor__mobile-toolbar-shell[data-mode="formatting"]')).toBeTruthy();
+    expect(document.querySelector('.looma-editor__mobile-toolbar-shell ui-editor-table-toolbar')).toBeNull();
   });
 });

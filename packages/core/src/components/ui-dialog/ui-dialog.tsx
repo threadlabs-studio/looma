@@ -14,6 +14,8 @@ export class UIDialog {
   @Prop({ attribute: 'default-open' }) defaultOpen = false;
   @Prop() modal = true;
   @Prop() dismissible = true;
+  /** Accessible name forwarded to the native dialog surface. */
+  @Prop() label?: string;
 
   @State() internalOpen = false;
 
@@ -96,6 +98,7 @@ export class UIDialog {
         <dialog
           ref={(el) => (this.dialogRef = el)}
           open={this.internalOpen}
+          aria-label={this.label}
         >
           <slot />
         </dialog>

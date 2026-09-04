@@ -101,6 +101,10 @@ export namespace Components {
          */
         "dismissible": boolean;
         /**
+          * Accessible name forwarded to the native dialog surface.
+         */
+        "label"?: string;
+        /**
           * @default true
          */
         "modal": boolean;
@@ -670,6 +674,10 @@ declare namespace LocalJSX {
          */
         "dismissible"?: boolean;
         /**
+          * Accessible name forwarded to the native dialog surface.
+         */
+        "label"?: string;
+        /**
           * @default true
          */
         "modal"?: boolean;
@@ -994,6 +1002,7 @@ declare namespace LocalJSX {
         "defaultOpen": boolean;
         "modal": boolean;
         "dismissible": boolean;
+        "label": string;
     }
     interface UiDisclosureAttributes {
         "open": boolean;
