@@ -3,9 +3,9 @@
 > Internal implementation workspace. Consumers install `@threadlabs/looma` and
 > use `/editor`, `/editor/extensions`, or `/editor.css`.
 
-Candidate editor UI elements, styles, Tiptap 2 presets, and table helpers for Looma. The package uses Tiptap's vanilla `Editor`; `@threadlabs/looma-vue` is the supported Release 1 adapter.
+Candidate editor UI elements, styles, Tiptap 2 presets, slash commands, and table editing for Looma. The package uses Tiptap's vanilla `Editor`; the public facade's `/vue/editor` entry provides the turnkey Vue editor.
 
-Release status: Candidate `0.1.5`, not Stable.
+Release status: Candidate `0.1.6`, not Stable.
 
 ## Install
 
@@ -26,6 +26,8 @@ import "@threadlabs/looma-editor";
 
 import {
   getDefaultEditorExtensions,
+  LoomaTableKit,
+  getLoomaTableExtensions,
   handleTableOverlayAction,
   insertTableAtRange
 } from "@threadlabs/looma-editor/extensions";
@@ -35,17 +37,24 @@ import {
 
 - Six custom elements: toolbar, slash menu, table context menu, table toolbar, insert-table grid, and table overlay.
 - `getDefaultEditorExtensions()` for the qualified Tiptap 2 extension preset.
+- `LoomaTableKit` or `getLoomaTableExtensions()` for consumers adding Looma table editing to an existing Tiptap editor.
+- `createLoomaSlashCommandExtension()` for the same slash-command behavior with a custom renderer.
 - `handleTableOverlayAction(editor, detail)` for boundary row/column actions.
 - `insertTableAtRange(editor, range, options)` for stable table insertion.
 - Token-aligned editor CSS.
 
-The app creates the Tiptap editor, owns content and persistence, supplies command state, maps emitted intent to commands, and restores focus. Looma does not own saves, uploads, collaboration, or app-specific commands.
+The turnkey `LoomaEditor` owns the Tiptap editor, command state, focus behavior,
+formatting controls, slash commands, and table actions. Host applications pass
+content and editability, receive document updates, and optionally provide an
+image-upload callback. Persistence, collaboration, workspace/page concepts, and
+app-specific commands remain host responsibilities.
 
 ## Accepted limitation
 
-Table controls have visible keyboard/touch paths and content-integrity coverage, but Confluence-level boundary polish and discoverability remain deferred under `E-TBL-003`. Data loss or corruption is not an accepted limitation.
+Table controls have visible keyboard/touch paths, outside-edge row insertion,
+column drag resizing, background color, merge/split actions, and content-integrity coverage.
 
-Block menus, floating toolbars, link editing, mentions, and emoji picking are roadmap items—not Candidate claims. React integration remains a deferred repository preview.
+Link editing, mentions, and emoji picking are roadmap items—not Candidate claims. React integration remains a deferred repository preview.
 
 See the [public Candidate docs](https://threadlabs-studio.github.io/looma/), [editor evidence](https://github.com/threadlabs-studio/looma/blob/main/docs/editor-bugs.md), and [R1 support matrix](https://github.com/threadlabs-studio/looma/blob/main/docs/release-support-matrix.md). Report problems in the [issue tracker](https://github.com/threadlabs-studio/looma/issues).
 

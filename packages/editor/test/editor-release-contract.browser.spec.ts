@@ -70,11 +70,19 @@ describe("editor release interactions (real browser)", () => {
     expect(details).toEqual([{ rows: 3, cols: 2, withHeaderRow: true }]);
   });
 
-  it("keeps structural actions visible and the hover overlay keyboard-operable", async () => {
+  it("keeps cell and structural actions visible and the hover overlay operable", async () => {
     document.body.innerHTML = `
       <main>
-        <ui-editor-table-toolbar open can-add-row-after can-add-column-after can-delete-table></ui-editor-table-toolbar>
-        <ui-editor-table-overlay open rows="2" cols="2"></ui-editor-table-overlay>
+        <ui-editor-table-toolbar
+          open
+          cell-background="#fef3c7"
+          can-add-row-after
+          can-add-column-after
+          can-delete-table
+          can-merge-cells
+          can-split-cell
+        ></ui-editor-table-toolbar>
+        <ui-editor-table-overlay open rows="2" cols="2" style="display:block;width:400px;height:200px"></ui-editor-table-overlay>
         <button id="outside" type="button">Outside</button>
       </main>
     `;
@@ -89,20 +97,39 @@ describe("editor release interactions (real browser)", () => {
       overlayActions.push((event as CustomEvent).detail);
     });
 
-    const options = toolbar.querySelector<HTMLButtonElement>("[data-action='toggle-overflow']")!;
-    options.focus();
+    toolbar.querySelector<HTMLButtonElement>("[data-action='toggle-overflow']")!.focus();
     await userEvent.keyboard("{Enter}");
     const deleteTable = toolbar.querySelector<HTMLButtonElement>("[data-action='delete-table']")!;
     deleteTable.focus();
     await userEvent.keyboard("{Enter}");
     expect(tableActions).toEqual(["delete-table"]);
 
+    toolbar.querySelector<HTMLButtonElement>("[data-action='toggle-overflow']")!.focus();
+    await userEvent.keyboard("{Enter}");
+    const yellowBackground = toolbar.querySelector<HTMLButtonElement>("[data-action='background-yellow']")!;
+    expect(yellowBackground.getAttribute("aria-checked")).toBe("true");
+    yellowBackground.click();
+    expect(tableActions).toEqual(["delete-table", "background-yellow"]);
+
+    toolbar.querySelector<HTMLButtonElement>("[data-action='toggle-overflow']")!.focus();
+    await userEvent.keyboard("{Enter}");
+    toolbar.querySelector<HTMLButtonElement>("[data-action='merge-cells']")!.click();
+    expect(tableActions).toEqual(["delete-table", "background-yellow", "merge-cells"]);
+
+    toolbar.querySelector<HTMLButtonElement>("[data-action='toggle-overflow']")!.focus();
+    await userEvent.keyboard("{Enter}");
+    toolbar.querySelector<HTMLButtonElement>("[data-action='split-cell']")!.click();
+    expect(tableActions).toEqual(["delete-table", "background-yellow", "merge-cells", "split-cell"]);
+
     const addRow = overlay.querySelector<HTMLButtonElement>("[data-control-key='row:1']")!;
     const rowHandle = addRow.querySelector<HTMLElement>(".ui-editor-table-overlay__handle")!;
     expect(addRow.style.getPropertyValue("--ui-editor-table-overlay-boundary-index")).toBe("1");
     expect(addRow.style.getPropertyValue("--ui-editor-table-overlay-segments")).toBe("2");
-    expect(getComputedStyle(addRow).pointerEvents).toBe("none");
+    expect(getComputedStyle(addRow).pointerEvents).toBe("auto");
     expect(getComputedStyle(rowHandle).pointerEvents).toBe("auto");
+    await userEvent.hover(addRow);
+    expect(addRow.dataset.active).toBe("true");
+    await vi.waitFor(() => expect(getComputedStyle(rowHandle).opacity).toBe("1"));
     addRow.focus();
     expect(addRow.dataset.active).toBe("true");
     await userEvent.keyboard("{Enter}");
@@ -124,6 +151,13 @@ describe("editor release interactions (real browser)", () => {
     const table = document.querySelector<HTMLElement>("table")!;
 
     expect(getComputedStyle(table).outlineStyle).toBe("none");
+  });
+
+  it("does not add trailing paragraph space inside table cells", () => {
+    document.body.innerHTML = '<div class="ProseMirror"><table><tbody><tr><td><p>Cell</p></td></tr></tbody></table></div>';
+    const paragraph = document.querySelector<HTMLElement>("td > p")!;
+
+    expect(getComputedStyle(paragraph).marginBottom).toBe("0px");
   });
 
   it("keeps the table context menu inside the viewport near the bottom-right edge", async () => {

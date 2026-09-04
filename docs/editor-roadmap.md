@@ -82,7 +82,7 @@ All of the following are achievable with **open-source** Tiptap extensions + **L
 | **Image** | Insert image; upload is app-provided | Image extension; app provides `onImageUpload`. Optional **web component** for upload trigger. |
 | **Emoji** | Picker in slash or toolbar | Optional **web component** picker + `@tiptap/extension-emoji`; adapter wires insert. |
 | **Mentions** | `@user` autocomplete | Optional **web component** list + `@tiptap/extension-mention`; app provides items; adapter wires. |
-| **Code block** | Syntax highlighting | Use `@tiptap/extension-code-block-lowlight`; app registers languages. |
+| **Code block** | Syntax highlighting | The default Looma preset includes `@tiptap/extension-code-block-lowlight` with the common language set. |
 | **Links** | Inline link with optional preview | Link extension; optional **web component** popover for edit/preview. |
 | **Placeholder** | “Type / for commands…” | Placeholder extension; Looma styles. |
 | **Dark/light** | Themed editor | Styles use Looma tokens; no hard-coded colors. |
@@ -95,13 +95,13 @@ Collaboration (cursors, presence), save, and image upload are **app responsibili
 
 | Layer | Looma | App (e.g. Knit) |
 |-------|-------|------------------|
-| **Web components** | Slash menu, block handle, block/table context menus, table overlay (hover “+”), toolbar, insert-table grid picker, (optional) floating toolbar, emoji picker, mention list | PageEditor layout, “Saving…” indicator, any app-specific blocks |
-| **Framework adapters** | `@threadlabs/looma/vue/editor` supplies the supported R1 editor UI wrappers; the private React workspace remains an internal preview | Uses `@tiptap/vue-3` for editor lifecycle/content and connects Looma wrapper events to the Tiptap editor instance |
-| **Extensions** | Document which extensions to use; optional “preset” that returns extension list (app still creates editor) | useEditor/createEditor: registers Looma-recommended extensions + app-specific (e.g. placeholder text from route) |
+| **Web components** | Slash menu, block/table context menus, table overlay (hover “+”), formatting toolbar, and insert-table grid picker | PageEditor layout, “Saving…” indicator, any app-specific blocks |
+| **Framework adapters** | `LoomaEditor` owns the Vue Tiptap lifecycle, selection/focus behavior, command wiring, and all editor UI; primitive wrappers remain available for advanced composition | Renders `LoomaEditor`, supplies content/editability/upload callbacks, and receives content updates |
+| **Extensions** | Turnkey preset plus standalone table and slash-command extensions/helpers | Adds only genuinely app-specific extensions when needed |
 | **Styles** | Editor CSS (tokens-based): table, slash menu, block handle, selection | App theme; can override tokens |
-| **Behavior** | None: no save, no upload, no presence | Save on delay, image upload to app API, presence (Supabase or other) |
+| **Behavior** | Editing behavior, including tables, slash commands, formatting, image insertion UI, selection, and focus | Persistence, image-upload transport, collaboration/presence, and domain events |
 
-Looma’s `/editor` subpath exposes the complete framework-neutral Tiptap-backed editor surface: **custom elements**, extension presets, and command helpers. `@threadlabs/looma/vue/editor` re-exports those helpers and supplies Vue wrappers for the elements. The app creates the editor (vanilla `new Editor()` or framework `useEditor()`) and owns its lifecycle. Advanced consumers can import the raw custom-element chrome from `/editor/ui` without loading the Tiptap integration.
+Looma’s `/editor` subpath exposes the complete framework-neutral Tiptap-backed editor surface: **custom elements**, extension presets, and command helpers. `@threadlabs/looma/vue/editor` adds the turnkey `LoomaEditor` component and owns its Tiptap lifecycle. Advanced consumers can use the extension kit without the component, or import raw custom-element chrome from `/editor/ui` for fully custom composition.
 
 ---
 

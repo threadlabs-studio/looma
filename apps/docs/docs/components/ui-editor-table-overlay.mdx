@@ -10,10 +10,13 @@ Boundary-aligned controls for inserting rows and columns around the active table
 
 ## Runtime Contract
 
-Set `open`, `rows`, and `cols` from the active table. Activating a boundary control emits `looma-editor-table-overlay-action` with `{ action, boundaryIndex }`; the app maps that detail to the editor command.
+`LoomaEditor` sets `open`, `rows`, and `cols` from the active table and maps
+boundary intent to Tiptap commands. Advanced consumers using the primitive
+directly receive `looma-editor-table-overlay-action` with
+`{ action, boundaryIndex }`.
 
 Pointer hover and keyboard focus reveal the affected boundary. Focus must remain reachable without hover, and touch integrations need a visible table-toolbar path because hover does not exist. The overlay is client-generated enhancement UI and has no no-JS fallback. The editor table content remains independent of it.
 
-## Candidate Limitation
-
-E-TBL-003 records the accepted Candidate visual-polish limitation. Chromium proves the visible keyboard path, and Tiptap tests prove row/column operations preserve content. Confluence-level boundary polish remains deferred; data loss is never accepted.
+Row and column insertion remains available from the visible table toolbar on
+touch devices. Pointer users also get boundary controls; native Tiptap column
+resize handles keep drag resizing available between columns.

@@ -10,7 +10,7 @@ Cell and table action menu whose available commands are controlled by app-provid
 
 ## Runtime Contract
 
-Set `open`, `cell-background`, and the `can-*` attributes from the active Tiptap selection. Selecting an available command emits `looma-editor-table-action` with `{ action }`. The app owns command execution, closing, focus restoration, and content persistence.
+Set `open`, `cell-background`, and the `can-*` attributes from the active Tiptap selection. Selecting an available command emits `looma-editor-table-action` with `{ action }`. `LoomaEditor` owns command execution, closing, and focus restoration; a consumer using this raw primitive owns that wiring. The host app always owns content persistence.
 
 The menu groups background, structural, cell, and destructive actions and hides unavailable commands. It is client-generated enhancement UI with no no-JS fallback. Essential table actions must also be keyboard-discoverable outside a pointer-only context gesture, and touch layouts need a visible entry point.
 

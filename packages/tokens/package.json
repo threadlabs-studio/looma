@@ -1,6 +1,6 @@
 {
   "name": "@threadlabs/looma-tokens",
-  "version": "0.1.1",
+  "version": "0.1.6",
   "private": true,
   "description": "CSS design tokens and light, dark, and high-contrast themes for Looma.",
   "type": "module",

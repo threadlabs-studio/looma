@@ -3,7 +3,7 @@
  * Uses the Vanilla JS Tiptap API; apps provide @tiptap/core and Looma ships the preset extensions.
  */
 
-import type { AnyExtension } from "@tiptap/core";
+import { Extension, type AnyExtension } from "@tiptap/core";
 import Document from "@tiptap/extension-document";
 import Paragraph from "@tiptap/extension-paragraph";
 import Text from "@tiptap/extension-text";
@@ -29,7 +29,8 @@ import Highlight from "@tiptap/extension-highlight";
 import Typography from "@tiptap/extension-typography";
 import Placeholder from "@tiptap/extension-placeholder";
 import Code from "@tiptap/extension-code";
-import CodeBlock from "@tiptap/extension-code-block";
+import { CodeBlockLowlight } from "@tiptap/extension-code-block-lowlight";
+import { common, createLowlight } from "lowlight";
 import TableRow from "@tiptap/extension-table-row";
 import { LoomaListBehavior } from "./list-behavior";
 import { LoomaTable, LoomaTableCell, LoomaTableHeader } from "./table-formatting";
@@ -38,6 +39,21 @@ export interface DefaultEditorExtensionsOptions {
   placeholder?: string;
   linkOpenOnClick?: boolean;
   imageInline?: boolean;
+}
+
+const lowlight = createLowlight(common);
+
+/** Complete Looma table support as one Tiptap extension. */
+export const LoomaTableKit: AnyExtension = Extension.create({
+  name: "loomaTableKit",
+  addExtensions() {
+    return [LoomaTable, TableRow, LoomaTableHeader, LoomaTableCell];
+  },
+});
+
+/** Individual table extensions for consumers that prefer an explicit extension list. */
+export function getLoomaTableExtensions(): AnyExtension[] {
+  return [LoomaTable, TableRow, LoomaTableHeader, LoomaTableCell];
 }
 
 /**
@@ -80,17 +96,14 @@ export function getDefaultEditorExtensions(
     Image.configure({ inline: imageInline }),
     Highlight.configure({ multicolor: false }),
     Code,
-    CodeBlock,
+    CodeBlockLowlight.configure({ lowlight }),
     Typography,
     Placeholder.configure({
       placeholder: ({ node }) =>
         node.type.name === "paragraph" ? placeholder : "",
       emptyNodeClass: "is-editor-empty",
     }),
-    LoomaTable,
-    TableRow,
-    LoomaTableHeader,
-    LoomaTableCell,
+    LoomaTableKit,
     LoomaListBehavior,
   ];
 }

@@ -1,6 +1,6 @@
 # Release 1 Support Matrix
 
-Release 1 is a public npm **Candidate `0.1.5`** for the smallest Looma surface
+Release 1 is a public npm **Candidate `0.1.6`** for the smallest Looma surface
 needed by Knit. It is not semver `1.0.0`, a Stable declaration, or a
 promise that every repository package and roadmap item is supported.
 
@@ -44,15 +44,14 @@ is a release defect, not a reason to silently shrink the source inventory.
 
 ## Accepted And Deferred Product Surface
 
-- `E-TBL-003` is an accepted Candidate visual-polish limitation. Chromium proves
-  the visible structural toolbar, keyboard dimension picker, and keyboard-operable
-  insertion overlay; Tiptap round-trip tests prove add-row/add-column operations
-  retain existing table and surrounding content. Confluence-level polish remains
-  deferred, while data loss or corruption remains release-blocking.
+- Chromium proves the visible structural toolbar, keyboard dimension picker,
+  outside-edge insertion overlay, cell backgrounds, merge/split, and column
+  resizing; Tiptap round-trip tests prove structural operations retain existing
+  table and surrounding content. Data loss or corruption remains release-blocking.
 - AlertDialog, Listbox, Combobox, Drawer/Sheet, HoverCard, CommandPalette,
-  Accordion group API, interactive Chip/Tag behavior, block menu, floating editor
-  toolbar, link editor, mentions, and emoji picker are deferred roadmap items.
-- Domain behavior such as save, uploads, collaboration, presence, workspace/page
+  Accordion group API, interactive Chip/Tag behavior, link editor, mentions, and
+  emoji picker are deferred roadmap items.
+- Domain behavior such as saves, upload transport, collaboration, presence, workspace/page
   concepts, and app-specific commands remains outside Looma.
 
 ## Runtime Contract
@@ -76,8 +75,8 @@ is a release defect, not a reason to silently shrink the source inventory.
 | Package names publicly absent | Observed via unauthenticated npm lookup | Authenticated namespace ownership/publish authorization required |
 | ContextMenu projections | API metadata, docs, navigation, contract README, Vue map/export, and render test complete | Must stay clean through publication |
 | Browser/a11y/adapter/package gates | Chromium interaction and axe checks pass for representative core/editor surfaces; Vue registers and renders the supported baseline without warnings; Node imports public core and packed graph entries without DOM globals | Keep mandatory, unskipped, and warning-clean in CI |
-| Editor E-TBL-003 | Accepted Candidate visual limitation with Chromium and Tiptap data-integrity evidence | Do not claim Confluence parity; any data loss remains release-blocking |
-| Packed package | One local `@threadlabs/looma@0.1.5` tarball passes content/export/hash inspection | License approval, clean protected build, and external/Knit fixtures remain |
+| Turnkey editor and table kit | Vue browser behavior, theme-token inheritance, Tiptap table integrity, and Knit integration pass | Keep the complete and extension-only paths green |
+| Packed package | One local `@threadlabs/looma@0.1.6` tarball passes content/export/hash inspection | License approval, clean protected build, and external/Knit fixtures remain |
 
 Automated accessibility does not replace manual assistive-technology, forced-color,
 zoom/reflow, or platform long-press checks. Those are documented manual Candidate
