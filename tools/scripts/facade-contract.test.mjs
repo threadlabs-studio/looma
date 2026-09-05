@@ -79,7 +79,10 @@ test("the facade declares the exact public subpath and peer contract", async () 
     "@tiptap/vue-3",
     "vue",
   ]);
-  assert.deepEqual(manifest.dependencies, { lowlight: "^3.3.0" });
+  assert.deepEqual(manifest.dependencies, {
+    lucide: "~0.554.0",
+    lowlight: "^3.3.0",
+  });
   assert.ok(manifest.sideEffects.includes("./editor/*.js"));
   assert.ok(manifest.sideEffects.includes("./vue/index.js"));
   assert.ok(manifest.sideEffects.includes("./vue/editor/*.js"));

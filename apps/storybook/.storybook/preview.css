@@ -23,3 +23,85 @@ body {
   font-family: inherit;
   color: inherit;
 }
+
+.table-primitives-playground {
+  box-sizing: border-box;
+  display: grid;
+  gap: var(--ui-space-4, 16px);
+  width: min(100%, 960px);
+  margin-inline: auto;
+  padding: clamp(20px, 4vw, 48px);
+}
+
+.table-primitives-playground__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ui-space-4, 16px);
+}
+
+.table-primitives-playground__header h2,
+.table-primitives-playground__header p,
+.table-primitives-playground__status {
+  margin: 0;
+}
+
+.table-primitives-playground__header p,
+.table-primitives-playground__status {
+  color: var(--ui-text-secondary);
+  font-size: var(--ui-font-size-sm, 0.875rem);
+}
+
+.table-primitives-playground__insert {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.table-primitives-playground__insert ui-button button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-2, 8px);
+}
+
+.table-primitives-playground__insert .looma-icon {
+  width: 1rem;
+  height: 1rem;
+  stroke-width: 1.75;
+}
+
+.table-primitives-playground__picker {
+  position: absolute;
+  z-index: 500;
+  top: calc(100% + var(--ui-space-2, 8px));
+  right: 0;
+  width: max-content;
+}
+
+.table-primitives-playground__editor {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--ui-border-default);
+  border-radius: var(--ui-radius-3, 12px);
+  background: var(--ui-surface-default);
+  box-shadow: var(--ui-shadow-sm);
+}
+
+.table-primitives-playground__editor .looma-editor {
+  --ui-editor-content-min-height: 220px;
+}
+
+@media (max-width: 640px) {
+  .table-primitives-playground__header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .table-primitives-playground__insert {
+    align-self: flex-start;
+  }
+
+  .table-primitives-playground__picker {
+    right: auto;
+    left: 0;
+  }
+}

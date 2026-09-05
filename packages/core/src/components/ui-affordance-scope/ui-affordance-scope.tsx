@@ -1,5 +1,9 @@
 import { Component, Element, Host, Prop, Watch, h } from '@stencil/core';
-import { createProximityCoordinator, type ProximityCoordinator } from '../../overlay/positioning';
+import {
+  createProximityCoordinator,
+  DEFAULT_AFFORDANCE_NEAR_RADIUS,
+  type ProximityCoordinator,
+} from '../../overlay/positioning';
 
 @Component({
   tag: 'ui-affordance-scope',
@@ -10,7 +14,7 @@ export class UIAffordanceScope {
   @Element() host: HTMLElement;
 
   /** Distance outside each registered affordance that reveals its near state. */
-  @Prop({ attribute: 'near-radius', reflect: true }) nearRadius = 32;
+  @Prop({ attribute: 'near-radius', reflect: true }) nearRadius = DEFAULT_AFFORDANCE_NEAR_RADIUS;
 
   private coordinator: ProximityCoordinator | null = null;
 

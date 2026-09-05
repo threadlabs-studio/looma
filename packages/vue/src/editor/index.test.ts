@@ -89,7 +89,7 @@ describe("@threadlabs/looma-vue/editor adapter", () => {
   it("forwards slash-menu events", async () => {
     const onSlashMenuHighlight = vi.fn();
     const onSlashMenuSelect = vi.fn();
-    const items = [{ title: "Paragraph", description: "Plain text", icon: "paragraph" }];
+    const items = [{ title: "Paragraph", description: "Plain text", icon: "pilcrow" as const }];
     const anchorRect = { x: 12, y: 24, width: 30, height: 18 };
     const host = document.createElement("div");
     document.body.append(host);

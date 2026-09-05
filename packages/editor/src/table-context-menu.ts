@@ -8,7 +8,12 @@ import {
   TABLE_CELL_BACKGROUND_OPTIONS,
   type TableCellBackgroundAction,
 } from "./table-backgrounds";
-import { clampRectToViewport, getVisualViewportRect } from "@threadlabs/looma-core";
+import {
+  clampRectToViewport,
+  getVisualViewportRect,
+  loomaIconMarkup,
+  type LoomaIconName,
+} from "@threadlabs/looma-core";
 
 const TAG = "ui-editor-table-context-menu";
 
@@ -35,6 +40,7 @@ export interface TableContextMenuActionEventDetail {
 type TableContextMenuItem = {
   action: TableContextMenuAction;
   label: string;
+  icon: LoomaIconName;
   can?: string;
   tone?: "danger";
 };
@@ -144,26 +150,26 @@ class UIEditorTableContextMenuElement extends HTMLElement {
       {
         heading: "Structure",
         actions: [
-          { action: "add-row-before", label: "Add row above", can: "can-add-row-before" },
-          { action: "add-row-after", label: "Add row below", can: "can-add-row-after" },
-          { action: "add-column-before", label: "Add column left", can: "can-add-column-before" },
-          { action: "add-column-after", label: "Add column right", can: "can-add-column-after" },
+          { action: "add-row-before", label: "Add row above", icon: "panel-top", can: "can-add-row-before" },
+          { action: "add-row-after", label: "Add row below", icon: "panel-bottom", can: "can-add-row-after" },
+          { action: "add-column-before", label: "Add column left", icon: "panel-left", can: "can-add-column-before" },
+          { action: "add-column-after", label: "Add column right", icon: "panel-right", can: "can-add-column-after" },
         ] satisfies TableContextMenuItem[],
       },
       {
         heading: "Cells",
         actions: [
-          { action: "clear-cells", label: "Clear selected cells" },
-          { action: "merge-cells", label: "Merge cells", can: "can-merge-cells" },
-          { action: "split-cell", label: "Split cell", can: "can-split-cell" },
+          { action: "clear-cells", label: "Clear selected cells", icon: "eraser" },
+          { action: "merge-cells", label: "Merge cells", icon: "merge", can: "can-merge-cells" },
+          { action: "split-cell", label: "Split cell", icon: "split", can: "can-split-cell" },
         ] satisfies TableContextMenuItem[],
       },
       {
         heading: "Table",
         actions: [
-          { action: "delete-row", label: "Delete row", can: "can-delete-row", tone: "danger" },
-          { action: "delete-column", label: "Delete column", can: "can-delete-column", tone: "danger" },
-          { action: "delete-table", label: "Delete table", can: "can-delete-table", tone: "danger" },
+          { action: "delete-row", label: "Delete row", icon: "trash", can: "can-delete-row", tone: "danger" },
+          { action: "delete-column", label: "Delete column", icon: "trash", can: "can-delete-column", tone: "danger" },
+          { action: "delete-table", label: "Delete table", icon: "trash", can: "can-delete-table", tone: "danger" },
         ] satisfies TableContextMenuItem[],
       },
     ] satisfies Array<{
@@ -205,7 +211,7 @@ class UIEditorTableContextMenuElement extends HTMLElement {
       } else {
         section.actions.forEach((action) => {
           const tone = "tone" in action ? action.tone : undefined;
-          html += `<button type="button" role="menuitem" data-action="${action.action}"${tone ? ` data-tone="${tone}"` : ""}>${action.label}</button>`;
+          html += `<button type="button" role="menuitem" data-action="${action.action}"${tone ? ` data-tone="${tone}"` : ""}>${loomaIconMarkup(action.icon)}<span>${action.label}</span></button>`;
         });
       }
       html += "</div>";

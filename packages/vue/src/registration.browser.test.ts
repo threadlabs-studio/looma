@@ -69,7 +69,7 @@ describe("@threadlabs/looma-vue release registration (real browser)", () => {
     vi.spyOn(window, "innerWidth", "get").mockReturnValue(1280);
     vi.spyOn(window, "innerHeight", "get").mockReturnValue(720);
     const { EditorSlashMenu } = await import("./editor/index");
-    const items = [{ title: "Paragraph", description: "Plain text", icon: "paragraph" }];
+    const items = [{ title: "Paragraph", description: "Plain text", icon: "pilcrow" as const }];
     const domRect = new DOMRect(12, 24, 30, 18);
     const anchorRect = shallowRef<SlashMenuAnchorRect>(domRect);
     const query = shallowRef("par");

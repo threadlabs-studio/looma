@@ -1,4 +1,5 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { LOOMA_ICONS, loomaIconMarkup } from "./icons";
 
 const COMPONENT_TAGS = [
   "ui-affordance-scope",
@@ -65,6 +66,18 @@ describe("@threadlabs/looma-core primitives", () => {
     document.body.innerHTML = "";
   });
 
+  it("provides the shared Lucide registry as accessible SVG markup", () => {
+    expect(LOOMA_ICONS["chevron-down"]).toBeTruthy();
+    const markup = loomaIconMarkup("chevron-down");
+    expect(markup).toContain('<svg class="looma-icon"');
+    expect(markup).toContain('data-looma-icon="chevron-down"');
+    expect(markup).toContain('aria-hidden="true"');
+    expect(markup).not.toContain("▾");
+    expect(loomaIconMarkup("plus", 'icon" onload="alert(1)')).toContain(
+      'class="icon&quot; onload=&quot;alert(1)"',
+    );
+  });
+
   it("toggles disclosure open state and aria/hidden sync", async () => {
     await render(`
       <ui-disclosure>
@@ -115,6 +128,36 @@ describe("@threadlabs/looma-core primitives", () => {
     expect(first.getAttribute("data-ui-proximity")).toBe("near");
     expect(second.getAttribute("data-ui-proximity")).toBe("near");
     expect(scope.getAttribute("data-ui-interaction")).toBe("engaged");
+  });
+
+  it("keeps the default near state within an intentional pointer approach", async () => {
+    await render(`
+      <ui-affordance-scope>
+        <button id="approach-target" data-ui-affordance>Add</button>
+      </ui-affordance-scope>
+    `);
+    const scope = document.querySelector("ui-affordance-scope")!;
+    const target = document.getElementById("approach-target")!;
+    target.getBoundingClientRect = () => new DOMRect(40, 40, 20, 20);
+    window.dispatchEvent(new Event("resize"));
+    await flushStencil();
+    expect((scope as HTMLElement & { nearRadius: number }).nearRadius).toBe(16);
+
+    target.dispatchEvent(new MouseEvent("pointermove", {
+      bubbles: true,
+      clientX: 20,
+      clientY: 50,
+    }));
+    await flushStencil();
+    expect(target.hasAttribute("data-ui-proximity")).toBe(false);
+
+    target.dispatchEvent(new MouseEvent("pointermove", {
+      bubbles: true,
+      clientX: 24,
+      clientY: 50,
+    }));
+    await flushStencil();
+    expect(target.getAttribute("data-ui-proximity")).toBe("near");
   });
 
   it("supports tabs roving tabindex and arrow-key activation", async () => {

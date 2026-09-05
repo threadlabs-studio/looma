@@ -7,7 +7,7 @@ Coordinate presentation-only proximity states for a related set of interactive a
 ## SSR And No-JS Contract
 
 ```html
-<ui-affordance-scope near-radius="32">
+<ui-affordance-scope near-radius="16">
   <ui-icon-button anticipatory label="Add item">+</ui-icon-button>
 </ui-affordance-scope>
 ```
@@ -16,7 +16,7 @@ Without upgrade, descendants remain ordinary interactive controls. Proximity is 
 
 ## API
 
-- Attribute/property: `near-radius` / `nearRadius` (number, default `32`).
+- Attribute/property: `near-radius` / `nearRadius` (number, default `16`).
 - Slot: interactive descendants marked with `data-ui-affordance`, including `ui-icon-button anticipatory`.
 - Events: none.
 
