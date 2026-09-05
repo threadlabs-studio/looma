@@ -146,7 +146,7 @@ The ecosystem converges on a few patterns:
 | Table context menu / toolbar | table menu, table action bar | add/delete row/column, merge/split, align cell content, header row/column, delete table | Shipped partly | Extend: call out merge/split and header controls explicitly |
 | Insert-table grid | insert table picker | row/column preview, header-row option, keyboard selection | Shipped | Keep |
 | Link editing | link toolbar, link popover | create/edit/remove link, validation, target/rel options, preview | Missing | Add to editor roadmap as a P0 parity gap |
-| Mentions | mention menu, inline combobox | trigger char, async items, keyboard navigation, chip/inline rendering | Planned only | Keep on roadmap |
+| Mentions | mention menu, inline combobox | trigger char, async items, keyboard navigation, chip/inline rendering | Shipped as `ui-editor-mention-menu` and `createLoomaMentionExtension()` | Keep the host provider bounded and domain-neutral |
 | Emoji | emoji picker, emoji grid suggestion menu | trigger char, grid navigation, search/filter | Planned only | Keep on roadmap |
 
 ## Recommended Gap Tiers

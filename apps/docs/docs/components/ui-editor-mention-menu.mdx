@@ -1,0 +1,35 @@
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# Editor Mention Menu
+
+Bounded, responsive suggestion surface for an app-provided people directory.
+
+## Component Reference
+
+<ComponentExamplesApiTabs component="ui-editor-mention-menu" />
+
+## Runtime Contract
+
+Advanced consumers set `open`, `query`, `items`, `selectedIndex`, `loading`, and
+`anchorRect` as properties. The element emits
+`looma-editor-mention-menu-highlight` and
+`looma-editor-mention-menu-select` with `{ index }`. `LoomaEditor` provides this
+integration by default and keeps keyboard focus in the document while text
+after `@` acts as the search query.
+
+The menu renders only the bounded items supplied by the host. On desktop it
+positions near the mention anchor. On narrow viewports it becomes a bottom
+surface constrained to the visual viewport above the mobile editor dock.
+Pointer movement changes highlight; click selects. The editor integration owns
+arrow-key, Enter, and Escape routing.
+
+This is a client enhancement with no generated no-JS menu. The editor remains
+usable when the directory is empty or unavailable. The module itself is safe to
+import during SSR.
+
+## Vue
+
+Most Vue consumers should use `LoomaEditor` with `mentionItems` or a bounded
+async `mentionProvider`. Advanced consumers can use `EditorMentionMenu` from
+`@threadlabs/looma/vue/editor` and pass custom Tiptap state through the
+documented properties and events.

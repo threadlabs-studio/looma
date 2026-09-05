@@ -32,6 +32,19 @@ export {
   type TableCellBackground,
 } from "./table-formatting";
 export {
+  createLoomaMentionExtension,
+  DEFAULT_MENTION_RESULT_LIMIT,
+  filterLoomaMentionItems,
+  LoomaMentionSuggestionPluginKey,
+  MAX_MENTION_RESULT_LIMIT,
+  normalizeMentionResultLimit,
+  type LoomaMentionItem,
+  type LoomaMentionMenuSnapshot,
+  type LoomaMentionOptions,
+  type LoomaMentionProvider,
+  type LoomaMentionProviderContext,
+} from "./mention";
+export {
   createLoomaSlashCommandExtension,
   getDefaultSlashCommands,
   LoomaSlashCommand,

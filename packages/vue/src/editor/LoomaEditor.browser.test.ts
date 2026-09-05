@@ -1,5 +1,5 @@
 import { userEvent } from "@vitest/browser/context";
-import type { Editor } from "@tiptap/core";
+import { Extension, type Editor } from "@tiptap/core";
 import type { TableOverlayGeometry } from "@threadlabs/looma-editor";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, ref, type App } from "vue";
@@ -24,6 +24,233 @@ afterEach(async () => {
 });
 
 describe("LoomaEditor (real browser)", () => {
+  it("filters real mention items and inserts the selected person with the keyboard", async () => {
+    defineCustomElements();
+    const host = document.createElement("div");
+    document.body.append(host);
+
+    let editor: Editor | null = null;
+    const app = createApp({
+      render: () => h(LoomaEditor, {
+        mentionItems: [
+          { id: "ada", label: "Ada Lovelace", detail: "ada@example.com", initials: "AL" },
+          { id: "grace", label: "Grace Hopper", detail: "grace@example.com", initials: "GH" },
+        ],
+        onReady: (instance: Editor) => { editor = instance; },
+      }),
+    });
+    apps.push(app);
+    app.mount(host);
+    await customElements.whenDefined("ui-editor-mention-menu");
+    await flushBrowser();
+
+    editor!.chain().focus().insertContent("@gr").run();
+    await flushBrowser();
+    const menu = document.querySelector<HTMLElement>("ui-editor-mention-menu")!;
+    expect(menu).toBeTruthy();
+    expect(menu.querySelectorAll('[role="option"]')).toHaveLength(1);
+    expect(menu.textContent).toContain("Grace Hopper");
+    expect(editor!.view.dom).toHaveAttribute("aria-controls", menu.id);
+    expect(editor!.view.dom).toHaveAttribute(
+      "aria-activedescendant",
+      `${menu.id}-option-0`,
+    );
+
+    await userEvent.keyboard("{Enter}");
+    await flushBrowser();
+    expect(editor!.view.dom).not.toHaveAttribute("aria-controls");
+    expect(editor!.getJSON().content?.[0]?.content?.[0]).toEqual({
+      type: "mention",
+      attrs: { id: "grace", label: "Grace Hopper" },
+    });
+    expect(host.querySelector('[data-type="mention"][data-id="grace"]')?.textContent)
+      .toBe("@Grace Hopper");
+  });
+
+  it("uses the hovered mention when Enter confirms the selection", async () => {
+    defineCustomElements();
+    const host = document.createElement("div");
+    document.body.append(host);
+
+    let editor: Editor | null = null;
+    const app = createApp({
+      render: () => h(LoomaEditor, {
+        mentionItems: [
+          { id: "ada", label: "Ada Lovelace" },
+          { id: "grace", label: "Grace Hopper" },
+        ],
+        onReady: (instance: Editor) => { editor = instance; },
+      }),
+    });
+    apps.push(app);
+    app.mount(host);
+    await flushBrowser();
+
+    editor!.chain().focus().insertContent("@").run();
+    await flushBrowser();
+    const options = document.querySelectorAll<HTMLElement>(
+      "ui-editor-mention-menu [role=option]",
+    );
+    expect(options).toHaveLength(2);
+    await userEvent.hover(options[1]!);
+    expect(editor!.view.dom).toHaveAttribute(
+      "aria-activedescendant",
+      `${document.querySelector("ui-editor-mention-menu")!.id}-option-1`,
+    );
+    await userEvent.keyboard("{Enter}");
+    await flushBrowser();
+
+    expect(editor!.getJSON().content?.[0]?.content?.[0]).toEqual({
+      type: "mention",
+      attrs: { id: "grace", label: "Grace Hopper" },
+    });
+  });
+
+  it("does not show an empty mention popup when no people are provided", async () => {
+    defineCustomElements();
+    const host = document.createElement("div");
+    document.body.append(host);
+    let editor: Editor | null = null;
+    const app = createApp({
+      render: () => h(LoomaEditor, {
+        mentionItems: [],
+        onReady: (instance: Editor) => { editor = instance; },
+      }),
+    });
+    apps.push(app);
+    app.mount(host);
+    await flushBrowser();
+
+    editor!.chain().focus().insertContent("@").run();
+    await flushBrowser();
+    expect(document.querySelector("ui-editor-mention-menu")).toBeNull();
+    expect(editor!.view.dom).not.toHaveAttribute("aria-controls");
+    expect(editor!.getText()).toBe("@");
+    await userEvent.keyboard("{Enter}");
+    expect(editor!.getJSON().content).toHaveLength(2);
+  });
+
+  it("queries an async mention provider with a bounded result limit", async () => {
+    defineCustomElements();
+    const host = document.createElement("div");
+    document.body.append(host);
+    let editor: Editor | null = null;
+    const mentionProvider = vi.fn(async (query: string, context: { limit: number }) => [
+      { id: "ada", label: "Ada Lovelace", detail: `${query}:${context.limit}` },
+    ]);
+    const app = createApp({
+      render: () => h(LoomaEditor, {
+        mentionProvider,
+        mentionLimit: 8,
+        onReady: (instance: Editor) => { editor = instance; },
+      }),
+    });
+    apps.push(app);
+    app.mount(host);
+    await flushBrowser();
+
+    editor!.chain().focus().insertContent("@ad").run();
+    await vi.waitFor(() => expect(mentionProvider).toHaveBeenCalledWith("ad", { limit: 8 }));
+    await flushBrowser();
+    expect(document.querySelector("ui-editor-mention-menu")?.textContent).toContain("Ada Lovelace");
+    expect(document.querySelector("ui-editor-mention-menu")?.textContent).toContain("Type after @ to search");
+  });
+
+  it("ignores an older async mention response after the query changes", async () => {
+    defineCustomElements();
+    const host = document.createElement("div");
+    document.body.append(host);
+    let editor: Editor | null = null;
+    const pending = new Map<string, (items: Array<{ id: string; label: string }>) => void>();
+    const mentionProvider = (query: string) => {
+      if (!query) return [];
+      return new Promise<Array<{ id: string; label: string }>>((resolve) => {
+        pending.set(query, resolve);
+      });
+    };
+    const app = createApp({
+      render: () => h(LoomaEditor, {
+        mentionProvider,
+        onReady: (instance: Editor) => { editor = instance; },
+      }),
+    });
+    apps.push(app);
+    app.mount(host);
+    await flushBrowser();
+
+    editor!.chain().focus().insertContent("@a").run();
+    await vi.waitFor(() => expect(pending.has("a")).toBe(true));
+    editor!.commands.insertContent("d");
+    await vi.waitFor(() => expect(pending.has("ad")).toBe(true));
+
+    pending.get("ad")?.([{ id: "ada", label: "Ada Lovelace" }]);
+    await vi.waitFor(() => expect(document.querySelector("ui-editor-mention-menu")?.textContent)
+      .toContain("Ada Lovelace"));
+    pending.get("a")?.([{ id: "alan", label: "Alan Turing" }]);
+    await flushBrowser();
+
+    expect(document.querySelector("ui-editor-mention-menu")?.textContent).toContain("Ada Lovelace");
+    expect(document.querySelector("ui-editor-mention-menu")?.textContent).not.toContain("Alan Turing");
+    await userEvent.keyboard("{Enter}");
+    await flushBrowser();
+    expect(editor!.getJSON().content?.[0]?.content?.[0]).toEqual({
+      type: "mention",
+      attrs: { id: "ada", label: "Ada Lovelace" },
+    });
+  });
+
+  it("keeps an in-flight mention lookup dismissed after Escape", async () => {
+    defineCustomElements();
+    const host = document.createElement("div");
+    document.body.append(host);
+    let editor: Editor | null = null;
+    let resolveLookup!: (items: Array<{ id: string; label: string }>) => void;
+    const mentionProvider = () => new Promise<Array<{ id: string; label: string }>>(
+      (resolve) => { resolveLookup = resolve; },
+    );
+    const app = createApp({
+      render: () => h(LoomaEditor, {
+        mentionProvider,
+        onReady: (instance: Editor) => { editor = instance; },
+      }),
+    });
+    apps.push(app);
+    app.mount(host);
+    await flushBrowser();
+
+    editor!.chain().focus().insertContent("@a").run();
+    await vi.waitFor(() => expect(resolveLookup).toBeTypeOf("function"));
+    editor!.view.focus();
+    await userEvent.keyboard("{Escape}");
+    await flushBrowser();
+    expect(document.querySelector("ui-editor-mention-menu")).toBeNull();
+    resolveLookup([{ id: "ada", label: "Ada Lovelace" }]);
+    await flushBrowser();
+
+    expect(document.querySelector("ui-editor-mention-menu")).toBeNull();
+    expect(editor!.view.dom).not.toHaveAttribute("aria-controls");
+    expect(editor!.getText()).toBe("@a");
+  });
+
+  it("does not duplicate an existing consumer mention extension", async () => {
+    defineCustomElements();
+    const host = document.createElement("div");
+    document.body.append(host);
+    let editor: Editor | null = null;
+    const app = createApp({
+      render: () => h(LoomaEditor, {
+        extensions: [Extension.create({ name: "mention" })],
+        onReady: (instance: Editor) => { editor = instance; },
+      }),
+    });
+    apps.push(app);
+    app.mount(host);
+    await flushBrowser();
+
+    expect(editor!.extensionManager.extensions.filter(({ name }) => name === "mention"))
+      .toHaveLength(1);
+  });
+
   it("ships table editing and themes its Tiptap controls through Looma tokens", async () => {
     defineCustomElements();
     vi.spyOn(window, "innerWidth", "get").mockReturnValue(1280);

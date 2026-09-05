@@ -2,20 +2,28 @@
 
 **Goal:** Replicate Confluence / Notion-like editor UX using **only open-source Tiptap extensions**, build the Vue UI ourselves, and **distribute it with Looma** so any app (e.g. Knit) can consume a first-class block editor without paying for Tiptap’s paid templates or Cloud.
 
-**Last updated:** 2026-09-04
+**Last updated:** 2026-09-05
 
 ---
 
 ## Status snapshot
 
-- **Shipped now:** a complete `LoomaEditor` component, the standalone table kit and slash-command extension, token-themed formatting and table controls, desktop selection/table affordances, and a visual-viewport-aware mobile editor surface. Mobile uses one touch-scrollable, snap-aligned dock above the software keyboard and switches that dock between formatting and table actions. Narrow tables scroll horizontally with useful minimum cell widths.
+- **Shipped now:** a complete `LoomaEditor` component, standalone table,
+  slash-command, and mention extensions, token-themed formatting and table
+  controls, desktop selection/table affordances, and a visual-viewport-aware
+  mobile editor surface. Mention search accepts a bounded async host provider,
+  keeps focus in the editor, and renders at most twenty results. Mobile uses one
+  touch-scrollable, snap-aligned dock above the software keyboard and switches
+  that dock between formatting and table actions. Narrow tables scroll
+  horizontally with useful minimum cell widths.
 - **App integration status:** Knit embeds `LoomaEditor` and supplies persistence, upload transport, collaboration, and document-domain events. Editor lifecycle, command wiring, selection/focus behavior, slash commands, formatting, and table editing remain Looma-owned.
 - **Current open defects:** see [Editor Bugs](./editor-bugs.md) for the remaining table overlay UX issues found during real Knit usage.
-- **Next:** continue the documented block-menu, link-editing, mentions, and emoji roadmap without moving shared editor behavior back into an application.
+- **Next:** continue the documented block-menu, link-editing, and emoji roadmap
+  without moving shared editor behavior back into an application.
 
 ## Release 1 Classification
 
-The six implemented editor elements and the documented extension/helper exports
+The seven implemented editor elements and the documented extension/helper exports
 are published Candidate surface through `@threadlabs/looma/editor`; Vue is the supported R1
 adapter. React integration remains internal/deferred even where repository code
 already exists. All later phases and ecosystem-parity gaps below are deferred.
@@ -81,7 +89,7 @@ All of the following are achievable with **open-source** Tiptap extensions + **L
 | **Floating toolbar** | On selection: bubble with format actions | Optional **web component**; adapter positions and wires commands. |
 | **Image** | Insert image; upload is app-provided | Image extension; app provides `onImageUpload`. Optional **web component** for upload trigger. |
 | **Emoji** | Picker in slash or toolbar | Optional **web component** picker + `@tiptap/extension-emoji`; adapter wires insert. |
-| **Mentions** | `@user` autocomplete | Optional **web component** list + `@tiptap/extension-mention`; app provides items; adapter wires. |
+| **Mentions** | `@user` autocomplete | **Shipped:** accessible web-component list + `@tiptap/extension-mention`; app provides bounded static or async items and owns authorization. |
 | **Code block** | Syntax highlighting | The default Looma preset includes `@tiptap/extension-code-block-lowlight` with the common language set. |
 | **Links** | Inline link with optional preview | Link extension; optional **web component** popover for edit/preview. |
 | **Placeholder** | “Type / for commands…” | Placeholder extension; Looma styles. |
@@ -95,7 +103,7 @@ Collaboration (cursors, presence), save, and image upload are **app responsibili
 
 | Layer | Looma | App (e.g. Knit) |
 |-------|-------|------------------|
-| **Web components** | Slash menu, block/table context menus, table overlay (hover “+”), formatting toolbar, and insert-table grid picker | PageEditor layout, “Saving…” indicator, any app-specific blocks |
+| **Web components** | Slash and mention menus, block/table context menus, table overlay (hover “+”), formatting toolbar, and insert-table grid picker | PageEditor layout, “Saving…” indicator, any app-specific blocks |
 | **Framework adapters** | `LoomaEditor` owns the Vue Tiptap lifecycle, selection/focus behavior, command wiring, and all editor UI; primitive wrappers remain available for advanced composition | Renders `LoomaEditor`, supplies content/editability/upload callbacks, and receives content updates |
 | **Extensions** | Turnkey preset plus standalone table and slash-command extensions/helpers | Adds only genuinely app-specific extensions when needed |
 | **Styles** | Editor CSS (tokens-based): table, slash menu, block handle, selection | App theme; can override tokens |

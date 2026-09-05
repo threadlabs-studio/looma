@@ -13,6 +13,7 @@
     "ui-dialog": { "status": "published", "package": "@threadlabs/looma" },
     "ui-disclosure": { "status": "published", "package": "@threadlabs/looma" },
     "ui-editor-insert-table-grid": { "status": "published", "package": "@threadlabs/looma/editor" },
+    "ui-editor-mention-menu": { "status": "published", "package": "@threadlabs/looma/editor" },
     "ui-editor-slash-menu": { "status": "published", "package": "@threadlabs/looma/editor" },
     "ui-editor-table-context-menu": { "status": "published", "package": "@threadlabs/looma/editor" },
     "ui-editor-table-overlay": { "status": "published", "package": "@threadlabs/looma/editor" },
