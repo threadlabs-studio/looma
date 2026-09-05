@@ -1,6 +1,6 @@
 :host {
   --ui-tree-indent: 16px;
-  --ui-tree-row-min-height: 44px;
+  --ui-tree-row-min-height: 32px;
   --ui-tree-drop-color: var(--ui-accent-solid);
 
   position: relative;
@@ -16,13 +16,15 @@
   align-items: center;
   min-block-size: var(--ui-tree-row-min-height);
   min-inline-size: 0;
+  font-size: var(--ui-tree-font-size, var(--ui-font-size-ui, 0.9375rem));
   border-radius: var(--ui-radius-md);
   color: var(--ui-text-secondary);
   transition:
     background-color var(--ui-motion-fast) var(--ui-motion-ease),
     color var(--ui-motion-fast) var(--ui-motion-ease),
     opacity var(--ui-motion-fast) var(--ui-motion-ease),
-    box-shadow var(--ui-motion-fast) var(--ui-motion-ease);
+    box-shadow var(--ui-motion-fast) var(--ui-motion-ease),
+    min-block-size var(--ui-motion-base) var(--ui-motion-ease);
 }
 
 .row:hover,
@@ -198,10 +200,12 @@
   display: none;
 }
 
-@media (hover: none), (pointer: coarse) {
-  .drag-handle {
-    display: none;
-  }
+:host-context(html[data-ui-input-modality='touch']) {
+  --ui-tree-row-min-height: 44px;
+}
+
+:host-context(html[data-ui-input-modality='touch']) .drag-handle {
+  display: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

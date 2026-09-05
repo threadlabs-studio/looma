@@ -54,6 +54,20 @@ Define one consistent overlay lifecycle for `ui-popover` and `ui-dialog`, with n
   - flip and shift behavior
 - No per-component ad hoc positioners.
 
+`ui-menu`, `ui-context-menu`, `ui-popover`, and `ui-tooltip` all use
+`createAnchoredSurface`. Popover API moves their floating surface into the top
+layer so a scrolling or clipping ancestor cannot hide it. CSS Anchor
+Positioning is the native placement path. The fallback is a small behavioral
+polyfill in the same controller (one animation-frame-coalesced flip/shift pass
+while open), avoiding a full CSS syntax polyfill in every consumer bundle.
+
+Unanchored viewport UI uses the same top-layer boundary through
+`createViewportSurface`; `ui-toast-region` is the canonical example. Its CSS
+owns viewport placement while the shared surface keeps it outside clipping
+ancestors. Tooltip pointer interactions wait 500ms to show and 100ms to hide by
+default through configurable `show-delay` and `hide-delay` properties; keyboard
+focus opens immediately.
+
 `getVisualViewportRect` and `clampRectToViewport` are the shared geometry
 primitives for floating UI. `createProximityCoordinator` uses the same viewport
 signals and frame scheduling for anticipatory controls; see

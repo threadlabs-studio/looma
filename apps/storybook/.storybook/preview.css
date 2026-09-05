@@ -70,10 +70,9 @@ body {
 }
 
 .table-primitives-playground__picker {
-  position: absolute;
-  z-index: 500;
-  top: calc(100% + var(--ui-space-2, 8px));
-  right: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
   width: max-content;
 }
 
@@ -100,8 +99,4 @@ body {
     align-self: flex-start;
   }
 
-  .table-primitives-playground__picker {
-    right: auto;
-    left: 0;
-  }
 }
