@@ -1,5 +1,6 @@
 import type { AnyExtension, Editor, JSONContent } from "@tiptap/core";
 import { BubbleMenu, EditorContent, useEditor } from "@tiptap/vue-3";
+import { TextSelection, type SelectionBookmark } from "@tiptap/pm/state";
 import {
   computed,
   defineComponent,
@@ -9,6 +10,7 @@ import {
   onMounted,
   reactive,
   ref,
+  useId,
   watch,
   type CSSProperties,
   type PropType,
@@ -29,13 +31,8 @@ import {
   type TableCellBackground,
   type TableActionCapabilities,
 } from "@threadlabs/looma-editor";
-import { IconButton } from "../index";
-import {
-  clampRectToViewport,
-  getVisualViewportRect,
-  LOOMA_ICONS,
-  type LoomaIconName,
-} from "@threadlabs/looma-core";
+import { IconButton, Popover } from "../index";
+import { getVisualViewportRect, LOOMA_ICONS, type LoomaIconName } from "@threadlabs/looma-core";
 import {
   EditorInsertTableGrid,
   EditorSlashMenu,
@@ -145,8 +142,7 @@ export const LoomaEditor = defineComponent({
   setup(props, { attrs, emit, expose }) {
     const root = ref<HTMLElement | null>(null);
     const fileInput = ref<HTMLInputElement | null>(null);
-    const tablePickerAnchor = ref<HTMLElement | null>(null);
-    const tablePickerPopover = ref<HTMLElement | null>(null);
+    const tablePickerAnchorId = `looma-editor-table-picker-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
     const tableToolbarShell = ref<HTMLElement | null>(null);
     const tableOverlayShell = ref<HTMLElement | null>(null);
     const tableMenuShell = ref<HTMLElement | null>(null);
@@ -155,7 +151,6 @@ export const LoomaEditor = defineComponent({
     const uploading = ref(false);
     const failedUpload = ref<{ file: File } | null>(null);
     const tablePickerOpen = ref(false);
-    const tablePickerStyle = ref<CSSProperties>({});
     const mobileToolbarStyle = ref<CSSProperties>({});
     const mobile = ref(typeof window !== "undefined" && window.innerWidth <= 767);
     const editorFocused = ref(false);
@@ -201,6 +196,22 @@ export const LoomaEditor = defineComponent({
     const imageDelivery = createLoomaImageDeliveryController({
       resolveAttributes: () => props.resolveImageAttributes,
     });
+    let lastFocusedSelection: {
+      bookmark: SelectionBookmark;
+      from: number;
+      to: number;
+      text: boolean;
+    } | null = null;
+    const rememberSelection = (instance: Editor) => {
+      if (!instance.isFocused) return;
+      const selection = instance.view.state.selection;
+      lastFocusedSelection = {
+        bookmark: selection.getBookmark(),
+        from: selection.from,
+        to: selection.to,
+        text: selection instanceof TextSelection,
+      };
+    };
 
     const editor = useEditor({
       extensions: [
@@ -212,6 +223,8 @@ export const LoomaEditor = defineComponent({
       content: props.modelValue,
       editable: props.editable,
       onCreate: ({ editor: instance }) => emit("ready", instance),
+      onFocus: ({ editor: instance }) => rememberSelection(instance),
+      onSelectionUpdate: ({ editor: instance }) => rememberSelection(instance),
       onUpdate: ({ editor: instance }) => {
         const value = instance.getJSON();
         emit("update:modelValue", value);
@@ -227,7 +240,39 @@ export const LoomaEditor = defineComponent({
     watch(() => props.modelValue, (value) => {
       const instance = editor.value;
       if (!instance || sameDocument(instance.getJSON(), value)) return;
-      instance.commands.setContent(value, false);
+      const wasFocused = instance.isFocused;
+      const previousSelection = lastFocusedSelection ?? {
+        bookmark: instance.view.state.selection.getBookmark(),
+        from: instance.view.state.selection.from,
+        to: instance.view.state.selection.to,
+        text: instance.view.state.selection instanceof TextSelection,
+      };
+      if (!wasFocused) {
+        instance.commands.setContent(value, false);
+        return;
+      }
+
+      // Set the document and restored selection in one transaction. A separate
+      // selection transaction is too late: replacing the document maps the DOM
+      // caret to the end before ProseMirror reconciles focus.
+      instance.chain().setContent(value, false).command(({ tr }) => {
+        try {
+          tr.setSelection(previousSelection.text
+            ? TextSelection.create(tr.doc, previousSelection.from, previousSelection.to)
+            : previousSelection.bookmark.resolve(tr.doc));
+        } catch {
+          // A genuine remote replacement can make the old selection invalid.
+          // Preserve the closest valid text range instead of Tiptap's default
+          // behavior of moving the caret to the document end.
+          const max = tr.doc.content.size;
+          const from = Math.max(1, Math.min(previousSelection.from, max));
+          const to = Math.max(from, Math.min(previousSelection.to, max));
+          tr.setSelection(TextSelection.create(tr.doc, from, to));
+        }
+        return true;
+      }).run();
+      instance.view.focus();
+      rememberSelection(instance);
     }, { deep: true });
 
     const closeTableUi = () => {
@@ -352,41 +397,9 @@ export const LoomaEditor = defineComponent({
       bindEditorUi(instance);
     }, { immediate: true });
 
-    const updateTablePickerPosition = () => {
-      const anchor = tablePickerAnchor.value;
-      if (!anchor) return;
-      const rect = anchor.getBoundingClientRect();
-      const viewport = getVisualViewportRect(window);
-      const width = 220;
-      const popoverHeight = tablePickerPopover.value?.getBoundingClientRect().height || 300;
-      const target = {
-        left: rect.left,
-        top: rect.bottom + 8,
-        right: rect.left + width,
-        bottom: rect.bottom + 8 + popoverHeight,
-        width,
-        height: popoverHeight,
-      };
-      const offset = clampRectToViewport(
-        target,
-        viewport,
-        12,
-      );
-      const left = target.left + offset.x;
-      const top = target.top + offset.y;
-      tablePickerStyle.value = window.innerWidth <= 767
-        ? {
-            position: "fixed",
-            left: `${left}px`,
-            top: `${Math.max(viewport.top + 12, viewport.bottom - popoverHeight - 64)}px`,
-          }
-        : { position: "fixed", top: `${top}px`, left: `${left}px` };
-    };
-
     const onViewportChange = () => {
       updateMobileViewport();
       updateTableUi();
-      updateTablePickerPosition();
       tableUi.menuOpen = false;
     };
 
@@ -401,10 +414,6 @@ export const LoomaEditor = defineComponent({
         || inElement(mobileToolbarShell.value);
       tableInteractionActive = inTableUi;
       if (inTableUi) setTimeout(() => { tableInteractionActive = false; }, 0);
-
-      if (tablePickerOpen.value && !inElement(tablePickerAnchor.value) && !inElement(tablePickerPopover.value)) {
-        tablePickerOpen.value = false;
-      }
 
       if (
         (tableUi.toolbarOpen || tableUi.overlayOpen || tableUi.menuOpen)
@@ -702,12 +711,16 @@ export const LoomaEditor = defineComponent({
         commandButton("Code block", "braces", instance.isActive("codeBlock"), !instance.can().toggleCodeBlock(), () => instance.chain().focus().toggleCodeBlock().run()),
         commandButton("Divider", "minus", false, !instance.can().setHorizontalRule(), () => instance.chain().focus().setHorizontalRule().run()),
         h("span", { class: "ui-editor-toolbar__divider", "aria-hidden": "true" }),
-        h("span", { ref: tablePickerAnchor, class: "looma-editor__table-picker-anchor" }, [
-          commandButton("Insert table", "table", false, false, () => {
-            tablePickerOpen.value = !tablePickerOpen.value;
-            nextTick(updateTablePickerPosition);
-          }),
-        ]),
+        h(IconButton, {
+          id: tablePickerAnchorId,
+          class: "looma-editor__toolbar-button",
+          label: "Insert table",
+          title: "Insert table",
+          size: "sm",
+          variant: tablePickerOpen.value ? "solid" : "ghost",
+          "aria-expanded": tablePickerOpen.value ? "true" : "false",
+          onClick: () => { tablePickerOpen.value = !tablePickerOpen.value; },
+        }, () => loomaIcon("table")),
         commandButton(uploading.value ? "Uploading image" : "Insert image", "image", false, uploading.value || !props.uploadImage, () => fileInput.value?.click()),
         h("span", { class: "ui-editor-toolbar__divider", "aria-hidden": "true" }),
         commandButton("Undo", "undo", false, !instance.can().undo(), () => instance.chain().focus().undo().run()),
@@ -832,19 +845,19 @@ export const LoomaEditor = defineComponent({
               h("span", "Drop image to upload"),
             ])
           : null,
-        tablePickerOpen.value
-          ? h("div", {
-              ref: tablePickerPopover,
-              class: "looma-editor__table-picker-popover",
-              style: tablePickerStyle.value,
-            }, [h(EditorInsertTableGrid, {
+        h(Popover, {
+          class: "looma-editor__table-picker-popover",
+          open: tablePickerOpen.value,
+          for: tablePickerAnchorId,
+          placement: mobile.value ? "top-start" : "bottom-start",
+          onClose: () => { tablePickerOpen.value = false; },
+        }, () => [h(EditorInsertTableGrid, {
               open: true,
               onInsertTable: (detail: { rows: number; cols: number; withHeaderRow: boolean }) => {
                 instance?.chain().focus().insertTable(detail).run();
                 tablePickerOpen.value = false;
               },
-            })])
-          : null,
+            })]),
         slash.active && slash.items.length > 0
           ? h(EditorSlashMenu, {
               open: true,

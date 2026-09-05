@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import '../../styles.css';
+import { initializeInputModality } from '../../input-modality';
 
 const flushStencil = async () => {
   for (let index = 0; index < 3; index += 1) {
@@ -17,10 +18,35 @@ function dragEvent(type: string, clientY: number, dataTransfer: Partial<DataTran
 
 afterEach(() => {
   document.body.innerHTML = '';
+  document.documentElement.removeAttribute('data-ui-input-modality');
   vi.restoreAllMocks();
 });
 
 describe('ui-tree drag and hierarchy interactions', () => {
+  it('stays compact for desktop and animates to touch targets only after real touch input', async () => {
+    initializeInputModality(document);
+    document.body.innerHTML = `
+      <ui-tree label="Pages">
+        <ui-tree-item item-id="page" label="Page"><span>Page</span></ui-tree-item>
+      </ui-tree>
+    `;
+    await flushStencil();
+
+    const item = document.querySelector<HTMLElement>('ui-tree-item')!;
+    const row = item.shadowRoot!.querySelector<HTMLElement>('[part="row"]')!;
+    expect(row.getBoundingClientRect().height).toBe(32);
+    expect(getComputedStyle(row).fontSize).toBe('15px');
+
+    document.body.dispatchEvent(new PointerEvent('pointerdown', {
+      bubbles: true,
+      pointerType: 'touch',
+    }));
+    expect(document.documentElement.dataset.uiInputModality).toBe('touch');
+    expect(getComputedStyle(item).getPropertyValue('--ui-tree-row-min-height').trim()).toBe('44px');
+    await new Promise(resolve => setTimeout(resolve, 220));
+    expect(row.getBoundingClientRect().height).toBe(44);
+  });
+
   it('uses one bounded logical indentation step and complete tree semantics', async () => {
     document.body.innerHTML = `
       <ui-tree label="Project pages">

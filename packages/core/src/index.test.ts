@@ -476,7 +476,7 @@ describe("@threadlabs/looma-core primitives", () => {
   it("opens and closes tooltip from trigger interactions", async () => {
     await render(`
       <button id="tooltip-trigger" type="button">Info</button>
-      <ui-tooltip for="tooltip-trigger">Tooltip copy</ui-tooltip>
+      <ui-tooltip for="tooltip-trigger" show-delay="0" hide-delay="0">Tooltip copy</ui-tooltip>
     `);
 
     const trigger = document.getElementById("tooltip-trigger");
@@ -503,6 +503,30 @@ describe("@threadlabs/looma-core primitives", () => {
       { open: true, reason: "action", trigger: "pointer" },
       { open: false, reason: "action", trigger: "pointer" }
     ]);
+  });
+
+  it("waits for pointer intent and cancels incidental tooltip passes", async () => {
+    await render(`
+      <button id="delayed-tooltip-trigger" type="button">Info</button>
+      <ui-tooltip for="delayed-tooltip-trigger">Tooltip copy</ui-tooltip>
+    `);
+
+    const trigger = document.getElementById("delayed-tooltip-trigger")!;
+    const tooltip = document.querySelector("ui-tooltip") as HTMLElement & {
+      showDelay: number;
+      hideDelay: number;
+    };
+    expect(tooltip.showDelay).toBe(500);
+    expect(tooltip.hideDelay).toBe(100);
+
+    trigger.dispatchEvent(new PointerEvent("pointerenter", { bubbles: true }));
+    await flushStencil();
+    expect(tooltip.hidden).toBe(true);
+
+    trigger.dispatchEvent(new PointerEvent("pointerleave", { bubbles: true }));
+    await new Promise((resolve) => setTimeout(resolve, 510));
+    await flushStencil();
+    expect(tooltip.hidden).toBe(true);
   });
 
   it("supports tooltip focus open and escape close with focus return", async () => {
