@@ -3,6 +3,7 @@ import Suggestion, {
   type SuggestionKeyDownProps,
   type SuggestionProps,
 } from "@tiptap/suggestion";
+import type { LoomaIconName } from "@threadlabs/looma-core";
 import { insertTableAtRange } from "./table-commands";
 
 export interface LoomaSlashCommandContext {
@@ -13,7 +14,7 @@ export interface LoomaSlashCommandContext {
 export interface LoomaSlashCommand {
   title: string;
   description: string;
-  icon: string;
+  icon: LoomaIconName;
   keywords: string[];
   command: (context: LoomaSlashCommandContext) => void;
 }
@@ -40,7 +41,7 @@ export function getDefaultSlashCommands(
     {
       title: "Text",
       description: "Plain paragraph",
-      icon: "¶",
+      icon: "pilcrow",
       keywords: ["text", "paragraph", "plain", "p"],
       command: ({ editor, range }) => {
         editor.chain().focus().deleteRange(range).setParagraph().run();
@@ -49,7 +50,7 @@ export function getDefaultSlashCommands(
     ...([1, 2, 3] as const).map((level) => ({
       title: `Heading ${level}`,
       description: level === 1 ? "Big section title" : level === 2 ? "Medium section title" : "Small section title",
-      icon: `H${level}`,
+      icon: `heading-${level}` as LoomaIconName,
       keywords: [`h${level}`, "heading", "title"],
       command: ({ editor, range }: LoomaSlashCommandContext) => {
         editor.chain().focus().deleteRange(range).setHeading({ level }).run();
@@ -58,7 +59,7 @@ export function getDefaultSlashCommands(
     {
       title: "Bullet list",
       description: "Unordered list",
-      icon: "•",
+      icon: "list",
       keywords: ["bullet", "list", "ul", "unordered"],
       command: ({ editor, range }) => {
         editor.chain().focus().deleteRange(range).toggleBulletList().run();
@@ -67,7 +68,7 @@ export function getDefaultSlashCommands(
     {
       title: "Numbered list",
       description: "Ordered list",
-      icon: "1.",
+      icon: "list-ordered",
       keywords: ["numbered", "ordered", "list", "ol"],
       command: ({ editor, range }) => {
         editor.chain().focus().deleteRange(range).toggleOrderedList().run();
@@ -76,7 +77,7 @@ export function getDefaultSlashCommands(
     {
       title: "Checklist",
       description: "Interactive to-do items",
-      icon: "☑",
+      icon: "list-todo",
       keywords: ["check", "task", "todo", "checklist"],
       command: ({ editor, range }) => {
         editor.chain().focus().deleteRange(range).toggleTaskList().run();
@@ -85,7 +86,7 @@ export function getDefaultSlashCommands(
     {
       title: "Blockquote",
       description: "Highlighted quote",
-      icon: "\"",
+      icon: "quote",
       keywords: ["quote", "blockquote", "callout"],
       command: ({ editor, range }) => {
         editor.chain().focus().deleteRange(range).toggleBlockquote().run();
@@ -94,7 +95,7 @@ export function getDefaultSlashCommands(
     {
       title: "Inline code",
       description: "Monospace code span",
-      icon: "`",
+      icon: "code-xml",
       keywords: ["code", "inline", "monospace"],
       command: ({ editor, range }) => {
         editor.chain().focus().deleteRange(range).toggleCode().run();
@@ -103,7 +104,7 @@ export function getDefaultSlashCommands(
     {
       title: "Code block",
       description: "Formatted code block",
-      icon: "<>",
+      icon: "braces",
       keywords: ["codeblock", "pre", "syntax", "snippet"],
       command: ({ editor, range }) => {
         editor.chain().focus().deleteRange(range).toggleCodeBlock().run();
@@ -112,7 +113,7 @@ export function getDefaultSlashCommands(
     {
       title: "Table",
       description: "Insert a table",
-      icon: "⊞",
+      icon: "table",
       keywords: ["table", "grid", "rows", "columns"],
       command: ({ editor, range }) => {
         insertTableAtRange(editor, range);
@@ -121,7 +122,7 @@ export function getDefaultSlashCommands(
     {
       title: "Divider",
       description: "Horizontal rule",
-      icon: "—",
+      icon: "minus",
       keywords: ["divider", "hr", "rule", "line"],
       command: ({ editor, range }) => {
         editor.chain().focus().deleteRange(range).setHorizontalRule().run();
@@ -130,7 +131,7 @@ export function getDefaultSlashCommands(
     {
       title: "Image",
       description: "Upload an image",
-      icon: "▧",
+      icon: "image",
       keywords: ["image", "photo", "picture", "upload"],
       command: ({ editor, range }) => {
         editor.chain().focus().deleteRange(range).run();

@@ -12,8 +12,9 @@ Looma interactive surfaces use a shared four-stage language:
 The table editor is the reference implementation. Its row and column insertion
 points begin as guide dots, reveal neutral `+` controls on approach, and become
 accented controls with full guide lines and tooltips on direct intent. A hovered
-or selected cell reveals row, column, and cell-menu actions. Column boundaries
-use the same language for drag resizing.
+cell reveals row and column selectors before the editor is focused; an actually
+selected cell adds its cell-menu action. Column boundaries use the same language
+for drag resizing.
 
 ## Interaction scope
 
@@ -21,9 +22,9 @@ use the same language for drag resizing.
 `data-ui-affordance`, including `ui-icon-button anticipatory`.
 
 ```html
-<ui-affordance-scope near-radius="32">
-  <ui-icon-button anticipatory label="Add item">+</ui-icon-button>
-  <ui-icon-button anticipatory label="Pin item">⌖</ui-icon-button>
+<ui-affordance-scope near-radius="16">
+  <ui-icon-button anticipatory label="Add item"><!-- Lucide plus --></ui-icon-button>
+  <ui-icon-button anticipatory label="Pin item"><!-- Lucide pin --></ui-icon-button>
 </ui-affordance-scope>
 ```
 

@@ -26,7 +26,7 @@ describe("editor release interactions (real browser)", () => {
       anchorRect: SlashMenuAnchorRect | null;
     };
     slashMenu.open = true;
-    slashMenu.items = [{ title: "Paragraph", description: "Plain text", icon: "paragraph" }];
+    slashMenu.items = [{ title: "Paragraph", description: "Plain text", icon: "pilcrow" }];
 
     const domRect = new DOMRect(12, 24, 30, 18);
     slashMenu.anchorRect = domRect;
@@ -34,6 +34,7 @@ describe("editor release interactions (real browser)", () => {
     expect(slashMenu.hidden).toBe(false);
     expect(slashMenu.style.left).toBe("12px");
     expect(slashMenu.style.top).toBe("50px");
+    expect(slashMenu.querySelector('[data-looma-icon="pilcrow"]')).toBeTruthy();
 
     const tiptapRect = {
       x: 64,
@@ -70,7 +71,7 @@ describe("editor release interactions (real browser)", () => {
     };
 
     slashMenu.open = true;
-    slashMenu.items = [{ title: "Code block", description: "Preformatted code", icon: "{}" }];
+    slashMenu.items = [{ title: "Code block", description: "Preformatted code", icon: "braces" }];
     slashMenu.anchorRect = new DOMRect(16, 300, 1, 18);
 
     expect(slashMenu.style.left).toBe("0px");
@@ -78,6 +79,7 @@ describe("editor release interactions (real browser)", () => {
     expect(slashMenu.style.bottom).toBe("");
     expect(slashMenu.style.width).toBe("375px");
     expect(slashMenu.style.maxHeight).toBe("320px");
+    expect(slashMenu.querySelector('[data-looma-icon="braces"]')).toBeTruthy();
   });
 
   it("supports keyboard dimension selection and stable table insertion intent", async () => {
@@ -99,6 +101,31 @@ describe("editor release interactions (real browser)", () => {
     expect(details).toEqual([{ rows: 3, cols: 2, withHeaderRow: true }]);
   });
 
+  it("keeps insert-table hover previews responsive without empty grid tracks", async () => {
+    document.body.innerHTML = '<ui-editor-insert-table-grid open max-rows="4" max-cols="4"></ui-editor-insert-table-grid>';
+    const picker = document.querySelector("ui-editor-insert-table-grid")!;
+    const grid = picker.querySelector<HTMLElement>(".ui-editor-insert-table-grid__grid")!;
+    const twoByTwo = picker.querySelector<HTMLButtonElement>('[aria-label="2 rows by 2 columns"]')!;
+    const fourByOne = picker.querySelector<HTMLButtonElement>('[aria-label="4 rows by 1 columns"]')!;
+    const outside = document.createElement("button");
+    document.body.append(outside);
+
+    expect(getComputedStyle(grid).gridTemplateColumns.split(" ")).toHaveLength(4);
+    expect(getComputedStyle(grid).gridTemplateRows.split(" ")).toHaveLength(4);
+
+    await userEvent.click(twoByTwo);
+    expect(picker.querySelector(".ui-editor-insert-table-grid__hint")?.textContent)
+      .toBe("2 × 2 selected");
+
+    await userEvent.hover(fourByOne);
+    expect(picker.querySelector(".ui-editor-insert-table-grid__hint")?.textContent)
+      .toBe("4 × 1");
+
+    await userEvent.hover(outside);
+    expect(picker.querySelector(".ui-editor-insert-table-grid__hint")?.textContent)
+      .toBe("2 × 2 selected");
+  });
+
   it("keeps cell and structural actions visible and the hover overlay operable", async () => {
     document.body.innerHTML = `
       <main>
@@ -117,7 +144,8 @@ describe("editor release interactions (real browser)", () => {
           cols="2"
           row-boundaries="0,82,200"
           column-boundaries="0,154,400"
-          active-cell="154,82,246,118,1,1"
+          active-cell="0,0,154,82,0,0"
+          hovered-cell="154,82,246,118,1,1"
           style="display:block;width:400px;height:200px;margin:60px"
         ></ui-editor-table-overlay>
         <button id="outside" type="button">Outside</button>
@@ -130,6 +158,8 @@ describe("editor release interactions (real browser)", () => {
     toolbar.addEventListener("looma-editor-table-action", (event) => {
       tableActions.push((event as CustomEvent<{ action: string }>).detail.action);
     });
+    expect(toolbar.querySelector('[data-action="align-left"] [data-looma-icon="align-left"]')).toBeTruthy();
+    expect(toolbar.querySelector('[data-action="toggle-overflow"] [data-looma-icon="chevron-down"]')).toBeTruthy();
     overlay.addEventListener("looma-editor-table-overlay-action", (event) => {
       overlayActions.push((event as CustomEvent).detail);
     });
@@ -163,7 +193,7 @@ describe("editor release interactions (real browser)", () => {
     expect(addRow.style.top).toBe("82px");
     expect(getComputedStyle(addRow).pointerEvents).toBe("none");
     expect(getComputedStyle(rowHandle).pointerEvents).toBe("auto");
-    expect(rowHandle.firstElementChild?.textContent).toBe("+");
+    expect(rowHandle.querySelector('[data-looma-icon="plus"]')).toBeTruthy();
     expect(addRow.querySelector("[data-ui-guide]")).toBeTruthy();
     await userEvent.hover(rowHandle);
     expect(addRow.dataset.active).toBe("true");
@@ -175,17 +205,25 @@ describe("editor release interactions (real browser)", () => {
 
     const cellMenu = overlay.querySelector<HTMLButtonElement>("[data-action='open-cell-menu']")!;
     expect(cellMenu.getAttribute("aria-label")).toBe("Cell actions");
+    expect(cellMenu.style.left).toBe("124px");
+    expect(cellMenu.style.top).toBe("6px");
+    expect(cellMenu.querySelector('[data-looma-icon="chevron-down"]')).toBeTruthy();
+    expect(cellMenu.textContent?.trim()).toBe("");
     cellMenu.click();
     expect(overlayActions.at(-1)).toMatchObject({
       action: "open-cell-menu",
-      rowIndex: 1,
-      columnIndex: 1,
+      rowIndex: 0,
+      columnIndex: 0,
     });
 
     const rowSelector = overlay.querySelector<HTMLButtonElement>("[data-action='select-row']")!;
     const columnSelector = overlay.querySelector<HTMLButtonElement>("[data-action='select-column']")!;
     expect(rowSelector.title).toBe("Select row");
     expect(columnSelector.title).toBe("Select column");
+    expect(rowSelector.style.top).toBe("141px");
+    expect(columnSelector.style.left).toBe("277px");
+    expect(rowSelector.querySelector('[data-looma-icon="grip-vertical"]')).toBeTruthy();
+    expect(columnSelector.querySelector('[data-looma-icon="grip-horizontal"]')).toBeTruthy();
   });
 
   it("uses the shared floating toolbar frame without sticky or mobile-fixed positioning", () => {

@@ -4,27 +4,45 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-04 15:12 PDT
-Status: public Candidate `0.1.10` and hosted docs are qualified; table-resize consumer correction is locally verified; `0.1.9` remains `latest`
+Last Updated: 2026-09-04 17:13 PDT
+Status: `0.1.11` is published under both `candidate` and `latest`; editor interaction polish for the next Candidate is locally verified
 
 ## Current Focus
 
-- Publish and qualify a patch that keeps Tiptap's structural table-cell minimum
-  width aligned with Looma's rendered 112px minimum so empty cells expose a
-  reliable column-resize handle in real consumers.
-- Publish the correction as the next Candidate, qualify its exact public bytes
-  in Knit, and then promote the verified Candidate to `latest`.
+- Publish and qualify the next Candidate with the opinionated Lucide icon
+  language, compact table cells, cell-local resize chrome, hover-first table
+  affordances, and a real interactive Storybook editor playground.
+- Qualify those exact public bytes in Knit before promoting them to `latest`.
 - Before promotion, refresh the chosen immutable Candidate's production
   hosted-docs evidence and run the owner-approved promotion with public Knit
   evidence for those exact bytes.
 - Complete npm trusted publishing and revoke the temporary bypass-2FA bootstrap
   credential before its January 2027 restriction.
-- Keep qualified `0.1.9` under `latest` until an exact immutable Candidate
+- Keep qualified `0.1.11` under `latest` until an exact immutable Candidate
   completes its hosted-docs, promotion, and release-record gates.
 - Keep React and Svelte deferred while Release 1 covers tokens, layout, core,
   editor, and Vue.
 
 ## Recent Progress
+
+- Editor interaction and icon-system polish:
+  - Standardized shipped Looma editor controls on a typed Lucide registry so
+    toolbars, slash commands, table actions, and dropdowns no longer use text
+    glyph stand-ins and continue to inherit Looma/Knit theme tokens.
+  - Replaced the fixed-state table story with the real turnkey Vue editor and
+    connected insert-table workflow; the picker now separates committed intent
+    from hover preview without rendering unused grid tracks.
+  - Separated table hover from selection: hovering an unfocused table exposes
+    row and column selectors, while cell actions remain anchored to the active
+    editing cell.
+  - Reduced the shared anticipatory near radius to 16px and kept overlapping
+    near states coordinated by one window-level pointer loop.
+  - Made cells the containing block for Tiptap resize chrome, removed the
+    interaction-dependent trailing paragraph gap, and retained whole-table
+    horizontal scrolling around 112px minimum-width cells.
+  - Added real-Chromium coverage for resize geometry, stable compact-cell
+    height, hover-before-focus controls, insert-grid intent, and the mobile
+    slash-command mapping that previously selected the wrong block type.
 
 - Table resizing consumer correction:
   - Reproduced the missing resize handle in Knit with the pointer targeting the

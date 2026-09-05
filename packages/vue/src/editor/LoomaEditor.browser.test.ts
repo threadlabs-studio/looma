@@ -60,10 +60,13 @@ describe("LoomaEditor (real browser)", () => {
 
     const bold = document.querySelector<HTMLElement>('ui-icon-button[title="Bold"]')!;
     expect(bold).toBeTruthy();
+    expect(bold.querySelector('[data-looma-icon="bold"]')).toBeTruthy();
+    expect(bold.textContent?.trim()).toBe("");
     expect(document.querySelector('ui-icon-button[title="Heading 3"]')).toBeTruthy();
     expect(document.querySelector('ui-icon-button[title="Blockquote"]')).toBeTruthy();
     expect(document.querySelector('ui-icon-button[title="Code block"]')).toBeTruthy();
     expect(document.querySelector('ui-icon-button[title="Divider"]')).toBeTruthy();
+    expect(document.querySelector('ui-icon-button[title="Insert table"] [data-looma-icon="table"]')).toBeTruthy();
     const boldButton = bold.shadowRoot!.querySelector("button")!;
     await userEvent.click(boldButton);
     await flushBrowser();
@@ -95,6 +98,8 @@ describe("LoomaEditor (real browser)", () => {
       position: { x: firstCellRect.width - 2, y: firstCellRect.height / 2 },
     } as Parameters<typeof userEvent.hover>[1]);
     await flushBrowser();
+    expect(firstCellRect.height).toBeLessThanOrEqual(44);
+    expect(firstCell.getBoundingClientRect().height).toBeCloseTo(firstCellRect.height, 1);
     const resizeHandle = table.querySelector<HTMLElement>(".column-resize-handle")!;
     expect(resizeHandle).toBeTruthy();
     expect(getComputedStyle(resizeHandle).cursor).toBe("col-resize");
@@ -154,7 +159,7 @@ describe("LoomaEditor (real browser)", () => {
     expect((overlayActions.mock.calls[0]?.[0] as CustomEvent).detail).toMatchObject({
       action: "open-cell-menu",
       rowIndex: 0,
-      columnIndex: 1,
+      columnIndex: 0,
     });
     const contextMenu = document.querySelector<HTMLElement>("ui-editor-table-context-menu")!;
     expect(contextMenu).toBeTruthy();
@@ -165,7 +170,14 @@ describe("LoomaEditor (real browser)", () => {
     expect(
       editor!.getJSON().content?.[1]?.content?.[0]?.content
         ?.map((cell) => cell.attrs?.backgroundColor ?? null),
-    ).toEqual([null, "#fef3c7"]);
+    ).toEqual(["#fef3c7", null]);
+
+    await userEvent.click(secondCell);
+    await flushBrowser();
+    expect(
+      document.querySelector<HTMLElement>('ui-editor-table-overlay [data-action="open-cell-menu"]')
+        ?.dataset.columnIndex,
+    ).toBe("1");
 
     const addRow = document.querySelector<HTMLElement>(
       'ui-editor-table-toolbar [data-action="add-row-after"]',
@@ -174,6 +186,127 @@ describe("LoomaEditor (real browser)", () => {
     await flushBrowser();
     expect(currentTable.querySelectorAll("tr")).toHaveLength(3);
     expect(updates).toHaveBeenCalled();
+  });
+
+  it("anticipates table actions on hover before the editor is focused", async () => {
+    defineCustomElements();
+    vi.spyOn(window, "innerWidth", "get").mockReturnValue(1280);
+    const host = document.createElement("div");
+    document.body.append(host);
+
+    let editor: Editor | null = null;
+    const app = createApp({
+      render: () => h(LoomaEditor, {
+        modelValue: {
+          type: "doc",
+          content: [
+            { type: "paragraph", content: [{ type: "text", text: "Before table" }] },
+            {
+              type: "table",
+              content: Array.from({ length: 2 }, () => ({
+                type: "tableRow",
+                content: Array.from({ length: 2 }, () => ({
+                  type: "tableCell",
+                  content: [{ type: "paragraph" }],
+                })),
+              })),
+            },
+          ],
+        },
+        onReady: (instance: Editor) => { editor = instance; },
+      }),
+    });
+    apps.push(app);
+    app.mount(host);
+    await customElements.whenDefined("ui-editor-table-overlay");
+    await flushBrowser();
+
+    const currentEditor = editor as unknown as Editor;
+    expect(currentEditor.isFocused).toBe(false);
+    const secondCell = host.querySelectorAll<HTMLTableCellElement>(".ProseMirror td")[1]!;
+    await userEvent.hover(secondCell);
+    secondCell.dispatchEvent(new PointerEvent("pointerover", {
+      bubbles: true,
+      pointerType: "mouse",
+    }));
+    await flushBrowser();
+
+    const overlay = document.querySelector<HTMLElement & { geometry: TableOverlayGeometry | null }>(
+      "ui-editor-table-overlay",
+    )!;
+    expect(overlay).toBeTruthy();
+    expect(overlay.geometry?.hoveredCell).toMatchObject({ rowIndex: 0, columnIndex: 1 });
+    expect(overlay.querySelector('[data-action="select-row"]')?.getAttribute("data-column-index"))
+      .toBe("1");
+    expect(overlay.querySelector('[data-action="select-column"]')?.getAttribute("data-column-index"))
+      .toBe("1");
+    expect(overlay.querySelector('[data-action="open-cell-menu"]')).toBeNull();
+    expect(document.querySelector("ui-editor-table-toolbar")).toBeNull();
+
+    await userEvent.click(overlay.querySelector<HTMLButtonElement>('[data-action="select-column"]')!);
+    await flushBrowser();
+    expect(currentEditor.isFocused).toBe(true);
+    expect(currentEditor.isActive("table")).toBe(true);
+    expect(currentEditor.state.selection.from).not.toBe(currentEditor.state.selection.to);
+    expect(document.querySelector("ui-editor-table-toolbar")).toBeTruthy();
+
+    const paragraph = host.querySelector<HTMLParagraphElement>(".ProseMirror > p")!;
+    await userEvent.hover(paragraph);
+    secondCell.dispatchEvent(new PointerEvent("pointerout", {
+      bubbles: true,
+      pointerType: "mouse",
+      relatedTarget: paragraph,
+    }));
+    paragraph.dispatchEvent(new PointerEvent("pointerover", {
+      bubbles: true,
+      pointerType: "mouse",
+    }));
+    await flushBrowser();
+    expect(document.querySelector('[data-action="select-row"]')).toBeNull();
+    expect(document.querySelector('[data-action="select-column"]')).toBeNull();
+  });
+
+  it("runs the slash command that was clicked instead of a stale highlighted item", async () => {
+    defineCustomElements();
+    vi.spyOn(window, "innerWidth", "get").mockReturnValue(375);
+    vi.spyOn(window, "visualViewport", "get").mockReturnValue({
+      width: 375,
+      height: 420,
+      offsetLeft: 0,
+      offsetTop: 96,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    } as unknown as VisualViewport);
+    const host = document.createElement("div");
+    document.body.append(host);
+
+    let editor: Editor | null = null;
+    const app = createApp({
+      render: () => h(LoomaEditor, {
+        modelValue: { type: "doc", content: [{ type: "paragraph" }] },
+        onReady: (instance: Editor) => { editor = instance; },
+      }),
+    });
+    apps.push(app);
+    app.mount(host);
+    await customElements.whenDefined("ui-editor-slash-menu");
+    await flushBrowser();
+
+    editor!.chain().focus().insertContent("/code").run();
+    await flushBrowser();
+    const menu = document.querySelector<HTMLElement>("ui-editor-slash-menu")!;
+    expect(menu).toBeTruthy();
+    expect(menu.getBoundingClientRect().width).toBeLessThanOrEqual(375);
+    const codeBlock = Array.from(menu.querySelectorAll<HTMLElement>("[data-index]"))
+      .find((item) => item.querySelector(".ui-editor-slash-menu__title")?.textContent === "Code block")!;
+    expect(codeBlock.querySelector('[data-looma-icon="braces"]')).toBeTruthy();
+
+    await userEvent.click(codeBlock);
+    await flushBrowser();
+
+    expect(editor!.isActive("codeBlock")).toBe(true);
+    expect(editor!.isActive("heading", { level: 3 })).toBe(false);
+    expect(document.querySelector("ui-editor-slash-menu")).toBeNull();
   });
 
   it("uses one mobile dock and lets table users return to formatting", async () => {

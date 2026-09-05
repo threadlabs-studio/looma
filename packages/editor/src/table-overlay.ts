@@ -5,6 +5,7 @@
 
 import {
   createProximityCoordinator,
+  loomaIconMarkup,
   type ProximityCoordinator,
 } from "@threadlabs/looma-core";
 
@@ -47,6 +48,7 @@ export interface TableOverlayGeometry {
   rowBoundaries: number[];
   columnBoundaries: number[];
   activeCell: ActiveCellRect | null;
+  hoveredCell?: ActiveCellRect | null;
 }
 
 function sameNumbers(left: number[], right: number[]): boolean {
@@ -73,7 +75,8 @@ function sameGeometry(
   if (!left || !right) return false;
   return sameNumbers(left.rowBoundaries, right.rowBoundaries)
     && sameNumbers(left.columnBoundaries, right.columnBoundaries)
-    && sameActiveCell(left.activeCell, right.activeCell);
+    && sameActiveCell(left.activeCell, right.activeCell)
+    && sameActiveCell(left.hoveredCell ?? null, right.hoveredCell ?? null);
 }
 
 function mapTableCells(table: HTMLTableElement): {
@@ -125,6 +128,7 @@ function uniqueSorted(values: number[]): number[] {
 export function measureTableOverlayGeometry(
   table: HTMLTableElement,
   activeCell: HTMLTableCellElement | null,
+  hoveredCell: HTMLTableCellElement | null = null,
 ): TableOverlayGeometry {
   const tableRect = table.getBoundingClientRect();
   const rows = Array.from(table.rows);
@@ -140,22 +144,38 @@ export function measureTableOverlayGeometry(
   }));
 
   if (!activeCell || !table.contains(activeCell)) {
-    return { rowBoundaries, columnBoundaries, activeCell: null };
+    return {
+      rowBoundaries,
+      columnBoundaries,
+      activeCell: null,
+      hoveredCell: measureCellRect(table, hoveredCell, coordinates),
+    };
   }
 
-  const cellRect = activeCell.getBoundingClientRect();
-  const coordinate = coordinates.get(activeCell);
   return {
     rowBoundaries,
     columnBoundaries,
-    activeCell: {
-      left: Math.round((cellRect.left - tableRect.left) * 100) / 100,
-      top: Math.round((cellRect.top - tableRect.top) * 100) / 100,
-      width: Math.round(cellRect.width * 100) / 100,
-      height: Math.round(cellRect.height * 100) / 100,
-      rowIndex: coordinate?.rowIndex ?? 0,
-      columnIndex: coordinate?.columnIndex ?? 0,
-    },
+    activeCell: measureCellRect(table, activeCell, coordinates),
+    hoveredCell: measureCellRect(table, hoveredCell, coordinates),
+  };
+}
+
+function measureCellRect(
+  table: HTMLTableElement,
+  cell: HTMLTableCellElement | null,
+  coordinates: Map<HTMLTableCellElement, { rowIndex: number; columnIndex: number }>,
+): ActiveCellRect | null {
+  if (!cell || !table.contains(cell)) return null;
+  const tableRect = table.getBoundingClientRect();
+  const cellRect = cell.getBoundingClientRect();
+  const coordinate = coordinates.get(cell);
+  return {
+    left: Math.round((cellRect.left - tableRect.left) * 100) / 100,
+    top: Math.round((cellRect.top - tableRect.top) * 100) / 100,
+    width: Math.round(cellRect.width * 100) / 100,
+    height: Math.round(cellRect.height * 100) / 100,
+    rowIndex: coordinate?.rowIndex ?? 0,
+    columnIndex: coordinate?.columnIndex ?? 0,
   };
 }
 
@@ -172,7 +192,7 @@ function fallbackBoundaries(segments: number, length: number): number[] {
 if (typeof HTMLElement !== "undefined") {
 class UIEditorTableOverlayElement extends HTMLElement {
   static get observedAttributes(): string[] {
-    return ["open", "rows", "cols", "row-boundaries", "column-boundaries", "active-cell"];
+    return ["open", "rows", "cols", "row-boundaries", "column-boundaries", "active-cell", "hovered-cell"];
   }
 
   #rows = DEFAULT_ROWS;
@@ -254,6 +274,18 @@ class UIEditorTableOverlayElement extends HTMLElement {
   #activeCell(): ActiveCellRect | null {
     if (this.#geometry) return this.#geometry.activeCell;
     const values = finiteNumbers(this.getAttribute("active-cell"));
+    if (values.length !== 6) return null;
+    const [left, top, width, height, rowIndex, columnIndex] = values;
+    if (
+      left === undefined || top === undefined || width === undefined || height === undefined
+      || rowIndex === undefined || columnIndex === undefined
+    ) return null;
+    return { left, top, width, height, rowIndex, columnIndex };
+  }
+
+  #hoveredCell(): ActiveCellRect | null {
+    if (this.#geometry) return this.#geometry.hoveredCell ?? null;
+    const values = finiteNumbers(this.getAttribute("hovered-cell"));
     if (values.length !== 6) return null;
     const [left, top, width, height, rowIndex, columnIndex] = values;
     if (
@@ -360,22 +392,26 @@ class UIEditorTableOverlayElement extends HTMLElement {
       '<span class="ui-editor-table-overlay__guide" data-ui-guide aria-hidden="true"></span>',
       `<button type="button" class="ui-editor-table-overlay__handle" data-ui-affordance="insert-${noun}"`,
       ` data-action="${action}" data-boundary-index="${index}" aria-label="${label}">`,
-      '<span aria-hidden="true">+</span>',
+      loomaIconMarkup("plus"),
       `<span class="ui-editor-table-overlay__tooltip" role="tooltip">${label}</span>`,
       "</button>",
       "</div>",
     ].join("");
   }
 
-  #activeCellControls(cell: ActiveCellRect): string {
+  #cellSelectors(cell: ActiveCellRect): string {
     const centerX = cell.left + (cell.width / 2);
     const centerY = cell.top + (cell.height / 2);
     const indexes = `data-row-index="${cell.rowIndex}" data-column-index="${cell.columnIndex}"`;
     return [
-      `<button type="button" class="ui-editor-table-overlay__selector ui-editor-table-overlay__selector--row" style="top:${centerY}px" data-action="select-row" ${indexes} title="Select row" aria-label="Select row"><span aria-hidden="true"></span></button>`,
-      `<button type="button" class="ui-editor-table-overlay__selector ui-editor-table-overlay__selector--column" style="left:${centerX}px" data-action="select-column" ${indexes} title="Select column" aria-label="Select column"><span aria-hidden="true"></span></button>`,
-      `<button type="button" class="ui-editor-table-overlay__cell-menu" style="left:${cell.left + cell.width - 30}px;top:${cell.top + 6}px" data-action="open-cell-menu" ${indexes} title="Cell actions" aria-label="Cell actions"><span aria-hidden="true">⌄</span></button>`,
+      `<button type="button" class="ui-editor-table-overlay__selector ui-editor-table-overlay__selector--row" style="top:${centerY}px" data-action="select-row" ${indexes} title="Select row" aria-label="Select row">${loomaIconMarkup("grip-vertical")}</button>`,
+      `<button type="button" class="ui-editor-table-overlay__selector ui-editor-table-overlay__selector--column" style="left:${centerX}px" data-action="select-column" ${indexes} title="Select column" aria-label="Select column">${loomaIconMarkup("grip-horizontal")}</button>`,
     ].join("");
+  }
+
+  #cellMenu(cell: ActiveCellRect): string {
+    const indexes = `data-row-index="${cell.rowIndex}" data-column-index="${cell.columnIndex}"`;
+    return `<button type="button" class="ui-editor-table-overlay__cell-menu" style="left:${cell.left + cell.width - 30}px;top:${cell.top + 6}px" data-action="open-cell-menu" ${indexes} title="Cell actions" aria-label="Cell actions">${loomaIconMarkup("chevron-down")}</button>`;
   }
 
   private render(): void {
@@ -388,7 +424,8 @@ class UIEditorTableOverlayElement extends HTMLElement {
 
     const rows = this.#boundaries("row-boundaries", this.#rows);
     const columns = this.#boundaries("column-boundaries", this.#cols);
-    const cell = this.#activeCell();
+    const activeCell = this.#activeCell();
+    const hoveredCell = this.#hoveredCell();
     this.innerHTML = [
       '<div class="ui-editor-table-overlay" aria-label="Table controls">',
       '<div class="ui-editor-table-overlay__rows">',
@@ -397,7 +434,8 @@ class UIEditorTableOverlayElement extends HTMLElement {
       '<div class="ui-editor-table-overlay__cols">',
       columns.map((position, index) => this.#insertionControl("col", index, position)).join(""),
       "</div>",
-      cell ? this.#activeCellControls(cell) : "",
+      hoveredCell ? this.#cellSelectors(hoveredCell) : "",
+      activeCell ? this.#cellMenu(activeCell) : "",
       "</div>",
     ].join("");
     this.#syncActiveControl();

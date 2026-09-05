@@ -1,127 +1,165 @@
+import type { Editor, JSONContent } from "@tiptap/core";
+import { LOOMA_ICONS, type LoomaIconName } from "@threadlabs/looma-core";
+import { Button } from "@threadlabs/looma-vue";
+import { EditorInsertTableGrid, LoomaEditor } from "@threadlabs/looma-vue/editor";
 import type { Meta, StoryObj } from "@storybook/web-components-vite";
+import { createApp, defineComponent, h, ref, type App } from "vue";
 
 type PlaygroundArgs = {
-  contextMenuOpen: boolean;
-  insertGridOpen: boolean;
-  overlayOpen: boolean;
+  pickerOpen: boolean;
   rows: number;
   cols: number;
 };
 
-function addLogLine(logEl: HTMLElement | null, label: string, payload: unknown): void {
-  if (!logEl) return;
-  const stamp = new Date().toLocaleTimeString();
-  const line = `[${stamp}] ${label}: ${JSON.stringify(payload)}`;
-  logEl.textContent = `${line}\n${logEl.textContent ?? ""}`.trim();
+function icon(name: LoomaIconName) {
+  return h("svg", {
+    class: "looma-icon",
+    "data-looma-icon": name,
+    "aria-hidden": "true",
+    focusable: "false",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    "stroke-width": 2,
+    "stroke-linecap": "round",
+    "stroke-linejoin": "round",
+  }, LOOMA_ICONS[name].map(([tag, attributes]) => h(tag, attributes)));
+}
+
+function paragraph(text: string): JSONContent {
+  return { type: "paragraph", content: [{ type: "text", text }] };
+}
+
+function tableCell(text: string, header: boolean): JSONContent {
+  return {
+    type: header ? "tableHeader" : "tableCell",
+    attrs: { colspan: 1, rowspan: 1, colwidth: null, backgroundColor: null, textAlign: "left" },
+    content: [paragraph(text)],
+  };
+}
+
+function initialDocument(rows: number, cols: number): JSONContent {
+  const boundedRows = Math.max(2, Math.min(6, rows));
+  const boundedCols = Math.max(2, Math.min(6, cols));
+  return {
+    type: "doc",
+    content: [
+      paragraph("Select this sentence for formatting controls, or work directly in the table below."),
+      {
+        type: "table",
+        content: Array.from({ length: boundedRows }, (_, rowIndex) => ({
+          type: "tableRow",
+          content: Array.from({ length: boundedCols }, (_, columnIndex) => tableCell(
+            rowIndex === 0
+              ? `Column ${columnIndex + 1}`
+              : `Row ${rowIndex}, cell ${columnIndex + 1}`,
+            rowIndex === 0,
+          )),
+        })),
+      },
+      paragraph("Hover a cell for row and column handles. Click into it for cell actions. Hover a column boundary to resize."),
+    ],
+  };
+}
+
+const TablePlaygroundApp = defineComponent({
+  props: {
+    initialPickerOpen: { type: Boolean, default: true },
+    rows: { type: Number, default: 3 },
+    cols: { type: Number, default: 4 },
+  },
+  setup(props) {
+    const editor = ref<Editor | null>(null);
+    const pickerOpen = ref(props.initialPickerOpen);
+    const document = ref(initialDocument(props.rows, props.cols));
+    const status = ref("Ready — the controls below are connected to the real Looma editor.");
+
+    return () => h("main", { class: "table-primitives-playground" }, [
+      h("header", { class: "table-primitives-playground__header" }, [
+        h("div", [
+          h("h2", "Table interaction playground"),
+          h("p", "This is the shipped editor behavior, not a fixed-state component display."),
+        ]),
+        h("div", { class: "table-primitives-playground__insert" }, [
+          h(Button, { variant: "ghost" }, {
+            default: () => h("button", {
+              type: "button",
+              "aria-expanded": pickerOpen.value ? "true" : "false",
+              onClick: () => { pickerOpen.value = !pickerOpen.value; },
+            }, [icon("table"), h("span", "Insert table"), icon("chevron-down")]),
+          }),
+          pickerOpen.value
+            ? h("div", { class: "table-primitives-playground__picker" }, [
+                h(EditorInsertTableGrid, {
+                  open: true,
+                  "max-rows": 6,
+                  "max-cols": 6,
+                  onInsertTable: (detail: { rows: number; cols: number; withHeaderRow: boolean }) => {
+                    editor.value?.chain().focus().insertTable(detail).run();
+                    pickerOpen.value = false;
+                    status.value = `Inserted a ${detail.rows} × ${detail.cols} table${detail.withHeaderRow ? " with a header row" : ""}.`;
+                  },
+                }),
+              ])
+            : null,
+        ]),
+      ]),
+      h("section", { class: "table-primitives-playground__editor", "aria-label": "Interactive editor" }, [
+        h(LoomaEditor, {
+          modelValue: document.value,
+          "onUpdate:modelValue": (value: JSONContent) => { document.value = value; },
+          onReady: (instance: Editor) => { editor.value = instance; },
+        }),
+      ]),
+      h("p", { class: "table-primitives-playground__status", role: "status" }, status.value),
+    ]);
+  },
+});
+
+const HOST_TAG = "looma-table-primitives-playground";
+
+if (!customElements.get(HOST_TAG)) {
+  customElements.define(HOST_TAG, class extends HTMLElement {
+    #app: App<Element> | null = null;
+
+    connectedCallback() {
+      if (this.#app) return;
+      this.#app = createApp(TablePlaygroundApp, {
+        initialPickerOpen: this.hasAttribute("picker-open"),
+        rows: Number(this.getAttribute("rows") ?? 3),
+        cols: Number(this.getAttribute("cols") ?? 4),
+      });
+      this.#app.mount(this);
+    }
+
+    disconnectedCallback() {
+      this.#app?.unmount();
+      this.#app = null;
+    }
+  });
 }
 
 const meta = {
   title: "Editor/Table Primitives Playground",
   parameters: {
+    layout: "fullscreen",
     docs: {
       description: {
         component:
-          "Live playground for Looma editor table primitives. Interact with controls and inspect emitted custom event payloads."
+          "A real Looma editor table flow. Hover cells, edit a cell, open its actions, drag column widths, and insert another table."
       }
     }
   },
   argTypes: {
-    contextMenuOpen: { control: "boolean" },
-    insertGridOpen: { control: "boolean" },
-    overlayOpen: { control: "boolean" },
-    rows: { control: { type: "range", min: 1, max: 12, step: 1 } },
-    cols: { control: { type: "range", min: 1, max: 12, step: 1 } }
+    pickerOpen: { control: "boolean" },
+    rows: { control: { type: "range", min: 2, max: 6, step: 1 } },
+    cols: { control: { type: "range", min: 2, max: 6, step: 1 } }
   },
-  render: ({ contextMenuOpen, insertGridOpen, overlayOpen, rows, cols }: PlaygroundArgs) => {
-    const boundedRows = Math.max(1, rows);
-    const boundedCols = Math.max(1, cols);
-    const tableWidth = 720;
-    const tableHeight = 220;
-    const rowHeight = tableHeight / boundedRows;
-    const columnWidth = tableWidth / boundedCols;
-    const rowBoundaries = Array.from({ length: boundedRows + 1 }, (_, index) => index * rowHeight);
-    const columnBoundaries = Array.from({ length: boundedCols + 1 }, (_, index) => index * columnWidth);
-    const activeRow = Math.min(1, boundedRows - 1);
-    const activeColumn = Math.min(1, boundedCols - 1);
-    const root = document.createElement("div");
-    root.style.display = "grid";
-    root.style.gap = "16px";
-    root.style.maxWidth = "960px";
-
-    root.innerHTML = `
-      <div style="display:grid;grid-template-columns:repeat(2,minmax(280px,1fr));gap:16px;align-items:start;">
-        <section style="display:grid;gap:8px;">
-          <h3 style="margin:0;">Table Context Menu</h3>
-          <ui-editor-table-context-menu
-            ${contextMenuOpen ? "open" : ""}
-            can-add-row-before
-            can-add-row-after
-            can-add-column-before
-            can-add-column-after
-            can-delete-row
-            can-delete-column
-            can-delete-table
-            can-merge-cells
-            can-split-cell
-          ></ui-editor-table-context-menu>
-        </section>
-
-        <section style="display:grid;gap:8px;">
-          <h3 style="margin:0;">Insert Table Grid</h3>
-          <ui-editor-insert-table-grid
-            ${insertGridOpen ? "open" : ""}
-            max-rows="${boundedRows}"
-            max-cols="${boundedCols}"
-          ></ui-editor-insert-table-grid>
-        </section>
-      </div>
-
-      <section style="display:grid;gap:8px;">
-        <h3 style="margin:0;">Table Overlay</h3>
-        <div style="position:relative;min-height:300px;padding:48px;overflow:auto;">
-          <div style="position:relative;width:${tableWidth}px;height:${tableHeight}px;background:var(--ui-surface,#fff);background-image:linear-gradient(to right,var(--ui-border,#d1d5db) 1px,transparent 1px),linear-gradient(to bottom,var(--ui-border,#d1d5db) 1px,transparent 1px);background-size:${columnWidth}px ${rowHeight}px;border-right:1px solid var(--ui-border,#d1d5db);border-bottom:1px solid var(--ui-border,#d1d5db);">
-            <ui-editor-table-overlay
-              ${overlayOpen ? "open" : ""}
-              rows="${boundedRows}"
-              cols="${boundedCols}"
-              row-boundaries="${rowBoundaries.join(",")}"
-              column-boundaries="${columnBoundaries.join(",")}"
-              active-cell="${activeColumn * columnWidth},${activeRow * rowHeight},${columnWidth},${rowHeight},${activeRow},${activeColumn}"
-            ></ui-editor-table-overlay>
-          </div>
-        </div>
-      </section>
-
-      <section style="display:grid;gap:8px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
-          <h3 style="margin:0;">Event Log</h3>
-          <ui-button data-clear-log><button type="button">Clear</button></ui-button>
-        </div>
-        <pre data-log style="margin:0;min-height:160px;max-height:280px;overflow:auto;background:var(--ui-surface,#fff);border:1px solid var(--ui-border,#d1d5db);border-radius:8px;padding:12px;font-size:12px;"></pre>
-      </section>
-    `;
-
-    const logEl = root.querySelector("[data-log]") as HTMLElement | null;
-    const clearBtn = root.querySelector("[data-clear-log]") as HTMLElement | null;
-    clearBtn?.addEventListener("click", () => {
-      if (logEl) logEl.textContent = "";
-    });
-
-    const context = root.querySelector("ui-editor-table-context-menu");
-    const grid = root.querySelector("ui-editor-insert-table-grid");
-    const overlay = root.querySelector("ui-editor-table-overlay");
-
-    context?.addEventListener("looma-editor-table-action", (event) => {
-      addLogLine(logEl, "looma-editor-table-action", (event as CustomEvent).detail);
-    });
-    grid?.addEventListener("looma-editor-insert-table", (event) => {
-      addLogLine(logEl, "looma-editor-insert-table", (event as CustomEvent).detail);
-    });
-    overlay?.addEventListener("looma-editor-table-overlay-action", (event) => {
-      addLogLine(logEl, "looma-editor-table-overlay-action", (event as CustomEvent).detail);
-    });
-
-    addLogLine(logEl, "playground-ready", { rows, cols, contextMenuOpen, insertGridOpen, overlayOpen });
+  render: ({ pickerOpen, rows, cols }: PlaygroundArgs) => {
+    const root = document.createElement(HOST_TAG);
+    if (pickerOpen) root.setAttribute("picker-open", "");
+    root.setAttribute("rows", String(rows));
+    root.setAttribute("cols", String(cols));
     return root;
   }
 } satisfies Meta<PlaygroundArgs>;
@@ -131,10 +169,8 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
-    contextMenuOpen: true,
-    insertGridOpen: true,
-    overlayOpen: true,
-    rows: 4,
-    cols: 4
-  }
+    pickerOpen: false,
+    rows: 3,
+    cols: 4,
+  },
 };

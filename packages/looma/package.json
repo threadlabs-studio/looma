@@ -99,6 +99,7 @@
     "typecheck": "node ../../tools/scripts/verify-facade.mjs --definition-only"
   },
   "dependencies": {
+    "lucide": "~0.554.0",
     "lowlight": "^3.3.0"
   },
   "peerDependencies": {
