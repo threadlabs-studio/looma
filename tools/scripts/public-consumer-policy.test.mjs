@@ -16,15 +16,15 @@ const releaseNames = ["@threadlabs/looma"];
 function releaseManifest(overrides = {}) {
   return {
     schemaVersion: 1,
-    releaseVersion: "0.1.17",
+    releaseVersion: "0.1.18",
     sourceCommit: "a".repeat(40),
     releaseEligible: true,
     exceptions: [],
     packages: releaseNames.map((name, publishIndex) => ({
       publishIndex,
       name,
-      version: "0.1.17",
-      tarball: `${name.replace(/^@/, "").replace("/", "-")}-0.1.17.tgz`,
+      version: "0.1.18",
+      tarball: `${name.replace(/^@/, "").replace("/", "-")}-0.1.18.tgz`,
       sha256: String(publishIndex + 1).repeat(64),
       integrity: `sha512-${name}`
     })),
@@ -33,10 +33,10 @@ function releaseManifest(overrides = {}) {
 }
 
 function sourcePackages() {
-  return Object.fromEntries(releaseNames.map((name) => [name, { name, version: "0.1.17" }]));
+  return Object.fromEntries(releaseNames.map((name) => [name, { name, version: "0.1.18" }]));
 }
 
-function publicLockfile(version = "0.1.17") {
+function publicLockfile(version = "0.1.18") {
   const dependencies = releaseNames.map((name) => `      '${name}':\n        specifier: ${version}\n        version: ${version}`).join("\n");
   const packages = releaseNames.map((name) => `  '${name}@${version}':\n    resolution: {integrity: sha512-${name}}`).join("\n\n");
   const snapshots = releaseNames.map((name) => `  '${name}@${version}': {}`).join("\n\n");
@@ -58,15 +58,15 @@ test("accepts an eligible current manifest and derives exact public dependencies
   }, manifest);
   assert.deepEqual(
     Object.fromEntries(releaseNames.map((name) => [name, rewritten.dependencies[name]])),
-    Object.fromEntries(releaseNames.map((name) => [name, "0.1.17"]))
+    Object.fromEntries(releaseNames.map((name) => [name, "0.1.18"]))
   );
   assert.equal(rewritten.pnpm, undefined);
 
   const resolutions = validatePublicConsumerLockfile(publicLockfile(), manifest);
   assert.deepEqual(resolutions.map(({ name, version }) => ({ name, version })),
-    releaseNames.map((name) => ({ name, version: "0.1.17" })));
+    releaseNames.map((name) => ({ name, version: "0.1.18" })));
 
-  const installed = releaseNames.map((name) => ({ name, version: "0.1.17" }));
+  const installed = releaseNames.map((name) => ({ name, version: "0.1.18" }));
   assert.doesNotThrow(() => validateInstalledReleasePackages(installed, manifest));
 });
 
@@ -91,8 +91,8 @@ test("rejects ineligible and stale release manifests", () => {
 
 test("rejects local Looma lockfile resolutions", () => {
   const lockfile = publicLockfile().replace(
-    "specifier: 0.1.17\n        version: 0.1.17",
-    "specifier: file:../../../.release/artifacts/looma-0.1.17.tgz\n        version: file:../../../.release/artifacts/looma-0.1.17.tgz"
+    "specifier: 0.1.18\n        version: 0.1.18",
+    "specifier: file:../../../.release/artifacts/looma-0.1.18.tgz\n        version: file:../../../.release/artifacts/looma-0.1.18.tgz"
   );
   assert.throws(
     () => validatePublicConsumerLockfile(lockfile, releaseManifest()),
@@ -127,7 +127,7 @@ test("builds deterministic evidence from manifest identities and public resoluti
     lockfileSha256: "e".repeat(64),
     installedPackages: releaseNames.map((name) => ({
       name,
-      version: "0.1.17",
+      version: "0.1.18",
       integrity: `sha512-${name}`
     }))
   });
@@ -135,8 +135,8 @@ test("builds deterministic evidence from manifest identities and public resoluti
   assert.equal(evidence.sourceCommit, manifest.sourceCommit);
   assert.deepEqual(evidence.manifest.packages[0], {
     name: "@threadlabs/looma",
-    version: "0.1.17",
-    tarball: "threadlabs-looma-0.1.17.tgz",
+    version: "0.1.18",
+    tarball: "threadlabs-looma-0.1.18.tgz",
     sha256: "1".repeat(64)
   });
   assert.equal(evidence.result, "passed");
