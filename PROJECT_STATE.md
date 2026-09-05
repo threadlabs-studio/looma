@@ -4,12 +4,13 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-04 18:09 PDT
-Status: `0.1.12` was published under `candidate` but failed its post-publication consumer check; corrective Candidate `0.1.13` is prepared while `0.1.11` remains under `latest`
+Last Updated: 2026-09-04 18:37 PDT
+Status: corrective Candidate `0.1.13` is published and qualified in Knit Preview; `0.1.11` remains under `latest` pending hosted-docs evidence and promotion
 
 ## Current Focus
 
-- Publish and qualify corrective Candidate `0.1.13` with the opinionated Lucide icon
+- Complete hosted-docs qualification and promote Candidate `0.1.13`, which is
+  published and qualified in Knit with the opinionated Lucide icon
   language, compact table cells, cell-local resize chrome, hover-first table
   affordances, and a real interactive Storybook editor playground.
 - Qualify those exact public bytes in Knit before promoting them to `latest`.
@@ -24,6 +25,17 @@ Status: `0.1.12` was published under `candidate` but failed its post-publication
   editor, and Vue.
 
 ## Recent Progress
+
+- Candidate `0.1.13` Knit qualification:
+  - Installed exact public registry bytes in Knit, passed 143 script-policy and
+    436 application tests, and passed all 18 required browser scenarios across
+    Chromium, mobile WebKit, and mobile Chromium.
+  - Inspected captured 320, 768, 1024, and 1440px application renders for
+    full-width route surfaces, overflow, sidebar alignment, and mobile action
+    reachability.
+  - Integrated Knit commit `5c1183e36cbcca92a53207708a2431a25984f795`
+    into private `main` and deployed the exact revision to the shared Preview
+    aliases.
 
 - Candidate `0.1.13` release correction:
   - Corrected the public release fixture to use the typed `heading-1` Lucide key

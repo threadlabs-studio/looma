@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "knit-public-registry-consumer",
+  "generatedAt": "2026-09-05T01:37:11Z",
+  "result": "passed",
+  "scope": "Credential-free installation, browser qualification, visual responsive inspection, and revision-attested Preview deployment of the public Looma 0.1.13 Candidate in Knit",
+  "looma": {
+    "name": "@threadlabs/looma",
+    "version": "0.1.13",
+    "registryUrl": "https://registry.npmjs.org/",
+    "packageUrl": "https://www.npmjs.com/package/@threadlabs/looma/v/0.1.13",
+    "integrity": "sha512-rTPlzDue1Ge2cE4EARAN9HogJVz60qjAGPhgg6L+Bmh0XLNn3mOmVQNcf8Kg88QQhOLt9AWKpyQbYMhDOfWY0A==",
+    "candidateWorkflowUrl": "https://github.com/threadlabs-studio/looma/actions/runs/33935925785"
+  },
+  "knit": {
+    "repository": "bitbucket.org/mdean-projects/knit",
+    "repositoryVisibility": "private",
+    "branch": "main",
+    "commit": "5c1183e36cbcca92a53207708a2431a25984f795",
+    "packageManifestSha256": "81a27e217a17c1a245570ae54bb2b5a9e2f246dc36fc8e3355c728e65395cc00",
+    "lockfileSha256": "e7702496dc36e13a1135ce02f70dd63486bc3e96bd4e7224efd7b4061d25019d"
+  },
+  "environment": {
+    "completedAt": "2026-09-05T01:37:11Z",
+    "nodeVersion": "24.20.0",
+    "pnpmVersion": "10.19.0",
+    "exactOriginMainRevision": true,
+    "trackedSourceCleanAfterQualification": true,
+    "generatedCachesClearedAfterRegistryInstall": true,
+    "registryPackageInspectedBeforeQualification": true,
+    "releaseBuildConfiguration": "Protected Vercel Preview configuration; no credential values are included in this record"
+  },
+  "gates": {
+    "exactPublicRegistryInstall": "passed",
+    "installedPackageIdentity": "passed",
+    "installedTableContract": {
+      "handleWidth": 3,
+      "cellMinWidth": 112,
+      "wholeTableHorizontalScroll": "passed",
+      "hoverBeforeFocusControls": "passed",
+      "cellActionMenu": "passed",
+      "columnResizeDrag": "passed"
+    },
+    "scriptPolicyTests": {
+      "result": "passed",
+      "count": 143
+    },
+    "applicationUnitTests": {
+      "result": "passed",
+      "count": 436
+    },
+    "requiredBrowserMatrix": {
+      "result": "passed",
+      "count": 18,
+      "projects": [
+        "chromium",
+        "mobile-webkit",
+        "mobile-chromium"
+      ],
+      "tableColumnResizeDrag": "passed",
+      "responsiveLayoutProfiles": "passed",
+      "mobileKeyboardViewport": "passed"
+    },
+    "visualResponsiveInspection": {
+      "result": "passed",
+      "widths": [
+        320,
+        768,
+        1024,
+        1440
+      ],
+      "horizontalOverflow": false,
+      "fullWidthRouteSurface": true,
+      "sidebarBoundaryAlignment": true
+    },
+    "typecheck": "passed",
+    "lint": {
+      "result": "passed",
+      "errors": 0,
+      "preExistingWarnings": 3
+    },
+    "productionVercelBuild": "passed",
+    "previewDeployment": {
+      "result": "passed",
+      "revision": "5c1183e36cbcca92a53207708a2431a25984f795",
+      "deploymentId": "dpl_BkGqbsfWMhhMDm3rjHCxiYseebJV",
+      "deploymentUrl": "https://knit-r2p4efvw7-matthewdeans-projects.vercel.app",
+      "rootUrl": "https://preview.knit.wiki",
+      "wildcardWorkspaceUrl": "https://beepbop.preview.knit.wiki"
+    }
+  },
+  "commands": [
+    "pnpm --dir web add --save-exact @threadlabs/looma@0.1.13",
+    "pnpm lint",
+    "pnpm typecheck",
+    "pnpm test",
+    "pnpm build",
+    "pnpm -F web test:e2e:local:required",
+    "E2E_CAPTURE_LAYOUTS=1 pnpm -F web test:e2e:local:required",
+    "pnpm deploy:preview",
+    "curl --fail --silent --show-error https://preview.knit.wiki/api/release",
+    "curl --fail --silent --show-error https://knit-r2p4efvw7-matthewdeans-projects.vercel.app/api/release"
+  ],
+  "exclusions": [
+    "This package-consumer proof does not itself promote 0.1.13 from candidate to latest.",
+    "Knit Production was not deployed; production promotion remains a separate, explicit Knit release operation.",
+    "No private Knit source, user content, credentials, or browser session data is included."
+  ]
+}
