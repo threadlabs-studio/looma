@@ -4,13 +4,14 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-05 11:31 PDT
-Status: Candidate `0.1.18` is prepared with workspace-user mentions and follow-up interaction refinements; `0.1.17` remains public until protected publication completes
+Last Updated: 2026-09-05 12:09 PDT
+Status: Candidate `0.1.17` is public; `0.1.18` is prepared with workspace-user mentions, context-menu focus corrections, and gentler table row/column handles
 
 ## Current Focus
 
-- Publish and qualify Candidate `0.1.18` with the generic editor-mention API
-  and exact Knit workspace-directory evidence.
+- Publish and qualify Candidate `0.1.18` with the generic editor-mention API,
+  context-menu focus corrections, gentler table row/column handles, and the
+  exact Knit consumer evidence.
 - Keep dense tree rows at 32px/15px for pointer use and animate to 44px targets
   only after a real touch interaction establishes touch modality.
 - Verify that controlled editor replacements preserve a focused ProseMirror
@@ -39,7 +40,8 @@ Status: Candidate `0.1.18` is prepared with workspace-user mentions and follow-u
 
 - Candidate `0.1.18` release preparation:
   - Advanced the singleton facade, release workflows, consumer fixtures, and
-    public documentation for the merged editor-mention API.
+    public documentation after `0.1.17` published from the earlier release
+    commit, preserving npm's immutable package history.
 - Editor people mentions:
   - Added a domain-neutral Tiptap mention extension and accessible
     `ui-editor-mention-menu`, exposed through the turnkey Vue editor.
