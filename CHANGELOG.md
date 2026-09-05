@@ -4,6 +4,14 @@
 
 No changes yet.
 
+## v0.1.18 Candidate
+
+The editor exposes a domain-neutral people-mention extension and an accessible,
+bounded mention menu for static or asynchronous workspace providers. Context
+menus keep keyboard focus inside their active top-layer surface, and table
+row/column selectors rest as subtle centered bars that expand to full drag
+handles on hover or focus.
+
 ## v0.1.17 Candidate
 
 Menus, popovers, context menus, tooltips, and toast regions share one top-layer
@@ -19,12 +27,6 @@ uses the native system UI stack. Controlled Vue editor updates preserve an
 active ProseMirror selection without stealing focus from another control.
 The editor and interactive Storybook table picker use the same anchored,
 light-dismissible popover instead of hand-positioned floating panels.
-
-The editor also exposes a domain-neutral people-mention extension and an
-accessible, bounded mention menu for static or asynchronous workspace
-providers. Context menus keep keyboard focus inside their active top-layer
-surface, and table row/column selectors rest as subtle centered bars that
-expand to full drag handles on hover or focus.
 
 ## v0.1.16 Candidate
 

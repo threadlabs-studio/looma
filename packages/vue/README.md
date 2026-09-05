@@ -9,7 +9,7 @@ and callbacks to layout and core elements without loading the editor graph.
 `/vue/editor` exports `LoomaEditor`, a complete Tiptap editor, plus low-level
 wrappers for advanced composition.
 
-Release status: Candidate `0.1.17`. Browser registration/render and linked-workspace Knit qualification pass; packed-artifact Knit qualification remains a publication gate. React and Svelte adapters are not part of the R1 public package set.
+Release status: Candidate `0.1.18`. Browser registration/render and linked-workspace Knit qualification pass; packed-artifact Knit qualification remains a publication gate. React and Svelte adapters are not part of the R1 public package set.
 
 ## Install
 
