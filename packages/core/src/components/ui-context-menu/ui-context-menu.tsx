@@ -21,6 +21,7 @@ export class UIContextMenu {
   @Prop() for?: string;
 
   @State() internalOpen = false;
+  @State() focusTrigger: ContextMenuTrigger = 'programmatic';
 
   private overlayId = `ui-context-menu-${Math.random().toString(36).slice(2, 11)}`;
   private trigger: HTMLElement | null = null;
@@ -145,6 +146,7 @@ export class UIContextMenu {
   private openMenu(x: number, y: number, trigger: ContextMenuTrigger) {
     this.pointerX = x;
     this.pointerY = y;
+    this.focusTrigger = trigger;
     this.pointPositioned = true;
     // Context-click can reposition an already-open trigger menu, so do not
     // depend on a state transition to run the positioning controller.
@@ -217,6 +219,7 @@ export class UIContextMenu {
 
   private onKeydown = (event: KeyboardEvent) => {
     if (!this.internalOpen) return;
+    this.focusTrigger = 'keyboard';
     if (event.key === 'Escape') {
       event.preventDefault();
       requestTopOverlayClose('escape', 'keyboard');
@@ -244,6 +247,7 @@ export class UIContextMenu {
     return (
       <Host
         data-open={this.internalOpen ? '' : undefined}
+        data-focus-trigger={this.internalOpen ? this.focusTrigger : undefined}
         onKeyDown={this.onKeydown}
         onClick={this.onItemClick}
       >
