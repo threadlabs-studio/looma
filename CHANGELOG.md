@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+No changes yet.
+
+## v0.1.17 Candidate
+
 Menus, popovers, context menus, tooltips, and toast regions share one top-layer
 windowing contract, so scrolling and clipping ancestors cannot hide them.
 Native CSS Anchor Positioning is preferred for anchored surfaces; a lightweight
