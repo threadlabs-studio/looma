@@ -80,3 +80,19 @@ test("the install path exposes the facade package and the Candidate boundary", a
     page.getByRole("heading", { level: 1, name: "Release 1 Support and Limitations" })
   ).toBeVisible();
 });
+
+test("the context-menu docs expose both visible and pointer action paths", async ({
+  page
+}) => {
+  await page.goto("components/ui-context-menu");
+
+  const trigger = page.getByRole("button", { name: "Document actions", exact: true });
+  const target = page.locator("#docs-context-menu-target");
+
+  await expect(trigger).toBeVisible();
+  await expect(target).toBeVisible();
+  await expect(target).toContainText("Right-click this document");
+
+  await target.click({ button: "right", position: { x: 24, y: 24 } });
+  await expect(page.getByRole("menuitem", { name: "Rename", exact: true })).toBeVisible();
+});

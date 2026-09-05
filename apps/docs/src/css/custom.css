@@ -238,6 +238,24 @@
   margin-bottom: var(--docs-spacing-sm);
 }
 
+.looma-context-menu-example {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--docs-spacing-sm);
+  width: min(100%, 28rem);
+  min-height: 8rem;
+  padding: var(--docs-spacing-md);
+  border: 1px dashed var(--ifm-toc-border-color);
+  border-radius: 8px;
+  background: var(--ifm-background-color);
+}
+
+.looma-context-menu-example > span {
+  color: var(--ifm-color-content-secondary);
+  font-size: 0.875rem;
+}
+
 .looma-live-example-preview {
   display: flex;
   flex-wrap: wrap;

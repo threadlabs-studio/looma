@@ -58,6 +58,7 @@ describe("ui-context-menu release interactions (real browser)", () => {
     expect(surface.getAttribute("popover")).toBe("manual");
     expect(surface.matches(":popover-open")).toBe(true);
     expect(document.activeElement).toBe(firstItem);
+    expect(getComputedStyle(firstItem).outlineStyle).not.toBe("none");
 
     firstItem.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true, composed: true }));
     await flushStencil();
@@ -68,7 +69,7 @@ describe("ui-context-menu release interactions (real browser)", () => {
   });
 
   it("opens from a touch-capable visible trigger and keeps right-click supplemental", async () => {
-    const { contextMenu, trigger, target } = await renderContextMenu();
+    const { contextMenu, trigger, target, firstItem } = await renderContextMenu();
     const opened: Array<{ trigger: string }> = [];
     contextMenu.addEventListener("open", (event) => {
       opened.push((event as CustomEvent<{ trigger: string }>).detail);
@@ -87,6 +88,8 @@ describe("ui-context-menu release interactions (real browser)", () => {
     const menu = contextMenu.shadowRoot?.querySelector<HTMLElement>(".menu");
     expect(menu?.style.left).toBe("120px");
     expect(menu?.style.top).toBe("84px");
+    expect(document.activeElement).toBe(firstItem);
+    expect(getComputedStyle(firstItem).outlineStyle).toBe("none");
   });
 
   it("cancels on Escape and outside press with focus return", async () => {
