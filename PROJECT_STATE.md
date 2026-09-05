@@ -4,14 +4,15 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-04 20:18 PDT
-Status: Candidate `0.1.15` is prepared with the responsive-image seam and public tree/drag-drop contract; `0.1.11` remains under `latest`
+Last Updated: 2026-09-04 21:10 PDT
+Status: Candidate `0.1.16` is prepared with the public tree/drag-drop contract and its Vue hydration correction; `0.1.13` remains under `latest`
 
 ## Current Focus
 
-- Publish and qualify Candidate `0.1.15`, then consume its exact registry bytes
-  from Knit. Candidate `0.1.14` was prepared but is superseded by this combined
-  image-delivery and tree release target.
+- Publish and qualify Candidate `0.1.16`, then consume its exact registry bytes
+  from Knit. Candidate `0.1.15` was published but is superseded because Vue
+  consumer class updates could remove Stencil's runtime hydration marker and
+  leave already-rendered tree items invisible.
 - Complete hosted-docs qualification and promote Candidate `0.1.13`, which is
   published and qualified in Knit with the opinionated Lucide icon
   language, compact table cells, cell-local resize chrome, hover-first table
@@ -28,6 +29,13 @@ Status: Candidate `0.1.15` is prepared with the responsive-image seam and public
   editor, and Vue.
 
 ## Recent Progress
+
+- Candidate `0.1.16` release preparation:
+  - Preserved Stencil's runtime `hydrated` class across reactive consumer class
+    updates in the shared Vue adapter, preventing responsive rerenders from
+    hiding otherwise-rendered custom elements.
+  - Added real-Chromium coverage that changes a consumer class after mount and
+    verifies the tree item remains hydrated and visible.
 
 - Candidate `0.1.15` release preparation:
   - Advanced the singleton public facade, package metadata, docs, release

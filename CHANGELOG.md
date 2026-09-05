@@ -2,8 +2,14 @@
 
 ## Unreleased
 
+No changes yet.
+
+## v0.1.16 Candidate
+
 Vue adapters preserve Stencil's hydration marker across consumer class updates,
 so responsive rerenders cannot leave already-rendered components invisible.
+This candidate supersedes `0.1.15` for Vue consumers using the new semantic tree
+components.
 
 ## v0.1.15 Candidate
 

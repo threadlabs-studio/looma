@@ -151,7 +151,7 @@ jobs:
         if: inputs.promote_latest == false
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: looma-0.1.15-candidate
+          name: looma-0.1.16-candidate
           path: .release/artifacts/
           if-no-files-found: error
           retention-days: 30
@@ -187,7 +187,7 @@ jobs:
       - name: Download approved release bytes
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          name: looma-0.1.15-candidate
+          name: looma-0.1.16-candidate
           path: .release/artifacts/
 
       - name: Prove scope ownership and release version availability
@@ -218,7 +218,7 @@ jobs:
       - name: Upload candidate registry evidence
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: looma-0.1.15-registry-candidate-evidence
+          name: looma-0.1.16-registry-candidate-evidence
           path: .release/evidence/registry-candidate.json
           if-no-files-found: error
           retention-days: 30
@@ -226,7 +226,7 @@ jobs:
       - name: Upload candidate public-consumer evidence
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: looma-0.1.15-public-consumer-candidate-evidence
+          name: looma-0.1.16-public-consumer-candidate-evidence
           path: |
             .release/evidence/public-consumer.json
             .release/evidence/public-consumer-pnpm-lock.yaml
@@ -266,7 +266,7 @@ jobs:
       - name: Download approved release bytes from Candidate run
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          name: looma-0.1.15-candidate
+          name: looma-0.1.16-candidate
           path: .release/artifacts/
           run-id: ${{ inputs.candidate_workflow_run_id }}
           github-token: ${{ github.token }}
@@ -312,7 +312,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: looma-0.1.15-pre-promotion-public-consumer-evidence
+          name: looma-0.1.16-pre-promotion-public-consumer-evidence
           path: |
             .release/evidence/public-consumer.json
             .release/evidence/public-consumer-pnpm-lock.yaml
@@ -323,7 +323,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: looma-0.1.15-registry-promotion-evidence
+          name: looma-0.1.16-registry-promotion-evidence
           path: .release/evidence/registry-promotion.json
           if-no-files-found: error
           retention-days: 30
@@ -351,7 +351,7 @@ jobs:
       - name: Download exact release manifest from Candidate run
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          name: looma-0.1.15-candidate
+          name: looma-0.1.16-candidate
           path: .release/artifacts/
           run-id: ${{ inputs.candidate_workflow_run_id }}
           github-token: ${{ github.token }}
@@ -381,7 +381,7 @@ jobs:
       - name: Download promotion evidence from this run
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          name: looma-0.1.15-registry-promotion-evidence
+          name: looma-0.1.16-registry-promotion-evidence
           path: .release/evidence/
           run-id: ${{ github.run_id }}
           github-token: ${{ github.token }}
