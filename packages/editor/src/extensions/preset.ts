@@ -33,12 +33,14 @@ import { CodeBlockLowlight } from "@tiptap/extension-code-block-lowlight";
 import { common, createLowlight } from "lowlight";
 import TableRow from "@tiptap/extension-table-row";
 import { LoomaListBehavior } from "./list-behavior";
+import { createLoomaMentionExtension } from "./mention";
 import { LoomaTable, LoomaTableCell, LoomaTableHeader } from "./table-formatting";
 
 export interface DefaultEditorExtensionsOptions {
   placeholder?: string;
   linkOpenOnClick?: boolean;
   imageInline?: boolean;
+  mention?: AnyExtension | false;
 }
 
 const lowlight = createLowlight(common);
@@ -67,6 +69,7 @@ export function getDefaultEditorExtensions(
     placeholder = "Type “/” for commands, or start writing…",
     linkOpenOnClick = false,
     imageInline = false,
+    mention = createLoomaMentionExtension(),
   } = options;
 
   return [
@@ -103,6 +106,7 @@ export function getDefaultEditorExtensions(
         node.type.name === "paragraph" ? placeholder : "",
       emptyNodeClass: "is-editor-empty",
     }),
+    ...(mention ? [mention] : []),
     LoomaTableKit,
     LoomaListBehavior,
   ];

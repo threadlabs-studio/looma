@@ -4,13 +4,13 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-05 11:30 PDT
-Status: Candidate `0.1.17` is prepared with top-layer windowing, input-driven touch sizing, denser tree typography, and controlled-editor selection stability; `0.1.16` remains public until protected publication completes
+Last Updated: 2026-09-05 11:31 PDT
+Status: Candidate `0.1.17` is prepared with workspace-user mentions, top-layer anchored overlays, input-driven touch sizing, denser tree typography, and controlled-editor selection stability; `0.1.16` remains public until protected publication completes
 
 ## Current Focus
 
-- Publish and qualify Candidate `0.1.17` with Popover top-layer
-  menus/popovers/tooltips/toasts,
+- Publish and qualify Candidate `0.1.17` with the generic editor-mention API,
+  Popover top-layer menus/popovers/tooltips/toasts,
   native CSS Anchor Positioning plus Looma's centralized lightweight fallback,
   and exact Knit sidebar overflow evidence.
 - Keep dense tree rows at 32px/15px for pointer use and animate to 44px targets
@@ -39,11 +39,18 @@ Status: Candidate `0.1.17` is prepared with top-layer windowing, input-driven to
 
 ## Recent Progress
 
+- Editor people mentions:
+  - Added a domain-neutral Tiptap mention extension and accessible
+    `ui-editor-mention-menu`, exposed through the turnkey Vue editor.
+  - Added bounded static and async providers (eight results by default, twenty
+    maximum), editor-native query input, stale-response protection, keyboard and
+    pointer selection, and visual-viewport-aware mobile placement.
+  - Kept directory authorization and querying in host applications and limited
+    persisted mention JSON to a stable user id and display label.
 - Candidate `0.1.17` release preparation:
   - Advanced the singleton facade, release workflows, consumer fixtures, and
     public documentation together after the responsive interaction PR passed
     its required main-branch gates.
-
 - Floating surfaces, modality, and typography correction:
   - Added one `createAnchoredSurface` controller used by menu, context menu,
     popover, and tooltip. Native Popover provides the top layer; CSS Anchor
@@ -340,6 +347,12 @@ Status: Candidate `0.1.17` is prepared with top-layer windowing, input-driven to
 
 ## Verification Snapshot
 
+- Editor people mentions (2026-09-05):
+  - workspace lint, typecheck, build, unit tests, and browser tests: pass
+  - editor browser: pass (17 tests); Vue browser: pass (17 tests), covering
+    async races, Escape while loading, pointer/keyboard agreement, listbox ARIA,
+    1,000-item input capping, and 375px placement
+  - generated API/docs sync, facade assembly, and packed-consumer matrix: pass
 - Responsive image delivery seam (2026-09-04):
   - focused real-Chromium tests: pass (6 tests), including transient JSON,
     activation, fallback-once, and same-`File` retry behavior
@@ -440,6 +453,9 @@ Status: Candidate `0.1.17` is prepared with top-layer windowing, input-driven to
 
 ## Risks / Blockers
 
+- Knit cannot consume mentions from a clean install until this change is merged
+  and a new `@threadlabs/looma` Candidate is published; owner approval is
+  required for that protected registry mutation.
 - Protected npm release identity, 2FA/bootstrap controls, accountable approvers,
   and repository environments are proven for the singleton facade package.
 - Candidate `0.1.10` is published and hosted-docs-qualified; exact Knit
@@ -452,9 +468,9 @@ Status: Candidate `0.1.17` is prepared with top-layer windowing, input-driven to
 
 ## Next Up
 
-Complete package/facade qualification for the responsive-image seam, release its
-exact verified facade, then consume that version in Knit and run Knit's image
-upload, delivery, viewer, and fallback gates.
+Merge the editor-mention feature, publish its exact verified facade as the next
+owner-approved Candidate, then replace Knit's development symlink with those
+registry bytes and repeat the clean-install qualification.
 
 Release order and evidence gates live in `docs/release-checklist.md`; product
 milestones remain in `docs/milestones.md`.
