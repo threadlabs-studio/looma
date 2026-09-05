@@ -24,6 +24,78 @@ afterEach(async () => {
 });
 
 describe("LoomaEditor (real browser)", () => {
+  it("preserves a focused text selection when controlled content is replaced", async () => {
+    const modelValue = ref({
+      type: "doc",
+      content: [{ type: "paragraph", content: [{ type: "text", text: "Editable document" }] }],
+    });
+    const host = document.createElement("div");
+    document.body.append(host);
+
+    let editor: Editor | null = null;
+    const app = createApp({
+      render: () => h(LoomaEditor, {
+        modelValue: modelValue.value,
+        onReady: (instance: Editor) => { editor = instance; },
+      }),
+    });
+    apps.push(app);
+    app.mount(host);
+    await flushBrowser();
+
+    editor!.view.focus();
+    editor!.commands.setTextSelection(6);
+    expect(editor!.view.state.selection.from).toBe(6);
+    expect(editor!.state.selection.from).toBe(6);
+    expect(editor!.isFocused).toBe(true);
+
+    modelValue.value = {
+      type: "doc",
+      content: [{ type: "paragraph", content: [{ type: "text", text: "Editable document from server" }] }],
+    };
+    await flushBrowser();
+
+    expect(editor!.view.state.selection.from).toBe(6);
+    expect(editor!.state.selection.from).toBe(6);
+    expect(editor!.isFocused).toBe(true);
+  });
+
+  it("does not steal focus for a controlled replacement after the editor is blurred", async () => {
+    const modelValue = ref({
+      type: "doc",
+      content: [{ type: "paragraph", content: [{ type: "text", text: "Editable document" }] }],
+    });
+    const host = document.createElement("div");
+    const otherControl = document.createElement("button");
+    document.body.append(host, otherControl);
+
+    let editor: Editor | null = null;
+    const app = createApp({
+      render: () => h(LoomaEditor, {
+        modelValue: modelValue.value,
+        onReady: (instance: Editor) => { editor = instance; },
+      }),
+    });
+    apps.push(app);
+    app.mount(host);
+    await flushBrowser();
+
+    editor!.view.focus();
+    editor!.commands.setTextSelection(6);
+    otherControl.focus();
+    await flushBrowser();
+    expect(editor!.isFocused).toBe(false);
+
+    modelValue.value = {
+      type: "doc",
+      content: [{ type: "paragraph", content: [{ type: "text", text: "Externally replaced" }] }],
+    };
+    await flushBrowser();
+
+    expect(document.activeElement).toBe(otherControl);
+    expect(editor!.isFocused).toBe(false);
+  });
+
   it("filters real mention items and inserts the selected person with the keyboard", async () => {
     defineCustomElements();
     const host = document.createElement("div");
@@ -294,7 +366,20 @@ describe("LoomaEditor (real browser)", () => {
     expect(document.querySelector('ui-icon-button[title="Code block"]')).toBeTruthy();
     expect(document.querySelector('ui-icon-button[title="Divider"]')).toBeTruthy();
     expect(document.querySelector('ui-icon-button[title="Insert table"] [data-looma-icon="table"]')).toBeTruthy();
-    const boldButton = bold.shadowRoot!.querySelector("button")!;
+    const insertTable = document.querySelector<HTMLElement>('ui-icon-button[title="Insert table"]')!;
+    await userEvent.click(insertTable.shadowRoot!.querySelector("button")!);
+    await flushBrowser();
+    expect(document.querySelector(".looma-editor__table-picker-popover")?.hasAttribute("data-open"))
+      .toBe(true);
+    await userEvent.click(host.querySelector(".ProseMirror")!);
+    await flushBrowser();
+    expect(document.querySelector(".looma-editor__table-picker-popover")?.hasAttribute("data-open"))
+      .toBe(false);
+    editor!.chain().focus().setTextSelection({ from: 1, to: 7 }).run();
+    await flushBrowser();
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    const boldButton = document.querySelector<HTMLElement>('ui-icon-button[title="Bold"]')!
+      .shadowRoot!.querySelector("button")!;
     await userEvent.click(boldButton);
     await flushBrowser();
     const activeBold = document.querySelector<HTMLElement>('ui-icon-button[title="Bold"]')!;

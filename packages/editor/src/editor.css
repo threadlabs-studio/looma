@@ -239,10 +239,6 @@
   stroke-width: var(--ui-editor-toolbar-icon-stroke-width, 1.75);
 }
 
-.looma-editor__table-picker-anchor {
-  display: inline-flex;
-}
-
 .looma-editor__table-picker-popover,
 .looma-editor__table-toolbar-shell,
 .looma-editor__table-menu-shell {
@@ -251,6 +247,9 @@
 
 .looma-editor__table-picker-popover {
   min-width: 220px;
+  padding: 0;
+  border: 0;
+  background: transparent;
 }
 
 .looma-editor__table-toolbar-shell,

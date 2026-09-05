@@ -4,18 +4,25 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-05 11:28 PDT
-Status: Candidate `0.1.16` is prepared; workspace-user mentions are verified on a feature branch for the next Candidate, and `0.1.13` remains under `latest`
+Last Updated: 2026-09-05 11:31 PDT
+Status: Candidate `0.1.16` is public; the next Candidate adds workspace-user mentions alongside top-layer anchored overlays, input-driven touch sizing, denser tree typography, and controlled-editor selection stability
 
 ## Current Focus
 
-- Merge the generic editor-mention API, prepare the next Candidate, and qualify
-  those exact public bytes in Knit before its workspace directory integration
-  is delivered.
-- Publish and qualify Candidate `0.1.16`, then consume its exact registry bytes
-  from Knit. Candidate `0.1.15` was published but is superseded because Vue
-  consumer class updates could remove Stencil's runtime hydration marker and
-  leave already-rendered tree items invisible.
+- Merge the generic editor-mention API and qualify its exact public bytes in
+  Knit before the workspace directory integration is delivered.
+- Qualify the next Candidate with Popover top-layer menus/popovers/tooltips,
+  native CSS Anchor Positioning plus Looma's centralized lightweight fallback,
+  and exact Knit sidebar overflow evidence.
+- Keep dense tree rows at 32px/15px for pointer use and animate to 44px targets
+  only after a real touch interaction establishes touch modality.
+- Verify that controlled editor replacements preserve a focused ProseMirror
+  selection, while Knit server acknowledgements no longer echo authored JSON
+  through the active editor.
+
+- Prepare and publish Candidate `0.1.17`, then consume its exact registry bytes
+  from Knit. Candidate `0.1.16` remains the current public `candidate` until
+  those replacement bytes pass main CI and protected publication.
 - Complete hosted-docs qualification and promote Candidate `0.1.13`, which is
   published and qualified in Knit with the opinionated Lucide icon
   language, compact table cells, cell-local resize chrome, hover-first table
@@ -41,6 +48,29 @@ Status: Candidate `0.1.16` is prepared; workspace-user mentions are verified on 
     pointer selection, and visual-viewport-aware mobile placement.
   - Kept directory authorization and querying in host applications and limited
     persisted mention JSON to a stable user id and display label.
+- Floating surfaces, modality, and typography correction:
+  - Added one `createAnchoredSurface` controller used by menu, context menu,
+    popover, and tooltip. Native Popover provides the top layer; CSS Anchor
+    Positioning is preferred and a frame-coalesced visual-viewport flip/shift
+    fallback avoids a heavyweight syntax polyfill.
+  - Added the same top-layer contract for unanchored viewport surfaces such as
+    toast regions, and moved editor insert-table pickers off ad hoc positioning.
+  - Added configurable tooltip pointer-intent delays (500ms show, 100ms hide by
+    default) while keeping keyboard-focus disclosure immediate.
+  - Added real-browser coverage for overflow-contained menus, context-point
+    placement, shared anchors, and top-layer popovers/tooltips.
+  - Added document-level touch modality detection and made Looma trees animate
+    from compact pointer rows to touch-safe rows only after actual touch input.
+  - Corrected the default typography contract to the documented native system
+    stack and introduced a 15px dense-interface token for tree labels.
+  - Kept fallback viewport listeners scoped to open surfaces and excluded
+    trigger controls from anchored-overlay light dismissal.
+- Controlled editor stability:
+  - Replaced document and selection in one ProseMirror transaction so a focused
+    selection does not map to the end during a genuine controlled update.
+  - Added real-Chromium regression coverage around focused selection retention.
+  - Preserved focus ownership when a controlled update arrives after the editor
+    has blurred.
 
 - Candidate `0.1.16` release preparation:
   - Preserved Stencil's runtime `hydrated` class across reactive consumer class
