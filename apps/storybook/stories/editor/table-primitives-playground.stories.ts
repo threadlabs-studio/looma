@@ -1,9 +1,9 @@
 import type { Editor, JSONContent } from "@tiptap/core";
 import { LOOMA_ICONS, type LoomaIconName } from "@threadlabs/looma-core";
-import { Button } from "@threadlabs/looma-vue";
+import { Button, Popover } from "@threadlabs/looma-vue";
 import { EditorInsertTableGrid, LoomaEditor } from "@threadlabs/looma-vue/editor";
 import type { Meta, StoryObj } from "@storybook/web-components-vite";
-import { createApp, defineComponent, h, ref, type App } from "vue";
+import { createApp, defineComponent, h, ref, useId, type App } from "vue";
 
 type PlaygroundArgs = {
   pickerOpen: boolean;
@@ -71,6 +71,7 @@ const TablePlaygroundApp = defineComponent({
   setup(props) {
     const editor = ref<Editor | null>(null);
     const pickerOpen = ref(props.initialPickerOpen);
+    const pickerAnchorId = `looma-table-playground-picker-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
     const document = ref(initialDocument(props.rows, props.cols));
     const status = ref("Ready — the controls below are connected to the real Looma editor.");
 
@@ -81,15 +82,20 @@ const TablePlaygroundApp = defineComponent({
           h("p", "This is the shipped editor behavior, not a fixed-state component display."),
         ]),
         h("div", { class: "table-primitives-playground__insert" }, [
-          h(Button, { variant: "ghost" }, {
+          h(Button, { id: pickerAnchorId, variant: "ghost" }, {
             default: () => h("button", {
               type: "button",
               "aria-expanded": pickerOpen.value ? "true" : "false",
               onClick: () => { pickerOpen.value = !pickerOpen.value; },
             }, [icon("table"), h("span", "Insert table"), icon("chevron-down")]),
           }),
-          pickerOpen.value
-            ? h("div", { class: "table-primitives-playground__picker" }, [
+          h(Popover, {
+            class: "table-primitives-playground__picker",
+            open: pickerOpen.value,
+            for: pickerAnchorId,
+            placement: "bottom-end",
+            onClose: () => { pickerOpen.value = false; },
+          }, () => [
                 h(EditorInsertTableGrid, {
                   open: true,
                   "max-rows": 6,
@@ -100,8 +106,7 @@ const TablePlaygroundApp = defineComponent({
                     status.value = `Inserted a ${detail.rows} × ${detail.cols} table${detail.withHeaderRow ? " with a header row" : ""}.`;
                   },
                 }),
-              ])
-            : null,
+              ]),
         ]),
       ]),
       h("section", { class: "table-primitives-playground__editor", "aria-label": "Interactive editor" }, [
