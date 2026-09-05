@@ -1,0 +1,56 @@
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# Tree
+
+An accessible hierarchy with disclosure, bounded logical indentation, and
+truthful drag-and-drop previews. `ui-tree` coordinates the interaction while
+`ui-tree-item` supplies rows and nested groups.
+
+## Component Reference
+
+<ComponentExamplesApiTabs component="ui-tree" />
+
+## Drop behavior
+
+- A leaf splits into before and after targets.
+- A container reserves its middle band for an inside drop.
+- Before and after use a capped insertion line; inside highlights the row.
+- Incompatible sibling types do not advertise an insertion target.
+- Hovering a closed inside target opens it after `hover-expand-delay`.
+- The browser drag image is the complete row, not the grip alone.
+
+## SSR markup
+
+```html
+<ui-tree label="Project pages">
+  <ui-tree-item item-id="brief" label="Project brief" drag-type="page" drop-scope="root" sortable>
+    <a href="/brief">Project brief</a>
+  </ui-tree-item>
+  <ui-tree-item item-id="research" label="Research" drag-type="folder" drop-scope="root" accepts="page,folder" container>
+    <span>Research</span>
+    <ui-tree-item slot="children" item-id="notes" label="Notes" depth="2" drag-type="page" drop-scope="research">
+      <a href="/notes">Notes</a>
+    </ui-tree-item>
+  </ui-tree-item>
+</ui-tree>
+```
+
+## Vue
+
+```vue
+<script setup lang="ts">
+import { Tree, TreeItem } from "@threadlabs/looma/vue";
+</script>
+
+<template>
+  <Tree label="Project pages" @reorder="persistMove">
+    <TreeItem item-id="brief" label="Project brief" drag-type="page" drop-scope="root" sortable>
+      <a href="/brief">Project brief</a>
+    </TreeItem>
+  </Tree>
+</template>
+```
+
+Applications own data mutation and persistence. The `reorder` event reports
+source, target, position, type, and scope; Looma owns the interaction and visual
+states.

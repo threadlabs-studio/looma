@@ -4,11 +4,15 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-04 19:38 PDT
-Status: Candidate `0.1.14` is prepared with the responsive-image seam; corrective Candidate `0.1.13` remains published and qualified in Knit Preview, while `0.1.11` remains under `latest`
+Last Updated: 2026-09-04 20:02 PDT
+Status: tree and generic drag/drop Candidate work is in progress on top of prepared Candidate `0.1.14`
 
 ## Current Focus
 
+- Qualify and release Looma's generic `Tree`/`TreeItem` hierarchy and drag/drop
+  contract, then consume the exact public Candidate from Knit.
+- Keep hierarchy visuals and interaction states in Looma while Knit owns only
+  page/folder/collection data, authorization, routes, and persistence.
 - Publish and qualify Candidate `0.1.14` so Knit can connect normalized image
   masters to provider-specific renditions and a viewer without moving
   application policy into Looma.
@@ -39,8 +43,21 @@ Status: Candidate `0.1.14` is prepared with the responsive-image seam; correctiv
   - Added intrinsic image dimensions and a provider-neutral responsive
     capability to the turnkey Vue editor's upload contract.
   - Kept rendition attributes transient, added accessible mode-aware activation
-    and one-time fallback events, and made failed uploads retryable with the same
-    `File` while keeping failed attempts out of Tiptap JSON.
+  and one-time fallback events, and made failed uploads retryable with the same
+  `File` while keeping failed attempts out of Tiptap JSON.
+
+- Tree and drag/drop component work:
+  - Added semantic `ui-tree` and `ui-tree-item` primitives with one-step logical
+    indentation, disclosure, selected/disabled states, and slotted leading,
+    action, and child content.
+  - Added full-row browser drag imagery, muted source state, capped before/after
+    insertion lines, inside-container highlighting, compatible-kind filtering,
+    and delayed expansion of closed container targets.
+  - Added reusable drop classification and keyed hover-intent utilities plus
+    typed Vue `Tree`/`TreeItem` adapters and reorder/expand event payloads.
+  - Added real-Chromium coverage and a live Storybook hierarchy playground;
+    aligned generated API metadata, contracts, docs navigation, and release
+    classification for the expanded public surface.
 
 - Candidate `0.1.13` Knit qualification:
   - Installed exact public registry bytes in Knit, passed 143 script-policy and
