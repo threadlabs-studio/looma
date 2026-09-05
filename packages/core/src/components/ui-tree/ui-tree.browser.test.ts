@@ -189,7 +189,6 @@ describe('ui-tree drag and hierarchy interactions', () => {
     sourceHandle.dispatchEvent(dragEvent('dragstart', 0, { setData: vi.fn(), setDragImage: vi.fn() }));
     const rect = folderRow.getBoundingClientRect();
     folderRow.dispatchEvent(dragEvent('dragover', rect.top + (rect.height / 2), { dropEffect: 'move' }));
-    await flushStencil();
 
     expect(folder.getAttribute('data-drop-position')).toBe('inside');
     expect(folder.getAttribute('aria-expanded')).toBe('false');
