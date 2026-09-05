@@ -32,6 +32,7 @@ Looma typography is token-driven and rem-based:
 - `--ui-font-stack-humanist`
 - `--ui-font-stack-rounded`
 - `--ui-font-size-sm`
+- `--ui-font-size-ui`
 - `--ui-font-size-md`
 - `--ui-font-size-lg`
 - `--ui-line-height-tight`
@@ -43,7 +44,8 @@ Guidance:
 - Keep font-size values in `rem` so host apps can scale globally via `html` font-size.
 - Prefer setting app-level baseline on `html`/`body` (or `.ui-scope`), not component-local px overrides.
 - Component internals should reference these tokens instead of hard-coded typography values.
-- Default Looma stack is `--ui-font-stack-system` (`system-ui, sans-serif`) for fast/no-download rendering.
+- Default Looma stack is `--ui-font-stack-system` (the native platform UI stack) for fast/no-download rendering.
+- `--ui-font-size-ui` is the 15px-equivalent dense-control size used by trees and similar information-rich controls.
 
 ### Font Stack Presets
 

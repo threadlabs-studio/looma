@@ -24,6 +24,18 @@ The overlay contract is shared by `ui-dialog` and `ui-popover` through a central
 - Modal dialogs trap focus while open and return focus on close.
 - Popovers do not trap focus by default.
 
+## Positioning
+
+- `ui-menu`, `ui-context-menu`, `ui-popover`, `ui-tooltip`, and
+  `ui-toast-region` render their floating surface in the Popover API top layer.
+- CSS Anchor Positioning follows the trigger and uses logical start/end
+  placement when supported.
+- Looma's shared lightweight fallback flips and shifts against the visual
+  viewport when Anchor Positioning is unavailable. It runs only while the
+  surface is open; consumers do not need a separate positioning dependency.
+- Tooltip pointer interactions use configurable `show-delay` and `hide-delay`
+  intent timing (500ms/100ms by default); keyboard focus opens immediately.
+
 ## Shared Event Payloads
 
 - `open`: `{ open: true, reason, trigger }`

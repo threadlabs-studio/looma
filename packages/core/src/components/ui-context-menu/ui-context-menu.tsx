@@ -1,6 +1,7 @@
 import { Component, Prop, Element, State, Watch, Host, h } from '@stencil/core';
 import { openOverlay, closeOverlay, requestTopOverlayClose } from '../../overlay/manager';
 import { dispatchDetail } from '../../utils/events';
+import { createAnchoredSurface, type AnchoredSurface } from '../../overlay/positioning';
 
 type ContextMenuTrigger = 'keyboard' | 'pointer' | 'programmatic';
 
@@ -26,6 +27,8 @@ export class UIContextMenu {
   private contextTarget: HTMLElement | null = null;
   private pointerX = 0;
   private pointerY = 0;
+  private pointPositioned = false;
+  private surface: AnchoredSurface | null = null;
 
   @Watch('open')
   syncFromProp() {
@@ -42,6 +45,11 @@ export class UIContextMenu {
   syncOverlay() {
     this.syncTriggerState();
     if (this.internalOpen) {
+      if (this.pointPositioned) {
+        this.surface?.showAtPoint({ x: this.pointerX, y: this.pointerY });
+      } else {
+        this.surface?.show();
+      }
       openOverlay({
         id: this.overlayId,
         modal: false,
@@ -50,6 +58,7 @@ export class UIContextMenu {
         requestClose: (reason, trigger) => this.closeMenu(reason, trigger),
       });
     } else {
+      this.surface?.hide();
       closeOverlay(this.overlayId);
     }
   }
@@ -59,6 +68,7 @@ export class UIContextMenu {
     this.internalOpen = this.internalOpen || this.defaultOpen;
     this.resolveTargets();
     this.attachTargetListeners();
+    this.setupSurface();
     this.syncTriggerState();
     this.syncOverlay();
   }
@@ -66,12 +76,25 @@ export class UIContextMenu {
   componentDidUpdate() {
     this.resolveTargets();
     this.attachTargetListeners();
+    if (!this.pointPositioned) this.surface?.setAnchor(this.trigger);
     this.syncTriggerState();
   }
 
   disconnectedCallback() {
     this.detachTargetListeners();
+    this.surface?.destroy();
+    this.surface = null;
     closeOverlay(this.overlayId);
+  }
+
+  private setupSurface() {
+    const menu = this.host.shadowRoot?.querySelector<HTMLElement>('.menu');
+    if (!menu) return;
+    this.surface?.destroy();
+    this.surface = createAnchoredSurface(menu, {
+      anchor: this.trigger,
+      placement: 'bottom-start',
+    });
   }
 
   private resolveTargets() {
@@ -122,6 +145,10 @@ export class UIContextMenu {
   private openMenu(x: number, y: number, trigger: ContextMenuTrigger) {
     this.pointerX = x;
     this.pointerY = y;
+    this.pointPositioned = true;
+    // Context-click can reposition an already-open trigger menu, so do not
+    // depend on a state transition to run the positioning controller.
+    this.surface?.showAtPoint({ x, y });
     this.internalOpen = true;
     dispatchDetail(this.host, 'open', {
       open: true,
@@ -133,8 +160,14 @@ export class UIContextMenu {
 
   private openFromTrigger(trigger: ContextMenuTrigger) {
     if (!this.trigger) return;
-    const rect = this.trigger.getBoundingClientRect();
-    this.openMenu(rect.left, rect.bottom, trigger);
+    this.pointPositioned = false;
+    this.internalOpen = true;
+    dispatchDetail(this.host, 'open', {
+      open: true,
+      reason: 'action',
+      trigger,
+    });
+    this.focusFirstItem();
   }
 
   private closeMenu(reason: string, trigger: string, returnFocus = true) {
@@ -218,7 +251,6 @@ export class UIContextMenu {
         <div
           class="menu"
           data-open={this.internalOpen ? '' : undefined}
-          style={{ left: `${this.pointerX}px`, top: `${this.pointerY}px` }}
         >
           <ui-menu open={this.internalOpen}>
             <slot />

@@ -5,6 +5,8 @@
  * It contains typing information for all components that exist in this project.
  */
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
+import { AnchoredPlacement } from "./overlay/positioning";
+export { AnchoredPlacement } from "./overlay/positioning";
 export namespace Components {
     interface UiAffordanceScope {
         /**
@@ -213,9 +215,18 @@ export namespace Components {
          */
         "defaultOpen": boolean;
         /**
+          * Id of the control that anchors this menu in the top layer.
+         */
+        "for"?: string;
+        /**
           * @default false
          */
         "open": boolean;
+        /**
+          * Preferred placement; Looma flips and shifts when space is constrained.
+          * @default 'bottom-start'
+         */
+        "placement": AnchoredPlacement;
     }
     interface UiMenuItem {
         /**
@@ -233,9 +244,17 @@ export namespace Components {
          */
         "defaultOpen": boolean;
         /**
+          * Optional id of the element this popover follows in the top layer.
+         */
+        "for"?: string;
+        /**
           * @default false
          */
         "open": boolean;
+        /**
+          * @default 'bottom-start'
+         */
+        "placement": AnchoredPlacement;
     }
     interface UiRadio {
         /**
@@ -397,9 +416,23 @@ export namespace Components {
          */
         "for": string;
         /**
+          * Pointer leave grace period in milliseconds.
+          * @default 100
+         */
+        "hideDelay": number;
+        /**
           * @default false
          */
         "open": boolean;
+        /**
+          * @default 'top-start'
+         */
+        "placement": AnchoredPlacement;
+        /**
+          * Pointer hover intent delay in milliseconds. Keyboard focus is immediate.
+          * @default 500
+         */
+        "showDelay": number;
     }
     interface UiTopBar {
     }
@@ -889,9 +922,18 @@ declare namespace LocalJSX {
          */
         "defaultOpen"?: boolean;
         /**
+          * Id of the control that anchors this menu in the top layer.
+         */
+        "for"?: string;
+        /**
           * @default false
          */
         "open"?: boolean;
+        /**
+          * Preferred placement; Looma flips and shifts when space is constrained.
+          * @default 'bottom-start'
+         */
+        "placement"?: AnchoredPlacement;
     }
     interface UiMenuItem {
         /**
@@ -909,9 +951,17 @@ declare namespace LocalJSX {
          */
         "defaultOpen"?: boolean;
         /**
+          * Optional id of the element this popover follows in the top layer.
+         */
+        "for"?: string;
+        /**
           * @default false
          */
         "open"?: boolean;
+        /**
+          * @default 'bottom-start'
+         */
+        "placement"?: AnchoredPlacement;
     }
     interface UiRadio {
         /**
@@ -1073,9 +1123,23 @@ declare namespace LocalJSX {
          */
         "for"?: string;
         /**
+          * Pointer leave grace period in milliseconds.
+          * @default 100
+         */
+        "hideDelay"?: number;
+        /**
           * @default false
          */
         "open"?: boolean;
+        /**
+          * @default 'top-start'
+         */
+        "placement"?: AnchoredPlacement;
+        /**
+          * Pointer hover intent delay in milliseconds. Keyboard focus is immediate.
+          * @default 500
+         */
+        "showDelay"?: number;
     }
     interface UiTopBar {
     }
@@ -1224,6 +1288,8 @@ declare namespace LocalJSX {
     interface UiMenuAttributes {
         "open": boolean;
         "defaultOpen": boolean;
+        "for": string;
+        "placement": AnchoredPlacement;
     }
     interface UiMenuItemAttributes {
         "disabled": boolean;
@@ -1232,6 +1298,8 @@ declare namespace LocalJSX {
     interface UiPopoverAttributes {
         "open": boolean;
         "defaultOpen": boolean;
+        "for": string;
+        "placement": AnchoredPlacement;
     }
     interface UiRadioAttributes {
         "checked": boolean;
@@ -1286,6 +1354,9 @@ declare namespace LocalJSX {
         "for": string;
         "open": boolean;
         "defaultOpen": boolean;
+        "placement": AnchoredPlacement;
+        "showDelay": number;
+        "hideDelay": number;
     }
     interface UiTreeAttributes {
         "label": string;

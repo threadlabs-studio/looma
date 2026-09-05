@@ -53,7 +53,10 @@ describe("ui-context-menu release interactions (real browser)", () => {
 
     expect(trigger.getAttribute("aria-haspopup")).toBe("menu");
     expect(trigger.getAttribute("aria-expanded")).toBe("true");
-    expect(contextMenu.shadowRoot?.querySelector(".menu")?.hasAttribute("data-open")).toBe(true);
+    const surface = contextMenu.shadowRoot?.querySelector<HTMLElement>(".menu")!;
+    expect(surface.hasAttribute("data-open")).toBe(true);
+    expect(surface.getAttribute("popover")).toBe("manual");
+    expect(surface.matches(":popover-open")).toBe(true);
     expect(document.activeElement).toBe(firstItem);
 
     firstItem.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true, composed: true }));
@@ -83,7 +86,7 @@ describe("ui-context-menu release interactions (real browser)", () => {
     expect(opened.map((detail) => detail.trigger)).toEqual(["pointer", "pointer"]);
     const menu = contextMenu.shadowRoot?.querySelector<HTMLElement>(".menu");
     expect(menu?.style.left).toBe("120px");
-    expect(menu?.style.top).toBe("80px");
+    expect(menu?.style.top).toBe("84px");
   });
 
   it("cancels on Escape and outside press with focus return", async () => {
