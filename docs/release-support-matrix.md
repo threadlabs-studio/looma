@@ -34,7 +34,7 @@ authorization still requires the protected owner preflight before registry mutat
 
 ### Editor: published Candidate
 
-`ui-editor-insert-table-grid`, `ui-editor-slash-menu`,
+`ui-editor-insert-table-grid`, `ui-editor-mention-menu`, `ui-editor-slash-menu`,
 `ui-editor-table-context-menu`, `ui-editor-table-overlay`,
 `ui-editor-table-toolbar`, `ui-editor-toolbar`.
 
@@ -49,8 +49,10 @@ is a release defect, not a reason to silently shrink the source inventory.
   resizing; Tiptap round-trip tests prove structural operations retain existing
   table and surrounding content. Data loss or corruption remains release-blocking.
 - AlertDialog, Listbox, Combobox, Drawer/Sheet, HoverCard, CommandPalette,
-  Accordion group API, interactive Chip/Tag behavior, link editor, mentions, and
-  emoji picker are deferred roadmap items.
+  Accordion group API, interactive Chip/Tag behavior, link editor, and emoji
+  picker are deferred roadmap items.
+- Mention suggestions are capped, keyboard- and pointer-operable, and accept a
+  host-owned async provider; directory authorization remains outside Looma.
 - Domain behavior such as saves, upload transport, collaboration, presence, workspace/page
   concepts, and app-specific commands remains outside Looma.
 

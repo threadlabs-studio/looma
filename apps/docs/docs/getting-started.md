@@ -86,14 +86,25 @@ For a complete Vue editor, pass content and host integration callbacks to Looma:
 ```vue
 <script setup lang="ts">
 import { ref } from "vue";
-import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+import {
+  LoomaEditor,
+  type LoomaMentionProvider,
+} from "@threadlabs/looma/vue/editor";
 
 const content = ref({ type: "doc", content: [] });
+const findPeople: LoomaMentionProvider = async (query, { limit }) => {
+  const response = await fetch(
+    `/api/people?q=${encodeURIComponent(query)}&limit=${limit}`,
+  );
+  return (await response.json()).people;
+};
 </script>
 
 <template>
   <LoomaEditor
     v-model="content"
+    :mention-provider="findPeople"
+    :mention-limit="8"
     :upload-image="async file => ({ url: await upload(file), alt: file.name })"
   />
 </template>
@@ -113,7 +124,10 @@ const editor = new Editor({ extensions: [LoomaTableKit] });
 - `@threadlabs/looma` is the complete R1 public package; supported capabilities live at its explicit subpaths.
 - Core elements enhance consumer-authored semantic light DOM with shadow-root behavior. Layout and editor elements remain light DOM.
 - React and Svelte adapters are internal repository previews, not R1 exports.
-- `LoomaEditor` owns its Tiptap lifecycle, formatting controls, slash commands, focus behavior, image insertion, and table editing.
-- Hosts own persistence, upload transport, collaboration, presence, workspace/page concepts, and app-specific commands.
+- `LoomaEditor` owns its Tiptap lifecycle, formatting controls, slash commands,
+  bounded mention suggestions, focus behavior, image insertion, and table editing.
+- Hosts own persistence, the authorized people-directory query, upload
+  transport, collaboration, presence, workspace/page concepts, and app-specific
+  commands.
 
 Read the [Release 1 support and limitations](./release-1-support.md) before adopting the Candidate, then use the component pages for exact markup and API contracts.

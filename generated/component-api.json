@@ -605,6 +605,60 @@
       "slots": []
     },
     {
+      "tag": "ui-editor-mention-menu",
+      "package": "@threadlabs/looma/editor",
+      "className": "UIEditorMentionMenuElement",
+      "description": "Bounded, accessible people-suggestion surface positioned from an editor mention anchor.",
+      "attributes": [],
+      "properties": [
+        {
+          "name": "anchorRect",
+          "type": "DOMRect | null",
+          "default": null
+        },
+        {
+          "name": "items",
+          "type": "LoomaMentionItem[]",
+          "default": []
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "query",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "selectedIndex",
+          "type": "number",
+          "default": 0
+        }
+      ],
+      "events": [
+        {
+          "name": "looma-editor-mention-menu-highlight",
+          "detailType": "MentionMenuHighlightEventDetail",
+          "detailSchema": "{ index: number }",
+          "detailDocs": "Emitted when pointer navigation changes the highlighted person."
+        },
+        {
+          "name": "looma-editor-mention-menu-select",
+          "detailType": "MentionMenuSelectEventDetail",
+          "detailSchema": "{ index: number }",
+          "detailDocs": "Emitted when the user selects a person."
+        }
+      ],
+      "slots": []
+    },
+    {
       "tag": "ui-editor-slash-menu",
       "package": "@threadlabs/looma/editor",
       "className": "UIEditorSlashMenuElement",
