@@ -295,8 +295,22 @@ describe("editor release interactions (real browser)", () => {
     expect(columnSelector.title).toBe("Select column");
     expect(rowSelector.style.top).toBe("141px");
     expect(columnSelector.style.left).toBe("277px");
-    expect(rowSelector.querySelector('[data-looma-icon="grip-vertical"]')).toBeTruthy();
-    expect(columnSelector.querySelector('[data-looma-icon="grip-horizontal"]')).toBeTruthy();
+    const rowGrip = rowSelector.querySelector<HTMLElement>('[data-looma-icon="grip-vertical"]')!;
+    const columnGrip = columnSelector.querySelector<HTMLElement>('[data-looma-icon="grip-horizontal"]')!;
+    expect(getComputedStyle(rowGrip).opacity).toBe("0");
+    expect(getComputedStyle(columnGrip).opacity).toBe("0");
+    expect(getComputedStyle(rowSelector, "::before").width).toBe("2px");
+    expect(getComputedStyle(rowSelector, "::before").height).toBe("16px");
+    expect(getComputedStyle(columnSelector, "::before").width).toBe("16px");
+    expect(getComputedStyle(columnSelector, "::before").height).toBe("2px");
+
+    await userEvent.hover(rowSelector);
+    await vi.waitFor(() => expect(getComputedStyle(rowGrip).opacity).toBe("1"));
+    expect(getComputedStyle(rowSelector, "::before").opacity).toBe("0");
+
+    await userEvent.hover(columnSelector);
+    await vi.waitFor(() => expect(getComputedStyle(columnGrip).opacity).toBe("1"));
+    expect(getComputedStyle(columnSelector, "::before").opacity).toBe("0");
   });
 
   it("uses the shared floating toolbar frame without sticky or mobile-fixed positioning", () => {

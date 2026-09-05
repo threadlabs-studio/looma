@@ -20,6 +20,12 @@ active ProseMirror selection without stealing focus from another control.
 The editor and interactive Storybook table picker use the same anchored,
 light-dismissible popover instead of hand-positioned floating panels.
 
+The editor also exposes a domain-neutral people-mention extension and an
+accessible, bounded mention menu for static or asynchronous workspace
+providers. Context menus keep keyboard focus inside their active top-layer
+surface, and table row/column selectors now rest as subtle centered bars that
+expand to full drag handles on hover or focus.
+
 ## v0.1.16 Candidate
 
 Vue adapters preserve Stencil's hydration marker across consumer class updates,
