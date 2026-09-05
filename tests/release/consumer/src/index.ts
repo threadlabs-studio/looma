@@ -14,7 +14,7 @@ import { createSSRApp, h } from "vue";
 import { renderToString } from "@vue/server-renderer";
 
 const slashItems: SlashMenuItem[] = [
-  { title: "Heading", description: "Insert a heading", icon: "heading" }
+  { title: "Heading", description: "Insert a heading", icon: "heading-1" }
 ];
 
 const extensions = getDefaultEditorExtensions();

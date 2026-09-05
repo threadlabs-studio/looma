@@ -1,6 +1,6 @@
 {
   "name": "@threadlabs/looma-editor",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "private": true,
   "type": "module",
   "description": "Open-source Tiptap editor behavior, UI elements, styles, presets, and table kit for Looma.",
