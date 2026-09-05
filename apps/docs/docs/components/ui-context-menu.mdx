@@ -6,7 +6,20 @@ Action menu with a visible keyboard/touch trigger plus supplemental pointer-cont
 
 ## Component Reference
 
-<ComponentExamplesApiTabs component="ui-context-menu" />
+<ComponentExamplesApiTabs
+  component="ui-context-menu"
+  preview={
+    <div id="docs-context-menu-target" className="looma-context-menu-example">
+      <span>Right-click this document</span>
+      <ui-context-menu for="docs-context-menu-target">
+        <button slot="trigger" type="button">Document actions</button>
+        <ui-menu-item value="rename">Rename</ui-menu-item>
+        <ui-menu-item value="duplicate">Duplicate</ui-menu-item>
+        <ui-menu-item value="archive">Archive</ui-menu-item>
+      </ui-context-menu>
+    </div>
+  }
+/>
 
 ## Semantics And SSR Markup
 
