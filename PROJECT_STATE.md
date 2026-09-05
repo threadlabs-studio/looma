@@ -4,12 +4,13 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-05 10:55 PDT
-Status: Candidate `0.1.16` is public; the next Candidate adds top-layer anchored overlays, input-driven touch sizing, denser tree typography, and controlled-editor selection stability
+Last Updated: 2026-09-05 11:30 PDT
+Status: Candidate `0.1.17` is prepared with top-layer windowing, input-driven touch sizing, denser tree typography, and controlled-editor selection stability; `0.1.16` remains public until protected publication completes
 
 ## Current Focus
 
-- Qualify the next Candidate with Popover top-layer menus/popovers/tooltips,
+- Publish and qualify Candidate `0.1.17` with Popover top-layer
+  menus/popovers/tooltips/toasts,
   native CSS Anchor Positioning plus Looma's centralized lightweight fallback,
   and exact Knit sidebar overflow evidence.
 - Keep dense tree rows at 32px/15px for pointer use and animate to 44px targets
@@ -18,7 +19,7 @@ Status: Candidate `0.1.16` is public; the next Candidate adds top-layer anchored
   selection, while Knit server acknowledgements no longer echo authored JSON
   through the active editor.
 
-- Prepare and publish Candidate `0.1.17`, then consume its exact registry bytes
+- Publish Candidate `0.1.17`, then consume its exact registry bytes
   from Knit. Candidate `0.1.16` remains the current public `candidate` until
   those replacement bytes pass main CI and protected publication.
 - Complete hosted-docs qualification and promote Candidate `0.1.13`, which is
@@ -37,6 +38,11 @@ Status: Candidate `0.1.16` is public; the next Candidate adds top-layer anchored
   editor, and Vue.
 
 ## Recent Progress
+
+- Candidate `0.1.17` release preparation:
+  - Advanced the singleton facade, release workflows, consumer fixtures, and
+    public documentation together after the responsive interaction PR passed
+    its required main-branch gates.
 
 - Floating surfaces, modality, and typography correction:
   - Added one `createAnchoredSurface` controller used by menu, context menu,
