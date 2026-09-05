@@ -57,7 +57,7 @@ jobs:
       - name: Download exact release artifact from Candidate run
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          name: looma-0.1.13-candidate
+          name: looma-0.1.14-candidate
           path: .release/artifacts/
           run-id: ${{ inputs.candidate_workflow_run_id }}
           github-token: ${{ github.token }}
@@ -65,7 +65,7 @@ jobs:
       - name: Require public Candidate registry evidence from the same run
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          name: looma-0.1.13-registry-candidate-evidence
+          name: looma-0.1.14-registry-candidate-evidence
           path: .release/evidence/candidate-registry/
           run-id: ${{ inputs.candidate_workflow_run_id }}
           github-token: ${{ github.token }}
@@ -131,7 +131,7 @@ jobs:
         id: evidence-upload
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: looma-0.1.13-hosted-docs-evidence
+          name: looma-0.1.14-hosted-docs-evidence
           path: .release/evidence/hosted-docs.json
           if-no-files-found: error
           retention-days: 30

@@ -8,6 +8,7 @@ import { Button, ContextMenu, Stack } from "@threadlabs/looma/vue";
 import {
   EditorToolbar,
   getDefaultEditorExtensions,
+  type LoomaImageAttributeResolver,
   type SlashMenuItem,
 } from "@threadlabs/looma/vue/editor";
 import { createSSRApp, h } from "vue";
@@ -16,9 +17,17 @@ import { renderToString } from "@vue/server-renderer";
 const slashItems: SlashMenuItem[] = [
   { title: "Heading", description: "Insert a heading", icon: "heading-1" }
 ];
+const resolveImageAttributes: LoomaImageAttributeResolver = (image) => image.responsive
+  ? { src: image.src, loading: "lazy", decoding: "async" }
+  : undefined;
 
 const extensions = getDefaultEditorExtensions();
-if (extensions.length === 0 || slashItems.length === 0 || typeof defineCustomElements !== "function") {
+if (
+  extensions.length === 0
+  || slashItems.length === 0
+  || typeof resolveImageAttributes !== "function"
+  || typeof defineCustomElements !== "function"
+) {
   throw new Error("editor exports were not consumable");
 }
 

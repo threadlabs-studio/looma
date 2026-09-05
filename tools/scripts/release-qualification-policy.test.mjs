@@ -133,7 +133,7 @@ test("public Candidate documentation is install-first, time-stable, and fail-clo
   assert.match(gettingStarted, /Hosts own persistence/);
   assert.match(gettingStarted, /@threadlabs\/looma\/editor/);
   assert.match(gettingStarted, /@threadlabs\/looma\/vue/);
-  assert.match(supportPage, /Candidate `0\.1\.13`/);
+  assert.match(supportPage, /Candidate `0\.1\.14`/);
   assert.match(facadeReadme, /pnpm add @threadlabs\/looma/);
   assert.match(releaseChecklist, /`@threadlabs\/looma` Candidate tarball/);
   assert.match(releaseChecklist, /superseded\s+`@threadlabs\/looma-\*` identity/);
