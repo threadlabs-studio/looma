@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-No changes yet.
+Vue adapters preserve Stencil's hydration marker across consumer class updates,
+so responsive rerenders cannot leave already-rendered components invisible.
 
 ## v0.1.15 Candidate
 
