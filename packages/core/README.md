@@ -5,7 +5,7 @@
 
 Looma's Candidate web-component surface: 29 Stencil elements with shadow-root behavior and consumer-authored semantic light-DOM fallback.
 
-Release status: Candidate `0.1.14`, not Stable.
+Release status: Candidate `0.1.15`, not Stable.
 
 ## Install
 

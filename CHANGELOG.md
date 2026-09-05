@@ -4,6 +4,19 @@
 
 No changes yet.
 
+## v0.1.15 Candidate
+
+Applications can build semantic, themeable trees with consistent disclosure,
+selection, indentation, and contextual action slots. Pointer reordering uses
+the complete row as its drag image, mutes the source in place, distinguishes
+capped before/after insertion from container drops, and expands closed targets
+after deliberate hover intent.
+
+The public core also exposes reusable drop-position, drag-image, and hover-intent
+utilities. Looma filters incompatible and descendant targets before showing a
+move cursor or visual preview; applications retain data, authorization,
+domain-specific validation, keyboard/touch action menus, and persistence.
+
 ## v0.1.14 Candidate
 
 The turnkey Vue editor accepts provider-neutral image upload metadata

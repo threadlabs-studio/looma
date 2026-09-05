@@ -4,18 +4,14 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-04 20:02 PDT
-Status: tree and generic drag/drop Candidate work is in progress on top of prepared Candidate `0.1.14`
+Last Updated: 2026-09-04 20:18 PDT
+Status: Candidate `0.1.15` is prepared with the responsive-image seam and public tree/drag-drop contract; `0.1.11` remains under `latest`
 
 ## Current Focus
 
-- Qualify and release Looma's generic `Tree`/`TreeItem` hierarchy and drag/drop
-  contract, then consume the exact public Candidate from Knit.
-- Keep hierarchy visuals and interaction states in Looma while Knit owns only
-  page/folder/collection data, authorization, routes, and persistence.
-- Publish and qualify Candidate `0.1.14` so Knit can connect normalized image
-  masters to provider-specific renditions and a viewer without moving
-  application policy into Looma.
+- Publish and qualify Candidate `0.1.15`, then consume its exact registry bytes
+  from Knit. Candidate `0.1.14` was prepared but is superseded by this combined
+  image-delivery and tree release target.
 - Complete hosted-docs qualification and promote Candidate `0.1.13`, which is
   published and qualified in Knit with the opinionated Lucide icon
   language, compact table cells, cell-local resize chrome, hover-first table
@@ -32,6 +28,12 @@ Status: tree and generic drag/drop Candidate work is in progress on top of prepa
   editor, and Vue.
 
 ## Recent Progress
+
+- Candidate `0.1.15` release preparation:
+  - Advanced the singleton public facade, package metadata, docs, release
+    artifact names, fixture expectations, and release-policy tests together.
+  - Added Candidate notes for semantic trees, full-row drag feedback, truthful
+    target affordances, hover intent, and the app/Looma ownership boundary.
 
 - Candidate `0.1.14` release preparation:
   - Advanced the singleton public facade, package metadata, docs, release
