@@ -4,6 +4,14 @@
 
 No changes yet.
 
+## v0.1.13 Candidate
+
+Release qualification compiles and executes the exact public consumer
+fixture against the packed facade before npm publication. The fixture uses the
+typed `heading-1` Lucide key, so icon-contract drift is caught before immutable
+package bytes reach the registry. Its Tiptap core, PM, and Vue dependencies are
+also aligned on the same supported 2.27 line for a complete SSR consumer graph.
+
 ## v0.1.12 Candidate
 
 The turnkey editor separates table discovery from editing: hovering a cell

@@ -1,6 +1,6 @@
 {
   "name": "@threadlabs/looma-svelte",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "private": true,
   "type": "module",
   "description": "Thin Svelte helpers for Looma web components.",
