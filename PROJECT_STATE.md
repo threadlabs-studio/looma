@@ -4,14 +4,14 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-04 19:24 PDT
-Status: corrective Candidate `0.1.13` is published and qualified in Knit Preview; `0.1.11` remains under `latest` pending hosted-docs evidence and promotion
+Last Updated: 2026-09-04 19:38 PDT
+Status: Candidate `0.1.14` is prepared with the responsive-image seam; corrective Candidate `0.1.13` remains published and qualified in Knit Preview, while `0.1.11` remains under `latest`
 
 ## Current Focus
 
-- Qualify and release the additive responsive-image seam so Knit can connect
-  normalized image masters to provider-specific renditions and a viewer without
-  moving application policy into Looma.
+- Publish and qualify Candidate `0.1.14` so Knit can connect normalized image
+  masters to provider-specific renditions and a viewer without moving
+  application policy into Looma.
 - Complete hosted-docs qualification and promote Candidate `0.1.13`, which is
   published and qualified in Knit with the opinionated Lucide icon
   language, compact table cells, cell-local resize chrome, hover-first table
@@ -28,6 +28,12 @@ Status: corrective Candidate `0.1.13` is published and qualified in Knit Preview
   editor, and Vue.
 
 ## Recent Progress
+
+- Candidate `0.1.14` release preparation:
+  - Advanced the singleton public facade, package metadata, docs, release
+    artifact names, fixture expectations, and release-policy tests together.
+  - Added Candidate notes for provider-neutral responsive image attributes,
+    accessible activation, one-time master fallback, and upload retry behavior.
 
 - Responsive image delivery seam:
   - Added intrinsic image dimensions and a provider-neutral responsive

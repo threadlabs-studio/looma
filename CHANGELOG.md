@@ -4,6 +4,18 @@
 
 No changes yet.
 
+## v0.1.14 Candidate
+
+The turnkey Vue editor accepts provider-neutral image upload metadata
+and resolve responsive rendition attributes at render time without persisting
+CDN URLs in editor JSON. Image activation is accessible in editable and
+read-only modes, failed renditions fall back to the stored master once, and
+failed uploads can retry the same `File`.
+
+Hosts retain control over image storage, CDN policy, viewer presentation, and
+telemetry through typed callbacks and events. Looma owns only the reusable
+editor interaction and delivery seam.
+
 ## v0.1.13 Candidate
 
 Release qualification compiles and executes the exact public consumer
