@@ -18,7 +18,7 @@ Candidate availability is defined by the npm `candidate` dist-tag resolving `@th
 - **`@threadlabs/looma/layout`** — ESM and CommonJS; six light-DOM layout elements.
 - **`@threadlabs/looma/editor`** — ESM; the complete Tiptap-backed editor surface.
 - **`@threadlabs/looma/editor/ui`** — ESM; low-level editor web-component chrome without Tiptap integration.
-- **`@threadlabs/looma/editor/extensions`** — ESM; focused Tiptap 2 presets, `LoomaTableKit`, slash commands, and table helpers.
+- **`@threadlabs/looma/editor/extensions`** — ESM; focused Tiptap 2 presets, `LoomaTableKit`, slash commands, mentions, and table helpers.
 - **`@threadlabs/looma/vue`** — ESM; optional Vue 3 wrappers for published layout and core elements, without the editor graph.
 - **`@threadlabs/looma/vue/editor`** — ESM; the turnkey `LoomaEditor` and advanced low-level wrappers.
 - **`@threadlabs/looma/*.css`** — Tokens, themes, layout, core, and editor styles.
@@ -27,7 +27,7 @@ React and Svelte adapters are deferred internal repository previews. Docs, Story
 
 ## Qualified behavior
 
-- All 44 source elements must appear in generated API metadata, docs navigation, and the Vue projection where applicable.
+- All 45 source elements must appear in generated API metadata, docs navigation, and the Vue projection where applicable.
 - Public entry points import without DOM globals during server rendering.
 - Chromium tests cover representative keyboard, touch/click, focus-return, disabled-state, and automated accessibility behavior.
 - Real Tiptap tests prove adding rows and columns preserves existing table cells and surrounding content; Vue browser tests prove the turnkey editor and theme-token control path.
@@ -46,7 +46,11 @@ Automated accessibility checks do not replace manual screen-reader, forced-color
 
 ## Deferred surface
 
-AlertDialog, Listbox, Combobox, Drawer/Sheet, HoverCard, CommandPalette, Accordion groups, interactive Chip/Tag behavior, link editing, mentions, and emoji picking are roadmap work. Looma owns editor UI and behavior; hosts own saves, upload transport, collaboration, presence, workspaces, pages, and app-specific commands.
+AlertDialog, Listbox, Combobox, Drawer/Sheet, HoverCard, CommandPalette,
+Accordion groups, interactive Chip/Tag behavior, link editing, and emoji picking
+are roadmap work. Looma owns editor UI and behavior, including bounded mention
+suggestions; hosts own authorized directory queries, saves, upload transport,
+collaboration, presence, workspaces, pages, and app-specific commands.
 
 ## Source and issue reporting
 

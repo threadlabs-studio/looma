@@ -4,6 +4,8 @@ import Document from "@tiptap/extension-document";
 import Paragraph from "@tiptap/extension-paragraph";
 import Text from "@tiptap/extension-text";
 import {
+  createLoomaMentionExtension,
+  filterLoomaMentionItems,
   getDefaultEditorExtensions,
   getLoomaTableExtensions,
   handleTableAction,
@@ -11,6 +13,7 @@ import {
   LoomaTable,
   LoomaTableKit,
   setActiveTableCellBackground,
+  type LoomaMentionItem,
 } from "../src/extensions";
 
 describe("editor extension contract", () => {
@@ -33,6 +36,50 @@ describe("editor extension contract", () => {
       cellMinWidth: 112,
       lastColumnResizable: false,
     });
+    expect(getDefaultEditorExtensions({ mention: false }).map((extension) => extension.name))
+      .not.toContain("mention");
+  });
+
+  it("filters mention candidates by label or detail without persisting display metadata", () => {
+    const people: LoomaMentionItem[] = [
+      { id: "ada", label: "Ada Lovelace", detail: "ada@example.com", initials: "AL" },
+      { id: "grace", label: "Grace Hopper", detail: "grace@example.com", initials: "GH" },
+    ];
+
+    expect(filterLoomaMentionItems(people, "LOVE")).toEqual([people[0]]);
+    expect(filterLoomaMentionItems(people, "grace@")).toEqual([people[1]]);
+    expect(filterLoomaMentionItems(people, "missing")).toEqual([]);
+
+    const largeDirectory = Array.from({ length: 1_000 }, (_, index) => ({
+      id: `person-${index}`,
+      label: `Person ${index}`,
+    }));
+    expect(filterLoomaMentionItems(largeDirectory, "")).toHaveLength(8);
+    expect(filterLoomaMentionItems(largeDirectory, "", 1_000)).toHaveLength(20);
+  });
+
+  it("round-trips durable mentions with only a stable id and display label", () => {
+    const editor = new Editor({
+      extensions: [Document, Paragraph, Text, createLoomaMentionExtension()],
+      content: {
+        type: "doc",
+        content: [{
+          type: "paragraph",
+          content: [
+            { type: "text", text: "Hello " },
+            { type: "mention", attrs: { id: "ada", label: "Ada Lovelace" } },
+          ],
+        }],
+      },
+    });
+
+    expect(editor.getJSON().content?.[0]?.content?.[1]).toEqual({
+      type: "mention",
+      attrs: { id: "ada", label: "Ada Lovelace" },
+    });
+    expect(editor.getHTML()).toContain('data-id="ada"');
+    expect(editor.getHTML()).toContain("@Ada Lovelace");
+    editor.destroy();
   });
 
   it("provides working table commands without the complete editor preset", () => {

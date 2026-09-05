@@ -48,9 +48,19 @@ Use the turnkey editor when Looma should own the complete editing experience:
 ```vue
 <script setup lang="ts">
 import { ref } from "vue";
-import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+import {
+  LoomaEditor,
+  type LoomaMentionProvider,
+} from "@threadlabs/looma/vue/editor";
 
 const document = ref({ type: "doc", content: [] });
+
+const findPeople: LoomaMentionProvider = async (query, { limit }) => {
+  const response = await fetch(
+    `/api/people?q=${encodeURIComponent(query)}&limit=${limit}`,
+  );
+  return (await response.json()).people;
+};
 
 const resolveImageAttributes = (image) => image.responsive
   ? {
@@ -68,6 +78,8 @@ const resolveImageAttributes = (image) => image.responsive
 <template>
   <LoomaEditor
     v-model="document"
+    :mention-provider="findPeople"
+    :mention-limit="8"
     :upload-image="async file => ({
       url: await upload(file),
       alt: file.name,
@@ -83,8 +95,14 @@ const resolveImageAttributes = (image) => image.responsive
 ```
 
 `LoomaEditor` owns formatting controls, slash commands, selection behavior, and
-table editing. The host owns persistence, upload transport, rendition URL
-generation, and the viewer opened from `imageActivate`.
+table editing. Typing `@` opens its accessible mention menu; the remaining text
+is the search input, so editor focus never moves to a second field. The host can
+provide a small static `mentionItems` list or an async `mentionProvider`. Looma
+requests only `mentionLimit` results (eight by default, hard-capped at twenty),
+ignores stale async responses, and persists only each person's stable `id` and
+display `label`. The host owns the directory query, authorization, persistence,
+upload transport, rendition URL generation, and the viewer opened from
+`imageActivate`.
 
 An upload result may include positive intrinsic `width` and `height` plus
 `responsive: true`. Those stable values are stored in Tiptap JSON. The optional

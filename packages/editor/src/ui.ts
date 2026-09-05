@@ -8,6 +8,7 @@
 import "./table-context-menu";
 import "./table-toolbar";
 import "./insert-table-grid";
+import "./mention-menu";
 import "./table-overlay";
 import "./slash-menu";
 import "./toolbar";
@@ -19,6 +20,10 @@ export {
   type TableCellBackgroundAction,
 } from "./table-backgrounds";
 export type { InsertTableEventDetail } from "./insert-table-grid";
+export type {
+  MentionMenuHighlightEventDetail,
+  MentionMenuSelectEventDetail,
+} from "./mention-menu";
 export {
   measureTableOverlayGeometry,
   resolveTableCellAt,

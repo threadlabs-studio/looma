@@ -16,6 +16,79 @@ afterEach(() => {
 });
 
 describe("editor release interactions (real browser)", () => {
+  it("caps a misconfigured mention menu before rendering a large directory", () => {
+    document.body.innerHTML = "<ui-editor-mention-menu></ui-editor-mention-menu>";
+    const menu = document.querySelector("ui-editor-mention-menu") as HTMLElement & {
+      open: boolean;
+      items: Array<{ id: string; label: string }>;
+      anchorRect: SlashMenuAnchorRect | null;
+    };
+    menu.open = true;
+    menu.items = Array.from({ length: 1_000 }, (_, index) => ({
+      id: `person-${index}`,
+      label: `Person ${index}`,
+    }));
+    menu.anchorRect = new DOMRect(16, 40, 1, 18);
+
+    expect(menu.querySelectorAll('[role="option"]')).toHaveLength(20);
+  });
+
+  it("renders a touch-sized mention list and emits the exact selected person", async () => {
+    document.body.innerHTML = "<ui-editor-mention-menu></ui-editor-mention-menu>";
+    const menu = document.querySelector("ui-editor-mention-menu") as HTMLElement & {
+      open: boolean;
+      items: Array<{ id: string; label: string; detail?: string; initials?: string }>;
+      selectedIndex: number;
+      anchorRect: SlashMenuAnchorRect | null;
+    };
+    menu.open = true;
+    menu.items = [
+      { id: "ada", label: "Ada Lovelace", detail: "ada@example.com", initials: "AL" },
+      { id: "grace", label: "Grace Hopper", detail: "grace@example.com", initials: "GH" },
+    ];
+    menu.selectedIndex = 1;
+    menu.anchorRect = new DOMRect(16, 40, 1, 18);
+
+    const selected: unknown[] = [];
+    menu.addEventListener("looma-editor-mention-menu-select", (event) => {
+      selected.push((event as CustomEvent).detail);
+    });
+
+    const options = menu.querySelectorAll<HTMLElement>('[role="option"]');
+    expect(menu.getAttribute("aria-label")).toBe("Mention a person");
+    expect(options).toHaveLength(2);
+    expect(options[1]?.getAttribute("aria-selected")).toBe("true");
+    expect(options[0]?.getBoundingClientRect().height).toBeGreaterThanOrEqual(44);
+    await userEvent.click(options[1]!);
+    expect(selected).toEqual([{ index: 1 }]);
+  });
+
+  it("keeps the mobile mention menu inside the visible keyboard viewport", () => {
+    vi.spyOn(window, "innerWidth", "get").mockReturnValue(375);
+    vi.spyOn(window, "visualViewport", "get").mockReturnValue({
+      width: 375,
+      height: 420,
+      offsetLeft: 0,
+      offsetTop: 96,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    } as unknown as VisualViewport);
+    document.body.innerHTML = "<ui-editor-mention-menu></ui-editor-mention-menu>";
+    const menu = document.querySelector("ui-editor-mention-menu") as HTMLElement & {
+      open: boolean;
+      items: Array<{ id: string; label: string }>;
+      anchorRect: SlashMenuAnchorRect | null;
+    };
+    menu.open = true;
+    menu.items = [{ id: "ada", label: "Ada Lovelace" }];
+    menu.anchorRect = new DOMRect(16, 300, 1, 18);
+
+    expect(menu.style.left).toBe("0px");
+    expect(menu.style.top).toBe("140px");
+    expect(menu.style.width).toBe("375px");
+    expect(menu.style.maxHeight).toBe("320px");
+  });
+
   it("positions the slash menu from DOMRect and Tiptap rect-like anchors", () => {
     vi.spyOn(window, "innerWidth", "get").mockReturnValue(1280);
     vi.spyOn(window, "innerHeight", "get").mockReturnValue(720);
@@ -354,6 +427,7 @@ describe("editor release interactions (real browser)", () => {
   it("passes automated accessibility checks with no browser exceptions", async () => {
     document.body.innerHTML = `
       <main id="editor-browser-qualification">
+        <ui-editor-mention-menu></ui-editor-mention-menu>
         <ui-editor-toolbar><button type="button">Bold</button></ui-editor-toolbar>
         <ui-editor-table-toolbar open can-add-row-after can-add-column-after can-delete-table></ui-editor-table-toolbar>
         <ui-editor-table-context-menu open can-add-row-after can-delete-table></ui-editor-table-context-menu>

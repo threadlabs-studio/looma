@@ -91,6 +91,7 @@ const sidebars: SidebarsConfig = {
       items: [
         "components/ui-editor-toolbar",
         "components/ui-editor-slash-menu",
+        "components/ui-editor-mention-menu",
         "components/ui-editor-insert-table-grid",
         "components/ui-editor-table-toolbar",
         "components/ui-editor-table-context-menu",

@@ -17,6 +17,8 @@ import {
 } from "vue";
 import {
   createLoomaSlashCommandExtension,
+  createLoomaMentionExtension,
+  DEFAULT_MENTION_RESULT_LIMIT,
   getActiveTableUiState,
   getDefaultEditorExtensions,
   handleTableAction,
@@ -26,6 +28,9 @@ import {
   resolveTableCellAt,
   shouldShowTextFormattingToolbar,
   type LoomaSlashMenuSnapshot,
+  type LoomaMentionItem,
+  type LoomaMentionMenuSnapshot,
+  type LoomaMentionProvider,
   type TableOverlayGeometry,
   type TableCellAlignment,
   type TableCellBackground,
@@ -35,6 +40,7 @@ import { IconButton, Popover } from "../index";
 import { getVisualViewportRect, LOOMA_ICONS, type LoomaIconName } from "@threadlabs/looma-core";
 import {
   EditorInsertTableGrid,
+  EditorMentionMenu,
   EditorSlashMenu,
   EditorTableContextMenu,
   EditorTableOverlay,
@@ -61,6 +67,7 @@ export type LoomaImageUploader = (
 ) => Promise<string | LoomaImageUploadResult>;
 
 const EMPTY_DOCUMENT: JSONContent = { type: "doc", content: [] };
+let editorInstanceSequence = 0;
 
 const EMPTY_CAPABILITIES: TableActionCapabilities = {
   canAddRowBefore: false,
@@ -122,6 +129,18 @@ export const LoomaEditor = defineComponent({
       type: Array as PropType<AnyExtension[]>,
       default: () => [],
     },
+    mentionItems: {
+      type: Array as PropType<LoomaMentionItem[]>,
+      default: () => [],
+    },
+    mentionProvider: {
+      type: Function as PropType<LoomaMentionProvider | undefined>,
+      default: undefined,
+    },
+    mentionLimit: {
+      type: Number,
+      default: DEFAULT_MENTION_RESULT_LIMIT,
+    },
     uploadImage: {
       type: Function as PropType<LoomaImageUploader | undefined>,
       default: undefined,
@@ -172,6 +191,17 @@ export const LoomaEditor = defineComponent({
       select: null,
     });
 
+    const mention = reactive<LoomaMentionMenuSnapshot>({
+      active: false,
+      items: [],
+      selectedIndex: 0,
+      query: "",
+      rect: null,
+      loading: false,
+      highlight: null,
+      select: null,
+    });
+
     const tableUi = reactive({
       toolbarOpen: false,
       overlayOpen: false,
@@ -191,6 +221,21 @@ export const LoomaEditor = defineComponent({
       onOpenImagePicker: () => fileInput.value?.click(),
       onStateChange: (state) => {
         Object.assign(slash, state);
+      },
+    });
+    const mentionMenuId = `looma-editor-mention-menu-${++editorInstanceSequence}`;
+    const hasConsumerMention = props.extensions.some((extension) => extension.name === "mention");
+    const mentionExtension = hasConsumerMention ? null : createLoomaMentionExtension({
+      limit: props.mentionLimit,
+      menuId: mentionMenuId,
+      items: async (query, context) => {
+        if (props.mentionProvider) {
+          return await props.mentionProvider(query, context);
+        }
+        return props.mentionItems;
+      },
+      onStateChange: (state) => {
+        Object.assign(mention, state);
       },
     });
     const imageDelivery = createLoomaImageDeliveryController({
@@ -215,7 +260,10 @@ export const LoomaEditor = defineComponent({
 
     const editor = useEditor({
       extensions: [
-        ...getDefaultEditorExtensions({ placeholder: props.placeholder }),
+        ...getDefaultEditorExtensions({
+          placeholder: props.placeholder,
+          mention: mentionExtension ?? false,
+        }),
         imageDelivery.extension,
         slashExtension,
         ...props.extensions,
@@ -868,6 +916,24 @@ export const LoomaEditor = defineComponent({
               onSlashMenuHighlight: ({ index }: { index: number }) => { slash.selectedIndex = index; },
               onSlashMenuSelect: ({ index }: { index: number }) => {
                 slash.select?.(index);
+              },
+            })
+          : null,
+        mention.active && (mention.loading || mention.items.length > 0)
+          ? h(EditorMentionMenu, {
+              id: mentionMenuId,
+              open: true,
+              query: mention.query,
+              items: mention.items,
+              selectedIndex: mention.selectedIndex,
+              anchorRect: mention.rect,
+              loading: mention.loading,
+              onMentionMenuHighlight: ({ index }: { index: number }) => {
+                mention.selectedIndex = index;
+                mention.highlight?.(index);
+              },
+              onMentionMenuSelect: ({ index }: { index: number }) => {
+                mention.select?.(index);
               },
             })
           : null,

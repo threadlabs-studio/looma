@@ -2,11 +2,14 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, ref, type App } from "vue";
 
 vi.mock("@threadlabs/looma-editor", () => ({
+  createLoomaMentionExtension: () => "fixture-mention",
+  DEFAULT_MENTION_RESULT_LIMIT: 8,
   getDefaultEditorExtensions: () => ["fixture-extension"],
 }));
 
 import {
   EDITOR_ADAPTER_COMPONENT_TAG_MAP,
+  EditorMentionMenu,
   EditorSlashMenu,
   EditorTableOverlay,
   EditorToolbar,
@@ -38,13 +41,19 @@ describe("@threadlabs/looma-vue/editor adapter", () => {
     expect(getDefaultEditorExtensions()).toEqual(["fixture-extension"]);
     expect(EDITOR_ADAPTER_COMPONENT_TAG_MAP.EditorToolbar).toBe("ui-editor-toolbar");
     expect(EDITOR_ADAPTER_COMPONENT_TAG_MAP.EditorSlashMenu).toBe("ui-editor-slash-menu");
+    expect(EDITOR_ADAPTER_COMPONENT_TAG_MAP.EditorMentionMenu).toBe("ui-editor-mention-menu");
   });
 
   it("renders the editor wrapper tags", async () => {
     const host = document.createElement("div");
     document.body.append(host);
     const app = createApp({
-      render: () => h("div", [h(EditorToolbar), h(EditorSlashMenu), h(EditorTableOverlay)]),
+      render: () => h("div", [
+        h(EditorToolbar),
+        h(EditorSlashMenu),
+        h(EditorMentionMenu),
+        h(EditorTableOverlay),
+      ]),
     });
     apps.push(app);
     app.mount(host);
@@ -52,6 +61,7 @@ describe("@threadlabs/looma-vue/editor adapter", () => {
 
     expect(host.querySelector("ui-editor-toolbar")).toBeTruthy();
     expect(host.querySelector("ui-editor-slash-menu")).toBeTruthy();
+    expect(host.querySelector("ui-editor-mention-menu")).toBeTruthy();
     expect(host.querySelector("ui-editor-table-overlay")).toBeTruthy();
   });
 
@@ -131,5 +141,49 @@ describe("@threadlabs/looma-vue/editor adapter", () => {
     }));
     expect(onSlashMenuHighlight).toHaveBeenCalledWith(highlight);
     expect(onSlashMenuSelect).toHaveBeenCalledWith(select);
+  });
+
+  it("forwards mention-menu props and events", async () => {
+    const onMentionMenuHighlight = vi.fn();
+    const onMentionMenuSelect = vi.fn();
+    const items = [{ id: "ada", label: "Ada Lovelace", detail: "ada@example.com" }];
+    const anchorRect = { x: 12, y: 24, width: 1, height: 18 };
+    const host = document.createElement("div");
+    document.body.append(host);
+    const app = createApp({
+      render: () => h(EditorMentionMenu, {
+        open: true,
+        query: "ad",
+        items,
+        selectedIndex: 0,
+        anchorRect,
+        onMentionMenuHighlight,
+        onMentionMenuSelect,
+      }),
+    });
+    apps.push(app);
+    app.mount(host);
+    await settleCustomElements(host);
+
+    const menu = host.querySelector("ui-editor-mention-menu") as HTMLElement & {
+      open: boolean;
+      query: string;
+      items: unknown[];
+      selectedIndex: number;
+      anchorRect: typeof anchorRect | null;
+    };
+    expect(menu.open).toBe(true);
+    expect(menu.query).toBe("ad");
+    expect(menu.items).toBe(items);
+    expect(menu.anchorRect).toBe(anchorRect);
+
+    menu.dispatchEvent(new CustomEvent("looma-editor-mention-menu-highlight", {
+      detail: { index: 0 },
+    }));
+    menu.dispatchEvent(new CustomEvent("looma-editor-mention-menu-select", {
+      detail: { index: 0 },
+    }));
+    expect(onMentionMenuHighlight).toHaveBeenCalledWith({ index: 0 });
+    expect(onMentionMenuSelect).toHaveBeenCalledWith({ index: 0 });
   });
 });

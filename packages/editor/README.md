@@ -3,7 +3,9 @@
 > Internal implementation workspace. Consumers install `@threadlabs/looma` and
 > use `/editor`, `/editor/extensions`, or `/editor.css`.
 
-Candidate editor UI elements, styles, Tiptap 2 presets, slash commands, and table editing for Looma. The package uses Tiptap's vanilla `Editor`; the public facade's `/vue/editor` entry provides the turnkey Vue editor.
+Candidate editor UI elements, styles, Tiptap 2 presets, slash commands, mentions,
+and table editing for Looma. The package uses Tiptap's vanilla `Editor`; the
+public facade's `/vue/editor` entry provides the turnkey Vue editor.
 
 Release status: Candidate `0.1.17`, not Stable.
 
@@ -35,10 +37,13 @@ import {
 
 ## Candidate surface
 
-- Six custom elements: toolbar, slash menu, table context menu, table toolbar, insert-table grid, and table overlay.
+- Seven custom elements: toolbar, slash menu, mention menu, table context menu,
+  table toolbar, insert-table grid, and table overlay.
 - `getDefaultEditorExtensions()` for the qualified Tiptap 2 extension preset.
 - `LoomaTableKit` or `getLoomaTableExtensions()` for consumers adding Looma table editing to an existing Tiptap editor.
 - `createLoomaSlashCommandExtension()` for the same slash-command behavior with a custom renderer.
+- `createLoomaMentionExtension()` for a domain-neutral mention node and a
+  bounded static or asynchronous people provider.
 - `handleTableOverlayAction(editor, detail)` for boundary row/column actions.
 - `insertTableAtRange(editor, range, options)` for stable table insertion.
 - Token-aligned editor CSS.
@@ -71,7 +76,8 @@ merge/split actions, and content-integrity coverage. Looma-owned editor controls
 use the shared Lucide registry and inherit host theme colors through
 `currentColor` and Looma tokens.
 
-Link editing, mentions, and emoji picking are roadmap items—not Candidate claims. React integration remains a deferred repository preview.
+Link editing and emoji picking remain roadmap items—not Candidate claims. React
+integration remains a deferred repository preview.
 
 See the [public Candidate docs](https://threadlabs-studio.github.io/looma/), [editor evidence](https://github.com/threadlabs-studio/looma/blob/main/docs/editor-bugs.md), and [R1 support matrix](https://github.com/threadlabs-studio/looma/blob/main/docs/release-support-matrix.md). Report problems in the [issue tracker](https://github.com/threadlabs-studio/looma/issues).
 
