@@ -373,6 +373,9 @@ importers:
       '@tiptap/core':
         specifier: ^2.11.5
         version: 2.27.2(@tiptap/pm@2.27.2)
+      '@tiptap/pm':
+        specifier: ^2.11.5
+        version: 2.27.2
       '@tiptap/vue-3':
         specifier: ^2.11.5
         version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))(@tiptap/pm@2.27.2)(vue@3.5.29(typescript@5.9.3))

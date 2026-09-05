@@ -4,11 +4,14 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-04 18:37 PDT
+Last Updated: 2026-09-04 19:24 PDT
 Status: corrective Candidate `0.1.13` is published and qualified in Knit Preview; `0.1.11` remains under `latest` pending hosted-docs evidence and promotion
 
 ## Current Focus
 
+- Qualify and release the additive responsive-image seam so Knit can connect
+  normalized image masters to provider-specific renditions and a viewer without
+  moving application policy into Looma.
 - Complete hosted-docs qualification and promote Candidate `0.1.13`, which is
   published and qualified in Knit with the opinionated Lucide icon
   language, compact table cells, cell-local resize chrome, hover-first table
@@ -25,6 +28,13 @@ Status: corrective Candidate `0.1.13` is published and qualified in Knit Preview
   editor, and Vue.
 
 ## Recent Progress
+
+- Responsive image delivery seam:
+  - Added intrinsic image dimensions and a provider-neutral responsive
+    capability to the turnkey Vue editor's upload contract.
+  - Kept rendition attributes transient, added accessible mode-aware activation
+    and one-time fallback events, and made failed uploads retryable with the same
+    `File` while keeping failed attempts out of Tiptap JSON.
 
 - Candidate `0.1.13` Knit qualification:
   - Installed exact public registry bytes in Knit, passed 143 script-policy and
@@ -259,6 +269,18 @@ Status: corrective Candidate `0.1.13` is published and qualified in Knit Preview
 
 ## Verification Snapshot
 
+- Responsive image delivery seam (2026-09-04):
+  - focused real-Chromium tests: pass (6 tests), including transient JSON,
+    activation, fallback-once, and same-`File` retry behavior
+  - `pnpm --filter @threadlabs/looma-vue test`: pass (13 tests)
+  - `pnpm --filter @threadlabs/looma-editor test`: pass (9 tests)
+  - `pnpm --filter @threadlabs/looma-vue typecheck`: pass
+  - workspace `pnpm typecheck`: pass
+  - workspace `pnpm lint`: pass
+  - workspace `pnpm test`: pass
+  - facade build and packed-consumer matrix: pass
+  - `pnpm release:inspect`: pass; the local dirty-tree artifact is correctly
+    marked ineligible for release
 - Table resizing correction (2026-09-04):
   - strengthened `@threadlabs/looma-vue` browser test: failed before the fix
     with a 50px structural table minimum instead of the required 224px
@@ -353,11 +375,15 @@ Status: corrective Candidate `0.1.13` is published and qualified in Knit Preview
   public-registry qualification and `latest` promotion remain open.
 - Shared editor UX still has open defects found through Knit dogfooding. See `docs/editor-bugs.md`.
 - Generated docs/storybook build artifacts are tracked in this repo and change alongside source edits.
+- The responsive-image facade still requires a committed source revision and
+  accountable npm, documentation, and Knit approval owners before the protected
+  `release:verify` gate can mark it eligible.
 
 ## Next Up
 
-Complete the public table-resize patch, consume its exact registry artifact in
-Knit, and rerun Knit's complete browser gate before promotion.
+Complete package/facade qualification for the responsive-image seam, release its
+exact verified facade, then consume that version in Knit and run Knit's image
+upload, delivery, viewer, and fallback gates.
 
 Release order and evidence gates live in `docs/release-checklist.md`; product
 milestones remain in `docs/milestones.md`.

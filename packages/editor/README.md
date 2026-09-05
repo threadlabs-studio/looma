@@ -49,6 +49,14 @@ content and editability, receive document updates, and optionally provide an
 image-upload callback. Persistence, collaboration, workspace/page concepts, and
 app-specific commands remain host responsibilities.
 
+The Vue turnkey editor also owns domain-neutral responsive-image behavior. A
+host can mark an uploaded image responsive, persist intrinsic dimensions, and
+provide a synchronous resolver for delivery-only image attributes. Looma keeps
+those attributes out of Tiptap JSON, falls back to the stored source after a
+rendition error, differentiates edit-mode selection from viewer activation, and
+offers an in-editor retry after upload failure. CDN selection and full-screen
+viewer rendering remain host responsibilities.
+
 On narrow screens, `LoomaEditor` uses the browser visual viewport so its single
 formatting/table dock stays above the software keyboard. The dock is touch
 scrollable with CSS snap points. Slash and table popups use the same visible
