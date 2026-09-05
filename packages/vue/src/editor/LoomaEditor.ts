@@ -44,10 +44,19 @@ import {
   EditorTableToolbar,
   EditorToolbar,
 } from "./primitives";
+import {
+  createLoomaImageDeliveryController,
+  imageDescriptorFromAttrs,
+  imageUploadContent,
+  normalizeImageDimension,
+  type LoomaImageActivationDetail,
+  type LoomaImageAttributeResolver,
+  type LoomaImageDescriptor,
+  type LoomaImageRenditionErrorDetail,
+} from "./image-delivery";
 
-export interface LoomaImageUploadResult {
+export interface LoomaImageUploadResult extends Omit<LoomaImageDescriptor, "src"> {
   url: string;
-  alt?: string;
 }
 
 export type LoomaImageUploader = (
@@ -120,12 +129,18 @@ export const LoomaEditor = defineComponent({
       type: Function as PropType<LoomaImageUploader | undefined>,
       default: undefined,
     },
+    resolveImageAttributes: {
+      type: Function as PropType<LoomaImageAttributeResolver | undefined>,
+      default: undefined,
+    },
   },
   emits: {
     "update:modelValue": (_value: JSONContent) => true,
     update: (_value: JSONContent) => true,
     ready: (_editor: Editor) => true,
     uploadError: (_error: unknown, _file: File) => true,
+    imageActivate: (_detail: LoomaImageActivationDetail) => true,
+    imageRenditionError: (_detail: LoomaImageRenditionErrorDetail) => true,
   },
   setup(props, { attrs, emit, expose }) {
     const root = ref<HTMLElement | null>(null);
@@ -138,6 +153,7 @@ export const LoomaEditor = defineComponent({
     const mobileToolbarShell = ref<HTMLElement | null>(null);
     const dragOver = ref(false);
     const uploading = ref(false);
+    const failedUpload = ref<{ file: File } | null>(null);
     const tablePickerOpen = ref(false);
     const tablePickerStyle = ref<CSSProperties>({});
     const mobileToolbarStyle = ref<CSSProperties>({});
@@ -182,10 +198,14 @@ export const LoomaEditor = defineComponent({
         Object.assign(slash, state);
       },
     });
+    const imageDelivery = createLoomaImageDeliveryController({
+      resolveAttributes: () => props.resolveImageAttributes,
+    });
 
     const editor = useEditor({
       extensions: [
         ...getDefaultEditorExtensions({ placeholder: props.placeholder }),
+        imageDelivery.extension,
         slashExtension,
         ...props.extensions,
       ],
@@ -200,6 +220,10 @@ export const LoomaEditor = defineComponent({
     });
 
     watch(() => props.editable, (editable) => editor.value?.setEditable(editable));
+    watch(() => props.resolveImageAttributes, () => {
+      const instance = editor.value;
+      if (instance) imageDelivery.reset(instance);
+    });
     watch(() => props.modelValue, (value) => {
       const instance = editor.value;
       if (!instance || sameDocument(instance.getJSON(), value)) return;
@@ -407,6 +431,58 @@ export const LoomaEditor = defineComponent({
       });
     };
 
+    const imageForElement = (element: HTMLImageElement) => {
+      const instance = editor.value;
+      if (!instance) return null;
+      try {
+        const position = instance.view.posAtDOM(element, 0);
+        const node = instance.state.doc.nodeAt(position);
+        return node?.type.name === "image" ? imageDescriptorFromAttrs(node.attrs) : null;
+      } catch {
+        return null;
+      }
+    };
+
+    const imageElementForEvent = (event: Event): HTMLImageElement | null => {
+      const element = event.target instanceof Element
+        ? event.target.closest<HTMLImageElement>('img[data-looma-image]')
+        : null;
+      return element && root.value?.contains(element) ? element : null;
+    };
+
+    const activateImage = (element: HTMLImageElement, trigger: "keyboard" | "pointer") => {
+      const image = imageForElement(element);
+      if (image) emit("imageActivate", { ...image, trigger });
+    };
+
+    const onImageClick = (event: MouseEvent) => {
+      const element = imageElementForEvent(event);
+      if (element && !props.editable) activateImage(element, "pointer");
+    };
+
+    const onImageDoubleClick = (event: MouseEvent) => {
+      const element = imageElementForEvent(event);
+      if (element && props.editable) activateImage(element, "pointer");
+    };
+
+    const onImageKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      const element = imageElementForEvent(event);
+      if (!element) return;
+      event.preventDefault();
+      activateImage(element, "keyboard");
+    };
+
+    const onImageError = (event: Event) => {
+      const element = imageElementForEvent(event);
+      if (!element || element.dataset.loomaRendition !== "true") return;
+      const image = imageForElement(element);
+      if (!image) return;
+      const instance = editor.value;
+      if (!instance || !imageDelivery.markRenditionFailed(instance, image.src)) return;
+      emit("imageRenditionError", { ...image, trigger: "programmatic" });
+    };
+
     onMounted(() => {
       updateMobileViewport();
       window.addEventListener("resize", onViewportChange);
@@ -416,6 +492,7 @@ export const LoomaEditor = defineComponent({
       document.addEventListener("pointerdown", onDocumentPointerDown, true);
       document.addEventListener("pointerdown", onResizePointerDown, true);
       document.addEventListener("pointerup", onResizePointerUp, true);
+      root.value?.addEventListener("error", onImageError, true);
     });
     onBeforeUnmount(() => {
       window.removeEventListener("resize", onViewportChange);
@@ -425,6 +502,7 @@ export const LoomaEditor = defineComponent({
       document.removeEventListener("pointerdown", onDocumentPointerDown, true);
       document.removeEventListener("pointerdown", onResizePointerDown, true);
       document.removeEventListener("pointerup", onResizePointerUp, true);
+      root.value?.removeEventListener("error", onImageError, true);
       unbindEditorUi(editor.value);
       if (dragLeaveTimer) clearTimeout(dragLeaveTimer);
       if (tablePointerFrame !== null) cancelAnimationFrame(tablePointerFrame);
@@ -436,8 +514,18 @@ export const LoomaEditor = defineComponent({
       try {
         const result = await props.uploadImage(file);
         const image = typeof result === "string" ? { url: result } : result;
-        editor.value.chain().focus().setImage({ src: image.url, alt: image.alt ?? file.name }).run();
+        const width = normalizeImageDimension(image.width);
+        const height = normalizeImageDimension(image.height);
+        editor.value.chain().focus().insertContent(imageUploadContent({
+          src: image.url,
+          alt: image.alt ?? file.name,
+          ...(width ? { width } : {}),
+          ...(height ? { height } : {}),
+          ...(image.responsive === true ? { responsive: true } : {}),
+        })).run();
+        failedUpload.value = null;
       } catch (error) {
+        failedUpload.value = { file };
         emit("uploadError", error, file);
       } finally {
         uploading.value = false;
@@ -668,6 +756,9 @@ export const LoomaEditor = defineComponent({
           dragLeaveTimer = setTimeout(() => { dragOver.value = false; }, 100);
         },
         onDrop,
+        onClick: onImageClick,
+        onDblclick: onImageDoubleClick,
+        onKeydown: onImageKeyDown,
       }, [
         instance && props.editable && !mobile.value
           ? h(BubbleMenu, {
@@ -719,6 +810,22 @@ export const LoomaEditor = defineComponent({
           "aria-hidden": "true",
           onChange: onFileChange,
         }),
+        failedUpload.value
+          ? h("div", {
+              class: "looma-editor__upload-error",
+              role: "alert",
+            }, [
+              h("span", "Couldn’t upload image."),
+              h("button", {
+                type: "button",
+                disabled: uploading.value,
+                onClick: () => {
+                  const attempt = failedUpload.value;
+                  if (attempt) void insertImage(attempt.file);
+                },
+              }, uploading.value ? "Retrying…" : "Retry"),
+            ])
+          : null,
         dragOver.value
           ? h("div", { class: "looma-editor__drop-overlay", "aria-hidden": "true" }, [
               loomaIcon("image"),

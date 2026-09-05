@@ -51,18 +51,55 @@ import { ref } from "vue";
 import { LoomaEditor } from "@threadlabs/looma/vue/editor";
 
 const document = ref({ type: "doc", content: [] });
+
+const resolveImageAttributes = (image) => image.responsive
+  ? {
+      src: renditionUrl(image.src, 960),
+      srcset: [480, 960, 1600]
+        .map(width => `${renditionUrl(image.src, width)} ${width}w`)
+        .join(", "),
+      sizes: "(max-width: 720px) 100vw, 720px",
+      loading: "lazy",
+      decoding: "async",
+    }
+  : undefined;
 </script>
 
 <template>
   <LoomaEditor
     v-model="document"
-    :upload-image="async file => ({ url: await upload(file), alt: file.name })"
+    :upload-image="async file => ({
+      url: await upload(file),
+      alt: file.name,
+      width: 1600,
+      height: 900,
+      responsive: true,
+    })"
+    :resolve-image-attributes="resolveImageAttributes"
+    @image-activate="openImageViewer"
+    @image-rendition-error="recordImageFallback"
   />
 </template>
 ```
 
 `LoomaEditor` owns formatting controls, slash commands, selection behavior, and
-table editing. The host owns persistence and implements the optional upload callback.
+table editing. The host owns persistence, upload transport, rendition URL
+generation, and the viewer opened from `imageActivate`.
+
+An upload result may include positive intrinsic `width` and `height` plus
+`responsive: true`. Those stable values are stored in Tiptap JSON. The optional
+`resolveImageAttributes(image)` callback returns browser-only `src`, `srcset`,
+`sizes`, loading, decoding, and fetch-priority attributes; Looma applies them as
+decorations, never document attributes. A rendition load error restores the
+stored source and emits `imageRenditionError` once for that source.
+
+Read-only images emit `imageActivate` on click/tap or Enter/Space. Editable
+images keep single-click selection and emit activation on double-click or
+Enter/Space. Both events include the stored image descriptor and a
+`keyboard | pointer | programmatic` trigger. Failed uploads remain outside the
+document and expose a Retry action that calls the upload callback again with the
+same `File` object.
+
 On mobile, it exposes one visual-viewport-aware toolbar above the keyboard. A
 table selection replaces formatting actions with table actions; the leading
 Formatting control returns to text controls. The toolbar is horizontally
