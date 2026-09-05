@@ -1,6 +1,6 @@
 {
   "name": "@threadlabs/looma-vue",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "private": true,
   "description": "Supported Vue 3 adapters and the turnkey Looma Tiptap editor.",
   "type": "module",
