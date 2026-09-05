@@ -4,12 +4,12 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-04 17:13 PDT
-Status: `0.1.11` is published under both `candidate` and `latest`; editor interaction polish for the next Candidate is locally verified
+Last Updated: 2026-09-04 17:42 PDT
+Status: the `0.1.12` Candidate release is prepared for review; `0.1.11` remains published under both `candidate` and `latest`
 
 ## Current Focus
 
-- Publish and qualify the next Candidate with the opinionated Lucide icon
+- Publish and qualify Candidate `0.1.12` with the opinionated Lucide icon
   language, compact table cells, cell-local resize chrome, hover-first table
   affordances, and a real interactive Storybook editor playground.
 - Qualify those exact public bytes in Knit before promoting them to `latest`.
@@ -24,6 +24,13 @@ Status: `0.1.11` is published under both `candidate` and `latest`; editor intera
   editor, and Vue.
 
 ## Recent Progress
+
+- Candidate `0.1.12` release preparation:
+  - Advanced the singleton public facade, package metadata, docs, release
+    artifact names, fixture expectations, and release-policy tests together.
+  - Added Candidate notes covering hover-first table discovery, compact resize
+    behavior, the shared Lucide language, mobile slash commands, and the real
+    editor playground.
 
 - Editor interaction and icon-system polish:
   - Standardized shipped Looma editor controls on a typed Lucide registry so
