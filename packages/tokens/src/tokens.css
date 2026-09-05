@@ -1,6 +1,16 @@
 @layer tokens {
   :root {
-    --ui-font-stack-system: system-ui, sans-serif;
+    --ui-font-stack-system:
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      Roboto,
+      Helvetica,
+      Arial,
+      sans-serif,
+      "Apple Color Emoji",
+      "Segoe UI Emoji";
     --ui-font-stack-neo-grotesque:
       Inter,
       Roboto,
@@ -28,9 +38,11 @@
       Calibri,
       source-sans-pro,
       sans-serif;
-    --ui-font-family-sans: var(--ui-font-stack-neo-grotesque);
+    --ui-font-family-sans: var(--ui-font-stack-system);
     --ui-font-size-xs: 0.75rem;
     --ui-font-size-sm: 0.875rem;
+    /* Dense interactive text: legible at 15px without body-copy spacing. */
+    --ui-font-size-ui: 0.9375rem;
     --ui-font-size-md: 1rem;
     --ui-font-size-lg: 1.125rem;
     --ui-font-size-xl: 1.25rem;

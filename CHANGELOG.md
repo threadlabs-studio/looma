@@ -2,7 +2,19 @@
 
 ## Unreleased
 
-No changes yet.
+Menus, popovers, context menus, tooltips, and toast regions share one top-layer
+windowing contract, so scrolling and clipping ancestors cannot hide them.
+Native CSS Anchor Positioning is preferred for anchored surfaces; a lightweight
+flip/shift fallback runs only while one is open. Tooltips wait for pointer
+intent by default, expose configurable show/hide delays, and still open
+immediately for keyboard focus.
+
+Trees default to compact 32px rows and a 15px dense-interface text token, then
+animate to 44px targets only after real touch input. Looma's default sans font
+uses the native system UI stack. Controlled Vue editor updates preserve an
+active ProseMirror selection without stealing focus from another control.
+The editor and interactive Storybook table picker use the same anchored,
+light-dismissible popover instead of hand-positioned floating panels.
 
 ## v0.1.16 Candidate
 

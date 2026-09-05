@@ -12,6 +12,45 @@
   box-shadow: var(--ui-shadow-lg);
 }
 
+:host(:not([data-open])) {
+  display: none;
+}
+
+:host([popover]) {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  overflow: auto;
+  max-block-size: calc(100dvh - (var(--ui-menu-viewport-gap) * 2));
+  opacity: 0;
+  transform: translateY(-4px) scale(0.99);
+  transition:
+    opacity var(--ui-motion-fast) var(--ui-motion-ease),
+    transform var(--ui-motion-fast) var(--ui-motion-ease),
+    display var(--ui-motion-fast) allow-discrete,
+    overlay var(--ui-motion-fast) allow-discrete;
+}
+
+:host([popover]:popover-open) {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+@starting-style {
+  :host([popover]:popover-open) {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.99);
+  }
+}
+
+:host([hidden]) {
+  display: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host([popover]) { transition: none; }
+}
+
 ::slotted(ui-menu-item) {
   display: block;
   width: 100%;

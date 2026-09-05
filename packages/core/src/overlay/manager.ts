@@ -10,6 +10,9 @@ export interface OverlayRecord {
   id: string;
   modal: boolean;
   element: HTMLElement;
+  /** Controls that are part of the overlay interaction boundary (for example,
+   * the button that toggles an anchored menu). */
+  relatedElements?: readonly HTMLElement[];
   dismissible?: boolean;
   requestClose: (reason: OverlayCloseReason, trigger: OverlayTrigger) => void;
 }
@@ -54,8 +57,9 @@ function handleLightDismiss(event: PointerEvent): void {
   }
 
   const target = event.target;
-  if (target instanceof Node && top.element.contains(target)) {
-    return;
+  if (target instanceof Node) {
+    if (top.element.contains(target)) return;
+    if (top.relatedElements?.some((element) => element.contains(target))) return;
   }
 
   requestTopOverlayClose("light-dismiss", "pointer");
