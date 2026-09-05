@@ -18,7 +18,9 @@
   ui-radio,
   ui-badge,
   ui-avatar,
-  ui-avatar-group
+  ui-avatar-group,
+  ui-tree,
+  ui-tree-item
 ),
 :where(
   ui-button,
@@ -39,7 +41,9 @@
   ui-radio,
   ui-badge,
   ui-avatar,
-  ui-avatar-group
+  ui-avatar-group,
+  ui-tree,
+  ui-tree-item
 ) *,
 :where(
   ui-button,
@@ -60,7 +64,9 @@
   ui-radio,
   ui-badge,
   ui-avatar,
-  ui-avatar-group
+  ui-avatar-group,
+  ui-tree,
+  ui-tree-item
 ) *::before,
 :where(
   ui-button,
@@ -81,7 +87,9 @@
   ui-radio,
   ui-badge,
   ui-avatar,
-  ui-avatar-group
+  ui-avatar-group,
+  ui-tree,
+  ui-tree-item
 ) *::after {
   box-sizing: border-box;
 }
@@ -105,7 +113,9 @@
   ui-radio,
   ui-badge,
   ui-avatar,
-  ui-avatar-group
+  ui-avatar-group,
+  ui-tree,
+  ui-tree-item
 ) {
   /* Reveal Looma's component layer instead of reverting past it. */
   all: revert-layer;
@@ -136,7 +146,9 @@
   ui-radio,
   ui-badge,
   ui-avatar,
-  ui-avatar-group
+  ui-avatar-group,
+  ui-tree,
+  ui-tree-item
 )[data-ui-inherit-typography] {
   font-family: inherit;
   font-size: inherit;

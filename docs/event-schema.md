@@ -67,6 +67,31 @@ type ImageDetail = {
 
 Neither event includes provider-specific URLs beyond the stored `src`.
 
+### reorder
+
+```ts
+{
+  sourceId: string;
+  targetId: string;
+  position: 'before' | 'inside' | 'after';
+  sourceType: string;
+  targetType: string;
+  sourceScope: string;
+  targetScope: string;
+  trigger: 'pointer';
+}
+```
+
+**Components:** ui-tree
+
+### expand
+
+```ts
+{ id: string; expanded: boolean; trigger }
+```
+
+**Components:** ui-tree-item
+
 ## Adapter Generation
 
 Adapters map:

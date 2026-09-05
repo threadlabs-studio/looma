@@ -1,0 +1,22 @@
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# Tree Item
+
+The row primitive used inside `ui-tree`. It provides semantic tree-item state,
+disclosure, a Lucide drag grip, action and leading slots, nested children, and
+the visual before/inside/after drop states coordinated by its parent tree.
+
+## Component Reference
+
+<ComponentExamplesApiTabs component="ui-tree-item" />
+
+## Slots
+
+- Default: the linked or interactive label content.
+- `leading`: an icon or avatar.
+- `actions`: trailing row actions.
+- `children`: nested `ui-tree-item` elements.
+
+Use `depth` for the semantic `aria-level`; nested markup supplies one consistent
+visual indentation step. `drag-type`, `drop-scope`, and `accepts` let an
+application describe valid moves without placing domain persistence in Looma.

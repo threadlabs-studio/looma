@@ -14,7 +14,7 @@ Candidate availability is defined by the npm `candidate` dist-tag resolving `@th
 
 ## Public entries
 
-- **`@threadlabs/looma` and `/core`** — ESM and CommonJS; 26 shadow-root elements with semantic slotted fallback.
+- **`@threadlabs/looma` and `/core`** — ESM and CommonJS; 29 shadow-root elements with semantic slotted fallback.
 - **`@threadlabs/looma/layout`** — ESM and CommonJS; six light-DOM layout elements.
 - **`@threadlabs/looma/editor`** — ESM; the complete Tiptap-backed editor surface.
 - **`@threadlabs/looma/editor/ui`** — ESM; low-level editor web-component chrome without Tiptap integration.
@@ -27,7 +27,7 @@ React and Svelte adapters are deferred internal repository previews. Docs, Story
 
 ## Qualified behavior
 
-- All 38 source elements must appear in generated API metadata, docs navigation, and the Vue projection where applicable.
+- All 44 source elements must appear in generated API metadata, docs navigation, and the Vue projection where applicable.
 - Public entry points import without DOM globals during server rendering.
 - Chromium tests cover representative keyboard, touch/click, focus-return, disabled-state, and automated accessibility behavior.
 - Real Tiptap tests prove adding rows and columns preserves existing table cells and surrounding content; Vue browser tests prove the turnkey editor and theme-token control path.

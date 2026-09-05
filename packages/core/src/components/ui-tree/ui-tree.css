@@ -1,0 +1,11 @@
+:host {
+  --ui-tree-indent: 16px;
+
+  display: block;
+  min-inline-size: 0;
+  padding-inline-start: var(--ui-tree-gutter, 22px);
+}
+
+::slotted(ui-tree-item) {
+  --ui-tree-indent: inherit;
+}

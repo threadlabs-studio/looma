@@ -2331,6 +2331,220 @@
           "description": "Trailing actions."
         }
       ]
+    },
+    {
+      "tag": "ui-tree",
+      "package": "@threadlabs/looma",
+      "className": "UITree",
+      "description": "Accessible hierarchy coordinator with truthful before, inside, and after drag/drop affordances.",
+      "attributes": [
+        {
+          "name": "hover-expand-delay",
+          "property": "hoverExpandDelay",
+          "type": "number",
+          "default": 700
+        },
+        {
+          "name": "label",
+          "property": "label",
+          "type": "string",
+          "default": "Tree"
+        }
+      ],
+      "properties": [
+        {
+          "name": "hoverExpandDelay",
+          "type": "number",
+          "default": 700
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "default": "Tree"
+        }
+      ],
+      "events": [
+        {
+          "name": "reorder",
+          "detailType": "TreeReorderDetail",
+          "detailSchema": "{ sourceId: string; targetId: string; position: 'before' | 'inside' | 'after'; sourceType: string; targetType: string; sourceScope: string; targetScope: string; trigger: 'pointer' }",
+          "detailDocs": "Emitted when the user drops a sortable item on a valid target."
+        }
+      ],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Tree item children."
+        }
+      ]
+    },
+    {
+      "tag": "ui-tree-item",
+      "package": "@threadlabs/looma",
+      "className": "UITreeItem",
+      "description": "Semantic tree row with disclosure, drag handle, nested children, and contextual action slots.",
+      "attributes": [
+        {
+          "name": "accepts",
+          "property": "accepts",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "container",
+          "property": "container",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "default-expanded",
+          "property": "defaultExpanded",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "depth",
+          "property": "depth",
+          "type": "number",
+          "default": 1
+        },
+        {
+          "name": "disabled",
+          "property": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "drag-type",
+          "property": "dragType",
+          "type": "string",
+          "default": "item"
+        },
+        {
+          "name": "drop-scope",
+          "property": "dropScope",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "expanded",
+          "property": "expanded",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "item-id",
+          "property": "itemId",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "label",
+          "property": "label",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "selected",
+          "property": "selected",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "sortable",
+          "property": "sortable",
+          "type": "boolean",
+          "default": false
+        }
+      ],
+      "properties": [
+        {
+          "name": "accepts",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "container",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "defaultExpanded",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "depth",
+          "type": "number",
+          "default": 1
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "dragType",
+          "type": "string",
+          "default": "item"
+        },
+        {
+          "name": "dropScope",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "expanded",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "itemId",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "selected",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "sortable",
+          "type": "boolean",
+          "default": false
+        }
+      ],
+      "events": [
+        {
+          "name": "expand",
+          "detailType": "TreeExpandDetail",
+          "detailSchema": "{ id: string; expanded: boolean; trigger: PrimitiveTrigger }",
+          "detailDocs": "Emitted when disclosure changes through pointer, keyboard, or hover intent."
+        }
+      ],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Primary row label or link."
+        },
+        {
+          "name": "leading",
+          "description": "Leading icon or avatar."
+        },
+        {
+          "name": "actions",
+          "description": "Trailing contextual actions."
+        },
+        {
+          "name": "children",
+          "description": "Nested tree items."
+        }
+      ]
     }
   ]
 }
