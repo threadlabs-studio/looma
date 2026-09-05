@@ -4,6 +4,19 @@
 
 No changes yet.
 
+## v0.1.12 Candidate
+
+The turnkey editor separates table discovery from editing: hovering a cell
+reveals its row and column handles before focus, while selecting it adds the
+cell-action menu and table toolbar. Column resizing stays anchored to compact
+112px-minimum cells, and wide tables scroll as one surface on narrow screens.
+
+Editor controls share an opinionated, typed Lucide icon registry and
+token-driven ghost-button treatment. The insert-table picker preserves a
+committed size while previewing hover choices, the mobile slash menu selects
+the intended block type, and Storybook exercises the real editor instead of
+fixed interaction states.
+
 ## v0.1.11 Candidate
 
 Empty body cells expose reliable column-resize handles in the turnkey Vue
