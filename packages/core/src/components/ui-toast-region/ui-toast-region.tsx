@@ -1,6 +1,7 @@
 import { Component, Prop, Element, State, Watch, Host, h } from '@stencil/core';
 import { eventToTrigger } from '../../utils/events';
 import { dispatchDetail } from '../../utils/events';
+import { createViewportSurface, type ViewportSurface } from '../../overlay/positioning';
 
 @Component({
   tag: 'ui-toast-region',
@@ -14,18 +15,30 @@ export class UIToastRegion {
 
   @State() internalOpen = true;
 
+  private surface: ViewportSurface | null = null;
+
   @Watch('open')
   syncFromProp() {
     this.internalOpen = this.open;
   }
 
+  @Watch('internalOpen')
+  syncSurface() {
+    if (this.internalOpen) this.surface?.show();
+    else this.surface?.hide();
+  }
+
   componentDidLoad() {
+    this.surface = createViewportSurface(this.host);
     this.syncFromProp();
+    this.syncSurface();
     this.host.addEventListener('click', this.onClick);
   }
 
   disconnectedCallback() {
     this.host.removeEventListener('click', this.onClick);
+    this.surface?.destroy();
+    this.surface = null;
   }
 
   private getToasts(): HTMLElement[] {

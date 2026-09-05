@@ -37,7 +37,8 @@
 3. **Popover** — shadow-lg, radius-3, surface-elevated, matches menu
 4. **Tabs** — Underline/indicator styling, active state, vertical orientation
 5. **Checkbox/Switch** — Accent color when checked, focus-visible ring
-6. **Default font** — Inter-first stack in `--ui-font-family-sans`
+6. **Default font** — native system UI stack in `--ui-font-family-sans`; the
+   opt-in neo-grotesque preset remains available for products that load Inter
 7. **Button variant** — `destructive` uses danger tokens
 8. **Storybook stories** — Form showcase (validation), Dialog showcase (actions), Menu showcase (icons)
 
