@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const facadeRoot = path.join(repoRoot, "packages/looma");
+const releaseConsumerRoot = path.join(repoRoot, "tests/release/consumer");
 const pnpm = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
 
 async function run(command, args, cwd) {
@@ -211,6 +212,25 @@ async function verifyPeerConsumer(directory, tarball, facadeManifest) {
   );
 }
 
+async function verifyReleaseConsumer(directory, tarball) {
+  const [fixtureManifest, tsconfig, source] = await Promise.all([
+    readFile(path.join(releaseConsumerRoot, "package.json"), "utf8").then(JSON.parse),
+    readFile(path.join(releaseConsumerRoot, "tsconfig.json"), "utf8").then(JSON.parse),
+    readFile(path.join(releaseConsumerRoot, "src/index.ts"), "utf8"),
+  ]);
+
+  await mkdir(path.join(directory, "src"), { recursive: true });
+  fixtureManifest.dependencies["@threadlabs/looma"] = `file:${tarball}`;
+  fixtureManifest.pnpm.overrides["@threadlabs/looma"] = `file:${tarball}`;
+  await writeJson(path.join(directory, "package.json"), fixtureManifest);
+  await writeJson(path.join(directory, "tsconfig.json"), tsconfig);
+  await writeFile(path.join(directory, "src/index.ts"), source);
+
+  await installConsumer(directory);
+  await run(pnpm, ["run", "typecheck"], directory);
+  await run(pnpm, ["run", "verify:ssr"], directory);
+}
+
 async function main() {
   const temporaryRoot = await mkdtemp(path.join(os.tmpdir(), "looma-facade-consumer-"));
   try {
@@ -225,6 +245,7 @@ async function main() {
     await verifyMinimalConsumer(path.join(temporaryRoot, "minimal"), tarball);
     await verifyVueOnlyConsumer(path.join(temporaryRoot, "vue-only"), tarball, facadeManifest);
     await verifyPeerConsumer(path.join(temporaryRoot, "peers"), tarball, facadeManifest);
+    await verifyReleaseConsumer(path.join(temporaryRoot, "release"), tarball);
     console.log("Packed Looma facade consumer matrix passed");
   } finally {
     await rm(temporaryRoot, { recursive: true, force: true });

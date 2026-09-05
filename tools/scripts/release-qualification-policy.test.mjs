@@ -47,6 +47,11 @@ test("release qualification is wired to Node 20, Chromium, and non-placeholder g
   assert.match(workflow, /playwright install --with-deps chromium/);
   assert.match(workflow, /pnpm test:browser/);
   assert.match(workflow, /git diff --exit-code -- generated packages\/core\/src\/components/);
+  assert.match(
+    JSON.parse(rootPackage).scripts["release:verify"],
+    /pnpm test:facade-consumer/,
+    "release verification must compile and execute the exact release consumer against packed bytes"
+  );
   assert.equal(
     JSON.parse(rootPackage).scripts["test:browser"],
     "pnpm --filter @threadlabs/looma-core test:browser && pnpm --filter @threadlabs/looma-editor test:browser && pnpm --filter @threadlabs/looma-vue test:browser && pnpm --filter @threadlabs/looma-docs test:browser"
@@ -128,7 +133,7 @@ test("public Candidate documentation is install-first, time-stable, and fail-clo
   assert.match(gettingStarted, /Hosts own persistence/);
   assert.match(gettingStarted, /@threadlabs\/looma\/editor/);
   assert.match(gettingStarted, /@threadlabs\/looma\/vue/);
-  assert.match(supportPage, /Candidate `0\.1\.12`/);
+  assert.match(supportPage, /Candidate `0\.1\.13`/);
   assert.match(facadeReadme, /pnpm add @threadlabs\/looma/);
   assert.match(releaseChecklist, /`@threadlabs\/looma` Candidate tarball/);
   assert.match(releaseChecklist, /superseded\s+`@threadlabs\/looma-\*` identity/);

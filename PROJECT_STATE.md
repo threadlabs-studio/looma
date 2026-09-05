@@ -4,12 +4,12 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-04 17:42 PDT
-Status: the `0.1.12` Candidate release is prepared for review; `0.1.11` remains published under both `candidate` and `latest`
+Last Updated: 2026-09-04 18:09 PDT
+Status: `0.1.12` was published under `candidate` but failed its post-publication consumer check; corrective Candidate `0.1.13` is prepared while `0.1.11` remains under `latest`
 
 ## Current Focus
 
-- Publish and qualify Candidate `0.1.12` with the opinionated Lucide icon
+- Publish and qualify corrective Candidate `0.1.13` with the opinionated Lucide icon
   language, compact table cells, cell-local resize chrome, hover-first table
   affordances, and a real interactive Storybook editor playground.
 - Qualify those exact public bytes in Knit before promoting them to `latest`.
@@ -24,6 +24,16 @@ Status: the `0.1.12` Candidate release is prepared for review; `0.1.11` remains 
   editor, and Vue.
 
 ## Recent Progress
+
+- Candidate `0.1.13` release correction:
+  - Corrected the public release fixture to use the typed `heading-1` Lucide key
+    after `0.1.12` published successfully but failed its clean-consumer
+    typecheck.
+  - Added the exact release consumer to the packed-facade pre-publication gate,
+    so this class of fixture/package contract drift fails before immutable npm
+    publication rather than afterward.
+  - Completed and aligned the fixture's Tiptap 2.27 peer graph, including
+    `@tiptap/pm`, so the same pre-publication gate covers both typecheck and SSR.
 
 - Candidate `0.1.12` release preparation:
   - Advanced the singleton public facade, package metadata, docs, release

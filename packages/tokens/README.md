@@ -5,7 +5,7 @@
 
 CSS-only design tokens and light, dark, and high-contrast themes for Looma.
 
-Release status: Candidate `0.1.12`. The API may evolve before Stable.
+Release status: Candidate `0.1.13`. The API may evolve before Stable.
 
 ## Install
 
