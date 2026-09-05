@@ -76,10 +76,13 @@ export function createAdapterComponent(
     inheritAttrs: false,
     setup(_props, { attrs, slots }) {
       const elementRef = shallowRef<HTMLElement | null>(null);
+      const componentReady = shallowRef(false);
 
       watchEffect((onCleanup) => {
         const element = elementRef.value;
         if (!element) return;
+
+        componentReady.value = element.classList.contains("hydrated") || Boolean(element.shadowRoot);
 
         const adapterAttrs = attrs as AdapterAttrs;
         const propertyTarget = element as unknown as Record<string, unknown>;
@@ -132,6 +135,7 @@ export function createAdapterComponent(
           {
             "data-allow-mismatch": forwardedAttrs["data-allow-mismatch"] ?? defaultHydrationMismatch,
             ...forwardedAttrs,
+            class: [forwardedAttrs.class, componentReady.value && "hydrated"],
             ref: (value: Element | ComponentPublicInstance | null) => {
               elementRef.value = toHTMLElement(value);
             },

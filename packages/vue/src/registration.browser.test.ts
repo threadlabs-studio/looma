@@ -1,6 +1,6 @@
 import { userEvent } from "@vitest/browser/context";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createApp, h, nextTick, shallowRef, type App } from "vue";
+import { createApp, h, nextTick, ref, shallowRef, type App } from "vue";
 import type { SlashMenuAnchorRect, TableOverlayGeometry } from "@threadlabs/looma-editor";
 
 const apps: App[] = [];
@@ -22,6 +22,36 @@ afterEach(async () => {
 });
 
 describe("@threadlabs/looma-vue release registration (real browser)", () => {
+  it("preserves Stencil's hydration marker across reactive Vue class updates", async () => {
+    const { TreeItem } = await import("./index");
+    const itemClass = ref("consumer-tree-item");
+    const host = document.createElement("div");
+    document.body.append(host);
+    const app = createApp({
+      render: () => h(TreeItem, {
+        class: itemClass.value,
+        "item-id": "page-1",
+        label: "Page one",
+      }, () => "Page one"),
+    });
+    apps.push(app);
+    app.mount(host);
+
+    await customElements.whenDefined("ui-tree-item");
+    await flushBrowser();
+    const item = host.querySelector<HTMLElement>("ui-tree-item")!;
+    expect(item.classList.contains("hydrated")).toBe(true);
+    expect(getComputedStyle(item).visibility).not.toBe("hidden");
+
+    itemClass.value = "consumer-tree-item consumer-tree-item--selected";
+    await nextTick();
+    await flushBrowser();
+
+    expect(item.classList.contains("hydrated")).toBe(true);
+    expect(item.classList.contains("consumer-tree-item--selected")).toBe(true);
+    expect(getComputedStyle(item).visibility).not.toBe("hidden");
+  });
+
   it("registers and renders the supported baseline without warnings or duplicate-definition errors", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
