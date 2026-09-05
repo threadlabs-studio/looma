@@ -17,7 +17,9 @@ import {
   Menu,
   MenuItem,
   Radio,
-  RadioGroup
+  RadioGroup,
+  Tree,
+  TreeItem,
 } from "./index";
 
 type MountedApp = {
@@ -57,6 +59,48 @@ describe("@threadlabs/looma-vue adapter", () => {
     expect(ADAPTER_COMPONENT_TAG_MAP.Switcher).toBe("ui-switcher");
     expect(ADAPTER_COMPONENT_TAG_MAP.Sidebar).toBe("ui-sidebar");
     expect(ADAPTER_COMPONENT_TAG_MAP.Reel).toBe("ui-reel");
+    expect(ADAPTER_COMPONENT_TAG_MAP.Tree).toBe("ui-tree");
+    expect(ADAPTER_COMPONENT_TAG_MAP.TreeItem).toBe("ui-tree-item");
+  });
+
+  it("maps tree reorder and expansion events to typed callbacks", () => {
+    const onReorder = vi.fn();
+    const onExpand = vi.fn();
+    const { host } = mount(() =>
+      h(Tree, { label: "Pages", onReorder }, () =>
+        h(TreeItem, { "item-id": "folder", label: "Folder", container: true, onExpand }, () => "Folder")
+      )
+    );
+
+    const tree = host.querySelector("ui-tree")!;
+    const item = host.querySelector("ui-tree-item")!;
+    tree.dispatchEvent(new CustomEvent("reorder", {
+      detail: {
+        sourceId: "a",
+        targetId: "folder",
+        position: "inside",
+        sourceType: "page",
+        targetType: "folder",
+        sourceScope: "root",
+        targetScope: "root",
+        trigger: "pointer",
+      },
+    }));
+    item.dispatchEvent(new CustomEvent("expand", {
+      detail: { id: "folder", expanded: true, trigger: "keyboard" },
+    }));
+
+    expect(onReorder).toHaveBeenCalledWith({
+      sourceId: "a",
+      targetId: "folder",
+      position: "inside",
+      sourceType: "page",
+      targetType: "folder",
+      sourceScope: "root",
+      targetScope: "root",
+      trigger: "pointer",
+    });
+    expect(onExpand).toHaveBeenCalledWith({ id: "folder", expanded: true, trigger: "keyboard" });
   });
 
   it("renders intrinsic layout wrappers as native tags", () => {

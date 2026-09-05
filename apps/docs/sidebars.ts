@@ -80,7 +80,9 @@ const sidebars: SidebarsConfig = {
         "components/ui-avatar",
         "components/ui-avatar-group",
         "components/ui-disclosure",
-        "components/ui-tabs"
+        "components/ui-tabs",
+        "components/ui-tree",
+        "components/ui-tree-item"
       ]
     },
     {

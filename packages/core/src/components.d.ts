@@ -403,6 +403,76 @@ export namespace Components {
     }
     interface UiTopBar {
     }
+    interface UiTree {
+        /**
+          * @default 700
+         */
+        "hoverExpandDelay": number;
+        /**
+          * @default 'Tree'
+         */
+        "label": string;
+    }
+    interface UiTreeItem {
+        /**
+          * Comma-separated drag kinds accepted as children. Empty accepts every kind.
+          * @default ''
+         */
+        "accepts": string;
+        /**
+          * Whether this item accepts children and exposes disclosure behavior.
+          * @default false
+         */
+        "container": boolean;
+        /**
+          * Initial uncontrolled expansion value.
+          * @default false
+         */
+        "defaultExpanded": boolean;
+        /**
+          * One-based visual and semantic nesting level.
+          * @default 1
+         */
+        "depth": number;
+        /**
+          * @default false
+         */
+        "disabled": boolean;
+        /**
+          * Application-defined kind used to reject incompatible sibling drops.
+          * @default 'item'
+         */
+        "dragType": string;
+        /**
+          * Application-defined parent/list identity included with reorder events.
+          * @default ''
+         */
+        "dropScope": string;
+        /**
+          * Initial controlled expansion value.
+          * @default false
+         */
+        "expanded": boolean;
+        /**
+          * Stable application identifier emitted by tree interaction events.
+          * @default ''
+         */
+        "itemId": string;
+        /**
+          * Accessible name used by the disclosure and drag handle.
+          * @default ''
+         */
+        "label": string;
+        /**
+          * @default false
+         */
+        "selected": boolean;
+        /**
+          * Whether this item participates in pointer drag and drop.
+          * @default false
+         */
+        "sortable": boolean;
+    }
 }
 declare global {
     interface HTMLUiAffordanceScopeElement extends Components.UiAffordanceScope, HTMLStencilElement {
@@ -567,6 +637,18 @@ declare global {
         prototype: HTMLUiTopBarElement;
         new (): HTMLUiTopBarElement;
     };
+    interface HTMLUiTreeElement extends Components.UiTree, HTMLStencilElement {
+    }
+    var HTMLUiTreeElement: {
+        prototype: HTMLUiTreeElement;
+        new (): HTMLUiTreeElement;
+    };
+    interface HTMLUiTreeItemElement extends Components.UiTreeItem, HTMLStencilElement {
+    }
+    var HTMLUiTreeItemElement: {
+        prototype: HTMLUiTreeItemElement;
+        new (): HTMLUiTreeItemElement;
+    };
     interface HTMLElementTagNameMap {
         "ui-affordance-scope": HTMLUiAffordanceScopeElement;
         "ui-avatar": HTMLUiAvatarElement;
@@ -595,6 +677,8 @@ declare global {
         "ui-toast-region": HTMLUiToastRegionElement;
         "ui-tooltip": HTMLUiTooltipElement;
         "ui-top-bar": HTMLUiTopBarElement;
+        "ui-tree": HTMLUiTreeElement;
+        "ui-tree-item": HTMLUiTreeItemElement;
     }
 }
 declare namespace LocalJSX {
@@ -995,6 +1079,76 @@ declare namespace LocalJSX {
     }
     interface UiTopBar {
     }
+    interface UiTree {
+        /**
+          * @default 700
+         */
+        "hoverExpandDelay"?: number;
+        /**
+          * @default 'Tree'
+         */
+        "label"?: string;
+    }
+    interface UiTreeItem {
+        /**
+          * Comma-separated drag kinds accepted as children. Empty accepts every kind.
+          * @default ''
+         */
+        "accepts"?: string;
+        /**
+          * Whether this item accepts children and exposes disclosure behavior.
+          * @default false
+         */
+        "container"?: boolean;
+        /**
+          * Initial uncontrolled expansion value.
+          * @default false
+         */
+        "defaultExpanded"?: boolean;
+        /**
+          * One-based visual and semantic nesting level.
+          * @default 1
+         */
+        "depth"?: number;
+        /**
+          * @default false
+         */
+        "disabled"?: boolean;
+        /**
+          * Application-defined kind used to reject incompatible sibling drops.
+          * @default 'item'
+         */
+        "dragType"?: string;
+        /**
+          * Application-defined parent/list identity included with reorder events.
+          * @default ''
+         */
+        "dropScope"?: string;
+        /**
+          * Initial controlled expansion value.
+          * @default false
+         */
+        "expanded"?: boolean;
+        /**
+          * Stable application identifier emitted by tree interaction events.
+          * @default ''
+         */
+        "itemId"?: string;
+        /**
+          * Accessible name used by the disclosure and drag handle.
+          * @default ''
+         */
+        "label"?: string;
+        /**
+          * @default false
+         */
+        "selected"?: boolean;
+        /**
+          * Whether this item participates in pointer drag and drop.
+          * @default false
+         */
+        "sortable"?: boolean;
+    }
 
     interface UiAffordanceScopeAttributes {
         "nearRadius": number;
@@ -1133,6 +1287,24 @@ declare namespace LocalJSX {
         "open": boolean;
         "defaultOpen": boolean;
     }
+    interface UiTreeAttributes {
+        "label": string;
+        "hoverExpandDelay": number;
+    }
+    interface UiTreeItemAttributes {
+        "itemId": string;
+        "label": string;
+        "depth": number;
+        "container": boolean;
+        "sortable": boolean;
+        "dragType": string;
+        "dropScope": string;
+        "accepts": string;
+        "expanded": boolean;
+        "defaultExpanded": boolean;
+        "selected": boolean;
+        "disabled": boolean;
+    }
 
     interface IntrinsicElements {
         "ui-affordance-scope": Omit<UiAffordanceScope, keyof UiAffordanceScopeAttributes> & { [K in keyof UiAffordanceScope & keyof UiAffordanceScopeAttributes]?: UiAffordanceScope[K] } & { [K in keyof UiAffordanceScope & keyof UiAffordanceScopeAttributes as `attr:${K}`]?: UiAffordanceScopeAttributes[K] } & { [K in keyof UiAffordanceScope & keyof UiAffordanceScopeAttributes as `prop:${K}`]?: UiAffordanceScope[K] };
@@ -1162,6 +1334,8 @@ declare namespace LocalJSX {
         "ui-toast-region": Omit<UiToastRegion, keyof UiToastRegionAttributes> & { [K in keyof UiToastRegion & keyof UiToastRegionAttributes]?: UiToastRegion[K] } & { [K in keyof UiToastRegion & keyof UiToastRegionAttributes as `attr:${K}`]?: UiToastRegionAttributes[K] } & { [K in keyof UiToastRegion & keyof UiToastRegionAttributes as `prop:${K}`]?: UiToastRegion[K] };
         "ui-tooltip": Omit<UiTooltip, keyof UiTooltipAttributes> & { [K in keyof UiTooltip & keyof UiTooltipAttributes]?: UiTooltip[K] } & { [K in keyof UiTooltip & keyof UiTooltipAttributes as `attr:${K}`]?: UiTooltipAttributes[K] } & { [K in keyof UiTooltip & keyof UiTooltipAttributes as `prop:${K}`]?: UiTooltip[K] };
         "ui-top-bar": UiTopBar;
+        "ui-tree": Omit<UiTree, keyof UiTreeAttributes> & { [K in keyof UiTree & keyof UiTreeAttributes]?: UiTree[K] } & { [K in keyof UiTree & keyof UiTreeAttributes as `attr:${K}`]?: UiTreeAttributes[K] } & { [K in keyof UiTree & keyof UiTreeAttributes as `prop:${K}`]?: UiTree[K] };
+        "ui-tree-item": Omit<UiTreeItem, keyof UiTreeItemAttributes> & { [K in keyof UiTreeItem & keyof UiTreeItemAttributes]?: UiTreeItem[K] } & { [K in keyof UiTreeItem & keyof UiTreeItemAttributes as `attr:${K}`]?: UiTreeItemAttributes[K] } & { [K in keyof UiTreeItem & keyof UiTreeItemAttributes as `prop:${K}`]?: UiTreeItem[K] };
     }
 }
 export { LocalJSX as JSX };
@@ -1195,6 +1369,8 @@ declare module "@stencil/core" {
             "ui-toast-region": LocalJSX.IntrinsicElements["ui-toast-region"] & JSXBase.HTMLAttributes<HTMLUiToastRegionElement>;
             "ui-tooltip": LocalJSX.IntrinsicElements["ui-tooltip"] & JSXBase.HTMLAttributes<HTMLUiTooltipElement>;
             "ui-top-bar": LocalJSX.IntrinsicElements["ui-top-bar"] & JSXBase.HTMLAttributes<HTMLUiTopBarElement>;
+            "ui-tree": LocalJSX.IntrinsicElements["ui-tree"] & JSXBase.HTMLAttributes<HTMLUiTreeElement>;
+            "ui-tree-item": LocalJSX.IntrinsicElements["ui-tree-item"] & JSXBase.HTMLAttributes<HTMLUiTreeItemElement>;
         }
     }
 }
