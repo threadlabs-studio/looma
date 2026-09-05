@@ -5,13 +5,12 @@
 > history or private workspace/build evidence, not as consumer guidance.
 
 Last Updated: 2026-09-05 11:31 PDT
-Status: Candidate `0.1.16` is public; the next Candidate adds workspace-user mentions alongside top-layer anchored overlays, input-driven touch sizing, denser tree typography, and controlled-editor selection stability
+Status: Candidate `0.1.17` is prepared with workspace-user mentions, top-layer anchored overlays, input-driven touch sizing, denser tree typography, and controlled-editor selection stability; `0.1.16` remains public until protected publication completes
 
 ## Current Focus
 
-- Merge the generic editor-mention API and qualify its exact public bytes in
-  Knit before the workspace directory integration is delivered.
-- Qualify the next Candidate with Popover top-layer menus/popovers/tooltips,
+- Publish and qualify Candidate `0.1.17` with the generic editor-mention API,
+  Popover top-layer menus/popovers/tooltips/toasts,
   native CSS Anchor Positioning plus Looma's centralized lightweight fallback,
   and exact Knit sidebar overflow evidence.
 - Keep dense tree rows at 32px/15px for pointer use and animate to 44px targets
@@ -20,7 +19,7 @@ Status: Candidate `0.1.16` is public; the next Candidate adds workspace-user men
   selection, while Knit server acknowledgements no longer echo authored JSON
   through the active editor.
 
-- Prepare and publish Candidate `0.1.17`, then consume its exact registry bytes
+- Publish Candidate `0.1.17`, then consume its exact registry bytes
   from Knit. Candidate `0.1.16` remains the current public `candidate` until
   those replacement bytes pass main CI and protected publication.
 - Complete hosted-docs qualification and promote Candidate `0.1.13`, which is
@@ -48,6 +47,10 @@ Status: Candidate `0.1.16` is public; the next Candidate adds workspace-user men
     pointer selection, and visual-viewport-aware mobile placement.
   - Kept directory authorization and querying in host applications and limited
     persisted mention JSON to a stable user id and display label.
+- Candidate `0.1.17` release preparation:
+  - Advanced the singleton facade, release workflows, consumer fixtures, and
+    public documentation together after the responsive interaction PR passed
+    its required main-branch gates.
 - Floating surfaces, modality, and typography correction:
   - Added one `createAnchoredSurface` controller used by menu, context menu,
     popover, and tooltip. Native Popover provides the top layer; CSS Anchor
