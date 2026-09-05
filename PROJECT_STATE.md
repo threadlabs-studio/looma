@@ -5,11 +5,11 @@
 > history or private workspace/build evidence, not as consumer guidance.
 
 Last Updated: 2026-09-05 11:31 PDT
-Status: Candidate `0.1.17` is prepared with workspace-user mentions, top-layer windowing, input-driven touch sizing, denser tree typography, and controlled-editor selection stability; `0.1.16` remains public until protected publication completes
+Status: Candidate `0.1.17` is prepared with workspace-user mentions, top-layer anchored overlays, input-driven touch sizing, denser tree typography, and controlled-editor selection stability; `0.1.16` remains public until protected publication completes
 
 ## Current Focus
 
-- Publish and qualify Candidate `0.1.17` with workspace-user mentions and
+- Publish and qualify Candidate `0.1.17` with the generic editor-mention API,
   Popover top-layer menus/popovers/tooltips/toasts,
   native CSS Anchor Positioning plus Looma's centralized lightweight fallback,
   and exact Knit sidebar overflow evidence.
