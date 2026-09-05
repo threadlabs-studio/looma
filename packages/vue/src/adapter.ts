@@ -15,6 +15,17 @@ export interface VueAdapterEventMap {
   change: { checked: boolean; value: string; trigger: string };
   input: { value: string; trigger: string };
   dismiss: { id: string; reason: string; trigger: string };
+  reorder: {
+    sourceId: string;
+    targetId: string;
+    position: "before" | "inside" | "after";
+    sourceType: string;
+    targetType: string;
+    sourceScope: string;
+    targetScope: string;
+    trigger: string;
+  };
+  expand: { id: string; expanded: boolean; trigger: string };
 }
 
 type AdapterCallbacks = {
@@ -24,6 +35,8 @@ type AdapterCallbacks = {
   onChange?: (detail: VueAdapterEventMap["change"]) => void;
   onInput?: (detail: VueAdapterEventMap["input"]) => void;
   onDismiss?: (detail: VueAdapterEventMap["dismiss"]) => void;
+  onReorder?: (detail: VueAdapterEventMap["reorder"]) => void;
+  onExpand?: (detail: VueAdapterEventMap["expand"]) => void;
 };
 
 export type AdapterAttrs = AdapterCallbacks & Record<string, unknown>;

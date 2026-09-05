@@ -42,6 +42,8 @@
     "ui-textarea": { "status": "published", "package": "@threadlabs/looma" },
     "ui-toast-region": { "status": "published", "package": "@threadlabs/looma" },
     "ui-tooltip": { "status": "published", "package": "@threadlabs/looma" },
-    "ui-top-bar": { "status": "published", "package": "@threadlabs/looma" }
+    "ui-top-bar": { "status": "published", "package": "@threadlabs/looma" },
+    "ui-tree": { "status": "published", "package": "@threadlabs/looma" },
+    "ui-tree-item": { "status": "published", "package": "@threadlabs/looma" }
   }
 }

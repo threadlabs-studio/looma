@@ -9,7 +9,7 @@ This is the editable plan for Looma components across current shipping scope and
 ## Release 1 Classification
 
 The [Release 1 support matrix](./release-support-matrix.md) is the authority for
-Candidate publication. The 6 layout, 26 core, and 6 editor source elements listed
+Candidate publication. The 9 layout, 29 core, and 6 editor source elements listed
 there are published Candidate surface. Missing roadmap families remain deferred
 and do not block R1. React and Svelte are repository previews; Vue is the only
 supported framework adapter in R1.
@@ -51,6 +51,8 @@ gate must reject any mismatch instead of silently omitting a component.
 - `ui-top-bar`
 - `ui-toast-region`
 - `ui-tooltip`
+- `ui-tree`
+- `ui-tree-item`
 - `ui-textarea`
 
 ## Master Component Checklist
@@ -110,6 +112,7 @@ Conventions for this checklist:
 - [x] AvatarGroup
 - [x] TopBar
 - [x] FloatingActionButton
+- [x] Tree / TreeItem
 
 ### Search and app-shell recipes
 
@@ -201,6 +204,7 @@ Source: [Component Library Audit](./component-library-audit.md), based on offici
   - `BaseDialog` moved to Looma `Dialog` wrapper base
   - Toolbar/editor action button base moved to Looma `Button` (`ToolbarBtn`)
   - Tree/context menus in `CollectionGroup`, `FolderTreeNode`, and `PageTreeItem` moved to Looma `Menu` + `MenuItem`
+  - Project hierarchy and drag/drop behavior moved to Looma `Tree` + `TreeItem`; Knit retains data and persistence
   - Knit editor now uses `@threadlabs/looma/editor` toolbar shell plus Phase 1 slash/table primitives and extension preset in the page editor flow
   - Floating action button pattern promoted into Looma and consumed by Knit via the shared primitive
   - Mobile app top bar shell promoted into Looma and consumed by Knit via the shared primitive
