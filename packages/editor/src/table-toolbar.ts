@@ -9,12 +9,14 @@ import type {
   TableContextMenuActionEventDetail,
 } from "./table-context-menu";
 import { TABLE_CELL_BACKGROUND_OPTIONS } from "./table-backgrounds";
+import { loomaIconMarkup, type LoomaIconName } from "@threadlabs/looma-core";
 
 const TAG = "ui-editor-table-toolbar";
 
 type TableToolbarActionItem = {
   action: TableContextMenuAction;
   label: string;
+  icon: LoomaIconName;
   can?: string;
   tone?: "danger";
 };
@@ -131,21 +133,23 @@ class UIEditorTableToolbarElement extends HTMLElement {
     const activeAlignment = this.getAlignmentAttr();
     const currentBackground = this.getAttribute("cell-background");
     const alignmentActions = [
-      { action: "align-left", label: "Left" },
-      { action: "align-center", label: "Center" },
-      { action: "align-right", label: "Right" },
+      { action: "align-left", label: "Align left", icon: "align-left" },
+      { action: "align-center", label: "Align center", icon: "align-center" },
+      { action: "align-right", label: "Align right", icon: "align-right" },
     ] satisfies Array<{
       action: TableContextMenuAction;
       label: string;
+      icon: LoomaIconName;
     }>;
 
     const structuralActions = (
       [
-        { action: "add-row-after", label: "Add row", can: "can-add-row-after" },
-        { action: "add-column-after", label: "Add column", can: "can-add-column-after" },
+        { action: "add-row-after", label: "Add row", icon: "rows", can: "can-add-row-after" },
+        { action: "add-column-after", label: "Add column", icon: "columns", can: "can-add-column-after" },
       ] satisfies Array<{
         action: TableContextMenuAction;
         label: string;
+        icon: LoomaIconName;
         can: string;
       }>
     ).filter((action) => this.getBoolAttr(action.can));
@@ -154,24 +158,24 @@ class UIEditorTableToolbarElement extends HTMLElement {
       {
         heading: "Structure",
         actions: [
-          { action: "add-row-before", label: "Add row above", can: "can-add-row-before" },
-          { action: "add-column-before", label: "Add column left", can: "can-add-column-before" },
+          { action: "add-row-before", label: "Add row above", icon: "panel-top", can: "can-add-row-before" },
+          { action: "add-column-before", label: "Add column left", icon: "panel-left", can: "can-add-column-before" },
         ] satisfies TableToolbarActionItem[],
       },
       {
         heading: "Cells",
         actions: [
-          { action: "clear-cells", label: "Clear selected cells" },
-          { action: "merge-cells", label: "Merge selected cells", can: "can-merge-cells" },
-          { action: "split-cell", label: "Split merged cell", can: "can-split-cell" },
+          { action: "clear-cells", label: "Clear selected cells", icon: "eraser" },
+          { action: "merge-cells", label: "Merge selected cells", icon: "merge", can: "can-merge-cells" },
+          { action: "split-cell", label: "Split merged cell", icon: "split", can: "can-split-cell" },
         ] satisfies TableToolbarActionItem[],
       },
       {
         heading: "Table",
         actions: [
-          { action: "delete-row", label: "Delete row", can: "can-delete-row", tone: "danger" },
-          { action: "delete-column", label: "Delete column", can: "can-delete-column", tone: "danger" },
-          { action: "delete-table", label: "Delete table", can: "can-delete-table", tone: "danger" },
+          { action: "delete-row", label: "Delete row", icon: "trash", can: "can-delete-row", tone: "danger" },
+          { action: "delete-column", label: "Delete column", icon: "trash", can: "can-delete-column", tone: "danger" },
+          { action: "delete-table", label: "Delete table", icon: "trash", can: "can-delete-table", tone: "danger" },
         ] satisfies TableToolbarActionItem[],
       },
     ] satisfies Array<{
@@ -190,7 +194,7 @@ class UIEditorTableToolbarElement extends HTMLElement {
       alignmentActions
         .map(
           (action) =>
-            `<button type="button" data-action="${action.action}" aria-pressed="${action.action === activeAlignment ? "true" : "false"}" data-active="${action.action === activeAlignment ? "true" : "false"}">${action.label}</button>`
+            `<button type="button" class="ui-editor-table-toolbar__icon-button" data-action="${action.action}" aria-label="${action.label}" title="${action.label}" aria-pressed="${action.action === activeAlignment ? "true" : "false"}" data-active="${action.action === activeAlignment ? "true" : "false"}">${loomaIconMarkup(action.icon)}</button>`
         )
         .join(""),
       "</div>",
@@ -199,13 +203,13 @@ class UIEditorTableToolbarElement extends HTMLElement {
       structuralActions
         .map(
           (action) =>
-            `<button type="button" data-action="${action.action}">${action.label}</button>`
+            `<button type="button" data-action="${action.action}">${loomaIconMarkup(action.icon)}<span>${action.label}</span></button>`
         )
         .join(""),
       structuralActions.length > 0 ? "</div>" : "",
       '<div class="ui-editor-table-toolbar__sep" aria-hidden="true"></div>',
       '<div class="ui-editor-table-toolbar__overflow">',
-      `<button type="button" class="ui-editor-table-toolbar__more" data-action="toggle-overflow" aria-haspopup="menu" aria-expanded="${this.#overflowOpen ? "true" : "false"}">Table options</button>`,
+      `<button type="button" class="ui-editor-table-toolbar__more" data-action="toggle-overflow" aria-haspopup="menu" aria-expanded="${this.#overflowOpen ? "true" : "false"}">${loomaIconMarkup("table")}<span>Table options</span>${loomaIconMarkup("chevron-down", "looma-icon looma-icon--chevron")}</button>`,
       this.#overflowOpen
         ? [
             '<div class="ui-editor-table-toolbar__menu" role="menu" aria-label="More table actions">',
@@ -228,7 +232,7 @@ class UIEditorTableToolbarElement extends HTMLElement {
                   section.actions
                     .map((action) => {
                       const tone = "tone" in action ? action.tone : undefined;
-                      return `<button type="button" role="menuitem" data-action="${action.action}"${tone ? ` data-tone="${tone}"` : ""}>${action.label}</button>`;
+                      return `<button type="button" role="menuitem" data-action="${action.action}"${tone ? ` data-tone="${tone}"` : ""}>${loomaIconMarkup(action.icon)}<span>${action.label}</span></button>`;
                     })
                     .join(""),
                   "</div>",

@@ -30,6 +30,8 @@ export interface ProximityCoordinator {
   destroy(): void;
 }
 
+export const DEFAULT_AFFORDANCE_NEAR_RADIUS = 16;
+
 export function getVisualViewportRect(owner: Window = window): ViewportRect {
   const viewport = owner.visualViewport;
   const left = viewport?.offsetLeft ?? 0;
@@ -89,10 +91,10 @@ export function createProximityCoordinator(
   const owner = scope.ownerDocument.defaultView ?? window;
   const pointerTarget = options.pointerTarget ?? scope;
   const anchorSelector = options.anchorSelector ?? "[data-ui-affordance]";
-  const configuredRadius = options.nearRadius ?? 32;
+  const configuredRadius = options.nearRadius ?? DEFAULT_AFFORDANCE_NEAR_RADIUS;
   const nearRadius = Number.isFinite(configuredRadius)
     ? Math.max(0, configuredRadius)
-    : 32;
+    : DEFAULT_AFFORDANCE_NEAR_RADIUS;
   const abort = new AbortController();
   let anchors: Array<{ element: HTMLElement; rect: DOMRect }> = [];
   let frame: number | null = null;

@@ -57,8 +57,11 @@ their wrapper instead of compressing every column.
 
 ## Accepted limitation
 
-Table controls have visible keyboard/touch paths, outside-edge row insertion,
-column drag resizing, background color, merge/split actions, and content-integrity coverage.
+Table controls have visible keyboard/touch paths, hover-first row and column
+selectors, outside-edge row insertion, column drag resizing, background color,
+merge/split actions, and content-integrity coverage. Looma-owned editor controls
+use the shared Lucide registry and inherit host theme colors through
+`currentColor` and Looma tokens.
 
 Link editing, mentions, and emoji picking are roadmap items—not Candidate claims. React integration remains a deferred repository preview.
 

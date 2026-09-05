@@ -13,11 +13,15 @@
     "typecheck": "echo \"storybook: typecheck not configured\""
   },
   "dependencies": {
+    "@threadlabs/looma-vue": "workspace:*",
     "@threadlabs/looma-core": "workspace:*",
     "@threadlabs/looma-editor": "workspace:*",
     "@threadlabs/looma-layout": "workspace:*",
     "@threadlabs/looma-tokens": "workspace:*",
-    "animejs": "~4.3.6"
+    "@tiptap/core": "^2.11.5",
+    "@tiptap/vue-3": "^2.11.5",
+    "animejs": "~4.3.6",
+    "vue": "^3.5.0"
   },
   "devDependencies": {
     "@storybook/addon-essentials": "^8.6.14",

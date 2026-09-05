@@ -52,3 +52,16 @@ Set one API vocabulary that all components and adapters follow, including state 
 - Components cannot set external margins.
 - Inter-component spacing is owned by layout primitives (`ui-stack`, `ui-inline`, etc).
 - Lint and visual examples should enforce this policy.
+
+## Icon System
+
+- Looma's shipped controls use Lucide. Internal actions must use a real Lucide
+  SVG from `LOOMA_ICONS`, never a Unicode glyph or text stand-in.
+- Use `LoomaIconName` for typed command metadata and `loomaIconMarkup()` in
+  framework-neutral components. Framework adapters render the same icon nodes
+  as native VNodes.
+- Icons inherit `currentColor`; size and stroke width stay themeable through
+  Looma CSS tokens. Accessible names belong to the button or menu item, while
+  decorative SVGs remain hidden from assistive technology.
+- Components whose icon is consumer content may continue to accept a slot, but
+  Looma-owned defaults and turnkey features use the shared registry.

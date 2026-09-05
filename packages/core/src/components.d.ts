@@ -9,7 +9,7 @@ export namespace Components {
     interface UiAffordanceScope {
         /**
           * Distance outside each registered affordance that reveals its near state.
-          * @default 32
+          * @default DEFAULT_AFFORDANCE_NEAR_RADIUS
          */
         "nearRadius": number;
     }
@@ -601,7 +601,7 @@ declare namespace LocalJSX {
     interface UiAffordanceScope {
         /**
           * Distance outside each registered affordance that reveals its near state.
-          * @default 32
+          * @default DEFAULT_AFFORDANCE_NEAR_RADIUS
          */
         "nearRadius"?: number;
     }

@@ -3,7 +3,11 @@
  * Apps own the command list and suggestion state; Looma owns the chrome.
  */
 
-import { getVisualViewportRect } from "@threadlabs/looma-core";
+import {
+  getVisualViewportRect,
+  loomaIconMarkup,
+  type LoomaIconName,
+} from "@threadlabs/looma-core";
 
 const TAG = "ui-editor-slash-menu";
 const MOBILE_BREAKPOINT = 768;
@@ -14,7 +18,7 @@ const OFFSET = 8;
 export interface SlashMenuItem {
   title: string;
   description: string;
-  icon: string;
+  icon: LoomaIconName;
 }
 
 export interface SlashMenuHighlightEventDetail {
@@ -295,7 +299,7 @@ class UIEditorSlashMenuElement extends HTMLElement {
           ` aria-selected="${index === this.#selectedIndex ? "true" : "false"}"`,
           ` data-index="${index}"`,
           `>`,
-          `<span class="ui-editor-slash-menu__icon" aria-hidden="true">${escapeHtml(item.icon)}</span>`,
+          `<span class="ui-editor-slash-menu__icon" aria-hidden="true">${loomaIconMarkup(item.icon)}</span>`,
           `<span class="ui-editor-slash-menu__body">`,
           `<span class="ui-editor-slash-menu__title">${escapeHtml(item.title)}</span>`,
           `<span class="ui-editor-slash-menu__description">${escapeHtml(item.description)}</span>`,

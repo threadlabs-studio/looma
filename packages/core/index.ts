@@ -9,3 +9,4 @@ defineCustomElements();
 
 export * from './src/overlay/manager';
 export * from './src/overlay/positioning';
+export * from './src/icons';

@@ -27,7 +27,7 @@ class UIEditorInsertTableGridElement extends HTMLElement {
   #previewRows: number | null = null;
   #previewCols: number | null = null;
   #withHeaderRow = true;
-  #selectionPinned = false;
+  #selectionCommitted = false;
 
   connectedCallback(): void {
     this.#maxRows = Math.min(10, Math.max(1, parseInt(this.getAttribute("max-rows") ?? String(DEFAULT_MAX_ROWS), 10) || DEFAULT_MAX_ROWS));
@@ -35,11 +35,13 @@ class UIEditorInsertTableGridElement extends HTMLElement {
     this.render();
     this.addEventListener("click", this.onClick);
     this.addEventListener("mouseover", this.onMouseOver);
+    this.addEventListener("mouseleave", this.onMouseLeave);
   }
 
   disconnectedCallback(): void {
     this.removeEventListener("click", this.onClick);
     this.removeEventListener("mouseover", this.onMouseOver);
+    this.removeEventListener("mouseleave", this.onMouseLeave);
   }
 
   attributeChangedCallback(name: string): void {
@@ -55,7 +57,7 @@ class UIEditorInsertTableGridElement extends HTMLElement {
       this.#selectedCols = parseInt(cell.getAttribute("data-col") ?? "1", 10);
       this.#previewRows = null;
       this.#previewCols = null;
-      this.#selectionPinned = true;
+      this.#selectionCommitted = true;
       this.updateSelectionPreview();
       return;
     }
@@ -75,21 +77,29 @@ class UIEditorInsertTableGridElement extends HTMLElement {
   }
 
   private onMouseOver(e: MouseEvent): void {
-    if (this.#selectionPinned) {
+    const cell = (e.target as HTMLElement).closest("[data-row][data-col]");
+    if (!cell) {
+      this.#clearPreview();
       return;
     }
 
-    const cell = (e.target as HTMLElement).closest("[data-row][data-col]");
-    if (cell) {
-      const nextRows = parseInt(cell.getAttribute("data-row") ?? "1", 10);
-      const nextCols = parseInt(cell.getAttribute("data-col") ?? "1", 10);
-      if (nextRows === this.#previewRows && nextCols === this.#previewCols) {
-        return;
-      }
-      this.#previewRows = nextRows;
-      this.#previewCols = nextCols;
-      this.updateSelectionPreview();
-    }
+    const nextRows = parseInt(cell.getAttribute("data-row") ?? "1", 10);
+    const nextCols = parseInt(cell.getAttribute("data-col") ?? "1", 10);
+    if (nextRows === this.#previewRows && nextCols === this.#previewCols) return;
+    this.#previewRows = nextRows;
+    this.#previewCols = nextCols;
+    this.updateSelectionPreview();
+  }
+
+  private onMouseLeave = (): void => {
+    this.#clearPreview();
+  };
+
+  #clearPreview(): void {
+    if (this.#previewRows === null && this.#previewCols === null) return;
+    this.#previewRows = null;
+    this.#previewCols = null;
+    this.updateSelectionPreview();
   }
 
   private updateSelectionPreview(): void {
@@ -97,9 +107,9 @@ class UIEditorInsertTableGridElement extends HTMLElement {
     const activeCols = this.#previewCols ?? this.#selectedCols;
     const hint = this.querySelector(".ui-editor-insert-table-grid__hint");
     if (hint) {
-      hint.textContent = this.#selectionPinned
-        ? `${this.#selectedRows} × ${this.#selectedCols} selected`
-        : `${activeRows} × ${activeCols}`;
+      hint.textContent = this.#previewRows !== null && this.#previewCols !== null
+        ? `${activeRows} × ${activeCols}`
+        : `${this.#selectedRows} × ${this.#selectedCols}${this.#selectionCommitted ? " selected" : ""}`;
     }
 
     const cells = this.querySelectorAll<HTMLElement>("[data-row][data-col]");
@@ -119,7 +129,7 @@ class UIEditorInsertTableGridElement extends HTMLElement {
 
     let html = '<div class="ui-editor-insert-table-grid">';
     html += `<p class="ui-editor-insert-table-grid__hint">${this.#selectedRows} × ${this.#selectedCols}</p>`;
-    html += '<div class="ui-editor-insert-table-grid__grid" role="group" aria-label="Table dimensions">';
+    html += `<div class="ui-editor-insert-table-grid__grid" role="group" aria-label="Table dimensions" style="--ui-editor-table-grid-rows:${this.#maxRows};--ui-editor-table-grid-cols:${this.#maxCols}">`;
     for (let r = 1; r <= this.#maxRows; r++) {
       for (let c = 1; c <= this.#maxCols; c++) {
         const selected = r <= this.#selectedRows && c <= this.#selectedCols;
