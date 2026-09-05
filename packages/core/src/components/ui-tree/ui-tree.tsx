@@ -152,13 +152,14 @@ export class UITree {
     const row = this.rowFor(target);
     if (!row) return;
 
-    event.preventDefault();
-    if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
     const position = classifyDropPosition(row.getBoundingClientRect(), event.clientY, this.acceptsChildren(target));
     if (!this.permitsDrop(this.source, target, position)) {
+      if (event.dataTransfer) event.dataTransfer.dropEffect = 'none';
       this.clearTarget();
       return;
     }
+    event.preventDefault();
+    if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
     if (this.target !== target || this.position !== position) {
       this.clearTarget();
       this.target = target;

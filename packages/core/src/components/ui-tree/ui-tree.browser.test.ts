@@ -127,9 +127,13 @@ describe('ui-tree drag and hierarchy interactions', () => {
     sourceHandle.dispatchEvent(dragEvent('dragstart', 0, { setData: vi.fn(), setDragImage: vi.fn() }));
     const rect = folderRow.getBoundingClientRect();
 
-    folderRow.dispatchEvent(dragEvent('dragover', rect.top + 1, { dropEffect: 'move' }));
+    const incompatibleTransfer = { dropEffect: 'move' as DataTransfer['dropEffect'] };
+    const incompatibleDrag = dragEvent('dragover', rect.top + 1, incompatibleTransfer);
+    folderRow.dispatchEvent(incompatibleDrag);
     await flushStencil();
     expect(folder.hasAttribute('data-drop-position')).toBe(false);
+    expect(incompatibleDrag.defaultPrevented).toBe(false);
+    expect(incompatibleTransfer.dropEffect).toBe('none');
 
     folderRow.dispatchEvent(dragEvent('dragover', rect.top + (rect.height / 2), { dropEffect: 'move' }));
     await flushStencil();
