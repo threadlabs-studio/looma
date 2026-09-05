@@ -43,12 +43,14 @@
   },
   "peerDependencies": {
     "@tiptap/core": ">=2 <3",
+    "@tiptap/pm": ">=2 <3",
     "@tiptap/vue-3": ">=2 <3",
     "vue": "^3.5.0"
   },
   "devDependencies": {
     "@vitest/browser": "~3.2.6",
     "@tiptap/core": "^2.11.5",
+    "@tiptap/pm": "^2.11.5",
     "@tiptap/vue-3": "^2.11.5",
     "jsdom": "^26.1.0",
     "playwright": "~1.60.0",

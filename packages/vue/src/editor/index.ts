@@ -9,3 +9,11 @@ export {
   type LoomaImageUploader,
   type LoomaImageUploadResult,
 } from "./LoomaEditor";
+export type {
+  LoomaImageActivationDetail,
+  LoomaImageActivationTrigger,
+  LoomaImageAttributeResolver,
+  LoomaImageDescriptor,
+  LoomaImageRenditionErrorDetail,
+  LoomaImageRenditionAttributes,
+} from "./image-delivery";

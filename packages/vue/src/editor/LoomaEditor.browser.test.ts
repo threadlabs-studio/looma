@@ -2,7 +2,7 @@ import { userEvent } from "@vitest/browser/context";
 import type { Editor } from "@tiptap/core";
 import type { TableOverlayGeometry } from "@threadlabs/looma-editor";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createApp, h, nextTick, type App } from "vue";
+import { createApp, h, nextTick, ref, type App } from "vue";
 import { defineCustomElements } from "@threadlabs/looma-core/loader";
 import { LoomaEditor } from "./LoomaEditor";
 import "../../../editor/src/editor.css";
@@ -357,5 +357,194 @@ describe("LoomaEditor (real browser)", () => {
     await flushBrowser();
     expect(document.querySelector('.looma-editor__mobile-toolbar-shell[data-mode="formatting"]')).toBeTruthy();
     expect(document.querySelector('.looma-editor__mobile-toolbar-shell ui-editor-table-toolbar')).toBeNull();
+  });
+
+  it("keeps responsive delivery attributes transient and activates images by editability", async () => {
+    const host = document.createElement("div");
+    document.body.append(host);
+    const editable = ref(true);
+    let editor: Editor | null = null;
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="2" height="1"><rect width="2" height="1" fill="red"/></svg>';
+    const masterUrl = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
+    const legacyUrl = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
+    const smallRenditionUrl = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
+    const largeRenditionUrl = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
+    const resolveImageAttributes = vi.fn(() => ({
+      src: largeRenditionUrl,
+      srcset: `${smallRenditionUrl} 480w, ${largeRenditionUrl} 960w`,
+      sizes: "(max-width: 720px) 100vw, 720px",
+      loading: "lazy" as const,
+      decoding: "async" as const,
+    }));
+    const onImageActivate = vi.fn();
+    const onImageRenditionError = vi.fn();
+    const app = createApp({
+      render: () => h(LoomaEditor, {
+        modelValue: {
+          type: "doc",
+          content: [{
+            type: "paragraph",
+            content: [{ type: "text", text: "Before images" }],
+          }, {
+            type: "image",
+            attrs: {
+              src: masterUrl,
+              alt: "A mountain",
+              width: 1600,
+              height: 900,
+              responsive: true,
+            },
+          }, {
+            type: "image",
+            attrs: {
+              src: legacyUrl,
+              alt: "",
+            },
+          }],
+        },
+        editable: editable.value,
+        resolveImageAttributes,
+        onReady: (instance: Editor) => { editor = instance; },
+        onImageActivate,
+        onImageRenditionError,
+      }),
+    });
+    apps.push(app);
+    app.mount(host);
+    await flushBrowser();
+
+    const images = Array.from(host.querySelectorAll<HTMLImageElement>(".ProseMirror img"));
+    expect(images).toHaveLength(2);
+    const image = images[0]!;
+    const legacyImage = images[1]!;
+    expect(resolveImageAttributes).toHaveBeenCalledWith({
+      src: masterUrl,
+      alt: "A mountain",
+      width: 1600,
+      height: 900,
+      responsive: true,
+    });
+    expect(resolveImageAttributes).toHaveBeenCalledTimes(1);
+    editor!.chain().setTextSelection(2).insertContent("x").run();
+    await flushBrowser();
+    expect(resolveImageAttributes).toHaveBeenCalledTimes(1);
+    expect(image.src).toBe(largeRenditionUrl);
+    expect(image.srcset).toContain(`${smallRenditionUrl} 480w`);
+    expect(image.sizes).toBe("(max-width: 720px) 100vw, 720px");
+    expect(image.tabIndex).toBe(0);
+    expect(image.getAttribute("role")).toBe("button");
+    expect(legacyImage.src).toBe(legacyUrl);
+    expect(legacyImage.srcset).toBe("");
+
+    const persisted = editor!.getJSON().content?.[1]?.attrs ?? {};
+    expect(persisted).toMatchObject({
+      src: masterUrl,
+      alt: "A mountain",
+      width: 1600,
+      height: 900,
+      responsive: true,
+    });
+    expect(persisted).not.toHaveProperty("srcset");
+    expect(persisted).not.toHaveProperty("sizes");
+
+    await userEvent.click(image);
+    expect(onImageActivate).not.toHaveBeenCalled();
+    expect(editor!.isActive("image")).toBe(true);
+    await userEvent.dblClick(image);
+    expect(onImageActivate).toHaveBeenCalledTimes(1);
+    expect(onImageActivate).toHaveBeenLastCalledWith(expect.objectContaining({
+      src: masterUrl,
+      trigger: "pointer",
+    }));
+
+    image.focus();
+    await userEvent.keyboard("{Enter}");
+    expect(onImageActivate).toHaveBeenCalledTimes(2);
+    expect(onImageActivate).toHaveBeenLastCalledWith(expect.objectContaining({ trigger: "keyboard" }));
+    await userEvent.keyboard(" ");
+    expect(onImageActivate).toHaveBeenCalledTimes(3);
+
+    editable.value = false;
+    await flushBrowser();
+    await userEvent.click(image);
+    expect(onImageActivate).toHaveBeenCalledTimes(4);
+    image.focus();
+    await userEvent.keyboard("{Enter}");
+    expect(onImageActivate).toHaveBeenCalledTimes(5);
+    await userEvent.click(legacyImage);
+    expect(onImageActivate).toHaveBeenCalledTimes(6);
+    expect(onImageActivate).toHaveBeenLastCalledWith(expect.objectContaining({
+      src: legacyUrl,
+      alt: "",
+      trigger: "pointer",
+    }));
+
+    image.dispatchEvent(new Event("error"));
+    await flushBrowser();
+    expect(image.src).toBe(masterUrl);
+    expect(image.srcset).toBe("");
+    expect(image.sizes).toBe("");
+    expect(onImageRenditionError).toHaveBeenCalledTimes(1);
+    expect(onImageRenditionError).toHaveBeenCalledWith(expect.objectContaining({
+      src: masterUrl,
+      trigger: "programmatic",
+    }));
+
+    image.dispatchEvent(new Event("error"));
+    await flushBrowser();
+    expect(onImageRenditionError).toHaveBeenCalledTimes(1);
+  });
+
+  it("offers retry after upload failure and reuses the same File", async () => {
+    const host = document.createElement("div");
+    document.body.append(host);
+    let editor: Editor | null = null;
+    const file = new File(["image bytes"], "photo.png", { type: "image/png" });
+    const uploadImage = vi.fn()
+      .mockRejectedValueOnce(new Error("temporary upload failure"))
+      .mockResolvedValueOnce({
+        url: "https://assets.example.test/photo.webp",
+        alt: "Uploaded photo",
+        width: 1200,
+        height: 800,
+        responsive: true,
+      });
+    const onUploadError = vi.fn();
+    const app = createApp({
+      render: () => h(LoomaEditor, {
+        modelValue: { type: "doc", content: [{ type: "paragraph" }] },
+        uploadImage,
+        onReady: (instance: Editor) => { editor = instance; },
+        onUploadError,
+      }),
+    });
+    apps.push(app);
+    app.mount(host);
+    await flushBrowser();
+
+    const input = host.querySelector<HTMLInputElement>('input[type="file"]')!;
+    await userEvent.upload(input, file);
+    await flushBrowser();
+
+    expect(uploadImage).toHaveBeenCalledTimes(1);
+    expect(uploadImage).toHaveBeenCalledWith(file);
+    expect(onUploadError).toHaveBeenCalledWith(expect.any(Error), file);
+    expect(editor!.getJSON().content?.some((node) => node.type === "image")).toBe(false);
+    const alert = host.querySelector<HTMLElement>('[role="alert"]')!;
+    expect(alert.textContent).toContain("Couldn’t upload image");
+
+    await userEvent.click(alert.querySelector<HTMLButtonElement>("button")!);
+    await flushBrowser();
+
+    expect(uploadImage).toHaveBeenCalledTimes(2);
+    expect(uploadImage.mock.calls[1]?.[0]).toBe(uploadImage.mock.calls[0]?.[0]);
+    expect(host.querySelector('[role="alert"]')).toBeNull();
+    expect(editor!.getJSON().content?.find((node) => node.type === "image")?.attrs).toMatchObject({
+      src: "https://assets.example.test/photo.webp",
+      alt: "Uploaded photo",
+      width: 1200,
+      height: 800,
+      responsive: true,
+    });
   });
 });

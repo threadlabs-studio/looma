@@ -149,8 +149,14 @@
 
 .looma-editor .ProseMirror img {
   max-width: 100%;
+  height: auto;
   margin: var(--ui-space-3) 0;
   border-radius: var(--ui-radius-2);
+}
+
+.looma-editor .ProseMirror img[data-looma-image]:focus-visible {
+  outline: 2px solid var(--ui-focus-ring);
+  outline-offset: 3px;
 }
 
 .looma-editor__file-input {
@@ -159,6 +165,42 @@
   height: 0;
   opacity: 0;
   pointer-events: none;
+}
+
+.looma-editor__upload-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ui-space-3);
+  margin-top: var(--ui-space-3);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border: 1px solid var(--ui-danger-solid);
+  border-radius: var(--ui-radius-2);
+  background: var(--ui-danger-soft);
+  color: var(--ui-text);
+  font-size: var(--ui-font-size-sm);
+}
+
+.looma-editor__upload-error button {
+  min-height: 2rem;
+  padding: 0 var(--ui-space-3);
+  border: 0;
+  border-radius: var(--ui-radius-1);
+  background: var(--ui-danger-solid);
+  color: var(--ui-text-on-accent);
+  cursor: pointer;
+  font: inherit;
+  font-weight: var(--ui-font-semibold);
+}
+
+.looma-editor__upload-error button:focus-visible {
+  outline: 2px solid var(--ui-focus-ring);
+  outline-offset: 2px;
+}
+
+.looma-editor__upload-error button:disabled {
+  cursor: wait;
+  opacity: 0.65;
 }
 
 .looma-editor__drop-overlay {

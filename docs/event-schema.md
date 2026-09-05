@@ -46,6 +46,27 @@ All state-change events include `trigger: 'keyboard' | 'pointer' | 'programmatic
 
 **Components:** ui-toast-region
 
+### Vue editor image activation
+
+`LoomaEditor` emits framework-level events rather than custom-element events:
+
+```ts
+type ImageDetail = {
+  src: string;
+  alt?: string;
+  width?: number;
+  height?: number;
+  responsive?: boolean;
+  trigger: 'keyboard' | 'pointer' | 'programmatic';
+};
+```
+
+- `imageActivate` uses `pointer` or `keyboard` and lets a host open its viewer.
+- `imageRenditionError` uses `programmatic` after Looma removes transient
+  rendition attributes and restores the stored source.
+
+Neither event includes provider-specific URLs beyond the stored `src`.
+
 ## Adapter Generation
 
 Adapters map:
