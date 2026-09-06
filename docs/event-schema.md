@@ -84,6 +84,10 @@ Neither event includes provider-specific URLs beyond the stored `src`.
 
 **Components:** ui-tree
 
+For `position: 'inside'`, consumers insert the source first in the target's
+compatible child list. Before/after positions are relative to the target's
+complete subtree boundary, not only its visible row.
+
 ### expand
 
 ```ts
