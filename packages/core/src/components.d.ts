@@ -445,6 +445,11 @@ export namespace Components {
           * @default 'Tree'
          */
         "label": string;
+        /**
+          * Maximum resulting item depth accepted by pointer reordering. Zero is unlimited.
+          * @default 0
+         */
+        "maxDepth": number;
     }
     interface UiTreeItem {
         /**
@@ -477,6 +482,10 @@ export namespace Components {
          */
         "dragType": string;
         /**
+          * Application hierarchy depth used for drop constraints. Defaults to visual depth.
+         */
+        "dropDepth"?: number;
+        /**
           * Application-defined parent/list identity included with reorder events.
           * @default ''
          */
@@ -505,6 +514,10 @@ export namespace Components {
           * @default false
          */
         "sortable": boolean;
+        /**
+          * Deepest descendant distance, used with the tree's max-depth drop constraint.
+         */
+        "subtreeDepth"?: number;
     }
 }
 declare global {
@@ -1152,6 +1165,11 @@ declare namespace LocalJSX {
           * @default 'Tree'
          */
         "label"?: string;
+        /**
+          * Maximum resulting item depth accepted by pointer reordering. Zero is unlimited.
+          * @default 0
+         */
+        "maxDepth"?: number;
     }
     interface UiTreeItem {
         /**
@@ -1184,6 +1202,10 @@ declare namespace LocalJSX {
          */
         "dragType"?: string;
         /**
+          * Application hierarchy depth used for drop constraints. Defaults to visual depth.
+         */
+        "dropDepth"?: number;
+        /**
           * Application-defined parent/list identity included with reorder events.
           * @default ''
          */
@@ -1212,6 +1234,10 @@ declare namespace LocalJSX {
           * @default false
          */
         "sortable"?: boolean;
+        /**
+          * Deepest descendant distance, used with the tree's max-depth drop constraint.
+         */
+        "subtreeDepth"?: number;
     }
 
     interface UiAffordanceScopeAttributes {
@@ -1361,11 +1387,14 @@ declare namespace LocalJSX {
     interface UiTreeAttributes {
         "label": string;
         "hoverExpandDelay": number;
+        "maxDepth": number;
     }
     interface UiTreeItemAttributes {
         "itemId": string;
         "label": string;
         "depth": number;
+        "dropDepth": number;
+        "subtreeDepth": number;
         "container": boolean;
         "sortable": boolean;
         "dragType": string;
