@@ -52,7 +52,10 @@ export const FloatingActionButton = createAdapterComponent(
 export const SearchShell = createAdapterComponent("ui-search-shell", "SearchShell");
 export const SearchResultRow = createAdapterComponent("ui-search-result-row", "SearchResultRow");
 export const TopBar = createAdapterComponent("ui-top-bar", "TopBar");
-export const Tree = createAdapterComponent("ui-tree", "Tree", [["reorder", "onReorder"]]);
+export const Tree = createAdapterComponent("ui-tree", "Tree", [
+  ["reorder", "onReorder"],
+  ["reorder-rejected", "onReorderRejected"],
+]);
 export const TreeItem = createAdapterComponent("ui-tree-item", "TreeItem", [["expand", "onExpand"]]);
 
 export const ADAPTER_COMPONENT_TAG_MAP = {
