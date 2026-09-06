@@ -374,6 +374,36 @@ describe('ui-tree drag and hierarchy interactions', () => {
     expect(target.getAttribute('data-drop-position')).toBe('after');
   });
 
+  it('tracks an ancestor row from source drag coordinates when dragenter cannot refire', async () => {
+    document.body.innerHTML = `
+      <ui-tree label="Folders">
+        <ui-tree-item item-id="target" label="Target" drag-type="folder" accepts="folder" sortable container default-expanded>
+          <span>Target</span>
+          <ui-tree-item slot="children" item-id="source" label="Source" drag-type="folder" accepts="folder" sortable container>
+            <span>Source</span>
+          </ui-tree-item>
+        </ui-tree-item>
+      </ui-tree>
+    `;
+    await flushStencil();
+
+    const source = document.querySelector<HTMLElement>('ui-tree-item[item-id="source"]')!;
+    const target = document.querySelector<HTMLElement>('ui-tree-item[item-id="target"]')!;
+    const sourceHandle = source.shadowRoot!.querySelector<HTMLElement>('[part="drag-handle"]')!;
+    const targetRow = target.shadowRoot!.querySelector<HTMLElement>('[part="row"]')!;
+    const targetRect = targetRow.getBoundingClientRect();
+    const clientX = targetRect.left + (targetRect.width / 2);
+    const clientY = targetRect.bottom - 1;
+
+    sourceHandle.dispatchEvent(dragEvent('dragstart', 0, { setData: vi.fn(), setDragImage: vi.fn() }));
+    sourceHandle.dispatchEvent(dragEvent('drag', clientY, { dropEffect: 'move' }, clientX));
+
+    expect(target.getAttribute('data-drop-position')).toBe('after');
+    const indicator = Array.from(target.shadowRoot!.querySelectorAll<HTMLElement>('[part="drop-indicator"]'))
+      .find(candidate => getComputedStyle(candidate).display !== 'none');
+    expect(indicator).toBeDefined();
+  });
+
   it('distinguishes folder containment and expands a closed target after hover intent', async () => {
     document.body.innerHTML = `
       <ui-tree label="Pages" hover-expand-delay="20">

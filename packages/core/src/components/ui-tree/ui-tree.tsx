@@ -34,6 +34,7 @@ export class UITree {
   componentDidLoad() {
     this.hoverIntent = createHoverIntent(this.hoverExpandDelay, this.expandTarget);
     this.host.addEventListener('dragstart', this.onDragStart);
+    this.host.addEventListener('drag', this.onDrag);
     this.host.addEventListener('dragenter', this.onDragOver);
     this.host.addEventListener('dragover', this.onDragOver);
     this.host.addEventListener('dragleave', this.onDragLeave);
@@ -45,6 +46,7 @@ export class UITree {
   disconnectedCallback() {
     this.hoverIntent?.destroy();
     this.host.removeEventListener('dragstart', this.onDragStart);
+    this.host.removeEventListener('drag', this.onDrag);
     this.host.removeEventListener('dragenter', this.onDragOver);
     this.host.removeEventListener('dragover', this.onDragOver);
     this.host.removeEventListener('dragleave', this.onDragLeave);
@@ -166,24 +168,22 @@ export class UITree {
     setElementDragImage(event.dataTransfer, row);
   };
 
-  private onDragOver = (event: DragEvent) => {
-    if (!this.source) return;
-    const target = this.itemFromEvent(event);
+  private updateTarget(target: TreeItemElement | null, clientY: number, dataTransfer: DataTransfer | null): boolean {
+    if (!this.source) return false;
     if (!target || target === this.source) {
       this.clearTarget();
-      return;
+      return false;
     }
     const row = this.rowFor(target);
-    if (!row) return;
+    if (!row) return false;
 
-    const position = classifyDropPosition(row.getBoundingClientRect(), event.clientY, this.acceptsChildren(target));
+    const position = classifyDropPosition(row.getBoundingClientRect(), clientY, this.acceptsChildren(target));
     if (!this.permitsDrop(this.source, target, position)) {
-      if (event.dataTransfer) event.dataTransfer.dropEffect = 'none';
+      if (dataTransfer) dataTransfer.dropEffect = 'none';
       this.clearTarget();
-      return;
+      return false;
     }
-    event.preventDefault();
-    if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+    if (dataTransfer) dataTransfer.dropEffect = 'move';
     if (this.target !== target || this.position !== position) {
       this.clearTarget();
       this.target = target;
@@ -195,6 +195,25 @@ export class UITree {
       this.hoverIntent?.schedule(this.itemId(target));
     } else {
       this.hoverIntent?.cancel();
+    }
+    return true;
+  }
+
+  private onDrag = (event: DragEvent) => {
+    if (!this.source || (event.clientX === 0 && event.clientY === 0)) return;
+    const target = this.itemAtPoint(event.clientX, event.clientY);
+    // Native dragenter does not fire when a nested source moves onto an
+    // ancestor row: the pointer was already inside that ancestor's host. The
+    // source drag event still carries the live pointer coordinates, so use it
+    // to keep ancestor/outdent feedback current.
+    if (target) this.updateTarget(target, event.clientY, event.dataTransfer);
+  };
+
+  private onDragOver = (event: DragEvent) => {
+    if (!this.source) return;
+    const target = this.itemFromEvent(event);
+    if (this.updateTarget(target, event.clientY, event.dataTransfer)) {
+      event.preventDefault();
     }
   };
 
