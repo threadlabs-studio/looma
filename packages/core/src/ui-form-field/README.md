@@ -41,3 +41,6 @@ Wire label, help text, error text, and control accessibility attributes.
 ## ARIA
 
 - Ensures label association and descriptive wiring (`aria-describedby`, `aria-invalid`).
+- Existing application-owned `aria-describedby` IDs are preserved and deduplicated.
+  Help/error IDs are added while those nodes exist and only IDs owned by the
+  field are removed when reactive children change or the field disconnects.

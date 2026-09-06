@@ -306,6 +306,42 @@ describe("@threadlabs/looma-core primitives", () => {
     expect(input?.getAttribute("aria-invalid")).toBe("true");
   });
 
+  it("preserves external form descriptions and removes only field-owned ids", async () => {
+    await render(`
+      <p id="policy-description">See the privacy policy.</p>
+      <ui-form-field>
+        <label>Email</label>
+        <input type="email" aria-describedby="policy-description policy-description" />
+        <small data-slot="help">We never share your email.</small>
+        <small data-slot="error">Email is required.</small>
+      </ui-form-field>
+    `);
+
+    const field = document.querySelector("ui-form-field")!;
+    const input = field.querySelector("input")!;
+    const help = field.querySelector<HTMLElement>('[data-slot="help"]')!;
+    const error = field.querySelector<HTMLElement>('[data-slot="error"]')!;
+
+    expect(input.getAttribute("aria-describedby")?.split(/\s+/)).toEqual([
+      "policy-description",
+      help.id,
+      error.id,
+    ]);
+
+    help.remove();
+    await flushStencil();
+
+    expect(input.getAttribute("aria-describedby")?.split(/\s+/)).toEqual([
+      "policy-description",
+      error.id,
+    ]);
+
+    error.remove();
+    await flushStencil();
+
+    expect(input.getAttribute("aria-describedby")).toBe("policy-description");
+  });
+
   it("reflects input wrapper properties to inner input element", async () => {
     await render(`
       <ui-input>
@@ -576,6 +612,7 @@ describe("@threadlabs/looma-core primitives", () => {
     region.addEventListener("dismiss", (event) => {
       const custom = event as CustomEvent<{ id: string; reason: string; trigger: string }>;
       dismissed.push(custom.detail);
+      region.querySelector(`#${custom.detail.id}`)?.remove();
     });
     await waitFor(() => region.hasAttribute("data-open"), "toast region open state");
 
@@ -585,6 +622,41 @@ describe("@threadlabs/looma-core primitives", () => {
     expect(region.hasAttribute("data-open")).toBe(false);
     expect(region.querySelector("[data-ui-toast]")).toBeNull();
     expect(dismissed).toEqual([{ id: "toast-a", reason: "action", trigger: "pointer" }]);
+  });
+
+  it("requests toast dismissal without removing consumer-owned content", async () => {
+    await render(`
+      <ui-toast-region>
+        <div id="toast-owned-by-consumer" data-ui-toast>
+          Saved
+          <button type="button" data-ui-toast-dismiss>Dismiss</button>
+        </div>
+      </ui-toast-region>
+    `);
+
+    const region = document.querySelector("ui-toast-region")!;
+    const toast = region.querySelector<HTMLElement>("[data-ui-toast]")!;
+    let connectedDuringDismiss = false;
+    const closeEvents: unknown[] = [];
+    region.addEventListener("dismiss", () => {
+      connectedDuringDismiss = toast.isConnected;
+    });
+    region.addEventListener("close", (event) => {
+      closeEvents.push((event as CustomEvent).detail);
+    });
+
+    region.querySelector<HTMLButtonElement>("[data-ui-toast-dismiss]")!.click();
+    await flushStencil();
+
+    expect(connectedDuringDismiss).toBe(true);
+    expect(region.querySelector("[data-ui-toast]")).toBe(toast);
+    expect(toast.hasAttribute("aria-hidden")).toBe(false);
+    expect(region.hasAttribute("data-open")).toBe(true);
+
+    toast.remove();
+    await flushStencil();
+    expect(region.hasAttribute("data-open")).toBe(false);
+    expect(closeEvents).toEqual([{ open: false, reason: "action", trigger: "pointer" }]);
   });
 
   it("keeps toast region open until last toast is dismissed", async () => {
@@ -611,7 +683,9 @@ describe("@threadlabs/looma-core primitives", () => {
       if (!(event instanceof CustomEvent)) {
         return;
       }
-      dismissedIds.push((event.detail as { id: string }).id);
+      const id = (event.detail as { id: string }).id;
+      dismissedIds.push(id);
+      region.querySelector(`#${id}`)?.remove();
     });
 
     expect(region.hasAttribute("data-open")).toBe(true);
@@ -780,15 +854,34 @@ describe("@threadlabs/looma-core primitives", () => {
     const overflow = group.shadowRoot?.querySelector("[data-ui-avatar-group-overflow]");
     const avatars = Array.from(group.querySelectorAll("ui-avatar"));
 
-    expect(group.getAttribute("role")).toBe("list");
+    expect(group.getAttribute("role")).toBe("group");
     expect(group.getAttribute("aria-label")).toBe("People");
     expect(avatars.length).toBe(4);
     expect(avatars[0].hidden).toBe(false);
     expect(avatars[1].hidden).toBe(false);
     expect(avatars[2].hidden).toBe(false);
-    expect(avatars[3].hidden).toBe(true);
+    expect(avatars.every(avatar => !avatar.hasAttribute("hidden"))).toBe(true);
+    expect(avatars.every(avatar => !avatar.hasAttribute("aria-hidden"))).toBe(true);
     expect(overflow).toBeTruthy();
     expect(overflow?.textContent).toBe("+1");
+  });
+
+  it("leaves avatar visibility attributes under consumer ownership", async () => {
+    await render(`
+      <ui-avatar-group max="1" label="Reviewers">
+        <ui-avatar name="A"><span data-ui-avatar-fallback></span></ui-avatar>
+        <ui-avatar name="B"><span data-ui-avatar-fallback></span></ui-avatar>
+      </ui-avatar-group>
+    `);
+
+    const group = document.querySelector("ui-avatar-group")!;
+    const avatars = Array.from(group.querySelectorAll<HTMLElement>("ui-avatar"));
+
+    expect(group.getAttribute("role")).toBe("group");
+    expect(avatars[0]?.hasAttribute("hidden")).toBe(false);
+    expect(avatars[0]?.hasAttribute("aria-hidden")).toBe(false);
+    expect(avatars[1]?.hasAttribute("hidden")).toBe(false);
+    expect(avatars[1]?.hasAttribute("aria-hidden")).toBe(false);
   });
 
   it("opens context menu on right-click and emits select/close on item activation", async () => {

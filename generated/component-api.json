@@ -100,23 +100,25 @@
           "name": "label",
           "property": "label",
           "type": "string",
-          "default": ""
+          "default": "People"
         },
         {
           "name": "max",
           "property": "max",
-          "type": "number"
+          "type": "number",
+          "default": 5
         }
       ],
       "properties": [
         {
           "name": "label",
           "type": "string",
-          "default": ""
+          "default": "People"
         },
         {
           "name": "max",
-          "type": "number"
+          "type": "number",
+          "default": 5
         }
       ],
       "events": [],
@@ -671,10 +673,21 @@
       "description": "Overlay primitive that coordinates native `dialog` behavior with shared overlay stack rules.",
       "attributes": [
         {
+          "name": "default-open",
+          "property": "defaultOpen",
+          "type": "boolean",
+          "default": false
+        },
+        {
           "name": "dismissible",
           "property": "dismissible",
           "type": "boolean",
           "default": true
+        },
+        {
+          "name": "label",
+          "property": "label",
+          "type": "string"
         },
         {
           "name": "modal",
@@ -699,6 +712,10 @@
           "name": "dismissible",
           "type": "boolean",
           "default": true
+        },
+        {
+          "name": "label",
+          "type": "string"
         },
         {
           "name": "modal",
@@ -2486,14 +2503,14 @@
           "name": "open",
           "property": "open",
           "type": "boolean",
-          "default": false
+          "default": true
         }
       ],
       "properties": [
         {
           "name": "open",
           "type": "boolean",
-          "default": false
+          "default": true
         }
       ],
       "events": [
@@ -2507,7 +2524,7 @@
           "name": "dismiss",
           "detailType": "ToastDismissDetail",
           "detailSchema": "{ id: string; reason: PrimitiveReason; trigger: PrimitiveTrigger }",
-          "detailDocs": "Emitted when a toast item is dismissed from its region."
+          "detailDocs": "Requests that the consumer remove the matching toast from its owned list."
         },
         {
           "name": "open",
