@@ -2,12 +2,20 @@
 
 ## Unreleased
 
+No changes yet.
+
+## v0.1.23 Candidate
+
 - Add a domain-neutral smart combobox with contextual async suggestions, separate
   query/selection state, connected disclosure/help, rich options, and typed Vue models.
 - Add Standard Schema field validation, a separate optional Valibot adapter,
   non-destructive display formatting, and scoped restrained typography hooks.
 - Make tooltip descriptions accessible and optionally pinnable by click/touch,
   preserving hover/focus access and Escape dismissal.
+- Expand closed tree targets before committing containment reorders, so moved
+  items render immediately as the target's first child.
+- Add optional hierarchy/subtree depth metadata, truthful disabled pointer
+  feedback, and structured rejection events for known-invalid depth-limited drops.
 
 ## v0.1.22 Candidate
 
