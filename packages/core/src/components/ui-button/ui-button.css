@@ -8,7 +8,7 @@
   color: var(--ui-action-primary-text, var(--ui-text-on-accent));
 }
 
-:host([data-variant='outline'])::slotted(button),
+:host([data-variant='outline']) ::slotted(button),
 ::slotted(button) {
   appearance: none;
   min-block-size: var(--ui-button-min-block-size, 2.5rem);
@@ -30,12 +30,12 @@
   margin: 0;
 }
 
-:host([data-size='sm'])::slotted(button) {
+:host([data-size='sm']) ::slotted(button) {
   padding: var(--ui-space-1) var(--ui-space-2);
   font-size: 0.875rem;
 }
 
-:host([data-size='lg'])::slotted(button) {
+:host([data-size='lg']) ::slotted(button) {
   min-block-size: var(--ui-control-min-block-size, 2.75rem);
   padding: var(--ui-space-3) var(--ui-space-4);
   font-size: 1rem;
@@ -50,57 +50,57 @@
   background: var(--ui-surface-subtle);
 }
 
-:host([data-variant='solid'])::slotted(button) {
+:host([data-variant='solid']) ::slotted(button) {
   border-color: var(--ui-action-primary-surface, var(--ui-accent-solid));
   background: var(--ui-action-primary-surface, var(--ui-accent-solid));
   color: var(--ui-action-primary-text, var(--ui-text-on-accent));
   box-shadow: var(--ui-button-solid-shadow, inset 0 1px rgb(255 255 255 / 0.16), var(--ui-shadow-xs));
 }
 
-:host([data-variant='solid'])::slotted(button:hover:enabled) {
+:host([data-variant='solid']) ::slotted(button:hover:enabled) {
   background: var(--ui-action-primary-surface-hover, var(--ui-accent-hover));
   border-color: var(--ui-action-primary-surface-hover, var(--ui-accent-hover));
   box-shadow: var(--ui-shadow-sm);
   transform: translateY(-1px);
 }
 
-:host([data-variant='solid'])::slotted(button:active:enabled) {
+:host([data-variant='solid']) ::slotted(button:active:enabled) {
   background: var(--ui-action-primary-surface-active, var(--ui-accent-active));
   border-color: var(--ui-action-primary-surface-active, var(--ui-accent-active));
   box-shadow: none;
   transform: translateY(0);
 }
 
-:host([data-variant='destructive'])::slotted(button) {
+:host([data-variant='destructive']) ::slotted(button) {
   border-color: var(--ui-danger-solid);
   background: var(--ui-danger-solid);
   color: var(--ui-text-on-accent);
   box-shadow: var(--ui-button-destructive-shadow, inset 0 1px rgb(255 255 255 / 0.14), var(--ui-shadow-xs));
 }
 
-:host([data-variant='destructive'])::slotted(button:hover:enabled) {
+:host([data-variant='destructive']) ::slotted(button:hover:enabled) {
   background: var(--ui-danger-hover);
   border-color: var(--ui-danger-hover);
   box-shadow: var(--ui-shadow-sm);
   transform: translateY(-1px);
 }
 
-:host([data-variant='destructive'])::slotted(button:active:enabled) {
+:host([data-variant='destructive']) ::slotted(button:active:enabled) {
   box-shadow: none;
   transform: translateY(0);
 }
 
-:host([data-variant='ghost'])::slotted(button) {
+:host([data-variant='ghost']) ::slotted(button) {
   border-color: transparent;
   background: transparent;
 }
 
-:host([data-variant='ghost'])::slotted(button:hover:enabled) {
+:host([data-variant='ghost']) ::slotted(button:hover:enabled) {
   background: var(--ui-surface-muted);
   border-color: transparent;
 }
 
-:host([data-variant='ghost'])::slotted(button:active:enabled) {
+:host([data-variant='ghost']) ::slotted(button:active:enabled) {
   background: var(--ui-surface-subtle);
   border-color: transparent;
 }
@@ -110,9 +110,12 @@
   outline-offset: 2px;
 }
 
-::slotted(button:disabled),
 :host([data-disabled='true']),
 :host([disabled]) {
   opacity: 0.6;
+  cursor: not-allowed;
+}
+
+::slotted(button:disabled) {
   cursor: not-allowed;
 }
