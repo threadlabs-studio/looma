@@ -103,14 +103,14 @@ test("rejects local Looma lockfile resolutions", () => {
 test("rejects exact-version drift in the lockfile and installed graph", () => {
   assert.throws(
     () => validatePublicConsumerLockfile(publicLockfile("0.1.2"), releaseManifest()),
-    /@threadlabs\/looma.*exact 0\.1\.20/
+    /@threadlabs\/looma.*exact 0\.1\.21/
   );
   assert.throws(
     () => validateInstalledReleasePackages(
       releaseNames.map((name) => ({ name, version: "0.1.2" })),
       releaseManifest()
     ),
-    /@threadlabs\/looma installed 0\.1\.2 instead of 0\.1\.20/
+    /@threadlabs\/looma installed 0\.1\.2 instead of 0\.1\.21/
   );
 });
 
