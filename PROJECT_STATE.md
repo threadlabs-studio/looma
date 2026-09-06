@@ -4,12 +4,12 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-06 09:35 PDT
-Status: Candidate `0.1.20` is public; `0.1.21` is prepared with reliable recursive tree drops
+Last Updated: 2026-09-06 10:16 PDT
+Status: Candidate `0.1.21` is public; `0.1.22` is prepared with complete recursive tree drops
 
 ## Current Focus
 
-- Publish and qualify Candidate `0.1.21` with reliable short native and
+- Publish and qualify Candidate `0.1.22` with reliable short native and
   recursive tree drops plus exact Knit consumer evidence.
 - Keep dense tree rows at 32px/15px for pointer use and animate to 44px targets
   only after a real touch interaction establishes touch modality.
@@ -17,8 +17,8 @@ Status: Candidate `0.1.20` is public; `0.1.21` is prepared with reliable recursi
   selection, while Knit server acknowledgements no longer echo authored JSON
   through the active editor.
 
-- Publish Candidate `0.1.21`, then consume its exact registry bytes
-  from Knit. Candidate `0.1.20` remains the current public `candidate` until
+- Publish Candidate `0.1.22`, then consume its exact registry bytes
+  from Knit. Candidate `0.1.21` remains the current public `candidate` until
   those replacement bytes pass main CI and protected publication.
 - Complete hosted-docs qualification and promote Candidate `0.1.13`, which is
   published and qualified in Knit with the opinionated Lucide icon
@@ -37,6 +37,12 @@ Status: Candidate `0.1.20` is public; `0.1.21` is prepared with reliable recursi
 
 ## Recent Progress
 
+- Candidate `0.1.22` release preparation:
+  - Tracked native source-drag coordinates so a nested item can target its
+    ancestor row even though the pointer began inside that expanded ancestor.
+  - Proved parent-level outdent feedback alongside first-child containment,
+    recursive hover expansion, and grandchild insertion in Knit's real
+    Chromium integration suite.
 - Candidate `0.1.21` release preparation:
   - Established native tree targets on `dragenter`, covering short gestures
     that reach a row without a subsequent `dragover` before release.
