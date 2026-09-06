@@ -7,9 +7,11 @@ import {
   createLoomaMentionExtension,
   filterLoomaMentionItems,
   getDefaultEditorExtensions,
+  getDefaultSlashCommands,
   getLoomaTableExtensions,
   handleTableAction,
   handleTableOverlayAction,
+  LoomaCallout,
   LoomaTable,
   LoomaTableKit,
   setActiveTableCellBackground,
@@ -38,6 +40,37 @@ describe("editor extension contract", () => {
     });
     expect(getDefaultEditorExtensions({ mention: false }).map((extension) => extension.name))
       .not.toContain("mention");
+  });
+
+  it("includes durable colored callouts and matching slash commands", () => {
+    expect(getDefaultEditorExtensions({ mention: false }).map((extension) => extension.name))
+      .toContain("loomaCallout");
+    expect(getDefaultSlashCommands().map((command) => command.title))
+      .toEqual(expect.arrayContaining(["Info", "Note", "Warning"]));
+
+    for (const [title, tone] of [
+      ["Info", "info"],
+      ["Note", "note"],
+      ["Warning", "warning"],
+    ] as const) {
+      const editor = new Editor({
+        extensions: [Document, Paragraph, Text, LoomaCallout],
+        content: `<p>/${tone}</p>`,
+      });
+      const command = getDefaultSlashCommands().find((item) => item.title === title)!;
+
+      command.command({ editor, range: { from: 1, to: tone.length + 2 } });
+
+      expect(editor.getJSON().content?.[0]).toMatchObject({
+        type: "loomaCallout",
+        attrs: { tone },
+        content: [{ type: "paragraph" }],
+      });
+      expect(editor.getHTML()).toContain('data-looma-callout=""');
+      expect(editor.getHTML()).toContain(`data-tone="${tone}"`);
+      expect(editor.getHTML()).not.toContain("aria-label");
+      editor.destroy();
+    }
   });
 
   it("filters mention candidates by label or detail without persisting display metadata", () => {
