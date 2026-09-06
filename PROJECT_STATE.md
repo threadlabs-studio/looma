@@ -5,20 +5,22 @@
 > history or private workspace/build evidence, not as consumer guidance.
 
 Last Updated: 2026-09-06 15:36 PDT
-Status: Candidate `0.1.22` is public; `0.1.23` is prepared with smart fields, closed-folder containment, and truthful depth-limit feedback. Historical release tasks below retain their original version context.
+Status: Candidate `0.1.22` is public; `0.1.24` is prepared with Chip/Callout,
+structural Tree, controlled-state, and typed Vue adapter improvements. Historical
+release tasks below retain their original version context.
 
 ## Current Focus
 
-- Publish and qualify Candidate `0.1.23` with smart-field improvements,
-  closed-folder containment, recursive insertion feedback, and exact Knit
-  consumer evidence.
+- Publish and qualify Candidate `0.1.24` with Chip/Callout, structural Tree,
+  controlled-state, and typed Vue adapter improvements plus exact Knit consumer
+  evidence.
 - Keep dense tree rows at 32px/15px for pointer use and animate to 44px targets
   only after a real touch interaction establishes touch modality.
 - Verify that controlled editor replacements preserve a focused ProseMirror
   selection, while Knit server acknowledgements no longer echo authored JSON
   through the active editor.
 
-- Publish Candidate `0.1.23`, then consume its exact registry bytes
+- Publish Candidate `0.1.24`, then consume its exact registry bytes
   from Knit. Candidate `0.1.22` remains the current public `candidate` until
   those replacement bytes pass main CI and protected publication.
 - Complete hosted-docs qualification and promote Candidate `0.1.13`, which is
@@ -84,7 +86,7 @@ Status: Candidate `0.1.22` is public; `0.1.23` is prepared with smart fields, cl
   overflow no longer mutates framework-owned slotted nodes. Core, Vue browser,
   and axe regressions cover reactive rerenders and name/description contracts.
 
-- Candidate `0.1.23` release preparation:
+- Candidate `0.1.23` release preparation (historical):
   - Expanded closed container targets before dispatching inside reorders, so a
     moved item is immediately rendered as the target's first child.
   - Added optional application depth and subtree metadata, a max-depth tree
