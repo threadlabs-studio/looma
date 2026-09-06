@@ -4,59 +4,61 @@ import "@threadlabs/looma-layout";
 import "@threadlabs/looma-core";
 
 import { createAdapterComponent } from "./adapter";
+import type { AdapterComponentProps } from "./generated-component-types";
 
 export type { VueAdapterEventMap } from "./adapter";
+export type * from "./generated-component-types";
 
 import { Combobox as ComboboxComponent } from './Combobox';
 export const Combobox = ComboboxComponent;
 export type { ComboboxConfig, ComboboxOption, ComboboxProvider, ComboboxRequest, ComboboxChange, ComboboxValidationState, FieldSchema, FieldValidation, FieldFormatter, FieldIssue } from '@threadlabs/looma-core';
 
-export const Stack = createAdapterComponent("ui-stack", "Stack");
-export const Inline = createAdapterComponent("ui-inline", "Inline");
-export const Cluster = createAdapterComponent("ui-cluster", "Cluster");
-export const Grid = createAdapterComponent("ui-grid", "Grid");
-export const Center = createAdapterComponent("ui-center", "Center");
-export const Switcher = createAdapterComponent("ui-switcher", "Switcher");
+export const Stack = createAdapterComponent<AdapterComponentProps["Stack"]>("ui-stack", "Stack");
+export const Inline = createAdapterComponent<AdapterComponentProps["Inline"]>("ui-inline", "Inline");
+export const Cluster = createAdapterComponent<AdapterComponentProps["Cluster"]>("ui-cluster", "Cluster");
+export const Grid = createAdapterComponent<AdapterComponentProps["Grid"]>("ui-grid", "Grid");
+export const Center = createAdapterComponent<AdapterComponentProps["Center"]>("ui-center", "Center");
+export const Switcher = createAdapterComponent<AdapterComponentProps["Switcher"]>("ui-switcher", "Switcher");
 // The resizable sidebar progressively inserts a light-DOM separator. Vue must
 // treat that custom-element-owned child as an expected hydration difference.
-export const Sidebar = createAdapterComponent("ui-sidebar", "Sidebar", [], "");
-export const Reel = createAdapterComponent("ui-reel", "Reel");
-export const Separator = createAdapterComponent("ui-separator", "Separator");
-export const Disclosure = createAdapterComponent("ui-disclosure", "Disclosure");
-export const Tabs = createAdapterComponent("ui-tabs", "Tabs");
-export const Dialog = createAdapterComponent("ui-dialog", "Dialog");
-export const Popover = createAdapterComponent("ui-popover", "Popover");
-export const Menu = createAdapterComponent("ui-menu", "Menu");
-export const MenuItem = createAdapterComponent("ui-menu-item", "MenuItem");
-export const ContextMenu = createAdapterComponent("ui-context-menu", "ContextMenu");
-export const AffordanceScope = createAdapterComponent("ui-affordance-scope", "AffordanceScope");
-export const Button = createAdapterComponent("ui-button", "Button");
-export const IconButton = createAdapterComponent("ui-icon-button", "IconButton");
-export const Input = createAdapterComponent("ui-input", "Input");
-export const Select = createAdapterComponent("ui-select", "Select");
-export const Textarea = createAdapterComponent("ui-textarea", "Textarea");
-export const FormField = createAdapterComponent("ui-form-field", "FormField");
-export const Tooltip = createAdapterComponent("ui-tooltip", "Tooltip");
-export const ToastRegion = createAdapterComponent("ui-toast-region", "ToastRegion");
-export const Checkbox = createAdapterComponent("ui-checkbox", "Checkbox");
-export const Switch = createAdapterComponent("ui-switch", "Switch");
-export const RadioGroup = createAdapterComponent("ui-radio-group", "RadioGroup");
-export const Radio = createAdapterComponent("ui-radio", "Radio");
-export const Badge = createAdapterComponent("ui-badge", "Badge");
-export const Avatar = createAdapterComponent("ui-avatar", "Avatar");
-export const AvatarGroup = createAdapterComponent("ui-avatar-group", "AvatarGroup");
-export const FloatingActionButton = createAdapterComponent(
+export const Sidebar = createAdapterComponent<AdapterComponentProps["Sidebar"]>("ui-sidebar", "Sidebar", [], "");
+export const Reel = createAdapterComponent<AdapterComponentProps["Reel"]>("ui-reel", "Reel");
+export const Separator = createAdapterComponent<AdapterComponentProps["Separator"]>("ui-separator", "Separator");
+export const Disclosure = createAdapterComponent<AdapterComponentProps["Disclosure"]>("ui-disclosure", "Disclosure");
+export const Tabs = createAdapterComponent<AdapterComponentProps["Tabs"]>("ui-tabs", "Tabs");
+export const Dialog = createAdapterComponent<AdapterComponentProps["Dialog"]>("ui-dialog", "Dialog");
+export const Popover = createAdapterComponent<AdapterComponentProps["Popover"]>("ui-popover", "Popover");
+export const Menu = createAdapterComponent<AdapterComponentProps["Menu"]>("ui-menu", "Menu");
+export const MenuItem = createAdapterComponent<AdapterComponentProps["MenuItem"]>("ui-menu-item", "MenuItem");
+export const ContextMenu = createAdapterComponent<AdapterComponentProps["ContextMenu"]>("ui-context-menu", "ContextMenu");
+export const AffordanceScope = createAdapterComponent<AdapterComponentProps["AffordanceScope"]>("ui-affordance-scope", "AffordanceScope");
+export const Button = createAdapterComponent<AdapterComponentProps["Button"]>("ui-button", "Button");
+export const IconButton = createAdapterComponent<AdapterComponentProps["IconButton"]>("ui-icon-button", "IconButton");
+export const Input = createAdapterComponent<AdapterComponentProps["Input"]>("ui-input", "Input");
+export const Select = createAdapterComponent<AdapterComponentProps["Select"]>("ui-select", "Select");
+export const Textarea = createAdapterComponent<AdapterComponentProps["Textarea"]>("ui-textarea", "Textarea");
+export const FormField = createAdapterComponent<AdapterComponentProps["FormField"]>("ui-form-field", "FormField");
+export const Tooltip = createAdapterComponent<AdapterComponentProps["Tooltip"]>("ui-tooltip", "Tooltip");
+export const ToastRegion = createAdapterComponent<AdapterComponentProps["ToastRegion"]>("ui-toast-region", "ToastRegion");
+export const Checkbox = createAdapterComponent<AdapterComponentProps["Checkbox"]>("ui-checkbox", "Checkbox");
+export const Switch = createAdapterComponent<AdapterComponentProps["Switch"]>("ui-switch", "Switch");
+export const RadioGroup = createAdapterComponent<AdapterComponentProps["RadioGroup"]>("ui-radio-group", "RadioGroup");
+export const Radio = createAdapterComponent<AdapterComponentProps["Radio"]>("ui-radio", "Radio");
+export const Badge = createAdapterComponent<AdapterComponentProps["Badge"]>("ui-badge", "Badge");
+export const Avatar = createAdapterComponent<AdapterComponentProps["Avatar"]>("ui-avatar", "Avatar");
+export const AvatarGroup = createAdapterComponent<AdapterComponentProps["AvatarGroup"]>("ui-avatar-group", "AvatarGroup");
+export const FloatingActionButton = createAdapterComponent<AdapterComponentProps["FloatingActionButton"]>(
   "ui-floating-action-button",
   "FloatingActionButton",
 );
-export const SearchShell = createAdapterComponent("ui-search-shell", "SearchShell");
-export const SearchResultRow = createAdapterComponent("ui-search-result-row", "SearchResultRow");
-export const TopBar = createAdapterComponent("ui-top-bar", "TopBar");
-export const Tree = createAdapterComponent("ui-tree", "Tree", [
+export const SearchShell = createAdapterComponent<AdapterComponentProps["SearchShell"]>("ui-search-shell", "SearchShell");
+export const SearchResultRow = createAdapterComponent<AdapterComponentProps["SearchResultRow"]>("ui-search-result-row", "SearchResultRow");
+export const TopBar = createAdapterComponent<AdapterComponentProps["TopBar"]>("ui-top-bar", "TopBar");
+export const Tree = createAdapterComponent<AdapterComponentProps["Tree"]>("ui-tree", "Tree", [
   ["reorder", "onReorder"],
   ["reorder-rejected", "onReorderRejected"],
 ]);
-export const TreeItem = createAdapterComponent("ui-tree-item", "TreeItem", [["expand", "onExpand"]]);
+export const TreeItem = createAdapterComponent<AdapterComponentProps["TreeItem"]>("ui-tree-item", "TreeItem", [["expand", "onExpand"]]);
 
 export const ADAPTER_COMPONENT_TAG_MAP = {
   Combobox: "ui-combobox",

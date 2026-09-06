@@ -38,6 +38,13 @@ Status: Candidate `0.1.22` is public; `0.1.23` is prepared with smart fields, cl
 
 ## Recent Progress
 
+- Vue adapter public types:
+  - Generated explicit props and typed callback details for every general Vue
+    adapter from the published component API, while preserving the existing
+    pass-through runtime adapter.
+  - Added strict TypeScript and generator checks; refreshed the stale Tree
+    max-depth and reorder-rejection API projection consumed by those types.
+
 - Controlled primitive state contracts:
   - Made dialog, menu, popover, disclosure, tooltip, checkbox, switch, radio,
     and tabs controlled props optional: `undefined` now selects local state,
