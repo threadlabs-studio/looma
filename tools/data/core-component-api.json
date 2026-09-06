@@ -761,14 +761,22 @@
           "property": "size",
           "type": "string",
           "default": "md",
-          "options": ["sm", "md", "lg"]
+          "options": [
+            "sm",
+            "md",
+            "lg"
+          ]
         },
         {
           "name": "variant",
           "property": "variant",
           "type": "string",
           "default": "ghost",
-          "options": ["ghost", "outline", "solid"]
+          "options": [
+            "ghost",
+            "outline",
+            "solid"
+          ]
         }
       ],
       "properties": [
@@ -791,13 +799,21 @@
           "name": "size",
           "type": "\"sm\" | \"md\" | \"lg\"",
           "default": "md",
-          "options": ["sm", "md", "lg"]
+          "options": [
+            "sm",
+            "md",
+            "lg"
+          ]
         },
         {
           "name": "variant",
           "type": "\"ghost\" | \"outline\" | \"solid\"",
           "default": "ghost",
-          "options": ["ghost", "outline", "solid"]
+          "options": [
+            "ghost",
+            "outline",
+            "solid"
+          ]
         }
       ],
       "events": [],
@@ -1409,6 +1425,12 @@
           "property": "open",
           "type": "boolean",
           "default": false
+        },
+        {
+          "name": "toggle-on-click",
+          "property": "toggleOnClick",
+          "type": "boolean",
+          "default": false
         }
       ],
       "properties": [
@@ -1424,6 +1446,11 @@
         },
         {
           "name": "open",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "toggleOnClick",
           "type": "boolean",
           "default": false
         }
@@ -1528,32 +1555,140 @@
       "className": "UITreeItem",
       "description": "Semantic tree row with disclosure, drag handle, nested children, and contextual action slots.",
       "attributes": [
-        { "name": "accepts", "property": "accepts", "type": "string", "default": "" },
-        { "name": "container", "property": "container", "type": "boolean", "default": false },
-        { "name": "default-expanded", "property": "defaultExpanded", "type": "boolean", "default": false },
-        { "name": "depth", "property": "depth", "type": "number", "default": 1 },
-        { "name": "disabled", "property": "disabled", "type": "boolean", "default": false },
-        { "name": "drag-type", "property": "dragType", "type": "string", "default": "item" },
-        { "name": "drop-scope", "property": "dropScope", "type": "string", "default": "" },
-        { "name": "expanded", "property": "expanded", "type": "boolean", "default": false },
-        { "name": "item-id", "property": "itemId", "type": "string", "default": "" },
-        { "name": "label", "property": "label", "type": "string", "default": "" },
-        { "name": "selected", "property": "selected", "type": "boolean", "default": false },
-        { "name": "sortable", "property": "sortable", "type": "boolean", "default": false }
+        {
+          "name": "accepts",
+          "property": "accepts",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "container",
+          "property": "container",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "default-expanded",
+          "property": "defaultExpanded",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "depth",
+          "property": "depth",
+          "type": "number",
+          "default": 1
+        },
+        {
+          "name": "disabled",
+          "property": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "drag-type",
+          "property": "dragType",
+          "type": "string",
+          "default": "item"
+        },
+        {
+          "name": "drop-scope",
+          "property": "dropScope",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "expanded",
+          "property": "expanded",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "item-id",
+          "property": "itemId",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "label",
+          "property": "label",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "selected",
+          "property": "selected",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "sortable",
+          "property": "sortable",
+          "type": "boolean",
+          "default": false
+        }
       ],
       "properties": [
-        { "name": "accepts", "type": "string", "default": "" },
-        { "name": "container", "type": "boolean", "default": false },
-        { "name": "defaultExpanded", "type": "boolean", "default": false },
-        { "name": "depth", "type": "number", "default": 1 },
-        { "name": "disabled", "type": "boolean", "default": false },
-        { "name": "dragType", "type": "string", "default": "item" },
-        { "name": "dropScope", "type": "string", "default": "" },
-        { "name": "expanded", "type": "boolean", "default": false },
-        { "name": "itemId", "type": "string", "default": "" },
-        { "name": "label", "type": "string", "default": "" },
-        { "name": "selected", "type": "boolean", "default": false },
-        { "name": "sortable", "type": "boolean", "default": false }
+        {
+          "name": "accepts",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "container",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "defaultExpanded",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "depth",
+          "type": "number",
+          "default": 1
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "dragType",
+          "type": "string",
+          "default": "item"
+        },
+        {
+          "name": "dropScope",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "expanded",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "itemId",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "selected",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "sortable",
+          "type": "boolean",
+          "default": false
+        }
       ],
       "events": [
         {
@@ -1564,10 +1699,22 @@
         }
       ],
       "slots": [
-        { "name": "default", "description": "Primary row label or link." },
-        { "name": "leading", "description": "Leading icon or avatar." },
-        { "name": "actions", "description": "Trailing contextual actions." },
-        { "name": "children", "description": "Nested tree items." }
+        {
+          "name": "default",
+          "description": "Primary row label or link."
+        },
+        {
+          "name": "leading",
+          "description": "Leading icon or avatar."
+        },
+        {
+          "name": "actions",
+          "description": "Trailing contextual actions."
+        },
+        {
+          "name": "children",
+          "description": "Nested tree items."
+        }
       ]
     },
     {
@@ -1650,6 +1797,227 @@
         {
           "name": "default",
           "description": "Default child content."
+        }
+      ]
+    },
+    {
+      "tag": "ui-combobox",
+      "package": "@threadlabs/looma",
+      "className": "UIComboboxElement",
+      "description": "Editable smart field with contextual suggestions, connected help, and Standard Schema validation.",
+      "attributes": [
+        {
+          "name": "label",
+          "property": "label",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "placeholder",
+          "property": "placeholder",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "name",
+          "property": "name",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "value",
+          "property": "value",
+          "type": "string | null",
+          "default": null
+        },
+        {
+          "name": "default-value",
+          "property": "defaultValue",
+          "type": "string",
+          "default": null
+        },
+        {
+          "name": "query",
+          "property": "query",
+          "type": "string",
+          "default": null
+        },
+        {
+          "name": "default-query",
+          "property": "defaultQuery",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "disabled",
+          "property": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "readonly",
+          "property": "readOnly",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "required",
+          "property": "required",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "size",
+          "property": "size",
+          "type": "\"sm\" | \"md\"",
+          "default": "md"
+        },
+        {
+          "name": "disclosure",
+          "property": "disclosure",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "clearable",
+          "property": "clearable",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "help",
+          "property": "help",
+          "type": "string",
+          "default": ""
+        }
+      ],
+      "properties": [
+        {
+          "name": "label",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "value",
+          "type": "string | null",
+          "default": null
+        },
+        {
+          "name": "defaultValue",
+          "type": "string",
+          "default": null
+        },
+        {
+          "name": "query",
+          "type": "string",
+          "default": null
+        },
+        {
+          "name": "defaultQuery",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "config",
+          "type": "ComboboxConfig",
+          "default": null
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "size",
+          "type": "\"sm\" | \"md\"",
+          "default": "md"
+        },
+        {
+          "name": "disclosure",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "clearable",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "help",
+          "type": "string",
+          "default": ""
+        }
+      ],
+      "events": [
+        {
+          "name": "query-change",
+          "detailType": "{ query: string; display: string; trigger: string }"
+        },
+        {
+          "name": "value-change",
+          "detailType": "ComboboxChange"
+        },
+        {
+          "name": "free-entry",
+          "detailType": "ComboboxChange"
+        },
+        {
+          "name": "create-entry",
+          "detailType": "ComboboxChange"
+        },
+        {
+          "name": "dependency-invalidate",
+          "detailType": "ComboboxChange"
+        },
+        {
+          "name": "validation-change",
+          "detailType": "ComboboxValidationState"
+        },
+        {
+          "name": "options-change",
+          "detailType": "readonly ComboboxOption[]"
+        }
+      ],
+      "slots": [
+        {
+          "name": "option-${id}",
+          "description": "Noninteractive rich content for the option identity."
+        },
+        {
+          "name": "loading",
+          "description": "Loading message."
+        },
+        {
+          "name": "empty",
+          "description": "Empty result message."
+        },
+        {
+          "name": "error",
+          "description": "Lookup failure message."
+        },
+        {
+          "name": "create",
+          "description": "Create-entry row content."
         }
       ]
     }

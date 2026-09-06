@@ -56,11 +56,11 @@ function handleLightDismiss(event: PointerEvent): void {
     return;
   }
 
-  const target = event.target;
-  if (target instanceof Node) {
-    if (top.element.contains(target)) return;
-    if (top.relatedElements?.some((element) => element.contains(target))) return;
-  }
+  // A document listener sees a shadow host as event.target. Use the composed
+  // path so connected controls inside a field remain inside the overlay boundary.
+  const boundary = [top.element, ...(top.relatedElements ?? [])];
+  if (event.composedPath().some(target => target instanceof Node
+    && boundary.some(element => element.contains(target)))) return;
 
   requestTopOverlayClose("light-dismiss", "pointer");
 }

@@ -27,7 +27,7 @@ export class UIRadio {
   syncToInput() {
     const input = this.getInput();
     if (!input) return;
-    this.host.dataset.disabled = this.disabled ? 'true' : '';
+    this.host.toggleAttribute('data-disabled', this.disabled);
     input.checked = this.checked;
     input.disabled = this.disabled;
     input.name = this.name;
