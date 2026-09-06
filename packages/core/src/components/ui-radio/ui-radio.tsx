@@ -1,6 +1,7 @@
-import { Component, Prop, Element, Watch, Host, h } from '@stencil/core';
+import { Component, Prop, Element, State, Watch, Host, h } from '@stencil/core';
 import { eventToTrigger } from '../../utils/events';
 import { dispatchDetail } from '../../utils/events';
+import { controlledOrDefault, isControlled } from '../../utils/controlled-state';
 
 @Component({
   tag: 'ui-radio',
@@ -10,16 +11,23 @@ import { dispatchDetail } from '../../utils/events';
 export class UIRadio {
   @Element() host: HTMLElement;
 
-  @Prop() checked = false;
+  /** Controlled checked state. Omit it to use defaultChecked and local interaction state. */
+  @Prop() checked?: boolean;
   @Prop({ attribute: 'default-checked' }) defaultChecked = false;
   @Prop() disabled = false;
   @Prop() name = '';
   @Prop() required = false;
   @Prop() value = 'on';
 
+  @State() internalChecked = false;
+
   private slotRef?: HTMLSlotElement;
 
   @Watch('checked')
+  syncFromProp() {
+    if (isControlled(this.checked)) this.internalChecked = this.checked;
+  }
+
   @Watch('disabled')
   @Watch('name')
   @Watch('required')
@@ -28,7 +36,7 @@ export class UIRadio {
     const input = this.getInput();
     if (!input) return;
     this.host.toggleAttribute('data-disabled', this.disabled);
-    input.checked = this.checked;
+    input.checked = this.internalChecked;
     input.disabled = this.disabled;
     input.name = this.name;
     input.required = this.required;
@@ -36,9 +44,7 @@ export class UIRadio {
   }
 
   componentDidLoad() {
-    if (!this.checked && this.defaultChecked) {
-      this.checked = true;
-    }
+    this.internalChecked = controlledOrDefault(this.checked, this.defaultChecked);
     this.slotRef?.addEventListener('slotchange', () => this.syncToInput());
     this.syncToInput();
     const input = this.getInput();
@@ -63,6 +69,8 @@ export class UIRadio {
   private onInputChange = (e: Event) => {
     const input = e.target as HTMLInputElement;
     if (!input || !input.checked) return;
+    if (!isControlled(this.checked)) this.internalChecked = true;
+    else this.syncToInput();
     dispatchDetail(this.host, 'change', {
       checked: true,
       value: this.value,
@@ -74,7 +82,7 @@ export class UIRadio {
     return (
       <Host
         role="radio"
-        aria-checked={String(this.checked)}
+        aria-checked={String(this.internalChecked)}
         aria-disabled={String(this.disabled)}
         data-disabled={this.disabled ? '' : undefined}
       >

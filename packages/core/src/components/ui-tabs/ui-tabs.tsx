@@ -1,6 +1,7 @@
 import { Component, Prop, Element, State, Watch, Host, h } from '@stencil/core';
 import { eventToTrigger } from '../../utils/events';
 import { dispatchDetail } from '../../utils/events';
+import { controlledOrDefault, isControlled } from '../../utils/controlled-state';
 
 @Component({
   tag: 'ui-tabs',
@@ -10,7 +11,8 @@ import { dispatchDetail } from '../../utils/events';
 export class UITabs {
   @Element() host: HTMLElement;
 
-  @Prop() value = '';
+  /** Controlled selected tab value. Omit it to use defaultValue and local interaction state. */
+  @Prop() value?: string;
   @Prop({ attribute: 'default-value' }) defaultValue = '';
   @Prop() orientation: 'horizontal' | 'vertical' = 'horizontal';
 
@@ -18,7 +20,7 @@ export class UITabs {
 
   @Watch('value')
   syncFromProp() {
-    this.internalValue = this.value;
+    if (isControlled(this.value)) this.internalValue = this.value;
   }
 
   @Watch('internalValue')
@@ -44,11 +46,8 @@ export class UITabs {
   }
 
   componentDidLoad() {
-    this.syncFromProp();
-    if (!this.internalValue && this.defaultValue) {
-      this.internalValue = this.defaultValue;
-    }
-    if (!this.internalValue) {
+    this.internalValue = controlledOrDefault(this.value, this.defaultValue);
+    if (!isControlled(this.value) && !this.internalValue) {
       const tabs = this.getTabs();
       if (tabs.length > 0) {
         this.internalValue = tabs[0]?.id ?? tabs[0]?.getAttribute('aria-controls') ?? '';
@@ -76,7 +75,7 @@ export class UITabs {
     const newValue = (tab as HTMLElement).id ?? tab.getAttribute('aria-controls') ?? '';
     if (!newValue) return;
     const prev = this.internalValue;
-    this.internalValue = newValue;
+    if (!isControlled(this.value)) this.internalValue = newValue;
     this.syncState();
     dispatchDetail(this.host, 'select', { value: newValue, previousValue: prev || undefined, trigger });
   }

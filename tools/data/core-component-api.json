@@ -275,7 +275,7 @@
           "name": "checked",
           "property": "checked",
           "type": "boolean",
-          "default": false
+          "default": null
         },
         {
           "name": "default-checked",
@@ -312,7 +312,7 @@
         {
           "name": "checked",
           "type": "boolean",
-          "default": false
+          "default": null
         },
         {
           "name": "defaultChecked",
@@ -435,7 +435,7 @@
           "name": "open",
           "property": "open",
           "type": "boolean",
-          "default": false
+          "default": null
         }
       ],
       "properties": [
@@ -457,7 +457,7 @@
         {
           "name": "open",
           "type": "boolean",
-          "default": false
+          "default": null
         }
       ],
       "events": [
@@ -497,7 +497,7 @@
           "name": "open",
           "property": "open",
           "type": "boolean",
-          "default": false
+          "default": null
         }
       ],
       "properties": [
@@ -514,7 +514,7 @@
         {
           "name": "open",
           "type": "boolean",
-          "default": false
+          "default": null
         }
       ],
       "events": [
@@ -834,7 +834,7 @@
           "name": "open",
           "property": "open",
           "type": "boolean",
-          "default": false
+          "default": null
         }
       ],
       "properties": [
@@ -846,7 +846,7 @@
         {
           "name": "open",
           "type": "boolean",
-          "default": false
+          "default": null
         }
       ],
       "events": [
@@ -918,7 +918,7 @@
           "name": "open",
           "property": "open",
           "type": "boolean",
-          "default": false
+          "default": null
         }
       ],
       "properties": [
@@ -930,7 +930,7 @@
         {
           "name": "open",
           "type": "boolean",
-          "default": false
+          "default": null
         }
       ],
       "events": [
@@ -964,7 +964,7 @@
           "name": "checked",
           "property": "checked",
           "type": "boolean",
-          "default": false
+          "default": null
         },
         {
           "name": "default-checked",
@@ -1001,7 +1001,7 @@
         {
           "name": "checked",
           "type": "boolean",
-          "default": false
+          "default": null
         },
         {
           "name": "defaultChecked",
@@ -1233,7 +1233,7 @@
           "name": "checked",
           "property": "checked",
           "type": "boolean",
-          "default": false
+          "default": null
         },
         {
           "name": "default-checked",
@@ -1264,7 +1264,7 @@
         {
           "name": "checked",
           "type": "boolean",
-          "default": false
+          "default": null
         },
         {
           "name": "defaultChecked",
@@ -1322,7 +1322,7 @@
           "name": "value",
           "property": "value",
           "type": "string",
-          "default": ""
+          "default": null
         }
       ],
       "properties": [
@@ -1343,7 +1343,7 @@
         {
           "name": "value",
           "type": "string",
-          "default": ""
+          "default": null
         }
       ],
       "events": [
@@ -1424,7 +1424,7 @@
           "name": "open",
           "property": "open",
           "type": "boolean",
-          "default": false
+          "default": null
         },
         {
           "name": "toggle-on-click",
@@ -1447,7 +1447,7 @@
         {
           "name": "open",
           "type": "boolean",
-          "default": false
+          "default": null
         },
         {
           "name": "toggleOnClick",
