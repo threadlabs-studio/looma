@@ -1,0 +1,24 @@
+:host { display: grid; gap: var(--ui-space-1); min-inline-size: 0; color: var(--ui-text-primary); font: inherit; }
+label { color: var(--ui-field-label-color, var(--ui-text-primary)); font-size: var(--ui-field-label-size, 0.875rem); font-weight: var(--ui-field-label-weight, 500); }
+.field { display: flex; min-inline-size: 0; border: 1px solid var(--ui-control-border, var(--ui-border-default)); border-radius: var(--ui-radius-2); background: var(--ui-control-surface, var(--ui-surface-default)); }
+.field:focus-within { border-color: var(--ui-control-focus, var(--ui-focus-ring)); outline: 2px solid var(--ui-control-focus, var(--ui-focus-ring)); outline-offset: 1px; }
+input { appearance: none; width: 100%; min-inline-size: 0; min-block-size: var(--ui-control-min-block-size, 2.75rem); box-sizing: border-box; border: 0; border-radius: inherit; background: transparent; color: inherit; font: inherit; line-height: var(--ui-line-height-md); padding: var(--ui-space-2) var(--ui-space-3); margin: 0; outline: none; }
+:host([data-size='sm']) input { min-block-size: var(--ui-field-compact-size, 2rem); padding: var(--ui-space-1) var(--ui-space-2); }
+button { appearance: none; border: 0; border-radius: var(--ui-radius-2); background: transparent; color: var(--ui-field-affordance-color, var(--ui-text-secondary)); font: inherit; font-weight: var(--ui-field-affordance-weight, 400); min-inline-size: 2rem; padding: var(--ui-space-1); cursor: pointer; }
+button:hover:enabled { background: var(--ui-surface-muted); color: var(--ui-text-primary); }
+button:focus-visible { outline: 2px solid var(--ui-focus-ring); outline-offset: -3px; }
+input:disabled, button:disabled { color: var(--ui-text-muted); cursor: not-allowed; }
+.field:has(input:disabled) { background: var(--ui-control-surface-disabled, var(--ui-surface-muted)); }
+:host([data-validation='error']) .field { border-color: var(--ui-danger-solid, var(--ui-accent-active)); }
+.popup { box-sizing: border-box; min-inline-size: 12rem; max-inline-size: calc(100vw - 1rem); max-block-size: var(--ui-combobox-max-block-size, 18rem); overflow: auto; margin: 0; padding: var(--ui-space-1); border: 1px solid var(--ui-border-default); border-radius: var(--ui-radius-2); background: var(--ui-surface-elevated); color: var(--ui-text-primary); box-shadow: var(--ui-shadow-md); }
+[hidden] { display: none !important; }
+.option { padding: var(--ui-space-2) var(--ui-space-3); border-radius: var(--ui-radius-1); cursor: pointer; overflow-wrap: anywhere; }
+.option:hover, .option[data-active] { background: var(--ui-surface-muted); outline: 1px solid var(--ui-focus-ring); outline-offset: -1px; }
+.option[aria-disabled='true'] { color: var(--ui-text-muted); cursor: not-allowed; }
+.primary { display: block; color: var(--ui-option-primary-color, var(--ui-text-primary)); font-weight: var(--ui-option-primary-weight, 500); }
+.secondary { display: block; color: var(--ui-option-secondary-color, var(--ui-text-secondary)); font-weight: var(--ui-option-secondary-weight, 400); font-size: var(--ui-font-size-sm); }
+.message, .group { color: var(--ui-field-message-color, var(--ui-text-secondary)); font-weight: var(--ui-field-message-weight, 400); font-size: var(--ui-font-size-sm); line-height: var(--ui-line-height-md); overflow-wrap: anywhere; }
+.group, .popup .message { padding: var(--ui-space-2) var(--ui-space-3); }
+.sr-only { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (pointer: coarse) { button { min-inline-size: 2.75rem; min-block-size: 2.75rem; } }
+@media (forced-colors: active) { .field, .popup { border-color: CanvasText; } .option[data-active] { outline-color: Highlight; } }

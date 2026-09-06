@@ -1,0 +1,142 @@
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# Combobox
+
+A normal text field with contextual rich suggestions and integrated optional help
+and validation. Labels and option titles use restrained medium weight; metadata and
+messages use regular weight. Domain lookups and persistence stay in the application.
+
+<ComponentExamplesApiTabs component="ui-combobox" />
+
+## Vue: contextual field with validation
+
+```vue
+<script setup lang="ts">
+import { computed, ref } from 'vue';
+import * as v from 'valibot';
+import { Combobox, type ComboboxConfig } from '@threadlabs/looma/vue';
+import { mapComboboxOptions } from '@threadlabs/looma/core';
+import { valibotField } from '@threadlabs/looma/valibot';
+
+const selected = ref<string | null>(null);
+const query = ref('');
+const organizationId = ref('org-1');
+const config = computed<ComboboxConfig>(() => ({
+  ...valibotField(v.pipe(v.string(), v.trim(), v.minLength(2))),
+  context: organizationId.value,
+  invalidation: 'retain-query',
+  validateOn: 'blur',
+  provider: async ({ query, context, signal }) => {
+    const params = new URLSearchParams({ q: query, organization: String(context) });
+    const response = await fetch(`/api/contacts?${params}`, { signal });
+    if (!response.ok) throw new Error('Unable to load contacts.');
+    const records: Array<{ id: string; name: string; city: string }> = await response.json();
+    return mapComboboxOptions(records, row => ({
+      id: row.id, value: row.id, label: row.name, description: row.city,
+    }));
+  },
+}));
+</script>
+
+<template>
+  <Combobox v-model="selected" v-model:query="query" label="Contact"
+    :config="config" disclosure clearable size="sm"
+    help="Choose the contact responsible for this request.">
+    <template #option="{ option }">
+      <div class="option-title">{{ option.label }}</div>
+      <div class="option-meta">{{ option.description }}</div>
+    </template>
+  </Combobox>
+</template>
+
+<style scoped>
+.option-title { color: var(--ui-option-primary-color, var(--ui-text-primary)); font-weight: var(--ui-option-primary-weight, 500); }
+.option-meta { color: var(--ui-option-secondary-color, var(--ui-text-secondary)); font-weight: var(--ui-option-secondary-weight, 400); font-size: var(--ui-font-size-sm); }
+</style>
+```
+
+The visible label names the actual input, with or without disclosure. The help
+button is connected to the field and stays out of the label itself. Bind neither
+model for uncontrolled use (`default-query` / `default-value`); bind one or both
+independently for controlled use. Vue emits typed `queryChange`, `valueChange`,
+`freeEntry`, `createEntry`, `validationChange`, and `dependencyInvalidate` details.
+The exposed component `validate()` method provides normalized output for submission.
+
+## Values and validation
+
+Query is raw editing text; canonical value is a separate string or null. Display
+formatting does not replace raw text or normalized submitted output. `parse`,
+Standard Schema, `normalize`, and `validator` run in that order. `validateOn` accepts
+`input`, `blur` (default), or `submit`; submit is an explicit `validate()` call.
+`validationChange` exposes pristine/pending/valid/warning/error, touched, dirty,
+multiple structured issues, and output. `config.issues` supplies external/server
+issues. Warnings preserve output; errors block it. Await a valid/warning result
+before submitting. This component does not submit forms automatically.
+
+The core boundary is [Standard Schema v1](https://standardschema.dev/schema).
+The separate `@threadlabs/looma/valibot` export provides `valibotField(schema, options?)`
+for synchronous and asynchronous Valibot schemas. Valibot is an optional peer;
+install it only when using this adapter. The adapter imports Valibot types only,
+so general Looma consumers do not load a validation-library runtime. Valibot
+schemas already expose [Standard Schema](https://valibot.dev/guides/integrate-valibot/).
+
+## Friendly formatting without a mask
+
+A consumer formatter may add separators while preserving every character and
+mapping selection. This deliberately small phone-style example formats only plain
+partial digit input. International prefixes, punctuation, `x`, `ext`, `extension`,
+and other free text cause it to decline, preserving input exactly. It makes no
+claim to validate phone numbers; supply a domain-appropriate schema separately.
+
+```ts
+const config: ComboboxConfig = {
+  allowFreeText: true,
+  formatOn: 'input',
+  format(raw, selection) {
+    if (!/^\d{4,10}$/.test(raw)) return undefined;
+    const display = raw.slice(0, 3) + ' ' + raw.slice(3);
+    const offset = (position: number) => position > 3 ? position + 1 : position;
+    return { display, selection: {
+      start: offset(selection.start), end: offset(selection.end),
+      direction: selection.direction,
+    } };
+  },
+};
+```
+
+`formatOn: 'blur'` delays formatting until the field loses focus. Missing/declined
+formatters preserve text; destructive output or invalid caret mappings are rejected.
+Composition and modified editing keys remain native.
+
+## Suggestions and dependency changes
+
+Static `options` use case-insensitive label filtering, overridable with `filter`.
+Async `provider({ query, context, signal, reason })` owns its filtering. Requests
+are debounced (200 ms default), aborted on replacement/close/unmount, and stale
+results/errors are ignored. Disclosure uses an empty provider query immediately,
+without changing editing text. Option IDs must be unique and stable; optional
+groups and disabled options are supported. Rich slots must be noninteractive.
+
+Changing `config.context` identity cancels lookup/validation, closes suggestions,
+and proposes invalidation. `retain-query` clears canonical selection while keeping
+text; `clear` clears both; `retain` keeps both. Controlled owners handle these events.
+`allowFreeText` accepts noncanonical text; `allowCreate` presents a create action
+whose event is handled by the application. Looma never persists domain records.
+
+## Keyboard and themes
+
+Up/Down navigate enabled options; Home/End navigate after an option becomes active
+and otherwise retain normal caret behavior. Enter selects, Escape dismisses without
+clearing text, and Tab closes without selection. Focus order is input, optional
+clear, help, disclosure, then the next field. Help supports hover, focus, click/tap,
+and Escape. Input/listbox/description/validation relationships share one shadow root.
+
+Theme hooks: `--ui-field-label-{color,size,weight}`,
+`--ui-option-primary-{color,weight}`, `--ui-option-secondary-{color,weight}`,
+`--ui-field-message-{color,weight}`, `--ui-field-affordance-{color,weight}`,
+`--ui-field-compact-size`, and `--ui-combobox-max-block-size`. Defaults use existing
+control and text tokens, with 500/400 hierarchy. Keep color overrides accessible
+in light, dark, and high-contrast themes.
+
+Multi-select, virtualization, full form orchestration, complex cross-field graphs,
+and advanced masks are deferred.

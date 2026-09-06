@@ -6,6 +6,18 @@ Looma is a stack-agnostic UI library based on web standards and Open UI principl
 > dist-tag resolves `@threadlabs/looma@0.1.22`. A source or
 > documentation preview can exist before that registry gate passes.
 
+## Pre-1.0 Product Drivers
+
+Until Looma reaches v1.0, its component roadmap is driven primarily by real
+needs found while building Knit and LoadOps. Those apps provide consumer
+evidence; they are not places to fork generic UI.
+
+When Knit or LoadOps needs a reusable primitive, layout primitive, generic
+molecule, theme token, or accessibility behavior, implement and qualify it in
+Looma first, publish or consume the approved Candidate, then use it in the app.
+The apps own domain-specific screens and compositions, but not duplicate generic
+controls.
+
 ## Install the Candidate
 
 ```sh
