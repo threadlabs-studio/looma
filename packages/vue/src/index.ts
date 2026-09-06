@@ -58,7 +58,13 @@ export const Tree = createAdapterComponent("ui-tree", "Tree", [
   ["reorder", "onReorder"],
   ["reorder-rejected", "onReorderRejected"],
 ]);
-export const TreeItem = createAdapterComponent("ui-tree-item", "TreeItem", [["expand", "onExpand"]]);
+export const TreeItem = createAdapterComponent(
+  "ui-tree-item",
+  "TreeItem",
+  [["expand", "onExpand"]],
+  "class",
+  ["expanded"],
+);
 
 export const ADAPTER_COMPONENT_TAG_MAP = {
   Combobox: "ui-combobox",

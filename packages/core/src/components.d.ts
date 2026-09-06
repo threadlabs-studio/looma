@@ -571,10 +571,9 @@ export namespace Components {
          */
         "dropScope": string;
         /**
-          * Initial controlled expansion value.
-          * @default false
+          * Controlled expansion value. When omitted, `default-expanded` initializes uncontrolled state.
          */
-        "expanded": boolean;
+        "expanded"?: boolean;
         /**
           * Stable application identifier emitted by tree interaction events.
           * @default ''
@@ -1442,8 +1441,7 @@ declare namespace LocalJSX {
          */
         "dropScope"?: string;
         /**
-          * Initial controlled expansion value.
-          * @default false
+          * Controlled expansion value. When omitted, `default-expanded` initializes uncontrolled state.
          */
         "expanded"?: boolean;
         /**

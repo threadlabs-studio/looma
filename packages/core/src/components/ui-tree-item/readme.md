@@ -16,7 +16,7 @@
 | `dragType`        | `drag-type`        | Application-defined kind used to reject incompatible sibling drops.                             | `string`  | `'item'`    |
 | `dropDepth`       | `drop-depth`       | Application hierarchy depth override used for drop constraints. Defaults to structural nesting. | `number`  | `undefined` |
 | `dropScope`       | `drop-scope`       | Application-defined parent/list identity included with reorder events.                          | `string`  | `''`        |
-| `expanded`        | `expanded`         | Initial controlled expansion value.                                                             | `boolean` | `false`     |
+| `expanded`        | `expanded`         | Controlled expansion value. When omitted, `default-expanded` initializes uncontrolled state.    | `boolean` | `undefined` |
 | `itemId`          | `item-id`          | Stable application identifier emitted by tree interaction events.                               | `string`  | `''`        |
 | `label`           | `label`            | Accessible name used by the disclosure and drag handle.                                         | `string`  | `''`        |
 | `selected`        | `selected`         |                                                                                                 | `boolean` | `false`     |
