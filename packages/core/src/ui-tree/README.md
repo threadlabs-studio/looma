@@ -24,4 +24,6 @@ owning application data.
 
 The application applies and persists the requested move. Looma owns full-row
 drag imagery, source state, valid-target classification, insertion lines,
-containment highlighting, and hover intent.
+containment highlighting, and hover intent. Applications place an `inside`
+move first in the target's compatible child list; `after` feedback is anchored
+below the target's complete expanded subtree.
