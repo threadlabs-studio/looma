@@ -316,6 +316,37 @@ describe('ui-tree drag and hierarchy interactions', () => {
     });
   });
 
+  it('keeps drop feedback while dragleave crosses a tree item shadow boundary', async () => {
+    document.body.innerHTML = `
+      <ui-tree label="Pages">
+        <ui-tree-item item-id="source" label="Source" drag-type="folder" accepts="folder" sortable container>
+          <span>Source</span>
+        </ui-tree-item>
+        <ui-tree-item item-id="target" label="Target" drag-type="folder" accepts="folder" sortable container>
+          <span>Target</span>
+        </ui-tree-item>
+      </ui-tree>
+    `;
+    await flushStencil();
+
+    const source = document.querySelector<HTMLElement>('ui-tree-item[item-id="source"]')!;
+    const target = document.querySelector<HTMLElement>('ui-tree-item[item-id="target"]')!;
+    const sourceHandle = source.shadowRoot!.querySelector<HTMLElement>('[part="drag-handle"]')!;
+    const targetRow = target.shadowRoot!.querySelector<HTMLElement>('[part="row"]')!;
+    const targetLabel = target.shadowRoot!.querySelector<HTMLElement>('[part="label"]')!;
+    const targetRect = targetRow.getBoundingClientRect();
+
+    sourceHandle.dispatchEvent(dragEvent('dragstart', 0, { setData: vi.fn(), setDragImage: vi.fn() }));
+    targetRow.dispatchEvent(dragEvent('dragover', targetRect.top + (targetRect.height / 2), { dropEffect: 'move' }));
+    expect(target.getAttribute('data-drop-position')).toBe('inside');
+
+    const shadowTransition = dragEvent('dragleave', targetRect.top + (targetRect.height / 2));
+    Object.defineProperty(shadowTransition, 'relatedTarget', { value: targetLabel });
+    targetRow.dispatchEvent(shadowTransition);
+
+    expect(target.getAttribute('data-drop-position')).toBe('inside');
+  });
+
   it('distinguishes folder containment and expands a closed target after hover intent', async () => {
     document.body.innerHTML = `
       <ui-tree label="Pages" hover-expand-delay="20">
