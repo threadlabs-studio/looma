@@ -4,21 +4,21 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-06 08:20 PDT
-Status: Candidate `0.1.19` is public; `0.1.20` is prepared with reliable short native tree drops
+Last Updated: 2026-09-06 09:35 PDT
+Status: Candidate `0.1.20` is public; `0.1.21` is prepared with reliable recursive tree drops
 
 ## Current Focus
 
-- Publish and qualify Candidate `0.1.20` with reliable short native tree drops
-  and exact Knit consumer evidence.
+- Publish and qualify Candidate `0.1.21` with reliable short native and
+  recursive tree drops plus exact Knit consumer evidence.
 - Keep dense tree rows at 32px/15px for pointer use and animate to 44px targets
   only after a real touch interaction establishes touch modality.
 - Verify that controlled editor replacements preserve a focused ProseMirror
   selection, while Knit server acknowledgements no longer echo authored JSON
   through the active editor.
 
-- Publish Candidate `0.1.20`, then consume its exact registry bytes
-  from Knit. Candidate `0.1.19` remains the current public `candidate` until
+- Publish Candidate `0.1.21`, then consume its exact registry bytes
+  from Knit. Candidate `0.1.20` remains the current public `candidate` until
   those replacement bytes pass main CI and protected publication.
 - Complete hosted-docs qualification and promote Candidate `0.1.13`, which is
   published and qualified in Knit with the opinionated Lucide icon
@@ -37,6 +37,14 @@ Status: Candidate `0.1.19` is public; `0.1.20` is prepared with reliable short n
 
 ## Recent Progress
 
+- Candidate `0.1.21` release preparation:
+  - Established native tree targets on `dragenter`, covering short gestures
+    that reach a row without a subsequent `dragover` before release.
+  - Kept drop feedback active across item shadow boundaries so recursive
+    hover expansion, child-level insertion, and parent-level outdenting remain
+    visible and actionable.
+  - Proved the complete interaction in Knit's real-browser suite with native
+    mouse input instead of synthetic drag-event dispatches.
 - Candidate `0.1.20` release preparation:
   - Completed short native drags from the item under the released pointer when
     Chromium omits `dragover` and `drop`, while leaving normal and canceled
