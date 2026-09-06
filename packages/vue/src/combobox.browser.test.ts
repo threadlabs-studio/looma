@@ -4,9 +4,9 @@ import { computed, createApp, createSSRApp, h, nextTick, ref, type App } from 'v
 import { renderToString } from 'vue/server-renderer';
 import { Combobox } from './index';
 import type { ComboboxConfig, ComboboxValidationState } from '@threadlabs/looma-core';
-type ComboboxElement = HTMLElement & { validate(): Promise<ComboboxValidationState> };
 const apps: App[] = [];
 const flush = async () => { await nextTick(); for (let i = 0; i < 4; i++) await new Promise(requestAnimationFrame); };
+type ComboboxElement = HTMLElement & { validate(): Promise<ComboboxValidationState> };
 afterEach(() => { apps.splice(0).forEach(app => app.unmount()); document.body.innerHTML = ''; });
 
 for (const provider of [false, true]) {
@@ -68,7 +68,7 @@ it('hydrates controlled query and selection, updates rich rows and dependency co
   document.body.append(host);
   const app = createSSRApp({ render: view }); apps.push(app); app.mount(host);
   await flush();
-  const field = host.querySelector('ui-combobox')!;
+  const field = host.querySelector<ComboboxElement>('ui-combobox')!;
   await expect.poll(() => field.shadowRoot?.querySelector('input')).toBeTruthy();
   const input = field.shadowRoot!.querySelector('input')!;
   expect(input.value).toBe('Initial');
