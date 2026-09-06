@@ -15,3 +15,6 @@ export * from './src/overlay/positioning';
 export * from './src/input-modality';
 export * from './src/icons';
 export * from './src/utils/drag-drop';
+
+export * from './src/field/combobox';
+export * from './src/field/validation';

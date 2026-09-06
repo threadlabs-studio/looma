@@ -67,7 +67,11 @@
     "./theme-high-contrast.css": "./theme-high-contrast.css",
     "./layout.css": "./layout.css",
     "./styles.css": "./styles.css",
-    "./editor.css": "./editor.css"
+    "./editor.css": "./editor.css",
+    "./valibot": {
+      "types": "./dist/valibot.d.ts",
+      "import": "./dist/valibot.js"
+    }
   },
   "files": [
     "dist/",
@@ -106,13 +110,25 @@
     "@tiptap/core": ">=2 <3",
     "@tiptap/pm": ">=2 <3",
     "@tiptap/vue-3": ">=2 <3",
-    "vue": "^3.5.0"
+    "vue": "^3.5.0",
+    "valibot": "^1.1.0"
   },
   "peerDependenciesMeta": {
-    "@tiptap/core": { "optional": true },
-    "@tiptap/pm": { "optional": true },
-    "@tiptap/vue-3": { "optional": true },
-    "vue": { "optional": true }
+    "@tiptap/core": {
+      "optional": true
+    },
+    "@tiptap/pm": {
+      "optional": true
+    },
+    "@tiptap/vue-3": {
+      "optional": true
+    },
+    "vue": {
+      "optional": true
+    },
+    "valibot": {
+      "optional": true
+    }
   },
   "engines": {
     "node": ">=20"

@@ -1,10 +1,21 @@
 # Component Roadmap
 
-Last updated: 2026-08-30
+Last updated: 2026-09-06
 
-This is the editable plan for Looma components across current shipping scope and near-term promotions from Knit.
+This is the editable plan for Looma components across current shipping scope and near-term promotions from Knit and LoadOps.
 
-**Component system and when to add components:** See [Component System and When to Add Components](./component-system.md) for hierarchy, design rules (no external margins, tokens, dark mode, API conventions), and when to build in Looma vs in a consuming app (e.g. Knit).
+**Component system and when to add components:** See [Component System and When to Add Components](./component-system.md) for hierarchy, design rules (no external margins, tokens, dark mode, API conventions), and when to build in Looma vs in a consuming app (e.g. Knit or LoadOps).
+
+## Pre-1.0 Product Drivers
+
+Knit and LoadOps currently drive Looma's pre-v1.0 component needs. Knit stresses
+workspace navigation, collaboration, and editor workflows. LoadOps stresses
+large, accessible, form-heavy business workflows for transport offices:
+quoting, shipment/load intake, migration preview, payments, and dispatch setup.
+
+When those apps reveal missing generic UI, the work should land in Looma first
+and then be consumed by the app through an approved Candidate. App-specific
+business components stay in the app.
 
 ## Release 1 Classification
 
@@ -151,7 +162,7 @@ Wrapper naming policy:
 
 We are building Confluence/Notion-like editor UI in Looma using **open-source Tiptap only** (no paid templates or Cloud). The private `packages/editor` workspace is projected through `@threadlabs/looma/editor`. All editor UI is **web components** (custom elements); `/vue/editor` wires the R1 supported Vue integration while `/vue` remains editor-free, and the React adapter remains an internal preview. Scope: slash menu, tables with hover “+” and context menu, list behavior, block menu, formatting toolbar, mentions, and optional emoji. Domain-neutral; apps wire save, upload, presence, and authorized directory queries. Current shipped editor slice includes the toolbar shell, slash and mention menus, table context menu, table toolbar, insert-table grid, and table overlay components plus adapter event wiring. See **[Editor Roadmap](./editor-roadmap.md)** for full scope, phases, and Looma vs app split.
 
-## Planned Promotions From Knit (Candidate Queue)
+## Planned Promotions From Driver Apps (Candidate Queue)
 
 These are candidates to promote into Looma after generic API extraction:
 
@@ -160,6 +171,9 @@ These are candidates to promote into Looma after generic API extraction:
 3. ~~Command/Search shell (from `SearchOverlay`)~~ — **shipped** as `ui-search-shell`
 4. ~~Generic search result row~~ — **shipped** as `ui-search-result-row`
 5. ~~Slot-based app top bar shell~~ — **shipped** as `ui-top-bar`
+6. Transport-office form recipes from LoadOps — candidate only after they are
+   extracted as domain-neutral form layout, stepper, validation-summary, or
+   review/signoff patterns.
 
 ## Benchmark-Driven Gaps And Next Promotions
 
@@ -175,6 +189,7 @@ Source: [Component Library Audit](./component-library-audit.md), based on offici
 - Deepen existing high-frequency primitives:
   - `Button`: loading and icon-placement guidance
   - `Input`: clearable, size, and adornment strategy
+  - `FormField`: large-form density, help/error hierarchy, and validation-summary guidance for older office users
   - `Menu`: submenu/checkable-item roadmap
   - `ToastRegion`: severity and action guidance
 

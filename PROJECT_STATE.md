@@ -4,10 +4,19 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-06 10:16 PDT
-Status: Candidate `0.1.21` is public; `0.1.22` is prepared with complete recursive tree drops
+Last Updated: 2026-09-06 11:28 PDT
+Status: Candidate `0.1.21` is public; this `0.1.22` checkout combines main's recursive tree drops with unreleased PR #58 smart-field work. Historical release tasks below retain their original version context.
 
 ## Current Focus
+
+- Deliver PR #58's three verified ownership fixes on the existing shared branch;
+  PR merge and release remain separate actions.
+
+- Deliver the verified shared-history integration of PR #58 with origin/main;
+  PR approval/merge and release publication remain separate owner-led steps.
+
+- Ship the verified smart-field/combobox and just-in-time help slice through PR #58;
+  release publication and consuming-app integration remain separate owner-led steps.
 
 - Publish and qualify Candidate `0.1.22` with reliable short native and
   recursive tree drops plus exact Knit consumer evidence.
@@ -36,6 +45,49 @@ Status: Candidate `0.1.21` is public; `0.1.22` is prepared with complete recursi
   editor, and Vue.
 
 ## Recent Progress
+
+- PR #58: external query-only combobox edits clear uncontrolled identity while
+  selection echoes retain it; rejected canonical proposals restore accepted labels
+  after owner notifications, including cached provider labels. Validation is reset
+  when ownership reconciliation changes the field. Explicit empty select defaults
+  now initialize once, separately from omitted defaults and later native/Vue edits.
+- Added Core and Vue browser regressions for all three findings. Generic Looma
+  changes only; no Knit or LoadOps edits. GitHub has no feedback threads or pending
+  review. Pre-work local/remote/PR SHA: `a28bfa43dccd6c1510882d02d04ab6a14a8d06ab`.
+
+- Integrated origin/main `ed4e39c6d0eca07e3e61cfb19b1911b589de4ddc` into
+  PR #58 from `26fa0dc626cc684b7f12b31878ed094c8c169634` using a normal merge.
+  The sole conflict was this state document: preserved the feature's smart-field
+  and review-fix history plus main's Candidate 0.1.20–0.1.22 tree-drop history.
+  Source merged automatically; all five fixes and incoming tree/editor code remain intact.
+- Bounded single-agent CE quick integration review: pass, no actionable findings
+  or source fixes. Inspected the staged merge diff, automatic manifest/docs merges,
+  five regression paths, and incoming tree/editor changes. No behavior-bearing manual
+  resolution warranted a simplification pass. Generic Looma only; no consumer edits.
+
+- Fixed PR #58 nested-theme semantic aliases and matching high-contrast surfaces;
+  combobox reconnect positioning, canonical-only display ownership (including
+  provider labels), and unchanged formatting/caret cycles; select defaults now
+  initialize once and preserve subsequent native/Vue ownership.
+- Added Core/Vue regressions, nested contrast/axe checks, and provider-label
+  fallback contract notes. These are generic Looma fixes; no Knit or LoadOps edits.
+  GitHub exposes no review threads/comments/bodies or pending review to handle.
+
+- Added domain-neutral `ui-combobox` and typed Vue `Combobox` with independently
+  controlled query/selection, contextual cancellable suggestions, rich option slots,
+  connected help/disclosure/clear controls, and single-select/free-entry/create states.
+- Added structural Standard Schema field validation and the tree-shakeable
+  `@threadlabs/looma/valibot` adapter with an optional Valibot peer; core does not
+  import Valibot at runtime. Parsing/normalization remain separate from additive,
+  caret-aware display formatting. Scoped typography uses restrained 500/400 weights.
+- Finished hover/focus/click/touch tooltip help and shadow-aware overlay dismissal.
+  Canonical docs, one SmartField story, generated API/readmes/types, release
+  classification, facade exports, and packed-consumer coverage are updated.
+  The legacy mutation-observer guard now resolves the current core entry file.
+- Bounded single-agent review resolved stale validation output, grouped keyboard
+  ordering, invalid formatter selections, and shadow help dismissal. No outstanding
+  actionable P1/P2 findings. Multi-select, virtualization, full form orchestration,
+  complex dependency graphs, and advanced masks remain deferred.
 
 - Candidate `0.1.22` release preparation:
   - Tracked native source-drag coordinates so a nested item can target its
@@ -375,6 +427,58 @@ Status: Candidate `0.1.21` is public; `0.1.22` is prepared with complete recursi
 
 ## Verification Snapshot
 
+- PR #58 ownership follow-up: proof-first Core run reproduced seven failures
+  (query replacement/clear, static/provider selection/clear rejection, empty default).
+  Vue reproduced the same ownership defects. Focused checks now pass: Core units
+  8/8, Core Chromium 25/25 (including three theme axe cases), Vue Chromium 12/12.
+  Final sequential gates pass: API generation/repeatability, generated-contract
+  immutability, docs sync, lint, typecheck, build, test, browser, packed-facade
+  consumer matrix, mutation-observer, diff and conflict-marker checks. Full tests:
+  repository 109/109, facade 9/9, Core 52/52, layout 13/13, editor 12/12, Vue 15/15;
+  Chromium Core 65/65, editor 19/19, Vue 33/33, docs 5/5. Placeholder scripts are
+  excluded. A nullable test lookup and Vue test hydration assumptions were fixed;
+  affected/full gates were rerun green. Temporary screenshots were removed.
+
+- PR #58 main integration (2026-09-06): sequential API generation (twice), docs
+  sync, generated-contract immutability, lint, typecheck, package/facade/docs/
+  Storybook build, packed-consumer matrix, mutation-observer and diff checks pass.
+  Frozen-lockfile install also passes. Core units 50/50, Vue units 15/15;
+  focused Chromium Core 21/21 (nested theme/contrast/axe 4, combobox 15, select 2),
+  Vue 5/5 (combobox 3, select 2). Repository scripts 109/109, layout 13/13,
+  editor 12/12, facade 9/9. Full Chromium: Core 57/57, editor 19/19,
+  Vue 26/26, docs 5/5. No failing gates; existing warning policy unchanged.
+  Tokens/docs/Storybook placeholder checks are not substantive test coverage.
+
+- PR #58 approved review fixes (2026-09-06): final sequential run passed
+  `pnpm generate:api`, `pnpm check:docs-sync`, `pnpm lint`, `pnpm typecheck`,
+  `pnpm build`, `pnpm test`, `pnpm test:browser`, `pnpm test:facade-consumer`,
+  `pnpm check:mutation-observer`, and `git diff --check`.
+  Tests: repository 109, facade 9, core 50, layout 13, editor 11, Vue 15;
+  Chromium: core 52, editor 17, Vue 26, docs 5. Nested theme tests include
+  three >=7:1 text-contrast/axe cases and one explicit-override case (4/4).
+  API metadata and generated contracts remain unchanged; docs/Storybook builds pass.
+- Targeted combobox browser 15/15, Vue combobox 3/3, select Core 2/2,
+  select Core browser 2/2 and Vue browser 2/2 passed. The first full browser run
+  exposed a fixed-frame readiness assumption in the new Vue select test; it now
+  awaits lazy component initialization, and the final full browser run passed.
+  Existing placeholder scripts and non-blocking build warnings are not substantive
+  coverage. No merge or release was performed.
+
+- Smart field and help (2026-09-06):
+  - `pnpm lint`, `pnpm typecheck`, `pnpm build`, and `pnpm test`: pass.
+    Unit suites: core 48, layout 13, editor 11, Vue 15; repository/facade tests pass.
+  - `pnpm test:browser`: pass (Chromium: core 41, editor 17, Vue 23, docs 5).
+    Includes schema/async races, native caret/IME/free-text behavior, Vue ownership
+    and SSR hydration, and axe WCAG checks in light/dark/high-contrast themes.
+  - `pnpm generate:api`, `pnpm check:docs-sync`, and
+    `pnpm test:facade-consumer`: pass; docs and Storybook builds pass.
+  - Built Storybook manual desktop/mobile touch checks: pass for connected field,
+    suggestion opening, Escape dismissal, and repeat-click/tap help toggling.
+  - Proof-first failing tests were retained as regression tests; temporary red
+    logs, generated failure screenshots, and manual QA captures were removed.
+  - No formatter is configured; docs/Storybook unit and lint scripts explicitly
+    report no configured checks. Existing build warnings are non-blocking.
+
 - Editor people mentions (2026-09-05):
   - workspace lint, typecheck, build, unit tests, and browser tests: pass
   - editor browser: pass (17 tests); Vue browser: pass (17 tests), covering
@@ -495,6 +599,17 @@ Status: Candidate `0.1.21` is public; `0.1.22` is prepared with complete recursi
   `release:verify` gate can mark it eligible.
 
 ## Next Up
+
+- Capture one-shot exact-SHA CI after pushing the PR #58 ownership fixes; retain
+  owner review/merge and protected release qualification as separate follow-up.
+
+- Inspect hosted CI on PR #58's pushed integration SHA and obtain owner review
+  before PR merge. Shared history is preserved; publication requires its own gates.
+
+Review PR #58, then publish an owner-approved Candidate containing its exact merged
+commit through normal release gates. Consumers can qualify a locally built/packed
+facade from the feature commit meanwhile; the private monorepo root is not a direct
+Git package dependency. No release or consuming-app change was performed in this slice.
 
 Merge the editor-mention feature, publish its exact verified facade as the next
 owner-approved Candidate, then replace Knit's development symlink with those
