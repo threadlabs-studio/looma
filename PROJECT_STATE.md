@@ -4,7 +4,7 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-06 12:20 PDT
+Last Updated: 2026-09-06 15:28 PDT
 Status: Candidate `0.1.22` is public; `0.1.23` is prepared with smart fields, closed-folder containment, and truthful depth-limit feedback. Historical release tasks below retain their original version context.
 
 ## Current Focus
@@ -53,6 +53,30 @@ Status: Candidate `0.1.22` is public; `0.1.23` is prepared with smart fields, cl
   when supplied; `default-expanded` is initialization-only for uncontrolled
   items. This local feature work is pending normal qualification, not a
   publication claim.
+
+- Generated public API freshness:
+  - Made docs sync and CI reject stale component metadata or generated Vue
+    declarations, rather than checking only the JSON API projection.
+  - Corrected stale public counts to the source-derived 30 Core, 9 Layout,
+    39 general Vue, and 7 editor Vue elements.
+
+- Vue adapter public types:
+  - Generated explicit props and typed callback details for every general Vue
+    adapter from the published component API, while preserving the existing
+    pass-through runtime adapter.
+  - Added strict TypeScript and generator checks; refreshed the stale Tree
+    max-depth and reorder-rejection API projection consumed by those types.
+
+- Controlled primitive state contracts:
+  - Made dialog, menu, popover, disclosure, tooltip, checkbox, switch, radio,
+    and tabs controlled props optional: `undefined` now selects local state,
+    while explicit `false` and empty values remain controlled.
+  - Limited `default*` props to uncontrolled initialization and retained the
+    rendered controlled state until the owning application accepts an emitted
+    close, change, or select request.
+  - Regenerated Core types/readmes and the public component API projection;
+    Chromium regressions cover false/empty controlled values with truthy
+    defaults plus refusal and subsequent parent acceptance.
 
 - Candidate `0.1.23` release preparation:
   - Expanded closed container targets before dispatching inside reorders, so a

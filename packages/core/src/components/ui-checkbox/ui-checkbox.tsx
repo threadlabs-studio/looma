@@ -1,5 +1,6 @@
 import { Component, Prop, Element, State, Watch, Host, h } from '@stencil/core';
 import { eventToTrigger, dispatchDetail } from '../../utils/events';
+import { controlledOrDefault, isControlled } from '../../utils/controlled-state';
 
 @Component({
   tag: 'ui-checkbox',
@@ -9,7 +10,8 @@ import { eventToTrigger, dispatchDetail } from '../../utils/events';
 export class UICheckbox {
   @Element() host: HTMLElement;
 
-  @Prop() checked = false;
+  /** Controlled checked state. Omit it to use defaultChecked and local interaction state. */
+  @Prop() checked?: boolean;
   @Prop({ attribute: 'default-checked' }) defaultChecked = false;
   @Prop() disabled = false;
   @Prop() indeterminate = false;
@@ -22,7 +24,7 @@ export class UICheckbox {
 
   @Watch('checked')
   syncFromProp() {
-    this.internalChecked = this.checked;
+    if (isControlled(this.checked)) this.internalChecked = this.checked;
   }
 
   @Watch('internalChecked')
@@ -42,8 +44,7 @@ export class UICheckbox {
   }
 
   componentDidLoad() {
-    this.syncFromProp();
-    this.internalChecked = this.internalChecked || this.defaultChecked;
+    this.internalChecked = controlledOrDefault(this.checked, this.defaultChecked);
     this.slotRef?.addEventListener('slotchange', () => this.syncToInput());
     this.syncToInput();
     const input = this.getInput();
@@ -68,10 +69,12 @@ export class UICheckbox {
   private onInputChange = (e: Event) => {
     const input = e.target as HTMLInputElement;
     if (!input) return;
-    this.internalChecked = input.checked;
+    const checked = input.checked;
+    if (!isControlled(this.checked)) this.internalChecked = checked;
+    else this.syncToInput();
     this.indeterminate = input.indeterminate;
     dispatchDetail(this.host, 'change', {
-      checked: this.internalChecked,
+      checked,
       value: this.value,
       trigger: eventToTrigger(e),
     });
