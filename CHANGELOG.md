@@ -9,6 +9,26 @@
 - Make tooltip descriptions accessible and optionally pinnable by click/touch,
   preserving hover/focus access and Escape dismissal.
 
+## v0.1.22 Candidate
+
+Nested sources keep parent-level outdent feedback current from their native
+`drag` coordinates. This covers ancestor rows that cannot receive a new
+`dragenter` because the gesture began inside their expanded subtree.
+
+## v0.1.21 Candidate
+
+Tree drop targets become active on native `dragenter`, so short gestures
+can highlight and commit before Chromium emits a later `dragover`. Drop
+feedback also survives transitions across a tree item's shadow boundary,
+preserving nested insertion bars while folders open recursively.
+
+## v0.1.20 Candidate
+
+Short native tree drags complete at the item beneath the released pointer
+even when Chromium ends the gesture without emitting `dragover` or `drop`.
+Normal drops remain unchanged, while canceled and outside-tree drags still do
+nothing.
+
 ## v0.1.19 Candidate
 
 Tree insertion feedback stays aligned with the resulting hierarchy. Nested

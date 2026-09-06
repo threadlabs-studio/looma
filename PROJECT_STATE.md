@@ -4,27 +4,27 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-06 11:02 PDT
-Status: Registry snapshot: `latest` is `0.1.13`, `candidate` is `0.1.21`; this `0.1.19` feature checkout contains unreleased smart-field work. Historical release tasks below retain their original version context.
+Last Updated: 2026-09-06 11:09 PDT
+Status: Candidate `0.1.21` is public; this `0.1.22` checkout combines main's recursive tree drops with unreleased PR #58 smart-field work. Historical release tasks below retain their original version context.
 
 ## Current Focus
 
-- Deliver the five approved PR #58 review fixes on its existing feature branch;
-  integration conflicts with the base branch require a separate authorized step.
+- Deliver the verified shared-history integration of PR #58 with origin/main;
+  PR approval/merge and release publication remain separate owner-led steps.
 
 - Ship the verified smart-field/combobox and just-in-time help slice through PR #58;
   release publication and consuming-app integration remain separate owner-led steps.
 
-- Publish and qualify Candidate `0.1.19` with subtree-aligned insertion bars,
-  first-child containment semantics, and exact Knit consumer evidence.
+- Publish and qualify Candidate `0.1.22` with reliable short native and
+  recursive tree drops plus exact Knit consumer evidence.
 - Keep dense tree rows at 32px/15px for pointer use and animate to 44px targets
   only after a real touch interaction establishes touch modality.
 - Verify that controlled editor replacements preserve a focused ProseMirror
   selection, while Knit server acknowledgements no longer echo authored JSON
   through the active editor.
 
-- Publish Candidate `0.1.19`, then consume its exact registry bytes
-  from Knit. Candidate `0.1.18` remains the current public `candidate` until
+- Publish Candidate `0.1.22`, then consume its exact registry bytes
+  from Knit. Candidate `0.1.21` remains the current public `candidate` until
   those replacement bytes pass main CI and protected publication.
 - Complete hosted-docs qualification and promote Candidate `0.1.13`, which is
   published and qualified in Knit with the opinionated Lucide icon
@@ -42,6 +42,16 @@ Status: Registry snapshot: `latest` is `0.1.13`, `candidate` is `0.1.21`; this `
   editor, and Vue.
 
 ## Recent Progress
+
+- Integrated origin/main `ed4e39c6d0eca07e3e61cfb19b1911b589de4ddc` into
+  PR #58 from `26fa0dc626cc684b7f12b31878ed094c8c169634` using a normal merge.
+  The sole conflict was this state document: preserved the feature's smart-field
+  and review-fix history plus main's Candidate 0.1.20–0.1.22 tree-drop history.
+  Source merged automatically; all five fixes and incoming tree/editor code remain intact.
+- Bounded single-agent CE quick integration review: pass, no actionable findings
+  or source fixes. Inspected the staged merge diff, automatic manifest/docs merges,
+  five regression paths, and incoming tree/editor changes. No behavior-bearing manual
+  resolution warranted a simplification pass. Generic Looma only; no consumer edits.
 
 - Fixed PR #58 nested-theme semantic aliases and matching high-contrast surfaces;
   combobox reconnect positioning, canonical-only display ownership (including
@@ -67,6 +77,26 @@ Status: Registry snapshot: `latest` is `0.1.13`, `candidate` is `0.1.21`; this `
   actionable P1/P2 findings. Multi-select, virtualization, full form orchestration,
   complex dependency graphs, and advanced masks remain deferred.
 
+- Candidate `0.1.22` release preparation:
+  - Tracked native source-drag coordinates so a nested item can target its
+    ancestor row even though the pointer began inside that expanded ancestor.
+  - Proved parent-level outdent feedback alongside first-child containment,
+    recursive hover expansion, and grandchild insertion in Knit's real
+    Chromium integration suite.
+- Candidate `0.1.21` release preparation:
+  - Established native tree targets on `dragenter`, covering short gestures
+    that reach a row without a subsequent `dragover` before release.
+  - Kept drop feedback active across item shadow boundaries so recursive
+    hover expansion, child-level insertion, and parent-level outdenting remain
+    visible and actionable.
+  - Proved the complete interaction in Knit's real-browser suite with native
+    mouse input instead of synthetic drag-event dispatches.
+- Candidate `0.1.20` release preparation:
+  - Completed short native drags from the item under the released pointer when
+    Chromium omits `dragover` and `drop`, while leaving normal and canceled
+    gestures unchanged.
+  - Added real-browser full-row dragging and an exact `dragstart` to `dragend`
+    regression for the sequence observed in Knit Preview.
 - Candidate `0.1.19` release preparation:
   - Anchored `after` insertion feedback below an expanded folder's complete
     subtree while preserving child-level bars between nested siblings.
@@ -385,6 +415,16 @@ Status: Registry snapshot: `latest` is `0.1.13`, `candidate` is `0.1.21`; this `
 
 ## Verification Snapshot
 
+- PR #58 main integration (2026-09-06): sequential API generation (twice), docs
+  sync, generated-contract immutability, lint, typecheck, package/facade/docs/
+  Storybook build, packed-consumer matrix, mutation-observer and diff checks pass.
+  Frozen-lockfile install also passes. Core units 50/50, Vue units 15/15;
+  focused Chromium Core 21/21 (nested theme/contrast/axe 4, combobox 15, select 2),
+  Vue 5/5 (combobox 3, select 2). Repository scripts 109/109, layout 13/13,
+  editor 12/12, facade 9/9. Full Chromium: Core 57/57, editor 19/19,
+  Vue 26/26, docs 5/5. No failing gates; existing warning policy unchanged.
+  Tokens/docs/Storybook placeholder checks are not substantive test coverage.
+
 - PR #58 approved review fixes (2026-09-06): final sequential run passed
   `pnpm generate:api`, `pnpm check:docs-sync`, `pnpm lint`, `pnpm typecheck`,
   `pnpm build`, `pnpm test`, `pnpm test:browser`, `pnpm test:facade-consumer`,
@@ -536,9 +576,8 @@ Status: Registry snapshot: `latest` is `0.1.13`, `candidate` is `0.1.21`; this `
 
 ## Next Up
 
-- Integrate PR #58 only with separate authorization: GitHub reports base-branch
-  conflicts and currently lists no hosted checks. Preserve the shared feature
-  history; no merge/rebase or publication belongs to this review-fix task.
+- Inspect hosted CI on PR #58's pushed integration SHA and obtain owner review
+  before PR merge. Shared history is preserved; publication requires its own gates.
 
 Review PR #58, then publish an owner-approved Candidate containing its exact merged
 commit through normal release gates. Consumers can qualify a locally built/packed
