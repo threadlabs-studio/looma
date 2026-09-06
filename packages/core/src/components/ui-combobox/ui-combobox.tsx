@@ -113,6 +113,9 @@ export class UICombobox {
   }
   @Watch('query') syncQuery() {
     if (this.query === undefined || this.query === this.raw) return;
+    // Only a selection proposal's query echo retains an uncontrolled identity.
+    // Other owner text replacements are edits, just like native input.
+    if (this.value === undefined && this.proposedChange?.query !== this.query) this.selected = null;
     this.awaitingLabel = null;
     this.formattedRaw = undefined;
     this.raw = this.query;
@@ -265,11 +268,22 @@ export class UICombobox {
     const proposal = { value, query };
     this.proposedChange = proposal;
     this.valueChange.emit(detail);
-    queueMicrotask(() => { if (this.proposedChange === proposal) this.proposedChange = undefined; });
     if (queryChanged) this.queryChange.emit({ query, display: query, trigger });
     if (kind === 'create') this.createEntry.emit(detail);
     if (kind === 'free-entry') this.freeEntry.emit(detail);
     if (kind === 'invalidation') this.dependencyInvalidate.emit(detail);
+    // Settle after all owner notifications (including Vue's queued update).
+    // A retained prop does not fire a Stencil watcher, so rejection must be
+    // reconciled explicitly while the proposal still identifies an edit echo.
+    queueMicrotask(() => {
+      if (this.proposedChange !== proposal) return;
+      if (this.value !== undefined && this.value !== proposal.value) this.syncValue();
+      if (this.query !== undefined && this.query !== proposal.query) {
+        if (this.value === undefined) { this.selected = null; this.resetValidation(); }
+        this.syncQuery();
+      }
+      this.proposedChange = undefined;
+    });
   }
   private choose(index: number, trigger: 'keyboard' | 'pointer') {
     const option = this.rows[index];

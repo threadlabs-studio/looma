@@ -3,6 +3,19 @@ import { afterEach, expect, it } from 'vitest';
 const flush = async () => { for (let i = 0; i < 3; i++) await new Promise(requestAnimationFrame); };
 afterEach(() => { document.body.innerHTML = ''; });
 
+it.each([undefined, ''])('distinguishes omitted and empty defaults (%j) and initializes once', async initial => {
+  document.body.innerHTML = `<ui-select${initial === undefined ? '' : ' default-value=""'}><select aria-label="Role"><option value="viewer">Viewer</option><option value="editor">Editor</option></select></ui-select>`;
+  const field = document.querySelector('ui-select') as HTMLUISelectElement;
+  const select = field.querySelector('select')!;
+  await flush();
+  expect(select.value).toBe(initial === undefined ? 'viewer' : '');
+  expect(select.selectedIndex).toBe(initial === undefined ? 0 : -1);
+  select.value = 'editor'; select.dispatchEvent(new Event('change', { bubbles: true }));
+  field.invalid = true; await flush(); expect(select.value).toBe('editor');
+  select.value = ''; field.defaultValue = 'viewer'; field.required = true;
+  await flush(); expect(select.selectedIndex).toBe(-1);
+});
+
 it('applies a default once despite native first-option selection and preserves later edits and clears', async () => {
   document.body.innerHTML = '<ui-select default-value="editor"><select><option value="viewer">Viewer</option><option value="editor">Editor</option></select></ui-select>';
   const field = document.querySelector('ui-select') as HTMLUISelectElement;

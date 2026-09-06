@@ -9,7 +9,7 @@
 
 | Property       | Attribute       | Description | Type      | Default     |
 | -------------- | --------------- | ----------- | --------- | ----------- |
-| `defaultValue` | `default-value` |             | `string`  | `''`        |
+| `defaultValue` | `default-value` |             | `string`  | `undefined` |
 | `disabled`     | `disabled`      |             | `boolean` | `false`     |
 | `invalid`      | `invalid`       |             | `boolean` | `false`     |
 | `required`     | `required`      |             | `boolean` | `false`     |
