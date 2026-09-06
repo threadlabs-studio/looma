@@ -32,6 +32,7 @@ import Code from "@tiptap/extension-code";
 import { CodeBlockLowlight } from "@tiptap/extension-code-block-lowlight";
 import { common, createLowlight } from "lowlight";
 import TableRow from "@tiptap/extension-table-row";
+import { LoomaCallout } from "./callout";
 import { LoomaListBehavior } from "./list-behavior";
 import { createLoomaMentionExtension } from "./mention";
 import { LoomaTable, LoomaTableCell, LoomaTableHeader } from "./table-formatting";
@@ -87,6 +88,7 @@ export function getDefaultEditorExtensions(
     TaskList,
     TaskItem.configure({ nested: false }),
     Blockquote,
+    LoomaCallout,
     HorizontalRule,
     HardBreak,
     History,
