@@ -9,7 +9,7 @@
 import { readFileSync } from "fs";
 import { join } from "path";
 
-const ROOT = join(process.cwd(), "packages/core/src");
+const ROOT = join(process.cwd(), "packages/core");
 const FILE = join(ROOT, "index.ts");
 
 const content = readFileSync(FILE, "utf8");

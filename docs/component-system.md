@@ -1,6 +1,19 @@
 # Component System and When to Add Components
 
-This doc describes the shared component hierarchy, design rules, and **when to build components in Looma vs in a consuming app** (e.g. Knit). It is the source of truth for the atomic design system; app specs reference it.
+This doc describes the shared component hierarchy, design rules, and **when to build components in Looma vs in a consuming app** (e.g. Knit or LoadOps). It is the source of truth for the atomic design system; app specs reference it.
+
+## Pre-1.0 driver apps
+
+Knit and LoadOps are Looma's primary product-driver apps until v1.0. Component
+needs found in those apps should flow into Looma when they are generic: controls,
+layout primitives, generic molecules, theme tokens, accessibility behavior, and
+reusable interaction patterns.
+
+The driver apps may own domain-specific compositions, routes, data wiring, and
+business workflows. They should not add app-local copies of generic controls.
+If the right primitive is missing, the normal path is: define the generic Looma
+API, implement and qualify it in Looma, publish or consume the approved
+Candidate, then use it in the app.
 
 ## Component hierarchy
 
@@ -21,12 +34,12 @@ invisible hit targets. See [Anticipatory affordances](./anticipatory-affordances
 
 - **Do add:** Primitives (buttons, inputs, dialogs, menus, toasts, avatars, badges), layout (Stack, Inline, Grid), and generic molecules that do not encode app-domain entities (e.g. a generic search result row, not “Knit page row”).
 - **Do not add:** Components that are tied to one product’s domain (workspace, collection, page, folder, collaborator). Those live in the app; Looma stays domain-neutral.
-- **Promote from app when:** An app builds a molecule that would clearly benefit other apps (e.g. AvatarGroup was promoted from Knit). Extract a domain-neutral API; keep app-specific behavior in the app.
+- **Promote from app when:** An app builds a molecule that would clearly benefit other apps (e.g. AvatarGroup was promoted from Knit, and LoadOps may surface form-heavy transport workflows). Extract a domain-neutral API; keep app-specific behavior in the app.
 
-## When an app (e.g. Knit) should create components
+## When an app (e.g. Knit or LoadOps) should create components
 
 - **Use Looma first:** For any UI that maps to a primitive (button, input, dialog, menu, form field, etc.), use or wrap Looma. Do not reimplement.
-- **Add app components when:** You need domain-specific molecules or organisms (PageCard, FolderTreeNode, workspace navigation). Build them on top of Looma atoms and layout; keep styling on tokens and conventions below. The app assembles the Looma editor, integrates data, and handles its events; it does not fork editor controls or behavior.
+- **Add app components when:** You need domain-specific molecules or organisms (PageCard, FolderTreeNode, workspace navigation, quote intake, shipment detail). Build them on top of Looma atoms and layout; keep styling on tokens and conventions below. The app assembles Looma primitives and any Looma editor surfaces, integrates data, and handles events; it does not fork shared controls or behavior.
 - **Follow the same rules:** No external margins; use design tokens; support variant/size/disabled/loading where it makes sense. See [Conventions](./conventions.md) and [Tokens](./tokens.md).
 
 ## Design rules (Looma and apps)
@@ -49,13 +62,13 @@ Interactive components support consistent props where applicable: `variant` (e.g
 
 ## Summary
 
-| Layer        | Looma                          | App (e.g. Knit)                          |
+| Layer        | Looma                          | App (e.g. Knit or LoadOps)               |
 |-------------|---------------------------------|-----------------------------------------|
 | Atoms       | ✅ Button, Input, Dialog, …     | Use Looma only                          |
 | Layout      | ✅ Stack, Inline, Grid, …       | Use Looma only                          |
-| Molecules   | Generic, reusable               | Domain molecules (PageCard, TreeItem…)  |
-| Organisms   | Domain-neutral features (Editor) | Domain features (workspace tree, PageHeader) |
+| Molecules   | Generic, reusable               | Domain molecules (PageCard, shipment row…) |
+| Organisms   | Domain-neutral features (Editor) | Domain features (workspace tree, quote intake) |
 | Templates   | —                               | WorkspaceLayout, AuthLayout             |
 | Pages       | —                               | Route components                        |
 
-Component system and design tokens are defined here. For “when Knit builds components,” see Knit’s product spec, which points back to this doc.
+Component system and design tokens are defined here. App product specs should point back to this doc for shared UI boundaries.
