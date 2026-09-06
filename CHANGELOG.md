@@ -6,7 +6,7 @@ No changes yet.
 
 ## v0.1.21 Candidate
 
-Tree drop targets now become active on native `dragenter`, so short gestures
+Tree drop targets become active on native `dragenter`, so short gestures
 can highlight and commit before Chromium emits a later `dragover`. Drop
 feedback also survives transitions across a tree item's shadow boundary,
 preserving nested insertion bars while folders open recursively.
