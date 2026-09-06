@@ -21,8 +21,17 @@ export class UIButton {
   syncToButton() {
     const btn = this.getButton();
     if (!btn) return;
-    this.host.dataset.size = this.size || '';
-    this.host.dataset.disabled = this.disabled ? 'true' : '';
+    if (this.size) {
+      this.host.dataset.size = this.size;
+    } else {
+      delete this.host.dataset.size;
+    }
+    if (this.disabled) {
+      this.host.dataset.disabled = 'true';
+    } else {
+      delete this.host.dataset.disabled;
+    }
+    this.host.dataset.variant = this.variant;
     btn.disabled = this.disabled;
   }
 
@@ -52,7 +61,8 @@ export class UIButton {
     return (
       <Host
         data-size={this.size || undefined}
-        data-disabled={this.disabled ? '' : undefined}
+        data-variant={this.variant}
+        data-disabled={this.disabled ? 'true' : undefined}
         onKeyDown={this.onKeydown}
       >
         <slot ref={(el) => (this.slotRef = el)} />
