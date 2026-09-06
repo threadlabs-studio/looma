@@ -133,3 +133,75 @@ it('invalidates validated output on external edits and ignores stale validation 
   await field.validate();
   field.query = 'External'; await flush(); expect(states.at(-1)?.status).toBe('pristine'); expect(states.at(-1)?.output).toBeUndefined();
 });
+
+it('restores lookup, validation and anchored positioning after repeated remove/reinsert', async () => {
+  const { field, input, root } = await mount({ provider: () => [{ id: 'a', value: 'a', label: 'Alpha' }], debounce: 0 }, 'disclosure');
+  const parent = field.parentElement!;
+  for (let cycle = 0; cycle < 3; cycle++) {
+    await userEvent.click(root.querySelector('button')!); await flush();
+    await expect.poll(() => root.querySelectorAll('[role="option"]').length).toBe(1);
+    field.remove(); await flush();
+    parent.style.paddingLeft = `${(cycle + 1) * 20}px`;
+    parent.prepend(field); await flush();
+    expect(input.getAttribute('aria-expanded')).toBe('false');
+    await userEvent.click(root.querySelector('button')!); await flush();
+    await expect.poll(() => root.querySelectorAll('[role="option"]').length).toBe(1);
+    const popup = root.querySelector<HTMLElement>('.popup')!;
+    const anchor = root.querySelector<HTMLElement>('.field')!.getBoundingClientRect();
+    expect(popup.getBoundingClientRect().width).toBeGreaterThan(0);
+    expect(Math.abs(popup.getBoundingClientRect().left - anchor.left)).toBeLessThan(2);
+    await userEvent.keyboard('{ArrowDown}{Enter}'); await flush();
+    expect(input.value).toBe('Alpha');
+    expect((await field.validate()).status).toBe('valid');
+  }
+});
+
+it('syncs canonical replacements and clears without taking controlled query ownership', async () => {
+  const { field, input } = await mount({ options: [{ id: 'a', value: '1', label: 'Alpha' }, { id: 'b', value: '2', label: 'Beta' }] });
+  field.value = '1'; await flush(); expect(input.value).toBe('Alpha');
+  field.value = '2'; await flush(); expect(input.value).toBe('Beta');
+  field.value = null; await flush(); expect(input.value).toBe('');
+  field.query = 'Owned query'; await flush();
+  field.value = '1'; await flush(); expect(input.value).toBe('Owned query');
+  field.value = null; await flush(); expect(input.value).toBe('Owned query');
+});
+
+it('syncs provider-backed labels and safely displays an unknown canonical value until results arrive', async () => {
+  const { field, input, root } = await mount({ provider: () => [{ id: 'a', value: '1', label: 'Alpha' }, { id: 'b', value: '2', label: 'Beta' }], debounce: 0 }, 'disclosure');
+  field.value = '1'; await flush(); expect(input.value).toBe('1');
+  await userEvent.click(root.querySelector('button')!); await flush();
+  await expect.poll(() => input.value).toBe('Alpha');
+  await userEvent.keyboard('{Escape}');
+  field.value = '2'; await flush(); expect(input.value).toBe('Beta');
+  field.value = null; await flush(); expect(input.value).toBe('');
+});
+
+it('keeps formatted text and display-coordinate selections stable through unchanged focus/blur cycles', async () => {
+  const { input } = await mount({ allowFreeText: true, format: (raw, selection) => ({ display: `${raw.slice(0, 2)} ${raw.slice(2)}`, selection: { start: selection.start + (selection.start > 2 ? 1 : 0), end: selection.end + (selection.end > 2 ? 1 : 0), direction: selection.direction } }) });
+  input.focus(); input.value = '1234'; input.setSelectionRange(2, 4, 'backward');
+  input.dispatchEvent(new InputEvent('input', { bubbles: true }));
+  document.getElementById('after')!.focus(); await flush();
+  expect(input.value).toBe('12 34');
+  expect([input.selectionStart, input.selectionEnd, input.selectionDirection]).toEqual([2, 5, 'backward']);
+  for (const [start, end] of [[5, 5], [1, 4], [0, 5]]) {
+    for (let cycle = 0; cycle < 3; cycle++) {
+      input.focus(); input.setSelectionRange(start, end, 'backward');
+      document.getElementById('after')!.focus(); await flush();
+      expect(input.value).toBe('12 34');
+      expect([input.selectionStart, input.selectionEnd]).toEqual([start, end]);
+      if (start !== end) expect(input.selectionDirection).toBe('backward');
+    }
+  }
+  input.focus(); await userEvent.fill(input, '5678');
+  document.getElementById('after')!.focus(); await flush(); expect(input.value).toBe('56 78');
+});
+
+it('preserves formatted editing and caret when a controlled owner echoes the edit clear', async () => {
+  const { field, input } = await mount({ options: [{ id: 'a', value: '1', label: 'Alpha' }], formatOn: 'input', format: (raw, selection) => ({ display: `${raw} `, selection }) });
+  field.value = '1'; await flush();
+  field.addEventListener('value-change', event => { field.value = event.detail.value; });
+  input.focus(); input.value = '1234'; input.setSelectionRange(1, 3, 'backward');
+  input.dispatchEvent(new InputEvent('input', { bubbles: true })); await flush();
+  expect(field.value).toBe(null); expect(input.value).toBe('1234 ');
+  expect([input.selectionStart, input.selectionEnd, input.selectionDirection]).toEqual([1, 3, 'backward']);
+});

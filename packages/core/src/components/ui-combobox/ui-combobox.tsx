@@ -61,35 +61,60 @@ export class UICombobox {
   private overlayId = `ui-combobox-${Math.random().toString(36).slice(2)}`;
   private alive = false;
   private fullSet = false;
+  private knownOptions = new Map<string, ComboboxOption>();
+  private awaitingLabel: string | null = null;
+  private proposedChange?: { value: string | null; query: string };
+  private formattedRaw?: string;
+  private formattedWith?: ComboboxConfig['format'];
 
   componentWillLoad() {
     this.selected = this.value !== undefined ? this.value : this.defaultValue ?? null;
     this.raw = this.query ?? this.defaultQuery;
     if (this.query === undefined && !this.raw && this.selected !== null) {
-      this.raw = this.config.options?.find(row => row.value === this.selected)?.label ?? '';
+      this.raw = this.config.options?.find(row => row.value === this.selected)?.label ?? this.selected;
     }
+    if (this.query === undefined && this.selected !== null && this.raw === this.selected) this.awaitingLabel = this.selected;
     this.display = this.raw;
     this.initialRaw = this.raw;
     this.applyServerIssues();
   }
-  componentDidLoad() { this.alive = true; this.setupSurface(); }
+  connectedCallback() { this.alive = true; this.setupSurface(); }
+  componentDidLoad() { this.setupSurface(); }
   componentDidUpdate() {
     if (this.input && !this.composing && this.input.value !== this.display) this.input.value = this.display;
     if (this.expanded) this.surface?.refresh();
   }
   disconnectedCallback() {
     this.alive = false;
-    this.cancelLookup();
+    this.close();
     this.validationRun?.abort();
     this.surface?.destroy();
-    closeOverlay(this.overlayId);
+    this.surface = undefined;
   }
   private setupSurface() {
-    if (this.popup && this.field) this.surface = createAnchoredSurface(this.popup, { anchor: this.field, placement: 'bottom-start' });
+    if (!this.surface && this.popup && this.field) this.surface = createAnchoredSurface(this.popup, { anchor: this.field, placement: 'bottom-start' });
   }
-  @Watch('value') syncValue() { this.selected = this.value ?? null; this.resetValidation(); }
+  @Watch('value') syncValue() {
+    if (this.value === undefined) return;
+    this.selected = this.value;
+    if (this.query === undefined) {
+      const proposal = this.proposedChange;
+      const option = this.config.options?.find(row => row.value === this.selected)
+        ?? (this.selected === null ? undefined : this.knownOptions.get(this.selected));
+      const nextRaw = proposal?.value === this.selected ? proposal.query : option?.label ?? this.selected ?? '';
+      if (proposal?.value !== this.selected || nextRaw !== this.raw) {
+        this.raw = nextRaw;
+        this.display = this.raw;
+        this.formattedRaw = undefined;
+      }
+      this.awaitingLabel = !option && this.selected !== null ? this.selected : null;
+    }
+    this.resetValidation();
+  }
   @Watch('query') syncQuery() {
     if (this.query === undefined || this.query === this.raw) return;
+    this.awaitingLabel = null;
+    this.formattedRaw = undefined;
     this.raw = this.query;
     this.display = this.raw;
     this.resetValidation();
@@ -100,6 +125,7 @@ export class UICombobox {
   }
   @Watch('config') syncConfig(next: ComboboxConfig, previous: ComboboxConfig) {
     this.validationRun?.abort();
+    if (next.provider !== previous?.provider || next.context !== previous?.context) this.knownOptions.clear();
     if (next.context !== previous?.context) {
       this.close();
       const policy = next.invalidation ?? 'retain-query';
@@ -154,6 +180,15 @@ export class UICombobox {
     this.lookup = controller;
     const apply = (options: readonly ComboboxOption[]) => {
       if (controller.signal.aborted || !this.alive) return;
+      for (const option of options) this.knownOptions.set(option.value, option);
+      const selectedOption = this.selected === null ? undefined : this.knownOptions.get(this.selected);
+      if (this.query === undefined && this.awaitingLabel === this.selected && selectedOption) {
+        this.raw = selectedOption.label;
+        this.display = this.raw;
+        this.awaitingLabel = null;
+        this.formattedRaw = undefined;
+        this.resetValidation();
+      }
       const ids = new Set<string>();
       this.rows = options.filter(option => {
         if (ids.has(option.id)) return false;
@@ -189,10 +224,14 @@ export class UICombobox {
   }
   private format(timing: 'input' | 'blur') {
     if ((this.config.formatOn ?? 'blur') !== timing || !this.input) return;
+    // Selection is now in display coordinates; do not map it as raw a second time.
+    if (this.formattedRaw === this.raw && this.formattedWith === this.config.format) return;
     const result = formatEditingValue(this.raw, {
       start: this.input.selectionStart ?? this.raw.length, end: this.input.selectionEnd ?? this.raw.length,
       direction: this.input.selectionDirection ?? 'none',
     }, this.config.format);
+    this.formattedRaw = this.raw;
+    this.formattedWith = this.config.format;
     this.display = result.display;
     if (this.input.value !== result.display) {
       this.input.value = result.display;
@@ -202,6 +241,8 @@ export class UICombobox {
   private onInput = (event: InputEvent) => {
     // Composition updates remain entirely native until compositionend.
     if (this.composing || event.isComposing) return;
+    this.awaitingLabel = null;
+    this.formattedRaw = undefined;
     this.raw = this.input!.value;
     this.display = this.raw;
     this.resetValidation();
@@ -215,12 +256,16 @@ export class UICombobox {
     });
   };
   private commit(value: string | null, query: string, option: ComboboxOption | null, kind: ComboboxChange['kind'], trigger: ComboboxChange['trigger']) {
+    this.awaitingLabel = null;
     const queryChanged = query !== this.raw;
     if (this.value === undefined) this.selected = value;
-    if (this.query === undefined && queryChanged) { this.raw = query; this.display = query; }
+    if (this.query === undefined && queryChanged) { this.raw = query; this.display = query; this.formattedRaw = undefined; }
     this.resetValidation();
     const detail: ComboboxChange = { value, query, option, kind, trigger };
+    const proposal = { value, query };
+    this.proposedChange = proposal;
     this.valueChange.emit(detail);
+    queueMicrotask(() => { if (this.proposedChange === proposal) this.proposedChange = undefined; });
     if (queryChanged) this.queryChange.emit({ query, display: query, trigger });
     if (kind === 'create') this.createEntry.emit(detail);
     if (kind === 'free-entry') this.freeEntry.emit(detail);

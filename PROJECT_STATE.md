@@ -4,10 +4,13 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-06 10:26 PDT
+Last Updated: 2026-09-06 11:02 PDT
 Status: Registry snapshot: `latest` is `0.1.13`, `candidate` is `0.1.21`; this `0.1.19` feature checkout contains unreleased smart-field work. Historical release tasks below retain their original version context.
 
 ## Current Focus
+
+- Deliver the five approved PR #58 review fixes on its existing feature branch;
+  integration conflicts with the base branch require a separate authorized step.
 
 - Ship the verified smart-field/combobox and just-in-time help slice through PR #58;
   release publication and consuming-app integration remain separate owner-led steps.
@@ -39,6 +42,14 @@ Status: Registry snapshot: `latest` is `0.1.13`, `candidate` is `0.1.21`; this `
   editor, and Vue.
 
 ## Recent Progress
+
+- Fixed PR #58 nested-theme semantic aliases and matching high-contrast surfaces;
+  combobox reconnect positioning, canonical-only display ownership (including
+  provider labels), and unchanged formatting/caret cycles; select defaults now
+  initialize once and preserve subsequent native/Vue ownership.
+- Added Core/Vue regressions, nested contrast/axe checks, and provider-label
+  fallback contract notes. These are generic Looma fixes; no Knit or LoadOps edits.
+  GitHub exposes no review threads/comments/bodies or pending review to handle.
 
 - Added domain-neutral `ui-combobox` and typed Vue `Combobox` with independently
   controlled query/selection, contextual cancellable suggestions, rich option slots,
@@ -374,6 +385,21 @@ Status: Registry snapshot: `latest` is `0.1.13`, `candidate` is `0.1.21`; this `
 
 ## Verification Snapshot
 
+- PR #58 approved review fixes (2026-09-06): final sequential run passed
+  `pnpm generate:api`, `pnpm check:docs-sync`, `pnpm lint`, `pnpm typecheck`,
+  `pnpm build`, `pnpm test`, `pnpm test:browser`, `pnpm test:facade-consumer`,
+  `pnpm check:mutation-observer`, and `git diff --check`.
+  Tests: repository 109, facade 9, core 50, layout 13, editor 11, Vue 15;
+  Chromium: core 52, editor 17, Vue 26, docs 5. Nested theme tests include
+  three >=7:1 text-contrast/axe cases and one explicit-override case (4/4).
+  API metadata and generated contracts remain unchanged; docs/Storybook builds pass.
+- Targeted combobox browser 15/15, Vue combobox 3/3, select Core 2/2,
+  select Core browser 2/2 and Vue browser 2/2 passed. The first full browser run
+  exposed a fixed-frame readiness assumption in the new Vue select test; it now
+  awaits lazy component initialization, and the final full browser run passed.
+  Existing placeholder scripts and non-blocking build warnings are not substantive
+  coverage. No merge or release was performed.
+
 - Smart field and help (2026-09-06):
   - `pnpm lint`, `pnpm typecheck`, `pnpm build`, and `pnpm test`: pass.
     Unit suites: core 48, layout 13, editor 11, Vue 15; repository/facade tests pass.
@@ -509,6 +535,10 @@ Status: Registry snapshot: `latest` is `0.1.13`, `candidate` is `0.1.21`; this `
   `release:verify` gate can mark it eligible.
 
 ## Next Up
+
+- Integrate PR #58 only with separate authorization: GitHub reports base-branch
+  conflicts and currently lists no hosted checks. Preserve the shared feature
+  history; no merge/rebase or publication belongs to this review-fix task.
 
 Review PR #58, then publish an owner-approved Candidate containing its exact merged
 commit through normal release gates. Consumers can qualify a locally built/packed

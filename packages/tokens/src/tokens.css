@@ -124,21 +124,6 @@
     --ui-info-solid: #0066cc;
     --ui-info-soft: #e8f0fb;
 
-    /* Semantic interaction roles. Products can theme intent without coupling
-       every component to a single brand accent. */
-    --ui-action-primary-surface: var(--ui-accent-solid);
-    --ui-action-primary-surface-hover: var(--ui-accent-hover);
-    --ui-action-primary-surface-active: var(--ui-accent-active);
-    --ui-action-primary-text: var(--ui-text-on-accent);
-    --ui-action-secondary-surface: var(--ui-surface-default);
-    --ui-action-secondary-surface-hover: var(--ui-surface-muted);
-    --ui-action-secondary-text: var(--ui-text-primary);
-    --ui-control-surface: var(--ui-surface-default);
-    --ui-control-surface-disabled: var(--ui-surface-muted);
-    --ui-control-border: var(--ui-border-default);
-    --ui-control-border-hover: var(--ui-border-strong);
-    --ui-control-focus: var(--ui-focus-ring);
-    --ui-control-focus-halo: var(--ui-accent-soft);
     --ui-control-min-block-size: 2.75rem;
 
     /* Compatibility aliases used by the editor's public styling surface.
@@ -157,6 +142,27 @@
     --ui-radius-lg: var(--ui-radius-3);
     --ui-radius-xl: var(--ui-radius-4);
     --ui-text-sm: var(--ui-font-size-sm);
+  }
+
+  /* Custom-property references resolve where declared, before inheritance.
+     Rebind semantic roles at theme boundaries to use the local palette. */
+  :root,
+  :where([data-theme], [data-contrast]) {
+    /* Semantic interaction roles. Products can theme intent without coupling
+       every component to a single brand accent. */
+    --ui-action-primary-surface: var(--ui-accent-solid);
+    --ui-action-primary-surface-hover: var(--ui-accent-hover);
+    --ui-action-primary-surface-active: var(--ui-accent-active);
+    --ui-action-primary-text: var(--ui-text-on-accent);
+    --ui-action-secondary-surface: var(--ui-surface-default);
+    --ui-action-secondary-surface-hover: var(--ui-surface-muted);
+    --ui-action-secondary-text: var(--ui-text-primary);
+    --ui-control-surface: var(--ui-surface-default);
+    --ui-control-surface-disabled: var(--ui-surface-muted);
+    --ui-control-border: var(--ui-border-default);
+    --ui-control-border-hover: var(--ui-border-strong);
+    --ui-control-focus: var(--ui-focus-ring);
+    --ui-control-focus-halo: var(--ui-accent-soft);
   }
 
   @supports (color: oklch(0.5 0.1 240)) {
