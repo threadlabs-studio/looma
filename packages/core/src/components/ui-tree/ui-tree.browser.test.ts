@@ -192,6 +192,41 @@ describe('ui-tree drag and hierarchy interactions', () => {
     expect(child.hasAttribute('data-drop-position')).toBe(false);
   });
 
+  it('emits containment when an item is dropped on a highlighted folder', async () => {
+    document.body.innerHTML = `
+      <ui-tree label="Pages">
+        <ui-tree-item item-id="page" label="Page" drag-type="page" sortable><span>Page</span></ui-tree-item>
+        <ui-tree-item item-id="folder" label="Folder" drag-type="folder" drop-scope="root" accepts="page,folder" container>
+          <span>Folder</span>
+        </ui-tree-item>
+      </ui-tree>
+    `;
+    await flushStencil();
+
+    const tree = document.querySelector('ui-tree')!;
+    const source = document.querySelector<HTMLElement>('ui-tree-item[item-id="page"]')!;
+    const folder = document.querySelector<HTMLElement>('ui-tree-item[item-id="folder"]')!;
+    const sourceHandle = source.shadowRoot!.querySelector<HTMLElement>('[part="drag-handle"]')!;
+    const folderRow = folder.shadowRoot!.querySelector<HTMLElement>('[part="row"]')!;
+    const moves: unknown[] = [];
+    tree.addEventListener('reorder', event => moves.push((event as CustomEvent).detail));
+
+    sourceHandle.dispatchEvent(dragEvent('dragstart', 0, { setData: vi.fn(), setDragImage: vi.fn() }));
+    const rect = folderRow.getBoundingClientRect();
+    folderRow.dispatchEvent(dragEvent('dragover', rect.top + (rect.height / 2), { dropEffect: 'move' }));
+    expect(folder.getAttribute('data-drop-position')).toBe('inside');
+
+    folderRow.dispatchEvent(dragEvent('drop', rect.top + (rect.height / 2), { dropEffect: 'move' }));
+    expect(moves).toEqual([expect.objectContaining({
+      sourceId: 'page',
+      targetId: 'folder',
+      position: 'inside',
+      sourceType: 'page',
+      targetType: 'folder',
+      targetScope: 'root',
+    })]);
+  });
+
   it('distinguishes folder containment and expands a closed target after hover intent', async () => {
     document.body.innerHTML = `
       <ui-tree label="Pages" hover-expand-delay="20">
@@ -222,5 +257,93 @@ describe('ui-tree drag and hierarchy interactions', () => {
     await flushStencil();
     expect(folder.getAttribute('aria-expanded')).toBe('true');
     expect(expanded).toEqual([{ id: 'folder', expanded: true, trigger: 'pointer' }]);
+
+    const nested = document.querySelector<HTMLElement>('ui-tree-item[item-id="nested"]')!;
+    const nestedRow = nested.shadowRoot!.querySelector<HTMLElement>('[part="row"]')!;
+    const nestedRect = nestedRow.getBoundingClientRect();
+    nestedRow.dispatchEvent(dragEvent('dragover', nestedRect.top + 1, { dropEffect: 'move' }));
+    await flushStencil();
+    expect(nested.getAttribute('data-drop-position')).toBe('before');
+    const nestedIndicator = Array.from(nested.shadowRoot!.querySelectorAll<HTMLElement>('[part="drop-indicator"]'))
+      .find(indicator => getComputedStyle(indicator).display !== 'none');
+    expect(nestedIndicator).toBeDefined();
+    expect(nestedIndicator!.getBoundingClientRect().left).toBeGreaterThan(folderRow.getBoundingClientRect().left);
+  });
+
+  it('keeps nested insertion and parent-level outdent feedback aligned with the resulting hierarchy', async () => {
+    document.body.innerHTML = `
+      <ui-tree label="Folders">
+        <ui-tree-item item-id="source" label="Source" depth="1" drag-type="folder" accepts="folder" sortable container>
+          <span>Source</span>
+        </ui-tree-item>
+        <ui-tree-item item-id="target" label="Target" depth="1" drag-type="folder" drop-scope="root" accepts="folder" sortable container default-expanded>
+          <span>Target</span>
+          <ui-tree-item slot="children" item-id="child-a" label="Child A" depth="2" drag-type="folder" drop-scope="target" accepts="folder" sortable container>
+            <span>Child A</span>
+          </ui-tree-item>
+          <ui-tree-item slot="children" item-id="child-b" label="Child B" depth="2" drag-type="folder" drop-scope="target" accepts="folder" sortable container>
+            <span>Child B</span>
+          </ui-tree-item>
+        </ui-tree-item>
+      </ui-tree>
+    `;
+    await flushStencil();
+
+    const tree = document.querySelector('ui-tree')!;
+    const source = document.querySelector<HTMLElement>('ui-tree-item[item-id="source"]')!;
+    const target = document.querySelector<HTMLElement>('ui-tree-item[item-id="target"]')!;
+    const childA = document.querySelector<HTMLElement>('ui-tree-item[item-id="child-a"]')!;
+    const childB = document.querySelector<HTMLElement>('ui-tree-item[item-id="child-b"]')!;
+    const sourceHandle = source.shadowRoot!.querySelector<HTMLElement>('[part="drag-handle"]')!;
+    const targetRow = target.shadowRoot!.querySelector<HTMLElement>('[part="row"]')!;
+    const childARow = childA.shadowRoot!.querySelector<HTMLElement>('[part="row"]')!;
+    const childBRow = childB.shadowRoot!.querySelector<HTMLElement>('[part="row"]')!;
+    const moves: unknown[] = [];
+    tree.addEventListener('reorder', event => moves.push((event as CustomEvent).detail));
+
+    sourceHandle.dispatchEvent(dragEvent('dragstart', 0, { setData: vi.fn(), setDragImage: vi.fn() }));
+
+    const targetRect = targetRow.getBoundingClientRect();
+    targetRow.dispatchEvent(dragEvent('dragover', targetRect.top + (targetRect.height / 2), { dropEffect: 'move' }));
+    expect(target.getAttribute('data-drop-position')).toBe('inside');
+
+    const childBRect = childBRow.getBoundingClientRect();
+    childBRow.dispatchEvent(dragEvent('dragover', childBRect.top + 1, { dropEffect: 'move' }));
+    await flushStencil();
+    expect(childB.getAttribute('data-drop-position')).toBe('before');
+    const nestedIndicator = Array.from(childB.shadowRoot!.querySelectorAll<HTMLElement>('[part="drop-indicator"]'))
+      .find(indicator => getComputedStyle(indicator).display !== 'none')!;
+    expect(Math.round(nestedIndicator.getBoundingClientRect().left - targetRow.getBoundingClientRect().left)).toBe(17);
+
+    childBRow.dispatchEvent(dragEvent('drop', childBRect.top + 1, { dropEffect: 'move' }));
+    expect(moves.at(-1)).toMatchObject({
+      sourceId: 'source',
+      targetId: 'child-b',
+      position: 'before',
+      sourceScope: '',
+      targetScope: 'target',
+    });
+
+    const childAHandle = childA.shadowRoot!.querySelector<HTMLElement>('[part="drag-handle"]')!;
+    childAHandle.dispatchEvent(dragEvent('dragstart', 0, { setData: vi.fn(), setDragImage: vi.fn() }));
+    targetRow.dispatchEvent(dragEvent('dragover', targetRect.bottom - 1, { dropEffect: 'move' }));
+    await flushStencil();
+    expect(target.getAttribute('data-drop-position')).toBe('after');
+    const parentIndicator = Array.from(target.shadowRoot!.querySelectorAll<HTMLElement>('[part="drop-indicator"]'))
+      .find(indicator => getComputedStyle(indicator).display !== 'none')!;
+    const targetBounds = target.getBoundingClientRect();
+    const parentIndicatorBounds = parentIndicator.getBoundingClientRect();
+    expect(Math.round(parentIndicatorBounds.left)).toBe(Math.round(targetRow.getBoundingClientRect().left + 1));
+    expect(Math.round((parentIndicatorBounds.top + parentIndicatorBounds.bottom) / 2)).toBe(Math.round(targetBounds.bottom));
+    expect(parentIndicatorBounds.top).toBeGreaterThan(childARow.getBoundingClientRect().bottom);
+
+    targetRow.dispatchEvent(dragEvent('drop', targetRect.bottom - 1, { dropEffect: 'move' }));
+    expect(moves.at(-1)).toMatchObject({
+      sourceId: 'child-a',
+      targetId: 'target',
+      position: 'after',
+      sourceScope: 'target',
+      targetScope: 'root',
+    });
   });
 });
