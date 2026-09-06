@@ -2635,6 +2635,12 @@
           "property": "label",
           "type": "string",
           "default": "Tree"
+        },
+        {
+          "name": "max-depth",
+          "property": "maxDepth",
+          "type": "number",
+          "default": 0
         }
       ],
       "properties": [
@@ -2647,6 +2653,11 @@
           "name": "label",
           "type": "string",
           "default": "Tree"
+        },
+        {
+          "name": "maxDepth",
+          "type": "number",
+          "default": 0
         }
       ],
       "events": [
@@ -2655,6 +2666,12 @@
           "detailType": "TreeReorderDetail",
           "detailSchema": "{ sourceId: string; targetId: string; position: 'before' | 'inside' | 'after'; sourceType: string; targetType: string; sourceScope: string; targetScope: string; trigger: 'pointer' }",
           "detailDocs": "Emitted when the user drops a sortable item on a valid target."
+        },
+        {
+          "name": "reorder-rejected",
+          "detailType": "TreeReorderRejectedDetail",
+          "detailSchema": "{ sourceId: string; targetId: string; position: 'before' | 'inside' | 'after'; reason: 'max-depth'; maxDepth?: number; resultingDepth?: number; trigger: 'pointer' }",
+          "detailDocs": "Emitted when a reorder target is rejected before the item moves."
         }
       ],
       "slots": [
