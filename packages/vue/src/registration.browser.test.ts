@@ -250,13 +250,14 @@ describe("@threadlabs/looma-vue release registration (real browser)", () => {
     const solid = host.querySelector<HTMLElement>("ui-button:has(#solid-button)")!;
     const ghost = host.querySelector<HTMLElement>("ui-button:has(#ghost-button)")!;
     const destructive = host.querySelector<HTMLElement>("ui-button:has(#destructive-button)")!;
+    const pointerRest = document.createElement("div");
+    pointerRest.style.cssText = "position:fixed;right:10px;bottom:10px;width:10px;height:10px;z-index:2147483647";
+    document.body.append(pointerRest);
+    await userEvent.hover(pointerRest);
 
-    await userEvent.unhover(destructive.querySelector("button")!);
-    await flushBrowser();
-
-    expect(solid.getAttribute("data-variant")).toBe("solid");
-    expect(ghost.getAttribute("data-variant")).toBe("ghost");
-    expect(destructive.getAttribute("data-variant")).toBe("destructive");
+    expect(solid.dataset.variant).toBe("solid");
+    expect(ghost.dataset.variant).toBe("ghost");
+    expect(destructive.dataset.variant).toBe("destructive");
     expect(solid.hasAttribute("data-disabled")).toBe(false);
     expect(getComputedStyle(solid).opacity).toBe("1");
     expect(getComputedStyle(solid.querySelector("button")!).backgroundColor).toBe("rgb(109, 74, 255)");

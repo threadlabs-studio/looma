@@ -8,6 +8,7 @@
   color: var(--ui-action-primary-text, var(--ui-text-on-accent));
 }
 
+:host([data-variant='outline']) ::slotted(button),
 ::slotted(button) {
   appearance: none;
   min-block-size: var(--ui-button-min-block-size, 2.5rem);
@@ -109,7 +110,8 @@
   outline-offset: 2px;
 }
 
-:host([data-disabled]) {
+:host([data-disabled='true']),
+:host([disabled]) {
   opacity: 0.6;
   cursor: not-allowed;
 }
