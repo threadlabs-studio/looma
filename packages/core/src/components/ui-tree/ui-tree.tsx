@@ -77,6 +77,16 @@ export class UITree {
     return null;
   }
 
+  private isWithinTree(node: EventTarget | null): boolean {
+    let element: HTMLElement | null = node instanceof HTMLElement ? node : null;
+    while (element) {
+      if (element === this.host || this.host.contains(element)) return true;
+      const root = element.getRootNode();
+      element = root instanceof ShadowRoot ? root.host as HTMLElement : element.parentElement;
+    }
+    return false;
+  }
+
   private acceptsChildren(item: TreeItemElement): boolean {
     return Boolean(item.container ?? item.hasAttribute('container'))
       && !Boolean(item.disabled ?? item.hasAttribute('disabled'));
@@ -187,8 +197,8 @@ export class UITree {
   };
 
   private onDragLeave = (event: DragEvent) => {
-    const related = event.relatedTarget;
-    if (related instanceof Node && this.host.contains(related)) return;
+    if (this.isWithinTree(event.relatedTarget)) return;
+    if (this.itemAtPoint(event.clientX, event.clientY)) return;
     this.clearTarget();
   };
 
