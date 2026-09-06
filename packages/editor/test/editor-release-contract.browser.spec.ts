@@ -126,6 +126,50 @@ describe("editor release interactions (real browser)", () => {
     expect(slashMenu.style.top).toBe("104px");
   });
 
+  it("preserves slash-menu scroll position when pointer highlighting changes", () => {
+    vi.spyOn(window, "innerWidth", "get").mockReturnValue(1280);
+    document.body.innerHTML = "<ui-editor-slash-menu></ui-editor-slash-menu>";
+    const slashMenu = document.querySelector("ui-editor-slash-menu") as HTMLElement & {
+      open: boolean;
+      items: Array<{ title: string; description: string; icon: "pilcrow" }>;
+      anchorRect: SlashMenuAnchorRect | null;
+    };
+    slashMenu.open = true;
+    slashMenu.items = Array.from({ length: 12 }, (_, index) => ({
+      title: `Command ${index + 1}`,
+      description: `Insert command ${index + 1}`,
+      icon: "pilcrow" as const,
+    }));
+    slashMenu.anchorRect = new DOMRect(16, 40, 1, 18);
+
+    const list = slashMenu.querySelector<HTMLElement>(".ui-editor-slash-menu__list")!;
+    list.scrollTop = 120;
+    slashMenu.querySelector<HTMLElement>('[data-index="5"]')!
+      .dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+
+    expect(slashMenu.querySelector('[data-index="5"]')?.getAttribute("aria-selected"))
+      .toBe("true");
+    expect(slashMenu.querySelector(".ui-editor-slash-menu__list")).toBe(list);
+    expect(slashMenu.querySelector<HTMLElement>(".ui-editor-slash-menu__list")?.scrollTop)
+      .toBe(120);
+  });
+
+  it("renders callout tone as an icon without an accessible label", () => {
+    document.body.innerHTML = [
+      '<div class="looma-editor">',
+      '<div class="ProseMirror">',
+      '<aside data-looma-callout="" data-tone="warning"><p>Check this first.</p></aside>',
+      "</div>",
+      "</div>",
+    ].join("");
+    const callout = document.querySelector<HTMLElement>("[data-looma-callout]")!;
+    const iconStyle = getComputedStyle(callout, "::before");
+
+    expect(callout.hasAttribute("aria-label")).toBe(false);
+    expect(iconStyle.content).toBe('\"\"');
+    expect(iconStyle.maskImage).toContain("data:image/svg+xml");
+  });
+
   it("keeps the mobile slash menu inside the visible keyboard viewport", () => {
     vi.spyOn(window, "innerWidth", "get").mockReturnValue(375);
     vi.spyOn(window, "visualViewport", "get").mockReturnValue({
