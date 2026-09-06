@@ -4,21 +4,21 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-06 00:20 PDT
-Status: Candidate `0.1.18` is public; `0.1.19` is prepared with truthful nested tree drop feedback
+Last Updated: 2026-09-06 08:20 PDT
+Status: Candidate `0.1.19` is public; `0.1.20` is prepared with reliable short native tree drops
 
 ## Current Focus
 
-- Publish and qualify Candidate `0.1.19` with subtree-aligned insertion bars,
-  first-child containment semantics, and exact Knit consumer evidence.
+- Publish and qualify Candidate `0.1.20` with reliable short native tree drops
+  and exact Knit consumer evidence.
 - Keep dense tree rows at 32px/15px for pointer use and animate to 44px targets
   only after a real touch interaction establishes touch modality.
 - Verify that controlled editor replacements preserve a focused ProseMirror
   selection, while Knit server acknowledgements no longer echo authored JSON
   through the active editor.
 
-- Publish Candidate `0.1.19`, then consume its exact registry bytes
-  from Knit. Candidate `0.1.18` remains the current public `candidate` until
+- Publish Candidate `0.1.20`, then consume its exact registry bytes
+  from Knit. Candidate `0.1.19` remains the current public `candidate` until
   those replacement bytes pass main CI and protected publication.
 - Complete hosted-docs qualification and promote Candidate `0.1.13`, which is
   published and qualified in Knit with the opinionated Lucide icon
@@ -37,6 +37,12 @@ Status: Candidate `0.1.18` is public; `0.1.19` is prepared with truthful nested 
 
 ## Recent Progress
 
+- Candidate `0.1.20` release preparation:
+  - Completed short native drags from the item under the released pointer when
+    Chromium omits `dragover` and `drop`, while leaving normal and canceled
+    gestures unchanged.
+  - Added real-browser full-row dragging and an exact `dragstart` to `dragend`
+    regression for the sequence observed in Knit Preview.
 - Candidate `0.1.19` release preparation:
   - Anchored `after` insertion feedback below an expanded folder's complete
     subtree while preserving child-level bars between nested siblings.

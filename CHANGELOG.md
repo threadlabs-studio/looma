@@ -4,6 +4,13 @@
 
 No changes yet.
 
+## v0.1.20 Candidate
+
+Short native tree drags complete at the item beneath the released pointer
+even when Chromium ends the gesture without emitting `dragover` or `drop`.
+Normal drops remain unchanged, while canceled and outside-tree drags still do
+nothing.
+
 ## v0.1.19 Candidate
 
 Tree insertion feedback stays aligned with the resulting hierarchy. Nested
