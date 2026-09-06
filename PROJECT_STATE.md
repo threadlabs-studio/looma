@@ -4,7 +4,7 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-06 12:20 PDT
+Last Updated: 2026-09-06 15:36 PDT
 Status: Candidate `0.1.22` is public; `0.1.23` is prepared with smart fields, closed-folder containment, and truthful depth-limit feedback. Historical release tasks below retain their original version context.
 
 ## Current Focus
@@ -37,6 +37,12 @@ Status: Candidate `0.1.22` is public; `0.1.23` is prepared with smart fields, cl
   editor, and Vue.
 
 ## Recent Progress
+
+- Component ownership/accessibility audit (local, not published): toast dismissal
+  is now a consumer-owned list update; dialogs always expose a reactive accessible
+  name; form fields preserve external description relationships; and avatar-group
+  overflow no longer mutates framework-owned slotted nodes. Core, Vue browser,
+  and axe regressions cover reactive rerenders and name/description contracts.
 
 - Candidate `0.1.23` release preparation:
   - Expanded closed container targets before dispatching inside reorders, so a
