@@ -34,6 +34,7 @@ export class UITree {
   componentDidLoad() {
     this.hoverIntent = createHoverIntent(this.hoverExpandDelay, this.expandTarget);
     this.host.addEventListener('dragstart', this.onDragStart);
+    this.host.addEventListener('dragenter', this.onDragOver);
     this.host.addEventListener('dragover', this.onDragOver);
     this.host.addEventListener('dragleave', this.onDragLeave);
     this.host.addEventListener('drop', this.onDrop);
@@ -44,6 +45,7 @@ export class UITree {
   disconnectedCallback() {
     this.hoverIntent?.destroy();
     this.host.removeEventListener('dragstart', this.onDragStart);
+    this.host.removeEventListener('dragenter', this.onDragOver);
     this.host.removeEventListener('dragover', this.onDragOver);
     this.host.removeEventListener('dragleave', this.onDragLeave);
     this.host.removeEventListener('drop', this.onDrop);
@@ -75,6 +77,16 @@ export class UITree {
       element = root instanceof ShadowRoot ? root.host : element.parentElement;
     }
     return null;
+  }
+
+  private isWithinTree(node: EventTarget | null): boolean {
+    let element: HTMLElement | null = node instanceof HTMLElement ? node : null;
+    while (element) {
+      if (element === this.host || this.host.contains(element)) return true;
+      const root = element.getRootNode();
+      element = root instanceof ShadowRoot ? root.host as HTMLElement : element.parentElement;
+    }
+    return false;
   }
 
   private acceptsChildren(item: TreeItemElement): boolean {
@@ -187,8 +199,8 @@ export class UITree {
   };
 
   private onDragLeave = (event: DragEvent) => {
-    const related = event.relatedTarget;
-    if (related instanceof Node && this.host.contains(related)) return;
+    if (this.isWithinTree(event.relatedTarget)) return;
+    if (this.itemAtPoint(event.clientX, event.clientY)) return;
     this.clearTarget();
   };
 
