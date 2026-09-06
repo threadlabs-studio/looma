@@ -193,7 +193,85 @@ describe('ui-tree drag and hierarchy interactions', () => {
     expect(child.hasAttribute('data-drop-position')).toBe(false);
   });
 
-  it('emits containment when an item is dropped on a highlighted folder', async () => {
+  it('rejects a move whose deepest descendant would exceed the configured depth', async () => {
+    document.body.innerHTML = `
+      <ui-tree label="Folders" max-depth="3">
+        <ui-tree-item item-id="source" label="Source" depth="1" subtree-depth="1" drag-type="folder" accepts="folder" sortable container>
+          <span>Source</span>
+        </ui-tree-item>
+        <ui-tree-item item-id="target" label="Target" depth="4" drop-depth="2" drag-type="folder" accepts="folder" sortable container>
+          <span>Target</span>
+        </ui-tree-item>
+      </ui-tree>
+    `;
+    await flushStencil();
+
+    const tree = document.querySelector('ui-tree')!;
+    const source = document.querySelector<HTMLElement>('ui-tree-item[item-id="source"]')!;
+    const target = document.querySelector<HTMLElement>('ui-tree-item[item-id="target"]')!;
+    const sourceHandle = source.shadowRoot!.querySelector<HTMLElement>('[part="drag-handle"]')!;
+    const targetRow = target.shadowRoot!.querySelector<HTMLElement>('[part="row"]')!;
+    const rect = targetRow.getBoundingClientRect();
+    const clientX = rect.left + (rect.width / 2);
+    const clientY = rect.top + (rect.height / 2);
+    const rejected: unknown[] = [];
+    const moves: unknown[] = [];
+    tree.addEventListener('reorder-rejected', event => rejected.push((event as CustomEvent).detail));
+    tree.addEventListener('reorder', event => moves.push((event as CustomEvent).detail));
+    vi.spyOn(document, 'elementFromPoint').mockReturnValue(target);
+
+    sourceHandle.dispatchEvent(dragEvent('dragstart', 0, { setData: vi.fn(), setDragImage: vi.fn() }));
+    const transfer = { dropEffect: 'move' as DataTransfer['dropEffect'] };
+    const hovering = dragEvent('dragover', clientY, transfer, clientX);
+    targetRow.dispatchEvent(hovering);
+
+    expect(hovering.defaultPrevented).toBe(false);
+    expect(transfer.dropEffect).toBe('none');
+    expect(target.hasAttribute('data-drop-position')).toBe(false);
+
+    sourceHandle.dispatchEvent(dragEvent('dragend', clientY, {}, clientX));
+    expect(moves).toEqual([]);
+    expect(rejected).toEqual([{
+      sourceId: 'source',
+      targetId: 'target',
+      position: 'inside',
+      reason: 'max-depth',
+      maxDepth: 3,
+      resultingDepth: 4,
+      trigger: 'pointer',
+    }]);
+  });
+
+  it('leaves depth validation opt-in for item kinds with different nesting semantics', async () => {
+    document.body.innerHTML = `
+      <ui-tree label="Pages" max-depth="3">
+        <ui-tree-item item-id="page" label="Page" drag-type="page" sortable>
+          <span>Page</span>
+        </ui-tree-item>
+        <ui-tree-item item-id="folder" label="Folder" depth="4" drop-depth="3" drag-type="folder" accepts="page,folder" container>
+          <span>Folder</span>
+        </ui-tree-item>
+      </ui-tree>
+    `;
+    await flushStencil();
+
+    const page = document.querySelector<HTMLElement>('ui-tree-item[item-id="page"]')!;
+    const folder = document.querySelector<HTMLElement>('ui-tree-item[item-id="folder"]')!;
+    const pageHandle = page.shadowRoot!.querySelector<HTMLElement>('[part="drag-handle"]')!;
+    const folderRow = folder.shadowRoot!.querySelector<HTMLElement>('[part="row"]')!;
+    const rect = folderRow.getBoundingClientRect();
+    const transfer = { dropEffect: 'none' as DataTransfer['dropEffect'] };
+
+    pageHandle.dispatchEvent(dragEvent('dragstart', 0, { setData: vi.fn(), setDragImage: vi.fn() }));
+    const hovering = dragEvent('dragover', rect.top + (rect.height / 2), transfer);
+    folderRow.dispatchEvent(hovering);
+
+    expect(hovering.defaultPrevented).toBe(true);
+    expect(transfer.dropEffect).toBe('move');
+    expect(folder.getAttribute('data-drop-position')).toBe('inside');
+  });
+
+  it('expands a closed folder before committing a containment drop', async () => {
     document.body.innerHTML = `
       <ui-tree label="Pages">
         <ui-tree-item item-id="page" label="Page" drag-type="page" sortable><span>Page</span></ui-tree-item>
@@ -210,7 +288,12 @@ describe('ui-tree drag and hierarchy interactions', () => {
     const sourceHandle = source.shadowRoot!.querySelector<HTMLElement>('[part="drag-handle"]')!;
     const folderRow = folder.shadowRoot!.querySelector<HTMLElement>('[part="row"]')!;
     const moves: unknown[] = [];
-    tree.addEventListener('reorder', event => moves.push((event as CustomEvent).detail));
+    const eventOrder: string[] = [];
+    folder.addEventListener('expand', () => eventOrder.push('expand'));
+    tree.addEventListener('reorder', event => {
+      eventOrder.push('reorder');
+      moves.push((event as CustomEvent).detail);
+    });
 
     sourceHandle.dispatchEvent(dragEvent('dragstart', 0, { setData: vi.fn(), setDragImage: vi.fn() }));
     const rect = folderRow.getBoundingClientRect();
@@ -218,6 +301,9 @@ describe('ui-tree drag and hierarchy interactions', () => {
     expect(folder.getAttribute('data-drop-position')).toBe('inside');
 
     folderRow.dispatchEvent(dragEvent('drop', rect.top + (rect.height / 2), { dropEffect: 'move' }));
+    await flushStencil();
+    expect(folder.getAttribute('aria-expanded')).toBe('true');
+    expect(eventOrder).toEqual(['expand', 'reorder']);
     expect(moves).toEqual([expect.objectContaining({
       sourceId: 'page',
       targetId: 'folder',
