@@ -22,6 +22,61 @@ afterEach(async () => {
 });
 
 describe("@threadlabs/looma-vue release registration (real browser)", () => {
+  it("composes concise field help with an accessible ghost button", async () => {
+    const { Button, Tooltip, FormField, Input } = await import("./index");
+    const onClose = vi.fn();
+    const help = ref("Use the name shown on your invoice.");
+    const host = document.createElement("div");
+    document.body.append(host);
+    const app = createApp({
+      render: () => h(FormField, null, () => [
+        h("div", [
+          h("label", { for: "account-name" }, "Account name"),
+          h(Button, { variant: "ghost", size: "sm" }, () => h("button", {
+            id: "account-help", type: "button", "aria-label": "Help for account name",
+          }, [h("span", { "aria-hidden": "true" }, "?")])),
+          h(Tooltip, { for: "account-help", toggleOnClick: true, onClose }, () => help.value),
+        ]),
+        h(Input, null, () => h("input", { id: "account-name" })),
+      ]),
+    });
+    apps.push(app);
+    app.mount(host);
+    await customElements.whenDefined("ui-tooltip");
+    await flushBrowser();
+    const button = host.querySelector<HTMLButtonElement>("button")!;
+    const tooltip = host.querySelector<HTMLElement>("ui-tooltip")!;
+    await expect.poll(() => tooltip.id).not.toBe('');
+    expect(button.getAttribute("aria-describedby")).toBe(tooltip.id);
+    expect(button.getAttribute("aria-label")).toBe("Help for account name");
+    expect(tooltip.hidden).toBe(true);
+    await userEvent.tab();
+    expect(document.activeElement).toBe(button);
+    await flushBrowser();
+    expect(tooltip.hidden).toBe(false);
+    await userEvent.keyboard("{Escape}");
+    await flushBrowser();
+    expect(tooltip.hidden).toBe(true);
+    expect(document.activeElement).toBe(button);
+    expect(onClose).toHaveBeenLastCalledWith({ open: false, reason: "escape", trigger: "keyboard" });
+    await userEvent.click(button);
+    await flushBrowser();
+    expect(tooltip.hidden).toBe(false);
+    help.value = "Use your billing account name.";
+    await nextTick();
+    expect(tooltip.textContent).toBe(help.value);
+    await userEvent.click(button);
+    await flushBrowser();
+    expect(tooltip.hidden).toBe(true);
+    await userEvent.keyboard("{Enter}");
+    await flushBrowser();
+    expect(tooltip.hidden).toBe(false);
+    await userEvent.tab();
+    await flushBrowser();
+    expect(tooltip.hidden).toBe(true);
+    expect(document.activeElement?.id).toBe("account-name");
+  });
+
   it("preserves Vue-owned values in slotted native form controls", async () => {
     const { Input, Select, Textarea } = await import("./index");
     const name = ref("Blue Ridge Collector Cars");

@@ -4,10 +4,13 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-06 00:20 PDT
-Status: Candidate `0.1.18` is public; `0.1.19` is prepared with truthful nested tree drop feedback
+Last Updated: 2026-09-06 10:26 PDT
+Status: Registry snapshot: `latest` is `0.1.13`, `candidate` is `0.1.21`; this `0.1.19` feature checkout contains unreleased smart-field work. Historical release tasks below retain their original version context.
 
 ## Current Focus
+
+- Ship the verified smart-field/combobox and just-in-time help slice through PR #58;
+  release publication and consuming-app integration remain separate owner-led steps.
 
 - Publish and qualify Candidate `0.1.19` with subtree-aligned insertion bars,
   first-child containment semantics, and exact Knit consumer evidence.
@@ -36,6 +39,22 @@ Status: Candidate `0.1.18` is public; `0.1.19` is prepared with truthful nested 
   editor, and Vue.
 
 ## Recent Progress
+
+- Added domain-neutral `ui-combobox` and typed Vue `Combobox` with independently
+  controlled query/selection, contextual cancellable suggestions, rich option slots,
+  connected help/disclosure/clear controls, and single-select/free-entry/create states.
+- Added structural Standard Schema field validation and the tree-shakeable
+  `@threadlabs/looma/valibot` adapter with an optional Valibot peer; core does not
+  import Valibot at runtime. Parsing/normalization remain separate from additive,
+  caret-aware display formatting. Scoped typography uses restrained 500/400 weights.
+- Finished hover/focus/click/touch tooltip help and shadow-aware overlay dismissal.
+  Canonical docs, one SmartField story, generated API/readmes/types, release
+  classification, facade exports, and packed-consumer coverage are updated.
+  The legacy mutation-observer guard now resolves the current core entry file.
+- Bounded single-agent review resolved stale validation output, grouped keyboard
+  ordering, invalid formatter selections, and shadow help dismissal. No outstanding
+  actionable P1/P2 findings. Multi-select, virtualization, full form orchestration,
+  complex dependency graphs, and advanced masks remain deferred.
 
 - Candidate `0.1.19` release preparation:
   - Anchored `after` insertion feedback below an expanded folder's complete
@@ -355,6 +374,21 @@ Status: Candidate `0.1.18` is public; `0.1.19` is prepared with truthful nested 
 
 ## Verification Snapshot
 
+- Smart field and help (2026-09-06):
+  - `pnpm lint`, `pnpm typecheck`, `pnpm build`, and `pnpm test`: pass.
+    Unit suites: core 48, layout 13, editor 11, Vue 15; repository/facade tests pass.
+  - `pnpm test:browser`: pass (Chromium: core 41, editor 17, Vue 23, docs 5).
+    Includes schema/async races, native caret/IME/free-text behavior, Vue ownership
+    and SSR hydration, and axe WCAG checks in light/dark/high-contrast themes.
+  - `pnpm generate:api`, `pnpm check:docs-sync`, and
+    `pnpm test:facade-consumer`: pass; docs and Storybook builds pass.
+  - Built Storybook manual desktop/mobile touch checks: pass for connected field,
+    suggestion opening, Escape dismissal, and repeat-click/tap help toggling.
+  - Proof-first failing tests were retained as regression tests; temporary red
+    logs, generated failure screenshots, and manual QA captures were removed.
+  - No formatter is configured; docs/Storybook unit and lint scripts explicitly
+    report no configured checks. Existing build warnings are non-blocking.
+
 - Editor people mentions (2026-09-05):
   - workspace lint, typecheck, build, unit tests, and browser tests: pass
   - editor browser: pass (17 tests); Vue browser: pass (17 tests), covering
@@ -475,6 +509,11 @@ Status: Candidate `0.1.18` is public; `0.1.19` is prepared with truthful nested 
   `release:verify` gate can mark it eligible.
 
 ## Next Up
+
+Review PR #58, then publish an owner-approved Candidate containing its exact merged
+commit through normal release gates. Consumers can qualify a locally built/packed
+facade from the feature commit meanwhile; the private monorepo root is not a direct
+Git package dependency. No release or consuming-app change was performed in this slice.
 
 Merge the editor-mention feature, publish its exact verified facade as the next
 owner-approved Candidate, then replace Knit's development symlink with those
