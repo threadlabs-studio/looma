@@ -4,30 +4,22 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-06 11:28 PDT
-Status: Candidate `0.1.21` is public; this `0.1.22` checkout combines main's recursive tree drops with unreleased PR #58 smart-field work. Historical release tasks below retain their original version context.
+Last Updated: 2026-09-06 12:20 PDT
+Status: Candidate `0.1.22` is public; `0.1.23` is prepared with smart fields, closed-folder containment, and truthful depth-limit feedback. Historical release tasks below retain their original version context.
 
 ## Current Focus
 
-- Deliver PR #58's three verified ownership fixes on the existing shared branch;
-  PR merge and release remain separate actions.
-
-- Deliver the verified shared-history integration of PR #58 with origin/main;
-  PR approval/merge and release publication remain separate owner-led steps.
-
-- Ship the verified smart-field/combobox and just-in-time help slice through PR #58;
-  release publication and consuming-app integration remain separate owner-led steps.
-
-- Publish and qualify Candidate `0.1.22` with reliable short native and
-  recursive tree drops plus exact Knit consumer evidence.
+- Publish and qualify Candidate `0.1.23` with smart-field improvements,
+  closed-folder containment, recursive insertion feedback, and exact Knit
+  consumer evidence.
 - Keep dense tree rows at 32px/15px for pointer use and animate to 44px targets
   only after a real touch interaction establishes touch modality.
 - Verify that controlled editor replacements preserve a focused ProseMirror
   selection, while Knit server acknowledgements no longer echo authored JSON
   through the active editor.
 
-- Publish Candidate `0.1.22`, then consume its exact registry bytes
-  from Knit. Candidate `0.1.21` remains the current public `candidate` until
+- Publish Candidate `0.1.23`, then consume its exact registry bytes
+  from Knit. Candidate `0.1.22` remains the current public `candidate` until
   those replacement bytes pass main CI and protected publication.
 - Complete hosted-docs qualification and promote Candidate `0.1.13`, which is
   published and qualified in Knit with the opinionated Lucide icon
@@ -45,6 +37,15 @@ Status: Candidate `0.1.21` is public; this `0.1.22` checkout combines main's rec
   editor, and Vue.
 
 ## Recent Progress
+
+- Candidate `0.1.23` release preparation:
+  - Expanded closed container targets before dispatching inside reorders, so a
+    moved item is immediately rendered as the target's first child.
+  - Added optional application depth and subtree metadata, a max-depth tree
+    constraint, disabled pointer feedback, and structured rejection events.
+  - Proved collapsed containment, recursive hover expansion, nested insertion,
+    parent-level outdent, local rejection, and server-authoritative rejection in
+    Knit's native Chromium integration suite.
 
 - PR #58: external query-only combobox edits clear uncontrolled identity while
   selection echoes retain it; rejected canonical proposals restore accepted labels
