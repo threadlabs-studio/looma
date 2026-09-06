@@ -1,5 +1,28 @@
 # @threadlabs/looma-tokens
 
+## Product theming
+
+Looma separates brand primitives from interaction roles. Set the semantic role
+tokens when a product needs an intentional action/control palette without
+rewriting component CSS:
+
+```css
+:root {
+  --ui-action-primary-surface: #174f45;
+  --ui-action-primary-surface-hover: #103e36;
+  --ui-action-primary-surface-active: #0b302a;
+  --ui-action-primary-text: #ffffff;
+  --ui-control-border: #a9b7b3;
+  --ui-control-border-hover: #667b75;
+  --ui-control-focus: #174f45;
+  --ui-control-focus-halo: #dcebe7;
+}
+```
+
+`--ui-accent-*` remains the default source for these roles. Override the roles
+only when action hierarchy or control contrast should differ from the broader
+brand accent.
+
 > Internal implementation workspace. Consumers install `@threadlabs/looma` and
 > import its explicit token and theme CSS subpaths.
 

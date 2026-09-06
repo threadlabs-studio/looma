@@ -382,10 +382,12 @@ describe("@threadlabs/looma-core primitives", () => {
 
     expect(innerButton).toBeTruthy();
     expect(innerButton?.disabled).toBe(true);
+    expect(buttonWrapper.dataset.disabled).toBe("true");
 
     buttonWrapper.disabled = false;
     await flushStencil();
     expect(innerButton?.disabled).toBe(false);
+    expect(buttonWrapper.hasAttribute("data-disabled")).toBe(false);
   });
 
   it("exposes an explicit outline default and destructive button intent", async () => {
@@ -394,11 +396,15 @@ describe("@threadlabs/looma-core primitives", () => {
       <ui-button variant="destructive"><button type="button">Delete workspace</button></ui-button>
     `);
 
-    const wrappers = Array.from(document.querySelectorAll("ui-button"));
+    const wrappers = Array.from(document.querySelectorAll("ui-button")) as Array<HTMLElement & { variant: string }>;
     expect(wrappers[0]?.getAttribute("variant")).toBeNull();
-    expect(wrappers[0]?.dataset.variant).toBeUndefined();
+    expect(wrappers[0]?.dataset.variant).toBe("outline");
     expect(wrappers[1]?.getAttribute("variant")).toBe("destructive");
-    expect(wrappers[1]?.dataset.variant).toBeUndefined();
+    expect(wrappers[1]?.dataset.variant).toBe("destructive");
+
+    wrappers[0].variant = "solid";
+    await flushStencil();
+    expect(wrappers[0]?.dataset.variant).toBe("solid");
   });
 
   it("wires floating action button label and disabled state to the inner button", async () => {

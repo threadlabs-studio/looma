@@ -1,6 +1,8 @@
 :host {
   display: grid;
   gap: var(--ui-space-2);
+  min-inline-size: 0;
+  align-content: start;
   color: var(--ui-text-primary);
 }
 
@@ -10,8 +12,10 @@
 }
 
 ::slotted([data-slot='help']) {
+  min-block-size: var(--ui-form-field-help-min-block-size, 0);
   color: var(--ui-text-muted);
   font-size: 0.875rem;
+  line-height: var(--ui-line-height-md);
 }
 
 ::slotted([data-slot='error']),
