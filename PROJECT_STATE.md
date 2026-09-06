@@ -38,6 +38,12 @@ Status: Candidate `0.1.22` is public; `0.1.23` is prepared with smart fields, cl
 
 ## Recent Progress
 
+- Generated public API freshness:
+  - Made docs sync and CI reject stale component metadata or generated Vue
+    declarations, rather than checking only the JSON API projection.
+  - Corrected stale public counts to the source-derived 30 Core, 9 Layout,
+    39 general Vue, and 7 editor Vue elements.
+
 - Vue adapter public types:
   - Generated explicit props and typed callback details for every general Vue
     adapter from the published component API, while preserving the existing
