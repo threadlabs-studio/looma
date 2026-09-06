@@ -186,12 +186,12 @@
 .drop-indicator::before { inset-inline-start: -1px; }
 .drop-indicator::after { inset-inline-end: -1px; }
 
-:host([data-drop-position='before']) .drop-indicator {
+:host([data-drop-position='before']) .row-drop-indicator {
   display: block;
   inset-block-start: -1px;
 }
 
-:host([data-drop-position='after']) .drop-indicator {
+:host([data-drop-position='after']) .subtree-drop-indicator {
   display: block;
   inset-block-end: -1px;
 }

@@ -7,7 +7,7 @@ Candidate editor UI elements, styles, Tiptap 2 presets, slash commands, mentions
 and table editing for Looma. The package uses Tiptap's vanilla `Editor`; the
 public facade's `/vue/editor` entry provides the turnkey Vue editor.
 
-Release status: Candidate `0.1.18`, not Stable.
+Release status: Candidate `0.1.22`, not Stable.
 
 ## Install
 
@@ -39,9 +39,11 @@ import {
 
 - Seven custom elements: toolbar, slash menu, mention menu, table context menu,
   table toolbar, insert-table grid, and table overlay.
-- `getDefaultEditorExtensions()` for the qualified Tiptap 2 extension preset.
+- `getDefaultEditorExtensions()` for the qualified Tiptap 2 extension preset,
+  including Info, Note, and Warning callout blocks.
 - `LoomaTableKit` or `getLoomaTableExtensions()` for consumers adding Looma table editing to an existing Tiptap editor.
-- `createLoomaSlashCommandExtension()` for the same slash-command behavior with a custom renderer.
+- `createLoomaSlashCommandExtension()` for the same slash-command behavior with a custom renderer,
+  including `/info`, `/note`, and `/warning` callouts.
 - `createLoomaMentionExtension()` for a domain-neutral mention node and a
   bounded static or asynchronous people provider.
 - `handleTableOverlayAction(editor, detail)` for boundary row/column actions.
@@ -53,6 +55,10 @@ formatting controls, slash commands, and table actions. Host applications pass
 content and editability, receive document updates, and optionally provide an
 image-upload callback. Persistence, collaboration, workspace/page concepts, and
 app-specific commands remain host responsibilities.
+
+Advanced Tiptap integrations that use Looma's default slash commands outside
+`getDefaultEditorExtensions()` should also add the exported `LoomaCallout`
+extension so the three callout commands have their target node available.
 
 The Vue turnkey editor also owns domain-neutral responsive-image behavior. A
 host can mark an uploaded image responsive, persist intrinsic dimensions, and

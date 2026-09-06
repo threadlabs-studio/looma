@@ -138,7 +138,7 @@ class UIEditorSlashMenuElement extends HTMLElement {
 
   set selectedIndex(value: number) {
     this.#selectedIndex = Number.isFinite(value) ? Math.max(0, value) : 0;
-    this.render();
+    this.updateSelectedItem(true);
   }
 
   get anchorRect(): SlashMenuAnchorRect | null {
@@ -207,7 +207,7 @@ class UIEditorSlashMenuElement extends HTMLElement {
     }
 
     this.#selectedIndex = index;
-    this.render();
+    this.updateSelectedItem();
     dispatchSlashMenuEvent<SlashMenuHighlightEventDetail>(
       this,
       "looma-editor-slash-menu-highlight",
@@ -275,6 +275,17 @@ class UIEditorSlashMenuElement extends HTMLElement {
     this.style.bottom = "";
     this.style.width = `${MENU_WIDTH}px`;
     this.style.maxHeight = "";
+  }
+
+  private updateSelectedItem(ensureVisible = false): void {
+    let selectedOption: HTMLElement | null = null;
+    for (const option of this.querySelectorAll<HTMLElement>("[data-index]")) {
+      const selected = Number.parseInt(option.dataset.index ?? "", 10) === this.#selectedIndex;
+      option.classList.toggle("ui-editor-slash-menu__item--active", selected);
+      option.setAttribute("aria-selected", selected ? "true" : "false");
+      if (selected) selectedOption = option;
+    }
+    if (ensureVisible) selectedOption?.scrollIntoView?.({ block: "nearest" });
   }
 
   private render(): void {
