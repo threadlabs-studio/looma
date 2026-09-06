@@ -9,7 +9,7 @@ import { dispatchDetail, eventToTrigger } from '../../utils/events';
 export class UITextarea {
   @Element() host: HTMLElement;
 
-  @Prop() value = '';
+  @Prop() value?: string;
   @Prop({ attribute: 'default-value' }) defaultValue = '';
   @Prop() disabled = false;
   @Prop() invalid = false;
@@ -22,7 +22,7 @@ export class UITextarea {
 
   @Watch('value')
   syncFromProp() {
-    this.internalValue = this.value;
+    if (this.value !== undefined) this.internalValue = this.value;
   }
 
   @Watch('internalValue')
@@ -35,7 +35,9 @@ export class UITextarea {
     const textarea = this.getTextarea();
     if (!textarea) return;
     this.host.dataset.invalid = this.invalid ? 'true' : '';
-    textarea.value = this.internalValue;
+    // An omitted host value leaves the slotted textarea under framework or
+    // native-form control instead of resetting it during component updates.
+    if (this.value !== undefined) textarea.value = this.internalValue;
     textarea.defaultValue = this.defaultValue;
     textarea.disabled = this.disabled;
     textarea.readOnly = this.readOnly;

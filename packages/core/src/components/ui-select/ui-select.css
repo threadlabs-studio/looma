@@ -1,14 +1,16 @@
 :host {
   display: inline-flex;
+  min-inline-size: 0;
   color: var(--ui-text-primary);
 }
 
 ::slotted(select) {
   width: 100%;
   appearance: none;
-  border: 1px solid var(--ui-border-default);
+  min-block-size: var(--ui-control-min-block-size, 2.75rem);
+  border: 1px solid var(--ui-control-border, var(--ui-border-default));
   border-radius: var(--ui-radius-2);
-  background-color: var(--ui-surface-default);
+  background-color: var(--ui-control-surface, var(--ui-surface-default));
   color: inherit;
   font: inherit;
   line-height: var(--ui-line-height-md);
@@ -31,12 +33,12 @@
 }
 
 ::slotted(select:hover:not(:focus):not(:disabled)) {
-  border-color: var(--ui-border-strong);
+  border-color: var(--ui-control-border-hover, var(--ui-border-strong));
 }
 
 ::slotted(select:focus) {
-  border-color: var(--ui-focus-ring);
-  box-shadow: 0 0 0 3px var(--ui-accent-soft);
+  border-color: var(--ui-control-focus, var(--ui-focus-ring));
+  box-shadow: 0 0 0 3px var(--ui-control-focus-halo, var(--ui-accent-soft));
 }
 
 :host([data-invalid='true'])::slotted(select),
@@ -45,7 +47,7 @@
 }
 
 ::slotted(select:disabled) {
-  background-color: var(--ui-surface-muted);
+  background-color: var(--ui-control-surface-disabled, var(--ui-surface-muted));
   color: var(--ui-text-muted);
   cursor: not-allowed;
 }

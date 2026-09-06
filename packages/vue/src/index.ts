@@ -7,6 +7,10 @@ import { createAdapterComponent } from "./adapter";
 
 export type { VueAdapterEventMap } from "./adapter";
 
+import { Combobox as ComboboxComponent } from './Combobox';
+export const Combobox = ComboboxComponent;
+export type { ComboboxConfig, ComboboxOption, ComboboxProvider, ComboboxRequest, ComboboxChange, ComboboxValidationState, FieldSchema, FieldValidation, FieldFormatter, FieldIssue } from '@threadlabs/looma-core';
+
 export const Stack = createAdapterComponent("ui-stack", "Stack");
 export const Inline = createAdapterComponent("ui-inline", "Inline");
 export const Cluster = createAdapterComponent("ui-cluster", "Cluster");
@@ -52,6 +56,7 @@ export const Tree = createAdapterComponent("ui-tree", "Tree", [["reorder", "onRe
 export const TreeItem = createAdapterComponent("ui-tree-item", "TreeItem", [["expand", "onExpand"]]);
 
 export const ADAPTER_COMPONENT_TAG_MAP = {
+  Combobox: "ui-combobox",
   Stack: "ui-stack",
   Inline: "ui-inline",
   Cluster: "ui-cluster",

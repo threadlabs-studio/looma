@@ -382,6 +382,7 @@ describe("@threadlabs/looma-core primitives", () => {
 
     expect(innerButton).toBeTruthy();
     expect(innerButton?.disabled).toBe(true);
+    expect(buttonWrapper.dataset.disabled).toBe("true");
 
     buttonWrapper.disabled = false;
     await flushStencil();
@@ -395,16 +396,19 @@ describe("@threadlabs/looma-core primitives", () => {
       <ui-button variant="destructive"><button type="button">Delete workspace</button></ui-button>
     `);
 
-    const wrappers = Array.from(document.querySelectorAll("ui-button"));
-    expect(wrappers[0]?.getAttribute("variant")).toBe("outline");
-    expect(wrappers[0]?.dataset.variant).toBeUndefined();
+    const wrappers = Array.from(document.querySelectorAll("ui-button")) as Array<HTMLElement & { variant: string }>;
+    expect(wrappers[0]?.getAttribute("variant")).toBeNull();
+    expect(wrappers[0]?.dataset.variant).toBe("outline");
     expect(wrappers[1]?.getAttribute("variant")).toBe("destructive");
-    expect(wrappers[1]?.dataset.variant).toBeUndefined();
+    expect(wrappers[1]?.dataset.variant).toBe("destructive");
 
-    const destructiveButton = wrappers[1] as HTMLElement & { variant: string };
-    destructiveButton.variant = "ghost";
+    wrappers[0].variant = "solid";
     await flushStencil();
-    expect(destructiveButton.getAttribute("variant")).toBe("ghost");
+    expect(wrappers[0]?.dataset.variant).toBe("solid");
+    wrappers[1].variant = "ghost";
+    await flushStencil();
+    expect(wrappers[1]?.getAttribute("variant")).toBe("destructive");
+    expect(wrappers[1]?.dataset.variant).toBe("ghost");
   });
 
   it("wires floating action button label and disabled state to the inner button", async () => {
