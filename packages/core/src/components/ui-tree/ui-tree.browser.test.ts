@@ -1,3 +1,4 @@
+import axe from 'axe-core';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { userEvent } from '@vitest/browser/context';
 
@@ -84,6 +85,102 @@ describe('ui-tree drag and hierarchy interactions', () => {
     expect(Math.round(rootRow.getBoundingClientRect().left - tree.getBoundingClientRect().left)).toBe(0);
     expect(Math.round(childRow.getBoundingClientRect().left - rootRow.getBoundingClientRect().left)).toBe(16);
     expect(Math.round(grandchildRow.getBoundingClientRect().left - childRow.getBoundingClientRect().left)).toBe(16);
+  });
+
+  it('provides one tab stop and complete tree keyboard navigation without stealing interactive descendants', async () => {
+    document.body.innerHTML = `
+      <ui-tree label="Project pages">
+        <ui-tree-item item-id="root" label="Root" container default-expanded>
+          <span>Root</span>
+          <a slot="actions" href="#root-action">Open root</a>
+          <ui-tree-item slot="children" item-id="child" label="Child" container default-expanded>
+            <span>Child</span>
+            <ui-tree-item slot="children" item-id="grandchild" label="Grandchild"><span>Grandchild</span></ui-tree-item>
+          </ui-tree-item>
+        </ui-tree-item>
+        <ui-tree-item item-id="last" label="Last"><span>Last</span></ui-tree-item>
+      </ui-tree>
+    `;
+    await flushStencil();
+
+    const tree = document.querySelector<HTMLElement>('ui-tree')!;
+    const root = document.querySelector<HTMLElement>('ui-tree-item[item-id="root"]')!;
+    const child = document.querySelector<HTMLElement>('ui-tree-item[item-id="child"]')!;
+    const grandchild = document.querySelector<HTMLElement>('ui-tree-item[item-id="grandchild"]')!;
+    const last = document.querySelector<HTMLElement>('ui-tree-item[item-id="last"]')!;
+    const action = root.querySelector<HTMLAnchorElement>('a')!;
+    const key = (item: HTMLElement, value: string) => item.dispatchEvent(new KeyboardEvent('keydown', {
+      key: value, bubbles: true, composed: true,
+    }));
+
+    expect(root.getAttribute('aria-label')).toBe('Root');
+    expect([root, child, grandchild, last].filter(item => item.tabIndex === 0)).toEqual([root]);
+
+    root.focus();
+    key(root, 'ArrowDown');
+    expect(document.activeElement).toBe(child);
+    key(child, 'End');
+    expect(document.activeElement).toBe(last);
+    key(last, 'Home');
+    expect(document.activeElement).toBe(root);
+    key(root, 'ArrowRight');
+    expect(document.activeElement).toBe(child);
+    key(child, 'ArrowLeft');
+    await flushStencil();
+    expect(child.getAttribute('aria-expanded')).toBe('false');
+    key(child, 'ArrowLeft');
+    expect(document.activeElement).toBe(root);
+    key(root, 'ArrowLeft');
+    await flushStencil();
+    expect(root.getAttribute('aria-expanded')).toBe('false');
+    key(root, 'ArrowRight');
+    await flushStencil();
+    expect(root.getAttribute('aria-expanded')).toBe('true');
+
+    action.focus();
+    action.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, composed: true }));
+    expect(document.activeElement).toBe(action);
+    expect(root.getAttribute('aria-expanded')).toBe('true');
+    expect([root, child, grandchild, last].filter(item => item.tabIndex === 0)).toEqual([root]);
+
+    const results = await axe.run(tree, { rules: { 'color-contrast': { enabled: false } } });
+    expect(results.violations, results.violations.map(violation => violation.id).join(', ')).toEqual([]);
+  });
+
+  it('keeps expanded controlled when supplied and defaults only uncontrolled items', async () => {
+    document.body.innerHTML = `
+      <ui-tree label="Project pages">
+        <ui-tree-item item-id="controlled" label="Controlled" container default-expanded="true" expanded="false">
+          <ui-tree-item slot="children" item-id="nested" label="Nested"><span>Nested</span></ui-tree-item>
+        </ui-tree-item>
+        <ui-tree-item item-id="uncontrolled" label="Uncontrolled" container default-expanded>
+          <ui-tree-item slot="children" item-id="nested-default" label="Nested default"><span>Nested default</span></ui-tree-item>
+        </ui-tree-item>
+      </ui-tree>
+    `;
+    await flushStencil();
+
+    const controlled = document.querySelector<HTMLElement & { expanded?: boolean }>('ui-tree-item[item-id="controlled"]')!;
+    const uncontrolled = document.querySelector<HTMLElement>('ui-tree-item[item-id="uncontrolled"]')!;
+    const expansions: unknown[] = [];
+    controlled.addEventListener('expand', event => expansions.push((event as CustomEvent).detail));
+    expect(controlled.getAttribute('aria-expanded')).toBe('false');
+    expect(uncontrolled.getAttribute('aria-expanded')).toBe('true');
+
+    controlled.shadowRoot!.querySelector<HTMLButtonElement>('[part="disclosure"]')!.click();
+    await flushStencil();
+    expect(expansions).toEqual([{ id: 'controlled', expanded: true, trigger: 'pointer' }]);
+    expect(controlled.getAttribute('aria-expanded')).toBe('false');
+
+    controlled.expanded = true;
+    await flushStencil();
+    expect(controlled.getAttribute('aria-expanded')).toBe('true');
+    controlled.expanded = undefined;
+    await flushStencil();
+    expect(controlled.getAttribute('aria-expanded')).toBe('true');
+    controlled.shadowRoot!.querySelector<HTMLButtonElement>('[part="disclosure"]')!.click();
+    await flushStencil();
+    expect(controlled.getAttribute('aria-expanded')).toBe('false');
   });
 
   it('recomputes levels when a nested item is reparented', async () => {

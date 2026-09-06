@@ -45,7 +45,14 @@ Status: Candidate `0.1.22` is public; `0.1.23` is prepared with smart fields, cl
   `loomaCallout` Tiptap node and durable `aside[data-looma-callout][data-tone]`
   markup. Tree nesting is structural: `ui-tree-item` derives `aria-level` and
   its 16px inset from ancestors, so consumers no longer maintain a `depth` prop.
-  This remains uncommitted and is not a release or publication claim.
+  This remains local feature work and is not a release or publication claim.
+
+- Follow-up tree accessibility remediation adds a single roving tab stop for
+  visible items, standard Arrow/Home/End navigation, and preserves native
+  keyboard behavior for slot-provided links/actions. `expanded` is controlled
+  when supplied; `default-expanded` is initialization-only for uncontrolled
+  items. This local feature work is pending normal qualification, not a
+  publication claim.
 
 - Candidate `0.1.23` release preparation:
   - Expanded closed container targets before dispatching inside reorders, so a

@@ -119,6 +119,18 @@ describe("@threadlabs/looma-vue adapter", () => {
     expect(onExpand).toHaveBeenCalledWith({ id: "folder", expanded: true, trigger: "keyboard" });
   });
 
+  it("forwards a controlled tree expansion value as a component property", async () => {
+    const { host } = mount(() =>
+      h(Tree, { label: "Pages" }, () =>
+        h(TreeItem, { "item-id": "folder", label: "Folder", container: true, expanded: false }, () => "Folder")
+      )
+    );
+
+    const item = host.querySelector<HTMLElement & { expanded?: boolean }>("ui-tree-item")!;
+    await Promise.resolve();
+    expect(item.expanded).toBe(false);
+  });
+
   it("renders intrinsic layout wrappers as native tags", () => {
     const { host } = mount(() =>
       h(Switcher, { threshold: "sm" }, () => [
