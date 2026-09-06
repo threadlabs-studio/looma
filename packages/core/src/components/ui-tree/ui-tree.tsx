@@ -10,10 +10,21 @@ import {
 
 type TreeItemElement = HTMLElement & {
   itemId?: string;
+  depth?: number;
+  dropDepth?: number;
+  subtreeDepth?: number;
   container?: boolean;
   sortable?: boolean;
   disabled?: boolean;
 };
+
+type DepthDropRejection = {
+  reason: 'max-depth';
+  maxDepth: number;
+  resultingDepth: number;
+};
+
+type DropRejection = { reason: 'descendant' | 'incompatible' } | DepthDropRejection;
 
 @Component({
   tag: 'ui-tree',
@@ -25,10 +36,15 @@ export class UITree {
 
   @Prop() label = 'Tree';
   @Prop({ attribute: 'hover-expand-delay' }) hoverExpandDelay = 700;
+  /** Maximum resulting item depth accepted by pointer reordering. Zero is unlimited. */
+  @Prop({ attribute: 'max-depth' }) maxDepth = 0;
 
   private source: TreeItemElement | null = null;
   private target: TreeItemElement | null = null;
   private position: DropPosition | null = null;
+  private rejectedTarget: TreeItemElement | null = null;
+  private rejectedPosition: DropPosition | null = null;
+  private rejection: DepthDropRejection | null = null;
   private hoverIntent: HoverIntentController | null = null;
 
   componentDidLoad() {
@@ -107,18 +123,38 @@ export class UITree {
     };
   }
 
-  private permitsDrop(source: TreeItemElement, target: TreeItemElement, position: DropPosition): boolean {
+  private constraintDepth(item: TreeItemElement): number {
+    if (item.dropDepth !== undefined) return item.dropDepth;
+    const dropDepth = item.getAttribute('drop-depth');
+    if (dropDepth !== null) return Number(dropDepth);
+    if (item.depth !== undefined) return item.depth;
+    return Number(item.getAttribute('depth')) || 1;
+  }
+
+  private dropRejection(source: TreeItemElement, target: TreeItemElement, position: DropPosition): DropRejection | null {
     // A tree item can never move into (or beside) one of its own descendants.
     // Reject the target before showing any insertion affordance so the preview
     // stays truthful instead of promising a move the consumer must undo.
-    if (source.contains(target)) return false;
+    if (source.contains(target)) return { reason: 'descendant' };
     const sourceMeta = this.itemMetadata(source);
     const targetMeta = this.itemMetadata(target);
     if (position === 'inside') {
-      return this.acceptsChildren(target)
-        && (targetMeta.accepts.length === 0 || targetMeta.accepts.includes(sourceMeta.type));
+      if (!this.acceptsChildren(target)
+        || (targetMeta.accepts.length > 0 && !targetMeta.accepts.includes(sourceMeta.type))) {
+        return { reason: 'incompatible' };
+      }
+    } else if (sourceMeta.type !== targetMeta.type) {
+      return { reason: 'incompatible' };
     }
-    return sourceMeta.type === targetMeta.type;
+
+    const maxDepth = Math.max(0, Math.floor(this.maxDepth));
+    if (maxDepth > 0 && source.subtreeDepth !== undefined) {
+      const targetDepth = Math.max(0, Math.floor(this.constraintDepth(target)));
+      const subtreeDepth = Math.max(0, Math.floor(source.subtreeDepth));
+      const resultingDepth = targetDepth + (position === 'inside' ? 1 : 0) + subtreeDepth;
+      if (resultingDepth > maxDepth) return { reason: 'max-depth', maxDepth, resultingDepth };
+    }
+    return null;
   }
 
   private clearTarget() {
@@ -128,10 +164,17 @@ export class UITree {
     this.hoverIntent?.cancel();
   }
 
+  private clearRejection() {
+    this.rejectedTarget = null;
+    this.rejectedPosition = null;
+    this.rejection = null;
+  }
+
   private finishDrag() {
     this.source?.removeAttribute('data-dragging');
     this.source = null;
     this.clearTarget();
+    this.clearRejection();
   }
 
   private expandTarget = (itemId: string) => {
@@ -172,17 +215,27 @@ export class UITree {
     if (!this.source) return false;
     if (!target || target === this.source) {
       this.clearTarget();
+      this.clearRejection();
       return false;
     }
     const row = this.rowFor(target);
     if (!row) return false;
 
     const position = classifyDropPosition(row.getBoundingClientRect(), clientY, this.acceptsChildren(target));
-    if (!this.permitsDrop(this.source, target, position)) {
+    const rejection = this.dropRejection(this.source, target, position);
+    if (rejection) {
       if (dataTransfer) dataTransfer.dropEffect = 'none';
       this.clearTarget();
+      if (rejection.reason === 'max-depth') {
+        this.rejectedTarget = target;
+        this.rejectedPosition = position;
+        this.rejection = rejection;
+      } else {
+        this.clearRejection();
+      }
       return false;
     }
+    this.clearRejection();
     if (dataTransfer) dataTransfer.dropEffect = 'move';
     if (this.target !== target || this.position !== position) {
       this.clearTarget();
@@ -221,12 +274,14 @@ export class UITree {
     if (this.isWithinTree(event.relatedTarget)) return;
     if (this.itemAtPoint(event.clientX, event.clientY)) return;
     this.clearTarget();
+    this.clearRejection();
   };
 
   private dispatchReorder(source: TreeItemElement, target: TreeItemElement, position: DropPosition) {
     const sourceId = this.itemId(source);
     const targetId = this.itemId(target);
     if (!sourceId || !targetId) return;
+    if (position === 'inside') this.expandTarget(targetId);
     const sourceMeta = this.itemMetadata(source);
     const targetMeta = this.itemMetadata(target);
     dispatchDetail(this.host, 'reorder', {
@@ -241,6 +296,26 @@ export class UITree {
     });
   }
 
+  private dispatchReorderRejected(
+    source: TreeItemElement,
+    target: TreeItemElement,
+    position: DropPosition,
+    rejection: DepthDropRejection,
+  ) {
+    const sourceId = this.itemId(source);
+    const targetId = this.itemId(target);
+    if (!sourceId || !targetId) return;
+    dispatchDetail(this.host, 'reorder-rejected', {
+      sourceId,
+      targetId,
+      position,
+      reason: 'max-depth' as const,
+      maxDepth: rejection.maxDepth,
+      resultingDepth: rejection.resultingDepth,
+      trigger: 'pointer' as const,
+    });
+  }
+
   private onDrop = (event: DragEvent) => {
     if (!this.source || !this.target || !this.position) return;
     event.preventDefault();
@@ -250,13 +325,21 @@ export class UITree {
 
   private onDragEnd = (event: DragEvent) => {
     if (this.source) {
+      if (this.rejectedTarget && this.rejectedPosition && this.rejection) {
+        this.dispatchReorderRejected(this.source, this.rejectedTarget, this.rejectedPosition, this.rejection);
+        this.finishDrag();
+        return;
+      }
       const target = this.itemAtPoint(event.clientX, event.clientY);
       if (target && target !== this.source) {
         const row = this.rowFor(target);
         if (row) {
           const position = classifyDropPosition(row.getBoundingClientRect(), event.clientY, this.acceptsChildren(target));
-          if (this.permitsDrop(this.source, target, position)) {
+          const rejection = this.dropRejection(this.source, target, position);
+          if (!rejection) {
             this.dispatchReorder(this.source, target, position);
+          } else if (rejection.reason === 'max-depth') {
+            this.dispatchReorderRejected(this.source, target, position, rejection);
           }
         }
       }

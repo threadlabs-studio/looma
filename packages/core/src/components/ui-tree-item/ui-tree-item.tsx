@@ -18,6 +18,10 @@ export class UITreeItem {
   @Prop() label = '';
   /** One-based visual and semantic nesting level. */
   @Prop() depth = 1;
+  /** Application hierarchy depth used for drop constraints. Defaults to visual depth. */
+  @Prop({ attribute: 'drop-depth' }) dropDepth?: number;
+  /** Deepest descendant distance, used with the tree's max-depth drop constraint. */
+  @Prop({ attribute: 'subtree-depth' }) subtreeDepth?: number;
   /** Whether this item accepts children and exposes disclosure behavior. */
   @Prop() container = false;
   /** Whether this item participates in pointer drag and drop. */

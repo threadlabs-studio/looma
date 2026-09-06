@@ -25,6 +25,15 @@ export interface VueAdapterEventMap {
     targetScope: string;
     trigger: string;
   };
+  reorderRejected: {
+    sourceId: string;
+    targetId: string;
+    position: "before" | "inside" | "after";
+    reason: "max-depth";
+    maxDepth?: number;
+    resultingDepth?: number;
+    trigger: string;
+  };
   expand: { id: string; expanded: boolean; trigger: string };
 }
 
@@ -36,6 +45,7 @@ type AdapterCallbacks = {
   onInput?: (detail: VueAdapterEventMap["input"]) => void;
   onDismiss?: (detail: VueAdapterEventMap["dismiss"]) => void;
   onReorder?: (detail: VueAdapterEventMap["reorder"]) => void;
+  onReorderRejected?: (detail: VueAdapterEventMap["reorderRejected"]) => void;
   onExpand?: (detail: VueAdapterEventMap["expand"]) => void;
 };
 
