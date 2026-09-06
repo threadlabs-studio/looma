@@ -34,6 +34,7 @@ export class UITree {
   componentDidLoad() {
     this.hoverIntent = createHoverIntent(this.hoverExpandDelay, this.expandTarget);
     this.host.addEventListener('dragstart', this.onDragStart);
+    this.host.addEventListener('dragenter', this.onDragOver);
     this.host.addEventListener('dragover', this.onDragOver);
     this.host.addEventListener('dragleave', this.onDragLeave);
     this.host.addEventListener('drop', this.onDrop);
@@ -44,6 +45,7 @@ export class UITree {
   disconnectedCallback() {
     this.hoverIntent?.destroy();
     this.host.removeEventListener('dragstart', this.onDragStart);
+    this.host.removeEventListener('dragenter', this.onDragOver);
     this.host.removeEventListener('dragover', this.onDragOver);
     this.host.removeEventListener('dragleave', this.onDragLeave);
     this.host.removeEventListener('drop', this.onDrop);

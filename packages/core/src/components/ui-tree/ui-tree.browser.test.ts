@@ -347,6 +347,33 @@ describe('ui-tree drag and hierarchy interactions', () => {
     expect(target.getAttribute('data-drop-position')).toBe('inside');
   });
 
+  it('establishes drop feedback as soon as a native drag enters a row', async () => {
+    document.body.innerHTML = `
+      <ui-tree label="Pages">
+        <ui-tree-item item-id="source" label="Source" drag-type="folder" accepts="folder" sortable container>
+          <span>Source</span>
+        </ui-tree-item>
+        <ui-tree-item item-id="target" label="Target" drag-type="folder" accepts="folder" sortable container>
+          <span>Target</span>
+        </ui-tree-item>
+      </ui-tree>
+    `;
+    await flushStencil();
+
+    const source = document.querySelector<HTMLElement>('ui-tree-item[item-id="source"]')!;
+    const target = document.querySelector<HTMLElement>('ui-tree-item[item-id="target"]')!;
+    const sourceHandle = source.shadowRoot!.querySelector<HTMLElement>('[part="drag-handle"]')!;
+    const targetRow = target.shadowRoot!.querySelector<HTMLElement>('[part="row"]')!;
+    const targetRect = targetRow.getBoundingClientRect();
+
+    sourceHandle.dispatchEvent(dragEvent('dragstart', 0, { setData: vi.fn(), setDragImage: vi.fn() }));
+    const entering = dragEvent('dragenter', targetRect.bottom - 1, { dropEffect: 'move' });
+    targetRow.dispatchEvent(entering);
+
+    expect(entering.defaultPrevented).toBe(true);
+    expect(target.getAttribute('data-drop-position')).toBe('after');
+  });
+
   it('distinguishes folder containment and expands a closed target after hover intent', async () => {
     document.body.innerHTML = `
       <ui-tree label="Pages" hover-expand-delay="20">
