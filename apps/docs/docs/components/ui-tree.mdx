@@ -15,6 +15,8 @@ truthful drag-and-drop previews. `ui-tree` coordinates the interaction while
 - A leaf splits into before and after targets.
 - A container reserves its middle band for an inside drop.
 - Before and after use a capped insertion line; inside highlights the row.
+- An inside drop inserts at the start of the target's compatible child list.
+- After feedback sits below the complete expanded subtree, at the target's level.
 - Incompatible sibling types do not advertise an insertion target.
 - Hovering a closed inside target opens it after `hover-expand-delay`.
 - The browser drag image is the complete row, not the grip alone.
