@@ -44,6 +44,9 @@ describe("@threadlabs/looma-vue release registration (real browser)", () => {
     await flushBrowser();
 
     const disclosure = host.querySelector<HTMLElement & { open?: boolean }>("ui-disclosure")!;
+    await (disclosure as HTMLElement & {
+      componentOnReady?: () => Promise<unknown>;
+    }).componentOnReady?.();
     const section = disclosure.querySelector<HTMLElement>("section")!;
     expect(disclosure.open).toBe(false);
     expect(section.hidden).toBe(true);
