@@ -6,7 +6,7 @@
   --ui-chip-font-weight: var(--ui-font-normal);
   --ui-chip-line-height: var(--ui-line-height-tight);
   --ui-chip-padding-block: var(--ui-space-0-5);
-  --ui-chip-padding-inline: var(--ui-space-1);
+  --ui-chip-padding-inline: calc(var(--ui-space-1) + var(--ui-space-0-5));
   --ui-chip-notch: var(--ui-space-1);
 
   display: inline-flex;
@@ -31,6 +31,7 @@
 }
 
 :host([data-appearance='tag']) {
+  border: 0;
   padding-inline-end: calc(var(--ui-chip-padding-inline) + var(--ui-chip-notch));
   clip-path: polygon(0 0, calc(100% - var(--ui-chip-notch)) 0, 100% 50%, calc(100% - var(--ui-chip-notch)) 100%, 0 100%);
 }

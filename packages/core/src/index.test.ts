@@ -766,6 +766,7 @@ describe("@threadlabs/looma-core primitives", () => {
     expect(chip.style.getPropertyValue("--ui-chip-text")).toBe("rgb(4, 5, 6)");
     expect(chip.style.getPropertyValue("--ui-chip-border")).toBe("rgb(7, 8, 9)");
     expect(chip.shadowRoot?.textContent).toContain("background:var(--ui-chip-surface)");
+    expect(chip.shadowRoot?.textContent).toContain(":host([data-appearance='tag']){border:0");
 
     chip.appearance = "pill";
     await flushStencil();
