@@ -3,7 +3,8 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { computed, createApp, createSSRApp, h, nextTick, ref, type App } from 'vue';
 import { renderToString } from 'vue/server-renderer';
 import { Combobox } from './index';
-import type { ComboboxConfig } from '@threadlabs/looma-core';
+import type { ComboboxConfig, ComboboxValidationState } from '@threadlabs/looma-core';
+type ComboboxElement = HTMLElement & { validate(): Promise<ComboboxValidationState> };
 const apps: App[] = [];
 const flush = async () => { await nextTick(); for (let i = 0; i < 4; i++) await new Promise(requestAnimationFrame); };
 afterEach(() => { apps.splice(0).forEach(app => app.unmount()); document.body.innerHTML = ''; });
@@ -19,7 +20,7 @@ for (const provider of [false, true]) {
     const app = createApp({ render: () => h(Combobox, { label: 'Name', modelValue: model.value,
       'onUpdate:modelValue': (next: string | null) => { model.value = next; }, config, disclosure: true, clearable: true, required: true }) });
     apps.push(app); app.mount(host); await flush();
-    const field = host.querySelector('ui-combobox')!;
+    const field = host.querySelector<ComboboxElement>('ui-combobox')!;
     await expect.poll(() => field.shadowRoot?.querySelector('button:last-child')).toBeTruthy();
     const root = field.shadowRoot!; const input = root.querySelector('input')!;
     await userEvent.click(root.querySelector('button:last-child')!); await flush();
@@ -40,7 +41,7 @@ it('reconciles query-only v-model external replacements and clears after accepte
   const app = createApp({ render: () => h(Combobox, { label: 'Name', query: query.value,
     'onUpdate:query': (next: string) => { query.value = next; }, config, disclosure: true, required: true }) });
   apps.push(app); app.mount(host); await flush();
-  const field = host.querySelector('ui-combobox')!;
+  const field = host.querySelector<ComboboxElement>('ui-combobox')!;
   await expect.poll(() => field.shadowRoot?.querySelector('button')).toBeTruthy();
   const root = field.shadowRoot!; const input = root.querySelector('input')!;
   for (const replacement of ['Replacement', '']) {
