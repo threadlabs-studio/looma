@@ -211,6 +211,68 @@ describe("@threadlabs/looma-vue release registration (real browser)", () => {
     expect(error).not.toHaveBeenCalled();
   });
 
+  it("preserves button variants and disabled presentation after custom-element registration", async () => {
+    const { Button } = await import("./index");
+    const disabled = ref(false);
+    const host = document.createElement("div");
+    host.style.setProperty("--ui-surface-default", "rgb(255 255 255)");
+    host.style.setProperty("--ui-surface-muted", "rgb(248 248 246)");
+    host.style.setProperty("--ui-surface-subtle", "rgb(240 240 236)");
+    host.style.setProperty("--ui-text-primary", "rgb(26 26 26)");
+    host.style.setProperty("--ui-text-on-accent", "rgb(255 255 255)");
+    host.style.setProperty("--ui-border-default", "rgb(228 228 224)");
+    host.style.setProperty("--ui-border-strong", "rgb(200 200 196)");
+    host.style.setProperty("--ui-accent-solid", "rgb(109 74 255)");
+    host.style.setProperty("--ui-accent-hover", "rgb(89 56 223)");
+    host.style.setProperty("--ui-accent-active", "rgb(70 40 189)");
+    host.style.setProperty("--ui-danger-solid", "rgb(180 35 63)");
+    host.style.setProperty("--ui-danger-hover", "rgb(148 29 53)");
+    document.body.append(host);
+    const app = createApp({
+      render: () => h("div", [
+        h(Button, { variant: "solid", disabled: disabled.value }, () =>
+          h("button", { id: "solid-button", type: "button" }, "Invite"),
+        ),
+        h(Button, { variant: "ghost" }, () =>
+          h("button", { id: "ghost-button", type: "button" }, "Sign out"),
+        ),
+        h(Button, { variant: "destructive" }, () =>
+          h("button", { id: "destructive-button", type: "button" }, "Delete"),
+        ),
+      ]),
+    });
+    apps.push(app);
+    app.mount(host);
+
+    await customElements.whenDefined("ui-button");
+    await flushBrowser();
+
+    const solid = host.querySelector<HTMLElement>("ui-button:has(#solid-button)")!;
+    const ghost = host.querySelector<HTMLElement>("ui-button:has(#ghost-button)")!;
+    const destructive = host.querySelector<HTMLElement>("ui-button:has(#destructive-button)")!;
+
+    await userEvent.unhover(destructive.querySelector("button")!);
+    await flushBrowser();
+
+    expect(solid.getAttribute("data-variant")).toBe("solid");
+    expect(ghost.getAttribute("data-variant")).toBe("ghost");
+    expect(destructive.getAttribute("data-variant")).toBe("destructive");
+    expect(solid.hasAttribute("data-disabled")).toBe(false);
+    expect(getComputedStyle(solid).opacity).toBe("1");
+    expect(getComputedStyle(solid.querySelector("button")!).backgroundColor).toBe("rgb(109, 74, 255)");
+    expect(getComputedStyle(ghost.querySelector("button")!).backgroundColor).toBe("rgba(0, 0, 0, 0)");
+    expect(getComputedStyle(ghost.querySelector("button")!).borderColor).toBe("rgba(0, 0, 0, 0)");
+    expect(getComputedStyle(destructive.querySelector("button")!).backgroundColor).toBe("rgb(180, 35, 63)");
+
+    disabled.value = true;
+    await nextTick();
+    await flushBrowser();
+
+    expect(solid.getAttribute("data-disabled")).toBe("true");
+    expect(getComputedStyle(solid).opacity).toBe("0.6");
+    expect(getComputedStyle(solid.querySelector("button")!).opacity).toBe("1");
+  });
+
   it("projects slash-menu properties through the registered element boundary", async () => {
     vi.spyOn(window, "innerWidth", "get").mockReturnValue(1280);
     vi.spyOn(window, "innerHeight", "get").mockReturnValue(720);
