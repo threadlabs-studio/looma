@@ -299,9 +299,12 @@
     outline-offset: 2px;
   }
 
-  ui-button > button:disabled,
   ui-button[data-disabled] {
     opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  ui-button > button:disabled {
     cursor: not-allowed;
   }
 

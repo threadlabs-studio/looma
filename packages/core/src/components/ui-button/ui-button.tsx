@@ -9,7 +9,7 @@ import { isActivationKey } from '../../utils/events';
 export class UIButton {
   @Element() host: HTMLElement;
 
-  @Prop() variant: 'outline' | 'solid' | 'destructive' | 'ghost' = 'outline';
+  @Prop({ reflect: true }) variant: 'outline' | 'solid' | 'destructive' | 'ghost' = 'outline';
   @Prop() size?: string;
   @Prop() disabled = false;
 
@@ -22,7 +22,7 @@ export class UIButton {
     const btn = this.getButton();
     if (!btn) return;
     this.host.dataset.size = this.size || '';
-    this.host.dataset.disabled = this.disabled ? 'true' : '';
+    this.host.toggleAttribute('data-disabled', this.disabled);
     btn.disabled = this.disabled;
   }
 

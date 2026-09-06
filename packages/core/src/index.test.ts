@@ -386,6 +386,7 @@ describe("@threadlabs/looma-core primitives", () => {
     buttonWrapper.disabled = false;
     await flushStencil();
     expect(innerButton?.disabled).toBe(false);
+    expect(buttonWrapper.hasAttribute("data-disabled")).toBe(false);
   });
 
   it("exposes an explicit outline default and destructive button intent", async () => {
@@ -395,10 +396,15 @@ describe("@threadlabs/looma-core primitives", () => {
     `);
 
     const wrappers = Array.from(document.querySelectorAll("ui-button"));
-    expect(wrappers[0]?.getAttribute("variant")).toBeNull();
+    expect(wrappers[0]?.getAttribute("variant")).toBe("outline");
     expect(wrappers[0]?.dataset.variant).toBeUndefined();
     expect(wrappers[1]?.getAttribute("variant")).toBe("destructive");
     expect(wrappers[1]?.dataset.variant).toBeUndefined();
+
+    const destructiveButton = wrappers[1] as HTMLElement & { variant: string };
+    destructiveButton.variant = "ghost";
+    await flushStencil();
+    expect(destructiveButton.getAttribute("variant")).toBe("ghost");
   });
 
   it("wires floating action button label and disabled state to the inner button", async () => {
@@ -693,6 +699,8 @@ describe("@threadlabs/looma-core primitives", () => {
 
     expect(radios[0]?.getAttribute("aria-checked")).toBe("true");
     expect(radios[1]?.getAttribute("aria-checked")).toBe("false");
+    expect(radios[0]?.hasAttribute("data-disabled")).toBe(false);
+    expect(radios[1]?.hasAttribute("data-disabled")).toBe(false);
 
     radios[0]?.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
     await flushStencil();
@@ -700,6 +708,21 @@ describe("@threadlabs/looma-core primitives", () => {
     expect(radios[1]?.getAttribute("aria-checked")).toBe("true");
     expect(selectedEvents.at(-1)).toEqual({ value: "beta", previousValue: "alpha", trigger: "keyboard" });
     expect(changeEvents.at(-1)).toEqual({ checked: true, value: "beta", trigger: "keyboard" });
+  });
+
+  it("does not expose a disabled marker for an enabled standalone radio", async () => {
+    await render(`<ui-radio value="alpha"><input type="radio" />Alpha</ui-radio>`);
+
+    const radio = document.querySelector("ui-radio") as HTMLElement & { disabled: boolean };
+    expect(radio.hasAttribute("data-disabled")).toBe(false);
+
+    radio.disabled = true;
+    await flushStencil();
+    expect(radio.hasAttribute("data-disabled")).toBe(true);
+
+    radio.disabled = false;
+    await flushStencil();
+    expect(radio.hasAttribute("data-disabled")).toBe(false);
   });
 
   it("syncs ui-badge styling hooks from variant and tone", async () => {

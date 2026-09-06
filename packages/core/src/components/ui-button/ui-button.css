@@ -4,7 +4,6 @@
   color: var(--ui-text-primary);
 }
 
-:host([variant='outline'])::slotted(button),
 ::slotted(button) {
   appearance: none;
   border: 1px solid var(--ui-border-default);
@@ -25,12 +24,12 @@
   margin: 0;
 }
 
-:host([data-size='sm'])::slotted(button) {
+:host([data-size='sm']) ::slotted(button) {
   padding: var(--ui-space-1) var(--ui-space-2);
   font-size: 0.875rem;
 }
 
-:host([data-size='lg'])::slotted(button) {
+:host([data-size='lg']) ::slotted(button) {
   padding: var(--ui-space-3) var(--ui-space-4);
   font-size: 1rem;
 }
@@ -44,57 +43,57 @@
   background: var(--ui-surface-subtle);
 }
 
-:host([variant='solid'])::slotted(button) {
+:host([variant='solid']) ::slotted(button) {
   border-color: var(--ui-accent-solid);
   background: var(--ui-accent-solid);
   color: var(--ui-text-on-accent);
   box-shadow: var(--ui-button-solid-shadow, inset 0 1px rgb(255 255 255 / 0.16), var(--ui-shadow-xs));
 }
 
-:host([variant='solid'])::slotted(button:hover:enabled) {
+:host([variant='solid']) ::slotted(button:hover:enabled) {
   background: var(--ui-accent-hover);
   border-color: var(--ui-accent-hover);
   box-shadow: var(--ui-shadow-sm);
   transform: translateY(-1px);
 }
 
-:host([variant='solid'])::slotted(button:active:enabled) {
+:host([variant='solid']) ::slotted(button:active:enabled) {
   background: var(--ui-accent-active);
   border-color: var(--ui-accent-active);
   box-shadow: none;
   transform: translateY(0);
 }
 
-:host([variant='destructive'])::slotted(button) {
+:host([variant='destructive']) ::slotted(button) {
   border-color: var(--ui-danger-solid);
   background: var(--ui-danger-solid);
   color: var(--ui-text-on-accent);
   box-shadow: var(--ui-button-destructive-shadow, inset 0 1px rgb(255 255 255 / 0.14), var(--ui-shadow-xs));
 }
 
-:host([variant='destructive'])::slotted(button:hover:enabled) {
+:host([variant='destructive']) ::slotted(button:hover:enabled) {
   background: var(--ui-danger-hover);
   border-color: var(--ui-danger-hover);
   box-shadow: var(--ui-shadow-sm);
   transform: translateY(-1px);
 }
 
-:host([variant='destructive'])::slotted(button:active:enabled) {
+:host([variant='destructive']) ::slotted(button:active:enabled) {
   box-shadow: none;
   transform: translateY(0);
 }
 
-:host([variant='ghost'])::slotted(button) {
+:host([variant='ghost']) ::slotted(button) {
   border-color: transparent;
   background: transparent;
 }
 
-:host([variant='ghost'])::slotted(button:hover:enabled) {
+:host([variant='ghost']) ::slotted(button:hover:enabled) {
   background: var(--ui-surface-muted);
   border-color: transparent;
 }
 
-:host([variant='ghost'])::slotted(button:active:enabled) {
+:host([variant='ghost']) ::slotted(button:active:enabled) {
   background: var(--ui-surface-subtle);
   border-color: transparent;
 }
@@ -104,8 +103,11 @@
   outline-offset: 2px;
 }
 
-::slotted(button:disabled),
 :host([data-disabled]) {
   opacity: 0.6;
+  cursor: not-allowed;
+}
+
+::slotted(button:disabled) {
   cursor: not-allowed;
 }
