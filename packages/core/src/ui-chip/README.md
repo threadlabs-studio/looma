@@ -21,4 +21,6 @@ Compact non-interactive metadata with `tag` and `pill` appearances.
 ## Theming
 
 Consumers may provide `--ui-chip-surface`, `--ui-chip-text`, and
-`--ui-chip-border`; Looma owns its compact xs regular density, typography, and shape.
+`--ui-chip-border`. The border applies to the `pill` appearance; `tag` uses its
+filled silhouette without an outline. Looma owns compact xs regular density,
+typography, and shape.

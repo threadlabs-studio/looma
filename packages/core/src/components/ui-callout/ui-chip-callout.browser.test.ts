@@ -34,12 +34,13 @@ describe("ui-chip and ui-callout visual contracts (real browser)", () => {
     expect(getComputedStyle(tag).fontSize).toBe("12px");
     expect(getComputedStyle(tag).fontWeight).toBe("400");
     expect(getComputedStyle(tag).paddingTop).toBe("2px");
-    expect(getComputedStyle(tag).paddingLeft).toBe("4px");
-    expect(tag.getBoundingClientRect().height).toBeGreaterThanOrEqual(20);
-    expect(tag.getBoundingClientRect().height).toBeLessThanOrEqual(21);
+    expect(getComputedStyle(tag).paddingLeft).toBe("6px");
+    expect(tag.getBoundingClientRect().height).toBeGreaterThanOrEqual(18);
+    expect(tag.getBoundingClientRect().height).toBeLessThanOrEqual(19);
     expect(getComputedStyle(tag).backgroundColor).toBe("rgb(1, 2, 3)");
     expect(getComputedStyle(tag).color).toBe("rgb(4, 5, 6)");
-    expect(getComputedStyle(tag).borderColor).toBe("rgb(7, 8, 9)");
+    expect(getComputedStyle(tag).borderTopWidth).toBe("0px");
+    expect(getComputedStyle(tag).borderBottomWidth).toBe("0px");
     expect(getComputedStyle(pill).borderTopLeftRadius).toBe("999px");
     expect(getComputedStyle(callout).gridTemplateColumns).toContain("16px");
     expect(getComputedStyle(callout).gap).toBe("8px");
