@@ -4,7 +4,7 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-06 12:20 PDT
+Last Updated: 2026-09-06 15:28 PDT
 Status: Candidate `0.1.22` is public; `0.1.23` is prepared with smart fields, closed-folder containment, and truthful depth-limit feedback. Historical release tasks below retain their original version context.
 
 ## Current Focus
@@ -37,6 +37,17 @@ Status: Candidate `0.1.22` is public; `0.1.23` is prepared with smart fields, cl
   editor, and Vue.
 
 ## Recent Progress
+
+- Controlled primitive state contracts:
+  - Made dialog, menu, popover, disclosure, tooltip, checkbox, switch, radio,
+    and tabs controlled props optional: `undefined` now selects local state,
+    while explicit `false` and empty values remain controlled.
+  - Limited `default*` props to uncontrolled initialization and retained the
+    rendered controlled state until the owning application accepts an emitted
+    close, change, or select request.
+  - Regenerated Core types/readmes and the public component API projection;
+    Chromium regressions cover false/empty controlled values with truthy
+    defaults plus refusal and subsequent parent acceptance.
 
 - Candidate `0.1.23` release preparation:
   - Expanded closed container targets before dispatching inside reorders, so a
