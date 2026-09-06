@@ -13,6 +13,13 @@
       --ui-border-default: #000000;
       --ui-border-strong: #000000;
       --ui-focus-ring: #0000ff;
+      --ui-accent-solid: #0000cc;
+      --ui-accent-hover: #000080;
+      --ui-accent-active: #000066;
+      --ui-accent-soft: #e6e6ff;
+      --ui-danger-solid: #8b0000;
+      --ui-danger-hover: #5c0000;
+      --ui-danger-soft: #fff0f0;
     }
   }
 
@@ -29,5 +36,12 @@
     --ui-border-default: #000000;
     --ui-border-strong: #000000;
     --ui-focus-ring: #0000ff;
+    --ui-accent-solid: #0000cc;
+    --ui-accent-hover: #000080;
+    --ui-accent-active: #000066;
+    --ui-accent-soft: #e6e6ff;
+    --ui-danger-solid: #8b0000;
+    --ui-danger-hover: #5c0000;
+    --ui-danger-soft: #fff0f0;
   }
 }
