@@ -2,7 +2,17 @@
 
 ## Unreleased
 
-No changes yet.
+## v0.1.24 Candidate
+
+- Add compact semantic `ui-chip` metadata and `ui-callout` primitives, including
+  persisted editor callout nodes and Info, Note, and Warning slash commands.
+- Make tree nesting structural, with derived accessibility depth and indentation,
+  and add keyboard navigation that preserves slotted interactive content.
+- Define controlled primitive state explicitly: omitted values use local defaults;
+  supplied false and empty values remain controlled until the owner accepts a
+  requested change.
+- Generate typed Vue adapter props and emitted event details from the public
+  component API, and fail CI when generated API metadata or declarations drift.
 
 ## v0.1.23 Candidate
 
