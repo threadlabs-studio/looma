@@ -4,6 +4,12 @@
 
 No changes yet.
 
+## v0.1.22 Candidate
+
+Nested sources keep parent-level outdent feedback current from their native
+`drag` coordinates. This covers ancestor rows that cannot receive a new
+`dragenter` because the gesture began inside their expanded subtree.
+
 ## v0.1.21 Candidate
 
 Tree drop targets become active on native `dragenter`, so short gestures
