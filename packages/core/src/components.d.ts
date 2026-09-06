@@ -385,10 +385,7 @@ export namespace Components {
     interface UiSearchShell {
     }
     interface UiSelect {
-        /**
-          * @default ''
-         */
-        "defaultValue": string;
+        "defaultValue"?: string;
         /**
           * @default false
          */
@@ -1210,9 +1207,6 @@ declare namespace LocalJSX {
     interface UiSearchShell {
     }
     interface UiSelect {
-        /**
-          * @default ''
-         */
         "defaultValue"?: string;
         /**
           * @default false

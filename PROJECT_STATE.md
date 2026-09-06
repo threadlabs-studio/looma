@@ -4,10 +4,13 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-06 11:09 PDT
+Last Updated: 2026-09-06 11:28 PDT
 Status: Candidate `0.1.21` is public; this `0.1.22` checkout combines main's recursive tree drops with unreleased PR #58 smart-field work. Historical release tasks below retain their original version context.
 
 ## Current Focus
+
+- Deliver PR #58's three verified ownership fixes on the existing shared branch;
+  PR merge and release remain separate actions.
 
 - Deliver the verified shared-history integration of PR #58 with origin/main;
   PR approval/merge and release publication remain separate owner-led steps.
@@ -42,6 +45,15 @@ Status: Candidate `0.1.21` is public; this `0.1.22` checkout combines main's rec
   editor, and Vue.
 
 ## Recent Progress
+
+- PR #58: external query-only combobox edits clear uncontrolled identity while
+  selection echoes retain it; rejected canonical proposals restore accepted labels
+  after owner notifications, including cached provider labels. Validation is reset
+  when ownership reconciliation changes the field. Explicit empty select defaults
+  now initialize once, separately from omitted defaults and later native/Vue edits.
+- Added Core and Vue browser regressions for all three findings. Generic Looma
+  changes only; no Knit or LoadOps edits. GitHub has no feedback threads or pending
+  review. Pre-work local/remote/PR SHA: `a28bfa43dccd6c1510882d02d04ab6a14a8d06ab`.
 
 - Integrated origin/main `ed4e39c6d0eca07e3e61cfb19b1911b589de4ddc` into
   PR #58 from `26fa0dc626cc684b7f12b31878ed094c8c169634` using a normal merge.
@@ -415,6 +427,18 @@ Status: Candidate `0.1.21` is public; this `0.1.22` checkout combines main's rec
 
 ## Verification Snapshot
 
+- PR #58 ownership follow-up: proof-first Core run reproduced seven failures
+  (query replacement/clear, static/provider selection/clear rejection, empty default).
+  Vue reproduced the same ownership defects. Focused checks now pass: Core units
+  8/8, Core Chromium 25/25 (including three theme axe cases), Vue Chromium 12/12.
+  Final sequential gates pass: API generation/repeatability, generated-contract
+  immutability, docs sync, lint, typecheck, build, test, browser, packed-facade
+  consumer matrix, mutation-observer, diff and conflict-marker checks. Full tests:
+  repository 109/109, facade 9/9, Core 52/52, layout 13/13, editor 12/12, Vue 15/15;
+  Chromium Core 65/65, editor 19/19, Vue 33/33, docs 5/5. Placeholder scripts are
+  excluded. A nullable test lookup and Vue test hydration assumptions were fixed;
+  affected/full gates were rerun green. Temporary screenshots were removed.
+
 - PR #58 main integration (2026-09-06): sequential API generation (twice), docs
   sync, generated-contract immutability, lint, typecheck, package/facade/docs/
   Storybook build, packed-consumer matrix, mutation-observer and diff checks pass.
@@ -575,6 +599,9 @@ Status: Candidate `0.1.21` is public; this `0.1.22` checkout combines main's rec
   `release:verify` gate can mark it eligible.
 
 ## Next Up
+
+- Capture one-shot exact-SHA CI after pushing the PR #58 ownership fixes; retain
+  owner review/merge and protected release qualification as separate follow-up.
 
 - Inspect hosted CI on PR #58's pushed integration SHA and obtain owner review
   before PR merge. Shared history is preserved; publication requires its own gates.

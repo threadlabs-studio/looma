@@ -35,6 +35,34 @@ const mount = async (config: import('../../field/combobox').ComboboxConfig = {},
   return { field, input: field.shadowRoot!.querySelector('input')!, root: field.shadowRoot! };
 };
 
+it.each(['Replacement', ''])('reconciles query-only replacement %j', async query => {
+  const { field, input, root } = await mount({ normalize: (_raw, request) => request.value, options: [{ id: 'a', value: '1', label: 'Alpha' }] }, 'query="Alpha" default-value="1" disclosure required');
+  expect((await field.validate()).output).toBe('1');
+  field.query = query; await flush();
+  expect(input.value).toBe(query);
+  expect(field.dataset.validation).toBe('pristine');
+  const result = await field.validate();
+  expect(result.status).toBe('error'); expect(result.output).toBeUndefined();
+  await userEvent.click(root.querySelector('button')!); await flush();
+  expect(root.querySelector('[role="option"]')?.getAttribute('aria-selected')).toBe('false');
+});
+
+for (const provider of [false, true]) {
+  it.each(['selection', 'clear'])('restores rejected %s with ' + (provider ? 'provider' : 'static') + ' labels', async kind => {
+    const options = [{ id: 'a', value: '1', label: 'Alpha' }, { id: 'b', value: '2', label: 'Beta' }];
+    const { field, input, root } = await mount({ ...(provider ? { provider: () => options, debounce: 0 } : { options }), normalize: (_raw, request) => request.value }, 'value="1" disclosure clearable required');
+    await userEvent.click(root.querySelector('button:last-child')!); await flush();
+    await expect.poll(() => input.value).toBe('Alpha');
+    expect((await field.validate()).output).toBe('1');
+    if (kind === 'selection') await userEvent.click(root.querySelectorAll('[role="option"]')[1]);
+    else await userEvent.click(root.querySelector('button')!);
+    await flush();
+    expect(field.value).toBe('1'); expect(input.value).toBe('Alpha');
+    const result = await field.validate();
+    expect(result.status).toBe('valid'); expect(result.output).toBe('1');
+  });
+}
+
 it('opens the full set with disclosure without replacing editing text; Home/End and Escape are predictable', async () => {
   const { input, root } = await mount({ options: [{ id: 'a', value: 'a', label: 'Alpha' }, { id: 'b', value: 'b', label: 'Beta' }] }, 'disclosure default-query="Original"');
   await userEvent.click(root.querySelector('button')!); await flush();

@@ -10,7 +10,7 @@ export class UISelect {
   @Element() host: HTMLElement;
 
   @Prop() value?: string;
-  @Prop({ attribute: 'default-value' }) defaultValue = '';
+  @Prop({ attribute: 'default-value' }) defaultValue?: string;
   @Prop() disabled = false;
   @Prop() invalid = false;
   @Prop() required = false;
@@ -37,7 +37,7 @@ export class UISelect {
     // A native select automatically selects its first option. Apply the host
     // default once regardless, then leave subsequent native/framework edits alone.
     if (this.value !== undefined) select.value = this.internalValue;
-    else if (!this.initialized && this.defaultValue) select.value = this.defaultValue;
+    else if (!this.initialized && this.defaultValue !== undefined) select.value = this.defaultValue;
     this.initialized = true;
     select.disabled = this.disabled;
     select.required = this.required;
