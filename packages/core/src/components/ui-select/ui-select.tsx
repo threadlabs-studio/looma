@@ -9,7 +9,7 @@ import { dispatchDetail, eventToTrigger } from '../../utils/events';
 export class UISelect {
   @Element() host: HTMLElement;
 
-  @Prop() value = '';
+  @Prop() value?: string;
   @Prop({ attribute: 'default-value' }) defaultValue = '';
   @Prop() disabled = false;
   @Prop() invalid = false;
@@ -21,7 +21,7 @@ export class UISelect {
 
   @Watch('value')
   syncFromProp() {
-    this.internalValue = this.value;
+    if (this.value !== undefined) this.internalValue = this.value;
   }
 
   @Watch('internalValue')
@@ -33,7 +33,11 @@ export class UISelect {
     const select = this.getSelect();
     if (!select) return;
     this.host.dataset.invalid = this.invalid ? 'true' : '';
-    select.value = this.internalValue || this.defaultValue;
+    // Preserve values owned by a framework-bound slotted select. Supplying a
+    // host value opts into controlled behavior; otherwise only an explicit
+    // default is applied when the native select has no selection.
+    if (this.value !== undefined) select.value = this.internalValue;
+    else if (!select.value && this.defaultValue) select.value = this.defaultValue;
     select.disabled = this.disabled;
     select.required = this.required;
     select.setAttribute('aria-invalid', this.invalid ? 'true' : 'false');
