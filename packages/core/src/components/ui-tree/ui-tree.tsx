@@ -65,6 +65,18 @@ export class UITree {
     return item.shadowRoot?.querySelector<HTMLElement>('[part="row"]') ?? null;
   }
 
+  private itemAtPoint(clientX: number, clientY: number): TreeItemElement | null {
+    let element = this.host.ownerDocument.elementFromPoint(clientX, clientY);
+    while (element) {
+      if (element.localName === 'ui-tree-item' && this.host.contains(element)) {
+        return element as TreeItemElement;
+      }
+      const root = element.getRootNode();
+      element = root instanceof ShadowRoot ? root.host : element.parentElement;
+    }
+    return null;
+  }
+
   private acceptsChildren(item: TreeItemElement): boolean {
     return Boolean(item.container ?? item.hasAttribute('container'))
       && !Boolean(item.disabled ?? item.hasAttribute('disabled'));
@@ -180,29 +192,44 @@ export class UITree {
     this.clearTarget();
   };
 
+  private dispatchReorder(source: TreeItemElement, target: TreeItemElement, position: DropPosition) {
+    const sourceId = this.itemId(source);
+    const targetId = this.itemId(target);
+    if (!sourceId || !targetId) return;
+    const sourceMeta = this.itemMetadata(source);
+    const targetMeta = this.itemMetadata(target);
+    dispatchDetail(this.host, 'reorder', {
+      sourceId,
+      targetId,
+      position,
+      sourceType: sourceMeta.type,
+      targetType: targetMeta.type,
+      sourceScope: sourceMeta.scope,
+      targetScope: targetMeta.scope,
+      trigger: 'pointer' as const,
+    });
+  }
+
   private onDrop = (event: DragEvent) => {
     if (!this.source || !this.target || !this.position) return;
     event.preventDefault();
-    const sourceId = this.itemId(this.source);
-    const targetId = this.itemId(this.target);
-    if (sourceId && targetId) {
-      const sourceMeta = this.itemMetadata(this.source);
-      const targetMeta = this.itemMetadata(this.target);
-      dispatchDetail(this.host, 'reorder', {
-        sourceId,
-        targetId,
-        position: this.position,
-        sourceType: sourceMeta.type,
-        targetType: targetMeta.type,
-        sourceScope: sourceMeta.scope,
-        targetScope: targetMeta.scope,
-        trigger: 'pointer' as const,
-      });
-    }
+    this.dispatchReorder(this.source, this.target, this.position);
     this.finishDrag();
   };
 
-  private onDragEnd = () => {
+  private onDragEnd = (event: DragEvent) => {
+    if (this.source) {
+      const target = this.itemAtPoint(event.clientX, event.clientY);
+      if (target && target !== this.source) {
+        const row = this.rowFor(target);
+        if (row) {
+          const position = classifyDropPosition(row.getBoundingClientRect(), event.clientY, this.acceptsChildren(target));
+          if (this.permitsDrop(this.source, target, position)) {
+            this.dispatchReorder(this.source, target, position);
+          }
+        }
+      }
+    }
     this.finishDrag();
   };
 

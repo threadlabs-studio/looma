@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { userEvent } from '@vitest/browser/context';
 
 import '../../styles.css';
 import { initializeInputModality } from '../../input-modality';
@@ -10,8 +11,8 @@ const flushStencil = async () => {
   }
 };
 
-function dragEvent(type: string, clientY: number, dataTransfer: Partial<DataTransfer> = {}) {
-  const event = new DragEvent(type, { bubbles: true, composed: true, cancelable: true, clientY });
+function dragEvent(type: string, clientY: number, dataTransfer: Partial<DataTransfer> = {}, clientX = 0) {
+  const event = new DragEvent(type, { bubbles: true, composed: true, cancelable: true, clientX, clientY });
   Object.defineProperty(event, 'dataTransfer', { value: dataTransfer });
   return event;
 }
@@ -225,6 +226,94 @@ describe('ui-tree drag and hierarchy interactions', () => {
       targetType: 'folder',
       targetScope: 'root',
     })]);
+  });
+
+  it('commits a short native drag that ends on a folder before dragover fires', async () => {
+    document.body.innerHTML = `
+      <ui-tree label="Pages">
+        <ui-tree-item item-id="source" label="Source" drag-type="folder" accepts="page,folder" sortable draggable="true" part="drag-handle" container>
+          <span>Source</span>
+        </ui-tree-item>
+        <ui-tree-item item-id="folder" label="Folder" drag-type="folder" accepts="page,folder" sortable draggable="true" part="drag-handle" container>
+          <span>Folder</span>
+        </ui-tree-item>
+      </ui-tree>
+    `;
+    await flushStencil();
+
+    const tree = document.querySelector('ui-tree')!;
+    const source = document.querySelector<HTMLElement>('ui-tree-item[item-id="source"]')!;
+    const folder = document.querySelector<HTMLElement>('ui-tree-item[item-id="folder"]')!;
+    const folderRow = folder.shadowRoot!.querySelector<HTMLElement>('[part="row"]')!;
+    const folderRect = folderRow.getBoundingClientRect();
+    const clientX = folderRect.left + (folderRect.width / 2);
+    const clientY = folderRect.top + (folderRect.height / 2);
+    const elementAtDropPoint = document.elementFromPoint(clientX, clientY);
+    const moves: unknown[] = [];
+    tree.addEventListener('reorder', event => moves.push((event as CustomEvent).detail));
+
+    expect(elementAtDropPoint?.localName).toBe('ui-tree-item');
+    expect((elementAtDropPoint as HTMLElement).getAttribute('item-id')).toBe('folder');
+
+    source.dispatchEvent(dragEvent('dragstart', clientY, {
+      setData: vi.fn(),
+      setDragImage: vi.fn(),
+      effectAllowed: 'move',
+    }, clientX));
+    expect(source.getAttribute('data-dragging')).toBe('true');
+    source.dispatchEvent(dragEvent('dragend', clientY, {}, clientX));
+
+    expect(moves).toEqual([{
+      sourceId: 'source',
+      targetId: 'folder',
+      position: 'inside',
+      sourceType: 'folder',
+      targetType: 'folder',
+      sourceScope: '',
+      targetScope: '',
+      trigger: 'pointer',
+    }]);
+
+    source.dispatchEvent(dragEvent('dragstart', clientY, {
+      setData: vi.fn(),
+      setDragImage: vi.fn(),
+    }, clientX));
+    source.dispatchEvent(dragEvent('dragend', -1, {}, -1));
+    expect(moves).toHaveLength(1);
+  });
+
+  it('supports a browser-driven full-row drag into a folder', async () => {
+    document.body.innerHTML = `
+      <ui-tree label="Pages">
+        <ui-tree-item item-id="source" label="Source" drag-type="folder" accepts="page,folder" sortable draggable="true" part="drag-handle" container>
+          <span>Source</span>
+        </ui-tree-item>
+        <ui-tree-item item-id="folder" label="Folder" drag-type="folder" accepts="page,folder" sortable draggable="true" part="drag-handle" container>
+          <span>Folder</span>
+        </ui-tree-item>
+      </ui-tree>
+    `;
+    await flushStencil();
+
+    const tree = document.querySelector('ui-tree')!;
+    const source = document.querySelector<HTMLElement>('ui-tree-item[item-id="source"]')!;
+    const folder = document.querySelector<HTMLElement>('ui-tree-item[item-id="folder"]')!;
+    const folderRow = folder.shadowRoot!.querySelector<HTMLElement>('[part="row"]')!;
+    const folderRect = folderRow.getBoundingClientRect();
+    const moves: unknown[] = [];
+    tree.addEventListener('reorder', event => moves.push((event as CustomEvent).detail));
+
+    await userEvent.dragAndDrop(source, folder, {
+      targetPosition: { x: folderRect.width / 2, y: folderRect.height / 2 },
+    });
+
+    expect(moves).toHaveLength(1);
+    expect(moves[0]).toMatchObject({
+      sourceId: 'source',
+      targetId: 'folder',
+      position: 'inside',
+      trigger: 'pointer',
+    });
   });
 
   it('distinguishes folder containment and expands a closed target after hover intent', async () => {
