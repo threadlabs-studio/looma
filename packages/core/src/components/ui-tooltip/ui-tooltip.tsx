@@ -1,5 +1,5 @@
-import { Component, Prop, Element, State, Watch, Host, h } from '@stencil/core';
-import { openOverlay, closeOverlay, requestTopOverlayClose } from '../../overlay/manager';
+import { Component, Prop, Element, State, Watch, Host, Event, type EventEmitter, h } from '@stencil/core';
+import { openOverlay, closeOverlay } from '../../overlay/manager';
 import { dispatchDetail } from '../../utils/events';
 import {
   createAnchoredSurface,
@@ -23,6 +23,15 @@ export class UITooltip {
   @Prop({ attribute: 'show-delay' }) showDelay = 500;
   /** Pointer leave grace period in milliseconds. */
   @Prop({ attribute: 'hide-delay' }) hideDelay = 100;
+
+  /** Click or tap pins the description; activate again to dismiss. */
+  @Prop({ attribute: 'toggle-on-click' }) toggleOnClick = false;
+
+  private pinned = false;
+  private focused = false;
+
+  @Event({ eventName: 'open' }) opened: EventEmitter<{ open: boolean; reason: string; trigger: string }>;
+  @Event({ eventName: 'close' }) closed: EventEmitter<{ open: boolean; reason: string; trigger: string }>;
 
   @State() internalOpen = false;
 
@@ -65,11 +74,13 @@ export class UITooltip {
   }
 
   componentDidLoad() {
+    if (!this.host.id) this.host.id = this.overlayId;
     this.syncFromProp();
     this.internalOpen = this.internalOpen || this.defaultOpen;
     this.syncTrigger();
     this.setupSurface();
-    this.host.addEventListener('keydown', this.onKeydown);
+    this.host.addEventListener('pointerenter', this.onSurfaceEnter);
+    this.host.addEventListener('pointerleave', this.onTriggerLeave);
     this.syncOverlay();
   }
 
@@ -82,13 +93,14 @@ export class UITooltip {
     this.detachTriggerListeners();
     this.surface?.destroy();
     this.surface = null;
-    this.host.removeEventListener('keydown', this.onKeydown);
+    this.host.removeEventListener('pointerenter', this.onSurfaceEnter);
+    this.host.removeEventListener('pointerleave', this.onTriggerLeave);
     closeOverlay(this.overlayId);
   }
 
   private syncTrigger() {
     const next = this.for
-      ? this.host.ownerDocument.getElementById(this.for)
+      ? (this.host.getRootNode() as Document | ShadowRoot).getElementById(this.for)
       : this.host.previousElementSibling as HTMLElement | null;
     if (next === this.trigger) return;
     this.detachTriggerListeners();
@@ -108,6 +120,11 @@ export class UITooltip {
   private attachTriggerListeners() {
     this.detachTriggerListeners();
     if (!this.trigger) return;
+    const ids = new Set((this.trigger.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean));
+    ids.add(this.host.id);
+    this.trigger.setAttribute('aria-describedby', [...ids].join(' '));
+    this.trigger.addEventListener('click', this.onTriggerClick);
+    this.trigger.addEventListener('keydown', this.onTriggerKeydown);
     this.trigger.addEventListener('pointerenter', this.onTriggerEnter);
     this.trigger.addEventListener('pointerleave', this.onTriggerLeave);
     this.trigger.addEventListener('focusin', this.onTriggerFocusIn);
@@ -116,6 +133,11 @@ export class UITooltip {
 
   private detachTriggerListeners() {
     if (!this.trigger) return;
+    const ids = (this.trigger.getAttribute('aria-describedby') || '').split(/\s+/).filter(id => id && id !== this.host.id);
+    if (ids.length) this.trigger.setAttribute('aria-describedby', ids.join(' '));
+    else this.trigger.removeAttribute('aria-describedby');
+    this.trigger.removeEventListener('click', this.onTriggerClick);
+    this.trigger.removeEventListener('keydown', this.onTriggerKeydown);
     this.trigger.removeEventListener('pointerenter', this.onTriggerEnter);
     this.trigger.removeEventListener('pointerleave', this.onTriggerLeave);
     this.trigger.removeEventListener('focusin', this.onTriggerFocusIn);
@@ -149,7 +171,21 @@ export class UITooltip {
     });
   }
 
-  private onTriggerEnter = () => {
+  private onSurfaceEnter = () => this.clearHideTimer();
+
+  private onTriggerClick = (event: MouseEvent) => {
+    if (!this.toggleOnClick) return;
+    this.clearTimers();
+    this.pinned = !this.pinned;
+    this.setInteractionOpen(this.pinned, event.detail === 0 ? 'keyboard' : 'pointer');
+  };
+
+  private onTriggerKeydown = (event: KeyboardEvent) => {
+    if (event.key === 'Escape') this.clearTimers();
+  };
+
+  private onTriggerEnter = (event: PointerEvent) => {
+    if (event.pointerType === 'touch') return;
     this.clearHideTimer();
     if (this.internalOpen || this.showTimer !== null) return;
     this.showTimer = setTimeout(() => {
@@ -160,7 +196,7 @@ export class UITooltip {
 
   private onTriggerLeave = () => {
     this.clearShowTimer();
-    if (!this.internalOpen || this.hideTimer !== null) return;
+    if (this.focused || this.pinned || !this.internalOpen || this.hideTimer !== null) return;
     this.hideTimer = setTimeout(() => {
       this.hideTimer = null;
       this.setInteractionOpen(false, 'pointer');
@@ -168,6 +204,7 @@ export class UITooltip {
   };
 
   private onTriggerFocusIn = () => {
+    this.focused = true;
     this.clearTimers();
     this.setInteractionOpen(true, 'keyboard');
   };
@@ -175,28 +212,25 @@ export class UITooltip {
   private onTriggerFocusOut = (e: FocusEvent) => {
     const related = e.relatedTarget as Node | null;
     if (related && this.host.contains(related)) return;
+    this.focused = false;
+    this.pinned = false;
     this.clearTimers();
     this.setInteractionOpen(false, 'keyboard');
   };
 
   private handleRequestClose(reason: string, trigger: string) {
-    if (reason === 'escape') {
+    if (reason === 'escape' || (reason === 'light-dismiss' && this.toggleOnClick)) {
+      this.pinned = false;
       this.clearTimers();
       this.internalOpen = false;
       dispatchDetail(this.host, 'close', {
         open: false,
-        reason: 'escape',
+        reason,
         trigger: trigger as 'keyboard' | 'pointer' | 'programmatic',
       });
-      this.trigger?.focus();
+
     }
   }
-
-  private onKeydown = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      requestTopOverlayClose('escape', 'keyboard');
-    }
-  };
 
   render() {
     return (
@@ -204,7 +238,6 @@ export class UITooltip {
         role="tooltip"
         hidden={!this.internalOpen}
         data-open={this.internalOpen ? '' : undefined}
-        onKeyDown={this.onKeydown}
       >
         <slot />
       </Host>

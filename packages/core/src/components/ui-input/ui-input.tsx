@@ -9,7 +9,7 @@ import { eventToTrigger, dispatchDetail } from '../../utils/events';
 export class UIInput {
   @Element() host: HTMLElement;
 
-  @Prop() value = '';
+  @Prop() value?: string;
   @Prop({ attribute: 'default-value' }) defaultValue = '';
   @Prop() disabled = false;
   @Prop() invalid = false;
@@ -21,7 +21,7 @@ export class UIInput {
 
   @Watch('value')
   syncFromProp() {
-    this.internalValue = this.value;
+    if (this.value !== undefined) this.internalValue = this.value;
   }
 
   @Watch('internalValue')
@@ -33,7 +33,10 @@ export class UIInput {
     const input = this.getInput();
     if (!input) return;
     this.host.dataset.invalid = this.invalid ? 'true' : '';
-    input.value = this.internalValue;
+    // When the host has no value prop, the slotted native control is
+    // intentionally uncontrolled. Frameworks such as Vue can then own its
+    // value without Looma resetting it during hydration or unrelated updates.
+    if (this.value !== undefined) input.value = this.internalValue;
     input.defaultValue = this.defaultValue;
     input.disabled = this.disabled;
     input.readOnly = this.readOnly;

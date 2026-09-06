@@ -2,7 +2,12 @@
 
 ## Unreleased
 
-No changes yet.
+- Add a domain-neutral smart combobox with contextual async suggestions, separate
+  query/selection state, connected disclosure/help, rich options, and typed Vue models.
+- Add Standard Schema field validation, a separate optional Valibot adapter,
+  non-destructive display formatting, and scoped restrained typography hooks.
+- Make tooltip descriptions accessible and optionally pinnable by click/touch,
+  preserving hover/focus access and Escape dismissal.
 
 ## v0.1.22 Candidate
 
