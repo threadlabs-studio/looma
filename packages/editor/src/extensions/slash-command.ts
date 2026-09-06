@@ -4,6 +4,7 @@ import Suggestion, {
   type SuggestionProps,
 } from "@tiptap/suggestion";
 import type { LoomaIconName } from "@threadlabs/looma-core";
+import type { LoomaCalloutTone } from "./callout";
 import { insertTableAtRange } from "./table-commands";
 
 export interface LoomaSlashCommandContext {
@@ -33,6 +34,32 @@ export interface LoomaSlashCommandOptions {
   onStateChange?: (state: LoomaSlashMenuSnapshot) => void;
   onOpenImagePicker?: () => void;
 }
+
+const CALLOUT_COMMANDS: ReadonlyArray<{
+  title: string;
+  description: string;
+  tone: LoomaCalloutTone;
+  keywords: string[];
+}> = [
+  {
+    title: "Info",
+    description: "Informational callout",
+    tone: "info",
+    keywords: ["info", "information", "callout", "panel"],
+  },
+  {
+    title: "Note",
+    description: "Highlighted note",
+    tone: "note",
+    keywords: ["note", "callout", "panel"],
+  },
+  {
+    title: "Warning",
+    description: "Important warning",
+    tone: "warning",
+    keywords: ["warning", "caution", "alert", "callout", "panel"],
+  },
+];
 
 export function getDefaultSlashCommands(
   onOpenImagePicker?: () => void,
@@ -92,6 +119,15 @@ export function getDefaultSlashCommands(
         editor.chain().focus().deleteRange(range).toggleBlockquote().run();
       },
     },
+    ...CALLOUT_COMMANDS.map(({ title, description, tone, keywords }) => ({
+      title,
+      description,
+      icon: "panel-left" as LoomaIconName,
+      keywords,
+      command: ({ editor, range }: LoomaSlashCommandContext) => {
+        editor.chain().focus().deleteRange(range).wrapIn("loomaCallout", { tone }).run();
+      },
+    })),
     {
       title: "Inline code",
       description: "Monospace code span",

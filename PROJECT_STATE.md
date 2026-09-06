@@ -4,22 +4,21 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-05 12:09 PDT
-Status: Candidate `0.1.17` is public; `0.1.18` is prepared with workspace-user mentions, context-menu focus corrections, and gentler table row/column handles
+Last Updated: 2026-09-06 10:16 PDT
+Status: Candidate `0.1.21` is public; `0.1.22` is prepared with complete recursive tree drops
 
 ## Current Focus
 
-- Publish and qualify Candidate `0.1.18` with the generic editor-mention API,
-  context-menu focus corrections, gentler table row/column handles, and the
-  exact Knit consumer evidence.
+- Publish and qualify Candidate `0.1.22` with reliable short native and
+  recursive tree drops plus exact Knit consumer evidence.
 - Keep dense tree rows at 32px/15px for pointer use and animate to 44px targets
   only after a real touch interaction establishes touch modality.
 - Verify that controlled editor replacements preserve a focused ProseMirror
   selection, while Knit server acknowledgements no longer echo authored JSON
   through the active editor.
 
-- Publish Candidate `0.1.18`, then consume its exact registry bytes
-  from Knit. Candidate `0.1.17` remains the current public `candidate` until
+- Publish Candidate `0.1.22`, then consume its exact registry bytes
+  from Knit. Candidate `0.1.21` remains the current public `candidate` until
   those replacement bytes pass main CI and protected publication.
 - Complete hosted-docs qualification and promote Candidate `0.1.13`, which is
   published and qualified in Knit with the opinionated Lucide icon
@@ -38,6 +37,32 @@ Status: Candidate `0.1.17` is public; `0.1.18` is prepared with workspace-user m
 
 ## Recent Progress
 
+- Candidate `0.1.22` release preparation:
+  - Tracked native source-drag coordinates so a nested item can target its
+    ancestor row even though the pointer began inside that expanded ancestor.
+  - Proved parent-level outdent feedback alongside first-child containment,
+    recursive hover expansion, and grandchild insertion in Knit's real
+    Chromium integration suite.
+- Candidate `0.1.21` release preparation:
+  - Established native tree targets on `dragenter`, covering short gestures
+    that reach a row without a subsequent `dragover` before release.
+  - Kept drop feedback active across item shadow boundaries so recursive
+    hover expansion, child-level insertion, and parent-level outdenting remain
+    visible and actionable.
+  - Proved the complete interaction in Knit's real-browser suite with native
+    mouse input instead of synthetic drag-event dispatches.
+- Candidate `0.1.20` release preparation:
+  - Completed short native drags from the item under the released pointer when
+    Chromium omits `dragover` and `drop`, while leaving normal and canceled
+    gestures unchanged.
+  - Added real-browser full-row dragging and an exact `dragstart` to `dragend`
+    regression for the sequence observed in Knit Preview.
+- Candidate `0.1.19` release preparation:
+  - Anchored `after` insertion feedback below an expanded folder's complete
+    subtree while preserving child-level bars between nested siblings.
+  - Defined highlighted `inside` drops as the first compatible child position
+    and added real-Chromium coverage for containment, hover expansion, nested
+    insertion, and parent-level outdenting.
 - Candidate `0.1.18` release preparation:
   - Advanced the singleton facade, release workflows, consumer fixtures, and
     public documentation after `0.1.17` published from the earlier release

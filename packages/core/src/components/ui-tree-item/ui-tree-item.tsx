@@ -143,13 +143,14 @@ export class UITreeItem {
           <span class="leading" part="leading"><slot name="leading" /></span>
           <span class="label" part="label"><slot /></span>
           <span class="actions" part="actions"><slot name="actions" /></span>
-          <span class="drop-indicator" part="drop-indicator" aria-hidden="true" />
+          <span class="drop-indicator row-drop-indicator" part="drop-indicator" aria-hidden="true" />
         </div>
         {this.container ? (
           <div class="children" part="children" role="group" hidden={!this.internalExpanded}>
             <slot name="children" />
           </div>
         ) : null}
+        <span class="drop-indicator subtree-drop-indicator" part="drop-indicator" aria-hidden="true" />
       </Host>
     );
   }

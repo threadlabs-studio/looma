@@ -34,6 +34,8 @@ export class UITree {
   componentDidLoad() {
     this.hoverIntent = createHoverIntent(this.hoverExpandDelay, this.expandTarget);
     this.host.addEventListener('dragstart', this.onDragStart);
+    this.host.addEventListener('drag', this.onDrag);
+    this.host.addEventListener('dragenter', this.onDragOver);
     this.host.addEventListener('dragover', this.onDragOver);
     this.host.addEventListener('dragleave', this.onDragLeave);
     this.host.addEventListener('drop', this.onDrop);
@@ -44,6 +46,8 @@ export class UITree {
   disconnectedCallback() {
     this.hoverIntent?.destroy();
     this.host.removeEventListener('dragstart', this.onDragStart);
+    this.host.removeEventListener('drag', this.onDrag);
+    this.host.removeEventListener('dragenter', this.onDragOver);
     this.host.removeEventListener('dragover', this.onDragOver);
     this.host.removeEventListener('dragleave', this.onDragLeave);
     this.host.removeEventListener('drop', this.onDrop);
@@ -63,6 +67,28 @@ export class UITree {
 
   private rowFor(item: TreeItemElement): HTMLElement | null {
     return item.shadowRoot?.querySelector<HTMLElement>('[part="row"]') ?? null;
+  }
+
+  private itemAtPoint(clientX: number, clientY: number): TreeItemElement | null {
+    let element = this.host.ownerDocument.elementFromPoint(clientX, clientY);
+    while (element) {
+      if (element.localName === 'ui-tree-item' && this.host.contains(element)) {
+        return element as TreeItemElement;
+      }
+      const root = element.getRootNode();
+      element = root instanceof ShadowRoot ? root.host : element.parentElement;
+    }
+    return null;
+  }
+
+  private isWithinTree(node: EventTarget | null): boolean {
+    let element: HTMLElement | null = node instanceof HTMLElement ? node : null;
+    while (element) {
+      if (element === this.host || this.host.contains(element)) return true;
+      const root = element.getRootNode();
+      element = root instanceof ShadowRoot ? root.host as HTMLElement : element.parentElement;
+    }
+    return false;
   }
 
   private acceptsChildren(item: TreeItemElement): boolean {
@@ -142,24 +168,22 @@ export class UITree {
     setElementDragImage(event.dataTransfer, row);
   };
 
-  private onDragOver = (event: DragEvent) => {
-    if (!this.source) return;
-    const target = this.itemFromEvent(event);
+  private updateTarget(target: TreeItemElement | null, clientY: number, dataTransfer: DataTransfer | null): boolean {
+    if (!this.source) return false;
     if (!target || target === this.source) {
       this.clearTarget();
-      return;
+      return false;
     }
     const row = this.rowFor(target);
-    if (!row) return;
+    if (!row) return false;
 
-    const position = classifyDropPosition(row.getBoundingClientRect(), event.clientY, this.acceptsChildren(target));
+    const position = classifyDropPosition(row.getBoundingClientRect(), clientY, this.acceptsChildren(target));
     if (!this.permitsDrop(this.source, target, position)) {
-      if (event.dataTransfer) event.dataTransfer.dropEffect = 'none';
+      if (dataTransfer) dataTransfer.dropEffect = 'none';
       this.clearTarget();
-      return;
+      return false;
     }
-    event.preventDefault();
-    if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+    if (dataTransfer) dataTransfer.dropEffect = 'move';
     if (this.target !== target || this.position !== position) {
       this.clearTarget();
       this.target = target;
@@ -172,37 +196,71 @@ export class UITree {
     } else {
       this.hoverIntent?.cancel();
     }
+    return true;
+  }
+
+  private onDrag = (event: DragEvent) => {
+    if (!this.source || (event.clientX === 0 && event.clientY === 0)) return;
+    const target = this.itemAtPoint(event.clientX, event.clientY);
+    // Native dragenter does not fire when a nested source moves onto an
+    // ancestor row: the pointer was already inside that ancestor's host. The
+    // source drag event still carries the live pointer coordinates, so use it
+    // to keep ancestor/outdent feedback current.
+    if (target) this.updateTarget(target, event.clientY, event.dataTransfer);
+  };
+
+  private onDragOver = (event: DragEvent) => {
+    if (!this.source) return;
+    const target = this.itemFromEvent(event);
+    if (this.updateTarget(target, event.clientY, event.dataTransfer)) {
+      event.preventDefault();
+    }
   };
 
   private onDragLeave = (event: DragEvent) => {
-    const related = event.relatedTarget;
-    if (related instanceof Node && this.host.contains(related)) return;
+    if (this.isWithinTree(event.relatedTarget)) return;
+    if (this.itemAtPoint(event.clientX, event.clientY)) return;
     this.clearTarget();
   };
+
+  private dispatchReorder(source: TreeItemElement, target: TreeItemElement, position: DropPosition) {
+    const sourceId = this.itemId(source);
+    const targetId = this.itemId(target);
+    if (!sourceId || !targetId) return;
+    const sourceMeta = this.itemMetadata(source);
+    const targetMeta = this.itemMetadata(target);
+    dispatchDetail(this.host, 'reorder', {
+      sourceId,
+      targetId,
+      position,
+      sourceType: sourceMeta.type,
+      targetType: targetMeta.type,
+      sourceScope: sourceMeta.scope,
+      targetScope: targetMeta.scope,
+      trigger: 'pointer' as const,
+    });
+  }
 
   private onDrop = (event: DragEvent) => {
     if (!this.source || !this.target || !this.position) return;
     event.preventDefault();
-    const sourceId = this.itemId(this.source);
-    const targetId = this.itemId(this.target);
-    if (sourceId && targetId) {
-      const sourceMeta = this.itemMetadata(this.source);
-      const targetMeta = this.itemMetadata(this.target);
-      dispatchDetail(this.host, 'reorder', {
-        sourceId,
-        targetId,
-        position: this.position,
-        sourceType: sourceMeta.type,
-        targetType: targetMeta.type,
-        sourceScope: sourceMeta.scope,
-        targetScope: targetMeta.scope,
-        trigger: 'pointer' as const,
-      });
-    }
+    this.dispatchReorder(this.source, this.target, this.position);
     this.finishDrag();
   };
 
-  private onDragEnd = () => {
+  private onDragEnd = (event: DragEvent) => {
+    if (this.source) {
+      const target = this.itemAtPoint(event.clientX, event.clientY);
+      if (target && target !== this.source) {
+        const row = this.rowFor(target);
+        if (row) {
+          const position = classifyDropPosition(row.getBoundingClientRect(), event.clientY, this.acceptsChildren(target));
+          if (this.permitsDrop(this.source, target, position)) {
+            this.dispatchReorder(this.source, target, position);
+          }
+        }
+      }
+    }
     this.finishDrag();
   };
 
