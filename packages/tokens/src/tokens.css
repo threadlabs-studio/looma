@@ -39,6 +39,8 @@
       source-sans-pro,
       sans-serif;
     --ui-font-family-sans: var(--ui-font-stack-system);
+    /* Quiet metadata scale for compact, non-interactive component labels. */
+    --ui-font-size-2xs: 0.6875rem;
     --ui-font-size-xs: 0.75rem;
     --ui-font-size-sm: 0.875rem;
     /* Dense interactive text: legible at 15px without body-copy spacing. */
@@ -56,6 +58,7 @@
     --ui-font-semibold: 600;
     --ui-font-bold: 700;
 
+    --ui-space-0-5: 0.125rem;
     --ui-space-1: 0.25rem;
     --ui-space-2: 0.5rem;
     --ui-space-3: 0.75rem;

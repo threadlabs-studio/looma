@@ -10,7 +10,6 @@ import {
 
 type TreeItemElement = HTMLElement & {
   itemId?: string;
-  depth?: number;
   dropDepth?: number;
   subtreeDepth?: number;
   container?: boolean;
@@ -46,6 +45,7 @@ export class UITree {
   private rejectedPosition: DropPosition | null = null;
   private rejection: DepthDropRejection | null = null;
   private hoverIntent: HoverIntentController | null = null;
+  private structureObserver: MutationObserver | null = null;
 
   componentDidLoad() {
     this.hoverIntent = createHoverIntent(this.hoverExpandDelay, this.expandTarget);
@@ -57,6 +57,9 @@ export class UITree {
     this.host.addEventListener('drop', this.onDrop);
     this.host.addEventListener('dragend', this.onDragEnd);
     this.host.addEventListener('keydown', this.onKeyDown);
+    this.syncStructuralLevels();
+    this.structureObserver = new MutationObserver(this.syncStructuralLevels);
+    this.structureObserver.observe(this.host, { childList: true, subtree: true });
   }
 
   disconnectedCallback() {
@@ -69,7 +72,15 @@ export class UITree {
     this.host.removeEventListener('drop', this.onDrop);
     this.host.removeEventListener('dragend', this.onDragEnd);
     this.host.removeEventListener('keydown', this.onKeyDown);
+    this.structureObserver?.disconnect();
+    this.structureObserver = null;
   }
+
+  private syncStructuralLevels = () => {
+    for (const item of Array.from(this.host.querySelectorAll<TreeItemElement>('ui-tree-item'))) {
+      item.dispatchEvent(new CustomEvent('ui-tree-structure-sync'));
+    }
+  };
 
   private itemFromEvent(event: Event): TreeItemElement | null {
     return (event.composedPath().find(node => (
@@ -127,8 +138,23 @@ export class UITree {
     if (item.dropDepth !== undefined) return item.dropDepth;
     const dropDepth = item.getAttribute('drop-depth');
     if (dropDepth !== null) return Number(dropDepth);
-    if (item.depth !== undefined) return item.depth;
-    return Number(item.getAttribute('depth')) || 1;
+    return Number(item.getAttribute('aria-level')) || 1;
+  }
+
+  private subtreeDepth(item: TreeItemElement): number {
+    if (item.subtreeDepth !== undefined) return Math.max(0, Math.floor(item.subtreeDepth));
+    const override = item.getAttribute('subtree-depth');
+    if (override !== null) return Math.max(0, Math.floor(Number(override)));
+
+    return Array.from(item.querySelectorAll<TreeItemElement>('ui-tree-item')).reduce((deepest, descendant) => {
+      let nesting = 0;
+      let ancestor = descendant.parentElement?.closest('ui-tree-item') ?? null;
+      while (ancestor && ancestor !== item) {
+        nesting += 1;
+        ancestor = ancestor.parentElement?.closest('ui-tree-item') ?? null;
+      }
+      return ancestor === item ? Math.max(deepest, nesting + 1) : deepest;
+    }, 0);
   }
 
   private dropRejection(source: TreeItemElement, target: TreeItemElement, position: DropPosition): DropRejection | null {
@@ -148,9 +174,9 @@ export class UITree {
     }
 
     const maxDepth = Math.max(0, Math.floor(this.maxDepth));
-    if (maxDepth > 0 && source.subtreeDepth !== undefined) {
+    if (maxDepth > 0) {
       const targetDepth = Math.max(0, Math.floor(this.constraintDepth(target)));
-      const subtreeDepth = Math.max(0, Math.floor(source.subtreeDepth));
+      const subtreeDepth = this.subtreeDepth(source);
       const resultingDepth = targetDepth + (position === 'inside' ? 1 : 0) + subtreeDepth;
       if (resultingDepth > maxDepth) return { reason: 'max-depth', maxDepth, resultingDepth };
     }

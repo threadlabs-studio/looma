@@ -27,7 +27,7 @@ function createTreeDemo() {
       </ui-tree-item>
       <ui-tree-item item-id="research" label="Research" drag-type="folder" drop-scope="root" accepts="page,folder" container sortable>
         <span>Research</span>
-        <ui-tree-item slot="children" item-id="interviews" label="Interview notes" depth="2" drag-type="page" drop-scope="research" sortable>
+        <ui-tree-item slot="children" item-id="interviews" label="Interview notes" drag-type="page" drop-scope="research" sortable>
           <span>Interview notes</span>
         </ui-tree-item>
       </ui-tree-item>

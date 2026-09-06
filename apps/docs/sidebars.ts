@@ -78,6 +78,8 @@ const sidebars: SidebarsConfig = {
       label: "Display",
       items: [
         "components/ui-badge",
+        "components/ui-chip",
+        "components/ui-callout",
         "components/ui-avatar",
         "components/ui-avatar-group",
         "components/ui-disclosure",

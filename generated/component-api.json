@@ -217,6 +217,34 @@
       ]
     },
     {
+      "tag": "ui-callout",
+      "package": "@threadlabs/looma",
+      "className": "UICalloutElement",
+      "description": "Static semantic message surface with a tone-specific icon.",
+      "attributes": [
+        {
+          "name": "tone",
+          "property": "tone",
+          "type": "\"info\" | \"note\" | \"warning\" | \"success\" | \"error\"",
+          "default": "info"
+        }
+      ],
+      "properties": [
+        {
+          "name": "tone",
+          "type": "\"info\" | \"note\" | \"warning\" | \"success\" | \"error\"",
+          "default": "info"
+        }
+      ],
+      "events": [],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Callout message content."
+        }
+      ]
+    },
+    {
       "tag": "ui-center",
       "package": "@threadlabs/looma/layout",
       "className": "UICenterElement",
@@ -338,6 +366,34 @@
         {
           "name": "default",
           "description": "Default child content."
+        }
+      ]
+    },
+    {
+      "tag": "ui-chip",
+      "package": "@threadlabs/looma",
+      "className": "UIChipElement",
+      "description": "Compact, non-interactive metadata label with tag and pill appearances.",
+      "attributes": [
+        {
+          "name": "appearance",
+          "property": "appearance",
+          "type": "\"tag\" | \"pill\"",
+          "default": "tag"
+        }
+      ],
+      "properties": [
+        {
+          "name": "appearance",
+          "type": "\"tag\" | \"pill\"",
+          "default": "tag"
+        }
+      ],
+      "events": [],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Chip text or metadata."
         }
       ]
     },

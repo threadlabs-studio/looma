@@ -3,16 +3,16 @@
  */
 
 export {
+  LoomaCallout,
+  LOOMA_CALLOUT_TONES,
+  type LoomaCalloutTone,
+} from "./callout";
+export {
   getDefaultEditorExtensions,
   getLoomaTableExtensions,
   LoomaTableKit,
   type DefaultEditorExtensionsOptions,
 } from "./preset";
-export {
-  LOOMA_CALLOUT_TONES,
-  LoomaCallout,
-  type LoomaCalloutTone,
-} from "./callout";
 export {
   getActiveTableUiState,
   handleTableAction,

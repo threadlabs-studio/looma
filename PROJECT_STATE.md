@@ -38,6 +38,15 @@ Status: Candidate `0.1.22` is public; `0.1.23` is prepared with smart fields, cl
 
 ## Recent Progress
 
+- Unpublished Looma foundation work on `feature/ui-chip-callout` is rebased on
+  Candidate `0.1.23`: adds token-owned compact `ui-chip` and `ui-callout`
+  primitives, then applies the callout recipe to persisted editor callouts.
+  The editor's Info, Note, and Warning slash commands now target the real
+  `loomaCallout` Tiptap node and durable `aside[data-looma-callout][data-tone]`
+  markup. Tree nesting is structural: `ui-tree-item` derives `aria-level` and
+  its 16px inset from ancestors, so consumers no longer maintain a `depth` prop.
+  This remains uncommitted and is not a release or publication claim.
+
 - Candidate `0.1.23` release preparation:
   - Expanded closed container targets before dispatching inside reorders, so a
     moved item is immediately rendered as the target's first child.

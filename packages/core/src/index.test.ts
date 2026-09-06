@@ -1,4 +1,6 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { LOOMA_ICONS, loomaIconMarkup } from "./icons";
 
 const COMPONENT_TAGS = [
@@ -6,6 +8,8 @@ const COMPONENT_TAGS = [
   "ui-avatar",
   "ui-avatar-group",
   "ui-badge",
+  "ui-chip",
+  "ui-callout",
   "ui-button",
   "ui-checkbox",
   "ui-disclosure",
@@ -76,6 +80,13 @@ describe("@threadlabs/looma-core primitives", () => {
     expect(loomaIconMarkup("plus", 'icon" onload="alert(1)')).toContain(
       'class="icon&quot; onload=&quot;alert(1)"',
     );
+  });
+
+  it("keeps tree nesting bookkeeping out of the public component API", () => {
+    const definitions = readFileSync(resolve(process.cwd(), "src/components.d.ts"), "utf8");
+    const treeItem = definitions.match(/interface UiTreeItem \{([\s\S]*?)\n    \}/)?.[1] ?? "";
+    expect(treeItem).not.toContain('"depth"');
+    expect(treeItem).not.toContain('"syncStructuralLevel"');
   });
 
   it("toggles disclosure open state and aria/hidden sync", async () => {
@@ -743,6 +754,34 @@ describe("@threadlabs/looma-core primitives", () => {
 
     expect(badge.getAttribute("data-variant")).toBe("solid");
     expect(badge.hasAttribute("data-tone")).toBe(false);
+  });
+
+  it("provides compact tag and pill chip appearances with consumer semantic color hooks", async () => {
+    await render(`<ui-chip appearance="tag" style="--ui-chip-surface: rgb(1, 2, 3); --ui-chip-text: rgb(4, 5, 6); --ui-chip-border: rgb(7, 8, 9)">Research</ui-chip>`);
+    const chip = document.querySelector("ui-chip") as HTMLElement & { appearance: "tag" | "pill" };
+
+    expect(chip.getAttribute("data-appearance")).toBe("tag");
+    expect(chip.textContent).toContain("Research");
+    expect(chip.style.getPropertyValue("--ui-chip-surface")).toBe("rgb(1, 2, 3)");
+    expect(chip.style.getPropertyValue("--ui-chip-text")).toBe("rgb(4, 5, 6)");
+    expect(chip.style.getPropertyValue("--ui-chip-border")).toBe("rgb(7, 8, 9)");
+    expect(chip.shadowRoot?.textContent).toContain("background:var(--ui-chip-surface)");
+
+    chip.appearance = "pill";
+    await flushStencil();
+    expect(chip.getAttribute("data-appearance")).toBe("pill");
+  });
+
+  it("maps each callout tone to its semantic icon without a live-alert role", async () => {
+    for (const [tone, icon] of Object.entries({
+      info: "info", note: "notebook-pen", warning: "triangle-alert", success: "circle-check", error: "circle-x",
+    })) {
+      await render(`<ui-callout tone="${tone}">Message</ui-callout>`);
+      const callout = document.querySelector("ui-callout")!;
+      expect(callout.getAttribute("role")).toBe("note");
+      expect(callout.getAttribute("data-tone")).toBe(tone);
+      expect(callout.shadowRoot?.querySelector(`[data-looma-icon="${icon}"]`)).toBeTruthy();
+    }
   });
 
   it("shows avatar fallback initials when image fails", async () => {

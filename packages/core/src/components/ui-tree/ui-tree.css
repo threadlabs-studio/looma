@@ -1,9 +1,10 @@
 :host {
   --ui-tree-indent: 16px;
+  --ui-tree-gutter: 0px;
 
   display: block;
   min-inline-size: 0;
-  padding-inline-start: var(--ui-tree-gutter, 22px);
+  padding-inline-start: var(--ui-tree-gutter);
 }
 
 ::slotted(ui-tree-item) {

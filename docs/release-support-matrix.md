@@ -26,7 +26,7 @@ authorization still requires the protected owner preflight before registry mutat
 ### Core: published Candidate
 
 `ui-affordance-scope`, `ui-avatar`, `ui-avatar-group`, `ui-badge`, `ui-button`, `ui-checkbox`,
-`ui-combobox`, `ui-context-menu`, `ui-dialog`, `ui-disclosure`, `ui-floating-action-button`,
+`ui-callout`, `ui-chip`, `ui-combobox`, `ui-context-menu`, `ui-dialog`, `ui-disclosure`, `ui-floating-action-button`,
 `ui-form-field`, `ui-icon-button`, `ui-input`, `ui-menu`, `ui-menu-item`,
 `ui-popover`, `ui-radio`, `ui-radio-group`, `ui-search-result-row`,
 `ui-search-shell`, `ui-select`, `ui-switch`, `ui-tabs`, `ui-textarea`,

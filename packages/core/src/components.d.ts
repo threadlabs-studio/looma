@@ -5,8 +5,10 @@
  * It contains typing information for all components that exist in this project.
  */
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
+import { CalloutTone } from "./components/ui-callout/ui-callout";
 import { ComboboxChange, ComboboxConfig, ComboboxOption, ComboboxValidationState } from "./field/combobox";
 import { AnchoredPlacement } from "./overlay/positioning";
+export { CalloutTone } from "./components/ui-callout/ui-callout";
 export { ComboboxChange, ComboboxConfig, ComboboxOption, ComboboxValidationState } from "./field/combobox";
 export { AnchoredPlacement } from "./overlay/positioning";
 export namespace Components {
@@ -60,6 +62,15 @@ export namespace Components {
          */
         "variant": 'outline' | 'solid' | 'destructive' | 'ghost';
     }
+    /**
+     * A static semantic message with a tone-specific icon.
+     */
+    interface UiCallout {
+        /**
+          * @default 'info'
+         */
+        "tone": CalloutTone;
+    }
     interface UiCheckbox {
         /**
           * @default false
@@ -85,6 +96,16 @@ export namespace Components {
           * @default 'on'
          */
         "value": string;
+    }
+    /**
+     * A compact, non-interactive metadata label.
+     */
+    interface UiChip {
+        /**
+          * `tag` has a square leading edge and an angled trailing edge; `pill` is fully rounded.
+          * @default 'tag'
+         */
+        "appearance": 'tag' | 'pill';
     }
     /**
      * A single editable field with contextual suggestions, optional help and field validation.
@@ -532,11 +553,6 @@ export namespace Components {
          */
         "defaultExpanded": boolean;
         /**
-          * One-based visual and semantic nesting level.
-          * @default 1
-         */
-        "depth": number;
-        /**
           * @default false
          */
         "disabled": boolean;
@@ -546,7 +562,7 @@ export namespace Components {
          */
         "dragType": string;
         /**
-          * Application hierarchy depth used for drop constraints. Defaults to visual depth.
+          * Application hierarchy depth override used for drop constraints. Defaults to structural nesting.
          */
         "dropDepth"?: number;
         /**
@@ -579,7 +595,7 @@ export namespace Components {
          */
         "sortable": boolean;
         /**
-          * Deepest descendant distance, used with the tree's max-depth drop constraint.
+          * Virtualized-tree descendant-depth override for the tree's max-depth drop constraint.
          */
         "subtreeDepth"?: number;
     }
@@ -623,11 +639,29 @@ declare global {
         prototype: HTMLUiButtonElement;
         new (): HTMLUiButtonElement;
     };
+    /**
+     * A static semantic message with a tone-specific icon.
+     */
+    interface HTMLUiCalloutElement extends Components.UiCallout, HTMLStencilElement {
+    }
+    var HTMLUiCalloutElement: {
+        prototype: HTMLUiCalloutElement;
+        new (): HTMLUiCalloutElement;
+    };
     interface HTMLUiCheckboxElement extends Components.UiCheckbox, HTMLStencilElement {
     }
     var HTMLUiCheckboxElement: {
         prototype: HTMLUiCheckboxElement;
         new (): HTMLUiCheckboxElement;
+    };
+    /**
+     * A compact, non-interactive metadata label.
+     */
+    interface HTMLUiChipElement extends Components.UiChip, HTMLStencilElement {
+    }
+    var HTMLUiChipElement: {
+        prototype: HTMLUiChipElement;
+        new (): HTMLUiChipElement;
     };
     interface HTMLUiComboboxElementEventMap {
         "query-change": { query: string; display: string; trigger: 'keyboard' | 'pointer' | 'programmatic' };
@@ -811,7 +845,9 @@ declare global {
         "ui-avatar-group": HTMLUiAvatarGroupElement;
         "ui-badge": HTMLUiBadgeElement;
         "ui-button": HTMLUiButtonElement;
+        "ui-callout": HTMLUiCalloutElement;
         "ui-checkbox": HTMLUiCheckboxElement;
+        "ui-chip": HTMLUiChipElement;
         "ui-combobox": HTMLUiComboboxElement;
         "ui-context-menu": HTMLUiContextMenuElement;
         "ui-dialog": HTMLUiDialogElement;
@@ -889,6 +925,15 @@ declare namespace LocalJSX {
          */
         "variant"?: 'outline' | 'solid' | 'destructive' | 'ghost';
     }
+    /**
+     * A static semantic message with a tone-specific icon.
+     */
+    interface UiCallout {
+        /**
+          * @default 'info'
+         */
+        "tone"?: CalloutTone;
+    }
     interface UiCheckbox {
         /**
           * @default false
@@ -914,6 +959,16 @@ declare namespace LocalJSX {
           * @default 'on'
          */
         "value"?: string;
+    }
+    /**
+     * A compact, non-interactive metadata label.
+     */
+    interface UiChip {
+        /**
+          * `tag` has a square leading edge and an angled trailing edge; `pill` is fully rounded.
+          * @default 'tag'
+         */
+        "appearance"?: 'tag' | 'pill';
     }
     /**
      * A single editable field with contextual suggestions, optional help and field validation.
@@ -1369,11 +1424,6 @@ declare namespace LocalJSX {
          */
         "defaultExpanded"?: boolean;
         /**
-          * One-based visual and semantic nesting level.
-          * @default 1
-         */
-        "depth"?: number;
-        /**
           * @default false
          */
         "disabled"?: boolean;
@@ -1383,7 +1433,7 @@ declare namespace LocalJSX {
          */
         "dragType"?: string;
         /**
-          * Application hierarchy depth used for drop constraints. Defaults to visual depth.
+          * Application hierarchy depth override used for drop constraints. Defaults to structural nesting.
          */
         "dropDepth"?: number;
         /**
@@ -1416,7 +1466,7 @@ declare namespace LocalJSX {
          */
         "sortable"?: boolean;
         /**
-          * Deepest descendant distance, used with the tree's max-depth drop constraint.
+          * Virtualized-tree descendant-depth override for the tree's max-depth drop constraint.
          */
         "subtreeDepth"?: number;
     }
@@ -1443,6 +1493,9 @@ declare namespace LocalJSX {
         "size": string;
         "disabled": boolean;
     }
+    interface UiCalloutAttributes {
+        "tone": CalloutTone;
+    }
     interface UiCheckboxAttributes {
         "checked": boolean;
         "defaultChecked": boolean;
@@ -1450,6 +1503,9 @@ declare namespace LocalJSX {
         "indeterminate": boolean;
         "required": boolean;
         "value": string;
+    }
+    interface UiChipAttributes {
+        "appearance": 'tag' | 'pill';
     }
     interface UiComboboxAttributes {
         "label": string;
@@ -1590,7 +1646,6 @@ declare namespace LocalJSX {
     interface UiTreeItemAttributes {
         "itemId": string;
         "label": string;
-        "depth": number;
         "dropDepth": number;
         "subtreeDepth": number;
         "container": boolean;
@@ -1610,7 +1665,9 @@ declare namespace LocalJSX {
         "ui-avatar-group": Omit<UiAvatarGroup, keyof UiAvatarGroupAttributes> & { [K in keyof UiAvatarGroup & keyof UiAvatarGroupAttributes]?: UiAvatarGroup[K] } & { [K in keyof UiAvatarGroup & keyof UiAvatarGroupAttributes as `attr:${K}`]?: UiAvatarGroupAttributes[K] } & { [K in keyof UiAvatarGroup & keyof UiAvatarGroupAttributes as `prop:${K}`]?: UiAvatarGroup[K] };
         "ui-badge": Omit<UiBadge, keyof UiBadgeAttributes> & { [K in keyof UiBadge & keyof UiBadgeAttributes]?: UiBadge[K] } & { [K in keyof UiBadge & keyof UiBadgeAttributes as `attr:${K}`]?: UiBadgeAttributes[K] } & { [K in keyof UiBadge & keyof UiBadgeAttributes as `prop:${K}`]?: UiBadge[K] };
         "ui-button": Omit<UiButton, keyof UiButtonAttributes> & { [K in keyof UiButton & keyof UiButtonAttributes]?: UiButton[K] } & { [K in keyof UiButton & keyof UiButtonAttributes as `attr:${K}`]?: UiButtonAttributes[K] } & { [K in keyof UiButton & keyof UiButtonAttributes as `prop:${K}`]?: UiButton[K] };
+        "ui-callout": Omit<UiCallout, keyof UiCalloutAttributes> & { [K in keyof UiCallout & keyof UiCalloutAttributes]?: UiCallout[K] } & { [K in keyof UiCallout & keyof UiCalloutAttributes as `attr:${K}`]?: UiCalloutAttributes[K] } & { [K in keyof UiCallout & keyof UiCalloutAttributes as `prop:${K}`]?: UiCallout[K] };
         "ui-checkbox": Omit<UiCheckbox, keyof UiCheckboxAttributes> & { [K in keyof UiCheckbox & keyof UiCheckboxAttributes]?: UiCheckbox[K] } & { [K in keyof UiCheckbox & keyof UiCheckboxAttributes as `attr:${K}`]?: UiCheckboxAttributes[K] } & { [K in keyof UiCheckbox & keyof UiCheckboxAttributes as `prop:${K}`]?: UiCheckbox[K] };
+        "ui-chip": Omit<UiChip, keyof UiChipAttributes> & { [K in keyof UiChip & keyof UiChipAttributes]?: UiChip[K] } & { [K in keyof UiChip & keyof UiChipAttributes as `attr:${K}`]?: UiChipAttributes[K] } & { [K in keyof UiChip & keyof UiChipAttributes as `prop:${K}`]?: UiChip[K] };
         "ui-combobox": Omit<UiCombobox, keyof UiComboboxAttributes> & { [K in keyof UiCombobox & keyof UiComboboxAttributes]?: UiCombobox[K] } & { [K in keyof UiCombobox & keyof UiComboboxAttributes as `attr:${K}`]?: UiComboboxAttributes[K] } & { [K in keyof UiCombobox & keyof UiComboboxAttributes as `prop:${K}`]?: UiCombobox[K] };
         "ui-context-menu": Omit<UiContextMenu, keyof UiContextMenuAttributes> & { [K in keyof UiContextMenu & keyof UiContextMenuAttributes]?: UiContextMenu[K] } & { [K in keyof UiContextMenu & keyof UiContextMenuAttributes as `attr:${K}`]?: UiContextMenuAttributes[K] } & { [K in keyof UiContextMenu & keyof UiContextMenuAttributes as `prop:${K}`]?: UiContextMenu[K] };
         "ui-dialog": Omit<UiDialog, keyof UiDialogAttributes> & { [K in keyof UiDialog & keyof UiDialogAttributes]?: UiDialog[K] } & { [K in keyof UiDialog & keyof UiDialogAttributes as `attr:${K}`]?: UiDialogAttributes[K] } & { [K in keyof UiDialog & keyof UiDialogAttributes as `prop:${K}`]?: UiDialog[K] };
@@ -1646,7 +1703,15 @@ declare module "@stencil/core" {
             "ui-avatar-group": LocalJSX.IntrinsicElements["ui-avatar-group"] & JSXBase.HTMLAttributes<HTMLUiAvatarGroupElement>;
             "ui-badge": LocalJSX.IntrinsicElements["ui-badge"] & JSXBase.HTMLAttributes<HTMLUiBadgeElement>;
             "ui-button": LocalJSX.IntrinsicElements["ui-button"] & JSXBase.HTMLAttributes<HTMLUiButtonElement>;
+            /**
+             * A static semantic message with a tone-specific icon.
+             */
+            "ui-callout": LocalJSX.IntrinsicElements["ui-callout"] & JSXBase.HTMLAttributes<HTMLUiCalloutElement>;
             "ui-checkbox": LocalJSX.IntrinsicElements["ui-checkbox"] & JSXBase.HTMLAttributes<HTMLUiCheckboxElement>;
+            /**
+             * A compact, non-interactive metadata label.
+             */
+            "ui-chip": LocalJSX.IntrinsicElements["ui-chip"] & JSXBase.HTMLAttributes<HTMLUiChipElement>;
             /**
              * A single editable field with contextual suggestions, optional help and field validation.
              */
