@@ -15,6 +15,8 @@ Overlay primitive that coordinates native `dialog` behavior with shared overlay 
 | `open` | `boolean` | `false` | Controls open state. |
 | `default-open` | `boolean` | `false` | Initial uncontrolled open state. |
 | `modal` | `boolean-like` | `true` | `modal="false"` disables modal mode. |
+| `dismissible` | `boolean-like` | `true` | Enables Escape and backdrop dismissal. |
+| `label` | `string` | — | Accessible name for the native dialog surface. |
 
 ## Properties
 
@@ -23,6 +25,8 @@ Overlay primitive that coordinates native `dialog` behavior with shared overlay 
 | `open` | `boolean` |
 | `defaultOpen` | `boolean` |
 | `modal` | `boolean` |
+| `dismissible` | `boolean` |
+| `label` | `string \| undefined` |
 
 ## Events
 
@@ -33,17 +37,18 @@ Overlay primitive that coordinates native `dialog` behavior with shared overlay 
 
 ## Slots
 
-Default slot (typically contains one native `<dialog>` child).
+Default slot for dialog content. `ui-dialog` owns the native `<dialog>`; do not
+nest another one. Provide `label` for a stable, localized accessible name. If it
+is omitted, the first slotted heading (or `[data-ui-dialog-title]`) is observed
+reactively and used, with `"Dialog"` as the final fallback.
 
 ## SSR Markup
 
 ```html
-<ui-dialog open>
-  <dialog>
-    <h2>Settings</h2>
-    <p>Dialog body copy.</p>
-    <button value="close">Close</button>
-  </dialog>
+<ui-dialog open label="Settings">
+  <h2>Settings</h2>
+  <p>Dialog body copy.</p>
+  <button value="close">Close</button>
 </ui-dialog>
 ```
 
@@ -59,12 +64,10 @@ function onClose(detail: unknown) {
 </script>
 
 <template>
-  <Dialog @close="onClose">
-    <dialog>
-      <h2>Settings</h2>
-      <p>Dialog body copy.</p>
-      <button value="close">Close</button>
-    </dialog>
+  <Dialog label="Settings" @close="onClose">
+    <h2>Settings</h2>
+    <p>Dialog body copy.</p>
+    <button value="close">Close</button>
   </Dialog>
 </template>
 ```

@@ -12,7 +12,7 @@ Live-region container primitive for stackable dismissible toasts.
 
 | Name | Type | Default |
 | --- | --- | --- |
-| `open` | `boolean` | `false` |
+| `open` | `boolean` | `true` |
 
 ## Properties
 
@@ -26,11 +26,15 @@ Live-region container primitive for stackable dismissible toasts.
 | --- | --- |
 | `open` | `{ open: true, reason, trigger }` |
 | `close` | `{ open: false, reason, trigger }` |
-| `dismiss` | `{ id, reason, trigger }` |
+| `dismiss` | `{ id, reason, trigger }` (consumer-owned removal request) |
 
 ## Slots
 
 Default slot with toast nodes marked using `data-ui-toast`.
+
+Handle `dismiss` by removing the matching toast from application state. The
+region observes that list update and emits `close` when the final toast is gone;
+it does not remove or apply visibility attributes to framework-owned children.
 
 ## SSR Markup
 
@@ -47,13 +51,20 @@ Default slot with toast nodes marked using `data-ui-toast`.
 
 ```vue
 <script setup lang="ts">
+import { ref } from "vue";
 import { ToastRegion } from "@threadlabs/looma/vue";
+
+const toasts = ref([{ id: "saved", message: "Saved." }]);
+
+function dismiss({ id }: { id: string }) {
+  toasts.value = toasts.value.filter((toast) => toast.id !== id);
+}
 </script>
 
 <template>
-  <ToastRegion>
-    <div data-ui-toast>
-      Saved.
+  <ToastRegion @dismiss="dismiss">
+    <div v-for="toast in toasts" :id="toast.id" :key="toast.id" data-ui-toast>
+      {{ toast.message }}
       <button type="button" data-ui-toast-dismiss aria-label="Dismiss">Dismiss</button>
     </div>
   </ToastRegion>
