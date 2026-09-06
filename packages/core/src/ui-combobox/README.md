@@ -11,6 +11,10 @@ metadata, validation rules, and persistence belong to the consumer.
   `default-value` initializes it. Null is an explicitly empty controlled selection.
 - `query?: string` is raw editing text, independently controlled;
   `default-query` initializes uncontrolled text. Selection proposes its label as query.
+- External canonical changes update uncontrolled text from static or previously
+  received provider options; clearing sets it to empty. An unseen value displays
+  its canonical string until a matching provider result arrives. Controlled query
+  text remains owned by the caller. Provider results never replace subsequent edits.
 - `config: ComboboxConfig` is a JavaScript property, never JSON in an attribute.
 - `disabled`, `readonly`, `required`, `size="sm|md"`, `clearable`, `disclosure`, `help`.
 - `validate()` returns the current field validation state, including normalized

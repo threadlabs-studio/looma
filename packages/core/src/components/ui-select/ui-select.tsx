@@ -18,6 +18,7 @@ export class UISelect {
   @State() internalValue = '';
 
   private slotRef?: HTMLSlotElement;
+  private initialized = false;
 
   @Watch('value')
   syncFromProp() {
@@ -33,11 +34,11 @@ export class UISelect {
     const select = this.getSelect();
     if (!select) return;
     this.host.dataset.invalid = this.invalid ? 'true' : '';
-    // Preserve values owned by a framework-bound slotted select. Supplying a
-    // host value opts into controlled behavior; otherwise only an explicit
-    // default is applied when the native select has no selection.
+    // A native select automatically selects its first option. Apply the host
+    // default once regardless, then leave subsequent native/framework edits alone.
     if (this.value !== undefined) select.value = this.internalValue;
-    else if (!select.value && this.defaultValue) select.value = this.defaultValue;
+    else if (!this.initialized && this.defaultValue) select.value = this.defaultValue;
+    this.initialized = true;
     select.disabled = this.disabled;
     select.required = this.required;
     select.setAttribute('aria-invalid', this.invalid ? 'true' : 'false');

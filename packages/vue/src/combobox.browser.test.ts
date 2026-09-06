@@ -42,3 +42,24 @@ it('preserves uncontrolled editing across unrelated Vue updates', async () => {
   const input = host.querySelector('ui-combobox')!.shadowRoot!.querySelector('input')!;
   await userEvent.fill(input, 'Typed'); label.value = 'Full name'; await flush(); expect(input.value).toBe('Typed');
 });
+
+it('reacts to canonical-only ownership, provider labels, external clears and selection echoes', async () => {
+  const value = ref<string | null>('1'); const label = ref('Name');
+  const config: ComboboxConfig = { debounce: 0, provider: () => [{ id: 'a', value: '1', label: 'Alpha' }, { id: 'b', value: '2', label: 'Beta' }] };
+  const host = document.createElement('div'); document.body.append(host);
+  const app = createApp({ render: () => h(Combobox, { label: label.value, modelValue: value.value, config, disclosure: true,
+    'onUpdate:modelValue': (next: string | null) => { value.value = next; },
+  }) });
+  apps.push(app); app.mount(host); await flush();
+  const root = host.querySelector('ui-combobox')!.shadowRoot!; const input = root.querySelector('input')!;
+  expect(input.value).toBe('1');
+  await userEvent.click(root.querySelector('button')!); await flush();
+  await expect.poll(() => input.value).toBe('Alpha');
+  await userEvent.keyboard('{Escape}');
+  value.value = '2'; await flush(); expect(input.value).toBe('Beta');
+  value.value = null; await flush(); expect(input.value).toBe('');
+  await userEvent.click(root.querySelector('button')!); await flush();
+  await userEvent.keyboard('{ArrowDown}{Enter}'); await flush(); expect(value.value).toBe('1'); expect(input.value).toBe('Alpha');
+  await userEvent.fill(input, 'Native edit'); await flush(); expect(value.value).toBe(null); expect(input.value).toBe('Native edit');
+  label.value = 'Updated label'; await flush(); expect(input.value).toBe('Native edit');
+});
