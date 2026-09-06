@@ -3,6 +3,7 @@ import '../../tokens/src/tokens.css';
 import '../../tokens/src/theme-light.css';
 import '../../tokens/src/theme-dark.css';
 import '../../tokens/src/theme-high-contrast.css';
+import './styles.css';
 import { afterEach, expect, it } from 'vitest';
 
 const flush = async () => { for (let i = 0; i < 3; i++) await new Promise(requestAnimationFrame); };
@@ -45,12 +46,11 @@ for (const [name, outer, inner, background, foreground] of [
     expect(getComputedStyle(control).backgroundColor).toBe(background);
     expect(getComputedStyle(input).color).toBe(foreground);
     expect(contrast(getComputedStyle(input).color, getComputedStyle(control).backgroundColor)).toBeGreaterThanOrEqual(7);
+    expect(contrast(getComputedStyle(control).borderTopColor, getComputedStyle(control).backgroundColor)).toBeGreaterThanOrEqual(3);
     const button = document.querySelector('#nested > button')!;
     expect(getComputedStyle(button).backgroundColor).toBe(background);
     expect(getComputedStyle(button).color).toBe(foreground);
     for (const [role, palette] of [
-      ['--ui-control-border', '--ui-border-default'],
-      ['--ui-control-border-hover', '--ui-border-strong'],
       ['--ui-control-focus', '--ui-focus-ring'],
       ['--ui-control-surface-disabled', '--ui-surface-muted'],
     ]) {
@@ -63,6 +63,31 @@ for (const [name, outer, inner, background, foreground] of [
     expect(result.violations.map(violation => violation.id)).toEqual([]);
   });
 }
+
+it('keeps runtime button state authoritative over authored fallback attributes', async () => {
+  document.body.innerHTML = `<ui-button id="changed" variant="destructive" disabled><button style="transition:none">Changed</button></ui-button>
+    <ui-button id="default"><button style="transition:none">Default</button></ui-button>`;
+  await flush();
+  const changed = document.getElementById('changed') as HTMLUiButtonElement;
+  const fromDefault = document.getElementById('default') as HTMLUiButtonElement;
+  changed.variant = 'ghost';
+  changed.disabled = false;
+  fromDefault.variant = 'solid';
+  await flush();
+  const changedButton = changed.querySelector('button')!;
+  const solidButton = fromDefault.querySelector('button')!;
+  expect(changed.dataset.variant).toBe('ghost');
+  expect(getComputedStyle(changedButton).backgroundColor).toBe('rgba(0, 0, 0, 0)');
+  expect(getComputedStyle(changed).opacity).toBe('1');
+  expect(getComputedStyle(solidButton).backgroundColor).not.toBe(getComputedStyle(changedButton).backgroundColor);
+});
+
+it('resets intent colors for high contrast nested inside dark', async () => {
+  document.body.innerHTML = '<main data-theme="dark"><section data-contrast="high"><ui-button variant="destructive"><button>Delete</button></ui-button></section></main>';
+  await flush();
+  const button = document.querySelector('button')!;
+  expect(contrast(getComputedStyle(button).color, getComputedStyle(button).backgroundColor)).toBeGreaterThanOrEqual(4.5);
+});
 
 it('keeps explicit semantic overrides at nested theme boundaries', async () => {
   document.body.innerHTML = '<main data-theme="dark" style="--ui-control-surface:rgb(12, 34, 56);--ui-control-border:rgb(78, 90, 12)"><ui-combobox label="Destination"></ui-combobox></main>';

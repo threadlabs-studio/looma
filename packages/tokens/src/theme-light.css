@@ -16,6 +16,8 @@
     --ui-border-subtle: #ecece8;
     --ui-border-default: #e4e4e0;
     --ui-border-strong: #c8c8c4;
+    --ui-control-border: #94948e;
+    --ui-control-border-hover: #5c5c5c;
 
     --ui-danger-solid: #b4233f;
     --ui-danger-hover: #941d35;
