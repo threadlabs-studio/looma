@@ -56,6 +56,8 @@ async function verifyMinimalConsumer(directory, tarball) {
       `import { closeOverlay } from "@threadlabs/looma/core";\n` +
       `await import("@threadlabs/looma/loader");\n` +
       `await import("@threadlabs/looma/layout");\n` +
+      `const { valibotField } = await import("@threadlabs/looma/valibot");\n` +
+      `if (typeof valibotField !== "function") process.exit(1);\n` +
       `await import("@threadlabs/looma/editor/ui");\n` +
       `if (typeof openOverlay !== "function" || typeof closeOverlay !== "function") process.exit(1);\n` +
       `if (!import.meta.resolve("@threadlabs/looma/tokens.css").endsWith("tokens.css")) process.exit(1);\n`,
@@ -100,7 +102,7 @@ async function verifyMinimalConsumer(directory, tarball) {
   assert.equal(installed.name, "@threadlabs/looma");
   await assertPackagesAbsent(
     directory,
-    ["vue", "@tiptap/core", "prosemirror-tables"],
+    ["vue", "valibot", "@tiptap/core", "prosemirror-tables"],
     "a core-only consumer",
   );
 }
@@ -150,7 +152,7 @@ async function verifyVueOnlyConsumer(directory, tarball, facadeManifest) {
   );
   await assertPackagesAbsent(
     directory,
-    ["@tiptap/core", "@tiptap/pm", "prosemirror-tables"],
+    ["valibot", "@tiptap/core", "@tiptap/pm", "prosemirror-tables"],
     "a Vue-only consumer",
   );
 }

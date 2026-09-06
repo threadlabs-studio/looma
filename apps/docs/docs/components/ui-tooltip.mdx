@@ -56,3 +56,32 @@ import { Tooltip } from "@threadlabs/looma/vue";
   </div>
 </template>
 ```
+
+## Concise field-label help
+
+```vue
+<script setup lang="ts">
+import { Button, Tooltip, Input } from '@threadlabs/looma/vue';
+</script>
+<template>
+  <div style="display: flex; align-items: center; gap: var(--ui-space-1)">
+    <label for="reference">Reference</label>
+    <Button variant="ghost" size="sm">
+      <button id="reference-help" type="button" aria-label="Help for reference">
+        <span aria-hidden="true">?</span>
+      </button>
+    </Button>
+    <Tooltip for="reference-help" :toggle-on-click="true">
+      Use the reference shown on your document.
+    </Tooltip>
+  </div>
+  <Input><input id="reference" name="reference" /></Input>
+</template>
+```
+
+Use unique trigger and field IDs per instance. `toggleOnClick` / `toggle-on-click`
+adds click/tap pinning and outside dismissal. Hover and focus remain available;
+Escape closes without moving focus. Pointer movement onto the tooltip keeps it
+open. Content is descriptive text, with no interactive descendants. The actual
+native button receives `aria-describedby`; use a trigger in the same DOM root.
+For integrated lookup, validation, and attached help, use [Combobox](./ui-combobox).

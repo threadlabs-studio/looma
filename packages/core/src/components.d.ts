@@ -5,7 +5,9 @@
  * It contains typing information for all components that exist in this project.
  */
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
+import { ComboboxChange, ComboboxConfig, ComboboxOption, ComboboxValidationState } from "./field/combobox";
 import { AnchoredPlacement } from "./overlay/positioning";
+export { ComboboxChange, ComboboxConfig, ComboboxOption, ComboboxValidationState } from "./field/combobox";
 export { AnchoredPlacement } from "./overlay/positioning";
 export namespace Components {
     interface UiAffordanceScope {
@@ -83,6 +85,75 @@ export namespace Components {
           * @default 'on'
          */
         "value": string;
+    }
+    /**
+     * A single editable field with contextual suggestions, optional help and field validation.
+     */
+    interface UiCombobox {
+        /**
+          * @default false
+         */
+        "clearable": boolean;
+        /**
+          * Immutable configuration; replace the object/context when dependencies change.
+          * @default {}
+         */
+        "config": ComboboxConfig;
+        /**
+          * @default ''
+         */
+        "defaultQuery": string;
+        "defaultValue"?: string;
+        /**
+          * @default false
+         */
+        "disabled": boolean;
+        /**
+          * @default false
+         */
+        "disclosure": boolean;
+        /**
+          * Optional description shown by the connected question-mark button.
+          * @default ''
+         */
+        "help": string;
+        /**
+          * Accessible visible label, associated with the native text input.
+          * @default ''
+         */
+        "label": string;
+        /**
+          * @default ''
+         */
+        "name": string;
+        /**
+          * @default ''
+         */
+        "placeholder": string;
+        /**
+          * Controlled raw editing text; independent of canonical selection.
+         */
+        "query"?: string;
+        /**
+          * @default false
+         */
+        "readOnly": boolean;
+        /**
+          * @default false
+         */
+        "required": boolean;
+        /**
+          * @default 'md'
+         */
+        "size": 'sm' | 'md';
+        /**
+          * Validate for submission. Caller submits only non-pending, non-error output.
+         */
+        "validate": () => Promise<ComboboxValidationState>;
+        /**
+          * Controlled canonical value. Undefined selects uncontrolled mode; null means no selection.
+         */
+        "value"?: string | null;
     }
     interface UiContextMenu {
         /**
@@ -424,6 +495,11 @@ export namespace Components {
           * @default 500
          */
         "showDelay": number;
+        /**
+          * Click or tap pins the description; activate again to dismiss.
+          * @default false
+         */
+        "toggleOnClick": boolean;
     }
     interface UiTopBar {
     }
@@ -498,6 +574,14 @@ export namespace Components {
         "sortable": boolean;
     }
 }
+export interface UiComboboxCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLUiComboboxElement;
+}
+export interface UiTooltipCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLUiTooltipElement;
+}
 declare global {
     interface HTMLUiAffordanceScopeElement extends Components.UiAffordanceScope, HTMLStencilElement {
     }
@@ -534,6 +618,32 @@ declare global {
     var HTMLUiCheckboxElement: {
         prototype: HTMLUiCheckboxElement;
         new (): HTMLUiCheckboxElement;
+    };
+    interface HTMLUiComboboxElementEventMap {
+        "query-change": { query: string; display: string; trigger: 'keyboard' | 'pointer' | 'programmatic' };
+        "value-change": ComboboxChange;
+        "free-entry": ComboboxChange;
+        "create-entry": ComboboxChange;
+        "dependency-invalidate": ComboboxChange;
+        "validation-change": ComboboxValidationState;
+        "options-change": readonly ComboboxOption[];
+    }
+    /**
+     * A single editable field with contextual suggestions, optional help and field validation.
+     */
+    interface HTMLUiComboboxElement extends Components.UiCombobox, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLUiComboboxElementEventMap>(type: K, listener: (this: HTMLUiComboboxElement, ev: UiComboboxCustomEvent<HTMLUiComboboxElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLUiComboboxElementEventMap>(type: K, listener: (this: HTMLUiComboboxElement, ev: UiComboboxCustomEvent<HTMLUiComboboxElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLUiComboboxElement: {
+        prototype: HTMLUiComboboxElement;
+        new (): HTMLUiComboboxElement;
     };
     interface HTMLUiContextMenuElement extends Components.UiContextMenu, HTMLStencilElement {
     }
@@ -649,7 +759,19 @@ declare global {
         prototype: HTMLUiToastRegionElement;
         new (): HTMLUiToastRegionElement;
     };
+    interface HTMLUiTooltipElementEventMap {
+        "open": { open: boolean; reason: string; trigger: string };
+        "close": { open: boolean; reason: string; trigger: string };
+    }
     interface HTMLUiTooltipElement extends Components.UiTooltip, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLUiTooltipElementEventMap>(type: K, listener: (this: HTMLUiTooltipElement, ev: UiTooltipCustomEvent<HTMLUiTooltipElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLUiTooltipElementEventMap>(type: K, listener: (this: HTMLUiTooltipElement, ev: UiTooltipCustomEvent<HTMLUiTooltipElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
     }
     var HTMLUiTooltipElement: {
         prototype: HTMLUiTooltipElement;
@@ -680,6 +802,7 @@ declare global {
         "ui-badge": HTMLUiBadgeElement;
         "ui-button": HTMLUiButtonElement;
         "ui-checkbox": HTMLUiCheckboxElement;
+        "ui-combobox": HTMLUiComboboxElement;
         "ui-context-menu": HTMLUiContextMenuElement;
         "ui-dialog": HTMLUiDialogElement;
         "ui-disclosure": HTMLUiDisclosureElement;
@@ -781,6 +904,81 @@ declare namespace LocalJSX {
           * @default 'on'
          */
         "value"?: string;
+    }
+    /**
+     * A single editable field with contextual suggestions, optional help and field validation.
+     */
+    interface UiCombobox {
+        /**
+          * @default false
+         */
+        "clearable"?: boolean;
+        /**
+          * Immutable configuration; replace the object/context when dependencies change.
+          * @default {}
+         */
+        "config"?: ComboboxConfig;
+        /**
+          * @default ''
+         */
+        "defaultQuery"?: string;
+        "defaultValue"?: string;
+        /**
+          * @default false
+         */
+        "disabled"?: boolean;
+        /**
+          * @default false
+         */
+        "disclosure"?: boolean;
+        /**
+          * Optional description shown by the connected question-mark button.
+          * @default ''
+         */
+        "help"?: string;
+        /**
+          * Accessible visible label, associated with the native text input.
+          * @default ''
+         */
+        "label"?: string;
+        /**
+          * @default ''
+         */
+        "name"?: string;
+        "onCreate-entry"?: (event: UiComboboxCustomEvent<ComboboxChange>) => void;
+        "onDependency-invalidate"?: (event: UiComboboxCustomEvent<ComboboxChange>) => void;
+        "onFree-entry"?: (event: UiComboboxCustomEvent<ComboboxChange>) => void;
+        /**
+          * Supplies the current result rows for framework-owned rich slots.
+         */
+        "onOptions-change"?: (event: UiComboboxCustomEvent<readonly ComboboxOption[]>) => void;
+        "onQuery-change"?: (event: UiComboboxCustomEvent<{ query: string; display: string; trigger: 'keyboard' | 'pointer' | 'programmatic' }>) => void;
+        "onValidation-change"?: (event: UiComboboxCustomEvent<ComboboxValidationState>) => void;
+        "onValue-change"?: (event: UiComboboxCustomEvent<ComboboxChange>) => void;
+        /**
+          * @default ''
+         */
+        "placeholder"?: string;
+        /**
+          * Controlled raw editing text; independent of canonical selection.
+         */
+        "query"?: string;
+        /**
+          * @default false
+         */
+        "readOnly"?: boolean;
+        /**
+          * @default false
+         */
+        "required"?: boolean;
+        /**
+          * @default 'md'
+         */
+        "size"?: 'sm' | 'md';
+        /**
+          * Controlled canonical value. Undefined selects uncontrolled mode; null means no selection.
+         */
+        "value"?: string | null;
     }
     interface UiContextMenu {
         /**
@@ -1109,6 +1307,8 @@ declare namespace LocalJSX {
           * @default 100
          */
         "hideDelay"?: number;
+        "onClose"?: (event: UiTooltipCustomEvent<{ open: boolean; reason: string; trigger: string }>) => void;
+        "onOpen"?: (event: UiTooltipCustomEvent<{ open: boolean; reason: string; trigger: string }>) => void;
         /**
           * @default false
          */
@@ -1122,6 +1322,11 @@ declare namespace LocalJSX {
           * @default 500
          */
         "showDelay"?: number;
+        /**
+          * Click or tap pins the description; activate again to dismiss.
+          * @default false
+         */
+        "toggleOnClick"?: boolean;
     }
     interface UiTopBar {
     }
@@ -1225,6 +1430,22 @@ declare namespace LocalJSX {
         "indeterminate": boolean;
         "required": boolean;
         "value": string;
+    }
+    interface UiComboboxAttributes {
+        "label": string;
+        "placeholder": string;
+        "name": string;
+        "value": string | null;
+        "defaultValue": string;
+        "query": string;
+        "defaultQuery": string;
+        "disabled": boolean;
+        "readOnly": boolean;
+        "required": boolean;
+        "size": 'sm' | 'md';
+        "disclosure": boolean;
+        "clearable": boolean;
+        "help": string;
     }
     interface UiContextMenuAttributes {
         "open": boolean;
@@ -1339,6 +1560,7 @@ declare namespace LocalJSX {
         "placement": AnchoredPlacement;
         "showDelay": number;
         "hideDelay": number;
+        "toggleOnClick": boolean;
     }
     interface UiTreeAttributes {
         "label": string;
@@ -1366,6 +1588,7 @@ declare namespace LocalJSX {
         "ui-badge": Omit<UiBadge, keyof UiBadgeAttributes> & { [K in keyof UiBadge & keyof UiBadgeAttributes]?: UiBadge[K] } & { [K in keyof UiBadge & keyof UiBadgeAttributes as `attr:${K}`]?: UiBadgeAttributes[K] } & { [K in keyof UiBadge & keyof UiBadgeAttributes as `prop:${K}`]?: UiBadge[K] };
         "ui-button": Omit<UiButton, keyof UiButtonAttributes> & { [K in keyof UiButton & keyof UiButtonAttributes]?: UiButton[K] } & { [K in keyof UiButton & keyof UiButtonAttributes as `attr:${K}`]?: UiButtonAttributes[K] } & { [K in keyof UiButton & keyof UiButtonAttributes as `prop:${K}`]?: UiButton[K] };
         "ui-checkbox": Omit<UiCheckbox, keyof UiCheckboxAttributes> & { [K in keyof UiCheckbox & keyof UiCheckboxAttributes]?: UiCheckbox[K] } & { [K in keyof UiCheckbox & keyof UiCheckboxAttributes as `attr:${K}`]?: UiCheckboxAttributes[K] } & { [K in keyof UiCheckbox & keyof UiCheckboxAttributes as `prop:${K}`]?: UiCheckbox[K] };
+        "ui-combobox": Omit<UiCombobox, keyof UiComboboxAttributes> & { [K in keyof UiCombobox & keyof UiComboboxAttributes]?: UiCombobox[K] } & { [K in keyof UiCombobox & keyof UiComboboxAttributes as `attr:${K}`]?: UiComboboxAttributes[K] } & { [K in keyof UiCombobox & keyof UiComboboxAttributes as `prop:${K}`]?: UiCombobox[K] };
         "ui-context-menu": Omit<UiContextMenu, keyof UiContextMenuAttributes> & { [K in keyof UiContextMenu & keyof UiContextMenuAttributes]?: UiContextMenu[K] } & { [K in keyof UiContextMenu & keyof UiContextMenuAttributes as `attr:${K}`]?: UiContextMenuAttributes[K] } & { [K in keyof UiContextMenu & keyof UiContextMenuAttributes as `prop:${K}`]?: UiContextMenu[K] };
         "ui-dialog": Omit<UiDialog, keyof UiDialogAttributes> & { [K in keyof UiDialog & keyof UiDialogAttributes]?: UiDialog[K] } & { [K in keyof UiDialog & keyof UiDialogAttributes as `attr:${K}`]?: UiDialogAttributes[K] } & { [K in keyof UiDialog & keyof UiDialogAttributes as `prop:${K}`]?: UiDialog[K] };
         "ui-disclosure": Omit<UiDisclosure, keyof UiDisclosureAttributes> & { [K in keyof UiDisclosure & keyof UiDisclosureAttributes]?: UiDisclosure[K] } & { [K in keyof UiDisclosure & keyof UiDisclosureAttributes as `attr:${K}`]?: UiDisclosureAttributes[K] } & { [K in keyof UiDisclosure & keyof UiDisclosureAttributes as `prop:${K}`]?: UiDisclosure[K] };
@@ -1401,6 +1624,10 @@ declare module "@stencil/core" {
             "ui-badge": LocalJSX.IntrinsicElements["ui-badge"] & JSXBase.HTMLAttributes<HTMLUiBadgeElement>;
             "ui-button": LocalJSX.IntrinsicElements["ui-button"] & JSXBase.HTMLAttributes<HTMLUiButtonElement>;
             "ui-checkbox": LocalJSX.IntrinsicElements["ui-checkbox"] & JSXBase.HTMLAttributes<HTMLUiCheckboxElement>;
+            /**
+             * A single editable field with contextual suggestions, optional help and field validation.
+             */
+            "ui-combobox": LocalJSX.IntrinsicElements["ui-combobox"] & JSXBase.HTMLAttributes<HTMLUiComboboxElement>;
             "ui-context-menu": LocalJSX.IntrinsicElements["ui-context-menu"] & JSXBase.HTMLAttributes<HTMLUiContextMenuElement>;
             "ui-dialog": LocalJSX.IntrinsicElements["ui-dialog"] & JSXBase.HTMLAttributes<HTMLUiDialogElement>;
             "ui-disclosure": LocalJSX.IntrinsicElements["ui-disclosure"] & JSXBase.HTMLAttributes<HTMLUiDisclosureElement>;

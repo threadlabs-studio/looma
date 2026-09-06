@@ -30,7 +30,11 @@
       "types": "./loader/index.d.ts",
       "import": "./loader/index.js"
     },
-    "./styles.css": "./src/styles.css"
+    "./styles.css": "./src/styles.css",
+    "./valibot": {
+      "types": "./dist/valibot.d.ts",
+      "import": "./dist/valibot.js"
+    }
   },
   "files": [
     "dist/",
@@ -39,7 +43,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "node ../../tools/scripts/run-stencil-build.mjs && tsup index.ts --format esm,cjs --dts --outDir dist",
+    "build": "node ../../tools/scripts/run-stencil-build.mjs && tsup index.ts --format esm,cjs --dts --outDir dist && tsup src/field/valibot.ts --format esm --dts --outDir dist",
     "start": "stencil build --dev --watch --serve",
     "test": "pnpm build && vitest run",
     "test:browser": "pnpm build && vitest run --config vitest.browser.config.ts",
@@ -54,6 +58,7 @@
     "playwright": "~1.60.0",
     "tsup": "^8.5.0",
     "typescript": "^5.9.2",
+    "valibot": "^1.1.0",
     "vitest": "^3.2.6"
   },
   "engines": {
@@ -61,5 +66,13 @@
   },
   "dependencies": {
     "lucide": "~0.554.0"
+  },
+  "peerDependencies": {
+    "valibot": "^1.1.0"
+  },
+  "peerDependenciesMeta": {
+    "valibot": {
+      "optional": true
+    }
   }
 }
