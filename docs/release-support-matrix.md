@@ -1,6 +1,6 @@
 # Release 1 Support Matrix
 
-Release 1 is a public npm **Candidate `0.1.22`** for the smallest Looma surface
+Release 1 is a public npm **Candidate `0.1.23`** for the smallest Looma surface
 needed by Knit. It is not semver `1.0.0`, a Stable declaration, or a
 promise that every repository package and roadmap item is supported.
 
@@ -26,7 +26,7 @@ authorization still requires the protected owner preflight before registry mutat
 ### Core: published Candidate
 
 `ui-affordance-scope`, `ui-avatar`, `ui-avatar-group`, `ui-badge`, `ui-button`, `ui-checkbox`,
-`ui-context-menu`, `ui-dialog`, `ui-disclosure`, `ui-floating-action-button`,
+`ui-combobox`, `ui-context-menu`, `ui-dialog`, `ui-disclosure`, `ui-floating-action-button`,
 `ui-form-field`, `ui-icon-button`, `ui-input`, `ui-menu`, `ui-menu-item`,
 `ui-popover`, `ui-radio`, `ui-radio-group`, `ui-search-result-row`,
 `ui-search-shell`, `ui-select`, `ui-switch`, `ui-tabs`, `ui-textarea`,
@@ -48,7 +48,7 @@ is a release defect, not a reason to silently shrink the source inventory.
   outside-edge insertion overlay, cell backgrounds, merge/split, and column
   resizing; Tiptap round-trip tests prove structural operations retain existing
   table and surrounding content. Data loss or corruption remains release-blocking.
-- AlertDialog, Listbox, Combobox, Drawer/Sheet, HoverCard, CommandPalette,
+- AlertDialog, Listbox, Drawer/Sheet, HoverCard, CommandPalette,
   Accordion group API, interactive Chip/Tag behavior, link editor, and emoji
   picker are deferred roadmap items.
 - Mention suggestions are capped, keyboard- and pointer-operable, and accept a
@@ -71,14 +71,14 @@ is a release defect, not a reason to silently shrink the source inventory.
 
 | Evidence | Current status | Release requirement |
 | --- | --- | --- |
-| Exact source inventory | Source-derived classification and projection gate passing for all 44 tags | Must stay clean through publication |
+| Exact source inventory | Source-derived classification and projection gate passing for all 46 tags | Must stay clean through publication |
 | Knit linked-workspace build | Passing | Must repeat against approved packed artifacts |
 | SSR imports through Knit graph | Passing for core/editor/editor extensions/Vue | Must repeat from clean tarball fixture |
 | Package names publicly absent | Observed via unauthenticated npm lookup | Authenticated namespace ownership/publish authorization required |
 | ContextMenu projections | API metadata, docs, navigation, contract README, Vue map/export, and render test complete | Must stay clean through publication |
 | Browser/a11y/adapter/package gates | Chromium interaction and axe checks pass for representative core/editor surfaces; Vue registers and renders the supported baseline without warnings; Node imports public core and packed graph entries without DOM globals | Keep mandatory, unskipped, and warning-clean in CI |
 | Turnkey editor and table kit | Vue browser behavior, theme-token inheritance, Tiptap table integrity, and Knit integration pass | Keep the complete and extension-only paths green |
-| Packed package | One local `@threadlabs/looma@0.1.22` tarball passes content/export/hash inspection | License approval, clean protected build, and external/Knit fixtures remain |
+| Packed package | One local `@threadlabs/looma@0.1.23` tarball passes content/export/hash inspection | License approval, clean protected build, and external/Knit fixtures remain |
 
 Automated accessibility does not replace manual assistive-technology, forced-color,
 zoom/reflow, or platform long-press checks. Those are documented manual Candidate
