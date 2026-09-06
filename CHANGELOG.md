@@ -4,6 +4,13 @@
 
 No changes yet.
 
+## v0.1.19 Candidate
+
+Tree insertion feedback stays aligned with the resulting hierarchy. Nested
+sibling bars use the child level, while an `after` drop on an expanded folder
+appears below its complete subtree. An `inside` drop is defined as the first
+position in the target's compatible child list.
+
 ## v0.1.18 Candidate
 
 The editor exposes a domain-neutral people-mention extension and an accessible,
