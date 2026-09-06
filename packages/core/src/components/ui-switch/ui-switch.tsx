@@ -1,5 +1,6 @@
 import { Component, Prop, Element, State, Watch, Host, h } from '@stencil/core';
 import { dispatchDetail } from '../../utils/events';
+import { controlledOrDefault, isControlled } from '../../utils/controlled-state';
 
 @Component({
   tag: 'ui-switch',
@@ -9,7 +10,8 @@ import { dispatchDetail } from '../../utils/events';
 export class UISwitch {
   @Element() host: HTMLElement;
 
-  @Prop() checked = false;
+  /** Controlled checked state. Omit it to use defaultChecked and local interaction state. */
+  @Prop() checked?: boolean;
   @Prop({ attribute: 'default-checked' }) defaultChecked = false;
   @Prop() disabled = false;
   @Prop() required = false;
@@ -19,19 +21,19 @@ export class UISwitch {
 
   @Watch('checked')
   syncFromProp() {
-    this.internalChecked = this.checked;
+    if (isControlled(this.checked)) this.internalChecked = this.checked;
   }
 
   componentDidLoad() {
-    this.syncFromProp();
-    this.internalChecked = this.internalChecked || this.defaultChecked;
+    this.internalChecked = controlledOrDefault(this.checked, this.defaultChecked);
   }
 
   private toggle = (trigger: 'keyboard' | 'pointer' | 'programmatic') => {
     if (this.disabled) return;
-    this.internalChecked = !this.internalChecked;
+    const checked = !this.internalChecked;
+    if (!isControlled(this.checked)) this.internalChecked = checked;
     dispatchDetail(this.host, 'change', {
-      checked: this.internalChecked,
+      checked,
       value: this.value,
       trigger,
     });
@@ -68,12 +70,15 @@ export class UISwitch {
           aria-hidden="true"
           tabIndex={-1}
           onChange={(e) => {
-            this.internalChecked = (e.target as HTMLInputElement).checked;
+            const input = e.target as HTMLInputElement;
+            const checked = input.checked;
+            if (!isControlled(this.checked)) this.internalChecked = checked;
             dispatchDetail(this.host, 'change', {
-              checked: this.internalChecked,
+              checked,
               value: this.value,
               trigger: 'pointer',
             });
+            if (isControlled(this.checked)) input.checked = this.internalChecked;
           }}
         />
         <slot />

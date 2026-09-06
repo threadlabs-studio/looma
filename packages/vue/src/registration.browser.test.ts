@@ -22,6 +22,45 @@ afterEach(async () => {
 });
 
 describe("@threadlabs/looma-vue release registration (real browser)", () => {
+  it("forwards controlled false and waits for the Vue owner to accept a disclosure close", async () => {
+    const { Disclosure } = await import("./index");
+    const open = ref(false);
+    const host = document.createElement("div");
+    document.body.append(host);
+    const app = createApp({
+      render: () => h(Disclosure, {
+        open: open.value,
+        defaultOpen: true,
+        onClose: () => undefined,
+      }, () => [
+        h("button", "Toggle"),
+        h("section", "Details"),
+      ]),
+    });
+    apps.push(app);
+    app.mount(host);
+    await customElements.whenDefined("ui-disclosure");
+    await flushBrowser();
+
+    const disclosure = host.querySelector<HTMLElement>("ui-disclosure")!;
+    const section = disclosure.querySelector<HTMLElement>("section")!;
+    expect(section.hidden).toBe(true);
+
+    open.value = true;
+    await nextTick();
+    await flushBrowser();
+    expect(section.hidden).toBe(false);
+
+    disclosure.querySelector<HTMLButtonElement>("button")!.click();
+    await flushBrowser();
+    expect(section.hidden).toBe(false);
+
+    open.value = false;
+    await nextTick();
+    await flushBrowser();
+    expect(section.hidden).toBe(true);
+  });
+
   it("composes concise field help with an accessible ghost button", async () => {
     const { Button, Tooltip, FormField, Input } = await import("./index");
     const onClose = vi.fn();

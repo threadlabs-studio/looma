@@ -73,9 +73,9 @@ export namespace Components {
     }
     interface UiCheckbox {
         /**
-          * @default false
+          * Controlled checked state. Omit it to use defaultChecked and local interaction state.
          */
-        "checked": boolean;
+        "checked"?: boolean;
         /**
           * @default false
          */
@@ -210,9 +210,9 @@ export namespace Components {
          */
         "modal": boolean;
         /**
-          * @default false
+          * Controlled open state. Omit it to use defaultOpen and local interaction state.
          */
-        "open": boolean;
+        "open"?: boolean;
     }
     interface UiDisclosure {
         /**
@@ -224,9 +224,9 @@ export namespace Components {
          */
         "disabled": boolean;
         /**
-          * @default false
+          * Controlled open state. Omit it to use defaultOpen and local interaction state.
          */
-        "open": boolean;
+        "open"?: boolean;
     }
     interface UiFloatingActionButton {
         /**
@@ -308,9 +308,9 @@ export namespace Components {
          */
         "for"?: string;
         /**
-          * @default false
+          * Controlled open state. Omit it to use defaultOpen and local interaction state.
          */
-        "open": boolean;
+        "open"?: boolean;
         /**
           * Preferred placement; Looma flips and shifts when space is constrained.
           * @default 'bottom-start'
@@ -337,9 +337,9 @@ export namespace Components {
          */
         "for"?: string;
         /**
-          * @default false
+          * Controlled open state. Omit it to use defaultOpen and local interaction state.
          */
-        "open": boolean;
+        "open"?: boolean;
         /**
           * @default 'bottom-start'
          */
@@ -347,9 +347,9 @@ export namespace Components {
     }
     interface UiRadio {
         /**
-          * @default false
+          * Controlled checked state. Omit it to use defaultChecked and local interaction state.
          */
-        "checked": boolean;
+        "checked"?: boolean;
         /**
           * @default false
          */
@@ -423,9 +423,9 @@ export namespace Components {
     }
     interface UiSwitch {
         /**
-          * @default false
+          * Controlled checked state. Omit it to use defaultChecked and local interaction state.
          */
-        "checked": boolean;
+        "checked"?: boolean;
         /**
           * @default false
          */
@@ -453,9 +453,9 @@ export namespace Components {
          */
         "orientation": 'horizontal' | 'vertical';
         /**
-          * @default ''
+          * Controlled selected tab value. Omit it to use defaultValue and local interaction state.
          */
-        "value": string;
+        "value"?: string;
     }
     interface UiTextarea {
         /**
@@ -501,9 +501,9 @@ export namespace Components {
          */
         "hideDelay": number;
         /**
-          * @default false
+          * Controlled open state. Omit it to use defaultOpen and local interaction state.
          */
-        "open": boolean;
+        "open"?: boolean;
         /**
           * @default 'top-start'
          */
@@ -935,7 +935,7 @@ declare namespace LocalJSX {
     }
     interface UiCheckbox {
         /**
-          * @default false
+          * Controlled checked state. Omit it to use defaultChecked and local interaction state.
          */
         "checked"?: boolean;
         /**
@@ -1078,7 +1078,7 @@ declare namespace LocalJSX {
          */
         "modal"?: boolean;
         /**
-          * @default false
+          * Controlled open state. Omit it to use defaultOpen and local interaction state.
          */
         "open"?: boolean;
     }
@@ -1092,7 +1092,7 @@ declare namespace LocalJSX {
          */
         "disabled"?: boolean;
         /**
-          * @default false
+          * Controlled open state. Omit it to use defaultOpen and local interaction state.
          */
         "open"?: boolean;
     }
@@ -1176,7 +1176,7 @@ declare namespace LocalJSX {
          */
         "for"?: string;
         /**
-          * @default false
+          * Controlled open state. Omit it to use defaultOpen and local interaction state.
          */
         "open"?: boolean;
         /**
@@ -1205,7 +1205,7 @@ declare namespace LocalJSX {
          */
         "for"?: string;
         /**
-          * @default false
+          * Controlled open state. Omit it to use defaultOpen and local interaction state.
          */
         "open"?: boolean;
         /**
@@ -1215,7 +1215,7 @@ declare namespace LocalJSX {
     }
     interface UiRadio {
         /**
-          * @default false
+          * Controlled checked state. Omit it to use defaultChecked and local interaction state.
          */
         "checked"?: boolean;
         /**
@@ -1291,7 +1291,7 @@ declare namespace LocalJSX {
     }
     interface UiSwitch {
         /**
-          * @default false
+          * Controlled checked state. Omit it to use defaultChecked and local interaction state.
          */
         "checked"?: boolean;
         /**
@@ -1321,7 +1321,7 @@ declare namespace LocalJSX {
          */
         "orientation"?: 'horizontal' | 'vertical';
         /**
-          * @default ''
+          * Controlled selected tab value. Omit it to use defaultValue and local interaction state.
          */
         "value"?: string;
     }
@@ -1371,7 +1371,7 @@ declare namespace LocalJSX {
         "onClose"?: (event: UiTooltipCustomEvent<{ open: boolean; reason: string; trigger: string }>) => void;
         "onOpen"?: (event: UiTooltipCustomEvent<{ open: boolean; reason: string; trigger: string }>) => void;
         /**
-          * @default false
+          * Controlled open state. Omit it to use defaultOpen and local interaction state.
          */
         "open"?: boolean;
         /**

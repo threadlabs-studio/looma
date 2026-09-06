@@ -1,6 +1,7 @@
 import { Component, Prop, Element, State, Watch, Host, h } from '@stencil/core';
 import { createId } from '../../utils/id';
 import { eventToTrigger, isActivationKey, dispatchDetail } from '../../utils/events';
+import { controlledOrDefault, isControlled } from '../../utils/controlled-state';
 
 @Component({
   tag: 'ui-disclosure',
@@ -10,7 +11,8 @@ import { eventToTrigger, isActivationKey, dispatchDetail } from '../../utils/eve
 export class UIDisclosure {
   @Element() host: HTMLElement;
 
-  @Prop() open = false;
+  /** Controlled open state. Omit it to use defaultOpen and local interaction state. */
+  @Prop() open?: boolean;
   @Prop({ attribute: 'default-open' }) defaultOpen = false;
   @Prop() disabled = false;
 
@@ -22,7 +24,7 @@ export class UIDisclosure {
 
   @Watch('open')
   syncFromProp() {
-    this.internalOpen = this.open;
+    if (isControlled(this.open)) this.internalOpen = this.open;
   }
 
   @Watch('internalOpen')
@@ -37,8 +39,7 @@ export class UIDisclosure {
 
   componentDidLoad() {
     this.resolveParts();
-    this.syncFromProp();
-    this.internalOpen = this.internalOpen || this.defaultOpen;
+    this.internalOpen = controlledOrDefault(this.open, this.defaultOpen);
     this.syncState();
     this.trigger?.addEventListener('click', this.onTriggerClick);
     this.trigger?.addEventListener('keydown', this.onTriggerKeydown);
@@ -79,7 +80,7 @@ export class UIDisclosure {
 
   private setOpen(next: boolean, action: { reason: string; trigger: string }) {
     if (this.internalOpen === next) return;
-    this.internalOpen = next;
+    if (!isControlled(this.open)) this.internalOpen = next;
     dispatchDetail(this.host, next ? 'open' : 'close', {
       open: next,
       reason: action.reason as 'programmatic' | 'light-dismiss' | 'escape' | 'action',

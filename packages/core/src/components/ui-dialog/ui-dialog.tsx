@@ -1,6 +1,7 @@
 import { Component, Prop, Element, State, Watch, Host, h } from '@stencil/core';
 import { openOverlay, closeOverlay, requestTopOverlayClose } from '../../overlay/manager';
 import { dispatchDetail } from '../../utils/events';
+import { controlledOrDefault, isControlled } from '../../utils/controlled-state';
 
 @Component({
   tag: 'ui-dialog',
@@ -10,7 +11,8 @@ import { dispatchDetail } from '../../utils/events';
 export class UIDialog {
   @Element() host: HTMLElement;
 
-  @Prop() open = false;
+  /** Controlled open state. Omit it to use defaultOpen and local interaction state. */
+  @Prop() open?: boolean;
   @Prop({ attribute: 'default-open' }) defaultOpen = false;
   @Prop() modal = true;
   @Prop() dismissible = true;
@@ -24,7 +26,7 @@ export class UIDialog {
 
   @Watch('open')
   syncFromProp() {
-    this.internalOpen = this.open;
+    if (isControlled(this.open)) this.internalOpen = this.open;
   }
 
   @Watch('internalOpen')
@@ -47,8 +49,7 @@ export class UIDialog {
   }
 
   componentDidLoad() {
-    this.syncFromProp();
-    this.internalOpen = this.internalOpen || this.defaultOpen;
+    this.internalOpen = controlledOrDefault(this.open, this.defaultOpen);
     this.dialogRef?.addEventListener('close', this.onDialogClose);
     this.syncOpen();
   }
@@ -63,7 +64,7 @@ export class UIDialog {
   }
 
   private handleRequestClose(reason: string, trigger: string) {
-    this.internalOpen = false;
+    if (!isControlled(this.open)) this.internalOpen = false;
     dispatchDetail(this.host, 'close', {
       open: false,
       reason: reason as 'programmatic' | 'light-dismiss' | 'escape' | 'action',
@@ -73,8 +74,12 @@ export class UIDialog {
 
   private onDialogClose = () => {
     if (this.internalOpen) {
-      this.internalOpen = false;
-      closeOverlay(this.overlayId);
+      if (!isControlled(this.open)) {
+        this.internalOpen = false;
+        closeOverlay(this.overlayId);
+      } else {
+        requestAnimationFrame(() => this.syncOpen());
+      }
       dispatchDetail(this.host, 'close', {
         open: false,
         reason: 'programmatic',
