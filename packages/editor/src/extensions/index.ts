@@ -9,6 +9,11 @@ export {
   type DefaultEditorExtensionsOptions,
 } from "./preset";
 export {
+  LOOMA_CALLOUT_TONES,
+  LoomaCallout,
+  type LoomaCalloutTone,
+} from "./callout";
+export {
   getActiveTableUiState,
   handleTableAction,
   handleTableOverlayAction,
