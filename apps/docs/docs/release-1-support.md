@@ -15,7 +15,7 @@ Candidate availability is defined by the npm `candidate` dist-tag resolving `@th
 ## Public entries
 
 - **`@threadlabs/looma` and `/core`** — ESM and CommonJS; 30 shadow-root elements with semantic slotted fallback.
-- **`@threadlabs/looma/layout`** — ESM and CommonJS; six light-DOM layout elements.
+- **`@threadlabs/looma/layout`** — ESM and CommonJS; nine light-DOM layout elements.
 - **`@threadlabs/looma/editor`** — ESM; the complete Tiptap-backed editor surface.
 - **`@threadlabs/looma/editor/ui`** — ESM; low-level editor web-component chrome without Tiptap integration.
 - **`@threadlabs/looma/editor/extensions`** — ESM; focused Tiptap 2 presets, `LoomaTableKit`, slash commands, mentions, and table helpers.
