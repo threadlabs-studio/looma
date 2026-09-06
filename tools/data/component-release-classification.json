@@ -5,6 +5,8 @@
     "ui-avatar": { "status": "published", "package": "@threadlabs/looma" },
     "ui-avatar-group": { "status": "published", "package": "@threadlabs/looma" },
     "ui-badge": { "status": "published", "package": "@threadlabs/looma" },
+    "ui-callout": { "status": "published", "package": "@threadlabs/looma" },
+    "ui-chip": { "status": "published", "package": "@threadlabs/looma" },
     "ui-button": { "status": "published", "package": "@threadlabs/looma" },
     "ui-center": { "status": "published", "package": "@threadlabs/looma/layout" },
     "ui-checkbox": { "status": "published", "package": "@threadlabs/looma" },

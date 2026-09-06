@@ -1,0 +1,43 @@
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# Chip
+
+Compact, non-interactive metadata. Use `tag` for a straight leading edge and shallow angled trailing edge, or `pill` for a rounded label. Wrap it in a link or button when it needs interaction.
+
+The default is intentionally quiet metadata: `--ui-font-size-xs`, regular
+weight, `--ui-space-0-5` block padding, and `--ui-space-1` inline/notch
+geometry produce an approximately 20px label without app-local sizing.
+
+## Component Reference
+
+<ComponentExamplesApiTabs component="ui-chip" />
+
+## Attributes
+
+| Name | Type | Default |
+| --- | --- | --- |
+| `appearance` | `"tag" \| "pill"` | `"tag"` |
+
+## Theming
+
+Keep typography, spacing, and shape with Looma. Supply only semantic color values when a product owns a color system:
+
+```css
+ui-chip[data-topic="research"] {
+  --ui-chip-surface: var(--topic-research-surface);
+  --ui-chip-text: var(--topic-research-text);
+  --ui-chip-border: var(--topic-research-border);
+}
+```
+
+## Vue
+
+```vue
+<script setup lang="ts">
+import { Chip } from "@threadlabs/looma/vue";
+</script>
+
+<template>
+  <Chip appearance="tag">Research</Chip>
+</template>
+```

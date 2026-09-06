@@ -16,11 +16,9 @@ export class UITreeItem {
   @Prop({ attribute: 'item-id' }) itemId = '';
   /** Accessible name used by the disclosure and drag handle. */
   @Prop() label = '';
-  /** One-based visual and semantic nesting level. */
-  @Prop() depth = 1;
-  /** Application hierarchy depth used for drop constraints. Defaults to visual depth. */
+  /** Application hierarchy depth override used for drop constraints. Defaults to structural nesting. */
   @Prop({ attribute: 'drop-depth' }) dropDepth?: number;
-  /** Deepest descendant distance, used with the tree's max-depth drop constraint. */
+  /** Virtualized-tree descendant-depth override for the tree's max-depth drop constraint. */
   @Prop({ attribute: 'subtree-depth' }) subtreeDepth?: number;
   /** Whether this item accepts children and exposes disclosure behavior. */
   @Prop() container = false;
@@ -40,6 +38,7 @@ export class UITreeItem {
   @Prop() disabled = false;
 
   @State() internalExpanded = false;
+  @State() structuralLevel = 1;
 
   @Watch('expanded')
   syncExpandedFromProp() {
@@ -48,15 +47,31 @@ export class UITreeItem {
 
   componentWillLoad() {
     this.internalExpanded = this.expanded || this.defaultExpanded;
+    this.updateStructuralLevel();
   }
 
-  componentDidLoad() {
+  connectedCallback() {
     this.host.addEventListener('ui-tree-auto-expand', this.onAutoExpand);
+    this.host.addEventListener('ui-tree-structure-sync', this.updateStructuralLevel);
   }
 
   disconnectedCallback() {
     this.host.removeEventListener('ui-tree-auto-expand', this.onAutoExpand);
+    this.host.removeEventListener('ui-tree-structure-sync', this.updateStructuralLevel);
   }
+
+  private updateStructuralLevel = () => {
+    const tree = this.host.closest('ui-tree');
+    let ancestor = this.host.parentElement?.closest('ui-tree-item') ?? null;
+    let level = 1;
+
+    while (ancestor && tree?.contains(ancestor)) {
+      level += 1;
+      ancestor = ancestor.parentElement?.closest('ui-tree-item') ?? null;
+    }
+
+    if (this.structuralLevel !== level) this.structuralLevel = level;
+  };
 
   private setExpanded(expanded: boolean, trigger: TreeTrigger) {
     if (!this.container || this.disabled || this.internalExpanded === expanded) return;
@@ -91,7 +106,7 @@ export class UITreeItem {
   };
 
   render() {
-    const level = Math.max(1, Math.floor(this.depth));
+    const level = this.structuralLevel;
     const disclosureLabel = `${this.internalExpanded ? 'Collapse' : 'Expand'} ${this.label || 'item'}`;
     const dragLabel = `Drag ${this.label || 'item'} to reorder`;
 

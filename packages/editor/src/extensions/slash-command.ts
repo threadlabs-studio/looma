@@ -39,24 +39,28 @@ const CALLOUT_COMMANDS: ReadonlyArray<{
   title: string;
   description: string;
   tone: LoomaCalloutTone;
+  icon: LoomaIconName;
   keywords: string[];
 }> = [
   {
     title: "Info",
     description: "Informational callout",
     tone: "info",
+    icon: "info",
     keywords: ["info", "information", "callout", "panel"],
   },
   {
     title: "Note",
     description: "Highlighted note",
     tone: "note",
+    icon: "notebook-pen",
     keywords: ["note", "callout", "panel"],
   },
   {
     title: "Warning",
     description: "Important warning",
     tone: "warning",
+    icon: "triangle-alert",
     keywords: ["warning", "caution", "alert", "callout", "panel"],
   },
 ];
@@ -119,13 +123,13 @@ export function getDefaultSlashCommands(
         editor.chain().focus().deleteRange(range).toggleBlockquote().run();
       },
     },
-    ...CALLOUT_COMMANDS.map(({ title, description, tone, keywords }) => ({
+    ...CALLOUT_COMMANDS.map(({ title, description, tone, icon, keywords }) => ({
       title,
       description,
-      icon: "panel-left" as LoomaIconName,
+      icon,
       keywords,
       command: ({ editor, range }: LoomaSlashCommandContext) => {
-        editor.chain().focus().deleteRange(range).wrapIn("loomaCallout", { tone }).run();
+        editor.chain().focus().deleteRange(range).setLoomaCallout(tone).run();
       },
     })),
     {

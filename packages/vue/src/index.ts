@@ -43,6 +43,8 @@ export const Switch = createAdapterComponent("ui-switch", "Switch");
 export const RadioGroup = createAdapterComponent("ui-radio-group", "RadioGroup");
 export const Radio = createAdapterComponent("ui-radio", "Radio");
 export const Badge = createAdapterComponent("ui-badge", "Badge");
+export const Chip = createAdapterComponent("ui-chip", "Chip");
+export const Callout = createAdapterComponent("ui-callout", "Callout");
 export const Avatar = createAdapterComponent("ui-avatar", "Avatar");
 export const AvatarGroup = createAdapterComponent("ui-avatar-group", "AvatarGroup");
 export const FloatingActionButton = createAdapterComponent(
@@ -90,6 +92,8 @@ export const ADAPTER_COMPONENT_TAG_MAP = {
   RadioGroup: "ui-radio-group",
   Radio: "ui-radio",
   Badge: "ui-badge",
+  Chip: "ui-chip",
+  Callout: "ui-callout",
   Avatar: "ui-avatar",
   AvatarGroup: "ui-avatar-group",
   FloatingActionButton: "ui-floating-action-button",

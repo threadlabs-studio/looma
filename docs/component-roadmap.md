@@ -20,7 +20,7 @@ business components stay in the app.
 ## Release 1 Classification
 
 The [Release 1 support matrix](./release-support-matrix.md) is the authority for
-Candidate publication. The 9 layout, 29 core, and 6 editor source elements listed
+Candidate publication. The 9 layout, 31 core, and 6 editor source elements listed
 there are published Candidate surface. Missing roadmap families remain deferred
 and do not block R1. React and Svelte are repository previews; Vue is the only
 supported framework adapter in R1.
@@ -34,6 +34,8 @@ gate must reject any mismatch instead of silently omitting a component.
 - `ui-avatar`
 - `ui-avatar-group`
 - `ui-badge`
+- `ui-callout`
+- `ui-chip`
 - `ui-button`
 - `ui-center`
 - `ui-checkbox`
@@ -117,8 +119,9 @@ Conventions for this checklist:
 - [x] Disclosure
 - [ ] Accordion group API
 - [x] ToastRegion
-- [~] Badge / Tag / Chip family
-  `ui-badge` is shipped today. Interactive or removable chip/tag variants are not yet first-class Looma components.
+- [x] Badge / Tag / Chip family
+  `ui-badge`, non-interactive `ui-chip`, and static `ui-callout` are shipped.
+  Interactive or removable chip/tag variants remain deferred.
 - [x] Avatar
 - [x] AvatarGroup
 - [x] TopBar

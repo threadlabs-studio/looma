@@ -1,0 +1,31 @@
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# Callout
+
+A static semantic message surface with a tone-specific icon. It is not a live alert and does not include dismissal behavior.
+
+## Component Reference
+
+<ComponentExamplesApiTabs component="ui-callout" />
+
+## Attributes
+
+| Name | Type | Default |
+| --- | --- | --- |
+| `tone` | `"info" \| "note" \| "warning" \| "success" \| "error"` | `"info"` |
+
+The compact default is owned by Looma component tokens: `space-2` block padding, `space-3` inline padding, a 1rem icon column and icon, and a `space-2` content gap. Consumers can override the `--ui-callout-*` semantic surface, text, border, and icon tokens when needed.
+
+The editor preset persists its `loomaCallout` content node as `aside[data-looma-callout][data-tone]` and applies the same token recipe. Its current editor contract exposes `info`, `note`, and `warning` through the matching slash commands; the standalone component also supports `success` and `error`.
+
+## Vue
+
+```vue
+<script setup lang="ts">
+import { Callout } from "@threadlabs/looma/vue";
+</script>
+
+<template>
+  <Callout tone="warning">Review this before publishing.</Callout>
+</template>
+```

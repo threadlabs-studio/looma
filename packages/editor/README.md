@@ -9,6 +9,10 @@ public facade's `/vue/editor` entry provides the turnkey Vue editor.
 
 Release status: Candidate `0.1.23`, not Stable.
 
+## Density tokens
+
+The editor owns list indentation through `--ui-editor-list-inset`, which defaults to `var(--ui-space-5)` and applies uniformly at each nested list level. Its `loomaCallout` node persists semantic `info`, `note`, or `warning` tones as `aside[data-looma-callout][data-tone]`; the compact Looma callout token recipe is shared with the standalone component.
+
 ## Install
 
 ```sh
