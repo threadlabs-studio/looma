@@ -22,6 +22,67 @@ afterEach(async () => {
 });
 
 describe("@threadlabs/looma-vue release registration (real browser)", () => {
+  it("preserves Vue-owned values in slotted native form controls", async () => {
+    const { Input, Select, Textarea } = await import("./index");
+    const name = ref("Blue Ridge Collector Cars");
+    const cargoType = ref("boat");
+    const notes = ref("Marina pickup");
+    const host = document.createElement("div");
+    document.body.append(host);
+    const app = createApp({
+      render: () => h("div", [
+        h(Input, null, () => h("input", {
+          value: name.value,
+          onInput: (event: Event) => { name.value = (event.target as HTMLInputElement).value; },
+        })),
+        h(Select, null, () => h("select", {
+          value: cargoType.value,
+          onChange: (event: Event) => { cargoType.value = (event.target as HTMLSelectElement).value; },
+        }, [
+          h("option", { value: "road_vehicle" }, "Road vehicles"),
+          h("option", { value: "boat" }, "Boats"),
+        ])),
+        h(Textarea, null, () => h("textarea", {
+          value: notes.value,
+          onInput: (event: Event) => { notes.value = (event.target as HTMLTextAreaElement).value; },
+        })),
+      ]),
+    });
+    apps.push(app);
+    app.mount(host);
+
+    await Promise.all([
+      customElements.whenDefined("ui-input"),
+      customElements.whenDefined("ui-select"),
+      customElements.whenDefined("ui-textarea"),
+    ]);
+    await flushBrowser();
+
+    const input = host.querySelector<HTMLInputElement>("ui-input input")!;
+    const select = host.querySelector<HTMLSelectElement>("ui-select select")!;
+    const textarea = host.querySelector<HTMLTextAreaElement>("ui-textarea textarea")!;
+    expect(input.value).toBe("Blue Ridge Collector Cars");
+    expect(select.value).toBe("boat");
+    expect(textarea.value).toBe("Marina pickup");
+
+    name.value = "Heritage Marine Sales";
+    cargoType.value = "road_vehicle";
+    notes.value = "Dealer pickup";
+    await nextTick();
+    await flushBrowser();
+
+    expect(input.value).toBe("Heritage Marine Sales");
+    expect(select.value).toBe("road_vehicle");
+    expect(textarea.value).toBe("Dealer pickup");
+
+    await userEvent.fill(input, "Gulf Coast Classics");
+    await userEvent.selectOptions(select, "boat");
+    await userEvent.fill(textarea, "Ramp access confirmed");
+    expect(name.value).toBe("Gulf Coast Classics");
+    expect(cargoType.value).toBe("boat");
+    expect(notes.value).toBe("Ramp access confirmed");
+  });
+
   it("preserves Stencil's hydration marker across reactive Vue class updates", async () => {
     const { TreeItem } = await import("./index");
     const itemClass = ref("consumer-tree-item");

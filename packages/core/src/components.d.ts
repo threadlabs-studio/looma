@@ -204,10 +204,7 @@ export namespace Components {
           * @default false
          */
         "readOnly": boolean;
-        /**
-          * @default ''
-         */
-        "value": string;
+        "value"?: string;
     }
     interface UiMenu {
         /**
@@ -333,10 +330,7 @@ export namespace Components {
           * @default false
          */
         "required": boolean;
-        /**
-          * @default ''
-         */
-        "value": string;
+        "value"?: string;
     }
     interface UiSwitch {
         /**
@@ -395,10 +389,7 @@ export namespace Components {
           * @default 4
          */
         "rows": number;
-        /**
-          * @default ''
-         */
-        "value": string;
+        "value"?: string;
     }
     interface UiToastRegion {
         /**
@@ -911,9 +902,6 @@ declare namespace LocalJSX {
           * @default false
          */
         "readOnly"?: boolean;
-        /**
-          * @default ''
-         */
         "value"?: string;
     }
     interface UiMenu {
@@ -1040,9 +1028,6 @@ declare namespace LocalJSX {
           * @default false
          */
         "required"?: boolean;
-        /**
-          * @default ''
-         */
         "value"?: string;
     }
     interface UiSwitch {
@@ -1102,9 +1087,6 @@ declare namespace LocalJSX {
           * @default 4
          */
         "rows"?: number;
-        /**
-          * @default ''
-         */
         "value"?: string;
     }
     interface UiToastRegion {
