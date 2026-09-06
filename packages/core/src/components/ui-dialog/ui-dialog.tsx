@@ -20,13 +20,24 @@ export class UIDialog {
   @Prop() label?: string;
 
   @State() internalOpen = false;
+  @State() accessibleLabel = 'Dialog';
 
   private overlayId = `ui-dialog-${Math.random().toString(36).slice(2, 11)}`;
   private dialogRef?: HTMLDialogElement;
+  private contentObserver: MutationObserver | null = null;
 
   @Watch('open')
   syncFromProp() {
     if (isControlled(this.open)) this.internalOpen = this.open;
+  }
+
+  @Watch('label')
+  syncLabelFromProp() {
+    this.syncAccessibleLabel();
+  }
+
+  componentWillLoad() {
+    this.syncAccessibleLabel();
   }
 
   @Watch('internalOpen')
@@ -49,13 +60,22 @@ export class UIDialog {
   }
 
   componentDidLoad() {
+    this.contentObserver = new MutationObserver(this.syncAccessibleLabel);
+    this.contentObserver.observe(this.host, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    });
     this.internalOpen = controlledOrDefault(this.open, this.defaultOpen);
     this.dialogRef?.addEventListener('close', this.onDialogClose);
+    this.syncAccessibleLabel();
     this.syncOpen();
   }
 
   disconnectedCallback() {
     this.dialogRef?.removeEventListener('close', this.onDialogClose);
+    this.contentObserver?.disconnect();
+    this.contentObserver = null;
     closeOverlay(this.overlayId);
   }
 
@@ -94,6 +114,16 @@ export class UIDialog {
     }
   };
 
+  private syncAccessibleLabel = () => {
+    const explicitLabel = this.label?.trim();
+    const heading = this.host.querySelector(
+      '[slot="heading"], [data-ui-dialog-title], h1, h2, h3, h4, h5, h6',
+    );
+    const headingLabel = heading?.textContent?.trim();
+    const nextLabel = explicitLabel || headingLabel || 'Dialog';
+    if (this.accessibleLabel !== nextLabel) this.accessibleLabel = nextLabel;
+  };
+
   render() {
     return (
       <Host
@@ -103,7 +133,7 @@ export class UIDialog {
         <dialog
           ref={(el) => (this.dialogRef = el)}
           open={this.internalOpen}
-          aria-label={this.label}
+          aria-label={this.accessibleLabel}
         >
           <slot />
         </dialog>

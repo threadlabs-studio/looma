@@ -76,6 +76,7 @@ export interface TabsProps extends AdapterBaseProps {
 export interface DialogProps extends AdapterBaseProps {
   "defaultOpen"?: boolean | undefined;
   "dismissible"?: boolean | undefined;
+  "label"?: string | undefined;
   "modal"?: boolean | undefined;
   "open"?: boolean | undefined;
   "onClose"?: ((detail: VueAdapterEventMap['close']) => void) | undefined;

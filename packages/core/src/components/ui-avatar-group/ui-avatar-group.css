@@ -5,12 +5,12 @@
   gap: 0;
 }
 
-::slotted(*:not([data-ui-avatar-group-overflow])) {
+::slotted(*) {
   margin-inline-end: -0.5rem;
   flex-shrink: 0;
 }
 
-::slotted(*:last-of-type:not([data-ui-avatar-group-overflow])) {
+::slotted(*:last-of-type) {
   margin-inline-end: 0;
 }
 
