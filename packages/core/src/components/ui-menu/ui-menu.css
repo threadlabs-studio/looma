@@ -2,14 +2,25 @@
   --ui-menu-viewport-gap: var(--ui-space-2, 0.5rem);
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
   inline-size: max-content;
   min-inline-size: min(12rem, calc(100vw - (var(--ui-menu-viewport-gap) * 2)));
   max-inline-size: calc(100vw - (var(--ui-menu-viewport-gap) * 2));
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: var(--ui-shadow-lg);
+}
+
+.menu__surface {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
   padding: var(--ui-space-1);
   background: var(--ui-surface-elevated);
   border: 1px solid var(--ui-border-default);
   border-radius: var(--ui-radius-3);
-  box-shadow: var(--ui-shadow-lg);
 }
 
 :host(:not([data-open])) {

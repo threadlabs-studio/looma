@@ -240,7 +240,7 @@ export class UITooltip {
         hidden={!this.internalOpen}
         data-open={this.internalOpen ? '' : undefined}
       >
-        <slot />
+        <div class="tooltip__surface"><slot /></div>
       </Host>
     );
   }
