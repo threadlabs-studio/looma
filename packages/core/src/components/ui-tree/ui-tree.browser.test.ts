@@ -1,3 +1,4 @@
+import axe from 'axe-core';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { userEvent } from '@vitest/browser/context';
 
@@ -51,14 +52,16 @@ describe('ui-tree drag and hierarchy interactions', () => {
   it('uses one bounded logical indentation step and complete tree semantics', async () => {
     document.body.innerHTML = `
       <ui-tree label="Project pages">
-        <ui-tree-item item-id="root" label="Root" depth="1" container default-expanded>
+        <ui-tree-item item-id="root" label="Root" container default-expanded>
           <span>Root</span>
-          <ui-tree-item slot="children" item-id="child" label="Child" depth="2" container default-expanded>
+          <div slot="children">
+          <ui-tree-item item-id="child" label="Child" container default-expanded>
             <span>Child</span>
-            <ui-tree-item slot="children" item-id="grandchild" label="Grandchild" depth="3">
+            <div slot="children"><ui-tree-item item-id="grandchild" label="Grandchild">
               <span>Grandchild</span>
-            </ui-tree-item>
+            </ui-tree-item></div>
           </ui-tree-item>
+          </div>
         </ui-tree-item>
       </ui-tree>
     `;
@@ -78,8 +81,131 @@ describe('ui-tree drag and hierarchy interactions', () => {
     expect(root.getAttribute('aria-level')).toBe('1');
     expect(root.getAttribute('aria-expanded')).toBe('true');
     expect(child.getAttribute('aria-level')).toBe('2');
+    expect(grandchild.getAttribute('aria-level')).toBe('3');
+    expect(Math.round(rootRow.getBoundingClientRect().left - tree.getBoundingClientRect().left)).toBe(0);
     expect(Math.round(childRow.getBoundingClientRect().left - rootRow.getBoundingClientRect().left)).toBe(16);
     expect(Math.round(grandchildRow.getBoundingClientRect().left - childRow.getBoundingClientRect().left)).toBe(16);
+  });
+
+  it('provides one tab stop and complete tree keyboard navigation without stealing interactive descendants', async () => {
+    document.body.innerHTML = `
+      <ui-tree label="Project pages">
+        <ui-tree-item item-id="root" label="Root" container default-expanded>
+          <span>Root</span>
+          <a slot="actions" href="#root-action">Open root</a>
+          <ui-tree-item slot="children" item-id="child" label="Child" container default-expanded>
+            <span>Child</span>
+            <ui-tree-item slot="children" item-id="grandchild" label="Grandchild"><span>Grandchild</span></ui-tree-item>
+          </ui-tree-item>
+        </ui-tree-item>
+        <ui-tree-item item-id="last" label="Last"><span>Last</span></ui-tree-item>
+      </ui-tree>
+    `;
+    await flushStencil();
+
+    const tree = document.querySelector<HTMLElement>('ui-tree')!;
+    const root = document.querySelector<HTMLElement>('ui-tree-item[item-id="root"]')!;
+    const child = document.querySelector<HTMLElement>('ui-tree-item[item-id="child"]')!;
+    const grandchild = document.querySelector<HTMLElement>('ui-tree-item[item-id="grandchild"]')!;
+    const last = document.querySelector<HTMLElement>('ui-tree-item[item-id="last"]')!;
+    const action = root.querySelector<HTMLAnchorElement>('a')!;
+    const key = (item: HTMLElement, value: string) => item.dispatchEvent(new KeyboardEvent('keydown', {
+      key: value, bubbles: true, composed: true,
+    }));
+
+    expect(root.getAttribute('aria-label')).toBe('Root');
+    expect([root, child, grandchild, last].filter(item => item.tabIndex === 0)).toEqual([root]);
+
+    root.focus();
+    key(root, 'ArrowDown');
+    expect(document.activeElement).toBe(child);
+    key(child, 'End');
+    expect(document.activeElement).toBe(last);
+    key(last, 'Home');
+    expect(document.activeElement).toBe(root);
+    key(root, 'ArrowRight');
+    expect(document.activeElement).toBe(child);
+    key(child, 'ArrowLeft');
+    await flushStencil();
+    expect(child.getAttribute('aria-expanded')).toBe('false');
+    key(child, 'ArrowLeft');
+    expect(document.activeElement).toBe(root);
+    key(root, 'ArrowLeft');
+    await flushStencil();
+    expect(root.getAttribute('aria-expanded')).toBe('false');
+    key(root, 'ArrowRight');
+    await flushStencil();
+    expect(root.getAttribute('aria-expanded')).toBe('true');
+
+    action.focus();
+    action.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true, composed: true }));
+    expect(document.activeElement).toBe(action);
+    expect(root.getAttribute('aria-expanded')).toBe('true');
+    expect([root, child, grandchild, last].filter(item => item.tabIndex === 0)).toEqual([root]);
+
+    const results = await axe.run(tree, { rules: { 'color-contrast': { enabled: false } } });
+    expect(results.violations, results.violations.map(violation => violation.id).join(', ')).toEqual([]);
+  });
+
+  it('keeps expanded controlled when supplied and defaults only uncontrolled items', async () => {
+    document.body.innerHTML = `
+      <ui-tree label="Project pages">
+        <ui-tree-item item-id="controlled" label="Controlled" container default-expanded="true" expanded="false">
+          <ui-tree-item slot="children" item-id="nested" label="Nested"><span>Nested</span></ui-tree-item>
+        </ui-tree-item>
+        <ui-tree-item item-id="uncontrolled" label="Uncontrolled" container default-expanded>
+          <ui-tree-item slot="children" item-id="nested-default" label="Nested default"><span>Nested default</span></ui-tree-item>
+        </ui-tree-item>
+      </ui-tree>
+    `;
+    await flushStencil();
+
+    const controlled = document.querySelector<HTMLElement & { expanded?: boolean }>('ui-tree-item[item-id="controlled"]')!;
+    const uncontrolled = document.querySelector<HTMLElement>('ui-tree-item[item-id="uncontrolled"]')!;
+    const expansions: unknown[] = [];
+    controlled.addEventListener('expand', event => expansions.push((event as CustomEvent).detail));
+    expect(controlled.getAttribute('aria-expanded')).toBe('false');
+    expect(uncontrolled.getAttribute('aria-expanded')).toBe('true');
+
+    controlled.shadowRoot!.querySelector<HTMLButtonElement>('[part="disclosure"]')!.click();
+    await flushStencil();
+    expect(expansions).toEqual([{ id: 'controlled', expanded: true, trigger: 'pointer' }]);
+    expect(controlled.getAttribute('aria-expanded')).toBe('false');
+
+    controlled.expanded = true;
+    await flushStencil();
+    expect(controlled.getAttribute('aria-expanded')).toBe('true');
+    controlled.expanded = undefined;
+    await flushStencil();
+    expect(controlled.getAttribute('aria-expanded')).toBe('true');
+    controlled.shadowRoot!.querySelector<HTMLButtonElement>('[part="disclosure"]')!.click();
+    await flushStencil();
+    expect(controlled.getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('recomputes levels when a nested item is reparented', async () => {
+    document.body.innerHTML = `
+      <ui-tree label="Project pages">
+        <ui-tree-item item-id="root" label="Root" container default-expanded>
+          <div slot="children"><ui-tree-item item-id="child" label="Child"><span>Child</span></ui-tree-item></div>
+        </ui-tree-item>
+        <ui-tree-item item-id="other" label="Other"><span>Other</span></ui-tree-item>
+      </ui-tree>
+    `;
+    await flushStencil();
+
+    const root = document.querySelector<HTMLElement>('ui-tree-item[item-id="root"]')!;
+    const child = document.querySelector<HTMLElement>('ui-tree-item[item-id="child"]')!;
+    const tree = document.querySelector<HTMLElement>('ui-tree')!;
+    expect(child.getAttribute('aria-level')).toBe('2');
+
+    tree.append(child);
+    await flushStencil();
+
+    expect(child.getAttribute('aria-level')).toBe('1');
+    const childRow = child.shadowRoot!.querySelector<HTMLElement>('[part="row"]')!;
+    expect(Math.round(childRow.getBoundingClientRect().left - tree.getBoundingClientRect().left)).toBe(0);
+    expect(root.getAttribute('aria-level')).toBe('1');
   });
 
   it('shows capped insertion feedback and emits an exact before/after move', async () => {
@@ -196,10 +322,10 @@ describe('ui-tree drag and hierarchy interactions', () => {
   it('rejects a move whose deepest descendant would exceed the configured depth', async () => {
     document.body.innerHTML = `
       <ui-tree label="Folders" max-depth="3">
-        <ui-tree-item item-id="source" label="Source" depth="1" subtree-depth="1" drag-type="folder" accepts="folder" sortable container>
+        <ui-tree-item item-id="source" label="Source" subtree-depth="1" drag-type="folder" accepts="folder" sortable container>
           <span>Source</span>
         </ui-tree-item>
-        <ui-tree-item item-id="target" label="Target" depth="4" drop-depth="2" drag-type="folder" accepts="folder" sortable container>
+        <ui-tree-item item-id="target" label="Target" drop-depth="2" drag-type="folder" accepts="folder" sortable container>
           <span>Target</span>
         </ui-tree-item>
       </ui-tree>
@@ -242,13 +368,53 @@ describe('ui-tree drag and hierarchy interactions', () => {
     }]);
   });
 
-  it('leaves depth validation opt-in for item kinds with different nesting semantics', async () => {
+  it('derives max-depth from rendered descendants without consumer depth bookkeeping', async () => {
+    document.body.innerHTML = `
+      <ui-tree label="Folders" max-depth="2">
+        <ui-tree-item item-id="source" label="Source" drag-type="folder" accepts="folder" sortable container default-expanded>
+          <span>Source</span>
+          <ui-tree-item slot="children" item-id="nested" label="Nested" drag-type="folder"><span>Nested</span></ui-tree-item>
+        </ui-tree-item>
+        <ui-tree-item item-id="target" label="Target" drag-type="folder" accepts="folder" container><span>Target</span></ui-tree-item>
+      </ui-tree>
+    `;
+    await flushStencil();
+
+    const tree = document.querySelector('ui-tree')!;
+    const source = document.querySelector<HTMLElement>('ui-tree-item[item-id="source"]')!;
+    const target = document.querySelector<HTMLElement>('ui-tree-item[item-id="target"]')!;
+    const handle = source.shadowRoot!.querySelector<HTMLElement>('[part="drag-handle"]')!;
+    const targetRow = target.shadowRoot!.querySelector<HTMLElement>('[part="row"]')!;
+    const rejections: unknown[] = [];
+    tree.addEventListener('reorder-rejected', event => rejections.push((event as CustomEvent).detail));
+    vi.spyOn(document, 'elementFromPoint').mockReturnValue(target);
+
+    handle.dispatchEvent(dragEvent('dragstart', 0, { setData: vi.fn(), setDragImage: vi.fn() }));
+    const rect = targetRow.getBoundingClientRect();
+    const clientX = rect.left + (rect.width / 2);
+    const clientY = rect.top + (rect.height / 2);
+    targetRow.dispatchEvent(dragEvent('dragover', clientY, { dropEffect: 'move' }, clientX));
+    handle.dispatchEvent(dragEvent('dragend', clientY, {}, clientX));
+
+    expect(target.hasAttribute('data-drop-position')).toBe(false);
+    expect(rejections).toEqual([{
+      sourceId: 'source',
+      targetId: 'target',
+      position: 'inside',
+      reason: 'max-depth',
+      maxDepth: 2,
+      resultingDepth: 3,
+      trigger: 'pointer',
+    }]);
+  });
+
+  it('honors an explicit target depth override when enforcing max-depth', async () => {
     document.body.innerHTML = `
       <ui-tree label="Pages" max-depth="3">
         <ui-tree-item item-id="page" label="Page" drag-type="page" sortable>
           <span>Page</span>
         </ui-tree-item>
-        <ui-tree-item item-id="folder" label="Folder" depth="4" drop-depth="3" drag-type="folder" accepts="page,folder" container>
+        <ui-tree-item item-id="folder" label="Folder" drop-depth="3" drag-type="folder" accepts="page,folder" container>
           <span>Folder</span>
         </ui-tree-item>
       </ui-tree>
@@ -266,9 +432,9 @@ describe('ui-tree drag and hierarchy interactions', () => {
     const hovering = dragEvent('dragover', rect.top + (rect.height / 2), transfer);
     folderRow.dispatchEvent(hovering);
 
-    expect(hovering.defaultPrevented).toBe(true);
-    expect(transfer.dropEffect).toBe('move');
-    expect(folder.getAttribute('data-drop-position')).toBe('inside');
+    expect(hovering.defaultPrevented).toBe(false);
+    expect(transfer.dropEffect).toBe('none');
+    expect(folder.hasAttribute('data-drop-position')).toBe(false);
   });
 
   it('expands a closed folder before committing a containment drop', async () => {
@@ -536,15 +702,15 @@ describe('ui-tree drag and hierarchy interactions', () => {
   it('keeps nested insertion and parent-level outdent feedback aligned with the resulting hierarchy', async () => {
     document.body.innerHTML = `
       <ui-tree label="Folders">
-        <ui-tree-item item-id="source" label="Source" depth="1" drag-type="folder" accepts="folder" sortable container>
+        <ui-tree-item item-id="source" label="Source" drag-type="folder" accepts="folder" sortable container>
           <span>Source</span>
         </ui-tree-item>
-        <ui-tree-item item-id="target" label="Target" depth="1" drag-type="folder" drop-scope="root" accepts="folder" sortable container default-expanded>
+        <ui-tree-item item-id="target" label="Target" drag-type="folder" drop-scope="root" accepts="folder" sortable container default-expanded>
           <span>Target</span>
-          <ui-tree-item slot="children" item-id="child-a" label="Child A" depth="2" drag-type="folder" drop-scope="target" accepts="folder" sortable container>
+          <ui-tree-item slot="children" item-id="child-a" label="Child A" drag-type="folder" drop-scope="target" accepts="folder" sortable container>
             <span>Child A</span>
           </ui-tree-item>
-          <ui-tree-item slot="children" item-id="child-b" label="Child B" depth="2" drag-type="folder" drop-scope="target" accepts="folder" sortable container>
+          <ui-tree-item slot="children" item-id="child-b" label="Child B" drag-type="folder" drop-scope="target" accepts="folder" sortable container>
             <span>Child B</span>
           </ui-tree-item>
         </ui-tree-item>

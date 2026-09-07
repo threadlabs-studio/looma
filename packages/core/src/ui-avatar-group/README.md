@@ -16,7 +16,7 @@ Container that displays a row of overlapping avatars (typically `ui-avatar` chil
 ## Attributes
 
 - `max` — Maximum number of avatars to show before the "+N" overflow pill (default 5).
-- `label` — Accessible label for the list (e.g. "People"; default "People").
+- `label` — Accessible label for the group (e.g. "People"; default "People").
 
 ## Properties
 
@@ -29,7 +29,10 @@ Container that displays a row of overlapping avatars (typically `ui-avatar` chil
 
 ## Slots/Children
 
-- Default slot: direct children are treated as avatar items. First `max` are visible; the rest are hidden and a "+N" overflow pill is shown.
+- Default slot: direct children are treated as avatar items. First `max` are
+  visible; the rest are hidden by shadow-owned presentation and a "+N" overflow
+  pill is shown. The component never writes `hidden` or `aria-hidden` onto
+  application-owned children.
 
 ## Keyboard Behavior
 
@@ -37,4 +40,5 @@ Container that displays a row of overlapping avatars (typically `ui-avatar` chil
 
 ## ARIA
 
-- Host has `role="list"` and `aria-label` from the `label` attribute. Overflow pill has `role="listitem"` and `aria-label` describing the count.
+- Host has `role="group"` and `aria-label` from the `label` attribute. The
+  overflow pill has `role="img"` and an accessible label describing the count.

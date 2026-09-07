@@ -17,7 +17,8 @@ Host transient toast messages in a live region with dismiss handling.
 
 ## Attributes
 
-- `open`: reflects whether at least one toast is present.
+- `open`: visibility gate (default `true`); the region is visible only while this
+  is true and at least one toast is present.
 
 ## Properties
 
@@ -27,11 +28,16 @@ Host transient toast messages in a live region with dismiss handling.
 
 - `open`: `{ open: true, reason, trigger }`
 - `close`: `{ open: false, reason, trigger }`
-- `dismiss`: `{ id, reason, trigger }`
+- `dismiss`: `{ id, reason, trigger }` — a request for the consumer to remove
+  the matching toast from its owned list. The region never removes or hides a
+  slotted toast itself.
 
 ## Slots/Children
 
 - Default slot containing toast nodes marked with `data-ui-toast`.
+
+Consumers must handle `dismiss` and update the source list. `close` is emitted
+after that update removes the final toast.
 
 ## Keyboard Behavior
 

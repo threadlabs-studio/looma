@@ -7,22 +7,21 @@
 
 ## Properties
 
-| Property          | Attribute          | Description                                                                      | Type      | Default     |
-| ----------------- | ------------------ | -------------------------------------------------------------------------------- | --------- | ----------- |
-| `accepts`         | `accepts`          | Comma-separated drag kinds accepted as children. Empty accepts every kind.       | `string`  | `''`        |
-| `container`       | `container`        | Whether this item accepts children and exposes disclosure behavior.              | `boolean` | `false`     |
-| `defaultExpanded` | `default-expanded` | Initial uncontrolled expansion value.                                            | `boolean` | `false`     |
-| `depth`           | `depth`            | One-based visual and semantic nesting level.                                     | `number`  | `1`         |
-| `disabled`        | `disabled`         |                                                                                  | `boolean` | `false`     |
-| `dragType`        | `drag-type`        | Application-defined kind used to reject incompatible sibling drops.              | `string`  | `'item'`    |
-| `dropDepth`       | `drop-depth`       | Application hierarchy depth used for drop constraints. Defaults to visual depth. | `number`  | `undefined` |
-| `dropScope`       | `drop-scope`       | Application-defined parent/list identity included with reorder events.           | `string`  | `''`        |
-| `expanded`        | `expanded`         | Initial controlled expansion value.                                              | `boolean` | `false`     |
-| `itemId`          | `item-id`          | Stable application identifier emitted by tree interaction events.                | `string`  | `''`        |
-| `label`           | `label`            | Accessible name used by the disclosure and drag handle.                          | `string`  | `''`        |
-| `selected`        | `selected`         |                                                                                  | `boolean` | `false`     |
-| `sortable`        | `sortable`         | Whether this item participates in pointer drag and drop.                         | `boolean` | `false`     |
-| `subtreeDepth`    | `subtree-depth`    | Deepest descendant distance, used with the tree's max-depth drop constraint.     | `number`  | `undefined` |
+| Property          | Attribute          | Description                                                                                     | Type      | Default     |
+| ----------------- | ------------------ | ----------------------------------------------------------------------------------------------- | --------- | ----------- |
+| `accepts`         | `accepts`          | Comma-separated drag kinds accepted as children. Empty accepts every kind.                      | `string`  | `''`        |
+| `container`       | `container`        | Whether this item accepts children and exposes disclosure behavior.                             | `boolean` | `false`     |
+| `defaultExpanded` | `default-expanded` | Initial uncontrolled expansion value.                                                           | `boolean` | `false`     |
+| `disabled`        | `disabled`         |                                                                                                 | `boolean` | `false`     |
+| `dragType`        | `drag-type`        | Application-defined kind used to reject incompatible sibling drops.                             | `string`  | `'item'`    |
+| `dropDepth`       | `drop-depth`       | Application hierarchy depth override used for drop constraints. Defaults to structural nesting. | `number`  | `undefined` |
+| `dropScope`       | `drop-scope`       | Application-defined parent/list identity included with reorder events.                          | `string`  | `''`        |
+| `expanded`        | `expanded`         | Controlled expansion value. When omitted, `default-expanded` initializes uncontrolled state.    | `boolean` | `undefined` |
+| `itemId`          | `item-id`          | Stable application identifier emitted by tree interaction events.                               | `string`  | `''`        |
+| `label`           | `label`            | Accessible name used by the disclosure and drag handle.                                         | `string`  | `''`        |
+| `selected`        | `selected`         |                                                                                                 | `boolean` | `false`     |
+| `sortable`        | `sortable`         | Whether this item participates in pointer drag and drop.                                        | `boolean` | `false`     |
+| `subtreeDepth`    | `subtree-depth`    | Virtualized-tree descendant-depth override for the tree's max-depth drop constraint.            | `number`  | `undefined` |
 
 
 ## Shadow Parts

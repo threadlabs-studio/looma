@@ -1,6 +1,8 @@
 import axe from "axe-core";
 import { Editor } from "@tiptap/core";
 import { afterEach, describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 import "../src/index";
 import {
@@ -139,5 +141,21 @@ describe("representative editor accessibility", () => {
       rules: { "color-contrast": { enabled: false } },
     });
     expect(result.violations, result.violations.map((violation) => violation.id).join(", ")).toEqual([]);
+  });
+});
+
+describe("editor callout and list density contract", () => {
+  it("uses Looma-owned compact callout tokens and a conservative list inset", () => {
+    const css = readFileSync(resolve(process.cwd(), "src/editor.css"), "utf8");
+
+    expect(css).toContain("aside[data-looma-callout][data-tone]");
+    expect(css).not.toContain("data-callout-tone");
+    expect(css).not.toContain("> :first-child");
+    expect(css).toContain("--ui-callout-padding-block: var(--ui-space-2)");
+    expect(css).toContain("--ui-callout-padding-inline: var(--ui-space-3)");
+    expect(css).toContain("display: grid");
+    expect(css).toContain("grid-template-columns: var(--ui-callout-icon-column) minmax(0, 1fr)");
+    expect(css).toContain("border-inline-start: var(--ui-callout-leading-border-width) solid var(--ui-callout-border)");
+    expect(css).toContain("padding-inline-start: var(--ui-editor-list-inset, var(--ui-space-5))");
   });
 });

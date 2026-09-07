@@ -4,21 +4,23 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-06 12:20 PDT
-Status: Candidate `0.1.22` is public; `0.1.23` is prepared with smart fields, closed-folder containment, and truthful depth-limit feedback. Historical release tasks below retain their original version context.
+Last Updated: 2026-09-06 15:36 PDT
+Status: Candidate `0.1.22` is public; `0.1.24` is prepared with Chip/Callout,
+structural Tree, controlled-state, and typed Vue adapter improvements. Historical
+release tasks below retain their original version context.
 
 ## Current Focus
 
-- Publish and qualify Candidate `0.1.23` with smart-field improvements,
-  closed-folder containment, recursive insertion feedback, and exact Knit
-  consumer evidence.
+- Publish and qualify Candidate `0.1.24` with Chip/Callout, structural Tree,
+  controlled-state, and typed Vue adapter improvements plus exact Knit consumer
+  evidence.
 - Keep dense tree rows at 32px/15px for pointer use and animate to 44px targets
   only after a real touch interaction establishes touch modality.
 - Verify that controlled editor replacements preserve a focused ProseMirror
   selection, while Knit server acknowledgements no longer echo authored JSON
   through the active editor.
 
-- Publish Candidate `0.1.23`, then consume its exact registry bytes
+- Publish Candidate `0.1.24`, then consume its exact registry bytes
   from Knit. Candidate `0.1.22` remains the current public `candidate` until
   those replacement bytes pass main CI and protected publication.
 - Complete hosted-docs qualification and promote Candidate `0.1.13`, which is
@@ -38,7 +40,53 @@ Status: Candidate `0.1.22` is public; `0.1.23` is prepared with smart fields, cl
 
 ## Recent Progress
 
-- Candidate `0.1.23` release preparation:
+- Unpublished Looma foundation work on `feature/ui-chip-callout` is rebased on
+  Candidate `0.1.23`: adds token-owned compact `ui-chip` and `ui-callout`
+  primitives, then applies the callout recipe to persisted editor callouts.
+  The editor's Info, Note, and Warning slash commands now target the real
+  `loomaCallout` Tiptap node and durable `aside[data-looma-callout][data-tone]`
+  markup. Tree nesting is structural: `ui-tree-item` derives `aria-level` and
+  its 16px inset from ancestors, so consumers no longer maintain a `depth` prop.
+  This remains local feature work and is not a release or publication claim.
+
+- Follow-up tree accessibility remediation adds a single roving tab stop for
+  visible items, standard Arrow/Home/End navigation, and preserves native
+  keyboard behavior for slot-provided links/actions. `expanded` is controlled
+  when supplied; `default-expanded` is initialization-only for uncontrolled
+  items. This local feature work is pending normal qualification, not a
+  publication claim.
+
+- Generated public API freshness:
+  - Made docs sync and CI reject stale component metadata or generated Vue
+    declarations, rather than checking only the JSON API projection.
+  - Corrected stale public counts to the source-derived 30 Core, 9 Layout,
+    39 general Vue, and 7 editor Vue elements.
+
+- Vue adapter public types:
+  - Generated explicit props and typed callback details for every general Vue
+    adapter from the published component API, while preserving the existing
+    pass-through runtime adapter.
+  - Added strict TypeScript and generator checks; refreshed the stale Tree
+    max-depth and reorder-rejection API projection consumed by those types.
+
+- Controlled primitive state contracts:
+  - Made dialog, menu, popover, disclosure, tooltip, checkbox, switch, radio,
+    and tabs controlled props optional: `undefined` now selects local state,
+    while explicit `false` and empty values remain controlled.
+  - Limited `default*` props to uncontrolled initialization and retained the
+    rendered controlled state until the owning application accepts an emitted
+    close, change, or select request.
+  - Regenerated Core types/readmes and the public component API projection;
+    Chromium regressions cover false/empty controlled values with truthy
+    defaults plus refusal and subsequent parent acceptance.
+
+- Component ownership/accessibility audit (local, not published): toast dismissal
+  is now a consumer-owned list update; dialogs always expose a reactive accessible
+  name; form fields preserve external description relationships; and avatar-group
+  overflow no longer mutates framework-owned slotted nodes. Core, Vue browser,
+  and axe regressions cover reactive rerenders and name/description contracts.
+
+- Candidate `0.1.23` release preparation (historical):
   - Expanded closed container targets before dispatching inside reorders, so a
     moved item is immediately rendered as the target's first child.
   - Added optional application depth and subtree metadata, a max-depth tree

@@ -1,4 +1,6 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { LOOMA_ICONS, loomaIconMarkup } from "./icons";
 
 const COMPONENT_TAGS = [
@@ -6,6 +8,8 @@ const COMPONENT_TAGS = [
   "ui-avatar",
   "ui-avatar-group",
   "ui-badge",
+  "ui-chip",
+  "ui-callout",
   "ui-button",
   "ui-checkbox",
   "ui-disclosure",
@@ -76,6 +80,13 @@ describe("@threadlabs/looma-core primitives", () => {
     expect(loomaIconMarkup("plus", 'icon" onload="alert(1)')).toContain(
       'class="icon&quot; onload=&quot;alert(1)"',
     );
+  });
+
+  it("keeps tree nesting bookkeeping out of the public component API", () => {
+    const definitions = readFileSync(resolve(process.cwd(), "src/components.d.ts"), "utf8");
+    const treeItem = definitions.match(/interface UiTreeItem \{([\s\S]*?)\n    \}/)?.[1] ?? "";
+    expect(treeItem).not.toContain('"depth"');
+    expect(treeItem).not.toContain('"syncStructuralLevel"');
   });
 
   it("toggles disclosure open state and aria/hidden sync", async () => {
@@ -304,6 +315,42 @@ describe("@threadlabs/looma-core primitives", () => {
     expect(input?.disabled).toBe(true);
     expect(input?.required).toBe(true);
     expect(input?.getAttribute("aria-invalid")).toBe("true");
+  });
+
+  it("preserves external form descriptions and removes only field-owned ids", async () => {
+    await render(`
+      <p id="policy-description">See the privacy policy.</p>
+      <ui-form-field>
+        <label>Email</label>
+        <input type="email" aria-describedby="policy-description policy-description" />
+        <small data-slot="help">We never share your email.</small>
+        <small data-slot="error">Email is required.</small>
+      </ui-form-field>
+    `);
+
+    const field = document.querySelector("ui-form-field")!;
+    const input = field.querySelector("input")!;
+    const help = field.querySelector<HTMLElement>('[data-slot="help"]')!;
+    const error = field.querySelector<HTMLElement>('[data-slot="error"]')!;
+
+    expect(input.getAttribute("aria-describedby")?.split(/\s+/)).toEqual([
+      "policy-description",
+      help.id,
+      error.id,
+    ]);
+
+    help.remove();
+    await flushStencil();
+
+    expect(input.getAttribute("aria-describedby")?.split(/\s+/)).toEqual([
+      "policy-description",
+      error.id,
+    ]);
+
+    error.remove();
+    await flushStencil();
+
+    expect(input.getAttribute("aria-describedby")).toBe("policy-description");
   });
 
   it("reflects input wrapper properties to inner input element", async () => {
@@ -576,6 +623,7 @@ describe("@threadlabs/looma-core primitives", () => {
     region.addEventListener("dismiss", (event) => {
       const custom = event as CustomEvent<{ id: string; reason: string; trigger: string }>;
       dismissed.push(custom.detail);
+      region.querySelector(`#${custom.detail.id}`)?.remove();
     });
     await waitFor(() => region.hasAttribute("data-open"), "toast region open state");
 
@@ -585,6 +633,41 @@ describe("@threadlabs/looma-core primitives", () => {
     expect(region.hasAttribute("data-open")).toBe(false);
     expect(region.querySelector("[data-ui-toast]")).toBeNull();
     expect(dismissed).toEqual([{ id: "toast-a", reason: "action", trigger: "pointer" }]);
+  });
+
+  it("requests toast dismissal without removing consumer-owned content", async () => {
+    await render(`
+      <ui-toast-region>
+        <div id="toast-owned-by-consumer" data-ui-toast>
+          Saved
+          <button type="button" data-ui-toast-dismiss>Dismiss</button>
+        </div>
+      </ui-toast-region>
+    `);
+
+    const region = document.querySelector("ui-toast-region")!;
+    const toast = region.querySelector<HTMLElement>("[data-ui-toast]")!;
+    let connectedDuringDismiss = false;
+    const closeEvents: unknown[] = [];
+    region.addEventListener("dismiss", () => {
+      connectedDuringDismiss = toast.isConnected;
+    });
+    region.addEventListener("close", (event) => {
+      closeEvents.push((event as CustomEvent).detail);
+    });
+
+    region.querySelector<HTMLButtonElement>("[data-ui-toast-dismiss]")!.click();
+    await flushStencil();
+
+    expect(connectedDuringDismiss).toBe(true);
+    expect(region.querySelector("[data-ui-toast]")).toBe(toast);
+    expect(toast.hasAttribute("aria-hidden")).toBe(false);
+    expect(region.hasAttribute("data-open")).toBe(true);
+
+    toast.remove();
+    await flushStencil();
+    expect(region.hasAttribute("data-open")).toBe(false);
+    expect(closeEvents).toEqual([{ open: false, reason: "action", trigger: "pointer" }]);
   });
 
   it("keeps toast region open until last toast is dismissed", async () => {
@@ -611,7 +694,9 @@ describe("@threadlabs/looma-core primitives", () => {
       if (!(event instanceof CustomEvent)) {
         return;
       }
-      dismissedIds.push((event.detail as { id: string }).id);
+      const id = (event.detail as { id: string }).id;
+      dismissedIds.push(id);
+      region.querySelector(`#${id}`)?.remove();
     });
 
     expect(region.hasAttribute("data-open")).toBe(true);
@@ -745,6 +830,36 @@ describe("@threadlabs/looma-core primitives", () => {
     expect(badge.hasAttribute("data-tone")).toBe(false);
   });
 
+  it("provides compact tag and pill chip appearances with consumer semantic color hooks", async () => {
+    await render(`<ui-chip appearance="tag" style="--ui-chip-surface: rgb(1, 2, 3); --ui-chip-text: rgb(4, 5, 6); --ui-chip-border: rgb(7, 8, 9)">Research</ui-chip>`);
+    const chip = document.querySelector("ui-chip") as HTMLElement & { appearance: "tag" | "pill" };
+
+    expect(chip.getAttribute("data-appearance")).toBe("tag");
+    expect(chip.textContent).toContain("Research");
+    expect(chip.style.getPropertyValue("--ui-chip-surface")).toBe("rgb(1, 2, 3)");
+    expect(chip.style.getPropertyValue("--ui-chip-text")).toBe("rgb(4, 5, 6)");
+    expect(chip.style.getPropertyValue("--ui-chip-border")).toBe("rgb(7, 8, 9)");
+    expect(chip.shadowRoot?.textContent).toContain("background:var(--ui-chip-surface)");
+    expect(chip.shadowRoot?.querySelector(".chip__surface")).toBeTruthy();
+    expect(chip.shadowRoot?.textContent).toContain(":host([data-appearance='tag']) .chip__surface{border:0");
+
+    chip.appearance = "pill";
+    await flushStencil();
+    expect(chip.getAttribute("data-appearance")).toBe("pill");
+  });
+
+  it("maps each callout tone to its semantic icon without a live-alert role", async () => {
+    for (const [tone, icon] of Object.entries({
+      info: "info", note: "notebook-pen", warning: "triangle-alert", success: "circle-check", error: "circle-x",
+    })) {
+      await render(`<ui-callout tone="${tone}">Message</ui-callout>`);
+      const callout = document.querySelector("ui-callout")!;
+      expect(callout.getAttribute("role")).toBe("note");
+      expect(callout.getAttribute("data-tone")).toBe(tone);
+      expect(callout.shadowRoot?.querySelector(`[data-looma-icon="${icon}"]`)).toBeTruthy();
+    }
+  });
+
   it("shows avatar fallback initials when image fails", async () => {
     await render(`
       <ui-avatar name="Alex Morgan" src="/broken.png">
@@ -780,15 +895,34 @@ describe("@threadlabs/looma-core primitives", () => {
     const overflow = group.shadowRoot?.querySelector("[data-ui-avatar-group-overflow]");
     const avatars = Array.from(group.querySelectorAll("ui-avatar"));
 
-    expect(group.getAttribute("role")).toBe("list");
+    expect(group.getAttribute("role")).toBe("group");
     expect(group.getAttribute("aria-label")).toBe("People");
     expect(avatars.length).toBe(4);
     expect(avatars[0].hidden).toBe(false);
     expect(avatars[1].hidden).toBe(false);
     expect(avatars[2].hidden).toBe(false);
-    expect(avatars[3].hidden).toBe(true);
+    expect(avatars.every(avatar => !avatar.hasAttribute("hidden"))).toBe(true);
+    expect(avatars.every(avatar => !avatar.hasAttribute("aria-hidden"))).toBe(true);
     expect(overflow).toBeTruthy();
     expect(overflow?.textContent).toBe("+1");
+  });
+
+  it("leaves avatar visibility attributes under consumer ownership", async () => {
+    await render(`
+      <ui-avatar-group max="1" label="Reviewers">
+        <ui-avatar name="A"><span data-ui-avatar-fallback></span></ui-avatar>
+        <ui-avatar name="B"><span data-ui-avatar-fallback></span></ui-avatar>
+      </ui-avatar-group>
+    `);
+
+    const group = document.querySelector("ui-avatar-group")!;
+    const avatars = Array.from(group.querySelectorAll<HTMLElement>("ui-avatar"));
+
+    expect(group.getAttribute("role")).toBe("group");
+    expect(avatars[0]?.hasAttribute("hidden")).toBe(false);
+    expect(avatars[0]?.hasAttribute("aria-hidden")).toBe(false);
+    expect(avatars[1]?.hasAttribute("hidden")).toBe(false);
+    expect(avatars[1]?.hasAttribute("aria-hidden")).toBe(false);
   });
 
   it("opens context menu on right-click and emits select/close on item activation", async () => {

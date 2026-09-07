@@ -10,7 +10,6 @@ import {
 
 type TreeItemElement = HTMLElement & {
   itemId?: string;
-  depth?: number;
   dropDepth?: number;
   subtreeDepth?: number;
   container?: boolean;
@@ -46,6 +45,8 @@ export class UITree {
   private rejectedPosition: DropPosition | null = null;
   private rejection: DepthDropRejection | null = null;
   private hoverIntent: HoverIntentController | null = null;
+  private structureObserver: MutationObserver | null = null;
+  private tabStop: TreeItemElement | null = null;
 
   componentDidLoad() {
     this.hoverIntent = createHoverIntent(this.hoverExpandDelay, this.expandTarget);
@@ -57,6 +58,11 @@ export class UITree {
     this.host.addEventListener('drop', this.onDrop);
     this.host.addEventListener('dragend', this.onDragEnd);
     this.host.addEventListener('keydown', this.onKeyDown);
+    this.host.addEventListener('focusin', this.onFocusIn);
+    this.host.addEventListener('ui-tree-expansion-change', this.onExpansionChange);
+    this.syncStructuralLevels();
+    this.structureObserver = new MutationObserver(this.syncStructuralLevels);
+    this.structureObserver.observe(this.host, { childList: true, subtree: true });
   }
 
   disconnectedCallback() {
@@ -69,12 +75,48 @@ export class UITree {
     this.host.removeEventListener('drop', this.onDrop);
     this.host.removeEventListener('dragend', this.onDragEnd);
     this.host.removeEventListener('keydown', this.onKeyDown);
+    this.host.removeEventListener('focusin', this.onFocusIn);
+    this.host.removeEventListener('ui-tree-expansion-change', this.onExpansionChange);
+    this.structureObserver?.disconnect();
+    this.structureObserver = null;
+  }
+
+  private syncStructuralLevels = () => {
+    for (const item of Array.from(this.host.querySelectorAll<TreeItemElement>('ui-tree-item'))) {
+      item.dispatchEvent(new CustomEvent('ui-tree-structure-sync'));
+    }
+    this.syncTabStop();
+  };
+
+  private syncTabStop(preferred?: TreeItemElement | null) {
+    const items = this.visibleItems();
+    const next = preferred && items.includes(preferred)
+      ? preferred
+      : this.tabStop && items.includes(this.tabStop)
+        ? this.tabStop
+        : items[0] ?? null;
+    this.tabStop = next;
+    for (const item of items) {
+      item.dispatchEvent(new CustomEvent('ui-tree-roving-tab-stop', {
+        detail: { active: item === next },
+      }));
+    }
   }
 
   private itemFromEvent(event: Event): TreeItemElement | null {
     return (event.composedPath().find(node => (
       node instanceof HTMLElement && node.localName === 'ui-tree-item'
     )) as TreeItemElement | undefined) ?? null;
+  }
+
+  private eventTargetsInteractiveContent(event: Event): boolean {
+    for (const node of event.composedPath()) {
+      if (node instanceof HTMLElement && node.localName === 'ui-tree-item') break;
+      if (node instanceof HTMLElement && node.matches('a, button, input, select, textarea, [role="button"], [role="link"]')) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private itemId(item: TreeItemElement): string {
@@ -127,8 +169,23 @@ export class UITree {
     if (item.dropDepth !== undefined) return item.dropDepth;
     const dropDepth = item.getAttribute('drop-depth');
     if (dropDepth !== null) return Number(dropDepth);
-    if (item.depth !== undefined) return item.depth;
-    return Number(item.getAttribute('depth')) || 1;
+    return Number(item.getAttribute('aria-level')) || 1;
+  }
+
+  private subtreeDepth(item: TreeItemElement): number {
+    if (item.subtreeDepth !== undefined) return Math.max(0, Math.floor(item.subtreeDepth));
+    const override = item.getAttribute('subtree-depth');
+    if (override !== null) return Math.max(0, Math.floor(Number(override)));
+
+    return Array.from(item.querySelectorAll<TreeItemElement>('ui-tree-item')).reduce((deepest, descendant) => {
+      let nesting = 0;
+      let ancestor = descendant.parentElement?.closest('ui-tree-item') ?? null;
+      while (ancestor && ancestor !== item) {
+        nesting += 1;
+        ancestor = ancestor.parentElement?.closest('ui-tree-item') ?? null;
+      }
+      return ancestor === item ? Math.max(deepest, nesting + 1) : deepest;
+    }, 0);
   }
 
   private dropRejection(source: TreeItemElement, target: TreeItemElement, position: DropPosition): DropRejection | null {
@@ -148,9 +205,9 @@ export class UITree {
     }
 
     const maxDepth = Math.max(0, Math.floor(this.maxDepth));
-    if (maxDepth > 0 && source.subtreeDepth !== undefined) {
+    if (maxDepth > 0) {
       const targetDepth = Math.max(0, Math.floor(this.constraintDepth(target)));
-      const subtreeDepth = Math.max(0, Math.floor(source.subtreeDepth));
+      const subtreeDepth = this.subtreeDepth(source);
       const resultingDepth = targetDepth + (position === 'inside' ? 1 : 0) + subtreeDepth;
       if (resultingDepth > maxDepth) return { reason: 'max-depth', maxDepth, resultingDepth };
     }
@@ -352,17 +409,78 @@ export class UITree {
       .filter(item => item.getClientRects().length > 0 && !item.hasAttribute('disabled'));
   }
 
+  private parentItem(item: TreeItemElement): TreeItemElement | null {
+    const parent = item.parentElement?.closest('ui-tree-item') ?? null;
+    return parent && this.host.contains(parent) ? parent as TreeItemElement : null;
+  }
+
+  private firstVisibleChild(item: TreeItemElement, items: TreeItemElement[]): TreeItemElement | null {
+    return items.find(candidate => this.parentItem(candidate) === item) ?? null;
+  }
+
+  private focusItem(item: TreeItemElement) {
+    this.syncTabStop(item);
+    item.focus();
+  }
+
+  private requestExpansion(item: TreeItemElement, expanded: boolean) {
+    item.dispatchEvent(new CustomEvent('ui-tree-request-expanded', {
+      detail: { expanded, trigger: 'keyboard' as const },
+    }));
+  }
+
+  private onFocusIn = (event: FocusEvent) => {
+    if (this.eventTargetsInteractiveContent(event)) return;
+    const item = this.itemFromEvent(event);
+    if (item) this.syncTabStop(item);
+  };
+
+  private onExpansionChange = () => {
+    requestAnimationFrame(() => this.syncTabStop());
+  };
+
   private onKeyDown = (event: KeyboardEvent) => {
+    if (this.eventTargetsInteractiveContent(event)) return;
     const current = this.itemFromEvent(event);
     if (!current) return;
     const items = this.visibleItems();
     const index = items.indexOf(current);
     if (index < 0) return;
 
-    const next = event.key === 'ArrowDown' ? items[index + 1] : event.key === 'ArrowUp' ? items[index - 1] : null;
-    if (!next) return;
-    event.preventDefault();
-    next.focus();
+    const next = event.key === 'ArrowDown' ? items[index + 1]
+      : event.key === 'ArrowUp' ? items[index - 1]
+        : event.key === 'Home' ? items[0]
+          : event.key === 'End' ? items.at(-1)
+            : null;
+    if (next) {
+      event.preventDefault();
+      this.focusItem(next);
+      return;
+    }
+
+    if (event.key === 'ArrowLeft') {
+      if (current.getAttribute('aria-expanded') === 'true') {
+        event.preventDefault();
+        this.requestExpansion(current, false);
+      } else if (this.parentItem(current)) {
+        event.preventDefault();
+        this.focusItem(this.parentItem(current)!);
+      }
+      return;
+    }
+
+    if (event.key === 'ArrowRight') {
+      if (current.getAttribute('aria-expanded') === 'false') {
+        event.preventDefault();
+        this.requestExpansion(current, true);
+      } else if (current.getAttribute('aria-expanded') === 'true') {
+        const child = this.firstVisibleChild(current, items);
+        if (child) {
+          event.preventDefault();
+          this.focusItem(child);
+        }
+      }
+    }
   };
 
   render() {

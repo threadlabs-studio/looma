@@ -30,6 +30,11 @@ None.
 
 Default slot: direct children are shown as overlapping avatars; only the first `max` are visible, with a "+N" pill for the rest.
 
+Overflow visibility is shadow-owned presentation. Reactive frameworks retain
+ownership of the slotted nodes and the component does not add or remove
+`hidden`/`aria-hidden` attributes. The host exposes a labelled `group`, avoiding
+invalid list semantics for arbitrary slotted avatar content.
+
 ## SSR Markup
 
 ```html

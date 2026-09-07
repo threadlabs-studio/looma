@@ -1,6 +1,7 @@
 import { Component, Prop, Element, State, Watch, Host, Event, type EventEmitter, h } from '@stencil/core';
 import { openOverlay, closeOverlay } from '../../overlay/manager';
 import { dispatchDetail } from '../../utils/events';
+import { controlledOrDefault, isControlled } from '../../utils/controlled-state';
 import {
   createAnchoredSurface,
   type AnchoredPlacement,
@@ -16,7 +17,8 @@ export class UITooltip {
   @Element() host: HTMLElement;
 
   @Prop() for = '';
-  @Prop() open = false;
+  /** Controlled open state. Omit it to use defaultOpen and local interaction state. */
+  @Prop() open?: boolean;
   @Prop({ attribute: 'default-open' }) defaultOpen = false;
   @Prop() placement: AnchoredPlacement = 'top-start';
   /** Pointer hover intent delay in milliseconds. Keyboard focus is immediate. */
@@ -44,7 +46,7 @@ export class UITooltip {
   @Watch('open')
   syncFromProp() {
     this.clearTimers();
-    this.internalOpen = this.open;
+    if (isControlled(this.open)) this.internalOpen = this.open;
   }
 
   @Watch('for')
@@ -75,8 +77,7 @@ export class UITooltip {
 
   componentDidLoad() {
     if (!this.host.id) this.host.id = this.overlayId;
-    this.syncFromProp();
-    this.internalOpen = this.internalOpen || this.defaultOpen;
+    this.internalOpen = controlledOrDefault(this.open, this.defaultOpen);
     this.syncTrigger();
     this.setupSurface();
     this.host.addEventListener('pointerenter', this.onSurfaceEnter);
@@ -163,7 +164,7 @@ export class UITooltip {
 
   private setInteractionOpen(nextOpen: boolean, trigger: 'pointer' | 'keyboard') {
     if (this.internalOpen === nextOpen) return;
-    this.internalOpen = nextOpen;
+    if (!isControlled(this.open)) this.internalOpen = nextOpen;
     dispatchDetail(this.host, nextOpen ? 'open' : 'close', {
       open: nextOpen,
       reason: 'action',
@@ -222,7 +223,7 @@ export class UITooltip {
     if (reason === 'escape' || (reason === 'light-dismiss' && this.toggleOnClick)) {
       this.pinned = false;
       this.clearTimers();
-      this.internalOpen = false;
+      if (!isControlled(this.open)) this.internalOpen = false;
       dispatchDetail(this.host, 'close', {
         open: false,
         reason,
@@ -239,7 +240,7 @@ export class UITooltip {
         hidden={!this.internalOpen}
         data-open={this.internalOpen ? '' : undefined}
       >
-        <slot />
+        <div class="tooltip__surface"><slot /></div>
       </Host>
     );
   }

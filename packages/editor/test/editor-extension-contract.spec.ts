@@ -32,6 +32,8 @@ describe("editor extension contract", () => {
     ]);
     expect(getDefaultEditorExtensions().map((extension) => extension.name))
       .toContain("loomaTableKit");
+    expect(getDefaultEditorExtensions().map((extension) => extension.name))
+      .toContain("loomaCallout");
     expect(LoomaTable.options).toMatchObject({
       resizable: true,
       handleWidth: 3,
@@ -113,6 +115,46 @@ describe("editor extension contract", () => {
     expect(editor.getHTML()).toContain('data-id="ada"');
     expect(editor.getHTML()).toContain("@Ada Lovelace");
     editor.destroy();
+  });
+
+  it("persists, parses, and serializes semantic Looma callout tones", () => {
+    const editor = new Editor({
+      extensions: getDefaultEditorExtensions(),
+      content: '<aside data-looma-callout data-tone="warning"><p>Review this.</p></aside>',
+    });
+
+    expect(editor.getJSON()).toMatchObject({
+      type: "doc",
+      content: [{ type: "loomaCallout", attrs: { tone: "warning" } }],
+    });
+    expect(editor.getHTML()).toContain('data-looma-callout=""');
+    expect(editor.getHTML()).toContain('data-tone="warning"');
+    expect(editor.getHTML()).toContain('<p>Review this.</p>');
+
+    expect(editor.commands.setLoomaCallout("note")).toBe(true);
+    expect(editor.getJSON().content?.[0]).toMatchObject({
+      type: "loomaCallout",
+      attrs: { tone: "note" },
+    });
+    editor.destroy();
+  });
+
+  it("offers Info, Note, and Warning slash commands that insert callout nodes", () => {
+    const commands = getDefaultSlashCommands();
+    expect(commands.filter(command => ["Info", "Note", "Warning"].includes(command.title)))
+      .toMatchObject([
+        { title: "Info", icon: "info" },
+        { title: "Note", icon: "notebook-pen" },
+        { title: "Warning", icon: "triangle-alert" },
+      ]);
+
+    for (const [title, tone] of [["Info", "info"], ["Note", "note"], ["Warning", "warning"]] as const) {
+      const editor = new Editor({ extensions: getDefaultEditorExtensions(), content: "<p>/</p>" });
+      const command = commands.find(candidate => candidate.title === title)!;
+      command.command({ editor, range: { from: 1, to: 2 } });
+      expect(editor.getJSON().content?.[0]).toMatchObject({ type: "loomaCallout", attrs: { tone } });
+      editor.destroy();
+    }
   });
 
   it("provides working table commands without the complete editor preset", () => {

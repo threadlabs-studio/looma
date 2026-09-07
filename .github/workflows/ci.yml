@@ -41,7 +41,7 @@ jobs:
       - name: Check API generation is immutable
         run: |
           pnpm generate:api
-          git diff --exit-code -- generated/component-api.json
+          git diff --exit-code -- generated/component-api.json packages/vue/src/generated-component-types.ts
 
       - name: Lint
         run: pnpm lint

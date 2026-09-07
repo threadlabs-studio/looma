@@ -1,74 +1,90 @@
 :host {
+  --ui-badge-surface: var(--ui-surface-muted);
+  --ui-badge-text: var(--ui-text-secondary);
+  --ui-badge-border: var(--ui-border-default);
+  --ui-badge-font-size: var(--ui-font-size-xs);
+  --ui-badge-font-weight: var(--ui-font-normal);
+  --ui-badge-line-height: var(--ui-line-height-tight);
+  --ui-badge-padding-block: var(--ui-space-0-5);
+  --ui-badge-padding-inline: var(--ui-space-2);
+
+  display: inline-flex;
+  max-width: 100%;
+}
+
+.badge__surface {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--ui-border-default);
-  border-radius: 999px;
-  background: var(--ui-surface-muted);
-  color: var(--ui-text-secondary);
-  font: inherit;
-  font-size: 0.75rem;
-  line-height: 1;
-  padding: 0.25em 0.6em;
+  max-width: 100%;
+  padding: var(--ui-badge-padding-block) var(--ui-badge-padding-inline);
+  border: 1px solid var(--ui-badge-border);
+  border-radius: var(--ui-radius-round);
+  background: var(--ui-badge-surface);
+  color: var(--ui-badge-text);
+  font-family: var(--ui-font-family-sans);
+  font-size: var(--ui-badge-font-size);
+  font-weight: var(--ui-badge-font-weight);
+  line-height: var(--ui-badge-line-height);
   white-space: nowrap;
 }
 
-:host([data-tone='accent']) {
-  background: var(--ui-accent-solid);
-  border-color: var(--ui-accent-solid);
-  color: var(--ui-text-on-accent);
+:host([data-tone='accent']) .badge__surface {
+  --ui-badge-surface: var(--ui-accent-solid);
+  --ui-badge-border: var(--ui-accent-solid);
+  --ui-badge-text: var(--ui-text-on-accent);
 }
 
-:host([data-tone='danger']) {
-  background: var(--ui-danger-solid);
-  border-color: var(--ui-danger-solid);
-  color: var(--ui-text-on-accent);
+:host([data-tone='danger']) .badge__surface {
+  --ui-badge-surface: var(--ui-danger-solid);
+  --ui-badge-border: var(--ui-danger-solid);
+  --ui-badge-text: var(--ui-text-on-accent);
 }
 
-:host([data-tone='success']) {
-  background: var(--ui-success-solid);
-  border-color: var(--ui-success-solid);
-  color: var(--ui-text-on-accent);
+:host([data-tone='success']) .badge__surface {
+  --ui-badge-surface: var(--ui-success-solid);
+  --ui-badge-border: var(--ui-success-solid);
+  --ui-badge-text: var(--ui-text-on-accent);
 }
 
-:host([data-tone='warning']) {
-  background: var(--ui-warning-solid);
-  border-color: var(--ui-warning-solid);
-  color: var(--ui-text-primary);
+:host([data-tone='warning']) .badge__surface {
+  --ui-badge-surface: var(--ui-warning-solid);
+  --ui-badge-border: var(--ui-warning-solid);
+  --ui-badge-text: var(--ui-text-primary);
 }
 
-:host([data-tone='info']) {
-  background: var(--ui-info-solid);
-  border-color: var(--ui-info-solid);
-  color: var(--ui-text-on-accent);
+:host([data-tone='info']) .badge__surface {
+  --ui-badge-surface: var(--ui-info-solid);
+  --ui-badge-border: var(--ui-info-solid);
+  --ui-badge-text: var(--ui-text-on-accent);
 }
 
-:host([data-variant='subtle'][data-tone='accent']) {
-  background: var(--ui-accent-soft);
-  border-color: var(--ui-accent-soft);
-  color: var(--ui-accent-solid);
+:host([data-variant='subtle'][data-tone='accent']) .badge__surface {
+  --ui-badge-surface: var(--ui-accent-soft);
+  --ui-badge-border: var(--ui-accent-soft);
+  --ui-badge-text: var(--ui-accent-solid);
 }
 
-:host([data-variant='subtle'][data-tone='danger']) {
-  background: var(--ui-danger-soft);
-  border-color: var(--ui-danger-soft);
-  color: var(--ui-danger-solid);
+:host([data-variant='subtle'][data-tone='danger']) .badge__surface {
+  --ui-badge-surface: var(--ui-danger-soft);
+  --ui-badge-border: var(--ui-danger-soft);
+  --ui-badge-text: var(--ui-danger-solid);
 }
 
-:host([data-variant='subtle'][data-tone='success']) {
-  background: var(--ui-success-soft);
-  border-color: var(--ui-success-soft);
-  color: var(--ui-success-solid);
+:host([data-variant='subtle'][data-tone='success']) .badge__surface {
+  --ui-badge-surface: var(--ui-success-soft);
+  --ui-badge-border: var(--ui-success-soft);
+  --ui-badge-text: var(--ui-success-solid);
 }
 
-:host([data-variant='subtle'][data-tone='warning']) {
-  background: var(--ui-warning-soft);
-  border-color: var(--ui-warning-soft);
-  color: var(--ui-warning-solid);
+:host([data-variant='subtle'][data-tone='warning']) .badge__surface {
+  --ui-badge-surface: var(--ui-warning-soft);
+  --ui-badge-border: var(--ui-warning-soft);
+  --ui-badge-text: var(--ui-warning-solid);
 }
 
-:host([data-variant='subtle'][data-tone='info']) {
-  background: var(--ui-info-soft);
-  border-color: var(--ui-info-soft);
-  color: var(--ui-info-solid);
+:host([data-variant='subtle'][data-tone='info']) .badge__surface {
+  --ui-badge-surface: var(--ui-info-soft);
+  --ui-badge-border: var(--ui-info-soft);
+  --ui-badge-text: var(--ui-info-solid);
 }

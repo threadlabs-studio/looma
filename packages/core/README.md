@@ -3,9 +3,9 @@
 > Internal implementation workspace. Consumers install `@threadlabs/looma` and
 > use its root or `/core` subpath.
 
-Looma's Candidate web-component surface: 29 Stencil elements with shadow-root behavior and consumer-authored semantic light-DOM fallback.
+Looma's Candidate web-component surface: 30 Stencil elements with shadow-root behavior and consumer-authored semantic light-DOM fallback.
 
-Release status: Candidate `0.1.23`, not Stable.
+Release status: Candidate `0.1.24`, not Stable.
 
 ## Install
 

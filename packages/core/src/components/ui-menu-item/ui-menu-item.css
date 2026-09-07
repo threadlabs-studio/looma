@@ -1,6 +1,12 @@
 :host {
   display: block;
   width: 100%;
+}
+
+.menu-item__surface {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
   padding: var(--ui-space-2) var(--ui-space-3);
   text-align: left;
   background: none;
@@ -15,12 +21,12 @@
     color var(--ui-motion-fast) var(--ui-motion-ease);
 }
 
-:host(:hover:not([aria-disabled='true']):not([disabled])) {
+:host(:hover:not([aria-disabled='true']):not([disabled])) .menu-item__surface {
   background: var(--ui-surface-subtle);
 }
 
-:host([aria-disabled='true']),
-:host([disabled]) {
+:host([aria-disabled='true']) .menu-item__surface,
+:host([disabled]) .menu-item__surface {
   opacity: 0.6;
   cursor: not-allowed;
 }

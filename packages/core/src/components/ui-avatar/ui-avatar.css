@@ -1,4 +1,8 @@
 :host {
+  display: inline-flex;
+}
+
+.avatar {
   display: inline-grid;
   place-items: center;
   overflow: hidden;
@@ -12,10 +16,6 @@
   font-size: 0.875rem;
   font-weight: 600;
   text-transform: uppercase;
-}
-
-.avatar {
-  display: contents;
 }
 
 .avatar img {

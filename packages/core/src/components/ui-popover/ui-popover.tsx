@@ -1,6 +1,7 @@
 import { Component, Prop, Element, State, Watch, Host, h } from '@stencil/core';
 import { openOverlay, closeOverlay, requestTopOverlayClose } from '../../overlay/manager';
 import { dispatchDetail } from '../../utils/events';
+import { controlledOrDefault, isControlled } from '../../utils/controlled-state';
 import {
   createAnchoredSurface,
   type AnchoredPlacement,
@@ -15,7 +16,8 @@ import {
 export class UIPopover {
   @Element() host: HTMLElement;
 
-  @Prop() open = false;
+  /** Controlled open state. Omit it to use defaultOpen and local interaction state. */
+  @Prop() open?: boolean;
   @Prop({ attribute: 'default-open' }) defaultOpen = false;
   /** Optional id of the element this popover follows in the top layer. */
   @Prop() for?: string;
@@ -29,7 +31,7 @@ export class UIPopover {
 
   @Watch('open')
   syncFromProp() {
-    this.internalOpen = this.open;
+    if (isControlled(this.open)) this.internalOpen = this.open;
   }
 
   @Watch('internalOpen')
@@ -91,8 +93,7 @@ export class UIPopover {
   }
 
   componentDidLoad() {
-    this.syncFromProp();
-    this.internalOpen = this.internalOpen || this.defaultOpen;
+    this.internalOpen = controlledOrDefault(this.open, this.defaultOpen);
     this.host.addEventListener('keydown', this.onKeydown);
     this.setupSurface();
     this.syncOverlay();
@@ -110,7 +111,7 @@ export class UIPopover {
   }
 
   private handleRequestClose(reason: string, trigger: string) {
-    this.internalOpen = false;
+    if (!isControlled(this.open)) this.internalOpen = false;
     dispatchDetail(this.host, 'close', {
       open: false,
       reason: reason as 'programmatic' | 'light-dismiss' | 'escape' | 'action',
@@ -130,7 +131,7 @@ export class UIPopover {
         data-open={this.internalOpen ? '' : undefined}
         onKeyDown={this.onKeydown}
       >
-        <slot />
+        <div class="popover__surface"><slot /></div>
       </Host>
     );
   }

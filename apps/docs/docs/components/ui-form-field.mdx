@@ -36,6 +36,10 @@ Default slot; recommended children:
 - control (`ui-input`, `input`, `textarea`, `select`, `button`)
 - optional help/error text with `data-slot="help"` and `data-slot="error"`
 
+The component merges and deduplicates its help/error IDs with any existing
+application-owned `aria-describedby` values. Reactive removal only removes IDs
+that the field added; external description relationships remain intact.
+
 ## SSR Markup
 
 ```html

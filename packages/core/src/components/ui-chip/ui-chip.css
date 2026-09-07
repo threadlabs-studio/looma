@@ -1,0 +1,43 @@
+:host {
+  --ui-chip-surface: var(--ui-surface-subtle);
+  --ui-chip-text: var(--ui-text-secondary);
+  --ui-chip-border: var(--ui-border-default);
+  --ui-chip-font-size: var(--ui-font-size-xs);
+  --ui-chip-font-weight: var(--ui-font-normal);
+  --ui-chip-line-height: var(--ui-line-height-tight);
+  --ui-chip-padding-block: var(--ui-space-0-5);
+  --ui-chip-padding-inline: var(--ui-space-2);
+  --ui-chip-notch: var(--ui-space-1);
+
+  display: inline-flex;
+  max-width: 100%;
+}
+
+.chip__surface {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: var(--ui-chip-padding-block) var(--ui-chip-padding-inline);
+  border: 1px solid var(--ui-chip-border);
+  background: var(--ui-chip-surface);
+  /* The shared light-DOM reset establishes a baseline host color; the chip's
+     semantic text hook must remain authoritative for consumer color systems. */
+  color: var(--ui-chip-text) !important;
+  /* The shared light-DOM reset establishes inherited defaults; this compact
+     metadata primitive owns its own typography contract. */
+  font-family: var(--ui-font-family-sans) !important;
+  font-size: var(--ui-chip-font-size) !important;
+  font-weight: var(--ui-chip-font-weight) !important;
+  line-height: var(--ui-chip-line-height) !important;
+  white-space: nowrap;
+}
+
+:host([data-appearance='pill']) .chip__surface {
+  border-radius: var(--ui-radius-round);
+}
+
+:host([data-appearance='tag']) .chip__surface {
+  border: 0;
+  padding-inline-end: calc(var(--ui-chip-padding-inline) + var(--ui-chip-notch));
+  clip-path: polygon(0 0, calc(100% - var(--ui-chip-notch)) 0, 100% 50%, calc(100% - var(--ui-chip-notch)) 100%, 0 100%);
+}
