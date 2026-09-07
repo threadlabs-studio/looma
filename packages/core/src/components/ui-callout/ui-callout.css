@@ -11,6 +11,11 @@
   --ui-callout-border-width: 1px;
   --ui-callout-leading-border-width: 4px;
 
+  display: block;
+  max-width: 100%;
+}
+
+.callout__surface {
   display: grid;
   grid-template-columns: var(--ui-callout-icon-column) minmax(0, 1fr);
   gap: var(--ui-callout-gap);

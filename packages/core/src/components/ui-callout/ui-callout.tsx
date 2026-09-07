@@ -24,8 +24,10 @@ export class UICallout {
     const icon = toneIcons[this.tone] ?? toneIcons.info;
     return (
       <Host role="note" data-tone={this.tone}>
-        <span class="icon" aria-hidden="true" innerHTML={loomaIconMarkup(icon)} />
-        <div class="content"><slot /></div>
+        <div class="callout__surface">
+          <span class="icon" aria-hidden="true" innerHTML={loomaIconMarkup(icon)} />
+          <div class="content"><slot /></div>
+        </div>
       </Host>
     );
   }

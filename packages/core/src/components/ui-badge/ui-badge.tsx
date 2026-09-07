@@ -15,7 +15,7 @@ export class UIBadge {
         data-variant={this.variant || undefined}
         data-tone={this.tone || undefined}
       >
-        <slot />
+        <span class="badge__surface"><slot /></span>
       </Host>
     );
   }
