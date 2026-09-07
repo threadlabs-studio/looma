@@ -22,3 +22,6 @@ Static semantic message surface with a tone icon.
 ## Slots/Children
 
 - Default slot for the callout message.
+
+The callout's visible surface lives inside the shadow root so application
+resets cannot remove its padding, border, background, or type treatment.

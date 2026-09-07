@@ -6,11 +6,17 @@
   --ui-chip-font-weight: var(--ui-font-normal);
   --ui-chip-line-height: var(--ui-line-height-tight);
   --ui-chip-padding-block: var(--ui-space-0-5);
-  --ui-chip-padding-inline: calc(var(--ui-space-1) + var(--ui-space-0-5));
+  --ui-chip-padding-inline: var(--ui-space-2);
   --ui-chip-notch: var(--ui-space-1);
 
   display: inline-flex;
+  max-width: 100%;
+}
+
+.chip__surface {
+  display: inline-flex;
   align-items: center;
+  max-width: 100%;
   padding: var(--ui-chip-padding-block) var(--ui-chip-padding-inline);
   border: 1px solid var(--ui-chip-border);
   background: var(--ui-chip-surface);
@@ -26,11 +32,11 @@
   white-space: nowrap;
 }
 
-:host([data-appearance='pill']) {
+:host([data-appearance='pill']) .chip__surface {
   border-radius: var(--ui-radius-round);
 }
 
-:host([data-appearance='tag']) {
+:host([data-appearance='tag']) .chip__surface {
   border: 0;
   padding-inline-end: calc(var(--ui-chip-padding-inline) + var(--ui-chip-notch));
   clip-path: polygon(0 0, calc(100% - var(--ui-chip-notch)) 0, 100% 50%, calc(100% - var(--ui-chip-notch)) 100%, 0 100%);

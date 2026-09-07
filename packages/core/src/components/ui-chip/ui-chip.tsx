@@ -11,6 +11,10 @@ export class UIChip {
   @Prop() appearance: 'tag' | 'pill' = 'tag';
 
   render() {
-    return <Host data-appearance={this.appearance}><slot /></Host>;
+    return (
+      <Host data-appearance={this.appearance}>
+        <span class="chip__surface"><slot /></span>
+      </Host>
+    );
   }
 }
