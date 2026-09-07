@@ -131,7 +131,7 @@ export class UIPopover {
         data-open={this.internalOpen ? '' : undefined}
         onKeyDown={this.onKeydown}
       >
-        <slot />
+        <div class="popover__surface"><slot /></div>
       </Host>
     );
   }

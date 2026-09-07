@@ -175,7 +175,7 @@ export class UIMenu {
   render() {
     return (
       <Host role="menu" aria-orientation="vertical" data-open={this.internalOpen ? '' : undefined}>
-        <slot />
+        <div class="menu__surface"><slot /></div>
       </Host>
     );
   }
