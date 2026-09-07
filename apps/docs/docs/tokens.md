@@ -31,6 +31,7 @@ Looma typography is token-driven and rem-based:
 - `--ui-font-stack-neo-grotesque`
 - `--ui-font-stack-humanist`
 - `--ui-font-stack-rounded`
+- `--ui-font-size-2xs`
 - `--ui-font-size-sm`
 - `--ui-font-size-ui`
 - `--ui-font-size-md`
@@ -38,6 +39,12 @@ Looma typography is token-driven and rem-based:
 - `--ui-line-height-tight`
 - `--ui-line-height-md`
 - `--ui-line-height-relaxed`
+
+## Spacing Tokens
+
+- `--ui-space-0-5` is the 2px micro-spacing token for compact component
+  density such as quiet metadata labels.
+- `--ui-space-1` through `--ui-space-8` remain the regular spacing scale.
 
 Guidance:
 

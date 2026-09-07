@@ -2,6 +2,7 @@ import { Component, Prop, Element, State, Watch, Host, h } from '@stencil/core';
 import { eventToTrigger } from '../../utils/events';
 import { dispatchDetail } from '../../utils/events';
 import { closeOverlay, openOverlay, requestTopOverlayClose } from '../../overlay/manager';
+import { controlledOrDefault, isControlled } from '../../utils/controlled-state';
 import {
   createAnchoredSurface,
   type AnchoredPlacement,
@@ -16,7 +17,8 @@ import {
 export class UIMenu {
   @Element() host: HTMLElement;
 
-  @Prop() open = false;
+  /** Controlled open state. Omit it to use defaultOpen and local interaction state. */
+  @Prop() open?: boolean;
   @Prop({ attribute: 'default-open' }) defaultOpen = false;
   /** Id of the control that anchors this menu in the top layer. */
   @Prop() for?: string;
@@ -31,7 +33,7 @@ export class UIMenu {
 
   @Watch('open')
   syncFromProp() {
-    this.internalOpen = this.open;
+    if (isControlled(this.open)) this.internalOpen = this.open;
   }
 
   @Watch('for')
@@ -62,8 +64,7 @@ export class UIMenu {
   }
 
   componentDidLoad() {
-    this.syncFromProp();
-    this.internalOpen = this.internalOpen || this.defaultOpen;
+    this.internalOpen = controlledOrDefault(this.open, this.defaultOpen);
     this.host.addEventListener('click', this.onItemClick);
     this.host.addEventListener('keydown', this.onKeydown);
     this.setupSurface();
@@ -97,7 +98,7 @@ export class UIMenu {
 
   private closeMenu(reason: string, trigger: string) {
     if (!this.internalOpen) return;
-    this.internalOpen = false;
+    if (!isControlled(this.open)) this.internalOpen = false;
     dispatchDetail(this.host, 'close', {
       open: false,
       reason: reason as 'programmatic' | 'light-dismiss' | 'escape' | 'action',
@@ -130,7 +131,7 @@ export class UIMenu {
       reason: 'action',
       trigger: eventToTrigger(e),
     });
-    this.internalOpen = false;
+    if (!isControlled(this.open)) this.internalOpen = false;
   };
 
   private onKeydown = (e: KeyboardEvent) => {
@@ -153,7 +154,7 @@ export class UIMenu {
           reason: 'action',
           trigger: 'keyboard',
         });
-        this.internalOpen = false;
+        if (!isControlled(this.open)) this.internalOpen = false;
       }
       return;
     }
@@ -174,7 +175,7 @@ export class UIMenu {
   render() {
     return (
       <Host role="menu" aria-orientation="vertical" data-open={this.internalOpen ? '' : undefined}>
-        <slot />
+        <div class="menu__surface"><slot /></div>
       </Host>
     );
   }

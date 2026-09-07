@@ -8,6 +8,8 @@ import {
   Avatar,
   AvatarGroup,
   Badge,
+  Callout,
+  Chip,
   Button,
   ContextMenu,
   FloatingActionButton,
@@ -48,10 +50,12 @@ afterEach(() => {
 });
 
 describe("@threadlabs/looma-vue adapter", () => {
-  it("includes parity exports for radio, badge, avatar, and avatar-group tags", () => {
+  it("includes parity exports for display primitive tags", () => {
     expect(ADAPTER_COMPONENT_TAG_MAP.RadioGroup).toBe("ui-radio-group");
     expect(ADAPTER_COMPONENT_TAG_MAP.Radio).toBe("ui-radio");
     expect(ADAPTER_COMPONENT_TAG_MAP.Badge).toBe("ui-badge");
+    expect(ADAPTER_COMPONENT_TAG_MAP.Chip).toBe("ui-chip");
+    expect(ADAPTER_COMPONENT_TAG_MAP.Callout).toBe("ui-callout");
     expect(ADAPTER_COMPONENT_TAG_MAP.Avatar).toBe("ui-avatar");
     expect(ADAPTER_COMPONENT_TAG_MAP.AvatarGroup).toBe("ui-avatar-group");
     expect(ADAPTER_COMPONENT_TAG_MAP.FloatingActionButton).toBe("ui-floating-action-button");
@@ -61,6 +65,18 @@ describe("@threadlabs/looma-vue adapter", () => {
     expect(ADAPTER_COMPONENT_TAG_MAP.Reel).toBe("ui-reel");
     expect(ADAPTER_COMPONENT_TAG_MAP.Tree).toBe("ui-tree");
     expect(ADAPTER_COMPONENT_TAG_MAP.TreeItem).toBe("ui-tree-item");
+  });
+
+  it("forwards chip appearance and callout tone with slot content", () => {
+    const { host } = mount(() => h("div", [
+      h(Chip, { appearance: "tag" }, () => "Research"),
+      h(Callout, { tone: "warning" }, () => "Review this before publishing."),
+    ]));
+
+    expect(host.querySelector("ui-chip")?.getAttribute("appearance")).toBe("tag");
+    expect(host.querySelector("ui-chip")?.textContent).toContain("Research");
+    expect(host.querySelector("ui-callout")?.getAttribute("tone")).toBe("warning");
+    expect(host.querySelector("ui-callout")?.textContent).toContain("Review this before publishing.");
   });
 
   it("maps tree reorder and expansion events to typed callbacks", () => {
@@ -101,6 +117,18 @@ describe("@threadlabs/looma-vue adapter", () => {
       trigger: "pointer",
     });
     expect(onExpand).toHaveBeenCalledWith({ id: "folder", expanded: true, trigger: "keyboard" });
+  });
+
+  it("forwards a controlled tree expansion value as a component property", async () => {
+    const { host } = mount(() =>
+      h(Tree, { label: "Pages" }, () =>
+        h(TreeItem, { "item-id": "folder", label: "Folder", container: true, expanded: false }, () => "Folder")
+      )
+    );
+
+    const item = host.querySelector<HTMLElement & { expanded?: boolean }>("ui-tree-item")!;
+    await Promise.resolve();
+    expect(item.expanded).toBe(false);
   });
 
   it("renders intrinsic layout wrappers as native tags", () => {

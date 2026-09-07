@@ -1,0 +1,74 @@
+:host {
+  --ui-callout-surface: var(--ui-info-soft);
+  --ui-callout-text: var(--ui-text-primary);
+  --ui-callout-border: var(--ui-info-solid);
+  --ui-callout-icon: var(--ui-info-solid);
+  --ui-callout-padding-block: var(--ui-space-2);
+  --ui-callout-padding-inline: var(--ui-space-3);
+  --ui-callout-icon-column: 1rem;
+  --ui-callout-gap: var(--ui-space-2);
+  --ui-callout-icon-size: 1rem;
+  --ui-callout-border-width: 1px;
+  --ui-callout-leading-border-width: 4px;
+
+  display: block;
+  max-width: 100%;
+}
+
+.callout__surface {
+  display: grid;
+  grid-template-columns: var(--ui-callout-icon-column) minmax(0, 1fr);
+  gap: var(--ui-callout-gap);
+  align-items: start;
+  padding: var(--ui-callout-padding-block) var(--ui-callout-padding-inline);
+  border: var(--ui-callout-border-width) solid color-mix(in srgb, var(--ui-callout-border) 35%, transparent);
+  border-inline-start: var(--ui-callout-leading-border-width) solid var(--ui-callout-border);
+  border-radius: var(--ui-radius-2);
+  background: var(--ui-callout-surface);
+  color: var(--ui-callout-text);
+  font-family: var(--ui-font-family-sans);
+  font-size: var(--ui-font-size-sm);
+  font-weight: var(--ui-font-normal);
+  line-height: var(--ui-line-height-md);
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  inline-size: var(--ui-callout-icon-column);
+  block-size: var(--ui-callout-icon-column);
+  color: var(--ui-callout-icon);
+}
+
+.icon svg {
+  inline-size: var(--ui-callout-icon-size);
+  block-size: var(--ui-callout-icon-size);
+}
+
+.content {
+  min-inline-size: 0;
+}
+
+:host([data-tone='note']) {
+  --ui-callout-surface: var(--ui-surface-muted);
+  --ui-callout-border: var(--ui-border-strong);
+  --ui-callout-icon: var(--ui-text-secondary);
+}
+
+:host([data-tone='warning']) {
+  --ui-callout-surface: var(--ui-warning-soft);
+  --ui-callout-border: var(--ui-warning-solid);
+  --ui-callout-icon: var(--ui-warning-solid);
+}
+
+:host([data-tone='success']) {
+  --ui-callout-surface: var(--ui-success-soft);
+  --ui-callout-border: var(--ui-success-solid);
+  --ui-callout-icon: var(--ui-success-solid);
+}
+
+:host([data-tone='error']) {
+  --ui-callout-surface: var(--ui-danger-soft);
+  --ui-callout-border: var(--ui-danger-solid);
+  --ui-callout-icon: var(--ui-danger-solid);
+}

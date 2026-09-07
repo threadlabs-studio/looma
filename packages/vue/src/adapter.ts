@@ -6,6 +6,7 @@ import {
   shallowRef,
   watchEffect,
   type ComponentPublicInstance,
+  type DefineComponent,
 } from "vue";
 
 export interface VueAdapterEventMap {
@@ -70,13 +71,13 @@ export function toHTMLElement(
   return null;
 }
 
-export function createAdapterComponent(
+export function createAdapterComponent<Props extends object = Record<string, never>>(
   tagName: string,
   displayName: string,
   additionalEventBindings: readonly AdapterEventBinding[] = [],
   defaultHydrationMismatch: string = "class",
   propertyBindings: readonly string[] = [],
-) {
+): DefineComponent<Props> {
   const eventBindings = [...BASE_EVENT_BINDINGS, ...additionalEventBindings];
   const callbackAttrs = new Set(eventBindings.map(([, callbackAttr]) => callbackAttr));
   const propertyAttrs = new Set(propertyBindings);
@@ -154,5 +155,5 @@ export function createAdapterComponent(
         );
       };
     },
-  });
+  }) as unknown as DefineComponent<Props>;
 }

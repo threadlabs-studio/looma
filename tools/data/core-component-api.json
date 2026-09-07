@@ -99,23 +99,25 @@
           "name": "label",
           "property": "label",
           "type": "string",
-          "default": ""
+          "default": "People"
         },
         {
           "name": "max",
           "property": "max",
-          "type": "number"
+          "type": "number",
+          "default": 5
         }
       ],
       "properties": [
         {
           "name": "label",
           "type": "string",
-          "default": ""
+          "default": "People"
         },
         {
           "name": "max",
-          "type": "number"
+          "type": "number",
+          "default": 5
         }
       ],
       "events": [],
@@ -162,6 +164,62 @@
         {
           "name": "default",
           "description": "Default child content."
+        }
+      ]
+    },
+    {
+      "tag": "ui-callout",
+      "package": "@threadlabs/looma",
+      "className": "UICalloutElement",
+      "description": "Static semantic message surface with a tone-specific icon.",
+      "attributes": [
+        {
+          "name": "tone",
+          "property": "tone",
+          "type": "\"info\" | \"note\" | \"warning\" | \"success\" | \"error\"",
+          "default": "info"
+        }
+      ],
+      "properties": [
+        {
+          "name": "tone",
+          "type": "\"info\" | \"note\" | \"warning\" | \"success\" | \"error\"",
+          "default": "info"
+        }
+      ],
+      "events": [],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Callout message content."
+        }
+      ]
+    },
+    {
+      "tag": "ui-chip",
+      "package": "@threadlabs/looma",
+      "className": "UIChipElement",
+      "description": "Compact, non-interactive metadata label with tag and pill appearances.",
+      "attributes": [
+        {
+          "name": "appearance",
+          "property": "appearance",
+          "type": "\"tag\" | \"pill\"",
+          "default": "tag"
+        }
+      ],
+      "properties": [
+        {
+          "name": "appearance",
+          "type": "\"tag\" | \"pill\"",
+          "default": "tag"
+        }
+      ],
+      "events": [],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Chip text or metadata."
         }
       ]
     },
@@ -275,7 +333,7 @@
           "name": "checked",
           "property": "checked",
           "type": "boolean",
-          "default": false
+          "default": null
         },
         {
           "name": "default-checked",
@@ -312,7 +370,7 @@
         {
           "name": "checked",
           "type": "boolean",
-          "default": false
+          "default": null
         },
         {
           "name": "defaultChecked",
@@ -420,10 +478,21 @@
       "description": "Overlay primitive that coordinates native `dialog` behavior with shared overlay stack rules.",
       "attributes": [
         {
+          "name": "default-open",
+          "property": "defaultOpen",
+          "type": "boolean",
+          "default": false
+        },
+        {
           "name": "dismissible",
           "property": "dismissible",
           "type": "boolean",
           "default": true
+        },
+        {
+          "name": "label",
+          "property": "label",
+          "type": "string"
         },
         {
           "name": "modal",
@@ -435,7 +504,7 @@
           "name": "open",
           "property": "open",
           "type": "boolean",
-          "default": false
+          "default": null
         }
       ],
       "properties": [
@@ -450,6 +519,10 @@
           "default": true
         },
         {
+          "name": "label",
+          "type": "string"
+        },
+        {
           "name": "modal",
           "type": "boolean",
           "default": true
@@ -457,7 +530,7 @@
         {
           "name": "open",
           "type": "boolean",
-          "default": false
+          "default": null
         }
       ],
       "events": [
@@ -497,7 +570,7 @@
           "name": "open",
           "property": "open",
           "type": "boolean",
-          "default": false
+          "default": null
         }
       ],
       "properties": [
@@ -514,7 +587,7 @@
         {
           "name": "open",
           "type": "boolean",
-          "default": false
+          "default": null
         }
       ],
       "events": [
@@ -834,7 +907,7 @@
           "name": "open",
           "property": "open",
           "type": "boolean",
-          "default": false
+          "default": null
         }
       ],
       "properties": [
@@ -846,7 +919,7 @@
         {
           "name": "open",
           "type": "boolean",
-          "default": false
+          "default": null
         }
       ],
       "events": [
@@ -918,7 +991,7 @@
           "name": "open",
           "property": "open",
           "type": "boolean",
-          "default": false
+          "default": null
         }
       ],
       "properties": [
@@ -930,7 +1003,7 @@
         {
           "name": "open",
           "type": "boolean",
-          "default": false
+          "default": null
         }
       ],
       "events": [
@@ -964,7 +1037,7 @@
           "name": "checked",
           "property": "checked",
           "type": "boolean",
-          "default": false
+          "default": null
         },
         {
           "name": "default-checked",
@@ -1001,7 +1074,7 @@
         {
           "name": "checked",
           "type": "boolean",
-          "default": false
+          "default": null
         },
         {
           "name": "defaultChecked",
@@ -1233,7 +1306,7 @@
           "name": "checked",
           "property": "checked",
           "type": "boolean",
-          "default": false
+          "default": null
         },
         {
           "name": "default-checked",
@@ -1264,7 +1337,7 @@
         {
           "name": "checked",
           "type": "boolean",
-          "default": false
+          "default": null
         },
         {
           "name": "defaultChecked",
@@ -1322,7 +1395,7 @@
           "name": "value",
           "property": "value",
           "type": "string",
-          "default": ""
+          "default": null
         }
       ],
       "properties": [
@@ -1343,7 +1416,7 @@
         {
           "name": "value",
           "type": "string",
-          "default": ""
+          "default": null
         }
       ],
       "events": [
@@ -1371,14 +1444,14 @@
           "name": "open",
           "property": "open",
           "type": "boolean",
-          "default": false
+          "default": true
         }
       ],
       "properties": [
         {
           "name": "open",
           "type": "boolean",
-          "default": false
+          "default": true
         }
       ],
       "events": [
@@ -1392,7 +1465,7 @@
           "name": "dismiss",
           "detailType": "ToastDismissDetail",
           "detailSchema": "{ id: string; reason: PrimitiveReason; trigger: PrimitiveTrigger }",
-          "detailDocs": "Emitted when a toast item is dismissed from its region."
+          "detailDocs": "Requests that the consumer remove the matching toast from its owned list."
         },
         {
           "name": "open",
@@ -1424,7 +1497,7 @@
           "name": "open",
           "property": "open",
           "type": "boolean",
-          "default": false
+          "default": null
         },
         {
           "name": "toggle-on-click",
@@ -1447,7 +1520,7 @@
         {
           "name": "open",
           "type": "boolean",
-          "default": false
+          "default": null
         },
         {
           "name": "toggleOnClick",
@@ -1520,6 +1593,12 @@
           "property": "label",
           "type": "string",
           "default": "Tree"
+        },
+        {
+          "name": "max-depth",
+          "property": "maxDepth",
+          "type": "number",
+          "default": 0
         }
       ],
       "properties": [
@@ -1532,6 +1611,11 @@
           "name": "label",
           "type": "string",
           "default": "Tree"
+        },
+        {
+          "name": "maxDepth",
+          "type": "number",
+          "default": 0
         }
       ],
       "events": [
@@ -1540,6 +1624,12 @@
           "detailType": "TreeReorderDetail",
           "detailSchema": "{ sourceId: string; targetId: string; position: 'before' | 'inside' | 'after'; sourceType: string; targetType: string; sourceScope: string; targetScope: string; trigger: 'pointer' }",
           "detailDocs": "Emitted when the user drops a sortable item on a valid target."
+        },
+        {
+          "name": "reorder-rejected",
+          "detailType": "TreeReorderRejectedDetail",
+          "detailSchema": "{ sourceId: string; targetId: string; position: 'before' | 'inside' | 'after'; reason: 'max-depth'; maxDepth?: number; resultingDepth?: number; trigger: 'pointer' }",
+          "detailDocs": "Emitted when a reorder target is rejected before the item moves."
         }
       ],
       "slots": [

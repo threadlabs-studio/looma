@@ -17,7 +17,7 @@ export class UIMenuItem {
         aria-disabled={this.disabled ? 'true' : undefined}
         data-value={this.value || undefined}
       >
-        <slot />
+        <span class="menu-item__surface"><slot /></span>
       </Host>
     );
   }

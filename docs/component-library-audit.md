@@ -25,7 +25,7 @@ This audit compares Looma's shipped and proposed component surface against a bro
 
 - Layout: `ui-stack`, `ui-inline`, `ui-cluster`, `ui-grid`, `ui-center`, `ui-separator`
 - Forms/actions: `ui-button`, `ui-icon-button`, `ui-input`, `ui-select`, `ui-textarea`, `ui-form-field`, `ui-checkbox`, `ui-radio`, `ui-radio-group`, `ui-switch`
-- Overlay/display/navigation: `ui-dialog`, `ui-popover`, `ui-tooltip`, `ui-menu`, `ui-menu-item`, `ui-disclosure`, `ui-tabs`, `ui-toast-region`, `ui-badge`, `ui-avatar`, `ui-avatar-group`
+- Overlay/display/navigation: `ui-dialog`, `ui-popover`, `ui-tooltip`, `ui-menu`, `ui-menu-item`, `ui-disclosure`, `ui-tabs`, `ui-toast-region`, `ui-badge`, `ui-chip`, `ui-callout`, `ui-avatar`, `ui-avatar-group`
 - App-shell / recipe level: `ui-floating-action-button`, `ui-search-shell`, `ui-search-result-row`, `ui-top-bar`
 - Editor: `ui-editor-toolbar`, `ui-editor-slash-menu`, `ui-editor-table-context-menu`, `ui-editor-table-toolbar`, `ui-editor-insert-table-grid`, `ui-editor-table-overlay`
 
@@ -122,7 +122,7 @@ The ecosystem converges on a few patterns:
 | Tabs | `Tabs`, `TabList`, `TabPanels`, `fast-tabs`, `QTabs` | `value/defaultValue`, orientation, activation mode, overflow/scroll arrows, indicators | Shipped as `ui-tabs` | Extend: roadmap note for overflow handling if Looma wants parity with app-bar usage |
 | Disclosure / accordion | `Disclosure`, `Accordion`, `Collapse`, `Expansion Panel` | single vs multi-open grouping, disabled items, controlled open state | Partly shipped via `ui-disclosure` | Extend: decide whether grouped accordion stays recipe-level or becomes first-class |
 | Toast / snackbar / notification | `Toast`, `Snackbar`, `ToastRegion`, `Banner` | live region, stacking, dismiss, severity, action button, duration, placement | Shipped as `ui-toast-region` | Extend: roadmap note for severity/action API |
-| Badge / chip / tag | `Badge`, `Chip`, `Tag`, `StatusLight` | variant, tone/severity/color, removable/closable, selectable, icon support, pill/rounded | Shipped as `ui-badge` | Extend: plan whether dismissible/selectable chip stays separate from badge |
+| Badge / chip / tag | `Badge`, `Chip`, `Tag`, `StatusLight` | variant, tone/severity/color, removable/closable, selectable, icon support, pill/rounded | Shipped as `ui-badge` and non-interactive `ui-chip`; static tonal messages use `ui-callout` | Keep dismissible/selectable chip separate from these display primitives |
 | Avatar / avatar group | `Avatar`, `AvatarGroup`, `User`, identity badge | image/fallback, label, size, status, overflow count | Shipped as `ui-avatar` and `ui-avatar-group` | Keep |
 | Top bar / app bar | `App Bar`, `Top Nav`, `Header`, `Top Nav Item` | leading actions, title slot, search slot, trailing actions, sticky behavior, responsive collapse | Shipped as `ui-top-bar` | Keep as recipe-level Looma primitive; no rename needed |
 | Floating action button | `Floating Action Button`, `FAB`, `Speed Dial`, `QFab` | primary action, expandable sub-actions, hide/show label, icon-only, sticky positioning, mobile emphasis | Shipped as `ui-floating-action-button` | Keep |

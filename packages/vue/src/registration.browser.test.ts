@@ -1,4 +1,5 @@
 import { userEvent } from "@vitest/browser/context";
+import axe from "axe-core";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, ref, shallowRef, type App } from "vue";
 import type { SlashMenuAnchorRect, TableOverlayGeometry } from "@threadlabs/looma-editor";
@@ -22,6 +23,205 @@ afterEach(async () => {
 });
 
 describe("@threadlabs/looma-vue release registration (real browser)", () => {
+  it("forwards controlled false and waits for the Vue owner to accept a disclosure close", async () => {
+    const { Disclosure } = await import("./index");
+    const open = ref(false);
+    const host = document.createElement("div");
+    document.body.append(host);
+    const app = createApp({
+      render: () => h(Disclosure, {
+        open: open.value,
+        defaultOpen: true,
+        onClose: () => undefined,
+      }, () => [
+        h("button", "Toggle"),
+        h("section", "Details"),
+      ]),
+    });
+    apps.push(app);
+    app.mount(host);
+    await customElements.whenDefined("ui-disclosure");
+    await flushBrowser();
+
+    const disclosure = host.querySelector<HTMLElement & { open?: boolean }>("ui-disclosure")!;
+    await (disclosure as HTMLElement & {
+      componentOnReady?: () => Promise<unknown>;
+    }).componentOnReady?.();
+    const section = disclosure.querySelector<HTMLElement>("section")!;
+    expect(disclosure.open).toBe(false);
+    expect(section.hidden).toBe(true);
+
+    open.value = true;
+    await nextTick();
+    await flushBrowser();
+    expect(section.hidden).toBe(false);
+
+    disclosure.querySelector<HTMLButtonElement>("button")!.click();
+    await flushBrowser();
+    expect(section.hidden).toBe(false);
+
+    open.value = false;
+    await nextTick();
+    await flushBrowser();
+    expect(section.hidden).toBe(true);
+  });
+
+  it("lets reactive Vue state own toast removal after a dismiss request", async () => {
+    const { ToastRegion } = await import("./index");
+    const toastIds = ref(["saved", "published"]);
+    const connectedDuringDismiss: boolean[] = [];
+    const host = document.createElement("div");
+    document.body.append(host);
+    const app = createApp({
+      render: () => h(ToastRegion, {
+        onDismiss: ({ id }: { id: string }) => {
+          connectedDuringDismiss.push(Boolean(host.querySelector(`#${CSS.escape(id)}`)?.isConnected));
+          toastIds.value = toastIds.value.filter(candidate => `toast-${candidate}` !== id);
+        },
+      }, () => toastIds.value.map(id => h("div", {
+        id: `toast-${id}`,
+        key: id,
+        "data-ui-toast": "",
+      }, [id, h("button", { type: "button", "data-ui-toast-dismiss": "" }, "Dismiss")]))),
+    });
+    apps.push(app);
+    app.mount(host);
+    await customElements.whenDefined("ui-toast-region");
+    await flushBrowser();
+
+    const region = host.querySelector<HTMLElement>("ui-toast-region")!;
+    await userEvent.click(host.querySelector<HTMLButtonElement>("#toast-saved button")!);
+    await nextTick();
+    await flushBrowser();
+
+    expect(connectedDuringDismiss).toEqual([true]);
+    expect(host.querySelector("#toast-saved")).toBeNull();
+    expect(host.querySelector("#toast-published")).toBeTruthy();
+    expect(region.hasAttribute("data-open")).toBe(true);
+
+    await userEvent.click(host.querySelector<HTMLButtonElement>("#toast-published button")!);
+    await nextTick();
+    await flushBrowser();
+    expect(region.hasAttribute("data-open")).toBe(false);
+  });
+
+  it("preserves reactive external form descriptions while help and errors rerender", async () => {
+    const { FormField } = await import("./index");
+    const externalDescriptions = ref("policy policy");
+    const showHelp = ref(true);
+    const showError = ref(false);
+    const host = document.createElement("div");
+    document.body.append(host);
+    const app = createApp({
+      render: () => h("div", [
+        h("p", { id: "policy" }, "Privacy policy"),
+        h("p", { id: "metrics" }, "Metrics policy"),
+        h(FormField, { invalid: showError.value }, () => [
+          h("label", "Email"),
+          h("input", { type: "email", "aria-describedby": externalDescriptions.value }),
+          showHelp.value ? h("small", { "data-slot": "help" }, "We never share your email.") : null,
+          showError.value ? h("small", { "data-slot": "error" }, "Email is required.") : null,
+        ]),
+      ]),
+    });
+    apps.push(app);
+    app.mount(host);
+    await customElements.whenDefined("ui-form-field");
+    await flushBrowser();
+
+    const input = host.querySelector<HTMLInputElement>("input")!;
+    const helpId = host.querySelector<HTMLElement>('[data-slot="help"]')!.id;
+    expect(input.getAttribute("aria-describedby")?.split(/\s+/)).toEqual(["policy", helpId]);
+
+    externalDescriptions.value = "policy metrics";
+    showError.value = true;
+    await nextTick();
+    await flushBrowser();
+    const errorId = host.querySelector<HTMLElement>('[data-slot="error"]')!.id;
+    expect(input.getAttribute("aria-describedby")?.split(/\s+/)).toEqual([
+      "policy", "metrics", helpId, errorId,
+    ]);
+
+    showHelp.value = false;
+    await nextTick();
+    await flushBrowser();
+    expect(input.getAttribute("aria-describedby")?.split(/\s+/)).toEqual([
+      "policy", "metrics", errorId,
+    ]);
+    const result = await axe.run(host);
+    expect(result.violations, result.violations.map(violation => violation.id).join(", ")).toEqual([]);
+  });
+
+  it("reactively names dialogs and passes an axe check", async () => {
+    const { Dialog } = await import("./index");
+    const title = ref("Invite a teammate");
+    const label = ref<string>();
+    const host = document.createElement("main");
+    document.body.append(host);
+    const app = createApp({
+      render: () => h(Dialog, { open: true, label: label.value }, () => [
+        h("h2", title.value),
+        h("button", { type: "button" }, "Cancel"),
+      ]),
+    });
+    apps.push(app);
+    app.mount(host);
+    await customElements.whenDefined("ui-dialog");
+    await flushBrowser();
+
+    const dialog = host.querySelector("ui-dialog")!.shadowRoot!.querySelector("dialog")!;
+    expect(dialog.getAttribute("aria-label")).toBe("Invite a teammate");
+
+    title.value = "Invite a reviewer";
+    await nextTick();
+    await flushBrowser();
+    expect(dialog.getAttribute("aria-label")).toBe("Invite a reviewer");
+
+    label.value = "Invitation";
+    await nextTick();
+    await flushBrowser();
+    expect(dialog.getAttribute("aria-label")).toBe("Invitation");
+
+    const result = await axe.run(host);
+    expect(result.violations, result.violations.map(violation => violation.id).join(", ")).toEqual([]);
+  });
+
+  it("updates avatar overflow without writing visibility onto Vue-owned nodes", async () => {
+    const { Avatar, AvatarGroup } = await import("./index");
+    const max = ref(1);
+    const names = ref(["Ada", "Grace", "Lin"]);
+    const host = document.createElement("div");
+    document.body.append(host);
+    const app = createApp({
+      render: () => h(AvatarGroup, { max: max.value, label: "Reviewers" }, () =>
+        names.value.map(name => h(Avatar, { key: name, name }, () => h("span"))),
+      ),
+    });
+    apps.push(app);
+    app.mount(host);
+    await customElements.whenDefined("ui-avatar-group");
+    await flushBrowser();
+
+    const group = host.querySelector("ui-avatar-group")!;
+    const avatars = () => Array.from(group.querySelectorAll<HTMLElement>("ui-avatar"));
+    expect(group.getAttribute("role")).toBe("group");
+    expect(getComputedStyle(avatars()[0]!).display).not.toBe("none");
+    expect(getComputedStyle(avatars()[1]!).display).toBe("none");
+    expect(avatars().every(avatar => !avatar.hasAttribute("hidden") && !avatar.hasAttribute("aria-hidden"))).toBe(true);
+    expect(group.shadowRoot?.querySelector("[data-ui-avatar-group-overflow]")?.textContent).toBe("+2");
+
+    max.value = 2;
+    names.value = ["Ada", "Grace", "Margaret", "Lin"];
+    await nextTick();
+    await flushBrowser();
+    expect(getComputedStyle(avatars()[1]!).display).not.toBe("none");
+    expect(getComputedStyle(avatars()[2]!).display).toBe("none");
+    expect(avatars().every(avatar => !avatar.hasAttribute("hidden") && !avatar.hasAttribute("aria-hidden"))).toBe(true);
+    expect(group.shadowRoot?.querySelector("[data-ui-avatar-group-overflow]")?.textContent).toBe("+2");
+    const result = await axe.run(host);
+    expect(result.violations, result.violations.map(violation => violation.id).join(", ")).toEqual([]);
+  });
+
   it("composes concise field help with an accessible ghost button", async () => {
     const { Button, Tooltip, FormField, Input } = await import("./index");
     const onClose = vi.fn();

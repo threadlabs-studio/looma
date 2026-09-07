@@ -9,8 +9,8 @@ The generator also reads the intro line from each component MDX page to keep sho
 
 ## Commands
 
-- `pnpm generate:api` regenerates `generated/component-api.json`.
-- `pnpm check:docs-sync` fails if `generated/component-api.json` is stale.
+- `pnpm generate:api` regenerates `generated/component-api.json` and the Vue adapter prop/event declarations.
+- `pnpm check:docs-sync` fails if either generated public API output is stale.
 - `pnpm generate:docs` currently aliases API generation for docs consumers.
 
 ## Consumers

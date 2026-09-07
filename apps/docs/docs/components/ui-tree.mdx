@@ -30,7 +30,7 @@ truthful drag-and-drop previews. `ui-tree` coordinates the interaction while
   </ui-tree-item>
   <ui-tree-item item-id="research" label="Research" drag-type="folder" drop-scope="root" accepts="page,folder" container>
     <span>Research</span>
-    <ui-tree-item slot="children" item-id="notes" label="Notes" depth="2" drag-type="page" drop-scope="research">
+    <ui-tree-item slot="children" item-id="notes" label="Notes" drag-type="page" drop-scope="research">
       <a href="/notes">Notes</a>
     </ui-tree-item>
   </ui-tree-item>
@@ -55,4 +55,16 @@ import { Tree, TreeItem } from "@threadlabs/looma/vue";
 
 Applications own data mutation and persistence. The `reorder` event reports
 source, target, position, type, and scope; Looma owns the interaction and visual
-states.
+states. Nest items structurally (through the `children` slot, including a wrapper
+when useful); Looma derives `aria-level` and each 16px visual nesting step.
+
+## Keyboard and expansion
+
+The tree uses one roving tab stop across visible, enabled items. Arrow Up/Down,
+Home, and End move through visible items; Left collapses or moves to the parent;
+Right expands or moves to the first child. Links and controls supplied in slots
+keep their native keyboard behavior.
+
+Use `expanded` as a controlled value and update it from the `expand` event. Omit
+it and use `default-expanded` for an uncontrolled initial value; do not combine
+the two expecting the default to override a supplied controlled value.

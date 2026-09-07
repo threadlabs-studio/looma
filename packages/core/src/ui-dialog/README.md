@@ -7,20 +7,20 @@ Provide accessible modal and non-modal dialog behavior with focus management.
 ## SSR Markup Contract
 
 ```html
-<ui-dialog>
-  <dialog>
-    <h2>Title</h2>
-    <p>Body copy</p>
-    <button value="cancel">Close</button>
-  </dialog>
+<ui-dialog label="Settings">
+  <h2>Settings</h2>
+  <p>Body copy</p>
+  <button value="cancel">Close</button>
 </ui-dialog>
 ```
 
 ## Attributes
 
 - `open`: boolean
+- `default-open`: initial uncontrolled open state (default false)
 - `modal`: boolean (default true)
 - `dismissible`: boolean (default true) — close on backdrop click and Escape when true
+- `label`: accessible name for the native dialog surface
 
 ## Properties
 
@@ -28,6 +28,7 @@ Provide accessible modal and non-modal dialog behavior with focus management.
 - `defaultOpen: boolean`
 - `modal: boolean`
 - `dismissible: boolean`
+- `label?: string`
 
 ## Events
 
@@ -47,4 +48,8 @@ Provide accessible modal and non-modal dialog behavior with focus management.
 
 ## ARIA
 
-- Native `dialog` element semantics preferred.
+- The component owns the native `dialog` surface. Do not slot another `<dialog>`.
+- `label` is the reliable accessible-name contract and is recommended for
+  localized applications. When omitted, the first slotted heading (or an element
+  marked `slot="heading"` / `data-ui-dialog-title`) is observed reactively and
+  used as the name. The final fallback is `"Dialog"`.

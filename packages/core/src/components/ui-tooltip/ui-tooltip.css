@@ -3,13 +3,11 @@
   inset: auto;
   margin: 0;
   display: inline-block;
-  border: 1px solid var(--ui-border-default);
-  border-radius: var(--ui-radius-2);
-  background: var(--ui-surface-elevated);
-  color: var(--ui-text-primary);
-  padding: var(--ui-space-2) var(--ui-space-3);
-  font-size: var(--ui-font-size-sm);
-  box-shadow: var(--ui-shadow-md);
+  box-sizing: border-box;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   opacity: 0;
   transform: translateY(4px);
   transition:
@@ -17,6 +15,17 @@
     transform var(--ui-motion-fast) var(--ui-motion-ease),
     display var(--ui-motion-fast) allow-discrete,
     overlay var(--ui-motion-fast) allow-discrete;
+}
+
+.tooltip__surface {
+  box-sizing: border-box;
+  border: 1px solid var(--ui-border-default);
+  border-radius: var(--ui-radius-2);
+  background: var(--ui-surface-elevated);
+  color: var(--ui-text-primary);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  font-size: var(--ui-font-size-sm);
+  box-shadow: var(--ui-shadow-md);
 }
 
 :host(:popover-open) { opacity: 1; transform: translateY(0); }
