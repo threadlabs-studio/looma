@@ -22,6 +22,8 @@ import {
   RadioGroup,
   Tree,
   TreeItem,
+  Editable,
+  MultiCombobox,
 } from "./index";
 
 type MountedApp = {
@@ -65,6 +67,10 @@ describe("@threadlabs/looma-vue adapter", () => {
     expect(ADAPTER_COMPONENT_TAG_MAP.Reel).toBe("ui-reel");
     expect(ADAPTER_COMPONENT_TAG_MAP.Tree).toBe("ui-tree");
     expect(ADAPTER_COMPONENT_TAG_MAP.TreeItem).toBe("ui-tree-item");
+    expect(ADAPTER_COMPONENT_TAG_MAP.Editable).toBe("ui-editable");
+    expect(ADAPTER_COMPONENT_TAG_MAP.MultiCombobox).toBe("ui-multi-combobox");
+    expect(Editable).toBeTruthy();
+    expect(MultiCombobox).toBeTruthy();
   });
 
   it("forwards chip appearance and callout tone with slot content", () => {

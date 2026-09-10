@@ -1,0 +1,29 @@
+:host { display: block; min-inline-size: 0; color: var(--ui-text-primary); font: inherit; }
+ui-combobox::part(field) {
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ui-space-1);
+  min-block-size: var(--ui-multi-combobox-min-block-size, 2.5rem);
+  padding: var(--ui-space-1);
+}
+ui-combobox::part(input) {
+  flex: 1 0 var(--ui-multi-combobox-input-min-inline-size, 5rem);
+  width: auto;
+  min-block-size: 1.75rem;
+  padding: var(--ui-space-0-5) var(--ui-space-1);
+}
+.items { display: contents; }
+.item {
+  appearance: none;
+  display: inline-flex;
+  max-inline-size: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: var(--ui-radius-1);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: default;
+}
+.item:focus-visible { outline: 2px solid var(--ui-focus-ring); outline-offset: 1px; }
+.item:disabled { opacity: .6; }

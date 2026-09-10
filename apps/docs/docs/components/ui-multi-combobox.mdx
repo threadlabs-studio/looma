@@ -1,0 +1,22 @@
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# Multi Combobox
+
+A multi-value input that keeps removable selected items and the text cursor
+inside one combobox control. The application owns the selected collection,
+metadata, presentation, and persistence.
+
+<ComponentExamplesApiTabs component="ui-multi-combobox" />
+
+Use `items` for selected `ComboboxOption` values and `config` for suggestions.
+Handle `add-item`, `remove-item`, and `create-item` by immediately replacing the
+controlled items collection. `query-change` supports a controlled query.
+
+The default selected item is a neutral Looma pill. Replace it through
+`item-${id}` to render other shapes or use option metadata for consumer-owned
+colors and icons.
+
+With the cursor at the start, Left moves into the selected items. Right returns
+to the input. Backspace removes the preceding item, while Backspace or Delete on
+a focused item removes it. Dynamic `item-${id}` and `option-${id}` slots customize
+rendering; `create`, `footer`, `loading`, `empty`, and `error` customize the menu.

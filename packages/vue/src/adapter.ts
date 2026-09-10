@@ -8,6 +8,7 @@ import {
   type ComponentPublicInstance,
   type DefineComponent,
 } from "vue";
+import type { EditableChange } from '@threadlabs/looma-core';
 
 export interface VueAdapterEventMap {
   open: { open: boolean; reason: string; trigger: string };
@@ -36,6 +37,7 @@ export interface VueAdapterEventMap {
     trigger: string;
   };
   expand: { id: string; expanded: boolean; trigger: string };
+  editChange: EditableChange;
 }
 
 type AdapterCallbacks = {
@@ -48,6 +50,7 @@ type AdapterCallbacks = {
   onReorder?: (detail: VueAdapterEventMap["reorder"]) => void;
   onReorderRejected?: (detail: VueAdapterEventMap["reorderRejected"]) => void;
   onExpand?: (detail: VueAdapterEventMap["expand"]) => void;
+  onEditChange?: (detail: VueAdapterEventMap["editChange"]) => void;
 };
 
 export type AdapterAttrs = AdapterCallbacks & Record<string, unknown>;

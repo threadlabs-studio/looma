@@ -4,13 +4,15 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-06 15:36 PDT
+Last Updated: 2026-09-10 00:15 PDT
 Status: Candidate `0.1.22` is public; `0.1.24` is prepared with Chip/Callout,
 structural Tree, controlled-state, and typed Vue adapter improvements. Historical
 release tasks below retain their original version context.
 
 ## Current Focus
 
+- Qualify and release the domain-neutral `ui-editable` and `ui-multi-combobox`
+  controls plus Combobox composition slots for Knit's inline page-tag editing.
 - Publish and qualify Candidate `0.1.24` with Chip/Callout, structural Tree,
   controlled-state, and typed Vue adapter improvements plus exact Knit consumer
   evidence.
@@ -39,6 +41,18 @@ release tasks below retain their original version context.
   editor, and Vue.
 
 ## Recent Progress
+
+- Added `ui-editable`, which swaps an explicit presentation trigger for a
+  focused editing surface and owns keyboard activation, Escape, outside-click,
+  and focus return behavior.
+- Added controlled `ui-multi-combobox` and a typed Vue adapter. Selected values and
+  the text cursor share one Combobox field; Left/Right navigation and
+  Backspace/Delete removal work across tags, while applications retain
+  collection and persistence ownership.
+- Extended Combobox with an accessible visually hidden label mode, an inline
+  `start` slot, a popup `footer` slot, and imperative input focus. Core and Vue
+  browser tests cover composition, rich slots, query clearing, selection, and
+  tag keyboard behavior.
 
 - Unpublished Looma foundation work on `feature/ui-chip-callout` is rebased on
   Candidate `0.1.23`: adds token-owned compact `ui-chip` and `ui-callout`

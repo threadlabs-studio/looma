@@ -11,23 +11,24 @@ A single editable field with contextual suggestions, optional help and field val
 
 ## Properties
 
-| Property       | Attribute       | Description                                                                               | Type             | Default     |
-| -------------- | --------------- | ----------------------------------------------------------------------------------------- | ---------------- | ----------- |
-| `clearable`    | `clearable`     |                                                                                           | `boolean`        | `false`     |
-| `config`       | --              | Immutable configuration; replace the object/context when dependencies change.             | `ComboboxConfig` | `{}`        |
-| `defaultQuery` | `default-query` |                                                                                           | `string`         | `''`        |
-| `defaultValue` | `default-value` |                                                                                           | `string`         | `undefined` |
-| `disabled`     | `disabled`      |                                                                                           | `boolean`        | `false`     |
-| `disclosure`   | `disclosure`    |                                                                                           | `boolean`        | `false`     |
-| `help`         | `help`          | Optional description shown by the connected question-mark button.                         | `string`         | `''`        |
-| `label`        | `label`         | Accessible visible label, associated with the native text input.                          | `string`         | `''`        |
-| `name`         | `name`          |                                                                                           | `string`         | `''`        |
-| `placeholder`  | `placeholder`   |                                                                                           | `string`         | `''`        |
-| `query`        | `query`         | Controlled raw editing text; independent of canonical selection.                          | `string`         | `undefined` |
-| `readOnly`     | `readonly`      |                                                                                           | `boolean`        | `false`     |
-| `required`     | `required`      |                                                                                           | `boolean`        | `false`     |
-| `size`         | `size`          |                                                                                           | `"md" \| "sm"`   | `'md'`      |
-| `value`        | `value`         | Controlled canonical value. Undefined selects uncontrolled mode; null means no selection. | `string`         | `undefined` |
+| Property          | Attribute          | Description                                                                               | Type                     | Default     |
+| ----------------- | ------------------ | ----------------------------------------------------------------------------------------- | ------------------------ | ----------- |
+| `clearable`       | `clearable`        |                                                                                           | `boolean`                | `false`     |
+| `config`          | --                 | Immutable configuration; replace the object/context when dependencies change.             | `ComboboxConfig`         | `{}`        |
+| `defaultQuery`    | `default-query`    |                                                                                           | `string`                 | `''`        |
+| `defaultValue`    | `default-value`    |                                                                                           | `string`                 | `undefined` |
+| `disabled`        | `disabled`         |                                                                                           | `boolean`                | `false`     |
+| `disclosure`      | `disclosure`       |                                                                                           | `boolean`                | `false`     |
+| `help`            | `help`             | Optional description shown by the connected question-mark button.                         | `string`                 | `''`        |
+| `label`           | `label`            | Accessible visible label, associated with the native text input.                          | `string`                 | `''`        |
+| `labelVisibility` | `label-visibility` | Keep the native label accessible while allowing compact composed controls.                | `"sr-only" \| "visible"` | `'visible'` |
+| `name`            | `name`             |                                                                                           | `string`                 | `''`        |
+| `placeholder`     | `placeholder`      |                                                                                           | `string`                 | `''`        |
+| `query`           | `query`            | Controlled raw editing text; independent of canonical selection.                          | `string`                 | `undefined` |
+| `readOnly`        | `readonly`         |                                                                                           | `boolean`                | `false`     |
+| `required`        | `required`         |                                                                                           | `boolean`                | `false`     |
+| `size`            | `size`             |                                                                                           | `"md" \| "sm"`           | `'md'`      |
+| `value`           | `value`            | Controlled canonical value. Undefined selects uncontrolled mode; null means no selection. | `string`                 | `undefined` |
 
 
 ## Events
@@ -44,6 +45,16 @@ A single editable field with contextual suggestions, optional help and field val
 
 
 ## Methods
+
+### `focusInput() => Promise<void>`
+
+Focus the native editing input from a composed control.
+
+#### Returns
+
+Type: `Promise<void>`
+
+
 
 ### `validate() => Promise<ComboboxValidationState>`
 
@@ -74,6 +85,10 @@ Type: `Promise<ComboboxValidationState>`
 
 ## Dependencies
 
+### Used by
+
+ - [ui-multi-combobox](../ui-multi-combobox)
+
 ### Depends on
 
 - [ui-tooltip](../ui-tooltip)
@@ -82,6 +97,7 @@ Type: `Promise<ComboboxValidationState>`
 ```mermaid
 graph TD;
   ui-combobox --> ui-tooltip
+  ui-multi-combobox --> ui-combobox
   style ui-combobox fill:#f9f,stroke:#333,stroke-width:4px
 ```
 
