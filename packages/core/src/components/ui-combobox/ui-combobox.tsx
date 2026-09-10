@@ -24,6 +24,8 @@ export class UICombobox {
   @Prop({ attribute: 'readonly' }) readOnly = false;
   @Prop() required = false;
   @Prop() size: 'sm' | 'md' = 'md';
+  /** Keep the native label accessible while allowing compact composed controls. */
+  @Prop({ attribute: 'label-visibility' }) labelVisibility: 'visible' | 'sr-only' = 'visible';
   @Prop() disclosure = false;
   @Prop() clearable = false;
   /** Optional description shown by the connected question-mark button. */
@@ -222,8 +224,9 @@ export class UICombobox {
     }, reason === 'disclosure' ? 0 : Math.max(0, config.debounce ?? 200));
   }
   private get canCreate() {
+    const candidates = this.config.options ? [...this.config.options, ...this.rows] : this.rows;
     return Boolean(this.config.allowCreate && this.raw.trim() && !this.loading && !this.lookupError
-      && !this.rows.some(row => row.label.toLocaleLowerCase() === this.raw.toLocaleLowerCase()));
+      && !candidates.some(row => row.label.toLocaleLowerCase() === this.raw.toLocaleLowerCase()));
   }
   private format(timing: 'input' | 'blur') {
     if ((this.config.formatOn ?? 'blur') !== timing || !this.input) return;
@@ -352,13 +355,17 @@ export class UICombobox {
     } catch { /* Aborted work never becomes current field state. */ }
     return this.validation;
   }
+  /** Focus the native editing input from a composed control. */
+  @Method() async focusInput() { this.input?.focus(); }
   render() {
     const description = [this.helpOpen ? 'help-text' : '', this.validation.issues.length ? 'validation' : ''].filter(Boolean).join(' ') || undefined;
     const status = this.loading ? 'Loading suggestions…' : this.lookupError || (this.expanded ? `${this.rows.length} suggestions available.` : '');
     const groups = [...new Set(this.rows.map(row => row.group ?? ''))];
     return <Host data-size={this.size} data-validation={this.validation.status} onFocusout={this.onFocusOut}>
-      <label htmlFor="input" part="label">{this.label}{this.required ? ' *' : ''}</label>
-      <div class="field" part="field" ref={element => this.field = element}>
+      <label htmlFor="input" part="label" class={this.labelVisibility === 'sr-only' ? 'sr-only' : undefined}>{this.label}{this.required ? ' *' : ''}</label>
+      <div class="field" part="field" ref={element => this.field = element}
+        onClick={event => { if (!event.composedPath().some(node => node instanceof HTMLButtonElement)) this.input?.focus(); }}>
+        <slot name="start" />
         <input id="input" ref={element => this.input = element} role="combobox" aria-autocomplete="list"
           aria-expanded={String(this.expanded)} aria-controls="listbox" aria-activedescendant={this.expanded && this.active >= 0 ? `option-${this.active}` : undefined}
           aria-describedby={description} aria-invalid={String(this.validation.status === 'error')} aria-busy={String(this.validation.status === 'pending')}
@@ -388,6 +395,7 @@ export class UICombobox {
         {this.loading ? <div class="message"><slot name="loading">Loading suggestions…</slot></div>
           : this.lookupError ? <div class="message"><slot name="error">{this.lookupError}</slot></div>
           : !this.rows.length && !this.canCreate ? <div class="message"><slot name="empty">No suggestions.</slot></div> : null}
+        <slot name="footer" />
       </div>
       <div id="validation" class="message" part="validation" hidden={!this.validation.issues.length}>
         {this.validation.issues.map(issue => <div>{issue.message}</div>)}

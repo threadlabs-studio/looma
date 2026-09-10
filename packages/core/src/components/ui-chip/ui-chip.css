@@ -13,6 +13,10 @@
   max-width: 100%;
 }
 
+:host([data-size='sm']) {
+  --ui-chip-font-size: var(--ui-font-size-sm);
+}
+
 .chip__surface {
   display: inline-flex;
   align-items: center;

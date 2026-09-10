@@ -17,6 +17,9 @@ metadata, validation rules, and persistence belong to the consumer.
   text remains owned by the caller. Provider results never replace subsequent edits.
 - `config: ComboboxConfig` is a JavaScript property, never JSON in an attribute.
 - `disabled`, `readonly`, `required`, `size="sm|md"`, `clearable`, `disclosure`, `help`.
+- `label-visibility="sr-only"` keeps the native label accessible for compact
+  compositions. The `start` slot sits inside the field before the input, and
+  `footer` sits below the suggestion list.
 - `validate()` returns the current field validation state, including normalized
   `output`, `issues`, `touched`, `dirty`, and `status`. Await validation before
   submitting; only `valid` or `warning` states are eligible for submission.
@@ -55,7 +58,7 @@ validation asks for a canonical suggestion.
 - `validation-change`: `{ status, touched, dirty, issues, output? }`.
 - `options-change`: current option array, for framework-owned rich rendering.
 
-Slots: `option-${id}`, `loading`, `empty`, `error`, `create`. Rich option slots must
+Slots: `start`, `option-${id}`, `loading`, `empty`, `error`, `create`, `footer`. Rich option slots must
 contain noninteractive content, with a visible primary label. Buttons/links inside
 options are unsupported. Use `::part(option-primary)` / `::part(option-secondary)`
 for defaults; custom rich content uses the same documented CSS hooks.
