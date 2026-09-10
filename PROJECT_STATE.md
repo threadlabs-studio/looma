@@ -4,27 +4,25 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-10 00:15 PDT
-Status: Candidate `0.1.22` is public; `0.1.24` is prepared with Chip/Callout,
-structural Tree, controlled-state, and typed Vue adapter improvements. Historical
+Last Updated: 2026-09-10 13:22 PDT
+Status: Candidate `0.1.24` is public; `0.1.25` is prepared with domain-neutral
+Editable and Multi Combobox controls plus Combobox composition hooks. Historical
 release tasks below retain their original version context.
 
 ## Current Focus
 
-- Qualify and release the domain-neutral `ui-editable` and `ui-multi-combobox`
-  controls plus Combobox composition slots for Knit's inline page-tag editing.
-- Publish and qualify Candidate `0.1.24` with Chip/Callout, structural Tree,
-  controlled-state, and typed Vue adapter improvements plus exact Knit consumer
-  evidence.
+- Publish and qualify Candidate `0.1.25` with domain-neutral `ui-editable` and
+  `ui-multi-combobox` controls, Combobox composition slots, and exact Knit
+  consumer evidence.
 - Keep dense tree rows at 32px/15px for pointer use and animate to 44px targets
   only after a real touch interaction establishes touch modality.
 - Verify that controlled editor replacements preserve a focused ProseMirror
   selection, while Knit server acknowledgements no longer echo authored JSON
   through the active editor.
 
-- Publish Candidate `0.1.24`, then consume its exact registry bytes
-  from Knit. Candidate `0.1.22` remains the current public `candidate` until
-  those replacement bytes pass main CI and protected publication.
+- Publish Candidate `0.1.25`, then consume its exact registry bytes from Knit.
+  Candidate `0.1.24` remains the current public `candidate` until those
+  replacement bytes pass main CI and protected publication.
 - Complete hosted-docs qualification and promote Candidate `0.1.13`, which is
   published and qualified in Knit with the opinionated Lucide icon
   language, compact table cells, cell-local resize chrome, hover-first table
