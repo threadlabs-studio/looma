@@ -14,6 +14,7 @@ export const Combobox = defineComponent({
     placeholder: String,
     name: String,
     size: { type: String as PropType<'sm' | 'md'>, default: 'md' },
+    labelVisibility: { type: String as PropType<'visible' | 'sr-only'>, default: 'visible' },
     disabled: Boolean,
     readOnly: Boolean,
     required: Boolean,
@@ -37,6 +38,8 @@ export const Combobox = defineComponent({
     empty: Record<string, never>;
     error: Record<string, never>;
     create: Record<string, never>;
+    start: Record<string, never>;
+    footer: Record<string, never>;
   }>,
   setup(props, { attrs, slots, emit, expose }) {
     const element = shallowRef<HTMLElement & { config: ComboboxConfig; value: string | null | undefined; query: string | undefined; validate(): Promise<ComboboxValidationState> }>();
@@ -76,7 +79,7 @@ export const Combobox = defineComponent({
         readonly: props.readOnly, required: props.required,
       })]),
       ...(slots.option ? rows.value.map(option => h('div', { slot: `option-${option.id}`, key: option.id }, slots.option!({ option }))) : []),
-      ...(['loading', 'empty', 'error', 'create'] as const).flatMap(name => slots[name] ? [h('div', { slot: name }, slots[name]!({}))] : []),
+      ...(['start', 'footer', 'loading', 'empty', 'error', 'create'] as const).flatMap(name => slots[name] ? [h('div', { slot: name }, slots[name]!({}))] : []),
     ]);
   },
 });

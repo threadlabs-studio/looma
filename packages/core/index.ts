@@ -18,3 +18,5 @@ export * from './src/utils/drag-drop';
 
 export * from './src/field/combobox';
 export * from './src/field/validation';
+export * from './src/field/editable';
+export * from './src/field/multi-combobox';

@@ -66,6 +66,13 @@ export interface DisclosureProps extends AdapterBaseProps {
   "onOpen"?: ((detail: VueAdapterEventMap['open']) => void) | undefined;
 }
 
+export interface EditableProps extends AdapterBaseProps {
+  "edit"?: boolean | undefined;
+  "defaultEdit"?: boolean | undefined;
+  "disabled"?: boolean | undefined;
+  "onEditChange"?: ((detail: VueAdapterEventMap['editChange']) => void) | undefined;
+}
+
 export interface TabsProps extends AdapterBaseProps {
   "defaultValue"?: string | undefined;
   "orientation"?: "horizontal" | "vertical" | undefined;
@@ -222,6 +229,7 @@ export interface BadgeProps extends AdapterBaseProps {
 
 export interface ChipProps extends AdapterBaseProps {
   "appearance"?: "tag" | "pill" | undefined;
+  "size"?: "xs" | "sm" | undefined;
 }
 
 export interface CalloutProps extends AdapterBaseProps {
@@ -292,6 +300,7 @@ export interface AdapterComponentProps {
   "Reel": ReelProps;
   "Separator": SeparatorProps;
   "Disclosure": DisclosureProps;
+  "Editable": EditableProps;
   "Tabs": TabsProps;
   "Dialog": DialogProps;
   "Popover": PopoverProps;

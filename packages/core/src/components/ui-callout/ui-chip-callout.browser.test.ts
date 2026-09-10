@@ -24,7 +24,7 @@ describe("ui-chip and ui-callout visual contracts (real browser)", () => {
     document.body.innerHTML = `
       <style>ui-chip, ui-badge, ui-callout { padding: 0; border: 0; background: transparent; }</style>
       <ui-chip id="tag" appearance="tag" style="--ui-chip-surface: rgb(1, 2, 3); --ui-chip-text: rgb(4, 5, 6); --ui-chip-border: rgb(7, 8, 9)">Research</ui-chip>
-      <ui-chip id="pill" appearance="pill">Research</ui-chip>
+      <ui-chip id="pill" appearance="pill" size="sm">Research</ui-chip>
       <ui-badge id="badge" variant="subtle" tone="accent">Beta</ui-badge>
       <ui-callout tone="warning">Review this before publishing.</ui-callout>
     `;
@@ -40,6 +40,7 @@ describe("ui-chip and ui-callout visual contracts (real browser)", () => {
     const calloutSurface = callout.shadowRoot?.querySelector<HTMLElement>(".callout__surface")!;
 
     await expect.poll(() => tag.dataset.appearance).toBe("tag");
+    await expect.poll(() => pill.dataset.size).toBe("sm");
     await expect.poll(() => callout.shadowRoot?.querySelector('[data-looma-icon="triangle-alert"]')).toBeTruthy();
     expect(getComputedStyle(tag).paddingLeft).toBe("0px");
     expect(getComputedStyle(tagSurface).clipPath).toContain("polygon");
@@ -55,6 +56,7 @@ describe("ui-chip and ui-callout visual contracts (real browser)", () => {
     expect(getComputedStyle(tagSurface).borderTopWidth).toBe("0px");
     expect(getComputedStyle(tagSurface).borderBottomWidth).toBe("0px");
     expect(getComputedStyle(pillSurface).borderTopLeftRadius).toBe("999px");
+    expect(getComputedStyle(pillSurface).fontSize).toBe("14px");
     expect(getComputedStyle(badge).paddingLeft).toBe("0px");
     expect(getComputedStyle(badgeSurface).paddingTop).toBe("2px");
     expect(getComputedStyle(badgeSurface).paddingLeft).toBe("8px");

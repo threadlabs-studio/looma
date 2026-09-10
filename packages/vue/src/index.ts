@@ -11,7 +11,9 @@ export type * from "./generated-component-types";
 
 import { Combobox as ComboboxComponent } from './Combobox';
 export const Combobox = ComboboxComponent;
-export type { ComboboxConfig, ComboboxOption, ComboboxProvider, ComboboxRequest, ComboboxChange, ComboboxValidationState, FieldSchema, FieldValidation, FieldFormatter, FieldIssue } from '@threadlabs/looma-core';
+import { MultiCombobox as MultiComboboxComponent } from './MultiCombobox';
+export const MultiCombobox = MultiComboboxComponent;
+export type { ComboboxConfig, ComboboxOption, ComboboxProvider, ComboboxRequest, ComboboxChange, ComboboxValidationState, EditableChange, MultiComboboxItem, MultiComboboxItemChange, MultiComboboxCreate, FieldSchema, FieldValidation, FieldFormatter, FieldIssue } from '@threadlabs/looma-core';
 
 export const Stack = createAdapterComponent<AdapterComponentProps["Stack"]>("ui-stack", "Stack");
 export const Inline = createAdapterComponent<AdapterComponentProps["Inline"]>("ui-inline", "Inline");
@@ -25,6 +27,7 @@ export const Sidebar = createAdapterComponent<AdapterComponentProps["Sidebar"]>(
 export const Reel = createAdapterComponent<AdapterComponentProps["Reel"]>("ui-reel", "Reel");
 export const Separator = createAdapterComponent<AdapterComponentProps["Separator"]>("ui-separator", "Separator");
 export const Disclosure = createAdapterComponent<AdapterComponentProps["Disclosure"]>("ui-disclosure", "Disclosure", [], "class", ["open"]);
+export const Editable = createAdapterComponent<AdapterComponentProps["Editable"]>("ui-editable", "Editable", [["edit-change", "onEditChange"]], "class", ["edit"]);
 export const Tabs = createAdapterComponent<AdapterComponentProps["Tabs"]>("ui-tabs", "Tabs", [], "class", ["value"]);
 export const Dialog = createAdapterComponent<AdapterComponentProps["Dialog"]>("ui-dialog", "Dialog", [], "class", ["open"]);
 export const Popover = createAdapterComponent<AdapterComponentProps["Popover"]>("ui-popover", "Popover", [], "class", ["open"]);
@@ -70,6 +73,7 @@ export const TreeItem = createAdapterComponent<AdapterComponentProps["TreeItem"]
 
 export const ADAPTER_COMPONENT_TAG_MAP = {
   Combobox: "ui-combobox",
+  MultiCombobox: "ui-multi-combobox",
   Stack: "ui-stack",
   Inline: "ui-inline",
   Cluster: "ui-cluster",
@@ -80,6 +84,7 @@ export const ADAPTER_COMPONENT_TAG_MAP = {
   Reel: "ui-reel",
   Separator: "ui-separator",
   Disclosure: "ui-disclosure",
+  Editable: "ui-editable",
   Tabs: "ui-tabs",
   Dialog: "ui-dialog",
   Popover: "ui-popover",

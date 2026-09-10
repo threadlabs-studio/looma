@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## v0.1.25 Candidate
+
+- Add a domain-neutral `ui-editable` reveal primitive with explicit activation,
+  outside-click dismissal, Escape handling, and predictable focus transfer.
+- Add a controlled `ui-multi-combobox` for keyboard-navigable selected values,
+  optimistic consumer updates, metadata, and custom item and option rendering.
+- Extend Combobox composition with visually hidden labels, inline start content,
+  popup footer content, and imperative input focus.
+
 ## v0.1.24 Candidate
 
 - Add compact semantic `ui-chip` metadata and `ui-callout` primitives, including

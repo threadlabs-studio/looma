@@ -27,6 +27,24 @@ it('keeps editing focus while navigating a labeled listbox and selecting an opti
   expect(input!.getAttribute('aria-expanded')).toBe('false');
 });
 
+it('supports an inline start adornment, popup footer, hidden visual label and imperative focus', async () => {
+  document.body.innerHTML = `<ui-combobox label="Page tags" label-visibility="sr-only">
+    <span slot="start">Research</span>
+    <span slot="footer">Palette</span>
+  </ui-combobox>`;
+  const field = document.querySelector('ui-combobox') as HTMLUIComboboxElement & { focusInput(): Promise<void> };
+  field.config = { options: [{ id: 'planning', value: 'planning', label: 'Planning' }] };
+  await flush();
+  const root = field.shadowRoot!;
+  expect(root.querySelector('slot[name="start"]')).toBeTruthy();
+  expect(root.querySelector('label')?.classList.contains('sr-only')).toBe(true);
+  await field.focusInput();
+  expect(root.activeElement).toBe(root.querySelector('input'));
+  await userEvent.fill(root.querySelector('input')!, 'Plan');
+  await flush();
+  expect(root.querySelector('slot[name="footer"]')).toBeTruthy();
+});
+
 const mount = async (config: import('../../field/combobox').ComboboxConfig = {}, attrs = '') => {
   document.body.innerHTML = `<main id="qualification-surface" style="background:var(--ui-surface-default);color:var(--ui-text-primary);padding:1rem"><ui-combobox label="Name" ${attrs}></ui-combobox><button id="after">After</button></main>`;
   const field = document.querySelector('ui-combobox') as HTMLUIComboboxElement;

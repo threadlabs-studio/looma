@@ -206,6 +206,12 @@
           "property": "appearance",
           "type": "\"tag\" | \"pill\"",
           "default": "tag"
+        },
+        {
+          "name": "size",
+          "property": "size",
+          "type": "\"xs\" | \"sm\"",
+          "default": "xs"
         }
       ],
       "properties": [
@@ -213,6 +219,11 @@
           "name": "appearance",
           "type": "\"tag\" | \"pill\"",
           "default": "tag"
+        },
+        {
+          "name": "size",
+          "type": "\"xs\" | \"sm\"",
+          "default": "xs"
         }
       ],
       "events": [],
@@ -1891,6 +1902,225 @@
       ]
     },
     {
+      "tag": "ui-editable",
+      "package": "@threadlabs/looma",
+      "className": "UIEditableElement",
+      "description": "Swaps an explicit presentation trigger for a focused editing control.",
+      "attributes": [
+        {
+          "name": "edit",
+          "property": "edit",
+          "type": "boolean",
+          "default": null
+        },
+        {
+          "name": "default-edit",
+          "property": "defaultEdit",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "disabled",
+          "property": "disabled",
+          "type": "boolean",
+          "default": false
+        }
+      ],
+      "properties": [
+        {
+          "name": "edit",
+          "type": "boolean",
+          "default": null
+        },
+        {
+          "name": "defaultEdit",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": false
+        }
+      ],
+      "events": [
+        {
+          "name": "edit-change",
+          "detailType": "EditableChange"
+        }
+      ],
+      "slots": [
+        {
+          "name": "preview",
+          "description": "Presentation content containing an explicit data-ui-editable-trigger descendant."
+        },
+        {
+          "name": "edit",
+          "description": "Editing control focused when edit mode opens."
+        }
+      ]
+    },
+    {
+      "tag": "ui-multi-combobox",
+      "package": "@threadlabs/looma",
+      "className": "UIMultiComboboxElement",
+      "description": "Controlled multi-value combobox with removable, customizable selected items.",
+      "attributes": [
+        {
+          "name": "label",
+          "property": "label",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "placeholder",
+          "property": "placeholder",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "query",
+          "property": "query",
+          "type": "string",
+          "default": null
+        },
+        {
+          "name": "default-query",
+          "property": "defaultQuery",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "disabled",
+          "property": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "readonly",
+          "property": "readOnly",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "required",
+          "property": "required",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "name",
+          "property": "name",
+          "type": "string",
+          "default": ""
+        }
+      ],
+      "properties": [
+        {
+          "name": "label",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "items",
+          "type": "readonly MultiComboboxItem[]",
+          "default": []
+        },
+        {
+          "name": "config",
+          "type": "ComboboxConfig",
+          "default": {}
+        },
+        {
+          "name": "query",
+          "type": "string",
+          "default": null
+        },
+        {
+          "name": "defaultQuery",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "default": ""
+        }
+      ],
+      "events": [
+        {
+          "name": "query-change",
+          "detailType": "{ query: string; display: string; trigger: string }"
+        },
+        {
+          "name": "add-item",
+          "detailType": "MultiComboboxItemChange"
+        },
+        {
+          "name": "remove-item",
+          "detailType": "MultiComboboxItemChange"
+        },
+        {
+          "name": "create-item",
+          "detailType": "MultiComboboxCreate"
+        },
+        {
+          "name": "options-change",
+          "detailType": "readonly ComboboxOption[]"
+        }
+      ],
+      "slots": [
+        {
+          "name": "item-${id}",
+          "description": "Noninteractive rich content for a selected item."
+        },
+        {
+          "name": "option-${id}",
+          "description": "Noninteractive rich content for a suggestion."
+        },
+        {
+          "name": "create",
+          "description": "Create-entry row content."
+        },
+        {
+          "name": "footer",
+          "description": "Connected controls below the suggestion list."
+        },
+        {
+          "name": "loading",
+          "description": "Loading message."
+        },
+        {
+          "name": "empty",
+          "description": "Empty result message."
+        },
+        {
+          "name": "error",
+          "description": "Lookup failure message."
+        }
+      ]
+    },
+    {
       "tag": "ui-combobox",
       "package": "@threadlabs/looma",
       "className": "UIComboboxElement",
@@ -1961,6 +2191,12 @@
           "property": "size",
           "type": "\"sm\" | \"md\"",
           "default": "md"
+        },
+        {
+          "name": "label-visibility",
+          "property": "labelVisibility",
+          "type": "\"visible\" | \"sr-only\"",
+          "default": "visible"
         },
         {
           "name": "disclosure",
@@ -2043,6 +2279,11 @@
           "default": "md"
         },
         {
+          "name": "labelVisibility",
+          "type": "\"visible\" | \"sr-only\"",
+          "default": "visible"
+        },
+        {
           "name": "disclosure",
           "type": "boolean",
           "default": false
@@ -2090,6 +2331,10 @@
       ],
       "slots": [
         {
+          "name": "start",
+          "description": "Content placed inside the field before the native input."
+        },
+        {
           "name": "option-${id}",
           "description": "Noninteractive rich content for the option identity."
         },
@@ -2108,6 +2353,10 @@
         {
           "name": "create",
           "description": "Create-entry row content."
+        },
+        {
+          "name": "footer",
+          "description": "Connected controls below the suggestion list."
         }
       ]
     }

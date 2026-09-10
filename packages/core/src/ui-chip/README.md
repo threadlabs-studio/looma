@@ -13,6 +13,7 @@ Compact non-interactive metadata with `tag` and `pill` appearances.
 ## Attributes and properties
 
 - `appearance: "tag" | "pill"` (default: `"tag"`)
+- `size: "xs" | "sm"` (default: `"xs"`)
 
 ## Events and keyboard behavior
 
@@ -22,6 +23,7 @@ Compact non-interactive metadata with `tag` and `pill` appearances.
 
 Consumers may provide `--ui-chip-surface`, `--ui-chip-text`, and
 `--ui-chip-border`. The border applies to the `pill` appearance; `tag` uses its
-filled silhouette without an outline. Looma owns compact xs regular density,
-typography, and shape. Its visible surface lives inside the shadow root so page
+filled silhouette without an outline. Looma owns compact regular density,
+typography, and shape; use `size="sm"` when the default `xs` label is too quiet.
+Its visible surface lives inside the shadow root so page
 resets can compose the host without collapsing the chip around its text.

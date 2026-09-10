@@ -1,0 +1,16 @@
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# Editable
+
+Reveal an editing control from an explicit presentation trigger. The component
+owns the accessible activation, focus handoff, Escape behavior, and outside-click
+dismissal; the application owns the displayed value and persistence.
+
+<ComponentExamplesApiTabs component="ui-editable" />
+
+Place presentation content in `preview` and the editing control in `edit`. Add
+`data-ui-editable-trigger` only to the preview element that should activate edit
+mode. Ordinary links and controls inside the preview keep their normal behavior.
+
+Use controlled `edit` or uncontrolled `default-edit`. Listen for `edit-change`
+to observe `{ edit, reason, trigger }`.
