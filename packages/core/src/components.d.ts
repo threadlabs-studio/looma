@@ -7,10 +7,14 @@
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
 import { CalloutTone } from "./components/ui-callout/ui-callout";
 import { ComboboxChange, ComboboxConfig, ComboboxOption, ComboboxValidationState } from "./field/combobox";
+import { EditableChange } from "./field/editable";
 import { AnchoredPlacement } from "./overlay/positioning";
+import { MultiComboboxCreate, MultiComboboxItem, MultiComboboxItemChange } from "./field/multi-combobox";
 export { CalloutTone } from "./components/ui-callout/ui-callout";
 export { ComboboxChange, ComboboxConfig, ComboboxOption, ComboboxValidationState } from "./field/combobox";
+export { EditableChange } from "./field/editable";
 export { AnchoredPlacement } from "./overlay/positioning";
+export { MultiComboboxCreate, MultiComboboxItem, MultiComboboxItemChange } from "./field/multi-combobox";
 export namespace Components {
     interface UiAffordanceScope {
         /**
@@ -106,6 +110,11 @@ export namespace Components {
           * @default 'tag'
          */
         "appearance": 'tag' | 'pill';
+        /**
+          * Compact typography size.
+          * @default 'xs'
+         */
+        "size": 'xs' | 'sm';
     }
     /**
      * A single editable field with contextual suggestions, optional help and field validation.
@@ -134,6 +143,10 @@ export namespace Components {
          */
         "disclosure": boolean;
         /**
+          * Focus the native editing input from a composed control.
+         */
+        "focusInput": () => Promise<void>;
+        /**
           * Optional description shown by the connected question-mark button.
           * @default ''
          */
@@ -143,6 +156,11 @@ export namespace Components {
           * @default ''
          */
         "label": string;
+        /**
+          * Keep the native label accessible while allowing compact composed controls.
+          * @default 'visible'
+         */
+        "labelVisibility": 'visible' | 'sr-only';
         /**
           * @default ''
          */
@@ -227,6 +245,23 @@ export namespace Components {
           * Controlled open state. Omit it to use defaultOpen and local interaction state.
          */
         "open"?: boolean;
+    }
+    /**
+     * Swaps an explicit presentation trigger for a focused editing control.
+     */
+    interface UiEditable {
+        /**
+          * @default false
+         */
+        "defaultEdit": boolean;
+        /**
+          * @default false
+         */
+        "disabled": boolean;
+        /**
+          * Controlled edit state. Omit it to use defaultEdit and local interaction state.
+         */
+        "edit"?: boolean;
     }
     interface UiFloatingActionButton {
         /**
@@ -326,6 +361,49 @@ export namespace Components {
           * @default ''
          */
         "value": string;
+    }
+    /**
+     * A multi-value combobox with removable, customizable selected items.
+     */
+    interface UiMultiCombobox {
+        /**
+          * @default {}
+         */
+        "config": ComboboxConfig;
+        /**
+          * @default ''
+         */
+        "defaultQuery": string;
+        /**
+          * @default false
+         */
+        "disabled": boolean;
+        "focusInput": () => Promise<void>;
+        /**
+          * @default []
+         */
+        "items": readonly MultiComboboxItem[];
+        /**
+          * @default ''
+         */
+        "label": string;
+        /**
+          * @default ''
+         */
+        "name": string;
+        /**
+          * @default ''
+         */
+        "placeholder": string;
+        "query"?: string;
+        /**
+          * @default false
+         */
+        "readOnly": boolean;
+        /**
+          * @default false
+         */
+        "required": boolean;
     }
     interface UiPopover {
         /**
@@ -603,6 +681,14 @@ export interface UiComboboxCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLUiComboboxElement;
 }
+export interface UiEditableCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLUiEditableElement;
+}
+export interface UiMultiComboboxCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLUiMultiComboboxElement;
+}
 export interface UiTooltipCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLUiTooltipElement;
@@ -706,6 +792,26 @@ declare global {
         prototype: HTMLUiDisclosureElement;
         new (): HTMLUiDisclosureElement;
     };
+    interface HTMLUiEditableElementEventMap {
+        "edit-change": EditableChange;
+    }
+    /**
+     * Swaps an explicit presentation trigger for a focused editing control.
+     */
+    interface HTMLUiEditableElement extends Components.UiEditable, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLUiEditableElementEventMap>(type: K, listener: (this: HTMLUiEditableElement, ev: UiEditableCustomEvent<HTMLUiEditableElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLUiEditableElementEventMap>(type: K, listener: (this: HTMLUiEditableElement, ev: UiEditableCustomEvent<HTMLUiEditableElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLUiEditableElement: {
+        prototype: HTMLUiEditableElement;
+        new (): HTMLUiEditableElement;
+    };
     interface HTMLUiFloatingActionButtonElement extends Components.UiFloatingActionButton, HTMLStencilElement {
     }
     var HTMLUiFloatingActionButtonElement: {
@@ -741,6 +847,30 @@ declare global {
     var HTMLUiMenuItemElement: {
         prototype: HTMLUiMenuItemElement;
         new (): HTMLUiMenuItemElement;
+    };
+    interface HTMLUiMultiComboboxElementEventMap {
+        "query-change": { query: string; display: string; trigger: 'keyboard' | 'pointer' | 'programmatic' };
+        "add-item": MultiComboboxItemChange;
+        "remove-item": MultiComboboxItemChange;
+        "create-item": MultiComboboxCreate;
+        "options-change": readonly ComboboxOption[];
+    }
+    /**
+     * A multi-value combobox with removable, customizable selected items.
+     */
+    interface HTMLUiMultiComboboxElement extends Components.UiMultiCombobox, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLUiMultiComboboxElementEventMap>(type: K, listener: (this: HTMLUiMultiComboboxElement, ev: UiMultiComboboxCustomEvent<HTMLUiMultiComboboxElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLUiMultiComboboxElementEventMap>(type: K, listener: (this: HTMLUiMultiComboboxElement, ev: UiMultiComboboxCustomEvent<HTMLUiMultiComboboxElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLUiMultiComboboxElement: {
+        prototype: HTMLUiMultiComboboxElement;
+        new (): HTMLUiMultiComboboxElement;
     };
     interface HTMLUiPopoverElement extends Components.UiPopover, HTMLStencilElement {
     }
@@ -851,12 +981,14 @@ declare global {
         "ui-context-menu": HTMLUiContextMenuElement;
         "ui-dialog": HTMLUiDialogElement;
         "ui-disclosure": HTMLUiDisclosureElement;
+        "ui-editable": HTMLUiEditableElement;
         "ui-floating-action-button": HTMLUiFloatingActionButtonElement;
         "ui-form-field": HTMLUiFormFieldElement;
         "ui-icon-button": HTMLUiIconButtonElement;
         "ui-input": HTMLUiInputElement;
         "ui-menu": HTMLUiMenuElement;
         "ui-menu-item": HTMLUiMenuItemElement;
+        "ui-multi-combobox": HTMLUiMultiComboboxElement;
         "ui-popover": HTMLUiPopoverElement;
         "ui-radio": HTMLUiRadioElement;
         "ui-radio-group": HTMLUiRadioGroupElement;
@@ -968,6 +1100,11 @@ declare namespace LocalJSX {
           * @default 'tag'
          */
         "appearance"?: 'tag' | 'pill';
+        /**
+          * Compact typography size.
+          * @default 'xs'
+         */
+        "size"?: 'xs' | 'sm';
     }
     /**
      * A single editable field with contextual suggestions, optional help and field validation.
@@ -1005,6 +1142,11 @@ declare namespace LocalJSX {
           * @default ''
          */
         "label"?: string;
+        /**
+          * Keep the native label accessible while allowing compact composed controls.
+          * @default 'visible'
+         */
+        "labelVisibility"?: 'visible' | 'sr-only';
         /**
           * @default ''
          */
@@ -1095,6 +1237,24 @@ declare namespace LocalJSX {
           * Controlled open state. Omit it to use defaultOpen and local interaction state.
          */
         "open"?: boolean;
+    }
+    /**
+     * Swaps an explicit presentation trigger for a focused editing control.
+     */
+    interface UiEditable {
+        /**
+          * @default false
+         */
+        "defaultEdit"?: boolean;
+        /**
+          * @default false
+         */
+        "disabled"?: boolean;
+        /**
+          * Controlled edit state. Omit it to use defaultEdit and local interaction state.
+         */
+        "edit"?: boolean;
+        "onEdit-change"?: (event: UiEditableCustomEvent<EditableChange>) => void;
     }
     interface UiFloatingActionButton {
         /**
@@ -1194,6 +1354,53 @@ declare namespace LocalJSX {
           * @default ''
          */
         "value"?: string;
+    }
+    /**
+     * A multi-value combobox with removable, customizable selected items.
+     */
+    interface UiMultiCombobox {
+        /**
+          * @default {}
+         */
+        "config"?: ComboboxConfig;
+        /**
+          * @default ''
+         */
+        "defaultQuery"?: string;
+        /**
+          * @default false
+         */
+        "disabled"?: boolean;
+        /**
+          * @default []
+         */
+        "items"?: readonly MultiComboboxItem[];
+        /**
+          * @default ''
+         */
+        "label"?: string;
+        /**
+          * @default ''
+         */
+        "name"?: string;
+        "onAdd-item"?: (event: UiMultiComboboxCustomEvent<MultiComboboxItemChange>) => void;
+        "onCreate-item"?: (event: UiMultiComboboxCustomEvent<MultiComboboxCreate>) => void;
+        "onOptions-change"?: (event: UiMultiComboboxCustomEvent<readonly ComboboxOption[]>) => void;
+        "onQuery-change"?: (event: UiMultiComboboxCustomEvent<{ query: string; display: string; trigger: 'keyboard' | 'pointer' | 'programmatic' }>) => void;
+        "onRemove-item"?: (event: UiMultiComboboxCustomEvent<MultiComboboxItemChange>) => void;
+        /**
+          * @default ''
+         */
+        "placeholder"?: string;
+        "query"?: string;
+        /**
+          * @default false
+         */
+        "readOnly"?: boolean;
+        /**
+          * @default false
+         */
+        "required"?: boolean;
     }
     interface UiPopover {
         /**
@@ -1504,6 +1711,7 @@ declare namespace LocalJSX {
     }
     interface UiChipAttributes {
         "appearance": 'tag' | 'pill';
+        "size": 'xs' | 'sm';
     }
     interface UiComboboxAttributes {
         "label": string;
@@ -1517,6 +1725,7 @@ declare namespace LocalJSX {
         "readOnly": boolean;
         "required": boolean;
         "size": 'sm' | 'md';
+        "labelVisibility": 'visible' | 'sr-only';
         "disclosure": boolean;
         "clearable": boolean;
         "help": string;
@@ -1536,6 +1745,11 @@ declare namespace LocalJSX {
     interface UiDisclosureAttributes {
         "open": boolean;
         "defaultOpen": boolean;
+        "disabled": boolean;
+    }
+    interface UiEditableAttributes {
+        "edit": boolean;
+        "defaultEdit": boolean;
         "disabled": boolean;
     }
     interface UiFloatingActionButtonAttributes {
@@ -1571,6 +1785,16 @@ declare namespace LocalJSX {
     interface UiMenuItemAttributes {
         "disabled": boolean;
         "value": string;
+    }
+    interface UiMultiComboboxAttributes {
+        "label": string;
+        "placeholder": string;
+        "query": string;
+        "defaultQuery": string;
+        "disabled": boolean;
+        "readOnly": boolean;
+        "required": boolean;
+        "name": string;
     }
     interface UiPopoverAttributes {
         "open": boolean;
@@ -1670,12 +1894,14 @@ declare namespace LocalJSX {
         "ui-context-menu": Omit<UiContextMenu, keyof UiContextMenuAttributes> & { [K in keyof UiContextMenu & keyof UiContextMenuAttributes]?: UiContextMenu[K] } & { [K in keyof UiContextMenu & keyof UiContextMenuAttributes as `attr:${K}`]?: UiContextMenuAttributes[K] } & { [K in keyof UiContextMenu & keyof UiContextMenuAttributes as `prop:${K}`]?: UiContextMenu[K] };
         "ui-dialog": Omit<UiDialog, keyof UiDialogAttributes> & { [K in keyof UiDialog & keyof UiDialogAttributes]?: UiDialog[K] } & { [K in keyof UiDialog & keyof UiDialogAttributes as `attr:${K}`]?: UiDialogAttributes[K] } & { [K in keyof UiDialog & keyof UiDialogAttributes as `prop:${K}`]?: UiDialog[K] };
         "ui-disclosure": Omit<UiDisclosure, keyof UiDisclosureAttributes> & { [K in keyof UiDisclosure & keyof UiDisclosureAttributes]?: UiDisclosure[K] } & { [K in keyof UiDisclosure & keyof UiDisclosureAttributes as `attr:${K}`]?: UiDisclosureAttributes[K] } & { [K in keyof UiDisclosure & keyof UiDisclosureAttributes as `prop:${K}`]?: UiDisclosure[K] };
+        "ui-editable": Omit<UiEditable, keyof UiEditableAttributes> & { [K in keyof UiEditable & keyof UiEditableAttributes]?: UiEditable[K] } & { [K in keyof UiEditable & keyof UiEditableAttributes as `attr:${K}`]?: UiEditableAttributes[K] } & { [K in keyof UiEditable & keyof UiEditableAttributes as `prop:${K}`]?: UiEditable[K] };
         "ui-floating-action-button": Omit<UiFloatingActionButton, keyof UiFloatingActionButtonAttributes> & { [K in keyof UiFloatingActionButton & keyof UiFloatingActionButtonAttributes]?: UiFloatingActionButton[K] } & { [K in keyof UiFloatingActionButton & keyof UiFloatingActionButtonAttributes as `attr:${K}`]?: UiFloatingActionButtonAttributes[K] } & { [K in keyof UiFloatingActionButton & keyof UiFloatingActionButtonAttributes as `prop:${K}`]?: UiFloatingActionButton[K] };
         "ui-form-field": Omit<UiFormField, keyof UiFormFieldAttributes> & { [K in keyof UiFormField & keyof UiFormFieldAttributes]?: UiFormField[K] } & { [K in keyof UiFormField & keyof UiFormFieldAttributes as `attr:${K}`]?: UiFormFieldAttributes[K] } & { [K in keyof UiFormField & keyof UiFormFieldAttributes as `prop:${K}`]?: UiFormField[K] };
         "ui-icon-button": Omit<UiIconButton, keyof UiIconButtonAttributes> & { [K in keyof UiIconButton & keyof UiIconButtonAttributes]?: UiIconButton[K] } & { [K in keyof UiIconButton & keyof UiIconButtonAttributes as `attr:${K}`]?: UiIconButtonAttributes[K] } & { [K in keyof UiIconButton & keyof UiIconButtonAttributes as `prop:${K}`]?: UiIconButton[K] };
         "ui-input": Omit<UiInput, keyof UiInputAttributes> & { [K in keyof UiInput & keyof UiInputAttributes]?: UiInput[K] } & { [K in keyof UiInput & keyof UiInputAttributes as `attr:${K}`]?: UiInputAttributes[K] } & { [K in keyof UiInput & keyof UiInputAttributes as `prop:${K}`]?: UiInput[K] };
         "ui-menu": Omit<UiMenu, keyof UiMenuAttributes> & { [K in keyof UiMenu & keyof UiMenuAttributes]?: UiMenu[K] } & { [K in keyof UiMenu & keyof UiMenuAttributes as `attr:${K}`]?: UiMenuAttributes[K] } & { [K in keyof UiMenu & keyof UiMenuAttributes as `prop:${K}`]?: UiMenu[K] };
         "ui-menu-item": Omit<UiMenuItem, keyof UiMenuItemAttributes> & { [K in keyof UiMenuItem & keyof UiMenuItemAttributes]?: UiMenuItem[K] } & { [K in keyof UiMenuItem & keyof UiMenuItemAttributes as `attr:${K}`]?: UiMenuItemAttributes[K] } & { [K in keyof UiMenuItem & keyof UiMenuItemAttributes as `prop:${K}`]?: UiMenuItem[K] };
+        "ui-multi-combobox": Omit<UiMultiCombobox, keyof UiMultiComboboxAttributes> & { [K in keyof UiMultiCombobox & keyof UiMultiComboboxAttributes]?: UiMultiCombobox[K] } & { [K in keyof UiMultiCombobox & keyof UiMultiComboboxAttributes as `attr:${K}`]?: UiMultiComboboxAttributes[K] } & { [K in keyof UiMultiCombobox & keyof UiMultiComboboxAttributes as `prop:${K}`]?: UiMultiCombobox[K] };
         "ui-popover": Omit<UiPopover, keyof UiPopoverAttributes> & { [K in keyof UiPopover & keyof UiPopoverAttributes]?: UiPopover[K] } & { [K in keyof UiPopover & keyof UiPopoverAttributes as `attr:${K}`]?: UiPopoverAttributes[K] } & { [K in keyof UiPopover & keyof UiPopoverAttributes as `prop:${K}`]?: UiPopover[K] };
         "ui-radio": Omit<UiRadio, keyof UiRadioAttributes> & { [K in keyof UiRadio & keyof UiRadioAttributes]?: UiRadio[K] } & { [K in keyof UiRadio & keyof UiRadioAttributes as `attr:${K}`]?: UiRadioAttributes[K] } & { [K in keyof UiRadio & keyof UiRadioAttributes as `prop:${K}`]?: UiRadio[K] };
         "ui-radio-group": Omit<UiRadioGroup, keyof UiRadioGroupAttributes> & { [K in keyof UiRadioGroup & keyof UiRadioGroupAttributes]?: UiRadioGroup[K] } & { [K in keyof UiRadioGroup & keyof UiRadioGroupAttributes as `attr:${K}`]?: UiRadioGroupAttributes[K] } & { [K in keyof UiRadioGroup & keyof UiRadioGroupAttributes as `prop:${K}`]?: UiRadioGroup[K] };
@@ -1717,12 +1943,20 @@ declare module "@stencil/core" {
             "ui-context-menu": LocalJSX.IntrinsicElements["ui-context-menu"] & JSXBase.HTMLAttributes<HTMLUiContextMenuElement>;
             "ui-dialog": LocalJSX.IntrinsicElements["ui-dialog"] & JSXBase.HTMLAttributes<HTMLUiDialogElement>;
             "ui-disclosure": LocalJSX.IntrinsicElements["ui-disclosure"] & JSXBase.HTMLAttributes<HTMLUiDisclosureElement>;
+            /**
+             * Swaps an explicit presentation trigger for a focused editing control.
+             */
+            "ui-editable": LocalJSX.IntrinsicElements["ui-editable"] & JSXBase.HTMLAttributes<HTMLUiEditableElement>;
             "ui-floating-action-button": LocalJSX.IntrinsicElements["ui-floating-action-button"] & JSXBase.HTMLAttributes<HTMLUiFloatingActionButtonElement>;
             "ui-form-field": LocalJSX.IntrinsicElements["ui-form-field"] & JSXBase.HTMLAttributes<HTMLUiFormFieldElement>;
             "ui-icon-button": LocalJSX.IntrinsicElements["ui-icon-button"] & JSXBase.HTMLAttributes<HTMLUiIconButtonElement>;
             "ui-input": LocalJSX.IntrinsicElements["ui-input"] & JSXBase.HTMLAttributes<HTMLUiInputElement>;
             "ui-menu": LocalJSX.IntrinsicElements["ui-menu"] & JSXBase.HTMLAttributes<HTMLUiMenuElement>;
             "ui-menu-item": LocalJSX.IntrinsicElements["ui-menu-item"] & JSXBase.HTMLAttributes<HTMLUiMenuItemElement>;
+            /**
+             * A multi-value combobox with removable, customizable selected items.
+             */
+            "ui-multi-combobox": LocalJSX.IntrinsicElements["ui-multi-combobox"] & JSXBase.HTMLAttributes<HTMLUiMultiComboboxElement>;
             "ui-popover": LocalJSX.IntrinsicElements["ui-popover"] & JSXBase.HTMLAttributes<HTMLUiPopoverElement>;
             "ui-radio": LocalJSX.IntrinsicElements["ui-radio"] & JSXBase.HTMLAttributes<HTMLUiRadioElement>;
             "ui-radio-group": LocalJSX.IntrinsicElements["ui-radio-group"] & JSXBase.HTMLAttributes<HTMLUiRadioGroupElement>;

@@ -26,10 +26,10 @@ authorization still requires the protected owner preflight before registry mutat
 ### Core: published Candidate
 
 `ui-affordance-scope`, `ui-avatar`, `ui-avatar-group`, `ui-badge`, `ui-button`, `ui-checkbox`,
-`ui-callout`, `ui-chip`, `ui-combobox`, `ui-context-menu`, `ui-dialog`, `ui-disclosure`, `ui-floating-action-button`,
+`ui-callout`, `ui-chip`, `ui-combobox`, `ui-context-menu`, `ui-dialog`, `ui-disclosure`, `ui-editable`, `ui-floating-action-button`,
 `ui-form-field`, `ui-icon-button`, `ui-input`, `ui-menu`, `ui-menu-item`,
 `ui-popover`, `ui-radio`, `ui-radio-group`, `ui-search-result-row`,
-`ui-search-shell`, `ui-select`, `ui-switch`, `ui-tabs`, `ui-textarea`,
+`ui-search-shell`, `ui-select`, `ui-switch`, `ui-tabs`, `ui-multi-combobox`, `ui-textarea`,
 `ui-toast-region`, `ui-tooltip`, `ui-top-bar`, `ui-tree`, `ui-tree-item`.
 
 ### Editor: published Candidate
@@ -49,7 +49,7 @@ is a release defect, not a reason to silently shrink the source inventory.
   resizing; Tiptap round-trip tests prove structural operations retain existing
   table and surrounding content. Data loss or corruption remains release-blocking.
 - AlertDialog, Listbox, Drawer/Sheet, HoverCard, CommandPalette,
-  Accordion group API, interactive Chip/Tag behavior, link editor, and emoji
+  Accordion group API, interactive single Chip behavior, link editor, and emoji
   picker are deferred roadmap items.
 - Mention suggestions are capped, keyboard- and pointer-operable, and accept a
   host-owned async provider; directory authorization remains outside Looma.

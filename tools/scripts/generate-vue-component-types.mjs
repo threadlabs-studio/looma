@@ -14,6 +14,7 @@ const eventTypes = {
   reorder: "VueAdapterEventMap['reorder']",
   "reorder-rejected": "VueAdapterEventMap['reorderRejected']",
   expand: "VueAdapterEventMap['expand']",
+  "edit-change": "VueAdapterEventMap['editChange']",
 };
 
 const callbackName = (event) => `on${event.replace(/(^|-)([a-z])/g, (_, __, character) => character.toUpperCase())}`;
@@ -25,8 +26,8 @@ export async function generateVueComponentTypes() {
   if (!mapMatch) throw new Error("Could not find ADAPTER_COMPONENT_TAG_MAP");
   const componentMap = [...mapMatch[1].matchAll(/([A-Za-z0-9_]+): "(ui-[a-z0-9-]+)"/g)]
     .map(([, name, tag]) => ({ name, tag }))
-    // Combobox is already an explicit Vue component with richer v-model and slot types.
-    .filter(({ name }) => name !== "Combobox");
+    // These are explicit Vue components with richer v-model and slot types.
+    .filter(({ name }) => !["Combobox", "MultiCombobox"].includes(name));
   const byTag = new Map(api.components.map((component) => [component.tag, component]));
 
   const lines = [
