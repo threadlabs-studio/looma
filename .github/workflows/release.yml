@@ -48,14 +48,6 @@ on:
         required: false
         default: ''
         type: string
-      authentication:
-        description: Use bootstrap only for first publication; trusted for configured packages
-        required: true
-        default: bootstrap
-        type: choice
-        options:
-          - bootstrap
-          - trusted
       npm_approver:
         description: Accountable npm release approver
         required: true
@@ -190,21 +182,7 @@ jobs:
           name: looma-0.1.25-candidate
           path: .release/artifacts/
 
-      - name: Prove scope ownership and release version availability
-        if: inputs.authentication == 'bootstrap'
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_PREFLIGHT_TOKEN }}
-        run: node tools/scripts/registry-preflight.mjs
-
-      - name: Publish exact bytes with the bootstrap credential
-        if: inputs.authentication == 'bootstrap'
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          LOOMA_RELEASE_PUBLISH: approved
-        run: node tools/scripts/publish-release.mjs --execute --tag candidate
-
       - name: Publish exact bytes with trusted publishing
-        if: inputs.authentication == 'trusted'
         env:
           LOOMA_RELEASE_PUBLISH: approved
         run: node tools/scripts/publish-release.mjs --execute --tag candidate
