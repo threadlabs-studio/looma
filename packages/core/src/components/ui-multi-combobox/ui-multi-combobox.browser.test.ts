@@ -54,6 +54,26 @@ it('renders selected items and the cursor in one control with keyboard removal',
   expect(removed.mock.calls[1][0].detail.item.label).toBe('Research');
 });
 
+it('keeps long selected values on one bounded line with an ellipsis', async () => {
+  const { field, root } = await mount();
+  field.items = [{
+    id: 'long-value',
+    value: 'long-value',
+    label: 'A selected value that is far too long to take over the whole editing control',
+  }];
+  await flush();
+
+  const item = root.querySelector<HTMLElement>('[part="item"]')!;
+  const chip = item.querySelector<HTMLUiChipElement>('ui-chip')!;
+  await expect.poll(() => chip.shadowRoot?.querySelector('.chip__surface')).toBeTruthy();
+  const surface = chip.shadowRoot!.querySelector<HTMLElement>('.chip__label')!;
+
+  expect(item.getBoundingClientRect().width).toBeLessThanOrEqual(193);
+  expect(getComputedStyle(surface).whiteSpace).toBe('nowrap');
+  expect(getComputedStyle(surface).textOverflow).toBe('ellipsis');
+  expect(surface.scrollWidth).toBeGreaterThan(surface.clientWidth);
+});
+
 it('adds and creates without leaving a stale selection or blank open popup', async () => {
   const { field, root, input, combobox } = await mount();
   const initialConfig = (combobox as HTMLUiComboboxElement).config;

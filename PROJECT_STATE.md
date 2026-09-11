@@ -4,13 +4,15 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-11 08:30 PDT
+Last Updated: 2026-09-11 13:45 PDT
 Status: Candidate `0.1.25` is public; `0.1.26` is prepared with opt-in,
 separator-driven token entry for Multi Combobox. Historical release tasks below
 retain their original version context.
 
 ## Current Focus
 
+- Finish qualification of the unreleased Multi Combobox selected-item width
+  guard, then publish and qualify it before Knit consumes the exact bytes.
 - Publish and qualify Candidate `0.1.26`, then consume its exact registry bytes
   in Knit to enable comma-delimited inline page-tag entry.
 - Keep dense tree rows at 32px/15px for pointer use and animate to 44px targets
@@ -39,6 +41,10 @@ retain their original version context.
 
 ## Recent Progress
 
+- Multi Combobox selected items now default to a finite `12rem` inline size and
+  truncate long default or custom chip renderers to one line. The public CSS
+  token allows another finite bound, and component docs warn that effectively
+  unbounded values can crowd out the editing cursor on narrow screens.
 - Added opt-in `tokenSeparators` to `ui-multi-combobox` and its Vue adapter.
   Separator entry commits exact matches or creatable queries, clears the native
   input before another key can arrive, and keeps focus ready for uninterrupted
@@ -492,6 +498,11 @@ retain their original version context.
 
 ## Verification Snapshot
 
+- Multi Combobox width guard (2026-09-11): proof-first Core Chromium coverage
+  failed at 414px before the change and now passes with a 192px bound and real
+  ellipsis; full Core Chromium passes 95/95. The focused Vue custom-renderer
+  browser test passes 2/2. The full workspace test suite, Core/Vue typecheck,
+  workspace lint, facade assembly, and the docs production build pass.
 - PR #58 ownership follow-up: proof-first Core run reproduced seven failures
   (query replacement/clear, static/provider selection/clear rejection, empty default).
   Vue reproduced the same ownership defects. Focused checks now pass: Core units
@@ -665,6 +676,8 @@ retain their original version context.
 
 ## Next Up
 
+- Complete the normal protected Candidate release, then pin and browser-qualify
+  the exact registry bytes in Knit so page-tag editing inherits the width guard.
 - Capture one-shot exact-SHA CI after pushing the PR #58 ownership fixes; retain
   owner review/merge and protected release qualification as separate follow-up.
 

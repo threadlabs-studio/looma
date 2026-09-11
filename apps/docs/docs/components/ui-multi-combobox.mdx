@@ -16,6 +16,12 @@ The default selected item is a neutral Looma pill. Replace it through
 `item-${id}` to render other shapes or use option metadata for consumer-owned
 colors and icons.
 
+Selected items have a default `12rem` maximum inline size and truncate long
+labels to one line. Set `--ui-multi-combobox-item-max-inline-size` to another
+finite length when needed. Avoid effectively unbounded values such as `100%`:
+one long item can crowd out the input cursor and break the editing experience on
+narrow screens.
+
 With the cursor at the start, Left moves into the selected items. Right returns
 to the input. Backspace removes the preceding item, while Backspace or Delete on
 a focused item removes it. Dynamic `item-${id}` and `option-${id}` slots customize

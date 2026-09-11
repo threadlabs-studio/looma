@@ -16,7 +16,7 @@ export class UIChip {
   render() {
     return (
       <Host data-appearance={this.appearance} data-size={this.size}>
-        <span class="chip__surface"><slot /></span>
+        <span class="chip__surface"><span class="chip__label"><slot /></span></span>
       </Host>
     );
   }
