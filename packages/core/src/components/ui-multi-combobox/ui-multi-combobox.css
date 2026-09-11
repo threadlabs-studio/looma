@@ -16,7 +16,9 @@ ui-combobox::part(input) {
 .item {
   appearance: none;
   display: inline-flex;
-  max-inline-size: 100%;
+  min-inline-size: 0;
+  max-inline-size: min(100%, var(--ui-multi-combobox-item-max-inline-size, 12rem));
+  overflow: hidden;
   padding: 0;
   border: 0;
   border-radius: var(--ui-radius-1);
@@ -25,5 +27,7 @@ ui-combobox::part(input) {
   font: inherit;
   cursor: default;
 }
+.item > slot { display: block; min-inline-size: 0; max-inline-size: 100%; overflow: hidden; }
+.item > slot::slotted(*) { min-inline-size: 0; max-inline-size: 100%; }
 .item:focus-visible { outline: 2px solid var(--ui-focus-ring); outline-offset: 1px; }
 .item:disabled { opacity: .6; }

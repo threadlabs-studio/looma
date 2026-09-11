@@ -33,3 +33,31 @@ it('binds structured values, renders rich items, and maps tag events', async () 
   expect(onRemove).toHaveBeenCalledOnce();
   expect(onCreate).toHaveBeenCalledOnce();
 });
+
+it('keeps a custom chip renderer inside the selected-item width bound', async () => {
+  const label = 'A custom selected value that must not take over the whole editing control';
+  const host = document.createElement('div');
+  document.body.append(host);
+  const app = createApp({
+    render: () => h(MultiCombobox, {
+      label: 'Page tags',
+      items: [{ id: 'long-value', value: 'long-value', label }],
+      config: { options: [] },
+    }, {
+      item: ({ item }: { item: { label: string } }) => h('ui-chip', { appearance: 'tag' }, item.label),
+    }),
+  });
+  apps.push(app);
+  app.mount(host);
+  await flush();
+
+  const field = host.querySelector('ui-multi-combobox')!;
+  const item = field.shadowRoot!.querySelector<HTMLElement>('[part="item"]')!;
+  const chip = field.querySelector<HTMLUiChipElement>('ui-chip')!;
+  await expect.poll(() => chip.shadowRoot?.querySelector('.chip__label')).toBeTruthy();
+  const chipLabel = chip.shadowRoot!.querySelector<HTMLElement>('.chip__label')!;
+
+  expect(item.getBoundingClientRect().width).toBeLessThanOrEqual(193);
+  expect(getComputedStyle(chipLabel).textOverflow).toBe('ellipsis');
+  expect(chipLabel.scrollWidth).toBeGreaterThan(chipLabel.clientWidth);
+});

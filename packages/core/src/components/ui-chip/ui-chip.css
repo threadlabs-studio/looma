@@ -10,6 +10,7 @@
   --ui-chip-notch: var(--ui-space-1);
 
   display: inline-flex;
+  min-width: 0;
   max-width: 100%;
 }
 
@@ -20,6 +21,8 @@
 .chip__surface {
   display: inline-flex;
   align-items: center;
+  box-sizing: border-box;
+  min-width: 0;
   max-width: 100%;
   padding: var(--ui-chip-padding-block) var(--ui-chip-padding-inline);
   border: 1px solid var(--ui-chip-border);
@@ -33,6 +36,13 @@
   font-size: var(--ui-chip-font-size) !important;
   font-weight: var(--ui-chip-font-weight) !important;
   line-height: var(--ui-chip-line-height) !important;
+}
+
+.chip__label {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
