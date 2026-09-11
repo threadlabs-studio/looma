@@ -8,6 +8,7 @@ afterEach(() => { document.body.innerHTML = ''; });
 type MultiComboboxElement = HTMLElement & {
   items: Array<{ id: string; value: string; label: string }>;
   config: { options: Array<{ id: string; value: string; label: string }>; allowCreate?: boolean };
+  tokenSeparators: readonly string[];
 };
 
 async function mount() {
@@ -82,4 +83,44 @@ it('adds and creates without leaving a stale selection or blank open popup', asy
   expect(created.mock.calls[0][0].detail.query).toBe('Arbitrary');
   expect(input.value).toBe('');
   expect(input.getAttribute('aria-expanded')).toBe('false');
+});
+
+it('commits exact matches or new values on a configured token separator and keeps typing', async () => {
+  const { field, root, input } = await mount();
+  const added = vi.fn();
+  const created = vi.fn();
+  field.tokenSeparators = [','];
+  field.addEventListener('add-item', added);
+  field.addEventListener('create-item', created);
+
+  input.focus();
+  await userEvent.keyboard('Planning,');
+  await flush();
+  expect(added.mock.calls[0][0].detail.item.label).toBe('Planning');
+  expect(created).not.toHaveBeenCalled();
+  expect(input.value).toBe('');
+  expect(root.querySelector('ui-combobox')?.shadowRoot?.activeElement).toBe(input);
+
+  await userEvent.keyboard('Arbitrary,Next');
+  await flush();
+  expect(created.mock.calls[0][0].detail.query).toBe('Arbitrary');
+  expect(input.value).toBe('Next');
+  expect(root.querySelector('ui-combobox')?.shadowRoot?.activeElement).toBe(input);
+});
+
+it('keeps an unmatched query when creation is disabled', async () => {
+  const { field, input } = await mount();
+  const added = vi.fn();
+  const created = vi.fn();
+  field.tokenSeparators = [','];
+  field.config = { ...field.config, allowCreate: false };
+  field.addEventListener('add-item', added);
+  field.addEventListener('create-item', created);
+
+  input.focus();
+  await userEvent.keyboard('Unknown,');
+  await flush();
+  expect(added).not.toHaveBeenCalled();
+  expect(created).not.toHaveBeenCalled();
+  expect(input.value).toBe('Unknown');
 });

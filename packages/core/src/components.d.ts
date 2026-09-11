@@ -404,6 +404,11 @@ export namespace Components {
           * @default false
          */
         "required": boolean;
+        /**
+          * Characters that commit the current query and leave the input ready for the next item.
+          * @default []
+         */
+        "tokenSeparators": readonly string[];
     }
     interface UiPopover {
         /**
@@ -1401,6 +1406,11 @@ declare namespace LocalJSX {
           * @default false
          */
         "required"?: boolean;
+        /**
+          * Characters that commit the current query and leave the input ready for the next item.
+          * @default []
+         */
+        "tokenSeparators"?: readonly string[];
     }
     interface UiPopover {
         /**

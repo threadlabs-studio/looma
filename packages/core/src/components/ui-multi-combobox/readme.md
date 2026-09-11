@@ -11,18 +11,19 @@ A multi-value combobox with removable, customizable selected items.
 
 ## Properties
 
-| Property       | Attribute       | Description | Type                           | Default     |
-| -------------- | --------------- | ----------- | ------------------------------ | ----------- |
-| `config`       | --              |             | `ComboboxConfig`               | `{}`        |
-| `defaultQuery` | `default-query` |             | `string`                       | `''`        |
-| `disabled`     | `disabled`      |             | `boolean`                      | `false`     |
-| `items`        | --              |             | `readonly MultiComboboxItem[]` | `[]`        |
-| `label`        | `label`         |             | `string`                       | `''`        |
-| `name`         | `name`          |             | `string`                       | `''`        |
-| `placeholder`  | `placeholder`   |             | `string`                       | `''`        |
-| `query`        | `query`         |             | `string`                       | `undefined` |
-| `readOnly`     | `readonly`      |             | `boolean`                      | `false`     |
-| `required`     | `required`      |             | `boolean`                      | `false`     |
+| Property          | Attribute       | Description                                                                           | Type                           | Default     |
+| ----------------- | --------------- | ------------------------------------------------------------------------------------- | ------------------------------ | ----------- |
+| `config`          | --              |                                                                                       | `ComboboxConfig`               | `{}`        |
+| `defaultQuery`    | `default-query` |                                                                                       | `string`                       | `''`        |
+| `disabled`        | `disabled`      |                                                                                       | `boolean`                      | `false`     |
+| `items`           | --              |                                                                                       | `readonly MultiComboboxItem[]` | `[]`        |
+| `label`           | `label`         |                                                                                       | `string`                       | `''`        |
+| `name`            | `name`          |                                                                                       | `string`                       | `''`        |
+| `placeholder`     | `placeholder`   |                                                                                       | `string`                       | `''`        |
+| `query`           | `query`         |                                                                                       | `string`                       | `undefined` |
+| `readOnly`        | `readonly`      |                                                                                       | `boolean`                      | `false`     |
+| `required`        | `required`      |                                                                                       | `boolean`                      | `false`     |
+| `tokenSeparators` | --              | Characters that commit the current query and leave the input ready for the next item. | `readonly string[]`            | `[]`        |
 
 
 ## Events

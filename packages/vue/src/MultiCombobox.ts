@@ -5,6 +5,7 @@ type MultiComboboxElement = HTMLElement & {
   items: readonly MultiComboboxItem[];
   config: ComboboxConfig;
   query: string | undefined;
+  tokenSeparators: readonly string[];
   focusInput(): Promise<void>;
 };
 
@@ -17,6 +18,7 @@ export const MultiCombobox = defineComponent({
     config: { type: Object as PropType<ComboboxConfig>, default: () => ({}) },
     query: { type: String, default: undefined },
     defaultQuery: String,
+    tokenSeparators: { type: Array as PropType<readonly string[]>, default: () => [] },
     placeholder: String,
     name: String,
     disabled: Boolean,
@@ -51,16 +53,18 @@ export const MultiCombobox = defineComponent({
       element.value.items = props.items;
       element.value.config = props.config;
       element.value.query = props.query;
+      element.value.tokenSeparators = props.tokenSeparators;
     });
 
     expose({ focusInput: () => element.value!.focusInput() });
 
     return () => h('ui-multi-combobox', {
       ...attrs,
-      ...Object.fromEntries(Object.entries(props).filter(([key]) => !['items', 'config', 'query'].includes(key))),
+      ...Object.fromEntries(Object.entries(props).filter(([key]) => !['items', 'config', 'query', 'tokenSeparators'].includes(key))),
       items: props.items,
       config: props.config,
       query: props.query,
+      tokenSeparators: props.tokenSeparators,
       'data-allow-mismatch': 'class',
       ref: element,
       class: [attrs.class, element.value?.shadowRoot && 'hydrated'],
