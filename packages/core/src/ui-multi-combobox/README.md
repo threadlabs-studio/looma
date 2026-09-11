@@ -31,3 +31,9 @@ The default selected-item renderer is a neutral Looma pill. Dynamic
 full option metadata—for example colors, icons, avatars, or application tags.
 Dynamic slots are `item-${id}` and `option-${id}`. Status and action slots are
 `create`, `footer`, `loading`, `empty`, and `error`. Shadow part: `item`.
+
+Selected items default to a `12rem` maximum inline size and truncate long labels
+to one line. Override `--ui-multi-combobox-item-max-inline-size` with another
+finite length when a different density is needed. Avoid effectively unbounded
+values such as `100%`: a single selected item can crowd out the text cursor and
+make the editing control unusable on narrow screens.
