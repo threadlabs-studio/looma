@@ -14,7 +14,7 @@ published component API. For example, `Dialog` accepts `open?: boolean` and
 its `onClose` callback receives the structured close detail; the adapter still
 forwards those values directly to the underlying custom element.
 
-Release status: Candidate `0.1.26`. Browser registration/render and linked-workspace Knit qualification pass; packed-artifact Knit qualification remains a publication gate. React and Svelte adapters are not part of the R1 public package set.
+Release status: Candidate `0.1.27`. Browser registration/render and linked-workspace Knit qualification pass; packed-artifact Knit qualification remains a publication gate. React and Svelte adapters are not part of the R1 public package set.
 
 ## Install
 
