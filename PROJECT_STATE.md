@@ -5,24 +5,22 @@
 > history or private workspace/build evidence, not as consumer guidance.
 
 Last Updated: 2026-09-11 13:45 PDT
-Status: Candidate `0.1.25` is public; `0.1.26` is prepared with opt-in,
-separator-driven token entry for Multi Combobox. Historical release tasks below
-retain their original version context.
+Status: Candidate `0.1.26` is public; `0.1.27` is prepared with a bounded,
+single-line selected-value contract for Multi Combobox. Historical release tasks
+below retain their original version context.
 
 ## Current Focus
 
-- Finish qualification of the unreleased Multi Combobox selected-item width
-  guard, then publish and qualify it before Knit consumes the exact bytes.
-- Publish and qualify Candidate `0.1.26`, then consume its exact registry bytes
-  in Knit to enable comma-delimited inline page-tag entry.
+- Publish and qualify Candidate `0.1.27`, then consume its exact registry bytes
+  in Knit so long selected values cannot crowd out the editing cursor.
 - Keep dense tree rows at 32px/15px for pointer use and animate to 44px targets
   only after a real touch interaction establishes touch modality.
 - Verify that controlled editor replacements preserve a focused ProseMirror
   selection, while Knit server acknowledgements no longer echo authored JSON
   through the active editor.
 
-- Publish Candidate `0.1.26`, then consume its exact registry bytes from Knit.
-  Candidate `0.1.25` remains the current public `candidate` until those
+- Publish Candidate `0.1.27`, then consume its exact registry bytes from Knit.
+  Candidate `0.1.26` remains the current public `candidate` until those
   replacement bytes pass main CI and protected publication.
 - Complete hosted-docs qualification and promote Candidate `0.1.13`, which is
   published and qualified in Knit with the opinionated Lucide icon

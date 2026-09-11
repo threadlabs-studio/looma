@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## v0.1.27 Candidate
+
+- Keep selected values to a single bounded line by default, including custom
+  chip renderers, with an explicit CSS token for another finite maximum width.
+
 ## v0.1.26 Candidate
 
 - Let multi-value combobox consumers opt into separator-driven token entry.
@@ -9,8 +14,6 @@
   current query, clears synchronously, and keeps focus ready for the next item.
 - Preserve unmatched text when creation is disabled, and forward the new
   `tokenSeparators` contract through the supported Vue adapter.
-- Keep selected values to a single bounded line by default, including custom
-  chip renderers, with an explicit CSS token for another finite maximum width.
 
 ## v0.1.25 Candidate
 
