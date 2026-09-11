@@ -7,6 +7,14 @@ registry bytes or satisfy any remaining promotion gate. A checked source or
 build item is evidence, not permission to publish. Registry mutation requires
 all owner, security, artifact, consumer, documentation, and rollback gates.
 
+## Current Publishing Authentication
+
+As of Candidate `0.1.25`, npm trusted publishing binds
+`@threadlabs/looma` to `threadlabs-studio/looma`, workflow `release.yml`, and
+the `npm-release` GitHub environment. Workflow run `34536417750` proved the
+OIDC path with provenance and a clean public consumer. The Candidate publish
+job no longer accepts the historical bootstrap mode or an npm publishing token.
+
 ## Registry And Ownership Preflight
 
 - [x] Canonical source repository identified as `threadlabs-studio/looma` on GitHub.

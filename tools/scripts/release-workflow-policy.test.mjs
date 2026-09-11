@@ -6,7 +6,6 @@ import { fileURLToPath } from "node:url";
 
 const workflow = await readFile(new URL("../../.github/workflows/release.yml", import.meta.url), "utf8");
 const ciWorkflow = await readFile(new URL("../../.github/workflows/ci.yml", import.meta.url), "utf8");
-const registryPreflight = await readFile(new URL("./registry-preflight.mjs", import.meta.url), "utf8");
 const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
 const rootLicense = await readFile(new URL("../../LICENSE", import.meta.url));
 const packageLicense = await readFile(new URL("../../packages/looma/LICENSE", import.meta.url));
@@ -39,12 +38,6 @@ const releasePackagingJob = ciWorkflow.match(
 )?.[0] ?? "";
 const ciReleaseVerification = releasePackagingJob.match(
   /- name: Verify release packaging[\s\S]*?(?=\n\s+- name:|$)/
-)?.[0] ?? "";
-const bootstrapPreflight = publishJob.match(
-  /- name: Prove scope ownership and release version availability[\s\S]*?(?=\n\s+- name:)/
-)?.[0] ?? "";
-const bootstrapPublish = publishJob.match(
-  /- name: Publish exact bytes with the bootstrap credential[\s\S]*?(?=\n\s+- name:)/
 )?.[0] ?? "";
 const trustedPublish = publishJob.match(
   /- name: Publish exact bytes with trusted publishing[\s\S]*?(?=\n\s+- name:)/
@@ -154,20 +147,14 @@ test("checkout credentials are disabled and publication has only required permis
   assert.doesNotMatch(releaseRecordJob, /id-token: write|packages: write/);
 });
 
-test("bootstrap identity preflight is isolated from the bypass-2FA publishing credential", () => {
-  assert.match(bootstrapPreflight, /NODE_AUTH_TOKEN: \$\{\{ secrets\.NPM_PREFLIGHT_TOKEN \}\}/);
-  assert.doesNotMatch(bootstrapPreflight, /secrets\.NPM_TOKEN/);
-  assert.match(bootstrapPublish, /NODE_AUTH_TOKEN: \$\{\{ secrets\.NPM_TOKEN \}\}/);
-  assert.doesNotMatch(bootstrapPublish, /secrets\.NPM_PREFLIGHT_TOKEN/);
-  assert.equal([...workflow.matchAll(/secrets\.NPM_PREFLIGHT_TOKEN/g)].length, 1);
-  assert.equal([...workflow.matchAll(/secrets\.NPM_TOKEN/g)].length, 2);
+test("Candidate publication uses only repository-bound trusted publishing", () => {
+  assert.doesNotMatch(workflow, /authentication:/);
+  assert.doesNotMatch(publishJob, /bootstrap|NPM_PREFLIGHT_TOKEN/);
+  assert.equal([...workflow.matchAll(/secrets\.NPM_TOKEN/g)].length, 1);
   assert.doesNotMatch(trustedPublish, /NODE_AUTH_TOKEN|secrets\./);
+  assert.match(trustedPublish, /LOOMA_RELEASE_PUBLISH: approved/);
+  assert.match(trustedPublish, /publish-release\.mjs --execute --tag candidate/);
   assert.doesNotMatch(publishJob, /\n    env:\n/);
-});
-
-test("read-only registry preflight does not require npm account-profile access", () => {
-  assert.doesNotMatch(registryPreflight, /\["profile", "get"/);
-  assert.doesNotMatch(registryPreflight, /twoFactorMode/);
 });
 
 test("release pack, publish, and promotion jobs use the exact declared Node runtime", () => {

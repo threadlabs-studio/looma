@@ -11,15 +11,13 @@ implementation roadmap so package ownership decisions stay visible.
   license metadata.
 - The R1 package graph and protected release workflow target one Candidate
   package, `@threadlabs/looma`, with explicit core, layout, editor, Vue, and CSS subpaths.
-- `@threadlabs/looma@0.1.4` is public under the non-default `candidate` tag with
+- `@threadlabs/looma@0.1.25` is public under the non-default `candidate` tag with
   verified package metadata, integrity, provenance, and a clean public-registry
-  Knit consumer. Qualified `0.1.1` remains under `latest` until the protected
+  consumer. Qualified `0.1.13` remains under `latest` until the protected
   promotion moves an approved immutable Candidate.
-- Candidate `0.1.4` was published from commit
-  `8b311ee842e6bb61c7fcb8058ce5568d482a8d35` by workflow run
-  `33818495158`, after exact-main CI run `33818256965` passed. The centered
-  layout cascade correction advances the next release target to Candidate
-  `0.1.5` without altering the frozen public `0.1.4` bytes.
+- Candidate `0.1.25` was published from commit
+  `8b647b2f0387532921ee033f73c95163cd680bbb` by workflow run
+  `34536417750` after exact-main CI passed.
 - The canonical GitHub repository is public and the current release workflow is
   on `main` behind exact-commit CI and protected-environment approval gates.
 - GitHub Pages serves the verified indexable `0.1.1` documentation at
@@ -28,12 +26,9 @@ implementation roadmap so package ownership decisions stay visible.
   `0.1.1` Candidate source. The exact `0.1.2` hosted-docs evidence must be
   refreshed before promotion. The `docs-preview`, `docs-production`, and
   `npm-release` environments require review from the repository owner.
-- The protected `npm-release` environment contains separate npm credentials:
-  `NPM_PREFLIGHT_TOKEN` for identity, organization, profile, and name-availability
-  reads, and short-lived `NPM_TOKEN` for package-scoped Bypass 2FA publication and
-  promotion. No repository-level npm credential is used. Now that the package
-  exists, trusted publishing must be configured and the bypass token revoked;
-  npm warns that Bypass 2FA tokens will be restricted by January 2027.
+- npm trusted publishing binds `@threadlabs/looma` to `release.yml` in the
+  `npm-release` GitHub environment. Candidate publication uses GitHub OIDC and
+  no npm token; the bootstrap publishing path has been removed.
 
 ## Npm Namespace Decision
 
@@ -51,8 +46,7 @@ release policy, and registry tests. React and Svelte remain unpublished in R1.
 
 ## Release 1 Remaining Operator Sequence
 
-1. Publish and qualify Candidate `0.1.5` from the exact centered-layout source
-   commit, including a clean public-registry Knit consumer.
+1. Qualify Candidate `0.1.25` in Knit from the exact public registry bytes.
 2. For any earlier Candidate promotion, use the manifest-bound promotion and
    release-finalization jobs, which execute
    from the original Candidate commit even after release-tooling changes advance
@@ -63,10 +57,8 @@ release policy, and registry tests. React and Svelte remain unpublished in R1.
 4. Re-run the clean public-registry consumer inside the promotion job, promote
    the approved Candidate from `candidate` to `latest`, verify both tags and integrity, and create
    the immutable tag and GitHub Release record from the Candidate source commit.
-5. Configure npm trusted publishing for the repository/workflow/environment
-   binding, revoke `NPM_TOKEN`, and prove the retired bootstrap credential cannot
-   be reused. Retain or rotate the read-only preflight credential only while the
-   namespace checks require it.
+5. Remove obsolete npm publishing secrets after any still-required
+   candidate-to-`latest` promotion. Future publication must remain OIDC-only.
 6. Keep the defective `0.1.0` migration notice and retain prior Candidate
    records as immutable release history.
 
