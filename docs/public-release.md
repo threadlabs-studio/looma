@@ -46,7 +46,8 @@ release policy, and registry tests. React and Svelte remain unpublished in R1.
 
 ## Release 1 Remaining Operator Sequence
 
-1. Qualify Candidate `0.1.25` in Knit from the exact public registry bytes.
+1. Publish Candidate `0.1.26` with separator-driven Multi Combobox entry, then
+   qualify its exact public registry bytes in Knit.
 2. For any earlier Candidate promotion, use the manifest-bound promotion and
    release-finalization jobs, which execute
    from the original Candidate commit even after release-tooling changes advance

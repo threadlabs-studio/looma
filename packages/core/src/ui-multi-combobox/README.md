@@ -5,8 +5,13 @@ Looma combobox. The consumer owns the `items` collection, metadata, rendering,
 and persistence; Looma emits proposed changes immediately.
 
 `items` and `config` are JavaScript properties. Query may be controlled with
-`query` or initialized with `default-query`. The remaining field props are
-`label`, `placeholder`, `name`, `disabled`, `readonly`, and `required`.
+`query` or initialized with `default-query`. `tokenSeparators` can opt the
+control into token-style entry: typing a configured character commits an exact
+visible option, or creates the trimmed query when `allowCreate` is enabled,
+then leaves the input focused for the next item. Its default is empty, so
+ordinary multi-combobox values can contain punctuation. The remaining field
+props are `label`, `placeholder`, `name`, `disabled`, `readonly`, and
+`required`.
 
 Events:
 

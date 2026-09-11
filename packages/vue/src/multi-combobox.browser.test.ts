@@ -14,7 +14,7 @@ it('binds structured values, renders rich items, and maps tag events', async () 
   const host = document.createElement('div');
   document.body.append(host);
   const app = createApp({
-    render: () => h(MultiCombobox, { label: 'Page tags', items: items.value, config: { options, allowCreate: true }, onRemoveItem: onRemove, onCreateItem: onCreate }, {
+    render: () => h(MultiCombobox, { label: 'Page tags', items: items.value, config: { options, allowCreate: true }, tokenSeparators: [','], onRemoveItem: onRemove, onCreateItem: onCreate }, {
       item: ({ item }: { item: { label: string } }) => h('strong', `Selected ${item.label}`),
       option: ({ option }: { option: { label: string } }) => h('span', `Option ${option.label}`),
     }),
@@ -23,9 +23,10 @@ it('binds structured values, renders rich items, and maps tag events', async () 
   app.mount(host);
   await flush();
 
-  const field = host.querySelector<HTMLElement & { items: unknown; config: unknown }>('ui-multi-combobox')!;
+  const field = host.querySelector<HTMLElement & { items: unknown; config: unknown; tokenSeparators: unknown }>('ui-multi-combobox')!;
   expect(field.items).toEqual(items.value);
   expect(field.config).toMatchObject({ allowCreate: true });
+  expect(field.tokenSeparators).toEqual([',']);
   expect(field.querySelector('[slot="item-research"]')?.textContent).toContain('Selected Research');
   field.dispatchEvent(new CustomEvent('remove-item', { detail: { item: items.value[0], index: 0, trigger: 'keyboard' } }));
   field.dispatchEvent(new CustomEvent('create-item', { detail: { query: 'Arbitrary', trigger: 'keyboard' } }));

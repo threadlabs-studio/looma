@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## v0.1.26 Candidate
+
+- Let multi-value combobox consumers opt into separator-driven token entry.
+  Typing a configured separator commits an exact suggestion or creates the
+  current query, clears synchronously, and keeps focus ready for the next item.
+- Preserve unmatched text when creation is disabled, and forward the new
+  `tokenSeparators` contract through the supported Vue adapter.
+
 ## v0.1.25 Candidate
 
 - Add a domain-neutral `ui-editable` reveal primitive with explicit activation,
