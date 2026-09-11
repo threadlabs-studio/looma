@@ -53,7 +53,7 @@ it('keeps a custom chip renderer inside the selected-item width bound', async ()
 
   const field = host.querySelector('ui-multi-combobox')!;
   const item = field.shadowRoot!.querySelector<HTMLElement>('[part="item"]')!;
-  const chip = field.querySelector<HTMLUiChipElement>('ui-chip')!;
+  const chip = field.querySelector<HTMLElement>('ui-chip')!;
   await expect.poll(() => chip.shadowRoot?.querySelector('.chip__label')).toBeTruthy();
   const chipLabel = chip.shadowRoot!.querySelector<HTMLElement>('.chip__label')!;
 
