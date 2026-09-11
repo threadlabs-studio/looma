@@ -12,6 +12,8 @@ export class UIMultiCombobox {
   @Prop() config: ComboboxConfig = {};
   @Prop() query?: string;
   @Prop() defaultQuery = '';
+  /** Characters that commit the current query and leave the input ready for the next item. */
+  @Prop() tokenSeparators: readonly string[] = [];
   @Prop() disabled = false;
   @Prop({ attribute: 'readonly' }) readOnly = false;
   @Prop() required = false;
@@ -62,6 +64,14 @@ export class UIMultiCombobox {
     this.queryChange.emit({ query, display: query, trigger });
   }
 
+  private clearCommittedQuery(input: HTMLInputElement, trigger: MultiComboboxCreate['trigger']) {
+    // Clear the native control before another key can arrive. Controlled adapters
+    // still receive query-change, but do not need to round-trip before typing resumes.
+    input.value = '';
+    this.raw = '';
+    this.setQuery('', trigger);
+  }
+
   private onQueryChange = (event: CustomEvent<{ query: string; display: string; trigger: 'keyboard' | 'pointer' | 'programmatic' }>) => {
     event.stopPropagation();
     this.setQuery(event.detail.query, event.detail.trigger);
@@ -90,6 +100,20 @@ export class UIMultiCombobox {
     this.setQuery('', event.detail.trigger);
     this.createItem.emit({ query, trigger: event.detail.trigger });
   };
+
+  private commitQuery(input: HTMLInputElement, trigger: MultiComboboxCreate['trigger']) {
+    const query = this.raw.trim();
+    if (!query) return;
+    const normalizedQuery = query.toLocaleLowerCase();
+    const option = this.rows.find(row => row.label.trim().toLocaleLowerCase() === normalizedQuery);
+    if (option) {
+      this.clearCommittedQuery(input, trigger);
+      this.addItem.emit({ item: option, index: this.items.length, trigger });
+    } else if (this.config.allowCreate) {
+      this.clearCommittedQuery(input, trigger);
+      this.createItem.emit({ query, trigger });
+    }
+  }
 
   private remove(index: number, trigger: MultiComboboxItemChange['trigger']) {
     const item = this.items[index];
@@ -120,9 +144,16 @@ export class UIMultiCombobox {
   };
 
   private onKeyDown = (event: KeyboardEvent) => {
-    if (event.defaultPrevented || this.disabled || this.readOnly || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+    if (event.defaultPrevented || event.isComposing || this.disabled || this.readOnly || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
     const input = event.composedPath().find(node => node instanceof HTMLInputElement) as HTMLInputElement | undefined;
-    if (!input || this.raw || (input.selectionStart ?? 0) > 0) return;
+    if (!input) return;
+    if (this.tokenSeparators.includes(event.key)) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.commitQuery(input, 'keyboard');
+      return;
+    }
+    if (this.raw || (input.selectionStart ?? 0) > 0) return;
     if (event.key === 'ArrowLeft' && this.items.length) {
       event.preventDefault(); this.focusItem(this.items.length - 1);
     } else if (event.key === 'Backspace' && this.items.length) {
