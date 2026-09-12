@@ -409,7 +409,9 @@
     display: none;
   }
 
-  ui-tooltip {
+  /* Overlay chrome is a light-DOM fallback only. Once upgraded, the
+   * reset-proof shadow surface is the single painted and scrollable box. */
+  ui-tooltip:not(:defined) {
     display: inline-block;
     border: 1px solid var(--ui-border-default);
     border-radius: var(--ui-radius-2);
@@ -420,11 +422,11 @@
     box-shadow: var(--ui-shadow-md);
   }
 
-  ui-tooltip[hidden] {
+  ui-tooltip:not(:defined)[hidden] {
     display: none !important;
   }
 
-  ui-menu {
+  ui-menu:not(:defined) {
     display: flex;
     flex-direction: column;
     min-width: 12rem;
@@ -462,7 +464,7 @@
     cursor: not-allowed;
   }
 
-  ui-popover {
+  ui-popover:not(:defined) {
     padding: var(--ui-space-3);
     background: var(--ui-surface-elevated);
     border: 1px solid var(--ui-border-default);
