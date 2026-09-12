@@ -4,15 +4,13 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-12 10:58 PDT
-Status: Candidate `0.1.27` is public; `0.1.28` is prepared with viewport-safe,
+Last Updated: 2026-09-12 11:38 PDT
+Status: Candidate `0.1.28` is public and qualified in Knit with viewport-safe,
 single-surface overlays. Historical release tasks below retain their original
 version context.
 
 ## Current Focus
 
-- Publish and qualify Candidate `0.1.28`, then consume its exact registry bytes
-  in Knit.
 - Keep Candidate `0.1.28`'s bounded selected-value and viewport-safe overlay
   contracts qualified together in Knit.
 - Keep dense tree rows at 32px/15px for pointer use and animate to 44px targets
