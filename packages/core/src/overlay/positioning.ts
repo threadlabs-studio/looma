@@ -152,30 +152,30 @@ function fallbackPosition(
   placement: AnchoredPlacement,
   gap: number,
   viewportGap: number,
+  surfaceRect: RectLike = surface.getBoundingClientRect(),
 ): void {
   const owner = surface.ownerDocument.defaultView ?? window;
   const viewport = getVisualViewportRect(owner);
-  const rect = surface.getBoundingClientRect();
   const preferTop = placement.startsWith("top");
   const preferEnd = placement.endsWith("end");
   const spaceBelow = viewport.bottom - anchor.bottom - viewportGap;
   const spaceAbove = anchor.top - viewport.top - viewportGap;
   const useTop = preferTop
-    ? !(spaceAbove < rect.height + gap && spaceBelow > spaceAbove)
-    : spaceBelow < rect.height + gap && spaceAbove > spaceBelow;
+    ? !(spaceAbove < surfaceRect.height + gap && spaceBelow > spaceAbove)
+    : spaceBelow < surfaceRect.height + gap && spaceAbove > spaceBelow;
   const unclampedTop = useTop
-    ? anchor.top - rect.height - gap
+    ? anchor.top - surfaceRect.height - gap
     : anchor.bottom + gap;
   const unclampedLeft = preferEnd
-    ? anchor.right - rect.width
+    ? anchor.right - surfaceRect.width
     : anchor.left;
   const shifted = clampRectToViewport({
     left: unclampedLeft,
     top: unclampedTop,
-    right: unclampedLeft + rect.width,
-    bottom: unclampedTop + rect.height,
-    width: rect.width,
-    height: rect.height,
+    right: unclampedLeft + surfaceRect.width,
+    bottom: unclampedTop + surfaceRect.height,
+    width: surfaceRect.width,
+    height: surfaceRect.height,
   }, viewport, viewportGap);
 
   surface.style.left = `${Math.round(unclampedLeft + shifted.x)}px`;
@@ -247,8 +247,22 @@ export function createAnchoredSurface(
       return;
     }
     if (!anchor) return;
-    if (nativeAnchor) positionNative();
-    else fallbackPosition(surface, anchor.getBoundingClientRect(), placement, gap, viewportGap);
+    let surfaceRect: RectLike | undefined;
+    if (nativeAnchor) {
+      positionNative();
+      const viewport = getVisualViewportRect(owner);
+      surfaceRect = surface.getBoundingClientRect();
+      const shift = clampRectToViewport(surfaceRect, viewport, viewportGap);
+      if (shift.x === 0 && shift.y === 0) return;
+    }
+    fallbackPosition(
+      surface,
+      anchor.getBoundingClientRect(),
+      placement,
+      gap,
+      viewportGap,
+      surfaceRect,
+    );
   };
 
   const schedule = () => {
@@ -257,7 +271,9 @@ export function createAnchoredSurface(
   };
 
   const syncFallbackListeners = () => {
-    const needsListeners = open && (point !== null || !nativeAnchor);
+    // Native anchor positioning handles ordinary placement, but the shared
+    // controller still owns viewport containment when neither side can fit.
+    const needsListeners = open && (point !== null || anchor !== null);
     if (!needsListeners) {
       listenerAbort?.abort();
       listenerAbort = null;

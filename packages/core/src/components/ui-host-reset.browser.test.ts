@@ -100,13 +100,19 @@ describe("visible surfaces under consumer resets (real browser)", () => {
       expect(getComputedStyle(host).backgroundColor).toBe("rgba(0, 0, 0, 0)");
     }
 
-    expect(getComputedStyle(menu).overflowY).toBe("auto");
+    expect(getComputedStyle(menu).overflowY).toBe("visible");
+    expect(getComputedStyle(menu).boxShadow).toBe("none");
+    expect(getComputedStyle(menuSurface).overflowY).toBe("auto");
+    expect(getComputedStyle(menuSurface).boxShadow).not.toBe("none");
     expect(getComputedStyle(menuSurface).paddingTop).toBe("4px");
     expect(getComputedStyle(menuSurface).borderTopWidth).toBe("1px");
     expect(getComputedStyle(menuSurface).borderTopLeftRadius).toBe("12px");
     expect(getComputedStyle(menuSurface).backgroundColor).not.toBe("rgba(0, 0, 0, 0)");
 
-    expect(getComputedStyle(popover).overflowY).toBe("auto");
+    expect(getComputedStyle(popover).overflowY).toBe("visible");
+    expect(getComputedStyle(popover).boxShadow).toBe("none");
+    expect(getComputedStyle(popoverSurface).overflowY).toBe("auto");
+    expect(getComputedStyle(popoverSurface).boxShadow).not.toBe("none");
     expect(getComputedStyle(popoverSurface).paddingTop).toBe("12px");
     expect(getComputedStyle(popoverSurface).borderTopWidth).toBe("1px");
     expect(getComputedStyle(popoverSurface).borderTopLeftRadius).toBe("12px");
@@ -118,5 +124,38 @@ describe("visible surfaces under consumer resets (real browser)", () => {
     expect(getComputedStyle(tooltipSurface).borderTopLeftRadius).toBe("8px");
     expect(getComputedStyle(tooltipSurface).fontSize).toBe("14px");
     expect(getComputedStyle(tooltipSurface).backgroundColor).not.toBe("rgba(0, 0, 0, 0)");
+  });
+
+  it("keeps oversized anchored popovers inside the viewport with one scrollable painted surface", async () => {
+    await customElements.whenDefined("ui-popover");
+    document.body.innerHTML = `
+      <style>
+        body { margin: 0; }
+        #popover-anchor {
+          position: fixed;
+          inset: auto 16px 16px auto;
+          inline-size: 44px;
+          block-size: 44px;
+        }
+      </style>
+      <button id="popover-anchor" type="button">Open</button>
+      <ui-popover for="popover-anchor" open placement="bottom-end">
+        <div style="inline-size: 280px; block-size: 1000px">Tall content</div>
+      </ui-popover>
+    `;
+    await flushStencil();
+
+    const popover = document.querySelector<HTMLElement>("ui-popover")!;
+    const surface = popover.shadowRoot!.querySelector<HTMLElement>(".popover__surface")!;
+    await Promise.all(popover.getAnimations().map((animation) => animation.finished));
+    const bounds = popover.getBoundingClientRect();
+
+    expect(bounds.top).toBeGreaterThanOrEqual(8);
+    expect(bounds.bottom).toBeLessThanOrEqual(window.innerHeight - 8);
+    expect(getComputedStyle(popover).boxShadow).toBe("none");
+    expect(getComputedStyle(popover).overflowY).toBe("visible");
+    expect(getComputedStyle(surface).boxShadow).not.toBe("none");
+    expect(getComputedStyle(surface).overflowY).toBe("auto");
+    expect(surface.scrollHeight).toBeGreaterThan(surface.clientHeight);
   });
 });
