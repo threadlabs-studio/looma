@@ -207,7 +207,8 @@
     color: var(--ui-action-secondary-text, var(--ui-text-primary));
   }
 
-  ui-button[variant="solid"] {
+  ui-button[data-variant="solid"],
+  ui-button:not([data-variant])[variant="solid"] {
     color: var(--ui-action-primary-text, var(--ui-text-on-accent));
   }
 
@@ -252,59 +253,68 @@
     background: var(--ui-surface-subtle);
   }
 
-  ui-button[variant="solid"] > button {
+  ui-button[data-variant="solid"] > button,
+  ui-button:not([data-variant])[variant="solid"] > button {
     border-color: var(--ui-action-primary-surface, var(--ui-accent-solid));
     background: var(--ui-action-primary-surface, var(--ui-accent-solid));
     color: var(--ui-action-primary-text, var(--ui-text-on-accent));
     box-shadow: var(--ui-button-solid-shadow, inset 0 1px rgb(255 255 255 / 0.16), var(--ui-shadow-xs));
   }
 
-  ui-button[variant="solid"] > button:hover:enabled {
+  ui-button[data-variant="solid"] > button:hover:enabled,
+  ui-button:not([data-variant])[variant="solid"] > button:hover:enabled {
     background: var(--ui-action-primary-surface-hover, var(--ui-accent-hover));
     border-color: var(--ui-action-primary-surface-hover, var(--ui-accent-hover));
     box-shadow: var(--ui-shadow-sm);
     transform: translateY(-1px);
   }
 
-  ui-button[variant="solid"] > button:active:enabled {
+  ui-button[data-variant="solid"] > button:active:enabled,
+  ui-button:not([data-variant])[variant="solid"] > button:active:enabled {
     background: var(--ui-action-primary-surface-active, var(--ui-accent-active));
     border-color: var(--ui-action-primary-surface-active, var(--ui-accent-active));
     box-shadow: none;
     transform: translateY(0);
   }
 
-  ui-button[variant="destructive"] > button {
+  ui-button[data-variant="destructive"] > button,
+  ui-button:not([data-variant])[variant="destructive"] > button {
     border-color: var(--ui-danger-solid);
     background: var(--ui-danger-solid);
     color: var(--ui-text-on-accent);
     box-shadow: var(--ui-button-destructive-shadow, inset 0 1px rgb(255 255 255 / 0.14), var(--ui-shadow-xs));
   }
 
-  ui-button[variant="destructive"] > button:hover:enabled {
+  ui-button[data-variant="destructive"] > button:hover:enabled,
+  ui-button:not([data-variant])[variant="destructive"] > button:hover:enabled {
     background: var(--ui-danger-hover);
     border-color: var(--ui-danger-hover);
     box-shadow: var(--ui-shadow-sm);
     transform: translateY(-1px);
   }
 
-  ui-button[variant="destructive"] > button:active:enabled {
+  ui-button[data-variant="destructive"] > button:active:enabled,
+  ui-button:not([data-variant])[variant="destructive"] > button:active:enabled {
     background: var(--ui-danger-hover);
     border-color: var(--ui-danger-hover);
     box-shadow: none;
     transform: translateY(0);
   }
 
-  ui-button[variant="ghost"] > button {
+  ui-button[data-variant="ghost"] > button,
+  ui-button:not([data-variant])[variant="ghost"] > button {
     border-color: transparent;
     background: transparent;
   }
 
-  ui-button[variant="ghost"] > button:hover:enabled {
+  ui-button[data-variant="ghost"] > button:hover:enabled,
+  ui-button:not([data-variant])[variant="ghost"] > button:hover:enabled {
     background: var(--ui-surface-muted);
     border-color: transparent;
   }
 
-  ui-button[variant="ghost"] > button:active:enabled {
+  ui-button[data-variant="ghost"] > button:active:enabled,
+  ui-button:not([data-variant])[variant="ghost"] > button:active:enabled {
     background: var(--ui-surface-subtle);
     border-color: transparent;
   }
@@ -316,7 +326,7 @@
   }
 
   ui-button[data-disabled="true"],
-  ui-button[disabled] {
+  ui-button:not([data-variant])[disabled] {
     opacity: 0.6;
     cursor: not-allowed;
   }

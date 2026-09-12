@@ -222,6 +222,23 @@ it('syncs provider-backed labels and safely displays an unknown canonical value 
   field.value = null; await flush(); expect(input.value).toBe('');
 });
 
+it.each(['static', 'provider'])('refreshes an uncontrolled selected label when %s options are replaced', async source => {
+  const first = [{ id: 'a', value: '1', label: 'Alpha' }];
+  const second = [{ id: 'a', value: '1', label: 'Uno' }];
+  const { field, input, root } = await mount(source === 'static'
+    ? { options: first }
+    : { provider: () => first, debounce: 0 }, 'value="1" disclosure');
+  await userEvent.click(root.querySelector('button')!); await flush();
+  await expect.poll(() => input.value).toBe('Alpha');
+  await userEvent.keyboard('{Escape}');
+  field.config = source === 'static'
+    ? { options: second }
+    : { provider: () => second, debounce: 0 };
+  await flush();
+  await userEvent.click(root.querySelector('button')!); await flush();
+  await expect.poll(() => input.value).toBe('Uno');
+});
+
 it('keeps formatted text and display-coordinate selections stable through unchanged focus/blur cycles', async () => {
   const { input } = await mount({ allowFreeText: true, format: (raw, selection) => ({ display: `${raw.slice(0, 2)} ${raw.slice(2)}`, selection: { start: selection.start + (selection.start > 2 ? 1 : 0), end: selection.end + (selection.end > 2 ? 1 : 0), direction: selection.direction } }) });
   input.focus(); input.value = '1234'; input.setSelectionRange(2, 4, 'backward');

@@ -130,14 +130,22 @@ export class UICombobox {
   }
   @Watch('config') syncConfig(next: ComboboxConfig, previous: ComboboxConfig) {
     this.validationRun?.abort();
-    if (next.provider !== previous?.provider || next.context !== previous?.context) this.knownOptions.clear();
-    if (next.context !== previous?.context) {
+    const contextChanged = next.context !== previous?.context;
+    const sourceChanged = next.provider !== previous?.provider || next.options !== previous?.options;
+    if (sourceChanged || contextChanged) this.knownOptions.clear();
+    if (contextChanged) {
       this.close();
       const policy = next.invalidation ?? 'retain-query';
       const value = policy === 'retain' ? this.selected : null;
       const query = policy === 'clear' ? '' : this.raw;
       this.commit(value, query, null, 'invalidation', 'programmatic');
       this.validation = { status: 'pristine', touched: false, dirty: this.raw !== this.initialRaw, issues: [] };
+    } else if (sourceChanged && this.query === undefined && this.selected !== null) {
+      const option = next.options?.find(row => row.value === this.selected);
+      this.raw = option?.label ?? this.selected;
+      this.display = this.raw;
+      this.awaitingLabel = !option && next.provider ? this.selected : null;
+      this.formattedRaw = undefined;
     }
     this.applyServerIssues();
     if (this.expanded) this.search('context');
