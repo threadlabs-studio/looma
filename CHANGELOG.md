@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## v0.1.28 Candidate
+
+- Keep anchored popovers and menus inside visual-viewport gutters, falling back
+  from native anchor placement when the rendered surface would overflow.
+- Give popovers and menus one painted, scroll-owning surface and prevent
+  pre-upgrade fallback chrome from surviving as a second wrapper after upgrade.
+- Include dialog chrome in viewport sizing so compact modal content does not
+  introduce avoidable nested scrolling.
+
 ## v0.1.27 Candidate
 
 - Keep selected values to a single bounded line by default, including custom
