@@ -10,17 +10,22 @@
   border: 0;
   border-radius: 0;
   background: transparent;
-  box-shadow: var(--ui-shadow-lg);
+  box-shadow: none;
+  overflow: visible;
 }
 
 .menu__surface {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  max-inline-size: inherit;
   padding: var(--ui-space-1);
   background: var(--ui-surface-elevated);
   border: 1px solid var(--ui-border-default);
   border-radius: var(--ui-radius-3);
+  box-shadow: var(--ui-shadow-lg);
+  max-block-size: inherit;
+  overflow: auto;
 }
 
 :host(:not([data-open])) {
@@ -31,7 +36,7 @@
   position: fixed;
   inset: auto;
   margin: 0;
-  overflow: auto;
+  overflow: visible;
   max-block-size: calc(100dvh - (var(--ui-menu-viewport-gap) * 2));
   opacity: 0;
   transform: translateY(-4px) scale(0.99);

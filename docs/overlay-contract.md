@@ -48,7 +48,9 @@ Define one consistent overlay lifecycle for `ui-popover` and `ui-dialog`, with n
 ## Positioning Policy
 
 - Prefer Popover API and CSS Anchor Positioning when available.
-- Fallback to centralized minimal JS positioning with:
+- Verify the browser's resolved anchor placement against the visual viewport.
+- Fall back to centralized minimal JS positioning when the native placement
+  cannot fit, with:
   - placement preference
   - viewport clamping
   - flip and shift behavior
@@ -57,9 +59,18 @@ Define one consistent overlay lifecycle for `ui-popover` and `ui-dialog`, with n
 `ui-menu`, `ui-context-menu`, `ui-popover`, and `ui-tooltip` all use
 `createAnchoredSurface`. Popover API moves their floating surface into the top
 layer so a scrolling or clipping ancestor cannot hide it. CSS Anchor
-Positioning is the native placement path. The fallback is a small behavioral
-polyfill in the same controller (one animation-frame-coalesced flip/shift pass
-while open), avoiding a full CSS syntax polyfill in every consumer bundle.
+Positioning is the native placement path when its resolved rectangle stays
+inside the visual viewport. If neither native placement fits, the controller
+uses its small behavioral fallback for a frame-coalesced flip/shift pass and
+keeps that containment current while the surface is open. This avoids both
+off-screen native placement and a full CSS syntax polyfill in every consumer
+bundle.
+
+The custom-element host owns top-layer placement only. For menus and popovers,
+a single shadow surface owns background, border, shadow, and conditional
+overflow scrolling. The public light-DOM overlay chrome applies only before
+custom-element definition, so it cannot paint a second box around the upgraded
+surface.
 
 Unanchored viewport UI uses the same top-layer boundary through
 `createViewportSurface`; `ui-toast-region` is the canonical example. Its CSS

@@ -6,20 +6,24 @@
     calc(100vw - (var(--ui-popover-viewport-gap) * 2))
   );
   max-block-size: calc(100dvh - (var(--ui-popover-viewport-gap) * 2));
-  overflow: auto;
+  overflow: visible;
   padding: 0;
   border: 0;
   border-radius: 0;
   background: transparent;
-  box-shadow: var(--ui-shadow-lg);
+  box-shadow: none;
 }
 
 .popover__surface {
   box-sizing: border-box;
+  max-inline-size: inherit;
+  max-block-size: inherit;
+  overflow: auto;
   padding: var(--ui-space-3);
   background: var(--ui-surface-elevated);
   border: 1px solid var(--ui-border-default);
   border-radius: var(--ui-radius-3);
+  box-shadow: var(--ui-shadow-lg);
 }
 
 :host(:not([data-open])) {

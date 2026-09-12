@@ -4,24 +4,23 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-11 13:45 PDT
-Status: Candidate `0.1.26` is public; `0.1.27` is prepared with a bounded,
-single-line selected-value contract for Multi Combobox. Historical release tasks
-below retain their original version context.
+Last Updated: 2026-09-12 10:21 PDT
+Status: Candidate `0.1.27` is public. Viewport-safe single-surface overlays are
+implemented and locally qualified for the next Candidate. Historical release
+tasks below retain their original version context.
 
 ## Current Focus
 
-- Publish and qualify Candidate `0.1.27`, then consume its exact registry bytes
-  in Knit so long selected values cannot crowd out the editing cursor.
+- Publish and qualify the viewport-safe overlay correction, then consume its
+  exact registry bytes in Knit.
+- Keep Candidate `0.1.27`'s bounded selected-value contract qualified in Knit
+  while the overlay correction advances to the next Candidate.
 - Keep dense tree rows at 32px/15px for pointer use and animate to 44px targets
   only after a real touch interaction establishes touch modality.
 - Verify that controlled editor replacements preserve a focused ProseMirror
   selection, while Knit server acknowledgements no longer echo authored JSON
   through the active editor.
 
-- Publish Candidate `0.1.27`, then consume its exact registry bytes from Knit.
-  Candidate `0.1.26` remains the current public `candidate` until those
-  replacement bytes pass main CI and protected publication.
 - Complete hosted-docs qualification and promote Candidate `0.1.13`, which is
   published and qualified in Knit with the opinionated Lucide icon
   language, compact table cells, cell-local resize chrome, hover-first table
@@ -39,6 +38,12 @@ below retain their original version context.
 
 ## Recent Progress
 
+- Anchored overlays now verify native CSS anchor placement against the visual
+  viewport and fall back to the shared flip/shift controller when it overflows.
+  Menu and popover chrome and scrolling live on one shadow surface; pre-upgrade
+  fallback styles no longer paint a second host box. Dialog sizing includes its
+  own chrome. Chromium regression coverage proves oversized anchored and modal
+  surfaces remain inside their viewport gutters.
 - Multi Combobox selected items now default to a finite `12rem` inline size and
   truncate long default or custom chip renderers to one line. The public CSS
   token allows another finite bound, and component docs warn that effectively
