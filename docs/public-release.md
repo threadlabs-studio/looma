@@ -11,13 +11,14 @@ implementation roadmap so package ownership decisions stay visible.
   license metadata.
 - The R1 package graph and protected release workflow target one Candidate
   package, `@threadlabs/looma`, with explicit core, layout, editor, Vue, and CSS subpaths.
-- `@threadlabs/looma@0.1.27` is public under the non-default `candidate` tag with
+- `@threadlabs/looma@0.1.28` is public under the non-default `candidate` tag with
   verified package metadata, integrity, provenance, and a clean public-registry
   consumer. Qualified `0.1.13` remains under `latest` until the protected
   promotion moves an approved immutable Candidate.
-- Candidate `0.1.27` was published from commit
-  `2fdaa1b77a6c8bc0e050b1d874cba1350d7bc830` by workflow run
-  `34651231603` after exact-main CI passed.
+- Candidate `0.1.28` was published from commit
+  `9991671f505a066e3a0de2a3e02dcbaf362f31fc` by workflow run
+  `34710572669` after exact-main CI passed, then its public registry bytes passed
+  Knit's full static and browser qualification gates.
 - The canonical GitHub repository is public and the current release workflow is
   on `main` behind exact-commit CI and protected-environment approval gates.
 - GitHub Pages serves the verified indexable `0.1.1` documentation at
@@ -46,8 +47,8 @@ release policy, and registry tests. React and Svelte remain unpublished in R1.
 
 ## Release 1 Remaining Operator Sequence
 
-1. Publish Candidate `0.1.28` with viewport-safe, single-surface overlays, then
-   qualify its exact public registry bytes in Knit.
+1. Keep Candidate `0.1.28` and its viewport-safe, single-surface overlays
+   qualified against Knit's exact public registry dependency.
 2. For any earlier Candidate promotion, use the manifest-bound promotion and
    release-finalization jobs, which execute
    from the original Candidate commit even after release-tooling changes advance
