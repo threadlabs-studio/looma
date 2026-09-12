@@ -29,6 +29,32 @@ describe("responsive light-DOM layout", () => {
       .toBe("Version history");
   });
 
+  it("contains an oversized dialog inside the viewport and scrolls its surface", async () => {
+    await customElements.whenDefined("ui-dialog");
+    document.body.innerHTML = `
+      <ui-dialog
+        open
+        style="--ui-space-4: 16px; --ui-motion-base: 0ms; --ui-motion-ease: linear; --ui-surface-elevated: white; --ui-border-default: #ccc; --ui-radius-dialog: 12px; --ui-shadow-dialog: 0 4px 12px rgb(0 0 0 / 20%); --ui-overlay-backdrop: rgb(0 0 0 / 30%)"
+      >
+        <h2>Long dialog</h2>
+        <div style="block-size: 1000px">Tall content</div>
+      </ui-dialog>
+    `;
+
+    const host = document.querySelector<HTMLElement>("ui-dialog")!;
+    await expect.poll(() => host.hasAttribute("data-open")).toBe(true);
+    const surface = host.shadowRoot!.querySelector<HTMLDialogElement>("dialog")!;
+    await expect.poll(() => surface.getBoundingClientRect().height).toBeGreaterThan(0);
+    const bounds = surface.getBoundingClientRect();
+
+    expect(bounds.top).toBeGreaterThanOrEqual(16);
+    expect(bounds.bottom).toBeLessThanOrEqual(window.innerHeight - 16);
+    expect(getComputedStyle(host).boxShadow).toBe("none");
+    expect(getComputedStyle(surface).boxShadow).not.toBe("none");
+    expect(getComputedStyle(surface).overflowY).toBe("auto");
+    expect(surface.scrollHeight).toBeGreaterThan(surface.clientHeight);
+  });
+
   it("keeps core host display defaults after the scoped reset", async () => {
     await customElements.whenDefined("ui-button");
     document.body.innerHTML = "<ui-button><button type=\"button\">Save</button></ui-button>";
