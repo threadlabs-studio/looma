@@ -4,17 +4,17 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-12 10:21 PDT
-Status: Candidate `0.1.27` is public. Viewport-safe single-surface overlays are
-implemented and locally qualified for the next Candidate. Historical release
-tasks below retain their original version context.
+Last Updated: 2026-09-12 10:58 PDT
+Status: Candidate `0.1.27` is public; `0.1.28` is prepared with viewport-safe,
+single-surface overlays. Historical release tasks below retain their original
+version context.
 
 ## Current Focus
 
-- Publish and qualify the viewport-safe overlay correction, then consume its
-  exact registry bytes in Knit.
-- Keep Candidate `0.1.27`'s bounded selected-value contract qualified in Knit
-  while the overlay correction advances to the next Candidate.
+- Publish and qualify Candidate `0.1.28`, then consume its exact registry bytes
+  in Knit.
+- Keep Candidate `0.1.28`'s bounded selected-value and viewport-safe overlay
+  contracts qualified together in Knit.
 - Keep dense tree rows at 32px/15px for pointer use and animate to 44px targets
   only after a real touch interaction establishes touch modality.
 - Verify that controlled editor replacements preserve a focused ProseMirror
