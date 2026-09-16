@@ -123,6 +123,58 @@ text; `clear` clears both; `retain` keeps both. Controlled owners handle these e
 `allowFreeText` accepts noncanonical text; `allowCreate` presents a create action
 whose event is handled by the application. Looma never persists domain records.
 
+## Multiple selection
+
+Set `multiple` to turn the same field into a multi-value tag input: selected
+values render as removable chips before the text cursor inside one control. In
+this mode `value` (v-model) is the controlled `readonly MultiComboboxItem[]`
+collection instead of a single string. The application owns the collection,
+metadata, presentation, and persistence.
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue';
+import { Combobox, type ComboboxConfig, type MultiComboboxItem } from '@threadlabs/looma/vue';
+
+const tags = ref<MultiComboboxItem[]>([{ id: 'research', value: 'research', label: 'Research' }]);
+const config: ComboboxConfig = {
+  allowCreate: true,
+  options: [
+    { id: 'research', value: 'research', label: 'Research' },
+    { id: 'design', value: 'design', label: 'Design' },
+    { id: 'planning', value: 'planning', label: 'Planning' },
+  ],
+};
+</script>
+
+<template>
+  <Combobox v-model="tags" multiple label="Page tags" :config="config" :token-separators="[',']"
+    @add-item="e => tags = [...tags, e.item]"
+    @remove-item="e => tags = tags.filter((_, i) => i !== e.index)"
+    @create-item="e => tags = [...tags, { id: e.query, value: e.query, label: e.query }]">
+    <template #item="{ item }"><ui-chip appearance="pill">{{ item.label }}</ui-chip></template>
+  </Combobox>
+</template>
+```
+
+Handle `add-item`, `remove-item`, and `create-item` by immediately replacing the
+controlled collection; a `value-change` (v-model `update:modelValue`) event also
+fires on every add or remove carrying the full current item array, so a single
+change signal works too. Already-selected suggestions are hidden. `tokenSeparators`
+opt in to characters (for example `,`) that commit the current query — as an exact
+match or, with `allowCreate`, a create request — and leave the cursor ready for the
+next item.
+
+The default selected item is a neutral Looma pill. Replace it through `item-${id}`
+to render other shapes or use option metadata for consumer-owned colors and icons.
+Selected items have a default `12rem` maximum inline size and truncate long labels
+to one line; set `--ui-multi-combobox-item-max-inline-size` to another finite length
+when needed. Avoid effectively unbounded values such as `100%`.
+
+With the cursor at the start, Left moves into the selected items and Right returns
+to the input. Backspace removes the preceding item, while Backspace or Delete on a
+focused item removes it.
+
 ## Keyboard and themes
 
 Up/Down navigate enabled options; Home/End navigate after an option becomes active
@@ -138,8 +190,8 @@ Theme hooks: `--ui-field-label-{color,size,weight}`,
 control and text tokens, with 500/400 hierarchy. Keep color overrides accessible
 in light, dark, and high-contrast themes.
 
-Multi-select, virtualization, full form orchestration, complex cross-field graphs,
-and advanced masks are deferred.
+Virtualization, full form orchestration, complex cross-field graphs, and advanced
+masks are deferred.
 
 For compact composition, `label-visibility="sr-only"` keeps the label accessible.
 Use `start` for content inside the field before the input and `footer` for connected
