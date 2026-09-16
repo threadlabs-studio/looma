@@ -42,7 +42,6 @@
     "ui-sidebar": { "status": "published", "package": "@threadlabs/looma/layout" },
     "ui-stack": { "status": "published", "package": "@threadlabs/looma/layout" },
     "ui-switch": { "status": "published", "package": "@threadlabs/looma" },
-    "ui-multi-combobox": { "status": "published", "package": "@threadlabs/looma" },
     "ui-switcher": { "status": "published", "package": "@threadlabs/looma/layout" },
     "ui-tabs": { "status": "published", "package": "@threadlabs/looma" },
     "ui-textarea": { "status": "published", "package": "@threadlabs/looma" },

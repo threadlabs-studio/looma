@@ -11,8 +11,6 @@ export type * from "./generated-component-types";
 
 import { Combobox as ComboboxComponent } from './Combobox';
 export const Combobox = ComboboxComponent;
-import { MultiCombobox as MultiComboboxComponent } from './MultiCombobox';
-export const MultiCombobox = MultiComboboxComponent;
 export type { ComboboxConfig, ComboboxOption, ComboboxProvider, ComboboxRequest, ComboboxChange, ComboboxValidationState, EditableChange, MultiComboboxItem, MultiComboboxItemChange, MultiComboboxCreate, FieldSchema, FieldValidation, FieldFormatter, FieldIssue } from '@threadlabs/looma-core';
 
 export const Stack = createAdapterComponent<AdapterComponentProps["Stack"]>("ui-stack", "Stack");
@@ -73,7 +71,6 @@ export const TreeItem = createAdapterComponent<AdapterComponentProps["TreeItem"]
 
 export const ADAPTER_COMPONENT_TAG_MAP = {
   Combobox: "ui-combobox",
-  MultiCombobox: "ui-multi-combobox",
   Stack: "ui-stack",
   Inline: "ui-inline",
   Cluster: "ui-cluster",

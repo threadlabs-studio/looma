@@ -54,7 +54,6 @@ const sidebars: SidebarsConfig = {
         "components/ui-icon-button",
         "components/ui-input",
         "components/ui-combobox",
-        "components/ui-multi-combobox",
         "components/ui-editable",
         "components/ui-select",
         "components/ui-textarea",

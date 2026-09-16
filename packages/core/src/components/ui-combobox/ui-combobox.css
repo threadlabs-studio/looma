@@ -22,3 +22,26 @@ input:disabled, button:disabled { color: var(--ui-text-muted); cursor: not-allow
 .sr-only { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 @media (pointer: coarse) { button { min-inline-size: 2.75rem; min-block-size: 2.75rem; } }
 @media (forced-colors: active) { .field, .popup { border-color: CanvasText; } .option[data-active] { outline-color: Highlight; } }
+
+/* Multiple mode: chips wrap before the cursor on one flexible field line. */
+:host([multiple]) .field { flex-wrap: wrap; align-items: center; gap: var(--ui-space-1); min-block-size: var(--ui-multi-combobox-min-block-size, 2.5rem); padding: var(--ui-space-1); }
+:host([multiple]) input { flex: 1 0 var(--ui-multi-combobox-input-min-inline-size, 5rem); width: auto; min-block-size: 1.75rem; padding: var(--ui-space-0-5) var(--ui-space-1); }
+.items { display: contents; }
+.item {
+  appearance: none;
+  display: inline-flex;
+  min-inline-size: 0;
+  max-inline-size: min(100%, var(--ui-multi-combobox-item-max-inline-size, 12rem));
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  border-radius: var(--ui-radius-1);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: default;
+}
+.item > slot { display: block; min-inline-size: 0; max-inline-size: 100%; overflow: hidden; }
+.item > slot::slotted(*) { min-inline-size: 0; max-inline-size: 100%; }
+.item:focus-visible { outline: 2px solid var(--ui-focus-ring); outline-offset: 1px; }
+.item:disabled { opacity: .6; }
