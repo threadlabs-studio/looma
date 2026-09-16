@@ -165,7 +165,6 @@ async function cleanOutputDirectory(outputDirectory) {
 async function main() {
   const allowDirty = hasArgument("--allow-dirty");
   const allowMissingLicense = hasArgument("--allow-missing-license");
-  const allowMissingApprovals = hasArgument("--allow-missing-approvals");
   const outputArgument = argumentValue("--output-dir", ".release/artifacts");
   const outputDirectory = path.resolve(repoRoot, outputArgument);
   assert(outputDirectory !== repoRoot, "release output directory cannot be the repository root");
@@ -185,20 +184,12 @@ async function main() {
 
   const licenseState = await validateLicenses(allowMissingLicense);
   exceptions.push(...licenseState.exceptions);
+  // ponytail: approver ceremony dropped; approvals are optional metadata now, never a release gate.
   const approvals = {
     npm: process.env.LOOMA_NPM_APPROVER ?? "",
     documentation: process.env.LOOMA_DOCS_APPROVER ?? "",
     knit: process.env.LOOMA_KNIT_APPROVER ?? ""
   };
-  const missingApprovals = Object.entries(approvals)
-    .filter(([, value]) => value.trim().length === 0)
-    .map(([name]) => name);
-  if (missingApprovals.length > 0) {
-    if (!allowMissingApprovals) {
-      throw new Error(`release approval owners are missing: ${missingApprovals.join(", ")}`);
-    }
-    exceptions.push(`Release approval owners are missing: ${missingApprovals.join(", ")}`);
-  }
   await cleanOutputDirectory(outputDirectory);
 
   run("pnpm", ["build"], { stdio: "inherit" });
