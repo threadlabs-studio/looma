@@ -26,3 +26,40 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 export const SmartField: Story = {};
+
+// Multiple mode: the same component with removable chips and token separators.
+export const Multiple: Story = {
+  render: () => {
+    type Item = { id: string; value: string; label: string };
+    const host = document.createElement('ui-combobox') as HTMLElement & {
+      config: ComboboxConfig; value: readonly Item[]; multiple: boolean; tokenSeparators: readonly string[];
+    };
+    host.setAttribute('label', 'Page tags');
+    host.setAttribute('placeholder', 'Add a tag…');
+    host.style.maxWidth = '24rem';
+    host.multiple = true;
+    host.tokenSeparators = [','];
+    host.config = {
+      allowCreate: true,
+      options: [
+        { id: 'research', value: 'research', label: 'Research' },
+        { id: 'design', value: 'design', label: 'Design' },
+        { id: 'planning', value: 'planning', label: 'Planning' },
+        { id: 'ops', value: 'ops', label: 'Operations' },
+      ],
+    };
+    host.value = [{ id: 'research', value: 'research', label: 'Research' }];
+    host.addEventListener('add-item', event => {
+      host.value = [...host.value, (event as CustomEvent<{ item: Item }>).detail.item];
+    });
+    host.addEventListener('remove-item', event => {
+      const index = (event as CustomEvent<{ index: number }>).detail.index;
+      host.value = host.value.filter((_, position) => position !== index);
+    });
+    host.addEventListener('create-item', event => {
+      const query = (event as CustomEvent<{ query: string }>).detail.query;
+      host.value = [...host.value, { id: query, value: query, label: query }];
+    });
+    return host;
+  },
+};

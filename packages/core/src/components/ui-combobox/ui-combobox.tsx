@@ -3,8 +3,13 @@ import { createAnchoredSurface, type AnchoredSurface } from '../../overlay/posit
 import { openOverlay, closeOverlay } from '../../overlay/manager';
 import { formatEditingValue, validateField, type FieldResult } from '../../field/validation';
 import type { ComboboxConfig, ComboboxOption, ComboboxChange, ComboboxValidationState } from '../../field/combobox';
+import type { MultiComboboxItem, MultiComboboxItemChange, MultiComboboxCreate } from '../../field/multi-combobox';
 
-/** A single editable field with contextual suggestions, optional help and field validation. */
+/**
+ * A single editable field with contextual suggestions, optional help and field validation.
+ * With `multiple`, it becomes a multi-value tag field: `value` holds the selected
+ * items, chips render before the cursor, and add/remove/create item events fire.
+ */
 @Component({ tag: 'ui-combobox', styleUrl: 'ui-combobox.css', shadow: true })
 export class UICombobox {
   @Element() host: HTMLElement;
@@ -12,9 +17,16 @@ export class UICombobox {
   @Prop() label = '';
   @Prop() placeholder = '';
   @Prop() name = '';
-  /** Controlled canonical value. Undefined selects uncontrolled mode; null means no selection. */
-  @Prop() value?: string | null;
+  /**
+   * Controlled canonical value. Undefined selects uncontrolled mode; null means no selection.
+   * With `multiple`, this is the controlled list of selected items instead.
+   */
+  @Prop() value?: string | null | readonly MultiComboboxItem[];
   @Prop() defaultValue?: string;
+  /** Render selected values as removable chips before the cursor. `value` becomes the item list. */
+  @Prop({ reflect: true }) multiple = false;
+  /** Characters that commit the current query and leave the input ready for the next item (multiple only). */
+  @Prop() tokenSeparators: readonly string[] = [];
   /** Controlled raw editing text; independent of canonical selection. */
   @Prop() query?: string;
   @Prop() defaultQuery = '';
@@ -32,13 +44,20 @@ export class UICombobox {
   @Prop() help = '';
 
   @Event({ eventName: 'query-change' }) queryChange: EventEmitter<{ query: string; display: string; trigger: 'keyboard' | 'pointer' | 'programmatic' }>;
-  @Event({ eventName: 'value-change' }) valueChange: EventEmitter<ComboboxChange>;
+  /** Single mode: the ComboboxChange. Multiple mode: the full current item list on any change. */
+  @Event({ eventName: 'value-change' }) valueChange: EventEmitter<ComboboxChange | readonly MultiComboboxItem[]>;
   @Event({ eventName: 'free-entry' }) freeEntry: EventEmitter<ComboboxChange>;
   @Event({ eventName: 'create-entry' }) createEntry: EventEmitter<ComboboxChange>;
   @Event({ eventName: 'dependency-invalidate' }) dependencyInvalidate: EventEmitter<ComboboxChange>;
   @Event({ eventName: 'validation-change' }) validationChange: EventEmitter<ComboboxValidationState>;
   /** Supplies the current result rows for framework-owned rich slots. */
   @Event({ eventName: 'options-change' }) optionsChange: EventEmitter<readonly ComboboxOption[]>;
+  /** Multiple mode: a suggestion or exact-match token was committed as a new item. */
+  @Event({ eventName: 'add-item' }) addItem: EventEmitter<MultiComboboxItemChange>;
+  /** Multiple mode: a selected item was removed via chip keyboard controls. */
+  @Event({ eventName: 'remove-item' }) removeItem: EventEmitter<MultiComboboxItemChange>;
+  /** Multiple mode: an unmatched query was submitted for creation. */
+  @Event({ eventName: 'create-item' }) createItem: EventEmitter<MultiComboboxCreate>;
 
   @State() raw = '';
   @State() display = '';
@@ -69,8 +88,22 @@ export class UICombobox {
   private formattedRaw?: string;
   private formattedWith?: ComboboxConfig['format'];
 
+  /** Multiple mode: the controlled selected items (from `value`). Empty otherwise. */
+  private get items(): readonly MultiComboboxItem[] {
+    return this.multiple && Array.isArray(this.value) ? this.value : [];
+  }
+  private get selectedValues() { return new Set(this.items.map(item => item.value)); }
+
   componentWillLoad() {
-    this.selected = this.value !== undefined ? this.value : this.defaultValue ?? null;
+    if (this.multiple) {
+      this.selected = null;
+      this.raw = this.query ?? this.defaultQuery;
+      this.display = this.raw;
+      this.initialRaw = this.raw;
+      this.applyServerIssues();
+      return;
+    }
+    this.selected = (this.value !== undefined ? this.value : this.defaultValue ?? null) as string | null;
     this.raw = this.query ?? this.defaultQuery;
     if (this.query === undefined && !this.raw && this.selected !== null) {
       this.raw = this.config.options?.find(row => row.value === this.selected)?.label ?? this.selected;
@@ -97,8 +130,9 @@ export class UICombobox {
     if (!this.surface && this.popup && this.field) this.surface = createAnchoredSurface(this.popup, { anchor: this.field, placement: 'bottom-start' });
   }
   @Watch('value') syncValue() {
-    if (this.value === undefined) return;
-    this.selected = this.value;
+    // Multiple mode: `value` is the item list; Stencil re-renders chips on reference change.
+    if (this.multiple || this.value === undefined) return;
+    this.selected = this.value as string | null;
     if (this.query === undefined) {
       const proposal = this.proposedChange;
       const option = this.config.options?.find(row => row.value === this.selected)
@@ -134,9 +168,13 @@ export class UICombobox {
     if (next.context !== previous?.context) {
       this.close();
       const policy = next.invalidation ?? 'retain-query';
-      const value = policy === 'retain' ? this.selected : null;
-      const query = policy === 'clear' ? '' : this.raw;
-      this.commit(value, query, null, 'invalidation', 'programmatic');
+      if (this.multiple) {
+        if (policy === 'clear') this.setMultiQuery('', 'programmatic');
+      } else {
+        const value = policy === 'retain' ? this.selected : null;
+        const query = policy === 'clear' ? '' : this.raw;
+        this.commit(value, query, null, 'invalidation', 'programmatic');
+      }
       this.validation = { status: 'pristine', touched: false, dirty: this.raw !== this.initialRaw, issues: [] };
     }
     this.applyServerIssues();
@@ -195,11 +233,18 @@ export class UICombobox {
         this.resetValidation();
       }
       const ids = new Set<string>();
+      const selected = this.multiple ? this.selectedValues : undefined;
       this.rows = options.filter(option => {
         if (ids.has(option.id)) return false;
         ids.add(option.id);
-        return this.fullSet || (config.filter ? config.filter(option, query, config.context)
-          : config.provider ? true : option.label.toLocaleLowerCase().includes(query.toLocaleLowerCase()));
+        if (this.fullSet) return true;
+        // Multiple mode always hides already-selected items and, absent an owner
+        // filter, falls back to a client label match (there is no unfiltered pass-through).
+        if (selected) return !selected.has(option.value)
+          && (config.filter ? config.filter(option, query, config.context)
+            : option.label.toLocaleLowerCase().includes(query.toLocaleLowerCase()));
+        return config.filter ? config.filter(option, query, config.context)
+          : config.provider ? true : option.label.toLocaleLowerCase().includes(query.toLocaleLowerCase());
       });
       const groups = new Map<string, ComboboxOption[]>();
       for (const row of this.rows) {
@@ -291,12 +336,80 @@ export class UICombobox {
   private choose(index: number, trigger: 'keyboard' | 'pointer') {
     const option = this.rows[index];
     if (option?.disabled) return;
+    if (this.multiple) {
+      if (option) this.addSelectedItem(option, trigger);
+      else if (this.canCreate && index === this.rows.length) this.createSelectedItem(this.raw.trim(), trigger);
+      else return;
+      this.setMultiQuery('', trigger);
+      this.close();
+      this.input?.focus();
+      return;
+    }
     if (option) this.commit(option.value, option.label, option, 'selection', trigger);
     else if (this.canCreate && index === this.rows.length) this.commit(null, this.raw, null, 'create', trigger);
     else return;
     this.close();
     this.input?.focus();
     if (this.config.validateOn !== 'submit') queueMicrotask(() => void this.validate());
+  }
+  // --- Multiple-mode helpers ---------------------------------------------
+  private emitItems(items: readonly MultiComboboxItem[]) { this.valueChange.emit(items); }
+  private setMultiQuery(query: string, trigger: 'keyboard' | 'pointer' | 'programmatic') {
+    if (this.query === undefined) { this.raw = query; this.display = query; this.formattedRaw = undefined; }
+    if (this.input) this.input.value = query;
+    this.queryChange.emit({ query, display: query, trigger });
+  }
+  private addSelectedItem(option: MultiComboboxItem, trigger: 'keyboard' | 'pointer') {
+    this.addItem.emit({ item: option, index: this.items.length, trigger });
+    this.emitItems([...this.items, option]);
+  }
+  private createSelectedItem(query: string, trigger: 'keyboard' | 'pointer') {
+    if (!query) return;
+    this.createItem.emit({ query, trigger });
+  }
+  private commitQuery(trigger: 'keyboard' | 'pointer') {
+    const query = this.raw.trim();
+    if (!query) return;
+    const normalized = query.toLocaleLowerCase();
+    const option = this.rows.find(row => row.label.trim().toLocaleLowerCase() === normalized);
+    if (option) { this.setMultiQuery('', trigger); this.addSelectedItem(option, trigger); }
+    else if (this.config.allowCreate) { this.setMultiQuery('', trigger); this.createSelectedItem(query, trigger); }
+  }
+  private removeItemAt(index: number, trigger: 'keyboard' | 'pointer' | 'programmatic') {
+    const item = this.items[index];
+    if (!item || item.disabled || this.disabled || this.readOnly) return;
+    this.removeItem.emit({ item, index, trigger });
+    this.emitItems(this.items.filter((_, position) => position !== index));
+    requestAnimationFrame(() => {
+      const buttons = this.host.shadowRoot?.querySelectorAll<HTMLButtonElement>('[part="item"]') ?? [];
+      const next = buttons[Math.min(index, buttons.length - 1)] ?? buttons[index - 1];
+      if (next && next.dataset.value !== item.value) next.focus();
+      else void this.focusInput();
+    });
+  }
+  private focusItem(index: number) {
+    this.host.shadowRoot?.querySelectorAll<HTMLButtonElement>('[part="item"]')[index]?.focus();
+  }
+  private onItemKeyDown = (event: KeyboardEvent, index: number) => {
+    if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault(); event.stopPropagation(); this.focusItem(Math.max(0, index - 1));
+    } else if (event.key === 'ArrowRight') {
+      event.preventDefault(); event.stopPropagation();
+      if (index === this.items.length - 1) void this.focusInput(); else this.focusItem(index + 1);
+    } else if (event.key === 'Backspace' || event.key === 'Delete') {
+      event.preventDefault(); event.stopPropagation(); this.removeItemAt(index, 'keyboard');
+    }
+  };
+  private handleMultipleKeydown(event: KeyboardEvent): boolean {
+    if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return false;
+    if (this.tokenSeparators.includes(event.key)) {
+      event.preventDefault(); event.stopPropagation(); this.commitQuery('keyboard'); return true;
+    }
+    if (this.raw || (this.input?.selectionStart ?? 0) > 0) return false;
+    if (event.key === 'ArrowLeft' && this.items.length) { event.preventDefault(); this.focusItem(this.items.length - 1); return true; }
+    if (event.key === 'Backspace' && this.items.length) { event.preventDefault(); this.removeItemAt(this.items.length - 1, 'keyboard'); return true; }
+    return false;
   }
   private move(key: string) {
     const indices = this.rows.flatMap((row, index) => row.disabled ? [] : [index]);
@@ -311,6 +424,7 @@ export class UICombobox {
   }
   private onKeydown = (event: KeyboardEvent) => {
     if (this.composing || event.isComposing || this.disabled || this.readOnly) return;
+    if (this.multiple && this.handleMultipleKeydown(event)) return;
     if (event.key === 'Escape' && this.expanded) { event.preventDefault(); event.stopPropagation(); this.close(); return; }
     if (event.key === 'Tab') { this.close(); return; }
     if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
@@ -330,7 +444,7 @@ export class UICombobox {
     this.close();
     this.format('blur');
     this.validation = { ...this.validation, touched: true };
-    if (this.config.allowFreeText && this.selected === null) this.commit(null, this.raw, null, 'free-entry', 'keyboard');
+    if (!this.multiple && this.config.allowFreeText && this.selected === null) this.commit(null, this.raw, null, 'free-entry', 'keyboard');
     if ((this.config.validateOn ?? 'blur') === 'blur') void this.validate();
   };
   private setValidation(result: FieldResult, touched = this.validation.touched) {
@@ -366,6 +480,14 @@ export class UICombobox {
       <div class="field" part="field" ref={element => this.field = element}
         onClick={event => { if (!event.composedPath().some(node => node instanceof HTMLButtonElement)) this.input?.focus(); }}>
         <slot name="start" />
+        {this.multiple && <div class="items" role="group" aria-label={`Selected ${this.label}`}>
+          {this.items.map((item, index) => <button type="button" part="item" class="item" data-value={item.value}
+            tabIndex={-1} disabled={this.disabled || this.readOnly || item.disabled}
+            aria-label={`${item.label}, press Delete or Backspace to remove`}
+            onKeyDown={event => this.onItemKeyDown(event, index)}>
+            <slot name={`item-${item.id}`}><ui-chip appearance="pill">{item.label}</ui-chip></slot>
+          </button>)}
+        </div>}
         <input id="input" ref={element => this.input = element} role="combobox" aria-autocomplete="list"
           aria-expanded={String(this.expanded)} aria-controls="listbox" aria-activedescendant={this.expanded && this.active >= 0 ? `option-${this.active}` : undefined}
           aria-describedby={description} aria-invalid={String(this.validation.status === 'error')} aria-busy={String(this.validation.status === 'pending')}

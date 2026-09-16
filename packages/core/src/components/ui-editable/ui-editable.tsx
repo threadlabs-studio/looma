@@ -43,9 +43,9 @@ export class UIEditable {
 
   private focusEditor() {
     const editRoot = this.host.querySelector<HTMLElement>('[slot="edit"]');
-    const candidate = editRoot?.matches('input, textarea, select, button, [tabindex], ui-combobox, ui-multi-combobox')
+    const candidate = editRoot?.matches('input, textarea, select, button, [tabindex], ui-combobox')
       ? editRoot
-      : editRoot?.querySelector<HTMLElement>('input, textarea, select, button, [tabindex], ui-combobox, ui-multi-combobox');
+      : editRoot?.querySelector<HTMLElement>('input, textarea, select, button, [tabindex], ui-combobox');
     const focusInput = (candidate as HTMLElement & { focusInput?: () => Promise<void> | void } | null)?.focusInput;
     if (typeof focusInput === 'function') void focusInput.call(candidate);
     else candidate?.focus();

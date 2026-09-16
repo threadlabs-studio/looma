@@ -6,8 +6,8 @@ The established library vocabulary separates three responsibilities:
 
 - `Editable` swaps a presentation surface for an editing surface after an
   explicit click or keyboard activation.
-- `MultiCombobox` is a multi-value input whose values are rendered as navigable,
-  removable items followed by a text cursor.
+- `Combobox multiple` (one component) is a multi-value input whose values are
+  rendered as navigable, removable items followed by a text cursor.
 - `Combobox` owns the optional autocomplete popup and custom-value proposal.
 
 Looma composes those responsibilities instead of making a domain-specific tag
@@ -25,9 +25,9 @@ rollback.
   trigger.
 - `edit-change` communicates `{ edit, reason, trigger }`.
 
-## `ui-multi-combobox`
+## `ui-combobox multiple`
 
-- `items` contains the selected `{ id, value, label, disabled? }` values.
+- `value` contains the selected `{ id, value, label, disabled? }` items.
 - `config` uses Looma's existing combobox option/provider contract.
 - Selected items render inside the same outlined control as the text input.
 - Left/Right move between selected items and the input. Backspace/Delete propose

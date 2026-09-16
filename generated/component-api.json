@@ -458,7 +458,7 @@
       "tag": "ui-combobox",
       "package": "@threadlabs/looma",
       "className": "UIComboboxElement",
-      "description": "Editable smart field with contextual suggestions, connected help, and Standard Schema validation.",
+      "description": "Editable smart field with contextual suggestions, connected help, and Standard Schema validation. With multiple, it becomes a multi-value tag field.",
       "attributes": [
         {
           "name": "label",
@@ -481,7 +481,7 @@
         {
           "name": "value",
           "property": "value",
-          "type": "string | null",
+          "type": "string | null | readonly MultiComboboxItem[]",
           "default": null
         },
         {
@@ -549,6 +549,12 @@
           "property": "help",
           "type": "string",
           "default": ""
+        },
+        {
+          "name": "multiple",
+          "property": "multiple",
+          "type": "boolean",
+          "default": false
         }
       ],
       "properties": [
@@ -569,7 +575,7 @@
         },
         {
           "name": "value",
-          "type": "string | null",
+          "type": "string | null | readonly MultiComboboxItem[]",
           "default": null
         },
         {
@@ -631,6 +637,16 @@
           "name": "help",
           "type": "string",
           "default": ""
+        },
+        {
+          "name": "multiple",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "tokenSeparators",
+          "type": "readonly string[]",
+          "default": []
         }
       ],
       "events": [
@@ -640,7 +656,7 @@
         },
         {
           "name": "value-change",
-          "detailType": "ComboboxChange"
+          "detailType": "ComboboxChange | readonly MultiComboboxItem[]"
         },
         {
           "name": "free-entry",
@@ -661,6 +677,18 @@
         {
           "name": "options-change",
           "detailType": "readonly ComboboxOption[]"
+        },
+        {
+          "name": "add-item",
+          "detailType": "MultiComboboxItemChange"
+        },
+        {
+          "name": "remove-item",
+          "detailType": "MultiComboboxItemChange"
+        },
+        {
+          "name": "create-item",
+          "detailType": "MultiComboboxCreate"
         }
       ],
       "slots": [
@@ -691,6 +719,10 @@
         {
           "name": "footer",
           "description": "Connected controls below the suggestion list."
+        },
+        {
+          "name": "item-${id}",
+          "description": "Multiple mode: noninteractive rich content for a selected item."
         }
       ]
     },
@@ -1749,166 +1781,6 @@
         {
           "name": "default",
           "description": "Default child content."
-        }
-      ]
-    },
-    {
-      "tag": "ui-multi-combobox",
-      "package": "@threadlabs/looma",
-      "className": "UIMultiComboboxElement",
-      "description": "Controlled multi-value combobox with removable, customizable selected items.",
-      "attributes": [
-        {
-          "name": "label",
-          "property": "label",
-          "type": "string",
-          "default": ""
-        },
-        {
-          "name": "placeholder",
-          "property": "placeholder",
-          "type": "string",
-          "default": ""
-        },
-        {
-          "name": "query",
-          "property": "query",
-          "type": "string",
-          "default": null
-        },
-        {
-          "name": "default-query",
-          "property": "defaultQuery",
-          "type": "string",
-          "default": ""
-        },
-        {
-          "name": "disabled",
-          "property": "disabled",
-          "type": "boolean",
-          "default": false
-        },
-        {
-          "name": "readonly",
-          "property": "readOnly",
-          "type": "boolean",
-          "default": false
-        },
-        {
-          "name": "required",
-          "property": "required",
-          "type": "boolean",
-          "default": false
-        },
-        {
-          "name": "name",
-          "property": "name",
-          "type": "string",
-          "default": ""
-        }
-      ],
-      "properties": [
-        {
-          "name": "label",
-          "type": "string",
-          "default": ""
-        },
-        {
-          "name": "placeholder",
-          "type": "string",
-          "default": ""
-        },
-        {
-          "name": "items",
-          "type": "readonly MultiComboboxItem[]",
-          "default": []
-        },
-        {
-          "name": "config",
-          "type": "ComboboxConfig",
-          "default": {}
-        },
-        {
-          "name": "query",
-          "type": "string",
-          "default": null
-        },
-        {
-          "name": "defaultQuery",
-          "type": "string",
-          "default": ""
-        },
-        {
-          "name": "disabled",
-          "type": "boolean",
-          "default": false
-        },
-        {
-          "name": "readOnly",
-          "type": "boolean",
-          "default": false
-        },
-        {
-          "name": "required",
-          "type": "boolean",
-          "default": false
-        },
-        {
-          "name": "name",
-          "type": "string",
-          "default": ""
-        }
-      ],
-      "events": [
-        {
-          "name": "query-change",
-          "detailType": "{ query: string; display: string; trigger: string }"
-        },
-        {
-          "name": "add-item",
-          "detailType": "MultiComboboxItemChange"
-        },
-        {
-          "name": "remove-item",
-          "detailType": "MultiComboboxItemChange"
-        },
-        {
-          "name": "create-item",
-          "detailType": "MultiComboboxCreate"
-        },
-        {
-          "name": "options-change",
-          "detailType": "readonly ComboboxOption[]"
-        }
-      ],
-      "slots": [
-        {
-          "name": "item-${id}",
-          "description": "Noninteractive rich content for a selected item."
-        },
-        {
-          "name": "option-${id}",
-          "description": "Noninteractive rich content for a suggestion."
-        },
-        {
-          "name": "create",
-          "description": "Create-entry row content."
-        },
-        {
-          "name": "footer",
-          "description": "Connected controls below the suggestion list."
-        },
-        {
-          "name": "loading",
-          "description": "Loading message."
-        },
-        {
-          "name": "empty",
-          "description": "Empty result message."
-        },
-        {
-          "name": "error",
-          "description": "Lookup failure message."
         }
       ]
     },

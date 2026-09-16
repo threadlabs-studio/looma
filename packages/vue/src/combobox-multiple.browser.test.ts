@@ -1,9 +1,9 @@
 import { afterEach, expect, it, vi } from 'vitest';
-import { createApp, h, nextTick, ref, type App } from 'vue';
-import { MultiCombobox } from './index';
+import { createApp, h, ref, type App } from 'vue';
+import { Combobox } from './index';
 
 const apps: App[] = [];
-const flush = async () => { await nextTick(); for (let index = 0; index < 4; index += 1) await new Promise(requestAnimationFrame); };
+const flush = async () => { for (let index = 0; index < 4; index += 1) await new Promise(requestAnimationFrame); };
 afterEach(() => { apps.splice(0).forEach(app => app.unmount()); document.body.innerHTML = ''; });
 
 it('binds structured values, renders rich items, and maps tag events', async () => {
@@ -14,7 +14,7 @@ it('binds structured values, renders rich items, and maps tag events', async () 
   const host = document.createElement('div');
   document.body.append(host);
   const app = createApp({
-    render: () => h(MultiCombobox, { label: 'Page tags', items: items.value, config: { options, allowCreate: true }, tokenSeparators: [','], onRemoveItem: onRemove, onCreateItem: onCreate }, {
+    render: () => h(Combobox, { label: 'Page tags', multiple: true, modelValue: items.value, config: { options, allowCreate: true }, tokenSeparators: [','], onRemoveItem: onRemove, onCreateItem: onCreate }, {
       item: ({ item }: { item: { label: string } }) => h('strong', `Selected ${item.label}`),
       option: ({ option }: { option: { label: string } }) => h('span', `Option ${option.label}`),
     }),
@@ -23,8 +23,8 @@ it('binds structured values, renders rich items, and maps tag events', async () 
   app.mount(host);
   await flush();
 
-  const field = host.querySelector<HTMLElement & { items: unknown; config: unknown; tokenSeparators: unknown }>('ui-multi-combobox')!;
-  expect(field.items).toEqual(items.value);
+  const field = host.querySelector<HTMLElement & { value: unknown; config: unknown; tokenSeparators: unknown }>('ui-combobox')!;
+  expect(field.value).toEqual(items.value);
   expect(field.config).toMatchObject({ allowCreate: true });
   expect(field.tokenSeparators).toEqual([',']);
   expect(field.querySelector('[slot="item-research"]')?.textContent).toContain('Selected Research');
@@ -39,9 +39,10 @@ it('keeps a custom chip renderer inside the selected-item width bound', async ()
   const host = document.createElement('div');
   document.body.append(host);
   const app = createApp({
-    render: () => h(MultiCombobox, {
+    render: () => h(Combobox, {
       label: 'Page tags',
-      items: [{ id: 'long-value', value: 'long-value', label }],
+      multiple: true,
+      modelValue: [{ id: 'long-value', value: 'long-value', label }],
       config: { options: [] },
     }, {
       item: ({ item }: { item: { label: string } }) => h('ui-chip', { appearance: 'tag' }, item.label),
@@ -51,7 +52,8 @@ it('keeps a custom chip renderer inside the selected-item width bound', async ()
   app.mount(host);
   await flush();
 
-  const field = host.querySelector('ui-multi-combobox')!;
+  const field = host.querySelector('ui-combobox')!;
+  await expect.poll(() => field.shadowRoot?.querySelector('[part="item"]')).toBeTruthy();
   const item = field.shadowRoot!.querySelector<HTMLElement>('[part="item"]')!;
   const chip = field.querySelector<HTMLElement>('ui-chip')!;
   await expect.poll(() => chip.shadowRoot?.querySelector('.chip__label')).toBeTruthy();

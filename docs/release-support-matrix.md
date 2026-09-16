@@ -29,7 +29,7 @@ authorization still requires the protected owner preflight before registry mutat
 `ui-callout`, `ui-chip`, `ui-combobox`, `ui-context-menu`, `ui-dialog`, `ui-disclosure`, `ui-editable`, `ui-floating-action-button`,
 `ui-form-field`, `ui-icon-button`, `ui-input`, `ui-menu`, `ui-menu-item`,
 `ui-popover`, `ui-radio`, `ui-radio-group`, `ui-search-result-row`,
-`ui-search-shell`, `ui-select`, `ui-switch`, `ui-tabs`, `ui-multi-combobox`, `ui-textarea`,
+`ui-search-shell`, `ui-select`, `ui-switch`, `ui-tabs`, `ui-textarea`,
 `ui-toast-region`, `ui-tooltip`, `ui-top-bar`, `ui-tree`, `ui-tree-item`.
 
 ### Editor: published Candidate

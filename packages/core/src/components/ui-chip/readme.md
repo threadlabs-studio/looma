@@ -21,12 +21,12 @@ A compact, non-interactive metadata label.
 
 ### Used by
 
- - [ui-multi-combobox](../ui-multi-combobox)
+ - [ui-combobox](../ui-combobox)
 
 ### Graph
 ```mermaid
 graph TD;
-  ui-multi-combobox --> ui-chip
+  ui-combobox --> ui-chip
   style ui-chip fill:#f9f,stroke:#333,stroke-width:4px
 ```
 
