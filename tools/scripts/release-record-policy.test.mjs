@@ -41,11 +41,11 @@ test("release record downloads and validates the exact Candidate and promotion e
   assert.match(releaseRecordJob, /persist-credentials: false/);
   assert.match(
     releaseRecordJob,
-    /name: looma-0\.1\.28-candidate[\s\S]*?path: \.release\/artifacts\/[\s\S]*?run-id: \$\{\{ inputs\.candidate_workflow_run_id \}\}/
+    /name: looma-candidate[\s\S]*?path: \.release\/artifacts\/[\s\S]*?run-id: \$\{\{ inputs\.candidate_workflow_run_id \}\}/
   );
   assert.match(
     releaseRecordJob,
-    /name: looma-0\.1\.28-registry-promotion-evidence[\s\S]*?path: \.release\/evidence\/[\s\S]*?run-id: \$\{\{ github\.run_id \}\}/
+    /name: looma-registry-promotion-evidence[\s\S]*?path: \.release\/evidence\/[\s\S]*?run-id: \$\{\{ github\.run_id \}\}/
   );
   assert.match(releaseRecordJob, /node \.release\/orchestrator\/finalize-release\.mjs\n/);
   assert.match(releaseRecordJob, /LOOMA_RELEASE_RECORD: approved/);
