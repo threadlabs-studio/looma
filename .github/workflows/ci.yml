@@ -87,10 +87,6 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Verify release packaging
-        env:
-          LOOMA_NPM_APPROVER: CI
-          LOOMA_DOCS_APPROVER: CI
-          LOOMA_KNIT_APPROVER: CI
         run: pnpm release:verify
 
   verify:
