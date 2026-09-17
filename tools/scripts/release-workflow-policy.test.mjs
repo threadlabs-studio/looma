@@ -52,6 +52,36 @@ test("release workflow is manual, main-only, serialized, and environment-protect
   assert.match(workflow, /environment: npm-release/);
 });
 
+test("candidate publish auto-triggers on a successful main CI run while keeping manual dispatch", () => {
+  assert.match(workflow, /workflow_run:/);
+  assert.match(workflow, /workflows: \["CI"\]/);
+  assert.match(workflow, /types: \[completed\]/);
+  assert.match(workflow, /branches: \[main\]/);
+  assert.match(workflow, /workflow_dispatch:/);
+  // Auto path is gated on a successful CI run for main and derives its inputs from the event.
+  assert.match(prepareJob, /github\.event\.workflow_run\.conclusion == 'success'/);
+  assert.match(prepareJob, /AUTO_RUN_ID: \$\{\{ github\.event\.workflow_run\.id \}\}/);
+  assert.match(prepareJob, /AUTO_SHA: \$\{\{ github\.event\.workflow_run\.head_sha \}\}/);
+  // Publish job stays bound to the protected environment and the resolved release commit.
+  assert.match(publishJob, /environment: npm-release/);
+  assert.match(publishJob, /ref: \$\{\{ needs\.prepare\.outputs\.release_sha \}\}/);
+  assert.match(publishJob, /needs\.prepare\.outputs\.publish_candidate == 'true'/);
+});
+
+test("candidate publish skips cleanly when the version is already on the public registry", () => {
+  assert.match(prepareJob, /- name: Skip when candidate version is already published/);
+  assert.match(prepareJob, /npm view "@threadlabs\/looma@\$\{version\}" version --registry https:\/\/registry\.npmjs\.org\//);
+  assert.match(prepareJob, /version_new=false/);
+  assert.match(prepareJob, /version_new=true/);
+  assert.match(publishJob, /needs\.prepare\.outputs\.version_new == 'true'/);
+});
+
+test("release workflow no longer requires human approvers", () => {
+  assert.doesNotMatch(workflow, /npm_approver:|documentation_approver:|knit_approver:/);
+  assert.doesNotMatch(workflow, /LOOMA_NPM_APPROVER|LOOMA_DOCS_APPROVER|LOOMA_KNIT_APPROVER/);
+  assert.doesNotMatch(ciWorkflow, /LOOMA_NPM_APPROVER|LOOMA_DOCS_APPROVER|LOOMA_KNIT_APPROVER/);
+});
+
 test("Candidate publication and latest promotion are separate validated dispatches", () => {
   assert.match(workflow, /ci_workflow_run_id:/);
   assert.match(workflow, /candidate_workflow_run_id:/);
@@ -65,7 +95,7 @@ test("Candidate publication and latest promotion are separate validated dispatch
   const releaseVerification = workflow.indexOf("pnpm release:verify");
   assert.ok(validation >= 0);
   assert.ok(releaseVerification > validation);
-  assert.match(prepareJob, /LOOMA_CI_WORKFLOW_RUN_ID: \$\{\{ inputs\.ci_workflow_run_id \}\}/);
+  assert.match(prepareJob, /LOOMA_CI_WORKFLOW_RUN_ID: \$\{\{ steps\.resolve\.outputs\.ci_run_id \}\}/);
   for (const step of [
     "Use trusted-publishing-capable npm CLI",
     "Install dependencies",
@@ -74,7 +104,9 @@ test("Candidate publication and latest promotion are separate validated dispatch
   ]) {
     assert.match(
       prepareJob,
-      new RegExp(`- name: ${step}\\n\\s+if: inputs\\.promote_latest == false`)
+      new RegExp(
+        `- name: ${step}\\n\\s+if: steps\\.resolve\\.outputs\\.promote_latest != 'true' && steps\\.version\\.outputs\\.version_new == 'true'`
+      )
     );
   }
 });
@@ -86,13 +118,8 @@ test("ordinary CI qualifies the same tracked package inputs used by release", ()
   assert.doesNotMatch(releasePackagingJob, /pnpm (?:build|test)/);
   assert.match(ciReleaseVerification, /^\s+run: pnpm release:verify$/m);
   assert.doesNotMatch(ciReleaseVerification, /release:verify:/);
-  for (const approver of [
-    "LOOMA_NPM_APPROVER",
-    "LOOMA_DOCS_APPROVER",
-    "LOOMA_KNIT_APPROVER"
-  ]) {
-    assert.match(ciReleaseVerification, new RegExp(`${approver}: CI`));
-  }
+  // Approver ceremony dropped: CI release packaging no longer injects placeholder approvers.
+  assert.doesNotMatch(ciReleaseVerification, /LOOMA_NPM_APPROVER|LOOMA_DOCS_APPROVER|LOOMA_KNIT_APPROVER/);
   execFileSync("git", ["ls-files", "--error-unmatch", "packages/looma/LICENSE"], {
     cwd: repoRoot,
     stdio: "ignore"
@@ -101,10 +128,10 @@ test("ordinary CI qualifies the same tracked package inputs used by release", ()
 });
 
 test("Candidate publication is bound to a successful push CI run for main at the exact release SHA", () => {
-  assert.match(ciRunValidation, /if: inputs\.publish_candidate/);
+  assert.match(ciRunValidation, /if: steps\.resolve\.outputs\.publish_candidate == 'true' && steps\.version\.outputs\.version_new == 'true'/);
   assert.match(ciRunValidation, /GH_TOKEN: \$\{\{ github\.token \}\}/);
-  assert.match(ciRunValidation, /LOOMA_CI_WORKFLOW_RUN_ID: \$\{\{ inputs\.ci_workflow_run_id \}\}/);
-  assert.match(ciRunValidation, /LOOMA_EXPECTED_HEAD_SHA: \$\{\{ github\.sha \}\}/);
+  assert.match(ciRunValidation, /LOOMA_CI_WORKFLOW_RUN_ID: \$\{\{ steps\.resolve\.outputs\.ci_run_id \}\}/);
+  assert.match(ciRunValidation, /LOOMA_EXPECTED_HEAD_SHA: \$\{\{ steps\.resolve\.outputs\.release_sha \}\}/);
   assert.match(ciRunValidation, /gh api ["']repos\/\$\{GITHUB_REPOSITORY\}\/actions\/runs\/\$\{LOOMA_CI_WORKFLOW_RUN_ID\}["']/);
   assert.match(ciRunValidation, /\.path == "\.github\/workflows\/ci\.yml"/);
   assert.match(ciRunValidation, /\.event == "push"/);
@@ -172,7 +199,7 @@ test("promotion downloads immutable bytes from the prior Candidate workflow run"
   const download = promoteJob.match(
     /- name: Download approved release bytes from Candidate run[\s\S]*?github-token: \$\{\{ github\.token \}\}/
   )?.[0] ?? "";
-  assert.match(currentRunUpload, /if: inputs\.promote_latest == false/);
+  assert.match(currentRunUpload, /if: steps\.resolve\.outputs\.promote_latest != 'true' && steps\.version\.outputs\.version_new == 'true'/);
   assert.match(download, /run-id: \$\{\{ inputs\.candidate_workflow_run_id \}\}/);
   assert.match(download, /github-token: \$\{\{ github\.token \}\}/);
   assert.match(promoteJob, /LOOMA_CANDIDATE_WORKFLOW_RUN_ID: \$\{\{ inputs\.candidate_workflow_run_id \}\}/);

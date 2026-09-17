@@ -1,6 +1,13 @@
 name: Release Candidate
 
 on:
+  # Auto-publish the candidate after CI passes on main. The candidate path defaults to
+  # publish_candidate=true / promote_latest=false; the CI run id and release commit are
+  # derived from the triggering workflow_run event in the prepare job's resolve step.
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
     inputs:
       publish_candidate:
@@ -48,18 +55,6 @@ on:
         required: false
         default: ''
         type: string
-      npm_approver:
-        description: Accountable npm release approver
-        required: true
-        type: string
-      documentation_approver:
-        description: Accountable public documentation approver
-        required: true
-        type: string
-      knit_approver:
-        description: Accountable Knit integration-harness qualification approver
-        required: true
-        type: string
 
 permissions:
   contents: read
@@ -70,16 +65,51 @@ concurrency:
 
 jobs:
   prepare:
-    if: github.ref == 'refs/heads/main'
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
       actions: read
       contents: read
+    outputs:
+      publish_candidate: ${{ steps.resolve.outputs.publish_candidate }}
+      promote_latest: ${{ steps.resolve.outputs.promote_latest }}
+      release_sha: ${{ steps.resolve.outputs.release_sha }}
+      version_new: ${{ steps.version.outputs.version_new }}
     steps:
+      - name: Resolve release trigger
+        id: resolve
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_PUBLISH: ${{ inputs.publish_candidate }}
+          INPUT_PROMOTE: ${{ inputs.promote_latest }}
+          INPUT_CI_RUN_ID: ${{ inputs.ci_workflow_run_id }}
+          DISPATCH_SHA: ${{ github.sha }}
+          AUTO_RUN_ID: ${{ github.event.workflow_run.id }}
+          AUTO_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          if [ "$EVENT_NAME" = "workflow_run" ]; then
+            {
+              echo "publish_candidate=true"
+              echo "promote_latest=false"
+              echo "ci_run_id=$AUTO_RUN_ID"
+              echo "release_sha=$AUTO_SHA"
+            } >> "$GITHUB_OUTPUT"
+          else
+            {
+              echo "publish_candidate=${INPUT_PUBLISH:-false}"
+              echo "promote_latest=${INPUT_PROMOTE:-false}"
+              echo "ci_run_id=$INPUT_CI_RUN_ID"
+              echo "release_sha=$DISPATCH_SHA"
+            } >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Checkout reviewed commit
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
+          ref: ${{ steps.resolve.outputs.release_sha }}
           persist-credentials: false
 
       - name: Setup pnpm
@@ -91,11 +121,23 @@ jobs:
           node-version: 20.19.6
           cache: pnpm
 
+      - name: Skip when candidate version is already published
+        id: version
+        run: |
+          version="$(node -p "require('./packages/looma/package.json').version")"
+          if npm view "@threadlabs/looma@${version}" version --registry https://registry.npmjs.org/ > /dev/null 2>&1; then
+            echo "@threadlabs/looma@${version} is already on the public registry; candidate publish is a clean no-op"
+            echo "version_new=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "@threadlabs/looma@${version} is new; candidate publish will proceed"
+            echo "version_new=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Validate separate release dispatch and promotion evidence
         env:
-          LOOMA_PUBLISH_CANDIDATE: ${{ inputs.publish_candidate }}
-          LOOMA_PROMOTE_LATEST: ${{ inputs.promote_latest }}
-          LOOMA_CI_WORKFLOW_RUN_ID: ${{ inputs.ci_workflow_run_id }}
+          LOOMA_PUBLISH_CANDIDATE: ${{ steps.resolve.outputs.publish_candidate }}
+          LOOMA_PROMOTE_LATEST: ${{ steps.resolve.outputs.promote_latest }}
+          LOOMA_CI_WORKFLOW_RUN_ID: ${{ steps.resolve.outputs.ci_run_id }}
           LOOMA_CANDIDATE_WORKFLOW_RUN_ID: ${{ inputs.candidate_workflow_run_id }}
           LOOMA_PUBLIC_KNIT_EVIDENCE_SHA256: ${{ inputs.public_knit_evidence_sha256 }}
           LOOMA_PUBLIC_KNIT_EVIDENCE_URL: ${{ inputs.public_knit_evidence_url }}
@@ -105,11 +147,11 @@ jobs:
         run: pnpm release:validate-dispatch
 
       - name: Validate successful main CI for this exact commit
-        if: inputs.publish_candidate
+        if: steps.resolve.outputs.publish_candidate == 'true' && steps.version.outputs.version_new == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-          LOOMA_CI_WORKFLOW_RUN_ID: ${{ inputs.ci_workflow_run_id }}
-          LOOMA_EXPECTED_HEAD_SHA: ${{ github.sha }}
+          LOOMA_CI_WORKFLOW_RUN_ID: ${{ steps.resolve.outputs.ci_run_id }}
+          LOOMA_EXPECTED_HEAD_SHA: ${{ steps.resolve.outputs.release_sha }}
         run: |
           ci_run="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${LOOMA_CI_WORKFLOW_RUN_ID}")"
           if ! jq -e --arg expected_sha "$LOOMA_EXPECTED_HEAD_SHA" '
@@ -124,32 +166,28 @@ jobs:
           fi
 
       - name: Use trusted-publishing-capable npm CLI
-        if: inputs.promote_latest == false
+        if: steps.resolve.outputs.promote_latest != 'true' && steps.version.outputs.version_new == 'true'
         run: npm install --global npm@11.5.1
 
       - name: Install dependencies
-        if: inputs.promote_latest == false
+        if: steps.resolve.outputs.promote_latest != 'true' && steps.version.outputs.version_new == 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Verify and pack exact release bytes
-        if: inputs.promote_latest == false
-        env:
-          LOOMA_NPM_APPROVER: ${{ inputs.npm_approver }}
-          LOOMA_DOCS_APPROVER: ${{ inputs.documentation_approver }}
-          LOOMA_KNIT_APPROVER: ${{ inputs.knit_approver }}
+        if: steps.resolve.outputs.promote_latest != 'true' && steps.version.outputs.version_new == 'true'
         run: pnpm release:verify
 
       - name: Upload immutable release artifact set
-        if: inputs.promote_latest == false
+        if: steps.resolve.outputs.promote_latest != 'true' && steps.version.outputs.version_new == 'true'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: looma-0.1.28-candidate
+          name: looma-candidate
           path: .release/artifacts/
           if-no-files-found: error
           retention-days: 30
 
   publish:
-    if: inputs.publish_candidate
+    if: needs.prepare.outputs.publish_candidate == 'true' && needs.prepare.outputs.version_new == 'true'
     needs: prepare
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -161,6 +199,7 @@ jobs:
       - name: Checkout the same reviewed commit
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
+          ref: ${{ needs.prepare.outputs.release_sha }}
           persist-credentials: false
 
       - name: Setup pnpm
@@ -179,7 +218,7 @@ jobs:
       - name: Download approved release bytes
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          name: looma-0.1.28-candidate
+          name: looma-candidate
           path: .release/artifacts/
 
       - name: Publish exact bytes with trusted publishing
@@ -196,7 +235,7 @@ jobs:
       - name: Upload candidate registry evidence
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: looma-0.1.28-registry-candidate-evidence
+          name: looma-registry-candidate-evidence
           path: .release/evidence/registry-candidate.json
           if-no-files-found: error
           retention-days: 30
@@ -204,7 +243,7 @@ jobs:
       - name: Upload candidate public-consumer evidence
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: looma-0.1.28-public-consumer-candidate-evidence
+          name: looma-public-consumer-candidate-evidence
           path: |
             .release/evidence/public-consumer.json
             .release/evidence/public-consumer-pnpm-lock.yaml
@@ -212,7 +251,7 @@ jobs:
           retention-days: 30
 
   promote:
-    if: always() && inputs.promote_latest && needs.prepare.result == 'success' && (needs.publish.result == 'success' || needs.publish.result == 'skipped')
+    if: always() && needs.prepare.outputs.promote_latest == 'true' && needs.prepare.result == 'success' && (needs.publish.result == 'success' || needs.publish.result == 'skipped')
     needs:
       - prepare
       - publish
@@ -244,7 +283,7 @@ jobs:
       - name: Download approved release bytes from Candidate run
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          name: looma-0.1.28-candidate
+          name: looma-candidate
           path: .release/artifacts/
           run-id: ${{ inputs.candidate_workflow_run_id }}
           github-token: ${{ github.token }}
@@ -290,7 +329,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: looma-0.1.28-pre-promotion-public-consumer-evidence
+          name: looma-pre-promotion-public-consumer-evidence
           path: |
             .release/evidence/public-consumer.json
             .release/evidence/public-consumer-pnpm-lock.yaml
@@ -301,7 +340,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: looma-0.1.28-registry-promotion-evidence
+          name: looma-registry-promotion-evidence
           path: .release/evidence/registry-promotion.json
           if-no-files-found: error
           retention-days: 30
@@ -329,7 +368,7 @@ jobs:
       - name: Download exact release manifest from Candidate run
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          name: looma-0.1.28-candidate
+          name: looma-candidate
           path: .release/artifacts/
           run-id: ${{ inputs.candidate_workflow_run_id }}
           github-token: ${{ github.token }}
@@ -359,7 +398,7 @@ jobs:
       - name: Download promotion evidence from this run
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          name: looma-0.1.28-registry-promotion-evidence
+          name: looma-registry-promotion-evidence
           path: .release/evidence/
           run-id: ${{ github.run_id }}
           github-token: ${{ github.token }}

@@ -112,10 +112,7 @@ function validateManifest(manifestValue) {
     }
   }
 
-  const approvals = object(manifest.approvals);
-  for (const owner of ["npm", "documentation", "knit"]) {
-    requireString(approvals[owner], `release manifest ${owner} approval owner is missing`);
-  }
+  // ponytail: approver ceremony dropped; approvals are optional and no longer required to finalize a record.
   return manifest;
 }
 
