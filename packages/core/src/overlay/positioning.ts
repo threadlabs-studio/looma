@@ -205,6 +205,22 @@ export function createAnchoredSurface(
   let open = false;
   let frame: number | null = null;
   let listenerAbort: AbortController | null = null;
+  let sizeObserver: ResizeObserver | null = null;
+
+  // The surface can enter the top layer before its content has laid out (a
+  // menu's items, a tooltip's text), so its measured size is briefly zero or
+  // stale and the viewport clamp would run against the wrong geometry. Re-run
+  // positioning whenever the surface's own size settles.
+  const ResizeObserverImpl = (owner as Window & { ResizeObserver?: typeof ResizeObserver }).ResizeObserver;
+  const observeSurfaceSize = () => {
+    if (sizeObserver || typeof ResizeObserverImpl !== "function") return;
+    sizeObserver = new ResizeObserverImpl(() => schedule());
+    sizeObserver.observe(surface);
+  };
+  const stopObservingSurfaceSize = () => {
+    sizeObserver?.disconnect();
+    sizeObserver = null;
+  };
 
   surface.setAttribute("popover", "manual");
   surface.dataset.uiPositioning = nativeAnchor ? "anchor" : "fallback";
@@ -303,6 +319,12 @@ export function createAnchoredSurface(
       syncFallbackListeners();
       showInTopLayer(surface);
       position();
+      // The surface has just entered the top layer and may not be laid out yet,
+      // so the first position() can measure a zero/stale size and skip the
+      // viewport clamp. Re-position on the next frame, and keep re-positioning
+      // while the surface's own size settles as its content renders.
+      schedule();
+      observeSurfaceSize();
     },
     showAtPoint(nextPoint) {
       point = nextPoint;
@@ -310,11 +332,14 @@ export function createAnchoredSurface(
       syncFallbackListeners();
       showInTopLayer(surface);
       position();
+      schedule();
+      observeSurfaceSize();
     },
     hide() {
       open = false;
       point = null;
       syncFallbackListeners();
+      stopObservingSurfaceSize();
       if (frame !== null) owner.cancelAnimationFrame(frame);
       frame = null;
       hideFromTopLayer(surface);
@@ -324,6 +349,7 @@ export function createAnchoredSurface(
       open = false;
       listenerAbort?.abort();
       listenerAbort = null;
+      stopObservingSurfaceSize();
       if (frame !== null) owner.cancelAnimationFrame(frame);
       frame = null;
       hideFromTopLayer(surface);
