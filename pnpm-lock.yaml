@@ -410,6 +410,8 @@ importers:
         specifier: ^3.2.6
         version: 3.2.6(@types/debug@4.1.12)(@types/node@25.3.5)(@vitest/browser@3.2.6)(jiti@1.21.7)(jsdom@26.1.0)(terser@5.46.0)
 
+  tools/migrate-html-next: {}
+
   tools/tsconfig: {}
 
 packages:

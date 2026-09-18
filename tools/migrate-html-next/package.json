@@ -1,0 +1,10 @@
+{
+  "name": "@threadlabs/looma-migrate-html-next",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Looma-owned migration of Stencil Shadow-DOM components to HTML Next declarative components.",
+  "scripts": {
+    "test": "node --test"
+  }
+}
