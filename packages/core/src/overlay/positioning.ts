@@ -268,6 +268,14 @@ export function createAnchoredSurface(
       positionNative();
       const viewport = getVisualViewportRect(owner);
       surfaceRect = surface.getBoundingClientRect();
+      // The surface can be measured before it paints (its first frames in the
+      // top layer, or while slow content/fonts settle), reporting a zero size.
+      // The pixel fallback below would then place it at `anchor - 0`, i.e. off
+      // the anchored edge, and leave it stranded there. Trust native anchor
+      // placement — which does not depend on our measurement — until the
+      // surface has real geometry; the scheduled re-run and ResizeObserver
+      // re-position once it does.
+      if (surfaceRect.width === 0 || surfaceRect.height === 0) return;
       const shift = clampRectToViewport(surfaceRect, viewport, viewportGap);
       if (shift.x === 0 && shift.y === 0) return;
     }

@@ -62,6 +62,46 @@ describe("ui-menu anchored surface (real browser)", () => {
     expect(rect.bottom).toBeLessThanOrEqual(window.innerHeight);
   });
 
+  it("does not strand the menu off-screen when it is measured before it paints", async () => {
+    // Regression: over real network/paint latency a bottom-end menu opened from
+    // a trigger can be measured while its surface is still unpainted (zero size)
+    // for several frames. The pixel fallback then placed it at `anchor.right - 0`
+    // — off the right edge — and the surface stayed stranded there. Native anchor
+    // placement does not depend on our measurement, so a zero-size measurement
+    // must not overwrite it. This forces the zero-size window deterministically.
+    document.body.innerHTML = `
+      <div style="position:fixed;top:12px;right:16px">
+        <button id="race-trigger" type="button" style="width:40px;height:40px">A</button>
+      </div>
+      <ui-menu for="race-trigger" placement="bottom-end" style="width:18rem">
+        <ui-menu-item value="settings">Settings</ui-menu-item>
+        <ui-menu-item value="logout">Log out</ui-menu-item>
+      </ui-menu>
+    `;
+    await flushStencil();
+
+    const menu = document.querySelector<HTMLElement & { open: boolean }>("ui-menu")!;
+    const realRect = menu.getBoundingClientRect.bind(menu);
+    // An unpainted popover sits collapsed at the viewport origin before native
+    // anchor placement resolves. That is the measurement that made the pixel
+    // fallback strand the surface off the anchored edge.
+    let degrade = true;
+    menu.getBoundingClientRect = () => {
+      if (!degrade) return realRect();
+      return { left: 0, right: 0, top: 0, bottom: 0, width: 0, height: 0, x: 0, y: 0, toJSON() {} } as DOMRect;
+    };
+
+    menu.open = true;
+    await flushStencil();
+    await flushStencil();
+
+    degrade = false;
+    const rect = realRect();
+    expect(rect.width).toBeGreaterThan(0);
+    expect(rect.right).toBeLessThanOrEqual(window.innerWidth);
+    expect(rect.left).toBeGreaterThanOrEqual(0);
+  });
+
   it("treats its trigger as part of the light-dismiss boundary", async () => {
     document.body.innerHTML = `
       <button id="page-actions" type="button">Page actions</button>
