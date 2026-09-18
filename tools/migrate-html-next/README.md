@@ -29,6 +29,15 @@ converted this way renders identically to its Shadow-DOM Storybook baseline.
 and slots the content. This fixes the prior hardcoded ports (e.g. `ui-button`'s `<button>` root,
 which nested a control in a control and dropped the projected styling).
 
+## `convert-render.mjs`
+
+`renderPort(tag, tsx, rootEl)` derives the port from the component's Stencil `render()` JSX — it
+reproduces the internal element/class structure (`.badge__surface`, `.chip__label`, …) so
+class-targeted styling matches, binds clean `{this.prop}` attributes, and drops what doesn't
+migrate (event handlers, refs, conditional attributes, icon `innerHTML`). This subsumes the
+passthrough case and is what the harness uses; `convert-template.mjs` remains as the simpler
+host-only generator.
+
 ## `harness/`
 
 `node harness/run.mjs` renders each component two ways — the original Stencil Shadow-DOM component
@@ -44,11 +53,14 @@ re-vendor when that runtime changes.
 Converter, template generator, and harness are tested (`node --test`) and integrate with the
 workspace. Current convergence (overlap pixel-mismatch vs. the Shadow-DOM baseline):
 
-| Component | Result | Note |
-| --- | --- | --- |
-| `ui-button` | **8.3%** | genuine passthrough + `:slotted` — converges |
-| `ui-badge`, `ui-chip`, `ui-callout`, `ui-icon-button` | 20–37% | styling targets internal classed wrappers (`.badge__surface`, …); a bare passthrough port lacks them |
+| Component | Overlap mismatch | |
+| --- | ---: | --- |
+| `ui-icon-button` | **0%** | render-derived port — converges |
+| `ui-callout` | **7%** | render-derived port |
+| `ui-button` | **8.3%** | passthrough + `:slotted` |
+| `ui-chip` | **11.5%** | render-derived nested structure |
+| `ui-badge` | 19.7% | under-sized — per-component residual to investigate |
 
-**Next:** structural template generation — derive the port's internal element/class structure from
-the Stencil `render()` (not just the host), so components with classed wrappers converge. Then run
-the full component set. The converted output stays unmerged until every component passes.
+**Next:** widen the harness to the full component set (98 stories), investigate per-component
+residuals (e.g. `ui-badge`), and handle the remaining shapes — named slots, dynamic text bindings,
+and icon `innerHTML`. The converted output stays unmerged until every component passes.

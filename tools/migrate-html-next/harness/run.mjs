@@ -11,7 +11,7 @@ import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 
 import { convertShadowStyles } from "../convert-styles.mjs";
-import { passthroughPort } from "../convert-template.mjs";
+import { renderPort } from "../convert-render.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const LOOMA = join(HERE, "..", "..", "..");
@@ -81,7 +81,8 @@ for (const c of COMPONENTS) {
     await before.close();
     // after
     const css = convertShadowStyles(shadowCss);
-    const port = passthroughPort(c.tag, shadowCss, c.root).replace("</template>", `  <style>${css}</style>\n</template>`);
+    const tsx = await readFile(join(LOOMA, `packages/core/src/components/${c.tag}/${c.tag}.tsx`), "utf8");
+    const port = renderPort(c.tag, tsx, c.root).replace("</template>", `  <style>${css}</style>\n</template>`);
     const after = await ctx.newPage();
     await after.setContent(`<!doctype html><html><head><meta charset="utf8"><style>${tokens}</style></head><body>${port}<${c.tag} ${host.attrs}>${host.inner}</${c.tag}></body></html>`);
     await after.addScriptTag({ content: RUNTIME });
