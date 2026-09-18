@@ -5,6 +5,10 @@
   "type": "module",
   "description": "Looma-owned migration of Stencil Shadow-DOM components to HTML Next declarative components.",
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "harness": "node harness/run.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.60.0"
   }
 }
