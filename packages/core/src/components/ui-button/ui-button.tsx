@@ -11,7 +11,10 @@ export class UIButton {
 
   @Prop() variant: 'outline' | 'solid' | 'destructive' | 'ghost' = 'outline';
   @Prop() size?: string;
-  @Prop() disabled = false;
+  // Reflect so the attribute always tracks the property (as ui-icon-button does).
+  // Without reflection a `disabled` attribute rendered at SSR outlives the enabled
+  // state after hydration flips the prop, leaving working buttons styled disabled.
+  @Prop({ reflect: true }) disabled = false;
 
   private slotRef?: HTMLSlotElement;
 
