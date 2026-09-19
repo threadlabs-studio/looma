@@ -119,24 +119,46 @@ for (const tag of tags) {
     }));
     await before.close();
 
-    const ctrlSrc = await readFile(join(CONTROLLERS, `${tag}.js`), "utf8").catch(() => null);
-    let port = renderPort(tag, tsx, rootFor(css)).replace("</template>", `  <style>${convertShadowStyles(css)}</style>\n</template>`);
-    if (ctrlSrc) port = port.replace('status="early"', `status="early" controller="./${tag}.js"`);
+    // Composite components nest other component tags (e.g. avatar-group nests avatars); each
+    // nested tag needs its own port + controller to lower and converge. Build a port for the
+    // top tag plus every ui-* tag that appears in the story markup.
+    const portFor = async (t) => {
+      const c = await readFile(join(CORE, t, `${t}.css`), "utf8").catch(() => null);
+      const x = await readFile(join(CORE, t, `${t}.tsx`), "utf8").catch(() => null);
+      if (c === null || x === null) return null;
+      const ctrl = await readFile(join(CONTROLLERS, `${t}.js`), "utf8").catch(() => null);
+      const p = renderPort(t, x, rootFor(c)).replace("</template>", `  <style>${convertShadowStyles(c)}</style>\n</template>`);
+      return { tag: t, port: p, ctrl };
+    };
+    const childTags = [...new Set([...host.inner.matchAll(/<(ui-[\w-]+)/g)].map((m) => m[1]))].filter((t) => t !== tag);
+    const parts = (await Promise.all([tag, ...childTags].map(portFor))).filter(Boolean);
+    const ctrls = Object.fromEntries(parts.filter((p) => p.ctrl).map((p) => [p.tag, p.ctrl]));
+    const portsHtml = parts.map((p) => p.port).join("\n");
+
     const after = await ctx.newPage();
-    await after.setContent(`<!doctype html><html><head><meta charset="utf8"><style>${tokens}</style></head><body>${port}<${tag} ${host.attrs}>${host.inner}</${tag}></body></html>`);
+    // Match Storybook's canvas padding (1rem) so full-width components have the same available
+    // width — otherwise right-aligned content (e.g. avatar-group) shifts by the padding delta.
+    await after.setContent(`<!doctype html><html><head><meta charset="utf8"><style>${tokens}\nbody{margin:0;padding:1rem}</style></head><body>${portsHtml}<${tag} ${host.attrs}>${host.inner}</${tag}></body></html>`);
     await after.addScriptTag({ content: RUNTIME });
-    if (ctrlSrc) {
-      // wire the converted controller like the runtime's onConnect path
-      await after.addScriptTag({ content: ctrlSrc.replace(/export default function controller/, "window.__ctrl = function controller") });
-      await after.evaluate((t) => {
+    if (Object.keys(ctrls).length > 0) {
+      // Import controllers as real ES modules (blob URLs) and wire each by tag — nothing is
+      // stashed on window. observeDocument lowers every root and runs its controller with the
+      // settled per-root host, so nested/composite children converge too.
+      await after.evaluate(async (srcByTag) => {
+        const mods = {};
+        for (const [t, src] of Object.entries(srcByTag)) {
+          const url = URL.createObjectURL(new Blob([src], { type: "text/javascript" }));
+          mods[t] = (await import(url)).default;
+        }
         window.HtmlRuntime.observeDocument(document, {
           onConnect(root, def) {
-            if (def.contract.tag !== t || !window.__ctrl) return;
-            window.HtmlRuntime.setControllerModule(root, Promise.resolve({ default: window.__ctrl }));
-            return window.__ctrl(window.HtmlRuntime.getComponentHost(root));
+            const fn = mods[def.contract.tag];
+            if (!fn) return;
+            window.HtmlRuntime.setControllerModule(root, Promise.resolve({ default: fn }));
+            return fn(window.HtmlRuntime.getComponentHost(root));
           },
         });
-      }, tag);
+      }, ctrls);
       await after.waitForTimeout(400); // allow controller + image load/error
     } else {
       await after.evaluate(() => window.HtmlRuntime.lowerDocument());
