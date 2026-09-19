@@ -8,7 +8,7 @@ HTML Next itself has no ingest converter — its three builds are a live runtime
 
 ## `convert-styles.mjs`
 
-`convertShadowStyles(css)` translates a component's **authoritative shadow stylesheet** (not
+`convertShadowStyles(css, { reflectedAttributes })` translates a component's **authoritative shadow stylesheet** (not
 Looma's light-DOM fallback, which drops projected-content styling) to HTML Next authoring:
 
 | Shadow | HTML Next |
@@ -16,6 +16,10 @@ Looma's light-DOM fallback, which drops projected-content styling) to HTML Next 
 | `:host` | `:scope` (the component's public root) |
 | `:host(<cond>)` | `:scope<cond>` (a state/attribute condition on the root) |
 | `::slotted(<sel>)` | `:slotted(<sel>)` (styling projected content — a subtree query in HTML Next) |
+
+Stencil prop selectors such as `:host([size='sm'])` are retargeted to HTML Next's automatic
+`data-*` reflection (`:scope[data-size='sm']`), while native state such as `[popover]` and ARIA
+attributes remain unchanged.
 
 The emitted CSS goes in the component's HTML Next `<style>`; the HTML Next runtime scopes it
 (`:slotted()` compiles to selectors anchored to the projected region). A real `ui-button`
@@ -42,7 +46,7 @@ host-only generator.
 
 `node harness/run.mjs` renders each component two ways — the original Stencil Shadow-DOM component
 from the built Storybook (`before`) and its HTML Next migration lowered by the vendored runtime
-(`after`) — clips to the component, and reports the overlap pixel-mismatch. It is **tooling**: it
+(`after`) — clips to the component, and reports the full-bounds pixel mismatch. It is **tooling**: it
 renders the migration to validate it; it does not adopt the migration into the shipped components.
 
 `vendor/html-next-runtime.iife.js` is a prebuilt HTML Next runtime (from `nextwebwg/html-next`);
@@ -63,7 +67,7 @@ The diff is **shift-tolerant** (a pixel matches if any pixel within ±2px matche
 full union of both screenshots. This filters sub-pixel jitter and anti-aliasing without hiding
 extra width or height in either rendering.
 
-Full-corpus run (26 rendered, 7 skipped): **15 components under 10%**, 7 in 10-25%, and 4 at
+Full-corpus run (26 rendered, 7 skipped): **17 components under 10%**, 5 in 10-25%, and 4 at
 25% or above. The earlier overlap-only calculation understated components whose converted bounds
 were larger than the original; these full-bounds figures are the authoritative baseline.
 
@@ -74,13 +78,13 @@ without forcing intrinsic-size components to match.
 Markup+CSS auto-conversion renders most components faithfully with no per-component tuning. The
 **controller path is proven**: converted controllers (`harness/controllers/`) are imported as real
 ES modules (blob URLs — nothing is stashed on `window`) and wired via
-`observeDocument`/`setControllerModule`/`getComponentHost`. `ui-avatar` — whose fallback initials
-are computed by its controller — converges from 15.5% to **4.4%**. Declaring every `@Prop()` (not
+`observeDocument`/`setControllerModule`/`getComponentHost`. `ui-avatar`'s fallback initials are
+computed by its controller. Declaring every `@Prop()` (not
 only the markup-bound ones) is what lets controller-only props reach `host.state`.
 
 **Composite components converge too.** The harness discovers every nested `ui-*` tag in a story,
 injects a port + controller for each, and lets `observeDocument` lower and control every root with
-its own settled host. That dropped `ui-toast-region` from 28.3% to **6.6%** and `ui-avatar-group`
+its own settled host. That dropped `ui-toast-region` from 28.3% to **8.8%** and `ui-avatar-group`
 (nesting five-plus avatars with the overflow "+N" badge) from 15.5% to **11.4%** — the residual is
 anti-aliasing on the heavily-overlapping circle stack; it renders indistinguishably. The after page
 also matches Storybook's 1rem canvas padding so right-aligned content isn't shifted.
@@ -94,8 +98,11 @@ status and footer regions synchronized.
 representative viewport explicitly, and the ported controller keeps the leading, search, and action
 regions synchronized with their projected content.
 
-Nested `ui-tree-item` is now measured through the representative tree story. Explicit story
-mappings cover components whose Storybook taxonomy does not match their tag spelling.
+Nested `ui-tree-item` is now measured through the representative tree story. The converter lowers
+prop ternaries to declarative `$match`/`$if` branches, its controller synchronizes expanded state,
+and reflected-prop selectors target HTML Next's `data-*` attributes. `ui-tree` now converges at
+**1.7%** and standalone `ui-tree-item` at **1.9%**. Explicit story mappings cover components whose
+Storybook taxonomy does not match their tag spelling.
 
 `ui-combobox` is also measurable now. The converter accepts its unparenthesized JSX return,
 preserves direct text values, lowers simple prop-guarded subtrees to `$if`, and emits boolean and

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { extractRenderJsx, renderPort } from "./convert-render.mjs";
+import { extractRenderJsx, reflectedPropAttributes, renderPort } from "./convert-render.mjs";
 
 const BADGE = `
   render() {
@@ -75,6 +75,33 @@ test("preserves mixed text bindings and converts simple conditional subtrees", (
   assert.doesNotMatch(port, /onClick|this\.clear|this\.required|\$if="required"/);
 });
 
+test("converts prop ternaries to match branches", () => {
+  const item = `
+    @Prop() container = false;
+    render() {
+      return (
+        <Host>
+          {this.container ? (
+            <button class="disclosure">Open</button>
+          ) : <span class="disclosure-spacer" aria-hidden="true" />}
+        </Host>
+      );
+    }`;
+  const port = renderPort("ui-tree-item", item, "span");
+  assert.match(port, /<template \$match><button \$when="container" class="disclosure">Open<\/button><span \$else class="disclosure-spacer" aria-hidden="true"><\/span><\/template>/);
+});
+
+test("converts compound boolean ternaries to if directives", () => {
+  const item = `
+    @Prop() sortable = false;
+    @Prop() disabled = false;
+    render() {
+      return (<Host>{this.sortable && !this.disabled ? <button>Drag</button> : null}</Host>);
+    }`;
+  const port = renderPort("ui-tree-item", item, "span");
+  assert.match(port, /<button \$if="sortable and not disabled">Drag<\/button>/);
+});
+
 test("innerHTML (icons) is dropped, leaving an empty element", () => {
   const callout = `
     render() {
@@ -99,4 +126,13 @@ test("wraps render trees that omit Host in a distinct lowered host", () => {
     }`;
   const port = renderPort("ui-search-shell", shell, "div");
   assert.match(port, /<div><div class="search-shell"><div class="search-shell__panel"><slot name="body"><\/slot><\/div><\/div><\/div>/);
+});
+
+test("maps Stencil attribute aliases to HTML Next reflected prop attributes", () => {
+  const attributes = reflectedPropAttributes(`
+    @Prop({ attribute: 'mobile-only', reflect: true }) mobileOnly = false;
+    @Prop({ reflect: true }) size: 'sm' | 'md' = 'md';
+  `);
+  assert.equal(attributes.get("mobile-only"), "data-mobile-only");
+  assert.equal(attributes.get("size"), "data-size");
 });

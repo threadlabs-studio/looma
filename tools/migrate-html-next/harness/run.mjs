@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 
 import { convertShadowStyles } from "../convert-styles.mjs";
-import { renderPort } from "../convert-render.mjs";
+import { reflectedPropAttributes, renderPort } from "../convert-render.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const LOOMA = join(HERE, "..", "..", "..");
@@ -138,7 +138,7 @@ for (const tag of tags) {
       const ctrl = await readFile(join(CONTROLLERS, `${t}.js`), "utf8").catch(() => null);
       const rendered = renderPort(t, x, rootFor(c));
       const end = rendered.lastIndexOf("</template>");
-      const p = `${rendered.slice(0, end)}  <style>${convertShadowStyles(c)}</style>\n${rendered.slice(end)}`;
+      const p = `${rendered.slice(0, end)}  <style>${convertShadowStyles(c, { reflectedAttributes: reflectedPropAttributes(x) })}</style>\n${rendered.slice(end)}`;
       return { tag: t, port: p, ctrl };
     };
     const childTags = [...new Set([...host.inner.matchAll(/<(ui-[\w-]+)/g)].map((m) => m[1]))].filter((t) => t !== tag);
@@ -147,6 +147,11 @@ for (const tag of tags) {
     const portsHtml = parts.map((p) => p.port).join("\n");
 
     const after = await ctx.newPage();
+    const runtimeErrors = [];
+    after.on("pageerror", (error) => runtimeErrors.push(error.message));
+    after.on("console", (message) => {
+      if (message.type() === "error") runtimeErrors.push(message.text());
+    });
     await after.setViewportSize(VIEWPORTS[tag] ?? { width: 1000, height: 700 });
     // Match Storybook's canvas padding (1rem) so full-width components have the same available
     // width — otherwise right-aligned content (e.g. avatar-group) shifts by the padding delta.
@@ -179,8 +184,10 @@ for (const tag of tags) {
       await after.evaluate(() => window.HtmlRuntime.lowerDocument());
       await after.waitForTimeout(150);
     }
+    if (runtimeErrors.length > 0) throw new Error(runtimeErrors.join(" | "));
     const target = after.locator(`[data-component-root~="${tag}"]`).first();
     if (await target.count() === 0) { results.push({ tag, note: "did not lower" }); await after.close(); continue; }
+    if (process.env.MIGRATION_DEBUG) console.log(await target.evaluate((element) => element.outerHTML));
     const afterBuf = await target.screenshot();
     await after.close();
     const d = await diff(beforeBuf, afterBuf);

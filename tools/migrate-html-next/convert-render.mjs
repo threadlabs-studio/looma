@@ -62,6 +62,69 @@ function stripExpressions(s) {
   return out;
 }
 
+function stripOuterParens(value) {
+  let result = value.trim();
+  while (result.startsWith("(") && result.endsWith(")")) result = result.slice(1, -1).trim();
+  return result;
+}
+
+function conditionExpression(source, knownRoots) {
+  if (!/^[\sA-Za-z0-9_$.!&|()]+$/.test(source)) return null;
+  const roots = [...source.matchAll(/this\.([A-Za-z][A-Za-z0-9]*)/g)].map((match) => match[1]);
+  if (roots.length === 0 || roots.some((root) => !knownRoots.has(root))) return null;
+  return source
+    .replace(/this\.([A-Za-z][A-Za-z0-9]*)/g, "$1")
+    .replace(/&&/g, " and ")
+    .replace(/\|\|/g, " or ")
+    .replace(/!\s*/g, "not ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function propTernary(expression, knownRoots) {
+  let round = 0;
+  let square = 0;
+  let curly = 0;
+  let question = -1;
+  let nested = 0;
+  let quote = "";
+  for (let i = 0; i < expression.length; i += 1) {
+    const ch = expression[i];
+    if (quote) {
+      if (ch === quote && expression[i - 1] !== "\\") quote = "";
+      continue;
+    }
+    if (ch === '"' || ch === "'") quote = ch;
+    else if (ch === "(") round += 1;
+    else if (ch === ")") round -= 1;
+    else if (ch === "[") square += 1;
+    else if (ch === "]") square -= 1;
+    else if (ch === "{") curly += 1;
+    else if (ch === "}") curly -= 1;
+    else if (round === 0 && square === 0 && curly === 0 && ch === "?") {
+      if (question < 0) question = i;
+      else nested += 1;
+    }
+    else if (round === 0 && square === 0 && curly === 0 && ch === ":") {
+      if (nested > 0) nested -= 1;
+      else if (question >= 0) {
+        const condition = conditionExpression(expression.slice(0, question).trim(), knownRoots);
+        if (condition === null) return null;
+        return {
+          condition,
+          truthy: stripOuterParens(expression.slice(question + 1, i)),
+          falsy: stripOuterParens(expression.slice(i + 1)),
+        };
+      }
+    }
+  }
+  return null;
+}
+
+function addDirective(markup, directive) {
+  return markup.replace(/^<([A-Za-z][\w.-]*)\b/, `<$1 ${directive}`);
+}
+
 /** Rewrite JSX expressions in element content before attribute processing. Direct `this.prop`
  *  text remains a declarative value node; unsupported conditional/list subtrees are removed as one
  *  balanced unit so their nested attributes and closing tags cannot leak into the port. */
@@ -83,14 +146,25 @@ function rewriteContentExpressions(s, knownRoots) {
       const expression = s.slice(i + 1, j - 1).trim();
       const direct = /^this\.([A-Za-z][A-Za-z0-9]*)$/.exec(expression);
       const conditional = /^this\.([A-Za-z][A-Za-z0-9]*)\s*&&\s*(<[\s\S]+>)$/.exec(expression);
+      const ternary = propTernary(expression, knownRoots);
       if (direct && knownRoots.has(direct[1])) {
         out += `<template $value="${direct[1]}"></template>`;
       } else if (conditional && knownRoots.has(conditional[1])) {
-        const markup = conditional[2].replace(
-          /^<([A-Za-z][\w.-]*)\b/,
-          `<$1 $if="${conditional[1]}"`,
-        );
+        const markup = addDirective(conditional[2], `$if="${conditional[1]}"`);
         out += rewriteContentExpressions(markup, knownRoots);
+      } else if (ternary) {
+        const truthy = ternary.truthy.startsWith("<")
+          ? rewriteContentExpressions(addDirective(ternary.truthy, `$when="${ternary.condition}"`), knownRoots)
+          : "";
+        const falsy = ternary.falsy.startsWith("<")
+          ? rewriteContentExpressions(addDirective(ternary.falsy, "$else"), knownRoots)
+          : "";
+        if (truthy && falsy) out += `<template $match>${truthy}${falsy}</template>`;
+        else if (truthy && ternary.falsy === "null") {
+          out += rewriteContentExpressions(addDirective(ternary.truthy, `$if="${ternary.condition}"`), knownRoots);
+        } else if (falsy && ternary.truthy === "null") {
+          out += rewriteContentExpressions(addDirective(ternary.falsy, `$if="not (${ternary.condition})"`), knownRoots);
+        }
       }
       i = j;
       continue;
@@ -128,20 +202,33 @@ function dedupeBindings(body) {
   return body.replace(/\s*:([\w-]+)="(\w+)"/g, (m, attr, prop) => (chosen.get(prop) === attr ? m : ""));
 }
 
-function propDeclarations(tsx) {
-  const props = new Map();
-  const pattern = /@Prop(?:\([^)]*\))?\s+(\w+)\??(?:\s*:\s*([^=;\n]+))?(?:\s*=\s*([^;\n]+))?/g;
+function propMetadata(tsx) {
+  const props = [];
+  const pattern = /@Prop(?:\(([^)]*)\))?\s+(\w+)\??(?:\s*:\s*([^=;\n]+))?(?:\s*=\s*([^;\n]+))?/g;
   for (const match of tsx.matchAll(pattern)) {
-    const annotation = match[2]?.trim() ?? "";
-    const initial = match[3]?.trim() ?? "";
+    const options = match[1] ?? "";
+    const name = match[2];
+    const annotation = match[3]?.trim() ?? "";
+    const initial = match[4]?.trim() ?? "";
     const type = /\bboolean\b/.test(annotation) || /^(?:true|false)$/.test(initial)
       ? "boolean"
       : /\bnumber\b/.test(annotation) || /^-?\d+(?:\.\d+)?$/.test(initial)
         ? "number"
         : "string";
-    props.set(match[1], type);
+    const attribute = /\battribute\s*:\s*['"]([^'"]+)['"]/.exec(options)?.[1]
+      ?? name.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
+    props.push({ name, type, attribute, dataAttribute: `data-${name.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)}` });
   }
   return props;
+}
+
+function propDeclarations(tsx) {
+  return new Map(propMetadata(tsx).map(({ name, type }) => [name, type]));
+}
+
+/** Map Stencil's public host attributes to HTML Next's automatic `data-*` prop reflection. */
+export function reflectedPropAttributes(tsx) {
+  return new Map(propMetadata(tsx).map(({ attribute, dataAttribute }) => [attribute, dataAttribute]));
 }
 
 /** Translate one component's render() JSX into an HTML Next template body rooted at `rootEl`. */
