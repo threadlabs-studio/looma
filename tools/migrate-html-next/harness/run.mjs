@@ -78,7 +78,7 @@ async function diff(before, after) {
     const ib = await load("data:image/png;base64," + b), ia = await load("data:image/png;base64," + a);
     const W = Math.max(ib.width, ia.width), H = Math.max(ib.height, ia.height);
     const px = (img) => { const c = document.createElement("canvas"); c.width = W; c.height = H; c.getContext("2d").drawImage(img, 0, 0); return c.getContext("2d").getImageData(0, 0, W, H).data; };
-    const db = px(ib), da = px(ia), w2 = Math.min(ib.width, ia.width), h2 = Math.min(ib.height, ia.height);
+    const db = px(ib), da = px(ia);
     // Shift-tolerant: a pixel counts as matched if any pixel within +/-R in the other image matches.
     // This ignores small sub-pixel shifts/AA so the score reflects real visual difference, not layout jitter.
     const T = 32, R = 2;
@@ -86,15 +86,15 @@ async function diff(before, after) {
       const i = (y * W + x) * 4;
       for (let dy = -R; dy <= R; dy++) for (let dx = -R; dx <= R; dx++) {
         const x2 = x + dx, y2 = y + dy;
-        if (x2 < 0 || y2 < 0 || x2 >= w2 || y2 >= h2) continue;
+        if (x2 < 0 || y2 < 0 || x2 >= ia.width || y2 >= ia.height) continue;
         const j = (y2 * W + x2) * 4;
         if (Math.abs(db[i] - da[j]) + Math.abs(db[i + 1] - da[j + 1]) + Math.abs(db[i + 2] - da[j + 2]) <= T) return true;
       }
       return false;
     };
     let m = 0;
-    for (let y = 0; y < h2; y++) for (let x = 0; x < w2; x++) if (!near(x, y)) m++;
-    return { before: [ib.width, ib.height], after: [ia.width, ia.height], mismatch: m, total: w2 * h2 };
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (!near(x, y)) m++;
+    return { before: [ib.width, ib.height], after: [ia.width, ia.height], mismatch: m, total: W * H };
   }, { b: before.toString("base64"), a: after.toString("base64") });
   await page.close();
   return r;
@@ -136,7 +136,9 @@ for (const tag of tags) {
       const x = await readFile(join(CORE, t, `${t}.tsx`), "utf8").catch(() => null);
       if (c === null || x === null) return null;
       const ctrl = await readFile(join(CONTROLLERS, `${t}.js`), "utf8").catch(() => null);
-      const p = renderPort(t, x, rootFor(c)).replace("</template>", `  <style>${convertShadowStyles(c)}</style>\n</template>`);
+      const rendered = renderPort(t, x, rootFor(c));
+      const end = rendered.lastIndexOf("</template>");
+      const p = `${rendered.slice(0, end)}  <style>${convertShadowStyles(c)}</style>\n${rendered.slice(end)}`;
       return { tag: t, port: p, ctrl };
     };
     const childTags = [...new Set([...host.inner.matchAll(/<(ui-[\w-]+)/g)].map((m) => m[1]))].filter((t) => t !== tag);
@@ -183,7 +185,7 @@ for (const tag of tags) {
     await writeFile(join(GALLERY, `${tag}.after.png`), afterBuf);
     results.push({ tag, ...d, pct: +(d.mismatch / d.total * 100).toFixed(1) });
   } catch (error) {
-    results.push({ tag, note: `ERROR: ${String(error.message ?? error).split("\n")[0].slice(0, 70)}` });
+    results.push({ tag, note: `ERROR: ${String(error.message ?? error).split("\n")[0].slice(0, 240)}` });
   }
 }
 await browser.close();

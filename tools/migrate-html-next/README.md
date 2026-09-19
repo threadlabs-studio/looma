@@ -59,11 +59,13 @@ browsable before/after gallery to `harness/gallery/index.html` (gitignored) — 
 `python3 -m http.server -d harness/gallery`. To see the original components live, run
 `pnpm dev:storybook`.
 
-The diff is **shift-tolerant** (a pixel matches if any pixel within ±2px matches), so the score
-reflects real visual difference rather than sub-pixel layout jitter or anti-aliasing.
+The diff is **shift-tolerant** (a pixel matches if any pixel within ±2px matches) and scores the
+full union of both screenshots. This filters sub-pixel jitter and anti-aliasing without hiding
+extra width or height in either rendering.
 
-Full-corpus run (25 rendered, 8 skipped): **24 components under 10%**, 1 in 10-25%
-(avatar-group 11.4%), and none at 25% or above.
+Full-corpus run (26 rendered, 7 skipped): **14 components under 10%**, 5 in 10-25%, and 7 at
+25% or above. The earlier overlap-only calculation understated components whose converted bounds
+were larger than the original; these full-bounds figures are the authoritative baseline.
 
 Markup+CSS auto-conversion renders most components faithfully with no per-component tuning. The
 **controller path is proven**: converted controllers (`harness/controllers/`) are imported as real
@@ -88,12 +90,16 @@ status and footer regions synchronized.
 representative viewport explicitly, and the ported controller keeps the leading, search, and action
 regions synchronized with their projected content.
 
-Nested `ui-tree-item` is measured through the representative tree story and converges at **2.6%**.
-Explicit story mappings cover components whose Storybook taxonomy does not match their tag spelling.
+Nested `ui-tree-item` is now measured through the representative tree story. Explicit story
+mappings cover components whose Storybook taxonomy does not match their tag spelling.
+
+`ui-combobox` is also measurable now. The converter accepts its unparenthesized JSX return,
+preserves direct text values, lowers simple prop-guarded subtrees to `$if`, and emits boolean and
+number prop types. Its field shell matches, while its unported popup/validation/help lifecycle
+leaves extra content below the field and currently scores **44.1%**.
 
 **Skipped:** controller-driven components with no static visible box (context-menu, dialog, menu,
-menu-item, tooltip), components with no matched story (affordance-scope, editable), and a render
-form the converter does not yet parse (combobox).
+menu-item, tooltip), plus affordance-scope and editable, which have no matched story.
 
 **Next — automate controller conversion.** The controller path is proven by hand
 (`ui-avatar`, `ui-avatar-group`, `ui-search-shell`, `ui-top-bar`); the skipped overlays (dialog,
