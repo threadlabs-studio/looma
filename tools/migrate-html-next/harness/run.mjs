@@ -24,11 +24,16 @@ const only = process.argv.slice(2); // optional tag filter
 const VIEWPORTS = {
   "ui-top-bar": { width: 390, height: 700 },
 };
+const STORIES = {
+  "ui-context-menu": "overlay-contextmenu--default",
+  "ui-tree-item": "display-tree--default",
+};
 
 // Map each component tag to a representative story id (prefer a "default"/"info"/"tag" story).
 const index = JSON.parse(await readFile(join(STATIC, "index.json"), "utf8"));
 const stories = Object.values(index.entries).filter((s) => s.type === "story");
 function storyFor(tag) {
+  if (STORIES[tag]) return STORIES[tag];
   const name = tag.replace(/^ui-/, "");
   const matches = stories.filter((s) => s.id.includes(`-${name}--`) || s.id.startsWith(`${name}--`));
   if (matches.length === 0) return undefined;
