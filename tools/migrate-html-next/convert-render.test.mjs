@@ -55,3 +55,14 @@ test("innerHTML (icons) is dropped, leaving an empty element", () => {
   assert.match(port, /<span class="icon"><\/span>/);
   assert.doesNotMatch(port, /innerHTML/);
 });
+
+test("wraps render trees that omit Host in a distinct lowered host", () => {
+  const shell = `
+    render() {
+      return (
+        <div class="search-shell"><div class="search-shell__panel"><slot name="body" /></div></div>
+      );
+    }`;
+  const port = renderPort("ui-search-shell", shell, "div");
+  assert.match(port, /<div><div class="search-shell"><div class="search-shell__panel"><slot name="body"><\/slot><\/div><\/div><\/div>/);
+});

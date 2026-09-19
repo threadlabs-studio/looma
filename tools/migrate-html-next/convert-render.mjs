@@ -67,6 +67,7 @@ function dedupeBindings(body) {
 
 /** Translate one component's render() JSX into an HTML Next template body rooted at `rootEl`. */
 function translateJsx(jsx, rootEl) {
+  const declaresHost = /<Host\b/.test(jsx);
   let out = jsx;
   out = out.replace(/<style>[\s\S]*?<\/style>/g, "");              // drop the component's dynamic <style>
   out = out.replace(/\s+(on[A-Z]\w*|ref)=\{[^}]*\}/g, "");         // drop event handlers and refs
@@ -78,7 +79,8 @@ function translateJsx(jsx, rootEl) {
   out = out.replace(/<Host\b/g, `<${rootEl}`).replace(/<\/Host>/g, `</${rootEl}>`);
   out = out.replace(/<(\w+)([^>]*?)\s*\/>/g, "<$1$2></$1>");         // self-closing -> paired
   out = out.replace(/\s+/g, " ").replace(/>\s+</g, "><").replace(/\s+>/g, ">").trim();
-  return dedupeBindings(out);
+  const body = dedupeBindings(out);
+  return declaresHost ? body : `<${rootEl}>${body}</${rootEl}>`;
 }
 
 /**
