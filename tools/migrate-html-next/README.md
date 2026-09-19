@@ -62,8 +62,8 @@ browsable before/after gallery to `harness/gallery/index.html` (gitignored) — 
 The diff is **shift-tolerant** (a pixel matches if any pixel within ±2px matches), so the score
 reflects real visual difference rather than sub-pixel layout jitter or anti-aliasing.
 
-Full-corpus run (23 rendered, 10 skipped): **21 components under 10%**, 1 in 10-25%
-(avatar-group 11.4%), 1 at >=25% (search-shell 33.7%).
+Full-corpus run (23 rendered, 10 skipped): **22 components under 10%**, 1 in 10-25%
+(avatar-group 11.4%), and none at 25% or above.
 
 Markup+CSS auto-conversion renders most components faithfully with no per-component tuning. The
 **controller path is proven**: converted controllers (`harness/controllers/`) are imported as real
@@ -79,15 +79,18 @@ its own settled host. That dropped `ui-toast-region` from 28.3% to **6.6%** and 
 anti-aliasing on the heavily-overlapping circle stack; it renders indistinguishably. The after page
 also matches Storybook's 1rem canvas padding so right-aligned content isn't shifted.
 
-The one remaining hard case is `ui-search-shell` (33.7%) — a full overlay shell.
+`ui-search-shell` now converges at **0%**. Its Stencil render omits `<Host>`, so the converter
+preserves the host boundary with a distinct lowered root instead of letting host-level styles
+overwrite the inner flex shell. Its controller uses native child observation to keep the optional
+status and footer regions synchronized.
 
 **Skipped:** controller-driven components with no static visible box (dialog, menu, tooltip,
 top-bar), components with no matched story (affordance-scope, context-menu, editable, menu-item,
 tree-item), a non-`render()` method (combobox), and a hidden lowered root (popover).
 
 **Next — automate controller conversion.** The controller path is proven by hand
-(`ui-avatar`, `ui-avatar-group`, `ui-toast-region`); the remaining residual (`ui-search-shell`) and
-the skipped overlays (dialog, menu, tooltip, context-menu, top-bar) each need their Stencil
-controller (`@State`, lifecycle, methods) converted to an HTML Next `host`-based controller. Build a
-converter for that, the same way `convert-render.mjs` followed the `ui-button` markup/CSS proof.
-Then layout/editor packages. Converted output stays unmerged until the set passes.
+(`ui-avatar`, `ui-avatar-group`, `ui-search-shell`); the skipped overlays (dialog, menu, tooltip,
+context-menu, top-bar) each need their Stencil controller (`@State`, lifecycle, methods) converted
+to an HTML Next `host`-based controller. Build a converter for that, the same way
+`convert-render.mjs` followed the `ui-button` markup/CSS proof. Then layout/editor packages.
+Converted output stays unmerged until the set passes.
