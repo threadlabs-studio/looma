@@ -1,10 +1,11 @@
 # `@threadlabs/looma-migrate-html-next`
 
-Looma-owned migration of Looma's Stencil Shadow-DOM components to
-[HTML Next declarative components](https://nextwebwg.org/html-next/). This is **bespoke to Looma**:
-HTML Next itself has no ingest converter — its three builds are a live runtime, a compiled
-(tree-shaken) native build, and a one-way converter *to* React/Vue/Svelte. Importing Shadow DOM
-*into* HTML Next is our concern, and lives here.
+Looma-owned migration of Looma's components to
+[HTML Next declarative components](https://nextwebwg.org/html-next/). HTML Next itself has no
+ingest converter — its three builds are a live runtime, a compiled (tree-shaken) native build, and
+a one-way converter *to* React/Vue/Svelte. Adapting the legacy implementations is Looma's concern
+and lives here; the destination contracts are framework-neutral declarative component APIs, not a
+model of Stencil decorators, custom-element callbacks, Tiptap commands, or Looma's old internals.
 
 ## `convert-styles.mjs`
 
@@ -64,24 +65,25 @@ renders the migration to validate it; it does not adopt the migration into the s
 `vendor/html-next-runtime.iife.js` is a prebuilt HTML Next runtime (from `nextwebwg/html-next`);
 re-vendor when that runtime changes.
 
-## Generated core graph
+## Generated component graph
 
-`pnpm --filter @threadlabs/looma-migrate-html-next generate` writes the deterministic candidate
-graph to `generated/core/`: one definition per component, its relative component edges, the
-available controller modules, and a machine-readable manifest. These are migration artifacts, not
-the shipped `@threadlabs/looma` entry point. Keeping them materialized makes the complete graph
-reviewable and gives the adoption build one canonical input instead of regenerating components
-differently from the visual harness.
+`pnpm --filter @threadlabs/looma-migrate-html-next generate` writes deterministic candidate graphs
+to `generated/core/`, `generated/layout/`, and `generated/editor/`: one definition per component,
+its relative component edges, the available controller modules, converted styles, and a
+machine-readable manifest. These are migration artifacts, not yet the shipped package entry
+points. Keeping them materialized makes the complete graph reviewable and gives the adoption build
+one canonical input instead of regenerating components differently from the visual harness.
 
-`pnpm --filter @threadlabs/looma-migrate-html-next validate` loads that materialized graph without
-Stencil and requires every definition to parse and lower through the vendored HTML Next runtime.
-The same graph also passes the upstream HTML Next CLI's `check` and `build` commands.
+`pnpm --filter @threadlabs/looma-migrate-html-next validate` loads all 49 materialized definitions
+without Stencil or a custom-elements registry and requires every definition to parse and lower
+through the vendored HTML Next runtime. The same graph passes the upstream HTML Next CLI's `check`.
 
-`pnpm --filter @threadlabs/looma-migrate-html-next test:browser` exercises the migrated interaction
-contracts in Chromium. It currently covers 12 behavior groups: form controls, disclosure/editable,
-tabs, menus, anchored popovers/tooltips, dialog dismissal, combobox methods and selection, and tree
-expansion/roving focus. Effective controller state uses a separate `data-state-*` namespace so a
-rendered internal state change cannot be mistaken for an external write to a controlled prop.
+`pnpm --filter @threadlabs/looma-migrate-html-next test:browser` exercises 20 migrated interaction
+groups in Chromium: core form and overlay behavior, layout accessibility and sidebar resizing, and
+editor menu bounds/positioning, table selection/preview, overflow dismissal, structured geometry,
+intent events, and proximity affordances. Effective controller state uses a separate
+`data-state-*` namespace so a rendered internal state change cannot be mistaken for an external
+write to a controlled prop.
 
 ## Status
 
@@ -101,6 +103,12 @@ extra width or height in either rendering.
 Full-corpus run (33 rendered, 0 skipped): **all 33 core components are under 10%**; 23 are
 pixel-identical at 0%. The earlier overlap-only calculation understated components whose converted
 bounds were larger than the original; these full-bounds figures are the authoritative baseline.
+
+The layout and editor harnesses use the same full-bounds comparison. All nine layout primitives and
+all seven published editor UI surfaces are pixel-identical at **0% mismatch**. The editor baseline
+is bundled only for the legacy comparison page; migrated controllers remain direct browser ES
+modules. Light-DOM conversion rewrites component tags only in selector preludes, so similarly named
+classes and CSS values such as `.ui-editor-table-toolbar` and `ui-monospace` remain intact.
 
 The after page preserves the representative story's measured containing width. That removed false
 full-canvas expansion from constrained block components (`ui-search-result-row` is now **1.3%**)
@@ -156,7 +164,8 @@ at **6.2%**. Harness-owned representative fixtures cover `ui-affordance-scope` a
 which have no dedicated Storybook stories; both converge at **0%**. The overlay controllers use
 native dialog/popover APIs and synchronize generated nested menu roots across lowering turns.
 
-**Next — adoption.** Static and explicit open-state visual convergence is proven across the full
-core corpus, and the browser suite exercises the migrated interaction contracts. Adopt the generated
-definitions/controllers into the shipped package, then migrate the layout/editor elements.
-Converted output stays unmerged until the complete set passes.
+**Next — adoption.** Static and explicit open-state visual convergence is proven across all 49
+component surfaces, and the browser suite exercises the migrated interaction contracts. Adopt the
+materialized definitions/controllers and runtime into the shipped core, layout, editor, and
+framework adapter entry points as one coordinated cutover. Converted output stays gated until that
+complete package-consumer path passes.

@@ -20,7 +20,6 @@ import {
   reflectedPropAttributes,
   renderPort,
 } from "../convert-render.mjs";
-import { rootElementFor } from "../root-element.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const LOOMA = join(HERE, "..", "..", "..");
@@ -224,7 +223,7 @@ for (const tag of tags) {
       if (c === null || x === null) return null;
       const ctrl = await readFile(join(CONTROLLERS, `${t}.js`), "utf8").catch(() => null);
       const contract = coreContractFor(t);
-      const rendered = renderPort(t, x, rootElementFor(c), { contract });
+      const rendered = renderPort(t, x, contract.root, { contract });
       const end = rendered.lastIndexOf("</template>");
       const p = `${rendered.slice(0, end)}  <style>${convertShadowStyles(c, {
         reflectedAttributes: reflectedPropAttributes(x, contract, t),

@@ -5,14 +5,19 @@ import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const GENERATED = join(HERE, "generated", "core");
-const manifest = JSON.parse(await readFile(join(GENERATED, "manifest.json"), "utf8"));
+const generatedPackages = ["core", "layout", "editor"].map((name) => join(HERE, "generated", name));
+const manifests = await Promise.all(generatedPackages.map(async (directory) => ({
+  directory,
+  manifest: JSON.parse(await readFile(join(directory, "manifest.json"), "utf8")),
+})));
+const components = manifests.flatMap(({ directory, manifest }) =>
+  manifest.components.map((component) => ({ ...component, directory })));
 const runtime = await readFile(join(HERE, "vendor", "html-next-runtime.iife.js"), "utf8");
-const definitions = (await Promise.all(manifest.components.map(async ({ tag }) =>
-  readFile(join(GENERATED, "components", `${tag}.html`), "utf8"))))
+const definitions = (await Promise.all(components.map(async ({ tag, directory }) =>
+  readFile(join(directory, "components", `${tag}.html`), "utf8"))))
   .map((source) => source.replace(/^<link\s+rel="component"[^>]*>\s*$/gm, ""))
   .join("\n");
-const invocations = manifest.components.map(({ tag }) => `<${tag}></${tag}>`).join("\n");
+const invocations = components.map(({ tag }) => `<${tag}></${tag}>`).join("\n");
 
 const browser = await chromium.launch();
 try {
@@ -35,10 +40,10 @@ try {
       passes,
       missing: tags.filter((tag) => !document.querySelector(`[data-component-root~="${tag}"]`)),
     };
-  }, manifest.components.map(({ tag }) => tag));
+  }, components.map(({ tag }) => tag));
   if (errors.length) throw new Error(`HTML Next runtime rejected the graph:\n${errors.join("\n")}`);
   if (result.missing.length) throw new Error(`Components did not lower: ${result.missing.join(", ")}`);
-  console.log(`Validated ${manifest.components.length} standalone HTML Next definitions in ${result.passes} lowering passes.`);
+  console.log(`Validated ${components.length} standalone HTML Next definitions in ${result.passes} lowering passes.`);
 } finally {
   await browser.close();
 }

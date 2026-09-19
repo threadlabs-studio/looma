@@ -1,4 +1,4 @@
-import { copyFile, cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -10,7 +10,6 @@ import {
   renderPort,
 } from "./convert-render.mjs";
 import { referencedTags } from "./discover-ports.mjs";
-import { rootElementFor } from "./root-element.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPOSITORY = join(HERE, "..", "..");
@@ -54,10 +53,10 @@ export async function generateCoreArtifacts({ output = DEFAULT_OUTPUT } = {}) {
   await rm(output, { recursive: true, force: true });
   await mkdir(join(output, "components"), { recursive: true });
   await mkdir(join(output, "components", "controllers"), { recursive: true });
-  await cp(
-    join(CONTROLLERS, "shared"),
-    join(output, "components", "controllers", "shared"),
-    { recursive: true },
+  await mkdir(join(output, "components", "controllers", "shared"), { recursive: true });
+  await copyFile(
+    join(CONTROLLERS, "shared", "overlay.js"),
+    join(output, "components", "controllers", "shared", "overlay.js"),
   );
 
   for (const tag of tags) {
@@ -73,7 +72,7 @@ export async function generateCoreArtifacts({ output = DEFAULT_OUTPUT } = {}) {
     const controllerPath = join(CONTROLLERS, controllerName);
     const controller = await exists(controllerPath) ? controllerName : undefined;
     const contract = coreContractFor(tag);
-    const rendered = renderPort(tag, tsx, rootElementFor(css), { contract });
+    const rendered = renderPort(tag, tsx, contract.root, { contract });
     const definition = addStyles(addController(rendered, controller), css, tsx, contract, tag);
     const dependencies = [...new Set([
       ...referencedTags(definition),

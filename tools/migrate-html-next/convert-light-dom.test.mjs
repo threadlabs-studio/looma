@@ -12,8 +12,8 @@ test("retargets compatibility selectors to lowered component roots", () => {
 
 test("does not rewrite custom properties or longer identifiers", () => {
   assert.equal(
-    convertLightDomStyles(".x { color: var(--ui-badge-color); } my-ui-badge { display: block; }"),
-    ".x { color: var(--ui-badge-color); } my-ui-badge { display: block; }",
+    convertLightDomStyles(".ui-badge { font-family: ui-monospace; color: var(--ui-badge-color); } my-ui-badge { display: block; }"),
+    ".ui-badge { font-family: ui-monospace; color: var(--ui-badge-color); } my-ui-badge { display: block; }",
   );
 });
 
@@ -29,6 +29,24 @@ test("retargets public attributes and preserves boolean presence semantics", () 
       { contracts },
     ),
     "[data-component-root~=\"ui-radio\"][data-disabled='true'], [data-component-root~=\"ui-radio\"][data-disabled='true'], [data-component-root~=\"ui-radio-group\"][data-orientation='vertical'], [data-component-root~=\"ui-form-field\"][data-invalid='true'] {}",
+  );
+});
+
+test("retargets every public attribute in a chained selector", () => {
+  const css = `ui-sidebar[side="end"][resizable] > :last-child { flex: 1 }`;
+  const converted = convertLightDomStyles(css, {
+    contracts: {
+      "ui-sidebar": {
+        props: {
+          side: { type: "string" },
+          resizable: { type: "boolean" },
+        },
+      },
+    },
+  });
+  assert.equal(
+    converted,
+    `[data-component-root~="ui-sidebar"][data-side="end"][data-resizable='true'] > :last-child { flex: 1 }`,
   );
 });
 
