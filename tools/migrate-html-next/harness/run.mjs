@@ -6,7 +6,7 @@
 // story, derives the root element from :host display, and reports per-component overlap mismatch.
 // Tooling only: it renders the migration to validate it, it does not adopt it.
 import { createServer } from "node:http";
-import { readFile, readdir } from "node:fs/promises";
+import { readFile, readdir, writeFile, mkdir, rm } from "node:fs/promises";
 import { join, extname, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
@@ -54,6 +54,10 @@ const server = createServer(async (req, res) => {
 });
 await new Promise((r) => server.listen(0, r));
 const base = `http://localhost:${server.address().port}`;
+
+const GALLERY = join(HERE, "gallery");
+await rm(GALLERY, { recursive: true, force: true });
+await mkdir(GALLERY, { recursive: true });
 
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ viewport: { width: 1000, height: 700 }, deviceScaleFactor: 2 });
@@ -112,6 +116,8 @@ for (const tag of tags) {
     const afterBuf = await target.screenshot();
     await after.close();
     const d = await diff(beforeBuf, afterBuf);
+    await writeFile(join(GALLERY, `${tag}.before.png`), beforeBuf);
+    await writeFile(join(GALLERY, `${tag}.after.png`), afterBuf);
     results.push({ tag, ...d, pct: +(d.mismatch / d.total * 100).toFixed(1) });
   } catch (error) {
     results.push({ tag, note: `ERROR: ${String(error.message ?? error).split("\n")[0].slice(0, 70)}` });
@@ -129,3 +135,23 @@ const buckets = { "<10%": scored.filter((r) => r.pct < 10).length, "10-25%": sco
 console.log(`\nbuckets: <10% = ${buckets["<10%"]},  10-25% = ${buckets["10-25%"]},  >=25% = ${buckets[">=25%"]}`);
 console.log("\n=== skipped ===");
 for (const r of skipped) console.log(`${r.tag.padEnd(20)} ${r.note}`);
+
+// Browsable before/after gallery.
+const row = (r) => `<tr class="${r.pct < 10 ? "ok" : r.pct < 25 ? "mid" : "hi"}">
+  <th>${r.tag}<br><small>${r.pct}%</small></th>
+  <td><figure><figcaption>before (Shadow&nbsp;DOM)</figcaption><img src="${r.tag}.before.png"></figure></td>
+  <td><figure><figcaption>after (HTML&nbsp;Next)</figcaption><img src="${r.tag}.after.png"></figure></td>
+</tr>`;
+const html = `<!doctype html><meta charset="utf8"><title>Looma → HTML Next convergence</title>
+<style>
+ body{font:14px/1.5 system-ui;margin:2rem;background:#fafafa;color:#111}
+ h1{font-size:1.2rem} table{border-collapse:collapse;width:100%} td,th{border:1px solid #ddd;padding:.6rem;vertical-align:top;text-align:left}
+ img{max-width:520px;display:block;background:#fff;box-shadow:0 0 0 1px #eee} figcaption{color:#666;font-size:12px;margin-bottom:.3rem}
+ tr.ok th{color:#0a7d33} tr.mid th{color:#a86400} tr.hi th{color:#b00020} small{font-weight:400;color:#888}
+ .skip{color:#888;margin-top:1rem}
+</style>
+<h1>Looma → HTML Next — before / after (${scored.length} rendered, sorted by pixel mismatch)</h1>
+<table>${scored.map(row).join("")}</table>
+<p class="skip"><strong>Skipped:</strong> ${skipped.map((r) => `${r.tag} (${r.note})`).join(" · ")}</p>`;
+await writeFile(join(GALLERY, "index.html"), html);
+console.log(`\ngallery: ${join(GALLERY, "index.html")}`);
