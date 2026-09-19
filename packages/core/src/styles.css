@@ -173,7 +173,7 @@
   font-variation-settings: inherit;
 }
 
-:where(ui-menu > ui-menu-item, ui-context-menu > ui-menu-item) {
+:where(ui-menu > ui-menu-item:not(:defined), ui-context-menu > ui-menu-item:not(:defined)) {
   display: block;
   width: 100%;
   padding: var(--ui-space-2) var(--ui-space-3);
@@ -190,12 +190,12 @@
     color var(--ui-motion-fast) var(--ui-motion-ease);
 }
 
-:where(ui-menu > ui-menu-item, ui-context-menu > ui-menu-item):hover:not([aria-disabled="true"]):not([disabled]) {
+:where(ui-menu > ui-menu-item:not(:defined), ui-context-menu > ui-menu-item:not(:defined)):hover:not([aria-disabled="true"]):not([disabled]) {
   background: var(--ui-surface-subtle);
 }
 
-:where(ui-menu > ui-menu-item, ui-context-menu > ui-menu-item)[aria-disabled="true"],
-:where(ui-menu > ui-menu-item, ui-context-menu > ui-menu-item)[disabled] {
+:where(ui-menu > ui-menu-item:not(:defined), ui-context-menu > ui-menu-item:not(:defined))[aria-disabled="true"],
+:where(ui-menu > ui-menu-item:not(:defined), ui-context-menu > ui-menu-item:not(:defined))[disabled] {
   opacity: 0.6;
   cursor: not-allowed;
 }
@@ -443,7 +443,7 @@
     box-shadow: var(--ui-shadow-lg);
   }
 
-  ui-menu-item {
+  ui-menu-item:not(:defined) {
     display: block;
     width: 100%;
     padding: var(--ui-space-2) var(--ui-space-3);
@@ -460,12 +460,12 @@
       color var(--ui-motion-fast) var(--ui-motion-ease);
   }
 
-  ui-menu-item:hover:not([aria-disabled="true"]):not([disabled]) {
+  ui-menu-item:not(:defined):hover:not([aria-disabled="true"]):not([disabled]) {
     background: var(--ui-surface-subtle);
   }
 
-  ui-menu-item[aria-disabled="true"],
-  ui-menu-item[disabled] {
+  ui-menu-item:not(:defined)[aria-disabled="true"],
+  ui-menu-item:not(:defined)[disabled] {
     opacity: 0.6;
     cursor: not-allowed;
   }
