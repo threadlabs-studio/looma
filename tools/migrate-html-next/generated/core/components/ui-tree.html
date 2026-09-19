@@ -1,0 +1,21 @@
+<template component="ui-tree" status="early" summary="Migrated Looma ui-tree component.">
+  <defs>
+    <prop name="label" type="string">label token.</prop>
+    <prop name="hoverExpandDelay" type="number">hoverExpandDelay token.</prop>
+    <prop name="maxDepth" type="number">maxDepth token.</prop>
+  </defs>
+  <div role="tree"><slot></slot></div>
+  <style>:scope {
+  --ui-tree-indent: 16px;
+  --ui-tree-gutter: 0px;
+
+  display: block;
+  min-inline-size: 0;
+  padding-inline-start: var(--ui-tree-gutter);
+}
+
+:slotted(ui-tree-item) {
+  --ui-tree-indent: inherit;
+}
+</style>
+</template>

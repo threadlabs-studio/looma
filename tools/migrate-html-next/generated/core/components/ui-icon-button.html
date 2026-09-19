@@ -1,0 +1,156 @@
+<template component="ui-icon-button" controller="./controllers/ui-icon-button.js" status="early" summary="Migrated Looma ui-icon-button component.">
+  <defs>
+    <prop name="disabled" type="boolean">disabled token.</prop>
+    <prop name="label" type="string">label token.</prop>
+    <prop name="size" type="string">size token.</prop>
+    <prop name="variant" type="string">variant token.</prop>
+    <prop name="anticipatory" type="boolean">anticipatory token.</prop>
+  </defs>
+  <span :data-disabled="disabled"><button type="button" :aria-label="label"><slot></slot></button></span>
+  <style>:scope {
+  display: inline-flex;
+  color: var(--ui-text-secondary);
+}
+
+:scope[data-anticipatory] {
+  position: relative;
+}
+
+:scope[data-anticipatory]::before {
+  content: '';
+  position: absolute;
+  inset: 50% auto auto 50%;
+  z-index: 1;
+  inline-size: var(--ui-affordance-guide-size, 0.25rem);
+  block-size: var(--ui-affordance-guide-size, 0.25rem);
+  border-radius: var(--ui-radius-round, 999px);
+  background: var(--ui-affordance-guide-color, var(--ui-border-strong));
+  opacity: var(--ui-affordance-guide-opacity, 0.42);
+  transform: translate(-50%, -50%);
+  transition: opacity var(--ui-affordance-motion, var(--ui-motion-fast)) var(--ui-motion-ease);
+  pointer-events: none;
+}
+
+:scope[data-anticipatory] button {
+  opacity: 0;
+  transform: scale(0.72);
+  pointer-events: none;
+}
+
+:scope[data-anticipatory][data-ui-proximity='near']::before,
+:scope[data-anticipatory]:focus-within::before,
+:scope[data-anticipatory]:hover::before,
+:scope[data-anticipatory][data-variant='solid']::before {
+  opacity: 0;
+}
+
+:scope[data-anticipatory][data-ui-proximity='near'] button,
+:scope[data-anticipatory]:focus-within button,
+:scope[data-anticipatory]:hover button,
+:scope[data-anticipatory][data-variant='solid'] button {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+button {
+  appearance: none;
+  inline-size: var(--ui-icon-button-size, 2.5rem);
+  block-size: var(--ui-icon-button-size, 2.5rem);
+  min-inline-size: var(--ui-icon-button-size, 2.5rem);
+  min-block-size: var(--ui-icon-button-size, 2.5rem);
+  padding: 0;
+  margin: 0;
+  border: 1px solid transparent;
+  border-radius: var(--ui-icon-button-radius, var(--ui-radius-2));
+  background: var(--ui-icon-button-bg, transparent);
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background-color var(--ui-motion-fast) var(--ui-motion-ease),
+    border-color var(--ui-motion-fast) var(--ui-motion-ease),
+    color var(--ui-motion-fast) var(--ui-motion-ease),
+    box-shadow var(--ui-motion-fast) var(--ui-motion-ease),
+    transform var(--ui-motion-fast) var(--ui-motion-ease);
+}
+
+@media (hover: none), (pointer: coarse) {
+  :scope[data-anticipatory]::before {
+    opacity: 0;
+  }
+
+  :scope[data-anticipatory] button {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+  }
+}
+
+:scope[data-size='sm'] button {
+  inline-size: var(--ui-icon-button-size-sm, 2rem);
+  block-size: var(--ui-icon-button-size-sm, 2rem);
+  min-inline-size: var(--ui-icon-button-size-sm, 2rem);
+  min-block-size: var(--ui-icon-button-size-sm, 2rem);
+}
+
+:scope[data-size='lg'] button {
+  inline-size: var(--ui-icon-button-size-lg, 2.75rem);
+  block-size: var(--ui-icon-button-size-lg, 2.75rem);
+  min-inline-size: var(--ui-icon-button-size-lg, 2.75rem);
+  min-block-size: var(--ui-icon-button-size-lg, 2.75rem);
+}
+
+:scope[data-variant='outline'] button {
+  border-color: var(--ui-icon-button-border, var(--ui-border-default));
+  background: var(--ui-icon-button-outline-bg, var(--ui-surface-default));
+  color: var(--ui-icon-button-outline-color, var(--ui-text-primary));
+}
+
+:scope[data-variant='solid'] button {
+  background: var(--ui-icon-button-solid-bg, var(--ui-accent-solid));
+  color: var(--ui-icon-button-solid-color, var(--ui-text-on-accent));
+  box-shadow: var(
+    --ui-icon-button-solid-shadow,
+    0 1px 2px color-mix(in srgb, var(--ui-accent-solid) 18%, transparent)
+  );
+}
+
+button:hover:enabled {
+  background: var(--ui-icon-button-hover-bg, var(--ui-surface-muted));
+  color: var(--ui-icon-button-hover-color, var(--ui-text-primary));
+}
+
+:scope[data-variant='outline'] button:hover:enabled {
+  border-color: var(--ui-icon-button-hover-border, var(--ui-border-strong));
+}
+
+:scope[data-variant='solid'] button:hover:enabled {
+  background: var(--ui-icon-button-solid-hover-bg, var(--ui-accent-hover));
+}
+
+button:active:enabled {
+  transform: scale(var(--ui-icon-button-active-scale, 0.96));
+}
+
+button:focus-visible {
+  outline: 2px solid var(--ui-focus-ring);
+  outline-offset: 2px;
+}
+
+button:disabled,
+:scope[data-disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+:slotted(svg) {
+  inline-size: var(--ui-icon-button-icon-size, 1.125rem);
+  block-size: var(--ui-icon-button-icon-size, 1.125rem);
+  flex-shrink: 0;
+  stroke-width: var(--ui-icon-button-icon-stroke-width, 1.75);
+}
+</style>
+</template>
