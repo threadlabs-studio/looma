@@ -72,7 +72,7 @@ The diff is **shift-tolerant** (a pixel matches if any pixel within ±2px matche
 full union of both screenshots. This filters sub-pixel jitter and anti-aliasing without hiding
 extra width or height in either rendering.
 
-Full-corpus run (26 rendered, 7 skipped): **all 26 measurable components are under 10%**; 16 are
+Full-corpus run (33 rendered, 0 skipped): **all 33 core components are under 10%**; 21 are
 pixel-identical at 0%. The earlier overlap-only calculation understated components whose converted
 bounds were larger than the original; these full-bounds figures are the authoritative baseline.
 
@@ -124,12 +124,14 @@ prop types, declares Stencil `@State()` roots, and retains safe state-driven att
 state now converges at **0%**. `ui-search-result-row` has a ported slot-presence controller and is
 back at **1.3%** with state semantics enabled.
 
-**Skipped:** controller-driven components with no static visible box (context-menu, dialog, menu,
-menu-item, tooltip), plus affordance-scope and editable, which have no matched story.
+The formerly skipped controller-driven surfaces use explicit open-state captures. `ui-menu`,
+`ui-menu-item`, and `ui-tooltip` converge at **0%**, `ui-context-menu` at **0.1%**, and `ui-dialog`
+at **6.2%**. Harness-owned representative fixtures cover `ui-affordance-scope` and `ui-editable`,
+which have no dedicated Storybook stories; both converge at **0%**. The overlay controllers use
+native dialog/popover APIs and synchronize generated nested menu roots across lowering turns.
 
-**Next — automate controller conversion.** The controller path is proven by hand
-(`ui-avatar`, `ui-avatar-group`, `ui-search-shell`, `ui-top-bar`); the skipped overlays (dialog,
-menu, tooltip, context-menu) each need their Stencil controller (`@State`, lifecycle, methods) converted
-to an HTML Next `host`-based controller. Build a converter for that, the same way
-`convert-render.mjs` followed the `ui-button` markup/CSS proof. Then layout/editor packages.
-Converted output stays unmerged until the set passes.
+**Next — complete behavioral migration and adoption.** Static and explicit open-state visual
+convergence is proven across the full core corpus. Expand the controller ports from their exercised
+states to each component's complete interaction contract, run browser interaction coverage, then
+adopt the generated definitions/controllers into the shipped package. Layout/editor elements follow.
+Converted output stays unmerged until the complete set passes.
