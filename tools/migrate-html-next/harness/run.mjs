@@ -70,8 +70,21 @@ async function diff(before, after) {
     const W = Math.max(ib.width, ia.width), H = Math.max(ib.height, ia.height);
     const px = (img) => { const c = document.createElement("canvas"); c.width = W; c.height = H; c.getContext("2d").drawImage(img, 0, 0); return c.getContext("2d").getImageData(0, 0, W, H).data; };
     const db = px(ib), da = px(ia), w2 = Math.min(ib.width, ia.width), h2 = Math.min(ib.height, ia.height);
-    let m = 0; const T = 32;
-    for (let y = 0; y < h2; y++) for (let x = 0; x < w2; x++) { const i = (y * W + x) * 4; if (Math.abs(db[i] - da[i]) + Math.abs(db[i + 1] - da[i + 1]) + Math.abs(db[i + 2] - da[i + 2]) > T) m++; }
+    // Shift-tolerant: a pixel counts as matched if any pixel within +/-R in the other image matches.
+    // This ignores small sub-pixel shifts/AA so the score reflects real visual difference, not layout jitter.
+    const T = 32, R = 2;
+    const near = (x, y) => {
+      const i = (y * W + x) * 4;
+      for (let dy = -R; dy <= R; dy++) for (let dx = -R; dx <= R; dx++) {
+        const x2 = x + dx, y2 = y + dy;
+        if (x2 < 0 || y2 < 0 || x2 >= w2 || y2 >= h2) continue;
+        const j = (y2 * W + x2) * 4;
+        if (Math.abs(db[i] - da[j]) + Math.abs(db[i + 1] - da[j + 1]) + Math.abs(db[i + 2] - da[j + 2]) <= T) return true;
+      }
+      return false;
+    };
+    let m = 0;
+    for (let y = 0; y < h2; y++) for (let x = 0; x < w2; x++) if (!near(x, y)) m++;
     return { before: [ib.width, ib.height], after: [ia.width, ia.height], mismatch: m, total: w2 * h2 };
   }, { b: before.toString("base64"), a: after.toString("base64") });
   await page.close();

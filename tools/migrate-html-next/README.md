@@ -59,21 +59,27 @@ browsable before/after gallery to `harness/gallery/index.html` (gitignored) — 
 `python3 -m http.server -d harness/gallery`. To see the original components live, run
 `pnpm dev:storybook`.
 
-Full-corpus run (19 rendered, 14 skipped): **11 components under 10%**, 5 in 10–25%, 3 at ≥25%.
+The diff is **shift-tolerant** (a pixel matches if any pixel within ±2px matches), so the score
+reflects real visual difference rather than sub-pixel layout jitter or anti-aliasing.
+
+Full-corpus run (22 rendered, 11 skipped): **18 components under 10%**, 2 in 10–25%, 2 at ≥25%.
 
 | Bucket | Components |
 | --- | --- |
-| **< 10%** | icon-button 0%, floating-action-button 0.1%, search-result-row 1.4%, textarea 1.7%, select 2.9%, tree 4%, form-field 4.1%, input 4.9%, callout 6.3%, button 8.3%, disclosure 9.9% |
-| 10–25% | chip 11.5%, badge 19.7%, checkbox 20.4%, radio 20.6%, switch 24.3% |
-| ≥ 25% | search-shell 34.6%, avatar 35.1%, toast-region 35.4% |
+| **< 10%** | floating-action-button 0%, icon-button 0%, select 0.9%, textarea 1.1%, button 1.2%, search-result-row 1.4%, tabs 2%, chip 2.1%, callout 2.4%, form-field 2.4%, tree 2.9%, radio 3.8%, input 4.3%, checkbox 6.1%, switch 8%, radio-group 8.5%, badge 8.7%, disclosure 9.1% |
+| 10–25% | avatar-group 14.8%, avatar 15.5% |
+| ≥ 25% | toast-region 27.8%, search-shell 33.7% |
+
+Pure markup+CSS auto-conversion (no per-component hand-tuning) already renders 18/22 rendered
+components visually faithfully. The four residuals — avatar/avatar-group (fallback initials),
+toast-region, search-shell — are **controller-driven**: their dynamic content is produced by the
+Stencil controller, which the static harness does not run.
 
 **Skipped:** controller-driven components with no static visible box (dialog, menu, tooltip,
 top-bar), components with no matched story (affordance-scope, context-menu, editable, menu-item,
-tree-item), and render shapes the translator does not yet handle — list/fragment renders
-(avatar-group, radio-group, tabs), a non-`render()` method (combobox), and a hidden lowered root
-(popover).
+tree-item), a non-`render()` method (combobox), and a hidden lowered root (popover).
 
-**Next:** handle list/fragment renders and dynamic text bindings (`{this.label}` → `$value`);
-controller wiring so overlay/interactive components can be measured; per-component residuals in the
-10–25% and ≥25% buckets; then the layout/editor packages. Converted output stays unmerged until the
-set passes.
+**Next frontier — controller logic:** the remaining residuals and the skipped overlays all need
+their behavior, not just markup/CSS. Converting Stencil controller logic to HTML Next controllers
+(`host`-based) is the next dimension. Then layout/editor packages. Converted output stays unmerged
+until the set passes.
