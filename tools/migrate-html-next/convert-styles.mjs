@@ -26,8 +26,25 @@ function matchingParen(value, open) {
   return value.length - 1;
 }
 
+function rewriteReflectedAttributes(condition, reflectedAttributes, booleanAttributes) {
+  const presence = condition.replace(
+    /\[([A-Za-z][\w-]*)(\s*\])/g,
+    (match, attribute, close) => {
+      const reflected = reflectedAttributes.get(attribute);
+      if (reflected === undefined) return match;
+      return booleanAttributes.has(attribute)
+        ? `[${reflected}='true'${close}`
+        : `[${reflected}${close}`;
+    },
+  );
+  return presence.replace(/\[([A-Za-z][\w-]*)(?=\s*[~|^$*]?=)/g, (match, attribute) => {
+    const reflected = reflectedAttributes.get(attribute);
+    return reflected === undefined ? match : `[${reflected}`;
+  });
+}
+
 /** Rewrite `:host` / `:host(<cond>)` to `:scope<cond>`, balancing nested parens in the condition. */
-function rewriteHost(css) {
+function rewriteHost(css, reflectedAttributes, booleanAttributes) {
   let out = "";
   let i = 0;
   for (;;) {
@@ -37,7 +54,12 @@ function rewriteHost(css) {
     const after = css[at + 5];
     if (after === "(") {
       const close = matchingParen(css, at + 5);
-      out += ":scope" + css.slice(at + 6, close); // fold the condition onto :scope
+      const condition = rewriteReflectedAttributes(
+        css.slice(at + 6, close),
+        reflectedAttributes,
+        booleanAttributes,
+      );
+      out += ":scope" + condition; // fold the condition onto :scope
       i = close + 1;
     } else if (after === "-" && css.startsWith(":host-context(", at)) {
       // Ancestor context: `:host-context(X) Y` -> `X :scope Y`. Rare; keep the ancestor as a prefix.
@@ -52,6 +74,9 @@ function rewriteHost(css) {
 }
 
 /** Convert one component's shadow stylesheet to HTML Next authoring. Pure string transform. */
-export function convertShadowStyles(css) {
-  return rewriteHost(css).replace(/::slotted\(/g, ":slotted(");
+export function convertShadowStyles(
+  css,
+  { reflectedAttributes = new Map(), booleanAttributes = new Set() } = {},
+) {
+  return rewriteHost(css, reflectedAttributes, booleanAttributes).replace(/::slotted\(/g, ":slotted(");
 }

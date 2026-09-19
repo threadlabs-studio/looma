@@ -1,0 +1,69 @@
+<template component="ui-popover" controller="./controllers/ui-popover.js" status="early" summary="Migrated Looma ui-popover component.">
+  <defs>
+    <prop name="open" type="boolean">open token.</prop>
+    <prop name="defaultOpen" type="boolean" default="false">defaultOpen token.</prop>
+    <prop name="for" type="string">for token.</prop>
+    <prop name="placement" type="string" default="bottom-start">placement token.</prop>
+    <state name="internalOpen" :value="false"></state>
+  </defs>
+  <span :data-open="internalOpen"><div class="popover__surface"><slot></slot></div></span>
+  <style>:scope {
+  --ui-popover-viewport-gap: var(--ui-space-2, 0.5rem);
+  box-sizing: border-box;
+  max-inline-size: min(
+    20rem,
+    calc(100vw - (var(--ui-popover-viewport-gap) * 2))
+  );
+  max-block-size: calc(100dvh - (var(--ui-popover-viewport-gap) * 2));
+  overflow: visible;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.popover__surface {
+  box-sizing: border-box;
+  max-inline-size: inherit;
+  max-block-size: inherit;
+  overflow: auto;
+  padding: var(--ui-space-3);
+  background: var(--ui-surface-elevated);
+  border: 1px solid var(--ui-border-default);
+  border-radius: var(--ui-radius-3);
+  box-shadow: var(--ui-shadow-lg);
+}
+
+:scope:not([data-open]) {
+  display: none;
+}
+
+:scope[popover] {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  opacity: 0;
+  transform: translateY(-4px) scale(0.99);
+  transition:
+    opacity var(--ui-motion-fast) var(--ui-motion-ease),
+    transform var(--ui-motion-fast) var(--ui-motion-ease),
+    display var(--ui-motion-fast) allow-discrete,
+    overlay var(--ui-motion-fast) allow-discrete;
+}
+
+:scope[popover]:popover-open { opacity: 1; transform: translateY(0) scale(1); }
+
+@starting-style {
+  :scope[popover]:popover-open { opacity: 0; transform: translateY(-4px) scale(0.99); }
+}
+
+:scope[hidden] {
+  display: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :scope[popover] { transition: none; }
+}
+</style>
+</template>

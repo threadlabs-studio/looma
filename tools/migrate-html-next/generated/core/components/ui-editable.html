@@ -1,0 +1,12 @@
+<template component="ui-editable" controller="./controllers/ui-editable.js" status="early" summary="Migrated Looma ui-editable component.">
+  <defs>
+    <prop name="edit" type="boolean">edit token.</prop>
+    <prop name="defaultEdit" type="boolean" default="false">defaultEdit token.</prop>
+    <prop name="disabled" type="boolean" default="false">disabled token.</prop>
+    <state name="internalEdit" :value="false"></state>
+  </defs>
+  <div :data-edit="internalEdit" :data-disabled="disabled"><div part="preview"><slot name="preview"></slot></div><div part="edit" :hidden="not internalEdit"><slot name="edit"></slot></div></div>
+  <style>:scope { display: block; min-inline-size: 0; }
+[hidden] { display: none !important; }
+</style>
+</template>
