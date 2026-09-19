@@ -62,21 +62,9 @@ browsable before/after gallery to `harness/gallery/index.html` (gitignored) — 
 The diff is **shift-tolerant** (a pixel matches if any pixel within ±2px matches), so the score
 reflects real visual difference rather than sub-pixel layout jitter or anti-aliasing.
 
-The harness injects a component's own definition plus the definitions of the components nested in
-its story markup, and wires each component's controller by tag, so **composites** (a group of
-avatars, a form of fields) render with their children too.
+Full-corpus run (23 rendered, 10 skipped): **20 components under 10%**, 1 in 10-25%, 2 at >=25%.
 
-Full-corpus run (23 rendered, 10 skipped): **20 components under 10%**, 2 in 10–25%, 1 at ≥25%.
-
-| Bucket | Components |
-| --- | --- |
-| **< 10%** | fab 0%, icon-button 0%, tabs 0.4%, disclosure 0.8%, select 0.9%, textarea 1.1%, button 1.2%, search-result-row 1.4%, chip 2.1%, callout 2.4%, tree 2.6%, form-field 2.9%, radio 3.8%, input 4.3%, checkbox 6.1%, popover 6.4%, toast-region 6.6%, switch 8%, radio-group 8.5%, badge 8.7% |
-| 10–25% | avatar-group 14.2% (composite renders; overflow badge WIP), avatar 15.5% |
-| ≥ 25% | search-shell 33.7% |
-
-Composition wiring improved `toast-region` (28% → 6.6%), `disclosure`, and `tabs`. Known
-regression: `avatar` (4.4% → 15.5%) — its controller is correct in isolation, but in the composite
-mount path `getComponentHost` returns an unpopulated host; to fix.
+The four non-converging components (avatar-group 15.5%, toast-region 28.3%, search-shell 33.7%, plus the skipped overlays) are controller/composite-driven and are the remaining work. A composite def-injection experiment (rendering nested components) improved some but regressed avatar via stale mount hosts; reverted, pending a clean approach that provides controllers as real modules rather than window globals.
 
 Markup+CSS auto-conversion renders most components faithfully with no per-component tuning. The
 **controller path is proven**: a converted controller (`harness/controllers/`) is wired via
