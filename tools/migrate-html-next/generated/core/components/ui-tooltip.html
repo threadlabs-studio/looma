@@ -8,8 +8,10 @@
     <prop name="hideDelay" type="number" default="100">hideDelay token.</prop>
     <prop name="toggleOnClick" type="boolean" default="false">toggleOnClick token.</prop>
     <state name="internalOpen" :value="false"></state>
+    <event name="open" type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"></event>
+    <event name="close" type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"></event>
   </defs>
-  <span role="tooltip" :hidden="not internalOpen" :data-open="internalOpen"><div class="tooltip__surface"><slot></slot></div></span>
+  <span role="tooltip" :hidden="not internalOpen" :data-state-open="internalOpen"><div class="tooltip__surface"><slot></slot></div></span>
   <style>:scope {
   position: fixed;
   inset: auto;

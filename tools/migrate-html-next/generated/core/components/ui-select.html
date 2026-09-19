@@ -6,6 +6,8 @@
     <prop name="invalid" type="boolean" default="false">invalid token.</prop>
     <prop name="required" type="boolean" default="false">required token.</prop>
     <state name="internalValue" :value="''"></state>
+    <event name="input" type="object({ value: string, trigger: keyboard | pointer | programmatic })"></event>
+    <event name="change" type="object({ value: string, trigger: keyboard | pointer | programmatic })"></event>
   </defs>
   <span :data-invalid="invalid"><slot></slot></span>
   <style>:scope {

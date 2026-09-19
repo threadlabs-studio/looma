@@ -6,6 +6,7 @@
     <prop name="required" type="boolean" default="false">required token.</prop>
     <prop name="value" type="string" default="on">value token.</prop>
     <state name="internalChecked" :value="false"></state>
+    <event name="change" type="object({ checked: boolean, value: string, trigger: keyboard | pointer | programmatic })"></event>
   </defs>
   <span role="switch" :data-disabled="disabled"><input type="checkbox" :checked="internalChecked" :required="required" :value="value" aria-hidden="true"></input><slot></slot></span>
   <style>:scope {

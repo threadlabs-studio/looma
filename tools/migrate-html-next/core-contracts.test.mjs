@@ -26,4 +26,6 @@ test("contract records use declarative API terms rather than source-framework me
   ]);
   assert.equal(coreContracts["ui-combobox"].props.config.type, "unknown");
   assert.equal(coreContracts["ui-combobox"].props.tokenSeparators.type, "list(string)");
+  assert.deepEqual(coreContracts["ui-dialog"].events.map(({ name }) => name), ["close"]);
+  assert.match(coreContracts["ui-dialog"].events[0].type, /^object\(\{ open: boolean,/);
 });

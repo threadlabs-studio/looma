@@ -30,6 +30,16 @@
     <state name="helpOpen" :value="false"></state>
     <state name="lookupError" :value="''"></state>
     <state name="validation" :value="{ status: 'pristine', touched: false, dirty: false, issues: [] }"></state>
+    <event name="query-change" type="object({ query: string, display: string, trigger: keyboard | pointer | programmatic })"></event>
+    <event name="value-change" type="object({ value: string | null, query: string, option: object({ id: string, value: string, label: string, description?: string, metadata?: unknown, group?: string, disabled?: boolean }) | null, kind: selection | clear | free-entry | create | invalidation, trigger: keyboard | pointer | programmatic }) | list(object({ id: string, value: string, label: string, description?: string, metadata?: unknown, group?: string, disabled?: boolean }))"></event>
+    <event name="free-entry" type="object({ value: string | null, query: string, option: object({ id: string, value: string, label: string, description?: string, metadata?: unknown, group?: string, disabled?: boolean }) | null, kind: selection | clear | free-entry | create | invalidation, trigger: keyboard | pointer | programmatic })"></event>
+    <event name="create-entry" type="object({ value: string | null, query: string, option: object({ id: string, value: string, label: string, description?: string, metadata?: unknown, group?: string, disabled?: boolean }) | null, kind: selection | clear | free-entry | create | invalidation, trigger: keyboard | pointer | programmatic })"></event>
+    <event name="dependency-invalidate" type="object({ value: string | null, query: string, option: object({ id: string, value: string, label: string, description?: string, metadata?: unknown, group?: string, disabled?: boolean }) | null, kind: selection | clear | free-entry | create | invalidation, trigger: keyboard | pointer | programmatic })"></event>
+    <event name="validation-change" type="object({ status: pristine | pending | valid | warning | error, touched: boolean, dirty: boolean, issues: list(object({ message: string, path?: list(unknown), severity?: error | warning })), output?: unknown })"></event>
+    <event name="options-change" type="list(object({ id: string, value: string, label: string, description?: string, metadata?: unknown, group?: string, disabled?: boolean }))"></event>
+    <event name="add-item" type="object({ item: object({ id: string, value: string, label: string, description?: string, metadata?: unknown, group?: string, disabled?: boolean }), index: integer, trigger: keyboard | pointer | programmatic })"></event>
+    <event name="remove-item" type="object({ item: object({ id: string, value: string, label: string, description?: string, metadata?: unknown, group?: string, disabled?: boolean }), index: integer, trigger: keyboard | pointer | programmatic })"></event>
+    <event name="create-item" type="object({ query: string, trigger: keyboard | pointer | programmatic })"></event>
     <method name="validate" export="validate" returns="promise(unknown)"></method>
     <method name="focusInput" export="focusInput" returns="promise(undefined)"></method>
   </defs>

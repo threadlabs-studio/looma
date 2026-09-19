@@ -293,6 +293,19 @@ function methodDeclarations(tag, tsx, contract) {
     `    <method name="${name}" export="${exportName}" returns="${returns}"></method>`);
 }
 
+function eventDeclarations(contract) {
+  return (contract?.events ?? []).map((declaration) => {
+    const event = typeof declaration === "string"
+      ? { name: declaration, type: "unknown" }
+      : declaration;
+    const options = ["bubbles", "composed", "cancelable"]
+      .filter((name) => Object.hasOwn(event, name))
+      .map((name) => ` ${name}="${String(event[name])}"`)
+      .join("");
+    return `    <event name="${event.name}" type="${event.type}"${options}></event>`;
+  });
+}
+
 function bindPropertyOnlyProps(body, declared) {
   const bindings = [...declared]
     .filter(([, type]) => /\b(?:unknown|function|trusted-html|trusted-script)\b/.test(type))
@@ -316,7 +329,7 @@ export function reflectedBooleanAttributes(tsx, contract, tag = "component") {
 }
 
 /** Translate one component's render() JSX into an HTML Next template body rooted at `rootEl`. */
-function translateJsx(jsx, rootEl, knownRoots) {
+function translateJsx(jsx, rootEl, knownRoots, stateAttributes) {
   const declaresHost = /<Host\b/.test(jsx);
   let out = rewriteContentExpressions(jsx, knownRoots);
   out = out.replace(/<style>[\s\S]*?<\/style>/g, "");              // drop the component's dynamic <style>
@@ -335,6 +348,9 @@ function translateJsx(jsx, rootEl, knownRoots) {
   out = out.replace(/\bhtmlFor=/g, "for=");
   out = out.replace(/<(\w+)([^>]*?)\s*\/>/g, "<$1$2></$1>");         // self-closing -> paired
   out = out.replace(/\s+/g, " ").replace(/>\s+</g, "><").replace(/\s+>/g, ">").trim();
+  for (const [source, target] of Object.entries(stateAttributes)) {
+    out = out.replace(new RegExp(`:${source}="`, "g"), `:${target}="`);
+  }
   const body = dedupeBindings(out);
   return declaresHost ? body : `<${rootEl}>${body}</${rootEl}>`;
 }
@@ -355,7 +371,10 @@ export function renderPort(tag, tsx, rootEl = "span", { summary, contract } = {}
   const inferredBindings = [...jsx.matchAll(/[\w-]+=\{this\.(\w+)(?:\s*\|\|\s*undefined)?\}/g)]
     .map((match) => match[1]);
   const knownRoots = new Set([...declared.keys(), ...states.keys(), ...inferredBindings]);
-  const body = bindPropertyOnlyProps(translateJsx(jsx, rootEl, knownRoots), declared);
+  const body = bindPropertyOnlyProps(
+    translateJsx(jsx, rootEl, knownRoots, contract?.stateAttributes ?? {}),
+    declared,
+  );
   const bound = [...body.matchAll(/:[\w-]+="(\w+)"/g)].map((m) => m[1]);
   const props = [...new Set([...declared.keys(), ...bound.filter((name) => !states.has(name))])]
     .filter((name) => /^[A-Za-z][A-Za-z0-9]*$/.test(name));
@@ -366,7 +385,12 @@ export function renderPort(tag, tsx, rootEl = "span", { summary, contract } = {}
     return `    <prop name="${name}" type="${declared.get(name) ?? "string"}"${serialized}>${name} token.</prop>`;
   });
   const stateDefs = [...states].map(([name, value]) => `    <state name="${name}" :value="${value.replace(/&/g, "&amp;").replace(/"/g, "&quot;")}"></state>`);
-  const defs = [...propDefs, ...stateDefs, ...methodDeclarations(tag, tsx, contract)].join("\n");
+  const defs = [
+    ...propDefs,
+    ...stateDefs,
+    ...eventDeclarations(contract),
+    ...methodDeclarations(tag, tsx, contract),
+  ].join("\n");
   const text = summary && summary.trim() ? summary.trim() : `Migrated Looma ${tag} component.`;
   return `<template component="${tag}" status="early" summary="${text}">
   <defs>

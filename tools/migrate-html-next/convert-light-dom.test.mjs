@@ -31,3 +31,16 @@ test("retargets public attributes and preserves boolean presence semantics", () 
     "[data-component-root~=\"ui-radio\"][data-disabled='true'], [data-component-root~=\"ui-radio\"][data-disabled='true'], [data-component-root~=\"ui-radio-group\"][data-orientation='vertical'], [data-component-root~=\"ui-form-field\"][data-invalid='true'] {}",
   );
 });
+
+test("retargets compatibility selectors for effective component state", () => {
+  const contracts = {
+    "ui-dialog": {
+      props: { open: { type: "boolean" } },
+      stateAttributes: { "data-open": "data-state-open" },
+    },
+  };
+  assert.equal(
+    convertLightDomStyles("ui-dialog[data-open] {}", { contracts }),
+    "[data-component-root~=\"ui-dialog\"][data-state-open] {}",
+  );
+});

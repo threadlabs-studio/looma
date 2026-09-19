@@ -13,6 +13,10 @@ function escapeRegExp(value) {
 export function convertLightDomStyles(css, { contracts = {} } = {}) {
   let converted = css;
   for (const [tag, contract] of Object.entries(contracts)) {
+    for (const [source, target] of Object.entries(contract.stateAttributes ?? {})) {
+      const attribute = new RegExp(`(${escapeRegExp(tag)}\\[)${escapeRegExp(source)}(?=\\s*(?:[~|^$*]?=|\\]))`, "g");
+      converted = converted.replace(attribute, `$1${target}`);
+    }
     for (const [name, prop] of Object.entries(contract.props)) {
       const dataAttribute = `data-${kebab(name)}`;
       const aliases = new Set([prop.attribute ?? kebab(name), dataAttribute]);

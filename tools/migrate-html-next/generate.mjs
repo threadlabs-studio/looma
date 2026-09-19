@@ -31,6 +31,7 @@ function addStyles(template, css, tsx, contract, tag) {
   const styles = convertShadowStyles(css, {
     reflectedAttributes: reflectedPropAttributes(tsx, contract, tag),
     booleanAttributes: reflectedBooleanAttributes(tsx, contract, tag),
+    stateAttributes: contract.stateAttributes,
   });
   return `${template.slice(0, end)}  <style>${styles}</style>\n${template.slice(end)}`;
 }
