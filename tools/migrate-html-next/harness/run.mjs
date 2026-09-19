@@ -28,9 +28,28 @@ const VIEWPORTS = {
   "ui-top-bar": { width: 390, height: 700 },
 };
 const STORIES = {
+  "ui-affordance-scope": "display-badge--default",
   "ui-context-menu": "overlay-contextmenu--default",
+  "ui-editable": "display-badge--default",
+  "ui-tooltip": "overlay-tooltip--open",
   "ui-tree-item": "display-tree--default",
 };
+const FIXTURES = {
+  "ui-affordance-scope": `<ui-affordance-scope><ui-icon-button label="Action"><button type="button">Action</button></ui-icon-button></ui-affordance-scope>`,
+  "ui-editable": `<ui-editable><button slot="preview" data-ui-editable-trigger type="button">Preview value</button><input slot="edit" value="Editing value"></ui-editable>`,
+};
+const CAPTURE_SELECTORS = {
+  "ui-affordance-scope": {
+    before: "ui-icon-button",
+    after: `[data-component-root~="ui-icon-button"]`,
+  },
+  "ui-context-menu": {
+    before: "ui-menu",
+    after: `[data-component-root~="ui-menu"]`,
+  },
+  "ui-dialog": "dialog[open]",
+};
+const FORCE_OPEN = new Set(["ui-context-menu", "ui-dialog", "ui-menu", "ui-menu-item", "ui-tooltip"]);
 
 // Map each component tag to a representative story id (prefer a "default"/"info"/"tag" story).
 const index = JSON.parse(await readFile(join(STATIC, "index.json"), "utf8"));
@@ -145,13 +164,29 @@ for (const tag of tags) {
     const before = await ctx.newPage();
     await before.setViewportSize(VIEWPORTS[tag] ?? { width: 1000, height: 700 });
     await before.goto(`${base}/iframe.html?id=${story}&viewMode=story`, { waitUntil: "networkidle" });
+    if (FIXTURES[tag]) {
+      await before.evaluate(({ fixture }) => {
+        const root = document.querySelector("#storybook-root");
+        if (root) root.innerHTML = fixture;
+      }, { fixture: FIXTURES[tag] });
+    }
     await before.waitForSelector(`${tag}, ${tag}.hydrated`, { timeout: 8000 }).catch(() => {});
     await before.waitForTimeout(400);
     const el = before.locator(tag).first();
     if (await el.count() === 0) { results.push({ tag, note: "component not in story" }); await before.close(); continue; }
-    const box = await el.boundingBox();
+    if (FORCE_OPEN.has(tag)) {
+      await el.evaluate((node, componentTag) => {
+        const target = componentTag === "ui-menu-item" ? node.closest("ui-menu") : node;
+        target?.setAttribute("open", "");
+      }, tag);
+      await before.waitForTimeout(300);
+    }
+    const capture = CAPTURE_SELECTORS[tag];
+    const beforeCaptureSelector = typeof capture === "string" ? capture : capture?.before;
+    const beforeVisual = beforeCaptureSelector ? el.locator(beforeCaptureSelector).first() : el;
+    const box = await beforeVisual.boundingBox();
     if (box === null || box.width < 1 || box.height < 1) { results.push({ tag, note: "no visible box (controller-driven?)" }); await before.close(); continue; }
-    const beforeBuf = await el.screenshot();
+    const beforeBuf = await beforeVisual.screenshot();
     const host = await el.evaluate((node) => ({
       attrs: node.getAttributeNames().filter((n) => !n.startsWith("data-") && !n.startsWith("s-") && n !== "class")
         .map((n) => `${n}="${node.getAttribute(n)}"`).join(" "),
@@ -218,7 +253,10 @@ for (const tag of tags) {
     const target = after.locator(`[data-component-root~="${tag}"]`).first();
     if (await target.count() === 0) { results.push({ tag, note: "did not lower" }); await after.close(); continue; }
     if (process.env.MIGRATION_DEBUG) console.log("after", await target.evaluate(debugSnapshot));
-    const afterBuf = await target.screenshot();
+    const afterCaptureSelector = typeof capture === "string" ? capture : capture?.after;
+    const afterVisual = afterCaptureSelector ? target.locator(afterCaptureSelector).first() : target;
+    if (await afterVisual.count() === 0) { results.push({ tag, note: "capture target missing" }); await after.close(); continue; }
+    const afterBuf = await afterVisual.screenshot();
     await after.close();
     const d = await diff(beforeBuf, afterBuf);
     await writeFile(join(GALLERY, `${tag}.before.png`), beforeBuf);
