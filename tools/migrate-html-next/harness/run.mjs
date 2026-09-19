@@ -18,6 +18,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const LOOMA = join(HERE, "..", "..", "..");
 const STATIC = join(LOOMA, "apps/storybook/storybook-static");
 const CORE = join(LOOMA, "packages/core/src/components");
+const CONTROLLERS = join(HERE, "controllers");
 const RUNTIME = await readFile(join(HERE, "..", "vendor", "html-next-runtime.iife.js"), "utf8");
 const only = process.argv.slice(2); // optional tag filter
 
@@ -118,12 +119,29 @@ for (const tag of tags) {
     }));
     await before.close();
 
-    const port = renderPort(tag, tsx, rootFor(css)).replace("</template>", `  <style>${convertShadowStyles(css)}</style>\n</template>`);
+    const ctrlSrc = await readFile(join(CONTROLLERS, `${tag}.js`), "utf8").catch(() => null);
+    let port = renderPort(tag, tsx, rootFor(css)).replace("</template>", `  <style>${convertShadowStyles(css)}</style>\n</template>`);
+    if (ctrlSrc) port = port.replace('status="early"', `status="early" controller="./${tag}.js"`);
     const after = await ctx.newPage();
     await after.setContent(`<!doctype html><html><head><meta charset="utf8"><style>${tokens}</style></head><body>${port}<${tag} ${host.attrs}>${host.inner}</${tag}></body></html>`);
     await after.addScriptTag({ content: RUNTIME });
-    await after.evaluate(() => window.HtmlRuntime.lowerDocument());
-    await after.waitForTimeout(150);
+    if (ctrlSrc) {
+      // wire the converted controller like the runtime's onConnect path
+      await after.addScriptTag({ content: ctrlSrc.replace(/export default function controller/, "window.__ctrl = function controller") });
+      await after.evaluate((t) => {
+        window.HtmlRuntime.observeDocument(document, {
+          onConnect(root, def) {
+            if (def.contract.tag !== t || !window.__ctrl) return;
+            window.HtmlRuntime.setControllerModule(root, Promise.resolve({ default: window.__ctrl }));
+            return window.__ctrl(window.HtmlRuntime.getComponentHost(root));
+          },
+        });
+      }, tag);
+      await after.waitForTimeout(400); // allow controller + image load/error
+    } else {
+      await after.evaluate(() => window.HtmlRuntime.lowerDocument());
+      await after.waitForTimeout(150);
+    }
     const target = after.locator(`[data-component-root~="${tag}"]`).first();
     if (await target.count() === 0) { results.push({ tag, note: "did not lower" }); await after.close(); continue; }
     const afterBuf = await target.screenshot();
