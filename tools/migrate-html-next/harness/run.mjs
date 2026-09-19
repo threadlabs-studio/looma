@@ -150,7 +150,10 @@ for (const tag of tags) {
     await after.setViewportSize(VIEWPORTS[tag] ?? { width: 1000, height: 700 });
     // Match Storybook's canvas padding (1rem) so full-width components have the same available
     // width — otherwise right-aligned content (e.g. avatar-group) shifts by the padding delta.
-    await after.setContent(`<!doctype html><html><head><meta charset="utf8"><style>${tokens}\nbody{margin:0;padding:1rem}</style></head><body>${portsHtml}<${tag} ${host.attrs}>${host.inner}</${tag}></body></html>`);
+    // Preserve the containing width supplied by the representative story. Block components such
+    // as tree rows otherwise expand from their story's constrained column to the full test canvas,
+    // measuring a missing parent layout rather than the component migration.
+    await after.setContent(`<!doctype html><html><head><meta charset="utf8"><style>${tokens}\nbody{margin:0;padding:1rem}</style></head><body>${portsHtml}<div data-migration-frame style="inline-size:${box.width}px"><${tag} ${host.attrs}>${host.inner}</${tag}></div></body></html>`);
     await after.addScriptTag({ content: RUNTIME });
     if (Object.keys(ctrls).length > 0) {
       // Import controllers as real ES modules (blob URLs) and wire each by tag — nothing is

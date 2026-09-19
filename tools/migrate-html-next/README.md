@@ -63,9 +63,13 @@ The diff is **shift-tolerant** (a pixel matches if any pixel within ±2px matche
 full union of both screenshots. This filters sub-pixel jitter and anti-aliasing without hiding
 extra width or height in either rendering.
 
-Full-corpus run (26 rendered, 7 skipped): **14 components under 10%**, 5 in 10-25%, and 7 at
+Full-corpus run (26 rendered, 7 skipped): **15 components under 10%**, 7 in 10-25%, and 4 at
 25% or above. The earlier overlap-only calculation understated components whose converted bounds
 were larger than the original; these full-bounds figures are the authoritative baseline.
+
+The after page preserves the representative story's measured containing width. That removed false
+full-canvas expansion from constrained block components (`ui-search-result-row` is now **1.3%**)
+without forcing intrinsic-size components to match.
 
 Markup+CSS auto-conversion renders most components faithfully with no per-component tuning. The
 **controller path is proven**: converted controllers (`harness/controllers/`) are imported as real
