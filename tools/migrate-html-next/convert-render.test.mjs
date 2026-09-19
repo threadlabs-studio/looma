@@ -18,6 +18,20 @@ test("extractRenderJsx returns the returned JSX", () => {
   assert.match(jsx, /badge__surface/);
 });
 
+test("extractRenderJsx accepts an unparenthesized JSX return", () => {
+  const combobox = `
+    render() {
+      return <Host data-size={this.size}>
+        <label>{this.label}</label>
+        <input value={this.display} />
+      </Host>;
+    }`;
+  const jsx = extractRenderJsx(combobox);
+  assert.match(jsx, /^<Host/);
+  assert.match(jsx, /<input value=\{this\.display\} \/>/);
+  assert.match(jsx, /<\/Host>$/);
+});
+
 test("renderPort reproduces the internal class structure and binds props", () => {
   const port = renderPort("ui-badge", BADGE, "span");
   assert.match(port, /<prop name="variant"/);
@@ -39,6 +53,26 @@ test("drops conditionals, event handlers and refs; keeps only clean prop binding
   assert.doesNotMatch(port, /onKeyDown|onKeydown|ref=|data-disabled|\{/);
   // disabled/onKeydown/slotRef are NOT props (they came from dropped bindings)
   assert.doesNotMatch(port, /name="(disabled|onKeydown|slotRef)"/);
+});
+
+test("preserves mixed text bindings and converts simple conditional subtrees", () => {
+  const field = `
+    @Prop() label = '';
+    @Prop() clearable = false;
+    @Prop() required = false;
+    render() {
+      return (
+        <Host>
+          <label>{this.label}{this.required ? ' *' : ''}</label>
+          {this.clearable && <button onClick={() => this.clear()}>×</button>}
+        </Host>
+      );
+    }`;
+  const port = renderPort("ui-field", field, "span");
+  assert.match(port, /<prop name="clearable" type="boolean">/);
+  assert.match(port, /<label><template \$value="label"><\/template><\/label>/);
+  assert.match(port, /<button \$if="clearable">×<\/button>/);
+  assert.doesNotMatch(port, /onClick|this\.clear|this\.required|\$if="required"/);
 });
 
 test("innerHTML (icons) is dropped, leaving an empty element", () => {
