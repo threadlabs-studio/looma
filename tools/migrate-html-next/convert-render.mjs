@@ -25,15 +25,44 @@ export function extractRenderJsx(tsx) {
   return tsx.slice(start, i - 1).trim();
 }
 
+/** Remove every balanced `{ … }` expression from content (conditionals, mixed text) after
+ *  attribute bindings have already been converted, so no dynamic content leaks through. */
+function stripExpressions(s) {
+  let out = "";
+  let depth = 0;
+  for (const ch of s) {
+    if (ch === "{") depth += 1;
+    else if (ch === "}") depth = Math.max(0, depth - 1);
+    else if (depth === 0) out += ch;
+  }
+  return out;
+}
+
+/** Keep one binding per prop (prefer the `data-*` target): HTML Next forbids one prop bound to
+ *  conflicting targets, so a prop reflected to both `aria-x` and `data-x` keeps `data-x`. */
+function dedupeBindings(body) {
+  const chosen = new Map();
+  for (const [, attr, prop] of body.matchAll(/:([\w-]+)="(\w+)"/g)) {
+    const cur = chosen.get(prop);
+    if (cur === undefined || (attr.startsWith("data-") && !cur.startsWith("data-"))) chosen.set(prop, attr);
+  }
+  return body.replace(/\s*:([\w-]+)="(\w+)"/g, (m, attr, prop) => (chosen.get(prop) === attr ? m : ""));
+}
+
 /** Translate one component's render() JSX into an HTML Next template body rooted at `rootEl`. */
 function translateJsx(jsx, rootEl) {
   let out = jsx;
-  out = out.replace(/\s+(on[A-Z]\w*|ref)=\{[^}]*\}/g, "");         // drop event handlers and refs first
+  out = out.replace(/<style>[\s\S]*?<\/style>/g, "");              // drop the component's dynamic <style>
+  out = out.replace(/\s+(on[A-Z]\w*|ref)=\{[^}]*\}/g, "");         // drop event handlers and refs
   out = out.replace(/([\w-]+)=\{this\.(\w+)(?:\s*\|\|\s*undefined)?\}/g, ':$1="$2"'); // clean prop bindings
-  out = out.replace(/\s+[\w-]+=\{[^}]*\}/g, "");                    // drop conditionals and innerHTML
+  out = out.replace(/\s+[\w-]+=\{[^}]*\}/g, "");                    // drop conditionals/innerHTML attrs
+  // pure text binding: <tag ...>{this.prop}</tag> -> <tag ... $value="prop"></tag>
+  out = out.replace(/<(\w+)([^>]*)>\s*\{this\.(\w+)\}\s*<\/\1>/g, '<$1$2 $value="$3"></$1>');
+  out = stripExpressions(out);                                     // drop any remaining {…} content
   out = out.replace(/<Host\b/g, `<${rootEl}`).replace(/<\/Host>/g, `</${rootEl}>`);
   out = out.replace(/<(\w+)([^>]*?)\s*\/>/g, "<$1$2></$1>");         // self-closing -> paired
-  return out.replace(/\s+/g, " ").replace(/>\s+</g, "><").replace(/\s+>/g, ">").trim();
+  out = out.replace(/\s+/g, " ").replace(/>\s+</g, "><").replace(/\s+>/g, ">").trim();
+  return dedupeBindings(out);
 }
 
 /**
