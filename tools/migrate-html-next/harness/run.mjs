@@ -94,6 +94,27 @@ async function diff(before, after) {
 
 const dirs = (await readdir(CORE, { withFileTypes: true })).filter((d) => d.isDirectory()).map((d) => d.name);
 const tags = dirs.filter((t) => (only.length === 0 || only.includes(t)));
+
+// Precompute each component's definition + controller once (keyed by tag), so a composite can pull
+// in only the nested components it actually uses — injecting the whole library disrupts mounting.
+const defByTag = new Map();
+const ctrlByTag = new Map();
+for (const tag of dirs) {
+  const css = await readFile(join(CORE, tag, `${tag}.css`), "utf8").catch(() => null);
+  const tsx = await readFile(join(CORE, tag, `${tag}.tsx`), "utf8").catch(() => null);
+  if (css === null || tsx === null) continue;
+  let port;
+  try { port = renderPort(tag, tsx, rootFor(css)); } catch { continue; }
+  const ctrl = await readFile(join(CONTROLLERS, `${tag}.js`), "utf8").catch(() => null);
+  if (ctrl !== null) {
+    port = port.replace('status="early"', `status="early" controller="./${tag}.js"`);
+    ctrlByTag.set(tag, ctrl);
+  }
+  defByTag.set(tag, port.replace("</template>", `  <style>${convertShadowStyles(css)}</style>\n</template>`));
+}
+const controllerScript = (tags) => tags.filter((t) => ctrlByTag.has(t))
+  .map((t) => `(function(){ ${ctrlByTag.get(t).replace(/export default function controller/, "var __c = function controller")}\n(window.__ctrls=window.__ctrls||{})[${JSON.stringify(t)}]=__c; })();`)
+  .join("\n");
 const results = [];
 for (const tag of tags) {
   try {
@@ -119,25 +140,24 @@ for (const tag of tags) {
     }));
     await before.close();
 
-    const ctrlSrc = await readFile(join(CONTROLLERS, `${tag}.js`), "utf8").catch(() => null);
-    let port = renderPort(tag, tsx, rootFor(css)).replace("</template>", `  <style>${convertShadowStyles(css)}</style>\n</template>`);
-    if (ctrlSrc) port = port.replace('status="early"', `status="early" controller="./${tag}.js"`);
+    // target + the components nested in its story markup (so composites pull in their children)
+    const needed = [...new Set([tag, ...[...host.inner.matchAll(/<(ui-[\w-]+)/g)].map((m) => m[1])])].filter((t) => defByTag.has(t));
+    const defs = needed.map((t) => defByTag.get(t)).join("\n");
+    const ctrls = controllerScript(needed);
     const after = await ctx.newPage();
-    await after.setContent(`<!doctype html><html><head><meta charset="utf8"><style>${tokens}</style></head><body>${port}<${tag} ${host.attrs}>${host.inner}</${tag}></body></html>`);
+    await after.setContent(`<!doctype html><html><head><meta charset="utf8"><style>${tokens}</style></head><body>${defs}<${tag} ${host.attrs}>${host.inner}</${tag}></body></html>`);
     await after.addScriptTag({ content: RUNTIME });
-    if (ctrlSrc) {
-      // wire the converted controller like the runtime's onConnect path
-      await after.addScriptTag({ content: ctrlSrc.replace(/export default function controller/, "window.__ctrl = function controller") });
-      await after.evaluate((t) => {
-        window.HtmlRuntime.observeDocument(document, {
-          onConnect(root, def) {
-            if (def.contract.tag !== t || !window.__ctrl) return;
-            window.HtmlRuntime.setControllerModule(root, Promise.resolve({ default: window.__ctrl }));
-            return window.__ctrl(window.HtmlRuntime.getComponentHost(root));
-          },
-        });
-      }, tag);
-      await after.waitForTimeout(400); // allow controller + image load/error
+    if (ctrls) {
+      await after.addScriptTag({ content: ctrls });
+      await after.evaluate(() => window.HtmlRuntime.observeDocument(document, {
+        onConnect(root, def) {
+          const c = window.__ctrls && window.__ctrls[def.contract.tag];
+          if (!c) return;
+          window.HtmlRuntime.setControllerModule(root, Promise.resolve({ default: c }));
+          return c(window.HtmlRuntime.getComponentHost(root));
+        },
+      }));
+      await after.waitForTimeout(400); // allow controllers + image load/error
     } else {
       await after.evaluate(() => window.HtmlRuntime.lowerDocument());
       await after.waitForTimeout(150);
