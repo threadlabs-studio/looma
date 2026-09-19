@@ -14,25 +14,30 @@ export function convertLightDomStyles(css, { contracts = {} } = {}) {
   let converted = css;
   for (const [tag, contract] of Object.entries(contracts)) {
     for (const [source, target] of Object.entries(contract.stateAttributes ?? {})) {
-      const attribute = new RegExp(`(${escapeRegExp(tag)}\\[)${escapeRegExp(source)}(?=\\s*(?:[~|^$*]?=|\\]))`, "g");
+      const attribute = new RegExp(`(${escapeRegExp(tag)}(?:\\[[^\\]]+\\])*\\[)${escapeRegExp(source)}(?=\\s*(?:[~|^$*]?=|\\]))`, "g");
       converted = converted.replace(attribute, `$1${target}`);
     }
     for (const [name, prop] of Object.entries(contract.props)) {
       const dataAttribute = `data-${kebab(name)}`;
       const aliases = new Set([prop.attribute ?? kebab(name), dataAttribute]);
       for (const attribute of aliases) {
-        const presence = new RegExp(`(${escapeRegExp(tag)}\\[)${escapeRegExp(attribute)}(\\s*\\])`, "g");
+        const prefix = `${escapeRegExp(tag)}(?:\\[[^\\]]+\\])*\\[`;
+        const presence = new RegExp(`(${prefix})${escapeRegExp(attribute)}(\\s*\\])`, "g");
         converted = converted.replace(
           presence,
           `$1${dataAttribute}${prop.type === "boolean" ? "='true'" : ""}$2`,
         );
-        const valued = new RegExp(`(${escapeRegExp(tag)}\\[)${escapeRegExp(attribute)}(?=\\s*[~|^$*]?=)`, "g");
+        const valued = new RegExp(`(${prefix})${escapeRegExp(attribute)}(?=\\s*[~|^$*]?=)`, "g");
         converted = converted.replace(valued, `$1${dataAttribute}`);
       }
     }
   }
-  return converted.replace(
-    /(?<![-\w])ui-[a-z0-9]+(?:-[a-z0-9]+)*(?![-\w])/g,
-    (tag) => `[data-component-root~="${tag}"]`,
-  );
+  return converted.replace(/([^{}]+)\{/g, (block, prelude) => {
+    if (prelude.trimStart().startsWith("@")) return block;
+    const selector = prelude.replace(
+      /(?<![-\w.#])ui-[a-z0-9]+(?:-[a-z0-9]+)*(?![-\w])/g,
+      (tag) => `[data-component-root~="${tag}"]`,
+    );
+    return `${selector}{`;
+  });
 }

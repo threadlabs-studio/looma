@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "source": "packages/layout/src",
+  "components": [
+    {
+      "tag": "ui-stack",
+      "controller": null,
+      "dependencies": []
+    },
+    {
+      "tag": "ui-inline",
+      "controller": null,
+      "dependencies": []
+    },
+    {
+      "tag": "ui-cluster",
+      "controller": null,
+      "dependencies": []
+    },
+    {
+      "tag": "ui-grid",
+      "controller": null,
+      "dependencies": []
+    },
+    {
+      "tag": "ui-center",
+      "controller": null,
+      "dependencies": []
+    },
+    {
+      "tag": "ui-switcher",
+      "controller": null,
+      "dependencies": []
+    },
+    {
+      "tag": "ui-sidebar",
+      "controller": "ui-sidebar.js",
+      "dependencies": []
+    },
+    {
+      "tag": "ui-reel",
+      "controller": "ui-reel.js",
+      "dependencies": []
+    },
+    {
+      "tag": "ui-separator",
+      "controller": "ui-separator.js",
+      "dependencies": []
+    }
+  ]
+}
