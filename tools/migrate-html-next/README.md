@@ -62,7 +62,7 @@ browsable before/after gallery to `harness/gallery/index.html` (gitignored) — 
 The diff is **shift-tolerant** (a pixel matches if any pixel within ±2px matches), so the score
 reflects real visual difference rather than sub-pixel layout jitter or anti-aliasing.
 
-Full-corpus run (24 rendered, 9 skipped): **23 components under 10%**, 1 in 10-25%
+Full-corpus run (25 rendered, 8 skipped): **24 components under 10%**, 1 in 10-25%
 (avatar-group 11.4%), and none at 25% or above.
 
 Markup+CSS auto-conversion renders most components faithfully with no per-component tuning. The
@@ -88,9 +88,12 @@ status and footer regions synchronized.
 representative viewport explicitly, and the ported controller keeps the leading, search, and action
 regions synchronized with their projected content.
 
-**Skipped:** controller-driven components with no static visible box (dialog, menu, menu-item,
-tooltip), components with no matched story (affordance-scope, context-menu, editable, tree-item),
-and a render form the converter does not yet parse (combobox).
+Nested `ui-tree-item` is measured through the representative tree story and converges at **2.6%**.
+Explicit story mappings cover components whose Storybook taxonomy does not match their tag spelling.
+
+**Skipped:** controller-driven components with no static visible box (context-menu, dialog, menu,
+menu-item, tooltip), components with no matched story (affordance-scope, editable), and a render
+form the converter does not yet parse (combobox).
 
 **Next — automate controller conversion.** The controller path is proven by hand
 (`ui-avatar`, `ui-avatar-group`, `ui-search-shell`, `ui-top-bar`); the skipped overlays (dialog,
