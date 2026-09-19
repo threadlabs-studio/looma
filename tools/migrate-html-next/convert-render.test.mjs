@@ -151,6 +151,21 @@ test("uses a framework-neutral public contract for structured properties and met
   assert.match(port, /<method name="focusInput" export="focusInput" returns="promise\(undefined\)">/);
 });
 
+test("keeps effective state out of the public prop reflection channel", () => {
+  const source = `
+    @Prop() open?: boolean;
+    @State() internalOpen = false;
+    render() { return (<Host data-open={this.internalOpen ? '' : undefined}><slot /></Host>); }
+  `;
+  const port = renderPort("ui-overlay", source, "span", { contract: {
+    props: { open: { type: "boolean" } },
+    methods: [],
+    stateAttributes: { "data-open": "data-state-open" },
+  } });
+  assert.match(port, /<span :data-state-open="internalOpen">/);
+  assert.doesNotMatch(port, /:data-open="internalOpen"/);
+});
+
 test("innerHTML (icons) is dropped, leaving an empty element", () => {
   const callout = `
     render() {

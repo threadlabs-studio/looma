@@ -45,9 +45,10 @@ passthrough case and is what the harness uses; `convert-template.mjs` remains as
 host-only generator.
 
 `core-contracts.mjs` is the authoritative, framework-neutral Looma public contract. It declares
-props, HTML attributes, defaults, events, methods, and explicit component dependencies for all 33
-core components. Generation fails if the legacy source's public names or attribute aliases drift,
-but source decorators never determine the destination API.
+props, HTML attributes, defaults, typed events, methods, and explicit component dependencies for
+all 33 core components. Generation fails if the legacy source's public names or attribute aliases
+drift, but source decorators never determine the destination API. Stencil is an ingest format for
+recovering the old implementation, not a design vocabulary for either Looma or HTML Next.
 
 `convertLightDomStyles(css, { contracts })` retargets Looma's shipped compatibility selectors from
 custom-element tags and public attributes to lowered `[data-component-root]`/`data-*` roots. It
@@ -75,6 +76,12 @@ differently from the visual harness.
 `pnpm --filter @threadlabs/looma-migrate-html-next validate` loads that materialized graph without
 Stencil and requires every definition to parse and lower through the vendored HTML Next runtime.
 The same graph also passes the upstream HTML Next CLI's `check` and `build` commands.
+
+`pnpm --filter @threadlabs/looma-migrate-html-next test:browser` exercises the migrated interaction
+contracts in Chromium. It currently covers 12 behavior groups: form controls, disclosure/editable,
+tabs, menus, anchored popovers/tooltips, dialog dismissal, combobox methods and selection, and tree
+expansion/roving focus. Effective controller state uses a separate `data-state-*` namespace so a
+rendered internal state change cannot be mistaken for an external write to a controlled prop.
 
 ## Status
 
@@ -149,8 +156,7 @@ at **6.2%**. Harness-owned representative fixtures cover `ui-affordance-scope` a
 which have no dedicated Storybook stories; both converge at **0%**. The overlay controllers use
 native dialog/popover APIs and synchronize generated nested menu roots across lowering turns.
 
-**Next — complete behavioral migration and adoption.** Static and explicit open-state visual
-convergence is proven across the full core corpus. Expand the controller ports from their exercised
-states to each component's complete interaction contract, run browser interaction coverage, then
-adopt the generated definitions/controllers into the shipped package. Layout/editor elements follow.
+**Next — adoption.** Static and explicit open-state visual convergence is proven across the full
+core corpus, and the browser suite exercises the migrated interaction contracts. Adopt the generated
+definitions/controllers into the shipped package, then migrate the layout/editor elements.
 Converted output stays unmerged until the complete set passes.

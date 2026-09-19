@@ -6,8 +6,11 @@
     <prop name="for" type="string">for token.</prop>
     <state name="internalOpen" :value="false"></state>
     <state name="focusTrigger" :value="'programmatic'"></state>
+    <event name="open" type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"></event>
+    <event name="close" type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"></event>
+    <event name="select" type="object({ value: string, trigger: keyboard | pointer | programmatic })"></event>
   </defs>
-  <span :data-open="internalOpen"><slot name="trigger"></slot><div class="menu" :data-open="internalOpen"><ui-menu><slot></slot></ui-menu></div></span>
+  <span :data-state-open="internalOpen"><slot name="trigger"></slot><div class="menu" :data-state-open="internalOpen"><ui-menu><slot></slot></ui-menu></div></span>
   <style>:scope {
   display: contents;
 }

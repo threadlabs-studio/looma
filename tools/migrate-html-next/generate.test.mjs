@@ -28,6 +28,7 @@ test("generates the complete deterministic core graph", async () => {
 
     const contextMenu = await readFile(join(first, "components", "ui-context-menu.html"), "utf8");
     assert.match(contextMenu, /<link rel="component" href="\.\/ui-menu\.html">/);
+    assert.match(contextMenu, /<event name="select" type="object\(\{ value: string,/);
   } finally {
     await Promise.all([
       rm(first, { recursive: true, force: true }),

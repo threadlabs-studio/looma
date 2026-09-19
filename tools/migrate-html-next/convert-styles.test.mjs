@@ -48,6 +48,17 @@ test("boolean presence selectors require a reflected true value", () => {
   );
 });
 
+test("internal state attributes do not share public prop reflection channels", () => {
+  assert.equal(
+    convertShadowStyles(":host(:not([data-open])) { display: none; }", {
+      reflectedAttributes: new Map([["open", "data-open"]]),
+      booleanAttributes: new Set(["open"]),
+      stateAttributes: { "data-open": "data-state-open" },
+    }),
+    ":scope:not([data-state-open]) { display: none; }",
+  );
+});
+
 test(":host with a functional-pseudo condition folds correctly (balanced parens)", () => {
   assert.equal(
     convertShadowStyles(":host(:not([data-open])) { opacity: 1; }"),

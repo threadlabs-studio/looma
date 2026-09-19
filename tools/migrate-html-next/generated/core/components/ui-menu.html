@@ -5,8 +5,10 @@
     <prop name="for" type="string">for token.</prop>
     <prop name="placement" type="string" default="bottom-start">placement token.</prop>
     <state name="internalOpen" :value="false"></state>
+    <event name="select" type="object({ value: string, trigger: keyboard | pointer | programmatic })"></event>
+    <event name="close" type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"></event>
   </defs>
-  <div role="menu" aria-orientation="vertical" :data-open="internalOpen"><div class="menu__surface"><slot></slot></div></div>
+  <div role="menu" aria-orientation="vertical" :data-state-open="internalOpen"><div class="menu__surface"><slot></slot></div></div>
   <style>:scope {
   --ui-menu-viewport-gap: var(--ui-space-2, 0.5rem);
   display: flex;
@@ -37,7 +39,7 @@
   overflow: auto;
 }
 
-:scope:not([data-open]) {
+:scope:not([data-state-open]) {
   display: none;
 }
 

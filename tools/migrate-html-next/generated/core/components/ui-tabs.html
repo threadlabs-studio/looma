@@ -4,6 +4,7 @@
     <prop name="defaultValue" type="string" default="">defaultValue token.</prop>
     <prop name="orientation" type="string" default="horizontal">orientation token.</prop>
     <state name="internalValue" :value="''"></state>
+    <event name="select" type="object({ value: string, previousValue: string, trigger: keyboard | pointer | programmatic })"></event>
   </defs>
   <div :data-orientation="orientation"><slot></slot></div>
   <style>:scope {

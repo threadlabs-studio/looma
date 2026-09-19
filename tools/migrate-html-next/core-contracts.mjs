@@ -4,15 +4,25 @@
 // source adapter used to recover render structure and to detect drift while the old implementation
 // still exists; decorators and Stencil-specific types do not define this model.
 
-const component = ({ props = {}, methods = [], events = [], dependencies = [] } = {}) =>
+const component = ({ props = {}, methods = [], events = [], dependencies = [], stateAttributes = {} } = {}) =>
   Object.freeze({
     props: Object.freeze(props),
     methods: Object.freeze(methods),
     events: Object.freeze(events),
     dependencies: Object.freeze(dependencies),
+    stateAttributes: Object.freeze(stateAttributes),
   });
 
 const prop = (type, options = {}) => Object.freeze({ type, ...options });
+const event = (name, type, options = {}) => Object.freeze({ name, type, ...options });
+
+const inputTrigger = "keyboard | pointer | programmatic";
+const overlayChange = `object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: ${inputTrigger} })`;
+const checkedChange = `object({ checked: boolean, value: string, trigger: ${inputTrigger} })`;
+const valueChange = `object({ value: string, trigger: ${inputTrigger} })`;
+const option = "object({ id: string, value: string, label: string, description?: string, metadata?: unknown, group?: string, disabled?: boolean })";
+const comboboxChange = `object({ value: string | null, query: string, option: ${option} | null, kind: selection | clear | free-entry | create | invalidation, trigger: ${inputTrigger} })`;
+const validationState = "object({ status: pristine | pending | valid | warning | error, touched: boolean, dirty: boolean, issues: list(object({ message: string, path?: list(unknown), severity?: error | warning })), output?: unknown })";
 
 export const coreContracts = Object.freeze({
   "ui-affordance-scope": component({
@@ -41,7 +51,7 @@ export const coreContracts = Object.freeze({
       disabled: prop("boolean", { default: false }), indeterminate: prop("boolean", { default: false }),
       required: prop("boolean", { default: false }), value: prop("string", { default: "on" }),
     },
-    events: ["change"],
+    events: [event("change", checkedChange)],
   }),
   "ui-chip": component({
     props: {
@@ -67,8 +77,16 @@ export const coreContracts = Object.freeze({
       { name: "focusInput", returns: "promise(undefined)" },
     ],
     events: [
-      "query-change", "value-change", "free-entry", "create-entry", "dependency-invalidate",
-      "validation-change", "options-change", "add-item", "remove-item", "create-item",
+      event("query-change", `object({ query: string, display: string, trigger: ${inputTrigger} })`),
+      event("value-change", `${comboboxChange} | list(${option})`),
+      event("free-entry", comboboxChange),
+      event("create-entry", comboboxChange),
+      event("dependency-invalidate", comboboxChange),
+      event("validation-change", validationState),
+      event("options-change", `list(${option})`),
+      event("add-item", `object({ item: ${option}, index: integer, trigger: ${inputTrigger} })`),
+      event("remove-item", `object({ item: ${option}, index: integer, trigger: ${inputTrigger} })`),
+      event("create-item", `object({ query: string, trigger: ${inputTrigger} })`),
     ],
     dependencies: ["ui-chip", "ui-tooltip"],
   }),
@@ -77,8 +95,13 @@ export const coreContracts = Object.freeze({
       open: prop("boolean"), defaultOpen: prop("boolean", { attribute: "default-open", default: false }),
       for: prop("string"),
     },
-    events: ["open", "close", "select"],
+    events: [
+      event("open", overlayChange),
+      event("close", overlayChange),
+      event("select", `object({ value: string, trigger: ${inputTrigger} })`),
+    ],
     dependencies: ["ui-menu"],
+    stateAttributes: { "data-open": "data-state-open" },
   }),
   "ui-dialog": component({
     props: {
@@ -86,21 +109,23 @@ export const coreContracts = Object.freeze({
       modal: prop("boolean", { default: true }), dismissible: prop("boolean", { default: true }),
       label: prop("string"),
     },
-    events: ["close"],
+    events: [event("close", overlayChange)],
+    stateAttributes: { "data-open": "data-state-open" },
   }),
   "ui-disclosure": component({
     props: {
       open: prop("boolean"), defaultOpen: prop("boolean", { attribute: "default-open", default: false }),
       disabled: prop("boolean", { default: false }),
     },
-    events: ["open", "close"],
+    events: [event("open", overlayChange), event("close", overlayChange)],
   }),
   "ui-editable": component({
     props: {
       edit: prop("boolean"), defaultEdit: prop("boolean", { attribute: "default-edit", default: false }),
       disabled: prop("boolean", { default: false }),
     },
-    events: ["edit-change"],
+    events: [event("edit-change", `object({ edit: boolean, reason: activate | light-dismiss | escape | programmatic, trigger: ${inputTrigger} })`)],
+    stateAttributes: { "data-edit": "data-state-edit" },
   }),
   "ui-floating-action-button": component({
     props: {
@@ -128,14 +153,18 @@ export const coreContracts = Object.freeze({
       disabled: prop("boolean", { default: false }), invalid: prop("boolean", { default: false }),
       readOnly: prop("boolean", { attribute: "readonly", default: false }),
     },
-    events: ["input", "change"],
+    events: [event("input", valueChange), event("change", valueChange)],
   }),
   "ui-menu": component({
     props: {
       open: prop("boolean"), defaultOpen: prop("boolean", { attribute: "default-open", default: false }),
       for: prop("string"), placement: prop("string", { default: "bottom-start" }),
     },
-    events: ["select", "close"],
+    events: [
+      event("select", `object({ value: string, trigger: ${inputTrigger} })`),
+      event("close", overlayChange),
+    ],
+    stateAttributes: { "data-open": "data-state-open" },
   }),
   "ui-menu-item": component({
     props: { disabled: prop("boolean", { default: false }), value: prop("string", { default: "" }) },
@@ -145,7 +174,8 @@ export const coreContracts = Object.freeze({
       open: prop("boolean"), defaultOpen: prop("boolean", { attribute: "default-open", default: false }),
       for: prop("string"), placement: prop("string", { default: "bottom-start" }),
     },
-    events: ["open", "close"],
+    events: [event("open", overlayChange), event("close", overlayChange)],
+    stateAttributes: { "data-open": "data-state-open" },
   }),
   "ui-radio": component({
     props: {
@@ -153,7 +183,7 @@ export const coreContracts = Object.freeze({
       disabled: prop("boolean", { default: false }), name: prop("string", { default: "" }),
       required: prop("boolean", { default: false }), value: prop("string", { default: "on" }),
     },
-    events: ["change"],
+    events: [event("change", checkedChange)],
   }),
   "ui-radio-group": component({
     props: {
@@ -161,7 +191,10 @@ export const coreContracts = Object.freeze({
       orientation: prop("string", { default: "horizontal" }), disabled: prop("boolean", { default: false }),
       required: prop("boolean", { default: false }),
     },
-    events: ["select", "change"],
+    events: [
+      event("select", `object({ value: string, previousValue: string, trigger: ${inputTrigger} })`),
+      event("change", checkedChange),
+    ],
   }),
   "ui-search-result-row": component({
     props: { disabled: prop("boolean", { default: false }), selected: prop("boolean", { default: false }) },
@@ -173,7 +206,7 @@ export const coreContracts = Object.freeze({
       disabled: prop("boolean", { default: false }), invalid: prop("boolean", { default: false }),
       required: prop("boolean", { default: false }),
     },
-    events: ["input", "change"],
+    events: [event("input", valueChange), event("change", valueChange)],
   }),
   "ui-switch": component({
     props: {
@@ -181,14 +214,14 @@ export const coreContracts = Object.freeze({
       disabled: prop("boolean", { default: false }), required: prop("boolean", { default: false }),
       value: prop("string", { default: "on" }),
     },
-    events: ["change"],
+    events: [event("change", checkedChange)],
   }),
   "ui-tabs": component({
     props: {
       value: prop("string"), defaultValue: prop("string", { attribute: "default-value", default: "" }),
       orientation: prop("string", { default: "horizontal" }),
     },
-    events: ["select"],
+    events: [event("select", `object({ value: string, previousValue: string, trigger: ${inputTrigger} })`)],
   }),
   "ui-textarea": component({
     props: {
@@ -196,11 +229,15 @@ export const coreContracts = Object.freeze({
       disabled: prop("boolean", { default: false }), invalid: prop("boolean", { default: false }),
       readOnly: prop("boolean", { attribute: "readonly", default: false }), rows: prop("number", { default: 4 }),
     },
-    events: ["input", "change"],
+    events: [event("input", valueChange), event("change", valueChange)],
   }),
   "ui-toast-region": component({
     props: { open: prop("boolean", { default: true }) },
-    events: ["close", "dismiss"],
+    events: [
+      event("close", overlayChange),
+      event("dismiss", `object({ id: string, reason: action, trigger: ${inputTrigger} })`),
+    ],
+    stateAttributes: { "data-open": "data-state-open" },
   }),
   "ui-tooltip": component({
     props: {
@@ -211,7 +248,8 @@ export const coreContracts = Object.freeze({
       hideDelay: prop("number", { attribute: "hide-delay", default: 100 }),
       toggleOnClick: prop("boolean", { attribute: "toggle-on-click", default: false }),
     },
-    events: ["open", "close"],
+    events: [event("open", overlayChange), event("close", overlayChange)],
+    stateAttributes: { "data-open": "data-state-open" },
   }),
   "ui-top-bar": component(),
   "ui-tree": component({
@@ -220,7 +258,10 @@ export const coreContracts = Object.freeze({
       hoverExpandDelay: prop("number", { attribute: "hover-expand-delay", default: 700 }),
       maxDepth: prop("number", { attribute: "max-depth", default: 0 }),
     },
-    events: ["reorder", "reorder-rejected"],
+    events: [
+      event("reorder", `object({ sourceId: string, targetId: string, position: before | inside | after, sourceType: string, targetType: string, sourceScope: string, targetScope: string, trigger: ${inputTrigger} })`),
+      event("reorder-rejected", `object({ sourceId: string, targetId: string, position: before | inside | after, reason: max-depth, maxDepth: integer, resultingDepth: integer, trigger: ${inputTrigger} })`),
+    ],
     dependencies: ["ui-tree-item"],
   }),
   "ui-tree-item": component({
@@ -233,7 +274,7 @@ export const coreContracts = Object.freeze({
       expanded: prop("boolean"), defaultExpanded: prop("boolean", { attribute: "default-expanded", default: false }),
       selected: prop("boolean", { default: false }), disabled: prop("boolean", { default: false }),
     },
-    events: ["expand"],
+    events: [event("expand", `object({ id: string, expanded: boolean, trigger: ${inputTrigger} })`)],
   }),
 });
 

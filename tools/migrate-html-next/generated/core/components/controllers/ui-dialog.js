@@ -42,7 +42,14 @@ export default function controller(host) {
     host.dispatch("close", { open: false, reason: "programmatic", trigger: "programmatic" });
   };
   const onKeydown = (event) => {
-    if (event.key === "Escape") requestTopOverlayClose(document, "escape", "keyboard");
+    if (event.key === "Escape") {
+      event.preventDefault();
+      requestTopOverlayClose(document, "escape", "keyboard");
+    }
+  };
+  const onCancel = (event) => {
+    event.preventDefault();
+    requestTopOverlayClose(document, "escape", "keyboard");
   };
   const observer = new MutationObserver(() => {
     const label = inferredLabel(element, host.state.label);
@@ -50,6 +57,7 @@ export default function controller(host) {
   });
   observer.observe(element, { childList: true, subtree: true, characterData: true });
   dialog?.addEventListener("close", onClose);
+  dialog?.addEventListener("cancel", onCancel);
   element.addEventListener("keydown", onKeydown);
   const stop = host.effect(apply);
   apply();
@@ -57,6 +65,7 @@ export default function controller(host) {
     stop();
     observer.disconnect();
     dialog?.removeEventListener("close", onClose);
+    dialog?.removeEventListener("cancel", onCancel);
     element.removeEventListener("keydown", onKeydown);
     closeOverlay(document, overlayId);
   };

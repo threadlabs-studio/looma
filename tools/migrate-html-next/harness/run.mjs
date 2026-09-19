@@ -229,6 +229,7 @@ for (const tag of tags) {
       const p = `${rendered.slice(0, end)}  <style>${convertShadowStyles(c, {
         reflectedAttributes: reflectedPropAttributes(x, contract, t),
         booleanAttributes: reflectedBooleanAttributes(x, contract, t),
+        stateAttributes: contract.stateAttributes,
       })}</style>\n${rendered.slice(end)}`;
       return {
         tag: t,

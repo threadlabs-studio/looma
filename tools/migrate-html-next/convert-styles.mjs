@@ -26,8 +26,12 @@ function matchingParen(value, open) {
   return value.length - 1;
 }
 
-function rewriteReflectedAttributes(condition, reflectedAttributes, booleanAttributes) {
-  const presence = condition.replace(
+function rewriteReflectedAttributes(condition, reflectedAttributes, booleanAttributes, stateAttributes) {
+  let rewritten = condition;
+  for (const [source, target] of Object.entries(stateAttributes)) {
+    rewritten = rewritten.replace(new RegExp(`\\[${source}(?=\\s*(?:[~|^$*]?=|\\]))`, "g"), `[${target}`);
+  }
+  const presence = rewritten.replace(
     /\[([A-Za-z][\w-]*)(\s*\])/g,
     (match, attribute, close) => {
       const reflected = reflectedAttributes.get(attribute);
@@ -44,7 +48,7 @@ function rewriteReflectedAttributes(condition, reflectedAttributes, booleanAttri
 }
 
 /** Rewrite `:host` / `:host(<cond>)` to `:scope<cond>`, balancing nested parens in the condition. */
-function rewriteHost(css, reflectedAttributes, booleanAttributes) {
+function rewriteHost(css, reflectedAttributes, booleanAttributes, stateAttributes) {
   let out = "";
   let i = 0;
   for (;;) {
@@ -58,6 +62,7 @@ function rewriteHost(css, reflectedAttributes, booleanAttributes) {
         css.slice(at + 6, close),
         reflectedAttributes,
         booleanAttributes,
+        stateAttributes,
       );
       out += ":scope" + condition; // fold the condition onto :scope
       i = close + 1;
@@ -76,7 +81,7 @@ function rewriteHost(css, reflectedAttributes, booleanAttributes) {
 /** Convert one component's shadow stylesheet to HTML Next authoring. Pure string transform. */
 export function convertShadowStyles(
   css,
-  { reflectedAttributes = new Map(), booleanAttributes = new Set() } = {},
+  { reflectedAttributes = new Map(), booleanAttributes = new Set(), stateAttributes = {} } = {},
 ) {
-  return rewriteHost(css, reflectedAttributes, booleanAttributes).replace(/::slotted\(/g, ":slotted(");
+  return rewriteHost(css, reflectedAttributes, booleanAttributes, stateAttributes).replace(/::slotted\(/g, ":slotted(");
 }
