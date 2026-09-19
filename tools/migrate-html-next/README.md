@@ -62,24 +62,28 @@ browsable before/after gallery to `harness/gallery/index.html` (gitignored) — 
 The diff is **shift-tolerant** (a pixel matches if any pixel within ±2px matches), so the score
 reflects real visual difference rather than sub-pixel layout jitter or anti-aliasing.
 
-Full-corpus run (22 rendered, 11 skipped): **18 components under 10%**, 2 in 10–25%, 2 at ≥25%.
+Full-corpus run (23 rendered, 10 skipped): **20 components under 10%**, 1 in 10–25%, 2 at ≥25%.
 
 | Bucket | Components |
 | --- | --- |
-| **< 10%** | floating-action-button 0%, icon-button 0%, select 0.9%, textarea 1.1%, button 1.2%, search-result-row 1.4%, tabs 2%, chip 2.1%, callout 2.4%, form-field 2.4%, tree 2.9%, radio 3.8%, input 4.3%, checkbox 6.1%, switch 8%, radio-group 8.5%, badge 8.7%, disclosure 9.1% |
-| 10–25% | avatar-group 14.8%, avatar 15.5% |
-| ≥ 25% | toast-region 27.8%, search-shell 33.7% |
+| **< 10%** | fab 0%, icon-button 0%, select 0.9%, textarea 1.1%, button 1.2%, search-result-row 1.4%, tabs 2%, chip 2.1%, callout 2.4%, form-field 2.4%, tree 2.9%, radio 3.8%, input 4.3%, avatar 4.4%, checkbox 6.1%, popover 6.4%, switch 8%, radio-group 8.5%, badge 8.7%, disclosure 9.1% |
+| 10–25% | avatar-group 14.8% |
+| ≥ 25% | toast-region 28.3%, search-shell 33.7% |
 
-Pure markup+CSS auto-conversion (no per-component hand-tuning) already renders 18/22 rendered
-components visually faithfully. The four residuals — avatar/avatar-group (fallback initials),
-toast-region, search-shell — are **controller-driven**: their dynamic content is produced by the
-Stencil controller, which the static harness does not run.
+Markup+CSS auto-conversion renders most components faithfully with no per-component tuning. The
+**controller path is proven**: a converted controller (`harness/controllers/`) is wired via
+`observeDocument`/`setControllerModule`/`getComponentHost`, and `ui-avatar` — whose fallback
+initials are computed by its controller — converges from 15.5% to **4.4%** with a hand-converted
+controller. Declaring every `@Prop()` (not only the markup-bound ones) is what lets controller-only
+props reach `host.state`.
 
 **Skipped:** controller-driven components with no static visible box (dialog, menu, tooltip,
 top-bar), components with no matched story (affordance-scope, context-menu, editable, menu-item,
 tree-item), a non-`render()` method (combobox), and a hidden lowered root (popover).
 
-**Next frontier — controller logic:** the remaining residuals and the skipped overlays all need
-their behavior, not just markup/CSS. Converting Stencil controller logic to HTML Next controllers
-(`host`-based) is the next dimension. Then layout/editor packages. Converted output stays unmerged
-until the set passes.
+**Next — automate controller conversion.** The controller path is proven by hand (`ui-avatar`); the
+remaining residuals (avatar-group's overflow, toast-region, search-shell) and the skipped overlays
+(dialog, menu, tooltip, context-menu, top-bar) each need their Stencil controller (`@State`,
+lifecycle, methods) converted to an HTML Next `host`-based controller. Build a converter for that,
+the same way `convert-render.mjs` followed the `ui-button` markup/CSS proof. Then layout/editor
+packages. Converted output stays unmerged until the set passes.

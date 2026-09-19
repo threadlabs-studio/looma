@@ -74,9 +74,11 @@ export function renderPort(tag, tsx, rootEl = "span", { summary } = {}) {
   const jsx = extractRenderJsx(tsx);
   if (jsx === null) throw new Error(`${tag}: no render() found`);
   const body = translateJsx(jsx, rootEl);
-  // Props are only the bindings that survived translation (not dropped handlers/refs/conditionals).
-  const props = [...new Set([...body.matchAll(/:[\w-]+="(\w+)"/g)].map((m) => m[1]))]
-    .filter((name) => /^[A-Za-z][A-Za-z0-9]*$/.test(name));
+  // Declare every @Prop() (a prop may be read only by the controller, e.g. avatar's name/alt/
+  // fallback), plus any binding that survived translation.
+  const declared = [...tsx.matchAll(/@Prop\([^)]*\)\s+(\w+)/g)].map((m) => m[1]);
+  const bound = [...body.matchAll(/:[\w-]+="(\w+)"/g)].map((m) => m[1]);
+  const props = [...new Set([...declared, ...bound])].filter((name) => /^[A-Za-z][A-Za-z0-9]*$/.test(name));
   const defs = props.map((name) => `    <prop name="${name}" type="string">${name} token.</prop>`).join("\n");
   const text = summary && summary.trim() ? summary.trim() : `Migrated Looma ${tag} component.`;
   return `<template component="${tag}" status="early" summary="${text}">
