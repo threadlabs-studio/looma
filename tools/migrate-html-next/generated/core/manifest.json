@@ -44,8 +44,9 @@
     },
     {
       "tag": "ui-combobox",
-      "controller": null,
+      "controller": "ui-combobox.js",
       "dependencies": [
+        "ui-chip",
         "ui-tooltip"
       ]
     },
@@ -103,7 +104,7 @@
     },
     {
       "tag": "ui-popover",
-      "controller": null,
+      "controller": "ui-popover.js",
       "dependencies": []
     },
     {
@@ -163,8 +164,10 @@
     },
     {
       "tag": "ui-tree",
-      "controller": null,
-      "dependencies": []
+      "controller": "ui-tree.js",
+      "dependencies": [
+        "ui-tree-item"
+      ]
     },
     {
       "tag": "ui-tree-item",

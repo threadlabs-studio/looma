@@ -1,9 +1,9 @@
-<template component="ui-popover" status="early" summary="Migrated Looma ui-popover component.">
+<template component="ui-popover" controller="./controllers/ui-popover.js" status="early" summary="Migrated Looma ui-popover component.">
   <defs>
     <prop name="open" type="boolean">open token.</prop>
-    <prop name="defaultOpen" type="boolean">defaultOpen token.</prop>
+    <prop name="defaultOpen" type="boolean" default="false">defaultOpen token.</prop>
     <prop name="for" type="string">for token.</prop>
-    <prop name="placement" type="string">placement token.</prop>
+    <prop name="placement" type="string" default="bottom-start">placement token.</prop>
     <state name="internalOpen" :value="false"></state>
   </defs>
   <span :data-open="internalOpen"><div class="popover__surface"><slot></slot></div></span>

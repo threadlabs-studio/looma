@@ -69,7 +69,7 @@ test("preserves mixed text bindings and converts simple conditional subtrees", (
       );
     }`;
   const port = renderPort("ui-field", field, "span");
-  assert.match(port, /<prop name="clearable" type="boolean">/);
+  assert.match(port, /<prop name="clearable" type="boolean" default="false">/);
   assert.match(port, /<label><template \$value="label"><\/template><\/label>/);
   assert.match(port, /<button \$if="clearable">×<\/button>/);
   assert.doesNotMatch(port, /onClick|this\.clear|this\.required|\$if="required"/);
@@ -119,6 +119,36 @@ test("declares Stencil state and preserves safe state-driven attributes", () => 
   assert.match(port, /<div class="popup" :hidden="not expanded"><\/div>/);
   assert.match(port, /<div class="validation" :hidden="not validation\.issues\.length"><\/div>/);
   assert.doesNotMatch(port, /<prop name="expanded"/);
+});
+
+test("uses a framework-neutral public contract for structured properties and methods", () => {
+  const tsx = `
+    @Prop() config: ComboboxConfig = {};
+    @Prop() tokenSeparators: readonly string[] = [];
+    @Prop() value?: string | null | readonly Item[];
+    @Method() async validate(): Promise<ValidationState> { return state; }
+    @Method() async focusInput() { input.focus(); }
+    render() { return (<Host><slot /></Host>); }
+  `;
+  const port = renderPort("ui-combobox", tsx, "span", { contract: {
+    props: {
+      config: { type: "unknown" },
+      tokenSeparators: { type: "list(string)", attribute: "token-separators" },
+      value: { type: "string | null | list(unknown)" },
+    },
+    methods: [
+      { name: "validate", returns: "promise(unknown)" },
+      { name: "focusInput", returns: "promise(undefined)" },
+    ],
+  } });
+  assert.match(port, /<prop name="config" type="unknown">/);
+  assert.match(port, /<prop name="tokenSeparators" type="list\(string\)">/);
+  assert.match(port, /<prop name="value" type="string \| null \| list\(unknown\)">/);
+  assert.match(port, /\.config="config"/);
+  assert.match(port, /\.value="value"/);
+  assert.doesNotMatch(port, /\.tokenSeparators="tokenSeparators"/);
+  assert.match(port, /<method name="validate" export="validate" returns="promise\(unknown\)">/);
+  assert.match(port, /<method name="focusInput" export="focusInput" returns="promise\(undefined\)">/);
 });
 
 test("innerHTML (icons) is dropped, leaving an empty element", () => {

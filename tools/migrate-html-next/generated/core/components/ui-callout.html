@@ -1,6 +1,6 @@
 <template component="ui-callout" status="early" summary="Migrated Looma ui-callout component.">
   <defs>
-    <prop name="tone" type="string">tone token.</prop>
+    <prop name="tone" type="string" default="info">tone token.</prop>
   </defs>
   <div role="note" :data-tone="tone"><div class="callout__surface"><span class="icon" aria-hidden="true"></span><div class="content"><slot></slot></div></div></div>
   <style>:scope {

@@ -21,3 +21,12 @@ test("loads transitive generated component dependencies once", async () => {
   assert.deepEqual(loaded, ["ui-combobox", "ui-tooltip", "ui-popover"]);
   assert.deepEqual(ports.map((port) => port.tag), loaded);
 });
+
+test("loads controller-created dependencies declared by a port", async () => {
+  const loaded = [];
+  await discoverPorts(["ui-combobox"], async (tag) => {
+    loaded.push(tag);
+    return { tag, port: "<div></div>", dependencies: tag === "ui-combobox" ? ["ui-chip"] : [] };
+  });
+  assert.deepEqual(loaded, ["ui-combobox", "ui-chip"]);
+});

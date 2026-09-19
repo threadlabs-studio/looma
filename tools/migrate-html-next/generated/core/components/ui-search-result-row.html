@@ -1,7 +1,7 @@
 <template component="ui-search-result-row" controller="./controllers/ui-search-result-row.js" status="early" summary="Migrated Looma ui-search-result-row component.">
   <defs>
-    <prop name="disabled" type="boolean">disabled token.</prop>
-    <prop name="selected" type="boolean">selected token.</prop>
+    <prop name="disabled" type="boolean" default="false">disabled token.</prop>
+    <prop name="selected" type="boolean" default="false">selected token.</prop>
     <state name="hasLeading" :value="false"></state>
     <state name="hasMeta" :value="false"></state>
     <state name="hasExcerpt" :value="false"></state>
@@ -39,7 +39,7 @@
   background: var(--ui-search-result-row-hover-bg, color-mix(in srgb, var(--ui-surface, #ffffff) 85%, black 3%));
 }
 
-:scope[data-selected] .search-result-row {
+:scope[data-selected='true'] .search-result-row {
   background: var(
     --ui-search-result-row-selected-bg,
     var(--ui-search-result-row-hover-bg, color-mix(in srgb, var(--ui-surface, #ffffff) 85%, black 3%))
@@ -52,7 +52,7 @@
 }
 
 .search-result-row:disabled,
-:scope[data-disabled] .search-result-row {
+:scope[data-disabled='true'] .search-result-row {
   opacity: 0.6;
   cursor: not-allowed;
 }

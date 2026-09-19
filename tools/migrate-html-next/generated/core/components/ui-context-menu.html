@@ -2,7 +2,7 @@
 <template component="ui-context-menu" controller="./controllers/ui-context-menu.js" status="early" summary="Migrated Looma ui-context-menu component.">
   <defs>
     <prop name="open" type="boolean">open token.</prop>
-    <prop name="defaultOpen" type="boolean">defaultOpen token.</prop>
+    <prop name="defaultOpen" type="boolean" default="false">defaultOpen token.</prop>
     <prop name="for" type="string">for token.</prop>
     <state name="internalOpen" :value="false"></state>
     <state name="focusTrigger" :value="'programmatic'"></state>

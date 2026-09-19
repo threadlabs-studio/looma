@@ -50,9 +50,6 @@ export default function controller(host) {
     input.disabled = Boolean(host.state.disabled);
     input.required = Boolean(host.state.required);
     input.setAttribute("aria-invalid", String(Boolean(host.state.invalid)));
-    element.toggleAttribute("data-invalid", Boolean(host.state.invalid));
-    element.toggleAttribute("data-disabled", Boolean(host.state.disabled));
-    element.toggleAttribute("data-required", Boolean(host.state.required));
   };
   const schedule = () => {
     if (queued) return;

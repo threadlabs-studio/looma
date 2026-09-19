@@ -21,7 +21,6 @@ export default function controller(host) {
     select.disabled = Boolean(host.state.disabled);
     select.required = Boolean(host.state.required);
     select.setAttribute("aria-invalid", String(Boolean(host.state.invalid)));
-    element.toggleAttribute("data-invalid", Boolean(host.state.invalid));
   };
   const emitValue = (name, event) => {
     if (!select) return;

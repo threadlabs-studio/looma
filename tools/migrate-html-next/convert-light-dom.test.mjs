@@ -16,3 +16,18 @@ test("does not rewrite custom properties or longer identifiers", () => {
     ".x { color: var(--ui-badge-color); } my-ui-badge { display: block; }",
   );
 });
+
+test("retargets public attributes and preserves boolean presence semantics", () => {
+  const contracts = {
+    "ui-radio": { props: { disabled: { type: "boolean" } } },
+    "ui-radio-group": { props: { orientation: { type: "string" } } },
+    "ui-form-field": { props: { invalid: { type: "boolean" } } },
+  };
+  assert.equal(
+    convertLightDomStyles(
+      "ui-radio[data-disabled], ui-radio[disabled], ui-radio-group[orientation='vertical'], ui-form-field[invalid] {}",
+      { contracts },
+    ),
+    "[data-component-root~=\"ui-radio\"][data-disabled='true'], [data-component-root~=\"ui-radio\"][data-disabled='true'], [data-component-root~=\"ui-radio-group\"][data-orientation='vertical'], [data-component-root~=\"ui-form-field\"][data-invalid='true'] {}",
+  );
+});

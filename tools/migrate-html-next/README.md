@@ -8,7 +8,7 @@ HTML Next itself has no ingest converter — its three builds are a live runtime
 
 ## `convert-styles.mjs`
 
-`convertShadowStyles(css, { reflectedAttributes })` translates a component's **authoritative shadow stylesheet** (not
+`convertShadowStyles(css, { reflectedAttributes, booleanAttributes })` translates a component's **authoritative shadow stylesheet** (not
 Looma's light-DOM fallback, which drops projected-content styling) to HTML Next authoring:
 
 | Shadow | HTML Next |
@@ -19,7 +19,8 @@ Looma's light-DOM fallback, which drops projected-content styling) to HTML Next 
 
 Stencil prop selectors such as `:host([size='sm'])` are retargeted to HTML Next's automatic
 `data-*` reflection (`:scope[data-size='sm']`), while native state such as `[popover]` and ARIA
-attributes remain unchanged.
+attributes remain unchanged. Boolean presence selectors become explicit true-value selectors
+because HTML Next reflects both boolean values.
 
 The emitted CSS goes in the component's HTML Next `<style>`; the HTML Next runtime scopes it
 (`:slotted()` compiles to selectors anchored to the projected region). A real `ui-button`
@@ -35,17 +36,22 @@ which nested a control in a control and dropped the projected styling).
 
 ## `convert-render.mjs`
 
-`renderPort(tag, tsx, rootEl)` derives the port from the component's Stencil `render()` JSX — it
+`renderPort(tag, tsx, rootEl, { contract })` uses the old Stencil `render()` JSX as a one-time
+source-format adapter. It
 reproduces the internal element/class structure (`.badge__surface`, `.chip__label`, …) so
 class-targeted styling matches, binds clean `{this.prop}` attributes, and drops what doesn't
 migrate (event handlers, refs, conditional attributes, icon `innerHTML`). This subsumes the
 passthrough case and is what the harness uses; `convert-template.mjs` remains as the simpler
 host-only generator.
 
-`convertLightDomStyles(css)` retargets Looma's shipped compatibility selectors from custom-element
-tags to lowered `[data-component-root]` roots. Storybook applies that host layer alongside shadow
-styles, so carrying it forward is required to compare the same cascade rather than a shadow-only
-approximation.
+`core-contracts.mjs` is the authoritative, framework-neutral Looma public contract. It declares
+props, HTML attributes, defaults, events, methods, and explicit component dependencies for all 33
+core components. Generation fails if the legacy source's public names or attribute aliases drift,
+but source decorators never determine the destination API.
+
+`convertLightDomStyles(css, { contracts })` retargets Looma's shipped compatibility selectors from
+custom-element tags and public attributes to lowered `[data-component-root]`/`data-*` roots. It
+also preserves boolean true/false semantics.
 
 ## `harness/`
 
@@ -66,6 +72,10 @@ the shipped `@threadlabs/looma` entry point. Keeping them materialized makes the
 reviewable and gives the adoption build one canonical input instead of regenerating components
 differently from the visual harness.
 
+`pnpm --filter @threadlabs/looma-migrate-html-next validate` loads that materialized graph without
+Stencil and requires every definition to parse and lower through the vendored HTML Next runtime.
+The same graph also passes the upstream HTML Next CLI's `check` and `build` commands.
+
 ## Status
 
 Converter, template generator, and harness are tested (`node --test`) and integrate with the
@@ -81,7 +91,7 @@ The diff is **shift-tolerant** (a pixel matches if any pixel within ±2px matche
 full union of both screenshots. This filters sub-pixel jitter and anti-aliasing without hiding
 extra width or height in either rendering.
 
-Full-corpus run (33 rendered, 0 skipped): **all 33 core components are under 10%**; 21 are
+Full-corpus run (33 rendered, 0 skipped): **all 33 core components are under 10%**; 23 are
 pixel-identical at 0%. The earlier overlap-only calculation understated components whose converted
 bounds were larger than the original; these full-bounds figures are the authoritative baseline.
 
@@ -93,8 +103,8 @@ Markup+CSS auto-conversion renders most components faithfully with no per-compon
 **controller path is proven**: converted controllers (`harness/controllers/`) are imported as real
 ES modules from the harness server (nothing is stashed on `window`) and wired via
 `observeDocument`/`setControllerModule`/`getComponentHost`. `ui-avatar`'s fallback initials are
-computed by its controller. Declaring every `@Prop()` (not
-only the markup-bound ones) is what lets controller-only props reach `host.state`.
+computed by its controller. Every controller reads a framework-neutral HTML Next host; the legacy
+source adapter does not leak Stencil runtime concepts into those modules.
 
 **Composite components converge too.** The harness discovers every nested `ui-*` tag in a story,
 then follows component tags emitted by generated templates to load the complete transitive port
@@ -134,7 +144,7 @@ state now converges at **0%**. `ui-search-result-row` has a ported slot-presence
 back at **1.3%** with state semantics enabled.
 
 The formerly skipped controller-driven surfaces use explicit open-state captures. `ui-menu`,
-`ui-menu-item`, and `ui-tooltip` converge at **0%**, `ui-context-menu` at **0.1%**, and `ui-dialog`
+`ui-menu-item`, `ui-tooltip`, and `ui-context-menu` converge at **0%**, and `ui-dialog`
 at **6.2%**. Harness-owned representative fixtures cover `ui-affordance-scope` and `ui-editable`,
 which have no dedicated Storybook stories; both converge at **0%**. The overlay controllers use
 native dialog/popover APIs and synchronize generated nested menu roots across lowering turns.

@@ -1,10 +1,10 @@
 <template component="ui-radio-group" controller="./controllers/ui-radio-group.js" status="early" summary="Migrated Looma ui-radio-group component.">
   <defs>
-    <prop name="value" type="string">value token.</prop>
-    <prop name="name" type="string">name token.</prop>
-    <prop name="orientation" type="string">orientation token.</prop>
-    <prop name="disabled" type="boolean">disabled token.</prop>
-    <prop name="required" type="boolean">required token.</prop>
+    <prop name="value" type="string" default="">value token.</prop>
+    <prop name="name" type="string" default="">name token.</prop>
+    <prop name="orientation" type="string" default="horizontal">orientation token.</prop>
+    <prop name="disabled" type="boolean" default="false">disabled token.</prop>
+    <prop name="required" type="boolean" default="false">required token.</prop>
     <state name="internalValue" :value="''"></state>
   </defs>
   <span role="radiogroup" :data-orientation="orientation" :data-disabled="disabled"><slot></slot></span>

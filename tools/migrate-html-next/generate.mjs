@@ -1,9 +1,14 @@
-import { copyFile, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { copyFile, cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { convertShadowStyles } from "./convert-styles.mjs";
-import { reflectedPropAttributes, renderPort } from "./convert-render.mjs";
+import { coreContractFor } from "./core-contracts.mjs";
+import {
+  reflectedBooleanAttributes,
+  reflectedPropAttributes,
+  renderPort,
+} from "./convert-render.mjs";
 import { referencedTags } from "./discover-ports.mjs";
 import { rootElementFor } from "./root-element.mjs";
 
@@ -21,10 +26,11 @@ function addController(template, controller) {
   );
 }
 
-function addStyles(template, css, tsx) {
+function addStyles(template, css, tsx, contract, tag) {
   const end = template.lastIndexOf("</template>");
   const styles = convertShadowStyles(css, {
-    reflectedAttributes: reflectedPropAttributes(tsx),
+    reflectedAttributes: reflectedPropAttributes(tsx, contract, tag),
+    booleanAttributes: reflectedBooleanAttributes(tsx, contract, tag),
   });
   return `${template.slice(0, end)}  <style>${styles}</style>\n${template.slice(end)}`;
 }
@@ -47,6 +53,11 @@ export async function generateCoreArtifacts({ output = DEFAULT_OUTPUT } = {}) {
   await rm(output, { recursive: true, force: true });
   await mkdir(join(output, "components"), { recursive: true });
   await mkdir(join(output, "components", "controllers"), { recursive: true });
+  await cp(
+    join(CONTROLLERS, "shared"),
+    join(output, "components", "controllers", "shared"),
+    { recursive: true },
+  );
 
   for (const tag of tags) {
     const cssPath = join(CORE, tag, `${tag}.css`);
@@ -60,9 +71,16 @@ export async function generateCoreArtifacts({ output = DEFAULT_OUTPUT } = {}) {
     const controllerName = `${tag}.js`;
     const controllerPath = join(CONTROLLERS, controllerName);
     const controller = await exists(controllerPath) ? controllerName : undefined;
-    const rendered = renderPort(tag, tsx, rootElementFor(css));
-    const definition = addStyles(addController(rendered, controller), css, tsx);
-    const dependencies = referencedTags(definition).filter((dependency) => dependency !== tag).sort();
+    const contract = coreContractFor(tag);
+    const rendered = renderPort(tag, tsx, rootElementFor(css), { contract });
+    const definition = addStyles(addController(rendered, controller), css, tsx, contract, tag);
+    const dependencies = [...new Set([
+      ...referencedTags(definition),
+      ...referencedTags(tsx),
+      ...contract.dependencies,
+    ])]
+      .filter((dependency) => dependency !== tag)
+      .sort();
     const links = dependencies
       .map((dependency) => `<link rel="component" href="./${dependency}.html">`)
       .join("\n");

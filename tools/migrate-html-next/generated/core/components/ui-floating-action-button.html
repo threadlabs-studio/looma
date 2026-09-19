@@ -1,8 +1,8 @@
 <template component="ui-floating-action-button" status="early" summary="Migrated Looma ui-floating-action-button component.">
   <defs>
-    <prop name="disabled" type="boolean">disabled token.</prop>
-    <prop name="mobileOnly" type="boolean">mobileOnly token.</prop>
-    <prop name="label" type="string">label token.</prop>
+    <prop name="disabled" type="boolean" default="false">disabled token.</prop>
+    <prop name="mobileOnly" type="boolean" default="false">mobileOnly token.</prop>
+    <prop name="label" type="string" default="">label token.</prop>
   </defs>
   <span :data-disabled="disabled"><button type="button" :aria-label="label"><slot></slot></button></span>
   <style>:scope {
@@ -62,7 +62,7 @@ button:focus-visible {
 }
 
 button:disabled,
-:scope[data-disabled] {
+:scope[data-disabled='true'] {
   opacity: 0.6;
   cursor: not-allowed;
 }
@@ -74,7 +74,7 @@ button:disabled,
 }
 
 @media (min-width: 768px) {
-  :scope[data-mobile-only] {
+  :scope[data-mobile-only='true'] {
     display: none;
   }
 }
