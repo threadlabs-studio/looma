@@ -54,7 +54,10 @@ Converter, template generator, and harness are tested (`node --test`) and integr
 workspace. `harness/run.mjs` auto-discovers every `packages/core` component with a `.tsx`+`.css`,
 matches it to a Storybook story, derives the root from `:host` display, and reports per-component
 overlap pixel-mismatch vs. the Shadow-DOM baseline. Run: `pnpm --filter
-@threadlabs/looma-migrate-html-next harness` (optionally pass tags to filter).
+@threadlabs/looma-migrate-html-next harness` (optionally pass tags to filter). It also writes a
+browsable before/after gallery to `harness/gallery/index.html` (gitignored) — open it, or
+`python3 -m http.server -d harness/gallery`. To see the original components live, run
+`pnpm dev:storybook`.
 
 Full-corpus run (19 rendered, 14 skipped): **11 components under 10%**, 5 in 10–25%, 3 at ≥25%.
 
