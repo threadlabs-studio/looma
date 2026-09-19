@@ -226,6 +226,13 @@ function propDeclarations(tsx) {
   return new Map(propMetadata(tsx).map(({ name, type }) => [name, type]));
 }
 
+function stateDeclarations(tsx) {
+  const states = new Map();
+  const pattern = /@State(?:\([^)]*\))?\s+(\w+)(?:\s*:\s*([^=;\n]+))?\s*=\s*([^;\n]+)/g;
+  for (const match of tsx.matchAll(pattern)) states.set(match[1], match[3].trim());
+  return states;
+}
+
 /** Map Stencil's public host attributes to HTML Next's automatic `data-*` prop reflection. */
 export function reflectedPropAttributes(tsx) {
   return new Map(propMetadata(tsx).map(({ attribute, dataAttribute }) => [attribute, dataAttribute]));
@@ -237,7 +244,12 @@ function translateJsx(jsx, rootEl, knownRoots) {
   let out = rewriteContentExpressions(jsx, knownRoots);
   out = out.replace(/<style>[\s\S]*?<\/style>/g, "");              // drop the component's dynamic <style>
   out = out.replace(/\s+(on[A-Z]\w*|ref)=\{[^}]*\}/g, "");         // drop event handlers and refs
-  out = out.replace(/([\w-]+)=\{this\.(\w+)(?:\s*\|\|\s*undefined)?\}/g, ':$1="$2"'); // clean prop bindings
+  out = out.replace(/([\w-]+)=\{this\.(\w+)\s*\?\s*['"]{2}\s*:\s*undefined\}/g,
+    (match, attribute, root) => knownRoots.has(root) ? `:${attribute}="${root}"` : match);
+  out = out.replace(/([\w-]+)=\{!(this\.(\w+(?:\.\w+)*))\}/g,
+    (match, attribute, _path, path) => knownRoots.has(path.split(".")[0]) ? `:${attribute}="not ${path}"` : match);
+  out = out.replace(/([\w-]+)=\{this\.(\w+)(?:\s*\|\|\s*undefined)?\}/g,
+    (match, attribute, root) => knownRoots.has(root) ? `:${attribute}="${root}"` : match);
   out = dropExprAttrs(out);                                        // drop conditional/template-literal/innerHTML attrs
   // pure text binding: <tag ...>{this.prop}</tag> -> <tag ... $value="prop"></tag>
   out = out.replace(/<(\w+)([^>]*)>\s*\{this\.(\w+)\}\s*<\/\1>/g, '<$1$2 $value="$3"></$1>');
@@ -258,12 +270,19 @@ export function renderPort(tag, tsx, rootEl = "span", { summary } = {}) {
   const jsx = extractRenderJsx(tsx);
   if (jsx === null) throw new Error(`${tag}: no render() found`);
   // Declare every @Prop() (a prop may be read only by the controller, e.g. avatar's name/alt/
-  // fallback), plus any binding that survived translation.
+  // fallback), every @State(), plus any otherwise-unannotated binding that survived translation.
   const declared = propDeclarations(tsx);
-  const body = translateJsx(jsx, rootEl, new Set(declared.keys()));
+  const states = stateDeclarations(tsx);
+  const inferredBindings = [...jsx.matchAll(/[\w-]+=\{this\.(\w+)(?:\s*\|\|\s*undefined)?\}/g)]
+    .map((match) => match[1]);
+  const knownRoots = new Set([...declared.keys(), ...states.keys(), ...inferredBindings]);
+  const body = translateJsx(jsx, rootEl, knownRoots);
   const bound = [...body.matchAll(/:[\w-]+="(\w+)"/g)].map((m) => m[1]);
-  const props = [...new Set([...declared.keys(), ...bound])].filter((name) => /^[A-Za-z][A-Za-z0-9]*$/.test(name));
-  const defs = props.map((name) => `    <prop name="${name}" type="${declared.get(name) ?? "string"}">${name} token.</prop>`).join("\n");
+  const props = [...new Set([...declared.keys(), ...bound.filter((name) => !states.has(name))])]
+    .filter((name) => /^[A-Za-z][A-Za-z0-9]*$/.test(name));
+  const propDefs = props.map((name) => `    <prop name="${name}" type="${declared.get(name) ?? "string"}">${name} token.</prop>`);
+  const stateDefs = [...states].map(([name, value]) => `    <state name="${name}" :value="${value.replace(/&/g, "&amp;").replace(/"/g, "&quot;")}"></state>`);
+  const defs = [...propDefs, ...stateDefs].join("\n");
   const text = summary && summary.trim() ? summary.trim() : `Migrated Looma ${tag} component.`;
   return `<template component="${tag}" status="early" summary="${text}">
   <defs>

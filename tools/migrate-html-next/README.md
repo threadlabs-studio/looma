@@ -62,7 +62,7 @@ re-vendor when that runtime changes.
 Converter, template generator, and harness are tested (`node --test`) and integrate with the
 workspace. `harness/run.mjs` auto-discovers every `packages/core` component with a `.tsx`+`.css`,
 matches it to a Storybook story, derives the root from `:host` display, and reports per-component
-overlap pixel-mismatch vs. the Shadow-DOM baseline. Run: `pnpm --filter
+full-bounds pixel mismatch vs. the Shadow-DOM baseline. Run: `pnpm --filter
 @threadlabs/looma-migrate-html-next harness` (optionally pass tags to filter). It also writes a
 browsable before/after gallery to `harness/gallery/index.html` (gitignored) — open it, or
 `python3 -m http.server -d harness/gallery`. To see the original components live, run
@@ -72,9 +72,9 @@ The diff is **shift-tolerant** (a pixel matches if any pixel within ±2px matche
 full union of both screenshots. This filters sub-pixel jitter and anti-aliasing without hiding
 extra width or height in either rendering.
 
-Full-corpus run (26 rendered, 7 skipped): **24 components under 10%**, 1 in 10-25%, and 1 at
-25% or above. The earlier overlap-only calculation understated components whose converted bounds
-were larger than the original; these full-bounds figures are the authoritative baseline.
+Full-corpus run (26 rendered, 7 skipped): **all 26 measurable components are under 10%**; 16 are
+pixel-identical at 0%. The earlier overlap-only calculation understated components whose converted
+bounds were larger than the original; these full-bounds figures are the authoritative baseline.
 
 The after page preserves the representative story's measured containing width. That removed false
 full-canvas expansion from constrained block components (`ui-search-result-row` is now **1.3%**)
@@ -88,11 +88,15 @@ computed by its controller. Declaring every `@Prop()` (not
 only the markup-bound ones) is what lets controller-only props reach `host.state`.
 
 **Composite components converge too.** The harness discovers every nested `ui-*` tag in a story,
-injects a port + controller for each, and lets `observeDocument` lower and control every root with
-its own settled host. That dropped `ui-toast-region` from 28.3% to **1.2%** and `ui-avatar-group`
+then follows component tags emitted by generated templates to load the complete transitive port
+graph. `observeDocument` lowers and controls every root with its own settled host, including roots
+created in later mutation turns. That dropped `ui-toast-region` from 28.3% to **0%** and `ui-avatar-group`
 (nesting five-plus avatars with the overflow "+N" badge) from 15.5% to **7.9%** — the residual is
 anti-aliasing on the heavily-overlapping circle stack; it renders indistinguishably. The after page
 also matches Storybook's 1rem canvas padding so right-aligned content isn't shifted.
+
+The harness preserves Storybook's stylesheet order and waits for `document.fonts.ready`, so the
+comparison uses Inter on both sides instead of accumulating fallback-font width drift across labels.
 
 `ui-search-shell` now converges at **0%**. Its Stencil render omits `<Host>`, so the converter
 preserves the host boundary with a distinct lowered root instead of letting host-level styles
@@ -105,7 +109,7 @@ regions synchronized with their projected content.
 
 Root inference uses only the unconditional `:host` rule, so state rules such as
 `:host(:not([data-open])) { display: none }` cannot incorrectly turn an inline host into a block
-root. With the original inline geometry preserved, `ui-popover` converges at **0.8%**.
+root. With the original inline geometry preserved, `ui-popover` converges at **0%**.
 
 Nested `ui-tree-item` is now measured through the representative tree story. The converter lowers
 prop ternaries to declarative `$match`/`$if` branches, its controller synchronizes expanded state,
@@ -114,9 +118,11 @@ and reflected-prop selectors target HTML Next's `data-*` attributes. `ui-tree` n
 Storybook taxonomy does not match their tag spelling.
 
 `ui-combobox` is also measurable now. The converter accepts its unparenthesized JSX return,
-preserves direct text values, lowers simple prop-guarded subtrees to `$if`, and emits boolean and
-number prop types. Its field shell matches, while its unported popup/validation/help lifecycle
-leaves extra content below the field and currently scores **44.1%**.
+preserves direct text values, lowers simple prop-guarded subtrees to `$if`, emits boolean and number
+prop types, declares Stencil `@State()` roots, and retains safe state-driven attributes such as
+`hidden={!this.expanded}`. Recursive lowering handles its generated tooltip, and the closed initial
+state now converges at **0%**. `ui-search-result-row` has a ported slot-presence controller and is
+back at **1.3%** with state semantics enabled.
 
 **Skipped:** controller-driven components with no static visible box (context-menu, dialog, menu,
 menu-item, tooltip), plus affordance-scope and editable, which have no matched story.
