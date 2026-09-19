@@ -13,6 +13,7 @@ import { chromium } from "playwright";
 
 import { convertLightDomStyles } from "../convert-light-dom.mjs";
 import { convertShadowStyles } from "../convert-styles.mjs";
+import { discoverPorts, referencedTags } from "../discover-ports.mjs";
 import { reflectedPropAttributes, renderPort } from "../convert-render.mjs";
 import { rootElementFor } from "../root-element.mjs";
 
@@ -48,7 +49,9 @@ const tokens = (await Promise.all([
 ].map((f) => readFile(join(LOOMA, f), "utf8").catch(() => "")))).join("\n");
 const compatibility = convertLightDomStyles(await readFile(join(LOOMA, "packages/core/src/styles.css"), "utf8"));
 const previewStyles = await readFile(join(LOOMA, "apps/storybook/.storybook/preview.css"), "utf8");
-const pageStyles = [tokens, compatibility, previewStyles].join("\n");
+// Keep preview.css first, as Storybook does: its external font @import is invalid after any other
+// rule, and fallback-font geometry makes repeated labels look like component layout drift.
+const pageStyles = [previewStyles, tokens, compatibility].join("\n");
 
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".json": "application/json", ".css": "text/css", ".map": "application/json" };
 const server = createServer(async (req, res) => {
@@ -172,8 +175,8 @@ for (const tag of tags) {
       const p = `${rendered.slice(0, end)}  <style>${convertShadowStyles(c, { reflectedAttributes: reflectedPropAttributes(x) })}</style>\n${rendered.slice(end)}`;
       return { tag: t, port: p, ctrl };
     };
-    const childTags = [...new Set([...host.inner.matchAll(/<(ui-[\w-]+)/g)].map((m) => m[1]))].filter((t) => t !== tag);
-    const parts = (await Promise.all([tag, ...childTags].map(portFor))).filter(Boolean);
+    const childTags = referencedTags(host.inner).filter((childTag) => childTag !== tag);
+    const parts = await discoverPorts([tag, ...childTags], portFor);
     const ctrls = Object.fromEntries(parts.filter((p) => p.ctrl).map((p) => [p.tag, p.ctrl]));
     const portsHtml = parts.map((p) => p.port).join("\n");
 
@@ -190,31 +193,27 @@ for (const tag of tags) {
     // as tree rows otherwise expand from their story's constrained column to the full test canvas,
     // measuring a missing parent layout rather than the component migration.
     await after.setContent(`<!doctype html><html><head><meta charset="utf8"><style>${pageStyles}\nbody{margin:0;padding:1rem}</style></head><body>${portsHtml}<div data-migration-frame style="inline-size:${box.width}px"><${tag} ${host.attrs}>${host.inner}</${tag}></div></body></html>`);
+    await after.evaluate(() => document.fonts.ready);
     await after.addScriptTag({ content: RUNTIME });
-    if (Object.keys(ctrls).length > 0) {
-      // Import controllers as real ES modules (blob URLs) and wire each by tag — nothing is
-      // stashed on window. observeDocument lowers every root and runs its controller with the
-      // settled per-root host, so nested/composite children converge too.
-      await after.evaluate(async (srcByTag) => {
-        const mods = {};
-        for (const [t, src] of Object.entries(srcByTag)) {
-          const url = URL.createObjectURL(new Blob([src], { type: "text/javascript" }));
-          mods[t] = (await import(url)).default;
-        }
-        window.HtmlRuntime.observeDocument(document, {
-          onConnect(root, def) {
-            const fn = mods[def.contract.tag];
-            if (!fn) return;
-            window.HtmlRuntime.setControllerModule(root, Promise.resolve({ default: fn }));
-            return fn(window.HtmlRuntime.getComponentHost(root));
-          },
-        });
-      }, ctrls);
-      await after.waitForTimeout(400); // allow controller + image load/error
-    } else {
-      await after.evaluate(() => window.HtmlRuntime.lowerDocument());
-      await after.waitForTimeout(150);
-    }
+    // Import controllers as real ES modules (blob URLs) and wire each by tag — nothing is
+    // stashed on window. Always observe, even when this graph has no controller: a lowered parent
+    // can generate another component invocation that must be discovered in the next mutation turn.
+    await after.evaluate(async (srcByTag) => {
+      const mods = {};
+      for (const [t, src] of Object.entries(srcByTag)) {
+        const url = URL.createObjectURL(new Blob([src], { type: "text/javascript" }));
+        mods[t] = (await import(url)).default;
+      }
+      window.HtmlRuntime.observeDocument(document, {
+        onConnect(root, def) {
+          const fn = mods[def.contract.tag];
+          if (!fn) return;
+          window.HtmlRuntime.setControllerModule(root, Promise.resolve({ default: fn }));
+          return fn(window.HtmlRuntime.getComponentHost(root));
+        },
+      });
+    }, ctrls);
+    await after.waitForTimeout(400); // allow recursive lowering, controllers, and image load/error
     if (runtimeErrors.length > 0) throw new Error(runtimeErrors.join(" | "));
     const target = after.locator(`[data-component-root~="${tag}"]`).first();
     if (await target.count() === 0) { results.push({ tag, note: "did not lower" }); await after.close(); continue; }

@@ -102,6 +102,25 @@ test("converts compound boolean ternaries to if directives", () => {
   assert.match(port, /<button \$if="sortable and not disabled">Drag<\/button>/);
 });
 
+test("declares Stencil state and preserves safe state-driven attributes", () => {
+  const popup = `
+    @State() expanded = false;
+    @State() validation = { issues: [] };
+    render() {
+      return (<Host data-open={this.expanded ? '' : undefined}>
+        <div class="popup" hidden={!this.expanded}></div>
+        <div class="validation" hidden={!this.validation.issues.length}></div>
+      </Host>);
+    }`;
+  const port = renderPort("ui-popup", popup, "span");
+  assert.match(port, /<state name="expanded" :value="false"><\/state>/);
+  assert.match(port, /<state name="validation" :value="\{ issues: \[\] \}"><\/state>/);
+  assert.match(port, /<span :data-open="expanded">/);
+  assert.match(port, /<div class="popup" :hidden="not expanded"><\/div>/);
+  assert.match(port, /<div class="validation" :hidden="not validation\.issues\.length"><\/div>/);
+  assert.doesNotMatch(port, /<prop name="expanded"/);
+});
+
 test("innerHTML (icons) is dropped, leaving an empty element", () => {
   const callout = `
     render() {
