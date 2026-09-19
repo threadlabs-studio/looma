@@ -233,9 +233,30 @@ Source: [Component Library Audit](./component-library-audit.md), based on offici
   - `IconButton` adoption in high-use shell controls while preserving Knit’s exact spacing and behavior
   - `Select` adoption in settings and sidebar dialogs while keeping domain behavior app-local
 
-## Future: Docs Site in Looma
+## Future: Looma component-library site ("This is Looma")
 
-At some point, rebuild the Docusaurus docs UI (navbar, sidebar, footer, etc.) using Looma components. This would dogfood the library and demonstrate real-world usage.
+Build a proper UI-library showcase/marketing site in the mold of PrimeVue, Radix, Shoelace, and
+Chakra docs — not the current Docusaurus API docs, and distinct from Storybook (which stays the
+component workbench). Goals:
+
+- **Landing / marketing page** ("This is Looma"): what it is (SSR-first, native-root web
+  components), why (scoping-not-isolation, form participation, accessibility), a hero with live
+  components, install, and links.
+- **Per-component pages**, each with:
+  - a live interactive demo of the primary use;
+  - variants and states (tone/variant/size, disabled, invalid, hover/focus) shown together;
+  - a **props/API table** (generated from the component metadata / `support`-style inventory);
+  - theming via design tokens (light/dark), accessibility notes, and copyable code snippets.
+- **Dogfooding:** build the site's own chrome (navbar, sidebar, cards, tabs) from Looma components
+  so the site demonstrates real-world usage; replaces the earlier "rebuild the Docusaurus UI" idea.
+- **Sitemap:** grouped nav (Forms, Display, Overlay, Layout, Editor) mirroring the component
+  taxonomy; per-component permalinks; search.
+
+This also becomes the natural place to show the **HTML Next migration** side-by-side once components
+converge (see `tools/migrate-html-next/` and its convergence gallery).
+
+Open decisions: framework (keep Docusaurus vs. a dedicated app), whether it supersedes `apps/docs`,
+and hosting. Not started — this note is the captured task.
 
 ## How To Adjust This Plan
 
