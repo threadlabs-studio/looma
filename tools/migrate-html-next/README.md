@@ -62,7 +62,7 @@ browsable before/after gallery to `harness/gallery/index.html` (gitignored) — 
 The diff is **shift-tolerant** (a pixel matches if any pixel within ±2px matches), so the score
 reflects real visual difference rather than sub-pixel layout jitter or anti-aliasing.
 
-Full-corpus run (23 rendered, 10 skipped): **22 components under 10%**, 1 in 10-25%
+Full-corpus run (24 rendered, 9 skipped): **23 components under 10%**, 1 in 10-25%
 (avatar-group 11.4%), and none at 25% or above.
 
 Markup+CSS auto-conversion renders most components faithfully with no per-component tuning. The
@@ -84,13 +84,17 @@ preserves the host boundary with a distinct lowered root instead of letting host
 overwrite the inner flex shell. Its controller uses native child observation to keep the optional
 status and footer regions synchronized.
 
-**Skipped:** controller-driven components with no static visible box (dialog, menu, tooltip,
-top-bar), components with no matched story (affordance-scope, context-menu, editable, menu-item,
-tree-item), a non-`render()` method (combobox), and a hidden lowered root (popover).
+`ui-top-bar` also converges at **0%** in its intended mobile viewport. The harness selects that
+representative viewport explicitly, and the ported controller keeps the leading, search, and action
+regions synchronized with their projected content.
+
+**Skipped:** controller-driven components with no static visible box (dialog, menu, menu-item,
+tooltip), components with no matched story (affordance-scope, context-menu, editable, tree-item),
+and a render form the converter does not yet parse (combobox).
 
 **Next — automate controller conversion.** The controller path is proven by hand
-(`ui-avatar`, `ui-avatar-group`, `ui-search-shell`); the skipped overlays (dialog, menu, tooltip,
-context-menu, top-bar) each need their Stencil controller (`@State`, lifecycle, methods) converted
+(`ui-avatar`, `ui-avatar-group`, `ui-search-shell`, `ui-top-bar`); the skipped overlays (dialog,
+menu, tooltip, context-menu) each need their Stencil controller (`@State`, lifecycle, methods) converted
 to an HTML Next `host`-based controller. Build a converter for that, the same way
 `convert-render.mjs` followed the `ui-button` markup/CSS proof. Then layout/editor packages.
 Converted output stays unmerged until the set passes.

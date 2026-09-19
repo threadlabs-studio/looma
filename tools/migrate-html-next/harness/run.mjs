@@ -21,6 +21,9 @@ const CORE = join(LOOMA, "packages/core/src/components");
 const CONTROLLERS = join(HERE, "controllers");
 const RUNTIME = await readFile(join(HERE, "..", "vendor", "html-next-runtime.iife.js"), "utf8");
 const only = process.argv.slice(2); // optional tag filter
+const VIEWPORTS = {
+  "ui-top-bar": { width: 390, height: 700 },
+};
 
 // Map each component tag to a representative story id (prefer a "default"/"info"/"tag" story).
 const index = JSON.parse(await readFile(join(STATIC, "index.json"), "utf8"));
@@ -104,6 +107,7 @@ for (const tag of tags) {
     if (story === undefined) { results.push({ tag, note: "no story" }); continue; }
 
     const before = await ctx.newPage();
+    await before.setViewportSize(VIEWPORTS[tag] ?? { width: 1000, height: 700 });
     await before.goto(`${base}/iframe.html?id=${story}&viewMode=story`, { waitUntil: "networkidle" });
     await before.waitForSelector(`${tag}, ${tag}.hydrated`, { timeout: 8000 }).catch(() => {});
     await before.waitForTimeout(400);
@@ -136,6 +140,7 @@ for (const tag of tags) {
     const portsHtml = parts.map((p) => p.port).join("\n");
 
     const after = await ctx.newPage();
+    await after.setViewportSize(VIEWPORTS[tag] ?? { width: 1000, height: 700 });
     // Match Storybook's canvas padding (1rem) so full-width components have the same available
     // width — otherwise right-aligned content (e.g. avatar-group) shifts by the padding delta.
     await after.setContent(`<!doctype html><html><head><meta charset="utf8"><style>${tokens}\nbody{margin:0;padding:1rem}</style></head><body>${portsHtml}<${tag} ${host.attrs}>${host.inner}</${tag}></body></html>`);
