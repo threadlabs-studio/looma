@@ -23,7 +23,6 @@ export default function controller(host) {
     const wasOpen = Boolean(host.state.internalOpen);
     const completed = pendingDismiss && !element.contains(pendingDismiss.toast) ? pendingDismiss : null;
     host.state.internalOpen = open;
-    element.toggleAttribute("data-open", open);
     setSurfaceOpen(open);
     if (wasOpen && !open && completed) {
       host.dispatch("close", { open: false, reason: "action", trigger: completed.trigger });

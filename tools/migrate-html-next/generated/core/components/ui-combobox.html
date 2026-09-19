@@ -1,24 +1,25 @@
+<link rel="component" href="./ui-chip.html">
 <link rel="component" href="./ui-tooltip.html">
-<template component="ui-combobox" status="early" summary="Migrated Looma ui-combobox component.">
+<template component="ui-combobox" controller="./controllers/ui-combobox.js" status="early" summary="Migrated Looma ui-combobox component.">
   <defs>
-    <prop name="label" type="string">label token.</prop>
-    <prop name="placeholder" type="string">placeholder token.</prop>
-    <prop name="name" type="string">name token.</prop>
-    <prop name="value" type="string">value token.</prop>
+    <prop name="label" type="string" default="">label token.</prop>
+    <prop name="placeholder" type="string" default="">placeholder token.</prop>
+    <prop name="name" type="string" default="">name token.</prop>
+    <prop name="value" type="string | null | list(unknown)">value token.</prop>
     <prop name="defaultValue" type="string">defaultValue token.</prop>
-    <prop name="multiple" type="boolean">multiple token.</prop>
-    <prop name="tokenSeparators" type="string">tokenSeparators token.</prop>
+    <prop name="multiple" type="boolean" default="false">multiple token.</prop>
+    <prop name="tokenSeparators" type="list(string)">tokenSeparators token.</prop>
     <prop name="query" type="string">query token.</prop>
-    <prop name="defaultQuery" type="string">defaultQuery token.</prop>
-    <prop name="config" type="string">config token.</prop>
-    <prop name="disabled" type="boolean">disabled token.</prop>
-    <prop name="readOnly" type="boolean">readOnly token.</prop>
-    <prop name="required" type="boolean">required token.</prop>
-    <prop name="size" type="string">size token.</prop>
-    <prop name="labelVisibility" type="string">labelVisibility token.</prop>
-    <prop name="disclosure" type="boolean">disclosure token.</prop>
-    <prop name="clearable" type="boolean">clearable token.</prop>
-    <prop name="help" type="string">help token.</prop>
+    <prop name="defaultQuery" type="string" default="">defaultQuery token.</prop>
+    <prop name="config" type="unknown">config token.</prop>
+    <prop name="disabled" type="boolean" default="false">disabled token.</prop>
+    <prop name="readOnly" type="boolean" default="false">readOnly token.</prop>
+    <prop name="required" type="boolean" default="false">required token.</prop>
+    <prop name="size" type="string" default="md">size token.</prop>
+    <prop name="labelVisibility" type="string" default="visible">labelVisibility token.</prop>
+    <prop name="disclosure" type="boolean" default="false">disclosure token.</prop>
+    <prop name="clearable" type="boolean" default="false">clearable token.</prop>
+    <prop name="help" type="string" default="">help token.</prop>
     <state name="raw" :value="''"></state>
     <state name="display" :value="''"></state>
     <state name="selected" :value="null"></state>
@@ -29,8 +30,10 @@
     <state name="helpOpen" :value="false"></state>
     <state name="lookupError" :value="''"></state>
     <state name="validation" :value="{ status: 'pristine', touched: false, dirty: false, issues: [] }"></state>
+    <method name="validate" export="validate" returns="promise(unknown)"></method>
+    <method name="focusInput" export="focusInput" returns="promise(undefined)"></method>
   </defs>
-  <div :data-size="size"><label htmlFor="input" part="label"><template $value="label"></template></label><div class="field" part="field"><slot name="start"></slot><div $if="multiple" class="items" role="group"></div><input id="input" role="combobox" aria-autocomplete="list" aria-controls="listbox" :value="display" :placeholder="placeholder" :name="name" :disabled="disabled" :readOnly="readOnly" :required="required" autoComplete="off" part="input"></input><button $if="clearable" type="button" part="affordance">×</button><button $if="help" id="help" type="button" part="affordance" :disabled="disabled"><span aria-hidden="true">?</span></button><button $if="disclosure" type="button" part="affordance" aria-controls="listbox"><span aria-hidden="true">⌄</span></button></div><ui-tooltip $if="help" id="help-text" for="help"><template $value="help"></template></ui-tooltip><div class="popup" part="popup" :hidden="not expanded"><div id="listbox" role="listbox"></div><slot name="footer"></slot></div><div id="validation" class="message" part="validation" :hidden="not validation.issues.length"></div><div class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div></div>
+  <div .value="value" .config="config" :data-size="size"><label for="input" part="label"><template $value="label"></template></label><div class="field" part="field"><slot name="start"></slot><div $if="multiple" class="items" role="group"></div><input id="input" role="combobox" aria-autocomplete="list" aria-controls="listbox" :value="display" :placeholder="placeholder" :name="name" :disabled="disabled" :readOnly="readOnly" :required="required" autoComplete="off" part="input"></input><button $if="clearable" type="button" part="affordance">×</button><button $if="help" id="help" type="button" part="affordance" :disabled="disabled"><span aria-hidden="true">?</span></button><button $if="disclosure" type="button" part="affordance" aria-controls="listbox"><span aria-hidden="true">⌄</span></button></div><ui-tooltip $if="help" id="help-text" for="help"><template $value="help"></template></ui-tooltip><div class="popup" part="popup" :hidden="not expanded"><div id="listbox" role="listbox"></div><slot name="footer"></slot></div><div id="validation" class="message" part="validation" :hidden="not validation.issues.length"></div><div class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div></div>
   <style>:scope { display: grid; gap: var(--ui-space-1); min-inline-size: 0; color: var(--ui-text-primary); font: inherit; }
 label { color: var(--ui-field-label-color, var(--ui-text-primary)); font-size: var(--ui-field-label-size, 0.875rem); font-weight: var(--ui-field-label-weight, 500); }
 .field { display: flex; min-inline-size: 0; border: 1px solid var(--ui-control-border, var(--ui-border-default)); border-radius: var(--ui-radius-2); background: var(--ui-control-surface, var(--ui-surface-default)); }
@@ -57,8 +60,8 @@ input:disabled, button:disabled { color: var(--ui-text-muted); cursor: not-allow
 @media (forced-colors: active) { .field, .popup { border-color: CanvasText; } .option[data-active] { outline-color: Highlight; } }
 
 /* Multiple mode: chips wrap before the cursor on one flexible field line. */
-:scope[data-multiple] .field { flex-wrap: wrap; align-items: center; gap: var(--ui-space-1); min-block-size: var(--ui-multi-combobox-min-block-size, 2.5rem); padding: var(--ui-space-1); }
-:scope[data-multiple] input { flex: 1 0 var(--ui-multi-combobox-input-min-inline-size, 5rem); width: auto; min-block-size: 1.75rem; padding: var(--ui-space-0-5) var(--ui-space-1); }
+:scope[data-multiple='true'] .field { flex-wrap: wrap; align-items: center; gap: var(--ui-space-1); min-block-size: var(--ui-multi-combobox-min-block-size, 2.5rem); padding: var(--ui-space-1); }
+:scope[data-multiple='true'] input { flex: 1 0 var(--ui-multi-combobox-input-min-inline-size, 5rem); width: auto; min-block-size: 1.75rem; padding: var(--ui-space-0-5) var(--ui-space-1); }
 .items { display: contents; }
 .item {
   appearance: none;

@@ -13,7 +13,6 @@ export default function controller(host) {
   const apply = () => {
     if (host.state.checked !== undefined) host.state.internalChecked = Boolean(host.state.checked);
     const disabled = Boolean(host.state.disabled);
-    element.toggleAttribute("data-disabled", disabled);
     element.setAttribute("aria-disabled", String(disabled));
     element.setAttribute("aria-checked", String(Boolean(host.state.internalChecked)));
     if (!input) return;

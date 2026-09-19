@@ -1,18 +1,18 @@
 <template component="ui-tree-item" controller="./controllers/ui-tree-item.js" status="early" summary="Migrated Looma ui-tree-item component.">
   <defs>
-    <prop name="itemId" type="string">itemId token.</prop>
-    <prop name="label" type="string">label token.</prop>
+    <prop name="itemId" type="string" default="">itemId token.</prop>
+    <prop name="label" type="string" default="">label token.</prop>
     <prop name="dropDepth" type="number">dropDepth token.</prop>
     <prop name="subtreeDepth" type="number">subtreeDepth token.</prop>
-    <prop name="container" type="boolean">container token.</prop>
-    <prop name="sortable" type="boolean">sortable token.</prop>
-    <prop name="dragType" type="string">dragType token.</prop>
-    <prop name="dropScope" type="string">dropScope token.</prop>
-    <prop name="accepts" type="string">accepts token.</prop>
+    <prop name="container" type="boolean" default="false">container token.</prop>
+    <prop name="sortable" type="boolean" default="false">sortable token.</prop>
+    <prop name="dragType" type="string" default="item">dragType token.</prop>
+    <prop name="dropScope" type="string" default="">dropScope token.</prop>
+    <prop name="accepts" type="string" default="">accepts token.</prop>
     <prop name="expanded" type="boolean">expanded token.</prop>
-    <prop name="defaultExpanded" type="boolean">defaultExpanded token.</prop>
-    <prop name="selected" type="boolean">selected token.</prop>
-    <prop name="disabled" type="boolean">disabled token.</prop>
+    <prop name="defaultExpanded" type="boolean" default="false">defaultExpanded token.</prop>
+    <prop name="selected" type="boolean" default="false">selected token.</prop>
+    <prop name="disabled" type="boolean" default="false">disabled token.</prop>
     <state name="internalExpanded" :value="false"></state>
     <state name="structuralLevel" :value="1"></state>
     <state name="tabStop" :value="false"></state>

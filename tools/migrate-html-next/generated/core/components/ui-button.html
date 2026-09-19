@@ -1,8 +1,8 @@
 <template component="ui-button" controller="./controllers/ui-button.js" status="early" summary="Migrated Looma ui-button component.">
   <defs>
-    <prop name="variant" type="string">variant token.</prop>
+    <prop name="variant" type="string" default="outline">variant token.</prop>
     <prop name="size" type="string">size token.</prop>
-    <prop name="disabled" type="boolean">disabled token.</prop>
+    <prop name="disabled" type="boolean" default="false">disabled token.</prop>
   </defs>
   <span :data-size="size" :data-variant="variant"><slot></slot></span>
   <style>:scope {
@@ -118,7 +118,7 @@
 }
 
 :scope[data-disabled='true'],
-:scope[data-disabled] {
+:scope[data-disabled='true'] {
   opacity: 0.6;
   cursor: not-allowed;
 }

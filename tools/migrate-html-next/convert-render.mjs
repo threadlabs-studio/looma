@@ -35,16 +35,18 @@ export function extractRenderJsx(tsx) {
 
 /** Drop every `name={ … }` attribute whose braces are balanced (ternaries, template literals,
  *  handlers) — `[^}]*` breaks on nested `${}` in template-literal attributes. */
-function dropExprAttrs(s) {
+function dropExprAttrs(s, shouldDrop = () => true) {
   let out = "";
   let i = 0;
   for (;;) {
-    const m = /\s+[\w-]+=\{/.exec(s.slice(i));
+    const m = /\s+([\w-]+)=\{/.exec(s.slice(i));
     if (m === null) return out + s.slice(i);
-    out += s.slice(i, i + m.index);
+    const before = i + m.index;
+    out += s.slice(i, before);
     let j = i + m.index + m[0].length;
     let depth = 1;
     for (; j < s.length && depth > 0; j += 1) { if (s[j] === "{") depth += 1; else if (s[j] === "}") depth -= 1; }
+    if (!shouldDrop(m[1])) out += s.slice(before, j);
     i = j;
   }
 }
@@ -214,16 +216,49 @@ function propMetadata(tsx) {
       ? "boolean"
       : /\bnumber\b/.test(annotation) || /^-?\d+(?:\.\d+)?$/.test(initial)
         ? "number"
-        : "string";
+        : /^(?:readonly\s+)?string\[\]$/.test(annotation)
+          ? "list(string)"
+          : /\b(?:readonly\s+)?\w+\[\]|\b(?:Record|Map|Set|ComboboxConfig|unknown)\b|\{/.test(annotation)
+            ? "unknown"
+            : /\bstring\b/.test(annotation) && /\bnull\b/.test(annotation)
+              ? "string | null"
+              : "string";
     const attribute = /\battribute\s*:\s*['"]([^'"]+)['"]/.exec(options)?.[1]
       ?? name.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
-    props.push({ name, type, attribute, dataAttribute: `data-${name.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)}` });
+    const simpleDefault = /^(?:true|false|-?\d+(?:\.\d+)?|null)$/.test(initial)
+      ? initial
+      : /^(['"])([\s\S]*)\1$/.exec(initial)?.[2];
+    props.push({ name, type, defaultValue: simpleDefault, attribute, dataAttribute: `data-${name.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)}` });
   }
   return props;
 }
 
-function propDeclarations(tsx) {
-  return new Map(propMetadata(tsx).map(({ name, type }) => [name, type]));
+function contractPropMetadata(tag, tsx, contract) {
+  const source = propMetadata(tsx);
+  if (contract === undefined) return source;
+  const sourceByName = new Map(source.map((entry) => [entry.name, entry]));
+  const contractNames = Object.keys(contract.props);
+  const missing = source.filter(({ name }) => !(name in contract.props)).map(({ name }) => name);
+  const extra = contractNames.filter((name) => !sourceByName.has(name));
+  if (missing.length || extra.length) {
+    throw new Error(`${tag}: public prop contract drift (missing: ${missing.join(", ") || "none"}; extra: ${extra.join(", ") || "none"})`);
+  }
+  return contractNames.map((name) => {
+    const declaration = contract.props[name];
+    const attribute = declaration.attribute
+      ?? name.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
+    const sourceAttribute = sourceByName.get(name).attribute;
+    if (sourceAttribute !== attribute) {
+      throw new Error(`${tag}.${name}: contract attribute ${attribute} does not match source attribute ${sourceAttribute}`);
+    }
+    return {
+      name,
+      type: declaration.type,
+      defaultValue: Object.hasOwn(declaration, "default") ? declaration.default : undefined,
+      attribute,
+      dataAttribute: `data-${name.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)}`,
+    };
+  });
 }
 
 function stateDeclarations(tsx) {
@@ -233,9 +268,51 @@ function stateDeclarations(tsx) {
   return states;
 }
 
+function sourceMethods(tsx) {
+  const methods = [];
+  const pattern = /@Method(?:\([^)]*\))?\s+async\s+(\w+)\s*\([^)]*\)(?:\s*:\s*Promise<([^>]+)>)?/g;
+  for (const match of tsx.matchAll(pattern)) {
+    const result = match[2]?.trim();
+    const returns = result && result !== "void" ? "promise(unknown)" : "promise(undefined)";
+    methods.push({ name: match[1], returns });
+  }
+  return methods;
+}
+
+function methodDeclarations(tag, tsx, contract) {
+  const inferred = sourceMethods(tsx);
+  const methods = contract?.methods ?? inferred;
+  if (contract !== undefined) {
+    const inferredNames = inferred.map(({ name }) => name).sort();
+    const contractNames = methods.map(({ name }) => name).sort();
+    if (inferredNames.join("\0") !== contractNames.join("\0")) {
+      throw new Error(`${tag}: public method contract drift (source: ${inferredNames.join(", ") || "none"}; contract: ${contractNames.join(", ") || "none"})`);
+    }
+  }
+  return methods.map(({ name, export: exportName = name, returns = "promise(undefined)" }) =>
+    `    <method name="${name}" export="${exportName}" returns="${returns}"></method>`);
+}
+
+function bindPropertyOnlyProps(body, declared) {
+  const bindings = [...declared]
+    .filter(([, type]) => /\b(?:unknown|function|trusted-html|trusted-script)\b/.test(type))
+    .map(([name]) => ` .${name}="${name}"`)
+    .join("");
+  return bindings === "" ? body : body.replace(/^<([A-Za-z][\w.-]*)\b/, `<$1${bindings}`);
+}
+
 /** Map Stencil's public host attributes to HTML Next's automatic `data-*` prop reflection. */
-export function reflectedPropAttributes(tsx) {
-  return new Map(propMetadata(tsx).map(({ attribute, dataAttribute }) => [attribute, dataAttribute]));
+export function reflectedPropAttributes(tsx, contract, tag = "component") {
+  return new Map(contractPropMetadata(tag, tsx, contract)
+    .map(({ attribute, dataAttribute }) => [attribute, dataAttribute]));
+}
+
+/** Boolean public attributes use presence semantics in the source component. HTML Next reflects
+ * booleans as `data-*="true|false"`, so migrated presence selectors must test the true value. */
+export function reflectedBooleanAttributes(tsx, contract, tag = "component") {
+  return new Set(contractPropMetadata(tag, tsx, contract)
+    .filter(({ type }) => type === "boolean")
+    .map(({ attribute }) => attribute));
 }
 
 /** Translate one component's render() JSX into an HTML Next template body rooted at `rootEl`. */
@@ -243,7 +320,7 @@ function translateJsx(jsx, rootEl, knownRoots) {
   const declaresHost = /<Host\b/.test(jsx);
   let out = rewriteContentExpressions(jsx, knownRoots);
   out = out.replace(/<style>[\s\S]*?<\/style>/g, "");              // drop the component's dynamic <style>
-  out = out.replace(/\s+(on[A-Z]\w*|ref)=\{[^}]*\}/g, "");         // drop event handlers and refs
+  out = dropExprAttrs(out, (name) => name === "ref" || /^on[A-Z]/.test(name));
   out = out.replace(/([\w-]+)=\{this\.(\w+)\s*\?\s*['"]{2}\s*:\s*undefined\}/g,
     (match, attribute, root) => knownRoots.has(root) ? `:${attribute}="${root}"` : match);
   out = out.replace(/([\w-]+)=\{!(this\.(\w+(?:\.\w+)*))\}/g,
@@ -255,6 +332,7 @@ function translateJsx(jsx, rootEl, knownRoots) {
   out = out.replace(/<(\w+)([^>]*)>\s*\{this\.(\w+)\}\s*<\/\1>/g, '<$1$2 $value="$3"></$1>');
   out = stripExpressions(out);                                     // drop any remaining {…} content
   out = out.replace(/<Host\b/g, `<${rootEl}`).replace(/<\/Host>/g, `</${rootEl}>`);
+  out = out.replace(/\bhtmlFor=/g, "for=");
   out = out.replace(/<(\w+)([^>]*?)\s*\/>/g, "<$1$2></$1>");         // self-closing -> paired
   out = out.replace(/\s+/g, " ").replace(/>\s+</g, "><").replace(/\s+>/g, ">").trim();
   const body = dedupeBindings(out);
@@ -266,23 +344,29 @@ function translateJsx(jsx, rootEl, knownRoots) {
  * the shadow `:host` (a span for inline hosts, div/section for block hosts). Props are the reflected
  * `this.<prop>` values referenced in the render.
  */
-export function renderPort(tag, tsx, rootEl = "span", { summary } = {}) {
+export function renderPort(tag, tsx, rootEl = "span", { summary, contract } = {}) {
   const jsx = extractRenderJsx(tsx);
   if (jsx === null) throw new Error(`${tag}: no render() found`);
   // Declare every @Prop() (a prop may be read only by the controller, e.g. avatar's name/alt/
   // fallback), every @State(), plus any otherwise-unannotated binding that survived translation.
-  const declared = propDeclarations(tsx);
+  const metadata = contractPropMetadata(tag, tsx, contract);
+  const declared = new Map(metadata.map(({ name, type }) => [name, type]));
   const states = stateDeclarations(tsx);
   const inferredBindings = [...jsx.matchAll(/[\w-]+=\{this\.(\w+)(?:\s*\|\|\s*undefined)?\}/g)]
     .map((match) => match[1]);
   const knownRoots = new Set([...declared.keys(), ...states.keys(), ...inferredBindings]);
-  const body = translateJsx(jsx, rootEl, knownRoots);
+  const body = bindPropertyOnlyProps(translateJsx(jsx, rootEl, knownRoots), declared);
   const bound = [...body.matchAll(/:[\w-]+="(\w+)"/g)].map((m) => m[1]);
   const props = [...new Set([...declared.keys(), ...bound.filter((name) => !states.has(name))])]
     .filter((name) => /^[A-Za-z][A-Za-z0-9]*$/.test(name));
-  const propDefs = props.map((name) => `    <prop name="${name}" type="${declared.get(name) ?? "string"}">${name} token.</prop>`);
+  const defaults = new Map(metadata.map(({ name, defaultValue }) => [name, defaultValue]));
+  const propDefs = props.map((name) => {
+    const value = defaults.get(name);
+    const serialized = value === undefined ? "" : ` default="${String(value).replace(/&/g, "&amp;").replace(/"/g, "&quot;")}"`;
+    return `    <prop name="${name}" type="${declared.get(name) ?? "string"}"${serialized}>${name} token.</prop>`;
+  });
   const stateDefs = [...states].map(([name, value]) => `    <state name="${name}" :value="${value.replace(/&/g, "&amp;").replace(/"/g, "&quot;")}"></state>`);
-  const defs = [...propDefs, ...stateDefs].join("\n");
+  const defs = [...propDefs, ...stateDefs, ...methodDeclarations(tag, tsx, contract)].join("\n");
   const text = summary && summary.trim() ? summary.trim() : `Migrated Looma ${tag} component.`;
   return `<template component="${tag}" status="early" summary="${text}">
   <defs>

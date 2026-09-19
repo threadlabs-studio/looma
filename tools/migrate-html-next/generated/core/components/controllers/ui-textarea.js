@@ -19,7 +19,6 @@ export default function controller(host) {
     textarea.readOnly = Boolean(host.state.readOnly);
     textarea.rows = Number(host.state.rows ?? 4);
     textarea.setAttribute("aria-invalid", String(Boolean(host.state.invalid)));
-    element.toggleAttribute("data-invalid", Boolean(host.state.invalid));
   };
   const emitValue = (name, event) => {
     if (!textarea) return;

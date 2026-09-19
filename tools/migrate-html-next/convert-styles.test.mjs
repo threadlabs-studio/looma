@@ -26,6 +26,28 @@ test("Stencil prop selectors follow HTML Next's data-* reflection", () => {
   );
 });
 
+test("boolean presence selectors require a reflected true value", () => {
+  const reflectedAttributes = new Map([
+    ["multiple", "data-multiple"],
+    ["size", "data-size"],
+  ]);
+  const booleanAttributes = new Set(["multiple"]);
+  assert.equal(
+    convertShadowStyles(":host([multiple]) input { padding: 1px; }", {
+      reflectedAttributes,
+      booleanAttributes,
+    }),
+    ":scope[data-multiple='true'] input { padding: 1px; }",
+  );
+  assert.equal(
+    convertShadowStyles(":host([size='sm']) input { padding: 1px; }", {
+      reflectedAttributes,
+      booleanAttributes,
+    }),
+    ":scope[data-size='sm'] input { padding: 1px; }",
+  );
+});
+
 test(":host with a functional-pseudo condition folds correctly (balanced parens)", () => {
   assert.equal(
     convertShadowStyles(":host(:not([data-open])) { opacity: 1; }"),

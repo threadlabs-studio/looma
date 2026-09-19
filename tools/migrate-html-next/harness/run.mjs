@@ -13,8 +13,13 @@ import { chromium } from "playwright";
 
 import { convertLightDomStyles } from "../convert-light-dom.mjs";
 import { convertShadowStyles } from "../convert-styles.mjs";
+import { coreContractFor, coreContracts } from "../core-contracts.mjs";
 import { discoverPorts, referencedTags } from "../discover-ports.mjs";
-import { reflectedPropAttributes, renderPort } from "../convert-render.mjs";
+import {
+  reflectedBooleanAttributes,
+  reflectedPropAttributes,
+  renderPort,
+} from "../convert-render.mjs";
 import { rootElementFor } from "../root-element.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -66,7 +71,10 @@ const tokens = (await Promise.all([
   "packages/tokens/src/tokens.css", "packages/tokens/src/theme-light.css",
   "packages/layout/src/layout.css",
 ].map((f) => readFile(join(LOOMA, f), "utf8").catch(() => "")))).join("\n");
-const compatibility = convertLightDomStyles(await readFile(join(LOOMA, "packages/core/src/styles.css"), "utf8"));
+const compatibility = convertLightDomStyles(
+  await readFile(join(LOOMA, "packages/core/src/styles.css"), "utf8"),
+  { contracts: coreContracts },
+);
 const previewStyles = await readFile(join(LOOMA, "apps/storybook/.storybook/preview.css"), "utf8");
 // Keep preview.css first, as Storybook does: its external font @import is invalid after any other
 // rule, and fallback-font geometry makes repeated labels look like component layout drift.
@@ -215,10 +223,19 @@ for (const tag of tags) {
       const x = await readFile(join(CORE, t, `${t}.tsx`), "utf8").catch(() => null);
       if (c === null || x === null) return null;
       const ctrl = await readFile(join(CONTROLLERS, `${t}.js`), "utf8").catch(() => null);
-      const rendered = renderPort(t, x, rootElementFor(c));
+      const contract = coreContractFor(t);
+      const rendered = renderPort(t, x, rootElementFor(c), { contract });
       const end = rendered.lastIndexOf("</template>");
-      const p = `${rendered.slice(0, end)}  <style>${convertShadowStyles(c, { reflectedAttributes: reflectedPropAttributes(x) })}</style>\n${rendered.slice(end)}`;
-      return { tag: t, port: p, ctrl };
+      const p = `${rendered.slice(0, end)}  <style>${convertShadowStyles(c, {
+        reflectedAttributes: reflectedPropAttributes(x, contract, t),
+        booleanAttributes: reflectedBooleanAttributes(x, contract, t),
+      })}</style>\n${rendered.slice(end)}`;
+      return {
+        tag: t,
+        port: p,
+        ctrl,
+        dependencies: [...new Set([...referencedTags(x), ...contract.dependencies])],
+      };
     };
     const childTags = referencedTags(host.inner).filter((childTag) => childTag !== tag);
     const parts = await discoverPorts([tag, ...childTags], portFor);

@@ -14,7 +14,9 @@ export async function discoverPorts(initialTags, loadPort) {
     const port = await loadPort(tag);
     if (port === null) continue;
     ports.push(port);
-    for (const nested of referencedTags(port.port)) if (!seen.has(nested)) queue.push(nested);
+    for (const nested of [...referencedTags(port.port), ...(port.dependencies ?? [])]) {
+      if (!seen.has(nested)) queue.push(nested);
+    }
   }
   return ports;
 }

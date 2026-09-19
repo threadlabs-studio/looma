@@ -3,7 +3,6 @@ export default function controller(host) {
   const button = element.querySelector("button");
   const apply = () => {
     const disabled = Boolean(host.state.disabled);
-    element.toggleAttribute("data-disabled", disabled);
     button && (button.disabled = disabled);
   };
   const onKeydown = (event) => {

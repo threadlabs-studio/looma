@@ -22,8 +22,10 @@ export default function controller(host) {
     items.forEach((radio, index) => {
       const input = radio.querySelector('input[type="radio"]');
       const checked = (radio.getAttribute("data-value") ?? radio.getAttribute("value") ?? "") === current;
+      radio.checked = checked;
+      radio.name = groupName;
       radio.setAttribute("aria-checked", String(checked));
-      radio.toggleAttribute("data-disabled", disabled);
+      radio.disabled = disabled;
       if (!input) return;
       input.checked = checked;
       input.name = groupName;

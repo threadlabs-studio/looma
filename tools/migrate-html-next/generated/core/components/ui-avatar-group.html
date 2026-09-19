@@ -1,7 +1,7 @@
 <template component="ui-avatar-group" controller="./controllers/ui-avatar-group.js" status="early" summary="Migrated Looma ui-avatar-group component.">
   <defs>
-    <prop name="max" type="number">max token.</prop>
-    <prop name="label" type="string">label token.</prop>
+    <prop name="max" type="number" default="5">max token.</prop>
+    <prop name="label" type="string" default="People">label token.</prop>
     <state name="overflowCount" :value="0"></state>
   </defs>
   <div role="group" :aria-label="label"><slot></slot></div>

@@ -10,7 +10,6 @@ export default function controller(host) {
     const disabled = Boolean(host.state.disabled);
     element.setAttribute("aria-checked", String(checked));
     element.setAttribute("aria-disabled", String(disabled));
-    element.toggleAttribute("data-disabled", disabled);
     element.tabIndex = disabled ? -1 : 0;
     if (!input) return;
     input.checked = checked;

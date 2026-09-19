@@ -3,7 +3,6 @@ export default function controller(host) {
   const button = element.querySelector("button");
   const apply = () => {
     const disabled = Boolean(host.state.disabled);
-    element.toggleAttribute("data-disabled", disabled);
     if (host.state.anticipatory) element.setAttribute("data-ui-affordance", "button");
     else element.removeAttribute("data-ui-affordance");
     if (button) {

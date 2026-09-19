@@ -1,8 +1,8 @@
 <template component="ui-tabs" controller="./controllers/ui-tabs.js" status="early" summary="Migrated Looma ui-tabs component.">
   <defs>
     <prop name="value" type="string">value token.</prop>
-    <prop name="defaultValue" type="string">defaultValue token.</prop>
-    <prop name="orientation" type="string">orientation token.</prop>
+    <prop name="defaultValue" type="string" default="">defaultValue token.</prop>
+    <prop name="orientation" type="string" default="horizontal">orientation token.</prop>
     <state name="internalValue" :value="''"></state>
   </defs>
   <div :data-orientation="orientation"><slot></slot></div>

@@ -7,6 +7,7 @@
   "scripts": {
     "generate": "node generate.mjs",
     "test": "node --test",
+    "validate": "node validate.mjs",
     "harness": "node harness/run.mjs"
   },
   "devDependencies": {

@@ -1,13 +1,13 @@
 <template component="ui-switch" controller="./controllers/ui-switch.js" status="early" summary="Migrated Looma ui-switch component.">
   <defs>
     <prop name="checked" type="boolean">checked token.</prop>
-    <prop name="defaultChecked" type="boolean">defaultChecked token.</prop>
-    <prop name="disabled" type="boolean">disabled token.</prop>
-    <prop name="required" type="boolean">required token.</prop>
-    <prop name="value" type="string">value token.</prop>
+    <prop name="defaultChecked" type="boolean" default="false">defaultChecked token.</prop>
+    <prop name="disabled" type="boolean" default="false">disabled token.</prop>
+    <prop name="required" type="boolean" default="false">required token.</prop>
+    <prop name="value" type="string" default="on">value token.</prop>
     <state name="internalChecked" :value="false"></state>
   </defs>
-  <span role="switch" :data-disabled="disabled"><input type="checkbox" :checked="internalChecked" :required="required" :value="value" aria-hidden="true"); if (isControlled(this.checked)) input.checked = this.internalChecked;></input><slot></slot></span>
+  <span role="switch" :data-disabled="disabled"><input type="checkbox" :checked="internalChecked" :required="required" :value="value" aria-hidden="true"></input><slot></slot></span>
   <style>:scope {
   display: inline-flex;
   align-items: center;

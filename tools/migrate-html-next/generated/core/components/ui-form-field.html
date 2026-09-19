@@ -1,8 +1,8 @@
 <template component="ui-form-field" controller="./controllers/ui-form-field.js" status="early" summary="Migrated Looma ui-form-field component.">
   <defs>
-    <prop name="invalid" type="boolean">invalid token.</prop>
-    <prop name="disabled" type="boolean">disabled token.</prop>
-    <prop name="required" type="boolean">required token.</prop>
+    <prop name="invalid" type="boolean" default="false">invalid token.</prop>
+    <prop name="disabled" type="boolean" default="false">disabled token.</prop>
+    <prop name="required" type="boolean" default="false">required token.</prop>
   </defs>
   <div :data-invalid="invalid" :data-disabled="disabled" :data-required="required"><slot></slot></div>
   <style>:scope {

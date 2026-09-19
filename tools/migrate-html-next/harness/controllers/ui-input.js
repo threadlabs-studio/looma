@@ -19,7 +19,6 @@ export default function controller(host) {
     input.disabled = Boolean(host.state.disabled);
     input.readOnly = Boolean(host.state.readOnly);
     input.setAttribute("aria-invalid", String(Boolean(host.state.invalid)));
-    element.toggleAttribute("data-invalid", Boolean(host.state.invalid));
   };
   const emitValue = (name, event) => {
     if (!input) return;

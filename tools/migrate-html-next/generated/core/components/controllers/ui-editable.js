@@ -13,8 +13,6 @@ export default function controller(host) {
   const apply = () => {
     if (host.state.edit !== undefined) host.state.internalEdit = Boolean(host.state.edit);
     const editing = Boolean(host.state.internalEdit);
-    element.toggleAttribute("data-edit", editing);
-    element.toggleAttribute("data-disabled", Boolean(host.state.disabled));
     const preview = element.querySelector('[part="preview"]');
     const editor = element.querySelector('[part="edit"]');
     if (preview) preview.hidden = editing;
