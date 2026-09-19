@@ -62,24 +62,32 @@ browsable before/after gallery to `harness/gallery/index.html` (gitignored) — 
 The diff is **shift-tolerant** (a pixel matches if any pixel within ±2px matches), so the score
 reflects real visual difference rather than sub-pixel layout jitter or anti-aliasing.
 
-Full-corpus run (23 rendered, 10 skipped): **20 components under 10%**, 1 in 10-25%, 2 at >=25%.
-
-The four non-converging components (avatar-group 15.5%, toast-region 28.3%, search-shell 33.7%, plus the skipped overlays) are controller/composite-driven and are the remaining work. A composite def-injection experiment (rendering nested components) improved some but regressed avatar via stale mount hosts; reverted, pending a clean approach that provides controllers as real modules rather than window globals.
+Full-corpus run (23 rendered, 10 skipped): **21 components under 10%**, 1 in 10-25%
+(avatar-group 11.4%), 1 at >=25% (search-shell 33.7%).
 
 Markup+CSS auto-conversion renders most components faithfully with no per-component tuning. The
-**controller path is proven**: a converted controller (`harness/controllers/`) is wired via
-`observeDocument`/`setControllerModule`/`getComponentHost`, and `ui-avatar` — whose fallback
-initials are computed by its controller — converges from 15.5% to **4.4%** with a hand-converted
-controller. Declaring every `@Prop()` (not only the markup-bound ones) is what lets controller-only
-props reach `host.state`.
+**controller path is proven**: converted controllers (`harness/controllers/`) are imported as real
+ES modules (blob URLs — nothing is stashed on `window`) and wired via
+`observeDocument`/`setControllerModule`/`getComponentHost`. `ui-avatar` — whose fallback initials
+are computed by its controller — converges from 15.5% to **4.4%**. Declaring every `@Prop()` (not
+only the markup-bound ones) is what lets controller-only props reach `host.state`.
+
+**Composite components converge too.** The harness discovers every nested `ui-*` tag in a story,
+injects a port + controller for each, and lets `observeDocument` lower and control every root with
+its own settled host. That dropped `ui-toast-region` from 28.3% to **6.6%** and `ui-avatar-group`
+(nesting five-plus avatars with the overflow "+N" badge) from 15.5% to **11.4%** — the residual is
+anti-aliasing on the heavily-overlapping circle stack; it renders indistinguishably. The after page
+also matches Storybook's 1rem canvas padding so right-aligned content isn't shifted.
+
+The one remaining hard case is `ui-search-shell` (33.7%) — a full overlay shell.
 
 **Skipped:** controller-driven components with no static visible box (dialog, menu, tooltip,
 top-bar), components with no matched story (affordance-scope, context-menu, editable, menu-item,
 tree-item), a non-`render()` method (combobox), and a hidden lowered root (popover).
 
-**Next — automate controller conversion.** The controller path is proven by hand (`ui-avatar`); the
-remaining residuals (avatar-group's overflow, toast-region, search-shell) and the skipped overlays
-(dialog, menu, tooltip, context-menu, top-bar) each need their Stencil controller (`@State`,
-lifecycle, methods) converted to an HTML Next `host`-based controller. Build a converter for that,
-the same way `convert-render.mjs` followed the `ui-button` markup/CSS proof. Then layout/editor
-packages. Converted output stays unmerged until the set passes.
+**Next — automate controller conversion.** The controller path is proven by hand
+(`ui-avatar`, `ui-avatar-group`, `ui-toast-region`); the remaining residual (`ui-search-shell`) and
+the skipped overlays (dialog, menu, tooltip, context-menu, top-bar) each need their Stencil
+controller (`@State`, lifecycle, methods) converted to an HTML Next `host`-based controller. Build a
+converter for that, the same way `convert-render.mjs` followed the `ui-button` markup/CSS proof.
+Then layout/editor packages. Converted output stays unmerged until the set passes.
