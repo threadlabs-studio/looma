@@ -11,6 +11,21 @@ test(":host with and without a condition becomes :scope", () => {
   );
 });
 
+test("Stencil prop selectors follow HTML Next's data-* reflection", () => {
+  const reflectedAttributes = new Map([
+    ["size", "data-size"],
+    ["mobile-only", "data-mobile-only"],
+  ]);
+  assert.equal(
+    convertShadowStyles(":host([size='sm'][mobile-only]) button { width: 2rem; }", { reflectedAttributes }),
+    ":scope[data-size='sm'][data-mobile-only] button { width: 2rem; }",
+  );
+  assert.equal(
+    convertShadowStyles(":host([popover][data-open][aria-disabled='true']) { display: block; }", { reflectedAttributes }),
+    ":scope[popover][data-open][aria-disabled='true'] { display: block; }",
+  );
+});
+
 test(":host with a functional-pseudo condition folds correctly (balanced parens)", () => {
   assert.equal(
     convertShadowStyles(":host(:not([data-open])) { opacity: 1; }"),
