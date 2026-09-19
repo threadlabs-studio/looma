@@ -1,0 +1,37 @@
+<template component="ui-checkbox" controller="./controllers/ui-checkbox.js" status="early" summary="Migrated Looma ui-checkbox component.">
+  <defs>
+    <prop name="checked" type="boolean">checked token.</prop>
+    <prop name="defaultChecked" type="boolean">defaultChecked token.</prop>
+    <prop name="disabled" type="boolean">disabled token.</prop>
+    <prop name="indeterminate" type="boolean">indeterminate token.</prop>
+    <prop name="required" type="boolean">required token.</prop>
+    <prop name="value" type="string">value token.</prop>
+    <state name="internalChecked" :value="false"></state>
+  </defs>
+  <span role="checkbox" :data-disabled="disabled"><slot></slot></span>
+  <style>:scope {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-2);
+  color: var(--ui-text-primary);
+}
+
+:scope[aria-disabled='true'],
+:scope[data-disabled='true'] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+:slotted(input[type='checkbox']) {
+  accent-color: var(--ui-accent-solid);
+  width: 1.125em;
+  height: 1.125em;
+  cursor: pointer;
+}
+
+:slotted(input[type='checkbox']:focus-visible) {
+  outline: 2px solid var(--ui-accent-solid);
+  outline-offset: 2px;
+}
+</style>
+</template>

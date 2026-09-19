@@ -1,0 +1,46 @@
+<link rel="component" href="./ui-menu.html">
+<template component="ui-context-menu" controller="./controllers/ui-context-menu.js" status="early" summary="Migrated Looma ui-context-menu component.">
+  <defs>
+    <prop name="open" type="boolean">open token.</prop>
+    <prop name="defaultOpen" type="boolean">defaultOpen token.</prop>
+    <prop name="for" type="string">for token.</prop>
+    <state name="internalOpen" :value="false"></state>
+    <state name="focusTrigger" :value="'programmatic'"></state>
+  </defs>
+  <span :data-open="internalOpen"><slot name="trigger"></slot><div class="menu" :data-open="internalOpen"><ui-menu><slot></slot></ui-menu></div></span>
+  <style>:scope {
+  display: contents;
+}
+
+:scope[data-focus-trigger='pointer'] :slotted(ui-menu-item:focus) {
+  outline: none;
+}
+
+.menu {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  z-index: var(--ui-z-overlay, 1000);
+  min-width: 12rem;
+  opacity: 0;
+  transform: translateY(-4px) scale(0.99);
+  transition:
+    opacity var(--ui-motion-fast) var(--ui-motion-ease),
+    transform var(--ui-motion-fast) var(--ui-motion-ease),
+    display var(--ui-motion-fast) allow-discrete,
+    overlay var(--ui-motion-fast) allow-discrete;
+}
+
+.menu:popover-open { opacity: 1; transform: translateY(0) scale(1); }
+
+@starting-style {
+  .menu:popover-open { opacity: 0; transform: translateY(-4px) scale(0.99); }
+}
+
+.menu[hidden] { display: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .menu { transition: none; }
+}
+</style>
+</template>

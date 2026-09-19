@@ -5,6 +5,7 @@
   "type": "module",
   "description": "Looma-owned migration of Stencil Shadow-DOM components to HTML Next declarative components.",
   "scripts": {
+    "generate": "node generate.mjs",
     "test": "node --test",
     "harness": "node harness/run.mjs"
   },

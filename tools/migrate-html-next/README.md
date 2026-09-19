@@ -57,6 +57,15 @@ renders the migration to validate it; it does not adopt the migration into the s
 `vendor/html-next-runtime.iife.js` is a prebuilt HTML Next runtime (from `nextwebwg/html-next`);
 re-vendor when that runtime changes.
 
+## Generated core graph
+
+`pnpm --filter @threadlabs/looma-migrate-html-next generate` writes the deterministic candidate
+graph to `generated/core/`: one definition per component, its relative component edges, the
+available controller modules, and a machine-readable manifest. These are migration artifacts, not
+the shipped `@threadlabs/looma` entry point. Keeping them materialized makes the complete graph
+reviewable and gives the adoption build one canonical input instead of regenerating components
+differently from the visual harness.
+
 ## Status
 
 Converter, template generator, and harness are tested (`node --test`) and integrate with the
@@ -82,7 +91,7 @@ without forcing intrinsic-size components to match.
 
 Markup+CSS auto-conversion renders most components faithfully with no per-component tuning. The
 **controller path is proven**: converted controllers (`harness/controllers/`) are imported as real
-ES modules (blob URLs — nothing is stashed on `window`) and wired via
+ES modules from the harness server (nothing is stashed on `window`) and wired via
 `observeDocument`/`setControllerModule`/`getComponentHost`. `ui-avatar`'s fallback initials are
 computed by its controller. Declaring every `@Prop()` (not
 only the markup-bound ones) is what lets controller-only props reach `host.state`.

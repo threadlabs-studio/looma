@@ -7,7 +7,7 @@
 // Tooling only: it renders the migration to validate it, it does not adopt it.
 import { createServer } from "node:http";
 import { readFile, readdir, writeFile, mkdir, rm } from "node:fs/promises";
-import { join, extname, dirname } from "node:path";
+import { join, extname, dirname, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 
@@ -76,8 +76,18 @@ const MIME = { ".html": "text/html", ".js": "text/javascript", ".json": "applica
 const server = createServer(async (req, res) => {
   try {
     const p = decodeURIComponent(req.url.split("?")[0]);
-    const body = await readFile(join(STATIC, p === "/" ? "/index.html" : p));
-    res.writeHead(200, { "content-type": MIME[extname(join(STATIC, p))] ?? "application/octet-stream" });
+    const controllerPrefix = "/__migration_controllers__/";
+    const requested = p.startsWith(controllerPrefix)
+      ? resolve(CONTROLLERS, p.slice(controllerPrefix.length))
+      : join(STATIC, p === "/" ? "/index.html" : p);
+    if (p.startsWith(controllerPrefix) && !requested.startsWith(`${resolve(CONTROLLERS)}${sep}`)) {
+      throw new Error("controller path escapes migration directory");
+    }
+    const body = await readFile(requested);
+    res.writeHead(200, {
+      "content-type": MIME[extname(requested)] ?? "application/octet-stream",
+      ...(p.startsWith(controllerPrefix) ? { "access-control-allow-origin": "*" } : {}),
+    });
     res.end(body);
   } catch { res.writeHead(404); res.end("nf"); }
 });
@@ -212,7 +222,10 @@ for (const tag of tags) {
     };
     const childTags = referencedTags(host.inner).filter((childTag) => childTag !== tag);
     const parts = await discoverPorts([tag, ...childTags], portFor);
-    const ctrls = Object.fromEntries(parts.filter((p) => p.ctrl).map((p) => [p.tag, p.ctrl]));
+    const ctrls = Object.fromEntries(parts.filter((p) => p.ctrl).map((p) => [
+      p.tag,
+      `${base}/__migration_controllers__/${p.tag}.js`,
+    ]));
     const portsHtml = parts.map((p) => p.port).join("\n");
 
     const after = await ctx.newPage();
@@ -230,13 +243,12 @@ for (const tag of tags) {
     await after.setContent(`<!doctype html><html><head><meta charset="utf8"><style>${pageStyles}\nbody{margin:0;padding:1rem}</style></head><body>${portsHtml}<div data-migration-frame style="inline-size:${box.width}px"><${tag} ${host.attrs}>${host.inner}</${tag}></div></body></html>`);
     await after.evaluate(() => document.fonts.ready);
     await after.addScriptTag({ content: RUNTIME });
-    // Import controllers as real ES modules (blob URLs) and wire each by tag — nothing is
+    // Import controllers as real ES modules and wire each by tag — nothing is
     // stashed on window. Always observe, even when this graph has no controller: a lowered parent
     // can generate another component invocation that must be discovered in the next mutation turn.
-    await after.evaluate(async (srcByTag) => {
+    await after.evaluate(async (urlByTag) => {
       const mods = {};
-      for (const [t, src] of Object.entries(srcByTag)) {
-        const url = URL.createObjectURL(new Blob([src], { type: "text/javascript" }));
+      for (const [t, url] of Object.entries(urlByTag)) {
         mods[t] = (await import(url)).default;
       }
       window.HtmlRuntime.observeDocument(document, {
