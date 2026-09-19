@@ -25,6 +25,22 @@ export function extractRenderJsx(tsx) {
   return tsx.slice(start, i - 1).trim();
 }
 
+/** Drop every `name={ … }` attribute whose braces are balanced (ternaries, template literals,
+ *  handlers) — `[^}]*` breaks on nested `${}` in template-literal attributes. */
+function dropExprAttrs(s) {
+  let out = "";
+  let i = 0;
+  for (;;) {
+    const m = /\s+[\w-]+=\{/.exec(s.slice(i));
+    if (m === null) return out + s.slice(i);
+    out += s.slice(i, i + m.index);
+    let j = i + m.index + m[0].length;
+    let depth = 1;
+    for (; j < s.length && depth > 0; j += 1) { if (s[j] === "{") depth += 1; else if (s[j] === "}") depth -= 1; }
+    i = j;
+  }
+}
+
 /** Remove every balanced `{ … }` expression from content (conditionals, mixed text) after
  *  attribute bindings have already been converted, so no dynamic content leaks through. */
 function stripExpressions(s) {
@@ -55,7 +71,7 @@ function translateJsx(jsx, rootEl) {
   out = out.replace(/<style>[\s\S]*?<\/style>/g, "");              // drop the component's dynamic <style>
   out = out.replace(/\s+(on[A-Z]\w*|ref)=\{[^}]*\}/g, "");         // drop event handlers and refs
   out = out.replace(/([\w-]+)=\{this\.(\w+)(?:\s*\|\|\s*undefined)?\}/g, ':$1="$2"'); // clean prop bindings
-  out = out.replace(/\s+[\w-]+=\{[^}]*\}/g, "");                    // drop conditionals/innerHTML attrs
+  out = dropExprAttrs(out);                                        // drop conditional/template-literal/innerHTML attrs
   // pure text binding: <tag ...>{this.prop}</tag> -> <tag ... $value="prop"></tag>
   out = out.replace(/<(\w+)([^>]*)>\s*\{this\.(\w+)\}\s*<\/\1>/g, '<$1$2 $value="$3"></$1>');
   out = stripExpressions(out);                                     // drop any remaining {…} content
