@@ -11,8 +11,10 @@ import { join, extname, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 
+import { convertLightDomStyles } from "../convert-light-dom.mjs";
 import { convertShadowStyles } from "../convert-styles.mjs";
 import { reflectedPropAttributes, renderPort } from "../convert-render.mjs";
+import { rootElementFor } from "../root-element.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const LOOMA = join(HERE, "..", "..", "..");
@@ -40,17 +42,13 @@ function storyFor(tag) {
   return (matches.find((s) => /--(default|info|tag|basic)$/.test(s.id)) ?? matches[0]).id;
 }
 
-// Root element mirrors the shadow :host display: inline* -> span, otherwise div.
-function rootFor(css) {
-  const m = /:host\s*(?:\([^)]*\))?\s*\{[^}]*?\bdisplay:\s*([\w-]+)/.exec(css);
-  const display = m?.[1] ?? "inline-flex";
-  return /^inline/.test(display) || display === "contents" ? "span" : "div";
-}
-
 const tokens = (await Promise.all([
   "packages/tokens/src/tokens.css", "packages/tokens/src/theme-light.css",
-  "packages/layout/src/layout.css", "apps/storybook/.storybook/preview.css",
+  "packages/layout/src/layout.css",
 ].map((f) => readFile(join(LOOMA, f), "utf8").catch(() => "")))).join("\n");
+const compatibility = convertLightDomStyles(await readFile(join(LOOMA, "packages/core/src/styles.css"), "utf8"));
+const previewStyles = await readFile(join(LOOMA, "apps/storybook/.storybook/preview.css"), "utf8");
+const pageStyles = [tokens, compatibility, previewStyles].join("\n");
 
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".json": "application/json", ".css": "text/css", ".map": "application/json" };
 const server = createServer(async (req, res) => {
@@ -103,6 +101,36 @@ async function diff(before, after) {
 const dirs = (await readdir(CORE, { withFileTypes: true })).filter((d) => d.isDirectory()).map((d) => d.name);
 const tags = dirs.filter((t) => (only.length === 0 || only.includes(t)));
 const results = [];
+const debugSnapshot = (node) => {
+  const target = node.shadowRoot?.firstElementChild ?? node.firstElementChild ?? node;
+  const rootStyle = getComputedStyle(node);
+  const rootRect = node.getBoundingClientRect();
+  const style = getComputedStyle(target);
+  const rect = target.getBoundingClientRect();
+  return {
+    html: node.outerHTML,
+    root: {
+      rect: { width: rootRect.width, height: rootRect.height },
+      display: rootStyle.display,
+      inlineSize: rootStyle.inlineSize,
+      maxInlineSize: rootStyle.maxInlineSize,
+      overflow: rootStyle.overflow,
+      padding: rootStyle.padding,
+      border: rootStyle.border,
+    },
+    target: target.outerHTML,
+    rect: { width: rect.width, height: rect.height },
+    style: {
+      display: style.display,
+      boxSizing: style.boxSizing,
+      fontFamily: style.fontFamily,
+      fontSize: style.fontSize,
+      lineHeight: style.lineHeight,
+      padding: style.padding,
+      border: style.border,
+    },
+  };
+};
 for (const tag of tags) {
   try {
     const css = await readFile(join(CORE, tag, `${tag}.css`), "utf8").catch(() => null);
@@ -126,6 +154,9 @@ for (const tag of tags) {
         .map((n) => `${n}="${node.getAttribute(n)}"`).join(" "),
       inner: node.innerHTML.trim(),
     }));
+    if (process.env.MIGRATION_DEBUG) {
+      console.log("before", await el.evaluate(debugSnapshot));
+    }
     await before.close();
 
     // Composite components nest other component tags (e.g. avatar-group nests avatars); each
@@ -136,7 +167,7 @@ for (const tag of tags) {
       const x = await readFile(join(CORE, t, `${t}.tsx`), "utf8").catch(() => null);
       if (c === null || x === null) return null;
       const ctrl = await readFile(join(CONTROLLERS, `${t}.js`), "utf8").catch(() => null);
-      const rendered = renderPort(t, x, rootFor(c));
+      const rendered = renderPort(t, x, rootElementFor(c));
       const end = rendered.lastIndexOf("</template>");
       const p = `${rendered.slice(0, end)}  <style>${convertShadowStyles(c, { reflectedAttributes: reflectedPropAttributes(x) })}</style>\n${rendered.slice(end)}`;
       return { tag: t, port: p, ctrl };
@@ -158,7 +189,7 @@ for (const tag of tags) {
     // Preserve the containing width supplied by the representative story. Block components such
     // as tree rows otherwise expand from their story's constrained column to the full test canvas,
     // measuring a missing parent layout rather than the component migration.
-    await after.setContent(`<!doctype html><html><head><meta charset="utf8"><style>${tokens}\nbody{margin:0;padding:1rem}</style></head><body>${portsHtml}<div data-migration-frame style="inline-size:${box.width}px"><${tag} ${host.attrs}>${host.inner}</${tag}></div></body></html>`);
+    await after.setContent(`<!doctype html><html><head><meta charset="utf8"><style>${pageStyles}\nbody{margin:0;padding:1rem}</style></head><body>${portsHtml}<div data-migration-frame style="inline-size:${box.width}px"><${tag} ${host.attrs}>${host.inner}</${tag}></div></body></html>`);
     await after.addScriptTag({ content: RUNTIME });
     if (Object.keys(ctrls).length > 0) {
       // Import controllers as real ES modules (blob URLs) and wire each by tag — nothing is
@@ -187,7 +218,7 @@ for (const tag of tags) {
     if (runtimeErrors.length > 0) throw new Error(runtimeErrors.join(" | "));
     const target = after.locator(`[data-component-root~="${tag}"]`).first();
     if (await target.count() === 0) { results.push({ tag, note: "did not lower" }); await after.close(); continue; }
-    if (process.env.MIGRATION_DEBUG) console.log(await target.evaluate((element) => element.outerHTML));
+    if (process.env.MIGRATION_DEBUG) console.log("after", await target.evaluate(debugSnapshot));
     const afterBuf = await target.screenshot();
     await after.close();
     const d = await diff(beforeBuf, afterBuf);
