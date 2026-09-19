@@ -1,11 +1,12 @@
-// Visual-convergence harness: render each component two ways and diff, clipped to the component.
+// Visual-convergence harness across the full core-component corpus.
 //   before = the original Stencil Shadow-DOM component from the built Storybook
-//   after  = its HTML Next migration (passthrough port + converted :scope/:slotted CSS) lowered by
-//            the vendored HTML Next runtime
-// Reports per-component overlap pixel-mismatch. Tooling only; it renders the migration, it does not
-// adopt it into the shipped component set.
+//   after  = its HTML Next migration (render-derived port + converted :scope/:slotted CSS) lowered
+//            by the vendored HTML Next runtime
+// Auto-discovers every packages/core component that has a .tsx + .css, matches it to a Storybook
+// story, derives the root element from :host display, and reports per-component overlap mismatch.
+// Tooling only: it renders the migration to validate it, it does not adopt it.
 import { createServer } from "node:http";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { join, extname, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
@@ -16,15 +17,26 @@ import { renderPort } from "../convert-render.mjs";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const LOOMA = join(HERE, "..", "..", "..");
 const STATIC = join(LOOMA, "apps/storybook/storybook-static");
+const CORE = join(LOOMA, "packages/core/src/components");
 const RUNTIME = await readFile(join(HERE, "..", "vendor", "html-next-runtime.iife.js"), "utf8");
+const only = process.argv.slice(2); // optional tag filter
 
-const COMPONENTS = [
-  { tag: "ui-button", story: "forms-button--default", root: "span" },
-  { tag: "ui-badge", story: "display-badge--default", root: "span" },
-  { tag: "ui-chip", story: "display-chip--tag", root: "span" },
-  { tag: "ui-callout", story: "display-callout--info", root: "div" },
-  { tag: "ui-icon-button", story: "forms-icon-button--default", root: "span" },
-];
+// Map each component tag to a representative story id (prefer a "default"/"info"/"tag" story).
+const index = JSON.parse(await readFile(join(STATIC, "index.json"), "utf8"));
+const stories = Object.values(index.entries).filter((s) => s.type === "story");
+function storyFor(tag) {
+  const name = tag.replace(/^ui-/, "");
+  const matches = stories.filter((s) => s.id.includes(`-${name}--`) || s.id.startsWith(`${name}--`));
+  if (matches.length === 0) return undefined;
+  return (matches.find((s) => /--(default|info|tag|basic)$/.test(s.id)) ?? matches[0]).id;
+}
+
+// Root element mirrors the shadow :host display: inline* -> span, otherwise div.
+function rootFor(css) {
+  const m = /:host\s*(?:\([^)]*\))?\s*\{[^}]*?\bdisplay:\s*([\w-]+)/.exec(css);
+  const display = m?.[1] ?? "inline-flex";
+  return /^inline/.test(display) || display === "contents" ? "span" : "div";
+}
 
 const tokens = (await Promise.all([
   "packages/tokens/src/tokens.css", "packages/tokens/src/theme-light.css",
@@ -44,7 +56,7 @@ await new Promise((r) => server.listen(0, r));
 const base = `http://localhost:${server.address().port}`;
 
 const browser = await chromium.launch();
-const ctx = await browser.newContext({ viewport: { width: 900, height: 600 }, deviceScaleFactor: 2 });
+const ctx = await browser.newContext({ viewport: { width: 1000, height: 700 }, deviceScaleFactor: 2 });
 
 async function diff(before, after) {
   const page = await ctx.newPage();
@@ -62,16 +74,25 @@ async function diff(before, after) {
   return r;
 }
 
+const dirs = (await readdir(CORE, { withFileTypes: true })).filter((d) => d.isDirectory()).map((d) => d.name);
+const tags = dirs.filter((t) => (only.length === 0 || only.includes(t)));
 const results = [];
-for (const c of COMPONENTS) {
+for (const tag of tags) {
   try {
-    const shadowCss = await readFile(join(LOOMA, `packages/core/src/components/${c.tag}/${c.tag}.css`), "utf8");
-    // before
+    const css = await readFile(join(CORE, tag, `${tag}.css`), "utf8").catch(() => null);
+    const tsx = await readFile(join(CORE, tag, `${tag}.tsx`), "utf8").catch(() => null);
+    if (css === null || tsx === null) { results.push({ tag, note: "no .tsx/.css" }); continue; }
+    const story = storyFor(tag);
+    if (story === undefined) { results.push({ tag, note: "no story" }); continue; }
+
     const before = await ctx.newPage();
-    await before.goto(`${base}/iframe.html?id=${c.story}&viewMode=story`, { waitUntil: "networkidle" });
-    await before.waitForSelector(`${c.tag}.hydrated, ${c.tag}`);
+    await before.goto(`${base}/iframe.html?id=${story}&viewMode=story`, { waitUntil: "networkidle" });
+    await before.waitForSelector(`${tag}, ${tag}.hydrated`, { timeout: 8000 }).catch(() => {});
     await before.waitForTimeout(400);
-    const el = before.locator(c.tag).first();
+    const el = before.locator(tag).first();
+    if (await el.count() === 0) { results.push({ tag, note: "component not in story" }); await before.close(); continue; }
+    const box = await el.boundingBox();
+    if (box === null || box.width < 1 || box.height < 1) { results.push({ tag, note: "no visible box (controller-driven?)" }); await before.close(); continue; }
     const beforeBuf = await el.screenshot();
     const host = await el.evaluate((node) => ({
       attrs: node.getAttributeNames().filter((n) => !n.startsWith("data-") && !n.startsWith("s-") && n !== "class")
@@ -79,28 +100,32 @@ for (const c of COMPONENTS) {
       inner: node.innerHTML.trim(),
     }));
     await before.close();
-    // after
-    const css = convertShadowStyles(shadowCss);
-    const tsx = await readFile(join(LOOMA, `packages/core/src/components/${c.tag}/${c.tag}.tsx`), "utf8");
-    const port = renderPort(c.tag, tsx, c.root).replace("</template>", `  <style>${css}</style>\n</template>`);
+
+    const port = renderPort(tag, tsx, rootFor(css)).replace("</template>", `  <style>${convertShadowStyles(css)}</style>\n</template>`);
     const after = await ctx.newPage();
-    await after.setContent(`<!doctype html><html><head><meta charset="utf8"><style>${tokens}</style></head><body>${port}<${c.tag} ${host.attrs}>${host.inner}</${c.tag}></body></html>`);
+    await after.setContent(`<!doctype html><html><head><meta charset="utf8"><style>${tokens}</style></head><body>${port}<${tag} ${host.attrs}>${host.inner}</${tag}></body></html>`);
     await after.addScriptTag({ content: RUNTIME });
     await after.evaluate(() => window.HtmlRuntime.lowerDocument());
     await after.waitForTimeout(150);
-    const afterBuf = await after.locator(`[data-component-root~="${c.tag}"]`).first().screenshot();
+    const target = after.locator(`[data-component-root~="${tag}"]`).first();
+    if (await target.count() === 0) { results.push({ tag, note: "did not lower" }); await after.close(); continue; }
+    const afterBuf = await target.screenshot();
     await after.close();
     const d = await diff(beforeBuf, afterBuf);
-    results.push({ tag: c.tag, ...d, pct: +(d.mismatch / d.total * 100).toFixed(1) });
+    results.push({ tag, ...d, pct: +(d.mismatch / d.total * 100).toFixed(1) });
   } catch (error) {
-    results.push({ tag: c.tag, error: String(error.message ?? error).split("\n")[0] });
+    results.push({ tag, note: `ERROR: ${String(error.message ?? error).split("\n")[0].slice(0, 70)}` });
   }
 }
-
 await browser.close();
 server.close();
-console.log("\ncomponent          before      after       overlap-mismatch");
-for (const r of results) {
-  if (r.error) console.log(`${r.tag.padEnd(18)} ERROR: ${r.error}`);
-  else console.log(`${r.tag.padEnd(18)} ${String(r.before).padEnd(11)} ${String(r.after).padEnd(11)} ${r.pct}%`);
-}
+
+const scored = results.filter((r) => r.pct !== undefined).sort((a, b) => a.pct - b.pct);
+const skipped = results.filter((r) => r.pct === undefined);
+console.log(`\n=== convergence (${scored.length} rendered, ${skipped.length} skipped) ===`);
+console.log("component            before      after       mismatch");
+for (const r of scored) console.log(`${r.tag.padEnd(20)} ${String(r.before).padEnd(11)} ${String(r.after).padEnd(11)} ${r.pct}%`);
+const buckets = { "<10%": scored.filter((r) => r.pct < 10).length, "10-25%": scored.filter((r) => r.pct >= 10 && r.pct < 25).length, ">=25%": scored.filter((r) => r.pct >= 25).length };
+console.log(`\nbuckets: <10% = ${buckets["<10%"]},  10-25% = ${buckets["10-25%"]},  >=25% = ${buckets[">=25%"]}`);
+console.log("\n=== skipped ===");
+for (const r of skipped) console.log(`${r.tag.padEnd(20)} ${r.note}`);
