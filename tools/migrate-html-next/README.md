@@ -42,6 +42,11 @@ migrate (event handlers, refs, conditional attributes, icon `innerHTML`). This s
 passthrough case and is what the harness uses; `convert-template.mjs` remains as the simpler
 host-only generator.
 
+`convertLightDomStyles(css)` retargets Looma's shipped compatibility selectors from custom-element
+tags to lowered `[data-component-root]` roots. Storybook applies that host layer alongside shadow
+styles, so carrying it forward is required to compare the same cascade rather than a shadow-only
+approximation.
+
 ## `harness/`
 
 `node harness/run.mjs` renders each component two ways — the original Stencil Shadow-DOM component
@@ -67,7 +72,7 @@ The diff is **shift-tolerant** (a pixel matches if any pixel within ±2px matche
 full union of both screenshots. This filters sub-pixel jitter and anti-aliasing without hiding
 extra width or height in either rendering.
 
-Full-corpus run (26 rendered, 7 skipped): **17 components under 10%**, 5 in 10-25%, and 4 at
+Full-corpus run (26 rendered, 7 skipped): **24 components under 10%**, 1 in 10-25%, and 1 at
 25% or above. The earlier overlap-only calculation understated components whose converted bounds
 were larger than the original; these full-bounds figures are the authoritative baseline.
 
@@ -84,8 +89,8 @@ only the markup-bound ones) is what lets controller-only props reach `host.state
 
 **Composite components converge too.** The harness discovers every nested `ui-*` tag in a story,
 injects a port + controller for each, and lets `observeDocument` lower and control every root with
-its own settled host. That dropped `ui-toast-region` from 28.3% to **8.8%** and `ui-avatar-group`
-(nesting five-plus avatars with the overflow "+N" badge) from 15.5% to **11.4%** — the residual is
+its own settled host. That dropped `ui-toast-region` from 28.3% to **1.2%** and `ui-avatar-group`
+(nesting five-plus avatars with the overflow "+N" badge) from 15.5% to **7.9%** — the residual is
 anti-aliasing on the heavily-overlapping circle stack; it renders indistinguishably. The after page
 also matches Storybook's 1rem canvas padding so right-aligned content isn't shifted.
 
@@ -97,6 +102,10 @@ status and footer regions synchronized.
 `ui-top-bar` also converges at **0%** in its intended mobile viewport. The harness selects that
 representative viewport explicitly, and the ported controller keeps the leading, search, and action
 regions synchronized with their projected content.
+
+Root inference uses only the unconditional `:host` rule, so state rules such as
+`:host(:not([data-open])) { display: none }` cannot incorrectly turn an inline host into a block
+root. With the original inline geometry preserved, `ui-popover` converges at **0.8%**.
 
 Nested `ui-tree-item` is now measured through the representative tree story. The converter lowers
 prop ternaries to declarative `$match`/`$if` branches, its controller synchronizes expanded state,
