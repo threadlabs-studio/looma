@@ -184,6 +184,19 @@ await check("disclosure open and close", async () => {
   assert.equal((await events("open")).at(-1)?.detail.open, true);
 });
 
+await check("avatar group survives nested component lowering", async () => {
+  await mount(`<ui-avatar-group max="2" label="Project team">
+    <ui-avatar name="Maya Chen" fallback="MC"></ui-avatar>
+    <ui-avatar name="Noah Williams" fallback="NW"></ui-avatar>
+    <ui-avatar name="Ari Kim" fallback="AK"></ui-avatar>
+  </ui-avatar-group>`);
+  const group = page.locator('[data-component-root~="ui-avatar-group"]');
+  const avatars = group.locator(':scope > [data-component-root~="ui-avatar"]');
+  assert.equal(await avatars.count(), 3);
+  assert.equal(await avatars.nth(2).isHidden(), true);
+  assert.equal(await group.locator("[data-ui-avatar-group-overflow]").textContent(), "+1");
+});
+
 await check("editable activation and escape", async () => {
   await mount(`<ui-editable><button slot="preview" data-ui-editable-trigger>Preview</button><input slot="edit"></ui-editable>`);
   const root = page.locator('[data-component-root~="ui-editable"]');
