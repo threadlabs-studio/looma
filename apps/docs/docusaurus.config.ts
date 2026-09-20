@@ -14,7 +14,7 @@ const isCandidateRelease = docsReleaseMode === "candidate";
 const config: Config = {
   title: "Looma UI Docs",
   tagline: "SSR-first declarative component contracts",
-  favicon: "img/favicon.ico",
+  favicon: "img/looma-mark.svg",
   url: process.env.LOOMA_DOCS_URL ?? "https://threadlabs-studio.github.io",
   baseUrl: process.env.LOOMA_DOCS_BASE_URL ?? "/looma/",
   headTags: [
@@ -74,6 +74,12 @@ const config: Config = {
     },
     navbar: {
       title: "Looma UI",
+      logo: {
+        alt: "",
+        src: "img/looma-mark.svg",
+        width: 34,
+        height: 34
+      },
       items: [
         {
           to: "/",

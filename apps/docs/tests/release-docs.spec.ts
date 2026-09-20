@@ -81,6 +81,18 @@ test("the install path exposes the facade package and the Candidate boundary", a
   ).toBeVisible();
 });
 
+test("the documentation shell uses the Looma mark", async ({ page }) => {
+  await page.goto("./");
+
+  const logo = page.locator(".navbar__logo img").first();
+  await expect(logo).toBeVisible();
+  await expect(logo).toHaveAttribute("src", "/looma/img/looma-mark.svg");
+  await expect(page.locator('link[rel="icon"]')).toHaveAttribute(
+    "href",
+    "/looma/img/looma-mark.svg"
+  );
+});
+
 test("the context-menu docs expose both visible and pointer action paths", async ({
   page
 }) => {
