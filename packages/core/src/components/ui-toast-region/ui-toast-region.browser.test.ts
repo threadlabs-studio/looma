@@ -15,7 +15,7 @@ describe("ui-toast-region viewport surface (real browser)", () => {
   it("renders notifications in the top layer outside clipping ancestors", async () => {
     document.body.innerHTML = `
       <div style="overflow:hidden;max-height:20px">
-        <ui-toast-region>
+        <ui-toast-region open>
           <div data-ui-toast>Saved draft</div>
         </ui-toast-region>
       </div>

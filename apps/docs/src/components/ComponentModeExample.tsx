@@ -8,23 +8,18 @@ import {
 } from "./FrameworkMode";
 
 type ComponentRecord = (typeof componentApi.components)[number];
-type ExampleValue = string | number | boolean;
-type ExampleAttribute = [name: string, property: string, value: ExampleValue];
 
-const exampleAttributeOverrides: Partial<Record<string, ExampleAttribute[]>> = {
-  "ui-avatar": [["name", "name", "Maya Chen"], ["fallback", "fallback", "MC"]],
-  "ui-combobox": [["label", "label", "Destination"]],
-  "ui-floating-action-button": [["label", "label", "Create page"]],
-  "ui-icon-button": [["label", "label", "More options"]],
-  "ui-radio": [["value", "value", "pro"]],
-  "ui-radio-group": [["name", "name", "plan"], ["value", "value", "pro"]],
-  "ui-tree": [["label", "label", "Project pages"]],
-  "ui-tree-item": [["item-id", "itemId", "roadmap"], ["label", "label", "Roadmap"]]
-};
+export interface ScenarioPropertyAssignment {
+  elementId: string;
+  property: string;
+  variable: string;
+  value: unknown;
+}
 
 const componentByTag = new Map(componentApi.components.map((component) => [component.tag, component]));
+const voidElements = new Set(["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"]);
 
-function titleFromTag(tag: string): string {
+function publicName(tag: string): string {
   return tag
     .replace(/^ui-/, "")
     .split("-")
@@ -32,152 +27,257 @@ function titleFromTag(tag: string): string {
     .join("");
 }
 
-function factoryFromTag(tag: string): string {
-  return `create${tag.split("-").map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join("")}`;
+function tagsIn(markup: string): string[] {
+  return Array.from(new Set(Array.from(markup.matchAll(/<(ui-[a-z0-9-]+)/g), (match) => match[1])));
 }
 
-function exampleAttributes(component: ComponentRecord): ExampleAttribute[] {
-  const overrides = exampleAttributeOverrides[component.tag] ?? [];
-  const overriddenNames = new Set(overrides.map(([name]) => name));
-  const defaults = component.attributes
-    .filter((attribute) => !overriddenNames.has(attribute.name))
-    .flatMap((attribute): Array<[string, string, ExampleValue]> => {
-      const option = "options" in attribute ? attribute.options[0] : undefined;
-      const value = option ?? attribute.default;
-      if (
-        (typeof value !== "string" && typeof value !== "number" && typeof value !== "boolean") ||
-        value === false ||
-        value === ""
-      ) return [];
-      return [[attribute.name, attribute.property, value]];
-    });
-  return [...overrides, ...defaults].slice(0, 2);
-}
+/**
+ * Formats repository-owned scenario fragments for display. This intentionally
+ * is not a general HTML parser: scenarios contain no raw-text elements, and
+ * the void-element set is the only nesting exception they need.
+ */
+function formatMarkup(markup: string): string {
+  const tokens = markup.replace(/>\s*</g, "><").split(/(?=<)|(?<=>)/).map((token) => token.trim()).filter(Boolean);
+  const lines: string[] = [];
+  let depth = 0;
 
-function reactProp(property: string, value: ExampleValue): string {
-  return typeof value === "string"
-    ? ` ${property}=${JSON.stringify(value)}`
-    : ` ${property}={${JSON.stringify(value)}}`;
-}
-
-function vueProp(name: string, value: ExampleValue): string {
-  return typeof value === "string"
-    ? ` ${name}=${JSON.stringify(value)}`
-    : ` :${name}=${JSON.stringify(JSON.stringify(value))}`;
-}
-
-function semanticContent(
-  tag: string,
-  indentation: string,
-  mode: "html" | "vue" | "react" | "svelte"
-): string {
-  if (tag === "ui-avatar") return `${indentation}<span data-ui-avatar-fallback>MC</span>`;
-  if (tag === "ui-avatar-group") return `${indentation}<ui-avatar name="Maya Chen" fallback="MC"><span data-ui-avatar-fallback>MC</span></ui-avatar>\n${indentation}<ui-avatar name="Noah Williams" fallback="NW"><span data-ui-avatar-fallback>NW</span></ui-avatar>`;
-  if (tag === "ui-button") return `${indentation}<button type="button">Button</button>`;
-  if (tag === "ui-checkbox") return `${indentation}<label><input type="checkbox" /> Checkbox</label>`;
-  if (tag === "ui-context-menu") return `${indentation}<button slot="trigger" type="button">Actions</button>\n${indentation}<ui-menu-item value="edit">Edit</ui-menu-item>\n${indentation}<ui-menu-item value="archive">Archive</ui-menu-item>`;
-  if (tag === "ui-dialog") return `${indentation}<dialog><p>Dialog content</p></dialog>`;
-  if (tag === "ui-disclosure") return `${indentation}<button type="button" aria-controls="details">Details</button>\n${indentation}<div id="details">Disclosure content</div>`;
-  if (tag === "ui-editable") return `${indentation}<button slot="preview" type="button" data-ui-editable-trigger>Project name</button>\n${indentation}<input slot="edit" aria-label="Project name" />`;
-  if (tag === "ui-form-field") {
-    const labelFor = mode === "react" ? "htmlFor" : "for";
-    return `${indentation}<label ${labelFor}="email">Email</label>\n${indentation}<input id="email" type="email" />`;
+  for (const token of tokens) {
+    if (token.startsWith("</")) depth = Math.max(0, depth - 1);
+    lines.push(`${"  ".repeat(depth)}${token}`);
+    const openingTag = token.match(/^<([a-z][\w-]*)\b/i)?.[1]?.toLowerCase();
+    if (openingTag && !token.startsWith("</") && !token.endsWith("/>") && !voidElements.has(openingTag)) {
+      depth += 1;
+    }
   }
-  if (tag === "ui-menu") return `${indentation}<ui-menu-item value="edit">Edit</ui-menu-item>\n${indentation}<ui-menu-item value="archive">Archive</ui-menu-item>`;
-  if (tag === "ui-radio") return `${indentation}<label><input type="radio" /> Radio</label>`;
-  if (tag === "ui-radio-group") return `${indentation}<ui-radio value="starter">Starter</ui-radio>\n${indentation}<ui-radio value="pro">Pro</ui-radio>`;
-  if (tag === "ui-input") return `${indentation}<input aria-label="Input" />`;
-  if (tag === "ui-search-result-row") return `${indentation}<span slot="leading" aria-hidden="true">⌘</span>\n${indentation}<span slot="title">Project brief</span>\n${indentation}<span slot="meta">Page</span>`;
-  if (tag === "ui-search-shell") return `${indentation}<button slot="backdrop" type="button" aria-label="Close search"></button>\n${indentation}<div slot="search"><input type="search" aria-label="Search" /></div>\n${indentation}<div slot="body">Search results</div>\n${indentation}<div slot="footer">Enter to open</div>`;
-  if (tag === "ui-select") return `${indentation}<select aria-label="Select"><option>Option</option></select>`;
-  if (tag === "ui-tabs") return `${indentation}<div role="tablist" aria-label="Sections">\n${indentation}  <button role="tab" id="overview-tab" aria-controls="overview-panel">Overview</button>\n${indentation}</div>\n${indentation}<section role="tabpanel" id="overview-panel" aria-labelledby="overview-tab">Overview content</section>`;
-  if (tag === "ui-textarea") return `${indentation}<textarea aria-label="Textarea"></textarea>`;
-  if (tag === "ui-top-bar") return `${indentation}<button slot="leading" type="button" aria-label="Open navigation">☰</button>\n${indentation}<strong>Project Atlas</strong>\n${indentation}<button slot="actions" type="button">Share</button>`;
-  if (tag === "ui-tree") return `${indentation}<ui-tree-item item-id="roadmap" label="Roadmap"><span>Roadmap</span></ui-tree-item>`;
-  if (tag === "ui-tree-item") return `${indentation}<span>Roadmap</span>\n${indentation}<button slot="actions" type="button" aria-label="Page options">•••</button>`;
-  return `${indentation}<span>Component content</span>`;
+
+  return lines.join("\n");
 }
 
-function buildExamples(component: ComponentRecord): FrameworkExamples {
-  const componentName = titleFromTag(component.tag);
-  const factoryName = factoryFromTag(component.tag);
-  const attributes = exampleAttributes(component);
-  const markupAttributes = attributes.map(([name, , value]) => ` ${name}="${String(value)}"`).join("");
-  const vueProps = attributes.map(([name, , value]) => vueProp(name, value)).join("");
-  const reactProps = attributes.map(([, property, value]) => reactProp(property, value)).join("");
-  const objectProps = attributes.map(([, property, value]) => `${property}: ${JSON.stringify(value)}`).join(", ");
-  const htmlPackage = component.package;
-  const vuePackage = component.package.endsWith("/editor")
-    ? "@threadlabs/looma/vue/editor"
-    : "@threadlabs/looma/vue";
+function importPackages(tags: string[]): string[] {
+  return Array.from(new Set(tags.map((tag) => componentByTag.get(tag)?.package).filter((value): value is string => Boolean(value))));
+}
+
+function renameComponents(markup: string): string {
+  return tagsIn(markup).reduce((source, tag) => {
+    const name = publicName(tag);
+    return source.replaceAll(`<${tag}`, `<${name}`).replaceAll(`</${tag}>`, `</${name}>`);
+  }, markup);
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function reactStyle(value: string): string {
+  const entries = value.split(";").map((declaration) => declaration.trim()).filter(Boolean).map((declaration) => {
+    const separator = declaration.indexOf(":");
+    const rawName = declaration.slice(0, separator).trim();
+    const rawValue = declaration.slice(separator + 1).trim();
+    const name = rawName.startsWith("--")
+      ? JSON.stringify(rawName)
+      : rawName.replace(/-([a-z])/g, (_match, letter: string) => letter.toUpperCase());
+    const valueExpression = /^-?\d+(?:\.\d+)?$/.test(rawValue) ? rawValue : JSON.stringify(rawValue);
+    return `${name}: ${valueExpression}`;
+  });
+  return `style={{ ${entries.join(", ")} }}`;
+}
+
+/**
+ * Uses the generated public API as the source of truth for React prop names
+ * and scalar types, keeping adapter snippets aligned with the shipped wrappers.
+ */
+function transformReactComponentAttributes(source: string, record: ComponentRecord): string {
+  const name = publicName(record.tag);
+  return source.replace(new RegExp(`<${record.tag}(?<attributes>[^>]*)>`, "g"), (...args: unknown[]) => {
+    const groups = args.at(-1) as { attributes?: string } | undefined;
+    let attributes = String(groups?.attributes ?? "");
+    for (const attribute of [...record.attributes].sort((a, b) => b.name.length - a.name.length)) {
+      const token = new RegExp(`(^|\\s)${escapeRegExp(attribute.name)}(?=(?:=|\\s|$))`, "g");
+      attributes = attributes.replace(token, `$1${attribute.property}`);
+      const value = new RegExp(`\\b${escapeRegExp(attribute.property)}="([^"]*)"`, "g");
+      attributes = attributes.replace(value, (_attribute, rawValue: string) => {
+        if (attribute.type === "boolean") return `${attribute.property}={${rawValue !== "false"}}`;
+        if (attribute.type === "number") return `${attribute.property}={${rawValue}}`;
+        return `${attribute.property}=${JSON.stringify(rawValue)}`;
+      });
+    }
+    return `<${name}${attributes}>`;
+  }).replaceAll(`</${record.tag}>`, `</${name}>`);
+}
+
+function reactMarkup(markup: string): string {
+  let result = tagsIn(markup).reduce((source, tag) => {
+    const record = componentByTag.get(tag);
+    return record ? transformReactComponentAttributes(source, record) : source;
+  }, markup);
+  result = result
+    .replace(/\bclass=/g, "className=")
+    .replace(/(<label\b[^>]*?)\bfor=/g, "$1htmlFor=")
+    .replace(/\btabindex=/g, "tabIndex=")
+    .replace(/\breadonly=/g, "readOnly=")
+    .replace(/\bstroke-width=/g, "strokeWidth=")
+    .replace(/\bpopovertarget=/g, "popoverTarget=")
+    .replace(/style="([^"]*)"/g, (_match, value: string) => reactStyle(value));
+  return result;
+}
+
+function valueCode(value: unknown, indent = ""): string {
+  return JSON.stringify(value, null, 2).split("\n").map((line, index) =>
+    index === 0 ? line : `${indent}${line}`
+  ).join("\n");
+}
+
+function bindProperties(
+  markup: string,
+  assignments: readonly ScenarioPropertyAssignment[],
+  mode: "vue" | "react" | "svelte"
+): string {
+  return assignments.reduce((source, assignment) => {
+    const syntax = mode === "vue"
+      ? `:${assignment.property}="${assignment.variable}"`
+      : mode === "react"
+        ? `${assignment.property}={${assignment.variable}}`
+        : `${assignment.property}={${assignment.variable}}`;
+    return source.replace(
+      `id="${assignment.elementId}"`,
+      `id="${assignment.elementId}" ${syntax}`
+    );
+  }, markup);
+}
+
+function dialogListenerLines(dialogId: string, indent: string, typed: boolean): string[] {
+  const type = typed ? `<HTMLElement & { open: boolean }>` : "";
+  return [
+    `${indent}const dialog = document.querySelector${type}("#${dialogId}");`,
+    `${indent}const openButton = document.querySelector("[data-dialog-demo]");`,
+    `${indent}const closeButton = dialog?.querySelector("[data-dialog-close]");`,
+    `${indent}const openDialog = () => { if (dialog) dialog.open = true; };`,
+    `${indent}const closeDialog = () => { if (dialog) dialog.open = false; };`,
+    `${indent}openButton?.addEventListener("click", openDialog);`,
+    `${indent}closeButton?.addEventListener("click", closeDialog);`
+  ];
+}
+
+function dialogCleanupLines(indent: string): string[] {
+  return [
+    `${indent}openButton?.removeEventListener("click", openDialog);`,
+    `${indent}closeButton?.removeEventListener("click", closeDialog);`
+  ];
+}
+
+/**
+ * Preserves each scenario's declarative light-DOM contract in every mode.
+ * Framework variants change registration and binding syntax only; they do not
+ * substitute a generic example or invent framework-specific behavior.
+ */
+function buildExamples(
+  markup: string,
+  assignments: readonly ScenarioPropertyAssignment[],
+  dialogId?: string
+): FrameworkExamples {
+  const tags = tagsIn(markup);
+  const packages = importPackages(tags);
+  const htmlImports = packages.map((packageName) => `  import ${JSON.stringify(packageName)};`).join("\n");
+  const vueGroups = new Map<string, string[]>();
+  for (const tag of tags) {
+    const packageName = tag.startsWith("ui-editor-") ? "@threadlabs/looma/vue/editor" : "@threadlabs/looma/vue";
+    vueGroups.set(packageName, [...(vueGroups.get(packageName) ?? []), publicName(tag)]);
+  }
+  const vueImports = Array.from(vueGroups.entries()).map(([packageName, names]) =>
+    `import { ${names.sort().join(", ")} } from ${JSON.stringify(packageName)};`
+  ).join("\n");
+  const names = tags.map(publicName).sort();
+  const declarations = assignments.map((assignment) =>
+    `const ${assignment.variable} = ${valueCode(assignment.value)};`
+  ).join("\n");
+  const htmlAssignments = assignments.map((assignment) =>
+    `document.querySelector("#${assignment.elementId}").${assignment.property} = ${assignment.variable};`
+  ).join("\n");
+  const vue = formatMarkup(bindProperties(renameComponents(markup), assignments, "vue"));
+  const react = formatMarkup(bindProperties(reactMarkup(markup), assignments, "react"));
+  const svelte = formatMarkup(bindProperties(markup, assignments, "svelte"));
+  const html = formatMarkup(markup);
+  const htmlStatements = [declarations, htmlAssignments].filter(Boolean);
+  if (dialogId) htmlStatements.push(dialogListenerLines(dialogId, "", false).join("\n"));
+  const htmlSetup = htmlStatements.length > 0 ? `\n\n${htmlStatements.join("\n")}` : "";
+  const frameworkSetup = assignments.length > 0 ? `${declarations}\n` : "";
+  const vueDialogSetup = dialogId
+    ? [
+        "let removeDialogListeners = () => {};",
+        "onMounted(() => {",
+        ...dialogListenerLines(dialogId, "  ", true),
+        "  removeDialogListeners = () => {",
+        ...dialogCleanupLines("    "),
+        "  };",
+        "});",
+        "onUnmounted(() => removeDialogListeners());"
+      ].join("\n") + "\n"
+    : "";
+  const reactDialogSetup = dialogId
+    ? [
+        "  useEffect(() => {",
+        ...dialogListenerLines(dialogId, "    ", true),
+        "    return () => {",
+        ...dialogCleanupLines("      "),
+        "    };",
+        "  }, []);",
+        ""
+      ].join("\n")
+    : "";
+  const svelteDialogSetup = dialogId
+    ? [
+        "onMount(() => {",
+        ...dialogListenerLines(dialogId, "  ", true),
+        "  return () => {",
+        ...dialogCleanupLines("    "),
+        "  };",
+        "});"
+      ].join("\n") + "\n"
+    : "";
+
   return {
     "html-next": {
       language: "html",
-      code: `<script type="module">
-  import "${htmlPackage}";
-</script>
-
-<${component.tag}${markupAttributes}>
-${semanticContent(component.tag, "  ", "html")}
-</${component.tag}>`
+      code: `<script type="module">\n${htmlImports}${htmlSetup}\n</script>\n\n${html}`
     },
     vue: {
       language: "vue",
-      code: `<script setup lang="ts">
-import { ${componentName} } from "${vuePackage}";
-</script>
-
-<template>
-  <${componentName}${vueProps}>
-${semanticContent(component.tag, "    ", "vue")}
-  </${componentName}>
-</template>`
+      code: `<script setup lang="ts">\n${dialogId ? 'import { onMounted, onUnmounted } from "vue";\n' : ""}${vueImports}\n${frameworkSetup}${vueDialogSetup}</script>\n\n<template>\n${vue.split("\n").map((line) => `  ${line}`).join("\n")}\n</template>`
     },
     react: {
       language: "tsx",
-      code: `import { ${componentName} } from "@threadlabs/looma-react";
-
-export function Example() {
-  return (
-    <${componentName}${reactProps}>
-${semanticContent(component.tag, "      ", "react")}
-    </${componentName}>
-  );
-}`
+      code: `${dialogId ? 'import { useEffect } from "react";\n' : ""}import { ${names.join(", ")} } from "@threadlabs/looma-react";\n\nexport function Example() {\n${frameworkSetup.split("\n").filter(Boolean).map((line) => `  ${line}`).join("\n")}${frameworkSetup ? "\n" : ""}${reactDialogSetup}  return (\n${react.split("\n").map((line) => `    ${line}`).join("\n")}\n  );\n}`
     },
     svelte: {
       language: "svelte",
-      code: `<script lang="ts">
-  import { onMount } from "svelte";
-  import { ${factoryName} } from "@threadlabs/looma-svelte";
-
-  let host: HTMLDivElement;
-  onMount(() => {
-    const children = [...host.childNodes];
-    host.replaceChildren(${factoryName}({${objectProps}${objectProps ? ", " : ""}children }));
-  });
-</script>
-
-<div bind:this={host}>
-${semanticContent(component.tag, "  ", "svelte")}
-</div>`
+      code: `<script lang="ts">\n${dialogId ? '  import { onMount } from "svelte";\n' : ""}${packages.map((packageName) => `  import ${JSON.stringify(packageName)};`).join("\n")}\n${frameworkSetup}${svelteDialogSetup}</script>\n\n${svelte}`
     }
   };
 }
 
-/** Framework-specific scaffold generated from the same public component metadata as the API table. */
-export function ComponentModeExample({ component }: { component: string }): JSX.Element | null {
-  const record = componentByTag.get(component);
-  const examples = useMemo(() => record ? buildExamples(record) : null, [record]);
-  if (!record || !examples) return null;
+/**
+ * Keeps implementation code beside the live result it creates. All four
+ * snippets derive from the scenario markup, so editing an example cannot leave
+ * behind a detached, generic framework sample that demonstrates something else.
+ */
+export function ScenarioModeExample({
+  markup,
+  propertyAssignments = [],
+  dialogId
+}: {
+  markup: string;
+  propertyAssignments?: readonly ScenarioPropertyAssignment[];
+  dialogId?: string;
+}): JSX.Element {
+  const examples = useMemo(
+    () => buildExamples(markup, propertyAssignments, dialogId),
+    [dialogId, markup, propertyAssignments]
+  );
 
   return (
     <div className="looma-component-mode-example">
       <div className="looma-component-mode-example__header">
-        <div>
-          <strong>Use it in your stack</strong>
-          <span>One contract; adapter-specific lifecycle.</span>
-        </div>
+        <strong>Code</strong>
         <FrameworkModeSelector />
       </div>
       <FrameworkModeCode examples={examples} />

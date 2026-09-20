@@ -4,45 +4,5 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 Semantic separator primitive with horizontal and vertical orientations.
 
-## Component Reference
 
 <ComponentExamplesApiTabs component="ui-separator" />
-
-## Attributes
-
-| Name | Type | Default | Notes |
-| --- | --- | --- | --- |
-| `orientation` | `horizontal \| vertical` | `horizontal` | Reflected in `aria-orientation` when role is `separator`. |
-| `role` | `separator \| string` | `separator` | Non-separator role suppresses ARIA orientation reflection. |
-
-## Properties
-
-| Name | Type |
-| --- | --- |
-| `orientation` | `string` |
-
-## Events
-
-No custom events.
-
-## Slots
-
-No slots.
-
-## SSR Markup
-
-```html
-<ui-separator orientation="horizontal"></ui-separator>
-```
-
-## Framework Snippets
-
-```vue
-<script setup lang="ts">
-import { Separator } from "@threadlabs/looma/vue";
-</script>
-
-<template>
-  <Separator orientation="vertical" />
-</template>
-```

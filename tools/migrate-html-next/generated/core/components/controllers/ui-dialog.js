@@ -24,10 +24,10 @@ export default function controller(host) {
     if (!dialog) return;
     if (open) {
       if (!dialog.open) {
-        if (host.state.modal === false) dialog.show();
-        else dialog.showModal();
+        if (host.state.modal) dialog.showModal();
+        else dialog.show();
       }
-      openOverlay({ id: overlayId, modal: host.state.modal !== false, element, dismissible: host.state.dismissible !== false, requestClose });
+      openOverlay({ id: overlayId, modal: Boolean(host.state.modal), element, dismissible: Boolean(host.state.dismissible), requestClose });
     } else {
       if (dialog.open) dialog.close();
       closeOverlay(document, overlayId);

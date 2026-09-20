@@ -6,15 +6,15 @@
  */
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
 import { CalloutTone } from "./components/ui-callout/ui-callout";
+import { MultiComboboxCreate, MultiComboboxItem, MultiComboboxItemChange } from "./field/multi-combobox";
 import { ComboboxChange, ComboboxConfig, ComboboxOption, ComboboxValidationState } from "./field/combobox";
 import { EditableChange } from "./field/editable";
 import { AnchoredPlacement } from "./overlay/positioning";
-import { MultiComboboxCreate, MultiComboboxItem, MultiComboboxItemChange } from "./field/multi-combobox";
 export { CalloutTone } from "./components/ui-callout/ui-callout";
+export { MultiComboboxCreate, MultiComboboxItem, MultiComboboxItemChange } from "./field/multi-combobox";
 export { ComboboxChange, ComboboxConfig, ComboboxOption, ComboboxValidationState } from "./field/combobox";
 export { EditableChange } from "./field/editable";
 export { AnchoredPlacement } from "./overlay/positioning";
-export { MultiComboboxCreate, MultiComboboxItem, MultiComboboxItemChange } from "./field/multi-combobox";
 export namespace Components {
     interface UiAffordanceScope {
         /**
@@ -118,6 +118,8 @@ export namespace Components {
     }
     /**
      * A single editable field with contextual suggestions, optional help and field validation.
+     * With `multiple`, it becomes a multi-value tag field: `value` holds the selected
+     * items, chips render before the cursor, and add/remove/create item events fire.
      */
     interface UiCombobox {
         /**
@@ -162,6 +164,11 @@ export namespace Components {
          */
         "labelVisibility": 'visible' | 'sr-only';
         /**
+          * Render selected values as removable chips before the cursor. `value` becomes the item list.
+          * @default false
+         */
+        "multiple": boolean;
+        /**
           * @default ''
          */
         "name": string;
@@ -186,13 +193,18 @@ export namespace Components {
          */
         "size": 'sm' | 'md';
         /**
+          * Characters that commit the current query and leave the input ready for the next item (multiple only).
+          * @default []
+         */
+        "tokenSeparators": readonly string[];
+        /**
           * Validate for submission. Caller submits only non-pending, non-error output.
          */
         "validate": () => Promise<ComboboxValidationState>;
         /**
-          * Controlled canonical value. Undefined selects uncontrolled mode; null means no selection.
+          * Controlled canonical value. Undefined selects uncontrolled mode; null means no selection. With `multiple`, this is the controlled list of selected items instead.
          */
-        "value"?: string | null;
+        "value"?: string | null | readonly MultiComboboxItem[];
     }
     interface UiContextMenu {
         /**
@@ -216,7 +228,7 @@ export namespace Components {
          */
         "defaultOpen": boolean;
         /**
-          * @default true
+          * @default false
          */
         "dismissible": boolean;
         /**
@@ -224,7 +236,7 @@ export namespace Components {
          */
         "label"?: string;
         /**
-          * @default true
+          * @default false
          */
         "modal": boolean;
         /**
@@ -361,54 +373,6 @@ export namespace Components {
           * @default ''
          */
         "value": string;
-    }
-    /**
-     * A multi-value combobox with removable, customizable selected items.
-     */
-    interface UiMultiCombobox {
-        /**
-          * @default {}
-         */
-        "config": ComboboxConfig;
-        /**
-          * @default ''
-         */
-        "defaultQuery": string;
-        /**
-          * @default false
-         */
-        "disabled": boolean;
-        "focusInput": () => Promise<void>;
-        /**
-          * @default []
-         */
-        "items": readonly MultiComboboxItem[];
-        /**
-          * @default ''
-         */
-        "label": string;
-        /**
-          * @default ''
-         */
-        "name": string;
-        /**
-          * @default ''
-         */
-        "placeholder": string;
-        "query"?: string;
-        /**
-          * @default false
-         */
-        "readOnly": boolean;
-        /**
-          * @default false
-         */
-        "required": boolean;
-        /**
-          * Characters that commit the current query and leave the input ready for the next item.
-          * @default []
-         */
-        "tokenSeparators": readonly string[];
     }
     interface UiPopover {
         /**
@@ -565,7 +529,7 @@ export namespace Components {
     }
     interface UiToastRegion {
         /**
-          * @default true
+          * @default false
          */
         "open": boolean;
     }
@@ -690,10 +654,6 @@ export interface UiEditableCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLUiEditableElement;
 }
-export interface UiMultiComboboxCustomEvent<T> extends CustomEvent<T> {
-    detail: T;
-    target: HTMLUiMultiComboboxElement;
-}
 export interface UiTooltipCustomEvent<T> extends CustomEvent<T> {
     detail: T;
     target: HTMLUiTooltipElement;
@@ -755,15 +715,20 @@ declare global {
     };
     interface HTMLUiComboboxElementEventMap {
         "query-change": { query: string; display: string; trigger: 'keyboard' | 'pointer' | 'programmatic' };
-        "value-change": ComboboxChange;
+        "value-change": ComboboxChange | readonly MultiComboboxItem[];
         "free-entry": ComboboxChange;
         "create-entry": ComboboxChange;
         "dependency-invalidate": ComboboxChange;
         "validation-change": ComboboxValidationState;
         "options-change": readonly ComboboxOption[];
+        "add-item": MultiComboboxItemChange;
+        "remove-item": MultiComboboxItemChange;
+        "create-item": MultiComboboxCreate;
     }
     /**
      * A single editable field with contextual suggestions, optional help and field validation.
+     * With `multiple`, it becomes a multi-value tag field: `value` holds the selected
+     * items, chips render before the cursor, and add/remove/create item events fire.
      */
     interface HTMLUiComboboxElement extends Components.UiCombobox, HTMLStencilElement {
         addEventListener<K extends keyof HTMLUiComboboxElementEventMap>(type: K, listener: (this: HTMLUiComboboxElement, ev: UiComboboxCustomEvent<HTMLUiComboboxElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -852,30 +817,6 @@ declare global {
     var HTMLUiMenuItemElement: {
         prototype: HTMLUiMenuItemElement;
         new (): HTMLUiMenuItemElement;
-    };
-    interface HTMLUiMultiComboboxElementEventMap {
-        "query-change": { query: string; display: string; trigger: 'keyboard' | 'pointer' | 'programmatic' };
-        "add-item": MultiComboboxItemChange;
-        "remove-item": MultiComboboxItemChange;
-        "create-item": MultiComboboxCreate;
-        "options-change": readonly ComboboxOption[];
-    }
-    /**
-     * A multi-value combobox with removable, customizable selected items.
-     */
-    interface HTMLUiMultiComboboxElement extends Components.UiMultiCombobox, HTMLStencilElement {
-        addEventListener<K extends keyof HTMLUiMultiComboboxElementEventMap>(type: K, listener: (this: HTMLUiMultiComboboxElement, ev: UiMultiComboboxCustomEvent<HTMLUiMultiComboboxElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
-        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
-        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
-        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLUiMultiComboboxElementEventMap>(type: K, listener: (this: HTMLUiMultiComboboxElement, ev: UiMultiComboboxCustomEvent<HTMLUiMultiComboboxElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
-        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
-        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
-        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
-    }
-    var HTMLUiMultiComboboxElement: {
-        prototype: HTMLUiMultiComboboxElement;
-        new (): HTMLUiMultiComboboxElement;
     };
     interface HTMLUiPopoverElement extends Components.UiPopover, HTMLStencilElement {
     }
@@ -993,7 +934,6 @@ declare global {
         "ui-input": HTMLUiInputElement;
         "ui-menu": HTMLUiMenuElement;
         "ui-menu-item": HTMLUiMenuItemElement;
-        "ui-multi-combobox": HTMLUiMultiComboboxElement;
         "ui-popover": HTMLUiPopoverElement;
         "ui-radio": HTMLUiRadioElement;
         "ui-radio-group": HTMLUiRadioGroupElement;
@@ -1113,6 +1053,8 @@ declare namespace LocalJSX {
     }
     /**
      * A single editable field with contextual suggestions, optional help and field validation.
+     * With `multiple`, it becomes a multi-value tag field: `value` holds the selected
+     * items, chips render before the cursor, and add/remove/create item events fire.
      */
     interface UiCombobox {
         /**
@@ -1153,10 +1095,23 @@ declare namespace LocalJSX {
          */
         "labelVisibility"?: 'visible' | 'sr-only';
         /**
+          * Render selected values as removable chips before the cursor. `value` becomes the item list.
+          * @default false
+         */
+        "multiple"?: boolean;
+        /**
           * @default ''
          */
         "name"?: string;
+        /**
+          * Multiple mode: a suggestion or exact-match token was committed as a new item.
+         */
+        "onAdd-item"?: (event: UiComboboxCustomEvent<MultiComboboxItemChange>) => void;
         "onCreate-entry"?: (event: UiComboboxCustomEvent<ComboboxChange>) => void;
+        /**
+          * Multiple mode: an unmatched query was submitted for creation.
+         */
+        "onCreate-item"?: (event: UiComboboxCustomEvent<MultiComboboxCreate>) => void;
         "onDependency-invalidate"?: (event: UiComboboxCustomEvent<ComboboxChange>) => void;
         "onFree-entry"?: (event: UiComboboxCustomEvent<ComboboxChange>) => void;
         /**
@@ -1164,8 +1119,15 @@ declare namespace LocalJSX {
          */
         "onOptions-change"?: (event: UiComboboxCustomEvent<readonly ComboboxOption[]>) => void;
         "onQuery-change"?: (event: UiComboboxCustomEvent<{ query: string; display: string; trigger: 'keyboard' | 'pointer' | 'programmatic' }>) => void;
+        /**
+          * Multiple mode: a selected item was removed via chip keyboard controls.
+         */
+        "onRemove-item"?: (event: UiComboboxCustomEvent<MultiComboboxItemChange>) => void;
         "onValidation-change"?: (event: UiComboboxCustomEvent<ComboboxValidationState>) => void;
-        "onValue-change"?: (event: UiComboboxCustomEvent<ComboboxChange>) => void;
+        /**
+          * Single mode: the ComboboxChange. Multiple mode: the full current item list on any change.
+         */
+        "onValue-change"?: (event: UiComboboxCustomEvent<ComboboxChange | readonly MultiComboboxItem[]>) => void;
         /**
           * @default ''
          */
@@ -1187,9 +1149,14 @@ declare namespace LocalJSX {
          */
         "size"?: 'sm' | 'md';
         /**
-          * Controlled canonical value. Undefined selects uncontrolled mode; null means no selection.
+          * Characters that commit the current query and leave the input ready for the next item (multiple only).
+          * @default []
          */
-        "value"?: string | null;
+        "tokenSeparators"?: readonly string[];
+        /**
+          * Controlled canonical value. Undefined selects uncontrolled mode; null means no selection. With `multiple`, this is the controlled list of selected items instead.
+         */
+        "value"?: string | null | readonly MultiComboboxItem[];
     }
     interface UiContextMenu {
         /**
@@ -1213,7 +1180,7 @@ declare namespace LocalJSX {
          */
         "defaultOpen"?: boolean;
         /**
-          * @default true
+          * @default false
          */
         "dismissible"?: boolean;
         /**
@@ -1221,7 +1188,7 @@ declare namespace LocalJSX {
          */
         "label"?: string;
         /**
-          * @default true
+          * @default false
          */
         "modal"?: boolean;
         /**
@@ -1359,58 +1326,6 @@ declare namespace LocalJSX {
           * @default ''
          */
         "value"?: string;
-    }
-    /**
-     * A multi-value combobox with removable, customizable selected items.
-     */
-    interface UiMultiCombobox {
-        /**
-          * @default {}
-         */
-        "config"?: ComboboxConfig;
-        /**
-          * @default ''
-         */
-        "defaultQuery"?: string;
-        /**
-          * @default false
-         */
-        "disabled"?: boolean;
-        /**
-          * @default []
-         */
-        "items"?: readonly MultiComboboxItem[];
-        /**
-          * @default ''
-         */
-        "label"?: string;
-        /**
-          * @default ''
-         */
-        "name"?: string;
-        "onAdd-item"?: (event: UiMultiComboboxCustomEvent<MultiComboboxItemChange>) => void;
-        "onCreate-item"?: (event: UiMultiComboboxCustomEvent<MultiComboboxCreate>) => void;
-        "onOptions-change"?: (event: UiMultiComboboxCustomEvent<readonly ComboboxOption[]>) => void;
-        "onQuery-change"?: (event: UiMultiComboboxCustomEvent<{ query: string; display: string; trigger: 'keyboard' | 'pointer' | 'programmatic' }>) => void;
-        "onRemove-item"?: (event: UiMultiComboboxCustomEvent<MultiComboboxItemChange>) => void;
-        /**
-          * @default ''
-         */
-        "placeholder"?: string;
-        "query"?: string;
-        /**
-          * @default false
-         */
-        "readOnly"?: boolean;
-        /**
-          * @default false
-         */
-        "required"?: boolean;
-        /**
-          * Characters that commit the current query and leave the input ready for the next item.
-          * @default []
-         */
-        "tokenSeparators"?: readonly string[];
     }
     interface UiPopover {
         /**
@@ -1567,7 +1482,7 @@ declare namespace LocalJSX {
     }
     interface UiToastRegion {
         /**
-          * @default true
+          * @default false
          */
         "open"?: boolean;
     }
@@ -1727,8 +1642,9 @@ declare namespace LocalJSX {
         "label": string;
         "placeholder": string;
         "name": string;
-        "value": string | null;
+        "value": string | null | readonly MultiComboboxItem[];
         "defaultValue": string;
+        "multiple": boolean;
         "query": string;
         "defaultQuery": string;
         "disabled": boolean;
@@ -1795,16 +1711,6 @@ declare namespace LocalJSX {
     interface UiMenuItemAttributes {
         "disabled": boolean;
         "value": string;
-    }
-    interface UiMultiComboboxAttributes {
-        "label": string;
-        "placeholder": string;
-        "query": string;
-        "defaultQuery": string;
-        "disabled": boolean;
-        "readOnly": boolean;
-        "required": boolean;
-        "name": string;
     }
     interface UiPopoverAttributes {
         "open": boolean;
@@ -1911,7 +1817,6 @@ declare namespace LocalJSX {
         "ui-input": Omit<UiInput, keyof UiInputAttributes> & { [K in keyof UiInput & keyof UiInputAttributes]?: UiInput[K] } & { [K in keyof UiInput & keyof UiInputAttributes as `attr:${K}`]?: UiInputAttributes[K] } & { [K in keyof UiInput & keyof UiInputAttributes as `prop:${K}`]?: UiInput[K] };
         "ui-menu": Omit<UiMenu, keyof UiMenuAttributes> & { [K in keyof UiMenu & keyof UiMenuAttributes]?: UiMenu[K] } & { [K in keyof UiMenu & keyof UiMenuAttributes as `attr:${K}`]?: UiMenuAttributes[K] } & { [K in keyof UiMenu & keyof UiMenuAttributes as `prop:${K}`]?: UiMenu[K] };
         "ui-menu-item": Omit<UiMenuItem, keyof UiMenuItemAttributes> & { [K in keyof UiMenuItem & keyof UiMenuItemAttributes]?: UiMenuItem[K] } & { [K in keyof UiMenuItem & keyof UiMenuItemAttributes as `attr:${K}`]?: UiMenuItemAttributes[K] } & { [K in keyof UiMenuItem & keyof UiMenuItemAttributes as `prop:${K}`]?: UiMenuItem[K] };
-        "ui-multi-combobox": Omit<UiMultiCombobox, keyof UiMultiComboboxAttributes> & { [K in keyof UiMultiCombobox & keyof UiMultiComboboxAttributes]?: UiMultiCombobox[K] } & { [K in keyof UiMultiCombobox & keyof UiMultiComboboxAttributes as `attr:${K}`]?: UiMultiComboboxAttributes[K] } & { [K in keyof UiMultiCombobox & keyof UiMultiComboboxAttributes as `prop:${K}`]?: UiMultiCombobox[K] };
         "ui-popover": Omit<UiPopover, keyof UiPopoverAttributes> & { [K in keyof UiPopover & keyof UiPopoverAttributes]?: UiPopover[K] } & { [K in keyof UiPopover & keyof UiPopoverAttributes as `attr:${K}`]?: UiPopoverAttributes[K] } & { [K in keyof UiPopover & keyof UiPopoverAttributes as `prop:${K}`]?: UiPopover[K] };
         "ui-radio": Omit<UiRadio, keyof UiRadioAttributes> & { [K in keyof UiRadio & keyof UiRadioAttributes]?: UiRadio[K] } & { [K in keyof UiRadio & keyof UiRadioAttributes as `attr:${K}`]?: UiRadioAttributes[K] } & { [K in keyof UiRadio & keyof UiRadioAttributes as `prop:${K}`]?: UiRadio[K] };
         "ui-radio-group": Omit<UiRadioGroup, keyof UiRadioGroupAttributes> & { [K in keyof UiRadioGroup & keyof UiRadioGroupAttributes]?: UiRadioGroup[K] } & { [K in keyof UiRadioGroup & keyof UiRadioGroupAttributes as `attr:${K}`]?: UiRadioGroupAttributes[K] } & { [K in keyof UiRadioGroup & keyof UiRadioGroupAttributes as `prop:${K}`]?: UiRadioGroup[K] };
@@ -1948,6 +1853,8 @@ declare module "@stencil/core" {
             "ui-chip": LocalJSX.IntrinsicElements["ui-chip"] & JSXBase.HTMLAttributes<HTMLUiChipElement>;
             /**
              * A single editable field with contextual suggestions, optional help and field validation.
+             * With `multiple`, it becomes a multi-value tag field: `value` holds the selected
+             * items, chips render before the cursor, and add/remove/create item events fire.
              */
             "ui-combobox": LocalJSX.IntrinsicElements["ui-combobox"] & JSXBase.HTMLAttributes<HTMLUiComboboxElement>;
             "ui-context-menu": LocalJSX.IntrinsicElements["ui-context-menu"] & JSXBase.HTMLAttributes<HTMLUiContextMenuElement>;
@@ -1963,10 +1870,6 @@ declare module "@stencil/core" {
             "ui-input": LocalJSX.IntrinsicElements["ui-input"] & JSXBase.HTMLAttributes<HTMLUiInputElement>;
             "ui-menu": LocalJSX.IntrinsicElements["ui-menu"] & JSXBase.HTMLAttributes<HTMLUiMenuElement>;
             "ui-menu-item": LocalJSX.IntrinsicElements["ui-menu-item"] & JSXBase.HTMLAttributes<HTMLUiMenuItemElement>;
-            /**
-             * A multi-value combobox with removable, customizable selected items.
-             */
-            "ui-multi-combobox": LocalJSX.IntrinsicElements["ui-multi-combobox"] & JSXBase.HTMLAttributes<HTMLUiMultiComboboxElement>;
             "ui-popover": LocalJSX.IntrinsicElements["ui-popover"] & JSXBase.HTMLAttributes<HTMLUiPopoverElement>;
             "ui-radio": LocalJSX.IntrinsicElements["ui-radio"] & JSXBase.HTMLAttributes<HTMLUiRadioElement>;
             "ui-radio-group": LocalJSX.IntrinsicElements["ui-radio-group"] & JSXBase.HTMLAttributes<HTMLUiRadioGroupElement>;

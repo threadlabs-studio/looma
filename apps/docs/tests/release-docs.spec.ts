@@ -1,6 +1,8 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import axe from "axe-core";
 
+import componentApi from "../../../generated/component-api.json";
+
 const releaseMode = process.env.LOOMA_DOCS_RELEASE_MODE ?? "preview";
 const expectedAnnouncement = releaseMode === "candidate"
   ? "Release 1 Candidate 0.2.5 is available"
@@ -68,6 +70,7 @@ async function computedOpaqueColors(locator: Locator): Promise<{
         alpha
       ];
     };
+    // WCAG compares rendered colors, so composite translucent ancestor layers before measuring.
     const layers: Rgba[] = [];
     for (let node: Element | null = element; node; node = node.parentElement) {
       layers.push(parse(getComputedStyle(node).backgroundColor));
@@ -141,16 +144,18 @@ test("the context-menu docs expose both visible and pointer action paths", async
   page
 }) => {
   await page.goto("components/ui-context-menu", { waitUntil: "domcontentloaded" });
+  await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
 
-  const trigger = page.getByRole("button", { name: "Document actions", exact: true });
-  const target = page.locator("#docs-context-menu-target");
+  const scenario = page.locator("[data-preview-scenario='Target binding']");
+  const trigger = scenario.getByRole("button", { name: "Open menu", exact: true });
+  const target = scenario.locator("#context-menu-target");
 
   await expect(trigger).toBeVisible();
   await expect(target).toBeVisible();
-  await expect(target).toContainText("Right-click this document");
+  await expect(target).toContainText("Right-click this area");
 
   await target.click({ button: "right", position: { x: 24, y: 24 } });
-  await expect(page.getByRole("menuitem", { name: "Rename", exact: true })).toBeVisible();
+  await expect(page.getByRole("menuitem", { name: "First item", exact: true })).toBeVisible();
 });
 
 test("the component catalog exposes the complete library and filters live previews", async ({
@@ -161,7 +166,6 @@ test("the component catalog exposes the complete library and filters live previe
   await expect(page.getByRole("heading", { level: 1, name: "Components" })).toBeVisible();
   await expect(page.locator(".looma-component-card")).toHaveCount(49);
   await expect(page.getByText("Showing 49 components", { exact: true })).toBeVisible();
-
   const sidebar = page.locator(".theme-doc-sidebar-menu");
   await expect(sidebar.getByRole("link", { name: "Button", exact: true })).toBeVisible();
   await expect(sidebar.getByRole("link", { name: "Editor Table Overlay", exact: true })).toBeVisible();
@@ -173,10 +177,47 @@ test("the component catalog exposes the complete library and filters live previe
   await expect(page.locator(".looma-component-card")).toHaveCount(1);
 
   await search.fill("checkbox");
-  const checkbox = page.getByLabel("Product updates");
-  await expect(checkbox).toBeChecked();
-  await checkbox.uncheck();
+  const checkbox = page.getByLabel("Checkbox");
   await expect(checkbox).not.toBeChecked();
+  await checkbox.check();
+  await expect(checkbox).toBeChecked();
+});
+
+test("every component page renders distinct, visible, coded scenarios", async ({ page }) => {
+  for (const component of componentApi.components) {
+    await page.goto(`components/${component.tag}`, { waitUntil: "domcontentloaded" });
+    await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
+    const scenarios = page.locator("[data-preview-scenario]");
+    const scenarioCount = await scenarios.count();
+    expect(
+      scenarioCount,
+      `${component.tag} should render more than one scenario`
+    ).toBeGreaterThanOrEqual(2);
+    const labels = await scenarios.evaluateAll((elements) =>
+      elements.map((element) => element.getAttribute("data-preview-scenario") ?? "")
+    );
+    expect(new Set(labels).size, `${component.tag} should use unique scenario labels`).toBe(labels.length);
+    expect(labels.every(Boolean), `${component.tag} should label every scenario`).toBe(true);
+    expect(
+      await scenarios.locator(".looma-component-mode-example").count(),
+      `${component.tag} should put matching code on every scenario`
+    ).toBe(scenarioCount);
+    expect(
+      await scenarios.locator(".looma-preview-scenario__stage").evaluateAll((stages) =>
+        stages.every((stage) => {
+          const bounds = stage.getBoundingClientRect();
+          return bounds.width > 0 && bounds.height > 0;
+        })
+      ),
+      `${component.tag} scenario stages should have visible geometry`
+    ).toBe(true);
+    expect(
+      await page.locator(`[data-component-root~="${component.tag}"]`).count(),
+      `${component.tag} should lower to its live native root`
+    ).toBeGreaterThan(0);
+    await expect(page.getByRole("heading", { name: "SSR Markup" })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Framework Snippets" })).toHaveCount(0);
+  }
 });
 
 test("component pages supply a live preview when no bespoke example exists", async ({
@@ -187,6 +228,158 @@ test("component pages supply a live preview when no bespoke example exists", asy
   await expect(page.getByRole("heading", { level: 1, name: "Avatar" })).toBeVisible();
   await expect(page.locator(".looma-component-preview")).toBeVisible();
   await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
+});
+
+test("component pages order representative configurations and show the exact code", async ({
+  page
+}) => {
+  await page.goto("components/ui-inline", { waitUntil: "domcontentloaded" });
+
+  await expect(page.locator("[data-preview-scenario]")).toHaveCount(4);
+  expect(await page.locator("[data-preview-scenario]").evaluateAll((elements) =>
+    elements.map((element) => element.getAttribute("data-preview-scenario"))
+  )).toEqual([
+    "Default",
+    `gap="l"`,
+    `align="center" and justify="between"`,
+    `wrap="wrap"`
+  ]);
+  await expect(page.getByRole("heading", { level: 2, name: `wrap="wrap"` })).toBeVisible();
+  await expect(page.locator(`[data-preview-scenario='wrap="wrap"']`)).toContainText(
+    "Archive"
+  );
+  const wrapping = page.locator(`[data-preview-scenario='wrap="wrap"']`);
+  await expect(wrapping.locator(".looma-mode-code")).toContainText("Archive");
+  await expect(wrapping.getByRole("group", { name: "Example framework" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "SSR Markup" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Framework Snippets" })).toHaveCount(0);
+});
+
+test("Examples and API keep configuration demos separate from exhaustive reference", async ({
+  page
+}) => {
+  await page.goto("components/ui-button", { waitUntil: "domcontentloaded" });
+
+  await expect(page.locator(".looma-preview-scenario")).toHaveCount(2);
+  await expect(page.locator(".looma-api")).toHaveCount(0);
+  await page.getByRole("tab", { name: "API" }).click();
+  await expect(page.locator(".looma-preview-scenario")).toHaveCount(0);
+  await expect(page.locator(".looma-api")).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Attributes" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Properties" })).toBeVisible();
+});
+
+test("code panes scroll inside the example and expose readable authored IDs", async ({ page }) => {
+  await page.setViewportSize({ width: 720, height: 900 });
+  await page.goto("components/ui-tooltip", { waitUntil: "domcontentloaded" });
+
+  const code = page.locator(".looma-component-mode-example").first();
+  const pre = code.locator("pre");
+  await expect(code).toBeVisible();
+  await expect(pre).toBeVisible();
+  const sizes = await code.evaluate((element) => {
+    const pre = element.querySelector("pre")!;
+    return {
+      cardRight: element.getBoundingClientRect().right,
+      preRight: pre.getBoundingClientRect().right,
+      preOverflowX: getComputedStyle(pre).overflowX,
+      pageWidth: document.documentElement.clientWidth,
+      pageScrollWidth: document.documentElement.scrollWidth
+    };
+  });
+  expect(sizes.cardRight).toBeLessThanOrEqual(sizes.pageWidth + 1);
+  expect(sizes.preRight).toBeLessThanOrEqual(sizes.cardRight + 1);
+  expect(sizes.preOverflowX).toBe("auto");
+  expect(sizes.pageScrollWidth).toBeLessThanOrEqual(sizes.pageWidth + 1);
+  await expect(code.locator(".looma-mode-code")).toContainText('id="tooltip-trigger"');
+  await expect(code.locator(".looma-mode-code")).not.toContainText("_r_");
+});
+
+test("property-only inputs appear in the copyable framework examples", async ({ page }) => {
+  await page.goto("components/ui-combobox", { waitUntil: "domcontentloaded" });
+  const scenario = page.locator("[data-preview-scenario='Label and options']");
+  const code = scenario.locator(".looma-mode-code");
+  const modes = scenario.getByRole("group", { name: "Example framework" });
+
+  await expect(code).toContainText('document.querySelector("#destination-picker").config');
+  await expect(code).toContainText("North terminal");
+  await modes.getByRole("button", { name: "Vue" }).click();
+  await expect(code).toContainText(':config="comboboxConfig"');
+  await modes.getByRole("button", { name: "React" }).click();
+  await expect(code).toContainText("config={comboboxConfig}");
+  await modes.getByRole("button", { name: "Svelte" }).click();
+  await expect(code).toContainText("config={comboboxConfig}");
+});
+
+test("ui-inline applies its declared spacing, alignment, and distribution values", async ({ page }) => {
+  await page.goto("components/ui-inline", { waitUntil: "domcontentloaded" });
+  await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
+
+  const basicRow = page.locator("[data-preview-scenario='Default'] [data-component-root~='ui-inline']");
+  await expect(basicRow).toBeVisible();
+  await expect(basicRow).toHaveCSS("gap", "12px");
+  await expect(basicRow).toHaveCSS("justify-content", "flex-start");
+
+  const largerSpacing = page.locator(`[data-preview-scenario='gap="l"'] [data-component-root~='ui-inline']`);
+  await expect(largerSpacing).toHaveCSS("gap", "24px");
+
+  const alignment = page.locator(`[data-preview-scenario='align="center" and justify="between"'] [data-component-root~='ui-inline']`);
+  await expect(alignment).toHaveCSS("gap", "16px");
+  await expect(alignment).toHaveCSS("align-items", "center");
+  await expect(alignment).toHaveCSS("justify-content", "space-between");
+
+  const values = await page.evaluate(async () => {
+    const fixture = document.createElement("div");
+    fixture.style.cssText = "position:absolute;visibility:hidden";
+    document.body.append(fixture);
+    for (const gap of ["l", "xl"]) {
+      const inline = document.createElement("ui-inline");
+      inline.setAttribute("gap", gap);
+      inline.setAttribute("align", "end");
+      inline.setAttribute("justify", "center");
+      fixture.append(inline);
+    }
+    // Observation and lowering are asynchronous; two frames include the resulting style pass.
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+    return Array.from(fixture.querySelectorAll<HTMLElement>("[data-component-root~='ui-inline']")).map((inline) => {
+      const style = getComputedStyle(inline);
+      return { gap: style.gap, align: style.alignItems, justify: style.justifyContent };
+    });
+  });
+  expect(values).toEqual([
+    { gap: "24px", align: "flex-end", justify: "center" },
+    { gap: "32px", align: "flex-end", justify: "center" }
+  ]);
+});
+
+test("every dialog scenario opens and closes through the component state contract", async ({ page }) => {
+  await page.goto("components/ui-dialog", { waitUntil: "domcontentloaded" });
+  await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
+
+  const scenarios = page.locator("[data-preview-scenario]");
+  for (let index = 0; index < await scenarios.count(); index += 1) {
+    const scenario = scenarios.nth(index);
+    const trigger = scenario.locator("[data-dialog-demo]");
+    const dialog = scenario.locator("dialog");
+    await trigger.click();
+    await expect(dialog).toHaveAttribute("open", "");
+    const isModal = await dialog.evaluate((element: HTMLDialogElement) => element.matches(":modal"));
+    expect(isModal).toBe(index === 1);
+    await scenario.locator("[data-dialog-close]").click();
+    await expect(dialog).not.toHaveAttribute("open", "");
+  }
+});
+
+test("every combobox scenario receives its structured options", async ({ page }) => {
+  await page.goto("components/ui-combobox", { waitUntil: "domcontentloaded" });
+  await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
+
+  const comboboxes = page.locator("[data-component-root~='ui-combobox']");
+  await expect(comboboxes).toHaveCount(2);
+  expect(await comboboxes.evaluateAll((elements) => elements.map((element) => {
+    const config = (element as HTMLElement & { config?: { options?: unknown[] } }).config;
+    return config?.options?.length ?? 0;
+  }))).toEqual([2, 2]);
 });
 
 test("the desktop hero stays inside the content column", async ({ page }) => {
@@ -233,27 +426,24 @@ test("framework mode defaults to HTML Next and follows the reader between pages"
 
 test("framework examples preserve typed inputs and authored semantics", async ({ page }) => {
   await page.goto("components/ui-affordance-scope", { waitUntil: "domcontentloaded" });
-  const modeGroup = page.getByRole("group", { name: "Example framework" }).first();
-  const modeCode = page.locator(".looma-component-mode-example .looma-mode-code");
+  const configured = page.locator(`[data-preview-scenario='near-radius="8"']`);
+  const modeGroup = configured.getByRole("group", { name: "Example framework" });
+  const modeCode = configured.locator(".looma-mode-code");
 
   await modeGroup.getByRole("button", { name: "Vue" }).click();
-  await expect(modeCode).toContainText(':near-radius="16"');
+  await expect(modeCode).toContainText('near-radius="8"');
   await modeGroup.getByRole("button", { name: "React" }).click();
-  await expect(modeCode).toContainText("nearRadius={16}");
+  await expect(modeCode).toContainText("nearRadius={8}");
   await modeGroup.getByRole("button", { name: "Svelte" }).click();
-  await expect(modeCode).toContainText("nearRadius: 16");
+  await expect(modeCode).toContainText('near-radius="8"');
 
   await page.goto("components/ui-menu", { waitUntil: "domcontentloaded" });
-  await expect(page.locator(".looma-component-mode-example .looma-mode-code")).toContainText(
-    '<ui-menu-item value="edit">Edit</ui-menu-item>'
-  );
+  await expect(page.locator(".looma-component-mode-example .looma-mode-code").first()).toContainText("First item");
 
   await page.getByRole("group", { name: "Example framework" }).first()
     .getByRole("button", { name: "Svelte" }).click();
   await page.goto("components/ui-button", { waitUntil: "domcontentloaded" });
-  await expect(page.locator(".looma-component-mode-example .looma-mode-code")).toContainText(
-    '<button type="button">Button</button>'
-  );
+  await expect(page.locator(".looma-component-mode-example .looma-mode-code").first()).toContainText("Button");
 });
 
 test("an invalid saved framework mode falls back to HTML Next", async ({ page }) => {
@@ -280,9 +470,7 @@ test("dark mode tab labels meet WCAG AA text contrast", async ({ page }) => {
     expect(contrastRatio(colors.foreground, colors.background)).toBeGreaterThanOrEqual(4.5);
   }
 
-  const ghostButtonColors = await computedOpaqueColors(
-    page.getByRole("button", { name: "Ghost" })
-  );
+  const ghostButtonColors = await computedOpaqueColors(page.getByRole("button", { name: "Ghost" }));
   expect(
     contrastRatio(ghostButtonColors.foreground, ghostButtonColors.background)
   ).toBeGreaterThanOrEqual(4.5);

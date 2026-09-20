@@ -4,57 +4,5 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 Responsive auto-fit grid primitive.
 
-## Component Reference
 
 <ComponentExamplesApiTabs component="ui-grid" />
-
-## Attributes
-
-| Name | Type | Default | Notes |
-| --- | --- | --- | --- |
-| `gap` | `xs \| s \| m \| l \| string` | `m` | Grid gutter size. |
-| `min` | `sm \| md \| lg \| string` | `md` | Minimum column width token. |
-
-The minimum is bounded by the grid's own available width. A narrow parent
-therefore produces one fluid column without horizontal overflow.
-
-## Properties
-
-| Name | Type |
-| --- | --- |
-| `gap` | `string` |
-| `min` | `string` |
-
-## Events
-
-No custom events.
-
-## Slots
-
-Default slot only.
-
-## SSR Markup
-
-```html
-<ui-grid gap="m" min="md">
-  <article>Card A</article>
-  <article>Card B</article>
-  <article>Card C</article>
-</ui-grid>
-```
-
-## Framework Snippets
-
-```vue
-<script setup lang="ts">
-import { Grid } from "@threadlabs/looma/vue";
-</script>
-
-<template>
-  <Grid gap="m" min="md">
-    <article>Card A</article>
-    <article>Card B</article>
-    <article>Card C</article>
-  </Grid>
-</template>
-```

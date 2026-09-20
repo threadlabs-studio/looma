@@ -25,6 +25,30 @@ const EVENT_DETAIL_DOCS = {
   dismiss: "Emitted when a toast item is dismissed from its region.",
 };
 
+/**
+ * Keeps HTML boolean attributes opt-in. A default-true exception is possible,
+ * but it must carry a concrete UX justification in the framework-neutral
+ * contract so reviewers and every generated target see the same decision.
+ */
+export function validateBooleanDefaultPolicy(groups = CONTRACT_GROUPS) {
+  const violations = [];
+  for (const { contracts } of groups) {
+    for (const [tag, contract] of Object.entries(contracts)) {
+      for (const [name, declaration] of Object.entries(contract.props ?? {})) {
+        if (declaration.type !== "boolean" || declaration.default !== true) continue;
+        if (typeof declaration.defaultTrueReason !== "string" || declaration.defaultTrueReason.trim() === "") {
+          violations.push(`${tag}.${name}`);
+        }
+      }
+    }
+  }
+  if (violations.length > 0) {
+    throw new Error(
+      `Boolean props must default to false unless defaultTrueReason documents a strong UX exception: ${violations.join(", ")}`,
+    );
+  }
+}
+
 function duplicates(values) {
   const seen = new Set();
   const duplicateValues = new Set();
@@ -294,6 +318,7 @@ function contractMetadata(tag, packageName, contract, description) {
 }
 
 export async function generateComponentApiMetadata() {
+  validateBooleanDefaultPolicy();
   const descriptions = await readComponentDocDescriptions();
   const components = CONTRACT_GROUPS.flatMap(({ packageName, contracts }) =>
     Object.entries(contracts).map(([tag, contract]) =>

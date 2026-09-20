@@ -14,8 +14,8 @@ export class UIDialog {
   /** Controlled open state. Omit it to use defaultOpen and local interaction state. */
   @Prop() open?: boolean;
   @Prop({ attribute: 'default-open' }) defaultOpen = false;
-  @Prop() modal = true;
-  @Prop() dismissible = true;
+  @Prop() modal = false;
+  @Prop() dismissible = false;
   /** Accessible name forwarded to the native dialog surface. */
   @Prop() label?: string;
 
@@ -44,7 +44,8 @@ export class UIDialog {
   syncOpen() {
     if (this.dialogRef) {
       if (this.internalOpen) {
-        this.dialogRef.showModal();
+        if (this.modal) this.dialogRef.showModal();
+        else this.dialogRef.show();
         openOverlay({
           id: this.overlayId,
           modal: this.modal,

@@ -5,28 +5,5 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 Anticipatory table controls for exact-boundary insertion, row and column
 selection, and active-cell actions.
 
-## Component Reference
 
 <ComponentExamplesApiTabs component="ui-editor-table-overlay" />
-
-## Runtime Contract
-
-`LoomaEditor` measures the rendered table and supplies a typed `geometry`
-property, so controls follow non-uniform sizes and merged cells. It maps overlay
-intent to the Looma table extension commands. Advanced consumers using the
-primitive directly receive `looma-editor-table-overlay-action` for insertion,
-row or column selection, and the active-cell menu.
-
-The interaction progresses from a persistent guide, through overlapping
-near-pointer disclosure, to a direct-hover line, handle, cursor, and tooltip.
-Keyboard focus exposes the same direct state. Touch integrations use the visible
-single table toolbar because hover does not exist. The overlay is client-generated
-enhancement UI and has no no-JS fallback; table content remains independent of it.
-
-Row and column insertion remains available from the visible table toolbar on
-touch devices. Pointer users also get boundary controls; native Tiptap column
-resize handles keep drag resizing available between columns.
-
-On narrow screens, tables retain minimum-width cells inside a horizontal scroll
-wrapper. The hover overlay stays off because touch has no hover state; equivalent
-row and column actions remain available from the single mobile table dock.

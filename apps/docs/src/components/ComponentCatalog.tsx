@@ -146,7 +146,10 @@ export function ComponentCatalog(): JSX.Element {
       {filteredComponents.length > 0 ? (
         <div className="looma-catalog__grid">
           {filteredComponents.map((component) => (
-            <article className={`looma-component-card looma-component-card--${component.category.toLowerCase()}`} key={component.tag}>
+            <article
+              className={`looma-component-card looma-component-card--${component.category.toLowerCase()}`}
+              key={component.tag}
+            >
               <CatalogPreview component={component.tag} />
               <div className="looma-component-card__body">
                 <div className="looma-component-card__meta">

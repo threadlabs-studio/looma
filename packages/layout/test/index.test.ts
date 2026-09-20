@@ -119,6 +119,7 @@ describe("@threadlabs/looma-layout primitives", () => {
   });
 });
 
+// jsdom cannot resolve cascade layers or intrinsic layout, so these assert the shipped CSS contract directly.
 describe("@threadlabs/looma-layout css policy", () => {
   it("preserves component-layer display declarations through the light-DOM reset", () => {
     const css = readFileSync("src/layout.css", "utf8");
@@ -143,6 +144,22 @@ describe("@threadlabs/looma-layout css policy", () => {
     expect(css).toMatch(/ui-sidebar\[side="end"\]\s*>\s*:\s*last-child/);
     expect(css).toMatch(/ui-reel\s*{[\s\S]*?overflow-x:\s*auto;/);
     expect(css).toMatch(/ui-reel\[snap="start"\]\s*>\s*\*/);
+  });
+
+  it("maps every declared inline and cluster alignment, distribution, and gap value", () => {
+    const css = readFileSync("src/layout.css", "utf8");
+
+    for (const component of ["ui-inline", "ui-cluster"]) {
+      for (const gap of ["xs", "s", "m", "l", "xl"]) {
+        expect(css).toContain(`${component}[gap="${gap}"]`);
+      }
+      for (const align of ["start", "center", "end", "stretch"]) {
+        expect(css).toContain(`${component}[align="${align}"]`);
+      }
+      for (const justify of ["start", "center", "end", "between"]) {
+        expect(css).toContain(`${component}[justify="${justify}"]`);
+      }
+    }
   });
 
   it("does not introduce external margins for spacing", () => {

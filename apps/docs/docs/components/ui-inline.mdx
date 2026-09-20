@@ -4,58 +4,5 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 Inline layout primitive for row-style content with wrapping support.
 
-## Component Reference
 
 <ComponentExamplesApiTabs component="ui-inline" />
-
-## Attributes
-
-| Name | Type | Default | Notes |
-| --- | --- | --- | --- |
-| `gap` | `xs \| s \| m \| string` | `s` | Spacing between items. |
-| `align` | `start \| center \| end \| stretch` | `center` | Cross-axis alignment. |
-| `justify` | `start \| center \| end \| between` | `start` | Main-axis distribution. |
-| `wrap` | `wrap \| nowrap` | `wrap` | Row wrapping behavior. |
-
-## Properties
-
-| Name | Type |
-| --- | --- |
-| `gap` | `string` |
-| `align` | `string` |
-| `justify` | `string` |
-| `wrap` | `string` |
-
-## Events
-
-No custom events.
-
-## Slots
-
-Default slot only (natural children).
-
-## SSR Markup
-
-```html
-<ui-inline gap="s" wrap="wrap">
-  <button type="button">Edit</button>
-  <button type="button">Share</button>
-  <button type="button">Archive</button>
-</ui-inline>
-```
-
-## Framework Snippets
-
-```vue
-<script setup lang="ts">
-import { Inline } from "@threadlabs/looma/vue";
-</script>
-
-<template>
-  <Inline gap="s" wrap="wrap">
-    <button type="button">Edit</button>
-    <button type="button">Share</button>
-    <button type="button">Archive</button>
-  </Inline>
-</template>
-```

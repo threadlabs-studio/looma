@@ -5,6 +5,7 @@ import {
   declarativeTypeToTypeScript,
   generateComponentApiMetadata,
   readRepositoryProjectionTags,
+  validateBooleanDefaultPolicy,
   validateComponentProjections
 } from "./component-api-generator.mjs";
 
@@ -64,6 +65,25 @@ test("rejects duplicate projections instead of silently de-duplicating them", ()
 
 test("accepts a complete classified projection", () => {
   assert.doesNotThrow(() => validateComponentProjections(completeFixture));
+});
+
+test("requires a UX justification for every default-true boolean", () => {
+  const component = (declaration) => ({
+    props: { enabled: declaration }
+  });
+  assert.throws(
+    () => validateBooleanDefaultPolicy([{ contracts: {
+      "ui-example": component({ type: "boolean", default: true })
+    } }]),
+    /ui-example\.enabled/
+  );
+  assert.doesNotThrow(() => validateBooleanDefaultPolicy([{ contracts: {
+    "ui-example": component({
+      type: "boolean",
+      default: true,
+      defaultTrueReason: "The component's primary editing surface must be interactive by default."
+    })
+  } }]));
 });
 
 test("discovers projections from their authoritative shared sources", async () => {

@@ -1,3 +1,4 @@
+/** Inputs accepted by generated DOM factories before lifecycle attachment. */
 export interface VanillaComponentOptions {
   readonly attributes?: Readonly<Record<string, string | number | boolean | null | undefined>>;
   readonly children?: readonly Node[];

@@ -1,6 +1,6 @@
 <template component="ui-toast-region" controller="./controllers/ui-toast-region.js" status="early" summary="Migrated Looma ui-toast-region component.">
   <defs>
-    <prop name="open" type="boolean" default="true">open token.</prop>
+    <prop name="open" type="boolean" default="false">open token.</prop>
     <state name="internalOpen" :value="false"></state>
     <event name="close" type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"></event>
     <event name="dismiss" type="object({ id: string, reason: action, trigger: keyboard | pointer | programmatic })"></event>

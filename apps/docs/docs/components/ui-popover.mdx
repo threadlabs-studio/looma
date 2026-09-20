@@ -4,56 +4,5 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 Non-modal overlay primitive with shared open/close overlay lifecycle.
 
-## Component Reference
 
 <ComponentExamplesApiTabs component="ui-popover" />
-
-## Attributes
-
-| Name | Type | Default |
-| --- | --- | --- |
-| `open` | `boolean` | `false` |
-| `default-open` | `boolean` | `false` |
-
-## Properties
-
-| Name | Type |
-| --- | --- |
-| `open` | `boolean` |
-| `defaultOpen` | `boolean` |
-
-## Events
-
-| Name | Detail |
-| --- | --- |
-| `open` | `{ open: true, reason, trigger }` |
-| `close` | `{ open: false, reason, trigger }` |
-
-## Slots
-
-Default slot only.
-
-## SSR Markup
-
-```html
-<button type="button" popovertarget="help-popover">Help</button>
-<ui-popover id="help-popover" popover="manual">
-  Keyboard shortcuts and tips.
-</ui-popover>
-```
-
-## Framework Snippets
-
-```vue
-<script setup lang="ts">
-import { Popover } from "@threadlabs/looma/vue";
-
-function onOpen(detail: unknown) {
-  console.log(detail);
-}
-</script>
-
-<template>
-  <Popover @open="onOpen">Help content</Popover>
-</template>
-```

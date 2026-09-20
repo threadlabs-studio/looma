@@ -110,9 +110,11 @@ test("dialog controller infers its label and opens the native dialog", () => {
     disconnect() {}
   };
   let listener;
+  let presentation;
   const dialog = {
     open: false,
-    showModal() { this.open = true; },
+    show() { presentation = "nonmodal"; this.open = true; },
+    showModal() { presentation = "modal"; this.open = true; },
     close() { this.open = false; },
     setAttribute() {},
     addEventListener(_name, next) { listener = next; },
@@ -125,10 +127,18 @@ test("dialog controller infers its label and opens the native dialog", () => {
     querySelector(selector) { return selector === "dialog" ? dialog : heading; },
   };
   try {
-    const state = { open: true, defaultOpen: false, internalOpen: false, accessibleLabel: "" };
+    const state = {
+      open: true,
+      defaultOpen: false,
+      modal: false,
+      dismissible: false,
+      internalOpen: false,
+      accessibleLabel: ""
+    };
     const cleanup = dialogController(host(element, state));
     assert.equal(state.accessibleLabel, "Delete page");
     assert.equal(dialog.open, true);
+    assert.equal(presentation, "nonmodal");
     assert.equal(typeof listener, "function");
     cleanup();
   } finally {
