@@ -63,9 +63,12 @@ from the built Storybook (`before`) and its HTML Next migration lowered by the v
 renders the migration to validate it; it does not adopt the migration into the shipped components.
 After adoption, point `LOOMA_LEGACY_STORYBOOK_STATIC` at a Storybook build from the migration base
 revision so the `before` side remains the retained legacy fixture rather than the migrated package.
+`node harness/editor.mjs` uses the same retained-source approach for editor components; set
+`LOOMA_LEGACY_ROOT` to the migration-base checkout after adoption. A missing legacy registration
+fails with an actionable error instead of waiting indefinitely.
 
 `vendor/html-next-runtime.iife.js` and `vendor/html-next-generated-runtime.js` are prebuilt from
-`nextwebwg/html-next` commit `96ad04e`. Re-vendor both, run the official CLI build for all 49
+`nextwebwg/html-next` commit `9b575e7`. Re-vendor both, run the official CLI build for all 49
 definitions, and rerun `materialize-adoption.mjs` whenever that upstream runtime/compiler changes.
 
 ## Generated component graph
@@ -127,8 +130,8 @@ source adapter does not leak Stencil runtime concepts into those modules.
 **Composite components converge too.** The harness discovers every nested `ui-*` tag in a story,
 then follows component tags emitted by generated templates to load the complete transitive port
 graph. `observeDocument` lowers and controls every root with its own settled host, including roots
-created in later mutation turns. That dropped `ui-toast-region` from 28.3% to **0%** and `ui-avatar-group`
-(nesting five-plus avatars with the overflow "+N" badge) from 15.5% to **7.9%** — the residual is
+created in later mutation turns. That dropped `ui-toast-region` from 28.3% to **0.6%** and `ui-avatar-group`
+(nesting five-plus avatars with the overflow "+N" badge) from 15.5% to **7.8%** — the residual is
 anti-aliasing on the heavily-overlapping circle stack; it renders indistinguishably. The after page
 also matches Storybook's 1rem canvas padding so right-aligned content isn't shifted.
 
@@ -151,7 +154,7 @@ root. With the original inline geometry preserved, `ui-popover` converges at **0
 Nested `ui-tree-item` is now measured through the representative tree story. The converter lowers
 prop ternaries to declarative `$match`/`$if` branches, its controller synchronizes expanded state,
 and reflected-prop selectors target HTML Next's `data-*` attributes. `ui-tree` now converges at
-**1.7%** and standalone `ui-tree-item` at **1.9%**. Explicit story mappings cover components whose
+**2.4%** and standalone `ui-tree-item` at **2.9%**. Explicit story mappings cover components whose
 Storybook taxonomy does not match their tag spelling.
 
 `ui-combobox` is also measurable now. The converter accepts its unparenthesized JSX return,

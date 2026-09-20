@@ -36,6 +36,15 @@ describe("shipped declarative component graph", () => {
     expect(root.isConnected).toBe(true);
   });
 
+  it("uses canonical declarative attribute names instead of legacy source aliases", async () => {
+    document.body.innerHTML = '<ui-input read-only><input type="text"></ui-input>';
+    await settle();
+
+    const root = document.querySelector<HTMLElement>('[data-component-root="ui-input"]');
+    expect(root?.dataset.readOnly).toBe("true");
+    expect(root?.querySelector<HTMLInputElement>("input")?.readOnly).toBe(true);
+  });
+
   it("attaches controllers, structured props, and public methods to lowered roots", async () => {
     const onChange = vi.fn();
     const checkbox = document.createElement("ui-checkbox");

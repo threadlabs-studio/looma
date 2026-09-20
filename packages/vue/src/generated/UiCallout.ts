@@ -31,7 +31,7 @@ let detach: undefined | (() => void);
 onMounted(() => {
   if (root.value == null) return;
   detach = manageGeneratedProps(root.value, [
-    { name: "tone", attribute: "data-tone", value: props.tone, type: "string", required: false },
+    { name: "tone", attribute: "data-tone", value: props.tone, type: ["info","note","warning","success","error"], required: false },
   ]);
 });
 watchEffect(() => {

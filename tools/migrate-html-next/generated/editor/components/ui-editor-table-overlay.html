@@ -7,7 +7,7 @@
     <prop name="columnBoundaries" type="string | list(number)">columnBoundaries value.</prop>
     <prop name="activeCell" type="string | list(number)">activeCell value.</prop>
     <prop name="hoveredCell" type="string | list(number)">hoveredCell value.</prop>
-    <prop name="geometry" type="unknown">geometry value.</prop>
+    <prop name="geometry" type="object({ rowBoundaries: list(number), columnBoundaries: list(number), activeCell: object({ left: number, top: number, width: number, height: number, rowIndex: integer, columnIndex: integer }) | null, hoveredCell?: object({ left: number, top: number, width: number, height: number, rowIndex: integer, columnIndex: integer }) | null }) | null">geometry value.</prop>
     <event name="looma-editor-table-overlay-action" type="object({ action: string, boundaryIndex?: integer, rowIndex?: integer, columnIndex?: integer, anchor?: object({ left: number, top: number, right: number, bottom: number }) })"></event>
   </defs>
   <div .geometry="geometry"></div>

@@ -19,7 +19,7 @@ export default /*@__PURE__*/_defineComponent({
 
 
 const props = __props;
-const definition = {...{"contract":{"tag":"ui-reel","props":{"gap":{"type":{"enum":["xs","s","m","l","xl"]},"required":false},"itemWidth":{"type":{"enum":["sm","md","lg"]},"required":false},"snap":{"type":{"enum":["start","center"]},"required":false}}},"template":{"kind":"element","name":"div","attributes":[],"children":[{"kind":"slot"}]},"declarations":[],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
+const definition = {...{"contract":{"tag":"ui-reel","props":{"gap":{"type":{"enum":["xs","s","m","l","xl"]},"required":false,"target":{"attribute":"gap"}},"itemWidth":{"type":{"enum":["sm","md","lg"]},"required":false,"target":{"attribute":"itemwidth"}},"snap":{"type":{"enum":["start","center"]},"required":false,"target":{"attribute":"snap"}}}},"template":{"kind":"element","name":"div","attributes":[],"children":[{"kind":"slot"}]},"declarations":[],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
 const root = ref<Element>();
 let detach: undefined | (() => void);
 onMounted(() => {

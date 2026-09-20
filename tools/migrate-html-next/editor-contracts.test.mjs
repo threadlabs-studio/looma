@@ -6,8 +6,10 @@ import { editorContracts } from "./editor-contracts.mjs";
 test("editor contracts cover the seven published UI surfaces", () => {
   assert.equal(Object.keys(editorContracts).length, 7);
   assert.deepEqual(editorContracts["ui-editor-toolbar"].slots, ["default"]);
-  assert.equal(editorContracts["ui-editor-slash-menu"].props.anchorRect.type, "unknown");
-  assert.equal(editorContracts["ui-editor-table-overlay"].props.geometry.type, "unknown");
+  assert.match(editorContracts["ui-editor-slash-menu"].props.anchorRect.type, /^object\(\{/);
+  assert.equal(editorContracts["ui-editor-slash-menu"].props.anchorRect.channel, "property");
+  assert.match(editorContracts["ui-editor-table-overlay"].props.geometry.type, /^object\(\{/);
+  assert.equal(editorContracts["ui-editor-table-overlay"].props.geometry.channel, "property");
 });
 
 test("editor contracts expose domain-neutral intent events", () => {

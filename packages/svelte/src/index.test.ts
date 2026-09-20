@@ -23,7 +23,7 @@ describe("Svelte declarative adapters", () => {
   });
 
   it("preserves structured property names and manages action listeners", () => {
-    const items = [{ title: "Paragraph", command: "paragraph" }];
+    const items = [{ title: "Paragraph", description: "Plain text", icon: "pilcrow" }];
     const anchorRect = { x: 12, y: 24, width: 1, height: 18 };
     const element = createAdapterElement("ui-editor-slash-menu", {
       props: { items, anchorRect, open: true },

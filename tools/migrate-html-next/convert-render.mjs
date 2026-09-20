@@ -228,10 +228,19 @@ function propMetadata(tsx) {
     const simpleDefault = /^(?:true|false|-?\d+(?:\.\d+)?|null)$/.test(initial)
       ? initial
       : /^(['"])([\s\S]*)\1$/.exec(initial)?.[2];
-    props.push({ name, type, defaultValue: simpleDefault, attribute, dataAttribute: `data-${name.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)}` });
+    props.push({ name, type, defaultValue: simpleDefault, attribute, sourceAttribute: attribute, dataAttribute: `data-${name.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)}` });
   }
   return props;
 }
+
+// Source-only spelling differences belong to this one-way Stencil ingest adapter, not to Looma's
+// declarative public contracts. Keep them here so source drift is still detected without making a
+// legacy decorator alias part of the destination API.
+const LEGACY_ATTRIBUTE_OVERRIDES = Object.freeze({
+  "ui-combobox.readOnly": "readonly",
+  "ui-input.readOnly": "readonly",
+  "ui-textarea.readOnly": "readonly",
+});
 
 function contractPropMetadata(tag, tsx, contract) {
   const source = propMetadata(tsx);
@@ -248,14 +257,17 @@ function contractPropMetadata(tag, tsx, contract) {
     const attribute = declaration.attribute
       ?? name.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
     const sourceAttribute = sourceByName.get(name).attribute;
-    if (sourceAttribute !== attribute) {
-      throw new Error(`${tag}.${name}: contract attribute ${attribute} does not match source attribute ${sourceAttribute}`);
+    const expectedSourceAttribute = LEGACY_ATTRIBUTE_OVERRIDES[`${tag}.${name}`] ?? attribute;
+    if (sourceAttribute !== expectedSourceAttribute) {
+      throw new Error(`${tag}.${name}: source attribute ${sourceAttribute} does not match the migration adapter's expected ${expectedSourceAttribute}`);
     }
     return {
       name,
       type: declaration.type,
       defaultValue: Object.hasOwn(declaration, "default") ? declaration.default : undefined,
       attribute,
+      sourceAttribute,
+      channel: declaration.channel ?? "attribute | property",
       dataAttribute: `data-${name.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)}`,
     };
   });
@@ -306,10 +318,11 @@ function eventDeclarations(contract) {
   });
 }
 
-function bindPropertyOnlyProps(body, declared) {
-  const bindings = [...declared]
-    .filter(([, type]) => /\b(?:unknown|function|trusted-html|trusted-script)\b/.test(type))
-    .map(([name]) => ` .${name}="${name}"`)
+function bindPropertyOnlyProps(body, metadata) {
+  const bindings = metadata
+    .filter(({ channel, type }) =>
+      channel === "property" || /\b(?:unknown|function|trusted-html|trusted-script)\b/.test(type))
+    .map(({ name }) => ` .${name}="${name}"`)
     .join("");
   return bindings === "" ? body : body.replace(/^<([A-Za-z][\w.-]*)\b/, `<$1${bindings}`);
 }
@@ -317,7 +330,7 @@ function bindPropertyOnlyProps(body, declared) {
 /** Map Stencil's public host attributes to HTML Next's automatic `data-*` prop reflection. */
 export function reflectedPropAttributes(tsx, contract, tag = "component") {
   return new Map(contractPropMetadata(tag, tsx, contract)
-    .map(({ attribute, dataAttribute }) => [attribute, dataAttribute]));
+    .map(({ sourceAttribute, dataAttribute }) => [sourceAttribute, dataAttribute]));
 }
 
 /** Boolean public attributes use presence semantics in the source component. HTML Next reflects
@@ -325,7 +338,7 @@ export function reflectedPropAttributes(tsx, contract, tag = "component") {
 export function reflectedBooleanAttributes(tsx, contract, tag = "component") {
   return new Set(contractPropMetadata(tag, tsx, contract)
     .filter(({ type }) => type === "boolean")
-    .map(({ attribute }) => attribute));
+    .map(({ sourceAttribute }) => sourceAttribute));
 }
 
 /** Translate one component's render() JSX into an HTML Next template body rooted at `rootEl`. */
@@ -373,7 +386,7 @@ export function renderPort(tag, tsx, rootEl = "span", { summary, contract } = {}
   const knownRoots = new Set([...declared.keys(), ...states.keys(), ...inferredBindings]);
   const body = bindPropertyOnlyProps(
     translateJsx(jsx, rootEl, knownRoots, contract?.stateAttributes ?? {}),
-    declared,
+    metadata,
   );
   const bound = [...body.matchAll(/:[\w-]+="(\w+)"/g)].map((m) => m[1]);
   const props = [...new Set([...declared.keys(), ...bound.filter((name) => !states.has(name))])]

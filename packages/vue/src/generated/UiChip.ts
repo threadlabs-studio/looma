@@ -32,8 +32,8 @@ let detach: undefined | (() => void);
 onMounted(() => {
   if (root.value == null) return;
   detach = manageGeneratedProps(root.value, [
-    { name: "appearance", attribute: "data-appearance", value: props.appearance, type: "string", required: false },
-    { name: "size", attribute: "data-size", value: props.size, type: "string", required: false },
+    { name: "appearance", attribute: "data-appearance", value: props.appearance, type: ["tag","pill"], required: false },
+    { name: "size", attribute: "data-size", value: props.size, type: ["xs","sm"], required: false },
   ]);
 });
 watchEffect(() => {

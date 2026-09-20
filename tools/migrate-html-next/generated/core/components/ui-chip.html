@@ -1,7 +1,7 @@
 <template component="ui-chip" status="early" summary="Migrated Looma ui-chip component.">
   <defs>
-    <prop name="appearance" type="string" default="tag">appearance token.</prop>
-    <prop name="size" type="string" default="xs">size token.</prop>
+    <prop name="appearance" type="tag | pill" default="tag">appearance token.</prop>
+    <prop name="size" type="xs | sm" default="xs">size token.</prop>
   </defs>
   <span :data-appearance="appearance" :data-size="size"><span class="chip__surface"><span class="chip__label"><slot></slot></span></span></span>
   <style>:scope {

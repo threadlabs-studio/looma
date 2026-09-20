@@ -34,7 +34,7 @@ export function createUiCallout(options = {}) {
   element0.append(element2);
   element.append(element0);
   manageGeneratedProps(element, [
-    { name: "tone", attribute: "data-tone", value: prop0, type: "string", required: false },
+    { name: "tone", attribute: "data-tone", value: prop0, type: ["info","note","warning","success","error"], required: false },
   ]);
   return element;
 }

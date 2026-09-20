@@ -4,7 +4,7 @@ import type { ComponentPropsWithoutRef, ComponentRef, ElementType, ReactNode, Re
 import { attachLoomaComponent } from "@threadlabs/looma-core/declarative";
 import type { ComponentDefinition } from "@threadlabs/looma-core/declarative";
 
-const definition = {...{"contract":{"tag":"ui-affordance-scope","props":{"nearRadius":{"type":"number","required":false,"default":16}}},"template":{"kind":"element","name":"span","attributes":[],"children":[{"kind":"slot"}]},"declarations":[],"root":{"kind":"native","element":"span","choices":["span"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
+const definition = {...{"contract":{"tag":"ui-affordance-scope","props":{"nearRadius":{"type":"number","required":false,"target":{"attribute":"nearradius"},"default":16}}},"template":{"kind":"element","name":"span","attributes":[],"children":[{"kind":"slot"}]},"declarations":[],"root":{"kind":"native","element":"span","choices":["span"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
 
 interface UiAffordanceScopeOwnProps {
   nearRadius?: number | null;

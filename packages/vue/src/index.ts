@@ -20,8 +20,8 @@ export const Cluster = createAdapterComponent<AdapterComponentProps["Cluster"]>(
 export const Grid = createAdapterComponent<AdapterComponentProps["Grid"]>(Declarative.UiGrid, "Grid");
 export const Center = createAdapterComponent<AdapterComponentProps["Center"]>(Declarative.UiCenter, "Center");
 export const Switcher = createAdapterComponent<AdapterComponentProps["Switcher"]>(Declarative.UiSwitcher, "Switcher");
-// The resizable sidebar progressively inserts a light-DOM separator. Vue must
-// treat that custom-element-owned child as an expected hydration difference.
+// The resizable sidebar controller progressively inserts a light-DOM separator. Vue must
+// treat that controller-owned child as an expected hydration difference.
 export const Sidebar = createAdapterComponent<AdapterComponentProps["Sidebar"]>(Declarative.UiSidebar, "Sidebar", [], "");
 export const Reel = createAdapterComponent<AdapterComponentProps["Reel"]>(Declarative.UiReel, "Reel");
 export const Separator = createAdapterComponent<AdapterComponentProps["Separator"]>(Declarative.UiSeparator, "Separator");

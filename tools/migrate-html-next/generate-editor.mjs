@@ -24,7 +24,9 @@ function definitionFor(tag, contract) {
   const events = contract.events.map(({ name, type }) =>
     `    <event name="${name}" type="${type}"></event>`);
   const propertyBindings = Object.entries(contract.props)
-    .filter(([, declaration]) => /\bunknown\b/.test(declaration.type))
+    .filter(([, declaration]) =>
+      declaration.channel === "property"
+      || /\b(?:unknown|function|trusted-html|trusted-script)\b/.test(declaration.type))
     .map(([name]) => ` .${name}="${name}"`)
     .join("");
   const body = contract.slots.includes("default")

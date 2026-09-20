@@ -1,38 +1,40 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "components": [
     {
       "tag": "ui-affordance-scope",
       "package": "@threadlabs/looma",
-      "className": "UIAffordanceScopeElement",
-      "description": "Scope-level coordinator for lightweight, overlapping near-hover affordances.",
+      "root": "span",
+      "description": "A lightweight interaction scope that lets nearby controls anticipate pointer movement without adding listeners or hit regions to every control.",
       "attributes": [
         {
           "name": "near-radius",
           "property": "nearRadius",
           "type": "number",
-          "default": 32
+          "default": 16
         }
       ],
       "properties": [
         {
           "name": "nearRadius",
           "type": "number",
-          "default": 32
+          "default": 16,
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [],
       "slots": [
         {
           "name": "default",
-          "description": "Interactive descendants participating in the affordance scope."
+          "description": "Default child content."
         }
       ]
     },
     {
       "tag": "ui-avatar",
       "package": "@threadlabs/looma",
-      "className": "UIAvatarElement",
+      "root": "span",
       "description": "Image and fallback initials primitive for identity surfaces such as profiles and assignees.",
       "attributes": [
         {
@@ -64,36 +66,36 @@
         {
           "name": "alt",
           "type": "string",
-          "default": ""
+          "default": "",
+          "channel": "attribute | property"
         },
         {
           "name": "fallback",
           "type": "string",
-          "default": ""
+          "default": "",
+          "channel": "attribute | property"
         },
         {
           "name": "name",
           "type": "string",
-          "default": ""
+          "default": "",
+          "channel": "attribute | property"
         },
         {
           "name": "src",
           "type": "string",
-          "default": ""
+          "default": "",
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [],
-      "slots": [
-        {
-          "name": "default",
-          "description": "Default child content."
-        }
-      ]
+      "slots": []
     },
     {
       "tag": "ui-avatar-group",
       "package": "@threadlabs/looma",
-      "className": "UIAvatarGroupElement",
+      "root": "div",
       "description": "Container that displays overlapping avatars with an optional \"+N\" overflow pill when the count exceeds the visible maximum.",
       "attributes": [
         {
@@ -113,14 +115,17 @@
         {
           "name": "label",
           "type": "string",
-          "default": "People"
+          "default": "People",
+          "channel": "attribute | property"
         },
         {
           "name": "max",
           "type": "number",
-          "default": 5
+          "default": 5,
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [],
       "slots": [
         {
@@ -132,34 +137,33 @@
     {
       "tag": "ui-badge",
       "package": "@threadlabs/looma",
-      "className": "UIBadgeElement",
+      "root": "span",
       "description": "Lightweight status and label primitive with minimal styling hooks.",
       "attributes": [
         {
           "name": "tone",
           "property": "tone",
-          "type": "string",
-          "default": ""
+          "type": "string"
         },
         {
           "name": "variant",
           "property": "variant",
-          "type": "string",
-          "default": ""
+          "type": "string"
         }
       ],
       "properties": [
         {
           "name": "tone",
           "type": "string",
-          "default": ""
+          "channel": "attribute | property"
         },
         {
           "name": "variant",
           "type": "string",
-          "default": ""
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [],
       "slots": [
         {
@@ -171,7 +175,7 @@
     {
       "tag": "ui-button",
       "package": "@threadlabs/looma",
-      "className": "UIButtonElement",
+      "root": "span",
       "description": "Essential button primitive that enhances semantic button markup and styling hooks.",
       "attributes": [
         {
@@ -183,33 +187,35 @@
         {
           "name": "size",
           "property": "size",
-          "type": "string",
-          "default": ""
+          "type": "string"
         },
         {
           "name": "variant",
           "property": "variant",
           "type": "string",
-          "default": ""
+          "default": "outline"
         }
       ],
       "properties": [
         {
           "name": "disabled",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "size",
           "type": "string",
-          "default": ""
+          "channel": "attribute | property"
         },
         {
           "name": "variant",
           "type": "string",
-          "default": ""
+          "default": "outline",
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [],
       "slots": [
         {
@@ -221,58 +227,95 @@
     {
       "tag": "ui-callout",
       "package": "@threadlabs/looma",
-      "className": "UICalloutElement",
-      "description": "Static semantic message surface with a tone-specific icon.",
+      "root": "div",
+      "description": "A static semantic message surface with a tone-specific icon. It is not a live alert and does not include dismissal behavior.",
       "attributes": [
         {
           "name": "tone",
           "property": "tone",
           "type": "\"info\" | \"note\" | \"warning\" | \"success\" | \"error\"",
-          "default": "info"
+          "default": "info",
+          "options": [
+            "info",
+            "note",
+            "warning",
+            "success",
+            "error"
+          ]
         }
       ],
       "properties": [
         {
           "name": "tone",
           "type": "\"info\" | \"note\" | \"warning\" | \"success\" | \"error\"",
-          "default": "info"
+          "default": "info",
+          "options": [
+            "info",
+            "note",
+            "warning",
+            "success",
+            "error"
+          ],
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [],
       "slots": [
         {
           "name": "default",
-          "description": "Callout message content."
+          "description": "Default child content."
         }
       ]
     },
     {
       "tag": "ui-center",
       "package": "@threadlabs/looma/layout",
-      "className": "UICenterElement",
+      "root": "div",
       "description": "Container primitive for readable measure and horizontal gutters.",
       "attributes": [
         {
           "name": "gutters",
           "property": "gutters",
-          "type": "string"
+          "type": "\"s\" | \"m\" | \"l\"",
+          "options": [
+            "s",
+            "m",
+            "l"
+          ]
         },
         {
           "name": "measure",
           "property": "measure",
-          "type": "string"
+          "type": "\"narrow\" | \"wide\"",
+          "options": [
+            "narrow",
+            "wide"
+          ]
         }
       ],
       "properties": [
         {
           "name": "gutters",
-          "type": "string"
+          "type": "\"s\" | \"m\" | \"l\"",
+          "options": [
+            "s",
+            "m",
+            "l"
+          ],
+          "channel": "attribute | property"
         },
         {
           "name": "measure",
-          "type": "string"
+          "type": "\"narrow\" | \"wide\"",
+          "options": [
+            "narrow",
+            "wide"
+          ],
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [],
       "slots": [
         {
@@ -284,14 +327,13 @@
     {
       "tag": "ui-checkbox",
       "package": "@threadlabs/looma",
-      "className": "UICheckboxElement",
+      "root": "span",
       "description": "Form control primitive for boolean and mixed selection state.",
       "attributes": [
         {
           "name": "checked",
           "property": "checked",
-          "type": "boolean",
-          "default": null
+          "type": "boolean"
         },
         {
           "name": "default-checked",
@@ -328,39 +370,45 @@
         {
           "name": "checked",
           "type": "boolean",
-          "default": null
+          "channel": "attribute | property"
         },
         {
           "name": "defaultChecked",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "disabled",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "indeterminate",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "required",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "value",
           "type": "string",
-          "default": "on"
+          "default": "on",
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [
         {
           "name": "change",
-          "detailType": "ToggleChangeDetail",
-          "detailSchema": "{ checked: boolean; value: string; trigger: PrimitiveTrigger }",
+          "detailType": "{ checked: boolean; value: string; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ checked: boolean; value: string; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
           "detailDocs": "Emitted when a toggleable control changes checked state."
         }
       ],
@@ -374,78 +422,139 @@
     {
       "tag": "ui-chip",
       "package": "@threadlabs/looma",
-      "className": "UIChipElement",
-      "description": "Compact, non-interactive metadata label with tag and pill appearances.",
+      "root": "span",
+      "description": "Compact, non-interactive metadata. Use `tag` for a straight leading edge and shallow angled trailing edge, or `pill` for a rounded label. Wrap it in a link or button when it needs interaction.",
       "attributes": [
         {
           "name": "appearance",
           "property": "appearance",
           "type": "\"tag\" | \"pill\"",
-          "default": "tag"
+          "default": "tag",
+          "options": [
+            "tag",
+            "pill"
+          ]
         },
         {
           "name": "size",
           "property": "size",
           "type": "\"xs\" | \"sm\"",
-          "default": "xs"
+          "default": "xs",
+          "options": [
+            "xs",
+            "sm"
+          ]
         }
       ],
       "properties": [
         {
           "name": "appearance",
           "type": "\"tag\" | \"pill\"",
-          "default": "tag"
+          "default": "tag",
+          "options": [
+            "tag",
+            "pill"
+          ],
+          "channel": "attribute | property"
         },
         {
           "name": "size",
           "type": "\"xs\" | \"sm\"",
-          "default": "xs"
+          "default": "xs",
+          "options": [
+            "xs",
+            "sm"
+          ],
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [],
       "slots": [
         {
           "name": "default",
-          "description": "Chip text or metadata."
+          "description": "Default child content."
         }
       ]
     },
     {
       "tag": "ui-cluster",
       "package": "@threadlabs/looma/layout",
-      "className": "UIClusterElement",
+      "root": "div",
       "description": "Cluster layout primitive for wrapping item groups with shared alignment controls.",
       "attributes": [
         {
           "name": "align",
           "property": "align",
-          "type": "string"
+          "type": "\"start\" | \"center\" | \"end\" | \"stretch\"",
+          "options": [
+            "start",
+            "center",
+            "end",
+            "stretch"
+          ]
         },
         {
           "name": "gap",
           "property": "gap",
-          "type": "string"
+          "type": "\"xs\" | \"s\" | \"m\" | \"l\" | \"xl\"",
+          "options": [
+            "xs",
+            "s",
+            "m",
+            "l",
+            "xl"
+          ]
         },
         {
           "name": "justify",
           "property": "justify",
-          "type": "string"
+          "type": "\"start\" | \"center\" | \"end\" | \"between\"",
+          "options": [
+            "start",
+            "center",
+            "end",
+            "between"
+          ]
         }
       ],
       "properties": [
         {
           "name": "align",
-          "type": "string"
+          "type": "\"start\" | \"center\" | \"end\" | \"stretch\"",
+          "options": [
+            "start",
+            "center",
+            "end",
+            "stretch"
+          ],
+          "channel": "attribute | property"
         },
         {
           "name": "gap",
-          "type": "string"
+          "type": "\"xs\" | \"s\" | \"m\" | \"l\" | \"xl\"",
+          "options": [
+            "xs",
+            "s",
+            "m",
+            "l",
+            "xl"
+          ],
+          "channel": "attribute | property"
         },
         {
           "name": "justify",
-          "type": "string"
+          "type": "\"start\" | \"center\" | \"end\" | \"between\"",
+          "options": [
+            "start",
+            "center",
+            "end",
+            "between"
+          ],
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [],
       "slots": [
         {
@@ -457,12 +566,69 @@
     {
       "tag": "ui-combobox",
       "package": "@threadlabs/looma",
-      "className": "UIComboboxElement",
-      "description": "Editable smart field with contextual suggestions, connected help, and Standard Schema validation. With multiple, it becomes a multi-value tag field.",
+      "root": "div",
+      "description": "A normal text field with contextual rich suggestions and integrated optional help",
       "attributes": [
+        {
+          "name": "clearable",
+          "property": "clearable",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "default-query",
+          "property": "defaultQuery",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "default-value",
+          "property": "defaultValue",
+          "type": "string"
+        },
+        {
+          "name": "disabled",
+          "property": "disabled",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "disclosure",
+          "property": "disclosure",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "help",
+          "property": "help",
+          "type": "string",
+          "default": ""
+        },
         {
           "name": "label",
           "property": "label",
+          "type": "string",
+          "default": ""
+        },
+        {
+          "name": "label-visibility",
+          "property": "labelVisibility",
+          "type": "\"visible\" | \"sr-only\"",
+          "default": "visible",
+          "options": [
+            "visible",
+            "sr-only"
+          ]
+        },
+        {
+          "name": "multiple",
+          "property": "multiple",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "name",
+          "property": "name",
           "type": "string",
           "default": ""
         },
@@ -473,43 +639,12 @@
           "default": ""
         },
         {
-          "name": "name",
-          "property": "name",
-          "type": "string",
-          "default": ""
-        },
-        {
-          "name": "value",
-          "property": "value",
-          "type": "string | null | readonly MultiComboboxItem[]",
-          "default": null
-        },
-        {
-          "name": "default-value",
-          "property": "defaultValue",
-          "type": "string",
-          "default": null
-        },
-        {
           "name": "query",
           "property": "query",
-          "type": "string",
-          "default": null
+          "type": "string"
         },
         {
-          "name": "default-query",
-          "property": "defaultQuery",
-          "type": "string",
-          "default": ""
-        },
-        {
-          "name": "disabled",
-          "property": "disabled",
-          "type": "boolean",
-          "default": false
-        },
-        {
-          "name": "readonly",
+          "name": "read-only",
           "property": "readOnly",
           "type": "boolean",
           "default": false
@@ -524,213 +659,243 @@
           "name": "size",
           "property": "size",
           "type": "\"sm\" | \"md\"",
-          "default": "md"
+          "default": "md",
+          "options": [
+            "sm",
+            "md"
+          ]
         },
         {
-          "name": "label-visibility",
-          "property": "labelVisibility",
-          "type": "\"visible\" | \"sr-only\"",
-          "default": "visible"
-        },
-        {
-          "name": "disclosure",
-          "property": "disclosure",
-          "type": "boolean",
-          "default": false
-        },
-        {
-          "name": "clearable",
-          "property": "clearable",
-          "type": "boolean",
-          "default": false
-        },
-        {
-          "name": "help",
-          "property": "help",
-          "type": "string",
-          "default": ""
-        },
-        {
-          "name": "multiple",
-          "property": "multiple",
-          "type": "boolean",
-          "default": false
+          "name": "value",
+          "property": "value",
+          "type": "string | null | ReadonlyArray<{ id: string; value: string; label: string; description?: string; metadata?: unknown; group?: string; disabled?: boolean }>"
         }
       ],
       "properties": [
         {
-          "name": "label",
-          "type": "string",
-          "default": ""
+          "name": "clearable",
+          "type": "boolean",
+          "default": false,
+          "channel": "attribute | property"
         },
         {
-          "name": "placeholder",
-          "type": "string",
-          "default": ""
-        },
-        {
-          "name": "name",
-          "type": "string",
-          "default": ""
-        },
-        {
-          "name": "value",
-          "type": "string | null | readonly MultiComboboxItem[]",
-          "default": null
-        },
-        {
-          "name": "defaultValue",
-          "type": "string",
-          "default": null
-        },
-        {
-          "name": "query",
-          "type": "string",
-          "default": null
+          "name": "config",
+          "type": "unknown",
+          "channel": "property"
         },
         {
           "name": "defaultQuery",
           "type": "string",
-          "default": ""
+          "default": "",
+          "channel": "attribute | property"
         },
         {
-          "name": "config",
-          "type": "ComboboxConfig",
-          "default": null
+          "name": "defaultValue",
+          "type": "string",
+          "channel": "attribute | property"
         },
         {
           "name": "disabled",
           "type": "boolean",
-          "default": false
-        },
-        {
-          "name": "readOnly",
-          "type": "boolean",
-          "default": false
-        },
-        {
-          "name": "required",
-          "type": "boolean",
-          "default": false
-        },
-        {
-          "name": "size",
-          "type": "\"sm\" | \"md\"",
-          "default": "md"
-        },
-        {
-          "name": "labelVisibility",
-          "type": "\"visible\" | \"sr-only\"",
-          "default": "visible"
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "disclosure",
           "type": "boolean",
-          "default": false
-        },
-        {
-          "name": "clearable",
-          "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "help",
           "type": "string",
-          "default": ""
+          "default": "",
+          "channel": "attribute | property"
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "default": "",
+          "channel": "attribute | property"
+        },
+        {
+          "name": "labelVisibility",
+          "type": "\"visible\" | \"sr-only\"",
+          "default": "visible",
+          "options": [
+            "visible",
+            "sr-only"
+          ],
+          "channel": "attribute | property"
         },
         {
           "name": "multiple",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "default": "",
+          "channel": "attribute | property"
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "default": "",
+          "channel": "attribute | property"
+        },
+        {
+          "name": "query",
+          "type": "string",
+          "channel": "attribute | property"
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "default": false,
+          "channel": "attribute | property"
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "default": false,
+          "channel": "attribute | property"
+        },
+        {
+          "name": "size",
+          "type": "\"sm\" | \"md\"",
+          "default": "md",
+          "options": [
+            "sm",
+            "md"
+          ],
+          "channel": "attribute | property"
         },
         {
           "name": "tokenSeparators",
-          "type": "readonly string[]",
-          "default": []
+          "type": "ReadonlyArray<string>",
+          "channel": "property"
+        },
+        {
+          "name": "value",
+          "type": "string | null | ReadonlyArray<{ id: string; value: string; label: string; description?: string; metadata?: unknown; group?: string; disabled?: boolean }>",
+          "channel": "attribute | property"
+        }
+      ],
+      "methods": [
+        {
+          "name": "validate",
+          "returns": "Promise<unknown>"
+        },
+        {
+          "name": "focusInput",
+          "returns": "Promise<undefined>"
         }
       ],
       "events": [
         {
-          "name": "query-change",
-          "detailType": "{ query: string; display: string; trigger: string }"
-        },
-        {
-          "name": "value-change",
-          "detailType": "ComboboxChange | readonly MultiComboboxItem[]"
-        },
-        {
-          "name": "free-entry",
-          "detailType": "ComboboxChange"
+          "name": "add-item",
+          "detailType": "{ item: { id: string; value: string; label: string; description?: string; metadata?: unknown; group?: string; disabled?: boolean }; index: number; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ item: { id: string; value: string; label: string; description?: string; metadata?: unknown; group?: string; disabled?: boolean }; index: number; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailDocs": "Emitted with the declared detail payload."
         },
         {
           "name": "create-entry",
-          "detailType": "ComboboxChange"
-        },
-        {
-          "name": "dependency-invalidate",
-          "detailType": "ComboboxChange"
-        },
-        {
-          "name": "validation-change",
-          "detailType": "ComboboxValidationState"
-        },
-        {
-          "name": "options-change",
-          "detailType": "readonly ComboboxOption[]"
-        },
-        {
-          "name": "add-item",
-          "detailType": "MultiComboboxItemChange"
-        },
-        {
-          "name": "remove-item",
-          "detailType": "MultiComboboxItemChange"
+          "detailType": "{ value: string | null; query: string; option: { id: string; value: string; label: string; description?: string; metadata?: unknown; group?: string; disabled?: boolean } | null; kind: \"selection\" | \"clear\" | \"free-entry\" | \"create\" | \"invalidation\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ value: string | null; query: string; option: { id: string; value: string; label: string; description?: string; metadata?: unknown; group?: string; disabled?: boolean } | null; kind: \"selection\" | \"clear\" | \"free-entry\" | \"create\" | \"invalidation\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailDocs": "Emitted with the declared detail payload."
         },
         {
           "name": "create-item",
-          "detailType": "MultiComboboxCreate"
+          "detailType": "{ query: string; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ query: string; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailDocs": "Emitted with the declared detail payload."
+        },
+        {
+          "name": "dependency-invalidate",
+          "detailType": "{ value: string | null; query: string; option: { id: string; value: string; label: string; description?: string; metadata?: unknown; group?: string; disabled?: boolean } | null; kind: \"selection\" | \"clear\" | \"free-entry\" | \"create\" | \"invalidation\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ value: string | null; query: string; option: { id: string; value: string; label: string; description?: string; metadata?: unknown; group?: string; disabled?: boolean } | null; kind: \"selection\" | \"clear\" | \"free-entry\" | \"create\" | \"invalidation\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailDocs": "Emitted with the declared detail payload."
+        },
+        {
+          "name": "free-entry",
+          "detailType": "{ value: string | null; query: string; option: { id: string; value: string; label: string; description?: string; metadata?: unknown; group?: string; disabled?: boolean } | null; kind: \"selection\" | \"clear\" | \"free-entry\" | \"create\" | \"invalidation\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ value: string | null; query: string; option: { id: string; value: string; label: string; description?: string; metadata?: unknown; group?: string; disabled?: boolean } | null; kind: \"selection\" | \"clear\" | \"free-entry\" | \"create\" | \"invalidation\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailDocs": "Emitted with the declared detail payload."
+        },
+        {
+          "name": "options-change",
+          "detailType": "ReadonlyArray<{ id: string; value: string; label: string; description?: string; metadata?: unknown; group?: string; disabled?: boolean }>",
+          "detailSchema": "ReadonlyArray<{ id: string; value: string; label: string; description?: string; metadata?: unknown; group?: string; disabled?: boolean }>",
+          "detailDocs": "Emitted with the declared detail payload."
+        },
+        {
+          "name": "query-change",
+          "detailType": "{ query: string; display: string; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ query: string; display: string; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailDocs": "Emitted with the declared detail payload."
+        },
+        {
+          "name": "remove-item",
+          "detailType": "{ item: { id: string; value: string; label: string; description?: string; metadata?: unknown; group?: string; disabled?: boolean }; index: number; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ item: { id: string; value: string; label: string; description?: string; metadata?: unknown; group?: string; disabled?: boolean }; index: number; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailDocs": "Emitted with the declared detail payload."
+        },
+        {
+          "name": "validation-change",
+          "detailType": "{ status: \"pristine\" | \"pending\" | \"valid\" | \"warning\" | \"error\"; touched: boolean; dirty: boolean; issues: ReadonlyArray<{ message: string; path?: ReadonlyArray<unknown>; severity?: \"error\" | \"warning\" }>; output?: unknown }",
+          "detailSchema": "{ status: \"pristine\" | \"pending\" | \"valid\" | \"warning\" | \"error\"; touched: boolean; dirty: boolean; issues: ReadonlyArray<{ message: string; path?: ReadonlyArray<unknown>; severity?: \"error\" | \"warning\" }>; output?: unknown }",
+          "detailDocs": "Emitted with the declared detail payload."
+        },
+        {
+          "name": "value-change",
+          "detailType": "{ value: string | null; query: string; option: { id: string; value: string; label: string; description?: string; metadata?: unknown; group?: string; disabled?: boolean } | null; kind: \"selection\" | \"clear\" | \"free-entry\" | \"create\" | \"invalidation\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" } | ReadonlyArray<{ id: string; value: string; label: string; description?: string; metadata?: unknown; group?: string; disabled?: boolean }>",
+          "detailSchema": "{ value: string | null; query: string; option: { id: string; value: string; label: string; description?: string; metadata?: unknown; group?: string; disabled?: boolean } | null; kind: \"selection\" | \"clear\" | \"free-entry\" | \"create\" | \"invalidation\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" } | ReadonlyArray<{ id: string; value: string; label: string; description?: string; metadata?: unknown; group?: string; disabled?: boolean }>",
+          "detailDocs": "Emitted with the declared detail payload."
         }
       ],
       "slots": [
         {
           "name": "start",
-          "description": "Content placed inside the field before the native input."
+          "description": "Named content for the start region."
         },
         {
-          "name": "option-${id}",
-          "description": "Noninteractive rich content for the option identity."
+          "name": "item-*",
+          "description": "Named content matching the item-* slot pattern."
         },
         {
-          "name": "loading",
-          "description": "Loading message."
-        },
-        {
-          "name": "empty",
-          "description": "Empty result message."
-        },
-        {
-          "name": "error",
-          "description": "Lookup failure message."
+          "name": "option-*",
+          "description": "Named content matching the option-* slot pattern."
         },
         {
           "name": "create",
-          "description": "Create-entry row content."
+          "description": "Named content for the create region."
+        },
+        {
+          "name": "loading",
+          "description": "Named content for the loading region."
+        },
+        {
+          "name": "error",
+          "description": "Named content for the error region."
+        },
+        {
+          "name": "empty",
+          "description": "Named content for the empty region."
         },
         {
           "name": "footer",
-          "description": "Connected controls below the suggestion list."
-        },
-        {
-          "name": "item-${id}",
-          "description": "Multiple mode: noninteractive rich content for a selected item."
+          "description": "Named content for the footer region."
         }
       ]
     },
     {
       "tag": "ui-context-menu",
       "package": "@threadlabs/looma",
-      "className": "UIContextMenuElement",
-      "description": "Pointer-anchored action menu that preserves menu keyboard selection and shared overlay dismissal behavior.",
+      "root": "span",
+      "description": "Action menu with a visible keyboard/touch trigger plus supplemental pointer-context support.",
       "attributes": [
         {
           "name": "default-open",
@@ -739,55 +904,70 @@
           "default": false
         },
         {
+          "name": "for",
+          "property": "for",
+          "type": "string"
+        },
+        {
           "name": "open",
           "property": "open",
-          "type": "boolean",
-          "default": false
+          "type": "boolean"
         }
       ],
       "properties": [
         {
           "name": "defaultOpen",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
+        },
+        {
+          "name": "for",
+          "type": "string",
+          "channel": "attribute | property"
         },
         {
           "name": "open",
           "type": "boolean",
-          "default": false
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [
         {
           "name": "close",
-          "detailType": "OpenCloseDetail",
-          "detailSchema": "{ open: boolean; reason: PrimitiveReason; trigger: PrimitiveTrigger }",
-          "detailDocs": "Emitted when the context menu closes."
+          "detailType": "{ open: boolean; reason: \"action\" | \"programmatic\" | \"light-dismiss\" | \"escape\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ open: boolean; reason: \"action\" | \"programmatic\" | \"light-dismiss\" | \"escape\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailDocs": "Emitted when the component transitions to a closed state."
         },
         {
           "name": "open",
-          "detailType": "OpenCloseDetail",
-          "detailSchema": "{ open: boolean; reason: PrimitiveReason; trigger: PrimitiveTrigger }",
-          "detailDocs": "Emitted when a pointer context-menu action opens the menu."
+          "detailType": "{ open: boolean; reason: \"action\" | \"programmatic\" | \"light-dismiss\" | \"escape\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ open: boolean; reason: \"action\" | \"programmatic\" | \"light-dismiss\" | \"escape\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailDocs": "Emitted when the component transitions to an open state."
         },
         {
           "name": "select",
-          "detailType": "SelectDetail",
-          "detailSchema": "{ value: string; trigger: PrimitiveTrigger }",
-          "detailDocs": "Emitted when a menu item is activated."
+          "detailType": "{ value: string; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ value: string; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailDocs": "Emitted when a selectable option becomes active."
         }
       ],
       "slots": [
         {
+          "name": "trigger",
+          "description": "Named content for the trigger region."
+        },
+        {
           "name": "default",
-          "description": "Context-menu items, normally `ui-menu-item` elements."
+          "description": "Default child content."
         }
       ]
     },
     {
       "tag": "ui-dialog",
       "package": "@threadlabs/looma",
-      "className": "UIDialogElement",
+      "root": "div",
       "description": "Overlay primitive that coordinates native `dialog` behavior with shared overlay stack rules.",
       "attributes": [
         {
@@ -816,48 +996,46 @@
         {
           "name": "open",
           "property": "open",
-          "type": "boolean",
-          "default": null
+          "type": "boolean"
         }
       ],
       "properties": [
         {
           "name": "defaultOpen",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "dismissible",
           "type": "boolean",
-          "default": true
+          "default": true,
+          "channel": "attribute | property"
         },
         {
           "name": "label",
-          "type": "string"
+          "type": "string",
+          "channel": "attribute | property"
         },
         {
           "name": "modal",
           "type": "boolean",
-          "default": true
+          "default": true,
+          "channel": "attribute | property"
         },
         {
           "name": "open",
           "type": "boolean",
-          "default": null
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [
         {
           "name": "close",
-          "detailType": "OpenCloseDetail",
-          "detailSchema": "{ open: boolean; reason: PrimitiveReason; trigger: PrimitiveTrigger }",
+          "detailType": "{ open: boolean; reason: \"action\" | \"programmatic\" | \"light-dismiss\" | \"escape\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ open: boolean; reason: \"action\" | \"programmatic\" | \"light-dismiss\" | \"escape\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
           "detailDocs": "Emitted when the component transitions to a closed state."
-        },
-        {
-          "name": "open",
-          "detailType": "OpenCloseDetail",
-          "detailSchema": "{ open: boolean; reason: PrimitiveReason; trigger: PrimitiveTrigger }",
-          "detailDocs": "Emitted when the component transitions to an open state."
         }
       ],
       "slots": [
@@ -870,9 +1048,15 @@
     {
       "tag": "ui-disclosure",
       "package": "@threadlabs/looma",
-      "className": "UIDisclosureElement",
+      "root": "div",
       "description": "Progressively enhances a button/content pair into an accessible disclosure.",
       "attributes": [
+        {
+          "name": "default-open",
+          "property": "defaultOpen",
+          "type": "boolean",
+          "default": false
+        },
         {
           "name": "disabled",
           "property": "disabled",
@@ -882,38 +1066,40 @@
         {
           "name": "open",
           "property": "open",
-          "type": "boolean",
-          "default": null
+          "type": "boolean"
         }
       ],
       "properties": [
         {
           "name": "defaultOpen",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "disabled",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "open",
           "type": "boolean",
-          "default": null
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [
         {
           "name": "close",
-          "detailType": "OpenCloseDetail",
-          "detailSchema": "{ open: boolean; reason: PrimitiveReason; trigger: PrimitiveTrigger }",
+          "detailType": "{ open: boolean; reason: \"action\" | \"programmatic\" | \"light-dismiss\" | \"escape\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ open: boolean; reason: \"action\" | \"programmatic\" | \"light-dismiss\" | \"escape\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
           "detailDocs": "Emitted when the component transitions to a closed state."
         },
         {
           "name": "open",
-          "detailType": "OpenCloseDetail",
-          "detailSchema": "{ open: boolean; reason: PrimitiveReason; trigger: PrimitiveTrigger }",
+          "detailType": "{ open: boolean; reason: \"action\" | \"programmatic\" | \"light-dismiss\" | \"escape\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ open: boolean; reason: \"action\" | \"programmatic\" | \"light-dismiss\" | \"escape\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
           "detailDocs": "Emitted when the component transitions to an open state."
         }
       ],
@@ -927,15 +1113,9 @@
     {
       "tag": "ui-editable",
       "package": "@threadlabs/looma",
-      "className": "UIEditableElement",
-      "description": "Swaps an explicit presentation trigger for a focused editing control.",
+      "root": "div",
+      "description": "Reveal an editing control from an explicit presentation trigger. The component",
       "attributes": [
-        {
-          "name": "edit",
-          "property": "edit",
-          "type": "boolean",
-          "default": null
-        },
         {
           "name": "default-edit",
           "property": "defaultEdit",
@@ -947,47 +1127,57 @@
           "property": "disabled",
           "type": "boolean",
           "default": false
+        },
+        {
+          "name": "edit",
+          "property": "edit",
+          "type": "boolean"
         }
       ],
       "properties": [
         {
-          "name": "edit",
-          "type": "boolean",
-          "default": null
-        },
-        {
           "name": "defaultEdit",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "disabled",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
+        },
+        {
+          "name": "edit",
+          "type": "boolean",
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [
         {
           "name": "edit-change",
-          "detailType": "EditableChange"
+          "detailType": "{ edit: boolean; reason: \"activate\" | \"light-dismiss\" | \"escape\" | \"programmatic\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ edit: boolean; reason: \"activate\" | \"light-dismiss\" | \"escape\" | \"programmatic\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailDocs": "Emitted with the declared detail payload."
         }
       ],
       "slots": [
         {
           "name": "preview",
-          "description": "Presentation content containing an explicit data-ui-editable-trigger descendant."
+          "description": "Named content for the preview region."
         },
         {
           "name": "edit",
-          "description": "Editing control focused when edit mode opens."
+          "description": "Named content for the edit region."
         }
       ]
     },
     {
       "tag": "ui-editor-insert-table-grid",
       "package": "@threadlabs/looma/editor",
-      "className": "UIEditorInsertTableGridElement",
-      "description": "Keyboard- and pointer-operable grid for selecting table dimensions before insertion.",
+      "root": "div",
+      "description": "Grid picker for committing table dimensions and optional header-row intent.",
       "attributes": [
         {
           "name": "max-cols",
@@ -1008,13 +1198,33 @@
           "default": false
         }
       ],
-      "properties": [],
+      "properties": [
+        {
+          "name": "maxCols",
+          "type": "number",
+          "default": 8,
+          "channel": "attribute | property"
+        },
+        {
+          "name": "maxRows",
+          "type": "number",
+          "default": 8,
+          "channel": "attribute | property"
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "default": false,
+          "channel": "attribute | property"
+        }
+      ],
+      "methods": [],
       "events": [
         {
           "name": "looma-editor-insert-table",
-          "detailType": "InsertTableEventDetail",
+          "detailType": "{ rows: number; cols: number; withHeaderRow: boolean }",
           "detailSchema": "{ rows: number; cols: number; withHeaderRow: boolean }",
-          "detailDocs": "Emitted when the user confirms the selected table dimensions."
+          "detailDocs": "Emitted with the declared detail payload."
         }
       ],
       "slots": []
@@ -1022,53 +1232,83 @@
     {
       "tag": "ui-editor-mention-menu",
       "package": "@threadlabs/looma/editor",
-      "className": "UIEditorMentionMenuElement",
-      "description": "Bounded, accessible people-suggestion surface positioned from an editor mention anchor.",
-      "attributes": [],
-      "properties": [
-        {
-          "name": "anchorRect",
-          "type": "DOMRect | null",
-          "default": null
-        },
-        {
-          "name": "items",
-          "type": "LoomaMentionItem[]",
-          "default": []
-        },
+      "root": "div",
+      "description": "Bounded, responsive suggestion surface for an app-provided people directory.",
+      "attributes": [
         {
           "name": "loading",
+          "property": "loading",
           "type": "boolean",
           "default": false
         },
         {
           "name": "open",
+          "property": "open",
           "type": "boolean",
           "default": false
         },
         {
           "name": "query",
+          "property": "query",
           "type": "string",
           "default": ""
         },
         {
-          "name": "selectedIndex",
+          "name": "selected-index",
+          "property": "selectedIndex",
           "type": "number",
           "default": 0
         }
       ],
+      "properties": [
+        {
+          "name": "anchorRect",
+          "type": "{ left?: number; top?: number; right?: number; bottom?: number; x?: number; y?: number; width?: number; height?: number } | null",
+          "channel": "property"
+        },
+        {
+          "name": "items",
+          "type": "ReadonlyArray<{ id: string; label: string; detail?: string; initials?: string }>",
+          "channel": "property"
+        },
+        {
+          "name": "loading",
+          "type": "boolean",
+          "default": false,
+          "channel": "attribute | property"
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "default": false,
+          "channel": "attribute | property"
+        },
+        {
+          "name": "query",
+          "type": "string",
+          "default": "",
+          "channel": "attribute | property"
+        },
+        {
+          "name": "selectedIndex",
+          "type": "number",
+          "default": 0,
+          "channel": "attribute | property"
+        }
+      ],
+      "methods": [],
       "events": [
         {
           "name": "looma-editor-mention-menu-highlight",
-          "detailType": "MentionMenuHighlightEventDetail",
+          "detailType": "{ index: number }",
           "detailSchema": "{ index: number }",
-          "detailDocs": "Emitted when pointer navigation changes the highlighted person."
+          "detailDocs": "Emitted with the declared detail payload."
         },
         {
           "name": "looma-editor-mention-menu-select",
-          "detailType": "MentionMenuSelectEventDetail",
+          "detailType": "{ index: number }",
           "detailSchema": "{ index: number }",
-          "detailDocs": "Emitted when the user selects a person."
+          "detailDocs": "Emitted with the declared detail payload."
         }
       ],
       "slots": []
@@ -1076,48 +1316,71 @@
     {
       "tag": "ui-editor-slash-menu",
       "package": "@threadlabs/looma/editor",
-      "className": "UIEditorSlashMenuElement",
-      "description": "Responsive slash-command suggestion surface positioned from an app-provided editor anchor.",
-      "attributes": [],
-      "properties": [
-        {
-          "name": "anchorRect",
-          "type": "DOMRect | null",
-          "default": null
-        },
-        {
-          "name": "items",
-          "type": "SlashMenuItem[]",
-          "default": []
-        },
+      "root": "div",
+      "description": "Responsive suggestion surface for app-provided slash commands.",
+      "attributes": [
         {
           "name": "open",
+          "property": "open",
           "type": "boolean",
           "default": false
         },
         {
           "name": "query",
+          "property": "query",
           "type": "string",
           "default": ""
         },
         {
-          "name": "selectedIndex",
+          "name": "selected-index",
+          "property": "selectedIndex",
           "type": "number",
           "default": 0
         }
       ],
+      "properties": [
+        {
+          "name": "anchorRect",
+          "type": "{ left?: number; top?: number; right?: number; bottom?: number; x?: number; y?: number; width?: number; height?: number } | null",
+          "channel": "property"
+        },
+        {
+          "name": "items",
+          "type": "ReadonlyArray<{ title: string; description: string; icon: string }>",
+          "channel": "property"
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "default": false,
+          "channel": "attribute | property"
+        },
+        {
+          "name": "query",
+          "type": "string",
+          "default": "",
+          "channel": "attribute | property"
+        },
+        {
+          "name": "selectedIndex",
+          "type": "number",
+          "default": 0,
+          "channel": "attribute | property"
+        }
+      ],
+      "methods": [],
       "events": [
         {
           "name": "looma-editor-slash-menu-highlight",
-          "detailType": "SlashMenuHighlightEventDetail",
+          "detailType": "{ index: number }",
           "detailSchema": "{ index: number }",
-          "detailDocs": "Emitted when pointer navigation changes the highlighted suggestion."
+          "detailDocs": "Emitted with the declared detail payload."
         },
         {
           "name": "looma-editor-slash-menu-select",
-          "detailType": "SlashMenuSelectEventDetail",
+          "detailType": "{ index: number }",
           "detailSchema": "{ index: number }",
-          "detailDocs": "Emitted when the user selects a slash-command suggestion."
+          "detailDocs": "Emitted with the declared detail payload."
         }
       ],
       "slots": []
@@ -1125,8 +1388,8 @@
     {
       "tag": "ui-editor-table-context-menu",
       "package": "@threadlabs/looma/editor",
-      "className": "UIEditorTableContextMenuElement",
-      "description": "Cell-scoped and structural table action menu with capability-controlled actions.",
+      "root": "div",
+      "description": "Cell and table action menu whose available commands are controlled by app-provided capabilities.",
       "attributes": [
         {
           "name": "can-add-column-after",
@@ -1195,13 +1458,81 @@
           "default": false
         }
       ],
-      "properties": [],
+      "properties": [
+        {
+          "name": "canAddColumnAfter",
+          "type": "boolean",
+          "default": false,
+          "channel": "attribute | property"
+        },
+        {
+          "name": "canAddColumnBefore",
+          "type": "boolean",
+          "default": false,
+          "channel": "attribute | property"
+        },
+        {
+          "name": "canAddRowAfter",
+          "type": "boolean",
+          "default": false,
+          "channel": "attribute | property"
+        },
+        {
+          "name": "canAddRowBefore",
+          "type": "boolean",
+          "default": false,
+          "channel": "attribute | property"
+        },
+        {
+          "name": "canDeleteColumn",
+          "type": "boolean",
+          "default": false,
+          "channel": "attribute | property"
+        },
+        {
+          "name": "canDeleteRow",
+          "type": "boolean",
+          "default": false,
+          "channel": "attribute | property"
+        },
+        {
+          "name": "canDeleteTable",
+          "type": "boolean",
+          "default": false,
+          "channel": "attribute | property"
+        },
+        {
+          "name": "canMergeCells",
+          "type": "boolean",
+          "default": false,
+          "channel": "attribute | property"
+        },
+        {
+          "name": "canSplitCell",
+          "type": "boolean",
+          "default": false,
+          "channel": "attribute | property"
+        },
+        {
+          "name": "cellBackground",
+          "type": "string",
+          "default": "",
+          "channel": "attribute | property"
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "default": false,
+          "channel": "attribute | property"
+        }
+      ],
+      "methods": [],
       "events": [
         {
           "name": "looma-editor-table-action",
-          "detailType": "TableContextMenuActionEventDetail",
-          "detailSchema": "{ action: TableContextMenuAction }",
-          "detailDocs": "Emitted when the user invokes an available table or cell action."
+          "detailType": "{ action: string }",
+          "detailSchema": "{ action: string }",
+          "detailDocs": "Emitted with the declared detail payload."
         }
       ],
       "slots": []
@@ -1209,9 +1540,14 @@
     {
       "tag": "ui-editor-table-overlay",
       "package": "@threadlabs/looma/editor",
-      "className": "UIEditorTableOverlayElement",
-      "description": "Anticipatory table affordances for insertion, row and column selection, and cell actions.",
+      "root": "div",
+      "description": "Anticipatory table controls for exact-boundary insertion, row and column",
       "attributes": [
+        {
+          "name": "active-cell",
+          "property": "activeCell",
+          "type": "string | ReadonlyArray<number>"
+        },
         {
           "name": "cols",
           "property": "cols",
@@ -1219,10 +1555,25 @@
           "default": 3
         },
         {
+          "name": "column-boundaries",
+          "property": "columnBoundaries",
+          "type": "string | ReadonlyArray<number>"
+        },
+        {
+          "name": "hovered-cell",
+          "property": "hoveredCell",
+          "type": "string | ReadonlyArray<number>"
+        },
+        {
           "name": "open",
           "property": "open",
           "type": "boolean",
           "default": false
+        },
+        {
+          "name": "row-boundaries",
+          "property": "rowBoundaries",
+          "type": "string | ReadonlyArray<number>"
         },
         {
           "name": "rows",
@@ -1233,18 +1584,56 @@
       ],
       "properties": [
         {
+          "name": "activeCell",
+          "type": "string | ReadonlyArray<number>",
+          "channel": "attribute | property"
+        },
+        {
+          "name": "cols",
+          "type": "number",
+          "default": 3,
+          "channel": "attribute | property"
+        },
+        {
+          "name": "columnBoundaries",
+          "type": "string | ReadonlyArray<number>",
+          "channel": "attribute | property"
+        },
+        {
           "name": "geometry",
-          "type": "TableOverlayGeometry | null",
-          "default": null,
-          "description": "Measured table boundaries and active-cell geometry supplied by the editor adapter."
+          "type": "{ rowBoundaries: ReadonlyArray<number>; columnBoundaries: ReadonlyArray<number>; activeCell: { left: number; top: number; width: number; height: number; rowIndex: number; columnIndex: number } | null; hoveredCell?: { left: number; top: number; width: number; height: number; rowIndex: number; columnIndex: number } | null } | null",
+          "channel": "property"
+        },
+        {
+          "name": "hoveredCell",
+          "type": "string | ReadonlyArray<number>",
+          "channel": "attribute | property"
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "default": false,
+          "channel": "attribute | property"
+        },
+        {
+          "name": "rowBoundaries",
+          "type": "string | ReadonlyArray<number>",
+          "channel": "attribute | property"
+        },
+        {
+          "name": "rows",
+          "type": "number",
+          "default": 3,
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [
         {
           "name": "looma-editor-table-overlay-action",
-          "detailType": "TableOverlayActionEventDetail",
-          "detailSchema": "TableOverlayActionEventDetail",
-          "detailDocs": "Emitted for insertion, row or column selection, and active-cell menu intent."
+          "detailType": "{ action: string; boundaryIndex?: number; rowIndex?: number; columnIndex?: number; anchor?: { left: number; top: number; right: number; bottom: number } }",
+          "detailSchema": "{ action: string; boundaryIndex?: number; rowIndex?: number; columnIndex?: number; anchor?: { left: number; top: number; right: number; bottom: number } }",
+          "detailDocs": "Emitted with the declared detail payload."
         }
       ],
       "slots": []
@@ -1252,8 +1641,8 @@
     {
       "tag": "ui-editor-table-toolbar",
       "package": "@threadlabs/looma/editor",
-      "className": "UIEditorTableToolbarElement",
-      "description": "Selection-aware table toolbar for alignment and discoverable structural actions.",
+      "root": "div",
+      "description": "Selection-aware quick toolbar for table alignment and structural actions.",
       "attributes": [
         {
           "name": "can-add-column-after",
@@ -1313,7 +1702,18 @@
           "name": "cell-alignment",
           "property": "cellAlignment",
           "type": "\"left\" | \"center\" | \"right\"",
-          "default": "left"
+          "default": "left",
+          "options": [
+            "left",
+            "center",
+            "right"
+          ]
+        },
+        {
+          "name": "cell-background",
+          "property": "cellBackground",
+          "type": "string",
+          "default": ""
         },
         {
           "name": "open",
@@ -1322,13 +1722,92 @@
           "default": false
         }
       ],
-      "properties": [],
+      "properties": [
+        {
+          "name": "canAddColumnAfter",
+          "type": "boolean",
+          "default": false,
+          "channel": "attribute | property"
+        },
+        {
+          "name": "canAddColumnBefore",
+          "type": "boolean",
+          "default": false,
+          "channel": "attribute | property"
+        },
+        {
+          "name": "canAddRowAfter",
+          "type": "boolean",
+          "default": false,
+          "channel": "attribute | property"
+        },
+        {
+          "name": "canAddRowBefore",
+          "type": "boolean",
+          "default": false,
+          "channel": "attribute | property"
+        },
+        {
+          "name": "canDeleteColumn",
+          "type": "boolean",
+          "default": false,
+          "channel": "attribute | property"
+        },
+        {
+          "name": "canDeleteRow",
+          "type": "boolean",
+          "default": false,
+          "channel": "attribute | property"
+        },
+        {
+          "name": "canDeleteTable",
+          "type": "boolean",
+          "default": false,
+          "channel": "attribute | property"
+        },
+        {
+          "name": "canMergeCells",
+          "type": "boolean",
+          "default": false,
+          "channel": "attribute | property"
+        },
+        {
+          "name": "canSplitCell",
+          "type": "boolean",
+          "default": false,
+          "channel": "attribute | property"
+        },
+        {
+          "name": "cellAlignment",
+          "type": "\"left\" | \"center\" | \"right\"",
+          "default": "left",
+          "options": [
+            "left",
+            "center",
+            "right"
+          ],
+          "channel": "attribute | property"
+        },
+        {
+          "name": "cellBackground",
+          "type": "string",
+          "default": "",
+          "channel": "attribute | property"
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "default": false,
+          "channel": "attribute | property"
+        }
+      ],
+      "methods": [],
       "events": [
         {
           "name": "looma-editor-table-action",
-          "detailType": "TableContextMenuActionEventDetail",
-          "detailSchema": "{ action: TableContextMenuAction }",
-          "detailDocs": "Emitted when the user invokes an available table action."
+          "detailType": "{ action: string }",
+          "detailSchema": "{ action: string }",
+          "detailDocs": "Emitted with the declared detail payload."
         }
       ],
       "slots": []
@@ -1336,22 +1815,23 @@
     {
       "tag": "ui-editor-toolbar",
       "package": "@threadlabs/looma/editor",
-      "className": "UIEditorToolbarElement",
-      "description": "Slot-based semantic toolbar shell for app-owned editor commands.",
+      "root": "div",
+      "description": "Semantic, slot-based toolbar frame for app-owned editor command controls.",
       "attributes": [],
       "properties": [],
+      "methods": [],
       "events": [],
       "slots": [
         {
           "name": "default",
-          "description": "App-owned editor command controls."
+          "description": "Default child content."
         }
       ]
     },
     {
       "tag": "ui-floating-action-button",
       "package": "@threadlabs/looma",
-      "className": "UIFloatingActionButtonElement",
+      "root": "span",
       "description": "Primary floating action primitive for mobile-first create or compose affordances.",
       "attributes": [
         {
@@ -1377,19 +1857,23 @@
         {
           "name": "disabled",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "label",
           "type": "string",
-          "default": ""
+          "default": "",
+          "channel": "attribute | property"
         },
         {
           "name": "mobileOnly",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [],
       "slots": [
         {
@@ -1401,7 +1885,7 @@
     {
       "tag": "ui-form-field",
       "package": "@threadlabs/looma",
-      "className": "UIFormFieldElement",
+      "root": "div",
       "description": "Form-field composition primitive that links label/control/description semantics.",
       "attributes": [
         {
@@ -1427,19 +1911,23 @@
         {
           "name": "disabled",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "invalid",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "required",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [],
       "slots": [
         {
@@ -1451,30 +1939,57 @@
     {
       "tag": "ui-grid",
       "package": "@threadlabs/looma/layout",
-      "className": "UIGridElement",
+      "root": "div",
       "description": "Responsive auto-fit grid primitive.",
       "attributes": [
         {
           "name": "gap",
           "property": "gap",
-          "type": "string"
+          "type": "\"xs\" | \"s\" | \"m\" | \"l\" | \"xl\"",
+          "options": [
+            "xs",
+            "s",
+            "m",
+            "l",
+            "xl"
+          ]
         },
         {
           "name": "min",
           "property": "min",
-          "type": "string"
+          "type": "\"sm\" | \"md\" | \"lg\"",
+          "options": [
+            "sm",
+            "md",
+            "lg"
+          ]
         }
       ],
       "properties": [
         {
           "name": "gap",
-          "type": "string"
+          "type": "\"xs\" | \"s\" | \"m\" | \"l\" | \"xl\"",
+          "options": [
+            "xs",
+            "s",
+            "m",
+            "l",
+            "xl"
+          ],
+          "channel": "attribute | property"
         },
         {
           "name": "min",
-          "type": "string"
+          "type": "\"sm\" | \"md\" | \"lg\"",
+          "options": [
+            "sm",
+            "md",
+            "lg"
+          ],
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [],
       "slots": [
         {
@@ -1486,8 +2001,8 @@
     {
       "tag": "ui-icon-button",
       "package": "@threadlabs/looma",
-      "className": "UIIconButtonElement",
-      "description": "Icon-only button primitive with stable square sizing for compact actions and shell controls.",
+      "root": "span",
+      "description": "Icon-only button primitive with stable square sizing and variant tokens for shell controls, compact actions, and editor chrome.",
       "attributes": [
         {
           "name": "anticipatory",
@@ -1510,7 +2025,7 @@
         {
           "name": "size",
           "property": "size",
-          "type": "string",
+          "type": "\"sm\" | \"md\" | \"lg\"",
           "default": "md",
           "options": [
             "sm",
@@ -1521,7 +2036,7 @@
         {
           "name": "variant",
           "property": "variant",
-          "type": "string",
+          "type": "\"ghost\" | \"outline\" | \"solid\"",
           "default": "ghost",
           "options": [
             "ghost",
@@ -1534,17 +2049,20 @@
         {
           "name": "anticipatory",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "disabled",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "label",
           "type": "string",
-          "default": ""
+          "default": "",
+          "channel": "attribute | property"
         },
         {
           "name": "size",
@@ -1554,7 +2072,8 @@
             "sm",
             "md",
             "lg"
-          ]
+          ],
+          "channel": "attribute | property"
         },
         {
           "name": "variant",
@@ -1564,62 +2083,115 @@
             "ghost",
             "outline",
             "solid"
-          ]
+          ],
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [],
       "slots": [
         {
           "name": "default",
-          "description": "Icon content, typically a single SVG."
+          "description": "Default child content."
         }
       ]
     },
     {
       "tag": "ui-inline",
       "package": "@threadlabs/looma/layout",
-      "className": "UIInlineElement",
+      "root": "div",
       "description": "Inline layout primitive for row-style content with wrapping support.",
       "attributes": [
         {
           "name": "align",
           "property": "align",
-          "type": "string"
+          "type": "\"start\" | \"center\" | \"end\" | \"stretch\"",
+          "options": [
+            "start",
+            "center",
+            "end",
+            "stretch"
+          ]
         },
         {
           "name": "gap",
           "property": "gap",
-          "type": "string"
+          "type": "\"xs\" | \"s\" | \"m\" | \"l\" | \"xl\"",
+          "options": [
+            "xs",
+            "s",
+            "m",
+            "l",
+            "xl"
+          ]
         },
         {
           "name": "justify",
           "property": "justify",
-          "type": "string"
+          "type": "\"start\" | \"center\" | \"end\" | \"between\"",
+          "options": [
+            "start",
+            "center",
+            "end",
+            "between"
+          ]
         },
         {
           "name": "wrap",
           "property": "wrap",
-          "type": "string"
+          "type": "\"wrap\" | \"nowrap\"",
+          "options": [
+            "wrap",
+            "nowrap"
+          ]
         }
       ],
       "properties": [
         {
           "name": "align",
-          "type": "string"
+          "type": "\"start\" | \"center\" | \"end\" | \"stretch\"",
+          "options": [
+            "start",
+            "center",
+            "end",
+            "stretch"
+          ],
+          "channel": "attribute | property"
         },
         {
           "name": "gap",
-          "type": "string"
+          "type": "\"xs\" | \"s\" | \"m\" | \"l\" | \"xl\"",
+          "options": [
+            "xs",
+            "s",
+            "m",
+            "l",
+            "xl"
+          ],
+          "channel": "attribute | property"
         },
         {
           "name": "justify",
-          "type": "string"
+          "type": "\"start\" | \"center\" | \"end\" | \"between\"",
+          "options": [
+            "start",
+            "center",
+            "end",
+            "between"
+          ],
+          "channel": "attribute | property"
         },
         {
           "name": "wrap",
-          "type": "string"
+          "type": "\"wrap\" | \"nowrap\"",
+          "options": [
+            "wrap",
+            "nowrap"
+          ],
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [],
       "slots": [
         {
@@ -1631,7 +2203,7 @@
     {
       "tag": "ui-input",
       "package": "@threadlabs/looma",
-      "className": "UIInputElement",
+      "root": "span",
       "description": "Essential text-input primitive that mirrors value/state to native input controls.",
       "attributes": [
         {
@@ -1653,7 +2225,7 @@
           "default": false
         },
         {
-          "name": "readonly",
+          "name": "read-only",
           "property": "readOnly",
           "type": "boolean",
           "default": false
@@ -1661,38 +2233,55 @@
         {
           "name": "value",
           "property": "value",
-          "type": "string",
-          "default": ""
+          "type": "string"
         }
       ],
       "properties": [
         {
           "name": "defaultValue",
           "type": "string",
-          "default": ""
+          "default": "",
+          "channel": "attribute | property"
         },
         {
           "name": "disabled",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "invalid",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "readOnly",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "value",
           "type": "string",
-          "default": ""
+          "channel": "attribute | property"
         }
       ],
-      "events": [],
+      "methods": [],
+      "events": [
+        {
+          "name": "change",
+          "detailType": "{ value: string; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ value: string; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailDocs": "Emitted when a toggleable control changes checked state."
+        },
+        {
+          "name": "input",
+          "detailType": "{ value: string; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ value: string; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailDocs": "Emitted with the declared detail payload."
+        }
+      ],
       "slots": [
         {
           "name": "default",
@@ -1703,45 +2292,68 @@
     {
       "tag": "ui-menu",
       "package": "@threadlabs/looma",
-      "className": "UIMenuElement",
+      "root": "div",
       "description": "Menu container primitive that manages focus and selection across `ui-menu-item` children.",
       "attributes": [
         {
+          "name": "default-open",
+          "property": "defaultOpen",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "for",
+          "property": "for",
+          "type": "string"
+        },
+        {
           "name": "open",
           "property": "open",
-          "type": "boolean",
-          "default": null
+          "type": "boolean"
+        },
+        {
+          "name": "placement",
+          "property": "placement",
+          "type": "string",
+          "default": "bottom-start"
         }
       ],
       "properties": [
         {
           "name": "defaultOpen",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
+        },
+        {
+          "name": "for",
+          "type": "string",
+          "channel": "attribute | property"
         },
         {
           "name": "open",
           "type": "boolean",
-          "default": null
+          "channel": "attribute | property"
+        },
+        {
+          "name": "placement",
+          "type": "string",
+          "default": "bottom-start",
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [
         {
           "name": "close",
-          "detailType": "OpenCloseDetail",
-          "detailSchema": "{ open: boolean; reason: PrimitiveReason; trigger: PrimitiveTrigger }",
+          "detailType": "{ open: boolean; reason: \"action\" | \"programmatic\" | \"light-dismiss\" | \"escape\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ open: boolean; reason: \"action\" | \"programmatic\" | \"light-dismiss\" | \"escape\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
           "detailDocs": "Emitted when the component transitions to a closed state."
         },
         {
-          "name": "open",
-          "detailType": "OpenCloseDetail",
-          "detailSchema": "{ open: boolean; reason: PrimitiveReason; trigger: PrimitiveTrigger }",
-          "detailDocs": "Emitted when the component transitions to an open state."
-        },
-        {
           "name": "select",
-          "detailType": "SelectDetail",
-          "detailSchema": "{ value: string; previousValue?: string; trigger: PrimitiveTrigger }",
+          "detailType": "{ value: string; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ value: string; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
           "detailDocs": "Emitted when a selectable option becomes active."
         }
       ],
@@ -1755,7 +2367,7 @@
     {
       "tag": "ui-menu-item",
       "package": "@threadlabs/looma",
-      "className": "UIMenuItemElement",
+      "root": "div",
       "description": "Focusable menu item primitive intended for use inside `ui-menu`.",
       "attributes": [
         {
@@ -1763,19 +2375,29 @@
           "property": "disabled",
           "type": "boolean",
           "default": false
+        },
+        {
+          "name": "value",
+          "property": "value",
+          "type": "string",
+          "default": ""
         }
       ],
       "properties": [
         {
           "name": "disabled",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "value",
-          "type": "string"
+          "type": "string",
+          "default": "",
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [],
       "slots": [
         {
@@ -1787,39 +2409,68 @@
     {
       "tag": "ui-popover",
       "package": "@threadlabs/looma",
-      "className": "UIPopoverElement",
+      "root": "span",
       "description": "Non-modal overlay primitive with shared open/close overlay lifecycle.",
       "attributes": [
         {
+          "name": "default-open",
+          "property": "defaultOpen",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "for",
+          "property": "for",
+          "type": "string"
+        },
+        {
           "name": "open",
           "property": "open",
-          "type": "boolean",
-          "default": null
+          "type": "boolean"
+        },
+        {
+          "name": "placement",
+          "property": "placement",
+          "type": "string",
+          "default": "bottom-start"
         }
       ],
       "properties": [
         {
           "name": "defaultOpen",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
+        },
+        {
+          "name": "for",
+          "type": "string",
+          "channel": "attribute | property"
         },
         {
           "name": "open",
           "type": "boolean",
-          "default": null
+          "channel": "attribute | property"
+        },
+        {
+          "name": "placement",
+          "type": "string",
+          "default": "bottom-start",
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [
         {
           "name": "close",
-          "detailType": "OpenCloseDetail",
-          "detailSchema": "{ open: boolean; reason: PrimitiveReason; trigger: PrimitiveTrigger }",
+          "detailType": "{ open: boolean; reason: \"action\" | \"programmatic\" | \"light-dismiss\" | \"escape\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ open: boolean; reason: \"action\" | \"programmatic\" | \"light-dismiss\" | \"escape\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
           "detailDocs": "Emitted when the component transitions to a closed state."
         },
         {
           "name": "open",
-          "detailType": "OpenCloseDetail",
-          "detailSchema": "{ open: boolean; reason: PrimitiveReason; trigger: PrimitiveTrigger }",
+          "detailType": "{ open: boolean; reason: \"action\" | \"programmatic\" | \"light-dismiss\" | \"escape\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ open: boolean; reason: \"action\" | \"programmatic\" | \"light-dismiss\" | \"escape\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
           "detailDocs": "Emitted when the component transitions to an open state."
         }
       ],
@@ -1833,14 +2484,13 @@
     {
       "tag": "ui-radio",
       "package": "@threadlabs/looma",
-      "className": "UIRadioElement",
+      "root": "span",
       "description": "Radio control primitive for mutually exclusive options, typically composed within `ui-radio-group`.",
       "attributes": [
         {
           "name": "checked",
           "property": "checked",
-          "type": "boolean",
-          "default": null
+          "type": "boolean"
         },
         {
           "name": "default-checked",
@@ -1877,39 +2527,45 @@
         {
           "name": "checked",
           "type": "boolean",
-          "default": null
+          "channel": "attribute | property"
         },
         {
           "name": "defaultChecked",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "disabled",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "name",
           "type": "string",
-          "default": ""
+          "default": "",
+          "channel": "attribute | property"
         },
         {
           "name": "required",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "value",
           "type": "string",
-          "default": "on"
+          "default": "on",
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [
         {
           "name": "change",
-          "detailType": "ToggleChangeDetail",
-          "detailSchema": "{ checked: boolean; value: string; trigger: PrimitiveTrigger }",
+          "detailType": "{ checked: boolean; value: string; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ checked: boolean; value: string; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
           "detailDocs": "Emitted when a toggleable control changes checked state."
         }
       ],
@@ -1923,7 +2579,7 @@
     {
       "tag": "ui-radio-group",
       "package": "@threadlabs/looma",
-      "className": "UIRadioGroupElement",
+      "root": "span",
       "description": "Grouped selection primitive that coordinates `ui-radio` descendants, keyboard navigation, and normalized selection events.",
       "attributes": [
         {
@@ -1965,12 +2621,14 @@
         {
           "name": "disabled",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "name",
           "type": "string",
-          "default": ""
+          "default": "",
+          "channel": "attribute | property"
         },
         {
           "name": "orientation",
@@ -1979,30 +2637,34 @@
           "options": [
             "horizontal",
             "vertical"
-          ]
+          ],
+          "channel": "attribute | property"
         },
         {
           "name": "required",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "value",
           "type": "string",
-          "default": ""
+          "default": "",
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [
         {
           "name": "change",
-          "detailType": "ToggleChangeDetail",
-          "detailSchema": "{ checked: boolean; value: string; trigger: PrimitiveTrigger }",
+          "detailType": "{ checked: boolean; value: string; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ checked: boolean; value: string; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
           "detailDocs": "Emitted when a toggleable control changes checked state."
         },
         {
           "name": "select",
-          "detailType": "SelectDetail",
-          "detailSchema": "{ value: string; previousValue?: string; trigger: PrimitiveTrigger }",
+          "detailType": "{ value: string; previousValue: string; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ value: string; previousValue: string; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
           "detailDocs": "Emitted when a selectable option becomes active."
         }
       ],
@@ -2016,56 +2678,88 @@
     {
       "tag": "ui-reel",
       "package": "@threadlabs/looma/layout",
-      "className": "UIReelElement",
-      "description": "Keyboard-focusable horizontal scrolling layout primitive.",
+      "root": "div",
+      "description": "Contained, keyboard-focusable horizontal scrolling for cards and other repeated items.",
       "attributes": [
         {
           "name": "gap",
           "property": "gap",
-          "type": "string",
-          "default": "m"
+          "type": "\"xs\" | \"s\" | \"m\" | \"l\" | \"xl\"",
+          "options": [
+            "xs",
+            "s",
+            "m",
+            "l",
+            "xl"
+          ]
         },
         {
           "name": "item-width",
           "property": "itemWidth",
-          "type": "string",
-          "default": "auto"
+          "type": "\"sm\" | \"md\" | \"lg\"",
+          "options": [
+            "sm",
+            "md",
+            "lg"
+          ]
         },
         {
           "name": "snap",
           "property": "snap",
-          "type": "string"
+          "type": "\"start\" | \"center\"",
+          "options": [
+            "start",
+            "center"
+          ]
         }
       ],
       "properties": [
         {
           "name": "gap",
-          "type": "string",
-          "default": "m"
+          "type": "\"xs\" | \"s\" | \"m\" | \"l\" | \"xl\"",
+          "options": [
+            "xs",
+            "s",
+            "m",
+            "l",
+            "xl"
+          ],
+          "channel": "attribute | property"
         },
         {
           "name": "itemWidth",
-          "type": "string",
-          "default": "auto"
+          "type": "\"sm\" | \"md\" | \"lg\"",
+          "options": [
+            "sm",
+            "md",
+            "lg"
+          ],
+          "channel": "attribute | property"
         },
         {
           "name": "snap",
-          "type": "string"
+          "type": "\"start\" | \"center\"",
+          "options": [
+            "start",
+            "center"
+          ],
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [],
       "slots": [
         {
           "name": "default",
-          "description": "Horizontally scrolling child content."
+          "description": "Default child content."
         }
       ]
     },
     {
       "tag": "ui-search-result-row",
       "package": "@threadlabs/looma",
-      "className": "UISearchResultRowElement",
-      "description": "Presentational row shell for command and search results. It owns row layout, hover and selected states, and optional leading, meta, excerpt, and trailing regions while apps keep result shaping and highlighting.",
+      "root": "div",
+      "description": "Presentational row shell for command/search results. It owns row layout, spacing, hover/selected states, and optional leading/meta/excerpt/trailing regions while apps keep result shaping and highlighting.",
       "attributes": [
         {
           "name": "disabled",
@@ -2084,80 +2778,83 @@
         {
           "name": "disabled",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "selected",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [],
       "slots": [
         {
           "name": "leading",
-          "description": "Leading icon or avatar."
+          "description": "Named content for the leading region."
         },
         {
           "name": "title",
-          "description": "Main title content."
+          "description": "Named content for the title region."
         },
         {
           "name": "meta",
-          "description": "Optional secondary metadata line."
+          "description": "Named content for the meta region."
         },
         {
           "name": "excerpt",
-          "description": "Optional supporting excerpt."
+          "description": "Named content for the excerpt region."
         },
         {
           "name": "trailing",
-          "description": "Optional trailing affordance."
+          "description": "Named content for the trailing region."
         }
       ]
     },
     {
       "tag": "ui-search-shell",
       "package": "@threadlabs/looma",
-      "className": "UISearchShellElement",
+      "root": "div",
       "description": "Overlay shell for search and command-palette experiences. It owns the backdrop/panel layout and responsive fullscreen behavior while apps keep query state, result rendering, and routing.",
       "attributes": [],
       "properties": [],
+      "methods": [],
       "events": [],
       "slots": [
         {
           "name": "backdrop",
-          "description": "Backdrop layer behind the panel."
+          "description": "Named content for the backdrop region."
         },
         {
           "name": "search",
-          "description": "Search input/header row."
+          "description": "Named content for the search region."
         },
         {
           "name": "status",
-          "description": "Optional loading or status row."
+          "description": "Named content for the status region."
         },
         {
           "name": "body",
-          "description": "Results, recent searches, or empty states."
+          "description": "Named content for the body region."
         },
         {
           "name": "footer",
-          "description": "Optional footer row."
+          "description": "Named content for the footer region."
         }
       ]
     },
     {
       "tag": "ui-select",
       "package": "@threadlabs/looma",
-      "className": "UISelectElement",
-      "description": "Native-select wrapper primitive that mirrors state to a slotted select while applying shared Looma styling.",
+      "root": "span",
+      "description": "Native-select wrapper primitive that mirrors value and state to a slotted `<select>` while applying shared Looma styling.",
       "attributes": [
         {
           "name": "default-value",
           "property": "defaultValue",
-          "type": "string",
-          "default": ""
+          "type": "string"
         },
         {
           "name": "disabled",
@@ -2180,38 +2877,54 @@
         {
           "name": "value",
           "property": "value",
-          "type": "string",
-          "default": ""
+          "type": "string"
         }
       ],
       "properties": [
         {
           "name": "defaultValue",
           "type": "string",
-          "default": ""
+          "channel": "attribute | property"
         },
         {
           "name": "disabled",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "invalid",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "required",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "value",
           "type": "string",
-          "default": ""
+          "channel": "attribute | property"
         }
       ],
-      "events": [],
+      "methods": [],
+      "events": [
+        {
+          "name": "change",
+          "detailType": "{ value: string; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ value: string; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailDocs": "Emitted when a toggleable control changes checked state."
+        },
+        {
+          "name": "input",
+          "detailType": "{ value: string; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ value: string; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailDocs": "Emitted with the declared detail payload."
+        }
+      ],
       "slots": [
         {
           "name": "default",
@@ -2222,28 +2935,33 @@
     {
       "tag": "ui-separator",
       "package": "@threadlabs/looma/layout",
-      "className": "UISeparatorElement",
+      "root": "div",
       "description": "Semantic separator primitive with horizontal and vertical orientations.",
       "attributes": [
         {
           "name": "orientation",
           "property": "orientation",
-          "type": "string",
-          "default": "horizontal"
-        },
-        {
-          "name": "role",
-          "property": "role",
-          "type": "string"
+          "type": "\"horizontal\" | \"vertical\"",
+          "default": "horizontal",
+          "options": [
+            "horizontal",
+            "vertical"
+          ]
         }
       ],
       "properties": [
         {
           "name": "orientation",
-          "type": "string",
-          "default": "horizontal"
+          "type": "\"horizontal\" | \"vertical\"",
+          "default": "horizontal",
+          "options": [
+            "horizontal",
+            "vertical"
+          ],
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [],
       "slots": [
         {
@@ -2255,32 +2973,43 @@
     {
       "tag": "ui-sidebar",
       "package": "@threadlabs/looma/layout",
-      "className": "UISidebarElement",
-      "description": "Intrinsic two-region layout with optional accessible, persistent resizing.",
+      "root": "div",
+      "description": "Intrinsic two-region layout that wraps before the main content becomes unusably narrow.",
       "attributes": [
         {
           "name": "align",
           "property": "align",
-          "type": "string",
-          "default": "stretch"
+          "type": "\"start\" | \"center\" | \"end\" | \"stretch\"",
+          "options": [
+            "start",
+            "center",
+            "end",
+            "stretch"
+          ]
         },
         {
           "name": "gap",
           "property": "gap",
-          "type": "string",
-          "default": "m"
+          "type": "\"xs\" | \"s\" | \"m\" | \"l\" | \"xl\"",
+          "options": [
+            "xs",
+            "s",
+            "m",
+            "l",
+            "xl"
+          ]
         },
         {
-          "name": "side",
-          "property": "side",
-          "type": "string",
-          "default": "start"
+          "name": "max-width",
+          "property": "maxWidth",
+          "type": "number",
+          "default": 480
         },
         {
-          "name": "width",
-          "property": "width",
-          "type": "string",
-          "default": "default"
+          "name": "min-width",
+          "property": "minWidth",
+          "type": "number",
+          "default": 176
         },
         {
           "name": "resizable",
@@ -2289,108 +3018,219 @@
           "default": false
         },
         {
-          "name": "storage-key",
-          "type": "string"
-        },
-        {
-          "name": "min-width",
-          "type": "number",
-          "default": 176
-        },
-        {
-          "name": "max-width",
-          "type": "number",
-          "default": 480
+          "name": "resize-label",
+          "property": "resizeLabel",
+          "type": "string",
+          "default": "Resize sidebar"
         },
         {
           "name": "resize-step",
+          "property": "resizeStep",
           "type": "number",
           "default": 16
         },
         {
-          "name": "resize-label",
-          "type": "string",
-          "default": "Resize sidebar"
+          "name": "side",
+          "property": "side",
+          "type": "\"start\" | \"end\"",
+          "default": "start",
+          "options": [
+            "start",
+            "end"
+          ]
+        },
+        {
+          "name": "storage-key",
+          "property": "storageKey",
+          "type": "string"
+        },
+        {
+          "name": "width",
+          "property": "width",
+          "type": "\"narrow\" | \"default\" | \"wide\"",
+          "default": "default",
+          "options": [
+            "narrow",
+            "default",
+            "wide"
+          ]
         }
       ],
       "properties": [
         {
           "name": "align",
-          "type": "string",
-          "default": "stretch"
+          "type": "\"start\" | \"center\" | \"end\" | \"stretch\"",
+          "options": [
+            "start",
+            "center",
+            "end",
+            "stretch"
+          ],
+          "channel": "attribute | property"
         },
         {
           "name": "gap",
-          "type": "string",
-          "default": "m"
+          "type": "\"xs\" | \"s\" | \"m\" | \"l\" | \"xl\"",
+          "options": [
+            "xs",
+            "s",
+            "m",
+            "l",
+            "xl"
+          ],
+          "channel": "attribute | property"
         },
         {
-          "name": "side",
-          "type": "string",
-          "default": "start"
+          "name": "maxWidth",
+          "type": "number",
+          "default": 480,
+          "channel": "attribute | property"
         },
         {
-          "name": "width",
-          "type": "string",
-          "default": "default"
+          "name": "minWidth",
+          "type": "number",
+          "default": 176,
+          "channel": "attribute | property"
         },
         {
           "name": "resizable",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
+        },
+        {
+          "name": "resizeLabel",
+          "type": "string",
+          "default": "Resize sidebar",
+          "channel": "attribute | property"
+        },
+        {
+          "name": "resizeStep",
+          "type": "number",
+          "default": 16,
+          "channel": "attribute | property"
+        },
+        {
+          "name": "side",
+          "type": "\"start\" | \"end\"",
+          "default": "start",
+          "options": [
+            "start",
+            "end"
+          ],
+          "channel": "attribute | property"
+        },
+        {
+          "name": "storageKey",
+          "type": "string",
+          "channel": "attribute | property"
+        },
+        {
+          "name": "width",
+          "type": "\"narrow\" | \"default\" | \"wide\"",
+          "default": "default",
+          "options": [
+            "narrow",
+            "default",
+            "wide"
+          ],
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [
         {
           "name": "resize",
-          "detailType": "SidebarResizeDetail",
-          "detailSchema": "{ width: number; trigger: 'keyboard' | 'pointer' | 'programmatic' }",
-          "detailDocs": "Emitted as the side region changes width."
+          "detailType": "{ width: number; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ width: number; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailDocs": "Emitted with the declared detail payload."
         }
       ],
       "slots": [
         {
           "name": "default",
-          "description": "Exactly two children: side region then content, reversed by side=end."
+          "description": "Default child content."
         }
       ]
     },
     {
       "tag": "ui-stack",
       "package": "@threadlabs/looma/layout",
-      "className": "UIStackElement",
+      "root": "div",
       "description": "Vertical layout primitive that owns spacing between children.",
       "attributes": [
         {
           "name": "align",
           "property": "align",
-          "type": "string"
+          "type": "\"start\" | \"center\" | \"end\" | \"stretch\"",
+          "options": [
+            "start",
+            "center",
+            "end",
+            "stretch"
+          ]
         },
         {
           "name": "gap",
           "property": "gap",
-          "type": "string"
+          "type": "\"xs\" | \"s\" | \"m\" | \"l\" | \"xl\"",
+          "options": [
+            "xs",
+            "s",
+            "m",
+            "l",
+            "xl"
+          ]
         },
         {
           "name": "justify",
           "property": "justify",
-          "type": "string"
+          "type": "\"start\" | \"center\" | \"end\" | \"between\"",
+          "options": [
+            "start",
+            "center",
+            "end",
+            "between"
+          ]
         }
       ],
       "properties": [
         {
           "name": "align",
-          "type": "string"
+          "type": "\"start\" | \"center\" | \"end\" | \"stretch\"",
+          "options": [
+            "start",
+            "center",
+            "end",
+            "stretch"
+          ],
+          "channel": "attribute | property"
         },
         {
           "name": "gap",
-          "type": "string"
+          "type": "\"xs\" | \"s\" | \"m\" | \"l\" | \"xl\"",
+          "options": [
+            "xs",
+            "s",
+            "m",
+            "l",
+            "xl"
+          ],
+          "channel": "attribute | property"
         },
         {
           "name": "justify",
-          "type": "string"
+          "type": "\"start\" | \"center\" | \"end\" | \"between\"",
+          "options": [
+            "start",
+            "center",
+            "end",
+            "between"
+          ],
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [],
       "slots": [
         {
@@ -2402,14 +3242,13 @@
     {
       "tag": "ui-switch",
       "package": "@threadlabs/looma",
-      "className": "UISwitchElement",
+      "root": "span",
       "description": "Binary control primitive that reflects switch semantics for checked state.",
       "attributes": [
         {
           "name": "checked",
           "property": "checked",
-          "type": "boolean",
-          "default": null
+          "type": "boolean"
         },
         {
           "name": "default-checked",
@@ -2440,34 +3279,39 @@
         {
           "name": "checked",
           "type": "boolean",
-          "default": null
+          "channel": "attribute | property"
         },
         {
           "name": "defaultChecked",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "disabled",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "required",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "value",
           "type": "string",
-          "default": "on"
+          "default": "on",
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [
         {
           "name": "change",
-          "detailType": "ToggleChangeDetail",
-          "detailSchema": "{ checked: boolean; value: string; trigger: PrimitiveTrigger }",
+          "detailType": "{ checked: boolean; value: string; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ checked: boolean; value: string; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
           "detailDocs": "Emitted when a toggleable control changes checked state."
         }
       ],
@@ -2481,59 +3325,101 @@
     {
       "tag": "ui-switcher",
       "package": "@threadlabs/looma/layout",
-      "className": "UISwitcherElement",
-      "description": "Intrinsic layout that switches equal-width children to a single column below a threshold.",
+      "root": "div",
+      "description": "Intrinsic equal-column layout that stacks when its own container becomes too narrow.",
       "attributes": [
         {
           "name": "align",
           "property": "align",
-          "type": "string",
-          "default": "stretch"
+          "type": "\"start\" | \"center\" | \"end\" | \"stretch\"",
+          "options": [
+            "start",
+            "center",
+            "end",
+            "stretch"
+          ]
         },
         {
           "name": "gap",
           "property": "gap",
-          "type": "string",
-          "default": "m"
+          "type": "\"xs\" | \"s\" | \"m\" | \"l\" | \"xl\"",
+          "options": [
+            "xs",
+            "s",
+            "m",
+            "l",
+            "xl"
+          ]
         },
         {
           "name": "threshold",
           "property": "threshold",
-          "type": "string",
-          "default": "sm"
+          "type": "\"xs\" | \"sm\" | \"md\" | \"lg\"",
+          "options": [
+            "xs",
+            "sm",
+            "md",
+            "lg"
+          ]
         }
       ],
       "properties": [
         {
           "name": "align",
-          "type": "string",
-          "default": "stretch"
+          "type": "\"start\" | \"center\" | \"end\" | \"stretch\"",
+          "options": [
+            "start",
+            "center",
+            "end",
+            "stretch"
+          ],
+          "channel": "attribute | property"
         },
         {
           "name": "gap",
-          "type": "string",
-          "default": "m"
+          "type": "\"xs\" | \"s\" | \"m\" | \"l\" | \"xl\"",
+          "options": [
+            "xs",
+            "s",
+            "m",
+            "l",
+            "xl"
+          ],
+          "channel": "attribute | property"
         },
         {
           "name": "threshold",
-          "type": "string",
-          "default": "sm"
+          "type": "\"xs\" | \"sm\" | \"md\" | \"lg\"",
+          "options": [
+            "xs",
+            "sm",
+            "md",
+            "lg"
+          ],
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [],
       "slots": [
         {
           "name": "default",
-          "description": "Sibling regions that share a row or stack."
+          "description": "Default child content."
         }
       ]
     },
     {
       "tag": "ui-tabs",
       "package": "@threadlabs/looma",
-      "className": "UITabsElement",
+      "root": "div",
       "description": "Tablist primitive that synchronizes tab focus, selection, and panel visibility.",
       "attributes": [
+        {
+          "name": "default-value",
+          "property": "defaultValue",
+          "type": "string",
+          "default": ""
+        },
         {
           "name": "orientation",
           "property": "orientation",
@@ -2547,15 +3433,15 @@
         {
           "name": "value",
           "property": "value",
-          "type": "string",
-          "default": null
+          "type": "string"
         }
       ],
       "properties": [
         {
           "name": "defaultValue",
           "type": "string",
-          "default": ""
+          "default": "",
+          "channel": "attribute | property"
         },
         {
           "name": "orientation",
@@ -2564,19 +3450,21 @@
           "options": [
             "horizontal",
             "vertical"
-          ]
+          ],
+          "channel": "attribute | property"
         },
         {
           "name": "value",
           "type": "string",
-          "default": null
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [
         {
           "name": "select",
-          "detailType": "SelectDetail",
-          "detailSchema": "{ value: string; previousValue?: string; trigger: PrimitiveTrigger }",
+          "detailType": "{ value: string; previousValue: string; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ value: string; previousValue: string; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
           "detailDocs": "Emitted when a selectable option becomes active."
         }
       ],
@@ -2590,8 +3478,8 @@
     {
       "tag": "ui-textarea",
       "package": "@threadlabs/looma",
-      "className": "UITextareaElement",
-      "description": "Multiline text-input primitive that mirrors value and state to native textarea controls.",
+      "root": "span",
+      "description": "Multiline text-input primitive that mirrors value, rows, disabled, readonly, and invalid state to a native `<textarea>`.",
       "attributes": [
         {
           "name": "default-value",
@@ -2612,7 +3500,7 @@
           "default": false
         },
         {
-          "name": "readonly",
+          "name": "read-only",
           "property": "readOnly",
           "type": "boolean",
           "default": false
@@ -2626,43 +3514,61 @@
         {
           "name": "value",
           "property": "value",
-          "type": "string",
-          "default": ""
+          "type": "string"
         }
       ],
       "properties": [
         {
           "name": "defaultValue",
           "type": "string",
-          "default": ""
+          "default": "",
+          "channel": "attribute | property"
         },
         {
           "name": "disabled",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "invalid",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "readOnly",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "rows",
           "type": "number",
-          "default": 4
+          "default": 4,
+          "channel": "attribute | property"
         },
         {
           "name": "value",
           "type": "string",
-          "default": ""
+          "channel": "attribute | property"
         }
       ],
-      "events": [],
+      "methods": [],
+      "events": [
+        {
+          "name": "change",
+          "detailType": "{ value: string; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ value: string; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailDocs": "Emitted when a toggleable control changes checked state."
+        },
+        {
+          "name": "input",
+          "detailType": "{ value: string; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ value: string; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailDocs": "Emitted with the declared detail payload."
+        }
+      ],
       "slots": [
         {
           "name": "default",
@@ -2673,7 +3579,7 @@
     {
       "tag": "ui-toast-region",
       "package": "@threadlabs/looma",
-      "className": "UIToastRegionElement",
+      "root": "div",
       "description": "Live-region container primitive for stackable dismissible toasts.",
       "attributes": [
         {
@@ -2687,27 +3593,23 @@
         {
           "name": "open",
           "type": "boolean",
-          "default": true
+          "default": true,
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [
         {
           "name": "close",
-          "detailType": "OpenCloseDetail",
-          "detailSchema": "{ open: boolean; reason: PrimitiveReason; trigger: PrimitiveTrigger }",
+          "detailType": "{ open: boolean; reason: \"action\" | \"programmatic\" | \"light-dismiss\" | \"escape\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ open: boolean; reason: \"action\" | \"programmatic\" | \"light-dismiss\" | \"escape\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
           "detailDocs": "Emitted when the component transitions to a closed state."
         },
         {
           "name": "dismiss",
-          "detailType": "ToastDismissDetail",
-          "detailSchema": "{ id: string; reason: PrimitiveReason; trigger: PrimitiveTrigger }",
-          "detailDocs": "Requests that the consumer remove the matching toast from its owned list."
-        },
-        {
-          "name": "open",
-          "detailType": "OpenCloseDetail",
-          "detailSchema": "{ open: boolean; reason: PrimitiveReason; trigger: PrimitiveTrigger }",
-          "detailDocs": "Emitted when the component transitions to an open state."
+          "detailType": "{ id: string; reason: \"action\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ id: string; reason: \"action\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailDocs": "Emitted when a toast item is dismissed from its region."
         }
       ],
       "slots": [
@@ -2720,9 +3622,15 @@
     {
       "tag": "ui-tooltip",
       "package": "@threadlabs/looma",
-      "className": "UITooltipElement",
+      "root": "span",
       "description": "Contextual overlay primitive that links descriptive content to a trigger element.",
       "attributes": [
+        {
+          "name": "default-open",
+          "property": "defaultOpen",
+          "type": "boolean",
+          "default": false
+        },
         {
           "name": "for",
           "property": "for",
@@ -2730,10 +3638,27 @@
           "default": ""
         },
         {
+          "name": "hide-delay",
+          "property": "hideDelay",
+          "type": "number",
+          "default": 100
+        },
+        {
           "name": "open",
           "property": "open",
-          "type": "boolean",
-          "default": null
+          "type": "boolean"
+        },
+        {
+          "name": "placement",
+          "property": "placement",
+          "type": "string",
+          "default": "top-start"
+        },
+        {
+          "name": "show-delay",
+          "property": "showDelay",
+          "type": "number",
+          "default": 500
         },
         {
           "name": "toggle-on-click",
@@ -2746,35 +3671,57 @@
         {
           "name": "defaultOpen",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "for",
           "type": "string",
-          "default": ""
+          "default": "",
+          "channel": "attribute | property"
+        },
+        {
+          "name": "hideDelay",
+          "type": "number",
+          "default": 100,
+          "channel": "attribute | property"
         },
         {
           "name": "open",
           "type": "boolean",
-          "default": null
+          "channel": "attribute | property"
+        },
+        {
+          "name": "placement",
+          "type": "string",
+          "default": "top-start",
+          "channel": "attribute | property"
+        },
+        {
+          "name": "showDelay",
+          "type": "number",
+          "default": 500,
+          "channel": "attribute | property"
         },
         {
           "name": "toggleOnClick",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [
         {
           "name": "close",
-          "detailType": "OpenCloseDetail",
-          "detailSchema": "{ open: boolean; reason: PrimitiveReason; trigger: PrimitiveTrigger }",
+          "detailType": "{ open: boolean; reason: \"action\" | \"programmatic\" | \"light-dismiss\" | \"escape\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ open: boolean; reason: \"action\" | \"programmatic\" | \"light-dismiss\" | \"escape\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
           "detailDocs": "Emitted when the component transitions to a closed state."
         },
         {
           "name": "open",
-          "detailType": "OpenCloseDetail",
-          "detailSchema": "{ open: boolean; reason: PrimitiveReason; trigger: PrimitiveTrigger }",
+          "detailType": "{ open: boolean; reason: \"action\" | \"programmatic\" | \"light-dismiss\" | \"escape\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ open: boolean; reason: \"action\" | \"programmatic\" | \"light-dismiss\" | \"escape\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
           "detailDocs": "Emitted when the component transitions to an open state."
         }
       ],
@@ -2788,35 +3735,36 @@
     {
       "tag": "ui-top-bar",
       "package": "@threadlabs/looma",
-      "className": "UITopBarElement",
+      "root": "div",
       "description": "Mobile-first navigation shell with slots for leading controls, title content, an optional search affordance, and trailing actions.",
       "attributes": [],
       "properties": [],
+      "methods": [],
       "events": [],
       "slots": [
         {
-          "name": "default",
-          "description": "Title and main content region."
+          "name": "leading",
+          "description": "Named content for the leading region."
         },
         {
-          "name": "leading",
-          "description": "Leading affordance such as a navigation or back button."
+          "name": "default",
+          "description": "Default child content."
         },
         {
           "name": "search",
-          "description": "Optional search affordance."
+          "description": "Named content for the search region."
         },
         {
           "name": "actions",
-          "description": "Trailing actions."
+          "description": "Named content for the actions region."
         }
       ]
     },
     {
       "tag": "ui-tree",
       "package": "@threadlabs/looma",
-      "className": "UITree",
-      "description": "Accessible hierarchy coordinator with truthful before, inside, and after drag/drop affordances.",
+      "root": "div",
+      "description": "An accessible hierarchy with disclosure, bounded logical indentation, and",
       "attributes": [
         {
           "name": "hover-expand-delay",
@@ -2841,45 +3789,49 @@
         {
           "name": "hoverExpandDelay",
           "type": "number",
-          "default": 700
+          "default": 700,
+          "channel": "attribute | property"
         },
         {
           "name": "label",
           "type": "string",
-          "default": "Tree"
+          "default": "Tree",
+          "channel": "attribute | property"
         },
         {
           "name": "maxDepth",
           "type": "number",
-          "default": 0
+          "default": 0,
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [
         {
           "name": "reorder",
-          "detailType": "TreeReorderDetail",
-          "detailSchema": "{ sourceId: string; targetId: string; position: 'before' | 'inside' | 'after'; sourceType: string; targetType: string; sourceScope: string; targetScope: string; trigger: 'pointer' }",
-          "detailDocs": "Emitted when the user drops a sortable item on a valid target."
+          "detailType": "{ sourceId: string; targetId: string; position: \"before\" | \"inside\" | \"after\"; sourceType: string; targetType: string; sourceScope: string; targetScope: string; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ sourceId: string; targetId: string; position: \"before\" | \"inside\" | \"after\"; sourceType: string; targetType: string; sourceScope: string; targetScope: string; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailDocs": "Emitted with the declared detail payload."
         },
         {
           "name": "reorder-rejected",
-          "detailType": "TreeReorderRejectedDetail",
-          "detailSchema": "{ sourceId: string; targetId: string; position: 'before' | 'inside' | 'after'; reason: 'max-depth'; maxDepth?: number; resultingDepth?: number; trigger: 'pointer' }",
-          "detailDocs": "Emitted when a reorder target is rejected before the item moves."
+          "detailType": "{ sourceId: string; targetId: string; position: \"before\" | \"inside\" | \"after\"; reason: \"max-depth\"; maxDepth: number; resultingDepth: number; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ sourceId: string; targetId: string; position: \"before\" | \"inside\" | \"after\"; reason: \"max-depth\"; maxDepth: number; resultingDepth: number; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailDocs": "Emitted with the declared detail payload."
         }
       ],
       "slots": [
         {
           "name": "default",
-          "description": "Tree item children."
+          "description": "Default child content."
         }
       ]
     },
     {
       "tag": "ui-tree-item",
       "package": "@threadlabs/looma",
-      "className": "UITreeItem",
-      "description": "Semantic tree row with disclosure, drag handle, nested children, and contextual action slots.",
+      "root": "div",
+      "description": "The row primitive used inside `ui-tree`. It provides semantic tree-item state,",
       "attributes": [
         {
           "name": "accepts",
@@ -2900,12 +3852,6 @@
           "default": false
         },
         {
-          "name": "depth",
-          "property": "depth",
-          "type": "number",
-          "default": 1
-        },
-        {
           "name": "disabled",
           "property": "disabled",
           "type": "boolean",
@@ -2918,6 +3864,11 @@
           "default": "item"
         },
         {
+          "name": "drop-depth",
+          "property": "dropDepth",
+          "type": "number"
+        },
+        {
           "name": "drop-scope",
           "property": "dropScope",
           "type": "string",
@@ -2926,8 +3877,7 @@
         {
           "name": "expanded",
           "property": "expanded",
-          "type": "boolean",
-          "default": false
+          "type": "boolean"
         },
         {
           "name": "item-id",
@@ -2952,94 +3902,115 @@
           "property": "sortable",
           "type": "boolean",
           "default": false
+        },
+        {
+          "name": "subtree-depth",
+          "property": "subtreeDepth",
+          "type": "number"
         }
       ],
       "properties": [
         {
           "name": "accepts",
           "type": "string",
-          "default": ""
+          "default": "",
+          "channel": "attribute | property"
         },
         {
           "name": "container",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "defaultExpanded",
           "type": "boolean",
-          "default": false
-        },
-        {
-          "name": "depth",
-          "type": "number",
-          "default": 1
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "disabled",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "dragType",
           "type": "string",
-          "default": "item"
+          "default": "item",
+          "channel": "attribute | property"
+        },
+        {
+          "name": "dropDepth",
+          "type": "number",
+          "channel": "attribute | property"
         },
         {
           "name": "dropScope",
           "type": "string",
-          "default": ""
+          "default": "",
+          "channel": "attribute | property"
         },
         {
           "name": "expanded",
           "type": "boolean",
-          "default": false
+          "channel": "attribute | property"
         },
         {
           "name": "itemId",
           "type": "string",
-          "default": ""
+          "default": "",
+          "channel": "attribute | property"
         },
         {
           "name": "label",
           "type": "string",
-          "default": ""
+          "default": "",
+          "channel": "attribute | property"
         },
         {
           "name": "selected",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
         },
         {
           "name": "sortable",
           "type": "boolean",
-          "default": false
+          "default": false,
+          "channel": "attribute | property"
+        },
+        {
+          "name": "subtreeDepth",
+          "type": "number",
+          "channel": "attribute | property"
         }
       ],
+      "methods": [],
       "events": [
         {
           "name": "expand",
-          "detailType": "TreeExpandDetail",
-          "detailSchema": "{ id: string; expanded: boolean; trigger: PrimitiveTrigger }",
-          "detailDocs": "Emitted when disclosure changes through pointer, keyboard, or hover intent."
+          "detailType": "{ id: string; expanded: boolean; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ id: string; expanded: boolean; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailDocs": "Emitted with the declared detail payload."
         }
       ],
       "slots": [
         {
-          "name": "default",
-          "description": "Primary row label or link."
+          "name": "leading",
+          "description": "Named content for the leading region."
         },
         {
-          "name": "leading",
-          "description": "Leading icon or avatar."
+          "name": "default",
+          "description": "Default child content."
         },
         {
           "name": "actions",
-          "description": "Trailing contextual actions."
+          "description": "Named content for the actions region."
         },
         {
           "name": "children",
-          "description": "Nested tree items."
+          "description": "Named content for the children region."
         }
       ]
     }

@@ -13,7 +13,7 @@ const isCandidateRelease = docsReleaseMode === "candidate";
 
 const config: Config = {
   title: "Looma UI Docs",
-  tagline: "SSR-first web component contracts",
+  tagline: "SSR-first declarative component contracts",
   favicon: "img/favicon.ico",
   url: process.env.LOOMA_DOCS_URL ?? "https://threadlabs-studio.github.io",
   baseUrl: process.env.LOOMA_DOCS_BASE_URL ?? "/looma/",
@@ -62,7 +62,7 @@ const config: Config = {
     announcementBar: {
       id: `looma-r1-${docsReleaseMode}`,
       content: isCandidateRelease
-        ? 'Release 1 Candidate 0.1.28 is available on npm under the candidate tag. <a href="/looma/release-1-support">Read the support boundary.</a>'
+        ? 'Release 1 Candidate 0.2.5 is available on npm under the candidate tag. <a href="/looma/release-1-support">Read the support boundary.</a>'
         : 'Release 1 Candidate documentation preview — confirm registry availability before installing. <a href="/looma/release-1-support">Read the support boundary.</a>',
       backgroundColor: "#312e81",
       textColor: "#ffffff",
@@ -118,7 +118,7 @@ const config: Config = {
           ]
         }
       ],
-      copyright: "Looma UI — SSR-first web components."
+      copyright: "Looma UI — SSR-first declarative components."
     }
   } satisfies Preset.ThemeConfig
 };

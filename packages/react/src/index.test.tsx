@@ -41,7 +41,7 @@ describe("React declarative adapters", () => {
   });
 
   it("preserves structured property names and forwards declared events", async () => {
-    const items = [{ title: "Paragraph", command: "paragraph" }];
+    const items = [{ title: "Paragraph", description: "Plain text", icon: "pilcrow" }];
     const anchorRect = { x: 12, y: 24, width: 1, height: 18 };
     const onSlashMenuSelect = vi.fn();
     const host = document.createElement("div");

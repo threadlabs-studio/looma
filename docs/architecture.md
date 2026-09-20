@@ -17,31 +17,30 @@ Release 1 and are not public Candidate packages.
 ## Package Responsibilities
 
 - `@threadlabs/looma/*.css`: CSS-only primitive and semantic variables, themes, and component styles.
-- `@threadlabs/looma/layout`: ESM and CommonJS light-DOM custom elements that own spacing through `gap`
+- `@threadlabs/looma/layout`: ESM and CommonJS declarative layout components that own spacing through `gap`
   and never add external margins.
-- `@threadlabs/looma` and `@threadlabs/looma/core`: web components whose behavior and styles live in shadow roots.
-  Their slots preserve consumer-authored semantic light DOM.
-- `@threadlabs/looma/editor`: the complete ESM Tiptap-backed editor surface: light-DOM custom elements, the extension preset, and command helpers.
-- `@threadlabs/looma/editor/ui`: the low-level Tiptap-independent custom-element chrome for advanced composition.
+- `@threadlabs/looma` and `@threadlabs/looma/core`: declarative core components whose slots preserve consumer-authored semantic light DOM.
+- `@threadlabs/looma/editor`: the complete ESM Tiptap-backed editor surface: declarative UI, the extension preset, and command helpers.
+- `@threadlabs/looma/editor/ui`: the low-level Tiptap-independent declarative UI for advanced composition.
 - `@threadlabs/looma/editor/extensions`: the focused domain-neutral Tiptap preset and command-helper surface. Save, upload, collaboration, and presence remain app concerns.
 - `@threadlabs/looma/vue`: ESM wrappers for public layout and core elements, with no editor or Tiptap edge.
 - `@threadlabs/looma/vue/editor`: the turnkey `LoomaEditor` Vue integration. It owns the Tiptap instance, default extensions, commands, selection/focus orchestration, and themed editor controls while exposing content and upload boundaries to the host.
 
 ## DOM And Progressive-Enhancement Contract
 
-Looma does not have one universal DOM model:
+Looma has one framework-neutral component model:
 
-- Layout and editor elements render in light DOM.
-- Core Stencil components use shadow DOM for their runtime UI and styles.
-- Core components slot consumer-authored semantic controls or content. For
-  example, `ui-button` enhances a real slotted `<button>` rather than replacing
-  the server-rendered control with shadow markup.
-- Before custom-element JavaScript loads, only the consumer-authored light DOM
-  is available. Documentation and tests must therefore describe the exact
-  semantic fallback per component; Looma never promises that shadow behavior or
-  styling exists without JavaScript.
+- Each contract declares props and defaults, input channels, methods, slots,
+  events, internal state, dependencies, and a native root.
+- Direct HTML uses `ui-*` invocation tags as declarative source. Browser imports
+  lower each invocation to its native light-DOM root and attach its controller.
+- Framework adapters create the same native root directly and attach the same
+  definition; they do not route through a custom-element bridge.
+- Authored semantic controls and content remain meaningful before JavaScript.
+  For example, `ui-button` preserves a real authored `<button>`.
 - Importing public JavaScript entry points in an SSR process must not require
-  `window`, `document`, or `HTMLElement` at module evaluation time.
+  `window`, `document`, `HTMLElement`, or a custom-element registry at module
+  evaluation time.
 
 ## Module Formats
 
@@ -62,8 +61,8 @@ Release documentation follows built artifacts, not a blanket format claim:
 
 ## Contract Ownership
 
-Core and editor packages define canonical attributes, properties, events, slots,
-SSR/no-JS behavior, and accessibility expectations. The supported Vue adapter
+The declarative contracts define canonical native roots, attributes, properties,
+methods, events, slots, SSR/no-JS behavior, and accessibility expectations. The supported Vue adapter
 translates framework conventions without introducing behavior divergence. The
 [support matrix](./release-support-matrix.md) defines which surfaces receive
 Candidate proof in Release 1.
