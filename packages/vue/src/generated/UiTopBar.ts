@@ -64,16 +64,16 @@ return (_ctx: any,_cache: any) => {
   }), [
     _createElementVNode("header", _hoisted_1, [
       _createElementVNode("div", _hoisted_2, [
-        _renderSlot(_ctx.$slots, "leading")
+        _createElementVNode("span", { slot: "leading", "data-looma-framework-slot": "leading", style: { display: "contents" } }, [_renderSlot(_ctx.$slots, "leading")])
       ]),
       _createElementVNode("div", _hoisted_3, [
         _renderSlot(_ctx.$slots, "default")
       ]),
       _createElementVNode("div", _hoisted_4, [
-        _renderSlot(_ctx.$slots, "search")
+        _createElementVNode("span", { slot: "search", "data-looma-framework-slot": "search", style: { display: "contents" } }, [_renderSlot(_ctx.$slots, "search")])
       ]),
       _createElementVNode("div", _hoisted_5, [
-        _renderSlot(_ctx.$slots, "actions")
+        _createElementVNode("span", { slot: "actions", "data-looma-framework-slot": "actions", style: { display: "contents" } }, [_renderSlot(_ctx.$slots, "actions")])
       ])
     ])
   ], 16 /* FULL_PROPS */))

@@ -85,21 +85,21 @@ return (_ctx: any,_cache: any) => {
       "data-component": "ui-search-result-row"
     }, [
       _createElementVNode("span", _hoisted_2, [
-        _renderSlot(_ctx.$slots, "leading")
+        _createElementVNode("span", { slot: "leading", "data-looma-framework-slot": "leading", style: { display: "contents" } }, [_renderSlot(_ctx.$slots, "leading")])
       ]),
       _createElementVNode("span", _hoisted_3, [
         _createElementVNode("span", _hoisted_4, [
-          _renderSlot(_ctx.$slots, "title")
+          _createElementVNode("span", { slot: "title", "data-looma-framework-slot": "title", style: { display: "contents" } }, [_renderSlot(_ctx.$slots, "title")])
         ]),
         _createElementVNode("span", _hoisted_5, [
-          _renderSlot(_ctx.$slots, "meta")
+          _createElementVNode("span", { slot: "meta", "data-looma-framework-slot": "meta", style: { display: "contents" } }, [_renderSlot(_ctx.$slots, "meta")])
         ]),
         _createElementVNode("span", _hoisted_6, [
-          _renderSlot(_ctx.$slots, "excerpt")
+          _createElementVNode("span", { slot: "excerpt", "data-looma-framework-slot": "excerpt", style: { display: "contents" } }, [_renderSlot(_ctx.$slots, "excerpt")])
         ])
       ]),
       _createElementVNode("span", _hoisted_7, [
-        _renderSlot(_ctx.$slots, "trailing")
+        _createElementVNode("span", { slot: "trailing", "data-looma-framework-slot": "trailing", style: { display: "contents" } }, [_renderSlot(_ctx.$slots, "trailing")])
       ])
     ], 8 /* PROPS */, _hoisted_1)
   ], 16 /* FULL_PROPS */))
