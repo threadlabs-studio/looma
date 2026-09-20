@@ -9,7 +9,12 @@ export default function controller(host) {
   };
 
   const update = () => {
-    const children = [...el.children].filter((c) => !c.hasAttribute("data-ui-avatar-group-overflow"));
+    // Nested components may be lowered between observer turns. Querying the
+    // current direct element children avoids retaining a transient collection
+    // while those invocation nodes are replaced with their native roots.
+    const children = Array.from(
+      el.querySelectorAll(":scope > :not([data-ui-avatar-group-overflow])")
+    );
     const visible = limit();
     // inline style wins over the child component's own display rule (the original used !important)
     children.forEach((c, i) => { c.style.display = i >= visible ? "none" : ""; });
