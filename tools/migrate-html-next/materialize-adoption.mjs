@@ -20,6 +20,12 @@ for (const component of manifest.components) {
 }
 
 function rewriteFrameworkSource(source, component) {
+  // The upstream compiler emits adapters for its package names and includes a
+  // controller import beside every generated component. Looma centralizes
+  // controller modules in the registered package graph, so adapters resolve
+  // them by tag instead of bundling a private copy per framework component.
+  // `data-looma-managed` is the ownership handshake with document observation:
+  // the framework owns this native root and the observer must not lower it.
   return source
     .replace(/import \{ attachComponent \} from "@nextwebwg\/declarative-components\/runtime";\n/, `import { attachLoomaComponent } from "@threadlabs/looma-core/declarative";\n`)
     .replace(/import \{ manageGeneratedProps \} from "@nextwebwg\/declarative-components\/generated-runtime";\n/, `import { manageGeneratedProps } from "@threadlabs/looma-core/declarative-generated";\n`)
@@ -41,6 +47,11 @@ function rewriteFrameworkSource(source, component) {
 }
 
 function rewriteNestedComponents(source, component, components, framework) {
+  // Generated templates can contain other declarative components. Replacing
+  // their invocation tags with generated framework components ensures the
+  // framework owns the whole rendered subtree and gives each nested root its
+  // own lifecycle. Leaving raw tags here would split ownership between the
+  // framework reconciler and the document observer.
   const dependencies = components.filter(({ tag }) => tag !== component.tag && source.includes(`<${tag}`));
   if (dependencies.length === 0) return source;
   for (const dependency of dependencies) {
@@ -60,6 +71,10 @@ function rewriteNestedComponents(source, component, components, framework) {
 }
 
 function rewriteReactSemantics(source, definitionSource) {
+  // Property-only values are assigned after mount by manageGeneratedProps.
+  // Passing them through JSX would serialize unknown native attributes and can
+  // stringify objects/functions. The definition, not Stencil metadata, decides
+  // which bindings use the property channel.
   const propertyNames = [...definitionSource.matchAll(/\s\.([\w-]+)=/g)].map((match) => match[1]);
   for (const propertyName of new Set(propertyNames)) {
     source = source.replace(new RegExp(`\\s${propertyName}=\\{prop\\d+(?: \\?\\? undefined)?\\}`, "gi"), "");
@@ -83,9 +98,11 @@ async function materializeRegistry(group, components, output) {
       .replace(/^<link\s+rel="component"[^>]*>\s*$/gm, "");
     records.push(`  { tag: ${JSON.stringify(component.tag)}, source: ${JSON.stringify(definition)}, controller: ${controller} },`);
   }
-  // Core definitions carry their component styles inline, so the runtime installs
-  // them while registering the declarative graph. Layout and editor styles are
-  // package-level resources and remain explicit adoption assets.
+  // Core definitions carry their component styles inline, so the runtime
+  // installs them while registering the declarative graph. Layout and editor
+  // styles are package-level resources and remain explicit adoption assets.
+  // Keeping this difference here—rather than in consumers—lets all entry points
+  // share one record shape and prevents CSS ownership from leaking into adapters.
   const styles = group === "core"
     ? ""
     : await readFile(join(HERE, "generated", group, "styles.css"), "utf8");
@@ -148,6 +165,7 @@ async function materializeVanilla(components) {
   const names = [];
   const factoryEntries = [];
   const declarations = [
+    "/** Inputs accepted by generated DOM factories before lifecycle attachment. */",
     "export interface VanillaComponentOptions {",
     "  readonly attributes?: Readonly<Record<string, string | number | boolean | null | undefined>>;",
     "  readonly children?: readonly Node[];",
@@ -206,19 +224,27 @@ async function main() {
     .concat("\nexport const { attachComponent, attachRegisteredComponent, getComponentHost, installComponentGraph, lowerDocument, manageComponentLifecycle, observeDocument, registerComponentDefinitions, setControllerModule } = HtmlRuntime;\n");
   await writeFile(join(output, "runtime.js"), runtime);
   await writeFile(join(output, "runtime.d.ts"), [
+    "/** Binds props, behavior, and teardown to a root whose DOM is owned by a framework adapter. */",
     "export declare function attachComponent(element: Element, definition: unknown, options?: { props?: Record<string, unknown>; controller?: unknown }): () => void;",
+    "/** Uses the package registry so adapters do not bundle or import private definition objects. */",
     "export declare function attachRegisteredComponent(element: Element, tag: string, options?: { props?: Record<string, unknown>; controller?: unknown }): () => void;",
+    "/** Returns the framework-neutral host facade; controllers must not depend on invocation elements. */",
     "export declare function getComponentHost(element: Element): unknown;",
     "export declare function installComponentGraph(...args: unknown[]): unknown;",
+    "/** Performs the initial lowering pass before mutation observation begins. */",
     "export declare function lowerDocument(root?: Document): unknown;",
+    "/** Connects behavior only while the root participates in the document. */",
     "export declare function manageComponentLifecycle(element: Element, definition: unknown, options?: { props?: Record<string, unknown>; controller?: unknown }): () => void;",
+    "/** Owns incremental lowering until its returned disposer is called. */",
     "export declare function observeDocument(root?: Document, options?: { shouldLower?: (element: Element, definition: { contract: { tag: string } }, hydration: boolean) => boolean; onConnect?: (element: Element, definition: { contract: { tag: string } }) => void | (() => void); onError?: (error: unknown) => void }): () => void;",
     "export declare function registerComponentDefinitions(definitions: readonly unknown[], root?: Document): void;",
+    "/** Associates behavior with one settled root without publishing modules on a browser global. */",
     "export declare function setControllerModule(element: Element, module: Promise<unknown>): void;",
     "",
   ].join("\n"));
   await cp(join(HERE, "vendor", "html-next-generated-runtime.js"), join(output, "generated-runtime.js"));
   await writeFile(join(output, "generated-runtime.d.ts"), [
+    "/** Metadata that preserves defaults and property-only values without forcing attribute serialization. */",
     "export interface GeneratedProp {",
     "  readonly name: string;",
     "  readonly attribute: string;",
@@ -226,6 +252,7 @@ async function main() {
     "  readonly type: string | readonly unknown[];",
     "  readonly required: boolean;",
     "}",
+    "/** Synchronizes property and attribute writes for the lifetime of a native root. */",
     "export declare function manageGeneratedProps(element: Element, props: readonly GeneratedProp[], apply?: (name: string, value: unknown) => void): () => void;",
     "",
   ].join("\n"));

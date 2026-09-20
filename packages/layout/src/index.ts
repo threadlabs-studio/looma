@@ -1,5 +1,16 @@
 import "./layout.css";
 
+/**
+ * Native custom elements for Looma's layout-only primitives.
+ *
+ * These elements deliberately expose CSS-backed attributes instead of a
+ * component rendering model: authored children remain light DOM, server output
+ * is already meaningful before upgrade, and JavaScript is used only where
+ * semantics require behavior (sidebar resizing, reel focusability, separator
+ * ARIA). Keep new visual layout behavior in `layout.css` unless it must observe
+ * input or browser state.
+ */
+
 type PrimitiveAttribute =
   | "gap"
   | "align"
@@ -23,7 +34,13 @@ type PrimitiveAttribute =
 
 const ORIENTATION_HORIZONTAL = "horizontal";
 const ORIENTATION_VERTICAL = "vertical";
+/** Stable origin vocabulary for resize events across pointer, keyboard, and code paths. */
 export type SidebarResizeTrigger = "keyboard" | "pointer" | "programmatic";
+/**
+ * Payload emitted after the effective sidebar width changes.
+ * `trigger` lets applications distinguish user intent from initialization or
+ * restoration without reverse-engineering the originating DOM event.
+ */
 export interface SidebarResizeDetail { width: number; trigger: SidebarResizeTrigger }
 
 function normalizeOrientation(value: string | null): string {
@@ -31,6 +48,9 @@ function normalizeOrientation(value: string | null): string {
 }
 
 if (typeof HTMLElement !== "undefined") {
+// Class declarations and registration are browser-gated so importing the
+// package during SSR never requires DOM globals. The light-DOM/CSS contract
+// still renders server-side; upgrade only adds reflection and behavior.
 class UILayoutElement extends HTMLElement {
   protected getPrimitiveAttribute(name: PrimitiveAttribute): string {
     return this.getAttribute(name) ?? "";
@@ -258,6 +278,8 @@ class UISidebarElement extends UILayoutElement {
 
   private storageId(): string | null {
     const key = this.getAttribute("storage-key")?.trim();
+    // Namespacing is part of storage ownership: a page can reuse a logical key
+    // without colliding with unrelated localStorage data.
     return key ? `looma:sidebar-width:${key}` : null;
   }
 
@@ -302,6 +324,8 @@ class UISidebarElement extends UILayoutElement {
     this.resizeHandle?.setAttribute("aria-valuenow", String(width));
     if (persist && changed) this.persistWidth(width);
     if (changed) {
+      // The event is emitted only for an effective width transition. Repeated
+      // attribute/lifecycle syncs therefore cannot look like user resizes.
       this.dispatchEvent(new CustomEvent<SidebarResizeDetail>("resize", { detail: { width, trigger }, bubbles: true }));
     }
   }
@@ -456,6 +480,13 @@ for (const [tag, constructor] of definitions) {
 }
 }
 
+/**
+ * Compatibility hook for callers that previously performed explicit custom
+ * element registration. Module evaluation already registers idempotently, so
+ * invoking this function never creates a second constructor definition.
+ */
 export function registerLayoutPrimitives(): void {
-  // Registration is side-effectful via module import.
+  // Kept as an explicit compatibility hook for loaders that historically
+  // called registration. Import evaluation performs idempotent registration;
+  // calling this function must remain a harmless no-op.
 }

@@ -1,3 +1,14 @@
+/**
+ * Module-wide coordination for dismissible surfaces in one browser realm.
+ *
+ * Individual components own rendering and open state. This module owns only
+ * the cross-component invariants: Escape/light-dismiss target the most recently
+ * opened surface, document listeners exist only while needed, and scroll stays
+ * locked until the last modal closes. A component must therefore close its
+ * record during teardown even if its DOM node has already disconnected.
+ */
+
+/** Why an overlay was asked to close; this describes intent, not state ownership. */
 export type OverlayCloseReason =
   | "programmatic"
   | "light-dismiss"
@@ -6,6 +17,13 @@ export type OverlayCloseReason =
 
 export type OverlayTrigger = "keyboard" | "pointer" | "programmatic";
 
+/**
+ * A live entry in the overlay stack.
+ *
+ * `requestClose` is deliberately a request rather than a mutation. Controlled
+ * components notify their owner and may remain open; uncontrolled components
+ * may close immediately. The manager must not guess which mode is active.
+ */
 export interface OverlayRecord {
   id: string;
   modal: boolean;
@@ -83,6 +101,11 @@ function removeListenersIfIdle(): void {
   listenersAttached = false;
 }
 
+/**
+ * Moves an overlay to the top of the interaction stack.
+ * Reopening an existing id replaces its record so modal accounting cannot be
+ * incremented twice and the newest callbacks/related elements take effect.
+ */
 export function openOverlay(record: OverlayRecord): void {
   closeOverlay(record.id);
   stack.push(record);
@@ -93,6 +116,7 @@ export function openOverlay(record: OverlayRecord): void {
   ensureListeners();
 }
 
+/** Removes an overlay record and releases global resources when the stack empties. */
 export function closeOverlay(id: string): void {
   const index = stack.findIndex((record) => record.id === id);
   if (index >= 0) {
@@ -113,6 +137,12 @@ export function isTopOverlay(id: string): boolean {
   return getTopOverlay()?.id === id;
 }
 
+/**
+ * Routes a dismissal request to the topmost overlay only.
+ *
+ * Returning `true` means a request was delivered, not that the overlay closed;
+ * controlled owners decide whether and when the corresponding state changes.
+ */
 export function requestTopOverlayClose(reason: OverlayCloseReason, trigger: OverlayTrigger): boolean {
   const top = getTopOverlay();
   if (!top) {

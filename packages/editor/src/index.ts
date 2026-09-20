@@ -1,9 +1,11 @@
 /**
  * The complete Looma editor surface.
  *
- * Looma's editor is based on Tiptap. This entry point registers the editor UI
- * elements and exports the Tiptap extension preset and command helpers needed
- * to use them. Consumers that only want the raw UI elements can use `./ui`.
+ * This entry point combines two independently usable layers: importing `./ui`
+ * registers Tiptap-independent declarative chrome, while `./extensions` exports
+ * Tiptap schema/behavior and command helpers. The combined entry therefore has
+ * UI registration side effects. Consumers building custom editor behavior can
+ * choose either subpath to keep the other layer out of their dependency graph.
  */
 
 export * from "./ui";

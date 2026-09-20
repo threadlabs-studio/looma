@@ -37,16 +37,30 @@ import { LoomaListBehavior } from "./list-behavior";
 import { createLoomaMentionExtension } from "./mention";
 import { LoomaTable, LoomaTableCell, LoomaTableHeader } from "./table-formatting";
 
+/**
+ * Deliberate policy knobs in Looma's default extension set.
+ * Consumers needing different schemas should compose an explicit Tiptap list
+ * rather than relying on undocumented mutation of the returned extensions.
+ */
 export interface DefaultEditorExtensionsOptions {
+  /** Placeholder shown only for empty paragraphs, not every empty node type. */
   placeholder?: string;
+  /** Passed to Tiptap Link; defaults false to keep editing clicks in the editor. */
   linkOpenOnClick?: boolean;
+  /** Passed to Tiptap Image; block images are the default document policy. */
   imageInline?: boolean;
+  /** Custom mention extension, the Looma default, or false to omit mentions. */
   mention?: AnyExtension | false;
 }
 
 const lowlight = createLowlight(common);
 
-/** Complete Looma table support as one Tiptap extension. */
+/**
+ * Complete Looma table schema as one Tiptap extension.
+ * Use this in presets that want table, row, header, and cell nodes to remain an
+ * atomic policy choice; use `getLoomaTableExtensions` only when ordering or
+ * per-extension composition must be explicit.
+ */
 export const LoomaTableKit: AnyExtension = Extension.create({
   name: "loomaTableKit",
   addExtensions() {
@@ -54,14 +68,19 @@ export const LoomaTableKit: AnyExtension = Extension.create({
   },
 });
 
-/** Individual table extensions for consumers that prefer an explicit extension list. */
+/** Returns a fresh ordered list of the same schema extensions as `LoomaTableKit`. */
 export function getLoomaTableExtensions(): AnyExtension[] {
   return [LoomaTable, TableRow, LoomaTableHeader, LoomaTableCell];
 }
 
 /**
- * Returns the default Looma editor extensions (Vanilla Tiptap).
- * Use with new Editor({ extensions: getDefaultEditorExtensions(), ... }) or framework useEditor().
+ * Builds Looma's complete, ordered Tiptap extension policy.
+ *
+ * A fresh array is returned for each editor. Document nodes precede marks and
+ * behavior extensions; Looma's table/list policies are installed once; mention
+ * can be replaced without coupling UI chrome to an application directory.
+ * Use with `new Editor({ extensions: getDefaultEditorExtensions(), ... })` or a
+ * framework's Tiptap editor hook.
  */
 export function getDefaultEditorExtensions(
   options: DefaultEditorExtensionsOptions = {}

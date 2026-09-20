@@ -7,11 +7,19 @@ import type { LoomaIconName } from "@threadlabs/looma-core";
 import type { LoomaCalloutTone } from "./callout";
 import { insertTableAtRange } from "./table-commands";
 
+/** Editor state a slash command may replace and then act upon. */
 export interface LoomaSlashCommandContext {
   editor: Editor;
   range: Range;
 }
 
+/**
+ * One application-extensible command.
+ *
+ * Commands own their editor mutation, including removal of `context.range`.
+ * Keeping that policy in the command lets custom items behave exactly like
+ * built-ins without coupling the headless suggestion lifecycle to Tiptap nodes.
+ */
 export interface LoomaSlashCommand {
   title: string;
   description: string;
@@ -20,6 +28,11 @@ export interface LoomaSlashCommand {
   command: (context: LoomaSlashCommandContext) => void;
 }
 
+/**
+ * Ephemeral render model published to any slash-menu UI.
+ * Replace snapshots rather than merging them: the `select` callback closes over
+ * a particular Tiptap range and becomes invalid when the suggestion updates.
+ */
 export interface LoomaSlashMenuSnapshot {
   active: boolean;
   items: LoomaSlashCommand[];
@@ -29,6 +42,12 @@ export interface LoomaSlashMenuSnapshot {
   select: ((index: number) => void) | null;
 }
 
+/**
+ * Application-owned command inventory and integration callbacks.
+ * Replacing `commands` changes search and execution together; the extension
+ * never merges domain commands into defaults implicitly. Asset selection stays
+ * callback-driven because uploads and persistence are outside editor ownership.
+ */
 export interface LoomaSlashCommandOptions {
   commands: LoomaSlashCommand[];
   onStateChange?: (state: LoomaSlashMenuSnapshot) => void;
@@ -65,6 +84,11 @@ const CALLOUT_COMMANDS: ReadonlyArray<{
   },
 ];
 
+/**
+ * Builds Looma's default command policy as fresh objects for one editor.
+ * The image command delegates asset selection because Looma does not own upload,
+ * persistence, or media-library concerns.
+ */
 export function getDefaultSlashCommands(
   onOpenImagePicker?: () => void,
 ): LoomaSlashCommand[] {
@@ -293,6 +317,11 @@ export const LoomaSlashCommand = Extension.create<LoomaSlashCommandOptions>({
   },
 });
 
+/**
+ * Creates an independently configured extension instance.
+ * Prefer this factory when callbacks or commands are editor-specific; the
+ * exported base extension remains a convenient zero-configuration preset.
+ */
 export function createLoomaSlashCommandExtension(
   options: Partial<LoomaSlashCommandOptions> = {},
 ) {
