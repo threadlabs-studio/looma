@@ -5,7 +5,7 @@
 > history or private workspace/build evidence, not as consumer guidance.
 
 Last Updated: 2026-09-20 11:15 PDT
-Status: Candidate `0.2.5` is public. Candidate `0.2.6` is prepared with
+Status: Candidate `0.2.5` is public. Candidate `0.2.7` is prepared with
 structured document paste, reliable history controls, and an opt-in sticky
 desktop editor toolbar. Historical release tasks below retain their original
 version context.
