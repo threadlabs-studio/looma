@@ -1,5 +1,7 @@
-import { defineComponent, h, shallowRef, watch, watchEffect, type PropType, type SlotsType } from 'vue';
+import { defineComponent, h, shallowRef, watch, watchEffect, type Component, type ComponentPublicInstance, type PropType, type SlotsType } from 'vue';
 import type { ComboboxConfig, ComboboxOption, ComboboxChange, ComboboxValidationState, MultiComboboxItem, MultiComboboxItemChange, MultiComboboxCreate } from '@threadlabs/looma-core';
+import { toHTMLElement } from './adapter';
+import { UiCombobox } from './generated';
 
 type ComboboxModel = string | null | readonly MultiComboboxItem[];
 
@@ -69,17 +71,22 @@ export const Combobox = defineComponent({
     });
     expose({ validate: () => element.value!.validate() });
     const items = () => (props.multiple && Array.isArray(props.modelValue) ? props.modelValue : []) as readonly MultiComboboxItem[];
-    return () => h('ui-combobox', {
+    return () => h(UiCombobox as Component, {
       ...attrs,
       ...Object.fromEntries(Object.entries(props).filter(([key]) => !['modelValue', 'config', 'query', 'tokenSeparators'].includes(key))),
       // Property binding is explicit for non-serializable config; strings remain
       // SSR-compatible attributes until the element upgrades.
-      value: props.modelValue,
+      value: typeof props.modelValue === 'string' || props.modelValue == null
+        ? props.modelValue
+        : [...props.modelValue],
+      config: props.config,
       query: props.query,
-      tokenSeparators: props.tokenSeparators,
+      tokenSeparators: [...props.tokenSeparators],
       'data-allow-mismatch': 'class',
-      ref: element,
-      class: [attrs.class, element.value?.shadowRoot && 'hydrated'],
+      ref: (value: Element | ComponentPublicInstance | null) => {
+        element.value = toHTMLElement(value) as typeof element.value;
+      },
+      class: attrs.class,
 
       'onOptions-change': (event: CustomEvent<readonly ComboboxOption[]>) => { rows.value = event.detail; emit('optionsChange', event.detail); },
       'onQuery-change': (event: CustomEvent<{ query: string; display: string; trigger: string }>) => {

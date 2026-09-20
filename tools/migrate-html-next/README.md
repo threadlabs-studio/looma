@@ -61,18 +61,21 @@ also preserves boolean true/false semantics.
 from the built Storybook (`before`) and its HTML Next migration lowered by the vendored runtime
 (`after`) — clips to the component, and reports the full-bounds pixel mismatch. It is **tooling**: it
 renders the migration to validate it; it does not adopt the migration into the shipped components.
+After adoption, point `LOOMA_LEGACY_STORYBOOK_STATIC` at a Storybook build from the migration base
+revision so the `before` side remains the retained legacy fixture rather than the migrated package.
 
-`vendor/html-next-runtime.iife.js` is a prebuilt HTML Next runtime (from `nextwebwg/html-next`);
-re-vendor when that runtime changes.
+`vendor/html-next-runtime.iife.js` and `vendor/html-next-generated-runtime.js` are prebuilt from
+`nextwebwg/html-next` commit `96ad04e`. Re-vendor both, run the official CLI build for all 49
+definitions, and rerun `materialize-adoption.mjs` whenever that upstream runtime/compiler changes.
 
 ## Generated component graph
 
 `pnpm --filter @threadlabs/looma-migrate-html-next generate` writes deterministic candidate graphs
 to `generated/core/`, `generated/layout/`, and `generated/editor/`: one definition per component,
 its relative component edges, the available controller modules, converted styles, and a
-machine-readable manifest. These are migration artifacts, not yet the shipped package entry
-points. Keeping them materialized makes the complete graph reviewable and gives the adoption build
-one canonical input instead of regenerating components differently from the visual harness.
+machine-readable manifest. These definitions are the canonical source for the shipped declarative
+registries and generated framework adapters. Keeping them materialized makes the complete graph
+reviewable and prevents the visual harness and adoption build from generating different contracts.
 
 `pnpm --filter @threadlabs/looma-migrate-html-next validate` loads all 49 materialized definitions
 without Stencil or a custom-elements registry and requires every definition to parse and lower
@@ -164,8 +167,7 @@ at **6.2%**. Harness-owned representative fixtures cover `ui-affordance-scope` a
 which have no dedicated Storybook stories; both converge at **0%**. The overlay controllers use
 native dialog/popover APIs and synchronize generated nested menu roots across lowering turns.
 
-**Next — adoption.** Static and explicit open-state visual convergence is proven across all 49
-component surfaces, and the browser suite exercises the migrated interaction contracts. Adopt the
-materialized definitions/controllers and runtime into the shipped core, layout, editor, and
-framework adapter entry points as one coordinated cutover. Converted output stays gated until that
-complete package-consumer path passes.
+**Adoption.** The core, layout, editor, React, Vue, and Svelte entry points now consume the same
+materialized graph. Live HTML is lowered by document observation; framework adapters render native
+roots and attach them through the already-registered declarative contract. Neither path registers
+custom elements or exposes Stencil/Looma legacy internals as the public component API.

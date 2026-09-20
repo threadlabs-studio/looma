@@ -28,7 +28,7 @@ async function hashTree(directory) {
     }
   }
 
-  for (const entry of ["dist", "loader", "layout", "editor", "vue"]) {
+  for (const entry of ["dist", "layout", "editor", "vue"]) {
     await visit(path.join(directory, entry), entry);
   }
   for (const entry of [
@@ -90,9 +90,12 @@ test("facade assembly is deterministic, self-contained, and boundary-safe", asyn
 
   for (const relativePath of [
     "dist/index.d.ts",
-    "loader/index.js",
-    "loader/index.cjs.js",
-    "loader/index.d.ts",
+    "dist/loader.js",
+    "dist/loader.d.ts",
+    "dist/declarative.js",
+    "dist/declarative.d.ts",
+    "dist/declarative-generated.js",
+    "dist/declarative-generated.d.ts",
     "layout/index.js",
     "layout/index.cjs",
     "layout/index.d.ts",

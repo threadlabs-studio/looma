@@ -45,6 +45,8 @@ test("the facade declares the exact public subpath and peer contract", async () 
     ".",
     "./core",
     "./loader",
+    "./core/declarative",
+    "./core/declarative-generated",
     "./layout",
     "./editor",
     "./editor/ui",
@@ -65,6 +67,9 @@ test("the facade declares the exact public subpath and peer contract", async () 
   assert.deepEqual(manifest.exports["."], manifest.exports["./core"]);
   assert.equal(manifest.exports["."].import, "./dist/index.js");
   assert.equal(manifest.exports["."].require, "./dist/index.cjs");
+  assert.equal(manifest.exports["./loader"].import, "./dist/loader.js");
+  assert.equal(manifest.exports["./core/declarative"].import, "./dist/declarative.js");
+  assert.equal(manifest.exports["./core/declarative-generated"].import, "./dist/declarative-generated.js");
   assert.equal(manifest.exports["./editor"].import, "./editor/index.js");
   assert.equal(manifest.exports["./editor/ui"].import, "./editor/ui.js");
   assert.equal(manifest.exports["./editor/extensions"].import, "./editor/extensions/index.js");

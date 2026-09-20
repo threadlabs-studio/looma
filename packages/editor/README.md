@@ -41,7 +41,7 @@ import {
 
 ## Candidate surface
 
-- Seven custom elements: toolbar, slash menu, mention menu, table context menu,
+- Seven declarative component surfaces: toolbar, slash menu, mention menu, table context menu,
   table toolbar, insert-table grid, and table overlay.
 - `getDefaultEditorExtensions()` for the qualified Tiptap 2 extension preset,
   including Info, Note, and Warning callout blocks.

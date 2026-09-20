@@ -8,7 +8,9 @@ import { chromium } from "playwright";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const MIGRATION = join(HERE, "..");
 const LOOMA = join(MIGRATION, "..", "..");
-const STATIC = join(LOOMA, "apps", "storybook", "storybook-static");
+const STATIC = process.env.LOOMA_LEGACY_STORYBOOK_STATIC
+  ? resolve(process.env.LOOMA_LEGACY_STORYBOOK_STATIC)
+  : join(LOOMA, "apps", "storybook", "storybook-static");
 const GENERATED = join(MIGRATION, "generated", "layout");
 const CORE_GENERATED = join(MIGRATION, "generated", "core");
 const CONTROLLERS = join(HERE, "controllers");

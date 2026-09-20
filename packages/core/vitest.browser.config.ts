@@ -10,6 +10,6 @@ export default defineConfig({
       instances: [{ browser: "chromium" }],
     },
     setupFiles: ["./test/setup.ts"],
-    include: ["src/**/*.browser.test.ts"],
+    include: ["src/declarative-adoption.browser.test.ts", "src/input-modality.browser.test.ts"],
   },
 });

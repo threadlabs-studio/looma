@@ -443,7 +443,6 @@ class UIEditorTableOverlayElement extends HTMLElement {
   }
 }
 
-if (typeof window !== "undefined" && !customElements.get(TAG)) {
-  customElements.define(TAG, UIEditorTableOverlayElement);
-}
+// The class remains as migration reference code; the shipped UI entry registers the declarative
+// definition and controller instead of installing a custom element.
 }
