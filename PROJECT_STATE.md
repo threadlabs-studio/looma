@@ -4,11 +4,12 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-20 13:46 PDT
-Status: Candidate `0.2.5` is public. Candidate `0.2.9` is prepared with
+Last Updated: 2026-09-20 14:22 PDT
+Status: Candidate `0.2.9` is public. Candidate `0.2.10` is prepared with
 structured document paste, reliable history controls, an opt-in sticky desktop
-editor toolbar, SSR-safe Vue adapter hydration, and preserved named-slot
-content. Historical release tasks below retain their original version context.
+editor toolbar, SSR-safe Vue adapter hydration, preserved nested named-slot
+content, and correct hidden native-root layout. Historical release tasks below
+retain their original version context.
 
 ## Current Focus
 
@@ -37,6 +38,9 @@ content. Historical release tasks below retain their original version context.
 
 ## Recent Progress
 
+- Preserved conditional declarative regions while attaching framework-owned
+  native roots. Nested Vue components projected through named slots now survive
+  hydration, and hidden native roots no longer occupy layout space.
 - Preserved framework-rendered named-slot nodes through declarative attachment.
   Vue adapters now retain their slot identity, and optional-region controllers
   synchronize both declarative state and immediate DOM visibility.

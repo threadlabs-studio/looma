@@ -11,6 +11,10 @@
   pointer-events: none;
 }
 
+:host([hidden]) {
+  display: none;
+}
+
 :host([popover]) {
   right: auto;
   bottom: auto;
