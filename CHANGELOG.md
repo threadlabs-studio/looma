@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## v0.2.11 Candidate
+
+- Preserve Vue-owned conditional content added after mount in named slots, so
+  framework updates remain in the intended component region.
+
 ## v0.2.10 Candidate
 
 - Preserve conditional framework subtrees during native-root attachment, so

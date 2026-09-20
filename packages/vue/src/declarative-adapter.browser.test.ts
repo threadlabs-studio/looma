@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createApp, createSSRApp, h, type App } from "vue";
+import { createApp, createSSRApp, h, nextTick, ref, type App } from "vue";
 import { renderToString } from "@vue/server-renderer";
 import { controllerFor } from "@threadlabs/looma-core/declarative";
 
@@ -129,6 +129,37 @@ describe("Vue declarative adapters in a browser", () => {
     await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
 
     expect(host.querySelectorAll('[data-component-root="ui-tree-item"]')).toHaveLength(2);
+    expect(host.querySelector('[role="group"] [data-component-root="ui-tree-item"]')).not.toBeNull();
+    expect(host.textContent).toContain("Child");
+  });
+
+  it("preserves reactive framework content added to named slots", async () => {
+    const expanded = ref(false);
+    const host = document.createElement("div");
+    document.body.append(host);
+    const app = createApp({
+      render: () => h(Tree, { label: "Pages" }, () => h(TreeItem, {
+        container: true,
+        expanded: expanded.value,
+        itemId: "parent",
+        label: "Parent",
+      }, {
+        default: () => "Parent",
+        children: () => expanded.value
+          ? h("div", [h(TreeItem, { itemId: "child", label: "Child" }, () => "Child")])
+          : null,
+      })),
+    });
+    apps.push(app);
+    app.mount(host);
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+
+    expanded.value = true;
+    await nextTick();
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+
+    expect(host.querySelectorAll('[data-component-root="ui-tree-item"]')).toHaveLength(2);
+    expect(host.querySelector('[role="group"] [data-component-root="ui-tree-item"]')).not.toBeNull();
     expect(host.textContent).toContain("Child");
   });
 

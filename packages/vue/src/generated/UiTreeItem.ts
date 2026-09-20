@@ -114,13 +114,13 @@ return (_ctx: any,_cache: any) => {
           "data-component": "ui-tree-item"
         }, null, -1 /* CACHED */))),
       _createElementVNode("span", _hoisted_3, [
-        _renderSlot(_ctx.$slots, "leading")
+        _createElementVNode("span", { slot: "leading", "data-looma-framework-slot": "leading", style: { display: "contents" } }, [_renderSlot(_ctx.$slots, "leading")])
       ]),
       _createElementVNode("span", _hoisted_4, [
         _renderSlot(_ctx.$slots, "default")
       ]),
       _createElementVNode("span", _hoisted_5, [
-        _renderSlot(_ctx.$slots, "actions")
+        _createElementVNode("span", { slot: "actions", "data-looma-framework-slot": "actions", style: { display: "contents" } }, [_renderSlot(_ctx.$slots, "actions")])
       ]),
       _cache[2] || (_cache[2] = _createElementVNode("span", {
         class: "drop-indicator row-drop-indicator",
@@ -130,7 +130,7 @@ return (_ctx: any,_cache: any) => {
       }, null, -1 /* CACHED */))
     ]),
     props.container ? _createElementVNode("div", _hoisted_6, [
-      _renderSlot(_ctx.$slots, "children")
+      _createElementVNode("span", { slot: "children", "data-looma-framework-slot": "children", style: { display: "contents" } }, [_renderSlot(_ctx.$slots, "children")])
     ]) : _createCommentVNode("v-if", true),
     _cache[3] || (_cache[3] = _createElementVNode("span", {
       class: "drop-indicator subtree-drop-indicator",

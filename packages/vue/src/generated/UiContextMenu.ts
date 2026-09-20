@@ -61,7 +61,7 @@ return (_ctx: any,_cache: any) => {
     ref_key: "root",
     ref: root
   }), [
-    _renderSlot(_ctx.$slots, "trigger"),
+    _createElementVNode("span", { slot: "trigger", "data-looma-framework-slot": "trigger", style: { display: "contents" } }, [_renderSlot(_ctx.$slots, "trigger")]),
     _createElementVNode("div", _hoisted_1, [
       _createVNode(_unref(UiMenu), { "data-component": "ui-context-menu" }, {
         default: _withCtx(() => [
