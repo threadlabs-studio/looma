@@ -90,11 +90,6 @@ const config: Config = {
           to: "/components",
           label: "Components",
           position: "left"
-        },
-        {
-          href: "https://knit.wiki",
-          label: "Knit",
-          position: "right"
         }
       ]
     },
@@ -121,7 +116,6 @@ const config: Config = {
         {
           title: "Resources",
           items: [
-            { label: "Knit", href: "https://knit.wiki" },
             {
               label: "GitHub",
               href: "https://github.com/threadlabs-studio/looma"
