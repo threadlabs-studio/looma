@@ -65,7 +65,7 @@ return (_ctx: any,_cache: any) => {
     _createElementVNode("div", _hoisted_1, [
       _createVNode(_unref(UiMenu), { "data-component": "ui-context-menu" }, {
         default: _withCtx(() => [
-          _renderSlot(_ctx.$slots, "default")
+          _createElementVNode("span", { "data-looma-framework-slot": "", style: { display: "contents" } }, [_renderSlot(_ctx.$slots, "default")])
         ]),
         _: 3 /* FORWARDED */
       })

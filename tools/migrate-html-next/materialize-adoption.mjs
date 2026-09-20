@@ -59,11 +59,16 @@ function rewriteNestedComponents(source, component, components, framework) {
     : source.replace(/(import type \{[^\n]+\} from "react";\n)/, `$1${imports}\n`);
 }
 
-function preserveVueNamedSlotRegions(source) {
-  return source.replace(
-    /<slot name="([^"]+)"><\/slot>/g,
-    '<span slot="$1" data-looma-framework-slot="$1" style="display: contents"><slot name="$1"></slot></span>',
-  );
+function preserveVueSlotRegions(source) {
+  return source
+    .replace(
+      /<slot name="([^"]+)"><\/slot>/g,
+      '<span slot="$1" data-looma-framework-slot="$1" style="display: contents"><slot name="$1"></slot></span>',
+    )
+    .replace(
+      /<slot><\/slot>/g,
+      '<span data-looma-framework-slot="" style="display: contents"><slot></slot></span>',
+    );
 }
 
 function rewriteReactSemantics(source, definitionSource) {
@@ -134,7 +139,7 @@ async function materializeVue(components) {
   await mkdir(output, { recursive: true });
   const exports = [];
   for (const component of components) {
-    const rewritten = preserveVueNamedSlotRegions(rewriteNestedComponents(rewriteFrameworkSource(
+    const rewritten = preserveVueSlotRegions(rewriteNestedComponents(rewriteFrameworkSource(
       await readFile(join(COMPILED, "vue", `${component.name}.vue`), "utf8"),
       component,
     ), component, components, "vue"));
@@ -213,9 +218,9 @@ async function main() {
   const slotNameReader = 'function Ei(e){return e instanceof Element?e.getAttribute("slot")??"":""}';
   const frameworkSlotNameReader = 'function Ei(e){return e.__loomaFrameworkSlot??(e instanceof Element?e.getAttribute("slot")??"":"")}';
   const hydrationScanner = 'let c=[],l=(m,f)=>{let p=f.children.filter(w=>w.kind==="text").map(w=>w.value),h=0,v=f.children.filter(w=>w.kind==="element"),S=0;for(let w of Array.from(m.childNodes)){if(w instanceof Element){if(!(w.getAttribute("data-component")?.split(/\\s+/)??[]).includes(t.contract.tag))Ve(w),c.push(w);else{';
-  const frameworkAwareHydrationScanner = 'let c=[],l=(m,f)=>{let k=f.children.find(w=>w.kind==="slot")?.name??"",p=f.children.filter(w=>w.kind==="text").map(w=>w.value),h=0,v=f.children.filter(w=>w.kind==="element"),S=0;for(let w of Array.from(m.childNodes)){if(w instanceof Element){if(!(w.getAttribute("data-component")?.split(/\\s+/)??[]).includes(t.contract.tag))w.__loomaFrameworkSlot=k,Ve(w),c.push(w);else{';
+  const frameworkAwareHydrationScanner = 'let c=[],l=(m,f)=>{let q=f.children.find(w=>w.kind==="slot"),k=q?.name??"",p=f.children.filter(w=>w.kind==="text").map(w=>w.value),h=0,v=f.children.filter(w=>w.kind==="element"),S=0;for(let w of Array.from(m.childNodes)){if(w instanceof Element){if(!(w.getAttribute("data-component")?.split(/\\s+/)??[]).includes(t.contract.tag))w.__loomaFrameworkSlot=w.getAttribute("data-looma-framework-slot")??k,Ve(w),c.push(w);else{';
   const hydrationTextScanner = 'b!==void 0&&l(w,b)}continue}if(w instanceof Text&&w.data.trim()!==""){';
-  const frameworkAwareHydrationTextScanner = 'b!==void 0&&l(w,b)}continue}if(w instanceof Comment){w.__loomaFrameworkSlot=k,c.push(w);continue}if(w instanceof Text&&w.data.trim()!==""){';
+  const frameworkAwareHydrationTextScanner = 'b!==void 0&&l(w,b)}continue}if(w instanceof Comment&&q!==void 0){w.__loomaFrameworkSlot=k,c.push(w);continue}if(w instanceof Text&&w.data.trim()!==""){';
   if (!runtimeSource.includes(hydrationLoop)) {
     throw new Error("The vendored runtime hydration loop changed; review the framework fragment compatibility patch.");
   }
@@ -228,8 +233,8 @@ async function main() {
     // inserted nodes instead of deleting the flow region and following siblings.
     .replace(hydrationLoop, fragmentAwareHydrationLoop)
     // Framework renderers use comment anchors for conditional slot regions and
-    // render named slots directly into the generated native tree. Retain those
-    // anchors and their region identity while the declarative runtime adopts the
+    // render slots directly into the generated native tree. Retain those anchors
+    // and their region identity while the declarative runtime adopts the
     // already-rendered root, so later reactive inserts stay under framework control.
     .replace(slotNameReader, frameworkSlotNameReader)
     .replace(hydrationScanner, frameworkAwareHydrationScanner)
