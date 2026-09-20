@@ -138,7 +138,7 @@ return (_ctx: any,_cache: any) => {
       "aria-hidden": "true",
       "data-component": "ui-tree-item"
     }, null, -1 /* CACHED */))
-  ], 16 /* FULL_PROPS */, _hoisted_1))
+  ], -2 /* BAIL */, _hoisted_1))
 }
 }
 

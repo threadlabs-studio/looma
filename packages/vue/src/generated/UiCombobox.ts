@@ -204,7 +204,7 @@ return (_ctx: any,_cache: any) => {
       "aria-atomic": "true",
       "data-component": "ui-combobox"
     }, null, -1 /* CACHED */))
-  ], 16 /* FULL_PROPS */, _hoisted_1))
+  ], -2 /* BAIL */, _hoisted_1))
 }
 }
 

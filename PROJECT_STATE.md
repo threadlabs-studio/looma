@@ -4,13 +4,14 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-20 16:06 PDT
-Status: Candidate `0.2.11` is public. Candidate `0.2.12` is prepared with
+Last Updated: 2026-09-20 16:46 PDT
+Status: Candidate `0.2.12` is public. Candidate `0.2.13` is prepared with
 structured document paste, reliable history controls, an opt-in sticky desktop
 editor toolbar, SSR-safe Vue adapter hydration, preserved nested named-slot
 content including conditional updates after mount, stable default-slot content
-across reactive updates, and correct hidden native-root layout. Historical
-release tasks below retain their original version context.
+across reactive updates, stable projected regions after SSR hydration, and
+correct hidden native-root layout. Historical release tasks below retain their
+original version context.
 
 ## Current Focus
 
@@ -39,6 +40,10 @@ release tasks below retain their original version context.
 
 ## Recent Progress
 
+- Preserved framework-owned flow anchors while adopting SSR markup and disabled
+  Vue's dynamic-child shortcut at generated managed roots. Conditional updates
+  now reconcile the real tree without shifting labels, actions, children, or
+  other projected content into neighboring regions.
 - Preserved Vue-owned default-slot regions with the same stable wrapper contract
   as named slots, and made hydration prefer the framework's explicit slot
   identity so later updates cannot move labels into action regions.
