@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## v0.2.8 Candidate
+
+- Render conditional Vue tree-item controls directly so server markup hydrates
+  without browser-parsed template nodes changing its child structure.
+
 ## v0.2.7 Candidate
 
 - Preserve server-rendered framework component roots during package registration
