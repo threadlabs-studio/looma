@@ -19,17 +19,18 @@
 }
 
 :scope dialog {
-  --ui-dialog-duration: var(--ui-motion-base);
-  --ui-dialog-viewport-gap: var(--ui-space-4, 1rem);
   position: fixed;
   inset: 0;
   box-sizing: border-box;
   inline-size: min(
-    calc(100% - (var(--ui-dialog-viewport-gap) * 2)),
+    calc(100% - (var(--ui-dialog-viewport-gap, var(--ui-space-4, 1rem)) * 2)),
     var(--ui-dialog-max-width, 440px)
   );
+  /* Override Chromium's physical dialog:modal viewport inset as well as its logical aliases. */
+  max-width: none;
   max-inline-size: none;
-  max-block-size: calc(100dvh - (var(--ui-dialog-viewport-gap) * 2));
+  max-height: calc(100dvh - (var(--ui-dialog-viewport-gap, var(--ui-space-4, 1rem)) * 2));
+  max-block-size: calc(100dvh - (var(--ui-dialog-viewport-gap, var(--ui-space-4, 1rem)) * 2));
   margin: auto;
   padding: var(--ui-space-4);
   overflow: auto;
@@ -42,11 +43,11 @@
   opacity: 0;
   transform: scale(0.96);
   transition:
-    opacity var(--ui-dialog-duration) var(--ui-motion-ease),
-    transform var(--ui-dialog-duration) var(--ui-motion-ease),
-    visibility var(--ui-dialog-duration),
-    display var(--ui-dialog-duration) var(--ui-motion-ease) allow-discrete,
-    overlay var(--ui-dialog-duration) var(--ui-motion-ease) allow-discrete;
+    opacity var(--ui-dialog-duration, var(--ui-motion-base)) var(--ui-motion-ease),
+    transform var(--ui-dialog-duration, var(--ui-motion-base)) var(--ui-motion-ease),
+    visibility var(--ui-dialog-duration, var(--ui-motion-base)),
+    display var(--ui-dialog-duration, var(--ui-motion-base)) var(--ui-motion-ease) allow-discrete,
+    overlay var(--ui-dialog-duration, var(--ui-motion-base)) var(--ui-motion-ease) allow-discrete;
 }
 
 :scope dialog[open] {
@@ -54,7 +55,7 @@
   pointer-events: auto;
   opacity: 1;
   transform: scale(1);
-  animation: ui-dialog-enter var(--ui-dialog-duration) var(--ui-motion-ease);
+  animation: ui-dialog-enter var(--ui-dialog-duration, var(--ui-motion-base)) var(--ui-motion-ease);
 }
 
 @keyframes ui-dialog-enter {
@@ -67,14 +68,14 @@
 :scope dialog::backdrop {
   background-color: transparent;
   transition:
-    background-color var(--ui-dialog-duration) var(--ui-motion-ease),
-    display var(--ui-dialog-duration) var(--ui-motion-ease) allow-discrete,
-    overlay var(--ui-dialog-duration) var(--ui-motion-ease) allow-discrete;
+    background-color var(--ui-dialog-duration, var(--ui-motion-base)) var(--ui-motion-ease),
+    display var(--ui-dialog-duration, var(--ui-motion-base)) var(--ui-motion-ease) allow-discrete,
+    overlay var(--ui-dialog-duration, var(--ui-motion-base)) var(--ui-motion-ease) allow-discrete;
 }
 
 :scope dialog[open]::backdrop {
   background-color: var(--ui-overlay-backdrop);
-  animation: ui-dialog-backdrop-enter var(--ui-dialog-duration) var(--ui-motion-ease);
+  animation: ui-dialog-backdrop-enter var(--ui-dialog-duration, var(--ui-motion-base)) var(--ui-motion-ease);
 }
 
 @keyframes ui-dialog-backdrop-enter {

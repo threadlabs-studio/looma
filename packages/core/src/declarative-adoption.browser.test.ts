@@ -12,6 +12,26 @@ afterEach(async () => {
 });
 
 describe("shipped declarative component graph", () => {
+  it("lets dialog consumers opt into an edge-to-edge viewport surface", async () => {
+    document.body.innerHTML = `
+      <ui-dialog
+        open
+        label="Document comparison"
+        style="--ui-dialog-max-width: 100vw; --ui-dialog-viewport-gap: 0px;"
+      >
+        <h2>Document comparison</h2>
+      </ui-dialog>
+    `;
+    await settle();
+
+    const root = document.querySelector<HTMLElement>('[data-component-root="ui-dialog"]')!;
+    const dialog = root.querySelector("dialog")!;
+    const bounds = dialog.getBoundingClientRect();
+
+    expect(bounds.left).toBe(0);
+    expect(bounds.width).toBe(window.innerWidth);
+  });
+
   it("lowers live HTML to native roots without registering custom elements", async () => {
     document.body.innerHTML = '<ui-button variant="solid"><button type="button">Save</button></ui-button>';
     await settle();
