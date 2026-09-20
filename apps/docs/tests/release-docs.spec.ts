@@ -191,12 +191,14 @@ test("component pages supply a live preview when no bespoke example exists", asy
 
 test("the desktop hero stays inside the content column", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("./", { waitUntil: "domcontentloaded" });
+  await page.goto("./", { waitUntil: "networkidle" });
 
-  const mainBounds = await page.getByRole("main").boundingBox();
-  const headingBounds = await page
-    .getByRole("heading", { level: 1, name: "Getting Started" })
-    .boundingBox();
+  const main = page.getByRole("main");
+  const heading = page.getByRole("heading", { level: 1, name: "Getting Started" });
+  await expect(main).toBeVisible();
+  await expect(heading).toBeVisible();
+  const mainBounds = await main.boundingBox();
+  const headingBounds = await heading.boundingBox();
 
   expect(mainBounds).not.toBeNull();
   expect(headingBounds).not.toBeNull();
@@ -268,11 +270,13 @@ test("an invalid saved framework mode falls back to HTML Next", async ({ page })
 
 test("dark mode tab labels meet WCAG AA text contrast", async ({ page }) => {
   await page.addInitScript(() => window.localStorage.setItem("theme", "dark"));
-  await page.goto("components/ui-button", { waitUntil: "domcontentloaded" });
+  await page.goto("components/ui-button", { waitUntil: "networkidle" });
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
 
   for (const label of ["Examples", "API"]) {
-    const colors = await computedOpaqueColors(page.getByRole("tab", { name: label }));
+    const tab = page.getByRole("tab", { name: label });
+    await expect(tab).toBeVisible();
+    const colors = await computedOpaqueColors(tab);
     expect(contrastRatio(colors.foreground, colors.background)).toBeGreaterThanOrEqual(4.5);
   }
 
