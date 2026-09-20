@@ -349,7 +349,7 @@ await check("editor bounded menus and positioning", async () => {
   assert.equal(await slash.evaluate((element) => element.style.top), "104px");
   await slash.locator(".ui-editor-slash-menu__list").evaluate((element) => { element.scrollTop = 120; });
   const list = await slash.locator(".ui-editor-slash-menu__list").elementHandle();
-  await slash.locator('[data-index="5"]').dispatchEvent("mouseover");
+  await slash.locator('[data-index="5"]').hover();
   assert.equal(await slash.locator('[data-index="5"]').getAttribute("aria-selected"), "true", "slash pointer highlight is reflected");
   assert.equal(await slash.locator(".ui-editor-slash-menu__list").evaluate((element, original) => element === original, list), true);
   assert.equal(await slash.locator(".ui-editor-slash-menu__list").evaluate((element) => element.scrollTop), 120);

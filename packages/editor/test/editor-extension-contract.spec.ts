@@ -22,6 +22,116 @@ describe("editor extension contract", () => {
   const cellText = (row: JSONContent | undefined, column = 0) =>
     row?.content?.[column]?.content?.[0]?.content?.[0]?.text ?? "";
 
+  const pasteFromSourceEditor = (editor: Editor, text: string, mode?: string) => {
+    const values = new Map<string, string>([
+      ["text/plain", text],
+      ["text/html", mode ? `<pre>${text}</pre>` : ""],
+    ]);
+    if (mode) values.set("vscode-editor-data", JSON.stringify({ mode }));
+    const event = new Event("paste", { bubbles: true, cancelable: true });
+    Object.defineProperty(event, "clipboardData", {
+      value: { getData: (type: string) => values.get(type) ?? "" },
+    });
+    editor.view.dom.dispatchEvent(event);
+  };
+
+  it("pastes document HTML from a source editor as editable structure", () => {
+    const element = document.createElement("div");
+    document.body.append(element);
+    const editor = new Editor({
+      element,
+      extensions: getDefaultEditorExtensions(),
+      content: "<p></p>",
+    });
+    editor.commands.focus("start");
+
+    pasteFromSourceEditor(
+      editor,
+      "<!doctype html><html><body><h1>Imported title</h1><p>Imported body</p></body></html>",
+      "html",
+    );
+
+    expect(editor.getJSON().content?.map((node) => node.type)).toEqual(["heading", "paragraph"]);
+    expect(editor.getText()).toContain("Imported title");
+    expect(editor.getText()).toContain("Imported body");
+    editor.destroy();
+    element.remove();
+  });
+
+  it("treats inline HTML source as document content outside a code block", () => {
+    const element = document.createElement("div");
+    document.body.append(element);
+    const editor = new Editor({
+      element,
+      extensions: getDefaultEditorExtensions(),
+      content: "<p></p>",
+    });
+    editor.commands.focus("start");
+
+    pasteFromSourceEditor(editor, "<strong>Imported emphasis</strong>", "html");
+
+    expect(editor.getJSON().content?.[0]).toMatchObject({
+      type: "paragraph",
+      content: [{ type: "text", text: "Imported emphasis", marks: [{ type: "bold" }] }],
+    });
+    editor.destroy();
+    element.remove();
+  });
+
+  it("pastes Markdown documents as editable structure", () => {
+    const element = document.createElement("div");
+    document.body.append(element);
+    const editor = new Editor({
+      element,
+      extensions: getDefaultEditorExtensions(),
+      content: "<p></p>",
+    });
+    editor.commands.focus("start");
+
+    pasteFromSourceEditor(editor, "# Imported title\n\n- **First**\n- Second");
+
+    expect(editor.getJSON().content?.map((node) => node.type)).toEqual(["heading", "bulletList"]);
+    expect(editor.getJSON().content?.[1]?.content?.[0]?.content?.[0]?.content?.[0]?.marks)
+      .toEqual([{ type: "bold" }]);
+    expect(editor.getText()).toContain("Imported title");
+    expect(editor.getText()).toContain("First");
+    editor.destroy();
+    element.remove();
+  });
+
+  it("keeps recognizable source code and explicit code-block paste literal", () => {
+    const sourceElement = document.createElement("div");
+    document.body.append(sourceElement);
+    const sourceEditor = new Editor({
+      element: sourceElement,
+      extensions: getDefaultEditorExtensions(),
+      content: "<p></p>",
+    });
+    sourceEditor.commands.focus("start");
+    pasteFromSourceEditor(sourceEditor, "const answer = 42;", "javascript");
+    expect(sourceEditor.getJSON().content?.[0]).toMatchObject({
+      type: "codeBlock",
+      attrs: { language: "javascript" },
+    });
+
+    const codeElement = document.createElement("div");
+    document.body.append(codeElement);
+    const codeEditor = new Editor({
+      element: codeElement,
+      extensions: getDefaultEditorExtensions(),
+      content: '<pre><code class="language-html"></code></pre>',
+    });
+    codeEditor.commands.focus("end");
+    pasteFromSourceEditor(codeEditor, "<h1>Literal markup</h1>", "html");
+    expect(codeEditor.getJSON().content?.[0]).toMatchObject({ type: "codeBlock" });
+    expect(codeEditor.getText()).toContain("<h1>Literal markup</h1>");
+
+    sourceEditor.destroy();
+    codeEditor.destroy();
+    sourceElement.remove();
+    codeElement.remove();
+  });
+
   it("offers table editing as both a standalone kit and the turnkey preset", () => {
     expect(LoomaTableKit.name).toBe("loomaTableKit");
     expect(getLoomaTableExtensions().map((extension) => extension.name)).toEqual([

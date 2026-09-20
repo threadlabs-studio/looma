@@ -35,6 +35,7 @@ import TableRow from "@tiptap/extension-table-row";
 import { LoomaCallout } from "./callout";
 import { LoomaListBehavior } from "./list-behavior";
 import { createLoomaMentionExtension } from "./mention";
+import { LoomaSmartPaste } from "./smart-paste";
 import { LoomaTable, LoomaTableCell, LoomaTableHeader } from "./table-formatting";
 
 export interface DefaultEditorExtensionsOptions {
@@ -101,6 +102,7 @@ export function getDefaultEditorExtensions(
     Image.configure({ inline: imageInline }),
     Highlight.configure({ multicolor: false }),
     Code,
+    LoomaSmartPaste,
     CodeBlockLowlight.configure({ lowlight }),
     Typography,
     Placeholder.configure({

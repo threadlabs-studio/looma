@@ -305,6 +305,38 @@
   stroke-width: var(--ui-editor-toolbar-icon-stroke-width, 1.75);
 }
 
+.looma-editor__sticky-toolbar-shell {
+  position: sticky;
+  top: var(--ui-editor-sticky-toolbar-top, 0);
+  z-index: var(--ui-editor-toolbar-z-index, 10);
+  min-width: 0;
+  background: var(--ui-editor-toolbar-bg, var(--ui-surface, #fff));
+  border-bottom: 1px solid var(--ui-editor-toolbar-border, var(--ui-border, #e5e7eb));
+}
+
+.looma-editor__sticky-toolbar-shell [data-component-root="ui-editor-toolbar"] {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--ui-editor-toolbar-gap, 2px);
+  min-height: var(--ui-editor-toolbar-min-height, 48px);
+  padding:
+    var(--ui-editor-toolbar-padding-block, 6px)
+    var(--ui-editor-toolbar-padding-inline, 12px);
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: none;
+  white-space: nowrap;
+}
+
+.looma-editor__sticky-toolbar-shell [data-component-root="ui-editor-toolbar"]::-webkit-scrollbar {
+  display: none;
+}
+
+.looma-editor__sticky-toolbar-shell [data-component-root="ui-editor-toolbar"] > * {
+  flex: 0 0 auto;
+}
+
 .looma-editor__table-picker-popover,
 .looma-editor__table-toolbar-shell,
 .looma-editor__table-menu-shell {
