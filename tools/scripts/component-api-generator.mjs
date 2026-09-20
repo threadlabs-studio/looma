@@ -117,8 +117,11 @@ export async function readRepositoryProjectionTags() {
     .filter((entry) => entry.isFile() && entry.name.endsWith(".mdx"))
     .map((entry) => entry.name.replace(/\.mdx$/, ""));
 
-  const sidebarSource = await readFile(path.join(repoRoot, "apps/docs/sidebars.ts"), "utf8");
-  const navigationTags = [...sidebarSource.matchAll(/"components\/(ui-[a-z0-9-]+)"/g)]
+  const navigationSource = await readFile(
+    path.join(repoRoot, "apps/docs/src/componentNavigation.ts"),
+    "utf8",
+  );
+  const navigationTags = [...navigationSource.matchAll(/tag:\s*"(ui-[a-z0-9-]+)"/g)]
     .map((match) => match[1]);
 
   const adapterSources = await Promise.all([
