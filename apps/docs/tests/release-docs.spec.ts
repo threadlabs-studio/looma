@@ -37,7 +37,7 @@ for (const candidatePage of candidatePages) {
     page
   }) => {
     await page.setViewportSize({ width: 320, height: 800 });
-    await page.goto(candidatePage.path);
+    await page.goto(candidatePage.path, { waitUntil: "domcontentloaded" });
 
     await expect(
       page.getByRole("heading", { level: 1, name: candidatePage.heading })
@@ -64,7 +64,7 @@ for (const candidatePage of candidatePages) {
 test("the install path exposes the facade package and the Candidate boundary", async ({
   page
 }) => {
-  await page.goto("./");
+  await page.goto("./", { waitUntil: "domcontentloaded" });
 
   await expect(page.getByText("@threadlabs/looma", { exact: true }).first()).toBeVisible();
   await expect(page.locator("body")).not.toContainText(
@@ -84,7 +84,7 @@ test("the install path exposes the facade package and the Candidate boundary", a
 test("the context-menu docs expose both visible and pointer action paths", async ({
   page
 }) => {
-  await page.goto("components/ui-context-menu");
+  await page.goto("components/ui-context-menu", { waitUntil: "domcontentloaded" });
 
   const trigger = page.getByRole("button", { name: "Document actions", exact: true });
   const target = page.locator("#docs-context-menu-target");
@@ -95,4 +95,40 @@ test("the context-menu docs expose both visible and pointer action paths", async
 
   await target.click({ button: "right", position: { x: 24, y: 24 } });
   await expect(page.getByRole("menuitem", { name: "Rename", exact: true })).toBeVisible();
+});
+
+test("the component catalog exposes the complete library and filters live previews", async ({
+  page
+}) => {
+  await page.goto("components", { waitUntil: "domcontentloaded" });
+
+  await expect(page.getByRole("heading", { level: 1, name: "Components" })).toBeVisible();
+  await expect(page.locator(".looma-component-card")).toHaveCount(49);
+  await expect(page.getByText("Showing 49 components", { exact: true })).toBeVisible();
+
+  const sidebar = page.locator(".theme-doc-sidebar-menu");
+  await expect(sidebar.getByRole("link", { name: "Button", exact: true })).toBeVisible();
+  await expect(sidebar.getByRole("link", { name: "Editor Table Overlay", exact: true })).toBeVisible();
+
+  const search = page.getByRole("searchbox", { name: "Search components" });
+  await search.fill("toast");
+  await expect(page.getByText("Showing 1 component", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Toast Region" })).toBeVisible();
+  await expect(page.locator(".looma-component-card")).toHaveCount(1);
+
+  await search.fill("checkbox");
+  const checkbox = page.getByLabel("Product updates");
+  await expect(checkbox).toBeChecked();
+  await checkbox.uncheck();
+  await expect(checkbox).not.toBeChecked();
+});
+
+test("component pages supply a live preview when no bespoke example exists", async ({
+  page
+}) => {
+  await page.goto("components/ui-avatar", { waitUntil: "domcontentloaded" });
+
+  await expect(page.getByRole("heading", { level: 1, name: "Avatar" })).toBeVisible();
+  await expect(page.locator(".looma-component-preview")).toBeVisible();
+  await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
 });

@@ -12,9 +12,9 @@ if (docsReleaseMode !== "preview" && docsReleaseMode !== "candidate") {
 const isCandidateRelease = docsReleaseMode === "candidate";
 
 const config: Config = {
-  title: "Looma UI Docs",
-  tagline: "SSR-first declarative component contracts",
-  favicon: "img/favicon.ico",
+  title: "Looma",
+  tagline: "Declarative components, woven into the web platform",
+  favicon: "img/looma-mark.svg",
   url: process.env.LOOMA_DOCS_URL ?? "https://threadlabs-studio.github.io",
   baseUrl: process.env.LOOMA_DOCS_BASE_URL ?? "/looma/",
   headTags: [
@@ -39,7 +39,7 @@ const config: Config = {
   clientModules: [require.resolve("./src/prism-languages.ts")],
   stylesheets: [
     {
-      href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      href: "https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap"
     }
   ],
   presets: [
@@ -64,7 +64,7 @@ const config: Config = {
       content: isCandidateRelease
         ? 'Release 1 Candidate 0.2.5 is available on npm under the candidate tag. <a href="/looma/release-1-support">Read the support boundary.</a>'
         : 'Release 1 Candidate documentation preview — confirm registry availability before installing. <a href="/looma/release-1-support">Read the support boundary.</a>',
-      backgroundColor: "#312e81",
+      backgroundColor: "#2b2538",
       textColor: "#ffffff",
       isCloseable: false
     },
@@ -73,11 +73,22 @@ const config: Config = {
       respectPrefersColorScheme: true
     },
     navbar: {
-      title: "Looma UI",
+      title: "Looma",
+      logo: {
+        alt: "",
+        src: "img/looma-mark.svg",
+        width: 34,
+        height: 34
+      },
       items: [
         {
           to: "/",
-          label: "Docs",
+          label: "Get started",
+          position: "left"
+        },
+        {
+          to: "/components",
+          label: "Components",
           position: "left"
         },
         {
@@ -118,7 +129,7 @@ const config: Config = {
           ]
         }
       ],
-      copyright: "Looma UI — SSR-first declarative components."
+      copyright: "Looma — declarative components, woven into the web platform."
     }
   } satisfies Preset.ThemeConfig
 };

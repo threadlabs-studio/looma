@@ -1,8 +1,15 @@
 ---
 slug: /
+title: Getting Started
+hide_title: true
+hide_table_of_contents: true
 ---
 
-# Getting Started
+import { DocsLandingHero } from "@site/src/components/DocsLandingHero";
+
+<DocsLandingHero />
+
+## Install Looma
 
 Looma Release 1 is a Candidate `0.2.5` package for Vue 3 and direct declarative HTML use. It is not Stable yet. React and Svelte adapters in the repository are internal previews and are not published or supported in Release 1.
 
@@ -11,8 +18,6 @@ Looma Release 1 is a Candidate `0.2.5` package for Vue 3 and direct declarative 
 These instructions target the exact `@threadlabs/looma@0.2.5` Candidate. Before adopting it, confirm that npm resolves that package at `0.2.5` under the `candidate` dist-tag. Preview documentation can be built before that registry gate; production documentation is published only after the gate passes.
 
 :::
-
-## Install Looma
 
 Use Node 20 or newer:
 
