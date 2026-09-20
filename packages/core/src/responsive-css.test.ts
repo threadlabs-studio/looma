@@ -9,8 +9,14 @@ describe("responsive core component CSS", () => {
     const css = readComponentCss("ui-dialog");
 
     expect(css).toContain(":host:not([data-open])");
-    expect(css).toContain("calc(100% - (var(--ui-dialog-viewport-gap) * 2))");
-    expect(css).toContain("calc(100dvh - (var(--ui-dialog-viewport-gap) * 2))");
+    expect(css).toContain(
+      "calc(100% - (var(--ui-dialog-viewport-gap, var(--ui-space-4, 1rem)) * 2))",
+    );
+    expect(css).toContain(
+      "calc(100dvh - (var(--ui-dialog-viewport-gap, var(--ui-space-4, 1rem)) * 2))",
+    );
+    expect(css).toContain("max-width: none");
+    expect(css).toContain("max-height:");
   });
 
   it("makes mobile search a dynamic-viewport surface", () => {
