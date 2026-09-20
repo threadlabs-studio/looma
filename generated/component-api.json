@@ -3479,7 +3479,7 @@
       "tag": "ui-textarea",
       "package": "@threadlabs/looma",
       "root": "span",
-      "description": "Multiline text-input primitive that mirrors value, rows, disabled, readonly, and invalid state to a native `<textarea>`.",
+      "description": "Multiline text-input primitive that mirrors value, rows, disabled, read-only, and invalid state to a native `<textarea>`.",
       "attributes": [
         {
           "name": "default-value",
