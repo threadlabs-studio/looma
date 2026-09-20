@@ -18,6 +18,7 @@ export {
   LoomaTableKit,
   type DefaultEditorExtensionsOptions,
 } from "./preset";
+export { LoomaSmartPaste } from "./smart-paste";
 export {
   getActiveTableUiState,
   handleTableAction,

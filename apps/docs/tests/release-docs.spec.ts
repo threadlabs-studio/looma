@@ -5,7 +5,7 @@ import componentApi from "../../../generated/component-api.json";
 
 const releaseMode = process.env.LOOMA_DOCS_RELEASE_MODE ?? "preview";
 const expectedAnnouncement = releaseMode === "candidate"
-  ? "Release 1 Candidate 0.2.5 is available"
+  ? "Release 1 Candidate 0.2.7 is available"
   : "Release 1 Candidate documentation preview";
 
 const candidatePages = [
@@ -138,6 +138,18 @@ test("the install path exposes the facade package and the Candidate boundary", a
   await expect(
     page.getByRole("heading", { level: 1, name: "Release 1 Support and Limitations" })
   ).toBeVisible();
+});
+
+test("the documentation shell uses the Looma mark", async ({ page }) => {
+  await page.goto("./");
+
+  const logo = page.locator(".navbar__logo img").first();
+  await expect(logo).toBeVisible();
+  await expect(logo).toHaveAttribute("src", "/looma/img/looma-mark.svg");
+  await expect(page.locator('link[rel="icon"]')).toHaveAttribute(
+    "href",
+    "/looma/img/looma-mark.svg"
+  );
 });
 
 test("the context-menu docs expose both visible and pointer action paths", async ({

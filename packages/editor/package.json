@@ -1,6 +1,6 @@
 {
   "name": "@threadlabs/looma-editor",
-  "version": "0.2.5",
+  "version": "0.2.7",
   "private": true,
   "type": "module",
   "description": "Open-source Tiptap editor behavior, UI elements, styles, presets, and table kit for Looma.",
@@ -51,7 +51,8 @@
   "dependencies": {
     "@threadlabs/looma-core": "workspace:*",
     "@threadlabs/looma-tokens": "workspace:*",
-    "lowlight": "^3.3.0"
+    "lowlight": "^3.3.0",
+    "markdown-it": "14.3.1"
   },
   "peerDependencies": {
     "@tiptap/core": ">=2 <3",
@@ -124,6 +125,7 @@
     "@tiptap/extension-underline": "^2.11.5",
     "@tiptap/pm": "^2.11.5",
     "@tiptap/suggestion": "^2.11.5",
+    "@types/markdown-it": "14.2.0",
     "@vitest/browser": "~3.2.6",
     "axe-core": "^4.10.3",
     "jsdom": "^27.0.0",

@@ -4,14 +4,15 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-19 12:53 PDT
-Status: Candidate `0.1.28` is public and qualified in Knit with viewport-safe,
-single-surface overlays. Historical release tasks below retain their original
+Last Updated: 2026-09-20 11:15 PDT
+Status: Candidate `0.2.5` is public. Candidate `0.2.7` is prepared with
+structured document paste, reliable history controls, and an opt-in sticky
+desktop editor toolbar. Historical release tasks below retain their original
 version context.
 
 ## Current Focus
 
-- Keep Candidate `0.1.28`'s bounded selected-value and viewport-safe overlay
+- Keep Candidate `0.2.5`'s bounded selected-value and viewport-safe overlay
   contracts qualified together in Knit.
 - Keep dense tree rows at 32px/15px for pointer use and animate to 44px targets
   only after a real touch interaction establishes touch modality.
@@ -35,6 +36,14 @@ version context.
   editor, and Vue.
 
 ## Recent Progress
+
+- Fixed editor intake and history behavior for the next Candidate: HTML and
+  Markdown document markup paste as supported editable structure, while source
+  code and explicit code-block paste remain literal. The paste is one history
+  transaction; keyboard and toolbar Undo/Redo are covered in real Chromium.
+- Added an opt-in sticky desktop `LoomaEditor` toolbar. Selection-driven bubble
+  controls remain the generic default, while command state now follows every
+  editor transaction so rendered Undo/Redo availability stays current.
 
 - Scoped `ui-menu-item` light-DOM fallback presentation to pre-upgrade elements.
   Defined menu items now keep spacing on the shadow-owned interactive surface

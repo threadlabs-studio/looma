@@ -6,6 +6,7 @@ export * from "@threadlabs/looma-editor";
 export * from "./primitives";
 export {
   LoomaEditor,
+  type LoomaEditorToolbarMode,
   type LoomaImageUploader,
   type LoomaImageUploadResult,
 } from "./LoomaEditor";

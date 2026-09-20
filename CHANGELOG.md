@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+## v0.2.7 Candidate
+
+- Preserve server-rendered framework component roots during package registration
+  so adapters can hydrate without Looma rewriting their child structure first.
+
+## v0.2.6 Candidate
+
+- Interpret pasted HTML and Markdown document markup as editable structure while
+  preserving programming-language source and explicit code-block paste as code.
+- Keep paste as one Undo/Redo history step, make command availability reactive,
+  and add an opt-in sticky desktop toolbar for always-visible editor controls.
+
+## v0.2.5 Candidate
+
 - Keep defined menu-item spacing on its single shadow-owned surface while
   retaining the styled pre-upgrade and no-JavaScript fallback.
 
