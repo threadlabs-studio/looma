@@ -3429,7 +3429,7 @@ packages:
     resolution: {integrity: sha512-HGyxoOTYUyCM6stUe6EJgnd4EoewAI7zMdfqO+kGjnlZmBDz/cR5pf8r/cR4Wq60sL/p0IkcjUEEPwS3GFrIyw==}
     engines: {node: '>=8'}
 
-  asn1@0.2.6:
+  asn1@0.2.7:
     resolution: {integrity: sha512-ix/FxPn0MDjeyJ7i/yoHGFt/EX6LyNbxSEhPPXODPL+KB0VPk86UYfL0lMdy+KCnv+fmvIzySwaK5COwqVbWTQ==}
 
   asn1js@3.0.7:
@@ -11908,7 +11908,7 @@ snapshots:
 
   array-union@2.1.0: {}
 
-  asn1@0.2.6:
+  asn1@0.2.7:
     dependencies:
       safer-buffer: 2.1.2
 
@@ -16284,7 +16284,7 @@ snapshots:
 
   sshpk@1.18.0:
     dependencies:
-      asn1: 0.2.6
+      asn1: 0.2.7
       assert-plus: 1.0.0
       bcrypt-pbkdf: 1.0.2
       dashdash: 1.14.1

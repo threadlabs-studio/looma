@@ -36,6 +36,23 @@ describe("shipped declarative component graph", () => {
     expect(root.isConnected).toBe(true);
   });
 
+  it("does not rewrite framework roots while registering another package", async () => {
+    const root = document.createElement("div");
+    root.dataset.componentRoot = "ui-button";
+    root.dataset.loomaManaged = "framework";
+    const marker = document.createElement("span");
+    marker.textContent = "Server-rendered Vue content";
+    root.append(marker);
+    document.body.append(root);
+
+    const { registerLoomaPackage } = await import("./declarative");
+    registerLoomaPackage("ssr-registration-regression", [], "");
+    await settle();
+
+    expect(root.firstElementChild).toBe(marker);
+    expect(root.textContent).toBe("Server-rendered Vue content");
+  });
+
   it("uses canonical declarative attribute names instead of legacy source aliases", async () => {
     document.body.innerHTML = '<ui-input read-only><input type="text"></ui-input>';
     await settle();

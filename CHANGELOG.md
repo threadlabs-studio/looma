@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## v0.2.7 Candidate
+
+- Preserve server-rendered framework component roots during package registration
+  so adapters can hydrate without Looma rewriting their child structure first.
+
 ## v0.2.6 Candidate
 
 - Interpret pasted HTML and Markdown document markup as editable structure while
