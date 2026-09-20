@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## v0.2.9 Candidate
+
+- Preserve Vue named-slot content when declarative controllers attach to native
+  roots, and keep optional-region visibility synchronized with controller state.
+
 ## v0.2.8 Candidate
 
 - Render conditional Vue tree-item controls directly so server markup hydrates

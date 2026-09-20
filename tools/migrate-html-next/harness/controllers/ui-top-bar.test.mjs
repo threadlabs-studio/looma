@@ -29,13 +29,16 @@ test("controller synchronizes optional top-bar regions", () => {
   ]);
   const element = { querySelector: (selector) => regions.get(selector) };
 
-  const cleanup = controller({ element });
+  const state = {};
+  const cleanup = controller({ element, state });
+  assert.deepEqual(state, { hasLeading: false, hasSearch: true, hasActions: false });
   assert.equal(regions.get(".top-bar__leading").hidden, true);
   assert.equal(regions.get(".top-bar__search").hidden, false);
   assert.equal(regions.get(".top-bar__actions").hidden, true);
 
   regions.get(".top-bar__actions").childNodes.push({ nodeType: 1, textContent: "Share" });
   observations[0].callback();
+  assert.equal(state.hasActions, true);
   assert.equal(regions.get(".top-bar__actions").hidden, false);
 
   cleanup();

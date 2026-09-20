@@ -1,6 +1,9 @@
 import {
+  cloneVNode,
   defineComponent,
+  Fragment,
   h,
+  isVNode,
   shallowRef,
   watchEffect,
   type ComponentPublicInstance,
@@ -55,6 +58,17 @@ type AdapterCallbacks = {
 export type AdapterAttrs = AdapterCallbacks & Record<string, unknown>;
 
 export type AdapterEventBinding = readonly [eventName: string, callbackAttr: string];
+
+function assignNamedSlot(value: unknown, slotName: string): unknown {
+  if (Array.isArray(value)) return value.map((child) => assignNamedSlot(child, slotName));
+  if (!isVNode(value)) return value;
+  if (value.type === Fragment && Array.isArray(value.children)) {
+    const fragment = cloneVNode(value);
+    fragment.children = value.children.map((child) => assignNamedSlot(child, slotName)) as typeof fragment.children;
+    return fragment;
+  }
+  return cloneVNode(value, { slot: slotName });
+}
 
 const BASE_EVENT_BINDINGS: readonly AdapterEventBinding[] = [
   ["open", "onOpen"],
@@ -136,7 +150,10 @@ export function createAdapterComponent<Props extends object = Record<string, nev
         const componentSlots = Object.fromEntries(
           Object.entries(slots)
             .filter((entry): entry is [string, NonNullable<typeof entry[1]>] => Boolean(entry[1]))
-            .map(([slotName, slotFn]) => [slotName, () => slotFn()]),
+            .map(([slotName, slotFn]) => [
+              slotName,
+              () => slotName === "default" ? slotFn() : assignNamedSlot(slotFn(), slotName),
+            ]),
         );
 
         return h(
