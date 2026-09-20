@@ -7,6 +7,7 @@ function loadLoomaRuntime(): Promise<unknown> {
   loomaRuntimePromise ??= Promise.all([
     import("@threadlabs/looma/tokens.css"),
     import("@threadlabs/looma/theme-light.css"),
+    import("@threadlabs/looma/theme-dark.css"),
     import("@threadlabs/looma/layout.css"),
     import("@threadlabs/looma/styles.css"),
     import("@threadlabs/looma/editor.css"),

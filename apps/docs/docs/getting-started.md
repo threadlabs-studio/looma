@@ -6,8 +6,11 @@ hide_table_of_contents: true
 ---
 
 import { DocsLandingHero } from "@site/src/components/DocsLandingHero";
+import { DeclarativeModel } from "@site/src/components/DeclarativeModel";
 
 <DocsLandingHero />
+
+<DeclarativeModel />
 
 ## Install Looma
 
@@ -67,9 +70,9 @@ import "@threadlabs/looma/editor";
 
 Choose only one Looma theme file unless your application supplies its own semantic-token values. Importing the public modules during server rendering is supported; document lowering and controller behavior wait for a browser.
 
-## Render a Vue component
+## Render with a framework adapter
 
-Looma wrappers preserve native, authored markup. That markup is the semantic fallback before JavaScript lowers the declarative invocation to its native root and attaches behavior.
+The mode control above changes the syntax, not the component model. Looma wrappers preserve native, authored markup and project the same inputs, methods, events, slots, and controller behavior into the framework lifecycle. The markup remains the semantic fallback before JavaScript lowers the declarative invocation to its native root and attaches behavior.
 
 ```vue
 <script setup lang="ts">

@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 import axe from "axe-core";
 
 const releaseMode = process.env.LOOMA_DOCS_RELEASE_MODE ?? "preview";
@@ -24,6 +24,62 @@ async function expectNoAxeViolations(page: Page): Promise<void> {
   });
 
   expect(violations).toEqual([]);
+}
+
+function contrastRatio(foreground: string, background: string): number {
+  const parse = (color: string): [number, number, number] => {
+    const channels = color.match(/[\d.]+/g)?.slice(0, 3).map(Number);
+    if (!channels || channels.length !== 3) throw new Error(`Unsupported color: ${color}`);
+    return channels.map((channel) => {
+      const normalized = channel / 255;
+      return normalized <= 0.04045
+        ? normalized / 12.92
+        : ((normalized + 0.055) / 1.055) ** 2.4;
+    }) as [number, number, number];
+  };
+  const luminance = ([red, green, blue]: [number, number, number]) =>
+    0.2126 * red + 0.7152 * green + 0.0722 * blue;
+  const foregroundLuminance = luminance(parse(foreground));
+  const backgroundLuminance = luminance(parse(background));
+  const lighter = Math.max(foregroundLuminance, backgroundLuminance);
+  const darker = Math.min(foregroundLuminance, backgroundLuminance);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+async function computedOpaqueColors(locator: Locator): Promise<{
+  foreground: string;
+  background: string;
+}> {
+  return locator.evaluate((element) => {
+    const style = getComputedStyle(element);
+    type Rgba = [number, number, number, number];
+    const parse = (color: string): Rgba => {
+      const channels = color.match(/[\d.]+/g)?.map(Number);
+      if (!channels || channels.length < 3) throw new Error(`Unsupported color: ${color}`);
+      return [channels[0]!, channels[1]!, channels[2]!, channels[3] ?? 1];
+    };
+    const composite = (foreground: Rgba, background: Rgba): Rgba => {
+      const alpha = foreground[3] + background[3] * (1 - foreground[3]);
+      if (alpha === 0) return [0, 0, 0, 0];
+      return [
+        (foreground[0] * foreground[3] + background[0] * background[3] * (1 - foreground[3])) / alpha,
+        (foreground[1] * foreground[3] + background[1] * background[3] * (1 - foreground[3])) / alpha,
+        (foreground[2] * foreground[3] + background[2] * background[3] * (1 - foreground[3])) / alpha,
+        alpha
+      ];
+    };
+    const layers: Rgba[] = [];
+    for (let node: Element | null = element; node; node = node.parentElement) {
+      layers.push(parse(getComputedStyle(node).backgroundColor));
+    }
+    const background = layers.reverse().reduce(
+      (visible, layer) => composite(layer, visible),
+      [255, 255, 255, 1] as Rgba
+    );
+    const foreground = composite(parse(style.color), background);
+    const cssColor = ([red, green, blue]: Rgba) => `rgb(${red} ${green} ${blue})`;
+    return { foreground: cssColor(foreground), background: cssColor(background) };
+  });
 }
 
 declare global {
@@ -131,4 +187,117 @@ test("component pages supply a live preview when no bespoke example exists", asy
   await expect(page.getByRole("heading", { level: 1, name: "Avatar" })).toBeVisible();
   await expect(page.locator(".looma-component-preview")).toBeVisible();
   await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
+});
+
+test("the desktop hero stays inside the content column", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("./", { waitUntil: "domcontentloaded" });
+
+  const mainBounds = await page.getByRole("main").boundingBox();
+  const headingBounds = await page
+    .getByRole("heading", { level: 1, name: "Getting Started" })
+    .boundingBox();
+
+  expect(mainBounds).not.toBeNull();
+  expect(headingBounds).not.toBeNull();
+  expect(headingBounds!.x).toBeGreaterThanOrEqual(
+    mainBounds!.x + 16
+  );
+});
+
+test("framework mode defaults to HTML Next and follows the reader between pages", async ({
+  page
+}) => {
+  await page.goto("./", { waitUntil: "domcontentloaded" });
+
+  const modeGroup = page.getByRole("group", { name: "Example framework" }).first();
+  await expect(modeGroup.getByRole("button", { name: "HTML Next" })).toHaveAttribute(
+    "aria-pressed",
+    "true"
+  );
+  await expect(page.locator(".looma-mode-code").first()).toContainText("<ui-button");
+
+  await modeGroup.getByRole("button", { name: "Vue" }).click();
+  await expect(page.locator(".looma-mode-code").first()).toContainText(
+    '@threadlabs/looma/vue'
+  );
+
+  await page.goto("components/ui-button", { waitUntil: "domcontentloaded" });
+  await expect(
+    page.getByRole("group", { name: "Example framework" }).first()
+      .getByRole("button", { name: "Vue" })
+  ).toHaveAttribute("aria-pressed", "true");
+});
+
+test("framework examples preserve typed inputs and authored semantics", async ({ page }) => {
+  await page.goto("components/ui-affordance-scope", { waitUntil: "domcontentloaded" });
+  const modeGroup = page.getByRole("group", { name: "Example framework" }).first();
+  const modeCode = page.locator(".looma-component-mode-example .looma-mode-code");
+
+  await modeGroup.getByRole("button", { name: "Vue" }).click();
+  await expect(modeCode).toContainText(':near-radius="16"');
+  await modeGroup.getByRole("button", { name: "React" }).click();
+  await expect(modeCode).toContainText("nearRadius={16}");
+  await modeGroup.getByRole("button", { name: "Svelte" }).click();
+  await expect(modeCode).toContainText("nearRadius: 16");
+
+  await page.goto("components/ui-menu", { waitUntil: "domcontentloaded" });
+  await expect(page.locator(".looma-component-mode-example .looma-mode-code")).toContainText(
+    '<ui-menu-item value="edit">Edit</ui-menu-item>'
+  );
+
+  await page.getByRole("group", { name: "Example framework" }).first()
+    .getByRole("button", { name: "Svelte" }).click();
+  await page.goto("components/ui-button", { waitUntil: "domcontentloaded" });
+  await expect(page.locator(".looma-component-mode-example .looma-mode-code")).toContainText(
+    '<button type="button">Button</button>'
+  );
+});
+
+test("an invalid saved framework mode falls back to HTML Next", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("looma-docs-framework-mode", "unknown-adapter");
+  });
+  await page.goto("./", { waitUntil: "domcontentloaded" });
+
+  await expect(
+    page.getByRole("group", { name: "Example framework" }).first()
+      .getByRole("button", { name: "HTML Next" })
+  ).toHaveAttribute("aria-pressed", "true");
+});
+
+test("dark mode tab labels meet WCAG AA text contrast", async ({ page }) => {
+  await page.addInitScript(() => window.localStorage.setItem("theme", "dark"));
+  await page.goto("components/ui-button", { waitUntil: "domcontentloaded" });
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+
+  for (const label of ["Examples", "API"]) {
+    const colors = await computedOpaqueColors(page.getByRole("tab", { name: label }));
+    expect(contrastRatio(colors.foreground, colors.background)).toBeGreaterThanOrEqual(4.5);
+  }
+
+  const ghostButtonColors = await computedOpaqueColors(
+    page.getByRole("button", { name: "Ghost" })
+  );
+  expect(
+    contrastRatio(ghostButtonColors.foreground, ghostButtonColors.background)
+  ).toBeGreaterThanOrEqual(4.5);
+
+  await expectNoAxeViolations(page);
+});
+
+for (const darkPage of ["./", "components"] as const) {
+  test(`${darkPage} has no automated dark-mode accessibility violations`, async ({ page }) => {
+    await page.addInitScript(() => window.localStorage.setItem("theme", "dark"));
+    await page.goto(darkPage, { waitUntil: "domcontentloaded" });
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    await expectNoAxeViolations(page);
+  });
+}
+
+test("Looma navigation only points to Looma resources", async ({ page }) => {
+  await page.goto("./", { waitUntil: "domcontentloaded" });
+
+  await expect(page.getByRole("link", { name: /Knit/ })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "View on GitHub", exact: true })).toBeVisible();
 });

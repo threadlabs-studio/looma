@@ -6,6 +6,7 @@
   --looma-line: #ded8cf;
   --looma-purple: #7658d6;
   --looma-purple-deep: #5639b8;
+  --looma-accent-ink: #5639b8;
   --looma-purple-wash: #eee9ff;
   --looma-teal: #2ca79d;
   --looma-coral: #e46f78;
@@ -33,7 +34,7 @@
   --ifm-code-font-size: 0.86rem;
   --ifm-navbar-height: 4.25rem;
   --ifm-navbar-background-color: rgb(251 249 244 / 0.92);
-  --ifm-footer-background-color: var(--looma-ink);
+  --ifm-footer-background-color: #2b2538;
   --ifm-footer-color: #eeeaf5;
   --ifm-footer-link-color: #fff;
   --ifm-toc-border-color: var(--looma-line);
@@ -46,6 +47,7 @@
   --looma-ink-soft: #bbb3c7;
   --looma-line: #463f50;
   --looma-purple-wash: #352b54;
+  --looma-accent-ink: #cbbfff;
   --ifm-background-color: var(--looma-paper);
   --ifm-background-surface-color: #2b2634;
   --ifm-color-primary: #b8a5f4;
@@ -74,7 +76,7 @@ body {
 .navbar__logo { height: 2.1rem; }
 .navbar__title { font-size: 1.05rem; font-weight: 800; letter-spacing: -0.035em; }
 .navbar__item { font-size: 0.9rem; font-weight: 600; }
-.navbar__link--active, .navbar__link:hover { color: var(--looma-purple-deep); }
+.navbar__link--active, .navbar__link:hover { color: var(--looma-accent-ink); }
 
 .theme-doc-sidebar-container {
   background: color-mix(in srgb, var(--looma-paper-deep) 70%, transparent);
@@ -105,7 +107,7 @@ body {
 .menu__link:hover { color: var(--looma-ink); background: rgb(118 88 214 / 0.08); }
 
 .menu__link--active:not(.menu__link--sublist) {
-  color: var(--looma-purple-deep);
+  color: var(--looma-accent-ink);
   font-weight: 700;
   background: var(--looma-purple-wash);
 }
@@ -173,9 +175,9 @@ body {
   grid-template-columns: minmax(0, 0.92fr) minmax(26rem, 1.08fr);
   gap: clamp(2rem, 5vw, 5.5rem);
   align-items: center;
-  width: min(78rem, calc(100vw - 22rem));
+  width: min(78rem, 100%);
   min-height: min(47rem, calc(100vh - 8rem));
-  margin: 0 0 4rem max(-2rem, calc((100% - 87rem) / 2));
+  margin: 0 0 4rem;
   padding: clamp(3.5rem, 8vw, 7.5rem) 0;
 }
 
@@ -190,7 +192,7 @@ body {
   transform: rotate(14deg);
 }
 
-.looma-home-hero::before { top: 8%; left: -10rem; }
+.looma-home-hero::before { top: 8%; left: -4rem; }
 .looma-home-hero__copy { max-width: 38rem; }
 
 .looma-home-hero__eyebrow {
@@ -198,7 +200,7 @@ body {
   gap: 0.7rem;
   align-items: center;
   margin-bottom: 1.25rem;
-  color: var(--looma-purple-deep);
+  color: var(--looma-accent-ink);
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.13em;
@@ -378,6 +380,8 @@ body {
 }
 
 [data-theme="dark"] .looma-catalog__controls { background: rgb(33 29 43 / 0.92); }
+[data-theme="dark"] .looma-button--secondary { background: rgb(255 255 255 / 0.07); }
+[data-theme="dark"] .looma-catalog__filters button span { background: rgb(255 255 255 / 0.08); }
 
 .looma-catalog__search {
   display: flex;
@@ -430,7 +434,7 @@ body {
 }
 
 .looma-catalog__filters button:hover, .looma-catalog__filters button.is-active {
-  color: var(--looma-purple-deep);
+  color: var(--looma-accent-ink);
   background: var(--looma-purple-wash);
   border-color: rgb(118 88 214 / 0.16);
 }
@@ -528,7 +532,7 @@ body {
 .looma-component-card__link {
   display: inline-flex;
   gap: 0.45rem;
-  color: var(--looma-purple-deep);
+  color: var(--looma-accent-ink);
   font-size: 0.76rem;
   font-weight: 800;
   text-decoration: none !important;
@@ -552,7 +556,7 @@ body {
 .looma-catalog__empty img { width: 4rem; opacity: 0.5; }
 .looma-catalog__empty h2 { margin: 1rem 0 0; padding: 0; border: 0; }
 .looma-catalog__empty p { margin: 0.35rem 0 0.8rem; color: var(--looma-ink-soft); }
-.looma-catalog__empty button { color: var(--looma-purple-deep); border-color: var(--looma-line); }
+.looma-catalog__empty button { color: var(--looma-accent-ink); border-color: var(--looma-line); }
 
 .looma-live-example {
   margin: 1.5rem 0;
@@ -663,7 +667,7 @@ body {
 
 .looma-component-header .component-tag {
   margin-bottom: 0.7rem;
-  color: var(--looma-purple-deep);
+  color: var(--looma-accent-ink);
   font: 500 0.75rem var(--ifm-font-family-monospace);
 }
 
@@ -672,13 +676,176 @@ body {
 
 .tabs__item {
   padding: 0.65rem 0.8rem;
+  color: var(--looma-ink-soft);
+  background: transparent;
   border-radius: 7px 7px 0 0;
   font-size: 0.8rem;
   font-weight: 700;
 }
 
-.tabs__item--active { color: var(--looma-purple-deep); background: var(--looma-purple-wash); border-bottom-color: var(--looma-purple); }
+.tabs__item:hover { color: var(--looma-ink); }
+.tabs__item--active { color: var(--looma-accent-ink); background: var(--looma-purple-wash); border-bottom-color: var(--looma-purple); }
 .looma-api > p:first-child { max-width: 60ch; color: var(--looma-ink-soft); font-size: 1rem; }
+
+.looma-model {
+  margin: 0 0 4rem;
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  background: color-mix(in srgb, var(--looma-purple-wash) 42%, var(--ifm-background-surface-color));
+  border: 1px solid var(--looma-line);
+  border-radius: 18px;
+}
+
+.looma-model__intro { max-width: 48rem; }
+.looma-model__eyebrow {
+  margin: 0 0 0.65rem;
+  color: var(--looma-accent-ink);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.theme-doc-markdown .looma-model h2 {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: clamp(2rem, 4vw, 3.3rem);
+  letter-spacing: -0.055em;
+}
+
+.looma-model__intro > p:last-child {
+  margin: 1rem 0 0;
+  color: var(--looma-ink-soft);
+  font-size: 1.02rem;
+}
+
+.looma-model__steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 2rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.looma-model__steps li {
+  padding: 1rem;
+  background: var(--ifm-background-surface-color);
+  border: 1px solid var(--looma-line);
+  border-radius: 10px;
+}
+
+.looma-model__steps li > span {
+  display: inline-grid;
+  width: 1.55rem;
+  height: 1.55rem;
+  place-items: center;
+  margin-bottom: 0.8rem;
+  color: var(--looma-accent-ink);
+  background: var(--looma-purple-wash);
+  border-radius: 50%;
+  font: 700 0.7rem var(--ifm-font-family-monospace);
+}
+
+.looma-model__steps strong { display: block; font-size: 0.85rem; }
+.looma-model__steps p { margin: 0.45rem 0 0; color: var(--looma-ink-soft); font-size: 0.78rem; line-height: 1.55; }
+
+.looma-model__example {
+  padding: 1.2rem;
+  background: var(--ifm-background-surface-color);
+  border: 1px solid var(--looma-line);
+  border-radius: 12px;
+}
+
+.theme-doc-markdown .looma-model__example h3 { margin: 0; font-size: 1rem; }
+.looma-model__example > div:first-child > p { margin: 0.35rem 0 1rem; color: var(--looma-ink-soft); font-size: 0.8rem; }
+
+.looma-mode-switch {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.8rem;
+}
+
+.looma-mode-switch__label {
+  color: var(--looma-ink-soft);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.looma-mode-switch__options {
+  display: flex;
+  gap: 0.25rem;
+  overflow-x: auto;
+  padding: 0.2rem;
+  background: var(--looma-paper-deep);
+  border: 1px solid var(--looma-line);
+  border-radius: 9px;
+}
+
+.looma-mode-switch button {
+  display: inline-flex;
+  gap: 0.38rem;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0.38rem 0.6rem;
+  white-space: nowrap;
+  color: var(--looma-ink-soft);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font: 700 0.72rem var(--ifm-font-family-base);
+  cursor: pointer;
+}
+
+.looma-mode-switch button:hover { color: var(--looma-ink); }
+.looma-mode-switch button[aria-pressed="true"] {
+  color: var(--looma-accent-ink);
+  background: var(--looma-purple-wash);
+  border-color: color-mix(in srgb, var(--looma-purple) 42%, var(--looma-line));
+}
+
+.looma-mode-switch button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--looma-purple) 52%, transparent);
+  outline-offset: 2px;
+}
+
+.looma-mode-switch button small {
+  padding: 0.08rem 0.3rem;
+  color: inherit;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  border-radius: 4px;
+  font-size: 0.58rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.looma-mode-code .theme-code-block { margin-bottom: 0; }
+
+.looma-component-mode-example {
+  margin-top: 1.25rem;
+  padding: 1rem;
+  background: var(--ifm-background-surface-color);
+  border: 1px solid var(--looma-line);
+  border-radius: 12px;
+}
+
+.looma-component-mode-example__header {
+  display: flex;
+  gap: 1rem;
+  align-items: end;
+  justify-content: space-between;
+  margin-bottom: 0.8rem;
+}
+
+.looma-component-mode-example__header > div:first-child { display: grid; gap: 0.1rem; }
+.looma-component-mode-example__header strong { font-size: 0.85rem; }
+.looma-component-mode-example__header span { color: var(--looma-ink-soft); font-size: 0.72rem; }
+.looma-component-mode-example .looma-mode-switch { margin: 0; }
+.looma-component-mode-example .looma-mode-switch__label { display: none; }
 
 .footer {
   margin-top: 5rem;
@@ -722,6 +889,10 @@ body {
   .looma-catalog__controls { position: static; padding: 0.65rem; }
   .looma-catalog__grid { grid-template-columns: minmax(0, 1fr); }
   .looma-component-card__preview { min-height: 11rem; }
+  .looma-model__steps { grid-template-columns: minmax(0, 1fr); }
+  .looma-mode-switch, .looma-component-mode-example__header { align-items: stretch; flex-direction: column; }
+  .looma-mode-switch__options { display: grid; width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .looma-mode-switch button { flex: 1; justify-content: center; }
   .theme-doc-markdown table, .looma-api-table { display: block; overflow-x: auto; }
 }
 

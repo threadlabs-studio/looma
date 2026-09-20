@@ -3,6 +3,7 @@ import TabItem from "@theme/TabItem";
 import Tabs from "@theme/Tabs";
 
 import { ComponentApi } from "./ComponentApi";
+import { ComponentModeExample } from "./ComponentModeExample";
 import { ComponentPreview } from "./ComponentPreview";
 import { LiveExample } from "./LiveExample";
 
@@ -20,12 +21,7 @@ export function ComponentExamplesApiTabs({
     <Tabs>
       <TabItem value="examples" label="Examples" default>
         {preview ? <LiveExample>{preview}</LiveExample> : <ComponentPreview component={component} />}
-        <p>
-          See <a href="#ssr-markup">SSR Markup</a> and{" "}
-          <a href="#framework-snippets">Framework Snippets</a> below. Vue and
-          direct HTML invocation examples are supported in Release 1; React and
-          Svelte snippets are repository previews.
-        </p>
+        <ComponentModeExample component={component} />
       </TabItem>
       <TabItem value="api" label="API">
         <ComponentApi component={component} />
