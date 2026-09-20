@@ -66,9 +66,11 @@ test("accepts a complete classified projection", () => {
   assert.doesNotThrow(() => validateComponentProjections(completeFixture));
 });
 
-test("discovers editor adapters after their implementation is split into primitives", async () => {
+test("discovers projections from their authoritative shared sources", async () => {
   const projections = await readRepositoryProjectionTags();
 
+  assert.ok(projections.navigationTags.includes("ui-button"));
+  assert.ok(projections.navigationTags.includes("ui-editor-table-overlay"));
   assert.ok(projections.adapterMapTags.includes("ui-editor-toolbar"));
   assert.ok(projections.adapterTags.includes("ui-editor-table-overlay"));
 });
