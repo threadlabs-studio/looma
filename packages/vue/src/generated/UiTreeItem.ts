@@ -1,5 +1,5 @@
 import { defineComponent as _defineComponent } from 'vue'
-import { createElementVNode as _createElementVNode, renderSlot as _renderSlot, mergeProps as _mergeProps, openBlock as _openBlock, createElementBlock as _createElementBlock } from "vue"
+import { createElementVNode as _createElementVNode, createCommentVNode as _createCommentVNode, renderSlot as _renderSlot, mergeProps as _mergeProps, openBlock as _openBlock, createElementBlock as _createElementBlock } from "vue"
 
 const _hoisted_1 = ["aria-label", "data-container", "data-selected", "data-disabled", "data-drop-scope", "data-accepts"]
 const _hoisted_2 = {
@@ -93,29 +93,26 @@ return (_ctx: any,_cache: any) => {
     ref: root
   }), [
     _createElementVNode("div", _hoisted_2, [
-      _cache[0] || (_cache[0] = _createElementVNode("button", {
+      props.sortable && !props.disabled ? (_cache[0] || (_cache[0] = _createElementVNode("button", {
         class: "drag-handle",
         part: "drag-handle",
         type: "button",
         "data-component": "ui-tree-item"
       }, [
         _createElementVNode("span", { "data-component": "ui-tree-item" })
-      ], -1 /* CACHED */)),
-      _cache[1] || (_cache[1] = _createElementVNode("template", { "data-component": "ui-tree-item" }, [
-        _createElementVNode("button", {
+      ], -1 /* CACHED */))) : _createCommentVNode("v-if", true),
+      props.container ? (_cache[1] || (_cache[1] = _createElementVNode("button", {
           class: "disclosure",
           part: "disclosure",
           type: "button",
           "data-component": "ui-tree-item"
         }, [
           _createElementVNode("span", { "data-component": "ui-tree-item" })
-        ]),
-        _createElementVNode("span", {
+        ], -1 /* CACHED */))) : (_cache[4] || (_cache[4] = _createElementVNode("span", {
           class: "disclosure-spacer",
           "aria-hidden": "true",
           "data-component": "ui-tree-item"
-        })
-      ], -1 /* CACHED */)),
+        }, null, -1 /* CACHED */))),
       _createElementVNode("span", _hoisted_3, [
         _renderSlot(_ctx.$slots, "leading")
       ]),
@@ -132,9 +129,9 @@ return (_ctx: any,_cache: any) => {
         "data-component": "ui-tree-item"
       }, null, -1 /* CACHED */))
     ]),
-    _createElementVNode("div", _hoisted_6, [
+    props.container ? _createElementVNode("div", _hoisted_6, [
       _renderSlot(_ctx.$slots, "children")
-    ]),
+    ]) : _createCommentVNode("v-if", true),
     _cache[3] || (_cache[3] = _createElementVNode("span", {
       class: "drop-indicator subtree-drop-indicator",
       part: "drop-indicator",
