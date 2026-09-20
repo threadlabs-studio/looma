@@ -1,7 +1,6 @@
 import {
   attachRegisteredComponent,
   getComponentHost,
-  lowerDocument,
   manageComponentLifecycle as manageRuntimeLifecycle,
   observeDocument,
   setControllerModule,
@@ -45,7 +44,6 @@ interface LoomaDeclarativeState {
   readonly runtime: {
     readonly attachRegisteredComponent: typeof attachRegisteredComponent;
     readonly getComponentHost: typeof getComponentHost;
-    readonly lowerDocument: typeof lowerDocument;
     readonly manageComponentLifecycle: typeof manageRuntimeLifecycle;
     readonly observeDocument: typeof observeDocument;
     readonly setControllerModule: typeof setControllerModule;
@@ -67,7 +65,6 @@ const state = (stateTarget[stateKey] as LoomaDeclarativeState | undefined) ??= {
   runtime: {
     attachRegisteredComponent,
     getComponentHost,
-    lowerDocument,
     manageComponentLifecycle: manageRuntimeLifecycle,
     observeDocument,
     setControllerModule,
@@ -140,7 +137,6 @@ export function registerLoomaPackage(
     style.textContent = styles;
     document.head.append(style);
   }
-  state.runtime.lowerDocument(document);
   scheduleObservation();
 }
 

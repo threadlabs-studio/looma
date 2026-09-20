@@ -1,10 +1,39 @@
 # Editor Bugs
 
-Last updated: 2026-09-03
+Last updated: 2026-09-20
 
 This file tracks shared Looma editor defects that are visible in Knit and other consuming apps.
 
 ## Open
+
+### E-INTAKE-001: Document markup paste becomes code and history controls stay stale
+
+Status: closed (unreleased)
+
+Observed behavior:
+
+- HTML copied from a source-oriented editor was consumed by the code-paste
+  handler and inserted as one literal code block.
+- The desktop formatting toolbar appeared only after a text selection.
+- Undo and Redo buttons could remain disabled after the editor history changed.
+
+Resolution:
+
+- Looma now recognizes HTML and Markdown document markup before the generic
+  source-code handler and parses supported structure into the Tiptap schema.
+- Programming-language source still follows the code-block path, and paste into
+  an existing code block remains literal.
+- Interpreted paste is one transaction and therefore one history step.
+- `LoomaEditor` now updates command state after every transaction and offers an
+  opt-in `sticky` desktop toolbar mode; the existing selection toolbar remains
+  the default.
+
+Release evidence:
+
+- DOM-level regressions cover HTML, Markdown, programming source, and explicit
+  code-block paste.
+- Real Chromium coverage exercises structured paste with keyboard Undo/Redo and
+  sticky-toolbar Undo/Redo through the rendered native buttons.
 
 ### E-TBL-001: Slash-triggered table picker anchors to toolbar instead of the slash context
 

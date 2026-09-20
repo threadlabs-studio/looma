@@ -14,7 +14,7 @@ published component API. For example, `Dialog` accepts `open?: boolean` and
 its `onClose` callback receives the structured close detail; the adapter still
 forwards those values to the native root attached to the same declarative contract.
 
-Release status: Candidate `0.2.5`. Browser lowering/render and linked-workspace Knit qualification pass; packed-artifact Knit qualification remains a publication gate. React and Svelte adapters are not part of the R1 public package set.
+Release status: Candidate `0.2.7`. Browser lowering/render and linked-workspace Knit qualification pass; packed-artifact Knit qualification remains a publication gate. React and Svelte adapters are not part of the R1 public package set.
 
 ## Install
 
@@ -83,6 +83,7 @@ const resolveImageAttributes = (image) => image.responsive
 <template>
   <LoomaEditor
     v-model="document"
+    toolbar-mode="sticky"
     :mention-provider="findPeople"
     :mention-limit="8"
     :upload-image="async file => ({
@@ -108,6 +109,13 @@ ignores stale async responses, and persists only each person's stable `id` and
 display `label`. The host owns the directory query, authorization, persistence,
 upload transport, rendition URL generation, and the viewer opened from
 `imageActivate`.
+
+Desktop formatting controls default to the selection-driven `bubble` toolbar.
+Set `toolbar-mode="sticky"` to keep the complete toolbar visible while the editor
+is active. Toolbar command state follows every editor transaction, including
+Undo and Redo; native Command/Ctrl-Z and Command/Ctrl-Shift-Z continue to use the
+same history. On mobile, Looma continues to use its single keyboard-aware dock
+regardless of the desktop toolbar mode.
 
 An upload result may include positive intrinsic `width` and `height` plus
 `responsive: true`. Those stable values are stored in Tiptap JSON. The optional

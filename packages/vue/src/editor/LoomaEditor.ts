@@ -14,6 +14,7 @@ import {
   watch,
   type CSSProperties,
   type PropType,
+  type VNode,
 } from "vue";
 import {
   createLoomaSlashCommandExtension,
@@ -65,6 +66,8 @@ export interface LoomaImageUploadResult extends Omit<LoomaImageDescriptor, "src"
 export type LoomaImageUploader = (
   file: File,
 ) => Promise<string | LoomaImageUploadResult>;
+
+export type LoomaEditorToolbarMode = "bubble" | "sticky";
 
 const EMPTY_DOCUMENT: JSONContent = { type: "doc", content: [] };
 let editorInstanceSequence = 0;
@@ -151,6 +154,10 @@ export const LoomaEditor = defineComponent({
       type: Function as PropType<LoomaImageAttributeResolver | undefined>,
       default: undefined,
     },
+    toolbarMode: {
+      type: String as PropType<LoomaEditorToolbarMode>,
+      default: "bubble",
+    },
   },
   emits: {
     "update:modelValue": (_value: JSONContent) => true,
@@ -175,6 +182,7 @@ export const LoomaEditor = defineComponent({
     const mobileToolbarStyle = ref<CSSProperties>({});
     const mobile = ref(typeof window !== "undefined" && window.innerWidth <= 767);
     const editorFocused = ref(false);
+    const editorStateVersion = ref(0);
     const mobileToolbarMode = ref<"formatting" | "table">("formatting");
     let dragLeaveTimer: ReturnType<typeof setTimeout> | null = null;
     let tableResizeActive = false;
@@ -275,6 +283,7 @@ export const LoomaEditor = defineComponent({
       onCreate: ({ editor: instance }) => emit("ready", instance),
       onFocus: ({ editor: instance }) => rememberSelection(instance),
       onSelectionUpdate: ({ editor: instance }) => rememberSelection(instance),
+      onTransaction: () => { editorStateVersion.value += 1; },
       onUpdate: ({ editor: instance }) => {
         const value = instance.getJSON();
         emit("update:modelValue", value);
@@ -731,18 +740,27 @@ export const LoomaEditor = defineComponent({
       active: boolean,
       disabled: boolean,
       run: () => void,
-    ) => h(IconButton, {
-      class: "looma-editor__toolbar-button",
-      label,
-      title: label,
-      size: "sm",
-      variant: active ? "solid" : "ghost",
-      disabled,
-      "data-active": active ? "true" : "false",
-      onClick: run,
-    }, () => loomaIcon(icon));
+    ) => {
+      const syncNativeDisabled = (vnode: VNode) => {
+        if (!(vnode.el instanceof Element)) return;
+        const button = vnode.el.querySelector("button");
+        if (button) button.disabled = disabled;
+      };
+      return h(IconButton, {
+        class: "looma-editor__toolbar-button",
+        label,
+        title: label,
+        size: "sm",
+        variant: active ? "solid" : "ghost",
+        disabled,
+        "data-active": active ? "true" : "false",
+        onVnodeMounted: syncNativeDisabled,
+        onVnodeUpdated: syncNativeDisabled,
+        onClick: run,
+      }, () => loomaIcon(icon));
+    };
 
-    const renderToolbar = (instance: Editor) => {
+    const renderToolbar = (instance: Editor, floating = true) => {
       const buttons = [
         commandButton("Bold", "bold", instance.isActive("bold"), !instance.can().toggleBold(), () => instance.chain().focus().toggleBold().run()),
         commandButton("Italic", "italic", instance.isActive("italic"), !instance.can().toggleItalic(), () => instance.chain().focus().toggleItalic().run()),
@@ -776,7 +794,7 @@ export const LoomaEditor = defineComponent({
         commandButton("Undo", "undo", false, !instance.can().undo(), () => instance.chain().focus().undo().run()),
         commandButton("Redo", "redo", false, !instance.can().redo(), () => instance.chain().focus().redo().run()),
       ];
-      return h(EditorToolbar, { floating: "" }, () => buttons);
+      return h(EditorToolbar, floating ? { floating: "" } : {}, () => buttons);
     };
 
     const focus = (position: "start" | "end" = "start") => {
@@ -786,6 +804,10 @@ export const LoomaEditor = defineComponent({
 
     return () => {
       const instance = editor.value;
+      // Tiptap's Editor instance is not a Vue reactive object. Reading this
+      // counter makes command availability and active state follow every
+      // transaction, including undo and redo in uncontrolled integrations.
+      void editorStateVersion.value;
       const tableProps = {
         open: true,
         "cell-alignment": tableUi.alignment,
@@ -823,7 +845,7 @@ export const LoomaEditor = defineComponent({
         onDblclick: onImageDoubleClick,
         onKeydown: onImageKeyDown,
       }, [
-        instance && props.editable && !mobile.value
+        instance && props.editable && !mobile.value && props.toolbarMode === "bubble"
           ? h(BubbleMenu, {
               editor: instance,
               pluginKey: "looma-text-formatting-menu",
@@ -836,6 +858,13 @@ export const LoomaEditor = defineComponent({
                 placement: "top",
               },
             }, { default: () => renderToolbar(instance) })
+          : null,
+        instance && props.editable && !mobile.value && props.toolbarMode === "sticky"
+          ? h("div", {
+              class: "looma-editor__sticky-toolbar-shell",
+              role: "toolbar",
+              "aria-label": "Editor tools",
+            }, [renderToolbar(instance, false)])
           : null,
         instance ? h(EditorContent, { editor: instance }) : null,
         instance && props.editable && mobile.value && editorFocused.value

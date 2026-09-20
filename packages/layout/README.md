@@ -6,7 +6,7 @@
 Nine declarative layout components that lower to light-DOM native roots, use token-driven gaps,
 and never add external margins.
 
-Release target: Candidate `0.2.5`. The public
+Release target: Candidate `0.2.7`. The public
 component invocations in this workspace are `ui-stack`, `ui-inline`, `ui-cluster`, `ui-grid`,
 `ui-center`, `ui-switcher`, `ui-sidebar`, `ui-reel`, and `ui-separator`.
 

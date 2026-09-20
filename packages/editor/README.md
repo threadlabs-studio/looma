@@ -7,7 +7,7 @@ Candidate declarative editor UI, styles, Tiptap 2 presets, slash commands, menti
 and table editing for Looma. The package uses Tiptap's vanilla `Editor`; the
 public facade's `/vue/editor` entry provides the turnkey Vue editor.
 
-Release status: Candidate `0.2.5`, not Stable.
+Release status: Candidate `0.2.7`, not Stable.
 
 ## Density tokens
 
@@ -59,6 +59,14 @@ formatting controls, slash commands, and table actions. Host applications pass
 content and editability, receive document updates, and optionally provide an
 image-upload callback. Persistence, collaboration, workspace/page concepts, and
 app-specific commands remain host responsibilities.
+
+Its default extension preset treats pasted document markup as document content.
+HTML and Markdown copied from source-oriented tools become supported headings,
+paragraphs, lists, links, images, tables, and marks instead of a literal code
+block. Recognizable programming-language source still becomes a code block, and
+anything pasted inside an existing code block remains literal. Each interpreted
+paste is dispatched as one transaction so normal Undo and Redo remove or restore
+the complete paste.
 
 Advanced Tiptap integrations that use Looma's default slash commands outside
 `getDefaultEditorExtensions()` should also add the exported `LoomaCallout`
