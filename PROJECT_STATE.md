@@ -4,11 +4,11 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-20 11:15 PDT
-Status: Candidate `0.2.5` is public. Candidate `0.2.8` is prepared with
+Last Updated: 2026-09-20 13:46 PDT
+Status: Candidate `0.2.5` is public. Candidate `0.2.9` is prepared with
 structured document paste, reliable history controls, an opt-in sticky desktop
-editor toolbar, and SSR-safe Vue adapter hydration. Historical release tasks
-below retain their original version context.
+editor toolbar, SSR-safe Vue adapter hydration, and preserved named-slot
+content. Historical release tasks below retain their original version context.
 
 ## Current Focus
 
@@ -37,6 +37,9 @@ below retain their original version context.
 
 ## Recent Progress
 
+- Preserved framework-rendered named-slot nodes through declarative attachment.
+  Vue adapters now retain their slot identity, and optional-region controllers
+  synchronize both declarative state and immediate DOM visibility.
 - Fixed editor intake and history behavior for the next Candidate: HTML and
   Markdown document markup paste as supported editable structure, while source
   code and explicit code-block paste remain literal. The paste is one history
