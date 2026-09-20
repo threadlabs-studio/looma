@@ -14,6 +14,9 @@ export default defineConfig({
       headless: true,
       instances: [{ browser: "chromium" }],
     },
-    include: ["src/declarative-adapter.browser.test.ts"],
+    include: [
+      "src/declarative-adapter.browser.test.ts",
+      "src/editor/LoomaEditor.history.browser.test.ts",
+    ],
   },
 });
