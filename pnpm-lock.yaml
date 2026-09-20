@@ -5897,7 +5897,7 @@ packages:
     resolution: {integrity: sha512-cbH9IAIJHNj9uXi196JVsRlt7cHKak6u/e6AkL/bkRelZ7rlL3X1YKxsZwa36xipOEKAsdtmaG6aAJoM1fx2zA==}
     engines: {node: '>=14.16'}
 
-  pako@0.2.10:
+  pako@0.2.9:
     resolution: {integrity: sha512-NUcwaKxUxWrZLpDG+z/xZaCgQITkA/Dv4V/T6bw7VON6l1Xz/VnrBqrYjZQ12TamKHzITTfOEIYUj48y2KXImA==}
 
   param-case@3.0.4:
@@ -12086,7 +12086,7 @@ snapshots:
 
   browserify-zlib@0.1.4:
     dependencies:
-      pako: 0.2.10
+      pako: 0.2.9
 
   browserslist@4.28.1:
     dependencies:
@@ -14850,7 +14850,7 @@ snapshots:
       registry-url: 6.0.1
       semver: 7.8.5
 
-  pako@0.2.10: {}
+  pako@0.2.9: {}
 
   param-case@3.0.4:
     dependencies:
