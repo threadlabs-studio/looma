@@ -11,14 +11,19 @@ export default function controller(host) {
   const footer = host.element.querySelector(".search-shell__footer");
 
   const syncSlots = () => {
-    if (status) status.hidden = !hasContent(status);
-    if (footer) footer.hidden = !hasContent(footer);
+    const hasStatus = Boolean(status && hasContent(status));
+    const hasFooter = Boolean(footer && hasContent(footer));
+    host.state.hasStatus = hasStatus;
+    host.state.hasFooter = hasFooter;
+    if (status) status.hidden = !hasStatus;
+    if (footer) footer.hidden = !hasFooter;
   };
 
   const observer = new MutationObserver(syncSlots);
   if (status) observer.observe(status, { childList: true, subtree: true });
   if (footer) observer.observe(footer, { childList: true, subtree: true });
   syncSlots();
+  queueMicrotask(syncSlots);
 
   return () => observer.disconnect();
 }

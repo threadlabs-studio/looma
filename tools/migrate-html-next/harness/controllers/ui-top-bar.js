@@ -6,17 +6,26 @@ function hasContent(region) {
 }
 
 export default function controller(host) {
-  const regions = ["leading", "search", "actions"]
-    .map((name) => host.element.querySelector(`.top-bar__${name}`))
-    .filter(Boolean);
+  const regions = {
+    hasLeading: host.element.querySelector(".top-bar__leading"),
+    hasSearch: host.element.querySelector(".top-bar__search"),
+    hasActions: host.element.querySelector(".top-bar__actions"),
+  };
 
   const syncSlots = () => {
-    for (const region of regions) region.hidden = !hasContent(region);
+    for (const [state, region] of Object.entries(regions)) {
+      const present = Boolean(region && hasContent(region));
+      host.state[state] = present;
+      if (region) region.hidden = !present;
+    }
   };
 
   const observer = new MutationObserver(syncSlots);
-  for (const region of regions) observer.observe(region, { childList: true, subtree: true });
+  for (const region of Object.values(regions)) {
+    if (region) observer.observe(region, { childList: true, subtree: true });
+  }
   syncSlots();
+  queueMicrotask(syncSlots);
 
   return () => observer.disconnect();
 }

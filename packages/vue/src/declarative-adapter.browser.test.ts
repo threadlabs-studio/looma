@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, createSSRApp, h, type App } from "vue";
 import { renderToString } from "@vue/server-renderer";
+import { controllerFor } from "@threadlabs/looma-core/declarative";
 
-import { MenuItem, Switcher, TreeItem } from "./index";
+import { MenuItem, SearchShell, Switcher, TopBar, TreeItem } from "./index";
 
 const apps: App[] = [];
 
@@ -77,5 +78,33 @@ describe("Vue declarative adapters in a browser", () => {
       consoleError.mockRestore();
       consoleWarn.mockRestore();
     }
+  });
+
+  it("installs native-root component styles and keeps populated named regions visible", async () => {
+    expect(controllerFor("ui-top-bar")?.default).toBeTypeOf("function");
+    const host = document.createElement("div");
+    document.body.append(host);
+    const app = createApp({
+      render: () => h("div", [
+        h(TopBar, {}, {
+          default: () => h("span", "Page title"),
+          leading: () => h("button", { type: "button" }, "Menu"),
+        }),
+        h(SearchShell, {}, {
+          search: () => h("input", { type: "search", "aria-label": "Search" }),
+        }),
+      ]),
+    });
+    apps.push(app);
+    app.mount(host);
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+
+    const topBar = host.querySelector<HTMLElement>(".top-bar")!;
+    const leading = host.querySelector<HTMLElement>(".top-bar__leading")!;
+    const search = host.querySelector<HTMLInputElement>('input[type="search"]')!;
+    expect(getComputedStyle(topBar).display).toBe("flex");
+    expect(leading.textContent).toContain("Menu");
+    expect(leading.hidden).toBe(false);
+    expect(search.getClientRects().length).toBeGreaterThan(0);
   });
 });
