@@ -13,8 +13,8 @@
     "@tiptap/core": "^2.27.2",
     "@tiptap/pm": "^2.27.2",
     "@tiptap/vue-3": "^2.27.2",
-    "@vue/server-renderer": "^3.5.0",
-    "vue": "^3.5.0"
+    "@vue/server-renderer": "3.5.29",
+    "vue": "3.5.29"
   },
   "devDependencies": {
     "@types/node": "^22.13.5",
