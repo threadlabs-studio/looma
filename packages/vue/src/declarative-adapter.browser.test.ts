@@ -3,7 +3,7 @@ import { createApp, createSSRApp, h, type App } from "vue";
 import { renderToString } from "@vue/server-renderer";
 import { controllerFor } from "@threadlabs/looma-core/declarative";
 
-import { MenuItem, SearchShell, Switcher, TopBar, TreeItem } from "./index";
+import { MenuItem, SearchShell, Switcher, ToastRegion, TopBar, Tree, TreeItem } from "./index";
 
 const apps: App[] = [];
 
@@ -106,5 +106,44 @@ describe("Vue declarative adapters in a browser", () => {
     expect(leading.textContent).toContain("Menu");
     expect(leading.hidden).toBe(false);
     expect(search.getClientRects().length).toBeGreaterThan(0);
+  });
+
+  it("preserves nested framework components projected through named slots", async () => {
+    const host = document.createElement("div");
+    document.body.append(host);
+    const app = createApp({
+      render: () => h(Tree, { label: "Pages" }, () => h(TreeItem, {
+        container: true,
+        expanded: true,
+        itemId: "parent",
+        label: "Parent",
+      }, {
+        default: () => "Parent",
+        children: () => h("div", [
+          h(TreeItem, { itemId: "child", label: "Child" }, () => "Child"),
+        ]),
+      })),
+    });
+    apps.push(app);
+    app.mount(host);
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+
+    expect(host.querySelectorAll('[data-component-root="ui-tree-item"]')).toHaveLength(2);
+    expect(host.textContent).toContain("Child");
+  });
+
+  it("keeps hidden native roots out of layout", async () => {
+    const host = document.createElement("div");
+    document.body.append(host);
+    const app = createApp({
+      render: () => h(ToastRegion, { hidden: true }, () => "Saved"),
+    });
+    apps.push(app);
+    app.mount(host);
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+
+    const region = host.querySelector<HTMLElement>('[data-component-root="ui-toast-region"]')!;
+    expect(region.hidden).toBe(true);
+    expect(region.getClientRects()).toHaveLength(0);
   });
 });
