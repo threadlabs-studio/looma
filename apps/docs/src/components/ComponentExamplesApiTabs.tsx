@@ -3,6 +3,7 @@ import TabItem from "@theme/TabItem";
 import Tabs from "@theme/Tabs";
 
 import { ComponentApi } from "./ComponentApi";
+import { ComponentPreview } from "./ComponentPreview";
 import { LiveExample } from "./LiveExample";
 
 interface ComponentExamplesApiTabsProps {
@@ -18,7 +19,7 @@ export function ComponentExamplesApiTabs({
   return (
     <Tabs>
       <TabItem value="examples" label="Examples" default>
-        {preview ? <LiveExample>{preview}</LiveExample> : null}
+        {preview ? <LiveExample>{preview}</LiveExample> : <ComponentPreview component={component} />}
         <p>
           See <a href="#ssr-markup">SSR Markup</a> and{" "}
           <a href="#framework-snippets">Framework Snippets</a> below. Vue and
