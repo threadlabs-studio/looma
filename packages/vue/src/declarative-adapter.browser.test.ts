@@ -98,7 +98,6 @@ describe("Vue declarative adapters in a browser", () => {
     apps.push(app);
     app.mount(host);
     await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
-
     const topBar = host.querySelector<HTMLElement>(".top-bar")!;
     const leading = host.querySelector<HTMLElement>(".top-bar__leading")!;
     const search = host.querySelector<HTMLInputElement>('input[type="search"]')!;
@@ -161,6 +160,32 @@ describe("Vue declarative adapters in a browser", () => {
     expect(host.querySelectorAll('[data-component-root="ui-tree-item"]')).toHaveLength(2);
     expect(host.querySelector('[role="group"] [data-component-root="ui-tree-item"]')).not.toBeNull();
     expect(host.textContent).toContain("Child");
+  });
+
+  it("keeps reactive default-slot content in its original region", async () => {
+    const label = ref("First title");
+    const host = document.createElement("div");
+    document.body.append(host);
+    const app = createApp({
+      render: () => h(TreeItem, {
+        itemId: "page",
+        label: label.value,
+      }, {
+        default: () => h("a", { href: "/page" }, label.value),
+        actions: () => h("button", { type: "button" }, "More"),
+      }),
+    });
+    apps.push(app);
+    app.mount(host);
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+
+    label.value = "Updated title";
+    await nextTick();
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+
+    expect(host.querySelector('[part="label"] a')?.textContent).toBe("Updated title");
+    expect(host.querySelector('[part="actions"] a')).toBeNull();
+    expect(host.querySelector('[part="actions"] button')?.textContent).toBe("More");
   });
 
   it("keeps hidden native roots out of layout", async () => {

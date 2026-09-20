@@ -53,7 +53,7 @@ return (_ctx: any,_cache: any) => {
       "aria-label": props.label,
       "data-component": "ui-icon-button"
     }, [
-      _renderSlot(_ctx.$slots, "default")
+      _createElementVNode("span", { "data-looma-framework-slot": "", style: { display: "contents" } }, [_renderSlot(_ctx.$slots, "default")])
     ], 8 /* PROPS */, _hoisted_2)
   ], 16 /* FULL_PROPS */, _hoisted_1))
 }

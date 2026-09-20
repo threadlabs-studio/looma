@@ -58,7 +58,7 @@ return (_ctx: any,_cache: any) => {
     ref: root
   }), [
     _createElementVNode("div", _hoisted_1, [
-      _renderSlot(_ctx.$slots, "default")
+      _createElementVNode("span", { "data-looma-framework-slot": "", style: { display: "contents" } }, [_renderSlot(_ctx.$slots, "default")])
     ])
   ], 16 /* FULL_PROPS */))
 }

@@ -67,7 +67,7 @@ return (_ctx: any,_cache: any) => {
         _createElementVNode("span", { slot: "leading", "data-looma-framework-slot": "leading", style: { display: "contents" } }, [_renderSlot(_ctx.$slots, "leading")])
       ]),
       _createElementVNode("div", _hoisted_3, [
-        _renderSlot(_ctx.$slots, "default")
+        _createElementVNode("span", { "data-looma-framework-slot": "", style: { display: "contents" } }, [_renderSlot(_ctx.$slots, "default")])
       ]),
       _createElementVNode("div", _hoisted_4, [
         _createElementVNode("span", { slot: "search", "data-looma-framework-slot": "search", style: { display: "contents" } }, [_renderSlot(_ctx.$slots, "search")])

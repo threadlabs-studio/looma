@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## v0.2.12 Candidate
+
+- Keep Vue-owned default-slot content in its intended component region across
+  reactive updates, including labels beside named leading and action regions.
+
 ## v0.2.11 Candidate
 
 - Preserve Vue-owned conditional content added after mount in named slots, so

@@ -59,7 +59,7 @@ return (_ctx: any,_cache: any) => {
         "data-component": "ui-callout"
       }, null, -1 /* CACHED */)),
       _createElementVNode("div", _hoisted_3, [
-        _renderSlot(_ctx.$slots, "default")
+        _createElementVNode("span", { "data-looma-framework-slot": "", style: { display: "contents" } }, [_renderSlot(_ctx.$slots, "default")])
       ])
     ])
   ], 16 /* FULL_PROPS */, _hoisted_1))

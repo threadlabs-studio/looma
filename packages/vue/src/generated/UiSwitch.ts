@@ -62,7 +62,7 @@ return (_ctx: any,_cache: any) => {
       "aria-hidden": "true",
       "data-component": "ui-switch"
     }, null, 8 /* PROPS */, _hoisted_2),
-    _renderSlot(_ctx.$slots, "default")
+    _createElementVNode("span", { "data-looma-framework-slot": "", style: { display: "contents" } }, [_renderSlot(_ctx.$slots, "default")])
   ], 16 /* FULL_PROPS */, _hoisted_1))
 }
 }
