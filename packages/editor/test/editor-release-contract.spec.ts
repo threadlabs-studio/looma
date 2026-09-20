@@ -12,6 +12,13 @@ import {
 
 const editors: Editor[] = [];
 
+async function flushDeclarative(): Promise<void> {
+  for (let index = 0; index < 3; index += 1) {
+    await Promise.resolve();
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+  }
+}
+
 afterEach(() => {
   for (const editor of editors.splice(0)) {
     editor.destroy();
@@ -105,7 +112,7 @@ describe("editor release data-integrity contract", () => {
     expect(() => JSON.parse(JSON.stringify(editor.getJSON()))).not.toThrow();
   });
 
-  it("emits one explicit destructive intent and never mutates editor state itself", () => {
+  it("emits one explicit destructive intent and never mutates editor state itself", async () => {
     const editor = createTableEditor();
     const before = editor.getJSON();
     const menu = document.createElement("ui-editor-table-context-menu");
@@ -117,7 +124,13 @@ describe("editor release data-integrity contract", () => {
       actions.push((event as CustomEvent<{ action: string }>).detail.action);
     });
 
-    menu.querySelector<HTMLButtonElement>('[data-action="delete-table"]')?.click();
+    await flushDeclarative();
+    const root = document.querySelector<HTMLElement>(`[data-component-root="ui-editor-table-context-menu"]`)!;
+    root.addEventListener("looma-editor-table-action", (event) => {
+      actions.push((event as CustomEvent<{ action: string }>).detail.action);
+    });
+
+    root.querySelector<HTMLButtonElement>('[data-action="delete-table"]')?.click();
 
     expect(actions).toEqual(["delete-table"]);
     expect(editor.getJSON()).toEqual(before);
@@ -135,6 +148,7 @@ describe("representative editor accessibility", () => {
         <ui-editor-table-overlay open rows="2" cols="2"></ui-editor-table-overlay>
       </main>
     `;
+    await flushDeclarative();
 
     const result = await axe.run(document.getElementById("editor-qualification")!, {
       // jsdom has no canvas implementation, so contrast remains a real-browser/manual gate.

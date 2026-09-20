@@ -1,5 +1,10 @@
-import "@threadlabs/looma-layout";
 import "@threadlabs/looma-core";
+import "@threadlabs/looma-layout";
+import "@threadlabs/looma-editor/ui";
+import { factoryByTag } from "./generated/vanilla/index.js";
+import type { GeneratedTagName, VanillaComponentOptions } from "./generated/vanilla/index.js";
+
+export * from "./generated/vanilla/index.js";
 
 export interface SvelteAdapterEventMap {
   open: { open: boolean; reason: string; trigger: string };
@@ -9,35 +14,8 @@ export interface SvelteAdapterEventMap {
   dismiss: { id: string; reason: string; trigger: string };
 }
 
-export type AdapterTagName =
-  | "ui-stack"
-  | "ui-inline"
-  | "ui-cluster"
-  | "ui-grid"
-  | "ui-center"
-  | "ui-switcher"
-  | "ui-sidebar"
-  | "ui-reel"
-  | "ui-separator"
-  | "ui-disclosure"
-  | "ui-tabs"
-  | "ui-dialog"
-  | "ui-popover"
-  | "ui-menu"
-  | "ui-menu-item"
-  | "ui-button"
-  | "ui-icon-button"
-  | "ui-input"
-  | "ui-select"
-  | "ui-textarea"
-  | "ui-form-field"
-  | "ui-tooltip"
-  | "ui-toast-region"
-  | "ui-checkbox"
-  | "ui-switch"
-  | "ui-floating-action-button";
-
-export type AdapterPropsRecord = Record<string, string | number | boolean | null | undefined>;
+export type AdapterTagName = GeneratedTagName;
+export type AdapterPropsRecord = Record<string, unknown>;
 
 export type AdapterEventHandlers = {
   onOpen?: (detail: SvelteAdapterEventMap["open"]) => void;
@@ -49,103 +27,45 @@ export type AdapterEventHandlers = {
 
 export type SvelteAdapterOptions = AdapterEventHandlers & {
   props?: AdapterPropsRecord;
+  attributes?: VanillaComponentOptions["attributes"];
+  children?: VanillaComponentOptions["children"];
+  slots?: VanillaComponentOptions["slots"];
 };
 
 type Cleanup = () => void;
 
-function setElementProperty(node: HTMLElement, name: string, value: unknown): void {
-  if (name in node) {
-    (node as unknown as Record<string, unknown>)[name] = value;
-  }
-}
-
 function applyProps(node: HTMLElement, props: AdapterPropsRecord): void {
   for (const [name, value] of Object.entries(props)) {
-    if (typeof value === "boolean") {
-      if (value) {
-        node.setAttribute(name, "");
-      } else {
-        node.removeAttribute(name);
-      }
-      setElementProperty(node, name, value);
+    if (name in node || typeof value === "object") {
+      (node as unknown as Record<string, unknown>)[name] = value;
       continue;
     }
-
-    if (value === null || value === undefined) {
+    if (value === null || value === undefined || value === false) {
       node.removeAttribute(name);
-      setElementProperty(node, name, undefined);
-      continue;
+    } else {
+      node.setAttribute(name, value === true ? "" : String(value));
     }
-
-    node.setAttribute(name, String(value));
-    setElementProperty(node, name, value);
   }
 }
 
 function bindEvents(node: HTMLElement, handlers: AdapterEventHandlers): Cleanup {
   const listeners: Array<[string, EventListener | undefined]> = [
-    [
-      "open",
-      typeof handlers.onOpen === "function"
-        ? ((event: Event) => {
-            handlers.onOpen?.((event as CustomEvent<SvelteAdapterEventMap["open"]>).detail);
-          })
-        : undefined
-    ],
-    [
-      "close",
-      typeof handlers.onClose === "function"
-        ? ((event: Event) => {
-            handlers.onClose?.((event as CustomEvent<SvelteAdapterEventMap["close"]>).detail);
-          })
-        : undefined
-    ],
-    [
-      "select",
-      typeof handlers.onSelect === "function"
-        ? ((event: Event) => {
-            handlers.onSelect?.((event as CustomEvent<SvelteAdapterEventMap["select"]>).detail);
-          })
-        : undefined
-    ],
-    [
-      "change",
-      typeof handlers.onChange === "function"
-        ? ((event: Event) => {
-            handlers.onChange?.((event as CustomEvent<SvelteAdapterEventMap["change"]>).detail);
-          })
-        : undefined
-    ],
-    [
-      "dismiss",
-      typeof handlers.onDismiss === "function"
-        ? ((event: Event) => {
-            handlers.onDismiss?.((event as CustomEvent<SvelteAdapterEventMap["dismiss"]>).detail);
-          })
-        : undefined
-    ]
+    ["open", handlers.onOpen && ((event) => handlers.onOpen?.((event as CustomEvent<SvelteAdapterEventMap["open"]>).detail))],
+    ["close", handlers.onClose && ((event) => handlers.onClose?.((event as CustomEvent<SvelteAdapterEventMap["close"]>).detail))],
+    ["select", handlers.onSelect && ((event) => handlers.onSelect?.((event as CustomEvent<SvelteAdapterEventMap["select"]>).detail))],
+    ["change", handlers.onChange && ((event) => handlers.onChange?.((event as CustomEvent<SvelteAdapterEventMap["change"]>).detail))],
+    ["dismiss", handlers.onDismiss && ((event) => handlers.onDismiss?.((event as CustomEvent<SvelteAdapterEventMap["dismiss"]>).detail))],
   ];
-
-  for (const [eventName, listener] of listeners) {
-    if (listener) {
-      node.addEventListener(eventName, listener);
-    }
-  }
-
+  for (const [eventName, listener] of listeners) if (listener) node.addEventListener(eventName, listener);
   return () => {
-    for (const [eventName, listener] of listeners) {
-      if (listener) {
-        node.removeEventListener(eventName, listener);
-      }
-    }
+    for (const [eventName, listener] of listeners) if (listener) node.removeEventListener(eventName, listener);
   };
 }
 
+/** Svelte action for updating a native root created by a Looma factory. */
 export function bindAdapter(node: HTMLElement, options: SvelteAdapterOptions = {}) {
-  const nextOptions = options;
-  applyProps(node, nextOptions.props ?? {});
-  let cleanup = bindEvents(node, nextOptions);
-
+  applyProps(node, options.props ?? {});
+  let cleanup = bindEvents(node, options);
   return {
     update(updatedOptions: SvelteAdapterOptions = {}) {
       cleanup();
@@ -154,48 +74,73 @@ export function bindAdapter(node: HTMLElement, options: SvelteAdapterOptions = {
     },
     destroy() {
       cleanup();
-    }
+    },
   };
 }
 
-export function createAdapterElement(
-  tagName: AdapterTagName,
-  options: SvelteAdapterOptions = {}
-): HTMLElement {
-  const element = document.createElement(tagName);
-  applyProps(element, options.props ?? {});
+/** Creates the component's native root directly from the declarative contract. */
+export function createAdapterElement(tagName: AdapterTagName, options: SvelteAdapterOptions = {}): HTMLElement {
+  const factory = factoryByTag[tagName];
+  const factoryOptions: Record<string, unknown> = { ...(options.props ?? {}) };
+  if (options.attributes !== undefined) factoryOptions.attributes = options.attributes;
+  if (options.children !== undefined) factoryOptions.children = options.children;
+  if (options.slots !== undefined) factoryOptions.slots = options.slots;
+  const element = factory(factoryOptions);
   bindEvents(element, options);
   return element;
 }
 
 export const ADAPTER_COMPONENT_TAG_MAP = {
-  Stack: "ui-stack",
-  Inline: "ui-inline",
-  Cluster: "ui-cluster",
-  Grid: "ui-grid",
-  Center: "ui-center",
-  Switcher: "ui-switcher",
-  Sidebar: "ui-sidebar",
-  Reel: "ui-reel",
-  Separator: "ui-separator",
-  Disclosure: "ui-disclosure",
-  Tabs: "ui-tabs",
-  Dialog: "ui-dialog",
-  Popover: "ui-popover",
-  Menu: "ui-menu",
-  MenuItem: "ui-menu-item",
+  AffordanceScope: "ui-affordance-scope",
+  AvatarGroup: "ui-avatar-group",
+  Avatar: "ui-avatar",
+  Badge: "ui-badge",
   Button: "ui-button",
+  Callout: "ui-callout",
+  Checkbox: "ui-checkbox",
+  Chip: "ui-chip",
+  Combobox: "ui-combobox",
+  ContextMenu: "ui-context-menu",
+  Dialog: "ui-dialog",
+  Disclosure: "ui-disclosure",
+  Editable: "ui-editable",
+  FloatingActionButton: "ui-floating-action-button",
+  FormField: "ui-form-field",
   IconButton: "ui-icon-button",
   Input: "ui-input",
+  MenuItem: "ui-menu-item",
+  Menu: "ui-menu",
+  Popover: "ui-popover",
+  RadioGroup: "ui-radio-group",
+  Radio: "ui-radio",
+  SearchResultRow: "ui-search-result-row",
+  SearchShell: "ui-search-shell",
   Select: "ui-select",
-  Textarea: "ui-textarea",
-  FormField: "ui-form-field",
-  Tooltip: "ui-tooltip",
-  ToastRegion: "ui-toast-region",
-  Checkbox: "ui-checkbox",
   Switch: "ui-switch",
-  FloatingActionButton: "ui-floating-action-button"
-} as const;
+  Tabs: "ui-tabs",
+  Textarea: "ui-textarea",
+  ToastRegion: "ui-toast-region",
+  Tooltip: "ui-tooltip",
+  TopBar: "ui-top-bar",
+  TreeItem: "ui-tree-item",
+  Tree: "ui-tree",
+  EditorInsertTableGrid: "ui-editor-insert-table-grid",
+  EditorMentionMenu: "ui-editor-mention-menu",
+  EditorSlashMenu: "ui-editor-slash-menu",
+  EditorTableContextMenu: "ui-editor-table-context-menu",
+  EditorTableOverlay: "ui-editor-table-overlay",
+  EditorTableToolbar: "ui-editor-table-toolbar",
+  EditorToolbar: "ui-editor-toolbar",
+  Center: "ui-center",
+  Cluster: "ui-cluster",
+  Grid: "ui-grid",
+  Inline: "ui-inline",
+  Reel: "ui-reel",
+  Separator: "ui-separator",
+  Sidebar: "ui-sidebar",
+  Stack: "ui-stack",
+  Switcher: "ui-switcher",
+} as const satisfies Readonly<Record<string, AdapterTagName>>;
 
 export const SVELTE_ADAPTER_NOTE =
-  "Thin adapter only: use bindAdapter/createAdapterElement to pass props to custom elements and map DOM events to typed callbacks.";
+  "Native-root adapter: factories and bindAdapter project the framework-neutral Looma declarative contract into Svelte.";

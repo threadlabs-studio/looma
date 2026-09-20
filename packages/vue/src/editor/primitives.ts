@@ -27,6 +27,15 @@ import type {
   TableContextMenuActionEventDetail,
   TableOverlayActionEventDetail,
 } from "@threadlabs/looma-editor/ui";
+import {
+  UiEditorInsertTableGrid,
+  UiEditorMentionMenu,
+  UiEditorSlashMenu,
+  UiEditorTableContextMenu,
+  UiEditorTableOverlay,
+  UiEditorTableToolbar,
+  UiEditorToolbar,
+} from "../generated";
 
 export interface VueEditorAdapterEventMap {
   mentionMenuHighlight: MentionMenuHighlightEventDetail;
@@ -49,10 +58,10 @@ type EditorAdapterAttrs = AdapterAttrs & {
 };
 
 function createSuggestionMenuAdapter<Item>(
-  tag: "ui-editor-slash-menu" | "ui-editor-mention-menu",
   name: "EditorSlashMenu" | "EditorMentionMenu",
   eventPrefix: "slash" | "mention",
 ) {
+  const component = eventPrefix === "slash" ? UiEditorSlashMenu : UiEditorMentionMenu;
   return defineComponent({
     name,
     inheritAttrs: false,
@@ -66,28 +75,6 @@ function createSuggestionMenuAdapter<Item>(
     },
     setup(props, { attrs }) {
       const elementRef = shallowRef<HTMLElement | null>(null);
-
-      watchEffect(() => {
-        const element = elementRef.value as
-          | (HTMLElement & {
-              open: boolean;
-              query: string;
-              items: Item[];
-              selectedIndex: number;
-              anchorRect: SlashMenuAnchorRect | null;
-              loading?: boolean;
-            })
-          | null;
-        if (!element) return;
-        if (element.open !== props.open) element.open = props.open;
-        if (element.query !== props.query) element.query = props.query;
-        if (element.items !== props.items) element.items = props.items;
-        if (element.selectedIndex !== props.selectedIndex) element.selectedIndex = props.selectedIndex;
-        if (element.anchorRect !== props.anchorRect) element.anchorRect = props.anchorRect;
-        if (element.loading !== undefined && element.loading !== props.loading) {
-          element.loading = props.loading;
-        }
-      });
 
       watchEffect((onCleanup) => {
         const element = elementRef.value;
@@ -127,7 +114,8 @@ function createSuggestionMenuAdapter<Item>(
         void onMentionMenuSelect;
         void onSlashMenuHighlight;
         void onSlashMenuSelect;
-        return h(tag, {
+        return h(component, {
+          ...props,
           ...forwardedAttrs,
           ref: (value: Element | ComponentPublicInstance | null) => {
             elementRef.value = toHTMLElement(value);
@@ -145,22 +133,20 @@ const EDITOR_EVENT_BINDINGS = [
 ] as const satisfies readonly AdapterEventBinding[];
 
 export const EditorSlashMenu = createSuggestionMenuAdapter<SlashMenuItem>(
-  "ui-editor-slash-menu",
   "EditorSlashMenu",
   "slash",
 );
 export const EditorMentionMenu = createSuggestionMenuAdapter<LoomaMentionItem>(
-  "ui-editor-mention-menu",
   "EditorMentionMenu",
   "mention",
 );
 
-export const EditorToolbar = createAdapterComponent("ui-editor-toolbar", "EditorToolbar", EDITOR_EVENT_BINDINGS);
-export const EditorTableContextMenu = createAdapterComponent("ui-editor-table-context-menu", "EditorTableContextMenu", EDITOR_EVENT_BINDINGS);
-export const EditorTableToolbar = createAdapterComponent("ui-editor-table-toolbar", "EditorTableToolbar", EDITOR_EVENT_BINDINGS);
-export const EditorInsertTableGrid = createAdapterComponent("ui-editor-insert-table-grid", "EditorInsertTableGrid", EDITOR_EVENT_BINDINGS);
+export const EditorToolbar = createAdapterComponent(UiEditorToolbar, "EditorToolbar", EDITOR_EVENT_BINDINGS);
+export const EditorTableContextMenu = createAdapterComponent(UiEditorTableContextMenu, "EditorTableContextMenu", EDITOR_EVENT_BINDINGS);
+export const EditorTableToolbar = createAdapterComponent(UiEditorTableToolbar, "EditorTableToolbar", EDITOR_EVENT_BINDINGS);
+export const EditorInsertTableGrid = createAdapterComponent(UiEditorInsertTableGrid, "EditorInsertTableGrid", EDITOR_EVENT_BINDINGS);
 export const EditorTableOverlay = createAdapterComponent(
-  "ui-editor-table-overlay",
+  UiEditorTableOverlay,
   "EditorTableOverlay",
   EDITOR_EVENT_BINDINGS,
   "class",

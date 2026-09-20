@@ -51,7 +51,7 @@ for (const styleExport of [
 
 const app = createSSRApp({
   render: () =>
-    h(Stack, { gap: "md" }, () => [
+    h(Stack, { gap: "m" }, () => [
       h(Button, { variant: "solid" }, () => h("button", { type: "button" }, "Save")),
       h(ContextMenu, null, () => "Actions"),
       h(EditorToolbar, null, () => h("button", { type: "button" }, "Bold"))

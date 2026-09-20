@@ -44,7 +44,7 @@ Put a native button in the `trigger` slot. The optional `for` attribute adds `co
 - `open`, `close`, and `select` events use the same trigger/reason vocabulary as Looma menus.
 - Disabled items do not emit selection.
 - Touch uses the visible native trigger; browser-dependent long-press behavior is supplemental only.
-- Before upgrade, the author-provided item text remains in light DOM, but positioning, dismissal, and selection behavior do not. Do not rely on this element as the only no-JS action path.
+- Before lowering and controller attachment, the author-provided item text remains in light DOM, but positioning, dismissal, and selection behavior do not. Do not rely on this invocation as the only no-JS action path.
 
 ## Vue
 

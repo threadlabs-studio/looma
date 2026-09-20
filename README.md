@@ -3,7 +3,7 @@
 Looma is a stack-agnostic UI library based on web standards and Open UI principles.
 
 > **Candidate availability:** Before installing, confirm that npm's `candidate`
-> dist-tag resolves `@threadlabs/looma@0.1.28`. A source or
+> dist-tag resolves `@threadlabs/looma@0.2.5`. A source or
 > documentation preview can exist before that registry gate passes.
 
 ## Pre-1.0 Product Drivers
@@ -39,20 +39,20 @@ import "@threadlabs/looma/tokens.css";
 import "@threadlabs/looma/theme-light.css";
 ```
 
-Import tokens, one theme, component styles, and the element entry points once in
+Import tokens, one theme, component styles, and the declarative component entry points once in
 the browser entry. See the [install-first guide](apps/docs/docs/getting-started.md)
 for the exact imports and a Vue example.
 
 ## Release 1
 
-Looma Release 1 is a public npm **Candidate `0.1.28`**, not a claim that every
+Looma Release 1 is a public npm **Candidate `0.2.5`**, not a claim that every
 component or framework adapter is Stable. The sole public package is
 `@threadlabs/looma`, with explicit subpaths:
 
-- `@threadlabs/looma` and `@threadlabs/looma/core`: core web components and overlay APIs.
-- `@threadlabs/looma/layout`: light-DOM layout primitives with no external margins.
+- `@threadlabs/looma` and `@threadlabs/looma/core`: core declarative components and overlay APIs.
+- `@threadlabs/looma/layout`: declarative layout primitives with no external margins.
 - `@threadlabs/looma/editor`: the complete Tiptap-backed editor surface, including elements, extension presets, and commands.
-- `@threadlabs/looma/editor/ui`: low-level editor web-component chrome without the Tiptap integration.
+- `@threadlabs/looma/editor/ui`: low-level declarative editor UI without the Tiptap integration.
 - `@threadlabs/looma/editor/extensions`: the focused extension preset, standalone `LoomaTableKit`, and command-helper subpath.
 - `@threadlabs/looma/vue`: general Vue adapters without the editor graph.
 - `@threadlabs/looma/vue/editor`: the turnkey `LoomaEditor` plus advanced low-level Vue wrappers.

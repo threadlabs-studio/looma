@@ -1,17 +1,14 @@
 /**
  * Low-level Looma editor UI elements.
  *
- * This advanced entry point registers the Tiptap-independent web-component
- * chrome without importing Looma's Tiptap extension preset or commands.
+ * This advanced entry point registers the Tiptap-independent declarative
+ * component chrome without importing Looma's Tiptap extension preset or commands.
  */
 
-import "./table-context-menu";
-import "./table-toolbar";
-import "./insert-table-grid";
-import "./mention-menu";
-import "./table-overlay";
-import "./slash-menu";
-import "./toolbar";
+import { registerLoomaPackage } from "@threadlabs/looma-core/declarative";
+import { records, styles } from "../../../tools/migrate-html-next/generated/adoption/editor/registry.js";
+
+registerLoomaPackage("editor", records, styles);
 
 export type { TableContextMenuAction, TableContextMenuActionEventDetail } from "./table-context-menu";
 export {

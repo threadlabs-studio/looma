@@ -1,6 +1,6 @@
 # Adapter Support
 
-Adapters translate framework props, slots, and callbacks to Looma custom-element contracts. They do not own separate component behavior.
+Adapters project framework props, slots, and callbacks onto Looma's declarative component contracts. They create native roots directly and do not own separate component behavior.
 
 ## Release 1 status
 
@@ -11,7 +11,7 @@ Adapters translate framework props, slots, and callbacks to Looma custom-element
 | React | Deferred internal preview | Not published or supported in Release 1 |
 | Svelte | Deferred internal preview | Not published or supported in Release 1 |
 
-Vue and direct custom-element examples are the supported public paths.
+Vue and direct declarative HTML examples are the supported public paths.
 
 ## Vue mapping
 
@@ -23,11 +23,12 @@ The source-derived release check requires a named Vue projection and export for 
 | Actions and forms | `ui-button`, `ui-icon-button`, `ui-input`, `ui-select`, `ui-textarea`, `ui-form-field`, `ui-checkbox`, `ui-switch`, `ui-radio`, `ui-radio-group` | Same names in PascalCase |
 | Overlays, affordances, and navigation | `ui-affordance-scope`, `ui-dialog`, `ui-popover`, `ui-menu`, `ui-menu-item`, `ui-context-menu`, `ui-tooltip`, `ui-tabs`, `ui-disclosure`, `ui-tree`, `ui-tree-item` | Same names in PascalCase |
 | Display and app shell | `ui-avatar`, `ui-avatar-group`, `ui-badge`, `ui-callout`, `ui-chip`, `ui-toast-region`, `ui-floating-action-button`, `ui-search-shell`, `ui-search-result-row`, `ui-top-bar` | Same names in PascalCase |
-| Editor | Six `ui-editor-*` elements | `Editor*` named wrappers |
+| Editor | Seven `ui-editor-*` components | `Editor*` named wrappers |
 
 ## Event and SSR rules
 
 - Vue wrappers preserve Looma event names and detail payloads.
 - Adapter modules must import in a server process without browser globals.
+- Wrappers attach the same definitions and controllers used by direct HTML invocations.
 - Wrappers preserve authored semantic fallback content instead of replacing it with framework-only markup.
 - A missing projection or named export is a release defect.

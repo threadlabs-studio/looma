@@ -1,0 +1,41 @@
+<template component="ui-avatar-group" controller="./controllers/ui-avatar-group.js" status="early" summary="Migrated Looma ui-avatar-group component.">
+  <defs>
+    <prop name="max" type="number" default="5">max token.</prop>
+    <prop name="label" type="string" default="People">label token.</prop>
+    <state name="overflowCount" :value="0"></state>
+  </defs>
+  <div role="group" :aria-label="label"><slot></slot></div>
+  <style>:scope {
+  display: flex;
+  align-items: center;
+  flex-direction: row-reverse;
+  gap: 0;
+}
+
+:slotted(*) {
+  margin-inline-end: -0.5rem;
+  flex-shrink: 0;
+}
+
+:slotted(*:last-of-type) {
+  margin-inline-end: 0;
+}
+
+.overflow {
+  margin-inline-end: -0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--ui-border-default);
+  background: var(--ui-surface-muted);
+  color: var(--ui-text-secondary);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+</style>
+</template>

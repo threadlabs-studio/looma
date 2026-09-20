@@ -1,0 +1,20 @@
+<template component="ui-disclosure" controller="./controllers/ui-disclosure.js" status="early" summary="Migrated Looma ui-disclosure component.">
+  <defs>
+    <prop name="open" type="boolean">open token.</prop>
+    <prop name="defaultOpen" type="boolean" default="false">defaultOpen token.</prop>
+    <prop name="disabled" type="boolean" default="false">disabled token.</prop>
+    <state name="internalOpen" :value="false"></state>
+    <state name="contentId" :value="''"></state>
+    <event name="open" type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"></event>
+    <event name="close" type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"></event>
+  </defs>
+  <div><slot></slot></div>
+  <style>:scope {
+  display: block;
+}
+
+:slotted([hidden]) {
+  display: none !important;
+}
+</style>
+</template>

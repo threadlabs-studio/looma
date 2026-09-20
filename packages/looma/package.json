@@ -2,7 +2,7 @@
   "name": "@threadlabs/looma",
   "version": "0.2.5",
   "type": "module",
-  "description": "Looma web components, responsive layout primitives, a complete editor, and supported Vue adapters.",
+  "description": "Looma declarative components, responsive layout primitives, a complete editor, and supported Vue adapters.",
   "license": "MIT",
   "author": "Threadlabs Studio",
   "repository": {
@@ -33,8 +33,18 @@
       "require": "./dist/index.cjs"
     },
     "./loader": {
-      "types": "./loader/index.d.ts",
-      "import": "./loader/index.js"
+      "types": "./dist/loader.d.ts",
+      "import": "./dist/loader.js"
+    },
+    "./core/declarative": {
+      "types": "./dist/declarative.d.ts",
+      "import": "./dist/declarative.js",
+      "require": "./dist/declarative.cjs"
+    },
+    "./core/declarative-generated": {
+      "types": "./dist/declarative-generated.d.ts",
+      "import": "./dist/declarative-generated.js",
+      "require": "./dist/declarative-generated.cjs"
     },
     "./layout": {
       "types": "./layout/index.d.ts",
@@ -75,7 +85,6 @@
   },
   "files": [
     "dist/",
-    "loader/",
     "layout/",
     "editor/",
     "vue/",

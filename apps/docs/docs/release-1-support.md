@@ -1,23 +1,23 @@
 # Release 1 Support and Limitations
 
-Release 1 is a public npm **Candidate `0.1.28`** for applications that want Looma's
-web components, editor, or supported Vue integration. Candidate means the surface is
+Release 1 is a public npm **Candidate `0.2.5`** for applications that want Looma's
+declarative components, editor, or supported Vue integration. Candidate means the surface is
 usable and qualified but can still change before Stable; it is not semver `1.0.0`.
 Knit is the first deep integration and release-qualification harness, not the audience or
 the boundary of the public API.
 
 :::caution Candidate availability
 
-Candidate availability is defined by the npm `candidate` dist-tag resolving `@threadlabs/looma@0.1.28`. A preview build describes the reviewed contract without asserting registry availability; the production build is deployed only from the same source commit after public Candidate verification.
+Candidate availability is defined by the npm `candidate` dist-tag resolving `@threadlabs/looma@0.2.5`. A preview build describes the reviewed contract without asserting registry availability; the production build is deployed only from the same source commit after public Candidate verification.
 
 :::
 
 ## Public entries
 
-- **`@threadlabs/looma` and `/core`** — ESM and CommonJS; 30 shadow-root elements with semantic slotted fallback.
-- **`@threadlabs/looma/layout`** — ESM and CommonJS; nine light-DOM layout elements.
+- **`@threadlabs/looma` and `/core`** — ESM and CommonJS; 33 declarative components with semantic slotted fallback and native roots.
+- **`@threadlabs/looma/layout`** — ESM and CommonJS; nine declarative layout components.
 - **`@threadlabs/looma/editor`** — ESM; the complete Tiptap-backed editor surface.
-- **`@threadlabs/looma/editor/ui`** — ESM; low-level editor web-component chrome without Tiptap integration.
+- **`@threadlabs/looma/editor/ui`** — ESM; seven low-level declarative editor surfaces without Tiptap integration.
 - **`@threadlabs/looma/editor/extensions`** — ESM; focused Tiptap 2 presets, `LoomaTableKit`, slash commands, mentions, and table helpers.
 - **`@threadlabs/looma/vue`** — ESM; optional Vue 3 wrappers for published layout and core elements, without the editor graph.
 - **`@threadlabs/looma/vue/editor`** — ESM; the turnkey `LoomaEditor` and advanced low-level wrappers.
@@ -27,7 +27,7 @@ React and Svelte adapters are deferred internal repository previews. Docs, Story
 
 ## Qualified behavior
 
-- All 46 source elements must appear in generated API metadata, docs navigation, and the Vue projection where applicable.
+- All 49 declarative contracts must appear in generated API metadata, docs navigation, and the Vue projection where applicable.
 - Public entry points import without DOM globals during server rendering.
 - Chromium tests cover representative keyboard, touch/click, focus-return, disabled-state, and automated accessibility behavior.
 - Real Tiptap tests prove adding rows and columns preserves existing table cells and surrounding content; Vue browser tests prove the turnkey editor and theme-token control path.

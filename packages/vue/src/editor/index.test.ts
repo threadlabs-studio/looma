@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, ref, type App } from "vue";
 
-vi.mock("@threadlabs/looma-editor", () => ({
+vi.mock("@threadlabs/looma-editor", async (importOriginal) => ({
+  ...await importOriginal<typeof import("@threadlabs/looma-editor")>(),
   createLoomaMentionExtension: () => "fixture-mention",
   DEFAULT_MENTION_RESULT_LIMIT: 8,
   getDefaultEditorExtensions: () => ["fixture-extension"],
@@ -18,7 +19,7 @@ import {
 
 const apps: App[] = [];
 
-async function settleCustomElements(root: ParentNode): Promise<void> {
+async function settleDeclarativeComponents(root: ParentNode): Promise<void> {
   const elements = Array.from(root.querySelectorAll<HTMLElement>("*"));
   await Promise.all(elements.map((element) => {
     const componentOnReady = (element as HTMLElement & {
@@ -26,8 +27,8 @@ async function settleCustomElements(root: ParentNode): Promise<void> {
     }).componentOnReady;
     return componentOnReady?.call(element);
   }));
-  // Stencil resolves componentOnReady before its app-level load event runs on
-  // the next task. Keep the jsdom window alive through that final dispatch.
+  // Legacy fixture implementations may resolve componentOnReady before their
+  // final app-level load event. Keep jsdom alive through that dispatch.
   await new Promise((resolve) => setTimeout(resolve, 0));
 }
 
@@ -57,12 +58,12 @@ describe("@threadlabs/looma-vue/editor adapter", () => {
     });
     apps.push(app);
     app.mount(host);
-    await settleCustomElements(host);
+    await settleDeclarativeComponents(host);
 
-    expect(host.querySelector("ui-editor-toolbar")).toBeTruthy();
-    expect(host.querySelector("ui-editor-slash-menu")).toBeTruthy();
-    expect(host.querySelector("ui-editor-mention-menu")).toBeTruthy();
-    expect(host.querySelector("ui-editor-table-overlay")).toBeTruthy();
+    expect(host.querySelector(`[data-component-root="ui-editor-toolbar"]`)).toBeTruthy();
+    expect(host.querySelector(`[data-component-root="ui-editor-slash-menu"]`)).toBeTruthy();
+    expect(host.querySelector(`[data-component-root="ui-editor-mention-menu"]`)).toBeTruthy();
+    expect(host.querySelector(`[data-component-root="ui-editor-table-overlay"]`)).toBeTruthy();
   });
 
   it("forwards editor events and replaces listeners without leaking them", async () => {
@@ -76,9 +77,9 @@ describe("@threadlabs/looma-vue/editor adapter", () => {
     });
     apps.push(app);
     app.mount(host);
-    await settleCustomElements(host);
+    await settleDeclarativeComponents(host);
 
-    const toolbar = host.querySelector("ui-editor-toolbar");
+    const toolbar = host.querySelector(`[data-component-root="ui-editor-toolbar"]`);
     const detail = { action: "delete-table", trigger: "keyboard" };
     toolbar?.dispatchEvent(new CustomEvent("looma-editor-table-action", { detail }));
     expect(firstHandler).toHaveBeenCalledOnce();
@@ -116,9 +117,9 @@ describe("@threadlabs/looma-vue/editor adapter", () => {
     });
     apps.push(app);
     app.mount(host);
-    await settleCustomElements(host);
+    await settleDeclarativeComponents(host);
 
-    const slashMenu = host.querySelector("ui-editor-slash-menu") as HTMLElement & {
+    const slashMenu = host.querySelector(`[data-component-root="ui-editor-slash-menu"]`) as HTMLElement & {
       open: boolean;
       query: string;
       items: unknown[];
@@ -127,9 +128,9 @@ describe("@threadlabs/looma-vue/editor adapter", () => {
     };
     expect(slashMenu.open).toBe(true);
     expect(slashMenu.query).toBe("par");
-    expect(slashMenu.items).toBe(items);
+    expect(slashMenu.items).toStrictEqual(items);
     expect(slashMenu.selectedIndex).toBe(1);
-    expect(slashMenu.anchorRect).toBe(anchorRect);
+    expect(slashMenu.anchorRect).toStrictEqual(anchorRect);
 
     const highlight = { index: 1 };
     const select = { index: 0 };
@@ -163,9 +164,9 @@ describe("@threadlabs/looma-vue/editor adapter", () => {
     });
     apps.push(app);
     app.mount(host);
-    await settleCustomElements(host);
+    await settleDeclarativeComponents(host);
 
-    const menu = host.querySelector("ui-editor-mention-menu") as HTMLElement & {
+    const menu = host.querySelector(`[data-component-root="ui-editor-mention-menu"]`) as HTMLElement & {
       open: boolean;
       query: string;
       items: unknown[];
@@ -174,8 +175,8 @@ describe("@threadlabs/looma-vue/editor adapter", () => {
     };
     expect(menu.open).toBe(true);
     expect(menu.query).toBe("ad");
-    expect(menu.items).toBe(items);
-    expect(menu.anchorRect).toBe(anchorRect);
+    expect(menu.items).toStrictEqual(items);
+    expect(menu.anchorRect).toStrictEqual(anchorRect);
 
     menu.dispatchEvent(new CustomEvent("looma-editor-mention-menu-highlight", {
       detail: { index: 0 },

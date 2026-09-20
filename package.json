@@ -15,7 +15,7 @@
   "homepage": "https://github.com/threadlabs-studio/looma#readme",
   "keywords": [
     "looma",
-    "web-components",
+    "declarative-components",
     "ui",
     "design-system"
   ],
@@ -49,7 +49,7 @@
     "release:record": "node tools/scripts/finalize-release.mjs",
     "release:verify:dirty": "node tools/scripts/verify-packages.mjs --output-dir .release/artifacts --allow-dirty",
     "test": "node --test tools/scripts/*.test.mjs && pnpm build && pnpm -r run test",
-    "test:browser": "pnpm --filter @threadlabs/looma-core test:browser && pnpm --filter @threadlabs/looma-editor test:browser && pnpm --filter @threadlabs/looma-vue test:browser && pnpm --filter @threadlabs/looma-docs test:browser",
+    "test:browser": "pnpm --filter @threadlabs/looma-migrate-html-next test:browser && pnpm --filter @threadlabs/looma-core test:browser && pnpm --filter @threadlabs/looma-editor test:browser && pnpm --filter @threadlabs/looma-vue test:browser && pnpm --filter @threadlabs/looma-docs test:browser",
     "typecheck": "pnpm -r run typecheck"
   },
   "devDependencies": {

@@ -7,7 +7,7 @@ interface LiveExampleProps {
 }
 
 /**
- * Lazy-loads Looma on mount (client-only) so web components render.
+ * Lazy-loads Looma on mount (client-only) so declarative components lower and attach.
  */
 export function LiveExample({ children, label }: LiveExampleProps): JSX.Element {
   const [ready, setReady] = useState(false);
