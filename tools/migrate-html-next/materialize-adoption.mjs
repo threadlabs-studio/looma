@@ -201,7 +201,16 @@ async function main() {
   for (const [group, components] of Object.entries(groups)) await materializeRegistry(group, components, output);
 
   const runtimeSource = await readFile(join(HERE, "vendor", "html-next-runtime.iife.js"), "utf8");
+  const hydrationLoop = "if(d){for(let p=0;p<m.length;p+=1)";
+  const fragmentAwareHydrationLoop = "if(d){m=m.flatMap(p=>p.nodeType===11?Array.from(p.childNodes):[p]);for(let p=0;p<m.length;p+=1)";
+  if (!runtimeSource.includes(hydrationLoop)) {
+    throw new Error("The vendored runtime hydration loop changed; review the framework fragment compatibility patch.");
+  }
   const runtime = runtimeSource
+    // Flow nodes render through DocumentFragments. Flatten those fragments before
+    // reconciling a framework-owned native root so the runtime counts the real
+    // inserted nodes instead of deleting the flow region and following siblings.
+    .replace(hydrationLoop, fragmentAwareHydrationLoop)
     .replace('"use strict";var HtmlRuntime=', "const HtmlRuntime=")
     .concat("\nexport const { attachComponent, attachRegisteredComponent, getComponentHost, installComponentGraph, lowerDocument, manageComponentLifecycle, observeDocument, registerComponentDefinitions, setControllerModule } = HtmlRuntime;\n");
   await writeFile(join(output, "runtime.js"), runtime);

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## v0.2.10 Candidate
+
+- Preserve conditional framework subtrees during native-root attachment, so
+  nested components in named slots remain intact, and keep hidden native roots
+  out of layout.
+
 ## v0.2.9 Candidate
 
 - Preserve Vue named-slot content when declarative controllers attach to native
