@@ -6,56 +6,61 @@ export interface AdapterBaseProps {
 }
 
 export interface StackProps extends AdapterBaseProps {
-  "align"?: string | undefined;
-  "gap"?: string | undefined;
-  "justify"?: string | undefined;
+  "align"?: "start" | "center" | "end" | "stretch" | undefined;
+  "gap"?: "xs" | "s" | "m" | "l" | "xl" | undefined;
+  "justify"?: "start" | "center" | "end" | "between" | undefined;
 }
 
 export interface InlineProps extends AdapterBaseProps {
-  "align"?: string | undefined;
-  "gap"?: string | undefined;
-  "justify"?: string | undefined;
-  "wrap"?: string | undefined;
+  "align"?: "start" | "center" | "end" | "stretch" | undefined;
+  "gap"?: "xs" | "s" | "m" | "l" | "xl" | undefined;
+  "justify"?: "start" | "center" | "end" | "between" | undefined;
+  "wrap"?: "wrap" | "nowrap" | undefined;
 }
 
 export interface ClusterProps extends AdapterBaseProps {
-  "align"?: string | undefined;
-  "gap"?: string | undefined;
-  "justify"?: string | undefined;
+  "align"?: "start" | "center" | "end" | "stretch" | undefined;
+  "gap"?: "xs" | "s" | "m" | "l" | "xl" | undefined;
+  "justify"?: "start" | "center" | "end" | "between" | undefined;
 }
 
 export interface GridProps extends AdapterBaseProps {
-  "gap"?: string | undefined;
-  "min"?: string | undefined;
+  "gap"?: "xs" | "s" | "m" | "l" | "xl" | undefined;
+  "min"?: "sm" | "md" | "lg" | undefined;
 }
 
 export interface CenterProps extends AdapterBaseProps {
-  "gutters"?: string | undefined;
-  "measure"?: string | undefined;
+  "gutters"?: "s" | "m" | "l" | undefined;
+  "measure"?: "narrow" | "wide" | undefined;
 }
 
 export interface SwitcherProps extends AdapterBaseProps {
-  "align"?: string | undefined;
-  "gap"?: string | undefined;
-  "threshold"?: string | undefined;
+  "align"?: "start" | "center" | "end" | "stretch" | undefined;
+  "gap"?: "xs" | "s" | "m" | "l" | "xl" | undefined;
+  "threshold"?: "xs" | "sm" | "md" | "lg" | undefined;
 }
 
 export interface SidebarProps extends AdapterBaseProps {
-  "align"?: string | undefined;
-  "gap"?: string | undefined;
-  "side"?: string | undefined;
-  "width"?: string | undefined;
+  "align"?: "start" | "center" | "end" | "stretch" | undefined;
+  "gap"?: "xs" | "s" | "m" | "l" | "xl" | undefined;
+  "maxWidth"?: number | undefined;
+  "minWidth"?: number | undefined;
   "resizable"?: boolean | undefined;
+  "resizeLabel"?: string | undefined;
+  "resizeStep"?: number | undefined;
+  "side"?: "start" | "end" | undefined;
+  "storageKey"?: string | undefined;
+  "width"?: "narrow" | "default" | "wide" | undefined;
 }
 
 export interface ReelProps extends AdapterBaseProps {
-  "gap"?: string | undefined;
-  "itemWidth"?: string | undefined;
-  "snap"?: string | undefined;
+  "gap"?: "xs" | "s" | "m" | "l" | "xl" | undefined;
+  "itemWidth"?: "sm" | "md" | "lg" | undefined;
+  "snap"?: "start" | "center" | undefined;
 }
 
 export interface SeparatorProps extends AdapterBaseProps {
-  "orientation"?: string | undefined;
+  "orientation"?: "horizontal" | "vertical" | undefined;
 }
 
 export interface DisclosureProps extends AdapterBaseProps {
@@ -67,9 +72,9 @@ export interface DisclosureProps extends AdapterBaseProps {
 }
 
 export interface EditableProps extends AdapterBaseProps {
-  "edit"?: boolean | undefined;
   "defaultEdit"?: boolean | undefined;
   "disabled"?: boolean | undefined;
+  "edit"?: boolean | undefined;
   "onEditChange"?: ((detail: VueAdapterEventMap['editChange']) => void) | undefined;
 }
 
@@ -87,21 +92,23 @@ export interface DialogProps extends AdapterBaseProps {
   "modal"?: boolean | undefined;
   "open"?: boolean | undefined;
   "onClose"?: ((detail: VueAdapterEventMap['close']) => void) | undefined;
-  "onOpen"?: ((detail: VueAdapterEventMap['open']) => void) | undefined;
 }
 
 export interface PopoverProps extends AdapterBaseProps {
   "defaultOpen"?: boolean | undefined;
+  "for"?: string | undefined;
   "open"?: boolean | undefined;
+  "placement"?: string | undefined;
   "onClose"?: ((detail: VueAdapterEventMap['close']) => void) | undefined;
   "onOpen"?: ((detail: VueAdapterEventMap['open']) => void) | undefined;
 }
 
 export interface MenuProps extends AdapterBaseProps {
   "defaultOpen"?: boolean | undefined;
+  "for"?: string | undefined;
   "open"?: boolean | undefined;
+  "placement"?: string | undefined;
   "onClose"?: ((detail: VueAdapterEventMap['close']) => void) | undefined;
-  "onOpen"?: ((detail: VueAdapterEventMap['open']) => void) | undefined;
   "onSelect"?: ((detail: VueAdapterEventMap['select']) => void) | undefined;
 }
 
@@ -112,6 +119,7 @@ export interface MenuItemProps extends AdapterBaseProps {
 
 export interface ContextMenuProps extends AdapterBaseProps {
   "defaultOpen"?: boolean | undefined;
+  "for"?: string | undefined;
   "open"?: boolean | undefined;
   "onClose"?: ((detail: VueAdapterEventMap['close']) => void) | undefined;
   "onOpen"?: ((detail: VueAdapterEventMap['open']) => void) | undefined;
@@ -142,6 +150,8 @@ export interface InputProps extends AdapterBaseProps {
   "invalid"?: boolean | undefined;
   "readOnly"?: boolean | undefined;
   "value"?: string | undefined;
+  "onChange"?: ((detail: VueAdapterEventMap['change']) => void) | undefined;
+  "onInput"?: ((detail: VueAdapterEventMap['input']) => void) | undefined;
 }
 
 export interface SelectProps extends AdapterBaseProps {
@@ -150,6 +160,8 @@ export interface SelectProps extends AdapterBaseProps {
   "invalid"?: boolean | undefined;
   "required"?: boolean | undefined;
   "value"?: string | undefined;
+  "onChange"?: ((detail: VueAdapterEventMap['change']) => void) | undefined;
+  "onInput"?: ((detail: VueAdapterEventMap['input']) => void) | undefined;
 }
 
 export interface TextareaProps extends AdapterBaseProps {
@@ -159,6 +171,8 @@ export interface TextareaProps extends AdapterBaseProps {
   "readOnly"?: boolean | undefined;
   "rows"?: number | undefined;
   "value"?: string | undefined;
+  "onChange"?: ((detail: VueAdapterEventMap['change']) => void) | undefined;
+  "onInput"?: ((detail: VueAdapterEventMap['input']) => void) | undefined;
 }
 
 export interface FormFieldProps extends AdapterBaseProps {
@@ -170,7 +184,10 @@ export interface FormFieldProps extends AdapterBaseProps {
 export interface TooltipProps extends AdapterBaseProps {
   "defaultOpen"?: boolean | undefined;
   "for"?: string | undefined;
+  "hideDelay"?: number | undefined;
   "open"?: boolean | undefined;
+  "placement"?: string | undefined;
+  "showDelay"?: number | undefined;
   "toggleOnClick"?: boolean | undefined;
   "onClose"?: ((detail: VueAdapterEventMap['close']) => void) | undefined;
   "onOpen"?: ((detail: VueAdapterEventMap['open']) => void) | undefined;
@@ -180,7 +197,6 @@ export interface ToastRegionProps extends AdapterBaseProps {
   "open"?: boolean | undefined;
   "onClose"?: ((detail: VueAdapterEventMap['close']) => void) | undefined;
   "onDismiss"?: ((detail: VueAdapterEventMap['dismiss']) => void) | undefined;
-  "onOpen"?: ((detail: VueAdapterEventMap['open']) => void) | undefined;
 }
 
 export interface CheckboxProps extends AdapterBaseProps {
@@ -277,15 +293,16 @@ export interface TreeItemProps extends AdapterBaseProps {
   "accepts"?: string | undefined;
   "container"?: boolean | undefined;
   "defaultExpanded"?: boolean | undefined;
-  "depth"?: number | undefined;
   "disabled"?: boolean | undefined;
   "dragType"?: string | undefined;
+  "dropDepth"?: number | undefined;
   "dropScope"?: string | undefined;
   "expanded"?: boolean | undefined;
   "itemId"?: string | undefined;
   "label"?: string | undefined;
   "selected"?: boolean | undefined;
   "sortable"?: boolean | undefined;
+  "subtreeDepth"?: number | undefined;
   "onExpand"?: ((detail: VueAdapterEventMap['expand']) => void) | undefined;
 }
 

@@ -5,6 +5,8 @@
     ".",
     "./core",
     "./loader",
+    "./core/declarative",
+    "./core/declarative-generated",
     "./layout",
     "./editor",
     "./editor/ui",
@@ -22,7 +24,6 @@
   ],
   "copies": [
     { "source": "packages/core/dist", "target": "packages/looma/dist" },
-    { "source": "packages/core/loader", "target": "packages/looma/loader" },
     { "source": "packages/layout/dist", "target": "packages/looma/layout" },
     { "source": "packages/editor/dist", "target": "packages/looma/editor" },
     { "source": "packages/vue/dist", "target": "packages/looma/vue" },

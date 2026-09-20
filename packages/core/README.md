@@ -3,9 +3,11 @@
 > Internal implementation workspace. Consumers install `@threadlabs/looma` and
 > use its root or `/core` subpath.
 
-Looma's Candidate web-component surface: 30 Stencil elements with shadow-root behavior and consumer-authored semantic light-DOM fallback.
+Looma's component surface is a framework-neutral declarative graph with consumer-authored semantic
+light-DOM fallback. The retained Stencil sources are migration ingest fixtures, not the shipped
+runtime or public API.
 
-Release status: Candidate `0.1.28`, not Stable.
+Release status: Candidate `0.2.5`, not Stable.
 
 ## Install
 
@@ -27,7 +29,9 @@ import "@threadlabs/looma-core";
 </ui-button>
 ```
 
-The real button is the no-JS semantic fallback. Looma's shadow UI, styling, state synchronization, and custom events arrive after upgrade. Public modules must remain safe to import during SSR.
+The real button is the no-JS semantic fallback. Looma lowers the invocation to a native light-DOM
+root, then attaches styling, state synchronization, methods, and declared events. Public modules
+remain safe to import during SSR, and no custom-element registry is required.
 
 See the [component contracts](https://threadlabs-studio.github.io/looma/), [qualification guide](https://github.com/threadlabs-studio/looma/blob/main/docs/component-qualification-guide.md), and [R1 support matrix](https://github.com/threadlabs-studio/looma/blob/main/docs/release-support-matrix.md). Report problems in the [issue tracker](https://github.com/threadlabs-studio/looma/issues).
 

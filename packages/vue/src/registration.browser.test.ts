@@ -382,7 +382,7 @@ describe("@threadlabs/looma-vue release registration (real browser)", () => {
     document.body.append(host);
     const app = createApp({
       render: () =>
-        h(adapter.Stack, { gap: "md" }, () => [
+        h(adapter.Stack, { gap: "m" }, () => [
           h(adapter.TopBar, null, () => h("h1", "Workspace")),
           h(adapter.Button, null, () => h("button", { type: "button" }, "Save")),
           h(adapter.ContextMenu, null, () => [

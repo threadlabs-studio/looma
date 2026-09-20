@@ -14,6 +14,6 @@ export default defineConfig({
       headless: true,
       instances: [{ browser: "chromium" }],
     },
-    include: ["src/**/*.browser.test.ts"],
+    include: ["src/declarative-adapter.browser.test.ts"],
   },
 });

@@ -11,6 +11,54 @@ test(":host with and without a condition becomes :scope", () => {
   );
 });
 
+test("Stencil prop selectors follow HTML Next's data-* reflection", () => {
+  const reflectedAttributes = new Map([
+    ["size", "data-size"],
+    ["mobile-only", "data-mobile-only"],
+  ]);
+  assert.equal(
+    convertShadowStyles(":host([size='sm'][mobile-only]) button { width: 2rem; }", { reflectedAttributes }),
+    ":scope[data-size='sm'][data-mobile-only] button { width: 2rem; }",
+  );
+  assert.equal(
+    convertShadowStyles(":host([popover][data-open][aria-disabled='true']) { display: block; }", { reflectedAttributes }),
+    ":scope[popover][data-open][aria-disabled='true'] { display: block; }",
+  );
+});
+
+test("boolean presence selectors require a reflected true value", () => {
+  const reflectedAttributes = new Map([
+    ["multiple", "data-multiple"],
+    ["size", "data-size"],
+  ]);
+  const booleanAttributes = new Set(["multiple"]);
+  assert.equal(
+    convertShadowStyles(":host([multiple]) input { padding: 1px; }", {
+      reflectedAttributes,
+      booleanAttributes,
+    }),
+    ":scope[data-multiple='true'] input { padding: 1px; }",
+  );
+  assert.equal(
+    convertShadowStyles(":host([size='sm']) input { padding: 1px; }", {
+      reflectedAttributes,
+      booleanAttributes,
+    }),
+    ":scope[data-size='sm'] input { padding: 1px; }",
+  );
+});
+
+test("internal state attributes do not share public prop reflection channels", () => {
+  assert.equal(
+    convertShadowStyles(":host(:not([data-open])) { display: none; }", {
+      reflectedAttributes: new Map([["open", "data-open"]]),
+      booleanAttributes: new Set(["open"]),
+      stateAttributes: { "data-open": "data-state-open" },
+    }),
+    ":scope:not([data-state-open]) { display: none; }",
+  );
+});
+
 test(":host with a functional-pseudo condition folds correctly (balanced parens)", () => {
   assert.equal(
     convertShadowStyles(":host(:not([data-open])) { opacity: 1; }"),

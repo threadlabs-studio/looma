@@ -1,0 +1,178 @@
+{
+  "schemaVersion": 1,
+  "source": "packages/core/src/components",
+  "components": [
+    {
+      "tag": "ui-affordance-scope",
+      "controller": "ui-affordance-scope.js",
+      "dependencies": []
+    },
+    {
+      "tag": "ui-avatar",
+      "controller": "ui-avatar.js",
+      "dependencies": []
+    },
+    {
+      "tag": "ui-avatar-group",
+      "controller": "ui-avatar-group.js",
+      "dependencies": []
+    },
+    {
+      "tag": "ui-badge",
+      "controller": null,
+      "dependencies": []
+    },
+    {
+      "tag": "ui-button",
+      "controller": "ui-button.js",
+      "dependencies": []
+    },
+    {
+      "tag": "ui-callout",
+      "controller": null,
+      "dependencies": []
+    },
+    {
+      "tag": "ui-checkbox",
+      "controller": "ui-checkbox.js",
+      "dependencies": []
+    },
+    {
+      "tag": "ui-chip",
+      "controller": null,
+      "dependencies": []
+    },
+    {
+      "tag": "ui-combobox",
+      "controller": "ui-combobox.js",
+      "dependencies": [
+        "ui-chip",
+        "ui-tooltip"
+      ]
+    },
+    {
+      "tag": "ui-context-menu",
+      "controller": "ui-context-menu.js",
+      "dependencies": [
+        "ui-menu"
+      ]
+    },
+    {
+      "tag": "ui-dialog",
+      "controller": "ui-dialog.js",
+      "dependencies": []
+    },
+    {
+      "tag": "ui-disclosure",
+      "controller": "ui-disclosure.js",
+      "dependencies": []
+    },
+    {
+      "tag": "ui-editable",
+      "controller": "ui-editable.js",
+      "dependencies": []
+    },
+    {
+      "tag": "ui-floating-action-button",
+      "controller": null,
+      "dependencies": []
+    },
+    {
+      "tag": "ui-form-field",
+      "controller": "ui-form-field.js",
+      "dependencies": []
+    },
+    {
+      "tag": "ui-icon-button",
+      "controller": "ui-icon-button.js",
+      "dependencies": []
+    },
+    {
+      "tag": "ui-input",
+      "controller": "ui-input.js",
+      "dependencies": []
+    },
+    {
+      "tag": "ui-menu",
+      "controller": "ui-menu.js",
+      "dependencies": []
+    },
+    {
+      "tag": "ui-menu-item",
+      "controller": null,
+      "dependencies": []
+    },
+    {
+      "tag": "ui-popover",
+      "controller": "ui-popover.js",
+      "dependencies": []
+    },
+    {
+      "tag": "ui-radio",
+      "controller": "ui-radio.js",
+      "dependencies": []
+    },
+    {
+      "tag": "ui-radio-group",
+      "controller": "ui-radio-group.js",
+      "dependencies": []
+    },
+    {
+      "tag": "ui-search-result-row",
+      "controller": "ui-search-result-row.js",
+      "dependencies": []
+    },
+    {
+      "tag": "ui-search-shell",
+      "controller": "ui-search-shell.js",
+      "dependencies": []
+    },
+    {
+      "tag": "ui-select",
+      "controller": "ui-select.js",
+      "dependencies": []
+    },
+    {
+      "tag": "ui-switch",
+      "controller": "ui-switch.js",
+      "dependencies": []
+    },
+    {
+      "tag": "ui-tabs",
+      "controller": "ui-tabs.js",
+      "dependencies": []
+    },
+    {
+      "tag": "ui-textarea",
+      "controller": "ui-textarea.js",
+      "dependencies": []
+    },
+    {
+      "tag": "ui-toast-region",
+      "controller": "ui-toast-region.js",
+      "dependencies": []
+    },
+    {
+      "tag": "ui-tooltip",
+      "controller": "ui-tooltip.js",
+      "dependencies": []
+    },
+    {
+      "tag": "ui-top-bar",
+      "controller": "ui-top-bar.js",
+      "dependencies": []
+    },
+    {
+      "tag": "ui-tree",
+      "controller": "ui-tree.js",
+      "dependencies": [
+        "ui-tree-item"
+      ]
+    },
+    {
+      "tag": "ui-tree-item",
+      "controller": "ui-tree-item.js",
+      "dependencies": []
+    }
+  ]
+}

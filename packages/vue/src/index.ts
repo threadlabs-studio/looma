@@ -1,10 +1,11 @@
-// Side-effect imports register only the general Looma custom elements.
+// Side-effect imports register the core and layout declarative graphs.
 // The optional editor graph lives at @threadlabs/looma-vue/editor.
 import "@threadlabs/looma-layout";
 import "@threadlabs/looma-core";
 
 import { createAdapterComponent } from "./adapter";
 import type { AdapterComponentProps } from "./generated-component-types";
+import * as Declarative from "./generated";
 
 export type { VueAdapterEventMap } from "./adapter";
 export type * from "./generated-component-types";
@@ -13,56 +14,56 @@ import { Combobox as ComboboxComponent } from './Combobox';
 export const Combobox = ComboboxComponent;
 export type { ComboboxConfig, ComboboxOption, ComboboxProvider, ComboboxRequest, ComboboxChange, ComboboxValidationState, EditableChange, MultiComboboxItem, MultiComboboxItemChange, MultiComboboxCreate, FieldSchema, FieldValidation, FieldFormatter, FieldIssue } from '@threadlabs/looma-core';
 
-export const Stack = createAdapterComponent<AdapterComponentProps["Stack"]>("ui-stack", "Stack");
-export const Inline = createAdapterComponent<AdapterComponentProps["Inline"]>("ui-inline", "Inline");
-export const Cluster = createAdapterComponent<AdapterComponentProps["Cluster"]>("ui-cluster", "Cluster");
-export const Grid = createAdapterComponent<AdapterComponentProps["Grid"]>("ui-grid", "Grid");
-export const Center = createAdapterComponent<AdapterComponentProps["Center"]>("ui-center", "Center");
-export const Switcher = createAdapterComponent<AdapterComponentProps["Switcher"]>("ui-switcher", "Switcher");
-// The resizable sidebar progressively inserts a light-DOM separator. Vue must
-// treat that custom-element-owned child as an expected hydration difference.
-export const Sidebar = createAdapterComponent<AdapterComponentProps["Sidebar"]>("ui-sidebar", "Sidebar", [], "");
-export const Reel = createAdapterComponent<AdapterComponentProps["Reel"]>("ui-reel", "Reel");
-export const Separator = createAdapterComponent<AdapterComponentProps["Separator"]>("ui-separator", "Separator");
-export const Disclosure = createAdapterComponent<AdapterComponentProps["Disclosure"]>("ui-disclosure", "Disclosure", [], "class", ["open"]);
-export const Editable = createAdapterComponent<AdapterComponentProps["Editable"]>("ui-editable", "Editable", [["edit-change", "onEditChange"]], "class", ["edit"]);
-export const Tabs = createAdapterComponent<AdapterComponentProps["Tabs"]>("ui-tabs", "Tabs", [], "class", ["value"]);
-export const Dialog = createAdapterComponent<AdapterComponentProps["Dialog"]>("ui-dialog", "Dialog", [], "class", ["open"]);
-export const Popover = createAdapterComponent<AdapterComponentProps["Popover"]>("ui-popover", "Popover", [], "class", ["open"]);
-export const Menu = createAdapterComponent<AdapterComponentProps["Menu"]>("ui-menu", "Menu", [], "class", ["open"]);
-export const MenuItem = createAdapterComponent<AdapterComponentProps["MenuItem"]>("ui-menu-item", "MenuItem");
-export const ContextMenu = createAdapterComponent<AdapterComponentProps["ContextMenu"]>("ui-context-menu", "ContextMenu", [], "class", ["open"]);
-export const AffordanceScope = createAdapterComponent<AdapterComponentProps["AffordanceScope"]>("ui-affordance-scope", "AffordanceScope");
-export const Button = createAdapterComponent<AdapterComponentProps["Button"]>("ui-button", "Button");
-export const IconButton = createAdapterComponent<AdapterComponentProps["IconButton"]>("ui-icon-button", "IconButton");
-export const Input = createAdapterComponent<AdapterComponentProps["Input"]>("ui-input", "Input", [], "class", ["value"]);
-export const Select = createAdapterComponent<AdapterComponentProps["Select"]>("ui-select", "Select", [], "class", ["value"]);
-export const Textarea = createAdapterComponent<AdapterComponentProps["Textarea"]>("ui-textarea", "Textarea", [], "class", ["value"]);
-export const FormField = createAdapterComponent<AdapterComponentProps["FormField"]>("ui-form-field", "FormField");
-export const Tooltip = createAdapterComponent<AdapterComponentProps["Tooltip"]>("ui-tooltip", "Tooltip", [], "class", ["open"]);
-export const ToastRegion = createAdapterComponent<AdapterComponentProps["ToastRegion"]>("ui-toast-region", "ToastRegion", [], "class", ["open"]);
-export const Checkbox = createAdapterComponent<AdapterComponentProps["Checkbox"]>("ui-checkbox", "Checkbox", [], "class", ["checked"]);
-export const Switch = createAdapterComponent<AdapterComponentProps["Switch"]>("ui-switch", "Switch", [], "class", ["checked"]);
-export const RadioGroup = createAdapterComponent<AdapterComponentProps["RadioGroup"]>("ui-radio-group", "RadioGroup", [], "class", ["value"]);
-export const Radio = createAdapterComponent<AdapterComponentProps["Radio"]>("ui-radio", "Radio", [], "class", ["checked"]);
-export const Badge = createAdapterComponent<AdapterComponentProps["Badge"]>("ui-badge", "Badge");
-export const Chip = createAdapterComponent<AdapterComponentProps["Chip"]>("ui-chip", "Chip");
-export const Callout = createAdapterComponent<AdapterComponentProps["Callout"]>("ui-callout", "Callout");
-export const Avatar = createAdapterComponent<AdapterComponentProps["Avatar"]>("ui-avatar", "Avatar");
-export const AvatarGroup = createAdapterComponent<AdapterComponentProps["AvatarGroup"]>("ui-avatar-group", "AvatarGroup");
+export const Stack = createAdapterComponent<AdapterComponentProps["Stack"]>(Declarative.UiStack, "Stack");
+export const Inline = createAdapterComponent<AdapterComponentProps["Inline"]>(Declarative.UiInline, "Inline");
+export const Cluster = createAdapterComponent<AdapterComponentProps["Cluster"]>(Declarative.UiCluster, "Cluster");
+export const Grid = createAdapterComponent<AdapterComponentProps["Grid"]>(Declarative.UiGrid, "Grid");
+export const Center = createAdapterComponent<AdapterComponentProps["Center"]>(Declarative.UiCenter, "Center");
+export const Switcher = createAdapterComponent<AdapterComponentProps["Switcher"]>(Declarative.UiSwitcher, "Switcher");
+// The resizable sidebar controller progressively inserts a light-DOM separator. Vue must
+// treat that controller-owned child as an expected hydration difference.
+export const Sidebar = createAdapterComponent<AdapterComponentProps["Sidebar"]>(Declarative.UiSidebar, "Sidebar", [], "");
+export const Reel = createAdapterComponent<AdapterComponentProps["Reel"]>(Declarative.UiReel, "Reel");
+export const Separator = createAdapterComponent<AdapterComponentProps["Separator"]>(Declarative.UiSeparator, "Separator");
+export const Disclosure = createAdapterComponent<AdapterComponentProps["Disclosure"]>(Declarative.UiDisclosure, "Disclosure", [], "class", ["open"]);
+export const Editable = createAdapterComponent<AdapterComponentProps["Editable"]>(Declarative.UiEditable, "Editable", [["edit-change", "onEditChange"]], "class", ["edit"]);
+export const Tabs = createAdapterComponent<AdapterComponentProps["Tabs"]>(Declarative.UiTabs, "Tabs", [], "class", ["value"]);
+export const Dialog = createAdapterComponent<AdapterComponentProps["Dialog"]>(Declarative.UiDialog, "Dialog", [], "class", ["open"]);
+export const Popover = createAdapterComponent<AdapterComponentProps["Popover"]>(Declarative.UiPopover, "Popover", [], "class", ["open"]);
+export const Menu = createAdapterComponent<AdapterComponentProps["Menu"]>(Declarative.UiMenu, "Menu", [], "class", ["open"]);
+export const MenuItem = createAdapterComponent<AdapterComponentProps["MenuItem"]>(Declarative.UiMenuItem, "MenuItem");
+export const ContextMenu = createAdapterComponent<AdapterComponentProps["ContextMenu"]>(Declarative.UiContextMenu, "ContextMenu", [], "class", ["open"]);
+export const AffordanceScope = createAdapterComponent<AdapterComponentProps["AffordanceScope"]>(Declarative.UiAffordanceScope, "AffordanceScope");
+export const Button = createAdapterComponent<AdapterComponentProps["Button"]>(Declarative.UiButton, "Button");
+export const IconButton = createAdapterComponent<AdapterComponentProps["IconButton"]>(Declarative.UiIconButton, "IconButton");
+export const Input = createAdapterComponent<AdapterComponentProps["Input"]>(Declarative.UiInput, "Input", [], "class", ["value"]);
+export const Select = createAdapterComponent<AdapterComponentProps["Select"]>(Declarative.UiSelect, "Select", [], "class", ["value"]);
+export const Textarea = createAdapterComponent<AdapterComponentProps["Textarea"]>(Declarative.UiTextarea, "Textarea", [], "class", ["value"]);
+export const FormField = createAdapterComponent<AdapterComponentProps["FormField"]>(Declarative.UiFormField, "FormField");
+export const Tooltip = createAdapterComponent<AdapterComponentProps["Tooltip"]>(Declarative.UiTooltip, "Tooltip", [], "class", ["open"]);
+export const ToastRegion = createAdapterComponent<AdapterComponentProps["ToastRegion"]>(Declarative.UiToastRegion, "ToastRegion", [], "class", ["open"]);
+export const Checkbox = createAdapterComponent<AdapterComponentProps["Checkbox"]>(Declarative.UiCheckbox, "Checkbox", [], "class", ["checked"]);
+export const Switch = createAdapterComponent<AdapterComponentProps["Switch"]>(Declarative.UiSwitch, "Switch", [], "class", ["checked"]);
+export const RadioGroup = createAdapterComponent<AdapterComponentProps["RadioGroup"]>(Declarative.UiRadioGroup, "RadioGroup", [], "class", ["value"]);
+export const Radio = createAdapterComponent<AdapterComponentProps["Radio"]>(Declarative.UiRadio, "Radio", [], "class", ["checked"]);
+export const Badge = createAdapterComponent<AdapterComponentProps["Badge"]>(Declarative.UiBadge, "Badge");
+export const Chip = createAdapterComponent<AdapterComponentProps["Chip"]>(Declarative.UiChip, "Chip");
+export const Callout = createAdapterComponent<AdapterComponentProps["Callout"]>(Declarative.UiCallout, "Callout");
+export const Avatar = createAdapterComponent<AdapterComponentProps["Avatar"]>(Declarative.UiAvatar, "Avatar");
+export const AvatarGroup = createAdapterComponent<AdapterComponentProps["AvatarGroup"]>(Declarative.UiAvatarGroup, "AvatarGroup");
 export const FloatingActionButton = createAdapterComponent<AdapterComponentProps["FloatingActionButton"]>(
-  "ui-floating-action-button",
+  Declarative.UiFloatingActionButton,
   "FloatingActionButton",
 );
-export const SearchShell = createAdapterComponent<AdapterComponentProps["SearchShell"]>("ui-search-shell", "SearchShell");
-export const SearchResultRow = createAdapterComponent<AdapterComponentProps["SearchResultRow"]>("ui-search-result-row", "SearchResultRow");
-export const TopBar = createAdapterComponent<AdapterComponentProps["TopBar"]>("ui-top-bar", "TopBar");
-export const Tree = createAdapterComponent<AdapterComponentProps["Tree"]>("ui-tree", "Tree", [
+export const SearchShell = createAdapterComponent<AdapterComponentProps["SearchShell"]>(Declarative.UiSearchShell, "SearchShell");
+export const SearchResultRow = createAdapterComponent<AdapterComponentProps["SearchResultRow"]>(Declarative.UiSearchResultRow, "SearchResultRow");
+export const TopBar = createAdapterComponent<AdapterComponentProps["TopBar"]>(Declarative.UiTopBar, "TopBar");
+export const Tree = createAdapterComponent<AdapterComponentProps["Tree"]>(Declarative.UiTree, "Tree", [
   ["reorder", "onReorder"],
   ["reorder-rejected", "onReorderRejected"],
 ]);
 export const TreeItem = createAdapterComponent<AdapterComponentProps["TreeItem"]>(
-  "ui-tree-item",
+  Declarative.UiTreeItem,
   "TreeItem",
   [["expand", "onExpand"]],
   "class",
@@ -115,4 +116,4 @@ export const ADAPTER_COMPONENT_TAG_MAP = {
 } as const;
 
 export const VUE_ADAPTER_NOTE =
-  "Thin adapter only: attrs and slots pass through to custom elements and DOM events map to typed callbacks.";
+  "Native-root adapter: attrs, slots, props, methods, and events project the framework-neutral Looma declarative contract into Vue.";

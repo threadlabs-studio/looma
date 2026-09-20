@@ -1,8 +1,8 @@
 # Adapter Contract
 
-Looma adapters are thin translations over the same custom-element contracts.
-They pass attributes, properties, events, and slots through without owning
-different behavior.
+Looma adapters are thin projections of the same declarative component contracts.
+They create native roots, attach the shared definitions and controllers, and map
+props, events, and slots without owning different behavior.
 
 ## Release 1 Support
 
@@ -43,11 +43,11 @@ the editor element's custom-event detail.
 ## SSR And Fallback Rules
 
 - Adapter modules must import in a server process without browser globals.
-- Layout and editor elements use light DOM; core elements use shadow roots after
-  upgrade and preserve consumer-authored semantic content through slots.
+- Every adapter renders the native light-DOM root declared by the component
+  contract and preserves consumer-authored semantic content through slots.
 - Adapters must not replace semantic fallback content with framework-only markup.
-- Without JavaScript, the semantic light DOM remains; custom-element interaction,
-  shadow styling, and adapter event translation do not.
+- Without JavaScript, direct invocation markup retains its semantic authored
+  content; lowering, controller interaction, and adapter event translation do not run.
 
 ## Vue Example
 

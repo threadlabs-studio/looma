@@ -6,7 +6,7 @@ These conventions keep contracts stable across core components and framework ada
 
 - Attributes use kebab-case (`default-open`, `aria-controls`).
 - Properties use camelCase (`defaultOpen`).
-- Shared state names: `open`, `disabled`, `selected`, `value`, `invalid`, `readonly`.
+- Shared state names: `open`, `disabled`, `selected`, `value`, `invalid`, `readOnly`.
 
 ## Events
 
@@ -24,10 +24,11 @@ These conventions keep contracts stable across core components and framework ada
 - Controlled state wins when provided.
 - Events still emit user intent even in controlled mode.
 
-## SSR Upgrade Contract
+## SSR and Lowering Contract
 
 - SSR HTML must be meaningful before JS loads.
-- Upgrade behavior cannot rewrite authored tree shape.
+- Lowering may replace the `ui-*` invocation wrapper with its declared native root, but must preserve
+  authored semantic descendants and slot meaning.
 - Required ARIA relationships should be derivable from SSR markup.
 
 ## Spacing Rule
@@ -36,7 +37,7 @@ Components do not set external margins. Layout primitives own inter-component rh
 
 ## DOM and style isolation contract
 
-Layout and editor elements use light DOM. Core elements attach shadow roots after upgrade while preserving consumer-authored semantic content through slots. To keep host integration predictable:
+All component families lower to light-DOM native roots while preserving consumer-authored semantic content through slots. To keep host integration predictable:
 
 - Light-DOM Looma hosts apply a scoped reset (`all: revert-layer`) and re-add required defaults from Looma tokens.
 - Each Looma host uses token-driven typography/color by default (`--ui-font-*`, `--ui-text-*`).

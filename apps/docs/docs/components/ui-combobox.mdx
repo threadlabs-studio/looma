@@ -181,7 +181,8 @@ Up/Down navigate enabled options; Home/End navigate after an option becomes acti
 and otherwise retain normal caret behavior. Enter selects, Escape dismisses without
 clearing text, and Tab closes without selection. Focus order is input, optional
 clear, help, disclosure, then the next field. Help supports hover, focus, click/tap,
-and Escape. Input/listbox/description/validation relationships share one shadow root.
+and Escape. Input/listbox/description/validation relationships stay within one declarative
+component subtree.
 
 Theme hooks: `--ui-field-label-{color,size,weight}`,
 `--ui-option-primary-{color,weight}`, `--ui-option-secondary-{color,weight}`,

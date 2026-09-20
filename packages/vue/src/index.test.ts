@@ -1,8 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, type App } from "vue";
 
-vi.mock("@threadlabs/looma-layout", () => ({}));
-vi.mock("@threadlabs/looma-core", () => ({}));
 import {
   ADAPTER_COMPONENT_TAG_MAP,
   Avatar,
@@ -76,10 +74,10 @@ describe("@threadlabs/looma-vue adapter", () => {
       h(Callout, { tone: "warning" }, () => "Review this before publishing."),
     ]));
 
-    expect(host.querySelector("ui-chip")?.getAttribute("appearance")).toBe("tag");
-    expect(host.querySelector("ui-chip")?.textContent).toContain("Research");
-    expect(host.querySelector("ui-callout")?.getAttribute("tone")).toBe("warning");
-    expect(host.querySelector("ui-callout")?.textContent).toContain("Review this before publishing.");
+    expect(host.querySelector(`[data-component-root="ui-chip"]`)?.getAttribute("data-appearance")).toBe("tag");
+    expect(host.querySelector(`[data-component-root="ui-chip"]`)?.textContent).toContain("Research");
+    expect(host.querySelector(`[data-component-root="ui-callout"]`)?.getAttribute("data-tone")).toBe("warning");
+    expect(host.querySelector(`[data-component-root="ui-callout"]`)?.textContent).toContain("Review this before publishing.");
   });
 
   it("maps tree reorder and expansion events to typed callbacks", () => {
@@ -91,8 +89,8 @@ describe("@threadlabs/looma-vue adapter", () => {
       )
     );
 
-    const tree = host.querySelector("ui-tree")!;
-    const item = host.querySelector("ui-tree-item")!;
+    const tree = host.querySelector(`[data-component-root="ui-tree"]`)!;
+    const item = host.querySelector(`[data-component-root="ui-tree-item"]`)!;
     tree.dispatchEvent(new CustomEvent("reorder", {
       detail: {
         sourceId: "a",
@@ -129,7 +127,7 @@ describe("@threadlabs/looma-vue adapter", () => {
       )
     );
 
-    const item = host.querySelector<HTMLElement & { expanded?: boolean }>("ui-tree-item")!;
+    const item = host.querySelector<HTMLElement & { expanded?: boolean }>(`[data-component-root="ui-tree-item"]`)!;
     await Promise.resolve();
     expect(item.expanded).toBe(false);
   });
@@ -142,15 +140,15 @@ describe("@threadlabs/looma-vue adapter", () => {
       ])
     );
 
-    expect(host.querySelector("ui-switcher[threshold='sm']")).toBeTruthy();
-    expect(host.querySelector("ui-sidebar[side='start']")).toBeTruthy();
-    expect(host.querySelector("ui-reel[item-width='md']")).toBeTruthy();
+    expect(host.querySelector(`[data-component-root="ui-switcher"][data-threshold="sm"]`)).toBeTruthy();
+    expect(host.querySelector(`[data-component-root="ui-sidebar"][data-side="start"]`)).toBeTruthy();
+    expect(host.querySelector(`[data-component-root="ui-reel"][data-item-width="md"]`)).toBeTruthy();
   });
 
   it("allows the resizable sidebar to progressively enhance its light DOM during hydration", () => {
     const { host } = mount(() => h(Sidebar, { resizable: true }, () => h("main", "Content")));
 
-    expect(host.querySelector("ui-sidebar")?.getAttribute("data-allow-mismatch")).toBe("");
+    expect(host.querySelector(`[data-component-root="ui-sidebar"]`)?.getAttribute("data-allow-mismatch")).toBe("");
   });
 
   it("renders wrappers with forwarded attrs and default slot content", () => {
@@ -158,12 +156,12 @@ describe("@threadlabs/looma-vue adapter", () => {
       h(Button, { variant: "solid", size: "sm" }, () => h("button", { type: "button" }, "Save page"))
     );
 
-    const wrapper = host.querySelector("ui-button");
+    const wrapper = host.querySelector(`[data-component-root="ui-button"]`);
     const button = wrapper?.querySelector("button");
 
     expect(wrapper).toBeTruthy();
-    expect(wrapper?.getAttribute("variant")).toBe("solid");
-    expect(wrapper?.getAttribute("size")).toBe("sm");
+    expect(wrapper?.getAttribute("data-variant")).toBe("solid");
+    expect(wrapper?.getAttribute("data-size")).toBe("sm");
     expect(wrapper?.getAttribute("data-allow-mismatch")).toBe("class");
     expect(button?.textContent).toBe("Save page");
   });
@@ -173,7 +171,7 @@ describe("@threadlabs/looma-vue adapter", () => {
       h(Button, { "data-allow-mismatch": "children" }, () => h("button", "Save page"))
     );
 
-    expect(host.querySelector("ui-button")?.getAttribute("data-allow-mismatch")).toBe("children");
+    expect(host.querySelector(`[data-component-root="ui-button"]`)?.getAttribute("data-allow-mismatch")).toBe("children");
   });
 
   it("maps custom events to typed Vue callbacks", () => {
@@ -185,7 +183,7 @@ describe("@threadlabs/looma-vue adapter", () => {
       ])
     );
 
-    const menu = host.querySelector("ui-menu");
+    const menu = host.querySelector(`[data-component-root="ui-menu"]`);
     menu?.dispatchEvent(
       new CustomEvent("select", {
         detail: { value: "rename", trigger: "keyboard" },
@@ -203,9 +201,9 @@ describe("@threadlabs/looma-vue adapter", () => {
       h(ContextMenu, { onSelect }, () => h(MenuItem, { value: "rename" }, () => "Rename"))
     );
 
-    const contextMenu = host.querySelector("ui-context-menu");
+    const contextMenu = host.querySelector(`[data-component-root="ui-context-menu"]`);
     expect(contextMenu).toBeTruthy();
-    expect(contextMenu?.querySelector("ui-menu-item")?.textContent).toContain("Rename");
+    expect(contextMenu?.querySelector(`[data-component-root="ui-menu-item"]`)?.textContent).toContain("Rename");
 
     contextMenu?.dispatchEvent(
       new CustomEvent("select", {
@@ -227,13 +225,13 @@ describe("@threadlabs/looma-vue adapter", () => {
       ])
     );
 
-    expect(host.querySelector("ui-radio-group")).toBeTruthy();
-    expect(host.querySelector("ui-radio")).toBeTruthy();
-    expect(host.querySelector("ui-badge")?.textContent).toContain("Draft");
-    expect(host.querySelector("ui-avatar")?.getAttribute("name")).toBe("Taylor Reed");
+    expect(host.querySelector(`[data-component-root="ui-radio-group"]`)).toBeTruthy();
+    expect(host.querySelector(`[data-component-root="ui-radio"]`)).toBeTruthy();
+    expect(host.querySelector(`[data-component-root="ui-badge"]`)?.textContent).toContain("Draft");
+    expect(host.querySelector(`[data-component-root="ui-avatar"]`)?.getAttribute("data-name")).toBe("Taylor Reed");
   });
 
-  it("renders the floating action button wrapper as the native custom element", () => {
+  it("renders the floating action button wrapper as its native root", () => {
     const { host } = mount(() =>
       h(
         FloatingActionButton,
@@ -242,9 +240,9 @@ describe("@threadlabs/looma-vue adapter", () => {
       )
     );
 
-    const fab = host.querySelector("ui-floating-action-button");
+    const fab = host.querySelector(`[data-component-root="ui-floating-action-button"]`);
     expect(fab).toBeTruthy();
-    expect(fab?.getAttribute("label")).toBe("Create new page");
-    expect(fab?.hasAttribute("mobile-only")).toBe(true);
+    expect(fab?.getAttribute("data-label")).toBe("Create new page");
+    expect(fab?.getAttribute("data-mobile-only")).toBe("true");
   });
 });

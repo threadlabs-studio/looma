@@ -3,11 +3,11 @@
 > Internal implementation workspace. Consumers install `@threadlabs/looma` and
 > use `/editor`, `/editor/extensions`, or `/editor.css`.
 
-Candidate editor UI elements, styles, Tiptap 2 presets, slash commands, mentions,
+Candidate declarative editor UI, styles, Tiptap 2 presets, slash commands, mentions,
 and table editing for Looma. The package uses Tiptap's vanilla `Editor`; the
 public facade's `/vue/editor` entry provides the turnkey Vue editor.
 
-Release status: Candidate `0.1.28`, not Stable.
+Release status: Candidate `0.2.5`, not Stable.
 
 ## Density tokens
 
@@ -41,7 +41,7 @@ import {
 
 ## Candidate surface
 
-- Seven custom elements: toolbar, slash menu, mention menu, table context menu,
+- Seven declarative component surfaces: toolbar, slash menu, mention menu, table context menu,
   table toolbar, insert-table grid, and table overlay.
 - `getDefaultEditorExtensions()` for the qualified Tiptap 2 extension preset,
   including Info, Note, and Warning callout blocks.

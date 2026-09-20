@@ -1,0 +1,36 @@
+<template component="ui-radio" controller="./controllers/ui-radio.js" status="early" summary="Migrated Looma ui-radio component.">
+  <defs>
+    <prop name="checked" type="boolean">checked token.</prop>
+    <prop name="defaultChecked" type="boolean" default="false">defaultChecked token.</prop>
+    <prop name="disabled" type="boolean" default="false">disabled token.</prop>
+    <prop name="name" type="string" default="">name token.</prop>
+    <prop name="required" type="boolean" default="false">required token.</prop>
+    <prop name="value" type="string" default="on">value token.</prop>
+    <state name="internalChecked" :value="false"></state>
+    <event name="change" type="object({ checked: boolean, value: string, trigger: keyboard | pointer | programmatic })"></event>
+  </defs>
+  <span role="radio" :data-disabled="disabled"><slot></slot></span>
+  <style>:scope {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-2);
+  color: var(--ui-text-primary);
+}
+
+:scope[data-disabled='true'],
+:scope[aria-disabled='true'] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+:slotted(input[type='radio']) {
+  accent-color: var(--ui-accent-solid);
+  cursor: pointer;
+}
+
+:slotted(input[type='radio']:focus-visible) {
+  outline: 2px solid var(--ui-accent-solid);
+  outline-offset: 2px;
+}
+</style>
+</template>

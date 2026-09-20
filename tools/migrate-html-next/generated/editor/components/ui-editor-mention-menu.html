@@ -1,0 +1,13 @@
+<template component="ui-editor-mention-menu" status="early" summary="Looma ui-editor-mention-menu editor surface." controller="./controllers/ui-editor-mention-menu.js">
+  <defs>
+    <prop name="open" type="boolean" default="false">open value.</prop>
+    <prop name="query" type="string" default="">query value.</prop>
+    <prop name="items" type="list(object({ id: string, label: string, detail?: string, initials?: string }))">items value.</prop>
+    <prop name="selectedIndex" type="integer" default="0">selectedIndex value.</prop>
+    <prop name="loading" type="boolean" default="false">loading value.</prop>
+    <prop name="anchorRect" type="object({ left?: number, top?: number, right?: number, bottom?: number, x?: number, y?: number, width?: number, height?: number }) | null">anchorRect value.</prop>
+    <event name="looma-editor-mention-menu-highlight" type="object({ index: integer })"></event>
+    <event name="looma-editor-mention-menu-select" type="object({ index: integer })"></event>
+  </defs>
+  <div .items="items" .anchorRect="anchorRect"></div>
+</template>

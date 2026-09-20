@@ -1,11 +1,10 @@
 import {
-  cloneVNode,
   defineComponent,
   h,
-  isVNode,
   shallowRef,
   watchEffect,
   type ComponentPublicInstance,
+  type Component,
   type DefineComponent,
 } from "vue";
 import type { EditableChange } from '@threadlabs/looma-core';
@@ -71,11 +70,13 @@ export function toHTMLElement(
 ): HTMLElement | null {
   if (!value) return null;
   if (value instanceof HTMLElement) return value;
+  const componentRoot = (value as ComponentPublicInstance).$el;
+  if (componentRoot instanceof HTMLElement) return componentRoot;
   return null;
 }
 
 export function createAdapterComponent<Props extends object = Record<string, never>>(
-  tagName: string,
+  component: string | Component,
   displayName: string,
   additionalEventBindings: readonly AdapterEventBinding[] = [],
   defaultHydrationMismatch: string = "class",
@@ -90,13 +91,10 @@ export function createAdapterComponent<Props extends object = Record<string, nev
     inheritAttrs: false,
     setup(_props, { attrs, slots }) {
       const elementRef = shallowRef<HTMLElement | null>(null);
-      const componentReady = shallowRef(false);
 
       watchEffect((onCleanup) => {
         const element = elementRef.value;
         if (!element) return;
-
-        componentReady.value = element.classList.contains("hydrated") || Boolean(element.shadowRoot);
 
         const adapterAttrs = attrs as AdapterAttrs;
         const propertyTarget = element as unknown as Record<string, unknown>;
@@ -131,30 +129,27 @@ export function createAdapterComponent<Props extends object = Record<string, nev
       return () => {
         const forwardedAttrs = Object.fromEntries(
           Object.entries(attrs).filter(
-            ([name]) => !callbackAttrs.has(name) && !propertyAttrs.has(name),
+            ([name]) => !callbackAttrs.has(name),
           ),
         );
 
-        const children = Object.entries(slots).flatMap(([slotName, slotFn]) => {
-          if (!slotFn) return [];
-          return slotFn().map((node) => {
-            if (slotName === "default") return node;
-            if (isVNode(node)) return cloneVNode(node, { slot: slotName });
-            return h("span", { slot: slotName }, node);
-          });
-        });
+        const componentSlots = Object.fromEntries(
+          Object.entries(slots)
+            .filter((entry): entry is [string, NonNullable<typeof entry[1]>] => Boolean(entry[1]))
+            .map(([slotName, slotFn]) => [slotName, () => slotFn()]),
+        );
 
         return h(
-          tagName,
+          component,
           {
             "data-allow-mismatch": forwardedAttrs["data-allow-mismatch"] ?? defaultHydrationMismatch,
             ...forwardedAttrs,
-            class: [forwardedAttrs.class, componentReady.value && "hydrated"],
+            class: forwardedAttrs.class,
             ref: (value: Element | ComponentPublicInstance | null) => {
               elementRef.value = toHTMLElement(value);
             },
           },
-          children.length > 0 ? children : undefined,
+          Object.keys(componentSlots).length > 0 ? componentSlots : undefined,
         );
       };
     },

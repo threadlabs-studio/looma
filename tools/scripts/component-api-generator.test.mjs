@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  declarativeTypeToTypeScript,
+  generateComponentApiMetadata,
   readRepositoryProjectionTags,
   validateComponentProjections
 } from "./component-api-generator.mjs";
@@ -69,4 +71,32 @@ test("discovers editor adapters after their implementation is split into primiti
 
   assert.ok(projections.adapterMapTags.includes("ui-editor-toolbar"));
   assert.ok(projections.adapterTags.includes("ui-editor-table-overlay"));
+});
+
+test("translates framework-neutral declarative types without legacy class names", () => {
+  assert.equal(declarativeTypeToTypeScript("integer"), "number");
+  assert.equal(
+    declarativeTypeToTypeScript("string | null | list(unknown)"),
+    "string | null | ReadonlyArray<unknown>"
+  );
+  assert.equal(
+    declarativeTypeToTypeScript("object({ value: string, trigger: keyboard | pointer })"),
+    '{ value: string; trigger: "keyboard" | "pointer" }'
+  );
+});
+
+test("generates public API metadata from declarative contracts", async () => {
+  const metadata = await generateComponentApiMetadata();
+  const combobox = metadata.components.find(({ tag }) => tag === "ui-combobox");
+  const mentionMenu = metadata.components.find(({ tag }) => tag === "ui-editor-mention-menu");
+
+  assert.equal(metadata.schemaVersion, 2);
+  assert.match(combobox.description, /suggestions/);
+  assert.equal(combobox.root, "div");
+  assert.deepEqual(combobox.methods.map(({ name }) => name), ["validate", "focusInput"]);
+  assert.equal(combobox.properties.find(({ name }) => name === "config").channel, "property");
+  assert.ok(!combobox.attributes.some(({ property }) => property === "config"));
+  assert.equal(mentionMenu.properties.find(({ name }) => name === "items").channel, "property");
+  assert.ok(!mentionMenu.attributes.some(({ property }) => property === "items"));
+  assert.ok(!("className" in combobox));
 });

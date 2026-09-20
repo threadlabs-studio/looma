@@ -1,0 +1,14 @@
+<template component="ui-editor-table-overlay" status="early" summary="Looma ui-editor-table-overlay editor surface." controller="./controllers/ui-editor-table-overlay.js">
+  <defs>
+    <prop name="open" type="boolean" default="false">open value.</prop>
+    <prop name="rows" type="integer" default="3">rows value.</prop>
+    <prop name="cols" type="integer" default="3">cols value.</prop>
+    <prop name="rowBoundaries" type="string | list(number)">rowBoundaries value.</prop>
+    <prop name="columnBoundaries" type="string | list(number)">columnBoundaries value.</prop>
+    <prop name="activeCell" type="string | list(number)">activeCell value.</prop>
+    <prop name="hoveredCell" type="string | list(number)">hoveredCell value.</prop>
+    <prop name="geometry" type="object({ rowBoundaries: list(number), columnBoundaries: list(number), activeCell: object({ left: number, top: number, width: number, height: number, rowIndex: integer, columnIndex: integer }) | null, hoveredCell?: object({ left: number, top: number, width: number, height: number, rowIndex: integer, columnIndex: integer }) | null }) | null">geometry value.</prop>
+    <event name="looma-editor-table-overlay-action" type="object({ action: string, boundaryIndex?: integer, rowIndex?: integer, columnIndex?: integer, anchor?: object({ left: number, top: number, right: number, bottom: number }) })"></event>
+  </defs>
+  <div .geometry="geometry"></div>
+</template>
