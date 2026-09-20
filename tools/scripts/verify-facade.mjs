@@ -246,7 +246,7 @@ export async function verifyFacade({ repoRoot, definitionOnly = false, typesOnly
   if (typesOnly) return;
 
   const files = (await Promise.all(
-    ["dist", "loader", "layout", "editor", "vue"].map((entry) => runtimeFiles(facadeRoot, entry)),
+    ["dist", "layout", "editor", "vue"].map((entry) => runtimeFiles(facadeRoot, entry)),
   )).flat();
   for (const css of [
     "tokens.css",

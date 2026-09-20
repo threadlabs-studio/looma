@@ -23,7 +23,9 @@ import {
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const LOOMA = join(HERE, "..", "..", "..");
-const STATIC = join(LOOMA, "apps/storybook/storybook-static");
+const STATIC = process.env.LOOMA_LEGACY_STORYBOOK_STATIC
+  ? resolve(process.env.LOOMA_LEGACY_STORYBOOK_STATIC)
+  : join(LOOMA, "apps/storybook/storybook-static");
 const CORE = join(LOOMA, "packages/core/src/components");
 const CONTROLLERS = join(HERE, "controllers");
 const RUNTIME = await readFile(join(HERE, "..", "vendor", "html-next-runtime.iife.js"), "utf8");

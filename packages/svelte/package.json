@@ -3,7 +3,7 @@
   "version": "0.2.4",
   "private": true,
   "type": "module",
-  "description": "Thin Svelte helpers for Looma web components.",
+  "description": "Svelte helpers generated from Looma declarative component contracts.",
   "license": "MIT",
   "author": "Threadlabs Studio",
   "repository": {
@@ -27,18 +27,21 @@
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts --clean",
     "lint": "tsc -p tsconfig.json --noEmit",
-    "test": "echo \"svelte adapter: tests not configured yet\"",
+    "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@threadlabs/looma-core": "workspace:*",
+    "@threadlabs/looma-editor": "workspace:*",
     "@threadlabs/looma-layout": "workspace:*"
   },
   "peerDependencies": {
     "svelte": "^5.0.0"
   },
   "devDependencies": {
+    "jsdom": "^27.0.0",
     "tsup": "^8.5.0",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.6"
   }
 }

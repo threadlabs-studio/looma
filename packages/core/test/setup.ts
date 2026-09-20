@@ -22,13 +22,6 @@ if (typeof window !== "undefined") {
     globalThis.CSS.escape = (value: string) => value.replace(/[^a-zA-Z0-9_-]/g, "\\$&");
   }
 
-  // Register all Stencil components from the compiled custom-elements output.
-  // The dist/ directory is populated by `stencil build` (run before tests).
-  const componentLoaders = import.meta.glob("../dist/components/ui-*.js");
-  for (const loadComponent of Object.values(componentLoaders)) {
-    const componentModule = await loadComponent() as { defineCustomElement?: () => void };
-    if (typeof componentModule.defineCustomElement === "function") {
-      componentModule.defineCustomElement();
-    }
-  }
+  // Importing the package installs the framework-neutral declarative graph.
+  await import("../index");
 }

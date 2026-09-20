@@ -3,7 +3,7 @@
   "version": "0.2.4",
   "private": true,
   "type": "module",
-  "description": "Thin React adapters for Looma web components.",
+  "description": "React adapters generated from Looma declarative component contracts.",
   "license": "MIT",
   "author": "Threadlabs Studio",
   "repository": {
@@ -27,7 +27,7 @@
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts --clean",
     "lint": "tsc -p tsconfig.json --noEmit",
-    "test": "echo \"react adapter: tests not configured yet\"",
+    "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
@@ -40,7 +40,12 @@
   },
   "devDependencies": {
     "@types/react": "~19.2.14",
+    "@types/react-dom": "~19.2.3",
+    "jsdom": "^27.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "tsup": "^8.5.0",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.6"
   }
 }
