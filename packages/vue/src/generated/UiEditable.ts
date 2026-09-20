@@ -61,10 +61,10 @@ return (_ctx: any,_cache: any) => {
     ref: root
   }), [
     _createElementVNode("div", _hoisted_2, [
-      _renderSlot(_ctx.$slots, "preview")
+      _createElementVNode("span", { slot: "preview", "data-looma-framework-slot": "preview", style: { display: "contents" } }, [_renderSlot(_ctx.$slots, "preview")])
     ]),
     _createElementVNode("div", _hoisted_3, [
-      _renderSlot(_ctx.$slots, "edit")
+      _createElementVNode("span", { slot: "edit", "data-looma-framework-slot": "edit", style: { display: "contents" } }, [_renderSlot(_ctx.$slots, "edit")])
     ])
   ], 16 /* FULL_PROPS */, _hoisted_1))
 }

@@ -59,6 +59,13 @@ function rewriteNestedComponents(source, component, components, framework) {
     : source.replace(/(import type \{[^\n]+\} from "react";\n)/, `$1${imports}\n`);
 }
 
+function preserveVueNamedSlotRegions(source) {
+  return source.replace(
+    /<slot name="([^"]+)"><\/slot>/g,
+    '<span slot="$1" data-looma-framework-slot="$1" style="display: contents"><slot name="$1"></slot></span>',
+  );
+}
+
 function rewriteReactSemantics(source, definitionSource) {
   const propertyNames = [...definitionSource.matchAll(/\s\.([\w-]+)=/g)].map((match) => match[1]);
   for (const propertyName of new Set(propertyNames)) {
@@ -127,10 +134,10 @@ async function materializeVue(components) {
   await mkdir(output, { recursive: true });
   const exports = [];
   for (const component of components) {
-    const rewritten = rewriteNestedComponents(rewriteFrameworkSource(
+    const rewritten = preserveVueNamedSlotRegions(rewriteNestedComponents(rewriteFrameworkSource(
       await readFile(join(COMPILED, "vue", `${component.name}.vue`), "utf8"),
       component,
-    ), component, components, "vue");
+    ), component, components, "vue"));
     const { descriptor, errors } = parse(rewritten, { filename: `${component.name}.vue` });
     if (errors.length) throw errors[0];
     const compiled = compileScript(descriptor, { id: `looma-${component.tag}`, inlineTemplate: true });
@@ -203,14 +210,30 @@ async function main() {
   const runtimeSource = await readFile(join(HERE, "vendor", "html-next-runtime.iife.js"), "utf8");
   const hydrationLoop = "if(d){for(let p=0;p<m.length;p+=1)";
   const fragmentAwareHydrationLoop = "if(d){m=m.flatMap(p=>p.nodeType===11?Array.from(p.childNodes):[p]);for(let p=0;p<m.length;p+=1)";
+  const slotNameReader = 'function Ei(e){return e instanceof Element?e.getAttribute("slot")??"":""}';
+  const frameworkSlotNameReader = 'function Ei(e){return e.__loomaFrameworkSlot??(e instanceof Element?e.getAttribute("slot")??"":"")}';
+  const hydrationScanner = 'let c=[],l=(m,f)=>{let p=f.children.filter(w=>w.kind==="text").map(w=>w.value),h=0,v=f.children.filter(w=>w.kind==="element"),S=0;for(let w of Array.from(m.childNodes)){if(w instanceof Element){if(!(w.getAttribute("data-component")?.split(/\\s+/)??[]).includes(t.contract.tag))Ve(w),c.push(w);else{';
+  const frameworkAwareHydrationScanner = 'let c=[],l=(m,f)=>{let k=f.children.find(w=>w.kind==="slot")?.name??"",p=f.children.filter(w=>w.kind==="text").map(w=>w.value),h=0,v=f.children.filter(w=>w.kind==="element"),S=0;for(let w of Array.from(m.childNodes)){if(w instanceof Element){if(!(w.getAttribute("data-component")?.split(/\\s+/)??[]).includes(t.contract.tag))w.__loomaFrameworkSlot=k,Ve(w),c.push(w);else{';
+  const hydrationTextScanner = 'b!==void 0&&l(w,b)}continue}if(w instanceof Text&&w.data.trim()!==""){';
+  const frameworkAwareHydrationTextScanner = 'b!==void 0&&l(w,b)}continue}if(w instanceof Comment){w.__loomaFrameworkSlot=k,c.push(w);continue}if(w instanceof Text&&w.data.trim()!==""){';
   if (!runtimeSource.includes(hydrationLoop)) {
     throw new Error("The vendored runtime hydration loop changed; review the framework fragment compatibility patch.");
+  }
+  if (!runtimeSource.includes(slotNameReader) || !runtimeSource.includes(hydrationScanner) || !runtimeSource.includes(hydrationTextScanner)) {
+    throw new Error("The vendored runtime hydration scanner changed; review the framework slot compatibility patch.");
   }
   const runtime = runtimeSource
     // Flow nodes render through DocumentFragments. Flatten those fragments before
     // reconciling a framework-owned native root so the runtime counts the real
     // inserted nodes instead of deleting the flow region and following siblings.
     .replace(hydrationLoop, fragmentAwareHydrationLoop)
+    // Framework renderers use comment anchors for conditional slot regions and
+    // render named slots directly into the generated native tree. Retain those
+    // anchors and their region identity while the declarative runtime adopts the
+    // already-rendered root, so later reactive inserts stay under framework control.
+    .replace(slotNameReader, frameworkSlotNameReader)
+    .replace(hydrationScanner, frameworkAwareHydrationScanner)
+    .replace(hydrationTextScanner, frameworkAwareHydrationTextScanner)
     .replace('"use strict";var HtmlRuntime=', "const HtmlRuntime=")
     .concat("\nexport const { attachComponent, attachRegisteredComponent, getComponentHost, installComponentGraph, lowerDocument, manageComponentLifecycle, observeDocument, registerComponentDefinitions, setControllerModule } = HtmlRuntime;\n");
   await writeFile(join(output, "runtime.js"), runtime);

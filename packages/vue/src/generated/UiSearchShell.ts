@@ -71,19 +71,19 @@ return (_ctx: any,_cache: any) => {
     ref: root
   }), [
     _createElementVNode("div", _hoisted_1, [
-      _renderSlot(_ctx.$slots, "backdrop"),
+      _createElementVNode("span", { slot: "backdrop", "data-looma-framework-slot": "backdrop", style: { display: "contents" } }, [_renderSlot(_ctx.$slots, "backdrop")]),
       _createElementVNode("div", _hoisted_2, [
         _createElementVNode("div", _hoisted_3, [
-          _renderSlot(_ctx.$slots, "search")
+          _createElementVNode("span", { slot: "search", "data-looma-framework-slot": "search", style: { display: "contents" } }, [_renderSlot(_ctx.$slots, "search")])
         ]),
         _createElementVNode("div", _hoisted_4, [
-          _renderSlot(_ctx.$slots, "status")
+          _createElementVNode("span", { slot: "status", "data-looma-framework-slot": "status", style: { display: "contents" } }, [_renderSlot(_ctx.$slots, "status")])
         ]),
         _createElementVNode("div", _hoisted_5, [
-          _renderSlot(_ctx.$slots, "body")
+          _createElementVNode("span", { slot: "body", "data-looma-framework-slot": "body", style: { display: "contents" } }, [_renderSlot(_ctx.$slots, "body")])
         ]),
         _createElementVNode("div", _hoisted_6, [
-          _renderSlot(_ctx.$slots, "footer")
+          _createElementVNode("span", { slot: "footer", "data-looma-framework-slot": "footer", style: { display: "contents" } }, [_renderSlot(_ctx.$slots, "footer")])
         ])
       ])
     ])
