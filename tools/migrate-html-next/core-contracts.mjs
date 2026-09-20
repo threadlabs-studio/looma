@@ -1,9 +1,25 @@
-// Framework-neutral public contracts for Looma core components.
-//
-// These declarations are authoritative for the migrated package. The Stencil reader is only a
-// source adapter used to recover render structure and to detect drift while the old implementation
-// still exists; decorators and Stencil-specific types do not define this model.
+/**
+ * Framework-neutral public contracts for Looma core components.
+ *
+ * This file is the design boundary for the migrated package. A contract should
+ * describe what an HTML author or framework consumer can observe: native root
+ * semantics, values, state ownership, events, methods, slots, and dependency
+ * edges. It must not encode how the legacy Stencil class happened to implement
+ * those behaviors. The Stencil reader is an ingest adapter used to recover
+ * render structure and detect drift while that source still exists; decorators,
+ * class fields, and component instance methods are evidence, not authority.
+ *
+ * That distinction matters when extending this table. A Stencil `@Prop()` may
+ * become an HTML attribute, a property-only structured value, or no public API
+ * at all. Conversely, a stable declarative capability may need an explicit
+ * contract even when the old implementation only exposed it accidentally.
+ */
 
+/**
+ * Freezes a complete component contract so converter passes cannot mutate API
+ * decisions while deriving templates. `root` is required because choosing the
+ * semantic native owner is part of the API, not a rendering optimization.
+ */
 const component = ({ root, props = {}, slots = [], methods = [], events = [], dependencies = [], stateAttributes = {} } = {}) => {
   if (root === undefined) throw new Error("Every component contract must choose its native root");
   return (
@@ -18,7 +34,22 @@ const component = ({ root, props = {}, slots = [], methods = [], events = [], de
   }));
 };
 
+/**
+ * Declares one consumer-facing value.
+ *
+ * `attribute` records the serialized spelling when it differs from the
+ * property name. `channel: "property"` is a semantic constraint for values
+ * that cannot round-trip through HTML (functions, rich objects, trusted
+ * values), not a workaround for a framework. Scalar defaults belong here so
+ * every native/framework adapter starts from the same contract.
+ */
 const prop = (type, options = {}) => Object.freeze({ type, ...options });
+
+/**
+ * Declares an observable interaction. Event detail is modeled in the same
+ * portable type language as props so generated adapters do not inherit a
+ * Stencil event class or a Looma-internal TypeScript shape.
+ */
 const event = (name, type, options = {}) => Object.freeze({ name, type, ...options });
 
 const inputTrigger = "keyboard | pointer | programmatic";

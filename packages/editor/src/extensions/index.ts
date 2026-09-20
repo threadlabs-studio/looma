@@ -1,5 +1,10 @@
 /**
- * @threadlabs/looma-editor/extensions — extension preset and table command helpers.
+ * Tiptap-facing schema, behavior, and command policy.
+ *
+ * Importing this subpath does not register Looma UI elements. Commands accept
+ * framework-neutral intent details from `@threadlabs/looma-editor/ui`, but the
+ * application owns wiring and editor-instance lifetime. Tiptap remains a peer
+ * dependency so Looma and the host execute against the same editor runtime.
  */
 
 export {

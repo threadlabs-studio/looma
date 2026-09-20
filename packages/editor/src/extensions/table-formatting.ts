@@ -5,8 +5,14 @@ import TableHeaderBase from "@tiptap/extension-table-header";
 export { TABLE_CELL_BACKGROUND_PRESETS } from "../table-backgrounds";
 
 export type TableCellAlignment = "left" | "center" | "right";
+/** CSS color stored in document attrs; null removes authored cell background. */
 export type TableCellBackground = string | null;
 
+/**
+ * Looma's table behavior policy: resizable columns, stable minimum cell width,
+ * and no independently resizable trailing column. The narrow handle is also a
+ * Tiptap coordinate probe, so changing it affects selection as well as visuals.
+ */
 export const LoomaTable: AnyExtension = TableBase.configure({
   resizable: true,
   // Tiptap also uses this as its inward coordinate probe. The 5px default can
@@ -72,6 +78,7 @@ const tableAlignmentAttributes = {
   },
 };
 
+/** Header node that round-trips Looma alignment and background attributes. */
 export const LoomaTableHeader: AnyExtension = TableHeaderBase.extend({
   addAttributes() {
     return {
@@ -81,6 +88,7 @@ export const LoomaTableHeader: AnyExtension = TableHeaderBase.extend({
   },
 });
 
+/** Body-cell node with the same persisted formatting contract as headers. */
 export const LoomaTableCell: AnyExtension = TableCellBase.extend({
   addAttributes() {
     return {
@@ -90,6 +98,10 @@ export const LoomaTableCell: AnyExtension = TableCellBase.extend({
   },
 });
 
+/**
+ * Reads formatting from the nearest cell/header ancestor of the selection.
+ * Left is the canonical default and is not serialized as an inline style.
+ */
 export function getActiveTableCellAlignment(editor: Editor): TableCellAlignment {
   const { $from } = editor.state.selection;
 
@@ -103,6 +115,7 @@ export function getActiveTableCellAlignment(editor: Editor): TableCellAlignment 
   return "left";
 }
 
+/** Returns the nearest cell/header background, normalized so blank means absent. */
 export function getActiveTableCellBackground(editor: Editor): TableCellBackground {
   const { $from } = editor.state.selection;
 
@@ -116,6 +129,10 @@ export function getActiveTableCellBackground(editor: Editor): TableCellBackgroun
   return null;
 }
 
+/**
+ * Updates the active header or body cell and returns false outside a table cell.
+ * Setting left stores null, keeping the document free of redundant default CSS.
+ */
 export function setActiveTableCellAlignment(
   editor: Editor,
   alignment: TableCellAlignment
@@ -133,6 +150,10 @@ export function setActiveTableCellAlignment(
   return false;
 }
 
+/**
+ * Updates the active header or body cell; blank strings normalize to null so
+ * clearing formatting removes persisted inline style instead of storing noise.
+ */
 export function setActiveTableCellBackground(
   editor: Editor,
   backgroundColor: TableCellBackground

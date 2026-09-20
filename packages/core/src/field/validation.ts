@@ -1,4 +1,10 @@
-/** Structural Standard Schema v1 boundary; no schema-library runtime dependency. */
+/**
+ * Structural Standard Schema v1 boundary.
+ *
+ * Looma intentionally depends on this protocol shape instead of a schema
+ * library. Consumers can bring Valibot, Zod, or another compliant validator
+ * without placing that implementation in Looma's runtime or public model.
+ */
 export interface FieldSchema<Output = unknown> {
   readonly '~standard': {
     readonly version: 1;
@@ -15,6 +21,7 @@ export interface FieldIssue {
 export type FieldSchemaResult<T = unknown> =
   | { readonly value: T; readonly issues?: undefined }
   | { readonly issues: readonly FieldIssue[] };
+/** One validation run, including the cancellation signal owned by the field. */
 export interface FieldRequest<Context = unknown> {
   raw: string;
   value: string | null;
@@ -25,6 +32,15 @@ export interface FieldResult<Output = unknown> {
   output?: Output;
   issues: readonly FieldIssue[];
 }
+/**
+ * Ordered stages in a field's value pipeline.
+ *
+ * Parsing converts the editing string, schema validation establishes a typed
+ * value, normalization prepares accepted output, and the final validator
+ * applies domain rules. Externally supplied `issues` are appended last so a
+ * server error can coexist with local warnings. Stages may be asynchronous and
+ * must treat `request.signal` as the ownership boundary for stale work.
+ */
 export interface FieldValidation {
   schema?: FieldSchema;
   parse?: (raw: string, request: FieldRequest) => unknown | Promise<unknown>;
@@ -36,8 +52,15 @@ export interface FieldSelection { start: number; end: number; direction?: 'forwa
 export interface FieldFormat { display: string; selection: FieldSelection }
 export type FieldFormatter = (raw: string, selection: FieldSelection) => FieldFormat | undefined;
 
-/** Formatting is additive: every original character must survive in order.
- * Normalization belongs to submitted output, never the visible editing buffer. */
+/**
+ * Applies presentation-only editing format without changing user input.
+ *
+ * Formatting is additive: every original character must survive in order, and
+ * the returned selection must describe a valid range in the displayed string.
+ * Invalid or throwing formatters fail closed to the original buffer. Semantic
+ * cleanup belongs in `normalize`, after validation, never in the visible
+ * editing value where it could move the caret or destroy unfinished input.
+ */
 export function formatEditingValue(raw: string, selection: FieldSelection, format?: FieldFormatter): FieldFormat {
   const unchanged = { display: raw, selection };
   if (!format) return unchanged;
@@ -52,6 +75,15 @@ export function formatEditingValue(raw: string, selection: FieldSelection, forma
   return result;
 }
 
+/**
+ * Runs the field pipeline while preserving warning and cancellation semantics.
+ *
+ * Error-severity issues stop normalization and custom validation; warnings do
+ * not. An aborted request is rethrown rather than converted to a user-visible
+ * issue so obsolete work cannot overwrite newer field state. Other thrown
+ * values are intentionally converted at this UI boundary because validation
+ * failures must be renderable rather than become unhandled promise rejections.
+ */
 export async function validateField(request: FieldRequest, config: FieldValidation): Promise<FieldResult> {
   let output: unknown = request.raw;
   let issues: readonly FieldIssue[] = [];

@@ -1,3 +1,11 @@
+/**
+ * Rectangle in CSS-pixel viewport coordinates.
+ *
+ * `left`/`top` are not assumed to be zero because the visual viewport can be
+ * offset inside the layout viewport during pinch zoom or when an on-screen
+ * keyboard is present. Values are compatible with fixed-position surfaces and
+ * `getBoundingClientRect()` measurements used by this module.
+ */
 export interface ViewportRect {
   left: number;
   top: number;
@@ -7,13 +15,16 @@ export interface ViewportRect {
   height: number;
 }
 
+/** Geometry accepted from DOMRect or a framework-neutral measurement adapter. */
 export interface RectLike extends ViewportRect {}
 
+/** A point in the same CSS-pixel viewport coordinate space as `RectLike`. */
 export interface Point {
   x: number;
   y: number;
 }
 
+/** Scope-level policy for non-hit-testable anticipatory affordances. */
 export interface ProximityCoordinatorOptions {
   /** Event surface for pointer tracking. Defaults to the interaction scope. */
   pointerTarget?: EventTarget;
@@ -23,15 +34,30 @@ export interface ProximityCoordinatorOptions {
   nearRadius?: number;
 }
 
+/** Owns shared pointer tracking and reflected proximity state for one scope. */
 export interface ProximityCoordinator {
-  /** Refreshes the anchor list and its cached geometry after a layout change. */
+  /**
+   * Invalidates the anchor list and cached geometry after layout changes.
+   * Work is coalesced into the next animation frame; callers do not need to
+   * debounce resize, editor-transaction, or content-change notifications.
+   */
   refresh(): void;
-  /** Removes the scope-level listeners and all reflected interaction state. */
+  /**
+   * Removes scope-level listeners, cancels scheduled work, and clears every
+   * `data-ui-proximity`/`data-ui-interaction` attribute owned by the coordinator.
+   */
   destroy(): void;
 }
 
+/** Logical placement preference; collision handling may flip either axis. */
 export type AnchoredPlacement = "bottom-start" | "bottom-end" | "top-start" | "top-end";
 
+/**
+ * Policy for an anchored floating surface.
+ * Gaps are CSS pixels. `anchor` remains application-owned and may be replaced;
+ * the controller only borrows it to measure and temporarily extend
+ * `anchor-name` without erasing an existing author value.
+ */
 export interface AnchoredSurfaceOptions {
   anchor?: HTMLElement | null;
   placement?: AnchoredPlacement;
@@ -39,21 +65,42 @@ export interface AnchoredSurfaceOptions {
   viewportGap?: number;
 }
 
+/**
+ * Lifecycle controller for one application-owned floating element.
+ *
+ * `hide` keeps the current anchor binding for cheap reopening. `destroy` is the
+ * terminal operation: it hides the surface, releases listeners/observers and
+ * animation frames, and restores the anchor's original `anchor-name` style.
+ */
 export interface AnchoredSurface {
+  /** Rebinds ownership bookkeeping from the previous anchor to the next one. */
   setAnchor(anchor: HTMLElement | null): void;
+  /** Opens relative to the current element anchor. */
   show(): void;
+  /** Opens at a viewport-coordinate point, temporarily overriding the anchor. */
   showAtPoint(point: Point): void;
+  /** Closes the top-layer surface and active listeners but preserves its anchor binding. */
   hide(): void;
+  /** Requests a coalesced remeasurement while open; it is inert while hidden. */
   refresh(): void;
+  /** Performs terminal cleanup and restores styles borrowed from the anchor. */
   destroy(): void;
 }
 
+/**
+ * Minimal lifecycle for unanchored top-layer UI such as toast regions.
+ * The caller owns the element and its viewport CSS; destruction only closes the
+ * top-layer participation and does not remove the node.
+ */
 export interface ViewportSurface {
   show(): void;
+  /** Closes the surface without removing the application-owned element. */
   hide(): void;
+  /** Terminal alias for closing; retained for a uniform controller lifecycle. */
   destroy(): void;
 }
 
+/** Default pointer halo in CSS pixels; it never changes native hit targets. */
 export const DEFAULT_AFFORDANCE_NEAR_RADIUS = 16;
 
 let anchorSequence = 0;
@@ -366,6 +413,11 @@ export function createAnchoredSurface(
   };
 }
 
+/**
+ * Returns the currently visible fixed-position viewport, not merely the layout
+ * viewport. This keeps menus inside the region left visible by zoom and virtual
+ * keyboards; browsers without Visual Viewport fall back to `innerWidth/Height`.
+ */
 export function getVisualViewportRect(owner: Window = window): ViewportRect {
   const viewport = owner.visualViewport;
   const left = viewport?.offsetLeft ?? 0;
@@ -382,6 +434,13 @@ export function getVisualViewportRect(owner: Window = window): ViewportRect {
   };
 }
 
+/**
+ * Calculates the translation needed to contain a rectangle inside a viewport.
+ *
+ * The input is never mutated. If a surface is larger than the available area,
+ * its leading edge is pinned to the gutter rather than oscillating between two
+ * impossible edge constraints.
+ */
 export function clampRectToViewport(
   rect: RectLike,
   viewport: ViewportRect = getVisualViewportRect(),
@@ -404,6 +463,11 @@ export function clampRectToViewport(
   return { x: targetLeft - rect.left, y: targetTop - rect.top };
 }
 
+/**
+ * Measures Euclidean distance to the nearest rectangle edge, returning zero
+ * for points inside it. This lets anticipatory affordances share generous visual
+ * proximity without enlarging or overlapping their actual pointer hit targets.
+ */
 export function distanceFromPointToRect(point: Point, rect: RectLike): number {
   const dx = Math.max(rect.left - point.x, 0, point.x - rect.right);
   const dy = Math.max(rect.top - point.y, 0, point.y - rect.bottom);

@@ -13,18 +13,30 @@ const TAG = "ui-editor-table-overlay";
 const DEFAULT_ROWS = 3;
 const DEFAULT_COLS = 3;
 
+/** Table-structure mutations addressed by a measured row/column boundary. */
 export type TableInsertionAction =
   | "add-row-before"
   | "add-row-after"
   | "add-column-before"
   | "add-column-after";
 
+/**
+ * Intent vocabulary emitted by the headless table overlay.
+ * UI stays independent of Tiptap/ProseMirror positions; adapters translate
+ * these logical coordinates with `handleTableOverlayAction`.
+ */
 export type TableOverlayAction =
   | TableInsertionAction
   | "select-row"
   | "select-column"
   | "open-cell-menu";
 
+/**
+ * Discriminated action payload.
+ * Boundary indices refer to entries in the measured boundary arrays. Cell
+ * indices refer to the logical grid after row/column spans are expanded. The
+ * menu anchor uses CSS-pixel viewport coordinates suitable for fixed surfaces.
+ */
 export type TableOverlayActionEventDetail =
   | { action: TableInsertionAction; boundaryIndex: number }
   | { action: "select-row" | "select-column"; rowIndex: number; columnIndex: number }
@@ -35,6 +47,11 @@ export type TableOverlayActionEventDetail =
       anchor: { left: number; top: number; right: number; bottom: number };
     };
 
+/**
+ * A cell rectangle relative to the table's border box, plus logical grid
+ * coordinates. Width/height include spans because they come from the rendered
+ * cell rather than an inferred uniform grid.
+ */
 export interface ActiveCellRect {
   left: number;
   top: number;
@@ -44,6 +61,12 @@ export interface ActiveCellRect {
   columnIndex: number;
 }
 
+/**
+ * Replaceable geometry snapshot for overlay rendering.
+ * Boundaries are CSS-pixel offsets relative to the table; callers should
+ * remeasure after editor transactions or layout changes rather than mutate the
+ * arrays in place.
+ */
 export interface TableOverlayGeometry {
   rowBoundaries: number[];
   columnBoundaries: number[];
@@ -108,7 +131,11 @@ function mapTableCells(table: HTMLTableElement): {
   return { grid, coordinates };
 }
 
-/** Resolves a logical table coordinate, including cells that span rows or columns. */
+/**
+ * Resolves a logical grid coordinate to its owning DOM cell.
+ * A spanning cell can therefore be returned for more than one coordinate; this
+ * is intentional and prevents overlay actions from inventing nonexistent cells.
+ */
 export function resolveTableCellAt(
   table: HTMLTableElement,
   rowIndex: number,
@@ -124,7 +151,11 @@ function uniqueSorted(values: number[]): number[] {
     .map((value) => Math.round(value * 100) / 100);
 }
 
-/** Measures real rendered boundaries, including non-uniform and merged cells. */
+/**
+ * Measures rendered boundaries rather than assuming a uniform table grid.
+ * Returned offsets are table-relative and rounded to hundredths of a CSS pixel
+ * to suppress observer churn without losing subpixel layout fidelity.
+ */
 export function measureTableOverlayGeometry(
   table: HTMLTableElement,
   activeCell: HTMLTableCellElement | null,
