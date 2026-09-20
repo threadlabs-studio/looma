@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Keep defined menu-item spacing on its single shadow-owned surface while
+  retaining the styled pre-upgrade and no-JavaScript fallback.
+
 ## v0.1.28 Candidate
 
 - Keep anchored popovers and menus inside visual-viewport gutters, falling back
