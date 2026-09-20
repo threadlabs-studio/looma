@@ -120,7 +120,7 @@ return (_ctx: any,_cache: any) => {
       ])
     ], -1 /* CACHED */)),
     _createElementVNode("div", _hoisted_2, [
-      _renderSlot(_ctx.$slots, "start"),
+      _createElementVNode("span", { slot: "start", "data-looma-framework-slot": "start", style: { display: "contents" } }, [_renderSlot(_ctx.$slots, "start")]),
       _cache[1] || (_cache[1] = _createElementVNode("div", {
         class: "items",
         role: "group",
@@ -188,7 +188,7 @@ return (_ctx: any,_cache: any) => {
         role: "listbox",
         "data-component": "ui-combobox"
       }, null, -1 /* CACHED */)),
-      _renderSlot(_ctx.$slots, "footer")
+      _createElementVNode("span", { slot: "footer", "data-looma-framework-slot": "footer", style: { display: "contents" } }, [_renderSlot(_ctx.$slots, "footer")])
     ]),
     _cache[7] || (_cache[7] = _createElementVNode("div", {
       id: "validation",
