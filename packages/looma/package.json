@@ -1,6 +1,6 @@
 {
   "name": "@threadlabs/looma",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "type": "module",
   "description": "Looma declarative components, responsive layout primitives, a complete editor, and supported Vue adapters.",
   "license": "MIT",
