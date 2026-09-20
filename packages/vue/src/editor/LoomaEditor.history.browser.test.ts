@@ -14,6 +14,13 @@ async function flushBrowser() {
   }
 }
 
+async function historyShortcut(direction: "undo" | "redo") {
+  const modifier = navigator.userAgent.includes("Mac OS X") ? "Meta" : "Control";
+  const shift = direction === "redo" ? "{Shift>}" : "";
+  const releaseShift = direction === "redo" ? "{/Shift}" : "";
+  await userEvent.keyboard(`{${modifier}>}${shift}z${releaseShift}{/${modifier}}`);
+}
+
 async function mountEditor(options: { controlled?: boolean; toolbarMode?: "bubble" | "sticky" } = {}) {
   vi.spyOn(window, "innerWidth", "get").mockReturnValue(1280);
   const modelValue = ref<JSONContent>({ type: "doc", content: [{ type: "paragraph" }] });
@@ -67,11 +74,11 @@ describe("LoomaEditor history (real browser)", () => {
     await flushBrowser();
     expect(editor.getJSON().content?.[0]?.type).toBe("heading");
 
-    await userEvent.keyboard("{Meta>}z{/Meta}");
+    await historyShortcut("undo");
     await flushBrowser();
     expect(editor.getText()).toBe("");
 
-    await userEvent.keyboard("{Meta>}{Shift>}z{/Shift}{/Meta}");
+    await historyShortcut("redo");
     await flushBrowser();
     expect(editor.getText()).toContain("Imported title");
   });
