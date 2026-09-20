@@ -12,9 +12,9 @@ function toInitials(value) {
 export default function controller(host) {
   const img = host.element.querySelector("img");
   const fallback = host.element.querySelector(".fallback");
-  let hasImage = false;
 
   const apply = () => {
+    const hasImage = host.state.hasImage;
     const label = host.state.alt || host.state.name || "Avatar";
     host.element.setAttribute("role", "img");
     host.element.setAttribute("aria-label", label);
@@ -33,8 +33,8 @@ export default function controller(host) {
     else host.element.removeAttribute("data-has-image");
   };
 
-  const onLoad = () => { hasImage = true; apply(); };
-  const onError = () => { hasImage = false; apply(); };
+  const onLoad = () => { host.state.hasImage = true; };
+  const onError = () => { host.state.hasImage = false; };
   img?.addEventListener("load", onLoad);
   img?.addEventListener("error", onError);
   const stop = host.effect(apply);
