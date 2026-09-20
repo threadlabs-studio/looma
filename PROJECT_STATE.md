@@ -4,7 +4,7 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-12 11:38 PDT
+Last Updated: 2026-09-19 12:53 PDT
 Status: Candidate `0.1.28` is public and qualified in Knit with viewport-safe,
 single-surface overlays. Historical release tasks below retain their original
 version context.
@@ -36,6 +36,11 @@ version context.
 
 ## Recent Progress
 
+- Scoped `ui-menu-item` light-DOM fallback presentation to pre-upgrade elements.
+  Defined menu items now keep spacing on the shadow-owned interactive surface
+  instead of applying the same padding to both host and surface. Chromium
+  coverage locks the single-padding geometry while retaining no-JavaScript
+  fallback styling.
 - Anchored overlays now verify native CSS anchor placement against the visual
   viewport and fall back to the shared flip/shift controller when it overflows.
   Menu and popover chrome and scrolling live on one shadow surface; pre-upgrade

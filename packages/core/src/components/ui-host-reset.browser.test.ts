@@ -15,6 +15,24 @@ afterEach(() => {
 });
 
 describe("visible surfaces under consumer resets (real browser)", () => {
+  it("keeps defined menu-item spacing on its single shadow-owned surface", async () => {
+    await customElements.whenDefined("ui-menu-item");
+    document.body.innerHTML = `
+      <ui-menu>
+        <ui-menu-item value="settings">Settings</ui-menu-item>
+      </ui-menu>
+    `;
+    await flushStencil();
+
+    const host = document.querySelector<HTMLElement>("ui-menu-item")!;
+    const surface = host.shadowRoot!.querySelector<HTMLElement>(".menu-item__surface")!;
+
+    expect(getComputedStyle(host).paddingLeft).toBe("0px");
+    expect(getComputedStyle(host).paddingTop).toBe("0px");
+    expect(getComputedStyle(surface).paddingLeft).toBe("12px");
+    expect(getComputedStyle(surface).paddingTop).toBe("8px");
+  });
+
   it("keeps avatar and menu-item geometry inside their shadow-owned surfaces", async () => {
     await Promise.all([
       customElements.whenDefined("ui-avatar"),
