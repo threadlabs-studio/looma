@@ -5,10 +5,10 @@
 > history or private workspace/build evidence, not as consumer guidance.
 
 Last Updated: 2026-09-20 11:15 PDT
-Status: Candidate `0.2.5` is public. Candidate `0.2.7` is prepared with
-structured document paste, reliable history controls, and an opt-in sticky
-desktop editor toolbar. Historical release tasks below retain their original
-version context.
+Status: Candidate `0.2.5` is public. Candidate `0.2.8` is prepared with
+structured document paste, reliable history controls, an opt-in sticky desktop
+editor toolbar, and SSR-safe Vue adapter hydration. Historical release tasks
+below retain their original version context.
 
 ## Current Focus
 

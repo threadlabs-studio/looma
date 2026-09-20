@@ -1,6 +1,6 @@
 {
   "name": "@threadlabs/looma-react",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "private": true,
   "type": "module",
   "description": "React adapters generated from Looma declarative component contracts.",
