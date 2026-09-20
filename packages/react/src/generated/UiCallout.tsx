@@ -4,7 +4,7 @@ import type { ComponentPropsWithoutRef, ComponentRef, ElementType, ReactNode, Re
 import { manageGeneratedProps } from "@threadlabs/looma-core/declarative-generated";
 
 interface UiCalloutOwnProps {
-  tone?: string | null;
+  tone?: "info" | "note" | "warning" | "success" | "error" | null;
   slots?: Readonly<Record<string, ReactNode>>;
 }
 
@@ -24,7 +24,7 @@ export function UiCallout(props: UiCalloutProps) {
   };
   const componentProps: Record<string, unknown> = { "tone": prop0 };
   useLayoutEffect(() => root.current == null ? undefined : manageGeneratedProps(root.current, [
-    { name: "tone", attribute: "data-tone", value: prop0, type: "string", required: false },
+    { name: "tone", attribute: "data-tone", value: prop0, type: ["info","note","warning","success","error"], required: false },
   ]), []);
   useLayoutEffect(() => { if (root.current != null) Object.assign(root.current, componentProps); });
   return (

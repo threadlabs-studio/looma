@@ -31,3 +31,13 @@ test("contract records use declarative API terms rather than source-framework me
   assert.deepEqual(coreContracts["ui-dialog"].events.map(({ name }) => name), ["close"]);
   assert.match(coreContracts["ui-dialog"].events[0].type, /^object\(\{ open: boolean,/);
 });
+
+test("HTML input attributes follow the declarative prop spelling", () => {
+  const kebabCase = (name) => name.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+  for (const [tag, contract] of Object.entries(coreContracts)) {
+    for (const [name, prop] of Object.entries(contract.props)) {
+      if (prop.channel === "property") continue;
+      assert.equal(prop.attribute ?? kebabCase(name), kebabCase(name), `${tag}.${name}`);
+    }
+  }
+});

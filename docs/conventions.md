@@ -14,7 +14,7 @@ Set one API vocabulary that all components and adapters follow, including state 
 
 - Attributes use kebab-case (`default-open`, `aria-controls`).
 - Properties use camelCase (`defaultOpen`).
-- Shared state names: `open`, `disabled`, `selected`, `checked`, `value`, `invalid`, `readonly`.
+- Shared state names: `open`, `disabled`, `selected`, `checked`, `value`, `invalid`, `readOnly`.
 - State styling exposure: `data-state`, `data-disabled`, `data-selected`.
 
 ## Event Rules

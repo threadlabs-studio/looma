@@ -23,6 +23,11 @@ const tableCapabilityProps = Object.freeze({
   canMergeCells: prop("boolean", { attribute: "can-merge-cells", default: false }),
   canSplitCell: prop("boolean", { attribute: "can-split-cell", default: false }),
 });
+const anchorRect = "object({ left?: number, top?: number, right?: number, bottom?: number, x?: number, y?: number, width?: number, height?: number }) | null";
+const mentionItem = "object({ id: string, label: string, detail?: string, initials?: string })";
+const slashItem = "object({ title: string, description: string, icon: string })";
+const activeCell = "object({ left: number, top: number, width: number, height: number, rowIndex: integer, columnIndex: integer })";
+const tableGeometry = `object({ rowBoundaries: list(number), columnBoundaries: list(number), activeCell: ${activeCell} | null, hoveredCell?: ${activeCell} | null })`;
 
 export const editorContracts = Object.freeze({
   "ui-editor-toolbar": Object.freeze({
@@ -33,9 +38,9 @@ export const editorContracts = Object.freeze({
     props: {
       open: prop("boolean", { default: false }),
       query: prop("string", { default: "" }),
-      items: prop("list(unknown)"),
+      items: prop(`list(${slashItem})`, { channel: "property" }),
       selectedIndex: prop("integer", { attribute: "selected-index", default: 0 }),
-      anchorRect: prop("unknown", { attribute: "anchor-rect" }),
+      anchorRect: prop(anchorRect, { attribute: "anchor-rect", channel: "property" }),
     },
     events: [
       event("looma-editor-slash-menu-highlight", "object({ index: integer })"),
@@ -46,10 +51,10 @@ export const editorContracts = Object.freeze({
     props: {
       open: prop("boolean", { default: false }),
       query: prop("string", { default: "" }),
-      items: prop("list(unknown)"),
+      items: prop(`list(${mentionItem})`, { channel: "property" }),
       selectedIndex: prop("integer", { attribute: "selected-index", default: 0 }),
       loading: prop("boolean", { default: false }),
-      anchorRect: prop("unknown", { attribute: "anchor-rect" }),
+      anchorRect: prop(anchorRect, { attribute: "anchor-rect", channel: "property" }),
     },
     events: [
       event("looma-editor-mention-menu-highlight", "object({ index: integer })"),
@@ -90,7 +95,7 @@ export const editorContracts = Object.freeze({
       columnBoundaries: prop("string | list(number)", { attribute: "column-boundaries" }),
       activeCell: prop("string | list(number)", { attribute: "active-cell" }),
       hoveredCell: prop("string | list(number)", { attribute: "hovered-cell" }),
-      geometry: prop("unknown"),
+      geometry: prop(`${tableGeometry} | null`, { channel: "property" }),
     },
     events: [event("looma-editor-table-overlay-action", "object({ action: string, boundaryIndex?: integer, rowIndex?: integer, columnIndex?: integer, anchor?: object({ left: number, top: number, right: number, bottom: number }) })")],
   }),

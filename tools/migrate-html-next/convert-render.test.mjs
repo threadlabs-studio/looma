@@ -133,7 +133,7 @@ test("uses a framework-neutral public contract for structured properties and met
   const port = renderPort("ui-combobox", tsx, "span", { contract: {
     props: {
       config: { type: "unknown" },
-      tokenSeparators: { type: "list(string)", attribute: "token-separators" },
+      tokenSeparators: { type: "list(string)", attribute: "token-separators", channel: "property" },
       value: { type: "string | null | list(unknown)" },
     },
     methods: [
@@ -146,7 +146,7 @@ test("uses a framework-neutral public contract for structured properties and met
   assert.match(port, /<prop name="value" type="string \| null \| list\(unknown\)">/);
   assert.match(port, /\.config="config"/);
   assert.match(port, /\.value="value"/);
-  assert.doesNotMatch(port, /\.tokenSeparators="tokenSeparators"/);
+  assert.match(port, /\.tokenSeparators="tokenSeparators"/);
   assert.match(port, /<method name="validate" export="validate" returns="promise\(unknown\)">/);
   assert.match(port, /<method name="focusInput" export="focusInput" returns="promise\(undefined\)">/);
 });
@@ -199,4 +199,15 @@ test("maps Stencil attribute aliases to HTML Next reflected prop attributes", ()
   `);
   assert.equal(attributes.get("mobile-only"), "data-mobile-only");
   assert.equal(attributes.get("size"), "data-size");
+});
+
+test("keeps legacy attribute aliases in the source adapter rather than the public contract", () => {
+  const attributes = reflectedPropAttributes(`
+    @Prop({ attribute: 'readonly', reflect: true }) readOnly = false;
+  `, {
+    props: { readOnly: { type: "boolean", attribute: "read-only", default: false } },
+    methods: [],
+  }, "ui-input");
+  assert.equal(attributes.get("readonly"), "data-read-only");
+  assert.equal(attributes.has("read-only"), false);
 });

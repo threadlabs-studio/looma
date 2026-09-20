@@ -54,7 +54,7 @@ test("release qualification is wired to Node 20, Chromium, and non-placeholder g
   );
   assert.equal(
     JSON.parse(rootPackage).scripts["test:browser"],
-    "pnpm --filter @threadlabs/looma-core test:browser && pnpm --filter @threadlabs/looma-editor test:browser && pnpm --filter @threadlabs/looma-vue test:browser && pnpm --filter @threadlabs/looma-docs test:browser"
+    "pnpm --filter @threadlabs/looma-migrate-html-next test:browser && pnpm --filter @threadlabs/looma-core test:browser && pnpm --filter @threadlabs/looma-editor test:browser && pnpm --filter @threadlabs/looma-vue test:browser && pnpm --filter @threadlabs/looma-docs test:browser"
   );
   assert.equal(JSON.parse(editorPackage).scripts.test, "vitest run");
   assert.doesNotMatch(
@@ -133,7 +133,7 @@ test("public Candidate documentation is install-first, time-stable, and fail-clo
   assert.match(gettingStarted, /Hosts own persistence/);
   assert.match(gettingStarted, /@threadlabs\/looma\/editor/);
   assert.match(gettingStarted, /@threadlabs\/looma\/vue/);
-  assert.match(supportPage, /Candidate `0\.1\.28`/);
+  assert.match(supportPage, /Candidate `0\.2\.5`/);
   assert.match(facadeReadme, /pnpm add @threadlabs\/looma/);
   assert.match(releaseChecklist, /`@threadlabs\/looma` Candidate tarball/);
   assert.match(releaseChecklist, /superseded\s+`@threadlabs\/looma-\*` identity/);

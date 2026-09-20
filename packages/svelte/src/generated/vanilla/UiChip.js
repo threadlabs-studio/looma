@@ -32,8 +32,8 @@ export function createUiChip(options = {}) {
   element0.append(element1);
   element.append(element0);
   manageGeneratedProps(element, [
-    { name: "appearance", attribute: "data-appearance", value: prop0, type: "string", required: false },
-    { name: "size", attribute: "data-size", value: prop1, type: "string", required: false },
+    { name: "appearance", attribute: "data-appearance", value: prop0, type: ["tag","pill"], required: false },
+    { name: "size", attribute: "data-size", value: prop1, type: ["xs","sm"], required: false },
   ]);
   return element;
 }

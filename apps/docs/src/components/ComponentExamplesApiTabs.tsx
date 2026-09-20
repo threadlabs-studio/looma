@@ -7,7 +7,7 @@ import { LiveExample } from "./LiveExample";
 
 interface ComponentExamplesApiTabsProps {
   component: string;
-  /** Inline live preview (renders Looma web components) */
+  /** Inline live preview (renders Looma declarative components) */
   preview?: React.ReactNode;
 }
 
@@ -22,7 +22,7 @@ export function ComponentExamplesApiTabs({
         <p>
           See <a href="#ssr-markup">SSR Markup</a> and{" "}
           <a href="#framework-snippets">Framework Snippets</a> below. Vue and
-          direct custom-element examples are supported in Release 1; React and
+          direct HTML invocation examples are supported in Release 1; React and
           Svelte snippets are repository previews.
         </p>
       </TabItem>

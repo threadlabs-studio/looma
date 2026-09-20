@@ -1,11 +1,14 @@
 # Docs/API Sync Workflow
 
-The component API source of truth is generated from component implementations in:
+The component API source of truth is the framework-neutral declarative contract graph in:
 
-- `packages/core/src/components/**`
-- `packages/layout/src/index.ts`
+- `tools/migrate-html-next/core-contracts.mjs`
+- `tools/migrate-html-next/layout-contracts.mjs`
+- `tools/migrate-html-next/editor-contracts.mjs`
 
-The generator also reads the intro line from each component MDX page to keep short human-readable descriptions in sync with docs.
+The generator projects native roots, attributes, property-only inputs, scalar defaults, methods,
+events, and slots from those contracts. It reads only the intro line from each component MDX page
+for a human-readable description; legacy classes and source decorators are not API inputs.
 
 ## Commands
 
@@ -20,6 +23,6 @@ The generator also reads the intro line from each component MDX page to keep sho
 
 ## Updating Component APIs
 
-1. Update component class attributes/properties/events in `@threadlabs/looma` or `@threadlabs/looma/layout`.
+1. Update the relevant declarative contract and implementation/controller together.
 2. Regenerate metadata with `pnpm generate:api`.
 3. Run `pnpm check:docs-sync` and commit generated output.

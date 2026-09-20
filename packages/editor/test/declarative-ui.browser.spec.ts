@@ -32,7 +32,11 @@ describe("shipped editor declarative graph", () => {
   });
 
   it("preserves structured editor geometry as a property-only input", async () => {
-    const geometry = { left: 12, top: 24, width: 320, height: 180 };
+    const geometry = {
+      rowBoundaries: [24, 204],
+      columnBoundaries: [12, 332],
+      activeCell: null,
+    };
     const invocation = document.createElement("ui-editor-table-overlay") as HTMLElement & {
       geometry: unknown;
     };

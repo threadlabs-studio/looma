@@ -4,8 +4,8 @@ import type { ComponentPropsWithoutRef, ComponentRef, ElementType, ReactNode, Re
 import { manageGeneratedProps } from "@threadlabs/looma-core/declarative-generated";
 
 interface UiChipOwnProps {
-  appearance?: string | null;
-  size?: string | null;
+  appearance?: "tag" | "pill" | null;
+  size?: "xs" | "sm" | null;
   slots?: Readonly<Record<string, ReactNode>>;
 }
 
@@ -25,8 +25,8 @@ export function UiChip(props: UiChipProps) {
   };
   const componentProps: Record<string, unknown> = { "appearance": prop0, "size": prop1 };
   useLayoutEffect(() => root.current == null ? undefined : manageGeneratedProps(root.current, [
-    { name: "appearance", attribute: "data-appearance", value: prop0, type: "string", required: false },
-    { name: "size", attribute: "data-size", value: prop1, type: "string", required: false },
+    { name: "appearance", attribute: "data-appearance", value: prop0, type: ["tag","pill"], required: false },
+    { name: "size", attribute: "data-size", value: prop1, type: ["xs","sm"], required: false },
   ]), []);
   useLayoutEffect(() => { if (root.current != null) Object.assign(root.current, componentProps); });
   return (

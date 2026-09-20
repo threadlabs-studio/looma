@@ -17,7 +17,7 @@ export default /*@__PURE__*/_defineComponent({
 
 
 const props = __props;
-const definition = {...{"contract":{"tag":"ui-separator","props":{"orientation":{"type":{"enum":["horizontal","vertical"]},"required":false,"default":"horizontal"}}},"template":{"kind":"element","name":"div","attributes":[],"children":[{"kind":"slot"}]},"declarations":[],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
+const definition = {...{"contract":{"tag":"ui-separator","props":{"orientation":{"type":{"enum":["horizontal","vertical"]},"required":false,"target":{"attribute":"orientation"},"default":"horizontal"}}},"template":{"kind":"element","name":"div","attributes":[],"children":[{"kind":"slot"}]},"declarations":[],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
 const root = ref<Element>();
 let detach: undefined | (() => void);
 onMounted(() => {

@@ -49,7 +49,7 @@ export const coreContracts = Object.freeze({
       disabled: prop("boolean", { default: false }),
     },
   }),
-  "ui-callout": component({ root: "div", slots: ["default"], props: { tone: prop("string", { default: "info" }) } }),
+  "ui-callout": component({ root: "div", slots: ["default"], props: { tone: prop("info | note | warning | success | error", { default: "info" }) } }),
   "ui-checkbox": component({ root: "span", slots: ["default"],
     props: {
       checked: prop("boolean"), defaultChecked: prop("boolean", { attribute: "default-checked", default: false }),
@@ -60,20 +60,20 @@ export const coreContracts = Object.freeze({
   }),
   "ui-chip": component({ root: "span", slots: ["default"],
     props: {
-      appearance: prop("string", { default: "tag" }), size: prop("string", { default: "xs" }),
+      appearance: prop("tag | pill", { default: "tag" }), size: prop("xs | sm", { default: "xs" }),
     },
   }),
   "ui-combobox": component({ root: "div", slots: ["start", "item-*", "option-*", "create", "loading", "error", "empty", "footer"],
     props: {
       label: prop("string", { default: "" }), placeholder: prop("string", { default: "" }),
-      name: prop("string", { default: "" }), value: prop("string | null | list(unknown)"),
+      name: prop("string", { default: "" }), value: prop(`string | null | list(${option})`),
       defaultValue: prop("string", { attribute: "default-value" }),
-      multiple: prop("boolean", { default: false }), tokenSeparators: prop("list(string)", { attribute: "token-separators" }),
+      multiple: prop("boolean", { default: false }), tokenSeparators: prop("list(string)", { attribute: "token-separators", channel: "property" }),
       query: prop("string"), defaultQuery: prop("string", { attribute: "default-query", default: "" }),
-      config: prop("unknown"), disabled: prop("boolean", { default: false }),
-      readOnly: prop("boolean", { attribute: "readonly", default: false }), required: prop("boolean", { default: false }),
-      size: prop("string", { default: "md" }),
-      labelVisibility: prop("string", { attribute: "label-visibility", default: "visible" }),
+      config: prop("unknown", { channel: "property" }), disabled: prop("boolean", { default: false }),
+      readOnly: prop("boolean", { attribute: "read-only", default: false }), required: prop("boolean", { default: false }),
+      size: prop("sm | md", { default: "md" }),
+      labelVisibility: prop("visible | sr-only", { attribute: "label-visibility", default: "visible" }),
       disclosure: prop("boolean", { default: false }), clearable: prop("boolean", { default: false }),
       help: prop("string", { default: "" }),
     },
@@ -148,7 +148,7 @@ export const coreContracts = Object.freeze({
   "ui-icon-button": component({ root: "span", slots: ["default"],
     props: {
       disabled: prop("boolean", { default: false }), label: prop("string", { default: "" }),
-      size: prop("string", { default: "md" }), variant: prop("string", { default: "ghost" }),
+      size: prop("sm | md | lg", { default: "md" }), variant: prop("ghost | outline | solid", { default: "ghost" }),
       anticipatory: prop("boolean", { default: false }),
     },
   }),
@@ -156,7 +156,7 @@ export const coreContracts = Object.freeze({
     props: {
       value: prop("string"), defaultValue: prop("string", { attribute: "default-value", default: "" }),
       disabled: prop("boolean", { default: false }), invalid: prop("boolean", { default: false }),
-      readOnly: prop("boolean", { attribute: "readonly", default: false }),
+      readOnly: prop("boolean", { attribute: "read-only", default: false }),
     },
     events: [event("input", valueChange), event("change", valueChange)],
   }),
@@ -193,7 +193,7 @@ export const coreContracts = Object.freeze({
   "ui-radio-group": component({ root: "span", slots: ["default"],
     props: {
       value: prop("string", { default: "" }), name: prop("string", { default: "" }),
-      orientation: prop("string", { default: "horizontal" }), disabled: prop("boolean", { default: false }),
+      orientation: prop("horizontal | vertical", { default: "horizontal" }), disabled: prop("boolean", { default: false }),
       required: prop("boolean", { default: false }),
     },
     events: [
@@ -224,7 +224,7 @@ export const coreContracts = Object.freeze({
   "ui-tabs": component({ root: "div", slots: ["default"],
     props: {
       value: prop("string"), defaultValue: prop("string", { attribute: "default-value", default: "" }),
-      orientation: prop("string", { default: "horizontal" }),
+      orientation: prop("horizontal | vertical", { default: "horizontal" }),
     },
     events: [event("select", `object({ value: string, previousValue: string, trigger: ${inputTrigger} })`)],
   }),
@@ -232,7 +232,7 @@ export const coreContracts = Object.freeze({
     props: {
       value: prop("string"), defaultValue: prop("string", { attribute: "default-value", default: "" }),
       disabled: prop("boolean", { default: false }), invalid: prop("boolean", { default: false }),
-      readOnly: prop("boolean", { attribute: "readonly", default: false }), rows: prop("number", { default: 4 }),
+      readOnly: prop("boolean", { attribute: "read-only", default: false }), rows: prop("number", { default: 4 }),
     },
     events: [event("input", valueChange), event("change", valueChange)],
   }),

@@ -5,7 +5,7 @@
     <prop name="label" type="string" default="">label token.</prop>
     <prop name="placeholder" type="string" default="">placeholder token.</prop>
     <prop name="name" type="string" default="">name token.</prop>
-    <prop name="value" type="string | null | list(unknown)">value token.</prop>
+    <prop name="value" type="string | null | list(object({ id: string, value: string, label: string, description?: string, metadata?: unknown, group?: string, disabled?: boolean }))">value token.</prop>
     <prop name="defaultValue" type="string">defaultValue token.</prop>
     <prop name="multiple" type="boolean" default="false">multiple token.</prop>
     <prop name="tokenSeparators" type="list(string)">tokenSeparators token.</prop>
@@ -15,8 +15,8 @@
     <prop name="disabled" type="boolean" default="false">disabled token.</prop>
     <prop name="readOnly" type="boolean" default="false">readOnly token.</prop>
     <prop name="required" type="boolean" default="false">required token.</prop>
-    <prop name="size" type="string" default="md">size token.</prop>
-    <prop name="labelVisibility" type="string" default="visible">labelVisibility token.</prop>
+    <prop name="size" type="sm | md" default="md">size token.</prop>
+    <prop name="labelVisibility" type="visible | sr-only" default="visible">labelVisibility token.</prop>
     <prop name="disclosure" type="boolean" default="false">disclosure token.</prop>
     <prop name="clearable" type="boolean" default="false">clearable token.</prop>
     <prop name="help" type="string" default="">help token.</prop>
@@ -43,7 +43,7 @@
     <method name="validate" export="validate" returns="promise(unknown)"></method>
     <method name="focusInput" export="focusInput" returns="promise(undefined)"></method>
   </defs>
-  <div .value="value" .config="config" :data-size="size"><label for="input" part="label"><template $value="label"></template></label><div class="field" part="field"><slot name="start"></slot><div $if="multiple" class="items" role="group"></div><input id="input" role="combobox" aria-autocomplete="list" aria-controls="listbox" :value="display" :placeholder="placeholder" :name="name" :disabled="disabled" :readOnly="readOnly" :required="required" autoComplete="off" part="input"></input><button $if="clearable" type="button" part="affordance">×</button><button $if="help" id="help" type="button" part="affordance" :disabled="disabled"><span aria-hidden="true">?</span></button><button $if="disclosure" type="button" part="affordance" aria-controls="listbox"><span aria-hidden="true">⌄</span></button></div><ui-tooltip $if="help" id="help-text" for="help"><template $value="help"></template></ui-tooltip><div class="popup" part="popup" :hidden="not expanded"><div id="listbox" role="listbox"></div><slot name="footer"></slot></div><div id="validation" class="message" part="validation" :hidden="not validation.issues.length"></div><div class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div></div>
+  <div .value="value" .tokenSeparators="tokenSeparators" .config="config" :data-size="size"><label for="input" part="label"><template $value="label"></template></label><div class="field" part="field"><slot name="start"></slot><div $if="multiple" class="items" role="group"></div><input id="input" role="combobox" aria-autocomplete="list" aria-controls="listbox" :value="display" :placeholder="placeholder" :name="name" :disabled="disabled" :readOnly="readOnly" :required="required" autoComplete="off" part="input"></input><button $if="clearable" type="button" part="affordance">×</button><button $if="help" id="help" type="button" part="affordance" :disabled="disabled"><span aria-hidden="true">?</span></button><button $if="disclosure" type="button" part="affordance" aria-controls="listbox"><span aria-hidden="true">⌄</span></button></div><ui-tooltip $if="help" id="help-text" for="help"><template $value="help"></template></ui-tooltip><div class="popup" part="popup" :hidden="not expanded"><div id="listbox" role="listbox"></div><slot name="footer"></slot></div><div id="validation" class="message" part="validation" :hidden="not validation.issues.length"></div><div class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div></div>
   <style>:scope { display: grid; gap: var(--ui-space-1); min-inline-size: 0; color: var(--ui-text-primary); font: inherit; }
 label { color: var(--ui-field-label-color, var(--ui-text-primary)); font-size: var(--ui-field-label-size, 0.875rem); font-weight: var(--ui-field-label-weight, 500); }
 .field { display: flex; min-inline-size: 0; border: 1px solid var(--ui-control-border, var(--ui-border-default)); border-radius: var(--ui-radius-2); background: var(--ui-control-surface, var(--ui-surface-default)); }

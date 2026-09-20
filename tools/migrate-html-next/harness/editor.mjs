@@ -9,6 +9,9 @@ import { chromium } from "playwright";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const MIGRATION = join(HERE, "..");
 const LOOMA = join(MIGRATION, "..", "..");
+const LEGACY_LOOMA = process.env.LOOMA_LEGACY_ROOT
+  ? resolve(process.env.LOOMA_LEGACY_ROOT)
+  : LOOMA;
 const GENERATED = join(MIGRATION, "generated", "editor");
 const CONTROLLERS = join(HERE, "controllers");
 const manifest = JSON.parse(await readFile(join(GENERATED, "manifest.json"), "utf8"));
@@ -17,11 +20,15 @@ const definitions = (await Promise.all(manifest.components.map(({ tag }) =>
   readFile(join(GENERATED, "components", `${tag}.html`), "utf8"))))
   .map((source) => source.replace(/^<link\s+rel="component"[^>]*>\s*$/gm, ""))
   .join("\n");
-const editorCss = await readFile(join(LOOMA, "packages", "editor", "src", "editor.css"), "utf8");
+const editorCss = await readFile(join(LEGACY_LOOMA, "packages", "editor", "src", "editor.css"), "utf8");
 const migratedCss = await readFile(join(GENERATED, "styles.css"), "utf8");
-const tokens = (await Promise.all([
+const readTokens = (root) => Promise.all([
   "packages/tokens/src/tokens.css", "packages/tokens/src/theme-light.css",
-].map((file) => readFile(join(LOOMA, file), "utf8")))).join("\n");
+].map((file) => readFile(join(root, file), "utf8"))).then((styles) => styles.join("\n"));
+const [legacyTokens, migratedTokens] = await Promise.all([
+  readTokens(LEGACY_LOOMA),
+  readTokens(LOOMA),
+]);
 const baselineSource = [
   'import "./packages/editor/src/toolbar.ts";',
   'import "./packages/editor/src/insert-table-grid.ts";',
@@ -33,7 +40,7 @@ const baselineSource = [
 ].join("\n");
 const baselineBundle = execFileSync(join(LOOMA, "packages", "editor", "node_modules", ".bin", "esbuild"), [
   "--bundle", "--format=esm", "--platform=browser", "--sourcefile=editor-migration-baseline.ts",
-], { cwd: LOOMA, encoding: "utf8", input: baselineSource });
+], { cwd: LEGACY_LOOMA, encoding: "utf8", input: baselineSource });
 const mime = { ".html": "text/html", ".js": "text/javascript", ".json": "application/json", ".css": "text/css" };
 
 const server = createServer(async (request, response) => {
@@ -171,18 +178,24 @@ try {
   for (const { tag, controller } of components) {
     const fixture = fixtures[tag];
     const invocation = `<${tag} ${fixture.attributes ?? ""}>${fixture.children ?? ""}</${tag}>`;
-    const baseStyle = `${tokens}\nbody{margin:0;padding:1rem;font-family:var(--ui-font-family-sans);color:var(--ui-text-primary)}`;
+    const pageStyle = "body{margin:0;padding:1rem;font-family:var(--ui-font-family-sans);color:var(--ui-text-primary)}";
 
     const beforePage = await context.newPage();
     await beforePage.goto(base);
     const beforeErrors = [];
     beforePage.on("pageerror", (error) => beforeErrors.push(error.message));
-    await beforePage.setContent(`<!doctype html><style>${baseStyle}\n${editorCss}</style><script type="module">import "${base}/__baseline__.js";</script>${invocation}`);
-    await beforePage.evaluate((componentTag) => customElements.whenDefined(componentTag), tag);
+    await beforePage.setContent(`<!doctype html><style>${legacyTokens}\n${pageStyle}\n${editorCss}</style><script type="module">import "${base}/__baseline__.js";</script>${invocation}`);
+    await beforePage.evaluate((componentTag) => Promise.race([
+      customElements.whenDefined(componentTag),
+      new Promise((_, reject) => setTimeout(() => reject(new Error(
+        `${componentTag} is not registered by the baseline. After adoption, set LOOMA_LEGACY_ROOT to a checkout of the migration base.`,
+      )), 5_000)),
+    ]), tag);
     await applyProperties(beforePage, tag, fixture.properties);
     await beforePage.waitForTimeout(50);
     if (beforeErrors.length) throw new Error(`${tag} baseline: ${beforeErrors.join(" | ")}`);
     const beforeNode = beforePage.locator(visualSurface[tag] ?? tag).first();
+    if (process.env.MIGRATION_DEBUG) console.log("capturing before", tag, await beforeNode.boundingBox());
     const beforeImage = await beforeNode.screenshot();
     if (process.env.MIGRATION_DEBUG) console.log("before", tag, await beforeNode.evaluate((element) => element.outerHTML));
     await beforePage.close();
@@ -191,7 +204,7 @@ try {
     const errors = [];
     afterPage.on("pageerror", (error) => errors.push(error.message));
     await afterPage.goto(base);
-    await afterPage.setContent(`<!doctype html><style>${baseStyle}\n${migratedCss}</style>${definitions}${invocation}`);
+    await afterPage.setContent(`<!doctype html><style>${migratedTokens}\n${pageStyle}\n${migratedCss}</style>${definitions}${invocation}`);
     await applyProperties(afterPage, tag, fixture.properties);
     await afterPage.addScriptTag({ content: runtime });
     await afterPage.evaluate(async ({ componentTag, controllerUrl }) => {
@@ -207,6 +220,7 @@ try {
     await afterPage.waitForTimeout(50);
     if (errors.length) throw new Error(`${tag}: ${errors.join(" | ")}`);
     const afterNode = afterPage.locator(visualSurface[tag] ?? `[data-component-root~="${tag}"]`).first();
+    if (process.env.MIGRATION_DEBUG) console.log("capturing after", tag, await afterNode.boundingBox());
     const afterImage = await afterNode.screenshot();
     if (process.env.MIGRATION_DEBUG) console.log("after", tag, await afterNode.evaluate((element) => element.outerHTML));
     const comparison = await mismatch(beforeImage, afterImage);
