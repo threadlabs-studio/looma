@@ -249,7 +249,7 @@ await check("popover and tooltip anchored triggers", async () => {
 });
 
 await check("dialog escape request", async () => {
-  await mount(`<ui-dialog default-open><h2>Confirm</h2><button>Okay</button></ui-dialog>`);
+  await mount(`<ui-dialog default-open modal dismissible><h2>Confirm</h2><button>Okay</button></ui-dialog>`);
   const root = page.locator('[data-component-root~="ui-dialog"]');
   assert.equal(await root.locator("dialog").getAttribute("open"), "");
   await root.press("Escape");

@@ -120,6 +120,8 @@ export const LoomaEditor = defineComponent({
       type: Object as PropType<JSONContent>,
       default: () => ({ ...EMPTY_DOCUMENT }),
     },
+    // Deliberate exception to Looma's opt-in boolean rule: an editor that is
+    // read-only unless configured would violate the primary UX promised by this wrapper.
     editable: { type: Boolean, default: true },
     placeholder: {
       type: String,

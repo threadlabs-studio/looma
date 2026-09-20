@@ -68,10 +68,22 @@ revision so the `before` side remains the retained legacy fixture rather than th
 fails with an actionable error instead of waiting indefinitely.
 
 `vendor/html-next-runtime.iife.js` and `vendor/html-next-generated-runtime.js` are prebuilt from
-`nextwebwg/html-next` commit `9b575e7`. Re-vendor both, run the official CLI build for all 49
+`nextwebwg/html-next` commit `010d921`. Re-vendor both, run the official CLI build for all 49
 definitions, and rerun `materialize-adoption.mjs` whenever that upstream runtime/compiler changes.
 
 ## Generated component graph
+
+### Boolean defaults
+
+Boolean component props are opt-in: their default is `false`, so an HTML author enables them by
+including the attribute and disables them by omitting it. A default of `true` is allowed only when
+the framework-neutral contract includes a non-empty `defaultTrueReason` describing the strong UX
+reason for the exception. Component API generation enforces this rule across core, layout, and
+editor contracts before producing docs or framework adapters.
+
+This rule is separate from HTML Next's typed invocation boundary. Explicit page markup such as
+`enabled="false"` is still parsed through the declared boolean type and produces `false`; a bare
+`enabled` attribute produces `true`.
 
 `pnpm --filter @threadlabs/looma-migrate-html-next generate` writes deterministic candidate graphs
 to `generated/core/`, `generated/layout/`, and `generated/editor/`: one definition per component,

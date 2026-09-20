@@ -4,7 +4,7 @@ import type { ComponentPropsWithoutRef, ComponentRef, ElementType, ReactNode, Re
 import { attachLoomaComponent } from "@threadlabs/looma-core/declarative";
 import type { ComponentDefinition } from "@threadlabs/looma-core/declarative";
 
-const definition = {...{"contract":{"tag":"ui-toast-region","props":{"open":{"type":"boolean","required":false,"target":{"attribute":"open"},"default":true}}},"template":{"kind":"element","name":"div","attributes":[{"kind":"literal","name":"role","value":"region"},{"kind":"literal","name":"aria-label","value":"Notifications"},{"kind":"literal","name":"aria-live","value":"polite"},{"kind":"attribute","name":"data-state-open","expression":"internalOpen","expressionPlan":{"source":"internalOpen","ast":{"kind":"id","name":"internalOpen"},"dependencies":["internalOpen"]}}],"children":[{"kind":"slot"}]},"declarations":[{"kind":"state","name":"internalOpen","expression":{"source":"false","ast":{"kind":"literal","value":false},"dependencies":[]}},{"kind":"event","name":"close","type":"object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false},{"kind":"event","name":"dismiss","type":"object({ id: string, reason: action, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
+const definition = {...{"contract":{"tag":"ui-toast-region","props":{"open":{"type":"boolean","required":false,"target":{"attribute":"open"},"default":false}}},"template":{"kind":"element","name":"div","attributes":[{"kind":"literal","name":"role","value":"region"},{"kind":"literal","name":"aria-label","value":"Notifications"},{"kind":"literal","name":"aria-live","value":"polite"},{"kind":"attribute","name":"data-state-open","expression":"internalOpen","expressionPlan":{"source":"internalOpen","ast":{"kind":"id","name":"internalOpen"},"dependencies":["internalOpen"]}}],"children":[{"kind":"slot"}]},"declarations":[{"kind":"state","name":"internalOpen","expression":{"source":"false","ast":{"kind":"literal","value":false},"dependencies":[]}},{"kind":"event","name":"close","type":"object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false},{"kind":"event","name":"dismiss","type":"object({ id: string, reason: action, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
 
 interface UiToastRegionOwnProps {
   open?: boolean | null;
@@ -20,7 +20,7 @@ export type UiToastRegionProps = Omit<ComponentPropsWithoutRef<"div">, keyof UiT
   UiToastRegionOwnProps & { children?: ReactNode; ref?: Ref<UiToastRegionHandle> };
 
 export function UiToastRegion(props: UiToastRegionProps) {
-  const { "open": prop0 = true, onClose, onDismiss, slots, children, ref, ...nativeProps } = props;
+  const { "open": prop0 = false, onClose, onDismiss, slots, children, ref, ...nativeProps } = props;
   const root = useRef<UiToastRegionHandle | null>(null);
   const setRoot = (node: UiToastRegionHandle | null) => {
     (root as { current: UiToastRegionHandle | null }).current = node;

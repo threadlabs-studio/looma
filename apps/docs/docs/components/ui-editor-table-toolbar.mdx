@@ -4,21 +4,5 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 Selection-aware quick toolbar for table alignment and structural actions.
 
-## Component Reference
 
 <ComponentExamplesApiTabs component="ui-editor-table-toolbar" />
-
-## Runtime Contract
-
-`LoomaEditor` sets `open`, current cell alignment/background, and the `can-*`
-capability attributes, then executes actions and restores editor focus. Advanced
-consumers using the primitive directly receive `looma-editor-table-action` with
-`{ action }`.
-
-The toolbar includes alignment, cell background, row/column insertion,
-merge/split, and deletion paths. It is an enhancement, not the table's semantic
-content. The module is safe to import during SSR.
-
-`LoomaEditor` places these actions in its single mobile dock when a table is
-selected. The dock is touch-scrollable and snap-aligned, and its Formatting
-control returns to text actions without discarding the table selection.

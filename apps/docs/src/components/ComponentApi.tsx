@@ -59,7 +59,7 @@ const metadata = componentApi as ComponentApiMetadata;
 
 function SectionHeader({ title }: { title: string }): JSX.Element {
   return (
-    <h3 style={{ marginTop: "1.5rem", marginBottom: "0.5rem" }}>{title}</h3>
+    <h2 style={{ marginTop: "1.5rem", marginBottom: "0.5rem" }}>{title}</h2>
   );
 }
 

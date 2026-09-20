@@ -11,7 +11,7 @@ import { createViewportSurface, type ViewportSurface } from '../../overlay/posit
 export class UIToastRegion {
   @Element() host: HTMLElement;
 
-  @Prop() open = true;
+  @Prop() open = false;
 
   @State() internalOpen = false;
 

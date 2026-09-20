@@ -9,7 +9,7 @@
 
 | Property | Attribute | Description | Type      | Default |
 | -------- | --------- | ----------- | --------- | ------- |
-| `open`   | `open`    |             | `boolean` | `true`  |
+| `open`   | `open`    |             | `boolean` | `false` |
 
 
 ----------------------------------------------

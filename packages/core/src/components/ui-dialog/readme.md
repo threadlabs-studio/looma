@@ -10,9 +10,9 @@
 | Property      | Attribute      | Description                                                                    | Type      | Default     |
 | ------------- | -------------- | ------------------------------------------------------------------------------ | --------- | ----------- |
 | `defaultOpen` | `default-open` |                                                                                | `boolean` | `false`     |
-| `dismissible` | `dismissible`  |                                                                                | `boolean` | `true`      |
+| `dismissible` | `dismissible`  |                                                                                | `boolean` | `false`     |
 | `label`       | `label`        | Accessible name forwarded to the native dialog surface.                        | `string`  | `undefined` |
-| `modal`       | `modal`        |                                                                                | `boolean` | `true`      |
+| `modal`       | `modal`        |                                                                                | `boolean` | `false`     |
 | `open`        | `open`         | Controlled open state. Omit it to use defaultOpen and local interaction state. | `boolean` | `undefined` |
 
 

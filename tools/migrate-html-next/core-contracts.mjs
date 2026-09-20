@@ -142,7 +142,7 @@ export const coreContracts = Object.freeze({
   "ui-dialog": component({ root: "div", slots: ["default"],
     props: {
       open: prop("boolean"), defaultOpen: prop("boolean", { attribute: "default-open", default: false }),
-      modal: prop("boolean", { default: true }), dismissible: prop("boolean", { default: true }),
+      modal: prop("boolean", { default: false }), dismissible: prop("boolean", { default: false }),
       label: prop("string"),
     },
     events: [event("close", overlayChange)],
@@ -268,7 +268,7 @@ export const coreContracts = Object.freeze({
     events: [event("input", valueChange), event("change", valueChange)],
   }),
   "ui-toast-region": component({ root: "div", slots: ["default"],
-    props: { open: prop("boolean", { default: true }) },
+    props: { open: prop("boolean", { default: false }) },
     events: [
       event("close", overlayChange),
       event("dismiss", `object({ id: string, reason: action, trigger: ${inputTrigger} })`),

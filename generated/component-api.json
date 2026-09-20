@@ -423,7 +423,7 @@
       "tag": "ui-chip",
       "package": "@threadlabs/looma",
       "root": "span",
-      "description": "Compact, non-interactive metadata. Use `tag` for a straight leading edge and shallow angled trailing edge, or `pill` for a rounded label. Wrap it in a link or button when it needs interaction.",
+      "description": "Compact, non-interactive metadata with tag and pill appearances.",
       "attributes": [
         {
           "name": "appearance",
@@ -980,7 +980,7 @@
           "name": "dismissible",
           "property": "dismissible",
           "type": "boolean",
-          "default": true
+          "default": false
         },
         {
           "name": "label",
@@ -991,7 +991,7 @@
           "name": "modal",
           "property": "modal",
           "type": "boolean",
-          "default": true
+          "default": false
         },
         {
           "name": "open",
@@ -1009,7 +1009,7 @@
         {
           "name": "dismissible",
           "type": "boolean",
-          "default": true,
+          "default": false,
           "channel": "attribute | property"
         },
         {
@@ -1020,7 +1020,7 @@
         {
           "name": "modal",
           "type": "boolean",
-          "default": true,
+          "default": false,
           "channel": "attribute | property"
         },
         {
@@ -3586,14 +3586,14 @@
           "name": "open",
           "property": "open",
           "type": "boolean",
-          "default": true
+          "default": false
         }
       ],
       "properties": [
         {
           "name": "open",
           "type": "boolean",
-          "default": true,
+          "default": false,
           "channel": "attribute | property"
         }
       ],

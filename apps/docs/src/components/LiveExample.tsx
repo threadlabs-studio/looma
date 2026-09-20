@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 let loomaRuntimePromise: Promise<unknown> | undefined;
 
 function loadLoomaRuntime(): Promise<unknown> {
+  // A page can mount dozens of previews; all of them share one registration transaction.
   loomaRuntimePromise ??= Promise.all([
     import("@threadlabs/looma/tokens.css"),
     import("@threadlabs/looma/theme-light.css"),
@@ -12,6 +13,8 @@ function loadLoomaRuntime(): Promise<unknown> {
     import("@threadlabs/looma/styles.css"),
     import("@threadlabs/looma/editor.css"),
     import("@threadlabs/looma/layout"),
+    // Editor CSS is presentation-only; this entry point registers the editor controllers.
+    import("@threadlabs/looma/editor/ui"),
     import("@threadlabs/looma")
   ]);
   return loomaRuntimePromise;
@@ -44,7 +47,9 @@ interface LiveExampleProps {
 }
 
 /**
- * Lazy-loads Looma on mount (client-only) so declarative components lower and attach.
+ * Loads Looma only in the browser, avoiding custom-element registration during
+ * Docusaurus SSR. Children mount after styles, definitions, and controllers are
+ * available, so the first visible preview is already eligible for lowering.
  */
 export function LiveExample({ children, label }: LiveExampleProps): JSX.Element {
   return (
