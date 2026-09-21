@@ -32,6 +32,7 @@ import {
   type LoomaMentionItem,
   type LoomaMentionMenuSnapshot,
   type LoomaMentionProvider,
+  type SlashMenuAnchorRect,
   type TableOverlayGeometry,
   type TableCellAlignment,
   type TableCellBackground,
@@ -86,6 +87,20 @@ const EMPTY_CAPABILITIES: TableActionCapabilities = {
 
 function sameDocument(left: JSONContent, right: JSONContent): boolean {
   return JSON.stringify(left) === JSON.stringify(right);
+}
+
+function managedMenuAnchorRect(rect: DOMRect | null): SlashMenuAnchorRect | null {
+  if (!rect) return null;
+  return {
+    left: rect.left,
+    top: rect.top,
+    right: rect.right,
+    bottom: rect.bottom,
+    x: rect.x,
+    y: rect.y,
+    width: rect.width,
+    height: rect.height,
+  };
 }
 
 function selectedTableElement(editor: Editor): HTMLTableElement | null {
@@ -941,7 +956,7 @@ export const LoomaEditor = defineComponent({
               query: slash.query,
               items: slash.items,
               selectedIndex: slash.selectedIndex,
-              anchorRect: slash.rect,
+              anchorRect: managedMenuAnchorRect(slash.rect),
               onSlashMenuHighlight: ({ index }: { index: number }) => { slash.selectedIndex = index; },
               onSlashMenuSelect: ({ index }: { index: number }) => {
                 slash.select?.(index);
@@ -955,7 +970,7 @@ export const LoomaEditor = defineComponent({
               query: mention.query,
               items: mention.items,
               selectedIndex: mention.selectedIndex,
-              anchorRect: mention.rect,
+              anchorRect: managedMenuAnchorRect(mention.rect),
               loading: mention.loading,
               onMentionMenuHighlight: ({ index }: { index: number }) => {
                 mention.selectedIndex = index;
