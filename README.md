@@ -84,6 +84,7 @@ still requires the protected release authorization and evidence gates. See the
 - `docs/release-support-matrix.md`: public package, component, DOM, and proof boundary.
 - `docs/architecture.md`: package and runtime architecture.
 - `docs/adapters.md`: supported adapter contract and repository-preview status.
+- `docs/follow-ups.md`: known work after 0.3.0, including the 0.4 goals.
 - `docs/component-qualification-guide.md`: Candidate and Stable evidence rules.
 - `docs/public-release.md`: original public-repository and namespace-decision notes.
 
