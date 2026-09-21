@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## v0.2.17 Candidate
+
+- Keep async mention suggestions current while a query is typed one character
+  at a time, so fast input cannot leave the menu stuck in its loading state.
+
 ## v0.2.16 Candidate
 
 - Preserve every Vue-owned TreeItem slot across SSR hydration when conditional

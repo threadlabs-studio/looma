@@ -4,10 +4,10 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-20 20:02 PDT
-Status: Candidate `0.2.15` is public. Candidate `0.2.16` is prepared with
-SSR-safe Vue TreeItem row slots when conditional controls precede projected
-regions, while retaining correct Combobox event forwarding,
+Last Updated: 2026-09-20 22:18 PDT
+Status: Candidate `0.2.16` is public. Candidate `0.2.17` is prepared with
+async mention queries that settle correctly during fast character-by-character
+input, while retaining SSR-safe Vue TreeItem row slots, Combobox event forwarding,
 omitted-versus-controlled Boolean semantics, direct default-slot children,
 structured document paste, reliable history controls, and the sticky editor
 option qualified in prior Candidates.
@@ -40,6 +40,9 @@ Historical release tasks below retain their original version context.
 
 ## Recent Progress
 
+- Kept mention suggestion state aligned to the active query without requiring
+  the provider callback's transient range end to match exactly. Fast typing no
+  longer leaves an otherwise successful async lookup stuck as loading.
 - Preserved the explicit framework slot wrappers before structurally adopting
   an SSR-rendered native root. Conditional controls can no longer cause the
   adoption scanner to skip later TreeItem row regions and remove their Vue-owned
