@@ -4,12 +4,12 @@ import type { ComponentPropsWithoutRef, ComponentRef, ElementType, ReactNode, Re
 import { attachLoomaComponent, updateComponentProps } from "@threadlabs/looma-core/declarative";
 import type { ComponentDefinition } from "@threadlabs/looma-core/declarative";
 
-const definition = {...{"contract":{"tag":"ui-button","props":{"disabled":{"type":"boolean","required":false,"target":{"attribute":"disabled"},"default":false},"size":{"type":{"enum":["sm","md","lg"]},"required":false,"target":{"attribute":"data-size"},"default":"md"},"variant":{"type":{"enum":["outline","solid","danger","ghost"]},"required":false,"target":{"attribute":"data-variant"},"default":"outline"}}},"template":{"kind":"element","name":"button","attributes":[{"kind":"attribute","name":"data-size","expression":"size","expressionPlan":{"source":"size","ast":{"kind":"id","name":"size"},"dependencies":["size"]}},{"kind":"attribute","name":"data-variant","expression":"variant","expressionPlan":{"source":"variant","ast":{"kind":"id","name":"variant"},"dependencies":["variant"]}},{"kind":"attribute","name":"disabled","expression":"disabled","expressionPlan":{"source":"disabled","ast":{"kind":"id","name":"disabled"},"dependencies":["disabled"]}}],"children":[{"kind":"slot"}]},"declarations":[],"root":{"kind":"native","element":"button","choices":["button"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
+const definition = {...{"contract":{"tag":"ui-button","props":{"disabled":{"type":"boolean","required":false,"target":{"attribute":"disabled"},"default":false},"size":{"type":{"enum":["sm","md","lg"]},"required":false,"target":{"attribute":"data-size"},"default":"md"},"variant":{"type":{"enum":["outline","solid","danger","ghost","link"]},"required":false,"target":{"attribute":"data-variant"},"default":"outline"}}},"template":{"kind":"element","name":"button","attributes":[{"kind":"attribute","name":"data-size","expression":"size","expressionPlan":{"source":"size","ast":{"kind":"id","name":"size"},"dependencies":["size"]}},{"kind":"attribute","name":"data-variant","expression":"variant","expressionPlan":{"source":"variant","ast":{"kind":"id","name":"variant"},"dependencies":["variant"]}},{"kind":"attribute","name":"disabled","expression":"disabled","expressionPlan":{"source":"disabled","ast":{"kind":"id","name":"disabled"},"dependencies":["disabled"]}}],"children":[{"kind":"slot"}]},"declarations":[],"root":{"kind":"native","element":"button","choices":["button"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
 
 interface UiButtonOwnProps {
   disabled?: boolean | null;
   size?: "sm" | "md" | "lg" | null;
-  variant?: "outline" | "solid" | "danger" | "ghost" | null;
+  variant?: "outline" | "solid" | "danger" | "ghost" | "link" | null;
   slots?: Readonly<Record<string, ReactNode>>;
 }
 

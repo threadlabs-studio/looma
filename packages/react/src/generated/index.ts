@@ -29,8 +29,8 @@ export { UiTooltip as Tooltip, type UiTooltipProps as TooltipProps, type UiToolt
 export { UiTopBar as TopBar, type UiTopBarProps as TopBarProps, type UiTopBarHandle as TopBarHandle } from "./UiTopBar";
 export { UiTreeItem as TreeItem, type UiTreeItemProps as TreeItemProps, type UiTreeItemHandle as TreeItemHandle } from "./UiTreeItem";
 export { UiTree as Tree, type UiTreeProps as TreeProps, type UiTreeHandle as TreeHandle } from "./UiTree";
-export { UiCenter as Center, type UiCenterProps as CenterProps, type UiCenterHandle as CenterHandle } from "./UiCenter";
 export { UiCluster as Cluster, type UiClusterProps as ClusterProps, type UiClusterHandle as ClusterHandle } from "./UiCluster";
+export { UiContainer as Container, type UiContainerProps as ContainerProps, type UiContainerHandle as ContainerHandle } from "./UiContainer";
 export { UiGrid as Grid, type UiGridProps as GridProps, type UiGridHandle as GridHandle } from "./UiGrid";
 export { UiReel as Reel, type UiReelProps as ReelProps, type UiReelHandle as ReelHandle } from "./UiReel";
 export { UiSeparator as Separator, type UiSeparatorProps as SeparatorProps, type UiSeparatorHandle as SeparatorHandle } from "./UiSeparator";

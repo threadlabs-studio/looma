@@ -23,7 +23,7 @@ Candidate, then use it in the app.
 - **Templates:** Layout shells (WorkspaceLayout, AuthLayout). App-owned.
 - **Pages:** Thin route components that wire templates and data. App-owned.
 
-Looma ships **atoms**, **layout primitives** (Stack, Cluster, Grid, Center, Switcher, Sidebar, Reel), reusable **molecules**, and deliberately complete domain-neutral organisms such as the editor. Product-domain organisms and all templates/pages stay in the app.
+Looma ships **atoms**, **layout primitives** (Stack, Cluster, Grid, Container, Switcher, Sidebar, Reel), reusable **molecules**, and deliberately complete domain-neutral organisms such as the editor. Product-domain organisms and all templates/pages stay in the app.
 
 Interactive atoms and molecules can participate in an explicit
 `ui-affordance-scope`. The scope supplies Looma's shared guide, proximity,

@@ -8,7 +8,7 @@ export * from "./generated";
 
 export const ADAPTER_COMPONENT_TAG_MAP = {
   Stack: "ui-stack", Cluster: "ui-cluster", Grid: "ui-grid",
-  Center: "ui-center", Switcher: "ui-switcher", Sidebar: "ui-sidebar", Reel: "ui-reel",
+  Container: "ui-container", Switcher: "ui-switcher", Sidebar: "ui-sidebar", Reel: "ui-reel",
   Separator: "ui-separator", Disclosure: "ui-disclosure", Editable: "ui-editable",
   Tabs: "ui-tabs", Dialog: "ui-dialog", Popover: "ui-popover", Menu: "ui-menu",
   MenuItem: "ui-menu-item", ContextMenu: "ui-context-menu", AffordanceScope: "ui-affordance-scope",

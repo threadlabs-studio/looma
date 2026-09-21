@@ -543,6 +543,18 @@
             ]
           },
           {
+            "name": "--ui-button-link-color",
+            "fallbacks": [
+              "var(--ui-text-secondary)"
+            ]
+          },
+          {
+            "name": "--ui-button-link-hover-color",
+            "fallbacks": [
+              "var(--ui-text-primary)"
+            ]
+          },
+          {
             "name": "--ui-button-min-block-size",
             "fallbacks": [
               "var(--ui-control-size-md, 2.5rem)"
@@ -668,6 +680,12 @@
             "name": "--ui-focus-halo"
           },
           {
+            "name": "--ui-focus-ring",
+            "fallbacks": [
+              "currentColor"
+            ]
+          },
+          {
             "name": "--ui-font-medium",
             "fallbacks": [
               "500"
@@ -684,6 +702,12 @@
           },
           {
             "name": "--ui-radius-2"
+          },
+          {
+            "name": "--ui-radius-sm",
+            "fallbacks": [
+              "4px"
+            ]
           },
           {
             "name": "--ui-raised",
@@ -729,6 +753,9 @@
           },
           {
             "name": "--ui-text-primary"
+          },
+          {
+            "name": "--ui-text-secondary"
           }
         ]
       },
@@ -753,13 +780,14 @@
         {
           "name": "variant",
           "property": "variant",
-          "type": "\"outline\" | \"solid\" | \"danger\" | \"ghost\"",
+          "type": "\"outline\" | \"solid\" | \"danger\" | \"ghost\" | \"link\"",
           "default": "outline",
           "options": [
             "outline",
             "solid",
             "danger",
-            "ghost"
+            "ghost",
+            "link"
           ]
         }
       ],
@@ -781,13 +809,14 @@
         },
         {
           "name": "variant",
-          "type": "\"outline\" | \"solid\" | \"danger\" | \"ghost\"",
+          "type": "\"outline\" | \"solid\" | \"danger\" | \"ghost\" | \"link\"",
           "default": "outline",
           "options": [
             "outline",
             "solid",
             "danger",
-            "ghost"
+            "ghost",
+            "link"
           ]
         }
       ],
@@ -975,115 +1004,6 @@
             "warning",
             "success",
             "danger"
-          ]
-        }
-      ],
-      "methods": [],
-      "events": [],
-      "slots": [
-        {
-          "name": "default",
-          "description": "Default child content."
-        }
-      ]
-    },
-    {
-      "tag": "ui-center",
-      "package": "@threadlabs/looma/layout",
-      "root": "div",
-      "description": "Container primitive for readable measure and horizontal gutters.",
-      "designTokens": {
-        "sources": [
-          "packages/layout/src/declarative/styles.css"
-        ],
-        "component": [
-          {
-            "name": "--ui-center-gutters",
-            "declarations": [
-              "var(--ui-space-4, 1rem)",
-              "var(--ui-space-3, 0.75rem)",
-              "var(--ui-space-5, 1.5rem)"
-            ]
-          },
-          {
-            "name": "--ui-center-measure",
-            "declarations": [
-              "65ch",
-              "45ch",
-              "80ch"
-            ]
-          }
-        ],
-        "shared": [
-          {
-            "name": "--ui-font-family-sans"
-          },
-          {
-            "name": "--ui-font-size-md"
-          },
-          {
-            "name": "--ui-line-height-md"
-          },
-          {
-            "name": "--ui-space-3",
-            "fallbacks": [
-              "0.75rem"
-            ]
-          },
-          {
-            "name": "--ui-space-4",
-            "fallbacks": [
-              "1rem"
-            ]
-          },
-          {
-            "name": "--ui-space-5",
-            "fallbacks": [
-              "1.5rem"
-            ]
-          },
-          {
-            "name": "--ui-text-primary"
-          }
-        ]
-      },
-      "attributes": [
-        {
-          "name": "gutters",
-          "property": "gutters",
-          "type": "\"s\" | \"m\" | \"l\"",
-          "options": [
-            "s",
-            "m",
-            "l"
-          ]
-        },
-        {
-          "name": "measure",
-          "property": "measure",
-          "type": "\"narrow\" | \"wide\"",
-          "options": [
-            "narrow",
-            "wide"
-          ]
-        }
-      ],
-      "properties": [
-        {
-          "name": "gutters",
-          "type": "\"s\" | \"m\" | \"l\"",
-          "options": [
-            "s",
-            "m",
-            "l"
-          ]
-        },
-        {
-          "name": "measure",
-          "type": "\"narrow\" | \"wide\"",
-          "options": [
-            "narrow",
-            "wide"
           ]
         }
       ],
@@ -1525,7 +1445,10 @@
             ]
           },
           {
-            "name": "--ui-focus-ring"
+            "name": "--ui-focus-ring",
+            "fallbacks": [
+              "currentColor"
+            ]
           },
           {
             "name": "--ui-font-size-sm"
@@ -1908,6 +1831,115 @@
       ]
     },
     {
+      "tag": "ui-container",
+      "package": "@threadlabs/looma/layout",
+      "root": "div",
+      "description": "Container primitive for readable measure and horizontal gutters.",
+      "designTokens": {
+        "sources": [
+          "packages/layout/src/declarative/styles.css"
+        ],
+        "component": [
+          {
+            "name": "--ui-container-gutters",
+            "declarations": [
+              "var(--ui-space-4, 1rem)",
+              "var(--ui-space-3, 0.75rem)",
+              "var(--ui-space-5, 1.5rem)"
+            ]
+          },
+          {
+            "name": "--ui-container-measure",
+            "declarations": [
+              "65ch",
+              "45ch",
+              "80ch"
+            ]
+          }
+        ],
+        "shared": [
+          {
+            "name": "--ui-font-family-sans"
+          },
+          {
+            "name": "--ui-font-size-md"
+          },
+          {
+            "name": "--ui-line-height-md"
+          },
+          {
+            "name": "--ui-space-3",
+            "fallbacks": [
+              "0.75rem"
+            ]
+          },
+          {
+            "name": "--ui-space-4",
+            "fallbacks": [
+              "1rem"
+            ]
+          },
+          {
+            "name": "--ui-space-5",
+            "fallbacks": [
+              "1.5rem"
+            ]
+          },
+          {
+            "name": "--ui-text-primary"
+          }
+        ]
+      },
+      "attributes": [
+        {
+          "name": "gutters",
+          "property": "gutters",
+          "type": "\"s\" | \"m\" | \"l\"",
+          "options": [
+            "s",
+            "m",
+            "l"
+          ]
+        },
+        {
+          "name": "measure",
+          "property": "measure",
+          "type": "\"narrow\" | \"wide\"",
+          "options": [
+            "narrow",
+            "wide"
+          ]
+        }
+      ],
+      "properties": [
+        {
+          "name": "gutters",
+          "type": "\"s\" | \"m\" | \"l\"",
+          "options": [
+            "s",
+            "m",
+            "l"
+          ]
+        },
+        {
+          "name": "measure",
+          "type": "\"narrow\" | \"wide\"",
+          "options": [
+            "narrow",
+            "wide"
+          ]
+        }
+      ],
+      "methods": [],
+      "events": [],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Default child content."
+        }
+      ]
+    },
+    {
       "tag": "ui-context-menu",
       "package": "@threadlabs/looma",
       "root": "span",
@@ -2032,7 +2064,10 @@
             ]
           },
           {
-            "name": "--ui-focus-ring"
+            "name": "--ui-focus-ring",
+            "fallbacks": [
+              "currentColor"
+            ]
           },
           {
             "name": "--ui-font-semibold",
@@ -5431,7 +5466,10 @@
             ]
           },
           {
-            "name": "--ui-focus-ring"
+            "name": "--ui-focus-ring",
+            "fallbacks": [
+              "currentColor"
+            ]
           },
           {
             "name": "--ui-font-size-sm"
@@ -5820,174 +5858,85 @@
     {
       "tag": "ui-sidebar",
       "package": "@threadlabs/looma/layout",
-      "root": "div",
-      "description": "Intrinsic two-region layout that wraps before the main content becomes unusably narrow.",
+      "root": "aside",
+      "description": "An application sidebar panel. Docked beside the page's main content it can be resized and collapsed; below its breakpoint it becomes an off-canvas drawer. It is only the panel: the page lays it out next to its content.",
       "designTokens": {
         "sources": [
-          "packages/layout/src/declarative/styles.css"
+          "packages/layout/src/declarative/components/ui-sidebar.html"
         ],
         "component": [
           {
-            "name": "--ui-sidebar-align",
-            "declarations": [
-              "stretch",
-              "flex-start",
-              "center",
-              "flex-end"
+            "name": "--ui-sidebar-backdrop",
+            "fallbacks": [
+              "rgb(0 0 0 / 0.32)"
             ]
           },
           {
-            "name": "--ui-sidebar-content-min",
-            "declarations": [
-              "50%"
+            "name": "--ui-sidebar-border",
+            "fallbacks": [
+              "var(--ui-border-default)"
             ]
           },
           {
-            "name": "--ui-sidebar-gap",
-            "declarations": [
-              "var(--ui-space-4, 1rem)",
-              "var(--ui-space-2, 0.5rem)",
-              "var(--ui-space-3, 0.75rem)",
-              "var(--ui-space-5, 1.5rem)"
+            "name": "--ui-sidebar-surface",
+            "fallbacks": [
+              "var(--ui-surface-default)"
             ]
           },
           {
             "name": "--ui-sidebar-width",
             "declarations": [
-              "18rem",
-              "14rem",
-              "24rem"
+              "280px"
             ]
           }
         ],
         "shared": [
           {
-            "name": "--ui-accent-solid",
+            "name": "--ui-border-default"
+          },
+          {
+            "name": "--ui-elevation-overlay",
             "fallbacks": [
-              "var(--ui-color-focus, Highlight)"
+              "var(--ui-shadow-lg)"
             ]
           },
           {
-            "name": "--ui-affordance-direct-color",
+            "name": "--ui-motion-base",
             "fallbacks": [
-              "var(--ui-accent-solid, var(--ui-color-focus, Highlight))"
+              "0.2s"
             ]
           },
           {
-            "name": "--ui-affordance-guide-color",
+            "name": "--ui-motion-ease-out",
             "fallbacks": [
-              "var(--ui-border-strong)"
+              "ease-out"
             ]
           },
           {
-            "name": "--ui-affordance-guide-opacity",
-            "fallbacks": [
-              "0.42"
-            ]
+            "name": "--ui-shadow-lg"
           },
           {
-            "name": "--ui-affordance-motion",
-            "fallbacks": [
-              "var(--ui-motion-fast, 120ms)"
-            ]
-          },
-          {
-            "name": "--ui-border-strong",
-            "fallbacks": [
-              "#c8c8c4"
-            ]
-          },
-          {
-            "name": "--ui-color-focus",
-            "fallbacks": [
-              "Highlight"
-            ]
-          },
-          {
-            "name": "--ui-font-family-sans"
-          },
-          {
-            "name": "--ui-font-size-md"
-          },
-          {
-            "name": "--ui-line-height-md"
-          },
-          {
-            "name": "--ui-motion-ease",
-            "fallbacks": [
-              "ease"
-            ]
-          },
-          {
-            "name": "--ui-motion-fast",
-            "fallbacks": [
-              "120ms"
-            ]
-          },
-          {
-            "name": "--ui-radius-round",
-            "fallbacks": [
-              "999px"
-            ]
-          },
-          {
-            "name": "--ui-space-2",
-            "fallbacks": [
-              "0.5rem"
-            ]
-          },
-          {
-            "name": "--ui-space-3",
-            "fallbacks": [
-              "0.75rem"
-            ]
-          },
-          {
-            "name": "--ui-space-4",
-            "fallbacks": [
-              "1rem"
-            ]
-          },
-          {
-            "name": "--ui-space-5",
-            "fallbacks": [
-              "1.5rem"
-            ]
-          },
-          {
-            "name": "--ui-surface-elevated",
-            "fallbacks": [
-              "#fff"
-            ]
-          },
-          {
-            "name": "--ui-text-primary"
+            "name": "--ui-surface-default"
           }
         ]
       },
       "attributes": [
         {
-          "name": "align",
-          "property": "align",
-          "type": "\"start\" | \"center\" | \"end\" | \"stretch\"",
+          "name": "breakpoint",
+          "property": "breakpoint",
+          "type": "\"sm\" | \"md\" | \"lg\"",
+          "default": "md",
           "options": [
-            "start",
-            "center",
-            "end",
-            "stretch"
+            "sm",
+            "md",
+            "lg"
           ]
         },
         {
-          "name": "gap",
-          "property": "gap",
-          "type": "\"xs\" | \"s\" | \"m\" | \"l\" | \"xl\"",
-          "options": [
-            "xs",
-            "s",
-            "m",
-            "l",
-            "xl"
-          ]
+          "name": "collapsed",
+          "property": "collapsed",
+          "type": "boolean",
+          "default": false
         },
         {
           "name": "max-width",
@@ -5999,7 +5948,7 @@
           "name": "min-width",
           "property": "minWidth",
           "type": "number",
-          "default": 176
+          "default": 200
         },
         {
           "name": "resizable",
@@ -6032,36 +5981,25 @@
         {
           "name": "width",
           "property": "width",
-          "type": "\"narrow\" | \"default\" | \"wide\"",
-          "default": "default",
-          "options": [
-            "narrow",
-            "default",
-            "wide"
-          ]
+          "type": "number",
+          "default": 0
         }
       ],
       "properties": [
         {
-          "name": "align",
-          "type": "\"start\" | \"center\" | \"end\" | \"stretch\"",
+          "name": "breakpoint",
+          "type": "\"sm\" | \"md\" | \"lg\"",
+          "default": "md",
           "options": [
-            "start",
-            "center",
-            "end",
-            "stretch"
+            "sm",
+            "md",
+            "lg"
           ]
         },
         {
-          "name": "gap",
-          "type": "\"xs\" | \"s\" | \"m\" | \"l\" | \"xl\"",
-          "options": [
-            "xs",
-            "s",
-            "m",
-            "l",
-            "xl"
-          ]
+          "name": "collapsed",
+          "type": "boolean",
+          "default": false
         },
         {
           "name": "maxWidth",
@@ -6071,7 +6009,7 @@
         {
           "name": "minWidth",
           "type": "number",
-          "default": 176
+          "default": 200
         },
         {
           "name": "resizable",
@@ -6099,13 +6037,8 @@
         },
         {
           "name": "width",
-          "type": "\"narrow\" | \"default\" | \"wide\"",
-          "default": "default",
-          "options": [
-            "narrow",
-            "default",
-            "wide"
-          ]
+          "type": "number",
+          "default": 0
         }
       ],
       "methods": [],
@@ -6114,6 +6047,12 @@
           "name": "resize",
           "detailType": "{ width: number; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
           "detailSchema": "{ width: number; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailDocs": "Emitted with the declared detail payload."
+        },
+        {
+          "name": "toggle",
+          "detailType": "{ open: boolean; mode: \"docked\" | \"drawer\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ open: boolean; mode: \"docked\" | \"drawer\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
           "detailDocs": "Emitted with the declared detail payload."
         }
       ],

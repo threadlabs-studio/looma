@@ -3,23 +3,23 @@ import { useLayoutEffect, useRef } from "react";
 import type { ComponentPropsWithoutRef, ComponentRef, ElementType, ReactNode, Ref } from "react";
 import { manageGeneratedProps, updateGeneratedProps } from "@threadlabs/looma-core/declarative-generated";
 
-interface UiCenterOwnProps {
+interface UiContainerOwnProps {
   gutters?: "s" | "m" | "l" | null;
   measure?: "narrow" | "wide" | null;
   slots?: Readonly<Record<string, ReactNode>>;
 }
 
-export type UiCenterHandle = ComponentRef<"div"> & {
+export type UiContainerHandle = ComponentRef<"div"> & {
 };
 
-export type UiCenterProps = Omit<ComponentPropsWithoutRef<"div">, keyof UiCenterOwnProps | "children"> &
-  UiCenterOwnProps & { children?: ReactNode; ref?: Ref<UiCenterHandle> };
+export type UiContainerProps = Omit<ComponentPropsWithoutRef<"div">, keyof UiContainerOwnProps | "children"> &
+  UiContainerOwnProps & { children?: ReactNode; ref?: Ref<UiContainerHandle> };
 
-export function UiCenter(props: UiCenterProps) {
+export function UiContainer(props: UiContainerProps) {
   const { "gutters": prop0, "measure": prop1, slots, children, ref, ...nativeProps } = props;
-  const root = useRef<UiCenterHandle | null>(null);
-  const setRoot = (node: UiCenterHandle | null) => {
-    (root as { current: UiCenterHandle | null }).current = node;
+  const root = useRef<UiContainerHandle | null>(null);
+  const setRoot = (node: UiContainerHandle | null) => {
+    (root as { current: UiContainerHandle | null }).current = node;
     if (typeof ref === "function") ref(node);
     else if (ref != null) ref.current = node;
   };
@@ -30,7 +30,7 @@ export function UiCenter(props: UiCenterProps) {
   ]), []);
   useLayoutEffect(() => { if (root.current != null) updateGeneratedProps(root.current, componentProps); });
   return (
-    <div {...nativeProps} data-component="ui-center" data-component-root="ui-center" ref={setRoot}>
+    <div {...nativeProps} data-component="ui-container" data-component-root="ui-container" ref={setRoot}>
       {children ?? (null)}
     </div>
   );

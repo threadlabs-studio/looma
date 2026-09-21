@@ -10,7 +10,7 @@ export const componentGroups = [
       { tag: "ui-stack" },
       { tag: "ui-cluster" },
       { tag: "ui-grid" },
-      { tag: "ui-center" },
+      { tag: "ui-container" },
       { tag: "ui-switcher" },
       { tag: "ui-sidebar" },
       { tag: "ui-reel" },

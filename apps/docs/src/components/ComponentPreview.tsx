@@ -73,6 +73,8 @@ const folderIcon = `<svg slot="leading" aria-hidden="true" viewBox="0 0 24 24" f
 
 const fileIcon = `<svg slot="leading" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /><path d="M14 2v4a2 2 0 0 0 2 2h4" /></svg>`;
 
+const panelIcon = `<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" /><path d="M9 3v18" /></svg>`;
+
 const moreIcon = `<svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.6" /><circle cx="12" cy="12" r="1.6" /><circle cx="19" cy="12" r="1.6" /></svg>`;
 
 /** A small project tree shared by the Tree and Tree Item examples. */
@@ -253,7 +255,7 @@ const primaryScenarioCopy: Readonly<Record<string, readonly [label: string, desc
   "ui-badge": ["Default", "With no properties supplied, Badge renders its base appearance."],
   "ui-button": ["Default", "With no properties supplied, Button uses the outline variant at its default size."],
   "ui-callout": ["Default tone", "With no tone supplied, Callout uses the info treatment."],
-  "ui-center": ["Default", "With no properties supplied, Center caps its column at a 65ch measure, centers it in the available space, and pads it with default gutters."],
+  "ui-container": ["Default", "With no properties supplied, Container caps its column at a 65ch measure, centers it in the available space, and pads it with default gutters."],
   "ui-checkbox": ["Default", "With no state properties supplied, Checkbox starts unchecked and enabled."],
   "ui-combobox": ["Label and options", "Native option elements provide the ordinary no-script option list."],
   "ui-context-menu": ["Target binding", "The for property binds the menu to a separate context-click target while the trigger slot remains available."],
@@ -282,7 +284,7 @@ const primaryScenarioCopy: Readonly<Record<string, readonly [label: string, desc
   "ui-search-shell": ["open", "Open reveals the labeled shell while the optional status and footer regions remain absent."],
   "ui-select": ["Default", "With no value or state properties supplied, Select follows its native selected option."],
   "ui-separator": ["Default horizontal", "With orientation omitted, Separator renders horizontally."],
-  "ui-sidebar": ["Default", "With no properties supplied, Sidebar uses the start side and default width."],
+  "ui-sidebar": ["App shell", "The sidebar is the panel only; the page places it beside its main content. The button toggles it with commandfor and command=\"--toggle\": docked it collapses, and below the breakpoint (48rem by default) it opens as a drawer."],
   "ui-stack": ["Default", "With no properties supplied, Stack uses its default gap, alignment, and distribution."],
   "ui-switch": ["Default", "With checked omitted, Switch starts off and enabled."],
   "ui-switcher": ["Default", "With no properties supplied, Switcher uses its default gap, threshold, and alignment."],
@@ -312,8 +314,8 @@ function previewMarkup(component: string, id: string): string {
       return `<ui-button>Button</ui-button>`;
     case "ui-callout":
       return `<ui-callout>Information message.</ui-callout>`;
-    case "ui-center":
-      return `<ui-center><div>Default 65ch measure</div></ui-center>`;
+    case "ui-container":
+      return `<ui-container><div>Default 65ch measure</div></ui-container>`;
     case "ui-checkbox":
       return `<ui-checkbox>Checkbox</ui-checkbox>`;
     case "ui-combobox":
@@ -371,7 +373,7 @@ function previewMarkup(component: string, id: string): string {
     case "ui-separator":
       return `<div><span>Above</span><ui-separator></ui-separator><span>Below</span></div>`;
     case "ui-sidebar":
-      return `<ui-sidebar><aside><strong>Sidebar</strong><p>Navigation and controls</p></aside><main><strong>Main content</strong><p>The primary content region grows to fill the remaining space.</p></main></ui-sidebar>`;
+      return `<div class="demo-app-shell"><ui-sidebar id="${id}-nav" aria-label="Workspace"><nav class="demo-app-nav"><strong>Workspace</strong><a href="#inbox">Inbox</a><a href="#projects">Projects</a><a href="#settings">Settings</a></nav></ui-sidebar><main class="demo-app-main"><ui-icon-button commandfor="${id}-nav" command="--toggle" label="Toggle sidebar">${panelIcon}</ui-icon-button><p>Main content sits beside the sidebar and fills the remaining space.</p></main></div>`;
     case "ui-stack":
       return `<ui-stack>${items}</ui-stack>`;
     case "ui-switch":
@@ -474,6 +476,10 @@ function curatedScenarios(component: string, id: string): PreviewScenario[] {
         description: "Solid, outline (the default), ghost, and danger cover the common emphasis and intent levels.",
         markup: `<ui-cluster gap="s"><ui-button variant="solid">Solid</ui-button><ui-button variant="outline">Outline</ui-button><ui-button variant="ghost">Ghost</ui-button><ui-button variant="danger">Danger</ui-button></ui-cluster>`
       }, {
+        label: "Link",
+        description: "variant=\"link\" is an inline text action: it takes the surrounding font, has no box or padding, and its underline strengthens on hover. It is still a button, with a visible focus ring.",
+        markup: `<p class="demo-inline-action">Draft saved · <ui-button variant="link">3 unpublished changes</ui-button></p>`
+      }, {
         label: "size",
         description: "Size changes the control's height and padding (sm 32px, md 40px, lg 48px), not just its text.",
         markup: `<ui-cluster gap="s" align="center"><ui-button size="sm">Small</ui-button><ui-button>Medium</ui-button><ui-button size="lg">Large</ui-button></ui-cluster>`
@@ -488,17 +494,17 @@ function curatedScenarios(component: string, id: string): PreviewScenario[] {
         description: "Success, warning, and danger change the visual treatment while the message supplies meaning.",
         markup: `<ui-stack gap="s"><ui-callout tone="success">Success message.</ui-callout><ui-callout tone="warning">Warning message.</ui-callout><ui-callout tone="danger">Danger message.</ui-callout></ui-stack>`
       }];
-    case "ui-center":
+    case "ui-container":
       return [
         {
           label: `measure="narrow"`,
           description: "The narrow measure caps the column at 45ch; the tinted bands either side are the default gutters.",
-          markup: `<ui-center measure="narrow"><div>Narrow 45ch measure</div></ui-center>`
+          markup: `<ui-container measure="narrow"><div>Narrow 45ch measure</div></ui-container>`
         },
         {
           label: `gutters="l"`,
           description: "Larger gutters keep content away from the column edges, which matters most when the container is narrower than the measure.",
-          markup: `<div style="max-width:20rem;margin-inline:auto"><ui-center gutters="l"><div>Large gutters</div></ui-center></div>`
+          markup: `<div style="max-width:20rem;margin-inline:auto"><ui-container gutters="l"><div>Large gutters</div></ui-container></div>`
         }
       ];
     case "ui-checkbox":
@@ -749,9 +755,9 @@ function curatedScenarios(component: string, id: string): PreviewScenario[] {
       }];
     case "ui-sidebar":
       return [{
-        label: "End side and resizing",
-        description: "Side and width set placement; resizable and its bounds configure pointer and keyboard resizing.",
-        markup: `<ui-sidebar gap="m" side="end" width="narrow" resizable min-width="176" max-width="360" resize-label="Resize sidebar"><main><strong>Main content</strong><p>The primary region comes first when the sidebar is on the end side.</p></main><aside><strong>Sidebar</strong><p>Drag or use the resize handle with the keyboard.</p></aside></ui-sidebar>`
+        label: "End side, resizable",
+        description: "side=\"end\" puts the panel on the end edge. resizable adds a handle on its inner edge: drag it, or focus it and use the arrow keys, Home, and End, within min-width and max-width. Double-click resets the width.",
+        markup: `<div class="demo-app-shell"><main class="demo-app-main"><p>Main content comes first when the sidebar is on the end side.</p></main><ui-sidebar side="end" width="260" resizable min-width="200" max-width="380" aria-label="Details"><div class="demo-app-nav"><strong>Details</strong><p>Drag the inner edge, or focus it and use the arrow keys.</p></div></ui-sidebar></div>`
       }];
     case "ui-stack":
       return [{

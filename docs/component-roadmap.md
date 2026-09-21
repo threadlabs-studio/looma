@@ -37,7 +37,7 @@ gate must reject any mismatch instead of silently omitting a component.
 - `ui-callout`
 - `ui-chip`
 - `ui-button`
-- `ui-center`
+- `ui-container`
 - `ui-checkbox`
 - `ui-cluster`
 - `ui-dialog`
@@ -83,7 +83,7 @@ Conventions for this checklist:
 - [x] Stack
 - [x] Cluster
 - [x] Grid
-- [x] Center
+- [x] Container
 - [x] Separator
 
 ### Forms and actions

@@ -686,14 +686,14 @@ body {
   ui-stack,
   ui-cluster,
   ui-grid,
-  ui-center,
+  ui-container,
   ui-switcher,
   ui-sidebar,
   ui-reel,
   [data-component-root~="ui-stack"],
   [data-component-root~="ui-cluster"],
   [data-component-root~="ui-grid"],
-  [data-component-root~="ui-center"],
+  [data-component-root~="ui-container"],
   [data-component-root~="ui-switcher"],
   [data-component-root~="ui-sidebar"],
   [data-component-root~="ui-reel"]
@@ -703,7 +703,7 @@ body {
  * alignment, stretching, wrapping, and column behavior directly inspectable. */
 .looma-preview-scenario__stage :is(
   [data-component-root~="ui-stack"],
-  [data-component-root~="ui-center"],
+  [data-component-root~="ui-container"],
   [data-component-root~="ui-grid"],
   [data-component-root~="ui-switcher"],
   [data-component-root~="ui-reel"]
@@ -725,31 +725,29 @@ body {
 }
 
 .looma-preview-scenario__stage > :is(
-  ui-center,
-  [data-component-root~="ui-center"]
+  ui-container,
+  [data-component-root~="ui-container"]
 ) {
   outline: 1px dashed var(--looma-accent);
   outline-offset: -1px;
   background: color-mix(in srgb, var(--looma-accent) 5%, transparent);
 }
 
-.looma-preview-scenario__stage :is(
-  ui-sidebar,
-  [data-component-root~="ui-sidebar"]
-) > :is(aside, main) {
-  min-height: 7rem;
-  padding: 1rem;
-  background: var(--looma-paper);
+/* Sidebar demos: a small app shell, so the panel sits beside real main content. */
+.demo-app-shell {
+  display: flex;
+  inline-size: 100%;
+  min-block-size: 16rem;
+  overflow: hidden;
   border: 1px solid var(--looma-line-strong);
   border-radius: 8px;
+  background: var(--looma-paper);
 }
-
-.looma-preview-scenario__stage :is(
-  ui-sidebar,
-  [data-component-root~="ui-sidebar"]
-) > :is(aside, main) p {
-  margin-block: 0.45rem 0;
-}
+.demo-app-nav { display: grid; gap: 0.35rem; padding: 1rem; }
+.demo-app-nav a { color: var(--looma-ink); text-decoration: none; }
+.demo-app-nav p { margin: 0; color: var(--looma-ink-soft); }
+.demo-app-main { flex: 1; min-inline-size: 0; padding: 1rem; }
+.demo-app-main p { margin: 0.75rem 0 0; }
 
 .looma-preview-scenario__stage[data-component-preview="ui-reel"] {
   align-content: center;
@@ -1200,8 +1198,8 @@ body:has(.theme-doc-sidebar-container) .footer { margin-top: 0; }
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
 }
 
-/* Center's column is otherwise invisible: outline the measure and tint the gutters. */
-.looma-preview-scenario__stage [data-component-root~="ui-center"] {
+/* Container's column is otherwise invisible: outline the measure and tint the gutters. */
+.looma-preview-scenario__stage [data-component-root~="ui-container"] {
   outline: 1px dashed var(--looma-line-strong);
   background: color-mix(in srgb, var(--ifm-color-primary) 8%, transparent);
 }
@@ -1219,3 +1217,5 @@ body:has(.theme-doc-sidebar-container) .footer { margin-top: 0; }
   line-height: 1.4;
   font-variant-numeric: tabular-nums;
 }
+
+.demo-inline-action { margin: 0; color: var(--looma-ink-soft); font-size: 0.9rem; }

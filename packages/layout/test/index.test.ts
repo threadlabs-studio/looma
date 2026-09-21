@@ -5,8 +5,8 @@ import { records, styles } from "../src/declarative/registry.js";
 describe("@threadlabs/looma-layout canonical declarative graph", () => {
   it("contains every maintained layout definition without registering custom elements", () => {
     expect(records.map(({ tag }) => tag)).toEqual([
-      "ui-center",
       "ui-cluster",
+      "ui-container",
       "ui-grid",
       "ui-reel",
       "ui-separator",
@@ -31,6 +31,7 @@ describe("@threadlabs/looma-layout canonical declarative graph", () => {
     const sidebar = records.find(({ tag }) => tag === "ui-sidebar");
 
     expect(sidebar?.source).toContain('<event name="resize"');
+    expect(sidebar?.source).toContain('<event name="toggle"');
     expect(sidebar?.controller?.default).toBeTypeOf("function");
     expect(styles).toContain('[data-component-root~="ui-sidebar"] > [data-ui-sidebar-resizer]');
   });
@@ -49,16 +50,17 @@ describe("@threadlabs/looma-layout css policy", () => {
     const css = styles;
 
     expect(css).toContain("minmax(min(var(--ui-grid-min), 100%), 1fr)");
-    expect(css).toMatch(/data-component-root~="ui-center"\][^{]*{[\s\S]*?inline-size:\s*100%;/);
-    expect(css).toMatch(/data-component-root~="ui-center"\][^{]*{[\s\S]*?max-inline-size:\s*var\(--ui-center-measure\);/);
+    expect(css).toMatch(/data-component-root~="ui-container"\][^{]*{[\s\S]*?inline-size:\s*100%;/);
+    expect(css).toMatch(/data-component-root~="ui-container"\][^{]*{[\s\S]*?max-inline-size:\s*var\(--ui-container-measure\);/);
   });
 
   it("provides intrinsic switcher, sidebar, and reel layout contracts", () => {
     const css = styles;
 
     expect(css).toMatch(/data-component-root~="ui-switcher"\]\s*>\s*\*\s*{[\s\S]*?flex-basis:\s*calc\(/);
-    expect(css).toMatch(/data-component-root~="ui-sidebar"\]\s*>\s*:first-child/);
-    expect(css).toMatch(/data-component-root~="ui-sidebar"\]\[data-side="end"\]\s*>\s*:last-child/);
+    // Sidebar is a panel, not a two-pane layout: only its resize handle is styled globally.
+    expect(css).not.toMatch(/data-component-root~="ui-sidebar"\]\s*>\s*:first-child/);
+    expect(css).toContain('[data-component-root~="ui-sidebar"] > [data-ui-sidebar-resizer]');
     expect(css).toMatch(/data-component-root~="ui-reel"\][^{]*{[\s\S]*?overflow-x:\s*auto;/);
     expect(css).toMatch(/data-component-root~="ui-reel"\]\[data-snap="start"\]\s*>\s*\*/);
   });

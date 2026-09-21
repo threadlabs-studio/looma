@@ -5,15 +5,15 @@ import {
 } from "../shared/componentApi";
 
 const meta = {
-  title: "Layout/Center",
+  title: "Layout/Container",
   tags: ["autodocs"],
-  argTypes: createComponentArgTypes("ui-center"),
-  parameters: createComponentDocsParameters("ui-center"),
+  argTypes: createComponentArgTypes("ui-container"),
+  parameters: createComponentDocsParameters("ui-container"),
   render: ({ measure, gutters }) => `
-    <ui-center measure="${measure}" gutters="${gutters}">
+    <ui-container measure="${measure}" gutters="${gutters}">
       <h2 style="margin: 0;">Centered Content</h2>
       <p style="margin: 0.5rem 0 0;">Readable measure and consistent gutters.</p>
-    </ui-center>
+    </ui-container>
   `
 } satisfies Meta;
 

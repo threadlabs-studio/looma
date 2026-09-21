@@ -17,6 +17,14 @@ and so on); no custom elements are registered.
 - Components read their public `--ui-*` tokens with fallbacks instead of
   redeclaring them, so tokens set on an ancestor apply (for example
   `--ui-dialog-viewport-gap: 0` for an edge-to-edge dialog).
+- Button gains `variant="link"`: an inline text action with no box, the
+  inherited font, an underline that strengthens on hover, and a focus ring.
+- Rebuild `ui-sidebar` as the sidebar panel only (an `<aside>`), no longer a
+  two-pane layout: `width`, `resizable` with bounds, `collapsed`, and below its
+  `breakpoint` an off-canvas drawer; a `commandfor`/`command="--toggle"` button
+  toggles it, reported by a `toggle` event.
+- Rename `ui-center` to `ui-container` (Vue, React: `Container`): a centred column
+  with a maximum width and gutters.
 - Rename `ui-inline` to `ui-cluster`. A cluster always wraps and has no
   `wrap` or `justify` props.
 - Combobox: drop function-valued hooks, option descriptions, and option

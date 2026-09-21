@@ -7,7 +7,7 @@ import { manageGeneratedProps, updateGeneratedProps } from "@threadlabs/looma-co
 
 export default /*@__PURE__*/_defineComponent({
   ...{ inheritAttrs: false },
-  __name: 'UiCenter',
+  __name: 'UiContainer',
   props: {
     gutters: { type: [String, null], required: false },
     measure: { type: [String, null], required: false }
@@ -48,8 +48,8 @@ onUnmounted(() => {
 
 return (_ctx: any,_cache: any) => {
   return (_openBlock(), _createElementBlock("div", _mergeProps(_ctx.$attrs, {
-    "data-component": "ui-center",
-    "data-component-root": "ui-center",
+    "data-component": "ui-container",
+    "data-component-root": "ui-container",
     ref_key: "root",
     ref: root
   }), [

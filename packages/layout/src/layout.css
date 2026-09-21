@@ -2,14 +2,14 @@
  * Keep the box model outside `@layer components`: these are composition
  * guarantees for authored light-DOM children, not themeable component styles.
  */
-:where(ui-stack, ui-cluster, ui-grid, ui-center, ui-switcher, ui-sidebar, ui-reel, ui-separator),
-:where(ui-stack, ui-cluster, ui-grid, ui-center, ui-switcher, ui-sidebar, ui-reel, ui-separator) *,
-:where(ui-stack, ui-cluster, ui-grid, ui-center, ui-switcher, ui-sidebar, ui-reel, ui-separator) *::before,
-:where(ui-stack, ui-cluster, ui-grid, ui-center, ui-switcher, ui-sidebar, ui-reel, ui-separator) *::after {
+:where(ui-stack, ui-cluster, ui-grid, ui-container, ui-switcher, ui-sidebar, ui-reel, ui-separator),
+:where(ui-stack, ui-cluster, ui-grid, ui-container, ui-switcher, ui-sidebar, ui-reel, ui-separator) *,
+:where(ui-stack, ui-cluster, ui-grid, ui-container, ui-switcher, ui-sidebar, ui-reel, ui-separator) *::before,
+:where(ui-stack, ui-cluster, ui-grid, ui-container, ui-switcher, ui-sidebar, ui-reel, ui-separator) *::after {
   box-sizing: border-box;
 }
 
-:where(ui-stack, ui-cluster, ui-grid, ui-center, ui-switcher, ui-sidebar, ui-reel, ui-separator) {
+:where(ui-stack, ui-cluster, ui-grid, ui-container, ui-switcher, ui-sidebar, ui-reel, ui-separator) {
   /* `revert-layer` exposes `@layer components`; `revert` would skip the author layer entirely. */
   all: revert-layer;
   box-sizing: border-box;
@@ -19,7 +19,7 @@
   color: var(--ui-text-primary);
 }
 
-:where(ui-stack, ui-cluster, ui-grid, ui-center, ui-switcher, ui-sidebar, ui-reel, ui-separator)[data-ui-inherit-typography] {
+:where(ui-stack, ui-cluster, ui-grid, ui-container, ui-switcher, ui-sidebar, ui-reel, ui-separator)[data-ui-inherit-typography] {
   /* Consumers opt into surrounding prose styles; isolated component defaults remain the safe default. */
   font-family: inherit;
   font-size: inherit;
@@ -35,7 +35,7 @@
 }
 
 @layer components {
-  :where(ui-stack, ui-cluster, ui-grid, ui-center, ui-switcher, ui-sidebar, ui-reel, ui-separator) {
+  :where(ui-stack, ui-cluster, ui-grid, ui-container, ui-switcher, ui-sidebar, ui-reel, ui-separator) {
     min-inline-size: 0;
     max-inline-size: 100%;
     margin: 0;
@@ -99,21 +99,21 @@
   ui-grid[min="md"] { --ui-grid-min: 16rem; }
   ui-grid[min="lg"] { --ui-grid-min: 20rem; }
 
-  ui-center {
-    --ui-center-measure: 65ch;
-    --ui-center-gutters: var(--ui-space-4, 1rem);
+  ui-container {
+    --ui-container-measure: 65ch;
+    --ui-container-gutters: var(--ui-space-4, 1rem);
     display: block;
     inline-size: 100%;
-    max-inline-size: var(--ui-center-measure);
+    max-inline-size: var(--ui-container-measure);
     margin-inline: auto;
-    padding-inline: var(--ui-center-gutters);
+    padding-inline: var(--ui-container-gutters);
   }
 
-  ui-center[measure="narrow"] { --ui-center-measure: 45ch; }
-  ui-center[measure="wide"] { --ui-center-measure: 80ch; }
-  ui-center[gutters="s"] { --ui-center-gutters: var(--ui-space-3, 0.75rem); }
-  ui-center[gutters="m"] { --ui-center-gutters: var(--ui-space-4, 1rem); }
-  ui-center[gutters="l"] { --ui-center-gutters: var(--ui-space-5, 1.5rem); }
+  ui-container[measure="narrow"] { --ui-container-measure: 45ch; }
+  ui-container[measure="wide"] { --ui-container-measure: 80ch; }
+  ui-container[gutters="s"] { --ui-container-gutters: var(--ui-space-3, 0.75rem); }
+  ui-container[gutters="m"] { --ui-container-gutters: var(--ui-space-4, 1rem); }
+  ui-container[gutters="l"] { --ui-container-gutters: var(--ui-space-5, 1.5rem); }
 
   ui-switcher {
     --ui-switcher-gap: var(--ui-space-4, 1rem);
@@ -143,114 +143,6 @@
   ui-switcher[align="start"] { --ui-switcher-align: flex-start; }
   ui-switcher[align="center"] { --ui-switcher-align: center; }
   ui-switcher[align="end"] { --ui-switcher-align: flex-end; }
-
-  ui-sidebar {
-    --ui-sidebar-gap: var(--ui-space-4, 1rem);
-    --ui-sidebar-width: 18rem;
-    --ui-sidebar-content-min: 50%;
-    --ui-sidebar-align: stretch;
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--ui-sidebar-gap);
-    align-items: var(--ui-sidebar-align);
-  }
-
-  ui-sidebar > :not([data-ui-sidebar-resizer]) { min-inline-size: 0; }
-  ui-sidebar > :first-child {
-    flex-basis: var(--ui-sidebar-width);
-    flex-grow: 1;
-  }
-  ui-sidebar > :last-child:not([data-ui-sidebar-resizer]),
-  ui-sidebar[resizable] > :nth-last-child(2):not([data-ui-sidebar-resizer]) {
-    /* A resizable sidebar injects its handle last, so the content becomes the penultimate child. */
-    flex-basis: 0;
-    flex-grow: 999;
-    min-inline-size: min(var(--ui-sidebar-content-min), 100%);
-  }
-  ui-sidebar[side="end"] > :first-child {
-    flex-basis: 0;
-    flex-grow: 999;
-    min-inline-size: min(var(--ui-sidebar-content-min), 100%);
-  }
-  ui-sidebar[side="end"] > :last-child:not([data-ui-sidebar-resizer]),
-  ui-sidebar[side="end"][resizable] > :nth-last-child(2):not([data-ui-sidebar-resizer]) {
-    flex-basis: var(--ui-sidebar-width);
-    flex-grow: 1;
-    min-inline-size: 0;
-  }
-  ui-sidebar[gap="xs"] { --ui-sidebar-gap: var(--ui-space-2, 0.5rem); }
-  ui-sidebar[gap="s"] { --ui-sidebar-gap: var(--ui-space-3, 0.75rem); }
-  ui-sidebar[gap="m"] { --ui-sidebar-gap: var(--ui-space-4, 1rem); }
-  ui-sidebar[gap="l"] { --ui-sidebar-gap: var(--ui-space-5, 1.5rem); }
-  ui-sidebar[width="narrow"] { --ui-sidebar-width: 14rem; }
-  ui-sidebar[width="wide"] { --ui-sidebar-width: 24rem; }
-  ui-sidebar[align="start"] { --ui-sidebar-align: flex-start; }
-  ui-sidebar[align="center"] { --ui-sidebar-align: center; }
-  ui-sidebar[align="end"] { --ui-sidebar-align: flex-end; }
-  ui-sidebar[resizable] {
-    position: relative;
-    flex-wrap: nowrap;
-  }
-  ui-sidebar[resizable] > :first-child:not([data-ui-sidebar-resizer]) {
-    flex: 0 0 var(--ui-sidebar-width);
-  }
-  ui-sidebar[side="end"][resizable] > :first-child:not([data-ui-sidebar-resizer]) {
-    flex: 1 1 0;
-  }
-  ui-sidebar[side="end"][resizable] > :nth-last-child(2):not([data-ui-sidebar-resizer]) {
-    flex: 0 0 var(--ui-sidebar-width);
-  }
-  ui-sidebar > [data-ui-sidebar-resizer] {
-    position: absolute;
-    z-index: 1;
-    inset-block: 0;
-    inset-inline-start: var(--ui-sidebar-width);
-    inline-size: 8px;
-    min-inline-size: 8px;
-    transform: translateX(-50%);
-    cursor: col-resize;
-    touch-action: none;
-    outline: none;
-  }
-  ui-sidebar[side="end"] > [data-ui-sidebar-resizer] {
-    inset-inline-start: auto;
-    inset-inline-end: var(--ui-sidebar-width);
-    transform: translateX(50%);
-  }
-  ui-sidebar > [data-ui-sidebar-resizer]::after {
-    content: "";
-    position: absolute;
-    inset-block: 0;
-    inset-inline-start: 3px;
-    inline-size: 2px;
-    background: color-mix(in srgb, var(--ui-affordance-guide-color, var(--ui-border-strong)) 45%, transparent);
-    opacity: var(--ui-affordance-guide-opacity, 0.42);
-    transition:
-      background-color var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease),
-      opacity var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease);
-  }
-  ui-sidebar > [data-ui-sidebar-resizer] > [data-ui-guide] {
-    position: absolute;
-    inset-block-start: 50%;
-    inset-inline-start: 50%;
-    inline-size: 6px;
-    block-size: 22px;
-    border: 1px solid var(--ui-border-strong, #c8c8c4);
-    border-radius: var(--ui-radius-round, 999px);
-    background: var(--ui-surface-elevated, #fff);
-    opacity: 0;
-    transform: translate(-50%, -50%);
-    transition: opacity var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease);
-    pointer-events: none;
-  }
-  ui-sidebar > [data-ui-sidebar-resizer]:hover::after,
-  ui-sidebar > [data-ui-sidebar-resizer]:focus-visible::after {
-    background: var(--ui-affordance-direct-color, var(--ui-accent-solid, var(--ui-color-focus, Highlight)));
-    opacity: 1;
-  }
-  ui-sidebar > [data-ui-sidebar-resizer]:is(:hover, :focus-visible) > [data-ui-guide] {
-    opacity: 1;
-  }
 
   ui-reel {
     --ui-reel-gap: var(--ui-space-4, 1rem);
