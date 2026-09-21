@@ -4,12 +4,12 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-20 23:22 PDT
-Status: Candidate `0.2.18` is public. Candidate `0.2.19` is prepared with
-slash commands projected to the managed menu's display-only contract, while
-retaining contract-safe mention and slash anchors, async mention queries that
-settle correctly during fast input, structured document paste, reliable history
-controls, and the sticky editor option qualified in prior Candidates.
+Last Updated: 2026-09-20 23:47 PDT
+Status: Candidate `0.2.19` is public. Candidate `0.2.20` is prepared with
+table-overlay pointer controls that preserve editor focus through click, while
+retaining display-only managed slash items, contract-safe suggestion anchors,
+structured document paste, reliable history controls, and the sticky editor
+option qualified in prior Candidates.
 Historical release tasks below retain their original version context.
 
 ## Current Focus
@@ -39,6 +39,10 @@ Historical release tasks below retain their original version context.
 
 ## Recent Progress
 
+- Preserved ProseMirror focus when table-overlay buttons receive mouse-down, so
+  reactive overlay updates cannot replace a control between pointer-down and
+  click. Real-pointer Chromium coverage now locks row insertion through the
+  managed editor boundary.
 - Kept internal slash-command keywords and executable callbacks outside the
   managed component boundary. The rendered menu now receives only its declared
   title, description, and icon fields.

@@ -1,4 +1,5 @@
 import type { Editor } from "@tiptap/core";
+import { userEvent } from "@vitest/browser/context";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, type App } from "vue";
 import { LoomaEditor } from "./LoomaEditor";
@@ -106,5 +107,37 @@ describe("LoomaEditor managed suggestion menus", () => {
     } finally {
       window.removeEventListener("error", onError);
     }
+  });
+
+  it("keeps managed table insertion handles stable through a real pointer click", async () => {
+    Object.defineProperty(window, "innerWidth", { value: 1280, configurable: true });
+    const host = document.createElement("div");
+    host.style.marginLeft = "48px";
+    host.style.width = "240px";
+    document.body.append(host);
+    let editor: Editor | null = null;
+    const app = createApp({
+      render: () => h(LoomaEditor, {
+        onReady: (instance: Editor) => { editor = instance; },
+      }),
+    });
+    apps.push(app);
+    app.mount(host);
+    await flushBrowser();
+
+    editor!.chain().focus().insertTable({ rows: 2, cols: 2, withHeaderRow: true }).run();
+    await flushBrowser();
+    const table = host.querySelector(".ProseMirror table")!;
+    expect(table.querySelectorAll("tr")).toHaveLength(2);
+    await userEvent.click(table.querySelector<HTMLElement>("th, td")!);
+    await flushBrowser();
+    const handle = host.querySelector<HTMLElement>(
+      '[data-component-root~="ui-editor-table-overlay"] [data-action="add-row-after"][data-boundary-index="1"]',
+    )!;
+    expect(handle).toBeTruthy();
+
+    await userEvent.click(handle);
+    await flushBrowser();
+    expect(table.querySelectorAll("tr")).toHaveLength(3);
   });
 });
