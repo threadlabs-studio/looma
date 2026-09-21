@@ -13,6 +13,7 @@ import {
   EditorMentionMenu,
   EditorSlashMenu,
   EditorTableOverlay,
+  EditorTableToolbar,
   EditorToolbar,
   getDefaultEditorExtensions,
 } from "./index";
@@ -69,37 +70,37 @@ describe("@threadlabs/looma-vue/editor adapter", () => {
   it("forwards editor events and replaces listeners without leaking them", async () => {
     const firstHandler = vi.fn();
     const secondHandler = vi.fn();
-    const onTableAction = ref(firstHandler);
+    const onAction = ref(firstHandler);
     const host = document.createElement("div");
     document.body.append(host);
     const app = createApp({
-      render: () => h(EditorToolbar, { onTableAction: onTableAction.value }),
+      render: () => h(EditorTableToolbar, { onAction: onAction.value }),
     });
     apps.push(app);
     app.mount(host);
     await settleDeclarativeComponents(host);
 
-    const toolbar = host.querySelector(`[data-component-root="ui-editor-toolbar"]`);
+    const toolbar = host.querySelector(`[data-component-root="ui-editor-table-toolbar"]`);
     const detail = { action: "delete-table", trigger: "keyboard" };
-    toolbar?.dispatchEvent(new CustomEvent("looma-editor-table-action", { detail }));
+    toolbar?.dispatchEvent(new CustomEvent("action", { detail }));
     expect(firstHandler).toHaveBeenCalledOnce();
     expect(firstHandler).toHaveBeenCalledWith(detail);
 
-    onTableAction.value = secondHandler;
+    onAction.value = secondHandler;
     await nextTick();
-    toolbar?.dispatchEvent(new CustomEvent("looma-editor-table-action", { detail }));
+    toolbar?.dispatchEvent(new CustomEvent("action", { detail }));
     expect(firstHandler).toHaveBeenCalledOnce();
     expect(secondHandler).toHaveBeenCalledOnce();
 
     app.unmount();
     apps.splice(apps.indexOf(app), 1);
-    toolbar?.dispatchEvent(new CustomEvent("looma-editor-table-action", { detail }));
+    toolbar?.dispatchEvent(new CustomEvent("action", { detail }));
     expect(secondHandler).toHaveBeenCalledOnce();
   });
 
   it("forwards slash-menu events", async () => {
-    const onSlashMenuHighlight = vi.fn();
-    const onSlashMenuSelect = vi.fn();
+    const onHighlight = vi.fn();
+    const onSelect = vi.fn();
     const items = [{ title: "Paragraph", description: "Plain text", icon: "pilcrow" as const }];
     const anchorRect = { x: 12, y: 24, width: 30, height: 18 };
     const host = document.createElement("div");
@@ -111,8 +112,8 @@ describe("@threadlabs/looma-vue/editor adapter", () => {
         items,
         selectedIndex: 1,
         anchorRect,
-        onSlashMenuHighlight,
-        onSlashMenuSelect,
+        onHighlight,
+        onSelect,
       }),
     });
     apps.push(app);
@@ -134,19 +135,19 @@ describe("@threadlabs/looma-vue/editor adapter", () => {
 
     const highlight = { index: 1 };
     const select = { index: 0 };
-    slashMenu.dispatchEvent(new CustomEvent("looma-editor-slash-menu-highlight", {
+    slashMenu.dispatchEvent(new CustomEvent("highlight", {
       detail: highlight,
     }));
-    slashMenu.dispatchEvent(new CustomEvent("looma-editor-slash-menu-select", {
+    slashMenu.dispatchEvent(new CustomEvent("select", {
       detail: select,
     }));
-    expect(onSlashMenuHighlight).toHaveBeenCalledWith(highlight);
-    expect(onSlashMenuSelect).toHaveBeenCalledWith(select);
+    expect(onHighlight).toHaveBeenCalledWith(highlight);
+    expect(onSelect).toHaveBeenCalledWith(select);
   });
 
   it("forwards mention-menu props and events", async () => {
-    const onMentionMenuHighlight = vi.fn();
-    const onMentionMenuSelect = vi.fn();
+    const onHighlight = vi.fn();
+    const onSelect = vi.fn();
     const items = [{ id: "ada", label: "Ada Lovelace", detail: "ada@example.com" }];
     const anchorRect = { x: 12, y: 24, width: 1, height: 18 };
     const host = document.createElement("div");
@@ -158,8 +159,8 @@ describe("@threadlabs/looma-vue/editor adapter", () => {
         items,
         selectedIndex: 0,
         anchorRect,
-        onMentionMenuHighlight,
-        onMentionMenuSelect,
+        onHighlight,
+        onSelect,
       }),
     });
     apps.push(app);
@@ -178,13 +179,13 @@ describe("@threadlabs/looma-vue/editor adapter", () => {
     expect(menu.items).toStrictEqual(items);
     expect(menu.anchorRect).toStrictEqual(anchorRect);
 
-    menu.dispatchEvent(new CustomEvent("looma-editor-mention-menu-highlight", {
+    menu.dispatchEvent(new CustomEvent("highlight", {
       detail: { index: 0 },
     }));
-    menu.dispatchEvent(new CustomEvent("looma-editor-mention-menu-select", {
+    menu.dispatchEvent(new CustomEvent("select", {
       detail: { index: 0 },
     }));
-    expect(onMentionMenuHighlight).toHaveBeenCalledWith({ index: 0 });
-    expect(onMentionMenuSelect).toHaveBeenCalledWith({ index: 0 });
+    expect(onHighlight).toHaveBeenCalledWith({ index: 0 });
+    expect(onSelect).toHaveBeenCalledWith({ index: 0 });
   });
 });

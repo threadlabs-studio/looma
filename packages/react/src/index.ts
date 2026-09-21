@@ -7,7 +7,7 @@ import "@threadlabs/looma-editor/ui";
 export * from "./generated";
 
 export const ADAPTER_COMPONENT_TAG_MAP = {
-  Stack: "ui-stack", Inline: "ui-inline", Cluster: "ui-cluster", Grid: "ui-grid",
+  Stack: "ui-stack", Inline: "ui-inline", Grid: "ui-grid",
   Center: "ui-center", Switcher: "ui-switcher", Sidebar: "ui-sidebar", Reel: "ui-reel",
   Separator: "ui-separator", Disclosure: "ui-disclosure", Editable: "ui-editable",
   Tabs: "ui-tabs", Dialog: "ui-dialog", Popover: "ui-popover", Menu: "ui-menu",
@@ -15,9 +15,9 @@ export const ADAPTER_COMPONENT_TAG_MAP = {
   Button: "ui-button", IconButton: "ui-icon-button", Input: "ui-input", Select: "ui-select",
   Textarea: "ui-textarea", FormField: "ui-form-field", Tooltip: "ui-tooltip",
   ToastRegion: "ui-toast-region", Checkbox: "ui-checkbox", Switch: "ui-switch",
-  RadioGroup: "ui-radio-group", Radio: "ui-radio", Badge: "ui-badge", Chip: "ui-chip",
+  RadioGroup: "ui-radio-group", Radio: "ui-radio", Badge: "ui-badge",
   Callout: "ui-callout", Avatar: "ui-avatar", AvatarGroup: "ui-avatar-group",
-  FloatingActionButton: "ui-floating-action-button", SearchShell: "ui-search-shell",
+  SearchShell: "ui-search-shell",
   SearchResultRow: "ui-search-result-row", TopBar: "ui-top-bar", Tree: "ui-tree",
   TreeItem: "ui-tree-item", Combobox: "ui-combobox", EditorToolbar: "ui-editor-toolbar",
   EditorSlashMenu: "ui-editor-slash-menu", EditorMentionMenu: "ui-editor-mention-menu",

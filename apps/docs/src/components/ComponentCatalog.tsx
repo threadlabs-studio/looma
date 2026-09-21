@@ -3,7 +3,12 @@ import Link from "@docusaurus/Link";
 import useBaseUrl from "@docusaurus/useBaseUrl";
 
 import componentApi from "../../../../generated/component-api.json";
-import { componentGroups, type ComponentCategory } from "../componentNavigation";
+import {
+  allComponentGroups,
+  componentGroups,
+  editorComponentGroup,
+  type ComponentCategory,
+} from "../componentNavigation";
 import { ComponentPreview } from "./ComponentPreview";
 
 interface ComponentRecord {
@@ -13,12 +18,10 @@ interface ComponentRecord {
 }
 
 const categoryByTag = new Map(
-  componentGroups.flatMap(({ label, items }) => items.map(({ tag }) => [tag, label] as const))
+  allComponentGroups.flatMap(({ label, items }) => items.map(({ tag }) => [tag, label] as const))
 );
-const categoryOrder = componentGroups.map(({ label }) => label);
-const componentCountByCategory = new Map(
-  componentGroups.map(({ label, items }) => [label, items.length] as const)
-);
+const labelByTag = new Map(allComponentGroups.flatMap(({ items }) =>
+  items.map((item) => [item.tag, "label" in item ? item.label : undefined] as const)));
 
 function categoryForTag(tag: string): ComponentCategory {
   const category = categoryByTag.get(tag);
@@ -28,10 +31,16 @@ function categoryForTag(tag: string): ComponentCategory {
   return category;
 }
 
-const components = (componentApi.components as ComponentRecord[]).map((component) => ({
-  ...component,
-  category: categoryForTag(component.tag)
-}));
+// The generated API inventory also contains compound parts such as menu items,
+// tree items, and search result rows. Navigation is the public catalog boundary,
+// so those parts remain documented through their owning component without
+// reappearing as misleading standalone cards.
+const allComponents = (componentApi.components as ComponentRecord[])
+  .filter((component) => categoryByTag.has(component.tag))
+  .map((component) => ({
+    ...component,
+    category: categoryForTag(component.tag)
+  }));
 
 const MemoizedComponentPreview = React.memo(ComponentPreview);
 
@@ -74,11 +83,22 @@ function CatalogPreview({ component }: { component: string }): JSX.Element {
   );
 }
 
-export function ComponentCatalog(): JSX.Element {
+export function ComponentCatalog({
+  scope = "components",
+}: {
+  scope?: "components" | "editor";
+}): JSX.Element {
   const markUrl = useBaseUrl("img/looma-mark.svg");
   const [query, setQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<"All" | ComponentCategory>("All");
   const searchRef = useRef<HTMLInputElement>(null);
+  const navigationGroups = scope === "editor" ? [editorComponentGroup] : componentGroups;
+  const categoryOrder = navigationGroups.map(({ label }) => label);
+  const componentCountByCategory = new Map(
+    navigationGroups.map(({ label, items }) => [label, items.length] as const),
+  );
+  const scopedTags = new Set(navigationGroups.flatMap(({ items }) => items.map(({ tag }) => tag)));
+  const components = allComponents.filter(({ tag }) => scopedTags.has(tag));
 
   useEffect(() => {
     const focusSearch = (event: KeyboardEvent) => {
@@ -119,7 +139,7 @@ export function ComponentCatalog(): JSX.Element {
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search all 49 components"
+            placeholder={`Search all ${components.length} components`}
           />
           <kbd>/</kbd>
         </label>
@@ -148,6 +168,7 @@ export function ComponentCatalog(): JSX.Element {
           {filteredComponents.map((component) => (
             <article
               className={`looma-component-card looma-component-card--${component.category.toLowerCase()}`}
+              data-component-card={component.tag}
               key={component.tag}
             >
               <CatalogPreview component={component.tag} />
@@ -157,7 +178,7 @@ export function ComponentCatalog(): JSX.Element {
                   <code>{`<${component.root}>`}</code>
                 </div>
                 <h2>
-                  <Link to={`/components/${component.tag}`}>{titleFromTag(component.tag)}</Link>
+                  <Link to={`/components/${component.tag}`}>{labelByTag.get(component.tag) ?? titleFromTag(component.tag)}</Link>
                 </h2>
                 <p>{component.description}</p>
                 <Link className="looma-component-card__link" to={`/components/${component.tag}`}>

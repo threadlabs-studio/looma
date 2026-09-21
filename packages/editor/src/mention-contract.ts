@@ -1,4 +1,6 @@
+/** Default visible candidate budget when an application does not set a limit. */
 export const DEFAULT_MENTION_RESULT_LIMIT = 8;
+/** Hard candidate ceiling shared by providers, keyboard state, and menu rendering. */
 export const MAX_MENTION_RESULT_LIMIT = 20;
 
 /**
@@ -13,6 +15,7 @@ export interface LoomaMentionItem {
   initials?: string;
 }
 
+/** Bounded result budget passed to a directory provider for the current query. */
 export interface LoomaMentionProviderContext {
   limit: number;
 }
@@ -23,6 +26,9 @@ export interface LoomaMentionProviderContext {
  * Providers may perform asynchronous directory lookup, but should return no
  * more than `context.limit`. The extension also clamps and filters results so a
  * provider cannot accidentally create an unbounded suggestion surface.
+ *
+ * @ownership The application owns directory access and returned item data;
+ * Looma owns filtering, clamping, and the suggestion state that consumes it.
  */
 export type LoomaMentionProvider = (
   query: string,
@@ -35,6 +41,9 @@ export type LoomaMentionProvider = (
  * The snapshot owns selection commands only while `active` is true. Consumers
  * should replace, not merge, snapshots: callbacks and rectangles are tied to a
  * particular suggestion range and become stale as soon as the query changes.
+ *
+ * @lifecycle `highlight` and `select` are valid only while this snapshot remains
+ * active; the next query update or exit invalidates both callbacks.
  */
 export interface LoomaMentionMenuSnapshot {
   active: boolean;
@@ -54,6 +63,9 @@ export interface LoomaMentionMenuSnapshot {
  * owns the directory and may render the snapshot with Looma's menu or custom
  * UI. `menuId` must match that UI's listbox id so `aria-controls` and
  * `aria-activedescendant` reference real elements.
+ *
+ * @ownership The application owns provider work and rendering callbacks; Looma
+ * owns transient selection state and restores every borrowed editor ARIA value.
  */
 export interface LoomaMentionOptions {
   items?: readonly LoomaMentionItem[] | LoomaMentionProvider;
@@ -72,6 +84,9 @@ export function normalizeMentionResultLimit(limit = DEFAULT_MENTION_RESULT_LIMIT
  * Applies Looma's local fallback matching to static or provider results.
  * Matching is intentionally limited to display text; stable ids and arbitrary
  * metadata must not become discoverable search fields by accident.
+ *
+ * @contract Preserves source order, does not mutate the input, and returns no
+ * more than the normalized public result limit.
  */
 export function filterLoomaMentionItems(
   items: readonly LoomaMentionItem[],

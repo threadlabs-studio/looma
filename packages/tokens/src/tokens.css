@@ -127,6 +127,23 @@
     --ui-info-solid: #0066cc;
     --ui-info-soft: #e8f0fb;
 
+    /* Intent colors split readable foreground use from filled-surface use. */
+    --ui-accent-strong-surface: #5b55d6;
+    --ui-accent-on-strong: #ffffff;
+    --ui-accent-subtle-text: #3e399e;
+    --ui-danger-strong-surface: #b4233f;
+    --ui-danger-on-strong: #ffffff;
+    --ui-danger-subtle-text: #941d35;
+    --ui-success-strong-surface: #007a33;
+    --ui-success-on-strong: #ffffff;
+    --ui-success-subtle-text: #006629;
+    --ui-warning-strong-surface: #7a4f00;
+    --ui-warning-on-strong: #ffffff;
+    --ui-warning-subtle-text: #704800;
+    --ui-info-strong-surface: #0066cc;
+    --ui-info-on-strong: #ffffff;
+    --ui-info-subtle-text: #0058b0;
+
     --ui-control-min-block-size: 2.75rem;
 
     /* Compatibility aliases used by the editor's public styling surface.

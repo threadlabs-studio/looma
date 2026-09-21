@@ -15,6 +15,7 @@ export type OverlayCloseReason =
   | "escape"
   | "action";
 
+/** Input modality that initiated an overlay state transition. */
 export type OverlayTrigger = "keyboard" | "pointer" | "programmatic";
 
 /**
@@ -23,6 +24,9 @@ export type OverlayTrigger = "keyboard" | "pointer" | "programmatic";
  * `requestClose` is deliberately a request rather than a mutation. Controlled
  * components notify their owner and may remain open; uncontrolled components
  * may close immediately. The manager must not guess which mode is active.
+ *
+ * @ownership The component owns the element and open state. The manager borrows
+ * the record only to coordinate stack order, dismissal, and modal accounting.
  */
 export interface OverlayRecord {
   id: string;
@@ -105,6 +109,9 @@ function removeListenersIfIdle(): void {
  * Moves an overlay to the top of the interaction stack.
  * Reopening an existing id replaces its record so modal accounting cannot be
  * incremented twice and the newest callbacks/related elements take effect.
+ *
+ * @lifecycle The record remains active until its id is closed or replaced;
+ * callers must close it during teardown even after the element disconnects.
  */
 export function openOverlay(record: OverlayRecord): void {
   closeOverlay(record.id);
@@ -129,10 +136,12 @@ export function closeOverlay(id: string): void {
   removeListenersIfIdle();
 }
 
+/** Returns the most recently opened live record without mutating stack order. */
 export function getTopOverlay(): OverlayRecord | undefined {
   return stack.at(-1);
 }
 
+/** Reports whether an id currently owns Escape and light-dismiss handling. */
 export function isTopOverlay(id: string): boolean {
   return getTopOverlay()?.id === id;
 }

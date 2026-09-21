@@ -19,6 +19,6 @@ export const Tones: Story = {
     <ui-callout tone="note">Notes add durable context.</ui-callout>
     <ui-callout tone="warning">Warnings ask for care before proceeding.</ui-callout>
     <ui-callout tone="success">Success confirms a completed step.</ui-callout>
-    <ui-callout tone="error">Errors explain what needs attention.</ui-callout>
+    <ui-callout tone="danger">Danger messages explain what needs immediate attention.</ui-callout>
   </div>`,
 };

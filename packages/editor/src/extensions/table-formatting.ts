@@ -4,6 +4,7 @@ import TableCellBase from "@tiptap/extension-table-cell";
 import TableHeaderBase from "@tiptap/extension-table-header";
 export { TABLE_CELL_BACKGROUND_PRESETS } from "../table-backgrounds";
 
+/** Persistable horizontal alignments accepted by Looma table cells. */
 export type TableCellAlignment = "left" | "center" | "right";
 /** CSS color stored in document attrs; null removes authored cell background. */
 export type TableCellBackground = string | null;
@@ -12,6 +13,9 @@ export type TableCellBackground = string | null;
  * Looma's table behavior policy: resizable columns, stable minimum cell width,
  * and no independently resizable trailing column. The narrow handle is also a
  * Tiptap coordinate probe, so changing it affects selection as well as visuals.
+ *
+ * @invariant The 3px handle, 112px cell minimum, and fixed trailing edge are a
+ * coordinated selection-and-resize policy and must be changed together.
  */
 export const LoomaTable: AnyExtension = TableBase.configure({
   resizable: true,
@@ -78,7 +82,12 @@ const tableAlignmentAttributes = {
   },
 };
 
-/** Header node that round-trips Looma alignment and background attributes. */
+/**
+ * Header node that round-trips Looma alignment and background attributes.
+ *
+ * @contract Inherits the base header schema while normalizing authored styles
+ * into the same persisted attributes used by body cells.
+ */
 export const LoomaTableHeader: AnyExtension = TableHeaderBase.extend({
   addAttributes() {
     return {
@@ -88,7 +97,12 @@ export const LoomaTableHeader: AnyExtension = TableHeaderBase.extend({
   },
 });
 
-/** Body-cell node with the same persisted formatting contract as headers. */
+/**
+ * Body-cell node with the same persisted formatting contract as headers.
+ *
+ * @contract Inherits the base cell schema and shares header parsing/rendering so
+ * moving content between header and body cells does not change formatting data.
+ */
 export const LoomaTableCell: AnyExtension = TableCellBase.extend({
   addAttributes() {
     return {
@@ -101,6 +115,9 @@ export const LoomaTableCell: AnyExtension = TableCellBase.extend({
 /**
  * Reads formatting from the nearest cell/header ancestor of the selection.
  * Left is the canonical default and is not serialized as an inline style.
+ *
+ * @contract Returns `left` outside a table cell and for missing, invalid, or
+ * explicitly default alignment attributes.
  */
 export function getActiveTableCellAlignment(editor: Editor): TableCellAlignment {
   const { $from } = editor.state.selection;
@@ -115,7 +132,12 @@ export function getActiveTableCellAlignment(editor: Editor): TableCellAlignment 
   return "left";
 }
 
-/** Returns the nearest cell/header background, normalized so blank means absent. */
+/**
+ * Returns the nearest cell/header background, normalized so blank means absent.
+ *
+ * @contract Returns null outside a table cell and for non-string or whitespace-
+ * only attributes, matching the value used to clear persisted background CSS.
+ */
 export function getActiveTableCellBackground(editor: Editor): TableCellBackground {
   const { $from } = editor.state.selection;
 
@@ -132,6 +154,9 @@ export function getActiveTableCellBackground(editor: Editor): TableCellBackgroun
 /**
  * Updates the active header or body cell and returns false outside a table cell.
  * Setting left stores null, keeping the document free of redundant default CSS.
+ *
+ * @contract Focuses and updates only the active header or body cell; unsupported
+ * selections return false without creating a transaction.
  */
 export function setActiveTableCellAlignment(
   editor: Editor,
@@ -153,6 +178,9 @@ export function setActiveTableCellAlignment(
 /**
  * Updates the active header or body cell; blank strings normalize to null so
  * clearing formatting removes persisted inline style instead of storing noise.
+ *
+ * @contract Focuses and updates only the active header or body cell; unsupported
+ * selections return false and blank values remove the persisted attribute.
  */
 export function setActiveTableCellBackground(
   editor: Editor,

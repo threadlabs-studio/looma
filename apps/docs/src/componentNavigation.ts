@@ -9,7 +9,6 @@ export const componentGroups = [
     items: [
       { tag: "ui-stack" },
       { tag: "ui-inline" },
-      { tag: "ui-cluster" },
       { tag: "ui-grid" },
       { tag: "ui-center" },
       { tag: "ui-switcher" },
@@ -27,8 +26,8 @@ export const componentGroups = [
       { tag: "ui-tooltip" },
       { tag: "ui-toast-region" },
       { tag: "ui-menu" },
-      { tag: "ui-menu-item" },
-      { tag: "ui-context-menu" }
+      { tag: "ui-context-menu" },
+      { tag: "ui-search-shell" }
     ]
   },
   {
@@ -52,35 +51,13 @@ export const componentGroups = [
     label: "Display",
     items: [
       { tag: "ui-badge" },
-      { tag: "ui-chip" },
       { tag: "ui-callout" },
       { tag: "ui-avatar" },
       { tag: "ui-avatar-group" },
       { tag: "ui-disclosure" },
       { tag: "ui-tabs" },
       { tag: "ui-tree" },
-      { tag: "ui-tree-item" },
-      { tag: "ui-search-result-row" },
       { tag: "ui-top-bar" }
-    ]
-  },
-  {
-    label: "Patterns",
-    items: [
-      { tag: "ui-floating-action-button", label: "Floating Action Button" },
-      { tag: "ui-search-shell" }
-    ]
-  },
-  {
-    label: "Editor",
-    items: [
-      { tag: "ui-editor-toolbar" },
-      { tag: "ui-editor-slash-menu" },
-      { tag: "ui-editor-mention-menu" },
-      { tag: "ui-editor-insert-table-grid" },
-      { tag: "ui-editor-table-toolbar" },
-      { tag: "ui-editor-table-context-menu" },
-      { tag: "ui-editor-table-overlay" }
     ]
   }
 ] as const satisfies readonly {
@@ -88,4 +65,22 @@ export const componentGroups = [
   readonly items: readonly ComponentNavigationItem[];
 }[];
 
-export type ComponentCategory = (typeof componentGroups)[number]["label"];
+export const editorComponentGroup = {
+  label: "Editor",
+  items: [
+    { tag: "ui-editor-toolbar", label: "Toolbar" },
+    { tag: "ui-editor-slash-menu", label: "Slash Menu" },
+    { tag: "ui-editor-mention-menu", label: "Mention Menu" },
+    { tag: "ui-editor-insert-table-grid", label: "Insert Table Grid" },
+    { tag: "ui-editor-table-toolbar", label: "Table Toolbar" },
+    { tag: "ui-editor-table-context-menu", label: "Table Context Menu" },
+    { tag: "ui-editor-table-overlay", label: "Table Overlay" }
+  ]
+} as const satisfies {
+  readonly label: string;
+  readonly items: readonly ComponentNavigationItem[];
+};
+
+export const allComponentGroups = [...componentGroups, editorComponentGroup] as const;
+
+export type ComponentCategory = (typeof allComponentGroups)[number]["label"];

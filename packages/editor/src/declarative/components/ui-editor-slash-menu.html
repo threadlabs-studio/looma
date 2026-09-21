@@ -1,0 +1,12 @@
+<template component="ui-editor-slash-menu" status="early" summary="Looma ui-editor-slash-menu editor surface." controller="./controllers/ui-editor-slash-menu.js">
+  <defs>
+    <prop name="open" type="boolean" default="false">open value.</prop>
+    <prop name="query" type="string" default="">query value.</prop>
+    <prop name="items" type="list(object({ title: string, description: string, icon: string }))">items value.</prop>
+    <prop name="selectedIndex" type="integer" default="0">selectedIndex value.</prop>
+    <prop name="anchorRect" type="object({ left?: number, top?: number, right?: number, bottom?: number, x?: number, y?: number, width?: number, height?: number }) | null">anchorRect value.</prop>
+    <event name="highlight" type="object({ index: integer })"></event>
+    <event name="select" type="object({ index: integer })"></event>
+  </defs>
+  <div .items="items" .anchorRect="anchorRect"></div>
+</template>

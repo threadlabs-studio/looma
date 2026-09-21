@@ -1,0 +1,77 @@
+<link rel="component" href="./ui-icon-button.html">
+<template component="ui-toast-region" controller="./controllers/ui-toast-region.js" status="early" summary="A live notification region with an imperative show method and owned dismissal controls.">
+  <defs>
+    <prop name="open" type="boolean" default="false">Whether authored messages are initially visible.</prop>
+    <prop name="message" type="string" default="Notification">Fallback message used by the declarative show command.</prop>
+    <state name="internalOpen" :value="false"></state>
+    <event name="close" type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"></event>
+    <event name="dismiss" type="object({ id: string, reason: action, trigger: keyboard | pointer | programmatic })"></event>
+    <method name="show" export="show" returns="promise(string)"></method>
+  </defs>
+  <div role="region" aria-label="Notifications" aria-live="polite" :data-state-open="internalOpen"><slot></slot></div>
+  <style>:scope {
+  position: fixed;
+  top: calc(var(--ui-space-4) + env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: grid;
+  gap: var(--ui-space-2);
+  inline-size: min(24rem, calc(100vw - (var(--ui-space-4) * 2)));
+  max-inline-size: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  box-shadow: none;
+  pointer-events: none;
+}
+
+:scope[popover] {
+  right: auto;
+  bottom: auto;
+  margin: 0;
+}
+
+:scope > * {
+  pointer-events: auto;
+}
+
+.toast {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--ui-space-2);
+  align-items: start;
+  border: 1px solid var(--ui-border-default);
+  border-radius: var(--ui-radius-3);
+  padding: var(--ui-space-3) var(--ui-space-4);
+  background: var(--ui-surface-elevated);
+  color: var(--ui-text-primary);
+  box-shadow: var(--ui-shadow-lg);
+  animation: ui-toast-enter 0.25s var(--ui-motion-ease) forwards;
+}
+
+@keyframes ui-toast-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.toast__message { min-inline-size: 0; align-self: center; }
+.toast__dismiss {
+  align-self: center;
+  min-inline-size: 2.25rem;
+  min-block-size: 2.25rem;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+</style>
+</template>

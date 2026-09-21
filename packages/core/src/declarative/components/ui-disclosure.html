@@ -1,0 +1,75 @@
+<template component="ui-disclosure" controller="./controllers/ui-disclosure.js" status="early" summary="Migrated Looma ui-disclosure component.">
+  <defs>
+    <prop name="summary" type="string" default="Details">summary token.</prop>
+    <prop name="open" type="boolean" default="false">open token.</prop>
+    <prop name="disabled" type="boolean" default="false">disabled token.</prop>
+    <state name="internalOpen" :value="false"></state>
+    <state name="contentId" :value="''"></state>
+    <event name="open" type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"></event>
+    <event name="close" type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"></event>
+  </defs>
+  <div><button class="disclosure__trigger" type="button" :aria-controls="contentId" :disabled="disabled"><span><template $value="summary"></template></span><span class="disclosure__chevron" aria-hidden="true"></span></button><div class="disclosure__panel"><div class="disclosure__panel-inner"><slot></slot></div></div></div>
+  <style>:scope {
+  display: block;
+  inline-size: 100%;
+  overflow: clip;
+  border: 1px solid var(--ui-border-default);
+  border-radius: var(--ui-radius-2);
+  background: var(--ui-surface-default);
+  color: var(--ui-text-primary);
+}
+
+.disclosure__trigger {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--ui-space-3);
+  align-items: center;
+  inline-size: 100%;
+  min-block-size: 2.5rem;
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: var(--ui-font-medium);
+  text-align: start;
+  cursor: pointer;
+}
+
+.disclosure__trigger:hover:not(:disabled) { background: var(--ui-surface-muted); }
+.disclosure__trigger:focus-visible { outline: 2px solid var(--ui-focus-ring); outline-offset: -2px; }
+.disclosure__trigger:disabled { color: var(--ui-text-muted); cursor: not-allowed; }
+
+.disclosure__chevron {
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  border-inline-end: 2px solid currentColor;
+  border-block-end: 2px solid currentColor;
+  transform: rotate(45deg) translate(-1px, -1px);
+  transition: transform var(--ui-motion-fast) var(--ui-motion-ease);
+}
+
+.disclosure__panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--ui-motion-base) var(--ui-motion-ease);
+}
+
+.disclosure__panel-inner {
+  min-block-size: 0;
+  overflow: hidden;
+  padding-inline: var(--ui-space-3);
+}
+
+:scope[data-state-open='true'] .disclosure__panel { grid-template-rows: 1fr; }
+:scope[data-state-open='true'] .disclosure__panel-inner { padding-block: 0 var(--ui-space-3); }
+:scope[data-state-open='true'] .disclosure__chevron {
+  transform: rotate(225deg) translate(-1px, -1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .disclosure__panel,
+  .disclosure__chevron { transition: none; }
+}
+</style>
+</template>

@@ -3,16 +3,12 @@
     "allowSyntheticDefaultImports": true,
     "allowUnreachableCode": false,
     "declaration": false,
-    "experimentalDecorators": true,
     "lib": ["dom", "es2022"],
     "moduleResolution": "bundler",
     "module": "esnext",
     "target": "es2022",
     "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "jsx": "react",
-    "jsxFactory": "h",
-    "jsxFragmentFactory": "h.Fragment"
+    "noUnusedParameters": true
   },
   "include": ["src", "index.ts"],
   "exclude": ["node_modules", "**/*.test.ts"]

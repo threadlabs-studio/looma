@@ -4,6 +4,11 @@ import { Plugin, PluginKey, type Transaction } from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
 import type { OverlayTrigger } from "@threadlabs/looma-core";
 
+/**
+ * Durable image data stored in the editor document.
+ * Delivery-specific attributes are intentionally absent so serialized content
+ * remains portable across CDNs, viewport policies, and Vue applications.
+ */
 export interface LoomaImageDescriptor {
   src: string;
   alt?: string;
@@ -22,16 +27,33 @@ export interface LoomaImageRenditionAttributes {
   fetchPriority?: "auto" | "high" | "low";
 }
 
+/**
+ * Host policy for deriving transient browser-delivery attributes.
+ *
+ * @ownership The application owns the resolver and any URL/signing policy it
+ * consults; Looma reads its result without persisting it into editor JSON.
+ * @failure Throwing or returning `undefined` falls back to the durable source
+ * instead of interrupting rendering or mutating the document.
+ */
 export type LoomaImageAttributeResolver = (
   image: LoomaImageDescriptor,
 ) => LoomaImageRenditionAttributes | undefined;
 
+/** User-originated interaction that may request the host's image viewer. */
 export type LoomaImageActivationTrigger = Exclude<OverlayTrigger, "programmatic">;
 
+/**
+ * Image identity and user trigger emitted when an editor image is activated.
+ * Hosts may use the stable descriptor to open a viewer without inspecting DOM.
+ */
 export interface LoomaImageActivationDetail extends LoomaImageDescriptor {
   trigger: LoomaImageActivationTrigger;
 }
 
+/**
+ * Durable image identity reported after a transient responsive rendition fails.
+ * The programmatic trigger distinguishes delivery fallback from user intent.
+ */
 export interface LoomaImageRenditionErrorDetail extends LoomaImageDescriptor {
   trigger: "programmatic";
 }

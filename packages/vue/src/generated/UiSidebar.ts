@@ -18,7 +18,6 @@ export default /*@__PURE__*/_defineComponent({
     resizeLabel: { type: [String, null], required: false, default: "Resize sidebar" },
     resizeStep: { type: [Number, null], required: false, default: 16 },
     side: { type: [String, null], required: false, default: "start" },
-    storageKey: { type: [String, null], required: false },
     width: { type: [String, null], required: false, default: "default" }
   },
   emits: ["resize"],
@@ -28,7 +27,7 @@ export default /*@__PURE__*/_defineComponent({
 
 const props = __props;
 const emit = __emit;
-const definition = {...{"contract":{"tag":"ui-sidebar","props":{"align":{"type":{"enum":["start","center","end","stretch"]},"required":false,"target":{"attribute":"align"}},"gap":{"type":{"enum":["xs","s","m","l","xl"]},"required":false,"target":{"attribute":"gap"}},"maxWidth":{"type":"number","required":false,"target":{"attribute":"maxwidth"},"default":480},"minWidth":{"type":"number","required":false,"target":{"attribute":"minwidth"},"default":176},"resizable":{"type":"boolean","required":false,"target":{"attribute":"resizable"},"default":false},"resizeLabel":{"type":"string","required":false,"target":{"attribute":"resizelabel"},"default":"Resize sidebar"},"resizeStep":{"type":"number","required":false,"target":{"attribute":"resizestep"},"default":16},"side":{"type":{"enum":["start","end"]},"required":false,"target":{"attribute":"side"},"default":"start"},"storageKey":{"type":"string","required":false,"target":{"attribute":"storagekey"}},"width":{"type":{"enum":["narrow","default","wide"]},"required":false,"target":{"attribute":"width"},"default":"default"}}},"template":{"kind":"element","name":"div","attributes":[],"children":[{"kind":"slot"}]},"declarations":[{"kind":"event","name":"resize","type":"object({ width: number, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
+const definition = {...{"contract":{"tag":"ui-sidebar","props":{"align":{"type":{"enum":["start","center","end","stretch"]},"required":false,"target":{"attribute":"align"}},"gap":{"type":{"enum":["xs","s","m","l","xl"]},"required":false,"target":{"attribute":"gap"}},"maxWidth":{"type":"number","required":false,"target":{"attribute":"maxwidth"},"default":480},"minWidth":{"type":"number","required":false,"target":{"attribute":"minwidth"},"default":176},"resizable":{"type":"boolean","required":false,"target":{"attribute":"resizable"},"default":false},"resizeLabel":{"type":"string","required":false,"target":{"attribute":"resizelabel"},"default":"Resize sidebar"},"resizeStep":{"type":"number","required":false,"target":{"attribute":"resizestep"},"default":16},"side":{"type":{"enum":["start","end"]},"required":false,"target":{"attribute":"side"},"default":"start"},"width":{"type":{"enum":["narrow","default","wide"]},"required":false,"target":{"attribute":"width"},"default":"default"}}},"template":{"kind":"element","name":"div","attributes":[],"children":[{"kind":"slot"}]},"declarations":[{"kind":"event","name":"resize","type":"object({ width: number, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
 const root = ref<Element>();
 const eventListener0 = (event: Event) => emit("resize", (event as CustomEvent<{ readonly width: number; readonly trigger: "keyboard" | "pointer" | "programmatic" }>).detail);
 let detach: undefined | (() => void);
@@ -39,7 +38,7 @@ onMounted(() => {
 });
 watchEffect(() => {
   if (root.value == null) return;
-  for (const name of ["align","gap","maxWidth","minWidth","resizable","resizeLabel","resizeStep","side","storageKey","width"]) (root.value as unknown as Record<string, unknown>)[name] = props[name as keyof typeof props];
+  for (const name of ["align","gap","maxWidth","minWidth","resizable","resizeLabel","resizeStep","side","width"]) (root.value as unknown as Record<string, unknown>)[name] = props[name as keyof typeof props];
 });
 onUnmounted(() => {
   root.value?.removeEventListener("resize", eventListener0);

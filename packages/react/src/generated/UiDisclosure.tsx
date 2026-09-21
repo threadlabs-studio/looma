@@ -4,12 +4,12 @@ import type { ComponentPropsWithoutRef, ComponentRef, ElementType, ReactNode, Re
 import { attachLoomaComponent } from "@threadlabs/looma-core/declarative";
 import type { ComponentDefinition } from "@threadlabs/looma-core/declarative";
 
-const definition = {...{"contract":{"tag":"ui-disclosure","props":{"defaultOpen":{"type":"boolean","required":false,"target":{"attribute":"defaultopen"},"default":false},"disabled":{"type":"boolean","required":false,"target":{"attribute":"disabled"},"default":false},"open":{"type":"boolean","required":false,"target":{"attribute":"open"}}}},"template":{"kind":"element","name":"div","attributes":[],"children":[{"kind":"slot"}]},"declarations":[{"kind":"state","name":"internalOpen","expression":{"source":"false","ast":{"kind":"literal","value":false},"dependencies":[]}},{"kind":"state","name":"contentId","expression":{"source":"''","ast":{"kind":"literal","value":""},"dependencies":[]}},{"kind":"event","name":"open","type":"object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false},{"kind":"event","name":"close","type":"object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
+const definition = {...{"contract":{"tag":"ui-disclosure","props":{"disabled":{"type":"boolean","required":false,"target":{"attribute":"disabled"},"default":false},"open":{"type":"boolean","required":false,"target":{"attribute":"open"},"default":false},"summary":{"type":"string","required":false,"target":{"attribute":"summary"},"default":"Details"}}},"template":{"kind":"element","name":"div","attributes":[],"children":[{"kind":"element","name":"button","attributes":[{"kind":"literal","name":"class","value":"disclosure__trigger"},{"kind":"literal","name":"type","value":"button"},{"kind":"attribute","name":"aria-controls","expression":"contentId","expressionPlan":{"source":"contentId","ast":{"kind":"id","name":"contentId"},"dependencies":["contentId"]}},{"kind":"attribute","name":"disabled","expression":"disabled","expressionPlan":{"source":"disabled","ast":{"kind":"id","name":"disabled"},"dependencies":["disabled"]}}],"children":[{"kind":"element","name":"span","attributes":[],"children":[{"kind":"element","name":"template","attributes":[{"kind":"directive","name":"value","expression":"summary","expressionPlan":{"source":"summary","ast":{"kind":"id","name":"summary"},"dependencies":["summary"]}}],"children":[]}]},{"kind":"element","name":"span","attributes":[{"kind":"literal","name":"class","value":"disclosure__chevron"},{"kind":"literal","name":"aria-hidden","value":"true"}],"children":[]}]},{"kind":"element","name":"div","attributes":[{"kind":"literal","name":"class","value":"disclosure__panel"}],"children":[{"kind":"element","name":"div","attributes":[{"kind":"literal","name":"class","value":"disclosure__panel-inner"}],"children":[{"kind":"slot"}]}]}]},"declarations":[{"kind":"state","name":"internalOpen","expression":{"source":"false","ast":{"kind":"literal","value":false},"dependencies":[]}},{"kind":"state","name":"contentId","expression":{"source":"''","ast":{"kind":"literal","value":""},"dependencies":[]}},{"kind":"event","name":"open","type":"object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false},{"kind":"event","name":"close","type":"object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
 
 interface UiDisclosureOwnProps {
-  defaultOpen?: boolean | null;
   disabled?: boolean | null;
   open?: boolean | null;
+  summary?: string | null;
   onOpen?: (detail: { readonly open: boolean; readonly reason: "action" | "programmatic" | "light-dismiss" | "escape"; readonly trigger: "keyboard" | "pointer" | "programmatic" }, event: CustomEvent<{ readonly open: boolean; readonly reason: "action" | "programmatic" | "light-dismiss" | "escape"; readonly trigger: "keyboard" | "pointer" | "programmatic" }>) => void;
   onClose?: (detail: { readonly open: boolean; readonly reason: "action" | "programmatic" | "light-dismiss" | "escape"; readonly trigger: "keyboard" | "pointer" | "programmatic" }, event: CustomEvent<{ readonly open: boolean; readonly reason: "action" | "programmatic" | "light-dismiss" | "escape"; readonly trigger: "keyboard" | "pointer" | "programmatic" }>) => void;
   slots?: Readonly<Record<string, ReactNode>>;
@@ -22,14 +22,14 @@ export type UiDisclosureProps = Omit<ComponentPropsWithoutRef<"div">, keyof UiDi
   UiDisclosureOwnProps & { children?: ReactNode; ref?: Ref<UiDisclosureHandle> };
 
 export function UiDisclosure(props: UiDisclosureProps) {
-  const { "defaultOpen": prop0 = false, "disabled": prop1 = false, "open": prop2, onOpen, onClose, slots, children, ref, ...nativeProps } = props;
+  const { "disabled": prop0 = false, "open": prop1 = false, "summary": prop2 = "Details", onOpen, onClose, slots, children, ref, ...nativeProps } = props;
   const root = useRef<UiDisclosureHandle | null>(null);
   const setRoot = (node: UiDisclosureHandle | null) => {
     (root as { current: UiDisclosureHandle | null }).current = node;
     if (typeof ref === "function") ref(node);
     else if (ref != null) ref.current = node;
   };
-  const componentProps: Record<string, unknown> = { "defaultOpen": prop0, "disabled": prop1, "open": prop2 };
+  const componentProps: Record<string, unknown> = { "disabled": prop0, "open": prop1, "summary": prop2 };
   useLayoutEffect(() => root.current == null ? undefined : attachLoomaComponent(root.current, definition, "ui-disclosure", componentProps), []);
   useLayoutEffect(() => { if (root.current != null) Object.assign(root.current, componentProps); });
   useLayoutEffect(() => {
@@ -48,7 +48,19 @@ export function UiDisclosure(props: UiDisclosureProps) {
   }, [onClose]);
   return (
     <div {...nativeProps} data-component="ui-disclosure" data-component-root="ui-disclosure" data-looma-managed="framework" ref={setRoot}>
-      {children ?? (null)}
+      <button className="disclosure__trigger" type="button" aria-controls={undefined} disabled={prop0 ?? undefined} data-component="ui-disclosure">
+      <span data-component="ui-disclosure">
+        <template data-component="ui-disclosure">
+          {prop2}
+        </template>
+      </span>
+<span className="disclosure__chevron" aria-hidden="true" data-component="ui-disclosure"></span>
+    </button>
+<div className="disclosure__panel" data-component="ui-disclosure">
+      <div className="disclosure__panel-inner" data-component="ui-disclosure">
+        {children ?? (null)}
+      </div>
+    </div>
     </div>
   );
 }

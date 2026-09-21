@@ -7,7 +7,7 @@ interface UiInlineOwnProps {
   align?: "start" | "center" | "end" | "stretch" | null;
   gap?: "xs" | "s" | "m" | "l" | "xl" | null;
   justify?: "start" | "center" | "end" | "between" | null;
-  wrap?: "wrap" | "nowrap" | null;
+  wrap?: boolean | null;
   slots?: Readonly<Record<string, ReactNode>>;
 }
 
@@ -18,7 +18,7 @@ export type UiInlineProps = Omit<ComponentPropsWithoutRef<"div">, keyof UiInline
   UiInlineOwnProps & { children?: ReactNode; ref?: Ref<UiInlineHandle> };
 
 export function UiInline(props: UiInlineProps) {
-  const { "align": prop0, "gap": prop1, "justify": prop2, "wrap": prop3, slots, children, ref, ...nativeProps } = props;
+  const { "align": prop0, "gap": prop1, "justify": prop2, "wrap": prop3 = false, slots, children, ref, ...nativeProps } = props;
   const root = useRef<UiInlineHandle | null>(null);
   const setRoot = (node: UiInlineHandle | null) => {
     (root as { current: UiInlineHandle | null }).current = node;
@@ -30,7 +30,7 @@ export function UiInline(props: UiInlineProps) {
     { name: "align", attribute: "data-align", value: prop0, type: ["start","center","end","stretch"], required: false },
     { name: "gap", attribute: "data-gap", value: prop1, type: ["xs","s","m","l","xl"], required: false },
     { name: "justify", attribute: "data-justify", value: prop2, type: ["start","center","end","between"], required: false },
-    { name: "wrap", attribute: "data-wrap", value: prop3, type: ["wrap","nowrap"], required: false },
+    { name: "wrap", attribute: "data-wrap", value: prop3, type: "boolean", required: false },
   ]), []);
   useLayoutEffect(() => { if (root.current != null) Object.assign(root.current, componentProps); });
   return (

@@ -4,7 +4,7 @@ import type { ComponentPropsWithoutRef, ComponentRef, ElementType, ReactNode, Re
 import { attachLoomaComponent } from "@threadlabs/looma-core/declarative";
 import type { ComponentDefinition } from "@threadlabs/looma-core/declarative";
 
-const definition = {...{"contract":{"tag":"ui-editor-mention-menu","props":{"anchorRect":{"type":{"kind":"union","members":[{"kind":"object","fields":[{"name":"left","type":{"kind":"terminal","name":"number"},"optional":true},{"name":"top","type":{"kind":"terminal","name":"number"},"optional":true},{"name":"right","type":{"kind":"terminal","name":"number"},"optional":true},{"name":"bottom","type":{"kind":"terminal","name":"number"},"optional":true},{"name":"x","type":{"kind":"terminal","name":"number"},"optional":true},{"name":"y","type":{"kind":"terminal","name":"number"},"optional":true},{"name":"width","type":{"kind":"terminal","name":"number"},"optional":true},{"name":"height","type":{"kind":"terminal","name":"number"},"optional":true}],"open":false},{"kind":"terminal","name":"null"}]},"required":false,"target":{"property":"anchorRect"}},"items":{"type":{"kind":"list","item":{"kind":"object","fields":[{"name":"id","type":{"kind":"terminal","name":"string"},"optional":false},{"name":"label","type":{"kind":"terminal","name":"string"},"optional":false},{"name":"detail","type":{"kind":"terminal","name":"string"},"optional":true},{"name":"initials","type":{"kind":"terminal","name":"string"},"optional":true}],"open":false}},"required":false,"target":{"property":"items"}},"loading":{"type":"boolean","required":false,"target":{"attribute":"loading"},"default":false},"open":{"type":"boolean","required":false,"target":{"attribute":"open"},"default":false},"query":{"type":"string","required":false,"target":{"attribute":"query"},"default":""},"selectedIndex":{"type":{"kind":"terminal","name":"integer"},"required":false,"target":{"attribute":"selectedindex"},"default":0}}},"template":{"kind":"element","name":"div","attributes":[{"kind":"property","key":"items","name":"items","expression":"items","expressionPlan":{"source":"items","ast":{"kind":"id","name":"items"},"dependencies":["items"]}},{"kind":"property","key":"anchorrect","name":"anchorRect","expression":"anchorRect","expressionPlan":{"source":"anchorRect","ast":{"kind":"id","name":"anchorRect"},"dependencies":["anchorRect"]}}],"children":[]},"declarations":[{"kind":"event","name":"looma-editor-mention-menu-highlight","type":"object({ index: integer })","bubbles":true,"composed":true,"cancelable":false},{"kind":"event","name":"looma-editor-mention-menu-select","type":"object({ index: integer })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
+const definition = {...{"contract":{"tag":"ui-editor-mention-menu","props":{"anchorRect":{"type":{"kind":"union","members":[{"kind":"object","fields":[{"name":"left","type":{"kind":"terminal","name":"number"},"optional":true},{"name":"top","type":{"kind":"terminal","name":"number"},"optional":true},{"name":"right","type":{"kind":"terminal","name":"number"},"optional":true},{"name":"bottom","type":{"kind":"terminal","name":"number"},"optional":true},{"name":"x","type":{"kind":"terminal","name":"number"},"optional":true},{"name":"y","type":{"kind":"terminal","name":"number"},"optional":true},{"name":"width","type":{"kind":"terminal","name":"number"},"optional":true},{"name":"height","type":{"kind":"terminal","name":"number"},"optional":true}],"open":false},{"kind":"terminal","name":"null"}]},"required":false,"target":{"property":"anchorRect"}},"items":{"type":{"kind":"list","item":{"kind":"object","fields":[{"name":"id","type":{"kind":"terminal","name":"string"},"optional":false},{"name":"label","type":{"kind":"terminal","name":"string"},"optional":false},{"name":"detail","type":{"kind":"terminal","name":"string"},"optional":true},{"name":"initials","type":{"kind":"terminal","name":"string"},"optional":true}],"open":false}},"required":false,"target":{"property":"items"}},"loading":{"type":"boolean","required":false,"target":{"attribute":"loading"},"default":false},"open":{"type":"boolean","required":false,"target":{"attribute":"open"},"default":false},"query":{"type":"string","required":false,"target":{"attribute":"query"},"default":""},"selectedIndex":{"type":{"kind":"terminal","name":"integer"},"required":false,"target":{"attribute":"selectedindex"},"default":0}}},"template":{"kind":"element","name":"div","attributes":[{"kind":"property","key":"items","name":"items","expression":"items","expressionPlan":{"source":"items","ast":{"kind":"id","name":"items"},"dependencies":["items"]}},{"kind":"property","key":"anchorrect","name":"anchorRect","expression":"anchorRect","expressionPlan":{"source":"anchorRect","ast":{"kind":"id","name":"anchorRect"},"dependencies":["anchorRect"]}}],"children":[]},"declarations":[{"kind":"event","name":"highlight","type":"object({ index: integer })","bubbles":true,"composed":true,"cancelable":false},{"kind":"event","name":"select","type":"object({ index: integer })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
 
 interface UiEditorMentionMenuOwnProps {
   anchorRect?: { readonly left?: number; readonly top?: number; readonly right?: number; readonly bottom?: number; readonly x?: number; readonly y?: number; readonly width?: number; readonly height?: number } | null;
@@ -13,8 +13,8 @@ interface UiEditorMentionMenuOwnProps {
   open?: boolean | null;
   query?: string | null;
   selectedIndex?: number | null;
-  onLoomaEditorMentionMenuHighlight?: (detail: { readonly index: number }, event: CustomEvent<{ readonly index: number }>) => void;
-  onLoomaEditorMentionMenuSelect?: (detail: { readonly index: number }, event: CustomEvent<{ readonly index: number }>) => void;
+  onHighlight?: (detail: { readonly index: number }, event: CustomEvent<{ readonly index: number }>) => void;
+  onSelect?: (detail: { readonly index: number }, event: CustomEvent<{ readonly index: number }>) => void;
   slots?: Readonly<Record<string, ReactNode>>;
 }
 
@@ -25,7 +25,7 @@ export type UiEditorMentionMenuProps = Omit<ComponentPropsWithoutRef<"div">, key
   UiEditorMentionMenuOwnProps & { children?: ReactNode; ref?: Ref<UiEditorMentionMenuHandle> };
 
 export function UiEditorMentionMenu(props: UiEditorMentionMenuProps) {
-  const { "anchorRect": prop0, "items": prop1, "loading": prop2 = false, "open": prop3 = false, "query": prop4 = "", "selectedIndex": prop5 = 0, onLoomaEditorMentionMenuHighlight, onLoomaEditorMentionMenuSelect, slots, children, ref, ...nativeProps } = props;
+  const { "anchorRect": prop0, "items": prop1, "loading": prop2 = false, "open": prop3 = false, "query": prop4 = "", "selectedIndex": prop5 = 0, onHighlight, onSelect, slots, children, ref, ...nativeProps } = props;
   const root = useRef<UiEditorMentionMenuHandle | null>(null);
   const setRoot = (node: UiEditorMentionMenuHandle | null) => {
     (root as { current: UiEditorMentionMenuHandle | null }).current = node;
@@ -37,18 +37,18 @@ export function UiEditorMentionMenu(props: UiEditorMentionMenuProps) {
   useLayoutEffect(() => { if (root.current != null) Object.assign(root.current, componentProps); });
   useLayoutEffect(() => {
     const node = root.current;
-    if (node == null || onLoomaEditorMentionMenuHighlight == null) return;
-    const listener0 = (event: Event) => onLoomaEditorMentionMenuHighlight((event as CustomEvent<{ readonly index: number }>).detail, event as CustomEvent<{ readonly index: number }>);
-    node.addEventListener("looma-editor-mention-menu-highlight", listener0);
-    return () => node.removeEventListener("looma-editor-mention-menu-highlight", listener0);
-  }, [onLoomaEditorMentionMenuHighlight]);
+    if (node == null || onHighlight == null) return;
+    const listener0 = (event: Event) => onHighlight((event as CustomEvent<{ readonly index: number }>).detail, event as CustomEvent<{ readonly index: number }>);
+    node.addEventListener("highlight", listener0);
+    return () => node.removeEventListener("highlight", listener0);
+  }, [onHighlight]);
   useLayoutEffect(() => {
     const node = root.current;
-    if (node == null || onLoomaEditorMentionMenuSelect == null) return;
-    const listener1 = (event: Event) => onLoomaEditorMentionMenuSelect((event as CustomEvent<{ readonly index: number }>).detail, event as CustomEvent<{ readonly index: number }>);
-    node.addEventListener("looma-editor-mention-menu-select", listener1);
-    return () => node.removeEventListener("looma-editor-mention-menu-select", listener1);
-  }, [onLoomaEditorMentionMenuSelect]);
+    if (node == null || onSelect == null) return;
+    const listener1 = (event: Event) => onSelect((event as CustomEvent<{ readonly index: number }>).detail, event as CustomEvent<{ readonly index: number }>);
+    node.addEventListener("select", listener1);
+    return () => node.removeEventListener("select", listener1);
+  }, [onSelect]);
   return (
     <div {...nativeProps} data-component="ui-editor-mention-menu" data-component-root="ui-editor-mention-menu" data-looma-managed="framework" ref={setRoot}>
 

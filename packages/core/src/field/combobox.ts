@@ -29,11 +29,22 @@ export interface ComboboxRequest<Context = unknown> {
   signal: AbortSignal;
   reason: 'input' | 'disclosure' | 'context';
 }
+
+/**
+ * Resolves options for one query and dependency-context snapshot.
+ *
+ * @lifecycle The request signal bounds the invocation. Providers should forward
+ * it to downstream work and discard side effects after cancellation.
+ */
 export type ComboboxProvider = (request: ComboboxRequest) => readonly ComboboxOption[] | Promise<readonly ComboboxOption[]>;
+
 /**
  * Maps domain records at the boundary while retaining each source record as
  * typed metadata. This avoids parallel lookup maps in renderers without making
  * arbitrary domain fields part of Looma's serialized option contract.
+ *
+ * @contract The result preserves input order and cardinality, and Looma always
+ * installs the original row as metadata rather than accepting a second copy.
  */
 export function mapComboboxOptions<T>(rows: readonly T[], map: (row: T) => Omit<ComboboxOption<T>, 'metadata'>): ComboboxOption<T>[] {
   return rows.map(row => ({ ...map(row), metadata: row }));
@@ -44,6 +55,9 @@ export function mapComboboxOptions<T>(rows: readonly T[], map: (row: T) => Omit<
  * `context` is opaque dependency state owned by the application. Invalidation
  * policy determines what survives when that dependency changes, independently
  * of whether the current selection is controlled by a framework.
+ *
+ * @contract Context is compared by identity; changing it invalidates stale
+ * option identity and applies the configured query/value retention policy.
  */
 export interface ComboboxConfig extends FieldValidation {
   /** Local source used when no provider is present; Looma applies label filtering by default. */

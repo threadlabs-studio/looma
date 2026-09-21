@@ -1,10 +1,11 @@
 import BrowserOnly from "@docusaurus/BrowserOnly";
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   ScenarioModeExample,
   type ScenarioPropertyAssignment
 } from "./ComponentModeExample";
+import type { FrameworkExamples } from "./FrameworkMode";
 import { useLoomaRuntime } from "./LiveExample";
 
 interface ComponentPreviewProps {
@@ -17,13 +18,8 @@ interface PreviewScenario {
   description: string;
   markup: string;
   propertyAssignments?: readonly ScenarioPropertyAssignment[];
-  dialogId?: string;
+  examples?: FrameworkExamples;
 }
-
-const comboboxOptions = [
-  { id: "north", value: "north", label: "North terminal", description: "Harbor district" },
-  { id: "west", value: "west", label: "West terminal", description: "Riverside" }
-];
 
 const mentionItems = [
   { id: "maya", label: "Maya Chen", detail: "Design", initials: "MC" },
@@ -36,6 +32,31 @@ const slashItems = [
 ];
 
 const menuAnchor = { left: 0, top: 0, right: 240, bottom: 40, x: 0, y: 0, width: 240, height: 40 };
+const tableGeometry = {
+  rowBoundaries: [0, 48, 96],
+  columnBoundaries: [0, 120, 240],
+  activeCell: { left: 0, top: 0, width: 120, height: 48, rowIndex: 0, columnIndex: 0 }
+};
+const tableGeometryThree = {
+  rowBoundaries: [0, 40, 80, 120],
+  columnBoundaries: [0, 80, 160, 240],
+  activeCell: { left: 80, top: 40, width: 80, height: 40, rowIndex: 1, columnIndex: 1 },
+  hoveredCell: { left: 80, top: 40, width: 80, height: 40, rowIndex: 1, columnIndex: 1 }
+};
+const tableActionsBasic = ["add-row-after", "add-column-after"];
+const tableActions = [
+  "align-left",
+  "align-center",
+  "align-right",
+  "background-none",
+  "background-yellow",
+  "add-row-before",
+  "add-row-after",
+  "add-column-before",
+  "add-column-after",
+  "merge-cells",
+  "delete-table"
+];
 
 const plusIcon = `
   <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -47,9 +68,162 @@ const searchIcon = `
     <circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" />
   </svg>`;
 
+const searchShellMarkup = `<ui-search-shell id="docs-search-shell" open dismissible label="Search documentation">
+  <ui-input id="docs-search-input" slot="search" type="search" aria-label="Search documentation" placeholder="Search documentation"></ui-input>
+  <div id="docs-search-status" slot="status" aria-live="polite">3 results</div>
+  <div id="docs-search-results" slot="body">
+    <ui-search-result-row id="docs-result-design-tokens">
+      <strong slot="title">Design tokens</strong>
+      <span slot="excerpt">Color, type, spacing, and motion.</span>
+    </ui-search-result-row>
+    <ui-search-result-row id="docs-result-token-overrides">
+      <strong slot="title">Token overrides</strong>
+      <span slot="excerpt">Customize shared and component tokens.</span>
+    </ui-search-result-row>
+    <ui-search-result-row id="docs-result-button-variants">
+      <strong slot="title">Button variants</strong>
+      <span slot="excerpt">Choose solid, outline, ghost, or danger.</span>
+    </ui-search-result-row>
+    <p id="docs-search-empty" hidden>No matching documentation.</p>
+  </div>
+  <form slot="footer" method="dialog">
+    <ui-button type="submit" size="sm">Close</ui-button>
+  </form>
+</ui-search-shell>`;
+
+const searchShellExamples: FrameworkExamples = {
+  "html-next": {
+    language: "html",
+    code: `<script type="module">
+  import "@threadlabs/looma";
+
+  const input = document.querySelector("#docs-search-input");
+  const status = document.querySelector("#docs-search-status");
+  const empty = document.querySelector("#docs-search-empty");
+  const results = [
+    document.querySelector("#docs-result-design-tokens"),
+    document.querySelector("#docs-result-token-overrides"),
+    document.querySelector("#docs-result-button-variants")
+  ];
+
+  function updateResults() {
+    const query = input.value.trim().toLowerCase();
+    let visible = 0;
+    for (const result of results) {
+      result.hidden = !result.textContent.toLowerCase().includes(query);
+      if (!result.hidden) visible += 1;
+    }
+    status.textContent = visible + " result" + (visible === 1 ? "" : "s");
+    empty.hidden = visible !== 0;
+  }
+
+  input.addEventListener("input", updateResults);
+</script>
+
+${searchShellMarkup}`
+  },
+  vue: {
+    language: "vue",
+    code: `<script setup lang="ts">
+import { computed, ref } from "vue";
+import { Button, Input, SearchResultRow, SearchShell } from "@threadlabs/looma/vue";
+
+const query = ref("");
+const results = [
+  ["Design tokens", "Color, type, spacing, and motion."],
+  ["Token overrides", "Customize shared and component tokens."],
+  ["Button variants", "Choose solid, outline, ghost, or danger."]
+];
+const filtered = computed(() => results.filter((result) =>
+  result.join(" ").toLowerCase().includes(query.value.toLowerCase())
+));
+</script>
+
+<template>
+  <SearchShell open dismissible label="Search documentation">
+    <Input slot="search" type="search" aria-label="Search documentation"
+      :value="query" @input="query = $event.target.value" />
+    <div slot="status" aria-live="polite">{{ filtered.length }} results</div>
+    <div slot="body">
+      <SearchResultRow v-for="result in filtered" :key="result[0]">
+        <strong slot="title">{{ result[0] }}</strong>
+        <span slot="excerpt">{{ result[1] }}</span>
+      </SearchResultRow>
+      <p v-if="filtered.length === 0">No matching documentation.</p>
+    </div>
+    <form slot="footer" method="dialog"><Button type="submit" size="sm">Close</Button></form>
+  </SearchShell>
+</template>`
+  },
+  react: {
+    language: "tsx",
+    code: `import { useState } from "react";
+import { Button, Input, SearchResultRow, SearchShell } from "@threadlabs/looma-react";
+
+const results = [
+  ["Design tokens", "Color, type, spacing, and motion."],
+  ["Token overrides", "Customize shared and component tokens."],
+  ["Button variants", "Choose solid, outline, ghost, or danger."]
+];
+
+export function Example() {
+  const [query, setQuery] = useState("");
+  const filtered = results.filter((result) =>
+    result.join(" ").toLowerCase().includes(query.toLowerCase())
+  );
+  return (
+    <SearchShell open dismissible label="Search documentation">
+      <Input slot="search" type="search" aria-label="Search documentation"
+        value={query} onInput={(event) => setQuery(event.currentTarget.value)} />
+      <div slot="status" aria-live="polite">{filtered.length} results</div>
+      <div slot="body">
+        {filtered.map(([title, excerpt]) => (
+          <SearchResultRow key={title}>
+            <strong slot="title">{title}</strong><span slot="excerpt">{excerpt}</span>
+          </SearchResultRow>
+        ))}
+        {filtered.length === 0 ? <p>No matching documentation.</p> : null}
+      </div>
+      <form slot="footer" method="dialog"><Button type="submit" size="sm">Close</Button></form>
+    </SearchShell>
+  );
+}`
+  },
+  svelte: {
+    language: "svelte",
+    code: `<script lang="ts">
+  import "@threadlabs/looma";
+  let query = "";
+  const results = [
+    ["Design tokens", "Color, type, spacing, and motion."],
+    ["Token overrides", "Customize shared and component tokens."],
+    ["Button variants", "Choose solid, outline, ghost, or danger."]
+  ];
+  $: filtered = results.filter((result) =>
+    result.join(" ").toLowerCase().includes(query.toLowerCase())
+  );
+</script>
+
+<ui-search-shell open dismissible label="Search documentation">
+  <ui-input slot="search" type="search" aria-label="Search documentation"
+    value={query} oninput={(event) => query = event.currentTarget.value}></ui-input>
+  <div slot="status" aria-live="polite">{filtered.length} results</div>
+  <div slot="body">
+    {#each filtered as result (result[0])}
+      <ui-search-result-row>
+        <strong slot="title">{result[0]}</strong><span slot="excerpt">{result[1]}</span>
+      </ui-search-result-row>
+    {/each}
+    {#if filtered.length === 0}<p>No matching documentation.</p>{/if}
+  </div>
+  <form slot="footer" method="dialog"><ui-button type="submit" size="sm">Close</ui-button></form>
+</ui-search-shell>`
+  }
+};
+
 function avatarMarkup(name: string): string {
   const initials = name.split(" ").map((part) => part[0]).join("");
-  return `<ui-avatar name="${name}" fallback="${initials}"><span data-ui-avatar-fallback>${initials}</span></ui-avatar>`;
+  return `<ui-avatar name="${name}" fallback="${initials}"></ui-avatar>`;
 }
 
 /* Scenario names and explanations are editorial content, not generated API metadata. */
@@ -62,9 +236,7 @@ const primaryScenarioCopy: Readonly<Record<string, readonly [label: string, desc
   "ui-callout": ["Default tone", "With no tone supplied, Callout uses the info treatment."],
   "ui-center": ["Default", "With no properties supplied, Center applies its default measure and gutters."],
   "ui-checkbox": ["Default", "With no state properties supplied, Checkbox starts unchecked and enabled."],
-  "ui-chip": ["Default", "With no properties supplied, Chip uses the tag appearance and extra-small size."],
-  "ui-cluster": ["Default", "With no properties supplied, Cluster uses its default gap, alignment, and distribution."],
-  "ui-combobox": ["Label and options", "The label is declarative markup; structured options are assigned through the config property."],
+  "ui-combobox": ["Label and options", "Native option elements provide the ordinary no-script option list."],
   "ui-context-menu": ["Target binding", "The for property binds the menu to a separate context-click target while the trigger slot remains available."],
   "ui-dialog": ["Default", "With no boolean properties supplied, Dialog is non-modal and only explicit controls close it."],
   "ui-disclosure": ["Default closed", "With open omitted, Disclosure initially shows only its trigger."],
@@ -73,23 +245,22 @@ const primaryScenarioCopy: Readonly<Record<string, readonly [label: string, desc
   "ui-editor-mention-menu": ["Open", "The open property exposes the supplied suggestion controls."],
   "ui-editor-slash-menu": ["Open", "The open property exposes the supplied command controls."],
   "ui-editor-table-context-menu": ["Open", "The open property exposes the supplied table commands."],
-  "ui-editor-table-overlay": ["Open", "The open property exposes the overlay above its table content."],
-  "ui-editor-table-toolbar": ["Open", "The open property exposes the supplied table controls."],
+  "ui-editor-table-overlay": ["Open with geometry", "Open exposes controls at the row, column, and active-cell coordinates supplied through the geometry property."],
+  "ui-editor-table-toolbar": ["Open", "The open property exposes the available table controls."],
   "ui-editor-toolbar": ["Default", "Editor Toolbar has no scalar configuration; its supplied controls define the toolbar."],
-  "ui-floating-action-button": ["Default", "Label provides the accessible name while the default state remains enabled on every viewport."],
-  "ui-form-field": ["Label, control, and help", "The default field groups its light-DOM label, native control, and help text."],
+  "ui-form-field": ["Label, control, and help", "Named label and help slots wrap a Looma input without manual IDs or ARIA wiring."],
   "ui-grid": ["Default", "With no properties supplied, Grid uses its default gap and minimum column size."],
   "ui-icon-button": ["Default", "Label provides the accessible name while the default appearance is a medium ghost button."],
-  "ui-inline": ["Default", "With no properties supplied, Inline uses its default gap, alignment, distribution, and wrapping."],
+  "ui-inline": ["Default", "With no properties supplied, Inline keeps its children on one row using its default gap, alignment, and distribution."],
   "ui-input": ["Default", "With no value or state properties supplied, Input exposes an empty, editable native control."],
   "ui-menu": ["Open", "The open property makes the supplied menu items visible."],
   "ui-menu-item": ["Default", "With disabled omitted, Menu Item is selectable inside its required menu context."],
-  "ui-popover": ["Trigger binding", "The for property and native popovertarget connect Popover to its trigger."],
+  "ui-popover": ["Trigger binding", "The for property connects Popover to the Looma button that toggles it."],
   "ui-radio": ["Default", "With checked omitted, Radio starts unselected and enabled."],
   "ui-radio-group": ["Default horizontal", "With orientation omitted, Radio Group lays out its options horizontally."],
   "ui-reel": ["Default", "With no layout properties supplied, Reel uses its base gap, item width, and snap behavior."],
   "ui-search-result-row": ["Default", "With selected and disabled omitted, Search Result Row renders its normal state."],
-  "ui-search-shell": ["Region slots", "The search, body, and footer slots configure the shell's visible regions."],
+  "ui-search-shell": ["open", "Open reveals the labeled shell while the optional status and footer regions remain absent."],
   "ui-select": ["Default", "With no value or state properties supplied, Select follows its native selected option."],
   "ui-separator": ["Default horizontal", "With orientation omitted, Separator renders horizontally."],
   "ui-sidebar": ["Default", "With no properties supplied, Sidebar uses the start side and default width."],
@@ -100,7 +271,7 @@ const primaryScenarioCopy: Readonly<Record<string, readonly [label: string, desc
   "ui-textarea": ["Default", "With rows omitted, Textarea exposes four editable rows."],
   "ui-toast-region": ["Default closed", "With open omitted, Toast Region keeps its supplied messages hidden."],
   "ui-tooltip": ["Target binding", "The for property connects Tooltip to the element that receives its description."],
-  "ui-top-bar": ["Region slots", "Leading, default, search, and actions slots configure the bar."],
+  "ui-top-bar": ["Default", "With no named slots supplied, the default slot fills the title region."],
   "ui-tree": ["Default", "Label names the tree while the default depth remains unrestricted."],
   "ui-tree-item": ["Default", "With state properties omitted, Tree Item renders an enabled, unselected leaf row."]
 };
@@ -111,7 +282,7 @@ function previewMarkup(component: string, id: string): string {
 
   switch (component) {
     case "ui-affordance-scope":
-      return `<ui-affordance-scope><button type="button">Add</button></ui-affordance-scope>`;
+      return `<ui-affordance-scope><ui-icon-button anticipatory variant="outline" label="Add">${plusIcon}</ui-icon-button></ui-affordance-scope>`;
     case "ui-avatar":
       return `<ui-avatar name="Maya Chen"></ui-avatar>`;
     case "ui-avatar-group":
@@ -119,27 +290,23 @@ function previewMarkup(component: string, id: string): string {
     case "ui-badge":
       return `<ui-badge>Default</ui-badge>`;
     case "ui-button":
-      return `<ui-button><button type="button">Button</button></ui-button>`;
+      return `<ui-button>Button</ui-button>`;
     case "ui-callout":
       return `<ui-callout>Information message.</ui-callout>`;
     case "ui-center":
       return `<ui-center><p>Centered content.</p></ui-center>`;
     case "ui-checkbox":
-      return `<ui-checkbox><label><input type="checkbox" />Checkbox</label></ui-checkbox>`;
-    case "ui-chip":
-      return `<ui-chip>Tag</ui-chip>`;
-    case "ui-cluster":
-      return `<ui-cluster>${items}</ui-cluster>`;
+      return `<ui-checkbox>Checkbox</ui-checkbox>`;
     case "ui-combobox":
-      return `<ui-combobox id="destination-picker" label="Destination"></ui-combobox>`;
+      return `<ui-combobox label="Destination" disclosure><option value="north" data-description="Harbor district">North terminal</option><option value="west" data-description="Riverside">West terminal</option></ui-combobox>`;
     case "ui-context-menu":
-      return `<div id="${id}-target">Right-click this area.<ui-context-menu for="${id}-target"><button slot="trigger" type="button">Open menu</button><ui-menu-item value="first">First item</ui-menu-item><ui-menu-item value="second">Second item</ui-menu-item></ui-context-menu></div>`;
+      return `<ui-button id="${id}-target">Open menu</ui-button><ui-context-menu for="${id}-target"><ui-menu-item value="first">First item</ui-menu-item><ui-menu-item value="second">Second item</ui-menu-item></ui-context-menu>`;
     case "ui-dialog":
-      return `<ui-dialog id="confirmation-dialog" label="Confirmation"><strong>Continue?</strong><p>Confirm or cancel this action.</p><button type="button" data-dialog-close>Cancel</button></ui-dialog><button type="button" data-dialog-demo>Open dialog</button>`;
+      return `<ui-button id="open-confirmation">Open dialog</ui-button><ui-dialog id="confirmation-dialog" for="open-confirmation" label="Confirmation"><form method="dialog"><strong>Continue?</strong><p>Confirm or cancel this action.</p><ui-button type="submit">Cancel</ui-button></form></ui-dialog>`;
     case "ui-disclosure":
-      return `<ui-disclosure><button type="button" aria-controls="${id}-panel">Details</button><div id="${id}-panel">Disclosure content.</div></ui-disclosure>`;
+      return `<ui-disclosure summary="Details">Disclosure content.</ui-disclosure>`;
     case "ui-editable":
-      return `<ui-editable><button data-ui-editable-trigger type="button">Edit</button><span slot="preview">Editable text</span><input slot="edit" value="Editable text" aria-label="Editable text" /></ui-editable>`;
+      return `<ui-editable value="Editable text" label="Project title"></ui-editable>`;
     case "ui-editor-insert-table-grid":
       return `<ui-editor-insert-table-grid open max-rows="3" max-cols="4"></ui-editor-insert-table-grid>`;
     case "ui-editor-mention-menu":
@@ -147,81 +314,72 @@ function previewMarkup(component: string, id: string): string {
     case "ui-editor-slash-menu":
       return `<ui-editor-slash-menu id="slash-menu" open></ui-editor-slash-menu>`;
     case "ui-editor-table-context-menu":
-      return `<ui-editor-table-context-menu open></ui-editor-table-context-menu>`;
+      return `<ui-editor-table-context-menu id="table-context-menu" open></ui-editor-table-context-menu>`;
     case "ui-editor-table-overlay":
-      return `<ui-editor-table-overlay open><table><tbody><tr><td>A1</td><td>B1</td></tr><tr><td>A2</td><td>B2</td></tr></tbody></table></ui-editor-table-overlay>`;
+      return `<div class="demo-editor-table-stage"><table aria-label="Example table"><tbody><tr><td>A1</td><td>B1</td></tr><tr><td>A2</td><td>B2</td></tr></tbody></table><ui-editor-table-overlay id="${id}-overlay" open></ui-editor-table-overlay></div>`;
     case "ui-editor-table-toolbar":
-      return `<ui-editor-table-toolbar open><button type="button">Align left</button><button type="button">Add row</button></ui-editor-table-toolbar>`;
+      return `<ui-editor-table-toolbar id="table-toolbar" open></ui-editor-table-toolbar>`;
     case "ui-editor-toolbar":
-      return `<ui-editor-toolbar aria-label="Formatting"><button type="button"><strong>B</strong></button><button type="button"><em>I</em></button><button type="button">Link</button></ui-editor-toolbar>`;
-    case "ui-floating-action-button":
-      return `<ui-floating-action-button label="Create">${plusIcon}</ui-floating-action-button>`;
+      return `<ui-editor-toolbar aria-label="Formatting"><ui-button type="button" variant="ghost" size="sm"><strong>B</strong></ui-button><ui-button type="button" variant="ghost" size="sm"><em>I</em></ui-button><ui-button type="button" variant="ghost" size="sm">Link</ui-button></ui-editor-toolbar>`;
     case "ui-form-field":
-      return `<ui-form-field><label for="field-input">Label</label><input id="field-input" type="text" /><small data-slot="help">Help text</small></ui-form-field>`;
+      return `<ui-form-field><label slot="label">Label</label><ui-input aria-label="Label"></ui-input><small slot="help">Help text</small></ui-form-field>`;
     case "ui-grid":
       return `<ui-grid>${items}</ui-grid>`;
     case "ui-icon-button":
       return `<ui-icon-button label="Search" variant="ghost" size="md">${searchIcon}</ui-icon-button>`;
     case "ui-inline":
-      return `<ui-inline><span>Alpha</span><span>Beta</span><span>Gamma</span></ui-inline>`;
+      return `<ui-inline><span>One</span><span>Two</span><span>Three</span></ui-inline>`;
     case "ui-input":
-      return `<ui-input><input type="text" aria-label="Text" /></ui-input>`;
+      return `<ui-input type="text" aria-label="Text" placeholder="Enter text"></ui-input>`;
     case "ui-menu":
       return `<ui-menu role="menu" aria-label="Actions" open><ui-menu-item value="first">First item</ui-menu-item><ui-menu-item value="second">Second item</ui-menu-item></ui-menu>`;
     case "ui-menu-item":
       return `<ui-menu role="menu" aria-label="Actions" open><ui-menu-item value="item">Menu item</ui-menu-item></ui-menu>`;
     case "ui-popover":
-      return `<button id="popover-trigger" type="button" popovertarget="example-popover">Open popover</button><ui-popover id="example-popover" for="popover-trigger">Popover content.</ui-popover>`;
+      return `<ui-button id="popover-trigger">Open popover</ui-button><ui-popover id="example-popover" for="popover-trigger">Popover content.</ui-popover>`;
     case "ui-radio":
-      return `<ui-radio value="option"><input type="radio" name="${id}-group" />Radio</ui-radio>`;
+      return `<ui-radio value="option" name="${id}-group">Radio</ui-radio>`;
     case "ui-radio-group":
-      return `<ui-radio-group name="${id}-group"><ui-radio value="one">One</ui-radio><ui-radio value="two">Two</ui-radio></ui-radio-group>`;
+      return `<ui-radio-group label="Options" name="${id}-group"><ui-radio value="one">One</ui-radio><ui-radio value="two">Two</ui-radio></ui-radio-group>`;
     case "ui-reel":
-      return `<ui-reel aria-label="Items"><span>One</span><span>Two</span><span>Three</span><span>Four</span></ui-reel>`;
+      return `<ui-reel item-width="sm" aria-label="Items"><span>One</span><span>Two</span><span>Three</span><span>Four</span></ui-reel>`;
     case "ui-search-result-row":
       return `<ui-search-result-row><span slot="leading">○</span><span slot="title">Result title</span><span slot="meta">Metadata</span></ui-search-result-row>`;
     case "ui-search-shell":
-      return `<ui-search-shell><div slot="backdrop"></div><div slot="search"><input type="search" aria-label="Search" /></div><div slot="body">Results</div><div slot="footer">Escape to close</div></ui-search-shell>`;
+      return `<ui-search-shell open label="Search commands"><ui-input slot="search" type="search" aria-label="Search commands" placeholder="Search commands"></ui-input><div slot="body">Start typing to filter commands.</div></ui-search-shell>`;
     case "ui-select":
-      return `<ui-select><select aria-label="Option"><option>One</option><option>Two</option></select></ui-select>`;
+      return `<ui-select aria-label="Option"><option value="one">One</option><option value="two">Two</option></ui-select>`;
     case "ui-separator":
       return `<div><span>Above</span><ui-separator></ui-separator><span>Below</span></div>`;
     case "ui-sidebar":
-      return `<ui-sidebar><aside>Sidebar</aside><main>Main content</main></ui-sidebar>`;
+      return `<ui-sidebar><aside><strong>Sidebar</strong><p>Navigation and controls</p></aside><main><strong>Main content</strong><p>The primary content region grows to fill the remaining space.</p></main></ui-sidebar>`;
     case "ui-stack":
       return `<ui-stack>${items}</ui-stack>`;
     case "ui-switch":
-      return `<ui-switch><input type="checkbox" />Switch</ui-switch>`;
+      return `<ui-switch>Switch</ui-switch>`;
     case "ui-switcher":
       return `<ui-switcher>${items}</ui-switcher>`;
     case "ui-tabs":
-      return `<ui-tabs><div role="tablist" aria-label="View"><button role="tab" id="${id}-tab-a" aria-controls="${id}-panel-a">Preview</button><button role="tab" id="${id}-tab-b" aria-controls="${id}-panel-b">Code</button></div><section role="tabpanel" id="${id}-panel-a" aria-labelledby="${id}-tab-a">A live component preview.</section><section role="tabpanel" id="${id}-panel-b" aria-labelledby="${id}-tab-b" hidden>Semantic HTML.</section></ui-tabs>`;
+      return `<ui-tabs label="View"><section id="preview" aria-label="Preview">A live component preview.</section><section id="code" aria-label="Code">Semantic HTML.</section></ui-tabs>`;
     case "ui-textarea":
-      return `<ui-textarea><textarea aria-label="Text"></textarea></ui-textarea>`;
+      return `<ui-textarea aria-label="Text" placeholder="Enter a longer message"></ui-textarea>`;
     case "ui-toast-region":
-      return `<ui-toast-region><div data-ui-toast>Notification<button type="button" data-ui-toast-dismiss aria-label="Dismiss">×</button></div></ui-toast-region>`;
+      return `<ui-toast-region id="notifications"></ui-toast-region><ui-button commandfor="notifications" command="--show-toast" value="Page saved.">Show toast</ui-button>`;
     case "ui-tooltip":
-      return `<button id="${id}-trigger" type="button">Help</button><ui-tooltip for="${id}-trigger">Tooltip content.</ui-tooltip>`;
+      return `<ui-button id="${id}-trigger">Help</ui-button><ui-tooltip for="${id}-trigger">Tooltip content.</ui-tooltip>`;
     case "ui-top-bar":
-      return `<ui-top-bar><button slot="leading" type="button">Menu</button><strong>Title</strong><button slot="search" type="button">Search</button><button slot="actions" type="button">Action</button></ui-top-bar>`;
+      return `<ui-top-bar><strong>Title</strong></ui-top-bar>`;
     case "ui-tree":
-      return `<ui-tree label="Items"><ui-tree-item item-id="one" label="One"><span>One</span></ui-tree-item><ui-tree-item item-id="two" label="Two"><span>Two</span></ui-tree-item></ui-tree>`;
+      return `<ui-tree label="Items"><ui-tree-item item-id="parent" label="Parent"><ui-tree-item item-id="child" label="Child"></ui-tree-item></ui-tree-item><ui-tree-item item-id="sibling" label="Sibling"></ui-tree-item></ui-tree>`;
     case "ui-tree-item":
-      return `<ui-tree label="Items"><ui-tree-item item-id="item" label="Item"><span>Item</span></ui-tree-item></ui-tree>`;
+      return `<ui-tree label="Items"><ui-tree-item item-id="item" label="Item"></ui-tree-item></ui-tree>`;
     default:
       return `<${component}>Live ${component} example</${component}>`;
   }
 }
 
-function propertyAssignments(component: string): readonly ScenarioPropertyAssignment[] {
+function propertyAssignments(component: string, id: string): readonly ScenarioPropertyAssignment[] {
   switch (component) {
-    case "ui-combobox":
-      return [{
-        elementId: "destination-picker",
-        property: "config",
-        variable: "comboboxConfig",
-        value: { allowFreeText: true, allowCreate: true, options: comboboxOptions }
-      }];
     case "ui-editor-mention-menu":
       return [
         { elementId: "mention-menu", property: "items", variable: "mentionItems", value: mentionItems },
@@ -231,6 +389,18 @@ function propertyAssignments(component: string): readonly ScenarioPropertyAssign
       return [
         { elementId: "slash-menu", property: "items", variable: "slashItems", value: slashItems },
         { elementId: "slash-menu", property: "anchorRect", variable: "anchorRect", value: menuAnchor }
+      ];
+    case "ui-editor-table-overlay":
+      return [
+        { elementId: `${id}-overlay`, property: "geometry", variable: "tableGeometry", value: tableGeometry }
+      ];
+    case "ui-editor-table-context-menu":
+      return [
+        { elementId: "table-context-menu", property: "actions", variable: "tableActionsBasic", value: tableActionsBasic }
+      ];
+    case "ui-editor-table-toolbar":
+      return [
+        { elementId: "table-toolbar", property: "actions", variable: "tableActionsBasic", value: tableActionsBasic }
       ];
     default:
       return [];
@@ -248,13 +418,17 @@ function curatedScenarios(component: string, id: string): PreviewScenario[] {
       return [{
         label: `near-radius="8"`,
         description: "A smaller near-radius delays anticipatory activation until the pointer is closer.",
-        markup: `<ui-affordance-scope near-radius="8"><button type="button">Add</button><button type="button">Search</button></ui-affordance-scope>`
+        markup: `<ui-affordance-scope near-radius="8"><ui-icon-button anticipatory variant="outline" label="Add">${plusIcon}</ui-icon-button><ui-icon-button anticipatory variant="outline" label="Search">${searchIcon}</ui-icon-button></ui-affordance-scope>`
       }];
     case "ui-avatar":
       return [{
-        label: "Custom fallback",
-        description: "Fallback controls the visible initials independently of the accessible name.",
-        markup: `<ui-avatar name="Maya Chen" fallback="MC"><span data-ui-avatar-fallback>MC</span></ui-avatar>`
+        label: "Image",
+        description: "Place an ordinary image inside Avatar; its own alt text supplies the accessible name and the fallback remains available if loading fails.",
+        markup: `<ui-avatar name="Maya Chen" fallback="MC"><img src="/looma/img/avatar-maya.svg" alt="Maya Chen" /></ui-avatar>`
+      }, {
+        label: `fallback="UX"`,
+        description: "Fallback overrides the initials derived from name without requiring internal hooks or extra markup.",
+        markup: `<ui-avatar name="Maya Chen" fallback="UX"></ui-avatar>`
       }];
     case "ui-avatar-group":
       return [{
@@ -263,22 +437,29 @@ function curatedScenarios(component: string, id: string): PreviewScenario[] {
         markup: `<ui-avatar-group max="2" label="Reviewers">${avatarMarkup("Maya Chen")}${avatarMarkup("Noah Williams")}${avatarMarkup("Ari Kim")}${avatarMarkup("Sam Rivera")}</ui-avatar-group>`
       }];
     case "ui-badge":
-      return [{
-        label: "Tone and variant",
-        description: "Representative tone values combine with the subtle variant; text still carries the meaning.",
-        markup: `<div><ui-badge variant="subtle" tone="info">Info</ui-badge> <ui-badge variant="subtle" tone="success">Success</ui-badge> <ui-badge variant="subtle" tone="warning">Warning</ui-badge> <ui-badge variant="subtle" tone="error">Error</ui-badge></div>`
-      }];
+      return [
+        {
+          label: `variant="solid" and tone`,
+          description: "Solid badges use the strongest filled treatment for each semantic tone.",
+          markup: `<div><ui-badge variant="solid" tone="accent">Accent</ui-badge> <ui-badge variant="solid" tone="info">Info</ui-badge> <ui-badge variant="solid" tone="success">Success</ui-badge> <ui-badge variant="solid" tone="warning">Warning</ui-badge> <ui-badge variant="solid" tone="danger">Danger</ui-badge></div>`
+        },
+        {
+          label: `variant="subtle" and tone`,
+          description: "Subtle badges retain the same semantic tones on quiet tinted surfaces.",
+          markup: `<div><ui-badge variant="subtle" tone="accent">Accent</ui-badge> <ui-badge variant="subtle" tone="info">Info</ui-badge> <ui-badge variant="subtle" tone="success">Success</ui-badge> <ui-badge variant="subtle" tone="warning">Warning</ui-badge> <ui-badge variant="subtle" tone="danger">Danger</ui-badge></div>`
+        }
+      ];
     case "ui-button":
       return [{
         label: "Variant and size",
-        description: "Solid, outline, and ghost are the common emphasis levels; size controls density.",
-        markup: `<div><ui-button variant="solid" size="sm"><button type="button">Solid</button></ui-button> <ui-button variant="outline"><button type="button">Outline</button></ui-button> <ui-button variant="ghost" size="lg"><button type="button">Ghost</button></ui-button></div>`
+        description: "Solid, outline, ghost, and danger cover the common emphasis and intent levels; size controls density.",
+        markup: `<div><ui-button variant="solid" size="sm">Solid</ui-button> <ui-button variant="outline">Outline</ui-button> <ui-button variant="ghost" size="lg">Ghost</ui-button> <ui-button variant="danger">Danger</ui-button></div>`
       }];
     case "ui-callout":
       return [{
         label: "Tone values",
-        description: "Success, warning, and error change the visual treatment while the message supplies meaning.",
-        markup: `<div><ui-callout tone="success">Success message.</ui-callout><ui-callout tone="warning">Warning message.</ui-callout><ui-callout tone="error">Error message.</ui-callout></div>`
+        description: "Success, warning, and danger change the visual treatment while the message supplies meaning.",
+        markup: `<div><ui-callout tone="success">Success message.</ui-callout><ui-callout tone="warning">Warning message.</ui-callout><ui-callout tone="danger">Danger message.</ui-callout></div>`
       }];
     case "ui-center":
       return [{
@@ -287,77 +468,53 @@ function curatedScenarios(component: string, id: string): PreviewScenario[] {
         markup: `<ui-center measure="wide" gutters="l"><article><h4>Wide measure</h4><p>Content remains centered with large inline gutters.</p></article></ui-center>`
       }];
     case "ui-checkbox":
-      return [{
-        label: "Checked, indeterminate, and disabled",
-        description: "These state properties cover initial selection, partial selection, and unavailable controls.",
-        markup: `<div><ui-checkbox default-checked><label><input type="checkbox" checked />Checked</label></ui-checkbox><ui-checkbox indeterminate><label><input type="checkbox" />Indeterminate</label></ui-checkbox><ui-checkbox disabled><label><input type="checkbox" disabled />Disabled</label></ui-checkbox></div>`
-      }];
-    case "ui-chip":
-      return [{
-        label: "Appearance and size",
-        description: "Tag and pill are the two appearances; extra-small and small are the common compact sizes.",
-        markup: `<div><ui-chip appearance="tag" size="xs">Tag</ui-chip> <ui-chip appearance="pill" size="sm">Pill</ui-chip></div>`
-      }];
-    case "ui-cluster":
       return [
         {
-          label: `gap="l"`,
-          description: "The large gap token adds consistent space between every child.",
-          markup: `<ui-cluster gap="l"><span>One</span><span>Two</span><span>Three</span></ui-cluster>`
+          label: "Checked, indeterminate, and disabled",
+          description: "These state properties cover initial selection, partial selection, and unavailable controls.",
+          markup: `<div><ui-checkbox checked>Checked</ui-checkbox><ui-checkbox indeterminate>Indeterminate</ui-checkbox><ui-checkbox disabled>Disabled</ui-checkbox></div>`
         },
         {
-          label: `align="end"`,
-          description: "End alignment makes differently sized children share the same cross-axis edge.",
-          markup: `<ui-cluster align="end"><span>Short</span><span><strong>Two lines</strong><br /><small>Taller</small></span><span>Short</span></ui-cluster>`
-        },
-        {
-          label: `justify="between"`,
-          description: "Space-between distributes the first and last children across the available row.",
-          markup: `<ui-cluster justify="between"><span>Start</span><span>Middle</span><span>End</span></ui-cluster>`
+          label: "Multi-line label",
+          description: "The control stays aligned to the first line while long label text wraps at a constrained width.",
+          markup: `<div style="max-inline-size: 18rem"><ui-checkbox>Send me product updates, release notes, and occasional research invitations.</ui-checkbox></div>`
         }
       ];
     case "ui-combobox":
       return [{
         label: "Disclosure, clearable, and size",
         description: "Disclosure adds the toggle, clearable adds value removal, and size controls field density.",
-        markup: `<ui-combobox id="compact-destination-picker" label="Destination" disclosure clearable size="sm" placeholder="Search…"></ui-combobox>`,
-        propertyAssignments: [{
-          elementId: "compact-destination-picker",
-          property: "config",
-          variable: "comboboxConfig",
-          value: { allowFreeText: true, allowCreate: true, options: comboboxOptions }
-        }]
+        markup: `<ui-combobox label="Destination" disclosure clearable allow-free-text allow-create size="sm" placeholder="Search…"><option value="north">North terminal</option><option value="west">West terminal</option></ui-combobox>`
       }];
     case "ui-context-menu":
       return [{
-        label: "default-open",
+        label: "open",
         description: "Default-open exposes the initial menu state without controlling later interaction.",
-        markup: `<div id="${id}-open-target">Right-click this area.<ui-context-menu for="${id}-open-target" default-open><button slot="trigger" type="button">Open menu</button><ui-menu-item value="enabled">Enabled item</ui-menu-item><ui-menu-item value="disabled" disabled>Disabled item</ui-menu-item></ui-context-menu></div>`
+        markup: `<ui-button id="${id}-open-target">Open menu</ui-button><ui-context-menu for="${id}-open-target" open><ui-menu-item value="enabled">Enabled item</ui-menu-item><ui-menu-item value="disabled" disabled>Disabled item</ui-menu-item></ui-context-menu>`
       }];
     case "ui-dialog":
       return [{
         label: "modal and dismissible",
         description: "Modal moves the dialog into the top layer; dismissible additionally enables Escape and light-dismiss closing.",
-        markup: `<ui-dialog id="modal-dialog" modal dismissible label="Modal dialog"><strong>Modal dialog</strong><p>The rest of the page is inert while this dialog is open.</p><button type="button" data-dialog-close>Close</button></ui-dialog><button type="button" data-dialog-demo>Open dialog</button>`,
-        dialogId: "modal-dialog"
+        markup: `<ui-button id="open-modal-dialog">Open dialog</ui-button><ui-dialog id="modal-dialog" for="open-modal-dialog" modal dismissible label="Modal dialog"><form method="dialog"><strong>Modal dialog</strong><p>The rest of the page is inert while this dialog is open.</p><ui-button type="submit">Close</ui-button></form></ui-dialog>`
       }];
     case "ui-disclosure":
       return [{
         label: "open and disabled",
-        description: "Open controls initial visibility; disabled keeps the trigger and content unavailable.",
-        markup: `<div><ui-disclosure open><button type="button" aria-controls="${id}-open-panel">Open disclosure</button><div id="${id}-open-panel">Visible content.</div></ui-disclosure><ui-disclosure disabled><button type="button" aria-controls="${id}-disabled-panel">Disabled disclosure</button><div id="${id}-disabled-panel">Unavailable content.</div></ui-disclosure></div>`
+        description: "Open starts the panel expanded; disabled prevents the generated trigger from toggling its content.",
+        markup: `<div><ui-disclosure summary="Open disclosure" open>Visible content.</ui-disclosure><ui-disclosure summary="Disabled disclosure" disabled>Unavailable content.</ui-disclosure></div>`
       }];
     case "ui-editable":
       return [{
-        label: "default-edit and disabled",
-        description: "Default-edit starts in edit mode; disabled prevents the display value from entering edit mode.",
-        markup: `<div><ui-editable default-edit><button data-ui-editable-trigger type="button">Edit</button><span slot="preview">Editable text</span><input slot="edit" value="Editable text" aria-label="Text" /></ui-editable><ui-editable disabled><button data-ui-editable-trigger type="button">Edit</button><span slot="preview">Disabled text</span><input slot="edit" value="Disabled text" aria-label="Disabled text" disabled /></ui-editable></div>`
+        label: "edit and disabled",
+        description: "Edit starts with the owned editor visible; disabled prevents entering edit mode.",
+        markup: `<div><ui-editable value="Editable text" label="Title" edit></ui-editable><ui-editable value="Disabled text" label="Disabled title" disabled></ui-editable></div>`
       }];
     case "ui-editor-insert-table-grid":
       return [{
-        label: `max-rows="6" and max-cols="6"`,
-        description: "The maximum row and column properties bound the picker dimensions.",
-        markup: `<ui-editor-insert-table-grid open max-rows="6" max-cols="6"></ui-editor-insert-table-grid>`
+        label: `max-rows="6", max-cols="6", and header-row`,
+        description: "The maximum row and column properties bound the picker; header-row opts into a checked header-row choice.",
+        markup: `<ui-editor-insert-table-grid open max-rows="6" max-cols="6" header-row></ui-editor-insert-table-grid>`
       }];
     case "ui-editor-mention-menu":
       return [{
@@ -371,39 +528,42 @@ function curatedScenarios(component: string, id: string): PreviewScenario[] {
       }];
     case "ui-editor-table-context-menu":
       return [{
-        label: "Capability flags",
-        description: "Capability booleans expose only the table commands supported by the current selection.",
-        markup: `<ui-editor-table-context-menu open can-add-row-after can-add-column-after can-delete-table></ui-editor-table-context-menu>`
+        label: "Actions",
+        description: "The actions property contains the exact commands supported by the current selection; unsupported commands are absent.",
+        markup: `<ui-editor-table-context-menu id="context-menu-actions" open cell-background="#fef3c7"></ui-editor-table-context-menu>`,
+        propertyAssignments: [
+          { elementId: "context-menu-actions", property: "actions", variable: "tableActions", value: tableActions }
+        ]
       }];
     case "ui-editor-table-overlay":
       return [{
-        label: "Rows, columns, and active cell",
-        description: "Row and column boundaries define the overlay geometry while active-cell identifies the selection.",
-        markup: `<ui-editor-table-overlay open rows="3" cols="3" active-cell="1,1" row-boundaries="0,40,80,120" column-boundaries="0,80,160,240"><table><tbody><tr><td>A1</td><td>B1</td><td>C1</td></tr><tr><td>A2</td><td>B2</td><td>C2</td></tr></tbody></table></ui-editor-table-overlay>`
+        label: "Hovered cell geometry",
+        description: "Adding hoveredCell to the same geometry record exposes row and column selectors for that cell.",
+        markup: `<div class="demo-editor-table-stage demo-editor-table-stage--three"><table aria-label="Example table"><tbody><tr><td>A1</td><td>B1</td><td>C1</td></tr><tr><td>A2</td><td>B2</td><td>C2</td></tr><tr><td>A3</td><td>B3</td><td>C3</td></tr></tbody></table><ui-editor-table-overlay id="three-table-overlay" open></ui-editor-table-overlay></div>`,
+        propertyAssignments: [
+          { elementId: "three-table-overlay", property: "geometry", variable: "tableGeometry", value: tableGeometryThree }
+        ]
       }];
     case "ui-editor-table-toolbar":
       return [{
-        label: "Alignment and capability flags",
-        description: "Cell-alignment records the active alignment and capability booleans expose supported commands.",
-        markup: `<ui-editor-table-toolbar open cell-alignment="center" can-add-row-after can-add-column-after can-merge-cells></ui-editor-table-toolbar>`
-      }];
-    case "ui-floating-action-button":
-      return [{
-        label: "disabled",
-        description: "Disabled preserves the accessible label and position while preventing activation.",
-        markup: `<ui-floating-action-button label="Create" disabled>${plusIcon}</ui-floating-action-button>`
+        label: "Actions",
+        description: "Cell-alignment marks the active command while actions contains the exact commands supported by the selection.",
+        markup: `<ui-editor-table-toolbar id="toolbar-actions" open cell-alignment="center" cell-background="#fef3c7"></ui-editor-table-toolbar>`,
+        propertyAssignments: [
+          { elementId: "toolbar-actions", property: "actions", variable: "tableActions", value: tableActions }
+        ]
       }];
     case "ui-form-field":
       return [{
         label: "required and invalid",
         description: "Required and invalid attach state to the label, native control, and error message as one field.",
-        markup: `<ui-form-field required invalid><label for="required-field">Label</label><input id="required-field" type="text" aria-invalid="true" aria-describedby="field-error" /><small id="field-error" data-slot="error">Error message</small></ui-form-field>`
+        markup: `<ui-form-field required invalid><label slot="label">Label</label><ui-input aria-label="Label"></ui-input><small slot="error">Error message</small></ui-form-field>`
       }];
     case "ui-grid":
       return [{
         label: "Gap and minimum column width",
         description: "Gap controls spacing while min controls the intrinsic wrap point for columns.",
-        markup: `<ui-grid gap="xs" min="sm"><button type="button">One</button><button type="button">Two</button><button type="button">Three</button><button type="button">Four</button></ui-grid>`
+        markup: `<ui-grid gap="xs" min="sm"><span>One</span><span>Two</span><span>Three</span><span>Four</span></ui-grid>`
       }];
     case "ui-icon-button":
       return [{
@@ -416,27 +576,31 @@ function curatedScenarios(component: string, id: string): PreviewScenario[] {
         {
           label: `gap="l"`,
           description: "The large gap token adds consistent space between every child.",
-          markup: `<ui-inline gap="l"><span>Alpha</span><span>Beta</span><span>Gamma</span></ui-inline>`
+          markup: `<ui-inline gap="l"><span>One</span><span>Two</span><span>Three</span></ui-inline>`
         },
         {
-          label: `align="center" and justify="between"`,
-          description: "Center aligns children of different heights while space-between distributes them across the row.",
-          markup: `<ui-inline gap="m" align="center" justify="between"><span>Start</span><span><strong>Two lines</strong><br /><small>Centered</small></span><span>End</span></ui-inline>`
+          label: `align="end" and justify="between"`,
+          description: "End alignment makes differently sized children share a bottom edge while space-between exposes the available row width.",
+          markup: `<ui-inline gap="m" align="end" justify="between"><span>Start</span><span><strong>Two lines</strong><br /><small>Taller</small></span><span>End</span></ui-inline>`
         },
         {
-          label: `wrap="wrap"`,
-          description: "A constrained row wraps a common set of actions instead of squeezing or overflowing them.",
-          markup: `<div style="max-width: 14rem"><ui-inline gap="s" wrap="wrap"><button type="button">Edit</button><button type="button">Duplicate</button><button type="button">Move</button><button type="button">Archive</button></ui-inline></div>`
+          label: "wrap",
+          description: "The false-default wrap property lets children move onto additional rows when the available inline space runs out.",
+          markup: `<div style="max-width:14rem"><ui-inline gap="s" wrap><span>One</span><span>Two</span><span>Three</span><span>Four</span></ui-inline></div>`
         }
       ];
     case "ui-input":
       return [{
-        label: "invalid, read-only, and disabled",
-        description: "These state properties keep validation and availability synchronized with the native input.",
-        markup: `<div><ui-input invalid value="invalid"><input type="text" aria-label="Invalid" aria-invalid="true" /></ui-input><ui-input read-only value="read only"><input type="text" aria-label="Read only" readonly /></ui-input><ui-input disabled value="disabled"><input type="text" aria-label="Disabled" disabled /></ui-input></div>`
+        label: "invalid, readonly, and disabled",
+        description: "These properties configure validation and availability on the native input Looma renders.",
+        markup: `<ui-stack gap="s"><ui-input invalid value="Invalid" aria-label="Invalid"></ui-input><ui-input readonly value="Read only" aria-label="Read only"></ui-input><ui-input disabled value="Disabled" aria-label="Disabled"></ui-input></ui-stack>`
       }];
     case "ui-menu":
       return [{
+        label: "for",
+        description: "For associates the menu with the control that toggles and anchors it.",
+        markup: `<ui-button id="menu-trigger">Open menu</ui-button><ui-menu for="menu-trigger" aria-label="Document actions"><ui-menu-item value="rename">Rename</ui-menu-item><ui-menu-item value="share">Share</ui-menu-item></ui-menu>`
+      }, {
         label: "disabled items",
         description: "Disabled on a child item keeps it discoverable while removing it from selection.",
         markup: `<ui-menu role="menu" aria-label="Document actions" open><ui-menu-item value="rename">Rename</ui-menu-item><ui-menu-item value="share">Share</ui-menu-item><ui-menu-item value="delete" disabled>Delete</ui-menu-item></ui-menu>`
@@ -449,27 +613,27 @@ function curatedScenarios(component: string, id: string): PreviewScenario[] {
       }];
     case "ui-popover":
       return [{
-        label: "placement and default-open",
-        description: "Placement controls the preferred anchor edge while default-open sets only the initial state.",
-        markup: `<button id="details-trigger" type="button" popovertarget="details-popover">Open popover</button><ui-popover id="details-popover" for="details-trigger" placement="bottom-end" default-open><strong>Popover heading</strong><p>Popover content.</p></ui-popover>`
+        label: "placement and open",
+        description: "Placement controls the preferred anchor edge while open sets the initial state.",
+        markup: `<ui-button id="details-trigger">Open popover</ui-button><ui-popover id="details-popover" for="details-trigger" placement="bottom-end" open><strong>Popover heading</strong><p>Popover content.</p></ui-popover>`
       }];
     case "ui-radio":
       return [{
-        label: "default-checked and disabled",
+        label: "checked and disabled",
         description: "Default-checked supplies initial selection while disabled prevents later changes.",
-        markup: `<div><ui-radio name="${id}-state" value="checked" default-checked><input type="radio" name="${id}-state" checked />Checked</ui-radio><ui-radio name="${id}-state" value="disabled" disabled><input type="radio" name="${id}-state" disabled />Disabled</ui-radio></div>`
+        markup: `<div><ui-radio name="${id}-state" value="checked" checked>Checked</ui-radio><ui-radio name="${id}-state" value="disabled" disabled>Disabled</ui-radio></div>`
       }];
     case "ui-radio-group":
       return [{
         label: "Vertical, required, and value",
         description: "Orientation changes the axis; required and value define group validation and selection.",
-        markup: `<ui-radio-group value="two" name="${id}-vertical" orientation="vertical" required><ui-radio value="one">One</ui-radio><ui-radio value="two">Two</ui-radio><ui-radio value="three">Three</ui-radio></ui-radio-group>`
+        markup: `<ui-radio-group label="Priority" value="two" name="${id}-vertical" orientation="vertical" required><ui-radio value="one">One</ui-radio><ui-radio value="two">Two</ui-radio><ui-radio value="three">Three</ui-radio></ui-radio-group>`
       }];
     case "ui-reel":
       return [{
         label: "Gap, item width, and snap",
         description: "These three properties control spacing, each child's basis, and the scroll snap position.",
-        markup: `<ui-reel gap="m" item-width="md" snap="center" aria-label="Items"><button type="button">One</button><button type="button">Two</button><button type="button">Three</button><button type="button">Four</button></ui-reel>`
+        markup: `<ui-reel gap="m" item-width="md" snap="center" aria-label="Items"><span>One</span><span>Two</span><span>Three</span><span>Four</span></ui-reel>`
       }];
     case "ui-search-result-row":
       return [{
@@ -479,9 +643,9 @@ function curatedScenarios(component: string, id: string): PreviewScenario[] {
       }];
     case "ui-select":
       return [{
-        label: "required and invalid",
-        description: "Required and invalid synchronize validation state with the native select.",
-        markup: `<ui-select required invalid><select aria-label="Workspace role" aria-invalid="true"><option value="">Choose a role…</option><option value="viewer">Viewer</option><option value="editor">Editor</option></select></ui-select>`
+        label: "value, required, and invalid",
+        description: "Value selects an option; required and invalid expose its validation state.",
+        markup: `<ui-select value="editor" required invalid aria-label="Workspace role"><option value="">Choose a role…</option><option value="viewer">Viewer</option><option value="editor">Editor</option></ui-select>`
       }];
     case "ui-separator":
       return [{
@@ -493,51 +657,44 @@ function curatedScenarios(component: string, id: string): PreviewScenario[] {
       return [{
         label: "End side and resizing",
         description: "Side and width set placement; resizable and its bounds configure pointer and keyboard resizing.",
-        markup: `<ui-sidebar gap="m" side="end" width="narrow" resizable min-width="176" max-width="360" resize-label="Resize sidebar"><main>Main content</main><aside>Sidebar</aside></ui-sidebar>`
+        markup: `<ui-sidebar gap="m" side="end" width="narrow" resizable min-width="176" max-width="360" resize-label="Resize sidebar"><main><strong>Main content</strong><p>The primary region comes first when the sidebar is on the end side.</p></main><aside><strong>Sidebar</strong><p>Drag or use the resize handle with the keyboard.</p></aside></ui-sidebar>`
       }];
     case "ui-stack":
       return [{
-        label: "Gap and alignment",
-        description: "Gap controls vertical rhythm while stretch makes children fill the stack's inline axis.",
-        markup: `<ui-stack gap="m" align="stretch"><button type="button">One</button><button type="button">Two</button><button type="button">Three</button></ui-stack>`
+        label: `gap="xl" and align="center"`,
+        description: "The extra-large gap visibly increases vertical space; center alignment returns the bounded children to their intrinsic widths.",
+        markup: `<ui-stack gap="xl" align="center"><span>One</span><span>Two</span><span>Three</span></ui-stack>`
       }];
     case "ui-switch":
       return [{
-        label: "default-checked and disabled",
+        label: "checked and disabled",
         description: "Default-checked supplies initial on state while disabled prevents interaction.",
-        markup: `<div><ui-switch default-checked><input type="checkbox" checked />Checked</ui-switch><ui-switch disabled><input type="checkbox" disabled />Disabled</ui-switch></div>`
+        markup: `<div><ui-switch checked>Checked</ui-switch><ui-switch disabled>Disabled</ui-switch></div>`
       }];
     case "ui-switcher":
       return [{
         label: "Gap, threshold, and alignment",
         description: "Threshold sets the intrinsic switch point while gap and alignment control the resulting layout.",
-        markup: `<ui-switcher gap="m" threshold="md" align="stretch"><article><strong>One</strong><p>First region</p></article><article><strong>Two</strong><p>Second region</p></article><article><strong>Three</strong><p>Third region</p></article></ui-switcher>`
+        markup: `<ui-switcher gap="m" threshold="md" align="stretch"><span>One</span><span>Two</span><span>Three</span></ui-switcher>`
       }];
     case "ui-tabs":
       return [{
         label: `orientation="vertical"`,
         description: "Vertical orientation changes the tablist axis while preserving the same tab and panel relationships.",
-        markup: `<ui-tabs orientation="vertical" default-value="profile"><div role="tablist" aria-label="Settings"><button role="tab" id="${id}-profile-tab" aria-controls="${id}-profile-panel" data-value="profile">Profile</button><button role="tab" id="${id}-security-tab" aria-controls="${id}-security-panel" data-value="security">Security</button></div><section role="tabpanel" id="${id}-profile-panel" aria-labelledby="${id}-profile-tab">Profile settings</section><section role="tabpanel" id="${id}-security-panel" aria-labelledby="${id}-security-tab" hidden>Security settings</section></ui-tabs>`
+        markup: `<ui-tabs label="Settings" orientation="vertical" value="profile"><section id="profile" aria-label="Profile">Profile settings</section><section id="security" aria-label="Security">Security settings</section></ui-tabs>`
       }];
     case "ui-textarea":
       return [{
-        label: "rows, invalid, and read-only",
-        description: "Rows sets the visible height while invalid and read-only express validation and availability.",
-        markup: `<div><ui-textarea rows="4" invalid value="Invalid"><textarea aria-label="Invalid" aria-invalid="true"></textarea></ui-textarea><ui-textarea rows="3" read-only value="Read only"><textarea aria-label="Read only" readonly></textarea></ui-textarea></div>`
+        label: "rows, invalid, and readonly",
+        description: "Rows sets the visible height while invalid and readonly express validation and availability.",
+        markup: `<ui-stack gap="s"><ui-textarea rows="4" invalid value="Invalid" aria-label="Invalid"></ui-textarea><ui-textarea rows="3" readonly value="Read only" aria-label="Read only"></ui-textarea></ui-stack>`
       }];
     case "ui-tooltip":
-      return [
-        {
-          label: "Placement and delays",
-          description: "Placement chooses the preferred edge; show-delay and hide-delay tune hover timing.",
-          markup: `<button id="${id}-timed-trigger" type="button">Help</button><ui-tooltip for="${id}-timed-trigger" placement="bottom-start" show-delay="0" hide-delay="200">Tooltip content.</ui-tooltip>`
-        },
-        {
-          label: "toggle-on-click",
-          description: "Toggle-on-click lets pointer and touch users pin the tooltip until dismissal.",
-          markup: `<button id="${id}-click-trigger" type="button">Help</button><ui-tooltip for="${id}-click-trigger" toggle-on-click show-delay="0">Tooltip content.</ui-tooltip>`
-        }
-      ];
+      return [{
+        label: "Placement and delays",
+        description: "Placement chooses the preferred edge; show-delay and hide-delay tune hover timing.",
+        markup: `<ui-button id="${id}-timed-trigger">Help</ui-button><ui-tooltip for="${id}-timed-trigger" placement="bottom-start" show-delay="0" hide-delay="200">Tooltip content.</ui-tooltip>`
+      }];
     case "ui-tree-item":
       return [{
         label: "container, expanded, and sortable",
@@ -548,7 +705,7 @@ function curatedScenarios(component: string, id: string): PreviewScenario[] {
       return [{
         label: "Custom controls",
         description: "The light-DOM controls define the available commands while Editor Toolbar supplies toolbar semantics.",
-        markup: `<ui-editor-toolbar aria-label="Block formatting"><button type="button">Heading</button><button type="button">Quote</button><button type="button">Code</button></ui-editor-toolbar>`
+        markup: `<ui-editor-toolbar aria-label="Block formatting"><ui-button type="button" variant="ghost" size="sm">Heading</ui-button><ui-button type="button" variant="ghost" size="sm">Quote</ui-button><ui-button type="button" variant="ghost" size="sm">Code</ui-button></ui-editor-toolbar>`
       }];
     case "ui-editor-slash-menu":
       return [{
@@ -562,27 +719,28 @@ function curatedScenarios(component: string, id: string): PreviewScenario[] {
       }];
     case "ui-search-shell":
       return [{
-        label: "Status and footer slots",
-        description: "The status and footer slots add result feedback and keyboard guidance around the required search and body regions.",
-        markup: `<ui-search-shell><div slot="backdrop"></div><div slot="search"><input type="search" aria-label="Search" /></div><div slot="body">Results</div><div slot="status">2 results</div><div slot="footer">Escape to close</div></ui-search-shell>`
+        label: "label, dismissible, status, and footer",
+        description: "Label names the dialog, dismissible enables Escape and backdrop dismissal, and the status, body, and footer slots host application-owned search state.",
+        markup: searchShellMarkup,
+        examples: searchShellExamples
       }];
     case "ui-top-bar":
       return [{
-        label: "Leading and actions slots",
-        description: "Leading and actions place native controls on either side of the default title slot.",
-        markup: `<ui-top-bar><button slot="leading" type="button">Back</button><strong>Title</strong><button slot="actions" type="button">Action</button></ui-top-bar>`
+        label: "leading, search, and actions slots",
+        description: "Each named slot adds its region around the default title without requiring internal wrapper markup.",
+        markup: `<ui-top-bar><ui-button slot="leading" size="sm">Back</ui-button><strong>Title</strong><ui-button slot="search" size="sm">Search</ui-button><ui-button slot="actions" size="sm">Save</ui-button></ui-top-bar>`
       }];
     case "ui-toast-region":
       return [{
         label: "Multiple messages",
-        description: "Multiple supplied toast elements share one open announced region and keep independent dismiss controls.",
-        markup: `<ui-toast-region open><div data-ui-toast>Page published.<button type="button" data-ui-toast-dismiss aria-label="Dismiss published notification">×</button></div><div data-ui-toast>Link copied.<button type="button" data-ui-toast-dismiss aria-label="Dismiss copied notification">×</button></div></ui-toast-region>`
+        description: "Open allows an announced region to display multiple messages; each message keeps its own Looma dismiss control.",
+        markup: `<ui-toast-region id="multiple-notifications"></ui-toast-region><ui-inline gap="s"><ui-button commandfor="multiple-notifications" command="--show-toast" value="Page published.">Show published</ui-button><ui-button commandfor="multiple-notifications" command="--show-toast" value="Link copied.">Show copied</ui-button></ui-inline>`
       }];
     case "ui-tree":
       return [{
         label: "max-depth and hover-expand-delay",
         description: "Max-depth limits nesting while hover-expand-delay controls drag-hover expansion timing.",
-        markup: `<ui-tree label="Items" max-depth="2" hover-expand-delay="300"><ui-tree-item item-id="parent" label="Parent" container expanded><span>Parent</span><ui-tree-item slot="children" item-id="child" label="Child"><span>Child</span></ui-tree-item></ui-tree-item></ui-tree>`
+        markup: `<ui-tree label="Items" max-depth="2" hover-expand-delay="300"><ui-tree-item item-id="parent" label="Parent" expanded sortable><ui-tree-item item-id="child" label="Child" sortable></ui-tree-item></ui-tree-item></ui-tree>`
       }];
     default:
       return [];
@@ -595,8 +753,7 @@ function previewScenarios(component: string, id: string): PreviewScenario[] {
     label,
     description,
     markup: previewMarkup(component, id),
-    propertyAssignments: propertyAssignments(component),
-    dialogId: component === "ui-dialog" ? "confirmation-dialog" : undefined
+    propertyAssignments: propertyAssignments(component, id)
   }];
   scenarios.push(...curatedScenarios(component, id));
 
@@ -608,6 +765,7 @@ function previewScenarios(component: string, id: string): PreviewScenario[] {
 function ComponentPreviewClient({ component, compact = false }: ComponentPreviewProps): JSX.Element {
   const ready = useLoomaRuntime();
   const rootRef = useRef<HTMLDivElement>(null);
+  const [responsivePreviewWidth, setResponsivePreviewWidth] = useState(720);
   const scenarios = useMemo(
     () => ready ? previewScenarios(component, component.slice(3)) : [],
     [component, ready]
@@ -624,49 +782,38 @@ function ComponentPreviewClient({ component, compact = false }: ComponentPreview
       }
     }
 
-    const dialogCleanups = Array.from(
-      rootRef.current.querySelectorAll<HTMLButtonElement>("[data-dialog-demo]")
-    ).map((dialogTrigger) => {
-      const scope = dialogTrigger.closest(".looma-preview-scenario") ?? rootRef.current!;
-      const dialogClose = scope.querySelector<HTMLButtonElement>("[data-dialog-close]");
-      // Observation may already have lowered the authored host, so support both lifecycle states.
-      const dialogRoot = scope.querySelector<HTMLElement & { open?: boolean }>(
-        "ui-dialog, [data-component-root~='ui-dialog']"
-      );
-      const openDialog = () => {
-        if (dialogRoot) dialogRoot.open = true;
-      };
-      const closeDialog = () => {
-        if (dialogRoot) dialogRoot.open = false;
-      };
-      dialogTrigger.addEventListener("click", openDialog);
-      dialogClose?.addEventListener("click", closeDialog);
-      return () => {
-        dialogTrigger.removeEventListener("click", openDialog);
-        dialogClose?.removeEventListener("click", closeDialog);
-      };
-    });
-    const toastTrigger = rootRef.current.querySelector<HTMLButtonElement>("[data-toast-demo]");
-    const toastRegion = rootRef.current.querySelector<HTMLElement>(
-      "ui-toast-region, [data-component-root~='ui-toast-region']"
-    );
-    const showToast = () => {
-      if (!toastRegion || toastRegion.querySelector("[data-ui-toast]")) return;
-      const toast = document.createElement("div");
-      const dismiss = document.createElement("button");
-      toast.dataset.uiToast = "";
-      toast.append("Page saved.");
-      dismiss.type = "button";
-      dismiss.dataset.uiToastDismiss = "";
-      dismiss.ariaLabel = "Dismiss";
-      dismiss.textContent = "×";
-      toast.append(dismiss);
-      toastRegion.append(toast);
+  }, [component, ready, scenarios]);
+
+  useEffect(() => {
+    if (!ready || component !== "ui-search-shell" || !rootRef.current) return;
+    const root = rootRef.current;
+    const updateResults = () => {
+      const input = root.querySelector<HTMLInputElement>("#docs-search-input");
+      const status = root.querySelector<HTMLElement>("#docs-search-status");
+      const empty = root.querySelector<HTMLElement>("#docs-search-empty");
+      const results = [
+        root.querySelector<HTMLElement>("#docs-result-design-tokens"),
+        root.querySelector<HTMLElement>("#docs-result-token-overrides"),
+        root.querySelector<HTMLElement>("#docs-result-button-variants")
+      ].filter((result): result is HTMLElement => result !== null);
+      if (!input || !status || !empty || results.length === 0) return;
+      const query = input.value.trim().toLowerCase();
+      let visible = 0;
+      for (const result of results) {
+        result.hidden = !result.textContent?.toLowerCase().includes(query);
+        if (!result.hidden) visible += 1;
+      }
+      status.textContent = `${visible} result${visible === 1 ? "" : "s"}`;
+      empty.hidden = visible !== 0;
     };
-    toastTrigger?.addEventListener("click", showToast);
+    const onInput = (event: Event) => {
+      if ((event.target as HTMLElement | null)?.id === "docs-search-input") updateResults();
+    };
+    root.addEventListener("input", onInput);
+    const settledFrame = requestAnimationFrame(updateResults);
     return () => {
-      for (const cleanup of dialogCleanups) cleanup();
-      toastTrigger?.removeEventListener("click", showToast);
+      cancelAnimationFrame(settledFrame);
+      root.removeEventListener("input", onInput);
     };
   }, [component, ready, scenarios]);
 
@@ -689,15 +836,31 @@ function ComponentPreviewClient({ component, compact = false }: ComponentPreview
                 <h2>{scenario.label}</h2>
                 <p>{scenario.description}</p>
               </header>
+              {component === "ui-switcher" ? (
+                <label className="looma-responsive-preview-control">
+                  <span>Preview width</span>
+                  <input
+                    aria-label="Preview width"
+                    max="720"
+                    min="280"
+                    onChange={(event) => setResponsivePreviewWidth(Number(event.currentTarget.value))}
+                    type="range"
+                    value={responsivePreviewWidth}
+                  />
+                  <output>{responsivePreviewWidth}px</output>
+                </label>
+              ) : null}
               {/* Only static, repository-authored scenario strings reach this sink. */}
               <div
                 className="looma-preview-scenario__stage"
+                data-component-preview={component}
+                style={component === "ui-switcher" ? { "--looma-preview-width": `${responsivePreviewWidth}px` } as React.CSSProperties : undefined}
                 dangerouslySetInnerHTML={{ __html: scenario.markup }}
               />
               <ScenarioModeExample
+                examples={scenario.examples}
                 markup={scenario.markup}
                 propertyAssignments={scenario.propertyAssignments}
-                dialogId={scenario.dialogId}
               />
             </section>
           ))}

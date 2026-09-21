@@ -4,7 +4,7 @@ import type { ComponentPropsWithoutRef, ComponentRef, ElementType, ReactNode, Re
 import { attachLoomaComponent } from "@threadlabs/looma-core/declarative";
 import type { ComponentDefinition } from "@threadlabs/looma-core/declarative";
 
-const definition = {...{"contract":{"tag":"ui-form-field","props":{"disabled":{"type":"boolean","required":false,"target":{"attribute":"data-disabled"},"default":false},"invalid":{"type":"boolean","required":false,"target":{"attribute":"data-invalid"},"default":false},"required":{"type":"boolean","required":false,"target":{"attribute":"data-required"},"default":false}}},"template":{"kind":"element","name":"div","attributes":[{"kind":"attribute","name":"data-invalid","expression":"invalid","expressionPlan":{"source":"invalid","ast":{"kind":"id","name":"invalid"},"dependencies":["invalid"]}},{"kind":"attribute","name":"data-disabled","expression":"disabled","expressionPlan":{"source":"disabled","ast":{"kind":"id","name":"disabled"},"dependencies":["disabled"]}},{"kind":"attribute","name":"data-required","expression":"required","expressionPlan":{"source":"required","ast":{"kind":"id","name":"required"},"dependencies":["required"]}}],"children":[{"kind":"slot"}]},"declarations":[],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
+const definition = {...{"contract":{"tag":"ui-form-field","props":{"disabled":{"type":"boolean","required":false,"target":{"attribute":"data-disabled"},"default":false},"invalid":{"type":"boolean","required":false,"target":{"attribute":"data-invalid"},"default":false},"required":{"type":"boolean","required":false,"target":{"attribute":"data-required"},"default":false}}},"template":{"kind":"element","name":"div","attributes":[{"kind":"attribute","name":"data-invalid","expression":"invalid","expressionPlan":{"source":"invalid","ast":{"kind":"id","name":"invalid"},"dependencies":["invalid"]}},{"kind":"attribute","name":"data-disabled","expression":"disabled","expressionPlan":{"source":"disabled","ast":{"kind":"id","name":"disabled"},"dependencies":["disabled"]}},{"kind":"attribute","name":"data-required","expression":"required","expressionPlan":{"source":"required","ast":{"kind":"id","name":"required"},"dependencies":["required"]}}],"children":[{"kind":"slot","fallback":[],"name":"label"},{"kind":"slot"},{"kind":"slot","fallback":[],"name":"help"},{"kind":"slot","fallback":[],"name":"error"}]},"declarations":[],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
 
 interface UiFormFieldOwnProps {
   disabled?: boolean | null;
@@ -32,7 +32,10 @@ export function UiFormField(props: UiFormFieldProps) {
   useLayoutEffect(() => { if (root.current != null) Object.assign(root.current, componentProps); });
   return (
     <div {...nativeProps} data-component="ui-form-field" data-component-root="ui-form-field" data-looma-managed="framework" data-invalid={prop1 ? "" : undefined} data-disabled={prop0 ? "" : undefined} data-required={prop2 ? "" : undefined} ref={setRoot}>
-      {children ?? (null)}
+      {slots?.["label"] ?? (null)}
+{children ?? (null)}
+{slots?.["help"] ?? (null)}
+{slots?.["error"] ?? (null)}
     </div>
   );
 }

@@ -4,11 +4,11 @@ import type { ComponentPropsWithoutRef, ComponentRef, ElementType, ReactNode, Re
 import { attachLoomaComponent } from "@threadlabs/looma-core/declarative";
 import type { ComponentDefinition } from "@threadlabs/looma-core/declarative";
 
-const definition = {...{"contract":{"tag":"ui-dialog","props":{"defaultOpen":{"type":"boolean","required":false,"target":{"attribute":"defaultopen"},"default":false},"dismissible":{"type":"boolean","required":false,"target":{"attribute":"dismissible"},"default":false},"label":{"type":"string","required":false,"target":{"attribute":"label"}},"modal":{"type":"boolean","required":false,"target":{"attribute":"modal"},"default":false},"open":{"type":"boolean","required":false,"target":{"attribute":"open"}}}},"template":{"kind":"element","name":"div","attributes":[{"kind":"attribute","name":"data-state-open","expression":"internalOpen","expressionPlan":{"source":"internalOpen","ast":{"kind":"id","name":"internalOpen"},"dependencies":["internalOpen"]}}],"children":[{"kind":"element","name":"dialog","attributes":[{"kind":"attribute","name":"aria-label","expression":"accessibleLabel","expressionPlan":{"source":"accessibleLabel","ast":{"kind":"id","name":"accessibleLabel"},"dependencies":["accessibleLabel"]}}],"children":[{"kind":"slot"}]}]},"declarations":[{"kind":"state","name":"internalOpen","expression":{"source":"false","ast":{"kind":"literal","value":false},"dependencies":[]}},{"kind":"state","name":"accessibleLabel","expression":{"source":"'Dialog'","ast":{"kind":"literal","value":"Dialog"},"dependencies":[]}},{"kind":"event","name":"close","type":"object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
+const definition = {...{"contract":{"tag":"ui-dialog","props":{"dismissible":{"type":"boolean","required":false,"target":{"attribute":"dismissible"},"default":false},"for":{"type":"string","required":false,"target":{"attribute":"for"},"default":""},"label":{"type":"string","required":false,"target":{"attribute":"label"}},"modal":{"type":"boolean","required":false,"target":{"attribute":"modal"},"default":false},"open":{"type":"boolean","required":false,"target":{"attribute":"open"},"default":false}}},"template":{"kind":"element","name":"dialog","attributes":[{"kind":"attribute","name":"aria-label","expression":"accessibleLabel","expressionPlan":{"source":"accessibleLabel","ast":{"kind":"id","name":"accessibleLabel"},"dependencies":["accessibleLabel"]}}],"children":[{"kind":"slot"}]},"declarations":[{"kind":"state","name":"internalOpen","expression":{"source":"false","ast":{"kind":"literal","value":false},"dependencies":[]}},{"kind":"state","name":"accessibleLabel","expression":{"source":"'Dialog'","ast":{"kind":"literal","value":"Dialog"},"dependencies":[]}},{"kind":"event","name":"close","type":"object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"dialog","choices":["dialog"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
 
 interface UiDialogOwnProps {
-  defaultOpen?: boolean | null;
   dismissible?: boolean | null;
+  for?: string | null;
   label?: string | null;
   modal?: boolean | null;
   open?: boolean | null;
@@ -16,21 +16,21 @@ interface UiDialogOwnProps {
   slots?: Readonly<Record<string, ReactNode>>;
 }
 
-export type UiDialogHandle = ComponentRef<"div"> & {
+export type UiDialogHandle = ComponentRef<"dialog"> & {
 };
 
-export type UiDialogProps = Omit<ComponentPropsWithoutRef<"div">, keyof UiDialogOwnProps | "children"> &
+export type UiDialogProps = Omit<ComponentPropsWithoutRef<"dialog">, keyof UiDialogOwnProps | "children"> &
   UiDialogOwnProps & { children?: ReactNode; ref?: Ref<UiDialogHandle> };
 
 export function UiDialog(props: UiDialogProps) {
-  const { "defaultOpen": prop0 = false, "dismissible": prop1 = false, "label": prop2, "modal": prop3 = false, "open": prop4, onClose, slots, children, ref, ...nativeProps } = props;
+  const { "dismissible": prop0 = false, "for": prop1 = "", "label": prop2, "modal": prop3 = false, "open": prop4 = false, onClose, slots, children, ref, ...nativeProps } = props;
   const root = useRef<UiDialogHandle | null>(null);
   const setRoot = (node: UiDialogHandle | null) => {
     (root as { current: UiDialogHandle | null }).current = node;
     if (typeof ref === "function") ref(node);
     else if (ref != null) ref.current = node;
   };
-  const componentProps: Record<string, unknown> = { "defaultOpen": prop0, "dismissible": prop1, "label": prop2, "modal": prop3, "open": prop4 };
+  const componentProps: Record<string, unknown> = { "dismissible": prop0, "for": prop1, "label": prop2, "modal": prop3, "open": prop4 };
   useLayoutEffect(() => root.current == null ? undefined : attachLoomaComponent(root.current, definition, "ui-dialog", componentProps), []);
   useLayoutEffect(() => { if (root.current != null) Object.assign(root.current, componentProps); });
   useLayoutEffect(() => {
@@ -41,10 +41,8 @@ export function UiDialog(props: UiDialogProps) {
     return () => node.removeEventListener("close", listener0);
   }, [onClose]);
   return (
-    <div {...nativeProps} data-component="ui-dialog" data-component-root="ui-dialog" data-looma-managed="framework" data-state-open={undefined} ref={setRoot}>
-      <dialog aria-label={undefined} data-component="ui-dialog">
+    <dialog {...nativeProps} data-component="ui-dialog" data-component-root="ui-dialog" data-looma-managed="framework" aria-label={undefined} ref={setRoot}>
       {children ?? (null)}
     </dialog>
-    </div>
   );
 }

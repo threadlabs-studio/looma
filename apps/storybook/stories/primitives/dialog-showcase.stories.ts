@@ -7,26 +7,20 @@ const meta = {
     docs: {
       description: {
         component:
-          "Example dialog with title, body, and action buttons including destructive."
+          "Example dialog with title, body, and action buttons including danger intent."
       }
     }
   },
   render: () => `
     <ui-dialog open modal>
-      <dialog>
-        <h2 style="margin: 0 0 var(--ui-space-2); font-size: var(--ui-font-size-lg); font-weight: 600;">Delete document?</h2>
-        <p style="margin: 0 0 var(--ui-space-4); color: var(--ui-text-secondary);">
-          This action cannot be undone. The document will be permanently removed.
-        </p>
-        <div style="display: flex; gap: var(--ui-space-2); justify-content: flex-end;">
-          <ui-button variant="ghost">
-            <button type="button">Cancel</button>
-          </ui-button>
-          <ui-button variant="destructive">
-            <button type="button">Delete</button>
-          </ui-button>
-        </div>
-      </dialog>
+      <h2 style="margin: 0 0 var(--ui-space-2); font-size: var(--ui-font-size-lg); font-weight: 600;">Delete document?</h2>
+      <p style="margin: 0 0 var(--ui-space-4); color: var(--ui-text-secondary);">
+        This action cannot be undone. The document will be permanently removed.
+      </p>
+      <div style="display: flex; gap: var(--ui-space-2); justify-content: flex-end;">
+        <ui-button variant="ghost">Cancel</ui-button>
+        <ui-button variant="danger">Delete</ui-button>
+      </div>
     </ui-dialog>
   `
 } satisfies Meta;

@@ -207,12 +207,7 @@
     color: var(--ui-action-secondary-text, var(--ui-text-primary));
   }
 
-  /* Match data-variant too, not just the variant attribute. ui-button does not
-   * reflect its `variant` prop, so a `variant` attribute only exists on buttons
-   * rendered server-side; client-rendered buttons (e.g. a dialog opened after
-   * mount) carry only the Stencil-synced data-variant. Keying on data-variant
-   * (as the size rules already do with data-size) makes this fallback apply in
-   * both cases instead of stranding client-rendered variants on the neutral base. */
+  /* The invocation attribute and lowered reflected value share one fallback. */
   ui-button:is([variant="solid"], [data-variant="solid"]) {
     color: var(--ui-action-primary-text, var(--ui-text-on-accent));
   }
@@ -279,21 +274,21 @@
     transform: translateY(0);
   }
 
-  ui-button:is([variant="destructive"], [data-variant="destructive"]) > button {
+  ui-button:is([variant="danger"], [data-variant="danger"]) > button {
     border-color: var(--ui-danger-solid);
     background: var(--ui-danger-solid);
     color: var(--ui-text-on-accent);
-    box-shadow: var(--ui-button-destructive-shadow, inset 0 1px rgb(255 255 255 / 0.14), var(--ui-shadow-xs));
+    box-shadow: var(--ui-button-danger-shadow, inset 0 1px rgb(255 255 255 / 0.14), var(--ui-shadow-xs));
   }
 
-  ui-button:is([variant="destructive"], [data-variant="destructive"]) > button:hover:enabled {
+  ui-button:is([variant="danger"], [data-variant="danger"]) > button:hover:enabled {
     background: var(--ui-danger-hover);
     border-color: var(--ui-danger-hover);
     box-shadow: var(--ui-shadow-sm);
     transform: translateY(-1px);
   }
 
-  ui-button:is([variant="destructive"], [data-variant="destructive"]) > button:active:enabled {
+  ui-button:is([variant="danger"], [data-variant="danger"]) > button:active:enabled {
     background: var(--ui-danger-hover);
     border-color: var(--ui-danger-hover);
     box-shadow: none;

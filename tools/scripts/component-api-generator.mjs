@@ -2,18 +2,15 @@ import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { coreContracts } from "../migrate-html-next/core-contracts.mjs";
-import { editorContracts } from "../migrate-html-next/editor-contracts.mjs";
-import { layoutContracts } from "../migrate-html-next/layout-contracts.mjs";
+import {
+  publicAttributeName,
+  readDeclarativeContractGroups,
+} from "./declarative-contracts.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "../..");
 
-const CONTRACT_GROUPS = [
-  { packageName: "@threadlabs/looma", contracts: coreContracts },
-  { packageName: "@threadlabs/looma/layout", contracts: layoutContracts },
-  { packageName: "@threadlabs/looma/editor", contracts: editorContracts },
-];
+const CONTRACT_GROUPS = await readDeclarativeContractGroups();
 
 const RELEASE_CLASSIFICATION_PATH = "tools/data/component-release-classification.json";
 
@@ -116,10 +113,22 @@ export function validateComponentProjections({
   const publishedTags = classificationTags.filter(
     (tag) => classificationStatus(classifications[tag]) === "published",
   );
+  const navigationTagsExpected = publishedTags.filter((tag) => (
+    typeof classifications[tag] !== "object" || !classifications[tag]?.navigationParent
+  ));
+  for (const tag of publishedTags) {
+    const parent = typeof classifications[tag] === "object" ? classifications[tag]?.navigationParent : undefined;
+    if (!parent) continue;
+    if (classificationStatus(classifications[parent]) !== "published") {
+      errors.push(`navigation parent for ${tag} is not published: ${parent}`);
+    } else if (!navigationTags.includes(parent)) {
+      errors.push(`navigation parent for ${tag} is not navigated: ${parent}`);
+    }
+  }
 
   pushSetDifference(errors, "metadata", publishedTags, metadataTags);
   pushSetDifference(errors, "documentation", publishedTags, documentationTags);
-  pushSetDifference(errors, "navigation", publishedTags, navigationTags);
+  pushSetDifference(errors, "navigation", navigationTagsExpected, navigationTags);
   pushSetDifference(errors, "adapter map", publishedTags, adapterMapTags);
   pushSetDifference(errors, "adapter", publishedTags, adapterTags);
 
@@ -243,8 +252,189 @@ function literalOptions(type) {
   return options.length > 0 ? options : undefined;
 }
 
-function camelToKebab(value) {
-  return value.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
+function stripCssComments(source) {
+  return source.replace(/\/\*[\s\S]*?\*\//g, "");
+}
+
+function findClosingBrace(source, openIndex) {
+  let depth = 1;
+  let quote = null;
+  for (let index = openIndex + 1; index < source.length; index += 1) {
+    const character = source[index];
+    const next = source[index + 1];
+    if (quote !== null) {
+      if (character === "\\") index += 1;
+      else if (character === quote) quote = null;
+      continue;
+    }
+    if (character === '"' || character === "'") {
+      quote = character;
+      continue;
+    }
+    if (character === "/" && next === "*") {
+      const commentEnd = source.indexOf("*/", index + 2);
+      index = commentEnd < 0 ? source.length : commentEnd + 1;
+      continue;
+    }
+    if (character === "{") depth += 1;
+    else if (character === "}" && --depth === 0) return index;
+  }
+  throw new SyntaxError("Unclosed CSS block while generating component token metadata");
+}
+
+function cssBlocks(source) {
+  const blocks = [];
+  let segmentStart = 0;
+  let quote = null;
+  for (let index = 0; index < source.length; index += 1) {
+    const character = source[index];
+    const next = source[index + 1];
+    if (quote !== null) {
+      if (character === "\\") index += 1;
+      else if (character === quote) quote = null;
+      continue;
+    }
+    if (character === '"' || character === "'") {
+      quote = character;
+      continue;
+    }
+    if (character === "/" && next === "*") {
+      const commentEnd = source.indexOf("*/", index + 2);
+      index = commentEnd < 0 ? source.length : commentEnd + 1;
+      continue;
+    }
+    if (character === ";") {
+      segmentStart = index + 1;
+      continue;
+    }
+    if (character !== "{") continue;
+
+    const closeIndex = findClosingBrace(source, index);
+    blocks.push({
+      prelude: source.slice(segmentStart, index).trim(),
+      body: source.slice(index + 1, closeIndex),
+    });
+    index = closeIndex;
+    segmentStart = closeIndex + 1;
+  }
+  return blocks;
+}
+
+function selectorIncludesTag(selector, tag) {
+  const escapedTag = tag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`(^|[^A-Za-z0-9_-])\\.?${escapedTag}(?![A-Za-z0-9-])`).test(selector);
+}
+
+function componentCss(source, tag) {
+  const declarations = [];
+  const visit = (css) => {
+    for (const block of cssBlocks(css)) {
+      if (block.prelude.startsWith("@")) visit(block.body);
+      else if (selectorIncludesTag(block.prelude, tag)) declarations.push(block.body);
+    }
+  };
+  visit(source);
+  return declarations.join("\n");
+}
+
+function customPropertyDeclarations(source) {
+  const declarations = new Map();
+  const pattern = /(--[A-Za-z0-9_-]+)\s*:\s*([^;{}]+);/g;
+  for (const match of stripCssComments(source).matchAll(pattern)) {
+    const values = declarations.get(match[1]) ?? [];
+    const value = match[2].trim().replace(/\s+/g, " ");
+    if (!values.includes(value)) values.push(value);
+    declarations.set(match[1], values);
+  }
+  return declarations;
+}
+
+function splitVarArguments(value) {
+  let depth = 0;
+  let quote = null;
+  for (let index = 0; index < value.length; index += 1) {
+    const character = value[index];
+    if (quote !== null) {
+      if (character === "\\") index += 1;
+      else if (character === quote) quote = null;
+      continue;
+    }
+    if (character === '"' || character === "'") quote = character;
+    else if (character === "(") depth += 1;
+    else if (character === ")") depth -= 1;
+    else if (character === "," && depth === 0) {
+      return [value.slice(0, index).trim(), value.slice(index + 1).trim()];
+    }
+  }
+  return [value.trim(), undefined];
+}
+
+function customPropertyReferences(source) {
+  const references = new Map();
+  const css = stripCssComments(source);
+  for (let start = css.indexOf("var("); start >= 0; start = css.indexOf("var(", start + 4)) {
+    let depth = 1;
+    let quote = null;
+    let end = start + 4;
+    for (; end < css.length && depth > 0; end += 1) {
+      const character = css[end];
+      if (quote !== null) {
+        if (character === "\\") end += 1;
+        else if (character === quote) quote = null;
+        continue;
+      }
+      if (character === '"' || character === "'") quote = character;
+      else if (character === "(") depth += 1;
+      else if (character === ")") depth -= 1;
+    }
+    if (depth !== 0) throw new SyntaxError("Unclosed var() while generating component token metadata");
+
+    const [name, fallback] = splitVarArguments(css.slice(start + 4, end - 1));
+    if (!/^--[A-Za-z0-9_-]+$/.test(name)) continue;
+    const fallbacks = references.get(name) ?? [];
+    if (fallback && !fallbacks.includes(fallback)) fallbacks.push(fallback);
+    references.set(name, fallbacks);
+  }
+  return references;
+}
+
+function tokenRecord(name, declarations, references) {
+  return {
+    name,
+    ...(declarations.get(name)?.length ? { declarations: declarations.get(name) } : {}),
+    ...(references.get(name)?.length ? { fallbacks: references.get(name) } : {}),
+  };
+}
+
+export function extractDesignTokensFromCss({ tag, source }) {
+  const declarations = customPropertyDeclarations(source);
+  const references = customPropertyReferences(source);
+  const componentPrefix = `--${tag}-`;
+  const componentNames = new Set([
+    ...declarations.keys(),
+    ...[...references.keys()].filter((name) => name.startsWith(componentPrefix)),
+  ]);
+  const sharedNames = [...references.keys()].filter((name) => !componentNames.has(name));
+
+  return {
+    component: [...componentNames].sort().map((name) => tokenRecord(name, declarations, references)),
+    shared: sharedNames.sort().map((name) => tokenRecord(name, declarations, references)),
+  };
+}
+
+async function componentDesignTokens(tag, group, contract) {
+  const packageStylePath = `${group.directory}/styles.css`;
+  let sourcePath = contract.sourcePath;
+  let scopedSource = contract.style;
+  if (scopedSource.trim() === "") {
+    sourcePath = packageStylePath;
+    const source = await readFile(path.join(repoRoot, sourcePath), "utf8");
+    scopedSource = componentCss(source, tag);
+  }
+  return {
+    sources: [sourcePath],
+    ...extractDesignTokensFromCss({ tag, source: scopedSource }),
+  };
 }
 
 async function readComponentDocDescriptions() {
@@ -274,7 +464,7 @@ function slotDescription(name) {
   return `Named content for the ${name} region.`;
 }
 
-function contractMetadata(tag, packageName, contract, description) {
+function contractMetadata(tag, packageName, contract, description, designTokens) {
   const properties = Object.entries(contract.props ?? {}).map(([name, declaration]) => ({
     name,
     type: declarativeTypeToTypeScript(declaration.type),
@@ -285,7 +475,7 @@ function contractMetadata(tag, packageName, contract, description) {
   const attributes = Object.entries(contract.props ?? {})
     .filter(([, declaration]) => declaration.channel !== "property")
     .map(([name, declaration]) => ({
-      name: declaration.attribute ?? camelToKebab(name),
+      name: publicAttributeName(name, declaration),
       property: name,
       type: declarativeTypeToTypeScript(declaration.type),
       ...(Object.hasOwn(declaration, "default") ? { default: declaration.default } : {}),
@@ -306,6 +496,7 @@ function contractMetadata(tag, packageName, contract, description) {
     package: packageName,
     root: contract.root,
     description,
+    designTokens,
     attributes: attributes.sort((left, right) => left.name.localeCompare(right.name)),
     properties: properties.sort((left, right) => left.name.localeCompare(right.name)),
     methods: (contract.methods ?? []).map((method) => ({
@@ -319,18 +510,30 @@ function contractMetadata(tag, packageName, contract, description) {
 
 export async function generateComponentApiMetadata() {
   validateBooleanDefaultPolicy();
-  const descriptions = await readComponentDocDescriptions();
-  const components = CONTRACT_GROUPS.flatMap(({ packageName, contracts }) =>
-    Object.entries(contracts).map(([tag, contract]) =>
-      contractMetadata(tag, packageName, contract, descriptions.get(tag) ?? "")))
-    .sort((left, right) => left.tag.localeCompare(right.tag));
-
-  const sourceComponents = CONTRACT_GROUPS.flatMap(({ packageName, contracts }) =>
-    Object.keys(contracts).map((tag) => ({ tag, package: packageName })));
   const classificationsDocument = JSON.parse(
     await readFile(path.join(repoRoot, RELEASE_CLASSIFICATION_PATH), "utf8"),
   );
   const classifications = classificationsDocument.tags ?? {};
+  const descriptions = await readComponentDocDescriptions();
+  const componentEntries = CONTRACT_GROUPS.flatMap((group) =>
+    Object.entries(group.contracts)
+      .filter(([tag]) => classificationStatus(classifications[tag]) === "published")
+      .map(([tag, contract]) => ({ group, packageName: group.packageName, tag, contract })));
+  const components = (await Promise.all(componentEntries.map(async ({ group, packageName, tag, contract }) => ({
+    ...await contractMetadata(
+      tag,
+      packageName,
+      contract,
+      descriptions.get(tag) ?? "",
+      await componentDesignTokens(tag, group, contract),
+    ),
+    ...(typeof classifications[tag] === "object" && classifications[tag]?.navigationParent
+      ? { navigationParent: classifications[tag].navigationParent }
+      : {}),
+  })))).sort((left, right) => left.tag.localeCompare(right.tag));
+
+  const sourceComponents = CONTRACT_GROUPS.flatMap(({ packageName, contracts }) =>
+    Object.keys(contracts).map((tag) => ({ tag, package: packageName })));
   const sourcePackageByTag = new Map(sourceComponents.map((component) => [component.tag, component.package]));
   const packageMismatches = Object.entries(classifications)
     .filter(([, value]) => typeof value === "object" && value?.package)
@@ -359,5 +562,5 @@ export async function generateComponentApiMetadata() {
     contractReadmeTags: repositoryProjections.contractReadmeTags,
   });
 
-  return { schemaVersion: 2, components };
+  return { schemaVersion: 3, components };
 }

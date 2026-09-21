@@ -7,10 +7,8 @@ import {
   AvatarGroup,
   Badge,
   Callout,
-  Chip,
   Button,
   ContextMenu,
-  FloatingActionButton,
   Switcher,
   Sidebar,
   Reel,
@@ -53,11 +51,9 @@ describe("@threadlabs/looma-vue adapter", () => {
     expect(ADAPTER_COMPONENT_TAG_MAP.RadioGroup).toBe("ui-radio-group");
     expect(ADAPTER_COMPONENT_TAG_MAP.Radio).toBe("ui-radio");
     expect(ADAPTER_COMPONENT_TAG_MAP.Badge).toBe("ui-badge");
-    expect(ADAPTER_COMPONENT_TAG_MAP.Chip).toBe("ui-chip");
     expect(ADAPTER_COMPONENT_TAG_MAP.Callout).toBe("ui-callout");
     expect(ADAPTER_COMPONENT_TAG_MAP.Avatar).toBe("ui-avatar");
     expect(ADAPTER_COMPONENT_TAG_MAP.AvatarGroup).toBe("ui-avatar-group");
-    expect(ADAPTER_COMPONENT_TAG_MAP.FloatingActionButton).toBe("ui-floating-action-button");
     expect(ADAPTER_COMPONENT_TAG_MAP.ContextMenu).toBe("ui-context-menu");
     expect(ADAPTER_COMPONENT_TAG_MAP.Switcher).toBe("ui-switcher");
     expect(ADAPTER_COMPONENT_TAG_MAP.Sidebar).toBe("ui-sidebar");
@@ -68,14 +64,11 @@ describe("@threadlabs/looma-vue adapter", () => {
     expect(Editable).toBeTruthy();
   });
 
-  it("forwards chip appearance and callout tone with slot content", () => {
-    const { host } = mount(() => h("div", [
-      h(Chip, { appearance: "tag" }, () => "Research"),
-      h(Callout, { tone: "warning" }, () => "Review this before publishing."),
-    ]));
+  it("forwards callout tone with slot content", () => {
+    const { host } = mount(() =>
+      h(Callout, { tone: "warning" }, () => "Review this before publishing.")
+    );
 
-    expect(host.querySelector(`[data-component-root="ui-chip"]`)?.getAttribute("data-appearance")).toBe("tag");
-    expect(host.querySelector(`[data-component-root="ui-chip"]`)?.textContent).toContain("Research");
     expect(host.querySelector(`[data-component-root="ui-callout"]`)?.getAttribute("data-tone")).toBe("warning");
     expect(host.querySelector(`[data-component-root="ui-callout"]`)?.textContent).toContain("Review this before publishing.");
   });
@@ -151,24 +144,25 @@ describe("@threadlabs/looma-vue adapter", () => {
     expect(host.querySelector(`[data-component-root="ui-sidebar"]`)?.getAttribute("data-allow-mismatch")).toBe("");
   });
 
-  it("renders wrappers with forwarded attrs and default slot content", () => {
+  it("renders a button as the native control with forwarded attrs and content", () => {
     const { host } = mount(() =>
-      h(Button, { variant: "solid", size: "sm" }, () => h("button", { type: "button" }, "Save page"))
+      h(Button, { variant: "solid", size: "sm", type: "button" }, () => "Save page")
     );
 
-    const wrapper = host.querySelector(`[data-component-root="ui-button"]`);
-    const button = wrapper?.querySelector("button");
+    const button = host.querySelector(`[data-component-root="ui-button"]`);
 
-    expect(wrapper).toBeTruthy();
-    expect(wrapper?.getAttribute("data-variant")).toBe("solid");
-    expect(wrapper?.getAttribute("data-size")).toBe("sm");
-    expect(wrapper?.getAttribute("data-allow-mismatch")).toBe("class");
+    expect(button?.tagName).toBe("BUTTON");
+    expect(button?.getAttribute("data-variant")).toBe("solid");
+    expect(button?.getAttribute("data-size")).toBe("sm");
+    expect(button?.getAttribute("type")).toBe("button");
+    expect(button?.getAttribute("data-allow-mismatch")).toBe("class");
     expect(button?.textContent).toBe("Save page");
+    expect(button?.querySelector("button")).toBeNull();
   });
 
   it("lets consumers override the expected custom-element hydration mismatch", () => {
     const { host } = mount(() =>
-      h(Button, { "data-allow-mismatch": "children" }, () => h("button", "Save page"))
+      h(Button, { "data-allow-mismatch": "children" }, () => "Save page")
     );
 
     expect(host.querySelector(`[data-component-root="ui-button"]`)?.getAttribute("data-allow-mismatch")).toBe("children");
@@ -231,18 +225,4 @@ describe("@threadlabs/looma-vue adapter", () => {
     expect(host.querySelector(`[data-component-root="ui-avatar"]`)?.getAttribute("data-name")).toBe("Taylor Reed");
   });
 
-  it("renders the floating action button wrapper as its native root", () => {
-    const { host } = mount(() =>
-      h(
-        FloatingActionButton,
-        { label: "Create new page", "mobile-only": true },
-        () => h("svg", { viewBox: "0 0 24 24", "aria-hidden": "true" })
-      )
-    );
-
-    const fab = host.querySelector(`[data-component-root="ui-floating-action-button"]`);
-    expect(fab).toBeTruthy();
-    expect(fab?.getAttribute("data-label")).toBe("Create new page");
-    expect(fab?.getAttribute("data-mobile-only")).toBe("true");
-  });
 });

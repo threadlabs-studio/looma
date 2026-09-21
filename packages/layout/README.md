@@ -3,12 +3,15 @@
 > Internal implementation workspace. Consumers install `@threadlabs/looma` and
 > import `@threadlabs/looma/layout` or `@threadlabs/looma/layout.css`.
 
-Nine declarative layout components that lower to light-DOM native roots, use token-driven gaps,
+Eight public declarative layout components that lower to light-DOM native roots, use token-driven gaps,
 and never add external margins.
 
 Release target: Candidate `0.2.7`. The public
-component invocations in this workspace are `ui-stack`, `ui-inline`, `ui-cluster`, `ui-grid`,
+component invocations in this workspace are `ui-stack`, `ui-inline`, `ui-grid`,
 `ui-center`, `ui-switcher`, `ui-sidebar`, `ui-reel`, and `ui-separator`.
+
+`ui-cluster` remains a deprecated compatibility alias for `<ui-inline wrap>`;
+it is intentionally absent from the public catalog and new adapter surface.
 
 ## Install
 

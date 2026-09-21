@@ -4,14 +4,14 @@ import type { ComponentPropsWithoutRef, ComponentRef, ElementType, ReactNode, Re
 import { attachLoomaComponent } from "@threadlabs/looma-core/declarative";
 import type { ComponentDefinition } from "@threadlabs/looma-core/declarative";
 
-const definition = {...{"contract":{"tag":"ui-menu","props":{"defaultOpen":{"type":"boolean","required":false,"target":{"attribute":"defaultopen"},"default":false},"for":{"type":"string","required":false,"target":{"attribute":"for"}},"open":{"type":"boolean","required":false,"target":{"attribute":"open"}},"placement":{"type":"string","required":false,"target":{"attribute":"placement"},"default":"bottom-start"}}},"template":{"kind":"element","name":"div","attributes":[{"kind":"literal","name":"role","value":"menu"},{"kind":"literal","name":"aria-orientation","value":"vertical"},{"kind":"attribute","name":"data-state-open","expression":"internalOpen","expressionPlan":{"source":"internalOpen","ast":{"kind":"id","name":"internalOpen"},"dependencies":["internalOpen"]}}],"children":[{"kind":"element","name":"div","attributes":[{"kind":"literal","name":"class","value":"menu__surface"}],"children":[{"kind":"slot"}]}]},"declarations":[{"kind":"state","name":"internalOpen","expression":{"source":"false","ast":{"kind":"literal","value":false},"dependencies":[]}},{"kind":"event","name":"select","type":"object({ value: string, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false},{"kind":"event","name":"close","type":"object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
+const definition = {...{"contract":{"tag":"ui-menu","props":{"for":{"type":"string","required":false,"target":{"attribute":"for"},"default":""},"open":{"type":"boolean","required":false,"target":{"attribute":"open"},"default":false},"placement":{"type":"string","required":false,"target":{"attribute":"placement"},"default":"bottom-start"}}},"template":{"kind":"element","name":"div","attributes":[{"kind":"literal","name":"role","value":"menu"},{"kind":"literal","name":"aria-orientation","value":"vertical"},{"kind":"attribute","name":"data-state-open","expression":"internalOpen","expressionPlan":{"source":"internalOpen","ast":{"kind":"id","name":"internalOpen"},"dependencies":["internalOpen"]}}],"children":[{"kind":"element","name":"div","attributes":[{"kind":"literal","name":"class","value":"menu__surface"}],"children":[{"kind":"slot"}]}]},"declarations":[{"kind":"state","name":"internalOpen","expression":{"source":"false","ast":{"kind":"literal","value":false},"dependencies":[]}},{"kind":"event","name":"select","type":"object({ value: string, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false},{"kind":"event","name":"open","type":"object({ open: boolean, reason: action | programmatic, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false},{"kind":"event","name":"close","type":"object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
 
 interface UiMenuOwnProps {
-  defaultOpen?: boolean | null;
   for?: string | null;
   open?: boolean | null;
   placement?: string | null;
   onSelect?: (detail: { readonly value: string; readonly trigger: "keyboard" | "pointer" | "programmatic" }, event: CustomEvent<{ readonly value: string; readonly trigger: "keyboard" | "pointer" | "programmatic" }>) => void;
+  onOpen?: (detail: { readonly open: boolean; readonly reason: "action" | "programmatic"; readonly trigger: "keyboard" | "pointer" | "programmatic" }, event: CustomEvent<{ readonly open: boolean; readonly reason: "action" | "programmatic"; readonly trigger: "keyboard" | "pointer" | "programmatic" }>) => void;
   onClose?: (detail: { readonly open: boolean; readonly reason: "action" | "programmatic" | "light-dismiss" | "escape"; readonly trigger: "keyboard" | "pointer" | "programmatic" }, event: CustomEvent<{ readonly open: boolean; readonly reason: "action" | "programmatic" | "light-dismiss" | "escape"; readonly trigger: "keyboard" | "pointer" | "programmatic" }>) => void;
   slots?: Readonly<Record<string, ReactNode>>;
 }
@@ -23,14 +23,14 @@ export type UiMenuProps = Omit<ComponentPropsWithoutRef<"div">, keyof UiMenuOwnP
   UiMenuOwnProps & { children?: ReactNode; ref?: Ref<UiMenuHandle> };
 
 export function UiMenu(props: UiMenuProps) {
-  const { "defaultOpen": prop0 = false, "for": prop1, "open": prop2, "placement": prop3 = "bottom-start", onSelect, onClose, slots, children, ref, ...nativeProps } = props;
+  const { "for": prop0 = "", "open": prop1 = false, "placement": prop2 = "bottom-start", onSelect, onOpen, onClose, slots, children, ref, ...nativeProps } = props;
   const root = useRef<UiMenuHandle | null>(null);
   const setRoot = (node: UiMenuHandle | null) => {
     (root as { current: UiMenuHandle | null }).current = node;
     if (typeof ref === "function") ref(node);
     else if (ref != null) ref.current = node;
   };
-  const componentProps: Record<string, unknown> = { "defaultOpen": prop0, "for": prop1, "open": prop2, "placement": prop3 };
+  const componentProps: Record<string, unknown> = { "for": prop0, "open": prop1, "placement": prop2 };
   useLayoutEffect(() => root.current == null ? undefined : attachLoomaComponent(root.current, definition, "ui-menu", componentProps), []);
   useLayoutEffect(() => { if (root.current != null) Object.assign(root.current, componentProps); });
   useLayoutEffect(() => {
@@ -42,10 +42,17 @@ export function UiMenu(props: UiMenuProps) {
   }, [onSelect]);
   useLayoutEffect(() => {
     const node = root.current;
+    if (node == null || onOpen == null) return;
+    const listener1 = (event: Event) => onOpen((event as CustomEvent<{ readonly open: boolean; readonly reason: "action" | "programmatic"; readonly trigger: "keyboard" | "pointer" | "programmatic" }>).detail, event as CustomEvent<{ readonly open: boolean; readonly reason: "action" | "programmatic"; readonly trigger: "keyboard" | "pointer" | "programmatic" }>);
+    node.addEventListener("open", listener1);
+    return () => node.removeEventListener("open", listener1);
+  }, [onOpen]);
+  useLayoutEffect(() => {
+    const node = root.current;
     if (node == null || onClose == null) return;
-    const listener1 = (event: Event) => onClose((event as CustomEvent<{ readonly open: boolean; readonly reason: "action" | "programmatic" | "light-dismiss" | "escape"; readonly trigger: "keyboard" | "pointer" | "programmatic" }>).detail, event as CustomEvent<{ readonly open: boolean; readonly reason: "action" | "programmatic" | "light-dismiss" | "escape"; readonly trigger: "keyboard" | "pointer" | "programmatic" }>);
-    node.addEventListener("close", listener1);
-    return () => node.removeEventListener("close", listener1);
+    const listener2 = (event: Event) => onClose((event as CustomEvent<{ readonly open: boolean; readonly reason: "action" | "programmatic" | "light-dismiss" | "escape"; readonly trigger: "keyboard" | "pointer" | "programmatic" }>).detail, event as CustomEvent<{ readonly open: boolean; readonly reason: "action" | "programmatic" | "light-dismiss" | "escape"; readonly trigger: "keyboard" | "pointer" | "programmatic" }>);
+    node.addEventListener("close", listener2);
+    return () => node.removeEventListener("close", listener2);
   }, [onClose]);
   return (
     <div {...nativeProps} data-component="ui-menu" data-component-root="ui-menu" data-looma-managed="framework" role="menu" aria-orientation="vertical" data-state-open={undefined} ref={setRoot}>

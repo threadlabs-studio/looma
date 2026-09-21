@@ -4,13 +4,14 @@ import type { ComponentPropsWithoutRef, ComponentRef, ElementType, ReactNode, Re
 import { attachLoomaComponent } from "@threadlabs/looma-core/declarative";
 import type { ComponentDefinition } from "@threadlabs/looma-core/declarative";
 
-const definition = {...{"contract":{"tag":"ui-editor-insert-table-grid","props":{"maxCols":{"type":{"kind":"terminal","name":"integer"},"required":false,"target":{"attribute":"maxcols"},"default":8},"maxRows":{"type":{"kind":"terminal","name":"integer"},"required":false,"target":{"attribute":"maxrows"},"default":8},"open":{"type":"boolean","required":false,"target":{"attribute":"open"},"default":false}}},"template":{"kind":"element","name":"div","attributes":[],"children":[]},"declarations":[{"kind":"event","name":"looma-editor-insert-table","type":"object({ rows: integer, cols: integer, withHeaderRow: boolean })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
+const definition = {...{"contract":{"tag":"ui-editor-insert-table-grid","props":{"headerRow":{"type":"boolean","required":false,"target":{"attribute":"headerrow"},"default":false},"maxCols":{"type":{"kind":"terminal","name":"integer"},"required":false,"target":{"attribute":"maxcols"},"default":8},"maxRows":{"type":{"kind":"terminal","name":"integer"},"required":false,"target":{"attribute":"maxrows"},"default":8},"open":{"type":"boolean","required":false,"target":{"attribute":"open"},"default":false}}},"template":{"kind":"element","name":"div","attributes":[],"children":[]},"declarations":[{"kind":"event","name":"insert","type":"object({ rows: integer, cols: integer, withHeaderRow: boolean })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
 
 interface UiEditorInsertTableGridOwnProps {
+  headerRow?: boolean | null;
   maxCols?: number | null;
   maxRows?: number | null;
   open?: boolean | null;
-  onLoomaEditorInsertTable?: (detail: { readonly rows: number; readonly cols: number; readonly withHeaderRow: boolean }, event: CustomEvent<{ readonly rows: number; readonly cols: number; readonly withHeaderRow: boolean }>) => void;
+  onInsert?: (detail: { readonly rows: number; readonly cols: number; readonly withHeaderRow: boolean }, event: CustomEvent<{ readonly rows: number; readonly cols: number; readonly withHeaderRow: boolean }>) => void;
   slots?: Readonly<Record<string, ReactNode>>;
 }
 
@@ -21,23 +22,23 @@ export type UiEditorInsertTableGridProps = Omit<ComponentPropsWithoutRef<"div">,
   UiEditorInsertTableGridOwnProps & { children?: ReactNode; ref?: Ref<UiEditorInsertTableGridHandle> };
 
 export function UiEditorInsertTableGrid(props: UiEditorInsertTableGridProps) {
-  const { "maxCols": prop0 = 8, "maxRows": prop1 = 8, "open": prop2 = false, onLoomaEditorInsertTable, slots, children, ref, ...nativeProps } = props;
+  const { "headerRow": prop0 = false, "maxCols": prop1 = 8, "maxRows": prop2 = 8, "open": prop3 = false, onInsert, slots, children, ref, ...nativeProps } = props;
   const root = useRef<UiEditorInsertTableGridHandle | null>(null);
   const setRoot = (node: UiEditorInsertTableGridHandle | null) => {
     (root as { current: UiEditorInsertTableGridHandle | null }).current = node;
     if (typeof ref === "function") ref(node);
     else if (ref != null) ref.current = node;
   };
-  const componentProps: Record<string, unknown> = { "maxCols": prop0, "maxRows": prop1, "open": prop2 };
+  const componentProps: Record<string, unknown> = { "headerRow": prop0, "maxCols": prop1, "maxRows": prop2, "open": prop3 };
   useLayoutEffect(() => root.current == null ? undefined : attachLoomaComponent(root.current, definition, "ui-editor-insert-table-grid", componentProps), []);
   useLayoutEffect(() => { if (root.current != null) Object.assign(root.current, componentProps); });
   useLayoutEffect(() => {
     const node = root.current;
-    if (node == null || onLoomaEditorInsertTable == null) return;
-    const listener0 = (event: Event) => onLoomaEditorInsertTable((event as CustomEvent<{ readonly rows: number; readonly cols: number; readonly withHeaderRow: boolean }>).detail, event as CustomEvent<{ readonly rows: number; readonly cols: number; readonly withHeaderRow: boolean }>);
-    node.addEventListener("looma-editor-insert-table", listener0);
-    return () => node.removeEventListener("looma-editor-insert-table", listener0);
-  }, [onLoomaEditorInsertTable]);
+    if (node == null || onInsert == null) return;
+    const listener0 = (event: Event) => onInsert((event as CustomEvent<{ readonly rows: number; readonly cols: number; readonly withHeaderRow: boolean }>).detail, event as CustomEvent<{ readonly rows: number; readonly cols: number; readonly withHeaderRow: boolean }>);
+    node.addEventListener("insert", listener0);
+    return () => node.removeEventListener("insert", listener0);
+  }, [onInsert]);
   return (
     <div {...nativeProps} data-component="ui-editor-insert-table-grid" data-component-root="ui-editor-insert-table-grid" data-looma-managed="framework" ref={setRoot}>
 

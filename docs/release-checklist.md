@@ -78,8 +78,8 @@ The declared-runtime and clean-generation checks passed in exact-main CI run
 `33789984966` for commit `976dabb49e165b521cc6efe4d8f1dfecd6cebd72`.
 The job installs Chromium, checks generated
 output immutability, rejects skipped required suites, and runs core, editor, and
-Vue browser qualification. The exact Stencil CJS filename diagnostic is the sole
-allowlisted build warning; any additional Stencil warning fails the build.
+Vue browser qualification. Build warnings are failures unless a current toolchain-specific
+exception is documented beside the gate.
 
 The full local Knit qualification published those exact inspected bytes to a
 disposable loopback registry under an explicit ineligible-artifact exception;

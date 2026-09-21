@@ -4,7 +4,7 @@ import type { ComponentPropsWithoutRef, ComponentRef, ElementType, ReactNode, Re
 import { attachLoomaComponent } from "@threadlabs/looma-core/declarative";
 import type { ComponentDefinition } from "@threadlabs/looma-core/declarative";
 
-const definition = {...{"contract":{"tag":"ui-sidebar","props":{"align":{"type":{"enum":["start","center","end","stretch"]},"required":false,"target":{"attribute":"align"}},"gap":{"type":{"enum":["xs","s","m","l","xl"]},"required":false,"target":{"attribute":"gap"}},"maxWidth":{"type":"number","required":false,"target":{"attribute":"maxwidth"},"default":480},"minWidth":{"type":"number","required":false,"target":{"attribute":"minwidth"},"default":176},"resizable":{"type":"boolean","required":false,"target":{"attribute":"resizable"},"default":false},"resizeLabel":{"type":"string","required":false,"target":{"attribute":"resizelabel"},"default":"Resize sidebar"},"resizeStep":{"type":"number","required":false,"target":{"attribute":"resizestep"},"default":16},"side":{"type":{"enum":["start","end"]},"required":false,"target":{"attribute":"side"},"default":"start"},"storageKey":{"type":"string","required":false,"target":{"attribute":"storagekey"}},"width":{"type":{"enum":["narrow","default","wide"]},"required":false,"target":{"attribute":"width"},"default":"default"}}},"template":{"kind":"element","name":"div","attributes":[],"children":[{"kind":"slot"}]},"declarations":[{"kind":"event","name":"resize","type":"object({ width: number, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
+const definition = {...{"contract":{"tag":"ui-sidebar","props":{"align":{"type":{"enum":["start","center","end","stretch"]},"required":false,"target":{"attribute":"align"}},"gap":{"type":{"enum":["xs","s","m","l","xl"]},"required":false,"target":{"attribute":"gap"}},"maxWidth":{"type":"number","required":false,"target":{"attribute":"maxwidth"},"default":480},"minWidth":{"type":"number","required":false,"target":{"attribute":"minwidth"},"default":176},"resizable":{"type":"boolean","required":false,"target":{"attribute":"resizable"},"default":false},"resizeLabel":{"type":"string","required":false,"target":{"attribute":"resizelabel"},"default":"Resize sidebar"},"resizeStep":{"type":"number","required":false,"target":{"attribute":"resizestep"},"default":16},"side":{"type":{"enum":["start","end"]},"required":false,"target":{"attribute":"side"},"default":"start"},"width":{"type":{"enum":["narrow","default","wide"]},"required":false,"target":{"attribute":"width"},"default":"default"}}},"template":{"kind":"element","name":"div","attributes":[],"children":[{"kind":"slot"}]},"declarations":[{"kind":"event","name":"resize","type":"object({ width: number, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
 
 interface UiSidebarOwnProps {
   align?: "start" | "center" | "end" | "stretch" | null;
@@ -15,7 +15,6 @@ interface UiSidebarOwnProps {
   resizeLabel?: string | null;
   resizeStep?: number | null;
   side?: "start" | "end" | null;
-  storageKey?: string | null;
   width?: "narrow" | "default" | "wide" | null;
   onResize?: (detail: { readonly width: number; readonly trigger: "keyboard" | "pointer" | "programmatic" }, event: CustomEvent<{ readonly width: number; readonly trigger: "keyboard" | "pointer" | "programmatic" }>) => void;
   slots?: Readonly<Record<string, ReactNode>>;
@@ -28,14 +27,14 @@ export type UiSidebarProps = Omit<ComponentPropsWithoutRef<"div">, keyof UiSideb
   UiSidebarOwnProps & { children?: ReactNode; ref?: Ref<UiSidebarHandle> };
 
 export function UiSidebar(props: UiSidebarProps) {
-  const { "align": prop0, "gap": prop1, "maxWidth": prop2 = 480, "minWidth": prop3 = 176, "resizable": prop4 = false, "resizeLabel": prop5 = "Resize sidebar", "resizeStep": prop6 = 16, "side": prop7 = "start", "storageKey": prop8, "width": prop9 = "default", onResize, slots, children, ref, ...nativeProps } = props;
+  const { "align": prop0, "gap": prop1, "maxWidth": prop2 = 480, "minWidth": prop3 = 176, "resizable": prop4 = false, "resizeLabel": prop5 = "Resize sidebar", "resizeStep": prop6 = 16, "side": prop7 = "start", "width": prop8 = "default", onResize, slots, children, ref, ...nativeProps } = props;
   const root = useRef<UiSidebarHandle | null>(null);
   const setRoot = (node: UiSidebarHandle | null) => {
     (root as { current: UiSidebarHandle | null }).current = node;
     if (typeof ref === "function") ref(node);
     else if (ref != null) ref.current = node;
   };
-  const componentProps: Record<string, unknown> = { "align": prop0, "gap": prop1, "maxWidth": prop2, "minWidth": prop3, "resizable": prop4, "resizeLabel": prop5, "resizeStep": prop6, "side": prop7, "storageKey": prop8, "width": prop9 };
+  const componentProps: Record<string, unknown> = { "align": prop0, "gap": prop1, "maxWidth": prop2, "minWidth": prop3, "resizable": prop4, "resizeLabel": prop5, "resizeStep": prop6, "side": prop7, "width": prop8 };
   useLayoutEffect(() => root.current == null ? undefined : attachLoomaComponent(root.current, definition, "ui-sidebar", componentProps), []);
   useLayoutEffect(() => { if (root.current != null) Object.assign(root.current, componentProps); });
   useLayoutEffect(() => {

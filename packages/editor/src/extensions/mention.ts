@@ -32,6 +32,11 @@ const EMPTY_STATE: LoomaMentionMenuSnapshot = {
   select: null,
 };
 
+/**
+ * Stable key for reading Looma's active mention query and source range.
+ * Consumers should treat the keyed value as transient suggestion state rather
+ * than document data.
+ */
 export const LoomaMentionSuggestionPluginKey = new PluginKey<MentionPluginState>(
   "loomaMentionSuggestion",
 );
@@ -73,6 +78,13 @@ async function resolveMentionItems(
  * attributes on the editor. Every attribute is snapshotted and restored so
  * installing this extension cannot erase accessibility state owned by another
  * extension or by the host application.
+ *
+ * @ownership The application owns the item provider and rendered menu. The
+ * extension owns suggestion state and only borrows editor ARIA attributes.
+ * @lifecycle Each suggestion update replaces the published snapshot; exit
+ * restores borrowed attributes and invalidates callbacks from the prior range.
+ * @failure Provider rejection degrades to an empty result set so Tiptap's
+ * suggestion lifecycle cannot become an unhandled promise rejection.
  */
 export function createLoomaMentionExtension(
   options: LoomaMentionOptions = {},

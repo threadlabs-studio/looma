@@ -96,7 +96,10 @@ export const LOOMA_ICONS = {
   undo: Undo2,
 } satisfies Record<string, IconNode>;
 
+/** Stable key selecting an icon from Looma's shipped interaction vocabulary. */
 export type LoomaIconName = keyof typeof LOOMA_ICONS;
+
+/** Framework-neutral Lucide element tree used to produce Looma icon markup. */
 export type LoomaIconNode = IconNode;
 
 function serializeAttributes(attributes: Record<string, string | number>): string {

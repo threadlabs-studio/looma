@@ -3,7 +3,6 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { generateComponentApiMetadata } from "./component-api-generator.mjs";
-import { generateVueComponentTypes } from "./generate-vue-component-types.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "../..");
@@ -11,10 +10,6 @@ const generatedOutputs = [
   {
     path: path.join(repoRoot, "generated/component-api.json"),
     generate: async () => `${JSON.stringify(await generateComponentApiMetadata(), null, 2)}\n`,
-  },
-  {
-    path: path.join(repoRoot, "packages/vue/src/generated-component-types.ts"),
-    generate: generateVueComponentTypes,
   },
 ];
 

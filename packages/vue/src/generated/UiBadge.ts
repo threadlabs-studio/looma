@@ -15,8 +15,8 @@ export default /*@__PURE__*/_defineComponent({
   ...{ inheritAttrs: false },
   __name: 'UiBadge',
   props: {
-    tone: { type: [String, null], required: false },
-    variant: { type: [String, null], required: false }
+    tone: { type: [String, null], required: false, default: "neutral" },
+    variant: { type: [String, null], required: false, default: "subtle" }
   },
   setup(__props: any) {
 
@@ -28,8 +28,8 @@ let detach: undefined | (() => void);
 onMounted(() => {
   if (root.value == null) return;
   detach = manageGeneratedProps(root.value, [
-    { name: "tone", attribute: "data-tone", value: props.tone, type: "string", required: false },
-    { name: "variant", attribute: "data-variant", value: props.variant, type: "string", required: false },
+    { name: "tone", attribute: "data-tone", value: props.tone, type: ["neutral","accent","info","success","warning","danger"], required: false },
+    { name: "variant", attribute: "data-variant", value: props.variant, type: ["solid","subtle"], required: false },
   ]);
 });
 watchEffect(() => {

@@ -117,16 +117,16 @@ describe("editor release data-integrity contract", () => {
     const before = editor.getJSON();
     const menu = document.createElement("ui-editor-table-context-menu");
     menu.setAttribute("open", "");
-    menu.setAttribute("can-delete-table", "");
+    (menu as HTMLElement & { actions: string[] }).actions = ["delete-table"];
     document.body.append(menu);
     const actions: string[] = [];
-    menu.addEventListener("looma-editor-table-action", (event) => {
+    menu.addEventListener("action", (event) => {
       actions.push((event as CustomEvent<{ action: string }>).detail.action);
     });
 
     await flushDeclarative();
     const root = document.querySelector<HTMLElement>(`[data-component-root="ui-editor-table-context-menu"]`)!;
-    root.addEventListener("looma-editor-table-action", (event) => {
+    root.addEventListener("action", (event) => {
       actions.push((event as CustomEvent<{ action: string }>).detail.action);
     });
 
@@ -142,12 +142,21 @@ describe("representative editor accessibility", () => {
     document.body.innerHTML = `
       <main id="editor-qualification">
         <ui-editor-toolbar><button type="button">Bold</button></ui-editor-toolbar>
-        <ui-editor-table-toolbar open can-add-row-after can-add-column-after can-delete-table></ui-editor-table-toolbar>
-        <ui-editor-table-context-menu open can-add-row-after can-delete-table></ui-editor-table-context-menu>
+        <ui-editor-table-toolbar open></ui-editor-table-toolbar>
+        <ui-editor-table-context-menu open></ui-editor-table-context-menu>
         <ui-editor-insert-table-grid open max-rows="3" max-cols="3"></ui-editor-insert-table-grid>
         <ui-editor-table-overlay open rows="2" cols="2"></ui-editor-table-overlay>
       </main>
     `;
+    (document.querySelector("ui-editor-table-toolbar") as HTMLElement & { actions: string[] }).actions = [
+      "add-row-after",
+      "add-column-after",
+      "delete-table",
+    ];
+    (document.querySelector("ui-editor-table-context-menu") as HTMLElement & { actions: string[] }).actions = [
+      "add-row-after",
+      "delete-table",
+    ];
     await flushDeclarative();
 
     const result = await axe.run(document.getElementById("editor-qualification")!, {
