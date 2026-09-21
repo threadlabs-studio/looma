@@ -17,19 +17,39 @@ const _hoisted_3 = {
   "data-component": "ui-search-shell"
 }
 const _hoisted_4 = {
+  slot: "search",
+  "data-html-next-slot": "search",
+  style: {"display":"contents"}
+}
+const _hoisted_5 = {
   class: "search-shell__status",
   part: "status",
   "data-component": "ui-search-shell"
 }
-const _hoisted_5 = {
+const _hoisted_6 = {
+  slot: "status",
+  "data-html-next-slot": "status",
+  style: {"display":"contents"}
+}
+const _hoisted_7 = {
   class: "search-shell__body",
   part: "body",
   "data-component": "ui-search-shell"
 }
-const _hoisted_6 = {
+const _hoisted_8 = {
+  slot: "body",
+  "data-html-next-slot": "body",
+  style: {"display":"contents"}
+}
+const _hoisted_9 = {
   class: "search-shell__footer",
   part: "footer",
   "data-component": "ui-search-shell"
+}
+const _hoisted_10 = {
+  slot: "footer",
+  "data-html-next-slot": "footer",
+  style: {"display":"contents"}
 }
 
 import { onMounted, onUnmounted, ref, watchEffect } from "vue";
@@ -82,16 +102,24 @@ return (_ctx: any,_cache: any) => {
     _createElementVNode("dialog", _hoisted_1, [
       _createElementVNode("div", _hoisted_2, [
         _createElementVNode("div", _hoisted_3, [
-          _renderSlot(_ctx.$slots, "search")
-        ]),
-        _createElementVNode("div", _hoisted_4, [
-          _renderSlot(_ctx.$slots, "status")
+          _createElementVNode("span", _hoisted_4, [
+            _renderSlot(_ctx.$slots, "search")
+          ])
         ]),
         _createElementVNode("div", _hoisted_5, [
-          _renderSlot(_ctx.$slots, "body")
+          _createElementVNode("span", _hoisted_6, [
+            _renderSlot(_ctx.$slots, "status")
+          ])
         ]),
-        _createElementVNode("div", _hoisted_6, [
-          _renderSlot(_ctx.$slots, "footer")
+        _createElementVNode("div", _hoisted_7, [
+          _createElementVNode("span", _hoisted_8, [
+            _renderSlot(_ctx.$slots, "body")
+          ])
+        ]),
+        _createElementVNode("div", _hoisted_9, [
+          _createElementVNode("span", _hoisted_10, [
+            _renderSlot(_ctx.$slots, "footer")
+          ])
         ])
       ])
     ])

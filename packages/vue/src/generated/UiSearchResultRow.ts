@@ -9,32 +9,57 @@ const _hoisted_2 = {
   "data-component": "ui-search-result-row"
 }
 const _hoisted_3 = {
+  slot: "leading",
+  "data-html-next-slot": "leading",
+  style: {"display":"contents"}
+}
+const _hoisted_4 = {
   class: "search-result-row__content",
   part: "content",
   "data-component": "ui-search-result-row"
 }
-const _hoisted_4 = {
+const _hoisted_5 = {
   class: "search-result-row__title",
   part: "title",
   "data-component": "ui-search-result-row"
 }
-const _hoisted_5 = {
+const _hoisted_6 = {
+  slot: "title",
+  "data-html-next-slot": "title",
+  style: {"display":"contents"}
+}
+const _hoisted_7 = {
   class: "search-result-row__meta",
   part: "meta",
   hidden: undefined,
   "data-component": "ui-search-result-row"
 }
-const _hoisted_6 = {
+const _hoisted_8 = {
+  slot: "meta",
+  "data-html-next-slot": "meta",
+  style: {"display":"contents"}
+}
+const _hoisted_9 = {
   class: "search-result-row__excerpt",
   part: "excerpt",
   hidden: undefined,
   "data-component": "ui-search-result-row"
 }
-const _hoisted_7 = {
+const _hoisted_10 = {
+  slot: "excerpt",
+  "data-html-next-slot": "excerpt",
+  style: {"display":"contents"}
+}
+const _hoisted_11 = {
   class: "search-result-row__trailing",
   part: "trailing",
   hidden: undefined,
   "data-component": "ui-search-result-row"
+}
+const _hoisted_12 = {
+  slot: "trailing",
+  "data-html-next-slot": "trailing",
+  style: {"display":"contents"}
 }
 
 import { onMounted, onUnmounted, ref, watchEffect } from "vue";
@@ -83,21 +108,31 @@ return (_ctx: any,_cache: any) => {
     ref: root
   }), [
     _createElementVNode("span", _hoisted_2, [
-      _renderSlot(_ctx.$slots, "leading")
-    ]),
-    _createElementVNode("span", _hoisted_3, [
-      _createElementVNode("span", _hoisted_4, [
-        _renderSlot(_ctx.$slots, "title")
-      ]),
-      _createElementVNode("span", _hoisted_5, [
-        _renderSlot(_ctx.$slots, "meta")
-      ]),
-      _createElementVNode("span", _hoisted_6, [
-        _renderSlot(_ctx.$slots, "excerpt")
+      _createElementVNode("span", _hoisted_3, [
+        _renderSlot(_ctx.$slots, "leading")
       ])
     ]),
-    _createElementVNode("span", _hoisted_7, [
-      _renderSlot(_ctx.$slots, "trailing")
+    _createElementVNode("span", _hoisted_4, [
+      _createElementVNode("span", _hoisted_5, [
+        _createElementVNode("span", _hoisted_6, [
+          _renderSlot(_ctx.$slots, "title")
+        ])
+      ]),
+      _createElementVNode("span", _hoisted_7, [
+        _createElementVNode("span", _hoisted_8, [
+          _renderSlot(_ctx.$slots, "meta")
+        ])
+      ]),
+      _createElementVNode("span", _hoisted_9, [
+        _createElementVNode("span", _hoisted_10, [
+          _renderSlot(_ctx.$slots, "excerpt")
+        ])
+      ])
+    ]),
+    _createElementVNode("span", _hoisted_11, [
+      _createElementVNode("span", _hoisted_12, [
+        _renderSlot(_ctx.$slots, "trailing")
+      ])
     ])
   ], 16 /* FULL_PROPS */, _hoisted_1))
 }

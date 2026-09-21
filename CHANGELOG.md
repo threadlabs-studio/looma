@@ -2,6 +2,47 @@
 
 ## Unreleased
 
+## v0.2.14 Candidate
+
+- Preserve omitted controlled Boolean props as `undefined` in generated Vue
+  adapters, so Editable, menus, disclosures, form controls, and tree items keep
+  their documented uncontrolled behavior until an owner supplies state.
+- Keep sole default-slot children direct in generated Vue roots, preserving
+  native child-selector layout and measurements for Sidebar, Switcher, Reel,
+  and other single-region primitives.
+
+## v0.2.13 Candidate
+
+- Preserve Vue-owned flow anchors during SSR hydration and make generated Vue
+  roots reconcile their actual structure, so later conditional updates cannot
+  shift labels, actions, children, or other projected content between regions.
+
+## v0.2.12 Candidate
+
+- Keep Vue-owned default-slot content in its intended component region across
+  reactive updates, including labels beside named leading and action regions.
+
+## v0.2.11 Candidate
+
+- Preserve Vue-owned conditional content added after mount in named slots, so
+  framework updates remain in the intended component region.
+
+## v0.2.10 Candidate
+
+- Preserve conditional framework subtrees during native-root attachment, so
+  nested components in named slots remain intact, and keep hidden native roots
+  out of layout.
+
+## v0.2.9 Candidate
+
+- Preserve Vue named-slot content when declarative controllers attach to native
+  roots, and keep optional-region visibility synchronized with controller state.
+
+## v0.2.8 Candidate
+
+- Render conditional Vue tree-item controls directly so server markup hydrates
+  without browser-parsed template nodes changing its child structure.
+
 ## v0.2.7 Candidate
 
 - Preserve server-rendered framework component roots during package registration
