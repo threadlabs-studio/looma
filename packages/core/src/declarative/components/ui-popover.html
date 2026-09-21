@@ -9,13 +9,13 @@
   </defs>
   <span :data-state-open="internalOpen"><div class="popover__surface"><slot></slot></div></span>
   <style>:scope {
-  --ui-popover-viewport-gap: var(--ui-space-2, 0.5rem);
+  --_popover-viewport-gap: var(--ui-space-2, 0.5rem);
   box-sizing: border-box;
   max-inline-size: min(
     20rem,
-    calc(100vw - (var(--ui-popover-viewport-gap) * 2))
+    calc(100vw - (var(--ui-popover-viewport-gap, var(--_popover-viewport-gap)) * 2))
   );
-  max-block-size: calc(100dvh - (var(--ui-popover-viewport-gap) * 2));
+  max-block-size: calc(100dvh - (var(--ui-popover-viewport-gap, var(--_popover-viewport-gap)) * 2));
   overflow: visible;
   padding: 0;
   border: 0;

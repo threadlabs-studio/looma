@@ -398,11 +398,23 @@ function customPropertyReferences(source) {
   return references;
 }
 
+const privateReference = /^var\((--_[A-Za-z0-9_-]+)\)$/;
+
+// Components keep defaults in private `--_*` variables and read public tokens as
+// `var(--ui-x, var(--_x))`. Private variables are not API; a public token's default is the value
+// its private variable declares.
 function tokenRecord(name, declarations, references) {
+  const fallbacks = references.get(name) ?? [];
+  const privates = fallbacks.map((fallback) => privateReference.exec(fallback)?.[1]).filter(Boolean);
+  const declared = [
+    ...(declarations.get(name) ?? []),
+    ...privates.flatMap((privateName) => declarations.get(privateName) ?? []),
+  ];
+  const publicFallbacks = fallbacks.filter((fallback) => !privateReference.test(fallback));
   return {
     name,
-    ...(declarations.get(name)?.length ? { declarations: declarations.get(name) } : {}),
-    ...(references.get(name)?.length ? { fallbacks: references.get(name) } : {}),
+    ...(declared.length ? { declarations: declared } : {}),
+    ...(publicFallbacks.length ? { fallbacks: publicFallbacks } : {}),
   };
 }
 
@@ -410,11 +422,13 @@ export function extractDesignTokensFromCss({ tag, source }) {
   const declarations = customPropertyDeclarations(source);
   const references = customPropertyReferences(source);
   const componentPrefix = `--${tag}-`;
+  const isPrivate = (name) => name.startsWith("--_");
+  const hasPrivateDefault = (name) => (references.get(name) ?? []).some((fallback) => privateReference.test(fallback));
   const componentNames = new Set([
-    ...declarations.keys(),
-    ...[...references.keys()].filter((name) => name.startsWith(componentPrefix)),
+    ...[...declarations.keys()].filter((name) => !isPrivate(name)),
+    ...[...references.keys()].filter((name) => name.startsWith(componentPrefix) || hasPrivateDefault(name)),
   ]);
-  const sharedNames = [...references.keys()].filter((name) => !componentNames.has(name));
+  const sharedNames = [...references.keys()].filter((name) => !componentNames.has(name) && !isPrivate(name));
 
   return {
     component: [...componentNames].sort().map((name) => tokenRecord(name, declarations, references)),

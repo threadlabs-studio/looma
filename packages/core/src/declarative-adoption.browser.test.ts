@@ -12,6 +12,42 @@ afterEach(async () => {
 });
 
 describe("shipped declarative component graph", () => {
+  it("keeps a selected combobox label current when its options change", async () => {
+    document.body.innerHTML = `<ui-combobox label="Stop" value="north"><option value="north">North terminal</option><option value="south">South pier</option></ui-combobox>`;
+    await settle();
+    const root = document.querySelector<HTMLElement>('[data-component-root~="ui-combobox"]')!;
+    const input = root.querySelector<HTMLInputElement>('input[role="combobox"]')!;
+    await vi.waitFor(() => expect(input.value).toBe("North terminal"));
+
+    root.querySelector<HTMLOptionElement>('option[value="north"]')!.textContent = "North terminal (renamed)";
+    await vi.waitFor(() => expect(input.value).toBe("North terminal (renamed)"));
+
+    root.querySelector(".authored-options")!.replaceChildren(
+      Object.assign(document.createElement("option"), { value: "north", textContent: "Harbor North" }),
+    );
+    await vi.waitFor(() => expect(input.value).toBe("Harbor North"));
+  });
+
+  it("reads public tokens a consumer sets on an ancestor", async () => {
+    // Components read their public --ui-* tokens with fallbacks instead of redeclaring them on the
+    // root, so an app-level override (here an edge-to-edge mobile dialog) reaches the component.
+    document.body.innerHTML = `
+      <div style="--ui-dialog-max-width: 100vw; --ui-dialog-viewport-gap: 0px; --ui-badge-surface: rgb(1, 2, 3);">
+        <ui-dialog open modal label="Document comparison"><p>Body</p></ui-dialog>
+        <ui-badge tone="danger">New</ui-badge>
+      </div>
+    `;
+    await settle();
+    await new Promise<void>((resolve) => setTimeout(resolve, 300));
+
+    const dialog = document.querySelector<HTMLElement>('[data-component-root~="ui-dialog"]')!;
+    const bounds = dialog.getBoundingClientRect();
+    expect(bounds.left).toBe(0);
+    expect(bounds.width).toBe(document.documentElement.clientWidth);
+    const badge = document.querySelector('[data-component-root~="ui-badge"] .badge__surface')!;
+    expect(getComputedStyle(badge).backgroundColor).toBe("rgb(1, 2, 3)");
+  });
+
   it("lowers live HTML to native roots without registering custom elements", async () => {
     document.body.innerHTML = '<ui-button variant="solid">Save</ui-button>';
     await settle();

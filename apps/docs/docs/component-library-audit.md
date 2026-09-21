@@ -20,6 +20,7 @@ The per-family evidence, with counts and sources, is in the repository: [layout]
 ## Changed in 0.3
 
 - **Consumer attributes land on the native root.** `class`, `id`, `type`, `name`, `form`, `aria-pressed` and other native attributes written on `ui-button`, `ui-icon-button`, `ui-input`, `ui-textarea`, `ui-select` and `ui-dialog` reach the native element. The audit's conditional `type`, `name`, `value`, `form` and `pressed` props are therefore not needed.
+- **Tokens set on an ancestor apply.** Components read their public `--ui-*` tokens with fallbacks instead of redeclaring them, and a repository check enforces this.
 - **Structured values are attributes.** Props with `list`, `record` or `object` types are declared with HTML Next's type system; in HTML their attribute text is JSON, parsed against the declared shape. This covers editor menu `items` and `anchor-rect`, table `geometry`, table menu `actions` (which replace the nine undeclared `can-*` booleans) and combobox `items`.
 - **Combobox** drops function hooks, option descriptions and option metadata. `value` (single) and `items` (multiple) are separate props.
 - **Cluster** always wraps and has no `wrap` or `justify` props.

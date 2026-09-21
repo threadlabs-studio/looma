@@ -10,8 +10,8 @@ describe("responsive core component CSS", () => {
 
     expect(css).toContain(":scope[open]");
     expect(css).not.toContain("data-open");
-    expect(css).toContain("calc(100% - (var(--ui-dialog-viewport-gap) * 2))");
-    expect(css).toContain("calc(100dvh - (var(--ui-dialog-viewport-gap) * 2))");
+    expect(css).toContain("calc(100% - (var(--ui-dialog-viewport-gap, var(--_dialog-viewport-gap)) * 2))");
+    expect(css).toContain("calc(100dvh - (var(--ui-dialog-viewport-gap, var(--_dialog-viewport-gap)) * 2))");
   });
 
   it("makes mobile search a dynamic-viewport surface", () => {
@@ -28,8 +28,8 @@ describe("responsive core component CSS", () => {
   });
 
   it("bounds overlay widths and lets horizontal tabs scroll", () => {
-    expect(readComponentCss("ui-menu")).toContain("calc(100vw - (var(--ui-menu-viewport-gap) * 2))");
-    expect(readComponentCss("ui-popover")).toContain("calc(100vw - (var(--ui-popover-viewport-gap) * 2))");
+    expect(readComponentCss("ui-menu")).toContain("calc(100vw - (var(--ui-menu-viewport-gap, var(--_menu-viewport-gap)) * 2))");
+    expect(readComponentCss("ui-popover")).toContain("calc(100vw - (var(--ui-popover-viewport-gap, var(--_popover-viewport-gap)) * 2))");
     expect(readComponentCss("ui-tabs")).toContain("overflow-x: auto;");
   });
 });

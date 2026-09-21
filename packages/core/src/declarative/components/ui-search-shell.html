@@ -13,7 +13,7 @@
 }
 
 .search-shell {
-  --ui-search-shell-viewport-gap: var(--ui-space-4);
+  --_search-shell-viewport-gap: var(--ui-space-4);
   position: fixed;
   inset: 0;
   z-index: var(--ui-search-shell-z-index, 400);
@@ -23,7 +23,7 @@
   block-size: 100%;
   max-block-size: none;
   margin: 0;
-  padding: var(--ui-search-shell-padding-top, 10vh) var(--ui-search-shell-viewport-gap) var(--ui-search-shell-viewport-gap);
+  padding: var(--ui-search-shell-padding-top, 10vh) var(--ui-search-shell-viewport-gap, var(--_search-shell-viewport-gap)) var(--ui-search-shell-viewport-gap, var(--_search-shell-viewport-gap));
   overflow: auto;
   border: 0;
   background: var(--ui-overlay-backdrop);

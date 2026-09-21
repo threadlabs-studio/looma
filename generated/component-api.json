@@ -4039,17 +4039,11 @@
             ]
           },
           {
-            "name": "--ui-icon-button-icon-default",
+            "name": "--ui-icon-button-icon-size",
             "declarations": [
               "var(--ui-icon-size-md, 1.25rem)",
               "var(--ui-icon-size-sm, 1rem)",
               "var(--ui-icon-size-lg, 1.5rem)"
-            ]
-          },
-          {
-            "name": "--ui-icon-button-icon-size",
-            "fallbacks": [
-              "var(--ui-icon-button-icon-default)"
             ]
           },
           {
@@ -7083,13 +7077,6 @@
             ]
           },
           {
-            "name": "--ui-tooltip-line",
-            "declarations": [
-              "var(--ui-tooltip-border, var(--ui-border-default))",
-              "var(--ui-tooltip-inverse-surface, var(--ui-text-primary))"
-            ]
-          },
-          {
             "name": "--ui-tooltip-max-inline-size",
             "fallbacks": [
               "18rem"
@@ -7380,13 +7367,6 @@
             "name": "--ui-tree-gutter",
             "declarations": [
               "0px"
-            ]
-          },
-          {
-            "name": "--ui-tree-indent",
-            "declarations": [
-              "16px",
-              "inherit"
             ]
           }
         ],
