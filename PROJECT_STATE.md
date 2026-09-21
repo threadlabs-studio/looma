@@ -4,12 +4,12 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-20 23:00 PDT
-Status: Candidate `0.2.17` is public. Candidate `0.2.18` is prepared with
-managed mention and slash menu anchors that satisfy Looma's structural component
-contract, while retaining async mention queries that settle correctly during fast
-input, SSR-safe Vue TreeItem row slots, structured document paste, reliable
-history controls, and the sticky editor option qualified in prior Candidates.
+Last Updated: 2026-09-20 23:22 PDT
+Status: Candidate `0.2.18` is public. Candidate `0.2.19` is prepared with
+slash commands projected to the managed menu's display-only contract, while
+retaining contract-safe mention and slash anchors, async mention queries that
+settle correctly during fast input, structured document paste, reliable history
+controls, and the sticky editor option qualified in prior Candidates.
 Historical release tasks below retain their original version context.
 
 ## Current Focus
@@ -39,6 +39,9 @@ Historical release tasks below retain their original version context.
 
 ## Recent Progress
 
+- Kept internal slash-command keywords and executable callbacks outside the
+  managed component boundary. The rendered menu now receives only its declared
+  title, description, and icon fields.
 - Projected native suggestion-menu rectangles into plain structural values at
   the managed Vue boundary. Mention and slash menus no longer fail validation
   during mount and leave their initial loading shell frozen.
