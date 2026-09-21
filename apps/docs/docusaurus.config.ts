@@ -62,7 +62,7 @@ const config: Config = {
     announcementBar: {
       id: `looma-r1-${docsReleaseMode}`,
       content: isCandidateRelease
-        ? 'Release 1 Candidate 0.2.7 is available on npm under the candidate tag. <a href="/looma/release-1-support">Read the support boundary.</a>'
+        ? 'Release 1 Candidate 0.2.14 is available on npm under the candidate tag. <a href="/looma/release-1-support">Read the support boundary.</a>'
         : 'Release 1 Candidate documentation preview — confirm registry availability before installing. <a href="/looma/release-1-support">Read the support boundary.</a>',
       backgroundColor: "#2b2538",
       textColor: "#ffffff",

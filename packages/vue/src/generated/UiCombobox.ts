@@ -7,13 +7,23 @@ const _hoisted_2 = {
   part: "field",
   "data-component": "ui-combobox"
 }
-const _hoisted_3 = ["placeholder", "name", "disabled", "readonly", "required"]
-const _hoisted_4 = ["disabled"]
-const _hoisted_5 = {
+const _hoisted_3 = {
+  slot: "start",
+  "data-html-next-slot": "start",
+  style: {"display":"contents"}
+}
+const _hoisted_4 = ["placeholder", "name", "disabled", "readonly", "required"]
+const _hoisted_5 = ["disabled"]
+const _hoisted_6 = {
   class: "popup",
   part: "popup",
   hidden: undefined,
   "data-component": "ui-combobox"
+}
+const _hoisted_7 = {
+  slot: "footer",
+  "data-html-next-slot": "footer",
+  style: {"display":"contents"}
 }
 
 import UiTooltip from "./UiTooltip";
@@ -120,7 +130,9 @@ return (_ctx: any,_cache: any) => {
       ])
     ], -1 /* CACHED */)),
     _createElementVNode("div", _hoisted_2, [
-      _renderSlot(_ctx.$slots, "start"),
+      _createElementVNode("span", _hoisted_3, [
+        _renderSlot(_ctx.$slots, "start")
+      ]),
       _cache[1] || (_cache[1] = _createElementVNode("div", {
         class: "items",
         role: "group",
@@ -140,7 +152,7 @@ return (_ctx: any,_cache: any) => {
         autocomplete: "off",
         part: "input",
         "data-component": "ui-combobox"
-      }, null, 8 /* PROPS */, _hoisted_3),
+      }, null, 8 /* PROPS */, _hoisted_4),
       _cache[2] || (_cache[2] = _createElementVNode("button", {
         type: "button",
         part: "affordance",
@@ -157,7 +169,7 @@ return (_ctx: any,_cache: any) => {
           "aria-hidden": "true",
           "data-component": "ui-combobox"
         }, " ? ", -1 /* CACHED */)
-      ]))], 8 /* PROPS */, _hoisted_4),
+      ]))], 8 /* PROPS */, _hoisted_5),
       _cache[3] || (_cache[3] = _createElementVNode("button", {
         type: "button",
         part: "affordance",
@@ -182,13 +194,15 @@ return (_ctx: any,_cache: any) => {
       ]))]),
       _: 1 /* STABLE */
     }),
-    _createElementVNode("div", _hoisted_5, [
+    _createElementVNode("div", _hoisted_6, [
       _cache[5] || (_cache[5] = _createElementVNode("div", {
         id: "listbox",
         role: "listbox",
         "data-component": "ui-combobox"
       }, null, -1 /* CACHED */)),
-      _renderSlot(_ctx.$slots, "footer")
+      _createElementVNode("span", _hoisted_7, [
+        _renderSlot(_ctx.$slots, "footer")
+      ])
     ]),
     _cache[7] || (_cache[7] = _createElementVNode("div", {
       id: "validation",
@@ -211,7 +225,7 @@ return (_ctx: any,_cache: any) => {
       tabindex: "-1",
       "data-component": "ui-combobox"
     }, null, -1 /* CACHED */))
-  ], 16 /* FULL_PROPS */, _hoisted_1))
+  ], -2 /* BAIL */, _hoisted_1))
 }
 }
 

@@ -5,6 +5,10 @@ import { fileURLToPath } from "node:url";
 import { compileScript, parse } from "@vue/compiler-sfc";
 
 import { generateVueComponentTypes } from "../scripts/generate-vue-component-types.mjs";
+import {
+  preserveVueOptionalBooleanAbsence,
+  preserveVueSlotRegions,
+} from "./framework-adoption.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPOSITORY = join(HERE, "..", "..");
@@ -102,6 +106,21 @@ function rewriteNestedComponents(source, component, components, framework) {
     : source.replace(/(import type \{[^\n]+\} from "react";\n)/, `$1${imports}\n`);
 }
 
+function forceVueManagedRootFullDiff(source, component, definitionSource) {
+  if (!/\$(?:if|each|with|match)(?:=|\s|>)/.test(definitionSource)) return source;
+  const optimizedRootFlag = "16 /* FULL_PROPS */";
+  const occurrences = source.split(optimizedRootFlag).length - 1;
+  if (occurrences !== 1) {
+    throw new Error(`${component.tag}: expected one optimized Vue root, found ${occurrences}.`);
+  }
+  // The declarative runtime adopts framework-owned roots in place. Vue's
+  // block-level dynamic-child optimization assumes no other runtime has walked
+  // that tree, so a later conditional insert can pair the following slot
+  // regions with the wrong siblings. Bail out at the generated root to make Vue
+  // reconcile the actual structure while preserving its slot and flow anchors.
+  return source.replace(optimizedRootFlag, "-2 /* BAIL */");
+}
+
 function rewriteReactSemantics(source, definitionSource) {
   // Property-only values are assigned after mount by manageGeneratedProps.
   // Passing them through JSX would serialize unknown native attributes and can
@@ -185,14 +204,20 @@ async function materializeVue(components) {
   await mkdir(output, { recursive: true });
   const exports = [];
   for (const component of components) {
-    const rewritten = rewriteNestedComponents(rewriteFrameworkSource(
+    const group = groups.core.includes(component) ? "core" : groups.layout.includes(component) ? "layout" : "editor";
+    const definitionSource = await readFile(join(SOURCE_ROOTS[group], "components", `${component.tag}.html`), "utf8");
+    const rewritten = preserveVueSlotRegions(rewriteNestedComponents(rewriteFrameworkSource(
       await readFile(join(COMPILED, "vue", `${component.name}.vue`), "utf8"),
       component,
-    ), component, components, "vue");
+    ), component, components, "vue"));
     const { descriptor, errors } = parse(rewritten, { filename: `${component.name}.vue` });
     if (errors.length) throw errors[0];
     const compiled = compileScript(descriptor, { id: `looma-${component.tag}`, inlineTemplate: true });
-    await writeFile(join(output, `${component.name}.ts`), `${compiled.content}\n`);
+    const source = preserveVueOptionalBooleanAbsence(
+      forceVueManagedRootFullDiff(compiled.content, component, definitionSource),
+      definitionSource,
+    );
+    await writeFile(join(output, `${component.name}.ts`), `${source}\n`);
     exports.push(`export { default as ${component.name} } from "./${component.name}";`);
   }
   await writeFile(join(output, "index.ts"), `${exports.join("\n")}\n`);
@@ -273,6 +298,9 @@ async function main() {
 
   const runtimeSource = await readFile(join(HERE, "vendor", "html-next-runtime.iife.js"), "utf8");
   const runtime = runtimeSource
+    // The vendored upstream runtime owns hydration and slot reconciliation.
+    // Looma only exposes the IIFE's public API as ESM; release tooling must not
+    // patch runtime internals or carry a private framework-specific fork.
     .replace('"use strict";var HtmlRuntime=', "const HtmlRuntime=")
     .concat("\nexport const { attachComponent, attachRegisteredComponent, getComponentHost, installComponentGraph, lowerDocument, manageComponentLifecycle, observeDocument, registerComponentDefinitions, setControllerModule } = HtmlRuntime;\n");
   await writeFile(join(runtimeOutput, "runtime.js"), runtime);

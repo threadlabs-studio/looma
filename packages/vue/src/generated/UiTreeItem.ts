@@ -14,15 +14,29 @@ const _hoisted_4 = {
   "data-component": "ui-tree-item"
 }
 const _hoisted_5 = {
+  slot: "leading",
+  "data-html-next-slot": "leading",
+  style: {"display":"contents"}
+}
+const _hoisted_6 = {
   class: "actions",
   part: "actions",
   "data-component": "ui-tree-item"
 }
-const _hoisted_6 = {
+const _hoisted_7 = {
+  slot: "actions",
+  "data-html-next-slot": "actions",
+  style: {"display":"contents"}
+}
+const _hoisted_8 = {
   class: "children",
   part: "children",
   role: "group",
   "data-component": "ui-tree-item"
+}
+const _hoisted_9 = {
+  "data-html-next-slot": "",
+  style: {"display":"contents"}
 }
 
 import { onMounted, onUnmounted, ref, watchEffect } from "vue";
@@ -109,15 +123,19 @@ return (_ctx: any,_cache: any) => {
         }, null, -1 /* CACHED */)
       ]))], 8 /* PROPS */, _hoisted_3),
       _createElementVNode("span", _hoisted_4, [
-        _renderSlot(_ctx.$slots, "leading")
+        _createElementVNode("span", _hoisted_5, [
+          _renderSlot(_ctx.$slots, "leading")
+        ])
       ]),
       _cache[2] || (_cache[2] = _createElementVNode("span", {
         class: "label",
         part: "label",
         "data-component": "ui-tree-item"
       }, null, -1 /* CACHED */)),
-      _createElementVNode("span", _hoisted_5, [
-        _renderSlot(_ctx.$slots, "actions")
+      _createElementVNode("span", _hoisted_6, [
+        _createElementVNode("span", _hoisted_7, [
+          _renderSlot(_ctx.$slots, "actions")
+        ])
       ]),
       _cache[3] || (_cache[3] = _createElementVNode("span", {
         class: "drop-indicator row-drop-indicator",
@@ -126,8 +144,10 @@ return (_ctx: any,_cache: any) => {
         "data-component": "ui-tree-item"
       }, null, -1 /* CACHED */))
     ]),
-    _createElementVNode("div", _hoisted_6, [
-      _renderSlot(_ctx.$slots, "default")
+    _createElementVNode("div", _hoisted_8, [
+      _createElementVNode("span", _hoisted_9, [
+        _renderSlot(_ctx.$slots, "default")
+      ])
     ]),
     _cache[4] || (_cache[4] = _createElementVNode("span", {
       class: "drop-indicator subtree-drop-indicator",
@@ -135,7 +155,7 @@ return (_ctx: any,_cache: any) => {
       "aria-hidden": "true",
       "data-component": "ui-tree-item"
     }, null, -1 /* CACHED */))
-  ], 16 /* FULL_PROPS */, _hoisted_1))
+  ], -2 /* BAIL */, _hoisted_1))
 }
 }
 

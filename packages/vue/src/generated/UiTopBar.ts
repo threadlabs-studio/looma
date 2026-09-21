@@ -12,18 +12,37 @@ const _hoisted_2 = {
   "data-component": "ui-top-bar"
 }
 const _hoisted_3 = {
+  slot: "leading",
+  "data-html-next-slot": "leading",
+  style: {"display":"contents"}
+}
+const _hoisted_4 = {
   class: "top-bar__title",
   "data-component": "ui-top-bar"
 }
-const _hoisted_4 = {
+const _hoisted_5 = {
+  "data-html-next-slot": "",
+  style: {"display":"contents"}
+}
+const _hoisted_6 = {
   class: "top-bar__search",
   hidden: undefined,
   "data-component": "ui-top-bar"
 }
-const _hoisted_5 = {
+const _hoisted_7 = {
+  slot: "search",
+  "data-html-next-slot": "search",
+  style: {"display":"contents"}
+}
+const _hoisted_8 = {
   class: "top-bar__actions",
   hidden: undefined,
   "data-component": "ui-top-bar"
+}
+const _hoisted_9 = {
+  slot: "actions",
+  "data-html-next-slot": "actions",
+  style: {"display":"contents"}
 }
 
 import { onMounted, onUnmounted, ref, watchEffect } from "vue";
@@ -64,16 +83,24 @@ return (_ctx: any,_cache: any) => {
   }), [
     _createElementVNode("header", _hoisted_1, [
       _createElementVNode("div", _hoisted_2, [
-        _renderSlot(_ctx.$slots, "leading")
-      ]),
-      _createElementVNode("div", _hoisted_3, [
-        _renderSlot(_ctx.$slots, "default")
+        _createElementVNode("span", _hoisted_3, [
+          _renderSlot(_ctx.$slots, "leading")
+        ])
       ]),
       _createElementVNode("div", _hoisted_4, [
-        _renderSlot(_ctx.$slots, "search")
+        _createElementVNode("span", _hoisted_5, [
+          _renderSlot(_ctx.$slots, "default")
+        ])
       ]),
-      _createElementVNode("div", _hoisted_5, [
-        _renderSlot(_ctx.$slots, "actions")
+      _createElementVNode("div", _hoisted_6, [
+        _createElementVNode("span", _hoisted_7, [
+          _renderSlot(_ctx.$slots, "search")
+        ])
+      ]),
+      _createElementVNode("div", _hoisted_8, [
+        _createElementVNode("span", _hoisted_9, [
+          _renderSlot(_ctx.$slots, "actions")
+        ])
       ])
     ])
   ], 16 /* FULL_PROPS */))

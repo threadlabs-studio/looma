@@ -1,7 +1,26 @@
 import { defineComponent as _defineComponent } from 'vue'
-import { renderSlot as _renderSlot, mergeProps as _mergeProps, openBlock as _openBlock, createElementBlock as _createElementBlock } from "vue"
+import { renderSlot as _renderSlot, createElementVNode as _createElementVNode, mergeProps as _mergeProps, openBlock as _openBlock, createElementBlock as _createElementBlock } from "vue"
 
 const _hoisted_1 = ["data-invalid", "data-disabled", "data-required"]
+const _hoisted_2 = {
+  slot: "label",
+  "data-html-next-slot": "label",
+  style: {"display":"contents"}
+}
+const _hoisted_3 = {
+  "data-html-next-slot": "",
+  style: {"display":"contents"}
+}
+const _hoisted_4 = {
+  slot: "help",
+  "data-html-next-slot": "help",
+  style: {"display":"contents"}
+}
+const _hoisted_5 = {
+  slot: "error",
+  "data-html-next-slot": "error",
+  style: {"display":"contents"}
+}
 
 import { onMounted, onUnmounted, ref, watchEffect } from "vue";
 import { attachLoomaComponent } from "@threadlabs/looma-core/declarative";
@@ -47,10 +66,18 @@ return (_ctx: any,_cache: any) => {
     ref_key: "root",
     ref: root
   }), [
-    _renderSlot(_ctx.$slots, "label"),
-    _renderSlot(_ctx.$slots, "default"),
-    _renderSlot(_ctx.$slots, "help"),
-    _renderSlot(_ctx.$slots, "error")
+    _createElementVNode("span", _hoisted_2, [
+      _renderSlot(_ctx.$slots, "label")
+    ]),
+    _createElementVNode("span", _hoisted_3, [
+      _renderSlot(_ctx.$slots, "default")
+    ]),
+    _createElementVNode("span", _hoisted_4, [
+      _renderSlot(_ctx.$slots, "help")
+    ]),
+    _createElementVNode("span", _hoisted_5, [
+      _renderSlot(_ctx.$slots, "error")
+    ])
   ], 16 /* FULL_PROPS */, _hoisted_1))
 }
 }
