@@ -11,11 +11,9 @@ export interface StackProps extends AdapterBaseProps {
   "justify"?: "start" | "center" | "end" | "between" | undefined;
 }
 
-export interface InlineProps extends AdapterBaseProps {
+export interface ClusterProps extends AdapterBaseProps {
   "align"?: "start" | "center" | "end" | "stretch" | undefined;
   "gap"?: "xs" | "s" | "m" | "l" | "xl" | undefined;
-  "justify"?: "start" | "center" | "end" | "between" | undefined;
-  "wrap"?: boolean | undefined;
 }
 
 export interface GridProps extends AdapterBaseProps {
@@ -65,8 +63,10 @@ export interface DisclosureProps extends AdapterBaseProps {
 }
 
 export interface EditableProps extends AdapterBaseProps {
+  "actions"?: boolean | undefined;
   "disabled"?: boolean | undefined;
   "edit"?: boolean | undefined;
+  "hint"?: string | undefined;
   "label"?: string | undefined;
   "value"?: string | undefined;
   "onChange"?: ((detail: VueAdapterEventMap['change']) => void) | undefined;
@@ -77,6 +77,7 @@ export interface EditableProps extends AdapterBaseProps {
 export interface TabsProps extends AdapterBaseProps {
   "label"?: string | undefined;
   "orientation"?: "horizontal" | "vertical" | undefined;
+  "stretch"?: boolean | undefined;
   "value"?: string | undefined;
   "onSelect"?: ((detail: VueAdapterEventMap['select']) => void) | undefined;
 }
@@ -134,6 +135,7 @@ export interface IconButtonProps extends AdapterBaseProps {
   "anticipatory"?: boolean | undefined;
   "disabled"?: boolean | undefined;
   "label"?: string | undefined;
+  "round"?: boolean | undefined;
   "size"?: "sm" | "md" | "lg" | undefined;
   "variant"?: "ghost" | "outline" | "solid" | undefined;
 }
@@ -172,6 +174,7 @@ export interface FormFieldProps extends AdapterBaseProps {
 export interface TooltipProps extends AdapterBaseProps {
   "for"?: string | undefined;
   "hideDelay"?: number | undefined;
+  "inverse"?: boolean | undefined;
   "open"?: boolean | undefined;
   "placement"?: string | undefined;
   "showDelay"?: number | undefined;
@@ -180,6 +183,8 @@ export interface TooltipProps extends AdapterBaseProps {
 }
 
 export interface ToastRegionProps extends AdapterBaseProps {
+  "auto"?: boolean | undefined;
+  "duration"?: number | undefined;
   "message"?: string | undefined;
   "open"?: boolean | undefined;
   "onClose"?: ((detail: VueAdapterEventMap['close']) => void) | undefined;
@@ -286,7 +291,7 @@ export interface TreeItemProps extends AdapterBaseProps {
 
 export interface AdapterComponentProps {
   "Stack": StackProps;
-  "Inline": InlineProps;
+  "Cluster": ClusterProps;
   "Grid": GridProps;
   "Center": CenterProps;
   "Switcher": SwitcherProps;

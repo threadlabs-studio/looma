@@ -10,9 +10,9 @@
   --ui-callout-icon: var(--ui-info-solid);
   --ui-callout-padding-block: var(--ui-space-2);
   --ui-callout-padding-inline: var(--ui-space-3);
-  --ui-callout-icon-column: 1rem;
+  --ui-callout-icon-column: 1.125rem;
   --ui-callout-gap: var(--ui-space-2);
-  --ui-callout-icon-size: 1rem;
+  --ui-callout-icon-size: 1.125rem;
   --ui-callout-border-width: 1px;
   --ui-callout-leading-border-width: 4px;
 
@@ -37,11 +37,12 @@
   line-height: var(--ui-line-height-md);
 }
 
+/* One line box tall, so the icon centres on the first line of text. */
 .icon {
   display: grid;
   place-items: center;
   inline-size: var(--ui-callout-icon-column);
-  block-size: var(--ui-callout-icon-column);
+  block-size: 1lh;
   color: var(--ui-callout-icon);
 }
 

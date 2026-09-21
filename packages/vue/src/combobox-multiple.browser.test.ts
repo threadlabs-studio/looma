@@ -7,24 +7,28 @@ const flush = async () => { for (let index = 0; index < 4; index += 1) await new
 afterEach(() => { apps.splice(0).forEach(app => app.unmount()); document.body.innerHTML = ''; });
 
 it('binds structured values and maps controlled multiple-item events', async () => {
-  const items = ref([{ id: 'research', value: 'research', label: 'Research', metadata: { color: 'violet' } }]);
+  const items = ref([{ id: 'research', value: 'research', label: 'Research' }]);
   const query = ref('');
-  const options = [{ id: 'planning', value: 'planning', label: 'Planning', metadata: { color: 'sky' } }];
+  const options = [{ value: 'planning', label: 'Planning' }];
   const onRemove = vi.fn();
   const onCreate = vi.fn();
   const host = document.createElement('div');
   document.body.append(host);
   const app = createApp({
-    render: () => h(Combobox, { label: 'Page tags', multiple: true, modelValue: items.value, query: query.value, 'onUpdate:query': (value: string) => { query.value = value; }, config: { options, allowCreate: true }, tokenSeparators: [','], onRemoveItem: onRemove, onCreateItem: onCreate }),
+    render: () => h(Combobox, { label: 'Page tags', multiple: true, modelValue: items.value, query: query.value, 'onUpdate:query': (value: string) => { query.value = value; }, options, allowCreate: true, tokenSeparators: [','], onRemoveItem: onRemove, onCreateItem: onCreate }),
   });
   apps.push(app);
   app.mount(host);
   await flush();
 
-  const field = host.querySelector<HTMLElement & { value: unknown; config: unknown; tokenSeparators: unknown }>('[data-component-root~="ui-combobox"]')!;
-  expect(field.value).toEqual(items.value);
-  expect(field.config).toMatchObject({ allowCreate: true });
-  expect(field.tokenSeparators).toEqual([',']);
+  // Props are attributes: structured values are reflected as JSON, options are authored children.
+  const field = host.querySelector<HTMLElement>('[data-component-root~="ui-combobox"]')!;
+  expect(JSON.parse(field.getAttribute('data-items') ?? 'null')).toEqual(items.value);
+  // Defaults the caller did not pass stay implicit.
+  expect(field.hasAttribute('data-clearable')).toBe(false);
+  expect(field.getAttribute('data-allow-create')).toBe('true');
+  expect(JSON.parse(field.getAttribute('data-token-separators') ?? 'null')).toEqual([',']);
+  expect(field.querySelector('.authored-options option[value="planning"]')?.textContent).toBe('Planning');
   expect(field.querySelector('[part="item"]')?.textContent).toContain('Research');
   field.dispatchEvent(new CustomEvent('remove-item', { detail: { item: items.value[0], index: 0, trigger: 'keyboard' } }));
   field.dispatchEvent(new CustomEvent('create-item', { detail: { query: 'Arbitrary', trigger: 'keyboard' } }));
@@ -50,7 +54,6 @@ it('keeps a selected item inside the width bound', async () => {
       label: 'Page tags',
       multiple: true,
       modelValue: [{ id: 'long-value', value: 'long-value', label }],
-      config: { options: [] },
     }),
   });
   apps.push(app);

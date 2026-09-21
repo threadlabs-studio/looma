@@ -41,7 +41,6 @@ Not every symbol needs every facet. Stateful, asynchronous, callback-bearing, or
 | `@threadlabs/looma-core` | Overlay positioning and management, input modality, icons, drag and drop, field contracts, and declarative attachment | Browser-only import registers the core declarative graph and document input-modality tracking idempotently. |
 | `@threadlabs/looma-core/loader` | `defineCustomElements` compatibility hook | Registers the declarative graph; it does not install a custom-element runtime. |
 | `@threadlabs/looma-core/declarative` | Registration, attachment, controller lookup, lifecycle management, adoption records, and generated-prop support | Low-level integration entry; importing it alone does not register a package graph. |
-| `@threadlabs/looma-core/valibot` | `valibotField` | Structural Standard Schema adapter; Valibot is type-only at runtime. |
 | `@threadlabs/looma-layout` | Declarative layout definitions and sidebar resize contracts | Import registers the layout graph. CSS and light DOM continue to own visual layout. |
 | `@threadlabs/looma-editor` | Union of `./ui` and `./extensions` | Registers editor UI and loads Tiptap-facing helpers. |
 | `@threadlabs/looma-editor/ui` | Editor menu and table event contracts plus overlay geometry helpers | UI emits intent and never mutates an editor document. |

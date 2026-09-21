@@ -30,8 +30,8 @@ export { UiTopBar as TopBar, type UiTopBarProps as TopBarProps, type UiTopBarHan
 export { UiTreeItem as TreeItem, type UiTreeItemProps as TreeItemProps, type UiTreeItemHandle as TreeItemHandle } from "./UiTreeItem";
 export { UiTree as Tree, type UiTreeProps as TreeProps, type UiTreeHandle as TreeHandle } from "./UiTree";
 export { UiCenter as Center, type UiCenterProps as CenterProps, type UiCenterHandle as CenterHandle } from "./UiCenter";
+export { UiCluster as Cluster, type UiClusterProps as ClusterProps, type UiClusterHandle as ClusterHandle } from "./UiCluster";
 export { UiGrid as Grid, type UiGridProps as GridProps, type UiGridHandle as GridHandle } from "./UiGrid";
-export { UiInline as Inline, type UiInlineProps as InlineProps, type UiInlineHandle as InlineHandle } from "./UiInline";
 export { UiReel as Reel, type UiReelProps as ReelProps, type UiReelHandle as ReelHandle } from "./UiReel";
 export { UiSeparator as Separator, type UiSeparatorProps as SeparatorProps, type UiSeparatorHandle as SeparatorHandle } from "./UiSeparator";
 export { UiSidebar as Sidebar, type UiSidebarProps as SidebarProps, type UiSidebarHandle as SidebarHandle } from "./UiSidebar";

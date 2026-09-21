@@ -24,7 +24,7 @@ test("derives the public contract from one maintained declarative definition", (
 
   assert.equal(contract.root, "input");
   assert.deepEqual(contract.props.disabled, { type: "boolean", default: false });
-  assert.equal(contract.props.items.channel, "property");
+  assert.ok(!("channel" in contract.props.items));
   assert.deepEqual(contract.events, [{ name: "change", type: "object({ value: string })" }]);
   assert.deepEqual(contract.methods, [{ name: "focus", returns: "promise(undefined)" }]);
   assert.deepEqual(contract.dependencies, ["ui-child"]);
@@ -34,7 +34,7 @@ test("derives the public contract from one maintained declarative definition", (
 test("loads every package contract from package-owned declarative source", async () => {
   const groups = await readDeclarativeContractGroups();
   assert.deepEqual(groups.map(({ name }) => name), ["core", "layout", "editor"]);
-  assert.equal(Object.values(groups).flatMap(({ contracts }) => Object.keys(contracts)).length, 49);
+  assert.equal(Object.values(groups).flatMap(({ contracts }) => Object.keys(contracts)).length, 48);
   assert.equal(groups[0].contracts["ui-select"].root, "select");
 });
 
@@ -124,12 +124,7 @@ test("redundant layout aliases stay compatible without remaining public componen
     "utf8",
   );
 
-  assert.deepEqual(layout.contracts["ui-inline"].props.wrap, {
-    type: "boolean",
-    default: false,
-  });
-  assert.equal(classifications["ui-cluster"].status, "deferred");
-  assert.doesNotMatch(navigation, /tag:\s*["']ui-cluster["']/);
+  assert.deepEqual(Object.keys(layout.contracts["ui-cluster"].props).sort(), ["align", "gap"]);
   assert.equal(classifications["ui-chip"].status, "deferred");
   assert.doesNotMatch(navigation, /tag:\s*["']ui-chip["']/);
   assert.equal(classifications["ui-floating-action-button"].status, "deferred");
@@ -149,8 +144,8 @@ test("deferred compatibility definitions stay out of every framework adapter sur
   ].map((path) => readFile(new URL(path, import.meta.url), "utf8")));
 
   for (const source of publicSources) {
-    assert.doesNotMatch(source, /\b(?:Ui)?(?:Chip|Cluster|FloatingActionButton)\b/);
-    assert.doesNotMatch(source, /ui-(?:chip|cluster|floating-action-button)/);
+    assert.doesNotMatch(source, /\b(?:Ui)?(?:Chip|FloatingActionButton)\b/);
+    assert.doesNotMatch(source, /ui-(?:chip|floating-action-button)/);
   }
 });
 
@@ -170,7 +165,7 @@ test("React adapter rewrites HTML attributes without corrupting TypeScript reado
   assert.match(combobox, /readonly \(string\)\[\]/);
   assert.match(combobox, /readOnly=\{/);
   assert.doesNotMatch(combobox, /\sreadonly=\{/);
-  assert.match(combobox, /<select[^>]* hidden[^>]* tabIndex=\{-1\}/);
+  assert.match(combobox, /<div className="authored-options" hidden/);
   assert.doesNotMatch(combobox, /hidden=""|\stabindex=/);
 });
 
@@ -199,7 +194,6 @@ test("primitive contracts do not own application policy or a second interaction 
     ["geometry", "open"],
     "table-overlay geometry must have one authoritative channel",
   );
-  assert.equal(contracts["ui-editor-table-overlay"].props.geometry.channel, "property");
   for (const tag of ["ui-editor-table-context-menu", "ui-editor-table-toolbar"]) {
     const props = contracts[tag].props;
     assert.equal(
@@ -207,7 +201,6 @@ test("primitive contracts do not own application policy or a second interaction 
       false,
       `${tag} should not expose one boolean per editor command`,
     );
-    assert.equal(props.actions.channel, "property");
     assert.match(props.actions.type, /^list\(.+\|.+\)$/);
   }
 });

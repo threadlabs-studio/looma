@@ -9,7 +9,7 @@ shipping registries from those definitions. It never rewrites component source
 or framework adapters.
 
 `pnpm --filter @threadlabs/looma-declarative-build validate` loads and lowers all
-49 package-owned definitions with the vendored HTML Next runtime.
+48 package-owned definitions with the vendored HTML Next runtime.
 
 React, Vue, and Svelte adapters are generated only at a deliberate release
 checkpoint. Build the package-owned definitions with the official HTML Next CLI,

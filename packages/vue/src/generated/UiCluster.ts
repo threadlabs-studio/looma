@@ -7,10 +7,10 @@ import { manageGeneratedProps, updateGeneratedProps } from "@threadlabs/looma-co
 
 export default /*@__PURE__*/_defineComponent({
   ...{ inheritAttrs: false },
-  __name: 'UiGrid',
+  __name: 'UiCluster',
   props: {
-    gap: { type: [String, null], required: false },
-    min: { type: [String, null], required: false }
+    align: { type: [String, null], required: false },
+    gap: { type: [String, null], required: false }
   },
   setup(__props: any) {
 
@@ -23,9 +23,9 @@ const passed = (name: string, attribute: string): boolean => {
   return Object.hasOwn(raw, name) || Object.hasOwn(raw, attribute);
 };
 const explicitProps = (): Record<string, unknown> => {
+  const valuealign = props.align;
   const valuegap = props.gap;
-  const valuemin = props.min;
-  return { "gap": passed("gap", "gap") ? valuegap : undefined, "min": passed("min", "min") ? valuemin : undefined };
+  return { "align": passed("align", "align") ? valuealign : undefined, "gap": passed("gap", "gap") ? valuegap : undefined };
 };
 const root = ref<Element>();
 let detach: undefined | (() => void);
@@ -33,8 +33,8 @@ onMounted(() => {
   if (root.value == null) return;
   const explicit = explicitProps();
   detach = manageGeneratedProps(root.value, [
+    { name: "align", attribute: "data-align", value: explicit["align"], type: ["start","center","end","stretch"], required: false },
     { name: "gap", attribute: "data-gap", value: explicit["gap"], type: ["xs","s","m","l","xl"], required: false },
-    { name: "min", attribute: "data-min", value: explicit["min"], type: ["sm","md","lg"], required: false },
   ]);
 });
 watchEffect(() => {
@@ -48,8 +48,8 @@ onUnmounted(() => {
 
 return (_ctx: any,_cache: any) => {
   return (_openBlock(), _createElementBlock("div", _mergeProps(_ctx.$attrs, {
-    "data-component": "ui-grid",
-    "data-component-root": "ui-grid",
+    "data-component": "ui-cluster",
+    "data-component-root": "ui-cluster",
     "data-looma-managed": "framework",
     ref_key: "root",
     ref: root

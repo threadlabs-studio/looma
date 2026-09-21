@@ -34,10 +34,10 @@
   background: var(--ui-surface-elevated);
   border: 1px solid var(--ui-border-default);
   border-radius: var(--ui-radius-3);
-  box-shadow: var(--ui-shadow-lg);
+  box-shadow: var(--ui-elevation-overlay, var(--ui-shadow-lg));
 }
 
-:scope:not([data-state-open]) {
+:scope:is(:not([data-state-open]), [data-state-open="false"]) {
   display: none;
 }
 

@@ -162,11 +162,6 @@ test("generates public API metadata from declarative contracts", async () => {
 
   assert.equal(metadata.schemaVersion, 3);
   assert.equal(
-    metadata.components.some(({ tag }) => tag === "ui-cluster"),
-    false,
-    "deprecated compatibility aliases must not re-enter public metadata",
-  );
-  assert.equal(
     metadata.components.some(({ tag }) => tag === "ui-chip"),
     false,
     "redundant compatibility components must not re-enter public metadata",
@@ -182,10 +177,10 @@ test("generates public API metadata from declarative contracts", async () => {
   assert.equal(menuItem.navigationParent, "ui-menu");
   assert.ok(!input.slots.some(({ name }) => name === "default"));
   assert.deepEqual(combobox.methods.map(({ name }) => name), ["validate", "focusInput"]);
-  assert.equal(combobox.properties.find(({ name }) => name === "config").channel, "property");
-  assert.ok(!combobox.attributes.some(({ property }) => property === "config"));
-  assert.equal(mentionMenu.properties.find(({ name }) => name === "items").channel, "property");
-  assert.ok(!mentionMenu.attributes.some(({ property }) => property === "items"));
+  // Props are attributes: structured props appear as attributes too, and nothing is property-only.
+  assert.ok(!combobox.properties.some(({ name }) => name === "config"));
+  assert.ok(mentionMenu.attributes.some(({ property }) => property === "items"));
+  assert.ok(combobox.properties.every((property) => !("channel" in property)));
   assert.ok(!("className" in combobox));
   assert.deepEqual(button.designTokens.sources, [
     "packages/core/src/declarative/components/ui-button.html",

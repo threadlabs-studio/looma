@@ -48,7 +48,7 @@ export function DocsLandingHero(): JSX.Element {
             </ui-top-bar>
             <div className="looma-demo-app__body">
               <ui-stack gap="m">
-                <ui-inline gap="s" align="center" justify="between" wrap>
+                <div className="looma-demo-app__header">
                   <div>
                     <ui-badge tone="success" variant="subtle">On track</ui-badge>
                     <p className="looma-demo-app__title">September launch</p>
@@ -59,14 +59,14 @@ export function DocsLandingHero(): JSX.Element {
                     <ui-avatar name="Ari Kim" fallback="AK"></ui-avatar>
                     <ui-avatar name="Sam Rivera" fallback="SR"></ui-avatar>
                   </ui-avatar-group>
-                </ui-inline>
+                </div>
                 <ui-callout tone="info">Design review starts tomorrow at 10:00.</ui-callout>
                 <label className="looma-demo-task"><input type="checkbox" defaultChecked /><span>Prepare engineering handoff</span></label>
                 <label className="looma-demo-task"><input type="checkbox" /><span>Publish release notes</span></label>
-                <ui-inline gap="s" justify="end" wrap>
+                <div className="looma-demo-app__actions">
                   <ui-button variant="ghost" size="sm">Later</ui-button>
                   <ui-button variant="solid" size="sm">Open project</ui-button>
-                </ui-inline>
+                </div>
               </ui-stack>
             </div>
           </div>

@@ -1,8 +1,8 @@
 import { defineComponent as _defineComponent } from 'vue'
 import { mergeProps as _mergeProps, openBlock as _openBlock, createElementBlock as _createElementBlock } from "vue"
 
-import { onMounted, onUnmounted, ref, watchEffect } from "vue";
-import { attachLoomaComponent } from "@threadlabs/looma-core/declarative";
+import { getCurrentInstance, onMounted, onUnmounted, ref, watchEffect } from "vue";
+import { attachLoomaComponent, updateComponentProps } from "@threadlabs/looma-core/declarative";
 import type { ComponentDefinition } from "@threadlabs/looma-core/declarative";
 
 
@@ -20,18 +20,29 @@ export default /*@__PURE__*/_defineComponent({
 
 const props = __props;
 const emit = __emit;
-const definition = {...{"contract":{"tag":"ui-editor-table-overlay","props":{"geometry":{"type":{"kind":"union","members":[{"kind":"object","fields":[{"name":"rowBoundaries","type":{"kind":"list","item":{"kind":"terminal","name":"number"}},"optional":false},{"name":"columnBoundaries","type":{"kind":"list","item":{"kind":"terminal","name":"number"}},"optional":false},{"name":"activeCell","type":{"kind":"union","members":[{"kind":"object","fields":[{"name":"left","type":{"kind":"terminal","name":"number"},"optional":false},{"name":"top","type":{"kind":"terminal","name":"number"},"optional":false},{"name":"width","type":{"kind":"terminal","name":"number"},"optional":false},{"name":"height","type":{"kind":"terminal","name":"number"},"optional":false},{"name":"rowIndex","type":{"kind":"terminal","name":"integer"},"optional":false},{"name":"columnIndex","type":{"kind":"terminal","name":"integer"},"optional":false}],"open":false},{"kind":"terminal","name":"null"}]},"optional":false},{"name":"hoveredCell","type":{"kind":"union","members":[{"kind":"object","fields":[{"name":"left","type":{"kind":"terminal","name":"number"},"optional":false},{"name":"top","type":{"kind":"terminal","name":"number"},"optional":false},{"name":"width","type":{"kind":"terminal","name":"number"},"optional":false},{"name":"height","type":{"kind":"terminal","name":"number"},"optional":false},{"name":"rowIndex","type":{"kind":"terminal","name":"integer"},"optional":false},{"name":"columnIndex","type":{"kind":"terminal","name":"integer"},"optional":false}],"open":false},{"kind":"terminal","name":"null"}]},"optional":true}],"open":false},{"kind":"terminal","name":"null"}]},"required":false,"target":{"property":"geometry"}},"open":{"type":"boolean","required":false,"target":{"attribute":"open"},"default":false}}},"template":{"kind":"element","name":"div","attributes":[{"kind":"property","key":"geometry","name":"geometry","expression":"geometry","expressionPlan":{"source":"geometry","ast":{"kind":"id","name":"geometry"},"dependencies":["geometry"]}}],"children":[]},"declarations":[{"kind":"event","name":"action","type":"object({ action: string, boundaryIndex?: integer, rowIndex?: integer, columnIndex?: integer, anchor?: object({ left: number, top: number, right: number, bottom: number }) })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
+const instance = getCurrentInstance();
+const passed = (name: string, attribute: string): boolean => {
+  const raw = instance?.vnode.props ?? {};
+  return Object.hasOwn(raw, name) || Object.hasOwn(raw, attribute);
+};
+const explicitProps = (): Record<string, unknown> => {
+  const valuegeometry = props.geometry;
+  const valueopen = props.open;
+  return { "geometry": passed("geometry", "geometry") ? valuegeometry : undefined, "open": passed("open", "open") ? valueopen : undefined };
+};
+const definition = {...{"contract":{"tag":"ui-editor-table-overlay","props":{"geometry":{"type":{"kind":"union","members":[{"kind":"object","fields":[{"name":"rowBoundaries","type":{"kind":"list","item":{"kind":"terminal","name":"number"}},"optional":false},{"name":"columnBoundaries","type":{"kind":"list","item":{"kind":"terminal","name":"number"}},"optional":false},{"name":"activeCell","type":{"kind":"union","members":[{"kind":"object","fields":[{"name":"left","type":{"kind":"terminal","name":"number"},"optional":false},{"name":"top","type":{"kind":"terminal","name":"number"},"optional":false},{"name":"width","type":{"kind":"terminal","name":"number"},"optional":false},{"name":"height","type":{"kind":"terminal","name":"number"},"optional":false},{"name":"rowIndex","type":{"kind":"terminal","name":"integer"},"optional":false},{"name":"columnIndex","type":{"kind":"terminal","name":"integer"},"optional":false}],"open":false},{"kind":"terminal","name":"null"}]},"optional":false},{"name":"hoveredCell","type":{"kind":"union","members":[{"kind":"object","fields":[{"name":"left","type":{"kind":"terminal","name":"number"},"optional":false},{"name":"top","type":{"kind":"terminal","name":"number"},"optional":false},{"name":"width","type":{"kind":"terminal","name":"number"},"optional":false},{"name":"height","type":{"kind":"terminal","name":"number"},"optional":false},{"name":"rowIndex","type":{"kind":"terminal","name":"integer"},"optional":false},{"name":"columnIndex","type":{"kind":"terminal","name":"integer"},"optional":false}],"open":false},{"kind":"terminal","name":"null"}]},"optional":true}],"open":false},{"kind":"terminal","name":"null"}]},"required":false,"target":{"attribute":"geometry"}},"open":{"type":"boolean","required":false,"target":{"attribute":"open"},"default":false}}},"template":{"kind":"element","name":"div","attributes":[],"children":[]},"declarations":[{"kind":"event","name":"action","type":"object({ action: string, boundaryIndex?: integer, rowIndex?: integer, columnIndex?: integer, anchor?: object({ left: number, top: number, right: number, bottom: number }) })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
 const root = ref<Element>();
 const eventListener0 = (event: Event) => emit("action", (event as CustomEvent<{ readonly action: string; readonly boundaryIndex?: number; readonly rowIndex?: number; readonly columnIndex?: number; readonly anchor?: { readonly left: number; readonly top: number; readonly right: number; readonly bottom: number } }>).detail);
 let detach: undefined | (() => void);
 onMounted(() => {
   if (root.value == null) return;
-  detach = attachLoomaComponent(root.value, definition, "ui-editor-table-overlay", props);
+  detach = attachLoomaComponent(root.value, definition, "ui-editor-table-overlay", explicitProps());
   root.value.addEventListener("action", eventListener0);
 });
 watchEffect(() => {
+  const next = explicitProps();
   if (root.value == null) return;
-  for (const name of ["geometry","open"]) (root.value as unknown as Record<string, unknown>)[name] = props[name as keyof typeof props];
+  updateComponentProps(root.value, next);
 });
 onUnmounted(() => {
   root.value?.removeEventListener("action", eventListener0);

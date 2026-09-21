@@ -3,36 +3,34 @@ import { useLayoutEffect, useRef } from "react";
 import type { ComponentPropsWithoutRef, ComponentRef, ElementType, ReactNode, Ref } from "react";
 import { manageGeneratedProps, updateGeneratedProps } from "@threadlabs/looma-core/declarative-generated";
 
-interface UiSwitcherOwnProps {
+interface UiClusterOwnProps {
   align?: "start" | "center" | "end" | "stretch" | null;
   gap?: "xs" | "s" | "m" | "l" | "xl" | null;
-  threshold?: "xs" | "sm" | "md" | "lg" | null;
   slots?: Readonly<Record<string, ReactNode>>;
 }
 
-export type UiSwitcherHandle = ComponentRef<"div"> & {
+export type UiClusterHandle = ComponentRef<"div"> & {
 };
 
-export type UiSwitcherProps = Omit<ComponentPropsWithoutRef<"div">, keyof UiSwitcherOwnProps | "children"> &
-  UiSwitcherOwnProps & { children?: ReactNode; ref?: Ref<UiSwitcherHandle> };
+export type UiClusterProps = Omit<ComponentPropsWithoutRef<"div">, keyof UiClusterOwnProps | "children"> &
+  UiClusterOwnProps & { children?: ReactNode; ref?: Ref<UiClusterHandle> };
 
-export function UiSwitcher(props: UiSwitcherProps) {
-  const { "align": prop0, "gap": prop1, "threshold": prop2, slots, children, ref, ...nativeProps } = props;
-  const root = useRef<UiSwitcherHandle | null>(null);
-  const setRoot = (node: UiSwitcherHandle | null) => {
-    (root as { current: UiSwitcherHandle | null }).current = node;
+export function UiCluster(props: UiClusterProps) {
+  const { "align": prop0, "gap": prop1, slots, children, ref, ...nativeProps } = props;
+  const root = useRef<UiClusterHandle | null>(null);
+  const setRoot = (node: UiClusterHandle | null) => {
+    (root as { current: UiClusterHandle | null }).current = node;
     if (typeof ref === "function") ref(node);
     else if (ref != null) ref.current = node;
   };
-  const componentProps: Record<string, unknown> = { "align": props["align"], "gap": props["gap"], "threshold": props["threshold"] };
+  const componentProps: Record<string, unknown> = { "align": props["align"], "gap": props["gap"] };
   useLayoutEffect(() => root.current == null ? undefined : manageGeneratedProps(root.current, [
     { name: "align", attribute: "data-align", value: props["align"], type: ["start","center","end","stretch"], required: false },
     { name: "gap", attribute: "data-gap", value: props["gap"], type: ["xs","s","m","l","xl"], required: false },
-    { name: "threshold", attribute: "data-threshold", value: props["threshold"], type: ["xs","sm","md","lg"], required: false },
   ]), []);
   useLayoutEffect(() => { if (root.current != null) updateGeneratedProps(root.current, componentProps); });
   return (
-    <div {...nativeProps} data-component="ui-switcher" data-component-root="ui-switcher" data-looma-managed="framework" ref={setRoot}>
+    <div {...nativeProps} data-component="ui-cluster" data-component-root="ui-cluster" data-looma-managed="framework" ref={setRoot}>
       {children ?? (null)}
     </div>
   );

@@ -2,7 +2,7 @@
 import { useLayoutEffect, useRef } from "react";
 import type { ComponentPropsWithoutRef, ComponentRef, ElementType, ReactNode, Ref } from "react";
 import { UiMenu } from "./UiMenu";
-import { attachLoomaComponent } from "@threadlabs/looma-core/declarative";
+import { attachLoomaComponent, updateComponentProps } from "@threadlabs/looma-core/declarative";
 import type { ComponentDefinition } from "@threadlabs/looma-core/declarative";
 
 const definition = {...{"contract":{"tag":"ui-context-menu","props":{"for":{"type":"string","required":false,"target":{"attribute":"for"},"default":""},"open":{"type":"boolean","required":false,"target":{"attribute":"open"},"default":false}}},"template":{"kind":"element","name":"span","attributes":[{"kind":"attribute","name":"data-state-open","expression":"internalOpen","expressionPlan":{"source":"internalOpen","ast":{"kind":"id","name":"internalOpen"},"dependencies":["internalOpen"]}}],"children":[{"kind":"element","name":"div","attributes":[{"kind":"literal","name":"class","value":"menu"},{"kind":"attribute","name":"data-state-open","expression":"internalOpen","expressionPlan":{"source":"internalOpen","ast":{"kind":"id","name":"internalOpen"},"dependencies":["internalOpen"]}}],"children":[{"kind":"element","name":"ui-menu","attributes":[],"children":[{"kind":"slot"}]}]}]},"declarations":[{"kind":"state","name":"internalOpen","expression":{"source":"false","ast":{"kind":"literal","value":false},"dependencies":[]}},{"kind":"state","name":"focusTrigger","expression":{"source":"'programmatic'","ast":{"kind":"literal","value":"programmatic"},"dependencies":[]}},{"kind":"event","name":"open","type":"object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false},{"kind":"event","name":"close","type":"object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false},{"kind":"event","name":"select","type":"object({ value: string, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"span","choices":["span"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
@@ -30,9 +30,9 @@ export function UiContextMenu(props: UiContextMenuProps) {
     if (typeof ref === "function") ref(node);
     else if (ref != null) ref.current = node;
   };
-  const componentProps: Record<string, unknown> = { "for": prop0, "open": prop1 };
+  const componentProps: Record<string, unknown> = { "for": props["for"], "open": props["open"] };
   useLayoutEffect(() => root.current == null ? undefined : attachLoomaComponent(root.current, definition, "ui-context-menu", componentProps), []);
-  useLayoutEffect(() => { if (root.current != null) Object.assign(root.current, componentProps); });
+  useLayoutEffect(() => { if (root.current != null) updateComponentProps(root.current, componentProps); });
   useLayoutEffect(() => {
     const node = root.current;
     if (node == null || onOpen == null) return;

@@ -16,6 +16,26 @@ export interface ScenarioPropertyAssignment {
   value: unknown;
 }
 
+/**
+ * Props are HTML attributes: writes each assigned value onto its element in the markup, using the
+ * attribute's kebab-case name and JSON text for lists and records. Used for the HTML example and the
+ * live preview; framework examples bind the same values as ordinary component props instead.
+ */
+export function withPropertyAttributes(
+  markup: string,
+  assignments: readonly ScenarioPropertyAssignment[]
+): string {
+  const escape = (text: string) => text.replaceAll("&", "&amp;").replaceAll("'", "&#39;");
+  return assignments.reduce((source, assignment) => {
+    const name = assignment.property.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
+    const text = typeof assignment.value === "string" ? assignment.value : JSON.stringify(assignment.value);
+    return source.replace(
+      `id="${assignment.elementId}"`,
+      `id="${assignment.elementId}" ${name}='${escape(text)}'`
+    );
+  }, markup);
+}
+
 const componentByTag = new Map(componentApi.components.map((component) => [component.tag, component]));
 const voidElements = new Set(["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"]);
 
@@ -169,15 +189,11 @@ function buildExamples(
   const declarations = assignments.map((assignment) =>
     `const ${assignment.variable} = ${valueCode(assignment.value)};`
   ).join("\n");
-  const htmlAssignments = assignments.map((assignment) =>
-    `document.querySelector("#${assignment.elementId}").${assignment.property} = ${assignment.variable};`
-  ).join("\n");
   const vue = formatMarkup(bindProperties(renameComponents(markup), assignments, "vue"));
   const react = formatMarkup(bindProperties(reactMarkup(markup), assignments, "react"));
   const svelte = formatMarkup(bindProperties(markup, assignments, "svelte"));
-  const html = formatMarkup(markup);
-  const htmlStatements = [declarations, htmlAssignments].filter(Boolean);
-  const htmlSetup = htmlStatements.length > 0 ? `\n\n${htmlStatements.join("\n")}` : "";
+  const html = formatMarkup(withPropertyAttributes(markup, assignments));
+  const htmlSetup = "";
   const frameworkSetup = assignments.length > 0 ? `${declarations}\n` : "";
 
   return {

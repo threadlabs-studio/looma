@@ -8,7 +8,7 @@ export const componentGroups = [
     label: "Layout",
     items: [
       { tag: "ui-stack" },
-      { tag: "ui-inline" },
+      { tag: "ui-cluster" },
       { tag: "ui-grid" },
       { tag: "ui-center" },
       { tag: "ui-switcher" },

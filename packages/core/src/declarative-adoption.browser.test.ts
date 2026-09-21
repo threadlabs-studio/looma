@@ -72,13 +72,14 @@ describe("shipped declarative component graph", () => {
     expect(root?.textContent).toBe("Available action");
   });
 
-  it("attaches controllers, structured props, and public methods to lowered roots", async () => {
+  it("attaches controllers, JSON-attribute props, and public methods to lowered roots", async () => {
     const onChange = vi.fn();
     const checkbox = document.createElement("ui-checkbox");
     checkbox.textContent = "Subscribe";
-    const config = { options: [{ id: "one", value: "one", label: "One" }] };
-    const combobox = document.createElement("ui-combobox") as HTMLElement & { config: unknown };
-    combobox.config = config;
+    // Structured props are JSON attributes; options are authored <option> children.
+    const combobox = document.createElement("ui-combobox");
+    combobox.setAttribute("token-separators", '[","]');
+    combobox.innerHTML = `<option value="one">One</option>`;
     document.body.append(checkbox, combobox);
     await settle();
 
@@ -90,12 +91,11 @@ describe("shipped declarative component graph", () => {
     expect(onChange).toHaveBeenCalled();
 
     const root = document.querySelector<HTMLElement & {
-      config: unknown;
       validate: () => Promise<unknown>;
       focusInput: () => Promise<void>;
     }>('[data-component-root="ui-combobox"]');
-    expect(root?.config).toStrictEqual(config);
-    expect(root?.hasAttribute("config")).toBe(false);
+    expect(root?.getAttribute("data-token-separators")).toBe('[","]');
+    expect(root !== null && Object.hasOwn(root, "tokenSeparators")).toBe(false);
     expect(typeof root?.validate).toBe("function");
     expect(typeof root?.focusInput).toBe("function");
   });

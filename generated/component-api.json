@@ -33,8 +33,7 @@
         {
           "name": "nearRadius",
           "type": "number",
-          "default": 16,
-          "channel": "attribute | property"
+          "default": 16
         }
       ],
       "methods": [],
@@ -117,26 +116,22 @@
         {
           "name": "alt",
           "type": "string",
-          "default": "",
-          "channel": "attribute | property"
+          "default": ""
         },
         {
           "name": "fallback",
           "type": "string",
-          "default": "",
-          "channel": "attribute | property"
+          "default": ""
         },
         {
           "name": "name",
           "type": "string",
-          "default": "",
-          "channel": "attribute | property"
+          "default": ""
         },
         {
           "name": "src",
           "type": "string",
-          "default": "",
-          "channel": "attribute | property"
+          "default": ""
         }
       ],
       "methods": [],
@@ -157,13 +152,17 @@
         "sources": [
           "packages/core/src/declarative/components/ui-avatar-group.html"
         ],
-        "component": [],
+        "component": [
+          {
+            "name": "--ui-avatar-group-overlap-shadow",
+            "fallbacks": [
+              "-2px 0 5px -1px rgb(0 0 0 / 0.28)"
+            ]
+          }
+        ],
         "shared": [
           {
             "name": "--ui-border-strong"
-          },
-          {
-            "name": "--ui-surface-default"
           },
           {
             "name": "--ui-surface-elevated"
@@ -191,14 +190,12 @@
         {
           "name": "label",
           "type": "string",
-          "default": "People",
-          "channel": "attribute | property"
+          "default": "People"
         },
         {
           "name": "max",
           "type": "number",
-          "default": 5,
-          "channel": "attribute | property"
+          "default": 5
         }
       ],
       "methods": [],
@@ -223,7 +220,7 @@
           {
             "name": "--ui-badge-border",
             "declarations": [
-              "var(--ui-text-secondary)",
+              "color-mix(in srgb, var(--ui-text-secondary) 30%, transparent)",
               "var(--ui-accent-strong-surface, var(--ui-accent-solid))",
               "var(--ui-danger-strong-surface, var(--ui-danger-solid))",
               "var(--ui-success-strong-surface, var(--ui-success-solid))",
@@ -285,7 +282,7 @@
           {
             "name": "--ui-badge-text",
             "declarations": [
-              "var(--ui-text-primary)",
+              "var(--ui-text-secondary)",
               "var(--ui-accent-on-strong, var(--ui-text-on-accent))",
               "var(--ui-danger-on-strong, var(--ui-text-on-accent))",
               "var(--ui-success-on-strong, var(--ui-text-on-accent))",
@@ -424,9 +421,6 @@
             "name": "--ui-text-on-accent"
           },
           {
-            "name": "--ui-text-primary"
-          },
-          {
             "name": "--ui-text-secondary"
           },
           {
@@ -493,8 +487,7 @@
             "success",
             "warning",
             "danger"
-          ],
-          "channel": "attribute | property"
+          ]
         },
         {
           "name": "variant",
@@ -503,8 +496,7 @@
           "options": [
             "solid",
             "subtle"
-          ],
-          "channel": "attribute | property"
+          ]
         }
       ],
       "methods": [],
@@ -541,7 +533,7 @@
           {
             "name": "--ui-button-min-block-size",
             "fallbacks": [
-              "2.25rem"
+              "var(--ui-control-size-md, 2.5rem)"
             ]
           },
           {
@@ -553,7 +545,7 @@
           {
             "name": "--ui-button-shadow",
             "fallbacks": [
-              "var(--ui-shadow-xs)"
+              "var(--ui-raised, var(--ui-shadow-xs))"
             ]
           },
           {
@@ -637,13 +629,31 @@
             ]
           },
           {
+            "name": "--ui-control-size-lg",
+            "fallbacks": [
+              "3rem"
+            ]
+          },
+          {
+            "name": "--ui-control-size-md",
+            "fallbacks": [
+              "2.5rem"
+            ]
+          },
+          {
+            "name": "--ui-control-size-sm",
+            "fallbacks": [
+              "2rem"
+            ]
+          },
+          {
             "name": "--ui-danger-hover"
           },
           {
             "name": "--ui-danger-solid"
           },
           {
-            "name": "--ui-focus-ring"
+            "name": "--ui-focus-halo"
           },
           {
             "name": "--ui-font-medium",
@@ -662,6 +672,18 @@
           },
           {
             "name": "--ui-radius-2"
+          },
+          {
+            "name": "--ui-raised",
+            "fallbacks": [
+              "var(--ui-shadow-xs)"
+            ]
+          },
+          {
+            "name": "--ui-raised-highlight",
+            "fallbacks": [
+              "none"
+            ]
           },
           {
             "name": "--ui-shadow-sm"
@@ -733,8 +755,7 @@
         {
           "name": "disabled",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "size",
@@ -744,8 +765,7 @@
             "sm",
             "md",
             "lg"
-          ],
-          "channel": "attribute | property"
+          ]
         },
         {
           "name": "variant",
@@ -756,8 +776,7 @@
             "solid",
             "danger",
             "ghost"
-          ],
-          "channel": "attribute | property"
+          ]
         }
       ],
       "methods": [],
@@ -814,13 +833,13 @@
           {
             "name": "--ui-callout-icon-column",
             "declarations": [
-              "1rem"
+              "1.125rem"
             ]
           },
           {
             "name": "--ui-callout-icon-size",
             "declarations": [
-              "1rem"
+              "1.125rem"
             ]
           },
           {
@@ -944,8 +963,7 @@
             "warning",
             "success",
             "danger"
-          ],
-          "channel": "attribute | property"
+          ]
         }
       ],
       "methods": [],
@@ -1046,8 +1064,7 @@
             "s",
             "m",
             "l"
-          ],
-          "channel": "attribute | property"
+          ]
         },
         {
           "name": "measure",
@@ -1055,8 +1072,7 @@
           "options": [
             "narrow",
             "wide"
-          ],
-          "channel": "attribute | property"
+          ]
         }
       ],
       "methods": [],
@@ -1196,32 +1212,27 @@
         {
           "name": "checked",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "disabled",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "indeterminate",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "required",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "value",
           "type": "string",
-          "default": "on",
-          "channel": "attribute | property"
+          "default": "on"
         }
       ],
       "methods": [],
@@ -1233,6 +1244,138 @@
           "detailDocs": "Emitted when a toggleable control changes checked state."
         }
       ],
+      "slots": [
+        {
+          "name": "default",
+          "description": "Default child content."
+        }
+      ]
+    },
+    {
+      "tag": "ui-cluster",
+      "package": "@threadlabs/looma/layout",
+      "root": "div",
+      "description": "Cluster layout primitive for row-style content with wrapping support.",
+      "designTokens": {
+        "sources": [
+          "packages/layout/src/declarative/styles.css"
+        ],
+        "component": [
+          {
+            "name": "--ui-layout-align",
+            "declarations": [
+              "center",
+              "flex-start",
+              "flex-end",
+              "stretch"
+            ]
+          },
+          {
+            "name": "--ui-layout-gap",
+            "declarations": [
+              "var(--ui-space-3, 0.75rem)",
+              "var(--ui-space-2, 0.5rem)",
+              "var(--ui-space-4, 1rem)",
+              "var(--ui-space-5, 1.5rem)",
+              "var(--ui-space-6, 2rem)"
+            ]
+          }
+        ],
+        "shared": [
+          {
+            "name": "--ui-font-family-sans"
+          },
+          {
+            "name": "--ui-font-size-md"
+          },
+          {
+            "name": "--ui-line-height-md"
+          },
+          {
+            "name": "--ui-space-2",
+            "fallbacks": [
+              "0.5rem"
+            ]
+          },
+          {
+            "name": "--ui-space-3",
+            "fallbacks": [
+              "0.75rem"
+            ]
+          },
+          {
+            "name": "--ui-space-4",
+            "fallbacks": [
+              "1rem"
+            ]
+          },
+          {
+            "name": "--ui-space-5",
+            "fallbacks": [
+              "1.5rem"
+            ]
+          },
+          {
+            "name": "--ui-space-6",
+            "fallbacks": [
+              "2rem"
+            ]
+          },
+          {
+            "name": "--ui-text-primary"
+          }
+        ]
+      },
+      "attributes": [
+        {
+          "name": "align",
+          "property": "align",
+          "type": "\"start\" | \"center\" | \"end\" | \"stretch\"",
+          "options": [
+            "start",
+            "center",
+            "end",
+            "stretch"
+          ]
+        },
+        {
+          "name": "gap",
+          "property": "gap",
+          "type": "\"xs\" | \"s\" | \"m\" | \"l\" | \"xl\"",
+          "options": [
+            "xs",
+            "s",
+            "m",
+            "l",
+            "xl"
+          ]
+        }
+      ],
+      "properties": [
+        {
+          "name": "align",
+          "type": "\"start\" | \"center\" | \"end\" | \"stretch\"",
+          "options": [
+            "start",
+            "center",
+            "end",
+            "stretch"
+          ]
+        },
+        {
+          "name": "gap",
+          "type": "\"xs\" | \"s\" | \"m\" | \"l\" | \"xl\"",
+          "options": [
+            "xs",
+            "s",
+            "m",
+            "l",
+            "xl"
+          ]
+        }
+      ],
+      "methods": [],
+      "events": [],
       "slots": [
         {
           "name": "default",
@@ -1262,6 +1405,9 @@
             "name": "--ui-accent-active"
           },
           {
+            "name": "--ui-accent-solid"
+          },
+          {
             "name": "--ui-border-default"
           },
           {
@@ -1273,13 +1419,25 @@
           {
             "name": "--ui-control-focus",
             "fallbacks": [
-              "var(--ui-focus-ring)"
+              "var(--ui-accent-solid)"
             ]
           },
           {
-            "name": "--ui-control-min-block-size",
+            "name": "--ui-control-focus-halo-shadow"
+          },
+          {
+            "name": "--ui-control-inset"
+          },
+          {
+            "name": "--ui-control-size-md",
             "fallbacks": [
-              "2.75rem"
+              "2.5rem"
+            ]
+          },
+          {
+            "name": "--ui-control-size-sm",
+            "fallbacks": [
+              "2rem"
             ]
           },
           {
@@ -1301,6 +1459,12 @@
             ]
           },
           {
+            "name": "--ui-elevation-overlay",
+            "fallbacks": [
+              "var(--ui-shadow-lg)"
+            ]
+          },
+          {
             "name": "--ui-field-affordance-color",
             "fallbacks": [
               "var(--ui-text-secondary)"
@@ -1315,7 +1479,7 @@
           {
             "name": "--ui-field-compact-size",
             "fallbacks": [
-              "2rem"
+              "var(--ui-control-size-sm, 2rem)"
             ]
           },
           {
@@ -1355,7 +1519,19 @@
             "name": "--ui-font-size-sm"
           },
           {
+            "name": "--ui-icon-size-sm",
+            "fallbacks": [
+              "1rem"
+            ]
+          },
+          {
             "name": "--ui-line-height-md"
+          },
+          {
+            "name": "--ui-motion-ease"
+          },
+          {
+            "name": "--ui-motion-fast"
           },
           {
             "name": "--ui-multi-combobox-input-min-inline-size",
@@ -1388,25 +1564,13 @@
             ]
           },
           {
-            "name": "--ui-option-secondary-color",
-            "fallbacks": [
-              "var(--ui-text-secondary)"
-            ]
-          },
-          {
-            "name": "--ui-option-secondary-weight",
-            "fallbacks": [
-              "400"
-            ]
-          },
-          {
             "name": "--ui-radius-1"
           },
           {
             "name": "--ui-radius-2"
           },
           {
-            "name": "--ui-shadow-md"
+            "name": "--ui-shadow-lg"
           },
           {
             "name": "--ui-space-0-5"
@@ -1478,6 +1642,11 @@
           "default": ""
         },
         {
+          "name": "items",
+          "property": "items",
+          "type": "ReadonlyArray<{ id: string; value: string; label: string; group?: string; disabled?: boolean }>"
+        },
+        {
           "name": "label",
           "property": "label",
           "type": "string",
@@ -1537,55 +1706,57 @@
             "sm",
             "md"
           ]
+        },
+        {
+          "name": "token-separators",
+          "property": "tokenSeparators",
+          "type": "ReadonlyArray<string>"
+        },
+        {
+          "name": "value",
+          "property": "value",
+          "type": "string | null"
         }
       ],
       "properties": [
         {
           "name": "allowCreate",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "allowFreeText",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "clearable",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
-        },
-        {
-          "name": "config",
-          "type": "unknown",
-          "channel": "property"
+          "default": false
         },
         {
           "name": "disabled",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "disclosure",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "help",
           "type": "string",
-          "default": "",
-          "channel": "attribute | property"
+          "default": ""
+        },
+        {
+          "name": "items",
+          "type": "ReadonlyArray<{ id: string; value: string; label: string; group?: string; disabled?: boolean }>"
         },
         {
           "name": "label",
           "type": "string",
-          "default": "",
-          "channel": "attribute | property"
+          "default": ""
         },
         {
           "name": "labelVisibility",
@@ -1594,43 +1765,36 @@
           "options": [
             "visible",
             "sr-only"
-          ],
-          "channel": "attribute | property"
+          ]
         },
         {
           "name": "multiple",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "name",
           "type": "string",
-          "default": "",
-          "channel": "attribute | property"
+          "default": ""
         },
         {
           "name": "placeholder",
           "type": "string",
-          "default": "",
-          "channel": "attribute | property"
+          "default": ""
         },
         {
           "name": "query",
-          "type": "string",
-          "channel": "attribute | property"
+          "type": "string"
         },
         {
           "name": "readonly",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "required",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "size",
@@ -1639,18 +1803,15 @@
           "options": [
             "sm",
             "md"
-          ],
-          "channel": "attribute | property"
+          ]
         },
         {
           "name": "tokenSeparators",
-          "type": "ReadonlyArray<string>",
-          "channel": "property"
+          "type": "ReadonlyArray<string>"
         },
         {
           "name": "value",
-          "type": "string | null | ReadonlyArray<{ id: string; value: string; label: string; description?: string; metadata?: unknown; group?: string; disabled?: boolean }>",
-          "channel": "property"
+          "type": "string | null"
         }
       ],
       "methods": [
@@ -1666,14 +1827,14 @@
       "events": [
         {
           "name": "add-item",
-          "detailType": "{ item: { id: string; value: string; label: string; description?: string; metadata?: unknown; group?: string; disabled?: boolean }; index: number; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
-          "detailSchema": "{ item: { id: string; value: string; label: string; description?: string; metadata?: unknown; group?: string; disabled?: boolean }; index: number; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailType": "{ item: { id: string; value: string; label: string; group?: string; disabled?: boolean }; index: number; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ item: { id: string; value: string; label: string; group?: string; disabled?: boolean }; index: number; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
           "detailDocs": "Emitted with the declared detail payload."
         },
         {
           "name": "create-entry",
-          "detailType": "{ value: string | null; query: string; option: { id: string; value: string; label: string; description?: string; metadata?: unknown; group?: string; disabled?: boolean } | null; kind: \"selection\" | \"clear\" | \"free-entry\" | \"create\" | \"invalidation\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
-          "detailSchema": "{ value: string | null; query: string; option: { id: string; value: string; label: string; description?: string; metadata?: unknown; group?: string; disabled?: boolean } | null; kind: \"selection\" | \"clear\" | \"free-entry\" | \"create\" | \"invalidation\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailType": "{ value: string | null; query: string; option: { id: string; value: string; label: string; group?: string; disabled?: boolean } | null; kind: \"selection\" | \"clear\" | \"free-entry\" | \"create\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ value: string | null; query: string; option: { id: string; value: string; label: string; group?: string; disabled?: boolean } | null; kind: \"selection\" | \"clear\" | \"free-entry\" | \"create\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
           "detailDocs": "Emitted with the declared detail payload."
         },
         {
@@ -1683,21 +1844,15 @@
           "detailDocs": "Emitted with the declared detail payload."
         },
         {
-          "name": "dependency-invalidate",
-          "detailType": "{ value: string | null; query: string; option: { id: string; value: string; label: string; description?: string; metadata?: unknown; group?: string; disabled?: boolean } | null; kind: \"selection\" | \"clear\" | \"free-entry\" | \"create\" | \"invalidation\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
-          "detailSchema": "{ value: string | null; query: string; option: { id: string; value: string; label: string; description?: string; metadata?: unknown; group?: string; disabled?: boolean } | null; kind: \"selection\" | \"clear\" | \"free-entry\" | \"create\" | \"invalidation\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
-          "detailDocs": "Emitted with the declared detail payload."
-        },
-        {
           "name": "free-entry",
-          "detailType": "{ value: string | null; query: string; option: { id: string; value: string; label: string; description?: string; metadata?: unknown; group?: string; disabled?: boolean } | null; kind: \"selection\" | \"clear\" | \"free-entry\" | \"create\" | \"invalidation\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
-          "detailSchema": "{ value: string | null; query: string; option: { id: string; value: string; label: string; description?: string; metadata?: unknown; group?: string; disabled?: boolean } | null; kind: \"selection\" | \"clear\" | \"free-entry\" | \"create\" | \"invalidation\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailType": "{ value: string | null; query: string; option: { id: string; value: string; label: string; group?: string; disabled?: boolean } | null; kind: \"selection\" | \"clear\" | \"free-entry\" | \"create\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ value: string | null; query: string; option: { id: string; value: string; label: string; group?: string; disabled?: boolean } | null; kind: \"selection\" | \"clear\" | \"free-entry\" | \"create\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
           "detailDocs": "Emitted with the declared detail payload."
         },
         {
           "name": "options-change",
-          "detailType": "ReadonlyArray<{ id: string; value: string; label: string; description?: string; metadata?: unknown; group?: string; disabled?: boolean }>",
-          "detailSchema": "ReadonlyArray<{ id: string; value: string; label: string; description?: string; metadata?: unknown; group?: string; disabled?: boolean }>",
+          "detailType": "ReadonlyArray<{ id: string; value: string; label: string; group?: string; disabled?: boolean }>",
+          "detailSchema": "ReadonlyArray<{ id: string; value: string; label: string; group?: string; disabled?: boolean }>",
           "detailDocs": "Emitted with the declared detail payload."
         },
         {
@@ -1708,8 +1863,8 @@
         },
         {
           "name": "remove-item",
-          "detailType": "{ item: { id: string; value: string; label: string; description?: string; metadata?: unknown; group?: string; disabled?: boolean }; index: number; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
-          "detailSchema": "{ item: { id: string; value: string; label: string; description?: string; metadata?: unknown; group?: string; disabled?: boolean }; index: number; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailType": "{ item: { id: string; value: string; label: string; group?: string; disabled?: boolean }; index: number; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ item: { id: string; value: string; label: string; group?: string; disabled?: boolean }; index: number; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
           "detailDocs": "Emitted with the declared detail payload."
         },
         {
@@ -1720,8 +1875,8 @@
         },
         {
           "name": "value-change",
-          "detailType": "{ value: string | null; query: string; option: { id: string; value: string; label: string; description?: string; metadata?: unknown; group?: string; disabled?: boolean } | null; kind: \"selection\" | \"clear\" | \"free-entry\" | \"create\" | \"invalidation\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" } | ReadonlyArray<{ id: string; value: string; label: string; description?: string; metadata?: unknown; group?: string; disabled?: boolean }>",
-          "detailSchema": "{ value: string | null; query: string; option: { id: string; value: string; label: string; description?: string; metadata?: unknown; group?: string; disabled?: boolean } | null; kind: \"selection\" | \"clear\" | \"free-entry\" | \"create\" | \"invalidation\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" } | ReadonlyArray<{ id: string; value: string; label: string; description?: string; metadata?: unknown; group?: string; disabled?: boolean }>",
+          "detailType": "{ value: string | null; query: string; option: { id: string; value: string; label: string; group?: string; disabled?: boolean } | null; kind: \"selection\" | \"clear\" | \"free-entry\" | \"create\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" } | ReadonlyArray<{ id: string; value: string; label: string; group?: string; disabled?: boolean }>",
+          "detailSchema": "{ value: string | null; query: string; option: { id: string; value: string; label: string; group?: string; disabled?: boolean } | null; kind: \"selection\" | \"clear\" | \"free-entry\" | \"create\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" } | ReadonlyArray<{ id: string; value: string; label: string; group?: string; disabled?: boolean }>",
           "detailDocs": "Emitted with the declared detail payload."
         }
       ],
@@ -1783,14 +1938,12 @@
         {
           "name": "for",
           "type": "string",
-          "default": "",
-          "channel": "attribute | property"
+          "default": ""
         },
         {
           "name": "open",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         }
       ],
       "methods": [],
@@ -1855,10 +2008,43 @@
             "name": "--ui-border-default"
           },
           {
+            "name": "--ui-control-size-sm",
+            "fallbacks": [
+              "2rem"
+            ]
+          },
+          {
+            "name": "--ui-elevation-dialog",
+            "fallbacks": [
+              "var(--ui-shadow-xl)"
+            ]
+          },
+          {
+            "name": "--ui-focus-ring"
+          },
+          {
+            "name": "--ui-font-semibold",
+            "fallbacks": [
+              "600"
+            ]
+          },
+          {
+            "name": "--ui-font-size-lg",
+            "fallbacks": [
+              "1.125rem"
+            ]
+          },
+          {
+            "name": "--ui-line-height-tight"
+          },
+          {
             "name": "--ui-motion-base"
           },
           {
             "name": "--ui-motion-ease"
+          },
+          {
+            "name": "--ui-motion-fast"
           },
           {
             "name": "--ui-overlay-backdrop"
@@ -1867,7 +2053,19 @@
             "name": "--ui-radius-dialog"
           },
           {
-            "name": "--ui-shadow-dialog"
+            "name": "--ui-radius-round",
+            "fallbacks": [
+              "999px"
+            ]
+          },
+          {
+            "name": "--ui-shadow-xl"
+          },
+          {
+            "name": "--ui-space-2"
+          },
+          {
+            "name": "--ui-space-3"
           },
           {
             "name": "--ui-space-4",
@@ -1876,7 +2074,19 @@
             ]
           },
           {
+            "name": "--ui-space-5"
+          },
+          {
             "name": "--ui-surface-elevated"
+          },
+          {
+            "name": "--ui-surface-muted"
+          },
+          {
+            "name": "--ui-text-primary"
+          },
+          {
+            "name": "--ui-text-secondary"
           }
         ]
       },
@@ -1915,31 +2125,26 @@
         {
           "name": "dismissible",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "for",
           "type": "string",
-          "default": "",
-          "channel": "attribute | property"
+          "default": ""
         },
         {
           "name": "label",
-          "type": "string",
-          "channel": "attribute | property"
+          "type": "string"
         },
         {
           "name": "modal",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "open",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         }
       ],
       "methods": [],
@@ -1955,6 +2160,10 @@
         {
           "name": "default",
           "description": "Default child content."
+        },
+        {
+          "name": "actions",
+          "description": "Named content for the actions region."
         }
       ]
     },
@@ -1976,28 +2185,31 @@
             "name": "--ui-focus-ring"
           },
           {
-            "name": "--ui-font-medium"
-          },
-          {
-            "name": "--ui-motion-base"
+            "name": "--ui-font-semibold",
+            "fallbacks": [
+              "600"
+            ]
           },
           {
             "name": "--ui-motion-ease"
           },
           {
+            "name": "--ui-motion-ease-out",
+            "fallbacks": [
+              "var(--ui-motion-ease)"
+            ]
+          },
+          {
             "name": "--ui-motion-fast"
           },
           {
-            "name": "--ui-radius-2"
+            "name": "--ui-radius-1"
           },
           {
             "name": "--ui-space-2"
           },
           {
             "name": "--ui-space-3"
-          },
-          {
-            "name": "--ui-surface-default"
           },
           {
             "name": "--ui-surface-muted"
@@ -2034,20 +2246,17 @@
         {
           "name": "disabled",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "open",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "summary",
           "type": "string",
-          "default": "Details",
-          "channel": "attribute | property"
+          "default": "Details"
         }
       ],
       "methods": [],
@@ -2084,15 +2293,27 @@
         "component": [],
         "shared": [
           {
-            "name": "--ui-border-default"
+            "name": "--ui-accent-solid"
           },
           {
             "name": "--ui-border-strong"
           },
           {
-            "name": "--ui-control-border",
+            "name": "--ui-control-focus",
             "fallbacks": [
-              "var(--ui-border-strong)"
+              "var(--ui-accent-solid)"
+            ]
+          },
+          {
+            "name": "--ui-control-focus-halo-shadow"
+          },
+          {
+            "name": "--ui-control-inset"
+          },
+          {
+            "name": "--ui-control-size-sm",
+            "fallbacks": [
+              "2rem"
             ]
           },
           {
@@ -2102,16 +2323,34 @@
             ]
           },
           {
-            "name": "--ui-focus-ring"
+            "name": "--ui-focus-halo"
           },
           {
             "name": "--ui-font-size-sm"
           },
           {
+            "name": "--ui-line-height-md"
+          },
+          {
+            "name": "--ui-motion-ease"
+          },
+          {
+            "name": "--ui-motion-fast"
+          },
+          {
             "name": "--ui-radius-2"
           },
           {
-            "name": "--ui-shadow-xs"
+            "name": "--ui-raised",
+            "fallbacks": [
+              "none"
+            ]
+          },
+          {
+            "name": "--ui-raised-highlight",
+            "fallbacks": [
+              "none"
+            ]
           },
           {
             "name": "--ui-space-1"
@@ -2132,6 +2371,9 @@
             "name": "--ui-text-muted"
           },
           {
+            "name": "--ui-text-on-accent"
+          },
+          {
             "name": "--ui-text-primary"
           },
           {
@@ -2140,6 +2382,12 @@
         ]
       },
       "attributes": [
+        {
+          "name": "actions",
+          "property": "actions",
+          "type": "boolean",
+          "default": false
+        },
         {
           "name": "disabled",
           "property": "disabled",
@@ -2151,6 +2399,12 @@
           "property": "edit",
           "type": "boolean",
           "default": false
+        },
+        {
+          "name": "hint",
+          "property": "hint",
+          "type": "string",
+          "default": ""
         },
         {
           "name": "label",
@@ -2167,28 +2421,34 @@
       ],
       "properties": [
         {
+          "name": "actions",
+          "type": "boolean",
+          "default": false
+        },
+        {
           "name": "disabled",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "edit",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
+        },
+        {
+          "name": "hint",
+          "type": "string",
+          "default": ""
         },
         {
           "name": "label",
           "type": "string",
-          "default": "Edit value",
-          "channel": "attribute | property"
+          "default": "Edit value"
         },
         {
           "name": "value",
           "type": "string",
-          "default": "",
-          "channel": "attribute | property"
+          "default": ""
         }
       ],
       "methods": [],
@@ -2341,26 +2601,22 @@
         {
           "name": "headerRow",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "maxCols",
           "type": "number",
-          "default": 8,
-          "channel": "attribute | property"
+          "default": 8
         },
         {
           "name": "maxRows",
           "type": "number",
-          "default": 8,
-          "channel": "attribute | property"
+          "default": 8
         },
         {
           "name": "open",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         }
       ],
       "methods": [],
@@ -2510,6 +2766,16 @@
       },
       "attributes": [
         {
+          "name": "anchor-rect",
+          "property": "anchorRect",
+          "type": "{ left?: number; top?: number; right?: number; bottom?: number; x?: number; y?: number; width?: number; height?: number } | null"
+        },
+        {
+          "name": "items",
+          "property": "items",
+          "type": "ReadonlyArray<{ id: string; label: string; detail?: string; initials?: string }>"
+        },
+        {
           "name": "loading",
           "property": "loading",
           "type": "boolean",
@@ -2537,37 +2803,31 @@
       "properties": [
         {
           "name": "anchorRect",
-          "type": "{ left?: number; top?: number; right?: number; bottom?: number; x?: number; y?: number; width?: number; height?: number } | null",
-          "channel": "property"
+          "type": "{ left?: number; top?: number; right?: number; bottom?: number; x?: number; y?: number; width?: number; height?: number } | null"
         },
         {
           "name": "items",
-          "type": "ReadonlyArray<{ id: string; label: string; detail?: string; initials?: string }>",
-          "channel": "property"
+          "type": "ReadonlyArray<{ id: string; label: string; detail?: string; initials?: string }>"
         },
         {
           "name": "loading",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "open",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "query",
           "type": "string",
-          "default": "",
-          "channel": "attribute | property"
+          "default": ""
         },
         {
           "name": "selectedIndex",
           "type": "number",
-          "default": 0,
-          "channel": "attribute | property"
+          "default": 0
         }
       ],
       "methods": [],
@@ -2746,6 +3006,16 @@
       },
       "attributes": [
         {
+          "name": "anchor-rect",
+          "property": "anchorRect",
+          "type": "{ left?: number; top?: number; right?: number; bottom?: number; x?: number; y?: number; width?: number; height?: number } | null"
+        },
+        {
+          "name": "items",
+          "property": "items",
+          "type": "ReadonlyArray<{ title: string; description: string; icon: string }>"
+        },
+        {
           "name": "open",
           "property": "open",
           "type": "boolean",
@@ -2767,31 +3037,26 @@
       "properties": [
         {
           "name": "anchorRect",
-          "type": "{ left?: number; top?: number; right?: number; bottom?: number; x?: number; y?: number; width?: number; height?: number } | null",
-          "channel": "property"
+          "type": "{ left?: number; top?: number; right?: number; bottom?: number; x?: number; y?: number; width?: number; height?: number } | null"
         },
         {
           "name": "items",
-          "type": "ReadonlyArray<{ title: string; description: string; icon: string }>",
-          "channel": "property"
+          "type": "ReadonlyArray<{ title: string; description: string; icon: string }>"
         },
         {
           "name": "open",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "query",
           "type": "string",
-          "default": "",
-          "channel": "attribute | property"
+          "default": ""
         },
         {
           "name": "selectedIndex",
           "type": "number",
-          "default": 0,
-          "channel": "attribute | property"
+          "default": 0
         }
       ],
       "methods": [],
@@ -2923,6 +3188,11 @@
       },
       "attributes": [
         {
+          "name": "actions",
+          "property": "actions",
+          "type": "ReadonlyArray<\"align-left\" | \"align-center\" | \"align-right\" | \"background-none\" | \"background-gray\" | \"background-yellow\" | \"background-blue\" | \"background-green\" | \"background-red\" | \"add-row-before\" | \"add-row-after\" | \"add-column-before\" | \"add-column-after\" | \"clear-cells\" | \"merge-cells\" | \"split-cell\" | \"delete-row\" | \"delete-column\" | \"delete-table\">"
+        },
+        {
           "name": "cell-background",
           "property": "cellBackground",
           "type": "string",
@@ -2938,20 +3208,17 @@
       "properties": [
         {
           "name": "actions",
-          "type": "ReadonlyArray<\"align-left\" | \"align-center\" | \"align-right\" | \"background-none\" | \"background-gray\" | \"background-yellow\" | \"background-blue\" | \"background-green\" | \"background-red\" | \"add-row-before\" | \"add-row-after\" | \"add-column-before\" | \"add-column-after\" | \"clear-cells\" | \"merge-cells\" | \"split-cell\" | \"delete-row\" | \"delete-column\" | \"delete-table\">",
-          "channel": "property"
+          "type": "ReadonlyArray<\"align-left\" | \"align-center\" | \"align-right\" | \"background-none\" | \"background-gray\" | \"background-yellow\" | \"background-blue\" | \"background-green\" | \"background-red\" | \"add-row-before\" | \"add-row-after\" | \"add-column-before\" | \"add-column-after\" | \"clear-cells\" | \"merge-cells\" | \"split-cell\" | \"delete-row\" | \"delete-column\" | \"delete-table\">"
         },
         {
           "name": "cellBackground",
           "type": "string",
-          "default": "",
-          "channel": "attribute | property"
+          "default": ""
         },
         {
           "name": "open",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         }
       ],
       "methods": [],
@@ -3149,6 +3416,11 @@
       },
       "attributes": [
         {
+          "name": "geometry",
+          "property": "geometry",
+          "type": "{ rowBoundaries: ReadonlyArray<number>; columnBoundaries: ReadonlyArray<number>; activeCell: { left: number; top: number; width: number; height: number; rowIndex: number; columnIndex: number } | null; hoveredCell?: { left: number; top: number; width: number; height: number; rowIndex: number; columnIndex: number } | null } | null"
+        },
+        {
           "name": "open",
           "property": "open",
           "type": "boolean",
@@ -3158,14 +3430,12 @@
       "properties": [
         {
           "name": "geometry",
-          "type": "{ rowBoundaries: ReadonlyArray<number>; columnBoundaries: ReadonlyArray<number>; activeCell: { left: number; top: number; width: number; height: number; rowIndex: number; columnIndex: number } | null; hoveredCell?: { left: number; top: number; width: number; height: number; rowIndex: number; columnIndex: number } | null } | null",
-          "channel": "property"
+          "type": "{ rowBoundaries: ReadonlyArray<number>; columnBoundaries: ReadonlyArray<number>; activeCell: { left: number; top: number; width: number; height: number; rowIndex: number; columnIndex: number } | null; hoveredCell?: { left: number; top: number; width: number; height: number; rowIndex: number; columnIndex: number } | null } | null"
         },
         {
           "name": "open",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         }
       ],
       "methods": [],
@@ -3306,6 +3576,11 @@
       },
       "attributes": [
         {
+          "name": "actions",
+          "property": "actions",
+          "type": "ReadonlyArray<\"align-left\" | \"align-center\" | \"align-right\" | \"background-none\" | \"background-gray\" | \"background-yellow\" | \"background-blue\" | \"background-green\" | \"background-red\" | \"add-row-before\" | \"add-row-after\" | \"add-column-before\" | \"add-column-after\" | \"clear-cells\" | \"merge-cells\" | \"split-cell\" | \"delete-row\" | \"delete-column\" | \"delete-table\">"
+        },
+        {
           "name": "cell-alignment",
           "property": "cellAlignment",
           "type": "\"left\" | \"center\" | \"right\"",
@@ -3332,8 +3607,7 @@
       "properties": [
         {
           "name": "actions",
-          "type": "ReadonlyArray<\"align-left\" | \"align-center\" | \"align-right\" | \"background-none\" | \"background-gray\" | \"background-yellow\" | \"background-blue\" | \"background-green\" | \"background-red\" | \"add-row-before\" | \"add-row-after\" | \"add-column-before\" | \"add-column-after\" | \"clear-cells\" | \"merge-cells\" | \"split-cell\" | \"delete-row\" | \"delete-column\" | \"delete-table\">",
-          "channel": "property"
+          "type": "ReadonlyArray<\"align-left\" | \"align-center\" | \"align-right\" | \"background-none\" | \"background-gray\" | \"background-yellow\" | \"background-blue\" | \"background-green\" | \"background-red\" | \"add-row-before\" | \"add-row-after\" | \"add-column-before\" | \"add-column-after\" | \"clear-cells\" | \"merge-cells\" | \"split-cell\" | \"delete-row\" | \"delete-column\" | \"delete-table\">"
         },
         {
           "name": "cellAlignment",
@@ -3343,20 +3617,17 @@
             "left",
             "center",
             "right"
-          ],
-          "channel": "attribute | property"
+          ]
         },
         {
           "name": "cellBackground",
           "type": "string",
-          "default": "",
-          "channel": "attribute | property"
+          "default": ""
         },
         {
           "name": "open",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         }
       ],
       "methods": [],
@@ -3565,20 +3836,17 @@
         {
           "name": "disabled",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "invalid",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "required",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         }
       ],
       "methods": [],
@@ -3703,8 +3971,7 @@
             "m",
             "l",
             "xl"
-          ],
-          "channel": "attribute | property"
+          ]
         },
         {
           "name": "min",
@@ -3713,8 +3980,7 @@
             "sm",
             "md",
             "lg"
-          ],
-          "channel": "attribute | property"
+          ]
         }
       ],
       "methods": [],
@@ -3773,9 +4039,17 @@
             ]
           },
           {
+            "name": "--ui-icon-button-icon-default",
+            "declarations": [
+              "var(--ui-icon-size-md, 1.25rem)",
+              "var(--ui-icon-size-sm, 1rem)",
+              "var(--ui-icon-size-lg, 1.5rem)"
+            ]
+          },
+          {
             "name": "--ui-icon-button-icon-size",
             "fallbacks": [
-              "1.125rem"
+              "var(--ui-icon-button-icon-default)"
             ]
           },
           {
@@ -3805,19 +4079,19 @@
           {
             "name": "--ui-icon-button-size",
             "fallbacks": [
-              "2.5rem"
+              "2rem"
             ]
           },
           {
             "name": "--ui-icon-button-size-lg",
             "fallbacks": [
-              "2.75rem"
+              "2.5rem"
             ]
           },
           {
             "name": "--ui-icon-button-size-sm",
             "fallbacks": [
-              "2rem"
+              "1.75rem"
             ]
           },
           {
@@ -3883,7 +4157,25 @@
             "name": "--ui-border-strong"
           },
           {
-            "name": "--ui-focus-ring"
+            "name": "--ui-focus-halo"
+          },
+          {
+            "name": "--ui-icon-size-lg",
+            "fallbacks": [
+              "1.5rem"
+            ]
+          },
+          {
+            "name": "--ui-icon-size-md",
+            "fallbacks": [
+              "1.25rem"
+            ]
+          },
+          {
+            "name": "--ui-icon-size-sm",
+            "fallbacks": [
+              "1rem"
+            ]
           },
           {
             "name": "--ui-motion-ease"
@@ -3937,6 +4229,12 @@
           "default": ""
         },
         {
+          "name": "round",
+          "property": "round",
+          "type": "boolean",
+          "default": false
+        },
+        {
           "name": "size",
           "property": "size",
           "type": "\"sm\" | \"md\" | \"lg\"",
@@ -3963,20 +4261,22 @@
         {
           "name": "anticipatory",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "disabled",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "label",
           "type": "string",
-          "default": "",
-          "channel": "attribute | property"
+          "default": ""
+        },
+        {
+          "name": "round",
+          "type": "boolean",
+          "default": false
         },
         {
           "name": "size",
@@ -3986,8 +4286,7 @@
             "sm",
             "md",
             "lg"
-          ],
-          "channel": "attribute | property"
+          ]
         },
         {
           "name": "variant",
@@ -3997,185 +4296,7 @@
             "ghost",
             "outline",
             "solid"
-          ],
-          "channel": "attribute | property"
-        }
-      ],
-      "methods": [],
-      "events": [],
-      "slots": [
-        {
-          "name": "default",
-          "description": "Default child content."
-        }
-      ]
-    },
-    {
-      "tag": "ui-inline",
-      "package": "@threadlabs/looma/layout",
-      "root": "div",
-      "description": "Inline layout primitive for row-style content with wrapping support.",
-      "designTokens": {
-        "sources": [
-          "packages/layout/src/declarative/styles.css"
-        ],
-        "component": [
-          {
-            "name": "--ui-layout-align",
-            "declarations": [
-              "center",
-              "flex-start",
-              "flex-end",
-              "stretch"
-            ]
-          },
-          {
-            "name": "--ui-layout-gap",
-            "declarations": [
-              "var(--ui-space-3, 0.75rem)",
-              "var(--ui-space-2, 0.5rem)",
-              "var(--ui-space-4, 1rem)",
-              "var(--ui-space-5, 1.5rem)",
-              "var(--ui-space-6, 2rem)"
-            ]
-          },
-          {
-            "name": "--ui-layout-justify",
-            "declarations": [
-              "flex-start",
-              "center",
-              "flex-end",
-              "space-between"
-            ]
-          }
-        ],
-        "shared": [
-          {
-            "name": "--ui-font-family-sans"
-          },
-          {
-            "name": "--ui-font-size-md"
-          },
-          {
-            "name": "--ui-line-height-md"
-          },
-          {
-            "name": "--ui-space-2",
-            "fallbacks": [
-              "0.5rem"
-            ]
-          },
-          {
-            "name": "--ui-space-3",
-            "fallbacks": [
-              "0.75rem"
-            ]
-          },
-          {
-            "name": "--ui-space-4",
-            "fallbacks": [
-              "1rem"
-            ]
-          },
-          {
-            "name": "--ui-space-5",
-            "fallbacks": [
-              "1.5rem"
-            ]
-          },
-          {
-            "name": "--ui-space-6",
-            "fallbacks": [
-              "2rem"
-            ]
-          },
-          {
-            "name": "--ui-text-primary"
-          }
-        ]
-      },
-      "attributes": [
-        {
-          "name": "align",
-          "property": "align",
-          "type": "\"start\" | \"center\" | \"end\" | \"stretch\"",
-          "options": [
-            "start",
-            "center",
-            "end",
-            "stretch"
           ]
-        },
-        {
-          "name": "gap",
-          "property": "gap",
-          "type": "\"xs\" | \"s\" | \"m\" | \"l\" | \"xl\"",
-          "options": [
-            "xs",
-            "s",
-            "m",
-            "l",
-            "xl"
-          ]
-        },
-        {
-          "name": "justify",
-          "property": "justify",
-          "type": "\"start\" | \"center\" | \"end\" | \"between\"",
-          "options": [
-            "start",
-            "center",
-            "end",
-            "between"
-          ]
-        },
-        {
-          "name": "wrap",
-          "property": "wrap",
-          "type": "boolean",
-          "default": false
-        }
-      ],
-      "properties": [
-        {
-          "name": "align",
-          "type": "\"start\" | \"center\" | \"end\" | \"stretch\"",
-          "options": [
-            "start",
-            "center",
-            "end",
-            "stretch"
-          ],
-          "channel": "attribute | property"
-        },
-        {
-          "name": "gap",
-          "type": "\"xs\" | \"s\" | \"m\" | \"l\" | \"xl\"",
-          "options": [
-            "xs",
-            "s",
-            "m",
-            "l",
-            "xl"
-          ],
-          "channel": "attribute | property"
-        },
-        {
-          "name": "justify",
-          "type": "\"start\" | \"center\" | \"end\" | \"between\"",
-          "options": [
-            "start",
-            "center",
-            "end",
-            "between"
-          ],
-          "channel": "attribute | property"
-        },
-        {
-          "name": "wrap",
-          "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
         }
       ],
       "methods": [],
@@ -4200,7 +4321,7 @@
           {
             "name": "--ui-input-focus-shadow",
             "fallbacks": [
-              "0 0 0 3px var(--ui-control-focus-halo, var(--ui-accent-soft))"
+              "var(--ui-control-inset), var(--ui-control-focus-halo-shadow)"
             ]
           },
           {
@@ -4212,14 +4333,11 @@
           {
             "name": "--ui-input-shadow",
             "fallbacks": [
-              "inset 0 1px 2px rgb(15 23 42 / 0.07), var(--ui-shadow-xs)"
+              "var(--ui-control-inset)"
             ]
           }
         ],
         "shared": [
-          {
-            "name": "--ui-accent-soft"
-          },
           {
             "name": "--ui-accent-solid"
           },
@@ -4245,21 +4363,21 @@
             ]
           },
           {
-            "name": "--ui-control-focus-halo",
-            "fallbacks": [
-              "var(--ui-accent-soft)"
-            ]
+            "name": "--ui-control-focus-halo-shadow"
           },
           {
-            "name": "--ui-control-min-block-size",
-            "fallbacks": [
-              "2.5rem"
-            ]
+            "name": "--ui-control-inset"
           },
           {
             "name": "--ui-control-placeholder",
             "fallbacks": [
               "var(--ui-text-secondary)"
+            ]
+          },
+          {
+            "name": "--ui-control-size-md",
+            "fallbacks": [
+              "2.5rem"
             ]
           },
           {
@@ -4278,9 +4396,6 @@
             "name": "--ui-danger-solid"
           },
           {
-            "name": "--ui-focus-ring"
-          },
-          {
             "name": "--ui-line-height-md"
           },
           {
@@ -4291,9 +4406,6 @@
           },
           {
             "name": "--ui-radius-2"
-          },
-          {
-            "name": "--ui-shadow-xs"
           },
           {
             "name": "--ui-space-2"
@@ -4353,31 +4465,26 @@
         {
           "name": "disabled",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "invalid",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "readonly",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "required",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "value",
-          "type": "string",
-          "channel": "attribute | property"
+          "type": "string"
         }
       ],
       "methods": [],
@@ -4404,6 +4511,12 @@
         "shared": [
           {
             "name": "--ui-border-default"
+          },
+          {
+            "name": "--ui-elevation-overlay",
+            "fallbacks": [
+              "var(--ui-shadow-lg)"
+            ]
           },
           {
             "name": "--ui-motion-ease"
@@ -4455,20 +4568,17 @@
         {
           "name": "for",
           "type": "string",
-          "default": "",
-          "channel": "attribute | property"
+          "default": ""
         },
         {
           "name": "open",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "placement",
           "type": "string",
-          "default": "bottom-start",
-          "channel": "attribute | property"
+          "default": "bottom-start"
         }
       ],
       "methods": [],
@@ -4560,14 +4670,12 @@
         {
           "name": "disabled",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "value",
           "type": "string",
-          "default": "",
-          "channel": "attribute | property"
+          "default": ""
         }
       ],
       "methods": [],
@@ -4600,6 +4708,12 @@
         "shared": [
           {
             "name": "--ui-border-default"
+          },
+          {
+            "name": "--ui-elevation-overlay",
+            "fallbacks": [
+              "var(--ui-shadow-lg)"
+            ]
           },
           {
             "name": "--ui-motion-ease"
@@ -4651,20 +4765,17 @@
         {
           "name": "for",
           "type": "string",
-          "default": "",
-          "channel": "attribute | property"
+          "default": ""
         },
         {
           "name": "open",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "placement",
           "type": "string",
-          "default": "bottom-start",
-          "channel": "attribute | property"
+          "default": "bottom-start"
         }
       ],
       "methods": [],
@@ -4772,32 +4883,27 @@
         {
           "name": "checked",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "disabled",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "name",
           "type": "string",
-          "default": "",
-          "channel": "attribute | property"
+          "default": ""
         },
         {
           "name": "required",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "value",
           "type": "string",
-          "default": "on",
-          "channel": "attribute | property"
+          "default": "on"
         }
       ],
       "methods": [],
@@ -4884,20 +4990,17 @@
         {
           "name": "disabled",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "label",
           "type": "string",
-          "default": "Options",
-          "channel": "attribute | property"
+          "default": "Options"
         },
         {
           "name": "name",
           "type": "string",
-          "default": "",
-          "channel": "attribute | property"
+          "default": ""
         },
         {
           "name": "orientation",
@@ -4906,20 +5009,17 @@
           "options": [
             "horizontal",
             "vertical"
-          ],
-          "channel": "attribute | property"
+          ]
         },
         {
           "name": "required",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "value",
           "type": "string",
-          "default": "",
-          "channel": "attribute | property"
+          "default": ""
         }
       ],
       "methods": [],
@@ -5055,8 +5155,7 @@
             "m",
             "l",
             "xl"
-          ],
-          "channel": "attribute | property"
+          ]
         },
         {
           "name": "itemWidth",
@@ -5065,8 +5164,7 @@
             "sm",
             "md",
             "lg"
-          ],
-          "channel": "attribute | property"
+          ]
         },
         {
           "name": "snap",
@@ -5074,8 +5172,7 @@
           "options": [
             "start",
             "center"
-          ],
-          "channel": "attribute | property"
+          ]
         }
       ],
       "methods": [],
@@ -5209,14 +5306,12 @@
         {
           "name": "disabled",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "selected",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         }
       ],
       "methods": [],
@@ -5294,7 +5389,7 @@
           {
             "name": "--ui-search-shell-shadow",
             "fallbacks": [
-              "var(--ui-shadow-dialog)"
+              "var(--ui-elevation-dialog, var(--ui-shadow-xl))"
             ]
           },
           {
@@ -5327,6 +5422,12 @@
             "name": "--ui-control-surface"
           },
           {
+            "name": "--ui-elevation-dialog",
+            "fallbacks": [
+              "var(--ui-shadow-xl)"
+            ]
+          },
+          {
             "name": "--ui-focus-ring"
           },
           {
@@ -5342,7 +5443,7 @@
             "name": "--ui-radius-dialog"
           },
           {
-            "name": "--ui-shadow-dialog"
+            "name": "--ui-shadow-xl"
           },
           {
             "name": "--ui-shadow-xs"
@@ -5400,26 +5501,22 @@
         {
           "name": "dismissible",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "label",
           "type": "string",
-          "default": "Search",
-          "channel": "attribute | property"
+          "default": "Search"
         },
         {
           "name": "modal",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "open",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         }
       ],
       "methods": [],
@@ -5461,9 +5558,15 @@
         ],
         "component": [
           {
+            "name": "--ui-select-chevron",
+            "fallbacks": [
+              "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235c5c58' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\")"
+            ]
+          },
+          {
             "name": "--ui-select-focus-shadow",
             "fallbacks": [
-              "0 0 0 3px var(--ui-control-focus-halo, var(--ui-accent-soft))"
+              "var(--ui-control-inset), var(--ui-control-focus-halo-shadow)"
             ]
           },
           {
@@ -5475,14 +5578,11 @@
           {
             "name": "--ui-select-shadow",
             "fallbacks": [
-              "inset 0 1px 2px rgb(15 23 42 / 0.07), var(--ui-shadow-xs)"
+              "var(--ui-control-inset)"
             ]
           }
         ],
         "shared": [
-          {
-            "name": "--ui-accent-soft"
-          },
           {
             "name": "--ui-accent-solid"
           },
@@ -5508,13 +5608,13 @@
             ]
           },
           {
-            "name": "--ui-control-focus-halo",
-            "fallbacks": [
-              "var(--ui-accent-soft)"
-            ]
+            "name": "--ui-control-focus-halo-shadow"
           },
           {
-            "name": "--ui-control-min-block-size",
+            "name": "--ui-control-inset"
+          },
+          {
+            "name": "--ui-control-size-md",
             "fallbacks": [
               "2.5rem"
             ]
@@ -5535,9 +5635,6 @@
             "name": "--ui-danger-solid"
           },
           {
-            "name": "--ui-focus-ring"
-          },
-          {
             "name": "--ui-line-height-md"
           },
           {
@@ -5548,9 +5645,6 @@
           },
           {
             "name": "--ui-radius-2"
-          },
-          {
-            "name": "--ui-shadow-xs"
           },
           {
             "name": "--ui-space-2"
@@ -5610,31 +5704,26 @@
         {
           "name": "disabled",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "invalid",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "multiple",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "required",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "value",
-          "type": "string",
-          "channel": "attribute | property"
+          "type": "string"
         }
       ],
       "methods": [],
@@ -5716,8 +5805,7 @@
           "options": [
             "horizontal",
             "vertical"
-          ],
-          "channel": "attribute | property"
+          ]
         }
       ],
       "methods": [],
@@ -5962,8 +6050,7 @@
             "center",
             "end",
             "stretch"
-          ],
-          "channel": "attribute | property"
+          ]
         },
         {
           "name": "gap",
@@ -5974,38 +6061,32 @@
             "m",
             "l",
             "xl"
-          ],
-          "channel": "attribute | property"
+          ]
         },
         {
           "name": "maxWidth",
           "type": "number",
-          "default": 480,
-          "channel": "attribute | property"
+          "default": 480
         },
         {
           "name": "minWidth",
           "type": "number",
-          "default": 176,
-          "channel": "attribute | property"
+          "default": 176
         },
         {
           "name": "resizable",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "resizeLabel",
           "type": "string",
-          "default": "Resize sidebar",
-          "channel": "attribute | property"
+          "default": "Resize sidebar"
         },
         {
           "name": "resizeStep",
           "type": "number",
-          "default": 16,
-          "channel": "attribute | property"
+          "default": 16
         },
         {
           "name": "side",
@@ -6014,8 +6095,7 @@
           "options": [
             "start",
             "end"
-          ],
-          "channel": "attribute | property"
+          ]
         },
         {
           "name": "width",
@@ -6025,8 +6105,7 @@
             "narrow",
             "default",
             "wide"
-          ],
-          "channel": "attribute | property"
+          ]
         }
       ],
       "methods": [],
@@ -6174,8 +6253,7 @@
             "center",
             "end",
             "stretch"
-          ],
-          "channel": "attribute | property"
+          ]
         },
         {
           "name": "gap",
@@ -6186,8 +6264,7 @@
             "m",
             "l",
             "xl"
-          ],
-          "channel": "attribute | property"
+          ]
         },
         {
           "name": "justify",
@@ -6197,8 +6274,7 @@
             "center",
             "end",
             "between"
-          ],
-          "channel": "attribute | property"
+          ]
         }
       ],
       "methods": [],
@@ -6338,26 +6414,22 @@
         {
           "name": "checked",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "disabled",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "required",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "value",
           "type": "string",
-          "default": "on",
-          "channel": "attribute | property"
+          "default": "on"
         }
       ],
       "methods": [],
@@ -6498,8 +6570,7 @@
             "center",
             "end",
             "stretch"
-          ],
-          "channel": "attribute | property"
+          ]
         },
         {
           "name": "gap",
@@ -6510,8 +6581,7 @@
             "m",
             "l",
             "xl"
-          ],
-          "channel": "attribute | property"
+          ]
         },
         {
           "name": "threshold",
@@ -6521,8 +6591,7 @@
             "sm",
             "md",
             "lg"
-          ],
-          "channel": "attribute | property"
+          ]
         }
       ],
       "methods": [],
@@ -6570,6 +6639,9 @@
             "name": "--ui-motion-fast"
           },
           {
+            "name": "--ui-radius-1"
+          },
+          {
             "name": "--ui-space-2"
           },
           {
@@ -6607,6 +6679,12 @@
           ]
         },
         {
+          "name": "stretch",
+          "property": "stretch",
+          "type": "boolean",
+          "default": false
+        },
+        {
           "name": "value",
           "property": "value",
           "type": "string",
@@ -6617,8 +6695,7 @@
         {
           "name": "label",
           "type": "string",
-          "default": "Tabs",
-          "channel": "attribute | property"
+          "default": "Tabs"
         },
         {
           "name": "orientation",
@@ -6627,14 +6704,17 @@
           "options": [
             "horizontal",
             "vertical"
-          ],
-          "channel": "attribute | property"
+          ]
+        },
+        {
+          "name": "stretch",
+          "type": "boolean",
+          "default": false
         },
         {
           "name": "value",
           "type": "string",
-          "default": "",
-          "channel": "attribute | property"
+          "default": ""
         }
       ],
       "methods": [],
@@ -6666,7 +6746,7 @@
           {
             "name": "--ui-textarea-focus-shadow",
             "fallbacks": [
-              "0 0 0 3px var(--ui-control-focus-halo, var(--ui-accent-soft))"
+              "var(--ui-control-inset), var(--ui-control-focus-halo-shadow)"
             ]
           },
           {
@@ -6678,14 +6758,11 @@
           {
             "name": "--ui-textarea-shadow",
             "fallbacks": [
-              "inset 0 1px 2px rgb(15 23 42 / 0.07), var(--ui-shadow-xs)"
+              "var(--ui-control-inset)"
             ]
           }
         ],
         "shared": [
-          {
-            "name": "--ui-accent-soft"
-          },
           {
             "name": "--ui-accent-solid"
           },
@@ -6711,10 +6788,10 @@
             ]
           },
           {
-            "name": "--ui-control-focus-halo",
-            "fallbacks": [
-              "var(--ui-accent-soft)"
-            ]
+            "name": "--ui-control-focus-halo-shadow"
+          },
+          {
+            "name": "--ui-control-inset"
           },
           {
             "name": "--ui-control-placeholder",
@@ -6738,9 +6815,6 @@
             "name": "--ui-danger-solid"
           },
           {
-            "name": "--ui-focus-ring"
-          },
-          {
             "name": "--ui-line-height-md"
           },
           {
@@ -6751,9 +6825,6 @@
           },
           {
             "name": "--ui-radius-2"
-          },
-          {
-            "name": "--ui-shadow-xs"
           },
           {
             "name": "--ui-space-12",
@@ -6825,37 +6896,31 @@
         {
           "name": "disabled",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "invalid",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "readonly",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "required",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "rows",
           "type": "number",
-          "default": 4,
-          "channel": "attribute | property"
+          "default": 4
         },
         {
           "name": "value",
-          "type": "string",
-          "channel": "attribute | property"
+          "type": "string"
         }
       ],
       "methods": [],
@@ -6875,6 +6940,12 @@
         "shared": [
           {
             "name": "--ui-border-default"
+          },
+          {
+            "name": "--ui-elevation-overlay",
+            "fallbacks": [
+              "var(--ui-shadow-lg)"
+            ]
           },
           {
             "name": "--ui-motion-ease"
@@ -6904,6 +6975,18 @@
       },
       "attributes": [
         {
+          "name": "auto",
+          "property": "auto",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "duration",
+          "property": "duration",
+          "type": "number",
+          "default": 5000
+        },
+        {
           "name": "message",
           "property": "message",
           "type": "string",
@@ -6918,16 +7001,24 @@
       ],
       "properties": [
         {
+          "name": "auto",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "duration",
+          "type": "number",
+          "default": 5000
+        },
+        {
           "name": "message",
           "type": "string",
-          "default": "Notification",
-          "channel": "attribute | property"
+          "default": "Notification"
         },
         {
           "name": "open",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         }
       ],
       "methods": [
@@ -6939,14 +7030,14 @@
       "events": [
         {
           "name": "close",
-          "detailType": "{ open: boolean; reason: \"action\" | \"programmatic\" | \"light-dismiss\" | \"escape\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
-          "detailSchema": "{ open: boolean; reason: \"action\" | \"programmatic\" | \"light-dismiss\" | \"escape\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailType": "{ open: boolean; reason: \"action\" | \"timeout\" | \"programmatic\" | \"light-dismiss\" | \"escape\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ open: boolean; reason: \"action\" | \"timeout\" | \"programmatic\" | \"light-dismiss\" | \"escape\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
           "detailDocs": "Emitted when the component transitions to a closed state."
         },
         {
           "name": "dismiss",
-          "detailType": "{ id: string; reason: \"action\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
-          "detailSchema": "{ id: string; reason: \"action\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailType": "{ id: string; reason: \"action\" | \"timeout\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
+          "detailSchema": "{ id: string; reason: \"action\" | \"timeout\"; trigger: \"keyboard\" | \"pointer\" | \"programmatic\" }",
           "detailDocs": "Emitted when a toast item is dismissed from its region."
         }
       ],
@@ -6970,7 +7061,7 @@
           {
             "name": "--ui-tooltip-arrow-size",
             "declarations": [
-              "0.45rem"
+              "0.5rem"
             ]
           },
           {
@@ -6980,21 +7071,52 @@
             ]
           },
           {
+            "name": "--ui-tooltip-inverse-surface",
+            "fallbacks": [
+              "var(--ui-text-primary)"
+            ]
+          },
+          {
+            "name": "--ui-tooltip-inverse-text",
+            "fallbacks": [
+              "var(--ui-surface-default)"
+            ]
+          },
+          {
+            "name": "--ui-tooltip-line",
+            "declarations": [
+              "var(--ui-tooltip-border, var(--ui-border-default))",
+              "var(--ui-tooltip-inverse-surface, var(--ui-text-primary))"
+            ]
+          },
+          {
+            "name": "--ui-tooltip-max-inline-size",
+            "fallbacks": [
+              "18rem"
+            ]
+          },
+          {
             "name": "--ui-tooltip-radius",
             "fallbacks": [
-              "var(--ui-radius-2)"
+              "var(--ui-radius-1)"
             ]
           },
           {
             "name": "--ui-tooltip-shadow",
             "fallbacks": [
-              "var(--ui-shadow-lg)"
+              "var(--ui-elevation-tooltip, var(--ui-shadow-md))"
             ]
           },
           {
             "name": "--ui-tooltip-surface",
             "fallbacks": [
               "var(--ui-surface-elevated)"
+            ]
+          },
+          {
+            "name": "--ui-tooltip-text",
+            "fallbacks": [
+              "var(--ui-text-primary)"
             ]
           }
         ],
@@ -7003,7 +7125,19 @@
             "name": "--ui-border-default"
           },
           {
+            "name": "--ui-elevation-tooltip",
+            "fallbacks": [
+              "var(--ui-shadow-md)"
+            ]
+          },
+          {
+            "name": "--ui-font-family-sans"
+          },
+          {
             "name": "--ui-font-size-sm"
+          },
+          {
+            "name": "--ui-line-height-tight"
           },
           {
             "name": "--ui-motion-ease"
@@ -7012,16 +7146,22 @@
             "name": "--ui-motion-fast"
           },
           {
-            "name": "--ui-radius-2"
+            "name": "--ui-radius-1"
           },
           {
-            "name": "--ui-shadow-lg"
+            "name": "--ui-shadow-md"
+          },
+          {
+            "name": "--ui-space-1"
           },
           {
             "name": "--ui-space-2"
           },
           {
             "name": "--ui-space-3"
+          },
+          {
+            "name": "--ui-surface-default"
           },
           {
             "name": "--ui-surface-elevated"
@@ -7043,6 +7183,12 @@
           "property": "hideDelay",
           "type": "number",
           "default": 100
+        },
+        {
+          "name": "inverse",
+          "property": "inverse",
+          "type": "boolean",
+          "default": false
         },
         {
           "name": "open",
@@ -7067,32 +7213,32 @@
         {
           "name": "for",
           "type": "string",
-          "default": "",
-          "channel": "attribute | property"
+          "default": ""
         },
         {
           "name": "hideDelay",
           "type": "number",
-          "default": 100,
-          "channel": "attribute | property"
+          "default": 100
+        },
+        {
+          "name": "inverse",
+          "type": "boolean",
+          "default": false
         },
         {
           "name": "open",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "placement",
           "type": "string",
-          "default": "top-start",
-          "channel": "attribute | property"
+          "default": "top-start"
         },
         {
           "name": "showDelay",
           "type": "number",
-          "default": 500,
-          "channel": "attribute | property"
+          "default": 500
         }
       ],
       "methods": [],
@@ -7270,20 +7416,17 @@
         {
           "name": "hoverExpandDelay",
           "type": "number",
-          "default": 700,
-          "channel": "attribute | property"
+          "default": 700
         },
         {
           "name": "label",
           "type": "string",
-          "default": "Tree",
-          "channel": "attribute | property"
+          "default": "Tree"
         },
         {
           "name": "maxDepth",
           "type": "number",
-          "default": 0,
-          "channel": "attribute | property"
+          "default": 0
         }
       ],
       "methods": [],
@@ -7480,72 +7623,60 @@
         {
           "name": "accepts",
           "type": "string",
-          "default": "",
-          "channel": "attribute | property"
+          "default": ""
         },
         {
           "name": "container",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "disabled",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "dragType",
           "type": "string",
-          "default": "item",
-          "channel": "attribute | property"
+          "default": "item"
         },
         {
           "name": "dropDepth",
-          "type": "number",
-          "channel": "attribute | property"
+          "type": "number"
         },
         {
           "name": "dropScope",
           "type": "string",
-          "default": "",
-          "channel": "attribute | property"
+          "default": ""
         },
         {
           "name": "expanded",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "itemId",
           "type": "string",
-          "default": "",
-          "channel": "attribute | property"
+          "default": ""
         },
         {
           "name": "label",
           "type": "string",
-          "default": "",
-          "channel": "attribute | property"
+          "default": ""
         },
         {
           "name": "selected",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "sortable",
           "type": "boolean",
-          "default": false,
-          "channel": "attribute | property"
+          "default": false
         },
         {
           "name": "subtreeDepth",
-          "type": "number",
-          "channel": "attribute | property"
+          "type": "number"
         }
       ],
       "methods": [],

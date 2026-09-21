@@ -46,7 +46,6 @@ gate must reject any mismatch instead of silently omitting a component.
 - `ui-form-field`
 - `ui-icon-button`
 - `ui-grid`
-- `ui-inline`
 - `ui-input`
 - `ui-context-menu`
 - `ui-menu`
@@ -82,7 +81,6 @@ Conventions for this checklist:
 ### Layout
 
 - [x] Stack
-- [x] Inline
 - [x] Cluster
 - [x] Grid
 - [x] Center

@@ -36,11 +36,7 @@
       "types": "./dist/declarative-generated.d.ts",
       "import": "./dist/declarative-generated.js"
     },
-    "./styles.css": "./src/styles.css",
-    "./valibot": {
-      "types": "./dist/valibot.d.ts",
-      "import": "./dist/valibot.js"
-    }
+    "./styles.css": "./src/styles.css"
   },
   "files": [
     "dist/",
@@ -61,7 +57,6 @@
     "playwright": "~1.60.0",
     "tsup": "^8.5.0",
     "typescript": "^5.9.2",
-    "valibot": "^1.1.0",
     "vitest": "^3.2.6"
   },
   "engines": {
@@ -69,13 +64,5 @@
   },
   "dependencies": {
     "lucide": "~0.554.0"
-  },
-  "peerDependencies": {
-    "valibot": "^1.1.0"
-  },
-  "peerDependenciesMeta": {
-    "valibot": {
-      "optional": true
-    }
   }
 }

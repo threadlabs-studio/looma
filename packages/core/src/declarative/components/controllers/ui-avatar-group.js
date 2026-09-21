@@ -21,7 +21,10 @@ export default function controller(host) {
       child.style.display = index >= visible ? "none" : "";
       child.style.marginInlineStart = index === 0 ? "0px" : "-0.625rem";
       child.style.borderRadius = "999px";
-      child.style.boxShadow = "0 0 0 2px var(--ui-surface-default)";
+      // Later avatars cast a soft shadow back onto the one they overlap; the first overlaps nothing.
+      child.style.boxShadow = index === 0
+        ? "0 0 0 1px rgb(0 0 0 / 0.06)"
+        : "var(--ui-avatar-group-overlap-shadow, -2px 0 5px -1px rgb(0 0 0 / 0.28)), 0 0 0 1px rgb(0 0 0 / 0.06)";
     });
     const overflow = children.length > visible ? children.length - visible : 0;
 

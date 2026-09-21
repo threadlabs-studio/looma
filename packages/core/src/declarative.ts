@@ -4,6 +4,7 @@ import {
   manageComponentLifecycle as manageRuntimeLifecycle,
   observeDocument,
   setControllerModule,
+  updateComponentProps as updateRuntimeProps,
 } from "./declarative/runtime.js";
 
 /**
@@ -50,6 +51,7 @@ interface LoomaDeclarativeState {
     readonly manageComponentLifecycle: typeof manageRuntimeLifecycle;
     readonly observeDocument: typeof observeDocument;
     readonly setControllerModule: typeof setControllerModule;
+    readonly updateComponentProps?: typeof updateRuntimeProps;
   };
   readonly records: Map<string, LoomaAdoptionRecord>;
   readonly installedPackages: Set<string>;
@@ -71,6 +73,7 @@ const state = (stateTarget[stateKey] as LoomaDeclarativeState | undefined) ??= {
     manageComponentLifecycle: manageRuntimeLifecycle,
     observeDocument,
     setControllerModule,
+    updateComponentProps: updateRuntimeProps,
   },
   records: new Map(),
   installedPackages: new Set(),
@@ -178,6 +181,17 @@ export function attachLoomaComponent(
   const controller = state.records.get(tag)?.controller;
   element.setAttribute("data-looma-managed", "framework");
   return state.runtime.attachRegisteredComponent(element, tag, { props, controller });
+}
+
+/**
+ * Applies a framework adapter's props to an attached root, as authored attributes would be:
+ * each defined value becomes explicit (reflected as `data-<name>`); `undefined` restores the default.
+ * Generated adapters call this on every render instead of assigning element properties.
+ * @failure A value that does not satisfy the prop's declared type throws `HR002`; unknown prop
+ * names are ignored, and a root without an attached component is left untouched.
+ */
+export function updateComponentProps(element: Element, props: Record<string, unknown>): void {
+  (state.runtime.updateComponentProps ?? updateRuntimeProps)(element, props);
 }
 
 /**

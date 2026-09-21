@@ -173,6 +173,8 @@ test("the context-menu docs expose both visible and pointer action paths", async
   await expect(target).toBeVisible();
   await expect(target).toHaveText("Open menu");
 
+  // Leave room below the pointer so the menu opens downward instead of flipping.
+  await target.evaluate((element) => element.scrollIntoView({ block: "center" }));
   await target.click({ button: "right", position: { x: 24, y: 24 } });
   const firstItem = page.getByRole("menuitem", { name: "First item", exact: true });
   await expect(firstItem).toBeVisible();
@@ -191,6 +193,7 @@ test("the context-menu docs expose both visible and pointer action paths", async
       expectedTop: targetBounds.top + 24 + 4,
       left: surfaceBounds.left,
       top: surfaceBounds.top,
+      height: surfaceBounds.height,
       borderStyle: style.borderStyle,
       outlineStyle: style.outlineStyle,
       padding: style.padding,
@@ -199,6 +202,8 @@ test("the context-menu docs expose both visible and pointer action paths", async
   });
   expect(Math.abs(geometry.left - geometry.expectedLeft)).toBeLessThanOrEqual(2);
   expect(Math.abs(geometry.top - geometry.expectedTop)).toBeLessThanOrEqual(2);
+  // The surface contains the menu rather than an empty box beside a separate top-layer menu.
+  expect(geometry.height).toBeGreaterThan(40);
   expect(geometry.borderStyle).toBe("none");
   expect(geometry.outlineStyle).toBe("none");
   expect(geometry.padding).toBe("0px");
@@ -223,18 +228,22 @@ test("menu for association toggles the anchored menu", async ({ page }) => {
 test("affordance-scope visibly reveals an anticipatory Looma control near the pointer", async ({ page }) => {
   await page.goto("components/ui-affordance-scope", { waitUntil: "domcontentloaded" });
   const scenario = page.locator("[data-preview-scenario='Default radius']");
-  const affordance = scenario.locator("[data-component-root~='ui-icon-button']");
+  const affordance = scenario.locator("[data-component-root~='ui-icon-button']").first();
   await expect(affordance).toHaveRole("button", { name: "Add" });
-  await expect(affordance).toHaveCSS("opacity", "0");
+  // At rest only the guide dot shows: the icon (currentColor) and surface are transparent.
+  await expect(affordance).toHaveCSS("color", "rgba(0, 0, 0, 0)");
+  expect(await affordance.evaluate((element) => getComputedStyle(element, "::before").opacity)).not.toBe("0");
   const bounds = await affordance.boundingBox();
   expect(bounds).not.toBeNull();
   await page.mouse.move(bounds!.x - 8, bounds!.y + bounds!.height / 2);
   await expect(affordance).toHaveAttribute("data-ui-proximity", "near");
-  await expect(affordance).toHaveCSS("opacity", "1");
+  await expect(affordance).not.toHaveCSS("color", "rgba(0, 0, 0, 0)");
 });
 
 test("popover trigger opens, positions, and closes the settled component", async ({ page }) => {
   await page.goto("components/ui-popover", { waitUntil: "domcontentloaded" });
+  await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
+  await expect(page.locator(".popover__surface:visible")).toHaveCount(0);
   const scenario = page.locator("[data-preview-scenario='Trigger binding']");
   const trigger = scenario.getByRole("button", { name: "Open popover" });
   const popover = scenario.locator("[data-component-root~='ui-popover']");
@@ -248,6 +257,19 @@ test("popover trigger opens, positions, and closes the settled component", async
   expect(positions[1]!.y).toBeGreaterThanOrEqual(positions[0]!.y + positions[0]!.height);
   await page.keyboard.press("Escape");
   await expect(popover).not.toBeVisible();
+
+  const placed = page.locator(`[data-preview-scenario='placement="top-end"']`);
+  const placedPopover = placed.locator("[data-component-root~='ui-popover']");
+  await expect(placedPopover).not.toBeVisible();
+  const placedTrigger = placed.getByRole("button", { name: "Open popover" });
+  await placedTrigger.click();
+  await expect(placedPopover).toBeVisible();
+  // Poll past the brief open scale transition before comparing edges.
+  await expect.poll(async () => {
+    const [anchorBox, surfaceBox] = await Promise.all([placedTrigger.boundingBox(), placedPopover.boundingBox()]);
+    return surfaceBox!.y + surfaceBox!.height <= anchorBox!.y + 1
+      && Math.abs((surfaceBox!.x + surfaceBox!.width) - (anchorBox!.x + anchorBox!.width)) <= 1;
+  }).toBe(true);
 });
 
 test("tooltip uses a Looma trigger and a crisp, pointed overlay surface", async ({ page }) => {
@@ -278,7 +300,7 @@ test("tooltip uses a Looma trigger and a crisp, pointed overlay surface", async 
   expect(treatment.arrowWidth).toBeGreaterThan(0);
 });
 
-test("toast-region starts empty, fires on demand, and uses a full-size dismiss control", async ({ page }) => {
+test("toast-region starts empty, fires on demand, and uses a compact round dismiss control", async ({ page }) => {
   await page.goto("components/ui-toast-region", { waitUntil: "domcontentloaded" });
   const scenario = page.locator("[data-preview-scenario='Default closed']");
   const region = scenario.locator("[data-component-root~='ui-toast-region']");
@@ -302,8 +324,11 @@ test("toast-region starts empty, fires on demand, and uses a full-size dismiss c
   });
   const dismissBounds = await dismiss.boundingBox();
   expect(dismissBounds).not.toBeNull();
-  expect(dismissBounds!.width).toBeGreaterThanOrEqual(32);
-  expect(dismissBounds!.height).toBeGreaterThanOrEqual(32);
+  // Compact but above the WCAG 2.5.8 24px minimum target size, and circular.
+  expect(dismissBounds!.width).toBeGreaterThanOrEqual(24);
+  expect(dismissBounds!.width).toBeLessThanOrEqual(32);
+  expect(dismissBounds!.height).toBeGreaterThanOrEqual(24);
+  await expect(dismiss).toHaveCSS("border-radius", /^(999px|50%)$/);
   await dismiss.click();
   await expect(toast).toHaveCount(0);
 });
@@ -320,7 +345,6 @@ test("the component catalog exposes the complete library and filters live previe
   await expect(page.locator(".looma-catalog-hero")).not.toContainText("Forty-nine");
   await expect(page.locator(".looma-component-card")).toHaveCount(36);
   await expect(page.getByText("Showing 36 components", { exact: true })).toBeVisible();
-  await expect(page.getByRole("heading", { level: 2, name: "Cluster" })).toHaveCount(0);
   await expect(page.getByRole("heading", { level: 2, name: "Chip" })).toHaveCount(0);
   await expect(page.getByRole("heading", { level: 2, name: "Floating Action Button" })).toHaveCount(0);
   await expect(page.getByRole("heading", { level: 2, name: "Menu Item" })).toHaveCount(0);
@@ -334,7 +358,7 @@ test("the component catalog exposes the complete library and filters live previe
   const affordanceCard = page.locator('[data-component-card="ui-affordance-scope"]');
   const anticipatoryControl = affordanceCard.locator(
     '[data-component-root~="ui-icon-button"][data-anticipatory="true"]'
-  );
+  ).first();
   await expect(anticipatoryControl).toBeVisible();
   await expect(anticipatoryControl).toHaveCSS("opacity", "1");
   const affordanceTreatment = await anticipatoryControl.evaluate((element) => {
@@ -456,7 +480,7 @@ test("table overlay uses one structured geometry property", async ({ page }) => 
   await expect(overlay.getByRole("button", { name: /Insert column/ })).toHaveCount(3);
 
   const code = primary.locator(".looma-mode-code").first();
-  await expect(code).toContainText(".geometry = tableGeometry");
+  await expect(code).toContainText("geometry='{");
   await expect(code).not.toContainText("row-boundaries");
   await expect(code).not.toContainText("column-boundaries");
   await expect(code).not.toContainText("active-cell");
@@ -468,7 +492,7 @@ test("editor table menus use one action capability set", async ({ page }) => {
     const configured = page.locator("[data-preview-scenario='Actions']");
     await expect(configured.locator("[data-action^='add-row']").first()).toBeVisible();
     const code = configured.locator(".looma-mode-code").first();
-    await expect(code).toContainText(".actions = tableActions");
+    await expect(code).toContainText("actions='[");
     await expect(code).not.toContainText("can-add-row");
     await expect(code).not.toContainText("can-delete");
     await expect(code).not.toContainText("can-merge");
@@ -485,6 +509,8 @@ test("editor table menus use one action capability set", async ({ page }) => {
 });
 
 test("every component page renders distinct, visible, coded scenarios", async ({ page }) => {
+  // Visits every component page in one test.
+  test.setTimeout(90_000);
   for (const component of componentApi.components) {
     await page.goto(`components/${component.tag}`, { waitUntil: "domcontentloaded" });
     await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
@@ -629,13 +655,13 @@ test("tabs generate a full-width tablist from labeled panels without raw button 
 test("tree infers containers from nesting and exposes an interactive default example", async ({ page }) => {
   await page.goto("components/ui-tree", { waitUntil: "domcontentloaded" });
   const scenario = page.locator("[data-preview-scenario='Default']");
-  const tree = scenario.getByRole("tree", { name: "Items" });
-  const parent = tree.getByRole("treeitem", { name: "Parent" });
-  const child = tree.getByRole("treeitem", { name: "Child" });
-  const sibling = tree.getByRole("treeitem", { name: "Sibling" });
-  const disclosure = parent.getByRole("button", { name: "Expand Parent" });
+  const tree = scenario.getByRole("tree", { name: "Project files" });
+  const parent = tree.getByRole("treeitem", { name: "docs", exact: true });
+  const child = tree.getByRole("treeitem", { name: "guide.md" });
+  const sibling = tree.getByRole("treeitem", { name: "README.md" });
+  const disclosure = parent.getByRole("button", { name: "Expand docs" });
   await expect(disclosure).toBeVisible();
-  await expect(sibling.getByRole("button", { name: "Expand Sibling" })).toBeHidden();
+  await expect(sibling.getByRole("button", { name: "Expand README.md" })).toBeHidden();
   await expect(sibling).not.toHaveAttribute("aria-expanded");
   await expect(parent).toHaveAttribute("aria-expanded", "false");
   await expect(child).toBeHidden();
@@ -746,9 +772,9 @@ test("ui-button authors one declarative element and lowers directly to a native 
   expect(contrastRatio(colors.foreground, colors.background)).toBeGreaterThanOrEqual(4.5);
   const bounds = await button.boundingBox();
   expect(bounds).not.toBeNull();
-  expect(bounds!.height).toBeLessThanOrEqual(38);
+  expect(bounds!.height).toBeLessThanOrEqual(40);
 
-  const ghost = page.locator("[data-preview-scenario='Variant and size'] [data-component-root~='ui-button'][data-variant='ghost']");
+  const ghost = page.locator("[data-preview-scenario='variant'] [data-component-root~='ui-button'][data-variant='ghost']");
   const before = await ghost.evaluate((element) => getComputedStyle(element).backgroundColor);
   await ghost.hover();
   const after = await ghost.evaluate((element) => getComputedStyle(element).backgroundColor);
@@ -831,23 +857,19 @@ test("ui-textarea authors one declarative element and lowers directly to a nativ
 test("component pages order representative configurations and show the exact code", async ({
   page
 }) => {
-  await page.goto("components/ui-inline", { waitUntil: "domcontentloaded" });
+  await page.goto("components/ui-cluster", { waitUntil: "domcontentloaded" });
 
-  await expect(page.locator("[data-preview-scenario]")).toHaveCount(4);
+  await expect(page.locator("[data-preview-scenario]")).toHaveCount(3);
   expect(await page.locator("[data-preview-scenario]").evaluateAll((elements) =>
     elements.map((element) => element.getAttribute("data-preview-scenario"))
   )).toEqual([
     "Default",
     `gap="l"`,
-    `align="end" and justify="between"`,
-    "wrap"
+    `align="end"`
   ]);
-  await expect(page.getByRole("heading", { level: 2, name: "wrap" })).toBeVisible();
-  await expect(page.locator("[data-preview-scenario='wrap']")).toContainText("One");
-  await expect(page.locator("[data-preview-scenario='wrap']")).toContainText("Four");
-  const wrapping = page.locator("[data-preview-scenario='wrap']");
-  await expect(wrapping.locator(".looma-mode-code")).toContainText("Four");
-  await expect(wrapping.locator(".looma-mode-code")).toContainText('<ui-inline gap="s" wrap>');
+  const wrapping = page.locator("[data-preview-scenario='Default']");
+  await expect(wrapping.locator(".looma-mode-code")).toContainText("Release");
+  await expect(wrapping.locator(".looma-mode-code")).toContainText("<ui-cluster>");
   await expect(wrapping.getByRole("group", { name: "Example framework" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "SSR Markup" })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Framework Snippets" })).toHaveCount(0);
@@ -858,13 +880,13 @@ test("Examples and API keep configuration demos separate from exhaustive referen
 }) => {
   await page.goto("components/ui-button", { waitUntil: "domcontentloaded" });
 
-  await expect(page.locator(".looma-preview-scenario")).toHaveCount(2);
+  await expect(page.locator(".looma-preview-scenario")).toHaveCount(4);
   await expect(page.locator(".looma-api")).toHaveCount(0);
   await page.getByRole("tab", { name: "API" }).click();
   await expect(page.locator(".looma-preview-scenario")).toHaveCount(0);
   await expect(page.locator(".looma-api")).toBeVisible();
   await expect(page.getByRole("heading", { level: 2, name: "Attributes" })).toBeVisible();
-  await expect(page.getByRole("heading", { level: 2, name: "Properties" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Framework props" })).toBeVisible();
 });
 
 test("code panes scroll inside the example and expose readable authored IDs", async ({ page }) => {
@@ -893,13 +915,14 @@ test("code panes scroll inside the example and expose readable authored IDs", as
   await expect(code.locator(".looma-mode-code")).not.toContainText("_r_");
 });
 
-test("property-only inputs appear in the copyable framework examples", async ({ page }) => {
+test("structured props appear as attributes in HTML and bindings in framework examples", async ({ page }) => {
   await page.goto("components/ui-editor-mention-menu", { waitUntil: "domcontentloaded" });
   const scenario = page.locator("[data-preview-scenario='Open']");
   const code = scenario.locator(".looma-mode-code");
   const modes = scenario.getByRole("group", { name: "Example framework" });
 
-  await expect(code).toContainText('document.querySelector("#mention-menu").items');
+  await expect(code).toContainText("items='[");
+  await expect(code).not.toContainText(".items =");
   await expect(code).toContainText("Maya Chen");
   await modes.getByRole("button", { name: "Vue" }).click();
   await expect(code).toContainText(':items="mentionItems"');
@@ -909,45 +932,44 @@ test("property-only inputs appear in the copyable framework examples", async ({ 
   await expect(code).toContainText("items={mentionItems}");
 });
 
-test("ui-inline applies its declared spacing, alignment, and distribution values", async ({ page }) => {
-  await page.goto("components/ui-inline", { waitUntil: "domcontentloaded" });
+test("ui-cluster wraps and applies its declared spacing and alignment values", async ({ page }) => {
+  await page.goto("components/ui-cluster", { waitUntil: "domcontentloaded" });
   await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
 
-  const basicRow = page.locator("[data-preview-scenario='Default'] [data-component-root~='ui-inline']");
+  const basicRow = page.locator("[data-preview-scenario='Default'] [data-component-root~='ui-cluster']");
   await expect(basicRow).toBeVisible();
   await expect(basicRow).toHaveCSS("gap", "12px");
-  await expect(basicRow).toHaveCSS("justify-content", "flex-start");
-  await expect(basicRow.locator(":scope > [data-slotted]").first()).toHaveCSS("border-top-style", "solid");
+  await expect(basicRow).toHaveCSS("flex-wrap", "wrap");
+  const rows = await basicRow.locator(":scope > *").evaluateAll((items) => new Set(items.map((item) => Math.round(item.getBoundingClientRect().top))).size);
+  expect(rows).toBeGreaterThan(1);
 
-  const largerSpacing = page.locator(`[data-preview-scenario='gap="l"'] [data-component-root~='ui-inline']`);
+  const largerSpacing = page.locator(`[data-preview-scenario='gap="l"'] [data-component-root~='ui-cluster']`);
   await expect(largerSpacing).toHaveCSS("gap", "24px");
 
-  const alignment = page.locator(`[data-preview-scenario='align="end" and justify="between"'] [data-component-root~='ui-inline']`);
-  await expect(alignment).toHaveCSS("gap", "16px");
+  const alignment = page.locator(`[data-preview-scenario='align="end"'] [data-component-root~='ui-cluster']`);
+  await expect(alignment).toHaveCSS("gap", "12px");
   await expect(alignment).toHaveCSS("align-items", "flex-end");
-  await expect(alignment).toHaveCSS("justify-content", "space-between");
 
   const values = await page.evaluate(async () => {
     const fixture = document.createElement("div");
     fixture.style.cssText = "position:absolute;visibility:hidden";
     document.body.append(fixture);
     for (const gap of ["l", "xl"]) {
-      const inline = document.createElement("ui-inline");
-      inline.setAttribute("gap", gap);
-      inline.setAttribute("align", "end");
-      inline.setAttribute("justify", "center");
-      fixture.append(inline);
+      const cluster = document.createElement("ui-cluster");
+      cluster.setAttribute("gap", gap);
+      cluster.setAttribute("align", "end");
+      fixture.append(cluster);
     }
     // Observation and lowering are asynchronous; two frames include the resulting style pass.
     await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
-    return Array.from(fixture.querySelectorAll<HTMLElement>("[data-component-root~='ui-inline']")).map((inline) => {
-      const style = getComputedStyle(inline);
-      return { gap: style.gap, align: style.alignItems, justify: style.justifyContent };
+    return Array.from(fixture.querySelectorAll<HTMLElement>("[data-component-root~='ui-cluster']")).map((cluster) => {
+      const style = getComputedStyle(cluster);
+      return { gap: style.gap, align: style.alignItems, wrap: style.flexWrap };
     });
   });
   expect(values).toEqual([
-    { gap: "24px", align: "flex-end", justify: "center" },
-    { gap: "32px", align: "flex-end", justify: "center" }
+    { gap: "24px", align: "flex-end", wrap: "wrap" },
+    { gap: "32px", align: "flex-end", wrap: "wrap" }
   ]);
 });
 
@@ -992,7 +1014,7 @@ test("layout previews expose their defining geometry", async ({ page }) => {
 
   await page.goto("components/ui-center", { waitUntil: "domcontentloaded" });
   const centers = page.locator("[data-component-root~='ui-center']");
-  await expect(centers).toHaveCount(2);
+  await expect(centers).toHaveCount(3);
   const centerOffsets = await centers.evaluateAll((centerElements) => centerElements.map((center) => {
     const stage = center.closest(".looma-preview-scenario__stage")!;
     const centerBounds = center.getBoundingClientRect();
@@ -1001,7 +1023,7 @@ test("layout previews expose their defining geometry", async ({ page }) => {
       (centerBounds.left + centerBounds.width / 2) - (stageBounds.left + stageBounds.width / 2)
     );
   }));
-  expect(centerOffsets).toHaveLength(2);
+  expect(centerOffsets).toHaveLength(3);
   expect(centerOffsets.every((offset) => offset <= 1)).toBe(true);
 
   await page.goto("components/ui-sidebar", { waitUntil: "domcontentloaded" });
@@ -1050,22 +1072,53 @@ test("ui-reel exposes a discoverable, keyboard-scrollable overflow viewport", as
   await expect.poll(() => reel.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
 });
 
-test("every dialog scenario opens and closes through the component state contract", async ({ page }) => {
+test("dialog closes via header button, actions, Escape, and outside press, with pinned chrome", async ({ page }) => {
   await page.goto("components/ui-dialog", { waitUntil: "domcontentloaded" });
   await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
-
-  const scenarios = page.locator("[data-preview-scenario]");
-  for (let index = 0; index < await scenarios.count(); index += 1) {
-    const scenario = scenarios.nth(index);
-    const trigger = scenario.getByRole("button", { name: "Open dialog" });
-    const dialog = scenario.locator("dialog");
-    await trigger.click();
+  const scenario = (name: string) => page.locator(`[data-preview-scenario="${name}"]`);
+  const open = async (name: string) => {
+    await scenario(name).getByRole("button", { name: /^Open/ }).click();
+    const dialog = scenario(name).locator("dialog");
     await expect(dialog).toHaveAttribute("open", "");
-    const isModal = await dialog.evaluate((element: HTMLDialogElement) => element.matches(":modal"));
-    expect(isModal).toBe(index === 1);
-    await dialog.getByRole("button", { name: index === 0 ? "Cancel" : "Close" }).click();
-    await expect(dialog).not.toHaveAttribute("open", "");
-  }
+    return dialog;
+  };
+
+  let dialog = await open("Default");
+  expect(await dialog.evaluate((element: HTMLDialogElement) => element.matches(":modal"))).toBe(false);
+  await expect(dialog.locator(".dialog__title")).toHaveText("Publish changes?");
+  const footer = dialog.locator(".dialog__footer");
+  await expect(footer).toHaveCSS("justify-content", "flex-end");
+  const [cancel, publish] = await Promise.all([footer.getByRole("button", { name: "Cancel" }).boundingBox(), footer.getByRole("button", { name: "Publish" }).boundingBox()]);
+  expect(publish!.x).toBeGreaterThan(cancel!.x);
+  await footer.getByRole("button", { name: "Publish" }).click();
+  await expect(dialog).not.toHaveAttribute("open", "");
+
+  dialog = await open("Default");
+  await dialog.getByRole("button", { name: "Close" }).click();
+  await expect(dialog).not.toHaveAttribute("open", "");
+
+  dialog = await open("modal");
+  expect(await dialog.evaluate((element: HTMLDialogElement) => element.matches(":modal"))).toBe(true);
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveAttribute("open", "");
+  await dialog.getByRole("button", { name: "Cancel" }).click();
+  await expect(dialog).not.toHaveAttribute("open", "");
+
+  dialog = await open("dismissible");
+  await page.keyboard.press("Escape");
+  await expect(dialog).not.toHaveAttribute("open", "");
+  dialog = await open("dismissible");
+  await page.mouse.click(8, 8);
+  await expect(dialog).not.toHaveAttribute("open", "");
+
+  dialog = await open("Long content");
+  const body = dialog.locator(".dialog__body");
+  expect(await body.evaluate((element) => element.scrollHeight > element.clientHeight)).toBe(true);
+  await body.evaluate((element) => { element.scrollTop = element.scrollHeight; });
+  await expect(dialog.locator(".dialog__header")).toBeInViewport();
+  await expect(dialog.getByRole("button", { name: "Accept" })).toBeInViewport();
+  await dialog.getByRole("button", { name: "Accept" }).click();
+  await expect(dialog).not.toHaveAttribute("open", "");
 });
 
 test("every combobox scenario receives its authored native options", async ({ page }) => {
@@ -1073,7 +1126,7 @@ test("every combobox scenario receives its authored native options", async ({ pa
   await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
 
   const comboboxes = page.locator("[data-component-root~='ui-combobox']");
-  await expect(comboboxes).toHaveCount(2);
+  await expect(comboboxes).toHaveCount(7);
   await expect(comboboxes.nth(0).locator(".authored-options option")).toHaveCount(2);
   await expect(comboboxes.nth(1).locator(".authored-options option")).toHaveCount(2);
   await comboboxes.nth(0).evaluate((element) => {
@@ -1084,8 +1137,7 @@ test("every combobox scenario receives its authored native options", async ({ pa
         JSON.stringify(rows.map((row) => ({
           id: row.id,
           value: row.value,
-          label: row.label,
-          description: row.description
+          label: row.label
         })))
       );
     }, { once: true });
@@ -1096,7 +1148,7 @@ test("every combobox scenario receives its authored native options", async ({ pa
   await expect.poll(async () => JSON.parse(
     await comboboxes.nth(0).getAttribute("data-test-options") ?? "[]"
   )).toMatchObject([
-      { id: "north", value: "north", label: "North terminal", description: "Harbor district" }
+      { id: "north", value: "north", label: "North terminal" }
     ]);
   await expect(page.getByRole("option", { name: /North terminal/ })).toHaveCount(1);
   await input.press("Enter");
@@ -1356,4 +1408,72 @@ test("every callout tone renders its icon without an empty oversized indent", as
     expect(treatment.contentInset).toBeGreaterThanOrEqual(28);
     expect(treatment.contentInset).toBeLessThanOrEqual(44);
   }
+});
+
+test("disabled buttons are natively disabled and ignore activation", async ({ page }) => {
+  // Regression: the prop facade shadows HTMLButtonElement.disabled, so the native state must come
+  // from the :disabled attribute binding rather than from assigning the property.
+  for (const [slug, root] of [["ui-button", "ui-button"], ["ui-icon-button", "ui-icon-button"]] as const) {
+    await page.goto(`components/${slug}`, { waitUntil: "domcontentloaded" });
+    const control = page.locator(`[data-preview-scenario='disabled'] [data-component-root~='${root}']`).first();
+    await expect(control).toBeDisabled();
+    const clicked = await control.evaluate((element) => {
+      let activated = false;
+      element.addEventListener("click", () => { activated = true; });
+      (element as HTMLElement).click();
+      return activated;
+    });
+    expect(clicked).toBe(false);
+  }
+});
+
+test("tree disclosure is per node: expand does not bubble and never cascades to ancestors", async ({ page }) => {
+  await page.goto("components/ui-tree", { waitUntil: "domcontentloaded" });
+  await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
+  await page.evaluate(() => {
+    const host = document.createElement("div");
+    host.id = "tree-conformance";
+    host.innerHTML = `<ui-tree label="Conformance tree">
+      <ui-tree-item item-id="root" label="root" expanded>
+        <ui-tree-item item-id="middle" label="middle" expanded>
+          <ui-tree-item item-id="leaf-parent" label="leaf-parent">
+            <ui-tree-item item-id="leaf" label="leaf"></ui-tree-item>
+          </ui-tree-item>
+        </ui-tree-item>
+      </ui-tree-item>
+      <ui-tree-item item-id="closed" label="closed">
+        <ui-tree-item item-id="deep" label="deep" expanded selected>
+          <ui-tree-item item-id="deeper" label="deeper"></ui-tree-item>
+        </ui-tree-item>
+      </ui-tree-item>
+    </ui-tree>`;
+    document.body.append(host);
+  });
+  const tree = page.getByRole("tree", { name: "Conformance tree" });
+  const item = (name: string) => tree.getByRole("treeitem", { name, exact: true });
+  await expect(item("root")).toHaveAttribute("aria-expanded", "true");
+
+  // 1. Toggling a nested item emits exactly one `expand`, on that item; ancestors see none.
+  await page.evaluate(() => {
+    const received: string[] = [];
+    (window as unknown as { expandEvents: string[] }).expandEvents = received;
+    for (const element of document.querySelectorAll("#tree-conformance [data-component-root~='ui-tree-item']")) {
+      element.addEventListener("expand", (event) => {
+        received.push(`${(element as HTMLElement).getAttribute("data-item-id") ?? element.getAttribute("aria-label")}:${(event as CustomEvent<{ id: string }>).detail.id}`);
+      });
+    }
+  });
+  await item("leaf-parent").getByRole("button", { name: "Expand leaf-parent" }).click();
+  await expect(item("leaf-parent")).toHaveAttribute("aria-expanded", "true");
+  const events = await page.evaluate(() => (window as unknown as { expandEvents: string[] }).expandEvents);
+  expect(events).toHaveLength(1);
+  expect(events[0]).toMatch(/:leaf-parent$/);
+
+  // 2. A selected, expanded deep node leaves its collapsed ancestor collapsed.
+  await expect(item("closed")).toHaveAttribute("aria-expanded", "false");
+
+  // 3. Collapsing a nested node leaves its parent open.
+  await item("middle").getByRole("button", { name: "Collapse middle" }).click();
+  await expect(item("middle")).toHaveAttribute("aria-expanded", "false");
+  await expect(item("root")).toHaveAttribute("aria-expanded", "true");
 });

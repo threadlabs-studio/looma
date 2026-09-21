@@ -60,7 +60,6 @@ test("the facade declares the exact public subpath and peer contract", async () 
     "./layout.css",
     "./styles.css",
     "./editor.css",
-    "./valibot",
   ];
 
   assert.deepEqual(Object.keys(manifest.exports), expectedExports);
@@ -83,7 +82,6 @@ test("the facade declares the exact public subpath and peer contract", async () 
     "@tiptap/core",
     "@tiptap/pm",
     "@tiptap/vue-3",
-    "valibot",
     "vue",
   ]);
   assert.deepEqual(manifest.dependencies, {
@@ -225,10 +223,9 @@ test("module graph fails closed for escaping and undeclared facade edges", async
   );
 });
 
-test('Valibot field adapter is an optional, side-effect-free facade subpath', async () => {
+test('the removed Valibot field adapter is not part of the facade', async () => {
+  // Combobox config validation hooks were removed; props are attributes, validation is native.
   const manifest = JSON.parse(await readFile(new URL('../../packages/looma/package.json', import.meta.url), 'utf8'));
-  assert.equal(manifest.exports['./valibot'].import, './dist/valibot.js');
-  assert.equal(manifest.peerDependenciesMeta.valibot.optional, true);
-  assert.equal(manifest.dependencies.valibot, undefined);
-  assert.equal(manifest.sideEffects.includes('./dist/valibot.js'), false);
+  assert.equal(manifest.exports['./valibot'], undefined);
+  assert.equal(manifest.peerDependencies.valibot, undefined);
 });

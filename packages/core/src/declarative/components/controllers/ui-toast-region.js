@@ -20,6 +20,42 @@ export default function controller(host) {
   element.dataset.uiPositioning = "viewport";
 
   const toasts = () => Array.from(element.children).filter((child) => child.classList.contains("toast"));
+  // Auto-dismiss timers: each toast keeps its remaining time so hover/focus can pause and resume it.
+  const timers = new Map();
+  let paused = false;
+  const startTimer = (toast) => {
+    const timer = timers.get(toast);
+    if (!timer || paused) return;
+    timer.started = Date.now();
+    timer.handle = setTimeout(() => dismissToast(toast, "timeout", "programmatic"), timer.remaining);
+  };
+  const pauseTimers = () => {
+    if (paused) return;
+    paused = true;
+    for (const timer of timers.values()) {
+      clearTimeout(timer.handle);
+      timer.remaining = Math.max(0, timer.remaining - (Date.now() - timer.started));
+    }
+  };
+  // Deferred: during focusout the region still matches :focus-within.
+  const resumeTimers = () => setTimeout(() => {
+    if (!paused || element.matches(":hover, :focus-within")) return;
+    paused = false;
+    for (const toast of timers.keys()) startTimer(toast);
+  }, 0);
+  const dismissToast = (toast, reason, trigger) => {
+    clearTimeout(timers.get(toast)?.handle);
+    timers.delete(toast);
+    if (!toast.isConnected) return;
+    const id = toast.id;
+    toast.remove();
+    host.dispatch("dismiss", { id, reason, trigger });
+    if (toasts().length === 0) {
+      host.state.internalOpen = false;
+      host.dispatch("close", { open: false, reason, trigger });
+    }
+    sync();
+  };
   const setSurfaceOpen = (open) => {
     element.hidden = !open;
     if (open && typeof element.showPopover === "function") {
@@ -50,26 +86,25 @@ export default function controller(host) {
     text.textContent = String(message);
     dismiss.className = "toast__dismiss";
     dismiss.setAttribute("label", `Dismiss ${String(message).toLocaleLowerCase()}`);
-    dismiss.textContent = "×";
+    dismiss.setAttribute("size", "sm");
+    dismiss.setAttribute("variant", "ghost");
+    dismiss.toggleAttribute("round", true);
     toast.append(text, dismiss);
     element.append(toast);
     host.state.internalOpen = true;
     sync();
+    const auto = options.auto ?? Boolean(host.state.auto);
+    if (auto) {
+      timers.set(toast, { remaining: Math.max(0, Number(options.duration ?? host.state.duration ?? 5000)), started: 0, handle: 0 });
+      startTimer(toast);
+    }
     return id;
   };
   const onClick = (event) => {
     const dismiss = event.target.closest?.(".toast__dismiss");
     const toast = dismiss?.closest?.(".toast");
     if (!toast) return;
-    const trigger = triggerFor(event);
-    const id = toast.id;
-    toast.remove();
-    host.dispatch("dismiss", { id, reason: "action", trigger });
-    if (toasts().length === 0) {
-      host.state.internalOpen = false;
-      host.dispatch("close", { open: false, reason: "action", trigger });
-    }
-    sync();
+    dismissToast(toast, "action", triggerFor(event));
   };
   const onCommand = (event) => {
     if (event.command !== "--show-toast") return;
@@ -81,6 +116,10 @@ export default function controller(host) {
   observer.observe(element, { childList: true });
   element.addEventListener("click", onClick);
   element.addEventListener("command", onCommand);
+  element.addEventListener("pointerenter", pauseTimers);
+  element.addEventListener("pointerleave", resumeTimers);
+  element.addEventListener("focusin", pauseTimers);
+  element.addEventListener("focusout", resumeTimers);
   const stop = host.effect(sync);
   const api = { show: addToast };
   instances.set(element, api);
@@ -90,6 +129,12 @@ export default function controller(host) {
     observer.disconnect();
     element.removeEventListener("click", onClick);
     element.removeEventListener("command", onCommand);
+    element.removeEventListener("pointerenter", pauseTimers);
+    element.removeEventListener("pointerleave", resumeTimers);
+    element.removeEventListener("focusin", pauseTimers);
+    element.removeEventListener("focusout", resumeTimers);
+    for (const timer of timers.values()) clearTimeout(timer.handle);
+    timers.clear();
     setSurfaceOpen(false);
     instances.delete(element);
   };

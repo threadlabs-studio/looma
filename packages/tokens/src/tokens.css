@@ -81,11 +81,18 @@
     --ui-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.06);
     --ui-shadow-xl: 0 16px 40px rgba(0, 0, 0, 0.14), 0 8px 16px rgba(0, 0, 0, 0.08);
     --ui-shadow-dialog: var(--ui-shadow-xl);
+
+    /* Semantic elevation: every floating surface uses one of these so overlays read consistently. */
+    --ui-elevation-tooltip: var(--ui-shadow-md);
+    --ui-elevation-overlay: var(--ui-shadow-lg);
+    --ui-elevation-dialog: var(--ui-shadow-xl);
     --ui-overlay-backdrop: rgba(0, 0, 0, 0.4);
 
     --ui-motion-fast: 120ms;
     --ui-motion-base: 180ms;
     --ui-motion-ease: cubic-bezier(0.2, 0, 0.2, 1);
+    /* Fast start, gentle settle: for reveals that should feel immediate (expanding panels). */
+    --ui-motion-ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
 
     /* Anticipatory interaction: guide → near → direct → active. */
     --ui-affordance-guide-size: 0.25rem;
@@ -137,13 +144,31 @@
     --ui-success-strong-surface: #007a33;
     --ui-success-on-strong: #ffffff;
     --ui-success-subtle-text: #006629;
-    --ui-warning-strong-surface: #7a4f00;
-    --ui-warning-on-strong: #ffffff;
+    --ui-warning-strong-surface: #e5a50a;
+    --ui-warning-on-strong: #2b1d00;
     --ui-warning-subtle-text: #704800;
     --ui-info-strong-surface: #0066cc;
     --ui-info-on-strong: #ffffff;
     --ui-info-subtle-text: #0058b0;
 
+    /* Depth and focus. Fields read as a shallow well; buttons as gently raised. Focus is a soft halo
+       that transitions in (no hard outline ring). */
+    --ui-control-inset: inset 0 1px 2px rgb(0 0 0 / 0.07), inset 0 1px 0 rgb(0 0 0 / 0.02);
+    --ui-control-focus-halo-shadow: 0 0 0 3px var(--ui-control-focus-halo, var(--ui-accent-soft));
+    --ui-raised: 0 1px 2px rgb(0 0 0 / 0.07), 0 1px 1px rgb(0 0 0 / 0.04);
+    --ui-raised-highlight: linear-gradient(rgb(255 255 255 / 0.5), rgb(255 255 255 / 0));
+    --ui-focus-halo: 0 0 0 3px color-mix(in srgb, var(--ui-focus-ring) 40%, transparent);
+
+    /* Icon sizes, used by icon buttons and field affordances. */
+    --ui-icon-size-sm: 1rem;
+    --ui-icon-size-md: 1.25rem;
+    --ui-icon-size-lg: 1.5rem;
+
+    /* One height scale for every form control and button size. */
+    --ui-control-size-sm: 2rem;
+    --ui-control-size-md: 2.5rem;
+    --ui-control-size-lg: 3rem;
+    /* Touch-target floor applied under coarse pointers. */
     --ui-control-min-block-size: 2.75rem;
 
     /* Compatibility aliases used by the editor's public styling surface.

@@ -1,9 +1,44 @@
-import { defineComponent, h, shallowRef, watch, watchEffect, type Component, type ComponentPublicInstance, type PropType, type SlotsType } from 'vue';
-import type { ComboboxConfig, ComboboxOption, ComboboxChange, ComboboxValidationState, MultiComboboxItem, MultiComboboxItemChange, MultiComboboxCreate } from '@threadlabs/looma-core';
+import { defineComponent, getCurrentInstance, h, shallowRef, watch, type Component, type ComponentPublicInstance, type PropType, type SlotsType } from 'vue';
+import type { ComboboxOption, ComboboxChange, ComboboxValidationState, MultiComboboxItem, MultiComboboxItemChange, MultiComboboxCreate } from '@threadlabs/looma-core';
 import { toHTMLElement } from './adapter';
 import { UiCombobox } from './generated';
 
 type ComboboxModel = string | null | readonly MultiComboboxItem[];
+
+/** An option for the list. Rendered as a native <option> (inside <optgroup> when `group` is set). */
+export interface ComboboxOptionInput {
+  readonly value: string;
+  readonly label?: string;
+  readonly group?: string;
+  readonly disabled?: boolean;
+}
+
+// Props are attributes: selected items cross the boundary as JSON in the declared item shape.
+const itemShape = (item: MultiComboboxItem) => ({
+  id: item.id,
+  value: item.value,
+  label: item.label,
+  ...(item.group === undefined ? {} : { group: item.group }),
+  ...(item.disabled === undefined ? {} : { disabled: item.disabled }),
+});
+
+function optionElements(options: readonly ComboboxOptionInput[]) {
+  const option = (entry: ComboboxOptionInput) =>
+    h('option', { value: entry.value, disabled: entry.disabled, key: entry.value }, entry.label ?? entry.value);
+  const groups = new Map<string, ComboboxOptionInput[]>();
+  const nodes: ReturnType<typeof h>[] = [];
+  for (const entry of options) {
+    if (entry.group === undefined) nodes.push(option(entry));
+    else {
+      if (!groups.has(entry.group)) {
+        groups.set(entry.group, []);
+        nodes.push(h('optgroup', { label: entry.group, key: `group-${entry.group}` }, () => groups.get(entry.group!)!.map(option)));
+      }
+      groups.get(entry.group)!.push(entry);
+    }
+  }
+  return nodes;
+}
 
 export const Combobox = defineComponent({
   name: 'Combobox',
@@ -14,7 +49,9 @@ export const Combobox = defineComponent({
     query: { type: String, default: undefined },
     defaultValue: String,
     defaultQuery: String,
-    config: { type: Object as PropType<ComboboxConfig>, default: () => ({}) },
+    options: { type: Array as PropType<readonly ComboboxOptionInput[]>, default: () => [] },
+    allowFreeText: Boolean,
+    allowCreate: Boolean,
     placeholder: String,
     name: String,
     size: { type: String as PropType<'sm' | 'md'>, default: 'md' },
@@ -38,7 +75,6 @@ export const Combobox = defineComponent({
     valueChange: (_detail: ComboboxChange | readonly MultiComboboxItem[]) => true,
     freeEntry: (_detail: ComboboxChange) => true,
     createEntry: (_detail: ComboboxChange) => true,
-    dependencyInvalidate: (_detail: ComboboxChange) => true,
     validationChange: (_detail: ComboboxValidationState) => true,
     // Multiple mode item events.
     addItem: (_detail: MultiComboboxItemChange) => true,
@@ -57,31 +93,29 @@ export const Combobox = defineComponent({
     footer: Record<string, never>;
   }>,
   setup(props, { attrs, slots, emit, expose }) {
-    const element = shallowRef<HTMLElement & { config: ComboboxConfig; value: ComboboxModel | undefined; query: string | undefined; multiple: boolean; tokenSeparators: readonly string[]; validate(): Promise<ComboboxValidationState> }>();
-    const rows = shallowRef<readonly ComboboxOption[]>(props.config.options ?? []);
+    // Forward only the props the caller passed, so defaults stay implicit (not reflected).
+    const instance = getCurrentInstance();
+    const kebab = (name: string) => name.replace(/[A-Z]/g, letter => `-${letter.toLowerCase()}`);
+    const passed = (name: string) => {
+      const raw = instance?.vnode.props ?? {};
+      return Object.hasOwn(raw, name) || Object.hasOwn(raw, kebab(name));
+    };
+    const element = shallowRef<HTMLElement & { validate(): Promise<ComboboxValidationState> }>();
+    const rows = shallowRef<readonly ComboboxOption[]>([]);
     const currentQuery = shallowRef(props.query ?? props.defaultQuery ?? '');
     watch(() => props.query, query => { if (query !== undefined) currentQuery.value = query; });
-    watchEffect(() => {
-      if (!element.value) return;
-      element.value.config = props.config;
-      element.value.value = props.modelValue;
-      element.value.query = props.query;
-      element.value.multiple = props.multiple;
-      element.value.tokenSeparators = props.tokenSeparators;
-    });
     expose({ validate: () => element.value!.validate() });
     const items = () => (props.multiple && Array.isArray(props.modelValue) ? props.modelValue : []) as readonly MultiComboboxItem[];
     return () => h(UiCombobox as Component, {
       ...attrs,
-      ...Object.fromEntries(Object.entries(props).filter(([key]) => !['modelValue', 'config', 'query', 'tokenSeparators'].includes(key))),
-      // Property binding is explicit for non-serializable config; strings remain
-      // SSR-compatible attributes until the element upgrades.
-      value: typeof props.modelValue === 'string' || props.modelValue == null
-        ? props.modelValue
-        : [...props.modelValue],
-      config: props.config,
+      ...Object.fromEntries(Object.entries(props).filter(([key]) =>
+        !['modelValue', 'options', 'query', 'tokenSeparators'].includes(key) && passed(key))),
+      // Single mode binds the selected value; multiple mode binds the item list as `items`.
+      ...(props.multiple
+        ? { items: Array.isArray(props.modelValue) ? props.modelValue.map(itemShape) : undefined }
+        : { value: props.modelValue as string | null | undefined }),
       query: props.query,
-      tokenSeparators: [...props.tokenSeparators],
+      tokenSeparators: props.tokenSeparators.length ? [...props.tokenSeparators] : undefined,
       'data-allow-mismatch': 'class',
       ref: (value: Element | ComponentPublicInstance | null) => {
         element.value = toHTMLElement(value) as typeof element.value;
@@ -100,13 +134,14 @@ export const Combobox = defineComponent({
       },
       onFreeEntry: (detail: ComboboxChange) => emit('freeEntry', detail),
       onCreateEntry: (detail: ComboboxChange) => emit('createEntry', detail),
-      onDependencyInvalidate: (detail: ComboboxChange) => emit('dependencyInvalidate', detail),
       onValidationChange: (detail: ComboboxValidationState) => emit('validationChange', detail),
       onAddItem: (detail: MultiComboboxItemChange) => emit('addItem', detail),
       onRemoveItem: (detail: MultiComboboxItemChange) => emit('removeItem', detail),
       onCreateItem: (detail: MultiComboboxCreate) => emit('createItem', detail),
     }, {
       default: () => [
+        // Options are authored children, exactly as in HTML.
+        ...optionElements(props.options),
         h('label', { slot: 'fallback' }, [props.label, h('input', {
           value: props.query ?? props.defaultQuery ?? '', disabled: props.disabled,
           readonly: props.readOnly, required: props.required,

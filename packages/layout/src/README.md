@@ -15,23 +15,22 @@
 </ui-stack>
 ```
 
-## `ui-inline`
+## `ui-cluster`
 
-- Attributes: `gap`, `align`, `justify`, `wrap`
-- Properties: `gap`, `align`, `justify`, `wrap`
+Always wraps; use it for tags, chips, and other items that flow onto new lines.
+
+- Attributes: `gap`, `align`
+- Properties: `gap`, `align`
 - Events: none
 - Slots: default children
 - SSR markup:
 
 ```html
-<ui-inline gap="s" wrap>
-  <button>One</button>
-  <button>Two</button>
-</ui-inline>
+<ui-cluster gap="s">
+  <ui-badge>Design</ui-badge>
+  <ui-badge>Docs</ui-badge>
+</ui-cluster>
 ```
-
-`ui-cluster` is retained only as a deprecated compatibility alias for
-`<ui-inline wrap>`. It is not a separate layout contract.
 
 ## `ui-grid`
 

@@ -26,7 +26,6 @@ export const PUBLIC_ENTRYPOINTS = Object.freeze([
   { packageName: "@threadlabs/looma-core", exportPath: "./loader", packageDirectory: "packages/core", source: "packages/core/src/loader.ts" },
   { packageName: "@threadlabs/looma-core", exportPath: "./declarative", packageDirectory: "packages/core", source: "packages/core/src/declarative.ts" },
   { packageName: "@threadlabs/looma-core", exportPath: "./declarative-generated", packageDirectory: "packages/core", source: "packages/core/src/declarative-generated.ts" },
-  { packageName: "@threadlabs/looma-core", exportPath: "./valibot", packageDirectory: "packages/core", source: "packages/core/src/field/valibot.ts" },
   { packageName: "@threadlabs/looma-layout", exportPath: ".", packageDirectory: "packages/layout", source: "packages/layout/src/declarative-index.ts" },
   { packageName: "@threadlabs/looma-editor", exportPath: ".", packageDirectory: "packages/editor", source: "packages/editor/src/index.ts" },
   { packageName: "@threadlabs/looma-editor", exportPath: "./ui", packageDirectory: "packages/editor", source: "packages/editor/src/ui.ts" },

@@ -22,15 +22,19 @@ describe("Svelte declarative adapters", () => {
     expect(customElements.get("ui-switcher")).toBeUndefined();
   });
 
-  it("preserves structured property names and manages action listeners", () => {
+  it("passes structured props as JSON attributes and manages action listeners", async () => {
     const items = [{ title: "Paragraph", description: "Plain text", icon: "pilcrow" }];
     const anchorRect = { x: 12, y: 24, width: 1, height: 18 };
     const element = createAdapterElement("ui-editor-slash-menu", {
       props: { items, anchorRect, open: true },
-    }) as HTMLElement & { items: unknown[]; anchorRect: typeof anchorRect };
+    });
+    document.body.append(element);
+    await Promise.resolve();
 
-    expect(element.items).toStrictEqual(items);
-    expect(element.anchorRect).toStrictEqual(anchorRect);
+    // Props are attributes: explicit structured values are reflected as JSON, never as properties.
+    expect(JSON.parse(element.getAttribute("data-items") ?? "null")).toStrictEqual(items);
+    expect(JSON.parse(element.getAttribute("data-anchor-rect") ?? "null")).toStrictEqual(anchorRect);
+    expect(Object.hasOwn(element, "items")).toBe(false);
 
     const first = vi.fn();
     const second = vi.fn();
@@ -43,5 +47,6 @@ describe("Svelte declarative adapters", () => {
 
     expect(first).toHaveBeenCalledOnce();
     expect(second).toHaveBeenCalledOnce();
+    element.remove();
   });
 });

@@ -32,7 +32,11 @@ function ensureListeners(document, state) {
     const top = state.records.at(-1);
     if (!top || top.dismissible === false) return;
     const boundary = [top.element, ...(top.relatedElements ?? [])];
-    if (event.composedPath().some((target) => target instanceof Node && boundary.some((element) => element.contains(target)))) return;
+    // A modal dialog's ::backdrop reports the dialog itself as the target; a press outside its box is outside.
+    const rect = top.element.getBoundingClientRect();
+    const onBackdrop = event.target === top.element
+      && (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom);
+    if (!onBackdrop && event.composedPath().some((target) => target instanceof Node && boundary.some((element) => element.contains(target)))) return;
     requestClose(document, "light-dismiss", "pointer");
   };
   document.addEventListener("keydown", state.onKeydown);
@@ -131,7 +135,18 @@ function clamp(rect, bounds, gutter) {
   return { x: left - rect.left, y: top - rect.top };
 }
 
-function fallbackPosition(surface, anchor, placement, gap, viewportGap, surfaceRect = surface.getBoundingClientRect()) {
+// Entry transitions scale and nudge the surface; measure its untransformed layout box so a position
+// computed mid-animation is not shrunk or offset (offsetWidth/Height ignore transforms).
+function layoutRect(surface) {
+  const box = surface.getBoundingClientRect();
+  const width = surface.offsetWidth || box.width;
+  const height = surface.offsetHeight || box.height;
+  const left = box.left + (box.width - width) / 2;
+  const top = box.top + (box.height - height) / 2;
+  return { left, top, right: left + width, bottom: top + height, width, height };
+}
+
+function fallbackPosition(surface, anchor, placement, gap, viewportGap, surfaceRect = layoutRect(surface)) {
   const bounds = viewport(surface.ownerDocument.defaultView);
   const preferTop = placement.startsWith("top");
   const preferEnd = placement.endsWith("end");
@@ -189,7 +204,7 @@ export function createAnchoredSurface(surface, options = {}) {
       surface.style.left = inlineEnd ? "auto" : "anchor(left)";
       surface.style.right = inlineEnd ? "anchor(right)" : "auto";
       surface.style.setProperty("position-try-fallbacks", "flip-block, flip-inline");
-      rect = surface.getBoundingClientRect();
+      rect = layoutRect(surface);
       if (!rect.width || !rect.height) return;
       const shift = clamp(rect, viewport(owner), viewportGap);
       if (!shift.x && !shift.y) return;
@@ -230,4 +245,37 @@ export function createAnchoredSurface(surface, options = {}) {
     refresh: schedule,
     destroy() { open = false; abort?.abort(); abort = null; stopSize(); if (frame !== null) owner.cancelAnimationFrame(frame); frame = null; hide(surface); bind(null); },
   };
+}
+
+/**
+ * Resolves `for`-style ID references that may not exist yet. `get(id)` returns the element or, when
+ * it is missing, watches the document and calls `onLate` once an element with that ID appears
+ * (examples, templates, and frameworks often render the trigger after the overlay).
+ */
+export function createIdResolver(document, onLate) {
+  let observer = null;
+  let waiting = "";
+  const stop = () => {
+    observer?.disconnect();
+    observer = null;
+    waiting = "";
+  };
+  const get = (id) => {
+    const found = id ? document.getElementById(id) : null;
+    if (found || !id) {
+      if (waiting) stop();
+      return found;
+    }
+    if (waiting === id) return null;
+    stop();
+    waiting = id;
+    observer = new MutationObserver(() => {
+      if (!document.getElementById(waiting)) return;
+      stop();
+      onLate();
+    });
+    observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ["id"] });
+    return null;
+  };
+  return { get, stop };
 }

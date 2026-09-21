@@ -72,7 +72,8 @@ describe("Vue declarative adapters in a browser", () => {
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 
     expect(editable.hasAttribute("data-state-edit")).toBe(true);
-    expect(host.querySelector<HTMLElement>(".editable__editor")?.hidden).toBe(false);
+    // The in-place input is enabled only while editing (it shares the value's layout cell).
+    expect(host.querySelector<HTMLInputElement>(".editable__input")?.disabled).toBe(false);
   });
 
   it("applies reactive Boolean property updates to owned component state", async () => {
@@ -90,7 +91,8 @@ describe("Vue declarative adapters in a browser", () => {
     await nextTick();
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
     expect(host.querySelector<HTMLElement>('[data-component-root="ui-editable"]')?.hasAttribute("data-state-edit")).toBe(true);
-    expect(host.querySelector<HTMLElement>(".editable__editor")?.hidden).toBe(false);
+    // The in-place input is enabled only while editing (it shares the value's layout cell).
+    expect(host.querySelector<HTMLInputElement>(".editable__input")?.disabled).toBe(false);
 
     edit.value = false;
     await nextTick();

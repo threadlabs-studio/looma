@@ -31,23 +31,23 @@ describe("shipped editor declarative graph", () => {
     expect(customElements.get("ui-editor-toolbar")).toBeUndefined();
   });
 
-  it("preserves structured editor geometry as a property-only input", async () => {
+  it("takes structured editor geometry as a JSON attribute", async () => {
     const geometry = {
       rowBoundaries: [24, 204],
       columnBoundaries: [12, 332],
       activeCell: null,
     };
-    const invocation = document.createElement("ui-editor-table-overlay") as HTMLElement & {
-      geometry: unknown;
-    };
-    invocation.geometry = geometry;
+    const invocation = document.createElement("ui-editor-table-overlay");
+    invocation.setAttribute("geometry", JSON.stringify(geometry));
     document.body.append(invocation);
     await settle();
 
-    const root = document.querySelector<HTMLElement & { geometry: unknown }>(
-      '[data-component-root="ui-editor-table-overlay"]',
-    );
-    expect(root?.geometry).toStrictEqual(geometry);
-    expect(root?.hasAttribute("geometry")).toBe(false);
+    const root = document.querySelector<HTMLElement>('[data-component-root="ui-editor-table-overlay"]');
+    // Explicit props are reflected as canonical JSON; nothing is exposed as a property.
+    expect(JSON.parse(root?.getAttribute("data-geometry") ?? "null")).toMatchObject({
+      rowBoundaries: [24, 204],
+      columnBoundaries: [12, 332],
+    });
+    expect(root !== null && Object.hasOwn(root, "geometry")).toBe(false);
   });
 });

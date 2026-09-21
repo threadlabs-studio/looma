@@ -14,3 +14,5 @@ export declare function observeDocument(root?: Document, options?: { shouldLower
 export declare function registerComponentDefinitions(definitions: readonly unknown[], root?: Document): void;
 /** Associates behavior with one settled root without publishing modules on a browser global. */
 export declare function setControllerModule(element: Element, module: Promise<unknown>): void;
+/** Framework-adapter prop channel: applies props as authored attributes would be. */
+export declare function updateComponentProps(element: Element, props: Readonly<Record<string, unknown>>): void;
