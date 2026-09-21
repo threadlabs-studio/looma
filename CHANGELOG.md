@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## v0.2.18 Candidate
+
+- Convert native editor suggestion rectangles to Looma's structural anchor
+  contract before rendering managed mention and slash menus, preventing a
+  mount-time validation error from freezing asynchronous results at loading.
+
 ## v0.2.17 Candidate
 
 - Keep async mention suggestions current while a query is typed one character

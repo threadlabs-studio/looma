@@ -1,6 +1,6 @@
 {
   "name": "@threadlabs/looma-core",
-  "version": "0.2.17",
+  "version": "0.2.18",
   "private": true,
   "type": "module",
   "description": "SSR-first Looma declarative components with semantic light-DOM fallback contracts.",

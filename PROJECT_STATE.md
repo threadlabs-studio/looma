@@ -4,13 +4,12 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-20 22:18 PDT
-Status: Candidate `0.2.16` is public. Candidate `0.2.17` is prepared with
-async mention queries that settle correctly during fast character-by-character
-input, while retaining SSR-safe Vue TreeItem row slots, Combobox event forwarding,
-omitted-versus-controlled Boolean semantics, direct default-slot children,
-structured document paste, reliable history controls, and the sticky editor
-option qualified in prior Candidates.
+Last Updated: 2026-09-20 23:00 PDT
+Status: Candidate `0.2.17` is public. Candidate `0.2.18` is prepared with
+managed mention and slash menu anchors that satisfy Looma's structural component
+contract, while retaining async mention queries that settle correctly during fast
+input, SSR-safe Vue TreeItem row slots, structured document paste, reliable
+history controls, and the sticky editor option qualified in prior Candidates.
 Historical release tasks below retain their original version context.
 
 ## Current Focus
@@ -40,6 +39,9 @@ Historical release tasks below retain their original version context.
 
 ## Recent Progress
 
+- Projected native suggestion-menu rectangles into plain structural values at
+  the managed Vue boundary. Mention and slash menus no longer fail validation
+  during mount and leave their initial loading shell frozen.
 - Kept mention suggestion state aligned to the active query without requiring
   the provider callback's transient range end to match exactly. Fast typing no
   longer leaves an otherwise successful async lookup stuck as loading.
