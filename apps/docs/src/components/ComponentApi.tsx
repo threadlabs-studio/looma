@@ -19,7 +19,6 @@ interface ComponentApiProperty {
   type: string;
   default?: unknown;
   options?: string[];
-  channel: "attribute | property" | "property";
 }
 
 interface ComponentApiMethod {
@@ -193,10 +192,12 @@ export function ComponentApi({ component }: ComponentApiProps): JSX.Element {
         </table>
       )}
 
-      <SectionHeader title="Properties" />
+      <SectionHeader title="Framework props" />
       {api.properties.length === 0 ? (
-        <p>No public properties.</p>
+        <p>No props.</p>
       ) : (
+        <>
+        <p>Vue, React, and Svelte pass the attributes above as these camelCase props.</p>
         <table className="looma-api-table">
           <thead>
             <tr>
@@ -204,7 +205,6 @@ export function ComponentApi({ component }: ComponentApiProps): JSX.Element {
               <th>Type</th>
               <th>Default</th>
               <th>Options</th>
-              <th>Input channel</th>
             </tr>
           </thead>
           <tbody>
@@ -222,11 +222,11 @@ export function ComponentApi({ component }: ComponentApiProps): JSX.Element {
                 <td>
                   <code>{property.options?.length ? property.options.join(" | ") : "-"}</code>
                 </td>
-                <td><code>{property.channel}</code></td>
               </tr>
             ))}
           </tbody>
         </table>
+        </>
       )}
 
       <SectionHeader title="Methods" />

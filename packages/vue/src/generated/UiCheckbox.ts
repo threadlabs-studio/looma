@@ -12,8 +12,8 @@ const _hoisted_4 = {
   "data-component": "ui-checkbox"
 }
 
-import { onMounted, onUnmounted, ref, watchEffect } from "vue";
-import { attachLoomaComponent } from "@threadlabs/looma-core/declarative";
+import { getCurrentInstance, onMounted, onUnmounted, ref, watchEffect } from "vue";
+import { attachLoomaComponent, updateComponentProps } from "@threadlabs/looma-core/declarative";
 import type { ComponentDefinition } from "@threadlabs/looma-core/declarative";
 
 
@@ -34,18 +34,32 @@ export default /*@__PURE__*/_defineComponent({
 
 const props = __props;
 const emit = __emit;
+const instance = getCurrentInstance();
+const passed = (name: string, attribute: string): boolean => {
+  const raw = instance?.vnode.props ?? {};
+  return Object.hasOwn(raw, name) || Object.hasOwn(raw, attribute);
+};
+const explicitProps = (): Record<string, unknown> => {
+  const valuechecked = props.checked;
+  const valuedisabled = props.disabled;
+  const valueindeterminate = props.indeterminate;
+  const valuerequired = props.required;
+  const valuevalue = props.value;
+  return { "checked": passed("checked", "checked") ? valuechecked : undefined, "disabled": passed("disabled", "disabled") ? valuedisabled : undefined, "indeterminate": passed("indeterminate", "indeterminate") ? valueindeterminate : undefined, "required": passed("required", "required") ? valuerequired : undefined, "value": passed("value", "value") ? valuevalue : undefined };
+};
 const definition = {...{"contract":{"tag":"ui-checkbox","props":{"checked":{"type":"boolean","required":false,"target":{"attribute":"checked"},"default":false},"disabled":{"type":"boolean","required":false,"target":{"attribute":"data-disabled"},"default":false},"indeterminate":{"type":"boolean","required":false,"target":{"attribute":"indeterminate"},"default":false},"required":{"type":"boolean","required":false,"target":{"attribute":"required"},"default":false},"value":{"type":"string","required":false,"target":{"attribute":"value"},"default":"on"}}},"template":{"kind":"element","name":"span","attributes":[{"kind":"attribute","name":"data-disabled","expression":"disabled","expressionPlan":{"source":"disabled","ast":{"kind":"id","name":"disabled"},"dependencies":["disabled"]}}],"children":[{"kind":"element","name":"label","attributes":[{"kind":"literal","name":"class","value":"control"}],"children":[{"kind":"element","name":"input","attributes":[{"kind":"literal","name":"type","value":"checkbox"},{"kind":"attribute","name":"checked","expression":"internalChecked","expressionPlan":{"source":"internalChecked","ast":{"kind":"id","name":"internalChecked"},"dependencies":["internalChecked"]}},{"kind":"attribute","name":"required","expression":"required","expressionPlan":{"source":"required","ast":{"kind":"id","name":"required"},"dependencies":["required"]}},{"kind":"attribute","name":"value","expression":"value","expressionPlan":{"source":"value","ast":{"kind":"id","name":"value"},"dependencies":["value"]}}],"children":[]},{"kind":"element","name":"span","attributes":[{"kind":"literal","name":"class","value":"label"}],"children":[{"kind":"slot"}]}]}]},"declarations":[{"kind":"state","name":"internalChecked","expression":{"source":"false","ast":{"kind":"literal","value":false},"dependencies":[]}},{"kind":"event","name":"change","type":"object({ checked: boolean, value: string, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"span","choices":["span"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
 const root = ref<Element>();
 const eventListener0 = (event: Event) => emit("change", (event as CustomEvent<{ readonly checked: boolean; readonly value: string; readonly trigger: "keyboard" | "pointer" | "programmatic" }>).detail);
 let detach: undefined | (() => void);
 onMounted(() => {
   if (root.value == null) return;
-  detach = attachLoomaComponent(root.value, definition, "ui-checkbox", props);
+  detach = attachLoomaComponent(root.value, definition, "ui-checkbox", explicitProps());
   root.value.addEventListener("change", eventListener0);
 });
 watchEffect(() => {
+  const next = explicitProps();
   if (root.value == null) return;
-  for (const name of ["checked","disabled","indeterminate","required","value"]) (root.value as unknown as Record<string, unknown>)[name] = props[name as keyof typeof props];
+  updateComponentProps(root.value, next);
 });
 onUnmounted(() => {
   root.value?.removeEventListener("change", eventListener0);

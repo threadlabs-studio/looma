@@ -2,66 +2,14 @@ import { closeOverlay, createAnchoredSurface, openOverlay } from "./shared/overl
 
 const instances = new WeakMap();
 
-function baseConfigFor(host) {
-  return host.state.config && typeof host.state.config === "object" ? host.state.config : {};
-}
-
 function authoredOptions(element) {
   return Array.from(element.querySelectorAll(".authored-options option")).map((option, index) => ({
     id: option.id || option.value || `option-${index}`,
     value: option.value,
     label: option.label || option.textContent?.trim() || option.value,
-    description: option.dataset.description || undefined,
     group: option.closest("optgroup")?.label || undefined,
     disabled: option.disabled,
   }));
-}
-
-function formatEditingValue(raw, selection, format) {
-  const unchanged = { display: raw, selection };
-  if (typeof format !== "function") return unchanged;
-  let result;
-  try { result = format(raw, selection); } catch { return unchanged; }
-  if (!result) return unchanged;
-  const characters = Array.from(raw);
-  let cursor = 0;
-  for (const character of result.display) if (character === characters[cursor]) cursor += 1;
-  if (!Number.isInteger(result.selection.start) || !Number.isInteger(result.selection.end)
-    || cursor !== characters.length || result.selection.start < 0
-    || result.selection.end < result.selection.start || result.selection.end > result.display.length) return unchanged;
-  return result;
-}
-
-async function validateField(request, config) {
-  let output = request.raw;
-  let issues = [];
-  const check = () => request.signal.throwIfAborted();
-  try {
-    check();
-    if (config.parse) output = await config.parse(request.raw, request);
-    check();
-    if (config.schema) {
-      const result = await config.schema["~standard"].validate(output);
-      check();
-      if (result.issues) issues = result.issues;
-      else if ("value" in result) output = result.value;
-    }
-    if (!issues.some((issue) => issue.severity !== "warning")) {
-      if (config.normalize) output = await config.normalize(output, request);
-      check();
-      if (config.validator) {
-        const result = await config.validator(output, request);
-        check();
-        issues = [...issues, ...(result.issues ?? [])];
-        if ("output" in result) output = result.output;
-      }
-    }
-  } catch (error) {
-    check();
-    issues = [{ message: error instanceof Error ? error.message : "Unable to validate this value." }];
-  }
-  issues = [...issues, ...(config.issues ?? [])];
-  return { output: issues.some((issue) => issue.severity !== "warning") ? undefined : output, issues };
 }
 
 export async function validate(host) {
@@ -86,30 +34,23 @@ export default function controller(host) {
   let surface;
   let lookup;
   let validationRun;
-  let lookupTimer;
   let composing = false;
   let alive = true;
   let fullSet = false;
   let initialRaw = "";
   let awaitingLabel = null;
   let proposedChange;
-  let formattedRaw;
-  let formattedWith;
   let lastValue = host.state.value;
   let lastQuery = host.state.query;
-  let lastConfig = host.state.config;
   const knownOptions = new Map();
 
-  const config = () => {
-    const configured = baseConfigFor(host);
-    return {
-      ...configured,
-      options: configured.options ?? authoredOptions(element),
-      allowFreeText: configured.allowFreeText ?? Boolean(host.state.allowFreeText),
-      allowCreate: configured.allowCreate ?? Boolean(host.state.allowCreate),
-    };
-  };
-  const items = () => host.state.multiple && Array.isArray(host.state.value) ? host.state.value : [];
+  // Options come from authored <option>/<optgroup> children; everything else is an attribute.
+  const config = () => ({
+    options: authoredOptions(element),
+    allowFreeText: Boolean(host.state.allowFreeText),
+    allowCreate: Boolean(host.state.allowCreate),
+  });
+  const items = () => host.state.multiple && Array.isArray(host.state.items) ? host.state.items : [];
   const selectedValues = () => new Set(items().map((item) => item.value));
   const setValidation = (result, touched = host.state.validation?.touched ?? false) => {
     const issues = result.issues ?? [];
@@ -133,13 +74,7 @@ export default function controller(host) {
     };
     host.dispatch("validation-change", host.state.validation);
   };
-  const applyServerIssues = () => {
-    const issues = config().issues ?? [];
-    if (issues.length) setValidation({ issues }, host.state.validation?.touched ?? false);
-    else resetValidation();
-  };
   const cancelLookup = () => {
-    clearTimeout(lookupTimer);
     lookup?.abort();
     lookup = undefined;
     host.state.loading = false;
@@ -174,8 +109,7 @@ export default function controller(host) {
         host.state.raw = selectedOption.label;
         host.state.display = selectedOption.label;
         awaitingLabel = null;
-        formattedRaw = undefined;
-        resetValidation();
+          resetValidation();
       }
       const ids = new Set();
       const selected = host.state.multiple ? selectedValues() : undefined;
@@ -183,8 +117,8 @@ export default function controller(host) {
         if (ids.has(option.id)) return false;
         ids.add(option.id);
         if (fullSet) return true;
-        if (selected) return !selected.has(option.value) && (current.filter ? current.filter(option, query, current.context) : option.label.toLocaleLowerCase().includes(query.toLocaleLowerCase()));
-        return current.filter ? current.filter(option, query, current.context) : current.provider ? true : option.label.toLocaleLowerCase().includes(query.toLocaleLowerCase());
+        const matches = option.label.toLocaleLowerCase().includes(query.toLocaleLowerCase());
+        return selected ? !selected.has(option.value) && matches : matches;
       });
       const groups = new Map();
       for (const row of filtered) {
@@ -199,22 +133,7 @@ export default function controller(host) {
       host.state.loading = false;
       host.dispatch("options-change", host.state.rows);
     };
-    if (!current.provider) {
-      applyOptions(current.options ?? []);
-      return;
-    }
-    host.state.rows = [];
-    host.state.loading = true;
-    lookupTimer = setTimeout(async () => {
-      try {
-        applyOptions(await current.provider({ query, context: current.context, signal: controller.signal, reason }));
-      } catch (error) {
-        if (!controller.signal.aborted && alive) {
-          host.state.loading = false;
-          host.state.lookupError = error instanceof Error ? error.message : "Unable to load suggestions.";
-        }
-      }
-    }, reason === "disclosure" ? 0 : Math.max(0, Number(current.debounce ?? 200)));
+    applyOptions(current.options);
   };
   const open = (reason = "input") => {
     if (host.state.disabled || host.state.readonly) return;
@@ -224,23 +143,6 @@ export default function controller(host) {
     if (popup) openOverlay({ id: overlayId, element: popup, relatedElements: [element], modal: false, requestClose: close });
     search(reason);
   };
-  const format = (timing) => {
-    const current = config();
-    if ((current.formatOn ?? "blur") !== timing || !input) return;
-    if (formattedRaw === host.state.raw && formattedWith === current.format) return;
-    const result = formatEditingValue(String(host.state.raw), {
-      start: input.selectionStart ?? String(host.state.raw).length,
-      end: input.selectionEnd ?? String(host.state.raw).length,
-      direction: input.selectionDirection ?? "none",
-    }, current.format);
-    formattedRaw = host.state.raw;
-    formattedWith = current.format;
-    host.state.display = result.display;
-    if (input.value !== result.display) {
-      input.value = result.display;
-      input.setSelectionRange(result.selection.start, result.selection.end, result.selection.direction);
-    }
-  };
   const commit = (value, query, option, kind, trigger) => {
     awaitingLabel = null;
     const queryChanged = query !== host.state.raw;
@@ -248,7 +150,6 @@ export default function controller(host) {
     if (host.state.query === undefined && queryChanged) {
       host.state.raw = query;
       host.state.display = query;
-      formattedRaw = undefined;
     }
     resetValidation();
     const detail = { value, query, option, kind, trigger };
@@ -258,7 +159,6 @@ export default function controller(host) {
     if (queryChanged) host.dispatch("query-change", { query, display: query, trigger });
     if (kind === "create") host.dispatch("create-entry", detail);
     if (kind === "free-entry") host.dispatch("free-entry", detail);
-    if (kind === "invalidation") host.dispatch("dependency-invalidate", detail);
     queueMicrotask(() => {
       if (proposedChange !== proposal) return;
       if (host.state.value !== undefined && host.state.value !== proposal.value) syncValue();
@@ -271,7 +171,6 @@ export default function controller(host) {
     if (host.state.query === undefined) {
       host.state.raw = query;
       host.state.display = query;
-      formattedRaw = undefined;
     }
     if (input) input.value = query;
     host.dispatch("query-change", { query, display: query, trigger });
@@ -295,7 +194,7 @@ export default function controller(host) {
     else return;
     close();
     input?.focus();
-    if (!host.state.multiple && config().validateOn !== "submit") queueMicrotask(() => void validateCurrent());
+    if (!host.state.multiple) queueMicrotask(() => void validateCurrent());
   };
   const commitQuery = (trigger) => {
     const query = String(host.state.raw).trim();
@@ -330,8 +229,9 @@ export default function controller(host) {
     host.state.validation = { ...host.state.validation, status: "pending", output: undefined };
     host.dispatch("validation-change", host.state.validation);
     try {
+      // Native constraints and the free-text policy; application validation stays in the form.
       const current = config();
-      const result = await validateField({ raw: host.state.raw, value: host.state.selected, context: current.context, signal: run.signal }, current);
+      const result = { output: host.state.raw, issues: [] };
       if (host.state.required && !String(host.state.raw).trim()) result.issues = [...result.issues, { message: "A value is required." }];
       else if (host.state.raw && host.state.selected === null && !current.allowFreeText && !current.allowCreate) result.issues = [...result.issues, { message: "Choose a suggestion." }];
       if (result.issues.some((issue) => issue.severity !== "warning")) result.output = undefined;
@@ -349,8 +249,7 @@ export default function controller(host) {
       if (proposal?.value !== host.state.selected || nextRaw !== host.state.raw) {
         host.state.raw = nextRaw;
         host.state.display = nextRaw;
-        formattedRaw = undefined;
-      }
+        }
       awaitingLabel = !option && host.state.selected !== null ? host.state.selected : null;
     }
     resetValidation();
@@ -359,7 +258,6 @@ export default function controller(host) {
     if (host.state.query === undefined || host.state.query === host.state.raw) return;
     if (host.state.value === undefined && proposedChange?.query !== host.state.query) host.state.selected = null;
     awaitingLabel = null;
-    formattedRaw = undefined;
     host.state.raw = host.state.query;
     host.state.display = host.state.query;
     resetValidation();
@@ -380,12 +278,7 @@ export default function controller(host) {
     primary.className = "primary";
     primary.setAttribute("part", "option-primary");
     primary.textContent = row.label;
-    if (!row.description) return [primary];
-    const secondary = document.createElement("span");
-    secondary.className = "secondary";
-    secondary.setAttribute("part", "option-secondary");
-    secondary.textContent = row.description;
-    return [primary, secondary];
+    return [primary];
   };
   const renderDynamic = () => {
     if (itemsContainer) {
@@ -520,15 +413,12 @@ export default function controller(host) {
   const onInput = (event) => {
     if (event.target !== input || composing || event.isComposing) return;
     awaitingLabel = null;
-    formattedRaw = undefined;
     host.state.raw = input.value;
     host.state.display = input.value;
     resetValidation();
-    format("input");
     host.dispatch("query-change", { query: host.state.raw, display: host.state.display, trigger: "keyboard" });
     if (host.state.selected !== null) commit(null, host.state.raw, null, "clear", "keyboard");
     open();
-    if (config().validateOn === "input") void validateCurrent();
     queueMicrotask(() => { if (host.state.query !== undefined && host.state.query !== host.state.raw) syncQuery(); });
   };
   const onKeydown = (event) => {
@@ -568,10 +458,9 @@ export default function controller(host) {
   const onFocusout = (event) => {
     if (event.relatedTarget instanceof Node && element.contains(event.relatedTarget)) return;
     close();
-    format("blur");
     host.state.validation = { ...host.state.validation, touched: true };
     if (!host.state.multiple && config().allowFreeText && host.state.selected === null) commit(null, host.state.raw, null, "free-entry", "keyboard");
-    if ((config().validateOn ?? "blur") === "blur") void validateCurrent();
+    void validateCurrent();
   };
   const onCompositionstart = (event) => { if (event.target === input) composing = true; };
   const onCompositionend = (event) => { if (event.target === input) { composing = false; onInput(new InputEvent("input")); } };
@@ -592,7 +481,6 @@ export default function controller(host) {
   host.state.display = host.state.raw;
   initialRaw = host.state.raw;
   host.state.validation = { status: "pristine", touched: false, dirty: false, issues: [] };
-  applyServerIssues();
   wire();
 
   const api = { get input() { return input; }, validate: validateCurrent };
@@ -604,21 +492,6 @@ export default function controller(host) {
   const stop = host.effect(() => {
     if (host.state.value !== lastValue) { lastValue = host.state.value; syncValue(); }
     if (host.state.query !== lastQuery) { lastQuery = host.state.query; syncQuery(); }
-    if (host.state.config !== lastConfig) {
-      const previous = baseConfigFor({ state: { config: lastConfig } });
-      const next = config();
-      lastConfig = host.state.config;
-      validationRun?.abort();
-      if (next.provider !== previous.provider || next.context !== previous.context) knownOptions.clear();
-      if (next.context !== previous.context) {
-        close();
-        const policy = next.invalidation ?? "retain-query";
-        if (host.state.multiple) { if (policy === "clear") setMultiQuery("", "programmatic"); }
-        else commit(policy === "retain" ? host.state.selected : null, policy === "clear" ? "" : host.state.raw, null, "invalidation", "programmatic");
-      }
-      applyServerIssues();
-      if (host.state.expanded) search("context");
-    }
     if (host.state.disabled || host.state.readonly) close();
     render();
   });

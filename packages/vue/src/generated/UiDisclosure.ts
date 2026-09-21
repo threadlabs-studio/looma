@@ -11,8 +11,8 @@ const _hoisted_3 = {
   "data-component": "ui-disclosure"
 }
 
-import { onMounted, onUnmounted, ref, watchEffect } from "vue";
-import { attachLoomaComponent } from "@threadlabs/looma-core/declarative";
+import { getCurrentInstance, onMounted, onUnmounted, ref, watchEffect } from "vue";
+import { attachLoomaComponent, updateComponentProps } from "@threadlabs/looma-core/declarative";
 import type { ComponentDefinition } from "@threadlabs/looma-core/declarative";
 
 
@@ -31,6 +31,17 @@ export default /*@__PURE__*/_defineComponent({
 
 const props = __props;
 const emit = __emit;
+const instance = getCurrentInstance();
+const passed = (name: string, attribute: string): boolean => {
+  const raw = instance?.vnode.props ?? {};
+  return Object.hasOwn(raw, name) || Object.hasOwn(raw, attribute);
+};
+const explicitProps = (): Record<string, unknown> => {
+  const valuedisabled = props.disabled;
+  const valueopen = props.open;
+  const valuesummary = props.summary;
+  return { "disabled": passed("disabled", "disabled") ? valuedisabled : undefined, "open": passed("open", "open") ? valueopen : undefined, "summary": passed("summary", "summary") ? valuesummary : undefined };
+};
 const definition = {...{"contract":{"tag":"ui-disclosure","props":{"disabled":{"type":"boolean","required":false,"target":{"attribute":"disabled"},"default":false},"open":{"type":"boolean","required":false,"target":{"attribute":"open"},"default":false},"summary":{"type":"string","required":false,"target":{"attribute":"summary"},"default":"Details"}}},"template":{"kind":"element","name":"div","attributes":[],"children":[{"kind":"element","name":"button","attributes":[{"kind":"literal","name":"class","value":"disclosure__trigger"},{"kind":"literal","name":"type","value":"button"},{"kind":"attribute","name":"aria-controls","expression":"contentId","expressionPlan":{"source":"contentId","ast":{"kind":"id","name":"contentId"},"dependencies":["contentId"]}},{"kind":"attribute","name":"disabled","expression":"disabled","expressionPlan":{"source":"disabled","ast":{"kind":"id","name":"disabled"},"dependencies":["disabled"]}}],"children":[{"kind":"element","name":"span","attributes":[],"children":[{"kind":"element","name":"template","attributes":[{"kind":"directive","name":"value","expression":"summary","expressionPlan":{"source":"summary","ast":{"kind":"id","name":"summary"},"dependencies":["summary"]}}],"children":[]}]},{"kind":"element","name":"span","attributes":[{"kind":"literal","name":"class","value":"disclosure__chevron"},{"kind":"literal","name":"aria-hidden","value":"true"}],"children":[]}]},{"kind":"element","name":"div","attributes":[{"kind":"literal","name":"class","value":"disclosure__panel"}],"children":[{"kind":"element","name":"div","attributes":[{"kind":"literal","name":"class","value":"disclosure__panel-inner"}],"children":[{"kind":"slot"}]}]}]},"declarations":[{"kind":"state","name":"internalOpen","expression":{"source":"false","ast":{"kind":"literal","value":false},"dependencies":[]}},{"kind":"state","name":"contentId","expression":{"source":"''","ast":{"kind":"literal","value":""},"dependencies":[]}},{"kind":"event","name":"open","type":"object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false},{"kind":"event","name":"close","type":"object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
 const root = ref<Element>();
 const eventListener0 = (event: Event) => emit("open", (event as CustomEvent<{ readonly open: boolean; readonly reason: "action" | "programmatic" | "light-dismiss" | "escape"; readonly trigger: "keyboard" | "pointer" | "programmatic" }>).detail);
@@ -38,13 +49,14 @@ const eventListener1 = (event: Event) => emit("close", (event as CustomEvent<{ r
 let detach: undefined | (() => void);
 onMounted(() => {
   if (root.value == null) return;
-  detach = attachLoomaComponent(root.value, definition, "ui-disclosure", props);
+  detach = attachLoomaComponent(root.value, definition, "ui-disclosure", explicitProps());
   root.value.addEventListener("open", eventListener0);
   root.value.addEventListener("close", eventListener1);
 });
 watchEffect(() => {
+  const next = explicitProps();
   if (root.value == null) return;
-  for (const name of ["disabled","open","summary"]) (root.value as unknown as Record<string, unknown>)[name] = props[name as keyof typeof props];
+  updateComponentProps(root.value, next);
 });
 onUnmounted(() => {
   root.value?.removeEventListener("open", eventListener0);

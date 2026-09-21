@@ -1,8 +1,8 @@
 import { defineComponent as _defineComponent } from 'vue'
 import { mergeProps as _mergeProps, openBlock as _openBlock, createElementBlock as _createElementBlock } from "vue"
 
-import { onMounted, onUnmounted, ref, watchEffect } from "vue";
-import { attachLoomaComponent } from "@threadlabs/looma-core/declarative";
+import { getCurrentInstance, onMounted, onUnmounted, ref, watchEffect } from "vue";
+import { attachLoomaComponent, updateComponentProps } from "@threadlabs/looma-core/declarative";
 import type { ComponentDefinition } from "@threadlabs/looma-core/declarative";
 
 
@@ -22,18 +22,31 @@ export default /*@__PURE__*/_defineComponent({
 
 const props = __props;
 const emit = __emit;
+const instance = getCurrentInstance();
+const passed = (name: string, attribute: string): boolean => {
+  const raw = instance?.vnode.props ?? {};
+  return Object.hasOwn(raw, name) || Object.hasOwn(raw, attribute);
+};
+const explicitProps = (): Record<string, unknown> => {
+  const valueactions = props.actions;
+  const valuecellAlignment = props.cellAlignment;
+  const valuecellBackground = props.cellBackground;
+  const valueopen = props.open;
+  return { "actions": passed("actions", "actions") ? valueactions : undefined, "cellAlignment": passed("cellAlignment", "cell-alignment") ? valuecellAlignment : undefined, "cellBackground": passed("cellBackground", "cell-background") ? valuecellBackground : undefined, "open": passed("open", "open") ? valueopen : undefined };
+};
 const definition = {...{"contract":{"tag":"ui-editor-table-toolbar","props":{"actions":{"type":{"kind":"list","item":{"kind":"union","members":[{"kind":"keyword","value":"align-left"},{"kind":"keyword","value":"align-center"},{"kind":"keyword","value":"align-right"},{"kind":"keyword","value":"background-none"},{"kind":"keyword","value":"background-gray"},{"kind":"keyword","value":"background-yellow"},{"kind":"keyword","value":"background-blue"},{"kind":"keyword","value":"background-green"},{"kind":"keyword","value":"background-red"},{"kind":"keyword","value":"add-row-before"},{"kind":"keyword","value":"add-row-after"},{"kind":"keyword","value":"add-column-before"},{"kind":"keyword","value":"add-column-after"},{"kind":"keyword","value":"clear-cells"},{"kind":"keyword","value":"merge-cells"},{"kind":"keyword","value":"split-cell"},{"kind":"keyword","value":"delete-row"},{"kind":"keyword","value":"delete-column"},{"kind":"keyword","value":"delete-table"}]}},"required":false,"target":{"attribute":"actions"}},"cellAlignment":{"type":{"enum":["left","center","right"]},"required":false,"target":{"attribute":"cellalignment"},"default":"left"},"cellBackground":{"type":"string","required":false,"target":{"attribute":"cellbackground"},"default":""},"open":{"type":"boolean","required":false,"target":{"attribute":"open"},"default":false}}},"template":{"kind":"element","name":"div","attributes":[],"children":[]},"declarations":[{"kind":"event","name":"action","type":"object({ action: string })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
 const root = ref<Element>();
 const eventListener0 = (event: Event) => emit("action", (event as CustomEvent<{ readonly action: string }>).detail);
 let detach: undefined | (() => void);
 onMounted(() => {
   if (root.value == null) return;
-  detach = attachLoomaComponent(root.value, definition, "ui-editor-table-toolbar", props);
+  detach = attachLoomaComponent(root.value, definition, "ui-editor-table-toolbar", explicitProps());
   root.value.addEventListener("action", eventListener0);
 });
 watchEffect(() => {
+  const next = explicitProps();
   if (root.value == null) return;
-  for (const name of ["actions","cellAlignment","cellBackground","open"]) (root.value as unknown as Record<string, unknown>)[name] = props[name as keyof typeof props];
+  updateComponentProps(root.value, next);
 });
 onUnmounted(() => {
   root.value?.removeEventListener("action", eventListener0);

@@ -18,8 +18,8 @@ export function createUiCenter(options = {}) {
   } else {
   }
   manageGeneratedProps(element, [
-    { name: "gutters", attribute: "data-gutters", value: prop0, type: ["s","m","l"], required: false },
-    { name: "measure", attribute: "data-measure", value: prop1, type: ["narrow","wide"], required: false },
+    { name: "gutters", attribute: "data-gutters", value: componentProps["gutters"], type: ["s","m","l"], required: false },
+    { name: "measure", attribute: "data-measure", value: componentProps["measure"], type: ["narrow","wide"], required: false },
   ]);
   return element;
 }

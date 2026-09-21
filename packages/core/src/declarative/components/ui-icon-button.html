@@ -5,8 +5,9 @@
     <prop name="size" type="sm | md | lg" default="md">size token.</prop>
     <prop name="variant" type="ghost | outline | solid" default="ghost">variant token.</prop>
     <prop name="anticipatory" type="boolean" default="false">anticipatory token.</prop>
+    <prop name="round" type="boolean" default="false">Use a fully circular shape.</prop>
   </defs>
-  <button :data-disabled="disabled" type="button" :aria-label="label"><slot></slot></button>
+  <button :disabled="disabled" :data-round="round" type="button" :aria-label="label"><slot></slot></button>
   <style>:scope {
   display: inline-flex;
   color: var(--ui-text-secondary);
@@ -31,34 +32,28 @@
   pointer-events: none;
 }
 
-:scope[data-anticipatory='true'] {
-  opacity: 0;
-  transform: scale(0.72);
-  pointer-events: none;
+/* At rest an anticipatory button shows only its guide dot; proximity, hover, or focus reveals the
+ * surface and icon. The root is the native button, so hiding it outright would hide the dot
+ * too, and slotted icons sit outside this scope; `color: transparent` hides currentColor icons. */
+@media (hover: hover) and (pointer: fine) {
+  :scope[data-anticipatory='true']:not([data-ui-proximity='near'], :hover, :focus-visible, [data-variant='solid']) {
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
+    color: transparent;
+  }
 }
 
-:scope[data-anticipatory='true'][data-ui-proximity='near']::before,
-:scope[data-anticipatory='true']:focus-within::before,
-:scope[data-anticipatory='true']:hover::before,
-:scope[data-anticipatory='true'][data-variant='solid']::before {
+:scope[data-anticipatory='true']:is([data-ui-proximity='near'], :hover, :focus-visible, [data-variant='solid'])::before {
   opacity: 0;
-}
-
-:scope[data-anticipatory='true'][data-ui-proximity='near'],
-:scope[data-anticipatory='true']:focus-within button,
-:scope[data-anticipatory='true']:hover button,
-:scope[data-anticipatory='true'][data-variant='solid'] {
-  opacity: 1;
-  transform: scale(1);
-  pointer-events: auto;
 }
 
 :scope {
   appearance: none;
-  inline-size: var(--ui-icon-button-size, 2.5rem);
-  block-size: var(--ui-icon-button-size, 2.5rem);
-  min-inline-size: var(--ui-icon-button-size, 2.5rem);
-  min-block-size: var(--ui-icon-button-size, 2.5rem);
+  inline-size: var(--ui-icon-button-size, 2rem);
+  block-size: var(--ui-icon-button-size, 2rem);
+  min-inline-size: var(--ui-icon-button-size, 2rem);
+  min-block-size: var(--ui-icon-button-size, 2rem);
   padding: 0;
   margin: 0;
   border: 1px solid transparent;
@@ -81,26 +76,24 @@
   :scope[data-anticipatory='true']::before {
     opacity: 0;
   }
-
-  :scope[data-anticipatory='true'] {
-    opacity: 1;
-    transform: none;
-    pointer-events: auto;
-  }
 }
 
 :scope[data-size='sm'] {
-  inline-size: var(--ui-icon-button-size-sm, 2rem);
-  block-size: var(--ui-icon-button-size-sm, 2rem);
-  min-inline-size: var(--ui-icon-button-size-sm, 2rem);
-  min-block-size: var(--ui-icon-button-size-sm, 2rem);
+  inline-size: var(--ui-icon-button-size-sm, 1.75rem);
+  block-size: var(--ui-icon-button-size-sm, 1.75rem);
+  min-inline-size: var(--ui-icon-button-size-sm, 1.75rem);
+  min-block-size: var(--ui-icon-button-size-sm, 1.75rem);
 }
 
 :scope[data-size='lg'] {
-  inline-size: var(--ui-icon-button-size-lg, 2.75rem);
-  block-size: var(--ui-icon-button-size-lg, 2.75rem);
-  min-inline-size: var(--ui-icon-button-size-lg, 2.75rem);
-  min-block-size: var(--ui-icon-button-size-lg, 2.75rem);
+  inline-size: var(--ui-icon-button-size-lg, 2.5rem);
+  block-size: var(--ui-icon-button-size-lg, 2.5rem);
+  min-inline-size: var(--ui-icon-button-size-lg, 2.5rem);
+  min-block-size: var(--ui-icon-button-size-lg, 2.5rem);
+}
+
+:scope[data-round='true'] {
+  border-radius: var(--ui-radius-round, 999px);
 }
 
 :scope[data-variant='outline'] {
@@ -136,8 +129,8 @@
 }
 
 :scope:focus-visible {
-  outline: 2px solid var(--ui-focus-ring);
-  outline-offset: 2px;
+  outline: none;
+  box-shadow: var(--ui-focus-halo);
 }
 
 :scope:disabled,
@@ -146,9 +139,21 @@
   cursor: not-allowed;
 }
 
+:scope {
+  --ui-icon-button-icon-default: var(--ui-icon-size-md, 1.25rem);
+}
+
+:scope[data-size='sm'] {
+  --ui-icon-button-icon-default: var(--ui-icon-size-sm, 1rem);
+}
+
+:scope[data-size='lg'] {
+  --ui-icon-button-icon-default: var(--ui-icon-size-lg, 1.5rem);
+}
+
 :slotted(svg) {
-  inline-size: var(--ui-icon-button-icon-size, 1.125rem);
-  block-size: var(--ui-icon-button-icon-size, 1.125rem);
+  inline-size: var(--ui-icon-button-icon-size, var(--ui-icon-button-icon-default));
+  block-size: var(--ui-icon-button-icon-size, var(--ui-icon-button-icon-default));
   flex-shrink: 0;
   stroke-width: var(--ui-icon-button-icon-stroke-width, 1.75);
 }

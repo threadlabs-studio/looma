@@ -177,7 +177,7 @@ export const ADAPTER_COMPONENT_TAG_MAP = {
   EditorToolbar: "ui-editor-toolbar",
   Center: "ui-center",
   Grid: "ui-grid",
-  Inline: "ui-inline",
+  Cluster: "ui-cluster",
   Reel: "ui-reel",
   Separator: "ui-separator",
   Sidebar: "ui-sidebar",

@@ -24,11 +24,17 @@
   color: var(--ui-text-primary);
   font: inherit;
   line-height: var(--ui-line-height-md);
-  box-shadow: var(--ui-textarea-shadow, inset 0 1px 2px rgb(15 23 42 / 0.07), var(--ui-shadow-xs));
+  box-shadow: var(--ui-textarea-shadow, var(--ui-control-inset));
   transition:
     border-color var(--ui-motion-fast) var(--ui-motion-ease),
     box-shadow var(--ui-motion-fast) var(--ui-motion-ease),
     background-color var(--ui-motion-fast) var(--ui-motion-ease);
+}
+
+/* Tabbing into a field selects its text; tint that selection softly instead of the page highlight. */
+:scope::selection {
+  background: color-mix(in srgb, var(--ui-accent-solid) 20%, transparent);
+  color: inherit;
 }
 
 :scope::placeholder {
@@ -42,9 +48,8 @@
 
 :scope:focus-visible {
   border-color: var(--ui-control-focus, var(--ui-accent-solid));
-  outline: 2px solid var(--ui-focus-ring);
-  outline-offset: 2px;
-  box-shadow: var(--ui-textarea-focus-shadow, 0 0 0 3px var(--ui-control-focus-halo, var(--ui-accent-soft)));
+  outline: none;
+  box-shadow: var(--ui-textarea-focus-shadow, var(--ui-control-inset), var(--ui-control-focus-halo-shadow));
 }
 
 :scope[aria-invalid='true'] {

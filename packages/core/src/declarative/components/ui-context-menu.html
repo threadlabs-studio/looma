@@ -14,6 +14,11 @@
   display: contents;
 }
 
+/* The outer .menu owns open state; the nested menu is only its surface. */
+:scope .menu > [data-component-root~="ui-menu"] {
+  display: flex;
+}
+
 :scope[data-focus-trigger='pointer'] :slotted(ui-menu-item:focus) {
   outline: none;
 }

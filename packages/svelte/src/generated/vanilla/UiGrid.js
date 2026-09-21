@@ -18,8 +18,8 @@ export function createUiGrid(options = {}) {
   } else {
   }
   manageGeneratedProps(element, [
-    { name: "gap", attribute: "data-gap", value: prop0, type: ["xs","s","m","l","xl"], required: false },
-    { name: "min", attribute: "data-min", value: prop1, type: ["sm","md","lg"], required: false },
+    { name: "gap", attribute: "data-gap", value: componentProps["gap"], type: ["xs","s","m","l","xl"], required: false },
+    { name: "min", attribute: "data-min", value: componentProps["min"], type: ["sm","md","lg"], required: false },
   ]);
   return element;
 }

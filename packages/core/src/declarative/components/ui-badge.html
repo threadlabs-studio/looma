@@ -6,8 +6,8 @@
   <span :data-variant="variant" :data-tone="tone"><span class="badge__surface"><slot></slot></span></span>
   <style>:scope {
   --ui-badge-surface: var(--ui-surface-subtle);
-  --ui-badge-text: var(--ui-text-primary);
-  --ui-badge-border: var(--ui-text-secondary);
+  --ui-badge-text: var(--ui-text-secondary);
+  --ui-badge-border: color-mix(in srgb, var(--ui-text-secondary) 30%, transparent);
   --ui-badge-font-size: var(--ui-font-size-sm);
   --ui-badge-font-weight: var(--ui-font-medium);
   --ui-badge-line-height: var(--ui-line-height-tight);

@@ -28,8 +28,8 @@ export function createUiBadge(options = {}) {
   }
   element.append(element0);
   manageGeneratedProps(element, [
-    { name: "tone", attribute: "data-tone", value: prop0, type: ["neutral","accent","info","success","warning","danger"], required: false },
-    { name: "variant", attribute: "data-variant", value: prop1, type: ["solid","subtle"], required: false },
+    { name: "tone", attribute: "data-tone", value: componentProps["tone"], default: "neutral", bound: true, type: ["neutral","accent","info","success","warning","danger"], required: false },
+    { name: "variant", attribute: "data-variant", value: componentProps["variant"], default: "subtle", bound: true, type: ["solid","subtle"], required: false },
   ]);
   return element;
 }

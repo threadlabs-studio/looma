@@ -1,4 +1,4 @@
-import { closeOverlay, createAnchoredSurface, openOverlay, requestTopOverlayClose } from "./shared/overlay.js";
+import { closeOverlay, createAnchoredSurface, createIdResolver, openOverlay, requestTopOverlayClose } from "./shared/overlay.js";
 
 function disabled(item) {
   return item.getAttribute("aria-disabled") === "true" || item.hasAttribute("disabled") || item.getAttribute("disabled") === "true";
@@ -24,8 +24,9 @@ export default function controller(host) {
     trigger?.removeEventListener("keydown", onTriggerKeydown);
     contextTarget?.removeEventListener("contextmenu", onContextMenu);
   };
+  const ids = createIdResolver(document, () => resolveTargets());
   const resolveTargets = () => {
-    const nextTrigger = host.state.for ? document.getElementById(String(host.state.for)) : null;
+    const nextTrigger = ids.get(String(host.state.for ?? ""));
     const nextContext = nextTrigger;
     if (nextTrigger === trigger && nextContext === contextTarget) return;
     detach();
@@ -38,17 +39,11 @@ export default function controller(host) {
   };
   const syncNested = (open) => {
     const nested = menuSurface?.querySelector('[data-component-root~="ui-menu"]');
-    if (!nested) return;
-    nested.open = open;
-    nested.setAttribute("aria-hidden", String(!open));
-    if (open && typeof nested.showPopover === "function") {
-      nested.setAttribute("popover", "manual");
-      try { if (!nested.matches(":popover-open")) nested.showPopover(); } catch {}
-    } else if (!open && typeof nested.hidePopover === "function") {
-      try { if (nested.matches(":popover-open")) nested.hidePopover(); } catch {}
-    }
+    // The outer surface is already in the top layer; the nested menu renders inside it.
+    nested?.setAttribute("aria-hidden", String(!open));
   };
-  const close = (reason, input, returnFocus = true) => {
+  // Light dismiss leaves focus where the user pointed instead of pulling it back to the trigger.
+  const close = (reason, input, returnFocus = reason !== "light-dismiss") => {
     if (!host.state.internalOpen) return;
     host.state.internalOpen = false;
     host.dispatch("close", { open: false, reason, trigger: input });
@@ -142,6 +137,7 @@ export default function controller(host) {
   apply();
   return () => {
     stop();
+    ids.stop();
     observer.disconnect();
     detach();
     element.removeEventListener("keydown", onKeydown);

@@ -27,7 +27,7 @@ React and Svelte adapters are deferred internal repository previews. Docs, Story
 
 ## Qualified behavior
 
-- All 49 declarative contracts must appear in generated API metadata, docs navigation, and the Vue projection where applicable.
+- All 48 declarative contracts must appear in generated API metadata, docs navigation, and the Vue projection where applicable.
 - Public entry points import without DOM globals during server rendering.
 - Chromium tests cover representative keyboard, touch/click, focus-return, disabled-state, and automated accessibility behavior.
 - Real Tiptap tests prove adding rows and columns preserves existing table cells and surrounding content; Vue browser tests prove the turnkey editor and theme-token control path.

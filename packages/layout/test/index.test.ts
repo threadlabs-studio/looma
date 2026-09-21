@@ -8,7 +8,6 @@ describe("@threadlabs/looma-layout canonical declarative graph", () => {
       "ui-center",
       "ui-cluster",
       "ui-grid",
-      "ui-inline",
       "ui-reel",
       "ui-separator",
       "ui-sidebar",
@@ -19,12 +18,13 @@ describe("@threadlabs/looma-layout canonical declarative graph", () => {
     expect(customElements.get("ui-sidebar")).toBeUndefined();
   });
 
-  it("ships the false-default wrap contract from the maintained definition", () => {
-    const inline = records.find(({ tag }) => tag === "ui-inline");
+  it("ships an always-wrapping cluster without wrap or justify props", () => {
+    const cluster = records.find(({ tag }) => tag === "ui-cluster");
 
-    expect(inline?.source).toContain('<prop name="wrap" type="boolean" default="false">');
-    expect(styles).toContain('[data-component-root~="ui-inline"][data-wrap=\'true\']');
-    expect(styles).not.toContain('ui-inline[wrap="wrap"]');
+    expect(cluster?.source).not.toMatch(/<prop name="(?:wrap|justify)"/);
+    expect(styles).toMatch(/data-component-root~="ui-cluster"\][^{]*\{[^}]*flex-wrap:\s*wrap;/);
+    expect(styles).not.toContain('[data-component-root~="ui-cluster"][data-wrap');
+    expect(styles).not.toContain('[data-component-root~="ui-cluster"][data-justify');
   });
 
   it("ships sidebar behavior through its declarative controller", () => {
@@ -63,28 +63,17 @@ describe("@threadlabs/looma-layout css policy", () => {
     expect(css).toMatch(/data-component-root~="ui-reel"\]\[data-snap="start"\]\s*>\s*\*/);
   });
 
-  it("maps every declared inline and cluster alignment, distribution, and gap value", () => {
+  it("maps every declared cluster alignment and gap value", () => {
     const css = styles;
 
-    for (const component of ["ui-inline", "ui-cluster"]) {
+    for (const component of ["ui-cluster"]) {
       for (const gap of ["xs", "s", "m", "l", "xl"]) {
         expect(css).toContain(`[data-component-root~="${component}"][data-gap="${gap}"]`);
       }
       for (const align of ["start", "center", "end", "stretch"]) {
         expect(css).toContain(`[data-component-root~="${component}"][data-align="${align}"]`);
       }
-      for (const justify of ["start", "center", "end", "between"]) {
-        expect(css).toContain(`[data-component-root~="${component}"][data-justify="${justify}"]`);
-      }
     }
-  });
-
-  it("keeps inline content on one row until boolean wrap is present", () => {
-    const css = styles;
-
-    expect(css).toMatch(/data-component-root~="ui-inline"\][^{]*{\s*flex-wrap:\s*nowrap;/);
-    expect(css).toMatch(/data-component-root~="ui-inline"\]\[data-wrap='true'\][^{]*{\s*flex-wrap:\s*wrap;/);
-    expect(css).not.toContain('data-wrap="nowrap"');
   });
 
   it("does not introduce external margins for spacing", () => {

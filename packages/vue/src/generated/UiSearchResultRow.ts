@@ -62,8 +62,8 @@ const _hoisted_12 = {
   style: {"display":"contents"}
 }
 
-import { onMounted, onUnmounted, ref, watchEffect } from "vue";
-import { attachLoomaComponent } from "@threadlabs/looma-core/declarative";
+import { getCurrentInstance, onMounted, onUnmounted, ref, watchEffect } from "vue";
+import { attachLoomaComponent, updateComponentProps } from "@threadlabs/looma-core/declarative";
 import type { ComponentDefinition } from "@threadlabs/looma-core/declarative";
 
 
@@ -79,16 +79,27 @@ export default /*@__PURE__*/_defineComponent({
 
 
 const props = __props;
+const instance = getCurrentInstance();
+const passed = (name: string, attribute: string): boolean => {
+  const raw = instance?.vnode.props ?? {};
+  return Object.hasOwn(raw, name) || Object.hasOwn(raw, attribute);
+};
+const explicitProps = (): Record<string, unknown> => {
+  const valuedisabled = props.disabled;
+  const valueselected = props.selected;
+  return { "disabled": passed("disabled", "disabled") ? valuedisabled : undefined, "selected": passed("selected", "selected") ? valueselected : undefined };
+};
 const definition = {...{"contract":{"tag":"ui-search-result-row","props":{"disabled":{"type":"boolean","required":false,"target":{"attribute":"disabled"},"default":false},"selected":{"type":"boolean","required":false,"target":{"attribute":"data-selected"},"default":false}}},"template":{"kind":"element","name":"button","attributes":[{"kind":"literal","name":"class","value":"search-result-row"},{"kind":"literal","name":"type","value":"button"},{"kind":"attribute","name":"disabled","expression":"disabled","expressionPlan":{"source":"disabled","ast":{"kind":"id","name":"disabled"},"dependencies":["disabled"]}},{"kind":"attribute","name":"data-selected","expression":"selected","expressionPlan":{"source":"selected","ast":{"kind":"id","name":"selected"},"dependencies":["selected"]}},{"kind":"literal","name":"part","value":"button"}],"children":[{"kind":"element","name":"span","attributes":[{"kind":"literal","name":"class","value":"search-result-row__leading"},{"kind":"literal","name":"part","value":"leading"},{"kind":"attribute","name":"hidden","expression":"not hasLeading","expressionPlan":{"source":"not hasLeading","ast":{"kind":"unary","op":"not","operand":{"kind":"id","name":"hasLeading"}},"dependencies":["hasLeading"]}}],"children":[{"kind":"slot","fallback":[],"name":"leading"}]},{"kind":"element","name":"span","attributes":[{"kind":"literal","name":"class","value":"search-result-row__content"},{"kind":"literal","name":"part","value":"content"}],"children":[{"kind":"element","name":"span","attributes":[{"kind":"literal","name":"class","value":"search-result-row__title"},{"kind":"literal","name":"part","value":"title"}],"children":[{"kind":"slot","fallback":[],"name":"title"}]},{"kind":"element","name":"span","attributes":[{"kind":"literal","name":"class","value":"search-result-row__meta"},{"kind":"literal","name":"part","value":"meta"},{"kind":"attribute","name":"hidden","expression":"not hasMeta","expressionPlan":{"source":"not hasMeta","ast":{"kind":"unary","op":"not","operand":{"kind":"id","name":"hasMeta"}},"dependencies":["hasMeta"]}}],"children":[{"kind":"slot","fallback":[],"name":"meta"}]},{"kind":"element","name":"span","attributes":[{"kind":"literal","name":"class","value":"search-result-row__excerpt"},{"kind":"literal","name":"part","value":"excerpt"},{"kind":"attribute","name":"hidden","expression":"not hasExcerpt","expressionPlan":{"source":"not hasExcerpt","ast":{"kind":"unary","op":"not","operand":{"kind":"id","name":"hasExcerpt"}},"dependencies":["hasExcerpt"]}}],"children":[{"kind":"slot","fallback":[],"name":"excerpt"}]}]},{"kind":"element","name":"span","attributes":[{"kind":"literal","name":"class","value":"search-result-row__trailing"},{"kind":"literal","name":"part","value":"trailing"},{"kind":"attribute","name":"hidden","expression":"not hasTrailing","expressionPlan":{"source":"not hasTrailing","ast":{"kind":"unary","op":"not","operand":{"kind":"id","name":"hasTrailing"}},"dependencies":["hasTrailing"]}}],"children":[{"kind":"slot","fallback":[],"name":"trailing"}]}]},"declarations":[{"kind":"state","name":"hasLeading","expression":{"source":"false","ast":{"kind":"literal","value":false},"dependencies":[]}},{"kind":"state","name":"hasMeta","expression":{"source":"false","ast":{"kind":"literal","value":false},"dependencies":[]}},{"kind":"state","name":"hasExcerpt","expression":{"source":"false","ast":{"kind":"literal","value":false},"dependencies":[]}},{"kind":"state","name":"hasTrailing","expression":{"source":"false","ast":{"kind":"literal","value":false},"dependencies":[]}}],"root":{"kind":"native","element":"button","choices":["button"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
 const root = ref<Element>();
 let detach: undefined | (() => void);
 onMounted(() => {
   if (root.value == null) return;
-  detach = attachLoomaComponent(root.value, definition, "ui-search-result-row", props);
+  detach = attachLoomaComponent(root.value, definition, "ui-search-result-row", explicitProps());
 });
 watchEffect(() => {
+  const next = explicitProps();
   if (root.value == null) return;
-  for (const name of ["disabled","selected"]) (root.value as unknown as Record<string, unknown>)[name] = props[name as keyof typeof props];
+  updateComponentProps(root.value, next);
 });
 onUnmounted(() => {
   detach?.();

@@ -120,18 +120,14 @@ describe("@threadlabs/looma-vue/editor adapter", () => {
     app.mount(host);
     await settleDeclarativeComponents(host);
 
-    const slashMenu = host.querySelector(`[data-component-root="ui-editor-slash-menu"]`) as HTMLElement & {
-      open: boolean;
-      query: string;
-      items: unknown[];
-      selectedIndex: number;
-      anchorRect: typeof anchorRect | null;
-    };
-    expect(slashMenu.open).toBe(true);
-    expect(slashMenu.query).toBe("par");
-    expect(slashMenu.items).toStrictEqual(items);
-    expect(slashMenu.selectedIndex).toBe(1);
-    expect(slashMenu.anchorRect).toStrictEqual(anchorRect);
+    // Props are attributes: the adapter's explicit props are reflected as data-* (JSON for shapes).
+    const slashMenu = host.querySelector<HTMLElement>(`[data-component-root="ui-editor-slash-menu"]`)!;
+    expect(slashMenu.getAttribute("data-open")).toBe("true");
+    expect(slashMenu.getAttribute("data-query")).toBe("par");
+    expect(JSON.parse(slashMenu.getAttribute("data-items") ?? "null")).toStrictEqual(items);
+    expect(slashMenu.getAttribute("data-selected-index")).toBe("1");
+    expect(JSON.parse(slashMenu.getAttribute("data-anchor-rect") ?? "null")).toStrictEqual(anchorRect);
+    expect(Object.hasOwn(slashMenu, "items")).toBe(false);
 
     const highlight = { index: 1 };
     const select = { index: 0 };
@@ -167,17 +163,11 @@ describe("@threadlabs/looma-vue/editor adapter", () => {
     app.mount(host);
     await settleDeclarativeComponents(host);
 
-    const menu = host.querySelector(`[data-component-root="ui-editor-mention-menu"]`) as HTMLElement & {
-      open: boolean;
-      query: string;
-      items: unknown[];
-      selectedIndex: number;
-      anchorRect: typeof anchorRect | null;
-    };
-    expect(menu.open).toBe(true);
-    expect(menu.query).toBe("ad");
-    expect(menu.items).toStrictEqual(items);
-    expect(menu.anchorRect).toStrictEqual(anchorRect);
+    const menu = host.querySelector<HTMLElement>(`[data-component-root="ui-editor-mention-menu"]`)!;
+    expect(menu.getAttribute("data-open")).toBe("true");
+    expect(menu.getAttribute("data-query")).toBe("ad");
+    expect(JSON.parse(menu.getAttribute("data-items") ?? "null")).toStrictEqual(items);
+    expect(JSON.parse(menu.getAttribute("data-anchor-rect") ?? "null")).toStrictEqual(anchorRect);
 
     menu.dispatchEvent(new CustomEvent("highlight", {
       detail: { index: 0 },

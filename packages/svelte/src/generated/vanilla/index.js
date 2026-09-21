@@ -30,8 +30,8 @@ import { createUiTopBar } from "./UiTopBar.js";
 import { createUiTreeItem } from "./UiTreeItem.js";
 import { createUiTree } from "./UiTree.js";
 import { createUiCenter } from "./UiCenter.js";
+import { createUiCluster } from "./UiCluster.js";
 import { createUiGrid } from "./UiGrid.js";
-import { createUiInline } from "./UiInline.js";
 import { createUiReel } from "./UiReel.js";
 import { createUiSeparator } from "./UiSeparator.js";
 import { createUiSidebar } from "./UiSidebar.js";
@@ -44,7 +44,7 @@ import { createUiEditorTableContextMenu } from "./UiEditorTableContextMenu.js";
 import { createUiEditorTableOverlay } from "./UiEditorTableOverlay.js";
 import { createUiEditorTableToolbar } from "./UiEditorTableToolbar.js";
 import { createUiEditorToolbar } from "./UiEditorToolbar.js";
-export { createUiAffordanceScope, createUiAvatarGroup, createUiAvatar, createUiBadge, createUiButton, createUiCallout, createUiCheckbox, createUiCombobox, createUiContextMenu, createUiDialog, createUiDisclosure, createUiEditable, createUiFormField, createUiIconButton, createUiInput, createUiMenuItem, createUiMenu, createUiPopover, createUiRadioGroup, createUiRadio, createUiSearchResultRow, createUiSearchShell, createUiSelect, createUiSwitch, createUiTabs, createUiTextarea, createUiToastRegion, createUiTooltip, createUiTopBar, createUiTreeItem, createUiTree, createUiCenter, createUiGrid, createUiInline, createUiReel, createUiSeparator, createUiSidebar, createUiStack, createUiSwitcher, createUiEditorInsertTableGrid, createUiEditorMentionMenu, createUiEditorSlashMenu, createUiEditorTableContextMenu, createUiEditorTableOverlay, createUiEditorTableToolbar, createUiEditorToolbar };
+export { createUiAffordanceScope, createUiAvatarGroup, createUiAvatar, createUiBadge, createUiButton, createUiCallout, createUiCheckbox, createUiCombobox, createUiContextMenu, createUiDialog, createUiDisclosure, createUiEditable, createUiFormField, createUiIconButton, createUiInput, createUiMenuItem, createUiMenu, createUiPopover, createUiRadioGroup, createUiRadio, createUiSearchResultRow, createUiSearchShell, createUiSelect, createUiSwitch, createUiTabs, createUiTextarea, createUiToastRegion, createUiTooltip, createUiTopBar, createUiTreeItem, createUiTree, createUiCenter, createUiCluster, createUiGrid, createUiReel, createUiSeparator, createUiSidebar, createUiStack, createUiSwitcher, createUiEditorInsertTableGrid, createUiEditorMentionMenu, createUiEditorSlashMenu, createUiEditorTableContextMenu, createUiEditorTableOverlay, createUiEditorTableToolbar, createUiEditorToolbar };
 export const factoryByTag = Object.freeze({
   "ui-affordance-scope": createUiAffordanceScope,
   "ui-avatar-group": createUiAvatarGroup,
@@ -78,8 +78,8 @@ export const factoryByTag = Object.freeze({
   "ui-tree-item": createUiTreeItem,
   "ui-tree": createUiTree,
   "ui-center": createUiCenter,
+  "ui-cluster": createUiCluster,
   "ui-grid": createUiGrid,
-  "ui-inline": createUiInline,
   "ui-reel": createUiReel,
   "ui-separator": createUiSeparator,
   "ui-sidebar": createUiSidebar,

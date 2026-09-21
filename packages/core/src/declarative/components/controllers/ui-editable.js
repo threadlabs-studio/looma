@@ -10,7 +10,7 @@ export default function controller(host) {
   const document = element.ownerDocument;
   const preview = element.querySelector(".editable__preview");
   const input = element.querySelector(".editable__input");
-  const editor = element.querySelector(".editable__editor");
+
   let lastExternalEdit = Boolean(host.state.edit);
   let lastExternalValue = String(host.state.value ?? "");
   host.state.internalEdit = lastExternalEdit;
@@ -31,11 +31,11 @@ export default function controller(host) {
       if (!host.state.internalEdit) host.state.draft = externalValue;
     }
     const editing = Boolean(host.state.internalEdit);
-    if (preview) preview.hidden = editing;
-    if (editor) editor.hidden = !editing;
     if (preview) preview.disabled = Boolean(host.state.disabled);
     if (input) {
-      input.disabled = Boolean(host.state.disabled);
+      // The inactive input stays in layout (it shares the value's cell) but out of the tab order.
+      input.tabIndex = editing ? 0 : -1;
+      input.disabled = Boolean(host.state.disabled) || !editing;
       input.setAttribute("aria-label", String(host.state.label || "Edit value"));
     }
   };
@@ -46,7 +46,11 @@ export default function controller(host) {
     host.state.internalEdit = next;
     apply();
     host.dispatch("edit-change", { edit: next, reason, trigger });
-    requestAnimationFrame(() => next ? input?.focus() : preview?.focus());
+    requestAnimationFrame(() => {
+      if (!next) return preview?.focus();
+      input?.focus();
+      input?.select();
+    });
   };
   const commit = (trigger) => {
     const previousValue = String(host.state.internalValue ?? "");
@@ -83,15 +87,20 @@ export default function controller(host) {
       commit("keyboard");
     }
   };
+  // Leaving the field saves, as with other in-place editors; Escape is the way to discard.
   const onDocumentPointerdown = (event) => {
-    if (host.state.internalEdit && !event.composedPath().includes(element)) {
-      cancel("light-dismiss", "pointer");
-    }
+    if (host.state.internalEdit && !event.composedPath().includes(element)) commit("pointer");
+  };
+  // Only the input's own blur counts: hiding the display button during the swap also moves focus,
+  // and must not end the edit. Tabbing to another control saves; clicks away are handled above.
+  const onInputBlur = (event) => {
+    if (host.state.internalEdit && event.relatedTarget && !element.contains(event.relatedTarget)) commit("keyboard");
   };
 
   element.addEventListener("input", onInput);
   element.addEventListener("click", onClick);
   element.addEventListener("keydown", onKeydown);
+  input?.addEventListener("blur", onInputBlur);
   document.addEventListener("pointerdown", onDocumentPointerdown, true);
   const stop = host.effect(apply);
   apply();
@@ -100,6 +109,7 @@ export default function controller(host) {
     element.removeEventListener("input", onInput);
     element.removeEventListener("click", onClick);
     element.removeEventListener("keydown", onKeydown);
+    input?.removeEventListener("blur", onInputBlur);
     document.removeEventListener("pointerdown", onDocumentPointerdown, true);
   };
 }

@@ -40,7 +40,7 @@ describe("React declarative adapters", () => {
     expect(element?.hasAttribute("data-gap")).toBe(false);
   });
 
-  it("preserves structured property names and forwards declared events", async () => {
+  it("passes structured props as JSON attributes and forwards declared events", async () => {
     const items = [{ title: "Paragraph", description: "Plain text", icon: "pilcrow" }];
     const anchorRect = { x: 12, y: 24, width: 1, height: 18 };
     const onSelect = vi.fn();
@@ -60,11 +60,11 @@ describe("React declarative adapters", () => {
       );
     });
 
-    const element = host.querySelector<HTMLElement>('[data-component-root="ui-editor-slash-menu"]') as
-      | (HTMLElement & { items: unknown[]; anchorRect: typeof anchorRect })
-      | null;
-    expect(element?.items).toStrictEqual(items);
-    expect(element?.anchorRect).toStrictEqual(anchorRect);
+    const element = host.querySelector<HTMLElement>('[data-component-root="ui-editor-slash-menu"]');
+    // Props are attributes: explicit structured values are reflected as JSON, never as properties.
+    expect(JSON.parse(element?.getAttribute("data-items") ?? "null")).toStrictEqual(items);
+    expect(JSON.parse(element?.getAttribute("data-anchor-rect") ?? "null")).toStrictEqual(anchorRect);
+    expect(element !== null && Object.hasOwn(element, "items")).toBe(false);
 
     const detail = { index: 0 };
     element?.dispatchEvent(new CustomEvent("select", { detail }));

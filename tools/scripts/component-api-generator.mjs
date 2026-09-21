@@ -470,10 +470,9 @@ function contractMetadata(tag, packageName, contract, description, designTokens)
     type: declarativeTypeToTypeScript(declaration.type),
     ...(Object.hasOwn(declaration, "default") ? { default: declaration.default } : {}),
     ...(literalOptions(declaration.type) ? { options: literalOptions(declaration.type) } : {}),
-    channel: declaration.channel === "property" ? "property" : "attribute | property",
   }));
+  // Every prop is an HTML attribute (structured shapes as JSON text); there is no property-only channel.
   const attributes = Object.entries(contract.props ?? {})
-    .filter(([, declaration]) => declaration.channel !== "property")
     .map(([name, declaration]) => ({
       name: publicAttributeName(name, declaration),
       property: name,

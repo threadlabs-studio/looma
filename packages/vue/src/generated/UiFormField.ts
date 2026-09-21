@@ -22,8 +22,8 @@ const _hoisted_5 = {
   style: {"display":"contents"}
 }
 
-import { onMounted, onUnmounted, ref, watchEffect } from "vue";
-import { attachLoomaComponent } from "@threadlabs/looma-core/declarative";
+import { getCurrentInstance, onMounted, onUnmounted, ref, watchEffect } from "vue";
+import { attachLoomaComponent, updateComponentProps } from "@threadlabs/looma-core/declarative";
 import type { ComponentDefinition } from "@threadlabs/looma-core/declarative";
 
 
@@ -40,16 +40,28 @@ export default /*@__PURE__*/_defineComponent({
 
 
 const props = __props;
+const instance = getCurrentInstance();
+const passed = (name: string, attribute: string): boolean => {
+  const raw = instance?.vnode.props ?? {};
+  return Object.hasOwn(raw, name) || Object.hasOwn(raw, attribute);
+};
+const explicitProps = (): Record<string, unknown> => {
+  const valuedisabled = props.disabled;
+  const valueinvalid = props.invalid;
+  const valuerequired = props.required;
+  return { "disabled": passed("disabled", "disabled") ? valuedisabled : undefined, "invalid": passed("invalid", "invalid") ? valueinvalid : undefined, "required": passed("required", "required") ? valuerequired : undefined };
+};
 const definition = {...{"contract":{"tag":"ui-form-field","props":{"disabled":{"type":"boolean","required":false,"target":{"attribute":"data-disabled"},"default":false},"invalid":{"type":"boolean","required":false,"target":{"attribute":"data-invalid"},"default":false},"required":{"type":"boolean","required":false,"target":{"attribute":"data-required"},"default":false}}},"template":{"kind":"element","name":"div","attributes":[{"kind":"attribute","name":"data-invalid","expression":"invalid","expressionPlan":{"source":"invalid","ast":{"kind":"id","name":"invalid"},"dependencies":["invalid"]}},{"kind":"attribute","name":"data-disabled","expression":"disabled","expressionPlan":{"source":"disabled","ast":{"kind":"id","name":"disabled"},"dependencies":["disabled"]}},{"kind":"attribute","name":"data-required","expression":"required","expressionPlan":{"source":"required","ast":{"kind":"id","name":"required"},"dependencies":["required"]}}],"children":[{"kind":"slot","fallback":[],"name":"label"},{"kind":"slot"},{"kind":"slot","fallback":[],"name":"help"},{"kind":"slot","fallback":[],"name":"error"}]},"declarations":[],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
 const root = ref<Element>();
 let detach: undefined | (() => void);
 onMounted(() => {
   if (root.value == null) return;
-  detach = attachLoomaComponent(root.value, definition, "ui-form-field", props);
+  detach = attachLoomaComponent(root.value, definition, "ui-form-field", explicitProps());
 });
 watchEffect(() => {
+  const next = explicitProps();
   if (root.value == null) return;
-  for (const name of ["disabled","invalid","required"]) (root.value as unknown as Record<string, unknown>)[name] = props[name as keyof typeof props];
+  updateComponentProps(root.value, next);
 });
 onUnmounted(() => {
   detach?.();

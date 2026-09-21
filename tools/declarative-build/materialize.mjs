@@ -63,8 +63,8 @@ function rewriteFrameworkSource(source, component) {
   // `data-looma-managed` is the ownership handshake with document observation:
   // the framework owns this native root and the observer must not lower it.
   return source
-    .replace(/import \{ attachComponent \} from "@nextwebwg\/declarative-components\/runtime";\n/, `import { attachLoomaComponent } from "@threadlabs/looma-core/declarative";\n`)
-    .replace(/import \{ manageGeneratedProps \} from "@nextwebwg\/declarative-components\/generated-runtime";\n/, `import { manageGeneratedProps } from "@threadlabs/looma-core/declarative-generated";\n`)
+    .replace(/import \{ attachComponent, updateComponentProps \} from "@nextwebwg\/declarative-components\/runtime";\n/, `import { attachLoomaComponent, updateComponentProps } from "@threadlabs/looma-core/declarative";\n`)
+    .replace(/import \{ ((?:dispatchGeneratedEvent, )?manageGeneratedProps, updateGeneratedProps) \} from "@nextwebwg\/declarative-components\/generated-runtime";\n/, `import { $1 } from "@threadlabs/looma-core/declarative-generated";\n`)
     .replace(/import type \{ ComponentDefinition \} from "@nextwebwg\/declarative-components";\n/, `import type { ComponentDefinition } from "@threadlabs/looma-core/declarative";\n`)
     .replace(new RegExp(`import \\* as controller from "\\.\\.\/controllers\/${component.tag}\/controllers\/${component.tag}\\.js";\\n`), "")
     .replace(new RegExp(`import "\\.\\.\/styles\/${component.tag}\\.css";\\n`), "")
@@ -77,7 +77,7 @@ function rewriteFrameworkSource(source, component) {
     .replace(/\b([\w:-]+)=\{(prop\d+)\}/g, "$1={$2 ?? undefined}")
     .replace(/\)\[("[^"]+")\]\(\)/g, ")[$1]!()")
     .replace(
-      /attachComponent\((root\.(?:value|current)), definition, \{\s*props(?:: (componentProps))?,\s*controller,\s*\}\)/g,
+      /attachComponent\((root\.(?:value|current)), definition, \{\s*props(?:: (componentProps|explicitProps\(\)))?,\s*controller,\s*\}\)/g,
       (_match, root, explicitProps) => `attachLoomaComponent(${root}, definition, "${component.tag}", ${explicitProps ?? "props"})`,
     );
 }
@@ -136,6 +136,8 @@ function rewriteReactSemantics(source, definitionSource) {
     // adapts the public prop destructure; the second targets JSX attributes.
     .replace(/^  readonly\?:/gm, "  readOnly?:")
     .replace(/"readonly": (prop\d+)/, '"readOnly": $1')
+    // Raw (explicit-only) prop reads use the React-spelled key; the runtime prop stays `readonly`.
+    .replace(/props\["readonly"\]/g, 'props["readOnly"]')
     .replace(/\sreadonly=\{/g, " readOnly={")
     .replace(/\shidden=""/g, " hidden")
     .replace(/\stabindex="(-?\d+)"/g, " tabIndex={$1}")
@@ -302,7 +304,7 @@ async function main() {
     // Looma only exposes the IIFE's public API as ESM; release tooling must not
     // patch runtime internals or carry a private framework-specific fork.
     .replace('"use strict";var HtmlRuntime=', "const HtmlRuntime=")
-    .concat("\nexport const { attachComponent, attachRegisteredComponent, getComponentHost, installComponentGraph, lowerDocument, manageComponentLifecycle, observeDocument, registerComponentDefinitions, setControllerModule } = HtmlRuntime;\n");
+    .concat("\nexport const { attachComponent, attachRegisteredComponent, getComponentHost, installComponentGraph, lowerDocument, manageComponentLifecycle, observeDocument, registerComponentDefinitions, setControllerModule, updateComponentProps } = HtmlRuntime;\n");
   await writeFile(join(runtimeOutput, "runtime.js"), runtime);
   await writeFile(join(runtimeOutput, "runtime.d.ts"), [
     "/** Binds props, behavior, and teardown to a root whose DOM is owned by a framework adapter. */",
@@ -321,20 +323,26 @@ async function main() {
     "export declare function registerComponentDefinitions(definitions: readonly unknown[], root?: Document): void;",
     "/** Associates behavior with one settled root without publishing modules on a browser global. */",
     "export declare function setControllerModule(element: Element, module: Promise<unknown>): void;",
+    "/** Framework-adapter prop channel: applies props as authored attributes would be. */",
+    "export declare function updateComponentProps(element: Element, props: Readonly<Record<string, unknown>>): void;",
     "",
   ].join("\n"));
   await cp(join(HERE, "vendor", "html-next-generated-runtime.js"), join(runtimeOutput, "generated-runtime.js"));
   await writeFile(join(runtimeOutput, "generated-runtime.d.ts"), [
-    "/** Metadata that preserves defaults and property-only values without forcing attribute serialization. */",
+    "/** One compiled prop: the value the caller supplied (undefined when omitted), its declared default, and whether the template binds its data-* attribute. */",
     "export interface GeneratedProp {",
     "  readonly name: string;",
     "  readonly attribute: string;",
     "  readonly value: unknown;",
+    "  readonly default?: unknown;",
+    "  readonly bound?: boolean;",
     "  readonly type: string | readonly unknown[];",
     "  readonly required: boolean;",
     "}",
-    "/** Synchronizes property and attribute writes for the lifetime of a native root. */",
+    "/** Reflects explicit props as data-* attributes and parses later attribute writes, for the lifetime of a native root. */",
     "export declare function manageGeneratedProps(element: Element, props: readonly GeneratedProp[], apply?: (name: string, value: unknown) => void): () => void;",
+    "/** Framework-adapter prop channel for compiled components: applies props as authored attributes would be. */",
+    "export declare function updateGeneratedProps(element: Element, props: Readonly<Record<string, unknown>>): void;",
     "",
   ].join("\n"));
 

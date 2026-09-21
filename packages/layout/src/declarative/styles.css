@@ -2,14 +2,14 @@
  * Keep the box model outside `@layer components`: these are composition
  * guarantees for authored light-DOM children, not themeable component styles.
  */
-:where([data-component-root~="ui-stack"], [data-component-root~="ui-inline"], [data-component-root~="ui-cluster"], [data-component-root~="ui-grid"], [data-component-root~="ui-center"], [data-component-root~="ui-switcher"], [data-component-root~="ui-sidebar"], [data-component-root~="ui-reel"], [data-component-root~="ui-separator"]),
-:where([data-component-root~="ui-stack"], [data-component-root~="ui-inline"], [data-component-root~="ui-cluster"], [data-component-root~="ui-grid"], [data-component-root~="ui-center"], [data-component-root~="ui-switcher"], [data-component-root~="ui-sidebar"], [data-component-root~="ui-reel"], [data-component-root~="ui-separator"]) *,
-:where([data-component-root~="ui-stack"], [data-component-root~="ui-inline"], [data-component-root~="ui-cluster"], [data-component-root~="ui-grid"], [data-component-root~="ui-center"], [data-component-root~="ui-switcher"], [data-component-root~="ui-sidebar"], [data-component-root~="ui-reel"], [data-component-root~="ui-separator"]) *::before,
-:where([data-component-root~="ui-stack"], [data-component-root~="ui-inline"], [data-component-root~="ui-cluster"], [data-component-root~="ui-grid"], [data-component-root~="ui-center"], [data-component-root~="ui-switcher"], [data-component-root~="ui-sidebar"], [data-component-root~="ui-reel"], [data-component-root~="ui-separator"]) *::after {
+:where([data-component-root~="ui-stack"], [data-component-root~="ui-cluster"], [data-component-root~="ui-grid"], [data-component-root~="ui-center"], [data-component-root~="ui-switcher"], [data-component-root~="ui-sidebar"], [data-component-root~="ui-reel"], [data-component-root~="ui-separator"]),
+:where([data-component-root~="ui-stack"], [data-component-root~="ui-cluster"], [data-component-root~="ui-grid"], [data-component-root~="ui-center"], [data-component-root~="ui-switcher"], [data-component-root~="ui-sidebar"], [data-component-root~="ui-reel"], [data-component-root~="ui-separator"]) *,
+:where([data-component-root~="ui-stack"], [data-component-root~="ui-cluster"], [data-component-root~="ui-grid"], [data-component-root~="ui-center"], [data-component-root~="ui-switcher"], [data-component-root~="ui-sidebar"], [data-component-root~="ui-reel"], [data-component-root~="ui-separator"]) *::before,
+:where([data-component-root~="ui-stack"], [data-component-root~="ui-cluster"], [data-component-root~="ui-grid"], [data-component-root~="ui-center"], [data-component-root~="ui-switcher"], [data-component-root~="ui-sidebar"], [data-component-root~="ui-reel"], [data-component-root~="ui-separator"]) *::after {
   box-sizing: border-box;
 }
 
-:where([data-component-root~="ui-stack"], [data-component-root~="ui-inline"], [data-component-root~="ui-cluster"], [data-component-root~="ui-grid"], [data-component-root~="ui-center"], [data-component-root~="ui-switcher"], [data-component-root~="ui-sidebar"], [data-component-root~="ui-reel"], [data-component-root~="ui-separator"]) {
+:where([data-component-root~="ui-stack"], [data-component-root~="ui-cluster"], [data-component-root~="ui-grid"], [data-component-root~="ui-center"], [data-component-root~="ui-switcher"], [data-component-root~="ui-sidebar"], [data-component-root~="ui-reel"], [data-component-root~="ui-separator"]) {
   /* `revert-layer` exposes `@layer components`; `revert` would skip the author layer entirely. */
   all: revert-layer;
   box-sizing: border-box;
@@ -19,7 +19,7 @@
   color: var(--ui-text-primary);
 }
 
-:where([data-component-root~="ui-stack"], [data-component-root~="ui-inline"], [data-component-root~="ui-cluster"], [data-component-root~="ui-grid"], [data-component-root~="ui-center"], [data-component-root~="ui-switcher"], [data-component-root~="ui-sidebar"], [data-component-root~="ui-reel"], [data-component-root~="ui-separator"])[data-ui-inherit-typography] {
+:where([data-component-root~="ui-stack"], [data-component-root~="ui-cluster"], [data-component-root~="ui-grid"], [data-component-root~="ui-center"], [data-component-root~="ui-switcher"], [data-component-root~="ui-sidebar"], [data-component-root~="ui-reel"], [data-component-root~="ui-separator"])[data-ui-inherit-typography] {
   /* Consumers opt into surrounding prose styles; isolated component defaults remain the safe default. */
   font-family: inherit;
   font-size: inherit;
@@ -35,7 +35,7 @@
 }
 
 @layer components {
-  :where([data-component-root~="ui-stack"], [data-component-root~="ui-inline"], [data-component-root~="ui-cluster"], [data-component-root~="ui-grid"], [data-component-root~="ui-center"], [data-component-root~="ui-switcher"], [data-component-root~="ui-sidebar"], [data-component-root~="ui-reel"], [data-component-root~="ui-separator"]) {
+  :where([data-component-root~="ui-stack"], [data-component-root~="ui-cluster"], [data-component-root~="ui-grid"], [data-component-root~="ui-center"], [data-component-root~="ui-switcher"], [data-component-root~="ui-sidebar"], [data-component-root~="ui-reel"], [data-component-root~="ui-separator"]) {
     min-inline-size: 0;
     max-inline-size: 100%;
     margin: 0;
@@ -64,46 +64,24 @@
   [data-component-root~="ui-stack"][data-justify="end"] { --ui-layout-justify: flex-end; }
   [data-component-root~="ui-stack"][data-justify="between"] { --ui-layout-justify: space-between; }
 
-  [data-component-root~="ui-inline"],
   [data-component-root~="ui-cluster"] {
     --ui-layout-gap: var(--ui-space-3, 0.75rem);
     --ui-layout-align: center;
-    --ui-layout-justify: flex-start;
     display: flex;
+    flex-wrap: wrap;
     align-items: var(--ui-layout-align);
-    justify-content: var(--ui-layout-justify);
     gap: var(--ui-layout-gap);
   }
 
-  [data-component-root~="ui-inline"] { flex-wrap: nowrap; }
-  [data-component-root~="ui-inline"][data-wrap='true'],
-  [data-component-root~="ui-cluster"] { flex-wrap: wrap; }
-  [data-component-root~="ui-inline"][data-gap="xs"],
   [data-component-root~="ui-cluster"][data-gap="xs"] { --ui-layout-gap: var(--ui-space-2, 0.5rem); }
-  [data-component-root~="ui-inline"][data-gap="s"],
   [data-component-root~="ui-cluster"][data-gap="s"] { --ui-layout-gap: var(--ui-space-3, 0.75rem); }
-  [data-component-root~="ui-inline"][data-gap="m"],
   [data-component-root~="ui-cluster"][data-gap="m"] { --ui-layout-gap: var(--ui-space-4, 1rem); }
-  [data-component-root~="ui-inline"][data-gap="l"],
   [data-component-root~="ui-cluster"][data-gap="l"] { --ui-layout-gap: var(--ui-space-5, 1.5rem); }
-  [data-component-root~="ui-inline"][data-gap="xl"],
   [data-component-root~="ui-cluster"][data-gap="xl"] { --ui-layout-gap: var(--ui-space-6, 2rem); }
-  [data-component-root~="ui-inline"][data-align="start"],
   [data-component-root~="ui-cluster"][data-align="start"] { --ui-layout-align: flex-start; }
-  [data-component-root~="ui-inline"][data-align="center"],
   [data-component-root~="ui-cluster"][data-align="center"] { --ui-layout-align: center; }
-  [data-component-root~="ui-inline"][data-align="end"],
   [data-component-root~="ui-cluster"][data-align="end"] { --ui-layout-align: flex-end; }
-  [data-component-root~="ui-inline"][data-align="stretch"],
   [data-component-root~="ui-cluster"][data-align="stretch"] { --ui-layout-align: stretch; }
-  [data-component-root~="ui-inline"][data-justify="start"],
-  [data-component-root~="ui-cluster"][data-justify="start"] { --ui-layout-justify: flex-start; }
-  [data-component-root~="ui-inline"][data-justify="center"],
-  [data-component-root~="ui-cluster"][data-justify="center"] { --ui-layout-justify: center; }
-  [data-component-root~="ui-inline"][data-justify="end"],
-  [data-component-root~="ui-cluster"][data-justify="end"] { --ui-layout-justify: flex-end; }
-  [data-component-root~="ui-inline"][data-justify="between"],
-  [data-component-root~="ui-cluster"][data-justify="between"] { --ui-layout-justify: space-between; }
 
   [data-component-root~="ui-grid"] {
     --ui-grid-gap: var(--ui-space-4, 1rem);

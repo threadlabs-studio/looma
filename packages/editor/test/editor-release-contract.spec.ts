@@ -117,7 +117,8 @@ describe("editor release data-integrity contract", () => {
     const before = editor.getJSON();
     const menu = document.createElement("ui-editor-table-context-menu");
     menu.setAttribute("open", "");
-    (menu as HTMLElement & { actions: string[] }).actions = ["delete-table"];
+    // Props are attributes; list-typed props are JSON text.
+    menu.setAttribute("actions", '["delete-table"]');
     document.body.append(menu);
     const actions: string[] = [];
     menu.addEventListener("action", (event) => {
@@ -148,15 +149,14 @@ describe("representative editor accessibility", () => {
         <ui-editor-table-overlay open rows="2" cols="2"></ui-editor-table-overlay>
       </main>
     `;
-    (document.querySelector("ui-editor-table-toolbar") as HTMLElement & { actions: string[] }).actions = [
-      "add-row-after",
-      "add-column-after",
-      "delete-table",
-    ];
-    (document.querySelector("ui-editor-table-context-menu") as HTMLElement & { actions: string[] }).actions = [
-      "add-row-after",
-      "delete-table",
-    ];
+    document.querySelector("ui-editor-table-toolbar")!.setAttribute(
+      "actions",
+      JSON.stringify(["add-row-after", "add-column-after", "delete-table"]),
+    );
+    document.querySelector("ui-editor-table-context-menu")!.setAttribute(
+      "actions",
+      JSON.stringify(["add-row-after", "delete-table"]),
+    );
     await flushDeclarative();
 
     const result = await axe.run(document.getElementById("editor-qualification")!, {

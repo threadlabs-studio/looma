@@ -108,7 +108,11 @@ async function mount(markup, props = {}) {
     const template = document.createElement("template");
     template.innerHTML = source;
     const invocation = template.content.firstElementChild;
-    Object.assign(invocation, componentProps);
+    // Props are attributes: kebab-case names, JSON text for list/object shapes.
+    for (const [name, value] of Object.entries(componentProps)) {
+      const attribute = name.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
+      invocation.setAttribute(attribute, typeof value === "string" ? value : JSON.stringify(value));
+    }
     fixture.replaceChildren(template.content);
   }, { source: markup, componentProps: props });
   await page.waitForTimeout(50);
@@ -264,7 +268,7 @@ await check("menu selection closes anchored surface", async () => {
 await check("popover and tooltip anchored triggers", async () => {
   await mount(`<div><button id="popover-trigger">Open</button><ui-popover for="popover-trigger">Panel</ui-popover>
     <button id="tooltip-trigger">Help</button><ui-tooltip for="tooltip-trigger" show-delay="0">Hint</ui-tooltip></div>`);
-  await page.locator('[data-component-root~="ui-popover"]').evaluate((element) => { element.open = true; });
+  await page.locator('[data-component-root~="ui-popover"]').evaluate((element) => { element.setAttribute("data-open", "true"); });
   await page.waitForTimeout(20);
   await debugFixture("overlays after popover click");
   assert.equal(await page.locator('[data-component-root~="ui-popover"]').evaluate((element) => element.hasAttribute("data-state-open")), true);
@@ -325,7 +329,8 @@ await check("layout accessibility defaults", async () => {
   assert.equal(await reel.getAttribute("aria-label"), "Recent pages");
   assert.equal(await separator.getAttribute("role"), "separator");
   assert.equal(await separator.getAttribute("aria-orientation"), "horizontal");
-  await separator.evaluate((element) => { element.orientation = "vertical"; });
+  await separator.evaluate((element) => { element.setAttribute("data-orientation", "vertical"); });
+  await page.waitForTimeout(20);
   assert.equal(await separator.getAttribute("aria-orientation"), "vertical");
 });
 
@@ -399,7 +404,7 @@ await check("editor bounded menus and positioning", async () => {
   assert.equal(await slash.locator(".ui-editor-slash-menu__list").evaluate((element) => element.scrollTop), 120);
 
   await page.setViewportSize({ width: 375, height: 420 });
-  await slash.evaluate((element) => { element.anchorRect = { left: 16, top: 300, right: 17, bottom: 318 }; });
+  await slash.evaluate((element) => { element.setAttribute("data-anchor-rect", JSON.stringify({ left: 16, top: 300, right: 17, bottom: 318 })); });
   await page.waitForTimeout(20);
   assert.equal(await slash.evaluate((element) => element.style.left), "0px");
   assert.equal(await slash.evaluate((element) => element.style.width), "375px");

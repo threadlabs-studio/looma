@@ -65,11 +65,9 @@ function parseProps(defs) {
   for (const match of defs.matchAll(/<prop\b([^>]*)>([\s\S]*?)<\/prop>/g)) {
     const attributes = parseAttributes(match[1]);
     if (!attributes.name || !attributes.type) throw new SyntaxError("Every declarative prop needs name and type");
-    const structured = /(?:^|\||\s)(?:list|object|function|unknown|trusted-html|trusted-script)\b/.test(attributes.type);
     const declaration = {
       type: attributes.type,
       ...(attributes.attribute ? { attribute: attributes.attribute } : {}),
-      ...((attributes.channel === "property" || structured) ? { channel: "property" } : {}),
       ...(attributes["default-true-reason"] ? { defaultTrueReason: attributes["default-true-reason"] } : {}),
     };
     if (Object.hasOwn(attributes, "default")) {

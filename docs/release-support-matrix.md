@@ -20,7 +20,7 @@ authorization still requires the protected owner preflight before registry mutat
 
 ### Layout: published Candidate
 
-`ui-center`, `ui-grid`, `ui-inline`, `ui-reel`, `ui-separator`,
+`ui-center`, `ui-grid`, `ui-cluster`, `ui-reel`, `ui-separator`,
 `ui-sidebar`, `ui-stack`, `ui-switcher`.
 
 ### Core: published Candidate
@@ -71,7 +71,7 @@ is a release defect, not a reason to silently shrink the source inventory.
 
 | Evidence | Current status | Release requirement |
 | --- | --- | --- |
-| Exact source inventory | Contract-derived classification and projection gate passing for all 49 tags | Must stay clean through publication |
+| Exact source inventory | Contract-derived classification and projection gate passing for all 48 tags | Must stay clean through publication |
 | Knit linked-workspace build | Passing | Must repeat against approved packed artifacts |
 | SSR imports through Knit graph | Passing for core/editor/editor extensions/Vue | Must repeat from clean tarball fixture |
 | Package names publicly absent | Observed via unauthenticated npm lookup | Authenticated namespace ownership/publish authorization required |

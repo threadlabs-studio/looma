@@ -7,11 +7,8 @@ Eight public declarative layout components that lower to light-DOM native roots,
 and never add external margins.
 
 Release target: Candidate `0.2.15`. The public
-component invocations in this workspace are `ui-stack`, `ui-inline`, `ui-grid`,
+component invocations in this workspace are `ui-stack`, `ui-cluster`, `ui-grid`,
 `ui-center`, `ui-switcher`, `ui-sidebar`, `ui-reel`, and `ui-separator`.
-
-`ui-cluster` remains a deprecated compatibility alias for `<ui-inline wrap>`;
-it is intentionally absent from the public catalog and new adapter surface.
 
 ## Install
 

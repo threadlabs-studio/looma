@@ -1,4 +1,4 @@
-import { closeOverlay, createAnchoredSurface, openOverlay, requestTopOverlayClose } from "./shared/overlay.js";
+import { closeOverlay, createAnchoredSurface, createIdResolver, openOverlay, requestTopOverlayClose } from "./shared/overlay.js";
 
 function triggerFor(event) {
   if (event instanceof KeyboardEvent) return "keyboard";
@@ -37,6 +37,7 @@ export default function controller(host) {
     host.dispatch("close", { open: false, reason, trigger });
     if (reason === "escape") anchor?.focus();
   };
+  const ids = createIdResolver(document, () => apply());
   const setup = () => {
     const nextFor = String(host.state.for ?? "");
     const nextPlacement = String(host.state.placement ?? "bottom-start");
@@ -45,7 +46,7 @@ export default function controller(host) {
     lastPlacement = nextPlacement;
     surface?.destroy();
     anchor?.removeEventListener("click", onAnchorClick);
-    anchor = nextFor ? document.getElementById(nextFor) : null;
+    anchor = ids.get(nextFor);
     anchor?.addEventListener("click", onAnchorClick);
     surface = anchor ? createAnchoredSurface(element, { anchor, placement: nextPlacement }) : null;
   };
@@ -103,6 +104,7 @@ export default function controller(host) {
   apply();
   return () => {
     stop();
+    ids.stop();
     element.removeEventListener("click", onClick);
     element.removeEventListener("keydown", onKeydown);
     anchor?.removeEventListener("click", onAnchorClick);

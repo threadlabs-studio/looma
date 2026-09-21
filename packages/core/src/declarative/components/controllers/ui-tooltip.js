@@ -1,4 +1,4 @@
-import { closeOverlay, createAnchoredSurface, openOverlay } from "./shared/overlay.js";
+import { closeOverlay, createAnchoredSurface, createIdResolver, openOverlay } from "./shared/overlay.js";
 
 export default function controller(host) {
   const element = host.element;
@@ -74,13 +74,17 @@ export default function controller(host) {
     trigger.addEventListener("focusin", onFocusin);
     trigger.addEventListener("focusout", onFocusout);
   };
+  const ids = createIdResolver(document, () => {
+    lastFor = undefined;
+    apply();
+  });
   const setup = () => {
     const nextFor = String(host.state.for ?? "");
     const nextPlacement = String(host.state.placement ?? "top-start");
     if (surface && nextFor === lastFor && nextPlacement === lastPlacement) return;
     lastFor = nextFor;
     lastPlacement = nextPlacement;
-    const nextTrigger = nextFor ? document.getElementById(nextFor) : null;
+    const nextTrigger = ids.get(nextFor);
     if (nextTrigger !== trigger) {
       detach();
       trigger = nextTrigger;
@@ -119,6 +123,7 @@ export default function controller(host) {
   apply();
   return () => {
     stop();
+    ids.stop();
     clearTimers();
     detach();
     surface?.destroy();

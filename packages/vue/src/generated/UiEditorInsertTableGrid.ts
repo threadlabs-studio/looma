@@ -1,8 +1,8 @@
 import { defineComponent as _defineComponent } from 'vue'
 import { mergeProps as _mergeProps, openBlock as _openBlock, createElementBlock as _createElementBlock } from "vue"
 
-import { onMounted, onUnmounted, ref, watchEffect } from "vue";
-import { attachLoomaComponent } from "@threadlabs/looma-core/declarative";
+import { getCurrentInstance, onMounted, onUnmounted, ref, watchEffect } from "vue";
+import { attachLoomaComponent, updateComponentProps } from "@threadlabs/looma-core/declarative";
 import type { ComponentDefinition } from "@threadlabs/looma-core/declarative";
 
 
@@ -22,18 +22,31 @@ export default /*@__PURE__*/_defineComponent({
 
 const props = __props;
 const emit = __emit;
+const instance = getCurrentInstance();
+const passed = (name: string, attribute: string): boolean => {
+  const raw = instance?.vnode.props ?? {};
+  return Object.hasOwn(raw, name) || Object.hasOwn(raw, attribute);
+};
+const explicitProps = (): Record<string, unknown> => {
+  const valueheaderRow = props.headerRow;
+  const valuemaxCols = props.maxCols;
+  const valuemaxRows = props.maxRows;
+  const valueopen = props.open;
+  return { "headerRow": passed("headerRow", "header-row") ? valueheaderRow : undefined, "maxCols": passed("maxCols", "max-cols") ? valuemaxCols : undefined, "maxRows": passed("maxRows", "max-rows") ? valuemaxRows : undefined, "open": passed("open", "open") ? valueopen : undefined };
+};
 const definition = {...{"contract":{"tag":"ui-editor-insert-table-grid","props":{"headerRow":{"type":"boolean","required":false,"target":{"attribute":"headerrow"},"default":false},"maxCols":{"type":{"kind":"terminal","name":"integer"},"required":false,"target":{"attribute":"maxcols"},"default":8},"maxRows":{"type":{"kind":"terminal","name":"integer"},"required":false,"target":{"attribute":"maxrows"},"default":8},"open":{"type":"boolean","required":false,"target":{"attribute":"open"},"default":false}}},"template":{"kind":"element","name":"div","attributes":[],"children":[]},"declarations":[{"kind":"event","name":"insert","type":"object({ rows: integer, cols: integer, withHeaderRow: boolean })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
 const root = ref<Element>();
 const eventListener0 = (event: Event) => emit("insert", (event as CustomEvent<{ readonly rows: number; readonly cols: number; readonly withHeaderRow: boolean }>).detail);
 let detach: undefined | (() => void);
 onMounted(() => {
   if (root.value == null) return;
-  detach = attachLoomaComponent(root.value, definition, "ui-editor-insert-table-grid", props);
+  detach = attachLoomaComponent(root.value, definition, "ui-editor-insert-table-grid", explicitProps());
   root.value.addEventListener("insert", eventListener0);
 });
 watchEffect(() => {
+  const next = explicitProps();
   if (root.value == null) return;
-  for (const name of ["headerRow","maxCols","maxRows","open"]) (root.value as unknown as Record<string, unknown>)[name] = props[name as keyof typeof props];
+  updateComponentProps(root.value, next);
 });
 onUnmounted(() => {
   root.value?.removeEventListener("insert", eventListener0);

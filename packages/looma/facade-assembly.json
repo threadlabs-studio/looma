@@ -19,8 +19,7 @@
     "./theme-high-contrast.css",
     "./layout.css",
     "./styles.css",
-    "./editor.css",
-    "./valibot"
+    "./editor.css"
   ],
   "copies": [
     { "source": "packages/core/dist", "target": "packages/looma/dist" },

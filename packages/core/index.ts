@@ -7,8 +7,7 @@
  * Importing it registers the core definition graph and one document-level input
  * modality tracker. Both operations are idempotent across facade/direct imports
  * and no-op safely during SSR. Consumers needing only attachment primitives can
- * use `./declarative` without starting document observation; schema users can
- * use `./valibot` without importing a validation runtime through this entry.
+ * use `./declarative` without starting document observation.
  */
 
 import { records, styles } from './src/declarative/registry.js';

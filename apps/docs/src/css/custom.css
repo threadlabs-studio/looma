@@ -334,6 +334,9 @@ body {
 }
 
 .looma-demo-app__title { margin: 0.45rem 0 0; font-size: 1.35rem; font-weight: 700; }
+.looma-demo-app__header, .looma-demo-app__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; }
+.looma-demo-app__header { justify-content: space-between; }
+.looma-demo-app__actions { justify-content: flex-end; }
 
 .looma-demo-task {
   display: flex;
@@ -605,9 +608,14 @@ body {
  * card. */
 .looma-component-preview--compact
   [data-component-root~="ui-icon-button"][data-anticipatory="true"] {
-  opacity: 1 !important;
-  transform: scale(1) !important;
-  pointer-events: auto !important;
+  border-color: var(--ui-icon-button-border, var(--ui-border-default)) !important;
+  background: var(--ui-icon-button-outline-bg, var(--ui-surface-default)) !important;
+  color: var(--ui-icon-button-outline-color, var(--ui-text-primary)) !important;
+}
+
+.looma-component-preview--compact
+  [data-component-root~="ui-icon-button"][data-anticipatory="true"]::before {
+  opacity: 0 !important;
 }
 
 /* Catalog previews are miniature stages, not application viewports. Editor
@@ -676,14 +684,14 @@ body {
 
 .looma-preview-scenario__stage > :is(
   ui-stack,
-  ui-inline,
+  ui-cluster,
   ui-grid,
   ui-center,
   ui-switcher,
   ui-sidebar,
   ui-reel,
   [data-component-root~="ui-stack"],
-  [data-component-root~="ui-inline"],
+  [data-component-root~="ui-cluster"],
   [data-component-root~="ui-grid"],
   [data-component-root~="ui-center"],
   [data-component-root~="ui-switcher"],
@@ -695,7 +703,7 @@ body {
  * alignment, stretching, wrapping, and column behavior directly inspectable. */
 .looma-preview-scenario__stage :is(
   [data-component-root~="ui-stack"],
-  [data-component-root~="ui-inline"],
+  [data-component-root~="ui-center"],
   [data-component-root~="ui-grid"],
   [data-component-root~="ui-switcher"],
   [data-component-root~="ui-reel"]
@@ -1186,4 +1194,10 @@ body:has(.theme-doc-sidebar-container) .footer { margin-top: 0; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+}
+
+/* Center's column is otherwise invisible: outline the measure and tint the gutters. */
+.looma-preview-scenario__stage [data-component-root~="ui-center"] {
+  outline: 1px dashed var(--looma-line-strong);
+  background: color-mix(in srgb, var(--ifm-color-primary) 8%, transparent);
 }

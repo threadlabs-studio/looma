@@ -1,9 +1,9 @@
-import { closeOverlay, openOverlay, requestTopOverlayClose } from "./shared/overlay.js";
+import { closeOverlay, createIdResolver, openOverlay, requestTopOverlayClose } from "./shared/overlay.js";
 import { readNativeProperty } from "./shared/native-control.js";
 
 function inferredLabel(element, explicit) {
   if (String(explicit ?? "").trim()) return String(explicit).trim();
-  return element.querySelector('[slot="heading"], [data-ui-dialog-title], h1, h2, h3, h4, h5, h6')?.textContent?.trim() || "Dialog";
+  return element.querySelector("h1, h2, h3, h4, h5, h6")?.textContent?.trim() || "Dialog";
 }
 
 export default function controller(host) {
@@ -20,15 +20,21 @@ export default function controller(host) {
     host.state.internalOpen = false;
     host.dispatch("close", { open: false, reason, trigger: input });
   };
+  const closeButton = dialog?.querySelector(":scope > .dialog__header > .dialog__close");
+  const onCloseClick = (event) => requestClose("action", event.detail === 0 ? "keyboard" : "pointer");
   const onTriggerClick = () => {
     host.state.internalOpen = true;
   };
+  const ids = createIdResolver(document, () => {
+    lastFor = null;
+    apply();
+  });
   const syncTrigger = () => {
     const nextFor = String(host.state.for ?? "");
     if (nextFor === lastFor) return;
     lastFor = nextFor;
     trigger?.removeEventListener("click", onTriggerClick);
-    trigger = nextFor ? document.getElementById(nextFor) : null;
+    trigger = ids.get(nextFor);
     if (dialog && !dialog.id) dialog.id = `${overlayId}-surface`;
     trigger?.addEventListener("click", onTriggerClick);
     if (trigger) {
@@ -82,14 +88,17 @@ export default function controller(host) {
   observer.observe(element, { childList: true, subtree: true, characterData: true });
   dialog?.addEventListener("close", onClose);
   dialog?.addEventListener("cancel", onCancel);
+  closeButton?.addEventListener("click", onCloseClick);
   element.addEventListener("keydown", onKeydown);
   const stop = host.effect(apply);
   apply();
   return () => {
     stop();
+    ids.stop();
     observer.disconnect();
     dialog?.removeEventListener("close", onClose);
     dialog?.removeEventListener("cancel", onCancel);
+    closeButton?.removeEventListener("click", onCloseClick);
     trigger?.removeEventListener("click", onTriggerClick);
     element.removeEventListener("keydown", onKeydown);
     closeOverlay(document, overlayId);

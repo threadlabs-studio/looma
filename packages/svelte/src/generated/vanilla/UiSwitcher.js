@@ -19,9 +19,9 @@ export function createUiSwitcher(options = {}) {
   } else {
   }
   manageGeneratedProps(element, [
-    { name: "align", attribute: "data-align", value: prop0, type: ["start","center","end","stretch"], required: false },
-    { name: "gap", attribute: "data-gap", value: prop1, type: ["xs","s","m","l","xl"], required: false },
-    { name: "threshold", attribute: "data-threshold", value: prop2, type: ["xs","sm","md","lg"], required: false },
+    { name: "align", attribute: "data-align", value: componentProps["align"], type: ["start","center","end","stretch"], required: false },
+    { name: "gap", attribute: "data-gap", value: componentProps["gap"], type: ["xs","s","m","l","xl"], required: false },
+    { name: "threshold", attribute: "data-threshold", value: componentProps["threshold"], type: ["xs","sm","md","lg"], required: false },
   ]);
   return element;
 }

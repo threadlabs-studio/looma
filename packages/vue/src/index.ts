@@ -12,10 +12,11 @@ export type * from "./generated-component-types";
 
 import { Combobox as ComboboxComponent } from './Combobox';
 export const Combobox = ComboboxComponent;
-export type { ComboboxConfig, ComboboxOption, ComboboxProvider, ComboboxRequest, ComboboxChange, ComboboxValidationState, EditableChange, MultiComboboxItem, MultiComboboxItemChange, MultiComboboxCreate, FieldSchema, FieldValidation, FieldFormatter, FieldIssue } from '@threadlabs/looma-core';
+export type { ComboboxOption, ComboboxChange, ComboboxValidationState, EditableChange, MultiComboboxItem, MultiComboboxItemChange, MultiComboboxCreate, FieldIssue } from '@threadlabs/looma-core';
+export type { ComboboxOptionInput } from './Combobox';
 
 export const Stack = createAdapterComponent<AdapterComponentProps["Stack"]>(Declarative.UiStack, "Stack");
-export const Inline = createAdapterComponent<AdapterComponentProps["Inline"]>(Declarative.UiInline, "Inline");
+export const Cluster = createAdapterComponent<AdapterComponentProps["Cluster"]>(Declarative.UiCluster, "Cluster");
 export const Grid = createAdapterComponent<AdapterComponentProps["Grid"]>(Declarative.UiGrid, "Grid");
 export const Center = createAdapterComponent<AdapterComponentProps["Center"]>(Declarative.UiCenter, "Center");
 export const Switcher = createAdapterComponent<AdapterComponentProps["Switcher"]>(Declarative.UiSwitcher, "Switcher");
@@ -67,7 +68,7 @@ export const TreeItem = createAdapterComponent<AdapterComponentProps["TreeItem"]
 export const ADAPTER_COMPONENT_TAG_MAP = {
   Combobox: "ui-combobox",
   Stack: "ui-stack",
-  Inline: "ui-inline",
+  Cluster: "ui-cluster",
   Grid: "ui-grid",
   Center: "ui-center",
   Switcher: "ui-switcher",
