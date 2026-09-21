@@ -7,7 +7,7 @@ Looma's component surface is a framework-neutral declarative graph. Each compone
 controller is maintained directly under `src/declarative/`; there is no legacy component source or
 custom-element build behind the published package.
 
-Release status: Candidate `0.2.20`, not Stable.
+Release status: Candidate `0.3.0`, not Stable.
 
 ## Install
 
