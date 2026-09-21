@@ -15,6 +15,7 @@ export default defineConfig({
       instances: [{ browser: "chromium" }],
     },
     include: [
+      "src/combobox-multiple.browser.test.ts",
       "src/declarative-adapter.browser.test.ts",
       "src/editor/LoomaEditor.history.browser.test.ts",
     ],

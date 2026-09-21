@@ -88,32 +88,34 @@ export const Combobox = defineComponent({
       },
       class: attrs.class,
 
-      'onOptions-change': (event: CustomEvent<readonly ComboboxOption[]>) => { rows.value = event.detail; emit('optionsChange', event.detail); },
-      'onQuery-change': (event: CustomEvent<{ query: string; display: string; trigger: string }>) => {
-        currentQuery.value = event.detail.query; emit('update:query', event.detail.query); emit('queryChange', event.detail);
+      onOptionsChange: (detail: readonly ComboboxOption[]) => { rows.value = detail; emit('optionsChange', detail); },
+      onQueryChange: (detail: { query: string; display: string; trigger: string }) => {
+        currentQuery.value = detail.query; emit('update:query', detail.query); emit('queryChange', detail);
       },
-      'onValue-change': (event: CustomEvent<ComboboxChange | readonly MultiComboboxItem[]>) => {
+      onValueChange: (detail: ComboboxChange | readonly MultiComboboxItem[]) => {
         // Multiple mode emits the full item list; single mode emits a ComboboxChange.
         // v-model carries the array in multiple mode (the single-mode string channel).
-        emit('update:modelValue', props.multiple ? (event.detail as unknown as string | null) : (event.detail as ComboboxChange).value);
-        emit('valueChange', event.detail);
+        emit('update:modelValue', props.multiple ? (detail as unknown as string | null) : (detail as ComboboxChange).value);
+        emit('valueChange', detail);
       },
-      'onFree-entry': (event: CustomEvent<ComboboxChange>) => emit('freeEntry', event.detail),
-      'onCreate-entry': (event: CustomEvent<ComboboxChange>) => emit('createEntry', event.detail),
-      'onDependency-invalidate': (event: CustomEvent<ComboboxChange>) => emit('dependencyInvalidate', event.detail),
-      'onValidation-change': (event: CustomEvent<ComboboxValidationState>) => emit('validationChange', event.detail),
-      'onAdd-item': (event: CustomEvent<MultiComboboxItemChange>) => emit('addItem', event.detail),
-      'onRemove-item': (event: CustomEvent<MultiComboboxItemChange>) => emit('removeItem', event.detail),
-      'onCreate-item': (event: CustomEvent<MultiComboboxCreate>) => emit('createItem', event.detail),
-    }, [
-      h('label', { slot: 'fallback' }, [props.label, h('input', {
-        value: props.query ?? props.defaultQuery ?? '', disabled: props.disabled,
-        readonly: props.readOnly, required: props.required,
-      })]),
-      ...(slots.option ? rows.value.map(option => h('div', { slot: `option-${option.id}`, key: option.id }, slots.option!({ option }))) : []),
-      ...(props.multiple && slots.item ? items().map(item => h('span', { slot: `item-${item.id}`, key: item.id }, slots.item!({ item }))) : []),
-      ...(slots.create ? [h('span', { slot: 'create' }, slots.create!({ query: currentQuery.value }))] : []),
-      ...(['start', 'footer', 'loading', 'empty', 'error'] as const).flatMap(name => slots[name] ? [h('div', { slot: name }, slots[name]!({}))] : []),
-    ]);
+      onFreeEntry: (detail: ComboboxChange) => emit('freeEntry', detail),
+      onCreateEntry: (detail: ComboboxChange) => emit('createEntry', detail),
+      onDependencyInvalidate: (detail: ComboboxChange) => emit('dependencyInvalidate', detail),
+      onValidationChange: (detail: ComboboxValidationState) => emit('validationChange', detail),
+      onAddItem: (detail: MultiComboboxItemChange) => emit('addItem', detail),
+      onRemoveItem: (detail: MultiComboboxItemChange) => emit('removeItem', detail),
+      onCreateItem: (detail: MultiComboboxCreate) => emit('createItem', detail),
+    }, {
+      default: () => [
+        h('label', { slot: 'fallback' }, [props.label, h('input', {
+          value: props.query ?? props.defaultQuery ?? '', disabled: props.disabled,
+          readonly: props.readOnly, required: props.required,
+        })]),
+        ...(slots.option ? rows.value.map(option => h('div', { slot: `option-${option.id}`, key: option.id }, slots.option!({ option }))) : []),
+        ...(props.multiple && slots.item ? items().map(item => h('span', { slot: `item-${item.id}`, key: item.id }, slots.item!({ item }))) : []),
+        ...(slots.create ? [h('span', { slot: 'create' }, slots.create!({ query: currentQuery.value }))] : []),
+        ...(['start', 'footer', 'loading', 'empty', 'error'] as const).flatMap(name => slots[name] ? [h('div', { slot: name }, slots[name]!({}))] : []),
+      ],
+    });
   },
 });
