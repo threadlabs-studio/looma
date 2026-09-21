@@ -1,5 +1,10 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import type { Config } from "@docusaurus/types";
 import type * as Preset from "@docusaurus/preset-classic";
+
+// The released package version, shown in the navbar.
+const loomaVersion = (JSON.parse(readFileSync(path.join(__dirname, "../../package.json"), "utf8")) as { version: string }).version;
 
 const docsReleaseMode = process.env.LOOMA_DOCS_RELEASE_MODE ?? "preview";
 
@@ -12,8 +17,8 @@ if (docsReleaseMode !== "preview" && docsReleaseMode !== "candidate") {
 const isCandidateRelease = docsReleaseMode === "candidate";
 
 const config: Config = {
-  title: "Looma UI Docs",
-  tagline: "SSR-first declarative component contracts",
+  title: "Looma",
+  tagline: "Declarative components, woven into the web platform",
   favicon: "img/looma-mark.svg",
   url: process.env.LOOMA_DOCS_URL ?? "https://threadlabs-studio.github.io",
   baseUrl: process.env.LOOMA_DOCS_BASE_URL ?? "/looma/",
@@ -39,7 +44,7 @@ const config: Config = {
   clientModules: [require.resolve("./src/prism-languages.ts")],
   stylesheets: [
     {
-      href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      href: "https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap"
     }
   ],
   presets: [
@@ -62,9 +67,9 @@ const config: Config = {
     announcementBar: {
       id: `looma-r1-${docsReleaseMode}`,
       content: isCandidateRelease
-        ? 'Release 1 Candidate 0.2.20 is available on npm under the candidate tag. <a href="/looma/release-1-support">Read the support boundary.</a>'
+        ? 'Release 1 Candidate 0.3.0 is available on npm under the candidate tag. <a href="/looma/release-1-support">Read the support boundary.</a>'
         : 'Release 1 Candidate documentation preview — confirm registry availability before installing. <a href="/looma/release-1-support">Read the support boundary.</a>',
-      backgroundColor: "#312e81",
+      backgroundColor: "#2b2538",
       textColor: "#ffffff",
       isCloseable: false
     },
@@ -73,7 +78,7 @@ const config: Config = {
       respectPrefersColorScheme: true
     },
     navbar: {
-      title: "Looma UI",
+      title: "Looma",
       logo: {
         alt: "",
         src: "img/looma-mark.svg",
@@ -83,13 +88,23 @@ const config: Config = {
       items: [
         {
           to: "/",
-          label: "Docs",
+          label: "Get started",
           position: "left"
         },
         {
-          href: "https://knit.wiki",
-          label: "Knit",
-          position: "right"
+          to: "/components",
+          label: "Components",
+          position: "left"
+        },
+        {
+          to: "/editor",
+          label: "Editor",
+          position: "left"
+        },
+        {
+          type: "html",
+          position: "right",
+          value: `<span class="looma-version" title="Looma version">v${loomaVersion}</span>`
         }
       ]
     },
@@ -116,7 +131,6 @@ const config: Config = {
         {
           title: "Resources",
           items: [
-            { label: "Knit", href: "https://knit.wiki" },
             {
               label: "GitHub",
               href: "https://github.com/threadlabs-studio/looma"
@@ -124,7 +138,7 @@ const config: Config = {
           ]
         }
       ],
-      copyright: "Looma UI — SSR-first declarative components."
+      copyright: "Looma — declarative components, woven into the web platform."
     }
   } satisfies Preset.ThemeConfig
 };

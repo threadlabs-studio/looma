@@ -27,41 +27,34 @@ describe("@threadlabs/looma-core declarative graph", () => {
     expect(customElements.get("ui-combobox")).toBeUndefined();
   });
 
-  it("lowers live HTML to a native root and keeps scalar props reactive", async () => {
-    const button = await render(`<ui-button disabled><button type="button">Save</button></ui-button>`);
-    const nativeButton = button.querySelector("button");
+  it("lowers live HTML to a native root and keeps attribute props reactive", async () => {
+    const button = await render(`<ui-button disabled>Save</ui-button>`) as HTMLButtonElement;
 
-    expect(button.tagName).toBe("SPAN");
+    expect(button.tagName).toBe("BUTTON");
     expect(button.dataset.componentRoot).toBe("ui-button");
     expect(button.dataset.variant).toBe("outline");
-    expect(nativeButton?.disabled).toBe(true);
+    // The native `disabled` state is real, and the component adds no JavaScript properties.
+    expect(button.disabled).toBe(true);
+    expect(Object.hasOwn(button, "disabled") || Object.hasOwn(button, "variant")).toBe(false);
 
-    (button as HTMLElement & { disabled: boolean; variant: string }).disabled = false;
-    (button as HTMLElement & { disabled: boolean; variant: string }).variant = "solid";
+    button.removeAttribute("data-disabled");
+    button.setAttribute("data-variant", "solid");
     await flushDeclarative();
 
-    expect(nativeButton?.disabled).toBe(false);
+    expect(button.disabled).toBe(false);
     expect(button.dataset.variant).toBe("solid");
   });
 
-  it("preserves property-only structured inputs and exported methods", async () => {
-    const config = { options: [{ id: "one", value: "one", label: "One" }] };
-    const invocation = document.createElement("ui-combobox") as HTMLElement & { config: unknown };
-    invocation.config = config;
-    document.body.append(invocation);
-    await flushDeclarative();
+  it("takes structured props as JSON attributes and keeps exported methods", async () => {
+    const combobox = await render(
+      `<ui-combobox label="Teams" multiple token-separators='[","]'><option value="design">Design</option></ui-combobox>`,
+    ) as HTMLElement & { validate: () => Promise<unknown>; focusInput: () => Promise<void> };
 
-    const combobox = document.body.querySelector<HTMLElement & {
-      config: unknown;
-      validate: () => Promise<unknown>;
-      focusInput: () => Promise<void>;
-    }>(`[data-component-root="ui-combobox"]`);
-
-    expect(combobox?.tagName).toBe("DIV");
-    expect(combobox?.config).toStrictEqual(config);
-    expect(typeof combobox?.validate).toBe("function");
-    expect(typeof combobox?.focusInput).toBe("function");
-    expect(combobox?.hasAttribute("config")).toBe(false);
+    expect(combobox.tagName).toBe("DIV");
+    expect(combobox.getAttribute("data-token-separators")).toBe('[","]');
+    expect(Object.hasOwn(combobox, "tokenSeparators")).toBe(false);
+    expect(typeof combobox.validate).toBe("function");
+    expect(typeof combobox.focusInput).toBe("function");
   });
 
   it("lowers nested component invocations through the same graph", async () => {
@@ -75,7 +68,7 @@ describe("@threadlabs/looma-core declarative graph", () => {
   });
 
   it("routes DOM behavior through controllers on native roots", async () => {
-    const checkbox = await render(`<ui-checkbox value="newsletter"><input type="checkbox"></ui-checkbox>`);
+    const checkbox = await render(`<ui-checkbox value="newsletter">Newsletter</ui-checkbox>`);
     const input = checkbox.querySelector<HTMLInputElement>("input");
     const changes: unknown[] = [];
     checkbox.addEventListener("change", (event) => {
@@ -85,7 +78,7 @@ describe("@threadlabs/looma-core declarative graph", () => {
     input?.click();
     await flushDeclarative();
 
-    expect(checkbox.getAttribute("aria-checked")).toBe("true");
+    expect(input?.getAttribute("aria-checked")).toBe("true");
     expect(changes).toEqual([{ checked: true, value: "newsletter", trigger: "programmatic" }]);
   });
 

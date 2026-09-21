@@ -4,53 +4,5 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 Mobile-first navigation shell with slots for leading controls, title content, an optional search affordance, and trailing actions.
 
-## Component Reference
 
 <ComponentExamplesApiTabs component="ui-top-bar" />
-
-## Attributes
-
-None.
-
-## Properties
-
-None.
-
-## Events
-
-None.
-
-## Slots
-
-- Default slot: title/content region.
-- `leading`: leading affordance such as a drawer trigger.
-- `search`: optional search trigger.
-- `actions`: trailing actions.
-
-## SSR Markup
-
-```html
-<ui-top-bar>
-  <button slot="leading" type="button" aria-label="Open navigation">☰</button>
-  <h1>Project Atlas</h1>
-  <button slot="search" type="button" aria-label="Search">⌕</button>
-  <button slot="actions" type="button" aria-label="Share">Share</button>
-</ui-top-bar>
-```
-
-## Framework Snippets
-
-```vue
-<script setup lang="ts">
-import { TopBar } from "@threadlabs/looma/vue";
-</script>
-
-<template>
-  <TopBar>
-    <button slot="leading" type="button" aria-label="Open navigation">☰</button>
-    <h1>Project Atlas</h1>
-    <button slot="search" type="button" aria-label="Search">⌕</button>
-    <button slot="actions" type="button" aria-label="Share">Share</button>
-  </TopBar>
-</template>
-```

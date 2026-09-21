@@ -6,6 +6,14 @@ import type { GeneratedTagName, VanillaComponentOptions } from "./generated/vani
 
 export * from "./generated/vanilla/index.js";
 
+/**
+ * Stable event-detail shapes exposed by the handwritten Svelte adapter.
+ * The adapter unwraps `CustomEvent.detail`; handlers therefore receive these
+ * payloads directly rather than browser event objects.
+ *
+ * @contract Event names and detail objects remain identical to the native
+ * declarative roots so Svelte integration does not introduce another API.
+ */
 export interface SvelteAdapterEventMap {
   open: { open: boolean; reason: string; trigger: string };
   close: { open: boolean; reason: string; trigger: string };
@@ -14,9 +22,22 @@ export interface SvelteAdapterEventMap {
   dismiss: { id: string; reason: string; trigger: string };
 }
 
+/** A tag accepted by the generated native-root factory inventory. */
 export type AdapterTagName = GeneratedTagName;
+
+/**
+ * Property values applied after a native root is created.
+ * Object values always use DOM properties because stringifying structured
+ * component input would silently corrupt its contract.
+ */
 export type AdapterPropsRecord = Record<string, unknown>;
 
+/**
+ * Svelte-facing callbacks for native Looma events.
+ *
+ * @ownership `bindAdapter` owns the DOM listeners; the caller owns callback
+ * identity and may replace callbacks through the action's `update` method.
+ */
 export type AdapterEventHandlers = {
   onOpen?: (detail: SvelteAdapterEventMap["open"]) => void;
   onClose?: (detail: SvelteAdapterEventMap["close"]) => void;
@@ -25,6 +46,11 @@ export type AdapterEventHandlers = {
   onDismiss?: (detail: SvelteAdapterEventMap["dismiss"]) => void;
 };
 
+/**
+ * Inputs shared by one-shot factory creation and the stateful Svelte action.
+ * `props` target DOM properties when available, while attributes, children,
+ * and slots preserve the generated factory's declarative construction rules.
+ */
 export type SvelteAdapterOptions = AdapterEventHandlers & {
   props?: AdapterPropsRecord;
   attributes?: VanillaComponentOptions["attributes"];
@@ -62,7 +88,14 @@ function bindEvents(node: HTMLElement, handlers: AdapterEventHandlers): Cleanup 
   };
 }
 
-/** Svelte action for updating a native root created by a Looma factory. */
+/**
+ * Keeps a Svelte-owned native root synchronized with adapter props and events.
+ *
+ * @ownership Svelte owns the node. The action owns only listeners it installs
+ * and never removes or replaces the node.
+ * @lifecycle Every update removes the previous listener set before installing
+ * the next one; `destroy` performs the final listener cleanup.
+ */
 export function bindAdapter(node: HTMLElement, options: SvelteAdapterOptions = {}) {
   applyProps(node, options.props ?? {});
   let cleanup = bindEvents(node, options);
@@ -78,7 +111,15 @@ export function bindAdapter(node: HTMLElement, options: SvelteAdapterOptions = {
   };
 }
 
-/** Creates the component's native root directly from the declarative contract. */
+/**
+ * Materializes a native root directly from the generated declarative factory.
+ *
+ * @ownership The returned element belongs to the caller. Event listeners are
+ * attached for its lifetime; callers needing replaceable callbacks should use
+ * `bindAdapter` after creation.
+ * @failure An unknown tag cannot enter through the typed API; unchecked input
+ * fails when no generated factory exists rather than producing a partial root.
+ */
 export function createAdapterElement(tagName: AdapterTagName, options: SvelteAdapterOptions = {}): HTMLElement {
   const factory = factoryByTag[tagName];
   const factoryOptions: Record<string, unknown> = { ...(options.props ?? {}) };
@@ -90,6 +131,11 @@ export function createAdapterElement(tagName: AdapterTagName, options: SvelteAda
   return element;
 }
 
+/**
+ * Canonical adapter export-to-native-tag correspondence.
+ * Release checks consume this map to prove that generated Svelte factories and
+ * the framework-neutral package graph expose the same component inventory.
+ */
 export const ADAPTER_COMPONENT_TAG_MAP = {
   AffordanceScope: "ui-affordance-scope",
   AvatarGroup: "ui-avatar-group",
@@ -98,13 +144,11 @@ export const ADAPTER_COMPONENT_TAG_MAP = {
   Button: "ui-button",
   Callout: "ui-callout",
   Checkbox: "ui-checkbox",
-  Chip: "ui-chip",
   Combobox: "ui-combobox",
   ContextMenu: "ui-context-menu",
   Dialog: "ui-dialog",
   Disclosure: "ui-disclosure",
   Editable: "ui-editable",
-  FloatingActionButton: "ui-floating-action-button",
   FormField: "ui-form-field",
   IconButton: "ui-icon-button",
   Input: "ui-input",
@@ -131,10 +175,9 @@ export const ADAPTER_COMPONENT_TAG_MAP = {
   EditorTableOverlay: "ui-editor-table-overlay",
   EditorTableToolbar: "ui-editor-table-toolbar",
   EditorToolbar: "ui-editor-toolbar",
-  Center: "ui-center",
-  Cluster: "ui-cluster",
+  Container: "ui-container",
   Grid: "ui-grid",
-  Inline: "ui-inline",
+  Cluster: "ui-cluster",
   Reel: "ui-reel",
   Separator: "ui-separator",
   Sidebar: "ui-sidebar",
@@ -142,5 +185,6 @@ export const ADAPTER_COMPONENT_TAG_MAP = {
   Switcher: "ui-switcher",
 } as const satisfies Readonly<Record<string, AdapterTagName>>;
 
+/** Human-readable provenance recorded beside generated adapter artifacts. */
 export const SVELTE_ADAPTER_NOTE =
   "Native-root adapter: factories and bindAdapter project the framework-neutral Looma declarative contract into Svelte.";

@@ -37,7 +37,7 @@ gate must reject any mismatch instead of silently omitting a component.
 - `ui-callout`
 - `ui-chip`
 - `ui-button`
-- `ui-center`
+- `ui-container`
 - `ui-checkbox`
 - `ui-cluster`
 - `ui-dialog`
@@ -46,7 +46,6 @@ gate must reject any mismatch instead of silently omitting a component.
 - `ui-form-field`
 - `ui-icon-button`
 - `ui-grid`
-- `ui-inline`
 - `ui-input`
 - `ui-context-menu`
 - `ui-menu`
@@ -82,10 +81,9 @@ Conventions for this checklist:
 ### Layout
 
 - [x] Stack
-- [x] Inline
 - [x] Cluster
 - [x] Grid
-- [x] Center
+- [x] Container
 - [x] Separator
 
 ### Forms and actions
@@ -252,11 +250,10 @@ component workbench). Goals:
 - **Sitemap:** grouped nav (Forms, Display, Overlay, Layout, Editor) mirroring the component
   taxonomy; per-component permalinks; search.
 
-This also becomes the natural place to show the **HTML Next migration** side-by-side once components
-converge (see `tools/migrate-html-next/` and its convergence gallery).
-
-Open decisions: framework (keep Docusaurus vs. a dedicated app), whether it supersedes `apps/docs`,
-and hosting. Not started — this note is the captured task.
+This is now the public component catalog in `apps/docs`. Its examples run the canonical HTML Next
+definitions from each package and present equivalent Vue, Svelte, and React authoring modes. The
+retired Stencil converter and its convergence gallery were one-time migration scaffolding and are
+not part of the maintenance workflow.
 
 ## How To Adjust This Plan
 

@@ -12,13 +12,13 @@ export type * from "./generated-component-types";
 
 import { Combobox as ComboboxComponent } from './Combobox';
 export const Combobox = ComboboxComponent;
-export type { ComboboxConfig, ComboboxOption, ComboboxProvider, ComboboxRequest, ComboboxChange, ComboboxValidationState, EditableChange, MultiComboboxItem, MultiComboboxItemChange, MultiComboboxCreate, FieldSchema, FieldValidation, FieldFormatter, FieldIssue } from '@threadlabs/looma-core';
+export type { ComboboxOption, ComboboxChange, ComboboxValidationState, EditableChange, MultiComboboxItem, MultiComboboxItemChange, MultiComboboxCreate, FieldIssue } from '@threadlabs/looma-core';
+export type { ComboboxOptionInput } from './Combobox';
 
 export const Stack = createAdapterComponent<AdapterComponentProps["Stack"]>(Declarative.UiStack, "Stack");
-export const Inline = createAdapterComponent<AdapterComponentProps["Inline"]>(Declarative.UiInline, "Inline");
 export const Cluster = createAdapterComponent<AdapterComponentProps["Cluster"]>(Declarative.UiCluster, "Cluster");
 export const Grid = createAdapterComponent<AdapterComponentProps["Grid"]>(Declarative.UiGrid, "Grid");
-export const Center = createAdapterComponent<AdapterComponentProps["Center"]>(Declarative.UiCenter, "Center");
+export const Container = createAdapterComponent<AdapterComponentProps["Container"]>(Declarative.UiContainer, "Container");
 export const Switcher = createAdapterComponent<AdapterComponentProps["Switcher"]>(Declarative.UiSwitcher, "Switcher");
 // The resizable sidebar controller progressively inserts a light-DOM separator. Vue must
 // treat that controller-owned child as an expected hydration difference.
@@ -47,14 +47,9 @@ export const Switch = createAdapterComponent<AdapterComponentProps["Switch"]>(De
 export const RadioGroup = createAdapterComponent<AdapterComponentProps["RadioGroup"]>(Declarative.UiRadioGroup, "RadioGroup", [], "class", ["value"]);
 export const Radio = createAdapterComponent<AdapterComponentProps["Radio"]>(Declarative.UiRadio, "Radio", [], "class", ["checked"]);
 export const Badge = createAdapterComponent<AdapterComponentProps["Badge"]>(Declarative.UiBadge, "Badge");
-export const Chip = createAdapterComponent<AdapterComponentProps["Chip"]>(Declarative.UiChip, "Chip");
 export const Callout = createAdapterComponent<AdapterComponentProps["Callout"]>(Declarative.UiCallout, "Callout");
 export const Avatar = createAdapterComponent<AdapterComponentProps["Avatar"]>(Declarative.UiAvatar, "Avatar");
 export const AvatarGroup = createAdapterComponent<AdapterComponentProps["AvatarGroup"]>(Declarative.UiAvatarGroup, "AvatarGroup");
-export const FloatingActionButton = createAdapterComponent<AdapterComponentProps["FloatingActionButton"]>(
-  Declarative.UiFloatingActionButton,
-  "FloatingActionButton",
-);
 export const SearchShell = createAdapterComponent<AdapterComponentProps["SearchShell"]>(Declarative.UiSearchShell, "SearchShell");
 export const SearchResultRow = createAdapterComponent<AdapterComponentProps["SearchResultRow"]>(Declarative.UiSearchResultRow, "SearchResultRow");
 export const TopBar = createAdapterComponent<AdapterComponentProps["TopBar"]>(Declarative.UiTopBar, "TopBar");
@@ -73,10 +68,9 @@ export const TreeItem = createAdapterComponent<AdapterComponentProps["TreeItem"]
 export const ADAPTER_COMPONENT_TAG_MAP = {
   Combobox: "ui-combobox",
   Stack: "ui-stack",
-  Inline: "ui-inline",
   Cluster: "ui-cluster",
   Grid: "ui-grid",
-  Center: "ui-center",
+  Container: "ui-container",
   Switcher: "ui-switcher",
   Sidebar: "ui-sidebar",
   Reel: "ui-reel",
@@ -103,11 +97,9 @@ export const ADAPTER_COMPONENT_TAG_MAP = {
   RadioGroup: "ui-radio-group",
   Radio: "ui-radio",
   Badge: "ui-badge",
-  Chip: "ui-chip",
   Callout: "ui-callout",
   Avatar: "ui-avatar",
   AvatarGroup: "ui-avatar-group",
-  FloatingActionButton: "ui-floating-action-button",
   SearchShell: "ui-search-shell",
   SearchResultRow: "ui-search-result-row",
   TopBar: "ui-top-bar",

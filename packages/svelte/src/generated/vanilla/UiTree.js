@@ -13,7 +13,6 @@ export function createUiTree(options = {}) {
   element.setAttribute("role", "tree");
   element.setAttribute("data-component", "ui-tree");
   element.setAttribute("data-component-root", "ui-tree");
-  element.setAttribute("data-looma-managed", "framework");
   if (children.length > 0) {
     for (const child of children) element.append(child);
   } else {

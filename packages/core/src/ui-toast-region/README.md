@@ -7,7 +7,7 @@ Host transient toast messages in a live region with dismiss handling.
 ## SSR Markup Contract
 
 ```html
-<ui-toast-region>
+<ui-toast-region open>
   <div id="saved-toast" data-ui-toast>
     Profile saved.
     <button type="button" data-ui-toast-dismiss aria-label="Dismiss">Dismiss</button>
@@ -17,7 +17,7 @@ Host transient toast messages in a live region with dismiss handling.
 
 ## Attributes
 
-- `open`: visibility gate (default `true`); the region is visible only while this
+- `open`: visibility gate (default `false`); the region is visible only while this
   is true and at least one toast is present.
 
 ## Properties

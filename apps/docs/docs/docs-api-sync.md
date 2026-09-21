@@ -1,20 +1,19 @@
 # Docs/API Sync Workflow
 
-The component API source of truth is the framework-neutral declarative contract graph in:
-
-- `tools/migrate-html-next/core-contracts.mjs`
-- `tools/migrate-html-next/layout-contracts.mjs`
-- `tools/migrate-html-next/editor-contracts.mjs`
-
-The generator projects native roots, attributes, property-only inputs, scalar defaults, methods,
-events, and slots from those contracts. It reads only the intro line from each component MDX page
-for a human-readable description; legacy classes and source decorators are not API inputs.
+The component API source of truth is each package's maintained `src/declarative/components/*.html`
+definition and adjacent controller. The API generator reads prop types and defaults, native roots,
+property-only structured inputs, methods, events, slots, dependencies, and component CSS directly
+from those files. It reads only the intro line from each component MDX page for a human-readable
+description. Legacy classes and source decorators are not API inputs, and no migration converter
+runs during normal development.
 
 ## Commands
 
-- `pnpm generate:api` regenerates `generated/component-api.json` and the Vue adapter prop/event declarations.
-- `pnpm check:docs-sync` fails if either generated public API output is stale.
+- `pnpm generate:api` regenerates `generated/component-api.json` for the docs and Storybook consumers.
+- `pnpm check:docs-sync` fails if that generated public API output is stale.
 - `pnpm generate:docs` currently aliases API generation for docs consumers.
+- `pnpm --filter @threadlabs/looma-declarative-build registry` refreshes the shipping registries
+  without rewriting component definitions or framework adapters.
 
 ## Consumers
 
@@ -23,6 +22,9 @@ for a human-readable description; legacy classes and source decorators are not A
 
 ## Updating Component APIs
 
-1. Update the relevant declarative contract and implementation/controller together.
+1. Update the package-owned declarative definition and controller directly.
 2. Regenerate metadata with `pnpm generate:api`.
 3. Run `pnpm check:docs-sync` and commit generated output.
+
+React, Vue, and Svelte adapters are regenerated only at an explicit release checkpoint after the
+declarative API has settled.

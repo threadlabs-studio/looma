@@ -1,5 +1,12 @@
+/** Relative insertion target resolved from a pointer's vertical row position. */
 export type DropPosition = 'before' | 'inside' | 'after';
 
+/**
+ * Controls one replaceable delayed intent keyed by the hovered target.
+ *
+ * @lifecycle `cancel` clears pending work but permits reuse; `destroy` provides
+ * terminal cleanup for owners even though this controller holds no other state.
+ */
 export interface HoverIntentController {
   schedule(key: string): void;
   cancel(): void;
@@ -25,14 +32,27 @@ export function classifyDropPosition(
   return 'inside';
 }
 
-/** Use the rendered row—not the tiny handle—as the browser drag preview. */
+/**
+ * Uses the rendered row—not the tiny handle—as the browser drag preview.
+ *
+ * @contract Missing or non-browser data-transfer implementations are a no-op;
+ * otherwise the preview is inset from the left and vertically centered.
+ */
 export function setElementDragImage(dataTransfer: DataTransfer | null, element: HTMLElement): void {
   if (!dataTransfer || typeof dataTransfer.setDragImage !== 'function') return;
   const { height } = element.getBoundingClientRect();
   dataTransfer.setDragImage(element, 16, Math.max(0, height / 2));
 }
 
-/** A keyed, replaceable hover timer suitable for expansion and disclosure intent. */
+/**
+ * Creates a keyed, replaceable hover timer for expansion and disclosure intent.
+ *
+ * Scheduling the same pending key is idempotent; scheduling a different key
+ * cancels the prior intent so only the newest target can fire.
+ *
+ * @lifecycle Cancellation and destruction suppress pending callbacks. Once an
+ * intent fires, the controller returns to an idle reusable state.
+ */
 export function createHoverIntent(
   delay: number,
   onIntent: (key: string) => void,

@@ -12,14 +12,13 @@ export function createUiGrid(options = {}) {
   }
   element.setAttribute("data-component", "ui-grid");
   element.setAttribute("data-component-root", "ui-grid");
-  element.setAttribute("data-looma-managed", "framework");
   if (children.length > 0) {
     for (const child of children) element.append(child);
   } else {
   }
   manageGeneratedProps(element, [
-    { name: "gap", attribute: "data-gap", value: prop0, type: ["xs","s","m","l","xl"], required: false },
-    { name: "min", attribute: "data-min", value: prop1, type: ["sm","md","lg"], required: false },
+    { name: "gap", attribute: "data-gap", value: componentProps["gap"], type: ["xs","s","m","l","xl"], required: false },
+    { name: "min", attribute: "data-min", value: componentProps["min"], type: ["sm","md","lg"], required: false },
   ]);
   return element;
 }

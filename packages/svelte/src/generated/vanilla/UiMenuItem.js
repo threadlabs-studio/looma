@@ -16,7 +16,6 @@ export function createUiMenuItem(options = {}) {
   else element.setAttribute("data-value", String(value0));
   element.setAttribute("data-component", "ui-menu-item");
   element.setAttribute("data-component-root", "ui-menu-item");
-  element.setAttribute("data-looma-managed", "framework");
   const element0 = document.createElement("span");
   element0.setAttribute("class", "menu-item__surface");
   element0.setAttribute("data-component", "ui-menu-item");
@@ -26,8 +25,8 @@ export function createUiMenuItem(options = {}) {
   }
   element.append(element0);
   manageGeneratedProps(element, [
-    { name: "disabled", attribute: "data-disabled", value: prop0, type: "boolean", required: false },
-    { name: "value", attribute: "data-value", value: prop1, type: "string", required: false },
+    { name: "disabled", attribute: "data-disabled", value: componentProps["disabled"], default: false, type: "boolean", required: false },
+    { name: "value", attribute: "data-value", value: componentProps["value"], default: "", bound: true, type: "string", required: false },
   ]);
   return element;
 }

@@ -246,7 +246,7 @@ export async function verifyFacade({ repoRoot, definitionOnly = false, typesOnly
   if (typesOnly) return;
 
   const files = (await Promise.all(
-    ["dist", "layout", "editor", "vue"].map((entry) => runtimeFiles(facadeRoot, entry)),
+    ["dist", "layout", "editor", "vue", "react", "svelte"].map((entry) => runtimeFiles(facadeRoot, entry)),
   )).flat();
   for (const css of [
     "tokens.css",
@@ -269,7 +269,7 @@ export async function verifyFacade({ repoRoot, definitionOnly = false, typesOnly
     );
   }
 
-  const [rootEsm, rootCjs, editor, editorUi, vue, vueTypes, vueEditor] = await Promise.all([
+  const [rootEsm, rootCjs, editor, editorUi, vue, vueTypes, vueEditor, react, svelte] = await Promise.all([
     moduleGraph(path.join(facadeRoot, "dist/index.js"), { facadeRoot, manifest }),
     moduleGraph(path.join(facadeRoot, "dist/index.cjs"), { facadeRoot, manifest }),
     moduleGraph(path.join(facadeRoot, "editor/index.js"), { facadeRoot, manifest }),
@@ -277,6 +277,8 @@ export async function verifyFacade({ repoRoot, definitionOnly = false, typesOnly
     moduleGraph(path.join(facadeRoot, "vue/index.js"), { facadeRoot, manifest }),
     moduleGraph(path.join(facadeRoot, "vue/index.d.ts"), { facadeRoot, manifest }),
     moduleGraph(path.join(facadeRoot, "vue/editor/index.js"), { facadeRoot, manifest }),
+    moduleGraph(path.join(facadeRoot, "react/index.js"), { facadeRoot, manifest }),
+    moduleGraph(path.join(facadeRoot, "svelte/index.js"), { facadeRoot, manifest }),
   ]);
   const rootForbidden = /(?:^|\/|@)vue(?:$|\/|-)|@tiptap\/|^prosemirror-/;
   const generalVueForbidden = /@threadlabs\/looma\/editor(?:$|\/)|@tiptap\/|^prosemirror-/;
@@ -289,6 +291,9 @@ export async function verifyFacade({ repoRoot, definitionOnly = false, typesOnly
   assertGraphOmits(editorUi, /@tiptap\/|^prosemirror-/, "editor UI graph");
   assertGraphOmits(vue, generalVueForbidden, "Vue graph");
   assertGraphOmits(vueTypes, generalVueForbidden, "Vue type graph");
+  // Framework adapters reach only their framework and the editor UI, never Tiptap or another framework.
+  assertGraphOmits(react, /(?:^|\/|@)vue(?:$|\/|-)|@tiptap\/|^prosemirror-|@threadlabs\/looma\/editor$/, "React graph");
+  assertGraphOmits(svelte, /(?:^|\/|@)vue(?:$|\/|-)|@tiptap\/|^prosemirror-|@threadlabs\/looma\/editor$/, "Svelte graph");
   assert.ok(
     [...vueEditor.specifiers].some(
       (specifier) => specifier === "@threadlabs/looma/editor" ||

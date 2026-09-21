@@ -7,34 +7,46 @@ const _hoisted_2 = {
   "data-component": "ui-badge"
 }
 
-import { onMounted, onUnmounted, ref, watchEffect } from "vue";
-import { manageGeneratedProps } from "@threadlabs/looma-core/declarative-generated";
+import { getCurrentInstance, onMounted, onUnmounted, ref, watchEffect } from "vue";
+import { manageGeneratedProps, updateGeneratedProps } from "@threadlabs/looma-core/declarative-generated";
 
 
 export default /*@__PURE__*/_defineComponent({
   ...{ inheritAttrs: false },
   __name: 'UiBadge',
   props: {
-    tone: { type: [String, null], required: false },
-    variant: { type: [String, null], required: false }
+    tone: { type: [String, null], required: false, default: "neutral" },
+    variant: { type: [String, null], required: false, default: "subtle" }
   },
   setup(__props: any) {
 
 
 
 const props = __props;
+const instance = getCurrentInstance();
+const passed = (name: string, attribute: string): boolean => {
+  const raw = instance?.vnode.props ?? {};
+  return Object.hasOwn(raw, name) || Object.hasOwn(raw, attribute);
+};
+const explicitProps = (): Record<string, unknown> => {
+  const valuetone = props.tone;
+  const valuevariant = props.variant;
+  return { "tone": passed("tone", "tone") ? valuetone : undefined, "variant": passed("variant", "variant") ? valuevariant : undefined };
+};
 const root = ref<Element>();
 let detach: undefined | (() => void);
 onMounted(() => {
   if (root.value == null) return;
+  const explicit = explicitProps();
   detach = manageGeneratedProps(root.value, [
-    { name: "tone", attribute: "data-tone", value: props.tone, type: "string", required: false },
-    { name: "variant", attribute: "data-variant", value: props.variant, type: "string", required: false },
+    { name: "tone", attribute: "data-tone", value: explicit["tone"], default: "neutral", bound: true, type: ["neutral","accent","info","success","warning","danger"], required: false },
+    { name: "variant", attribute: "data-variant", value: explicit["variant"], default: "subtle", bound: true, type: ["solid","subtle"], required: false },
   ]);
 });
 watchEffect(() => {
+  const next = explicitProps();
   if (root.value == null) return;
-  for (const name of ["tone","variant"]) (root.value as unknown as Record<string, unknown>)[name] = props[name as keyof typeof props];
+  updateGeneratedProps(root.value, next);
 });
 onUnmounted(() => {
   detach?.();
@@ -44,7 +56,6 @@ return (_ctx: any,_cache: any) => {
   return (_openBlock(), _createElementBlock("span", _mergeProps(_ctx.$attrs, {
     "data-component": "ui-badge",
     "data-component-root": "ui-badge",
-    "data-looma-managed": "framework",
     "data-variant": props.variant,
     "data-tone": props.tone,
     ref_key: "root",

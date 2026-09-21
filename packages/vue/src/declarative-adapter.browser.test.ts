@@ -1,12 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, createSSRApp, defineComponent, h, nextTick, ref, type App } from "vue";
 import { renderToString } from "@vue/server-renderer";
+import { page } from "@vitest/browser/context";
 import { controllerFor } from "@threadlabs/looma-core/declarative";
 
 import {
-  Checkbox,
   Editable,
-  Menu,
   MenuItem,
   SearchShell,
   Sidebar,
@@ -59,68 +58,57 @@ describe("Vue declarative adapters in a browser", () => {
     expect(onSelect).toHaveBeenCalledWith(detail);
   });
 
-  it("preserves uncontrolled Boolean state when the controlled prop is omitted", async () => {
+  it("keeps false-default Boolean state locally interactive when the prop is omitted", async () => {
     const host = document.createElement("div");
     document.body.append(host);
     const app = createApp({
-      render: () => h("div", [
-        h(Editable, {}, {
-          preview: () => h("button", { type: "button", "data-ui-editable-trigger": "" }, "Add tag"),
-          edit: () => h("input", { "aria-label": "Page tags" }),
-        }),
-        h(Menu, { defaultOpen: true }, () => h(MenuItem, { value: "rename" }, () => "Rename")),
-        h(Checkbox, { defaultChecked: true }, () => h("input", { type: "checkbox" })),
-      ]),
+      render: () => h(Editable, { label: "Page tags", value: "Add tag" }),
     });
     apps.push(app);
     app.mount(host);
     await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
 
     const editable = host.querySelector<HTMLElement>('[data-component-root="ui-editable"]')!;
-    host.querySelector<HTMLButtonElement>("[data-ui-editable-trigger]")!.click();
+    host.querySelector<HTMLButtonElement>(".editable__preview")!.click();
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 
     expect(editable.hasAttribute("data-state-edit")).toBe(true);
-    expect(host.querySelector<HTMLElement>('[part="edit"]')?.hidden).toBe(false);
-    expect(host.querySelector<HTMLElement>('[data-component-root="ui-menu"]')?.hasAttribute("data-state-open")).toBe(true);
-    expect(host.querySelector<HTMLElement>('[data-component-root="ui-checkbox"]')?.getAttribute("aria-checked")).toBe("true");
+    // The in-place input is enabled only while editing (it shares the value's layout cell).
+    expect(host.querySelector<HTMLInputElement>(".editable__input")?.disabled).toBe(false);
   });
 
-  it("keeps explicitly controlled Boolean state authoritative", async () => {
-    const onEditChange = vi.fn();
+  it("applies reactive Boolean property updates to owned component state", async () => {
+    const edit = ref(false);
     const host = document.createElement("div");
     document.body.append(host);
     const app = createApp({
-      render: () => h(Editable, { edit: false, onEditChange }, {
-        preview: () => h("button", { type: "button", "data-ui-editable-trigger": "" }, "Add tag"),
-        edit: () => h("input", { "aria-label": "Page tags" }),
-      }),
+      render: () => h(Editable, { edit: edit.value, label: "Page tags", value: "Add tag" }),
     });
     apps.push(app);
     app.mount(host);
     await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
 
-    host.querySelector<HTMLButtonElement>("[data-ui-editable-trigger]")!.click();
+    edit.value = true;
+    await nextTick();
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    expect(host.querySelector<HTMLElement>('[data-component-root="ui-editable"]')?.hasAttribute("data-state-edit")).toBe(true);
+    // The in-place input is enabled only while editing (it shares the value's layout cell).
+    expect(host.querySelector<HTMLInputElement>(".editable__input")?.disabled).toBe(false);
 
-    expect(onEditChange).toHaveBeenCalledWith({ edit: true, reason: "activate", trigger: "pointer" });
+    edit.value = false;
+    await nextTick();
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
     expect(host.querySelector<HTMLElement>('[data-component-root="ui-editable"]')?.hasAttribute("data-state-edit")).toBe(false);
-    expect(host.querySelector<HTMLElement>('[part="edit"]')?.hidden).toBe(true);
   });
 
-  it("keeps sole default-slot children direct for layout measurement", async () => {
-    const styles = document.createElement("style");
-    styles.textContent = [
-      '[data-test-sidebar] { inline-size: 800px; --ui-sidebar-width: 256px; }',
-      '[data-test-sidebar] > aside { flex: 0 0 var(--ui-sidebar-width); }',
-      '[data-test-sidebar] > main { flex: 1 1 0; }',
-    ].join("\n");
-    document.head.append(styles);
+  it("renders the sidebar panel with its width and resize handle", async () => {
+    // Above the default 48rem breakpoint, so the panel is docked rather than a drawer.
+    await page.viewport(1200, 800);
     const host = document.createElement("div");
     document.body.append(host);
     const app = createApp({
-      render: () => h(Sidebar, { resizable: true, "data-test-sidebar": "" }, () => [
-        h("aside", "Navigation"),
+      render: () => h("div", { style: "display: flex; inline-size: 900px" }, [
+        h(Sidebar, { resizable: true, width: 256 }, () => [h("nav", "Navigation")]),
         h("main", "Content"),
       ]),
     });
@@ -129,9 +117,10 @@ describe("Vue declarative adapters in a browser", () => {
     await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
 
     const sidebar = host.querySelector<HTMLElement>('[data-component-root="ui-sidebar"]')!;
-    expect(sidebar.children[0]?.localName).toBe("aside");
+    expect(sidebar.localName).toBe("aside");
+    expect(sidebar.querySelector("nav")?.textContent).toBe("Navigation");
+    expect(Math.round(sidebar.getBoundingClientRect().width)).toBe(256);
     expect(sidebar.querySelector('[data-ui-sidebar-resizer]')?.getAttribute("aria-valuenow")).toBe("256");
-    styles.remove();
   });
 
   it("hydrates conditional tree-item structure without dropping framework slot regions", async () => {
@@ -170,8 +159,6 @@ describe("Vue declarative adapters in a browser", () => {
       await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
 
       expect(host.firstElementChild).toBe(serverRoot);
-      expect(Array.from(host.querySelectorAll<HTMLElement>("[data-looma-framework-slot]"))
-        .map(element => element.dataset.loomaFrameworkSlot)).toEqual(["leading", "", "actions", "children"]);
       expect(host.querySelector(".folder-icon")).not.toBeNull();
       expect(host.querySelector(".folder-name")?.textContent).toBe("Docs");
       expect(host.querySelector(".folder-actions button")?.textContent).toBe("More");
@@ -193,7 +180,7 @@ describe("Vue declarative adapters in a browser", () => {
           default: () => h("span", "Page title"),
           leading: () => h("button", { type: "button" }, "Menu"),
         }),
-        h(SearchShell, {}, {
+        h(SearchShell, { open: true }, {
           search: () => h("input", { type: "search", "aria-label": "Search" }),
         }),
       ]),
@@ -219,12 +206,9 @@ describe("Vue declarative adapters in a browser", () => {
         expanded: true,
         itemId: "parent",
         label: "Parent",
-      }, {
-        default: () => "Parent",
-        children: () => h("div", [
+      }, () => h("div", [
           h(TreeItem, { itemId: "child", label: "Child" }, () => "Child"),
-        ]),
-      })),
+        ]))),
     });
     apps.push(app);
     app.mount(host);
@@ -245,12 +229,9 @@ describe("Vue declarative adapters in a browser", () => {
         expanded: expanded.value,
         itemId: "parent",
         label: "Parent",
-      }, {
-        default: () => "Parent",
-        children: () => expanded.value
+      }, () => expanded.value
           ? h("div", [h(TreeItem, { itemId: "child", label: "Child" }, () => "Child")])
-          : null,
-      })),
+          : null)),
     });
     apps.push(app);
     app.mount(host);
@@ -274,7 +255,7 @@ describe("Vue declarative adapters in a browser", () => {
         itemId: "page",
         label: label.value,
       }, {
-        default: () => h("a", { href: "/page" }, label.value),
+        default: () => h("span", { class: "child" }, "Child"),
         actions: () => h("button", { type: "button" }, "More"),
       }),
     });
@@ -286,8 +267,8 @@ describe("Vue declarative adapters in a browser", () => {
     await nextTick();
     await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
 
-    expect(host.querySelector('[part="label"] a')?.textContent).toBe("Updated title");
-    expect(host.querySelector('[part="actions"] a')).toBeNull();
+    expect(host.querySelector('[part="label"]')?.textContent).toBe("Updated title");
+    expect(host.querySelector('[part="children"] .child')?.textContent).toBe("Child");
     expect(host.querySelector('[part="actions"] button')?.textContent).toBe("More");
   });
 
@@ -304,9 +285,8 @@ describe("Vue declarative adapters in a browser", () => {
         sortable: sortable.value,
       }, {
         leading: () => h("span", { class: "icon" }, "Icon"),
-        default: () => h("a", { href: "/page" }, label.value),
+        default: () => expanded.value ? h("span", "Child") : null,
         actions: () => h("button", { type: "button" }, "More"),
-        children: () => expanded.value ? h("span", "Child") : null,
       }),
     };
     const host = document.createElement("div");
@@ -324,7 +304,7 @@ describe("Vue declarative adapters in a browser", () => {
     await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
 
     expect(host.querySelector('[part="leading"] .icon')?.textContent).toBe("Icon");
-    expect(host.querySelector('[part="label"] a')?.textContent).toBe("Updated title");
+    expect(host.querySelector('[part="label"]')?.textContent).toBe("Updated title");
     expect(host.querySelector('[part="actions"] button')?.textContent).toBe("More");
     expect(host.querySelector('[part="children"]')?.textContent).toContain("Child");
   });
@@ -340,9 +320,8 @@ describe("Vue declarative adapters in a browser", () => {
         subtreeDepth: item.depth,
       }, {
         leading: () => h("span", { class: "icon" }, "Icon"),
-        default: () => h("span", { class: "title" }, item.label),
+        default: () => h("span", "Child"),
         actions: () => h("button", { type: "button" }, "More"),
-        children: () => h("span", "Child"),
       }))),
     };
     const host = document.createElement("div");
@@ -363,7 +342,7 @@ describe("Vue declarative adapters in a browser", () => {
     const roots = Array.from(host.querySelectorAll<HTMLElement>('[data-component-root="ui-tree-item"]'));
     expect(roots).toHaveLength(2);
     for (const root of roots) {
-      const title = root.querySelector<HTMLElement>('[part="label"] .title');
+      const title = root.querySelector<HTMLElement>('[part="label"]');
       expect(root.querySelector('[part="leading"] .icon')).not.toBeNull();
       expect(title).not.toBeNull();
       expect(title?.textContent).toBe(root.getAttribute("aria-label"));

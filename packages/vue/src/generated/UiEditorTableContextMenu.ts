@@ -1,8 +1,8 @@
 import { defineComponent as _defineComponent } from 'vue'
 import { mergeProps as _mergeProps, openBlock as _openBlock, createElementBlock as _createElementBlock } from "vue"
 
-import { onMounted, onUnmounted, ref, watchEffect } from "vue";
-import { attachLoomaComponent } from "@threadlabs/looma-core/declarative";
+import { getCurrentInstance, onMounted, onUnmounted, ref, watchEffect } from "vue";
+import { attachLoomaComponent, updateComponentProps } from "@threadlabs/looma-core/declarative";
 import type { ComponentDefinition } from "@threadlabs/looma-core/declarative";
 
 
@@ -10,40 +10,44 @@ export default /*@__PURE__*/_defineComponent({
   ...{ inheritAttrs: false },
   __name: 'UiEditorTableContextMenu',
   props: {
-    canAddColumnAfter: { type: [Boolean, null], required: false, default: false },
-    canAddColumnBefore: { type: [Boolean, null], required: false, default: false },
-    canAddRowAfter: { type: [Boolean, null], required: false, default: false },
-    canAddRowBefore: { type: [Boolean, null], required: false, default: false },
-    canDeleteColumn: { type: [Boolean, null], required: false, default: false },
-    canDeleteRow: { type: [Boolean, null], required: false, default: false },
-    canDeleteTable: { type: [Boolean, null], required: false, default: false },
-    canMergeCells: { type: [Boolean, null], required: false, default: false },
-    canSplitCell: { type: [Boolean, null], required: false, default: false },
+    actions: { type: [Array, null], required: false },
     cellBackground: { type: [String, null], required: false, default: "" },
     open: { type: [Boolean, null], required: false, default: false }
   },
-  emits: ["looma-editor-table-action"],
+  emits: ["action"],
   setup(__props: any, { emit: __emit }) {
 
 
 
 const props = __props;
 const emit = __emit;
-const definition = {...{"contract":{"tag":"ui-editor-table-context-menu","props":{"canAddColumnAfter":{"type":"boolean","required":false,"target":{"attribute":"canaddcolumnafter"},"default":false},"canAddColumnBefore":{"type":"boolean","required":false,"target":{"attribute":"canaddcolumnbefore"},"default":false},"canAddRowAfter":{"type":"boolean","required":false,"target":{"attribute":"canaddrowafter"},"default":false},"canAddRowBefore":{"type":"boolean","required":false,"target":{"attribute":"canaddrowbefore"},"default":false},"canDeleteColumn":{"type":"boolean","required":false,"target":{"attribute":"candeletecolumn"},"default":false},"canDeleteRow":{"type":"boolean","required":false,"target":{"attribute":"candeleterow"},"default":false},"canDeleteTable":{"type":"boolean","required":false,"target":{"attribute":"candeletetable"},"default":false},"canMergeCells":{"type":"boolean","required":false,"target":{"attribute":"canmergecells"},"default":false},"canSplitCell":{"type":"boolean","required":false,"target":{"attribute":"cansplitcell"},"default":false},"cellBackground":{"type":"string","required":false,"target":{"attribute":"cellbackground"},"default":""},"open":{"type":"boolean","required":false,"target":{"attribute":"open"},"default":false}}},"template":{"kind":"element","name":"div","attributes":[],"children":[]},"declarations":[{"kind":"event","name":"looma-editor-table-action","type":"object({ action: string })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
+const instance = getCurrentInstance();
+const passed = (name: string, attribute: string): boolean => {
+  const raw = instance?.vnode.props ?? {};
+  return Object.hasOwn(raw, name) || Object.hasOwn(raw, attribute);
+};
+const explicitProps = (): Record<string, unknown> => {
+  const valueactions = props.actions;
+  const valuecellBackground = props.cellBackground;
+  const valueopen = props.open;
+  return { "actions": passed("actions", "actions") ? valueactions : undefined, "cellBackground": passed("cellBackground", "cell-background") ? valuecellBackground : undefined, "open": passed("open", "open") ? valueopen : undefined };
+};
+const definition = {...{"contract":{"tag":"ui-editor-table-context-menu","props":{"actions":{"type":{"kind":"list","item":{"kind":"union","members":[{"kind":"keyword","value":"align-left"},{"kind":"keyword","value":"align-center"},{"kind":"keyword","value":"align-right"},{"kind":"keyword","value":"background-none"},{"kind":"keyword","value":"background-gray"},{"kind":"keyword","value":"background-yellow"},{"kind":"keyword","value":"background-blue"},{"kind":"keyword","value":"background-green"},{"kind":"keyword","value":"background-red"},{"kind":"keyword","value":"add-row-before"},{"kind":"keyword","value":"add-row-after"},{"kind":"keyword","value":"add-column-before"},{"kind":"keyword","value":"add-column-after"},{"kind":"keyword","value":"clear-cells"},{"kind":"keyword","value":"merge-cells"},{"kind":"keyword","value":"split-cell"},{"kind":"keyword","value":"delete-row"},{"kind":"keyword","value":"delete-column"},{"kind":"keyword","value":"delete-table"}]}},"required":false,"target":{"attribute":"actions"}},"cellBackground":{"type":"string","required":false,"target":{"attribute":"cellbackground"},"default":""},"open":{"type":"boolean","required":false,"target":{"attribute":"open"},"default":false}}},"template":{"kind":"element","name":"div","attributes":[],"children":[]},"declarations":[{"kind":"event","name":"action","type":"object({ action: string })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
 const root = ref<Element>();
-const eventListener0 = (event: Event) => emit("looma-editor-table-action", (event as CustomEvent<{ readonly action: string }>).detail);
+const eventListener0 = (event: Event) => emit("action", (event as CustomEvent<{ readonly action: string }>).detail);
 let detach: undefined | (() => void);
 onMounted(() => {
   if (root.value == null) return;
-  detach = attachLoomaComponent(root.value, definition, "ui-editor-table-context-menu", props);
-  root.value.addEventListener("looma-editor-table-action", eventListener0);
+  detach = attachLoomaComponent(root.value, definition, "ui-editor-table-context-menu", explicitProps());
+  root.value.addEventListener("action", eventListener0);
 });
 watchEffect(() => {
+  const next = explicitProps();
   if (root.value == null) return;
-  for (const name of ["canAddColumnAfter","canAddColumnBefore","canAddRowAfter","canAddRowBefore","canDeleteColumn","canDeleteRow","canDeleteTable","canMergeCells","canSplitCell","cellBackground","open"]) (root.value as unknown as Record<string, unknown>)[name] = props[name as keyof typeof props];
+  updateComponentProps(root.value, next);
 });
 onUnmounted(() => {
-  root.value?.removeEventListener("looma-editor-table-action", eventListener0);
+  root.value?.removeEventListener("action", eventListener0);
   detach?.();
 });
 
@@ -51,7 +55,6 @@ return (_ctx: any,_cache: any) => {
   return (_openBlock(), _createElementBlock("div", _mergeProps(_ctx.$attrs, {
     "data-component": "ui-editor-table-context-menu",
     "data-component-root": "ui-editor-table-context-menu",
-    "data-looma-managed": "framework",
     ref_key: "root",
     ref: root
   }), null, 16 /* FULL_PROPS */))

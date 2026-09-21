@@ -53,6 +53,8 @@ test("the facade declares the exact public subpath and peer contract", async () 
     "./editor/extensions",
     "./vue",
     "./vue/editor",
+    "./react",
+    "./svelte",
     "./tokens.css",
     "./theme-light.css",
     "./theme-dark.css",
@@ -60,7 +62,6 @@ test("the facade declares the exact public subpath and peer contract", async () 
     "./layout.css",
     "./styles.css",
     "./editor.css",
-    "./valibot",
   ];
 
   assert.deepEqual(Object.keys(manifest.exports), expectedExports);
@@ -75,6 +76,10 @@ test("the facade declares the exact public subpath and peer contract", async () 
   assert.equal(manifest.exports["./editor/extensions"].import, "./editor/extensions/index.js");
   assert.equal(manifest.exports["./vue"].import, "./vue/index.js");
   assert.equal(manifest.exports["./vue/editor"].import, "./vue/editor/index.js");
+  assert.equal(manifest.exports["./react"].import, "./react/index.js");
+  assert.equal(manifest.exports["./svelte"].import, "./svelte/index.js");
+  assert.equal(manifest.peerDependenciesMeta.react.optional, true);
+  assert.equal(manifest.peerDependenciesMeta.svelte.optional, true);
   assert.equal(manifest.peerDependenciesMeta.vue.optional, true);
   assert.equal(manifest.peerDependenciesMeta["@tiptap/core"].optional, true);
   assert.equal(manifest.peerDependenciesMeta["@tiptap/pm"].optional, true);
@@ -83,7 +88,8 @@ test("the facade declares the exact public subpath and peer contract", async () 
     "@tiptap/core",
     "@tiptap/pm",
     "@tiptap/vue-3",
-    "valibot",
+    "react",
+    "svelte",
     "vue",
   ]);
   assert.deepEqual(manifest.dependencies, {
@@ -93,6 +99,8 @@ test("the facade declares the exact public subpath and peer contract", async () 
   assert.ok(manifest.sideEffects.includes("./editor/*.js"));
   assert.ok(manifest.sideEffects.includes("./vue/index.js"));
   assert.ok(manifest.sideEffects.includes("./vue/editor/*.js"));
+  assert.ok(manifest.sideEffects.includes("./react/index.js"));
+  assert.ok(manifest.sideEffects.includes("./svelte/index.js"));
   assert.ok(manifest.sideEffects.includes("./*.css"));
   assert.equal(manifest.publishConfig.access, "public");
   assert.equal(manifest.publishConfig.provenance, true);
@@ -225,10 +233,9 @@ test("module graph fails closed for escaping and undeclared facade edges", async
   );
 });
 
-test('Valibot field adapter is an optional, side-effect-free facade subpath', async () => {
+test('the removed Valibot field adapter is not part of the facade', async () => {
+  // Combobox config validation hooks were removed; props are attributes, validation is native.
   const manifest = JSON.parse(await readFile(new URL('../../packages/looma/package.json', import.meta.url), 'utf8'));
-  assert.equal(manifest.exports['./valibot'].import, './dist/valibot.js');
-  assert.equal(manifest.peerDependenciesMeta.valibot.optional, true);
-  assert.equal(manifest.dependencies.valibot, undefined);
-  assert.equal(manifest.sideEffects.includes('./dist/valibot.js'), false);
+  assert.equal(manifest.exports['./valibot'], undefined);
+  assert.equal(manifest.peerDependencies.valibot, undefined);
 });

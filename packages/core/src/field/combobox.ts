@@ -1,45 +1,38 @@
-import type { FieldFormatter, FieldIssue, FieldValidation } from './validation';
+import type { FieldIssue } from './validation';
 
-export interface ComboboxOption<Metadata = unknown> {
+/**
+ * Canonical option shape at Looma's domain boundary.
+ *
+ * `id` is stable identity for rendering and selection bookkeeping; `value` is
+ * the form/domain value. They are separate so labels or backend identifiers can
+ * change without making list reconciliation or selected-option lookup ambiguous.
+ * Options are authored as `<option>`/`<optgroup>` children; selected items cross
+ * the attribute boundary as JSON in this shape.
+ */
+export interface ComboboxOption {
   id: string;
   value: string;
   label: string;
-  description?: string;
-  metadata?: Metadata;
   group?: string;
   disabled?: boolean;
 }
-export interface ComboboxRequest<Context = unknown> {
-  query: string;
-  context: Context;
-  signal: AbortSignal;
-  reason: 'input' | 'disclosure' | 'context';
-}
-export type ComboboxProvider = (request: ComboboxRequest) => readonly ComboboxOption[] | Promise<readonly ComboboxOption[]>;
-/** Map domain records at the boundary, preserving typed metadata for rich rows. */
-export function mapComboboxOptions<T>(rows: readonly T[], map: (row: T) => Omit<ComboboxOption<T>, 'metadata'>): ComboboxOption<T>[] {
-  return rows.map(row => ({ ...map(row), metadata: row }));
-}
-export interface ComboboxConfig extends FieldValidation {
-  options?: readonly ComboboxOption[];
-  provider?: ComboboxProvider;
-  filter?: (option: ComboboxOption, query: string, context: unknown) => boolean;
-  context?: unknown;
-  invalidation?: 'clear' | 'retain-query' | 'retain';
-  debounce?: number;
-  allowFreeText?: boolean;
-  allowCreate?: boolean;
-  format?: FieldFormatter;
-  formatOn?: 'input' | 'blur';
-  validateOn?: 'input' | 'blur' | 'submit';
-}
+/**
+ * Semantic value transition emitted by the combobox.
+ * `kind` explains the state-machine path while `trigger` records user modality;
+ * consumers should not infer either from low-level input/click events.
+ */
 export interface ComboboxChange {
   value: string | null;
   query: string;
   option: ComboboxOption | null;
-  kind: 'selection' | 'clear' | 'free-entry' | 'create' | 'invalidation';
+  kind: 'selection' | 'clear' | 'free-entry' | 'create';
   trigger: 'keyboard' | 'pointer' | 'programmatic';
 }
+/**
+ * Renderable validation snapshot. `output` is defined only when the current
+ * value passed all error-severity checks; warnings preserve output and remain
+ * visible.
+ */
 export interface ComboboxValidationState {
   status: 'pristine' | 'pending' | 'valid' | 'warning' | 'error';
   touched: boolean;

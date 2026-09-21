@@ -19,7 +19,6 @@ interface ComponentApiProperty {
   type: string;
   default?: unknown;
   options?: string[];
-  channel: "attribute | property" | "property";
 }
 
 interface ComponentApiMethod {
@@ -39,11 +38,25 @@ interface ComponentApiEvent {
   detailDocs?: string;
 }
 
+interface ComponentDesignToken {
+  name: string;
+  declarations?: string[];
+  fallbacks?: string[];
+}
+
+interface ComponentDesignTokens {
+  sources: string[];
+  component: ComponentDesignToken[];
+  shared: ComponentDesignToken[];
+}
+
 interface ComponentApiRecord {
   tag: string;
+  navigationParent?: string;
   description: string;
   package: string;
   root: string;
+  designTokens: ComponentDesignTokens;
   attributes: ComponentApiAttribute[];
   properties: ComponentApiProperty[];
   methods: ComponentApiMethod[];
@@ -59,7 +72,42 @@ const metadata = componentApi as ComponentApiMetadata;
 
 function SectionHeader({ title }: { title: string }): JSX.Element {
   return (
-    <h3 style={{ marginTop: "1.5rem", marginBottom: "0.5rem" }}>{title}</h3>
+    <h2 style={{ marginTop: "1.5rem", marginBottom: "0.5rem" }}>{title}</h2>
+  );
+}
+
+function TokenValues({ values }: { values?: string[] }): JSX.Element {
+  return <code>{values?.length ? values.join(" | ") : "-"}</code>;
+}
+
+function DesignTokenTable({
+  tokens,
+  firstColumn,
+  showDeclarations,
+}: {
+  tokens: ComponentDesignToken[];
+  firstColumn: string;
+  showDeclarations: boolean;
+}): JSX.Element {
+  return (
+    <table className="looma-api-table">
+      <thead>
+        <tr>
+          <th>{firstColumn}</th>
+          {showDeclarations ? <th>Declared values in component CSS</th> : null}
+          <th>{showDeclarations ? "Fallback when unset" : "Fallback in component CSS"}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {tokens.map((token) => (
+          <tr key={token.name}>
+            <td><code>{token.name}</code></td>
+            {showDeclarations ? <td><TokenValues values={token.declarations} /></td> : null}
+            <td><TokenValues values={token.fallbacks} /></td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }
 
@@ -78,6 +126,33 @@ export function ComponentApi({ component }: ComponentApiProps): JSX.Element {
         {" · "}
         <strong>Native root:</strong> <code>{`<${api.root}>`}</code>
       </p>
+
+      <SectionHeader title="Design tokens" />
+      <p>
+        Extracted from <code>{api.designTokens.sources.join(", ")}</code>. Component tokens are
+        scoped customization points or variables declared by this component; shared tokens come
+        from Looma&apos;s token and theme layers.
+      </p>
+      <h3>Component tokens</h3>
+      {api.designTokens.component.length === 0 ? (
+        <p>No component-scoped custom properties.</p>
+      ) : (
+        <DesignTokenTable
+          tokens={api.designTokens.component}
+          firstColumn="Component token"
+          showDeclarations
+        />
+      )}
+      <h3>Shared tokens consumed</h3>
+      {api.designTokens.shared.length === 0 ? (
+        <p>No shared tokens consumed.</p>
+      ) : (
+        <DesignTokenTable
+          tokens={api.designTokens.shared}
+          firstColumn="Shared token"
+          showDeclarations={false}
+        />
+      )}
 
       <SectionHeader title="Attributes" />
       {api.attributes.length === 0 ? (
@@ -117,10 +192,12 @@ export function ComponentApi({ component }: ComponentApiProps): JSX.Element {
         </table>
       )}
 
-      <SectionHeader title="Properties" />
+      <SectionHeader title="Framework props" />
       {api.properties.length === 0 ? (
-        <p>No public properties.</p>
+        <p>No props.</p>
       ) : (
+        <>
+        <p>Vue, React, and Svelte pass the attributes above as these camelCase props.</p>
         <table className="looma-api-table">
           <thead>
             <tr>
@@ -128,7 +205,6 @@ export function ComponentApi({ component }: ComponentApiProps): JSX.Element {
               <th>Type</th>
               <th>Default</th>
               <th>Options</th>
-              <th>Input channel</th>
             </tr>
           </thead>
           <tbody>
@@ -146,11 +222,11 @@ export function ComponentApi({ component }: ComponentApiProps): JSX.Element {
                 <td>
                   <code>{property.options?.length ? property.options.join(" | ") : "-"}</code>
                 </td>
-                <td><code>{property.channel}</code></td>
               </tr>
             ))}
           </tbody>
         </table>
+        </>
       )}
 
       <SectionHeader title="Methods" />
@@ -228,6 +304,19 @@ export function ComponentApi({ component }: ComponentApiProps): JSX.Element {
           </tbody>
         </table>
       )}
+
+      {metadata.components
+        .filter((entry) => entry.navigationParent === component)
+        .map((part) => (
+          <section className="looma-compound-api" key={part.tag}>
+            <SectionHeader title={`${part.tag.replace(/^ui-/, "")} API`} />
+            <p>
+              <code>{`<${part.tag}>`}</code> is a compound part of <code>{`<${component}>`}</code>.
+              Its complete contract follows here so it does not need a misleading standalone page.
+            </p>
+            <ComponentApi component={part.tag} />
+          </section>
+        ))}
     </div>
   );
 }

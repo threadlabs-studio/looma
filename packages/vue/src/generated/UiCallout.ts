@@ -11,8 +11,9 @@ const _hoisted_3 = {
   "data-component": "ui-callout"
 }
 
-import { onMounted, onUnmounted, ref, watchEffect } from "vue";
-import { manageGeneratedProps } from "@threadlabs/looma-core/declarative-generated";
+import { getCurrentInstance, onMounted, onUnmounted, ref, watchEffect } from "vue";
+import { attachLoomaComponent, updateComponentProps } from "@threadlabs/looma-core/declarative";
+import type { ComponentDefinition } from "@threadlabs/looma-core/declarative";
 
 
 export default /*@__PURE__*/_defineComponent({
@@ -26,17 +27,26 @@ export default /*@__PURE__*/_defineComponent({
 
 
 const props = __props;
+const instance = getCurrentInstance();
+const passed = (name: string, attribute: string): boolean => {
+  const raw = instance?.vnode.props ?? {};
+  return Object.hasOwn(raw, name) || Object.hasOwn(raw, attribute);
+};
+const explicitProps = (): Record<string, unknown> => {
+  const valuetone = props.tone;
+  return { "tone": passed("tone", "tone") ? valuetone : undefined };
+};
+const definition = {...{"contract":{"tag":"ui-callout","props":{"tone":{"type":{"enum":["info","note","warning","success","danger"]},"required":false,"target":{"attribute":"data-tone"},"default":"info"}}},"template":{"kind":"element","name":"div","attributes":[{"kind":"literal","name":"role","value":"note"},{"kind":"attribute","name":"data-tone","expression":"tone","expressionPlan":{"source":"tone","ast":{"kind":"id","name":"tone"},"dependencies":["tone"]}}],"children":[{"kind":"element","name":"div","attributes":[{"kind":"literal","name":"class","value":"callout__surface"}],"children":[{"kind":"element","name":"span","attributes":[{"kind":"literal","name":"class","value":"icon"},{"kind":"literal","name":"aria-hidden","value":"true"}],"children":[]},{"kind":"element","name":"div","attributes":[{"kind":"literal","name":"class","value":"content"}],"children":[{"kind":"slot"}]}]}]},"declarations":[],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
 const root = ref<Element>();
 let detach: undefined | (() => void);
 onMounted(() => {
   if (root.value == null) return;
-  detach = manageGeneratedProps(root.value, [
-    { name: "tone", attribute: "data-tone", value: props.tone, type: ["info","note","warning","success","error"], required: false },
-  ]);
+  detach = attachLoomaComponent(root.value, definition, "ui-callout", explicitProps());
 });
 watchEffect(() => {
+  const next = explicitProps();
   if (root.value == null) return;
-  for (const name of ["tone"]) (root.value as unknown as Record<string, unknown>)[name] = props[name as keyof typeof props];
+  updateComponentProps(root.value, next);
 });
 onUnmounted(() => {
   detach?.();
@@ -46,7 +56,6 @@ return (_ctx: any,_cache: any) => {
   return (_openBlock(), _createElementBlock("div", _mergeProps(_ctx.$attrs, {
     "data-component": "ui-callout",
     "data-component-root": "ui-callout",
-    "data-looma-managed": "framework",
     role: "note",
     "data-tone": props.tone,
     ref_key: "root",

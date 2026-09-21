@@ -2,6 +2,56 @@
 
 ## Unreleased
 
+## v0.3.0 Candidate
+
+Breaking: Looma components are HTML Next declarative components. Each
+`ui-*` invocation lowers to its native root (`<button>`, `<input>`, `<dialog>`,
+and so on); no custom elements are registered.
+
+- Props are HTML attributes. Values are typed by HTML Next's type system;
+  `list`, `record`, and `object` props are written as JSON attribute text.
+  Components no longer expose JavaScript properties on their roots, and only
+  props an author supplies are reflected as `data-<name>`.
+- Attributes written on an invocation, including `class`, `style`, `id`,
+  `type`, `name`, and `aria-*`, land on the native root.
+- Components read their public `--ui-*` tokens with fallbacks instead of
+  redeclaring them, so tokens set on an ancestor apply (for example
+  `--ui-dialog-viewport-gap: 0` for an edge-to-edge dialog).
+- Button gains `variant="link"`: an inline text action with no box, the
+  inherited font, an underline that strengthens on hover, and a focus ring.
+- Rebuild `ui-sidebar` as the sidebar panel only (an `<aside>`), no longer a
+  two-pane layout: `width`, `resizable` with bounds, `collapsed`, and below its
+  `breakpoint` an off-canvas drawer; a `commandfor`/`command="--toggle"` button
+  toggles it, reported by a `toggle` event.
+- Rename `ui-center` to `ui-container` (Vue, React: `Container`): a centred column
+  with a maximum width and gutters.
+- Rename `ui-inline` to `ui-cluster`. A cluster always wraps and has no
+  `wrap` or `justify` props.
+- Combobox: drop function-valued hooks, option descriptions, and option
+  metadata. Single selection uses `value`; multiple selection uses `items`.
+  A selected value's label follows later changes to its authored option.
+- Remove the Valibot field adapter and its optional peer dependency.
+- Dialog gains a titled header with a close button, a scrolling body, and an
+  `actions` footer. Toast Region gains `auto` and `duration`. Tooltip gains
+  `inverse`. Tabs gain `stretch` and scroll on overflow. Icon Button gains
+  `round`. Editable gains `hint` and `actions`.
+- Tree Item `expand` no longer bubbles and never changes ancestors or
+  siblings.
+- Overlays resolve `for` targets that appear later, treat backdrop presses as
+  outside presses, measure position without mid-animation transforms, and
+  close correctly when `open` is `false`. Context Menu renders its menu inside
+  its positioned surface and leaves focus alone after a light dismiss.
+- High-contrast themes use high-contrast accent and danger colors.
+- Server-rendered components hydrate into the same instance their authored
+  markup lowers into, including slot content not yet shown, using HTML
+  Next's rendered form (slot range markers and `serializeRenderedForm`).
+  Framework adapters no longer write a `data-looma-managed` ownership marker,
+  and Vue slot regions use the native `slot` attribute.
+- A visual pass across controls: control and icon sizing, raised surfaces,
+  focus halos, overlay elevation, and select and combobox affordances.
+- Publish the component option audit, which records the options each
+  component adopts after 0.3.
+
 ## v0.2.20 Candidate
 
 - Preserve editor focus while table-overlay controls are pressed, so a managed

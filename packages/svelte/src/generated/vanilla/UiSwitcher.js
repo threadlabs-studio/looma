@@ -13,15 +13,14 @@ export function createUiSwitcher(options = {}) {
   }
   element.setAttribute("data-component", "ui-switcher");
   element.setAttribute("data-component-root", "ui-switcher");
-  element.setAttribute("data-looma-managed", "framework");
   if (children.length > 0) {
     for (const child of children) element.append(child);
   } else {
   }
   manageGeneratedProps(element, [
-    { name: "align", attribute: "data-align", value: prop0, type: ["start","center","end","stretch"], required: false },
-    { name: "gap", attribute: "data-gap", value: prop1, type: ["xs","s","m","l","xl"], required: false },
-    { name: "threshold", attribute: "data-threshold", value: prop2, type: ["xs","sm","md","lg"], required: false },
+    { name: "align", attribute: "data-align", value: componentProps["align"], type: ["start","center","end","stretch"], required: false },
+    { name: "gap", attribute: "data-gap", value: componentProps["gap"], type: ["xs","s","m","l","xl"], required: false },
+    { name: "threshold", attribute: "data-threshold", value: componentProps["threshold"], type: ["xs","sm","md","lg"], required: false },
   ]);
   return element;
 }

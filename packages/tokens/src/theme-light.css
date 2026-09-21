@@ -1,5 +1,5 @@
 @layer base {
-  :root,
+  :root:not([data-theme]),
   [data-theme="light"] {
     color-scheme: light;
     --ui-surface-canvas: #ffffff;
@@ -16,6 +16,20 @@
     --ui-border-subtle: #ecece8;
     --ui-border-default: #e4e4e0;
     --ui-border-strong: #c8c8c4;
+    --ui-focus-ring: #5b55d6;
+
+    /* Form controls need a visible 3:1 boundary and 4.5:1 placeholder text;
+       general dividers intentionally remain quieter. */
+    --ui-control-surface: #ffffff;
+    --ui-control-surface-disabled: #f0f0ec;
+    --ui-control-border: #858580;
+    --ui-control-border-hover: #5c5c58;
+    --ui-control-placeholder: #62625e;
+
+    --ui-accent-solid: #5b55d6;
+    --ui-accent-hover: #4b45bd;
+    --ui-accent-active: #3e399e;
+    --ui-accent-soft: #efeffc;
 
     --ui-danger-solid: #b4233f;
     --ui-danger-hover: #941d35;
@@ -26,5 +40,20 @@
     --ui-warning-soft: #fdf7e6;
     --ui-info-solid: #0066cc;
     --ui-info-soft: #e8f0fb;
+    --ui-accent-strong-surface: #5b55d6;
+    --ui-accent-on-strong: #ffffff;
+    --ui-accent-subtle-text: #3e399e;
+    --ui-danger-strong-surface: #b4233f;
+    --ui-danger-on-strong: #ffffff;
+    --ui-danger-subtle-text: #941d35;
+    --ui-success-strong-surface: #007a33;
+    --ui-success-on-strong: #ffffff;
+    --ui-success-subtle-text: #006629;
+    --ui-warning-strong-surface: #b45309;
+    --ui-warning-on-strong: #ffffff;
+    --ui-warning-subtle-text: #704800;
+    --ui-info-strong-surface: #0066cc;
+    --ui-info-on-strong: #ffffff;
+    --ui-info-subtle-text: #0058b0;
   }
 }

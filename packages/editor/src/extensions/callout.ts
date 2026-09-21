@@ -1,7 +1,9 @@
 import { mergeAttributes, Node } from "@tiptap/core";
 
+/** Canonical tone values that may be persisted in a Looma callout node. */
 export const LOOMA_CALLOUT_TONES = ["info", "note", "warning"] as const;
 
+/** A serialized callout tone; unsupported input is normalized to `note`. */
 export type LoomaCalloutTone = (typeof LOOMA_CALLOUT_TONES)[number];
 
 declare module "@tiptap/core" {
@@ -20,7 +22,12 @@ function normalizeCalloutTone(value: unknown): LoomaCalloutTone {
     : "note";
 }
 
-/** A durable, themeable block container for informational editor content. */
+/**
+ * A durable, themeable block container for informational editor content.
+ *
+ * @invariant Parsed and rendered `data-tone` values always belong to
+ * `LOOMA_CALLOUT_TONES`; missing or unknown values round-trip as `note`.
+ */
 export const LoomaCallout = Node.create({
   name: "loomaCallout",
   group: "block",

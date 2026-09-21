@@ -10,11 +10,11 @@ props, events, and slots without owning different behavior.
 | --- | --- | --- |
 | `@threadlabs/looma/vue` | Published Candidate subpath | Qualified for public layout and core wrappers without the editor graph |
 | `@threadlabs/looma/vue/editor` | Published Candidate subpath | Qualified for consumer-facing Tiptap-backed Vue editor helpers and wrappers; the internal Knit harness supplies additional deep-integration evidence |
-| React | Internal/deferred preview | Repository code only; not published or supported in Release 1 |
-| Svelte | Internal/deferred preview | Repository code only; not published or supported in Release 1 |
+| `@threadlabs/looma/react` | Published preview subpath | React components for the declarative contracts; not qualified for Release 1 |
+| `@threadlabs/looma/svelte` | Published preview subpath | DOM factories (`createUiButton`, …); not Svelte components yet; not qualified for Release 1 |
 
-Repository presence is not release qualification. React and Svelte API parity,
-tests, and public documentation remain follow-up work.
+Publication is not release qualification. React and Svelte API parity, tests, and
+Svelte components generated from HTML Next's Svelte target remain follow-up work.
 
 ## Vue Mapping
 
@@ -24,7 +24,7 @@ gate is the authority; this table is a readable summary.
 
 | Element family | Elements | Vue contract |
 | --- | --- | --- |
-| Layout | `ui-stack`, `ui-inline`, `ui-cluster`, `ui-grid`, `ui-center`, `ui-switcher`, `ui-sidebar`, `ui-reel`, `ui-separator` | Same names in PascalCase |
+| Layout | `ui-stack`, `ui-cluster`, `ui-grid`, `ui-container`, `ui-switcher`, `ui-sidebar`, `ui-reel`, `ui-separator` | Same names in PascalCase |
 | Actions and forms | `ui-button`, `ui-icon-button`, `ui-input`, `ui-select`, `ui-textarea`, `ui-form-field`, `ui-checkbox`, `ui-switch`, `ui-radio`, `ui-radio-group` | Same names in PascalCase |
 | Overlays, affordances, and navigation | `ui-affordance-scope`, `ui-dialog`, `ui-popover`, `ui-menu`, `ui-menu-item`, `ui-context-menu`, `ui-tooltip`, `ui-tabs`, `ui-disclosure`, `ui-tree`, `ui-tree-item` | Same names in PascalCase |
 | Display and app shell | `ui-avatar`, `ui-avatar-group`, `ui-badge`, `ui-callout`, `ui-chip`, `ui-toast-region`, `ui-floating-action-button`, `ui-search-shell`, `ui-search-result-row`, `ui-top-bar` | Same names in PascalCase |
@@ -75,5 +75,5 @@ export const Example = {
 };
 ```
 
-React and Svelte examples are intentionally omitted from the Release 1 install
-path because those adapters are deferred.
+React and Svelte examples are omitted from the Release 1 install path because those
+subpaths are previews.

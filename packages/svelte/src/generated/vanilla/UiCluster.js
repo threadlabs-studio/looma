@@ -5,7 +5,6 @@ export function createUiCluster(options = {}) {
   const { attributes = {}, children = [], slots = {}, as, ...componentProps } = options;
   const prop0 = componentProps["align"] === undefined ? undefined : componentProps["align"];
   const prop1 = componentProps["gap"] === undefined ? undefined : componentProps["gap"];
-  const prop2 = componentProps["justify"] === undefined ? undefined : componentProps["justify"];
   const element = document.createElement("div");
   for (const [name, value] of Object.entries(attributes)) {
     if (value === null || value === undefined || value === false) continue;
@@ -13,15 +12,13 @@ export function createUiCluster(options = {}) {
   }
   element.setAttribute("data-component", "ui-cluster");
   element.setAttribute("data-component-root", "ui-cluster");
-  element.setAttribute("data-looma-managed", "framework");
   if (children.length > 0) {
     for (const child of children) element.append(child);
   } else {
   }
   manageGeneratedProps(element, [
-    { name: "align", attribute: "data-align", value: prop0, type: ["start","center","end","stretch"], required: false },
-    { name: "gap", attribute: "data-gap", value: prop1, type: ["xs","s","m","l","xl"], required: false },
-    { name: "justify", attribute: "data-justify", value: prop2, type: ["start","center","end","between"], required: false },
+    { name: "align", attribute: "data-align", value: componentProps["align"], type: ["start","center","end","stretch"], required: false },
+    { name: "gap", attribute: "data-gap", value: componentProps["gap"], type: ["xs","s","m","l","xl"], required: false },
   ]);
   return element;
 }

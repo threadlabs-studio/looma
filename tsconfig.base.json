@@ -19,7 +19,6 @@
       "@threadlabs/looma-core/declarative": ["packages/core/src/declarative.ts"],
       "@threadlabs/looma-core/declarative-generated": ["packages/core/src/declarative-generated.ts"],
       "@threadlabs/looma-core/loader": ["packages/core/src/loader.ts"],
-      "@threadlabs/looma-core/valibot": ["packages/core/src/field/valibot.ts"],
       "@threadlabs/looma-editor": ["packages/editor/src/index.ts"],
       "@threadlabs/looma-editor/extensions": ["packages/editor/src/extensions/index.ts"],
       "@threadlabs/looma-editor/ui": ["packages/editor/src/ui.ts"],

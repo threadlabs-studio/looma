@@ -1,6 +1,6 @@
 /**
  * Table overlay action handler — maps boundaryIndex to Tiptap table commands.
- * Use with looma-editor-table-overlay-action: call this from the adapter's handler.
+ * Use with the table overlay's `action` event: call this from the adapter's handler.
  */
 
 import type { Editor, Range } from "@tiptap/core";
@@ -28,12 +28,22 @@ import {
 
 type TableNode = ReturnType<Editor["state"]["selection"]["$from"]["node"]>;
 
+/**
+ * Bounded initial shape for table insertion.
+ * Rows and columns are clamped to 1–10 by `insertTableAtRange` so slash-command
+ * or custom UI input cannot create an accidentally unbounded transaction.
+ */
 export interface InsertTableAtRangeOptions {
   rows?: number;
   cols?: number;
   withHeaderRow?: boolean;
 }
 
+/**
+ * Command availability calculated from the current ProseMirror selection.
+ * Keeping capabilities beside UI state prevents toolbars from duplicating
+ * Tiptap's schema/selection rules or optimistically enabling invalid actions.
+ */
 export interface TableActionCapabilities {
   canAddRowBefore: boolean;
   canAddRowAfter: boolean;
@@ -46,6 +56,12 @@ export interface TableActionCapabilities {
   canSplitCell: boolean;
 }
 
+/**
+ * One replaceable snapshot for editor-owned table chrome.
+ * Consumers should discard prior capabilities whenever `active` becomes false;
+ * they describe the current ProseMirror transaction state, not table schema in
+ * general.
+ */
 export interface ActiveTableUiState {
   active: boolean;
   showToolbar: boolean;
@@ -66,7 +82,12 @@ const NO_TABLE_CAPABILITIES: TableActionCapabilities = {
   canSplitCell: false,
 };
 
-/** Text formatting belongs to actual text selections, not table CellSelections. */
+/**
+ * Text formatting belongs to actual text selections, not table CellSelections.
+ *
+ * @contract Returns true only for an editable editor with a non-collapsed
+ * `TextSelection`; node and cell selections never activate formatting chrome.
+ */
 export function shouldShowTextFormattingToolbar(
   editor: Editor,
   from = editor.state.selection.from,
@@ -77,7 +98,14 @@ export function shouldShowTextFormattingToolbar(
     && from !== to;
 }
 
-/** Returns Looma's complete interaction state for the table containing the selection. */
+/**
+ * Returns the complete interaction state for the table containing the selection.
+ * Inactive defaults are concrete so UI can replace its previous snapshot and
+ * cannot accidentally retain enabled controls from a table that lost selection.
+ *
+ * @contract Capabilities are recalculated from `editor.can()` at call time; an
+ * inactive snapshot disables every action and resets authored cell formatting.
+ */
 export function getActiveTableUiState(editor: Editor): ActiveTableUiState {
   const active = editor.isActive("table");
   if (!active) {
@@ -109,7 +137,15 @@ export function getActiveTableUiState(editor: Editor): ActiveTableUiState {
   };
 }
 
-/** Executes a toolbar/context-menu action using Looma's table behavior policy. */
+/**
+ * Executes a toolbar/context-menu action using Looma's table behavior policy.
+ * The boolean is Tiptap's command result, so callers can distinguish a handled
+ * action from one rejected by the current schema or selection.
+ *
+ * @contract The event action becomes one focused Tiptap transaction; UI callers
+ * never need to reproduce selection repair or cell-format policy.
+ * @failure Returns false when the current selection cannot support the action.
+ */
 export function handleTableAction(
   editor: Editor,
   detail: TableContextMenuActionEventDetail
@@ -295,7 +331,12 @@ function selectTableAxis(
 
 /**
  * Deletes a slash-command range (or other inline trigger text) and inserts a table.
- * Use this when apps want a stable default `/table` behavior without owning table policy.
+ * Use this when apps want a stable default `/table` behavior without owning
+ * table policy. Deletion and insertion share one focused command chain, so the
+ * trigger text cannot remain behind if insertion succeeds.
+ *
+ * @contract Rows and columns are clamped to 1–10, then range deletion and table
+ * insertion succeed or fail together through a single Tiptap command chain.
  */
 export function insertTableAtRange(
   editor: Editor,
@@ -315,8 +356,18 @@ export function insertTableAtRange(
 }
 
 /**
- * Reconciles rendered column widths back into table-cell colwidth attrs so a resized
- * full-width table stays inside the editor width after resize completes.
+ * Reconciles rendered column widths back into table-cell `colwidth` attributes.
+ *
+ * Browser layout is the source of truth at the end of a pointer resize, but
+ * ProseMirror must persist integer widths in the document. The algorithm keeps
+ * proportions, enforces a minimum, and distributes rounding error so the final
+ * sum still equals the rendered table width. Spanning cells are updated once at
+ * their top-left map coordinate rather than once per covered grid position.
+ *
+ * @invariant Every persisted width is an integer at least `minWidth`, and each
+ * spanning cell receives one width per logical column from its top-left origin.
+ * @failure Returns false without an active table or measurable columns and does
+ * not dispatch when persisted widths already match the rendered geometry.
  */
 export function normalizeActiveTableColumnWidths(
   editor: Editor,
@@ -388,18 +439,19 @@ export function normalizeActiveTableColumnWidths(
 }
 
 /**
- * Handles a table overlay action by selecting the target cell and running the Tiptap command.
- * Call this from your adapter's onTableOverlayAction handler.
+ * Handles a geometry-derived table-overlay intent without exposing ProseMirror
+ * positions to UI components.
  *
- * @example
- * ```vue
- * <EditorTableOverlay
- *   :open="tableOverlayOpen"
- *   :rows="tableRows"
- *   :cols="tableCols"
- *   @looma-editor-table-overlay-action="(e) => handleTableOverlayAction(editor, e.detail)"
- * />
- * ```
+ * Boundary indices address the visual grid edges measured by the overlay. The
+ * helper maps them into the current table transaction, rejects indices that do
+ * not represent a legal insertion edge, dispatches once, and restores editor
+ * focus. `open-cell-menu` returns handled without editing because menu ownership
+ * remains with the application/adapter.
+ *
+ * @contract A valid structural intent dispatches at most one transaction;
+ * `open-cell-menu` acknowledges UI ownership without mutating the document.
+ * @failure Missing tables, malformed payloads, and out-of-range boundaries
+ * return false before dispatching a transaction.
  */
 export function handleTableOverlayAction(
   editor: Editor,
