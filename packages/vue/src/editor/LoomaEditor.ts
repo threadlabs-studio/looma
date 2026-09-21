@@ -32,6 +32,7 @@ import {
   type LoomaMentionItem,
   type LoomaMentionMenuSnapshot,
   type LoomaMentionProvider,
+  type SlashMenuAnchorRect,
   type TableOverlayGeometry,
   type TableCellAlignment,
   type TableCellBackground,
@@ -104,6 +105,28 @@ const EMPTY_CAPABILITIES: TableActionCapabilities = {
 
 function sameDocument(left: JSONContent, right: JSONContent): boolean {
   return JSON.stringify(left) === JSON.stringify(right);
+}
+
+function managedMenuAnchorRect(rect: DOMRect | null): SlashMenuAnchorRect | null {
+  if (!rect) return null;
+  return {
+    left: rect.left,
+    top: rect.top,
+    right: rect.right,
+    bottom: rect.bottom,
+    x: rect.x,
+    y: rect.y,
+    width: rect.width,
+    height: rect.height,
+  };
+}
+
+function managedSlashMenuItems(items: LoomaSlashMenuSnapshot["items"]) {
+  return items.map(({ title, description, icon }) => ({
+    title,
+    description,
+    icon,
+  }));
 }
 
 function selectedTableElement(editor: Editor): HTMLTableElement | null {
@@ -764,6 +787,13 @@ export const LoomaEditor = defineComponent({
       nextTick(updateTableUi);
     };
 
+    const onTableOverlayMouseDown = (event: MouseEvent) => {
+      const action = event.target instanceof Element
+        ? event.target.closest("button[data-action]")
+        : null;
+      if (action) event.preventDefault();
+    };
+
     const commandButton = (
       label: string,
       icon: LoomaIconName,
@@ -986,9 +1016,9 @@ export const LoomaEditor = defineComponent({
           ? h(EditorSlashMenu, {
               open: true,
               query: slash.query,
-              items: slash.items,
+              items: managedSlashMenuItems(slash.items),
               selectedIndex: slash.selectedIndex,
-              anchorRect: slash.rect,
+              anchorRect: managedMenuAnchorRect(slash.rect),
               onHighlight: ({ index }: { index: number }) => { slash.selectedIndex = index; },
               onSelect: ({ index }: { index: number }) => {
                 slash.select?.(index);
@@ -1002,7 +1032,7 @@ export const LoomaEditor = defineComponent({
               query: mention.query,
               items: mention.items,
               selectedIndex: mention.selectedIndex,
-              anchorRect: mention.rect,
+              anchorRect: managedMenuAnchorRect(mention.rect),
               loading: mention.loading,
               onHighlight: ({ index }: { index: number }) => {
                 mention.selectedIndex = index;
@@ -1025,6 +1055,7 @@ export const LoomaEditor = defineComponent({
               ref: tableOverlayShell,
               class: "looma-editor__table-overlay-shell",
               style: tableUi.overlayStyle,
+              onMousedown: onTableOverlayMouseDown,
               onPointerleave: onTableOverlayPointerLeave,
             }, [h(EditorTableOverlay, {
               open: true,

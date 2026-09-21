@@ -9,6 +9,9 @@ export default defineConfig({
       headless: true,
       instances: [{ browser: "chromium" }],
     },
-    include: ["test/declarative-ui.browser.spec.ts"],
+    include: [
+      "test/declarative-ui.browser.spec.ts",
+      "test/mention-typing.browser.spec.ts",
+    ],
   },
 });

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createApp, createSSRApp, h, nextTick, ref, type App } from "vue";
+import { createApp, createSSRApp, defineComponent, h, nextTick, ref, type App } from "vue";
 import { renderToString } from "@vue/server-renderer";
 import { controllerFor } from "@threadlabs/looma-core/declarative";
 
@@ -126,14 +126,22 @@ describe("Vue declarative adapters in a browser", () => {
     styles.remove();
   });
 
-  it("hydrates conditional tree-item structure without replacing server markup", async () => {
+  it("hydrates conditional tree-item structure without dropping framework slot regions", async () => {
+    const FolderIcon = defineComponent({
+      name: "FolderIcon",
+      render: () => h("svg", { class: "folder-icon", "aria-hidden": "true" }),
+    });
     const component = {
       render: () => h(TreeItem, {
         container: true,
         itemId: "docs",
         sortable: true,
       }, {
-        default: () => "Docs",
+        leading: () => h(FolderIcon),
+        default: () => h("span", { class: "folder-name" }, "Docs"),
+        actions: () => h("div", { class: "folder-actions" }, [
+          h("button", { type: "button" }, "More"),
+        ]),
         children: () => h("span", "Child page"),
       }),
     };
@@ -141,6 +149,9 @@ describe("Vue declarative adapters in a browser", () => {
     host.innerHTML = await renderToString(createSSRApp(component));
     document.body.append(host);
     const serverRoot = host.firstElementChild;
+    expect(host.querySelector(".folder-icon")).not.toBeNull();
+    expect(host.querySelector(".folder-name")?.textContent).toBe("Docs");
+    expect(host.querySelector(".folder-actions button")?.textContent).toBe("More");
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
     const consoleWarn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
 
@@ -151,6 +162,9 @@ describe("Vue declarative adapters in a browser", () => {
       await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
 
       expect(host.firstElementChild).toBe(serverRoot);
+      expect(host.querySelector(".folder-icon")).not.toBeNull();
+      expect(host.querySelector(".folder-name")?.textContent).toBe("Docs");
+      expect(host.querySelector(".folder-actions button")?.textContent).toBe("More");
       expect(consoleWarn.mock.calls.flat().join(" ")).not.toContain("Hydration");
       expect(consoleError.mock.calls.flat().join(" ")).not.toContain("Hydration");
     } finally {

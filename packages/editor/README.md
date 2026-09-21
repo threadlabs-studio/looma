@@ -7,7 +7,7 @@ Candidate declarative editor UI, styles, Tiptap 2 presets, slash commands, menti
 and table editing for Looma. The package uses Tiptap's vanilla `Editor`; the
 public facade's `/vue/editor` entry provides the turnkey Vue editor.
 
-Release status: Candidate `0.2.15`, not Stable.
+Release status: Candidate `0.2.20`, not Stable.
 
 ## Density tokens
 
