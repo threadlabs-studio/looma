@@ -34,12 +34,12 @@
 }
 
 .tooltip__surface {
-  --ui-tooltip-arrow-size: 0.5rem;
-  --ui-tooltip-line: var(--ui-tooltip-border, var(--ui-border-default));
+  --_tooltip-arrow-size: 0.5rem;
+  --_tooltip-line: var(--ui-tooltip-border, var(--ui-border-default));
   position: relative;
   box-sizing: border-box;
   max-inline-size: var(--ui-tooltip-max-inline-size, 18rem);
-  border: 1px solid var(--ui-tooltip-line);
+  border: 1px solid var(--_tooltip-line);
   border-radius: var(--ui-tooltip-radius, var(--ui-radius-1));
   background: var(--ui-tooltip-surface, var(--ui-surface-elevated));
   color: var(--ui-tooltip-text, var(--ui-text-primary));
@@ -51,7 +51,7 @@
 }
 
 :scope[data-inverse='true'] .tooltip__surface {
-  --ui-tooltip-line: var(--ui-tooltip-inverse-surface, var(--ui-text-primary));
+  --_tooltip-line: var(--ui-tooltip-inverse-surface, var(--ui-text-primary));
   background: var(--ui-tooltip-inverse-surface, var(--ui-text-primary));
   color: var(--ui-tooltip-inverse-text, var(--ui-surface-default));
 }
@@ -63,12 +63,12 @@
   position: absolute;
   z-index: 1;
   inset-inline-start: var(--ui-space-3);
-  inset-block-end: calc(var(--ui-tooltip-arrow-size) / -2 - 0.5px);
-  inline-size: var(--ui-tooltip-arrow-size);
-  block-size: var(--ui-tooltip-arrow-size);
+  inset-block-end: calc(var(--ui-tooltip-arrow-size, var(--_tooltip-arrow-size)) / -2 - 0.5px);
+  inline-size: var(--ui-tooltip-arrow-size, var(--_tooltip-arrow-size));
+  block-size: var(--ui-tooltip-arrow-size, var(--_tooltip-arrow-size));
   box-sizing: border-box;
   background: inherit;
-  border: 0 solid var(--ui-tooltip-line);
+  border: 0 solid var(--_tooltip-line);
   border-inline-end-width: 1px;
   border-block-end-width: 1px;
   border-end-end-radius: 1px;
@@ -76,7 +76,7 @@
 }
 
 :scope[data-placement^='bottom'] .tooltip__surface::after {
-  inset-block-start: calc(var(--ui-tooltip-arrow-size) / -2 - 0.5px);
+  inset-block-start: calc(var(--ui-tooltip-arrow-size, var(--_tooltip-arrow-size)) / -2 - 0.5px);
   inset-block-end: auto;
   border-inline-end-width: 0;
   border-block-end-width: 0;

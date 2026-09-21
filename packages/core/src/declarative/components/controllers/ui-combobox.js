@@ -487,8 +487,19 @@ export default function controller(host) {
   instances.set(element, api);
   const listeners = { input: onInput, keydown: onKeydown, click: onClick, pointerdown: onPointerdown, focusout: onFocusout, compositionstart: onCompositionstart, compositionend: onCompositionend, open: onTooltipOpen, close: onTooltipClose };
   for (const [name, listener] of Object.entries(listeners)) element.addEventListener(name, listener);
-  const observer = new MutationObserver(wire);
-  observer.observe(element, { childList: true, subtree: true });
+  // Authored options can change after mount (renamed, replaced, or arriving late). A selected value
+  // then shows its current label, unless the user is editing the text.
+  const relabel = () => {
+    if (host.state.multiple || host.state.query !== undefined || host.state.selected == null) return;
+    if (input && element.ownerDocument.activeElement === input) return;
+    const label = config().options?.find((row) => row.value === host.state.selected)?.label;
+    if (label === undefined || label === host.state.raw) return;
+    host.state.raw = label;
+    host.state.display = label;
+    awaitingLabel = null;
+  };
+  const observer = new MutationObserver(() => { wire(); relabel(); });
+  observer.observe(element, { childList: true, subtree: true, characterData: true });
   const stop = host.effect(() => {
     if (host.state.value !== lastValue) { lastValue = host.state.value; syncValue(); }
     if (host.state.query !== lastQuery) { lastQuery = host.state.query; syncQuery(); }

@@ -196,3 +196,17 @@ test("generates public API metadata from declarative contracts", async () => {
     ({ name }) => name === "--ui-affordance-near-color",
   ));
 });
+
+test("design tokens hide private defaults and report them as the public token's default", () => {
+  const tokens = extractDesignTokensFromCss({
+    tag: "ui-callout",
+    source: `:scope { --_callout-surface: var(--ui-info-soft); background: var(--ui-callout-surface, var(--_callout-surface)); }
+:scope[data-tone='danger'] { --_callout-surface: var(--ui-danger-soft); }`,
+  });
+
+  assert.deepEqual(tokens.component, [{
+    name: "--ui-callout-surface",
+    declarations: ["var(--ui-info-soft)", "var(--ui-danger-soft)"],
+  }]);
+  assert.deepEqual(tokens.shared.map((token) => token.name), ["--ui-danger-soft", "--ui-info-soft"]);
+});
