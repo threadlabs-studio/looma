@@ -1,0 +1,15 @@
+<!--
+title: End side, resizable
+description: side="end" puts the panel on the end edge. resizable adds a handle on its inner edge: drag it, or focus it and use the arrow keys, Home, and End, within min-width and max-width. Double-click resets the width.
+-->
+<div class="demo-app-shell">
+  <main class="demo-app-main">
+    <p>Main content comes first when the sidebar is on the end side.</p>
+  </main>
+  <ui-sidebar side="end" width="260" resizable min-width="200" max-width="380" aria-label="Details">
+    <div class="demo-app-nav">
+      <strong>Details</strong>
+      <p>Drag the inner edge, or focus it and use the arrow keys.</p>
+    </div>
+  </ui-sidebar>
+</div>

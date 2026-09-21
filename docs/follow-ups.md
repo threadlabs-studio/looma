@@ -66,9 +66,6 @@ separators and checkable items, `<ui-toast>` children, Disclosure `name`, Tabs `
 
 ## Docs and tooling
 
-- Move the docs examples out of `apps/docs/src/components/ComponentPreview.tsx` (HTML strings in two
-  large switch statements) into one HTML file per example, with its title, description, and any demo
-  behaviour beside it.
 - The every-component-page docs test is slow under parallel load; give it its own worker or split it.
 - Decide the docs site's cream background (ghost and subtle styles are tuned to it).
 - Icon Button medium and large sizes may be slightly large; revisit with real layouts.

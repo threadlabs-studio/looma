@@ -1,0 +1,10 @@
+<!--
+title: modal
+description: Modal opens the dialog in the top layer over a backdrop and makes the rest of the page inert until it closes.
+-->
+<ui-button id="open-modal-dialog">Open modal dialog</ui-button>
+<ui-dialog id="modal-dialog" for="open-modal-dialog" modal label="Delete project?">
+  <p>This permanently removes the project and its history.</p>
+  <ui-button slot="actions" commandfor="modal-dialog" command="close">Cancel</ui-button>
+  <ui-button slot="actions" variant="danger" commandfor="modal-dialog" command="close">Delete</ui-button>
+</ui-dialog>

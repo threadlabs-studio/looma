@@ -5,6 +5,8 @@
     "playwright.config.ts",
     "sidebars.ts",
     "src",
-    "tests"
-  ]
+    "tests",
+    "examples"
+  ],
+  "exclude": ["examples/**/*.react.tsx"]
 }
