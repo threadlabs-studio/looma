@@ -52,8 +52,14 @@
   box-shadow: var(--ui-textarea-focus-shadow, var(--ui-control-inset), var(--ui-control-focus-halo-shadow));
 }
 
-:scope[aria-invalid='true'] {
+/* The app's invalid flag, or the browser's own verdict once the user has left an invalid field. */
+:scope[aria-invalid='true'],
+:scope:user-invalid {
   border-color: var(--ui-danger-solid);
+}
+
+:scope:is([aria-invalid='true'], :user-invalid):focus-visible {
+  box-shadow: var(--ui-control-inset), 0 0 0 3px color-mix(in srgb, var(--ui-danger-solid) 22%, transparent);
 }
 
 :scope:disabled {

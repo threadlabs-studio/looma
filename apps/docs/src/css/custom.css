@@ -91,7 +91,7 @@ body {
 
 .menu__list-item-collapsible .menu__link {
   color: var(--looma-ink-soft);
-  font-size: 0.69rem;
+  font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -155,7 +155,7 @@ body {
   background: var(--looma-paper-deep);
   border: 0;
   border-bottom: 1px solid var(--looma-line);
-  font-size: 0.69rem;
+  font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-align: left;
@@ -203,7 +203,7 @@ body {
   align-items: center;
   margin-bottom: 1.25rem;
   color: var(--looma-accent-ink);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: 0.13em;
   text-transform: uppercase;
@@ -314,7 +314,7 @@ body {
 .looma-home-hero__demo-bar i:nth-child(3) { background: var(--looma-teal); }
 
 .looma-home-hero__demo-bar small {
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -353,7 +353,7 @@ body {
 .looma-catalog-hero__eyebrow {
   margin-bottom: 0.8rem;
   color: var(--looma-coral);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -453,7 +453,7 @@ body {
   background: rgb(255 255 255 / 0.65);
   border-radius: 5px;
   font-family: var(--ifm-font-family-monospace);
-  font-size: 0.64rem;
+  font-size: 0.75rem;
 }
 
 .looma-catalog__result-count { margin: 0 0 0.9rem; color: var(--looma-ink-soft); font-size: 0.78rem; }
@@ -512,13 +512,13 @@ body {
   justify-content: space-between;
   margin-bottom: 0.6rem;
   color: var(--looma-ink-soft);
-  font-size: 0.64rem;
+  font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: 0.09em;
   text-transform: uppercase;
 }
 
-.looma-component-card__meta code { padding: 0; color: var(--looma-ink-soft); background: transparent; font-size: 0.65rem; text-transform: none; }
+.looma-component-card__meta code { padding: 0; color: var(--looma-ink-soft); background: transparent; font-size: 0.75rem; text-transform: none; }
 .looma-component-card h2 { margin: 0; padding: 0; border: 0; font-size: 1.18rem; letter-spacing: -0.035em; }
 .looma-component-card h2 a { color: var(--looma-ink); text-decoration: none !important; }
 
@@ -576,7 +576,7 @@ body {
   display: block;
   margin-bottom: 1rem;
   color: var(--looma-ink-soft);
-  font-size: 0.67rem;
+  font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: 0.11em;
   text-transform: uppercase;
@@ -709,6 +709,10 @@ body {
   [data-component-root~="ui-reel"]
 ) > [data-slotted] {
   box-sizing: border-box;
+  /* Taller than one line, so centre the label in the box. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
   min-block-size: 2.75rem;
   padding: 0.65rem 0.8rem;
   background: var(--looma-paper);
@@ -851,7 +855,7 @@ body {
   padding: 0.45rem 0.6rem;
   border: 1px solid var(--looma-line-strong);
   color: var(--looma-ink-soft);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
 }
 
 .demo-editor-table-stage > [data-component-root~="ui-editor-table-overlay"] {
@@ -861,7 +865,7 @@ body {
   height: 100%;
 }
 .demo-empty-state { display: grid; gap: 0.25rem; place-items: center; min-height: 5rem; padding: 1rem; text-align: center; }
-.demo-empty-state span { color: var(--looma-ink-soft); font-size: 0.72rem; }
+.demo-empty-state span { color: var(--looma-ink-soft); font-size: 0.75rem; }
 
 .looma-component-preview ui-combobox, .looma-component-preview ui-input, .looma-component-preview ui-select,
 .looma-component-preview ui-textarea, .looma-component-preview ui-form-field { width: min(100%, 19rem); }
@@ -875,12 +879,12 @@ body {
   background: #fff;
   border: 1px solid #dad4df;
   border-radius: 7px;
-  font-size: 0.73rem;
+  font-size: 0.75rem;
   font-weight: 700;
 }
 
 .demo-copy { display: grid; gap: 0.25rem; text-align: center; }
-.demo-copy span, .demo-muted { color: var(--looma-ink-soft); font-size: 0.72rem; }
+.demo-copy span, .demo-muted { color: var(--looma-ink-soft); font-size: 0.75rem; }
 
 .demo-context-target {
   display: flex;
@@ -919,12 +923,12 @@ body {
   color: #fff;
   background: var(--looma-purple);
   border-radius: 50%;
-  font-size: 0.55rem;
+  font-size: 0.75rem;
 }
 
 .demo-avatar--teal { background: var(--looma-teal); }
 .demo-table { display: grid; grid-template-columns: repeat(2, 4rem); border: 1px solid var(--looma-line); }
-.demo-table span { padding: 0.55rem; background: #fff; border: 1px solid var(--looma-line); font-size: 0.7rem; }
+.demo-table span { padding: 0.55rem; background: #fff; border: 1px solid var(--looma-line); font-size: 0.75rem; }
 .demo-search { display: flex; gap: 0.6rem; align-items: center; padding: 0.7rem; background: #fff; border-bottom: 1px solid #e5e0e9; }
 .demo-search input { min-width: 0; border: 0; outline: 0; }
 .demo-separator { display: flex; gap: 0.8rem; align-items: center; height: 3rem; font-size: 0.75rem; }
@@ -964,7 +968,7 @@ body {
 .looma-model__eyebrow {
   margin: 0 0 0.65rem;
   color: var(--looma-accent-ink);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: 0.13em;
   text-transform: uppercase;
@@ -1013,7 +1017,7 @@ body {
 }
 
 .looma-model__steps strong { display: block; font-size: 0.85rem; }
-.looma-model__steps p { margin: 0.45rem 0 0; color: var(--looma-ink-soft); font-size: 0.78rem; line-height: 1.55; }
+.looma-model__steps p { margin: 0.45rem 0 0; color: var(--looma-ink-soft); font-size: 0.9rem; line-height: 1.55; }
 
 .looma-model__example {
   padding: 1.2rem;
@@ -1037,7 +1041,7 @@ body {
 
 .looma-mode-switch__label {
   color: var(--looma-ink-soft);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -1088,7 +1092,7 @@ body {
   color: inherit;
   background: color-mix(in srgb, currentColor 10%, transparent);
   border-radius: 4px;
-  font-size: 0.58rem;
+  font-size: 0.75rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -1133,7 +1137,7 @@ body {
 
 .looma-component-mode-example__header > div:first-child { display: grid; gap: 0.1rem; }
 .looma-component-mode-example__header strong { font-size: 0.95rem; }
-.looma-component-mode-example__header span { color: var(--looma-ink-soft); font-size: 0.72rem; }
+.looma-component-mode-example__header span { color: var(--looma-ink-soft); font-size: 0.75rem; }
 .looma-component-mode-example .looma-mode-switch { margin: 0; }
 .looma-component-mode-example .looma-mode-switch__label { display: none; }
 
@@ -1149,7 +1153,7 @@ body {
  * transition, but join documentation pages directly to the footer. */
 body:has(.theme-doc-sidebar-container) .footer { margin-top: 0; }
 
-.footer__title { color: #fff; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; }
+.footer__title { color: #fff; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; }
 .footer__link-item, .footer__copyright { font-size: 0.8rem; }
 
 .sr-only {
@@ -1200,4 +1204,18 @@ body:has(.theme-doc-sidebar-container) .footer { margin-top: 0; }
 .looma-preview-scenario__stage [data-component-root~="ui-center"] {
   outline: 1px dashed var(--looma-line-strong);
   background: color-mix(in srgb, var(--ifm-color-primary) 8%, transparent);
+}
+
+/* Navbar version label. */
+.looma-version {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid var(--ui-border-default);
+  border-radius: 999px;
+  color: var(--ui-text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
 }

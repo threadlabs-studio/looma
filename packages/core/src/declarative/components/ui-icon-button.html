@@ -112,7 +112,8 @@
 }
 
 :scope:hover:enabled {
-  background: var(--ui-icon-button-hover-bg, var(--ui-surface-muted));
+  /* Derived from the text colour so the ghost hover shows on any background. */
+  background: var(--ui-icon-button-hover-bg, color-mix(in srgb, currentColor 8%, transparent));
   color: var(--ui-icon-button-hover-color, var(--ui-text-primary));
 }
 

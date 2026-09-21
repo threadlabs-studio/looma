@@ -14,7 +14,7 @@ import { DeclarativeModel } from "@site/src/components/DeclarativeModel";
 
 ## Install Looma
 
-Looma Release 1 is a Candidate `0.3.0` package for Vue 3 and direct declarative HTML use. It is not Stable yet. React and Svelte adapters in the repository are internal previews and are not published or supported in Release 1.
+Looma Release 1 is a Candidate `0.3.0` package for Vue 3 and direct declarative HTML use. It is not Stable yet. React (`@threadlabs/looma/react`) and Svelte (`@threadlabs/looma/svelte`) are published as previews and are not qualified in Release 1.
 
 :::caution Confirm the Candidate tag
 
@@ -70,6 +70,13 @@ import "@threadlabs/looma/editor";
 
 Choose only one Looma theme file unless your application supplies its own semantic-token values. Importing the public modules during server rendering is supported; document lowering and controller behavior wait for a browser.
 
+## How components load
+
+HTML Next defines two ways to load components, and they build the same components:
+
+- **Installed package** (above). Your bundler imports Looma's entry points, which register the component definitions ahead of time. This is how Looma is used today.
+- **No build.** A page loads HTML Next's browser entry with a `<script type="module">` and links each component's HTML with `<link rel="component" href="…/ui-button.html">`; definitions load on demand. Looma does not ship its component HTML files yet, so this path is not available with Looma in this release.
+
 ## Render with a framework adapter
 
 The mode control above changes the syntax, not the component model. Looma wrappers preserve native, authored markup and project the same inputs, methods, events, slots, and controller behavior into the framework lifecycle. The markup remains the semantic fallback before JavaScript lowers the declarative invocation to its native root and attaches behavior.
@@ -82,9 +89,7 @@ import { Button, Stack } from "@threadlabs/looma/vue";
 <template>
   <Stack gap="m">
     <h1>Account</h1>
-    <Button variant="solid">
-      <button type="button">Save</button>
-    </Button>
+    <Button variant="solid">Save</Button>
   </Stack>
 </template>
 ```
@@ -131,7 +136,7 @@ const editor = new Editor({ extensions: [LoomaTableKit] });
 
 - `@threadlabs/looma` is the complete R1 public package; supported capabilities live at its explicit subpaths.
 - Every published component contract lowers to its declared native light-DOM root. No custom-element registry or shadow-root implementation is part of the public model.
-- React and Svelte adapters are internal repository previews, not R1 exports.
+- React and Svelte subpaths are previews, not qualified R1 exports.
 - `LoomaEditor` owns its Tiptap lifecycle, formatting controls, slash commands,
   bounded mention suggestions, focus behavior, image insertion, and table editing.
 - Hosts own persistence, the authorized people-directory query, upload

@@ -28,6 +28,40 @@ describe("shipped declarative component graph", () => {
     await vi.waitFor(() => expect(input.value).toBe("Harbor North"));
   });
 
+  it("resolves a strict combobox's typed text to a valid option when focus leaves", async () => {
+    document.body.innerHTML = `<ui-combobox label="Stop" required><option value="north">North terminal</option><option value="south">South pier</option></ui-combobox><button id="after">After</button>`;
+    await settle();
+    const input = document.querySelector<HTMLInputElement>('[data-component-root~="ui-combobox"] input[role="combobox"]')!;
+    input.focus();
+    input.value = "North";
+    input.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    await settle();
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "Tab", bubbles: true }));
+    document.getElementById("after")!.focus();
+    await vi.waitFor(() => expect(input.value).toBe("North terminal"));
+
+    // Text that matches no option does not stand as the value.
+    input.focus();
+    input.value = "Nowhere";
+    input.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    await settle();
+    document.getElementById("after")!.focus();
+    await vi.waitFor(() => expect(input.value).toBe("North terminal"));
+  });
+
+  it("does not pull focus back to an editor committed by a click elsewhere", async () => {
+    document.body.innerHTML = `<ui-editable value="First"></ui-editable><ui-editable value="Second"></ui-editable>`;
+    await settle();
+    const [first, second] = [...document.querySelectorAll<HTMLElement>('[data-component-root~="ui-editable"]')];
+    first!.querySelector<HTMLButtonElement>(".editable__preview")!.click();
+    await vi.waitFor(() => expect(document.activeElement).toBe(first!.querySelector("input")));
+    second!.querySelector(".editable__preview")!.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+    second!.querySelector<HTMLButtonElement>(".editable__preview")!.click();
+    await vi.waitFor(() => expect(document.activeElement).toBe(second!.querySelector("input")));
+    await new Promise<void>((resolve) => setTimeout(resolve, 50));
+    expect(document.activeElement).toBe(second!.querySelector("input"));
+  });
+
   it("reads public tokens a consumer sets on an ancestor", async () => {
     // Components read their public --ui-* tokens with fallbacks instead of redeclaring them on the
     // root, so an app-level override (here an edge-to-edge mobile dialog) reaches the component.

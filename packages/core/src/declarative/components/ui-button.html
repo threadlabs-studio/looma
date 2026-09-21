@@ -115,13 +115,19 @@
   box-shadow: none;
 }
 
+:scope[data-variant='ghost'] {
+  /* Tints derive from the text colour, not a surface token, so hover and press show on any background. */
+  --_ghost-hover: color-mix(in srgb, currentColor 8%, transparent);
+  --_ghost-active: color-mix(in srgb, currentColor 14%, transparent);
+}
+
 :scope[data-variant='ghost']:hover:enabled {
-  background: var(--ui-surface-muted);
+  background: var(--ui-button-ghost-hover, var(--_ghost-hover));
   border-color: transparent;
 }
 
 :scope[data-variant='ghost']:active:enabled {
-  background: var(--ui-surface-subtle);
+  background: var(--ui-button-ghost-active, var(--_ghost-active));
   border-color: transparent;
 }
 

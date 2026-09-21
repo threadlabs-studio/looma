@@ -84,9 +84,19 @@
   border-block-end: 1px solid var(--ui-border-default);
 }
 
+/* Laid out like the dialog's action row: actions right-aligned, spaced as buttons, no fill. */
 .search-shell__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-3) var(--ui-space-4);
   border-block-start: 1px solid var(--ui-border-default);
-  background: var(--ui-surface-muted);
+}
+
+.search-shell__footer:empty {
+  display: none;
 }
 
 .search-shell__body {

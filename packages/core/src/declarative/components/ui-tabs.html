@@ -23,7 +23,10 @@
   max-inline-size: 100%;
   /* Tabs that do not fit scroll sideways rather than wrapping or squeezing. */
   overflow-x: auto;
-  overscroll-behavior-inline: contain;
+  /* overflow-x: auto would make the block axis scrollable too; a sideways swipe must not scroll the
+     strip or the page vertically. */
+  overflow-y: hidden;
+  overscroll-behavior: contain;
   scrollbar-width: thin;
   border-block-end: 1px solid var(--ui-border-default);
 }

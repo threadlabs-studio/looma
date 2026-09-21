@@ -21,9 +21,11 @@ Candidate availability is defined by the npm `candidate` dist-tag resolving `@th
 - **`@threadlabs/looma/editor/extensions`** — ESM; focused Tiptap 2 presets, `LoomaTableKit`, slash commands, mentions, and table helpers.
 - **`@threadlabs/looma/vue`** — ESM; optional Vue 3 wrappers for published layout and core elements, without the editor graph.
 - **`@threadlabs/looma/vue/editor`** — ESM; the turnkey `LoomaEditor` and advanced low-level wrappers.
+- **`@threadlabs/looma/react`** (preview) — ESM; React components for the same declarative contracts.
+- **`@threadlabs/looma/svelte`** (preview) — ESM; DOM factories for Svelte and other hosts.
 - **`@threadlabs/looma/*.css`** — Tokens, themes, layout, core, and editor styles.
 
-React and Svelte adapters are deferred internal repository previews. Docs, Storybook, examples, and tooling are private workspaces.
+The React and Svelte subpaths are previews: published, not qualified for Release 1, and they may change. Docs, Storybook, examples, and tooling are private workspaces.
 
 ## Qualified behavior
 
