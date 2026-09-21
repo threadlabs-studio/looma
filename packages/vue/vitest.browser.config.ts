@@ -18,6 +18,7 @@ export default defineConfig({
       "src/combobox-multiple.browser.test.ts",
       "src/declarative-adapter.browser.test.ts",
       "src/editor/LoomaEditor.history.browser.test.ts",
+      "src/editor/LoomaEditor.mention.browser.test.ts",
     ],
   },
 });
