@@ -4,23 +4,23 @@ import type { ComponentPropsWithoutRef, ComponentRef, ElementType, ReactNode, Re
 import { attachLoomaComponent } from "@threadlabs/looma-core/declarative";
 import type { ComponentDefinition } from "@threadlabs/looma-core/declarative";
 
-const definition = {...{"contract":{"tag":"ui-button","props":{"disabled":{"type":"boolean","required":false,"target":{"attribute":"disabled"},"default":false},"size":{"type":"string","required":false,"target":{"attribute":"data-size"}},"variant":{"type":"string","required":false,"target":{"attribute":"data-variant"},"default":"outline"}}},"template":{"kind":"element","name":"span","attributes":[{"kind":"attribute","name":"data-size","expression":"size","expressionPlan":{"source":"size","ast":{"kind":"id","name":"size"},"dependencies":["size"]}},{"kind":"attribute","name":"data-variant","expression":"variant","expressionPlan":{"source":"variant","ast":{"kind":"id","name":"variant"},"dependencies":["variant"]}}],"children":[{"kind":"slot"}]},"declarations":[],"root":{"kind":"native","element":"span","choices":["span"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
+const definition = {...{"contract":{"tag":"ui-button","props":{"disabled":{"type":"boolean","required":false,"target":{"attribute":"disabled"},"default":false},"size":{"type":{"enum":["sm","md","lg"]},"required":false,"target":{"attribute":"data-size"},"default":"md"},"variant":{"type":{"enum":["outline","solid","danger","ghost"]},"required":false,"target":{"attribute":"data-variant"},"default":"outline"}}},"template":{"kind":"element","name":"button","attributes":[{"kind":"attribute","name":"data-size","expression":"size","expressionPlan":{"source":"size","ast":{"kind":"id","name":"size"},"dependencies":["size"]}},{"kind":"attribute","name":"data-variant","expression":"variant","expressionPlan":{"source":"variant","ast":{"kind":"id","name":"variant"},"dependencies":["variant"]}}],"children":[{"kind":"slot"}]},"declarations":[],"root":{"kind":"native","element":"button","choices":["button"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
 
 interface UiButtonOwnProps {
   disabled?: boolean | null;
-  size?: string | null;
-  variant?: string | null;
+  size?: "sm" | "md" | "lg" | null;
+  variant?: "outline" | "solid" | "danger" | "ghost" | null;
   slots?: Readonly<Record<string, ReactNode>>;
 }
 
-export type UiButtonHandle = ComponentRef<"span"> & {
+export type UiButtonHandle = ComponentRef<"button"> & {
 };
 
-export type UiButtonProps = Omit<ComponentPropsWithoutRef<"span">, keyof UiButtonOwnProps | "children"> &
+export type UiButtonProps = Omit<ComponentPropsWithoutRef<"button">, keyof UiButtonOwnProps | "children"> &
   UiButtonOwnProps & { children?: ReactNode; ref?: Ref<UiButtonHandle> };
 
 export function UiButton(props: UiButtonProps) {
-  const { "disabled": prop0 = false, "size": prop1, "variant": prop2 = "outline", slots, children, ref, ...nativeProps } = props;
+  const { "disabled": prop0 = false, "size": prop1 = "md", "variant": prop2 = "outline", slots, children, ref, ...nativeProps } = props;
   const root = useRef<UiButtonHandle | null>(null);
   const setRoot = (node: UiButtonHandle | null) => {
     (root as { current: UiButtonHandle | null }).current = node;
@@ -31,8 +31,8 @@ export function UiButton(props: UiButtonProps) {
   useLayoutEffect(() => root.current == null ? undefined : attachLoomaComponent(root.current, definition, "ui-button", componentProps), []);
   useLayoutEffect(() => { if (root.current != null) Object.assign(root.current, componentProps); });
   return (
-    <span {...nativeProps} data-component="ui-button" data-component-root="ui-button" data-looma-managed="framework" data-size={prop1 ?? undefined} data-variant={prop2 ?? undefined} ref={setRoot}>
+    <button {...nativeProps} data-component="ui-button" data-component-root="ui-button" data-looma-managed="framework" data-size={prop1 ?? undefined} data-variant={prop2 ?? undefined} ref={setRoot}>
       {children ?? (null)}
-    </span>
+    </button>
   );
 }

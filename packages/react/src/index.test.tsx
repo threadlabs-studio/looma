@@ -43,7 +43,7 @@ describe("React declarative adapters", () => {
   it("preserves structured property names and forwards declared events", async () => {
     const items = [{ title: "Paragraph", description: "Plain text", icon: "pilcrow" }];
     const anchorRect = { x: 12, y: 24, width: 1, height: 18 };
-    const onSlashMenuSelect = vi.fn();
+    const onSelect = vi.fn();
     const host = document.createElement("div");
     document.body.append(host);
     const root = createRoot(host);
@@ -55,7 +55,7 @@ describe("React declarative adapters", () => {
           items={items}
           anchorRect={anchorRect}
           open
-          onLoomaEditorSlashMenuSelect={onSlashMenuSelect}
+          onSelect={onSelect}
         />,
       );
     });
@@ -67,7 +67,7 @@ describe("React declarative adapters", () => {
     expect(element?.anchorRect).toStrictEqual(anchorRect);
 
     const detail = { index: 0 };
-    element?.dispatchEvent(new CustomEvent("looma-editor-slash-menu-select", { detail }));
-    expect(onSlashMenuSelect).toHaveBeenCalledWith(detail, expect.any(CustomEvent));
+    element?.dispatchEvent(new CustomEvent("select", { detail }));
+    expect(onSelect).toHaveBeenCalledWith(detail, expect.any(CustomEvent));
   });
 });

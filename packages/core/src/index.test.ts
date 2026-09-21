@@ -28,19 +28,21 @@ describe("@threadlabs/looma-core declarative graph", () => {
   });
 
   it("lowers live HTML to a native root and keeps scalar props reactive", async () => {
-    const button = await render(`<ui-button disabled><button type="button">Save</button></ui-button>`);
-    const nativeButton = button.querySelector("button");
+    const button = await render(`<ui-button disabled>Save</ui-button>`) as HTMLButtonElement & {
+      disabled: boolean;
+      variant: string;
+    };
 
-    expect(button.tagName).toBe("SPAN");
+    expect(button.tagName).toBe("BUTTON");
     expect(button.dataset.componentRoot).toBe("ui-button");
     expect(button.dataset.variant).toBe("outline");
-    expect(nativeButton?.disabled).toBe(true);
+    expect(button.disabled).toBe(true);
 
-    (button as HTMLElement & { disabled: boolean; variant: string }).disabled = false;
-    (button as HTMLElement & { disabled: boolean; variant: string }).variant = "solid";
+    button.disabled = false;
+    button.variant = "solid";
     await flushDeclarative();
 
-    expect(nativeButton?.disabled).toBe(false);
+    expect(button.disabled).toBe(false);
     expect(button.dataset.variant).toBe("solid");
   });
 
@@ -75,7 +77,7 @@ describe("@threadlabs/looma-core declarative graph", () => {
   });
 
   it("routes DOM behavior through controllers on native roots", async () => {
-    const checkbox = await render(`<ui-checkbox value="newsletter"><input type="checkbox"></ui-checkbox>`);
+    const checkbox = await render(`<ui-checkbox value="newsletter">Newsletter</ui-checkbox>`);
     const input = checkbox.querySelector<HTMLInputElement>("input");
     const changes: unknown[] = [];
     checkbox.addEventListener("change", (event) => {
@@ -85,7 +87,7 @@ describe("@threadlabs/looma-core declarative graph", () => {
     input?.click();
     await flushDeclarative();
 
-    expect(checkbox.getAttribute("aria-checked")).toBe("true");
+    expect(input?.getAttribute("aria-checked")).toBe("true");
     expect(changes).toEqual([{ checked: true, value: "newsletter", trigger: "programmatic" }]);
   });
 

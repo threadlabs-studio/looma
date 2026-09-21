@@ -135,6 +135,9 @@ function mapTableCells(table: HTMLTableElement): {
  * Resolves a logical grid coordinate to its owning DOM cell.
  * A spanning cell can therefore be returned for more than one coordinate; this
  * is intentional and prevents overlay actions from inventing nonexistent cells.
+ *
+ * @contract Coordinates outside the expanded table grid return null; coordinates
+ * covered by a span resolve to the single DOM cell that owns them.
  */
 export function resolveTableCellAt(
   table: HTMLTableElement,
@@ -155,6 +158,9 @@ function uniqueSorted(values: number[]): number[] {
  * Measures rendered boundaries rather than assuming a uniform table grid.
  * Returned offsets are table-relative and rounded to hundredths of a CSS pixel
  * to suppress observer churn without losing subpixel layout fidelity.
+ *
+ * @contract Active and hovered rectangles are returned only for cells contained
+ * by the supplied table; detached or foreign cells are represented as null.
  */
 export function measureTableOverlayGeometry(
   table: HTMLTableElement,
@@ -328,7 +334,7 @@ class UIEditorTableOverlayElement extends HTMLElement {
 
   private dispatch(detail: TableOverlayActionEventDetail): void {
     this.dispatchEvent(new CustomEvent<TableOverlayActionEventDetail>(
-      "looma-editor-table-overlay-action",
+      "action",
       { detail, bubbles: true, composed: true },
     ));
   }

@@ -1,5 +1,5 @@
 import type { SidebarsConfig } from "@docusaurus/plugin-content-docs";
-import { componentGroups } from "./src/componentNavigation";
+import { componentGroups, editorComponentGroup } from "./src/componentNavigation";
 
 const componentSidebarGroups = componentGroups.map(({ label, items }) => ({
   type: "category" as const,
@@ -31,6 +31,14 @@ const sidebars: SidebarsConfig = {
   components: [
     "components",
     ...componentSidebarGroups
+  ],
+  editor: [
+    "editor",
+    ...editorComponentGroup.items.map(({ tag, label }) => ({
+      type: "doc" as const,
+      id: `components/${tag}`,
+      label
+    }))
   ]
 };
 

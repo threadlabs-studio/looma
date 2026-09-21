@@ -15,9 +15,8 @@ export default /*@__PURE__*/_defineComponent({
   ...{ inheritAttrs: false },
   __name: 'UiPopover',
   props: {
-    defaultOpen: { type: [Boolean, null], required: false, default: false },
-    for: { type: [String, null], required: false },
-    open: { type: [Boolean, null], required: false },
+    for: { type: [String, null], required: false, default: "" },
+    open: { type: [Boolean, null], required: false, default: false },
     placement: { type: [String, null], required: false, default: "bottom-start" }
   },
   emits: ["open", "close"],
@@ -27,7 +26,7 @@ export default /*@__PURE__*/_defineComponent({
 
 const props = __props;
 const emit = __emit;
-const definition = {...{"contract":{"tag":"ui-popover","props":{"defaultOpen":{"type":"boolean","required":false,"target":{"attribute":"defaultopen"},"default":false},"for":{"type":"string","required":false,"target":{"attribute":"for"}},"open":{"type":"boolean","required":false,"target":{"attribute":"open"}},"placement":{"type":"string","required":false,"target":{"attribute":"placement"},"default":"bottom-start"}}},"template":{"kind":"element","name":"span","attributes":[{"kind":"attribute","name":"data-state-open","expression":"internalOpen","expressionPlan":{"source":"internalOpen","ast":{"kind":"id","name":"internalOpen"},"dependencies":["internalOpen"]}}],"children":[{"kind":"element","name":"div","attributes":[{"kind":"literal","name":"class","value":"popover__surface"}],"children":[{"kind":"slot"}]}]},"declarations":[{"kind":"state","name":"internalOpen","expression":{"source":"false","ast":{"kind":"literal","value":false},"dependencies":[]}},{"kind":"event","name":"open","type":"object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false},{"kind":"event","name":"close","type":"object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"span","choices":["span"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
+const definition = {...{"contract":{"tag":"ui-popover","props":{"for":{"type":"string","required":false,"target":{"attribute":"for"},"default":""},"open":{"type":"boolean","required":false,"target":{"attribute":"open"},"default":false},"placement":{"type":"string","required":false,"target":{"attribute":"placement"},"default":"bottom-start"}}},"template":{"kind":"element","name":"span","attributes":[{"kind":"attribute","name":"data-state-open","expression":"internalOpen","expressionPlan":{"source":"internalOpen","ast":{"kind":"id","name":"internalOpen"},"dependencies":["internalOpen"]}}],"children":[{"kind":"element","name":"div","attributes":[{"kind":"literal","name":"class","value":"popover__surface"}],"children":[{"kind":"slot"}]}]},"declarations":[{"kind":"state","name":"internalOpen","expression":{"source":"false","ast":{"kind":"literal","value":false},"dependencies":[]}},{"kind":"event","name":"open","type":"object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false},{"kind":"event","name":"close","type":"object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"span","choices":["span"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
 const root = ref<Element>();
 const eventListener0 = (event: Event) => emit("open", (event as CustomEvent<{ readonly open: boolean; readonly reason: "action" | "programmatic" | "light-dismiss" | "escape"; readonly trigger: "keyboard" | "pointer" | "programmatic" }>).detail);
 const eventListener1 = (event: Event) => emit("close", (event as CustomEvent<{ readonly open: boolean; readonly reason: "action" | "programmatic" | "light-dismiss" | "escape"; readonly trigger: "keyboard" | "pointer" | "programmatic" }>).detail);
@@ -40,7 +39,7 @@ onMounted(() => {
 });
 watchEffect(() => {
   if (root.value == null) return;
-  for (const name of ["defaultOpen","for","open","placement"]) (root.value as unknown as Record<string, unknown>)[name] = props[name as keyof typeof props];
+  for (const name of ["for","open","placement"]) (root.value as unknown as Record<string, unknown>)[name] = props[name as keyof typeof props];
 });
 onUnmounted(() => {
   root.value?.removeEventListener("open", eventListener0);

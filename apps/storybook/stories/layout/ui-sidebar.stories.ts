@@ -23,9 +23,9 @@ export const Default: Story = { args: { gap: "m", side: "start", width: "narrow"
 export const Resizable: Story = {
   render: () => `
     <div style="height: 24rem; border: 1px solid var(--ui-border-default);">
-      <ui-sidebar resizable storage-key="storybook-navigation" min-width="160" max-width="420" style="height: 100%;">
+      <ui-sidebar resizable min-width="160" max-width="420" style="height: 100%;">
         <aside style="padding: 1rem; border-inline-end: 1px solid var(--ui-border-default);">Drag the divider or focus it and use Arrow keys.</aside>
-        <main style="padding: 1rem;">The chosen width persists.</main>
+        <main style="padding: 1rem;">The application can save widths reported by the resize event.</main>
       </ui-sidebar>
     </div>
   `,

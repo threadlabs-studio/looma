@@ -4,10 +4,9 @@ import type { ComponentPropsWithoutRef, ComponentRef, ElementType, ReactNode, Re
 import { attachLoomaComponent } from "@threadlabs/looma-core/declarative";
 import type { ComponentDefinition } from "@threadlabs/looma-core/declarative";
 
-const definition = {...{"contract":{"tag":"ui-popover","props":{"defaultOpen":{"type":"boolean","required":false,"target":{"attribute":"defaultopen"},"default":false},"for":{"type":"string","required":false,"target":{"attribute":"for"}},"open":{"type":"boolean","required":false,"target":{"attribute":"open"}},"placement":{"type":"string","required":false,"target":{"attribute":"placement"},"default":"bottom-start"}}},"template":{"kind":"element","name":"span","attributes":[{"kind":"attribute","name":"data-state-open","expression":"internalOpen","expressionPlan":{"source":"internalOpen","ast":{"kind":"id","name":"internalOpen"},"dependencies":["internalOpen"]}}],"children":[{"kind":"element","name":"div","attributes":[{"kind":"literal","name":"class","value":"popover__surface"}],"children":[{"kind":"slot"}]}]},"declarations":[{"kind":"state","name":"internalOpen","expression":{"source":"false","ast":{"kind":"literal","value":false},"dependencies":[]}},{"kind":"event","name":"open","type":"object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false},{"kind":"event","name":"close","type":"object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"span","choices":["span"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
+const definition = {...{"contract":{"tag":"ui-popover","props":{"for":{"type":"string","required":false,"target":{"attribute":"for"},"default":""},"open":{"type":"boolean","required":false,"target":{"attribute":"open"},"default":false},"placement":{"type":"string","required":false,"target":{"attribute":"placement"},"default":"bottom-start"}}},"template":{"kind":"element","name":"span","attributes":[{"kind":"attribute","name":"data-state-open","expression":"internalOpen","expressionPlan":{"source":"internalOpen","ast":{"kind":"id","name":"internalOpen"},"dependencies":["internalOpen"]}}],"children":[{"kind":"element","name":"div","attributes":[{"kind":"literal","name":"class","value":"popover__surface"}],"children":[{"kind":"slot"}]}]},"declarations":[{"kind":"state","name":"internalOpen","expression":{"source":"false","ast":{"kind":"literal","value":false},"dependencies":[]}},{"kind":"event","name":"open","type":"object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false},{"kind":"event","name":"close","type":"object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"span","choices":["span"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
 
 interface UiPopoverOwnProps {
-  defaultOpen?: boolean | null;
   for?: string | null;
   open?: boolean | null;
   placement?: string | null;
@@ -23,14 +22,14 @@ export type UiPopoverProps = Omit<ComponentPropsWithoutRef<"span">, keyof UiPopo
   UiPopoverOwnProps & { children?: ReactNode; ref?: Ref<UiPopoverHandle> };
 
 export function UiPopover(props: UiPopoverProps) {
-  const { "defaultOpen": prop0 = false, "for": prop1, "open": prop2, "placement": prop3 = "bottom-start", onOpen, onClose, slots, children, ref, ...nativeProps } = props;
+  const { "for": prop0 = "", "open": prop1 = false, "placement": prop2 = "bottom-start", onOpen, onClose, slots, children, ref, ...nativeProps } = props;
   const root = useRef<UiPopoverHandle | null>(null);
   const setRoot = (node: UiPopoverHandle | null) => {
     (root as { current: UiPopoverHandle | null }).current = node;
     if (typeof ref === "function") ref(node);
     else if (ref != null) ref.current = node;
   };
-  const componentProps: Record<string, unknown> = { "defaultOpen": prop0, "for": prop1, "open": prop2, "placement": prop3 };
+  const componentProps: Record<string, unknown> = { "for": prop0, "open": prop1, "placement": prop2 };
   useLayoutEffect(() => root.current == null ? undefined : attachLoomaComponent(root.current, definition, "ui-popover", componentProps), []);
   useLayoutEffect(() => { if (root.current != null) Object.assign(root.current, componentProps); });
   useLayoutEffect(() => {

@@ -4,10 +4,10 @@ import type { ComponentPropsWithoutRef, ComponentRef, ElementType, ReactNode, Re
 import { attachLoomaComponent } from "@threadlabs/looma-core/declarative";
 import type { ComponentDefinition } from "@threadlabs/looma-core/declarative";
 
-const definition = {...{"contract":{"tag":"ui-tabs","props":{"defaultValue":{"type":"string","required":false,"target":{"attribute":"defaultvalue"},"default":""},"orientation":{"type":{"enum":["horizontal","vertical"]},"required":false,"target":{"attribute":"data-orientation"},"default":"horizontal"},"value":{"type":"string","required":false,"target":{"attribute":"value"}}}},"template":{"kind":"element","name":"div","attributes":[{"kind":"attribute","name":"data-orientation","expression":"orientation","expressionPlan":{"source":"orientation","ast":{"kind":"id","name":"orientation"},"dependencies":["orientation"]}}],"children":[{"kind":"slot"}]},"declarations":[{"kind":"state","name":"internalValue","expression":{"source":"''","ast":{"kind":"literal","value":""},"dependencies":[]}},{"kind":"event","name":"select","type":"object({ value: string, previousValue: string, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
+const definition = {...{"contract":{"tag":"ui-tabs","props":{"label":{"type":"string","required":false,"target":{"attribute":"aria-label"},"default":"Tabs"},"orientation":{"type":{"enum":["horizontal","vertical"]},"required":false,"target":{"attribute":"data-orientation"},"default":"horizontal"},"value":{"type":"string","required":false,"target":{"attribute":"value"},"default":""}}},"template":{"kind":"element","name":"div","attributes":[{"kind":"attribute","name":"data-orientation","expression":"orientation","expressionPlan":{"source":"orientation","ast":{"kind":"id","name":"orientation"},"dependencies":["orientation"]}}],"children":[{"kind":"element","name":"div","attributes":[{"kind":"literal","name":"class","value":"tabs__list"},{"kind":"literal","name":"role","value":"tablist"},{"kind":"attribute","name":"aria-label","expression":"label","expressionPlan":{"source":"label","ast":{"kind":"id","name":"label"},"dependencies":["label"]}}],"children":[]},{"kind":"element","name":"div","attributes":[{"kind":"literal","name":"class","value":"tabs__panels"}],"children":[{"kind":"slot"}]}]},"declarations":[{"kind":"state","name":"internalValue","expression":{"source":"''","ast":{"kind":"literal","value":""},"dependencies":[]}},{"kind":"event","name":"select","type":"object({ value: string, previousValue: string, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
 
 interface UiTabsOwnProps {
-  defaultValue?: string | null;
+  label?: string | null;
   orientation?: "horizontal" | "vertical" | null;
   value?: string | null;
   onSelect?: (detail: { readonly value: string; readonly previousValue: string; readonly trigger: "keyboard" | "pointer" | "programmatic" }, event: CustomEvent<{ readonly value: string; readonly previousValue: string; readonly trigger: "keyboard" | "pointer" | "programmatic" }>) => void;
@@ -21,14 +21,14 @@ export type UiTabsProps = Omit<ComponentPropsWithoutRef<"div">, keyof UiTabsOwnP
   UiTabsOwnProps & { children?: ReactNode; ref?: Ref<UiTabsHandle> };
 
 export function UiTabs(props: UiTabsProps) {
-  const { "defaultValue": prop0 = "", "orientation": prop1 = "horizontal", "value": prop2, onSelect, slots, children, ref, ...nativeProps } = props;
+  const { "label": prop0 = "Tabs", "orientation": prop1 = "horizontal", "value": prop2 = "", onSelect, slots, children, ref, ...nativeProps } = props;
   const root = useRef<UiTabsHandle | null>(null);
   const setRoot = (node: UiTabsHandle | null) => {
     (root as { current: UiTabsHandle | null }).current = node;
     if (typeof ref === "function") ref(node);
     else if (ref != null) ref.current = node;
   };
-  const componentProps: Record<string, unknown> = { "defaultValue": prop0, "orientation": prop1, "value": prop2 };
+  const componentProps: Record<string, unknown> = { "label": prop0, "orientation": prop1, "value": prop2 };
   useLayoutEffect(() => root.current == null ? undefined : attachLoomaComponent(root.current, definition, "ui-tabs", componentProps), []);
   useLayoutEffect(() => { if (root.current != null) Object.assign(root.current, componentProps); });
   useLayoutEffect(() => {
@@ -40,7 +40,10 @@ export function UiTabs(props: UiTabsProps) {
   }, [onSelect]);
   return (
     <div {...nativeProps} data-component="ui-tabs" data-component-root="ui-tabs" data-looma-managed="framework" data-orientation={prop1 ?? undefined} ref={setRoot}>
+      <div className="tabs__list" role="tablist" aria-label={prop0 ?? undefined} data-component="ui-tabs"></div>
+<div className="tabs__panels" data-component="ui-tabs">
       {children ?? (null)}
+    </div>
     </div>
   );
 }

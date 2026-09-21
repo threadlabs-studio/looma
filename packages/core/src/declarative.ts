@@ -4,7 +4,7 @@ import {
   manageComponentLifecycle as manageRuntimeLifecycle,
   observeDocument,
   setControllerModule,
-} from "../../../tools/migrate-html-next/generated/adoption/runtime.js";
+} from "./declarative/runtime.js";
 
 /**
  * The small portion of an HTML Next definition that framework adapters need.
@@ -24,6 +24,9 @@ export type ComponentDefinition = {
  * Controllers receive the HTML Next host abstraction, never a Stencil
  * instance or the legacy invocation element. Returning a disposer makes event
  * and observer ownership explicit when a root disconnects or is reattached.
+ *
+ * @lifecycle The runtime invokes a returned disposer before reconnecting or
+ * permanently disconnecting the same native root.
  */
 export type LoomaControllerModule = {
   readonly default?: (host: unknown) => void | (() => void);
@@ -115,6 +118,12 @@ function scheduleObservation(): void {
  * may both call this function. On the server the operation is intentionally a
  * no-op: authored HTML remains useful fallback content and hydration is a
  * browser concern.
+ *
+ * @lifecycle Re-registering the same package name is a no-op; a later package
+ * registration replaces the document observer only after synchronous package
+ * registrations in the current turn have settled.
+ * @ownership This registry owns injected definition/style nodes and the shared
+ * observer. Framework adapters continue to own roots they mount.
  */
 export function registerLoomaPackage(
   name: string,
@@ -151,6 +160,11 @@ export function registerLoomaPackage(
  * The explicit `tag` check is a corruption guard. A generated adapter paired
  * with the wrong definition can otherwise appear to work while applying a
  * different component's prop and event contract.
+ *
+ * @ownership The caller owns the native root. The returned disposer owns the
+ * prop bridge and controller instance installed for this attachment.
+ * @failure A tag/definition mismatch throws before the root is marked or any
+ * controller is connected.
  */
 export function attachLoomaComponent(
   element: Element,
@@ -179,6 +193,9 @@ export function controllerFor(tag: string): LoomaControllerModule | undefined {
  * Exposes HTML Next's connection-aware lifecycle to handwritten integrations.
  * The callback can run again after reconnection; each connection's disposer is
  * invoked before a later connection begins.
+ *
+ * @lifecycle The runtime invokes cleanup on disconnect and before reconnecting
+ * the same root, so each connection interval has exactly one active disposer.
  */
 export function manageComponentLifecycle(
   ...args: Parameters<typeof manageRuntimeLifecycle>

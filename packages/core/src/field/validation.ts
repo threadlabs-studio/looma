@@ -4,6 +4,9 @@
  * Looma intentionally depends on this protocol shape instead of a schema
  * library. Consumers can bring Valibot, Zod, or another compliant validator
  * without placing that implementation in Looma's runtime or public model.
+ *
+ * @contract Implementations must expose Standard Schema v1 and may complete
+ * validation synchronously or asynchronously without changing the result shape.
  */
 export interface FieldSchema<Output = unknown> {
   readonly '~standard': {
@@ -13,11 +16,20 @@ export interface FieldSchema<Output = unknown> {
     readonly types?: { readonly input: unknown; readonly output: Output };
   };
 }
+
+/**
+ * Renderable validation problem, optionally located within structured input.
+ * Warning severity preserves accepted output; omitted severity is an error.
+ */
 export interface FieldIssue {
   readonly message: string;
   readonly path?: ReadonlyArray<PropertyKey | { readonly key: PropertyKey }>;
   readonly severity?: 'error' | 'warning';
 }
+
+/**
+ * Standard Schema outcome: either a typed value or one or more reported issues.
+ */
 export type FieldSchemaResult<T = unknown> =
   | { readonly value: T; readonly issues?: undefined }
   | { readonly issues: readonly FieldIssue[] };
@@ -28,6 +40,8 @@ export interface FieldRequest<Context = unknown> {
   context: Context;
   signal: AbortSignal;
 }
+
+/** Completed field-pipeline snapshot returned to rendering state. */
 export interface FieldResult<Output = unknown> {
   output?: Output;
   issues: readonly FieldIssue[];
@@ -40,6 +54,9 @@ export interface FieldResult<Output = unknown> {
  * applies domain rules. Externally supplied `issues` are appended last so a
  * server error can coexist with local warnings. Stages may be asynchronous and
  * must treat `request.signal` as the ownership boundary for stale work.
+ *
+ * @lifecycle Looma invokes configured stages in pipeline order for one request;
+ * callbacks must treat its abort signal as cancellation of that entire run.
  */
 export interface FieldValidation {
   schema?: FieldSchema;
@@ -48,8 +65,20 @@ export interface FieldValidation {
   validator?: (value: unknown, request: FieldRequest) => Partial<FieldResult> | Promise<Partial<FieldResult>>;
   issues?: readonly FieldIssue[];
 }
+
+/** Caret or selection offsets within the current editing buffer. */
 export interface FieldSelection { start: number; end: number; direction?: 'forward' | 'backward' | 'none' }
+
+/** Presentation buffer paired with the selection that remains active within it. */
 export interface FieldFormat { display: string; selection: FieldSelection }
+
+/**
+ * Proposes presentation-only text and caret placement for an editing buffer.
+ * Returning `undefined` declines formatting for that invocation.
+ *
+ * @contract The proposal must preserve every input character in order and place
+ * both selection offsets inside the returned display; invalid proposals are ignored.
+ */
 export type FieldFormatter = (raw: string, selection: FieldSelection) => FieldFormat | undefined;
 
 /**
@@ -83,6 +112,11 @@ export function formatEditingValue(raw: string, selection: FieldSelection, forma
  * issue so obsolete work cannot overwrite newer field state. Other thrown
  * values are intentionally converted at this UI boundary because validation
  * failures must be renderable rather than become unhandled promise rejections.
+ *
+ * @lifecycle The request signal is checked before and after every awaited stage;
+ * aborting invalidates the entire run rather than returning a partial result.
+ * @failure Non-abort failures become field issues. Abort failures propagate so
+ * stale work cannot be mistaken for the result of the current value.
  */
 export async function validateField(request: FieldRequest, config: FieldValidation): Promise<FieldResult> {
   let output: unknown = request.raw;

@@ -4,6 +4,7 @@
   --looma-ink: #2b2538;
   --looma-ink-soft: #655e70;
   --looma-line: #ded8cf;
+  --looma-line-strong: #aaa1b0;
   --looma-purple: #7658d6;
   --looma-purple-deep: #5639b8;
   --looma-accent-ink: #5639b8;
@@ -46,6 +47,7 @@
   --looma-ink: #f5f1fb;
   --looma-ink-soft: #bbb3c7;
   --looma-line: #463f50;
+  --looma-line-strong: #756b82;
   --looma-purple-wash: #352b54;
   --looma-accent-ink: #cbbfff;
   --ifm-background-color: var(--looma-paper);
@@ -596,6 +598,38 @@ body {
 .looma-component-preview > div { max-width: 100%; }
 .looma-component-preview svg { width: 1.15rem; height: 1.15rem; }
 
+/* The full Affordance Scope example intentionally begins with its
+ * anticipatory control hidden so readers can reveal it with the pointer. A
+ * catalog thumbnail has no room to teach that interaction, so show the same
+ * control at its revealed state instead of rendering an apparently empty
+ * card. */
+.looma-component-preview--compact
+  [data-component-root~="ui-icon-button"][data-anticipatory="true"] {
+  opacity: 1 !important;
+  transform: scale(1) !important;
+  pointer-events: auto !important;
+}
+
+/* Catalog previews are miniature stages, not application viewports. Editor
+ * suggestion surfaces normally use fixed viewport coordinates supplied by an
+ * editor selection, so pin those two compact previews to their card instead
+ * of allowing their production positioning model to escape across the docs. */
+.looma-component-preview--compact :is(
+  [data-component-root~="ui-editor-mention-menu"],
+  [data-component-root~="ui-editor-slash-menu"]
+) {
+  position: absolute !important;
+  z-index: 1 !important;
+  inset: 50% auto auto 50% !important;
+  max-width: calc(100% - 2rem);
+  transform: translate(-50%, -50%);
+}
+
+.looma-component-preview--compact .ui-editor-table-context-menu {
+  max-height: calc(13rem - 2rem);
+  translate: none !important;
+}
+
 .looma-preview-scenarios {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -640,17 +674,109 @@ body {
   overflow: auto;
 }
 
-.looma-preview-scenario__stage > ui-inline,
-.looma-preview-scenario__stage > [data-component-root~="ui-inline"] { width: 100%; }
+.looma-preview-scenario__stage > :is(
+  ui-stack,
+  ui-inline,
+  ui-grid,
+  ui-center,
+  ui-switcher,
+  ui-sidebar,
+  ui-reel,
+  [data-component-root~="ui-stack"],
+  [data-component-root~="ui-inline"],
+  [data-component-root~="ui-grid"],
+  [data-component-root~="ui-center"],
+  [data-component-root~="ui-switcher"],
+  [data-component-root~="ui-sidebar"],
+  [data-component-root~="ui-reel"]
+) { width: min(100%, var(--looma-preview-width, 100%)); }
 
-/* Fixed and sticky application shells stay contained by the documentation preview. */
-.looma-component-preview :is(
-  ui-floating-action-button,
-  [data-component-root~="ui-floating-action-button"]
-) {
-  position: absolute;
-  inset: auto 1.25rem 1.25rem auto;
+/* Layout demos use plain authored children. Their visible edges make gap,
+ * alignment, stretching, wrapping, and column behavior directly inspectable. */
+.looma-preview-scenario__stage :is(
+  [data-component-root~="ui-stack"],
+  [data-component-root~="ui-inline"],
+  [data-component-root~="ui-grid"],
+  [data-component-root~="ui-switcher"],
+  [data-component-root~="ui-reel"]
+) > [data-slotted] {
+  box-sizing: border-box;
+  min-block-size: 2.75rem;
+  padding: 0.65rem 0.8rem;
+  background: var(--looma-paper);
+  border: 1px solid var(--looma-line-strong);
+  border-radius: 7px;
+  color: var(--looma-ink);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-align: center;
 }
+
+.looma-preview-scenario__stage > :is(
+  ui-center,
+  [data-component-root~="ui-center"]
+) {
+  outline: 1px dashed var(--looma-accent);
+  outline-offset: -1px;
+  background: color-mix(in srgb, var(--looma-accent) 5%, transparent);
+}
+
+.looma-preview-scenario__stage :is(
+  ui-sidebar,
+  [data-component-root~="ui-sidebar"]
+) > :is(aside, main) {
+  min-height: 7rem;
+  padding: 1rem;
+  background: var(--looma-paper);
+  border: 1px solid var(--looma-line-strong);
+  border-radius: 8px;
+}
+
+.looma-preview-scenario__stage :is(
+  ui-sidebar,
+  [data-component-root~="ui-sidebar"]
+) > :is(aside, main) p {
+  margin-block: 0.45rem 0;
+}
+
+.looma-preview-scenario__stage[data-component-preview="ui-reel"] {
+  align-content: center;
+  gap: 0.6rem;
+}
+
+.looma-preview-scenario__stage[data-component-preview="ui-reel"]::before {
+  content: "Scroll horizontally →";
+  justify-self: start;
+  color: var(--looma-ink-soft);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.looma-preview-scenario__stage > :is(
+  ui-reel,
+  [data-component-root~="ui-reel"]
+) {
+  padding: 0.75rem 0.25rem;
+  border-block: 1px solid var(--looma-line-strong);
+  scrollbar-color: var(--looma-accent) var(--looma-paper-deep);
+  scrollbar-width: auto;
+}
+
+.looma-responsive-preview-control {
+  display: grid;
+  grid-template-columns: auto minmax(8rem, 1fr) 4rem;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.75rem 1.25rem;
+  color: var(--looma-ink-soft);
+  background: var(--looma-paper-deep);
+  border-bottom: 1px solid var(--looma-line);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.looma-responsive-preview-control input { width: 100%; }
+.looma-responsive-preview-control output { text-align: end; font-variant-numeric: tabular-nums; }
 
 .looma-component-preview :is(ui-search-shell, [data-component-root~="ui-search-shell"]) {
   position: relative;
@@ -658,6 +784,33 @@ body {
   z-index: 1;
   width: 100%;
   min-height: 11rem;
+}
+
+.looma-preview-scenario__stage[data-component-preview="ui-search-shell"] {
+  min-height: 28rem;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.looma-preview-scenario[data-preview-scenario="open"]
+  .looma-preview-scenario__stage[data-component-preview="ui-search-shell"] {
+  min-height: 15rem;
+}
+
+.looma-preview-scenario__stage[data-component-preview="ui-search-shell"]
+  [data-component-root~="ui-search-shell"] {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.looma-preview-scenario__stage[data-component-preview="ui-search-shell"]
+  [data-component-root~="ui-search-shell"] > dialog.search-shell {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  padding: 1rem;
+  background: color-mix(in srgb, var(--looma-ink) 30%, transparent);
 }
 
 .looma-component-preview :is(ui-top-bar, [data-component-root~="ui-top-bar"]) {
@@ -670,6 +823,35 @@ body {
 .demo-constrained { width: min(100%, 14rem); }
 .demo-constrained-wide { width: min(100%, 28rem); }
 .demo-floating-stage { position: relative; width: 100%; min-height: 7rem; }
+.demo-editor-table-stage {
+  position: relative;
+  width: 15rem;
+  height: 6rem;
+}
+
+.demo-editor-table-stage--three { height: 7.5rem; }
+
+.demo-editor-table-stage table {
+  width: 100%;
+  height: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  background: var(--looma-paper);
+}
+
+.demo-editor-table-stage td {
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--looma-line-strong);
+  color: var(--looma-ink-soft);
+  font-size: 0.72rem;
+}
+
+.demo-editor-table-stage > [data-component-root~="ui-editor-table-overlay"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
 .demo-empty-state { display: grid; gap: 0.25rem; place-items: center; min-height: 5rem; padding: 1rem; text-align: center; }
 .demo-empty-state span { color: var(--looma-ink-soft); font-size: 0.72rem; }
 
@@ -952,6 +1134,12 @@ body {
   border-top: 4px solid;
   border-image: linear-gradient(90deg, var(--looma-purple), var(--looma-teal), var(--looma-gold), var(--looma-coral), var(--looma-blue)) 1;
 }
+
+/* The docs sidebar is the left edge of the content canvas. Leaving the
+ * generic footer margin beneath docs created an unpainted 5rem strip where
+ * that canvas stopped before the footer. Keep the spacious landing-page
+ * transition, but join documentation pages directly to the footer. */
+body:has(.theme-doc-sidebar-container) .footer { margin-top: 0; }
 
 .footer__title { color: #fff; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; }
 .footer__link-item, .footer__copyright { font-size: 0.8rem; }

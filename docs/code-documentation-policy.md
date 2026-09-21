@@ -6,9 +6,21 @@ This policy applies first to the handwritten public surface and to architectural
 
 ## API authority
 
-The declarative component contract is Looma's API authority. Stencil metadata is migration input evidence: it can reveal behavior that the declarative model must represent, but it must not dictate the destination vocabulary or architecture. Generated React, Vue, and Svelte APIs should inherit descriptions from framework-neutral contract metadata rather than from handwritten adapter comments.
+The package-owned declarative component definition, controller, and CSS are Looma's maintained
+source of truth. The retired Stencil-to-declarative converter was a one-time bootstrap mechanism,
+not a build step and not an API authority. Once a component exists in declarative form, maintainers
+edit and normalize that implementation directly; they never regenerate it from the historical
+Stencil shape.
 
-The enforcement boundary is the symbol graph reachable from package export maps and entry points, not every source-level `export` keyword. This keeps legacy Stencil classes, test helpers, and private migration machinery from becoming public API by accident.
+Generated API metadata and React, Vue, and Svelte adapters are downstream projections of those
+framework-neutral contracts. Metadata may be refreshed at deliberate validation checkpoints.
+Framework adapters are materialized once at the release checkpoint after the declarative API has
+settled, so generator output cannot repeatedly overwrite intentional API corrections during the
+migration.
+
+The enforcement boundary is the symbol graph reachable from package export maps and entry points,
+not every source-level `export` keyword. This keeps test helpers and private build machinery from
+becoming public API by accident.
 
 ## What useful documentation records
 
@@ -27,7 +39,7 @@ Not every symbol needs every facet. Stateful, asynchronous, callback-bearing, or
 | Package entry | Durable public surface | Import behavior and ownership |
 | --- | --- | --- |
 | `@threadlabs/looma-core` | Overlay positioning and management, input modality, icons, drag and drop, field contracts, and declarative attachment | Browser-only import registers the core declarative graph and document input-modality tracking idempotently. |
-| `@threadlabs/looma-core/loader` | `defineCustomElements` compatibility hook | Registers the declarative graph; it does not restore a Stencil runtime. |
+| `@threadlabs/looma-core/loader` | `defineCustomElements` compatibility hook | Registers the declarative graph; it does not install a custom-element runtime. |
 | `@threadlabs/looma-core/declarative` | Registration, attachment, controller lookup, lifecycle management, adoption records, and generated-prop support | Low-level integration entry; importing it alone does not register a package graph. |
 | `@threadlabs/looma-core/valibot` | `valibotField` | Structural Standard Schema adapter; Valibot is type-only at runtime. |
 | `@threadlabs/looma-layout` | Declarative layout definitions and sidebar resize contracts | Import registers the layout graph. CSS and light DOM continue to own visual layout. |
@@ -57,5 +69,5 @@ Line count, comment density, and “JSDoc on every declaration” are not qualit
 
 - Emit per-component descriptions into generated adapters from declarative contract metadata.
 - Establish a clean baseline for all handwritten symbols reachable from package entry points.
-- Keep legacy Stencil component classes outside the destination API gate unless they remain intentionally public.
+- Keep release-build internals outside the public API gate.
 - Give private migration tools a separate policy if their exported test helpers need enforcement.

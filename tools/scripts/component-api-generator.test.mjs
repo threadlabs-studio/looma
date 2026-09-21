@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   declarativeTypeToTypeScript,
+  extractDesignTokensFromCss,
   generateComponentApiMetadata,
   readRepositoryProjectionTags,
   validateBooleanDefaultPolicy,
@@ -67,6 +68,20 @@ test("accepts a complete classified projection", () => {
   assert.doesNotThrow(() => validateComponentProjections(completeFixture));
 });
 
+test("accepts a published compound part through its explicit navigated parent", () => {
+  assert.doesNotThrow(() => validateComponentProjections({
+    sourceTags: ["ui-menu", "ui-menu-item"],
+    classifications: {
+      "ui-menu": "published",
+      "ui-menu-item": { status: "published", navigationParent: "ui-menu" }
+    },
+    metadataTags: ["ui-menu", "ui-menu-item"],
+    documentationTags: ["ui-menu", "ui-menu-item"],
+    navigationTags: ["ui-menu"],
+    adapterTags: ["ui-menu", "ui-menu-item"]
+  }));
+});
+
 test("requires a UX justification for every default-true boolean", () => {
   const component = (declaration) => ({
     props: { enabled: declaration }
@@ -107,18 +122,82 @@ test("translates framework-neutral declarative types without legacy class names"
   );
 });
 
+test("extracts component tokens, shared dependencies, and literal fallback relationships", () => {
+  const tokens = extractDesignTokensFromCss({
+    tag: "ui-example",
+    source: `
+      :host {
+        --ui-example-gap: var(--ui-space-2, 0.5rem);
+        gap: var(--ui-example-gap);
+        color: var(--ui-example-color, var(--ui-text-primary));
+      }
+    `,
+  });
+
+  assert.deepEqual(tokens.component, [
+    {
+      name: "--ui-example-color",
+      fallbacks: ["var(--ui-text-primary)"],
+    },
+    {
+      name: "--ui-example-gap",
+      declarations: ["var(--ui-space-2, 0.5rem)"],
+    },
+  ]);
+  assert.deepEqual(tokens.shared, [
+    { name: "--ui-space-2", fallbacks: ["0.5rem"] },
+    { name: "--ui-text-primary" },
+  ]);
+});
+
 test("generates public API metadata from declarative contracts", async () => {
   const metadata = await generateComponentApiMetadata();
   const combobox = metadata.components.find(({ tag }) => tag === "ui-combobox");
   const mentionMenu = metadata.components.find(({ tag }) => tag === "ui-editor-mention-menu");
+  const button = metadata.components.find(({ tag }) => tag === "ui-button");
+  const stack = metadata.components.find(({ tag }) => tag === "ui-stack");
+  const tableOverlay = metadata.components.find(({ tag }) => tag === "ui-editor-table-overlay");
+  const input = metadata.components.find(({ tag }) => tag === "ui-input");
+  const menuItem = metadata.components.find(({ tag }) => tag === "ui-menu-item");
 
-  assert.equal(metadata.schemaVersion, 2);
+  assert.equal(metadata.schemaVersion, 3);
+  assert.equal(
+    metadata.components.some(({ tag }) => tag === "ui-cluster"),
+    false,
+    "deprecated compatibility aliases must not re-enter public metadata",
+  );
+  assert.equal(
+    metadata.components.some(({ tag }) => tag === "ui-chip"),
+    false,
+    "redundant compatibility components must not re-enter public metadata",
+  );
+  assert.equal(
+    metadata.components.some(({ tag }) => tag === "ui-floating-action-button"),
+    false,
+    "button-plus-positioning compatibility aliases must not re-enter public metadata",
+  );
   assert.match(combobox.description, /suggestions/);
   assert.equal(combobox.root, "div");
+  assert.equal(input.root, "input");
+  assert.equal(menuItem.navigationParent, "ui-menu");
+  assert.ok(!input.slots.some(({ name }) => name === "default"));
   assert.deepEqual(combobox.methods.map(({ name }) => name), ["validate", "focusInput"]);
   assert.equal(combobox.properties.find(({ name }) => name === "config").channel, "property");
   assert.ok(!combobox.attributes.some(({ property }) => property === "config"));
   assert.equal(mentionMenu.properties.find(({ name }) => name === "items").channel, "property");
   assert.ok(!mentionMenu.attributes.some(({ property }) => property === "items"));
   assert.ok(!("className" in combobox));
+  assert.deepEqual(button.designTokens.sources, [
+    "packages/core/src/declarative/components/ui-button.html",
+  ]);
+  assert.deepEqual(
+    button.designTokens.component.find(({ name }) => name === "--ui-button-radius"),
+    { name: "--ui-button-radius", fallbacks: ["var(--ui-radius-2)"] },
+  );
+  assert.ok(button.designTokens.shared.some(({ name }) => name === "--ui-font-medium"));
+  assert.ok(stack.designTokens.component.some(({ name }) => name === "--ui-layout-gap"));
+  assert.ok(!stack.designTokens.component.some(({ name }) => name === "--ui-grid-gap"));
+  assert.ok(tableOverlay.designTokens.shared.some(
+    ({ name }) => name === "--ui-affordance-near-color",
+  ));
 });

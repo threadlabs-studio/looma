@@ -12,7 +12,7 @@ export default /*@__PURE__*/_defineComponent({
     align: { type: [String, null], required: false },
     gap: { type: [String, null], required: false },
     justify: { type: [String, null], required: false },
-    wrap: { type: [String, null], required: false }
+    wrap: { type: [Boolean, null], required: false, default: false }
   },
   setup(__props: any) {
 
@@ -27,7 +27,7 @@ onMounted(() => {
     { name: "align", attribute: "data-align", value: props.align, type: ["start","center","end","stretch"], required: false },
     { name: "gap", attribute: "data-gap", value: props.gap, type: ["xs","s","m","l","xl"], required: false },
     { name: "justify", attribute: "data-justify", value: props.justify, type: ["start","center","end","between"], required: false },
-    { name: "wrap", attribute: "data-wrap", value: props.wrap, type: ["wrap","nowrap"], required: false },
+    { name: "wrap", attribute: "data-wrap", value: props.wrap, type: "boolean", required: false },
   ]);
 });
 watchEffect(() => {

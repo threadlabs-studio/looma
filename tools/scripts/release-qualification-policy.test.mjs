@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
@@ -46,7 +46,7 @@ test("release qualification is wired to Node 20, Chromium, and non-placeholder g
   assert.match(workflow, /node-version: 20/);
   assert.match(workflow, /playwright install --with-deps chromium/);
   assert.match(workflow, /pnpm test:browser/);
-  assert.match(workflow, /git diff --exit-code -- generated packages\/core\/src\/components/);
+  assert.match(workflow, /pnpm --filter @threadlabs\/looma-declarative-build registry/);
   assert.match(
     JSON.parse(rootPackage).scripts["release:verify"],
     /pnpm test:facade-consumer/,
@@ -54,7 +54,7 @@ test("release qualification is wired to Node 20, Chromium, and non-placeholder g
   );
   assert.equal(
     JSON.parse(rootPackage).scripts["test:browser"],
-    "pnpm --filter @threadlabs/looma-migrate-html-next test:browser && pnpm --filter @threadlabs/looma-core test:browser && pnpm --filter @threadlabs/looma-editor test:browser && pnpm --filter @threadlabs/looma-vue test:browser && pnpm --filter @threadlabs/looma-docs test:browser"
+    "pnpm --filter @threadlabs/looma-declarative-build test:browser && pnpm --filter @threadlabs/looma-core test:browser && pnpm --filter @threadlabs/looma-editor test:browser && pnpm --filter @threadlabs/looma-vue test:browser && pnpm --filter @threadlabs/looma-docs test:browser"
   );
   assert.equal(JSON.parse(editorPackage).scripts.test, "vitest run");
   assert.doesNotMatch(
@@ -97,11 +97,14 @@ test("the required verify result gates lint, quality, and release packaging", as
 
 test("required release suites contain no skipped or todo scenarios", async () => {
   const requiredSuites = [
-    "packages/core/src/components/ui-context-menu/ui-context-menu.browser.test.ts",
+    "tools/declarative-build/browser-tests.mjs",
     "packages/core/test/ssr-contract.spec.ts",
+    "packages/core/src/declarative-adoption.browser.test.ts",
+    "packages/core/src/input-modality.browser.test.ts",
     "packages/editor/test/editor-release-contract.spec.ts",
-    "packages/editor/test/editor-release-contract.browser.spec.ts",
-    "packages/vue/src/registration.browser.test.ts",
+    "packages/editor/test/declarative-ui.browser.spec.ts",
+    "packages/vue/src/declarative-adapter.browser.test.ts",
+    "packages/vue/src/editor/LoomaEditor.history.browser.test.ts",
     "apps/docs/tests/release-docs.spec.ts",
     "tests/release/consumer/src/index.ts",
   ];
@@ -109,6 +112,31 @@ test("required release suites contain no skipped or todo scenarios", async () =>
   for (const relativePath of requiredSuites) {
     const source = await readFile(path.join(repoRoot, relativePath), "utf8");
     assert.doesNotMatch(source, /\b(?:describe|it|test)\.(?:skip|todo)\b/, relativePath);
+  }
+});
+
+test("every Vitest browser test is included by its package browser config", async () => {
+  const browserPackages = ["packages/core", "packages/editor", "packages/vue"];
+
+  for (const packagePath of browserPackages) {
+    const config = await readFile(path.join(repoRoot, packagePath, "vitest.browser.config.ts"), "utf8");
+    const sourceRoot = path.join(repoRoot, packagePath);
+    const entries = await readdir(sourceRoot, { recursive: true });
+    const browserTests = entries
+      .filter((entry) =>
+        !entry.includes("node_modules/")
+        && !entry.includes("__screenshots__/")
+        && /\.browser\.(?:test|spec)\.ts$/.test(entry)
+      )
+      .sort();
+
+    for (const browserTest of browserTests) {
+      assert.match(
+        config,
+        new RegExp(browserTest.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
+        `${browserTest} exists but is excluded from ${packagePath}/vitest.browser.config.ts`,
+      );
+    }
   }
 });
 

@@ -9,7 +9,7 @@
  */
 
 import { registerLoomaPackage } from "@threadlabs/looma-core/declarative";
-import { records, styles } from "../../../tools/migrate-html-next/generated/adoption/editor/registry.js";
+import { records, styles } from "./declarative/registry.js";
 
 registerLoomaPackage("editor", records, styles);
 

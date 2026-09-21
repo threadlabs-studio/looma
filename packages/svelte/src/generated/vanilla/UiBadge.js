@@ -3,8 +3,8 @@ import { manageGeneratedProps } from "@threadlabs/looma-core/declarative-generat
 
 export function createUiBadge(options = {}) {
   const { attributes = {}, children = [], slots = {}, as, ...componentProps } = options;
-  const prop0 = componentProps["tone"] === undefined ? undefined : componentProps["tone"];
-  const prop1 = componentProps["variant"] === undefined ? undefined : componentProps["variant"];
+  const prop0 = componentProps["tone"] === undefined ? "neutral" : componentProps["tone"];
+  const prop1 = componentProps["variant"] === undefined ? "subtle" : componentProps["variant"];
   const element = document.createElement("span");
   for (const [name, value] of Object.entries(attributes)) {
     if (value === null || value === undefined || value === false) continue;
@@ -28,8 +28,8 @@ export function createUiBadge(options = {}) {
   }
   element.append(element0);
   manageGeneratedProps(element, [
-    { name: "tone", attribute: "data-tone", value: prop0, type: "string", required: false },
-    { name: "variant", attribute: "data-variant", value: prop1, type: "string", required: false },
+    { name: "tone", attribute: "data-tone", value: prop0, type: ["neutral","accent","info","success","warning","danger"], required: false },
+    { name: "variant", attribute: "data-variant", value: prop1, type: ["solid","subtle"], required: false },
   ]);
   return element;
 }

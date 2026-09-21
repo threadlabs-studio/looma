@@ -90,21 +90,23 @@ describe("LoomaEditor history (real browser)", () => {
 
     editor.chain().focus("start").insertContent("Undo me").run();
     await flushBrowser();
-    const undo = toolbar!.querySelector<HTMLElement>(
+    const undo = toolbar!.querySelector<HTMLButtonElement>(
       '[data-component-root="ui-icon-button"][title="Undo"]',
     )!;
     expect(editor.can().undo()).toBe(true);
-    expect(undo.querySelector("button")!.disabled).toBe(false);
-    await userEvent.click(undo.querySelector("button")!);
+    expect(undo.disabled).toBe(false);
+    expect(undo.querySelector("button")).toBeNull();
+    undo.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
     await flushBrowser();
     expect(editor.getText()).toBe("");
 
-    const redo = toolbar!.querySelector<HTMLElement>(
+    const redo = toolbar!.querySelector<HTMLButtonElement>(
       '[data-component-root="ui-icon-button"][title="Redo"]',
     )!;
     expect(editor.can().redo()).toBe(true);
-    expect(redo.querySelector("button")!.disabled).toBe(false);
-    await userEvent.click(redo.querySelector("button")!);
+    expect(redo.disabled).toBe(false);
+    expect(redo.querySelector("button")).toBeNull();
+    redo.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
     await flushBrowser();
     expect(editor.getText()).toBe("Undo me");
   });

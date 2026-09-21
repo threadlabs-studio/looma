@@ -61,6 +61,9 @@ const lowlight = createLowlight(common);
  * Use this in presets that want table, row, header, and cell nodes to remain an
  * atomic policy choice; use `getLoomaTableExtensions` only when ordering or
  * per-extension composition must be explicit.
+ *
+ * @invariant Installs exactly one compatible table, row, header, and cell node
+ * set so a preset cannot accidentally split Looma's persisted table schema.
  */
 export const LoomaTableKit: AnyExtension = Extension.create({
   name: "loomaTableKit",

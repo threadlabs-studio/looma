@@ -24,26 +24,14 @@
 - SSR markup:
 
 ```html
-<ui-inline gap="s" wrap="wrap">
+<ui-inline gap="s" wrap>
   <button>One</button>
   <button>Two</button>
 </ui-inline>
 ```
 
-## `ui-cluster`
-
-- Attributes: `gap`, `align`, `justify`
-- Properties: `gap`, `align`, `justify`
-- Events: none
-- Slots: default children
-- SSR markup:
-
-```html
-<ui-cluster gap="xs">
-  <a href="#">Tag A</a>
-  <a href="#">Tag B</a>
-</ui-cluster>
-```
+`ui-cluster` is retained only as a deprecated compatibility alias for
+`<ui-inline wrap>`. It is not a separate layout contract.
 
 ## `ui-grid`
 

@@ -17,9 +17,8 @@ export default /*@__PURE__*/_defineComponent({
   ...{ inheritAttrs: false },
   __name: 'UiContextMenu',
   props: {
-    defaultOpen: { type: [Boolean, null], required: false, default: false },
-    for: { type: [String, null], required: false },
-    open: { type: [Boolean, null], required: false }
+    for: { type: [String, null], required: false, default: "" },
+    open: { type: [Boolean, null], required: false, default: false }
   },
   emits: ["open", "close", "select"],
   setup(__props: any, { emit: __emit }) {
@@ -28,7 +27,7 @@ export default /*@__PURE__*/_defineComponent({
 
 const props = __props;
 const emit = __emit;
-const definition = {...{"contract":{"tag":"ui-context-menu","props":{"defaultOpen":{"type":"boolean","required":false,"target":{"attribute":"defaultopen"},"default":false},"for":{"type":"string","required":false,"target":{"attribute":"for"}},"open":{"type":"boolean","required":false,"target":{"attribute":"open"}}}},"template":{"kind":"element","name":"span","attributes":[{"kind":"attribute","name":"data-state-open","expression":"internalOpen","expressionPlan":{"source":"internalOpen","ast":{"kind":"id","name":"internalOpen"},"dependencies":["internalOpen"]}}],"children":[{"kind":"slot","fallback":[],"name":"trigger"},{"kind":"element","name":"div","attributes":[{"kind":"literal","name":"class","value":"menu"},{"kind":"attribute","name":"data-state-open","expression":"internalOpen","expressionPlan":{"source":"internalOpen","ast":{"kind":"id","name":"internalOpen"},"dependencies":["internalOpen"]}}],"children":[{"kind":"element","name":"ui-menu","attributes":[],"children":[{"kind":"slot"}]}]}]},"declarations":[{"kind":"state","name":"internalOpen","expression":{"source":"false","ast":{"kind":"literal","value":false},"dependencies":[]}},{"kind":"state","name":"focusTrigger","expression":{"source":"'programmatic'","ast":{"kind":"literal","value":"programmatic"},"dependencies":[]}},{"kind":"event","name":"open","type":"object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false},{"kind":"event","name":"close","type":"object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false},{"kind":"event","name":"select","type":"object({ value: string, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"span","choices":["span"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
+const definition = {...{"contract":{"tag":"ui-context-menu","props":{"for":{"type":"string","required":false,"target":{"attribute":"for"},"default":""},"open":{"type":"boolean","required":false,"target":{"attribute":"open"},"default":false}}},"template":{"kind":"element","name":"span","attributes":[{"kind":"attribute","name":"data-state-open","expression":"internalOpen","expressionPlan":{"source":"internalOpen","ast":{"kind":"id","name":"internalOpen"},"dependencies":["internalOpen"]}}],"children":[{"kind":"element","name":"div","attributes":[{"kind":"literal","name":"class","value":"menu"},{"kind":"attribute","name":"data-state-open","expression":"internalOpen","expressionPlan":{"source":"internalOpen","ast":{"kind":"id","name":"internalOpen"},"dependencies":["internalOpen"]}}],"children":[{"kind":"element","name":"ui-menu","attributes":[],"children":[{"kind":"slot"}]}]}]},"declarations":[{"kind":"state","name":"internalOpen","expression":{"source":"false","ast":{"kind":"literal","value":false},"dependencies":[]}},{"kind":"state","name":"focusTrigger","expression":{"source":"'programmatic'","ast":{"kind":"literal","value":"programmatic"},"dependencies":[]}},{"kind":"event","name":"open","type":"object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false},{"kind":"event","name":"close","type":"object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false},{"kind":"event","name":"select","type":"object({ value: string, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"span","choices":["span"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
 const root = ref<Element>();
 const eventListener0 = (event: Event) => emit("open", (event as CustomEvent<{ readonly open: boolean; readonly reason: "action" | "programmatic" | "light-dismiss" | "escape"; readonly trigger: "keyboard" | "pointer" | "programmatic" }>).detail);
 const eventListener1 = (event: Event) => emit("close", (event as CustomEvent<{ readonly open: boolean; readonly reason: "action" | "programmatic" | "light-dismiss" | "escape"; readonly trigger: "keyboard" | "pointer" | "programmatic" }>).detail);
@@ -43,7 +42,7 @@ onMounted(() => {
 });
 watchEffect(() => {
   if (root.value == null) return;
-  for (const name of ["defaultOpen","for","open"]) (root.value as unknown as Record<string, unknown>)[name] = props[name as keyof typeof props];
+  for (const name of ["for","open"]) (root.value as unknown as Record<string, unknown>)[name] = props[name as keyof typeof props];
 });
 onUnmounted(() => {
   root.value?.removeEventListener("open", eventListener0);
@@ -61,7 +60,6 @@ return (_ctx: any,_cache: any) => {
     ref_key: "root",
     ref: root
   }), [
-    _renderSlot(_ctx.$slots, "trigger"),
     _createElementVNode("div", _hoisted_1, [
       _createVNode(_unref(UiMenu), { "data-component": "ui-context-menu" }, {
         default: _withCtx(() => [

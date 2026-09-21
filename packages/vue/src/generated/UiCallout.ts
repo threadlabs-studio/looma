@@ -12,7 +12,8 @@ const _hoisted_3 = {
 }
 
 import { onMounted, onUnmounted, ref, watchEffect } from "vue";
-import { manageGeneratedProps } from "@threadlabs/looma-core/declarative-generated";
+import { attachLoomaComponent } from "@threadlabs/looma-core/declarative";
+import type { ComponentDefinition } from "@threadlabs/looma-core/declarative";
 
 
 export default /*@__PURE__*/_defineComponent({
@@ -26,13 +27,12 @@ export default /*@__PURE__*/_defineComponent({
 
 
 const props = __props;
+const definition = {...{"contract":{"tag":"ui-callout","props":{"tone":{"type":{"enum":["info","note","warning","success","danger"]},"required":false,"target":{"attribute":"data-tone"},"default":"info"}}},"template":{"kind":"element","name":"div","attributes":[{"kind":"literal","name":"role","value":"note"},{"kind":"attribute","name":"data-tone","expression":"tone","expressionPlan":{"source":"tone","ast":{"kind":"id","name":"tone"},"dependencies":["tone"]}}],"children":[{"kind":"element","name":"div","attributes":[{"kind":"literal","name":"class","value":"callout__surface"}],"children":[{"kind":"element","name":"span","attributes":[{"kind":"literal","name":"class","value":"icon"},{"kind":"literal","name":"aria-hidden","value":"true"}],"children":[]},{"kind":"element","name":"div","attributes":[{"kind":"literal","name":"class","value":"content"}],"children":[{"kind":"slot"}]}]}]},"declarations":[],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
 const root = ref<Element>();
 let detach: undefined | (() => void);
 onMounted(() => {
   if (root.value == null) return;
-  detach = manageGeneratedProps(root.value, [
-    { name: "tone", attribute: "data-tone", value: props.tone, type: ["info","note","warning","success","error"], required: false },
-  ]);
+  detach = attachLoomaComponent(root.value, definition, "ui-callout", props);
 });
 watchEffect(() => {
   if (root.value == null) return;

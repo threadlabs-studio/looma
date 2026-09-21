@@ -1,0 +1,60 @@
+<template component="ui-select" controller="./controllers/ui-select.js" status="early" summary="A declarative choice control that lowers directly to a native select.">
+  <defs>
+    <prop name="value" type="string">Currently selected option value.</prop>
+    <prop name="disabled" type="boolean" default="false">Prevents selection and form submission.</prop>
+    <prop name="invalid" type="boolean" default="false">Exposes invalid state to assistive technology and styling.</prop>
+    <prop name="required" type="boolean" default="false">Requires a non-empty option for form validation.</prop>
+    <prop name="multiple" type="boolean" default="false">Allows more than one option to be selected.</prop>
+  </defs>
+  <select :disabled="disabled" :required="required" :multiple="multiple"><slot></slot></select>
+  <style>:scope {
+  box-sizing: border-box;
+  display: inline-block;
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: var(--ui-control-min-block-size, 2.5rem);
+  margin: 0;
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border: 1px solid var(--ui-control-border, var(--ui-border-strong));
+  border-radius: var(--ui-select-radius, var(--ui-radius-2));
+  background-color: var(--ui-control-surface, var(--ui-surface-elevated));
+  color: var(--ui-text-primary);
+  color-scheme: light dark;
+  font: inherit;
+  line-height: var(--ui-line-height-md);
+  box-shadow: var(--ui-select-shadow, inset 0 1px 2px rgb(15 23 42 / 0.07), var(--ui-shadow-xs));
+  transition:
+    border-color var(--ui-motion-fast) var(--ui-motion-ease),
+    box-shadow var(--ui-motion-fast) var(--ui-motion-ease),
+    background-color var(--ui-motion-fast) var(--ui-motion-ease);
+}
+
+:scope:hover:not(:focus):not(:disabled) {
+  border-color: var(--ui-control-border-hover, var(--ui-text-secondary));
+}
+
+:scope:focus-visible {
+  border-color: var(--ui-control-focus, var(--ui-accent-solid));
+  outline: 2px solid var(--ui-focus-ring);
+  outline-offset: 2px;
+  box-shadow: var(--ui-select-focus-shadow, 0 0 0 3px var(--ui-control-focus-halo, var(--ui-accent-soft)));
+}
+
+:scope[aria-invalid='true'] {
+  border-color: var(--ui-danger-solid);
+}
+
+:scope:disabled {
+  background-color: var(--ui-control-surface-disabled, var(--ui-surface-muted));
+  color: var(--ui-text-muted);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+:scope[multiple],
+:scope[size]:not([size='1']) {
+  min-block-size: 7rem;
+  padding: var(--ui-space-2);
+}
+</style>
+</template>

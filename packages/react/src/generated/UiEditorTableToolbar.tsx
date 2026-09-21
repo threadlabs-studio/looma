@@ -4,22 +4,14 @@ import type { ComponentPropsWithoutRef, ComponentRef, ElementType, ReactNode, Re
 import { attachLoomaComponent } from "@threadlabs/looma-core/declarative";
 import type { ComponentDefinition } from "@threadlabs/looma-core/declarative";
 
-const definition = {...{"contract":{"tag":"ui-editor-table-toolbar","props":{"canAddColumnAfter":{"type":"boolean","required":false,"target":{"attribute":"canaddcolumnafter"},"default":false},"canAddColumnBefore":{"type":"boolean","required":false,"target":{"attribute":"canaddcolumnbefore"},"default":false},"canAddRowAfter":{"type":"boolean","required":false,"target":{"attribute":"canaddrowafter"},"default":false},"canAddRowBefore":{"type":"boolean","required":false,"target":{"attribute":"canaddrowbefore"},"default":false},"canDeleteColumn":{"type":"boolean","required":false,"target":{"attribute":"candeletecolumn"},"default":false},"canDeleteRow":{"type":"boolean","required":false,"target":{"attribute":"candeleterow"},"default":false},"canDeleteTable":{"type":"boolean","required":false,"target":{"attribute":"candeletetable"},"default":false},"canMergeCells":{"type":"boolean","required":false,"target":{"attribute":"canmergecells"},"default":false},"canSplitCell":{"type":"boolean","required":false,"target":{"attribute":"cansplitcell"},"default":false},"cellAlignment":{"type":{"enum":["left","center","right"]},"required":false,"target":{"attribute":"cellalignment"},"default":"left"},"cellBackground":{"type":"string","required":false,"target":{"attribute":"cellbackground"},"default":""},"open":{"type":"boolean","required":false,"target":{"attribute":"open"},"default":false}}},"template":{"kind":"element","name":"div","attributes":[],"children":[]},"declarations":[{"kind":"event","name":"looma-editor-table-action","type":"object({ action: string })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
+const definition = {...{"contract":{"tag":"ui-editor-table-toolbar","props":{"actions":{"type":{"kind":"list","item":{"kind":"union","members":[{"kind":"keyword","value":"align-left"},{"kind":"keyword","value":"align-center"},{"kind":"keyword","value":"align-right"},{"kind":"keyword","value":"background-none"},{"kind":"keyword","value":"background-gray"},{"kind":"keyword","value":"background-yellow"},{"kind":"keyword","value":"background-blue"},{"kind":"keyword","value":"background-green"},{"kind":"keyword","value":"background-red"},{"kind":"keyword","value":"add-row-before"},{"kind":"keyword","value":"add-row-after"},{"kind":"keyword","value":"add-column-before"},{"kind":"keyword","value":"add-column-after"},{"kind":"keyword","value":"clear-cells"},{"kind":"keyword","value":"merge-cells"},{"kind":"keyword","value":"split-cell"},{"kind":"keyword","value":"delete-row"},{"kind":"keyword","value":"delete-column"},{"kind":"keyword","value":"delete-table"}]}},"required":false,"target":{"attribute":"actions"}},"cellAlignment":{"type":{"enum":["left","center","right"]},"required":false,"target":{"attribute":"cellalignment"},"default":"left"},"cellBackground":{"type":"string","required":false,"target":{"attribute":"cellbackground"},"default":""},"open":{"type":"boolean","required":false,"target":{"attribute":"open"},"default":false}}},"template":{"kind":"element","name":"div","attributes":[],"children":[]},"declarations":[{"kind":"event","name":"action","type":"object({ action: string })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
 
 interface UiEditorTableToolbarOwnProps {
-  canAddColumnAfter?: boolean | null;
-  canAddColumnBefore?: boolean | null;
-  canAddRowAfter?: boolean | null;
-  canAddRowBefore?: boolean | null;
-  canDeleteColumn?: boolean | null;
-  canDeleteRow?: boolean | null;
-  canDeleteTable?: boolean | null;
-  canMergeCells?: boolean | null;
-  canSplitCell?: boolean | null;
+  actions?: readonly ("align-left" | "align-center" | "align-right" | "background-none" | "background-gray" | "background-yellow" | "background-blue" | "background-green" | "background-red" | "add-row-before" | "add-row-after" | "add-column-before" | "add-column-after" | "clear-cells" | "merge-cells" | "split-cell" | "delete-row" | "delete-column" | "delete-table")[] | null;
   cellAlignment?: "left" | "center" | "right" | null;
   cellBackground?: string | null;
   open?: boolean | null;
-  onLoomaEditorTableAction?: (detail: { readonly action: string }, event: CustomEvent<{ readonly action: string }>) => void;
+  onAction?: (detail: { readonly action: string }, event: CustomEvent<{ readonly action: string }>) => void;
   slots?: Readonly<Record<string, ReactNode>>;
 }
 
@@ -30,23 +22,23 @@ export type UiEditorTableToolbarProps = Omit<ComponentPropsWithoutRef<"div">, ke
   UiEditorTableToolbarOwnProps & { children?: ReactNode; ref?: Ref<UiEditorTableToolbarHandle> };
 
 export function UiEditorTableToolbar(props: UiEditorTableToolbarProps) {
-  const { "canAddColumnAfter": prop0 = false, "canAddColumnBefore": prop1 = false, "canAddRowAfter": prop2 = false, "canAddRowBefore": prop3 = false, "canDeleteColumn": prop4 = false, "canDeleteRow": prop5 = false, "canDeleteTable": prop6 = false, "canMergeCells": prop7 = false, "canSplitCell": prop8 = false, "cellAlignment": prop9 = "left", "cellBackground": prop10 = "", "open": prop11 = false, onLoomaEditorTableAction, slots, children, ref, ...nativeProps } = props;
+  const { "actions": prop0, "cellAlignment": prop1 = "left", "cellBackground": prop2 = "", "open": prop3 = false, onAction, slots, children, ref, ...nativeProps } = props;
   const root = useRef<UiEditorTableToolbarHandle | null>(null);
   const setRoot = (node: UiEditorTableToolbarHandle | null) => {
     (root as { current: UiEditorTableToolbarHandle | null }).current = node;
     if (typeof ref === "function") ref(node);
     else if (ref != null) ref.current = node;
   };
-  const componentProps: Record<string, unknown> = { "canAddColumnAfter": prop0, "canAddColumnBefore": prop1, "canAddRowAfter": prop2, "canAddRowBefore": prop3, "canDeleteColumn": prop4, "canDeleteRow": prop5, "canDeleteTable": prop6, "canMergeCells": prop7, "canSplitCell": prop8, "cellAlignment": prop9, "cellBackground": prop10, "open": prop11 };
+  const componentProps: Record<string, unknown> = { "actions": prop0, "cellAlignment": prop1, "cellBackground": prop2, "open": prop3 };
   useLayoutEffect(() => root.current == null ? undefined : attachLoomaComponent(root.current, definition, "ui-editor-table-toolbar", componentProps), []);
   useLayoutEffect(() => { if (root.current != null) Object.assign(root.current, componentProps); });
   useLayoutEffect(() => {
     const node = root.current;
-    if (node == null || onLoomaEditorTableAction == null) return;
-    const listener0 = (event: Event) => onLoomaEditorTableAction((event as CustomEvent<{ readonly action: string }>).detail, event as CustomEvent<{ readonly action: string }>);
-    node.addEventListener("looma-editor-table-action", listener0);
-    return () => node.removeEventListener("looma-editor-table-action", listener0);
-  }, [onLoomaEditorTableAction]);
+    if (node == null || onAction == null) return;
+    const listener0 = (event: Event) => onAction((event as CustomEvent<{ readonly action: string }>).detail, event as CustomEvent<{ readonly action: string }>);
+    node.addEventListener("action", listener0);
+    return () => node.removeEventListener("action", listener0);
+  }, [onAction]);
   return (
     <div {...nativeProps} data-component="ui-editor-table-toolbar" data-component-root="ui-editor-table-toolbar" data-looma-managed="framework" ref={setRoot}>
 

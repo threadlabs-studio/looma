@@ -130,7 +130,7 @@ const editor = new Editor({ extensions: [LoomaTableKit] });
 ## Know the Candidate boundary
 
 - `@threadlabs/looma` is the complete R1 public package; supported capabilities live at its explicit subpaths.
-- All 49 component contracts lower to declared native light-DOM roots. No custom-element registry or shadow-root implementation is part of the public model.
+- Every published component contract lowers to its declared native light-DOM root. No custom-element registry or shadow-root implementation is part of the public model.
 - React and Svelte adapters are internal repository previews, not R1 exports.
 - `LoomaEditor` owns its Tiptap lifecycle, formatting controls, slash commands,
   bounded mention suggestions, focus behavior, image insertion, and table editing.

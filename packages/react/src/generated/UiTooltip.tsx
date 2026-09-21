@@ -4,16 +4,14 @@ import type { ComponentPropsWithoutRef, ComponentRef, ElementType, ReactNode, Re
 import { attachLoomaComponent } from "@threadlabs/looma-core/declarative";
 import type { ComponentDefinition } from "@threadlabs/looma-core/declarative";
 
-const definition = {...{"contract":{"tag":"ui-tooltip","props":{"defaultOpen":{"type":"boolean","required":false,"target":{"attribute":"defaultopen"},"default":false},"for":{"type":"string","required":false,"target":{"attribute":"for"},"default":""},"hideDelay":{"type":"number","required":false,"target":{"attribute":"hidedelay"},"default":100},"open":{"type":"boolean","required":false,"target":{"attribute":"open"}},"placement":{"type":"string","required":false,"target":{"attribute":"placement"},"default":"top-start"},"showDelay":{"type":"number","required":false,"target":{"attribute":"showdelay"},"default":500},"toggleOnClick":{"type":"boolean","required":false,"target":{"attribute":"toggleonclick"},"default":false}}},"template":{"kind":"element","name":"span","attributes":[{"kind":"literal","name":"role","value":"tooltip"},{"kind":"attribute","name":"hidden","expression":"not internalOpen","expressionPlan":{"source":"not internalOpen","ast":{"kind":"unary","op":"not","operand":{"kind":"id","name":"internalOpen"}},"dependencies":["internalOpen"]}},{"kind":"attribute","name":"data-state-open","expression":"internalOpen","expressionPlan":{"source":"internalOpen","ast":{"kind":"id","name":"internalOpen"},"dependencies":["internalOpen"]}}],"children":[{"kind":"element","name":"div","attributes":[{"kind":"literal","name":"class","value":"tooltip__surface"}],"children":[{"kind":"slot"}]}]},"declarations":[{"kind":"state","name":"internalOpen","expression":{"source":"false","ast":{"kind":"literal","value":false},"dependencies":[]}},{"kind":"event","name":"open","type":"object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false},{"kind":"event","name":"close","type":"object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"span","choices":["span"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
+const definition = {...{"contract":{"tag":"ui-tooltip","props":{"for":{"type":"string","required":false,"target":{"attribute":"for"},"default":""},"hideDelay":{"type":"number","required":false,"target":{"attribute":"hidedelay"},"default":100},"open":{"type":"boolean","required":false,"target":{"attribute":"open"},"default":false},"placement":{"type":"string","required":false,"target":{"attribute":"placement"},"default":"top-start"},"showDelay":{"type":"number","required":false,"target":{"attribute":"showdelay"},"default":500}}},"template":{"kind":"element","name":"span","attributes":[{"kind":"literal","name":"role","value":"tooltip"},{"kind":"attribute","name":"hidden","expression":"not internalOpen","expressionPlan":{"source":"not internalOpen","ast":{"kind":"unary","op":"not","operand":{"kind":"id","name":"internalOpen"}},"dependencies":["internalOpen"]}},{"kind":"attribute","name":"data-state-open","expression":"internalOpen","expressionPlan":{"source":"internalOpen","ast":{"kind":"id","name":"internalOpen"},"dependencies":["internalOpen"]}}],"children":[{"kind":"element","name":"div","attributes":[{"kind":"literal","name":"class","value":"tooltip__surface"}],"children":[{"kind":"slot"}]}]},"declarations":[{"kind":"state","name":"internalOpen","expression":{"source":"false","ast":{"kind":"literal","value":false},"dependencies":[]}},{"kind":"event","name":"open","type":"object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false},{"kind":"event","name":"close","type":"object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"span","choices":["span"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
 
 interface UiTooltipOwnProps {
-  defaultOpen?: boolean | null;
   for?: string | null;
   hideDelay?: number | null;
   open?: boolean | null;
   placement?: string | null;
   showDelay?: number | null;
-  toggleOnClick?: boolean | null;
   onOpen?: (detail: { readonly open: boolean; readonly reason: "action" | "programmatic" | "light-dismiss" | "escape"; readonly trigger: "keyboard" | "pointer" | "programmatic" }, event: CustomEvent<{ readonly open: boolean; readonly reason: "action" | "programmatic" | "light-dismiss" | "escape"; readonly trigger: "keyboard" | "pointer" | "programmatic" }>) => void;
   onClose?: (detail: { readonly open: boolean; readonly reason: "action" | "programmatic" | "light-dismiss" | "escape"; readonly trigger: "keyboard" | "pointer" | "programmatic" }, event: CustomEvent<{ readonly open: boolean; readonly reason: "action" | "programmatic" | "light-dismiss" | "escape"; readonly trigger: "keyboard" | "pointer" | "programmatic" }>) => void;
   slots?: Readonly<Record<string, ReactNode>>;
@@ -26,14 +24,14 @@ export type UiTooltipProps = Omit<ComponentPropsWithoutRef<"span">, keyof UiTool
   UiTooltipOwnProps & { children?: ReactNode; ref?: Ref<UiTooltipHandle> };
 
 export function UiTooltip(props: UiTooltipProps) {
-  const { "defaultOpen": prop0 = false, "for": prop1 = "", "hideDelay": prop2 = 100, "open": prop3, "placement": prop4 = "top-start", "showDelay": prop5 = 500, "toggleOnClick": prop6 = false, onOpen, onClose, slots, children, ref, ...nativeProps } = props;
+  const { "for": prop0 = "", "hideDelay": prop1 = 100, "open": prop2 = false, "placement": prop3 = "top-start", "showDelay": prop4 = 500, onOpen, onClose, slots, children, ref, ...nativeProps } = props;
   const root = useRef<UiTooltipHandle | null>(null);
   const setRoot = (node: UiTooltipHandle | null) => {
     (root as { current: UiTooltipHandle | null }).current = node;
     if (typeof ref === "function") ref(node);
     else if (ref != null) ref.current = node;
   };
-  const componentProps: Record<string, unknown> = { "defaultOpen": prop0, "for": prop1, "hideDelay": prop2, "open": prop3, "placement": prop4, "showDelay": prop5, "toggleOnClick": prop6 };
+  const componentProps: Record<string, unknown> = { "for": prop0, "hideDelay": prop1, "open": prop2, "placement": prop3, "showDelay": prop4 };
   useLayoutEffect(() => root.current == null ? undefined : attachLoomaComponent(root.current, definition, "ui-tooltip", componentProps), []);
   useLayoutEffect(() => { if (root.current != null) Object.assign(root.current, componentProps); });
   useLayoutEffect(() => {

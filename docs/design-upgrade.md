@@ -39,7 +39,7 @@
 5. **Checkbox/Switch** — Accent color when checked, focus-visible ring
 6. **Default font** — native system UI stack in `--ui-font-family-sans`; the
    opt-in neo-grotesque preset remains available for products that load Inter
-7. **Button variant** — `destructive` uses danger tokens
+7. **Button variant** — `danger` uses the shared danger tokens
 8. **Storybook stories** — Form showcase (validation), Dialog showcase (actions), Menu showcase (icons)
 
 ---

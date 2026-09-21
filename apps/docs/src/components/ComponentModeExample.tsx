@@ -114,7 +114,7 @@ function reactMarkup(markup: string): string {
     .replace(/\bclass=/g, "className=")
     .replace(/(<label\b[^>]*?)\bfor=/g, "$1htmlFor=")
     .replace(/\btabindex=/g, "tabIndex=")
-    .replace(/\breadonly=/g, "readOnly=")
+    .replace(/\breadonly\b/g, "readOnly")
     .replace(/\bstroke-width=/g, "strokeWidth=")
     .replace(/\bpopovertarget=/g, "popoverTarget=")
     .replace(/style="([^"]*)"/g, (_match, value: string) => reactStyle(value));
@@ -145,26 +145,6 @@ function bindProperties(
   }, markup);
 }
 
-function dialogListenerLines(dialogId: string, indent: string, typed: boolean): string[] {
-  const type = typed ? `<HTMLElement & { open: boolean }>` : "";
-  return [
-    `${indent}const dialog = document.querySelector${type}("#${dialogId}");`,
-    `${indent}const openButton = document.querySelector("[data-dialog-demo]");`,
-    `${indent}const closeButton = dialog?.querySelector("[data-dialog-close]");`,
-    `${indent}const openDialog = () => { if (dialog) dialog.open = true; };`,
-    `${indent}const closeDialog = () => { if (dialog) dialog.open = false; };`,
-    `${indent}openButton?.addEventListener("click", openDialog);`,
-    `${indent}closeButton?.addEventListener("click", closeDialog);`
-  ];
-}
-
-function dialogCleanupLines(indent: string): string[] {
-  return [
-    `${indent}openButton?.removeEventListener("click", openDialog);`,
-    `${indent}closeButton?.removeEventListener("click", closeDialog);`
-  ];
-}
-
 /**
  * Preserves each scenario's declarative light-DOM contract in every mode.
  * Framework variants change registration and binding syntax only; they do not
@@ -172,8 +152,7 @@ function dialogCleanupLines(indent: string): string[] {
  */
 function buildExamples(
   markup: string,
-  assignments: readonly ScenarioPropertyAssignment[],
-  dialogId?: string
+  assignments: readonly ScenarioPropertyAssignment[]
 ): FrameworkExamples {
   const tags = tagsIn(markup);
   const packages = importPackages(tags);
@@ -198,42 +177,8 @@ function buildExamples(
   const svelte = formatMarkup(bindProperties(markup, assignments, "svelte"));
   const html = formatMarkup(markup);
   const htmlStatements = [declarations, htmlAssignments].filter(Boolean);
-  if (dialogId) htmlStatements.push(dialogListenerLines(dialogId, "", false).join("\n"));
   const htmlSetup = htmlStatements.length > 0 ? `\n\n${htmlStatements.join("\n")}` : "";
   const frameworkSetup = assignments.length > 0 ? `${declarations}\n` : "";
-  const vueDialogSetup = dialogId
-    ? [
-        "let removeDialogListeners = () => {};",
-        "onMounted(() => {",
-        ...dialogListenerLines(dialogId, "  ", true),
-        "  removeDialogListeners = () => {",
-        ...dialogCleanupLines("    "),
-        "  };",
-        "});",
-        "onUnmounted(() => removeDialogListeners());"
-      ].join("\n") + "\n"
-    : "";
-  const reactDialogSetup = dialogId
-    ? [
-        "  useEffect(() => {",
-        ...dialogListenerLines(dialogId, "    ", true),
-        "    return () => {",
-        ...dialogCleanupLines("      "),
-        "    };",
-        "  }, []);",
-        ""
-      ].join("\n")
-    : "";
-  const svelteDialogSetup = dialogId
-    ? [
-        "onMount(() => {",
-        ...dialogListenerLines(dialogId, "  ", true),
-        "  return () => {",
-        ...dialogCleanupLines("    "),
-        "  };",
-        "});"
-      ].join("\n") + "\n"
-    : "";
 
   return {
     "html-next": {
@@ -242,15 +187,15 @@ function buildExamples(
     },
     vue: {
       language: "vue",
-      code: `<script setup lang="ts">\n${dialogId ? 'import { onMounted, onUnmounted } from "vue";\n' : ""}${vueImports}\n${frameworkSetup}${vueDialogSetup}</script>\n\n<template>\n${vue.split("\n").map((line) => `  ${line}`).join("\n")}\n</template>`
+      code: `<script setup lang="ts">\n${vueImports}\n${frameworkSetup}</script>\n\n<template>\n${vue.split("\n").map((line) => `  ${line}`).join("\n")}\n</template>`
     },
     react: {
       language: "tsx",
-      code: `${dialogId ? 'import { useEffect } from "react";\n' : ""}import { ${names.join(", ")} } from "@threadlabs/looma-react";\n\nexport function Example() {\n${frameworkSetup.split("\n").filter(Boolean).map((line) => `  ${line}`).join("\n")}${frameworkSetup ? "\n" : ""}${reactDialogSetup}  return (\n${react.split("\n").map((line) => `    ${line}`).join("\n")}\n  );\n}`
+      code: `import { ${names.join(", ")} } from "@threadlabs/looma-react";\n\nexport function Example() {\n${frameworkSetup.split("\n").filter(Boolean).map((line) => `  ${line}`).join("\n")}${frameworkSetup ? "\n" : ""}  return (\n${react.split("\n").map((line) => `    ${line}`).join("\n")}\n  );\n}`
     },
     svelte: {
       language: "svelte",
-      code: `<script lang="ts">\n${dialogId ? '  import { onMount } from "svelte";\n' : ""}${packages.map((packageName) => `  import ${JSON.stringify(packageName)};`).join("\n")}\n${frameworkSetup}${svelteDialogSetup}</script>\n\n${svelte}`
+      code: `<script lang="ts">\n${packages.map((packageName) => `  import ${JSON.stringify(packageName)};`).join("\n")}\n${frameworkSetup}</script>\n\n${svelte}`
     }
   };
 }
@@ -263,15 +208,15 @@ function buildExamples(
 export function ScenarioModeExample({
   markup,
   propertyAssignments = [],
-  dialogId
+  examples
 }: {
   markup: string;
   propertyAssignments?: readonly ScenarioPropertyAssignment[];
-  dialogId?: string;
+  examples?: FrameworkExamples;
 }): JSX.Element {
-  const examples = useMemo(
-    () => buildExamples(markup, propertyAssignments, dialogId),
-    [dialogId, markup, propertyAssignments]
+  const resolvedExamples = useMemo(
+    () => examples ?? buildExamples(markup, propertyAssignments),
+    [examples, markup, propertyAssignments]
   );
 
   return (
@@ -280,7 +225,7 @@ export function ScenarioModeExample({
         <strong>Code</strong>
         <FrameworkModeSelector />
       </div>
-      <FrameworkModeCode examples={examples} />
+      <FrameworkModeCode examples={resolvedExamples} />
     </div>
   );
 }

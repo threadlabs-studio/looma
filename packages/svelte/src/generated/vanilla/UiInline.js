@@ -6,7 +6,7 @@ export function createUiInline(options = {}) {
   const prop0 = componentProps["align"] === undefined ? undefined : componentProps["align"];
   const prop1 = componentProps["gap"] === undefined ? undefined : componentProps["gap"];
   const prop2 = componentProps["justify"] === undefined ? undefined : componentProps["justify"];
-  const prop3 = componentProps["wrap"] === undefined ? undefined : componentProps["wrap"];
+  const prop3 = componentProps["wrap"] === undefined ? false : componentProps["wrap"];
   const element = document.createElement("div");
   for (const [name, value] of Object.entries(attributes)) {
     if (value === null || value === undefined || value === false) continue;
@@ -23,7 +23,7 @@ export function createUiInline(options = {}) {
     { name: "align", attribute: "data-align", value: prop0, type: ["start","center","end","stretch"], required: false },
     { name: "gap", attribute: "data-gap", value: prop1, type: ["xs","s","m","l","xl"], required: false },
     { name: "justify", attribute: "data-justify", value: prop2, type: ["start","center","end","between"], required: false },
-    { name: "wrap", attribute: "data-wrap", value: prop3, type: ["wrap","nowrap"], required: false },
+    { name: "wrap", attribute: "data-wrap", value: prop3, type: "boolean", required: false },
   ]);
   return element;
 }

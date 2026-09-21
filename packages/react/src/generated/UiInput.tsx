@@ -4,53 +4,35 @@ import type { ComponentPropsWithoutRef, ComponentRef, ElementType, ReactNode, Re
 import { attachLoomaComponent } from "@threadlabs/looma-core/declarative";
 import type { ComponentDefinition } from "@threadlabs/looma-core/declarative";
 
-const definition = {...{"contract":{"tag":"ui-input","props":{"defaultValue":{"type":"string","required":false,"target":{"attribute":"defaultvalue"},"default":""},"disabled":{"type":"boolean","required":false,"target":{"attribute":"disabled"},"default":false},"invalid":{"type":"boolean","required":false,"target":{"attribute":"data-invalid"},"default":false},"readOnly":{"type":"boolean","required":false,"target":{"attribute":"readonly"},"default":false},"value":{"type":"string","required":false,"target":{"attribute":"value"}}}},"template":{"kind":"element","name":"span","attributes":[{"kind":"attribute","name":"data-invalid","expression":"invalid","expressionPlan":{"source":"invalid","ast":{"kind":"id","name":"invalid"},"dependencies":["invalid"]}}],"children":[{"kind":"slot"}]},"declarations":[{"kind":"state","name":"internalValue","expression":{"source":"''","ast":{"kind":"literal","value":""},"dependencies":[]}},{"kind":"event","name":"input","type":"object({ value: string, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false},{"kind":"event","name":"change","type":"object({ value: string, trigger: keyboard | pointer | programmatic })","bubbles":true,"composed":true,"cancelable":false}],"root":{"kind":"native","element":"span","choices":["span"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
+const definition = {...{"contract":{"tag":"ui-input","props":{"disabled":{"type":"boolean","required":false,"target":{"attribute":"disabled"},"default":false},"invalid":{"type":"boolean","required":false,"target":{"attribute":"invalid"},"default":false},"readonly":{"type":"boolean","required":false,"target":{"attribute":"readonly"},"default":false},"required":{"type":"boolean","required":false,"target":{"attribute":"required"},"default":false},"value":{"type":"string","required":false,"target":{"attribute":"value"}}}},"template":{"kind":"element","name":"input","attributes":[{"kind":"attribute","name":"value","expression":"value","expressionPlan":{"source":"value","ast":{"kind":"id","name":"value"},"dependencies":["value"]}},{"kind":"attribute","name":"disabled","expression":"disabled","expressionPlan":{"source":"disabled","ast":{"kind":"id","name":"disabled"},"dependencies":["disabled"]}},{"kind":"attribute","name":"readonly","expression":"readonly","expressionPlan":{"source":"readonly","ast":{"kind":"id","name":"readonly"},"dependencies":["readonly"]}},{"kind":"attribute","name":"required","expression":"required","expressionPlan":{"source":"required","ast":{"kind":"id","name":"required"},"dependencies":["required"]}}],"children":[]},"declarations":[],"root":{"kind":"native","element":"input","choices":["input"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
 
 interface UiInputOwnProps {
-  defaultValue?: string | null;
   disabled?: boolean | null;
   invalid?: boolean | null;
   readOnly?: boolean | null;
+  required?: boolean | null;
   value?: string | null;
-  onInput?: (detail: { readonly value: string; readonly trigger: "keyboard" | "pointer" | "programmatic" }, event: CustomEvent<{ readonly value: string; readonly trigger: "keyboard" | "pointer" | "programmatic" }>) => void;
-  onChange?: (detail: { readonly value: string; readonly trigger: "keyboard" | "pointer" | "programmatic" }, event: CustomEvent<{ readonly value: string; readonly trigger: "keyboard" | "pointer" | "programmatic" }>) => void;
   slots?: Readonly<Record<string, ReactNode>>;
 }
 
-export type UiInputHandle = ComponentRef<"span"> & {
+export type UiInputHandle = ComponentRef<"input"> & {
 };
 
-export type UiInputProps = Omit<ComponentPropsWithoutRef<"span">, keyof UiInputOwnProps | "children"> &
+export type UiInputProps = Omit<ComponentPropsWithoutRef<"input">, keyof UiInputOwnProps | "children"> &
   UiInputOwnProps & { children?: ReactNode; ref?: Ref<UiInputHandle> };
 
 export function UiInput(props: UiInputProps) {
-  const { "defaultValue": prop0 = "", "disabled": prop1 = false, "invalid": prop2 = false, "readOnly": prop3 = false, "value": prop4, onInput, onChange, slots, children, ref, ...nativeProps } = props;
+  const { "disabled": prop0 = false, "invalid": prop1 = false, "readOnly": prop2 = false, "required": prop3 = false, "value": prop4, slots, children, ref, ...nativeProps } = props;
   const root = useRef<UiInputHandle | null>(null);
   const setRoot = (node: UiInputHandle | null) => {
     (root as { current: UiInputHandle | null }).current = node;
     if (typeof ref === "function") ref(node);
     else if (ref != null) ref.current = node;
   };
-  const componentProps: Record<string, unknown> = { "defaultValue": prop0, "disabled": prop1, "invalid": prop2, "readOnly": prop3, "value": prop4 };
+  const componentProps: Record<string, unknown> = { "disabled": prop0, "invalid": prop1, "readonly": prop2, "required": prop3, "value": prop4 };
   useLayoutEffect(() => root.current == null ? undefined : attachLoomaComponent(root.current, definition, "ui-input", componentProps), []);
   useLayoutEffect(() => { if (root.current != null) Object.assign(root.current, componentProps); });
-  useLayoutEffect(() => {
-    const node = root.current;
-    if (node == null || onInput == null) return;
-    const listener0 = (event: Event) => onInput((event as CustomEvent<{ readonly value: string; readonly trigger: "keyboard" | "pointer" | "programmatic" }>).detail, event as CustomEvent<{ readonly value: string; readonly trigger: "keyboard" | "pointer" | "programmatic" }>);
-    node.addEventListener("input", listener0);
-    return () => node.removeEventListener("input", listener0);
-  }, [onInput]);
-  useLayoutEffect(() => {
-    const node = root.current;
-    if (node == null || onChange == null) return;
-    const listener1 = (event: Event) => onChange((event as CustomEvent<{ readonly value: string; readonly trigger: "keyboard" | "pointer" | "programmatic" }>).detail, event as CustomEvent<{ readonly value: string; readonly trigger: "keyboard" | "pointer" | "programmatic" }>);
-    node.addEventListener("change", listener1);
-    return () => node.removeEventListener("change", listener1);
-  }, [onChange]);
   return (
-    <span {...nativeProps} data-component="ui-input" data-component-root="ui-input" data-looma-managed="framework" data-invalid={prop2 ? "" : undefined} ref={setRoot}>
-      {children ?? (null)}
-    </span>
+    <input {...nativeProps} data-component="ui-input" data-component-root="ui-input" data-looma-managed="framework" value={prop4 ?? undefined} disabled={prop0 ?? undefined} readOnly={prop2 ?? undefined} required={prop3 ?? undefined} ref={setRoot} />
   );
 }

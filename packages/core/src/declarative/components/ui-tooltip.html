@@ -1,0 +1,86 @@
+<template component="ui-tooltip" controller="./controllers/ui-tooltip.js" status="early" summary="Associates a short, non-interactive description with a control and reveals it on hover or focus.">
+  <defs>
+    <prop name="for" type="string" default="">ID of the control described and visually anchored by the tooltip.</prop>
+    <prop name="open" type="boolean" default="false">Whether the tooltip is open initially or when set externally.</prop>
+    <prop name="placement" type="string" default="top-start">Positions the description relative to its trigger.</prop>
+    <prop name="showDelay" type="number" default="500">Waits this many milliseconds before showing after pointer entry.</prop>
+    <prop name="hideDelay" type="number" default="100">Waits this many milliseconds before hiding after pointer exit.</prop>
+    <state name="internalOpen" :value="false"></state>
+    <event name="open" type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"></event>
+    <event name="close" type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"></event>
+  </defs>
+  <span role="tooltip" :hidden="not internalOpen" :data-state-open="internalOpen"><div class="tooltip__surface"><slot></slot></div></span>
+  <style>:scope {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  display: inline-block;
+  box-sizing: border-box;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  border-radius: 0;
+  background: transparent;
+  opacity: 0;
+  transform: translateY(4px);
+  transition:
+    opacity var(--ui-motion-fast) var(--ui-motion-ease),
+    transform var(--ui-motion-fast) var(--ui-motion-ease),
+    display var(--ui-motion-fast) allow-discrete,
+    overlay var(--ui-motion-fast) allow-discrete;
+}
+
+.tooltip__surface {
+  --ui-tooltip-arrow-size: 0.45rem;
+  position: relative;
+  box-sizing: border-box;
+  border: 1px solid var(--ui-tooltip-border, var(--ui-border-default));
+  border-radius: var(--ui-tooltip-radius, var(--ui-radius-2));
+  background: var(--ui-tooltip-surface, var(--ui-surface-elevated));
+  color: var(--ui-text-primary);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  font-size: var(--ui-font-size-sm);
+  box-shadow: var(--ui-tooltip-shadow, var(--ui-shadow-lg));
+}
+
+.tooltip__surface::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: var(--ui-space-3);
+  inset-block-end: calc(var(--ui-tooltip-arrow-size) / -2);
+  inline-size: var(--ui-tooltip-arrow-size);
+  block-size: var(--ui-tooltip-arrow-size);
+  background: inherit;
+  border-inline-end: 1px solid var(--ui-tooltip-border, var(--ui-border-default));
+  border-block-end: 1px solid var(--ui-tooltip-border, var(--ui-border-default));
+  transform: rotate(45deg);
+}
+
+:scope[data-placement^='bottom'] .tooltip__surface::after {
+  inset-block-start: calc(var(--ui-tooltip-arrow-size) / -2);
+  inset-block-end: auto;
+  border: 0;
+  border-inline-start: 1px solid var(--ui-tooltip-border, var(--ui-border-default));
+  border-block-start: 1px solid var(--ui-tooltip-border, var(--ui-border-default));
+}
+
+:scope[data-placement$='end'] .tooltip__surface::after {
+  inset-inline-start: auto;
+  inset-inline-end: var(--ui-space-3);
+}
+
+:scope:popover-open { opacity: 1; transform: translateY(0); }
+
+@starting-style {
+  :scope:popover-open { opacity: 0; transform: translateY(4px); }
+}
+
+:scope[hidden] {
+  display: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :scope { transition: none; }
+}
+</style>
+</template>

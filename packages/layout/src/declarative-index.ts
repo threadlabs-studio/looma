@@ -1,5 +1,5 @@
 import { registerLoomaPackage } from "@threadlabs/looma-core/declarative";
-import { records, styles } from "../../../tools/migrate-html-next/generated/adoption/layout/registry.js";
+import { records, styles } from "./declarative/registry.js";
 
 /**
  * Origin of a sidebar width transition.

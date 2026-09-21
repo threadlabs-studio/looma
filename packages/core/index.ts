@@ -11,7 +11,7 @@
  * use `./valibot` without importing a validation runtime through this entry.
  */
 
-import { records, styles } from '../../tools/migrate-html-next/generated/adoption/core/registry.js';
+import { records, styles } from './src/declarative/registry.js';
 import { registerLoomaPackage } from './src/declarative';
 import { initializeInputModality } from './src/input-modality';
 

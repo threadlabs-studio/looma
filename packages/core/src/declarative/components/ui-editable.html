@@ -1,0 +1,86 @@
+<template component="ui-editable" controller="./controllers/ui-editable.js" status="early" summary="An inline value editor with owned edit, save, and cancel controls.">
+  <defs>
+    <prop name="value" type="string" default="">The displayed and initial editable value.</prop>
+    <prop name="label" type="string" default="Edit value">Accessible name for the editor.</prop>
+    <prop name="edit" type="boolean" default="false">Whether edit mode is active initially or when set externally.</prop>
+    <prop name="disabled" type="boolean" default="false">Prevents entering or changing edit mode.</prop>
+    <state name="internalEdit" :value="false"></state>
+    <state name="internalValue" :value="''"></state>
+    <state name="draft" :value="''"></state>
+    <event name="input" type="object({ value: string, trigger: keyboard | pointer | programmatic })"></event>
+    <event name="change" type="object({ value: string, previousValue: string, trigger: keyboard | pointer | programmatic })"></event>
+    <event name="edit-change" type="object({ edit: boolean, reason: activate | commit | cancel | light-dismiss | escape | programmatic, trigger: keyboard | pointer | programmatic })"></event>
+  </defs>
+  <div :data-state-edit="internalEdit" :data-disabled="disabled"><button class="editable__preview" type="button"><span><template $value="internalValue"></template></span><span class="editable__affordance" aria-hidden="true">Edit</span></button><div class="editable__editor" :hidden="not internalEdit"><input class="editable__input" type="text" :value="draft"></input><div class="editable__actions"><button type="button" data-action="save">Save</button><button type="button" data-action="cancel">Cancel</button></div></div></div>
+  <style>:scope {
+  display: block;
+  min-inline-size: 0;
+  color: var(--ui-text-primary);
+}
+
+.editable__preview {
+  display: inline-flex;
+  gap: var(--ui-space-2);
+  align-items: center;
+  min-block-size: 2.25rem;
+  padding: var(--ui-space-1) var(--ui-space-2);
+  border: 1px solid transparent;
+  border-radius: var(--ui-radius-2);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: text;
+}
+
+.editable__preview:hover:not(:disabled) {
+  border-color: var(--ui-border-default);
+  background: var(--ui-surface-muted);
+}
+
+.editable__preview:focus-visible,
+.editable__input:focus-visible,
+.editable__actions button:focus-visible {
+  outline: 2px solid var(--ui-focus-ring);
+  outline-offset: 2px;
+}
+
+.editable__affordance {
+  color: var(--ui-text-secondary);
+  font-size: var(--ui-font-size-sm);
+}
+
+.editable__editor {
+  display: grid;
+  gap: var(--ui-space-2);
+  grid-template-columns: minmax(8rem, 1fr) auto;
+  align-items: center;
+}
+
+.editable__input {
+  min-block-size: 2.5rem;
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border: 1px solid var(--ui-control-border, var(--ui-border-strong));
+  border-radius: var(--ui-radius-2);
+  background: var(--ui-control-surface, var(--ui-surface-elevated));
+  color: inherit;
+  font: inherit;
+  box-shadow: var(--ui-shadow-xs);
+}
+
+.editable__actions { display: inline-flex; gap: var(--ui-space-1); }
+.editable__actions button {
+  min-block-size: 2.25rem;
+  padding: var(--ui-space-1) var(--ui-space-2);
+  border: 1px solid var(--ui-border-default);
+  border-radius: var(--ui-radius-2);
+  background: var(--ui-surface-elevated);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+[hidden] { display: none !important; }
+:scope[data-disabled='true'] { color: var(--ui-text-muted); }
+</style>
+</template>

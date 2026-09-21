@@ -21,7 +21,7 @@ export default /*@__PURE__*/_defineComponent({
 
 
 const props = __props;
-const definition = {...{"contract":{"tag":"ui-form-field","props":{"disabled":{"type":"boolean","required":false,"target":{"attribute":"data-disabled"},"default":false},"invalid":{"type":"boolean","required":false,"target":{"attribute":"data-invalid"},"default":false},"required":{"type":"boolean","required":false,"target":{"attribute":"data-required"},"default":false}}},"template":{"kind":"element","name":"div","attributes":[{"kind":"attribute","name":"data-invalid","expression":"invalid","expressionPlan":{"source":"invalid","ast":{"kind":"id","name":"invalid"},"dependencies":["invalid"]}},{"kind":"attribute","name":"data-disabled","expression":"disabled","expressionPlan":{"source":"disabled","ast":{"kind":"id","name":"disabled"},"dependencies":["disabled"]}},{"kind":"attribute","name":"data-required","expression":"required","expressionPlan":{"source":"required","ast":{"kind":"id","name":"required"},"dependencies":["required"]}}],"children":[{"kind":"slot"}]},"declarations":[],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
+const definition = {...{"contract":{"tag":"ui-form-field","props":{"disabled":{"type":"boolean","required":false,"target":{"attribute":"data-disabled"},"default":false},"invalid":{"type":"boolean","required":false,"target":{"attribute":"data-invalid"},"default":false},"required":{"type":"boolean","required":false,"target":{"attribute":"data-required"},"default":false}}},"template":{"kind":"element","name":"div","attributes":[{"kind":"attribute","name":"data-invalid","expression":"invalid","expressionPlan":{"source":"invalid","ast":{"kind":"id","name":"invalid"},"dependencies":["invalid"]}},{"kind":"attribute","name":"data-disabled","expression":"disabled","expressionPlan":{"source":"disabled","ast":{"kind":"id","name":"disabled"},"dependencies":["disabled"]}},{"kind":"attribute","name":"data-required","expression":"required","expressionPlan":{"source":"required","ast":{"kind":"id","name":"required"},"dependencies":["required"]}}],"children":[{"kind":"slot","fallback":[],"name":"label"},{"kind":"slot"},{"kind":"slot","fallback":[],"name":"help"},{"kind":"slot","fallback":[],"name":"error"}]},"declarations":[],"root":{"kind":"native","element":"div","choices":["div"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
 const root = ref<Element>();
 let detach: undefined | (() => void);
 onMounted(() => {
@@ -47,7 +47,10 @@ return (_ctx: any,_cache: any) => {
     ref_key: "root",
     ref: root
   }), [
-    _renderSlot(_ctx.$slots, "default")
+    _renderSlot(_ctx.$slots, "label"),
+    _renderSlot(_ctx.$slots, "default"),
+    _renderSlot(_ctx.$slots, "help"),
+    _renderSlot(_ctx.$slots, "error")
   ], 16 /* FULL_PROPS */, _hoisted_1))
 }
 }

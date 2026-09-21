@@ -70,13 +70,14 @@
     --ui-layout-align: center;
     --ui-layout-justify: flex-start;
     display: flex;
-    flex-wrap: wrap;
     align-items: var(--ui-layout-align);
     justify-content: var(--ui-layout-justify);
     gap: var(--ui-layout-gap);
   }
 
-  ui-inline[wrap="nowrap"] { flex-wrap: nowrap; }
+  ui-inline { flex-wrap: nowrap; }
+  ui-inline[wrap],
+  ui-cluster { flex-wrap: wrap; }
   ui-inline[gap="xs"],
   ui-cluster[gap="xs"] { --ui-layout-gap: var(--ui-space-2, 0.5rem); }
   ui-inline[gap="s"],
@@ -106,7 +107,7 @@
 
   ui-grid {
     --ui-grid-gap: var(--ui-space-4, 1rem);
-    --ui-grid-min: 16rem;
+    --ui-grid-min: 12rem;
     display: grid;
     gap: var(--ui-grid-gap);
     grid-template-columns: repeat(auto-fit, minmax(min(var(--ui-grid-min), 100%), 1fr));

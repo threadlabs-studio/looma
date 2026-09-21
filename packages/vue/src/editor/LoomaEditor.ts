@@ -36,6 +36,7 @@ import {
   type TableCellAlignment,
   type TableCellBackground,
   type TableActionCapabilities,
+  type TableContextMenuAction,
 } from "@threadlabs/looma-editor";
 import { IconButton, Popover } from "../index";
 import { getVisualViewportRect, LOOMA_ICONS, type LoomaIconName } from "@threadlabs/looma-core";
@@ -59,14 +60,31 @@ import {
   type LoomaImageRenditionErrorDetail,
 } from "./image-delivery";
 
+/**
+ * Host upload result normalized into the editor's durable image descriptor.
+ * `url` becomes the stored `src`; optional dimensions preserve layout before
+ * the image loads and `responsive` opts into host-provided rendition policy.
+ */
 export interface LoomaImageUploadResult extends Omit<LoomaImageDescriptor, "src"> {
   url: string;
 }
 
+/**
+ * Application-owned upload boundary used by paste, drop, and file selection.
+ *
+ * @ownership The application owns network requests, persistence, and returned
+ * URLs. Looma owns only editor insertion after the promise fulfills.
+ * @failure Rejection leaves the document unchanged and is surfaced through the
+ * editor's `uploadError` event so the host chooses retry and user messaging.
+ */
 export type LoomaImageUploader = (
   file: File,
 ) => Promise<string | LoomaImageUploadResult>;
 
+/**
+ * Chooses whether formatting controls follow a selection or occupy persistent
+ * editor chrome; it does not alter document commands or stored content.
+ */
 export type LoomaEditorToolbarMode = "bubble" | "sticky";
 
 const EMPTY_DOCUMENT: JSONContent = { type: "doc", content: [] };
@@ -115,6 +133,18 @@ function loomaIcon(name: LoomaIconName) {
   }, LOOMA_ICONS[name].map(([tag, attributes]) => h(tag, attributes)));
 }
 
+/**
+ * Turnkey Vue editor that composes Looma's framework-neutral Tiptap extensions
+ * with declarative menus, image delivery, and table interaction chrome.
+ *
+ * @ownership The component owns its Tiptap instance and transient UI state;
+ * callers own controlled `modelValue`, extension instances, and host services.
+ * @lifecycle Mount creates one editor and browser listener set, prop watchers
+ * synchronize external state, and unmount cancels frames/listeners and destroys
+ * the editor-owned resources.
+ * @failure Upload and responsive-rendition failures are emitted to the host;
+ * durable document content is retained or left unchanged for recovery.
+ */
 export const LoomaEditor = defineComponent({
   name: "LoomaEditor",
   inheritAttrs: false,
@@ -743,7 +773,9 @@ export const LoomaEditor = defineComponent({
     ) => {
       const syncNativeDisabled = (vnode: VNode) => {
         if (!(vnode.el instanceof Element)) return;
-        const button = vnode.el.querySelector("button");
+        const button = vnode.el instanceof HTMLButtonElement
+          ? vnode.el
+          : vnode.el.querySelector("button");
         if (button) button.disabled = disabled;
       };
       return h(IconButton, {
@@ -808,20 +840,33 @@ export const LoomaEditor = defineComponent({
       // counter makes command availability and active state follow every
       // transaction, including undo and redo in uncontrolled integrations.
       void editorStateVersion.value;
+      const tableActions: TableContextMenuAction[] = [
+        "align-left",
+        "align-center",
+        "align-right",
+        "background-none",
+        "background-gray",
+        "background-yellow",
+        "background-blue",
+        "background-green",
+        "background-red",
+        "clear-cells",
+        ...(tableUi.capabilities.canAddRowBefore ? ["add-row-before" as const] : []),
+        ...(tableUi.capabilities.canAddRowAfter ? ["add-row-after" as const] : []),
+        ...(tableUi.capabilities.canAddColumnBefore ? ["add-column-before" as const] : []),
+        ...(tableUi.capabilities.canAddColumnAfter ? ["add-column-after" as const] : []),
+        ...(tableUi.capabilities.canMergeCells ? ["merge-cells" as const] : []),
+        ...(tableUi.capabilities.canSplitCell ? ["split-cell" as const] : []),
+        ...(tableUi.capabilities.canDeleteRow ? ["delete-row" as const] : []),
+        ...(tableUi.capabilities.canDeleteColumn ? ["delete-column" as const] : []),
+        ...(tableUi.capabilities.canDeleteTable ? ["delete-table" as const] : []),
+      ];
       const tableProps = {
         open: true,
         "cell-alignment": tableUi.alignment,
         "cell-background": tableUi.background ?? undefined,
-        "can-add-row-before": tableUi.capabilities.canAddRowBefore,
-        "can-add-row-after": tableUi.capabilities.canAddRowAfter,
-        "can-add-column-before": tableUi.capabilities.canAddColumnBefore,
-        "can-add-column-after": tableUi.capabilities.canAddColumnAfter,
-        "can-delete-row": tableUi.capabilities.canDeleteRow,
-        "can-delete-column": tableUi.capabilities.canDeleteColumn,
-        "can-delete-table": tableUi.capabilities.canDeleteTable,
-        "can-merge-cells": tableUi.capabilities.canMergeCells,
-        "can-split-cell": tableUi.capabilities.canSplitCell,
-        onTableAction: runTableAction,
+        actions: tableActions,
+        onAction: runTableAction,
       };
 
       return h("div", {
@@ -932,7 +977,7 @@ export const LoomaEditor = defineComponent({
           onClose: () => { tablePickerOpen.value = false; },
         }, () => [h(EditorInsertTableGrid, {
               open: true,
-              onInsertTable: (detail: { rows: number; cols: number; withHeaderRow: boolean }) => {
+              onInsert: (detail: { rows: number; cols: number; withHeaderRow: boolean }) => {
                 instance?.chain().focus().insertTable(detail).run();
                 tablePickerOpen.value = false;
               },
@@ -944,8 +989,8 @@ export const LoomaEditor = defineComponent({
               items: slash.items,
               selectedIndex: slash.selectedIndex,
               anchorRect: slash.rect,
-              onSlashMenuHighlight: ({ index }: { index: number }) => { slash.selectedIndex = index; },
-              onSlashMenuSelect: ({ index }: { index: number }) => {
+              onHighlight: ({ index }: { index: number }) => { slash.selectedIndex = index; },
+              onSelect: ({ index }: { index: number }) => {
                 slash.select?.(index);
               },
             })
@@ -959,11 +1004,11 @@ export const LoomaEditor = defineComponent({
               selectedIndex: mention.selectedIndex,
               anchorRect: mention.rect,
               loading: mention.loading,
-              onMentionMenuHighlight: ({ index }: { index: number }) => {
+              onHighlight: ({ index }: { index: number }) => {
                 mention.selectedIndex = index;
                 mention.highlight?.(index);
               },
-              onMentionMenuSelect: ({ index }: { index: number }) => {
+              onSelect: ({ index }: { index: number }) => {
                 mention.select?.(index);
               },
             })
@@ -986,7 +1031,7 @@ export const LoomaEditor = defineComponent({
               rows: tableUi.rows,
               cols: tableUi.cols,
               geometry: tableUi.geometry,
-              onTableOverlayAction: runOverlayAction,
+              onAction: runOverlayAction,
             })])
           : null,
         tableUi.menuOpen

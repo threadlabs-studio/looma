@@ -4,7 +4,7 @@ import type { ComponentPropsWithoutRef, ComponentRef, ElementType, ReactNode, Re
 import { attachLoomaComponent } from "@threadlabs/looma-core/declarative";
 import type { ComponentDefinition } from "@threadlabs/looma-core/declarative";
 
-const definition = {...{"contract":{"tag":"ui-icon-button","props":{"anticipatory":{"type":"boolean","required":false,"target":{"attribute":"anticipatory"},"default":false},"disabled":{"type":"boolean","required":false,"target":{"attribute":"data-disabled"},"default":false},"label":{"type":"string","required":false,"target":{"attribute":"aria-label"},"default":""},"size":{"type":{"enum":["sm","md","lg"]},"required":false,"target":{"attribute":"size"},"default":"md"},"variant":{"type":{"enum":["ghost","outline","solid"]},"required":false,"target":{"attribute":"variant"},"default":"ghost"}}},"template":{"kind":"element","name":"span","attributes":[{"kind":"attribute","name":"data-disabled","expression":"disabled","expressionPlan":{"source":"disabled","ast":{"kind":"id","name":"disabled"},"dependencies":["disabled"]}}],"children":[{"kind":"element","name":"button","attributes":[{"kind":"literal","name":"type","value":"button"},{"kind":"attribute","name":"aria-label","expression":"label","expressionPlan":{"source":"label","ast":{"kind":"id","name":"label"},"dependencies":["label"]}}],"children":[{"kind":"slot"}]}]},"declarations":[],"root":{"kind":"native","element":"span","choices":["span"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
+const definition = {...{"contract":{"tag":"ui-icon-button","props":{"anticipatory":{"type":"boolean","required":false,"target":{"attribute":"anticipatory"},"default":false},"disabled":{"type":"boolean","required":false,"target":{"attribute":"data-disabled"},"default":false},"label":{"type":"string","required":false,"target":{"attribute":"aria-label"},"default":""},"size":{"type":{"enum":["sm","md","lg"]},"required":false,"target":{"attribute":"size"},"default":"md"},"variant":{"type":{"enum":["ghost","outline","solid"]},"required":false,"target":{"attribute":"variant"},"default":"ghost"}}},"template":{"kind":"element","name":"button","attributes":[{"kind":"attribute","name":"data-disabled","expression":"disabled","expressionPlan":{"source":"disabled","ast":{"kind":"id","name":"disabled"},"dependencies":["disabled"]}},{"kind":"literal","name":"type","value":"button"},{"kind":"attribute","name":"aria-label","expression":"label","expressionPlan":{"source":"label","ast":{"kind":"id","name":"label"},"dependencies":["label"]}}],"children":[{"kind":"slot"}]},"declarations":[],"root":{"kind":"native","element":"button","choices":["button"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
 
 interface UiIconButtonOwnProps {
   anticipatory?: boolean | null;
@@ -15,10 +15,10 @@ interface UiIconButtonOwnProps {
   slots?: Readonly<Record<string, ReactNode>>;
 }
 
-export type UiIconButtonHandle = ComponentRef<"span"> & {
+export type UiIconButtonHandle = ComponentRef<"button"> & {
 };
 
-export type UiIconButtonProps = Omit<ComponentPropsWithoutRef<"span">, keyof UiIconButtonOwnProps | "children"> &
+export type UiIconButtonProps = Omit<ComponentPropsWithoutRef<"button">, keyof UiIconButtonOwnProps | "children"> &
   UiIconButtonOwnProps & { children?: ReactNode; ref?: Ref<UiIconButtonHandle> };
 
 export function UiIconButton(props: UiIconButtonProps) {
@@ -33,10 +33,8 @@ export function UiIconButton(props: UiIconButtonProps) {
   useLayoutEffect(() => root.current == null ? undefined : attachLoomaComponent(root.current, definition, "ui-icon-button", componentProps), []);
   useLayoutEffect(() => { if (root.current != null) Object.assign(root.current, componentProps); });
   return (
-    <span {...nativeProps} data-component="ui-icon-button" data-component-root="ui-icon-button" data-looma-managed="framework" data-disabled={prop1 ? "" : undefined} ref={setRoot}>
-      <button type="button" aria-label={prop2 ?? undefined} data-component="ui-icon-button">
+    <button {...nativeProps} data-component="ui-icon-button" data-component-root="ui-icon-button" data-looma-managed="framework" data-disabled={prop1 ? "" : undefined} type="button" aria-label={prop2 ?? undefined} ref={setRoot}>
       {children ?? (null)}
     </button>
-    </span>
   );
 }

@@ -13,7 +13,7 @@ export default /*@__PURE__*/_defineComponent({
   __name: 'UiButton',
   props: {
     disabled: { type: [Boolean, null], required: false, default: false },
-    size: { type: [String, null], required: false },
+    size: { type: [String, null], required: false, default: "md" },
     variant: { type: [String, null], required: false, default: "outline" }
   },
   setup(__props: any) {
@@ -21,7 +21,7 @@ export default /*@__PURE__*/_defineComponent({
 
 
 const props = __props;
-const definition = {...{"contract":{"tag":"ui-button","props":{"disabled":{"type":"boolean","required":false,"target":{"attribute":"disabled"},"default":false},"size":{"type":"string","required":false,"target":{"attribute":"data-size"}},"variant":{"type":"string","required":false,"target":{"attribute":"data-variant"},"default":"outline"}}},"template":{"kind":"element","name":"span","attributes":[{"kind":"attribute","name":"data-size","expression":"size","expressionPlan":{"source":"size","ast":{"kind":"id","name":"size"},"dependencies":["size"]}},{"kind":"attribute","name":"data-variant","expression":"variant","expressionPlan":{"source":"variant","ast":{"kind":"id","name":"variant"},"dependencies":["variant"]}}],"children":[{"kind":"slot"}]},"declarations":[],"root":{"kind":"native","element":"span","choices":["span"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
+const definition = {...{"contract":{"tag":"ui-button","props":{"disabled":{"type":"boolean","required":false,"target":{"attribute":"disabled"},"default":false},"size":{"type":{"enum":["sm","md","lg"]},"required":false,"target":{"attribute":"data-size"},"default":"md"},"variant":{"type":{"enum":["outline","solid","danger","ghost"]},"required":false,"target":{"attribute":"data-variant"},"default":"outline"}}},"template":{"kind":"element","name":"button","attributes":[{"kind":"attribute","name":"data-size","expression":"size","expressionPlan":{"source":"size","ast":{"kind":"id","name":"size"},"dependencies":["size"]}},{"kind":"attribute","name":"data-variant","expression":"variant","expressionPlan":{"source":"variant","ast":{"kind":"id","name":"variant"},"dependencies":["variant"]}}],"children":[{"kind":"slot"}]},"declarations":[],"root":{"kind":"native","element":"button","choices":["button"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
 const root = ref<Element>();
 let detach: undefined | (() => void);
 onMounted(() => {
@@ -37,7 +37,7 @@ onUnmounted(() => {
 });
 
 return (_ctx: any,_cache: any) => {
-  return (_openBlock(), _createElementBlock("span", _mergeProps(_ctx.$attrs, {
+  return (_openBlock(), _createElementBlock("button", _mergeProps(_ctx.$attrs, {
     "data-component": "ui-button",
     "data-component-root": "ui-button",
     "data-looma-managed": "framework",

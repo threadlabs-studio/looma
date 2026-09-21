@@ -1,0 +1,54 @@
+<template component="ui-top-bar" controller="./controllers/ui-top-bar.js" status="early" summary="Migrated Looma ui-top-bar component.">
+  <defs>
+    <state name="hasLeading" :value="false"></state>
+    <state name="hasSearch" :value="false"></state>
+    <state name="hasActions" :value="false"></state>
+  </defs>
+  <div><header class="top-bar" part="base"><div class="top-bar__leading" :hidden="not hasLeading"><slot name="leading"></slot></div><div class="top-bar__title"><slot></slot></div><div class="top-bar__search" :hidden="not hasSearch"><slot name="search"></slot></div><div class="top-bar__actions" :hidden="not hasActions"><slot name="actions"></slot></div></header></div>
+  <style>:scope {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: var(--ui-top-bar-z-index, 100);
+  display: block;
+}
+
+.top-bar {
+  min-block-size: calc(var(--ui-top-bar-height, 56px) + env(safe-area-inset-top));
+  display: flex;
+  align-items: center;
+  gap: var(--ui-top-bar-gap, var(--ui-space-3, 0.75rem));
+  padding-block-start: env(safe-area-inset-top);
+  padding-inline-start: max(
+    var(--ui-top-bar-padding-inline, var(--ui-space-4, 1rem)),
+    env(safe-area-inset-left)
+  );
+  padding-inline-end: max(
+    var(--ui-top-bar-padding-inline, var(--ui-space-4, 1rem)),
+    env(safe-area-inset-right)
+  );
+  background: var(--ui-top-bar-bg, var(--ui-surface-elevated));
+  border-block-end: 1px solid var(--ui-top-bar-border, var(--ui-border-default));
+}
+
+.top-bar__leading,
+.top-bar__search,
+.top-bar__actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.top-bar__actions {
+  gap: var(--ui-top-bar-actions-gap, var(--ui-space-1, 0.25rem));
+}
+
+.top-bar__title {
+  min-inline-size: 0;
+  flex: 1;
+}
+
+[hidden] {
+  display: none;
+}
+</style>
+</template>

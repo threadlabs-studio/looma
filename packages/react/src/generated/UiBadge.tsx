@@ -4,8 +4,8 @@ import type { ComponentPropsWithoutRef, ComponentRef, ElementType, ReactNode, Re
 import { manageGeneratedProps } from "@threadlabs/looma-core/declarative-generated";
 
 interface UiBadgeOwnProps {
-  tone?: string | null;
-  variant?: string | null;
+  tone?: "neutral" | "accent" | "info" | "success" | "warning" | "danger" | null;
+  variant?: "solid" | "subtle" | null;
   slots?: Readonly<Record<string, ReactNode>>;
 }
 
@@ -16,7 +16,7 @@ export type UiBadgeProps = Omit<ComponentPropsWithoutRef<"span">, keyof UiBadgeO
   UiBadgeOwnProps & { children?: ReactNode; ref?: Ref<UiBadgeHandle> };
 
 export function UiBadge(props: UiBadgeProps) {
-  const { "tone": prop0, "variant": prop1, slots, children, ref, ...nativeProps } = props;
+  const { "tone": prop0 = "neutral", "variant": prop1 = "subtle", slots, children, ref, ...nativeProps } = props;
   const root = useRef<UiBadgeHandle | null>(null);
   const setRoot = (node: UiBadgeHandle | null) => {
     (root as { current: UiBadgeHandle | null }).current = node;
@@ -25,8 +25,8 @@ export function UiBadge(props: UiBadgeProps) {
   };
   const componentProps: Record<string, unknown> = { "tone": prop0, "variant": prop1 };
   useLayoutEffect(() => root.current == null ? undefined : manageGeneratedProps(root.current, [
-    { name: "tone", attribute: "data-tone", value: prop0, type: "string", required: false },
-    { name: "variant", attribute: "data-variant", value: prop1, type: "string", required: false },
+    { name: "tone", attribute: "data-tone", value: prop0, type: ["neutral","accent","info","success","warning","danger"], required: false },
+    { name: "variant", attribute: "data-variant", value: prop1, type: ["solid","subtle"], required: false },
   ]), []);
   useLayoutEffect(() => { if (root.current != null) Object.assign(root.current, componentProps); });
   return (

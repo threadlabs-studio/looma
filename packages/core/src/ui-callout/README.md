@@ -12,7 +12,7 @@ Static semantic message surface with a tone icon.
 
 ## Attributes and properties
 
-- `tone: "info" | "note" | "warning" | "success" | "error"` (default: `"info"`)
+- `tone: "info" | "note" | "warning" | "success" | "danger"` (default: `"info"`)
 
 ## Events and keyboard behavior
 

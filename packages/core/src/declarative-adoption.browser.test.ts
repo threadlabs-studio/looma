@@ -13,13 +13,14 @@ afterEach(async () => {
 
 describe("shipped declarative component graph", () => {
   it("lowers live HTML to native roots without registering custom elements", async () => {
-    document.body.innerHTML = '<ui-button variant="solid"><button type="button">Save</button></ui-button>';
+    document.body.innerHTML = '<ui-button variant="solid">Save</ui-button>';
     await settle();
 
     const root = document.querySelector<HTMLElement>('[data-component-root="ui-button"]');
-    expect(root?.localName).toBe("span");
+    expect(root?.localName).toBe("button");
     expect(root?.dataset.variant).toBe("solid");
-    expect(root?.querySelector("button")?.textContent).toBe("Save");
+    expect(root?.textContent).toBe("Save");
+    expect(root?.querySelector("button")).toBeNull();
     expect(document.querySelector("ui-button")).toBeNull();
     expect(customElements.get("ui-button")).toBeUndefined();
   });
@@ -54,18 +55,27 @@ describe("shipped declarative component graph", () => {
   });
 
   it("uses canonical declarative attribute names instead of legacy source aliases", async () => {
-    document.body.innerHTML = '<ui-input read-only><input type="text"></ui-input>';
+    document.body.innerHTML = '<ui-input readonly></ui-input>';
     await settle();
 
-    const root = document.querySelector<HTMLElement>('[data-component-root="ui-input"]');
-    expect(root?.dataset.readOnly).toBe("true");
-    expect(root?.querySelector<HTMLInputElement>("input")?.readOnly).toBe(true);
+    const root = document.querySelector<HTMLInputElement>('[data-component-root="ui-input"]');
+    expect(root?.readOnly).toBe(true);
+    expect(root?.hasAttribute("data-read-only")).toBe(false);
+  });
+
+  it("coerces an explicit false HTML attribute through the declared boolean type", async () => {
+    document.body.innerHTML = '<ui-button disabled="false">Available action</ui-button>';
+    await settle();
+
+    const root = document.querySelector<HTMLButtonElement>('[data-component-root="ui-button"]');
+    expect(root?.disabled).toBe(false);
+    expect(root?.textContent).toBe("Available action");
   });
 
   it("attaches controllers, structured props, and public methods to lowered roots", async () => {
     const onChange = vi.fn();
     const checkbox = document.createElement("ui-checkbox");
-    checkbox.innerHTML = '<input type="checkbox">';
+    checkbox.textContent = "Subscribe";
     const config = { options: [{ id: "one", value: "one", label: "One" }] };
     const combobox = document.createElement("ui-combobox") as HTMLElement & { config: unknown };
     combobox.config = config;

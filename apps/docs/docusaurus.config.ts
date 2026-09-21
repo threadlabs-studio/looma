@@ -90,6 +90,11 @@ const config: Config = {
           to: "/components",
           label: "Components",
           position: "left"
+        },
+        {
+          to: "/editor",
+          label: "Editor",
+          position: "left"
         }
       ]
     },
