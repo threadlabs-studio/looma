@@ -1,0 +1,9 @@
+<!--
+title: Target binding
+description: The for property binds the menu to a separate context-click target while the trigger slot remains available.
+-->
+<ui-button id="context-menu-target">Open menu</ui-button>
+<ui-context-menu for="context-menu-target">
+  <ui-menu-item value="first">First item</ui-menu-item>
+  <ui-menu-item value="second">Second item</ui-menu-item>
+</ui-context-menu>

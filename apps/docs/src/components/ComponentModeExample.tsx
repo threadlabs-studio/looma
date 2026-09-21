@@ -228,10 +228,11 @@ export function ScenarioModeExample({
 }: {
   markup: string;
   propertyAssignments?: readonly ScenarioPropertyAssignment[];
-  examples?: FrameworkExamples;
+  /** Hand-written code for some modes; the rest are derived from the markup. */
+  examples?: Partial<FrameworkExamples>;
 }): JSX.Element {
   const resolvedExamples = useMemo(
-    () => examples ?? buildExamples(markup, propertyAssignments),
+    () => ({ ...buildExamples(markup, propertyAssignments), ...examples }),
     [examples, markup, propertyAssignments]
   );
 

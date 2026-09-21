@@ -47,6 +47,22 @@ const config: Config = {
       href: "https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap"
     }
   ],
+  plugins: [
+    // Component examples (apps/docs/examples) are read as text: one HTML file per example, plus
+    // hand-written framework code. Behaviour files (.behavior.ts) compile normally.
+    () => ({
+      name: "looma-examples",
+      configureWebpack: () => ({
+        module: {
+          rules: [{
+            test: /\.(html|vue|svelte)$|\.react\.tsx$/,
+            include: path.join(__dirname, "examples"),
+            type: "asset/source"
+          }]
+        }
+      })
+    })
+  ],
   presets: [
     [
       "classic",

@@ -1,0 +1,10 @@
+<!--
+title: Disabled items
+description: Right-click the target to open the menu. A disabled item is announced and shown but cannot be chosen, and arrow keys skip it.
+-->
+<ui-button id="context-menu-disabled-target">Right-click me</ui-button>
+<ui-context-menu for="context-menu-disabled-target">
+  <ui-menu-item value="rename">Rename</ui-menu-item>
+  <ui-menu-item value="delete" disabled>Delete (locked)</ui-menu-item>
+  <ui-menu-item value="duplicate">Duplicate</ui-menu-item>
+</ui-context-menu>
