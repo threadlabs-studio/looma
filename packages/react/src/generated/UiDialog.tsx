@@ -41,7 +41,7 @@ export function UiDialog(props: UiDialogProps) {
     return () => node.removeEventListener("close", listener0);
   }, [onClose]);
   return (
-    <dialog {...nativeProps} data-component="ui-dialog" data-component-root="ui-dialog" data-looma-managed="framework" aria-label={undefined} ref={setRoot}>
+    <dialog {...nativeProps} data-component="ui-dialog" data-component-root="ui-dialog" aria-label={undefined} ref={setRoot}>
       <header className="dialog__header" data-component="ui-dialog">
       <h2 className="dialog__title" data-component="ui-dialog">
         <template data-component="ui-dialog">

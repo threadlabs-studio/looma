@@ -55,7 +55,7 @@ export function UiContextMenu(props: UiContextMenuProps) {
     return () => node.removeEventListener("select", listener2);
   }, [onSelect]);
   return (
-    <span {...nativeProps} data-component="ui-context-menu" data-component-root="ui-context-menu" data-looma-managed="framework" data-state-open={undefined} ref={setRoot}>
+    <span {...nativeProps} data-component="ui-context-menu" data-component-root="ui-context-menu" data-state-open={undefined} ref={setRoot}>
       <div className="menu" data-state-open={undefined} data-component="ui-context-menu">
       <UiMenu data-component="ui-context-menu">
         {children ?? (null)}

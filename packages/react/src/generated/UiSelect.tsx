@@ -33,7 +33,7 @@ export function UiSelect(props: UiSelectProps) {
   useLayoutEffect(() => root.current == null ? undefined : attachLoomaComponent(root.current, definition, "ui-select", componentProps), []);
   useLayoutEffect(() => { if (root.current != null) updateComponentProps(root.current, componentProps); });
   return (
-    <select {...nativeProps} data-component="ui-select" data-component-root="ui-select" data-looma-managed="framework" disabled={prop0 ?? undefined} required={prop3 ?? undefined} multiple={prop2 ?? undefined} ref={setRoot}>
+    <select {...nativeProps} data-component="ui-select" data-component-root="ui-select" disabled={prop0 ?? undefined} required={prop3 ?? undefined} multiple={prop2 ?? undefined} ref={setRoot}>
 
     </select>
   );

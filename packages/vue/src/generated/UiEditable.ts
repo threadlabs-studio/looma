@@ -69,7 +69,6 @@ return (_ctx: any,_cache: any) => {
   return (_openBlock(), _createElementBlock("div", _mergeProps(_ctx.$attrs, {
     "data-component": "ui-editable",
     "data-component-root": "ui-editable",
-    "data-looma-managed": "framework",
     "data-state-edit": undefined,
     "data-disabled": props.disabled ? '' : undefined,
     ref_key: "root",

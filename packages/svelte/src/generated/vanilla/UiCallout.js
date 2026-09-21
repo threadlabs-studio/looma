@@ -16,7 +16,6 @@ export function createUiCallout(options = {}) {
   else element.setAttribute("data-tone", String(value0));
   element.setAttribute("data-component", "ui-callout");
   element.setAttribute("data-component-root", "ui-callout");
-  element.setAttribute("data-looma-managed", "framework");
   const element0 = document.createElement("div");
   element0.setAttribute("class", "callout__surface");
   element0.setAttribute("data-component", "ui-callout");

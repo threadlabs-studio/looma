@@ -12,7 +12,6 @@ export function createUiDisclosure(options = {}) {
   }
   element.setAttribute("data-component", "ui-disclosure");
   element.setAttribute("data-component-root", "ui-disclosure");
-  element.setAttribute("data-looma-managed", "framework");
   const element0 = document.createElement("button");
   element0.setAttribute("class", "disclosure__trigger");
   element0.setAttribute("type", "button");

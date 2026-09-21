@@ -45,7 +45,7 @@ export function UiSidebar(props: UiSidebarProps) {
     return () => node.removeEventListener("resize", listener0);
   }, [onResize]);
   return (
-    <div {...nativeProps} data-component="ui-sidebar" data-component-root="ui-sidebar" data-looma-managed="framework" ref={setRoot}>
+    <div {...nativeProps} data-component="ui-sidebar" data-component-root="ui-sidebar" ref={setRoot}>
       {children ?? (null)}
     </div>
   );

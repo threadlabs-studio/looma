@@ -22,7 +22,6 @@ export function createUiIconButton(options = {}) {
   else element.setAttribute("aria-label", String(value2));
   element.setAttribute("data-component", "ui-icon-button");
   element.setAttribute("data-component-root", "ui-icon-button");
-  element.setAttribute("data-looma-managed", "framework");
   if (children.length > 0) {
     for (const child of children) element.append(child);
   } else {

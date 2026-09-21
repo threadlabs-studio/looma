@@ -12,6 +12,8 @@ export declare function manageComponentLifecycle(element: Element, definition: u
 /** Owns incremental lowering until its returned disposer is called. */
 export declare function observeDocument(root?: Document, options?: { shouldLower?: (element: Element, definition: { contract: { tag: string } }, hydration: boolean) => boolean; onConnect?: (element: Element, definition: { contract: { tag: string } }) => void | (() => void); onError?: (error: unknown) => void }): () => void;
 export declare function registerComponentDefinitions(definitions: readonly unknown[], root?: Document): void;
+/** Serializes lowered components as their rendered form: slot range markers plus a carrier for projected content no slot renders. */
+export declare function serializeRenderedForm(container: Element): string;
 /** Associates behavior with one settled root without publishing modules on a browser global. */
 export declare function setControllerModule(element: Element, module: Promise<unknown>): void;
 /** Framework-adapter prop channel: applies props as authored attributes would be. */

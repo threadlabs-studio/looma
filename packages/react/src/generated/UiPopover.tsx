@@ -47,7 +47,7 @@ export function UiPopover(props: UiPopoverProps) {
     return () => node.removeEventListener("close", listener1);
   }, [onClose]);
   return (
-    <span {...nativeProps} data-component="ui-popover" data-component-root="ui-popover" data-looma-managed="framework" data-state-open={undefined} ref={setRoot}>
+    <span {...nativeProps} data-component="ui-popover" data-component-root="ui-popover" data-state-open={undefined} ref={setRoot}>
       <div className="popover__surface" data-component="ui-popover">
       {children ?? (null)}
     </div>

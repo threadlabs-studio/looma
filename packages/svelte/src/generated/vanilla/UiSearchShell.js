@@ -12,7 +12,6 @@ export function createUiSearchShell(options = {}) {
   }
   element.setAttribute("data-component", "ui-search-shell");
   element.setAttribute("data-component-root", "ui-search-shell");
-  element.setAttribute("data-looma-managed", "framework");
   const element0 = document.createElement("dialog");
   element0.setAttribute("class", "search-shell");
   element0.setAttribute("part", "base");

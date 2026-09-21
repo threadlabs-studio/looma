@@ -12,7 +12,6 @@ export function createUiDialog(options = {}) {
   }
   element.setAttribute("data-component", "ui-dialog");
   element.setAttribute("data-component-root", "ui-dialog");
-  element.setAttribute("data-looma-managed", "framework");
   const element0 = document.createElement("header");
   element0.setAttribute("class", "dialog__header");
   element0.setAttribute("data-component", "ui-dialog");

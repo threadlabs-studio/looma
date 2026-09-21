@@ -121,7 +121,7 @@ export function UiCombobox(props: UiComboboxProps) {
     return () => node.removeEventListener("create-item", listener8);
   }, [onCreateItem]);
   return (
-    <div {...nativeProps} data-component="ui-combobox" data-component-root="ui-combobox" data-looma-managed="framework" data-size={prop15 ?? undefined} ref={setRoot}>
+    <div {...nativeProps} data-component="ui-combobox" data-component-root="ui-combobox" data-size={prop15 ?? undefined} ref={setRoot}>
       <label htmlFor="input" part="label" data-component="ui-combobox">
       <template data-component="ui-combobox">
         {prop7}

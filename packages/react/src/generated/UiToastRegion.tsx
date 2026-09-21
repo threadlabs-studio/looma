@@ -49,7 +49,7 @@ export function UiToastRegion(props: UiToastRegionProps) {
     return () => node.removeEventListener("dismiss", listener1);
   }, [onDismiss]);
   return (
-    <div {...nativeProps} data-component="ui-toast-region" data-component-root="ui-toast-region" data-looma-managed="framework" role="region" aria-label="Notifications" aria-live="polite" data-state-open={undefined} ref={setRoot}>
+    <div {...nativeProps} data-component="ui-toast-region" data-component-root="ui-toast-region" role="region" aria-label="Notifications" aria-live="polite" data-state-open={undefined} ref={setRoot}>
       {children ?? (null)}
     </div>
   );

@@ -12,7 +12,6 @@ export function createUiEditorTableOverlay(options = {}) {
   }
   element.setAttribute("data-component", "ui-editor-table-overlay");
   element.setAttribute("data-component-root", "ui-editor-table-overlay");
-  element.setAttribute("data-looma-managed", "framework");
   attachLoomaComponent(element, definition, "ui-editor-table-overlay", componentProps);
   return element;
 }

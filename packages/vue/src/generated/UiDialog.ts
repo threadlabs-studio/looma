@@ -6,7 +6,7 @@ const _hoisted_1 = {
   "data-component": "ui-dialog"
 }
 const _hoisted_2 = {
-  "data-html-next-slot": "",
+  slot: "",
   style: {"display":"contents"}
 }
 const _hoisted_3 = {
@@ -15,7 +15,6 @@ const _hoisted_3 = {
 }
 const _hoisted_4 = {
   slot: "actions",
-  "data-html-next-slot": "actions",
   style: {"display":"contents"}
 }
 
@@ -77,7 +76,6 @@ return (_ctx: any,_cache: any) => {
   return (_openBlock(), _createElementBlock("dialog", _mergeProps(_ctx.$attrs, {
     "data-component": "ui-dialog",
     "data-component-root": "ui-dialog",
-    "data-looma-managed": "framework",
     "aria-label": undefined,
     ref_key: "root",
     ref: root

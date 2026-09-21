@@ -31,7 +31,7 @@ export function UiReel(props: UiReelProps) {
   useLayoutEffect(() => root.current == null ? undefined : attachLoomaComponent(root.current, definition, "ui-reel", componentProps), []);
   useLayoutEffect(() => { if (root.current != null) updateComponentProps(root.current, componentProps); });
   return (
-    <div {...nativeProps} data-component="ui-reel" data-component-root="ui-reel" data-looma-managed="framework" ref={setRoot}>
+    <div {...nativeProps} data-component="ui-reel" data-component-root="ui-reel" ref={setRoot}>
       {children ?? (null)}
     </div>
   );

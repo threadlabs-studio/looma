@@ -47,7 +47,7 @@ export function UiDisclosure(props: UiDisclosureProps) {
     return () => node.removeEventListener("close", listener1);
   }, [onClose]);
   return (
-    <div {...nativeProps} data-component="ui-disclosure" data-component-root="ui-disclosure" data-looma-managed="framework" ref={setRoot}>
+    <div {...nativeProps} data-component="ui-disclosure" data-component-root="ui-disclosure" ref={setRoot}>
       <button className="disclosure__trigger" type="button" aria-controls={undefined} disabled={prop0 ?? undefined} data-component="ui-disclosure">
       <span data-component="ui-disclosure">
         <template data-component="ui-disclosure">

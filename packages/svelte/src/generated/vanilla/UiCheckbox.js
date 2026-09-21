@@ -15,7 +15,6 @@ export function createUiCheckbox(options = {}) {
   else element.removeAttribute("data-disabled");
   element.setAttribute("data-component", "ui-checkbox");
   element.setAttribute("data-component-root", "ui-checkbox");
-  element.setAttribute("data-looma-managed", "framework");
   const element0 = document.createElement("label");
   element0.setAttribute("class", "control");
   element0.setAttribute("data-component", "ui-checkbox");

@@ -14,7 +14,6 @@ export function createUiMenu(options = {}) {
   element.setAttribute("aria-orientation", "vertical");
   element.setAttribute("data-component", "ui-menu");
   element.setAttribute("data-component-root", "ui-menu");
-  element.setAttribute("data-looma-managed", "framework");
   const element0 = document.createElement("div");
   element0.setAttribute("class", "menu__surface");
   element0.setAttribute("data-component", "ui-menu");

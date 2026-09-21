@@ -70,7 +70,6 @@ return (_ctx: any,_cache: any) => {
   return (_openBlock(), _createElementBlock("span", _mergeProps(_ctx.$attrs, {
     "data-component": "ui-tooltip",
     "data-component-root": "ui-tooltip",
-    "data-looma-managed": "framework",
     role: "tooltip",
     hidden: undefined,
     "data-state-open": undefined,

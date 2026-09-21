@@ -58,7 +58,6 @@ return (_ctx: any,_cache: any) => {
   return (_openBlock(), _createElementBlock("textarea", _mergeProps(_ctx.$attrs, {
     "data-component": "ui-textarea",
     "data-component-root": "ui-textarea",
-    "data-looma-managed": "framework",
     value: props.value,
     disabled: props.disabled,
     readonly: props.readonly,

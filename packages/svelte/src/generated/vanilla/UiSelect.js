@@ -21,7 +21,6 @@ export function createUiSelect(options = {}) {
   else element.removeAttribute("multiple");
   element.setAttribute("data-component", "ui-select");
   element.setAttribute("data-component-root", "ui-select");
-  element.setAttribute("data-looma-managed", "framework");
   attachLoomaComponent(element, definition, "ui-select", componentProps);
   return element;
 }

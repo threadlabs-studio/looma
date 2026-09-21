@@ -64,7 +64,6 @@ return (_ctx: any,_cache: any) => {
   return (_openBlock(), _createElementBlock("div", _mergeProps(_ctx.$attrs, {
     "data-component": "ui-tabs",
     "data-component-root": "ui-tabs",
-    "data-looma-managed": "framework",
     "data-orientation": props.orientation,
     "data-stretch": props.stretch ? '' : undefined,
     ref_key: "root",

@@ -66,7 +66,6 @@ return (_ctx: any,_cache: any) => {
   return (_openBlock(), _createElementBlock("div", _mergeProps(_ctx.$attrs, {
     "data-component": "ui-menu",
     "data-component-root": "ui-menu",
-    "data-looma-managed": "framework",
     role: "menu",
     "aria-orientation": "vertical",
     "data-state-open": undefined,

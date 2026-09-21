@@ -63,7 +63,6 @@ return (_ctx: any,_cache: any) => {
   return (_openBlock(), _createElementBlock("div", _mergeProps(_ctx.$attrs, {
     "data-component": "ui-toast-region",
     "data-component-root": "ui-toast-region",
-    "data-looma-managed": "framework",
     role: "region",
     "aria-label": "Notifications",
     "aria-live": "polite",

@@ -16,7 +16,6 @@ export function createUiAvatarGroup(options = {}) {
   else element.setAttribute("aria-label", String(value0));
   element.setAttribute("data-component", "ui-avatar-group");
   element.setAttribute("data-component-root", "ui-avatar-group");
-  element.setAttribute("data-looma-managed", "framework");
   if (children.length > 0) {
     for (const child of children) element.append(child);
   } else {

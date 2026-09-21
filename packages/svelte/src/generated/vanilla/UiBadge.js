@@ -18,7 +18,6 @@ export function createUiBadge(options = {}) {
   else element.setAttribute("data-tone", String(value1));
   element.setAttribute("data-component", "ui-badge");
   element.setAttribute("data-component-root", "ui-badge");
-  element.setAttribute("data-looma-managed", "framework");
   const element0 = document.createElement("span");
   element0.setAttribute("class", "badge__surface");
   element0.setAttribute("data-component", "ui-badge");

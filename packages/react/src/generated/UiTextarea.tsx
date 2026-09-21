@@ -34,7 +34,7 @@ export function UiTextarea(props: UiTextareaProps) {
   useLayoutEffect(() => root.current == null ? undefined : attachLoomaComponent(root.current, definition, "ui-textarea", componentProps), []);
   useLayoutEffect(() => { if (root.current != null) updateComponentProps(root.current, componentProps); });
   return (
-    <textarea {...nativeProps} data-component="ui-textarea" data-component-root="ui-textarea" data-looma-managed="framework" value={prop5 ?? undefined} disabled={prop0 ?? undefined} readOnly={prop2 ?? undefined} required={prop3 ?? undefined} rows={prop4 ?? undefined} ref={setRoot}>
+    <textarea {...nativeProps} data-component="ui-textarea" data-component-root="ui-textarea" value={prop5 ?? undefined} disabled={prop0 ?? undefined} readOnly={prop2 ?? undefined} required={prop3 ?? undefined} rows={prop4 ?? undefined} ref={setRoot}>
 
     </textarea>
   );

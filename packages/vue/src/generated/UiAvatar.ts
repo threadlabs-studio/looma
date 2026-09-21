@@ -58,7 +58,6 @@ return (_ctx: any,_cache: any) => {
   return (_openBlock(), _createElementBlock("span", _mergeProps(_ctx.$attrs, {
     "data-component": "ui-avatar",
     "data-component-root": "ui-avatar",
-    "data-looma-managed": "framework",
     "data-has-image": undefined,
     ref_key: "root",
     ref: root

@@ -66,7 +66,6 @@ return (_ctx: any,_cache: any) => {
   return (_openBlock(), _createElementBlock("span", _mergeProps(_ctx.$attrs, {
     "data-component": "ui-context-menu",
     "data-component-root": "ui-context-menu",
-    "data-looma-managed": "framework",
     "data-state-open": undefined,
     ref_key: "root",
     ref: root

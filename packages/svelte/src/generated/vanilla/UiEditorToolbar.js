@@ -12,7 +12,6 @@ export function createUiEditorToolbar(options = {}) {
   }
   element.setAttribute("data-component", "ui-editor-toolbar");
   element.setAttribute("data-component-root", "ui-editor-toolbar");
-  element.setAttribute("data-looma-managed", "framework");
   if (children.length > 0) {
     for (const child of children) element.append(child);
   } else {

@@ -34,7 +34,7 @@ export function UiIconButton(props: UiIconButtonProps) {
   useLayoutEffect(() => root.current == null ? undefined : attachLoomaComponent(root.current, definition, "ui-icon-button", componentProps), []);
   useLayoutEffect(() => { if (root.current != null) updateComponentProps(root.current, componentProps); });
   return (
-    <button {...nativeProps} data-component="ui-icon-button" data-component-root="ui-icon-button" data-looma-managed="framework" disabled={prop1 ?? undefined} data-round={prop3 ? "" : undefined} type="button" aria-label={prop2 ?? undefined} ref={setRoot}>
+    <button {...nativeProps} data-component="ui-icon-button" data-component-root="ui-icon-button" disabled={prop1 ?? undefined} data-round={prop3 ? "" : undefined} type="button" aria-label={prop2 ?? undefined} ref={setRoot}>
       {children ?? (null)}
     </button>
   );

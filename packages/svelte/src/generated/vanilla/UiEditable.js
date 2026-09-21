@@ -15,7 +15,6 @@ export function createUiEditable(options = {}) {
   else element.removeAttribute("data-disabled");
   element.setAttribute("data-component", "ui-editable");
   element.setAttribute("data-component-root", "ui-editable");
-  element.setAttribute("data-looma-managed", "framework");
   const element0 = document.createElement("div");
   element0.setAttribute("class", "editable__field");
   element0.setAttribute("data-component", "ui-editable");

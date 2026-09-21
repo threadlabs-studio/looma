@@ -58,7 +58,7 @@ export function UiEditable(props: UiEditableProps) {
     return () => node.removeEventListener("edit-change", listener2);
   }, [onEditChange]);
   return (
-    <div {...nativeProps} data-component="ui-editable" data-component-root="ui-editable" data-looma-managed="framework" data-state-edit={undefined} data-disabled={prop1 ? "" : undefined} ref={setRoot}>
+    <div {...nativeProps} data-component="ui-editable" data-component-root="ui-editable" data-state-edit={undefined} data-disabled={prop1 ? "" : undefined} ref={setRoot}>
       <div className="editable__field" data-component="ui-editable">
       <button className="editable__preview" type="button" data-component="ui-editable">
         <span className="editable__text" data-component="ui-editable">

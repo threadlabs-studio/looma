@@ -60,18 +60,12 @@ function rewriteFrameworkSource(source, component) {
   // controller import beside every generated component. Looma centralizes
   // controller modules in the registered package graph, so adapters resolve
   // them by tag instead of bundling a private copy per framework component.
-  // `data-looma-managed` is the ownership handshake with document observation:
-  // the framework owns this native root and the observer must not lower it.
   return source
     .replace(/import \{ attachComponent, updateComponentProps \} from "@nextwebwg\/declarative-components\/runtime";\n/, `import { attachLoomaComponent, updateComponentProps } from "@threadlabs/looma-core/declarative";\n`)
     .replace(/import \{ ((?:dispatchGeneratedEvent, )?manageGeneratedProps, updateGeneratedProps) \} from "@nextwebwg\/declarative-components\/generated-runtime";\n/, `import { $1 } from "@threadlabs/looma-core/declarative-generated";\n`)
     .replace(/import type \{ ComponentDefinition \} from "@nextwebwg\/declarative-components";\n/, `import type { ComponentDefinition } from "@threadlabs/looma-core/declarative";\n`)
     .replace(new RegExp(`import \\* as controller from "\\.\\.\/controllers\/${component.tag}\/controllers\/${component.tag}\\.js";\\n`), "")
     .replace(new RegExp(`import "\\.\\.\/styles\/${component.tag}\\.css";\\n`), "")
-    .replace(
-      `data-component-root="${component.tag}"`,
-      `data-component-root="${component.tag}" data-looma-managed="framework"`,
-    )
     // Declarative nullable values mean "attribute absent". React's intrinsic
     // attribute types express that absence as undefined rather than null.
     .replace(/\b([\w:-]+)=\{(prop\d+)\}/g, "$1={$2 ?? undefined}")
@@ -250,10 +244,6 @@ async function materializeVanilla(components) {
       .replace(new RegExp(`import \\* as controller from "\\.\\.\/controllers\/${component.tag}\/controllers\/${component.tag}\\.js";\\n`), "")
       .replace(new RegExp(`import "\\.\\.\/styles\/${component.tag}\\.css";\\n`), "")
       .replace(
-        `element.setAttribute("data-component-root", "${component.tag}");`,
-        `element.setAttribute("data-component-root", "${component.tag}");\n  element.setAttribute("data-looma-managed", "framework");`,
-      )
-      .replace(
         /manageComponentLifecycle\(element, definition, \{\s*props: componentProps,\s*controller,\s*\}\);/g,
         `attachLoomaComponent(element, definition, "${component.tag}", componentProps);`,
       );
@@ -304,7 +294,7 @@ async function main() {
     // Looma only exposes the IIFE's public API as ESM; release tooling must not
     // patch runtime internals or carry a private framework-specific fork.
     .replace('"use strict";var HtmlRuntime=', "const HtmlRuntime=")
-    .concat("\nexport const { attachComponent, attachRegisteredComponent, getComponentHost, installComponentGraph, lowerDocument, manageComponentLifecycle, observeDocument, registerComponentDefinitions, setControllerModule, updateComponentProps } = HtmlRuntime;\n");
+    .concat("\nexport const { attachComponent, attachRegisteredComponent, getComponentHost, installComponentGraph, lowerDocument, manageComponentLifecycle, observeDocument, registerComponentDefinitions, serializeRenderedForm, setControllerModule, updateComponentProps } = HtmlRuntime;\n");
   await writeFile(join(runtimeOutput, "runtime.js"), runtime);
   await writeFile(join(runtimeOutput, "runtime.d.ts"), [
     "/** Binds props, behavior, and teardown to a root whose DOM is owned by a framework adapter. */",
@@ -321,6 +311,8 @@ async function main() {
     "/** Owns incremental lowering until its returned disposer is called. */",
     "export declare function observeDocument(root?: Document, options?: { shouldLower?: (element: Element, definition: { contract: { tag: string } }, hydration: boolean) => boolean; onConnect?: (element: Element, definition: { contract: { tag: string } }) => void | (() => void); onError?: (error: unknown) => void }): () => void;",
     "export declare function registerComponentDefinitions(definitions: readonly unknown[], root?: Document): void;",
+    "/** Serializes lowered components as their rendered form: slot range markers plus a carrier for projected content no slot renders. */",
+    "export declare function serializeRenderedForm(container: Element): string;",
     "/** Associates behavior with one settled root without publishing modules on a browser global. */",
     "export declare function setControllerModule(element: Element, module: Promise<unknown>): void;",
     "/** Framework-adapter prop channel: applies props as authored attributes would be. */",

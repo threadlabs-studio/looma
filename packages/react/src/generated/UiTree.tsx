@@ -47,7 +47,7 @@ export function UiTree(props: UiTreeProps) {
     return () => node.removeEventListener("reorder-rejected", listener1);
   }, [onReorderRejected]);
   return (
-    <div {...nativeProps} data-component="ui-tree" data-component-root="ui-tree" data-looma-managed="framework" role="tree" ref={setRoot}>
+    <div {...nativeProps} data-component="ui-tree" data-component-root="ui-tree" role="tree" ref={setRoot}>
       {children ?? (null)}
     </div>
   );

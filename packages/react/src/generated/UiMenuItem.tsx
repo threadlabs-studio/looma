@@ -30,7 +30,7 @@ export function UiMenuItem(props: UiMenuItemProps) {
   ]), []);
   useLayoutEffect(() => { if (root.current != null) updateGeneratedProps(root.current, componentProps); });
   return (
-    <div {...nativeProps} data-component="ui-menu-item" data-component-root="ui-menu-item" data-looma-managed="framework" role="menuitem" data-value={prop1 ?? undefined} ref={setRoot}>
+    <div {...nativeProps} data-component="ui-menu-item" data-component-root="ui-menu-item" role="menuitem" data-value={prop1 ?? undefined} ref={setRoot}>
       <span className="menu-item__surface" data-component="ui-menu-item">
       {children ?? (null)}
     </span>

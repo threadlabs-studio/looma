@@ -29,7 +29,7 @@ export function UiSeparator(props: UiSeparatorProps) {
   useLayoutEffect(() => root.current == null ? undefined : attachLoomaComponent(root.current, definition, "ui-separator", componentProps), []);
   useLayoutEffect(() => { if (root.current != null) updateComponentProps(root.current, componentProps); });
   return (
-    <div {...nativeProps} data-component="ui-separator" data-component-root="ui-separator" data-looma-managed="framework" ref={setRoot}>
+    <div {...nativeProps} data-component="ui-separator" data-component-root="ui-separator" ref={setRoot}>
       {children ?? (null)}
     </div>
   );

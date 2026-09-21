@@ -66,7 +66,6 @@ return (_ctx: any,_cache: any) => {
   return (_openBlock(), _createElementBlock("fieldset", _mergeProps(_ctx.$attrs, {
     "data-component": "ui-radio-group",
     "data-component-root": "ui-radio-group",
-    "data-looma-managed": "framework",
     role: "radiogroup",
     "data-orientation": props.orientation,
     "data-disabled": props.disabled ? '' : undefined,

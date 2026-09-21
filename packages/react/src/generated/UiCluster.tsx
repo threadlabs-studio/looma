@@ -30,7 +30,7 @@ export function UiCluster(props: UiClusterProps) {
   ]), []);
   useLayoutEffect(() => { if (root.current != null) updateGeneratedProps(root.current, componentProps); });
   return (
-    <div {...nativeProps} data-component="ui-cluster" data-component-root="ui-cluster" data-looma-managed="framework" ref={setRoot}>
+    <div {...nativeProps} data-component="ui-cluster" data-component-root="ui-cluster" ref={setRoot}>
       {children ?? (null)}
     </div>
   );

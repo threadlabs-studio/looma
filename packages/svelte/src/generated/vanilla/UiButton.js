@@ -21,7 +21,6 @@ export function createUiButton(options = {}) {
   else element.removeAttribute("disabled");
   element.setAttribute("data-component", "ui-button");
   element.setAttribute("data-component-root", "ui-button");
-  element.setAttribute("data-looma-managed", "framework");
   if (children.length > 0) {
     for (const child of children) element.append(child);
   } else {

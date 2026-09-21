@@ -18,7 +18,6 @@ export function createUiTabs(options = {}) {
   else element.removeAttribute("data-stretch");
   element.setAttribute("data-component", "ui-tabs");
   element.setAttribute("data-component-root", "ui-tabs");
-  element.setAttribute("data-looma-managed", "framework");
   const element0 = document.createElement("div");
   element0.setAttribute("class", "tabs__list");
   element0.setAttribute("role", "tablist");

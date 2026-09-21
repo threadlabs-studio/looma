@@ -39,7 +39,7 @@ export function UiEditorTableContextMenu(props: UiEditorTableContextMenuProps) {
     return () => node.removeEventListener("action", listener0);
   }, [onAction]);
   return (
-    <div {...nativeProps} data-component="ui-editor-table-context-menu" data-component-root="ui-editor-table-context-menu" data-looma-managed="framework" ref={setRoot}>
+    <div {...nativeProps} data-component="ui-editor-table-context-menu" data-component-root="ui-editor-table-context-menu" ref={setRoot}>
 
     </div>
   );

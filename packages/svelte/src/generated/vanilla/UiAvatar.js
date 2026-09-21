@@ -12,7 +12,6 @@ export function createUiAvatar(options = {}) {
   }
   element.setAttribute("data-component", "ui-avatar");
   element.setAttribute("data-component-root", "ui-avatar");
-  element.setAttribute("data-looma-managed", "framework");
   const element0 = document.createElement("div");
   element0.setAttribute("class", "avatar");
   element0.setAttribute("data-component", "ui-avatar");

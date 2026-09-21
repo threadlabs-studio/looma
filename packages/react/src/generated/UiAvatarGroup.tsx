@@ -30,7 +30,7 @@ export function UiAvatarGroup(props: UiAvatarGroupProps) {
   useLayoutEffect(() => root.current == null ? undefined : attachLoomaComponent(root.current, definition, "ui-avatar-group", componentProps), []);
   useLayoutEffect(() => { if (root.current != null) updateComponentProps(root.current, componentProps); });
   return (
-    <div {...nativeProps} data-component="ui-avatar-group" data-component-root="ui-avatar-group" data-looma-managed="framework" role="group" aria-label={prop0 ?? undefined} ref={setRoot}>
+    <div {...nativeProps} data-component="ui-avatar-group" data-component-root="ui-avatar-group" role="group" aria-label={prop0 ?? undefined} ref={setRoot}>
       {children ?? (null)}
     </div>
   );

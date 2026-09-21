@@ -27,7 +27,6 @@ export function createUiTextarea(options = {}) {
   else element.setAttribute("rows", String(value4));
   element.setAttribute("data-component", "ui-textarea");
   element.setAttribute("data-component-root", "ui-textarea");
-  element.setAttribute("data-looma-managed", "framework");
   attachLoomaComponent(element, definition, "ui-textarea", componentProps);
   return element;
 }

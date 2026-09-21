@@ -58,7 +58,6 @@ return (_ctx: any,_cache: any) => {
   return (_openBlock(), _createElementBlock("div", _mergeProps(_ctx.$attrs, {
     "data-component": "ui-tree",
     "data-component-root": "ui-tree",
-    "data-looma-managed": "framework",
     role: "tree",
     ref_key: "root",
     ref: root

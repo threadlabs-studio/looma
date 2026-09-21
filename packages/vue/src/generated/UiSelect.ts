@@ -56,7 +56,6 @@ return (_ctx: any,_cache: any) => {
   return (_openBlock(), _createElementBlock("select", _mergeProps(_ctx.$attrs, {
     "data-component": "ui-select",
     "data-component-root": "ui-select",
-    "data-looma-managed": "framework",
     disabled: props.disabled,
     required: props.required,
     multiple: props.multiple,

@@ -40,7 +40,7 @@ export function UiSearchShell(props: UiSearchShellProps) {
     return () => node.removeEventListener("close", listener0);
   }, [onClose]);
   return (
-    <div {...nativeProps} data-component="ui-search-shell" data-component-root="ui-search-shell" data-looma-managed="framework" ref={setRoot}>
+    <div {...nativeProps} data-component="ui-search-shell" data-component-root="ui-search-shell" ref={setRoot}>
       <dialog className="search-shell" part="base" data-component="ui-search-shell">
       <div className="search-shell__panel" part="panel" data-component="ui-search-shell">
         <div className="search-shell__search" part="search" data-component="ui-search-shell">

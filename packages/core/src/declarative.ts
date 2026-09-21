@@ -82,9 +82,6 @@ const state = (stateTarget[stateKey] as LoomaDeclarativeState | undefined) ??= {
 };
 
 function connectController(element: Element, tag: string): void | (() => void) {
-  // Framework adapters attach their controller while mounting the native root.
-  // The document observer must not create a second controller for that root.
-  if (element.getAttribute("data-looma-managed") === "framework") return;
   const controller = state.records.get(tag)?.controller;
   if (!controller?.default) return;
   state.runtime.setControllerModule(element, Promise.resolve(controller));
@@ -101,10 +98,9 @@ function scheduleObservation(): void {
   queueMicrotask(() => {
     state.observationScheduled = false;
     state.stopObservation?.();
+    // HTML Next keeps framework-owned roots out of observation: a framework attachment claims its
+    // root whether or not the observer hydrated it first.
     state.stopObservation = state.runtime.observeDocument(document, {
-      shouldLower(element) {
-        return element.getAttribute("data-looma-managed") !== "framework";
-      },
       onConnect(element, definition) {
         return connectController(element, definition.contract.tag);
       },
@@ -156,9 +152,9 @@ export function registerLoomaPackage(
  * Attaches declarative behavior to a framework-owned native root.
  *
  * Framework adapters render the definition's native root themselves so their
- * reconciliation model stays authoritative. Marking it as framework-managed
- * excludes it from document lowering; `attachRegisteredComponent` then owns
- * prop synchronization and controller disposal for that exact root.
+ * reconciliation model stays authoritative. `attachRegisteredComponent` claims
+ * the root from document observation and owns prop synchronization and
+ * controller disposal for that exact root.
  *
  * The explicit `tag` check is a corruption guard. A generated adapter paired
  * with the wrong definition can otherwise appear to work while applying a
@@ -166,8 +162,7 @@ export function registerLoomaPackage(
  *
  * @ownership The caller owns the native root. The returned disposer owns the
  * prop bridge and controller instance installed for this attachment.
- * @failure A tag/definition mismatch throws before the root is marked or any
- * controller is connected.
+ * @failure A tag/definition mismatch throws before any controller is connected.
  */
 export function attachLoomaComponent(
   element: Element,
@@ -179,7 +174,6 @@ export function attachLoomaComponent(
     throw new TypeError(`Looma definition ${definition.contract.tag} cannot attach as ${tag}.`);
   }
   const controller = state.records.get(tag)?.controller;
-  element.setAttribute("data-looma-managed", "framework");
   return state.runtime.attachRegisteredComponent(element, tag, { props, controller });
 }
 

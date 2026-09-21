@@ -15,7 +15,6 @@ export function createUiToastRegion(options = {}) {
   element.setAttribute("aria-live", "polite");
   element.setAttribute("data-component", "ui-toast-region");
   element.setAttribute("data-component-root", "ui-toast-region");
-  element.setAttribute("data-looma-managed", "framework");
   if (children.length > 0) {
     for (const child of children) element.append(child);
   } else {

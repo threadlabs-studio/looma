@@ -40,7 +40,7 @@ export function UiSwitch(props: UiSwitchProps) {
     return () => node.removeEventListener("change", listener0);
   }, [onChange]);
   return (
-    <span {...nativeProps} data-component="ui-switch" data-component-root="ui-switch" data-looma-managed="framework" data-disabled={prop1 ? "" : undefined} ref={setRoot}>
+    <span {...nativeProps} data-component="ui-switch" data-component-root="ui-switch" data-disabled={prop1 ? "" : undefined} ref={setRoot}>
       <label className="control" data-component="ui-switch">
       <input type="checkbox" role="switch" checked={undefined} required={prop2 ?? undefined} value={prop3 ?? undefined} data-component="ui-switch" />
 <span className="label" data-component="ui-switch">

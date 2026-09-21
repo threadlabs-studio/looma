@@ -32,7 +32,7 @@ export function UiStack(props: UiStackProps) {
   ]), []);
   useLayoutEffect(() => { if (root.current != null) updateGeneratedProps(root.current, componentProps); });
   return (
-    <div {...nativeProps} data-component="ui-stack" data-component-root="ui-stack" data-looma-managed="framework" ref={setRoot}>
+    <div {...nativeProps} data-component="ui-stack" data-component-root="ui-stack" ref={setRoot}>
       {children ?? (null)}
     </div>
   );

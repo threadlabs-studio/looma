@@ -31,7 +31,7 @@ export function UiFormField(props: UiFormFieldProps) {
   useLayoutEffect(() => root.current == null ? undefined : attachLoomaComponent(root.current, definition, "ui-form-field", componentProps), []);
   useLayoutEffect(() => { if (root.current != null) updateComponentProps(root.current, componentProps); });
   return (
-    <div {...nativeProps} data-component="ui-form-field" data-component-root="ui-form-field" data-looma-managed="framework" data-invalid={prop1 ? "" : undefined} data-disabled={prop0 ? "" : undefined} data-required={prop2 ? "" : undefined} ref={setRoot}>
+    <div {...nativeProps} data-component="ui-form-field" data-component-root="ui-form-field" data-invalid={prop1 ? "" : undefined} data-disabled={prop0 ? "" : undefined} data-required={prop2 ? "" : undefined} ref={setRoot}>
       {slots?.["label"] ?? (null)}
 {children ?? (null)}
 {slots?.["help"] ?? (null)}

@@ -28,7 +28,7 @@ export function UiEditorToolbar(props: UiEditorToolbarProps) {
   useLayoutEffect(() => root.current == null ? undefined : attachLoomaComponent(root.current, definition, "ui-editor-toolbar", componentProps), []);
   useLayoutEffect(() => { if (root.current != null) updateComponentProps(root.current, componentProps); });
   return (
-    <div {...nativeProps} data-component="ui-editor-toolbar" data-component-root="ui-editor-toolbar" data-looma-managed="framework" ref={setRoot}>
+    <div {...nativeProps} data-component="ui-editor-toolbar" data-component-root="ui-editor-toolbar" ref={setRoot}>
       {children ?? (null)}
     </div>
   );

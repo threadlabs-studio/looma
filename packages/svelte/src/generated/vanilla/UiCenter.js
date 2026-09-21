@@ -12,7 +12,6 @@ export function createUiCenter(options = {}) {
   }
   element.setAttribute("data-component", "ui-center");
   element.setAttribute("data-component-root", "ui-center");
-  element.setAttribute("data-looma-managed", "framework");
   if (children.length > 0) {
     for (const child of children) element.append(child);
   } else {

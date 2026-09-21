@@ -15,7 +15,6 @@ export function createUiSwitch(options = {}) {
   else element.removeAttribute("data-disabled");
   element.setAttribute("data-component", "ui-switch");
   element.setAttribute("data-component-root", "ui-switch");
-  element.setAttribute("data-looma-managed", "framework");
   const element0 = document.createElement("label");
   element0.setAttribute("class", "control");
   element0.setAttribute("data-component", "ui-switch");
