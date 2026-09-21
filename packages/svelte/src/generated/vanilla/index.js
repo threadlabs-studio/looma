@@ -5,13 +5,11 @@ import { createUiBadge } from "./UiBadge.js";
 import { createUiButton } from "./UiButton.js";
 import { createUiCallout } from "./UiCallout.js";
 import { createUiCheckbox } from "./UiCheckbox.js";
-import { createUiChip } from "./UiChip.js";
 import { createUiCombobox } from "./UiCombobox.js";
 import { createUiContextMenu } from "./UiContextMenu.js";
 import { createUiDialog } from "./UiDialog.js";
 import { createUiDisclosure } from "./UiDisclosure.js";
 import { createUiEditable } from "./UiEditable.js";
-import { createUiFloatingActionButton } from "./UiFloatingActionButton.js";
 import { createUiFormField } from "./UiFormField.js";
 import { createUiIconButton } from "./UiIconButton.js";
 import { createUiInput } from "./UiInput.js";
@@ -31,10 +29,9 @@ import { createUiTooltip } from "./UiTooltip.js";
 import { createUiTopBar } from "./UiTopBar.js";
 import { createUiTreeItem } from "./UiTreeItem.js";
 import { createUiTree } from "./UiTree.js";
-import { createUiCenter } from "./UiCenter.js";
 import { createUiCluster } from "./UiCluster.js";
+import { createUiContainer } from "./UiContainer.js";
 import { createUiGrid } from "./UiGrid.js";
-import { createUiInline } from "./UiInline.js";
 import { createUiReel } from "./UiReel.js";
 import { createUiSeparator } from "./UiSeparator.js";
 import { createUiSidebar } from "./UiSidebar.js";
@@ -47,7 +44,7 @@ import { createUiEditorTableContextMenu } from "./UiEditorTableContextMenu.js";
 import { createUiEditorTableOverlay } from "./UiEditorTableOverlay.js";
 import { createUiEditorTableToolbar } from "./UiEditorTableToolbar.js";
 import { createUiEditorToolbar } from "./UiEditorToolbar.js";
-export { createUiAffordanceScope, createUiAvatarGroup, createUiAvatar, createUiBadge, createUiButton, createUiCallout, createUiCheckbox, createUiChip, createUiCombobox, createUiContextMenu, createUiDialog, createUiDisclosure, createUiEditable, createUiFloatingActionButton, createUiFormField, createUiIconButton, createUiInput, createUiMenuItem, createUiMenu, createUiPopover, createUiRadioGroup, createUiRadio, createUiSearchResultRow, createUiSearchShell, createUiSelect, createUiSwitch, createUiTabs, createUiTextarea, createUiToastRegion, createUiTooltip, createUiTopBar, createUiTreeItem, createUiTree, createUiCenter, createUiCluster, createUiGrid, createUiInline, createUiReel, createUiSeparator, createUiSidebar, createUiStack, createUiSwitcher, createUiEditorInsertTableGrid, createUiEditorMentionMenu, createUiEditorSlashMenu, createUiEditorTableContextMenu, createUiEditorTableOverlay, createUiEditorTableToolbar, createUiEditorToolbar };
+export { createUiAffordanceScope, createUiAvatarGroup, createUiAvatar, createUiBadge, createUiButton, createUiCallout, createUiCheckbox, createUiCombobox, createUiContextMenu, createUiDialog, createUiDisclosure, createUiEditable, createUiFormField, createUiIconButton, createUiInput, createUiMenuItem, createUiMenu, createUiPopover, createUiRadioGroup, createUiRadio, createUiSearchResultRow, createUiSearchShell, createUiSelect, createUiSwitch, createUiTabs, createUiTextarea, createUiToastRegion, createUiTooltip, createUiTopBar, createUiTreeItem, createUiTree, createUiCluster, createUiContainer, createUiGrid, createUiReel, createUiSeparator, createUiSidebar, createUiStack, createUiSwitcher, createUiEditorInsertTableGrid, createUiEditorMentionMenu, createUiEditorSlashMenu, createUiEditorTableContextMenu, createUiEditorTableOverlay, createUiEditorTableToolbar, createUiEditorToolbar };
 export const factoryByTag = Object.freeze({
   "ui-affordance-scope": createUiAffordanceScope,
   "ui-avatar-group": createUiAvatarGroup,
@@ -56,13 +53,11 @@ export const factoryByTag = Object.freeze({
   "ui-button": createUiButton,
   "ui-callout": createUiCallout,
   "ui-checkbox": createUiCheckbox,
-  "ui-chip": createUiChip,
   "ui-combobox": createUiCombobox,
   "ui-context-menu": createUiContextMenu,
   "ui-dialog": createUiDialog,
   "ui-disclosure": createUiDisclosure,
   "ui-editable": createUiEditable,
-  "ui-floating-action-button": createUiFloatingActionButton,
   "ui-form-field": createUiFormField,
   "ui-icon-button": createUiIconButton,
   "ui-input": createUiInput,
@@ -82,10 +77,9 @@ export const factoryByTag = Object.freeze({
   "ui-top-bar": createUiTopBar,
   "ui-tree-item": createUiTreeItem,
   "ui-tree": createUiTree,
-  "ui-center": createUiCenter,
   "ui-cluster": createUiCluster,
+  "ui-container": createUiContainer,
   "ui-grid": createUiGrid,
-  "ui-inline": createUiInline,
   "ui-reel": createUiReel,
   "ui-separator": createUiSeparator,
   "ui-sidebar": createUiSidebar,

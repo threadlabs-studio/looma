@@ -1,0 +1,127 @@
+<template component="ui-search-shell" controller="./controllers/ui-search-shell.js" status="early" summary="Provides the responsive dialog, regions, and dismissal lifecycle for application-owned search or command state.">
+  <defs>
+    <prop name="open" type="boolean" default="false">Shows the search surface.</prop>
+    <prop name="modal" type="boolean" default="false">Makes the rest of the page inert while the search surface is open.</prop>
+    <prop name="dismissible" type="boolean" default="false">Allows Escape and backdrop activation to close the search surface.</prop>
+    <prop name="label" type="string" default="Search">Provides the native dialog's accessible name.</prop>
+    <state name="internalOpen" :value="false"></state>
+    <event name="close" type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"></event>
+  </defs>
+  <div><dialog class="search-shell" part="base"><div class="search-shell__panel" part="panel"><div class="search-shell__search" part="search"><slot name="search"></slot></div><div class="search-shell__status" part="status"><slot name="status"></slot></div><div class="search-shell__body" part="body"><slot name="body"></slot></div><div class="search-shell__footer" part="footer"><slot name="footer"></slot></div></div></dialog></div>
+  <style>:scope {
+  display: contents;
+}
+
+.search-shell {
+  --_search-shell-viewport-gap: var(--ui-space-4);
+  position: fixed;
+  inset: 0;
+  z-index: var(--ui-search-shell-z-index, 400);
+  box-sizing: border-box;
+  inline-size: 100%;
+  max-inline-size: none;
+  block-size: 100%;
+  max-block-size: none;
+  margin: 0;
+  padding: var(--ui-search-shell-padding-top, 10vh) var(--ui-search-shell-viewport-gap, var(--_search-shell-viewport-gap)) var(--ui-search-shell-viewport-gap, var(--_search-shell-viewport-gap));
+  overflow: auto;
+  border: 0;
+  background: var(--ui-overlay-backdrop);
+  color: var(--ui-text-primary);
+}
+
+.search-shell::backdrop {
+  background: var(--ui-overlay-backdrop);
+}
+
+.search-shell__panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  inline-size: min(100%, var(--ui-search-shell-max-width, 40rem));
+  max-block-size: var(--ui-search-shell-max-height, 80vh);
+  margin-inline: auto;
+  overflow: hidden;
+  background: var(--ui-search-shell-bg, var(--ui-surface-elevated));
+  border: 1px solid var(--ui-search-shell-border, var(--ui-border-default));
+  border-radius: var(--ui-search-shell-radius, var(--ui-radius-dialog));
+  box-shadow: var(--ui-search-shell-shadow, var(--ui-elevation-dialog, var(--ui-shadow-xl)));
+}
+
+.search-shell__search {
+  padding: var(--ui-space-3);
+  border-block-end: 1px solid var(--ui-border-default);
+}
+
+:slotted(input[slot='search']) {
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-block-size: var(--ui-control-min-block-size);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-radius-2);
+  background: var(--ui-control-surface);
+  color: var(--ui-text-primary);
+  font: inherit;
+  box-shadow: var(--ui-shadow-xs);
+}
+
+:slotted(input[slot='search']:focus-visible) {
+  border-color: var(--ui-control-focus);
+  outline: 2px solid var(--ui-focus-ring, currentColor);
+  outline-offset: 2px;
+}
+
+.search-shell__status,
+.search-shell__footer {
+  flex-shrink: 0;
+  padding: var(--ui-space-2) var(--ui-space-4);
+  color: var(--ui-text-secondary);
+  font-size: var(--ui-font-size-sm);
+}
+
+.search-shell__status {
+  border-block-end: 1px solid var(--ui-border-default);
+}
+
+/* Laid out like the dialog's action row: actions right-aligned, spaced as buttons, no fill. */
+.search-shell__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--ui-space-2);
+  padding: var(--ui-space-3) var(--ui-space-4);
+  border-block-start: 1px solid var(--ui-border-default);
+}
+
+.search-shell__footer:empty {
+  display: none;
+}
+
+.search-shell__body {
+  flex: 1;
+  min-block-size: 0;
+  overflow: auto;
+  padding: var(--ui-space-2);
+}
+
+[hidden] {
+  display: none;
+}
+
+@media (max-width: 47.9375rem) {
+  .search-shell {
+    padding: 0;
+  }
+
+  .search-shell__panel {
+    inline-size: 100%;
+    min-block-size: 100dvh;
+    max-block-size: none;
+    border: 0;
+    border-radius: 0;
+  }
+}
+</style>
+</template>

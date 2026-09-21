@@ -1,6 +1,6 @@
 # Release 1 Support Matrix
 
-Release 1 is a public npm **Candidate `0.2.20`** for the smallest Looma surface
+Release 1 is a public npm **Candidate `0.3.0`** for the smallest Looma surface
 needed by Knit. It is not semver `1.0.0`, a Stable declaration, or a
 promise that every repository package and roadmap item is supported.
 
@@ -10,7 +10,7 @@ promise that every repository package and roadmap item is supported.
 | --- | --- | --- | --- |
 | `@threadlabs/looma` | Published Candidate | Explicit root/core, loader, layout, editor, editor-extension, Vue, and CSS subpaths | Singleton package integrity and behavioral qualification |
 | implementation workspaces | Internal | Private modular build inputs | Not public artifacts |
-| React and Svelte adapters | Internal/deferred | Repository preview only | Not an R1 gate or public promise |
+| `@threadlabs/looma/react`, `/svelte` | Published preview | React components; DOM factories for Svelte | Not an R1 gate; may change |
 | docs, Storybook, examples, tooling | Internal | Private workspaces | Release tooling/docs gates only |
 
 The owner-approved public identity is `@threadlabs/looma`. Exact-name publish
@@ -20,7 +20,7 @@ authorization still requires the protected owner preflight before registry mutat
 
 ### Layout: published Candidate
 
-`ui-center`, `ui-cluster`, `ui-grid`, `ui-inline`, `ui-reel`, `ui-separator`,
+`ui-container`, `ui-grid`, `ui-cluster`, `ui-reel`, `ui-separator`,
 `ui-sidebar`, `ui-stack`, `ui-switcher`.
 
 ### Core: published Candidate
@@ -71,14 +71,14 @@ is a release defect, not a reason to silently shrink the source inventory.
 
 | Evidence | Current status | Release requirement |
 | --- | --- | --- |
-| Exact source inventory | Contract-derived classification and projection gate passing for all 49 tags | Must stay clean through publication |
+| Exact source inventory | Contract-derived classification and projection gate passing for all 48 tags | Must stay clean through publication |
 | Knit linked-workspace build | Passing | Must repeat against approved packed artifacts |
 | SSR imports through Knit graph | Passing for core/editor/editor extensions/Vue | Must repeat from clean tarball fixture |
 | Package names publicly absent | Observed via unauthenticated npm lookup | Authenticated namespace ownership/publish authorization required |
 | ContextMenu projections | API metadata, docs, navigation, contract README, Vue map/export, and render test complete | Must stay clean through publication |
 | Browser/a11y/adapter/package gates | Chromium interaction and axe checks pass for representative core/editor surfaces; Vue registers and renders the supported baseline without warnings; Node imports public core and packed graph entries without DOM globals | Keep mandatory, unskipped, and warning-clean in CI |
 | Turnkey editor and table kit | Vue browser behavior, theme-token inheritance, Tiptap table integrity, and Knit integration pass | Keep the complete and extension-only paths green |
-| Packed package | One local `@threadlabs/looma@0.2.20` tarball passes content/export/hash inspection | License approval, clean protected build, and external/Knit fixtures remain |
+| Packed package | One local `@threadlabs/looma@0.3.0` tarball passes content/export/hash inspection | License approval, clean protected build, and external/Knit fixtures remain |
 
 Automated accessibility does not replace manual assistive-technology, forced-color,
 zoom/reflow, or platform long-press checks. Those are documented manual Candidate

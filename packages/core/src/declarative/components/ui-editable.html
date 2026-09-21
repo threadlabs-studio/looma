@@ -1,0 +1,127 @@
+<template component="ui-editable" controller="./controllers/ui-editable.js" status="early" summary="Text that edits in place: click (or press Enter) to edit, Enter or leaving the field saves, Escape cancels.">
+  <defs>
+    <prop name="value" type="string" default="">The displayed and initial editable value.</prop>
+    <prop name="label" type="string" default="Edit value">Accessible name for the editor.</prop>
+    <prop name="edit" type="boolean" default="false">Whether edit mode is active initially or when set externally.</prop>
+    <prop name="disabled" type="boolean" default="false">Prevents entering or changing edit mode.</prop>
+    <prop name="hint" type="string" default="">Optional text shown beside the value to signal it is editable (for example "Edit").</prop>
+    <prop name="actions" type="boolean" default="false">Show explicit Save and Cancel buttons while editing. Without them, Enter or leaving the field saves and Escape cancels.</prop>
+    <state name="internalEdit" :value="false"></state>
+    <state name="internalValue" :value="''"></state>
+    <state name="draft" :value="''"></state>
+    <event name="input" type="object({ value: string, trigger: keyboard | pointer | programmatic })"></event>
+    <event name="change" type="object({ value: string, previousValue: string, trigger: keyboard | pointer | programmatic })"></event>
+    <event name="edit-change" type="object({ edit: boolean, reason: activate | commit | cancel | light-dismiss | escape | programmatic, trigger: keyboard | pointer | programmatic })"></event>
+  </defs>
+  <div :data-state-edit="internalEdit" :data-disabled="disabled"><div class="editable__field"><button class="editable__preview" type="button"><span class="editable__text"><template $value="internalValue"></template></span><span $if="hint" class="editable__hint" aria-hidden="true"><template $value="hint"></template></span></button><input class="editable__input" type="text" :value="draft"></input></div><div $if="actions" class="editable__actions"><button type="button" data-action="save">Save</button><button type="button" data-action="cancel">Cancel</button></div></div>
+  <style>:scope {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ui-space-2);
+  min-inline-size: 0;
+  color: var(--ui-text-primary);
+}
+
+/* The value and the input share one grid cell with identical box metrics, so switching between
+ * display and edit never changes the control's size or moves the text. */
+.editable__field {
+  display: inline-grid;
+  min-inline-size: 8rem;
+  max-inline-size: 100%;
+}
+
+.editable__preview,
+.editable__input {
+  grid-area: 1 / 1;
+  box-sizing: border-box;
+  min-block-size: var(--ui-control-size-sm, 2rem);
+  margin: 0;
+  padding: var(--ui-space-1) var(--ui-space-2);
+  border: 1px solid transparent;
+  border-radius: var(--ui-radius-2);
+  font: inherit;
+  line-height: var(--ui-line-height-md);
+  color: inherit;
+  transition:
+    background-color var(--ui-motion-fast) var(--ui-motion-ease),
+    border-color var(--ui-motion-fast) var(--ui-motion-ease),
+    box-shadow var(--ui-motion-fast) var(--ui-motion-ease);
+}
+
+.editable__preview {
+  display: inline-flex;
+  gap: var(--ui-space-2);
+  align-items: center;
+  background: transparent;
+  text-align: start;
+  cursor: pointer;
+}
+
+.editable__preview:hover:not(:disabled) {
+  background: var(--ui-surface-muted);
+}
+
+.editable__preview:focus-visible {
+  outline: none;
+  box-shadow: var(--ui-focus-halo);
+}
+
+.editable__hint {
+  color: var(--ui-text-secondary);
+  font-size: var(--ui-font-size-sm);
+}
+
+/* Contained so it takes the value's width instead of its own default input width. */
+.editable__input {
+  contain: inline-size;
+  inline-size: 100%;
+  min-inline-size: 0;
+  visibility: hidden;
+  background: var(--ui-control-surface, var(--ui-surface-elevated));
+}
+
+.editable__input:focus {
+  outline: none;
+  border-color: var(--ui-control-focus, var(--ui-accent-solid));
+  box-shadow: var(--ui-control-inset), var(--ui-control-focus-halo-shadow);
+}
+
+.editable__input::selection {
+  background: color-mix(in srgb, var(--ui-accent-solid) 20%, transparent);
+}
+
+:scope:is([data-state-edit=''], [data-state-edit='true']) .editable__preview { visibility: hidden; }
+:scope:is([data-state-edit=''], [data-state-edit='true']) .editable__input { visibility: visible; }
+
+.editable__actions { display: none; gap: var(--ui-space-1); }
+:scope:is([data-state-edit=''], [data-state-edit='true']) .editable__actions { display: inline-flex; }
+
+.editable__actions button {
+  min-block-size: var(--ui-control-size-sm, 2rem);
+  padding: 0 var(--ui-space-3);
+  border: 1px solid var(--ui-border-strong);
+  border-radius: var(--ui-radius-2);
+  background: var(--ui-surface-elevated);
+  background-image: var(--ui-raised-highlight, none);
+  box-shadow: var(--ui-raised, none);
+  color: inherit;
+  font: inherit;
+  font-size: var(--ui-font-size-sm);
+  cursor: pointer;
+}
+
+.editable__actions button[data-action='save'] {
+  border-color: var(--ui-accent-solid);
+  background: var(--ui-accent-solid);
+  color: var(--ui-text-on-accent);
+}
+
+.editable__actions button:focus-visible {
+  outline: none;
+  box-shadow: var(--ui-focus-halo);
+}
+
+:scope[data-disabled='true'] .editable__preview { color: var(--ui-text-muted); cursor: not-allowed; }
+</style>
+</template>

@@ -1,4 +1,4 @@
-import { records, styles } from '../../../tools/migrate-html-next/generated/adoption/core/registry.js';
+import { records, styles } from './declarative/registry.js';
 import { registerLoomaPackage } from './declarative';
 
 /** Compatibility loader for consumers that previously called the Stencil loader explicitly. */

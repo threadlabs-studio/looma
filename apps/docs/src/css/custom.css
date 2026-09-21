@@ -1,269 +1,1221 @@
-/**
- * Looma Docs — Material-first + PrimeVue-practical hybrid.
- * Visual hierarchy and layout only; Looma components stay as-is.
- */
-
-/* ---------------------------------------------------------------------------
-   Typography (Material-like hierarchy)
-   --------------------------------------------------------------------------- */
 :root {
-  --ifm-font-family-base: "Inter", system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, sans-serif;
-  --ifm-font-family-monospace: "JetBrains Mono", "Fira Code", ui-monospace,
-    SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-  --ifm-font-size-base: 16px;
-  --ifm-line-height-base: 1.6;
-  --ifm-heading-font-weight: 600;
-  --ifm-heading-line-height: 1.25;
-  --ifm-h1-font-size: 2rem;
-  --ifm-h2-font-size: 1.5rem;
-  --ifm-h3-font-size: 1.25rem;
-  --ifm-h4-font-size: 1.125rem;
-  --ifm-h5-font-size: 1rem;
-  --ifm-h6-font-size: 0.875rem;
-  --ifm-code-font-size: 0.875rem;
-}
-
-/* ---------------------------------------------------------------------------
-   Colors — distinctive, not boring
-   --------------------------------------------------------------------------- */
-:root {
-  --ifm-color-primary: #4f46e5;
-  --ifm-color-primary-dark: #4338ca;
-  --ifm-color-primary-darker: #3730a3;
-  --ifm-color-primary-darkest: #312e81;
-  --ifm-color-primary-light: #818cf8;
-  --ifm-color-primary-lighter: #a5b4fc;
-  --ifm-color-primary-lightest: #c7d2fe;
-  --ifm-link-color: #4f46e5;
-  --ifm-link-hover-color: #3730a3;
+  --looma-paper: #fbf9f4;
+  --looma-paper-deep: #f3efe7;
+  --looma-ink: #2b2538;
+  --looma-ink-soft: #655e70;
+  --looma-line: #ded8cf;
+  --looma-line-strong: #aaa1b0;
+  --looma-purple: #7658d6;
+  --looma-purple-deep: #5639b8;
+  --looma-accent-ink: #5639b8;
+  --looma-purple-wash: #eee9ff;
+  --looma-teal: #2ca79d;
+  --looma-coral: #e46f78;
+  --looma-gold: #e4a13a;
+  --looma-blue: #507ddf;
+  --looma-shadow-sm: 0 1px 2px rgb(43 37 56 / 0.05), 0 8px 24px rgb(43 37 56 / 0.05);
+  --looma-shadow-lg: 0 24px 70px rgb(43 37 56 / 0.13);
+  --ifm-font-family-base: "Manrope", system-ui, sans-serif;
+  --ifm-font-family-monospace: "DM Mono", ui-monospace, monospace;
+  --ifm-font-color-base: var(--looma-ink);
+  --ifm-font-color-secondary: var(--looma-ink-soft);
+  --ifm-background-color: var(--looma-paper);
+  --ifm-background-surface-color: #fff;
+  --ifm-color-primary: var(--looma-purple-deep);
+  --ifm-color-primary-dark: #4a2ea9;
+  --ifm-color-primary-darker: #41269c;
+  --ifm-color-primary-darkest: #331d7e;
+  --ifm-color-primary-light: var(--looma-purple);
+  --ifm-color-primary-lighter: #8e74e1;
+  --ifm-color-primary-lightest: #cfc2f5;
+  --ifm-link-color: var(--looma-purple-deep);
+  --ifm-heading-font-family: "Manrope", system-ui, sans-serif;
+  --ifm-heading-font-weight: 700;
+  --ifm-heading-line-height: 1.08;
+  --ifm-code-font-size: 0.86rem;
+  --ifm-navbar-height: 4.25rem;
+  --ifm-navbar-background-color: rgb(251 249 244 / 0.92);
+  --ifm-footer-background-color: #2b2538;
+  --ifm-footer-color: #eeeaf5;
+  --ifm-footer-link-color: #fff;
+  --ifm-toc-border-color: var(--looma-line);
 }
 
 [data-theme="dark"] {
-  --ifm-color-primary: #a5b4fc;
-  --ifm-color-primary-dark: #818cf8;
-  --ifm-color-primary-darker: #6366f1;
-  --ifm-color-primary-darkest: #4f46e5;
-  --ifm-link-color: #a5b4fc;
-  --ifm-link-hover-color: #c7d2fe;
+  --looma-paper: #211d2b;
+  --looma-paper-deep: #292431;
+  --looma-ink: #f5f1fb;
+  --looma-ink-soft: #bbb3c7;
+  --looma-line: #463f50;
+  --looma-line-strong: #756b82;
+  --looma-purple-wash: #352b54;
+  --looma-accent-ink: #cbbfff;
+  --ifm-background-color: var(--looma-paper);
+  --ifm-background-surface-color: #2b2634;
+  --ifm-color-primary: #b8a5f4;
+  --ifm-link-color: #b8a5f4;
+  --ifm-navbar-background-color: rgb(33 29 43 / 0.92);
 }
 
-/* ---------------------------------------------------------------------------
-   Spacing rhythm (Material-like generous spacing)
-   --------------------------------------------------------------------------- */
-:root {
-  --docs-spacing-xs: 0.5rem;
-  --docs-spacing-sm: 1rem;
-  --docs-spacing-md: 1.5rem;
-  --docs-spacing-lg: 2rem;
-  --docs-spacing-xl: 3rem;
+html { scroll-behavior: smooth; }
+
+body {
+  letter-spacing: -0.008em;
+  background: radial-gradient(circle at 100% 5%, rgb(118 88 214 / 0.07), transparent 25rem), var(--looma-paper);
 }
 
-/* Section separation */
+::selection { color: var(--looma-ink); background: rgb(228 161 58 / 0.35); }
+.theme-announcement-bar { font-size: 0.78rem; letter-spacing: 0.01em; }
+
+.navbar {
+  border-bottom: 1px solid rgb(43 37 56 / 0.1);
+  box-shadow: none;
+  backdrop-filter: blur(18px);
+}
+
+.navbar__inner { max-width: 1500px; margin: 0 auto; }
+.navbar__brand { gap: 0.45rem; margin-right: 2.25rem; }
+.navbar__logo { height: 2.1rem; }
+.navbar__title { font-size: 1.05rem; font-weight: 800; letter-spacing: -0.035em; }
+.navbar__item { font-size: 0.9rem; font-weight: 600; }
+.navbar__link--active, .navbar__link:hover { color: var(--looma-accent-ink); }
+
+.theme-doc-sidebar-container {
+  background: color-mix(in srgb, var(--looma-paper-deep) 70%, transparent);
+  border-right-color: var(--looma-line) !important;
+}
+
+.theme-doc-sidebar-menu { padding: 1.2rem 0.75rem 3rem !important; }
+.menu__list-item-collapsible, .menu__link { border-radius: 7px; }
+.menu__list-item-collapsible { margin-top: 1.1rem; }
+
+.menu__list-item-collapsible .menu__link {
+  color: var(--looma-ink-soft);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.menu__list .menu__list { margin-top: 0.2rem; padding-left: 0.7rem; }
+
+.menu__link {
+  padding: 0.38rem 0.62rem;
+  color: var(--looma-ink-soft);
+  font-size: 0.83rem;
+  line-height: 1.25;
+}
+
+.menu__link:hover { color: var(--looma-ink); background: rgb(118 88 214 / 0.08); }
+
+.menu__link--active:not(.menu__link--sublist) {
+  color: var(--looma-accent-ink);
+  font-weight: 700;
+  background: var(--looma-purple-wash);
+}
+
+.theme-doc-markdown { font-size: 0.98rem; line-height: 1.72; }
+.theme-doc-markdown > h1 { font-size: clamp(2.5rem, 5vw, 4.6rem); letter-spacing: -0.06em; }
+
 .theme-doc-markdown h2 {
-  margin-top: var(--docs-spacing-xl);
-  padding-top: var(--docs-spacing-md);
-  border-top: 1px solid var(--ifm-toc-border-color);
+  margin-top: 3.25rem;
+  padding-top: 1.35rem;
+  border-top: 1px solid var(--looma-line);
+  letter-spacing: -0.035em;
 }
 
-.theme-doc-markdown h2:first-of-type {
-  margin-top: 0;
-  padding-top: 0;
-  border-top: none;
+.theme-doc-markdown h3 { margin-top: 2rem; letter-spacing: -0.025em; }
+
+.theme-doc-markdown a:not(.hash-link):not(.looma-button):not(.looma-component-card__link) {
+  text-decoration: underline;
+  text-decoration-color: rgb(118 88 214 / 0.38);
+  text-underline-offset: 0.16em;
 }
 
-.theme-doc-markdown h3 {
-  margin-top: var(--docs-spacing-lg);
+.theme-doc-markdown pre {
+  border: 1px solid rgb(255 255 255 / 0.08);
+  border-radius: 12px;
+  box-shadow: var(--looma-shadow-sm);
 }
 
-.theme-doc-markdown p + p,
-.theme-doc-markdown ul + p,
-.theme-doc-markdown table + p {
-  margin-top: var(--docs-spacing-sm);
-}
-
-/* ---------------------------------------------------------------------------
-   API tables (PrimeVue-practical: dense, scannable)
-   --------------------------------------------------------------------------- */
-.theme-doc-markdown table,
-.looma-api-table {
+.theme-doc-markdown table, .looma-api-table {
+  display: table;
   width: 100%;
-  border-collapse: collapse;
-  font-size: 0.875rem;
+  overflow: hidden;
+  border: 1px solid var(--looma-line);
+  border-radius: 10px;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.84rem;
 }
 
-.theme-doc-markdown thead th,
-.looma-api-table thead th {
+.theme-doc-markdown thead th, .looma-api-table thead th {
+  padding: 0.72rem 0.8rem;
+  color: var(--looma-ink-soft);
+  background: var(--looma-paper-deep);
+  border: 0;
+  border-bottom: 1px solid var(--looma-line);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
   text-align: left;
-  font-weight: 600;
-  color: var(--ifm-font-color-base);
-  padding: 0.5rem 0.75rem;
-  border-bottom: 2px solid var(--ifm-table-border-color);
-  background: var(--ifm-table-stripe-background);
+  text-transform: uppercase;
 }
 
-.theme-doc-markdown tbody td,
-.looma-api-table tbody td {
-  padding: 0.5rem 0.75rem;
-  border-bottom: 1px solid var(--ifm-table-border-color);
+.theme-doc-markdown tbody td, .looma-api-table tbody td {
+  padding: 0.72rem 0.8rem;
+  border: 0;
+  border-bottom: 1px solid var(--looma-line);
   vertical-align: top;
 }
 
-.theme-doc-markdown tbody tr:hover,
-.looma-api-table tbody tr:hover {
-  background: var(--ifm-table-stripe-background);
+.theme-doc-markdown tbody tr:last-child td, .looma-api-table tbody tr:last-child td { border-bottom: 0; }
+
+.looma-home-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(26rem, 1.08fr);
+  gap: clamp(2rem, 5vw, 5.5rem);
+  align-items: center;
+  width: min(78rem, 100%);
+  min-height: min(47rem, calc(100vh - 8rem));
+  margin: 0 0 4rem;
+  padding: clamp(3.5rem, 8vw, 7.5rem) 0;
 }
 
-.theme-doc-markdown table code,
-.looma-api-table code {
-  font-size: 0.8125rem;
-  padding: 0.125rem 0.375rem;
-  border-radius: 4px;
-  background: var(--ifm-code-background);
+.looma-home-hero::before, .looma-catalog-hero::before {
+  position: absolute;
+  z-index: -1;
+  width: 18rem;
+  height: 18rem;
+  border: 1px solid rgb(118 88 214 / 0.12);
+  border-radius: 38% 62% 58% 42%;
+  content: "";
+  transform: rotate(14deg);
 }
 
-/* ---------------------------------------------------------------------------
-   Code blocks (clear hierarchy, copy-friendly)
-   --------------------------------------------------------------------------- */
-.theme-doc-markdown pre {
+.looma-home-hero::before { top: 8%; left: -4rem; }
+.looma-home-hero__copy { max-width: 38rem; }
+
+.looma-home-hero__eyebrow {
+  display: flex;
+  gap: 0.7rem;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  color: var(--looma-accent-ink);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.looma-home-hero__eyebrow img { width: 2.25rem; height: 2.25rem; }
+
+.looma-home-hero h1 {
+  margin: 0;
+  font-size: clamp(3.5rem, 7.5vw, 6.8rem);
+  letter-spacing: -0.075em;
+  line-height: 0.92;
+}
+
+.looma-home-hero__lede {
+  max-width: 35rem;
+  margin: 1.65rem 0 0;
+  color: var(--looma-ink-soft);
+  font-size: clamp(1.05rem, 1.6vw, 1.28rem);
+  line-height: 1.62;
+}
+
+.looma-home-hero__actions { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 2rem; }
+
+.looma-button {
+  display: inline-flex;
+  gap: 0.65rem;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.9rem;
+  padding: 0.7rem 1.05rem;
+  color: var(--looma-ink);
+  background: transparent;
+  border: 1px solid var(--looma-line);
   border-radius: 8px;
-  padding: var(--docs-spacing-md);
-  font-size: 0.875rem;
-  line-height: 1.5;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none !important;
+  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
 }
 
-.theme-doc-markdown .prism-code {
-  margin: var(--docs-spacing-sm) 0;
-}
+.looma-button:hover { color: var(--looma-ink); box-shadow: var(--looma-shadow-sm); transform: translateY(-1px); }
+.looma-button--primary { color: #fff; background: var(--looma-purple-deep); border-color: var(--looma-purple-deep); }
+.looma-button--primary:hover { color: #fff; background: var(--looma-purple); }
+.looma-button--secondary { background: rgb(255 255 255 / 0.56); }
 
-/* Docusaurus' default light syntax palette misses WCAG AA for HTML tokens. */
-.prism-code .token.tag,
-.prism-code .token.selector {
-  color: #e9d5ff !important;
-}
-
-.prism-code .token.attr-value,
-.prism-code .token.string {
-  color: #bbf7d0 !important;
-}
-
-[data-theme="dark"] .prism-code .token.tag,
-[data-theme="dark"] .prism-code .token.selector {
-  color: #e9d5ff !important;
-}
-
-[data-theme="dark"] .prism-code .token.attr-value,
-[data-theme="dark"] .prism-code .token.string {
-  color: #bbf7d0 !important;
-}
-
-/* Links in prose remain identifiable when color perception is unavailable. */
-.theme-doc-markdown a:not(.hash-link) {
-  text-decoration: underline;
-  text-underline-offset: 0.15em;
-}
-
-/* ---------------------------------------------------------------------------
-   Component page structure
-   --------------------------------------------------------------------------- */
-.looma-component-header {
-  margin-bottom: var(--docs-spacing-lg);
-}
-
-.looma-component-header .component-tag {
-  font-family: var(--ifm-font-family-monospace);
-  font-size: 0.875rem;
-  color: var(--ifm-color-primary);
-  margin-bottom: var(--docs-spacing-xs);
-}
-
-.looma-component-header h1 {
-  margin-bottom: var(--docs-spacing-xs);
-}
-
-.looma-component-header p {
-  color: var(--ifm-font-color-secondary);
-  font-size: 1rem;
-  max-width: 60ch;
-}
-
-.looma-import-block {
-  margin: var(--docs-spacing-md) 0;
-  padding: var(--docs-spacing-sm);
-  background: var(--ifm-code-background);
+.looma-install-command {
+  display: flex;
+  gap: 0.7rem;
+  align-items: center;
+  width: fit-content;
+  margin-top: 1.1rem;
+  padding: 0.72rem 0.9rem;
+  color: var(--looma-ink-soft);
+  background: var(--looma-paper-deep);
+  border: 1px solid var(--looma-line);
   border-radius: 8px;
-  font-family: var(--ifm-font-family-monospace);
-  font-size: 0.875rem;
+  font-size: 0.8rem;
 }
 
-/* ---------------------------------------------------------------------------
-   Navbar & sidebar polish
-   --------------------------------------------------------------------------- */
-.navbar {
-  box-shadow: 0 1px 0 var(--ifm-toc-border-color);
-  background: linear-gradient(
-    135deg,
-    var(--ifm-navbar-background-color) 0%,
-    color-mix(in srgb, var(--ifm-color-primary) 8%, var(--ifm-navbar-background-color)) 100%
-  );
+.looma-install-command code { padding: 0; color: var(--looma-ink); background: transparent; }
+
+.looma-home-hero__demo {
+  position: relative;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--looma-line);
+  border-radius: 18px;
+  box-shadow: var(--looma-shadow-lg);
+  transform: rotate(0.7deg);
 }
 
-.menu__link {
-  font-size: 0.9375rem;
+.looma-home-hero__demo::after {
+  position: absolute;
+  right: -6rem;
+  bottom: -7rem;
+  width: 17rem;
+  height: 17rem;
+  background: url("../../static/img/looma-mark.svg") center / contain no-repeat;
+  content: "";
+  opacity: 0.045;
+  pointer-events: none;
+  transform: rotate(-12deg);
 }
 
-.menu__link--active {
-  font-weight: 600;
-  color: var(--ifm-color-primary);
+.looma-home-hero__demo-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 2.7rem;
+  padding: 0 0.9rem;
+  color: #827b8d;
+  background: #f7f4ef;
+  border-bottom: 1px solid #e8e3dc;
 }
 
-/* ---------------------------------------------------------------------------
-   Live examples
-   --------------------------------------------------------------------------- */
-.looma-live-example {
-  margin: var(--docs-spacing-md) 0;
-  padding: var(--docs-spacing-md);
-  background: var(--ifm-background-surface-color);
-  border: 1px solid var(--ifm-toc-border-color);
+.looma-home-hero__demo-bar span { display: flex; gap: 0.35rem; }
+
+.looma-home-hero__demo-bar i {
+  display: block;
+  width: 0.55rem;
+  height: 0.55rem;
+  background: var(--looma-coral);
+  border-radius: 50%;
+}
+
+.looma-home-hero__demo-bar i:nth-child(2) { background: var(--looma-gold); }
+.looma-home-hero__demo-bar i:nth-child(3) { background: var(--looma-teal); }
+
+.looma-home-hero__demo-bar small {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.looma-home-hero__demo .looma-live-example { margin: 0; padding: 0; background: #f8f7fa; border: 0; border-radius: 0; }
+.looma-home-hero__demo .looma-live-example-preview { display: block; }
+.looma-demo-app { min-height: 29rem; color: #292431; background: #f5f3f7; }
+.looma-demo-app__body { padding: clamp(1.25rem, 4vw, 2.3rem); }
+
+.looma-demo-app__body > ui-stack, .looma-demo-app__body > div {
+  padding: 1.4rem;
+  background: #fff;
+  border: 1px solid #e3dee7;
   border-radius: 12px;
+  box-shadow: 0 10px 30px rgb(43 37 56 / 0.07);
+}
+
+.looma-demo-app__title { margin: 0.45rem 0 0; font-size: 1.35rem; font-weight: 700; }
+.looma-demo-app__header, .looma-demo-app__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; }
+.looma-demo-app__header { justify-content: space-between; }
+.looma-demo-app__actions { justify-content: flex-end; }
+
+.looma-demo-task {
+  display: flex;
+  gap: 0.65rem;
+  align-items: center;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.looma-demo-task input { accent-color: var(--looma-purple); }
+.looma-catalog-hero { position: relative; max-width: 52rem; margin: 1.5rem 0 3rem; }
+.looma-catalog-hero::before { top: -7rem; left: -10rem; }
+
+.looma-catalog-hero__eyebrow {
+  margin-bottom: 0.8rem;
+  color: var(--looma-coral);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.looma-catalog-hero h1 { margin: 0; font-size: clamp(3.4rem, 7vw, 6.2rem); letter-spacing: -0.07em; line-height: 0.94; }
+
+.looma-catalog-hero > p:last-child {
+  max-width: 46rem;
+  margin-top: 1.3rem;
+  color: var(--looma-ink-soft);
+  font-size: 1.1rem;
+  line-height: 1.7;
+}
+
+.looma-catalog__controls {
+  position: sticky;
+  z-index: 5;
+  top: calc(var(--ifm-navbar-height) + 0.5rem);
+  display: grid;
+  gap: 0.9rem;
+  margin-bottom: 1.4rem;
+  padding: 0.85rem;
+  background: rgb(251 249 244 / 0.92);
+  border: 1px solid var(--looma-line);
+  border-radius: 12px;
+  box-shadow: var(--looma-shadow-sm);
+  backdrop-filter: blur(16px);
+}
+
+[data-theme="dark"] .looma-catalog__controls { background: rgb(33 29 43 / 0.92); }
+[data-theme="dark"] .looma-button--secondary { background: rgb(255 255 255 / 0.07); }
+[data-theme="dark"] .looma-catalog__filters button span { background: rgb(255 255 255 / 0.08); }
+
+.looma-catalog__search {
+  display: flex;
+  gap: 0.65rem;
+  align-items: center;
+  min-height: 3rem;
+  padding: 0 0.85rem;
+  background: var(--ifm-background-surface-color);
+  border: 1px solid var(--looma-line);
+  border-radius: 8px;
+}
+
+.looma-catalog__search svg { width: 1.1rem; flex: 0 0 auto; color: var(--looma-ink-soft); }
+
+.looma-catalog__search input {
+  min-width: 0;
+  flex: 1;
+  color: var(--looma-ink);
+  background: transparent;
+  border: 0;
+  outline: 0;
+  font: inherit;
+}
+
+.looma-catalog__search kbd {
+  padding: 0.16rem 0.42rem;
+  color: var(--looma-ink-soft);
+  background: var(--looma-paper-deep);
+  border: 1px solid var(--looma-line);
+  border-radius: 5px;
+  box-shadow: none;
+  font: 500 0.72rem var(--ifm-font-family-monospace);
+}
+
+.looma-catalog__filters { display: flex; gap: 0.42rem; overflow-x: auto; padding-bottom: 0.1rem; }
+
+.looma-catalog__filters button, .looma-catalog__empty button {
+  display: inline-flex;
+  gap: 0.45rem;
+  align-items: center;
+  min-height: 2.2rem;
+  padding: 0.42rem 0.68rem;
+  white-space: nowrap;
+  color: var(--looma-ink-soft);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  font: 700 0.76rem var(--ifm-font-family-base);
+  cursor: pointer;
+}
+
+.looma-catalog__filters button:hover, .looma-catalog__filters button.is-active {
+  color: var(--looma-accent-ink);
+  background: var(--looma-purple-wash);
+  border-color: rgb(118 88 214 / 0.16);
+}
+
+.looma-catalog__filters button span {
+  display: inline-grid;
+  min-width: 1.4rem;
+  min-height: 1.4rem;
+  place-items: center;
+  padding: 0 0.3rem;
+  background: rgb(255 255 255 / 0.65);
+  border-radius: 5px;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.75rem;
+}
+
+.looma-catalog__result-count { margin: 0 0 0.9rem; color: var(--looma-ink-soft); font-size: 0.78rem; }
+.looma-catalog__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+
+.looma-component-card {
+  --card-accent: var(--looma-purple);
+  position: relative;
+  overflow: hidden;
+  background: var(--ifm-background-surface-color);
+  border: 1px solid var(--looma-line);
+  border-radius: 14px;
+  box-shadow: 0 1px 1px rgb(43 37 56 / 0.03);
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.looma-component-card:hover {
+  border-color: color-mix(in srgb, var(--card-accent) 45%, var(--looma-line));
+  box-shadow: var(--looma-shadow-sm);
+  transform: translateY(-2px);
+}
+
+.looma-component-card--forms { --card-accent: var(--looma-purple); }
+.looma-component-card--display { --card-accent: var(--looma-teal); }
+.looma-component-card--overlay { --card-accent: var(--looma-coral); }
+.looma-component-card--layout { --card-accent: var(--looma-blue); }
+.looma-component-card--editor { --card-accent: var(--looma-gold); }
+
+.looma-component-card__preview {
+  position: relative;
+  display: grid;
+  min-height: 13rem;
+  overflow: hidden;
+  place-items: center;
+  padding: 1.35rem;
+  background: linear-gradient(90deg, rgb(43 37 56 / 0.035) 1px, transparent 1px), linear-gradient(rgb(43 37 56 / 0.035) 1px, transparent 1px), color-mix(in srgb, var(--card-accent) 5%, var(--looma-paper));
+  background-size: 22px 22px;
+  border-bottom: 1px solid var(--looma-line);
+}
+
+.looma-component-card__preview::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3.5rem;
+  height: 3px;
+  background: var(--card-accent);
+  content: "";
+}
+
+.looma-component-card__body { padding: 1.15rem 1.2rem 1.25rem; }
+
+.looma-component-card__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.6rem;
+  color: var(--looma-ink-soft);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.looma-component-card__meta code { padding: 0; color: var(--looma-ink-soft); background: transparent; font-size: 0.75rem; text-transform: none; }
+.looma-component-card h2 { margin: 0; padding: 0; border: 0; font-size: 1.18rem; letter-spacing: -0.035em; }
+.looma-component-card h2 a { color: var(--looma-ink); text-decoration: none !important; }
+
+.looma-component-card p {
+  display: -webkit-box;
+  min-height: 3.8rem;
+  margin: 0.6rem 0 0.9rem;
+  overflow: hidden;
+  color: var(--looma-ink-soft);
+  font-size: 0.79rem;
+  line-height: 1.55;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.looma-component-card__link {
+  display: inline-flex;
+  gap: 0.45rem;
+  color: var(--looma-accent-ink);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-decoration: none !important;
+}
+
+.looma-component-card__link:hover span { transform: translateX(3px); }
+.looma-component-card__link span { transition: transform 160ms ease; }
+
+.looma-catalog__empty {
+  display: grid;
+  min-height: 24rem;
+  place-items: center;
+  align-content: center;
+  padding: 3rem;
+  text-align: center;
+  background: var(--looma-paper-deep);
+  border: 1px dashed var(--looma-line);
+  border-radius: 14px;
+}
+
+.looma-catalog__empty img { width: 4rem; opacity: 0.5; }
+.looma-catalog__empty h2 { margin: 1rem 0 0; padding: 0; border: 0; }
+.looma-catalog__empty p { margin: 0.35rem 0 0.8rem; color: var(--looma-ink-soft); }
+.looma-catalog__empty button { color: var(--looma-accent-ink); border-color: var(--looma-line); }
+
+.looma-live-example {
+  margin: 1.5rem 0;
+  padding: 1.5rem;
+  background: linear-gradient(90deg, rgb(43 37 56 / 0.035) 1px, transparent 1px), linear-gradient(rgb(43 37 56 / 0.035) 1px, transparent 1px), var(--looma-paper-deep);
+  background-size: 24px 24px;
+  border: 1px solid var(--looma-line);
+  border-radius: 14px;
 }
 
 .looma-live-example-label {
   display: block;
+  margin-bottom: 1rem;
+  color: var(--looma-ink-soft);
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 800;
+  letter-spacing: 0.11em;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--ifm-color-content-secondary);
-  margin-bottom: var(--docs-spacing-sm);
 }
 
-.looma-context-menu-example {
+.looma-live-example-preview { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; }
+.looma-live-example-loading { color: var(--looma-ink-soft); font-size: 0.8rem; }
+
+.prism-code .token.tag, .prism-code .token.selector { color: #e9d5ff !important; }
+.prism-code .token.attr-value, .prism-code .token.string { color: #bbf7d0 !important; }
+
+.looma-component-preview {
+  min-height: 13rem;
+  margin: 1.5rem 0;
+  padding: 2rem;
+  background: var(--looma-paper-deep);
+  border: 1px solid var(--looma-line);
+  border-radius: 14px;
+}
+
+.looma-component-preview--compact { display: grid; width: 100%; min-height: 0; place-items: center; margin: 0; padding: 0; background: transparent; border: 0; }
+.looma-component-preview > div { max-width: 100%; }
+.looma-component-preview svg { width: 1.15rem; height: 1.15rem; }
+
+/* The full Affordance Scope example intentionally begins with its
+ * anticipatory control hidden so readers can reveal it with the pointer. A
+ * catalog thumbnail has no room to teach that interaction, so show the same
+ * control at its revealed state instead of rendering an apparently empty
+ * card. */
+.looma-component-preview--compact
+  [data-component-root~="ui-icon-button"][data-anticipatory="true"] {
+  border-color: var(--ui-icon-button-border, var(--ui-border-default)) !important;
+  background: var(--ui-icon-button-outline-bg, var(--ui-surface-default)) !important;
+  color: var(--ui-icon-button-outline-color, var(--ui-text-primary)) !important;
+}
+
+.looma-component-preview--compact
+  [data-component-root~="ui-icon-button"][data-anticipatory="true"]::before {
+  opacity: 0 !important;
+}
+
+/* Catalog previews are miniature stages, not application viewports. Editor
+ * suggestion surfaces normally use fixed viewport coordinates supplied by an
+ * editor selection, so pin those two compact previews to their card instead
+ * of allowing their production positioning model to escape across the docs. */
+.looma-component-preview--compact :is(
+  [data-component-root~="ui-editor-mention-menu"],
+  [data-component-root~="ui-editor-slash-menu"]
+) {
+  position: absolute !important;
+  z-index: 1 !important;
+  inset: 50% auto auto 50% !important;
+  max-width: calc(100% - 2rem);
+  transform: translate(-50%, -50%);
+}
+
+.looma-component-preview--compact .ui-editor-table-context-menu {
+  max-height: calc(13rem - 2rem);
+  translate: none !important;
+}
+
+.looma-preview-scenarios {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2rem;
+}
+
+.looma-preview-scenario {
+  display: grid;
+  grid-template-rows: auto auto auto;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--looma-paper);
+  border: 1px solid var(--looma-line);
+  border-radius: 10px;
+}
+
+.looma-preview-scenario > header {
+  padding: 1.15rem 1.25rem;
+  border-bottom: 1px solid var(--looma-line);
+}
+
+.looma-preview-scenario h2 {
+  margin: 0;
+  color: var(--looma-ink);
+  font-size: 1.05rem;
+}
+
+.looma-preview-scenario p {
+  margin: 0.25rem 0 0;
+  color: var(--looma-ink-soft);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.looma-preview-scenario__stage {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 11rem;
+  place-items: center;
+  padding: 1.25rem;
+  overflow: auto;
+}
+
+.looma-preview-scenario__stage > :is(
+  ui-stack,
+  ui-cluster,
+  ui-grid,
+  ui-container,
+  ui-switcher,
+  ui-sidebar,
+  ui-reel,
+  [data-component-root~="ui-stack"],
+  [data-component-root~="ui-cluster"],
+  [data-component-root~="ui-grid"],
+  [data-component-root~="ui-container"],
+  [data-component-root~="ui-switcher"],
+  [data-component-root~="ui-sidebar"],
+  [data-component-root~="ui-reel"]
+) { width: min(100%, var(--looma-preview-width, 100%)); }
+
+/* Layout demos use plain authored children. Their visible edges make gap,
+ * alignment, stretching, wrapping, and column behavior directly inspectable. */
+.looma-preview-scenario__stage :is(
+  [data-component-root~="ui-stack"],
+  [data-component-root~="ui-container"],
+  [data-component-root~="ui-grid"],
+  [data-component-root~="ui-switcher"],
+  [data-component-root~="ui-reel"]
+) > [data-slotted] {
+  box-sizing: border-box;
+  /* Taller than one line, so centre the label in the box. */
   display: flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 2.75rem;
+  padding: 0.65rem 0.8rem;
+  background: var(--looma-paper);
+  border: 1px solid var(--looma-line-strong);
+  border-radius: 7px;
+  color: var(--looma-ink);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.looma-preview-scenario__stage > :is(
+  ui-container,
+  [data-component-root~="ui-container"]
+) {
+  outline: 1px dashed var(--looma-accent);
+  outline-offset: -1px;
+  background: color-mix(in srgb, var(--looma-accent) 5%, transparent);
+}
+
+/* Sidebar demos: a small app shell, so the panel sits beside real main content. */
+.demo-app-shell {
+  display: flex;
+  inline-size: 100%;
+  min-block-size: 16rem;
+  overflow: hidden;
+  border: 1px solid var(--looma-line-strong);
+  border-radius: 8px;
+  background: var(--looma-paper);
+}
+.demo-app-nav { display: grid; gap: 0.35rem; padding: 1rem; }
+.demo-app-nav a { color: var(--looma-ink); text-decoration: none; }
+.demo-app-nav p { margin: 0; color: var(--looma-ink-soft); }
+.demo-app-main { flex: 1; min-inline-size: 0; padding: 1rem; }
+.demo-app-main p { margin: 0.75rem 0 0; }
+
+.looma-preview-scenario__stage[data-component-preview="ui-reel"] {
+  align-content: center;
+  gap: 0.6rem;
+}
+
+.looma-preview-scenario__stage[data-component-preview="ui-reel"]::before {
+  content: "Scroll horizontally →";
+  justify-self: start;
+  color: var(--looma-ink-soft);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.looma-preview-scenario__stage > :is(
+  ui-reel,
+  [data-component-root~="ui-reel"]
+) {
+  padding: 0.75rem 0.25rem;
+  border-block: 1px solid var(--looma-line-strong);
+  scrollbar-color: var(--looma-accent) var(--looma-paper-deep);
+  scrollbar-width: auto;
+}
+
+.looma-responsive-preview-control {
+  display: grid;
+  grid-template-columns: auto minmax(8rem, 1fr) 4rem;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.75rem 1.25rem;
+  color: var(--looma-ink-soft);
+  background: var(--looma-paper-deep);
+  border-bottom: 1px solid var(--looma-line);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.looma-responsive-preview-control input { width: 100%; }
+.looma-responsive-preview-control output { text-align: end; font-variant-numeric: tabular-nums; }
+
+.looma-component-preview :is(ui-search-shell, [data-component-root~="ui-search-shell"]) {
+  position: relative;
+  inset: auto;
+  z-index: 1;
+  width: 100%;
+  min-height: 11rem;
+}
+
+.looma-preview-scenario__stage[data-component-preview="ui-search-shell"] {
+  min-height: 28rem;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.looma-preview-scenario[data-preview-scenario="open"]
+  .looma-preview-scenario__stage[data-component-preview="ui-search-shell"] {
+  min-height: 15rem;
+}
+
+.looma-preview-scenario__stage[data-component-preview="ui-search-shell"]
+  [data-component-root~="ui-search-shell"] {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.looma-preview-scenario__stage[data-component-preview="ui-search-shell"]
+  [data-component-root~="ui-search-shell"] > dialog.search-shell {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  padding: 1rem;
+  background: color-mix(in srgb, var(--looma-ink) 30%, transparent);
+}
+
+.looma-component-preview :is(ui-top-bar, [data-component-root~="ui-top-bar"]) {
+  position: relative;
+  inset-block-start: auto;
+  z-index: 1;
+  width: 100%;
+}
+
+.demo-constrained { width: min(100%, 14rem); }
+.demo-constrained-wide { width: min(100%, 28rem); }
+.demo-floating-stage { position: relative; width: 100%; min-height: 7rem; }
+.demo-editor-table-stage {
+  position: relative;
+  width: 15rem;
+  height: 6rem;
+}
+
+.demo-editor-table-stage--three { height: 7.5rem; }
+
+.demo-editor-table-stage table {
+  width: 100%;
+  height: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  background: var(--looma-paper);
+}
+
+.demo-editor-table-stage td {
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--looma-line-strong);
+  color: var(--looma-ink-soft);
+  font-size: 0.75rem;
+}
+
+.demo-editor-table-stage > [data-component-root~="ui-editor-table-overlay"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.demo-empty-state { display: grid; gap: 0.25rem; place-items: center; min-height: 5rem; padding: 1rem; text-align: center; }
+.demo-empty-state span { color: var(--looma-ink-soft); font-size: 0.75rem; }
+
+.looma-component-preview ui-combobox, .looma-component-preview ui-input, .looma-component-preview ui-select,
+.looma-component-preview ui-textarea, .looma-component-preview ui-form-field { width: min(100%, 19rem); }
+
+.demo-tile, .demo-panel {
+  display: grid;
+  min-height: 2.8rem;
+  place-items: center;
+  padding: 0.55rem 0.75rem;
+  color: #4d4658;
+  background: #fff;
+  border: 1px solid #dad4df;
+  border-radius: 7px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.demo-copy { display: grid; gap: 0.25rem; text-align: center; }
+.demo-copy span, .demo-muted { color: var(--looma-ink-soft); font-size: 0.75rem; }
+
+.demo-context-target {
+  display: flex;
+  gap: 0.8rem;
   align-items: center;
   justify-content: space-between;
-  gap: var(--docs-spacing-sm);
-  width: min(100%, 28rem);
-  min-height: 8rem;
-  padding: var(--docs-spacing-md);
-  border: 1px dashed var(--ifm-toc-border-color);
+  min-width: 15rem;
+  padding: 1rem;
+  color: var(--looma-ink-soft);
+  background: rgb(255 255 255 / 0.7);
+  border: 1px dashed var(--looma-line);
   border-radius: 8px;
-  background: var(--ifm-background-color);
+  font-size: 0.75rem;
 }
 
-.looma-context-menu-example > span {
-  color: var(--ifm-color-content-secondary);
-  font-size: 0.875rem;
+.demo-native-button {
+  min-height: 2.5rem;
+  padding: 0.55rem 0.8rem;
+  color: #fff;
+  background: var(--looma-purple-deep);
+  border: 0;
+  border-radius: 7px;
+  font: 700 0.78rem var(--ifm-font-family-base);
+  cursor: pointer;
 }
 
-.looma-live-example-preview {
+.demo-dialog-actions { display: flex; gap: 0.5rem; justify-content: flex-end; }
+.demo-dialog-actions > button { border: 0; background: transparent; font: 700 0.78rem var(--ifm-font-family-base); cursor: pointer; }
+
+.demo-avatar {
+  display: inline-grid;
+  width: 1.6rem;
+  height: 1.6rem;
+  place-items: center;
+  margin-right: 0.5rem;
+  color: #fff;
+  background: var(--looma-purple);
+  border-radius: 50%;
+  font-size: 0.75rem;
+}
+
+.demo-avatar--teal { background: var(--looma-teal); }
+.demo-table { display: grid; grid-template-columns: repeat(2, 4rem); border: 1px solid var(--looma-line); }
+.demo-table span { padding: 0.55rem; background: #fff; border: 1px solid var(--looma-line); font-size: 0.75rem; }
+.demo-search { display: flex; gap: 0.6rem; align-items: center; padding: 0.7rem; background: #fff; border-bottom: 1px solid #e5e0e9; }
+.demo-search input { min-width: 0; border: 0; outline: 0; }
+.demo-separator { display: flex; gap: 0.8rem; align-items: center; height: 3rem; font-size: 0.75rem; }
+.looma-component-header { margin-bottom: 2rem; }
+
+.looma-component-header .component-tag {
+  margin-bottom: 0.7rem;
+  color: var(--looma-accent-ink);
+  font: 500 0.75rem var(--ifm-font-family-monospace);
+}
+
+.tabs-container { margin-top: 1.5rem; }
+.tabs { gap: 0.35rem; border-bottom: 1px solid var(--looma-line); }
+
+.tabs__item {
+  padding: 0.65rem 0.8rem;
+  color: var(--looma-ink-soft);
+  background: transparent;
+  border-radius: 7px 7px 0 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.tabs__item:hover { color: var(--looma-ink); }
+.tabs__item--active { color: var(--looma-accent-ink); background: var(--looma-purple-wash); border-bottom-color: var(--looma-purple); }
+.looma-api > p:first-child { max-width: 60ch; color: var(--looma-ink-soft); font-size: 1rem; }
+
+.looma-model {
+  margin: 0 0 4rem;
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  background: color-mix(in srgb, var(--looma-purple-wash) 42%, var(--ifm-background-surface-color));
+  border: 1px solid var(--looma-line);
+  border-radius: 18px;
+}
+
+.looma-model__intro { max-width: 48rem; }
+.looma-model__eyebrow {
+  margin: 0 0 0.65rem;
+  color: var(--looma-accent-ink);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.theme-doc-markdown .looma-model h2 {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: clamp(2rem, 4vw, 3.3rem);
+  letter-spacing: -0.055em;
+}
+
+.looma-model__intro > p:last-child {
+  margin: 1rem 0 0;
+  color: var(--looma-ink-soft);
+  font-size: 1.02rem;
+}
+
+.looma-model__steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 2rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.looma-model__steps li {
+  padding: 1rem;
+  background: var(--ifm-background-surface-color);
+  border: 1px solid var(--looma-line);
+  border-radius: 10px;
+}
+
+.looma-model__steps li > span {
+  display: inline-grid;
+  width: 1.55rem;
+  height: 1.55rem;
+  place-items: center;
+  margin-bottom: 0.8rem;
+  color: var(--looma-accent-ink);
+  background: var(--looma-purple-wash);
+  border-radius: 50%;
+  font: 700 0.7rem var(--ifm-font-family-monospace);
+}
+
+.looma-model__steps strong { display: block; font-size: 0.85rem; }
+.looma-model__steps p { margin: 0.45rem 0 0; color: var(--looma-ink-soft); font-size: 0.9rem; line-height: 1.55; }
+
+.looma-model__example {
+  padding: 1.2rem;
+  background: var(--ifm-background-surface-color);
+  border: 1px solid var(--looma-line);
+  border-radius: 12px;
+}
+
+.theme-doc-markdown .looma-model__example h3 { margin: 0; font-size: 1rem; }
+.looma-model__example > div:first-child > p { margin: 0.35rem 0 1rem; color: var(--looma-ink-soft); font-size: 0.8rem; }
+
+.looma-mode-switch {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  max-width: 100%;
+  margin-bottom: 0.8rem;
+}
+
+.looma-mode-switch__label {
+  color: var(--looma-ink-soft);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.looma-mode-switch__options {
+  display: flex;
+  gap: 0.25rem;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  padding: 0.2rem;
+  background: var(--looma-paper-deep);
+  border: 1px solid var(--looma-line);
+  border-radius: 9px;
+}
+
+.looma-mode-switch button {
+  display: inline-flex;
+  gap: 0.38rem;
+  align-items: center;
+  min-height: 2.35rem;
+  padding: 0.48rem 0.7rem;
+  white-space: nowrap;
+  color: var(--looma-ink-soft);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font: 700 0.82rem var(--ifm-font-family-base);
+  cursor: pointer;
+}
+
+.looma-mode-switch button:hover { color: var(--looma-ink); }
+.looma-mode-switch button[aria-pressed="true"] {
+  color: var(--looma-accent-ink);
+  background: var(--looma-purple-wash);
+  border-color: color-mix(in srgb, var(--looma-purple) 42%, var(--looma-line));
+}
+
+.looma-mode-switch button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--looma-purple) 52%, transparent);
+  outline-offset: 2px;
+}
+
+.looma-mode-switch button small {
+  padding: 0.08rem 0.3rem;
+  color: inherit;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.looma-mode-code {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.looma-mode-code .theme-code-block {
+  min-width: 0;
+  max-width: 100%;
+  margin-bottom: 0;
+}
+
+.looma-mode-code pre {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+
+.looma-component-mode-example {
+  min-width: 0;
+  max-width: 100%;
+  margin-top: 0;
+  padding: 1rem 1.25rem 1.25rem;
+  overflow: hidden;
+  background: var(--ifm-background-surface-color);
+  border-top: 1px solid var(--looma-line);
+}
+
+.looma-component-mode-example__header {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: var(--docs-spacing-sm);
+  gap: 1rem;
+  align-items: flex-end;
+  justify-content: space-between;
+  min-width: 0;
+  margin-bottom: 0.8rem;
 }
 
-.looma-live-example-loading {
-  color: var(--ifm-color-content-secondary);
-  font-size: 0.875rem;
+.looma-component-mode-example__header > div:first-child { display: grid; gap: 0.1rem; }
+.looma-component-mode-example__header strong { font-size: 0.95rem; }
+.looma-component-mode-example__header span { color: var(--looma-ink-soft); font-size: 0.75rem; }
+.looma-component-mode-example .looma-mode-switch { margin: 0; }
+.looma-component-mode-example .looma-mode-switch__label { display: none; }
+
+.footer {
+  margin-top: 5rem;
+  border-top: 4px solid;
+  border-image: linear-gradient(90deg, var(--looma-purple), var(--looma-teal), var(--looma-gold), var(--looma-coral), var(--looma-blue)) 1;
 }
+
+/* The docs sidebar is the left edge of the content canvas. Leaving the
+ * generic footer margin beneath docs created an unpainted 5rem strip where
+ * that canvas stopped before the footer. Keep the spacious landing-page
+ * transition, but join documentation pages directly to the footer. */
+body:has(.theme-doc-sidebar-container) .footer { margin-top: 0; }
+
+.footer__title { color: #fff; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; }
+.footer__link-item, .footer__copyright { font-size: 0.8rem; }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (min-width: 997px) {
+  .theme-doc-sidebar-container { width: 18rem !important; }
+  .theme-doc-sidebar-container + main { min-width: 0; }
+  .theme-doc-sidebar-item-link-level-1 .menu__link { padding-left: 0.8rem; }
+}
+
+@media (max-width: 1200px) {
+  .looma-home-hero { width: 100%; grid-template-columns: 1fr; margin-left: 0; }
+  .looma-home-hero__demo { max-width: 42rem; }
+}
+
+@media (max-width: 760px) {
+  :root { --ifm-navbar-height: 3.75rem; }
+  .theme-doc-markdown { font-size: 0.94rem; }
+  .looma-home-hero { gap: 2.5rem; min-height: auto; padding: 3rem 0 1.5rem; }
+  .looma-home-hero h1, .looma-catalog-hero h1 { font-size: clamp(3rem, 17vw, 4.5rem); }
+  .looma-home-hero__demo { border-radius: 13px; transform: none; }
+  .looma-demo-app { min-height: 25rem; }
+  .looma-catalog__controls { position: static; padding: 0.65rem; }
+  .looma-catalog__grid { grid-template-columns: minmax(0, 1fr); }
+  .looma-component-card__preview { min-height: 11rem; }
+  .looma-model__steps { grid-template-columns: minmax(0, 1fr); }
+  .looma-mode-switch, .looma-component-mode-example__header { align-items: stretch; flex-direction: column; }
+  .looma-mode-switch__options { display: grid; width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .looma-mode-switch button { flex: 1; justify-content: center; }
+  .theme-doc-markdown table, .looma-api-table { display: block; overflow-x: auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+}
+
+/* Container's column is otherwise invisible: outline the measure and tint the gutters. */
+.looma-preview-scenario__stage [data-component-root~="ui-container"] {
+  outline: 1px dashed var(--looma-line-strong);
+  background: color-mix(in srgb, var(--ifm-color-primary) 8%, transparent);
+}
+
+/* Navbar version label. */
+.looma-version {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  border: 1px solid var(--ui-border-default);
+  border-radius: 999px;
+  color: var(--ui-text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+}
+
+.demo-inline-action { margin: 0; color: var(--looma-ink-soft); font-size: 0.9rem; }

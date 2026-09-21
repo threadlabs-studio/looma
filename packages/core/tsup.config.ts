@@ -6,7 +6,6 @@ export default defineConfig({
     declarative: "src/declarative.ts",
     "declarative-generated": "src/declarative-generated.ts",
     loader: "src/loader.ts",
-    valibot: "src/field/valibot.ts",
   },
   format: ["esm", "cjs"],
   dts: true,

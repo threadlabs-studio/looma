@@ -3,28 +3,19 @@ import TabItem from "@theme/TabItem";
 import Tabs from "@theme/Tabs";
 
 import { ComponentApi } from "./ComponentApi";
-import { LiveExample } from "./LiveExample";
+import { ComponentPreview } from "./ComponentPreview";
 
 interface ComponentExamplesApiTabsProps {
   component: string;
-  /** Inline live preview (renders Looma declarative components) */
-  preview?: React.ReactNode;
 }
 
 export function ComponentExamplesApiTabs({
-  component,
-  preview
+  component
 }: ComponentExamplesApiTabsProps): JSX.Element {
   return (
-    <Tabs>
+    <Tabs lazy>
       <TabItem value="examples" label="Examples" default>
-        {preview ? <LiveExample>{preview}</LiveExample> : null}
-        <p>
-          See <a href="#ssr-markup">SSR Markup</a> and{" "}
-          <a href="#framework-snippets">Framework Snippets</a> below. Vue and
-          direct HTML invocation examples are supported in Release 1; React and
-          Svelte snippets are repository previews.
-        </p>
+        <ComponentPreview component={component} />
       </TabItem>
       <TabItem value="api" label="API">
         <ComponentApi component={component} />

@@ -76,6 +76,10 @@ function documentSlice(
  *
  * Source-editor metadata remains authoritative for non-document languages.
  * Explicit code-block context is never reinterpreted.
+ *
+ * @contract Recognized document markup is sanitized and dispatched as one paste
+ * transaction; every unrecognized or code-oriented payload returns control to
+ * Tiptap's remaining paste handlers without changing the document.
  */
 export const LoomaSmartPaste = Extension.create({
   name: "loomaSmartPaste",

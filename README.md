@@ -3,7 +3,7 @@
 Looma is a stack-agnostic UI library based on web standards and Open UI principles.
 
 > **Candidate availability:** Before installing, confirm that npm's `candidate`
-> dist-tag resolves `@threadlabs/looma@0.2.20`. A source or
+> dist-tag resolves `@threadlabs/looma@0.3.0`. A source or
 > documentation preview can exist before that registry gate passes.
 
 ## Pre-1.0 Product Drivers
@@ -45,7 +45,7 @@ for the exact imports and a Vue example.
 
 ## Release 1
 
-Looma Release 1 is a public npm **Candidate `0.2.20`**, not a claim that every
+Looma Release 1 is a public npm **Candidate `0.3.0`**, not a claim that every
 component or framework adapter is Stable. The sole public package is
 `@threadlabs/looma`, with explicit subpaths:
 
@@ -56,10 +56,12 @@ component or framework adapter is Stable. The sole public package is
 - `@threadlabs/looma/editor/extensions`: the focused extension preset, standalone `LoomaTableKit`, and command-helper subpath.
 - `@threadlabs/looma/vue`: general Vue adapters without the editor graph.
 - `@threadlabs/looma/vue/editor`: the turnkey `LoomaEditor` plus advanced low-level Vue wrappers.
+- `@threadlabs/looma/react` (preview): React components for the same declarative contracts.
+- `@threadlabs/looma/svelte` (preview): DOM factories (`createUiButton`, …) for Svelte and other hosts.
 - Explicit `.css` subpaths provide tokens, themes, layout, core, and editor styles.
 
-React and Svelte adapters remain internal repository previews and are not part
-of the Release 1 public package. Apps and documentation workspaces are private.
+The React and Svelte subpaths are previews: published for use and feedback, not qualified
+for Release 1, and they may change. Apps and documentation workspaces are private.
 
 The owner-approved public identity is `@threadlabs/looma`. Registry mutation
 still requires the protected release authorization and evidence gates. See the
@@ -82,6 +84,7 @@ still requires the protected release authorization and evidence gates. See the
 - `docs/release-support-matrix.md`: public package, component, DOM, and proof boundary.
 - `docs/architecture.md`: package and runtime architecture.
 - `docs/adapters.md`: supported adapter contract and repository-preview status.
+- `docs/follow-ups.md`: known work after 0.3.0, including the 0.4 goals.
 - `docs/component-qualification-guide.md`: Candidate and Stable evidence rules.
 - `docs/public-release.md`: original public-repository and namespace-decision notes.
 

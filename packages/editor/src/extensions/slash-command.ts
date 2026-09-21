@@ -7,11 +7,19 @@ import type { LoomaIconName } from "@threadlabs/looma-core";
 import type { LoomaCalloutTone } from "./callout";
 import { insertTableAtRange } from "./table-commands";
 
+/** Editor state a slash command may replace and then act upon. */
 export interface LoomaSlashCommandContext {
   editor: Editor;
   range: Range;
 }
 
+/**
+ * One application-extensible command.
+ *
+ * Commands own their editor mutation, including removal of `context.range`.
+ * Keeping that policy in the command lets custom items behave exactly like
+ * built-ins without coupling the headless suggestion lifecycle to Tiptap nodes.
+ */
 export interface LoomaSlashCommand {
   title: string;
   description: string;
@@ -20,6 +28,14 @@ export interface LoomaSlashCommand {
   command: (context: LoomaSlashCommandContext) => void;
 }
 
+/**
+ * Ephemeral render model published to any slash-menu UI.
+ * Replace snapshots rather than merging them: the `select` callback closes over
+ * a particular Tiptap range and becomes invalid when the suggestion updates.
+ *
+ * @lifecycle `select` is valid only until the next snapshot or suggestion exit;
+ * retaining it can apply a command to a stale source range.
+ */
 export interface LoomaSlashMenuSnapshot {
   active: boolean;
   items: LoomaSlashCommand[];
@@ -29,6 +45,15 @@ export interface LoomaSlashMenuSnapshot {
   select: ((index: number) => void) | null;
 }
 
+/**
+ * Application-owned command inventory and integration callbacks.
+ * Replacing `commands` changes search and execution together; the extension
+ * never merges domain commands into defaults implicitly. Asset selection stays
+ * callback-driven because uploads and persistence are outside editor ownership.
+ *
+ * @ownership The application owns command objects and callback side effects;
+ * the extension only searches the inventory and publishes replacement snapshots.
+ */
 export interface LoomaSlashCommandOptions {
   commands: LoomaSlashCommand[];
   onStateChange?: (state: LoomaSlashMenuSnapshot) => void;
@@ -65,6 +90,14 @@ const CALLOUT_COMMANDS: ReadonlyArray<{
   },
 ];
 
+/**
+ * Builds Looma's default command policy as fresh objects for one editor.
+ * The image command delegates asset selection because Looma does not own upload,
+ * persistence, or media-library concerns.
+ *
+ * @ownership Returned command objects belong to the caller and are recreated
+ * per call so one editor cannot mutate another editor's command inventory.
+ */
 export function getDefaultSlashCommands(
   onOpenImagePicker?: () => void,
 ): LoomaSlashCommand[] {
@@ -194,6 +227,11 @@ const EMPTY_STATE: LoomaSlashMenuSnapshot = {
  * Framework-neutral slash-command extension used by the turnkey editor.
  * Consumers embedding Looma into their own Tiptap instance can configure the
  * same behavior and render any menu they choose from `onStateChange`.
+ *
+ * @ownership The extension owns query and keyboard-selection state; the caller
+ * owns the command inventory and every menu snapshot after publication.
+ * @lifecycle Snapshot callbacks are valid only for the suggestion range that
+ * produced them and are replaced on every update or exit.
  */
 export const LoomaSlashCommand = Extension.create<LoomaSlashCommandOptions>({
   name: "loomaSlashCommand",
@@ -293,6 +331,14 @@ export const LoomaSlashCommand = Extension.create<LoomaSlashCommandOptions>({
   },
 });
 
+/**
+ * Creates an independently configured extension instance.
+ * Prefer this factory when callbacks or commands are editor-specific; the
+ * exported base extension remains a convenient zero-configuration preset.
+ *
+ * @ownership The caller owns supplied commands and callbacks. The returned
+ * extension captures them for one configuration without mutating the inventory.
+ */
 export function createLoomaSlashCommandExtension(
   options: Partial<LoomaSlashCommandOptions> = {},
 ) {

@@ -15,33 +15,20 @@
 </ui-stack>
 ```
 
-## `ui-inline`
-
-- Attributes: `gap`, `align`, `justify`, `wrap`
-- Properties: `gap`, `align`, `justify`, `wrap`
-- Events: none
-- Slots: default children
-- SSR markup:
-
-```html
-<ui-inline gap="s" wrap="wrap">
-  <button>One</button>
-  <button>Two</button>
-</ui-inline>
-```
-
 ## `ui-cluster`
 
-- Attributes: `gap`, `align`, `justify`
-- Properties: `gap`, `align`, `justify`
+Always wraps; use it for tags, chips, and other items that flow onto new lines.
+
+- Attributes: `gap`, `align`
+- Properties: `gap`, `align`
 - Events: none
 - Slots: default children
 - SSR markup:
 
 ```html
-<ui-cluster gap="xs">
-  <a href="#">Tag A</a>
-  <a href="#">Tag B</a>
+<ui-cluster gap="s">
+  <ui-badge>Design</ui-badge>
+  <ui-badge>Docs</ui-badge>
 </ui-cluster>
 ```
 
@@ -64,7 +51,7 @@ The selected column minimum is capped by the grid's available inline size, so
 even `min="lg"` collapses to one fluid column instead of overflowing a narrow
 container.
 
-## `ui-center`
+## `ui-container`
 
 - Attributes: `measure`, `gutters`
 - Properties: `measure`, `gutters`
@@ -73,9 +60,9 @@ container.
 - SSR markup:
 
 ```html
-<ui-center measure="wide" gutters="m">
+<ui-container measure="wide" gutters="m">
   <p>Centered content area.</p>
-</ui-center>
+</ui-container>
 ```
 
 The element fills its parent until it reaches the selected measure. Gutters are

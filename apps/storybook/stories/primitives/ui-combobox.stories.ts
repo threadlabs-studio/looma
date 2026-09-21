@@ -1,25 +1,22 @@
 import type { Meta, StoryObj } from '@storybook/web-components-vite';
-import type { ComboboxConfig } from '@threadlabs/looma-core';
-
 const meta = {
   title: 'Forms/Combobox',
   tags: ['autodocs'],
   render: () => {
-    const host = document.createElement('ui-combobox') as HTMLElement & { config: ComboboxConfig };
+    // Props are attributes and options are authored children, exactly as in HTML.
+    const host = document.createElement('ui-combobox');
     host.setAttribute('label', 'Destination');
     host.setAttribute('disclosure', '');
     host.setAttribute('clearable', '');
+    host.setAttribute('allow-free-text', '');
+    host.setAttribute('allow-create', '');
     host.setAttribute('size', 'sm');
     host.setAttribute('help', 'Choose a saved destination or enter a new one.');
     host.style.maxWidth = '24rem';
-    host.config = {
-      allowFreeText: true, allowCreate: true,
-      options: [
-        { id: 'north', value: 'north', label: 'North terminal', description: 'Harbor district · Available', group: 'Saved destinations' },
-        { id: 'west', value: 'west', label: 'West terminal', description: 'Riverside · Unavailable', group: 'Saved destinations', disabled: true },
-      ],
-      validator: value => String(value).length < 2 ? { issues: [{ message: 'Use at least two characters.' }] } : {},
-    };
+    host.innerHTML = `<optgroup label="Saved destinations">
+      <option value="north">North terminal</option>
+      <option value="west" disabled>West terminal</option>
+    </optgroup>`;
     return host;
   },
 } satisfies Meta;
@@ -31,35 +28,37 @@ export const SmartField: Story = {};
 export const Multiple: Story = {
   render: () => {
     type Item = { id: string; value: string; label: string };
-    const host = document.createElement('ui-combobox') as HTMLElement & {
-      config: ComboboxConfig; value: readonly Item[]; multiple: boolean; tokenSeparators: readonly string[];
-    };
+    const host = document.createElement('ui-combobox');
     host.setAttribute('label', 'Page tags');
     host.setAttribute('placeholder', 'Add a tag…');
+    host.setAttribute('multiple', '');
+    host.setAttribute('allow-create', '');
+    host.setAttribute('token-separators', JSON.stringify([',']));
     host.style.maxWidth = '24rem';
-    host.multiple = true;
-    host.tokenSeparators = [','];
-    host.config = {
-      allowCreate: true,
-      options: [
-        { id: 'research', value: 'research', label: 'Research' },
-        { id: 'design', value: 'design', label: 'Design' },
-        { id: 'planning', value: 'planning', label: 'Planning' },
-        { id: 'ops', value: 'ops', label: 'Operations' },
-      ],
+    host.innerHTML = ['research:Research', 'design:Design', 'planning:Planning', 'ops:Operations']
+      .map(entry => { const [value, label] = entry.split(':'); return `<option value="${value}">${label}</option>`; }).join('');
+    // The invocation is replaced by its lowered root, so listen on a wrapper (events bubble) and
+    // write the selected items to whichever element currently exists: `value` before lowering,
+    // its reflected `data-value` after.
+    const wrapper = document.createElement('div');
+    wrapper.append(host);
+    let items: Item[] = [{ id: 'research', value: 'research', label: 'Research' }];
+    const setItems = (next: Item[]) => {
+      items = next;
+      const root = wrapper.querySelector<HTMLElement>('[data-component-root~="ui-combobox"]');
+      if (root) root.setAttribute('data-value', JSON.stringify(items));
+      else host.setAttribute('value', JSON.stringify(items));
     };
-    host.value = [{ id: 'research', value: 'research', label: 'Research' }];
-    host.addEventListener('add-item', event => {
-      host.value = [...host.value, (event as CustomEvent<{ item: Item }>).detail.item];
-    });
-    host.addEventListener('remove-item', event => {
+    setItems(items);
+    wrapper.addEventListener('add-item', event => setItems([...items, (event as CustomEvent<{ item: Item }>).detail.item]));
+    wrapper.addEventListener('remove-item', event => {
       const index = (event as CustomEvent<{ index: number }>).detail.index;
-      host.value = host.value.filter((_, position) => position !== index);
+      setItems(items.filter((_, position) => position !== index));
     });
-    host.addEventListener('create-item', event => {
+    wrapper.addEventListener('create-item', event => {
       const query = (event as CustomEvent<{ query: string }>).detail.query;
-      host.value = [...host.value, { id: query, value: query, label: query }];
+      setItems([...items, { id: query, value: query, label: query }]);
     });
-    return host;
+    return wrapper;
   },
 };

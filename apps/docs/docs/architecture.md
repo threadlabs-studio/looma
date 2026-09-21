@@ -14,8 +14,8 @@ deferred adapters remain internal workspaces.
 ## Responsibilities
 
 - `@threadlabs/looma/*.css`: CSS semantic tokens, themes, and component styles.
-- `@threadlabs/looma/layout`: nine declarative spacing and layout components with no external margins.
-- `@threadlabs/looma`: 33 declarative core components that preserve authored semantic light DOM through slots.
+- `@threadlabs/looma/layout`: eight declarative spacing and layout components with no external margins.
+- `@threadlabs/looma`: 31 published declarative core components that preserve authored semantic light DOM through slots.
 - `@threadlabs/looma/editor`: the complete Tiptap-backed editor API.
 - `@threadlabs/looma/editor/ui`: seven low-level declarative editor surfaces without the Tiptap integration.
 - `@threadlabs/looma/editor/extensions`: focused Tiptap 2 presets and table helpers.

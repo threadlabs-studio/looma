@@ -23,7 +23,7 @@ Candidate, then use it in the app.
 - **Templates:** Layout shells (WorkspaceLayout, AuthLayout). App-owned.
 - **Pages:** Thin route components that wire templates and data. App-owned.
 
-Looma ships **atoms**, **layout primitives** (Stack, Inline, Grid, Center, Cluster, Switcher, Sidebar, Reel), reusable **molecules**, and deliberately complete domain-neutral organisms such as the editor. Product-domain organisms and all templates/pages stay in the app.
+Looma ships **atoms**, **layout primitives** (Stack, Cluster, Grid, Container, Switcher, Sidebar, Reel), reusable **molecules**, and deliberately complete domain-neutral organisms such as the editor. Product-domain organisms and all templates/pages stay in the app.
 
 Interactive atoms and molecules can participate in an explicit
 `ui-affordance-scope`. The scope supplies Looma's shared guide, proximity,
@@ -32,7 +32,7 @@ invisible hit targets. See [Anticipatory affordances](./anticipatory-affordances
 
 ## When to add a component to Looma
 
-- **Do add:** Primitives (buttons, inputs, dialogs, menus, toasts, avatars, badges), layout (Stack, Inline, Grid), and generic molecules that do not encode app-domain entities (e.g. a generic search result row, not “Knit page row”).
+- **Do add:** Primitives (buttons, inputs, dialogs, menus, toasts, avatars, badges), layout (Stack, Cluster, Grid), and generic molecules that do not encode app-domain entities (e.g. a generic search result row, not “Knit page row”).
 - **Do not add:** Components that are tied to one product’s domain (workspace, collection, page, folder, collaborator). Those live in the app; Looma stays domain-neutral.
 - **Promote from app when:** An app builds a molecule that would clearly benefit other apps (e.g. AvatarGroup was promoted from Knit, and LoadOps may surface form-heavy transport workflows). Extract a domain-neutral API; keep app-specific behavior in the app.
 
@@ -65,7 +65,7 @@ Interactive components support consistent props where applicable: `variant` (e.g
 | Layer        | Looma                          | App (e.g. Knit or LoadOps)               |
 |-------------|---------------------------------|-----------------------------------------|
 | Atoms       | ✅ Button, Input, Dialog, …     | Use Looma only                          |
-| Layout      | ✅ Stack, Inline, Grid, …       | Use Looma only                          |
+| Layout      | ✅ Stack, Cluster, Grid, …       | Use Looma only                          |
 | Molecules   | Generic, reusable               | Domain molecules (PageCard, shipment row…) |
 | Organisms   | Domain-neutral features (Editor) | Domain features (workspace tree, quote intake) |
 | Templates   | —                               | WorkspaceLayout, AuthLayout             |

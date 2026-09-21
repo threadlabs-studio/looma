@@ -37,31 +37,29 @@ import {
   UiEditorToolbar,
 } from "../generated";
 
+/**
+ * Native editor event details unwrapped for Vue callback attributes.
+ * Multiple menu primitives share `highlight` and `select` because their index
+ * semantics are identical; table primitives share the typed action channel.
+ */
 export interface VueEditorAdapterEventMap {
-  mentionMenuHighlight: MentionMenuHighlightEventDetail;
-  mentionMenuSelect: MentionMenuSelectEventDetail;
-  tableAction: TableContextMenuActionEventDetail;
-  insertTable: InsertTableEventDetail;
-  tableOverlayAction: TableOverlayActionEventDetail;
-  slashMenuHighlight: SlashMenuHighlightEventDetail;
-  slashMenuSelect: SlashMenuSelectEventDetail;
+  highlight: MentionMenuHighlightEventDetail | SlashMenuHighlightEventDetail;
+  select: MentionMenuSelectEventDetail | SlashMenuSelectEventDetail;
+  action: TableContextMenuActionEventDetail | TableOverlayActionEventDetail;
+  insert: InsertTableEventDetail;
 }
 
 type EditorAdapterAttrs = AdapterAttrs & {
-  onMentionMenuHighlight?: (detail: VueEditorAdapterEventMap["mentionMenuHighlight"]) => void;
-  onMentionMenuSelect?: (detail: VueEditorAdapterEventMap["mentionMenuSelect"]) => void;
-  onTableAction?: (detail: VueEditorAdapterEventMap["tableAction"]) => void;
-  onInsertTable?: (detail: VueEditorAdapterEventMap["insertTable"]) => void;
-  onTableOverlayAction?: (detail: VueEditorAdapterEventMap["tableOverlayAction"]) => void;
-  onSlashMenuHighlight?: (detail: VueEditorAdapterEventMap["slashMenuHighlight"]) => void;
-  onSlashMenuSelect?: (detail: VueEditorAdapterEventMap["slashMenuSelect"]) => void;
+  onHighlight?: (detail: VueEditorAdapterEventMap["highlight"]) => void;
+  onSelect?: (detail: VueEditorAdapterEventMap["select"]) => void;
+  onAction?: (detail: VueEditorAdapterEventMap["action"]) => void;
+  onInsert?: (detail: VueEditorAdapterEventMap["insert"]) => void;
 };
 
 function createSuggestionMenuAdapter<Item>(
   name: "EditorSlashMenu" | "EditorMentionMenu",
-  eventPrefix: "slash" | "mention",
 ) {
-  const component = eventPrefix === "slash" ? UiEditorSlashMenu : UiEditorMentionMenu;
+  const component = name === "EditorSlashMenu" ? UiEditorSlashMenu : UiEditorMentionMenu;
   return defineComponent({
     name,
     inheritAttrs: false,
@@ -80,40 +78,31 @@ function createSuggestionMenuAdapter<Item>(
         const element = elementRef.value;
         if (!element) return;
         const callbackAttrs = attrs as EditorAdapterAttrs;
-        const highlightCallback = eventPrefix === "slash"
-          ? callbackAttrs.onSlashMenuHighlight
-          : callbackAttrs.onMentionMenuHighlight;
-        const selectCallback = eventPrefix === "slash"
-          ? callbackAttrs.onSlashMenuSelect
-          : callbackAttrs.onMentionMenuSelect;
-        const eventBase = `looma-editor-${eventPrefix}-menu`;
+        const highlightCallback = callbackAttrs.onHighlight;
+        const selectCallback = callbackAttrs.onSelect;
         const highlightHandler = typeof highlightCallback === "function"
           ? (event: Event) => highlightCallback((event as CustomEvent<{ index: number }>).detail)
           : undefined;
         const selectHandler = typeof selectCallback === "function"
           ? (event: Event) => selectCallback((event as CustomEvent<{ index: number }>).detail)
           : undefined;
-        if (highlightHandler) element.addEventListener(`${eventBase}-highlight`, highlightHandler);
-        if (selectHandler) element.addEventListener(`${eventBase}-select`, selectHandler);
+        if (highlightHandler) element.addEventListener("highlight", highlightHandler);
+        if (selectHandler) element.addEventListener("select", selectHandler);
         onCleanup(() => {
-          if (highlightHandler) element.removeEventListener(`${eventBase}-highlight`, highlightHandler);
-          if (selectHandler) element.removeEventListener(`${eventBase}-select`, selectHandler);
+          if (highlightHandler) element.removeEventListener("highlight", highlightHandler);
+          if (selectHandler) element.removeEventListener("select", selectHandler);
         });
       });
 
       return () => {
         const callbackAttrs = attrs as EditorAdapterAttrs;
         const {
-          onMentionMenuHighlight,
-          onMentionMenuSelect,
-          onSlashMenuHighlight,
-          onSlashMenuSelect,
+          onHighlight,
+          onSelect,
           ...forwardedAttrs
         } = callbackAttrs;
-        void onMentionMenuHighlight;
-        void onMentionMenuSelect;
-        void onSlashMenuHighlight;
-        void onSlashMenuSelect;
+        void onHighlight;
+        void onSelect;
         return h(component, {
           ...props,
           ...forwardedAttrs,
@@ -126,33 +115,45 @@ function createSuggestionMenuAdapter<Item>(
   });
 }
 
-const EDITOR_EVENT_BINDINGS = [
-  ["looma-editor-table-action", "onTableAction"],
-  ["looma-editor-insert-table", "onInsertTable"],
-  ["looma-editor-table-overlay-action", "onTableOverlayAction"],
-] as const satisfies readonly AdapterEventBinding[];
+const ACTION_EVENT_BINDINGS = [["action", "onAction"]] as const satisfies readonly AdapterEventBinding[];
+const INSERT_EVENT_BINDINGS = [["insert", "onInsert"]] as const satisfies readonly AdapterEventBinding[];
 
+/**
+ * Vue projection of the slash suggestion menu with lifecycle-safe event wiring.
+ */
 export const EditorSlashMenu = createSuggestionMenuAdapter<SlashMenuItem>(
   "EditorSlashMenu",
-  "slash",
 );
+/** Vue projection of the mention menu using the shared suggestion lifecycle. */
 export const EditorMentionMenu = createSuggestionMenuAdapter<LoomaMentionItem>(
   "EditorMentionMenu",
-  "mention",
 );
 
-export const EditorToolbar = createAdapterComponent(UiEditorToolbar, "EditorToolbar", EDITOR_EVENT_BINDINGS);
-export const EditorTableContextMenu = createAdapterComponent(UiEditorTableContextMenu, "EditorTableContextMenu", EDITOR_EVENT_BINDINGS);
-export const EditorTableToolbar = createAdapterComponent(UiEditorTableToolbar, "EditorTableToolbar", EDITOR_EVENT_BINDINGS);
-export const EditorInsertTableGrid = createAdapterComponent(UiEditorInsertTableGrid, "EditorInsertTableGrid", EDITOR_EVENT_BINDINGS);
+/** Vue projection of the editor toolbar's semantic layout shell. */
+export const EditorToolbar = createAdapterComponent(UiEditorToolbar, "EditorToolbar");
+/** Vue projection that unwraps context-menu table actions for callbacks. */
+export const EditorTableContextMenu = createAdapterComponent(UiEditorTableContextMenu, "EditorTableContextMenu", ACTION_EVENT_BINDINGS);
+/** Vue projection that unwraps toolbar table actions for callbacks. */
+export const EditorTableToolbar = createAdapterComponent(UiEditorTableToolbar, "EditorTableToolbar", ACTION_EVENT_BINDINGS);
+/** Vue projection that reports the selected table dimensions as insert intent. */
+export const EditorInsertTableGrid = createAdapterComponent(UiEditorInsertTableGrid, "EditorInsertTableGrid", INSERT_EVENT_BINDINGS);
+/**
+ * Vue projection of editor-owned table geometry and boundary actions.
+ * Geometry is assigned as a DOM property so structured measurements are never
+ * serialized through attributes.
+ */
 export const EditorTableOverlay = createAdapterComponent(
   UiEditorTableOverlay,
   "EditorTableOverlay",
-  EDITOR_EVENT_BINDINGS,
+  ACTION_EVENT_BINDINGS,
   "class",
   ["geometry"] satisfies readonly (keyof { geometry: TableOverlayGeometry | null })[],
 );
 
+/**
+ * Canonical Vue editor export-to-native-tag correspondence used by parity
+ * checks and tooling that must enumerate opt-in editor primitives.
+ */
 export const EDITOR_ADAPTER_COMPONENT_TAG_MAP = {
   EditorToolbar: "ui-editor-toolbar",
   EditorSlashMenu: "ui-editor-slash-menu",

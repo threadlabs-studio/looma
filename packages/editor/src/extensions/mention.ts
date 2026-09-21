@@ -32,6 +32,11 @@ const EMPTY_STATE: LoomaMentionMenuSnapshot = {
   select: null,
 };
 
+/**
+ * Stable key for reading Looma's active mention query and source range.
+ * Consumers should treat the keyed value as transient suggestion state rather
+ * than document data.
+ */
 export const LoomaMentionSuggestionPluginKey = new PluginKey<MentionPluginState>(
   "loomaMentionSuggestion",
 );
@@ -39,6 +44,9 @@ export const LoomaMentionSuggestionPluginKey = new PluginKey<MentionPluginState>
 const LoomaMentionNode = Mention.extend({
   addAttributes() {
     const parentAttributes = (this.parent?.() ?? {}) as Record<string, unknown>;
+    // The trigger character is transient suggestion state. Persisting it in
+    // document JSON would make copy/serialization depend on how the mention was
+    // entered rather than on the durable id and label.
     const { mentionSuggestionChar: _trigger, ...durableAttributes } = parentAttributes;
     return durableAttributes;
   },
@@ -55,13 +63,28 @@ async function resolveMentionItems(
       : source ?? [];
     return filterLoomaMentionItems(resolved, query, limit);
   } catch {
+    // Provider failures produce an empty menu instead of rejecting Tiptap's
+    // suggestion lifecycle. Applications that need error UI can wrap the
+    // provider and publish that state separately.
     return [];
   }
 }
 
 /**
- * Domain-neutral Tiptap mention node and suggestion lifecycle. Applications
- * provide either a small static list or a bounded async directory provider.
+ * Creates a domain-neutral Tiptap mention node and suggestion lifecycle.
+ *
+ * Applications provide either a small static list or a bounded async directory
+ * provider. Looma owns keyboard selection plus the temporary combobox ARIA
+ * attributes on the editor. Every attribute is snapshotted and restored so
+ * installing this extension cannot erase accessibility state owned by another
+ * extension or by the host application.
+ *
+ * @ownership The application owns the item provider and rendered menu. The
+ * extension owns suggestion state and only borrows editor ARIA attributes.
+ * @lifecycle Each suggestion update replaces the published snapshot; exit
+ * restores borrowed attributes and invalidates callbacks from the prior range.
+ * @failure Provider rejection degrades to an empty result set so Tiptap's
+ * suggestion lifecycle cannot become an unhandled promise rejection.
  */
 export function createLoomaMentionExtension(
   options: LoomaMentionOptions = {},
@@ -123,6 +146,9 @@ export function createLoomaMentionExtension(
         };
 
         const isCurrent = (props: SuggestionProps<LoomaMentionItem>) => {
+          // Async providers can settle after Tiptap has moved to another query
+          // or range. Compare against plugin state before publishing so an old
+          // result cannot reopen or overwrite the current suggestion menu.
           const state = LoomaMentionSuggestionPluginKey.getState(
             props.editor.state,
           ) as MentionPluginState | undefined;
@@ -191,6 +217,9 @@ export function createLoomaMentionExtension(
           },
           onKeyDown: ({ event, range }: SuggestionKeyDownProps) => {
             if (event.key === "Escape") {
+              // Tiptap may call update again for the same source range after an
+              // Escape. Remember that range so dismissal remains sticky until
+              // the suggestion truly exits and a new lifecycle begins.
               dismissedFrom = range.from;
               currentProps = null;
               publish(null);

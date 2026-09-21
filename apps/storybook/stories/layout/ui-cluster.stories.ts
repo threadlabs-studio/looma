@@ -9,11 +9,12 @@ const meta = {
   tags: ["autodocs"],
   argTypes: createComponentArgTypes("ui-cluster"),
   parameters: createComponentDocsParameters("ui-cluster"),
-  render: ({ gap, align, justify }) => `
-    <ui-cluster gap="${gap}" align="${align}" justify="${justify}">
-      <span>Status: Active</span>
-      <ui-button><button type="button">Save</button></ui-button>
-      <ui-button><button type="button">Cancel</button></ui-button>
+  render: ({ gap, align }) => `
+    <ui-cluster gap="${gap}" align="${align}">
+      <ui-badge>Design</ui-badge>
+      <ui-badge>Accessibility</ui-badge>
+      <ui-badge>Performance</ui-badge>
+      <ui-badge>Docs</ui-badge>
     </ui-cluster>
   `
 } satisfies Meta;
@@ -24,7 +25,6 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   args: {
     gap: "s",
-    align: "center",
-    justify: "between"
+    align: "center"
   }
 };

@@ -52,14 +52,14 @@ describe("LoomaEditor managed suggestion menus", () => {
           '[data-component-root~="ui-editor-mention-menu"]',
         );
         expect(menu?.textContent).toContain("Ada Lovelace");
-        const anchorRect = (menu as HTMLElement & { anchorRect?: unknown }).anchorRect;
+        // Explicit props are reflected as data-* attribute text in the declared type's text form.
+        const anchorRect: unknown = JSON.parse(menu?.getAttribute("data-anchor-rect") ?? "null");
         expect(anchorRect).toMatchObject({
           left: expect.any(Number),
           top: expect.any(Number),
           right: expect.any(Number),
           bottom: expect.any(Number),
         });
-        expect(Object.getPrototypeOf(anchorRect)).toBe(Object.prototype);
       });
       expect(browserErrors).toEqual([]);
     } finally {
@@ -92,9 +92,8 @@ describe("LoomaEditor managed suggestion menus", () => {
           '[data-component-root~="ui-editor-slash-menu"]',
         );
         expect(menu?.textContent).toContain("Table");
-        const items = (menu as HTMLElement & {
-          items?: Array<Record<string, unknown>>;
-        }).items;
+        const items = JSON.parse(menu?.getAttribute("data-items") ?? "null") as
+          Array<Record<string, unknown>> | null;
         expect(items?.[0]).toEqual({
           title: expect.any(String),
           description: expect.any(String),

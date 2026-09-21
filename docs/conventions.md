@@ -50,7 +50,7 @@ Set one API vocabulary that all components and adapters follow, including state 
 ## No External Margin Rule
 
 - Components cannot set external margins.
-- Inter-component spacing is owned by layout primitives (`ui-stack`, `ui-inline`, etc).
+- Inter-component spacing is owned by layout primitives (`ui-stack`, `ui-cluster`, etc).
 - Lint and visual examples should enforce this policy.
 
 ## Icon System

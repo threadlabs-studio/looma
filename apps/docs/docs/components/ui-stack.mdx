@@ -4,56 +4,5 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 Vertical layout primitive that owns spacing between children.
 
-## Component Reference
 
 <ComponentExamplesApiTabs component="ui-stack" />
-
-## Attributes
-
-| Name | Type | Default | Notes |
-| --- | --- | --- | --- |
-| `gap` | `xs \| s \| m \| l \| xl \| string` | `m` | Maps to component spacing tokens. |
-| `align` | `start \| center \| end \| stretch` | `stretch` | Cross-axis alignment. |
-| `justify` | `start \| center \| end \| between` | `start` | Main-axis distribution. |
-
-## Properties
-
-| Name | Type |
-| --- | --- |
-| `gap` | `string` |
-| `align` | `string` |
-| `justify` | `string` |
-
-## Events
-
-No custom events.
-
-## Slots
-
-Default slot only (natural children).
-
-## SSR Markup
-
-```html
-<ui-stack gap="m" align="stretch">
-  <h2>Profile</h2>
-  <p>Manage your account settings.</p>
-  <button type="button">Save</button>
-</ui-stack>
-```
-
-## Framework Snippets
-
-```vue
-<script setup lang="ts">
-import { Stack } from "@threadlabs/looma/vue";
-</script>
-
-<template>
-  <Stack gap="m">
-    <h2>Profile</h2>
-    <p>Manage your account settings.</p>
-    <button type="button">Save</button>
-  </Stack>
-</template>
-```

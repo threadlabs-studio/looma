@@ -1,11 +1,16 @@
 /**
  * @threadlabs/looma-core
  *
- * Importing this module registers Looma's declarative component definitions and exports shared
- * framework-neutral behavior.
+ * Primary browser entry point for declarative core components and the
+ * framework-neutral behavior shared by native HTML and generated adapters.
+ *
+ * Importing it registers the core definition graph and one document-level input
+ * modality tracker. Both operations are idempotent across facade/direct imports
+ * and no-op safely during SSR. Consumers needing only attachment primitives can
+ * use `./declarative` without starting document observation.
  */
 
-import { records, styles } from '../../tools/migrate-html-next/generated/adoption/core/registry.js';
+import { records, styles } from './src/declarative/registry.js';
 import { registerLoomaPackage } from './src/declarative';
 import { initializeInputModality } from './src/input-modality';
 

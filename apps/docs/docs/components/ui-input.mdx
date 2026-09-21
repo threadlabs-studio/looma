@@ -2,58 +2,7 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 # Input
 
-Essential text-input primitive that mirrors value/state to native input controls.
+Text input that lowers directly to a native `<input>` while applying Looma's shared control theme.
 
-## Component Reference
 
 <ComponentExamplesApiTabs component="ui-input" />
-
-## Attributes
-
-| Name | Type | Default |
-| --- | --- | --- |
-| `value` | `string` | empty |
-| `default-value` | `string` | empty |
-| `disabled` | `boolean` | `false` |
-| `read-only` | `boolean` | `false` |
-| `invalid` | `boolean` | `false` |
-
-## Properties
-
-| Name | Type |
-| --- | --- |
-| `value` | `string` |
-| `defaultValue` | `string` |
-| `disabled` | `boolean` |
-| `readOnly` | `boolean` |
-| `invalid` | `boolean` |
-
-## Events
-
-Uses native `input` and `change` behavior via internal control synchronization.
-
-## Slots
-
-Default slot (typically one native `<input>` child).
-
-## SSR Markup
-
-```html
-<ui-input value="hello">
-  <input type="text" name="title" />
-</ui-input>
-```
-
-## Framework Snippets
-
-```vue
-<script setup lang="ts">
-import { Input } from "@threadlabs/looma/vue";
-</script>
-
-<template>
-  <Input value="hello">
-    <input type="text" name="title" />
-  </Input>
-</template>
-```

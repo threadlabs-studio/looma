@@ -1,89 +1,57 @@
 # `ui-combobox`
 
-One editable smart field with contextual suggestions, optional connected controls,
-and schema-neutral validation. Single selection only. Domain queries, creation,
-metadata, validation rules, and persistence belong to the consumer.
+One editable smart field with contextual suggestions and optional connected controls.
+Domain queries, creation, and persistence belong to the consumer.
 
-## State and API
+## Attributes and options
+
+Every prop is an HTML attribute. Options are authored `<option>` children, grouped
+with `<optgroup label>`; `disabled` on an option makes it unselectable.
+
+```html
+<ui-combobox label="Destination" disclosure clearable allow-free-text>
+  <optgroup label="Saved destinations">
+    <option value="north">North terminal</option>
+    <option value="west" disabled>West terminal</option>
+  </optgroup>
+</ui-combobox>
+```
 
 - `label` names the native input through an internal label; `placeholder` is not a label.
-- `value?: string | null` is the canonical selection. Undefined is uncontrolled;
-  `default-value` initializes it. Null is an explicitly empty controlled selection.
-- `query?: string` is raw editing text, independently controlled;
-  `default-query` initializes uncontrolled text. Selection proposes its label as query.
-- External canonical changes update uncontrolled text from static or previously
-  received provider options; clearing sets it to empty. An unseen value displays
-  its canonical string until a matching provider result arrives. Controlled query
-  text remains owned by the caller. Provider results never replace subsequent edits.
-- `config: ComboboxConfig` is a JavaScript property, never JSON in an attribute.
-- `disabled`, `readonly`, `required`, `size="sm|md"`, `clearable`, `disclosure`, `help`.
-- `label-visibility="sr-only"` keeps the native label accessible for compact
-  compositions. The `start` slot sits inside the field before the input, and
-  `footer` sits below the suggestion list.
-- `validate()` returns the current field validation state, including normalized
-  `output`, `issues`, `touched`, `dirty`, and `status`. Await validation before
-  submitting; only `valid` or `warning` states are eligible for submission.
-- The input's `name` describes its editing value. This component does not perform
-  form submission or serialize normalized output; the consumer submits `output`.
-
-`config.options` contains `{ id, value, label, description?, metadata?, group?, disabled? }`.
-Use `mapComboboxOptions(records, map)` to map domain identities/values/labels and
-retain the original typed record as metadata. IDs must be unique and stable.
-`filter(option, query, context)` optionally overrides local label matching.
-
-`config.provider({ query, context, signal, reason })` may return options directly
-or asynchronously. Input requests debounce by `config.debounce` (200 ms default).
-Disclosure queries immediately with an empty query and reason `disclosure`, without
-rewriting the input. Providers own filtering unless `filter` is supplied.
-Replaced requests, closing, unmount, and context changes abort requests; late results
-and late errors are ignored even if a provider ignores its AbortSignal.
-
-Replace `config.context` by identity when dependencies change. `invalidation` is
-`retain-query` by default (clear canonical value, preserve text), `clear` (clear both),
-or `retain` (retain both). Every context change cancels work, closes suggestions,
-resets validation, and emits `dependency-invalidate`. Controlled owners must accept
-or explicitly handle the proposed values. No cross-field dependency graph is owned here.
-
-`allowFreeText` retains noncanonical editing text and emits `free-entry` on Enter
-or leaving the field. `allowCreate` offers an explicit create row and emits
-`create-entry`; the consumer performs persistence and supplies any resulting canonical
-selection. Typing never silently deletes noncanonical text. Without either option,
-validation asks for a canonical suggestion.
+- `value` is the canonical selection: a string in single mode, or in `multiple`
+  mode a JSON list of `{ id, value, label, group?, disabled? }` items.
+  `query` is the raw editing text, independently controllable.
+- `multiple` shows selected items as removable chips; `token-separators` is a JSON
+  list of characters that commit the current text as an item, e.g. `'[","]'`.
+- `allow-free-text` keeps unmatched text as the value and emits `free-entry`.
+  `allow-create` offers a create row and emits `create-entry` (`create-item` in
+  multiple mode); the consumer persists and supplies the resulting selection.
+- `disabled`, `readonly`, `required`, `name`, `size="sm|md"`, `clearable`,
+  `disclosure`, `help`, `label-visibility="visible|sr-only"`.
+- Suggestions are the authored options whose label contains the query
+  (case-insensitive). To filter or load options elsewhere (for example a server
+  search), listen for `query-change` and render the matching `<option>` children.
+- `validate()` returns the current validation state; `focusInput()` focuses the input.
 
 ## Events
 
 - `query-change`: `{ query, display, trigger }`.
-- `value-change`, `free-entry`, `create-entry`, `dependency-invalidate`:
-  `{ value, query, option, kind, trigger }`.
+- `value-change`, `free-entry`, `create-entry`: `{ value, query, option, kind, trigger }`.
+- `add-item`, `remove-item`: `{ item, index, trigger }`; `create-item`: `{ query, trigger }`.
 - `validation-change`: `{ status, touched, dirty, issues, output? }`.
-- `options-change`: current option array, for framework-owned rich rendering.
+- `options-change`: the current suggestion rows, for framework-owned rich rendering.
 
 Slots: `start`, `option-${id}`, `loading`, `empty`, `error`, `create`, `footer`. Rich option slots must
-contain noninteractive content, with a visible primary label. Buttons/links inside
-options are unsupported. Use `::part(option-primary)` / `::part(option-secondary)`
-for defaults; custom rich content uses the same documented CSS hooks.
+contain noninteractive content with a visible primary label. Buttons/links inside
+options are unsupported.
 
-## Validation and transformation
+## Validation
 
-Core accepts the structural Standard Schema v1 `~standard.validate` contract via
-`config.schema`. `parse(raw, request)` runs first; schema validation/transforms run
-next; `normalize(output, request)` and optional `validator(output, request)` follow
-successful schema validation. Each may be asynchronous. Requests include raw text,
-canonical value, dependency context, and AbortSignal. Validation uses a separate
-cancellation lifetime from suggestions. `config.issues` injects server/external
-issues. Paths remain structured and unchanged. Issues default to blocking `error`;
-`severity: 'warning'` preserves usable output and does not set `aria-invalid`.
-Standard Schema failures are blocking unless an adapter explicitly supplies severity.
-
-`validateOn` is `blur` by default, or `input` / `submit`. Submit timing means the
-consumer calls `validate()` explicitly. This is field validation, not form orchestration.
-Raw text is retained separately from formatted display and normalized output.
-`format(raw, selection)` returns `{ display, selection: { start, end, direction? } }`
-or undefined to decline. `formatOn` is `blur` by default or `input`. Every raw
-character must survive in order; destructive results and invalid selection mappings
-are declined. Parsing/normalization never overwrite display. IME composition is
-left native until compositionend. A new user edit starts from the current native
-editing buffer, including previously displayed punctuation.
+Validation follows native constraints and the free-text policy: `required` rejects an
+empty value, and without `allow-free-text` or `allow-create` unmatched text asks the
+user to choose a suggestion. Validation runs when the field is left and after a
+selection. Application-specific rules belong to the form: show them with `ui-form-field`
+and its error message, driven by the form's own validation.
 
 ## Keyboard and accessibility
 

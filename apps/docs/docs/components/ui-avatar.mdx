@@ -4,55 +4,5 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 Image and fallback initials primitive for identity surfaces such as profiles and assignees.
 
-## Component Reference
 
 <ComponentExamplesApiTabs component="ui-avatar" />
-
-## Attributes
-
-| Name | Type | Default |
-| --- | --- | --- |
-| `src` | `string` | `""` |
-| `alt` | `string` | `""` |
-| `name` | `string` | `""` |
-| `fallback` | `string` | `""` |
-
-## Properties
-
-| Name | Type |
-| --- | --- |
-| `src` | `string` |
-| `alt` | `string` |
-| `name` | `string` |
-| `fallback` | `string` |
-
-## Events
-
-None.
-
-## Slots
-
-Default slot; typically includes an `<img>` with optional fallback content.
-
-## SSR Markup
-
-```html
-<ui-avatar name="Alex Morgan" src="/avatars/alex.png" alt="Alex Morgan">
-  <img />
-  <span data-ui-avatar-fallback></span>
-</ui-avatar>
-```
-
-## Framework Snippets
-
-```vue
-<script setup lang="ts">
-import { Avatar } from "@threadlabs/looma/vue";
-</script>
-
-<template>
-  <Avatar name="Alex Morgan" src="/avatars/alex.png" alt="Alex Morgan">
-    <img />
-  </Avatar>
-</template>
-```

@@ -2,6 +2,8 @@
 
 Last updated: 2026-03-29
 
+> This family-level audit decided which component families Looma owns. Per-component option decisions for 0.3 are in the [Component Option Audit](../apps/docs/docs/component-library-audit.md), with evidence in [docs/audits](./audits/).
+
 This audit compares Looma's shipped and proposed component surface against a broader set of modern UI libraries. The goal is to confirm a durable component set, identify common feature expectations, and update Looma's roadmap with benchmarked gaps instead of library-by-library intuition.
 
 ## Scope
@@ -23,7 +25,7 @@ This audit compares Looma's shipped and proposed component surface against a bro
 
 ### Shipped now
 
-- Layout: `ui-stack`, `ui-inline`, `ui-cluster`, `ui-grid`, `ui-center`, `ui-separator`
+- Layout: `ui-stack`, `ui-cluster`, `ui-cluster`, `ui-grid`, `ui-container`, `ui-separator`
 - Forms/actions: `ui-button`, `ui-icon-button`, `ui-input`, `ui-select`, `ui-textarea`, `ui-form-field`, `ui-checkbox`, `ui-radio`, `ui-radio-group`, `ui-switch`
 - Overlay/display/navigation: `ui-dialog`, `ui-popover`, `ui-tooltip`, `ui-menu`, `ui-menu-item`, `ui-disclosure`, `ui-tabs`, `ui-toast-region`, `ui-badge`, `ui-chip`, `ui-callout`, `ui-avatar`, `ui-avatar-group`
 - App-shell / recipe level: `ui-floating-action-button`, `ui-search-shell`, `ui-search-result-row`, `ui-top-bar`
@@ -93,9 +95,9 @@ The ecosystem converges on a few patterns:
 | Family | External names seen | Common features / API patterns | Looma status | Recommendation |
 | --- | --- | --- | --- | --- |
 | Stack / vertical layout | `Stack`, `VStack`, `QList`-adjacent layout, `fast-*` layout handled externally | `gap`, alignment, justified distribution, responsive spacing | Shipped as `ui-stack` | Keep |
-| Inline / row layout | `Inline`, `Flex`, `Group`, `Wrap`, `HStack` | `gap`, `align`, `justify`, wrapping, responsive collapse | Shipped as `ui-inline` and `ui-cluster` | Keep; document `cluster` vs `inline` intent more clearly |
+| Cluster / row layout | `Inline`, `Flex`, `Group`, `Wrap`, `HStack` | `gap`, `align`, `justify`, wrapping, responsive collapse | Shipped as `ui-cluster` | Keep; document `cluster` vs `inline` intent more clearly |
 | Grid | `Grid`, `SimpleGrid`, `Container` + grid, responsive grid | `gap`, column sizing, min width, responsive breakpoints | Shipped as `ui-grid` | Keep |
-| Center / container | `Container`, `Center`, `Box`, `Fluid`, `PageContainer` | readable measure, gutters, max width, full-width toggle | Shipped as `ui-center` | Keep |
+| Center / container | `Container`, `Center`, `Box`, `Fluid`, `PageContainer` | readable measure, gutters, max width, full-width toggle | Shipped as `ui-container` | Keep |
 | Separator / divider | `Separator`, `Divider`, `Fieldset` separators | `orientation`, decorative vs semantic role | Shipped as `ui-separator` | Keep |
 
 ### Forms and actions

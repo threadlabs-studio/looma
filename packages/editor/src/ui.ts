@@ -1,12 +1,15 @@
 /**
  * Low-level Looma editor UI elements.
  *
- * This advanced entry point registers the Tiptap-independent declarative
- * component chrome without importing Looma's Tiptap extension preset or commands.
+ * This entry point registers Tiptap-independent declarative component chrome
+ * and exports its framework-neutral event/geometry contracts. UI emits intent;
+ * it never mutates an editor document. Adapters may translate those intents to
+ * Tiptap, another editor, or application state without importing Looma's
+ * extension preset.
  */
 
 import { registerLoomaPackage } from "@threadlabs/looma-core/declarative";
-import { records, styles } from "../../../tools/migrate-html-next/generated/adoption/editor/registry.js";
+import { records, styles } from "./declarative/registry.js";
 
 registerLoomaPackage("editor", records, styles);
 

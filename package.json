@@ -1,7 +1,7 @@
 {
   "name": "looma-monorepo",
   "private": true,
-  "version": "0.2.20",
+  "version": "0.3.0",
   "description": "Stack-agnostic UI library built on web standards and Open UI principles.",
   "license": "MIT",
   "author": "Threadlabs Studio",
@@ -27,9 +27,10 @@
     "build": "pnpm -r --filter './packages/**' --filter '!@threadlabs/looma' run build && node tools/scripts/build-facade.mjs --skip-workspace-build && pnpm -r --filter './apps/**' run build",
     "build:facade": "node tools/scripts/build-facade.mjs",
     "test:facade-consumer": "node tools/scripts/verify-facade-consumer.mjs",
-    "generate:api": "node ./tools/scripts/generate-component-api.mjs && node ./tools/scripts/generate-vue-component-types.mjs",
+    "generate:api": "node ./tools/scripts/generate-component-api.mjs",
     "generate:docs": "pnpm generate:api",
     "check:docs-sync": "node ./tools/scripts/check-docs-sync.mjs",
+    "check:code-documentation": "node ./tools/scripts/check-code-documentation.mjs --check",
     "check:mutation-observer": "node ./tools/scripts/check-mutation-observer.mjs",
     "dev:docs": "pnpm --filter @threadlabs/looma-docs dev",
     "dev:storybook": "pnpm --filter @threadlabs/looma-storybook dev",
@@ -49,7 +50,7 @@
     "release:record": "node tools/scripts/finalize-release.mjs",
     "release:verify:dirty": "node tools/scripts/verify-packages.mjs --output-dir .release/artifacts --allow-dirty",
     "test": "node --test tools/scripts/*.test.mjs && pnpm build && pnpm -r run test",
-    "test:browser": "pnpm --filter @threadlabs/looma-migrate-html-next test:browser && pnpm --filter @threadlabs/looma-core test:browser && pnpm --filter @threadlabs/looma-editor test:browser && pnpm --filter @threadlabs/looma-vue test:browser && pnpm --filter @threadlabs/looma-docs test:browser",
+    "test:browser": "pnpm --filter @threadlabs/looma-declarative-build test:browser && pnpm --filter @threadlabs/looma-core test:browser && pnpm --filter @threadlabs/looma-editor test:browser && pnpm --filter @threadlabs/looma-vue test:browser && pnpm --filter @threadlabs/looma-docs test:browser",
     "typecheck": "pnpm -r run typecheck"
   },
   "devDependencies": {

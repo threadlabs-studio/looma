@@ -18,8 +18,9 @@ Provide accessible modal and non-modal dialog behavior with focus management.
 
 - `open`: boolean
 - `default-open`: initial uncontrolled open state (default false)
-- `modal`: boolean (default true)
-- `dismissible`: boolean (default true) — close on backdrop click and Escape when true
+- `modal`: boolean (default false); add the attribute to opt into a modal dialog
+- `dismissible`: boolean (default false); add the attribute to allow Escape and
+  light-dismiss closing
 - `label`: accessible name for the native dialog surface
 
 ## Properties
