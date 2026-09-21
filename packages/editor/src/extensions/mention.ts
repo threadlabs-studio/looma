@@ -128,8 +128,7 @@ export function createLoomaMentionExtension(
           ) as MentionPluginState | undefined;
           return state?.active === true
             && state.query === props.query
-            && state.range?.from === props.range.from
-            && state.range?.to === props.range.to;
+            && state.range?.from === props.range.from;
         };
 
         const publish = (
