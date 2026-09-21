@@ -51,12 +51,14 @@ describe("LoomaEditor managed mention menu", () => {
           '[data-component-root~="ui-editor-mention-menu"]',
         );
         expect(menu?.textContent).toContain("Ada Lovelace");
-        expect((menu as HTMLElement & { anchorRect?: unknown }).anchorRect).toMatchObject({
+        const anchorRect = (menu as HTMLElement & { anchorRect?: unknown }).anchorRect;
+        expect(anchorRect).toMatchObject({
           left: expect.any(Number),
           top: expect.any(Number),
           right: expect.any(Number),
           bottom: expect.any(Number),
         });
+        expect(Object.getPrototypeOf(anchorRect)).toBe(Object.prototype);
       });
       expect(browserErrors).toEqual([]);
     } finally {
