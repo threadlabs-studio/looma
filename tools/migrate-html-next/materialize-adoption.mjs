@@ -231,7 +231,7 @@ async function main() {
   const slotNameReader = 'function Ei(e){return e instanceof Element?e.getAttribute("slot")??"":""}';
   const frameworkSlotNameReader = 'function Ei(e){return e.__loomaFrameworkSlot??(e instanceof Element?e.getAttribute("slot")??"":"")}';
   const hydrationScanner = 'let c=[],l=(m,f)=>{let p=f.children.filter(w=>w.kind==="text").map(w=>w.value),h=0,v=f.children.filter(w=>w.kind==="element"),S=0;for(let w of Array.from(m.childNodes)){if(w instanceof Element){if(!(w.getAttribute("data-component")?.split(/\\s+/)??[]).includes(t.contract.tag))Ve(w),c.push(w);else{';
-  const frameworkAwareHydrationScanner = 'let c=[],l=(m,f)=>{let q=f.children.find(w=>w.kind==="slot"),k=q?.name??"",p=f.children.filter(w=>w.kind==="text").map(w=>w.value),h=0,v=f.children.filter(w=>w.kind==="element"),S=0;for(let w of Array.from(m.childNodes)){if(w instanceof Element){if(!(w.getAttribute("data-component")?.split(/\\s+/)??[]).includes(t.contract.tag))w.__loomaFrameworkSlot=w.getAttribute("data-looma-framework-slot")??k,Ve(w),c.push(w);else{';
+  const frameworkAwareHydrationScanner = 'let c=Array.from(e.querySelectorAll("[data-looma-framework-slot]")).filter(w=>w.closest("[data-component-root]")===e);for(let w of c)w.__loomaFrameworkSlot=w.getAttribute("data-looma-framework-slot")??"",Ve(w);let C=new Set(c),l=(m,f)=>{let q=f.children.find(w=>w.kind==="slot"),k=q?.name??"",p=f.children.filter(w=>w.kind==="text").map(w=>w.value),h=0,v=f.children.filter(w=>w.kind==="element"),S=0;for(let w of Array.from(m.childNodes)){if(w instanceof Element){if(!(w.getAttribute("data-component")?.split(/\\s+/)??[]).includes(t.contract.tag)){if(!C.has(w))w.__loomaFrameworkSlot=w.getAttribute("data-looma-framework-slot")??k,Ve(w),c.push(w)}else{';
   const hydrationTextScanner = 'b!==void 0&&l(w,b)}continue}if(w instanceof Text&&w.data.trim()!==""){';
   const frameworkAwareHydrationTextScanner = 'b!==void 0&&l(w,b)}continue}if(w instanceof Comment&&q!==void 0){w.__loomaFrameworkSlot=k,c.push(w);continue}if(w instanceof Text&&w.data.trim()!==""){';
   const flowRenderer = 'function Rn(e,t,n,r,i,o){if(e.flow?.kind==="if"||e.flow?.kind==="each"||e.flow?.kind==="with"||e.flow?.kind==="match")return hi(e,t,n,r,i);let a=[];for(let s of mi(e.flow,t))a.push(...ve(e,s,n,r,i,o));return a}';
@@ -254,6 +254,10 @@ async function main() {
     // render slots directly into the generated native tree. Retain those anchors
     // and their region identity while the declarative runtime adopts the
     // already-rendered root, so later reactive inserts stay under framework control.
+    // Discover explicit framework slot wrappers before structurally walking the
+    // template. A flow container can render a sibling whose native tag does not
+    // appear directly in the AST, and the walk must not skip every later slot
+    // region while searching past that sibling.
     .replace(slotNameReader, frameworkSlotNameReader)
     .replace(hydrationScanner, frameworkAwareHydrationScanner)
     .replace(hydrationTextScanner, frameworkAwareHydrationTextScanner)

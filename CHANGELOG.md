@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## v0.2.16 Candidate
+
+- Preserve every Vue-owned TreeItem slot across SSR hydration when conditional
+  controls precede the row regions, so folder icons, labels, actions, and
+  children remain visible after declarative controller attachment.
+
 ## v0.2.15 Candidate
 
 - Forward generated Combobox query, selection, creation, and focus events

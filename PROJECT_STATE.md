@@ -4,13 +4,13 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-20 19:03 PDT
-Status: Candidate `0.2.14` is public. Candidate `0.2.15` is prepared with
-correct Combobox event forwarding, omitted-versus-controlled Boolean semantics
-in generated Vue adapters, and direct default-slot children for single-region
-components, while retaining the structured document paste, reliable history
-controls, sticky editor option, and SSR-safe projected-region hydration
-qualified in prior Candidates.
+Last Updated: 2026-09-20 20:02 PDT
+Status: Candidate `0.2.15` is public. Candidate `0.2.16` is prepared with
+SSR-safe Vue TreeItem row slots when conditional controls precede projected
+regions, while retaining correct Combobox event forwarding,
+omitted-versus-controlled Boolean semantics, direct default-slot children,
+structured document paste, reliable history controls, and the sticky editor
+option qualified in prior Candidates.
 Historical release tasks below retain their original version context.
 
 ## Current Focus
@@ -40,6 +40,10 @@ Historical release tasks below retain their original version context.
 
 ## Recent Progress
 
+- Preserved the explicit framework slot wrappers before structurally adopting
+  an SSR-rendered native root. Conditional controls can no longer cause the
+  adoption scanner to skip later TreeItem row regions and remove their Vue-owned
+  icon, label, and action content during hydration.
 - Corrected generated Vue Combobox listener names and payload handling so query,
   selection, creation, and focus events reach application owners. Real Chromium
   coverage now exercises a controlled query and comma-triggered item creation.
