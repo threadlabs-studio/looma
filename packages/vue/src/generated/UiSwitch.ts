@@ -13,7 +13,7 @@ export default /*@__PURE__*/_defineComponent({
   ...{ inheritAttrs: false },
   __name: 'UiSwitch',
   props: {
-    checked: { type: [Boolean, null], required: false },
+    checked: { type: [Boolean, null], required: false, default: undefined },
     defaultChecked: { type: [Boolean, null], required: false, default: false },
     disabled: { type: [Boolean, null], required: false, default: false },
     required: { type: [Boolean, null], required: false, default: false },
@@ -62,7 +62,7 @@ return (_ctx: any,_cache: any) => {
       "aria-hidden": "true",
       "data-component": "ui-switch"
     }, null, 8 /* PROPS */, _hoisted_2),
-    _createElementVNode("span", { "data-looma-framework-slot": "", style: { display: "contents" } }, [_renderSlot(_ctx.$slots, "default")])
+    _renderSlot(_ctx.$slots, "default")
   ], 16 /* FULL_PROPS */, _hoisted_1))
 }
 }

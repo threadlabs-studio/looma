@@ -19,7 +19,7 @@ export default /*@__PURE__*/_defineComponent({
   props: {
     defaultOpen: { type: [Boolean, null], required: false, default: false },
     for: { type: [String, null], required: false },
-    open: { type: [Boolean, null], required: false }
+    open: { type: [Boolean, null], required: false, default: undefined }
   },
   emits: ["open", "close", "select"],
   setup(__props: any, { emit: __emit }) {

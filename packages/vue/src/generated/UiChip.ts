@@ -56,7 +56,7 @@ return (_ctx: any,_cache: any) => {
   }), [
     _createElementVNode("span", _hoisted_2, [
       _createElementVNode("span", _hoisted_3, [
-        _createElementVNode("span", { "data-looma-framework-slot": "", style: { display: "contents" } }, [_renderSlot(_ctx.$slots, "default")])
+        _renderSlot(_ctx.$slots, "default")
       ])
     ])
   ], 16 /* FULL_PROPS */, _hoisted_1))

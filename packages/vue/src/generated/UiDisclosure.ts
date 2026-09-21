@@ -1,5 +1,5 @@
 import { defineComponent as _defineComponent } from 'vue'
-import { createElementVNode as _createElementVNode, renderSlot as _renderSlot, mergeProps as _mergeProps, openBlock as _openBlock, createElementBlock as _createElementBlock } from "vue"
+import { renderSlot as _renderSlot, mergeProps as _mergeProps, openBlock as _openBlock, createElementBlock as _createElementBlock } from "vue"
 
 import { onMounted, onUnmounted, ref, watchEffect } from "vue";
 import { attachLoomaComponent } from "@threadlabs/looma-core/declarative";
@@ -12,7 +12,7 @@ export default /*@__PURE__*/_defineComponent({
   props: {
     defaultOpen: { type: [Boolean, null], required: false, default: false },
     disabled: { type: [Boolean, null], required: false, default: false },
-    open: { type: [Boolean, null], required: false }
+    open: { type: [Boolean, null], required: false, default: undefined }
   },
   emits: ["open", "close"],
   setup(__props: any, { emit: __emit }) {
@@ -50,7 +50,7 @@ return (_ctx: any,_cache: any) => {
     ref_key: "root",
     ref: root
   }), [
-    _createElementVNode("span", { "data-looma-framework-slot": "", style: { display: "contents" } }, [_renderSlot(_ctx.$slots, "default")])
+    _renderSlot(_ctx.$slots, "default")
   ], 16 /* FULL_PROPS */))
 }
 }
