@@ -2,8 +2,11 @@
 
 ## Unreleased
 
-## v0.2.14 Candidate
+## v0.2.15 Candidate
 
+- Forward generated Combobox query, selection, creation, and focus events
+  through Vue using its component-listener contract, so controlled queries no
+  longer revert while typing and separator-driven item creation reaches apps.
 - Preserve omitted controlled Boolean props as `undefined` in generated Vue
   adapters, so Editable, menus, disclosures, form controls, and tree items keep
   their documented uncontrolled behavior until an owner supplies state.

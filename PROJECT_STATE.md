@@ -4,12 +4,13 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-20 17:55 PDT
-Status: Candidate `0.2.13` is public. Candidate `0.2.14` is prepared with
-correct omitted-versus-controlled Boolean semantics in generated Vue adapters
-and direct default-slot children for single-region components, while retaining
-the structured document paste, reliable history controls, sticky editor option,
-and SSR-safe projected-region hydration qualified in prior Candidates.
+Last Updated: 2026-09-20 19:03 PDT
+Status: Candidate `0.2.14` is public. Candidate `0.2.15` is prepared with
+correct Combobox event forwarding, omitted-versus-controlled Boolean semantics
+in generated Vue adapters, and direct default-slot children for single-region
+components, while retaining the structured document paste, reliable history
+controls, sticky editor option, and SSR-safe projected-region hydration
+qualified in prior Candidates.
 Historical release tasks below retain their original version context.
 
 ## Current Focus
@@ -39,6 +40,9 @@ Historical release tasks below retain their original version context.
 
 ## Recent Progress
 
+- Corrected generated Vue Combobox listener names and payload handling so query,
+  selection, creation, and focus events reach application owners. Real Chromium
+  coverage now exercises a controlled query and comma-triggered item creation.
 - Preserved `undefined` for optional controlled Boolean props in generated Vue
   adapters. Omitted `edit`, `open`, `checked`, and `expanded` values now select
   uncontrolled behavior, while explicit `false` remains owner-controlled.
