@@ -4,11 +4,11 @@ slug: /
 
 # Getting Started
 
-Looma Release 1 is a Candidate `0.2.14` package for Vue 3 and direct declarative HTML use. It is not Stable yet. React and Svelte adapters in the repository are internal previews and are not published or supported in Release 1.
+Looma Release 1 is a Candidate `0.2.15` package for Vue 3 and direct declarative HTML use. It is not Stable yet. React and Svelte adapters in the repository are internal previews and are not published or supported in Release 1.
 
 :::caution Confirm the Candidate tag
 
-These instructions target the exact `@threadlabs/looma@0.2.14` Candidate. Before adopting it, confirm that npm resolves that package at `0.2.14` under the `candidate` dist-tag. Preview documentation can be built before that registry gate; production documentation is published only after the gate passes.
+These instructions target the exact `@threadlabs/looma@0.2.15` Candidate. Before adopting it, confirm that npm resolves that package at `0.2.15` under the `candidate` dist-tag. Preview documentation can be built before that registry gate; production documentation is published only after the gate passes.
 
 :::
 
