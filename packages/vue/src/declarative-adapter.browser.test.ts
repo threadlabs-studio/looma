@@ -188,6 +188,86 @@ describe("Vue declarative adapters in a browser", () => {
     expect(host.querySelector('[part="actions"] button')?.textContent).toBe("More");
   });
 
+  it("keeps projected regions across reactive updates after SSR hydration", async () => {
+    const label = ref("First title");
+    const expanded = ref(false);
+    const sortable = ref(false);
+    const component = {
+      render: () => h(TreeItem, {
+        container: true,
+        expanded: expanded.value,
+        itemId: "page",
+        label: label.value,
+        sortable: sortable.value,
+      }, {
+        leading: () => h("span", { class: "icon" }, "Icon"),
+        default: () => h("a", { href: "/page" }, label.value),
+        actions: () => h("button", { type: "button" }, "More"),
+        children: () => expanded.value ? h("span", "Child") : null,
+      }),
+    };
+    const host = document.createElement("div");
+    host.innerHTML = await renderToString(createSSRApp(component));
+    document.body.append(host);
+    const app = createSSRApp(component);
+    apps.push(app);
+    app.mount(host);
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+
+    label.value = "Updated title";
+    expanded.value = true;
+    sortable.value = true;
+    await nextTick();
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+
+    expect(host.querySelector('[part="leading"] .icon')?.textContent).toBe("Icon");
+    expect(host.querySelector('[part="label"] a')?.textContent).toBe("Updated title");
+    expect(host.querySelector('[part="actions"] button')?.textContent).toBe("More");
+    expect(host.querySelector('[part="children"]')?.textContent).toContain("Child");
+  });
+
+  it("keeps item regions when a hydrated tree receives parent list updates", async () => {
+    const items = ref([{ id: "general", label: "General", depth: 0 }]);
+    const component = {
+      render: () => h(Tree, { label: "Pages" }, () => items.value.map((item) => h(TreeItem, {
+        key: item.id,
+        container: true,
+        itemId: item.id,
+        label: item.label,
+        subtreeDepth: item.depth,
+      }, {
+        leading: () => h("span", { class: "icon" }, "Icon"),
+        default: () => h("span", { class: "title" }, item.label),
+        actions: () => h("button", { type: "button" }, "More"),
+        children: () => h("span", "Child"),
+      }))),
+    };
+    const host = document.createElement("div");
+    host.innerHTML = await renderToString(createSSRApp(component));
+    document.body.append(host);
+    const app = createSSRApp(component);
+    apps.push(app);
+    app.mount(host);
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+
+    items.value = [
+      { id: "general", label: "General", depth: 1 },
+      { id: "source", label: "Depth source", depth: 0 },
+    ];
+    await nextTick();
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+
+    const roots = Array.from(host.querySelectorAll<HTMLElement>('[data-component-root="ui-tree-item"]'));
+    expect(roots).toHaveLength(2);
+    for (const root of roots) {
+      const title = root.querySelector<HTMLElement>('[part="label"] .title');
+      expect(root.querySelector('[part="leading"] .icon')).not.toBeNull();
+      expect(title).not.toBeNull();
+      expect(title?.textContent).toBe(root.getAttribute("aria-label"));
+      expect(root.querySelector('[part="actions"] button')?.textContent).toBe("More");
+    }
+  });
+
   it("keeps hidden native roots out of layout", async () => {
     const host = document.createElement("div");
     document.body.append(host);
