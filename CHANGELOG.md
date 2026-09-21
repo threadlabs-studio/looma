@@ -2,6 +2,33 @@
 
 ## Unreleased
 
+## v0.2.20 Candidate
+
+- Preserve editor focus while table-overlay controls are pressed, so a managed
+  overlay cannot replace the pointer target before its insertion click fires.
+
+## v0.2.19 Candidate
+
+- Project slash commands to the managed menu's display-only item contract,
+  keeping internal keywords and executable callbacks out of component props.
+
+## v0.2.18 Candidate
+
+- Convert native editor suggestion rectangles to Looma's structural anchor
+  contract before rendering managed mention and slash menus, preventing a
+  mount-time validation error from freezing asynchronous results at loading.
+
+## v0.2.17 Candidate
+
+- Keep async mention suggestions current while a query is typed one character
+  at a time, so fast input cannot leave the menu stuck in its loading state.
+
+## v0.2.16 Candidate
+
+- Preserve every Vue-owned TreeItem slot across SSR hydration when conditional
+  controls precede the row regions, so folder icons, labels, actions, and
+  children remain visible after declarative controller attachment.
+
 ## v0.2.15 Candidate
 
 - Forward generated Combobox query, selection, creation, and focus events

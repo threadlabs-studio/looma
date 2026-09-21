@@ -4,13 +4,12 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-20 19:03 PDT
-Status: Candidate `0.2.14` is public. Candidate `0.2.15` is prepared with
-correct Combobox event forwarding, omitted-versus-controlled Boolean semantics
-in generated Vue adapters, and direct default-slot children for single-region
-components, while retaining the structured document paste, reliable history
-controls, sticky editor option, and SSR-safe projected-region hydration
-qualified in prior Candidates.
+Last Updated: 2026-09-20 23:47 PDT
+Status: Candidate `0.2.19` is public. Candidate `0.2.20` is prepared with
+table-overlay pointer controls that preserve editor focus through click, while
+retaining display-only managed slash items, contract-safe suggestion anchors,
+structured document paste, reliable history controls, and the sticky editor
+option qualified in prior Candidates.
 Historical release tasks below retain their original version context.
 
 ## Current Focus
@@ -40,6 +39,23 @@ Historical release tasks below retain their original version context.
 
 ## Recent Progress
 
+- Preserved ProseMirror focus when table-overlay buttons receive mouse-down, so
+  reactive overlay updates cannot replace a control between pointer-down and
+  click. Real-pointer Chromium coverage now locks row insertion through the
+  managed editor boundary.
+- Kept internal slash-command keywords and executable callbacks outside the
+  managed component boundary. The rendered menu now receives only its declared
+  title, description, and icon fields.
+- Projected native suggestion-menu rectangles into plain structural values at
+  the managed Vue boundary. Mention and slash menus no longer fail validation
+  during mount and leave their initial loading shell frozen.
+- Kept mention suggestion state aligned to the active query without requiring
+  the provider callback's transient range end to match exactly. Fast typing no
+  longer leaves an otherwise successful async lookup stuck as loading.
+- Preserved the explicit framework slot wrappers before structurally adopting
+  an SSR-rendered native root. Conditional controls can no longer cause the
+  adoption scanner to skip later TreeItem row regions and remove their Vue-owned
+  icon, label, and action content during hydration.
 - Corrected generated Vue Combobox listener names and payload handling so query,
   selection, creation, and focus events reach application owners. Real Chromium
   coverage now exercises a controlled query and comma-triggered item creation.
