@@ -20,7 +20,7 @@ afterEach(async () => {
   vi.restoreAllMocks();
 });
 
-describe("LoomaEditor managed mention menu", () => {
+describe("LoomaEditor managed suggestion menus", () => {
   it("projects native suggestion rectangles through the managed component boundary", async () => {
     const host = document.createElement("div");
     document.body.append(host);
@@ -59,6 +59,48 @@ describe("LoomaEditor managed mention menu", () => {
           bottom: expect.any(Number),
         });
         expect(Object.getPrototypeOf(anchorRect)).toBe(Object.prototype);
+      });
+      expect(browserErrors).toEqual([]);
+    } finally {
+      window.removeEventListener("error", onError);
+    }
+  });
+
+  it("projects slash commands to the managed menu item contract", async () => {
+    const host = document.createElement("div");
+    document.body.append(host);
+    const browserErrors: string[] = [];
+    const onError = (event: ErrorEvent) => browserErrors.push(event.message);
+    window.addEventListener("error", onError);
+
+    let editor: Editor | null = null;
+    const app = createApp({
+      render: () => h(LoomaEditor, {
+        onReady: (instance: Editor) => { editor = instance; },
+      }),
+    });
+    apps.push(app);
+
+    try {
+      app.mount(host);
+      await flushBrowser();
+      editor!.chain().focus().insertContent("/tab").run();
+
+      await vi.waitFor(() => {
+        const menu = host.querySelector<HTMLElement>(
+          '[data-component-root~="ui-editor-slash-menu"]',
+        );
+        expect(menu?.textContent).toContain("Table");
+        const items = (menu as HTMLElement & {
+          items?: Array<Record<string, unknown>>;
+        }).items;
+        expect(items?.[0]).toEqual({
+          title: expect.any(String),
+          description: expect.any(String),
+          icon: expect.any(String),
+        });
+        expect(items?.[0]).not.toHaveProperty("keywords");
+        expect(items?.[0]).not.toHaveProperty("command");
       });
       expect(browserErrors).toEqual([]);
     } finally {

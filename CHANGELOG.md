@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## v0.2.19 Candidate
+
+- Project slash commands to the managed menu's display-only item contract,
+  keeping internal keywords and executable callbacks out of component props.
+
 ## v0.2.18 Candidate
 
 - Convert native editor suggestion rectangles to Looma's structural anchor

@@ -103,6 +103,14 @@ function managedMenuAnchorRect(rect: DOMRect | null): SlashMenuAnchorRect | null
   };
 }
 
+function managedSlashMenuItems(items: LoomaSlashMenuSnapshot["items"]) {
+  return items.map(({ title, description, icon }) => ({
+    title,
+    description,
+    icon,
+  }));
+}
+
 function selectedTableElement(editor: Editor): HTMLTableElement | null {
   const { node } = editor.view.domAtPos(editor.state.selection.from);
   const element = node instanceof HTMLElement ? node : node.parentElement;
@@ -954,7 +962,7 @@ export const LoomaEditor = defineComponent({
           ? h(EditorSlashMenu, {
               open: true,
               query: slash.query,
-              items: slash.items,
+              items: managedSlashMenuItems(slash.items),
               selectedIndex: slash.selectedIndex,
               anchorRect: managedMenuAnchorRect(slash.rect),
               onSlashMenuHighlight: ({ index }: { index: number }) => { slash.selectedIndex = index; },

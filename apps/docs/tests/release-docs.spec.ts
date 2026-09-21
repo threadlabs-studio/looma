@@ -3,7 +3,7 @@ import axe from "axe-core";
 
 const releaseMode = process.env.LOOMA_DOCS_RELEASE_MODE ?? "preview";
 const expectedAnnouncement = releaseMode === "candidate"
-  ? "Release 1 Candidate 0.2.18 is available"
+  ? "Release 1 Candidate 0.2.19 is available"
   : "Release 1 Candidate documentation preview";
 
 const candidatePages = [
