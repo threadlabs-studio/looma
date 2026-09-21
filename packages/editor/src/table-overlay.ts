@@ -216,6 +216,7 @@ class UIEditorTableOverlayElement extends HTMLElement {
     this.#rows = this.#readBoundedNumber("rows", DEFAULT_ROWS);
     this.#cols = this.#readBoundedNumber("cols", DEFAULT_COLS);
     this.render();
+    this.addEventListener("mousedown", this.onMouseDown);
     this.addEventListener("click", this.onClick);
     this.addEventListener("pointerover", this.onPointerOver);
     this.addEventListener("pointerout", this.onPointerOut);
@@ -228,6 +229,7 @@ class UIEditorTableOverlayElement extends HTMLElement {
   }
 
   disconnectedCallback(): void {
+    this.removeEventListener("mousedown", this.onMouseDown);
     this.removeEventListener("click", this.onClick);
     this.removeEventListener("pointerover", this.onPointerOver);
     this.removeEventListener("pointerout", this.onPointerOut);
@@ -301,6 +303,13 @@ class UIEditorTableOverlayElement extends HTMLElement {
       { detail, bubbles: true, composed: true },
     ));
   }
+
+  private onMouseDown = (event: MouseEvent): void => {
+    const target = event.target instanceof Element
+      ? event.target.closest("button[data-action]")
+      : null;
+    if (target) event.preventDefault();
+  };
 
   private onClick = (event: MouseEvent): void => {
     const target = (event.target as HTMLElement).closest<HTMLButtonElement>("button[data-action]");

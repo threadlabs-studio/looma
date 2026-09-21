@@ -755,6 +755,13 @@ export const LoomaEditor = defineComponent({
       nextTick(updateTableUi);
     };
 
+    const onTableOverlayMouseDown = (event: MouseEvent) => {
+      const action = event.target instanceof Element
+        ? event.target.closest("button[data-action]")
+        : null;
+      if (action) event.preventDefault();
+    };
+
     const commandButton = (
       label: string,
       icon: LoomaIconName,
@@ -1001,6 +1008,7 @@ export const LoomaEditor = defineComponent({
               ref: tableOverlayShell,
               class: "looma-editor__table-overlay-shell",
               style: tableUi.overlayStyle,
+              onMousedown: onTableOverlayMouseDown,
               onPointerleave: onTableOverlayPointerLeave,
             }, [h(EditorTableOverlay, {
               open: true,

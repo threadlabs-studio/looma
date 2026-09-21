@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## v0.2.20 Candidate
+
+- Preserve editor focus while table-overlay controls are pressed, so a managed
+  overlay cannot replace the pointer target before its insertion click fires.
+
 ## v0.2.19 Candidate
 
 - Project slash commands to the managed menu's display-only item contract,
