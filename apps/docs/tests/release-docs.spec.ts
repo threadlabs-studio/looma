@@ -5,7 +5,7 @@ import componentApi from "../../../generated/component-api.json";
 
 const releaseMode = process.env.LOOMA_DOCS_RELEASE_MODE ?? "preview";
 const expectedAnnouncement = releaseMode === "candidate"
-  ? "Release 1 Candidate 0.2.20 is available"
+  ? "Release 1 Candidate 0.3.0 is available"
   : "Release 1 Candidate documentation preview";
 
 const candidatePages = [
@@ -174,7 +174,7 @@ test("the context-menu docs expose both visible and pointer action paths", async
   await expect(target).toHaveText("Open menu");
 
   // Leave room below the pointer so the menu opens downward instead of flipping.
-  await target.evaluate((element) => element.scrollIntoView({ block: "center" }));
+  await target.evaluate((element) => element.scrollIntoView({ block: "center", behavior: "instant" }));
   await target.click({ button: "right", position: { x: 24, y: 24 } });
   const firstItem = page.getByRole("menuitem", { name: "First item", exact: true });
   await expect(firstItem).toBeVisible();
