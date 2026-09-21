@@ -2,6 +2,8 @@
 
 Last updated: 2026-03-29
 
+> This family-level audit decided which component families Looma owns. Per-component option decisions for 0.3 are in the [Component Option Audit](../apps/docs/docs/component-library-audit.md), with evidence in [docs/audits](./audits/).
+
 This audit compares Looma's shipped and proposed component surface against a broader set of modern UI libraries. The goal is to confirm a durable component set, identify common feature expectations, and update Looma's roadmap with benchmarked gaps instead of library-by-library intuition.
 
 ## Scope
