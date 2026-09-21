@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## v0.2.14 Candidate
+
+- Preserve omitted controlled Boolean props as `undefined` in generated Vue
+  adapters, so Editable, menus, disclosures, form controls, and tree items keep
+  their documented uncontrolled behavior until an owner supplies state.
+- Keep sole default-slot children direct in generated Vue roots, preserving
+  native child-selector layout and measurements for Sidebar, Switcher, Reel,
+  and other single-region primitives.
+
 ## v0.2.13 Candidate
 
 - Preserve Vue-owned flow anchors during SSR hydration and make generated Vue

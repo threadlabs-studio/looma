@@ -19,7 +19,7 @@ export default /*@__PURE__*/_defineComponent({
     dismissible: { type: [Boolean, null], required: false, default: true },
     label: { type: [String, null], required: false },
     modal: { type: [Boolean, null], required: false, default: true },
-    open: { type: [Boolean, null], required: false }
+    open: { type: [Boolean, null], required: false, default: undefined }
   },
   emits: ["close"],
   setup(__props: any, { emit: __emit }) {
@@ -56,7 +56,7 @@ return (_ctx: any,_cache: any) => {
     ref: root
   }), [
     _createElementVNode("dialog", _hoisted_1, [
-      _createElementVNode("span", { "data-looma-framework-slot": "", style: { display: "contents" } }, [_renderSlot(_ctx.$slots, "default")])
+      _renderSlot(_ctx.$slots, "default")
     ])
   ], 16 /* FULL_PROPS */))
 }
