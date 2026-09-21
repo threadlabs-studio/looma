@@ -81,6 +81,9 @@ await page.evaluate(async ({ urls, events }) => {
   window.__loomaEvents = [];
   // Capture phase: some component events (tree `expand`) deliberately do not bubble.
   for (const name of events) document.addEventListener(name, (event) => {
+    // Every component event (some, like tree expand, do not bubble), plus native events that bubble.
+    // Capture would otherwise also record non-bubbling native events such as a dialog's own close.
+    if (!(event instanceof CustomEvent) && !event.bubbles) return;
     window.__loomaEvents.push({ name, detail: event.detail ?? null });
   }, { capture: true });
   const controllers = {};
@@ -284,6 +287,8 @@ await check("dialog escape request", async () => {
   assert.equal(await root.getAttribute("open"), "");
   await root.press("Escape");
   await debugFixture("dialog after escape");
+  // The close event is dispatched asynchronously; wait for it rather than reading at once.
+  await page.waitForFunction(() => window.__loomaEvents.some((event) => event.name === "close"), null, { timeout: 2000 });
   assert.equal((await events("close")).at(-1)?.detail.reason, "escape");
 });
 
@@ -304,7 +309,9 @@ await check("toast region command and owned dismissal", async () => {
   const region = page.locator('[data-component-root~="ui-toast-region"]');
   assert.equal(await region.locator(".toast__message").textContent(), "Page saved.");
   await region.locator(".toast__dismiss").click();
-  assert.equal(await region.locator(".toast").count(), 0);
+  // The toast leaves at once (closing state) and is removed after its exit animation.
+  assert.equal(await region.locator(".toast[data-state-closing]").count(), 1);
+  await region.locator(".toast").waitFor({ state: "detached", timeout: 2000 });
   assert.equal((await events("dismiss")).at(-1)?.detail.id.startsWith("ui-toast-"), true);
 });
 

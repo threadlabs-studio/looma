@@ -19,7 +19,9 @@ export default function controller(host) {
   element.setAttribute("popover", "manual");
   element.dataset.uiPositioning = "viewport";
 
-  const toasts = () => Array.from(element.children).filter((child) => child.classList.contains("toast"));
+  // Toasts still playing their exit animation no longer count.
+  const toasts = () => Array.from(element.children).filter((child) =>
+    child.classList.contains("toast") && !child.hasAttribute("data-state-closing"));
   // Auto-dismiss timers: each toast keeps its remaining time so hover/focus can pause and resume it.
   const timers = new Map();
   let paused = false;
@@ -46,9 +48,17 @@ export default function controller(host) {
   const dismissToast = (toast, reason, trigger) => {
     clearTimeout(timers.get(toast)?.handle);
     timers.delete(toast);
-    if (!toast.isConnected) return;
+    if (!toast.isConnected || toast.hasAttribute("data-state-closing")) return;
     const id = toast.id;
-    toast.remove();
+    // Play the exit animation, then remove. Reduced motion (no animation) removes at once; the timeout
+    // guards against a missed animationend.
+    toast.setAttribute("data-state-closing", "");
+    const remove = () => { if (toast.isConnected) { toast.remove(); sync(); } };
+    if (getComputedStyle(toast).animationName === "none") remove();
+    else {
+      toast.addEventListener("animationend", remove, { once: true });
+      setTimeout(remove, 500);
+    }
     host.dispatch("dismiss", { id, reason, trigger });
     if (toasts().length === 0) {
       host.state.internalOpen = false;
@@ -71,7 +81,9 @@ export default function controller(host) {
       host.state.internalOpen = externalOpen;
     }
     const open = Boolean(host.state.internalOpen) && toasts().length > 0;
-    setSurfaceOpen(open);
+    // Stay visible while a dismissed toast finishes its exit animation.
+    const leaving = element.querySelector(":scope > .toast[data-state-closing]") !== null;
+    setSurfaceOpen(open || leaving);
   };
   const addToast = (message, options = {}) => {
     const toast = element.ownerDocument.createElement("div");

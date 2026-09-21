@@ -1,5 +1,10 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import type { Config } from "@docusaurus/types";
 import type * as Preset from "@docusaurus/preset-classic";
+
+// The released package version, shown in the navbar.
+const loomaVersion = (JSON.parse(readFileSync(path.join(__dirname, "../../package.json"), "utf8")) as { version: string }).version;
 
 const docsReleaseMode = process.env.LOOMA_DOCS_RELEASE_MODE ?? "preview";
 
@@ -95,6 +100,11 @@ const config: Config = {
           to: "/editor",
           label: "Editor",
           position: "left"
+        },
+        {
+          type: "html",
+          position: "right",
+          value: `<span class="looma-version" title="Looma version">v${loomaVersion}</span>`
         }
       ]
     },

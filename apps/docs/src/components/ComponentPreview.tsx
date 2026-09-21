@@ -177,7 +177,7 @@ const filtered = computed(() => results.filter((result) =>
   react: {
     language: "tsx",
     code: `import { useState } from "react";
-import { Button, Input, SearchResultRow, SearchShell } from "@threadlabs/looma-react";
+import { Button, Input, SearchResultRow, SearchShell } from "@threadlabs/looma/react";
 
 const results = [
   ["Design tokens", "Color, type, spacing, and motion."],
@@ -542,9 +542,9 @@ function curatedScenarios(component: string, id: string): PreviewScenario[] {
       }];
     case "ui-context-menu":
       return [{
-        label: "open",
-        description: "Default-open exposes the initial menu state without controlling later interaction.",
-        markup: `<ui-button id="${id}-open-target">Open menu</ui-button><ui-context-menu for="${id}-open-target" open><ui-menu-item value="enabled">Enabled item</ui-menu-item><ui-menu-item value="disabled" disabled>Disabled item</ui-menu-item></ui-context-menu>`
+        label: "Disabled items",
+        description: "Right-click the target to open the menu. A disabled item is announced and shown but cannot be chosen, and arrow keys skip it.",
+        markup: `<ui-button id="${id}-disabled-target">Right-click me</ui-button><ui-context-menu for="${id}-disabled-target"><ui-menu-item value="rename">Rename</ui-menu-item><ui-menu-item value="delete" disabled>Delete (locked)</ui-menu-item><ui-menu-item value="duplicate">Duplicate</ui-menu-item></ui-context-menu>`
       }];
     case "ui-dialog":
       return [
@@ -909,6 +909,33 @@ function ComponentPreviewClient({ component, compact = false }: ComponentPreview
     if (!ready || !rootRef.current) return;
 
 
+  }, [component, ready, scenarios]);
+
+  // The tree reports a drop as a `reorder` request; like an application, the demo applies it by
+  // moving the item. The tree re-derives levels from the DOM.
+  useEffect(() => {
+    if (!ready || !["ui-tree", "ui-tree-item"].includes(component) || !rootRef.current) return;
+    const root = rootRef.current;
+    const onReorder = (event: Event) => {
+      const { sourceId, targetId, position } = (event as CustomEvent<{ sourceId: string; targetId: string; position: "before" | "inside" | "after" }>).detail;
+      const tree = (event.target as Element | null)?.closest('[data-component-root~="ui-tree"]');
+      const item = (id: string) => tree?.querySelector<HTMLElement>(`[data-component-root~="ui-tree-item"][data-item-id="${CSS.escape(id)}"]`);
+      const source = item(sourceId);
+      const target = item(targetId);
+      if (!source || !target || source === target || source.contains(target)) return;
+      if (position === "before") target.before(source);
+      else if (position === "after") target.after(source);
+      else {
+        const group = target.querySelector<HTMLElement>(':scope > [role="group"]');
+        if (!group) return;
+        // Stay inside the group's slot range: before its closing marker when there is one.
+        const last = group.lastChild;
+        const marker = last && (last.nodeType === Node.PROCESSING_INSTRUCTION_NODE || last.nodeType === Node.COMMENT_NODE) ? last : null;
+        group.insertBefore(source, marker);
+      }
+    };
+    root.addEventListener("reorder", onReorder, true);
+    return () => root.removeEventListener("reorder", onReorder, true);
   }, [component, ready, scenarios]);
 
   useEffect(() => {

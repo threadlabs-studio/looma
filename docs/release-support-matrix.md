@@ -10,7 +10,7 @@ promise that every repository package and roadmap item is supported.
 | --- | --- | --- | --- |
 | `@threadlabs/looma` | Published Candidate | Explicit root/core, loader, layout, editor, editor-extension, Vue, and CSS subpaths | Singleton package integrity and behavioral qualification |
 | implementation workspaces | Internal | Private modular build inputs | Not public artifacts |
-| React and Svelte adapters | Internal/deferred | Repository preview only | Not an R1 gate or public promise |
+| `@threadlabs/looma/react`, `/svelte` | Published preview | React components; DOM factories for Svelte | Not an R1 gate; may change |
 | docs, Storybook, examples, tooling | Internal | Private workspaces | Release tooling/docs gates only |
 
 The owner-approved public identity is `@threadlabs/looma`. Exact-name publish

@@ -42,13 +42,21 @@ export default function controller(host) {
 
   const setEditing = (next, reason, trigger) => {
     if (host.state.disabled || Boolean(host.state.internalEdit) === next) return;
+    // Measured before the input is disabled, which drops focus to the body.
+    const focusWasInside = element.contains(document.activeElement);
     if (next) host.state.draft = host.state.internalValue;
     host.state.internalEdit = next;
     apply();
     host.dispatch("edit-change", { edit: next, reason, trigger });
     requestAnimationFrame(() => {
-      if (!next) return preview?.focus();
-      input?.focus();
+      // Return focus to the display only if it was still inside the editor (Enter, Escape, Save,
+      // Cancel). After a click elsewhere, focus stays where the user clicked; pulling it back would
+      // scroll the page to this editor.
+      if (!next) {
+        if (focusWasInside) preview?.focus({ preventScroll: true });
+        return;
+      }
+      input?.focus({ preventScroll: true });
       input?.select();
     });
   };

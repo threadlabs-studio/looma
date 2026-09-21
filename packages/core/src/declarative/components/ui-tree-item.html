@@ -18,7 +18,7 @@
     <state name="hasChildren" :value="false"></state>
     <event name="expand" bubbles="false" type="object({ id: string, expanded: boolean, trigger: keyboard | pointer | programmatic })"></event>
   </defs>
-  <div role="treeitem" :data-drop-scope="dropScope" :data-accepts="accepts"><div class="row" part="row"><button $if="sortable and not disabled" class="drag-handle" part="drag-handle" type="button"><span aria-hidden="true"></span></button><button class="disclosure" part="disclosure" type="button" :disabled="disabled"><span class="disclosure-icon" aria-hidden="true"></span></button><span class="leading" part="leading"><slot name="leading"></slot></span><span class="label" part="label"></span><span class="actions" part="actions"><slot name="actions"></slot></span><span class="drop-indicator row-drop-indicator" part="drop-indicator" aria-hidden="true"></span></div><div class="children" part="children" role="group"><slot></slot></div><span class="drop-indicator subtree-drop-indicator" part="drop-indicator" aria-hidden="true"></span></div>
+  <div role="treeitem" :data-drop-scope="dropScope" :data-accepts="accepts"><div class="row" part="row"><button $if="sortable and not disabled" class="drag-handle" part="drag-handle" type="button"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="5" r="1"></circle><circle cx="9" cy="19" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="5" r="1"></circle><circle cx="15" cy="19" r="1"></circle></svg></button><button class="disclosure" part="disclosure" type="button" :disabled="disabled"><span class="disclosure-icon" aria-hidden="true"></span></button><span class="leading" part="leading"><slot name="leading"></slot></span><span class="label" part="label"></span><span class="actions" part="actions"><slot name="actions"></slot></span><span class="drop-indicator row-drop-indicator" part="drop-indicator" aria-hidden="true"></span></div><div class="children" part="children" role="group"><slot></slot></div><span class="drop-indicator subtree-drop-indicator" part="drop-indicator" aria-hidden="true"></span></div>
   <style>:scope {
   --_tree-indent: 16px;
   --_tree-row-min-height: 32px;
@@ -128,21 +128,12 @@
   transform: rotate(0deg);
 }
 
-.drag-handle span,
-.drag-handle span::before,
-.drag-handle span::after {
+/* Lucide grip-vertical, filling the handle as in Looma 0.2. */
+.drag-handle svg {
   display: block;
-  inline-size: 3px;
-  block-size: 3px;
-  border-radius: 50%;
-  background: currentColor;
+  inline-size: 100%;
+  block-size: 100%;
 }
-
-.drag-handle span { position: relative; box-shadow: 6px 0 currentColor; }
-.drag-handle span::before,
-.drag-handle span::after { position: absolute; left: 0; content: ''; box-shadow: 6px 0 currentColor; }
-.drag-handle span::before { top: -5px; }
-.drag-handle span::after { top: 5px; }
 
 /* Slotted content is outside this scope, so :has() cannot see it; hide only a truly empty slot. */
 .leading {
@@ -199,17 +190,18 @@
   border: 1px solid transparent;
   border-radius: var(--ui-radius-sm);
   cursor: grab;
+  /* Hidden until the row is hovered, but always hittable: the handle sits outside the row, and moving
+     the pointer onto it must not hide it on the way. */
   opacity: 0;
-  pointer-events: none;
   transform: translateY(-50%);
   transition: opacity var(--ui-motion-fast) var(--ui-motion-ease);
 }
 
 .row:hover .drag-handle,
+.drag-handle:hover,
 .drag-handle:focus-visible,
 :scope[data-dragging] .drag-handle {
   opacity: 1;
-  pointer-events: auto;
 }
 
 .drag-handle:active {

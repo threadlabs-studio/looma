@@ -35,7 +35,7 @@ and so on); no custom elements are registered.
   its positioned surface and leaves focus alone after a light dismiss.
 - High-contrast themes use high-contrast accent and danger colors.
 - Server-rendered components hydrate into the same instance their authored
-  markup lowers into, including slot content not currently shown, using HTML
+  markup lowers into, including slot content not yet shown, using HTML
   Next's rendered form (slot range markers and `serializeRenderedForm`).
   Framework adapters no longer write a `data-looma-managed` ownership marker,
   and Vue slot regions use the native `slot` attribute.

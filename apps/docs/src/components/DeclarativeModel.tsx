@@ -16,9 +16,7 @@ const examples: FrameworkExamples = {
 
 <ui-stack gap="m">
   <h2>Account</h2>
-  <ui-button variant="solid">
-    <button type="button">Save</button>
-  </ui-button>
+  <ui-button variant="solid">Save</ui-button>
 </ui-stack>`
   },
   vue: {
@@ -30,23 +28,19 @@ import { Button, Stack } from "@threadlabs/looma/vue";
 <template>
   <Stack gap="m">
     <h2>Account</h2>
-    <Button variant="solid">
-      <button type="button">Save</button>
-    </Button>
+    <Button variant="solid">Save</Button>
   </Stack>
 </template>`
   },
   react: {
     language: "tsx",
-    code: `import { Button, Stack } from "@threadlabs/looma-react";
+    code: `import { Button, Stack } from "@threadlabs/looma/react";
 
 export function AccountActions() {
   return (
     <Stack gap="m">
       <h2>Account</h2>
-      <Button variant="solid">
-        <button type="button">Save</button>
-      </Button>
+      <Button variant="solid">Save</Button>
     </Stack>
   );
 }`
@@ -55,16 +49,13 @@ export function AccountActions() {
     language: "svelte",
     code: `<script lang="ts">
   import { onMount } from "svelte";
-  import { createUiButton, createUiStack } from "@threadlabs/looma-svelte";
+  import { createUiButton, createUiStack } from "@threadlabs/looma/svelte";
 
   let host: HTMLDivElement;
   onMount(() => {
-    const save = Object.assign(document.createElement("button"), {
-      type: "button",
-      textContent: "Save"
-    });
-    const button = createUiButton({ variant: "solid", children: [save] });
-    host.replaceChildren(createUiStack({ gap: "m", children: [button] }));
+    const heading = Object.assign(document.createElement("h2"), { textContent: "Account" });
+    const save = createUiButton({ variant: "solid", children: [document.createTextNode("Save")] });
+    host.replaceChildren(createUiStack({ gap: "m", children: [heading, save] }));
   });
 </script>
 
@@ -112,8 +103,9 @@ export function DeclarativeModel(): JSX.Element {
         <div>
           <h3>The same component, expressed for your host</h3>
           <p>
-            HTML Next is selected by default. React and Svelte show the current
-            repository-preview adapters; the live result still exercises the same Looma definition.
+            HTML Next is selected by default. React and Svelte show the preview adapters
+            (<code>@threadlabs/looma/react</code>, <code>@threadlabs/looma/svelte</code>); the live
+            result still exercises the same Looma definition.
           </p>
         </div>
         <FrameworkModeSelector />

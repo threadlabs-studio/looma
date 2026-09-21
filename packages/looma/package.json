@@ -72,6 +72,14 @@
       "types": "./vue/editor/index.d.ts",
       "import": "./vue/editor/index.js"
     },
+    "./react": {
+      "types": "./react/index.d.ts",
+      "import": "./react/index.js"
+    },
+    "./svelte": {
+      "types": "./svelte/index.d.ts",
+      "import": "./svelte/index.js"
+    },
     "./tokens.css": "./tokens.css",
     "./theme-light.css": "./theme-light.css",
     "./theme-dark.css": "./theme-dark.css",
@@ -85,6 +93,8 @@
     "layout/",
     "editor/",
     "vue/",
+    "react/",
+    "svelte/",
     "tokens.css",
     "theme-light.css",
     "theme-dark.css",
@@ -101,6 +111,8 @@
     "./editor/*.js",
     "./vue/index.js",
     "./vue/editor/*.js",
+    "./react/index.js",
+    "./svelte/index.js",
     "./*.css"
   ],
   "scripts": {
@@ -116,6 +128,8 @@
     "@tiptap/core": ">=2 <3",
     "@tiptap/pm": ">=2 <3",
     "@tiptap/vue-3": ">=2 <3",
+    "react": "^19.0.0",
+    "svelte": "^5.0.0",
     "vue": "^3.5.0"
   },
   "peerDependenciesMeta": {
@@ -126,6 +140,12 @@
       "optional": true
     },
     "@tiptap/vue-3": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    },
+    "svelte": {
       "optional": true
     },
     "vue": {

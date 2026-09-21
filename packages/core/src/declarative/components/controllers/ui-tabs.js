@@ -89,8 +89,16 @@ export default function controller(host) {
     }
   };
 
+  // A vertical mouse wheel over an overflowing strip scrolls it sideways instead of the page.
+  // Trackpad gestures already carry a horizontal delta and are left to the browser.
+  const onWheel = (event) => {
+    if (!tablist || tablist.scrollWidth <= tablist.clientWidth || event.deltaX !== 0 || event.ctrlKey) return;
+    event.preventDefault();
+    tablist.scrollLeft += event.deltaY;
+  };
   tablist?.addEventListener("click", onClick);
   tablist?.addEventListener("keydown", onKeydown);
+  tablist?.addEventListener("wheel", onWheel, { passive: false });
   const observer = new MutationObserver(rebuild);
   if (panelContainer) observer.observe(panelContainer, { childList: true });
   const stop = host.effect(apply);
@@ -100,5 +108,6 @@ export default function controller(host) {
     observer.disconnect();
     tablist?.removeEventListener("click", onClick);
     tablist?.removeEventListener("keydown", onKeydown);
+    tablist?.removeEventListener("wheel", onWheel);
   };
 }

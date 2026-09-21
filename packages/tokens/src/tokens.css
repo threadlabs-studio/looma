@@ -144,8 +144,9 @@
     --ui-success-strong-surface: #007a33;
     --ui-success-on-strong: #ffffff;
     --ui-success-subtle-text: #006629;
-    --ui-warning-strong-surface: #e5a50a;
-    --ui-warning-on-strong: #2b1d00;
+    /* Deeper amber so the solid warning badge carries white text like the other tones (5:1). */
+    --ui-warning-strong-surface: #b45309;
+    --ui-warning-on-strong: #ffffff;
     --ui-warning-subtle-text: #704800;
     --ui-info-strong-surface: #0066cc;
     --ui-info-on-strong: #ffffff;
@@ -154,7 +155,7 @@
     /* Depth and focus. Fields read as a shallow well; buttons as gently raised. Focus is a soft halo
        that transitions in (no hard outline ring). */
     --ui-control-inset: inset 0 1px 2px rgb(0 0 0 / 0.07), inset 0 1px 0 rgb(0 0 0 / 0.02);
-    --ui-control-focus-halo-shadow: 0 0 0 3px var(--ui-control-focus-halo, var(--ui-accent-soft));
+    --ui-control-focus-halo-shadow: 0 0 0 3px var(--ui-control-focus-halo, color-mix(in srgb, var(--ui-focus-ring) 24%, transparent));
     --ui-raised: 0 1px 2px rgb(0 0 0 / 0.07), 0 1px 1px rgb(0 0 0 / 0.04);
     --ui-raised-highlight: linear-gradient(rgb(255 255 255 / 0.5), rgb(255 255 255 / 0));
     --ui-focus-halo: 0 0 0 3px color-mix(in srgb, var(--ui-focus-ring) 40%, transparent);
@@ -207,7 +208,8 @@
     --ui-control-border: var(--ui-border-default);
     --ui-control-border-hover: var(--ui-border-strong);
     --ui-control-focus: var(--ui-focus-ring);
-    --ui-control-focus-halo: var(--ui-accent-soft);
+    /* Derived from the ring, not the near-white accent tint, so the halo shows on any surface. */
+    --ui-control-focus-halo: color-mix(in srgb, var(--ui-focus-ring) 24%, transparent);
   }
 
   @supports (color: oklch(0.5 0.1 240)) {

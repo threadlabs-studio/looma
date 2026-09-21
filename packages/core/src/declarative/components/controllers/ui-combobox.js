@@ -143,8 +143,12 @@ export default function controller(host) {
     if (popup) openOverlay({ id: overlayId, element: popup, relatedElements: [element], modal: false, requestClose: close });
     search(reason);
   };
+  // The last option the user committed. Typing clears the selection while searching; leaving a strict
+  // combobox with unmatched text restores this rather than keeping the text.
+  let lastSelection = null;
   const commit = (value, query, option, kind, trigger) => {
     awaitingLabel = null;
+    if (kind === "selection") lastSelection = option;
     const queryChanged = query !== host.state.raw;
     if (host.state.value === undefined) host.state.selected = value;
     if (host.state.query === undefined && queryChanged) {
@@ -195,6 +199,33 @@ export default function controller(host) {
     close();
     input?.focus();
     if (!host.state.multiple) queueMicrotask(() => void validateCurrent());
+  };
+  // A strict combobox (single, no free text, no create) behaves like a select: leaving it resolves the
+  // typed text to a valid option (the highlighted one, an exact label, the first label it begins, or the
+  // only remaining option); with no match it reverts to the previous selection, or clears.
+  const resolveTyped = (trigger) => {
+    const current = config();
+    if (host.state.multiple || current.allowFreeText || current.allowCreate) return;
+    const typed = String(host.state.raw ?? "");
+    const selectedOption = (current.options ?? []).find((option) => option.value === host.state.selected) ?? lastSelection;
+    if (selectedOption && selectedOption.label === typed) return;
+    const query = typed.trim().toLocaleLowerCase();
+    // Match against every option, not only the filtered list: filtering is asynchronous, and a fast
+    // Tab can arrive before it settles. A highlighted row still wins.
+    const rows = host.state.rows ?? [];
+    const enabled = (current.options ?? []).filter((option) => !option.disabled);
+    const highlighted = rows[host.state.active];
+    const match = query === "" ? undefined
+      : (highlighted && !highlighted.disabled ? highlighted : undefined)
+        ?? enabled.find((row) => row.label.toLocaleLowerCase() === query)
+        ?? enabled.find((row) => row.label.toLocaleLowerCase().startsWith(query))
+        ?? (() => {
+          const containing = enabled.filter((option) => option.label.toLocaleLowerCase().includes(query));
+          return containing.length === 1 ? containing[0] : undefined;
+        })();
+    if (match) commit(match.value, match.label, match, "selection", trigger);
+    else if (selectedOption && query !== "") commit(selectedOption.value, selectedOption.label, selectedOption, "selection", trigger);
+    else if (host.state.selected !== null || typed !== "") { lastSelection = null; commit(null, "", null, "clear", trigger); }
   };
   const commitQuery = (trigger) => {
     const query = String(host.state.raw).trim();
@@ -438,7 +469,7 @@ export default function controller(host) {
       if (!host.state.raw && (input.selectionStart ?? 0) === 0 && event.key === "Backspace" && items().length) { event.preventDefault(); removeItemAt(items().length - 1, "keyboard"); return; }
     }
     if (event.key === "Escape" && host.state.expanded) { event.preventDefault(); event.stopPropagation(); close(); }
-    else if (event.key === "Tab") close();
+    else if (event.key === "Tab") { resolveTyped("keyboard"); close(); }
     else if (!event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey && ["ArrowDown", "ArrowUp"].includes(event.key)) { event.preventDefault(); if (!host.state.expanded) open("disclosure"); move(event.key); }
     else if (["Home", "End"].includes(event.key) && host.state.expanded && host.state.active >= 0) { event.preventDefault(); move(event.key); }
     else if (event.key === "Enter" && host.state.expanded) {
@@ -450,7 +481,7 @@ export default function controller(host) {
     const option = event.target.closest?.('[role="option"][data-index]');
     if (option) { choose(Number(option.dataset.index), "pointer"); return; }
     const action = event.target.closest?.("[data-combobox-action]")?.dataset.comboboxAction;
-    if (action === "clear") { commit(null, "", null, "clear", "pointer"); close(); input?.focus(); }
+    if (action === "clear") { lastSelection = null; commit(null, "", null, "clear", "pointer"); close(); input?.focus(); }
     else if (action === "disclosure") { host.state.expanded ? close() : open("disclosure"); input?.focus(); }
     else if (field?.contains(event.target) && !event.target.closest?.("button")) input?.focus();
   };
@@ -459,6 +490,7 @@ export default function controller(host) {
     if (event.relatedTarget instanceof Node && element.contains(event.relatedTarget)) return;
     close();
     host.state.validation = { ...host.state.validation, touched: true };
+    resolveTyped("pointer");
     if (!host.state.multiple && config().allowFreeText && host.state.selected === null) commit(null, host.state.raw, null, "free-entry", "keyboard");
     void validateCurrent();
   };

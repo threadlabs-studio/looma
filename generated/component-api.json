@@ -531,6 +531,18 @@
             ]
           },
           {
+            "name": "--ui-button-ghost-active",
+            "declarations": [
+              "color-mix(in srgb, currentColor 14%, transparent)"
+            ]
+          },
+          {
+            "name": "--ui-button-ghost-hover",
+            "declarations": [
+              "color-mix(in srgb, currentColor 8%, transparent)"
+            ]
+          },
+          {
             "name": "--ui-button-min-block-size",
             "fallbacks": [
               "var(--ui-control-size-md, 2.5rem)"
@@ -817,7 +829,7 @@
           {
             "name": "--ui-callout-gap",
             "declarations": [
-              "var(--ui-space-2)"
+              "calc(var(--ui-space-2) * 0.75)"
             ]
           },
           {
@@ -4023,7 +4035,7 @@
           {
             "name": "--ui-icon-button-hover-bg",
             "fallbacks": [
-              "var(--ui-surface-muted)"
+              "color-mix(in srgb, currentColor 8%, transparent)"
             ]
           },
           {
@@ -4188,9 +4200,6 @@
           },
           {
             "name": "--ui-surface-default"
-          },
-          {
-            "name": "--ui-surface-muted"
           },
           {
             "name": "--ui-text-on-accent"
@@ -5453,9 +5462,6 @@
           },
           {
             "name": "--ui-surface-elevated"
-          },
-          {
-            "name": "--ui-surface-muted"
           },
           {
             "name": "--ui-text-primary"
@@ -6942,7 +6948,16 @@
             ]
           },
           {
-            "name": "--ui-motion-ease"
+            "name": "--ui-motion-ease",
+            "fallbacks": [
+              "ease"
+            ]
+          },
+          {
+            "name": "--ui-motion-ease-out",
+            "fallbacks": [
+              "cubic-bezier(0.16, 1, 0.3, 1)"
+            ]
           },
           {
             "name": "--ui-radius-3"
@@ -6964,6 +6979,18 @@
           },
           {
             "name": "--ui-text-primary"
+          },
+          {
+            "name": "--ui-toast-enter-duration",
+            "fallbacks": [
+              "0.32s"
+            ]
+          },
+          {
+            "name": "--ui-toast-exit-duration",
+            "fallbacks": [
+              "0.22s"
+            ]
           }
         ]
       },

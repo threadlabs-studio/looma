@@ -56,10 +56,12 @@ component or framework adapter is Stable. The sole public package is
 - `@threadlabs/looma/editor/extensions`: the focused extension preset, standalone `LoomaTableKit`, and command-helper subpath.
 - `@threadlabs/looma/vue`: general Vue adapters without the editor graph.
 - `@threadlabs/looma/vue/editor`: the turnkey `LoomaEditor` plus advanced low-level Vue wrappers.
+- `@threadlabs/looma/react` (preview): React components for the same declarative contracts.
+- `@threadlabs/looma/svelte` (preview): DOM factories (`createUiButton`, …) for Svelte and other hosts.
 - Explicit `.css` subpaths provide tokens, themes, layout, core, and editor styles.
 
-React and Svelte adapters remain internal repository previews and are not part
-of the Release 1 public package. Apps and documentation workspaces are private.
+The React and Svelte subpaths are previews: published for use and feedback, not qualified
+for Release 1, and they may change. Apps and documentation workspaces are private.
 
 The owner-approved public identity is `@threadlabs/looma`. Registry mutation
 still requires the protected release authorization and evidence gates. See the

@@ -207,7 +207,7 @@ function buildExamples(
     },
     react: {
       language: "tsx",
-      code: `import { ${names.join(", ")} } from "@threadlabs/looma-react";\n\nexport function Example() {\n${frameworkSetup.split("\n").filter(Boolean).map((line) => `  ${line}`).join("\n")}${frameworkSetup ? "\n" : ""}  return (\n${react.split("\n").map((line) => `    ${line}`).join("\n")}\n  );\n}`
+      code: `import { ${names.join(", ")} } from "@threadlabs/looma/react";\n\nexport function Example() {\n${frameworkSetup.split("\n").filter(Boolean).map((line) => `  ${line}`).join("\n")}${frameworkSetup ? "\n" : ""}  return (\n${react.split("\n").map((line) => `    ${line}`).join("\n")}\n  );\n}`
     },
     svelte: {
       language: "svelte",
