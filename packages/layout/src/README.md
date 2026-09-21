@@ -51,7 +51,7 @@ The selected column minimum is capped by the grid's available inline size, so
 even `min="lg"` collapses to one fluid column instead of overflowing a narrow
 container.
 
-## `ui-center`
+## `ui-container`
 
 - Attributes: `measure`, `gutters`
 - Properties: `measure`, `gutters`
@@ -60,9 +60,9 @@ container.
 - SSR markup:
 
 ```html
-<ui-center measure="wide" gutters="m">
+<ui-container measure="wide" gutters="m">
   <p>Centered content area.</p>
-</ui-center>
+</ui-container>
 ```
 
 The element fills its parent until it reaches the selected measure. Gutters are

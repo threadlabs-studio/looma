@@ -18,7 +18,7 @@ export type { ComboboxOptionInput } from './Combobox';
 export const Stack = createAdapterComponent<AdapterComponentProps["Stack"]>(Declarative.UiStack, "Stack");
 export const Cluster = createAdapterComponent<AdapterComponentProps["Cluster"]>(Declarative.UiCluster, "Cluster");
 export const Grid = createAdapterComponent<AdapterComponentProps["Grid"]>(Declarative.UiGrid, "Grid");
-export const Center = createAdapterComponent<AdapterComponentProps["Center"]>(Declarative.UiCenter, "Center");
+export const Container = createAdapterComponent<AdapterComponentProps["Container"]>(Declarative.UiContainer, "Container");
 export const Switcher = createAdapterComponent<AdapterComponentProps["Switcher"]>(Declarative.UiSwitcher, "Switcher");
 // The resizable sidebar controller progressively inserts a light-DOM separator. Vue must
 // treat that controller-owned child as an expected hydration difference.
@@ -70,7 +70,7 @@ export const ADAPTER_COMPONENT_TAG_MAP = {
   Stack: "ui-stack",
   Cluster: "ui-cluster",
   Grid: "ui-grid",
-  Center: "ui-center",
+  Container: "ui-container",
   Switcher: "ui-switcher",
   Sidebar: "ui-sidebar",
   Reel: "ui-reel",

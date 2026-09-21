@@ -8,7 +8,7 @@
     "ui-callout": { "status": "published", "package": "@threadlabs/looma" },
     "ui-chip": { "status": "deferred", "package": "@threadlabs/looma" },
     "ui-button": { "status": "published", "package": "@threadlabs/looma" },
-    "ui-center": { "status": "published", "package": "@threadlabs/looma/layout" },
+    "ui-container": { "status": "published", "package": "@threadlabs/looma/layout" },
     "ui-checkbox": { "status": "published", "package": "@threadlabs/looma" },
     "ui-combobox": { "status": "published", "package": "@threadlabs/looma" },
     "ui-context-menu": { "status": "published", "package": "@threadlabs/looma" },

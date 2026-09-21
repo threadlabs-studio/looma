@@ -343,13 +343,13 @@ await check("layout accessibility defaults", async () => {
 });
 
 await check("resizable sidebar keyboard contract", async () => {
-  await mount(`<ui-sidebar resizable style="--ui-sidebar-width:288px"><aside>Navigation</aside><main>Content</main></ui-sidebar>`);
+  await mount(`<div style="display:flex;inline-size:900px"><ui-sidebar resizable width="288"><nav>Navigation</nav></ui-sidebar><main>Content</main></div>`);
   const sidebar = page.locator('[data-component-root~="ui-sidebar"]');
   const handle = sidebar.locator("[data-ui-sidebar-resizer]");
   assert.equal(await handle.getAttribute("role"), "separator");
   assert.equal(await handle.getAttribute("aria-label"), "Resize sidebar");
   await handle.press("ArrowRight");
-  assert.equal(await sidebar.evaluate((element) => element.style.getPropertyValue("--ui-sidebar-width")), "304px");
+  assert.equal(Math.round(await sidebar.evaluate((element) => element.getBoundingClientRect().width)), 304);
   assert.deepEqual((await events("resize")).at(-1)?.detail, { width: 304, trigger: "keyboard" });
 });
 

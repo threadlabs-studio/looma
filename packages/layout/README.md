@@ -8,7 +8,7 @@ and never add external margins.
 
 Release target: Candidate `0.3.0`. The public
 component invocations in this workspace are `ui-stack`, `ui-cluster`, `ui-grid`,
-`ui-center`, `ui-switcher`, `ui-sidebar`, `ui-reel`, and `ui-separator`.
+`ui-container`, `ui-switcher`, `ui-sidebar`, `ui-reel`, and `ui-separator`.
 
 ## Install
 

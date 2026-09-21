@@ -175,7 +175,7 @@ export const ADAPTER_COMPONENT_TAG_MAP = {
   EditorTableOverlay: "ui-editor-table-overlay",
   EditorTableToolbar: "ui-editor-table-toolbar",
   EditorToolbar: "ui-editor-toolbar",
-  Center: "ui-center",
+  Container: "ui-container",
   Grid: "ui-grid",
   Cluster: "ui-cluster",
   Reel: "ui-reel",

@@ -25,7 +25,7 @@ This audit compares Looma's shipped and proposed component surface against a bro
 
 ### Shipped now
 
-- Layout: `ui-stack`, `ui-cluster`, `ui-cluster`, `ui-grid`, `ui-center`, `ui-separator`
+- Layout: `ui-stack`, `ui-cluster`, `ui-cluster`, `ui-grid`, `ui-container`, `ui-separator`
 - Forms/actions: `ui-button`, `ui-icon-button`, `ui-input`, `ui-select`, `ui-textarea`, `ui-form-field`, `ui-checkbox`, `ui-radio`, `ui-radio-group`, `ui-switch`
 - Overlay/display/navigation: `ui-dialog`, `ui-popover`, `ui-tooltip`, `ui-menu`, `ui-menu-item`, `ui-disclosure`, `ui-tabs`, `ui-toast-region`, `ui-badge`, `ui-chip`, `ui-callout`, `ui-avatar`, `ui-avatar-group`
 - App-shell / recipe level: `ui-floating-action-button`, `ui-search-shell`, `ui-search-result-row`, `ui-top-bar`
@@ -97,7 +97,7 @@ The ecosystem converges on a few patterns:
 | Stack / vertical layout | `Stack`, `VStack`, `QList`-adjacent layout, `fast-*` layout handled externally | `gap`, alignment, justified distribution, responsive spacing | Shipped as `ui-stack` | Keep |
 | Cluster / row layout | `Inline`, `Flex`, `Group`, `Wrap`, `HStack` | `gap`, `align`, `justify`, wrapping, responsive collapse | Shipped as `ui-cluster` | Keep; document `cluster` vs `inline` intent more clearly |
 | Grid | `Grid`, `SimpleGrid`, `Container` + grid, responsive grid | `gap`, column sizing, min width, responsive breakpoints | Shipped as `ui-grid` | Keep |
-| Center / container | `Container`, `Center`, `Box`, `Fluid`, `PageContainer` | readable measure, gutters, max width, full-width toggle | Shipped as `ui-center` | Keep |
+| Center / container | `Container`, `Center`, `Box`, `Fluid`, `PageContainer` | readable measure, gutters, max width, full-width toggle | Shipped as `ui-container` | Keep |
 | Separator / divider | `Separator`, `Divider`, `Fieldset` separators | `orientation`, decorative vs semantic role | Shipped as `ui-separator` | Keep |
 
 ### Forms and actions

@@ -24,6 +24,8 @@ The per-family evidence, with counts and sources, is in the repository: [layout]
 - **Structured values are attributes.** Props with `list`, `record` or `object` types are declared with HTML Next's type system; in HTML their attribute text is JSON, parsed against the declared shape. This covers editor menu `items` and `anchor-rect`, table `geometry`, table menu `actions` (which replace the nine undeclared `can-*` booleans) and combobox `items`.
 - **Combobox** drops function hooks, option descriptions and option metadata. `value` (single) and `items` (multiple) are separate props.
 - **Cluster** always wraps and has no `wrap` or `justify` props.
+- **Container** replaces `ui-center`: a centred column with a maximum width and gutters.
+- **Sidebar** is rebuilt as the sidebar panel only, with the options in the Layout table below.
 - **Tabs** gain `stretch`, and the tab list scrolls when it overflows.
 - **Tree Item** `expand` no longer bubbles. It fires only on the item that was toggled. Expanding or collapsing never changes an ancestor or sibling.
 - **Dialog** has a header with a title and a close button, a scrolling body, and an `actions` footer.
@@ -58,7 +60,7 @@ Fix these first. They are defects, not new options.
 | `ui-stack` | none | Direction switch (that is a Cluster or Switcher), divider prop (write `<ui-separator>`), `split-after` (author CSS) |
 | `ui-cluster` | none | `justify`: spreading items apart is not a cluster, and a justified row would be a separate flex primitive. Non-wrapping mode, separate row and column gaps, `grow` |
 | `ui-grid` | `columns: number`, a maximum column count that keeps the grid intrinsic | Breakpoint columns, spans and offsets (they belong to the 12-column paradigm) |
-| `ui-center` | Rename to `ui-container`. The component holds content in a centred column with a maximum width, such as settings, activity and legal pages. `center` suggests centring on both axes, and `Container` is what most libraries call this. Make the `measure` steps cover the column widths apps use | `fluid` (just don't use the wrapper), `center-content` (no use case yet) |
+| `ui-container` | Renamed from `ui-center` in 0.3. It holds content in a centred column with a maximum width, such as settings, activity and legal pages; `center` suggested centring on both axes, and `Container` is what most libraries call this. Make the `measure` steps cover the column widths apps use | `fluid` (just don't use the wrapper), `center-content` (no use case yet) |
 | `ui-switcher` | `limit: number`, the most items allowed in the horizontal state | none |
 | `ui-sidebar` | The sidebar panel only; the main content is not part of it. Props: `collapsed`, `side`, `width`, `min-width`, `max-width`, `resizable`, `resize-step`, `resize-label` and `breakpoint`. Below the breakpoint it becomes an off-canvas drawer. Events `resize` and `toggle`. Later: `persist`. The page's own layout places the sidebar next to the main content | The current two-pane layout (side plus main), including under another name. A small item with trailing content is a Cluster. Also declined: rail or mini mode, expand on hover, swipe gestures, keyboard shortcut, snapping |
 | `ui-reel` | none | Arrow controls (build a carousel instead), hidden scrollbar, `height` |

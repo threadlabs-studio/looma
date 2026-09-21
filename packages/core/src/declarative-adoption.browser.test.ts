@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { userEvent } from "@vitest/browser/context";
 
 async function settle(): Promise<void> {
   await Promise.resolve();
@@ -60,6 +61,25 @@ describe("shipped declarative component graph", () => {
     await vi.waitFor(() => expect(document.activeElement).toBe(second!.querySelector("input")));
     await new Promise<void>((resolve) => setTimeout(resolve, 50));
     expect(document.activeElement).toBe(second!.querySelector("input"));
+  });
+
+  it("renders a link button as an inline text action", async () => {
+    document.body.innerHTML = `<p style="font: italic 17px serif">Saved · <ui-button variant="link">3 changes</ui-button></p>`;
+    await settle();
+    const button = document.querySelector<HTMLButtonElement>('[data-component-root~="ui-button"]')!;
+    const style = getComputedStyle(button);
+    expect(button.localName).toBe("button");
+    expect(style.paddingTop).toBe("0px");
+    expect(style.paddingLeft).toBe("0px");
+    expect(style.minHeight).toBe("0px");
+    expect(style.fontSize).toBe("17px");
+    expect(style.fontStyle).toBe("italic");
+    expect(style.textDecorationLine).toBe("underline");
+    expect(style.backgroundColor).toBe("rgba(0, 0, 0, 0)");
+    // Keyboard focus shows the ring (programmatic focus need not match :focus-visible).
+    await userEvent.keyboard("{Tab}");
+    expect(document.activeElement).toBe(button);
+    await vi.waitFor(() => expect(getComputedStyle(button).outlineStyle).toBe("solid"));
   });
 
   it("reads public tokens a consumer sets on an ancestor", async () => {

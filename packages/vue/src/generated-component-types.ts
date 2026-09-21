@@ -21,7 +21,7 @@ export interface GridProps extends AdapterBaseProps {
   "min"?: "sm" | "md" | "lg" | undefined;
 }
 
-export interface CenterProps extends AdapterBaseProps {
+export interface ContainerProps extends AdapterBaseProps {
   "gutters"?: "s" | "m" | "l" | undefined;
   "measure"?: "narrow" | "wide" | undefined;
 }
@@ -33,15 +33,15 @@ export interface SwitcherProps extends AdapterBaseProps {
 }
 
 export interface SidebarProps extends AdapterBaseProps {
-  "align"?: "start" | "center" | "end" | "stretch" | undefined;
-  "gap"?: "xs" | "s" | "m" | "l" | "xl" | undefined;
+  "breakpoint"?: "sm" | "md" | "lg" | undefined;
+  "collapsed"?: boolean | undefined;
   "maxWidth"?: number | undefined;
   "minWidth"?: number | undefined;
   "resizable"?: boolean | undefined;
   "resizeLabel"?: string | undefined;
   "resizeStep"?: number | undefined;
   "side"?: "start" | "end" | undefined;
-  "width"?: "narrow" | "default" | "wide" | undefined;
+  "width"?: number | undefined;
 }
 
 export interface ReelProps extends AdapterBaseProps {
@@ -128,7 +128,7 @@ export interface AffordanceScopeProps extends AdapterBaseProps {
 export interface ButtonProps extends AdapterBaseProps {
   "disabled"?: boolean | undefined;
   "size"?: "sm" | "md" | "lg" | undefined;
-  "variant"?: "outline" | "solid" | "danger" | "ghost" | undefined;
+  "variant"?: "outline" | "solid" | "danger" | "ghost" | "link" | undefined;
 }
 
 export interface IconButtonProps extends AdapterBaseProps {
@@ -293,7 +293,7 @@ export interface AdapterComponentProps {
   "Stack": StackProps;
   "Cluster": ClusterProps;
   "Grid": GridProps;
-  "Center": CenterProps;
+  "Container": ContainerProps;
   "Switcher": SwitcherProps;
   "Sidebar": SidebarProps;
   "Reel": ReelProps;

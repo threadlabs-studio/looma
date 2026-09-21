@@ -13,7 +13,7 @@ breakpoint state.
 - `ui-grid` collapses to one column when its container is narrower than the
   selected column minimum. The column minimum must never create page-level
   horizontal overflow.
-- `ui-center` fills the available inline size up to its measure, with gutters
+- `ui-container` fills the available inline size up to its measure, with gutters
   included in that measured box.
 - `ui-switcher` changes from equal-width siblings to a single column based on
   its own available inline size, not a viewport media query.

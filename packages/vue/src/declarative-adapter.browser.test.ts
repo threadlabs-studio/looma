@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, createSSRApp, defineComponent, h, nextTick, ref, type App } from "vue";
 import { renderToString } from "@vue/server-renderer";
+import { page } from "@vitest/browser/context";
 import { controllerFor } from "@threadlabs/looma-core/declarative";
 
 import {
@@ -100,19 +101,14 @@ describe("Vue declarative adapters in a browser", () => {
     expect(host.querySelector<HTMLElement>('[data-component-root="ui-editable"]')?.hasAttribute("data-state-edit")).toBe(false);
   });
 
-  it("keeps sole default-slot children direct for layout measurement", async () => {
-    const styles = document.createElement("style");
-    styles.textContent = [
-      '[data-test-sidebar] { inline-size: 800px; --ui-sidebar-width: 256px; }',
-      '[data-test-sidebar] > aside { flex: 0 0 var(--ui-sidebar-width); }',
-      '[data-test-sidebar] > main { flex: 1 1 0; }',
-    ].join("\n");
-    document.head.append(styles);
+  it("renders the sidebar panel with its width and resize handle", async () => {
+    // Above the default 48rem breakpoint, so the panel is docked rather than a drawer.
+    await page.viewport(1200, 800);
     const host = document.createElement("div");
     document.body.append(host);
     const app = createApp({
-      render: () => h(Sidebar, { resizable: true, "data-test-sidebar": "" }, () => [
-        h("aside", "Navigation"),
+      render: () => h("div", { style: "display: flex; inline-size: 900px" }, [
+        h(Sidebar, { resizable: true, width: 256 }, () => [h("nav", "Navigation")]),
         h("main", "Content"),
       ]),
     });
@@ -121,9 +117,10 @@ describe("Vue declarative adapters in a browser", () => {
     await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
 
     const sidebar = host.querySelector<HTMLElement>('[data-component-root="ui-sidebar"]')!;
-    expect(sidebar.children[0]?.localName).toBe("aside");
+    expect(sidebar.localName).toBe("aside");
+    expect(sidebar.querySelector("nav")?.textContent).toBe("Navigation");
+    expect(Math.round(sidebar.getBoundingClientRect().width)).toBe(256);
     expect(sidebar.querySelector('[data-ui-sidebar-resizer]')?.getAttribute("aria-valuenow")).toBe("256");
-    styles.remove();
   });
 
   it("hydrates conditional tree-item structure without dropping framework slot regions", async () => {

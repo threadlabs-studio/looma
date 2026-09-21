@@ -880,7 +880,8 @@ test("Examples and API keep configuration demos separate from exhaustive referen
 }) => {
   await page.goto("components/ui-button", { waitUntil: "domcontentloaded" });
 
-  await expect(page.locator(".looma-preview-scenario")).toHaveCount(4);
+  // Default, variant, Link, size, disabled.
+  await expect(page.locator(".looma-preview-scenario")).toHaveCount(5);
   await expect(page.locator(".looma-api")).toHaveCount(0);
   await page.getByRole("tab", { name: "API" }).click();
   await expect(page.locator(".looma-preview-scenario")).toHaveCount(0);
@@ -1012,8 +1013,8 @@ test("layout previews expose their defining geometry", async ({ page }) => {
   expect(new Set(gridRects.map(({ left }) => Math.round(left))).size).toBe(3);
   expect(gridRects.every(({ width }) => width > 100)).toBe(true);
 
-  await page.goto("components/ui-center", { waitUntil: "domcontentloaded" });
-  const centers = page.locator("[data-component-root~='ui-center']");
+  await page.goto("components/ui-container", { waitUntil: "domcontentloaded" });
+  const centers = page.locator("[data-component-root~='ui-container']");
   await expect(centers).toHaveCount(3);
   const centerOffsets = await centers.evaluateAll((centerElements) => centerElements.map((center) => {
     const stage = center.closest(".looma-preview-scenario__stage")!;
@@ -1026,17 +1027,31 @@ test("layout previews expose their defining geometry", async ({ page }) => {
   expect(centerOffsets).toHaveLength(3);
   expect(centerOffsets.every((offset) => offset <= 1)).toBe(true);
 
+  // Sidebar is the panel only: an aside the page places beside its main content, toggled by a command.
   await page.goto("components/ui-sidebar", { waitUntil: "domcontentloaded" });
-  const sidebar = page.locator("[data-preview-scenario='Default'] [data-component-root~='ui-sidebar']");
-  const sidebarRegions = sidebar.locator(":scope > aside, :scope > main");
-  await expect(sidebarRegions).toHaveCount(2);
-  const sidebarRects = await sidebarRegions.evaluateAll((regions) => regions.map((region) => {
-    const { left, top, width } = region.getBoundingClientRect();
-    return { left, top, width };
-  }));
-  expect(sidebarRects[0]!.top).toBeCloseTo(sidebarRects[1]!.top, 0);
-  expect(sidebarRects[0]!.left).toBeLessThan(sidebarRects[1]!.left);
-  expect(sidebarRects.every(({ width }) => width > 150)).toBe(true);
+  const shell = page.locator("[data-preview-scenario='App shell'] .demo-app-shell");
+  const sidebar = shell.locator("[data-component-root~='ui-sidebar']");
+  const main = shell.locator("main");
+  await expect(sidebar).toBeVisible();
+  expect(await sidebar.evaluate((element) => element.localName)).toBe("aside");
+  const [sidebarBox, mainBox] = [await sidebar.boundingBox(), await main.boundingBox()];
+  expect(sidebarBox!.x).toBeLessThan(mainBox!.x);
+  expect(sidebarBox!.width).toBeGreaterThan(150);
+  const toggle = shell.getByRole("button", { name: "Toggle sidebar" });
+  await toggle.click();
+  await expect(sidebar).toBeHidden();
+  await toggle.click();
+  await expect(sidebar).toBeVisible();
+
+  // Below the breakpoint the same panel is a drawer, closed until toggled.
+  await page.setViewportSize({ width: 600, height: 900 });
+  await expect(sidebar).toBeHidden();
+  await toggle.click();
+  await expect(sidebar).toBeVisible();
+  expect(await sidebar.evaluate((element) => element.matches(":popover-open"))).toBe(true);
+  await page.keyboard.press("Escape");
+  await expect(sidebar).toBeHidden();
+  await page.setViewportSize({ width: 1440, height: 1000 });
 });
 
 test("ui-switcher can be exercised above and below its intrinsic threshold", async ({ page }) => {

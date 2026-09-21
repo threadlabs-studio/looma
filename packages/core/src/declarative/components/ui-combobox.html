@@ -60,7 +60,7 @@ input:disabled, button:disabled { color: var(--ui-text-muted); cursor: not-allow
 .popup { box-sizing: border-box; min-inline-size: 12rem; max-inline-size: calc(100vw - 1rem); max-block-size: var(--ui-combobox-max-block-size, 18rem); overflow: auto; margin: 0; padding: var(--ui-space-1); border: 1px solid var(--ui-border-default); border-radius: var(--ui-radius-2); background: var(--ui-surface-elevated); color: var(--ui-text-primary); box-shadow: var(--ui-elevation-overlay, var(--ui-shadow-lg)); }
 [hidden] { display: none !important; }
 .option { padding: var(--ui-space-2) var(--ui-space-3); border-radius: var(--ui-radius-1); cursor: pointer; overflow-wrap: anywhere; }
-.option:hover, .option[data-active] { background: var(--ui-surface-muted); outline: 1px solid var(--ui-focus-ring); outline-offset: -1px; }
+.option:hover, .option[data-active] { background: var(--ui-surface-muted); outline: 1px solid var(--ui-focus-ring, currentColor); outline-offset: -1px; }
 .option[aria-disabled='true'] { color: var(--ui-text-muted); cursor: not-allowed; }
 .primary { display: block; color: var(--ui-option-primary-color, var(--ui-text-primary)); font-weight: var(--ui-option-primary-weight, 500); }
 .message, .group { color: var(--ui-field-message-color, var(--ui-text-secondary)); font-weight: var(--ui-field-message-weight, 400); font-size: var(--ui-font-size-sm); line-height: var(--ui-line-height-md); overflow-wrap: anywhere; }
@@ -89,7 +89,7 @@ input:disabled, button:disabled { color: var(--ui-text-muted); cursor: not-allow
 }
 .item > slot { display: block; min-inline-size: 0; max-inline-size: 100%; overflow: hidden; }
 .item > slot:slotted(*) { min-inline-size: 0; max-inline-size: 100%; }
-.item:focus-visible { outline: 2px solid var(--ui-focus-ring); outline-offset: 1px; }
+.item:focus-visible { outline: 2px solid var(--ui-focus-ring, currentColor); outline-offset: 1px; }
 .item:disabled { opacity: .6; }
 </style>
 </template>
