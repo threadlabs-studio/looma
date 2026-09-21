@@ -71,6 +71,21 @@ function preserveVueSlotRegions(source) {
     );
 }
 
+function forceVueManagedRootFullDiff(source, component, definitionSource) {
+  if (!/\$(?:if|each|with|match)(?:=|\s|>)/.test(definitionSource)) return source;
+  const optimizedRootFlag = "16 /* FULL_PROPS */";
+  const occurrences = source.split(optimizedRootFlag).length - 1;
+  if (occurrences !== 1) {
+    throw new Error(`${component.tag}: expected one optimized Vue root, found ${occurrences}.`);
+  }
+  // The declarative runtime adopts framework-owned roots in place. Vue's
+  // block-level dynamic-child optimization assumes no other runtime has walked
+  // that tree, so a later conditional insert can pair the following slot
+  // regions with the wrong siblings. Bail out at the generated root to make Vue
+  // reconcile the actual structure while preserving its slot and flow anchors.
+  return source.replace(optimizedRootFlag, "-2 /* BAIL */");
+}
+
 function rewriteReactSemantics(source, definitionSource) {
   const propertyNames = [...definitionSource.matchAll(/\s\.([\w-]+)=/g)].map((match) => match[1]);
   for (const propertyName of new Set(propertyNames)) {
@@ -139,6 +154,7 @@ async function materializeVue(components) {
   await mkdir(output, { recursive: true });
   const exports = [];
   for (const component of components) {
+    const definitionSource = await readFile(join(HERE, "generated", groups.core.includes(component) ? "core" : groups.layout.includes(component) ? "layout" : "editor", "components", `${component.tag}.html`), "utf8");
     const rewritten = preserveVueSlotRegions(rewriteNestedComponents(rewriteFrameworkSource(
       await readFile(join(COMPILED, "vue", `${component.name}.vue`), "utf8"),
       component,
@@ -146,7 +162,8 @@ async function materializeVue(components) {
     const { descriptor, errors } = parse(rewritten, { filename: `${component.name}.vue` });
     if (errors.length) throw errors[0];
     const compiled = compileScript(descriptor, { id: `looma-${component.tag}`, inlineTemplate: true });
-    await writeFile(join(output, `${component.name}.ts`), `${compiled.content}\n`);
+    const source = forceVueManagedRootFullDiff(compiled.content, component, definitionSource);
+    await writeFile(join(output, `${component.name}.ts`), `${source}\n`);
     exports.push(`export { default as ${component.name} } from "./${component.name}";`);
   }
   await writeFile(join(output, "index.ts"), `${exports.join("\n")}\n`);
@@ -221,11 +238,16 @@ async function main() {
   const frameworkAwareHydrationScanner = 'let c=[],l=(m,f)=>{let q=f.children.find(w=>w.kind==="slot"),k=q?.name??"",p=f.children.filter(w=>w.kind==="text").map(w=>w.value),h=0,v=f.children.filter(w=>w.kind==="element"),S=0;for(let w of Array.from(m.childNodes)){if(w instanceof Element){if(!(w.getAttribute("data-component")?.split(/\\s+/)??[]).includes(t.contract.tag))w.__loomaFrameworkSlot=w.getAttribute("data-looma-framework-slot")??k,Ve(w),c.push(w);else{';
   const hydrationTextScanner = 'b!==void 0&&l(w,b)}continue}if(w instanceof Text&&w.data.trim()!==""){';
   const frameworkAwareHydrationTextScanner = 'b!==void 0&&l(w,b)}continue}if(w instanceof Comment&&q!==void 0){w.__loomaFrameworkSlot=k,c.push(w);continue}if(w instanceof Text&&w.data.trim()!==""){';
+  const flowRenderer = 'function Rn(e,t,n,r,i,o){if(e.flow?.kind==="if"||e.flow?.kind==="each"||e.flow?.kind==="with"||e.flow?.kind==="match")return hi(e,t,n,r,i);let a=[];for(let s of mi(e.flow,t))a.push(...ve(e,s,n,r,i,o));return a}';
+  const frameworkAwareFlowRenderer = 'function Rn(e,t,n,r,i,o){if(e.flow?.kind==="if"||e.flow?.kind==="each"||e.flow?.kind==="with"||e.flow?.kind==="match"){if(i.committed&&i.root?.getAttribute("data-looma-managed")==="framework"&&o!==void 0)return[o];return hi(e,t,n,r,i)}let a=[];for(let s of mi(e.flow,t))a.push(...ve(e,s,n,r,i,o));return a}';
   if (!runtimeSource.includes(hydrationLoop)) {
     throw new Error("The vendored runtime hydration loop changed; review the framework fragment compatibility patch.");
   }
   if (!runtimeSource.includes(slotNameReader) || !runtimeSource.includes(hydrationScanner) || !runtimeSource.includes(hydrationTextScanner)) {
     throw new Error("The vendored runtime hydration scanner changed; review the framework slot compatibility patch.");
+  }
+  if (!runtimeSource.includes(flowRenderer)) {
+    throw new Error("The vendored runtime flow renderer changed; review the framework ownership compatibility patch.");
   }
   const runtime = runtimeSource
     // Flow nodes render through DocumentFragments. Flatten those fragments before
@@ -239,6 +261,10 @@ async function main() {
     .replace(slotNameReader, frameworkSlotNameReader)
     .replace(hydrationScanner, frameworkAwareHydrationScanner)
     .replace(hydrationTextScanner, frameworkAwareHydrationTextScanner)
+    // Vue owns the conditional node already present in a framework-managed root.
+    // Keep that node and its framework anchor intact instead of installing a
+    // second declarative flow that would invalidate Vue's later patch target.
+    .replace(flowRenderer, frameworkAwareFlowRenderer)
     .replace('"use strict";var HtmlRuntime=', "const HtmlRuntime=")
     .concat("\nexport const { attachComponent, attachRegisteredComponent, getComponentHost, installComponentGraph, lowerDocument, manageComponentLifecycle, observeDocument, registerComponentDefinitions, setControllerModule } = HtmlRuntime;\n");
   await writeFile(join(output, "runtime.js"), runtime);

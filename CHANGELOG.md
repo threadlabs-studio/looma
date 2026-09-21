@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## v0.2.13 Candidate
+
+- Preserve Vue-owned flow anchors during SSR hydration and make generated Vue
+  roots reconcile their actual structure, so later conditional updates cannot
+  shift labels, actions, children, or other projected content between regions.
+
 ## v0.2.12 Candidate
 
 - Keep Vue-owned default-slot content in its intended component region across
