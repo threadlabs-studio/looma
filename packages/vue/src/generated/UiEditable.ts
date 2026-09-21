@@ -23,7 +23,7 @@ export default /*@__PURE__*/_defineComponent({
   props: {
     defaultEdit: { type: [Boolean, null], required: false, default: false },
     disabled: { type: [Boolean, null], required: false, default: false },
-    edit: { type: [Boolean, null], required: false }
+    edit: { type: [Boolean, null], required: false, default: undefined }
   },
   emits: ["edit-change"],
   setup(__props: any, { emit: __emit }) {
