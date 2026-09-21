@@ -17,7 +17,7 @@ export default /*@__PURE__*/_defineComponent({
   props: {
     defaultOpen: { type: [Boolean, null], required: false, default: false },
     for: { type: [String, null], required: false },
-    open: { type: [Boolean, null], required: false },
+    open: { type: [Boolean, null], required: false, default: undefined },
     placement: { type: [String, null], required: false, default: "bottom-start" }
   },
   emits: ["select", "close"],
@@ -60,7 +60,7 @@ return (_ctx: any,_cache: any) => {
     ref: root
   }), [
     _createElementVNode("div", _hoisted_1, [
-      _createElementVNode("span", { "data-looma-framework-slot": "", style: { display: "contents" } }, [_renderSlot(_ctx.$slots, "default")])
+      _renderSlot(_ctx.$slots, "default")
     ])
   ], 16 /* FULL_PROPS */))
 }

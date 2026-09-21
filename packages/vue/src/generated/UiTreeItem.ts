@@ -45,7 +45,7 @@ export default /*@__PURE__*/_defineComponent({
     dragType: { type: [String, null], required: false, default: "item" },
     dropDepth: { type: [Number, null], required: false },
     dropScope: { type: [String, null], required: false, default: "" },
-    expanded: { type: [Boolean, null], required: false },
+    expanded: { type: [Boolean, null], required: false, default: undefined },
     itemId: { type: [String, null], required: false, default: "" },
     label: { type: [String, null], required: false, default: "" },
     selected: { type: [Boolean, null], required: false, default: false },

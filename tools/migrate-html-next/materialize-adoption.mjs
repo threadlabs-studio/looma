@@ -4,6 +4,11 @@ import { fileURLToPath } from "node:url";
 
 import { compileScript, parse } from "@vue/compiler-sfc";
 
+import {
+  preserveVueOptionalBooleanAbsence,
+  preserveVueSlotRegions,
+} from "./framework-adoption.mjs";
+
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPOSITORY = join(HERE, "..", "..");
 const DEFAULT_OUTPUT = join(HERE, "generated", "adoption");
@@ -57,18 +62,6 @@ function rewriteNestedComponents(source, component, components, framework) {
   return framework === "vue"
     ? source.replace(/(<script setup lang="ts">\n)/, `$1${imports}\n`)
     : source.replace(/(import type \{[^\n]+\} from "react";\n)/, `$1${imports}\n`);
-}
-
-function preserveVueSlotRegions(source) {
-  return source
-    .replace(
-      /<slot name="([^"]+)"><\/slot>/g,
-      '<span slot="$1" data-looma-framework-slot="$1" style="display: contents"><slot name="$1"></slot></span>',
-    )
-    .replace(
-      /<slot><\/slot>/g,
-      '<span data-looma-framework-slot="" style="display: contents"><slot></slot></span>',
-    );
 }
 
 function forceVueManagedRootFullDiff(source, component, definitionSource) {
@@ -162,7 +155,10 @@ async function materializeVue(components) {
     const { descriptor, errors } = parse(rewritten, { filename: `${component.name}.vue` });
     if (errors.length) throw errors[0];
     const compiled = compileScript(descriptor, { id: `looma-${component.tag}`, inlineTemplate: true });
-    const source = forceVueManagedRootFullDiff(compiled.content, component, definitionSource);
+    const source = preserveVueOptionalBooleanAbsence(
+      forceVueManagedRootFullDiff(compiled.content, component, definitionSource),
+      definitionSource,
+    );
     await writeFile(join(output, `${component.name}.ts`), `${source}\n`);
     exports.push(`export { default as ${component.name} } from "./${component.name}";`);
   }

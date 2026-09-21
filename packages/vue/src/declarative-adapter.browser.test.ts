@@ -3,7 +3,19 @@ import { createApp, createSSRApp, h, nextTick, ref, type App } from "vue";
 import { renderToString } from "@vue/server-renderer";
 import { controllerFor } from "@threadlabs/looma-core/declarative";
 
-import { MenuItem, SearchShell, Switcher, ToastRegion, TopBar, Tree, TreeItem } from "./index";
+import {
+  Checkbox,
+  Editable,
+  Menu,
+  MenuItem,
+  SearchShell,
+  Sidebar,
+  Switcher,
+  ToastRegion,
+  TopBar,
+  Tree,
+  TreeItem,
+} from "./index";
 
 const apps: App[] = [];
 
@@ -45,6 +57,81 @@ describe("Vue declarative adapters in a browser", () => {
     const detail = { value: "rename", trigger: "keyboard" };
     root?.dispatchEvent(new CustomEvent("select", { detail }));
     expect(onSelect).toHaveBeenCalledWith(detail);
+  });
+
+  it("preserves uncontrolled Boolean state when the controlled prop is omitted", async () => {
+    const host = document.createElement("div");
+    document.body.append(host);
+    const app = createApp({
+      render: () => h("div", [
+        h(Editable, {}, {
+          preview: () => h("button", { type: "button", "data-ui-editable-trigger": "" }, "Add tag"),
+          edit: () => h("input", { "aria-label": "Page tags" }),
+        }),
+        h(Menu, { defaultOpen: true }, () => h(MenuItem, { value: "rename" }, () => "Rename")),
+        h(Checkbox, { defaultChecked: true }, () => h("input", { type: "checkbox" })),
+      ]),
+    });
+    apps.push(app);
+    app.mount(host);
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+
+    const editable = host.querySelector<HTMLElement>('[data-component-root="ui-editable"]')!;
+    host.querySelector<HTMLButtonElement>("[data-ui-editable-trigger]")!.click();
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+
+    expect(editable.hasAttribute("data-state-edit")).toBe(true);
+    expect(host.querySelector<HTMLElement>('[part="edit"]')?.hidden).toBe(false);
+    expect(host.querySelector<HTMLElement>('[data-component-root="ui-menu"]')?.hasAttribute("data-state-open")).toBe(true);
+    expect(host.querySelector<HTMLElement>('[data-component-root="ui-checkbox"]')?.getAttribute("aria-checked")).toBe("true");
+  });
+
+  it("keeps explicitly controlled Boolean state authoritative", async () => {
+    const onEditChange = vi.fn();
+    const host = document.createElement("div");
+    document.body.append(host);
+    const app = createApp({
+      render: () => h(Editable, { edit: false, onEditChange }, {
+        preview: () => h("button", { type: "button", "data-ui-editable-trigger": "" }, "Add tag"),
+        edit: () => h("input", { "aria-label": "Page tags" }),
+      }),
+    });
+    apps.push(app);
+    app.mount(host);
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+
+    host.querySelector<HTMLButtonElement>("[data-ui-editable-trigger]")!.click();
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+
+    expect(onEditChange).toHaveBeenCalledWith({ edit: true, reason: "activate", trigger: "pointer" });
+    expect(host.querySelector<HTMLElement>('[data-component-root="ui-editable"]')?.hasAttribute("data-state-edit")).toBe(false);
+    expect(host.querySelector<HTMLElement>('[part="edit"]')?.hidden).toBe(true);
+  });
+
+  it("keeps sole default-slot children direct for layout measurement", async () => {
+    const styles = document.createElement("style");
+    styles.textContent = [
+      '[data-test-sidebar] { inline-size: 800px; --ui-sidebar-width: 256px; }',
+      '[data-test-sidebar] > aside { flex: 0 0 var(--ui-sidebar-width); }',
+      '[data-test-sidebar] > main { flex: 1 1 0; }',
+    ].join("\n");
+    document.head.append(styles);
+    const host = document.createElement("div");
+    document.body.append(host);
+    const app = createApp({
+      render: () => h(Sidebar, { resizable: true, "data-test-sidebar": "" }, () => [
+        h("aside", "Navigation"),
+        h("main", "Content"),
+      ]),
+    });
+    apps.push(app);
+    app.mount(host);
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+
+    const sidebar = host.querySelector<HTMLElement>('[data-component-root="ui-sidebar"]')!;
+    expect(sidebar.children[0]?.localName).toBe("aside");
+    expect(sidebar.querySelector('[data-ui-sidebar-resizer]')?.getAttribute("aria-valuenow")).toBe("256");
+    styles.remove();
   });
 
   it("hydrates conditional tree-item structure without replacing server markup", async () => {

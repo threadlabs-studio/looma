@@ -4,14 +4,13 @@
 > artifact. Older five-package references below are retained as implementation
 > history or private workspace/build evidence, not as consumer guidance.
 
-Last Updated: 2026-09-20 16:46 PDT
-Status: Candidate `0.2.12` is public. Candidate `0.2.13` is prepared with
-structured document paste, reliable history controls, an opt-in sticky desktop
-editor toolbar, SSR-safe Vue adapter hydration, preserved nested named-slot
-content including conditional updates after mount, stable default-slot content
-across reactive updates, stable projected regions after SSR hydration, and
-correct hidden native-root layout. Historical release tasks below retain their
-original version context.
+Last Updated: 2026-09-20 17:55 PDT
+Status: Candidate `0.2.13` is public. Candidate `0.2.14` is prepared with
+correct omitted-versus-controlled Boolean semantics in generated Vue adapters
+and direct default-slot children for single-region components, while retaining
+the structured document paste, reliable history controls, sticky editor option,
+and SSR-safe projected-region hydration qualified in prior Candidates.
+Historical release tasks below retain their original version context.
 
 ## Current Focus
 
@@ -40,6 +39,12 @@ original version context.
 
 ## Recent Progress
 
+- Preserved `undefined` for optional controlled Boolean props in generated Vue
+  adapters. Omitted `edit`, `open`, `checked`, and `expanded` values now select
+  uncontrolled behavior, while explicit `false` remains owner-controlled.
+- Removed bookkeeping wrappers around sole default slots. Native child
+  selectors and geometry now reach the projected children directly, including
+  responsive Sidebar width initialization before keyboard or pointer resizing.
 - Preserved framework-owned flow anchors while adopting SSR markup and disabled
   Vue's dynamic-child shortcut at generated managed roots. Conditional updates
   now reconcile the real tree without shifting labels, actions, children, or
