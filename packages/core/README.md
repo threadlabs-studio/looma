@@ -7,7 +7,7 @@ Looma's component surface is a framework-neutral declarative graph with consumer
 light-DOM fallback. The retained Stencil sources are migration ingest fixtures, not the shipped
 runtime or public API.
 
-Release status: Candidate `0.2.15`, not Stable.
+Release status: Candidate `0.2.16`, not Stable.
 
 ## Install
 
