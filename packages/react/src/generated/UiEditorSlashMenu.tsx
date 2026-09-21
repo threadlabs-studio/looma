@@ -49,7 +49,7 @@ export function UiEditorSlashMenu(props: UiEditorSlashMenuProps) {
     return () => node.removeEventListener("select", listener1);
   }, [onSelect]);
   return (
-    <div {...nativeProps} data-component="ui-editor-slash-menu" data-component-root="ui-editor-slash-menu" data-looma-managed="framework" ref={setRoot}>
+    <div {...nativeProps} data-component="ui-editor-slash-menu" data-component-root="ui-editor-slash-menu" ref={setRoot}>
 
     </div>
   );

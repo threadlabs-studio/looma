@@ -38,7 +38,7 @@ export function UiEditorTableOverlay(props: UiEditorTableOverlayProps) {
     return () => node.removeEventListener("action", listener0);
   }, [onAction]);
   return (
-    <div {...nativeProps} data-component="ui-editor-table-overlay" data-component-root="ui-editor-table-overlay" data-looma-managed="framework" ref={setRoot}>
+    <div {...nativeProps} data-component="ui-editor-table-overlay" data-component-root="ui-editor-table-overlay" ref={setRoot}>
 
     </div>
   );

@@ -28,7 +28,7 @@ export function UiTopBar(props: UiTopBarProps) {
   useLayoutEffect(() => root.current == null ? undefined : attachLoomaComponent(root.current, definition, "ui-top-bar", componentProps), []);
   useLayoutEffect(() => { if (root.current != null) updateComponentProps(root.current, componentProps); });
   return (
-    <div {...nativeProps} data-component="ui-top-bar" data-component-root="ui-top-bar" data-looma-managed="framework" ref={setRoot}>
+    <div {...nativeProps} data-component="ui-top-bar" data-component-root="ui-top-bar" ref={setRoot}>
       <header className="top-bar" part="base" data-component="ui-top-bar">
       <div className="top-bar__leading" hidden={undefined} data-component="ui-top-bar">
         {slots?.["leading"] ?? (null)}

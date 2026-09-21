@@ -48,7 +48,7 @@ export function UiTreeItem(props: UiTreeItemProps) {
     return () => node.removeEventListener("expand", listener0);
   }, [onExpand]);
   return (
-    <div {...nativeProps} data-component="ui-tree-item" data-component-root="ui-tree-item" data-looma-managed="framework" role="treeitem" data-drop-scope={prop5 ?? undefined} data-accepts={prop0 ?? undefined} ref={setRoot}>
+    <div {...nativeProps} data-component="ui-tree-item" data-component-root="ui-tree-item" role="treeitem" data-drop-scope={prop5 ?? undefined} data-accepts={prop0 ?? undefined} ref={setRoot}>
       <div className="row" part="row" data-component="ui-tree-item">
       <button className="drag-handle" part="drag-handle" type="button" data-component="ui-tree-item">
         <span aria-hidden="true" data-component="ui-tree-item"></span>

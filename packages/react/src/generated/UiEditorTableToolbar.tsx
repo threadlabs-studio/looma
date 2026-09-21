@@ -40,7 +40,7 @@ export function UiEditorTableToolbar(props: UiEditorTableToolbarProps) {
     return () => node.removeEventListener("action", listener0);
   }, [onAction]);
   return (
-    <div {...nativeProps} data-component="ui-editor-table-toolbar" data-component-root="ui-editor-table-toolbar" data-looma-managed="framework" ref={setRoot}>
+    <div {...nativeProps} data-component="ui-editor-table-toolbar" data-component-root="ui-editor-table-toolbar" ref={setRoot}>
 
     </div>
   );

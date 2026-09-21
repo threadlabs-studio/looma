@@ -12,7 +12,6 @@ export function createUiAffordanceScope(options = {}) {
   }
   element.setAttribute("data-component", "ui-affordance-scope");
   element.setAttribute("data-component-root", "ui-affordance-scope");
-  element.setAttribute("data-looma-managed", "framework");
   if (children.length > 0) {
     for (const child of children) element.append(child);
   } else {

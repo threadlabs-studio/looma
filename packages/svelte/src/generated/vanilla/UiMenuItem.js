@@ -16,7 +16,6 @@ export function createUiMenuItem(options = {}) {
   else element.setAttribute("data-value", String(value0));
   element.setAttribute("data-component", "ui-menu-item");
   element.setAttribute("data-component-root", "ui-menu-item");
-  element.setAttribute("data-looma-managed", "framework");
   const element0 = document.createElement("span");
   element0.setAttribute("class", "menu-item__surface");
   element0.setAttribute("data-component", "ui-menu-item");

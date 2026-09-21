@@ -67,7 +67,6 @@ return (_ctx: any,_cache: any) => {
   return (_openBlock(), _createElementBlock("div", _mergeProps(_ctx.$attrs, {
     "data-component": "ui-sidebar",
     "data-component-root": "ui-sidebar",
-    "data-looma-managed": "framework",
     ref_key: "root",
     ref: root
   }), [

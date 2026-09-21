@@ -12,7 +12,6 @@ export function createUiEditorTableContextMenu(options = {}) {
   }
   element.setAttribute("data-component", "ui-editor-table-context-menu");
   element.setAttribute("data-component-root", "ui-editor-table-context-menu");
-  element.setAttribute("data-looma-managed", "framework");
   attachLoomaComponent(element, definition, "ui-editor-table-context-menu", componentProps);
   return element;
 }

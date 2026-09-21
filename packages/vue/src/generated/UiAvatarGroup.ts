@@ -50,7 +50,6 @@ return (_ctx: any,_cache: any) => {
   return (_openBlock(), _createElementBlock("div", _mergeProps(_ctx.$attrs, {
     "data-component": "ui-avatar-group",
     "data-component-root": "ui-avatar-group",
-    "data-looma-managed": "framework",
     role: "group",
     "aria-label": props.label,
     ref_key: "root",

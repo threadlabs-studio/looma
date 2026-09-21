@@ -10,7 +10,6 @@ const _hoisted_2 = {
 }
 const _hoisted_3 = {
   slot: "leading",
-  "data-html-next-slot": "leading",
   style: {"display":"contents"}
 }
 const _hoisted_4 = {
@@ -25,7 +24,6 @@ const _hoisted_5 = {
 }
 const _hoisted_6 = {
   slot: "title",
-  "data-html-next-slot": "title",
   style: {"display":"contents"}
 }
 const _hoisted_7 = {
@@ -36,7 +34,6 @@ const _hoisted_7 = {
 }
 const _hoisted_8 = {
   slot: "meta",
-  "data-html-next-slot": "meta",
   style: {"display":"contents"}
 }
 const _hoisted_9 = {
@@ -47,7 +44,6 @@ const _hoisted_9 = {
 }
 const _hoisted_10 = {
   slot: "excerpt",
-  "data-html-next-slot": "excerpt",
   style: {"display":"contents"}
 }
 const _hoisted_11 = {
@@ -58,7 +54,6 @@ const _hoisted_11 = {
 }
 const _hoisted_12 = {
   slot: "trailing",
-  "data-html-next-slot": "trailing",
   style: {"display":"contents"}
 }
 
@@ -109,7 +104,6 @@ return (_ctx: any,_cache: any) => {
   return (_openBlock(), _createElementBlock("button", _mergeProps(_ctx.$attrs, {
     "data-component": "ui-search-result-row",
     "data-component-root": "ui-search-result-row",
-    "data-looma-managed": "framework",
     class: "search-result-row",
     type: "button",
     disabled: props.disabled,

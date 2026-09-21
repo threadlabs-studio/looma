@@ -42,7 +42,6 @@ return (_ctx: any,_cache: any) => {
   return (_openBlock(), _createElementBlock("div", _mergeProps(_ctx.$attrs, {
     "data-component": "ui-editor-toolbar",
     "data-component-root": "ui-editor-toolbar",
-    "data-looma-managed": "framework",
     ref_key: "root",
     ref: root
   }), [

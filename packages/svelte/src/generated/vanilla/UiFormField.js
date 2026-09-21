@@ -21,7 +21,6 @@ export function createUiFormField(options = {}) {
   else element.removeAttribute("data-required");
   element.setAttribute("data-component", "ui-form-field");
   element.setAttribute("data-component-root", "ui-form-field");
-  element.setAttribute("data-looma-managed", "framework");
   if (slots["label"] ?? [].length > 0) {
     for (const child of slots["label"] ?? []) element.append(child);
   } else {

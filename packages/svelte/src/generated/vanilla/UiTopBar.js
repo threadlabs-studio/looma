@@ -12,7 +12,6 @@ export function createUiTopBar(options = {}) {
   }
   element.setAttribute("data-component", "ui-top-bar");
   element.setAttribute("data-component-root", "ui-top-bar");
-  element.setAttribute("data-looma-managed", "framework");
   const element0 = document.createElement("header");
   element0.setAttribute("class", "top-bar");
   element0.setAttribute("part", "base");

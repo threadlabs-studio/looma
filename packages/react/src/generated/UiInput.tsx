@@ -33,6 +33,6 @@ export function UiInput(props: UiInputProps) {
   useLayoutEffect(() => root.current == null ? undefined : attachLoomaComponent(root.current, definition, "ui-input", componentProps), []);
   useLayoutEffect(() => { if (root.current != null) updateComponentProps(root.current, componentProps); });
   return (
-    <input {...nativeProps} data-component="ui-input" data-component-root="ui-input" data-looma-managed="framework" value={prop4 ?? undefined} disabled={prop0 ?? undefined} readOnly={prop2 ?? undefined} required={prop3 ?? undefined} ref={setRoot} />
+    <input {...nativeProps} data-component="ui-input" data-component-root="ui-input" value={prop4 ?? undefined} disabled={prop0 ?? undefined} readOnly={prop2 ?? undefined} required={prop3 ?? undefined} ref={setRoot} />
   );
 }

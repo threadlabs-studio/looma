@@ -15,7 +15,6 @@ export function createUiCombobox(options = {}) {
   else element.setAttribute("data-size", String(value0));
   element.setAttribute("data-component", "ui-combobox");
   element.setAttribute("data-component-root", "ui-combobox");
-  element.setAttribute("data-looma-managed", "framework");
   const element0 = document.createElement("label");
   element0.setAttribute("for", "input");
   element0.setAttribute("part", "label");

@@ -12,7 +12,6 @@ export function createUiEditorSlashMenu(options = {}) {
   }
   element.setAttribute("data-component", "ui-editor-slash-menu");
   element.setAttribute("data-component-root", "ui-editor-slash-menu");
-  element.setAttribute("data-looma-managed", "framework");
   attachLoomaComponent(element, definition, "ui-editor-slash-menu", componentProps);
   return element;
 }

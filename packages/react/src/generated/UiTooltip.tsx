@@ -50,7 +50,7 @@ export function UiTooltip(props: UiTooltipProps) {
     return () => node.removeEventListener("close", listener1);
   }, [onClose]);
   return (
-    <span {...nativeProps} data-component="ui-tooltip" data-component-root="ui-tooltip" data-looma-managed="framework" role="tooltip" hidden={undefined} data-state-open={undefined} data-inverse={prop2 ? "" : undefined} ref={setRoot}>
+    <span {...nativeProps} data-component="ui-tooltip" data-component-root="ui-tooltip" role="tooltip" hidden={undefined} data-state-open={undefined} data-inverse={prop2 ? "" : undefined} ref={setRoot}>
       <div className="tooltip__surface" data-component="ui-tooltip">
       {children ?? (null)}
     </div>

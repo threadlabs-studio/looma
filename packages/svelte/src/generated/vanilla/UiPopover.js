@@ -12,7 +12,6 @@ export function createUiPopover(options = {}) {
   }
   element.setAttribute("data-component", "ui-popover");
   element.setAttribute("data-component-root", "ui-popover");
-  element.setAttribute("data-looma-managed", "framework");
   const element0 = document.createElement("div");
   element0.setAttribute("class", "popover__surface");
   element0.setAttribute("data-component", "ui-popover");

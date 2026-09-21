@@ -56,7 +56,6 @@ return (_ctx: any,_cache: any) => {
   return (_openBlock(), _createElementBlock("span", _mergeProps(_ctx.$attrs, {
     "data-component": "ui-badge",
     "data-component-root": "ui-badge",
-    "data-looma-managed": "framework",
     "data-variant": props.variant,
     "data-tone": props.tone,
     ref_key: "root",

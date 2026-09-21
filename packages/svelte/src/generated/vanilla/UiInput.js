@@ -24,7 +24,6 @@ export function createUiInput(options = {}) {
   else element.removeAttribute("required");
   element.setAttribute("data-component", "ui-input");
   element.setAttribute("data-component-root", "ui-input");
-  element.setAttribute("data-looma-managed", "framework");
   attachLoomaComponent(element, definition, "ui-input", componentProps);
   return element;
 }

@@ -29,7 +29,7 @@ export function UiAffordanceScope(props: UiAffordanceScopeProps) {
   useLayoutEffect(() => root.current == null ? undefined : attachLoomaComponent(root.current, definition, "ui-affordance-scope", componentProps), []);
   useLayoutEffect(() => { if (root.current != null) updateComponentProps(root.current, componentProps); });
   return (
-    <span {...nativeProps} data-component="ui-affordance-scope" data-component-root="ui-affordance-scope" data-looma-managed="framework" ref={setRoot}>
+    <span {...nativeProps} data-component="ui-affordance-scope" data-component-root="ui-affordance-scope" ref={setRoot}>
       {children ?? (null)}
     </span>
   );

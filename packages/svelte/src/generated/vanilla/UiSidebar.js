@@ -12,7 +12,6 @@ export function createUiSidebar(options = {}) {
   }
   element.setAttribute("data-component", "ui-sidebar");
   element.setAttribute("data-component-root", "ui-sidebar");
-  element.setAttribute("data-looma-managed", "framework");
   if (children.length > 0) {
     for (const child of children) element.append(child);
   } else {

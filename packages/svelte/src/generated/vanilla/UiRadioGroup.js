@@ -19,7 +19,6 @@ export function createUiRadioGroup(options = {}) {
   else element.removeAttribute("data-disabled");
   element.setAttribute("data-component", "ui-radio-group");
   element.setAttribute("data-component-root", "ui-radio-group");
-  element.setAttribute("data-looma-managed", "framework");
   const element0 = document.createElement("legend");
   element0.setAttribute("data-component", "ui-radio-group");
   const element1 = document.createElement("template");

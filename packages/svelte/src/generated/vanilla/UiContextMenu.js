@@ -12,7 +12,6 @@ export function createUiContextMenu(options = {}) {
   }
   element.setAttribute("data-component", "ui-context-menu");
   element.setAttribute("data-component-root", "ui-context-menu");
-  element.setAttribute("data-looma-managed", "framework");
   const element0 = document.createElement("div");
   element0.setAttribute("class", "menu");
   element0.setAttribute("data-component", "ui-context-menu");

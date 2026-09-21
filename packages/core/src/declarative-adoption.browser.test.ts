@@ -61,10 +61,10 @@ describe("shipped declarative component graph", () => {
     expect(customElements.get("ui-button")).toBeUndefined();
   });
 
-  it("keeps framework-owned native roots outside live observation", async () => {
+  it("keeps server-rendered slot content when observation hydrates a root", async () => {
     const root = document.createElement("div");
+    root.dataset.component = "ui-switcher";
     root.dataset.componentRoot = "ui-switcher";
-    root.dataset.loomaManaged = "framework";
     root.textContent = "Framework content";
     document.body.append(root);
     await settle();
@@ -73,10 +73,10 @@ describe("shipped declarative component graph", () => {
     expect(root.isConnected).toBe(true);
   });
 
-  it("does not rewrite framework roots while registering another package", async () => {
-    const root = document.createElement("div");
+  it("does not rewrite server-rendered roots while registering another package", async () => {
+    const root = document.createElement("button");
+    root.dataset.component = "ui-button";
     root.dataset.componentRoot = "ui-button";
-    root.dataset.loomaManaged = "framework";
     const marker = document.createElement("span");
     marker.textContent = "Server-rendered Vue content";
     root.append(marker);

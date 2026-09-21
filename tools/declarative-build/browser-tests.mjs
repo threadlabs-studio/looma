@@ -79,9 +79,10 @@ const controllerUrls = Object.fromEntries(components
   .map(({ tag, group, controller }) => [tag, `${base}/${group}/${controller}`]));
 await page.evaluate(async ({ urls, events }) => {
   window.__loomaEvents = [];
+  // Capture phase: some component events (tree `expand`) deliberately do not bubble.
   for (const name of events) document.addEventListener(name, (event) => {
     window.__loomaEvents.push({ name, detail: event.detail ?? null });
-  });
+  }, { capture: true });
   const controllers = {};
   for (const [tag, url] of Object.entries(urls)) controllers[tag] = await import(url);
   window.__stopLooma = window.HtmlRuntime.observeDocument(document, {

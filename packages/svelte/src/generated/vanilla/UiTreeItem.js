@@ -19,7 +19,6 @@ export function createUiTreeItem(options = {}) {
   else element.setAttribute("data-accepts", String(value1));
   element.setAttribute("data-component", "ui-tree-item");
   element.setAttribute("data-component-root", "ui-tree-item");
-  element.setAttribute("data-looma-managed", "framework");
   const element0 = document.createElement("div");
   element0.setAttribute("class", "row");
   element0.setAttribute("part", "row");

@@ -58,7 +58,6 @@ return (_ctx: any,_cache: any) => {
   return (_openBlock(), _createElementBlock("button", _mergeProps(_ctx.$attrs, {
     "data-component": "ui-icon-button",
     "data-component-root": "ui-icon-button",
-    "data-looma-managed": "framework",
     disabled: props.disabled,
     "data-round": props.round ? '' : undefined,
     type: "button",

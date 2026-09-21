@@ -32,7 +32,7 @@ export function UiAvatar(props: UiAvatarProps) {
   useLayoutEffect(() => root.current == null ? undefined : attachLoomaComponent(root.current, definition, "ui-avatar", componentProps), []);
   useLayoutEffect(() => { if (root.current != null) updateComponentProps(root.current, componentProps); });
   return (
-    <span {...nativeProps} data-component="ui-avatar" data-component-root="ui-avatar" data-looma-managed="framework" data-has-image={undefined} ref={setRoot}>
+    <span {...nativeProps} data-component="ui-avatar" data-component-root="ui-avatar" data-has-image={undefined} ref={setRoot}>
       <div className="avatar" data-component="ui-avatar">
       {children ?? (null)}
 <img className="avatar__managed-image" src={prop3 ?? undefined} alt="" aria-hidden="true" data-component="ui-avatar" />

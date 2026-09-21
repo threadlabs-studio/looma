@@ -12,7 +12,6 @@ export function createUiEditorMentionMenu(options = {}) {
   }
   element.setAttribute("data-component", "ui-editor-mention-menu");
   element.setAttribute("data-component-root", "ui-editor-mention-menu");
-  element.setAttribute("data-looma-managed", "framework");
   attachLoomaComponent(element, definition, "ui-editor-mention-menu", componentProps);
   return element;
 }

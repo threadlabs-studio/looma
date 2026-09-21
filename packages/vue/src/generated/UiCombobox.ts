@@ -9,7 +9,6 @@ const _hoisted_2 = {
 }
 const _hoisted_3 = {
   slot: "start",
-  "data-html-next-slot": "start",
   style: {"display":"contents"}
 }
 const _hoisted_4 = ["placeholder", "name", "disabled", "readonly", "required"]
@@ -22,7 +21,6 @@ const _hoisted_6 = {
 }
 const _hoisted_7 = {
   slot: "footer",
-  "data-html-next-slot": "footer",
   style: {"display":"contents"}
 }
 const _hoisted_8 = {
@@ -32,7 +30,7 @@ const _hoisted_8 = {
   "data-component": "ui-combobox"
 }
 const _hoisted_9 = {
-  "data-html-next-slot": "",
+  slot: "",
   style: {"display":"contents"}
 }
 
@@ -149,7 +147,6 @@ return (_ctx: any,_cache: any) => {
   return (_openBlock(), _createElementBlock("div", _mergeProps(_ctx.$attrs, {
     "data-component": "ui-combobox",
     "data-component-root": "ui-combobox",
-    "data-looma-managed": "framework",
     "data-size": props.size,
     ref_key: "root",
     ref: root

@@ -16,7 +16,6 @@ export function createUiTooltip(options = {}) {
   else element.removeAttribute("data-inverse");
   element.setAttribute("data-component", "ui-tooltip");
   element.setAttribute("data-component-root", "ui-tooltip");
-  element.setAttribute("data-looma-managed", "framework");
   const element0 = document.createElement("div");
   element0.setAttribute("class", "tooltip__surface");
   element0.setAttribute("data-component", "ui-tooltip");

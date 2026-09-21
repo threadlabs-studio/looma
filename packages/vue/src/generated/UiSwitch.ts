@@ -68,7 +68,6 @@ return (_ctx: any,_cache: any) => {
   return (_openBlock(), _createElementBlock("span", _mergeProps(_ctx.$attrs, {
     "data-component": "ui-switch",
     "data-component-root": "ui-switch",
-    "data-looma-managed": "framework",
     "data-disabled": props.disabled ? '' : undefined,
     ref_key: "root",
     ref: root

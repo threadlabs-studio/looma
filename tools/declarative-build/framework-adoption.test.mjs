@@ -16,7 +16,7 @@ test("leaves a sole Vue default slot direct for child layout contracts", () => {
 test("marks every Vue slot when a component has multiple projected regions", () => {
   assert.equal(
     preserveVueSlotRegions('<div><slot></slot><slot name="actions"></slot></div>'),
-    '<div><span data-html-next-slot="" style="display: contents"><slot></slot></span><span slot="actions" data-html-next-slot="actions" style="display: contents"><slot name="actions"></slot></span></div>',
+    '<div><span slot="" style="display: contents"><slot></slot></span><span slot="actions" style="display: contents"><slot name="actions"></slot></span></div>',
   );
 });
 

@@ -40,7 +40,7 @@ export function UiEditorInsertTableGrid(props: UiEditorInsertTableGridProps) {
     return () => node.removeEventListener("insert", listener0);
   }, [onInsert]);
   return (
-    <div {...nativeProps} data-component="ui-editor-insert-table-grid" data-component-root="ui-editor-insert-table-grid" data-looma-managed="framework" ref={setRoot}>
+    <div {...nativeProps} data-component="ui-editor-insert-table-grid" data-component-root="ui-editor-insert-table-grid" ref={setRoot}>
 
     </div>
   );

@@ -41,7 +41,7 @@ export function UiCheckbox(props: UiCheckboxProps) {
     return () => node.removeEventListener("change", listener0);
   }, [onChange]);
   return (
-    <span {...nativeProps} data-component="ui-checkbox" data-component-root="ui-checkbox" data-looma-managed="framework" data-disabled={prop1 ? "" : undefined} ref={setRoot}>
+    <span {...nativeProps} data-component="ui-checkbox" data-component-root="ui-checkbox" data-disabled={prop1 ? "" : undefined} ref={setRoot}>
       <label className="control" data-component="ui-checkbox">
       <input type="checkbox" checked={undefined} required={prop3 ?? undefined} value={prop4 ?? undefined} data-component="ui-checkbox" />
 <span className="label" data-component="ui-checkbox">

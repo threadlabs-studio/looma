@@ -55,7 +55,7 @@ export function UiMenu(props: UiMenuProps) {
     return () => node.removeEventListener("close", listener2);
   }, [onClose]);
   return (
-    <div {...nativeProps} data-component="ui-menu" data-component-root="ui-menu" data-looma-managed="framework" role="menu" aria-orientation="vertical" data-state-open={undefined} ref={setRoot}>
+    <div {...nativeProps} data-component="ui-menu" data-component-root="ui-menu" role="menu" aria-orientation="vertical" data-state-open={undefined} ref={setRoot}>
       <div className="menu__surface" data-component="ui-menu">
       {children ?? (null)}
     </div>

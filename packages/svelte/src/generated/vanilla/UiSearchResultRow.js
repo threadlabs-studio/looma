@@ -21,7 +21,6 @@ export function createUiSearchResultRow(options = {}) {
   element.setAttribute("part", "button");
   element.setAttribute("data-component", "ui-search-result-row");
   element.setAttribute("data-component-root", "ui-search-result-row");
-  element.setAttribute("data-looma-managed", "framework");
   const element0 = document.createElement("span");
   element0.setAttribute("class", "search-result-row__leading");
   element0.setAttribute("part", "leading");

@@ -52,7 +52,6 @@ return (_ctx: any,_cache: any) => {
   return (_openBlock(), _createElementBlock("button", _mergeProps(_ctx.$attrs, {
     "data-component": "ui-button",
     "data-component-root": "ui-button",
-    "data-looma-managed": "framework",
     "data-size": props.size,
     "data-variant": props.variant,
     disabled: props.disabled,

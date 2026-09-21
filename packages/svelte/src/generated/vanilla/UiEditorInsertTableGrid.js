@@ -12,7 +12,6 @@ export function createUiEditorInsertTableGrid(options = {}) {
   }
   element.setAttribute("data-component", "ui-editor-insert-table-grid");
   element.setAttribute("data-component-root", "ui-editor-insert-table-grid");
-  element.setAttribute("data-looma-managed", "framework");
   attachLoomaComponent(element, definition, "ui-editor-insert-table-grid", componentProps);
   return element;
 }

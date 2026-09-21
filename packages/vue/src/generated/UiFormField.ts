@@ -4,21 +4,18 @@ import { renderSlot as _renderSlot, createElementVNode as _createElementVNode, m
 const _hoisted_1 = ["data-invalid", "data-disabled", "data-required"]
 const _hoisted_2 = {
   slot: "label",
-  "data-html-next-slot": "label",
   style: {"display":"contents"}
 }
 const _hoisted_3 = {
-  "data-html-next-slot": "",
+  slot: "",
   style: {"display":"contents"}
 }
 const _hoisted_4 = {
   slot: "help",
-  "data-html-next-slot": "help",
   style: {"display":"contents"}
 }
 const _hoisted_5 = {
   slot: "error",
-  "data-html-next-slot": "error",
   style: {"display":"contents"}
 }
 
@@ -71,7 +68,6 @@ return (_ctx: any,_cache: any) => {
   return (_openBlock(), _createElementBlock("div", _mergeProps(_ctx.$attrs, {
     "data-component": "ui-form-field",
     "data-component-root": "ui-form-field",
-    "data-looma-managed": "framework",
     "data-invalid": props.invalid ? '' : undefined,
     "data-disabled": props.disabled ? '' : undefined,
     "data-required": props.required ? '' : undefined,

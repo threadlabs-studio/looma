@@ -30,7 +30,7 @@ export function UiBadge(props: UiBadgeProps) {
   ]), []);
   useLayoutEffect(() => { if (root.current != null) updateGeneratedProps(root.current, componentProps); });
   return (
-    <span {...nativeProps} data-component="ui-badge" data-component-root="ui-badge" data-looma-managed="framework" data-variant={prop1 ?? undefined} data-tone={prop0 ?? undefined} ref={setRoot}>
+    <span {...nativeProps} data-component="ui-badge" data-component-root="ui-badge" data-variant={prop1 ?? undefined} data-tone={prop0 ?? undefined} ref={setRoot}>
       <span className="badge__surface" data-component="ui-badge">
       {children ?? (null)}
     </span>

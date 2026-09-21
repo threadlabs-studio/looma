@@ -30,7 +30,7 @@ export function UiCenter(props: UiCenterProps) {
   ]), []);
   useLayoutEffect(() => { if (root.current != null) updateGeneratedProps(root.current, componentProps); });
   return (
-    <div {...nativeProps} data-component="ui-center" data-component-root="ui-center" data-looma-managed="framework" ref={setRoot}>
+    <div {...nativeProps} data-component="ui-center" data-component-root="ui-center" ref={setRoot}>
       {children ?? (null)}
     </div>
   );

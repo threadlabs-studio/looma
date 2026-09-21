@@ -29,7 +29,7 @@ export function UiCallout(props: UiCalloutProps) {
   useLayoutEffect(() => root.current == null ? undefined : attachLoomaComponent(root.current, definition, "ui-callout", componentProps), []);
   useLayoutEffect(() => { if (root.current != null) updateComponentProps(root.current, componentProps); });
   return (
-    <div {...nativeProps} data-component="ui-callout" data-component-root="ui-callout" data-looma-managed="framework" role="note" data-tone={prop0 ?? undefined} ref={setRoot}>
+    <div {...nativeProps} data-component="ui-callout" data-component-root="ui-callout" role="note" data-tone={prop0 ?? undefined} ref={setRoot}>
       <div className="callout__surface" data-component="ui-callout">
       <span className="icon" aria-hidden="true" data-component="ui-callout"></span>
 <div className="content" data-component="ui-callout">

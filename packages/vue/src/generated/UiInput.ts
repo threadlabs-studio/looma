@@ -56,7 +56,6 @@ return (_ctx: any,_cache: any) => {
   return (_openBlock(), _createElementBlock("input", _mergeProps(_ctx.$attrs, {
     "data-component": "ui-input",
     "data-component-root": "ui-input",
-    "data-looma-managed": "framework",
     value: props.value,
     disabled: props.disabled,
     readonly: props.readonly,

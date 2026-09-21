@@ -40,7 +40,7 @@ export function UiTabs(props: UiTabsProps) {
     return () => node.removeEventListener("select", listener0);
   }, [onSelect]);
   return (
-    <div {...nativeProps} data-component="ui-tabs" data-component-root="ui-tabs" data-looma-managed="framework" data-orientation={prop1 ?? undefined} data-stretch={prop2 ? "" : undefined} ref={setRoot}>
+    <div {...nativeProps} data-component="ui-tabs" data-component-root="ui-tabs" data-orientation={prop1 ?? undefined} data-stretch={prop2 ? "" : undefined} ref={setRoot}>
       <div className="tabs__list" role="tablist" aria-label={prop0 ?? undefined} data-component="ui-tabs"></div>
 <div className="tabs__panels" data-component="ui-tabs">
       {children ?? (null)}

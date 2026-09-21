@@ -18,7 +18,6 @@ const _hoisted_3 = {
 }
 const _hoisted_4 = {
   slot: "search",
-  "data-html-next-slot": "search",
   style: {"display":"contents"}
 }
 const _hoisted_5 = {
@@ -28,7 +27,6 @@ const _hoisted_5 = {
 }
 const _hoisted_6 = {
   slot: "status",
-  "data-html-next-slot": "status",
   style: {"display":"contents"}
 }
 const _hoisted_7 = {
@@ -38,7 +36,6 @@ const _hoisted_7 = {
 }
 const _hoisted_8 = {
   slot: "body",
-  "data-html-next-slot": "body",
   style: {"display":"contents"}
 }
 const _hoisted_9 = {
@@ -48,7 +45,6 @@ const _hoisted_9 = {
 }
 const _hoisted_10 = {
   slot: "footer",
-  "data-html-next-slot": "footer",
   style: {"display":"contents"}
 }
 
@@ -108,7 +104,6 @@ return (_ctx: any,_cache: any) => {
   return (_openBlock(), _createElementBlock("div", _mergeProps(_ctx.$attrs, {
     "data-component": "ui-search-shell",
     "data-component-root": "ui-search-shell",
-    "data-looma-managed": "framework",
     ref_key: "root",
     ref: root
   }), [

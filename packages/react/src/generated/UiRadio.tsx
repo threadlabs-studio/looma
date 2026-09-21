@@ -41,7 +41,7 @@ export function UiRadio(props: UiRadioProps) {
     return () => node.removeEventListener("change", listener0);
   }, [onChange]);
   return (
-    <span {...nativeProps} data-component="ui-radio" data-component-root="ui-radio" data-looma-managed="framework" data-disabled={prop1 ? "" : undefined} ref={setRoot}>
+    <span {...nativeProps} data-component="ui-radio" data-component-root="ui-radio" data-disabled={prop1 ? "" : undefined} ref={setRoot}>
       <label className="control" data-component="ui-radio">
       <input type="radio" checked={undefined} name={prop2 ?? undefined} required={prop3 ?? undefined} value={prop4 ?? undefined} data-component="ui-radio" />
 <span className="label" data-component="ui-radio">

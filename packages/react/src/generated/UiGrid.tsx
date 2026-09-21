@@ -30,7 +30,7 @@ export function UiGrid(props: UiGridProps) {
   ]), []);
   useLayoutEffect(() => { if (root.current != null) updateGeneratedProps(root.current, componentProps); });
   return (
-    <div {...nativeProps} data-component="ui-grid" data-component-root="ui-grid" data-looma-managed="framework" ref={setRoot}>
+    <div {...nativeProps} data-component="ui-grid" data-component-root="ui-grid" ref={setRoot}>
       {children ?? (null)}
     </div>
   );

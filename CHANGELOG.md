@@ -34,6 +34,11 @@ and so on); no custom elements are registered.
   close correctly when `open` is `false`. Context Menu renders its menu inside
   its positioned surface and leaves focus alone after a light dismiss.
 - High-contrast themes use high-contrast accent and danger colors.
+- Server-rendered components hydrate into the same instance their authored
+  markup lowers into, including slot content not currently shown, using HTML
+  Next's rendered form (slot range markers and `serializeRenderedForm`).
+  Framework adapters no longer write a `data-looma-managed` ownership marker,
+  and Vue slot regions use the native `slot` attribute.
 - A visual pass across controls: control and icon sizing, raised surfaces,
   focus halos, overlay elevation, and select and combobox affordances.
 - Publish the component option audit, which records the options each

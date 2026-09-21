@@ -30,7 +30,7 @@ export function UiSearchResultRow(props: UiSearchResultRowProps) {
   useLayoutEffect(() => root.current == null ? undefined : attachLoomaComponent(root.current, definition, "ui-search-result-row", componentProps), []);
   useLayoutEffect(() => { if (root.current != null) updateComponentProps(root.current, componentProps); });
   return (
-    <button {...nativeProps} data-component="ui-search-result-row" data-component-root="ui-search-result-row" data-looma-managed="framework" className="search-result-row" type="button" disabled={prop0 ?? undefined} data-selected={prop1 ? "" : undefined} part="button" ref={setRoot}>
+    <button {...nativeProps} data-component="ui-search-result-row" data-component-root="ui-search-result-row" className="search-result-row" type="button" disabled={prop0 ?? undefined} data-selected={prop1 ? "" : undefined} part="button" ref={setRoot}>
       <span className="search-result-row__leading" part="leading" hidden={undefined} data-component="ui-search-result-row">
       {slots?.["leading"] ?? (null)}
     </span>

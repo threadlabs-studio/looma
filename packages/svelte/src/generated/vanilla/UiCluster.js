@@ -12,7 +12,6 @@ export function createUiCluster(options = {}) {
   }
   element.setAttribute("data-component", "ui-cluster");
   element.setAttribute("data-component-root", "ui-cluster");
-  element.setAttribute("data-looma-managed", "framework");
   if (children.length > 0) {
     for (const child of children) element.append(child);
   } else {

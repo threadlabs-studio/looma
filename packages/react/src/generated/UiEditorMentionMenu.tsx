@@ -50,7 +50,7 @@ export function UiEditorMentionMenu(props: UiEditorMentionMenuProps) {
     return () => node.removeEventListener("select", listener1);
   }, [onSelect]);
   return (
-    <div {...nativeProps} data-component="ui-editor-mention-menu" data-component-root="ui-editor-mention-menu" data-looma-managed="framework" ref={setRoot}>
+    <div {...nativeProps} data-component="ui-editor-mention-menu" data-component-root="ui-editor-mention-menu" ref={setRoot}>
 
     </div>
   );
