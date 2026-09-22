@@ -8,7 +8,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
-import { assembleComponentPackage } from "@nextwebwg/declarative-components";
+import { assembleComponentPackage } from "@nextwebwg/html-next";
 import vue from "@vitejs/plugin-vue";
 import { build } from "vite";
 

@@ -293,6 +293,57 @@ describe("Overlays", () => {
     assert.equal(await size(), 32);
     await page.evaluate(() => document.dispatchEvent(new PointerEvent("pointerdown", { pointerType: "touch" })));
     assert.equal(await size(), 44);
+describe("Vue form controls", () => {
+  it("select the model's option, and style named slots without slot attributes", async () => {
+    const path = await bundle("vue-form", `
+      import { createApp, h, ref } from "vue";
+      import { FormField, Select } from "@threadlabs/looma/vue";
+      const topic = ref("help");
+      window.topic = topic;
+      createApp({
+        render: () => h(FormField, null, {
+          label: () => h("label", { id: "topic-label", for: "topic" }, "Topic"),
+          default: () => h(Select, { id: "topic", modelValue: topic.value, "onUpdate:modelValue": (value) => { topic.value = value; } }, () => [
+            h("option", { value: "problem" }, "Problem"),
+            h("option", { value: "help" }, "Help"),
+            h("option", { value: "privacy" }, "Privacy"),
+          ]),
+          help: () => h("p", { id: "topic-help" }, "Pick one."),
+        }),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const select = page.locator("#topic");
+    assert.equal(await select.inputValue(), "help");
+    await page.evaluate(() => { (window as unknown as { topic: { value: string } }).topic.value = "privacy"; });
+    await page.waitForFunction(() => (document.querySelector("#topic") as HTMLSelectElement).value === "privacy");
+    await select.selectOption("problem");
+    assert.equal(await page.evaluate(() => (window as unknown as { topic: { value: string } }).topic.value), "problem");
+
+    const fontSize = (selector: string) => page.locator(selector).evaluate((element) => getComputedStyle(element).fontSize);
+    assert.equal(await fontSize("#topic-label"), "15.2px");
+    assert.equal(await fontSize("#topic-help"), "14px");
+    await page.close();
+  });
+});
+
+describe("Vue v-model on reported props", () => {
+  it("keeps v-model:query in step with a Combobox's typing", async () => {
+    const path = await bundle("vue-query", `
+      import { createApp, h, ref } from "vue";
+      import { Combobox } from "@threadlabs/looma/vue";
+      const query = ref("");
+      window.query = query;
+      createApp({
+        render: () => h(Combobox, { id: "tags", label: "Tags", query: query.value, "onUpdate:query": (value) => { query.value = value; } }, () => [
+          h("option", { value: "research" }, "Research"),
+        ]),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await page.locator("#tags input").pressSequentially("Res");
+    assert.equal(await page.locator("#tags input").inputValue(), "Res");
+    assert.equal(await page.evaluate(() => (window as unknown as { query: { value: string } }).query.value), "Res");
     await page.close();
   });
 });
@@ -384,6 +435,7 @@ describe("HTML components", () => {
       <ui-button id="save" variant="solid" class="consumer">Save</ui-button>
       <ui-switch id="alerts">Alerts</ui-switch>
       <ui-disclosure id="more" summary="More"><p>Details</p></ui-disclosure>
+      <ui-form-field><label slot="label" id="field-label" for="field">Name</label><input id="field"></ui-form-field>
     `, [join(root, "tokens.css")]);
     await page.waitForSelector('#save[data-component="ui-button"]');
     const button = page.locator("#save");
@@ -398,6 +450,9 @@ describe("HTML components", () => {
     assert.equal(await trigger.getAttribute("aria-expanded"), "false");
     await trigger.click();
     assert.equal(await trigger.getAttribute("aria-expanded"), "true");
+
+    await page.waitForSelector('[data-component~="ui-form-field"]');
+    assert.equal(await page.locator("#field-label").evaluate((element) => getComputedStyle(element).fontSize), "15.2px");
     await page.close();
   });
 });
