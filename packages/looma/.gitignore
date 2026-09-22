@@ -1,0 +1,10 @@
+# Build output (node build.mjs)
+/.build/
+/dist/
+/vue/
+/vanilla/
+/components/
+/editor/
+/styles/
+/*.css
+/html.manifest.json

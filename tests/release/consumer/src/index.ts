@@ -1,9 +1,6 @@
-import "@threadlabs/looma";
-import "@threadlabs/looma/layout";
 import { readFile } from "node:fs/promises";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
-import { defineCustomElements } from "@threadlabs/looma/loader";
+import { definitions } from "@threadlabs/looma";
 import { Button, ContextMenu, Stack } from "@threadlabs/looma/vue";
 import {
   EditorToolbar,
@@ -26,39 +23,34 @@ if (
   extensions.length === 0
   || slashItems.length === 0
   || typeof resolveImageAttributes !== "function"
-  || typeof defineCustomElements !== "function"
+  || definitions.length === 0
 ) {
-  throw new Error("editor exports were not consumable");
+  throw new Error("package exports were not consumable");
 }
-
-const require = createRequire(import.meta.url);
-require("@threadlabs/looma");
-require("@threadlabs/looma/layout");
 
 for (const styleExport of [
   "@threadlabs/looma/tokens.css",
   "@threadlabs/looma/theme-light.css",
-  "@threadlabs/looma/layout.css",
-  "@threadlabs/looma/styles.css",
-  "@threadlabs/looma/editor.css"
+  "@threadlabs/looma/vue.css",
 ]) {
-  const styleUrl = import.meta.resolve(styleExport);
-  const styleBytes = await readFile(fileURLToPath(styleUrl));
-  if (styleBytes.length === 0) {
-    throw new Error(`${styleExport} resolved to an empty file`);
-  }
+  const styleBytes = await readFile(fileURLToPath(import.meta.resolve(styleExport)));
+  if (styleBytes.length === 0) throw new Error(`${styleExport} resolved to an empty file`);
 }
 
+// Converted components render their native roots on the server, with no HTML Next runtime.
 const app = createSSRApp({
   render: () =>
     h(Stack, { gap: "m" }, () => [
-      h(Button, { variant: "solid" }, () => h("button", { type: "button" }, "Save")),
+      h(Button, { variant: "solid" }, () => "Save"),
       h(ContextMenu, null, () => "Actions"),
       h(EditorToolbar, null, () => h("button", { type: "button" }, "Bold"))
     ])
 });
 
 const html = await renderToString(app);
-if (!html.includes("ui-stack") || !html.includes("ui-button") || !html.includes("ui-context-menu")) {
+for (const tag of ["ui-stack", "ui-button", "ui-context-menu", "ui-editor-toolbar"]) {
+  if (!html.includes(`data-component="${tag}"`)) throw new Error(`unexpected Vue SSR output for ${tag}: ${html}`);
+}
+if (!html.includes("<button") || html.includes("<ui-button")) {
   throw new Error(`unexpected Vue SSR output: ${html}`);
 }

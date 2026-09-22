@@ -1,0 +1,45 @@
+<template component="ui-form-field" controller="./ui-form-field.js">
+  <defs>
+    <prop name="invalid" type="boolean" default="false">invalid token.</prop>
+    <prop name="disabled" type="boolean" default="false">disabled token.</prop>
+    <prop name="required" type="boolean" default="false">required token.</prop>
+  </defs>
+  <div>
+    <slot name="label"></slot>
+    <slot></slot>
+    <slot name="help"></slot>
+    <slot name="error"></slot>
+  </div>
+  <style>
+    :host {
+      display: grid;
+      gap: var(--ui-space-2);
+      min-inline-size: 0;
+      align-content: start;
+      color: var(--ui-text-primary);
+    }
+
+    :slotted([slot="label"]) {
+      color: var(--ui-text-secondary);
+      font-size: 0.95rem;
+    }
+
+    :slotted([slot="help"]) {
+      min-block-size: var(--ui-form-field-help-min-block-size, 0);
+      color: var(--ui-text-muted);
+      font-size: 0.875rem;
+      line-height: var(--ui-line-height-md);
+    }
+
+    :slotted([slot="error"]),
+    :slotted([role="alert"]) {
+      color: var(--ui-accent-active);
+      font-size: 0.875rem;
+    }
+
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
+</template>

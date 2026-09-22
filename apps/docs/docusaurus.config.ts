@@ -47,6 +47,22 @@ const config: Config = {
       href: "https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap"
     }
   ],
+  plugins: [
+    // Component examples (packages/looma/src/components/*/examples) are read as text: one HTML file per example, plus
+    // hand-written framework code. Behaviour files (.behavior.ts) compile normally.
+    () => ({
+      name: "looma-examples",
+      configureWebpack: () => ({
+        module: {
+          rules: [{
+            test: /\/examples\/[^/]+\.(html|vue)$/,
+            include: path.join(__dirname, "../../packages"),
+            type: "asset/source"
+          }]
+        }
+      })
+    })
+  ],
   presets: [
     [
       "classic",
@@ -67,7 +83,7 @@ const config: Config = {
     announcementBar: {
       id: `looma-r1-${docsReleaseMode}`,
       content: isCandidateRelease
-        ? 'Release 1 Candidate 0.4.0 is available on npm under the candidate tag. <a href="/looma/release-1-support">Read the support boundary.</a>'
+        ? 'Release 1 Candidate 0.5.0 is available on npm under the candidate tag. <a href="/looma/release-1-support">Read the support boundary.</a>'
         : 'Release 1 Candidate documentation preview — confirm registry availability before installing. <a href="/looma/release-1-support">Read the support boundary.</a>',
       backgroundColor: "#2b2538",
       textColor: "#ffffff",

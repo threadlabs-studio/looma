@@ -30,21 +30,16 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Install Chromium
-        run: pnpm --filter @threadlabs/looma-core exec playwright install --with-deps chromium
-
-      - name: Generate API metadata
-        run: pnpm generate:api
-
-      - name: Check docs sync
-        run: pnpm check:docs-sync
+        run: pnpm --filter @threadlabs/looma exec playwright install --with-deps chromium
 
       - name: Check code documentation
         run: pnpm check:code-documentation
 
-      - name: Check API generation is immutable
-        run: |
-          pnpm generate:api
-          git diff --exit-code -- generated/component-api.json
+      - name: Check component formatting
+        run: pnpm format:check
+
+      - name: Build
+        run: pnpm build
 
       - name: Lint
         run: pnpm lint
@@ -52,18 +47,10 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
-      - name: Build
-        run: pnpm build
-
-      - name: Check declarative registries are current
-        run: |
-          pnpm --filter @threadlabs/looma-declarative-build registry
-          git diff --exit-code -- packages/core/src/declarative/registry.js packages/core/src/declarative/registry.d.ts packages/layout/src/declarative/registry.js packages/layout/src/declarative/registry.d.ts packages/editor/src/declarative/registry.js packages/editor/src/declarative/registry.d.ts
-
       - name: Test
         run: pnpm test
 
-      - name: Test release browser contracts
+      - name: Test in a browser
         run: pnpm test:browser
 
   release-package:

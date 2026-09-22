@@ -1,23 +1,54 @@
 # @threadlabs/looma
 
-The public Looma package. Install it once, then import only the framework and
-feature subpaths your application uses.
+Looma's components, written once as [Declarative HTML Components](https://nextwebwg.org/html-next/)
+and shipped three ways: as HTML, as Vue components, and as plain DOM factories.
 
 ```sh
 pnpm add @threadlabs/looma
 ```
 
+## Vue
+
 ```ts
-import { openOverlay } from "@threadlabs/looma";
-import { TopBar } from "@threadlabs/looma/vue";
-import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+import "@threadlabs/looma/tokens.css";
+import "@threadlabs/looma/vue.css";
+import { Button, TopBar } from "@threadlabs/looma/vue";
 ```
 
-Vue and Tiptap are optional to the package as a whole. `/vue` needs only Vue 3.5
-or newer. Looma's `/editor` and `/vue/editor` surfaces are Tiptap-backed and
-ship Looma's concrete extension set within those subpaths. `/vue/editor` consumers
-must also install `@tiptap/vue-3@^2.11.5`; `LoomaEditor` owns the Tiptap lifecycle,
-formatting toolbar, slash menu, bounded mention suggestions, image insertion,
-and table editing. `/editor/ui`
-is the low-level UI-only boundary. See the
-repository getting-started guide for the full CSS and adapter setup.
+The Vue components are ordinary Vue 3.5 single-file components, compiled to JavaScript with
+declarations; the `.vue` sources ship beside them. They depend on Vue and Looma only.
+
+The editor is Tiptap-based and needs `@tiptap/vue-3@^2.11.5`:
+
+```ts
+import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+import { getDefaultEditorExtensions } from "@threadlabs/looma/editor/extensions";
+```
+
+The editor components' event and geometry types, without Tiptap, are in
+`@threadlabs/looma/editor/ui`.
+
+## HTML
+
+```html
+<link rel="stylesheet" href="…/@threadlabs/looma/tokens.css">
+<script type="module">
+  import "@threadlabs/looma";
+</script>
+
+<ui-stack gap="m">
+  <ui-button variant="solid">Save</ui-button>
+</ui-stack>
+```
+
+Importing the package registers every component with the
+[HTML Next runtime](https://www.npmjs.com/package/@nextwebwg/declarative-components), which turns
+each `<ui-*>` element into its native root. Each component's styles are scoped to it; the token
+stylesheet is the only stylesheet to include. Without a build, link components one by one from
+`@threadlabs/looma/components/<tag>/<tag>.html`.
+
+## Theming
+
+Components read design tokens (`--ui-*` custom properties) from `tokens.css` and a theme
+(`theme-light.css`, `theme-dark.css`, `theme-high-contrast.css`), and each exposes its own
+`--ui-<component>-*` properties. Set them on the component or any ancestor.

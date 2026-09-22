@@ -1,4 +1,4 @@
-export const RELEASE_VERSION = "0.4.0";
+export const RELEASE_VERSION = "0.5.0";
 export const RELEASE_PACKAGES = [
   {
     name: "@threadlabs/looma",
@@ -8,34 +8,27 @@ export const RELEASE_PACKAGES = [
       "package/README.md",
       "package/LICENSE",
       "package/dist/index.js",
-      "package/dist/index.cjs",
       "package/dist/index.d.ts",
-      "package/dist/loader.js",
-      "package/dist/loader.d.ts",
-      "package/dist/declarative.js",
-      "package/dist/declarative.d.ts",
-      "package/dist/declarative-generated.js",
-      "package/dist/declarative-generated.d.ts",
-      "package/layout/index.js",
-      "package/layout/index.cjs",
-      "package/layout/index.d.ts",
+      "package/vue/index.js",
+      "package/vue/index.d.ts",
+      "package/vue/components.css",
+      "package/vue/UiButton.js",
+      "package/vue/UiButton.d.ts",
+      "package/vue/UiButton.vue",
+      "package/vue/editor/index.js",
+      "package/vue/editor/index.d.ts",
       "package/editor/index.js",
       "package/editor/index.d.ts",
       "package/editor/ui.js",
       "package/editor/ui.d.ts",
       "package/editor/extensions/index.js",
       "package/editor/extensions/index.d.ts",
-      "package/vue/editor/index.js",
-      "package/vue/editor/index.d.ts",
-      "package/vue/index.js",
-      "package/vue/index.d.ts",
+      "package/vanilla/index.js",
+      "package/components/ui-button/ui-button.html",
       "package/tokens.css",
       "package/theme-light.css",
       "package/theme-dark.css",
-      "package/theme-high-contrast.css",
-      "package/layout.css",
-      "package/styles.css",
-      "package/editor.css"
+      "package/theme-high-contrast.css"
     ]
   }
 ];

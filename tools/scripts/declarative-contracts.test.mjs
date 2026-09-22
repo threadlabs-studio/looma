@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { readRepositoryProjectionTags } from "./component-api-generator.mjs";
 
 import {
   parseDeclarativeContract,
@@ -9,7 +10,7 @@ import {
 
 test("derives the public contract from one maintained declarative definition", () => {
   const contract = parseDeclarativeContract(`
-    <link rel="component" href="./ui-child.html">
+    <link rel="component" href="../ui-child/ui-child.html">
     <template component="ui-example" summary="Direct native example.">
       <defs>
         <prop name="disabled" type="boolean" default="false">Whether editing is disabled.</prop>
@@ -31,9 +32,9 @@ test("derives the public contract from one maintained declarative definition", (
   assert.deepEqual(contract.slots, []);
 });
 
-test("loads every package contract from package-owned declarative source", async () => {
+test("loads every component contract from its folder", async () => {
   const groups = await readDeclarativeContractGroups();
-  assert.deepEqual(groups.map(({ name }) => name), ["core", "layout", "editor"]);
+  assert.deepEqual(groups.map(({ name }) => name), ["components"]);
   assert.equal(Object.values(groups).flatMap(({ contracts }) => Object.keys(contracts)).length, 48);
   assert.equal(groups[0].contracts["ui-select"].root, "select");
 });
@@ -70,16 +71,6 @@ test("the declarative authoring spec defines typed HTML attributes without frame
   assert.doesNotMatch(conventions, /default-open|default-value|default-checked|default-edit/i);
 });
 
-test("editor integration selectors target settled declarative roots", async () => {
-  const styles = await readFile(
-    new URL("../../packages/editor/src/declarative/styles.css", import.meta.url),
-    "utf8",
-  );
-
-  assert.doesNotMatch(styles, /\[data-component-root="\[data-component-root/);
-  assert.match(styles, /\.looma-editor__sticky-toolbar-shell \[data-component-root~="ui-editor-toolbar"\]/);
-});
-
 test("semantic controls lower directly to their native roots", async () => {
   const groups = await readDeclarativeContractGroups();
   const contracts = Object.assign({}, ...groups.map((group) => group.contracts));
@@ -114,70 +105,29 @@ test("public examples do not require implementation hooks", async () => {
 
 test("redundant layout aliases stay compatible without remaining public components", async () => {
   const groups = await readDeclarativeContractGroups();
-  const layout = groups.find(({ name }) => name === "layout");
+  const [layout] = groups;
   const classifications = JSON.parse(await readFile(
     new URL("../data/component-release-classification.json", import.meta.url),
     "utf8",
   )).tags;
-  const navigation = await readFile(
-    new URL("../../apps/docs/src/componentNavigation.ts", import.meta.url),
-    "utf8",
-  );
+  const { navigationTags } = await readRepositoryProjectionTags();
 
   assert.deepEqual(Object.keys(layout.contracts["ui-cluster"].props).sort(), ["align", "gap"]);
-  assert.equal(classifications["ui-chip"].status, "deferred");
-  assert.doesNotMatch(navigation, /tag:\s*["']ui-chip["']/);
   assert.equal(classifications["ui-floating-action-button"].status, "deferred");
-  assert.doesNotMatch(navigation, /tag:\s*["']ui-floating-action-button["']/);
+  assert.ok(!navigationTags.includes("ui-floating-action-button"));
   assert.equal(classifications["ui-search-result-row"].navigationParent, "ui-search-shell");
-  assert.doesNotMatch(navigation, /tag:\s*["']ui-search-result-row["']/);
-});
-
-test("deferred compatibility definitions stay out of every framework adapter surface", async () => {
-  const publicSources = await Promise.all([
-    "../../packages/react/src/generated/index.ts",
-    "../../packages/react/src/index.ts",
-    "../../packages/vue/src/generated/index.ts",
-    "../../packages/vue/src/index.ts",
-    "../../packages/svelte/src/generated/vanilla/index.js",
-    "../../packages/svelte/src/index.ts",
-  ].map((path) => readFile(new URL(path, import.meta.url), "utf8")));
-
-  for (const source of publicSources) {
-    assert.doesNotMatch(source, /\b(?:Ui)?(?:Chip|FloatingActionButton)\b/);
-    assert.doesNotMatch(source, /ui-(?:chip|floating-action-button)/);
-  }
-});
-
-test("React adapter rewrites HTML attributes without corrupting TypeScript readonly types", async () => {
-  const checkbox = await readFile(
-    new URL("../../packages/react/src/generated/UiCheckbox.tsx", import.meta.url),
-    "utf8",
-  );
-  const combobox = await readFile(
-    new URL("../../packages/react/src/generated/UiCombobox.tsx", import.meta.url),
-    "utf8",
-  );
-
-  assert.match(checkbox, /\{ readonly checked: boolean;/);
-  assert.doesNotMatch(checkbox, /\{ readOnly checked:/);
-  assert.match(combobox, /^  readOnly\?: boolean \| null;/m);
-  assert.match(combobox, /readonly \(string\)\[\]/);
-  assert.match(combobox, /readOnly=\{/);
-  assert.doesNotMatch(combobox, /\sreadonly=\{/);
-  assert.match(combobox, /<div className="authored-options" hidden/);
-  assert.doesNotMatch(combobox, /hidden=""|\stabindex=/);
+  assert.ok(!navigationTags.includes("ui-search-result-row"));
 });
 
 test("primitive contracts do not own application policy or a second interaction model", async () => {
   const groups = await readDeclarativeContractGroups();
   const contracts = Object.assign({}, ...groups.map((group) => group.contracts));
   const tooltipController = await readFile(
-    new URL("../../packages/core/src/declarative/components/controllers/ui-tooltip.js", import.meta.url),
+    new URL("../../packages/looma/src/components/ui-tooltip/ui-tooltip.js", import.meta.url),
     "utf8",
   );
   const sidebarController = await readFile(
-    new URL("../../packages/layout/src/declarative/components/controllers/ui-sidebar.js", import.meta.url),
+    new URL("../../packages/looma/src/components/ui-sidebar/ui-sidebar.js", import.meta.url),
     "utf8",
   );
 
@@ -213,14 +163,14 @@ test("triggered overlays use one explicit for association contract", async () =>
   for (const tag of triggered) {
     assert.deepEqual(contracts[tag].props.for, { type: "string", default: "" });
     const definition = await readFile(
-      new URL(`../../packages/core/src/declarative/components/${tag}.html`, import.meta.url),
+      new URL(`../../packages/looma/src/components/${tag}/${tag}.html`, import.meta.url),
       "utf8",
     );
     assert.doesNotMatch(definition, /<slot\s+name=["']trigger["']/);
   }
 
   const controllers = await Promise.all(triggered.map((tag) => readFile(
-    new URL(`../../packages/core/src/declarative/components/controllers/${tag}.js`, import.meta.url),
+    new URL(`../../packages/looma/src/components/${tag}/${tag}.js`, import.meta.url),
     "utf8",
   )));
   assert.equal(controllers.some((source) => /\[slot=["']trigger["']\]|previousElementSibling/.test(source)), false);
@@ -242,9 +192,9 @@ test("semantic tones use one public vocabulary", async () => {
 
 test("events describe the interaction instead of repeating the package and component name", async () => {
   const groups = await readDeclarativeContractGroups();
-  const editor = groups.find(({ name }) => name === "editor");
-  const editorEventNames = Object.values(editor.contracts)
-    .flatMap((contract) => contract.events.map(({ name }) => name));
+  const editorEventNames = Object.entries(groups[0].contracts)
+    .filter(([tag]) => tag.startsWith("ui-editor-"))
+    .flatMap(([, contract]) => contract.events.map(({ name }) => name));
   assert.deepEqual(
     [...new Set(editorEventNames)].sort(),
     ["action", "highlight", "insert", "select"],
@@ -252,9 +202,8 @@ test("events describe the interaction instead of repeating the package and compo
   assert.equal(editorEventNames.some((name) => name.startsWith("looma-editor-")), false);
 
   const adapterSources = await Promise.all([
-    "../../packages/react/src/index.test.tsx",
-    "../../packages/vue/src/editor/primitives.ts",
-    "../../packages/vue/src/editor/LoomaEditor.ts",
+    "../../packages/looma/src/vue/editor/primitives.ts",
+    "../../packages/looma/src/vue/editor/LoomaEditor.ts",
   ].map((path) => readFile(new URL(path, import.meta.url), "utf8")));
   for (const source of adapterSources) {
     assert.doesNotMatch(source, /looma-editor-[a-z-]+-(?:action|highlight|insert|select)/);

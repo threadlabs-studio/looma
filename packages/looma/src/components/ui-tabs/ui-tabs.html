@@ -1,0 +1,134 @@
+<template component="ui-tabs" controller="./ui-tabs.js">
+  <defs>
+    <prop name="label" type="string" default="Tabs">label token.</prop>
+    <prop name="value" type="string" default="">value token.</prop>
+    <prop name="orientation" type="horizontal | vertical" default="horizontal">orientation token.</prop>
+    <prop name="stretch" type="boolean" default="false">Share the full width of the tab list equally between tabs instead of sizing each to its label.</prop>
+    <state name="internalValue" :value="''"></state>
+    <state name="tabs" :value="[]"></state>
+    <event name="select" type="object({ value: string, previousValue: string, trigger: keyboard | pointer | programmatic })"></event>
+  </defs>
+  <div>
+    <div class="list" $ref="list" role="tablist" :aria-label="label" :aria-orientation="orientation">
+      <button
+        $each="tab of tabs"
+        $key="tab.id"
+        type="button"
+        role="tab"
+        :id="format('%s-tab', tab.id)"
+        :value="tab.id"
+        :aria-controls="tab.id"
+        :aria-selected="tab.id = internalValue"
+        $value="tab.label"
+      >
+      </button>
+    </div>
+    <div class="panels" $ref="panels"><slot></slot></div>
+  </div>
+  <style>
+    :host {
+      display: grid;
+      inline-size: 100%;
+      min-inline-size: 0;
+    }
+
+    .list {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: max-content;
+      justify-content: start;
+      inline-size: 100%;
+      max-inline-size: 100%;
+      /* Tabs that do not fit scroll sideways rather than wrapping or squeezing. */
+      overflow-x: auto;
+      /* overflow-x: auto would make the block axis scrollable too; a sideways swipe must not scroll the
+         strip or the page vertically. */
+      overflow-y: hidden;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+      border-block-end: 1px solid var(--ui-border-default);
+    }
+
+    .list button {
+      min-block-size: 2.5rem;
+      margin: 0 0 -1px;
+      padding: var(--ui-space-2) var(--ui-space-3);
+      border: 0;
+      border-block-end: 2px solid transparent;
+      background: transparent;
+      color: var(--ui-text-secondary);
+      font: inherit;
+      font-size: var(--ui-font-size-sm);
+      font-weight: var(--ui-font-medium, 500);
+      cursor: pointer;
+      transition:
+        color var(--ui-motion-fast) var(--ui-motion-ease),
+        background-color var(--ui-motion-fast) var(--ui-motion-ease),
+        border-color var(--ui-motion-fast) var(--ui-motion-ease);
+    }
+
+    :host-state([stretch]) .list {
+      grid-auto-columns: minmax(max-content, 1fr);
+    }
+
+    .list button {
+      white-space: nowrap;
+    }
+
+    .list button:hover {
+      color: var(--ui-text-primary);
+      background: var(--ui-surface-muted);
+    }
+    .list button[aria-selected="true"] {
+      color: var(--ui-accent-solid);
+      border-block-end-color: var(--ui-accent-solid);
+    }
+    .list button:focus-visible {
+      position: relative;
+      outline: none;
+      box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--ui-focus-ring) 45%, transparent);
+      border-radius: var(--ui-radius-1);
+    }
+
+    .panels {
+      min-inline-size: 0;
+    }
+    :slotted(*) {
+      padding: var(--ui-space-4);
+    }
+
+    :host-state([orientation="vertical"]) {
+      grid-template-columns: max-content minmax(0, 1fr);
+      align-items: start;
+    }
+
+    :host-state([orientation="vertical"]) .list {
+      grid-auto-flow: row;
+      grid-auto-columns: auto;
+      border-block-end: 0;
+      border-inline-end: 1px solid var(--ui-border-default);
+    }
+
+    :host-state([orientation="vertical"]) .list button {
+      margin: 0 -1px 0 0;
+      border-block-end: 0;
+      border-inline-end: 2px solid transparent;
+      text-align: start;
+    }
+
+    :host-state([orientation="vertical"]) .list button[aria-selected="true"] {
+      border-inline-end-color: var(--ui-accent-solid);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .list button {
+        transition: none;
+      }
+    }
+
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
+</template>

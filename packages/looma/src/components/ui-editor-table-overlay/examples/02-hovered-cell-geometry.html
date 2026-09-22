@@ -1,0 +1,32 @@
+<!--
+title: Hovered cell geometry
+description: Adding hoveredCell to the same geometry record exposes row and column selectors for that cell.
+bind: geometry=tableGeometry
+-->
+<div class="demo-editor-table-stage demo-editor-table-stage--three">
+  <table aria-label="Example table">
+    <tbody>
+      <tr>
+        <td>A1</td>
+        <td>B1</td>
+        <td>C1</td>
+      </tr>
+      <tr>
+        <td>A2</td>
+        <td>B2</td>
+        <td>C2</td>
+      </tr>
+      <tr>
+        <td>A3</td>
+        <td>B3</td>
+        <td>C3</td>
+      </tr>
+    </tbody>
+  </table>
+  <ui-editor-table-overlay
+    id="three-table-overlay"
+    geometry='{"rowBoundaries":[0,40,80,120],"columnBoundaries":[0,80,160,240],"activeCell":{"left":80,"top":40,"width":80,"height":40,"rowIndex":1,"columnIndex":1},"hoveredCell":{"left":80,"top":40,"width":80,"height":40,"rowIndex":1,"columnIndex":1}}'
+    open
+  >
+  </ui-editor-table-overlay>
+</div>

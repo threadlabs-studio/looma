@@ -13,14 +13,14 @@ deferred adapters remain internal workspaces.
 
 ## Responsibilities
 
-- `@threadlabs/looma/*.css`: CSS semantic tokens, themes, and component styles.
-- `@threadlabs/looma/layout`: eight declarative spacing and layout components with no external margins.
-- `@threadlabs/looma`: 31 published declarative core components that preserve authored semantic light DOM through slots.
-- `@threadlabs/looma/editor`: the complete Tiptap-backed editor API.
-- `@threadlabs/looma/editor/ui`: seven low-level declarative editor surfaces without the Tiptap integration.
-- `@threadlabs/looma/editor/extensions`: focused Tiptap 2 presets and table helpers.
-- `@threadlabs/looma/vue`: the supported Vue 3 translation over layout and core contracts, without the editor graph.
-- `@threadlabs/looma/vue/editor`: the supported turnkey Vue 3 editor integration, including the Tiptap lifecycle, commands, table editing, and themed controls.
+- `src/components/<tag>/`: each component's definition, controller, and examples. Its styles are
+  scoped to it; no component styles live in package CSS.
+- `@threadlabs/looma/*.css`: design tokens and themes.
+- `@threadlabs/looma`: registers every component with the HTML Next runtime for HTML pages.
+- `@threadlabs/looma/vue`: every component converted to a Vue 3.5 component, with no HTML Next runtime.
+- `@threadlabs/looma/editor`: the editor components' contracts and the Tiptap-backed editor API;
+  `/editor/extensions` holds the Tiptap 2 presets and table helpers alone.
+- `@threadlabs/looma/vue/editor`: the turnkey Vue 3 editor integration, including the Tiptap lifecycle, commands, table editing, and themed controls.
 
 ## SSR and upgrade contract
 

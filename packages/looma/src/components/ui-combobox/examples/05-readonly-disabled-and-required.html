@@ -1,0 +1,16 @@
+<!--
+title: readonly, disabled, and required
+description: Readonly shows a value that cannot change, disabled makes the field unavailable, and required participates in form validation.
+-->
+<ui-stack gap="s">
+  <ui-combobox label="Readonly" readonly value="north">
+    <option value="north">North terminal</option>
+  </ui-combobox>
+  <ui-combobox label="Disabled" disabled>
+    <option value="north">North terminal</option>
+  </ui-combobox>
+  <ui-combobox label="Required" name="destination" required disclosure>
+    <option value="north">North terminal</option>
+    <option value="west">West terminal</option>
+  </ui-combobox>
+</ui-stack>

@@ -1,0 +1,157 @@
+<template component="ui-editor-mention-menu" controller="./ui-editor-mention-menu.js">
+  <defs>
+    <prop name="open" type="boolean" default="false">Whether the menu is open.</prop>
+    <prop name="query" type="string" default="">The text typed after the @.</prop>
+    <prop name="items" type="list(object({ id: string, label: string, detail?: string, initials?: string }))">The people the menu offers.</prop>
+    <prop name="selectedIndex" type="integer" default="0">The highlighted person.</prop>
+    <prop name="loading" type="boolean" default="false">Whether a search is in progress.</prop>
+    <prop
+      name="anchorRect"
+      type="object({ left?: number, top?: number, right?: number, bottom?: number, x?: number, y?: number, width?: number, height?: number }) | null"
+    >Where the @ was typed, in viewport coordinates.</prop>
+    <state name="visible" :value="false"></state>
+    <state name="rows" :value="[]"></state>
+    <state name="searching" :value="false"></state>
+    <state name="active" :value="0"></state>
+    <state name="prefix" :value="'ui-editor-mention-menu'"></state>
+    <event name="highlight" type="object({ index: integer })"></event>
+    <event name="select" type="object({ index: integer })"></event>
+  </defs>
+  <div role="listbox" aria-label="Mention a person" :aria-busy="loading" :hidden="not visible">
+    <div class="header">
+      <span>People</span>
+      <span class="hint">Type after @ to search</span>
+    </div>
+    <div $if="searching" class="loading" role="status">Searching…</div>
+    <ul $if="not searching" class="list" role="presentation">
+      <li
+        $each="row, index of rows"
+        :id="format('%s-option-%s', prefix, index)"
+        class="item"
+        class:active="index = active"
+        role="option"
+        :aria-selected="index = active"
+        :data-index="index"
+      >
+        <span class="avatar" aria-hidden="true" $value="row.initials"></span>
+        <span class="body"><span class="label" $value="row.label"></span><span $if="row.detail" class="detail" $value="row.detail"></span></span>
+      </li>
+    </ul>
+  </div>
+  <style>
+    :host {
+      user-select: none;
+    }
+
+    :host {
+      display: flex;
+      overflow: hidden;
+      flex-direction: column;
+      background: var(--ui-surface, #fff);
+      border: 1px solid var(--ui-border, #e5e7eb);
+      border-radius: var(--ui-radius-xl, 1rem);
+      box-shadow: var(--ui-shadow-lg, 0 8px 24px rgb(0 0 0 / 0.12));
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--ui-space-3, 12px);
+      padding: var(--ui-space-2, 8px) var(--ui-space-3, 12px);
+      color: var(--ui-text-secondary, #4b5563);
+      border-bottom: 1px solid var(--ui-border, #e5e7eb);
+      font-size: var(--ui-font-size-xs, 0.75rem);
+      font-weight: var(--ui-font-semibold, 600);
+    }
+
+    .hint {
+      overflow: hidden;
+      color: var(--ui-text-muted, #6b7280);
+      font-weight: var(--ui-font-normal, 400);
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .list {
+      max-height: 280px;
+      padding: var(--ui-space-1, 4px) 0;
+      margin: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      list-style: none;
+    }
+
+    .item {
+      display: flex;
+      align-items: center;
+      min-height: 44px;
+      padding: var(--ui-space-1-5, 6px) var(--ui-space-3, 12px);
+      gap: var(--ui-space-3, 12px);
+      cursor: pointer;
+    }
+
+    .item.active {
+      background: var(--ui-accent-subtle, rgb(59 130 246 / 0.1));
+    }
+
+    .avatar {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      flex: 0 0 auto;
+      color: var(--ui-accent-active, var(--ui-accent-solid, #2563eb));
+      background: var(--ui-accent-soft, var(--ui-accent-subtle, #eff6ff));
+      border-radius: 999px;
+      font-size: var(--ui-font-size-xs, 0.75rem);
+      font-weight: var(--ui-font-semibold, 600);
+    }
+
+    .body {
+      display: flex;
+      min-width: 0;
+      flex-direction: column;
+    }
+
+    .label,
+    .detail {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .label {
+      color: var(--ui-text-primary, #111827);
+      font-size: var(--ui-font-size-sm, 0.875rem);
+      font-weight: var(--ui-font-medium, 500);
+    }
+
+    .detail,
+    .loading {
+      color: var(--ui-text-muted, #6b7280);
+      font-size: var(--ui-font-size-xs, 0.75rem);
+    }
+
+    .loading {
+      min-height: 44px;
+      padding: var(--ui-space-3, 12px);
+    }
+
+    @media (max-width: 767px) {
+      :host {
+        border-bottom: 0;
+        border-radius: var(--ui-radius-xl, 1rem) var(--ui-radius-xl, 1rem) 0 0;
+      }
+
+      .list {
+        max-height: calc(60dvh - 48px);
+      }
+    }
+
+    :host[hidden] {
+      display: none;
+    }
+  </style>
+</template>

@@ -1,0 +1,39 @@
+<template component="ui-container">
+  <defs>
+    <prop name="measure" type="narrow | wide">measure token.</prop>
+    <prop name="gutters" type="s | m | l">gutters token.</prop>
+  </defs>
+  <div><slot></slot></div>
+  <style>
+    :host {
+      --_container-measure: 65ch;
+      --_container-gutters: var(--ui-space-4, 1rem);
+      display: block;
+      inline-size: 100%;
+      max-inline-size: var(--ui-container-measure, var(--_container-measure));
+      margin-inline: auto;
+      padding-inline: var(--ui-container-gutters, var(--_container-gutters));
+    }
+
+    :host-state([measure="narrow"]) {
+      --_container-measure: 45ch;
+    }
+    :host-state([measure="wide"]) {
+      --_container-measure: 80ch;
+    }
+    :host-state([gutters="s"]) {
+      --_container-gutters: var(--ui-space-3, 0.75rem);
+    }
+    :host-state([gutters="m"]) {
+      --_container-gutters: var(--ui-space-4, 1rem);
+    }
+    :host-state([gutters="l"]) {
+      --_container-gutters: var(--ui-space-5, 1.5rem);
+    }
+
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
+</template>

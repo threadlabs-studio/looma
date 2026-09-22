@@ -1,0 +1,164 @@
+<link rel="component" href="../ui-icon/ui-icon.html">
+<template component="ui-editor-table-context-menu" controller="./ui-editor-table-context-menu.js">
+  <defs>
+    <prop name="open" type="boolean" default="false">Shows the menu at the position owned by the editor integration.</prop>
+    <prop name="cellBackground" type="string" default="">Identifies the background choice that is active for the current cell.</prop>
+    <prop
+      name="actions"
+      type="list(align-left | align-center | align-right | background-none | background-gray | background-yellow | background-blue | background-green | background-red | add-row-before | add-row-after | add-column-before | add-column-after | clear-cells | merge-cells | split-cell | delete-row | delete-column | delete-table)"
+    >The complete set of commands the current selection permits.</prop>
+    <state name="swatches" :value="[]"></state>
+    <state name="sections" :value="[]"></state>
+    <event
+      name="action"
+      type="object({ action: align-left | align-center | align-right | background-none | background-gray | background-yellow | background-blue | background-green | background-red | add-row-before | add-row-after | add-column-before | add-column-after | clear-cells | merge-cells | split-cell | delete-row | delete-column | delete-table })"
+    ></event>
+  </defs>
+  <div role="menu" :hidden="not open">
+    <div $if="swatches" class="section" role="none">
+      <div class="heading" role="presentation">Cell background</div>
+      <div class="swatches" role="group" aria-label="Cell background">
+        <button
+          $each="swatch of swatches"
+          $key="swatch.action"
+          type="button"
+          class="swatch-button"
+          class:selected="swatch.selected"
+          role="menuitemradio"
+          :aria-checked="swatch.selected"
+          :data-action="swatch.action"
+        >
+          <span class="swatch" class:default="not swatch.color" style:--ui-editor-table-context-swatch="swatch.color"></span>
+          <span class="swatch-label" $value="swatch.label"></span>
+        </button>
+      </div>
+    </div>
+    <template $each="section of sections" $key="section.heading">
+      <div class="sep"></div>
+      <div class="section" role="none">
+        <div class="heading" role="presentation" $value="section.heading"></div>
+        <button $each="item of section.items" $key="item.action" type="button" role="menuitem" class:danger="item.danger" :data-action="item.action">
+          <ui-icon :name="item.icon"></ui-icon>
+          <span $value="item.label"></span>
+        </button>
+      </div>
+    </template>
+  </div>
+  <style>
+    :host {
+      min-width: 14rem;
+      max-width: min(17rem, calc(100vw - 24px));
+      max-height: min(28rem, calc(100vh - 24px));
+      padding: var(--ui-space-1-5, 6px);
+      background: var(--ui-surface, #fff);
+      border: 1px solid var(--ui-border, #e5e7eb);
+      border-radius: var(--ui-radius-lg, 10px);
+      box-shadow: var(--ui-shadow-lg, 0 10px 15px -3px rgb(0 0 0 / 0.1));
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+    }
+
+    .section {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    :host button {
+      display: flex;
+      align-items: center;
+      gap: var(--ui-space-2, 8px);
+      width: 100%;
+      text-align: left;
+      min-height: 32px;
+      padding: var(--ui-space-1-5, 6px) var(--ui-space-2, 8px);
+      border: none;
+      border-radius: var(--ui-radius-sm, 4px);
+      background: none;
+      font-size: var(--ui-font-size-sm, 0.875rem);
+      cursor: pointer;
+      color: var(--ui-text, #111);
+    }
+
+    :host button {
+      --ui-icon-size: 1rem;
+      --ui-icon-stroke-width: var(--ui-editor-toolbar-icon-stroke-width, 1.75);
+    }
+
+    :host button:hover:not(:disabled) {
+      background: var(--ui-surface-hover, #f3f4f6);
+    }
+
+    :host button.selected {
+      background: var(--ui-accent-subtle, rgb(59 130 246 / 0.1));
+    }
+
+    :host button.danger {
+      color: var(--ui-danger, #dc2626);
+    }
+
+    .swatches {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 3px;
+    }
+
+    .swatch-button {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--ui-space-2, 8px);
+    }
+
+    .swatch {
+      display: inline-flex;
+      width: 1rem;
+      height: 1rem;
+      border-radius: 999px;
+      border: 1px solid var(--ui-border, #d1d5db);
+      background: var(--ui-editor-table-context-swatch, #fff);
+      box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.35);
+      flex-shrink: 0;
+    }
+
+    .swatch.default {
+      position: relative;
+      background:
+        linear-gradient(
+          135deg,
+          transparent calc(50% - 1px),
+          var(--ui-text-muted, #6b7280) calc(50% - 1px),
+          var(--ui-text-muted, #6b7280) calc(50% + 1px),
+          transparent calc(50% + 1px)
+        ),
+        var(--ui-surface, #fff);
+    }
+
+    .swatch-label {
+      min-width: 0;
+      white-space: nowrap;
+    }
+
+    .heading {
+      padding: var(--ui-space-1, 4px) var(--ui-space-2, 8px);
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--ui-text-muted, #6b7280);
+    }
+
+    .sep {
+      height: 1px;
+      background: var(--ui-border, #e5e7eb);
+      margin: var(--ui-space-1, 4px) 0;
+    }
+
+    :host[hidden] {
+      display: none;
+    }
+  </style>
+</template>

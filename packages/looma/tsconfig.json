@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "rootDir": "src",
+    "outDir": ".build/types-src",
+    "paths": {
+      "@threadlabs/looma/editor": [
+        "./src/editor/index.ts"
+      ]
+    }
+  },
+  "include": [
+    "src/editor/**/*.ts",
+    "src/vue/editor/**/*.ts",
+    "src/env.d.ts"
+  ],
+  "exclude": [
+    "src/**/*.test.ts"
+  ]
+}

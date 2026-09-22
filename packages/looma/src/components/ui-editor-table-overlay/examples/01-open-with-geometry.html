@@ -1,0 +1,25 @@
+<!--
+title: Open with geometry
+description: Open exposes controls at the row, column, and active-cell coordinates supplied through the geometry property.
+bind: geometry=tableGeometry
+-->
+<div class="demo-editor-table-stage">
+  <table aria-label="Example table">
+    <tbody>
+      <tr>
+        <td>A1</td>
+        <td>B1</td>
+      </tr>
+      <tr>
+        <td>A2</td>
+        <td>B2</td>
+      </tr>
+    </tbody>
+  </table>
+  <ui-editor-table-overlay
+    id="editor-table-overlay-overlay"
+    geometry='{"rowBoundaries":[0,48,96],"columnBoundaries":[0,120,240],"activeCell":{"left":0,"top":0,"width":120,"height":48,"rowIndex":0,"columnIndex":0}}'
+    open
+  >
+  </ui-editor-table-overlay>
+</div>

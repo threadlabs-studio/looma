@@ -1,0 +1,26 @@
+<!--
+title: label, dismissible, status, and footer
+description: Label names the dialog, dismissible enables Escape and backdrop dismissal, and the status, body, and footer slots host application-owned search state.
+-->
+<ui-search-shell id="docs-search-shell" open dismissible label="Search documentation">
+  <ui-input id="docs-search-input" slot="search" type="search" aria-label="Search documentation" placeholder="Search documentation"> </ui-input>
+  <div id="docs-search-status" slot="status" aria-live="polite">3 results</div>
+  <div id="docs-search-results" slot="body">
+    <ui-search-result-row id="docs-result-design-tokens">
+      <strong slot="title">Design tokens</strong>
+      <span slot="excerpt">Color, type, spacing, and motion.</span>
+    </ui-search-result-row>
+    <ui-search-result-row id="docs-result-token-overrides">
+      <strong slot="title">Token overrides</strong>
+      <span slot="excerpt">Customize shared and component tokens.</span>
+    </ui-search-result-row>
+    <ui-search-result-row id="docs-result-button-variants">
+      <strong slot="title">Button variants</strong>
+      <span slot="excerpt">Choose solid, outline, ghost, or danger.</span>
+    </ui-search-result-row>
+    <p id="docs-search-empty" hidden>No matching documentation.</p>
+  </div>
+  <form slot="footer" method="dialog">
+    <ui-button type="submit" size="sm">Close</ui-button>
+  </form>
+</ui-search-shell>

@@ -50,28 +50,18 @@ async function verifyMinimalConsumer(directory, tarball) {
     type: "module",
     dependencies: { "@threadlabs/looma": `file:${tarball}` },
   });
+  // Without a document (SSR), the registration entry loads and registers nothing.
   await writeFile(
     path.join(directory, "index.mjs"),
-    `import { openOverlay } from "@threadlabs/looma";\n` +
-      `import { closeOverlay } from "@threadlabs/looma/core";\n` +
-      `await import("@threadlabs/looma/loader");\n` +
-      `await import("@threadlabs/looma/layout");\n` +
-      `await import("@threadlabs/looma/editor/ui");\n` +
-      `if (typeof openOverlay !== "function" || typeof closeOverlay !== "function") process.exit(1);\n` +
-      `if (!import.meta.resolve("@threadlabs/looma/tokens.css").endsWith("tokens.css")) process.exit(1);\n`,
-  );
-  await writeFile(
-    path.join(directory, "index.cjs"),
-      `const root = require("@threadlabs/looma");\n` +
-      `const core = require("@threadlabs/looma/core");\n` +
-      `require("@threadlabs/looma/layout");\n` +
-      `if (typeof root.openOverlay !== "function" || typeof core.closeOverlay !== "function") process.exit(1);\n`,
+    `const { definitions, register, stop } = await import("@threadlabs/looma");\n` +
+      `if (!Array.isArray(definitions) || definitions.length === 0 || typeof register !== "function" || stop !== undefined) process.exit(1);\n` +
+      `if (!import.meta.resolve("@threadlabs/looma/tokens.css").endsWith("tokens.css")) process.exit(1);\n` +
+      `if (!import.meta.resolve("@threadlabs/looma/components/ui-button/ui-button.html").endsWith("ui-button.html")) process.exit(1);\n`,
   );
   await writeFile(
     path.join(directory, "index.ts"),
-    `import { openOverlay } from "@threadlabs/looma";\n` +
-      `import { closeOverlay } from "@threadlabs/looma/core";\n` +
-      `void openOverlay;\nvoid closeOverlay;\n`,
+    `import { definitions, register } from "@threadlabs/looma";\n` +
+      `void definitions;\nvoid register;\n`,
   );
   await writeJson(path.join(directory, "tsconfig.json"), {
     compilerOptions: {
@@ -87,10 +77,9 @@ async function verifyMinimalConsumer(directory, tarball) {
 
   await installConsumer(directory);
   await run(process.execPath, ["index.mjs"], directory);
-  await run(process.execPath, ["index.cjs"], directory);
   await run(
     pnpm,
-    ["--filter", "@threadlabs/looma-core", "exec", "tsc", "-p", path.join(directory, "tsconfig.json")],
+    ["--filter", "@threadlabs/looma", "exec", "tsc", "-p", path.join(directory, "tsconfig.json")],
     repoRoot,
   );
 
@@ -119,8 +108,8 @@ async function verifyVueOnlyConsumer(directory, tarball, facadeManifest) {
   await writeFile(
     path.join(directory, "index.mjs"),
     `import { Button, TopBar } from "@threadlabs/looma/vue";\n` +
-      `await import("@threadlabs/looma/editor/ui");\n` +
-      `if (!Button || !TopBar) process.exit(1);\n`,
+      `const ui = await import("@threadlabs/looma/editor/ui");\n` +
+      `if (!Button || !TopBar || typeof ui.measureTableOverlayGeometry !== "function") process.exit(1);\n`,
   );
   await writeFile(
     path.join(directory, "index.ts"),
@@ -145,7 +134,7 @@ async function verifyVueOnlyConsumer(directory, tarball, facadeManifest) {
   await run(process.execPath, ["index.mjs"], directory);
   await run(
     pnpm,
-    ["--filter", "@threadlabs/looma-core", "exec", "tsc", "-p", path.join(directory, "tsconfig.json")],
+    ["--filter", "@threadlabs/looma", "exec", "tsc", "-p", path.join(directory, "tsconfig.json")],
     repoRoot,
   );
   await assertPackagesAbsent(
@@ -207,7 +196,7 @@ async function verifyPeerConsumer(directory, tarball, facadeManifest) {
   await run(process.execPath, ["index.mjs"], directory);
   await run(
     pnpm,
-    ["--filter", "@threadlabs/looma-core", "exec", "tsc", "-p", path.join(directory, "tsconfig.json")],
+    ["--filter", "@threadlabs/looma", "exec", "tsc", "-p", path.join(directory, "tsconfig.json")],
     repoRoot,
   );
 }

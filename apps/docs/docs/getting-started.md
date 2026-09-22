@@ -14,11 +14,11 @@ import { DeclarativeModel } from "@site/src/components/DeclarativeModel";
 
 ## Install Looma
 
-Looma Release 1 is a Candidate `0.4.0` package for Vue 3 and direct declarative HTML use. It is not Stable yet. React support is in development.
+Looma Release 1 is a Candidate `0.5.0` package for Vue 3 and direct declarative HTML use. It is not Stable yet. React support is in development.
 
 :::caution Confirm the Candidate tag
 
-These instructions target the exact `@threadlabs/looma@0.4.0` Candidate. Before adopting it, confirm that npm resolves that package at `0.4.0` under the `candidate` dist-tag. Preview documentation can be built before that registry gate; production documentation is published only after the gate passes.
+These instructions target the exact `@threadlabs/looma@0.5.0` Candidate. Before adopting it, confirm that npm resolves that package at `0.5.0` under the `candidate` dist-tag. Preview documentation can be built before that registry gate; production documentation is published only after the gate passes.
 
 :::
 
@@ -48,24 +48,28 @@ editor subpath. You do not need to enumerate those packages yourself.
 official Vue lifecycle. Applications that use `/editor` without Vue should
 install a compatible `@tiptap/core` 2.x instead.
 
-The root package, `@threadlabs/looma/core`, `@threadlabs/looma/layout`, and
-`@threadlabs/looma/vue` work without Tiptap. Looma's `/editor` and
+The root package and `@threadlabs/looma/vue` work without Tiptap. Looma's `/editor` and
 `/vue/editor` entries are Tiptap-backed by design.
 
-## Import styles and component graphs
+## Import the tokens and the components
 
-Import global package CSS once in the browser entry for your application:
+Import the design tokens and one theme once in the browser entry for your application. For HTML
+pages, import the package to register every component; each component carries its own scoped
+styles.
 
 ```ts
 import "@threadlabs/looma/tokens.css";
 import "@threadlabs/looma/theme-light.css";
-import "@threadlabs/looma/layout.css";
-import "@threadlabs/looma/styles.css";
-import "@threadlabs/looma/editor.css";
 
-import "@threadlabs/looma/layout";
 import "@threadlabs/looma";
-import "@threadlabs/looma/editor";
+```
+
+Vue applications import the Vue components and their stylesheet instead:
+
+```ts
+import "@threadlabs/looma/tokens.css";
+import "@threadlabs/looma/theme-light.css";
+import "@threadlabs/looma/vue.css";
 ```
 
 Choose only one Looma theme file unless your application supplies its own semantic-token values. Importing the public modules during server rendering is supported; document lowering and controller behavior wait for a browser.
@@ -75,11 +79,11 @@ Choose only one Looma theme file unless your application supplies its own semant
 HTML Next defines two ways to load components, and they build the same components:
 
 - **Installed package** (above). Your bundler imports Looma's entry points, which register the component definitions ahead of time. This is how Looma is used today.
-- **No build.** A page loads HTML Next's browser entry with a `<script type="module">` and links each component's HTML with `<link rel="component" href="…/ui-button.html">`; definitions load on demand. Looma does not ship its component HTML files yet, so this path is not available with Looma in this release.
+- **No build.** A page loads HTML Next's browser entry with a `<script type="module">` and links each component's HTML with `<link rel="component" href="…/@threadlabs/looma/components/ui-button/ui-button.html">`; definitions load on demand.
 
 ## Render with a framework adapter
 
-The mode control above changes the syntax, not the component model. Looma wrappers preserve native, authored markup and project the same inputs, methods, events, slots, and controller behavior into the framework lifecycle. The markup remains the semantic fallback before JavaScript lowers the declarative invocation to its native root and attaches behavior.
+The mode control above changes the syntax, not the component model. The Vue components are converted from the same definitions: each renders the component's native root with Vue, with the same props, events, slots, methods, and behavior, and no HTML Next runtime.
 
 ```vue
 <script setup lang="ts">

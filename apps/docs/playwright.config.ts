@@ -20,7 +20,7 @@ export default defineConfig({
     }
   ],
   webServer: {
-    command: `pnpm --dir ../.. build:facade && pnpm build && pnpm exec docusaurus serve --host 127.0.0.1 --port ${port} --no-open`,
+    command: `pnpm --dir ../.. --filter @threadlabs/looma build && pnpm build && pnpm exec docusaurus serve --host 127.0.0.1 --port ${port} --no-open`,
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000
