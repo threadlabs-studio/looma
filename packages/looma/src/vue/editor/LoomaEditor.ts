@@ -184,6 +184,11 @@ export const LoomaEditor = defineComponent({
       type: String,
       default: "Type “/” for commands, or start writing…",
     },
+    /** Accessible name of the editing surface, which is a text box to assistive technology. */
+    label: {
+      type: String,
+      default: "Document",
+    },
     extensions: {
       type: Array as PropType<AnyExtension[]>,
       default: () => [],
@@ -334,6 +339,7 @@ export const LoomaEditor = defineComponent({
       ],
       content: props.modelValue,
       editable: props.editable,
+      editorProps: { attributes: { "aria-label": props.label } },
       onCreate: ({ editor: instance }) => emit("ready", instance),
       onFocus: ({ editor: instance }) => rememberSelection(instance),
       onSelectionUpdate: ({ editor: instance }) => rememberSelection(instance),
@@ -346,6 +352,9 @@ export const LoomaEditor = defineComponent({
     });
 
     watch(() => props.editable, (editable) => editor.value?.setEditable(editable));
+    watch(() => props.label, (label) => {
+      editor.value?.setOptions({ editorProps: { attributes: { "aria-label": label } } });
+    });
     watch(() => props.resolveImageAttributes, () => {
       const instance = editor.value;
       if (instance) imageDelivery.reset(instance);

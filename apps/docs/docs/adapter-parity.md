@@ -6,8 +6,8 @@ Adapters project framework props, slots, and callbacks onto Looma's declarative 
 
 | Adapter | Status | Release 1 promise |
 | --- | --- | --- |
-| `@threadlabs/looma/vue` | Published Candidate | Named wrappers for every published layout and core element |
-| `@threadlabs/looma/vue/editor` | Published Candidate | Named wrappers for all 7 published editor elements plus Looma editor helpers |
+| `@threadlabs/looma/vue` | Published | Named wrappers for every published layout and core element |
+| `@threadlabs/looma/vue/editor` | Published | Named wrappers for all 7 published editor elements plus Looma editor helpers |
 | React | In development | Not published |
 
 Vue and direct declarative HTML examples are the supported public paths.

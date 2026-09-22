@@ -515,6 +515,24 @@ describe("Vue editor components", () => {
 });
 
 describe("LoomaEditor", () => {
+  it("names its editing surface for assistive technology", async () => {
+    const path = await bundle("vue-editor-label", `
+      import { createApp, h, ref } from "vue";
+      import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+      const label = ref("Page content");
+      window.label = label;
+      createApp({ render: () => h(LoomaEditor, { modelValue: { type: "doc", content: [] }, label: label.value }) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const prose = page.locator(".ProseMirror");
+    await prose.waitFor();
+    assert.equal(await prose.getAttribute("aria-label"), "Page content");
+    await page.evaluate(() => { (window as unknown as { label: { value: string } }).label.value = "Meeting notes"; });
+    await page.waitForFunction(() => document.querySelector(".ProseMirror")?.getAttribute("aria-label") === "Meeting notes");
+    await page.close();
+  });
+
+
   it("edits a document and opens the slash menu", async () => {
     const path = await bundle("vue-looma-editor", `
       import { createApp, h, ref } from "vue";
