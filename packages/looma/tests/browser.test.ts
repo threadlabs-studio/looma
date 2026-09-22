@@ -293,6 +293,10 @@ describe("Overlays", () => {
     assert.equal(await size(), 32);
     await page.evaluate(() => document.dispatchEvent(new PointerEvent("pointerdown", { pointerType: "touch" })));
     assert.equal(await size(), 44);
+    await page.close();
+  });
+});
+
 describe("Vue form controls", () => {
   it("select the model's option, and style named slots without slot attributes", async () => {
     const path = await bundle("vue-form", `
