@@ -186,8 +186,8 @@ describe("Tree", () => {
       });
       createApp({
         render: () => h(Tree, { label: "Pages" }, () => [
-          item("flush", "--ui-tree-row-min-height: 44px; --ui-tree-label-padding-block: 0; --ui-tree-label-padding-inline: 0"),
-          item("padded", "--ui-tree-row-min-height: 44px"),
+          item("flush", "--ui-tree-item-min-block-size: 44px; --ui-tree-item-label-padding-block: 0; --ui-tree-item-label-padding-inline: 0"),
+          item("padded", "--ui-tree-item-min-block-size: 44px"),
         ]),
       }).mount("#app");
     `);
@@ -348,6 +348,38 @@ describe("Vue v-model on reported props", () => {
     await page.locator("#tags input").pressSequentially("Res");
     assert.equal(await page.locator("#tags input").inputValue(), "Res");
     assert.equal(await page.evaluate(() => (window as unknown as { query: { value: string } }).query.value), "Res");
+    await page.close();
+  });
+});
+
+describe("Density", () => {
+  it("compacts menu rows and tab rows without rescaling a global token", async () => {
+    const path = await bundle("vue-density", `
+      import { createApp, h } from "vue";
+      import { Menu, MenuItem, Tabs } from "@threadlabs/looma/vue";
+      const menu = (id, density) => h(Menu, { id, density, open: true }, () => [
+        h(MenuItem, { id: id + "-item" }, () => "Rename"),
+      ]);
+      const tabs = (id, density) => h(Tabs, { id, density, label: "Views" }, () => [
+        h("section", { "aria-label": "One" }, "First"),
+      ]);
+      createApp({ render: () => h("div", [menu("roomy"), menu("tight", "compact"), tabs("roomy-tabs"), tabs("tight-tabs", "compact")]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const box = (selector: string) => page.locator(selector).evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { padding: style.paddingBlockStart, fontSize: style.fontSize, height: (element as HTMLElement).offsetHeight };
+    });
+    const roomyItem = await box("#roomy-item");
+    const tightItem = await box("#tight-item");
+    assert.ok(parseFloat(tightItem.padding) < parseFloat(roomyItem.padding), "compact menu rows are tighter");
+    assert.ok(parseFloat(tightItem.fontSize) < parseFloat(roomyItem.fontSize), "compact menu rows use the smaller type");
+
+    const roomyTab = await box('#roomy-tabs [role="tab"]');
+    const tightTab = await box('#tight-tabs [role="tab"]');
+    assert.ok(tightTab.height < roomyTab.height, "compact tabs are shorter");
+    // The globals the component reads are untouched, so nothing nested inside is rescaled.
+    assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--ui-space-2").trim()), "0.5rem");
     await page.close();
   });
 });
