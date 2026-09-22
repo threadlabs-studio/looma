@@ -13,12 +13,13 @@
     "typecheck": "echo \"docs: typecheck not configured\""
   },
   "dependencies": {
-    "prism-svelte": "^0.5.0",
-    "prismjs": "^1.30.0",
     "@docusaurus/core": "^3.9.2",
+    "@docusaurus/plugin-content-docs": "^3.9.2",
     "@docusaurus/preset-classic": "^3.9.2",
     "@mdx-js/react": "^3.1.0",
-    "@threadlabs/looma": "workspace:*"
+    "@threadlabs/looma": "workspace:*",
+    "prism-svelte": "^0.5.0",
+    "prismjs": "^1.30.0"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^3.9.2",
