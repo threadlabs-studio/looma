@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Icon Button: on coarse pointers and once touch input is used, an invisible hit area at least
+  `--ui-control-min-block-size` square is centred on the button, so it is a touch target without
+  growing visually.
+
 - Tree Item: the label spans the row height and centres its content, and
   `--ui-tree-label-padding-block` / `--ui-tree-label-padding-inline` set its padding, so slotted
   label content such as a link can fill the row as its hit area.

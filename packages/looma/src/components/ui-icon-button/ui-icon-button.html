@@ -79,6 +79,36 @@
       }
     }
 
+    /* A touch target without a bigger button: an invisible hit area, at least the control
+       minimum, centred on the button (::before is the anticipatory guide). */
+    @media (pointer: coarse) {
+      :host {
+        position: relative;
+      }
+
+      :host::after {
+        content: "";
+        position: absolute;
+        inset: 50% auto auto 50%;
+        inline-size: max(100%, var(--ui-control-min-block-size, 2.75rem));
+        block-size: max(100%, var(--ui-control-min-block-size, 2.75rem));
+        transform: translate(-50%, -50%);
+      }
+    }
+
+    html[data-ui-input-modality="touch"] :host {
+      position: relative;
+    }
+
+    html[data-ui-input-modality="touch"] :host::after {
+      content: "";
+      position: absolute;
+      inset: 50% auto auto 50%;
+      inline-size: max(100%, var(--ui-control-min-block-size, 2.75rem));
+      block-size: max(100%, var(--ui-control-min-block-size, 2.75rem));
+      transform: translate(-50%, -50%);
+    }
+
     :host-state([size="sm"]) {
       inline-size: var(--ui-icon-button-size-sm, 1.75rem);
       block-size: var(--ui-icon-button-size-sm, 1.75rem);
