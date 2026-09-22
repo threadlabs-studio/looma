@@ -88,7 +88,7 @@ describe("Vue components", () => {
     assert.equal(await button.evaluate((element) => element.localName), "button");
     assert.equal(await button.getAttribute("class"), "consumer");
     assert.equal(await button.getAttribute("data-component"), "ui-button");
-    assert.equal(await button.getAttribute("data-ui-button-state"), "variant variant=solid size size=md");
+    assert.equal(await button.getAttribute("data-ui-button-state"), "variant variant=solid align align=center size size=md");
     assert.notEqual(await button.evaluate((element) => getComputedStyle(element).backgroundColor), "rgba(0, 0, 0, 0)");
     assert.equal(await page.evaluate(() => "HtmlRuntime" in window), false);
 
@@ -122,6 +122,31 @@ describe("Vue components", () => {
     assert.deepEqual(await options.allTextContents(), ["Pear"]);
     await options.first().click();
     assert.equal(await page.locator("#fruit input").inputValue(), "Pear");
+    await page.close();
+  });
+});
+
+describe("Button layout", () => {
+  it("lays content out from the start and stretches to its container when asked", async () => {
+    const path = await bundle("vue-button-layout", `
+      import { createApp, h } from "vue";
+      import { Button } from "@threadlabs/looma/vue";
+      createApp({
+        render: () => h("div", { style: "inline-size: 300px" }, [
+          h(Button, { id: "option", variant: "ghost", align: "start", stretch: true }, () => "New page"),
+          h(Button, { id: "plain" }, () => "Save"),
+        ]),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const layout = (id: string) => page.locator(id).evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { width: (element as HTMLElement).offsetWidth, justify: style.justifyContent, text: style.textAlign };
+    });
+    assert.deepEqual(await layout("#option"), { width: 300, justify: "flex-start", text: "start" });
+    const plain = await layout("#plain");
+    assert.ok(plain.width < 300, "a default button keeps its content width");
+    assert.equal(plain.justify, "center");
     await page.close();
   });
 });
