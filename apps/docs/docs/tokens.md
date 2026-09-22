@@ -1,68 +1,90 @@
 # Tokens
 
-`@threadlabs/looma` ships CSS-only token and theme subpaths with deterministic layering.
+Looma is themed with CSS custom properties, in three layers: a contract you set, derived values
+computed from it, and per-component tokens for deliberate divergence.
 
 ## Files
 
-- `@threadlabs/looma/tokens.css`: primitive + semantic defaults.
-- `@threadlabs/looma/theme-light.css`: explicit light mode overrides.
-- `@threadlabs/looma/theme-dark.css`: dark mode overrides.
-- `@threadlabs/looma/theme-high-contrast.css`: high-contrast overrides.
-
-## Layer Order
+- `@threadlabs/looma/tokens.css`: the contract and everything derived from it.
+- `@threadlabs/looma/theme-light.css`, `theme-dark.css`, `theme-high-contrast.css`: the palettes.
 
 ```css
 @layer tokens, base, components, utilities;
 ```
 
-## Contract
+## The contract
 
-- Consumers import only required CSS entry points.
-- Semantic tokens include `--ui-surface-*`, `--ui-text-*`, `--ui-border-*`, `--ui-accent-*`.
-- Theme switching can be handled with data attributes or media queries.
-- No runtime theme manager is required in v1.
+These are the values a product sets. Everything else derives from them, so a theme that sets only
+these still looks coherent.
 
-## Typography Tokens
+| Group | Values |
+| --- | --- |
+| Intent colour | `--ui-accent`, `-hover`, `-active`, `-subtle`, `--ui-on-accent`, `--ui-danger`, `--ui-danger-hover`, `--ui-on-danger`, `--ui-success`, `--ui-warning`, `--ui-info` |
+| Neutrals | `--ui-surface`, `-raised`, `-muted`, `-sunken`, `--ui-text`, `-secondary`, `-muted`, `--ui-border`, `-strong` |
+| Disabled | `--ui-disabled-surface`, `--ui-disabled-text` |
+| Focus | `--ui-focus-ring`, `--ui-focus-halo` |
+| Type | `--ui-font-sans`, `--ui-font-mono`, `--ui-font-size`, `-sm`, `--ui-font-medium`, `--ui-line-height` |
+| Space | `--ui-space-1` … `--ui-space-4` |
+| Radius | `--ui-radius-sm`, `-md`, `-lg`, `-round` |
+| Elevation | `--ui-shadow-sm`, `--ui-shadow-lg` |
+| Motion | `--ui-motion-fast`, `--ui-motion-ease` |
+| Controls | `--ui-control-size`, `-size-sm`, `--ui-control-min-block-size`, `--ui-control-border` |
 
-Looma typography is token-driven and rem-based:
+A converted product theme needs about 27 of these; it takes Looma's defaults for the rest.
 
-- `--ui-font-family-sans`
-- `--ui-font-stack-system`
-- `--ui-font-stack-neo-grotesque`
-- `--ui-font-stack-humanist`
-- `--ui-font-stack-rounded`
-- `--ui-font-size-2xs`
-- `--ui-font-size-sm`
-- `--ui-font-size-ui`
-- `--ui-font-size-md`
-- `--ui-font-size-lg`
-- `--ui-line-height-tight`
-- `--ui-line-height-md`
-- `--ui-line-height-relaxed`
+## Derived values
 
-## Spacing Tokens
+Everything else in `tokens.css` is computed from the contract: the intent tones (`--ui-accent-solid`,
+`*-soft`, `*-strong-surface`), the interaction roles (`--ui-action-*`, `--ui-control-*`), the type
+and space steps either side of the contract's own, the elevation names, and the icon sizes.
 
-- `--ui-space-0-5` is the 2px micro-spacing token for compact component
-  density such as quiet metadata labels.
-- `--ui-space-1` through `--ui-space-8` remain the regular spacing scale.
+Do not restate a derived value in a theme. Setting `--ui-accent` gives you `--ui-accent-solid`,
+`--ui-action-primary-surface` and the rest for free, and they keep agreeing when the accent changes.
 
-Guidance:
+## Component tokens
 
-- Keep font-size values in `rem` so host apps can scale globally via `html` font-size.
-- Prefer setting app-level baseline on `html`/`body` (or `.ui-scope`), not component-local px overrides.
-- Component internals should reference these tokens instead of hard-coded typography values.
-- Default Looma stack is `--ui-font-stack-system` (the native platform UI stack) for fast/no-download rendering.
-- `--ui-font-size-ui` is the 15px-equivalent dense-control size used by trees and similar information-rich controls.
+Each component exposes `--ui-<component>[-<variant>][-<state>]-<property>` for deliberate
+divergence, and each falls back to a semantic value. Set one on an element to change that instance,
+or in your theme to change the product.
 
-### Font Stack Presets
+### Changing a component's default appearance
 
-Looma includes optional sans presets inspired by modern system stack guidance:
+A component's default is a product decision, so express it in the theme rather than at every call
+site. An accent-tinted default button, product-wide:
 
-- `--ui-font-stack-system`
-- `--ui-font-stack-neo-grotesque`
-- `--ui-font-stack-humanist`
-- `--ui-font-stack-rounded`
+```css
+:root {
+  --ui-button-surface: var(--ui-accent-subtle);
+  --ui-button-border: var(--ui-accent);
+  --ui-button-text: var(--ui-accent-active);
+}
+```
 
-Use these by overriding `--ui-font-family-sans` at app root or scope level.
+Point these at the semantic values, not at fixed colours. A pinned colour stops adapting: a hover
+tint pinned to one surface's colour disappears on every other surface, and a pinned tone ignores a
+later change of accent. Where a product needs both, the prop overrides the theme per instance:
+`<ui-button tone="accent">` for an accent action in an otherwise neutral product.
 
-Reference: [modern-font-stacks](https://github.com/system-fonts/modern-font-stacks).
+## Typography
+
+Font sizes are `rem`, so a host scales them from the root font size. One exception:
+`--ui-control-min-block-size` is `44px`, because WCAG's touch-target minimum counts CSS pixels and
+must not shrink with a smaller root font.
+
+`--ui-font-size-ui` is the dense control size used by trees and other information-rich controls.
+
+## Themes
+
+Switch with `data-theme` or let the media queries do it. A theme sets contract values only:
+
+```css
+[data-theme="dark"] {
+  --ui-surface: #1a1a1a;
+  --ui-text: #f0f0ec;
+  --ui-accent: #a99bf5;
+  --ui-on-accent: #1a1a1a;
+}
+```
+
+In a dark theme the intent tones are light, so their foregrounds (`--ui-on-accent`,
+`--ui-on-danger`) are dark. That is what lets one tone per intent serve both text and solid surfaces.

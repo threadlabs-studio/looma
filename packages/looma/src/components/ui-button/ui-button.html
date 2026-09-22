@@ -5,8 +5,8 @@
     <prop name="size" type="sm | md | lg" default="md">Control size.</prop>
     <prop name="tone" type="neutral | accent" default="neutral"
     >Intent of an outline, ghost, or link button. accent tints it with the accent colour, for a secondary action that still reads as the primary path. For a
-      product whose buttons are accent-tinted by default, set --ui-button-surface, --ui-button-border, and --ui-button-text once in your theme rather than
-      annotating every call site.</prop>
+      product whose buttons are accent-tinted by default, point --ui-button-surface, --ui-button-border, and --ui-button-text at the accent values in your theme
+      rather than annotating every call site, and keep them as var() references so they follow a later change of accent.</prop>
     <prop name="disabled" type="boolean" default="false">disabled token.</prop>
     <prop name="align" type="center | start" default="center"
     >Content alignment. start lays the content out like a list option: from the start edge, with start-aligned text.</prop>
