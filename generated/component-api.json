@@ -8,7 +8,7 @@
       "description": "A lightweight interaction scope that lets nearby controls anticipate pointer movement without adding listeners or hit regions to every control.",
       "designTokens": {
         "sources": [
-          "packages/core/src/declarative/components/ui-affordance-scope.html"
+          "packages/core/src/components/ui-affordance-scope/ui-affordance-scope.html"
         ],
         "component": [
           {
@@ -52,7 +52,7 @@
       "description": "Image and fallback initials primitive for identity surfaces such as profiles and assignees.",
       "designTokens": {
         "sources": [
-          "packages/core/src/declarative/components/ui-avatar.html"
+          "packages/core/src/components/ui-avatar/ui-avatar.html"
         ],
         "component": [
           {
@@ -150,7 +150,7 @@
       "description": "Container that displays overlapping avatars with an optional \"+N\" overflow pill when the count exceeds the visible maximum.",
       "designTokens": {
         "sources": [
-          "packages/core/src/declarative/components/ui-avatar-group.html"
+          "packages/core/src/components/ui-avatar-group/ui-avatar-group.html"
         ],
         "component": [
           {
@@ -214,7 +214,7 @@
       "description": "Lightweight status and label primitive with minimal styling hooks.",
       "designTokens": {
         "sources": [
-          "packages/core/src/declarative/components/ui-badge.html"
+          "packages/core/src/components/ui-badge/ui-badge.html"
         ],
         "component": [
           {
@@ -515,7 +515,7 @@
       "description": "Essential button primitive that enhances semantic button markup and styling hooks.",
       "designTokens": {
         "sources": [
-          "packages/core/src/declarative/components/ui-button.html"
+          "packages/core/src/components/ui-button/ui-button.html"
         ],
         "component": [
           {
@@ -836,7 +836,7 @@
       "description": "A static semantic message surface with a tone-specific icon. It is not a live alert and does not include dismissal behavior.",
       "designTokens": {
         "sources": [
-          "packages/core/src/declarative/components/ui-callout.html"
+          "packages/core/src/components/ui-callout/ui-callout.html"
         ],
         "component": [
           {
@@ -1023,7 +1023,7 @@
       "description": "Form control primitive for boolean and mixed selection state.",
       "designTokens": {
         "sources": [
-          "packages/core/src/declarative/components/ui-checkbox.html"
+          "packages/core/src/components/ui-checkbox/ui-checkbox.html"
         ],
         "component": [
           {
@@ -1322,7 +1322,7 @@
       "description": "A normal text field with contextual rich suggestions and integrated optional help",
       "designTokens": {
         "sources": [
-          "packages/core/src/declarative/components/ui-combobox.html"
+          "packages/core/src/components/ui-combobox/ui-combobox.html"
         ],
         "component": [
           {
@@ -1946,7 +1946,7 @@
       "description": "Action menu with a visible keyboard/touch trigger plus supplemental pointer-context support.",
       "designTokens": {
         "sources": [
-          "packages/core/src/declarative/components/ui-context-menu.html"
+          "packages/core/src/components/ui-context-menu/ui-context-menu.html"
         ],
         "component": [],
         "shared": [
@@ -2025,7 +2025,7 @@
       "description": "Overlay primitive that coordinates native `dialog` behavior with shared overlay stack rules.",
       "designTokens": {
         "sources": [
-          "packages/core/src/declarative/components/ui-dialog.html"
+          "packages/core/src/components/ui-dialog/ui-dialog.html"
         ],
         "component": [
           {
@@ -2221,7 +2221,7 @@
       "description": "Progressively enhances a button/content pair into an accessible disclosure.",
       "designTokens": {
         "sources": [
-          "packages/core/src/declarative/components/ui-disclosure.html"
+          "packages/core/src/components/ui-disclosure/ui-disclosure.html"
         ],
         "component": [],
         "shared": [
@@ -2335,7 +2335,7 @@
       "description": "Reveal an editing control from an explicit presentation trigger. The component",
       "designTokens": {
         "sources": [
-          "packages/core/src/declarative/components/ui-editable.html"
+          "packages/core/src/components/ui-editable/ui-editable.html"
         ],
         "component": [],
         "shared": [
@@ -3828,7 +3828,7 @@
       "description": "Form-field composition primitive that links label/control/description semantics.",
       "designTokens": {
         "sources": [
-          "packages/core/src/declarative/components/ui-form-field.html"
+          "packages/core/src/components/ui-form-field/ui-form-field.html"
         ],
         "component": [
           {
@@ -4046,7 +4046,7 @@
       "description": "Icon-only button primitive with stable square sizing and variant tokens for shell controls, compact actions, and editor chrome.",
       "designTokens": {
         "sources": [
-          "packages/core/src/declarative/components/ui-icon-button.html"
+          "packages/core/src/components/ui-icon-button/ui-icon-button.html"
         ],
         "component": [
           {
@@ -4353,7 +4353,7 @@
       "description": "Text input that lowers directly to a native `<input>` while applying Looma's shared control theme.",
       "designTokens": {
         "sources": [
-          "packages/core/src/declarative/components/ui-input.html"
+          "packages/core/src/components/ui-input/ui-input.html"
         ],
         "component": [
           {
@@ -4536,7 +4536,7 @@
       "description": "Menu container primitive that manages focus and selection across `ui-menu-item` children.",
       "designTokens": {
         "sources": [
-          "packages/core/src/declarative/components/ui-menu.html"
+          "packages/core/src/components/ui-menu/ui-menu.html"
         ],
         "component": [
           {
@@ -4654,7 +4654,7 @@
       "description": "Focusable menu item primitive intended for use inside `ui-menu`.",
       "designTokens": {
         "sources": [
-          "packages/core/src/declarative/components/ui-menu-item.html"
+          "packages/core/src/components/ui-menu-item/ui-menu-item.html"
         ],
         "component": [],
         "shared": [
@@ -4733,7 +4733,7 @@
       "description": "Non-modal overlay primitive with shared open/close overlay lifecycle.",
       "designTokens": {
         "sources": [
-          "packages/core/src/declarative/components/ui-popover.html"
+          "packages/core/src/components/ui-popover/ui-popover.html"
         ],
         "component": [
           {
@@ -4845,7 +4845,7 @@
       "description": "Radio control primitive for mutually exclusive options, typically composed within `ui-radio-group`.",
       "designTokens": {
         "sources": [
-          "packages/core/src/declarative/components/ui-radio.html"
+          "packages/core/src/components/ui-radio/ui-radio.html"
         ],
         "component": [
           {
@@ -4967,7 +4967,7 @@
       "description": "Grouped selection primitive that coordinates `ui-radio` descendants, keyboard navigation, and normalized selection events.",
       "designTokens": {
         "sources": [
-          "packages/core/src/declarative/components/ui-radio-group.html"
+          "packages/core/src/components/ui-radio-group/ui-radio-group.html"
         ],
         "component": [],
         "shared": [
@@ -5229,7 +5229,7 @@
       "description": "Presentational row shell for command/search results. It owns row layout, spacing, hover/selected states, and optional leading/meta/excerpt/trailing regions while apps keep result shaping and highlighting.",
       "designTokens": {
         "sources": [
-          "packages/core/src/declarative/components/ui-search-result-row.html"
+          "packages/core/src/components/ui-search-result-row/ui-search-result-row.html"
         ],
         "component": [
           {
@@ -5385,7 +5385,7 @@
       "description": "Responsive dialog structure for application search and command palettes. It owns visibility, dismissal, accessible dialog semantics, and the search/status/body/footer regions while applications retain query and result state.",
       "designTokens": {
         "sources": [
-          "packages/core/src/declarative/components/ui-search-shell.html"
+          "packages/core/src/components/ui-search-shell/ui-search-shell.html"
         ],
         "component": [
           {
@@ -5592,7 +5592,7 @@
       "description": "Select control that lowers directly to a native `<select>`; author `<option>` children directly inside it.",
       "designTokens": {
         "sources": [
-          "packages/core/src/declarative/components/ui-select.html"
+          "packages/core/src/components/ui-select/ui-select.html"
         ],
         "component": [
           {
@@ -5862,7 +5862,7 @@
       "description": "An application sidebar panel. Docked beside the page's main content it can be resized and collapsed; below its breakpoint it becomes an off-canvas drawer. It is only the panel: the page lays it out next to its content.",
       "designTokens": {
         "sources": [
-          "packages/layout/src/declarative/components/ui-sidebar.html"
+          "packages/layout/src/components/ui-sidebar/ui-sidebar.html"
         ],
         "component": [
           {
@@ -6232,7 +6232,7 @@
       "description": "Binary control primitive that reflects switch semantics for checked state.",
       "designTokens": {
         "sources": [
-          "packages/core/src/declarative/components/ui-switch.html"
+          "packages/core/src/components/ui-switch/ui-switch.html"
         ],
         "component": [
           {
@@ -6549,7 +6549,7 @@
       "description": "Tablist primitive that synchronizes tab focus, selection, and panel visibility.",
       "designTokens": {
         "sources": [
-          "packages/core/src/declarative/components/ui-tabs.html"
+          "packages/core/src/components/ui-tabs/ui-tabs.html"
         ],
         "component": [],
         "shared": [
@@ -6679,7 +6679,7 @@
       "description": "Multiline input that lowers directly to a native `<textarea>` while applying Looma's shared control theme.",
       "designTokens": {
         "sources": [
-          "packages/core/src/declarative/components/ui-textarea.html"
+          "packages/core/src/components/ui-textarea/ui-textarea.html"
         ],
         "component": [
           {
@@ -6873,7 +6873,7 @@
       "description": "Live-region container primitive for stackable dismissible toasts.",
       "designTokens": {
         "sources": [
-          "packages/core/src/declarative/components/ui-toast-region.html"
+          "packages/core/src/components/ui-toast-region/ui-toast-region.html"
         ],
         "component": [],
         "shared": [
@@ -7015,7 +7015,7 @@
       "description": "Contextual overlay primitive that links descriptive content to a trigger element.",
       "designTokens": {
         "sources": [
-          "packages/core/src/declarative/components/ui-tooltip.html"
+          "packages/core/src/components/ui-tooltip/ui-tooltip.html"
         ],
         "component": [
           {
@@ -7223,7 +7223,7 @@
       "description": "Mobile-first navigation shell with slots for leading controls, title content, an optional search affordance, and trailing actions.",
       "designTokens": {
         "sources": [
-          "packages/core/src/declarative/components/ui-top-bar.html"
+          "packages/core/src/components/ui-top-bar/ui-top-bar.html"
         ],
         "component": [
           {
@@ -7326,7 +7326,7 @@
       "description": "An accessible hierarchy with disclosure, bounded logical indentation, and",
       "designTokens": {
         "sources": [
-          "packages/core/src/declarative/components/ui-tree.html"
+          "packages/core/src/components/ui-tree/ui-tree.html"
         ],
         "component": [
           {
@@ -7404,7 +7404,7 @@
       "description": "The row primitive used inside `ui-tree`. It provides semantic tree-item state,",
       "designTokens": {
         "sources": [
-          "packages/core/src/declarative/components/ui-tree-item.html"
+          "packages/core/src/components/ui-tree-item/ui-tree-item.html"
         ],
         "component": [
           {

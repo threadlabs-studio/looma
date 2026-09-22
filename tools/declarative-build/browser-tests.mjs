@@ -12,20 +12,25 @@ const packageRoots = Object.fromEntries(["core", "layout", "editor"].map((name) 
   name,
   join(REPOSITORY, "packages", name, "src", "declarative"),
 ]));
-const components = (await Promise.all(Object.entries(packageRoots).map(async ([group, directory]) =>
-  Promise.all((await readdir(join(directory, "components")))
-    .filter((name) => name.endsWith(".html"))
-    .map(async (name) => {
-      const tag = name.slice(0, -5);
-      const controllerPath = join(directory, "components", "controllers", `${tag}.js`);
+// Each component is a folder: src/components/<tag>/<tag>.html and its controller <tag>.js.
+const componentRoots = Object.fromEntries(["core", "layout", "editor"].map((name) => [
+  name,
+  join(REPOSITORY, "packages", name, "src", "components"),
+]));
+const components = (await Promise.all(Object.entries(componentRoots).map(async ([group, root]) =>
+  Promise.all((await readdir(root))
+    .filter((name) => name.startsWith("ui-"))
+    .map(async (tag) => {
+      const directory = join(root, tag);
+      const controllerPath = join(directory, `${tag}.js`);
       let controller = null;
       try {
         await access(controllerPath);
-        controller = `${tag}.js`;
+        controller = `${tag}/${tag}.js`;
       } catch {
         // Styling-only definitions intentionally have no controller module.
       }
-      return { tag, group, directory: join(directory, "components"), controller };
+      return { tag, group, directory, controller };
     }))))).flat();
 const runtime = await readFile(join(HERE, "vendor", "html-next-runtime.iife.js"), "utf8");
 const sharedStyles = (await Promise.all(["layout", "editor"].map((group) =>
@@ -45,7 +50,7 @@ const server = createServer(async (request, response) => {
       return;
     }
     const [, group, ...segments] = pathname.split("/");
-    const controllerRoot = packageRoots[group] && join(packageRoots[group], "components", "controllers");
+    const controllerRoot = componentRoots[group];
     if (!controllerRoot) throw new Error("unknown controller package");
     const requested = resolve(controllerRoot, ...segments);
     if (!requested.startsWith(`${resolve(controllerRoot)}${sep}`)) throw new Error("path escape");

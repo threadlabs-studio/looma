@@ -17,6 +17,9 @@ const SOURCE_ROOTS = Object.freeze({
   layout: join(REPOSITORY, "packages", "layout", "src", "declarative"),
   editor: join(REPOSITORY, "packages", "editor", "src", "declarative"),
 });
+// Each component is one folder: components/<tag>/<tag>.html, its controller <tag>.js, and examples/.
+const componentRoot = (group) => join(REPOSITORY, "packages", group, "src", "components");
+const definitionPath = (group, tag) => join(componentRoot(group), tag, `${tag}.html`);
 const RELEASE_CLASSIFICATIONS = JSON.parse(await readFile(
   join(REPOSITORY, "tools", "data", "component-release-classification.json"),
   "utf8",
@@ -34,24 +37,17 @@ const groups = { core: [], layout: [], editor: [] };
 if (COMPILED) {
   const manifest = JSON.parse(await readFile(join(COMPILED, "html.manifest.json"), "utf8"));
   for (const component of manifest.components) {
-    const match = component.source.match(/packages\/(core|layout|editor)\/src\/declarative\/components\//);
+    const match = component.source.match(/packages\/(core|layout|editor)\/src\/components\//);
     if (!match) throw new Error(`${component.tag}: cannot determine Looma package from ${component.source}`);
     groups[match[1]].push(component);
   }
 } else {
-  for (const [group, sourceRoot] of Object.entries(SOURCE_ROOTS)) {
-    const controllerNames = new Set(await readdir(join(sourceRoot, "components", "controllers")));
-    const definitions = await readdir(join(sourceRoot, "components"));
-    groups[group].push(...definitions
-      .filter((name) => name.endsWith(".html"))
-      .sort()
-      .map((name) => {
-        const tag = name.slice(0, -".html".length);
-        return {
-          tag,
-          controller: controllerNames.has(`${tag}.js`) ? `controllers/${tag}.js` : undefined,
-        };
-      }));
+  for (const group of Object.keys(SOURCE_ROOTS)) {
+    const folders = (await readdir(componentRoot(group))).filter((name) => name.startsWith("ui-")).sort();
+    for (const tag of folders) {
+      const files = new Set(await readdir(join(componentRoot(group), tag)));
+      groups[group].push({ tag, controller: files.has(`${tag}.js`) ? `${tag}.js` : undefined });
+    }
   }
 }
 
@@ -64,7 +60,7 @@ function rewriteFrameworkSource(source, component) {
     .replace(/import \{ attachComponent, updateComponentProps \} from "@nextwebwg\/declarative-components\/runtime";\n/, `import { attachLoomaComponent, updateComponentProps } from "@threadlabs/looma-core/declarative";\n`)
     .replace(/import \{ ((?:dispatchGeneratedEvent, )?manageGeneratedProps, updateGeneratedProps) \} from "@nextwebwg\/declarative-components\/generated-runtime";\n/, `import { $1 } from "@threadlabs/looma-core/declarative-generated";\n`)
     .replace(/import type \{ ComponentDefinition \} from "@nextwebwg\/declarative-components";\n/, `import type { ComponentDefinition } from "@threadlabs/looma-core/declarative";\n`)
-    .replace(new RegExp(`import \\* as controller from "\\.\\.\/controllers\/${component.tag}\/controllers\/${component.tag}\\.js";\\n`), "")
+    .replace(new RegExp(`import \\* as controller from "\\.\\.\/controllers\/${component.tag}\/(?:controllers\/|${component.tag}\/)?${component.tag}\\.js";\\n`), "")
     .replace(new RegExp(`import "\\.\\.\/styles\/${component.tag}\\.css";\\n`), "")
     // Declarative nullable values mean "attribute absent". React's intrinsic
     // attribute types express that absence as undefined rather than null.
@@ -145,10 +141,10 @@ async function materializeRegistry(group, components, outputDirectory) {
     let controller = "undefined";
     if (component.controller) {
       const name = `controller${index}`;
-      imports.push(`import * as ${name} from "./components/controllers/${component.tag}.js";`);
+      imports.push(`import * as ${name} from "../components/${component.tag}/${component.tag}.js";`);
       controller = name;
     }
-    const definition = (await readFile(join(SOURCE_ROOTS[group], "components", `${component.tag}.html`), "utf8"))
+    const definition = (await readFile(definitionPath(group, component.tag), "utf8"))
       .replace(/^<link\s+rel="component"[^>]*>\s*$/gm, "");
     records.push(`  { tag: ${JSON.stringify(component.tag)}, source: ${JSON.stringify(definition)}, controller: ${controller} },`);
   }
@@ -182,7 +178,7 @@ async function materializeReact(components) {
   const exports = [];
   for (const component of components) {
     const group = groups.core.includes(component) ? "core" : groups.layout.includes(component) ? "layout" : "editor";
-    const definitionSource = await readFile(join(SOURCE_ROOTS[group], "components", `${component.tag}.html`), "utf8");
+    const definitionSource = await readFile(definitionPath(group, component.tag), "utf8");
     const source = rewriteReactSemantics(rewriteNestedComponents(rewriteFrameworkSource(
       await readFile(join(COMPILED, "react", `${component.name}.tsx`), "utf8"),
       component,
@@ -201,7 +197,7 @@ async function materializeVue(components) {
   const exports = [];
   for (const component of components) {
     const group = groups.core.includes(component) ? "core" : groups.layout.includes(component) ? "layout" : "editor";
-    const definitionSource = await readFile(join(SOURCE_ROOTS[group], "components", `${component.tag}.html`), "utf8");
+    const definitionSource = await readFile(definitionPath(group, component.tag), "utf8");
     const rewritten = preserveVueSlotRegions(rewriteNestedComponents(rewriteFrameworkSource(
       await readFile(join(COMPILED, "vue", `${component.name}.vue`), "utf8"),
       component,
@@ -241,7 +237,7 @@ async function materializeVanilla(components) {
     source = source
       .replace(/import \{ manageComponentLifecycle \} from "@nextwebwg\/declarative-components\/runtime";\n/, `import { attachLoomaComponent } from "@threadlabs/looma-core/declarative";\n`)
       .replace(/import \{ manageGeneratedProps \} from "@nextwebwg\/declarative-components\/generated-runtime";\n/, `import { manageGeneratedProps } from "@threadlabs/looma-core/declarative-generated";\n`)
-      .replace(new RegExp(`import \\* as controller from "\\.\\.\/controllers\/${component.tag}\/controllers\/${component.tag}\\.js";\\n`), "")
+      .replace(new RegExp(`import \\* as controller from "\\.\\.\/controllers\/${component.tag}\/(?:controllers\/|${component.tag}\/)?${component.tag}\\.js";\\n`), "")
       .replace(new RegExp(`import "\\.\\.\/styles\/${component.tag}\\.css";\\n`), "")
       .replace(
         /manageComponentLifecycle\(element, definition, \{\s*props: componentProps,\s*controller,\s*\}\);/g,

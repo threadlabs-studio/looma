@@ -1,0 +1,72 @@
+<template component="ui-textarea" controller="./ui-textarea.js" status="early" summary="A declarative multiline control that lowers directly to a native textarea.">
+  <defs>
+    <prop name="value" type="string">Current text value.</prop>
+    <prop name="disabled" type="boolean" default="false">Prevents editing and form submission.</prop>
+    <prop name="invalid" type="boolean" default="false">Exposes invalid state to assistive technology and styling.</prop>
+    <prop name="readonly" type="boolean" default="false">Allows selection without allowing edits.</prop>
+    <prop name="required" type="boolean" default="false">Marks the control as required for form validation.</prop>
+    <prop name="rows" type="integer" default="4">Initial number of visible text rows.</prop>
+  </defs>
+  <textarea :value="value" :disabled="disabled" :readOnly="readonly" :required="required" :rows="rows"></textarea>
+  <style>:scope {
+  box-sizing: border-box;
+  display: inline-block;
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: calc(var(--ui-space-12, 3rem) * 2);
+  margin: 0;
+  padding: var(--ui-space-2) var(--ui-space-3);
+  appearance: none;
+  resize: vertical;
+  border: 1px solid var(--ui-control-border, var(--ui-border-strong));
+  border-radius: var(--ui-textarea-radius, var(--ui-radius-2));
+  background: var(--ui-control-surface, var(--ui-surface-elevated));
+  color: var(--ui-text-primary);
+  font: inherit;
+  line-height: var(--ui-line-height-md);
+  box-shadow: var(--ui-textarea-shadow, var(--ui-control-inset));
+  transition:
+    border-color var(--ui-motion-fast) var(--ui-motion-ease),
+    box-shadow var(--ui-motion-fast) var(--ui-motion-ease),
+    background-color var(--ui-motion-fast) var(--ui-motion-ease);
+}
+
+/* Tabbing into a field selects its text; tint that selection softly instead of the page highlight. */
+:scope::selection {
+  background: color-mix(in srgb, var(--ui-accent-solid) 20%, transparent);
+  color: inherit;
+}
+
+:scope::placeholder {
+  color: var(--ui-control-placeholder, var(--ui-text-secondary));
+  opacity: 1;
+}
+
+:scope:hover:not(:focus):not(:disabled) {
+  border-color: var(--ui-control-border-hover, var(--ui-text-secondary));
+}
+
+:scope:focus-visible {
+  border-color: var(--ui-control-focus, var(--ui-accent-solid));
+  outline: none;
+  box-shadow: var(--ui-textarea-focus-shadow, var(--ui-control-inset), var(--ui-control-focus-halo-shadow));
+}
+
+/* The app's invalid flag, or the browser's own verdict once the user has left an invalid field. */
+:scope[aria-invalid='true'],
+:scope:user-invalid {
+  border-color: var(--ui-danger-solid);
+}
+
+:scope:is([aria-invalid='true'], :user-invalid):focus-visible {
+  box-shadow: var(--ui-control-inset), 0 0 0 3px color-mix(in srgb, var(--ui-danger-solid) 22%, transparent);
+}
+
+:scope:disabled {
+  background: var(--ui-control-surface-disabled, var(--ui-surface-muted));
+  color: var(--ui-text-muted);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+</style>
+</template>

@@ -48,15 +48,15 @@ const config: Config = {
     }
   ],
   plugins: [
-    // Component examples (apps/docs/examples) are read as text: one HTML file per example, plus
+    // Component examples (packages/*/src/components/*/examples) are read as text: one HTML file per example, plus
     // hand-written framework code. Behaviour files (.behavior.ts) compile normally.
     () => ({
       name: "looma-examples",
       configureWebpack: () => ({
         module: {
           rules: [{
-            test: /\.(html|vue|svelte)$|\.react\.tsx$/,
-            include: path.join(__dirname, "examples"),
+            test: /\/examples\/[^/]+(\.(html|vue|svelte)|\.react\.tsx)$/,
+            include: path.join(__dirname, "../../packages"),
             type: "asset/source"
           }]
         }

@@ -1,0 +1,9 @@
+<template component="ui-editor-table-context-menu" status="early" summary="Presents the table commands an editor explicitly enables for the current cell selection." controller="./ui-editor-table-context-menu.js">
+  <defs>
+    <prop name="open" type="boolean" default="false">Shows the menu at the position owned by the editor integration.</prop>
+    <prop name="cellBackground" type="string" default="">Identifies the background choice that is active for the current cell.</prop>
+    <prop name="actions" type="list(align-left | align-center | align-right | background-none | background-gray | background-yellow | background-blue | background-green | background-red | add-row-before | add-row-after | add-column-before | add-column-after | clear-cells | merge-cells | split-cell | delete-row | delete-column | delete-table)">The complete set of commands the current selection permits; omitted commands are not rendered.</prop>
+    <event name="action" type="object({ action: string })"></event>
+  </defs>
+  <div></div>
+</template>

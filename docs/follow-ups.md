@@ -5,6 +5,48 @@ defects found by the 0.3 audit are recorded in the docs site's
 [Component Option Audit](../apps/docs/docs/component-library-audit.md); this list points into it
 rather than repeating it.
 
+## Cleanup (in progress)
+
+1. **Organize the repository.** One package (`packages/looma`); each component is one folder with
+   its template, controller, and examples side by side (`components/ui-button/ui-button.html`,
+   `ui-button.js`, `examples/`). The HTML Next spec forbids script in component HTML, so the
+   controller sits beside the template rather than inside it. Delete the empty README-only folders
+   and the unused TypeScript left from the old implementation.
+2. **Style with classes, not state attributes or `:scope`.** A template that styles by a prop binds
+   a class (`class:sm="size == 'sm'"`, then `.sm { … }`) instead of reflecting `data-size` and
+   selecting `:scope[data-size='sm']`. Component styles are scoped by authorship, so `:scope` is
+   not part of the source; the root is styled by its own element or class.
+3. **No BEM.** Scoped styles need no block prefix: `.chip__surface` and `.chip__label` become
+   `.surface` and `.label`. If a style is not contained to its component without a prefix, that is
+   a runtime scoping bug to fix in HTML Next, not a reason for prefixes.
+4. **No private custom properties that nothing reassigns.** Consumers customize through the public
+   `--ui-<component>-*` hooks; a default that never changes is written inline in the rule that reads
+   the hook (`background: var(--ui-chip-surface, var(--ui-surface-subtle))`), not aliased through a
+   `--_chip-*` property declared on the root. A private property is only justified where a variant
+   changes the default (`.sm { --_chip-font-size: … }`). Update `component-token-rule.test.mjs`,
+   which currently requires the private aliases.
+5. **No vendored HTML Next runtime.** `packages/core/src/declarative/runtime.js` and
+   `generated-runtime.js` (plus a second copy in `tools/declarative-build/vendor/`) are bundled
+   copies of HTML Next committed into source, because HTML Next is not published. Depend on the
+   published `@nextwebwg/declarative-components` instead (also needed for the 0.4 no-build path).
+6. **Remove `components/shared/native-control.js`** if nothing needs it any more (likely superseded).
+7. **Format every component file.** Markup and style formatting is inconsistent across the templates;
+   run one formatter over all of them (not Prettier).
+8. **No generated files in source.** `src/declarative/registry.js` (each template inlined as a JSON
+   string plus controller imports), the runtime copies, the committed adapters in
+   `packages/{vue,react,svelte}/src/generated/`, and `generated/component-api.json` are build outputs.
+   The two materializer modes also disagree (`--registry-only` lists folders and includes deferred
+   components; the manifest pass does not).
+9. **No package-level component CSS.** `packages/layout/src/declarative/styles.css` (243 lines) and the
+   editor's (1,592 lines) style components from outside, through the runtime's private
+   `data-component-root` attribute, and reset every descendant with `all: revert-layer` (why `ui-chip`
+   needs `!important`). The published `layout.css`, `styles.css` (core, 940 lines), and `editor.css`
+   are 0.2 leftovers that select the old invocation tags. The `@layer base/components/utilities`
+   scheme exists only so that reset has a layer to revert to. HTML Next chooses scoping, not
+   isolation, so the reset contradicts the platform. Each component's styles belong in its own
+   template, scoped; consumer content is not reset; tokens are the only package CSS. Removing the
+   `./layout.css`, `./styles.css`, and `./editor.css` exports is a breaking change for consumers.
+
 ## 0.4 goals
 
 - **Multi-select is the combobox's job.** `ui-select` stays the native, single-choice control; the

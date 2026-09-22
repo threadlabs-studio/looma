@@ -99,7 +99,7 @@ function parseSlots(source) {
 }
 
 function parseDependencies(source) {
-  return Object.freeze([...source.matchAll(/<link\s+rel="component"\s+href="\.\/(ui-[a-z0-9-]+)\.html"\s*>/g)]
+  return Object.freeze([...source.matchAll(/<link\s+rel="component"\s+href="\.\.\/(ui-[a-z0-9-]+)\/\1\.html"\s*>/g)]
     .map((match) => match[1]));
 }
 
@@ -132,13 +132,13 @@ export function parseDeclarativeContract(source, expectedTag) {
 
 export async function readDeclarativeContractGroups() {
   return Promise.all(DECLARATIVE_GROUPS.map(async (group) => {
-    const componentDirectory = path.join(repoRoot, group.directory, "components");
-    const names = (await readdir(componentDirectory))
-      .filter((name) => name.endsWith(".html"))
+    // Each component is a folder beside the package's declarative runtime: src/components/<tag>/<tag>.html.
+    const componentDirectory = path.posix.join(group.directory, "..", "components");
+    const tags = (await readdir(path.join(repoRoot, componentDirectory)))
+      .filter((name) => name.startsWith("ui-"))
       .sort();
-    const entries = await Promise.all(names.map(async (name) => {
-      const tag = name.slice(0, -".html".length);
-      const sourcePath = path.posix.join(group.directory, "components", name);
+    const entries = await Promise.all(tags.map(async (tag) => {
+      const sourcePath = path.posix.join(componentDirectory, tag, `${tag}.html`);
       const source = await readFile(path.join(repoRoot, sourcePath), "utf8");
       return [tag, Object.freeze({
         ...parseDeclarativeContract(source, tag),

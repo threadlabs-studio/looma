@@ -1,0 +1,268 @@
+<template component="ui-tree-item" controller="./ui-tree-item.js" status="early" summary="Migrated Looma ui-tree-item component.">
+  <defs>
+    <prop name="itemId" type="string" default="">itemId token.</prop>
+    <prop name="label" type="string" default="">label token.</prop>
+    <prop name="dropDepth" type="number">dropDepth token.</prop>
+    <prop name="subtreeDepth" type="number">subtreeDepth token.</prop>
+    <prop name="container" type="boolean" default="false">container token.</prop>
+    <prop name="sortable" type="boolean" default="false">sortable token.</prop>
+    <prop name="dragType" type="string" default="item">dragType token.</prop>
+    <prop name="dropScope" type="string" default="">dropScope token.</prop>
+    <prop name="accepts" type="string" default="">accepts token.</prop>
+    <prop name="expanded" type="boolean" default="false">expanded token.</prop>
+    <prop name="selected" type="boolean" default="false">selected token.</prop>
+    <prop name="disabled" type="boolean" default="false">disabled token.</prop>
+    <state name="internalExpanded" :value="false"></state>
+    <state name="structuralLevel" :value="1"></state>
+    <state name="tabStop" :value="false"></state>
+    <state name="hasChildren" :value="false"></state>
+    <event name="expand" bubbles="false" type="object({ id: string, expanded: boolean, trigger: keyboard | pointer | programmatic })"></event>
+  </defs>
+  <div role="treeitem" :data-drop-scope="dropScope" :data-accepts="accepts"><div class="row" part="row"><button $if="sortable and not disabled" class="drag-handle" part="drag-handle" type="button"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="5" r="1"></circle><circle cx="9" cy="19" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="5" r="1"></circle><circle cx="15" cy="19" r="1"></circle></svg></button><button class="disclosure" part="disclosure" type="button" :disabled="disabled"><span class="disclosure-icon" aria-hidden="true"></span></button><span class="leading" part="leading"><slot name="leading"></slot></span><span class="label" part="label"></span><span class="actions" part="actions"><slot name="actions"></slot></span><span class="drop-indicator row-drop-indicator" part="drop-indicator" aria-hidden="true"></span></div><div class="children" part="children" role="group"><slot></slot></div><span class="drop-indicator subtree-drop-indicator" part="drop-indicator" aria-hidden="true"></span></div>
+  <style>:scope {
+  --_tree-indent: 16px;
+  --_tree-row-min-height: 32px;
+  --_tree-drop-color: var(--ui-accent-solid);
+
+  position: relative;
+  display: block;
+  min-inline-size: 0;
+  margin-inline-start: calc(var(--ui-tree-item-depth, 0) * var(--ui-tree-indent, var(--_tree-indent)));
+}
+
+.row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 20px auto minmax(0, 1fr) auto;
+  align-items: center;
+  min-block-size: var(--ui-tree-row-min-height, var(--_tree-row-min-height));
+  min-inline-size: 0;
+  font-size: var(--ui-tree-font-size, var(--ui-font-size-ui, 0.9375rem));
+  border-radius: var(--ui-radius-md);
+  color: var(--ui-text-secondary);
+  transition:
+    background-color var(--ui-motion-fast) var(--ui-motion-ease),
+    color var(--ui-motion-fast) var(--ui-motion-ease),
+    opacity var(--ui-motion-fast) var(--ui-motion-ease),
+    box-shadow var(--ui-motion-fast) var(--ui-motion-ease),
+    min-block-size var(--ui-motion-base) var(--ui-motion-ease);
+}
+
+.row:hover,
+:scope[data-selected='true'] .row,
+.row:focus-within {
+  color: var(--ui-text-primary);
+  background: var(--ui-surface-muted);
+}
+
+:scope[data-disabled='true'] .row {
+  opacity: 0.55;
+}
+
+:scope[data-dragging] .row {
+  opacity: 0.42;
+}
+
+:scope:focus {
+  outline: none;
+}
+
+:scope:focus-visible .row {
+  box-shadow: 0 0 0 2px var(--ui-focus-ring);
+}
+
+:scope[data-drop-position='inside'] .row {
+  background: var(--ui-accent-subtle);
+  box-shadow: inset 0 0 0 1px var(--ui-tree-drop-color, var(--_tree-drop-color));
+}
+
+.disclosure,
+.disclosure-spacer {
+  grid-column: 1;
+  grid-row: 1;
+  inline-size: 20px;
+  block-size: 28px;
+}
+
+.disclosure {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  color: var(--ui-text-muted);
+  background: transparent;
+  border: 0;
+  border-radius: var(--ui-radius-sm);
+  cursor: pointer;
+}
+
+.disclosure[hidden] {
+  display: none;
+}
+
+.disclosure:hover {
+  color: var(--ui-text-primary);
+  background: var(--ui-surface-elevated);
+}
+
+.disclosure-icon {
+  display: grid;
+  place-items: center;
+  inline-size: 14px;
+  block-size: 14px;
+  transform: rotate(-90deg);
+  transition: transform var(--ui-motion-fast) var(--ui-motion-ease);
+}
+
+.disclosure-icon::before {
+  display: block;
+  inline-size: 0.45rem;
+  block-size: 0.45rem;
+  border-inline-end: 2px solid currentColor;
+  border-block-end: 2px solid currentColor;
+  content: '';
+  /* A chevron's ink sits below its box centre; lift it so it centres optically (in either rotation). */
+  transform: translateY(-20%) rotate(45deg);
+}
+
+:scope[aria-expanded='true'] .disclosure-icon {
+  transform: rotate(0deg);
+}
+
+/* Lucide grip-vertical, filling the handle as in Looma 0.2. */
+.drag-handle svg {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+/* Slotted content is outside this scope, so :has() cannot see it; hide only a truly empty slot. */
+.leading {
+  display: inline-grid;
+  place-items: center;
+  grid-column: 2;
+  grid-row: 1;
+  inline-size: 1em;
+  block-size: 1em;
+  margin-inline-start: var(--ui-space-1);
+  color: var(--ui-text-muted);
+}
+
+.leading:empty {
+  display: none;
+}
+
+/* Icons match the label's size (as in Knit's tree): an unsized SVG would otherwise render 300×150. */
+:slotted(svg),
+:slotted(img) {
+  display: block;
+  inline-size: 1em;
+  block-size: 1em;
+  flex: none;
+}
+
+.label {
+  grid-column: 3;
+  grid-row: 1;
+  min-inline-size: 0;
+  padding: var(--ui-space-1) var(--ui-space-2);
+}
+
+.actions {
+  grid-column: 4;
+  grid-row: 1;
+  display: inline-flex;
+  align-items: center;
+  min-inline-size: 0;
+}
+
+.drag-handle {
+  position: absolute;
+  z-index: 2;
+  inset-block-start: 50%;
+  inset-inline-start: -22px;
+  inline-size: 20px;
+  block-size: 32px;
+  display: grid;
+  place-items: center;
+  padding: 7px 3px;
+  color: var(--ui-text-muted);
+  background: var(--ui-surface-elevated);
+  border: 1px solid transparent;
+  border-radius: var(--ui-radius-sm);
+  cursor: grab;
+  /* Hidden until the row is hovered, but always hittable: the handle sits outside the row, and moving
+     the pointer onto it must not hide it on the way. */
+  opacity: 0;
+  transform: translateY(-50%);
+  transition: opacity var(--ui-motion-fast) var(--ui-motion-ease);
+}
+
+.row:hover .drag-handle,
+.drag-handle:hover,
+.drag-handle:focus-visible,
+:scope[data-dragging] .drag-handle {
+  opacity: 1;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.drop-indicator {
+  position: absolute;
+  z-index: 3;
+  inset-inline: 1px;
+  display: none;
+  block-size: 2px;
+  border-radius: 999px;
+  background: var(--ui-tree-drop-color, var(--_tree-drop-color));
+  pointer-events: none;
+}
+
+.drop-indicator::before,
+.drop-indicator::after {
+  content: '';
+  position: absolute;
+  inset-block-start: 50%;
+  inline-size: 7px;
+  block-size: 7px;
+  border: 2px solid var(--ui-tree-drop-color, var(--_tree-drop-color));
+  border-radius: 999px;
+  background: var(--ui-surface-elevated);
+  transform: translateY(-50%);
+}
+
+.drop-indicator::before { inset-inline-start: -1px; }
+.drop-indicator::after { inset-inline-end: -1px; }
+
+:scope[data-drop-position='before'] .row-drop-indicator {
+  display: block;
+  inset-block-start: -1px;
+}
+
+:scope[data-drop-position='after'] .subtree-drop-indicator {
+  display: block;
+  inset-block-end: -1px;
+}
+
+.children[hidden] {
+  display: none;
+}
+
+html[data-ui-input-modality='touch'] :scope {
+  --_tree-row-min-height: 44px;
+}
+
+html[data-ui-input-modality='touch'] :scope .drag-handle {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row,
+  .disclosure-icon,
+  .drag-handle {
+    transition: none;
+  }
+}
+</style>
+</template>

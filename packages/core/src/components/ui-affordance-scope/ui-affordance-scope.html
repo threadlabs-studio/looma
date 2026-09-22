@@ -1,0 +1,15 @@
+<template component="ui-affordance-scope" controller="./ui-affordance-scope.js" status="early" summary="Migrated Looma ui-affordance-scope component.">
+  <defs>
+    <prop name="nearRadius" type="number" default="16">nearRadius token.</prop>
+  </defs>
+  <span><slot></slot></span>
+  <style>:scope {
+  display: contents;
+  --ui-affordance-scope-engaged: 0;
+}
+
+:scope[data-ui-interaction='engaged'] {
+  --ui-affordance-scope-engaged: 1;
+}
+</style>
+</template>

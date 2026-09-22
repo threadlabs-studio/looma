@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const readComponentCss = (component: string) =>
-  readFileSync(`src/declarative/components/${component}.html`, "utf8");
+  readFileSync(`src/components/${component}/${component}.html`, "utf8");
 
 describe("responsive core component CSS", () => {
   it("keeps dialogs inside both viewport axes", () => {
