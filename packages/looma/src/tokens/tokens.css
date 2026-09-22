@@ -98,8 +98,12 @@
     --ui-font-size-ui: calc(var(--ui-font-size) * 0.9375);
     --ui-font-size-md: var(--ui-font-size);
     --ui-font-size-lg: calc(var(--ui-font-size) * 1.125);
+    --ui-font-size-xl: calc(var(--ui-font-size) * 1.25);
+    --ui-font-size-2xl: calc(var(--ui-font-size) * 1.5);
     --ui-line-height-tight: 1.2;
     --ui-line-height-md: var(--ui-line-height);
+    /* Prose, not controls: the editor's document body reads at a looser line height. */
+    --ui-line-height-relaxed: calc(var(--ui-line-height) * 1.15);
     --ui-font-normal: 400;
     --ui-font-semibold: 600;
     --ui-font-bold: 700;
