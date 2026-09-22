@@ -110,6 +110,59 @@ describe("Vue components", () => {
   });
 });
 
+describe("Vue editor components", () => {
+  it("render menus, toolbars, and grids from their templates", async () => {
+    const path = await bundle("vue-editor", `
+      import { createApp, h } from "vue";
+      import { EditorSlashMenu, EditorTableToolbar, EditorInsertTableGrid } from "@threadlabs/looma/vue";
+      const events = [];
+      window.events = events;
+      createApp({
+        render: () => h("div", [
+          h(EditorSlashMenu, { id: "slash", open: true, query: "ta", anchorRect: { left: 800, top: 20, right: 820, bottom: 40 },
+            items: [{ title: "Table", description: "Rows and columns", icon: "table" }, { title: "Text", description: "Paragraph", icon: "pilcrow" }],
+            onSelect: (detail) => events.push(["select", detail]) }),
+          h(EditorTableToolbar, { id: "toolbar", open: true, cellAlignment: "center",
+            actions: ["align-left", "align-center", "add-row-after", "background-yellow", "delete-table"],
+            onAction: (detail) => events.push(["action", detail]) }),
+          h(EditorInsertTableGrid, { id: "grid", open: true, maxRows: 4, maxCols: 5,
+            onInsert: (detail) => events.push(["insert", detail]) }),
+        ]),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+
+    const items = page.locator('#slash [role="option"]');
+    assert.deepEqual(await items.locator(".title").allTextContents(), ["Table", "Text"]);
+    assert.equal(await page.locator("#slash .header-query").textContent(), "ta");
+    assert.ok(await items.first().locator("svg rect, svg path").count() > 0, "icons render as SVG shapes");
+    assert.equal(await items.first().getAttribute("aria-selected"), "true");
+    await items.nth(1).click();
+
+    const toolbar = page.locator("#toolbar");
+    assert.equal(await toolbar.locator('[data-action="align-center"]').getAttribute("aria-pressed"), "true");
+    assert.equal(await toolbar.locator(".menu").count(), 0);
+    await toolbar.locator('[data-action="toggle-overflow"]').click();
+    assert.equal(await toolbar.locator(".menu").count(), 1);
+    assert.deepEqual(await toolbar.locator('.menu [role="menuitem"]').allTextContents(), ["Delete table"]);
+    await toolbar.locator('[data-action="delete-table"]').click();
+    assert.equal(await toolbar.locator(".menu").count(), 0);
+
+    const grid = page.locator("#grid");
+    assert.equal(await grid.locator(".cell").count(), 20);
+    await grid.locator('[data-row="2"][data-col="4"]').click();
+    assert.equal(await grid.locator(".cell.selected").count(), 8);
+    await grid.locator(".insert").click();
+
+    assert.deepEqual(await page.evaluate(() => (window as unknown as { events: unknown[] }).events), [
+      ["select", { index: 1 }],
+      ["action", { action: "delete-table" }],
+      ["insert", { rows: 2, cols: 4, withHeaderRow: false }],
+    ]);
+    await page.close();
+  });
+});
+
 describe("HTML components", () => {
   it("register and lower from dist/index.js", async () => {
     const path = await bundle("html-page", `import "@threadlabs/looma";`);

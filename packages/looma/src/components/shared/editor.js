@@ -4,15 +4,10 @@ export const backgrounds = [
   ["background-green", "Green", "#dcfce7"], ["background-red", "Red", "#fee2e2"],
 ];
 
-export function escapeHtml(value) {
-  return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;").replaceAll("'", "&#39;");
-}
-
 // Serialized from Looma's framework-neutral icon catalog. Keeping the icon nodes here lets the
 // migration controllers stay directly importable in a browser without introducing a bundler-only
 // package resolution step.
-const icons = {
+export const icons = {
   "align-left": [["path", { d: "M21 5H3" }], ["path", { d: "M15 12H3" }], ["path", { d: "M17 19H3" }]],
   "align-center": [["path", { d: "M21 5H3" }], ["path", { d: "M17 12H7" }], ["path", { d: "M19 19H5" }]],
   "align-right": [["path", { d: "M21 5H3" }], ["path", { d: "M21 12H9" }], ["path", { d: "M21 19H7" }]],
@@ -36,14 +31,6 @@ const icons = {
   quote: [["path", { d: "M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z" }], ["path", { d: "M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z" }]],
 };
 
-export function icon(name, className = "looma-icon") {
-  const nodes = (icons[name] ?? []).map(([tag, attributes]) => {
-    const serialized = Object.entries(attributes).map(([key, value]) => ` ${key}="${value}"`).join("");
-    return `<${tag}${serialized}></${tag}>`;
-  }).join("");
-  return `<svg class="${className}" data-looma-icon="${name}" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${nodes}</svg>`;
-}
-
 export function normalizeAnchor(value) {
   if (!value || typeof value !== "object") return null;
   const finite = (candidate) => typeof candidate === "number" && Number.isFinite(candidate) ? candidate : null;
@@ -59,4 +46,24 @@ export function viewport() {
   const left = visual?.offsetLeft ?? 0; const top = visual?.offsetTop ?? 0;
   const width = visual?.width ?? window.innerWidth; const height = visual?.height ?? window.innerHeight;
   return { left, top, width, height, right: left + width, bottom: top + height };
+}
+
+/**
+ * Places a floating menu below its anchor (or above, when there is more room), or as a bottom sheet on
+ * narrow screens.
+ */
+export function positionMenu(element, rect, width) {
+  if (!rect) return;
+  const view = viewport();
+  Object.assign(element.style, { position: "fixed", zIndex: "500" });
+  if (window.innerWidth < 768) {
+    const height = Math.min(320, Math.max(0, view.height - 56));
+    Object.assign(element.style, { left: `${view.left}px`, right: "", bottom: "", top: `${view.top + view.height - height - 56}px`, width: `${view.width}px`, maxHeight: `${height}px` });
+    return;
+  }
+  const below = view.bottom - rect.bottom - 8;
+  const above = rect.top - view.top - 8;
+  const top = below >= 320 || below >= above ? rect.bottom + 8 : rect.top - 328;
+  const left = Math.max(view.left + 8, Math.min(rect.left, view.right - width - 8));
+  Object.assign(element.style, { top: `${Math.max(view.top + 8, top)}px`, left: `${left}px`, right: "", bottom: "", width: `${width}px`, maxHeight: "" });
 }

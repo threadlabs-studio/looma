@@ -1,4 +1,4 @@
-import { backgrounds, icon } from "../shared/editor.js";
+import { backgrounds } from "../shared/editor.js";
 
 const overflowSections = [
   ["Structure", [["add-row-before", "Add row above", "panel-top"], ["add-column-before", "Add column left", "panel-left"]]],
@@ -6,33 +6,49 @@ const overflowSections = [
   ["Table", [["delete-row", "Delete row", "trash", "danger"], ["delete-column", "Delete column", "trash", "danger"], ["delete-table", "Delete table", "trash", "danger"]]],
 ];
 
+// Lists the actions the table selection permits; the overflow menu opens and closes here.
 export default function controller(host) {
-  const element = host.element; let overflowOpen = false;
-  const render = () => {
-    element.hidden = !host.state.open; if (!host.state.open) { overflowOpen = false; return; }
+  const element = host.element;
+  const stop = host.effect(() => {
     const enabled = new Set(Array.isArray(host.state.actions) ? host.state.actions : []);
-    const active = `align-${host.state.cellAlignment === "center" || host.state.cellAlignment === "right" ? host.state.cellAlignment : "left"}`;
-    const alignments = [["align-left", "Align left"], ["align-center", "Align center"], ["align-right", "Align right"]].filter(([action]) => enabled.has(action));
-    const structure = [["add-row-after", "Add row", "rows"], ["add-column-after", "Add column", "columns"]].filter(([action]) => enabled.has(action));
+    const alignment = host.state.cellAlignment === "center" || host.state.cellAlignment === "right" ? host.state.cellAlignment : "left";
+    host.state.alignments = [["align-left", "Align left"], ["align-center", "Align center"], ["align-right", "Align right"]]
+      .filter(([action]) => enabled.has(action))
+      .map(([action, label]) => ({ action, label, active: action === `align-${alignment}` }));
+    host.state.structure = [["add-row-after", "Add row", "rows"], ["add-column-after", "Add column", "columns"]]
+      .filter(([action]) => enabled.has(action))
+      .map(([action, label, icon]) => ({ action, label, icon }));
     const background = String(host.state.cellBackground ?? "");
-    const backgroundActions = backgrounds.filter(([action]) => enabled.has(action));
-    const overflowGroups = overflowSections.map(([heading, actions]) => [heading, actions.filter(([action]) => enabled.has(action))]);
-    const hasOverflow = backgroundActions.length > 0 || overflowGroups.some(([, actions]) => actions.length > 0);
-    if (!hasOverflow) overflowOpen = false;
-    const menu = overflowOpen ? `<div class="ui-editor-table-toolbar__menu" role="menu" aria-label="More table actions">${backgroundActions.length ? `<div class="ui-editor-table-toolbar__menu-section" role="none"><div class="ui-editor-table-toolbar__menu-heading" role="presentation">Background</div><div class="ui-editor-table-toolbar__swatches" role="group" aria-label="Cell background">${backgroundActions.map(([action, label, swatch]) => { const selected = swatch === background; return `<button type="button" class="ui-editor-table-toolbar__swatch-button" role="menuitemradio" aria-checked="${selected}" data-action="${action}"${selected ? ' data-selected="true"' : ""}><span class="ui-editor-table-toolbar__swatch${swatch ? "" : " ui-editor-table-toolbar__swatch--default"}"${swatch ? ` style="--ui-editor-table-toolbar-swatch:${swatch}"` : ""}></span><span>${label}</span></button>`; }).join("")}</div></div>` : ""}${overflowGroups.map(([heading, actions]) => actions.length ? `<div class="ui-editor-table-toolbar__menu-section ui-editor-table-toolbar__menu-section--divided" role="none"><div class="ui-editor-table-toolbar__menu-heading" role="presentation">${heading}</div>${actions.map(([action, label, iconName, tone]) => `<button type="button" role="menuitem" data-action="${action}"${tone ? ` data-tone="${tone}"` : ""}>${icon(iconName)}<span>${label}</span></button>`).join("")}</div>` : "").join("")}</div>` : "";
-    const groups = [];
-    if (alignments.length) groups.push(`<div class="ui-editor-table-toolbar__group" role="group" aria-label="Cell alignment">${alignments.map(([action, label]) => `<button type="button" class="ui-editor-table-toolbar__icon-button" data-action="${action}" aria-label="${label}" title="${label}" aria-pressed="${action === active}" data-active="${action === active}">${icon(action)}</button>`).join("")}</div>`);
-    if (structure.length) groups.push(`<div class="ui-editor-table-toolbar__group" role="group" aria-label="Table structure">${structure.map(([action, label, iconName]) => `<button type="button" data-action="${action}">${icon(iconName)}<span>${label}</span></button>`).join("")}</div>`);
-    if (hasOverflow) groups.push(`<div class="ui-editor-table-toolbar__overflow"><button type="button" class="ui-editor-table-toolbar__more" data-action="toggle-overflow" aria-haspopup="menu" aria-expanded="${overflowOpen}">${icon("table")}<span>Table options</span>${icon("chevron-down", "looma-icon looma-icon--chevron")}</button>${menu}</div>`);
-    element.innerHTML = `<div class="ui-editor-table-toolbar" role="toolbar" aria-label="Table actions">${groups.join('<div class="ui-editor-table-toolbar__sep" aria-hidden="true"></div>')}</div>`;
-  };
+    host.state.swatches = backgrounds.filter(([action]) => enabled.has(action))
+      .map(([action, label, color]) => ({ action, label, color, selected: color === background }));
+    host.state.sections = overflowSections
+      .map(([heading, items]) => ({
+        heading,
+        items: items.filter(([action]) => enabled.has(action))
+          .map(([action, label, icon, tone]) => ({ action, label, icon, danger: tone === "danger" })),
+      }))
+      .filter((section) => section.items.length);
+    host.state.hasOverflow = host.state.swatches.length > 0 || host.state.sections.length > 0;
+    if (!host.state.open || !host.state.hasOverflow) host.state.overflowOpen = false;
+  });
   const onClick = (event) => {
-    const action = event.target.closest?.("[data-action]")?.dataset.action; if (!action) return;
-    if (action === "toggle-overflow") { overflowOpen = !overflowOpen; render(); return; }
-    overflowOpen = false; render(); host.dispatch("action", { action });
+    const action = event.target.closest?.("[data-action]")?.dataset.action;
+    if (!action) return;
+    if (action === "toggle-overflow") {
+      host.state.overflowOpen = !host.state.overflowOpen;
+      return;
+    }
+    host.state.overflowOpen = false;
+    host.dispatch("action", { action });
   };
-  const onOutside = (event) => { if (!overflowOpen || event.composedPath().includes(element)) return; overflowOpen = false; render(); };
-  element.addEventListener("click", onClick); document.addEventListener("pointerdown", onOutside, true);
-  const stop = host.effect(render); render();
-  return () => { stop(); element.removeEventListener("click", onClick); document.removeEventListener("pointerdown", onOutside, true); };
+  const onOutside = (event) => {
+    if (host.state.overflowOpen && !event.composedPath().includes(element)) host.state.overflowOpen = false;
+  };
+  element.addEventListener("click", onClick);
+  document.addEventListener("pointerdown", onOutside, true);
+  return () => {
+    stop();
+    element.removeEventListener("click", onClick);
+    document.removeEventListener("pointerdown", onOutside, true);
+  };
 }
