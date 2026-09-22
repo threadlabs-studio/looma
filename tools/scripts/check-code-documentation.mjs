@@ -25,6 +25,7 @@ const RESOURCE_METHODS = new Set([
 // component templates, which document themselves.
 export const PUBLIC_ENTRYPOINTS = Object.freeze([
   { packageName: "@threadlabs/looma", exportPath: "./editor", packageDirectory: "packages/looma", source: "packages/looma/src/editor/index.ts" },
+  { packageName: "@threadlabs/looma", exportPath: "./editor/ui", packageDirectory: "packages/looma", source: "packages/looma/src/editor/ui.ts" },
   { packageName: "@threadlabs/looma", exportPath: "./editor/extensions", packageDirectory: "packages/looma", source: "packages/looma/src/editor/extensions/index.ts" },
   { packageName: "@threadlabs/looma", exportPath: "./vue/editor", packageDirectory: "packages/looma", source: "packages/looma/src/vue/editor/index.ts" },
 ]);

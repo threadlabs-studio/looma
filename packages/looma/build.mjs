@@ -109,7 +109,14 @@ await build({
     outDir: join(root, "editor"),
     emptyOutDir: false,
     minify: false,
-    lib: { entry: { index: join(root, "src/editor/index.ts"), "extensions/index": join(root, "src/editor/extensions/index.ts") }, formats: ["es"] },
+    lib: {
+      entry: {
+        index: join(root, "src/editor/index.ts"),
+        ui: join(root, "src/editor/ui.ts"),
+        "extensions/index": join(root, "src/editor/extensions/index.ts"),
+      },
+      formats: ["es"],
+    },
     rollupOptions: { external: isDependency, output: { entryFileNames: "[name].js", chunkFileNames: "chunks/[name].js" } },
   },
 });

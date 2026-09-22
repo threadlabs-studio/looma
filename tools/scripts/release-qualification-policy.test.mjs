@@ -172,7 +172,7 @@ test("the packed facade consumer matrix pins every editor and Vue entry", async 
     readFile(path.join(repoRoot, "tests/release/consumer/package.json"), "utf8").then(JSON.parse)
   ]);
 
-  for (const subpath of ["editor", "editor/extensions", "vue", "vue/editor"]) {
+  for (const subpath of ["editor", "editor/ui", "editor/extensions", "vue", "vue/editor"]) {
     const exactImport = new RegExp(
       `["']@threadlabs/looma/${subpath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}["']`,
       "g"

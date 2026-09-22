@@ -13,12 +13,12 @@ Breaking: Looma is one package built from one set of component definitions.
   scoped to each component, customization is through `--ui-*` custom properties, and a component's
   props are styled through its own state, not reflected `data-*` attributes.
 - Removed: `@threadlabs/looma/core`, `/layout`, `/loader`, `/core/declarative`,
-  `/core/declarative-generated`, `/editor/ui`, and the `layout.css`, `styles.css`, and `editor.css`
+  `/core/declarative-generated`, and the `layout.css`, `styles.css`, and `editor.css`
   stylesheets. Component styles ship with each component; `tokens.css` and the themes remain.
 - `@threadlabs/looma` registers every component (layout and editor included) for HTML pages;
   `@threadlabs/looma/components/*` are the component files for pages without a build.
 - Chip, deprecated since 0.3, is removed; use Badge.
-- A consumer's attributes on a component now win over the component's own (a `type` on a Button,
+- A consumer's attributes on a component win over the component's own (a `type` on a Button,
   for example), and a consumer's `class` is kept.
 - Fixes: Menu items take keyboard focus; the Floating Action Button no longer stretches to the
   viewport width; toasts authored inside a Toast Region show while `open` is set; the context menu
