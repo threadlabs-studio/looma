@@ -1,4 +1,4 @@
-<link rel="component" href="../ui-chip/ui-chip.html">
+<link rel="component" href="../ui-badge/ui-badge.html">
 <link rel="component" href="../ui-tooltip/ui-tooltip.html">
 <template component="ui-combobox" controller="./ui-combobox.js">
   <defs>
@@ -30,6 +30,13 @@
     <state name="helpOpen" :value="false"></state>
     <state name="lookupError" :value="''"></state>
     <state name="validation" :value="{ status: 'pristine', touched: false, dirty: false, issues: [] }"></state>
+    <state name="uid" :value="''"></state>
+    <state name="groups" :value="[]"></state>
+    <state name="creatable" :value="false"></state>
+    <state name="createIndex" :value="0"></state>
+    <state name="message" :value="''"></state>
+    <state name="statusText" :value="''"></state>
+    <state name="validationStatus" :value="'pristine'"></state>
     <event name="query-change" type="object({ query: string, display: string, trigger: keyboard | pointer | programmatic })"></event>
     <event name="value-change" type="object({ value: string | null, query: string, option: object({ id: string, value: string, label: string, group?: string, disabled?: boolean }) | null, kind: selection | clear | free-entry | create, trigger: keyboard | pointer | programmatic }) | list(object({ id: string, value: string, label: string, group?: string, disabled?: boolean }))"></event>
     <event name="free-entry" type="object({ value: string | null, query: string, option: object({ id: string, value: string, label: string, group?: string, disabled?: boolean }) | null, kind: selection | clear | free-entry | create, trigger: keyboard | pointer | programmatic })"></event>
@@ -42,7 +49,34 @@
     <method name="validate" export="validate" returns="promise(unknown)"></method>
     <method name="focusInput" export="focusInput" returns="promise(undefined)"></method>
   </defs>
-  <div><label for="input"><template $value="label"></template></label><div class="field"><slot name="start"></slot><div $if="multiple" class="items" role="group"></div><input id="input" role="combobox" aria-autocomplete="list" aria-controls="listbox" :value="display" :placeholder="placeholder" :name="name" :disabled="disabled" :readOnly="readonly" :required="required" autoComplete="off"></input><button $if="clearable" type="button"><svg class="affordance-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 7l10 10M17 7 7 17"></path></svg></button><button $if="help" id="help" type="button" :disabled="disabled"><span aria-hidden="true">?</span></button><button $if="disclosure" type="button" aria-controls="listbox"><svg class="affordance-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg></button></div><ui-tooltip $if="help" id="help-text" for="help"><template $value="help"></template></ui-tooltip><div class="popup" :hidden="not expanded"><div id="listbox" role="listbox"></div><slot name="footer"></slot></div><div id="validation" class="message" :hidden="not validation.issues.length"></div><div class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div><div class="authored-options" hidden aria-hidden="true"><slot></slot></div></div>
+  <div>
+    <label :for="format('%s-input', uid)" class:sr-only="labelVisibility = 'sr-only'"><template $value="label"></template><template $if="required"> *</template></label>
+    <div class="field" $ref="field">
+      <slot name="start"></slot>
+      <template $if="multiple">
+        <button $each="item, index of items" $key="item.id" class="item" type="button" tabindex="-1" :data-index="index" :disabled="disabled or readonly or item.disabled" :aria-label="format('%s, press Delete or Backspace to remove', item.label)"><slot :name="format('item-%s', item.id)"><ui-badge $value="item.label"></ui-badge></slot></button>
+      </template>
+      <input $ref="input" :id="format('%s-input', uid)" role="combobox" aria-autocomplete="list" autocomplete="off" :aria-controls="format('%s-listbox', uid)" :aria-expanded="expanded" :aria-invalid="validationStatus = 'error'" :aria-busy="validationStatus = 'pending'" .value="display" :placeholder="placeholder" :name="name" :disabled="disabled" :readonly="readonly" :required="required">
+      <button $if="clearable" type="button" data-combobox-action="clear" aria-label="Clear"><svg class="affordance-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 7l10 10M17 7 7 17"></path></svg></button>
+      <button $if="help" :id="format('%s-help', uid)" type="button" aria-label="Help" :disabled="disabled"><span aria-hidden="true">?</span></button>
+      <button $if="disclosure" type="button" data-combobox-action="disclosure" tabindex="-1" aria-label="Show suggestions" :aria-controls="format('%s-listbox', uid)"><svg class="affordance-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg></button>
+    </div>
+    <ui-tooltip $if="help" :id="format('%s-help-text', uid)" :for="format('%s-help', uid)"><template $value="help"></template></ui-tooltip>
+    <div class="popup" $ref="popup" :hidden="not expanded">
+      <div role="listbox" $ref="listbox" :id="format('%s-listbox', uid)" :aria-label="format('%s suggestions', label)" :aria-busy="loading">
+        <div $each="group of groups" $key="group.name" :role="group.role" :aria-label="group.label">
+          <div $if="group.name" class="group" $value="group.name"></div>
+          <div $each="row of group.rows" $key="row.id" class="option" class:active="row.index = active" role="option" :id="format('%s-option-%s', uid, row.index)" :aria-selected="row.value = selected" :aria-disabled="row.disabled" :data-index="row.index"><slot :name="format('option-%s', row.id)"><span class="primary" $value="row.label"></span></slot></div>
+        </div>
+        <div $if="creatable" class="option" class:active="createIndex = active" role="option" aria-selected="false" :id="format('%s-option-%s', uid, createIndex)" :data-index="createIndex" $value="format('Create “%s”', raw)"></div>
+        <div $if="message" class="message" $value="message"></div>
+      </div>
+      <slot name="footer"></slot>
+    </div>
+    <div class="message" :id="format('%s-validation', uid)" :hidden="not validation.issues.length"><div $each="issue of validation.issues" $value="issue.message"></div></div>
+    <div class="sr-only" role="status" aria-live="polite" aria-atomic="true" $value="statusText"></div>
+    <div class="authored-options" $ref="options" hidden aria-hidden="true"><slot></slot></div>
+  </div>
   <style>:host { display: grid; gap: var(--ui-space-1); min-inline-size: 0; color: var(--ui-text-primary); font: inherit; }
 label { color: var(--ui-field-label-color, var(--ui-text-primary)); font-size: var(--ui-field-label-size, 0.875rem); font-weight: var(--ui-field-label-weight, 500); }
 .field { display: flex; min-inline-size: 0; border: 1px solid var(--ui-control-border, var(--ui-border-default)); border-radius: var(--ui-radius-2); background: var(--ui-control-surface, var(--ui-surface-default)); box-shadow: var(--ui-control-inset); transition: border-color var(--ui-motion-fast) var(--ui-motion-ease), box-shadow var(--ui-motion-fast) var(--ui-motion-ease); }
@@ -56,23 +90,22 @@ button:hover:enabled { background: var(--ui-surface-muted); color: var(--ui-text
 button:focus-visible { outline: none; background: var(--ui-surface-muted); box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--ui-focus-ring) 45%, transparent); }
 input:disabled, button:disabled { color: var(--ui-text-muted); cursor: not-allowed; }
 .field:has(input:disabled) { background: var(--ui-control-surface-disabled, var(--ui-surface-muted)); }
-:host[data-validation='error'] .field { border-color: var(--ui-danger-solid, var(--ui-accent-active)); }
+:host-state([validationStatus="error"]) .field { border-color: var(--ui-danger-solid, var(--ui-accent-active)); }
 .popup { box-sizing: border-box; min-inline-size: 12rem; max-inline-size: calc(100vw - 1rem); max-block-size: var(--ui-combobox-max-block-size, 18rem); overflow: auto; margin: 0; padding: var(--ui-space-1); border: 1px solid var(--ui-border-default); border-radius: var(--ui-radius-2); background: var(--ui-surface-elevated); color: var(--ui-text-primary); box-shadow: var(--ui-elevation-overlay, var(--ui-shadow-lg)); }
-[hidden] { display: none !important; }
+[hidden] { display: none; }
 .option { padding: var(--ui-space-2) var(--ui-space-3); border-radius: var(--ui-radius-1); cursor: pointer; overflow-wrap: anywhere; }
-.option:hover, .option[data-active] { background: var(--ui-surface-muted); outline: 1px solid var(--ui-focus-ring, currentColor); outline-offset: -1px; }
+.option:hover, .option.active { background: var(--ui-surface-muted); outline: 1px solid var(--ui-focus-ring, currentColor); outline-offset: -1px; }
 .option[aria-disabled='true'] { color: var(--ui-text-muted); cursor: not-allowed; }
 .primary { display: block; color: var(--ui-option-primary-color, var(--ui-text-primary)); font-weight: var(--ui-option-primary-weight, 500); }
 .message, .group { color: var(--ui-field-message-color, var(--ui-text-secondary)); font-weight: var(--ui-field-message-weight, 400); font-size: var(--ui-font-size-sm); line-height: var(--ui-line-height-md); overflow-wrap: anywhere; }
 .group, .popup .message { padding: var(--ui-space-2) var(--ui-space-3); }
 .sr-only { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 @media (pointer: coarse) { button { min-inline-size: 2.75rem; min-block-size: 2.75rem; } }
-@media (forced-colors: active) { .field, .popup { border-color: CanvasText; } .option[data-active] { outline-color: Highlight; } }
+@media (forced-colors: active) { .field, .popup { border-color: CanvasText; } .option.active { outline-color: Highlight; } }
 
 /* Multiple mode: chips wrap before the cursor on one flexible field line. */
-:host[data-multiple='true'] .field { flex-wrap: wrap; align-items: center; gap: var(--ui-space-1); min-block-size: var(--ui-multi-combobox-min-block-size, 2.5rem); padding: var(--ui-space-1); }
-:host[data-multiple='true'] input { flex: 1 0 var(--ui-multi-combobox-input-min-inline-size, 5rem); width: auto; min-block-size: 1.75rem; padding: var(--ui-space-0-5) var(--ui-space-1); }
-.items { display: contents; }
+:host-state([multiple]) .field { flex-wrap: wrap; align-items: center; gap: var(--ui-space-1); min-block-size: var(--ui-multi-combobox-min-block-size, 2.5rem); padding: var(--ui-space-1); }
+:host-state([multiple]) input { flex: 1 0 var(--ui-multi-combobox-input-min-inline-size, 5rem); width: auto; min-block-size: 1.75rem; padding: var(--ui-space-0-5) var(--ui-space-1); }
 .item {
   appearance: none;
   display: inline-flex;
@@ -87,8 +120,6 @@ input:disabled, button:disabled { color: var(--ui-text-muted); cursor: not-allow
   font: inherit;
   cursor: default;
 }
-.item > slot { display: block; min-inline-size: 0; max-inline-size: 100%; overflow: hidden; }
-.item > slot:slotted(*) { min-inline-size: 0; max-inline-size: 100%; }
 .item:focus-visible { outline: 2px solid var(--ui-focus-ring, currentColor); outline-offset: 1px; }
 .item:disabled { opacity: .6; }
 </style>
