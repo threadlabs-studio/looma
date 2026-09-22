@@ -10,6 +10,12 @@
   `--ui-radius-sm`, `-md`, `-lg`, and `-dialog`; `--ui-text-sm` was a font size and is
   `--ui-font-size-sm`; `--ui-color-focus` is `--ui-focus-ring`; `--ui-space-1-5` and
   `--ui-space-12` are gone.
+- Tree Item's label cell stretches its slotted content, so a link in the label slot is the row's
+  hit area instead of sizing to its own text.
+- Light dismiss needs a press it can place: a pointerdown reporting no coordinates (assistive
+  technology, or a synthetic event) no longer closes a dismissible overlay.
+- `--ui-control-min-block-size` is `44px`, not `2.75rem`: WCAG counts CSS pixels, so a smaller root
+  font must not shrink a touch target below the minimum.
 - `density="compact"` on Menu, Tabs, Disclosure, and Tree: rows trade padding and type size for
   fit. Nothing has to rescale a global token to compact a menu any more. Menu Item reads
   `--ui-menu-item-padding-block`/`-padding-inline`, `-font-size`, `-radius`, and `-hover-surface`.

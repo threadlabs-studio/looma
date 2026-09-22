@@ -222,6 +222,13 @@
       padding: var(--ui-tree-item-label-padding-block, var(--ui-space-1)) var(--ui-tree-item-label-padding-inline, var(--ui-space-2));
     }
 
+    /* Slotted label content fills the cell, so a link is the row's hit area rather than sizing to
+       its own text and reading as overflow. */
+    .label > :slotted(*) {
+      flex: 1 1 auto;
+      min-inline-size: 0;
+    }
+
     .actions {
       grid-column: 4;
       grid-row: 1;
