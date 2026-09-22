@@ -6,31 +6,12 @@ import type * as Preset from "@docusaurus/preset-classic";
 // The released package version, shown in the navbar.
 const loomaVersion = (JSON.parse(readFileSync(path.join(__dirname, "../../package.json"), "utf8")) as { version: string }).version;
 
-const docsReleaseMode = process.env.LOOMA_DOCS_RELEASE_MODE ?? "preview";
-
-if (docsReleaseMode !== "preview" && docsReleaseMode !== "candidate") {
-  throw new Error(
-    `LOOMA_DOCS_RELEASE_MODE must be preview or candidate; received ${JSON.stringify(docsReleaseMode)}`
-  );
-}
-
-const isCandidateRelease = docsReleaseMode === "candidate";
-
 const config: Config = {
   title: "Looma",
   tagline: "Declarative components, woven into the web platform",
   favicon: "img/looma-mark.svg",
   url: process.env.LOOMA_DOCS_URL ?? "https://threadlabs-studio.github.io",
   baseUrl: process.env.LOOMA_DOCS_BASE_URL ?? "/looma/",
-  headTags: [
-    {
-      tagName: "meta",
-      attributes: {
-        name: "robots",
-        content: isCandidateRelease ? "index,follow" : "noindex,nofollow"
-      }
-    }
-  ],
   onBrokenLinks: "throw",
   markdown: {
     hooks: {
@@ -80,15 +61,6 @@ const config: Config = {
     ]
   ],
   themeConfig: {
-    announcementBar: {
-      id: `looma-r1-${docsReleaseMode}`,
-      content: isCandidateRelease
-        ? 'Release 1 Candidate 0.5.1 is available on npm under the candidate tag. <a href="/looma/release-1-support">Read the support boundary.</a>'
-        : 'Release 1 Candidate documentation preview — confirm registry availability before installing. <a href="/looma/release-1-support">Read the support boundary.</a>',
-      backgroundColor: "#2b2538",
-      textColor: "#ffffff",
-      isCloseable: false
-    },
     colorMode: {
       defaultMode: "light",
       respectPrefersColorScheme: true

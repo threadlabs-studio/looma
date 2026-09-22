@@ -30,7 +30,6 @@ test("records a deterministic inventory of every packed file", () => {
       }
     ],
     releaseEligible: true,
-    approvals: { npm: "owner", documentation: "docs", knit: "knit" },
     evidence: {}
   });
 

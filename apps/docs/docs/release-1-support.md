@@ -3,14 +3,6 @@
 Release 1 is a public npm **Candidate `0.5.1`** for applications that want Looma's
 declarative components, editor, or supported Vue integration. Candidate means the surface is
 usable and qualified but can still change before Stable; it is not semver `1.0.0`.
-Knit is the first deep integration and release-qualification harness, not the audience or
-the boundary of the public API.
-
-:::caution Candidate availability
-
-Candidate availability is defined by the npm `candidate` dist-tag resolving `@threadlabs/looma@0.5.1`. A preview build describes the reviewed contract without asserting registry availability; the production build is deployed only from the same source commit after public Candidate verification.
-
-:::
 
 ## Public entries
 
@@ -31,8 +23,7 @@ React support is in development and not published. Docs, Storybook, examples, an
 - Chromium tests cover representative keyboard, touch/click, focus-return, disabled-state, and automated accessibility behavior.
 - Real Tiptap tests prove adding rows and columns preserves existing table cells and surrounding content; Vue browser tests prove the turnkey editor and theme-token control path.
 - Packed-artifact checks inspect exports, files, dependency direction, hashes, and a clean external consumer graph.
-- The packed artifacts must pass an independent consumer matrix. Knit then repeats its
-  build, tests, and SSR import proof as Looma's deepest release-qualification harness.
+- The packed artifacts must pass an independent consumer matrix before publication.
 
 ## Table editing boundary
 
@@ -55,6 +46,5 @@ collaboration, presence, workspaces, pages, and app-specific commands.
 
 - [Source repository](https://github.com/threadlabs-studio/looma)
 - [Issue tracker](https://github.com/threadlabs-studio/looma/issues)
-- [Release checklist](https://github.com/threadlabs-studio/looma/blob/main/docs/release-checklist.md)
 
 [MIT license](https://github.com/threadlabs-studio/looma/blob/main/LICENSE)
