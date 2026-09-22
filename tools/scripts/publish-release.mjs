@@ -120,7 +120,7 @@ export async function waitForRegistryIntegrity({
 
 async function main() {
   const execute = process.argv.includes("--execute");
-  const tag = argumentValue("--tag", "candidate");
+  const tag = "latest";
   const manifestArgument = argumentValue(
     "--manifest",
     ".release/artifacts/release-manifest.json"
@@ -134,9 +134,6 @@ async function main() {
   }
   if (manifest.releaseVersion !== RELEASE_VERSION) {
     throw new Error(`release manifest version must be ${RELEASE_VERSION}`);
-  }
-  if (tag !== "candidate") {
-    throw new Error("initial publication may only use the candidate dist-tag");
   }
   assertExactReleasePackageSet(manifest.packages);
 

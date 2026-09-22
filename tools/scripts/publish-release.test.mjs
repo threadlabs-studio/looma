@@ -10,7 +10,7 @@ test("treats a dist-tagged version as pending while npm scans it", () => {
   assert.deepEqual(
     classifyRegistryPublication({
       integrity: null,
-      distTags: { candidate: "0.1.1", latest: "0.1.1" },
+      distTags: { latest: "0.1.1" },
       version: "0.1.1"
     }),
     { status: "pending", integrity: null }
@@ -21,7 +21,7 @@ test("treats a version with neither metadata nor a dist-tag as unpublished", () 
   assert.deepEqual(
     classifyRegistryPublication({
       integrity: null,
-      distTags: { candidate: "0.0.9" },
+      distTags: { latest: "0.0.9" },
       version: "0.1.1"
     }),
     { status: "unpublished", integrity: null }
