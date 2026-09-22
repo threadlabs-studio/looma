@@ -5,6 +5,7 @@
 // components to JavaScript and declarations, the way any Vue library ships; the .vue files ship too.
 import { cp, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { assembleComponentPackage } from "@nextwebwg/declarative-components";
@@ -127,6 +128,20 @@ await build({
 execFileSync(join(root, "node_modules/.bin/vue-tsc"), ["-p", join(root, "tsconfig.json")], { stdio: "inherit" });
 await cp(join(assembled, "types-src/editor"), join(root, "editor"), { recursive: true });
 await cp(join(assembled, "types-src/vue/editor"), join(root, "vue/editor"), { recursive: true });
+// Node-resolved consumers need explicit extensions in declaration imports.
+for (const directory of ["editor", "vue/editor"]) {
+  for (const file of await readdir(join(root, directory), { recursive: true })) {
+    if (!file.endsWith(".d.ts")) continue;
+    const path = join(root, directory, file);
+    const source = await readFile(path, "utf8");
+    const rewritten = source.replace(/(from |import\()"(\.{1,2}\/[^"]*?)"/g, (match, lead, specifier) => {
+      if (/\.(js|vue)$/.test(specifier)) return match;
+      const base = resolve(dirname(path), specifier);
+      return `${lead}"${specifier}${existsSync(`${base}.d.ts`) ? ".js" : "/index.js"}"`;
+    });
+    if (rewritten !== source) await writeFile(path, rewritten);
+  }
+}
 
 for (const file of await readdir(join(root, "src/tokens"))) {
   await cp(join(root, "src/tokens", file), join(root, file));
