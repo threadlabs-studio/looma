@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## v0.5.2 Candidate
+## v0.5.2
 
 - The Vue components are converted by `@nextwebwg/html-next` (it replaces the deprecated
   `@nextwebwg/declarative-components`) and read as hand-written Vue: props by name, typed values
