@@ -2,8 +2,16 @@
 
 ## Unreleased
 
+## v0.6.0-rc.1
+
+Breaking: the theming surface. A product themes Looma through a contract of about 40 values; every
+other global derives from them. See the entries below for the renames and removals.
+
 - Editor: a `label` prop names the editing surface (default "Document"). Without it the text box
   had no accessible name, which fails WCAG 4.1.2.
+- `--ui-surface-muted` and `--ui-radius-lg` are contract values, not derived ones: a palette with
+  its own middle neutral, or a product that rounds large surfaces differently, sets them rather
+  than accepting the derivation.
 - Theming has a contract: about 40 `--ui-*` values (intent colour, neutrals, focus, type, space,
   radius, elevation, motion, and the shared control sizes) that a product sets to theme Looma.
   Every other global is derived from them, so a theme that sets only the contract stays coherent.

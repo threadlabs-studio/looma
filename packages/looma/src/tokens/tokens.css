@@ -19,6 +19,9 @@
     --ui-surface: #ffffff;
     --ui-surface-raised: #ffffff;
     --ui-surface-sunken: #f0f0ec;
+    /* The middle neutral step. It defaults to a mix of the two either side, but a palette with its
+       own value for it sets this rather than accepting the mix. */
+    --ui-surface-muted: color-mix(in srgb, var(--ui-surface-sunken) 50%, var(--ui-surface));
     --ui-text: #1a1a1a;
     --ui-text-secondary: #5c5c5c;
     --ui-text-muted: #9b9b9b;
@@ -56,6 +59,9 @@
     /* Radius. */
     --ui-radius-sm: 0.25rem;
     --ui-radius-md: 0.5rem;
+    /* Derived from --ui-radius-md by default, in the contract because a product that rounds large
+       surfaces differently needs to pin it. */
+    --ui-radius-lg: calc(var(--ui-radius-md) * 1.5);
     --ui-radius-round: 999px;
 
     /* Elevation: a resting shadow and a floating one. */
@@ -100,7 +106,6 @@
     --ui-space-5: calc(var(--ui-space-4) * 1.5);
     --ui-space-6: calc(var(--ui-space-4) * 2);
 
-    --ui-radius-lg: calc(var(--ui-radius-md) * 1.5);
     --ui-radius-dialog: calc(var(--ui-radius-md) * 2);
 
     /* Elevation: one resting shadow, one floating, and the overlays in between. */
@@ -123,7 +128,6 @@
     --ui-surface-canvas: var(--ui-surface);
     --ui-surface-default: var(--ui-surface);
     --ui-surface-elevated: var(--ui-surface-raised);
-    --ui-surface-muted: color-mix(in srgb, var(--ui-surface-sunken) 50%, var(--ui-surface));
     --ui-surface-subtle: var(--ui-surface-sunken);
     --ui-surface-hover: var(--ui-surface-muted);
     --ui-text-primary: var(--ui-text);
