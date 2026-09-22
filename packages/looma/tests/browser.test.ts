@@ -352,6 +352,34 @@ describe("Vue v-model on reported props", () => {
   });
 });
 
+describe("Tree Item label", () => {
+  it("fills its cell, so a slotted link is the row's hit area", async () => {
+    const path = await bundle("vue-tree-label-fill", `
+      import { createApp, h } from "vue";
+      import { Tree, TreeItem } from "@threadlabs/looma/vue";
+      createApp({
+        render: () => h("div", { style: "inline-size: 400px" }, [
+          h(Tree, { label: "Pages" }, () => [
+            h(TreeItem, { id: "page", itemId: "page", label: "Welcome" }, { label: () => h("a", { id: "link", href: "#welcome" }, "Welcome") }),
+          ]),
+        ]),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const widths = await page.locator("#page").evaluate((item) => {
+      const cell = item.querySelector(".label") as HTMLElement;
+      const style = getComputedStyle(cell);
+      return {
+        cell: cell.clientWidth - parseFloat(style.paddingInlineStart) - parseFloat(style.paddingInlineEnd),
+        link: (item.querySelector("#link") as HTMLElement).offsetWidth,
+      };
+    });
+    assert.ok(widths.link > 100, `the link fills the cell rather than its text (${widths.link}px)`);
+    assert.ok(Math.abs(widths.cell - widths.link) <= 2, `the link is the cell's width (${widths.link} of ${widths.cell})`);
+    await page.close();
+  });
+});
+
 describe("Light dismiss", () => {
   it("needs a real press: a pointerdown with no coordinates keeps a modal dialog open", async () => {
     const path = await bundle("vue-light-dismiss", `
