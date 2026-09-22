@@ -88,7 +88,7 @@ describe("Vue components", () => {
     assert.equal(await button.evaluate((element) => element.localName), "button");
     assert.equal(await button.getAttribute("class"), "consumer");
     assert.equal(await button.getAttribute("data-component"), "ui-button");
-    assert.equal(await button.getAttribute("data-ui-button-state"), "variant variant=solid align align=center size size=md");
+    assert.equal(await button.getAttribute("data-ui-button-state"), "variant variant=solid align align=center size size=md tone tone=neutral");
     assert.notEqual(await button.evaluate((element) => getComputedStyle(element).backgroundColor), "rgba(0, 0, 0, 0)");
     assert.equal(await page.evaluate(() => "HtmlRuntime" in window), false);
 
@@ -425,6 +425,41 @@ describe("Compact controls on touch", () => {
     assert.ok(target.visual < 44, `a compact control stays compact (${target.visual}px)`);
     assert.ok(target.width >= 44 && target.height >= 44, `its touch target is at least 44px (${target.width}x${target.height})`);
     assert.equal(target.hitsBeyondTheEdge, true, "the target extends past the visual edge");
+    await page.close();
+  });
+});
+
+describe("Button tone and disabled", () => {
+  it("tints an outline button with the accent, and disables to the contract's neutral", async () => {
+    const path = await bundle("vue-tone", `
+      import { createApp, h } from "vue";
+      import { Button } from "@threadlabs/looma/vue";
+      createApp({
+        render: () => h("div", [
+          h(Button, { id: "plain" }, () => "Cancel"),
+          h(Button, { id: "accent", tone: "accent" }, () => "Review"),
+          h(Button, { id: "off", disabled: true }, () => "Save"),
+          h(Button, { id: "off-solid", variant: "solid", disabled: true }, () => "Save"),
+        ]),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const paint = (id: string) => page.locator(`#${id}`).evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { background: style.backgroundColor, color: style.color, border: style.borderTopColor, opacity: style.opacity };
+    });
+    const plain = await paint("plain");
+    const accent = await paint("accent");
+    assert.notEqual(accent.background, plain.background, "an accent outline button is tinted");
+    assert.notEqual(accent.color, plain.color);
+    assert.notEqual(accent.border, plain.border);
+
+    // Disabled is one decision: the same neutral whatever the variant, at full opacity.
+    const off = await paint("off");
+    const offSolid = await paint("off-solid");
+    assert.equal(off.opacity, "1");
+    assert.deepEqual(offSolid, off, "a disabled solid button reads the same as any other");
+    assert.notEqual(off.background, plain.background);
     await page.close();
   });
 });

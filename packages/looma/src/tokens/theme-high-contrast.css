@@ -8,6 +8,8 @@
       --ui-text: #000000;
       --ui-text-secondary: #111111;
       --ui-text-muted: #222222;
+      --ui-disabled-surface: #e6e6e6;
+      --ui-disabled-text: #333333;
       --ui-border: #000000;
       --ui-border-strong: #000000;
       --ui-control-border: #000000;
@@ -29,6 +31,8 @@
     --ui-text: #000000;
     --ui-text-secondary: #111111;
     --ui-text-muted: #222222;
+    --ui-disabled-surface: #e6e6e6;
+    --ui-disabled-text: #333333;
     --ui-border: #000000;
     --ui-border-strong: #000000;
     --ui-control-border: #000000;
