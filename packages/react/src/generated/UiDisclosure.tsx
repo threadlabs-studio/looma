@@ -50,9 +50,7 @@ export function UiDisclosure(props: UiDisclosureProps) {
     <div {...nativeProps} data-component="ui-disclosure" data-component-root="ui-disclosure" ref={setRoot}>
       <button className="disclosure__trigger" type="button" aria-controls={undefined} disabled={prop0 ?? undefined} data-component="ui-disclosure">
       <span data-component="ui-disclosure">
-        <template data-component="ui-disclosure">
-          {prop2}
-        </template>
+        {prop2}
       </span>
 <span className="disclosure__chevron" aria-hidden="true" data-component="ui-disclosure"></span>
     </button>

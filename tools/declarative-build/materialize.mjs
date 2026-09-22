@@ -64,7 +64,7 @@ function rewriteFrameworkSource(source, component) {
     .replace(/import \{ attachComponent, updateComponentProps \} from "@nextwebwg\/declarative-components\/runtime";\n/, `import { attachLoomaComponent, updateComponentProps } from "@threadlabs/looma-core/declarative";\n`)
     .replace(/import \{ ((?:dispatchGeneratedEvent, )?manageGeneratedProps, updateGeneratedProps) \} from "@nextwebwg\/declarative-components\/generated-runtime";\n/, `import { $1 } from "@threadlabs/looma-core/declarative-generated";\n`)
     .replace(/import type \{ ComponentDefinition \} from "@nextwebwg\/declarative-components";\n/, `import type { ComponentDefinition } from "@threadlabs/looma-core/declarative";\n`)
-    .replace(new RegExp(`import \\* as controller from "\\.\\.\/controllers\/${component.tag}\/controllers\/${component.tag}\\.js";\\n`), "")
+    .replace(new RegExp(`import \\* as controller from "\\.\\.\/controllers\/${component.tag}\/(?:controllers\/|${component.tag}\/)?${component.tag}\\.js";\\n`), "")
     .replace(new RegExp(`import "\\.\\.\/styles\/${component.tag}\\.css";\\n`), "")
     // Declarative nullable values mean "attribute absent". React's intrinsic
     // attribute types express that absence as undefined rather than null.
@@ -241,7 +241,7 @@ async function materializeVanilla(components) {
     source = source
       .replace(/import \{ manageComponentLifecycle \} from "@nextwebwg\/declarative-components\/runtime";\n/, `import { attachLoomaComponent } from "@threadlabs/looma-core/declarative";\n`)
       .replace(/import \{ manageGeneratedProps \} from "@nextwebwg\/declarative-components\/generated-runtime";\n/, `import { manageGeneratedProps } from "@threadlabs/looma-core/declarative-generated";\n`)
-      .replace(new RegExp(`import \\* as controller from "\\.\\.\/controllers\/${component.tag}\/controllers\/${component.tag}\\.js";\\n`), "")
+      .replace(new RegExp(`import \\* as controller from "\\.\\.\/controllers\/${component.tag}\/(?:controllers\/|${component.tag}\/)?${component.tag}\\.js";\\n`), "")
       .replace(new RegExp(`import "\\.\\.\/styles\/${component.tag}\\.css";\\n`), "")
       .replace(
         /manageComponentLifecycle\(element, definition, \{\s*props: componentProps,\s*controller,\s*\}\);/g,
