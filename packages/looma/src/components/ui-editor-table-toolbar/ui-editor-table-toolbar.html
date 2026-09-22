@@ -67,7 +67,7 @@
               :aria-checked="swatch.selected"
               :data-action="swatch.action"
             >
-              <span class="swatch" class:default="not swatch.color" style:--ui-editor-table-toolbar-swatch="swatch.color"></span>
+              <span class="swatch" class:default="not swatch.color" style:--_swatch="swatch.color"></span>
               <span $value="swatch.label"></span>
             </button>
           </div>
@@ -255,7 +255,7 @@
       flex: 0 0 14px;
       border: 1px solid color-mix(in srgb, var(--ui-border) 80%, #000);
       border-radius: 3px;
-      background: var(--ui-editor-table-toolbar-swatch);
+      background: var(--_swatch);
     }
 
     .swatch.default {

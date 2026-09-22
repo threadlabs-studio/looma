@@ -825,8 +825,10 @@ export const LoomaEditor = defineComponent({
         label,
         title: label,
         size: "sm",
-        variant: active ? "solid" : "ghost",
+        variant: "ghost",
         disabled,
+        // A toggle reports its state to assistive technology; the tint is the visual half of it.
+        "aria-pressed": active ? "true" : "false",
         "data-active": active ? "true" : "false",
         onVnodeMounted: syncNativeDisabled,
         onVnodeUpdated: syncNativeDisabled,
