@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Search Shell: a dismissible shell closes on the first Escape, including from inside its search
+  field (the browser otherwise spends that Escape clearing the field).
+- Search Shell: the search region shows focus with an accent edge, themed by
+  `--ui-search-shell-focus-color` (default `--ui-control-focus`).
+- Button: `align="start"` lays content out from the start edge with start-aligned text (option
+  rows such as a create chooser), and `stretch` fills the container's inline size.
+- Popover: an anchor toggle dispatches one `open` or `close` with its real trigger. It had
+  reported opens as `programmatic` and dispatched each anchor close twice.
+- Dialog: the header close button is a touch target (`--ui-control-min-block-size`) on coarse
+  pointers and once touch input is used.
+
 ## v0.5.1 Candidate
 
 - Button: a ghost button reads `--ui-button-ghost-text`, not `--ui-button-text`, so theming the
