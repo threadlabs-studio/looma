@@ -6,6 +6,8 @@
   field (the browser otherwise spends that Escape clearing the field).
 - Search Shell: the search region shows focus with an accent edge, themed by
   `--ui-search-shell-focus-color` (default `--ui-control-focus`).
+- Button: `align="start"` lays content out from the start edge with start-aligned text (option
+  rows such as a create chooser), and `stretch` fills the container's inline size.
 - Dialog: the header close button is a touch target (`--ui-control-min-block-size`) on coarse
   pointers and once touch input is used.
 
