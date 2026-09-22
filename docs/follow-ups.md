@@ -5,6 +5,21 @@ defects found by the 0.3 audit are recorded in the docs site's
 [Component Option Audit](../apps/docs/docs/component-library-audit.md); this list points into it
 rather than repeating it.
 
+## Current goal (set 2026-09-22)
+
+Knit running on a clean Looma whose components follow the proposal's styling model
+(nextwebwg.org/html-next/styling) and whose Vue output contains no HTML Next.
+
+1. **HTML Next runtime.** Root-only `data-component`; `:host`, `:host-state()`, and deep `:slotted()`
+   compiled without a CSS parser in the browser (a real parser in build tools); `<?carrier?>`;
+   framework adoption removed; `status`/`summary` optional; tests hardened across engines; published.
+2. **Vue converter.** Generated `.vue` imports only Vue and the component's own modules; generated
+   controller host; `<style scoped>`; tested against Looma's components; published.
+3. **Looma cleanup and release.** The cleanup list below, adapters from the published converter, one
+   package, released.
+4. **Knit.** Migrate with the Knit session: custom-properties-only theme, 0.2 wrappers unwrapped,
+   tests and pages verified.
+
 ## Cleanup (in progress)
 
 1. **Organize the repository.** One package (`packages/looma`); each component is one folder with
