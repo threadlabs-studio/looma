@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Tree Item: the label spans the row height and centres its content, and
+  `--ui-tree-label-padding-block` / `--ui-tree-label-padding-inline` set its padding, so slotted
+  label content such as a link can fill the row as its hit area.
+
 - Search Shell: a dismissible shell closes on the first Escape, including from inside its search
   field (the browser otherwise spends that Escape clearing the field).
 - Search Shell: the search region shows focus with an accent edge, themed by
