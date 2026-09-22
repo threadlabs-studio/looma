@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Search Shell: a dismissible shell closes on the first Escape, including from inside its search
+  field (the browser otherwise spends that Escape clearing the field).
+
 ## v0.5.1 Candidate
 
 - Button: a ghost button reads `--ui-button-ghost-text`, not `--ui-button-text`, so theming the
