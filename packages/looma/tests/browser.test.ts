@@ -151,6 +151,31 @@ describe("Button layout", () => {
   });
 });
 
+describe("Icon Button", () => {
+  it("grows its hit area, not its size, once touch is used", async () => {
+    const path = await bundle("vue-icon-button-touch", `
+      import { createApp, h } from "vue";
+      import { IconButton, trackInputModality } from "@threadlabs/looma/vue";
+      trackInputModality(document);
+      createApp({
+        render: () => h("div", { style: "padding: 40px" }, [h(IconButton, { id: "menu", size: "sm", label: "Options" }, () => "…")]),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const probe = () => page.evaluate(() => {
+      const button = document.querySelector("#menu") as HTMLElement;
+      const bounds = button.getBoundingClientRect();
+      const outside = document.elementFromPoint(bounds.right + 6, bounds.top + bounds.height / 2);
+      return { width: button.offsetWidth, height: button.offsetHeight, hitOutside: outside === button };
+    });
+    const before = await probe();
+    assert.equal(before.hitOutside, false);
+    await page.evaluate(() => document.dispatchEvent(new PointerEvent("pointerdown", { pointerType: "touch" })));
+    assert.deepEqual(await probe(), { width: before.width, height: before.height, hitOutside: true });
+    await page.close();
+  });
+});
+
 describe("Tree", () => {
   it("lets a slotted label link fill the row through the label padding tokens", async () => {
     const path = await bundle("vue-tree-label", `
