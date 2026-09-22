@@ -1,9 +1,7 @@
-import { icon } from "../shared/editor.js";
-
 function fallbackBoundaries(segments, length) {
   return Array.from({ length: segments + 1 }, (_, index) => (index * length) / segments);
 }
-function createProximity(scope, selector = ".ui-editor-table-overlay__handle[data-ui-affordance]", radius = 16) {
+function createProximity(scope, selector = ".handle[data-ui-affordance]", radius = 16) {
   const owner = scope.ownerDocument.defaultView; const pointerTarget = scope.ownerDocument;
   let anchors = []; let frame = null; let point = null; let dirty = false;
   const distance = (position, rect) => Math.hypot(
@@ -52,54 +50,70 @@ function createProximity(scope, selector = ".ui-editor-table-overlay__handle[dat
 }
 
 export default function controller(host) {
-  const element = host.element; let activeControlKey = null;
+  const element = host.element;
   const proximity = createProximity(element);
   const boundaries = (axis) => {
-    const geometry = host.state.geometry;
-    const values = geometry?.[axis === "row" ? "rowBoundaries" : "columnBoundaries"];
+    const values = host.state.geometry?.[axis === "row" ? "rowBoundaries" : "columnBoundaries"];
     if (Array.isArray(values) && values.length >= 2 && values.every(Number.isFinite)) return values;
     const rect = element.getBoundingClientRect();
     return fallbackBoundaries(3, axis === "row" ? rect.height : rect.width);
   };
-  const insertion = (axis, index, position) => {
-    const first = index === 0; const noun = axis === "row" ? "row" : "column";
-    const action = axis === "row" ? (first ? "add-row-before" : "add-row-after") : (first ? "add-column-before" : "add-column-after");
+  const controls = (axis) => boundaries(axis).map((position, index) => {
+    const first = index === 0;
+    const noun = axis === "row" ? "row" : "column";
     const relation = first ? (axis === "row" ? "above" : "left") : (axis === "row" ? "below" : "right");
-    const label = `Insert ${noun} ${relation}`; const key = `${axis}:${index}`;
-    return `<div class="ui-editor-table-overlay__control ui-editor-table-overlay__control--${axis}" style="${axis === "row" ? "top" : "left"}:${position}px" data-control-key="${key}" data-active="${activeControlKey === key}"><span class="ui-editor-table-overlay__line" aria-hidden="true"></span><span class="ui-editor-table-overlay__guide" data-ui-guide aria-hidden="true"></span><button type="button" class="ui-editor-table-overlay__handle" data-ui-affordance="insert-${noun}" data-action="${action}" data-boundary-index="${index}" aria-label="${label}">${icon("plus")}<span class="ui-editor-table-overlay__tooltip" role="tooltip">${label}</span></button></div>`;
-  };
-  const selectors = (cell) => {
-    const indexes = `data-row-index="${cell.rowIndex}" data-column-index="${cell.columnIndex}"`;
-    return `<button type="button" class="ui-editor-table-overlay__selector ui-editor-table-overlay__selector--row" style="top:${cell.top + cell.height / 2}px" data-action="select-row" ${indexes} title="Select row" aria-label="Select row">${icon("grip-vertical")}</button><button type="button" class="ui-editor-table-overlay__selector ui-editor-table-overlay__selector--column" style="left:${cell.left + cell.width / 2}px" data-action="select-column" ${indexes} title="Select column" aria-label="Select column">${icon("grip-horizontal")}</button>`;
-  };
-  const menu = (cell) => `<button type="button" class="ui-editor-table-overlay__cell-menu" style="left:${cell.left + cell.width - 30}px;top:${cell.top + 6}px" data-action="open-cell-menu" data-row-index="${cell.rowIndex}" data-column-index="${cell.columnIndex}" title="Cell actions" aria-label="Cell actions">${icon("chevron-down")}</button>`;
-  const render = () => {
-    element.hidden = !host.state.open; if (!host.state.open) { activeControlKey = null; return; }
-    const rowBoundaries = boundaries("row"); const columnBoundaries = boundaries("column");
-    const geometry = host.state.geometry;
-    const active = geometry?.activeCell ?? null;
-    const hovered = geometry?.hoveredCell ?? null;
-    element.innerHTML = `<div class="ui-editor-table-overlay" aria-label="Table controls"><div class="ui-editor-table-overlay__rows">${rowBoundaries.map((position, index) => insertion("row", index, position)).join("")}</div><div class="ui-editor-table-overlay__cols">${columnBoundaries.map((position, index) => insertion("col", index, position)).join("")}</div>${hovered ? selectors(hovered) : ""}${active ? menu(active) : ""}</div>`;
-    proximity.refresh();
-  };
-  const setActive = (key) => {
-    if (activeControlKey === key) return; activeControlKey = key;
-    for (const control of element.querySelectorAll("[data-control-key]")) control.dataset.active = String(control.dataset.controlKey === key);
-  };
+    return {
+      key: `${axis}:${index}`,
+      index,
+      offset: `${position}px`,
+      affordance: `insert-${noun}`,
+      action: `add-${noun}-${first ? "before" : "after"}`,
+      label: `Insert ${noun} ${relation}`,
+    };
+  });
+  const stop = host.effect(() => {
+    if (!host.state.open) {
+      host.state.activeKey = "";
+      return;
+    }
+    host.state.rows = controls("row");
+    host.state.cols = controls("col");
+    const hovered = host.state.geometry?.hoveredCell ?? null;
+    host.state.hovered = hovered && {
+      ...hovered,
+      rowOffset: `${hovered.top + hovered.height / 2}px`,
+      columnOffset: `${hovered.left + hovered.width / 2}px`,
+    };
+    const active = host.state.geometry?.activeCell ?? null;
+    host.state.active = active && { ...active, menuLeft: `${active.left + active.width - 30}px`, menuTop: `${active.top + 6}px` };
+    queueMicrotask(proximity.refresh);
+  });
   const onClick = (event) => {
-    const button = event.target.closest?.("button[data-action]"); if (!button) return;
+    const button = event.target.closest?.("button[data-action]");
+    if (!button) return;
     const action = button.dataset.action;
-    if (action === "select-row" || action === "select-column") {
-      host.dispatch("action", { action, rowIndex: Number(button.dataset.rowIndex), columnIndex: Number(button.dataset.columnIndex) }); return;
-    }
-    if (action === "open-cell-menu") {
-      const rect = button.getBoundingClientRect(); host.dispatch("action", { action, rowIndex: Number(button.dataset.rowIndex), columnIndex: Number(button.dataset.columnIndex), anchor: { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom } }); return;
-    }
-    host.dispatch("action", { action, boundaryIndex: Number(button.dataset.boundaryIndex) });
+    const cell = { rowIndex: Number(button.dataset.rowIndex), columnIndex: Number(button.dataset.columnIndex) };
+    if (action === "select-row" || action === "select-column") host.dispatch("action", { action, ...cell });
+    else if (action === "open-cell-menu") {
+      const rect = button.getBoundingClientRect();
+      host.dispatch("action", { action, ...cell, anchor: { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom } });
+    } else host.dispatch("action", { action, boundaryIndex: Number(button.dataset.boundaryIndex) });
   };
-  const enter = (event) => setActive(event.target.closest?.("[data-control-key]")?.dataset.controlKey ?? null);
-  const leave = (event) => setActive(event.relatedTarget instanceof Element ? event.relatedTarget.closest?.("[data-control-key]")?.dataset.controlKey ?? null : null);
-  element.addEventListener("click", onClick); element.addEventListener("pointerover", enter); element.addEventListener("pointerout", leave); element.addEventListener("focusin", enter); element.addEventListener("focusout", leave);
-  const stop = host.effect(render); render();
-  return () => { stop(); proximity.destroy(); element.removeEventListener("click", onClick); element.removeEventListener("pointerover", enter); element.removeEventListener("pointerout", leave); element.removeEventListener("focusin", enter); element.removeEventListener("focusout", leave); };
+  const keyOf = (target) => target instanceof Element ? target.closest("[data-control-key]")?.dataset.controlKey ?? "" : "";
+  const enter = (event) => { host.state.activeKey = keyOf(event.target); };
+  const leave = (event) => { host.state.activeKey = keyOf(event.relatedTarget); };
+  element.addEventListener("click", onClick);
+  element.addEventListener("pointerover", enter);
+  element.addEventListener("pointerout", leave);
+  element.addEventListener("focusin", enter);
+  element.addEventListener("focusout", leave);
+  return () => {
+    stop();
+    proximity.destroy();
+    element.removeEventListener("click", onClick);
+    element.removeEventListener("pointerover", enter);
+    element.removeEventListener("pointerout", leave);
+    element.removeEventListener("focusin", enter);
+    element.removeEventListener("focusout", leave);
+  };
 }

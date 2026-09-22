@@ -3,60 +3,69 @@ function bounded(value, fallback) {
   return Math.min(10, Math.max(1, Number.isFinite(parsed) ? parsed : fallback));
 }
 
+// Lays out the grid cells, previews the size under the pointer, and inserts the chosen size.
 export default function controller(host) {
   const element = host.element;
-  let selectedRows = 3; let selectedCols = 3; let previewRows = null; let previewCols = null;
+  let selected = { rows: 3, cols: 3 };
+  let preview = null;
+  let committed = false;
   let lastHeaderRow = Boolean(host.state.headerRow);
-  let withHeaderRow = lastHeaderRow; let selectionCommitted = false;
+  host.state.withHeaderRow = lastHeaderRow;
 
-  const updateSelection = () => {
-    const activeRows = previewRows ?? selectedRows; const activeCols = previewCols ?? selectedCols;
-    const hint = element.querySelector(".ui-editor-insert-table-grid__hint");
-    if (hint) hint.textContent = previewRows !== null && previewCols !== null
-      ? `${activeRows} × ${activeCols}`
-      : `${selectedRows} × ${selectedCols}${selectionCommitted ? " selected" : ""}`;
-    for (const cell of element.querySelectorAll("[data-row][data-col]")) {
-      const selected = Number(cell.dataset.row) <= activeRows && Number(cell.dataset.col) <= activeCols;
-      cell.classList.toggle("ui-editor-insert-table-grid__cell--selected", selected);
-      cell.setAttribute("aria-pressed", String(selected));
-    }
+  const update = () => {
+    const rows = bounded(host.state.maxRows, 8);
+    const cols = bounded(host.state.maxCols, 8);
+    const active = preview ?? selected;
+    host.state.rows = rows;
+    host.state.cols = cols;
+    host.state.hint = preview ? `${preview.rows} × ${preview.cols}` : `${selected.rows} × ${selected.cols}${committed ? " selected" : ""}`;
+    host.state.cells = Array.from({ length: rows * cols }, (_, index) => {
+      const row = Math.floor(index / cols) + 1;
+      const col = (index % cols) + 1;
+      return { key: `${row}:${col}`, row, col, label: `${row} rows by ${col} columns`, selected: row <= active.rows && col <= active.cols };
+    });
   };
-  const render = () => {
-    const configuredHeaderRow = Boolean(host.state.headerRow);
-    if (configuredHeaderRow !== lastHeaderRow) {
-      lastHeaderRow = configuredHeaderRow;
-      withHeaderRow = configuredHeaderRow;
+  const stop = host.effect(() => {
+    const headerRow = Boolean(host.state.headerRow);
+    if (headerRow !== lastHeaderRow) {
+      lastHeaderRow = headerRow;
+      host.state.withHeaderRow = headerRow;
     }
-    element.hidden = !host.state.open;
-    if (!host.state.open) return;
-    const maxRows = bounded(host.state.maxRows, 8); const maxCols = bounded(host.state.maxCols, 8);
-    const cells = [];
-    for (let row = 1; row <= maxRows; row += 1) for (let col = 1; col <= maxCols; col += 1) {
-      const selected = row <= selectedRows && col <= selectedCols;
-      cells.push(`<button type="button" data-row="${row}" data-col="${col}" aria-label="${row} rows by ${col} columns" aria-pressed="${selected}" class="ui-editor-insert-table-grid__cell${selected ? " ui-editor-insert-table-grid__cell--selected" : ""}"></button>`);
-    }
-    element.innerHTML = `<div class="ui-editor-insert-table-grid"><p class="ui-editor-insert-table-grid__hint">${selectedRows} × ${selectedCols}</p><div class="ui-editor-insert-table-grid__grid" role="group" aria-label="Table dimensions" style="--ui-editor-table-grid-rows:${maxRows};--ui-editor-table-grid-cols:${maxCols}">${cells.join("")}</div><label class="ui-editor-insert-table-grid__header"><input type="checkbox" checked> Header row</label><button type="button" data-insert-table>Insert table</button></div>`;
-    const checkbox = element.querySelector('input[type="checkbox"]');
-    if (checkbox) { checkbox.checked = withHeaderRow; checkbox.addEventListener("change", () => { withHeaderRow = checkbox.checked; }); }
-    updateSelection();
+    update();
+  });
+  const cellOf = (event) => {
+    const cell = event.target.closest?.("[data-row][data-col]");
+    return cell && { rows: Number(cell.dataset.row), cols: Number(cell.dataset.col) };
   };
   const onClick = (event) => {
-    const cell = event.target.closest?.("[data-row][data-col]");
+    const cell = cellOf(event);
     if (cell) {
-      selectedRows = Number(cell.dataset.row); selectedCols = Number(cell.dataset.col);
-      previewRows = null; previewCols = null; selectionCommitted = true; updateSelection(); return;
-    }
-    if (event.target.closest?.("[data-insert-table]")) {
-      host.dispatch("insert", { rows: selectedRows, cols: selectedCols, withHeaderRow });
+      selected = cell;
+      preview = null;
+      committed = true;
+      update();
+    } else if (host.refs.insert.contains(event.target)) {
+      host.dispatch("insert", { ...selected, withHeaderRow: host.state.withHeaderRow });
     }
   };
+  const onChange = () => { host.state.withHeaderRow = host.refs.header.checked; };
   const onMouseover = (event) => {
-    const cell = event.target.closest?.("[data-row][data-col]");
-    if (!cell) { previewRows = null; previewCols = null; updateSelection(); return; }
-    previewRows = Number(cell.dataset.row); previewCols = Number(cell.dataset.col); updateSelection();
+    preview = cellOf(event);
+    update();
   };
-  const onMouseleave = () => { previewRows = null; previewCols = null; updateSelection(); };
-  element.addEventListener("click", onClick); element.addEventListener("mouseover", onMouseover); element.addEventListener("mouseleave", onMouseleave);
-  const stop = host.effect(render); render();
-  return () => { stop(); element.removeEventListener("click", onClick); element.removeEventListener("mouseover", onMouseover); element.removeEventListener("mouseleave", onMouseleave); };
+  const onMouseleave = () => {
+    preview = null;
+    update();
+  };
+  element.addEventListener("click", onClick);
+  element.addEventListener("mouseover", onMouseover);
+  element.addEventListener("mouseleave", onMouseleave);
+  host.refs.header.addEventListener("change", onChange);
+  return () => {
+    stop();
+    element.removeEventListener("click", onClick);
+    element.removeEventListener("mouseover", onMouseover);
+    element.removeEventListener("mouseleave", onMouseleave);
+    host.refs.header.removeEventListener("change", onChange);
+  };
 }

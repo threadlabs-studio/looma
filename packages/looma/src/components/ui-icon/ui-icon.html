@@ -1,0 +1,29 @@
+<template component="ui-icon" controller="./ui-icon.js">
+  <defs>
+    <prop name="name" type="string" default="">The icon's name.</prop>
+    <state name="shapes" :value="[]"></state>
+  </defs>
+  <span aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false">
+      <g $each="shape of shapes">
+        <path $if="shape.tag = 'path'" :d="shape.d"></path>
+        <circle $if="shape.tag = 'circle'" :cx="shape.cx" :cy="shape.cy" :r="shape.r"></circle>
+        <rect $if="shape.tag = 'rect'" :x="shape.x" :y="shape.y" :width="shape.width" :height="shape.height" :rx="shape.rx"></rect>
+      </g>
+    </svg>
+  </span>
+  <style>
+:host {
+  display: inline-flex;
+  flex: none;
+  inline-size: var(--ui-icon-size, 1em);
+  block-size: var(--ui-icon-size, 1em);
+}
+
+svg {
+  inline-size: 100%;
+  block-size: 100%;
+  stroke-width: var(--ui-icon-stroke-width, 2);
+}
+  </style>
+</template>
