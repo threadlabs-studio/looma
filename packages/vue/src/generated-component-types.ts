@@ -146,6 +146,10 @@ export interface InputProps extends AdapterBaseProps {
   "readonly"?: boolean | undefined;
   "required"?: boolean | undefined;
   "value"?: string | undefined;
+  "modelValue"?: string | undefined;
+  "onUpdate:modelValue"?: ((value: string) => void) | undefined;
+  "onInput"?: ((event: Event) => void) | undefined;
+  "onChange"?: ((event: Event) => void) | undefined;
 }
 
 export interface SelectProps extends AdapterBaseProps {
@@ -154,6 +158,10 @@ export interface SelectProps extends AdapterBaseProps {
   "multiple"?: boolean | undefined;
   "required"?: boolean | undefined;
   "value"?: string | undefined;
+  "modelValue"?: string | undefined;
+  "onUpdate:modelValue"?: ((value: string) => void) | undefined;
+  "onInput"?: ((event: Event) => void) | undefined;
+  "onChange"?: ((event: Event) => void) | undefined;
 }
 
 export interface TextareaProps extends AdapterBaseProps {
@@ -163,6 +171,10 @@ export interface TextareaProps extends AdapterBaseProps {
   "required"?: boolean | undefined;
   "rows"?: number | undefined;
   "value"?: string | undefined;
+  "modelValue"?: string | undefined;
+  "onUpdate:modelValue"?: ((value: string) => void) | undefined;
+  "onInput"?: ((event: Event) => void) | undefined;
+  "onChange"?: ((event: Event) => void) | undefined;
 }
 
 export interface FormFieldProps extends AdapterBaseProps {

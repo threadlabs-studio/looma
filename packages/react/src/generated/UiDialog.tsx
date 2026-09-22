@@ -44,9 +44,7 @@ export function UiDialog(props: UiDialogProps) {
     <dialog {...nativeProps} data-component="ui-dialog" data-component-root="ui-dialog" aria-label={undefined} ref={setRoot}>
       <header className="dialog__header" data-component="ui-dialog">
       <h2 className="dialog__title" data-component="ui-dialog">
-        <template data-component="ui-dialog">
-          {prop2}
-        </template>
+        {prop2}
       </h2>
 <button className="dialog__close" type="button" aria-label="Close" data-component="ui-dialog"></button>
     </header>

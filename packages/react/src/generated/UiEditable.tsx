@@ -62,14 +62,10 @@ export function UiEditable(props: UiEditableProps) {
       <div className="editable__field" data-component="ui-editable">
       <button className="editable__preview" type="button" data-component="ui-editable">
         <span className="editable__text" data-component="ui-editable">
-          <template data-component="ui-editable">
-            {undefined}
-          </template>
+          {undefined}
         </span>
 <span className="editable__hint" aria-hidden="true" data-component="ui-editable">
-          <template data-component="ui-editable">
-            {prop3}
-          </template>
+          {prop3}
         </span>
       </button>
 <input className="editable__input" type="text" value={undefined} data-component="ui-editable" />

@@ -1,12 +1,13 @@
 import { defineComponent as _defineComponent } from 'vue'
-import { toDisplayString as _toDisplayString, createTextVNode as _createTextVNode, createElementVNode as _createElementVNode, renderSlot as _renderSlot, mergeProps as _mergeProps, openBlock as _openBlock, createElementBlock as _createElementBlock } from "vue"
+import { toDisplayString as _toDisplayString, createElementVNode as _createElementVNode, renderSlot as _renderSlot, mergeProps as _mergeProps, openBlock as _openBlock, createElementBlock as _createElementBlock } from "vue"
 
 const _hoisted_1 = ["disabled"]
-const _hoisted_2 = {
+const _hoisted_2 = { "data-component": "ui-disclosure" }
+const _hoisted_3 = {
   class: "disclosure__panel",
   "data-component": "ui-disclosure"
 }
-const _hoisted_3 = {
+const _hoisted_4 = {
   class: "disclosure__panel-inner",
   "data-component": "ui-disclosure"
 }
@@ -77,20 +78,16 @@ return (_ctx: any,_cache: any) => {
       "aria-controls": undefined,
       disabled: props.disabled,
       "data-component": "ui-disclosure"
-    }, [...(_cache[0] || (_cache[0] = [
-      _createElementVNode("span", { "data-component": "ui-disclosure" }, [
-        _createElementVNode("template", { "data-component": "ui-disclosure" }, [
-          _createTextVNode(_toDisplayString(undefined))
-        ])
-      ], -1 /* CACHED */),
-      _createElementVNode("span", {
+    }, [
+      _createElementVNode("span", _hoisted_2, _toDisplayString(props.summary), 1 /* TEXT */),
+      _cache[0] || (_cache[0] = _createElementVNode("span", {
         class: "disclosure__chevron",
         "aria-hidden": "true",
         "data-component": "ui-disclosure"
-      }, null, -1 /* CACHED */)
-    ]))], 8 /* PROPS */, _hoisted_1),
-    _createElementVNode("div", _hoisted_2, [
-      _createElementVNode("div", _hoisted_3, [
+      }, null, -1 /* CACHED */))
+    ], 8 /* PROPS */, _hoisted_1),
+    _createElementVNode("div", _hoisted_3, [
+      _createElementVNode("div", _hoisted_4, [
         _renderSlot(_ctx.$slots, "default")
       ])
     ])
