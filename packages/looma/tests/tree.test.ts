@@ -230,9 +230,8 @@ describe("Tree drag and drop", () => {
     await page.close();
   });
 
-  // Bug: the drop-feedback rules use a descendant combinator (`[data-drop-position="inside"] .row`), so
-  // an expanded container's nested rows are highlighted too, not just the target row.
-  it.fails("highlights only the target row, not the rows nested inside it", async () => {
+  // Drop feedback belongs to the target row alone, not the rows nested inside an expanded container.
+  it("highlights only the target row, not the rows nested inside it", async () => {
     const page = await open({ items: files });
     const idle = await rowStyle(page, "guide");
     await startDrag(page, "Readme");
@@ -244,8 +243,8 @@ describe("Tree drag and drop", () => {
   });
 
   // Bug: likewise `[data-drop-position="before"] .row-drop-indicator` shows the indicator of every row
-  // nested in an expanded container, so a drop before it draws a line above each child as well.
-  it.fails("shows a single insertion indicator before an expanded container", async () => {
+  // The insertion indicator before an expanded container is its own, not one per nested row.
+  it("shows a single insertion indicator before an expanded container", async () => {
     const page = await open({ items: files });
     await startDrag(page, "Readme");
     await dragOver(page, "docs", 0.1);

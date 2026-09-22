@@ -120,7 +120,8 @@
       box-shadow: 0 0 0 2px var(--ui-focus-ring);
     }
 
-    :host[data-drop-position="inside"] .row {
+    /* Child combinators: drop feedback belongs to this item's own row, not the rows nested in it. */
+    :host[data-drop-position="inside"] > .row {
       background: var(--ui-accent-subtle);
       box-shadow: inset 0 0 0 1px var(--ui-tree-drop-color, var(--ui-accent-solid));
     }
@@ -249,7 +250,7 @@
     .row:hover .drag-handle,
     .drag-handle:hover,
     .drag-handle:focus-visible,
-    :host[data-dragging] .drag-handle {
+    :host[data-dragging] > .row > .drag-handle {
       opacity: 1;
     }
 
@@ -288,12 +289,12 @@
       inset-inline-end: -1px;
     }
 
-    :host[data-drop-position="before"] .row-drop-indicator {
+    :host[data-drop-position="before"] > .row > .row-drop-indicator {
       display: block;
       inset-block-start: -1px;
     }
 
-    :host[data-drop-position="after"] .subtree-drop-indicator {
+    :host[data-drop-position="after"] > .subtree-drop-indicator {
       display: block;
       inset-block-end: -1px;
     }
