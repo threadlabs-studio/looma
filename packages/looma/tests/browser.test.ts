@@ -126,6 +126,32 @@ describe("Vue components", () => {
   });
 });
 
+describe("Overlays", () => {
+  it("close a dismissible search shell on the first Escape, even from its search field", async () => {
+    const path = await bundle("vue-search-shell", `
+      import { createApp, h, ref } from "vue";
+      import { SearchShell } from "@threadlabs/looma/vue";
+      const open = ref(true);
+      const closes = [];
+      window.closes = closes;
+      createApp({
+        render: () => h(SearchShell, {
+          id: "search", open: open.value, modal: true, dismissible: true, label: "Search",
+          onClose: (detail) => { closes.push(detail); open.value = false; },
+        }, { search: () => h("input", { id: "query", type: "search", "aria-label": "Search" }) }),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await page.locator("#query").fill("wel");
+    await page.keyboard.press("Escape");
+    assert.deepEqual(await page.evaluate(() => (window as unknown as { closes: unknown[] }).closes), [
+      { open: false, reason: "escape", trigger: "keyboard" },
+    ]);
+    assert.equal(await page.locator("#search dialog").evaluate((dialog) => (dialog as HTMLDialogElement).open), false);
+    await page.close();
+  });
+});
+
 describe("Vue editor components", () => {
   it("render menus, toolbars, and grids from their templates", async () => {
     const path = await bundle("vue-editor", `
