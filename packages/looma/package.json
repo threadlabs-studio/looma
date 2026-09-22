@@ -40,6 +40,11 @@
       "import": "./editor/index.js",
       "default": "./editor/index.js"
     },
+    "./editor/ui": {
+      "types": "./editor/ui.d.ts",
+      "import": "./editor/ui.js",
+      "default": "./editor/ui.js"
+    },
     "./editor/extensions": {
       "types": "./editor/extensions/index.d.ts",
       "import": "./editor/extensions/index.js",

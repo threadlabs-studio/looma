@@ -108,12 +108,13 @@ async function verifyVueOnlyConsumer(directory, tarball, facadeManifest) {
   await writeFile(
     path.join(directory, "index.mjs"),
     `import { Button, TopBar } from "@threadlabs/looma/vue";\n` +
-      `if (!Button || !TopBar) process.exit(1);\n`,
+      `const ui = await import("@threadlabs/looma/editor/ui");\n` +
+      `if (!Button || !TopBar || typeof ui.measureTableOverlayGeometry !== "function") process.exit(1);\n`,
   );
   await writeFile(
     path.join(directory, "index.ts"),
     `import { Button, TopBar } from "@threadlabs/looma/vue";\n` +
-      `import type { InsertTableEventDetail } from "@threadlabs/looma/editor";\n` +
+      `import type { InsertTableEventDetail } from "@threadlabs/looma/editor/ui";\n` +
       `const detail: InsertTableEventDetail = { rows: 2, cols: 3, withHeaderRow: true };\n` +
       `void Button;\nvoid TopBar;\nvoid detail;\n`,
   );

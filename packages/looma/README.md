@@ -25,6 +25,9 @@ import { LoomaEditor } from "@threadlabs/looma/vue/editor";
 import { getDefaultEditorExtensions } from "@threadlabs/looma/editor/extensions";
 ```
 
+The editor components' event and geometry types, without Tiptap, are in
+`@threadlabs/looma/editor/ui`.
+
 ## HTML
 
 ```html
