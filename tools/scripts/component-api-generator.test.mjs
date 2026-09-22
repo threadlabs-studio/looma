@@ -16,9 +16,7 @@ const completeFixture = {
   metadataTags: ["ui-button"],
   documentationTags: ["ui-button"],
   navigationTags: ["ui-button"],
-  adapterTags: ["ui-button"],
-  requiredContractReadmeTags: ["ui-button"],
-  contractReadmeTags: ["ui-button"]
+  adapterTags: ["ui-button"]
 };
 
 test("rejects a source tag that has not been classified", () => {
@@ -183,7 +181,7 @@ test("generates public API metadata from declarative contracts", async () => {
   assert.ok(combobox.properties.every((property) => !("channel" in property)));
   assert.ok(!("className" in combobox));
   assert.deepEqual(button.designTokens.sources, [
-    "packages/core/src/declarative/components/ui-button.html",
+    "packages/looma/src/components/ui-button/ui-button.html",
   ]);
   assert.deepEqual(
     button.designTokens.component.find(({ name }) => name === "--ui-button-radius"),

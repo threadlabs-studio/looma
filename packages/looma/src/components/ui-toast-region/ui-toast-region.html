@@ -1,0 +1,127 @@
+<link rel="component" href="../ui-icon-button/ui-icon-button.html">
+<template component="ui-toast-region" controller="./ui-toast-region.js">
+  <defs>
+    <prop name="open" type="boolean" default="false">Whether the messages authored inside the region are visible.</prop>
+    <prop name="message" type="string" default="Notification">Fallback message used by the declarative show command.</prop>
+    <prop name="auto" type="boolean" default="false"
+    >Dismiss each message automatically after its duration. Timers pause while the pointer or focus is on a message.</prop>
+    <prop name="duration" type="number" default="5000">Milliseconds an automatically dismissed message stays visible.</prop>
+    <state name="internalOpen" :value="false"></state>
+    <state name="toasts" :value="[]"></state>
+    <event
+      name="close"
+      type="object({ open: boolean, reason: action | timeout | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"
+    ></event>
+    <event name="dismiss" type="object({ id: string, reason: action | timeout, trigger: keyboard | pointer | programmatic })"></event>
+    <method name="show" export="show" returns="promise(string)"></method>
+  </defs>
+  <div role="region" aria-label="Notifications" aria-live="polite" popover="manual">
+    <slot></slot>
+    <div $each="toast of toasts" $key="toast.id" class="toast" class:closing="toast.closing" :id="toast.id" :role="toast.role">
+      <span class="message" $value="toast.message"></span>
+      <span class="dismiss" :data-toast="toast.id">
+        <ui-icon-button size="sm" variant="ghost" :round="true" :label="format('Dismiss %s', toast.message)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M18 6 6 18M6 6l12 12"></path>
+          </svg>
+        </ui-icon-button>
+      </span>
+    </div>
+  </div>
+  <style>
+    :host {
+      position: fixed;
+      top: calc(var(--ui-space-4) + env(safe-area-inset-top));
+      right: auto;
+      bottom: auto;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      display: grid;
+      gap: var(--ui-space-2);
+      inline-size: min(24rem, calc(100vw - var(--ui-space-4) * 2));
+      max-inline-size: 100%;
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      overflow: visible;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      box-shadow: none;
+      pointer-events: none;
+    }
+
+    :host:not(:popover-open) {
+      display: none;
+    }
+
+    :host > .toast,
+    :host > :slotted(*) {
+      pointer-events: auto;
+    }
+
+    .toast {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: var(--ui-space-2);
+      align-items: start;
+      border: 1px solid var(--ui-border-default);
+      border-radius: var(--ui-radius-3);
+      padding: var(--ui-space-3) var(--ui-space-4);
+      background: var(--ui-surface-elevated);
+      color: var(--ui-text-primary);
+      box-shadow: var(--ui-elevation-overlay, var(--ui-shadow-lg));
+      animation: ui-toast-enter var(--ui-toast-enter-duration, 0.32s) var(--ui-motion-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) both;
+    }
+
+    /* Leaving slides on down and fades; the controller removes the toast when this ends. */
+    .toast.closing {
+      animation: ui-toast-exit var(--ui-toast-exit-duration, 0.22s) var(--ui-motion-ease, ease) both;
+      pointer-events: none;
+    }
+
+    @keyframes ui-toast-enter {
+      from {
+        opacity: 0;
+        transform: translateY(-1rem);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes ui-toast-exit {
+      from {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      to {
+        opacity: 0;
+        transform: translateY(0.75rem);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .toast, .toast.closing {
+        animation: none;
+      }
+    }
+
+    .message {
+      min-inline-size: 0;
+      align-self: center;
+    }
+
+    .dismiss {
+      align-self: center;
+      margin-inline-end: calc(var(--ui-space-2) * -1);
+    }
+
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
+</template>

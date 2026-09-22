@@ -1,0 +1,23 @@
+<!--
+title: App shell
+description: The sidebar is the panel only; the page places it beside its main content. The button toggles it with commandfor and command="--toggle": docked it collapses, and below the breakpoint (48rem by default) it opens as a drawer.
+-->
+<div class="demo-app-shell">
+  <ui-sidebar id="sidebar-nav" aria-label="Workspace">
+    <nav class="demo-app-nav">
+      <strong>Workspace</strong>
+      <a href="#inbox">Inbox</a>
+      <a href="#projects">Projects</a>
+      <a href="#settings">Settings</a>
+    </nav>
+  </ui-sidebar>
+  <main class="demo-app-main">
+    <ui-icon-button commandfor="sidebar-nav" command="--toggle" label="Toggle sidebar">
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect width="18" height="18" x="3" y="3" rx="2" />
+        <path d="M9 3v18" />
+      </svg>
+    </ui-icon-button>
+    <p>Main content sits beside the sidebar and fills the remaining space.</p>
+  </main>
+</div>

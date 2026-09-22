@@ -1,8 +1,8 @@
 {
   "name": "@threadlabs/looma",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "type": "module",
-  "description": "Looma declarative components, responsive layout primitives, a complete editor, and supported Vue adapters.",
+  "description": "Looma components as HTML, Vue, and plain DOM, with design tokens.",
   "license": "MIT",
   "author": "Threadlabs Studio",
   "repository": {
@@ -18,42 +18,27 @@
     "access": "public",
     "provenance": true
   },
-  "main": "dist/index.cjs",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "default": "./dist/index.js"
     },
-    "./core": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+    "./vue": {
+      "types": "./vue/index.d.ts",
+      "import": "./vue/index.js",
+      "default": "./vue/index.js"
     },
-    "./loader": {
-      "types": "./dist/loader.d.ts",
-      "import": "./dist/loader.js"
-    },
-    "./core/declarative": {
-      "types": "./dist/declarative.d.ts",
-      "import": "./dist/declarative.js",
-      "require": "./dist/declarative.cjs"
-    },
-    "./core/declarative-generated": {
-      "types": "./dist/declarative-generated.d.ts",
-      "import": "./dist/declarative-generated.js",
-      "require": "./dist/declarative-generated.cjs"
-    },
-    "./layout": {
-      "types": "./layout/index.d.ts",
-      "import": "./layout/index.js",
-      "require": "./layout/index.cjs"
+    "./vue.css": "./vue/components.css",
+    "./vue/editor": {
+      "types": "./vue/editor/index.d.ts",
+      "import": "./vue/editor/index.js",
+      "default": "./vue/editor/index.js"
     },
     "./editor": {
       "types": "./editor/index.d.ts",
-      "import": "./editor/index.js"
+      "import": "./editor/index.js",
+      "default": "./editor/index.js"
     },
     "./editor/ui": {
       "types": "./editor/ui.d.ts",
@@ -62,55 +47,47 @@
     },
     "./editor/extensions": {
       "types": "./editor/extensions/index.d.ts",
-      "import": "./editor/extensions/index.js"
+      "import": "./editor/extensions/index.js",
+      "default": "./editor/extensions/index.js"
     },
-    "./vue": {
-      "types": "./vue/index.d.ts",
-      "import": "./vue/index.js"
-    },
-    "./vue/editor": {
-      "types": "./vue/editor/index.d.ts",
-      "import": "./vue/editor/index.js"
-    },
+    "./vue/*": "./vue/*",
+    "./vanilla": "./vanilla/index.js",
+    "./vanilla/*": "./vanilla/*",
+    "./components/*": "./components/*",
     "./tokens.css": "./tokens.css",
     "./theme-light.css": "./theme-light.css",
     "./theme-dark.css": "./theme-dark.css",
-    "./theme-high-contrast.css": "./theme-high-contrast.css",
-    "./layout.css": "./layout.css",
-    "./styles.css": "./styles.css",
-    "./editor.css": "./editor.css"
+    "./theme-high-contrast.css": "./theme-high-contrast.css"
   },
   "files": [
     "dist/",
-    "layout/",
-    "editor/",
     "vue/",
-    "tokens.css",
-    "theme-light.css",
-    "theme-dark.css",
-    "theme-high-contrast.css",
-    "layout.css",
-    "styles.css",
-    "editor.css",
+    "editor/",
+    "vanilla/",
+    "components/",
+    "styles/",
+    "*.css",
     "README.md",
     "LICENSE"
   ],
   "sideEffects": [
     "./dist/index.js",
-    "./layout/index.js",
-    "./editor/*.js",
-    "./vue/index.js",
-    "./vue/editor/*.js",
+    "./vanilla/*.js",
+    "./styles/*.css",
     "./*.css"
   ],
   "scripts": {
-    "build": "node ../../tools/scripts/build-facade.mjs",
-    "test": "node --test ../../tools/scripts/facade-*.test.mjs",
-    "typecheck": "node ../../tools/scripts/verify-facade.mjs --definition-only"
+    "build": "node build.mjs",
+    "lint": "vue-tsc -p tsconfig.json --noEmit",
+    "typecheck": "vue-tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:browser": "vitest run && vitest run --config vitest.browser.config.ts"
   },
   "dependencies": {
-    "lucide": "~0.554.0",
-    "lowlight": "^3.3.0"
+    "@nextwebwg/declarative-components": "^1.0.0-alpha.1",
+    "lowlight": "^3.3.0",
+    "markdown-it": "14.3.1",
+    "lucide": "~0.554.0"
   },
   "peerDependencies": {
     "@tiptap/core": ">=2 <3",
@@ -131,6 +108,53 @@
     "vue": {
       "optional": true
     }
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.9",
+    "vite": "^8.3.0",
+    "vue": "^3.5.43",
+    "vue-tsc": "^3.3.11",
+    "typescript": "~5.9.3",
+    "playwright": "~1.60.0",
+    "vitest": "^3.2.6",
+    "@tiptap/core": "^2.11.5",
+    "@tiptap/extension-blockquote": "^2.11.5",
+    "@tiptap/extension-bold": "^2.11.5",
+    "@tiptap/extension-bullet-list": "^2.11.5",
+    "@tiptap/extension-code": "^2.11.5",
+    "@tiptap/extension-code-block-lowlight": "^2.11.5",
+    "@tiptap/extension-document": "^2.11.5",
+    "@tiptap/extension-dropcursor": "^2.11.5",
+    "@tiptap/extension-gapcursor": "^2.11.5",
+    "@tiptap/extension-hard-break": "^2.11.5",
+    "@tiptap/extension-heading": "^2.11.5",
+    "@tiptap/extension-highlight": "^2.11.5",
+    "@tiptap/extension-history": "^2.11.5",
+    "@tiptap/extension-horizontal-rule": "^2.11.5",
+    "@tiptap/extension-image": "^2.11.5",
+    "@tiptap/extension-italic": "^2.11.5",
+    "@tiptap/extension-link": "^2.11.5",
+    "@tiptap/extension-list-item": "^2.11.5",
+    "@tiptap/extension-mention": "^2.11.5",
+    "@tiptap/extension-ordered-list": "^2.11.5",
+    "@tiptap/extension-paragraph": "^2.11.5",
+    "@tiptap/extension-placeholder": "^2.11.5",
+    "@tiptap/extension-strike": "^2.11.5",
+    "@tiptap/extension-table": "^2.11.5",
+    "@tiptap/extension-table-cell": "^2.11.5",
+    "@tiptap/extension-table-header": "^2.11.5",
+    "@tiptap/extension-table-row": "^2.11.5",
+    "@tiptap/extension-task-item": "^2.11.5",
+    "@tiptap/extension-task-list": "^2.11.5",
+    "@tiptap/extension-text": "^2.11.5",
+    "@tiptap/extension-typography": "^2.11.5",
+    "@tiptap/extension-underline": "^2.11.5",
+    "@tiptap/pm": "^2.11.5",
+    "@tiptap/suggestion": "^2.11.5",
+    "@tiptap/vue-3": "^2.11.5",
+    "@types/markdown-it": "14.2.0",
+    "@vitest/browser": "~3.2.6",
+    "jsdom": "^27.0.0"
   },
   "engines": {
     "node": ">=20"

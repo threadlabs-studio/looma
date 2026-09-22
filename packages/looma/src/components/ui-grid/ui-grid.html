@@ -1,0 +1,46 @@
+<template component="ui-grid">
+  <defs>
+    <prop name="gap" type="xs | s | m | l | xl">gap token.</prop>
+    <prop name="min" type="sm | md | lg">min token.</prop>
+  </defs>
+  <div><slot></slot></div>
+  <style>
+    :host {
+      --_grid-gap: var(--ui-space-4, 1rem);
+      --_grid-min: 12rem;
+      display: grid;
+      gap: var(--ui-grid-gap, var(--_grid-gap));
+      grid-template-columns: repeat(auto-fit, minmax(min(var(--ui-grid-min, var(--_grid-min)), 100%), 1fr));
+      min-inline-size: 0;
+      max-inline-size: 100%;
+      margin: 0;
+    }
+
+    :host-state([gap="xs"]) {
+      --_grid-gap: var(--ui-space-2, 0.5rem);
+    }
+    :host-state([gap="s"]) {
+      --_grid-gap: var(--ui-space-3, 0.75rem);
+    }
+    :host-state([gap="m"]) {
+      --_grid-gap: var(--ui-space-4, 1rem);
+    }
+    :host-state([gap="l"]) {
+      --_grid-gap: var(--ui-space-5, 1.5rem);
+    }
+    :host-state([gap="xl"]) {
+      --_grid-gap: var(--ui-space-6, 2rem);
+    }
+    :host-state([min="md"]) {
+      --_grid-min: 16rem;
+    }
+    :host-state([min="lg"]) {
+      --_grid-min: 20rem;
+    }
+
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
+</template>

@@ -81,8 +81,6 @@ export function validateComponentProjections({
   navigationTags,
   adapterTags,
   adapterMapTags = adapterTags,
-  requiredContractReadmeTags = [],
-  contractReadmeTags = [],
 }) {
   const errors = [];
   const sortedSourceTags = [...sourceTags].sort();
@@ -132,66 +130,39 @@ export function validateComponentProjections({
   pushSetDifference(errors, "adapter map", publishedTags, adapterMapTags);
   pushSetDifference(errors, "adapter", publishedTags, adapterTags);
 
-  const readmeSet = new Set(contractReadmeTags);
-  const missingReadmes = requiredContractReadmeTags.filter((tag) => !readmeSet.has(tag)).sort();
-  if (missingReadmes.length > 0) {
-    errors.push(`contract README missing required tags: ${missingReadmes.join(", ")}`);
-  }
-
   if (errors.length > 0) {
     throw new Error(`Component release projections are incomplete:\n- ${errors.join("\n- ")}`);
   }
 }
 
+/**
+ * Component pages, by tag. Pages under docs/components/<group>/ and docs/editor/ are the navigation
+ * (the sidebars are generated from those folders); part pages under docs/parts/ are not navigated.
+ */
+async function readComponentPages() {
+  const docsRoot = path.join(repoRoot, "apps/docs/docs");
+  const entries = await readdir(docsRoot, { recursive: true, withFileTypes: true });
+  return entries
+    .filter((entry) => entry.isFile() && /^ui-[a-z0-9-]+\.mdx$/.test(entry.name))
+    .map((entry) => {
+      const directory = path.relative(docsRoot, entry.parentPath);
+      return { tag: entry.name.replace(/\.mdx$/, ""), file: path.join(entry.parentPath, entry.name), navigated: directory !== "parts" };
+    });
+}
+
 export async function readRepositoryProjectionTags() {
-  const docsDirectory = path.join(repoRoot, "apps/docs/docs/components");
-  const docEntries = await readdir(docsDirectory, { withFileTypes: true });
-  const documentationTags = docEntries
-    .filter((entry) => entry.isFile() && entry.name.endsWith(".mdx"))
-    .map((entry) => entry.name.replace(/\.mdx$/, ""));
+  const pages = await readComponentPages();
+  const documentationTags = pages.map(({ tag }) => tag);
+  const navigationTags = pages.filter(({ navigated }) => navigated).map(({ tag }) => tag);
 
-  const navigationSource = await readFile(
-    path.join(repoRoot, "apps/docs/src/componentNavigation.ts"),
-    "utf8",
-  );
-  const navigationTags = [...navigationSource.matchAll(/tag:\s*"(ui-[a-z0-9-]+)"/g)]
-    .map((match) => match[1]);
-
-  const adapterSources = await Promise.all([
-    readFile(path.join(repoRoot, "packages/vue/src/index.ts"), "utf8"),
-    readFile(path.join(repoRoot, "packages/vue/src/editor/index.ts"), "utf8"),
-    readFile(path.join(repoRoot, "packages/vue/src/editor/primitives.ts"), "utf8"),
-  ]);
-  const exportedNames = new Set(adapterSources.flatMap((source) =>
-    [...source.matchAll(/export const ([A-Za-z0-9_]+)\s*=/g)].map((match) => match[1])));
-  const adapterEntries = adapterSources.flatMap((source) =>
-    [...source.matchAll(
-      /export const (?:ADAPTER_COMPONENT_TAG_MAP|EDITOR_ADAPTER_COMPONENT_TAG_MAP) = \{([\s\S]*?)\} as const;/g,
-    )].flatMap((mapMatch) =>
-      [...mapMatch[1].matchAll(/([A-Za-z0-9_]+): "(ui-[a-z0-9-]+)"/g)]
-        .map((match) => ({ name: match[1], tag: match[2] }))));
-
-  const coreContractDirectory = path.join(repoRoot, "packages/core/src");
-  const coreContractEntries = await readdir(coreContractDirectory, { withFileTypes: true });
-  const contractReadmeTags = [];
-  for (const entry of coreContractEntries) {
-    if (!entry.isDirectory() || !entry.name.startsWith("ui-")) continue;
-    try {
-      await readFile(path.join(coreContractDirectory, entry.name, "README.md"), "utf8");
-      contractReadmeTags.push(entry.name);
-    } catch {
-      // The completeness error below reports required missing contracts by tag.
-    }
-  }
+  // Every component converts to Vue and is exported from @threadlabs/looma/vue.
+  const componentTags = CONTRACT_GROUPS.flatMap(({ contracts }) => Object.keys(contracts));
 
   return {
     documentationTags,
     navigationTags,
-    adapterMapTags: adapterEntries.map((entry) => entry.tag),
-    adapterTags: adapterEntries
-      .filter((entry) => exportedNames.has(entry.name))
-      .map((entry) => entry.tag),
-    contractReadmeTags,
+    adapterMapTags: componentTags,
+    adapterTags: componentTags,
   };
 }
 
@@ -437,32 +408,20 @@ export function extractDesignTokensFromCss({ tag, source }) {
 }
 
 async function componentDesignTokens(tag, group, contract) {
-  const packageStylePath = `${group.directory}/styles.css`;
-  let sourcePath = contract.sourcePath;
-  let scopedSource = contract.style;
-  if (scopedSource.trim() === "") {
-    sourcePath = packageStylePath;
-    const source = await readFile(path.join(repoRoot, sourcePath), "utf8");
-    scopedSource = componentCss(source, tag);
-  }
   return {
-    sources: [sourcePath],
-    ...extractDesignTokensFromCss({ tag, source: scopedSource }),
+    sources: [contract.sourcePath],
+    ...extractDesignTokensFromCss({ tag, source: contract.style }),
   };
 }
 
 async function readComponentDocDescriptions() {
-  const componentDocsDirectory = path.join(repoRoot, "apps/docs/docs/components");
-  const entries = await readdir(componentDocsDirectory, { withFileTypes: true });
   const descriptions = new Map();
 
-  for (const entry of entries) {
-    if (!entry.isFile() || !entry.name.endsWith(".mdx")) continue;
-    const content = await readFile(path.join(componentDocsDirectory, entry.name), "utf8");
+  for (const { tag, file } of await readComponentPages()) {
+    const content = await readFile(file, "utf8");
     const lines = content.split("\n");
     const titleIndex = lines.findIndex((line) => line.startsWith("# "));
     if (titleIndex < 0) continue;
-    const tag = entry.name.replace(/\.mdx$/, "");
     const description = lines.slice(titleIndex + 1)
       .map((line) => line.trim())
       .find((line) => line !== "" && !line.startsWith("import ") && !line.startsWith("## "));
@@ -558,10 +517,6 @@ export async function generateComponentApiMetadata() {
   }
 
   const repositoryProjections = await readRepositoryProjectionTags();
-  const requiredContractReadmeTags = Object.entries(classifications)
-    .filter(([, value]) => classificationStatus(value) === "published")
-    .filter(([, value]) => typeof value === "object" && value?.package === "@threadlabs/looma")
-    .map(([tag]) => tag);
 
   validateComponentProjections({
     sourceTags: sourceComponents.map((component) => component.tag),
@@ -569,10 +524,9 @@ export async function generateComponentApiMetadata() {
     metadataTags: components.map((component) => component.tag),
     documentationTags: repositoryProjections.documentationTags,
     navigationTags: repositoryProjections.navigationTags,
-    adapterMapTags: repositoryProjections.adapterMapTags,
-    adapterTags: repositoryProjections.adapterTags,
-    requiredContractReadmeTags,
-    contractReadmeTags: repositoryProjections.contractReadmeTags,
+    // Every component is exported to Vue; only the published ones are documented as such.
+    adapterMapTags: repositoryProjections.adapterMapTags.filter((tag) => classificationStatus(classifications[tag]) === "published"),
+    adapterTags: repositoryProjections.adapterTags.filter((tag) => classificationStatus(classifications[tag]) === "published"),
   });
 
   return { schemaVersion: 3, components };

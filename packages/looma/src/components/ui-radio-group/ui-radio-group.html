@@ -1,0 +1,51 @@
+<template component="ui-radio-group" controller="./ui-radio-group.js">
+  <defs>
+    <prop name="value" type="string" default="">value token.</prop>
+    <prop name="name" type="string" default="">name token.</prop>
+    <prop name="label" type="string" default="Options">label token.</prop>
+    <prop name="orientation" type="horizontal | vertical" default="horizontal">orientation token.</prop>
+    <prop name="disabled" type="boolean" default="false">disabled token.</prop>
+    <prop name="required" type="boolean" default="false">required token.</prop>
+    <state name="internalValue" :value="''"></state>
+    <event name="select" type="object({ value: string, previousValue: string, trigger: keyboard | pointer | programmatic })"></event>
+    <event name="change" type="object({ checked: boolean, value: string, trigger: keyboard | pointer | programmatic })"></event>
+  </defs>
+  <fieldset role="radiogroup">
+    <legend><template $value="label"></template></legend>
+    <slot></slot>
+  </fieldset>
+  <style>
+    :host {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--ui-space-2);
+      min-inline-size: 0;
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+
+    legend {
+      float: inline-start;
+      inline-size: 100%;
+      margin: 0 0 var(--ui-space-2);
+      padding: 0;
+      color: var(--ui-text-primary);
+      font-weight: var(--ui-font-medium);
+    }
+
+    legend + * {
+      clear: both;
+    }
+
+    :host-state([orientation="vertical"]) {
+      display: inline-grid;
+      justify-items: start;
+    }
+
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
+</template>

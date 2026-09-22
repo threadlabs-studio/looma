@@ -1,0 +1,22 @@
+<template component="ui-affordance-scope" controller="./ui-affordance-scope.js">
+  <defs>
+    <prop name="nearRadius" type="number" default="16">How close, in pixels, the pointer must come to reveal an affordance.</prop>
+    <state name="engaged" :value="false"></state>
+  </defs>
+  <span><slot></slot></span>
+  <style>
+    :host {
+      display: contents;
+      --ui-affordance-scope-engaged: 0;
+    }
+
+    :host-state([engaged]) {
+      --ui-affordance-scope-engaged: 1;
+    }
+
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
+</template>

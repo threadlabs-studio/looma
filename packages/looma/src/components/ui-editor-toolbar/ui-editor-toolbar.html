@@ -1,0 +1,110 @@
+<template component="ui-editor-toolbar">
+  <defs>
+    <prop name="floating" type="boolean" default="false">Shows the toolbar as a floating bar beside the selection rather than pinned to the editor.</prop>
+  </defs>
+  <div role="toolbar" aria-label="Editor toolbar"><slot></slot></div>
+  <style>
+    :host {
+      position: sticky;
+      top: 0;
+      z-index: var(--ui-editor-toolbar-z-index, 10);
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: var(--ui-editor-toolbar-gap, 2px);
+      padding: var(--ui-editor-toolbar-padding-block, 6px) var(--ui-editor-toolbar-padding-inline, 12px);
+      min-height: var(--ui-editor-toolbar-min-height, 48px);
+      overflow-x: auto;
+      scrollbar-width: none;
+      white-space: nowrap;
+      background: var(--ui-editor-toolbar-bg, var(--ui-surface, #fff));
+      border-bottom: 1px solid var(--ui-editor-toolbar-border, var(--ui-border, #e5e7eb));
+    }
+
+    :host::-webkit-scrollbar {
+      display: none;
+    }
+
+    :host > :slotted(*) {
+      flex: 0 0 auto;
+    }
+
+    :slotted(.divider) {
+      width: 1px;
+      height: 20px;
+      background: var(--ui-editor-toolbar-divider, var(--ui-border, #e5e7eb));
+      flex-shrink: 0;
+      margin: 0 var(--ui-editor-toolbar-divider-margin, 4px);
+    }
+
+    :host-state([floating]) {
+      position: static;
+      top: auto;
+      width: max-content;
+      max-width: min(calc(100vw - 24px), 100%);
+      min-height: auto;
+      padding: var(--ui-editor-toolbar-floating-padding, 4px);
+      overflow-x: visible;
+      background: color-mix(in srgb, var(--ui-editor-toolbar-bg, var(--ui-surface, #fff)) 96%, transparent);
+      border: 1px solid var(--ui-editor-toolbar-border, var(--ui-border, #e5e7eb));
+      border-radius: var(--ui-editor-toolbar-floating-radius, var(--ui-radius-lg, 10px));
+      box-shadow: var(--ui-editor-toolbar-floating-shadow, var(--ui-shadow-lg, 0 10px 24px rgb(0 0 0 / 0.12)));
+      backdrop-filter: blur(10px);
+    }
+
+    @media (max-width: 767px) {
+      :host {
+        position: fixed;
+        top: auto;
+        bottom: env(safe-area-inset-bottom);
+        left: 0;
+        right: 0;
+        min-height: var(--ui-editor-toolbar-mobile-min-height, 56px);
+        border-top: 1px solid var(--ui-editor-toolbar-border, var(--ui-border, #e5e7eb));
+        border-bottom: none;
+        box-shadow: var(--ui-editor-toolbar-mobile-shadow, 0 -2px 8px rgb(0 0 0 / 0.06));
+      }
+
+      :host-state([floating]) {
+        position: static;
+        inset: auto;
+        min-height: auto;
+        border: 1px solid var(--ui-editor-toolbar-border, var(--ui-border, #e5e7eb));
+        border-radius: var(--ui-editor-toolbar-floating-radius, var(--ui-radius-lg, 10px));
+        box-shadow: var(--ui-editor-toolbar-floating-shadow, var(--ui-shadow-lg, 0 10px 24px rgb(0 0 0 / 0.12)));
+      }
+    }
+
+    /* Inside LoomaEditor's sticky shell, the shell is the sticky surface. */
+    .looma-editor__sticky-toolbar-shell :host {
+      position: static;
+      min-height: var(--ui-editor-toolbar-min-height, 48px);
+      overscroll-behavior-inline: contain;
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+    }
+
+    /* Inside LoomaEditor's mobile shell, the toolbar is a scroll-snapping strip. */
+    .looma-editor__mobile-toolbar-shell :host-state([floating]) {
+      width: 100%;
+      max-width: none;
+      min-height: 100%;
+      padding: 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+      overscroll-behavior-inline: contain;
+      scroll-snap-type: x mandatory;
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
+      backdrop-filter: none;
+    }
+
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
+</template>

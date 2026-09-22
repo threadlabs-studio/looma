@@ -5,7 +5,7 @@ import componentApi from "../../../generated/component-api.json";
 
 const releaseMode = process.env.LOOMA_DOCS_RELEASE_MODE ?? "preview";
 const expectedAnnouncement = releaseMode === "candidate"
-  ? "Release 1 Candidate 0.4.0 is available"
+  ? "Release 1 Candidate 0.5.0 is available"
   : "Release 1 Candidate documentation preview";
 
 const candidatePages = [
@@ -178,11 +178,11 @@ test("the context-menu docs expose both visible and pointer action paths", async
   await target.click({ button: "right", position: { x: 24, y: 24 } });
   const firstItem = page.getByRole("menuitem", { name: "First item", exact: true });
   await expect(firstItem).toBeVisible();
-  const contextSurface = page.locator("[data-component-root~='ui-context-menu'] [popover]").first();
+  const contextSurface = page.locator("[data-component~='ui-context-menu'] [popover]").first();
   await expect(contextSurface).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 0)");
   const geometry = await page.evaluate(() => {
     const target = document.querySelector<HTMLElement>("#context-menu-target")!;
-    const surface = document.querySelector<HTMLElement>("[data-component-root~='ui-context-menu'] [popover]")!;
+    const surface = document.querySelector<HTMLElement>("[data-component~='ui-context-menu'] [popover]")!;
     const targetBounds = target.getBoundingClientRect();
     const surfaceBounds = surface.getBoundingClientRect();
     const style = getComputedStyle(surface);
@@ -202,12 +202,11 @@ test("the context-menu docs expose both visible and pointer action paths", async
   });
   expect(Math.abs(geometry.left - geometry.expectedLeft)).toBeLessThanOrEqual(2);
   expect(Math.abs(geometry.top - geometry.expectedTop)).toBeLessThanOrEqual(2);
-  // The surface contains the menu rather than an empty box beside a separate top-layer menu.
+  // The top-layer surface is the menu itself: one box, holding the items.
   expect(geometry.height).toBeGreaterThan(40);
-  expect(geometry.borderStyle).toBe("none");
+  expect(geometry.borderStyle).toBe("solid");
   expect(geometry.outlineStyle).toBe("none");
-  expect(geometry.padding).toBe("0px");
-  expect(geometry.backgroundColor).toBe("rgba(0, 0, 0, 0)");
+  expect(geometry.backgroundColor).not.toBe("rgba(0, 0, 0, 0)");
 });
 
 test("menu for association toggles the anchored menu", async ({ page }) => {
@@ -228,7 +227,7 @@ test("menu for association toggles the anchored menu", async ({ page }) => {
 test("affordance-scope visibly reveals an anticipatory Looma control near the pointer", async ({ page }) => {
   await page.goto("components/ui-affordance-scope", { waitUntil: "domcontentloaded" });
   const scenario = page.locator("[data-preview-scenario='Default radius']");
-  const affordance = scenario.locator("[data-component-root~='ui-icon-button']").first();
+  const affordance = scenario.locator("[data-component~='ui-icon-button']").first();
   await expect(affordance).toHaveRole("button", { name: "Add" });
   // At rest only the guide dot shows: the icon (currentColor) and surface are transparent.
   await expect(affordance).toHaveCSS("color", "rgba(0, 0, 0, 0)");
@@ -243,10 +242,10 @@ test("affordance-scope visibly reveals an anticipatory Looma control near the po
 test("popover trigger opens, positions, and closes the settled component", async ({ page }) => {
   await page.goto("components/ui-popover", { waitUntil: "domcontentloaded" });
   await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
-  await expect(page.locator(".popover__surface:visible")).toHaveCount(0);
+  await expect(page.locator("[data-component~='ui-popover'] .surface:visible")).toHaveCount(0);
   const scenario = page.locator("[data-preview-scenario='Trigger binding']");
   const trigger = scenario.getByRole("button", { name: "Open popover" });
-  const popover = scenario.locator("[data-component-root~='ui-popover']");
+  const popover = scenario.locator("[data-component~='ui-popover']");
   await expect(popover).not.toBeVisible();
   await trigger.click();
   await expect(popover).toBeVisible();
@@ -259,7 +258,7 @@ test("popover trigger opens, positions, and closes the settled component", async
   await expect(popover).not.toBeVisible();
 
   const placed = page.locator(`[data-preview-scenario='placement="top-end"']`);
-  const placedPopover = placed.locator("[data-component-root~='ui-popover']");
+  const placedPopover = placed.locator("[data-component~='ui-popover']");
   await expect(placedPopover).not.toBeVisible();
   const placedTrigger = placed.getByRole("button", { name: "Open popover" });
   await placedTrigger.click();
@@ -275,14 +274,14 @@ test("popover trigger opens, positions, and closes the settled component", async
 test("tooltip uses a Looma trigger and a crisp, pointed overlay surface", async ({ page }) => {
   await page.goto("components/ui-tooltip", { waitUntil: "domcontentloaded" });
   const scenario = page.locator("[data-preview-scenario='Target binding']");
-  const trigger = scenario.locator("[data-component-root~='ui-button']");
-  const tooltip = scenario.locator("[data-component-root~='ui-tooltip']");
+  const trigger = scenario.locator("[data-component~='ui-button']");
+  const tooltip = scenario.locator("[data-component~='ui-tooltip']");
   await expect(trigger).toBeVisible();
   await trigger.focus();
   await expect(tooltip).toBeVisible();
   const treatment = await tooltip.evaluate((element) => {
     const rootStyle = getComputedStyle(element);
-    const surface = element.querySelector<HTMLElement>(".tooltip__surface")!;
+    const surface = element.querySelector<HTMLElement>(".surface")!;
     const surfaceStyle = getComputedStyle(surface);
     const arrowStyle = getComputedStyle(surface, "::after");
     return {
@@ -303,7 +302,7 @@ test("tooltip uses a Looma trigger and a crisp, pointed overlay surface", async 
 test("toast-region starts empty, fires on demand, and uses a compact round dismiss control", async ({ page }) => {
   await page.goto("components/ui-toast-region", { waitUntil: "domcontentloaded" });
   const scenario = page.locator("[data-preview-scenario='Default closed']");
-  const region = scenario.locator("[data-component-root~='ui-toast-region']");
+  const region = scenario.locator("[data-component~='ui-toast-region']");
   await expect(region.locator(".toast")).toHaveCount(0);
   await scenario.getByRole("button", { name: "Show toast" }).click();
   const toast = region.locator(".toast");
@@ -357,7 +356,7 @@ test("the component catalog exposes the complete library and filters live previe
 
   const affordanceCard = page.locator('[data-component-card="ui-affordance-scope"]');
   const anticipatoryControl = affordanceCard.locator(
-    '[data-component-root~="ui-icon-button"][data-anticipatory="true"]'
+    '[data-component~="ui-icon-button"][data-ui-affordance]'
   ).first();
   await expect(anticipatoryControl).toBeVisible();
   await expect(anticipatoryControl).toHaveCSS("opacity", "1");
@@ -412,7 +411,7 @@ test("editor catalog overlays stay inside their preview cards", async ({ page })
     }, tag);
     await expect(card).toBeVisible();
     const preview = card.locator(".looma-component-card__preview");
-    const surface = preview.locator(`[data-component-root~="${tag}"]`);
+    const surface = preview.locator(`[data-component~="${tag}"]`);
     await expect(surface).toBeVisible();
 
     const [previewBounds, surfaceBounds] = await Promise.all([
@@ -437,7 +436,7 @@ test("editor catalog overlays stay inside their preview cards", async ({ page })
       ?.scrollIntoView({ block: "center" });
   });
   const contextPreview = contextCard.locator(".looma-component-card__preview");
-  const contextSurface = contextPreview.locator(".ui-editor-table-context-menu");
+  const contextSurface = contextPreview.locator("[data-component~='ui-editor-table-context-menu']");
   await expect(contextSurface).toBeVisible();
   const [contextPreviewBounds, contextSurfaceBounds] = await Promise.all([
     contextPreview.boundingBox(),
@@ -456,7 +455,7 @@ test("editor catalog overlays stay inside their preview cards", async ({ page })
       ?.scrollIntoView({ block: "center" });
   });
   const tableStage = overlayCard.locator(".demo-editor-table-stage");
-  const tableOverlay = tableStage.locator('[data-component-root~="ui-editor-table-overlay"]');
+  const tableOverlay = tableStage.locator('[data-component~="ui-editor-table-overlay"]');
   await expect(tableStage.getByRole("table", { name: "Example table" })).toBeVisible();
   await expect(tableOverlay).toBeVisible();
   const [tableBounds, overlayBounds] = await Promise.all([
@@ -473,7 +472,7 @@ test("table overlay uses one structured geometry property", async ({ page }) => 
   await page.goto("components/ui-editor-table-overlay", { waitUntil: "domcontentloaded" });
 
   const primary = page.locator("[data-preview-scenario='Open with geometry']");
-  const overlay = primary.locator('[data-component-root~="ui-editor-table-overlay"]');
+  const overlay = primary.locator('[data-component~="ui-editor-table-overlay"]');
   await expect(overlay).toBeVisible();
   await expect(overlay.getByRole("button", { name: "Cell actions" })).toBeVisible();
   await expect(overlay.getByRole("button", { name: /Insert row/ })).toHaveCount(3);
@@ -539,7 +538,7 @@ test("every component page renders distinct, visible, coded scenarios", async ({
       `${component.tag} scenario stages should have visible geometry`
     ).toBe(true);
     expect(
-      await page.locator(`[data-component-root~="${component.tag}"]`).count(),
+      await page.locator(`[data-component~="${component.tag}"]`).count(),
       `${component.tag} should lower to its live native root`
     ).toBeGreaterThan(0);
     await expect(page.getByRole("heading", { name: "SSR Markup" })).toHaveCount(0);
@@ -560,7 +559,7 @@ test("component pages supply a live preview when no bespoke example exists", asy
 test("avatar authoring uses ordinary images and avatar groups visibly overlap", async ({ page }) => {
   await page.goto("components/ui-avatar", { waitUntil: "domcontentloaded" });
   const imageScenario = page.locator("[data-preview-scenario='Image']");
-  const authoredImage = imageScenario.locator(".avatar img:not(.avatar__managed-image)");
+  const authoredImage = imageScenario.locator("[data-component~='ui-avatar'] img:not(.image)");
   await expect(authoredImage).toHaveCount(1);
   await expect(authoredImage).toBeVisible();
   expect(await authoredImage.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
@@ -568,8 +567,8 @@ test("avatar authoring uses ordinary images and avatar groups visibly overlap", 
   await expect(imageScenario.locator(".looma-mode-code")).not.toContainText("data-ui-avatar-fallback");
 
   await page.goto("components/ui-avatar-group", { waitUntil: "domcontentloaded" });
-  const group = page.locator("[data-preview-scenario='Default maximum'] [data-component-root~='ui-avatar-group']");
-  const avatars = group.locator("[data-component-root~='ui-avatar']");
+  const group = page.locator("[data-preview-scenario='Default maximum'] [data-component~='ui-avatar-group']");
+  const avatars = group.locator("[data-component~='ui-avatar']");
   await expect(avatars).toHaveCount(3);
   const boxes = await avatars.evaluateAll((elements) => elements.map((element) => {
     const bounds = element.getBoundingClientRect();
@@ -604,9 +603,9 @@ test("the docs sidebar treatment reaches the footer on tall pages in both themes
 test("disclosure owns its trigger and animates one grid row between closed and open", async ({ page }) => {
   await page.goto("components/ui-disclosure", { waitUntil: "domcontentloaded" });
   const scenario = page.locator("[data-preview-scenario='Default closed']");
-  const disclosure = scenario.locator("[data-component-root~='ui-disclosure']");
+  const disclosure = scenario.locator("[data-component~='ui-disclosure']");
   const trigger = disclosure.getByRole("button", { name: "Details" });
-  const panel = disclosure.locator(".disclosure__panel");
+  const panel = disclosure.locator(".panel");
   await expect(trigger).toBeVisible();
   await expect(trigger).toHaveAttribute("aria-expanded", "false");
   const closed = await panel.evaluate((element) => ({
@@ -618,7 +617,7 @@ test("disclosure owns its trigger and animates one grid row between closed and o
 
   await trigger.click();
   await expect(trigger).toHaveAttribute("aria-expanded", "true");
-  await expect(disclosure).toHaveAttribute("data-state-open", "true");
+  await expect(disclosure).toHaveAttribute("data-ui-disclosure-state", /\binternalOpen\b/);
   await expect.poll(() => panel.evaluate((element) => Number.parseFloat(getComputedStyle(element).gridTemplateRows)))
     .toBeGreaterThan(0);
   await expect(scenario.locator(".looma-mode-code").first()).not.toContainText("<button");
@@ -627,7 +626,7 @@ test("disclosure owns its trigger and animates one grid row between closed and o
 test("tabs generate a full-width tablist from labeled panels without raw button or ARIA wiring", async ({ page }) => {
   await page.goto("components/ui-tabs", { waitUntil: "domcontentloaded" });
   const scenario = page.locator("[data-preview-scenario='Default horizontal']");
-  const tabs = scenario.locator("[data-component-root~='ui-tabs']");
+  const tabs = scenario.locator("[data-component~='ui-tabs']");
   const tablist = tabs.getByRole("tablist", { name: "View" });
   const tabButtons = tablist.getByRole("tab");
   await expect(tabButtons).toHaveCount(2);
@@ -697,7 +696,7 @@ test("top bar stays visible and renders each authored region at desktop document
   await page.goto("components/ui-top-bar", { waitUntil: "domcontentloaded" });
 
   const defaultScenario = page.locator("[data-preview-scenario='Default']");
-  const defaultBar = defaultScenario.locator("[data-component-root~='ui-top-bar']");
+  const defaultBar = defaultScenario.locator("[data-component~='ui-top-bar']");
   await expect(defaultBar).toBeVisible();
   await expect(defaultBar).toContainText("Title");
   const defaultBounds = await defaultBar.boundingBox();
@@ -705,7 +704,7 @@ test("top bar stays visible and renders each authored region at desktop document
   expect(defaultBounds!.height).toBeGreaterThanOrEqual(48);
 
   const regionsScenario = page.locator("[data-preview-scenario='leading, search, and actions slots']");
-  const regionsBar = regionsScenario.locator("[data-component-root~='ui-top-bar']");
+  const regionsBar = regionsScenario.locator("[data-component~='ui-top-bar']");
   await expect(regionsBar).toBeVisible();
   await expect(regionsBar).toContainText("Back");
   await expect(regionsBar).toContainText("Search");
@@ -721,8 +720,8 @@ test("search shell owns native dialog visibility and exposes configured regions 
   const dialog = openScenario.getByRole("dialog", { name: "Search commands" });
   await expect(dialog).toBeVisible();
   await expect(openScenario.getByRole("searchbox", { name: "Search commands" })).toBeVisible();
-  await expect(openScenario.locator(".search-shell__status")).toBeHidden();
-  await expect(openScenario.locator(".search-shell__footer")).toBeHidden();
+  await expect(openScenario.locator(".status")).toBeHidden();
+  await expect(openScenario.locator(".footer")).toBeHidden();
   await expect(openScenario.locator(".looma-mode-code")).not.toContainText('slot="backdrop"');
   await expect(openScenario.locator(".looma-mode-code")).toContainText("<ui-search-shell open");
 
@@ -731,7 +730,7 @@ test("search shell owns native dialog visibility and exposes configured regions 
   await expect(configuredDialog).toBeVisible();
   await expect(configuredDialog.getByText("3 results", { exact: true })).toBeVisible();
   await expect(configured.getByRole("button", { name: "Close" })).toBeVisible();
-  const panelBounds = await configured.locator(".search-shell__panel").boundingBox();
+  const panelBounds = await configured.locator(".panel").boundingBox();
   const inputBounds = await configured.getByRole("searchbox").boundingBox();
   expect(panelBounds).not.toBeNull();
   expect(inputBounds).not.toBeNull();
@@ -761,7 +760,7 @@ test("search shell owns native dialog visibility and exposes configured regions 
 test("ui-button authors one declarative element and lowers directly to a native button", async ({ page }) => {
   await page.goto("components/ui-button", { waitUntil: "domcontentloaded" });
   const defaultScenario = page.locator("[data-preview-scenario='Default']");
-  const button = defaultScenario.locator("button[data-component-root~='ui-button']");
+  const button = defaultScenario.locator("button[data-component~='ui-button']");
   await expect(button).toHaveCount(1);
   await expect(button).toHaveText("Button");
   await expect(button.locator("button")).toHaveCount(0);
@@ -774,7 +773,7 @@ test("ui-button authors one declarative element and lowers directly to a native 
   expect(bounds).not.toBeNull();
   expect(bounds!.height).toBeLessThanOrEqual(40);
 
-  const ghost = page.locator("[data-preview-scenario='variant'] [data-component-root~='ui-button'][data-variant='ghost']");
+  const ghost = page.locator("[data-preview-scenario='variant'] [data-component~='ui-button'][data-ui-button-state~='variant=ghost']");
   const before = await ghost.evaluate((element) => getComputedStyle(element).backgroundColor);
   await ghost.hover();
   const after = await ghost.evaluate((element) => getComputedStyle(element).backgroundColor);
@@ -784,7 +783,7 @@ test("ui-button authors one declarative element and lowers directly to a native 
 test("ui-input authors one declarative element and lowers directly to an editable native input", async ({ page }) => {
   await page.goto("components/ui-input", { waitUntil: "domcontentloaded" });
   const defaultScenario = page.locator("[data-preview-scenario='Default']");
-  const input = defaultScenario.locator("input[data-component-root~='ui-input']");
+  const input = defaultScenario.locator("input[data-component~='ui-input']");
   await expect(input).toHaveCount(1);
   await expect(input).toHaveAttribute("placeholder", "Enter text");
   await expect(input.locator("input")).toHaveCount(0);
@@ -821,7 +820,7 @@ test("ui-input authors one declarative element and lowers directly to an editabl
 test("ui-select authors options directly and lowers to one native select", async ({ page }) => {
   await page.goto("components/ui-select", { waitUntil: "domcontentloaded" });
   const defaultScenario = page.locator("[data-preview-scenario='Default']");
-  const select = defaultScenario.locator("select[data-component-root~='ui-select']");
+  const select = defaultScenario.locator("select[data-component~='ui-select']");
   await expect(select).toHaveCount(1);
   await expect(select.locator("select")).toHaveCount(0);
   await select.selectOption("two");
@@ -839,7 +838,7 @@ test("ui-select authors options directly and lowers to one native select", async
 test("ui-textarea authors one declarative element and lowers directly to a native textarea", async ({ page }) => {
   await page.goto("components/ui-textarea", { waitUntil: "domcontentloaded" });
   const defaultScenario = page.locator("[data-preview-scenario='Default']");
-  const textarea = defaultScenario.locator("textarea[data-component-root~='ui-textarea']");
+  const textarea = defaultScenario.locator("textarea[data-component~='ui-textarea']");
   await expect(textarea).toHaveCount(1);
   await expect(textarea).toHaveAttribute("rows", "4");
   await expect(textarea.locator("textarea")).toHaveCount(0);
@@ -933,17 +932,17 @@ test("ui-cluster wraps and applies its declared spacing and alignment values", a
   await page.goto("components/ui-cluster", { waitUntil: "domcontentloaded" });
   await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
 
-  const basicRow = page.locator("[data-preview-scenario='Default'] [data-component-root~='ui-cluster']");
+  const basicRow = page.locator("[data-preview-scenario='Default'] [data-component~='ui-cluster']");
   await expect(basicRow).toBeVisible();
   await expect(basicRow).toHaveCSS("gap", "12px");
   await expect(basicRow).toHaveCSS("flex-wrap", "wrap");
   const rows = await basicRow.locator(":scope > *").evaluateAll((items) => new Set(items.map((item) => Math.round(item.getBoundingClientRect().top))).size);
   expect(rows).toBeGreaterThan(1);
 
-  const largerSpacing = page.locator(`[data-preview-scenario='gap="l"'] [data-component-root~='ui-cluster']`);
+  const largerSpacing = page.locator(`[data-preview-scenario='gap="l"'] [data-component~='ui-cluster']`);
   await expect(largerSpacing).toHaveCSS("gap", "24px");
 
-  const alignment = page.locator(`[data-preview-scenario='align="end"'] [data-component-root~='ui-cluster']`);
+  const alignment = page.locator(`[data-preview-scenario='align="end"'] [data-component~='ui-cluster']`);
   await expect(alignment).toHaveCSS("gap", "12px");
   await expect(alignment).toHaveCSS("align-items", "flex-end");
 
@@ -959,7 +958,7 @@ test("ui-cluster wraps and applies its declared spacing and alignment values", a
     }
     // Observation and lowering are asynchronous; two frames include the resulting style pass.
     await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
-    return Array.from(fixture.querySelectorAll<HTMLElement>("[data-component-root~='ui-cluster']")).map((cluster) => {
+    return Array.from(fixture.querySelectorAll<HTMLElement>("[data-component~='ui-cluster']")).map((cluster) => {
       const style = getComputedStyle(cluster);
       return { gap: style.gap, align: style.alignItems, wrap: style.flexWrap };
     });
@@ -974,8 +973,8 @@ test("ui-stack examples expose spacing and stretching through bounded children",
   await page.goto("components/ui-stack", { waitUntil: "domcontentloaded" });
   await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
 
-  const defaultStack = page.locator("[data-preview-scenario='Default'] [data-component-root~='ui-stack']");
-  const configuredStack = page.locator(`[data-preview-scenario='gap="xl" and align="center"'] [data-component-root~='ui-stack']`);
+  const defaultStack = page.locator("[data-preview-scenario='Default'] [data-component~='ui-stack']");
+  const configuredStack = page.locator(`[data-preview-scenario='gap="xl" and align="center"'] [data-component~='ui-stack']`);
   await expect(defaultStack).toHaveCSS("gap", "16px");
   await expect(defaultStack).toHaveCSS("align-items", "stretch");
   await expect(defaultStack.locator(":scope > [data-slotted]").first()).toHaveCSS("border-top-style", "solid");
@@ -984,10 +983,10 @@ test("ui-stack examples expose spacing and stretching through bounded children",
 
   const widths = await page.evaluate(() => {
     const defaultButton = document.querySelector<HTMLElement>(
-      "[data-preview-scenario='Default'] [data-component-root~='ui-stack'] > [data-slotted]"
+      "[data-preview-scenario='Default'] [data-component~='ui-stack'] > [data-slotted]"
     )!;
     const centeredButton = document.querySelector<HTMLElement>(
-      `[data-preview-scenario='gap="xl" and align="center"'] [data-component-root~='ui-stack'] > [data-slotted]`
+      `[data-preview-scenario='gap="xl" and align="center"'] [data-component~='ui-stack'] > [data-slotted]`
     )!;
     return { defaultWidth: defaultButton.getBoundingClientRect().width, centeredWidth: centeredButton.getBoundingClientRect().width };
   });
@@ -998,7 +997,7 @@ test("layout previews expose their defining geometry", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
 
   await page.goto("components/ui-grid", { waitUntil: "domcontentloaded" });
-  const grid = page.locator("[data-preview-scenario='Default'] [data-component-root~='ui-grid']");
+  const grid = page.locator("[data-preview-scenario='Default'] [data-component~='ui-grid']");
   const gridItems = grid.locator(":scope > [data-slotted]");
   await expect(gridItems).toHaveCount(3);
   const gridRects = await gridItems.evaluateAll((items) => items.map((item) => {
@@ -1010,7 +1009,7 @@ test("layout previews expose their defining geometry", async ({ page }) => {
   expect(gridRects.every(({ width }) => width > 100)).toBe(true);
 
   await page.goto("components/ui-container", { waitUntil: "domcontentloaded" });
-  const centers = page.locator("[data-component-root~='ui-container']");
+  const centers = page.locator("[data-component~='ui-container']");
   await expect(centers).toHaveCount(3);
   const centerOffsets = await centers.evaluateAll((centerElements) => centerElements.map((center) => {
     const stage = center.closest(".looma-preview-scenario__stage")!;
@@ -1026,7 +1025,7 @@ test("layout previews expose their defining geometry", async ({ page }) => {
   // Sidebar is the panel only: an aside the page places beside its main content, toggled by a command.
   await page.goto("components/ui-sidebar", { waitUntil: "domcontentloaded" });
   const shell = page.locator("[data-preview-scenario='App shell'] .demo-app-shell");
-  const sidebar = shell.locator("[data-component-root~='ui-sidebar']");
+  const sidebar = shell.locator("[data-component~='ui-sidebar']");
   const main = shell.locator("main");
   await expect(sidebar).toBeVisible();
   expect(await sidebar.evaluate((element) => element.localName)).toBe("aside");
@@ -1054,7 +1053,7 @@ test("ui-switcher can be exercised above and below its intrinsic threshold", asy
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("components/ui-switcher", { waitUntil: "domcontentloaded" });
   const control = page.getByRole("slider", { name: "Preview width" }).first();
-  const switcher = page.locator("[data-preview-scenario='Default'] [data-component-root~='ui-switcher']");
+  const switcher = page.locator("[data-preview-scenario='Default'] [data-component~='ui-switcher']");
   const itemTops = () => switcher.locator(":scope > [data-slotted]").evaluateAll((items) =>
     items.map((item) => Math.round(item.getBoundingClientRect().top))
   );
@@ -1069,7 +1068,7 @@ test("ui-reel exposes a discoverable, keyboard-scrollable overflow viewport", as
   await page.setViewportSize({ width: 1100, height: 900 });
   await page.goto("components/ui-reel", { waitUntil: "domcontentloaded" });
   const scenario = page.locator("[data-preview-scenario='Gap, item width, and snap']");
-  const reel = scenario.locator("[data-component-root~='ui-reel']");
+  const reel = scenario.locator("[data-component~='ui-reel']");
   await expect(reel).toBeVisible();
   const overflow = await reel.evaluate((element) => ({
     clientWidth: element.clientWidth,
@@ -1096,8 +1095,8 @@ test("dialog closes via header button, actions, Escape, and outside press, with 
 
   let dialog = await open("Default");
   expect(await dialog.evaluate((element: HTMLDialogElement) => element.matches(":modal"))).toBe(false);
-  await expect(dialog.locator(".dialog__title")).toHaveText("Publish changes?");
-  const footer = dialog.locator(".dialog__footer");
+  await expect(dialog.locator(".title")).toHaveText("Publish changes?");
+  const footer = dialog.locator("footer");
   await expect(footer).toHaveCSS("justify-content", "flex-end");
   const [cancel, publish] = await Promise.all([footer.getByRole("button", { name: "Cancel" }).boundingBox(), footer.getByRole("button", { name: "Publish" }).boundingBox()]);
   expect(publish!.x).toBeGreaterThan(cancel!.x);
@@ -1123,10 +1122,10 @@ test("dialog closes via header button, actions, Escape, and outside press, with 
   await expect(dialog).not.toHaveAttribute("open", "");
 
   dialog = await open("Long content");
-  const body = dialog.locator(".dialog__body");
+  const body = dialog.locator(".body");
   expect(await body.evaluate((element) => element.scrollHeight > element.clientHeight)).toBe(true);
   await body.evaluate((element) => { element.scrollTop = element.scrollHeight; });
-  await expect(dialog.locator(".dialog__header")).toBeInViewport();
+  await expect(dialog.locator("header")).toBeInViewport();
   await expect(dialog.getByRole("button", { name: "Accept" })).toBeInViewport();
   await dialog.getByRole("button", { name: "Accept" }).click();
   await expect(dialog).not.toHaveAttribute("open", "");
@@ -1136,7 +1135,7 @@ test("every combobox scenario receives its authored native options", async ({ pa
   await page.goto("components/ui-combobox", { waitUntil: "domcontentloaded" });
   await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
 
-  const comboboxes = page.locator("[data-component-root~='ui-combobox']");
+  const comboboxes = page.locator("[data-component~='ui-combobox']");
   await expect(comboboxes).toHaveCount(7);
   await expect(comboboxes.nth(0).locator(".authored-options option")).toHaveCount(2);
   await expect(comboboxes.nth(1).locator(".authored-options option")).toHaveCount(2);
@@ -1288,7 +1287,7 @@ test("checkbox, switch, and radio APIs generate their own aligned native control
   await expect(checkboxCode).not.toContainText("<input");
 
   const multiline = page.locator("[data-preview-scenario='Multi-line label']");
-  const alignment = await multiline.locator("[data-component-root~='ui-checkbox']").evaluate((root) => {
+  const alignment = await multiline.locator("[data-component~='ui-checkbox']").evaluate((root) => {
     const input = root.querySelector("input")!;
     const label = root.querySelector(".label")!;
     const inputBounds = input.getBoundingClientRect();
@@ -1360,7 +1359,7 @@ test("every badge tone remains legible and visually distinct in light and dark t
     await page.evaluate((selectedTheme) => window.localStorage.setItem("theme", selectedTheme), theme);
     await page.reload({ waitUntil: "domcontentloaded" });
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
-    const badges = page.locator("[data-preview-scenario] [data-component-root~='ui-badge'] .badge__surface");
+    const badges = page.locator("[data-preview-scenario] [data-component~='ui-badge']");
     await expect(badges).toHaveCount(11);
     const treatments = await badges.evaluateAll((surfaces) => surfaces.map((surface) => {
       const style = getComputedStyle(surface);
@@ -1400,10 +1399,10 @@ test("every badge tone remains legible and visually distinct in light and dark t
 
 test("every callout tone renders its icon without an empty oversized indent", async ({ page }) => {
   await page.goto("components/ui-callout", { waitUntil: "domcontentloaded" });
-  const callouts = page.locator("[data-preview-scenario] [data-component-root~='ui-callout']");
+  const callouts = page.locator("[data-preview-scenario] [data-component~='ui-callout']");
   await expect(callouts).toHaveCount(4);
   const treatments = await callouts.evaluateAll((roots) => roots.map((root) => {
-    const surface = root.querySelector(".callout__surface")!;
+    const surface = root;
     const content = root.querySelector(".content")!;
     const surfaceBounds = surface.getBoundingClientRect();
     const contentBounds = content.getBoundingClientRect();
@@ -1424,7 +1423,7 @@ test("disabled buttons are natively disabled and ignore activation", async ({ pa
   // from the :disabled attribute binding rather than from assigning the property.
   for (const [slug, root] of [["ui-button", "ui-button"], ["ui-icon-button", "ui-icon-button"]] as const) {
     await page.goto(`components/${slug}`, { waitUntil: "domcontentloaded" });
-    const control = page.locator(`[data-preview-scenario='disabled'] [data-component-root~='${root}']`).first();
+    const control = page.locator(`[data-preview-scenario='disabled'] [data-component~='${root}']`).first();
     await expect(control).toBeDisabled();
     const clicked = await control.evaluate((element) => {
       let activated = false;
@@ -1466,7 +1465,7 @@ test("tree disclosure is per node: expand does not bubble and never cascades to 
   await page.evaluate(() => {
     const received: string[] = [];
     (window as unknown as { expandEvents: string[] }).expandEvents = received;
-    for (const element of document.querySelectorAll("#tree-conformance [data-component-root~='ui-tree-item']")) {
+    for (const element of document.querySelectorAll("#tree-conformance [data-component~='ui-tree-item']")) {
       element.addEventListener("expand", (event) => {
         received.push(`${(element as HTMLElement).getAttribute("data-item-id") ?? element.getAttribute("aria-label")}:${(event as CustomEvent<{ id: string }>).detail.id}`);
       });

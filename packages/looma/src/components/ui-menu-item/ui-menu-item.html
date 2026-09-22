@@ -1,0 +1,37 @@
+<template component="ui-menu-item">
+  <defs>
+    <prop name="disabled" type="boolean" default="false">disabled token.</prop>
+    <prop name="value" type="string" default="">value token.</prop>
+  </defs>
+  <div role="menuitem" tabindex="-1" :aria-disabled="disabled" :data-value="value"><slot></slot></div>
+  <style>
+    :host {
+      display: block;
+      box-sizing: border-box;
+      width: 100%;
+      padding: var(--ui-space-2) var(--ui-space-3);
+      text-align: left;
+      border-radius: var(--ui-radius-2);
+      color: var(--ui-text-primary);
+      font-size: var(--ui-font-size-md);
+      font-weight: var(--ui-font-medium, 500);
+      cursor: pointer;
+      outline: none;
+      transition: background-color var(--ui-motion-fast) var(--ui-motion-ease), color var(--ui-motion-fast) var(--ui-motion-ease);
+    }
+
+    :host:is(:hover, :focus-visible):not([aria-disabled="true"]) {
+      background: var(--ui-surface-subtle);
+    }
+
+    :host[aria-disabled="true"] {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
+</template>

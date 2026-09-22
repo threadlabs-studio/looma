@@ -1,0 +1,350 @@
+import { Extension, type Editor, type Range } from "@tiptap/core";
+import Suggestion, {
+  type SuggestionKeyDownProps,
+  type SuggestionProps,
+} from "@tiptap/suggestion";
+import type { LoomaIconName } from "../icons";
+import type { LoomaCalloutTone } from "./callout";
+import { insertTableAtRange } from "./table-commands";
+
+/** Editor state a slash command may replace and then act upon. */
+export interface LoomaSlashCommandContext {
+  editor: Editor;
+  range: Range;
+}
+
+/**
+ * One application-extensible command.
+ *
+ * Commands own their editor mutation, including removal of `context.range`.
+ * Keeping that policy in the command lets custom items behave exactly like
+ * built-ins without coupling the headless suggestion lifecycle to Tiptap nodes.
+ */
+export interface LoomaSlashCommand {
+  title: string;
+  description: string;
+  icon: LoomaIconName;
+  keywords: string[];
+  command: (context: LoomaSlashCommandContext) => void;
+}
+
+/**
+ * Ephemeral render model published to any slash-menu UI.
+ * Replace snapshots rather than merging them: the `select` callback closes over
+ * a particular Tiptap range and becomes invalid when the suggestion updates.
+ *
+ * @lifecycle `select` is valid only until the next snapshot or suggestion exit;
+ * retaining it can apply a command to a stale source range.
+ */
+export interface LoomaSlashMenuSnapshot {
+  active: boolean;
+  items: LoomaSlashCommand[];
+  selectedIndex: number;
+  query: string;
+  rect: DOMRect | null;
+  select: ((index: number) => void) | null;
+}
+
+/**
+ * Application-owned command inventory and integration callbacks.
+ * Replacing `commands` changes search and execution together; the extension
+ * never merges domain commands into defaults implicitly. Asset selection stays
+ * callback-driven because uploads and persistence are outside editor ownership.
+ *
+ * @ownership The application owns command objects and callback side effects;
+ * the extension only searches the inventory and publishes replacement snapshots.
+ */
+export interface LoomaSlashCommandOptions {
+  commands: LoomaSlashCommand[];
+  onStateChange?: (state: LoomaSlashMenuSnapshot) => void;
+  onOpenImagePicker?: () => void;
+}
+
+const CALLOUT_COMMANDS: ReadonlyArray<{
+  title: string;
+  description: string;
+  tone: LoomaCalloutTone;
+  icon: LoomaIconName;
+  keywords: string[];
+}> = [
+  {
+    title: "Info",
+    description: "Informational callout",
+    tone: "info",
+    icon: "info",
+    keywords: ["info", "information", "callout", "panel"],
+  },
+  {
+    title: "Note",
+    description: "Highlighted note",
+    tone: "note",
+    icon: "notebook-pen",
+    keywords: ["note", "callout", "panel"],
+  },
+  {
+    title: "Warning",
+    description: "Important warning",
+    tone: "warning",
+    icon: "triangle-alert",
+    keywords: ["warning", "caution", "alert", "callout", "panel"],
+  },
+];
+
+/**
+ * Builds Looma's default command policy as fresh objects for one editor.
+ * The image command delegates asset selection because Looma does not own upload,
+ * persistence, or media-library concerns.
+ *
+ * @ownership Returned command objects belong to the caller and are recreated
+ * per call so one editor cannot mutate another editor's command inventory.
+ */
+export function getDefaultSlashCommands(
+  onOpenImagePicker?: () => void,
+): LoomaSlashCommand[] {
+  return [
+    {
+      title: "Text",
+      description: "Plain paragraph",
+      icon: "pilcrow",
+      keywords: ["text", "paragraph", "plain", "p"],
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).setParagraph().run();
+      },
+    },
+    ...([1, 2, 3] as const).map((level) => ({
+      title: `Heading ${level}`,
+      description: level === 1 ? "Big section title" : level === 2 ? "Medium section title" : "Small section title",
+      icon: `heading-${level}` as LoomaIconName,
+      keywords: [`h${level}`, "heading", "title"],
+      command: ({ editor, range }: LoomaSlashCommandContext) => {
+        editor.chain().focus().deleteRange(range).setHeading({ level }).run();
+      },
+    })),
+    {
+      title: "Bullet list",
+      description: "Unordered list",
+      icon: "list",
+      keywords: ["bullet", "list", "ul", "unordered"],
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).toggleBulletList().run();
+      },
+    },
+    {
+      title: "Numbered list",
+      description: "Ordered list",
+      icon: "list-ordered",
+      keywords: ["numbered", "ordered", "list", "ol"],
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).toggleOrderedList().run();
+      },
+    },
+    {
+      title: "Checklist",
+      description: "Interactive to-do items",
+      icon: "list-todo",
+      keywords: ["check", "task", "todo", "checklist"],
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).toggleTaskList().run();
+      },
+    },
+    {
+      title: "Blockquote",
+      description: "Highlighted quote",
+      icon: "quote",
+      keywords: ["quote", "blockquote", "callout"],
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).toggleBlockquote().run();
+      },
+    },
+    ...CALLOUT_COMMANDS.map(({ title, description, tone, icon, keywords }) => ({
+      title,
+      description,
+      icon,
+      keywords,
+      command: ({ editor, range }: LoomaSlashCommandContext) => {
+        editor.chain().focus().deleteRange(range).setLoomaCallout(tone).run();
+      },
+    })),
+    {
+      title: "Inline code",
+      description: "Monospace code span",
+      icon: "code-xml",
+      keywords: ["code", "inline", "monospace"],
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).toggleCode().run();
+      },
+    },
+    {
+      title: "Code block",
+      description: "Formatted code block",
+      icon: "braces",
+      keywords: ["codeblock", "pre", "syntax", "snippet"],
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).toggleCodeBlock().run();
+      },
+    },
+    {
+      title: "Table",
+      description: "Insert a table",
+      icon: "table",
+      keywords: ["table", "grid", "rows", "columns"],
+      command: ({ editor, range }) => {
+        insertTableAtRange(editor, range);
+      },
+    },
+    {
+      title: "Divider",
+      description: "Horizontal rule",
+      icon: "minus",
+      keywords: ["divider", "hr", "rule", "line"],
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).setHorizontalRule().run();
+      },
+    },
+    {
+      title: "Image",
+      description: "Upload an image",
+      icon: "image",
+      keywords: ["image", "photo", "picture", "upload"],
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).run();
+        onOpenImagePicker?.();
+      },
+    },
+  ];
+}
+
+const EMPTY_STATE: LoomaSlashMenuSnapshot = {
+  active: false,
+  items: [],
+  selectedIndex: 0,
+  query: "",
+  rect: null,
+  select: null,
+};
+
+/**
+ * Framework-neutral slash-command extension used by the turnkey editor.
+ * Consumers embedding Looma into their own Tiptap instance can configure the
+ * same behavior and render any menu they choose from `onStateChange`.
+ *
+ * @ownership The extension owns query and keyboard-selection state; the caller
+ * owns the command inventory and every menu snapshot after publication.
+ * @lifecycle Snapshot callbacks are valid only for the suggestion range that
+ * produced them and are replaced on every update or exit.
+ */
+export const LoomaSlashCommand = Extension.create<LoomaSlashCommandOptions>({
+  name: "loomaSlashCommand",
+
+  addOptions() {
+    return {
+      commands: getDefaultSlashCommands(),
+    };
+  },
+
+  addProseMirrorPlugins() {
+    let selectedIndex = 0;
+    let currentProps: SuggestionProps<LoomaSlashCommand> | null = null;
+
+    const publish = (props: SuggestionProps<LoomaSlashCommand> | null) => {
+      if (!props) {
+        this.options.onStateChange?.({ ...EMPTY_STATE });
+        return;
+      }
+
+      this.options.onStateChange?.({
+        active: true,
+        items: props.items,
+        selectedIndex,
+        query: props.query,
+        rect: props.clientRect?.() ?? null,
+        select: (index) => {
+          const item = props.items[index];
+          if (item) props.command(item);
+        },
+      });
+    };
+
+    return [
+      Suggestion({
+        editor: this.editor,
+        char: "/",
+        allowSpaces: false,
+        startOfLine: false,
+        items: ({ query }) => {
+          const normalized = query.toLowerCase().trim();
+          const commands = this.options.commands.length > 0
+            ? this.options.commands
+            : getDefaultSlashCommands(this.options.onOpenImagePicker);
+          if (!normalized) return commands;
+          return commands.filter((command) =>
+            command.title.toLowerCase().includes(normalized)
+            || command.keywords.some((keyword) => keyword.includes(normalized))
+          );
+        },
+        command: ({ editor, range, props }) => {
+          props.command({ editor, range });
+        },
+        render: () => ({
+          onStart: (props) => {
+            currentProps = props;
+            selectedIndex = 0;
+            publish(props);
+          },
+          onUpdate: (props) => {
+            currentProps = props;
+            if (selectedIndex >= props.items.length) selectedIndex = 0;
+            publish(props);
+          },
+          onKeyDown: ({ event }: SuggestionKeyDownProps) => {
+            if (!currentProps) return false;
+            if (event.key === "ArrowDown") {
+              selectedIndex = (selectedIndex + 1) % Math.max(1, currentProps.items.length);
+              publish(currentProps);
+              return true;
+            }
+            if (event.key === "ArrowUp") {
+              selectedIndex = (selectedIndex - 1 + currentProps.items.length)
+                % Math.max(1, currentProps.items.length);
+              publish(currentProps);
+              return true;
+            }
+            if (event.key === "Enter") {
+              const item = currentProps.items[selectedIndex];
+              if (item) currentProps.command(item);
+              return true;
+            }
+            if (event.key === "Escape") {
+              currentProps = null;
+              publish(null);
+              return true;
+            }
+            return false;
+          },
+          onExit: () => {
+            currentProps = null;
+            publish(null);
+          },
+        }),
+      }),
+    ];
+  },
+});
+
+/**
+ * Creates an independently configured extension instance.
+ * Prefer this factory when callbacks or commands are editor-specific; the
+ * exported base extension remains a convenient zero-configuration preset.
+ *
+ * @ownership The caller owns supplied commands and callbacks. The returned
+ * extension captures them for one configuration without mutating the inventory.
+ */
+export function createLoomaSlashCommandExtension(
+  options: Partial<LoomaSlashCommandOptions> = {},
+) {
+  const onOpenImagePicker = options.onOpenImagePicker;
+  return LoomaSlashCommand.configure({
+    ...options,
+    commands: options.commands ?? getDefaultSlashCommands(onOpenImagePicker),
+  });
+}

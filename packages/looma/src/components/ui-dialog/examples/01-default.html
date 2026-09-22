@@ -1,0 +1,10 @@
+<!--
+title: Default
+description: Label becomes the header title beside a close button. Buttons in the actions slot sit right-aligned in the footer, secondary first and primary last; native command="close" closes the dialog.
+-->
+<ui-button id="open-confirmation">Open dialog</ui-button>
+<ui-dialog id="confirmation-dialog" for="open-confirmation" label="Publish changes?">
+  <p>Your edits will be visible to everyone with access to this project.</p>
+  <ui-button slot="actions" commandfor="confirmation-dialog" command="close">Cancel</ui-button>
+  <ui-button slot="actions" variant="solid" commandfor="confirmation-dialog" command="close">Publish</ui-button>
+</ui-dialog>

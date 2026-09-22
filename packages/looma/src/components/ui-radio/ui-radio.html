@@ -1,0 +1,57 @@
+<template component="ui-radio" controller="./ui-radio.js">
+  <defs>
+    <prop name="checked" type="boolean" default="false">Whether the radio is checked initially or when set externally.</prop>
+    <prop name="disabled" type="boolean" default="false">disabled token.</prop>
+    <prop name="name" type="string" default="">name token.</prop>
+    <prop name="required" type="boolean" default="false">required token.</prop>
+    <prop name="value" type="string" default="on">value token.</prop>
+    <state name="internalChecked" :value="false"></state>
+    <event name="change" type="object({ checked: boolean, value: string, trigger: keyboard | pointer | programmatic })"></event>
+  </defs>
+  <label>
+    <input type="radio" $ref="input" .checked="internalChecked" :disabled="disabled" :required="required" :value="value" :name="name">
+    <span class="label"><slot></slot></span>
+  </label>
+  <style>
+    :host {
+      display: inline-flex;
+      align-items: flex-start;
+      gap: var(--ui-radio-gap, var(--ui-space-2));
+      max-inline-size: 100%;
+      color: var(--ui-text-primary);
+      cursor: pointer;
+    }
+
+    .label {
+      min-inline-size: 0;
+      line-height: var(--ui-line-height-md);
+    }
+
+    input {
+      flex: 0 0 auto;
+      inline-size: var(--ui-radio-size, 1.125rem);
+      block-size: var(--ui-radio-size, 1.125rem);
+      margin: 0.125em 0 0;
+      accent-color: var(--ui-accent-solid);
+      cursor: pointer;
+    }
+
+    input:focus-visible {
+      outline: 2px solid var(--ui-focus-ring, var(--ui-accent-solid));
+      outline-offset: 2px;
+    }
+
+    :host-state([disabled]) {
+      color: var(--ui-text-muted);
+      cursor: not-allowed;
+    }
+    :host-state([disabled]) input {
+      cursor: not-allowed;
+    }
+
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
+</template>

@@ -9,12 +9,7 @@ function loadLoomaRuntime(): Promise<unknown> {
     import("@threadlabs/looma/tokens.css"),
     import("@threadlabs/looma/theme-light.css"),
     import("@threadlabs/looma/theme-dark.css"),
-    import("@threadlabs/looma/layout.css"),
-    import("@threadlabs/looma/styles.css"),
-    import("@threadlabs/looma/editor.css"),
-    import("@threadlabs/looma/layout"),
-    // Editor CSS is presentation-only; this entry point registers the editor controllers.
-    import("@threadlabs/looma/editor/ui"),
+    // Registers every component; each carries its own scoped styles.
     import("@threadlabs/looma")
   ]);
   return loomaRuntimePromise;

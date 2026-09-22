@@ -1,0 +1,59 @@
+<template component="ui-avatar" controller="./ui-avatar.js">
+  <defs>
+    <prop name="src" type="string">Image URL.</prop>
+    <prop name="alt" type="string" default="">alt token.</prop>
+    <prop name="name" type="string" default="">name token.</prop>
+    <prop name="fallback" type="string" default="">fallback token.</prop>
+    <state name="hasImage" :value="false"></state>
+    <state name="hasAuthoredImage" :value="false"></state>
+    <state name="initials" :value="'?'"></state>
+  </defs>
+  <span>
+    <slot></slot>
+    <img class="image" $ref="image" :src="src" alt="" aria-hidden="true" :hidden="hasAuthoredImage or not hasImage">
+    <span class="fallback" :aria-hidden="hasImage" :hidden="hasImage" $value="initials"></span>
+  </span>
+  <style>
+    :host {
+      display: inline-grid;
+      place-items: center;
+      overflow: hidden;
+      inline-size: 2.5rem;
+      block-size: 2.5rem;
+      border-radius: 999px;
+      border: 1px solid var(--ui-avatar-border, var(--ui-border-strong));
+      background: var(--ui-avatar-surface, var(--ui-accent-soft));
+      color: var(--ui-avatar-text, var(--ui-accent-solid));
+      font: inherit;
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .image,
+    :slotted(img) {
+      grid-area: 1 / 1;
+      inline-size: 100%;
+      block-size: 100%;
+      object-fit: cover;
+    }
+
+    .fallback {
+      grid-area: 1 / 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      inline-size: 100%;
+      block-size: 100%;
+    }
+
+    [hidden] {
+      display: none;
+    }
+
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
+</template>

@@ -1,0 +1,83 @@
+<template component="ui-floating-action-button">
+  <defs>
+    <prop name="disabled" type="boolean" default="false">disabled token.</prop>
+    <prop name="mobileOnly" type="boolean" default="false">mobileOnly token.</prop>
+    <prop name="label" type="string" default="">label token.</prop>
+  </defs>
+  <button type="button" :aria-label="label" :disabled="disabled"><slot></slot></button>
+  <style>
+    :host {
+      position: fixed;
+      inset-block-end: calc(var(--ui-floating-action-button-bottom, var(--ui-space-6, 1.5rem)) + env(safe-area-inset-bottom));
+      inset-inline-end: max(
+        var(--ui-floating-action-button-inline-end, var(--ui-space-5, 1.25rem)),
+        env(safe-area-inset-right)
+      );
+      inline-size: var(--ui-floating-action-button-size, 56px);
+      block-size: var(--ui-floating-action-button-size, 56px);
+      display: inline-flex;
+      z-index: var(--ui-floating-action-button-z-index, 100);
+    }
+
+    :host {
+      appearance: none;
+      border: none;
+      border-radius: 999px;
+      margin: 0;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--ui-floating-action-button-bg, var(--ui-accent-solid));
+      color: var(--ui-floating-action-button-color, var(--ui-text-on-accent));
+      box-shadow: var(
+        --ui-floating-action-button-shadow,
+        0 4px 12px color-mix(in srgb, var(--ui-accent-solid) 40%, transparent)
+      );
+      cursor: pointer;
+      transition:
+        background-color var(--ui-motion-fast, 160ms) var(--ui-motion-ease, ease),
+        transform var(--ui-motion-fast, 160ms) var(--ui-motion-ease, ease),
+        box-shadow var(--ui-motion-fast, 160ms) var(--ui-motion-ease, ease);
+    }
+
+    :host:hover:enabled {
+      background: var(--ui-floating-action-button-hover-bg, var(--ui-accent-hover));
+      box-shadow: var(
+        --ui-floating-action-button-hover-shadow,
+        0 6px 16px color-mix(in srgb, var(--ui-accent-solid) 50%, transparent)
+      );
+    }
+
+    :host:active:enabled {
+      transform: scale(var(--ui-floating-action-button-active-scale, 0.94));
+    }
+
+    :host:focus-visible {
+      outline: 2px solid var(--ui-focus-ring, currentColor);
+      outline-offset: 2px;
+    }
+
+    :host:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    :slotted(svg) {
+      inline-size: var(--ui-floating-action-button-icon-size, 24px);
+      block-size: var(--ui-floating-action-button-icon-size, 24px);
+      flex-shrink: 0;
+    }
+
+    @media (min-width: 768px) {
+      :host-state([mobileOnly]) {
+        display: none;
+      }
+    }
+
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
+</template>

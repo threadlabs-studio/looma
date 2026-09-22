@@ -1,0 +1,9 @@
+<!--
+title: Multiple messages
+description: The region stacks messages; each keeps its own round dismiss control.
+-->
+<ui-toast-region id="multiple-notifications"> </ui-toast-region>
+<ui-cluster gap="s">
+  <ui-button commandfor="multiple-notifications" command="--show-toast" value="Page published.">Show published</ui-button>
+  <ui-button commandfor="multiple-notifications" command="--show-toast" value="Link copied.">Show copied</ui-button>
+</ui-cluster>

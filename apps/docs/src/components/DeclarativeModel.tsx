@@ -10,7 +10,6 @@ const examples: FrameworkExamples = {
   "html-next": {
     language: "html",
     code: `<script type="module">
-  import "@threadlabs/looma/layout";
   import "@threadlabs/looma";
 </script>
 
