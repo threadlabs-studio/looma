@@ -88,14 +88,18 @@ Decisions and findings from side conversations, kept here so they are not lost.
   runtime). A labelled "— or —" divider is a different component: ARIA makes a separator's
   children presentational. Modern `<hr>` styling needs one reset (`margin: 0`, `border: 0`, one
   border side); the UA `margin: 0.5em auto` collapses it in a flex row.
-- **Mark component roots only.** HTML Next stamps `data-component` on every authored element to
-  enforce "styles match only what a definition authored, never nodes other scripts insert". That
-  protects nothing (any script can write the attribute too) and is stricter than Shadow DOM. The
-  only boundary that matters is consumer content, which slot ranges and `data-slotted` already mark.
-  Proposal: one root-only `data-component` (space-separated for delegated roots), region scoping
-  with native `@scope` (root to nested-root children and slotted content), and drop the authorship
-  rule, per-element stamping, and the fallback mapping. Update hydration and the rendered form,
-  which use `data-component-root`. Needs a proposal, prototype, and adversarial review.
+- **Style scoping model (agreed 2026-09-22).** Styles are scoped from `[data-component]` to
+  `[data-component]`: `@scope ([data-component~="x-chip"]) to ([data-component], [data-slotted])`.
+  `data-component` marks component roots only (space-separated for delegated roots); every other
+  element is unmarked. HTML Next's per-element stamping and its "authored, never inserted by other
+  code" rule go: they protect nothing (any script can write the attribute) and are stricter than
+  Shadow DOM. Verified in Chromium: the root and its markup are styled; a nested component's root
+  and insides are not (limits are exclusive), so a parent lays out children from its own element
+  (`gap`, grid) and a single child's box through the consumer's `class` on the invocation (needs
+  the dropped-`class` fix); projected consumer content needs the one element marker
+  (`data-slotted`, or `data-component-slot`) because slot ranges are comments CSS cannot see;
+  `:slotted()` remains the opt-in. Update hydration and the rendered form, which use
+  `data-component-root`. Needs the spec rewrite, a runtime prototype, and adversarial review.
 - **ARIA and native attributes are legitimate style hooks.** `hr[aria-orientation="vertical"]`
   selects on an attribute the element needs anyway; prefer these over `data-*` reflection.
 - **Attribute precedence.** The runtime writes a template's literal attributes after the
