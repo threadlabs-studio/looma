@@ -28,7 +28,7 @@ brand accent.
 
 CSS-only design tokens and light, dark, and high-contrast themes for Looma.
 
-Release status: Candidate `0.3.0`. The API may evolve before Stable.
+Release status: Candidate `0.3.1`. The API may evolve before Stable.
 
 ## Install
 
