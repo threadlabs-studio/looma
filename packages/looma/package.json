@@ -2,7 +2,7 @@
   "name": "@threadlabs/looma",
   "version": "0.4.0",
   "type": "module",
-  "description": "Looma declarative components, responsive layout primitives, a complete editor, and supported Vue adapters.",
+  "description": "Looma components as HTML, Vue, and plain DOM, with design tokens.",
   "license": "MIT",
   "author": "Threadlabs Studio",
   "repository": {
@@ -18,119 +18,64 @@
     "access": "public",
     "provenance": true
   },
-  "main": "dist/index.cjs",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
-    },
-    "./core": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
-    },
-    "./loader": {
-      "types": "./dist/loader.d.ts",
-      "import": "./dist/loader.js"
-    },
-    "./core/declarative": {
-      "types": "./dist/declarative.d.ts",
-      "import": "./dist/declarative.js",
-      "require": "./dist/declarative.cjs"
-    },
-    "./core/declarative-generated": {
-      "types": "./dist/declarative-generated.d.ts",
-      "import": "./dist/declarative-generated.js",
-      "require": "./dist/declarative-generated.cjs"
-    },
-    "./layout": {
-      "types": "./layout/index.d.ts",
-      "import": "./layout/index.js",
-      "require": "./layout/index.cjs"
-    },
-    "./editor": {
-      "types": "./editor/index.d.ts",
-      "import": "./editor/index.js"
-    },
-    "./editor/ui": {
-      "types": "./editor/ui.d.ts",
-      "import": "./editor/ui.js",
-      "default": "./editor/ui.js"
-    },
-    "./editor/extensions": {
-      "types": "./editor/extensions/index.d.ts",
-      "import": "./editor/extensions/index.js"
+      "import": "./dist/index.js"
     },
     "./vue": {
       "types": "./vue/index.d.ts",
       "import": "./vue/index.js"
     },
-    "./vue/editor": {
-      "types": "./vue/editor/index.d.ts",
-      "import": "./vue/editor/index.js"
-    },
+    "./vue.css": "./vue/components.css",
+    "./vue/*": "./vue/*",
+    "./vanilla": "./vanilla/index.js",
+    "./vanilla/*": "./vanilla/*",
+    "./components/*": "./components/*",
     "./tokens.css": "./tokens.css",
     "./theme-light.css": "./theme-light.css",
     "./theme-dark.css": "./theme-dark.css",
-    "./theme-high-contrast.css": "./theme-high-contrast.css",
-    "./layout.css": "./layout.css",
-    "./styles.css": "./styles.css",
-    "./editor.css": "./editor.css"
+    "./theme-high-contrast.css": "./theme-high-contrast.css"
   },
   "files": [
     "dist/",
-    "layout/",
-    "editor/",
     "vue/",
-    "tokens.css",
-    "theme-light.css",
-    "theme-dark.css",
-    "theme-high-contrast.css",
-    "layout.css",
-    "styles.css",
-    "editor.css",
+    "vanilla/",
+    "components/",
+    "styles/",
+    "*.css",
     "README.md",
     "LICENSE"
   ],
   "sideEffects": [
     "./dist/index.js",
-    "./layout/index.js",
-    "./editor/*.js",
-    "./vue/index.js",
-    "./vue/editor/*.js",
+    "./vanilla/*.js",
+    "./styles/*.css",
     "./*.css"
   ],
   "scripts": {
-    "build": "node ../../tools/scripts/build-facade.mjs",
-    "test": "node --test ../../tools/scripts/facade-*.test.mjs",
-    "typecheck": "node ../../tools/scripts/verify-facade.mjs --definition-only"
+    "build": "node build.mjs",
+    "test": "vitest run"
   },
   "dependencies": {
-    "lucide": "~0.554.0",
-    "lowlight": "^3.3.0"
+    "@nextwebwg/declarative-components": "file:../../../../nextwebwg/html-next/.release/nextwebwg-declarative-components-1.0.0-alpha.1.tgz"
   },
   "peerDependencies": {
-    "@tiptap/core": ">=2 <3",
-    "@tiptap/pm": ">=2 <3",
-    "@tiptap/vue-3": ">=2 <3",
     "vue": "^3.5.0"
   },
   "peerDependenciesMeta": {
-    "@tiptap/core": {
-      "optional": true
-    },
-    "@tiptap/pm": {
-      "optional": true
-    },
-    "@tiptap/vue-3": {
-      "optional": true
-    },
     "vue": {
       "optional": true
     }
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.9",
+    "vite": "^8.3.0",
+    "vue": "^3.5.43",
+    "vue-tsc": "^3.3.11",
+    "typescript": "~5.9.3",
+    "playwright": "~1.60.0",
+    "vitest": "^3.2.6"
   },
   "engines": {
     "node": ">=20"

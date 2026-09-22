@@ -1,3 +1,5 @@
+import { trackInputModality } from "../shared/input-modality.js";
+
 function triggerFor(event) {
   return event.detail === 0 ? "keyboard" : "pointer";
 }
@@ -10,6 +12,8 @@ function parentItem(element) {
 export default function controller(host) {
   const element = host.element;
   const { row, disclosure, children } = host.refs;
+  // Touch use enlarges rows and hides drag handles (see the template's styles).
+  trackInputModality(element.ownerDocument);
   const childItems = () => Array.from(children?.children ?? [])
     .filter((child) => child.matches?.('[data-component~="ui-tree-item"]'));
   let lastExternalExpanded = Boolean(host.state.expanded);
