@@ -2,7 +2,8 @@ import type { FrameworkExamples } from "../components/FrameworkMode";
 import type { ScenarioPropertyAssignment } from "../components/ComponentModeExample";
 
 /**
- * Component examples live in `apps/docs/examples/<tag>/NN-slug.html`, one real HTML file per example.
+ * Component examples live beside their component, one real HTML file per example:
+ * `packages/<package>/src/components/<tag>/examples/NN-slug.html`.
  * A leading comment carries the example's metadata:
  *
  *   <!--
@@ -46,8 +47,22 @@ declare global {
 }
 
 // Example sources are loaded as text (see the looma-examples plugin in docusaurus.config.ts).
-const sources = require.context("../../examples", true, /\.(html|vue|svelte|react\.tsx)$/);
-const behaviors = require.context("../../examples", true, /\.behavior\.ts$/);
+// One context per package: a context over all of packages/ would also crawl node_modules.
+const sourceContexts = [
+  require.context("../../../../packages/core/src/components", true, /\/examples\/[^/]+\.(html|vue|svelte|react\.tsx)$/),
+  require.context("../../../../packages/layout/src/components", true, /\/examples\/[^/]+\.(html|vue|svelte|react\.tsx)$/),
+  require.context("../../../../packages/editor/src/components", true, /\/examples\/[^/]+\.(html|vue|svelte|react\.tsx)$/),
+];
+const behaviorContexts = [
+  require.context("../../../../packages/core/src/components", true, /\/examples\/[^/]+\.behavior\.ts$/),
+  require.context("../../../../packages/layout/src/components", true, /\/examples\/[^/]+\.behavior\.ts$/),
+  require.context("../../../../packages/editor/src/components", true, /\/examples\/[^/]+\.behavior\.ts$/),
+];
+
+/** Every file in the contexts, by its path below `components/`. */
+function files(contexts: readonly WebpackContext[]): Map<string, unknown> {
+  return new Map(contexts.flatMap((context) => context.keys().map((key) => [key, context(key)] as const)));
+}
 
 const frameworkExtensions = { "html-next": ".snippet.html", vue: ".vue", react: ".react.tsx", svelte: ".svelte" } as const;
 const frameworkLanguages = { "html-next": "html", vue: "vue", react: "tsx", svelte: "svelte" } as const;
@@ -86,22 +101,21 @@ function bindings(markup: string, spec: string | undefined): { frameworkMarkup: 
 
 function load(): Map<string, ComponentExample[]> {
   const byTag = new Map<string, ComponentExample[]>();
-  const keys = sources.keys();
-  for (const key of keys.filter((path) => path.endsWith(".html")).sort()) {
+  const sources = files(sourceContexts);
+  const behaviors = files(behaviorContexts);
+  for (const key of Array.from(sources.keys()).filter((path) => path.endsWith(".html")).sort()) {
     // Example files are `NN-slug.html`; dotted names (`.snippet.html`) are siblings, not examples.
-    const [, tag, name] = /^\.\/([^/]+)\/([^/.]+)\.html$/.exec(key) ?? [];
+    const [, tag, name] = /^\.\/([^/]+)\/examples\/([^/.]+)\.html$/.exec(key) ?? [];
     if (!tag || !name) continue;
-    const { fields, markup } = metadata(text(sources(key)));
+    const { fields, markup } = metadata(text(sources.get(key)));
     const { frameworkMarkup, assignments } = bindings(markup, fields.get("bind"));
     const frameworks: Partial<Record<keyof typeof frameworkExtensions, { language: string; code: string }>> = {};
     for (const [framework, extension] of Object.entries(frameworkExtensions) as [keyof typeof frameworkExtensions, string][]) {
-      const sibling = `./${tag}/${name}${extension}`;
-      if (keys.includes(sibling)) frameworks[framework] = { language: frameworkLanguages[framework], code: text(sources(sibling)).trimEnd() };
+      const sibling = sources.get(`./${tag}/examples/${name}${extension}`);
+      if (sibling !== undefined) frameworks[framework] = { language: frameworkLanguages[framework], code: text(sibling).trimEnd() };
     }
-    const behaviorKey = `./${tag}/${name}.behavior.ts`;
-    const behavior = behaviors.keys().includes(behaviorKey)
-      ? (behaviors(behaviorKey) as { default: (root: HTMLElement) => () => void }).default
-      : undefined;
+    const behavior = (behaviors.get(`./${tag}/examples/${name}.behavior.ts`) as
+      { default: (root: HTMLElement) => () => void } | undefined)?.default;
     const example: ComponentExample = {
       tag,
       name,

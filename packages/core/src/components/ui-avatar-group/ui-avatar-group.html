@@ -1,0 +1,45 @@
+<template component="ui-avatar-group" controller="./ui-avatar-group.js" status="early" summary="Migrated Looma ui-avatar-group component.">
+  <defs>
+    <prop name="max" type="number" default="5">max token.</prop>
+    <prop name="label" type="string" default="People">label token.</prop>
+    <state name="overflowCount" :value="0"></state>
+  </defs>
+  <div role="group" :aria-label="label"><slot></slot></div>
+  <style>:scope {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  gap: 0;
+}
+
+/* Overlap and the separating shadow are applied by the controller: slotted avatars are nested
+ * component roots outside this style scope. */
+:slotted(*) {
+  margin-inline-start: -0.625rem;
+  flex-shrink: 0;
+  border-radius: 999px;
+}
+
+:slotted(*:first-child) {
+  margin-inline-start: 0;
+}
+
+.overflow {
+  margin-inline-start: -0.625rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--ui-border-strong);
+  background: var(--ui-surface-elevated);
+  color: var(--ui-text-primary);
+  box-shadow: var(--ui-avatar-group-overlap-shadow, -2px 0 5px -1px rgb(0 0 0 / 0.28)), 0 0 0 1px rgb(0 0 0 / 0.06);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+</style>
+</template>

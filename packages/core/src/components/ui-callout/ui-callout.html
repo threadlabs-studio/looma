@@ -1,0 +1,82 @@
+<template component="ui-callout" controller="./ui-callout.js" status="early" summary="Migrated Looma ui-callout component.">
+  <defs>
+    <prop name="tone" type="info | note | warning | success | danger" default="info">Semantic message tone.</prop>
+  </defs>
+  <div role="note" :data-tone="tone"><div class="callout__surface"><span class="icon" aria-hidden="true"></span><div class="content"><slot></slot></div></div></div>
+  <style>:scope {
+  --_callout-surface: var(--ui-info-soft);
+  --_callout-text: var(--ui-text-primary);
+  --_callout-border: var(--ui-info-solid);
+  --_callout-icon: var(--ui-info-solid);
+  --_callout-padding-block: var(--ui-space-2);
+  --_callout-padding-inline: var(--ui-space-3);
+  --_callout-icon-column: 1.125rem;
+  --_callout-gap: calc(var(--ui-space-2) * 0.75);
+  --_callout-icon-size: 1.125rem;
+  --_callout-border-width: 1px;
+  --_callout-leading-border-width: 4px;
+
+  display: block;
+  max-width: 100%;
+}
+
+.callout__surface {
+  display: grid;
+  grid-template-columns: var(--ui-callout-icon-column, var(--_callout-icon-column)) minmax(0, 1fr);
+  gap: var(--ui-callout-gap, var(--_callout-gap));
+  align-items: start;
+  padding: var(--ui-callout-padding-block, var(--_callout-padding-block)) var(--ui-callout-padding-inline, var(--_callout-padding-inline));
+  border: var(--ui-callout-border-width, var(--_callout-border-width)) solid color-mix(in srgb, var(--ui-callout-border, var(--_callout-border)) 35%, transparent);
+  border-inline-start: var(--ui-callout-leading-border-width, var(--_callout-leading-border-width)) solid var(--ui-callout-border, var(--_callout-border));
+  border-radius: var(--ui-radius-2);
+  background: var(--ui-callout-surface, var(--_callout-surface));
+  color: var(--ui-callout-text, var(--_callout-text));
+  font-family: var(--ui-font-family-sans);
+  font-size: var(--ui-font-size-sm);
+  font-weight: var(--ui-font-normal);
+  line-height: var(--ui-line-height-md);
+}
+
+/* One line box tall, so the icon centres on the first line of text. */
+.icon {
+  display: grid;
+  place-items: center;
+  inline-size: var(--ui-callout-icon-column, var(--_callout-icon-column));
+  block-size: 1lh;
+  color: var(--ui-callout-icon, var(--_callout-icon));
+}
+
+.icon svg {
+  inline-size: var(--ui-callout-icon-size, var(--_callout-icon-size));
+  block-size: var(--ui-callout-icon-size, var(--_callout-icon-size));
+}
+
+.content {
+  min-inline-size: 0;
+}
+
+:scope[data-tone='note'] {
+  --_callout-surface: var(--ui-surface-muted);
+  --_callout-border: var(--ui-border-strong);
+  --_callout-icon: var(--ui-text-secondary);
+}
+
+:scope[data-tone='warning'] {
+  --_callout-surface: var(--ui-warning-soft);
+  --_callout-border: var(--ui-warning-solid);
+  --_callout-icon: var(--ui-warning-solid);
+}
+
+:scope[data-tone='success'] {
+  --_callout-surface: var(--ui-success-soft);
+  --_callout-border: var(--ui-success-solid);
+  --_callout-icon: var(--ui-success-solid);
+}
+
+:scope[data-tone='danger'] {
+  --_callout-surface: var(--ui-danger-soft);
+  --_callout-border: var(--ui-danger-solid);
+  --_callout-icon: var(--ui-danger-solid);
+}
+</style>
+</template>

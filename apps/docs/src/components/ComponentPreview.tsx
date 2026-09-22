@@ -11,7 +11,7 @@ interface ComponentPreviewProps {
 }
 
 /**
- * Renders a component's examples from `apps/docs/examples/<tag>/`: each example's live markup, its
+ * Renders a component's examples from its `examples/` folder: each example's live markup, its
  * code in every authoring mode, and any demo behaviour it declares.
  */
 function ComponentPreviewClient({ component, compact = false }: ComponentPreviewProps): JSX.Element {

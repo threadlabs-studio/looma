@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { readRepositoryProjectionTags } from "./component-api-generator.mjs";
 
 import {
   parseDeclarativeContract,
@@ -9,7 +10,7 @@ import {
 
 test("derives the public contract from one maintained declarative definition", () => {
   const contract = parseDeclarativeContract(`
-    <link rel="component" href="./ui-child.html">
+    <link rel="component" href="../ui-child/ui-child.html">
     <template component="ui-example" summary="Direct native example.">
       <defs>
         <prop name="disabled" type="boolean" default="false">Whether editing is disabled.</prop>
@@ -119,18 +120,15 @@ test("redundant layout aliases stay compatible without remaining public componen
     new URL("../data/component-release-classification.json", import.meta.url),
     "utf8",
   )).tags;
-  const navigation = await readFile(
-    new URL("../../apps/docs/src/componentNavigation.ts", import.meta.url),
-    "utf8",
-  );
+  const { navigationTags } = await readRepositoryProjectionTags();
 
   assert.deepEqual(Object.keys(layout.contracts["ui-cluster"].props).sort(), ["align", "gap"]);
   assert.equal(classifications["ui-chip"].status, "deferred");
-  assert.doesNotMatch(navigation, /tag:\s*["']ui-chip["']/);
+  assert.ok(!navigationTags.includes("ui-chip"));
   assert.equal(classifications["ui-floating-action-button"].status, "deferred");
-  assert.doesNotMatch(navigation, /tag:\s*["']ui-floating-action-button["']/);
+  assert.ok(!navigationTags.includes("ui-floating-action-button"));
   assert.equal(classifications["ui-search-result-row"].navigationParent, "ui-search-shell");
-  assert.doesNotMatch(navigation, /tag:\s*["']ui-search-result-row["']/);
+  assert.ok(!navigationTags.includes("ui-search-result-row"));
 });
 
 test("deferred compatibility definitions stay out of every framework adapter surface", async () => {
@@ -173,11 +171,11 @@ test("primitive contracts do not own application policy or a second interaction 
   const groups = await readDeclarativeContractGroups();
   const contracts = Object.assign({}, ...groups.map((group) => group.contracts));
   const tooltipController = await readFile(
-    new URL("../../packages/core/src/declarative/components/controllers/ui-tooltip.js", import.meta.url),
+    new URL("../../packages/core/src/components/ui-tooltip/ui-tooltip.js", import.meta.url),
     "utf8",
   );
   const sidebarController = await readFile(
-    new URL("../../packages/layout/src/declarative/components/controllers/ui-sidebar.js", import.meta.url),
+    new URL("../../packages/layout/src/components/ui-sidebar/ui-sidebar.js", import.meta.url),
     "utf8",
   );
 
@@ -213,14 +211,14 @@ test("triggered overlays use one explicit for association contract", async () =>
   for (const tag of triggered) {
     assert.deepEqual(contracts[tag].props.for, { type: "string", default: "" });
     const definition = await readFile(
-      new URL(`../../packages/core/src/declarative/components/${tag}.html`, import.meta.url),
+      new URL(`../../packages/core/src/components/${tag}/${tag}.html`, import.meta.url),
       "utf8",
     );
     assert.doesNotMatch(definition, /<slot\s+name=["']trigger["']/);
   }
 
   const controllers = await Promise.all(triggered.map((tag) => readFile(
-    new URL(`../../packages/core/src/declarative/components/controllers/${tag}.js`, import.meta.url),
+    new URL(`../../packages/core/src/components/${tag}/${tag}.js`, import.meta.url),
     "utf8",
   )));
   assert.equal(controllers.some((source) => /\[slot=["']trigger["']\]|previousElementSibling/.test(source)), false);
