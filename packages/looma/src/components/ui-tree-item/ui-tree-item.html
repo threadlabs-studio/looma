@@ -1,7 +1,7 @@
 <template component="ui-tree-item" controller="./ui-tree-item.js">
   <defs>
     <prop name="itemId" type="string" default="">itemId token.</prop>
-    <prop name="label" type="string" default="">label token.</prop>
+    <prop name="label" type="string" default="">The item's accessible name, also shown as the row text unless the label slot supplies content.</prop>
     <prop name="dropDepth" type="number">dropDepth token.</prop>
     <prop name="subtreeDepth" type="number">subtreeDepth token.</prop>
     <prop name="container" type="boolean" default="false">container token.</prop>
@@ -23,7 +23,7 @@
       <button $if="sortable and not disabled" class="drag-handle" $ref="dragHandle" type="button" draggable="true" :aria-label="format('Drag %s to reorder', label)"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="5" r="1"></circle><circle cx="9" cy="19" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="5" r="1"></circle><circle cx="15" cy="19" r="1"></circle></svg></button>
       <button class="disclosure" $ref="disclosure" type="button" :disabled="disabled" :hidden="not isContainer"><span class="disclosure-icon" aria-hidden="true"></span></button>
       <span class="leading"><slot name="leading"></slot></span>
-      <span class="label" $value="label"></span>
+      <span class="label"><slot name="label"><template $value="label"></template></slot></span>
       <span class="actions"><slot name="actions"></slot></span>
       <span class="drop-indicator row-drop-indicator" aria-hidden="true"></span>
     </div>

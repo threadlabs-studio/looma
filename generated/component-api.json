@@ -7640,6 +7640,10 @@
           "description": "Named content for the leading region."
         },
         {
+          "name": "label",
+          "description": "Named content for the label region."
+        },
+        {
           "name": "actions",
           "description": "Named content for the actions region."
         },

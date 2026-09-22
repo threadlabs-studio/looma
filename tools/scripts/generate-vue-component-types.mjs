@@ -17,6 +17,10 @@ const eventTypes = {
   "edit-change": "VueAdapterEventMap['editChange']",
 };
 
+// Native form controls: v-model binds `modelValue`, updated from this native event, which handlers
+// receive as the event itself.
+const MODEL_EVENTS = { "ui-input": "input", "ui-textarea": "input", "ui-select": "change" };
+
 const callbackName = (event) => `on${event.replace(/(^|-)([a-z])/g, (_, __, character) => character.toUpperCase())}`;
 
 export async function generateVueComponentTypes() {
@@ -50,6 +54,13 @@ export async function generateVueComponentTypes() {
   for (const event of component.events ?? []) {
     const type = eventTypes[event.name];
     if (type) lines.push(`  ${JSON.stringify(callbackName(event.name))}?: ((detail: ${type}) => void) | undefined;`);
+  }
+  const modelEvent = MODEL_EVENTS[tag];
+  if (modelEvent) {
+    lines.push(`  "modelValue"?: string | undefined;`);
+    lines.push(`  "onUpdate:modelValue"?: ((value: string) => void) | undefined;`);
+    lines.push(`  "onInput"?: ((event: Event) => void) | undefined;`);
+    lines.push(`  "onChange"?: ((event: Event) => void) | undefined;`);
   }
   lines.push("}", "");
   }

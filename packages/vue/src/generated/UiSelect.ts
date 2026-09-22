@@ -1,5 +1,5 @@
 import { defineComponent as _defineComponent } from 'vue'
-import { mergeProps as _mergeProps, openBlock as _openBlock, createElementBlock as _createElementBlock } from "vue"
+import { renderSlot as _renderSlot, mergeProps as _mergeProps, openBlock as _openBlock, createElementBlock as _createElementBlock } from "vue"
 
 const _hoisted_1 = ["disabled", "required", "multiple"]
 
@@ -36,7 +36,7 @@ const explicitProps = (): Record<string, unknown> => {
   const valuevalue = props.value;
   return { "disabled": passed("disabled", "disabled") ? valuedisabled : undefined, "invalid": passed("invalid", "invalid") ? valueinvalid : undefined, "multiple": passed("multiple", "multiple") ? valuemultiple : undefined, "required": passed("required", "required") ? valuerequired : undefined, "value": passed("value", "value") ? valuevalue : undefined };
 };
-const definition = {...{"contract":{"tag":"ui-select","props":{"disabled":{"type":"boolean","required":false,"target":{"attribute":"disabled"},"default":false},"invalid":{"type":"boolean","required":false,"target":{"attribute":"invalid"},"default":false},"multiple":{"type":"boolean","required":false,"target":{"attribute":"multiple"},"default":false},"required":{"type":"boolean","required":false,"target":{"attribute":"required"},"default":false},"value":{"type":"string","required":false,"target":{"attribute":"value"}}}},"template":{"kind":"element","name":"select","attributes":[{"kind":"attribute","name":"disabled","expression":"disabled","expressionPlan":{"source":"disabled","ast":{"kind":"id","name":"disabled"},"dependencies":["disabled"]}},{"kind":"attribute","name":"required","expression":"required","expressionPlan":{"source":"required","ast":{"kind":"id","name":"required"},"dependencies":["required"]}},{"kind":"attribute","name":"multiple","expression":"multiple","expressionPlan":{"source":"multiple","ast":{"kind":"id","name":"multiple"},"dependencies":["multiple"]}}],"children":[]},"declarations":[],"root":{"kind":"native","element":"select","choices":["select"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
+const definition = {...{"contract":{"tag":"ui-select","props":{"disabled":{"type":"boolean","required":false,"target":{"attribute":"disabled"},"default":false},"invalid":{"type":"boolean","required":false,"target":{"attribute":"invalid"},"default":false},"multiple":{"type":"boolean","required":false,"target":{"attribute":"multiple"},"default":false},"required":{"type":"boolean","required":false,"target":{"attribute":"required"},"default":false},"value":{"type":"string","required":false,"target":{"attribute":"value"}}}},"template":{"kind":"element","name":"select","attributes":[{"kind":"attribute","name":"disabled","expression":"disabled","expressionPlan":{"source":"disabled","ast":{"kind":"id","name":"disabled"},"dependencies":["disabled"]}},{"kind":"attribute","name":"required","expression":"required","expressionPlan":{"source":"required","ast":{"kind":"id","name":"required"},"dependencies":["required"]}},{"kind":"attribute","name":"multiple","expression":"multiple","expressionPlan":{"source":"multiple","ast":{"kind":"id","name":"multiple"},"dependencies":["multiple"]}}],"children":[{"kind":"slot"}]},"declarations":[],"root":{"kind":"native","element":"select","choices":["select"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
 const root = ref<Element>();
 let detach: undefined | (() => void);
 onMounted(() => {
@@ -61,7 +61,9 @@ return (_ctx: any,_cache: any) => {
     multiple: props.multiple,
     ref_key: "root",
     ref: root
-  }), null, 16 /* FULL_PROPS */, _hoisted_1))
+  }), [
+    _renderSlot(_ctx.$slots, "default")
+  ], 16 /* FULL_PROPS */, _hoisted_1))
 }
 }
 

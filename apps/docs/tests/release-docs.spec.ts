@@ -5,7 +5,7 @@ import componentApi from "../../../generated/component-api.json";
 
 const releaseMode = process.env.LOOMA_DOCS_RELEASE_MODE ?? "preview";
 const expectedAnnouncement = releaseMode === "candidate"
-  ? "Release 1 Candidate 0.3.0 is available"
+  ? "Release 1 Candidate 0.4.0 is available"
   : "Release 1 Candidate documentation preview";
 
 const candidatePages = [
@@ -927,10 +927,6 @@ test("structured props appear as attributes in HTML and bindings in framework ex
   await expect(code).toContainText("Maya Chen");
   await modes.getByRole("button", { name: "Vue" }).click();
   await expect(code).toContainText(':items="mentionItems"');
-  await modes.getByRole("button", { name: "React" }).click();
-  await expect(code).toContainText("items={mentionItems}");
-  await modes.getByRole("button", { name: "Svelte" }).click();
-  await expect(code).toContainText("items={mentionItems}");
 });
 
 test("ui-cluster wraps and applies its declared spacing and alignment values", async ({ page }) => {
@@ -1220,16 +1216,14 @@ test("framework examples preserve typed inputs and authored semantics", async ({
 
   await modeGroup.getByRole("button", { name: "Vue" }).click();
   await expect(modeCode).toContainText('near-radius="8"');
-  await modeGroup.getByRole("button", { name: "React" }).click();
-  await expect(modeCode).toContainText("nearRadius={8}");
-  await modeGroup.getByRole("button", { name: "Svelte" }).click();
-  await expect(modeCode).toContainText('near-radius="8"');
+  // React support is in development and Svelte is not offered: only HTML Next and Vue examples.
+  await expect(modeGroup.getByRole("button")).toHaveText(["HTML Next", "Vue"]);
 
   await page.goto("components/ui-menu", { waitUntil: "domcontentloaded" });
   await expect(page.locator(".looma-component-mode-example .looma-mode-code").first()).toContainText("First item");
 
   await page.getByRole("group", { name: "Example framework" }).first()
-    .getByRole("button", { name: "Svelte" }).click();
+    .getByRole("button", { name: "Vue" }).click();
   await page.goto("components/ui-button", { waitUntil: "domcontentloaded" });
   await expect(page.locator(".looma-component-mode-example .looma-mode-code").first()).toContainText("Button");
 });

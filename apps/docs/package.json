@@ -1,7 +1,7 @@
 {
   "name": "@threadlabs/looma-docs",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.4.0",
   "scripts": {
     "dev": "docusaurus start --port 4173",
     "build": "BROWSERSLIST_IGNORE_OLD_DATA=true docusaurus build",
@@ -14,11 +14,9 @@
   },
   "dependencies": {
     "@docusaurus/core": "^3.9.2",
-    "@docusaurus/plugin-content-docs": "^3.9.2",
     "@docusaurus/preset-classic": "^3.9.2",
     "@mdx-js/react": "^3.1.0",
     "@threadlabs/looma": "workspace:*",
-    "prism-svelte": "^0.5.0",
     "prismjs": "^1.30.0"
   },
   "devDependencies": {

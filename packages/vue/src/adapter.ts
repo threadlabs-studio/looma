@@ -95,9 +95,15 @@ export function createAdapterComponent<Props extends object = Record<string, nev
   additionalEventBindings: readonly AdapterEventBinding[] = [],
   defaultHydrationMismatch: string = "class",
   propertyBindings: readonly string[] = [],
+  /** The native event that carries a form control's value, enabling `v-model` (`modelValue`). */
+  modelEvent?: "input" | "change",
 ): DefineComponent<Props> {
   const eventBindings = [...BASE_EVENT_BINDINGS, ...additionalEventBindings];
   const callbackAttrs = new Set(eventBindings.map(([, callbackAttr]) => callbackAttr));
+  if (modelEvent !== undefined) {
+    callbackAttrs.add("modelValue");
+    callbackAttrs.add("onUpdate:modelValue");
+  }
   const propertyAttrs = new Set(propertyBindings);
 
   return defineComponent({
@@ -112,10 +118,10 @@ export function createAdapterComponent<Props extends object = Record<string, nev
 
         const adapterAttrs = attrs as AdapterAttrs;
         const propertyTarget = element as unknown as Record<string, unknown>;
+        const modelled = modelEvent !== undefined && "modelValue" in adapterAttrs;
         for (const propertyName of propertyBindings) {
-          if (propertyTarget[propertyName] !== adapterAttrs[propertyName]) {
-            propertyTarget[propertyName] = adapterAttrs[propertyName];
-          }
+          const value = modelled && propertyName === "value" ? adapterAttrs.modelValue : adapterAttrs[propertyName];
+          if (propertyTarget[propertyName] !== value) propertyTarget[propertyName] = value;
         }
         const handlers: Array<[string, ((event: Event) => void) | undefined]> = eventBindings.map(
           ([eventName, callbackAttr]) => {
@@ -123,11 +129,18 @@ export function createAdapterComponent<Props extends object = Record<string, nev
             return [
               eventName,
               typeof callback === "function"
-                ? (event: Event) => callback((event as CustomEvent<unknown>).detail)
+                // Component events carry their detail; native events (input, change) are passed as is.
+                ? (event: Event) => callback(event instanceof CustomEvent ? event.detail : event)
                 : undefined,
             ];
           },
         );
+        const updateModel = adapterAttrs["onUpdate:modelValue"];
+        if (modelEvent !== undefined && typeof updateModel === "function") {
+          handlers.push([modelEvent, (event: Event) => {
+            if (event.target === element) updateModel((element as HTMLInputElement).value);
+          }]);
+        }
 
         for (const [eventName, handler] of handlers) {
           if (handler) element.addEventListener(eventName, handler);
@@ -146,6 +159,8 @@ export function createAdapterComponent<Props extends object = Record<string, nev
             ([name]) => !callbackAttrs.has(name),
           ),
         );
+        // v-model: the model is the control's value prop.
+        if (modelEvent !== undefined && "modelValue" in attrs) forwardedAttrs.value = attrs.modelValue;
 
         const componentSlots = Object.fromEntries(
           Object.entries(slots)
