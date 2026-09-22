@@ -39,7 +39,9 @@ for (const name of ["dist", "vanilla", "components", "styles"]) {
 const vueSource = join(assembled, "vue");
 const names = (await readdir(vueSource)).filter((file) => file.endsWith(".vue")).map((file) => file.slice(0, -4)).sort();
 await writeFile(join(vueSource, "index.ts"), names.map((name) =>
-  `export { default as ${name.replace(/^Ui(?=[A-Z])/, "")} } from "./${name}.vue";`).join("\n") + "\n");
+  `export { default as ${name.replace(/^Ui(?=[A-Z])/, "")} } from "./${name}.vue";`).join("\n") +
+  // Touch sizing keys on html[data-ui-input-modality]; applications start the tracker once.
+  `\nexport { trackInputModality } from "../components/shared/input-modality.js";\n`);
 
 // Vue, the editor's libraries, and the package's own entries resolve at the consumer.
 // The components' controllers ship once, under components/, and the Vue components import them
@@ -100,6 +102,7 @@ for (const name of names) {
   await cp(join(assembled, "types/vue", `${name}.vue.d.ts`), join(root, "vue", `${name}.d.ts`));
   await cp(join(vueSource, `${name}.vue`), join(root, "vue", `${name}.vue`));
 }
+await cp(join(assembled, "types/components/shared/input-modality.d.ts"), join(root, "components/shared/input-modality.d.ts"));
 const indexTypes = await readFile(join(assembled, "types/vue/index.d.ts"), "utf8");
 await writeFile(join(root, "vue/index.d.ts"), indexTypes.replaceAll('.vue";', '.js";'));
 

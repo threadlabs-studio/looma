@@ -114,6 +114,7 @@
       border-color: transparent;
       background: transparent;
       box-shadow: none;
+      color: var(--ui-button-ghost-text, var(--ui-action-secondary-text, var(--ui-text-primary)));
     }
 
     /* Tints derive from the text colour, not a surface token, so hover and press show on any background. */
@@ -141,9 +142,31 @@
         var(--ui-focus-halo);
     }
 
+    /* Disabled colours fall back to each variant's own; ghost and link take only the text colour. */
     :host:disabled {
-      opacity: 0.6;
+      opacity: var(--ui-button-disabled-opacity, 0.6);
       cursor: not-allowed;
+      border-color: var(--ui-button-disabled-border, var(--ui-button-border, var(--ui-border-strong)));
+      background-color: var(--ui-button-disabled-surface, var(--ui-button-surface, var(--ui-surface-elevated)));
+      color: var(--ui-button-disabled-text, var(--ui-button-text, var(--ui-action-secondary-text, var(--ui-text-primary))));
+    }
+
+    :host-state([variant="solid"]):disabled {
+      border-color: var(--ui-button-disabled-border, var(--ui-action-primary-surface, var(--ui-accent-solid)));
+      background-color: var(--ui-button-disabled-surface, var(--ui-action-primary-surface, var(--ui-accent-solid)));
+      color: var(--ui-button-disabled-text, var(--ui-action-primary-text, var(--ui-text-on-accent)));
+    }
+
+    :host-state([variant="danger"]):disabled {
+      border-color: var(--ui-button-disabled-border, var(--ui-danger-solid));
+      background-color: var(--ui-button-disabled-surface, var(--ui-danger-solid));
+      color: var(--ui-button-disabled-text, var(--ui-text-on-accent));
+    }
+
+    :host-state([variant="ghost"]):disabled {
+      border-color: transparent;
+      background-color: transparent;
+      color: var(--ui-button-disabled-text, var(--ui-button-ghost-text, var(--ui-action-secondary-text, var(--ui-text-primary))));
     }
 
     @media (pointer: coarse) {
@@ -181,6 +204,11 @@
     :host-state([variant="link"]):active:enabled {
       background: none;
       transform: none;
+    }
+
+    :host-state([variant="link"]):disabled {
+      background: none;
+      color: var(--ui-button-disabled-text, var(--ui-button-link-color, var(--ui-text-secondary)));
     }
 
     :host-state([variant="link"]):focus-visible {
