@@ -1,61 +1,28 @@
-let nextDisclosureId = 0;
+import { trackTrigger } from "../shared/trigger.js";
 
-function triggerFor(event) {
-  if (event instanceof KeyboardEvent) return "keyboard";
-  if (event instanceof MouseEvent || event instanceof PointerEvent) return "pointer";
-  return "programmatic";
-}
+let disclosures = 0;
 
-/**
- * Synchronizes the generated trigger and animated panel. The public `open`
- * value behaves like native initial state: later external changes are observed,
- * while clicks can update local state without an unchanged false value resetting it.
- */
+// `open` sets the disclosure initially and whenever it changes; the trigger toggles the state.
 export default function controller(host) {
-  const element = host.element;
-  const trigger = element.querySelector(".disclosure__trigger");
-  const panel = element.querySelector(".disclosure__panel");
-  const summary = trigger?.querySelector("span:first-child");
-  let lastExternalOpen = Boolean(host.state.open);
-  host.state.internalOpen = lastExternalOpen;
-
-  if (trigger && panel) {
-    if (!panel.id) panel.id = `disclosure-content-${++nextDisclosureId}`;
-    trigger.setAttribute("aria-controls", panel.id);
-    host.state.contentId = panel.id;
-  }
-
-  const apply = () => {
-    const externalOpen = Boolean(host.state.open);
-    if (externalOpen !== lastExternalOpen) {
-      lastExternalOpen = externalOpen;
-      host.state.internalOpen = externalOpen;
-    }
-    const open = Boolean(host.state.internalOpen);
-    element.setAttribute("data-state-open", String(open));
-    trigger?.setAttribute("aria-expanded", String(open));
-    panel?.setAttribute("aria-hidden", String(!open));
-    if (summary) summary.textContent = String(host.state.summary || "Details");
-    if (trigger instanceof HTMLButtonElement) trigger.disabled = Boolean(host.state.disabled);
-  };
-
-  const onClick = (event) => {
+  const [trigger, stopTracking] = trackTrigger(host);
+  host.state.contentId = `ui-disclosure-${++disclosures}`;
+  let external = host.state.open;
+  host.state.internalOpen = Boolean(external);
+  const stop = host.effect(() => {
+    if (host.state.open === external) return;
+    external = host.state.open;
+    host.state.internalOpen = Boolean(external);
+  });
+  const onClick = () => {
     if (host.state.disabled) return;
-    const next = !Boolean(host.state.internalOpen);
-    host.state.internalOpen = next;
-    apply();
-    host.dispatch(next ? "open" : "close", {
-      open: next,
-      reason: "action",
-      trigger: triggerFor(event)
-    });
+    const open = !host.state.internalOpen;
+    host.state.internalOpen = open;
+    host.dispatch(open ? "open" : "close", { open, reason: "action", trigger: trigger() });
   };
-
-  trigger?.addEventListener("click", onClick);
-  const stop = host.effect(apply);
-  apply();
+  host.refs.trigger.addEventListener("click", onClick);
   return () => {
-    stop?.();
-    trigger?.removeEventListener("click", onClick);
+    stop();
+    stopTracking();
+    host.refs.trigger.removeEventListener("click", onClick);
   };
 }

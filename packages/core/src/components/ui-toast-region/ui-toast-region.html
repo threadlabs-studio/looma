@@ -1,19 +1,33 @@
 <link rel="component" href="../ui-icon-button/ui-icon-button.html">
-<template component="ui-toast-region" controller="./ui-toast-region.js" status="early" summary="A live notification region with an imperative show method and owned dismissal controls.">
+<template component="ui-toast-region" controller="./ui-toast-region.js">
   <defs>
-    <prop name="open" type="boolean" default="false">Whether authored messages are initially visible.</prop>
+    <prop name="open" type="boolean" default="false">Whether the messages authored inside the region are visible.</prop>
     <prop name="message" type="string" default="Notification">Fallback message used by the declarative show command.</prop>
     <prop name="auto" type="boolean" default="false">Dismiss each message automatically after its duration. Timers pause while the pointer or focus is on a message.</prop>
     <prop name="duration" type="number" default="5000">Milliseconds an automatically dismissed message stays visible.</prop>
     <state name="internalOpen" :value="false"></state>
+    <state name="toasts" :value="[]"></state>
     <event name="close" type="object({ open: boolean, reason: action | timeout | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"></event>
     <event name="dismiss" type="object({ id: string, reason: action | timeout, trigger: keyboard | pointer | programmatic })"></event>
     <method name="show" export="show" returns="promise(string)"></method>
   </defs>
-  <div role="region" aria-label="Notifications" aria-live="polite" :data-state-open="internalOpen"><slot></slot></div>
-  <style>:scope {
+  <div role="region" aria-label="Notifications" aria-live="polite" popover="manual">
+    <slot></slot>
+    <div $each="toast of toasts" $key="toast.id" class="toast" class:closing="toast.closing" :id="toast.id" :role="toast.role">
+      <span class="message" $value="toast.message"></span>
+      <span class="dismiss" :data-toast="toast.id">
+        <ui-icon-button size="sm" variant="ghost" :round="true" :label="format('Dismiss %s', toast.message)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+        </ui-icon-button>
+      </span>
+    </div>
+  </div>
+  <style>
+:host {
   position: fixed;
   top: calc(var(--ui-space-4) + env(safe-area-inset-top));
+  right: auto;
+  bottom: auto;
   left: 50%;
   transform: translateX(-50%);
   z-index: 9999;
@@ -32,17 +46,12 @@
   pointer-events: none;
 }
 
-:scope[hidden] {
+:host:not(:popover-open) {
   display: none;
 }
 
-:scope[popover] {
-  right: auto;
-  bottom: auto;
-  margin: 0;
-}
-
-:scope > * {
+:host > .toast,
+:host > :slotted(*) {
   pointer-events: auto;
 }
 
@@ -61,7 +70,7 @@
 }
 
 /* Leaving slides on down and fades; the controller removes the toast when this ends. */
-.toast[data-state-closing] {
+.toast.closing {
   animation: ui-toast-exit var(--ui-toast-exit-duration, 0.22s) var(--ui-motion-ease, ease) both;
   pointer-events: none;
 }
@@ -77,32 +86,17 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .toast, .toast[data-state-closing] { animation: none; }
+  .toast, .toast.closing { animation: none; }
 }
 
-.toast__message { min-inline-size: 0; align-self: center; }
-.toast__dismiss {
-  position: relative;
+.message {
+  min-inline-size: 0;
+  align-self: center;
+}
+
+.dismiss {
   align-self: center;
   margin-inline-end: calc(var(--ui-space-2) * -1);
 }
-
-/* CSS-drawn X: template and runtime SVG do not yet lower in the SVG namespace. */
-.toast__dismiss::before,
-.toast__dismiss::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  inline-size: 0.75rem;
-  block-size: 1.5px;
-  border-radius: 1px;
-  background: currentColor;
-  transform: rotate(45deg);
-}
-
-.toast__dismiss::after {
-  transform: rotate(-45deg);
-}
-</style>
+  </style>
 </template>

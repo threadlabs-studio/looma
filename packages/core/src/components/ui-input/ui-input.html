@@ -1,4 +1,4 @@
-<template component="ui-input" controller="./ui-input.js" status="early" summary="A declarative text control that lowers directly to a native input.">
+<template component="ui-input" controller="./ui-input.js">
   <defs>
     <prop name="value" type="string">Current text value.</prop>
     <prop name="disabled" type="boolean" default="false">Prevents editing and form submission.</prop>
@@ -6,8 +6,8 @@
     <prop name="readonly" type="boolean" default="false">Allows selection without allowing edits.</prop>
     <prop name="required" type="boolean" default="false">Marks the control as required for form validation.</prop>
   </defs>
-  <input :value="value" :disabled="disabled" :readOnly="readonly" :required="required">
-  <style>:scope {
+  <input :value="value" :disabled="disabled" :readonly="readonly" :required="required" :aria-invalid="invalid">
+  <style>:host {
   box-sizing: border-box;
   display: inline-block;
   inline-size: 100%;
@@ -30,37 +30,37 @@
 }
 
 /* Tabbing into a field selects its text; tint that selection softly instead of the page highlight. */
-:scope::selection {
+:host::selection {
   background: color-mix(in srgb, var(--ui-accent-solid) 20%, transparent);
   color: inherit;
 }
 
-:scope::placeholder {
+:host::placeholder {
   color: var(--ui-control-placeholder, var(--ui-text-secondary));
   opacity: 1;
 }
 
-:scope:hover:not(:focus):not(:disabled) {
+:host:hover:not(:focus):not(:disabled) {
   border-color: var(--ui-control-border-hover, var(--ui-text-secondary));
 }
 
-:scope:focus-visible {
+:host:focus-visible {
   border-color: var(--ui-control-focus, var(--ui-accent-solid));
   outline: none;
   box-shadow: var(--ui-input-focus-shadow, var(--ui-control-inset), var(--ui-control-focus-halo-shadow));
 }
 
 /* The app's invalid flag, or the browser's own verdict once the user has left an invalid field. */
-:scope[aria-invalid='true'],
-:scope:user-invalid {
+:host[aria-invalid='true'],
+:host:user-invalid {
   border-color: var(--ui-danger-solid);
 }
 
-:scope:is([aria-invalid='true'], :user-invalid):focus-visible {
+:host:is([aria-invalid='true'], :user-invalid):focus-visible {
   box-shadow: var(--ui-control-inset), 0 0 0 3px color-mix(in srgb, var(--ui-danger-solid) 22%, transparent);
 }
 
-:scope:disabled {
+:host:disabled {
   background: var(--ui-control-surface-disabled, var(--ui-surface-muted));
   color: var(--ui-text-muted);
   box-shadow: none;

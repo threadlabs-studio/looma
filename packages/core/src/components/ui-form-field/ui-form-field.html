@@ -1,11 +1,11 @@
-<template component="ui-form-field" controller="./ui-form-field.js" status="early" summary="Migrated Looma ui-form-field component.">
+<template component="ui-form-field" controller="./ui-form-field.js">
   <defs>
     <prop name="invalid" type="boolean" default="false">invalid token.</prop>
     <prop name="disabled" type="boolean" default="false">disabled token.</prop>
     <prop name="required" type="boolean" default="false">required token.</prop>
   </defs>
-  <div :data-invalid="invalid" :data-disabled="disabled" :data-required="required"><slot name="label"></slot><slot></slot><slot name="help"></slot><slot name="error"></slot></div>
-  <style>:scope {
+  <div><slot name="label"></slot><slot></slot><slot name="help"></slot><slot name="error"></slot></div>
+  <style>:host {
   display: grid;
   gap: var(--ui-space-2);
   min-inline-size: 0;

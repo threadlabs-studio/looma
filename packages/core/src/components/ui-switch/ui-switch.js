@@ -1,49 +1,24 @@
+import { trackTrigger } from "../shared/trigger.js";
+
+// `checked` sets the control initially and whenever it changes; the user's changes update the state.
 export default function controller(host) {
-  const element = host.element;
-  const input = element.querySelector('input[type="checkbox"]');
-  let pendingTrigger = "programmatic";
-  let lastExternalChecked = Boolean(host.state.checked);
-  host.state.internalChecked = lastExternalChecked;
-  const apply = () => {
-    const externalChecked = Boolean(host.state.checked);
-    if (externalChecked !== lastExternalChecked) {
-      lastExternalChecked = externalChecked;
-      host.state.internalChecked = externalChecked;
-    }
-    const checked = Boolean(host.state.internalChecked);
-    const disabled = Boolean(host.state.disabled);
-    if (!input) return;
-    input.setAttribute("role", "switch");
-    input.setAttribute("aria-checked", String(checked));
-    input.checked = checked;
-    input.disabled = disabled;
-    input.required = Boolean(host.state.required);
-    input.value = String(host.state.value ?? "on");
+  const input = host.refs.input;
+  const [trigger, stopTracking] = trackTrigger(host);
+  let external = host.state.checked;
+  host.state.internalChecked = Boolean(external);
+  const stop = host.effect(() => {
+    if (host.state.checked === external) return;
+    external = host.state.checked;
+    host.state.internalChecked = Boolean(external);
+  });
+  const onChange = () => {
+    host.state.internalChecked = input.checked;
+    host.dispatch("change", { checked: input.checked, value: String(host.state.value ?? "on"), trigger: trigger() });
   };
-  const onChange = (event) => {
-    if (!input) return;
-    const checked = input.checked;
-    host.state.internalChecked = checked;
-    host.dispatch("change", {
-      checked,
-      value: String(host.state.value ?? "on"),
-      trigger: pendingTrigger,
-    });
-    pendingTrigger = "programmatic";
-  };
-  const onKeydown = (event) => {
-    if (event.key === " " || event.key === "Enter") pendingTrigger = "keyboard";
-  };
-  const onPointerdown = () => { pendingTrigger = "pointer"; };
-  input?.addEventListener("change", onChange);
-  input?.addEventListener("keydown", onKeydown);
-  input?.addEventListener("pointerdown", onPointerdown);
-  const stop = host.effect(apply);
-  apply();
+  input.addEventListener("change", onChange);
   return () => {
     stop();
-    input?.removeEventListener("change", onChange);
-    input?.removeEventListener("keydown", onKeydown);
-    input?.removeEventListener("pointerdown", onPointerdown);
+    stopTracking();
+    input.removeEventListener("change", onChange);
   };
 }

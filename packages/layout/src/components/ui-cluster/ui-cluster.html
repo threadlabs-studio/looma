@@ -1,7 +1,28 @@
-<template component="ui-cluster" status="early" summary="Wrapping row of items with consistent gaps, for tags, buttons, and other content that flows onto new lines.">
+<template component="ui-cluster">
   <defs>
     <prop name="gap" type="xs | s | m | l | xl">gap token.</prop>
     <prop name="align" type="start | center | end | stretch">align token.</prop>
   </defs>
   <div><slot></slot></div>
+  <style>
+:host {
+      --ui-layout-gap: var(--ui-space-3, 0.75rem);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--ui-layout-gap);
+      min-inline-size: 0;
+      max-inline-size: 100%;
+      margin: 0;
+    }
+
+    :host-state([gap="xs"]) { --ui-layout-gap: var(--ui-space-2, 0.5rem); }
+    :host-state([gap="s"]) { --ui-layout-gap: var(--ui-space-3, 0.75rem); }
+    :host-state([gap="m"]) { --ui-layout-gap: var(--ui-space-4, 1rem); }
+    :host-state([gap="l"]) { --ui-layout-gap: var(--ui-space-5, 1.5rem); }
+    :host-state([gap="xl"]) { --ui-layout-gap: var(--ui-space-6, 2rem); }
+    :host-state([align="start"]) { align-items: flex-start; }
+    :host-state([align="end"]) { align-items: flex-end; }
+    :host-state([align="stretch"]) { align-items: stretch; }
+  </style>
 </template>

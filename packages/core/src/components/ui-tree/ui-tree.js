@@ -6,19 +6,20 @@ function classify(rect, y, acceptsChildren) {
   return "inside";
 }
 
+// Items publish their identity and drag rules as data attributes for the tree.
 function itemId(item) {
-  return item.dataset.itemId || item.getAttribute("item-id") || "";
+  return item.dataset.itemId || "";
 }
 
 function parentItem(item, tree) {
-  const parent = item.parentElement?.closest('[data-component-root~="ui-tree-item"]') ?? null;
+  const parent = item.parentElement?.closest('[data-component~="ui-tree-item"]') ?? null;
   return parent && tree.contains(parent) ? parent : null;
 }
 
 export default function controller(host) {
   const element = host.element;
   const document = element.ownerDocument;
-  const itemSelector = '[data-component-root~="ui-tree-item"]';
+  const itemSelector = '[data-component~="ui-tree-item"]';
   let source = null;
   let target = null;
   let position = null;
@@ -31,16 +32,17 @@ export default function controller(host) {
 
   const allItems = () => Array.from(element.querySelectorAll(itemSelector));
   const visibleItems = () => allItems().filter((item) => item.getClientRects().length > 0 && item.getAttribute("aria-disabled") !== "true");
-  const rowFor = (item) => item.querySelector('[part="row"]');
-  const acceptsChildren = (item) => item.getAttribute("data-container") === "true" && item.getAttribute("aria-disabled") !== "true";
+  const rowFor = (item) => item.querySelector(":scope > .row");
+  // Only a branch has aria-expanded.
+  const acceptsChildren = (item) => item.hasAttribute("aria-expanded") && item.getAttribute("aria-disabled") !== "true";
   const metadata = (item) => ({
-    type: item.dataset.dragType || item.getAttribute("drag-type") || "item",
-    scope: item.dataset.dropScope || item.getAttribute("drop-scope") || "",
-    accepts: (item.dataset.accepts || item.getAttribute("accepts") || "").split(",").map((value) => value.trim()).filter(Boolean),
+    type: item.dataset.dragType || "item",
+    scope: item.dataset.dropScope || "",
+    accepts: (item.dataset.accepts || "").split(",").map((value) => value.trim()).filter(Boolean),
   });
-  const depth = (item) => Number(item.dataset.dropDepth ?? item.getAttribute("drop-depth")) || Number(item.getAttribute("aria-level")) || 1;
+  const depth = (item) => Number(item.dataset.dropDepth) || Number(item.getAttribute("aria-level")) || 1;
   const subtreeDepth = (item) => {
-    const override = item.dataset.subtreeDepth ?? item.getAttribute("subtree-depth");
+    const override = item.dataset.subtreeDepth;
     if (override != null) return Math.max(0, Math.floor(Number(override)));
     return Array.from(item.querySelectorAll(itemSelector)).reduce((deepest, descendant) => {
       let nesting = 0;
@@ -146,8 +148,9 @@ export default function controller(host) {
   };
   const onDragStart = (event) => {
     const item = itemFromEvent(event);
-    const fromHandle = event.composedPath().some((node) => node instanceof HTMLElement && node.getAttribute("part") === "drag-handle");
-    if (!item || item.getAttribute("data-sortable") !== "true" || item.getAttribute("aria-disabled") === "true" || !fromHandle) {
+    // An item renders its drag handle only while it is sortable and enabled.
+    const fromHandle = event.composedPath().some((node) => node instanceof HTMLElement && node.classList.contains("drag-handle"));
+    if (!item || !fromHandle) {
       event.preventDefault();
       return;
     }

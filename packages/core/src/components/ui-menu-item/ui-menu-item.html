@@ -1,40 +1,34 @@
-<template component="ui-menu-item" status="early" summary="Migrated Looma ui-menu-item component.">
+<template component="ui-menu-item">
   <defs>
     <prop name="disabled" type="boolean" default="false">disabled token.</prop>
     <prop name="value" type="string" default="">value token.</prop>
   </defs>
-  <div role="menuitem" :data-value="value"><span class="menu-item__surface"><slot></slot></span></div>
-  <style>:scope {
-  display: block;
-  width: 100%;
-}
-
-.menu-item__surface {
+  <div role="menuitem" tabindex="-1" :aria-disabled="disabled" :data-value="value"><slot></slot></div>
+  <style>
+:host {
   display: block;
   box-sizing: border-box;
   width: 100%;
   padding: var(--ui-space-2) var(--ui-space-3);
   text-align: left;
-  background: none;
-  border: none;
   border-radius: var(--ui-radius-2);
   color: var(--ui-text-primary);
   font-size: var(--ui-font-size-md);
   font-weight: var(--ui-font-medium, 500);
   cursor: pointer;
+  outline: none;
   transition:
     background-color var(--ui-motion-fast) var(--ui-motion-ease),
     color var(--ui-motion-fast) var(--ui-motion-ease);
 }
 
-:scope:hover:not([aria-disabled='true']):not([data-disabled='true']) .menu-item__surface {
+:host:is(:hover, :focus-visible):not([aria-disabled='true']) {
   background: var(--ui-surface-subtle);
 }
 
-:scope[aria-disabled='true'] .menu-item__surface,
-:scope[data-disabled='true'] .menu-item__surface {
+:host[aria-disabled='true'] {
   opacity: 0.6;
   cursor: not-allowed;
 }
-</style>
+  </style>
 </template>

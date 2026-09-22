@@ -1,4 +1,4 @@
-<template component="ui-checkbox" controller="./ui-checkbox.js" status="early" summary="Migrated Looma ui-checkbox component.">
+<template component="ui-checkbox" controller="./ui-checkbox.js">
   <defs>
     <prop name="checked" type="boolean" default="false">Whether the checkbox is checked initially or when set externally.</prop>
     <prop name="disabled" type="boolean" default="false">disabled token.</prop>
@@ -8,21 +8,22 @@
     <state name="internalChecked" :value="false"></state>
     <event name="change" type="object({ checked: boolean, value: string, trigger: keyboard | pointer | programmatic })"></event>
   </defs>
-  <span :data-disabled="disabled"><label class="control"><input type="checkbox" :checked="internalChecked" :required="required" :value="value"></input><span class="label"><slot></slot></span></label></span>
-  <style>:scope { display: inline-block; color: var(--ui-text-primary); }
-
-.control {
+  <label>
+    <input type="checkbox" $ref="input" .checked="internalChecked" .indeterminate="indeterminate" :disabled="disabled" :required="required" :value="value">
+    <span class="label"><slot></slot></span>
+  </label>
+  <style>:host {
   display: inline-flex;
   align-items: flex-start;
   gap: var(--ui-checkbox-gap, var(--ui-space-2));
   max-inline-size: 100%;
-  color: inherit;
+  color: var(--ui-text-primary);
   cursor: pointer;
 }
 
 .label { min-inline-size: 0; line-height: var(--ui-line-height-md); }
 
-input[type='checkbox'] {
+input {
   appearance: none;
   -webkit-appearance: none;
   position: relative;
@@ -41,21 +42,21 @@ input[type='checkbox'] {
     box-shadow var(--ui-motion-fast) var(--ui-motion-ease);
 }
 
-input[type='checkbox']::after {
+input::after {
   content: '';
   position: absolute;
   opacity: 0;
 }
 
-input[type='checkbox']:checked,
-input[type='checkbox']:indeterminate {
+input:checked,
+input:indeterminate {
   border-color: var(--ui-accent-solid);
   background: var(--ui-accent-solid);
   box-shadow: inset 0 1px 2px color-mix(in srgb, #000 16%, transparent);
 }
 
 /* Centre the tick's box, then lift it: a rotated L's ink sits ~0.11rem below its box centre. */
-input[type='checkbox']:checked::after {
+input:checked::after {
   inset: 0;
   margin: auto;
   inline-size: 0.32rem;
@@ -66,7 +67,7 @@ input[type='checkbox']:checked::after {
   transform: translateY(-0.11rem) rotate(45deg);
 }
 
-input[type='checkbox']:indeterminate::after {
+input:indeterminate::after {
   inset: 50% 0.23rem auto;
   block-size: 0.125rem;
   border-radius: var(--ui-radius-round);
@@ -75,15 +76,15 @@ input[type='checkbox']:indeterminate::after {
   transform: translateY(-50%);
 }
 
-input[type='checkbox']:hover:enabled { border-color: var(--ui-accent-solid); }
+input:hover:enabled { border-color: var(--ui-accent-solid); }
 
-input[type='checkbox']:focus-visible {
+input:focus-visible {
   outline: 2px solid var(--ui-focus-ring, var(--ui-accent-solid));
   outline-offset: 2px;
 }
 
-:scope[data-disabled='true'] .control { color: var(--ui-text-muted); cursor: not-allowed; }
-:scope[data-disabled='true'] input {
+:host-state([disabled]) { color: var(--ui-text-muted); cursor: not-allowed; }
+:host-state([disabled]) input {
   border-color: var(--ui-border-default);
   background: var(--ui-control-surface-disabled, var(--ui-surface-muted));
   cursor: not-allowed;

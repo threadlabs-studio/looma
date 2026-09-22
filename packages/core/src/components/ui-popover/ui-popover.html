@@ -1,4 +1,4 @@
-<template component="ui-popover" controller="./ui-popover.js" status="early" summary="Displays interactive content beside an explicitly associated trigger without making the rest of the page inert.">
+<template component="ui-popover" controller="./ui-popover.js">
   <defs>
     <prop name="open" type="boolean" default="false">Whether the popover is open initially or when set externally.</prop>
     <prop name="for" type="string" default="">ID of the control that toggles and anchors the popover.</prop>
@@ -7,15 +7,14 @@
     <event name="open" type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"></event>
     <event name="close" type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"></event>
   </defs>
-  <span :data-state-open="internalOpen"><div class="popover__surface"><slot></slot></div></span>
-  <style>:scope {
-  --_popover-viewport-gap: var(--ui-space-2, 0.5rem);
+  <span><div class="surface"><slot></slot></div></span>
+  <style>:host {
   box-sizing: border-box;
   max-inline-size: min(
     20rem,
-    calc(100vw - (var(--ui-popover-viewport-gap, var(--_popover-viewport-gap)) * 2))
+    calc(100vw - (var(--ui-popover-viewport-gap, var(--ui-space-2, 0.5rem)) * 2))
   );
-  max-block-size: calc(100dvh - (var(--ui-popover-viewport-gap, var(--_popover-viewport-gap)) * 2));
+  max-block-size: calc(100dvh - (var(--ui-popover-viewport-gap, var(--ui-space-2, 0.5rem)) * 2));
   overflow: visible;
   padding: 0;
   border: 0;
@@ -25,7 +24,7 @@
   box-shadow: none;
 }
 
-.popover__surface {
+.surface {
   box-sizing: border-box;
   max-inline-size: inherit;
   max-block-size: inherit;
@@ -37,11 +36,11 @@
   box-shadow: var(--ui-elevation-overlay, var(--ui-shadow-lg));
 }
 
-:scope:is(:not([data-state-open]), [data-state-open="false"]) {
+:host:not(:host-state([internalOpen])) {
   display: none;
 }
 
-:scope[popover] {
+:host[popover] {
   position: fixed;
   inset: auto;
   margin: 0;
@@ -54,18 +53,18 @@
     overlay var(--ui-motion-fast) allow-discrete;
 }
 
-:scope[popover]:popover-open { opacity: 1; transform: translateY(0) scale(1); }
+:host[popover]:popover-open { opacity: 1; transform: translateY(0) scale(1); }
 
 @starting-style {
-  :scope[popover]:popover-open { opacity: 0; transform: translateY(-4px) scale(0.99); }
+  :host[popover]:popover-open { opacity: 0; transform: translateY(-4px) scale(0.99); }
 }
 
-:scope[hidden] {
-  display: none !important;
+:host[hidden] {
+  display: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :scope[popover] { transition: none; }
+  :host[popover] { transition: none; }
 }
 </style>
 </template>

@@ -1,53 +1,27 @@
-// HTML Next controller for ui-avatar-group, ported from the Stencil component. Hides avatars beyond
-// `max` and renders the "+N" overflow badge; recomputes on prop change and when children change.
-
+// Hides avatars beyond `max`, counts them into the "+N" badge, and overlaps the rest. Projected
+// avatars are component roots, which this component's styles do not reach, so the overlap is inline.
 export default function controller(host) {
-  const el = host.element;
-  const limit = () => {
-    const m = Number(host.state.max);
-    return Number.isFinite(m) ? Math.max(0, Math.floor(m)) : 0;
-  };
-
+  const element = host.element;
   const update = () => {
-    // Nested components may be lowered between observer turns. Querying the
-    // current direct element children avoids retaining a transient collection
-    // while those invocation nodes are replaced with their native roots.
-    const children = Array.from(
-      el.querySelectorAll(":scope > :not([data-ui-avatar-group-overflow])")
-    );
-    const visible = limit();
-    // inline style wins over the child component's own display rule (the original used !important)
-    children.forEach((child, index) => {
-      child.style.display = index >= visible ? "none" : "";
-      child.style.marginInlineStart = index === 0 ? "0px" : "-0.625rem";
-      child.style.borderRadius = "999px";
+    const max = Number(host.state.max);
+    const visible = Number.isFinite(max) ? Math.max(0, Math.floor(max)) : 0;
+    const avatars = Array.from(element.children).filter((child) => child !== host.refs.overflow);
+    avatars.forEach((avatar, index) => {
+      avatar.style.display = index >= visible ? "none" : "";
+      avatar.style.marginInlineStart = index === 0 ? "0px" : "-0.625rem";
+      avatar.style.borderRadius = "999px";
       // Later avatars cast a soft shadow back onto the one they overlap; the first overlaps nothing.
-      child.style.boxShadow = index === 0
+      avatar.style.boxShadow = index === 0
         ? "0 0 0 1px rgb(0 0 0 / 0.06)"
         : "var(--ui-avatar-group-overlap-shadow, -2px 0 5px -1px rgb(0 0 0 / 0.28)), 0 0 0 1px rgb(0 0 0 / 0.06)";
     });
-    const overflow = children.length > visible ? children.length - visible : 0;
-
-    let badge = el.querySelector("[data-ui-avatar-group-overflow]");
-    if (overflow > 0) {
-      if (badge === null) {
-        badge = el.ownerDocument.createElement("span");
-        badge.className = "overflow";
-        badge.setAttribute("role", "img");
-        badge.setAttribute("data-ui-avatar-group-overflow", "");
-        el.appendChild(badge);
-      }
-      badge.textContent = `+${overflow}`;
-      badge.setAttribute("aria-label", `${overflow} more ${overflow === 1 ? "person" : "people"}`);
-    } else if (badge !== null) {
-      badge.remove();
-    }
+    host.state.overflowCount = Math.max(0, avatars.length - visible);
   };
-
   const observer = new MutationObserver(update);
-  observer.observe(el, { childList: true });
+  observer.observe(element, { childList: true });
   const stop = host.effect(update);
-  update();
-
-  return () => { stop?.(); observer.disconnect(); };
+  return () => {
+    stop();
+    observer.disconnect();
+  };
 }

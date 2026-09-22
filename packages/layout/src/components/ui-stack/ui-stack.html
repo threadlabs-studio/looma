@@ -1,8 +1,31 @@
-<template component="ui-stack" status="early" summary="Looma ui-stack layout primitive.">
+<template component="ui-stack">
   <defs>
     <prop name="gap" type="xs | s | m | l | xl">gap token.</prop>
     <prop name="align" type="start | center | end | stretch">align token.</prop>
     <prop name="justify" type="start | center | end | between">justify token.</prop>
   </defs>
   <div><slot></slot></div>
+  <style>
+:host {
+      --ui-layout-gap: var(--ui-space-4, 1rem);
+      display: flex;
+      flex-direction: column;
+      gap: var(--ui-layout-gap);
+      min-inline-size: 0;
+      max-inline-size: 100%;
+      margin: 0;
+    }
+
+    :host-state([gap="xs"]) { --ui-layout-gap: var(--ui-space-2, 0.5rem); }
+    :host-state([gap="s"]) { --ui-layout-gap: var(--ui-space-3, 0.75rem); }
+    :host-state([gap="m"]) { --ui-layout-gap: var(--ui-space-4, 1rem); }
+    :host-state([gap="l"]) { --ui-layout-gap: var(--ui-space-5, 1.5rem); }
+    :host-state([gap="xl"]) { --ui-layout-gap: var(--ui-space-6, 2rem); }
+    :host-state([align="start"]) { align-items: flex-start; }
+    :host-state([align="center"]) { align-items: center; }
+    :host-state([align="end"]) { align-items: flex-end; }
+    :host-state([justify="center"]) { justify-content: center; }
+    :host-state([justify="end"]) { justify-content: flex-end; }
+    :host-state([justify="between"]) { justify-content: space-between; }
+  </style>
 </template>

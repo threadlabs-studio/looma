@@ -1,18 +1,19 @@
-<template component="ui-avatar" controller="./ui-avatar.js" status="early" summary="Migrated Looma ui-avatar component.">
+<template component="ui-avatar" controller="./ui-avatar.js">
   <defs>
-    <prop name="src" type="string" default="">src token.</prop>
+    <prop name="src" type="string">Image URL.</prop>
     <prop name="alt" type="string" default="">alt token.</prop>
     <prop name="name" type="string" default="">name token.</prop>
     <prop name="fallback" type="string" default="">fallback token.</prop>
     <state name="hasImage" :value="false"></state>
     <state name="hasAuthoredImage" :value="false"></state>
+    <state name="initials" :value="'?'"></state>
   </defs>
-  <span :data-has-image="hasImage"><div class="avatar"><slot></slot><img class="avatar__managed-image" :src="src" alt="" aria-hidden="true"></img><span class="fallback"></span></div></span>
-  <style>:scope {
-  display: inline-flex;
-}
-
-.avatar {
+  <span>
+    <slot></slot>
+    <img class="image" $ref="image" :src="src" alt="" aria-hidden="true" :hidden="hasAuthoredImage or not hasImage">
+    <span class="fallback" :aria-hidden="hasImage" :hidden="hasImage" $value="initials"></span>
+  </span>
+  <style>:host {
   display: inline-grid;
   place-items: center;
   overflow: hidden;
@@ -28,7 +29,7 @@
   text-transform: uppercase;
 }
 
-.avatar__managed-image,
+.image,
 :slotted(img) {
   grid-area: 1 / 1;
   inline-size: 100%;
@@ -36,13 +37,17 @@
   object-fit: cover;
 }
 
-.avatar .fallback {
+.fallback {
   grid-area: 1 / 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   inline-size: 100%;
   block-size: 100%;
+}
+
+[hidden] {
+  display: none;
 }
 </style>
 </template>

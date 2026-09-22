@@ -1,11 +1,11 @@
-<template component="ui-floating-action-button" status="deprecated" summary="Compatibility alias retained for existing consumers; new code should compose ui-button with application-owned positioning.">
+<template component="ui-floating-action-button">
   <defs>
     <prop name="disabled" type="boolean" default="false">disabled token.</prop>
     <prop name="mobileOnly" type="boolean" default="false">mobileOnly token.</prop>
     <prop name="label" type="string" default="">label token.</prop>
   </defs>
-  <button type="button" :aria-label="label" :disabled="disabled" :data-mobile-only="mobileOnly"><slot></slot></button>
-  <style>:scope {
+  <button type="button" :aria-label="label" :disabled="disabled"><slot></slot></button>
+  <style>:host {
   position: fixed;
   inset-block-end: calc(
     var(--ui-floating-action-button-bottom, var(--ui-space-6, 1.5rem)) + env(safe-area-inset-bottom)
@@ -20,10 +20,8 @@
   z-index: var(--ui-floating-action-button-z-index, 100);
 }
 
-:scope {
+:host {
   appearance: none;
-  inline-size: 100%;
-  block-size: 100%;
   border: none;
   border-radius: 999px;
   margin: 0;
@@ -44,7 +42,7 @@
     box-shadow var(--ui-motion-fast, 160ms) var(--ui-motion-ease, ease);
 }
 
-:scope:hover:enabled {
+:host:hover:enabled {
   background: var(--ui-floating-action-button-hover-bg, var(--ui-accent-hover));
   box-shadow: var(
     --ui-floating-action-button-hover-shadow,
@@ -52,16 +50,16 @@
   );
 }
 
-:scope:active:enabled {
+:host:active:enabled {
   transform: scale(var(--ui-floating-action-button-active-scale, 0.94));
 }
 
-:scope:focus-visible {
+:host:focus-visible {
   outline: 2px solid var(--ui-focus-ring, currentColor);
   outline-offset: 2px;
 }
 
-:scope:disabled {
+:host:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
@@ -73,7 +71,7 @@
 }
 
 @media (min-width: 768px) {
-  :scope[data-mobile-only='true'] {
+  :host-state([mobileOnly]) {
     display: none;
   }
 }

@@ -1,35 +1,38 @@
-const instances = new WeakMap();
-let nextToastId = 0;
+import { trackTrigger } from "../shared/trigger.js";
 
-function triggerFor(event) {
-  if (event instanceof KeyboardEvent) return "keyboard";
-  if (event instanceof MouseEvent || event instanceof PointerEvent) return "pointer";
-  return "programmatic";
-}
+const instances = new WeakMap();
+let toastIds = 0;
 
 export async function show(host, message, options = {}) {
   return instances.get(host.element)?.show(message, options);
 }
 
-/** Manages toast presentation and dismissal without exposing internal selectors to authors. */
+/**
+ * Shows the region while `open` is set and it has authored messages, or while any message added
+ * with show() or the --show-toast command remains. Added messages dismiss by action or timeout.
+ */
 export default function controller(host) {
   const element = host.element;
-  let lastExternalOpen = Boolean(host.state.open);
-  host.state.internalOpen = lastExternalOpen;
-  element.setAttribute("popover", "manual");
-  element.dataset.uiPositioning = "viewport";
+  const [trigger, stopTracking] = trackTrigger(host);
+  let external = host.state.open;
+  host.state.internalOpen = Boolean(external);
 
-  // Toasts still playing their exit animation no longer count.
-  const toasts = () => Array.from(element.children).filter((child) =>
-    child.classList.contains("toast") && !child.hasAttribute("data-state-closing"));
-  // Auto-dismiss timers: each toast keeps its remaining time so hover/focus can pause and resume it.
+  const toasts = () => host.state.toasts ?? [];
+  const authored = () => Array.from(element.children).some((child) => !child.classList.contains("toast"));
+  const sync = () => {
+    const visible = (host.state.internalOpen && authored()) || toasts().length > 0;
+    if (visible && !element.matches(":popover-open")) element.showPopover();
+    else if (!visible && element.matches(":popover-open")) element.hidePopover();
+  };
+
+  // Auto-dismiss timers: each message keeps its remaining time so hover and focus pause and resume it.
   const timers = new Map();
   let paused = false;
-  const startTimer = (toast) => {
-    const timer = timers.get(toast);
+  const startTimer = (id) => {
+    const timer = timers.get(id);
     if (!timer || paused) return;
     timer.started = Date.now();
-    timer.handle = setTimeout(() => dismissToast(toast, "timeout", "programmatic"), timer.remaining);
+    timer.handle = setTimeout(() => dismiss(id, "timeout", "programmatic"), timer.remaining);
   };
   const pauseTimers = () => {
     if (paused) return;
@@ -43,87 +46,52 @@ export default function controller(host) {
   const resumeTimers = () => setTimeout(() => {
     if (!paused || element.matches(":hover, :focus-within")) return;
     paused = false;
-    for (const toast of timers.keys()) startTimer(toast);
+    for (const id of timers.keys()) startTimer(id);
   }, 0);
-  const dismissToast = (toast, reason, trigger) => {
-    clearTimeout(timers.get(toast)?.handle);
-    timers.delete(toast);
-    if (!toast.isConnected || toast.hasAttribute("data-state-closing")) return;
-    const id = toast.id;
-    // Play the exit animation, then remove. Reduced motion (no animation) removes at once; the timeout
-    // guards against a missed animationend.
-    toast.setAttribute("data-state-closing", "");
-    const remove = () => { if (toast.isConnected) { toast.remove(); sync(); } };
-    if (getComputedStyle(toast).animationName === "none") remove();
+
+  const remove = (id) => {
+    host.state.toasts = toasts().filter((toast) => toast.id !== id);
+  };
+  const dismiss = (id, reason, how) => {
+    clearTimeout(timers.get(id)?.handle);
+    timers.delete(id);
+    const toast = toasts().find((candidate) => candidate.id === id);
+    if (!toast || toast.closing) return;
+    host.state.toasts = toasts().map((candidate) => candidate.id === id ? { ...candidate, closing: true } : candidate);
+    host.dispatch("dismiss", { id, reason, trigger: how });
+    if (toasts().every((candidate) => candidate.closing)) host.dispatch("close", { open: false, reason, trigger: how });
+    // Removed once the exit animation ends; reduced motion has none, and the timeout guards a missed end.
+    const node = element.ownerDocument.getElementById(id);
+    if (!node || getComputedStyle(node).animationName === "none") remove(id);
     else {
-      toast.addEventListener("animationend", remove, { once: true });
-      setTimeout(remove, 500);
-    }
-    host.dispatch("dismiss", { id, reason, trigger });
-    if (toasts().length === 0) {
-      host.state.internalOpen = false;
-      host.dispatch("close", { open: false, reason, trigger });
-    }
-    sync();
-  };
-  const setSurfaceOpen = (open) => {
-    element.hidden = !open;
-    if (open && typeof element.showPopover === "function") {
-      try { if (!element.matches(":popover-open")) element.showPopover(); } catch {}
-    } else if (!open && typeof element.hidePopover === "function") {
-      try { if (element.matches(":popover-open")) element.hidePopover(); } catch {}
+      node.addEventListener("animationend", () => remove(id), { once: true });
+      setTimeout(() => remove(id), 500);
     }
   };
-  const sync = () => {
-    const externalOpen = Boolean(host.state.open);
-    if (externalOpen !== lastExternalOpen) {
-      lastExternalOpen = externalOpen;
-      host.state.internalOpen = externalOpen;
-    }
-    const open = Boolean(host.state.internalOpen) && toasts().length > 0;
-    // Stay visible while a dismissed toast finishes its exit animation.
-    const leaving = element.querySelector(":scope > .toast[data-state-closing]") !== null;
-    setSurfaceOpen(open || leaving);
-  };
-  const addToast = (message, options = {}) => {
-    const toast = element.ownerDocument.createElement("div");
-    const text = element.ownerDocument.createElement("span");
-    const dismiss = element.ownerDocument.createElement("ui-icon-button");
-    const id = String(options.id || `ui-toast-${++nextToastId}`);
-    toast.id = id;
-    toast.className = "toast";
-    toast.setAttribute("role", options.tone === "danger" ? "alert" : "status");
-    if (options.tone) toast.dataset.tone = String(options.tone);
-    text.className = "toast__message";
-    text.textContent = String(message);
-    dismiss.className = "toast__dismiss";
-    dismiss.setAttribute("label", `Dismiss ${String(message).toLocaleLowerCase()}`);
-    dismiss.setAttribute("size", "sm");
-    dismiss.setAttribute("variant", "ghost");
-    dismiss.toggleAttribute("round", true);
-    toast.append(text, dismiss);
-    element.append(toast);
-    host.state.internalOpen = true;
-    sync();
-    const auto = options.auto ?? Boolean(host.state.auto);
-    if (auto) {
-      timers.set(toast, { remaining: Math.max(0, Number(options.duration ?? host.state.duration ?? 5000)), started: 0, handle: 0 });
-      startTimer(toast);
+  const add = (message, options = {}) => {
+    const id = String(options.id || `ui-toast-${++toastIds}`);
+    host.state.toasts = [...toasts(), { id, message: String(message), role: options.tone === "danger" ? "alert" : "status", closing: false }];
+    if (options.auto ?? host.state.auto) {
+      timers.set(id, { remaining: Math.max(0, Number(options.duration ?? host.state.duration ?? 5000)), started: 0, handle: 0 });
+      startTimer(id);
     }
     return id;
   };
+
   const onClick = (event) => {
-    const dismiss = event.target.closest?.(".toast__dismiss");
-    const toast = dismiss?.closest?.(".toast");
-    if (!toast) return;
-    dismissToast(toast, "action", triggerFor(event));
+    const id = event.target.closest?.("[data-toast]")?.dataset.toast;
+    if (id) dismiss(id, "action", trigger());
   };
   const onCommand = (event) => {
-    if (event.command !== "--show-toast") return;
-    const message = event.source?.value || host.state.message || "Notification";
-    addToast(message);
+    if (event.command === "--show-toast") add(event.source?.value || host.state.message || "Notification");
   };
-
+  const stop = host.effect(() => {
+    if (host.state.open !== external) {
+      external = host.state.open;
+      host.state.internalOpen = Boolean(external);
+    }
+    sync();
+  });
   const observer = new MutationObserver(sync);
   observer.observe(element, { childList: true });
   element.addEventListener("click", onClick);
@@ -132,12 +100,10 @@ export default function controller(host) {
   element.addEventListener("pointerleave", resumeTimers);
   element.addEventListener("focusin", pauseTimers);
   element.addEventListener("focusout", resumeTimers);
-  const stop = host.effect(sync);
-  const api = { show: addToast };
-  instances.set(element, api);
-  sync();
+  instances.set(element, { show: add });
   return () => {
     stop();
+    stopTracking();
     observer.disconnect();
     element.removeEventListener("click", onClick);
     element.removeEventListener("command", onCommand);
@@ -147,7 +113,7 @@ export default function controller(host) {
     element.removeEventListener("focusout", resumeTimers);
     for (const timer of timers.values()) clearTimeout(timer.handle);
     timers.clear();
-    setSurfaceOpen(false);
+    if (element.matches(":popover-open")) element.hidePopover();
     instances.delete(element);
   };
 }

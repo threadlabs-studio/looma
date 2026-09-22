@@ -1,8 +1,40 @@
-<template component="ui-reel" status="early" summary="Looma ui-reel layout primitive." controller="./ui-reel.js">
+<template component="ui-reel">
   <defs>
     <prop name="gap" type="xs | s | m | l | xl">gap token.</prop>
     <prop name="itemWidth" type="sm | md | lg">itemWidth token.</prop>
     <prop name="snap" type="start | center">snap token.</prop>
   </defs>
-  <div><slot></slot></div>
+  <div role="region" tabindex="0"><slot></slot></div>
+  <style>
+:host {
+      --ui-reel-gap: var(--ui-space-4, 1rem);
+      --ui-reel-item-width: auto;
+      display: flex;
+      inline-size: 100%;
+      gap: var(--ui-reel-gap);
+      min-inline-size: 0;
+      max-inline-size: 100%;
+      margin: 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+      overscroll-behavior-inline: contain;
+    }
+
+    :host > :slotted(*) {
+      min-inline-size: 0;
+      flex: 0 0 var(--ui-reel-item-width);
+    }
+
+    :host-state([gap="xs"]) { --ui-reel-gap: var(--ui-space-2, 0.5rem); }
+    :host-state([gap="s"]) { --ui-reel-gap: var(--ui-space-3, 0.75rem); }
+    :host-state([gap="m"]) { --ui-reel-gap: var(--ui-space-4, 1rem); }
+    :host-state([gap="l"]) { --ui-reel-gap: var(--ui-space-5, 1.5rem); }
+    :host-state([gap="xl"]) { --ui-reel-gap: var(--ui-space-6, 2rem); }
+    :host-state([itemWidth="sm"]) { --ui-reel-item-width: 12rem; }
+    :host-state([itemWidth="md"]) { --ui-reel-item-width: 16rem; }
+    :host-state([itemWidth="lg"]) { --ui-reel-item-width: 20rem; }
+    :host-state([snap]) { scroll-snap-type: inline mandatory; }
+    :host-state([snap="start"]) > :slotted(*) { scroll-snap-align: start; }
+    :host-state([snap="center"]) > :slotted(*) { scroll-snap-align: center; }
+  </style>
 </template>
