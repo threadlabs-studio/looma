@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Tree Item: drop feedback (the inside highlight and the before/after insertion indicator) styles
+  only the target row, not every row nested in an expanded container.
+- Tests: Tree drag and drop is covered in the browser (reorder detail, inside drops and
+  hover-expand, indicators, max-depth and accepts rejection, the full-row drag image).
+
 ## v0.5.1 Candidate
 
 - Button: a ghost button reads `--ui-button-ghost-text`, not `--ui-button-text`, so theming the
