@@ -47,6 +47,19 @@
       block-size: 100%;
     }
 
+    /* Centre the glyphs, not the line box: a label without descenders otherwise reads high. */
+    /* Centre the glyphs, not the line box: a label without descenders otherwise reads high.
+     * Trimming applies to block containers, so the box is a block with centred content. */
+    @supports (text-box-trim: trim-both) {
+      .fallback {
+        display: block;
+        text-align: center;
+        align-content: center;
+        text-box-trim: trim-both;
+        text-box-edge: cap alphabetic;
+      }
+    }
+
     [hidden] {
       display: none;
     }

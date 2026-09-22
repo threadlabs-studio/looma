@@ -754,6 +754,29 @@ body {
   text-align: center;
 }
 
+/* Centre the glyphs, not the line box, so a label without descenders is not optically high. */
+@supports (text-box-trim: trim-both) {
+  .looma-preview-scenario__stage :is(
+    [data-component~="ui-stack"],
+    [data-component~="ui-container"],
+    [data-component~="ui-grid"],
+    [data-component~="ui-switcher"],
+    [data-component~="ui-reel"]
+  ) > [data-slotted],
+  .looma-component-card__preview :is(
+    [data-component~="ui-stack"],
+    [data-component~="ui-container"],
+    [data-component~="ui-grid"],
+    [data-component~="ui-switcher"],
+    [data-component~="ui-reel"]
+  ) > [data-slotted] {
+    display: block;
+    align-content: center;
+    text-box-trim: trim-both;
+    text-box-edge: cap alphabetic;
+  }
+}
+
 .looma-preview-scenario__stage > :is(
   ui-container,
   [data-component~="ui-container"]
