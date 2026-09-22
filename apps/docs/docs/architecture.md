@@ -2,8 +2,6 @@
 
 Looma is an SSR-first component system. Consumer-authored semantic HTML is the fallback contract; browser JavaScript progressively enhances it.
 
-It is the UI library used by [Knit](https://knit.wiki), but its public APIs remain domain-neutral.
-
 ## Release 1 public package
 
 `@threadlabs/looma` is the complete public Candidate artifact. Its explicit

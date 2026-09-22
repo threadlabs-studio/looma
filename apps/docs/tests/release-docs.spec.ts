@@ -3,11 +3,6 @@ import axe from "axe-core";
 
 import componentApi from "../../../generated/component-api.json";
 
-const releaseMode = process.env.LOOMA_DOCS_RELEASE_MODE ?? "preview";
-const expectedAnnouncement = releaseMode === "candidate"
-  ? "Release 1 Candidate 0.5.1 is available"
-  : "Release 1 Candidate documentation preview";
-
 const candidatePages = [
   { path: "./", heading: "Getting Started" },
   { path: "release-1-support", heading: "Release 1 Support and Limitations" },
@@ -109,14 +104,7 @@ for (const candidatePage of candidatePages) {
       page.getByRole("heading", { level: 1, name: candidatePage.heading })
     ).toBeVisible();
     await expect(page.getByRole("main")).toBeVisible();
-    await expect(page.getByText(expectedAnnouncement, { exact: false })).toBeVisible();
-
-    const robotsContent = await page.locator('meta[name="robots"]').getAttribute("content");
-    if (releaseMode === "preview") {
-      expect(robotsContent).toMatch(/noindex/i);
-    } else {
-      expect(robotsContent).not.toMatch(/noindex/i);
-    }
+    await expect(page.locator('meta[name="robots"][content*="noindex"]')).toHaveCount(0);
 
     const horizontalOverflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth
@@ -879,8 +867,8 @@ test("Examples and API keep configuration demos separate from exhaustive referen
 }) => {
   await page.goto("components/ui-button", { waitUntil: "domcontentloaded" });
 
-  // Default, variant, Link, size, disabled.
-  await expect(page.locator(".looma-preview-scenario")).toHaveCount(5);
+  // Default, variant, Link, size, disabled, align and stretch.
+  await expect(page.locator(".looma-preview-scenario")).toHaveCount(6);
   await expect(page.locator(".looma-api")).toHaveCount(0);
   await page.getByRole("tab", { name: "API" }).click();
   await expect(page.locator(".looma-preview-scenario")).toHaveCount(0);

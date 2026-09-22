@@ -88,7 +88,7 @@ describe("Vue components", () => {
     assert.equal(await button.evaluate((element) => element.localName), "button");
     assert.equal(await button.getAttribute("class"), "consumer");
     assert.equal(await button.getAttribute("data-component"), "ui-button");
-    assert.equal(await button.getAttribute("data-ui-button-state"), "variant variant=solid size size=md");
+    assert.equal(await button.getAttribute("data-ui-button-state"), "variant variant=solid align align=center size size=md");
     assert.notEqual(await button.evaluate((element) => getComputedStyle(element).backgroundColor), "rgba(0, 0, 0, 0)");
     assert.equal(await page.evaluate(() => "HtmlRuntime" in window), false);
 
@@ -122,6 +122,177 @@ describe("Vue components", () => {
     assert.deepEqual(await options.allTextContents(), ["Pear"]);
     await options.first().click();
     assert.equal(await page.locator("#fruit input").inputValue(), "Pear");
+    await page.close();
+  });
+});
+
+describe("Button layout", () => {
+  it("lays content out from the start and stretches to its container when asked", async () => {
+    const path = await bundle("vue-button-layout", `
+      import { createApp, h } from "vue";
+      import { Button } from "@threadlabs/looma/vue";
+      createApp({
+        render: () => h("div", { style: "inline-size: 300px" }, [
+          h(Button, { id: "option", variant: "ghost", align: "start", stretch: true }, () => "New page"),
+          h(Button, { id: "plain" }, () => "Save"),
+        ]),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const layout = (id: string) => page.locator(id).evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { width: (element as HTMLElement).offsetWidth, justify: style.justifyContent, text: style.textAlign };
+    });
+    assert.deepEqual(await layout("#option"), { width: 300, justify: "flex-start", text: "start" });
+    const plain = await layout("#plain");
+    assert.ok(plain.width < 300, "a default button keeps its content width");
+    assert.equal(plain.justify, "center");
+    await page.close();
+  });
+});
+
+describe("Icon Button", () => {
+  it("grows its hit area, not its size, once touch is used", async () => {
+    const path = await bundle("vue-icon-button-touch", `
+      import { createApp, h } from "vue";
+      import { IconButton, trackInputModality } from "@threadlabs/looma/vue";
+      trackInputModality(document);
+      createApp({
+        render: () => h("div", { style: "padding: 40px" }, [h(IconButton, { id: "menu", size: "sm", label: "Options" }, () => "…")]),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const probe = () => page.evaluate(() => {
+      const button = document.querySelector("#menu") as HTMLElement;
+      const bounds = button.getBoundingClientRect();
+      const outside = document.elementFromPoint(bounds.right + 6, bounds.top + bounds.height / 2);
+      return { width: button.offsetWidth, height: button.offsetHeight, hitOutside: outside === button };
+    });
+    const before = await probe();
+    assert.equal(before.hitOutside, false);
+    await page.evaluate(() => document.dispatchEvent(new PointerEvent("pointerdown", { pointerType: "touch" })));
+    assert.deepEqual(await probe(), { width: before.width, height: before.height, hitOutside: true });
+    await page.close();
+  });
+});
+
+describe("Tree", () => {
+  it("lets a slotted label link fill the row through the label padding tokens", async () => {
+    const path = await bundle("vue-tree-label", `
+      import { createApp, h } from "vue";
+      import { Tree, TreeItem } from "@threadlabs/looma/vue";
+      const item = (id, style) => h(TreeItem, { id, itemId: id, label: "Welcome", style }, {
+        label: () => h("a", { href: "#welcome", style: "display: flex; align-self: stretch; align-items: center" }, "Welcome"),
+      });
+      createApp({
+        render: () => h(Tree, { label: "Pages" }, () => [
+          item("flush", "--ui-tree-row-min-height: 44px; --ui-tree-label-padding-block: 0; --ui-tree-label-padding-inline: 0"),
+          item("padded", "--ui-tree-row-min-height: 44px"),
+        ]),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const heights = (id: string) => page.locator(`#${id}`).evaluate((item) => ({
+      row: (item.querySelector(".row") as HTMLElement).offsetHeight,
+      link: (item.querySelector("a") as HTMLElement).offsetHeight,
+    }));
+    const flush = await heights("flush");
+    assert.equal(flush.row, 44);
+    assert.equal(flush.link, 44, "with zero label padding the link is the whole row");
+    const padded = await heights("padded");
+    assert.ok(padded.link < padded.row, "default label padding still insets the content");
+    await page.close();
+  });
+});
+
+describe("Overlays", () => {
+  it("show search focus and close a dismissible search shell on the first Escape, even from its search field", async () => {
+    const path = await bundle("vue-search-shell", `
+      import { createApp, h, ref } from "vue";
+      import { SearchShell } from "@threadlabs/looma/vue";
+      const open = ref(true);
+      const closes = [];
+      window.closes = closes;
+      createApp({
+        render: () => h(SearchShell, {
+          id: "search", open: open.value, modal: true, dismissible: true, label: "Search",
+          onClose: (detail) => { closes.push(detail); open.value = false; },
+        }, { search: () => h("input", { id: "query", type: "search", "aria-label": "Search" }) }),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const region = page.locator("#search .search");
+    const edge = () => region.evaluate((element) => getComputedStyle(element).borderBottomColor);
+    const idle = await edge();
+    await page.locator("#query").fill("wel");
+    // The edge colour transitions in; wait for it rather than sampling mid-transition.
+    await page.waitForFunction((before) => getComputedStyle(document.querySelector("#search .search")!).borderBottomColor !== before, idle, { timeout: 2000 });
+    assert.notEqual(await edge(), idle, "the search region shows focus");
+    await page.keyboard.press("Escape");
+    assert.deepEqual(await page.evaluate(() => (window as unknown as { closes: unknown[] }).closes), [
+      { open: false, reason: "escape", trigger: "keyboard" },
+    ]);
+    assert.equal(await page.locator("#search dialog").evaluate((dialog) => (dialog as HTMLDialogElement).open), false);
+    await page.close();
+  });
+  it("announce each anchor toggle to a controlled popover consumer exactly once, with its trigger", async () => {
+    const path = await bundle("vue-popover-controlled", `
+      import { createApp, h, ref } from "vue";
+      import { Button, Popover } from "@threadlabs/looma/vue";
+      const open = ref(false);
+      const events = [];
+      window.popover = { open, events };
+      createApp({
+        render: () => h("div", [
+          h(Button, { id: "trigger" }, () => "Icon"),
+          h(Popover, {
+            id: "picker", for: "trigger", open: open.value,
+            onOpen: (detail) => { events.push(["open", detail]); open.value = true; },
+            onClose: (detail) => { events.push(["close", detail]); open.value = false; },
+          }, () => "Choose an icon"),
+        ]),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    type Probe = { popover: { open: { value: boolean }, events: unknown[] } };
+    const state = () => page.evaluate(() => {
+      const { open, events } = (window as unknown as Probe).popover;
+      return { open: open.value, events };
+    });
+    await page.locator("#trigger").click();
+    await page.locator("#picker").waitFor({ state: "visible" });
+    assert.deepEqual(await state(), { open: true, events: [["open", { open: true, reason: "action", trigger: "pointer" }]] });
+    await page.locator("#trigger").click();
+    await page.locator("#picker").waitFor({ state: "hidden" });
+    assert.deepEqual(await state(), {
+      open: false,
+      events: [
+        ["open", { open: true, reason: "action", trigger: "pointer" }],
+        ["close", { open: false, reason: "action", trigger: "pointer" }],
+      ],
+    });
+    // The consumer can close it too, and the anchor then opens it again.
+    await page.locator("#trigger").click();
+    await page.evaluate(() => { (window as unknown as Probe).popover.open.value = false; });
+    await page.locator("#picker").waitFor({ state: "hidden" });
+    await page.locator("#trigger").click();
+    await page.locator("#picker").waitFor({ state: "visible" });
+    await page.close();
+  });
+
+  it("give the dialog close button a touch target once touch is used", async () => {
+    const path = await bundle("vue-dialog-touch", `
+      import { createApp, h } from "vue";
+      import { Dialog, trackInputModality } from "@threadlabs/looma/vue";
+      trackInputModality(document);
+      createApp({ render: () => h(Dialog, { id: "dialog", open: true, modal: true, label: "Details" }, () => "Body") }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const close = page.locator("#dialog .close");
+    const size = () => close.evaluate((element) => (element as HTMLElement).offsetWidth);
+    assert.equal(await size(), 32);
+    await page.evaluate(() => document.dispatchEvent(new PointerEvent("pointerdown", { pointerType: "touch" })));
+    assert.equal(await size(), 44);
     await page.close();
   });
 });
