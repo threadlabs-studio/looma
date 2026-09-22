@@ -181,6 +181,51 @@ describe("Overlays", () => {
     assert.equal(await page.locator("#search dialog").evaluate((dialog) => (dialog as HTMLDialogElement).open), false);
     await page.close();
   });
+  it("announce each anchor toggle to a controlled popover consumer exactly once, with its trigger", async () => {
+    const path = await bundle("vue-popover-controlled", `
+      import { createApp, h, ref } from "vue";
+      import { Button, Popover } from "@threadlabs/looma/vue";
+      const open = ref(false);
+      const events = [];
+      window.popover = { open, events };
+      createApp({
+        render: () => h("div", [
+          h(Button, { id: "trigger" }, () => "Icon"),
+          h(Popover, {
+            id: "picker", for: "trigger", open: open.value,
+            onOpen: (detail) => { events.push(["open", detail]); open.value = true; },
+            onClose: (detail) => { events.push(["close", detail]); open.value = false; },
+          }, () => "Choose an icon"),
+        ]),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    type Probe = { popover: { open: { value: boolean }, events: unknown[] } };
+    const state = () => page.evaluate(() => {
+      const { open, events } = (window as unknown as Probe).popover;
+      return { open: open.value, events };
+    });
+    await page.locator("#trigger").click();
+    await page.locator("#picker").waitFor({ state: "visible" });
+    assert.deepEqual(await state(), { open: true, events: [["open", { open: true, reason: "action", trigger: "pointer" }]] });
+    await page.locator("#trigger").click();
+    await page.locator("#picker").waitFor({ state: "hidden" });
+    assert.deepEqual(await state(), {
+      open: false,
+      events: [
+        ["open", { open: true, reason: "action", trigger: "pointer" }],
+        ["close", { open: false, reason: "action", trigger: "pointer" }],
+      ],
+    });
+    // The consumer can close it too, and the anchor then opens it again.
+    await page.locator("#trigger").click();
+    await page.evaluate(() => { (window as unknown as Probe).popover.open.value = false; });
+    await page.locator("#picker").waitFor({ state: "hidden" });
+    await page.locator("#trigger").click();
+    await page.locator("#picker").waitFor({ state: "visible" });
+    await page.close();
+  });
+
   it("give the dialog close button a touch target once touch is used", async () => {
     const path = await bundle("vue-dialog-touch", `
       import { createApp, h } from "vue";
