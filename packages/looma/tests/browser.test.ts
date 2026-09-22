@@ -151,6 +151,35 @@ describe("Button layout", () => {
   });
 });
 
+describe("Tree", () => {
+  it("lets a slotted label link fill the row through the label padding tokens", async () => {
+    const path = await bundle("vue-tree-label", `
+      import { createApp, h } from "vue";
+      import { Tree, TreeItem } from "@threadlabs/looma/vue";
+      const item = (id, style) => h(TreeItem, { id, itemId: id, label: "Welcome", style }, {
+        label: () => h("a", { href: "#welcome", style: "display: flex; align-self: stretch; align-items: center" }, "Welcome"),
+      });
+      createApp({
+        render: () => h(Tree, { label: "Pages" }, () => [
+          item("flush", "--ui-tree-row-min-height: 44px; --ui-tree-label-padding-block: 0; --ui-tree-label-padding-inline: 0"),
+          item("padded", "--ui-tree-row-min-height: 44px"),
+        ]),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const heights = (id: string) => page.locator(`#${id}`).evaluate((item) => ({
+      row: (item.querySelector(".row") as HTMLElement).offsetHeight,
+      link: (item.querySelector("a") as HTMLElement).offsetHeight,
+    }));
+    const flush = await heights("flush");
+    assert.equal(flush.row, 44);
+    assert.equal(flush.link, 44, "with zero label padding the link is the whole row");
+    const padded = await heights("padded");
+    assert.ok(padded.link < padded.row, "default label padding still insets the content");
+    await page.close();
+  });
+});
+
 describe("Overlays", () => {
   it("show search focus and close a dismissible search shell on the first Escape, even from its search field", async () => {
     const path = await bundle("vue-search-shell", `
