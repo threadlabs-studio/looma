@@ -4,7 +4,7 @@ Looma is an SSR-first component system. Consumer-authored semantic HTML is the f
 
 ## Release 1 public package
 
-`@threadlabs/looma` is the complete public Candidate artifact. Its explicit
+`@threadlabs/looma` is the complete public artifact. Its explicit
 subpaths keep core, layout, editor, Vue, and CSS boundaries discoverable without
 exposing the private workspace graph. Docs, Storybook, examples, tooling, and
 deferred adapters remain internal workspaces.

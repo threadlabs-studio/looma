@@ -115,14 +115,14 @@ for (const candidatePage of candidatePages) {
   });
 }
 
-test("the install path exposes the facade package and the Candidate boundary", async ({
+test("the install path exposes the facade package and the support boundary", async ({
   page
 }) => {
   await page.goto("./", { waitUntil: "domcontentloaded" });
 
   await expect(page.getByText("@threadlabs/looma", { exact: true }).first()).toBeVisible();
   await expect(page.locator("body")).not.toContainText(
-    /not published yet|publication pending|become usable when the Candidate is published/i
+    /not published yet|publication pending|become usable when the package is published/i
   );
   const supportLink = page
     .locator("main")
