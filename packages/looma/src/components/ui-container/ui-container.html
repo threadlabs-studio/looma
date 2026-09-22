@@ -15,15 +15,25 @@
       padding-inline: var(--ui-container-gutters, var(--_container-gutters));
     }
 
-    :host-state([measure="narrow"]) { --_container-measure: 45ch; }
-    :host-state([measure="wide"]) { --_container-measure: 80ch; }
-    :host-state([gutters="s"]) { --_container-gutters: var(--ui-space-3, 0.75rem); }
-    :host-state([gutters="m"]) { --_container-gutters: var(--ui-space-4, 1rem); }
-    :host-state([gutters="l"]) { --_container-gutters: var(--ui-space-5, 1.5rem); }
-  
-/* A component that sets its display still honours the hidden attribute on its root. */
-:host[hidden] {
-  display: none;
-}
-</style>
+    :host-state([measure="narrow"]) {
+      --_container-measure: 45ch;
+    }
+    :host-state([measure="wide"]) {
+      --_container-measure: 80ch;
+    }
+    :host-state([gutters="s"]) {
+      --_container-gutters: var(--ui-space-3, 0.75rem);
+    }
+    :host-state([gutters="m"]) {
+      --_container-gutters: var(--ui-space-4, 1rem);
+    }
+    :host-state([gutters="l"]) {
+      --_container-gutters: var(--ui-space-5, 1.5rem);
+    }
+
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
 </template>

@@ -35,6 +35,9 @@ jobs:
       - name: Check code documentation
         run: pnpm check:code-documentation
 
+      - name: Check component formatting
+        run: pnpm format:check
+
       - name: Build
         run: pnpm build
 

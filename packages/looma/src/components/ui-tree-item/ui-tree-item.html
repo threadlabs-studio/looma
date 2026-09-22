@@ -18,10 +18,49 @@
     <state name="isContainer" :value="false"></state>
     <event name="expand" bubbles="false" type="object({ id: string, expanded: boolean, trigger: keyboard | pointer | programmatic })"></event>
   </defs>
-  <div role="treeitem" :aria-label="label" :aria-level="structuralLevel" :aria-selected="selected" :aria-disabled="disabled" :data-item-id="itemId" :data-drag-type="dragType" :data-drop-scope="dropScope" :data-accepts="accepts" :data-drop-depth="dropDepth" :data-subtree-depth="subtreeDepth">
+  <div
+    role="treeitem"
+    :aria-label="label"
+    :aria-level="structuralLevel"
+    :aria-selected="selected"
+    :aria-disabled="disabled"
+    :data-item-id="itemId"
+    :data-drag-type="dragType"
+    :data-drop-scope="dropScope"
+    :data-accepts="accepts"
+    :data-drop-depth="dropDepth"
+    :data-subtree-depth="subtreeDepth"
+  >
     <div class="row" $ref="row">
-      <button $if="sortable and not disabled" class="drag-handle" $ref="dragHandle" type="button" draggable="true" :aria-label="format('Drag %s to reorder', label)"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="5" r="1"></circle><circle cx="9" cy="19" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="5" r="1"></circle><circle cx="15" cy="19" r="1"></circle></svg></button>
-      <button class="disclosure" $ref="disclosure" type="button" :disabled="disabled" :hidden="not isContainer"><span class="disclosure-icon" aria-hidden="true"></span></button>
+      <button
+        $if="sortable and not disabled"
+        class="drag-handle"
+        $ref="dragHandle"
+        type="button"
+        draggable="true"
+        :aria-label="format('Drag %s to reorder', label)"
+      >
+        <svg
+          aria-hidden="true"
+          focusable="false"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="9" cy="12" r="1"></circle>
+          <circle cx="9" cy="5" r="1"></circle>
+          <circle cx="9" cy="19" r="1"></circle>
+          <circle cx="15" cy="12" r="1"></circle>
+          <circle cx="15" cy="5" r="1"></circle>
+          <circle cx="15" cy="19" r="1"></circle>
+        </svg>
+      </button>
+      <button class="disclosure" $ref="disclosure" type="button" :disabled="disabled" :hidden="not isContainer">
+        <span class="disclosure-icon" aria-hidden="true"></span>
+      </button>
       <span class="leading"><slot name="leading"></slot></span>
       <span class="label"><slot name="label"><template $value="label"></template></slot></span>
       <span class="actions"><slot name="actions"></slot></span>
@@ -30,253 +69,258 @@
     <div class="children" $ref="children" role="group" :hidden="not (isContainer and internalExpanded)"><slot></slot></div>
     <span class="drop-indicator subtree-drop-indicator" aria-hidden="true"></span>
   </div>
-  <style>:host {
-  --_tree-row-min-height: 32px;
+  <style>
+    :host {
+      --_tree-row-min-height: 32px;
 
-  position: relative;
-  display: block;
-  min-inline-size: 0;
-  margin-inline-start: calc(var(--ui-tree-item-depth, 0) * var(--ui-tree-indent, 16px));
-}
+      position: relative;
+      display: block;
+      min-inline-size: 0;
+      margin-inline-start: calc(var(--ui-tree-item-depth, 0) * var(--ui-tree-indent, 16px));
+    }
 
-.row {
-  position: relative;
-  display: grid;
-  grid-template-columns: 20px auto minmax(0, 1fr) auto;
-  align-items: center;
-  min-block-size: var(--ui-tree-row-min-height, var(--_tree-row-min-height));
-  min-inline-size: 0;
-  font-size: var(--ui-tree-font-size, var(--ui-font-size-ui, 0.9375rem));
-  border-radius: var(--ui-radius-md);
-  color: var(--ui-text-secondary);
-  transition:
-    background-color var(--ui-motion-fast) var(--ui-motion-ease),
-    color var(--ui-motion-fast) var(--ui-motion-ease),
-    opacity var(--ui-motion-fast) var(--ui-motion-ease),
-    box-shadow var(--ui-motion-fast) var(--ui-motion-ease),
-    min-block-size var(--ui-motion-base) var(--ui-motion-ease);
-}
+    .row {
+      position: relative;
+      display: grid;
+      grid-template-columns: 20px auto minmax(0, 1fr) auto;
+      align-items: center;
+      min-block-size: var(--ui-tree-row-min-height, var(--_tree-row-min-height));
+      min-inline-size: 0;
+      font-size: var(--ui-tree-font-size, var(--ui-font-size-ui, 0.9375rem));
+      border-radius: var(--ui-radius-md);
+      color: var(--ui-text-secondary);
+      transition:
+        background-color var(--ui-motion-fast) var(--ui-motion-ease),
+        color var(--ui-motion-fast) var(--ui-motion-ease),
+        opacity var(--ui-motion-fast) var(--ui-motion-ease),
+        box-shadow var(--ui-motion-fast) var(--ui-motion-ease),
+        min-block-size var(--ui-motion-base) var(--ui-motion-ease);
+    }
 
-.row:hover,
-:host-state([selected]) .row,
-.row:focus-within {
-  color: var(--ui-text-primary);
-  background: var(--ui-surface-muted);
-}
+    .row:hover,
+    :host-state([selected]) .row,
+    .row:focus-within {
+      color: var(--ui-text-primary);
+      background: var(--ui-surface-muted);
+    }
 
-:host-state([disabled]) .row {
-  opacity: 0.55;
-}
+    :host-state([disabled]) .row {
+      opacity: 0.55;
+    }
 
-:host[data-dragging] .row {
-  opacity: 0.42;
-}
+    :host[data-dragging] .row {
+      opacity: 0.42;
+    }
 
-:host:focus {
-  outline: none;
-}
+    :host:focus {
+      outline: none;
+    }
 
-:host:focus-visible .row {
-  box-shadow: 0 0 0 2px var(--ui-focus-ring);
-}
+    :host:focus-visible .row {
+      box-shadow: 0 0 0 2px var(--ui-focus-ring);
+    }
 
-:host[data-drop-position='inside'] .row {
-  background: var(--ui-accent-subtle);
-  box-shadow: inset 0 0 0 1px var(--ui-tree-drop-color, var(--ui-accent-solid));
-}
+    :host[data-drop-position="inside"] .row {
+      background: var(--ui-accent-subtle);
+      box-shadow: inset 0 0 0 1px var(--ui-tree-drop-color, var(--ui-accent-solid));
+    }
 
-.disclosure,
-.disclosure-spacer {
-  grid-column: 1;
-  grid-row: 1;
-  inline-size: 20px;
-  block-size: 28px;
-}
+    .disclosure,
+    .disclosure-spacer {
+      grid-column: 1;
+      grid-row: 1;
+      inline-size: 20px;
+      block-size: 28px;
+    }
 
-.disclosure {
-  display: grid;
-  place-items: center;
-  padding: 0;
-  color: var(--ui-text-muted);
-  background: transparent;
-  border: 0;
-  border-radius: var(--ui-radius-sm);
-  cursor: pointer;
-}
+    .disclosure {
+      display: grid;
+      place-items: center;
+      padding: 0;
+      color: var(--ui-text-muted);
+      background: transparent;
+      border: 0;
+      border-radius: var(--ui-radius-sm);
+      cursor: pointer;
+    }
 
-.disclosure[hidden] {
-  display: none;
-}
+    .disclosure[hidden] {
+      display: none;
+    }
 
-.disclosure:hover {
-  color: var(--ui-text-primary);
-  background: var(--ui-surface-elevated);
-}
+    .disclosure:hover {
+      color: var(--ui-text-primary);
+      background: var(--ui-surface-elevated);
+    }
 
-.disclosure-icon {
-  display: grid;
-  place-items: center;
-  inline-size: 14px;
-  block-size: 14px;
-  transform: rotate(-90deg);
-  transition: transform var(--ui-motion-fast) var(--ui-motion-ease);
-}
+    .disclosure-icon {
+      display: grid;
+      place-items: center;
+      inline-size: 14px;
+      block-size: 14px;
+      transform: rotate(-90deg);
+      transition: transform var(--ui-motion-fast) var(--ui-motion-ease);
+    }
 
-.disclosure-icon::before {
-  display: block;
-  inline-size: 0.45rem;
-  block-size: 0.45rem;
-  border-inline-end: 2px solid currentColor;
-  border-block-end: 2px solid currentColor;
-  content: '';
-  /* A chevron's ink sits below its box centre; lift it so it centres optically (in either rotation). */
-  transform: translateY(-20%) rotate(45deg);
-}
+    .disclosure-icon::before {
+      display: block;
+      inline-size: 0.45rem;
+      block-size: 0.45rem;
+      border-inline-end: 2px solid currentColor;
+      border-block-end: 2px solid currentColor;
+      content: "";
+      /* A chevron's ink sits below its box centre; lift it so it centres optically (in either rotation). */
+      transform: translateY(-20%) rotate(45deg);
+    }
 
-:host[aria-expanded='true'] .disclosure-icon {
-  transform: rotate(0deg);
-}
+    :host[aria-expanded="true"] .disclosure-icon {
+      transform: rotate(0deg);
+    }
 
-/* Lucide grip-vertical, filling the handle as in Looma 0.2. */
-.drag-handle svg {
-  display: block;
-  inline-size: 100%;
-  block-size: 100%;
-}
+    /* Lucide grip-vertical, filling the handle as in Looma 0.2. */
+    .drag-handle svg {
+      display: block;
+      inline-size: 100%;
+      block-size: 100%;
+    }
 
-/* Slotted content is outside this scope, so :has() cannot see it; hide only a truly empty slot. */
-.leading {
-  display: inline-grid;
-  place-items: center;
-  grid-column: 2;
-  grid-row: 1;
-  inline-size: 1em;
-  block-size: 1em;
-  margin-inline-start: var(--ui-space-1);
-  color: var(--ui-text-muted);
-}
+    /* Slotted content is outside this scope, so :has() cannot see it; hide only a truly empty slot. */
+    .leading {
+      display: inline-grid;
+      place-items: center;
+      grid-column: 2;
+      grid-row: 1;
+      inline-size: 1em;
+      block-size: 1em;
+      margin-inline-start: var(--ui-space-1);
+      color: var(--ui-text-muted);
+    }
 
-.leading:empty {
-  display: none;
-}
+    .leading:empty {
+      display: none;
+    }
 
-/* Icons match the label's size (as in Knit's tree): an unsized SVG would otherwise render 300×150. */
-:slotted(svg),
-:slotted(img) {
-  display: block;
-  inline-size: 1em;
-  block-size: 1em;
-  flex: none;
-}
+    /* Icons match the label's size (as in Knit's tree): an unsized SVG would otherwise render 300×150. */
+    :slotted(svg),
+    :slotted(img) {
+      display: block;
+      inline-size: 1em;
+      block-size: 1em;
+      flex: none;
+    }
 
-.label {
-  grid-column: 3;
-  grid-row: 1;
-  min-inline-size: 0;
-  padding: var(--ui-space-1) var(--ui-space-2);
-}
+    .label {
+      grid-column: 3;
+      grid-row: 1;
+      min-inline-size: 0;
+      padding: var(--ui-space-1) var(--ui-space-2);
+    }
 
-.actions {
-  grid-column: 4;
-  grid-row: 1;
-  display: inline-flex;
-  align-items: center;
-  min-inline-size: 0;
-}
+    .actions {
+      grid-column: 4;
+      grid-row: 1;
+      display: inline-flex;
+      align-items: center;
+      min-inline-size: 0;
+    }
 
-.drag-handle {
-  position: absolute;
-  z-index: 2;
-  inset-block-start: 50%;
-  inset-inline-start: -22px;
-  inline-size: 20px;
-  block-size: 32px;
-  display: grid;
-  place-items: center;
-  padding: 7px 3px;
-  color: var(--ui-text-muted);
-  background: var(--ui-surface-elevated);
-  border: 1px solid transparent;
-  border-radius: var(--ui-radius-sm);
-  cursor: grab;
-  /* Hidden until the row is hovered, but always hittable: the handle sits outside the row, and moving
-     the pointer onto it must not hide it on the way. */
-  opacity: 0;
-  transform: translateY(-50%);
-  transition: opacity var(--ui-motion-fast) var(--ui-motion-ease);
-}
+    .drag-handle {
+      position: absolute;
+      z-index: 2;
+      inset-block-start: 50%;
+      inset-inline-start: -22px;
+      inline-size: 20px;
+      block-size: 32px;
+      display: grid;
+      place-items: center;
+      padding: 7px 3px;
+      color: var(--ui-text-muted);
+      background: var(--ui-surface-elevated);
+      border: 1px solid transparent;
+      border-radius: var(--ui-radius-sm);
+      cursor: grab;
+      /* Hidden until the row is hovered, but always hittable: the handle sits outside the row, and moving
+         the pointer onto it must not hide it on the way. */
+      opacity: 0;
+      transform: translateY(-50%);
+      transition: opacity var(--ui-motion-fast) var(--ui-motion-ease);
+    }
 
-.row:hover .drag-handle,
-.drag-handle:hover,
-.drag-handle:focus-visible,
-:host[data-dragging] .drag-handle {
-  opacity: 1;
-}
+    .row:hover .drag-handle,
+    .drag-handle:hover,
+    .drag-handle:focus-visible,
+    :host[data-dragging] .drag-handle {
+      opacity: 1;
+    }
 
-.drag-handle:active {
-  cursor: grabbing;
-}
+    .drag-handle:active {
+      cursor: grabbing;
+    }
 
-.drop-indicator {
-  position: absolute;
-  z-index: 3;
-  inset-inline: 1px;
-  display: none;
-  block-size: 2px;
-  border-radius: 999px;
-  background: var(--ui-tree-drop-color, var(--ui-accent-solid));
-  pointer-events: none;
-}
+    .drop-indicator {
+      position: absolute;
+      z-index: 3;
+      inset-inline: 1px;
+      display: none;
+      block-size: 2px;
+      border-radius: 999px;
+      background: var(--ui-tree-drop-color, var(--ui-accent-solid));
+      pointer-events: none;
+    }
 
-.drop-indicator::before,
-.drop-indicator::after {
-  content: '';
-  position: absolute;
-  inset-block-start: 50%;
-  inline-size: 7px;
-  block-size: 7px;
-  border: 2px solid var(--ui-tree-drop-color, var(--ui-accent-solid));
-  border-radius: 999px;
-  background: var(--ui-surface-elevated);
-  transform: translateY(-50%);
-}
+    .drop-indicator::before,
+    .drop-indicator::after {
+      content: "";
+      position: absolute;
+      inset-block-start: 50%;
+      inline-size: 7px;
+      block-size: 7px;
+      border: 2px solid var(--ui-tree-drop-color, var(--ui-accent-solid));
+      border-radius: 999px;
+      background: var(--ui-surface-elevated);
+      transform: translateY(-50%);
+    }
 
-.drop-indicator::before { inset-inline-start: -1px; }
-.drop-indicator::after { inset-inline-end: -1px; }
+    .drop-indicator::before {
+      inset-inline-start: -1px;
+    }
+    .drop-indicator::after {
+      inset-inline-end: -1px;
+    }
 
-:host[data-drop-position='before'] .row-drop-indicator {
-  display: block;
-  inset-block-start: -1px;
-}
+    :host[data-drop-position="before"] .row-drop-indicator {
+      display: block;
+      inset-block-start: -1px;
+    }
 
-:host[data-drop-position='after'] .subtree-drop-indicator {
-  display: block;
-  inset-block-end: -1px;
-}
+    :host[data-drop-position="after"] .subtree-drop-indicator {
+      display: block;
+      inset-block-end: -1px;
+    }
 
-.children[hidden] {
-  display: none;
-}
+    .children[hidden] {
+      display: none;
+    }
 
-html[data-ui-input-modality='touch'] :host {
-  --_tree-row-min-height: 44px;
-}
+    html[data-ui-input-modality="touch"] :host {
+      --_tree-row-min-height: 44px;
+    }
 
-html[data-ui-input-modality='touch'] :host .drag-handle {
-  display: none;
-}
+    html[data-ui-input-modality="touch"] :host .drag-handle {
+      display: none;
+    }
 
-@media (prefers-reduced-motion: reduce) {
-  .row,
-  .disclosure-icon,
-  .drag-handle {
-    transition: none;
-  }
-}
+    @media (prefers-reduced-motion: reduce) {
+      .row,
+      .disclosure-icon,
+      .drag-handle {
+        transition: none;
+      }
+    }
 
-/* A component that sets its display still honours the hidden attribute on its root. */
-:host[hidden] {
-  display: none;
-}
-</style>
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
 </template>

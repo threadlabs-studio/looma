@@ -1,21 +1,22 @@
 <template component="ui-separator">
   <defs>
-    <prop name="orientation" type="horizontal | vertical" default="horizontal">Whether the separator divides stacked content (horizontal) or inline content (vertical).</prop>
+    <prop name="orientation" type="horizontal | vertical" default="horizontal"
+    >Whether the separator divides stacked content (horizontal) or inline content (vertical).</prop>
   </defs>
   <hr :aria-orientation="orientation">
   <style>
-hr {
-  box-sizing: border-box;
-  align-self: stretch;
-  margin: 0;
-  border: 0;
-  border-block-start: 1px solid var(--ui-separator-color, var(--ui-border-default));
-}
+    hr {
+      box-sizing: border-box;
+      align-self: stretch;
+      margin: 0;
+      border: 0;
+      border-block-start: 1px solid var(--ui-separator-color, var(--ui-border-default));
+    }
 
-hr[aria-orientation="vertical"] {
-  block-size: auto;
-  border-block-start: 0;
-  border-inline-start: 1px solid var(--ui-separator-color, var(--ui-border-default));
-}
-</style>
+    hr[aria-orientation="vertical"] {
+      block-size: auto;
+      border-block-start: 0;
+      border-inline-start: 1px solid var(--ui-separator-color, var(--ui-border-default));
+    }
+  </style>
 </template>

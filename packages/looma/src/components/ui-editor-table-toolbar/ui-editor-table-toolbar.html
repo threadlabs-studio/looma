@@ -4,228 +4,268 @@
     <prop name="open" type="boolean" default="false">Shows the toolbar while a table selection is active.</prop>
     <prop name="cellAlignment" type="left | center | right" default="left">Marks the alignment command that is active for the current cell.</prop>
     <prop name="cellBackground" type="string" default="">Identifies the background choice that is active for the current cell.</prop>
-    <prop name="actions" type="list(align-left | align-center | align-right | background-none | background-gray | background-yellow | background-blue | background-green | background-red | add-row-before | add-row-after | add-column-before | add-column-after | clear-cells | merge-cells | split-cell | delete-row | delete-column | delete-table)">The complete set of commands the current selection permits.</prop>
+    <prop
+      name="actions"
+      type="list(align-left | align-center | align-right | background-none | background-gray | background-yellow | background-blue | background-green | background-red | add-row-before | add-row-after | add-column-before | add-column-after | clear-cells | merge-cells | split-cell | delete-row | delete-column | delete-table)"
+    >The complete set of commands the current selection permits.</prop>
     <state name="alignments" :value="[]"></state>
     <state name="structure" :value="[]"></state>
     <state name="swatches" :value="[]"></state>
     <state name="sections" :value="[]"></state>
     <state name="hasOverflow" :value="false"></state>
     <state name="overflowOpen" :value="false"></state>
-    <event name="action" type="object({ action: align-left | align-center | align-right | background-none | background-gray | background-yellow | background-blue | background-green | background-red | add-row-before | add-row-after | add-column-before | add-column-after | clear-cells | merge-cells | split-cell | delete-row | delete-column | delete-table })"></event>
+    <event
+      name="action"
+      type="object({ action: align-left | align-center | align-right | background-none | background-gray | background-yellow | background-blue | background-green | background-red | add-row-before | add-row-after | add-column-before | add-column-after | clear-cells | merge-cells | split-cell | delete-row | delete-column | delete-table })"
+    ></event>
   </defs>
   <div role="toolbar" aria-label="Table actions" :hidden="not open">
     <div $if="alignments" class="group" role="group" aria-label="Cell alignment">
-      <button $each="item of alignments" $key="item.action" type="button" class="icon-button" class:active="item.active" :data-action="item.action" :aria-label="item.label" :title="item.label" :aria-pressed="item.active"><ui-icon :name="item.action"></ui-icon></button>
+      <button
+        $each="item of alignments"
+        $key="item.action"
+        type="button"
+        class="icon-button"
+        class:active="item.active"
+        :data-action="item.action"
+        :aria-label="item.label"
+        :title="item.label"
+        :aria-pressed="item.active"
+      >
+        <ui-icon :name="item.action"></ui-icon>
+      </button>
     </div>
     <div $if="alignments and structure" class="sep" aria-hidden="true"></div>
     <div $if="structure" class="group" role="group" aria-label="Table structure">
-      <button $each="item of structure" $key="item.action" type="button" :data-action="item.action"><ui-icon :name="item.icon"></ui-icon><span $value="item.label"></span></button>
+      <button $each="item of structure" $key="item.action" type="button" :data-action="item.action">
+        <ui-icon :name="item.icon"></ui-icon>
+        <span $value="item.label"></span>
+      </button>
     </div>
     <div $if="(alignments or structure) and hasOverflow" class="sep" aria-hidden="true"></div>
     <div $if="hasOverflow" class="overflow">
-      <button type="button" class="more" data-action="toggle-overflow" aria-haspopup="menu" :aria-expanded="overflowOpen"><ui-icon name="table"></ui-icon><span>Table options</span><span class="chevron"><ui-icon name="chevron-down"></ui-icon></span></button>
+      <button type="button" class="more" data-action="toggle-overflow" aria-haspopup="menu" :aria-expanded="overflowOpen">
+        <ui-icon name="table"></ui-icon>
+        <span>Table options</span>
+        <span class="chevron"><ui-icon name="chevron-down"></ui-icon></span>
+      </button>
       <div $if="overflowOpen" class="menu" role="menu" aria-label="More table actions">
         <div $if="swatches" class="menu-section" role="none">
           <div class="menu-heading" role="presentation">Background</div>
           <div class="swatches" role="group" aria-label="Cell background">
-            <button $each="swatch of swatches" $key="swatch.action" type="button" class="swatch-button" class:selected="swatch.selected" role="menuitemradio" :aria-checked="swatch.selected" :data-action="swatch.action"><span class="swatch" class:default="not swatch.color" style:--ui-editor-table-toolbar-swatch="swatch.color"></span><span $value="swatch.label"></span></button>
+            <button
+              $each="swatch of swatches"
+              $key="swatch.action"
+              type="button"
+              class="swatch-button"
+              class:selected="swatch.selected"
+              role="menuitemradio"
+              :aria-checked="swatch.selected"
+              :data-action="swatch.action"
+            >
+              <span class="swatch" class:default="not swatch.color" style:--ui-editor-table-toolbar-swatch="swatch.color"></span>
+              <span $value="swatch.label"></span>
+            </button>
           </div>
         </div>
         <div $each="section of sections" $key="section.heading" class="menu-section divided" role="none">
           <div class="menu-heading" role="presentation" $value="section.heading"></div>
-          <button $each="item of section.items" $key="item.action" type="button" role="menuitem" class:danger="item.danger" :data-action="item.action"><ui-icon :name="item.icon"></ui-icon><span $value="item.label"></span></button>
+          <button $each="item of section.items" $key="item.action" type="button" role="menuitem" class:danger="item.danger" :data-action="item.action">
+            <ui-icon :name="item.icon"></ui-icon>
+            <span $value="item.label"></span>
+          </button>
         </div>
       </div>
     </div>
   </div>
   <style>
-.looma-editor__mobile-toolbar-shell :host {
-  min-width: max-content;
-  min-height: 100%;
-  padding: 0;
-  background: transparent;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-  backdrop-filter: none;
-}
+    .looma-editor__mobile-toolbar-shell :host {
+      min-width: max-content;
+      min-height: 100%;
+      padding: 0;
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
+      backdrop-filter: none;
+    }
 
-.looma-editor__mobile-toolbar-shell :host button {
-  min-height: 44px;
-  background: transparent;
-}
+    .looma-editor__mobile-toolbar-shell :host button {
+      min-height: 44px;
+      background: transparent;
+    }
 
-.looma-editor__mobile-toolbar-shell :host button.active,
-.looma-editor__mobile-toolbar-shell :host button.selected {
-  background: var(--ui-accent-soft, var(--ui-accent-subtle, #e8f0fb));
-}
+    .looma-editor__mobile-toolbar-shell :host button.active,
+    .looma-editor__mobile-toolbar-shell :host button.selected {
+      background: var(--ui-accent-soft, var(--ui-accent-subtle, #e8f0fb));
+    }
 
-.looma-editor__mobile-toolbar-shell :host .menu {
-  top: auto;
-  right: 0;
-  bottom: calc(100% + var(--ui-space-2, 8px));
-  max-height: min(50dvh, 22rem);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-:host {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--ui-space-1, 4px);
-  padding: var(--ui-space-1, 4px);
-  background: color-mix(in srgb, var(--ui-surface, #fff) 94%, transparent);
-  border: 1px solid var(--ui-border, #e5e7eb);
-  border-radius: calc(var(--ui-radius-md, 6px) + 2px);
-  box-shadow: var(--ui-shadow-lg, 0 10px 15px -3px rgb(0 0 0 / 0.1));
-  backdrop-filter: blur(10px);
-}
+    .looma-editor__mobile-toolbar-shell :host .menu {
+      top: auto;
+      right: 0;
+      bottom: calc(100% + var(--ui-space-2, 8px));
+      max-height: min(50dvh, 22rem);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+    :host {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--ui-space-1, 4px);
+      padding: var(--ui-space-1, 4px);
+      background: color-mix(in srgb, var(--ui-surface, #fff) 94%, transparent);
+      border: 1px solid var(--ui-border, #e5e7eb);
+      border-radius: calc(var(--ui-radius-md, 6px) + 2px);
+      box-shadow: var(--ui-shadow-lg, 0 10px 15px -3px rgb(0 0 0 / 0.1));
+      backdrop-filter: blur(10px);
+    }
 
-.group {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  overflow: hidden;
-}
+    .group {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      overflow: hidden;
+    }
 
-.sep {
-  width: 1px;
-  align-self: stretch;
-  background: var(--ui-border, #e5e7eb);
-}
+    .sep {
+      width: 1px;
+      align-self: stretch;
+      background: var(--ui-border, #e5e7eb);
+    }
 
-.overflow {
-  position: relative;
-}
+    .overflow {
+      position: relative;
+    }
 
-:host button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--ui-space-1-5, 6px);
-  min-height: 32px;
-  border: 0;
-  border-radius: var(--ui-radius-sm, 4px);
-  background: transparent;
-  color: var(--ui-text-primary, #111827);
-  cursor: pointer;
-  font-size: var(--ui-text-sm, 0.875rem);
-  font-weight: 500;
-  line-height: 1;
-  padding: var(--ui-space-1-5, 6px) var(--ui-space-2, 8px);
-  white-space: nowrap;
-}
+    :host button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--ui-space-1-5, 6px);
+      min-height: 32px;
+      border: 0;
+      border-radius: var(--ui-radius-sm, 4px);
+      background: transparent;
+      color: var(--ui-text-primary, #111827);
+      cursor: pointer;
+      font-size: var(--ui-text-sm, 0.875rem);
+      font-weight: 500;
+      line-height: 1;
+      padding: var(--ui-space-1-5, 6px) var(--ui-space-2, 8px);
+      white-space: nowrap;
+    }
 
-:host button:hover {
-  background: var(--ui-surface-hover, #f3f4f6);
-}
+    :host button:hover {
+      background: var(--ui-surface-hover, #f3f4f6);
+    }
 
-:host button.active {
-  background: var(--ui-accent-soft, var(--ui-accent-subtle, #e8f0fb));
-  color: var(--ui-accent-active, #003d7a);
-}
+    :host button.active {
+      background: var(--ui-accent-soft, var(--ui-accent-subtle, #e8f0fb));
+      color: var(--ui-accent-active, #003d7a);
+    }
 
-.group button {
-  border-radius: var(--ui-radius-sm, 4px);
-}
+    .group button {
+      border-radius: var(--ui-radius-sm, 4px);
+    }
 
-.group button + button {
-  border-left: 0;
-}
+    .group button + button {
+      border-left: 0;
+    }
 
-:host .more {
-  border: 0;
-  border-radius: var(--ui-radius-sm, 4px);
-}
+    :host .more {
+      border: 0;
+      border-radius: var(--ui-radius-sm, 4px);
+    }
 
-:host button.danger {
-  color: var(--ui-danger, #dc2626);
-}
+    :host button.danger {
+      color: var(--ui-danger, #dc2626);
+    }
 
-:host {
-  --ui-icon-size: var(--ui-editor-toolbar-icon-size, 1rem);
-  --ui-icon-stroke-width: var(--ui-editor-toolbar-icon-stroke-width, 1.75);
-}
+    :host {
+      --ui-icon-size: var(--ui-editor-toolbar-icon-size, 1rem);
+      --ui-icon-stroke-width: var(--ui-editor-toolbar-icon-stroke-width, 1.75);
+    }
 
-.chevron {
-  display: inline-flex;
-  --ui-icon-size: 0.875rem;
-}
+    .chevron {
+      display: inline-flex;
+      --ui-icon-size: 0.875rem;
+    }
 
-:host .icon-button {
-  width: 32px;
-  padding-inline: 0;
-}
+    :host .icon-button {
+      width: 32px;
+      padding-inline: 0;
+    }
 
-.menu {
-  position: absolute;
-  top: calc(100% + var(--ui-space-2, 8px));
-  right: 0;
-  min-width: 12rem;
-  padding: var(--ui-space-1, 4px);
-  background: var(--ui-surface, #fff);
-  border: 1px solid var(--ui-border, #e5e7eb);
-  border-radius: var(--ui-radius-md, 6px);
-  box-shadow: var(--ui-shadow-lg, 0 10px 15px -3px rgb(0 0 0 / 0.1));
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  z-index: 2;
-}
+    .menu {
+      position: absolute;
+      top: calc(100% + var(--ui-space-2, 8px));
+      right: 0;
+      min-width: 12rem;
+      padding: var(--ui-space-1, 4px);
+      background: var(--ui-surface, #fff);
+      border: 1px solid var(--ui-border, #e5e7eb);
+      border-radius: var(--ui-radius-md, 6px);
+      box-shadow: var(--ui-shadow-lg, 0 10px 15px -3px rgb(0 0 0 / 0.1));
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      z-index: 2;
+    }
 
-.menu-section + .menu-section {
-  margin-top: var(--ui-space-1, 4px);
-  padding-top: var(--ui-space-1, 4px);
-  border-top: 1px solid color-mix(in srgb, var(--ui-border, #e5e7eb) 80%, transparent);
-}
+    .menu-section + .menu-section {
+      margin-top: var(--ui-space-1, 4px);
+      padding-top: var(--ui-space-1, 4px);
+      border-top: 1px solid color-mix(in srgb, var(--ui-border, #e5e7eb) 80%, transparent);
+    }
 
-.menu-heading {
-  padding: var(--ui-space-1, 4px) var(--ui-space-2, 8px);
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--ui-text-muted, #6b7280);
-}
+    .menu-heading {
+      padding: var(--ui-space-1, 4px) var(--ui-space-2, 8px);
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--ui-text-muted, #6b7280);
+    }
 
-.menu button {
-  display: flex;
-  justify-content: flex-start;
-  width: 100%;
-  text-align: left;
-}
+    .menu button {
+      display: flex;
+      justify-content: flex-start;
+      width: 100%;
+      text-align: left;
+    }
 
-.swatches {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 2px;
-}
+    .swatches {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 2px;
+    }
 
-:host .swatch-button {
-  gap: var(--ui-space-1, 4px);
-  justify-content: flex-start;
-}
+    :host .swatch-button {
+      gap: var(--ui-space-1, 4px);
+      justify-content: flex-start;
+    }
 
-.swatch {
-  width: 14px;
-  height: 14px;
-  flex: 0 0 14px;
-  border: 1px solid color-mix(in srgb, var(--ui-border, #e5e7eb) 80%, #000);
-  border-radius: 3px;
-  background: var(--ui-editor-table-toolbar-swatch);
-}
+    .swatch {
+      width: 14px;
+      height: 14px;
+      flex: 0 0 14px;
+      border: 1px solid color-mix(in srgb, var(--ui-border, #e5e7eb) 80%, #000);
+      border-radius: 3px;
+      background: var(--ui-editor-table-toolbar-swatch);
+    }
 
-.swatch.default {
-  background:
-    linear-gradient(135deg, transparent 44%, var(--ui-danger, #dc2626) 46% 54%, transparent 56%),
-    var(--ui-surface, #fff);
-}
+    .swatch.default {
+      background:
+        linear-gradient(135deg, transparent 44%, var(--ui-danger, #dc2626) 46% 54%, transparent 56%),
+        var(--ui-surface, #fff);
+    }
 
-.swatch-button.selected {
-  background: var(--ui-accent-soft, var(--ui-accent-subtle, #e8f0fb));
-}
+    .swatch-button.selected {
+      background: var(--ui-accent-soft, var(--ui-accent-subtle, #e8f0fb));
+    }
 
-:host[hidden] {
-  display: none;
-}
+    :host[hidden] {
+      display: none;
+    }
   </style>
 </template>

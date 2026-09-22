@@ -3,56 +3,73 @@
     <prop name="open" type="boolean" default="false">Whether the context menu is open initially or when set externally.</prop>
     <prop name="for" type="string" default="">ID of the control that opens the menu by click, keyboard activation, or context click.</prop>
     <state name="internalOpen" :value="false"></state>
-    <event name="open" type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"></event>
-    <event name="close" type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"></event>
+    <event
+      name="open"
+      type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"
+    ></event>
+    <event
+      name="close"
+      type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"
+    ></event>
     <event name="select" type="object({ value: string, trigger: keyboard | pointer | programmatic })"></event>
   </defs>
   <span><div class="menu" $ref="menu" role="menu" aria-orientation="vertical"><slot></slot></div></span>
-  <style>:host {
-  display: contents;
-}
+  <style>
+    :host {
+      display: contents;
+    }
 
-.menu {
-  position: fixed;
-  inset: auto;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-  padding: var(--ui-space-1);
-  background: var(--ui-surface-elevated);
-  border: 1px solid var(--ui-border-default);
-  border-radius: var(--ui-radius-3);
-  box-shadow: var(--ui-elevation-overlay, var(--ui-shadow-lg));
-  outline: 0;
-  overflow: auto;
-  z-index: var(--ui-z-overlay, 1000);
-  min-width: 12rem;
-  opacity: 0;
-  transform: translateY(-4px) scale(0.99);
-  transition:
-    opacity var(--ui-motion-fast) var(--ui-motion-ease),
-    transform var(--ui-motion-fast) var(--ui-motion-ease),
-    display var(--ui-motion-fast) allow-discrete,
-    overlay var(--ui-motion-fast) allow-discrete;
-}
+    .menu {
+      position: fixed;
+      inset: auto;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      padding: var(--ui-space-1);
+      background: var(--ui-surface-elevated);
+      border: 1px solid var(--ui-border-default);
+      border-radius: var(--ui-radius-3);
+      box-shadow: var(--ui-elevation-overlay, var(--ui-shadow-lg));
+      outline: 0;
+      overflow: auto;
+      z-index: var(--ui-z-overlay, 1000);
+      min-width: 12rem;
+      opacity: 0;
+      transform: translateY(-4px) scale(0.99);
+      transition:
+        opacity var(--ui-motion-fast) var(--ui-motion-ease),
+        transform var(--ui-motion-fast) var(--ui-motion-ease),
+        display var(--ui-motion-fast) allow-discrete,
+        overlay var(--ui-motion-fast) allow-discrete;
+    }
 
-.menu:popover-open { opacity: 1; transform: translateY(0) scale(1); }
+    .menu:popover-open {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
 
-@starting-style {
-  .menu:popover-open { opacity: 0; transform: translateY(-4px) scale(0.99); }
-}
+    @starting-style {
+      .menu:popover-open {
+        opacity: 0;
+        transform: translateY(-4px) scale(0.99);
+      }
+    }
 
-.menu[hidden],
-.menu[popover]:not(:popover-open) { display: none; }
+    .menu[hidden],
+    .menu[popover]:not(:popover-open) {
+      display: none;
+    }
 
-@media (prefers-reduced-motion: reduce) {
-  .menu { transition: none; }
-}
+    @media (prefers-reduced-motion: reduce) {
+      .menu {
+        transition: none;
+      }
+    }
 
-/* A component that sets its display still honours the hidden attribute on its root. */
-:host[hidden] {
-  display: none;
-}
-</style>
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
 </template>

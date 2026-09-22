@@ -11,78 +11,85 @@
     <input type="checkbox" role="switch" $ref="input" .checked="internalChecked" :disabled="disabled" :required="required" :value="value">
     <span class="label"><slot></slot></span>
   </label>
-  <style>:host {
-  display: inline-flex;
-  align-items: flex-start;
-  gap: var(--ui-switch-gap, var(--ui-space-2));
-  max-inline-size: 100%;
-  color: var(--ui-text-primary);
-  cursor: pointer;
-}
+  <style>
+    :host {
+      display: inline-flex;
+      align-items: flex-start;
+      gap: var(--ui-switch-gap, var(--ui-space-2));
+      max-inline-size: 100%;
+      color: var(--ui-text-primary);
+      cursor: pointer;
+    }
 
-.label { min-inline-size: 0; line-height: var(--ui-line-height-md); }
+    .label {
+      min-inline-size: 0;
+      line-height: var(--ui-line-height-md);
+    }
 
-input {
-  appearance: none;
-  -webkit-appearance: none;
-  position: relative;
-  flex: 0 0 auto;
-  width: var(--ui-switch-track-width, 2.5rem);
-  height: var(--ui-switch-track-height, 1.5rem);
-  padding: 0;
-  border: 1px solid var(--ui-control-border-hover, var(--ui-border-strong));
-  border-radius: 999px;
-  background: var(--ui-control-surface, var(--ui-surface-default));
-  box-shadow: inset 0 1px 2px color-mix(in srgb, var(--ui-text-primary) 10%, transparent);
-  cursor: pointer;
-  transition:
-    background-color var(--ui-motion-fast) var(--ui-motion-ease),
-    border-color var(--ui-motion-fast) var(--ui-motion-ease);
-  margin: 0;
-}
+    input {
+      appearance: none;
+      -webkit-appearance: none;
+      position: relative;
+      flex: 0 0 auto;
+      width: var(--ui-switch-track-width, 2.5rem);
+      height: var(--ui-switch-track-height, 1.5rem);
+      padding: 0;
+      border: 1px solid var(--ui-control-border-hover, var(--ui-border-strong));
+      border-radius: 999px;
+      background: var(--ui-control-surface, var(--ui-surface-default));
+      box-shadow: inset 0 1px 2px color-mix(in srgb, var(--ui-text-primary) 10%, transparent);
+      cursor: pointer;
+      transition: background-color var(--ui-motion-fast) var(--ui-motion-ease), border-color var(--ui-motion-fast) var(--ui-motion-ease);
+      margin: 0;
+    }
 
-input::after {
-  content: '';
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 1rem;
-  height: 1rem;
-  border-radius: 999px;
-  background: var(--ui-text-secondary);
-  box-shadow: var(--ui-shadow-xs);
-  transition: transform var(--ui-motion-fast) var(--ui-motion-ease);
-}
+    input::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 1rem;
+      height: 1rem;
+      border-radius: 999px;
+      background: var(--ui-text-secondary);
+      box-shadow: var(--ui-shadow-xs);
+      transition: transform var(--ui-motion-fast) var(--ui-motion-ease);
+    }
 
-input:checked {
-  background: var(--ui-accent-solid);
-  border-color: var(--ui-accent-solid);
-}
+    input:checked {
+      background: var(--ui-accent-solid);
+      border-color: var(--ui-accent-solid);
+    }
 
-input:checked::after {
-  transform: translateX(1rem);
-  background: var(--ui-text-on-accent);
-}
+    input:checked::after {
+      transform: translateX(1rem);
+      background: var(--ui-text-on-accent);
+    }
 
-input:focus-visible {
-  outline: 2px solid var(--ui-focus-ring, var(--ui-accent-solid));
-  outline-offset: 2px;
-}
+    input:focus-visible {
+      outline: 2px solid var(--ui-focus-ring, var(--ui-accent-solid));
+      outline-offset: 2px;
+    }
 
-:host-state([disabled]) { color: var(--ui-text-muted); cursor: not-allowed; }
-:host-state([disabled]) input {
-  border-color: var(--ui-border-default);
-  background: var(--ui-control-surface-disabled, var(--ui-surface-muted));
-  cursor: not-allowed;
-}
+    :host-state([disabled]) {
+      color: var(--ui-text-muted);
+      cursor: not-allowed;
+    }
+    :host-state([disabled]) input {
+      border-color: var(--ui-border-default);
+      background: var(--ui-control-surface-disabled, var(--ui-surface-muted));
+      cursor: not-allowed;
+    }
 
-@media (prefers-reduced-motion: reduce) {
-  input, input::after { transition: none; }
-}
+    @media (prefers-reduced-motion: reduce) {
+      input, input::after {
+        transition: none;
+      }
+    }
 
-/* A component that sets its display still honours the hidden attribute on its root. */
-:host[hidden] {
-  display: none;
-}
-</style>
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
 </template>

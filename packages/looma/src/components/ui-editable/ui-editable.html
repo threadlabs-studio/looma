@@ -5,134 +5,159 @@
     <prop name="edit" type="boolean" default="false">Whether edit mode is active initially or when set externally.</prop>
     <prop name="disabled" type="boolean" default="false">Prevents entering or changing edit mode.</prop>
     <prop name="hint" type="string" default="">Optional text shown beside the value to signal it is editable (for example "Edit").</prop>
-    <prop name="actions" type="boolean" default="false">Show explicit Save and Cancel buttons while editing. Without them, Enter or leaving the field saves and Escape cancels.</prop>
+    <prop name="actions" type="boolean" default="false"
+    >Show explicit Save and Cancel buttons while editing. Without them, Enter or leaving the field saves and Escape cancels.</prop>
     <state name="internalEdit" :value="false"></state>
     <state name="internalValue" :value="''"></state>
     <state name="draft" :value="''"></state>
     <event name="input" type="object({ value: string, trigger: keyboard | pointer | programmatic })"></event>
     <event name="change" type="object({ value: string, previousValue: string, trigger: keyboard | pointer | programmatic })"></event>
-    <event name="edit-change" type="object({ edit: boolean, reason: activate | commit | cancel | light-dismiss | escape | programmatic, trigger: keyboard | pointer | programmatic })"></event>
+    <event
+      name="edit-change"
+      type="object({ edit: boolean, reason: activate | commit | cancel | light-dismiss | escape | programmatic, trigger: keyboard | pointer | programmatic })"
+    ></event>
   </defs>
   <div>
     <div class="field">
-      <button class="preview" $ref="preview" type="button" :disabled="disabled"><span class="text" $value="internalValue"></span><span $if="hint" class="hint" aria-hidden="true" $value="hint"></span></button>
+      <button class="preview" $ref="preview" type="button" :disabled="disabled">
+        <span class="text" $value="internalValue"></span>
+        <span $if="hint" class="hint" aria-hidden="true" $value="hint"></span>
+      </button>
       <input class="input" $ref="input" type="text" .value="draft" :aria-label="label" :disabled="disabled or not internalEdit">
     </div>
-    <div $if="actions" class="actions"><button class="save" type="button">Save</button><button class="cancel" type="button">Cancel</button></div>
+    <div $if="actions" class="actions">
+      <button class="save" type="button">Save</button>
+      <button class="cancel" type="button">Cancel</button>
+    </div>
   </div>
-  <style>:host {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--ui-space-2);
-  min-inline-size: 0;
-  color: var(--ui-text-primary);
-}
+  <style>
+    :host {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--ui-space-2);
+      min-inline-size: 0;
+      color: var(--ui-text-primary);
+    }
 
-/* The value and the input share one grid cell with identical box metrics, so switching between
- * display and edit never changes the control's size or moves the text. */
-.field {
-  display: inline-grid;
-  min-inline-size: 8rem;
-  max-inline-size: 100%;
-}
+    /* The value and the input share one grid cell with identical box metrics, so switching between
+     * display and edit never changes the control's size or moves the text. */
+    .field {
+      display: inline-grid;
+      min-inline-size: 8rem;
+      max-inline-size: 100%;
+    }
 
-.preview,
-.input {
-  grid-area: 1 / 1;
-  box-sizing: border-box;
-  min-block-size: var(--ui-control-size-sm, 2rem);
-  margin: 0;
-  padding: var(--ui-space-1) var(--ui-space-2);
-  border: 1px solid transparent;
-  border-radius: var(--ui-radius-2);
-  font: inherit;
-  line-height: var(--ui-line-height-md);
-  color: inherit;
-  transition:
-    background-color var(--ui-motion-fast) var(--ui-motion-ease),
-    border-color var(--ui-motion-fast) var(--ui-motion-ease),
-    box-shadow var(--ui-motion-fast) var(--ui-motion-ease);
-}
+    .preview,
+    .input {
+      grid-area: 1 / 1;
+      box-sizing: border-box;
+      min-block-size: var(--ui-control-size-sm, 2rem);
+      margin: 0;
+      padding: var(--ui-space-1) var(--ui-space-2);
+      border: 1px solid transparent;
+      border-radius: var(--ui-radius-2);
+      font: inherit;
+      line-height: var(--ui-line-height-md);
+      color: inherit;
+      transition:
+        background-color var(--ui-motion-fast) var(--ui-motion-ease),
+        border-color var(--ui-motion-fast) var(--ui-motion-ease),
+        box-shadow var(--ui-motion-fast) var(--ui-motion-ease);
+    }
 
-.preview {
-  display: inline-flex;
-  gap: var(--ui-space-2);
-  align-items: center;
-  background: transparent;
-  text-align: start;
-  cursor: pointer;
-}
+    .preview {
+      display: inline-flex;
+      gap: var(--ui-space-2);
+      align-items: center;
+      background: transparent;
+      text-align: start;
+      cursor: pointer;
+    }
 
-.preview:hover:not(:disabled) {
-  background: var(--ui-surface-muted);
-}
+    .preview:hover:not(:disabled) {
+      background: var(--ui-surface-muted);
+    }
 
-.preview:focus-visible {
-  outline: none;
-  box-shadow: var(--ui-focus-halo);
-}
+    .preview:focus-visible {
+      outline: none;
+      box-shadow: var(--ui-focus-halo);
+    }
 
-.hint {
-  color: var(--ui-text-secondary);
-  font-size: var(--ui-font-size-sm);
-}
+    .hint {
+      color: var(--ui-text-secondary);
+      font-size: var(--ui-font-size-sm);
+    }
 
-/* Contained so it takes the value's width instead of its own default input width. */
-.input {
-  contain: inline-size;
-  inline-size: 100%;
-  min-inline-size: 0;
-  visibility: hidden;
-  background: var(--ui-control-surface, var(--ui-surface-elevated));
-}
+    /* Contained so it takes the value's width instead of its own default input width. */
+    .input {
+      contain: inline-size;
+      inline-size: 100%;
+      min-inline-size: 0;
+      visibility: hidden;
+      background: var(--ui-control-surface, var(--ui-surface-elevated));
+    }
 
-.input:focus {
-  outline: none;
-  border-color: var(--ui-control-focus, var(--ui-accent-solid));
-  box-shadow: var(--ui-control-inset), var(--ui-control-focus-halo-shadow);
-}
+    .input:focus {
+      outline: none;
+      border-color: var(--ui-control-focus, var(--ui-accent-solid));
+      box-shadow:
+        var(--ui-control-inset),
+        var(--ui-control-focus-halo-shadow);
+    }
 
-.input::selection {
-  background: color-mix(in srgb, var(--ui-accent-solid) 20%, transparent);
-}
+    .input::selection {
+      background: color-mix(in srgb, var(--ui-accent-solid) 20%, transparent);
+    }
 
-:host-state([internalEdit]) .preview { visibility: hidden; }
-:host-state([internalEdit]) .input { visibility: visible; }
+    :host-state([internalEdit]) .preview {
+      visibility: hidden;
+    }
+    :host-state([internalEdit]) .input {
+      visibility: visible;
+    }
 
-.actions { display: none; gap: var(--ui-space-1); }
-:host-state([internalEdit]) .actions { display: inline-flex; }
+    .actions {
+      display: none;
+      gap: var(--ui-space-1);
+    }
+    :host-state([internalEdit]) .actions {
+      display: inline-flex;
+    }
 
-.actions button {
-  min-block-size: var(--ui-control-size-sm, 2rem);
-  padding: 0 var(--ui-space-3);
-  border: 1px solid var(--ui-border-strong);
-  border-radius: var(--ui-radius-2);
-  background: var(--ui-surface-elevated);
-  background-image: var(--ui-raised-highlight, none);
-  box-shadow: var(--ui-raised, none);
-  color: inherit;
-  font: inherit;
-  font-size: var(--ui-font-size-sm);
-  cursor: pointer;
-}
+    .actions button {
+      min-block-size: var(--ui-control-size-sm, 2rem);
+      padding: 0 var(--ui-space-3);
+      border: 1px solid var(--ui-border-strong);
+      border-radius: var(--ui-radius-2);
+      background: var(--ui-surface-elevated);
+      background-image: var(--ui-raised-highlight, none);
+      box-shadow: var(--ui-raised, none);
+      color: inherit;
+      font: inherit;
+      font-size: var(--ui-font-size-sm);
+      cursor: pointer;
+    }
 
-.actions .save {
-  border-color: var(--ui-accent-solid);
-  background: var(--ui-accent-solid);
-  color: var(--ui-text-on-accent);
-}
+    .actions .save {
+      border-color: var(--ui-accent-solid);
+      background: var(--ui-accent-solid);
+      color: var(--ui-text-on-accent);
+    }
 
-.actions button:focus-visible {
-  outline: none;
-  box-shadow: var(--ui-focus-halo);
-}
+    .actions button:focus-visible {
+      outline: none;
+      box-shadow: var(--ui-focus-halo);
+    }
 
-:host-state([disabled]) .preview { color: var(--ui-text-muted); cursor: not-allowed; }
+    :host-state([disabled]) .preview {
+      color: var(--ui-text-muted);
+      cursor: not-allowed;
+    }
 
-/* A component that sets its display still honours the hidden attribute on its root. */
-:host[hidden] {
-  display: none;
-}
-</style>
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
 </template>

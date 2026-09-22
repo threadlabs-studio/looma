@@ -4,20 +4,26 @@
     <prop name="label" type="string" default="Tree">label token.</prop>
     <prop name="hoverExpandDelay" type="number" default="700">hoverExpandDelay token.</prop>
     <prop name="maxDepth" type="number" default="0">maxDepth token.</prop>
-    <event name="reorder" type="object({ sourceId: string, targetId: string, position: before | inside | after, sourceType: string, targetType: string, sourceScope: string, targetScope: string, trigger: keyboard | pointer | programmatic })"></event>
-    <event name="reorder-rejected" type="object({ sourceId: string, targetId: string, position: before | inside | after, reason: max-depth, maxDepth: integer, resultingDepth: integer, trigger: keyboard | pointer | programmatic })"></event>
+    <event
+      name="reorder"
+      type="object({ sourceId: string, targetId: string, position: before | inside | after, sourceType: string, targetType: string, sourceScope: string, targetScope: string, trigger: keyboard | pointer | programmatic })"
+    ></event>
+    <event
+      name="reorder-rejected"
+      type="object({ sourceId: string, targetId: string, position: before | inside | after, reason: max-depth, maxDepth: integer, resultingDepth: integer, trigger: keyboard | pointer | programmatic })"
+    ></event>
   </defs>
   <div role="tree"><slot></slot></div>
-  <style>:host {
-  display: block;
-  min-inline-size: 0;
-  padding-inline-start: var(--ui-tree-gutter, 0px);
-}
+  <style>
+    :host {
+      display: block;
+      min-inline-size: 0;
+      padding-inline-start: var(--ui-tree-gutter, 0px);
+    }
 
-
-/* A component that sets its display still honours the hidden attribute on its root. */
-:host[hidden] {
-  display: none;
-}
-</style>
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
 </template>

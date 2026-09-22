@@ -13,89 +13,89 @@
     <span class="trailing"><slot name="trailing"></slot></span>
   </button>
   <style>
-:host {
-  appearance: none;
-  inline-size: 100%;
-  min-block-size: var(--ui-search-result-row-min-height, 56px);
-  margin: 0;
-  padding-block: var(--ui-search-result-row-padding-block, var(--ui-space-3, 0.75rem));
-  padding-inline: var(--ui-search-result-row-padding-inline, var(--ui-space-4, 1rem));
-  display: flex;
-  align-items: flex-start;
-  gap: var(--ui-search-result-row-gap, var(--ui-space-3, 0.75rem));
-  background: var(--ui-search-result-row-bg, transparent);
-  border: none;
-  border-block-end: 1px solid var(--ui-search-result-row-border, var(--ui-border, #e5e7eb));
-  color: inherit;
-  cursor: pointer;
-  text-align: left;
-  transition: background-color var(--ui-motion-fast, 160ms) var(--ui-motion-ease, ease);
-}
+    :host {
+      appearance: none;
+      inline-size: 100%;
+      min-block-size: var(--ui-search-result-row-min-height, 56px);
+      margin: 0;
+      padding-block: var(--ui-search-result-row-padding-block, var(--ui-space-3, 0.75rem));
+      padding-inline: var(--ui-search-result-row-padding-inline, var(--ui-space-4, 1rem));
+      display: flex;
+      align-items: flex-start;
+      gap: var(--ui-search-result-row-gap, var(--ui-space-3, 0.75rem));
+      background: var(--ui-search-result-row-bg, transparent);
+      border: none;
+      border-block-end: 1px solid var(--ui-search-result-row-border, var(--ui-border, #e5e7eb));
+      color: inherit;
+      cursor: pointer;
+      text-align: left;
+      transition: background-color var(--ui-motion-fast, 160ms) var(--ui-motion-ease, ease);
+    }
 
-:host:last-child {
-  border-block-end: none;
-}
+    :host:last-child {
+      border-block-end: none;
+    }
 
-:host:hover:enabled {
-  background: var(--ui-search-result-row-hover-bg, color-mix(in srgb, var(--ui-surface, #ffffff) 85%, black 3%));
-}
+    :host:hover:enabled {
+      background: var(--ui-search-result-row-hover-bg, color-mix(in srgb, var(--ui-surface, #ffffff) 85%, black 3%));
+    }
 
-:host-state([selected]) {
-  background: var(
-    --ui-search-result-row-selected-bg,
-    var(--ui-search-result-row-hover-bg, color-mix(in srgb, var(--ui-surface, #ffffff) 85%, black 3%))
-  );
-}
+    :host-state([selected]) {
+      background: var(
+        --ui-search-result-row-selected-bg,
+        var(--ui-search-result-row-hover-bg, color-mix(in srgb, var(--ui-surface, #ffffff) 85%, black 3%))
+      );
+    }
 
-:host:focus-visible {
-  outline: 2px solid var(--ui-focus-ring, #2563eb);
-  outline-offset: -2px;
-}
+    :host:focus-visible {
+      outline: 2px solid var(--ui-focus-ring, #2563eb);
+      outline-offset: -2px;
+    }
 
-:host:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+    :host:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
 
-.leading,
-.trailing {
-  display: inline-flex;
-  align-items: flex-start;
-  flex-shrink: 0;
-}
+    .leading,
+    .trailing {
+      display: inline-flex;
+      align-items: flex-start;
+      flex-shrink: 0;
+    }
 
-.content {
-  min-inline-size: 0;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
+    .content {
+      min-inline-size: 0;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
 
-.title,
-.meta,
-.excerpt {
-  display: block;
-  min-inline-size: 0;
-}
+    .title,
+    .meta,
+    .excerpt {
+      display: block;
+      min-inline-size: 0;
+    }
 
-/* An unused region takes no space. */
-.leading:empty,
-.meta:empty,
-.excerpt:empty,
-.trailing:empty {
-  display: none;
-}
+    /* An unused region takes no space. */
+    .leading:empty,
+    .meta:empty,
+    .excerpt:empty,
+    .trailing:empty {
+      display: none;
+    }
 
-:slotted([slot='title']),
-:slotted([slot='meta']),
-:slotted([slot='excerpt']) {
-  display: block;
-  margin: 0;
-}
-  
-/* A component that sets its display still honours the hidden attribute on its root. */
-:host[hidden] {
-  display: none;
-}
-</style>
+    :slotted([slot="title"]),
+    :slotted([slot="meta"]),
+    :slotted([slot="excerpt"]) {
+      display: block;
+      margin: 0;
+    }
+
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
 </template>

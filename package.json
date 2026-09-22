@@ -49,10 +49,13 @@
     "test": "node --test tools/scripts/*.test.mjs && pnpm --filter @threadlabs/looma build && pnpm -r run test",
     "test:browser": "pnpm --filter @threadlabs/looma test:browser && pnpm --filter @threadlabs/looma-docs test:browser",
     "typecheck": "pnpm -r run typecheck",
-    "test:facade-consumer": "node tools/scripts/verify-facade-consumer.mjs"
+    "test:facade-consumer": "node tools/scripts/verify-facade-consumer.mjs",
+    "format": "dprint fmt",
+    "format:check": "dprint check"
   },
   "devDependencies": {
-    "verdaccio": "6.8.0"
+    "verdaccio": "6.8.0",
+    "dprint": "^0.57.4"
   },
   "pnpm": {
     "overrides": {
