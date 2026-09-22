@@ -28,6 +28,11 @@
     --ui-border: #e4e4e0;
     --ui-border-strong: #c8c8c4;
 
+    /* Disabled is one decision, not a per-component one: a neutral surface and text, at full
+       opacity, so a disabled control reads as unavailable rather than as a faded variant. */
+    --ui-disabled-surface: #f0f0ec;
+    --ui-disabled-text: #9b9b9b;
+
     /* Focus. */
     --ui-focus-ring: #5b55d6;
     --ui-focus-halo: 0 0 0 3px color-mix(in srgb, var(--ui-focus-ring) 40%, transparent);
