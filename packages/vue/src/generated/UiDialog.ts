@@ -1,19 +1,27 @@
 import { defineComponent as _defineComponent } from 'vue'
-import { toDisplayString as _toDisplayString, createTextVNode as _createTextVNode, createElementVNode as _createElementVNode, renderSlot as _renderSlot, mergeProps as _mergeProps, openBlock as _openBlock, createElementBlock as _createElementBlock } from "vue"
+import { toDisplayString as _toDisplayString, createElementVNode as _createElementVNode, renderSlot as _renderSlot, mergeProps as _mergeProps, openBlock as _openBlock, createElementBlock as _createElementBlock } from "vue"
 
 const _hoisted_1 = {
-  class: "dialog__body",
+  class: "dialog__header",
   "data-component": "ui-dialog"
 }
 const _hoisted_2 = {
-  slot: "",
-  style: {"display":"contents"}
+  class: "dialog__title",
+  "data-component": "ui-dialog"
 }
 const _hoisted_3 = {
-  class: "dialog__footer",
+  class: "dialog__body",
   "data-component": "ui-dialog"
 }
 const _hoisted_4 = {
+  slot: "",
+  style: {"display":"contents"}
+}
+const _hoisted_5 = {
+  class: "dialog__footer",
+  "data-component": "ui-dialog"
+}
+const _hoisted_6 = {
   slot: "actions",
   style: {"display":"contents"}
 }
@@ -80,32 +88,22 @@ return (_ctx: any,_cache: any) => {
     ref_key: "root",
     ref: root
   }), [
-    _cache[0] || (_cache[0] = _createElementVNode("header", {
-      class: "dialog__header",
-      "data-component": "ui-dialog"
-    }, [
-      _createElementVNode("h2", {
-        class: "dialog__title",
-        "data-component": "ui-dialog"
-      }, [
-        _createElementVNode("template", { "data-component": "ui-dialog" }, [
-          _createTextVNode(_toDisplayString(undefined))
-        ])
-      ]),
-      _createElementVNode("button", {
+    _createElementVNode("header", _hoisted_1, [
+      _createElementVNode("h2", _hoisted_2, _toDisplayString(props.label), 1 /* TEXT */),
+      _cache[0] || (_cache[0] = _createElementVNode("button", {
         class: "dialog__close",
         type: "button",
         "aria-label": "Close",
         "data-component": "ui-dialog"
-      })
-    ], -1 /* CACHED */)),
-    _createElementVNode("div", _hoisted_1, [
-      _createElementVNode("span", _hoisted_2, [
+      }, null, -1 /* CACHED */))
+    ]),
+    _createElementVNode("div", _hoisted_3, [
+      _createElementVNode("span", _hoisted_4, [
         _renderSlot(_ctx.$slots, "default")
       ])
     ]),
-    _createElementVNode("footer", _hoisted_3, [
-      _createElementVNode("span", _hoisted_4, [
+    _createElementVNode("footer", _hoisted_5, [
+      _createElementVNode("span", _hoisted_6, [
         _renderSlot(_ctx.$slots, "actions")
       ])
     ])

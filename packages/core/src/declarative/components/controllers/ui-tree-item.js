@@ -15,7 +15,6 @@ export default function controller(host) {
   const disclosure = element.querySelector('[part="disclosure"]');
   const children = element.querySelector('[part="children"]');
   const dragHandle = element.querySelector('[part="drag-handle"]');
-  const label = element.querySelector('[part="label"]');
   const childItems = () => Array.from(children?.children ?? [])
     .filter((child) => child.matches?.('[data-component-root~="ui-tree-item"]'));
   let lastExternalExpanded = Boolean(host.state.expanded);
@@ -57,7 +56,6 @@ export default function controller(host) {
     else element.removeAttribute("aria-expanded");
     element.tabIndex = disabled || !host.state.tabStop ? -1 : 0;
     element.style.setProperty("--ui-tree-item-depth", String(level - 1));
-    if (label && label.textContent !== name) label.textContent = name;
     if (children) children.hidden = !expanded;
     if (disclosure) {
       disclosure.hidden = !container;

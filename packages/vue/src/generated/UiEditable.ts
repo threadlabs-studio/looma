@@ -1,7 +1,21 @@
 import { defineComponent as _defineComponent } from 'vue'
-import { toDisplayString as _toDisplayString, createTextVNode as _createTextVNode, createElementVNode as _createElementVNode, mergeProps as _mergeProps, openBlock as _openBlock, createElementBlock as _createElementBlock } from "vue"
+import { toDisplayString as _toDisplayString, createElementVNode as _createElementVNode, mergeProps as _mergeProps, openBlock as _openBlock, createElementBlock as _createElementBlock } from "vue"
 
 const _hoisted_1 = ["data-disabled"]
+const _hoisted_2 = {
+  class: "editable__field",
+  "data-component": "ui-editable"
+}
+const _hoisted_3 = {
+  class: "editable__preview",
+  type: "button",
+  "data-component": "ui-editable"
+}
+const _hoisted_4 = {
+  class: "editable__hint",
+  "aria-hidden": "true",
+  "data-component": "ui-editable"
+}
 
 import { getCurrentInstance, onMounted, onUnmounted, ref, watchEffect } from "vue";
 import { attachLoomaComponent, updateComponentProps } from "@threadlabs/looma-core/declarative";
@@ -73,42 +87,23 @@ return (_ctx: any,_cache: any) => {
     "data-disabled": props.disabled ? '' : undefined,
     ref_key: "root",
     ref: root
-  }), [...(_cache[0] || (_cache[0] = [
-    _createElementVNode("div", {
-      class: "editable__field",
-      "data-component": "ui-editable"
-    }, [
-      _createElementVNode("button", {
-        class: "editable__preview",
-        type: "button",
-        "data-component": "ui-editable"
-      }, [
-        _createElementVNode("span", {
+  }), [
+    _createElementVNode("div", _hoisted_2, [
+      _createElementVNode("button", _hoisted_3, [
+        _cache[0] || (_cache[0] = _createElementVNode("span", {
           class: "editable__text",
           "data-component": "ui-editable"
-        }, [
-          _createElementVNode("template", { "data-component": "ui-editable" }, [
-            _createTextVNode(_toDisplayString(undefined))
-          ])
-        ]),
-        _createElementVNode("span", {
-          class: "editable__hint",
-          "aria-hidden": "true",
-          "data-component": "ui-editable"
-        }, [
-          _createElementVNode("template", { "data-component": "ui-editable" }, [
-            _createTextVNode(_toDisplayString(undefined))
-          ])
-        ])
+        }, _toDisplayString(undefined), -1 /* CACHED */)),
+        _createElementVNode("span", _hoisted_4, _toDisplayString(props.hint), 1 /* TEXT */)
       ]),
-      _createElementVNode("input", {
+      _cache[1] || (_cache[1] = _createElementVNode("input", {
         class: "editable__input",
         type: "text",
         value: undefined,
         "data-component": "ui-editable"
-      })
-    ], -1 /* CACHED */),
-    _createElementVNode("div", {
+      }, null, -1 /* CACHED */))
+    ]),
+    _cache[2] || (_cache[2] = _createElementVNode("div", {
       class: "editable__actions",
       "data-component": "ui-editable"
     }, [
@@ -122,8 +117,8 @@ return (_ctx: any,_cache: any) => {
         "data-action": "cancel",
         "data-component": "ui-editable"
       }, " Cancel ")
-    ], -1 /* CACHED */)
-  ]))], -2 /* BAIL */, _hoisted_1))
+    ], -1 /* CACHED */))
+  ], -2 /* BAIL */, _hoisted_1))
 }
 }
 

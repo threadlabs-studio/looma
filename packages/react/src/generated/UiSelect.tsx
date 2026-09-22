@@ -4,7 +4,7 @@ import type { ComponentPropsWithoutRef, ComponentRef, ElementType, ReactNode, Re
 import { attachLoomaComponent, updateComponentProps } from "@threadlabs/looma-core/declarative";
 import type { ComponentDefinition } from "@threadlabs/looma-core/declarative";
 
-const definition = {...{"contract":{"tag":"ui-select","props":{"disabled":{"type":"boolean","required":false,"target":{"attribute":"disabled"},"default":false},"invalid":{"type":"boolean","required":false,"target":{"attribute":"invalid"},"default":false},"multiple":{"type":"boolean","required":false,"target":{"attribute":"multiple"},"default":false},"required":{"type":"boolean","required":false,"target":{"attribute":"required"},"default":false},"value":{"type":"string","required":false,"target":{"attribute":"value"}}}},"template":{"kind":"element","name":"select","attributes":[{"kind":"attribute","name":"disabled","expression":"disabled","expressionPlan":{"source":"disabled","ast":{"kind":"id","name":"disabled"},"dependencies":["disabled"]}},{"kind":"attribute","name":"required","expression":"required","expressionPlan":{"source":"required","ast":{"kind":"id","name":"required"},"dependencies":["required"]}},{"kind":"attribute","name":"multiple","expression":"multiple","expressionPlan":{"source":"multiple","ast":{"kind":"id","name":"multiple"},"dependencies":["multiple"]}}],"children":[]},"declarations":[],"root":{"kind":"native","element":"select","choices":["select"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
+const definition = {...{"contract":{"tag":"ui-select","props":{"disabled":{"type":"boolean","required":false,"target":{"attribute":"disabled"},"default":false},"invalid":{"type":"boolean","required":false,"target":{"attribute":"invalid"},"default":false},"multiple":{"type":"boolean","required":false,"target":{"attribute":"multiple"},"default":false},"required":{"type":"boolean","required":false,"target":{"attribute":"required"},"default":false},"value":{"type":"string","required":false,"target":{"attribute":"value"}}}},"template":{"kind":"element","name":"select","attributes":[{"kind":"attribute","name":"disabled","expression":"disabled","expressionPlan":{"source":"disabled","ast":{"kind":"id","name":"disabled"},"dependencies":["disabled"]}},{"kind":"attribute","name":"required","expression":"required","expressionPlan":{"source":"required","ast":{"kind":"id","name":"required"},"dependencies":["required"]}},{"kind":"attribute","name":"multiple","expression":"multiple","expressionPlan":{"source":"multiple","ast":{"kind":"id","name":"multiple"},"dependencies":["multiple"]}}],"children":[{"kind":"slot"}]},"declarations":[],"root":{"kind":"native","element":"select","choices":["select"]}},source:{file:import.meta.url},css:""} as unknown as ComponentDefinition;
 
 interface UiSelectOwnProps {
   disabled?: boolean | null;
@@ -34,7 +34,7 @@ export function UiSelect(props: UiSelectProps) {
   useLayoutEffect(() => { if (root.current != null) updateComponentProps(root.current, componentProps); });
   return (
     <select {...nativeProps} data-component="ui-select" data-component-root="ui-select" disabled={prop0 ?? undefined} required={prop3 ?? undefined} multiple={prop2 ?? undefined} ref={setRoot}>
-
+      {children ?? (null)}
     </select>
   );
 }
