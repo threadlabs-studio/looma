@@ -104,8 +104,19 @@ Decisions and findings from side conversations, kept here so they are not lost.
   branch is reviewed. The layout package does not build until the registry question (item 8) is
   resolved.
 - **Knit on 0.3.** 0.3.1 carries Knit's three blockers (TreeItem label slot, Select options, Vue
-  form events and `v-model`). Knit also noted Looma lacks an app-shell layout: the Sidebar is only
-  the panel, so Knit keeps its own shell.
+  form events and `v-model`). Knit's migration lives uncommitted in
+  `workspaces/knit/gaborone` on a branch named `review-joel-workspace-ideas`; give it its own
+  branch before committing. On 0.3.1 its typecheck is clean and all 1,031 unit tests pass (four
+  stale 0.2 assertions updated: two theme tests removed because the behavior is Looma's now, the
+  outline test and the tooltip `for` test rewritten for 0.3). E2E not yet run.
+- **Knit migration follow-ups.** Unwrap 0.2 wrapper markup, which nests controls under 0.3 (for
+  example `<Button><button>…</button></Button>` and `<Input><input v-model></Input>`). Knit's
+  theme keys the outline button on `[data-component-root~='ui-button'][data-variant='outline']`,
+  a runtime-private attribute plus an explicit-only reflection; give Button per-variant tokens so
+  Knit sets tokens instead. Knit's other open gaps (docs/looma-migration-inventory.md in Knit):
+  full-width Button, app shell (Sidebar is only the panel), multi-value Editable, Combobox
+  `footer`/`empty`/`loading` slots, color-swatch picker, interactive Badge, selectable card/row,
+  Avatar size/tint/presence.
 
 ## 0.4 goals
 
