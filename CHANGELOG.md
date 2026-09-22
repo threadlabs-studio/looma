@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## v0.6.0-rc.2
+
+- The editor's editing surface carries `role="textbox"` and `aria-multiline="true"` with its
+  `label`. A name on a plain `contenteditable` div is prohibited by ARIA, which rc.1 tripped.
+- Disabled is a contract decision: `--ui-disabled-surface` and `--ui-disabled-text` give every
+  component the same neutral disabled state at full opacity, instead of each variant fading its
+  own colours. `--ui-<component>-disabled-*` still overrides it.
+- `tone="accent"` on Button tints an outline, ghost, or link button with the accent colour, for a
+  secondary action that still reads as the primary path.
+- The editor toolbar's `--ui-editor-toolbar-button-size` and `-mobile-button-size` work again:
+  they set `--ui-icon-button-size`, which replaced the per-size tokens.
+
 ## v0.6.0-rc.1
 
 Breaking: the theming surface. A product themes Looma through a contract of about 40 values; every
