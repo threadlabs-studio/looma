@@ -46,6 +46,13 @@ rather than repeating it.
    isolation, so the reset contradicts the platform. Each component's styles belong in its own
    template, scoped; consumer content is not reset; tokens are the only package CSS. Removing the
    `./layout.css`, `./styles.css`, and `./editor.css` exports is a breaking change for consumers.
+10. **Legacy TypeScript beside the declarative components.** `packages/core/src/overlay/` (manager and
+    positioning, 783 lines) is a second overlay stack: controllers use `components/shared/overlay.js`,
+    so a consumer calling the exported `openOverlay` does not coordinate with any component. It is
+    still used by `packages/editor/src/table-overlay.ts`. `packages/core/src/field/` types 0.2 event
+    details and is used by a hand-written `packages/vue/src/Combobox.ts`. Audit the hand-written Vue
+    components and editor classes against their declarative components, then remove the duplicates
+    and the root exports.
 
 ## 0.4 goals
 
