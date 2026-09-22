@@ -1268,6 +1268,36 @@ test("Looma navigation only points to Looma resources", async ({ page }) => {
   await expect(page.getByRole("link", { name: "View on GitHub", exact: true })).toBeVisible();
 });
 
+test("the catalog renders one filter per sidebar category and each filter narrows the grid", async ({
+  page
+}) => {
+  await page.goto("components/", { waitUntil: "networkidle" });
+  const filters = page.locator(".looma-catalog__filters button");
+  const cards = page.locator("[data-component-card]");
+
+  // The bundle downlevels iterable spread, so a Set spread renders one filter holding every
+  // label. Each category must be its own control with its own count.
+  const labels = await filters.allInnerTexts();
+  expect(labels.length).toBeGreaterThan(2);
+  const total = await cards.count();
+  expect(labels[0].replace(/\s+/g, " ")).toBe(`All ${total}`);
+
+  let counted = 0;
+  for (let index = 1; index < labels.length; index += 1) {
+    const [name, count] = labels[index].split("\n");
+    expect(Number(count)).toBeGreaterThan(0);
+    counted += Number(count);
+    await filters.nth(index).click();
+    await expect(cards).toHaveCount(Number(count));
+    await expect(filters.nth(index)).toHaveAttribute("aria-pressed", "true");
+    expect(name).toMatch(/^[A-Za-z]+$/);
+  }
+  expect(counted).toBe(total);
+
+  await filters.first().click();
+  await expect(cards).toHaveCount(total);
+});
+
 test("checkbox, switch, and radio APIs generate their own aligned native controls", async ({ page }) => {
   await page.goto("components/ui-checkbox", { waitUntil: "domcontentloaded" });
   const checkboxScenario = page.locator("[data-preview-scenario='Default']");
