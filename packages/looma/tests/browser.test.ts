@@ -285,7 +285,7 @@ describe("Overlays", () => {
       import { createApp, h } from "vue";
       import { Dialog, trackInputModality } from "@threadlabs/looma/vue";
       trackInputModality(document);
-      createApp({ render: () => h(Dialog, { id: "dialog", open: true, modal: true, label: "Details" }, () => "Body") }).mount("#app");
+      createApp({ render: () => h(Dialog, { id: "dialog", open: true, modal: true, dismissible: true, label: "Details" }, () => "Body") }).mount("#app");
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
     const close = page.locator("#dialog .close");
@@ -348,6 +348,55 @@ describe("Vue v-model on reported props", () => {
     await page.locator("#tags input").pressSequentially("Res");
     assert.equal(await page.locator("#tags input").inputValue(), "Res");
     assert.equal(await page.evaluate(() => (window as unknown as { query: { value: string } }).query.value), "Res");
+    await page.close();
+  });
+});
+
+describe("Light dismiss", () => {
+  it("needs a real press: a pointerdown with no coordinates keeps a modal dialog open", async () => {
+    const path = await bundle("vue-light-dismiss", `
+      import { createApp, h } from "vue";
+      import { Dialog } from "@threadlabs/looma/vue";
+      createApp({ render: () => h(Dialog, { id: "dialog", open: true, modal: true, dismissible: true, label: "Details" }, () => "Body") }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const dialog = page.locator("#dialog");
+    await dialog.waitFor();
+    // An activation with no pointer (assistive technology, or a synthetic event) reports 0,0, and
+    // lands on the document rather than inside the dialog.
+    await page.evaluate(() => {
+      document.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, composed: true, pointerType: "touch" }));
+    });
+    await page.waitForTimeout(50);
+    assert.equal(await dialog.evaluate((element) => (element as HTMLDialogElement).open), true, "the dialog stays open");
+    await page.close();
+  });
+});
+
+describe("Compact controls on touch", () => {
+  it("keep their size and still meet the touch target", async () => {
+    const path = await bundle("vue-compact-touch", `
+      import { createApp, h } from "vue";
+      import { IconButton, trackInputModality } from "@threadlabs/looma/vue";
+      trackInputModality(document);
+      createApp({ render: () => h("div", { style: "padding: 60px" }, [h(IconButton, { id: "small", size: "sm", label: "Remove" }, () => "x")]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await page.evaluate(() => document.dispatchEvent(new PointerEvent("pointerdown", { pointerType: "touch" })));
+    const target = await page.locator("#small").evaluate((element) => {
+      const hit = getComputedStyle(element, "::after");
+      const bounds = element.getBoundingClientRect();
+      const corner = { x: bounds.left + bounds.width / 2 + 21, y: bounds.top + bounds.height / 2 + 21 };
+      return {
+        visual: (element as HTMLElement).offsetWidth,
+        width: parseFloat(hit.inlineSize),
+        height: parseFloat(hit.blockSize),
+        hitsBeyondTheEdge: document.elementFromPoint(corner.x, corner.y) === element,
+      };
+    });
+    assert.ok(target.visual < 44, `a compact control stays compact (${target.visual}px)`);
+    assert.ok(target.width >= 44 && target.height >= 44, `its touch target is at least 44px (${target.width}x${target.height})`);
+    assert.equal(target.hitsBeyondTheEdge, true, "the target extends past the visual edge");
     await page.close();
   });
 });
