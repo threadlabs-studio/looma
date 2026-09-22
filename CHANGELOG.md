@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Editor: a `label` prop names the editing surface (default "Document"). Without it the text box
+  had no accessible name, which fails WCAG 4.1.2.
 - Theming has a contract: about 40 `--ui-*` values (intent colour, neutrals, focus, type, space,
   radius, elevation, motion, and the shared control sizes) that a product sets to theme Looma.
   Every other global is derived from them, so a theme that sets only the contract stays coherent.
