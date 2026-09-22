@@ -2,7 +2,22 @@
 
 ## Unreleased
 
-## v0.6.0-rc.2
+## v0.6.0
+
+Migrating a theme:
+
+- Set the contract (about 40 values) and delete everything that restated a derived value: the
+  `*-solid`/`*-soft` intent pairs, `--ui-surface-default`/`-elevated`/`-canvas`/`-hover`,
+  `--ui-text-primary`, `--ui-font-family-*`, `--ui-font-normal`/`-semibold`/`-bold`,
+  `--ui-space-5`/`-6`, `--ui-shadow-xs`/`-md`/`-xl`, `--ui-motion-base`. A converted product theme
+  dropped from 104 declarations to 74, and a third of it was restating Looma's own derivation.
+- Rename: `-bg`/`-color` component tokens are `-surface`/`-text`; `--ui-radius-1`…`-4`/`-xl` are
+  `-sm`/`-md`/`-lg`/`-dialog`; `--ui-text-sm` is `--ui-font-size-sm`; `--ui-color-focus` is
+  `--ui-focus-ring`; `--ui-tree-row-min-height` is `--ui-tree-item-min-block-size`.
+- If you redefined an Icon Button per-size token (`--ui-icon-button-size-sm`/`-size-lg`), set
+  `--ui-icon-button-size` on the element instead; the `size` prop resolves the default.
+- If you want a disabled state other than the neutral default, set `--ui-disabled-surface` and
+  `--ui-disabled-text` once, rather than per component.
 
 - The editor's editing surface carries `role="textbox"` and `aria-multiline="true"` with its
   `label`. A name on a plain `contenteditable` div is prohibited by ARIA, which rc.1 tripped.
@@ -14,7 +29,7 @@
 - The editor toolbar's `--ui-editor-toolbar-button-size` and `-mobile-button-size` work again:
   they set `--ui-icon-button-size`, which replaced the per-size tokens.
 
-## v0.6.0-rc.1
+### Also in 0.6.0
 
 Breaking: the theming surface. A product themes Looma through a contract of about 40 values; every
 other global derives from them. See the entries below for the renames and removals.
