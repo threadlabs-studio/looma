@@ -31,35 +31,6 @@ import { Button, Stack } from "@threadlabs/looma/vue";
     <Button variant="solid">Save</Button>
   </Stack>
 </template>`
-  },
-  react: {
-    language: "tsx",
-    code: `import { Button, Stack } from "@threadlabs/looma/react";
-
-export function AccountActions() {
-  return (
-    <Stack gap="m">
-      <h2>Account</h2>
-      <Button variant="solid">Save</Button>
-    </Stack>
-  );
-}`
-  },
-  svelte: {
-    language: "svelte",
-    code: `<script lang="ts">
-  import { onMount } from "svelte";
-  import { createUiButton, createUiStack } from "@threadlabs/looma/svelte";
-
-  let host: HTMLDivElement;
-  onMount(() => {
-    const heading = Object.assign(document.createElement("h2"), { textContent: "Account" });
-    const save = createUiButton({ variant: "solid", children: [document.createTextNode("Save")] });
-    host.replaceChildren(createUiStack({ gap: "m", children: [heading, save] }));
-  });
-</script>
-
-<div bind:this={host}></div>`
   }
 };
 
@@ -76,8 +47,8 @@ export function DeclarativeModel(): JSX.Element {
         <p>
           A Looma definition declares the component tag, native light-DOM root,
           inputs, methods, events, slots, and controller behavior. HTML Next is
-          the canonical form. Vue, React, and Svelte project that same contract
-          into their own lifecycle—they do not invent four competing APIs.
+          the canonical form. Vue projects that same contract
+          into its own lifecycle; it does not invent a competing API.
         </p>
       </div>
 
@@ -103,9 +74,8 @@ export function DeclarativeModel(): JSX.Element {
         <div>
           <h3>The same component, expressed for your host</h3>
           <p>
-            HTML Next is selected by default. React and Svelte show the preview adapters
-            (<code>@threadlabs/looma/react</code>, <code>@threadlabs/looma/svelte</code>); the live
-            result still exercises the same Looma definition.
+            HTML Next is selected by default. Vue shows the same definition through
+            <code>@threadlabs/looma/vue</code>; the live result exercises the same Looma definition.
           </p>
         </div>
         <FrameworkModeSelector />

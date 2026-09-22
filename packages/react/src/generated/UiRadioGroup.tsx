@@ -52,9 +52,7 @@ export function UiRadioGroup(props: UiRadioGroupProps) {
   return (
     <fieldset {...nativeProps} data-component="ui-radio-group" data-component-root="ui-radio-group" role="radiogroup" data-orientation={prop3 ?? undefined} data-disabled={prop0 ? "" : undefined} ref={setRoot}>
       <legend data-component="ui-radio-group">
-      <template data-component="ui-radio-group">
-        {prop1}
-      </template>
+      {prop1}
     </legend>
 {children ?? (null)}
     </fieldset>

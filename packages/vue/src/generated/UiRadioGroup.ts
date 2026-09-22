@@ -1,7 +1,8 @@
 import { defineComponent as _defineComponent } from 'vue'
-import { toDisplayString as _toDisplayString, createTextVNode as _createTextVNode, createElementVNode as _createElementVNode, renderSlot as _renderSlot, mergeProps as _mergeProps, openBlock as _openBlock, createElementBlock as _createElementBlock } from "vue"
+import { toDisplayString as _toDisplayString, createElementVNode as _createElementVNode, renderSlot as _renderSlot, mergeProps as _mergeProps, openBlock as _openBlock, createElementBlock as _createElementBlock } from "vue"
 
 const _hoisted_1 = ["data-orientation", "data-disabled"]
+const _hoisted_2 = { "data-component": "ui-radio-group" }
 
 import { getCurrentInstance, onMounted, onUnmounted, ref, watchEffect } from "vue";
 import { attachLoomaComponent, updateComponentProps } from "@threadlabs/looma-core/declarative";
@@ -72,11 +73,7 @@ return (_ctx: any,_cache: any) => {
     ref_key: "root",
     ref: root
   }), [
-    _cache[0] || (_cache[0] = _createElementVNode("legend", { "data-component": "ui-radio-group" }, [
-      _createElementVNode("template", { "data-component": "ui-radio-group" }, [
-        _createTextVNode(_toDisplayString(undefined))
-      ])
-    ], -1 /* CACHED */)),
+    _createElementVNode("legend", _hoisted_2, _toDisplayString(props.label), 1 /* TEXT */),
     _renderSlot(_ctx.$slots, "default")
   ], 16 /* FULL_PROPS */, _hoisted_1))
 }

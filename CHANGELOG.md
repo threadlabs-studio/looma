@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+## v0.4.0 Candidate
+
+Breaking: `@threadlabs/looma/react` and `@threadlabs/looma/svelte` are removed.
+React support is in development: it ships once HTML Next converts components to
+React without its runtime. The optional `react` and `svelte` peer dependencies
+are removed with them. The documentation shows HTML and Vue examples only.
+
+## v0.3.1 Candidate
+
+- Vue Input, Textarea, and Select support `v-model` (`modelValue` and
+  `update:modelValue`, from the native `input` event, or `change` for Select).
+- Vue handlers for native `input` and `change` events receive the event itself;
+  component events still receive their `detail`.
+- Select renders its authored `<option>` children in every adapter: HTML Next
+  parses `<select>` content by the HTML Standard's rules.
+- Tree Item has a `label` slot: content such as a link replaces the label text,
+  while `label` stays the item's accessible name and names its disclosure and
+  drag handle. Framework adapters also render declared text (`$value`) directly
+  instead of filling it in after mount.
+
 ## v0.3.0 Candidate
 
 Breaking: Looma components are HTML Next declarative components. Each

@@ -14,11 +14,11 @@ import { DeclarativeModel } from "@site/src/components/DeclarativeModel";
 
 ## Install Looma
 
-Looma Release 1 is a Candidate `0.3.0` package for Vue 3 and direct declarative HTML use. It is not Stable yet. React (`@threadlabs/looma/react`) and Svelte (`@threadlabs/looma/svelte`) are published as previews and are not qualified in Release 1.
+Looma Release 1 is a Candidate `0.4.0` package for Vue 3 and direct declarative HTML use. It is not Stable yet. React support is in development.
 
 :::caution Confirm the Candidate tag
 
-These instructions target the exact `@threadlabs/looma@0.3.0` Candidate. Before adopting it, confirm that npm resolves that package at `0.3.0` under the `candidate` dist-tag. Preview documentation can be built before that registry gate; production documentation is published only after the gate passes.
+These instructions target the exact `@threadlabs/looma@0.4.0` Candidate. Before adopting it, confirm that npm resolves that package at `0.4.0` under the `candidate` dist-tag. Preview documentation can be built before that registry gate; production documentation is published only after the gate passes.
 
 :::
 
@@ -136,7 +136,7 @@ const editor = new Editor({ extensions: [LoomaTableKit] });
 
 - `@threadlabs/looma` is the complete R1 public package; supported capabilities live at its explicit subpaths.
 - Every published component contract lowers to its declared native light-DOM root. No custom-element registry or shadow-root implementation is part of the public model.
-- React and Svelte subpaths are previews, not qualified R1 exports.
+- React support is in development; the package has no React export.
 - `LoomaEditor` owns its Tiptap lifecycle, formatting controls, slash commands,
   bounded mention suggestions, focus behavior, image insertion, and table editing.
 - Hosts own persistence, the authorized people-directory query, upload

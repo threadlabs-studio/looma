@@ -1,35 +1,40 @@
 import { defineComponent as _defineComponent } from 'vue'
-import { toDisplayString as _toDisplayString, createTextVNode as _createTextVNode, createElementVNode as _createElementVNode, renderSlot as _renderSlot, unref as _unref, withCtx as _withCtx, createVNode as _createVNode, mergeProps as _mergeProps, openBlock as _openBlock, createElementBlock as _createElementBlock } from "vue"
+import { toDisplayString as _toDisplayString, createElementVNode as _createElementVNode, renderSlot as _renderSlot, createTextVNode as _createTextVNode, unref as _unref, withCtx as _withCtx, createVNode as _createVNode, mergeProps as _mergeProps, openBlock as _openBlock, createElementBlock as _createElementBlock } from "vue"
 
 const _hoisted_1 = ["data-size"]
 const _hoisted_2 = {
+  for: "input",
+  part: "label",
+  "data-component": "ui-combobox"
+}
+const _hoisted_3 = {
   class: "field",
   part: "field",
   "data-component": "ui-combobox"
 }
-const _hoisted_3 = {
+const _hoisted_4 = {
   slot: "start",
   style: {"display":"contents"}
 }
-const _hoisted_4 = ["placeholder", "name", "disabled", "readonly", "required"]
-const _hoisted_5 = ["disabled"]
-const _hoisted_6 = {
+const _hoisted_5 = ["placeholder", "name", "disabled", "readonly", "required"]
+const _hoisted_6 = ["disabled"]
+const _hoisted_7 = {
   class: "popup",
   part: "popup",
   hidden: undefined,
   "data-component": "ui-combobox"
 }
-const _hoisted_7 = {
+const _hoisted_8 = {
   slot: "footer",
   style: {"display":"contents"}
 }
-const _hoisted_8 = {
+const _hoisted_9 = {
   class: "authored-options",
   hidden: "",
   "aria-hidden": "true",
   "data-component": "ui-combobox"
 }
-const _hoisted_9 = {
+const _hoisted_10 = {
   slot: "",
   style: {"display":"contents"}
 }
@@ -151,17 +156,9 @@ return (_ctx: any,_cache: any) => {
     ref_key: "root",
     ref: root
   }), [
-    _cache[6] || (_cache[6] = _createElementVNode("label", {
-      for: "input",
-      part: "label",
-      "data-component": "ui-combobox"
-    }, [
-      _createElementVNode("template", { "data-component": "ui-combobox" }, [
-        _createTextVNode(_toDisplayString(undefined))
-      ])
-    ], -1 /* CACHED */)),
-    _createElementVNode("div", _hoisted_2, [
-      _createElementVNode("span", _hoisted_3, [
+    _createElementVNode("label", _hoisted_2, _toDisplayString(props.label), 1 /* TEXT */),
+    _createElementVNode("div", _hoisted_3, [
+      _createElementVNode("span", _hoisted_4, [
         _renderSlot(_ctx.$slots, "start")
       ]),
       _cache[1] || (_cache[1] = _createElementVNode("div", {
@@ -183,7 +180,7 @@ return (_ctx: any,_cache: any) => {
         autocomplete: "off",
         part: "input",
         "data-component": "ui-combobox"
-      }, null, 8 /* PROPS */, _hoisted_4),
+      }, null, 8 /* PROPS */, _hoisted_5),
       _cache[2] || (_cache[2] = _createElementVNode("button", {
         type: "button",
         part: "affordance",
@@ -216,7 +213,7 @@ return (_ctx: any,_cache: any) => {
           "aria-hidden": "true",
           "data-component": "ui-combobox"
         }, " ? ", -1 /* CACHED */)
-      ]))], 8 /* PROPS */, _hoisted_5),
+      ]))], 8 /* PROPS */, _hoisted_6),
       _cache[3] || (_cache[3] = _createElementVNode("button", {
         type: "button",
         part: "affordance",
@@ -246,39 +243,37 @@ return (_ctx: any,_cache: any) => {
       for: "help",
       "data-component": "ui-combobox"
     }, {
-      default: _withCtx(() => [...(_cache[4] || (_cache[4] = [
-        _createElementVNode("template", { "data-component": "ui-combobox" }, [
-          _createTextVNode(_toDisplayString(undefined))
-        ], -1 /* CACHED */)
-      ]))]),
+      default: _withCtx(() => [
+        _createTextVNode(_toDisplayString(props.help), 1 /* TEXT */)
+      ]),
       _: 1 /* STABLE */
     }),
-    _createElementVNode("div", _hoisted_6, [
-      _cache[5] || (_cache[5] = _createElementVNode("div", {
+    _createElementVNode("div", _hoisted_7, [
+      _cache[4] || (_cache[4] = _createElementVNode("div", {
         id: "listbox",
         role: "listbox",
         "data-component": "ui-combobox"
       }, null, -1 /* CACHED */)),
-      _createElementVNode("span", _hoisted_7, [
+      _createElementVNode("span", _hoisted_8, [
         _renderSlot(_ctx.$slots, "footer")
       ])
     ]),
-    _cache[7] || (_cache[7] = _createElementVNode("div", {
+    _cache[5] || (_cache[5] = _createElementVNode("div", {
       id: "validation",
       class: "message",
       part: "validation",
       hidden: undefined,
       "data-component": "ui-combobox"
     }, null, -1 /* CACHED */)),
-    _cache[8] || (_cache[8] = _createElementVNode("div", {
+    _cache[6] || (_cache[6] = _createElementVNode("div", {
       class: "sr-only",
       role: "status",
       "aria-live": "polite",
       "aria-atomic": "true",
       "data-component": "ui-combobox"
     }, null, -1 /* CACHED */)),
-    _createElementVNode("div", _hoisted_8, [
-      _createElementVNode("span", _hoisted_9, [
+    _createElementVNode("div", _hoisted_9, [
+      _createElementVNode("span", _hoisted_10, [
         _renderSlot(_ctx.$slots, "default")
       ])
     ])
