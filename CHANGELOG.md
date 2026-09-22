@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## v0.5.1 Candidate
+
+- Button: a ghost button reads `--ui-button-ghost-text`, not `--ui-button-text`, so theming the
+  outline text leaves ghost buttons alone.
+- Button and Icon Button: disabled styling is themable. `--ui-button-disabled-opacity`,
+  `-surface`, `-border`, and `-text`; `--ui-icon-button-disabled-opacity`, `-bg`, `-border`, and
+  `-color`. Unset, each falls back to the variant's own colours at 0.6 opacity, as before.
+
 ## v0.5.0 Candidate
 
 Breaking: Looma is one package built from one set of component definitions.
