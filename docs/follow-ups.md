@@ -66,7 +66,10 @@ rather than repeating it.
 13. **The styling story for props.** Decide how a template styles by a prop's resolved value
     (including its default) now that `data-<prop>` records only explicitly configured props. See the
     options discussed in the 2026-09-22 session: explicit `class:` bindings, compiled prop selectors,
-    and container style queries.
+    and container style queries. Leading candidate: a scoped pseudo-class over the component's
+    resolved scope, `:host-state(size: sm)` and `:host-state(open)`, mirroring `host.state` in
+    controllers, type-checked against declared props and state, and replacing `data-state-*`
+    bindings. Needs a spec proposal, a runtime prototype, and adversarial review.
 
 ## 0.4 goals
 
