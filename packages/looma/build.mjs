@@ -54,8 +54,10 @@ const sharedControllers = {
     return { id: `@threadlabs/looma/components/${relative(componentsOut, path).split(sep).join("/")}`, external: true };
   },
 };
+// The editor's own Tiptap extensions are bundled; the host provides Tiptap's core, ProseMirror, and
+// the Vue integration.
 const isDependency = (id) => id === "vue" || id === "lowlight" || id === "markdown-it" || id.startsWith("@threadlabs/looma/") ||
-  id.startsWith("@tiptap/") || id.startsWith("lucide");
+  /^@tiptap\/(core|pm|vue-3)(\/|$)/.test(id) || id.startsWith("lucide");
 await build({
   configFile: false,
   logLevel: "warn",
