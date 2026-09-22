@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Editor: a `label` prop names the editing surface (default "Document"). Without it the text box
+  had no accessible name, which fails WCAG 4.1.2.
+
 ## v0.5.2
 
 - The Vue components are converted by `@nextwebwg/html-next` (it replaces the deprecated
