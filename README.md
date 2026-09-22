@@ -3,7 +3,7 @@
 Looma is a stack-agnostic UI library based on web standards and Open UI principles.
 
 > **Candidate availability:** Before installing, confirm that npm's `candidate`
-> dist-tag resolves `@threadlabs/looma@0.5.0`. A source or
+> dist-tag resolves `@threadlabs/looma@0.5.1`. A source or
 > documentation preview can exist before that registry gate passes.
 
 ## Pre-1.0 Product Drivers
@@ -41,7 +41,7 @@ for the exact imports and a Vue example.
 
 ## Release 1
 
-Looma Release 1 is a public npm **Candidate `0.5.0`**, not a claim that every
+Looma Release 1 is a public npm **Candidate `0.5.1`**, not a claim that every
 component or framework adapter is Stable. The sole public package is
 `@threadlabs/looma`, with explicit subpaths:
 
@@ -80,7 +80,7 @@ still requires the protected release authorization and evidence gates. See the
 - `docs/release-support-matrix.md`: public package, component, DOM, and proof boundary.
 - `docs/architecture.md`: package and runtime architecture.
 - `docs/adapters.md`: supported adapter contract and repository-preview status.
-- `docs/follow-ups.md`: known work after 0.5.0.
+- `docs/follow-ups.md`: known work after 0.5.1.
 - `docs/component-qualification-guide.md`: Candidate and Stable evidence rules.
 - `docs/public-release.md`: original public-repository and namespace-decision notes.
 
