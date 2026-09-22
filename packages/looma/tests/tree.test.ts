@@ -242,7 +242,6 @@ describe("Tree drag and drop", () => {
     await page.close();
   });
 
-  // Bug: likewise `[data-drop-position="before"] .row-drop-indicator` shows the indicator of every row
   // The insertion indicator before an expanded container is its own, not one per nested row.
   it("shows a single insertion indicator before an expanded container", async () => {
     const page = await open({ items: files });
