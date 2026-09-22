@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Theming has a contract: about 40 `--ui-*` values (intent colour, neutrals, focus, type, space,
+  radius, elevation, motion, and the shared control sizes) that a product sets to theme Looma.
+  Every other global is derived from them, so a theme that sets only the contract stays coherent.
+- The duplicate `oklch` palette is gone: one palette per theme, in the theme files.
+- Removed the parallel radius and text scales: `--ui-radius-1`…`-4` and `--ui-radius-xl` are
+  `--ui-radius-sm`, `-md`, `-lg`, and `-dialog`; `--ui-text-sm` was a font size and is
+  `--ui-font-size-sm`; `--ui-color-focus` is `--ui-focus-ring`; `--ui-space-1-5` and
+  `--ui-space-12` are gone.
+- A dark theme's intent tones take a dark foreground (`--ui-on-accent`, `--ui-on-danger`), since
+  its solid tones are light.
+
 ## v0.5.2
 
 - The Vue components are converted by `@nextwebwg/html-next` (it replaces the deprecated
