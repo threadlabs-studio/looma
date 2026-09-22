@@ -32,6 +32,9 @@ function ensureListeners(document, state) {
     const top = state.records.at(-1);
     if (!top || top.dismissible === false) return;
     const boundary = [top.element, ...(top.relatedElements ?? [])];
+    // Light dismiss needs a press it can place: an activation with no pointer (assistive technology,
+    // or a synthetic event) reports 0,0 and would otherwise read as a press outside the overlay.
+    if (event.clientX === 0 && event.clientY === 0) return;
     // A modal dialog's ::backdrop reports the dialog itself as the target; a press outside its box is outside.
     const rect = top.element.getBoundingClientRect();
     const onBackdrop = event.target === top.element

@@ -57,7 +57,9 @@
   --ifm-navbar-background-color: rgb(33 29 43 / 0.92);
 }
 
-html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
 
 body {
   letter-spacing: -0.008em;

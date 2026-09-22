@@ -84,9 +84,9 @@
       display: grid;
       grid-template-columns: 20px auto minmax(0, 1fr) auto;
       align-items: center;
-      min-block-size: var(--ui-tree-row-min-height, var(--_tree-row-min-height));
+      min-block-size: var(--ui-tree-item-min-block-size, var(--_tree-row-min-height));
       min-inline-size: 0;
-      font-size: var(--ui-tree-font-size, var(--ui-font-size-ui, 0.9375rem));
+      font-size: var(--ui-tree-item-font-size, var(--ui-font-size-ui));
       border-radius: var(--ui-radius-md);
       color: var(--ui-text-secondary);
       transition:
@@ -219,7 +219,14 @@
       display: flex;
       align-items: center;
       min-inline-size: 0;
-      padding: var(--ui-tree-label-padding-block, var(--ui-space-1)) var(--ui-tree-label-padding-inline, var(--ui-space-2));
+      padding: var(--ui-tree-item-label-padding-block, var(--ui-space-1)) var(--ui-tree-item-label-padding-inline, var(--ui-space-2));
+    }
+
+    /* Slotted label content fills the cell, so a link is the row's hit area rather than sizing to
+       its own text and reading as overflow. */
+    .label > :slotted(*) {
+      flex: 1 1 auto;
+      min-inline-size: 0;
     }
 
     .actions {

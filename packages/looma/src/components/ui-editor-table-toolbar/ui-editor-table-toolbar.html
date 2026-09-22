@@ -101,13 +101,13 @@
 
     .looma-editor__mobile-toolbar-shell :host button.active,
     .looma-editor__mobile-toolbar-shell :host button.selected {
-      background: var(--ui-accent-soft, var(--ui-accent-subtle, #e8f0fb));
+      background: var(--ui-accent-soft, var(--ui-accent-subtle));
     }
 
     .looma-editor__mobile-toolbar-shell :host .menu {
       top: auto;
       right: 0;
-      bottom: calc(100% + var(--ui-space-2, 8px));
+      bottom: calc(100% + var(--ui-space-2));
       max-height: min(50dvh, 22rem);
       overflow-y: auto;
       overscroll-behavior: contain;
@@ -115,11 +115,11 @@
     :host {
       display: inline-flex;
       align-items: center;
-      gap: var(--ui-space-1, 4px);
-      padding: var(--ui-space-1, 4px);
-      background: color-mix(in srgb, var(--ui-surface, #fff) 94%, transparent);
-      border: 1px solid var(--ui-border, #e5e7eb);
-      border-radius: calc(var(--ui-radius-md, 6px) + 2px);
+      gap: var(--ui-space-1);
+      padding: var(--ui-space-1);
+      background: color-mix(in srgb, var(--ui-surface) 94%, transparent);
+      border: 1px solid var(--ui-border);
+      border-radius: calc(var(--ui-radius-md) + 2px);
       box-shadow: var(--ui-shadow-lg, 0 10px 15px -3px rgb(0 0 0 / 0.1));
       backdrop-filter: blur(10px);
     }
@@ -134,7 +134,7 @@
     .sep {
       width: 1px;
       align-self: stretch;
-      background: var(--ui-border, #e5e7eb);
+      background: var(--ui-border);
     }
 
     .overflow {
@@ -145,31 +145,31 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: var(--ui-space-1-5, 6px);
+      gap: var(--ui-space-2);
       min-height: 32px;
       border: 0;
-      border-radius: var(--ui-radius-sm, 4px);
+      border-radius: var(--ui-radius-sm);
       background: transparent;
-      color: var(--ui-text-primary, #111827);
+      color: var(--ui-text-primary);
       cursor: pointer;
-      font-size: var(--ui-text-sm, 0.875rem);
+      font-size: var(--ui-font-size-sm);
       font-weight: 500;
       line-height: 1;
-      padding: var(--ui-space-1-5, 6px) var(--ui-space-2, 8px);
+      padding: var(--ui-space-2) var(--ui-space-2);
       white-space: nowrap;
     }
 
     :host button:hover {
-      background: var(--ui-surface-hover, #f3f4f6);
+      background: var(--ui-surface-hover);
     }
 
     :host button.active {
-      background: var(--ui-accent-soft, var(--ui-accent-subtle, #e8f0fb));
-      color: var(--ui-accent-active, #003d7a);
+      background: var(--ui-accent-soft, var(--ui-accent-subtle));
+      color: var(--ui-accent-active);
     }
 
     .group button {
-      border-radius: var(--ui-radius-sm, 4px);
+      border-radius: var(--ui-radius-sm);
     }
 
     .group button + button {
@@ -178,11 +178,11 @@
 
     :host .more {
       border: 0;
-      border-radius: var(--ui-radius-sm, 4px);
+      border-radius: var(--ui-radius-sm);
     }
 
     :host button.danger {
-      color: var(--ui-danger, #dc2626);
+      color: var(--ui-danger);
     }
 
     :host {
@@ -202,13 +202,13 @@
 
     .menu {
       position: absolute;
-      top: calc(100% + var(--ui-space-2, 8px));
+      top: calc(100% + var(--ui-space-2));
       right: 0;
       min-width: 12rem;
-      padding: var(--ui-space-1, 4px);
-      background: var(--ui-surface, #fff);
-      border: 1px solid var(--ui-border, #e5e7eb);
-      border-radius: var(--ui-radius-md, 6px);
+      padding: var(--ui-space-1);
+      background: var(--ui-surface);
+      border: 1px solid var(--ui-border);
+      border-radius: var(--ui-radius-md);
       box-shadow: var(--ui-shadow-lg, 0 10px 15px -3px rgb(0 0 0 / 0.1));
       display: flex;
       flex-direction: column;
@@ -217,18 +217,18 @@
     }
 
     .menu-section + .menu-section {
-      margin-top: var(--ui-space-1, 4px);
-      padding-top: var(--ui-space-1, 4px);
-      border-top: 1px solid color-mix(in srgb, var(--ui-border, #e5e7eb) 80%, transparent);
+      margin-top: var(--ui-space-1);
+      padding-top: var(--ui-space-1);
+      border-top: 1px solid color-mix(in srgb, var(--ui-border) 80%, transparent);
     }
 
     .menu-heading {
-      padding: var(--ui-space-1, 4px) var(--ui-space-2, 8px);
+      padding: var(--ui-space-1) var(--ui-space-2);
       font-size: 0.6875rem;
       font-weight: 700;
       letter-spacing: 0.05em;
       text-transform: uppercase;
-      color: var(--ui-text-muted, #6b7280);
+      color: var(--ui-text-muted);
     }
 
     .menu button {
@@ -245,7 +245,7 @@
     }
 
     :host .swatch-button {
-      gap: var(--ui-space-1, 4px);
+      gap: var(--ui-space-1);
       justify-content: flex-start;
     }
 
@@ -253,19 +253,19 @@
       width: 14px;
       height: 14px;
       flex: 0 0 14px;
-      border: 1px solid color-mix(in srgb, var(--ui-border, #e5e7eb) 80%, #000);
+      border: 1px solid color-mix(in srgb, var(--ui-border) 80%, #000);
       border-radius: 3px;
       background: var(--ui-editor-table-toolbar-swatch);
     }
 
     .swatch.default {
       background:
-        linear-gradient(135deg, transparent 44%, var(--ui-danger, #dc2626) 46% 54%, transparent 56%),
-        var(--ui-surface, #fff);
+        linear-gradient(135deg, transparent 44%, var(--ui-danger) 46% 54%, transparent 56%),
+        var(--ui-surface);
     }
 
     .swatch-button.selected {
-      background: var(--ui-accent-soft, var(--ui-accent-subtle, #e8f0fb));
+      background: var(--ui-accent-soft, var(--ui-accent-subtle));
     }
 
     :host[hidden] {
