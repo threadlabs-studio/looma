@@ -91,10 +91,10 @@
       inset-inline-start: 3px;
       inline-size: 2px;
       background: color-mix(in srgb, var(--ui-affordance-guide-color, var(--ui-border-strong)) 45%, transparent);
-      opacity: var(--ui-affordance-guide-opacity, 0.42);
+      opacity: var(--ui-affordance-guide-opacity);
       transition:
-        background-color var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease),
-        opacity var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease);
+        background-color var(--ui-affordance-motion, var(--ui-motion-fast)) var(--ui-motion-ease),
+        opacity var(--ui-affordance-motion, var(--ui-motion-fast)) var(--ui-motion-ease);
     }
 
     .guide {
@@ -103,17 +103,17 @@
       inset-inline-start: 50%;
       inline-size: 6px;
       block-size: 22px;
-      border: 1px solid var(--ui-border-strong, #c8c8c4);
-      border-radius: var(--ui-radius-round, 999px);
-      background: var(--ui-surface-elevated, #fff);
+      border: 1px solid var(--ui-border-strong);
+      border-radius: var(--ui-radius-round);
+      background: var(--ui-surface-elevated);
       opacity: 0;
       transform: translate(-50%, -50%);
-      transition: opacity var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease);
+      transition: opacity var(--ui-affordance-motion, var(--ui-motion-fast)) var(--ui-motion-ease);
       pointer-events: none;
     }
 
     .resizer:is(:hover, :focus-visible)::after {
-      background: var(--ui-affordance-direct-color, var(--ui-accent-solid, var(--ui-focus-ring, Highlight)));
+      background: var(--ui-affordance-direct-color, var(--ui-accent-solid, var(--ui-focus-ring)));
       opacity: 1;
     }
 
@@ -136,9 +136,9 @@
       box-shadow: var(--ui-elevation-overlay, var(--ui-shadow-lg));
       transform: translateX(0);
       transition:
-        transform var(--ui-motion-base, 0.2s) var(--ui-motion-ease-out, ease-out),
-        display var(--ui-motion-base, 0.2s) allow-discrete,
-        overlay var(--ui-motion-base, 0.2s) allow-discrete;
+        transform var(--ui-motion-base) var(--ui-motion-ease-out),
+        display var(--ui-motion-base) allow-discrete,
+        overlay var(--ui-motion-base) allow-discrete;
     }
 
     /* The author display above would otherwise override the UA rule that hides a closed popover. */

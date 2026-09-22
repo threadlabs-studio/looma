@@ -10,6 +10,23 @@
   `--ui-radius-sm`, `-md`, `-lg`, and `-dialog`; `--ui-text-sm` was a font size and is
   `--ui-font-size-sm`; `--ui-color-focus` is `--ui-focus-ring`; `--ui-space-1-5` and
   `--ui-space-12` are gone.
+- `density="compact"` on Menu, Tabs, Disclosure, and Tree: rows trade padding and type size for
+  fit. Nothing has to rescale a global token to compact a menu any more. Menu Item reads
+  `--ui-menu-item-padding-block`/`-padding-inline`, `-font-size`, `-radius`, and `-hover-surface`.
+- One token vocabulary, `--ui-<component>[-<variant>][-<state>]-<property>`: `-bg` and `-color`
+  become `-surface` and `-text` (Icon Button, Top Bar, Search Shell, Search Result Row, Editor
+  Toolbar), and the state comes before the property (`--ui-button-ghost-hover-surface`,
+  `--ui-button-link-text`).
+- Tokens that restated a prop are gone: `--ui-icon-button-size-sm`/`-size-lg` (the `size` prop
+  resolves the size; `--ui-icon-button-size` still overrides it on an element), and the Floating
+  Action Button's colour and size family (it reads the accent and control values directly, and
+  keeps `--ui-floating-action-button-inset-block-end`/`-inset-inline-end`/`-z-index`).
+- Names that never matched their component are renamed or gone: `--ui-field-*`, `--ui-option-*`,
+  and `--ui-multi-combobox-*` are `--ui-combobox-*`; `--ui-z-overlay` is
+  `--ui-context-menu-z-index`; the tree's row tokens carry the name of the component that reads
+  them (`--ui-tree-item-min-block-size`, `-font-size`, `-label-padding-block`/`-inline`).
+- Every component colour token's fallback chain ends in a semantic token, and the dead literal
+  fallbacks on global tokens are gone.
 - A dark theme's intent tones take a dark foreground (`--ui-on-accent`, `--ui-on-danger`), since
   its solid tones are light.
 

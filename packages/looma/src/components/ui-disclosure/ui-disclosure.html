@@ -1,5 +1,6 @@
 <template component="ui-disclosure" controller="./ui-disclosure.js">
   <defs>
+    <prop name="density" type="comfortable | compact" default="comfortable">Compact trades padding and type size for rows that fit more on screen.</prop>
     <prop name="summary" type="string" default="Details">summary token.</prop>
     <prop name="open" type="boolean" default="false">open token.</prop>
     <prop name="disabled" type="boolean" default="false">disabled token.</prop>
@@ -22,6 +23,19 @@
     <div class="panel" :id="contentId" :inert="not internalOpen"><div class="panel-inner"><slot></slot></div></div>
   </div>
   <style>
+    /* Density resolves into the summary row's own values; the public tokens still override them. */
+    :host {
+      --_trigger-min-block-size: var(--ui-control-size);
+      --_trigger-padding-block: var(--ui-space-2);
+      --_trigger-padding-inline: var(--ui-space-3);
+    }
+
+    :host-state([density="compact"]) {
+      --_trigger-min-block-size: var(--ui-control-size-sm);
+      --_trigger-padding-block: var(--ui-space-1);
+      --_trigger-padding-inline: var(--ui-space-2);
+    }
+
     /* An accordion row, not a field: no enclosing box, just a divider, so it never reads as a
      * select or combobox. Stacked disclosures share their dividers. */
     :host {
@@ -38,13 +52,14 @@
       gap: var(--ui-space-3);
       align-items: center;
       inline-size: 100%;
-      min-block-size: 2.5rem;
-      padding: var(--ui-space-2) var(--ui-space-3);
+      min-block-size: var(--ui-disclosure-trigger-min-block-size, var(--_trigger-min-block-size));
+      padding: var(--ui-disclosure-trigger-padding-block, var(--_trigger-padding-block))
+        var(--ui-disclosure-trigger-padding-inline, var(--_trigger-padding-inline));
       border: 0;
       background: transparent;
       color: inherit;
       font: inherit;
-      font-weight: var(--ui-font-semibold, 600);
+      font-weight: var(--ui-font-semibold);
       text-align: start;
       cursor: pointer;
       border-radius: var(--ui-radius-sm);

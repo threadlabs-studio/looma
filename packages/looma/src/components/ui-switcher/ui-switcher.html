@@ -7,7 +7,7 @@
   <div><slot></slot></div>
   <style>
     :host {
-      --_switcher-gap: var(--ui-space-4, 1rem);
+      --_switcher-gap: var(--ui-space-4);
       display: flex;
       flex-wrap: wrap;
       gap: var(--ui-switcher-gap, var(--_switcher-gap));
@@ -24,19 +24,19 @@
     }
 
     :host-state([gap="xs"]) {
-      --_switcher-gap: var(--ui-space-2, 0.5rem);
+      --_switcher-gap: var(--ui-space-2);
     }
     :host-state([gap="s"]) {
-      --_switcher-gap: var(--ui-space-3, 0.75rem);
+      --_switcher-gap: var(--ui-space-3);
     }
     :host-state([gap="m"]) {
-      --_switcher-gap: var(--ui-space-4, 1rem);
+      --_switcher-gap: var(--ui-space-4);
     }
     :host-state([gap="l"]) {
-      --_switcher-gap: var(--ui-space-5, 1.5rem);
+      --_switcher-gap: var(--ui-space-5);
     }
     :host-state([gap="xl"]) {
-      --_switcher-gap: var(--ui-space-6, 2rem);
+      --_switcher-gap: var(--ui-space-6);
     }
     :host-state([threshold="xs"]) > :slotted(*) {
       flex-basis: calc((var(--ui-switcher-threshold, 20rem) - 100%) * 999);

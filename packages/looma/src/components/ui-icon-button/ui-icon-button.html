@@ -23,11 +23,11 @@
       position: absolute;
       inset: 50% auto auto 50%;
       z-index: 1;
-      inline-size: var(--ui-affordance-guide-size, 0.25rem);
-      block-size: var(--ui-affordance-guide-size, 0.25rem);
-      border-radius: var(--ui-radius-round, 999px);
+      inline-size: var(--ui-affordance-guide-size);
+      block-size: var(--ui-affordance-guide-size);
+      border-radius: var(--ui-radius-round);
       background: var(--ui-affordance-guide-color, var(--ui-border-strong));
-      opacity: var(--ui-affordance-guide-opacity, 0.42);
+      opacity: var(--ui-affordance-guide-opacity);
       transform: translate(-50%, -50%);
       transition: opacity var(--ui-affordance-motion, var(--ui-motion-fast)) var(--ui-motion-ease);
       pointer-events: none;
@@ -50,16 +50,18 @@
     }
 
     :host {
+      /* The size prop resolves here; --ui-icon-button-size overrides it on an element. */
+      --_size: 2rem;
       appearance: none;
-      inline-size: var(--ui-icon-button-size, 2rem);
-      block-size: var(--ui-icon-button-size, 2rem);
-      min-inline-size: var(--ui-icon-button-size, 2rem);
-      min-block-size: var(--ui-icon-button-size, 2rem);
+      inline-size: var(--ui-icon-button-size, var(--_size));
+      block-size: var(--ui-icon-button-size, var(--_size));
+      min-inline-size: var(--ui-icon-button-size, var(--_size));
+      min-block-size: var(--ui-icon-button-size, var(--_size));
       padding: 0;
       margin: 0;
       border: 1px solid transparent;
       border-radius: var(--ui-icon-button-radius, var(--ui-radius-md));
-      background: var(--ui-icon-button-bg, transparent);
+      background: var(--ui-icon-button-surface, transparent);
       color: inherit;
       display: inline-flex;
       align-items: center;
@@ -90,8 +92,8 @@
         content: "";
         position: absolute;
         inset: 50% auto auto 50%;
-        inline-size: max(100%, var(--ui-control-min-block-size, 2.75rem));
-        block-size: max(100%, var(--ui-control-min-block-size, 2.75rem));
+        inline-size: max(100%, var(--ui-control-min-block-size));
+        block-size: max(100%, var(--ui-control-min-block-size));
         transform: translate(-50%, -50%);
       }
     }
@@ -104,38 +106,40 @@
       content: "";
       position: absolute;
       inset: 50% auto auto 50%;
-      inline-size: max(100%, var(--ui-control-min-block-size, 2.75rem));
-      block-size: max(100%, var(--ui-control-min-block-size, 2.75rem));
+      inline-size: max(100%, var(--ui-control-min-block-size));
+      block-size: max(100%, var(--ui-control-min-block-size));
       transform: translate(-50%, -50%);
     }
 
     :host-state([size="sm"]) {
-      inline-size: var(--ui-icon-button-size-sm, 1.75rem);
-      block-size: var(--ui-icon-button-size-sm, 1.75rem);
-      min-inline-size: var(--ui-icon-button-size-sm, 1.75rem);
-      min-block-size: var(--ui-icon-button-size-sm, 1.75rem);
+      --_size: 1.75rem;
+      inline-size: var(--ui-icon-button-size, var(--_size));
+      block-size: var(--ui-icon-button-size, var(--_size));
+      min-inline-size: var(--ui-icon-button-size, var(--_size));
+      min-block-size: var(--ui-icon-button-size, var(--_size));
     }
 
     :host-state([size="lg"]) {
-      inline-size: var(--ui-icon-button-size-lg, 2.5rem);
-      block-size: var(--ui-icon-button-size-lg, 2.5rem);
-      min-inline-size: var(--ui-icon-button-size-lg, 2.5rem);
-      min-block-size: var(--ui-icon-button-size-lg, 2.5rem);
+      --_size: 2.5rem;
+      inline-size: var(--ui-icon-button-size, var(--_size));
+      block-size: var(--ui-icon-button-size, var(--_size));
+      min-inline-size: var(--ui-icon-button-size, var(--_size));
+      min-block-size: var(--ui-icon-button-size, var(--_size));
     }
 
     :host-state([round]) {
-      border-radius: var(--ui-radius-round, 999px);
+      border-radius: var(--ui-radius-round);
     }
 
     :host-state([variant="outline"]) {
       border-color: var(--ui-icon-button-border, var(--ui-border-default));
-      background: var(--ui-icon-button-outline-bg, var(--ui-surface-default));
-      color: var(--ui-icon-button-outline-color, var(--ui-text-primary));
+      background: var(--ui-icon-button-outline-surface, var(--ui-surface-default));
+      color: var(--ui-icon-button-outline-text, var(--ui-text-primary));
     }
 
     :host-state([variant="solid"]) {
-      background: var(--ui-icon-button-solid-bg, var(--ui-accent-solid));
-      color: var(--ui-icon-button-solid-color, var(--ui-text-on-accent));
+      background: var(--ui-icon-button-solid-surface, var(--ui-accent-solid));
+      color: var(--ui-icon-button-solid-text, var(--ui-text-on-accent));
       box-shadow: var(
         --ui-icon-button-solid-shadow,
         0 1px 2px color-mix(in srgb, var(--ui-accent-solid) 18%, transparent)
@@ -144,8 +148,8 @@
 
     :host:hover:enabled {
       /* Derived from the text colour so the ghost hover shows on any background. */
-      background: var(--ui-icon-button-hover-bg, color-mix(in srgb, currentColor 8%, transparent));
-      color: var(--ui-icon-button-hover-color, var(--ui-text-primary));
+      background: var(--ui-icon-button-hover-surface, color-mix(in srgb, currentColor 8%, transparent));
+      color: var(--ui-icon-button-hover-text, var(--ui-text-primary));
     }
 
     :host-state([variant="outline"]):hover:enabled {
@@ -153,7 +157,7 @@
     }
 
     :host-state([variant="solid"]):hover:enabled {
-      background: var(--ui-icon-button-solid-hover-bg, var(--ui-accent-hover));
+      background: var(--ui-icon-button-solid-hover-surface, var(--ui-accent-hover));
     }
 
     :host:active:enabled {
@@ -168,31 +172,31 @@
     /* Disabled colours fall back to each variant's own; ghost takes only the icon colour. */
     :host:disabled {
       opacity: var(--ui-icon-button-disabled-opacity, 0.6);
-      color: var(--ui-icon-button-disabled-color, inherit);
+      color: var(--ui-icon-button-disabled-text, inherit);
       cursor: not-allowed;
     }
 
     :host-state([variant="outline"]):disabled {
       border-color: var(--ui-icon-button-disabled-border, var(--ui-icon-button-border, var(--ui-border-default)));
-      background-color: var(--ui-icon-button-disabled-bg, var(--ui-icon-button-outline-bg, var(--ui-surface-default)));
-      color: var(--ui-icon-button-disabled-color, var(--ui-icon-button-outline-color, var(--ui-text-primary)));
+      background-color: var(--ui-icon-button-disabled-surface, var(--ui-icon-button-outline-surface, var(--ui-surface-default)));
+      color: var(--ui-icon-button-disabled-text, var(--ui-icon-button-outline-text, var(--ui-text-primary)));
     }
 
     :host-state([variant="solid"]):disabled {
-      background-color: var(--ui-icon-button-disabled-bg, var(--ui-icon-button-solid-bg, var(--ui-accent-solid)));
-      color: var(--ui-icon-button-disabled-color, var(--ui-icon-button-solid-color, var(--ui-text-on-accent)));
+      background-color: var(--ui-icon-button-disabled-surface, var(--ui-icon-button-solid-surface, var(--ui-accent-solid)));
+      color: var(--ui-icon-button-disabled-text, var(--ui-icon-button-solid-text, var(--ui-text-on-accent)));
     }
 
     :host {
-      --_icon-button-icon-default: var(--ui-icon-size-md, 1.25rem);
+      --_icon-button-icon-default: var(--ui-icon-size-md);
     }
 
     :host-state([size="sm"]) {
-      --_icon-button-icon-default: var(--ui-icon-size-sm, 1rem);
+      --_icon-button-icon-default: var(--ui-icon-size-sm);
     }
 
     :host-state([size="lg"]) {
-      --_icon-button-icon-default: var(--ui-icon-size-lg, 1.5rem);
+      --_icon-button-icon-default: var(--ui-icon-size-lg);
     }
 
     :slotted(svg) {
