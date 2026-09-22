@@ -7,19 +7,9 @@ const repoRoot = path.resolve(__dirname, "../..");
 
 export const DECLARATIVE_GROUPS = Object.freeze([
   {
-    name: "core",
+    name: "components",
     packageName: "@threadlabs/looma",
-    directory: "packages/core/src/declarative",
-  },
-  {
-    name: "layout",
-    packageName: "@threadlabs/looma/layout",
-    directory: "packages/layout/src/declarative",
-  },
-  {
-    name: "editor",
-    packageName: "@threadlabs/looma/editor",
-    directory: "packages/editor/src/declarative",
+    directory: "packages/looma/src/components",
   },
 ]);
 
@@ -132,8 +122,8 @@ export function parseDeclarativeContract(source, expectedTag) {
 
 export async function readDeclarativeContractGroups() {
   return Promise.all(DECLARATIVE_GROUPS.map(async (group) => {
-    // Each component is a folder beside the package's declarative runtime: src/components/<tag>/<tag>.html.
-    const componentDirectory = path.posix.join(group.directory, "..", "components");
+    // Each component is a folder: src/components/<tag>/<tag>.html.
+    const componentDirectory = group.directory;
     const tags = (await readdir(path.join(repoRoot, componentDirectory)))
       .filter((name) => name.startsWith("ui-"))
       .sort();

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/web-components-vite";
-import { loomaIconMarkup } from "@threadlabs/looma-core";
+import { loomaIconMarkup } from "@threadlabs/looma/editor";
 import {
   createComponentArgTypes,
   createComponentDocsParameters,

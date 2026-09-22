@@ -2,18 +2,12 @@ import type { Preview } from "@storybook/web-components-vite";
 
 import "./preview.css";
 import { withOverlayAnimation } from "./overlay-animate";
-import "../../../packages/tokens/src/tokens.css";
-import "../../../packages/tokens/src/theme-light.css";
-import "../../../packages/tokens/src/theme-dark.css";
-import "../../../packages/layout/src/layout.css";
-import "../../../packages/core/src/styles.css";
-import "../../../packages/editor/src/editor.css";
-import { defineCustomElements } from "@threadlabs/looma-core/loader";
-import "../../../packages/layout/src/declarative-index.ts";
-import "../../../packages/core/index.ts";
-import "../../../packages/editor/src/index.ts";
-
-defineCustomElements();
+import "@threadlabs/looma/tokens.css";
+import "@threadlabs/looma/theme-light.css";
+import "@threadlabs/looma/theme-dark.css";
+import "@threadlabs/looma/vue.css";
+// Registers every component with the HTML Next runtime; each carries its own scoped styles.
+import "@threadlabs/looma";
 
 const preview: Preview = {
   decorators: [withOverlayAnimation],

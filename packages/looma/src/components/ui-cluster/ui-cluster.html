@@ -6,23 +6,28 @@
   <div><slot></slot></div>
   <style>
 :host {
-      --ui-layout-gap: var(--ui-space-3, 0.75rem);
+      --_layout-gap: var(--ui-space-3, 0.75rem);
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: var(--ui-layout-gap);
+      gap: var(--ui-layout-gap, var(--_layout-gap));
       min-inline-size: 0;
       max-inline-size: 100%;
       margin: 0;
     }
 
-    :host-state([gap="xs"]) { --ui-layout-gap: var(--ui-space-2, 0.5rem); }
-    :host-state([gap="s"]) { --ui-layout-gap: var(--ui-space-3, 0.75rem); }
-    :host-state([gap="m"]) { --ui-layout-gap: var(--ui-space-4, 1rem); }
-    :host-state([gap="l"]) { --ui-layout-gap: var(--ui-space-5, 1.5rem); }
-    :host-state([gap="xl"]) { --ui-layout-gap: var(--ui-space-6, 2rem); }
+    :host-state([gap="xs"]) { --_layout-gap: var(--ui-space-2, 0.5rem); }
+    :host-state([gap="s"]) { --_layout-gap: var(--ui-space-3, 0.75rem); }
+    :host-state([gap="m"]) { --_layout-gap: var(--ui-space-4, 1rem); }
+    :host-state([gap="l"]) { --_layout-gap: var(--ui-space-5, 1.5rem); }
+    :host-state([gap="xl"]) { --_layout-gap: var(--ui-space-6, 2rem); }
     :host-state([align="start"]) { align-items: flex-start; }
     :host-state([align="end"]) { align-items: flex-end; }
     :host-state([align="stretch"]) { align-items: stretch; }
-  </style>
+  
+/* A component that sets its display still honours the hidden attribute on its root. */
+:host[hidden] {
+  display: none;
+}
+</style>
 </template>

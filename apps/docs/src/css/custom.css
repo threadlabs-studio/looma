@@ -607,14 +607,14 @@ body {
  * control at its revealed state instead of rendering an apparently empty
  * card. */
 .looma-component-preview--compact
-  [data-component-root~="ui-icon-button"][data-anticipatory="true"] {
+  [data-component~="ui-icon-button"][data-ui-affordance] {
   border-color: var(--ui-icon-button-border, var(--ui-border-default)) !important;
   background: var(--ui-icon-button-outline-bg, var(--ui-surface-default)) !important;
   color: var(--ui-icon-button-outline-color, var(--ui-text-primary)) !important;
 }
 
 .looma-component-preview--compact
-  [data-component-root~="ui-icon-button"][data-anticipatory="true"]::before {
+  [data-component~="ui-icon-button"][data-ui-affordance]::before {
   opacity: 0 !important;
 }
 
@@ -623,8 +623,8 @@ body {
  * editor selection, so pin those two compact previews to their card instead
  * of allowing their production positioning model to escape across the docs. */
 .looma-component-preview--compact :is(
-  [data-component-root~="ui-editor-mention-menu"],
-  [data-component-root~="ui-editor-slash-menu"]
+  [data-component~="ui-editor-mention-menu"],
+  [data-component~="ui-editor-slash-menu"]
 ) {
   position: absolute !important;
   z-index: 1 !important;
@@ -633,7 +633,7 @@ body {
   transform: translate(-50%, -50%);
 }
 
-.looma-component-preview--compact .ui-editor-table-context-menu {
+.looma-component-preview--compact [data-component~="ui-editor-table-context-menu"] {
   max-height: calc(13rem - 2rem);
   translate: none !important;
 }
@@ -690,23 +690,23 @@ body {
   ui-switcher,
   ui-sidebar,
   ui-reel,
-  [data-component-root~="ui-stack"],
-  [data-component-root~="ui-cluster"],
-  [data-component-root~="ui-grid"],
-  [data-component-root~="ui-container"],
-  [data-component-root~="ui-switcher"],
-  [data-component-root~="ui-sidebar"],
-  [data-component-root~="ui-reel"]
+  [data-component~="ui-stack"],
+  [data-component~="ui-cluster"],
+  [data-component~="ui-grid"],
+  [data-component~="ui-container"],
+  [data-component~="ui-switcher"],
+  [data-component~="ui-sidebar"],
+  [data-component~="ui-reel"]
 ) { width: min(100%, var(--looma-preview-width, 100%)); }
 
 /* Layout demos use plain authored children. Their visible edges make gap,
  * alignment, stretching, wrapping, and column behavior directly inspectable. */
 .looma-preview-scenario__stage :is(
-  [data-component-root~="ui-stack"],
-  [data-component-root~="ui-container"],
-  [data-component-root~="ui-grid"],
-  [data-component-root~="ui-switcher"],
-  [data-component-root~="ui-reel"]
+  [data-component~="ui-stack"],
+  [data-component~="ui-container"],
+  [data-component~="ui-grid"],
+  [data-component~="ui-switcher"],
+  [data-component~="ui-reel"]
 ) > [data-slotted] {
   box-sizing: border-box;
   /* Taller than one line, so centre the label in the box. */
@@ -726,7 +726,7 @@ body {
 
 .looma-preview-scenario__stage > :is(
   ui-container,
-  [data-component-root~="ui-container"]
+  [data-component~="ui-container"]
 ) {
   outline: 1px dashed var(--looma-accent);
   outline-offset: -1px;
@@ -764,7 +764,7 @@ body {
 
 .looma-preview-scenario__stage > :is(
   ui-reel,
-  [data-component-root~="ui-reel"]
+  [data-component~="ui-reel"]
 ) {
   padding: 0.75rem 0.25rem;
   border-block: 1px solid var(--looma-line-strong);
@@ -788,7 +788,7 @@ body {
 .looma-responsive-preview-control input { width: 100%; }
 .looma-responsive-preview-control output { text-align: end; font-variant-numeric: tabular-nums; }
 
-.looma-component-preview :is(ui-search-shell, [data-component-root~="ui-search-shell"]) {
+.looma-component-preview :is(ui-search-shell, [data-component~="ui-search-shell"]) {
   position: relative;
   inset: auto;
   z-index: 1;
@@ -808,14 +808,14 @@ body {
 }
 
 .looma-preview-scenario__stage[data-component-preview="ui-search-shell"]
-  [data-component-root~="ui-search-shell"] {
+  [data-component~="ui-search-shell"] {
   display: block;
   width: 100%;
   height: 100%;
 }
 
 .looma-preview-scenario__stage[data-component-preview="ui-search-shell"]
-  [data-component-root~="ui-search-shell"] > dialog.search-shell {
+  [data-component~="ui-search-shell"] > dialog {
   position: absolute;
   width: 100%;
   height: 100%;
@@ -823,7 +823,7 @@ body {
   background: color-mix(in srgb, var(--looma-ink) 30%, transparent);
 }
 
-.looma-component-preview :is(ui-top-bar, [data-component-root~="ui-top-bar"]) {
+.looma-component-preview :is(ui-top-bar, [data-component~="ui-top-bar"]) {
   position: relative;
   inset-block-start: auto;
   z-index: 1;
@@ -856,7 +856,7 @@ body {
   font-size: 0.75rem;
 }
 
-.demo-editor-table-stage > [data-component-root~="ui-editor-table-overlay"] {
+.demo-editor-table-stage > [data-component~="ui-editor-table-overlay"] {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -1199,7 +1199,7 @@ body:has(.theme-doc-sidebar-container) .footer { margin-top: 0; }
 }
 
 /* Container's column is otherwise invisible: outline the measure and tint the gutters. */
-.looma-preview-scenario__stage [data-component-root~="ui-container"] {
+.looma-preview-scenario__stage [data-component~="ui-container"] {
   outline: 1px dashed var(--looma-line-strong);
   background: color-mix(in srgb, var(--ifm-color-primary) 8%, transparent);
 }

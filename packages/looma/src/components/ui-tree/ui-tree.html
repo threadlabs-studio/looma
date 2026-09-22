@@ -14,5 +14,10 @@
   padding-inline-start: var(--ui-tree-gutter, 0px);
 }
 
+
+/* A component that sets its display still honours the hidden attribute on its root. */
+:host[hidden] {
+  display: none;
+}
 </style>
 </template>

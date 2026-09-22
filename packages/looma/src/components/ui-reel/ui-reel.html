@@ -7,11 +7,11 @@
   <div role="region" tabindex="0"><slot></slot></div>
   <style>
 :host {
-      --ui-reel-gap: var(--ui-space-4, 1rem);
-      --ui-reel-item-width: auto;
+      --_reel-gap: var(--ui-space-4, 1rem);
+      --_reel-item-width: auto;
       display: flex;
       inline-size: 100%;
-      gap: var(--ui-reel-gap);
+      gap: var(--ui-reel-gap, var(--_reel-gap));
       min-inline-size: 0;
       max-inline-size: 100%;
       margin: 0;
@@ -22,19 +22,24 @@
 
     :host > :slotted(*) {
       min-inline-size: 0;
-      flex: 0 0 var(--ui-reel-item-width);
+      flex: 0 0 var(--ui-reel-item-width, var(--_reel-item-width));
     }
 
-    :host-state([gap="xs"]) { --ui-reel-gap: var(--ui-space-2, 0.5rem); }
-    :host-state([gap="s"]) { --ui-reel-gap: var(--ui-space-3, 0.75rem); }
-    :host-state([gap="m"]) { --ui-reel-gap: var(--ui-space-4, 1rem); }
-    :host-state([gap="l"]) { --ui-reel-gap: var(--ui-space-5, 1.5rem); }
-    :host-state([gap="xl"]) { --ui-reel-gap: var(--ui-space-6, 2rem); }
-    :host-state([itemWidth="sm"]) { --ui-reel-item-width: 12rem; }
-    :host-state([itemWidth="md"]) { --ui-reel-item-width: 16rem; }
-    :host-state([itemWidth="lg"]) { --ui-reel-item-width: 20rem; }
+    :host-state([gap="xs"]) { --_reel-gap: var(--ui-space-2, 0.5rem); }
+    :host-state([gap="s"]) { --_reel-gap: var(--ui-space-3, 0.75rem); }
+    :host-state([gap="m"]) { --_reel-gap: var(--ui-space-4, 1rem); }
+    :host-state([gap="l"]) { --_reel-gap: var(--ui-space-5, 1.5rem); }
+    :host-state([gap="xl"]) { --_reel-gap: var(--ui-space-6, 2rem); }
+    :host-state([itemWidth="sm"]) { --_reel-item-width: 12rem; }
+    :host-state([itemWidth="md"]) { --_reel-item-width: 16rem; }
+    :host-state([itemWidth="lg"]) { --_reel-item-width: 20rem; }
     :host-state([snap]) { scroll-snap-type: inline mandatory; }
     :host-state([snap="start"]) > :slotted(*) { scroll-snap-align: start; }
     :host-state([snap="center"]) > :slotted(*) { scroll-snap-align: center; }
-  </style>
+  
+/* A component that sets its display still honours the hidden attribute on its root. */
+:host[hidden] {
+  display: none;
+}
+</style>
 </template>

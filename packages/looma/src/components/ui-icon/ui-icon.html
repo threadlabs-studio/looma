@@ -25,5 +25,10 @@ svg {
   block-size: 100%;
   stroke-width: var(--ui-icon-stroke-width, 2);
 }
-  </style>
+  
+/* A component that sets its display still honours the hidden attribute on its root. */
+:host[hidden] {
+  display: none;
+}
+</style>
 </template>

@@ -16,7 +16,7 @@ import type { ScenarioPropertyAssignment } from "../components/ComponentModeExam
  * Whitespace between tags is formatting only; it is removed before the markup is rendered.
  *
  * Siblings with the same base name add hand-written code for a mode (`.snippet.html`, `.vue`,
- * `.react.tsx`, `.svelte`; other modes are derived from the markup) or demo behaviour
+ * other modes are derived from the markup) or demo behaviour
  * (`.behavior.ts`, a function given the example's rendered root).
  */
 export interface ComponentExample {
@@ -47,16 +47,12 @@ declare global {
 }
 
 // Example sources are loaded as text (see the looma-examples plugin in docusaurus.config.ts).
-// One context per package: a context over all of packages/ would also crawl node_modules.
+// One context over the components folder (a context over packages/ would also crawl node_modules).
 const sourceContexts = [
-  require.context("../../../../packages/core/src/components", true, /\/examples\/[^/]+\.(html|vue|svelte|react\.tsx)$/),
-  require.context("../../../../packages/layout/src/components", true, /\/examples\/[^/]+\.(html|vue|svelte|react\.tsx)$/),
-  require.context("../../../../packages/editor/src/components", true, /\/examples\/[^/]+\.(html|vue|svelte|react\.tsx)$/),
+  require.context("../../../../packages/looma/src/components", true, /\/examples\/[^/]+\.(html|vue)$/),
 ];
 const behaviorContexts = [
-  require.context("../../../../packages/core/src/components", true, /\/examples\/[^/]+\.behavior\.ts$/),
-  require.context("../../../../packages/layout/src/components", true, /\/examples\/[^/]+\.behavior\.ts$/),
-  require.context("../../../../packages/editor/src/components", true, /\/examples\/[^/]+\.behavior\.ts$/),
+  require.context("../../../../packages/looma/src/components", true, /\/examples\/[^/]+\.behavior\.ts$/),
 ];
 
 /** Every file in the contexts, by its path below `components/`. */
@@ -64,8 +60,8 @@ function files(contexts: readonly WebpackContext[]): Map<string, unknown> {
   return new Map(contexts.flatMap((context) => context.keys().map((key) => [key, context(key)] as const)));
 }
 
-const frameworkExtensions = { "html-next": ".snippet.html", vue: ".vue", react: ".react.tsx", svelte: ".svelte" } as const;
-const frameworkLanguages = { "html-next": "html", vue: "vue", react: "tsx", svelte: "svelte" } as const;
+const frameworkExtensions = { "html-next": ".snippet.html", vue: ".vue" } as const;
+const frameworkLanguages = { "html-next": "html", vue: "vue" } as const;
 
 const text = (module: unknown): string =>
   typeof module === "string" ? module : String((module as { default?: unknown }).default ?? "");
