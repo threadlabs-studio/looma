@@ -700,9 +700,38 @@ body {
   [data-component~="ui-reel"]
 ) { width: min(100%, var(--looma-preview-width, 100%)); }
 
+/* The card injects example markup into plain wrappers; stretch them so a layout
+ * component can fill the card while everything else stays centred. */
+.looma-component-card__preview > .looma-component-preview,
+.looma-component-card__preview > .looma-component-preview > div {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.looma-component-card__preview :is(
+  ui-stack,
+  ui-cluster,
+  ui-grid,
+  ui-container,
+  ui-switcher,
+  ui-reel,
+  [data-component~="ui-stack"],
+  [data-component~="ui-cluster"],
+  [data-component~="ui-grid"],
+  [data-component~="ui-container"],
+  [data-component~="ui-switcher"],
+  [data-component~="ui-reel"]
+) { width: 100%; }
+
+/* A card is narrower than the grid's 12rem default column, so it would read as one
+ * stacked column. A smaller wrap point shows the component doing its actual job. */
+.looma-component-card__preview :is(ui-grid, [data-component~="ui-grid"]) { --ui-grid-min: 8rem; }
+
 /* Layout demos use plain authored children. Their visible edges make gap,
  * alignment, stretching, wrapping, and column behavior directly inspectable. */
-.looma-preview-scenario__stage :is(
+:is(.looma-preview-scenario__stage, .looma-component-card__preview) :is(
   [data-component~="ui-stack"],
   [data-component~="ui-container"],
   [data-component~="ui-grid"],
@@ -773,6 +802,11 @@ body {
   scrollbar-width: auto;
 }
 
+.looma-component-card__preview :is(ui-reel, [data-component~="ui-reel"]) {
+  padding: 0.75rem 0.25rem;
+  border-block: 1px solid var(--looma-line-strong);
+}
+
 .looma-responsive-preview-control {
   display: grid;
   grid-template-columns: auto minmax(8rem, 1fr) 4rem;
@@ -788,6 +822,23 @@ body {
 
 .looma-responsive-preview-control input { width: 100%; }
 .looma-responsive-preview-control output { text-align: end; font-variant-numeric: tabular-nums; }
+
+/* A dialog escapes its card to the viewport unless every preview surface contains it. */
+.looma-component-card__preview :is(ui-search-shell, [data-component~="ui-search-shell"]) {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.looma-component-card__preview :is(ui-search-shell, [data-component~="ui-search-shell"]) > dialog {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 1rem;
+  background: color-mix(in srgb, var(--looma-ink) 30%, transparent);
+}
 
 .looma-component-preview :is(ui-search-shell, [data-component~="ui-search-shell"]) {
   position: relative;
