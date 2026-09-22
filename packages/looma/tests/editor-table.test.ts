@@ -122,10 +122,8 @@ afterAll(async () => {
 });
 
 describe("LoomaEditor tables", () => {
-  // Looma bug: a pointer click on the toolbar's "Insert table" never opens the grid. LoomaEditor's
-  // onClick toggles the picker open, and the ui-popover it passes `for` also listens to that anchor's
-  // click and toggles it straight back closed (close event: reason "action"). Flip to `it` once fixed.
-  it.fails("inserts a table sized from the toolbar's insert-table grid", async () => {
+  // The toolbar's "Insert table" opens the grid through the popover anchored to it (`for`).
+  it("inserts a table sized from the toolbar's insert-table grid", async () => {
     const page = await openEditor();
     await prose(page).click();
     const insertTable = page.getByRole("toolbar", { name: "Editor toolbar" }).getByRole("button", { name: "Insert table" });

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Editor: the formatting toolbar's Insert table opens its grid. The button toggled the picker and
+  the popover anchored to it toggled it back on the same click.
+- Tests: the editor's table and slash-menu UI is covered in the browser.
+
 - Icon Button: on coarse pointers and once touch input is used, an invisible hit area at least
   `--ui-control-min-block-size` square is centred on the button, so it is a touch target without
   growing visually.

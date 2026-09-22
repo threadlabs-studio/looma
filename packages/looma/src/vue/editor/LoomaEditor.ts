@@ -850,7 +850,8 @@ export const LoomaEditor = defineComponent({
           size: "sm",
           variant: tablePickerOpen.value ? "solid" : "ghost",
           "aria-expanded": tablePickerOpen.value ? "true" : "false",
-          onClick: () => { tablePickerOpen.value = !tablePickerOpen.value; },
+          // The popover anchored here with `for` owns the toggle; toggling here too reopened and
+          // closed it on the same click.
         }, () => loomaIcon("table")),
         commandButton(uploading.value ? "Uploading image" : "Insert image", "image", false, uploading.value || !props.uploadImage, () => fileInput.value?.click()),
         h("span", { class: "divider", "aria-hidden": "true" }),
@@ -1005,6 +1006,7 @@ export const LoomaEditor = defineComponent({
           open: tablePickerOpen.value,
           for: tablePickerAnchorId,
           placement: mobile.value ? "top-start" : "bottom-start",
+          onOpen: () => { tablePickerOpen.value = true; },
           onClose: () => { tablePickerOpen.value = false; },
         }, () => [h(EditorInsertTableGrid, {
               open: true,
