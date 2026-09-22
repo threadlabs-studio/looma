@@ -210,11 +210,16 @@
       flex: none;
     }
 
+    /* The label spans the row's height and centres its content, so slotted content (a link) can
+       stretch to fill the row as its own hit area; the padding tokens remove the inset. */
     .label {
       grid-column: 3;
       grid-row: 1;
+      align-self: stretch;
+      display: flex;
+      align-items: center;
       min-inline-size: 0;
-      padding: var(--ui-space-1) var(--ui-space-2);
+      padding: var(--ui-tree-label-padding-block, var(--ui-space-1)) var(--ui-tree-label-padding-inline, var(--ui-space-2));
     }
 
     .actions {

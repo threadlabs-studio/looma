@@ -1,34 +1,24 @@
-# Looma Monorepo
+<p align="center">
+  <img src="apps/docs/static/img/looma-mark.svg" alt="Looma" width="120" height="120">
+</p>
 
-Looma is a stack-agnostic UI library based on web standards and Open UI principles.
+<h1 align="center">Looma</h1>
 
-> **Candidate availability:** Before installing, confirm that npm's `candidate`
-> dist-tag resolves `@threadlabs/looma@0.5.1`. A source or
-> documentation preview can exist before that registry gate passes.
+<p align="center">
+  A stack-agnostic UI library built on web standards and Open UI principles.
+</p>
 
-## Pre-1.0 Product Drivers
+<p align="center">
+  <a href="https://threadlabs.studio/looma/">Documentation</a> ·
+  <a href="apps/docs/docs/getting-started.md">Getting started</a> ·
+  <a href="https://github.com/threadlabs-studio/looma/issues">Issues</a>
+</p>
 
-Until Looma reaches v1.0, its component roadmap is driven primarily by real
-needs found while building Knit and LoadOps. Those apps provide consumer
-evidence; they are not places to fork generic UI.
-
-When Knit or LoadOps needs a reusable primitive, layout primitive, generic
-molecule, theme token, or accessibility behavior, implement and qualify it in
-Looma first, publish or consume the approved Candidate, then use it in the app.
-The apps own domain-specific screens and compositions, but not duplicate generic
-controls.
-
-## Install the Candidate
+## Install
 
 ```sh
-pnpm add @threadlabs/looma@candidate
+pnpm add @threadlabs/looma
 ```
-
-The root package and the CSS subpaths require no framework or editor import.
-`@threadlabs/looma/vue` adds only Vue 3.5 or newer. Looma's editor is a Tiptap editor: its
-concrete extension preset ships inside the editor subpath, while an editor consumer supplies a
-compatible Tiptap 2 core. `@threadlabs/looma/vue/editor` exports the turnkey `LoomaEditor`
-component and uses `@tiptap/vue-3@^2.11.5` for Tiptap's official lifecycle APIs.
 
 ```ts
 import "@threadlabs/looma/tokens.css";
@@ -36,56 +26,50 @@ import "@threadlabs/looma/vue.css";
 import { Button, TopBar } from "@threadlabs/looma/vue";
 ```
 
-Import the tokens, one theme, and the components once in the browser entry. See the [install-first guide](apps/docs/docs/getting-started.md)
-for the exact imports and a Vue example.
+Import the tokens, one theme, and the components once in your browser entry.
+See the [getting-started guide](apps/docs/docs/getting-started.md) for the exact
+imports and a Vue example.
 
-## Release 1
+The root package and the CSS subpaths need no framework. `@threadlabs/looma/vue`
+adds only Vue 3.5 or newer. The editor is built on Tiptap: its extension preset
+ships inside the editor subpath, and editor consumers supply a compatible
+Tiptap 2 core. `@threadlabs/looma/vue/editor` exports a turnkey `LoomaEditor`
+component and uses `@tiptap/vue-3@^2.11.5`.
 
-Looma Release 1 is a public npm **Candidate `0.5.1`**, not a claim that every
-component or framework adapter is Stable. The sole public package is
-`@threadlabs/looma`, with explicit subpaths:
+## Package
 
-- `@threadlabs/looma`: registers every component (layout, form, display, overlay, and editor) with
-  the HTML Next runtime for HTML pages. `@threadlabs/looma/components/*` are the component files
-  for pages without a build.
-- `@threadlabs/looma/vue`: every component as a Vue 3.5 component, with no HTML Next runtime.
-  `@threadlabs/looma/vue.css` holds their scoped styles.
-- `@threadlabs/looma/vue/editor`: the turnkey `LoomaEditor` and the editor components.
-- `@threadlabs/looma/editor`: the editor components' contracts and the Tiptap extensions and commands;
-  `@threadlabs/looma/editor/extensions` holds the extensions alone.
-- `tokens.css` and the theme stylesheets are the only package CSS; each component carries its own
-  scoped styles.
+Looma ships as a single package, `@threadlabs/looma`:
 
-React support is in development and not published. Apps and documentation workspaces are
-private.
+| Entry | Contents |
+| --- | --- |
+| `@threadlabs/looma` | Registers every component with the HTML Next runtime for HTML pages |
+| `/components/*` | Individual component files for pages without a build |
+| `/vue`, `/vue.css` | Every component as a Vue 3.5 component, plus their scoped styles |
+| `/vue/editor` | The turnkey `LoomaEditor` and the editor components |
+| `/editor` | Editor component contracts, Tiptap extensions, and commands |
+| `/editor/extensions` | The Tiptap extensions alone |
+| `tokens.css`, `theme-*.css` | Design tokens and themes |
 
-The owner-approved public identity is `@threadlabs/looma`. Registry mutation
-still requires the protected release authorization and evidence gates. See the
-[Release 1 support matrix](docs/release-support-matrix.md) and
-[release checklist](docs/release-checklist.md) for the exact promise and gate status.
+Looma is pre-1.0: APIs may still change between minor versions. See the
+[support matrix](docs/release-support-matrix.md) for what each component
+currently promises. React support is in development.
 
-## Core Rules
+## Principles
 
 - Accessibility first and mobile first.
-- Progressive enhancement with SSR-first markup contracts.
-- HTML and CSS first, JS as enhancement.
+- Progressive enhancement with SSR-first markup.
+- HTML and CSS first, JavaScript as enhancement.
 - Composition over configuration.
 - No global magical state.
 - No external margins in components.
 
 ## Documentation
 
-- `apps/docs/docs/getting-started.md`: install and first supported Vue render.
-- `apps/docs/docs/release-1-support.md`: public Candidate support boundary.
-- `docs/release-support-matrix.md`: public package, component, DOM, and proof boundary.
-- `docs/architecture.md`: package and runtime architecture.
-- `docs/adapters.md`: supported adapter contract and repository-preview status.
-- `docs/follow-ups.md`: known work after 0.5.1.
-- `docs/component-qualification-guide.md`: Candidate and Stable evidence rules.
-- `docs/public-release.md`: original public-repository and namespace-decision notes.
-
-Source: [threadlabs-studio/looma](https://github.com/threadlabs-studio/looma) ·
-[Issues](https://github.com/threadlabs-studio/looma/issues).
+- [Getting started](apps/docs/docs/getting-started.md)
+- [Release 1 support](apps/docs/docs/release-1-support.md)
+- [Architecture](docs/architecture.md)
+- [Adapters](docs/adapters.md)
+- [Known follow-ups](docs/follow-ups.md)
 
 ## License
 

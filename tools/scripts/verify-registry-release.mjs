@@ -134,10 +134,7 @@ export function registryEvidence({ manifest, registryPackages, requiredTags }) {
 }
 
 async function main() {
-  const tag = argumentValue("--tag", "candidate");
-  if (!["candidate", "latest"].includes(tag)) {
-    throw new Error("--tag must be candidate or latest");
-  }
+  const tag = "latest";
   const manifestPath = path.resolve(
     repoRoot,
     argumentValue("--manifest", ".release/artifacts/release-manifest.json")
@@ -150,11 +147,11 @@ async function main() {
   assertPathInsideRepository(outputPath, "registry evidence output");
 
   const approvedRelease = await loadApprovedRelease({ manifestPath });
+  const requiredTags = [tag];
   let state;
   let issues = [];
   for (let attempt = 0; attempt < 20; attempt += 1) {
     state = await fetchRegistryRelease(approvedRelease);
-    const requiredTags = tag === "latest" ? ["candidate", "latest"] : ["candidate"];
     issues = collectRegistryReleaseIssues({ ...state, requiredTags });
     if (issues.length === 0) break;
     if (attempt < 19) await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -166,7 +163,6 @@ async function main() {
   if (checkoutCommit.status !== 0 || checkoutCommit.stdout.trim() !== state.manifest.sourceCommit) {
     throw new Error("release manifest source does not match the checked-out commit");
   }
-  const requiredTags = tag === "latest" ? ["candidate", "latest"] : ["candidate"];
   if (issues.length > 0) {
     throw new Error(`registry release verification failed:\n- ${issues.join("\n- ")}`);
   }

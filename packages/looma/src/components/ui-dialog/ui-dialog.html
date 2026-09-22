@@ -127,6 +127,19 @@
       outline-offset: 2px;
     }
 
+    /* A touch target, like Button on coarse pointers. */
+    @media (pointer: coarse) {
+      .close {
+        inline-size: var(--ui-control-min-block-size, 2.75rem);
+        block-size: var(--ui-control-min-block-size, 2.75rem);
+      }
+    }
+
+    html[data-ui-input-modality="touch"] :host .close {
+      inline-size: var(--ui-control-min-block-size, 2.75rem);
+      block-size: var(--ui-control-min-block-size, 2.75rem);
+    }
+
     .body {
       flex: 1 1 auto;
       min-block-size: 0;

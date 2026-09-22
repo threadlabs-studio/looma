@@ -4,6 +4,9 @@
     >Visual emphasis and semantic intent. link is an inline text action that reads as a link.</prop>
     <prop name="size" type="sm | md | lg" default="md">Control size.</prop>
     <prop name="disabled" type="boolean" default="false">disabled token.</prop>
+    <prop name="align" type="center | start" default="center"
+    >Content alignment. start lays the content out like a list option: from the start edge, with start-aligned text.</prop>
+    <prop name="stretch" type="boolean" default="false">Fills the inline size of its container.</prop>
   </defs>
   <button type="button" :disabled="disabled"><slot></slot></button>
   <style>
@@ -17,6 +20,16 @@
 
     :host-state([variant="solid"]) {
       color: var(--ui-action-primary-text, var(--ui-text-on-accent));
+    }
+
+    :host-state([align="start"]) {
+      justify-content: flex-start;
+      text-align: start;
+    }
+
+    :host-state([stretch]) {
+      display: flex;
+      inline-size: 100%;
     }
 
     :host {

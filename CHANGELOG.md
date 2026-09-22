@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+- Icon Button: on coarse pointers and once touch input is used, an invisible hit area at least
+  `--ui-control-min-block-size` square is centred on the button, so it is a touch target without
+  growing visually.
+
+- Tree Item: the label spans the row height and centres its content, and
+  `--ui-tree-label-padding-block` / `--ui-tree-label-padding-inline` set its padding, so slotted
+  label content such as a link can fill the row as its hit area.
+
+- Search Shell: a dismissible shell closes on the first Escape, including from inside its search
+  field (the browser otherwise spends that Escape clearing the field).
+- Search Shell: the search region shows focus with an accent edge, themed by
+  `--ui-search-shell-focus-color` (default `--ui-control-focus`).
+- Button: `align="start"` lays content out from the start edge with start-aligned text (option
+  rows such as a create chooser), and `stretch` fills the container's inline size.
+- Popover: an anchor toggle dispatches one `open` or `close` with its real trigger. It had
+  reported opens as `programmatic` and dispatched each anchor close twice.
+- Dialog: the header close button is a touch target (`--ui-control-min-block-size`) on coarse
+  pointers and once touch input is used.
 - Tree Item: drop feedback (the inside highlight and the before/after insertion indicator) styles
   only the target row, not every row nested in an expanded container.
 - Tests: Tree drag and drop is covered in the browser (reorder detail, inside drops and
