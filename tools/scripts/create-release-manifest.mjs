@@ -81,7 +81,6 @@ export function createReleaseManifest({
   packages,
   releaseEligible,
   exceptions = [],
-  approvals,
   evidence
 }) {
   const orderedPackages = topologicallySortPackages(packages);
@@ -92,16 +91,11 @@ export function createReleaseManifest({
     createdAt: new Date().toISOString(),
     releaseEligible,
     exceptions,
-    approvals,
     evidence,
     toolchain: {
       node: nodeVersion,
       pnpm: pnpmVersion,
       npm: npmVersion
-    },
-    plannedTags: {
-      initial: "candidate",
-      promoted: "latest"
     },
     packages: orderedPackages.map((entry, publishIndex) => ({
       publishIndex,

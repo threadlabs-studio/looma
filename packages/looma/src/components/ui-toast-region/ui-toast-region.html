@@ -7,7 +7,7 @@
     >Dismiss each message automatically after its duration. Timers pause while the pointer or focus is on a message.</prop>
     <prop name="duration" type="number" default="5000">Milliseconds an automatically dismissed message stays visible.</prop>
     <state name="internalOpen" :value="false"></state>
-    <state name="toasts" :value="[]"></state>
+    <state name="toasts" type="list(object({ id: string, message: string, role: alert | status, closing: boolean }))" :value="[]"></state>
     <event
       name="close"
       type="object({ open: boolean, reason: action | timeout | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"

@@ -12,7 +12,7 @@ export function DocsLandingHero(): JSX.Element {
       <div className="looma-home-hero__copy">
         <div className="looma-home-hero__eyebrow">
           <img src={markUrl} alt="" />
-          <span>Release 1 candidate</span>
+          <span>Pre-1.0 release</span>
         </div>
         <h1>Getting Started</h1>
         <p className="looma-home-hero__lede">

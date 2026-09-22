@@ -14,13 +14,7 @@ import { DeclarativeModel } from "@site/src/components/DeclarativeModel";
 
 ## Install Looma
 
-Looma Release 1 is a Candidate `0.5.1` package for Vue 3 and direct declarative HTML use. It is not Stable yet. React support is in development.
-
-:::caution Confirm the Candidate tag
-
-These instructions target the exact `@threadlabs/looma@0.5.1` Candidate. Before adopting it, confirm that npm resolves that package at `0.5.1` under the `candidate` dist-tag. Preview documentation can be built before that registry gate; production documentation is published only after the gate passes.
-
-:::
+Looma Release 1 is a Candidate `0.5.2` package for Vue 3 and direct declarative HTML use. It is not Stable yet. React support is in development.
 
 Use Node 20 or newer:
 

@@ -4,7 +4,7 @@
     <prop name="maxRows" type="integer" default="8">The most rows the grid offers (at most 10).</prop>
     <prop name="maxCols" type="integer" default="8">The most columns the grid offers (at most 10).</prop>
     <prop name="headerRow" type="boolean" default="false">Whether table insertion initially includes a header row.</prop>
-    <state name="cells" :value="[]"></state>
+    <state name="cells" type="list(object({ key: string, row: integer, col: integer, label: string, selected: boolean }))" :value="[]"></state>
     <state name="rows" :value="8"></state>
     <state name="cols" :value="8"></state>
     <state name="hint" :value="''"></state>

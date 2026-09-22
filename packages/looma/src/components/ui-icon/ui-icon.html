@@ -1,7 +1,11 @@
 <template component="ui-icon" controller="./ui-icon.js">
   <defs>
     <prop name="name" type="string" default="">The icon's name.</prop>
-    <state name="shapes" :value="[]"></state>
+    <state
+      name="shapes"
+      type="list(object({ tag: path | circle | rect, d?: string, cx?: string, cy?: string, r?: string, x?: string, y?: string, width?: string, height?: string, rx?: string }))"
+      :value="[]"
+    ></state>
   </defs>
   <span aria-hidden="true">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false">
