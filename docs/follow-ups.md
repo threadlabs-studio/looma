@@ -53,6 +53,12 @@ rather than repeating it.
     details and is used by a hand-written `packages/vue/src/Combobox.ts`. Audit the hand-written Vue
     components and editor classes against their declarative components, then remove the duplicates
     and the root exports.
+11. **No `status` or `summary` on component definitions.** They are catalog and docs metadata, not
+    platform semantics: nothing at runtime reads them. HTML Next's spec lists them as optional and
+    never defines them, yet its parser requires both (HC007, HC003), so every Looma template carries
+    boilerplate such as `status="early" summary="Looma ui-container layout primitive."`. Remove them
+    from the HTML Next spec, parser, and contract, then from every template; descriptions belong in
+    the docs pages.
 
 ## 0.4 goals
 
