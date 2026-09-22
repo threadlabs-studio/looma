@@ -11,7 +11,11 @@
     <state name="alignments" type="list(object({ action: align-left | align-center | align-right, label: string, active: boolean }))" :value="[]"></state>
     <state name="structure" type="list(object({ action: add-row-after | add-column-after, label: string, icon: string }))" :value="[]"></state>
     <state name="swatches" type="list(object({ action: string, label: string, color: string, selected: boolean }))" :value="[]"></state>
-    <state name="sections" type="list(object({ heading: string, items: list(object({ action: string, label: string, icon: string, danger: boolean })) }))" :value="[]"></state>
+    <state
+      name="sections"
+      type="list(object({ heading: string, items: list(object({ action: string, label: string, icon: string, danger: boolean })) }))"
+      :value="[]"
+    ></state>
     <state name="hasOverflow" :value="false"></state>
     <state name="overflowOpen" :value="false"></state>
     <event
