@@ -59,6 +59,14 @@ rather than repeating it.
     boilerplate such as `status="early" summary="Looma ui-container layout primitive."`. Remove them
     from the HTML Next spec, parser, and contract, then from every template; descriptions belong in
     the docs pages.
+12. **`:class` with a list.** `:class="[measure, gutters]"` works today by accident: a list attribute
+    value is space-joined, so the element gets `class="wide md"`. But it replaces the whole `class`
+    attribute (dropping static classes and the consumer's classes), and two props with the same
+    value (`size="sm"`, `gap="sm"`) produce the same class. Specify class composition in HTML Next.
+13. **The styling story for props.** Decide how a template styles by a prop's resolved value
+    (including its default) now that `data-<prop>` records only explicitly configured props. See the
+    options discussed in the 2026-09-22 session: explicit `class:` bindings, compiled prop selectors,
+    and container style queries.
 
 ## 0.4 goals
 
