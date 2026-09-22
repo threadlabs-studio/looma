@@ -14,7 +14,7 @@ import { DeclarativeModel } from "@site/src/components/DeclarativeModel";
 
 ## Install Looma
 
-Looma Release 1 is a Candidate `0.5.2` package for Vue 3 and direct declarative HTML use. It is not Stable yet. React support is in development.
+Looma is published on npm for Vue 3 and direct declarative HTML use. It is pre-1.0, so the surface can still change between minor versions. React support is in development.
 
 Use Node 20 or newer:
 
@@ -130,7 +130,7 @@ import { LoomaTableKit } from "@threadlabs/looma/editor/extensions";
 const editor = new Editor({ extensions: [LoomaTableKit] });
 ```
 
-## Know the Candidate boundary
+## Know the boundary
 
 - `@threadlabs/looma` is the complete R1 public package; supported capabilities live at its explicit subpaths.
 - Every published component contract lowers to its declared native light-DOM root. No custom-element registry or shadow-root implementation is part of the public model.
@@ -141,4 +141,4 @@ const editor = new Editor({ extensions: [LoomaTableKit] });
   transport, collaboration, presence, workspace/page concepts, and app-specific
   commands.
 
-Read the [Release 1 support and limitations](./release-1-support.md) before adopting the Candidate, then use the component pages for exact markup and API contracts.
+Read the [Release 1 support and limitations](./release-1-support.md) before adopting Looma, then use the component pages for exact markup and API contracts.
