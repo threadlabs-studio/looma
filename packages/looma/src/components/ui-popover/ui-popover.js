@@ -14,11 +14,19 @@ export default function controller(host) {
 
   const close = (reason, trigger) => {
     host.state.internalOpen = false;
+    lastOpen = false;
     host.dispatch("close", { open: false, reason, trigger });
   };
   const onAnchorClick = (event) => {
-    host.state.internalOpen = !Boolean(host.state.internalOpen);
-    if (!host.state.internalOpen) close("action", event.detail === 0 ? "keyboard" : "pointer");
+    const trigger = event.detail === 0 ? "keyboard" : "pointer";
+    if (host.state.internalOpen) {
+      close("action", trigger);
+      return;
+    }
+    host.state.internalOpen = true;
+    // Announce the anchor's toggle once, with its real trigger; apply() only announces changes it made.
+    lastOpen = true;
+    host.dispatch("open", { open: true, reason: "action", trigger });
   };
   const ids = createIdResolver(document, () => apply());
   const setup = () => {

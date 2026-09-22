@@ -40,6 +40,13 @@ export default function controller(host) {
     event.preventDefault();
     if (host.state.dismissible) dispatchClose("escape", "keyboard");
   };
+  // A search field spends the first Escape clearing itself and the dialog never sees a cancel,
+  // so a dismissible shell closes on Escape from anywhere inside it.
+  const onKeydown = (event) => {
+    if (event.key !== "Escape" || event.defaultPrevented || !host.state.dismissible) return;
+    event.preventDefault();
+    dispatchClose("escape", "keyboard");
+  };
   const onClick = (event) => {
     if (host.state.dismissible && event.target === dialog) dispatchClose("light-dismiss", trigger());
   };
@@ -47,12 +54,14 @@ export default function controller(host) {
     if (!suppressNativeClose && host.state.internalOpen) dispatchClose("action", trigger());
   };
   dialog.addEventListener("cancel", onCancel);
+  dialog.addEventListener("keydown", onKeydown);
   dialog.addEventListener("click", onClick);
   dialog.addEventListener("close", onClose);
   return () => {
     stop();
     stopTracking();
     dialog.removeEventListener("cancel", onCancel);
+    dialog.removeEventListener("keydown", onKeydown);
     dialog.removeEventListener("click", onClick);
     dialog.removeEventListener("close", onClose);
     closeNative();
