@@ -70,6 +70,14 @@ rather than repeating it.
     resolved scope, `:host-state(size: sm)` and `:host-state(open)`, mirroring `host.state` in
     controllers, type-checked against declared props and state, and replacing `data-state-*`
     bindings. Needs a spec proposal, a runtime prototype, and adversarial review.
+14. **No bespoke adapter pipeline.** Looma builds adapters with HTML Next's CLI, then
+    `tools/declarative-build/materialize.mjs` and `framework-adoption.mjs` patch the output with about
+    32 regex rewrites: runtime imports redirected to Looma's vendored copy, controller imports
+    replaced by a by-tag registry lookup, nested component tags swapped for framework components, a
+    forced full Vue diff, Vue slot regions and optional-boolean absence, and React attribute fixes
+    (`readOnly`, `tabIndex`, `autoComplete`, property-only props). Each one is a generator bug or a
+    missing generator option. Fix them in HTML Next's generator, have Looma use the stock output (the
+    converter's library mode), and delete the rewriting. Knit's Vue blockers likely belong here too.
 
 ## 0.4 goals
 
