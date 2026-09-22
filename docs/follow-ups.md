@@ -79,6 +79,34 @@ rather than repeating it.
     missing generator option. Fix them in HTML Next's generator, have Looma use the stock output (the
     converter's library mode), and delete the rewriting. Knit's Vue blockers likely belong here too.
 
+## Session notes (2026-09-22)
+
+Decisions and findings from side conversations, kept here so they are not lost.
+
+- **Separator is a native `<hr>`.** Done on the reorg branch: `<hr :aria-orientation="orientation">`,
+  styles in the template, controller deleted (it only added `role` and `aria-orientation` at
+  runtime). A labelled "— or —" divider is a different component: ARIA makes a separator's
+  children presentational. Modern `<hr>` styling needs one reset (`margin: 0`, `border: 0`, one
+  border side); the UA `margin: 0.5em auto` collapses it in a flex row.
+- **ARIA and native attributes are legitimate style hooks.** `hr[aria-orientation="vertical"]`
+  selects on an attribute the element needs anyway; prefer these over `data-*` reflection.
+- **Attribute precedence.** The runtime writes a template's literal attributes after the
+  invocation's, so an author's `role`, `class`, or other attribute on the invocation loses to the
+  template. Specify invocation-over-template precedence in HTML Next (see Consumer `class`).
+- **HTML Next on npm.** `@nextwebwg/declarative-components@1.0.0-alpha.0` is published (next and
+  latest). The generator fixes from nextwebwg/html-next#49 and #50 need an `alpha.1` release (npm
+  requires the owner's authenticator code). The converter, unplugin, and html-forms packages are
+  publishable on main but unpublished: publish the converter with cleanup item 14; restore
+  `private` on the other two until they have a consumer.
+- **Reorg branch history.** Commit `d1d5c2c` ("Record the :host-state candidate") accidentally
+  includes Matthew's in-progress edits (the `ui-container.html` sketch and the deletion of
+  `packages/layout/src/declarative/{registry.js,registry.d.ts,styles.css}`); split it before the
+  branch is reviewed. The layout package does not build until the registry question (item 8) is
+  resolved.
+- **Knit on 0.3.** 0.3.1 carries Knit's three blockers (TreeItem label slot, Select options, Vue
+  form events and `v-model`). Knit also noted Looma lacks an app-shell layout: the Sidebar is only
+  the panel, so Knit keeps its own shell.
+
 ## 0.4 goals
 
 - **Multi-select is the combobox's job.** `ui-select` stays the native, single-choice control; the
