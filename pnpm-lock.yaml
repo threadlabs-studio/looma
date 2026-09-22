@@ -2036,7 +2036,7 @@ packages:
       react: '>=16'
 
   '@nextwebwg/declarative-components@file:../../nextwebwg/html-next/.release/nextwebwg-declarative-components-1.0.0-alpha.1.tgz':
-    resolution: {integrity: sha512-jucOLm+sW1efDMxWnf2wVGFYjbz4LwQZhljOpA7VGFSiDMQua/RXQix17lMI+GfvvIX+lJ/uId4DKQX6kG0p6g==, tarball: file:../../nextwebwg/html-next/.release/nextwebwg-declarative-components-1.0.0-alpha.1.tgz}
+    resolution: {integrity: sha512-/0MnnQl9DidTNds/38m/n6QTnwAvkADXY2VFRkeB2yvui5Qiz+sacIJMz5yMfQU9VxSCdxTx6U74y2EPV5Bp8A==, tarball: file:../../nextwebwg/html-next/.release/nextwebwg-declarative-components-1.0.0-alpha.1.tgz}
     version: 1.0.0-alpha.1
     engines: {node: '>=22.13 <23 || >=24 <25'}
     hasBin: true
