@@ -163,6 +163,33 @@ describe("Vue editor components", () => {
   });
 });
 
+describe("LoomaEditor", () => {
+  it("edits a document and opens the slash menu", async () => {
+    const path = await bundle("vue-looma-editor", `
+      import { createApp, h, ref } from "vue";
+      import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+      const content = ref("<p>Hello</p>");
+      window.content = content;
+      createApp({
+        render: () => h(LoomaEditor, { modelValue: content.value, toolbarMode: "sticky", "onUpdate:modelValue": (value) => { content.value = value; } }),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const prose = page.locator(".ProseMirror");
+    await prose.waitFor();
+    assert.equal(await prose.textContent(), "Hello");
+    assert.ok(await page.locator('[data-component="ui-editor-toolbar"] button').count() > 0, "formatting toolbar renders");
+    await prose.click();
+    await page.keyboard.press("End");
+    await page.keyboard.press("Enter");
+    await page.keyboard.type("/");
+    const slash = page.locator('[data-component="ui-editor-slash-menu"]');
+    await slash.locator('[role="option"]').first().waitFor();
+    assert.ok(await slash.locator('[role="option"]').count() > 3, "slash menu lists blocks");
+    await page.close();
+  });
+});
+
 describe("HTML components", () => {
   it("register and lower from dist/index.js", async () => {
     const path = await bundle("html-page", `import "@threadlabs/looma";`);

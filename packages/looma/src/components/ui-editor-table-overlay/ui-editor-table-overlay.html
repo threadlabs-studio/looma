@@ -8,7 +8,7 @@
     <state name="hovered" :value="null"></state>
     <state name="active" :value="null"></state>
     <state name="activeKey" :value="''"></state>
-    <event name="action" type="object({ action: string, boundaryIndex?: integer, rowIndex?: integer, columnIndex?: integer, anchor?: object({ left: number, top: number, right: number, bottom: number }) })"></event>
+    <event name="action" type="object({ action: add-row-before | add-row-after | add-column-before | add-column-after, boundaryIndex: integer }) | object({ action: select-row | select-column, rowIndex: integer, columnIndex: integer }) | object({ action: open-cell-menu, rowIndex: integer, columnIndex: integer, anchor: object({ left: number, top: number, right: number, bottom: number }) })"></event>
   </defs>
   <div aria-label="Table controls" :hidden="not open">
     <div class="rows">

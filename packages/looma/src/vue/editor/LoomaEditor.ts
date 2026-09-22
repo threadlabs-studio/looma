@@ -1,3 +1,4 @@
+import "./looma-editor.css";
 import type { AnyExtension, Editor, JSONContent } from "@tiptap/core";
 import { BubbleMenu, EditorContent, useEditor } from "@tiptap/vue-3";
 import { TextSelection, type SelectionBookmark } from "@tiptap/pm/state";
@@ -38,9 +39,9 @@ import {
   type TableCellBackground,
   type TableActionCapabilities,
   type TableContextMenuAction,
-} from "@threadlabs/looma-editor";
-import { IconButton, Popover } from "../index";
-import { getVisualViewportRect, LOOMA_ICONS, type LoomaIconName } from "@threadlabs/looma-core";
+} from "@threadlabs/looma/editor";
+import { IconButton, Popover } from "@threadlabs/looma/vue";
+import { getVisualViewportRect, LOOMA_ICONS, type LoomaIconName } from "@threadlabs/looma/editor";
 import {
   EditorInsertTableGrid,
   EditorMentionMenu,
@@ -830,7 +831,7 @@ export const LoomaEditor = defineComponent({
         commandButton("Strike", "strikethrough", instance.isActive("strike"), !instance.can().toggleStrike(), () => instance.chain().focus().toggleStrike().run()),
         commandButton("Highlight", "highlighter", instance.isActive("highlight"), !instance.can().toggleHighlight(), () => instance.chain().focus().toggleHighlight().run()),
         commandButton("Inline code", "code-xml", instance.isActive("code"), !instance.can().toggleCode(), () => instance.chain().focus().toggleCode().run()),
-        h("span", { class: "ui-editor-toolbar__divider", "aria-hidden": "true" }),
+        h("span", { class: "divider", "aria-hidden": "true" }),
         commandButton("Heading 1", "heading-1", instance.isActive("heading", { level: 1 }), false, () => instance.chain().focus().toggleHeading({ level: 1 }).run()),
         commandButton("Heading 2", "heading-2", instance.isActive("heading", { level: 2 }), false, () => instance.chain().focus().toggleHeading({ level: 2 }).run()),
         commandButton("Heading 3", "heading-3", instance.isActive("heading", { level: 3 }), false, () => instance.chain().focus().toggleHeading({ level: 3 }).run()),
@@ -840,7 +841,7 @@ export const LoomaEditor = defineComponent({
         commandButton("Blockquote", "quote", instance.isActive("blockquote"), !instance.can().toggleBlockquote(), () => instance.chain().focus().toggleBlockquote().run()),
         commandButton("Code block", "braces", instance.isActive("codeBlock"), !instance.can().toggleCodeBlock(), () => instance.chain().focus().toggleCodeBlock().run()),
         commandButton("Divider", "minus", false, !instance.can().setHorizontalRule(), () => instance.chain().focus().setHorizontalRule().run()),
-        h("span", { class: "ui-editor-toolbar__divider", "aria-hidden": "true" }),
+        h("span", { class: "divider", "aria-hidden": "true" }),
         h(IconButton, {
           id: tablePickerAnchorId,
           class: "looma-editor__toolbar-button",
@@ -852,11 +853,11 @@ export const LoomaEditor = defineComponent({
           onClick: () => { tablePickerOpen.value = !tablePickerOpen.value; },
         }, () => loomaIcon("table")),
         commandButton(uploading.value ? "Uploading image" : "Insert image", "image", false, uploading.value || !props.uploadImage, () => fileInput.value?.click()),
-        h("span", { class: "ui-editor-toolbar__divider", "aria-hidden": "true" }),
+        h("span", { class: "divider", "aria-hidden": "true" }),
         commandButton("Undo", "undo", false, !instance.can().undo(), () => instance.chain().focus().undo().run()),
         commandButton("Redo", "redo", false, !instance.can().redo(), () => instance.chain().focus().redo().run()),
       ];
-      return h(EditorToolbar, floating ? { floating: "" } : {}, () => buttons);
+      return h(EditorToolbar, { floating }, () => buttons);
     };
 
     const focus = (position: "start" | "end" = "start") => {
@@ -893,8 +894,8 @@ export const LoomaEditor = defineComponent({
       ];
       const tableProps = {
         open: true,
-        "cell-alignment": tableUi.alignment,
-        "cell-background": tableUi.background ?? undefined,
+        cellAlignment: tableUi.alignment,
+        cellBackground: tableUi.background ?? undefined,
         actions: tableActions,
         onAction: runTableAction,
       };
@@ -1059,8 +1060,6 @@ export const LoomaEditor = defineComponent({
               onPointerleave: onTableOverlayPointerLeave,
             }, [h(EditorTableOverlay, {
               open: true,
-              rows: tableUi.rows,
-              cols: tableUi.cols,
               geometry: tableUi.geometry,
               onAction: runOverlayAction,
             })])

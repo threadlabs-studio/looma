@@ -6,7 +6,7 @@
     <prop name="actions" type="list(align-left | align-center | align-right | background-none | background-gray | background-yellow | background-blue | background-green | background-red | add-row-before | add-row-after | add-column-before | add-column-after | clear-cells | merge-cells | split-cell | delete-row | delete-column | delete-table)">The complete set of commands the current selection permits.</prop>
     <state name="swatches" :value="[]"></state>
     <state name="sections" :value="[]"></state>
-    <event name="action" type="object({ action: string })"></event>
+    <event name="action" type="object({ action: align-left | align-center | align-right | background-none | background-gray | background-yellow | background-blue | background-green | background-red | add-row-before | add-row-after | add-column-before | add-column-after | clear-cells | merge-cells | split-cell | delete-row | delete-column | delete-table })"></event>
   </defs>
   <div role="menu" :hidden="not open">
     <div $if="swatches" class="section" role="none">
