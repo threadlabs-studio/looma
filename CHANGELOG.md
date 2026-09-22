@@ -4,6 +4,8 @@
 
 - Search Shell: a dismissible shell closes on the first Escape, including from inside its search
   field (the browser otherwise spends that Escape clearing the field).
+- Search Shell: the search region shows focus with an accent edge, themed by
+  `--ui-search-shell-focus-color` (default `--ui-control-focus`).
 
 ## v0.5.1 Candidate
 
