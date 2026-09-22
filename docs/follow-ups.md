@@ -20,79 +20,31 @@ Knit running on a clean Looma whose components follow the proposal's styling mod
 4. **Knit.** Migrate with the Knit session: custom-properties-only theme, 0.2 wrappers unwrapped,
    tests and pages verified.
 
-## Cleanup (in progress)
+## Cleanup (done on reorg/components, 2026-09-22)
 
-1. **Organize the repository.** One package (`packages/looma`); each component is one folder with
-   its template, controller, and examples side by side (`components/ui-button/ui-button.html`,
-   `ui-button.js`, `examples/`). The HTML Next spec forbids script in component HTML, so the
-   controller sits beside the template rather than inside it. Delete the empty README-only folders
-   and the unused TypeScript left from the old implementation.
-2. **Style with classes, not state attributes or `:scope`.** A template that styles by a prop binds
-   a class (`class:sm="size == 'sm'"`, then `.sm { … }`) instead of reflecting `data-size` and
-   selecting `:scope[data-size='sm']`. Component styles are scoped by authorship, so `:scope` is
-   not part of the source; the root is styled by its own element or class.
-3. **No BEM.** Scoped styles need no block prefix: `.chip__surface` and `.chip__label` become
-   `.surface` and `.label`. If a style is not contained to its component without a prefix, that is
-   a runtime scoping bug to fix in HTML Next, not a reason for prefixes.
-4. **No private custom properties that nothing reassigns.** Consumers customize through the public
-   `--ui-<component>-*` hooks; a default that never changes is written inline in the rule that reads
-   the hook (`background: var(--ui-chip-surface, var(--ui-surface-subtle))`), not aliased through a
-   `--_chip-*` property declared on the root. A private property is only justified where a variant
-   changes the default (`.sm { --_chip-font-size: … }`). Update `component-token-rule.test.mjs`,
-   which currently requires the private aliases.
-5. **No vendored HTML Next runtime.** `packages/core/src/declarative/runtime.js` and
-   `generated-runtime.js` (plus a second copy in `tools/declarative-build/vendor/`) are bundled
-   copies of HTML Next committed into source, because HTML Next is not published. Depend on the
-   published `@nextwebwg/declarative-components` instead (also needed for the 0.4 no-build path).
-6. **Remove `components/shared/native-control.js`** if nothing needs it any more (likely superseded).
-7. **Format every component file.** Markup and style formatting is inconsistent across the templates;
-   run one formatter over all of them (not Prettier).
-8. **No generated files in source.** `src/declarative/registry.js` (each template inlined as a JSON
-   string plus controller imports), the runtime copies, the committed adapters in
-   `packages/{vue,react,svelte}/src/generated/`, and `generated/component-api.json` are build outputs.
-   The two materializer modes also disagree (`--registry-only` lists folders and includes deferred
-   components; the manifest pass does not).
-9. **No package-level component CSS.** `packages/layout/src/declarative/styles.css` (243 lines) and the
-   editor's (1,592 lines) style components from outside, through the runtime's private
-   `data-component-root` attribute, and reset every descendant with `all: revert-layer` (why `ui-chip`
-   needs `!important`). The published `layout.css`, `styles.css` (core, 940 lines), and `editor.css`
-   are 0.2 leftovers that select the old invocation tags. The `@layer base/components/utilities`
-   scheme exists only so that reset has a layer to revert to. HTML Next chooses scoping, not
-   isolation, so the reset contradicts the platform. Each component's styles belong in its own
-   template, scoped; consumer content is not reset; tokens are the only package CSS. Removing the
-   `./layout.css`, `./styles.css`, and `./editor.css` exports is a breaking change for consumers.
-10. **Legacy TypeScript beside the declarative components.** `packages/core/src/overlay/` (manager and
-    positioning, 783 lines) is a second overlay stack: controllers use `components/shared/overlay.js`,
-    so a consumer calling the exported `openOverlay` does not coordinate with any component. It is
-    still used by `packages/editor/src/table-overlay.ts`. `packages/core/src/field/` types 0.2 event
-    details and is used by a hand-written `packages/vue/src/Combobox.ts`. Audit the hand-written Vue
-    components and editor classes against their declarative components, then remove the duplicates
-    and the root exports.
-11. **No `status` or `summary` on component definitions.** They are catalog and docs metadata, not
-    platform semantics: nothing at runtime reads them. HTML Next's spec lists them as optional and
-    never defines them, yet its parser requires both (HC007, HC003), so every Looma template carries
-    boilerplate such as `status="early" summary="Looma ui-container layout primitive."`. Remove them
-    from the HTML Next spec, parser, and contract, then from every template; descriptions belong in
-    the docs pages.
-12. **`:class` with a list.** `:class="[measure, gutters]"` works today by accident: a list attribute
-    value is space-joined, so the element gets `class="wide md"`. But it replaces the whole `class`
-    attribute (dropping static classes and the consumer's classes), and two props with the same
-    value (`size="sm"`, `gap="sm"`) produce the same class. Specify class composition in HTML Next.
-13. **The styling story for props.** Decide how a template styles by a prop's resolved value
-    (including its default) now that `data-<prop>` records only explicitly configured props. See the
-    options discussed in the 2026-09-22 session: explicit `class:` bindings, compiled prop selectors,
-    and container style queries. Leading candidate: a scoped pseudo-class over the component's
-    resolved scope, `:host-state(size: sm)` and `:host-state(open)`, mirroring `host.state` in
-    controllers, type-checked against declared props and state, and replacing `data-state-*`
-    bindings. Needs a spec proposal, a runtime prototype, and adversarial review.
-14. **No bespoke adapter pipeline.** Looma builds adapters with HTML Next's CLI, then
-    `tools/declarative-build/materialize.mjs` and `framework-adoption.mjs` patch the output with about
-    32 regex rewrites: runtime imports redirected to Looma's vendored copy, controller imports
-    replaced by a by-tag registry lookup, nested component tags swapped for framework components, a
-    forced full Vue diff, Vue slot regions and optional-boolean absence, and React attribute fixes
-    (`readOnly`, `tabIndex`, `autoComplete`, property-only props). Each one is a generator bug or a
-    missing generator option. Fix them in HTML Next's generator, have Looma use the stock output (the
-    converter's library mode), and delete the rewriting. Knit's Vue blockers likely belong here too.
+Done: one package (`packages/looma`, every component a folder with its template, controller, and
+examples); `:host` and `:host-state()` instead of `:scope` and styling-only `data-*`; no BEM in
+component styles; private custom properties only where a variant reassigns them (checked by
+`component-token-rule.test.mjs`); no vendored runtime, registry, generated adapters, or committed
+API metadata; `native-control.js` and the legacy TypeScript duplicates (overlay manager, field
+models, the table overlay element, the hand-written Vue Combobox) removed; every component file
+formatted with dprint (checked in CI); no package component CSS (`layout.css`, `styles.css`,
+`editor.css`, `@layer`, `all: revert-layer` are gone); no `status`/`summary`; the build is HTML
+Next's assembler plus Vite and vue-tsc, with no rewriting. Controllers no longer add or remove
+nodes: templates render tabs, toasts, menus, the combobox's options, avatar overflow, and every
+editor surface. The HTML Next fixes this surfaced (attribute precedence, enumerated booleans,
+multiple bindings per prop, camel-case `:host-state()` names, `:host` in `:slotted()` rules,
+assembler source layout, `v-model` for form controls, type-clean Vue output) are in
+`@nextwebwg/declarative-components@1.0.0-alpha.1`.
+
+Remaining:
+- **`:class` with a list** (item 12): specify class composition in the proposal.
+- **Release 0.5.0**: publish HTML Next `1.0.0-alpha.1` (needs the npm owner's code), depend on it
+  from npm instead of the local tarball, run `pnpm release:verify`, merge to main.
+- **Knit on 0.5**: unwrap the 0.2 wrapper markup, move Knit's theme to custom properties only
+  (Button needs per-variant tokens), replace `styles.css`/`layout.css`/`editor.css` imports with
+  `vue.css`, drop the `core/declarative` test mocks, and verify with Knit's tests.
+- **Storybook** is repointed at the package but its stories were not reviewed against the new DOM.
 
 ## Session notes (2026-09-22)
 
