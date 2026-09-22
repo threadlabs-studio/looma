@@ -10,8 +10,11 @@ const config: Config = {
   title: "Looma",
   tagline: "Declarative components, woven into the web platform",
   favicon: "img/looma-mark.svg",
-  url: process.env.LOOMA_DOCS_URL ?? "https://threadlabs-studio.github.io",
-  baseUrl: process.env.LOOMA_DOCS_BASE_URL ?? "/looma/",
+  // Served at threadlabs.studio/looma through a proxy in front of GitHub Pages.
+  // Trailing slashes keep Pages from redirecting visitors to its github.io host.
+  url: "https://threadlabs.studio",
+  baseUrl: "/looma/",
+  trailingSlash: true,
   onBrokenLinks: "throw",
   markdown: {
     hooks: {
