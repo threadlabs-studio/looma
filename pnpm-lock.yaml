@@ -99,9 +99,9 @@ importers:
 
   packages/looma:
     dependencies:
-      '@nextwebwg/declarative-components':
-        specifier: ^1.0.0-alpha.1
-        version: 1.0.0-alpha.1
+      '@nextwebwg/html-next':
+        specifier: ^1.0.0-alpha.2
+        version: 1.0.0-alpha.2
       lowlight:
         specifier: ^3.3.0
         version: 3.3.0
@@ -1488,6 +1488,9 @@ packages:
     cpu: [x64]
     os: [darwin]
 
+  '@dprint/formatter@0.5.1':
+    resolution: {integrity: sha512-cdZUrm0iv/FnnY3CKE2dEcVhNEzrC551aE2h2mTFwQCRBrqyARLDnb7D+3PlXTUVp3s34ftlnGOVCmhLT9DeKA==}
+
   '@dprint/linux-arm64-glibc@0.57.4':
     resolution: {integrity: sha512-zFCgx2E2szEnMgtBCKiI/G5vV5mi7rnTVDMB2FrIa6JheqF8pgfrx6m3HWzIed74cFM3/KCH0LmIfCNZT5vRfw==}
     cpu: [arm64]
@@ -1532,6 +1535,9 @@ packages:
     resolution: {integrity: sha512-pBRF5Kfv59FLtWYWWKpDLOv2+uTIr/XG2oMuRBiXXZom0b506aMm3zKCZ7z5ELeIYutPpASfkDbHcsyTY0ky6w==}
     cpu: [x64]
     os: [linux]
+
+  '@dprint/typescript@0.96.1':
+    resolution: {integrity: sha512-mz/nINSFQh1R5i2Qy90SWOCCK4SgNGRkNhCZba7LYmUkE4Zi8/45p8l8pqc9yN1fb4XY5Muhrzdh5Q3jFsYimw==}
 
   '@dprint/win32-arm64@0.57.4':
     resolution: {integrity: sha512-bGEtcSjl6T4xjwr9nUF5kgd3174NP7yb338+Ulqq5DMYcSN4ibI62eVQKBTuyLWByz56aVOL06dj8pKTUzn+yQ==}
@@ -2035,8 +2041,8 @@ packages:
       '@types/react': '>=16'
       react: '>=16'
 
-  '@nextwebwg/declarative-components@1.0.0-alpha.1':
-    resolution: {integrity: sha512-/0MnnQl9DidTNds/38m/n6QTnwAvkADXY2VFRkeB2yvui5Qiz+sacIJMz5yMfQU9VxSCdxTx6U74y2EPV5Bp8A==}
+  '@nextwebwg/html-next@1.0.0-alpha.2':
+    resolution: {integrity: sha512-8OBPIdhEXn0N+R1SvdebRrTyuPnUThZyc40BdfJcEnU1zH+y4ffXiiWkEirXdx8unOQzY85ginO3WSAIcPqRAw==}
     engines: {node: '>=22.13 <23 || >=24 <25'}
     hasBin: true
 
@@ -4153,6 +4159,12 @@ packages:
   dot-prop@6.0.1:
     resolution: {integrity: sha512-tE7ztYzXHIeyvc7N+hR3oi7FIbf/NIjVP9hmAt3yMXzrQ072/fpjGLx2GxNxGxUl5V73MEqYzioOMoVhGMJ5cA==}
     engines: {node: '>=10'}
+
+  dprint-plugin-malva@0.16.0:
+    resolution: {integrity: sha512-cHisdhrNcBHfvTG/jgHUkVyL6zeY+C5yLO+E/UyiTbp6wzauB3d25YyPZeMlsd7M/PDT8W4Yre8jKJ/xMwthiw==}
+
+  dprint-plugin-markup@0.27.3:
+    resolution: {integrity: sha512-uN0An1G9qyETguOTGg50JKsOeX77HJ3wLpTLYFeFNqBgVDN63eSxh4kU/S95MskpY1iBzMTsXG233ummLue9iw==}
 
   dprint@0.57.4:
     resolution: {integrity: sha512-iiorgfJrrV7DDf7S9AB/d5ZB59Jn5idMDQoU7o6H9m6AvGVaLAPrGTAslmTwykkft9CYbWzqUrKjmKT80KWmAA==}
@@ -9851,6 +9863,8 @@ snapshots:
   '@dprint/darwin-x64@0.57.4':
     optional: true
 
+  '@dprint/formatter@0.5.1': {}
+
   '@dprint/linux-arm64-glibc@0.57.4':
     optional: true
 
@@ -9877,6 +9891,8 @@ snapshots:
 
   '@dprint/linux-x64-musl@0.57.4':
     optional: true
+
+  '@dprint/typescript@0.96.1': {}
 
   '@dprint/win32-arm64@0.57.4':
     optional: true
@@ -10256,8 +10272,12 @@ snapshots:
       '@types/react': 19.2.14
       react: 19.2.4
 
-  '@nextwebwg/declarative-components@1.0.0-alpha.1':
+  '@nextwebwg/html-next@1.0.0-alpha.2':
     dependencies:
+      '@dprint/formatter': 0.5.1
+      '@dprint/typescript': 0.96.1
+      dprint-plugin-malva: 0.16.0
+      dprint-plugin-markup: 0.27.3
       parse5: 8.0.1
       postcss: 8.5.28
       typescript-compiler: '@typescript/typescript6@6.0.2'
@@ -12640,6 +12660,10 @@ snapshots:
   dot-prop@6.0.1:
     dependencies:
       is-obj: 2.0.0
+
+  dprint-plugin-malva@0.16.0: {}
+
+  dprint-plugin-markup@0.27.3: {}
 
   dprint@0.57.4:
     optionalDependencies:

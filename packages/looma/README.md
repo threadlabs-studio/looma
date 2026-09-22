@@ -42,7 +42,7 @@ The editor components' event and geometry types, without Tiptap, are in
 ```
 
 Importing the package registers every component with the
-[HTML Next runtime](https://www.npmjs.com/package/@nextwebwg/declarative-components), which turns
+[HTML Next runtime](https://www.npmjs.com/package/@nextwebwg/html-next), which turns
 each `<ui-*>` element into its native root. Each component's styles are scoped to it; the token
 stylesheet is the only stylesheet to include. Without a build, link components one by one from
 `@threadlabs/looma/components/<tag>/<tag>.html`.

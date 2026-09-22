@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+## v0.5.2
+
+- The Vue components are converted by `@nextwebwg/html-next` (it replaces the deprecated
+  `@nextwebwg/declarative-components`) and read as hand-written Vue: props by name, typed values
+  with no helper object, `v-if`/`v-for` on elements, and dprint formatting.
+- Breaking (types only): optional Vue props are declared `name?: T`, not `T | null`; pass
+  `undefined`, not `null`, to leave one unset.
+- `v-model:<prop>` works wherever an event reports a prop: `v-model:open` on Dialog, Menu, Context
+  Menu, Popover, Tooltip, Disclosure, Search Shell, and Toast Region; `v-model:query` on Combobox;
+  `v-model:checked` on Checkbox, Radio, and Switch.
+- Select: `v-model` selects the model's option once the slotted options exist, and after
+  hydration. It had shown the first option.
+- Form Field: its label, help, and error regions are styled however they are slotted: `#label` in
+  Vue as well as `slot="label"` in HTML.
+
 - Icon Button: on coarse pointers and once touch input is used, an invisible hit area at least
   `--ui-control-min-block-size` square is centred on the button, so it is a touch target without
   growing visually.

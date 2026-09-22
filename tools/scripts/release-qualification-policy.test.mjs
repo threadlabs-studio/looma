@@ -150,7 +150,7 @@ test("public documentation is install-first and installs from latest", async () 
   assert.match(gettingStarted, /Hosts own persistence/);
   assert.match(gettingStarted, /@threadlabs\/looma\/editor/);
   assert.match(gettingStarted, /@threadlabs\/looma\/vue/);
-  assert.match(supportPage, /Candidate `0\.5\.1`/);
+  assert.match(supportPage, /Candidate `0\.5\.2`/);
   assert.match(facadeReadme, /pnpm add @threadlabs\/looma/);
   assert.doesNotMatch(
     rootReadme + gettingStarted + supportPage,

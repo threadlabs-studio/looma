@@ -5,10 +5,10 @@
     <prop name="required" type="boolean" default="false">required token.</prop>
   </defs>
   <div>
-    <slot name="label"></slot>
+    <div class="label"><slot name="label"></slot></div>
     <slot></slot>
-    <slot name="help"></slot>
-    <slot name="error"></slot>
+    <div class="help"><slot name="help"></slot></div>
+    <div class="error"><slot name="error"></slot></div>
   </div>
   <style>
     :host {
@@ -19,19 +19,30 @@
       color: var(--ui-text-primary);
     }
 
-    :slotted([slot="label"]) {
+    /* Each named region styles whatever fills it, however it was slotted (slot="…" in HTML, #label
+       in Vue), and generates no box of its own, so an empty region adds no gap. */
+    .label,
+    .help,
+    .error {
+      display: contents;
+    }
+
+    .label {
       color: var(--ui-text-secondary);
       font-size: 0.95rem;
     }
 
-    :slotted([slot="help"]) {
-      min-block-size: var(--ui-form-field-help-min-block-size, 0);
+    .help {
       color: var(--ui-text-muted);
       font-size: 0.875rem;
       line-height: var(--ui-line-height-md);
     }
 
-    :slotted([slot="error"]),
+    .help > :slotted(*) {
+      min-block-size: var(--ui-form-field-help-min-block-size, 0);
+    }
+
+    .error,
     :slotted([role="alert"]) {
       color: var(--ui-accent-active);
       font-size: 0.875rem;

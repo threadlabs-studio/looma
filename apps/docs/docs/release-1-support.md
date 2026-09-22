@@ -1,6 +1,6 @@
 # Release 1 Support and Limitations
 
-Release 1 is a public npm **Candidate `0.5.1`** for applications that want Looma's
+Release 1 is a public npm **Candidate `0.5.2`** for applications that want Looma's
 declarative components, editor, or supported Vue integration. Candidate means the surface is
 usable and qualified but can still change before Stable; it is not semver `1.0.0`.
 

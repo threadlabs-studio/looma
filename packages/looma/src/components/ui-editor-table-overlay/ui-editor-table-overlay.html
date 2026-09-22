@@ -6,10 +6,26 @@
       name="geometry"
       type="object({ rowBoundaries: list(number), columnBoundaries: list(number), activeCell: object({ left: number, top: number, width: number, height: number, rowIndex: integer, columnIndex: integer }) | null, hoveredCell?: object({ left: number, top: number, width: number, height: number, rowIndex: integer, columnIndex: integer }) | null }) | null"
     >The authoritative editor-measured table boundaries and active or hovered cell rectangles.</prop>
-    <state name="rows" :value="[]"></state>
-    <state name="cols" :value="[]"></state>
-    <state name="hovered" :value="null"></state>
-    <state name="active" :value="null"></state>
+    <state
+      name="rows"
+      type="list(object({ key: string, index: integer, offset: string, affordance: insert-row | insert-column, action: add-row-before | add-row-after | add-column-before | add-column-after, label: string }))"
+      :value="[]"
+    ></state>
+    <state
+      name="cols"
+      type="list(object({ key: string, index: integer, offset: string, affordance: insert-row | insert-column, action: add-row-before | add-row-after | add-column-before | add-column-after, label: string }))"
+      :value="[]"
+    ></state>
+    <state
+      name="hovered"
+      type="object({ left: number, top: number, width: number, height: number, rowIndex: integer, columnIndex: integer, rowOffset: string, columnOffset: string }) | null"
+      :value="null"
+    ></state>
+    <state
+      name="active"
+      type="object({ left: number, top: number, width: number, height: number, rowIndex: integer, columnIndex: integer, menuLeft: string, menuTop: string }) | null"
+      :value="null"
+    ></state>
     <state name="activeKey" :value="''"></state>
     <event
       name="action"
