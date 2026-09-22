@@ -69,5 +69,10 @@
 
 /* No text-box-trim here: trimming a native input's line box below its line height lets the text
  * scroll vertically inside the field. Native inputs already center their single line. */
+
+/* A component that sets its display still honours the hidden attribute on its root. */
+:host[hidden] {
+  display: none;
+}
 </style>
 </template>

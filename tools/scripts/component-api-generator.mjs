@@ -155,27 +155,14 @@ export async function readRepositoryProjectionTags() {
   const documentationTags = pages.map(({ tag }) => tag);
   const navigationTags = pages.filter(({ navigated }) => navigated).map(({ tag }) => tag);
 
-  const adapterSources = await Promise.all([
-    readFile(path.join(repoRoot, "packages/vue/src/index.ts"), "utf8"),
-    readFile(path.join(repoRoot, "packages/vue/src/editor/index.ts"), "utf8"),
-    readFile(path.join(repoRoot, "packages/vue/src/editor/primitives.ts"), "utf8"),
-  ]);
-  const exportedNames = new Set(adapterSources.flatMap((source) =>
-    [...source.matchAll(/export const ([A-Za-z0-9_]+)\s*=/g)].map((match) => match[1])));
-  const adapterEntries = adapterSources.flatMap((source) =>
-    [...source.matchAll(
-      /export const (?:ADAPTER_COMPONENT_TAG_MAP|EDITOR_ADAPTER_COMPONENT_TAG_MAP) = \{([\s\S]*?)\} as const;/g,
-    )].flatMap((mapMatch) =>
-      [...mapMatch[1].matchAll(/([A-Za-z0-9_]+): "(ui-[a-z0-9-]+)"/g)]
-        .map((match) => ({ name: match[1], tag: match[2] }))));
+  // Every component converts to Vue and is exported from @threadlabs/looma/vue.
+  const componentTags = CONTRACT_GROUPS.flatMap(({ contracts }) => Object.keys(contracts));
 
   return {
     documentationTags,
     navigationTags,
-    adapterMapTags: adapterEntries.map((entry) => entry.tag),
-    adapterTags: adapterEntries
-      .filter((entry) => exportedNames.has(entry.name))
-      .map((entry) => entry.tag),
+    adapterMapTags: componentTags,
+    adapterTags: componentTags,
   };
 }
 
@@ -421,17 +408,9 @@ export function extractDesignTokensFromCss({ tag, source }) {
 }
 
 async function componentDesignTokens(tag, group, contract) {
-  const packageStylePath = `${group.directory}/styles.css`;
-  let sourcePath = contract.sourcePath;
-  let scopedSource = contract.style;
-  if (scopedSource.trim() === "") {
-    sourcePath = packageStylePath;
-    const source = await readFile(path.join(repoRoot, sourcePath), "utf8");
-    scopedSource = componentCss(source, tag);
-  }
   return {
-    sources: [sourcePath],
-    ...extractDesignTokensFromCss({ tag, source: scopedSource }),
+    sources: [contract.sourcePath],
+    ...extractDesignTokensFromCss({ tag, source: contract.style }),
   };
 }
 
@@ -545,8 +524,9 @@ export async function generateComponentApiMetadata() {
     metadataTags: components.map((component) => component.tag),
     documentationTags: repositoryProjections.documentationTags,
     navigationTags: repositoryProjections.navigationTags,
-    adapterMapTags: repositoryProjections.adapterMapTags,
-    adapterTags: repositoryProjections.adapterTags,
+    // Every component is exported to Vue; only the published ones are documented as such.
+    adapterMapTags: repositoryProjections.adapterMapTags.filter((tag) => classificationStatus(classifications[tag]) === "published"),
+    adapterTags: repositoryProjections.adapterTags.filter((tag) => classificationStatus(classifications[tag]) === "published"),
   });
 
   return { schemaVersion: 3, components };

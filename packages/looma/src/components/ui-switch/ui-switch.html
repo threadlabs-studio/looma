@@ -79,5 +79,10 @@ input:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   input, input::after { transition: none; }
 }
+
+/* A component that sets its display still honours the hidden attribute on its root. */
+:host[hidden] {
+  display: none;
+}
 </style>
 </template>

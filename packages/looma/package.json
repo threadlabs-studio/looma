@@ -21,24 +21,29 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./vue": {
       "types": "./vue/index.d.ts",
-      "import": "./vue/index.js"
+      "import": "./vue/index.js",
+      "default": "./vue/index.js"
     },
     "./vue.css": "./vue/components.css",
     "./vue/editor": {
       "types": "./vue/editor/index.d.ts",
-      "import": "./vue/editor/index.js"
+      "import": "./vue/editor/index.js",
+      "default": "./vue/editor/index.js"
     },
     "./editor": {
       "types": "./editor/index.d.ts",
-      "import": "./editor/index.js"
+      "import": "./editor/index.js",
+      "default": "./editor/index.js"
     },
     "./editor/extensions": {
       "types": "./editor/extensions/index.d.ts",
-      "import": "./editor/extensions/index.js"
+      "import": "./editor/extensions/index.js",
+      "default": "./editor/extensions/index.js"
     },
     "./vue/*": "./vue/*",
     "./vanilla": "./vanilla/index.js",
@@ -68,7 +73,10 @@
   ],
   "scripts": {
     "build": "node build.mjs",
-    "test": "vitest run"
+    "lint": "vue-tsc -p tsconfig.json --noEmit",
+    "typecheck": "vue-tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:browser": "vitest run && vitest run --config vitest.browser.config.ts"
   },
   "dependencies": {
     "@nextwebwg/declarative-components": "file:../../../../nextwebwg/html-next/.release/nextwebwg-declarative-components-1.0.0-alpha.1.tgz",
@@ -267,7 +275,9 @@
     "@tiptap/pm": "^2.11.5",
     "@tiptap/suggestion": "^2.11.5",
     "@tiptap/vue-3": "^2.11.5",
-    "@types/markdown-it": "14.2.0"
+    "@types/markdown-it": "14.2.0",
+    "@vitest/browser": "~3.2.6",
+    "jsdom": "^27.0.0"
   },
   "engines": {
     "node": ">=20"

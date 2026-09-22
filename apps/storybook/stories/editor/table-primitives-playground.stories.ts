@@ -1,7 +1,7 @@
 import type { Editor, JSONContent } from "@tiptap/core";
-import { LOOMA_ICONS, type LoomaIconName } from "@threadlabs/looma-core";
-import { Button, Popover } from "@threadlabs/looma-vue";
-import { EditorInsertTableGrid, LoomaEditor } from "@threadlabs/looma-vue/editor";
+import { LOOMA_ICONS, type LoomaIconName } from "@threadlabs/looma/editor";
+import { Button, Popover } from "@threadlabs/looma/vue";
+import { EditorInsertTableGrid, LoomaEditor } from "@threadlabs/looma/vue/editor";
 import type { Meta, StoryObj } from "@storybook/web-components-vite";
 import { createApp, defineComponent, h, ref, useId, type App } from "vue";
 

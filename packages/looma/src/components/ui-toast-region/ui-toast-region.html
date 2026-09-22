@@ -98,5 +98,10 @@
   align-self: center;
   margin-inline-end: calc(var(--ui-space-2) * -1);
 }
-  </style>
+  
+/* A component that sets its display still honours the hidden attribute on its root. */
+:host[hidden] {
+  display: none;
+}
+</style>
 </template>

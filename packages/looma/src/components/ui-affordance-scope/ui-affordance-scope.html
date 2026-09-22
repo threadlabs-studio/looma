@@ -12,5 +12,10 @@
 :host-state([engaged]) {
   --ui-affordance-scope-engaged: 1;
 }
+
+/* A component that sets its display still honours the hidden attribute on its root. */
+:host[hidden] {
+  display: none;
+}
 </style>
 </template>

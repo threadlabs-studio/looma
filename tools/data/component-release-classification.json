@@ -1,53 +1,200 @@
 {
   "schemaVersion": 1,
   "tags": {
-    "ui-affordance-scope": { "status": "published", "package": "@threadlabs/looma" },
-    "ui-avatar": { "status": "published", "package": "@threadlabs/looma" },
-    "ui-avatar-group": { "status": "published", "package": "@threadlabs/looma" },
-    "ui-badge": { "status": "published", "package": "@threadlabs/looma" },
-    "ui-callout": { "status": "published", "package": "@threadlabs/looma" },
-    "ui-chip": { "status": "deferred", "package": "@threadlabs/looma" },
-    "ui-button": { "status": "published", "package": "@threadlabs/looma" },
-    "ui-container": { "status": "published", "package": "@threadlabs/looma/layout" },
-    "ui-checkbox": { "status": "published", "package": "@threadlabs/looma" },
-    "ui-combobox": { "status": "published", "package": "@threadlabs/looma" },
-    "ui-context-menu": { "status": "published", "package": "@threadlabs/looma" },
-    "ui-dialog": { "status": "published", "package": "@threadlabs/looma" },
-    "ui-disclosure": { "status": "published", "package": "@threadlabs/looma" },
-    "ui-editable": { "status": "published", "package": "@threadlabs/looma" },
-    "ui-editor-insert-table-grid": { "status": "published", "package": "@threadlabs/looma/editor" },
-    "ui-editor-mention-menu": { "status": "published", "package": "@threadlabs/looma/editor" },
-    "ui-editor-slash-menu": { "status": "published", "package": "@threadlabs/looma/editor" },
-    "ui-editor-table-context-menu": { "status": "published", "package": "@threadlabs/looma/editor" },
-    "ui-editor-table-overlay": { "status": "published", "package": "@threadlabs/looma/editor" },
-    "ui-editor-table-toolbar": { "status": "published", "package": "@threadlabs/looma/editor" },
-    "ui-editor-toolbar": { "status": "published", "package": "@threadlabs/looma/editor" },
-    "ui-floating-action-button": { "status": "deferred", "package": "@threadlabs/looma" },
-    "ui-form-field": { "status": "published", "package": "@threadlabs/looma" },
-    "ui-grid": { "status": "published", "package": "@threadlabs/looma/layout" },
-    "ui-icon-button": { "status": "published", "package": "@threadlabs/looma" },
-    "ui-cluster": { "status": "published", "package": "@threadlabs/looma/layout" },
-    "ui-input": { "status": "published", "package": "@threadlabs/looma" },
-    "ui-menu": { "status": "published", "package": "@threadlabs/looma" },
-    "ui-menu-item": { "status": "published", "package": "@threadlabs/looma", "navigationParent": "ui-menu" },
-    "ui-popover": { "status": "published", "package": "@threadlabs/looma" },
-    "ui-radio": { "status": "published", "package": "@threadlabs/looma" },
-    "ui-radio-group": { "status": "published", "package": "@threadlabs/looma" },
-    "ui-reel": { "status": "published", "package": "@threadlabs/looma/layout" },
-    "ui-search-result-row": { "status": "published", "package": "@threadlabs/looma", "navigationParent": "ui-search-shell" },
-    "ui-search-shell": { "status": "published", "package": "@threadlabs/looma" },
-    "ui-select": { "status": "published", "package": "@threadlabs/looma" },
-    "ui-separator": { "status": "published", "package": "@threadlabs/looma/layout" },
-    "ui-sidebar": { "status": "published", "package": "@threadlabs/looma/layout" },
-    "ui-stack": { "status": "published", "package": "@threadlabs/looma/layout" },
-    "ui-switch": { "status": "published", "package": "@threadlabs/looma" },
-    "ui-switcher": { "status": "published", "package": "@threadlabs/looma/layout" },
-    "ui-tabs": { "status": "published", "package": "@threadlabs/looma" },
-    "ui-textarea": { "status": "published", "package": "@threadlabs/looma" },
-    "ui-toast-region": { "status": "published", "package": "@threadlabs/looma" },
-    "ui-tooltip": { "status": "published", "package": "@threadlabs/looma" },
-    "ui-top-bar": { "status": "published", "package": "@threadlabs/looma" },
-    "ui-tree": { "status": "published", "package": "@threadlabs/looma" },
-    "ui-tree-item": { "status": "published", "package": "@threadlabs/looma", "navigationParent": "ui-tree" }
+    "ui-affordance-scope": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-avatar": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-avatar-group": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-badge": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-button": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-callout": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-checkbox": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-cluster": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-combobox": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-container": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-context-menu": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-dialog": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-disclosure": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-editable": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-editor-insert-table-grid": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-editor-mention-menu": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-editor-slash-menu": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-editor-table-context-menu": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-editor-table-overlay": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-editor-table-toolbar": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-editor-toolbar": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-floating-action-button": {
+      "status": "deferred",
+      "package": "@threadlabs/looma"
+    },
+    "ui-form-field": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-grid": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-icon": {
+      "status": "internal",
+      "package": "@threadlabs/looma"
+    },
+    "ui-icon-button": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-input": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-menu": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-menu-item": {
+      "status": "published",
+      "package": "@threadlabs/looma",
+      "navigationParent": "ui-menu"
+    },
+    "ui-popover": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-radio": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-radio-group": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-reel": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-search-result-row": {
+      "status": "published",
+      "package": "@threadlabs/looma",
+      "navigationParent": "ui-search-shell"
+    },
+    "ui-search-shell": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-select": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-separator": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-sidebar": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-stack": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-switch": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-switcher": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-tabs": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-textarea": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-toast-region": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-tooltip": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-top-bar": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-tree": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-tree-item": {
+      "status": "published",
+      "package": "@threadlabs/looma",
+      "navigationParent": "ui-tree"
+    }
   }
 }

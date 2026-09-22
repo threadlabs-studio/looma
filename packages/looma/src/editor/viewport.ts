@@ -8,7 +8,11 @@ export interface ViewportRect {
   readonly height: number;
 }
 
-/** The visual viewport (what is on screen, net of the on-screen keyboard and pinch zoom). */
+/**
+ * The visual viewport (what is on screen, net of the on-screen keyboard and pinch zoom).
+ *
+ * @contract Falls back to the layout viewport where `visualViewport` is unavailable.
+ */
 export function getVisualViewportRect(owner: Window = window): ViewportRect {
   const viewport = owner.visualViewport;
   const left = viewport?.offsetLeft ?? 0;

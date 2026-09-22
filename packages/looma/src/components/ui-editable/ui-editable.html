@@ -129,5 +129,10 @@
 }
 
 :host-state([disabled]) .preview { color: var(--ui-text-muted); cursor: not-allowed; }
+
+/* A component that sets its display still honours the hidden attribute on its root. */
+:host[hidden] {
+  display: none;
+}
 </style>
 </template>

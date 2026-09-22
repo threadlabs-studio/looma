@@ -92,5 +92,10 @@
   display: block;
   margin: 0;
 }
-  </style>
+  
+/* A component that sets its display still honours the hidden attribute on its root. */
+:host[hidden] {
+  display: none;
+}
+</style>
 </template>
