@@ -9,6 +9,9 @@
 - Button and Icon Button: disabled styling is themable. `--ui-button-disabled-opacity`,
   `-surface`, `-border`, and `-text`; `--ui-icon-button-disabled-opacity`, `-bg`, `-border`, and
   `-color`. Unset, each falls back to the variant's own colours at 0.6 opacity, as before.
+- `@threadlabs/looma/vue` exports `trackInputModality(document)`. Call it once on the client so
+  touch sizing (`html[data-ui-input-modality="touch"]`) applies app-wide after the first touch;
+  Tree Item still starts it on mount.
 
 ## v0.5.0 Candidate
 

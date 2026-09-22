@@ -4,6 +4,8 @@ const initialized = new WeakSet();
  * Marks the document `data-ui-input-modality="touch"` once the user actually touches it, rather than
  * guessing from capability media queries: hybrid devices keep compact pointer affordances until then.
  * Idempotent per document; touch is sticky once observed.
+ *
+ * @param {Document} document
  */
 export function trackInputModality(document) {
   if (initialized.has(document)) return;

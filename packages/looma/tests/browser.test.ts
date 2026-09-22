@@ -58,7 +58,8 @@ describe("Vue components", () => {
   it("render, style, and behave with no HTML Next runtime", async () => {
     const path = await bundle("vue-app", `
       import { createApp, h, ref } from "vue";
-      import { Button, Checkbox, Tabs, Combobox, Callout, Stack, Input } from "@threadlabs/looma/vue";
+      import { Button, Checkbox, Tabs, Combobox, Callout, Stack, Input, trackInputModality } from "@threadlabs/looma/vue";
+      trackInputModality(document);
       const checked = ref(false);
       const name = ref("Ada");
       window.name_ = name;
@@ -90,6 +91,11 @@ describe("Vue components", () => {
     assert.equal(await button.getAttribute("data-ui-button-state"), "variant variant=solid size size=md");
     assert.notEqual(await button.evaluate((element) => getComputedStyle(element).backgroundColor), "rgba(0, 0, 0, 0)");
     assert.equal(await page.evaluate(() => "HtmlRuntime" in window), false);
+
+    const modality = () => page.evaluate(() => document.documentElement.getAttribute("data-ui-input-modality"));
+    assert.equal(await modality(), null);
+    await page.evaluate(() => document.dispatchEvent(new PointerEvent("pointerdown", { pointerType: "touch" })));
+    assert.equal(await modality(), "touch");
 
     await page.locator("#agree input").click();
     assert.equal(await page.locator("#agree input").isChecked(), true);
