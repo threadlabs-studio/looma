@@ -27,11 +27,11 @@
       inset: 0;
       box-sizing: border-box;
       inline-size: min(
-        calc(100% - var(--ui-dialog-viewport-gap, var(--ui-space-4, 1rem)) * 2),
+        calc(100% - var(--ui-dialog-viewport-gap, var(--ui-space-4)) * 2),
         var(--ui-dialog-max-width, 440px)
       );
       max-inline-size: none;
-      max-block-size: calc(100dvh - var(--ui-dialog-viewport-gap, var(--ui-space-4, 1rem)) * 2);
+      max-block-size: calc(100dvh - var(--ui-dialog-viewport-gap, var(--ui-space-4)) * 2);
       margin: auto;
       padding: 0;
       overflow: hidden;
@@ -80,8 +80,8 @@
       border: 0;
       color: var(--ui-text-primary);
       letter-spacing: normal;
-      font-size: var(--ui-font-size-lg, 1.125rem);
-      font-weight: var(--ui-font-semibold, 600);
+      font-size: var(--ui-font-size-lg);
+      font-weight: var(--ui-font-semibold);
       line-height: var(--ui-line-height-tight);
     }
 
@@ -90,11 +90,11 @@
       place-items: center;
       flex: none;
       margin-inline-start: auto;
-      inline-size: var(--ui-control-size-sm, 2rem);
-      block-size: var(--ui-control-size-sm, 2rem);
+      inline-size: var(--ui-control-size-sm);
+      block-size: var(--ui-control-size-sm);
       padding: 0;
       border: 0;
-      border-radius: var(--ui-radius-round, 999px);
+      border-radius: var(--ui-radius-round);
       background: transparent;
       color: var(--ui-text-secondary);
       cursor: pointer;
@@ -123,21 +123,21 @@
     }
 
     .close:focus-visible {
-      outline: 2px solid var(--ui-focus-ring, currentColor);
+      outline: 2px solid var(--ui-focus-ring);
       outline-offset: 2px;
     }
 
     /* A touch target, like Button on coarse pointers. */
     @media (pointer: coarse) {
       .close {
-        inline-size: var(--ui-control-min-block-size, 2.75rem);
-        block-size: var(--ui-control-min-block-size, 2.75rem);
+        inline-size: var(--ui-control-min-block-size);
+        block-size: var(--ui-control-min-block-size);
       }
     }
 
     html[data-ui-input-modality="touch"] :host .close {
-      inline-size: var(--ui-control-min-block-size, 2.75rem);
-      block-size: var(--ui-control-min-block-size, 2.75rem);
+      inline-size: var(--ui-control-min-block-size);
+      block-size: var(--ui-control-min-block-size);
     }
 
     .body {

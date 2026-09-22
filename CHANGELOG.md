@@ -2,8 +2,49 @@
 
 ## Unreleased
 
+## v0.6.0-rc.1
+
+Breaking: the theming surface. A product themes Looma through a contract of about 40 values; every
+other global derives from them. See the entries below for the renames and removals.
+
 - Editor: a `label` prop names the editing surface (default "Document"). Without it the text box
   had no accessible name, which fails WCAG 4.1.2.
+- `--ui-surface-muted` and `--ui-radius-lg` are contract values, not derived ones: a palette with
+  its own middle neutral, or a product that rounds large surfaces differently, sets them rather
+  than accepting the derivation.
+- Theming has a contract: about 40 `--ui-*` values (intent colour, neutrals, focus, type, space,
+  radius, elevation, motion, and the shared control sizes) that a product sets to theme Looma.
+  Every other global is derived from them, so a theme that sets only the contract stays coherent.
+- The duplicate `oklch` palette is gone: one palette per theme, in the theme files.
+- Removed the parallel radius and text scales: `--ui-radius-1`…`-4` and `--ui-radius-xl` are
+  `--ui-radius-sm`, `-md`, `-lg`, and `-dialog`; `--ui-text-sm` was a font size and is
+  `--ui-font-size-sm`; `--ui-color-focus` is `--ui-focus-ring`; `--ui-space-1-5` and
+  `--ui-space-12` are gone.
+- Tree Item's label cell stretches its slotted content, so a link in the label slot is the row's
+  hit area instead of sizing to its own text.
+- Light dismiss needs a press it can place: a pointerdown reporting no coordinates (assistive
+  technology, or a synthetic event) no longer closes a dismissible overlay.
+- `--ui-control-min-block-size` is `44px`, not `2.75rem`: WCAG counts CSS pixels, so a smaller root
+  font must not shrink a touch target below the minimum.
+- `density="compact"` on Menu, Tabs, Disclosure, and Tree: rows trade padding and type size for
+  fit. Nothing has to rescale a global token to compact a menu any more. Menu Item reads
+  `--ui-menu-item-padding-block`/`-padding-inline`, `-font-size`, `-radius`, and `-hover-surface`.
+- One token vocabulary, `--ui-<component>[-<variant>][-<state>]-<property>`: `-bg` and `-color`
+  become `-surface` and `-text` (Icon Button, Top Bar, Search Shell, Search Result Row, Editor
+  Toolbar), and the state comes before the property (`--ui-button-ghost-hover-surface`,
+  `--ui-button-link-text`).
+- Tokens that restated a prop are gone: `--ui-icon-button-size-sm`/`-size-lg` (the `size` prop
+  resolves the size; `--ui-icon-button-size` still overrides it on an element), and the Floating
+  Action Button's colour and size family (it reads the accent and control values directly, and
+  keeps `--ui-floating-action-button-inset-block-end`/`-inset-inline-end`/`-z-index`).
+- Names that never matched their component are renamed or gone: `--ui-field-*`, `--ui-option-*`,
+  and `--ui-multi-combobox-*` are `--ui-combobox-*`; `--ui-z-overlay` is
+  `--ui-context-menu-z-index`; the tree's row tokens carry the name of the component that reads
+  them (`--ui-tree-item-min-block-size`, `-font-size`, `-label-padding-block`/`-inline`).
+- Every component colour token's fallback chain ends in a semantic token, and the dead literal
+  fallbacks on global tokens are gone.
+- A dark theme's intent tones take a dark foreground (`--ui-on-accent`, `--ui-on-danger`), since
+  its solid tones are light.
 
 ## v0.5.2
 

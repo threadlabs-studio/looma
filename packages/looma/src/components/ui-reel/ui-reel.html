@@ -7,7 +7,7 @@
   <div role="region" tabindex="0"><slot></slot></div>
   <style>
     :host {
-      --_reel-gap: var(--ui-space-4, 1rem);
+      --_reel-gap: var(--ui-space-4);
       --_reel-item-width: auto;
       display: flex;
       inline-size: 100%;
@@ -26,19 +26,19 @@
     }
 
     :host-state([gap="xs"]) {
-      --_reel-gap: var(--ui-space-2, 0.5rem);
+      --_reel-gap: var(--ui-space-2);
     }
     :host-state([gap="s"]) {
-      --_reel-gap: var(--ui-space-3, 0.75rem);
+      --_reel-gap: var(--ui-space-3);
     }
     :host-state([gap="m"]) {
-      --_reel-gap: var(--ui-space-4, 1rem);
+      --_reel-gap: var(--ui-space-4);
     }
     :host-state([gap="l"]) {
-      --_reel-gap: var(--ui-space-5, 1.5rem);
+      --_reel-gap: var(--ui-space-5);
     }
     :host-state([gap="xl"]) {
-      --_reel-gap: var(--ui-space-6, 2rem);
+      --_reel-gap: var(--ui-space-6);
     }
     :host-state([itemWidth="sm"]) {
       --_reel-item-width: 12rem;

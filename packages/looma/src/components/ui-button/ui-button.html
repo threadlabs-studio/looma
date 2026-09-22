@@ -34,16 +34,16 @@
 
     :host {
       appearance: none;
-      min-block-size: var(--ui-button-min-block-size, var(--ui-control-size-md, 2.5rem));
+      min-block-size: var(--ui-button-min-block-size, var(--ui-control-size-md));
       border: 1px solid var(--ui-button-border, var(--ui-border-strong));
-      border-radius: var(--ui-button-radius, var(--ui-radius-2));
+      border-radius: var(--ui-button-radius, var(--ui-radius-md));
       background: var(--ui-button-surface, var(--ui-surface-elevated));
       color: var(--ui-button-text, var(--ui-action-secondary-text, var(--ui-text-primary)));
       font: inherit;
-      font-weight: var(--ui-font-medium, 500);
+      font-weight: var(--ui-font-medium);
       line-height: var(--ui-line-height-tight);
       padding: var(--ui-space-2) var(--ui-space-3);
-      background-image: var(--ui-raised-highlight, none);
+      background-image: var(--ui-raised-highlight);
       box-shadow: var(--ui-button-shadow, var(--ui-raised, var(--ui-shadow-xs)));
       cursor: pointer;
       transition:
@@ -63,13 +63,13 @@
     }
 
     :host-state([size="sm"]) {
-      min-block-size: var(--ui-control-size-sm, 2rem);
+      min-block-size: var(--ui-control-size-sm);
       padding: var(--ui-space-1) var(--ui-space-2);
       font-size: 0.875rem;
     }
 
     :host-state([size="lg"]) {
-      min-block-size: var(--ui-control-size-lg, 3rem);
+      min-block-size: var(--ui-control-size-lg);
       padding: var(--ui-space-3) var(--ui-space-4);
       font-size: 1rem;
     }
@@ -132,12 +132,12 @@
 
     /* Tints derive from the text colour, not a surface token, so hover and press show on any background. */
     :host-state([variant="ghost"]):hover:enabled {
-      background: var(--ui-button-ghost-hover, color-mix(in srgb, currentColor 8%, transparent));
+      background: var(--ui-button-ghost-hover-surface, color-mix(in srgb, currentColor 8%, transparent));
       border-color: transparent;
     }
 
     :host-state([variant="ghost"]):active:enabled {
-      background: var(--ui-button-ghost-active, color-mix(in srgb, currentColor 14%, transparent));
+      background: var(--ui-button-ghost-active-surface, color-mix(in srgb, currentColor 14%, transparent));
       border-color: transparent;
     }
 
@@ -184,7 +184,7 @@
 
     @media (pointer: coarse) {
       :host {
-        min-block-size: var(--ui-control-min-block-size, 2.75rem);
+        min-block-size: var(--ui-control-min-block-size);
       }
     }
 
@@ -195,11 +195,11 @@
       min-block-size: 0;
       padding: 0;
       border: 0;
-      border-radius: var(--ui-radius-sm, 4px);
+      border-radius: var(--ui-radius-sm);
       background: none;
       box-shadow: none;
       font: inherit;
-      color: var(--ui-button-link-color, var(--ui-text-secondary));
+      color: var(--ui-button-link-text, var(--ui-text-secondary));
       text-decoration-line: underline;
       text-decoration-thickness: 1px;
       text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
@@ -208,7 +208,7 @@
     }
 
     :host-state([variant="link"]):hover:enabled {
-      color: var(--ui-button-link-hover-color, var(--ui-text-primary));
+      color: var(--ui-button-link-hover-text, var(--ui-text-primary));
       text-decoration-color: currentColor;
       background: none;
       transform: none;
@@ -221,13 +221,13 @@
 
     :host-state([variant="link"]):disabled {
       background: none;
-      color: var(--ui-button-disabled-text, var(--ui-button-link-color, var(--ui-text-secondary)));
+      color: var(--ui-button-disabled-text, var(--ui-button-link-text, var(--ui-text-secondary)));
     }
 
     :host-state([variant="link"]):focus-visible {
       box-shadow: none;
       /* Fallback keeps the ring if the token is missing: an unresolved var() would void the outline. */
-      outline: 2px solid var(--ui-focus-ring, currentColor);
+      outline: 2px solid var(--ui-focus-ring);
       outline-offset: 2px;
     }
 

@@ -11,6 +11,8 @@ export default defineConfig({
   reporter: "list",
   use: {
     baseURL,
+    // The site scrolls and animates; measuring geometry mid-transition is what made these flaky.
+    reducedMotion: "reduce",
     trace: "retain-on-failure"
   },
   projects: [

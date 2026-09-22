@@ -189,15 +189,15 @@
       font: inherit;
     }
     label {
-      color: var(--ui-field-label-color, var(--ui-text-primary));
-      font-size: var(--ui-field-label-size, 0.875rem);
-      font-weight: var(--ui-field-label-weight, 500);
+      color: var(--ui-combobox-label-text, var(--ui-text-primary));
+      font-size: var(--ui-combobox-label-font-size, 0.875rem);
+      font-weight: 500;
     }
     .field {
       display: flex;
       min-inline-size: 0;
       border: 1px solid var(--ui-control-border, var(--ui-border-default));
-      border-radius: var(--ui-radius-2);
+      border-radius: var(--ui-radius-md);
       background: var(--ui-control-surface, var(--ui-surface-default));
       box-shadow: var(--ui-control-inset);
       transition: border-color var(--ui-motion-fast) var(--ui-motion-ease), box-shadow var(--ui-motion-fast) var(--ui-motion-ease);
@@ -216,7 +216,7 @@
       appearance: none;
       width: 100%;
       min-inline-size: 0;
-      min-block-size: calc(var(--ui-control-size-md, 2.5rem) - 2px);
+      min-block-size: calc(var(--ui-control-size-md) - 2px);
       box-sizing: border-box;
       border: 0;
       border-radius: inherit;
@@ -229,7 +229,7 @@
       outline: none;
     }
     :host-state([size="sm"]) input {
-      min-block-size: calc(var(--ui-field-compact-size, var(--ui-control-size-sm, 2rem)) - 2px);
+      min-block-size: calc(var(--ui-control-size-sm) - 2px);
       padding: var(--ui-space-1) var(--ui-space-2);
     }
     button {
@@ -238,19 +238,19 @@
       place-items: center;
       align-self: stretch;
       border: 0;
-      border-radius: var(--ui-radius-2);
+      border-radius: var(--ui-radius-md);
       background: transparent;
-      color: var(--ui-field-affordance-color, var(--ui-text-secondary));
+      color: var(--ui-combobox-affordance-text, var(--ui-text-secondary));
       font: inherit;
-      font-weight: var(--ui-field-affordance-weight, 400);
+      font-weight: 400;
       min-inline-size: 2rem;
       padding: 0 var(--ui-space-1);
       cursor: pointer;
     }
     .affordance-icon {
       display: block;
-      inline-size: var(--ui-icon-size-sm, 1rem);
-      block-size: var(--ui-icon-size-sm, 1rem);
+      inline-size: var(--ui-icon-size-sm);
+      block-size: var(--ui-icon-size-sm);
     }
     button:hover:enabled {
       background: var(--ui-surface-muted);
@@ -280,7 +280,7 @@
       margin: 0;
       padding: var(--ui-space-1);
       border: 1px solid var(--ui-border-default);
-      border-radius: var(--ui-radius-2);
+      border-radius: var(--ui-radius-md);
       background: var(--ui-surface-elevated);
       color: var(--ui-text-primary);
       box-shadow: var(--ui-elevation-overlay, var(--ui-shadow-lg));
@@ -290,13 +290,13 @@
     }
     .option {
       padding: var(--ui-space-2) var(--ui-space-3);
-      border-radius: var(--ui-radius-1);
+      border-radius: var(--ui-radius-sm);
       cursor: pointer;
       overflow-wrap: anywhere;
     }
     .option:hover, .option.active {
       background: var(--ui-surface-muted);
-      outline: 1px solid var(--ui-focus-ring, currentColor);
+      outline: 1px solid var(--ui-focus-ring);
       outline-offset: -1px;
     }
     .option[aria-disabled="true"] {
@@ -305,12 +305,12 @@
     }
     .primary {
       display: block;
-      color: var(--ui-option-primary-color, var(--ui-text-primary));
-      font-weight: var(--ui-option-primary-weight, 500);
+      color: var(--ui-combobox-option-text, var(--ui-text-primary));
+      font-weight: 500;
     }
     .message, .group {
-      color: var(--ui-field-message-color, var(--ui-text-secondary));
-      font-weight: var(--ui-field-message-weight, 400);
+      color: var(--ui-combobox-message-text, var(--ui-text-secondary));
+      font-weight: 400;
       font-size: var(--ui-font-size-sm);
       line-height: var(--ui-line-height-md);
       overflow-wrap: anywhere;
@@ -346,11 +346,11 @@
       flex-wrap: wrap;
       align-items: center;
       gap: var(--ui-space-1);
-      min-block-size: var(--ui-multi-combobox-min-block-size, 2.5rem);
+      min-block-size: var(--ui-combobox-item-min-block-size, 2.5rem);
       padding: var(--ui-space-1);
     }
     :host-state([multiple]) input {
-      flex: 1 0 var(--ui-multi-combobox-input-min-inline-size, 5rem);
+      flex: 1 0 var(--ui-combobox-item-input-min-inline-size, 5rem);
       width: auto;
       min-block-size: 1.75rem;
       padding: var(--ui-space-0-5) var(--ui-space-1);
@@ -359,18 +359,18 @@
       appearance: none;
       display: inline-flex;
       min-inline-size: 0;
-      max-inline-size: min(100%, var(--ui-multi-combobox-item-max-inline-size, 12rem));
+      max-inline-size: min(100%, var(--ui-combobox-item-item-max-inline-size, 12rem));
       overflow: hidden;
       padding: 0;
       border: 0;
-      border-radius: var(--ui-radius-1);
+      border-radius: var(--ui-radius-sm);
       background: transparent;
       color: inherit;
       font: inherit;
       cursor: default;
     }
     .item:focus-visible {
-      outline: 2px solid var(--ui-focus-ring, currentColor);
+      outline: 2px solid var(--ui-focus-ring);
       outline-offset: 1px;
     }
     .item:disabled {

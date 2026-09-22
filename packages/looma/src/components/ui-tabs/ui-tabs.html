@@ -1,5 +1,6 @@
 <template component="ui-tabs" controller="./ui-tabs.js">
   <defs>
+    <prop name="density" type="comfortable | compact" default="comfortable">Compact trades padding and type size for rows that fit more on screen.</prop>
     <prop name="label" type="string" default="Tabs">label token.</prop>
     <prop name="value" type="string" default="">value token.</prop>
     <prop name="orientation" type="horizontal | vertical" default="horizontal">orientation token.</prop>
@@ -26,6 +27,19 @@
     <div class="panels" $ref="panels"><slot></slot></div>
   </div>
   <style>
+    /* Density resolves into the tab row's own values; the public tokens still override them. */
+    :host {
+      --_tab-min-block-size: var(--ui-control-size);
+      --_tab-padding-block: var(--ui-space-2);
+      --_tab-padding-inline: var(--ui-space-3);
+    }
+
+    :host-state([density="compact"]) {
+      --_tab-min-block-size: var(--ui-control-size-sm);
+      --_tab-padding-block: var(--ui-space-1);
+      --_tab-padding-inline: var(--ui-space-2);
+    }
+
     :host {
       display: grid;
       inline-size: 100%;
@@ -50,16 +64,16 @@
     }
 
     .list button {
-      min-block-size: 2.5rem;
+      min-block-size: var(--ui-tabs-tab-min-block-size, var(--_tab-min-block-size));
       margin: 0 0 -1px;
-      padding: var(--ui-space-2) var(--ui-space-3);
+      padding: var(--ui-tabs-tab-padding-block, var(--_tab-padding-block)) var(--ui-tabs-tab-padding-inline, var(--_tab-padding-inline));
       border: 0;
       border-block-end: 2px solid transparent;
       background: transparent;
       color: var(--ui-text-secondary);
       font: inherit;
       font-size: var(--ui-font-size-sm);
-      font-weight: var(--ui-font-medium, 500);
+      font-weight: var(--ui-font-medium);
       cursor: pointer;
       transition:
         color var(--ui-motion-fast) var(--ui-motion-ease),
@@ -87,7 +101,7 @@
       position: relative;
       outline: none;
       box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--ui-focus-ring) 45%, transparent);
-      border-radius: var(--ui-radius-1);
+      border-radius: var(--ui-radius-sm);
     }
 
     .panels {

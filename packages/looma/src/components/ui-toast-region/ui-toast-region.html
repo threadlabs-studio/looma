@@ -67,7 +67,7 @@
       gap: var(--ui-space-2);
       align-items: start;
       border: 1px solid var(--ui-border-default);
-      border-radius: var(--ui-radius-3);
+      border-radius: var(--ui-radius-lg);
       padding: var(--ui-space-3) var(--ui-space-4);
       background: var(--ui-surface-elevated);
       color: var(--ui-text-primary);
@@ -77,7 +77,7 @@
 
     /* Leaving slides on down and fades; the controller removes the toast when this ends. */
     .toast.closing {
-      animation: ui-toast-exit var(--ui-toast-exit-duration, 0.22s) var(--ui-motion-ease, ease) both;
+      animation: ui-toast-exit var(--ui-toast-exit-duration, 0.22s) var(--ui-motion-ease) both;
       pointer-events: none;
     }
 

@@ -17,8 +17,8 @@
       overflow-x: auto;
       scrollbar-width: none;
       white-space: nowrap;
-      background: var(--ui-editor-toolbar-bg, var(--ui-surface, #fff));
-      border-bottom: 1px solid var(--ui-editor-toolbar-border, var(--ui-border, #e5e7eb));
+      background: var(--ui-editor-toolbar-surface, var(--ui-surface));
+      border-bottom: 1px solid var(--ui-editor-toolbar-border, var(--ui-border));
     }
 
     :host::-webkit-scrollbar {
@@ -32,7 +32,7 @@
     :slotted(.divider) {
       width: 1px;
       height: 20px;
-      background: var(--ui-editor-toolbar-divider, var(--ui-border, #e5e7eb));
+      background: var(--ui-editor-toolbar-divider, var(--ui-border));
       flex-shrink: 0;
       margin: 0 var(--ui-editor-toolbar-divider-margin, 4px);
     }
@@ -45,9 +45,9 @@
       min-height: auto;
       padding: var(--ui-editor-toolbar-floating-padding, 4px);
       overflow-x: visible;
-      background: color-mix(in srgb, var(--ui-editor-toolbar-bg, var(--ui-surface, #fff)) 96%, transparent);
-      border: 1px solid var(--ui-editor-toolbar-border, var(--ui-border, #e5e7eb));
-      border-radius: var(--ui-editor-toolbar-floating-radius, var(--ui-radius-lg, 10px));
+      background: color-mix(in srgb, var(--ui-editor-toolbar-surface, var(--ui-surface)) 96%, transparent);
+      border: 1px solid var(--ui-editor-toolbar-border, var(--ui-border));
+      border-radius: var(--ui-editor-toolbar-floating-radius, var(--ui-radius-lg));
       box-shadow: var(--ui-editor-toolbar-floating-shadow, var(--ui-shadow-lg, 0 10px 24px rgb(0 0 0 / 0.12)));
       backdrop-filter: blur(10px);
     }
@@ -60,7 +60,7 @@
         left: 0;
         right: 0;
         min-height: var(--ui-editor-toolbar-mobile-min-height, 56px);
-        border-top: 1px solid var(--ui-editor-toolbar-border, var(--ui-border, #e5e7eb));
+        border-top: 1px solid var(--ui-editor-toolbar-border, var(--ui-border));
         border-bottom: none;
         box-shadow: var(--ui-editor-toolbar-mobile-shadow, 0 -2px 8px rgb(0 0 0 / 0.06));
       }
@@ -69,8 +69,8 @@
         position: static;
         inset: auto;
         min-height: auto;
-        border: 1px solid var(--ui-editor-toolbar-border, var(--ui-border, #e5e7eb));
-        border-radius: var(--ui-editor-toolbar-floating-radius, var(--ui-radius-lg, 10px));
+        border: 1px solid var(--ui-editor-toolbar-border, var(--ui-border));
+        border-radius: var(--ui-editor-toolbar-floating-radius, var(--ui-radius-lg));
         box-shadow: var(--ui-editor-toolbar-floating-shadow, var(--ui-shadow-lg, 0 10px 24px rgb(0 0 0 / 0.12)));
       }
     }

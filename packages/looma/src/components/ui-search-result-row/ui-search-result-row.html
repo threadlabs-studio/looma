@@ -18,18 +18,18 @@
       inline-size: 100%;
       min-block-size: var(--ui-search-result-row-min-height, 56px);
       margin: 0;
-      padding-block: var(--ui-search-result-row-padding-block, var(--ui-space-3, 0.75rem));
-      padding-inline: var(--ui-search-result-row-padding-inline, var(--ui-space-4, 1rem));
+      padding-block: var(--ui-search-result-row-padding-block, var(--ui-space-3));
+      padding-inline: var(--ui-search-result-row-padding-inline, var(--ui-space-4));
       display: flex;
       align-items: flex-start;
-      gap: var(--ui-search-result-row-gap, var(--ui-space-3, 0.75rem));
-      background: var(--ui-search-result-row-bg, transparent);
+      gap: var(--ui-search-result-row-gap, var(--ui-space-3));
+      background: var(--ui-search-result-row-surface, transparent);
       border: none;
-      border-block-end: 1px solid var(--ui-search-result-row-border, var(--ui-border, #e5e7eb));
+      border-block-end: 1px solid var(--ui-search-result-row-border, var(--ui-border));
       color: inherit;
       cursor: pointer;
       text-align: left;
-      transition: background-color var(--ui-motion-fast, 160ms) var(--ui-motion-ease, ease);
+      transition: background-color var(--ui-motion-fast) var(--ui-motion-ease);
     }
 
     :host:last-child {
@@ -37,18 +37,18 @@
     }
 
     :host:hover:enabled {
-      background: var(--ui-search-result-row-hover-bg, color-mix(in srgb, var(--ui-surface, #ffffff) 85%, black 3%));
+      background: var(--ui-search-result-row-hover-surface, color-mix(in srgb, var(--ui-surface) 85%, black 3%));
     }
 
     :host-state([selected]) {
       background: var(
         --ui-search-result-row-selected-bg,
-        var(--ui-search-result-row-hover-bg, color-mix(in srgb, var(--ui-surface, #ffffff) 85%, black 3%))
+        var(--ui-search-result-row-hover-surface, color-mix(in srgb, var(--ui-surface) 85%, black 3%))
       );
     }
 
     :host:focus-visible {
-      outline: 2px solid var(--ui-focus-ring, #2563eb);
+      outline: 2px solid var(--ui-focus-ring);
       outline-offset: -2px;
     }
 

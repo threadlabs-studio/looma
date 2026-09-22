@@ -395,7 +395,7 @@ test("editor catalog overlays stay inside their preview cards", async ({ page })
     const card = page.locator(`[data-component-card="${tag}"]`);
     await page.evaluate((componentTag) => {
       document.querySelector(`[data-component-card="${componentTag}"]`)
-        ?.scrollIntoView({ block: "center" });
+        ?.scrollIntoView({ block: "center", behavior: "instant" });
     }, tag);
     await expect(card).toBeVisible();
     const preview = card.locator(".looma-component-card__preview");
@@ -421,7 +421,7 @@ test("editor catalog overlays stay inside their preview cards", async ({ page })
   const contextCard = page.locator('[data-component-card="ui-editor-table-context-menu"]');
   await page.evaluate(() => {
     document.querySelector('[data-component-card="ui-editor-table-context-menu"]')
-      ?.scrollIntoView({ block: "center" });
+      ?.scrollIntoView({ block: "center", behavior: "instant" });
   });
   const contextPreview = contextCard.locator(".looma-component-card__preview");
   const contextSurface = contextPreview.locator("[data-component~='ui-editor-table-context-menu']");
@@ -440,7 +440,7 @@ test("editor catalog overlays stay inside their preview cards", async ({ page })
   const overlayCard = page.locator('[data-component-card="ui-editor-table-overlay"]');
   await page.evaluate(() => {
     document.querySelector('[data-component-card="ui-editor-table-overlay"]')
-      ?.scrollIntoView({ block: "center" });
+      ?.scrollIntoView({ block: "center", behavior: "instant" });
   });
   const tableStage = overlayCard.locator(".demo-editor-table-stage");
   const tableOverlay = tableStage.locator('[data-component~="ui-editor-table-overlay"]');
@@ -1266,6 +1266,7 @@ test("Looma navigation only points to Looma resources", async ({ page }) => {
 test("checkbox, switch, and radio APIs generate their own aligned native controls", async ({ page }) => {
   await page.goto("components/ui-checkbox", { waitUntil: "domcontentloaded" });
   const checkboxScenario = page.locator("[data-preview-scenario='Default']");
+  await expect(checkboxScenario.locator("[data-component~='ui-checkbox']")).toBeVisible();
   const checkbox = checkboxScenario.getByRole("checkbox", { name: "Checkbox" });
   await expect(checkbox).toBeVisible();
   await checkbox.check();
@@ -1292,6 +1293,10 @@ test("checkbox, switch, and radio APIs generate their own aligned native control
   expect(alignment.gap).toBeLessThanOrEqual(12);
 
   await page.goto("components/ui-switch", { waitUntil: "domcontentloaded" });
+  // The runtime lowers the component after load; its styles only apply once it has.
+  await expect(
+    page.locator("[data-preview-scenario='Default'] [data-component~='ui-switch']")
+  ).toBeVisible();
   const switchControl = page.locator("[data-preview-scenario='Default']").getByRole("switch", { name: "Switch" });
   const offGeometry = await switchControl.evaluate((input) => {
     const track = input.getBoundingClientRect();
@@ -1315,6 +1320,10 @@ test("checkbox, switch, and radio APIs generate their own aligned native control
   expect(offGeometry.thumbTop).toBe(3);
   await switchControl.check();
   await expect(switchControl).toBeChecked();
+  // The track colour transitions; read it once the transition has finished.
+  await switchControl.evaluate(async (input) => {
+    await Promise.all(input.getAnimations().map((animation) => animation.finished));
+  });
   const onGeometry = await switchControl.evaluate((input) => ({
     transform: getComputedStyle(input, "::after").transform,
     background: getComputedStyle(input).backgroundColor
