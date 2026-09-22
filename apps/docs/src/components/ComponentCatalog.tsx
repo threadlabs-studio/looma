@@ -2,13 +2,9 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "@docusaurus/Link";
 import useBaseUrl from "@docusaurus/useBaseUrl";
 
+import { useDocsSidebar } from "@docusaurus/plugin-content-docs/client";
+
 import componentApi from "../../../../generated/component-api.json";
-import {
-  allComponentGroups,
-  componentGroups,
-  editorComponentGroup,
-  type ComponentCategory,
-} from "../componentNavigation";
 import { ComponentPreview } from "./ComponentPreview";
 
 interface ComponentRecord {
@@ -17,40 +13,29 @@ interface ComponentRecord {
   root: string;
 }
 
-const categoryByTag = new Map(
-  allComponentGroups.flatMap(({ label, items }) => items.map(({ tag }) => [tag, label] as const))
-);
-const labelByTag = new Map(allComponentGroups.flatMap(({ items }) =>
-  items.map((item) => [item.tag, "label" in item ? item.label : undefined] as const)));
-
-function categoryForTag(tag: string): ComponentCategory {
-  const category = categoryByTag.get(tag);
-  if (!category) {
-    throw new Error(`Missing component navigation category for ${tag}.`);
-  }
-  return category;
+interface SidebarItem {
+  type: string;
+  label: string;
+  href?: string;
+  items?: SidebarItem[];
 }
 
-// The generated API inventory also contains compound parts such as menu items,
-// tree items, and search result rows. Navigation is the public catalog boundary,
-// so those parts remain documented through their owning component without
-// reappearing as misleading standalone cards.
-const allComponents = (componentApi.components as ComponentRecord[])
-  .filter((component) => categoryByTag.has(component.tag))
-  .map((component) => ({
-    ...component,
-    category: categoryForTag(component.tag)
-  }));
+const recordByTag = new Map((componentApi.components as ComponentRecord[]).map((component) => [component.tag, component]));
+
+/**
+ * The catalog lists the component pages in the sidebar it is shown in: each sidebar category (a
+ * folder under docs/components/) is a filter, and pages outside a category take the
+ * sidebar's first page (its overview) as their group.
+ */
+function sidebarComponents(items: readonly SidebarItem[], category: string): { tag: string; label: string; category: string }[] {
+  return items.flatMap((item) => {
+    if (item.type === "category") return sidebarComponents(item.items ?? [], item.label);
+    const tag = /\/components\/(ui-[a-z-]+)$/.exec(item.href ?? "")?.[1];
+    return tag && recordByTag.has(tag) ? [{ tag, label: item.label, category }] : [];
+  });
+}
 
 const MemoizedComponentPreview = React.memo(ComponentPreview);
-
-function titleFromTag(tag: string): string {
-  return tag
-    .replace(/^ui-/, "")
-    .split("-")
-    .map((part) => part[0].toUpperCase() + part.slice(1))
-    .join(" ");
-}
 
 function CatalogPreview({ component }: { component: string }): JSX.Element {
   const [visible, setVisible] = useState(false);
@@ -83,22 +68,24 @@ function CatalogPreview({ component }: { component: string }): JSX.Element {
   );
 }
 
-export function ComponentCatalog({
-  scope = "components",
-}: {
-  scope?: "components" | "editor";
-}): JSX.Element {
+export function ComponentCatalog(): JSX.Element {
   const markUrl = useBaseUrl("img/looma-mark.svg");
   const [query, setQuery] = useState("");
-  const [activeCategory, setActiveCategory] = useState<"All" | ComponentCategory>("All");
+  const [activeCategory, setActiveCategory] = useState("All");
   const searchRef = useRef<HTMLInputElement>(null);
-  const navigationGroups = scope === "editor" ? [editorComponentGroup] : componentGroups;
-  const categoryOrder = navigationGroups.map(({ label }) => label);
-  const componentCountByCategory = new Map(
-    navigationGroups.map(({ label, items }) => [label, items.length] as const),
+  const sidebar = useDocsSidebar();
+  const items = (sidebar?.items ?? []) as SidebarItem[];
+  const components = useMemo(
+    () => sidebarComponents(items, items[0]?.label ?? "")
+      .map((entry) => ({ ...entry, ...recordByTag.get(entry.tag)! }))
+      .sort((a, b) => a.tag.localeCompare(b.tag)),
+    [items],
   );
-  const scopedTags = new Set(navigationGroups.flatMap(({ items }) => items.map(({ tag }) => tag)));
-  const components = allComponents.filter(({ tag }) => scopedTags.has(tag));
+  // Filters follow the sidebar's group order; cards are alphabetical.
+  const categoryOrder = [...new Set(sidebarComponents(items, items[0]?.label ?? "").map(({ category }) => category))];
+  const componentCountByCategory = new Map(
+    categoryOrder.map((category) => [category, components.filter((component) => component.category === category).length] as const),
+  );
 
   useEffect(() => {
     const focusSearch = (event: KeyboardEvent) => {
@@ -120,10 +107,10 @@ export function ComponentCatalog({
         !normalizedQuery ||
         component.tag.includes(normalizedQuery) ||
         component.description.toLowerCase().includes(normalizedQuery) ||
-        titleFromTag(component.tag).toLowerCase().includes(normalizedQuery);
+        component.label.toLowerCase().includes(normalizedQuery);
       return matchesCategory && matchesQuery;
     });
-  }, [activeCategory, query]);
+  }, [activeCategory, components, query]);
 
   return (
     <div className="looma-catalog">
@@ -178,7 +165,7 @@ export function ComponentCatalog({
                   <code>{`<${component.root}>`}</code>
                 </div>
                 <h2>
-                  <Link to={`/components/${component.tag}`}>{labelByTag.get(component.tag) ?? titleFromTag(component.tag)}</Link>
+                  <Link to={`/components/${component.tag}`}>{component.label}</Link>
                 </h2>
                 <p>{component.description}</p>
                 <Link className="looma-component-card__link" to={`/components/${component.tag}`}>
