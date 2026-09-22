@@ -1,4 +1,4 @@
-export const RELEASE_VERSION = "0.5.2";
+export const RELEASE_VERSION = "0.6.0-rc.1";
 export const RELEASE_PACKAGES = [
   {
     name: "@threadlabs/looma",
@@ -43,4 +43,9 @@ export function assertExactReleasePackageSet(packages) {
   if (JSON.stringify(actualNames) !== JSON.stringify(expectedNames)) {
     throw new Error("release manifest does not contain the exact approved package set");
   }
+}
+
+/** A prerelease publishes under `next`, so `latest` always means the newest stable release. */
+export function distTag(version) {
+  return version.includes("-") ? "next" : "latest";
 }
