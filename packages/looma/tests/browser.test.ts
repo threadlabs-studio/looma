@@ -146,12 +146,29 @@ describe("Overlays", () => {
     const edge = () => region.evaluate((element) => getComputedStyle(element).borderBottomColor);
     const idle = await edge();
     await page.locator("#query").fill("wel");
+    // The edge colour transitions in; wait for it rather than sampling mid-transition.
+    await page.waitForFunction((before) => getComputedStyle(document.querySelector("#search .search")!).borderBottomColor !== before, idle, { timeout: 2000 });
     assert.notEqual(await edge(), idle, "the search region shows focus");
     await page.keyboard.press("Escape");
     assert.deepEqual(await page.evaluate(() => (window as unknown as { closes: unknown[] }).closes), [
       { open: false, reason: "escape", trigger: "keyboard" },
     ]);
     assert.equal(await page.locator("#search dialog").evaluate((dialog) => (dialog as HTMLDialogElement).open), false);
+    await page.close();
+  });
+  it("give the dialog close button a touch target once touch is used", async () => {
+    const path = await bundle("vue-dialog-touch", `
+      import { createApp, h } from "vue";
+      import { Dialog, trackInputModality } from "@threadlabs/looma/vue";
+      trackInputModality(document);
+      createApp({ render: () => h(Dialog, { id: "dialog", open: true, modal: true, label: "Details" }, () => "Body") }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const close = page.locator("#dialog .close");
+    const size = () => close.evaluate((element) => (element as HTMLElement).offsetWidth);
+    assert.equal(await size(), 32);
+    await page.evaluate(() => document.dispatchEvent(new PointerEvent("pointerdown", { pointerType: "touch" })));
+    assert.equal(await size(), 44);
     await page.close();
   });
 });
