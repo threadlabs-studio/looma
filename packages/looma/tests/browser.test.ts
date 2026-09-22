@@ -58,8 +58,10 @@ describe("Vue components", () => {
   it("render, style, and behave with no HTML Next runtime", async () => {
     const path = await bundle("vue-app", `
       import { createApp, h, ref } from "vue";
-      import { Button, Checkbox, Tabs, Combobox, Callout, Stack } from "@threadlabs/looma/vue";
+      import { Button, Checkbox, Tabs, Combobox, Callout, Stack, Input } from "@threadlabs/looma/vue";
       const checked = ref(false);
+      const name = ref("Ada");
+      window.name_ = name;
       const changes = [];
       window.changes = changes;
       createApp({
@@ -75,6 +77,7 @@ describe("Vue components", () => {
             h("option", { value: "pear" }, "Pear"),
           ]),
           h(Callout, { tone: "warning" }, () => "Careful"),
+          h(Input, { id: "name", modelValue: name.value, "onUpdate:modelValue": (value) => { name.value = value; } }),
         ]),
       }).mount("#app");
     `);
@@ -99,6 +102,13 @@ describe("Vue components", () => {
     await tabs.nth(1).click();
     assert.equal(await tabs.nth(1).getAttribute("aria-selected"), "true");
     assert.equal(await page.locator('#tabs section[aria-label="One"]').isHidden(), true);
+
+    // v-model on a native form-control root.
+    assert.equal(await page.locator("#name").inputValue(), "Ada");
+    await page.locator("#name").fill("Grace");
+    assert.equal(await page.evaluate(() => (window as unknown as { name_: { value: string } }).name_.value), "Grace");
+    await page.evaluate(() => { (window as unknown as { name_: { value: string } }).name_.value = "Hopper"; });
+    await page.waitForFunction(() => (document.querySelector("#name") as HTMLInputElement).value === "Hopper");
 
     await page.locator("#fruit input").click();
     await page.locator("#fruit input").fill("pe");
