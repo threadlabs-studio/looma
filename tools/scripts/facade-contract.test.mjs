@@ -53,8 +53,6 @@ test("the facade declares the exact public subpath and peer contract", async () 
     "./editor/extensions",
     "./vue",
     "./vue/editor",
-    "./react",
-    "./svelte",
     "./tokens.css",
     "./theme-light.css",
     "./theme-dark.css",
@@ -76,10 +74,6 @@ test("the facade declares the exact public subpath and peer contract", async () 
   assert.equal(manifest.exports["./editor/extensions"].import, "./editor/extensions/index.js");
   assert.equal(manifest.exports["./vue"].import, "./vue/index.js");
   assert.equal(manifest.exports["./vue/editor"].import, "./vue/editor/index.js");
-  assert.equal(manifest.exports["./react"].import, "./react/index.js");
-  assert.equal(manifest.exports["./svelte"].import, "./svelte/index.js");
-  assert.equal(manifest.peerDependenciesMeta.react.optional, true);
-  assert.equal(manifest.peerDependenciesMeta.svelte.optional, true);
   assert.equal(manifest.peerDependenciesMeta.vue.optional, true);
   assert.equal(manifest.peerDependenciesMeta["@tiptap/core"].optional, true);
   assert.equal(manifest.peerDependenciesMeta["@tiptap/pm"].optional, true);
@@ -88,8 +82,6 @@ test("the facade declares the exact public subpath and peer contract", async () 
     "@tiptap/core",
     "@tiptap/pm",
     "@tiptap/vue-3",
-    "react",
-    "svelte",
     "vue",
   ]);
   assert.deepEqual(manifest.dependencies, {
@@ -99,8 +91,6 @@ test("the facade declares the exact public subpath and peer contract", async () 
   assert.ok(manifest.sideEffects.includes("./editor/*.js"));
   assert.ok(manifest.sideEffects.includes("./vue/index.js"));
   assert.ok(manifest.sideEffects.includes("./vue/editor/*.js"));
-  assert.ok(manifest.sideEffects.includes("./react/index.js"));
-  assert.ok(manifest.sideEffects.includes("./svelte/index.js"));
   assert.ok(manifest.sideEffects.includes("./*.css"));
   assert.equal(manifest.publishConfig.access, "public");
   assert.equal(manifest.publishConfig.provenance, true);

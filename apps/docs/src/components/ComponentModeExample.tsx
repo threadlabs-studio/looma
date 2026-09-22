@@ -7,7 +7,6 @@ import {
   type FrameworkExamples
 } from "./FrameworkMode";
 
-type ComponentRecord = (typeof componentApi.components)[number];
 
 export interface ScenarioPropertyAssignment {
   elementId: string;
@@ -84,63 +83,6 @@ function renameComponents(markup: string): string {
   }, markup);
 }
 
-function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function reactStyle(value: string): string {
-  const entries = value.split(";").map((declaration) => declaration.trim()).filter(Boolean).map((declaration) => {
-    const separator = declaration.indexOf(":");
-    const rawName = declaration.slice(0, separator).trim();
-    const rawValue = declaration.slice(separator + 1).trim();
-    const name = rawName.startsWith("--")
-      ? JSON.stringify(rawName)
-      : rawName.replace(/-([a-z])/g, (_match, letter: string) => letter.toUpperCase());
-    const valueExpression = /^-?\d+(?:\.\d+)?$/.test(rawValue) ? rawValue : JSON.stringify(rawValue);
-    return `${name}: ${valueExpression}`;
-  });
-  return `style={{ ${entries.join(", ")} }}`;
-}
-
-/**
- * Uses the generated public API as the source of truth for React prop names
- * and scalar types, keeping adapter snippets aligned with the shipped wrappers.
- */
-function transformReactComponentAttributes(source: string, record: ComponentRecord): string {
-  const name = publicName(record.tag);
-  return source.replace(new RegExp(`<${record.tag}(?<attributes>[^>]*)>`, "g"), (...args: unknown[]) => {
-    const groups = args.at(-1) as { attributes?: string } | undefined;
-    let attributes = String(groups?.attributes ?? "");
-    for (const attribute of [...record.attributes].sort((a, b) => b.name.length - a.name.length)) {
-      const token = new RegExp(`(^|\\s)${escapeRegExp(attribute.name)}(?=(?:=|\\s|$))`, "g");
-      attributes = attributes.replace(token, `$1${attribute.property}`);
-      const value = new RegExp(`\\b${escapeRegExp(attribute.property)}="([^"]*)"`, "g");
-      attributes = attributes.replace(value, (_attribute, rawValue: string) => {
-        if (attribute.type === "boolean") return `${attribute.property}={${rawValue !== "false"}}`;
-        if (attribute.type === "number") return `${attribute.property}={${rawValue}}`;
-        return `${attribute.property}=${JSON.stringify(rawValue)}`;
-      });
-    }
-    return `<${name}${attributes}>`;
-  }).replaceAll(`</${record.tag}>`, `</${name}>`);
-}
-
-function reactMarkup(markup: string): string {
-  let result = tagsIn(markup).reduce((source, tag) => {
-    const record = componentByTag.get(tag);
-    return record ? transformReactComponentAttributes(source, record) : source;
-  }, markup);
-  result = result
-    .replace(/\bclass=/g, "className=")
-    .replace(/(<label\b[^>]*?)\bfor=/g, "$1htmlFor=")
-    .replace(/\btabindex=/g, "tabIndex=")
-    .replace(/\breadonly\b/g, "readOnly")
-    .replace(/\bstroke-width=/g, "strokeWidth=")
-    .replace(/\bpopovertarget=/g, "popoverTarget=")
-    .replace(/style="([^"]*)"/g, (_match, value: string) => reactStyle(value));
-  return result;
-}
-
 function valueCode(value: unknown, indent = ""): string {
   return JSON.stringify(value, null, 2).split("\n").map((line, index) =>
     index === 0 ? line : `${indent}${line}`
@@ -150,14 +92,9 @@ function valueCode(value: unknown, indent = ""): string {
 function bindProperties(
   markup: string,
   assignments: readonly ScenarioPropertyAssignment[],
-  mode: "vue" | "react" | "svelte"
 ): string {
   return assignments.reduce((source, assignment) => {
-    const syntax = mode === "vue"
-      ? `:${assignment.property}="${assignment.variable}"`
-      : mode === "react"
-        ? `${assignment.property}={${assignment.variable}}`
-        : `${assignment.property}={${assignment.variable}}`;
+    const syntax = `:${assignment.property}="${assignment.variable}"`;
     return source.replace(
       `id="${assignment.elementId}"`,
       `id="${assignment.elementId}" ${syntax}`
@@ -185,13 +122,10 @@ function buildExamples(
   const vueImports = Array.from(vueGroups.entries()).map(([packageName, names]) =>
     `import { ${names.sort().join(", ")} } from ${JSON.stringify(packageName)};`
   ).join("\n");
-  const names = tags.map(publicName).sort();
   const declarations = assignments.map((assignment) =>
     `const ${assignment.variable} = ${valueCode(assignment.value)};`
   ).join("\n");
-  const vue = formatMarkup(bindProperties(renameComponents(markup), assignments, "vue"));
-  const react = formatMarkup(bindProperties(reactMarkup(markup), assignments, "react"));
-  const svelte = formatMarkup(bindProperties(markup, assignments, "svelte"));
+  const vue = formatMarkup(bindProperties(renameComponents(markup), assignments));
   const html = formatMarkup(withPropertyAttributes(markup, assignments));
   const htmlSetup = "";
   const frameworkSetup = assignments.length > 0 ? `${declarations}\n` : "";
@@ -205,19 +139,11 @@ function buildExamples(
       language: "vue",
       code: `<script setup lang="ts">\n${vueImports}\n${frameworkSetup}</script>\n\n<template>\n${vue.split("\n").map((line) => `  ${line}`).join("\n")}\n</template>`
     },
-    react: {
-      language: "tsx",
-      code: `import { ${names.join(", ")} } from "@threadlabs/looma/react";\n\nexport function Example() {\n${frameworkSetup.split("\n").filter(Boolean).map((line) => `  ${line}`).join("\n")}${frameworkSetup ? "\n" : ""}  return (\n${react.split("\n").map((line) => `    ${line}`).join("\n")}\n  );\n}`
-    },
-    svelte: {
-      language: "svelte",
-      code: `<script lang="ts">\n${packages.map((packageName) => `  import ${JSON.stringify(packageName)};`).join("\n")}\n${frameworkSetup}</script>\n\n${svelte}`
-    }
   };
 }
 
 /**
- * Keeps implementation code beside the live result it creates. All four
+ * Keeps implementation code beside the live result it creates. Both
  * snippets derive from the scenario markup, so editing an example cannot leave
  * behind a detached, generic framework sample that demonstrates something else.
  */

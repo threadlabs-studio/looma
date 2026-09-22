@@ -21,8 +21,6 @@ function runWorkspaceBuilds(repoRoot) {
       "--filter", "@threadlabs/looma-layout",
       "--filter", "@threadlabs/looma-editor",
       "--filter", "@threadlabs/looma-vue",
-      "--filter", "@threadlabs/looma-react",
-      "--filter", "@threadlabs/looma-svelte",
       "run", "build",
     ],
     { cwd: repoRoot, stdio: "inherit" },

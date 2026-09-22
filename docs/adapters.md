@@ -10,11 +10,10 @@ props, events, and slots without owning different behavior.
 | --- | --- | --- |
 | `@threadlabs/looma/vue` | Published Candidate subpath | Qualified for public layout and core wrappers without the editor graph |
 | `@threadlabs/looma/vue/editor` | Published Candidate subpath | Qualified for consumer-facing Tiptap-backed Vue editor helpers and wrappers; the internal Knit harness supplies additional deep-integration evidence |
-| `@threadlabs/looma/react` | Published preview subpath | React components for the declarative contracts; not qualified for Release 1 |
-| `@threadlabs/looma/svelte` | Published preview subpath | DOM factories (`createUiButton`, …); not Svelte components yet; not qualified for Release 1 |
+| React | In development | Not published |
 
-Publication is not release qualification. React and Svelte API parity, tests, and
-Svelte components generated from HTML Next's Svelte target remain follow-up work.
+Publication is not release qualification. React support is in development: it ships once
+HTML Next's React target converts components without the HTML Next runtime.
 
 ## Vue Mapping
 
@@ -75,5 +74,4 @@ export const Example = {
 };
 ```
 
-React and Svelte examples are omitted from the Release 1 install path because those
-subpaths are previews.
+The Release 1 install path covers direct HTML and Vue only.
