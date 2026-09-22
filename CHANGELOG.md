@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## v0.4.0 Candidate
+
+Breaking: `@threadlabs/looma/react` and `@threadlabs/looma/svelte` are removed.
+React support is in development: it ships once HTML Next converts components to
+React without its runtime. The optional `react` and `svelte` peer dependencies
+are removed with them. The documentation shows HTML and Vue examples only.
+
 ## v0.3.1 Candidate
 
 - Vue Input, Textarea, and Select support `v-model` (`modelValue` and

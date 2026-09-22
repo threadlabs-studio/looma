@@ -26,5 +26,5 @@ runs during normal development.
 2. Regenerate metadata with `pnpm generate:api`.
 3. Run `pnpm check:docs-sync` and commit generated output.
 
-React, Vue, and Svelte adapters are regenerated only at an explicit release checkpoint after the
+Vue adapters are regenerated only at an explicit release checkpoint after the
 declarative API has settled.

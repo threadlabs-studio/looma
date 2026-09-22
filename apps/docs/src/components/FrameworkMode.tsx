@@ -2,11 +2,11 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from "
 import CodeBlock from "@theme/CodeBlock";
 import type { Props as RootProps } from "@theme/Root";
 
-export type FrameworkMode = "html-next" | "vue" | "svelte" | "react";
+export type FrameworkMode = "html-next" | "vue";
 
 export interface FrameworkExample {
   code: string;
-  language: "html" | "tsx" | "vue" | "svelte";
+  language: "html" | "vue";
 }
 
 export type FrameworkExamples = Readonly<Record<FrameworkMode, FrameworkExample>>;
@@ -15,10 +15,8 @@ const STORAGE_KEY = "looma-docs-framework-mode";
 const DEFAULT_MODE: FrameworkMode = "html-next";
 
 const modes = [
-  { id: "html-next", label: "HTML Next", preview: false },
-  { id: "vue", label: "Vue", preview: false },
-  { id: "svelte", label: "Svelte", preview: true },
-  { id: "react", label: "React", preview: true }
+  { id: "html-next", label: "HTML Next" },
+  { id: "vue", label: "Vue" }
 ] as const;
 
 interface FrameworkModeContextValue {
@@ -92,7 +90,6 @@ export function FrameworkModeSelector(): JSX.Element {
             onClick={() => setMode(mode.id)}
           >
             <span>{mode.label}</span>
-            {mode.preview ? <small aria-hidden="true">Preview</small> : null}
           </button>
         ))}
       </div>
