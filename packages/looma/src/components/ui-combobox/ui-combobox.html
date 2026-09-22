@@ -23,16 +23,16 @@
     <prop name="help" type="string" default="">help token.</prop>
     <state name="raw" :value="''"></state>
     <state name="display" :value="''"></state>
-    <state name="selected" :value="null"></state>
+    <state name="selected" type="string | null" :value="null"></state>
     <state name="expanded" :value="false"></state>
-    <state name="rows" :value="[]"></state>
+    <state name="rows" type="list(object({ id: string, value: string, label: string, group?: string, disabled: boolean }))" :value="[]"></state>
     <state name="active" :value="-1"></state>
     <state name="loading" :value="false"></state>
     <state name="helpOpen" :value="false"></state>
     <state name="lookupError" :value="''"></state>
-    <state name="validation" :value="{ status: 'pristine', touched: false, dirty: false, issues: [] }"></state>
+    <state name="validation" type="object({ status: pristine | pending | valid | warning | error, touched: boolean, dirty: boolean, issues: list(object({ message: string })), ... })" :value="{ status: 'pristine', touched: false, dirty: false, issues: [] }"></state>
     <state name="uid" :value="''"></state>
-    <state name="groups" :value="[]"></state>
+    <state name="groups" type="list(object({ name: string, role: group | presentation, label: string | null, rows: list(object({ id: string, value: string, label: string, group?: string, disabled: boolean, index: integer })) }))" :value="[]"></state>
     <state name="creatable" :value="false"></state>
     <state name="createIndex" :value="0"></state>
     <state name="message" :value="''"></state>

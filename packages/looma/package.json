@@ -84,7 +84,7 @@
     "test:browser": "vitest run && vitest run --config vitest.browser.config.ts"
   },
   "dependencies": {
-    "@nextwebwg/declarative-components": "^1.0.0-alpha.1",
+    "@nextwebwg/html-next": "link:../../../../nextwebwg/html-next/packages/html-next",
     "lowlight": "^3.3.0",
     "markdown-it": "14.3.1",
     "lucide": "~0.554.0"
