@@ -197,7 +197,7 @@ export function ComponentApi({ component }: ComponentApiProps): JSX.Element {
         <p>No props.</p>
       ) : (
         <>
-        <p>Vue, React, and Svelte pass the attributes above as these camelCase props.</p>
+        <p>Vue passes the attributes above as these camelCase props.</p>
         <table className="looma-api-table">
           <thead>
             <tr>
