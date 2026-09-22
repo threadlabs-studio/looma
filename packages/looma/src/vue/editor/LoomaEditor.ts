@@ -339,7 +339,7 @@ export const LoomaEditor = defineComponent({
       ],
       content: props.modelValue,
       editable: props.editable,
-      editorProps: { attributes: { "aria-label": props.label } },
+      editorProps: { attributes: { role: "textbox", "aria-multiline": "true", "aria-label": props.label } },
       onCreate: ({ editor: instance }) => emit("ready", instance),
       onFocus: ({ editor: instance }) => rememberSelection(instance),
       onSelectionUpdate: ({ editor: instance }) => rememberSelection(instance),
@@ -353,7 +353,9 @@ export const LoomaEditor = defineComponent({
 
     watch(() => props.editable, (editable) => editor.value?.setEditable(editable));
     watch(() => props.label, (label) => {
-      editor.value?.setOptions({ editorProps: { attributes: { "aria-label": label } } });
+      editor.value?.setOptions({
+        editorProps: { attributes: { role: "textbox", "aria-multiline": "true", "aria-label": label } },
+      });
     });
     watch(() => props.resolveImageAttributes, () => {
       const instance = editor.value;

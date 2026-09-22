@@ -294,7 +294,7 @@
 }
 
 .looma-editor__toolbar-button {
-  --ui-icon-button-size-sm: var(--ui-editor-toolbar-button-size, 2rem);
+  --ui-icon-button-size: var(--ui-editor-toolbar-button-size, 2rem);
   --ui-icon-button-radius: var(--ui-editor-toolbar-button-radius, var(--ui-radius-1));
   --ui-icon-button-icon-size: var(--ui-editor-toolbar-icon-size, 1rem);
 }
@@ -364,7 +364,7 @@
 }
 
 .looma-editor__mobile-toolbar-shell .looma-editor__toolbar-button {
-  --ui-icon-button-size-sm: var(--ui-editor-toolbar-mobile-button-size, 44px);
+  --ui-icon-button-size: var(--ui-editor-toolbar-mobile-button-size, var(--ui-control-min-block-size));
 }
 
 .looma-editor__mobile-toolbar-back {

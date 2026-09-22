@@ -9,6 +9,8 @@
       --ui-text: #f0f0ec;
       --ui-text-secondary: #a0a09c;
       --ui-text-muted: #6a6a66;
+      --ui-disabled-surface: #242424;
+      --ui-disabled-text: #6a6a66;
       --ui-on-accent: #1a1a1a;
       --ui-on-danger: #1a1a1a;
 
@@ -47,6 +49,8 @@
     --ui-text: #f0f0ec;
     --ui-text-secondary: #a0a09c;
     --ui-text-muted: #6a6a66;
+    --ui-disabled-surface: #242424;
+    --ui-disabled-text: #6a6a66;
     --ui-on-accent: #1a1a1a;
     --ui-on-danger: #1a1a1a;
 

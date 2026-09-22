@@ -171,20 +171,21 @@
 
     /* Disabled colours fall back to each variant's own; ghost takes only the icon colour. */
     :host:disabled {
-      opacity: var(--ui-icon-button-disabled-opacity, 0.6);
-      color: var(--ui-icon-button-disabled-text, inherit);
+      opacity: var(--ui-icon-button-disabled-opacity, 1);
+      color: var(--ui-icon-button-disabled-text, var(--ui-disabled-text));
       cursor: not-allowed;
     }
 
     :host-state([variant="outline"]):disabled {
-      border-color: var(--ui-icon-button-disabled-border, var(--ui-icon-button-border, var(--ui-border-default)));
-      background-color: var(--ui-icon-button-disabled-surface, var(--ui-icon-button-outline-surface, var(--ui-surface-default)));
-      color: var(--ui-icon-button-disabled-text, var(--ui-icon-button-outline-text, var(--ui-text-primary)));
+      border-color: var(--ui-icon-button-disabled-border, var(--ui-border));
+      background-color: var(--ui-icon-button-disabled-surface, var(--ui-disabled-surface));
+      color: var(--ui-icon-button-disabled-text, var(--ui-disabled-text));
     }
 
     :host-state([variant="solid"]):disabled {
-      background-color: var(--ui-icon-button-disabled-surface, var(--ui-icon-button-solid-surface, var(--ui-accent-solid)));
-      color: var(--ui-icon-button-disabled-text, var(--ui-icon-button-solid-text, var(--ui-text-on-accent)));
+      border-color: var(--ui-icon-button-disabled-border, var(--ui-border));
+      background-color: var(--ui-icon-button-disabled-surface, var(--ui-disabled-surface));
+      color: var(--ui-icon-button-disabled-text, var(--ui-disabled-text));
     }
 
     :host {
