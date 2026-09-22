@@ -1,4 +1,4 @@
-<template component="ui-radio-group" controller="./ui-radio-group.js" status="early" summary="Migrated Looma ui-radio-group component.">
+<template component="ui-radio-group" controller="./ui-radio-group.js">
   <defs>
     <prop name="value" type="string" default="">value token.</prop>
     <prop name="name" type="string" default="">name token.</prop>
@@ -10,8 +10,8 @@
     <event name="select" type="object({ value: string, previousValue: string, trigger: keyboard | pointer | programmatic })"></event>
     <event name="change" type="object({ checked: boolean, value: string, trigger: keyboard | pointer | programmatic })"></event>
   </defs>
-  <fieldset role="radiogroup" :data-orientation="orientation" :data-disabled="disabled"><legend><template $value="label"></template></legend><slot></slot></fieldset>
-  <style>:scope {
+  <fieldset role="radiogroup"><legend><template $value="label"></template></legend><slot></slot></fieldset>
+  <style>:host {
   display: inline-flex;
   align-items: center;
   gap: var(--ui-space-2);
@@ -32,7 +32,7 @@ legend {
 
 legend + * { clear: both; }
 
-:scope[data-orientation='vertical'] {
+:host-state([orientation="vertical"]) {
   display: inline-grid;
   justify-items: start;
 }

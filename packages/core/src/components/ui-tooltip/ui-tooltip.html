@@ -1,4 +1,4 @@
-<template component="ui-tooltip" controller="./ui-tooltip.js" status="early" summary="Associates a short, non-interactive description with a control and reveals it on hover or focus.">
+<template component="ui-tooltip" controller="./ui-tooltip.js">
   <defs>
     <prop name="for" type="string" default="">ID of the control described and visually anchored by the tooltip.</prop>
     <prop name="open" type="boolean" default="false">Whether the tooltip is open initially or when set externally.</prop>
@@ -10,8 +10,8 @@
     <event name="open" type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"></event>
     <event name="close" type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"></event>
   </defs>
-  <span role="tooltip" :hidden="not internalOpen" :data-state-open="internalOpen" :data-inverse="inverse"><div class="tooltip__surface"><slot></slot></div></span>
-  <style>:scope {
+  <span role="tooltip" :hidden="not internalOpen"><div class="surface"><slot></slot></div></span>
+  <style>:host {
   position: fixed;
   inset: auto;
   margin: 0;
@@ -33,8 +33,7 @@
     overlay var(--ui-motion-fast) allow-discrete;
 }
 
-.tooltip__surface {
-  --_tooltip-arrow-size: 0.5rem;
+.surface {
   --_tooltip-line: var(--ui-tooltip-border, var(--ui-border-default));
   position: relative;
   box-sizing: border-box;
@@ -50,7 +49,7 @@
   box-shadow: var(--ui-tooltip-shadow, var(--ui-elevation-tooltip, var(--ui-shadow-md)));
 }
 
-:scope[data-inverse='true'] .tooltip__surface {
+:host-state([inverse]) .surface {
   --_tooltip-line: var(--ui-tooltip-inverse-surface, var(--ui-text-primary));
   background: var(--ui-tooltip-inverse-surface, var(--ui-text-primary));
   color: var(--ui-tooltip-inverse-text, var(--ui-surface-default));
@@ -58,14 +57,14 @@
 
 /* A rotated square shares the surface fill and draws the two outward border edges. Its centre sits on
  * the surface border line, so the fill covers that stretch of border and the outline runs unbroken. */
-.tooltip__surface::after {
+.surface::after {
   content: "";
   position: absolute;
   z-index: 1;
   inset-inline-start: var(--ui-space-3);
-  inset-block-end: calc(var(--ui-tooltip-arrow-size, var(--_tooltip-arrow-size)) / -2 - 0.5px);
-  inline-size: var(--ui-tooltip-arrow-size, var(--_tooltip-arrow-size));
-  block-size: var(--ui-tooltip-arrow-size, var(--_tooltip-arrow-size));
+  inset-block-end: calc(var(--ui-tooltip-arrow-size, 0.5rem) / -2 - 0.5px);
+  inline-size: var(--ui-tooltip-arrow-size, 0.5rem);
+  block-size: var(--ui-tooltip-arrow-size, 0.5rem);
   box-sizing: border-box;
   background: inherit;
   border: 0 solid var(--_tooltip-line);
@@ -75,8 +74,8 @@
   transform: rotate(45deg);
 }
 
-:scope[data-placement^='bottom'] .tooltip__surface::after {
-  inset-block-start: calc(var(--ui-tooltip-arrow-size, var(--_tooltip-arrow-size)) / -2 - 0.5px);
+:is(:host-state([placement="bottom"]), :host-state([placement="bottom-start"]), :host-state([placement="bottom-end"])) .surface::after {
+  inset-block-start: calc(var(--ui-tooltip-arrow-size, 0.5rem) / -2 - 0.5px);
   inset-block-end: auto;
   border-inline-end-width: 0;
   border-block-end-width: 0;
@@ -86,23 +85,23 @@
   border-start-start-radius: 1px;
 }
 
-:scope[data-placement$='end'] .tooltip__surface::after {
+:is(:host-state([placement="top-end"]), :host-state([placement="bottom-end"])) .surface::after {
   inset-inline-start: auto;
   inset-inline-end: var(--ui-space-3);
 }
 
-:scope:popover-open { opacity: 1; transform: translateY(0); }
+:host:popover-open { opacity: 1; transform: translateY(0); }
 
 @starting-style {
-  :scope:popover-open { opacity: 0; transform: translateY(4px); }
+  :host:popover-open { opacity: 0; transform: translateY(4px); }
 }
 
-:scope[hidden] {
-  display: none !important;
+:host[hidden] {
+  display: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :scope { transition: none; }
+  :host { transition: none; }
 }
 </style>
 </template>

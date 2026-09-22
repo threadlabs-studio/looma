@@ -1,4 +1,4 @@
-<template component="ui-switch" controller="./ui-switch.js" status="early" summary="Migrated Looma ui-switch component.">
+<template component="ui-switch" controller="./ui-switch.js">
   <defs>
     <prop name="checked" type="boolean" default="false">Whether the switch is checked initially or when set externally.</prop>
     <prop name="disabled" type="boolean" default="false">disabled token.</prop>
@@ -7,21 +7,22 @@
     <state name="internalChecked" :value="false"></state>
     <event name="change" type="object({ checked: boolean, value: string, trigger: keyboard | pointer | programmatic })"></event>
   </defs>
-  <span :data-disabled="disabled"><label class="control"><input type="checkbox" role="switch" :checked="internalChecked" :required="required" :value="value"></input><span class="label"><slot></slot></span></label></span>
-  <style>:scope { display: inline-block; color: var(--ui-text-primary); }
-
-.control {
+  <label>
+    <input type="checkbox" role="switch" $ref="input" .checked="internalChecked" :disabled="disabled" :required="required" :value="value">
+    <span class="label"><slot></slot></span>
+  </label>
+  <style>:host {
   display: inline-flex;
   align-items: flex-start;
   gap: var(--ui-switch-gap, var(--ui-space-2));
   max-inline-size: 100%;
-  color: inherit;
+  color: var(--ui-text-primary);
   cursor: pointer;
 }
 
 .label { min-inline-size: 0; line-height: var(--ui-line-height-md); }
 
-:scope input[type='checkbox'] {
+input {
   appearance: none;
   -webkit-appearance: none;
   position: relative;
@@ -40,7 +41,7 @@
   margin: 0;
 }
 
-:scope input[type='checkbox']::after {
+input::after {
   content: '';
   position: absolute;
   top: 3px;
@@ -53,30 +54,30 @@
   transition: transform var(--ui-motion-fast) var(--ui-motion-ease);
 }
 
-:scope input[type='checkbox']:checked {
+input:checked {
   background: var(--ui-accent-solid);
   border-color: var(--ui-accent-solid);
 }
 
-:scope input[type='checkbox']:checked::after {
+input:checked::after {
   transform: translateX(1rem);
   background: var(--ui-text-on-accent);
 }
 
-:scope input[type='checkbox']:focus-visible {
+input:focus-visible {
   outline: 2px solid var(--ui-focus-ring, var(--ui-accent-solid));
   outline-offset: 2px;
 }
 
-:scope[data-disabled='true'] .control { color: var(--ui-text-muted); cursor: not-allowed; }
-:scope[data-disabled='true'] input {
+:host-state([disabled]) { color: var(--ui-text-muted); cursor: not-allowed; }
+:host-state([disabled]) input {
   border-color: var(--ui-border-default);
   background: var(--ui-control-surface-disabled, var(--ui-surface-muted));
   cursor: not-allowed;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :scope input[type='checkbox'], :scope input[type='checkbox']::after { transition: none; }
+  input, input::after { transition: none; }
 }
 </style>
 </template>

@@ -1,8 +1,38 @@
-<template component="ui-switcher" status="early" summary="Looma ui-switcher layout primitive.">
+<template component="ui-switcher">
   <defs>
     <prop name="gap" type="xs | s | m | l | xl">gap token.</prop>
     <prop name="threshold" type="xs | sm | md | lg">threshold token.</prop>
     <prop name="align" type="start | center | end | stretch">align token.</prop>
   </defs>
   <div><slot></slot></div>
+  <style>
+:host {
+      --ui-switcher-gap: var(--ui-space-4, 1rem);
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--ui-switcher-gap);
+      min-inline-size: 0;
+      max-inline-size: 100%;
+      margin: 0;
+    }
+
+    :host > :slotted(*) {
+      min-inline-size: 0;
+      flex-grow: 1;
+      /* The large multiplier makes the basis flip as a group at the intrinsic threshold. */
+      flex-basis: calc((var(--ui-switcher-threshold, 30rem) - 100%) * 999);
+    }
+
+    :host-state([gap="xs"]) { --ui-switcher-gap: var(--ui-space-2, 0.5rem); }
+    :host-state([gap="s"]) { --ui-switcher-gap: var(--ui-space-3, 0.75rem); }
+    :host-state([gap="m"]) { --ui-switcher-gap: var(--ui-space-4, 1rem); }
+    :host-state([gap="l"]) { --ui-switcher-gap: var(--ui-space-5, 1.5rem); }
+    :host-state([gap="xl"]) { --ui-switcher-gap: var(--ui-space-6, 2rem); }
+    :host-state([threshold="xs"]) > :slotted(*) { flex-basis: calc((var(--ui-switcher-threshold, 20rem) - 100%) * 999); }
+    :host-state([threshold="md"]) > :slotted(*) { flex-basis: calc((var(--ui-switcher-threshold, 45rem) - 100%) * 999); }
+    :host-state([threshold="lg"]) > :slotted(*) { flex-basis: calc((var(--ui-switcher-threshold, 60rem) - 100%) * 999); }
+    :host-state([align="start"]) { align-items: flex-start; }
+    :host-state([align="center"]) { align-items: center; }
+    :host-state([align="end"]) { align-items: flex-end; }
+  </style>
 </template>

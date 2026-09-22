@@ -1,23 +1,23 @@
-<template component="ui-icon-button" controller="./ui-icon-button.js" status="early" summary="Migrated Looma ui-icon-button component.">
+<template component="ui-icon-button" controller="./ui-icon-button.js">
   <defs>
     <prop name="disabled" type="boolean" default="false">disabled token.</prop>
-    <prop name="label" type="string" default="">label token.</prop>
+    <prop name="label" type="string">Accessible name for the icon.</prop>
     <prop name="size" type="sm | md | lg" default="md">size token.</prop>
     <prop name="variant" type="ghost | outline | solid" default="ghost">variant token.</prop>
     <prop name="anticipatory" type="boolean" default="false">anticipatory token.</prop>
     <prop name="round" type="boolean" default="false">Use a fully circular shape.</prop>
   </defs>
-  <button :disabled="disabled" :data-round="round" type="button" :aria-label="label"><slot></slot></button>
-  <style>:scope {
+  <button :disabled="disabled" type="button" :aria-label="label"><slot></slot></button>
+  <style>:host {
   display: inline-flex;
   color: var(--ui-text-secondary);
 }
 
-:scope[data-anticipatory='true'] {
+:host-state([anticipatory]) {
   position: relative;
 }
 
-:scope[data-anticipatory='true']::before {
+:host-state([anticipatory])::before {
   content: '';
   position: absolute;
   inset: 50% auto auto 50%;
@@ -36,7 +36,7 @@
  * surface and icon. The root is the native button, so hiding it outright would hide the dot
  * too, and slotted icons sit outside this scope; `color: transparent` hides currentColor icons. */
 @media (hover: hover) and (pointer: fine) {
-  :scope[data-anticipatory='true']:not([data-ui-proximity='near'], :hover, :focus-visible, [data-variant='solid']) {
+  :host-state([anticipatory]):not(:host-state([variant="solid"]), [data-ui-proximity='near'], :hover, :focus-visible) {
     border-color: transparent;
     background: transparent;
     box-shadow: none;
@@ -44,11 +44,11 @@
   }
 }
 
-:scope[data-anticipatory='true']:is([data-ui-proximity='near'], :hover, :focus-visible, [data-variant='solid'])::before {
+:host-state([anticipatory]):is(:host-state([variant="solid"]), [data-ui-proximity='near'], :hover, :focus-visible)::before {
   opacity: 0;
 }
 
-:scope {
+:host {
   appearance: none;
   inline-size: var(--ui-icon-button-size, 2rem);
   block-size: var(--ui-icon-button-size, 2rem);
@@ -73,36 +73,36 @@
 }
 
 @media (hover: none), (pointer: coarse) {
-  :scope[data-anticipatory='true']::before {
+  :host-state([anticipatory])::before {
     opacity: 0;
   }
 }
 
-:scope[data-size='sm'] {
+:host-state([size="sm"]) {
   inline-size: var(--ui-icon-button-size-sm, 1.75rem);
   block-size: var(--ui-icon-button-size-sm, 1.75rem);
   min-inline-size: var(--ui-icon-button-size-sm, 1.75rem);
   min-block-size: var(--ui-icon-button-size-sm, 1.75rem);
 }
 
-:scope[data-size='lg'] {
+:host-state([size="lg"]) {
   inline-size: var(--ui-icon-button-size-lg, 2.5rem);
   block-size: var(--ui-icon-button-size-lg, 2.5rem);
   min-inline-size: var(--ui-icon-button-size-lg, 2.5rem);
   min-block-size: var(--ui-icon-button-size-lg, 2.5rem);
 }
 
-:scope[data-round='true'] {
+:host-state([round]) {
   border-radius: var(--ui-radius-round, 999px);
 }
 
-:scope[data-variant='outline'] {
+:host-state([variant="outline"]) {
   border-color: var(--ui-icon-button-border, var(--ui-border-default));
   background: var(--ui-icon-button-outline-bg, var(--ui-surface-default));
   color: var(--ui-icon-button-outline-color, var(--ui-text-primary));
 }
 
-:scope[data-variant='solid'] {
+:host-state([variant="solid"]) {
   background: var(--ui-icon-button-solid-bg, var(--ui-accent-solid));
   color: var(--ui-icon-button-solid-color, var(--ui-text-on-accent));
   box-shadow: var(
@@ -111,44 +111,43 @@
   );
 }
 
-:scope:hover:enabled {
+:host:hover:enabled {
   /* Derived from the text colour so the ghost hover shows on any background. */
   background: var(--ui-icon-button-hover-bg, color-mix(in srgb, currentColor 8%, transparent));
   color: var(--ui-icon-button-hover-color, var(--ui-text-primary));
 }
 
-:scope[data-variant='outline']:hover:enabled {
+:host-state([variant="outline"]):hover:enabled {
   border-color: var(--ui-icon-button-hover-border, var(--ui-border-strong));
 }
 
-:scope[data-variant='solid']:hover:enabled {
+:host-state([variant="solid"]):hover:enabled {
   background: var(--ui-icon-button-solid-hover-bg, var(--ui-accent-hover));
 }
 
-:scope:active:enabled {
+:host:active:enabled {
   transform: scale(var(--ui-icon-button-active-scale, 0.96));
 }
 
-:scope:focus-visible {
+:host:focus-visible {
   outline: none;
   box-shadow: var(--ui-focus-halo);
 }
 
-:scope:disabled,
-:scope[data-disabled='true'] {
+:host:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-:scope {
+:host {
   --_icon-button-icon-default: var(--ui-icon-size-md, 1.25rem);
 }
 
-:scope[data-size='sm'] {
+:host-state([size="sm"]) {
   --_icon-button-icon-default: var(--ui-icon-size-sm, 1rem);
 }
 
-:scope[data-size='lg'] {
+:host-state([size="lg"]) {
   --_icon-button-icon-default: var(--ui-icon-size-lg, 1.5rem);
 }
 

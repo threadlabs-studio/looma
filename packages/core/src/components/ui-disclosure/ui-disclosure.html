@@ -1,4 +1,4 @@
-<template component="ui-disclosure" controller="./ui-disclosure.js" status="early" summary="Migrated Looma ui-disclosure component.">
+<template component="ui-disclosure" controller="./ui-disclosure.js">
   <defs>
     <prop name="summary" type="string" default="Details">summary token.</prop>
     <prop name="open" type="boolean" default="false">open token.</prop>
@@ -8,10 +8,13 @@
     <event name="open" type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"></event>
     <event name="close" type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"></event>
   </defs>
-  <div><button class="disclosure__trigger" type="button" :aria-controls="contentId" :disabled="disabled"><span><template $value="summary"></template></span><span class="disclosure__chevron" aria-hidden="true"></span></button><div class="disclosure__panel"><div class="disclosure__panel-inner"><slot></slot></div></div></div>
+  <div>
+    <button class="trigger" type="button" $ref="trigger" :aria-controls="contentId" :aria-expanded="internalOpen" :disabled="disabled"><span $value="summary"></span><span class="chevron" aria-hidden="true"></span></button>
+    <div class="panel" :id="contentId" :inert="not internalOpen"><div class="panel-inner"><slot></slot></div></div>
+  </div>
   <style>/* An accordion row, not a field: no enclosing box, just a divider, so it never reads as a
  * select or combobox. Stacked disclosures share their dividers. */
-:scope {
+:host {
   display: block;
   inline-size: 100%;
   overflow: clip;
@@ -19,7 +22,7 @@
   color: var(--ui-text-primary);
 }
 
-.disclosure__trigger {
+.trigger {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: var(--ui-space-3);
@@ -38,11 +41,11 @@
   transition: background-color var(--ui-motion-fast) var(--ui-motion-ease);
 }
 
-.disclosure__trigger:hover:not(:disabled) { background: var(--ui-surface-muted); }
-.disclosure__trigger:focus-visible { outline: none; box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--ui-focus-ring) 45%, transparent); }
-.disclosure__trigger:disabled { color: var(--ui-text-muted); cursor: not-allowed; }
+.trigger:hover:not(:disabled) { background: var(--ui-surface-muted); }
+.trigger:focus-visible { outline: none; box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--ui-focus-ring) 45%, transparent); }
+.trigger:disabled { color: var(--ui-text-muted); cursor: not-allowed; }
 
-.disclosure__chevron {
+.chevron {
   inline-size: 0.5rem;
   block-size: 0.5rem;
   border-inline-end: 2px solid currentColor;
@@ -51,27 +54,27 @@
   transition: transform var(--ui-motion-fast) var(--ui-motion-ease);
 }
 
-.disclosure__panel {
+.panel {
   display: grid;
   grid-template-rows: 0fr;
   transition: grid-template-rows var(--ui-motion-fast) var(--ui-motion-ease-out, var(--ui-motion-ease));
 }
 
-.disclosure__panel-inner {
+.panel-inner {
   min-block-size: 0;
   overflow: hidden;
   padding-inline: var(--ui-space-3);
 }
 
-:scope[data-state-open='true'] .disclosure__panel { grid-template-rows: 1fr; }
-:scope[data-state-open='true'] .disclosure__panel-inner { padding-block: 0 var(--ui-space-3); }
-:scope[data-state-open='true'] .disclosure__chevron {
+:host-state([internalOpen]) .panel { grid-template-rows: 1fr; }
+:host-state([internalOpen]) .panel-inner { padding-block: 0 var(--ui-space-3); }
+:host-state([internalOpen]) .chevron {
   transform: rotate(225deg) translate(-1px, -1px);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .disclosure__panel,
-  .disclosure__chevron { transition: none; }
+  .panel,
+  .chevron { transition: none; }
 }
 </style>
 </template>

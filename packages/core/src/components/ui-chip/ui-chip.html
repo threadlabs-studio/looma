@@ -1,10 +1,10 @@
-<template component="ui-chip" status="deprecated" summary="Compatibility alias retained while consumers migrate to Badge.">
+<template component="ui-chip">
   <defs>
     <prop name="appearance" type="tag | pill" default="tag">appearance token.</prop>
     <prop name="size" type="xs | sm" default="xs">size token.</prop>
   </defs>
-  <span :data-appearance="appearance" :data-size="size"><span class="chip__surface"><span class="chip__label"><slot></slot></span></span></span>
-  <style>:scope {
+  <span><span class="chip__surface"><span class="chip__label"><slot></slot></span></span></span>
+  <style>:host {
   --_chip-surface: var(--ui-surface-subtle);
   --_chip-text: var(--ui-text-secondary);
   --_chip-border: var(--ui-border-default);
@@ -20,7 +20,7 @@
   max-width: 100%;
 }
 
-:scope[data-size='sm'] {
+:host-state([size="sm"]) {
   --_chip-font-size: var(--ui-font-size-sm);
 }
 
@@ -52,11 +52,11 @@
   white-space: nowrap;
 }
 
-:scope[data-appearance='pill'] .chip__surface {
+:host-state([appearance="pill"]) .chip__surface {
   border-radius: var(--ui-radius-round);
 }
 
-:scope[data-appearance='tag'] .chip__surface {
+:host-state([appearance="tag"]) .chip__surface {
   border: 0;
   padding-inline-end: calc(var(--ui-chip-padding-inline, var(--_chip-padding-inline)) + var(--ui-chip-notch, var(--_chip-notch)));
   clip-path: polygon(0 0, calc(100% - var(--ui-chip-notch, var(--_chip-notch))) 0, 100% 50%, calc(100% - var(--ui-chip-notch, var(--_chip-notch))) 100%, 0 100%);

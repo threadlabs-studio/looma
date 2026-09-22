@@ -1,18 +1,7 @@
+// Marks an anticipatory button for the enclosing ui-affordance-scope, which reveals it on proximity.
 export default function controller(host) {
-  const element = host.element;
-  const button = element.localName === "button" ? element : element.querySelector("button");
-  const apply = () => {
-    const disabled = Boolean(host.state.disabled);
-    if (host.state.anticipatory) element.setAttribute("data-ui-affordance", "button");
-    else element.removeAttribute("data-ui-affordance");
-    if (button) {
-      button.disabled = disabled;
-      const label = String(host.state.label ?? "");
-      if (label) button.setAttribute("aria-label", label);
-      else button.removeAttribute("aria-label");
-    }
-  };
-  const stop = host.effect(apply);
-  apply();
-  return stop;
+  return host.effect(() => {
+    if (host.state.anticipatory) host.element.setAttribute("data-ui-affordance", "button");
+    else host.element.removeAttribute("data-ui-affordance");
+  });
 }

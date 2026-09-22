@@ -1,38 +1,31 @@
-<link rel="component" href="../ui-menu/ui-menu.html">
-<template component="ui-context-menu" controller="./ui-context-menu.js" status="early" summary="Adds pointer-context and explicit activation paths to an action menu associated by element ID.">
+<template component="ui-context-menu" controller="./ui-context-menu.js">
   <defs>
     <prop name="open" type="boolean" default="false">Whether the context menu is open initially or when set externally.</prop>
     <prop name="for" type="string" default="">ID of the control that opens the menu by click, keyboard activation, or context click.</prop>
     <state name="internalOpen" :value="false"></state>
-    <state name="focusTrigger" :value="'programmatic'"></state>
     <event name="open" type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"></event>
     <event name="close" type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"></event>
     <event name="select" type="object({ value: string, trigger: keyboard | pointer | programmatic })"></event>
   </defs>
-  <span :data-state-open="internalOpen"><div class="menu" :data-state-open="internalOpen"><ui-menu><slot></slot></ui-menu></div></span>
-  <style>:scope {
+  <span><div class="menu" $ref="menu" role="menu" aria-orientation="vertical"><slot></slot></div></span>
+  <style>:host {
   display: contents;
-}
-
-/* The outer .menu owns open state; the nested menu is only its surface. */
-:scope .menu > [data-component-root~="ui-menu"] {
-  display: flex;
-}
-
-:scope[data-focus-trigger='pointer'] :slotted(ui-menu-item:focus) {
-  outline: none;
 }
 
 .menu {
   position: fixed;
   inset: auto;
   margin: 0;
-  padding: 0;
-  border: 0;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: var(--ui-space-1);
+  background: var(--ui-surface-elevated);
+  border: 1px solid var(--ui-border-default);
+  border-radius: var(--ui-radius-3);
+  box-shadow: var(--ui-elevation-overlay, var(--ui-shadow-lg));
   outline: 0;
-  background: transparent;
-  box-shadow: none;
-  overflow: visible;
+  overflow: auto;
   z-index: var(--ui-z-overlay, 1000);
   min-width: 12rem;
   opacity: 0;
@@ -50,7 +43,8 @@
   .menu:popover-open { opacity: 0; transform: translateY(-4px) scale(0.99); }
 }
 
-.menu[hidden] { display: none !important; }
+.menu[hidden],
+.menu[popover]:not(:popover-open) { display: none; }
 
 @media (prefers-reduced-motion: reduce) {
   .menu { transition: none; }

@@ -1,4 +1,4 @@
-<template component="ui-tree-item" controller="./ui-tree-item.js" status="early" summary="Migrated Looma ui-tree-item component.">
+<template component="ui-tree-item" controller="./ui-tree-item.js">
   <defs>
     <prop name="itemId" type="string" default="">itemId token.</prop>
     <prop name="label" type="string" default="">label token.</prop>
@@ -15,19 +15,28 @@
     <state name="internalExpanded" :value="false"></state>
     <state name="structuralLevel" :value="1"></state>
     <state name="tabStop" :value="false"></state>
-    <state name="hasChildren" :value="false"></state>
+    <state name="isContainer" :value="false"></state>
     <event name="expand" bubbles="false" type="object({ id: string, expanded: boolean, trigger: keyboard | pointer | programmatic })"></event>
   </defs>
-  <div role="treeitem" :data-drop-scope="dropScope" :data-accepts="accepts"><div class="row" part="row"><button $if="sortable and not disabled" class="drag-handle" part="drag-handle" type="button"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="5" r="1"></circle><circle cx="9" cy="19" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="5" r="1"></circle><circle cx="15" cy="19" r="1"></circle></svg></button><button class="disclosure" part="disclosure" type="button" :disabled="disabled"><span class="disclosure-icon" aria-hidden="true"></span></button><span class="leading" part="leading"><slot name="leading"></slot></span><span class="label" part="label"></span><span class="actions" part="actions"><slot name="actions"></slot></span><span class="drop-indicator row-drop-indicator" part="drop-indicator" aria-hidden="true"></span></div><div class="children" part="children" role="group"><slot></slot></div><span class="drop-indicator subtree-drop-indicator" part="drop-indicator" aria-hidden="true"></span></div>
-  <style>:scope {
-  --_tree-indent: 16px;
+  <div role="treeitem" :aria-label="label" :aria-level="structuralLevel" :aria-selected="selected" :aria-disabled="disabled" :data-item-id="itemId" :data-drag-type="dragType" :data-drop-scope="dropScope" :data-accepts="accepts" :data-drop-depth="dropDepth" :data-subtree-depth="subtreeDepth">
+    <div class="row" $ref="row">
+      <button $if="sortable and not disabled" class="drag-handle" $ref="dragHandle" type="button" draggable="true" :aria-label="format('Drag %s to reorder', label)"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="5" r="1"></circle><circle cx="9" cy="19" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="5" r="1"></circle><circle cx="15" cy="19" r="1"></circle></svg></button>
+      <button class="disclosure" $ref="disclosure" type="button" :disabled="disabled" :hidden="not isContainer"><span class="disclosure-icon" aria-hidden="true"></span></button>
+      <span class="leading"><slot name="leading"></slot></span>
+      <span class="label" $value="label"></span>
+      <span class="actions"><slot name="actions"></slot></span>
+      <span class="drop-indicator row-drop-indicator" aria-hidden="true"></span>
+    </div>
+    <div class="children" $ref="children" role="group" :hidden="not (isContainer and internalExpanded)"><slot></slot></div>
+    <span class="drop-indicator subtree-drop-indicator" aria-hidden="true"></span>
+  </div>
+  <style>:host {
   --_tree-row-min-height: 32px;
-  --_tree-drop-color: var(--ui-accent-solid);
 
   position: relative;
   display: block;
   min-inline-size: 0;
-  margin-inline-start: calc(var(--ui-tree-item-depth, 0) * var(--ui-tree-indent, var(--_tree-indent)));
+  margin-inline-start: calc(var(--ui-tree-item-depth, 0) * var(--ui-tree-indent, 16px));
 }
 
 .row {
@@ -49,31 +58,31 @@
 }
 
 .row:hover,
-:scope[data-selected='true'] .row,
+:host-state([selected]) .row,
 .row:focus-within {
   color: var(--ui-text-primary);
   background: var(--ui-surface-muted);
 }
 
-:scope[data-disabled='true'] .row {
+:host-state([disabled]) .row {
   opacity: 0.55;
 }
 
-:scope[data-dragging] .row {
+:host[data-dragging] .row {
   opacity: 0.42;
 }
 
-:scope:focus {
+:host:focus {
   outline: none;
 }
 
-:scope:focus-visible .row {
+:host:focus-visible .row {
   box-shadow: 0 0 0 2px var(--ui-focus-ring);
 }
 
-:scope[data-drop-position='inside'] .row {
+:host[data-drop-position='inside'] .row {
   background: var(--ui-accent-subtle);
-  box-shadow: inset 0 0 0 1px var(--ui-tree-drop-color, var(--_tree-drop-color));
+  box-shadow: inset 0 0 0 1px var(--ui-tree-drop-color, var(--ui-accent-solid));
 }
 
 .disclosure,
@@ -124,7 +133,7 @@
   transform: translateY(-20%) rotate(45deg);
 }
 
-:scope[aria-expanded='true'] .disclosure-icon {
+:host[aria-expanded='true'] .disclosure-icon {
   transform: rotate(0deg);
 }
 
@@ -200,7 +209,7 @@
 .row:hover .drag-handle,
 .drag-handle:hover,
 .drag-handle:focus-visible,
-:scope[data-dragging] .drag-handle {
+:host[data-dragging] .drag-handle {
   opacity: 1;
 }
 
@@ -215,7 +224,7 @@
   display: none;
   block-size: 2px;
   border-radius: 999px;
-  background: var(--ui-tree-drop-color, var(--_tree-drop-color));
+  background: var(--ui-tree-drop-color, var(--ui-accent-solid));
   pointer-events: none;
 }
 
@@ -226,7 +235,7 @@
   inset-block-start: 50%;
   inline-size: 7px;
   block-size: 7px;
-  border: 2px solid var(--ui-tree-drop-color, var(--_tree-drop-color));
+  border: 2px solid var(--ui-tree-drop-color, var(--ui-accent-solid));
   border-radius: 999px;
   background: var(--ui-surface-elevated);
   transform: translateY(-50%);
@@ -235,12 +244,12 @@
 .drop-indicator::before { inset-inline-start: -1px; }
 .drop-indicator::after { inset-inline-end: -1px; }
 
-:scope[data-drop-position='before'] .row-drop-indicator {
+:host[data-drop-position='before'] .row-drop-indicator {
   display: block;
   inset-block-start: -1px;
 }
 
-:scope[data-drop-position='after'] .subtree-drop-indicator {
+:host[data-drop-position='after'] .subtree-drop-indicator {
   display: block;
   inset-block-end: -1px;
 }
@@ -249,11 +258,11 @@
   display: none;
 }
 
-html[data-ui-input-modality='touch'] :scope {
+html[data-ui-input-modality='touch'] :host {
   --_tree-row-min-height: 44px;
 }
 
-html[data-ui-input-modality='touch'] :scope .drag-handle {
+html[data-ui-input-modality='touch'] :host .drag-handle {
   display: none;
 }
 

@@ -1,15 +1,12 @@
 function triggerFor(event) {
-  if (event instanceof KeyboardEvent) return "keyboard";
-  if (event instanceof MouseEvent || event instanceof PointerEvent) return "pointer";
-  return "programmatic";
+  return event.detail === 0 ? "keyboard" : "pointer";
 }
 
 /** Owns the display/edit transition so authors only provide value and label. */
 export default function controller(host) {
   const element = host.element;
   const document = element.ownerDocument;
-  const preview = element.querySelector(".editable__preview");
-  const input = element.querySelector(".editable__input");
+  const { preview, input } = host.refs;
 
   let lastExternalEdit = Boolean(host.state.edit);
   let lastExternalValue = String(host.state.value ?? "");
@@ -30,14 +27,8 @@ export default function controller(host) {
       host.state.internalValue = externalValue;
       if (!host.state.internalEdit) host.state.draft = externalValue;
     }
-    const editing = Boolean(host.state.internalEdit);
-    if (preview) preview.disabled = Boolean(host.state.disabled);
-    if (input) {
-      // The inactive input stays in layout (it shares the value's cell) but out of the tab order.
-      input.tabIndex = editing ? 0 : -1;
-      input.disabled = Boolean(host.state.disabled) || !editing;
-      input.setAttribute("aria-label", String(host.state.label || "Edit value"));
-    }
+    // The inactive input stays in layout (it shares the value's cell) but out of the tab order.
+    input.tabIndex = host.state.internalEdit ? 0 : -1;
   };
 
   const setEditing = (next, reason, trigger) => {
@@ -53,11 +44,11 @@ export default function controller(host) {
       // Cancel). After a click elsewhere, focus stays where the user clicked; pulling it back would
       // scroll the page to this editor.
       if (!next) {
-        if (focusWasInside) preview?.focus({ preventScroll: true });
+        if (focusWasInside) preview.focus({ preventScroll: true });
         return;
       }
-      input?.focus({ preventScroll: true });
-      input?.select();
+      input.focus({ preventScroll: true });
+      input.select();
     });
   };
   const commit = (trigger) => {
@@ -77,13 +68,12 @@ export default function controller(host) {
     host.dispatch("input", { value: input.value, trigger: "keyboard" });
   };
   const onClick = (event) => {
-    if (event.target.closest?.(".editable__preview")) {
+    if (preview.contains(event.target)) {
       setEditing(true, "activate", triggerFor(event));
       return;
     }
-    const action = event.target.closest?.("[data-action]")?.dataset.action;
-    if (action === "save") commit(triggerFor(event));
-    else if (action === "cancel") cancel("cancel", triggerFor(event));
+    if (event.target.closest?.(".save")) commit(triggerFor(event));
+    else if (event.target.closest?.(".cancel")) cancel("cancel", triggerFor(event));
   };
   const onKeydown = (event) => {
     if (!host.state.internalEdit) return;
@@ -108,7 +98,7 @@ export default function controller(host) {
   element.addEventListener("input", onInput);
   element.addEventListener("click", onClick);
   element.addEventListener("keydown", onKeydown);
-  input?.addEventListener("blur", onInputBlur);
+  input.addEventListener("blur", onInputBlur);
   document.addEventListener("pointerdown", onDocumentPointerdown, true);
   const stop = host.effect(apply);
   apply();
@@ -117,7 +107,7 @@ export default function controller(host) {
     element.removeEventListener("input", onInput);
     element.removeEventListener("click", onClick);
     element.removeEventListener("keydown", onKeydown);
-    input?.removeEventListener("blur", onInputBlur);
+    input.removeEventListener("blur", onInputBlur);
     document.removeEventListener("pointerdown", onDocumentPointerdown, true);
   };
 }

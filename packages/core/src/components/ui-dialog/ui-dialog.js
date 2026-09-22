@@ -1,5 +1,4 @@
 import { closeOverlay, createIdResolver, openOverlay, requestTopOverlayClose } from "../shared/overlay.js";
-import { readNativeProperty } from "../shared/native-control.js";
 
 function inferredLabel(element, explicit) {
   if (String(explicit ?? "").trim()) return String(explicit).trim();
@@ -20,7 +19,7 @@ export default function controller(host) {
     host.state.internalOpen = false;
     host.dispatch("close", { open: false, reason, trigger: input });
   };
-  const closeButton = dialog?.querySelector(":scope > .dialog__header > .dialog__close");
+  const closeButton = host.refs.close;
   const onCloseClick = (event) => requestClose("action", event.detail === 0 ? "keyboard" : "pointer");
   const onTriggerClick = () => {
     host.state.internalOpen = true;
@@ -55,13 +54,13 @@ export default function controller(host) {
     trigger?.setAttribute("aria-expanded", String(open));
     if (!dialog) return;
     if (open) {
-      if (!readNativeProperty(dialog, "open")) {
+      if (!dialog.open) {
         if (host.state.modal) dialog.showModal();
         else dialog.show();
       }
       openOverlay({ id: overlayId, modal: Boolean(host.state.modal), element, dismissible: Boolean(host.state.dismissible), requestClose });
     } else {
-      if (readNativeProperty(dialog, "open")) dialog.close();
+      if (dialog.open) dialog.close();
       closeOverlay(document, overlayId);
     }
   };

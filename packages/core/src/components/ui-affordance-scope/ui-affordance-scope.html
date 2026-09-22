@@ -1,14 +1,15 @@
-<template component="ui-affordance-scope" controller="./ui-affordance-scope.js" status="early" summary="Migrated Looma ui-affordance-scope component.">
+<template component="ui-affordance-scope" controller="./ui-affordance-scope.js">
   <defs>
-    <prop name="nearRadius" type="number" default="16">nearRadius token.</prop>
+    <prop name="nearRadius" type="number" default="16">How close, in pixels, the pointer must come to reveal an affordance.</prop>
+    <state name="engaged" :value="false"></state>
   </defs>
   <span><slot></slot></span>
-  <style>:scope {
+  <style>:host {
   display: contents;
   --ui-affordance-scope-engaged: 0;
 }
 
-:scope[data-ui-interaction='engaged'] {
+:host-state([engaged]) {
   --ui-affordance-scope-engaged: 1;
 }
 </style>

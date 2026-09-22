@@ -1,7 +1,27 @@
-<template component="ui-grid" status="early" summary="Looma ui-grid layout primitive.">
+<template component="ui-grid">
   <defs>
     <prop name="gap" type="xs | s | m | l | xl">gap token.</prop>
     <prop name="min" type="sm | md | lg">min token.</prop>
   </defs>
   <div><slot></slot></div>
+  <style>
+:host {
+      --ui-grid-gap: var(--ui-space-4, 1rem);
+      --ui-grid-min: 12rem;
+      display: grid;
+      gap: var(--ui-grid-gap);
+      grid-template-columns: repeat(auto-fit, minmax(min(var(--ui-grid-min), 100%), 1fr));
+      min-inline-size: 0;
+      max-inline-size: 100%;
+      margin: 0;
+    }
+
+    :host-state([gap="xs"]) { --ui-grid-gap: var(--ui-space-2, 0.5rem); }
+    :host-state([gap="s"]) { --ui-grid-gap: var(--ui-space-3, 0.75rem); }
+    :host-state([gap="m"]) { --ui-grid-gap: var(--ui-space-4, 1rem); }
+    :host-state([gap="l"]) { --ui-grid-gap: var(--ui-space-5, 1.5rem); }
+    :host-state([gap="xl"]) { --ui-grid-gap: var(--ui-space-6, 2rem); }
+    :host-state([min="md"]) { --ui-grid-min: 16rem; }
+    :host-state([min="lg"]) { --ui-grid-min: 20rem; }
+  </style>
 </template>

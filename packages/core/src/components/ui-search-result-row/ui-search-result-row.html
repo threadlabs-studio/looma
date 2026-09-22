@@ -1,18 +1,19 @@
-<template component="ui-search-result-row" controller="./ui-search-result-row.js" status="early" summary="Migrated Looma ui-search-result-row component.">
+<template component="ui-search-result-row">
   <defs>
     <prop name="disabled" type="boolean" default="false">disabled token.</prop>
     <prop name="selected" type="boolean" default="false">selected token.</prop>
-    <state name="hasLeading" :value="false"></state>
-    <state name="hasMeta" :value="false"></state>
-    <state name="hasExcerpt" :value="false"></state>
-    <state name="hasTrailing" :value="false"></state>
   </defs>
-  <button class="search-result-row" type="button" :disabled="disabled" :data-selected="selected" part="button"><span class="search-result-row__leading" part="leading" :hidden="not hasLeading"><slot name="leading"></slot></span><span class="search-result-row__content" part="content"><span class="search-result-row__title" part="title"><slot name="title"></slot></span><span class="search-result-row__meta" part="meta" :hidden="not hasMeta"><slot name="meta"></slot></span><span class="search-result-row__excerpt" part="excerpt" :hidden="not hasExcerpt"><slot name="excerpt"></slot></span></span><span class="search-result-row__trailing" part="trailing" :hidden="not hasTrailing"><slot name="trailing"></slot></span></button>
-  <style>:scope {
-  display: block;
-}
-
-:scope {
+  <button type="button" :disabled="disabled">
+    <span class="leading"><slot name="leading"></slot></span>
+    <span class="content">
+      <span class="title"><slot name="title"></slot></span>
+      <span class="meta"><slot name="meta"></slot></span>
+      <span class="excerpt"><slot name="excerpt"></slot></span>
+    </span>
+    <span class="trailing"><slot name="trailing"></slot></span>
+  </button>
+  <style>
+:host {
   appearance: none;
   inline-size: 100%;
   min-block-size: var(--ui-search-result-row-min-height, 56px);
@@ -31,54 +32,57 @@
   transition: background-color var(--ui-motion-fast, 160ms) var(--ui-motion-ease, ease);
 }
 
-:scope:last-child {
+:host:last-child {
   border-block-end: none;
 }
 
-:scope:hover:enabled {
+:host:hover:enabled {
   background: var(--ui-search-result-row-hover-bg, color-mix(in srgb, var(--ui-surface, #ffffff) 85%, black 3%));
 }
 
-:scope[data-selected='true'] {
+:host-state([selected]) {
   background: var(
     --ui-search-result-row-selected-bg,
     var(--ui-search-result-row-hover-bg, color-mix(in srgb, var(--ui-surface, #ffffff) 85%, black 3%))
   );
 }
 
-:scope:focus-visible {
+:host:focus-visible {
   outline: 2px solid var(--ui-focus-ring, #2563eb);
   outline-offset: -2px;
 }
 
-:scope:disabled {
+:host:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-.search-result-row__leading,
-.search-result-row__trailing {
+.leading,
+.trailing {
   display: inline-flex;
   align-items: flex-start;
   flex-shrink: 0;
 }
 
-.search-result-row__content {
+.content {
   min-inline-size: 0;
   flex: 1;
   display: flex;
   flex-direction: column;
 }
 
-.search-result-row__title,
-.search-result-row__meta,
-.search-result-row__excerpt {
+.title,
+.meta,
+.excerpt {
   display: block;
   min-inline-size: 0;
 }
 
-:scope[hidden],
-[hidden] {
+/* An unused region takes no space. */
+.leading:empty,
+.meta:empty,
+.excerpt:empty,
+.trailing:empty {
   display: none;
 }
 
@@ -88,5 +92,5 @@
   display: block;
   margin: 0;
 }
-</style>
+  </style>
 </template>

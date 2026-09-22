@@ -1,4 +1,4 @@
-<template component="ui-editor-table-overlay" status="early" summary="Projects editor-measured table geometry into insertion, selection, and cell-action controls without owning document mutations." controller="./ui-editor-table-overlay.js">
+<template component="ui-editor-table-overlay" controller="./ui-editor-table-overlay.js">
   <defs>
     <prop name="open" type="boolean" default="false">Shows the controls after the editor has supplied current geometry.</prop>
     <prop name="geometry" type="object({ rowBoundaries: list(number), columnBoundaries: list(number), activeCell: object({ left: number, top: number, width: number, height: number, rowIndex: integer, columnIndex: integer }) | null, hoveredCell?: object({ left: number, top: number, width: number, height: number, rowIndex: integer, columnIndex: integer }) | null }) | null">The authoritative editor-measured table boundaries and active or hovered cell rectangles.</prop>

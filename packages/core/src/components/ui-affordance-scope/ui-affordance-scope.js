@@ -14,7 +14,7 @@ export default function controller(host) {
   let nearRadius = Number(host.state.nearRadius ?? 16);
   const clear = () => {
     for (const anchor of anchors) anchor.element.removeAttribute("data-ui-proximity");
-    element.removeAttribute("data-ui-interaction");
+    host.state.engaged = false;
   };
   const measure = () => {
     anchors = Array.from(element.querySelectorAll("[data-ui-affordance]"))
@@ -36,8 +36,7 @@ export default function controller(host) {
       if (near) anchor.element.setAttribute("data-ui-proximity", "near");
       engaged ||= near;
     }
-    if (engaged) element.setAttribute("data-ui-interaction", "engaged");
-    else element.removeAttribute("data-ui-interaction");
+    host.state.engaged = engaged;
   };
   const schedule = () => {
     if (frame === null) frame = owner.requestAnimationFrame(update);

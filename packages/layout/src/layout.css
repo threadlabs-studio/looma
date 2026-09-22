@@ -98,7 +98,7 @@
   ui-grid[min="sm"] { --ui-grid-min: 12rem; }
   ui-grid[min="md"] { --ui-grid-min: 16rem; }
   ui-grid[min="lg"] { --ui-grid-min: 20rem; }
-
+/* 
   ui-container {
     --ui-container-measure: 65ch;
     --ui-container-gutters: var(--ui-space-4, 1rem);
@@ -113,7 +113,7 @@
   ui-container[measure="wide"] { --ui-container-measure: 80ch; }
   ui-container[gutters="s"] { --ui-container-gutters: var(--ui-space-3, 0.75rem); }
   ui-container[gutters="m"] { --ui-container-gutters: var(--ui-space-4, 1rem); }
-  ui-container[gutters="l"] { --ui-container-gutters: var(--ui-space-5, 1.5rem); }
+  ui-container[gutters="l"] { --ui-container-gutters: var(--ui-space-5, 1.5rem); } */
 
   ui-switcher {
     --ui-switcher-gap: var(--ui-space-4, 1rem);

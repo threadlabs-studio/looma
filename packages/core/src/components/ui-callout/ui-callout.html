@@ -1,36 +1,34 @@
-<template component="ui-callout" controller="./ui-callout.js" status="early" summary="Migrated Looma ui-callout component.">
+<template component="ui-callout">
   <defs>
     <prop name="tone" type="info | note | warning | success | danger" default="info">Semantic message tone.</prop>
   </defs>
-  <div role="note" :data-tone="tone"><div class="callout__surface"><span class="icon" aria-hidden="true"></span><div class="content"><slot></slot></div></div></div>
-  <style>:scope {
+  <div role="note">
+    <span class="icon" aria-hidden="true">
+      <svg $if="tone = 'info'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+      <svg $if="tone = 'note'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8.5L13.5 2Z"></path><path d="M13 2v7h7"></path><path d="m9.5 17.5 4-4 2 2-4 4H9.5v-2Z"></path></svg>
+      <svg $if="tone = 'warning'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+      <svg $if="tone = 'success'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg>
+      <svg $if="tone = 'danger'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m15 9-6 6"></path><path d="m9 9 6 6"></path></svg>
+    </span>
+    <div class="content"><slot></slot></div>
+  </div>
+  <style>
+:host {
   --_callout-surface: var(--ui-info-soft);
-  --_callout-text: var(--ui-text-primary);
   --_callout-border: var(--ui-info-solid);
   --_callout-icon: var(--ui-info-solid);
-  --_callout-padding-block: var(--ui-space-2);
-  --_callout-padding-inline: var(--ui-space-3);
-  --_callout-icon-column: 1.125rem;
-  --_callout-gap: calc(var(--ui-space-2) * 0.75);
-  --_callout-icon-size: 1.125rem;
-  --_callout-border-width: 1px;
-  --_callout-leading-border-width: 4px;
 
-  display: block;
-  max-width: 100%;
-}
-
-.callout__surface {
   display: grid;
-  grid-template-columns: var(--ui-callout-icon-column, var(--_callout-icon-column)) minmax(0, 1fr);
-  gap: var(--ui-callout-gap, var(--_callout-gap));
+  grid-template-columns: var(--ui-callout-icon-column, 1.125rem) minmax(0, 1fr);
+  gap: var(--ui-callout-gap, calc(var(--ui-space-2) * 0.75));
   align-items: start;
-  padding: var(--ui-callout-padding-block, var(--_callout-padding-block)) var(--ui-callout-padding-inline, var(--_callout-padding-inline));
-  border: var(--ui-callout-border-width, var(--_callout-border-width)) solid color-mix(in srgb, var(--ui-callout-border, var(--_callout-border)) 35%, transparent);
-  border-inline-start: var(--ui-callout-leading-border-width, var(--_callout-leading-border-width)) solid var(--ui-callout-border, var(--_callout-border));
+  max-width: 100%;
+  padding: var(--ui-callout-padding-block, var(--ui-space-2)) var(--ui-callout-padding-inline, var(--ui-space-3));
+  border: var(--ui-callout-border-width, 1px) solid color-mix(in srgb, var(--ui-callout-border, var(--_callout-border)) 35%, transparent);
+  border-inline-start: var(--ui-callout-leading-border-width, 4px) solid var(--ui-callout-border, var(--_callout-border));
   border-radius: var(--ui-radius-2);
   background: var(--ui-callout-surface, var(--_callout-surface));
-  color: var(--ui-callout-text, var(--_callout-text));
+  color: var(--ui-callout-text, var(--ui-text-primary));
   font-family: var(--ui-font-family-sans);
   font-size: var(--ui-font-size-sm);
   font-weight: var(--ui-font-normal);
@@ -41,42 +39,42 @@
 .icon {
   display: grid;
   place-items: center;
-  inline-size: var(--ui-callout-icon-column, var(--_callout-icon-column));
+  inline-size: var(--ui-callout-icon-column, 1.125rem);
   block-size: 1lh;
   color: var(--ui-callout-icon, var(--_callout-icon));
 }
 
 .icon svg {
-  inline-size: var(--ui-callout-icon-size, var(--_callout-icon-size));
-  block-size: var(--ui-callout-icon-size, var(--_callout-icon-size));
+  inline-size: var(--ui-callout-icon-size, 1.125rem);
+  block-size: var(--ui-callout-icon-size, 1.125rem);
 }
 
 .content {
   min-inline-size: 0;
 }
 
-:scope[data-tone='note'] {
+:host-state([tone="note"]) {
   --_callout-surface: var(--ui-surface-muted);
   --_callout-border: var(--ui-border-strong);
   --_callout-icon: var(--ui-text-secondary);
 }
 
-:scope[data-tone='warning'] {
+:host-state([tone="warning"]) {
   --_callout-surface: var(--ui-warning-soft);
   --_callout-border: var(--ui-warning-solid);
   --_callout-icon: var(--ui-warning-solid);
 }
 
-:scope[data-tone='success'] {
+:host-state([tone="success"]) {
   --_callout-surface: var(--ui-success-soft);
   --_callout-border: var(--ui-success-solid);
   --_callout-icon: var(--ui-success-solid);
 }
 
-:scope[data-tone='danger'] {
+:host-state([tone="danger"]) {
   --_callout-surface: var(--ui-danger-soft);
   --_callout-border: var(--ui-danger-solid);
   --_callout-icon: var(--ui-danger-solid);
 }
-</style>
+  </style>
 </template>

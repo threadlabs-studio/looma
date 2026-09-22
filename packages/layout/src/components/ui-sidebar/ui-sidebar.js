@@ -14,7 +14,6 @@ export default function controller(host) {
   const element = host.element;
   const document = element.ownerDocument;
   const view = document.defaultView;
-  let resizeHandle;
   let pointerAbort;
   let media;
   let lastCollapsed = Boolean(host.state.collapsed);
@@ -32,9 +31,9 @@ export default function controller(host) {
     const width = Math.round(Math.max(min, Math.min(max, value)));
     const previous = Number.parseFloat(element.style.getPropertyValue("--_sidebar-width"));
     element.style.setProperty("--_sidebar-width", `${width}px`);
-    resizeHandle?.setAttribute("aria-valuemin", String(min));
-    resizeHandle?.setAttribute("aria-valuemax", String(max));
-    resizeHandle?.setAttribute("aria-valuenow", String(width));
+    host.refs.resizer.setAttribute("aria-valuemin", String(min));
+    host.refs.resizer.setAttribute("aria-valuemax", String(max));
+    host.refs.resizer.setAttribute("aria-valuenow", String(width));
     if (previous !== width) host.dispatch("resize", { width, trigger });
   };
 
@@ -69,39 +68,22 @@ export default function controller(host) {
     view.addEventListener("pointerup", finish, { once: true, signal });
     view.addEventListener("pointercancel", finish, { once: true, signal });
   };
-  const removeHandle = () => {
+  // The handle is in the template, shown only while the panel is docked, open, and resizable.
+  const handle = host.refs.resizer;
+  const endPointer = () => {
     pointerAbort?.abort();
     pointerAbort = undefined;
-    resizeHandle?.remove();
-    resizeHandle = undefined;
   };
-  // The handle exists only while the panel is docked, open, and resizable.
   const syncHandle = () => {
-    if (!host.state.resizable || host.state.drawer || host.state.internalCollapsed) { removeHandle(); return; }
-    if (!resizeHandle) {
-      resizeHandle = document.createElement("div");
-      resizeHandle.setAttribute("data-ui-sidebar-resizer", "");
-      resizeHandle.setAttribute("data-ui-affordance", "resize");
-      resizeHandle.setAttribute("role", "separator");
-      resizeHandle.setAttribute("aria-orientation", "vertical");
-      resizeHandle.setAttribute("tabindex", "0");
-      const guide = document.createElement("span");
-      guide.setAttribute("data-ui-guide", "");
-      guide.setAttribute("aria-hidden", "true");
-      resizeHandle.append(guide);
-      resizeHandle.addEventListener("keydown", onKeydown);
-      resizeHandle.addEventListener("pointerdown", onPointerdown);
-      resizeHandle.addEventListener("dblclick", () => {
-        element.style.removeProperty("--_sidebar-width");
-        setWidth(currentWidth(), "pointer");
-      });
-      element.append(resizeHandle);
-    }
-    resizeHandle.setAttribute("aria-label", String(host.state.resizeLabel || "Resize sidebar"));
+    if (!host.state.resizable || host.state.drawer || host.state.internalCollapsed) { endPointer(); return; }
     const { min, max } = bounds();
-    resizeHandle.setAttribute("aria-valuemin", String(min));
-    resizeHandle.setAttribute("aria-valuemax", String(max));
-    resizeHandle.setAttribute("aria-valuenow", String(Math.round(currentWidth())));
+    handle.setAttribute("aria-valuemin", String(min));
+    handle.setAttribute("aria-valuemax", String(max));
+    handle.setAttribute("aria-valuenow", String(Math.round(currentWidth())));
+  };
+  const onDoubleClick = () => {
+    element.style.removeProperty("--_sidebar-width");
+    setWidth(currentWidth(), "pointer");
   };
 
   // Below the breakpoint the panel is a popover drawer: top layer, backdrop, Escape and light dismiss.
@@ -168,6 +150,9 @@ export default function controller(host) {
     syncHandle();
   };
 
+  handle.addEventListener("keydown", onKeydown);
+  handle.addEventListener("pointerdown", onPointerdown);
+  handle.addEventListener("dblclick", onDoubleClick);
   element.addEventListener("command", onCommand);
   element.addEventListener("toggle", onPopoverToggle);
   if (!invokerCommands) document.addEventListener("click", onDocumentClick);
@@ -181,7 +166,10 @@ export default function controller(host) {
   apply();
   return () => {
     stop();
-    removeHandle();
+    endPointer();
+    handle.removeEventListener("keydown", onKeydown);
+    handle.removeEventListener("pointerdown", onPointerdown);
+    handle.removeEventListener("dblclick", onDoubleClick);
     media?.removeEventListener("change", applyMode);
     element.removeEventListener("command", onCommand);
     element.removeEventListener("toggle", onPopoverToggle);

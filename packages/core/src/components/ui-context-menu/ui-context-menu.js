@@ -7,7 +7,7 @@ function disabled(item) {
 export default function controller(host) {
   const element = host.element;
   const document = element.ownerDocument;
-  const menuSurface = element.querySelector(".menu");
+  const menuSurface = host.refs.menu;
   const overlayId = `ui-context-menu-${Math.random().toString(36).slice(2, 11)}`;
   let trigger = null;
   let contextTarget = null;
@@ -17,7 +17,7 @@ export default function controller(host) {
   let lastOpenProp = Boolean(host.state.open);
   host.state.internalOpen = lastOpenProp;
 
-  const items = () => Array.from(element.querySelectorAll('[data-component-root~="ui-menu-item"]')).filter((item) => !disabled(item));
+  const items = () => Array.from(element.querySelectorAll('[data-component~="ui-menu-item"]')).filter((item) => !disabled(item));
   const focusFirst = () => requestAnimationFrame(() => items()[0]?.focus());
   const detach = () => {
     trigger?.removeEventListener("click", onTriggerClick);
@@ -37,11 +37,6 @@ export default function controller(host) {
     contextTarget?.addEventListener("contextmenu", onContextMenu);
     surface?.setAnchor(trigger);
   };
-  const syncNested = (open) => {
-    const nested = menuSurface?.querySelector('[data-component-root~="ui-menu"]');
-    // The outer surface is already in the top layer; the nested menu renders inside it.
-    nested?.setAttribute("aria-hidden", String(!open));
-  };
   // Light dismiss leaves focus where the user pointed instead of pulling it back to the trigger.
   const close = (reason, input, returnFocus = reason !== "light-dismiss") => {
     if (!host.state.internalOpen) return;
@@ -60,13 +55,10 @@ export default function controller(host) {
       host.state.internalOpen = externalOpen;
     }
     const open = Boolean(host.state.internalOpen);
-    if (open) element.setAttribute("data-focus-trigger", String(host.state.focusTrigger ?? "programmatic"));
-    else element.removeAttribute("data-focus-trigger");
     if (trigger) {
       trigger.setAttribute("aria-haspopup", "menu");
       trigger.setAttribute("aria-expanded", String(open));
     }
-    syncNested(open);
     if (open) {
       if (point) surface?.showAtPoint(point);
       else surface?.show();
@@ -79,7 +71,6 @@ export default function controller(host) {
   const openFromTrigger = (input) => {
     if (!trigger) return;
     point = null;
-    host.state.focusTrigger = input;
     host.state.internalOpen = true;
     host.dispatch("open", { open: true, reason: "action", trigger: input });
     focusFirst();
@@ -98,7 +89,6 @@ export default function controller(host) {
   function onContextMenu(event) {
     event.preventDefault();
     point = { x: event.clientX, y: event.clientY };
-    host.state.focusTrigger = "pointer";
     surface?.showAtPoint(point);
     host.state.internalOpen = true;
     host.dispatch("open", { open: true, reason: "action", trigger: "pointer" });
@@ -106,20 +96,28 @@ export default function controller(host) {
   }
   const onKeydown = (event) => {
     if (!host.state.internalOpen) return;
-    host.state.focusTrigger = "keyboard";
     if (event.key === "Escape") {
       event.preventDefault();
       requestTopOverlayClose(document, "escape", "keyboard");
     } else if (["Enter", " "].includes(event.key)) {
-      const item = event.target.closest?.('[data-component-root~="ui-menu-item"]');
+      const item = event.target.closest?.('[data-component~="ui-menu-item"]');
       if (!item || disabled(item)) return;
       event.preventDefault();
       host.dispatch("select", { value: item.getAttribute("data-value") ?? item.getAttribute("value") ?? "", trigger: "keyboard" });
       close("action", "keyboard");
+    } else if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      const enabled = items();
+      if (!enabled.length) return;
+      event.preventDefault();
+      const index = enabled.indexOf(event.target.closest?.('[data-component~="ui-menu-item"]'));
+      const next = event.key === "ArrowDown"
+        ? (index < 0 ? 0 : Math.min(index + 1, enabled.length - 1))
+        : (index <= 0 ? enabled.length - 1 : index - 1);
+      enabled[next].focus();
     }
   };
   const onClick = (event) => {
-    const item = event.target.closest?.('[data-component-root~="ui-menu-item"]');
+    const item = event.target.closest?.('[data-component~="ui-menu-item"]');
     if (!item || disabled(item)) return;
     host.dispatch("select", { value: item.getAttribute("data-value") ?? item.getAttribute("value") ?? "", trigger: "pointer" });
     close("action", "pointer");
@@ -128,10 +126,7 @@ export default function controller(host) {
   if (menuSurface) surface = createAnchoredSurface(menuSurface, { anchor: trigger, placement: "bottom-start" });
   element.addEventListener("keydown", onKeydown);
   element.addEventListener("click", onClick);
-  const observer = new MutationObserver(() => {
-    resolveTargets();
-    syncNested(Boolean(host.state.internalOpen));
-  });
+  const observer = new MutationObserver(resolveTargets);
   observer.observe(element, { childList: true, subtree: true });
   const stop = host.effect(apply);
   apply();

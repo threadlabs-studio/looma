@@ -1,25 +1,24 @@
-<template component="ui-container" status="early" summary="Looma ui-container layout primitive.">
+<template component="ui-container">
   <defs>
     <prop name="measure" type="narrow | wide">measure token.</prop>
     <prop name="gutters" type="s | m | l">gutters token.</prop>
   </defs>
   <div><slot></slot></div>
-</template>
-<style>
-  /** Can we style like this? */
-  :host {
-    --ui-container-measure: 65ch;
-    --ui-container-gutters: var(--ui-space-4, 1rem);
-    display: block;
-    inline-size: 100%;
-    max-inline-size: var(--ui-container-measure);
-    margin-inline: auto;
-    padding-inline: var(--ui-container-gutters);
-  }
+  <style>
+    :host {
+      --ui-container-measure: 65ch;
+      --ui-container-gutters: var(--ui-space-4, 1rem);
+      display: block;
+      inline-size: 100%;
+      max-inline-size: var(--ui-container-measure);
+      margin-inline: auto;
+      padding-inline: var(--ui-container-gutters);
+    }
 
-  :host([measure="narrow"]) { --ui-container-measure: 45ch; }
-  :host([measure="wide"]) { --ui-container-measure: 80ch; }
-  :host([gutters="s"]) { --ui-container-gutters: var(--ui-space-3, 0.75rem); }
-  :host([gutters="m"]) { --ui-container-gutters: var(--ui-space-4, 1rem); }
-  :host([gutters="l"]) { --ui-container-gutters: var(--ui-space-5, 1.5rem); }
-</style>
+    :host-state([measure="narrow"]) { --ui-container-measure: 45ch; }
+    :host-state([measure="wide"]) { --ui-container-measure: 80ch; }
+    :host-state([gutters="s"]) { --ui-container-gutters: var(--ui-space-3, 0.75rem); }
+    :host-state([gutters="m"]) { --ui-container-gutters: var(--ui-space-4, 1rem); }
+    :host-state([gutters="l"]) { --ui-container-gutters: var(--ui-space-5, 1.5rem); }
+  </style>
+</template>
