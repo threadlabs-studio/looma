@@ -1,6 +1,6 @@
 /** Public data and event contracts for the declarative slash-command menu. */
 
-import type { LoomaIconName } from "@threadlabs/looma-core";
+import type { LoomaIconName } from "./icons";
 
 /**
  * Presentation projection of a slash command.

@@ -3,7 +3,7 @@ import Suggestion, {
   type SuggestionKeyDownProps,
   type SuggestionProps,
 } from "@tiptap/suggestion";
-import type { LoomaIconName } from "@threadlabs/looma-core";
+import type { LoomaIconName } from "../icons";
 import type { LoomaCalloutTone } from "./callout";
 import { insertTableAtRange } from "./table-commands";
 

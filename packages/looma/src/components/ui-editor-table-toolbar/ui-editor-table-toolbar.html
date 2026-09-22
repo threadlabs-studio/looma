@@ -11,7 +11,7 @@
     <state name="sections" :value="[]"></state>
     <state name="hasOverflow" :value="false"></state>
     <state name="overflowOpen" :value="false"></state>
-    <event name="action" type="object({ action: string })"></event>
+    <event name="action" type="object({ action: align-left | align-center | align-right | background-none | background-gray | background-yellow | background-blue | background-green | background-red | add-row-before | add-row-after | add-column-before | add-column-after | clear-cells | merge-cells | split-cell | delete-row | delete-column | delete-table })"></event>
   </defs>
   <div role="toolbar" aria-label="Table actions" :hidden="not open">
     <div $if="alignments" class="group" role="group" aria-label="Cell alignment">

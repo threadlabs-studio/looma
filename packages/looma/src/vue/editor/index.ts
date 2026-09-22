@@ -1,8 +1,6 @@
-// The Vue editor entry is the complete Looma editor integration: it registers
-// editor UI, exports the framework-neutral Tiptap helpers, and adds Vue wrappers.
-import "@threadlabs/looma-editor";
-
-export * from "@threadlabs/looma-editor";
+// The Vue editor: LoomaEditor, the editor components, and the framework-neutral editor contracts
+// and Tiptap helpers.
+export * from "@threadlabs/looma/editor";
 export * from "./primitives";
 export {
   LoomaEditor,
