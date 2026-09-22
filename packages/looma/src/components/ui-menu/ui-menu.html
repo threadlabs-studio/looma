@@ -6,76 +6,82 @@
     <state name="internalOpen" :value="false"></state>
     <event name="select" type="object({ value: string, trigger: keyboard | pointer | programmatic })"></event>
     <event name="open" type="object({ open: boolean, reason: action | programmatic, trigger: keyboard | pointer | programmatic })"></event>
-    <event name="close" type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"></event>
+    <event
+      name="close"
+      type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"
+    ></event>
   </defs>
   <div role="menu" aria-orientation="vertical"><div class="surface"><slot></slot></div></div>
-  <style>:host {
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-  inline-size: max-content;
-  min-inline-size: min(12rem, calc(100vw - (var(--ui-menu-viewport-gap, var(--ui-space-2, 0.5rem)) * 2)));
-  max-inline-size: calc(100vw - (var(--ui-menu-viewport-gap, var(--ui-space-2, 0.5rem)) * 2));
-  padding: 0;
-  border: 0;
-  outline: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-  overflow: visible;
-}
+  <style>
+    :host {
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      inline-size: max-content;
+      min-inline-size: min(12rem, calc(100vw - var(--ui-menu-viewport-gap, var(--ui-space-2, 0.5rem)) * 2));
+      max-inline-size: calc(100vw - var(--ui-menu-viewport-gap, var(--ui-space-2, 0.5rem)) * 2);
+      padding: 0;
+      border: 0;
+      outline: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+      overflow: visible;
+    }
 
-.surface {
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-  max-inline-size: inherit;
-  padding: var(--ui-space-1);
-  background: var(--ui-surface-elevated);
-  border: 1px solid var(--ui-border-default);
-  border-radius: var(--ui-radius-3);
-  box-shadow: var(--ui-elevation-overlay, var(--ui-shadow-lg));
-  max-block-size: inherit;
-  overflow: auto;
-}
+    .surface {
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      max-inline-size: inherit;
+      padding: var(--ui-space-1);
+      background: var(--ui-surface-elevated);
+      border: 1px solid var(--ui-border-default);
+      border-radius: var(--ui-radius-3);
+      box-shadow: var(--ui-elevation-overlay, var(--ui-shadow-lg));
+      max-block-size: inherit;
+      overflow: auto;
+    }
 
-:host:not(:host-state([internalOpen])) {
-  display: none;
-}
+    :host:not(:host-state([internalOpen])) {
+      display: none;
+    }
 
-:host[popover] {
-  position: fixed;
-  inset: auto;
-  margin: 0;
-  overflow: visible;
-  max-block-size: calc(100dvh - (var(--ui-menu-viewport-gap, var(--ui-space-2, 0.5rem)) * 2));
-  opacity: 0;
-  transform: translateY(-4px) scale(0.99);
-  transition:
-    opacity var(--ui-motion-fast) var(--ui-motion-ease),
-    transform var(--ui-motion-fast) var(--ui-motion-ease),
-    display var(--ui-motion-fast) allow-discrete,
-    overlay var(--ui-motion-fast) allow-discrete;
-}
+    :host[popover] {
+      position: fixed;
+      inset: auto;
+      margin: 0;
+      overflow: visible;
+      max-block-size: calc(100dvh - var(--ui-menu-viewport-gap, var(--ui-space-2, 0.5rem)) * 2);
+      opacity: 0;
+      transform: translateY(-4px) scale(0.99);
+      transition:
+        opacity var(--ui-motion-fast) var(--ui-motion-ease),
+        transform var(--ui-motion-fast) var(--ui-motion-ease),
+        display var(--ui-motion-fast) allow-discrete,
+        overlay var(--ui-motion-fast) allow-discrete;
+    }
 
-:host[popover]:popover-open {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-}
+    :host[popover]:popover-open {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
 
-@starting-style {
-  :host[popover]:popover-open {
-    opacity: 0;
-    transform: translateY(-4px) scale(0.99);
-  }
-}
+    @starting-style {
+      :host[popover]:popover-open {
+        opacity: 0;
+        transform: translateY(-4px) scale(0.99);
+      }
+    }
 
-:host[hidden] {
-  display: none;
-}
+    :host[hidden] {
+      display: none;
+    }
 
-@media (prefers-reduced-motion: reduce) {
-  :host[popover] { transition: none; }
-}
-</style>
+    @media (prefers-reduced-motion: reduce) {
+      :host[popover] {
+        transition: none;
+      }
+    }
+  </style>
 </template>

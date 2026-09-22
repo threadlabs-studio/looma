@@ -2,346 +2,421 @@
 <template component="ui-editor-table-overlay" controller="./ui-editor-table-overlay.js">
   <defs>
     <prop name="open" type="boolean" default="false">Shows the controls after the editor has supplied current geometry.</prop>
-    <prop name="geometry" type="object({ rowBoundaries: list(number), columnBoundaries: list(number), activeCell: object({ left: number, top: number, width: number, height: number, rowIndex: integer, columnIndex: integer }) | null, hoveredCell?: object({ left: number, top: number, width: number, height: number, rowIndex: integer, columnIndex: integer }) | null }) | null">The authoritative editor-measured table boundaries and active or hovered cell rectangles.</prop>
+    <prop
+      name="geometry"
+      type="object({ rowBoundaries: list(number), columnBoundaries: list(number), activeCell: object({ left: number, top: number, width: number, height: number, rowIndex: integer, columnIndex: integer }) | null, hoveredCell?: object({ left: number, top: number, width: number, height: number, rowIndex: integer, columnIndex: integer }) | null }) | null"
+    >The authoritative editor-measured table boundaries and active or hovered cell rectangles.</prop>
     <state name="rows" :value="[]"></state>
     <state name="cols" :value="[]"></state>
     <state name="hovered" :value="null"></state>
     <state name="active" :value="null"></state>
     <state name="activeKey" :value="''"></state>
-    <event name="action" type="object({ action: add-row-before | add-row-after | add-column-before | add-column-after, boundaryIndex: integer }) | object({ action: select-row | select-column, rowIndex: integer, columnIndex: integer }) | object({ action: open-cell-menu, rowIndex: integer, columnIndex: integer, anchor: object({ left: number, top: number, right: number, bottom: number }) })"></event>
+    <event
+      name="action"
+      type="object({ action: add-row-before | add-row-after | add-column-before | add-column-after, boundaryIndex: integer }) | object({ action: select-row | select-column, rowIndex: integer, columnIndex: integer }) | object({ action: open-cell-menu, rowIndex: integer, columnIndex: integer, anchor: object({ left: number, top: number, right: number, bottom: number }) })"
+    ></event>
   </defs>
   <div aria-label="Table controls" :hidden="not open">
     <div class="rows">
-      <div $each="control of rows" $key="control.key" class="control row" class:active="control.key = activeKey" style:top="control.offset" :data-control-key="control.key">
+      <div
+        $each="control of rows"
+        $key="control.key"
+        class="control row"
+        class:active="control.key = activeKey"
+        style:top="control.offset"
+        :data-control-key="control.key"
+      >
         <span class="line" aria-hidden="true"></span>
         <span class="guide" data-ui-guide aria-hidden="true"></span>
-        <button type="button" class="handle" :data-ui-affordance="control.affordance" :data-action="control.action" :data-boundary-index="control.index" :aria-label="control.label"><ui-icon name="plus"></ui-icon><span class="tooltip" role="tooltip" $value="control.label"></span></button>
+        <button
+          type="button"
+          class="handle"
+          :data-ui-affordance="control.affordance"
+          :data-action="control.action"
+          :data-boundary-index="control.index"
+          :aria-label="control.label"
+        >
+          <ui-icon name="plus"></ui-icon>
+          <span class="tooltip" role="tooltip" $value="control.label"></span>
+        </button>
       </div>
     </div>
     <div class="cols">
-      <div $each="control of cols" $key="control.key" class="control col" class:active="control.key = activeKey" style:left="control.offset" :data-control-key="control.key">
+      <div
+        $each="control of cols"
+        $key="control.key"
+        class="control col"
+        class:active="control.key = activeKey"
+        style:left="control.offset"
+        :data-control-key="control.key"
+      >
         <span class="line" aria-hidden="true"></span>
         <span class="guide" data-ui-guide aria-hidden="true"></span>
-        <button type="button" class="handle" :data-ui-affordance="control.affordance" :data-action="control.action" :data-boundary-index="control.index" :aria-label="control.label"><ui-icon name="plus"></ui-icon><span class="tooltip" role="tooltip" $value="control.label"></span></button>
+        <button
+          type="button"
+          class="handle"
+          :data-ui-affordance="control.affordance"
+          :data-action="control.action"
+          :data-boundary-index="control.index"
+          :aria-label="control.label"
+        >
+          <ui-icon name="plus"></ui-icon>
+          <span class="tooltip" role="tooltip" $value="control.label"></span>
+        </button>
       </div>
     </div>
     <template $if="hovered">
-      <button type="button" class="selector row" style:top="hovered.rowOffset" data-action="select-row" :data-row-index="hovered.rowIndex" :data-column-index="hovered.columnIndex" title="Select row" aria-label="Select row"><span class="glyph"><ui-icon name="grip-vertical"></ui-icon></span></button>
-      <button type="button" class="selector column" style:left="hovered.columnOffset" data-action="select-column" :data-row-index="hovered.rowIndex" :data-column-index="hovered.columnIndex" title="Select column" aria-label="Select column"><span class="glyph"><ui-icon name="grip-horizontal"></ui-icon></span></button>
+      <button
+        type="button"
+        class="selector row"
+        style:top="hovered.rowOffset"
+        data-action="select-row"
+        :data-row-index="hovered.rowIndex"
+        :data-column-index="hovered.columnIndex"
+        title="Select row"
+        aria-label="Select row"
+      >
+        <span class="glyph"><ui-icon name="grip-vertical"></ui-icon></span>
+      </button>
+      <button
+        type="button"
+        class="selector column"
+        style:left="hovered.columnOffset"
+        data-action="select-column"
+        :data-row-index="hovered.rowIndex"
+        :data-column-index="hovered.columnIndex"
+        title="Select column"
+        aria-label="Select column"
+      >
+        <span class="glyph"><ui-icon name="grip-horizontal"></ui-icon></span>
+      </button>
     </template>
-    <button $if="active" type="button" class="cell-menu" style:left="active.menuLeft" style:top="active.menuTop" data-action="open-cell-menu" :data-row-index="active.rowIndex" :data-column-index="active.columnIndex" title="Cell actions" aria-label="Cell actions"><ui-icon name="chevron-down"></ui-icon></button>
+    <button
+      $if="active"
+      type="button"
+      class="cell-menu"
+      style:left="active.menuLeft"
+      style:top="active.menuTop"
+      data-action="open-cell-menu"
+      :data-row-index="active.rowIndex"
+      :data-column-index="active.columnIndex"
+      title="Cell actions"
+      aria-label="Cell actions"
+    >
+      <ui-icon name="chevron-down"></ui-icon>
+    </button>
   </div>
   <style>
-:host {
-  display: block;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  pointer-events: none;
-}
+    :host {
+      display: block;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      pointer-events: none;
+    }
 
-:host {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  pointer-events: none;
-}
+    :host {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      pointer-events: none;
+    }
 
-.rows,
-.cols {
-  pointer-events: none;
-  position: absolute;
-}
+    .rows,
+    .cols {
+      pointer-events: none;
+      position: absolute;
+    }
 
-.rows {
-  inset: 0;
-  width: 100%;
-}
+    .rows {
+      inset: 0;
+      width: 100%;
+    }
 
-.cols {
-  inset: 0;
-  height: 100%;
-}
+    .cols {
+      inset: 0;
+      height: 100%;
+    }
 
-.control {
-  position: absolute;
-  z-index: 1;
-  pointer-events: none;
-}
+    .control {
+      position: absolute;
+      z-index: 1;
+      pointer-events: none;
+    }
 
-.handle {
-  position: absolute;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  border: 1px solid var(--ui-affordance-near-color, var(--ui-border-strong, #c8c8c4));
-  border-radius: var(--ui-radius-round, 999px);
-  background: color-mix(in srgb, var(--ui-surface-elevated, #fff) 96%, transparent);
-  color: var(--ui-affordance-near-color, var(--ui-text-secondary, #5c5c5c));
-  font: inherit;
-  font-size: 16px;
-  line-height: 1;
-  box-shadow: var(--ui-shadow-xs, 0 1px 2px rgb(0 0 0 / 0.05));
-  opacity: 0;
-  scale: 0.72;
-  transition:
-    opacity var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease),
-    scale var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease),
-    color var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease),
-    background-color var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease),
-    border-color var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease);
-  pointer-events: auto;
-  cursor: pointer;
-}
+    .handle {
+      position: absolute;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      border: 1px solid var(--ui-affordance-near-color, var(--ui-border-strong, #c8c8c4));
+      border-radius: var(--ui-radius-round, 999px);
+      background: color-mix(in srgb, var(--ui-surface-elevated, #fff) 96%, transparent);
+      color: var(--ui-affordance-near-color, var(--ui-text-secondary, #5c5c5c));
+      font: inherit;
+      font-size: 16px;
+      line-height: 1;
+      box-shadow: var(--ui-shadow-xs, 0 1px 2px rgb(0 0 0 / 0.05));
+      opacity: 0;
+      scale: 0.72;
+      transition:
+        opacity var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease),
+        scale var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease),
+        color var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease),
+        background-color var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease),
+        border-color var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease);
+      pointer-events: auto;
+      cursor: pointer;
+    }
 
-.handle {
-  --ui-icon-size: 14px;
-  --ui-icon-stroke-width: var(--ui-editor-table-affordance-icon-stroke-width, 2);
-}
+    .handle {
+      --ui-icon-size: 14px;
+      --ui-icon-stroke-width: var(--ui-editor-table-affordance-icon-stroke-width, 2);
+    }
 
-.handle[data-ui-proximity="near"],
-.control.active .handle,
-.handle:focus-visible {
-  opacity: 1;
-  scale: 1;
-}
+    .handle[data-ui-proximity="near"],
+    .control.active .handle,
+    .handle:focus-visible {
+      opacity: 1;
+      scale: 1;
+    }
 
-.control.active .handle,
-.handle:focus-visible {
-  border-color: var(--ui-affordance-direct-color, var(--ui-accent-solid, #5b55d6));
-  background: var(--ui-affordance-direct-color, var(--ui-accent-solid, #5b55d6));
-  color: var(--ui-text-on-accent, #fff);
-  box-shadow: var(--ui-shadow-sm, 0 1px 3px rgb(0 0 0 / 0.1));
-}
+    .control.active .handle,
+    .handle:focus-visible {
+      border-color: var(--ui-affordance-direct-color, var(--ui-accent-solid, #5b55d6));
+      background: var(--ui-affordance-direct-color, var(--ui-accent-solid, #5b55d6));
+      color: var(--ui-text-on-accent, #fff);
+      box-shadow: var(--ui-shadow-sm, 0 1px 3px rgb(0 0 0 / 0.1));
+    }
 
-.handle:focus-visible,
-.selector:focus-visible,
-.cell-menu:focus-visible {
-  outline: 2px solid var(--ui-focus-ring, #5b55d6);
-  outline-offset: 2px;
-}
+    .handle:focus-visible,
+    .selector:focus-visible,
+    .cell-menu:focus-visible {
+      outline: 2px solid var(--ui-focus-ring, #5b55d6);
+      outline-offset: 2px;
+    }
 
-.control.row {
-  left: 0;
-  width: 100%;
-  height: 0;
-}
+    .control.row {
+      left: 0;
+      width: 100%;
+      height: 0;
+    }
 
-.control.row .handle {
-  top: -12px;
-  left: -30px;
-}
+    .control.row .handle {
+      top: -12px;
+      left: -30px;
+    }
 
-.control.col {
-  top: 0;
-  width: 0;
-  height: 100%;
-}
+    .control.col {
+      top: 0;
+      width: 0;
+      height: 100%;
+    }
 
-.control.col .handle {
-  top: -30px;
-  left: -12px;
-}
+    .control.col .handle {
+      top: -30px;
+      left: -12px;
+    }
 
-.line {
-  position: absolute;
-  background: var(--ui-affordance-direct-color, var(--ui-accent-solid, #5b55d6));
-  opacity: 0;
-  transition: opacity var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease);
-}
+    .line {
+      position: absolute;
+      background: var(--ui-affordance-direct-color, var(--ui-accent-solid, #5b55d6));
+      opacity: 0;
+      transition: opacity var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease);
+    }
 
-.control.row .line {
-  inset: -1px 0 auto;
-  height: 2px;
-}
+    .control.row .line {
+      inset: -1px 0 auto;
+      height: 2px;
+    }
 
-.control.col .line {
-  inset: 0 auto 0 -1px;
-  width: 2px;
-}
+    .control.col .line {
+      inset: 0 auto 0 -1px;
+      width: 2px;
+    }
 
-.control.active .line {
-  opacity: 0.8;
-}
+    .control.active .line {
+      opacity: 0.8;
+    }
 
-.guide {
-  position: absolute;
-  width: var(--ui-affordance-guide-size, 4px);
-  height: var(--ui-affordance-guide-size, 4px);
-  border-radius: var(--ui-radius-round, 999px);
-  background: var(--ui-affordance-guide-color, var(--ui-border-strong, #c8c8c4));
-  opacity: var(--ui-affordance-guide-opacity, 0.42);
-  transition: opacity var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease);
-}
+    .guide {
+      position: absolute;
+      width: var(--ui-affordance-guide-size, 4px);
+      height: var(--ui-affordance-guide-size, 4px);
+      border-radius: var(--ui-radius-round, 999px);
+      background: var(--ui-affordance-guide-color, var(--ui-border-strong, #c8c8c4));
+      opacity: var(--ui-affordance-guide-opacity, 0.42);
+      transition: opacity var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease);
+    }
 
-.control.row .guide {
-  left: -10px;
-  top: -2px;
-}
+    .control.row .guide {
+      left: -10px;
+      top: -2px;
+    }
 
-.control.col .guide {
-  left: -2px;
-  top: -10px;
-}
+    .control.col .guide {
+      left: -2px;
+      top: -10px;
+    }
 
-.control:has(.handle[data-ui-proximity="near"]) .guide,
-.control.active .guide {
-  opacity: 0;
-}
+    .control:has(.handle[data-ui-proximity="near"]) .guide,
+    .control.active .guide {
+      opacity: 0;
+    }
 
-.tooltip {
-  position: absolute;
-  z-index: 2;
-  top: calc(100% + 6px);
-  left: 50%;
-  width: max-content;
-  max-width: 14rem;
-  padding: var(--ui-space-1, 4px) var(--ui-space-2, 8px);
-  border-radius: var(--ui-radius-1, 4px);
-  background: var(--ui-text-primary, #1a1a1a);
-  color: var(--ui-surface-elevated, #fff);
-  font-size: var(--ui-font-size-xs, 0.75rem);
-  font-weight: var(--ui-font-medium, 500);
-  line-height: var(--ui-line-height-md, 1.4);
-  opacity: 0;
-  transform: translateX(-50%);
-  transition: opacity var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease);
-  pointer-events: none;
-}
+    .tooltip {
+      position: absolute;
+      z-index: 2;
+      top: calc(100% + 6px);
+      left: 50%;
+      width: max-content;
+      max-width: 14rem;
+      padding: var(--ui-space-1, 4px) var(--ui-space-2, 8px);
+      border-radius: var(--ui-radius-1, 4px);
+      background: var(--ui-text-primary, #1a1a1a);
+      color: var(--ui-surface-elevated, #fff);
+      font-size: var(--ui-font-size-xs, 0.75rem);
+      font-weight: var(--ui-font-medium, 500);
+      line-height: var(--ui-line-height-md, 1.4);
+      opacity: 0;
+      transform: translateX(-50%);
+      transition: opacity var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease);
+      pointer-events: none;
+    }
 
-.control.row .tooltip {
-  top: 50%;
-  left: auto;
-  right: calc(100% + 8px);
-  transform: translateY(-50%);
-}
+    .control.row .tooltip {
+      top: 50%;
+      left: auto;
+      right: calc(100% + 8px);
+      transform: translateY(-50%);
+    }
 
-.control.active .tooltip,
-.handle:focus-visible .tooltip {
-  opacity: 1;
-}
+    .control.active .tooltip,
+    .handle:focus-visible .tooltip {
+      opacity: 1;
+    }
 
-.selector,
-.cell-menu {
-  position: absolute;
-  z-index: 2;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--ui-text-secondary, #5c5c5c);
-  box-shadow: none;
-  pointer-events: auto;
-  cursor: pointer;
-  transition:
-    color var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease),
-    background-color var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease),
-    border-color var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease),
-    box-shadow var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease);
-}
+    .selector,
+    .cell-menu {
+      position: absolute;
+      z-index: 2;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--ui-text-secondary, #5c5c5c);
+      box-shadow: none;
+      pointer-events: auto;
+      cursor: pointer;
+      transition:
+        color var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease),
+        background-color var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease),
+        border-color var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease),
+        box-shadow var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease);
+    }
 
-.selector:hover,
-.cell-menu:hover {
-  background: var(--ui-icon-button-hover-bg, var(--ui-surface-muted, #f3f4f6));
-  color: var(--ui-icon-button-hover-color, var(--ui-text-primary, #1a1a1a));
-  box-shadow: var(--ui-shadow-xs, 0 1px 2px rgb(0 0 0 / 0.05));
-}
+    .selector:hover,
+    .cell-menu:hover {
+      background: var(--ui-icon-button-hover-bg, var(--ui-surface-muted, #f3f4f6));
+      color: var(--ui-icon-button-hover-color, var(--ui-text-primary, #1a1a1a));
+      box-shadow: var(--ui-shadow-xs, 0 1px 2px rgb(0 0 0 / 0.05));
+    }
 
-.selector {
-  border-radius: var(--ui-radius-round, 999px);
-}
+    .selector {
+      border-radius: var(--ui-radius-round, 999px);
+    }
 
-.selector::before {
-  content: "";
-  position: absolute;
-  inset: 50% auto auto 50%;
-  border-radius: var(--ui-radius-round, 999px);
-  background: var(--ui-affordance-guide-color, var(--ui-border-strong, #c8c8c4));
-  opacity: var(--ui-affordance-guide-opacity, 0.42);
-  transform: translate(-50%, -50%);
-  transition: opacity var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease);
-  pointer-events: none;
-}
+    .selector::before {
+      content: "";
+      position: absolute;
+      inset: 50% auto auto 50%;
+      border-radius: var(--ui-radius-round, 999px);
+      background: var(--ui-affordance-guide-color, var(--ui-border-strong, #c8c8c4));
+      opacity: var(--ui-affordance-guide-opacity, 0.42);
+      transform: translate(-50%, -50%);
+      transition: opacity var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease);
+      pointer-events: none;
+    }
 
-.selector .glyph {
-  display: block;
-  width: 14px;
-  height: 14px;
-  --ui-icon-size: 14px;
-  --ui-icon-stroke-width: var(--ui-editor-table-affordance-icon-stroke-width, 2);
-  opacity: 0;
-  transform: scale(0.72);
-  transition:
-    opacity var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease),
-    transform var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease);
-}
+    .selector .glyph {
+      display: block;
+      width: 14px;
+      height: 14px;
+      --ui-icon-size: 14px;
+      --ui-icon-stroke-width: var(--ui-editor-table-affordance-icon-stroke-width, 2);
+      opacity: 0;
+      transform: scale(0.72);
+      transition:
+        opacity var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease),
+        transform var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease);
+    }
 
-.selector:hover::before,
-.selector:focus-visible::before {
-  opacity: 0;
-}
+    .selector:hover::before,
+    .selector:focus-visible::before {
+      opacity: 0;
+    }
 
-.selector:hover .glyph,
-.selector:focus-visible .glyph {
-  opacity: 1;
-  transform: scale(1);
-}
+    .selector:hover .glyph,
+    .selector:focus-visible .glyph {
+      opacity: 1;
+      transform: scale(1);
+    }
 
-.selector.row {
-  left: -9px;
-  width: 18px;
-  height: 32px;
-  transform: translateY(-50%);
-}
+    .selector.row {
+      left: -9px;
+      width: 18px;
+      height: 32px;
+      transform: translateY(-50%);
+    }
 
-.selector.row::before {
-  width: 2px;
-  height: 16px;
-}
+    .selector.row::before {
+      width: 2px;
+      height: 16px;
+    }
 
-.selector.column {
-  top: -9px;
-  width: 32px;
-  height: 18px;
-  transform: translateX(-50%);
-}
+    .selector.column {
+      top: -9px;
+      width: 32px;
+      height: 18px;
+      transform: translateX(-50%);
+    }
 
-.selector.column::before {
-  width: 16px;
-  height: 2px;
-}
+    .selector.column::before {
+      width: 16px;
+      height: 2px;
+    }
 
-@media (hover: none), (pointer: coarse) {
-  .selector::before {
-    opacity: 0;
-  }
+    @media (hover: none), (pointer: coarse) {
+      .selector::before {
+        opacity: 0;
+      }
 
-  .selector .glyph {
-    opacity: 1;
-    transform: none;
-  }
-}
+      .selector .glyph {
+        opacity: 1;
+        transform: none;
+      }
+    }
 
-.cell-menu {
-  width: 24px;
-  height: 24px;
-  border-radius: var(--ui-radius-1, 4px);
-  background: color-mix(in srgb, var(--ui-surface-muted, #f3f4f6) 78%, transparent);
-}
+    .cell-menu {
+      width: 24px;
+      height: 24px;
+      border-radius: var(--ui-radius-1, 4px);
+      background: color-mix(in srgb, var(--ui-surface-muted, #f3f4f6) 78%, transparent);
+    }
 
-.cell-menu {
-  --ui-icon-size: 15px;
-  --ui-icon-stroke-width: var(--ui-editor-table-affordance-icon-stroke-width, 2);
-}
+    .cell-menu {
+      --ui-icon-size: 15px;
+      --ui-icon-stroke-width: var(--ui-editor-table-affordance-icon-stroke-width, 2);
+    }
 
-:host[hidden] {
-  display: none;
-}
+    :host[hidden] {
+      display: none;
+    }
   </style>
 </template>

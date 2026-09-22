@@ -6,7 +6,7 @@
   </defs>
   <div><slot></slot></div>
   <style>
-:host {
+    :host {
       --_switcher-gap: var(--ui-space-4, 1rem);
       display: flex;
       flex-wrap: wrap;
@@ -23,21 +23,43 @@
       flex-basis: calc((var(--ui-switcher-threshold, 30rem) - 100%) * 999);
     }
 
-    :host-state([gap="xs"]) { --_switcher-gap: var(--ui-space-2, 0.5rem); }
-    :host-state([gap="s"]) { --_switcher-gap: var(--ui-space-3, 0.75rem); }
-    :host-state([gap="m"]) { --_switcher-gap: var(--ui-space-4, 1rem); }
-    :host-state([gap="l"]) { --_switcher-gap: var(--ui-space-5, 1.5rem); }
-    :host-state([gap="xl"]) { --_switcher-gap: var(--ui-space-6, 2rem); }
-    :host-state([threshold="xs"]) > :slotted(*) { flex-basis: calc((var(--ui-switcher-threshold, 20rem) - 100%) * 999); }
-    :host-state([threshold="md"]) > :slotted(*) { flex-basis: calc((var(--ui-switcher-threshold, 45rem) - 100%) * 999); }
-    :host-state([threshold="lg"]) > :slotted(*) { flex-basis: calc((var(--ui-switcher-threshold, 60rem) - 100%) * 999); }
-    :host-state([align="start"]) { align-items: flex-start; }
-    :host-state([align="center"]) { align-items: center; }
-    :host-state([align="end"]) { align-items: flex-end; }
-  
-/* A component that sets its display still honours the hidden attribute on its root. */
-:host[hidden] {
-  display: none;
-}
-</style>
+    :host-state([gap="xs"]) {
+      --_switcher-gap: var(--ui-space-2, 0.5rem);
+    }
+    :host-state([gap="s"]) {
+      --_switcher-gap: var(--ui-space-3, 0.75rem);
+    }
+    :host-state([gap="m"]) {
+      --_switcher-gap: var(--ui-space-4, 1rem);
+    }
+    :host-state([gap="l"]) {
+      --_switcher-gap: var(--ui-space-5, 1.5rem);
+    }
+    :host-state([gap="xl"]) {
+      --_switcher-gap: var(--ui-space-6, 2rem);
+    }
+    :host-state([threshold="xs"]) > :slotted(*) {
+      flex-basis: calc((var(--ui-switcher-threshold, 20rem) - 100%) * 999);
+    }
+    :host-state([threshold="md"]) > :slotted(*) {
+      flex-basis: calc((var(--ui-switcher-threshold, 45rem) - 100%) * 999);
+    }
+    :host-state([threshold="lg"]) > :slotted(*) {
+      flex-basis: calc((var(--ui-switcher-threshold, 60rem) - 100%) * 999);
+    }
+    :host-state([align="start"]) {
+      align-items: flex-start;
+    }
+    :host-state([align="center"]) {
+      align-items: center;
+    }
+    :host-state([align="end"]) {
+      align-items: flex-end;
+    }
+
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
 </template>

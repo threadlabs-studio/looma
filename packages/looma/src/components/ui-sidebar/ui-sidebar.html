@@ -8,7 +8,8 @@
     <prop name="resizeStep" type="number" default="16">Arrow-key resize step in pixels.</prop>
     <prop name="resizeLabel" type="string" default="Resize sidebar">Accessible name of the resize handle.</prop>
     <prop name="collapsed" type="boolean" default="false">Whether the docked sidebar is collapsed.</prop>
-    <prop name="breakpoint" type="sm | md | lg" default="md">Below this viewport width (40rem, 48rem, 64rem) the sidebar becomes an off-canvas drawer, closed until toggled.</prop>
+    <prop name="breakpoint" type="sm | md | lg" default="md"
+    >Below this viewport width (40rem, 48rem, 64rem) the sidebar becomes an off-canvas drawer, closed until toggled.</prop>
     <state name="internalCollapsed" :value="false"></state>
     <state name="drawer" :value="false"></state>
     <event name="resize" type="object({ width: number, trigger: keyboard | pointer | programmatic })"></event>
@@ -16,150 +17,167 @@
   </defs>
   <aside>
     <div class="content"><slot></slot></div>
-    <div class="resizer" $ref="resizer" role="separator" aria-orientation="vertical" tabindex="0" data-ui-affordance="resize" :aria-label="resizeLabel" :hidden="not resizable or drawer or internalCollapsed"><span class="guide" aria-hidden="true"></span></div>
+    <div
+      class="resizer"
+      $ref="resizer"
+      role="separator"
+      aria-orientation="vertical"
+      tabindex="0"
+      data-ui-affordance="resize"
+      :aria-label="resizeLabel"
+      :hidden="not resizable or drawer or internalCollapsed"
+    >
+      <span class="guide" aria-hidden="true"></span>
+    </div>
   </aside>
   <style>
-:host {
-  position: relative;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  flex: none;
-  inline-size: var(--_sidebar-width, var(--ui-sidebar-width, 280px));
-  max-inline-size: 100%;
-  min-block-size: 0;
-  background: var(--ui-sidebar-surface, var(--ui-surface-default));
-  border-inline-end: 1px solid var(--ui-sidebar-border, var(--ui-border-default));
-}
+    :host {
+      position: relative;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      flex: none;
+      inline-size: var(--_sidebar-width, var(--ui-sidebar-width, 280px));
+      max-inline-size: 100%;
+      min-block-size: 0;
+      background: var(--ui-sidebar-surface, var(--ui-surface-default));
+      border-inline-end: 1px solid var(--ui-sidebar-border, var(--ui-border-default));
+    }
 
-:host-state([side="end"]) {
-  border-inline-end: 0;
-  border-inline-start: 1px solid var(--ui-sidebar-border, var(--ui-border-default));
-}
+    :host-state([side="end"]) {
+      border-inline-end: 0;
+      border-inline-start: 1px solid var(--ui-sidebar-border, var(--ui-border-default));
+    }
 
-.content {
-  flex: 1;
-  min-block-size: 0;
-  overflow: auto;
-}
+    .content {
+      flex: 1;
+      min-block-size: 0;
+      overflow: auto;
+    }
 
-/* Collapsed while docked. */
-:host-state([internalCollapsed]):not([popover]) {
-  display: none;
-}
+    /* Collapsed while docked. */
+    :host-state([internalCollapsed]):not([popover]) {
+      display: none;
+    }
 
-.resizer {
-  position: absolute;
-  z-index: 1;
-  inset-block: 0;
-  /* On the panel's inner edge: the end edge of a start sidebar. */
-  inset-inline-end: 0;
-  inline-size: 8px;
-  min-inline-size: 8px;
-  transform: translateX(50%);
-  cursor: col-resize;
-  touch-action: none;
-  outline: none;
-}
+    .resizer {
+      position: absolute;
+      z-index: 1;
+      inset-block: 0;
+      /* On the panel's inner edge: the end edge of a start sidebar. */
+      inset-inline-end: 0;
+      inline-size: 8px;
+      min-inline-size: 8px;
+      transform: translateX(50%);
+      cursor: col-resize;
+      touch-action: none;
+      outline: none;
+    }
 
-.resizer[hidden] {
-  display: none;
-}
+    .resizer[hidden] {
+      display: none;
+    }
 
-:host-state([side="end"]) .resizer {
-  inset-inline-end: auto;
-  inset-inline-start: 0;
-  transform: translateX(-50%);
-}
+    :host-state([side="end"]) .resizer {
+      inset-inline-end: auto;
+      inset-inline-start: 0;
+      transform: translateX(-50%);
+    }
 
-.resizer::after {
-  content: "";
-  position: absolute;
-  inset-block: 0;
-  inset-inline-start: 3px;
-  inline-size: 2px;
-  background: color-mix(in srgb, var(--ui-affordance-guide-color, var(--ui-border-strong)) 45%, transparent);
-  opacity: var(--ui-affordance-guide-opacity, 0.42);
-  transition:
-    background-color var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease),
-    opacity var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease);
-}
+    .resizer::after {
+      content: "";
+      position: absolute;
+      inset-block: 0;
+      inset-inline-start: 3px;
+      inline-size: 2px;
+      background: color-mix(in srgb, var(--ui-affordance-guide-color, var(--ui-border-strong)) 45%, transparent);
+      opacity: var(--ui-affordance-guide-opacity, 0.42);
+      transition:
+        background-color var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease),
+        opacity var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease);
+    }
 
-.guide {
-  position: absolute;
-  inset-block-start: 50%;
-  inset-inline-start: 50%;
-  inline-size: 6px;
-  block-size: 22px;
-  border: 1px solid var(--ui-border-strong, #c8c8c4);
-  border-radius: var(--ui-radius-round, 999px);
-  background: var(--ui-surface-elevated, #fff);
-  opacity: 0;
-  transform: translate(-50%, -50%);
-  transition: opacity var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease);
-  pointer-events: none;
-}
+    .guide {
+      position: absolute;
+      inset-block-start: 50%;
+      inset-inline-start: 50%;
+      inline-size: 6px;
+      block-size: 22px;
+      border: 1px solid var(--ui-border-strong, #c8c8c4);
+      border-radius: var(--ui-radius-round, 999px);
+      background: var(--ui-surface-elevated, #fff);
+      opacity: 0;
+      transform: translate(-50%, -50%);
+      transition: opacity var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease);
+      pointer-events: none;
+    }
 
-.resizer:is(:hover, :focus-visible)::after {
-  background: var(--ui-affordance-direct-color, var(--ui-accent-solid, var(--ui-color-focus, Highlight)));
-  opacity: 1;
-}
+    .resizer:is(:hover, :focus-visible)::after {
+      background: var(--ui-affordance-direct-color, var(--ui-accent-solid, var(--ui-color-focus, Highlight)));
+      opacity: 1;
+    }
 
-.resizer:is(:hover, :focus-visible) > .guide {
-  opacity: 1;
-}
+    .resizer:is(:hover, :focus-visible) > .guide {
+      opacity: 1;
+    }
 
-/* Drawer: a popover in the top layer, sliding in from its edge. Closed popovers are hidden by the UA. */
-:host[popover] {
-  position: fixed;
-  inset-block: 0;
-  inset-inline-start: 0;
-  inset-inline-end: auto;
-  margin: 0;
-  padding: 0;
-  inline-size: min(var(--_sidebar-width, var(--ui-sidebar-width, 280px)), 85vw);
-  max-block-size: none;
-  block-size: 100dvh;
-  border-block: 0;
-  box-shadow: var(--ui-elevation-overlay, var(--ui-shadow-lg));
-  transform: translateX(0);
-  transition:
-    transform var(--ui-motion-base, 0.2s) var(--ui-motion-ease-out, ease-out),
-    display var(--ui-motion-base, 0.2s) allow-discrete,
-    overlay var(--ui-motion-base, 0.2s) allow-discrete;
-}
+    /* Drawer: a popover in the top layer, sliding in from its edge. Closed popovers are hidden by the UA. */
+    :host[popover] {
+      position: fixed;
+      inset-block: 0;
+      inset-inline-start: 0;
+      inset-inline-end: auto;
+      margin: 0;
+      padding: 0;
+      inline-size: min(var(--_sidebar-width, var(--ui-sidebar-width, 280px)), 85vw);
+      max-block-size: none;
+      block-size: 100dvh;
+      border-block: 0;
+      box-shadow: var(--ui-elevation-overlay, var(--ui-shadow-lg));
+      transform: translateX(0);
+      transition:
+        transform var(--ui-motion-base, 0.2s) var(--ui-motion-ease-out, ease-out),
+        display var(--ui-motion-base, 0.2s) allow-discrete,
+        overlay var(--ui-motion-base, 0.2s) allow-discrete;
+    }
 
-/* The author display above would otherwise override the UA rule that hides a closed popover. */
-:host[popover]:not(:popover-open) {
-  display: none;
-  transform: translateX(-100%);
-}
+    /* The author display above would otherwise override the UA rule that hides a closed popover. */
+    :host[popover]:not(:popover-open) {
+      display: none;
+      transform: translateX(-100%);
+    }
 
-:host-state([side="end"])[popover] {
-  inset-inline-start: auto;
-  inset-inline-end: 0;
-}
+    :host-state([side="end"])[popover] {
+      inset-inline-start: auto;
+      inset-inline-end: 0;
+    }
 
-:host-state([side="end"])[popover]:not(:popover-open) {
-  transform: translateX(100%);
-}
+    :host-state([side="end"])[popover]:not(:popover-open) {
+      transform: translateX(100%);
+    }
 
-@starting-style {
-  :host[popover]:popover-open { transform: translateX(-100%); }
-  :host-state([side="end"])[popover]:popover-open { transform: translateX(100%); }
-}
+    @starting-style {
+      :host[popover]:popover-open {
+        transform: translateX(-100%);
+      }
+      :host-state([side="end"])[popover]:popover-open {
+        transform: translateX(100%);
+      }
+    }
 
-:host[popover]::backdrop {
-  background: var(--ui-sidebar-backdrop, rgb(0 0 0 / 0.32));
-}
+    :host[popover]::backdrop {
+      background: var(--ui-sidebar-backdrop, rgb(0 0 0 / 0.32));
+    }
 
-@media (prefers-reduced-motion: reduce) {
-  :host[popover] { transition: none; }
-}
-  
-/* A component that sets its display still honours the hidden attribute on its root. */
-:host[hidden] {
-  display: none;
-}
-</style>
+    @media (prefers-reduced-motion: reduce) {
+      :host[popover] {
+        transition: none;
+      }
+    }
+
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
 </template>

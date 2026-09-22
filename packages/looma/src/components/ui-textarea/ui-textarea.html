@@ -8,70 +8,73 @@
     <prop name="rows" type="integer" default="4">Initial number of visible text rows.</prop>
   </defs>
   <textarea :value="value" :disabled="disabled" :readonly="readonly" :required="required" :aria-invalid="invalid" :rows="rows"></textarea>
-  <style>:host {
-  box-sizing: border-box;
-  display: inline-block;
-  inline-size: 100%;
-  min-inline-size: 0;
-  min-block-size: calc(var(--ui-space-12, 3rem) * 2);
-  margin: 0;
-  padding: var(--ui-space-2) var(--ui-space-3);
-  appearance: none;
-  resize: vertical;
-  border: 1px solid var(--ui-control-border, var(--ui-border-strong));
-  border-radius: var(--ui-textarea-radius, var(--ui-radius-2));
-  background: var(--ui-control-surface, var(--ui-surface-elevated));
-  color: var(--ui-text-primary);
-  font: inherit;
-  line-height: var(--ui-line-height-md);
-  box-shadow: var(--ui-textarea-shadow, var(--ui-control-inset));
-  transition:
-    border-color var(--ui-motion-fast) var(--ui-motion-ease),
-    box-shadow var(--ui-motion-fast) var(--ui-motion-ease),
-    background-color var(--ui-motion-fast) var(--ui-motion-ease);
-}
+  <style>
+    :host {
+      box-sizing: border-box;
+      display: inline-block;
+      inline-size: 100%;
+      min-inline-size: 0;
+      min-block-size: calc(var(--ui-space-12, 3rem) * 2);
+      margin: 0;
+      padding: var(--ui-space-2) var(--ui-space-3);
+      appearance: none;
+      resize: vertical;
+      border: 1px solid var(--ui-control-border, var(--ui-border-strong));
+      border-radius: var(--ui-textarea-radius, var(--ui-radius-2));
+      background: var(--ui-control-surface, var(--ui-surface-elevated));
+      color: var(--ui-text-primary);
+      font: inherit;
+      line-height: var(--ui-line-height-md);
+      box-shadow: var(--ui-textarea-shadow, var(--ui-control-inset));
+      transition:
+        border-color var(--ui-motion-fast) var(--ui-motion-ease),
+        box-shadow var(--ui-motion-fast) var(--ui-motion-ease),
+        background-color var(--ui-motion-fast) var(--ui-motion-ease);
+    }
 
-/* Tabbing into a field selects its text; tint that selection softly instead of the page highlight. */
-:host::selection {
-  background: color-mix(in srgb, var(--ui-accent-solid) 20%, transparent);
-  color: inherit;
-}
+    /* Tabbing into a field selects its text; tint that selection softly instead of the page highlight. */
+    :host::selection {
+      background: color-mix(in srgb, var(--ui-accent-solid) 20%, transparent);
+      color: inherit;
+    }
 
-:host::placeholder {
-  color: var(--ui-control-placeholder, var(--ui-text-secondary));
-  opacity: 1;
-}
+    :host::placeholder {
+      color: var(--ui-control-placeholder, var(--ui-text-secondary));
+      opacity: 1;
+    }
 
-:host:hover:not(:focus):not(:disabled) {
-  border-color: var(--ui-control-border-hover, var(--ui-text-secondary));
-}
+    :host:hover:not(:focus):not(:disabled) {
+      border-color: var(--ui-control-border-hover, var(--ui-text-secondary));
+    }
 
-:host:focus-visible {
-  border-color: var(--ui-control-focus, var(--ui-accent-solid));
-  outline: none;
-  box-shadow: var(--ui-textarea-focus-shadow, var(--ui-control-inset), var(--ui-control-focus-halo-shadow));
-}
+    :host:focus-visible {
+      border-color: var(--ui-control-focus, var(--ui-accent-solid));
+      outline: none;
+      box-shadow: var(--ui-textarea-focus-shadow, var(--ui-control-inset), var(--ui-control-focus-halo-shadow));
+    }
 
-/* The app's invalid flag, or the browser's own verdict once the user has left an invalid field. */
-:host[aria-invalid='true'],
-:host:user-invalid {
-  border-color: var(--ui-danger-solid);
-}
+    /* The app's invalid flag, or the browser's own verdict once the user has left an invalid field. */
+    :host[aria-invalid="true"],
+    :host:user-invalid {
+      border-color: var(--ui-danger-solid);
+    }
 
-:host:is([aria-invalid='true'], :user-invalid):focus-visible {
-  box-shadow: var(--ui-control-inset), 0 0 0 3px color-mix(in srgb, var(--ui-danger-solid) 22%, transparent);
-}
+    :host:is([aria-invalid="true"], :user-invalid):focus-visible {
+      box-shadow:
+        var(--ui-control-inset),
+        0 0 0 3px color-mix(in srgb, var(--ui-danger-solid) 22%, transparent);
+    }
 
-:host:disabled {
-  background: var(--ui-control-surface-disabled, var(--ui-surface-muted));
-  color: var(--ui-text-muted);
-  box-shadow: none;
-  cursor: not-allowed;
-}
+    :host:disabled {
+      background: var(--ui-control-surface-disabled, var(--ui-surface-muted));
+      color: var(--ui-text-muted);
+      box-shadow: none;
+      cursor: not-allowed;
+    }
 
-/* A component that sets its display still honours the hidden attribute on its root. */
-:host[hidden] {
-  display: none;
-}
-</style>
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
 </template>

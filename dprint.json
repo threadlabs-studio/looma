@@ -1,0 +1,15 @@
+{
+  "indentWidth": 2,
+  "lineWidth": 160,
+  "markup": {
+    "scriptIndent": true,
+    "styleIndent": true,
+    "whitespaceSensitivity": "css"
+  },
+  "malva": {},
+  "includes": ["packages/looma/src/components/**/*.html"],
+  "plugins": [
+    "https://plugins.dprint.dev/g-plane/markup_fmt-v0.20.0.wasm",
+    "https://plugins.dprint.dev/g-plane/malva-v0.12.1.wasm"
+  ]
+}

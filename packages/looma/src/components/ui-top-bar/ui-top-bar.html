@@ -6,48 +6,48 @@
     <div class="actions"><slot name="actions"></slot></div>
   </header>
   <style>
-:host {
-  position: sticky;
-  inset-block-start: 0;
-  z-index: var(--ui-top-bar-z-index, 100);
-  min-block-size: calc(var(--ui-top-bar-height, 56px) + env(safe-area-inset-top));
-  display: flex;
-  align-items: center;
-  gap: var(--ui-top-bar-gap, var(--ui-space-3, 0.75rem));
-  padding-block-start: env(safe-area-inset-top);
-  padding-inline-start: max(var(--ui-top-bar-padding-inline, var(--ui-space-4, 1rem)), env(safe-area-inset-left));
-  padding-inline-end: max(var(--ui-top-bar-padding-inline, var(--ui-space-4, 1rem)), env(safe-area-inset-right));
-  background: var(--ui-top-bar-bg, var(--ui-surface-elevated));
-  border-block-end: 1px solid var(--ui-top-bar-border, var(--ui-border-default));
-}
+    :host {
+      position: sticky;
+      inset-block-start: 0;
+      z-index: var(--ui-top-bar-z-index, 100);
+      min-block-size: calc(var(--ui-top-bar-height, 56px) + env(safe-area-inset-top));
+      display: flex;
+      align-items: center;
+      gap: var(--ui-top-bar-gap, var(--ui-space-3, 0.75rem));
+      padding-block-start: env(safe-area-inset-top);
+      padding-inline-start: max(var(--ui-top-bar-padding-inline, var(--ui-space-4, 1rem)), env(safe-area-inset-left));
+      padding-inline-end: max(var(--ui-top-bar-padding-inline, var(--ui-space-4, 1rem)), env(safe-area-inset-right));
+      background: var(--ui-top-bar-bg, var(--ui-surface-elevated));
+      border-block-end: 1px solid var(--ui-top-bar-border, var(--ui-border-default));
+    }
 
-.leading,
-.search,
-.actions {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
+    .leading,
+    .search,
+    .actions {
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
 
-.actions {
-  gap: var(--ui-top-bar-actions-gap, var(--ui-space-1, 0.25rem));
-}
+    .actions {
+      gap: var(--ui-top-bar-actions-gap, var(--ui-space-1, 0.25rem));
+    }
 
-.title {
-  min-inline-size: 0;
-  flex: 1;
-}
+    .title {
+      min-inline-size: 0;
+      flex: 1;
+    }
 
-/* An unused region takes no space, so it adds no gap. */
-.leading:empty,
-.search:empty,
-.actions:empty {
-  display: none;
-}
-  
-/* A component that sets its display still honours the hidden attribute on its root. */
-:host[hidden] {
-  display: none;
-}
-</style>
+    /* An unused region takes no space, so it adds no gap. */
+    .leading:empty,
+    .search:empty,
+    .actions:empty {
+      display: none;
+    }
+
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
 </template>

@@ -12,37 +12,46 @@
     <input type="radio" $ref="input" .checked="internalChecked" :disabled="disabled" :required="required" :value="value" :name="name">
     <span class="label"><slot></slot></span>
   </label>
-  <style>:host {
-  display: inline-flex;
-  align-items: flex-start;
-  gap: var(--ui-radio-gap, var(--ui-space-2));
-  max-inline-size: 100%;
-  color: var(--ui-text-primary);
-  cursor: pointer;
-}
+  <style>
+    :host {
+      display: inline-flex;
+      align-items: flex-start;
+      gap: var(--ui-radio-gap, var(--ui-space-2));
+      max-inline-size: 100%;
+      color: var(--ui-text-primary);
+      cursor: pointer;
+    }
 
-.label { min-inline-size: 0; line-height: var(--ui-line-height-md); }
+    .label {
+      min-inline-size: 0;
+      line-height: var(--ui-line-height-md);
+    }
 
-input {
-  flex: 0 0 auto;
-  inline-size: var(--ui-radio-size, 1.125rem);
-  block-size: var(--ui-radio-size, 1.125rem);
-  margin: 0.125em 0 0;
-  accent-color: var(--ui-accent-solid);
-  cursor: pointer;
-}
+    input {
+      flex: 0 0 auto;
+      inline-size: var(--ui-radio-size, 1.125rem);
+      block-size: var(--ui-radio-size, 1.125rem);
+      margin: 0.125em 0 0;
+      accent-color: var(--ui-accent-solid);
+      cursor: pointer;
+    }
 
-input:focus-visible {
-  outline: 2px solid var(--ui-focus-ring, var(--ui-accent-solid));
-  outline-offset: 2px;
-}
+    input:focus-visible {
+      outline: 2px solid var(--ui-focus-ring, var(--ui-accent-solid));
+      outline-offset: 2px;
+    }
 
-:host-state([disabled]) { color: var(--ui-text-muted); cursor: not-allowed; }
-:host-state([disabled]) input { cursor: not-allowed; }
+    :host-state([disabled]) {
+      color: var(--ui-text-muted);
+      cursor: not-allowed;
+    }
+    :host-state([disabled]) input {
+      cursor: not-allowed;
+    }
 
-/* A component that sets its display still honours the hidden attribute on its root. */
-:host[hidden] {
-  display: none;
-}
-</style>
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
 </template>
