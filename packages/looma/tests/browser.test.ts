@@ -127,7 +127,7 @@ describe("Vue components", () => {
 });
 
 describe("Overlays", () => {
-  it("close a dismissible search shell on the first Escape, even from its search field", async () => {
+  it("show search focus and close a dismissible search shell on the first Escape, even from its search field", async () => {
     const path = await bundle("vue-search-shell", `
       import { createApp, h, ref } from "vue";
       import { SearchShell } from "@threadlabs/looma/vue";
@@ -142,7 +142,11 @@ describe("Overlays", () => {
       }).mount("#app");
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const region = page.locator("#search .search");
+    const edge = () => region.evaluate((element) => getComputedStyle(element).borderBottomColor);
+    const idle = await edge();
     await page.locator("#query").fill("wel");
+    assert.notEqual(await edge(), idle, "the search region shows focus");
     await page.keyboard.press("Escape");
     assert.deepEqual(await page.evaluate(() => (window as unknown as { closes: unknown[] }).closes), [
       { open: false, reason: "escape", trigger: "keyboard" },
