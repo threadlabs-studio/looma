@@ -35,6 +35,10 @@
   reported opens as `programmatic` and dispatched each anchor close twice.
 - Dialog: the header close button is a touch target (`--ui-control-min-block-size`) on coarse
   pointers and once touch input is used.
+- Tree Item: drop feedback (the inside highlight and the before/after insertion indicator) styles
+  only the target row, not every row nested in an expanded container.
+- Tests: Tree drag and drop is covered in the browser (reorder detail, inside drops and
+  hover-expand, indicators, max-depth and accepts rejection, the full-row drag image).
 
 ## v0.5.1 Candidate
 
