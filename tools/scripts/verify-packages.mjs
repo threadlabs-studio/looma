@@ -119,7 +119,11 @@ function validateTarballContents(releasePackage, packageJson, entries, requireLi
   ].filter(Boolean);
   for (const target of declaredTargets) {
     const entry = `package/${target.replace(/^\.\//, "")}`;
-    assert(entrySet.has(entry), `${packageJson.name} export target is missing from tarball: ${target}`);
+    // A pattern export ("./vue/*") must match at least one packed file.
+    const present = entry.includes("*")
+      ? entries.some((candidate) => candidate.startsWith(entry.slice(0, entry.indexOf("*"))))
+      : entrySet.has(entry);
+    assert(present, `${packageJson.name} export target is missing from tarball: ${target}`);
   }
 }
 
