@@ -5,7 +5,7 @@
     <prop name="orientation" type="horizontal | vertical" default="horizontal">orientation token.</prop>
     <prop name="stretch" type="boolean" default="false">Share the full width of the tab list equally between tabs instead of sizing each to its label.</prop>
     <state name="internalValue" :value="''"></state>
-    <state name="tabs" :value="[]"></state>
+    <state name="tabs" type="list(object({ id: string, label: string }))" :value="[]"></state>
     <event name="select" type="object({ value: string, previousValue: string, trigger: keyboard | pointer | programmatic })"></event>
   </defs>
   <div>

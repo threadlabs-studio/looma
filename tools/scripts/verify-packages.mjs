@@ -188,12 +188,6 @@ async function main() {
 
   const licenseState = await validateLicenses(allowMissingLicense);
   exceptions.push(...licenseState.exceptions);
-  // ponytail: approver ceremony dropped; approvals are optional metadata now, never a release gate.
-  const approvals = {
-    npm: process.env.LOOMA_NPM_APPROVER ?? "",
-    documentation: process.env.LOOMA_DOCS_APPROVER ?? "",
-    knit: process.env.LOOMA_KNIT_APPROVER ?? ""
-  };
   await cleanOutputDirectory(outputDirectory);
 
   run("pnpm", ["build"], { stdio: "inherit" });
@@ -253,10 +247,8 @@ async function main() {
     packages: packedEntries,
     releaseEligible: exceptions.length === 0,
     exceptions,
-    approvals,
     evidence: {
       componentContract: "generated/component-api.json",
-      releaseChecklist: "docs/release-checklist.md",
       workflowRun:
         process.env.GITHUB_SERVER_URL && process.env.GITHUB_REPOSITORY && process.env.GITHUB_RUN_ID
           ? `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`

@@ -10,7 +10,7 @@
       type="object({ left?: number, top?: number, right?: number, bottom?: number, x?: number, y?: number, width?: number, height?: number }) | null"
     >Where the @ was typed, in viewport coordinates.</prop>
     <state name="visible" :value="false"></state>
-    <state name="rows" :value="[]"></state>
+    <state name="rows" type="list(object({ id: string, label: string, detail?: string, initials: string }))" :value="[]"></state>
     <state name="searching" :value="false"></state>
     <state name="active" :value="0"></state>
     <state name="prefix" :value="'ui-editor-mention-menu'"></state>

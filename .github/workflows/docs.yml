@@ -1,23 +1,40 @@
-name: Docs Candidate Preview
+name: Docs
 
+# Deploys the documentation site to GitHub Pages after CI passes on main.
+# threadlabs.studio/looma proxies to it; see apps/docs/docusaurus.config.ts.
 on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: looma-docs-preview
+  group: looma-docs
   cancel-in-progress: true
 
 jobs:
-  build:
+  deploy:
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     steps:
-      - name: Checkout reviewed commit
+      - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
           persist-credentials: false
 
       - name: Setup pnpm
@@ -26,7 +43,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 20
+          node-version: 22.14.0
           cache: pnpm
 
       - name: Install dependencies
@@ -38,11 +55,7 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
 
-      - name: Build no-index Candidate docs
-        env:
-          LOOMA_DOCS_URL: https://threadlabs-studio.github.io
-          LOOMA_DOCS_BASE_URL: /looma/
-          LOOMA_DOCS_RELEASE_MODE: preview
+      - name: Build docs
         run: pnpm --filter @threadlabs/looma-docs build
 
       - name: Upload Pages artifact
@@ -50,17 +63,6 @@ jobs:
         with:
           path: apps/docs/build
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    environment:
-      name: docs-preview
-      url: ${{ steps.deployment.outputs.page_url }}
-    permissions:
-      pages: write
-      id-token: write
-    steps:
-      - name: Deploy Candidate preview
+      - name: Deploy
         id: deployment
         uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
