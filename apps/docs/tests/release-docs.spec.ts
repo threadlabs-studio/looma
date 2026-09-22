@@ -291,10 +291,15 @@ test("toast-region starts empty, fires on demand, and uses a compact round dismi
   await page.goto("components/ui-toast-region", { waitUntil: "domcontentloaded" });
   const scenario = page.locator("[data-preview-scenario='Default closed']");
   const region = scenario.locator("[data-component~='ui-toast-region']");
+  // The region answers "show a toast" only once the runtime has lowered it and its controller ran.
+  // It is a manual popover, so it stays hidden until it holds one.
+  await expect(region).toBeAttached();
   await expect(region.locator(".toast")).toHaveCount(0);
-  await scenario.getByRole("button", { name: "Show toast" }).click();
   const toast = region.locator(".toast");
-  await expect(toast).toBeVisible();
+  await expect(async () => {
+    await scenario.getByRole("button", { name: "Show toast" }).click();
+    await expect(toast).toBeVisible({ timeout: 1000 });
+  }).toPass({ timeout: 10_000 });
   const dismiss = toast.getByRole("button", { name: /Dismiss page saved/i });
   const treatment = await region.evaluate((element) => {
     const style = getComputedStyle(element);

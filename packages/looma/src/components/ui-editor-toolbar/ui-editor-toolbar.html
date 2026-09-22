@@ -14,9 +14,10 @@
       gap: var(--ui-editor-toolbar-gap, 2px);
       padding: var(--ui-editor-toolbar-padding-block, 6px) var(--ui-editor-toolbar-padding-inline, 12px);
       min-height: var(--ui-editor-toolbar-min-height, 48px);
-      overflow-x: auto;
-      scrollbar-width: none;
-      white-space: nowrap;
+      /* More controls than the column is wide is normal at a readable measure, so the row wraps.
+         Scrolling hid the tail behind an invisible scrollbar. */
+      flex-wrap: wrap;
+      row-gap: var(--ui-editor-toolbar-row-gap, var(--ui-editor-toolbar-gap, 2px));
       background: var(--ui-editor-toolbar-surface, var(--ui-surface));
       border-bottom: 1px solid var(--ui-editor-toolbar-border, var(--ui-border));
     }
@@ -38,6 +39,7 @@
     }
 
     :host-state([floating]) {
+      flex-wrap: nowrap;
       position: static;
       top: auto;
       width: max-content;
