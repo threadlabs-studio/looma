@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://threadlabs-studio.github.io/looma/">Documentation</a> ·
+  <a href="https://threadlabs.studio/looma/">Documentation</a> ·
   <a href="apps/docs/docs/getting-started.md">Getting started</a> ·
   <a href="https://github.com/threadlabs-studio/looma/issues">Issues</a>
 </p>
