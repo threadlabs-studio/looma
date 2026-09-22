@@ -1,7 +1,7 @@
 <template component="ui-tree-item" controller="./controllers/ui-tree-item.js" status="early" summary="Migrated Looma ui-tree-item component.">
   <defs>
     <prop name="itemId" type="string" default="">itemId token.</prop>
-    <prop name="label" type="string" default="">label token.</prop>
+    <prop name="label" type="string" default="">The item's accessible name, also shown as the row text unless the label slot supplies content.</prop>
     <prop name="dropDepth" type="number">dropDepth token.</prop>
     <prop name="subtreeDepth" type="number">subtreeDepth token.</prop>
     <prop name="container" type="boolean" default="false">container token.</prop>
@@ -18,7 +18,7 @@
     <state name="hasChildren" :value="false"></state>
     <event name="expand" bubbles="false" type="object({ id: string, expanded: boolean, trigger: keyboard | pointer | programmatic })"></event>
   </defs>
-  <div role="treeitem" :data-drop-scope="dropScope" :data-accepts="accepts"><div class="row" part="row"><button $if="sortable and not disabled" class="drag-handle" part="drag-handle" type="button"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="5" r="1"></circle><circle cx="9" cy="19" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="5" r="1"></circle><circle cx="15" cy="19" r="1"></circle></svg></button><button class="disclosure" part="disclosure" type="button" :disabled="disabled"><span class="disclosure-icon" aria-hidden="true"></span></button><span class="leading" part="leading"><slot name="leading"></slot></span><span class="label" part="label"></span><span class="actions" part="actions"><slot name="actions"></slot></span><span class="drop-indicator row-drop-indicator" part="drop-indicator" aria-hidden="true"></span></div><div class="children" part="children" role="group"><slot></slot></div><span class="drop-indicator subtree-drop-indicator" part="drop-indicator" aria-hidden="true"></span></div>
+  <div role="treeitem" :data-drop-scope="dropScope" :data-accepts="accepts"><div class="row" part="row"><button $if="sortable and not disabled" class="drag-handle" part="drag-handle" type="button"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="5" r="1"></circle><circle cx="9" cy="19" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="5" r="1"></circle><circle cx="15" cy="19" r="1"></circle></svg></button><button class="disclosure" part="disclosure" type="button" :disabled="disabled"><span class="disclosure-icon" aria-hidden="true"></span></button><span class="leading" part="leading"><slot name="leading"></slot></span><span class="label" part="label"><slot name="label"><template $value="label"></template></slot></span><span class="actions" part="actions"><slot name="actions"></slot></span><span class="drop-indicator row-drop-indicator" part="drop-indicator" aria-hidden="true"></span></div><div class="children" part="children" role="group"><slot></slot></div><span class="drop-indicator subtree-drop-indicator" part="drop-indicator" aria-hidden="true"></span></div>
   <style>:scope {
   --_tree-indent: 16px;
   --_tree-row-min-height: 32px;

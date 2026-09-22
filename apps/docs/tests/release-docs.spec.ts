@@ -5,7 +5,7 @@ import componentApi from "../../../generated/component-api.json";
 
 const releaseMode = process.env.LOOMA_DOCS_RELEASE_MODE ?? "preview";
 const expectedAnnouncement = releaseMode === "candidate"
-  ? "Release 1 Candidate 0.3.0 is available"
+  ? "Release 1 Candidate 0.3.1 is available"
   : "Release 1 Candidate documentation preview";
 
 const candidatePages = [

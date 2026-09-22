@@ -6,6 +6,9 @@ import { controllerFor } from "@threadlabs/looma-core/declarative";
 
 import {
   Editable,
+  Input,
+  Select,
+  Textarea,
   MenuItem,
   SearchShell,
   Sidebar,
@@ -270,6 +273,107 @@ describe("Vue declarative adapters in a browser", () => {
     expect(host.querySelector('[part="label"]')?.textContent).toBe("Updated title");
     expect(host.querySelector('[part="children"] .child')?.textContent).toBe("Child");
     expect(host.querySelector('[part="actions"] button')?.textContent).toBe("More");
+  });
+
+  it("renders authored options inside Select", async () => {
+    const host = document.createElement("div");
+    document.body.append(host);
+    const app = createApp({
+      render: () => h(Select, { id: "topic", value: "question", required: true }, () => [
+        h("option", { value: "problem" }, "Problem"),
+        h("option", { value: "question" }, "Question"),
+      ]),
+    });
+    apps.push(app);
+    app.mount(host);
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+
+    const select = host.querySelector<HTMLSelectElement>("select")!;
+    expect(select.id).toBe("topic");
+    expect(select.required).toBe(true);
+    expect(Array.from(select.options, (option) => option.value)).toEqual(["problem", "question"]);
+    expect(select.value).toBe("question");
+    expect(select.querySelector("span")).toBeNull();
+  });
+
+  it("passes native input and change events to handlers and supports v-model", async () => {
+    const email = ref("");
+    const notes = ref("");
+    const topic = ref("problem");
+    const inputEvents: unknown[] = [];
+    const host = document.createElement("div");
+    document.body.append(host);
+    const app = createApp({
+      render: () => h("div", [
+        h(Input, {
+          modelValue: email.value,
+          "onUpdate:modelValue": (value: string) => { email.value = value; },
+          onInput: (event: unknown) => inputEvents.push(event),
+        }),
+        h(Textarea, { modelValue: notes.value, "onUpdate:modelValue": (value: string) => { notes.value = value; } }),
+        h(Select, { modelValue: topic.value, "onUpdate:modelValue": (value: string) => { topic.value = value; } }, () => [
+          h("option", { value: "problem" }, "Problem"),
+          h("option", { value: "question" }, "Question"),
+        ]),
+      ]),
+    });
+    apps.push(app);
+    app.mount(host);
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+
+    const input = host.querySelector<HTMLInputElement>("input")!;
+    input.value = "a@b.c";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    expect(email.value).toBe("a@b.c");
+    expect(inputEvents[0]).toBeInstanceOf(Event);
+    expect((inputEvents[0] as Event).target).toBe(input);
+
+    const textarea = host.querySelector<HTMLTextAreaElement>("textarea")!;
+    textarea.value = "Notes";
+    textarea.dispatchEvent(new Event("input", { bubbles: true }));
+    expect(notes.value).toBe("Notes");
+
+    const select = host.querySelector<HTMLSelectElement>("select")!;
+    select.value = "question";
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+    expect(topic.value).toBe("question");
+
+    // The model drives the control.
+    email.value = "x@y.z";
+    await nextTick();
+    expect(input.value).toBe("x@y.z");
+  });
+
+  it("shows label slot content in place of the label text and keeps label as the name", async () => {
+    const host = document.createElement("div");
+    document.body.append(host);
+    const expands: unknown[] = [];
+    const app = createApp({
+      render: () => h(TreeItem, {
+        container: true,
+        itemId: "page",
+        label: "Getting started",
+        onExpand: (detail: unknown) => expands.push(detail),
+      }, {
+        label: () => h("a", { href: "#getting-started" }, "Getting started"),
+        default: () => h("span", "Child"),
+      }),
+    });
+    apps.push(app);
+    app.mount(host);
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+
+    const item = host.querySelector<HTMLElement>('[data-component-root="ui-tree-item"]')!;
+    const link = host.querySelector<HTMLAnchorElement>('[part="label"] a')!;
+    expect(host.querySelector('[part="label"]')?.textContent).toBe("Getting started");
+    expect(item.getAttribute("aria-label")).toBe("Getting started");
+    expect(host.querySelector('[part="disclosure"]')?.getAttribute("aria-label")).toBe("Expand Getting started");
+
+    // The link navigates; it does not also toggle the row.
+    link.click();
+    expect(location.hash).toBe("#getting-started");
+    expect(expands).toEqual([]);
+    history.replaceState(null, "", location.pathname + location.search);
   });
 
   it("keeps projected regions across reactive updates after SSR hydration", async () => {

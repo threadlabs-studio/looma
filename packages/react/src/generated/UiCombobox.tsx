@@ -123,9 +123,7 @@ export function UiCombobox(props: UiComboboxProps) {
   return (
     <div {...nativeProps} data-component="ui-combobox" data-component-root="ui-combobox" data-size={prop15 ?? undefined} ref={setRoot}>
       <label htmlFor="input" part="label" data-component="ui-combobox">
-      <template data-component="ui-combobox">
-        {prop7}
-      </template>
+      {prop7}
     </label>
 <div className="field" part="field" data-component="ui-combobox">
       {slots?.["start"] ?? (null)}
@@ -148,9 +146,7 @@ export function UiCombobox(props: UiComboboxProps) {
       </button>
     </div>
 <UiTooltip id="help-text" for="help" data-component="ui-combobox">
-      <template data-component="ui-combobox">
-        {prop5}
-      </template>
+      {prop5}
     </UiTooltip>
 <div className="popup" part="popup" hidden={undefined} data-component="ui-combobox">
       <div id="listbox" role="listbox" data-component="ui-combobox"></div>
