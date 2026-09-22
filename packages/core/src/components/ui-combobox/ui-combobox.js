@@ -2,8 +2,10 @@ import { closeOverlay, createAnchoredSurface, openOverlay } from "../shared/over
 
 const instances = new WeakMap();
 
-function authoredOptions(element) {
-  return Array.from(element.querySelectorAll(".authored-options option")).map((option, index) => ({
+let comboboxes = 0;
+
+function authoredOptions(container) {
+  return Array.from(container.querySelectorAll("option")).map((option, index) => ({
     id: option.id || option.value || `option-${index}`,
     value: option.value,
     label: option.label || option.textContent?.trim() || option.value,
@@ -23,14 +25,10 @@ export async function focusInput(host) {
 export default function controller(host) {
   const element = host.element;
   const document = element.ownerDocument;
-  const overlayId = `ui-combobox-${Math.random().toString(36).slice(2)}`;
-  let input;
-  let field;
-  let popup;
-  let listbox;
-  let itemsContainer;
-  let validationElement;
-  let statusElement;
+  const uid = `ui-combobox-${++comboboxes}`;
+  const overlayId = uid;
+  const { input, field, popup, options: authored } = host.refs;
+  host.state.uid = uid;
   let surface;
   let lookup;
   let validationRun;
@@ -46,7 +44,7 @@ export default function controller(host) {
 
   // Options come from authored <option>/<optgroup> children; everything else is an attribute.
   const config = () => ({
-    options: authoredOptions(element),
+    options: authoredOptions(authored),
     allowFreeText: Boolean(host.state.allowFreeText),
     allowCreate: Boolean(host.state.allowCreate),
   });
@@ -83,7 +81,7 @@ export default function controller(host) {
     host.state.expanded = false;
     host.state.active = -1;
     cancelLookup();
-    surface?.hide();
+    surface.hide();
     closeOverlay(document, overlayId);
   };
   const canCreate = () => {
@@ -138,9 +136,9 @@ export default function controller(host) {
   const open = (reason = "input") => {
     if (host.state.disabled || host.state.readonly) return;
     host.state.expanded = true;
-    if (popup && field) popup.style.minWidth = `${field.getBoundingClientRect().width}px`;
-    surface?.show();
-    if (popup) openOverlay({ id: overlayId, element: popup, relatedElements: [element], modal: false, requestClose: close });
+    popup.style.minWidth = `${field.getBoundingClientRect().width}px`;
+    surface.show();
+    openOverlay({ id: overlayId, element: popup, relatedElements: [element], modal: false, requestClose: close });
     search(reason);
   };
   // The last option the user committed. Typing clears the selection while searching; leaving a strict
@@ -176,7 +174,7 @@ export default function controller(host) {
       host.state.raw = query;
       host.state.display = query;
     }
-    if (input) input.value = query;
+    input.value = query;
     host.dispatch("query-change", { query, display: query, trigger });
   };
   const addSelectedItem = (option, trigger) => {
@@ -197,7 +195,7 @@ export default function controller(host) {
     else if (canCreate() && index === host.state.rows.length) commit(null, host.state.raw, null, "create", trigger);
     else return;
     close();
-    input?.focus();
+    input.focus();
     if (!host.state.multiple) queueMicrotask(() => void validateCurrent());
   };
   // A strict combobox (single, no free text, no create) behaves like a select: leaving it resolves the
@@ -234,14 +232,14 @@ export default function controller(host) {
     if (option) { setMultiQuery("", trigger); addSelectedItem(option, trigger); }
     else if (config().allowCreate) { setMultiQuery("", trigger); createSelectedItem(query, trigger); }
   };
-  const itemButtons = () => Array.from(element.querySelectorAll('[part="item"]'));
+  const itemButtons = () => Array.from(field.querySelectorAll(".item"));
   const removeItemAt = (index, trigger) => {
     const current = items();
     const item = current[index];
     if (!item || item.disabled || host.state.disabled || host.state.readonly) return;
     host.dispatch("remove-item", { item, index, trigger });
     emitItems(current.filter((_, position) => position !== index));
-    requestAnimationFrame(() => itemButtons()[Math.min(index, itemButtons().length - 1)]?.focus?.() ?? input?.focus());
+    requestAnimationFrame(() => itemButtons()[Math.min(index, itemButtons().length - 1)]?.focus?.() ?? input.focus());
   };
   const move = (key) => {
     const rows = host.state.rows ?? [];
@@ -251,7 +249,7 @@ export default function controller(host) {
     const current = indices.indexOf(host.state.active);
     const next = key === "Home" ? 0 : key === "End" ? indices.length - 1 : key === "ArrowDown" ? Math.min(current + 1, indices.length - 1) : current < 0 ? indices.length - 1 : Math.max(0, current - 1);
     host.state.active = indices[next];
-    requestAnimationFrame(() => element.querySelector(`#option-${host.state.active}`)?.scrollIntoView({ block: "nearest" }));
+    requestAnimationFrame(() => document.getElementById(`${uid}-option-${host.state.active}`)?.scrollIntoView({ block: "nearest" }));
   };
   const validateCurrent = async () => {
     validationRun?.abort();
@@ -294,152 +292,34 @@ export default function controller(host) {
     resetValidation();
     if (host.state.expanded) search("input");
   };
-  const makeChip = (item) => {
-    const projected = element.querySelector(`[slot="item-${CSS.escape(item.id)}"]`);
-    if (projected) return projected;
-    const chip = document.createElement("ui-chip");
-    chip.setAttribute("appearance", "pill");
-    chip.textContent = item.label;
-    return chip;
-  };
-  const makeOptionContent = (row) => {
-    const projected = element.querySelector(`[slot="option-${CSS.escape(row.id)}"]`);
-    if (projected) return [projected];
-    const primary = document.createElement("span");
-    primary.className = "primary";
-    primary.setAttribute("part", "option-primary");
-    primary.textContent = row.label;
-    return [primary];
-  };
-  const renderDynamic = () => {
-    if (itemsContainer) {
-      itemsContainer.replaceChildren();
-      items().forEach((item, index) => {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "item";
-        button.setAttribute("part", "item");
-        button.dataset.value = item.value;
-        button.dataset.index = String(index);
-        button.tabIndex = -1;
-        button.disabled = Boolean(host.state.disabled || host.state.readonly || item.disabled);
-        button.setAttribute("aria-label", `${item.label}, press Delete or Backspace to remove`);
-        button.append(makeChip(item));
-        itemsContainer.append(button);
-      });
-    }
-    if (listbox) {
-      listbox.replaceChildren();
-      const rows = host.state.rows ?? [];
-      // `Array.from` is intentional here. The docs' legacy browser transform rewrites
-      // array spread as `[].concat(iterable)`, which nests a Set instead of expanding
-      // it. That turned the ungrouped option bucket into a visible "[object Set]"
-      // heading and prevented every option from matching its group.
-      const groups = Array.from(new Set(rows.map((row) => row.group ?? "")));
-      for (const group of groups) {
-        const wrapper = document.createElement("div");
-        wrapper.setAttribute("role", group ? "group" : "presentation");
-        if (group) {
-          wrapper.setAttribute("aria-label", group);
-          const heading = document.createElement("div");
-          heading.className = "group";
-          heading.setAttribute("part", "group");
-          heading.textContent = group;
-          wrapper.append(heading);
-        }
-        rows.forEach((row, index) => {
-          if ((row.group ?? "") !== group) return;
-          const option = document.createElement("div");
-          option.id = `option-${index}`;
-          option.className = "option";
-          option.setAttribute("part", "option");
-          option.setAttribute("role", "option");
-          option.setAttribute("aria-selected", String(host.state.selected === row.value));
-          option.setAttribute("aria-disabled", String(Boolean(row.disabled)));
-          option.toggleAttribute("data-active", host.state.active === index);
-          option.dataset.index = String(index);
-          option.append(...makeOptionContent(row));
-          wrapper.append(option);
-        });
-        listbox.append(wrapper);
+  // Everything the template renders from, derived from the current state.
+  const updateView = () => {
+    const rows = host.state.rows ?? [];
+    const groups = [];
+    rows.forEach((row, index) => {
+      const name = row.group ?? "";
+      let group = groups.find((candidate) => candidate.name === name);
+      if (!group) {
+        group = { name, role: name ? "group" : "presentation", label: name || null, rows: [] };
+        groups.push(group);
       }
-      if (canCreate()) {
-        const option = document.createElement("div");
-        option.id = `option-${rows.length}`;
-        option.className = "option";
-        option.setAttribute("part", "option");
-        option.setAttribute("role", "option");
-        option.setAttribute("aria-selected", "false");
-        option.toggleAttribute("data-active", host.state.active === rows.length);
-        option.dataset.index = String(rows.length);
-        option.textContent = `Create “${host.state.raw}”`;
-        listbox.append(option);
-      }
-      const message = document.createElement("div");
-      message.className = "message";
-      if (host.state.loading) message.textContent = "Loading suggestions…";
-      else if (host.state.lookupError) message.textContent = host.state.lookupError;
-      else if (!rows.length && !canCreate()) message.textContent = "No suggestions.";
-      if (message.textContent) listbox.append(message);
-    }
-    if (validationElement) {
-      validationElement.replaceChildren(...(host.state.validation?.issues ?? []).map((issue) => {
-        const line = document.createElement("div");
-        line.textContent = issue.message;
-        return line;
-      }));
-      validationElement.hidden = !(host.state.validation?.issues?.length);
-    }
-  };
-  const wire = () => {
-    input = element.querySelector('input[part="input"]');
-    field = element.querySelector('[part="field"]');
-    popup = element.querySelector('[part="popup"]');
-    listbox = element.querySelector("#listbox");
-    itemsContainer = element.querySelector(".items");
-    validationElement = element.querySelector("#validation");
-    statusElement = element.querySelector('[role="status"]');
-    if (!surface && popup && field) surface = createAnchoredSurface(popup, { anchor: field, placement: "bottom-start" });
-    const clearButton = Array.from(field?.querySelectorAll('button[part="affordance"]') ?? []).find((button) => button.textContent?.trim() === "×");
-    const disclosureButton = field?.querySelector('button[aria-controls="listbox"]');
-    if (clearButton) clearButton.dataset.comboboxAction = "clear";
-    if (disclosureButton) disclosureButton.dataset.comboboxAction = "disclosure";
-  };
-  const render = () => {
-    wire();
+      group.rows.push({ ...row, index });
+    });
+    host.state.groups = groups;
+    host.state.creatable = canCreate();
+    host.state.createIndex = rows.length;
+    host.state.message = host.state.loading ? "Loading suggestions…"
+      : host.state.lookupError || (!rows.length && !host.state.creatable ? "No suggestions." : "");
     const validation = host.state.validation ?? { status: "pristine", issues: [] };
-    element.dataset.validation = validation.status;
-    element.dataset.size = String(host.state.size ?? "md");
-    const label = element.querySelector('label[part="label"]');
-    if (label) {
-      label.textContent = `${host.state.label ?? ""}${host.state.required ? " *" : ""}`;
-      label.classList.toggle("sr-only", host.state.labelVisibility === "sr-only");
-    }
-    if (input) {
-      if (!composing && input.value !== host.state.display) input.value = String(host.state.display ?? "");
-      input.placeholder = String(host.state.placeholder ?? "");
-      input.name = String(host.state.name ?? "");
-      input.disabled = Boolean(host.state.disabled);
-      input.readOnly = Boolean(host.state.readonly);
-      input.required = Boolean(host.state.required);
-      input.setAttribute("aria-expanded", String(Boolean(host.state.expanded)));
-      input.setAttribute("aria-invalid", String(validation.status === "error"));
-      input.setAttribute("aria-busy", String(validation.status === "pending"));
-      if (host.state.expanded && host.state.active >= 0) input.setAttribute("aria-activedescendant", `option-${host.state.active}`);
-      else input.removeAttribute("aria-activedescendant");
-      const description = [host.state.helpOpen ? "help-text" : "", validation.issues?.length ? "validation" : ""].filter(Boolean).join(" ");
-      if (description) input.setAttribute("aria-describedby", description);
-      else input.removeAttribute("aria-describedby");
-    }
-    if (popup) popup.hidden = !host.state.expanded;
-    listbox?.setAttribute("aria-label", `${host.state.label ?? ""} suggestions`);
-    listbox?.setAttribute("aria-busy", String(Boolean(host.state.loading)));
-    if (statusElement) {
-      const status = host.state.loading ? "Loading suggestions…" : host.state.lookupError || (host.state.expanded ? `${host.state.rows?.length ?? 0} suggestions available.` : "");
-      statusElement.textContent = `${status} ${validation.status === "pending" ? "Checking value…" : (validation.issues ?? []).map((issue) => issue.message).join(" ")}`.trim();
-    }
-    renderDynamic();
-    if (host.state.expanded) surface?.refresh();
+    host.state.validationStatus = validation.status;
+    const status = host.state.loading ? "Loading suggestions…" : host.state.lookupError || (host.state.expanded ? `${rows.length} suggestions available.` : "");
+    host.state.statusText = `${status} ${validation.status === "pending" ? "Checking value…" : (validation.issues ?? []).map((issue) => issue.message).join(" ")}`.trim();
+    if (host.state.expanded && host.state.active >= 0) input.setAttribute("aria-activedescendant", `${uid}-option-${host.state.active}`);
+    else input.removeAttribute("aria-activedescendant");
+    const description = [host.state.helpOpen ? `${uid}-help-text` : "", validation.issues?.length ? `${uid}-validation` : ""].filter(Boolean).join(" ");
+    if (description) input.setAttribute("aria-describedby", description);
+    else input.removeAttribute("aria-describedby");
+    if (host.state.expanded) surface.refresh();
   };
   const onInput = (event) => {
     if (event.target !== input || composing || event.isComposing) return;
@@ -453,12 +333,12 @@ export default function controller(host) {
     queueMicrotask(() => { if (host.state.query !== undefined && host.state.query !== host.state.raw) syncQuery(); });
   };
   const onKeydown = (event) => {
-    const item = event.target.closest?.('[part="item"]');
+    const item = event.target.closest?.(".item");
     if (item) {
       if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
       const index = Number(item.dataset.index);
       if (event.key === "ArrowLeft") { event.preventDefault(); itemButtons()[Math.max(0, index - 1)]?.focus(); }
-      else if (event.key === "ArrowRight") { event.preventDefault(); index === items().length - 1 ? input?.focus() : itemButtons()[index + 1]?.focus(); }
+      else if (event.key === "ArrowRight") { event.preventDefault(); index === items().length - 1 ? input.focus() : itemButtons()[index + 1]?.focus(); }
       else if (["Backspace", "Delete"].includes(event.key)) { event.preventDefault(); removeItemAt(index, "keyboard"); }
       return;
     }
@@ -481,9 +361,9 @@ export default function controller(host) {
     const option = event.target.closest?.('[role="option"][data-index]');
     if (option) { choose(Number(option.dataset.index), "pointer"); return; }
     const action = event.target.closest?.("[data-combobox-action]")?.dataset.comboboxAction;
-    if (action === "clear") { lastSelection = null; commit(null, "", null, "clear", "pointer"); close(); input?.focus(); }
-    else if (action === "disclosure") { host.state.expanded ? close() : open("disclosure"); input?.focus(); }
-    else if (field?.contains(event.target) && !event.target.closest?.("button")) input?.focus();
+    if (action === "clear") { lastSelection = null; commit(null, "", null, "clear", "pointer"); close(); input.focus(); }
+    else if (action === "disclosure") { host.state.expanded ? close() : open("disclosure"); input.focus(); }
+    else if (field.contains(event.target) && !event.target.closest?.("button")) input.focus();
   };
   const onPointerdown = (event) => { if (event.target.closest?.('[role="option"]')) event.preventDefault(); };
   const onFocusout = (event) => {
@@ -496,8 +376,8 @@ export default function controller(host) {
   };
   const onCompositionstart = (event) => { if (event.target === input) composing = true; };
   const onCompositionend = (event) => { if (event.target === input) { composing = false; onInput(new InputEvent("input")); } };
-  const onTooltipOpen = (event) => { if (event.target.closest?.('[data-component-root~="ui-tooltip"]')) host.state.helpOpen = true; };
-  const onTooltipClose = (event) => { if (event.target.closest?.('[data-component-root~="ui-tooltip"]')) host.state.helpOpen = false; };
+  const onTooltipOpen = (event) => { if (event.target.closest?.('[data-component~="ui-tooltip"]')) host.state.helpOpen = true; };
+  const onTooltipClose = (event) => { if (event.target.closest?.('[data-component~="ui-tooltip"]')) host.state.helpOpen = false; };
 
   if (host.state.multiple) {
     host.state.selected = null;
@@ -513,7 +393,7 @@ export default function controller(host) {
   host.state.display = host.state.raw;
   initialRaw = host.state.raw;
   host.state.validation = { status: "pristine", touched: false, dirty: false, issues: [] };
-  wire();
+  surface = createAnchoredSurface(popup, { anchor: field, placement: "bottom-start" });
 
   const api = { get input() { return input; }, validate: validateCurrent };
   instances.set(element, api);
@@ -523,22 +403,21 @@ export default function controller(host) {
   // then shows its current label, unless the user is editing the text.
   const relabel = () => {
     if (host.state.multiple || host.state.query !== undefined || host.state.selected == null) return;
-    if (input && element.ownerDocument.activeElement === input) return;
+    if (element.ownerDocument.activeElement === input) return;
     const label = config().options?.find((row) => row.value === host.state.selected)?.label;
     if (label === undefined || label === host.state.raw) return;
     host.state.raw = label;
     host.state.display = label;
     awaitingLabel = null;
   };
-  const observer = new MutationObserver(() => { wire(); relabel(); });
-  observer.observe(element, { childList: true, subtree: true, characterData: true });
+  const observer = new MutationObserver(relabel);
+  observer.observe(authored, { childList: true, subtree: true, characterData: true, attributes: true });
   const stop = host.effect(() => {
     if (host.state.value !== lastValue) { lastValue = host.state.value; syncValue(); }
     if (host.state.query !== lastQuery) { lastQuery = host.state.query; syncQuery(); }
     if (host.state.disabled || host.state.readonly) close();
-    render();
+    updateView();
   });
-  render();
 
   return () => {
     alive = false;
@@ -547,7 +426,7 @@ export default function controller(host) {
     for (const [name, listener] of Object.entries(listeners)) element.removeEventListener(name, listener);
     close();
     validationRun?.abort();
-    surface?.destroy();
+    surface.destroy();
     instances.delete(element);
   };
 }
