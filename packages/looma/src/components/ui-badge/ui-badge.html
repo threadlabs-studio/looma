@@ -26,6 +26,20 @@
       white-space: nowrap;
     }
 
+    /* Centre the glyphs, not the line box: a label without descenders otherwise reads high. */
+    /* Centre the glyphs, not the line box: a label without descenders otherwise reads high.
+     * Trimming applies to block containers, so the box is a block with centred content. */
+    @supports (text-box-trim: trim-both) {
+      :host {
+        display: block;
+        min-block-size: var(--ui-badge-min-block-size, 1.5rem);
+        text-align: center;
+        align-content: center;
+        text-box-trim: trim-both;
+        text-box-edge: cap alphabetic;
+      }
+    }
+
     :host-state([tone="accent"]) {
       --_badge-surface: var(--ui-accent-strong-surface, var(--ui-accent-solid));
       --_badge-border: var(--ui-accent-strong-surface, var(--ui-accent-solid));
