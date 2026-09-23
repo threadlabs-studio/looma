@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Buttons take a `tone` and a `variant`: tone is the colour (accent, neutral, danger, success,
+  warning, info), variant is the volume (solid, outline, ghost, link). Every pairing works, so a
+  destructive secondary action is `tone="danger" variant="outline"` rather than a missing case.
+  `variant="danger"` still resolves to a solid danger button.
+- An outline is an outline: its tone at the edge over that same tone at 5%. It used to be a filled
+  grey box with a white highlight, which read as a solid button and belonged to no palette.
+- Disabled keeps the shape and a trace of the tone: a disabled outline is still an outline in its
+  own colour, a disabled solid is still filled, and neither looks raised.
 - Every button variant shares one treatment: the same corner, edge, highlight, and shadow, with a
   press that moves the shadow inside. Outline is an outline again — its own colour at the edge over
   a wash of it — rather than a filled grey button. Nothing lifts on hover.
