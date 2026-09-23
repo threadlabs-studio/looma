@@ -26,7 +26,11 @@
     <state name="display" :value="''"></state>
     <state name="selected" type="string | null" :value="null"></state>
     <state name="expanded" :value="false"></state>
-    <state name="rows" type="list(object({ id: string, value: string, label: string, group?: string, disabled: boolean, selected: boolean }))" :value="[]"></state>
+    <state
+      name="rows"
+      type="list(object({ id: string, value: string, label: string, group?: string, disabled: boolean, selected: boolean }))"
+      :value="[]"
+    ></state>
     <state name="active" :value="-1"></state>
     <state name="loading" :value="false"></state>
     <state name="helpOpen" :value="false"></state>
