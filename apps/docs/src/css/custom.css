@@ -1253,6 +1253,12 @@ body:has(.theme-doc-sidebar-container) .footer { margin-top: 0; }
 /* Infima sets these below the docs floor. */
 .breadcrumbs__link, .pagination-nav__sublabel, .table-of-contents { font-size: var(--looma-text-xs); }
 
+/* Infima's grid also owns .row, and its negative margin drags a Looma tree row out of its
+ * preview. Component markup inside a preview keeps its own geometry. */
+:is(.looma-preview-scenario__stage, .looma-component-card__preview, .looma-live-example) .row {
+  margin-inline: 0;
+}
+
 /* Page gutter: breathing room between content and the sidebar or viewport edge. */
 main > .container { padding-inline: clamp(1.25rem, 4vw, 3.5rem); }
 
