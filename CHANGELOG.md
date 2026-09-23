@@ -154,6 +154,10 @@ other global derives from them. See the entries below for the renames and remova
 - A dark theme's intent tones take a dark foreground (`--ui-on-accent`, `--ui-on-danger`), since
   its solid tones are light.
 
+- Editor: the formatting toolbar's Insert table opens its grid. The button toggled the picker and
+  the popover anchored to it toggled it back on the same click.
+- Tests: the editor's table and slash-menu UI is covered in the browser.
+
 ## v0.5.2
 
 - The Vue components are converted by `@nextwebwg/html-next` (it replaces the deprecated
