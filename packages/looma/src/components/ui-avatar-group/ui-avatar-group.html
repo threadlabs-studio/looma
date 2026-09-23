@@ -12,6 +12,11 @@
   </div>
   <style>
     :host {
+      /* Avatars separate with a tight, crisp edge, matching Looma's 1px borders rather than the
+       * diffuse elevation overlays use. */
+      --_overlap-shadow: -2px 0 2px -1px rgba(0, 0, 0, 0.22);
+      --_edge-ring: 0 0 0 1px rgba(0, 0, 0, 0.08);
+
       display: flex;
       align-items: center;
       flex-direction: row;
@@ -42,8 +47,8 @@
       background: var(--ui-surface-elevated);
       color: var(--ui-text-primary);
       box-shadow:
-        var(--ui-avatar-group-overlap-shadow, -2px 0 5px -1px rgb(0 0 0 / 0.28)),
-        0 0 0 1px rgb(0 0 0 / 0.06);
+        var(--ui-avatar-group-overlap-shadow, var(--_overlap-shadow)),
+        var(--ui-avatar-group-edge-ring, var(--_edge-ring));
       font: inherit;
       font-size: 0.75rem;
       font-weight: 600;
