@@ -11,7 +11,7 @@ function parentItem(element) {
 /** Synchronizes an inferred tree hierarchy after nested component lowering. */
 export default function controller(host) {
   const element = host.element;
-  const { row, disclosure, children, actions } = host.refs;
+  const { row, disclosure, children, actions, labelText } = host.refs;
   // Touch use enlarges rows and hides drag handles (see the template's styles).
   trackInputModality(element.ownerDocument);
   const childItems = () => Array.from(children?.children ?? [])
@@ -81,6 +81,31 @@ export default function controller(host) {
   updateLevel();
   const stop = host.effect(apply);
   apply();
+  /**
+   * A hovered row reads its whole name. The distance is what the label overflows by, measured
+   * while hovered because the controls take their column then, and the duration comes from that
+   * distance so a longer name travels at the same speed rather than in the same time.
+   */
+  const MARQUEE_SPEED = 45; // CSS pixels per second.
+  const startMarquee = () => {
+    if (!labelText) return;
+    const overflow = Math.round(labelText.scrollWidth - labelText.clientWidth);
+    if (overflow < 2) return;
+    row.style.setProperty("--_marquee-distance", `${-overflow}px`);
+    row.style.setProperty("--_marquee-duration", `${Math.max(0.6, overflow / MARQUEE_SPEED).toFixed(2)}s`);
+    row.dataset.uiMarquee = "";
+  };
+  const stopMarquee = () => {
+    delete row.dataset.uiMarquee;
+    row.style.removeProperty("--_marquee-distance");
+    row.style.removeProperty("--_marquee-duration");
+  };
+  // Pointer and focus both count: a keyboard walk through a tree reads the same names.
+  row.addEventListener("pointerenter", startMarquee);
+  row.addEventListener("pointerleave", stopMarquee);
+  row.addEventListener("focusin", startMarquee);
+  row.addEventListener("focusout", stopMarquee);
+
   // The label's fade has to end where the controls begin, and only the controls know their width.
   const actionsSize = new ResizeObserver(([entry]) => {
     const width = entry.borderBoxSize?.[0]?.inlineSize ?? entry.contentRect.width;
@@ -92,6 +117,10 @@ export default function controller(host) {
     stop?.();
     observer.disconnect();
     actionsSize.disconnect();
+    row.removeEventListener("pointerenter", startMarquee);
+    row.removeEventListener("pointerleave", stopMarquee);
+    row.removeEventListener("focusin", startMarquee);
+    row.removeEventListener("focusout", stopMarquee);
     element.removeEventListener("ui-tree-auto-expand", onAutoExpand);
     element.removeEventListener("ui-tree-structure-sync", onStructure);
     element.removeEventListener("ui-tree-roving-tab-stop", onRoving);
