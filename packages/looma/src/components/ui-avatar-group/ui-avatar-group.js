@@ -10,10 +10,10 @@ export default function controller(host) {
       avatar.style.display = index >= visible ? "none" : "";
       avatar.style.marginInlineStart = index === 0 ? "0px" : "-0.625rem";
       avatar.style.borderRadius = "999px";
-      // Later avatars cast a soft shadow back onto the one they overlap; the first overlaps nothing.
+      // Later avatars cast a crisp shadow back onto the one they overlap; the first overlaps nothing.
       avatar.style.boxShadow = index === 0
-        ? "0 0 0 1px rgb(0 0 0 / 0.06)"
-        : "var(--ui-avatar-group-overlap-shadow, -2px 0 5px -1px rgb(0 0 0 / 0.28)), 0 0 0 1px rgb(0 0 0 / 0.06)";
+        ? "var(--ui-avatar-group-edge-ring, var(--_edge-ring))"
+        : "var(--ui-avatar-group-overlap-shadow, var(--_overlap-shadow)), var(--ui-avatar-group-edge-ring, var(--_edge-ring))";
     });
     host.state.overflowCount = Math.max(0, avatars.length - visible);
   };

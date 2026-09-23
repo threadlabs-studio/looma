@@ -4,7 +4,8 @@ import axe from "axe-core";
 import componentApi from "../../../generated/component-api.json";
 
 const candidatePages = [
-  { path: "./", heading: "Getting Started" },
+  { path: "./", heading: "Looma" },
+  { path: "getting-started", heading: "Getting Started" },
   { path: "release-1-support", heading: "Release 1 Support and Limitations" },
   { path: "components/ui-context-menu", heading: "Context Menu" }
 ] as const;
@@ -120,7 +121,7 @@ test("the install path exposes the facade package and the support boundary", asy
 }) => {
   await page.goto("./", { waitUntil: "domcontentloaded" });
 
-  await expect(page.getByText("@threadlabs/looma", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("pnpm add @threadlabs/looma", { exact: true }).first()).toBeVisible();
   await expect(page.locator("body")).not.toContainText(
     /not published yet|publication pending|become usable when the package is published/i
   );
@@ -291,10 +292,15 @@ test("toast-region starts empty, fires on demand, and uses a compact round dismi
   await page.goto("components/ui-toast-region", { waitUntil: "domcontentloaded" });
   const scenario = page.locator("[data-preview-scenario='Default closed']");
   const region = scenario.locator("[data-component~='ui-toast-region']");
+  // The region answers "show a toast" only once the runtime has lowered it and its controller ran.
+  // It is a manual popover, so it stays hidden until it holds one.
+  await expect(region).toBeAttached();
   await expect(region.locator(".toast")).toHaveCount(0);
-  await scenario.getByRole("button", { name: "Show toast" }).click();
   const toast = region.locator(".toast");
-  await expect(toast).toBeVisible();
+  await expect(async () => {
+    await scenario.getByRole("button", { name: "Show toast" }).click();
+    await expect(toast).toBeVisible({ timeout: 1000 });
+  }).toPass({ timeout: 10_000 });
   const dismiss = toast.getByRole("button", { name: /Dismiss page saved/i });
   const treatment = await region.evaluate((element) => {
     const style = getComputedStyle(element);
@@ -1158,7 +1164,7 @@ test("the desktop hero stays inside the content column", async ({ page }) => {
   await page.goto("./", { waitUntil: "networkidle" });
 
   const main = page.getByRole("main");
-  const heading = page.getByRole("heading", { level: 1, name: "Getting Started" });
+  const heading = page.getByRole("heading", { level: 1, name: "Looma" });
   await expect(main).toBeVisible();
   await expect(heading).toBeVisible();
   const mainBounds = await main.boundingBox();
@@ -1174,7 +1180,7 @@ test("the desktop hero stays inside the content column", async ({ page }) => {
 test("framework mode defaults to HTML Next and follows the reader between pages", async ({
   page
 }) => {
-  await page.goto("./", { waitUntil: "domcontentloaded" });
+  await page.goto("getting-started", { waitUntil: "domcontentloaded" });
 
   const modeGroup = page.getByRole("group", { name: "Example framework" }).first();
   await expect(modeGroup.getByRole("button", { name: "HTML Next" })).toHaveAttribute(
@@ -1219,7 +1225,7 @@ test("an invalid saved framework mode falls back to HTML Next", async ({ page })
   await page.addInitScript(() => {
     window.localStorage.setItem("looma-docs-framework-mode", "unknown-adapter");
   });
-  await page.goto("./", { waitUntil: "domcontentloaded" });
+  await page.goto("getting-started", { waitUntil: "domcontentloaded" });
 
   await expect(
     page.getByRole("group", { name: "Example framework" }).first()
@@ -1261,6 +1267,89 @@ test("Looma navigation only points to Looma resources", async ({ page }) => {
 
   await expect(page.getByRole("link", { name: /Knit/ })).toHaveCount(0);
   await expect(page.getByRole("link", { name: "View on GitHub", exact: true })).toBeVisible();
+});
+
+test("tree row actions reveal on hover instead of reserving row width", async ({ page }) => {
+  await page.goto("components/ui-tree-item", { waitUntil: "domcontentloaded" });
+  const scenario = page.locator("[data-preview-scenario='Actions slot']");
+  const row = scenario.locator("[data-component~='ui-tree-item'] .row").first();
+  await expect(row).toBeVisible();
+
+  // Controls that only appear on hover must not shorten the label: a sidebar row should run out
+  // of width at the tree's edge, not at the start of a reserved actions column.
+  const resting = await row.evaluate((element) => {
+    const actions = element.querySelector<HTMLElement>(".actions")!;
+    const label = element.querySelector<HTMLElement>(".label")!;
+    return {
+      opacity: getComputedStyle(actions).opacity,
+      labelToRowEnd: element.getBoundingClientRect().right - label.getBoundingClientRect().right,
+      chevronToRowStart:
+        element.querySelector<HTMLElement>(".disclosure-icon")!.getBoundingClientRect().left
+        - element.getBoundingClientRect().left
+    };
+  });
+  expect(resting.opacity).toBe("0");
+  expect(Math.abs(resting.labelToRowEnd)).toBeLessThanOrEqual(1);
+  // The chevron's ink starts the row, so a heading above the tree lines up with it.
+  expect(Math.abs(resting.chevronToRowStart)).toBeLessThanOrEqual(1);
+
+  await row.hover();
+  await expect
+    .poll(async () => row.evaluate((element) => getComputedStyle(element.querySelector(".actions")!).opacity))
+    .toBe("1");
+
+  // The label keeps its width while they are visible, so the name never re-truncates under the
+  // pointer. Its end fades out where they begin, and that fade replaces the ellipsis.
+  const hovered = await row.evaluate((element) => {
+    const actions = element.querySelector<HTMLElement>(".actions")!;
+    const label = element.querySelector<HTMLElement>(".label")!;
+    const labelStyle = getComputedStyle(label);
+    return {
+      position: getComputedStyle(actions).position,
+      mask: labelStyle.maskImage,
+      textOverflow: labelStyle.textOverflow,
+      publishedWidth: getComputedStyle(element.closest("[data-component~='ui-tree-item']")!)
+        .getPropertyValue("--_tree-actions-width"),
+      actionsWidth: actions.getBoundingClientRect().width,
+      labelToRowEnd: element.getBoundingClientRect().right - label.getBoundingClientRect().right
+    };
+  });
+  expect(hovered.position).toBe("absolute");
+  expect(hovered.mask).toContain("gradient");
+  expect(hovered.textOverflow).toBe("clip");
+  expect(Math.abs(hovered.labelToRowEnd)).toBeLessThanOrEqual(1);
+  // The fade ends where the controls start, so it tracks their measured width.
+  expect(parseFloat(hovered.publishedWidth)).toBeCloseTo(hovered.actionsWidth, 0);
+});
+
+test("the catalog renders one filter per sidebar category and each filter narrows the grid", async ({
+  page
+}) => {
+  await page.goto("components/", { waitUntil: "networkidle" });
+  const filters = page.locator(".looma-catalog__filters button");
+  const cards = page.locator("[data-component-card]");
+
+  // The bundle downlevels iterable spread, so a Set spread renders one filter holding every
+  // label. Each category must be its own control with its own count.
+  const labels = await filters.allInnerTexts();
+  expect(labels.length).toBeGreaterThan(2);
+  const total = await cards.count();
+  expect(labels[0].replace(/\s+/g, " ")).toBe(`All ${total}`);
+
+  let counted = 0;
+  for (let index = 1; index < labels.length; index += 1) {
+    const [name, count] = labels[index].split("\n");
+    expect(Number(count)).toBeGreaterThan(0);
+    counted += Number(count);
+    await filters.nth(index).click();
+    await expect(cards).toHaveCount(Number(count));
+    await expect(filters.nth(index)).toHaveAttribute("aria-pressed", "true");
+    expect(name).toMatch(/^[A-Za-z]+$/);
+  }
+  expect(counted).toBe(total);
+
+  await filters.first().click();
+  await expect(cards).toHaveCount(total);
 });
 
 test("checkbox, switch, and radio APIs generate their own aligned native controls", async ({ page }) => {

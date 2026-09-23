@@ -8,6 +8,42 @@
   exposed methods are unchanged, and the shared module is internal. Needs
   `@nextwebwg/html-next` 1.0.0-alpha.3, which generates it.
 
+## v0.6.3
+
+- The editor toolbar labels its buttons with a Looma tooltip instead of the browser's `title`: one
+  tooltip follows the row, waiting before the first button and moving immediately along it, and it
+  shows on keyboard focus, which `title` never did.
+
+## v0.6.2
+
+- Combobox with `multiple` keeps the items it selects. It reported each choice and waited for the
+  consumer to pass `items` back, so selecting an option appeared to do nothing. A consumer that
+  sets `items` still owns them.
+- Combobox's help affordance is a circled question mark beside the field, not a bare `?` inside the
+  box, and it opens its tooltip on press. A control's box holds its value.
+- Tooltip takes `trigger`: `hover` (also opens on keyboard focus), `click` for a help button where
+  hovering a question mark says nothing, or `focus`.
+
+## v0.6.1
+
+Fixes for 0.6.0, found by a new rule that checks every token a stylesheet reads is defined.
+
+- The editor's stylesheet still referenced tokens 0.6.0 renamed (`--ui-radius-1`/`-2`,
+  `--ui-editor-toolbar-bg`, `--ui-space-1-5`). `var()` with no fallback is invalid when the name is
+  undefined, so those radii computed as 0 and `--ui-editor-toolbar-surface` was ignored.
+- Restored `--ui-font-size-xl`, `--ui-font-size-2xl`, and `--ui-line-height-relaxed`, which the
+  editor's prose reads: 0.6.0 removed them as unread.
+- The editor toolbar marks an active mark with a tint, not a solid fill. Solid is the strongest
+  emphasis and means "this is the action to take"; a row of nineteen controls should not shout at
+  rest. `--ui-editor-toolbar-active-surface`, `-text`, and `-border` set it. Each toggle now also
+  reports `aria-pressed`.
+- The pinned editor toolbar wraps instead of scrolling behind a hidden scrollbar, so controls that
+  do not fit the text column stay reachable.
+- Tokens that never matched their component are renamed: `--ui-layout-gap` is `--ui-stack-gap` and
+  `--ui-cluster-gap`; `--ui-toast-enter-duration`/`-exit-duration` are
+  `--ui-toast-region-enter-duration`/`-exit-duration`. Per-instance values the component sets
+  itself (the insert-table grid's dimensions, the table swatch colours) are private.
+
 ## v0.6.0
 
 Migrating a theme:
