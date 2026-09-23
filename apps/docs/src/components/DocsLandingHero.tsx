@@ -73,8 +73,8 @@ export function DocsLandingHero(): JSX.Element {
                   </ui-avatar-group>
                 </div>
                 <ui-callout tone="info">Design review starts tomorrow at 10:00.</ui-callout>
-                <label className="looma-demo-task"><input type="checkbox" defaultChecked /><span>Prepare engineering handoff</span></label>
-                <label className="looma-demo-task"><input type="checkbox" /><span>Publish release notes</span></label>
+                <ui-checkbox checked>Prepare engineering handoff</ui-checkbox>
+                <ui-checkbox>Publish release notes</ui-checkbox>
                 <div className="looma-demo-app__actions">
                   <ui-button variant="ghost" size="sm">Later</ui-button>
                   <ui-button variant="solid" size="sm">Open project</ui-button>

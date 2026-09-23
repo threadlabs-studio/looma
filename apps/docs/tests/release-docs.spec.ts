@@ -1269,6 +1269,48 @@ test("Looma navigation only points to Looma resources", async ({ page }) => {
   await expect(page.getByRole("link", { name: "View on GitHub", exact: true })).toBeVisible();
 });
 
+/** Ink the control paints inside its own fill: a state that is styled but never drawn reads as off. */
+async function markedPixels(control: Locator): Promise<number> {
+  const shot = (await control.screenshot()).toString("base64");
+  return control.evaluate(async (element, encoded) => {
+    const image = new Image();
+    image.src = `data:image/png;base64,${encoded}`;
+    await image.decode();
+    const canvas = document.createElement("canvas");
+    canvas.width = image.width;
+    canvas.height = image.height;
+    const context = canvas.getContext("2d")!;
+    context.drawImage(image, 0, 0);
+    const { data } = context.getImageData(0, 0, canvas.width, canvas.height);
+    const luminance = (index: number) => 0.299 * data[index] + 0.587 * data[index + 1] + 0.114 * data[index + 2];
+    const fill = getComputedStyle(element).backgroundColor.match(/[\d.]+/g)!.map(Number);
+    const fillLuminance = 0.299 * fill[0] + 0.587 * fill[1] + 0.114 * fill[2];
+    // Inset past the border, so only what the control draws inside itself counts.
+    const inset = Math.max(3, Math.round(canvas.width * 0.18));
+    let marked = 0;
+    for (let y = inset; y < canvas.height - inset; y += 1) {
+      for (let x = inset; x < canvas.width - inset; x += 1) {
+        if (Math.abs(luminance((y * canvas.width + x) * 4) - fillLuminance) > 60) marked += 1;
+      }
+    }
+    return marked;
+  }, shot);
+}
+
+test("a checked checkbox paints its tick", async ({ page }) => {
+  await page.goto("components/ui-checkbox", { waitUntil: "domcontentloaded" });
+  const control = page.locator("[data-preview-scenario]").first().getByRole("checkbox").first();
+  await expect(control).toBeVisible();
+  expect(await markedPixels(control)).toBe(0);
+
+  await control.click();
+  await expect(control).toBeChecked();
+
+  // The tick used to vanish: lowering dropped `border: solid var(...)`, which left it with no
+  // style and therefore no width, so the box filled with accent and showed nothing inside it.
+  expect(await markedPixels(control), "checked checkbox draws no tick").toBeGreaterThan(10);
+});
+
 test("tree row actions reveal on hover instead of reserving row width", async ({ page }) => {
   await page.goto("components/ui-tree-item", { waitUntil: "domcontentloaded" });
   const scenario = page.locator("[data-preview-scenario='Actions slot']");
