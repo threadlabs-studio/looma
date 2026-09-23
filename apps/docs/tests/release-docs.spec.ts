@@ -1660,7 +1660,8 @@ test("every badge tone remains legible and visually distinct in light and dark t
     await page.reload({ waitUntil: "domcontentloaded" });
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
     const badges = page.locator("[data-preview-scenario] [data-component~='ui-badge']");
-    await expect(badges).toHaveCount(11);
+    // Default, five solid tones, five subtle tones, then the shape example.
+    await expect(badges).toHaveCount(15);
     const treatments = await badges.evaluateAll((surfaces) => surfaces.map((surface) => {
       const style = getComputedStyle(surface);
       const canvas = document.createElement("canvas");
@@ -1693,7 +1694,7 @@ test("every badge tone remains legible and visually distinct in light and dark t
     expect(treatments[0]!.fontWeight).toBeGreaterThanOrEqual(500);
     expect(contrastRatio(treatments[0]!.border, treatments[0]!.background)).toBeGreaterThanOrEqual(3);
     expect(new Set(treatments.slice(1, 6).map(({ background }) => background)).size).toBe(5);
-    expect(new Set(treatments.slice(6).map(({ background }) => background)).size).toBe(5);
+    expect(new Set(treatments.slice(6, 11).map(({ background }) => background)).size).toBe(5);
   }
 });
 
