@@ -37,7 +37,6 @@
     "generate:docs": "pnpm generate:api",
     "lint": "pnpm -r run lint",
     "release:inspect": "node tools/scripts/verify-packages.mjs --output-dir .release/artifacts --allow-dirty --allow-missing-license",
-    "release:pending": "node tools/scripts/check-release-pending.mjs",
     "release:registry-preflight": "node tools/scripts/registry-preflight.mjs",
     "release:verify": "node tools/scripts/verify-packages.mjs --output-dir .release/artifacts && pnpm test:facade-consumer",
     "release:verify-public-consumer": "node tools/scripts/verify-public-consumer.mjs",

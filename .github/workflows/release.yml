@@ -3,6 +3,12 @@ name: Release
 # Publishes @threadlabs/looma to npm `latest` after CI passes on main. A merge that changes the
 # package releases the next patch by itself; a version already ahead of the registry publishes as
 # declared, which is how a minor or major lands.
+#
+# main is protected (pull requests and required checks, admins included), so nothing is committed
+# back to it. The version is stamped into the manifests inside the runner, npm is the record of
+# which patch shipped, and each release is recorded as an annotated `vX.Y.Z` tag on the source
+# commit -- tags are outside branch protection. main's manifests keep the last version a pull
+# request declared.
 # npm trusted publishing is bound to this file name and the npm-release environment.
 on:
   workflow_run:
@@ -26,9 +32,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
-      contents: write
+      contents: read
     outputs:
       release_sha: ${{ steps.publish-commit.outputs.release_sha }}
+      release_commit: ${{ steps.publish-commit.outputs.release_commit }}
       release_version: ${{ steps.resolve.outputs.version }}
       releasing: ${{ steps.resolve.outputs.release }}
     steps:
@@ -36,8 +43,9 @@ jobs:
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
-          # The release commit is pushed from here, so this checkout keeps its credentials.
+          # Full history and tags: the last `v*` tag is what "changed since the last release" diffs.
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Setup pnpm
         uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
@@ -65,23 +73,17 @@ jobs:
           echo "release=$(node -p "JSON.parse(process.argv[1]).release" "$resolution")" >> "$GITHUB_OUTPUT"
           echo "version=$(node -p "JSON.parse(process.argv[1]).version" "$resolution")" >> "$GITHUB_OUTPUT"
 
-      - name: Record the release version
+      - name: Stamp the release version
         id: publish-commit
         if: steps.resolve.outputs.release == 'true'
         env:
           VERSION: ${{ steps.resolve.outputs.version }}
         run: |
-          node tools/scripts/release-version.mjs --apply "$VERSION"
-          if git diff --quiet; then
-            echo "release_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -aqm "Release v${VERSION}"
-          git tag "v${VERSION}"
-          git push origin "HEAD:main" --follow-tags
           echo "release_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          # Committed inside this runner only, so packing sees a clean tree and records this commit
+          # as its source. It never reaches main, which only takes pull requests: publish and record
+          # rebuild the identical commit from the same source.
+          echo "release_commit=$(node tools/scripts/release-commit.mjs "$VERSION")" >> "$GITHUB_OUTPUT"
 
       - name: Use trusted-publishing-capable npm CLI
         if: steps.resolve.outputs.release == 'true'
@@ -103,6 +105,34 @@ jobs:
           path: .release/artifacts/
           if-no-files-found: error
           retention-days: 30
+
+  # The only job that writes, and it never publishes. It runs after publish succeeds, so a failed
+  # publish leaves no tag behind for a version that never shipped, and the next run retries it.
+  record:
+    if: needs.prepare.outputs.releasing == 'true'
+    needs: [prepare, publish]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout release source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ needs.prepare.outputs.release_sha }}
+
+      - name: Record the release as a tag
+        env:
+          VERSION: ${{ needs.prepare.outputs.release_version }}
+          RELEASE_COMMIT: ${{ needs.prepare.outputs.release_commit }}
+        run: |
+          node tools/scripts/release-commit.mjs "$VERSION" "$RELEASE_COMMIT"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Annotated: `git push --follow-tags` skips lightweight tags, which is why no release
+          # after v0.1.9 was ever tagged on the remote.
+          git tag -a "v${VERSION}" -m "Release v${VERSION}"
+          git push origin "refs/tags/v${VERSION}"
 
   publish:
     if: needs.prepare.outputs.releasing == 'true'
@@ -138,6 +168,14 @@ jobs:
         with:
           name: looma-release
           path: .release/artifacts/
+
+      # The pack recorded prepare's release commit as its source, and the steps below refuse any
+      # other checkout. Rebuild that exact commit from the same source.
+      - name: Rebuild the packed release commit
+        env:
+          VERSION: ${{ needs.prepare.outputs.release_version }}
+          RELEASE_COMMIT: ${{ needs.prepare.outputs.release_commit }}
+        run: node tools/scripts/release-commit.mjs "$VERSION" "$RELEASE_COMMIT"
 
       - name: Publish to latest with trusted publishing
         env:

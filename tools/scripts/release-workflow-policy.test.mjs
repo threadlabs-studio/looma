@@ -11,7 +11,10 @@ const [workflow, ciWorkflow, docsWorkflow] = await Promise.all([
   read(".github/workflows/ci.yml"),
   read(".github/workflows/docs.yml")
 ]);
-const publishJob = workflow.match(/\n  publish:[\s\S]*$/)?.[0] ?? "";
+// A job runs from its name to the next job at the same indentation.
+const job = (name) =>
+  workflow.match(new RegExp(`\\n  ${name}:\\n[\\s\\S]*?(?=\\n  [a-zA-Z0-9_-]+:\\n|$)`))?.[0] ?? "";
+const [prepareJob, recordJob, publishJob] = ["prepare", "record", "publish"].map(job);
 const releasePackagingJob = ciWorkflow.match(
   /\n  release-package:[\s\S]*?(?=\n  [a-zA-Z0-9_-]+:|$)/
 )?.[0] ?? "";
@@ -39,24 +42,37 @@ test("publication uses only repository-bound trusted publishing", () => {
   assert.match(publishJob, /permissions:\n\s+contents: read\n\s+id-token: write/);
   assert.match(publishJob, /LOOMA_RELEASE_PUBLISH: approved/);
   assert.doesNotMatch(workflow, /secrets\.|NODE_AUTH_TOKEN/);
-  // Only the job that records the release commit may write, and it never publishes.
+  // Only the job that records the release tag may write, and it never publishes.
   assert.equal([...workflow.matchAll(/contents: write/g)].length, 1);
+  assert.match(recordJob, /contents: write/);
+  assert.doesNotMatch(recordJob, /id-token|publish-release/);
   assert.doesNotMatch(publishJob, /contents: write/);
+  assert.doesNotMatch(prepareJob, /contents: write/);
 });
 
 test("a merge that changes the package releases itself", () => {
-  const prepareJob = workflow.match(/\n  prepare:[\s\S]*?\n  publish:/)?.[0] ?? "";
   // No manual bump: the version comes from the registry and the package's own diff.
   assert.match(prepareJob, /npm view @threadlabs\/looma version/);
   assert.match(prepareJob, /git diff --name-only "\$last_release"\.\.HEAD -- packages\/looma\/src/);
   assert.match(prepareJob, /release-version\.mjs --resolve/);
-  assert.match(prepareJob, /release-version\.mjs --apply/);
-  // The release commit and its tag are what stop the next run from releasing again.
-  assert.match(prepareJob, /git commit -aqm "Release v\$\{VERSION\}"/);
-  assert.match(prepareJob, /git tag "v\$\{VERSION\}"/);
-  assert.match(prepareJob, /git push origin "HEAD:main" --follow-tags/);
-  // Packing happens after that commit, so the manifest's source is the commit that is published.
-  assert.ok(prepareJob.indexOf("--apply") < prepareJob.indexOf("pnpm release:verify"));
+  // Packing needs a clean tree, so the stamped version is committed -- in the runner only, and
+  // before packing, so the pack records that commit as its source.
+  assert.match(prepareJob, /release-commit\.mjs "\$VERSION"/);
+  assert.ok(prepareJob.indexOf("release-commit.mjs") < prepareJob.indexOf("pnpm release:verify"));
+  // main takes pull requests only, so no job pushes to it: a push there fails every release.
+  assert.doesNotMatch(workflow, /HEAD:main|git push origin main/);
+  assert.doesNotMatch(prepareJob, /git push/);
+  // Publish refuses any checkout but the packed source, so it rebuilds that exact commit, and
+  // record tags the same one, so the tag holds exactly what was published.
+  for (const later of [publishJob, recordJob]) {
+    assert.match(later, /release-commit\.mjs "\$VERSION" "\$RELEASE_COMMIT"/);
+  }
+  assert.ok(publishJob.indexOf("release-commit.mjs") < publishJob.indexOf("publish-release.mjs"));
+  // The tag is what stops the next run from releasing again. It is annotated, because
+  // `--follow-tags` skips lightweight tags, and it is written only after publish succeeds.
+  assert.match(recordJob, /needs: \[prepare, publish\]/);
+  assert.match(recordJob, /git tag -a "v\$\{VERSION\}"/);
+  assert.match(recordJob, /git push origin "refs\/tags\/v\$\{VERSION\}"/);
 });
 
 test("docs deploy to Pages after CI passes on main", () => {
@@ -87,7 +103,7 @@ test("workflows pin actions to commits and disable checkout credentials", () => 
     const uses = [...source.matchAll(/uses:\s+([^\s#]+)/g)].map((match) => match[1]);
     assert.ok(uses.length > 0);
     for (const action of uses) assert.match(action, /^[^@]+@[a-f0-9]{40}$/);
-    // The prepare job pushes the release commit, so it keeps its credentials; nothing else does.
+    // The record job pushes the release tag, so it keeps its credentials; nothing else does.
     const checkouts = [...source.matchAll(/actions\/checkout@/g)].length;
     const withoutCredentials = [...source.matchAll(/persist-credentials:\s+false/g)].length;
     const pushes = [...source.matchAll(/git push origin/g)].length;
