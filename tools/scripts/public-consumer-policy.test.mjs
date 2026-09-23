@@ -122,7 +122,7 @@ test("builds deterministic evidence from manifest identities and public resoluti
     manifestPath: ".release/artifacts/release-manifest.json",
     manifestSha256: "f".repeat(64),
     nodeVersion: "v22.14.0",
-    pnpmVersion: "10.7.0",
+    pnpmVersion: "10.7.1",
     commands: ["pnpm install <public-consumer-options>"],
     lockfilePath: ".release/evidence/public-consumer-pnpm-lock.yaml",
     lockfileSha256: "e".repeat(64),
