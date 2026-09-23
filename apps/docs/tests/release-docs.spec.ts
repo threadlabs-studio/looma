@@ -24,17 +24,35 @@ async function expectNoAxeViolations(page: Page): Promise<void> {
   expect(violations).toEqual([]);
 }
 
+/** Linear sRGB from any colour the browser hands back: rgb(), color(srgb ...), oklab(), oklch(). */
+function linearChannels(color: string): [number, number, number] {
+  const numbers = (color.match(/-?[\d.]+/g) ?? []).map(Number);
+  if (numbers.length < 3) throw new Error(`Unsupported color: ${color}`);
+  const gamma = (channel: number) =>
+    channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+
+  if (color.startsWith("oklab(") || color.startsWith("oklch(")) {
+    const [lightness, second, third] = numbers;
+    const [a, b] = color.startsWith("oklch(")
+      ? [second * Math.cos((third * Math.PI) / 180), second * Math.sin((third * Math.PI) / 180)]
+      : [second, third];
+    const l = (lightness + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+    const m = (lightness - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+    const s = (lightness - 0.0894841775 * a - 1.2914855480 * b) ** 3;
+    return [
+      4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+      -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+      -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s
+    ];
+  }
+
+  // color(srgb ...) states channels 0–1; rgb() states them 0–255.
+  const scale = color.startsWith("color(") ? 1 : 1 / 255;
+  return numbers.slice(0, 3).map((channel) => gamma(channel * scale)) as [number, number, number];
+}
+
 function contrastRatio(foreground: string, background: string): number {
-  const parse = (color: string): [number, number, number] => {
-    const channels = color.match(/[\d.]+/g)?.slice(0, 3).map(Number);
-    if (!channels || channels.length !== 3) throw new Error(`Unsupported color: ${color}`);
-    return channels.map((channel) => {
-      const normalized = channel / 255;
-      return normalized <= 0.04045
-        ? normalized / 12.92
-        : ((normalized + 0.055) / 1.055) ** 2.4;
-    }) as [number, number, number];
-  };
+  const parse = linearChannels;
   const luminance = ([red, green, blue]: [number, number, number]) =>
     0.2126 * red + 0.7152 * green + 0.0722 * blue;
   const foregroundLuminance = luminance(parse(foreground));
@@ -1267,6 +1285,196 @@ test("Looma navigation only points to Looma resources", async ({ page }) => {
 
   await expect(page.getByRole("link", { name: /Knit/ })).toHaveCount(0);
   await expect(page.getByRole("link", { name: "View on GitHub", exact: true })).toBeVisible();
+});
+
+/** Ink the control paints inside its own fill: a state that is styled but never drawn reads as off. */
+async function markedPixels(control: Locator): Promise<number> {
+  const shot = (await control.screenshot()).toString("base64");
+  return control.evaluate(async (element, encoded) => {
+    const image = new Image();
+    image.src = `data:image/png;base64,${encoded}`;
+    await image.decode();
+    const canvas = document.createElement("canvas");
+    canvas.width = image.width;
+    canvas.height = image.height;
+    const context = canvas.getContext("2d")!;
+    context.drawImage(image, 0, 0);
+    const { data } = context.getImageData(0, 0, canvas.width, canvas.height);
+    const luminance = (index: number) => 0.299 * data[index] + 0.587 * data[index + 1] + 0.114 * data[index + 2];
+    const fill = getComputedStyle(element).backgroundColor.match(/[\d.]+/g)!.map(Number);
+    const fillLuminance = 0.299 * fill[0] + 0.587 * fill[1] + 0.114 * fill[2];
+    // Inset past the border, so only what the control draws inside itself counts.
+    const inset = Math.max(3, Math.round(canvas.width * 0.18));
+    let marked = 0;
+    for (let y = inset; y < canvas.height - inset; y += 1) {
+      for (let x = inset; x < canvas.width - inset; x += 1) {
+        if (Math.abs(luminance((y * canvas.width + x) * 4) - fillLuminance) > 60) marked += 1;
+      }
+    }
+    return marked;
+  }, shot);
+}
+
+test("the home demo is built from Looma components, as it says it is", async ({ page }) => {
+  await page.goto("./", { waitUntil: "networkidle" });
+  const demo = page.locator(".looma-demo-app");
+  await expect(demo).toBeVisible();
+  await expect(page.getByText("Live components")).toBeVisible();
+
+  // The demo is labelled live. A hand-rolled control under that label is the site lying about the
+  // library, and it hides the library's own bugs: a bare <input type=checkbox> drew a tick from the
+  // browser for as long as ui-checkbox drew none.
+  const impostors = await demo.evaluate((root) => {
+    // A layout primitive around a control does not make the control a Looma control.
+    const layout = new Set([
+      "ui-stack", "ui-cluster", "ui-grid", "ui-container", "ui-switcher", "ui-reel", "ui-sidebar"
+    ]);
+    const controls = root.querySelectorAll("input, select, textarea, button, [role='button'], [role='checkbox'], [role='switch']");
+    return [...controls]
+      .filter((control) => {
+        const owner = control.closest("[data-component]");
+        const tag = owner?.getAttribute("data-component")?.split(" ")[0];
+        return !tag || layout.has(tag);
+      })
+      .map((control) => control.outerHTML.replace(/\s+/g, " ").slice(0, 80));
+  });
+  expect(impostors, "the live demo contains controls that are not Looma components").toEqual([]);
+
+  const components = await demo.evaluate((root) =>
+    [...new Set([...root.querySelectorAll("[data-component]")].map((node) => node.getAttribute("data-component")!.split(" ")[0]))].sort()
+  );
+  expect(components).toEqual(
+    expect.arrayContaining(["ui-avatar", "ui-badge", "ui-button", "ui-callout", "ui-checkbox", "ui-top-bar"])
+  );
+});
+
+test("a multiple combobox checks its chosen options and unchecks them again", async ({ page }) => {
+  await page.goto("components/ui-combobox", { waitUntil: "domcontentloaded" });
+  const scenario = page.locator("[data-preview-scenario='multiple']");
+  const input = scenario.getByRole("combobox").first();
+  await input.click();
+  await input.press("ArrowDown");
+
+  const first = scenario.locator(".option").first();
+  await expect(first).toBeVisible();
+  const mark = () => first.evaluate((option) => ({
+    selected: option.getAttribute("aria-selected"),
+    box: getComputedStyle(option, "::before").width,
+    tick: getComputedStyle(option, "::before").backgroundImage
+  }));
+
+  // Every option carries a checkbox, so a list that takes several answers says so before anything
+  // is picked; the chosen ones stay in the list rather than vanishing into the field.
+  expect(await mark()).toMatchObject({ selected: "false", box: "18px", tick: "none" });
+
+  await first.click();
+  await expect.poll(async () => (await mark()).selected).toBe("true");
+  expect((await mark()).tick).toContain("svg");
+  await expect(scenario.locator(".item")).toHaveCount(1);
+
+  await first.click();
+  await expect.poll(async () => (await mark()).selected).toBe("false");
+  await expect(scenario.locator(".item")).toHaveCount(0);
+});
+
+test("tone is the colour, variant is the volume, and disabled keeps both", async ({ page }) => {
+  await page.goto("components/ui-button", { waitUntil: "networkidle" });
+  await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
+  const stage = page.locator("[data-preview-scenario='variant'] .looma-preview-scenario__stage");
+  await expect(stage.locator("[data-component~='ui-button']").first()).toBeVisible();
+
+  const painted = await stage.evaluate(async (host) => {
+    host.innerHTML = "";
+    const wanted: Array<[string, string, boolean]> = [
+      ["outline", "accent", false], ["outline", "danger", false], ["outline", "neutral", false],
+      ["solid", "accent", false], ["ghost", "accent", false],
+      ["outline", "accent", true], ["outline", "danger", true], ["solid", "accent", true], ["ghost", "accent", true]
+    ];
+    for (const [variant, tone, disabled] of wanted) {
+      const button = document.createElement("ui-button");
+      button.setAttribute("variant", variant);
+      button.setAttribute("tone", tone);
+      if (disabled) button.setAttribute("disabled", "");
+      button.id = `${variant}-${tone}-${disabled}`;
+      button.textContent = `${tone} ${variant}`;
+      host.append(button);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    return Object.fromEntries([...host.querySelectorAll("[data-component~='ui-button']")].map((button) => {
+      const style = getComputedStyle(button);
+      return [button.id, {
+        border: style.borderColor,
+        surface: style.backgroundColor,
+        text: style.color,
+        radius: style.borderRadius,
+        shadow: style.boxShadow
+      }];
+    }));
+  });
+
+  // An outline is the tone at the edge over a wash of the same tone, so tone changes the colour of
+  // the whole button rather than only its text.
+  expect(painted["outline-accent-false"].border).not.toBe(painted["outline-danger-false"].border);
+  expect(painted["outline-accent-false"].border).not.toBe(painted["outline-neutral-false"].border);
+  // rgb(), color(srgb ...), oklch(): one colour has several spellings, so paint each and compare
+  // the pixels. The wash is the same colour as the edge at 5%, so its alpha is taken off first.
+  const opaque = (value: string) => value.replace(/\/\s*(0?\.\d+|\d+%)\s*\)/, "/ 1)");
+  const rendered = async (values: string[]) => page.evaluate((colours) => {
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = 1;
+    const context = canvas.getContext("2d")!;
+    return colours.map((colour) => {
+      context.clearRect(0, 0, 1, 1);
+      context.fillStyle = colour;
+      context.fillRect(0, 0, 1, 1);
+      return [...context.getImageData(0, 0, 1, 1).data].slice(0, 3);
+    });
+  }, values);
+  const sameColour = async (left: string, right: string) => {
+    const [a, b] = await rendered([opaque(left), opaque(right)]);
+    return a.every((channel, index) => Math.abs(channel - b[index]) <= 2);
+  };
+
+  for (const tone of ["accent", "danger"]) {
+    const outline = painted[`outline-${tone}-false`];
+    // The wash is the border colour, mostly transparent: same colour, different alpha.
+    expect(outline.surface).toContain("0.05");
+    expect(await sameColour(outline.surface, outline.border), `${tone} wash is not its own border colour`).toBe(true);
+  }
+  // Solid fills with the tone the outline draws with: one action at two volumes.
+  expect(await sameColour(painted["solid-accent-false"].surface, painted["outline-accent-false"].border)).toBe(true);
+  expect(painted["ghost-accent-false"].shadow).toBe("none");
+
+  // Disabled keeps the shape and a trace of the tone: a disabled outline still reads as an
+  // unavailable outline in its own colour, not as a grey box.
+  for (const id of ["outline-accent-true", "outline-danger-true", "solid-accent-true", "ghost-accent-true"]) {
+    expect(painted[id].shadow, `${id} still looks raised`).toBe("none");
+  }
+  expect(painted["outline-accent-true"].border).not.toBe(painted["outline-danger-true"].border);
+  expect(painted["outline-accent-true"].border).not.toBe(painted["outline-accent-false"].border);
+  expect(painted["outline-accent-true"].border).not.toBe(painted["outline-accent-true"].surface);
+  expect(painted["solid-accent-true"].border).toBe(painted["solid-accent-true"].surface);
+  expect(new Set(Object.values(painted).map((paint) => paint.radius)).size).toBe(1);
+
+  // Nothing jumps under the pointer.
+  const button = stage.locator("[data-component~='ui-button']").first();
+  const resting = await button.evaluate((element) => getComputedStyle(element).transform);
+  await button.hover();
+  await expect.poll(async () => button.evaluate((element) => getComputedStyle(element).transform)).toBe(resting);
+});
+
+test("a checked checkbox paints its tick", async ({ page }) => {
+  await page.goto("components/ui-checkbox", { waitUntil: "domcontentloaded" });
+  const control = page.locator("[data-preview-scenario]").first().getByRole("checkbox").first();
+  await expect(control).toBeVisible();
+  expect(await markedPixels(control)).toBe(0);
+
+  await control.click();
+  await expect(control).toBeChecked();
+
+  // The tick used to vanish: lowering dropped `border: solid var(...)`, which left it with no
+  // style and therefore no width, so the box filled with accent and showed nothing inside it.
+  expect(await markedPixels(control), "checked checkbox draws no tick").toBeGreaterThan(10);
 });
 
 test("tree row actions reveal on hover instead of reserving row width", async ({ page }) => {
