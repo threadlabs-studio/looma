@@ -46,19 +46,30 @@ if (!versions.has(manifest.version)) {
   process.exit(0);
 }
 
-// The commit that set the current version is the release commit; anything after it is unreleased.
-const releaseCommit = git(
-  "log",
-  "-1",
-  "--format=%H",
-  "-S",
-  `"version": "${manifest.version}"`,
-  "--",
-  "packages/looma/package.json",
-);
+function versionAt(commit) {
+  const result = spawnSync("git", ["show", `${commit}:packages/looma/package.json`], { cwd: repoRoot, encoding: "utf8" });
+  if (result.status !== 0) return undefined;
+  try {
+    return JSON.parse(result.stdout).version;
+  } catch {
+    return undefined;
+  }
+}
+
+// The release commit is the one that set the current version. It is often a merge commit, which
+// `git log -S` skips, so walk the first-parent history and find where the version changed.
+const history = git("log", "--first-parent", "--format=%H", "-n", "300").split("\n").filter(Boolean);
+let releaseCommit = "";
+for (const commit of history) {
+  if (versionAt(commit) !== manifest.version) break;
+  releaseCommit = commit;
+}
 if (!releaseCommit) {
-  process.stdout.write(`Could not find the commit that set ${manifest.version}; skipping.\n`);
-  process.exit(0);
+  process.stderr.write(
+    `${manifest.name}@${manifest.version} is published, but no commit in the last 300 sets it.\n`
+      + "Check that packages/looma/package.json carries the version you mean to publish.\n",
+  );
+  process.exit(1);
 }
 const changed = git("diff", "--name-only", `${releaseCommit}..HEAD`, "--", ...publishedPaths)
   .split("\n")
