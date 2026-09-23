@@ -194,7 +194,7 @@
     }
 
     /* Disabled drops the tone rather than the shape: every variant keeps its own structure, so a
-       disabled outline is still an outline and a disabled ghost is still text. Intent goes — an
+       disabled outline is still an outline and a disabled ghost still has no edge. Intent goes — an
        unavailable action says "unavailable", not "unavailable, and destructive" — and so do the
        highlight and shadow, because nothing that cannot be pressed should look raised. */
     :host:disabled {
@@ -219,9 +219,11 @@
     }
 
     /* Ghost has no hover to fall back on, so disabled is the one state it has to state outright:
-       it takes a surface, light and tinted, rather than reading as plain text. */
+       it takes a surface rather than reading as plain text. The surface is a wash of the faded tone,
+       the way hover washes the live one, so it stays light in every tone. An opaque mix toward the
+       hue came out a mid-grey slab for neutral, whose hue is the ink: louder than the enabled button. */
     :host-state([variant="ghost"]):disabled {
-      background-color: color-mix(in oklab, var(--_hue) 28%, var(--ui-surface));
+      background-color: oklch(from var(--_tone) l c h / 14%);
       border-color: transparent;
     }
 
