@@ -4,7 +4,8 @@ import axe from "axe-core";
 import componentApi from "../../../generated/component-api.json";
 
 const candidatePages = [
-  { path: "./", heading: "Getting Started" },
+  { path: "./", heading: "Looma" },
+  { path: "getting-started", heading: "Getting Started" },
   { path: "release-1-support", heading: "Release 1 Support and Limitations" },
   { path: "components/ui-context-menu", heading: "Context Menu" }
 ] as const;
@@ -120,7 +121,7 @@ test("the install path exposes the facade package and the support boundary", asy
 }) => {
   await page.goto("./", { waitUntil: "domcontentloaded" });
 
-  await expect(page.getByText("@threadlabs/looma", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("pnpm add @threadlabs/looma", { exact: true }).first()).toBeVisible();
   await expect(page.locator("body")).not.toContainText(
     /not published yet|publication pending|become usable when the package is published/i
   );
@@ -1163,7 +1164,7 @@ test("the desktop hero stays inside the content column", async ({ page }) => {
   await page.goto("./", { waitUntil: "networkidle" });
 
   const main = page.getByRole("main");
-  const heading = page.getByRole("heading", { level: 1, name: "Getting Started" });
+  const heading = page.getByRole("heading", { level: 1, name: "Looma" });
   await expect(main).toBeVisible();
   await expect(heading).toBeVisible();
   const mainBounds = await main.boundingBox();
@@ -1179,7 +1180,7 @@ test("the desktop hero stays inside the content column", async ({ page }) => {
 test("framework mode defaults to HTML Next and follows the reader between pages", async ({
   page
 }) => {
-  await page.goto("./", { waitUntil: "domcontentloaded" });
+  await page.goto("getting-started", { waitUntil: "domcontentloaded" });
 
   const modeGroup = page.getByRole("group", { name: "Example framework" }).first();
   await expect(modeGroup.getByRole("button", { name: "HTML Next" })).toHaveAttribute(
@@ -1224,7 +1225,7 @@ test("an invalid saved framework mode falls back to HTML Next", async ({ page })
   await page.addInitScript(() => {
     window.localStorage.setItem("looma-docs-framework-mode", "unknown-adapter");
   });
-  await page.goto("./", { waitUntil: "domcontentloaded" });
+  await page.goto("getting-started", { waitUntil: "domcontentloaded" });
 
   await expect(
     page.getByRole("group", { name: "Example framework" }).first()
