@@ -24,8 +24,8 @@ test("an unchanged package releases nothing", () => {
 
 test("a declared version that is ahead wins, which is how a minor or major lands", () => {
   assert.deepEqual(
-    resolveNextVersion({ publishedVersion: "0.6.3", declaredVersion: "0.7.0", packageChanged: false }),
-    { release: true, version: "0.7.0", reason: "declared version is ahead" }
+    resolveNextVersion({ publishedVersion: "0.6.3", declaredVersion: "0.7.1", packageChanged: false }),
+    { release: true, version: "0.7.1", reason: "declared version is ahead" }
   );
 });
 
