@@ -17,5 +17,8 @@
     /* Deep amber, so a solid warning surface carries white text like the other tones (5:1). */
     --ui-warning: #b45309;
     --ui-info: #0066cc;
+
+    /* Light inks carry more chroma, so an unavailable control keeps less of it here. */
+    --ui-disabled-saturation: 0.28;
   }
 }

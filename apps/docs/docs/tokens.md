@@ -52,21 +52,27 @@ because each is mixed from it.
 | `--ui-accent-hover`, `-active` | accent + ink | toward the ink, for pressure |
 | `--ui-accent-subtle`, `--ui-danger-soft` | accent + page | toward the page, for a tint |
 | `--ui-disabled-surface`, `--ui-disabled-text` | sunken surface, muted ink | one decision, not a per-component one |
+| a disabled control's colour | its own tone | faded toward the page, then desaturated by `--ui-disabled-saturation` |
 | `--ui-focus-ring` | accent | the focus ring is the accent |
 
 The mixes are directional rather than absolute: they move *toward the ink* or *toward the page*.
 In a dark theme the ink is light, so the same mix brightens where it darkened in a light one, and
 one set of rules serves both.
 
-Component states derive the same way. A button's disabled colours are its own tone lightened
-toward the surface with most of its chroma removed, using relative colour:
+Component states derive the same way. A button's disabled colours are its own tone faded toward the
+page, then desaturated by a filter:
 
 ```css
---_tone: oklch(from var(--_hue) calc(l + (1 - l) * 0.72) calc(c * 0.22) h);
+--_tone: color-mix(in oklab, var(--_hue) 34%, var(--ui-surface));
+filter: saturate(var(--ui-disabled-saturation));
 ```
 
 So a disabled danger button still reads as danger, and a retheme carries through without a second
 palette to keep in step.
+
+`--ui-disabled-saturation` is seeded per theme, like the raised and sunken surfaces: a light
+palette's inks carry more chroma, so the value that leaves a dark theme's disabled controls
+legible (`0.6`) leaves a light theme's looking active (`0.28`).
 
 ### The rest of the contract
 

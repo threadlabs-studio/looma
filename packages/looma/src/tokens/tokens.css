@@ -139,6 +139,11 @@
        full opacity, so a disabled control reads as unavailable rather than as a faded variant. */
     --ui-disabled-surface: var(--ui-surface-sunken);
     --ui-disabled-text: var(--ui-text-muted);
+    /* How much colour an unavailable control keeps, applied as a filter so a component desaturates
+       whatever its tone resolved to rather than restating a faded version of it. Seeded per theme
+       like the raised and sunken surfaces: a light palette's inks carry more chroma, so the same
+       value that leaves a dark theme readable leaves a light one looking active. */
+    --ui-disabled-saturation: 0.45;
 
     --ui-focus-ring: var(--ui-accent);
 
