@@ -199,14 +199,17 @@
        highlight and shadow, because nothing that cannot be pressed should look raised. */
     :host:disabled {
       /* Derived from the tone itself, not from a separate disabled palette: faded toward the
-         page, which desaturates it at the same time. Toward the page rather than toward white,
-         so a dark theme dims where a light one lightens — the same rule, both schemes. */
+         page. Toward the page rather than toward white, so a dark theme dims where a light one
+         lightens, and the filter below takes the colour out of what is left. */
       --_tone: color-mix(in oklab, var(--_hue) 58%, var(--ui-surface));
       --_tone-hover: var(--_tone);
       --_tone-active: var(--_tone);
-      --_tone-text: color-mix(in oklab, var(--_hue-text) 72%, var(--ui-surface));
+      --_tone-text: color-mix(in oklab, var(--_hue-text) 66%, var(--ui-surface));
       --_on-tone: var(--_tone-text);
 
+      /* One filter over the whole button desaturates its edge, fill, and text together, from
+         whatever colours the tone resolved to — no second palette, and no per-part cap. */
+      filter: saturate(var(--ui-disabled-saturation));
       opacity: var(--ui-button-disabled-opacity, 1);
       cursor: not-allowed;
       background-image: none;

@@ -16,7 +16,10 @@
   grey box with a white highlight, which read as a solid button and belonged to no palette. Every
   variant now shares one corner, edge, highlight, and shadow, and pressing moves the shadow inside
   instead of lifting the button.
-- Disabled is derived from the tone it disables and mixed toward the page: a disabled danger button
+- Disabled desaturates through `filter: saturate(var(--ui-disabled-saturation))` rather than a
+  second palette, and that value is seeded per theme: a light palette's inks carry more chroma, so
+  the amount that keeps a dark theme's disabled controls legible leaves a light theme's looking
+  active. Disabled is otherwise derived from the tone it disables and mixed toward the page: a disabled danger button
   still reads as danger, a dark theme dims where a light one lightens, and each variant keeps its
   shape — a disabled outline is still an outline. A disabled ghost takes a light surface, since it
   has no hover to fall back on.
