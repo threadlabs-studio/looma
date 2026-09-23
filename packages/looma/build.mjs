@@ -102,6 +102,11 @@ for (const name of names) {
   await cp(join(assembled, "types/vue", `${name}.vue.d.ts`), join(root, "vue", `${name}.d.ts`));
   await cp(join(vueSource, `${name}.vue`), join(root, "vue", `${name}.vue`));
 }
+// The controller host and event dispatcher every component shares; the .vue sources import it.
+// HTML Next emits it only when a component has a controller.
+await cp(join(vueSource, "host.ts"), join(root, "vue/host.ts")).catch((error) => {
+  if (error.code !== "ENOENT") throw error;
+});
 await cp(join(assembled, "types/components/shared/input-modality.d.ts"), join(root, "components/shared/input-modality.d.ts"));
 const indexTypes = await readFile(join(assembled, "types/vue/index.d.ts"), "utf8");
 await writeFile(join(root, "vue/index.d.ts"), indexTypes.replaceAll('.vue";', '.js";'));
