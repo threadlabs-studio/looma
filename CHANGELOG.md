@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- The Vue components share one controller host and event dispatcher instead of repeating both in
+  every component. Vue output is 31% less JavaScript (202 kB, from 293 kB), loaded as one shared
+  chunk rather than 33 copies. Nothing in the public contract moves: props, events, slots, and
+  exposed methods are unchanged, and the shared module is internal. Needs
+  `@nextwebwg/html-next` 1.0.0-alpha.3, which generates it.
+
 ## v0.6.4
 
 - Tree Item's hover actions overlay the end of the row instead of reserving a column, so a long
