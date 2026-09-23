@@ -30,6 +30,28 @@
   }
 }
 
+/*
+ * Marker for the block being edited, drawn in the gutter beside the text rather
+ * than around it: a border or fill on the reading column reads as a form field.
+ * The bar sits outside the content box, so a consumer that zeroes
+ * --ui-editor-content-padding-inline must leave room on its own wrapper.
+ */
+.looma-editor .ProseMirror > .looma-active-block {
+  position: relative;
+}
+
+.looma-editor .ProseMirror > .looma-active-block::before {
+  position: absolute;
+  z-index: 1;
+  inset-block: 0;
+  inset-inline-start: calc(-1 * var(--ui-editor-active-block-offset, var(--ui-space-3)));
+  inline-size: var(--ui-editor-active-block-width, 2px);
+  border-radius: var(--ui-radius-round);
+  background: var(--ui-editor-active-block-color, var(--ui-border-strong));
+  content: "";
+  pointer-events: none;
+}
+
 .looma-editor .ProseMirror p {
   margin: 0 0 var(--ui-editor-paragraph-gap, var(--ui-space-3));
 }

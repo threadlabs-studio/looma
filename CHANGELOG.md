@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.7.2
+
+- The editor marks the block you are editing with a bar in the gutter beside it, so the caret's
+  whereabouts survive looking away without putting a border or a fill around the text. Anything
+  drawn around the reading column reads as a form field; the margin is the one place an editing
+  cue can live without changing how the prose reads. The bar marks the outermost block rather
+  than the caret's own line, which would move on every wrap, or a nested list item, which would
+  step in and out of the list's inset. It is absent while the editor is unfocused.
+  `--ui-editor-active-block-color`, `--ui-editor-active-block-width`, and
+  `--ui-editor-active-block-offset` style it; a consumer that zeroes
+  `--ui-editor-content-padding-inline` must leave the bar room on its own wrapper.
+
 ## v0.7.1
 
 - The table context menu's `max-width` counts its padding and border, so the menu keeps to the
