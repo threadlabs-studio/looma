@@ -51,7 +51,7 @@
       border-width: 1px;
       border-color: var(--ui-button-border, var(--_tone));
       border-radius: var(--ui-button-radius, var(--ui-radius-md));
-      background-color: var(--ui-button-surface, color-mix(in srgb, var(--_tone) 5%, transparent));
+      background-color: var(--ui-button-surface, oklch(from var(--_tone) l c h / 5%));
       color: var(--ui-button-text, var(--_tone-text));
       font: inherit;
       font-weight: var(--ui-font-medium);
@@ -89,12 +89,12 @@
 
     :host:hover:enabled {
       border-color: var(--ui-button-hover-border, var(--_tone-hover));
-      background-color: var(--ui-button-hover-surface, color-mix(in srgb, var(--_tone) 12%, transparent));
+      background-color: var(--ui-button-hover-surface, oklch(from var(--_tone) l c h / 12%));
     }
 
     /* Pressed reads as pressed in: the highlight goes, and the shadow moves inside. */
     :host:active:enabled {
-      background-color: var(--ui-button-active-surface, color-mix(in srgb, var(--_tone) 18%, transparent));
+      background-color: var(--ui-button-active-surface, oklch(from var(--_tone) l c h / 18%));
       background-image: none;
       box-shadow: var(--ui-pressed);
     }
@@ -169,12 +169,12 @@
 
     /* Tints derive from the text colour, not a surface token, so hover and press show on any background. */
     :host-state([variant="ghost"]):hover:enabled {
-      background-color: var(--ui-button-ghost-hover-surface, color-mix(in srgb, var(--_tone) 10%, transparent));
+      background-color: var(--ui-button-ghost-hover-surface, oklch(from var(--_tone) l c h / 10%));
       border-color: transparent;
     }
 
     :host-state([variant="ghost"]):active:enabled {
-      background-color: var(--ui-button-ghost-active-surface, color-mix(in srgb, var(--_tone) 16%, transparent));
+      background-color: var(--ui-button-ghost-active-surface, oklch(from var(--_tone) l c h / 16%));
       border-color: transparent;
       box-shadow: var(--ui-pressed);
     }
@@ -198,11 +198,14 @@
        unavailable action says "unavailable", not "unavailable, and destructive" — and so do the
        highlight and shadow, because nothing that cannot be pressed should look raised. */
     :host:disabled {
-      --_tone: color-mix(in srgb, var(--_hue) 40%, var(--ui-disabled-surface));
+      /* Derived from the tone itself, not from a separate disabled palette: faded toward the
+         page, which desaturates it at the same time. Toward the page rather than toward white,
+         so a dark theme dims where a light one lightens — the same rule, both schemes. */
+      --_tone: color-mix(in oklab, var(--_hue) 30%, var(--ui-surface));
       --_tone-hover: var(--_tone);
       --_tone-active: var(--_tone);
-      --_tone-text: color-mix(in srgb, var(--_hue-text) 38%, var(--ui-disabled-text));
-      --_on-tone: color-mix(in srgb, var(--_hue-text) 38%, var(--ui-disabled-text));
+      --_tone-text: color-mix(in oklab, var(--_hue-text) 38%, var(--ui-surface));
+      --_on-tone: var(--_tone-text);
 
       opacity: var(--ui-button-disabled-opacity, 1);
       cursor: not-allowed;
@@ -210,9 +213,16 @@
       box-shadow: none;
     }
 
-    /* A filled button keeps its fill, muted the same way, so the row of them still reads as a row. */
+    /* A filled button keeps its fill, faded further so its text stays legible on it. */
     :is(:host-state([variant="solid"]), :host-state([variant="danger"])):disabled {
-      --_tone: color-mix(in srgb, var(--_hue) 14%, var(--ui-disabled-surface));
+      --_tone: color-mix(in oklab, var(--_hue) 16%, var(--ui-surface));
+    }
+
+    /* Ghost has no hover to fall back on, so disabled is the one state it has to state outright:
+       it takes a surface, light and tinted, rather than reading as plain text. */
+    :host-state([variant="ghost"]):disabled {
+      background-color: color-mix(in oklab, var(--_hue) 12%, var(--ui-surface));
+      border-color: transparent;
     }
 
     @media (pointer: coarse) {

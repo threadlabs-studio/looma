@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- The colour system comes from eleven seeds: five intents, two intent foregrounds, three surfaces,
+  and the ink. Every neutral, hover, tint, border, and disabled colour is mixed from them, so a
+  theme states those eleven and stops. Light, dark, and high contrast now set the same set — dark
+  dropped 18 restated values, and high contrast keeps only the overrides it exists for.
+- Disabled colours are derived from the tone they disable and mixed toward the page, so a disabled
+  danger button still reads as danger, and a dark theme dims where a light one lightens. A disabled
+  ghost takes a light surface, since it has no hover to fall back on.
 - Buttons take a `tone` and a `variant`: tone is the colour (accent, neutral, danger, success,
   warning, info), variant is the volume (solid, outline, ghost, link). Every pairing works, so a
   destructive secondary action is `tone="danger" variant="outline"` rather than a missing case.

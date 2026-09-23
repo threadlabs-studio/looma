@@ -12,25 +12,72 @@ computed from it, and per-component tokens for deliberate divergence.
 @layer tokens, base, components, utilities;
 ```
 
-## The contract
+## Theming colour
 
-These are the values a product sets. Everything else derives from them, so a theme that sets only
-these still looks coherent.
+Looma's colour comes from **eleven values**. Everything else — every hover, tint, border, muted
+text, and disabled colour — is mixed from them, so theming is a matter of stating these and
+stopping.
+
+```css
+:root {
+  /* Intent: what an action means. */
+  --ui-accent: #5b55d6;
+  --ui-danger: #b4233f;
+  --ui-success: #007a33;
+  --ui-warning: #b45309;
+  --ui-info: #0066cc;
+
+  /* The readable foreground on a filled accent or danger surface. */
+  --ui-on-accent: #ffffff;
+  --ui-on-danger: #ffffff;
+
+  /* The page, the two surfaces either side of it, and the ink. */
+  --ui-surface: #ffffff;
+  --ui-surface-raised: #ffffff;
+  --ui-surface-sunken: #f0f0ec;
+  --ui-text: #1a1a1a;
+}
+```
+
+A brand change is one line. Setting `--ui-accent` moves the accent's hover, its active state, its
+subtle tint, the focus ring, every accent-toned button, and the selected state of every control,
+because each is mixed from it.
+
+### What derives from what
+
+| Derived | From | How |
+| --- | --- | --- |
+| `--ui-text-secondary`, `--ui-text-muted` | ink + page | the ink mixed into the page, 72% and 45% |
+| `--ui-border`, `-strong`, `--ui-control-border` | ink + page | the same ramp, at 12%, 25%, and 48% |
+| `--ui-accent-hover`, `-active` | accent + ink | toward the ink, for pressure |
+| `--ui-accent-subtle`, `--ui-danger-soft` | accent + page | toward the page, for a tint |
+| `--ui-disabled-surface`, `--ui-disabled-text` | sunken surface, muted ink | one decision, not a per-component one |
+| `--ui-focus-ring` | accent | the focus ring is the accent |
+
+The mixes are directional rather than absolute: they move *toward the ink* or *toward the page*.
+In a dark theme the ink is light, so the same mix brightens where it darkened in a light one, and
+one set of rules serves both.
+
+Component states derive the same way. A button's disabled colours are its own tone lightened
+toward the surface with most of its chroma removed, using relative colour:
+
+```css
+--_tone: oklch(from var(--_hue) calc(l + (1 - l) * 0.72) calc(c * 0.22) h);
+```
+
+So a disabled danger button still reads as danger, and a retheme carries through without a second
+palette to keep in step.
+
+### The rest of the contract
 
 | Group | Values |
 | --- | --- |
-| Intent colour | `--ui-accent`, `-hover`, `-active`, `-subtle`, `--ui-on-accent`, `--ui-danger`, `--ui-danger-hover`, `--ui-on-danger`, `--ui-success`, `--ui-warning`, `--ui-info` |
-| Neutrals | `--ui-surface`, `-raised`, `-muted`, `-sunken`, `--ui-text`, `-secondary`, `-muted`, `--ui-border`, `-strong` |
-| Disabled | `--ui-disabled-surface`, `--ui-disabled-text` |
-| Focus | `--ui-focus-ring`, `--ui-focus-halo` |
 | Type | `--ui-font-sans`, `--ui-font-mono`, `--ui-font-size`, `-sm`, `--ui-font-medium`, `--ui-line-height` |
 | Space | `--ui-space-1` … `--ui-space-4` |
 | Radius | `--ui-radius-sm`, `-md`, `-lg`, `-round` |
 | Elevation | `--ui-shadow-sm`, `--ui-shadow-lg` |
 | Motion | `--ui-motion-fast`, `--ui-motion-ease` |
-| Controls | `--ui-control-size`, `-size-sm`, `--ui-control-min-block-size`, `--ui-control-border` |
-
-A converted product theme needs about 27 of these; it takes Looma's defaults for the rest.
+| Controls | `--ui-control-size`, `-size-sm`, `--ui-control-min-block-size` |
 
 ## Derived values
 
@@ -75,16 +122,29 @@ must not shrink with a smaller root font.
 
 ## Themes
 
-Switch with `data-theme` or let the media queries do it. A theme sets contract values only:
+Switch with `data-theme` or let the media queries do it. A theme sets the eleven seeds, plus the
+shadows if depth should read differently on its surfaces:
 
 ```css
 [data-theme="dark"] {
+  color-scheme: dark;
   --ui-surface: #1a1a1a;
+  --ui-surface-raised: #2a2a2a;
+  --ui-surface-sunken: #2e2e2e;
   --ui-text: #f0f0ec;
-  --ui-accent: #a99bf5;
   --ui-on-accent: #1a1a1a;
+  --ui-on-danger: #1a1a1a;
+  --ui-accent: #a99bf5;
+  --ui-danger: #ef6f86;
+  --ui-success: #33cc66;
+  --ui-warning: #ffaa22;
+  --ui-info: #4d9fff;
 }
 ```
+
+`--ui-surface-raised` and `--ui-surface-sunken` are seeded rather than mixed because which
+direction reads as "lifted" flips between a light and a dark scheme, and only the theme knows
+which one it is.
 
 In a dark theme the intent tones are light, so their foregrounds (`--ui-on-accent`,
 `--ui-on-danger`) are dark. That is what lets one tone per intent serve both text and solid surfaces.

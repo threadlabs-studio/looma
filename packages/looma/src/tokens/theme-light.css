@@ -2,31 +2,17 @@
   :root:not([data-theme]),
   [data-theme="light"] {
     color-scheme: light;
+    /* The seeds, and only the seeds. Neutrals, hovers, tints, and disabled colours are mixed from
+       these in tokens.css, so a product themes Looma by changing these eleven values. */
     --ui-surface: #ffffff;
     --ui-surface-raised: #ffffff;
     --ui-surface-sunken: #f0f0ec;
-
     --ui-text: #1a1a1a;
-    --ui-text-secondary: #5c5c5c;
-    --ui-text-muted: #9b9b9b;
-    --ui-disabled-surface: #f0f0ec;
-    --ui-disabled-text: #8a8a86;
     --ui-on-accent: #ffffff;
     --ui-on-danger: #ffffff;
 
-    --ui-border: #e4e4e0;
-    --ui-border-strong: #c8c8c4;
-    --ui-focus-ring: #5b55d6;
-    /* A control needs a visible 3:1 boundary; general dividers stay quieter. */
-    --ui-control-border: #858580;
-
     --ui-accent: #5b55d6;
-    --ui-accent-hover: #4b45bd;
-    --ui-accent-active: #3e399e;
-    --ui-accent-subtle: #efeffc;
-
     --ui-danger: #b4233f;
-    --ui-danger-hover: #941d35;
     --ui-success: #007a33;
     /* Deep amber, so a solid warning surface carries white text like the other tones (5:1). */
     --ui-warning: #b45309;

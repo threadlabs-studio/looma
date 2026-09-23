@@ -24,17 +24,35 @@ async function expectNoAxeViolations(page: Page): Promise<void> {
   expect(violations).toEqual([]);
 }
 
+/** Linear sRGB from any colour the browser hands back: rgb(), color(srgb ...), oklab(), oklch(). */
+function linearChannels(color: string): [number, number, number] {
+  const numbers = (color.match(/-?[\d.]+/g) ?? []).map(Number);
+  if (numbers.length < 3) throw new Error(`Unsupported color: ${color}`);
+  const gamma = (channel: number) =>
+    channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+
+  if (color.startsWith("oklab(") || color.startsWith("oklch(")) {
+    const [lightness, second, third] = numbers;
+    const [a, b] = color.startsWith("oklch(")
+      ? [second * Math.cos((third * Math.PI) / 180), second * Math.sin((third * Math.PI) / 180)]
+      : [second, third];
+    const l = (lightness + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+    const m = (lightness - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+    const s = (lightness - 0.0894841775 * a - 1.2914855480 * b) ** 3;
+    return [
+      4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+      -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+      -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s
+    ];
+  }
+
+  // color(srgb ...) states channels 0–1; rgb() states them 0–255.
+  const scale = color.startsWith("color(") ? 1 : 1 / 255;
+  return numbers.slice(0, 3).map((channel) => gamma(channel * scale)) as [number, number, number];
+}
+
 function contrastRatio(foreground: string, background: string): number {
-  const parse = (color: string): [number, number, number] => {
-    const channels = color.match(/[\d.]+/g)?.slice(0, 3).map(Number);
-    if (!channels || channels.length !== 3) throw new Error(`Unsupported color: ${color}`);
-    return channels.map((channel) => {
-      const normalized = channel / 255;
-      return normalized <= 0.04045
-        ? normalized / 12.92
-        : ((normalized + 0.055) / 1.055) ** 2.4;
-    }) as [number, number, number];
-  };
+  const parse = linearChannels;
   const luminance = ([red, green, blue]: [number, number, number]) =>
     0.2126 * red + 0.7152 * green + 0.0722 * blue;
   const foregroundLuminance = luminance(parse(foreground));
@@ -1398,21 +1416,33 @@ test("tone is the colour, variant is the volume, and disabled keeps both", async
   // the whole button rather than only its text.
   expect(painted["outline-accent-false"].border).not.toBe(painted["outline-danger-false"].border);
   expect(painted["outline-accent-false"].border).not.toBe(painted["outline-neutral-false"].border);
-  // Colours serialize as rgb() or color(srgb ...) depending on how they were computed, so compare
-  // the channels rather than the text.
-  const channels = (value: string) => (value.match(/[\d.]+/g) ?? []).slice(0, 3).map(Number)
-    .map((channel, index) => (value.startsWith("color(") ? channel * 255 : channel) * (index >= 0 ? 1 : 1));
-  const sameColour = (left: string, right: string) =>
-    channels(left).every((channel, index) => Math.abs(channel - channels(right)[index]) <= 1.5);
+  // rgb(), color(srgb ...), oklch(): one colour has several spellings, so paint each and compare
+  // the pixels. The wash is the same colour as the edge at 5%, so its alpha is taken off first.
+  const opaque = (value: string) => value.replace(/\/\s*(0?\.\d+|\d+%)\s*\)/, "/ 1)");
+  const rendered = async (values: string[]) => page.evaluate((colours) => {
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = 1;
+    const context = canvas.getContext("2d")!;
+    return colours.map((colour) => {
+      context.clearRect(0, 0, 1, 1);
+      context.fillStyle = colour;
+      context.fillRect(0, 0, 1, 1);
+      return [...context.getImageData(0, 0, 1, 1).data].slice(0, 3);
+    });
+  }, values);
+  const sameColour = async (left: string, right: string) => {
+    const [a, b] = await rendered([opaque(left), opaque(right)]);
+    return a.every((channel, index) => Math.abs(channel - b[index]) <= 2);
+  };
 
   for (const tone of ["accent", "danger"]) {
     const outline = painted[`outline-${tone}-false`];
     // The wash is the border colour, mostly transparent: same colour, different alpha.
     expect(outline.surface).toContain("0.05");
-    expect(sameColour(outline.surface, outline.border), `${tone} wash is not its own border colour`).toBe(true);
+    expect(await sameColour(outline.surface, outline.border), `${tone} wash is not its own border colour`).toBe(true);
   }
   // Solid fills with the tone the outline draws with: one action at two volumes.
-  expect(sameColour(painted["solid-accent-false"].surface, painted["outline-accent-false"].border)).toBe(true);
+  expect(await sameColour(painted["solid-accent-false"].surface, painted["outline-accent-false"].border)).toBe(true);
   expect(painted["ghost-accent-false"].shadow).toBe("none");
 
   // Disabled keeps the shape and a trace of the tone: a disabled outline still reads as an

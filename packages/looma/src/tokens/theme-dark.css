@@ -2,30 +2,18 @@
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme]) {
       color-scheme: dark;
+      /* The same eleven seeds the light theme sets. Every neutral, tint, hover, and disabled
+         colour is mixed from these, and the mixes read the scheme from them: toward this ink
+         brightens here, where it darkened there. */
       --ui-surface: #1a1a1a;
       --ui-surface-raised: #2a2a2a;
       --ui-surface-sunken: #2e2e2e;
-
       --ui-text: #f0f0ec;
-      --ui-text-secondary: #a0a09c;
-      --ui-text-muted: #6a6a66;
-      --ui-disabled-surface: #242424;
-      --ui-disabled-text: #6a6a66;
       --ui-on-accent: #1a1a1a;
       --ui-on-danger: #1a1a1a;
 
-      --ui-border: #333330;
-      --ui-border-strong: #4a4a46;
-      --ui-focus-ring: #a99bf5;
-      --ui-control-border: #6f6f69;
-
       --ui-accent: #a99bf5;
-      --ui-accent-hover: #b9adff;
-      --ui-accent-active: #c8beff;
-      --ui-accent-subtle: #282342;
-
       --ui-danger: #ef6f86;
-      --ui-danger-hover: #f58a9d;
       --ui-success: #33cc66;
       --ui-warning: #ffaa22;
       --ui-info: #4d9fff;
@@ -42,30 +30,18 @@
 
   [data-theme="dark"] {
     color-scheme: dark;
+    /* The same eleven seeds the light theme sets. Every neutral, tint, hover, and disabled
+       colour is mixed from these, and the mixes read the scheme from them: toward this ink
+       brightens here, where it darkened there. */
     --ui-surface: #1a1a1a;
     --ui-surface-raised: #2a2a2a;
     --ui-surface-sunken: #2e2e2e;
-
     --ui-text: #f0f0ec;
-    --ui-text-secondary: #a0a09c;
-    --ui-text-muted: #6a6a66;
-    --ui-disabled-surface: #242424;
-    --ui-disabled-text: #6a6a66;
     --ui-on-accent: #1a1a1a;
     --ui-on-danger: #1a1a1a;
 
-    --ui-border: #333330;
-    --ui-border-strong: #4a4a46;
-    --ui-focus-ring: #a99bf5;
-    --ui-control-border: #6f6f69;
-
     --ui-accent: #a99bf5;
-    --ui-accent-hover: #b9adff;
-    --ui-accent-active: #c8beff;
-    --ui-accent-subtle: #282342;
-
     --ui-danger: #ef6f86;
-    --ui-danger-hover: #f58a9d;
     --ui-success: #33cc66;
     --ui-warning: #ffaa22;
     --ui-info: #4d9fff;
