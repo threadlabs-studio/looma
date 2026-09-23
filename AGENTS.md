@@ -54,7 +54,7 @@ Never claim a check passed unless it was run.
   release workflow publishes the next patch to npm `latest`, commits
   `Release vX.Y.Z` with every manifest updated, and tags it. Nothing to bump by
   hand. For a minor or major, set the version ahead of the registry in the PR
-  (`node tools/scripts/release-version.mjs --apply 0.7.0`) and it publishes as
+  (`node tools/scripts/release-version.mjs --apply 0.7.1`) and it publishes as
   declared. Add a `CHANGELOG.md` entry with the change.
 - Every green `main` redeploys the docs site (`.github/workflows/docs.yml`).
 - Looma is pre-1.0: breaking changes bump the minor version.

@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.7.1
+
+- The table context menu's `max-width` counts its padding and border, so the menu keeps to the
+  footprint it promises rather than exceeding it by the padding.
+
 ## v0.7.0
 
 - Colour comes from eleven seeds: five intents, two intent foregrounds, three surfaces, and the
