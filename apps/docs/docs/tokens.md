@@ -133,7 +133,19 @@ Font sizes are `rem`, so a host scales them from the root font size. One excepti
 `--ui-control-min-block-size` is `44px`, because WCAG's touch-target minimum counts CSS pixels and
 must not shrink with a smaller root font.
 
-`--ui-font-size-ui` is the dense control size used by trees and other information-rich controls.
+A theme sets one size, `--ui-font-size`, for body copy; every step derives from it, so the scale
+moves as a whole:
+
+| Step | Multiple | Used for |
+|---|---|---|
+| `--ui-font-size-2xs` | 0.6875 | keyboard hints and micro-labels |
+| `--ui-font-size-xs` | 0.75 | captions and avatar-group counts |
+| `--ui-font-size-sm` | 0.875 | controls, labels, badges, trees, and help text |
+| `--ui-font-size-md` | 1 | body copy, the editor, and menus |
+| `--ui-font-size-lg`, `-xl`, `-2xl` | 1.125, 1.25, 1.5 | headings |
+
+Neighbouring steps are at least two pixels apart at the default size: a label one pixel smaller than
+the text beside it reads as a mistake, not as hierarchy.
 
 ## Themes
 

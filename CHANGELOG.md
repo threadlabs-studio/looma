@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.8.0
+
+- **Breaking:** the type scale derives entirely from `--ui-font-size`. `--ui-font-size-sm` is now
+  `0.875 ×` the base instead of a second value a theme had to set, so changing the base moves every
+  step together; a theme that set `--ui-font-size-sm` to anything else should drop it.
+- **Breaking:** `--ui-font-size-ui` (15px at the default base) is gone. It sat one pixel from body
+  copy and one from `sm`, so a tree label next to body text read as a near miss rather than a step.
+  Tree items use `sm`; set `--ui-tree-item-font-size` to keep a different size.
+- Components no longer hard-code font sizes. Form-field labels (were `0.95rem`), help and errors,
+  small and large buttons, avatars, the avatar-group count, the table menus, the combobox label,
+  and the slash menu's keyboard hints (were `10px`) take their size from the scale, so they follow a
+  theme's base size. A rule test keeps new ones out.
+
 ## v0.7.4
 
 - Badge takes `shape="tag"`: flat at the start and pointed at the end, the label silhouette Chip
