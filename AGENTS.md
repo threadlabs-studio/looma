@@ -51,10 +51,12 @@ Never claim a check passed unless it was run.
 ## Releases and Docs
 
 - Merging a change to `packages/looma/src` releases it: once CI passes, the
-  release workflow publishes the next patch to npm `latest`, commits
-  `Release vX.Y.Z` with every manifest updated, and tags it. Nothing to bump by
-  hand. For a minor or major, set the version ahead of the registry in the PR
-  (`node tools/scripts/release-version.mjs --apply 0.7.1`) and it publishes as
+  release workflow publishes the next patch to npm `latest` and tags it
+  `vX.Y.Z`. Nothing to bump by hand. `main` only takes pull requests, so the
+  release never commits back to it: `main`'s manifests keep the last version a
+  pull request declared, and npm plus the tags record every patch since. For a
+  minor or major, set the version ahead of the registry in the PR
+  (`node tools/scripts/release-version.mjs --apply 0.8.0`) and it publishes as
   declared. Add a `CHANGELOG.md` entry with the change.
 - Every green `main` redeploys the docs site (`.github/workflows/docs.yml`).
 - Looma is pre-1.0: breaking changes bump the minor version.
