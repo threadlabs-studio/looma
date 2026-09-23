@@ -11,7 +11,7 @@ function parentItem(element) {
 /** Synchronizes an inferred tree hierarchy after nested component lowering. */
 export default function controller(host) {
   const element = host.element;
-  const { row, disclosure, children } = host.refs;
+  const { row, disclosure, children, actions } = host.refs;
   // Touch use enlarges rows and hides drag handles (see the template's styles).
   trackInputModality(element.ownerDocument);
   const childItems = () => Array.from(children?.children ?? [])
@@ -81,9 +81,17 @@ export default function controller(host) {
   updateLevel();
   const stop = host.effect(apply);
   apply();
+  // The label's fade has to end where the controls begin, and only the controls know their width.
+  const actionsSize = new ResizeObserver(([entry]) => {
+    const width = entry.borderBoxSize?.[0]?.inlineSize ?? entry.contentRect.width;
+    element.style.setProperty("--_tree-actions-width", `${width}px`);
+  });
+  if (actions) actionsSize.observe(actions);
+
   return () => {
     stop?.();
     observer.disconnect();
+    actionsSize.disconnect();
     element.removeEventListener("ui-tree-auto-expand", onAutoExpand);
     element.removeEventListener("ui-tree-structure-sync", onStructure);
     element.removeEventListener("ui-tree-roving-tab-stop", onRoving);
