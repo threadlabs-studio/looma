@@ -422,20 +422,12 @@ body {
   box-shadow: 0 10px 30px rgb(43 37 56 / 0.07);
 }
 
-.looma-demo-app__title { margin: 0.45rem 0 0; font-size: var(--looma-text-xl); font-weight: 700; }
+.looma-demo-app__title { margin: 0.45rem 0 0; font-size: var(--looma-text-lg); font-weight: 700; }
 .looma-demo-app__header, .looma-demo-app__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; }
-.looma-demo-app__header { justify-content: space-between; }
+.looma-demo-app__header { flex-wrap: nowrap; justify-content: space-between; }
+.looma-demo-app__header > div:first-child { min-width: 0; }
 .looma-demo-app__actions { justify-content: flex-end; }
 
-.looma-demo-task {
-  display: flex;
-  gap: 0.65rem;
-  align-items: center;
-  font-size: var(--looma-text-xs);
-  cursor: pointer;
-}
-
-.looma-demo-task input { accent-color: var(--looma-purple); }
 .looma-catalog-hero { position: relative; max-width: 52rem; margin: 1.5rem 0 3rem; }
 .looma-catalog-hero::before { top: -7rem; left: -10rem; }
 
