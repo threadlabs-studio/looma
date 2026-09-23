@@ -1,7 +1,8 @@
 name: Release
 
-# Publishes @threadlabs/looma to npm `latest` after CI passes on main, when
-# packages/looma/package.json carries a version that is not on npm yet.
+# Publishes @threadlabs/looma to npm `latest` after CI passes on main. A merge that changes the
+# package releases the next patch by itself; a version already ahead of the registry publishes as
+# declared, which is how a minor or major lands.
 # npm trusted publishing is bound to this file name and the npm-release environment.
 on:
   workflow_run:
@@ -24,21 +25,19 @@ jobs:
       (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main')
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: write
     outputs:
-      release_sha: ${{ steps.sha.outputs.release_sha }}
-      version_new: ${{ steps.version.outputs.version_new }}
+      release_sha: ${{ steps.publish-commit.outputs.release_sha }}
+      release_version: ${{ steps.resolve.outputs.version }}
+      releasing: ${{ steps.resolve.outputs.release }}
     steps:
-      - name: Resolve release commit
-        id: sha
-        env:
-          RELEASE_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
-        run: echo "release_sha=$RELEASE_SHA" >> "$GITHUB_OUTPUT"
-
       - name: Checkout release commit
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          ref: ${{ steps.sha.outputs.release_sha }}
-          persist-credentials: false
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          # The release commit is pushed from here, so this checkout keeps its credentials.
+          fetch-depth: 0
 
       - name: Setup pnpm
         uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
@@ -49,31 +48,55 @@ jobs:
           node-version: 20.19.6
           cache: pnpm
 
-      - name: Skip when the version is already published
-        id: version
+      - name: Resolve the version this commit releases
+        id: resolve
         run: |
-          version="$(node -p "require('./packages/looma/package.json').version")"
-          if npm view "@threadlabs/looma@${version}" version --registry https://registry.npmjs.org/ > /dev/null 2>&1; then
-            echo "@threadlabs/looma@${version} is already published; nothing to release"
-            echo "version_new=false" >> "$GITHUB_OUTPUT"
+          published="$(npm view @threadlabs/looma version --registry https://registry.npmjs.org/)"
+          last_release="$(git tag --list 'v*' --sort=-v:refname | head -n 1)"
+          if [ -n "$last_release" ] && git rev-parse -q --verify "$last_release" > /dev/null; then
+            # Only the package's own sources: the release commit itself touches versions alone.
+            changed="$(git diff --name-only "$last_release"..HEAD -- packages/looma/src packages/looma/build.mjs | wc -l)"
           else
-            echo "version_new=true" >> "$GITHUB_OUTPUT"
+            changed=1
           fi
+          if [ "$changed" -gt 0 ]; then package_changed=true; else package_changed=false; fi
+          resolution="$(LOOMA_PUBLISHED_VERSION="$published" LOOMA_PACKAGE_CHANGED="$package_changed" node tools/scripts/release-version.mjs --resolve)"
+          echo "$resolution"
+          echo "release=$(node -p "JSON.parse(process.argv[1]).release" "$resolution")" >> "$GITHUB_OUTPUT"
+          echo "version=$(node -p "JSON.parse(process.argv[1]).version" "$resolution")" >> "$GITHUB_OUTPUT"
+
+      - name: Record the release version
+        id: publish-commit
+        if: steps.resolve.outputs.release == 'true'
+        env:
+          VERSION: ${{ steps.resolve.outputs.version }}
+        run: |
+          node tools/scripts/release-version.mjs --apply "$VERSION"
+          if git diff --quiet; then
+            echo "release_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -aqm "Release v${VERSION}"
+          git tag "v${VERSION}"
+          git push origin "HEAD:main" --follow-tags
+          echo "release_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Use trusted-publishing-capable npm CLI
-        if: steps.version.outputs.version_new == 'true'
+        if: steps.resolve.outputs.release == 'true'
         run: npm install --global npm@11.5.1
 
       - name: Install dependencies
-        if: steps.version.outputs.version_new == 'true'
+        if: steps.resolve.outputs.release == 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Verify and pack release bytes
-        if: steps.version.outputs.version_new == 'true'
+        if: steps.resolve.outputs.release == 'true'
         run: pnpm release:verify
 
       - name: Upload release artifact
-        if: steps.version.outputs.version_new == 'true'
+        if: steps.resolve.outputs.release == 'true'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: looma-release
@@ -82,7 +105,7 @@ jobs:
           retention-days: 30
 
   publish:
-    if: needs.prepare.outputs.version_new == 'true'
+    if: needs.prepare.outputs.releasing == 'true'
     needs: prepare
     runs-on: ubuntu-latest
     timeout-minutes: 30

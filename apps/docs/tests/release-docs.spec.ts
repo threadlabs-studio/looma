@@ -1297,6 +1297,39 @@ async function markedPixels(control: Locator): Promise<number> {
   }, shot);
 }
 
+test("the home demo is built from Looma components, as it says it is", async ({ page }) => {
+  await page.goto("./", { waitUntil: "networkidle" });
+  const demo = page.locator(".looma-demo-app");
+  await expect(demo).toBeVisible();
+  await expect(page.getByText("Live components")).toBeVisible();
+
+  // The demo is labelled live. A hand-rolled control under that label is the site lying about the
+  // library, and it hides the library's own bugs: a bare <input type=checkbox> drew a tick from the
+  // browser for as long as ui-checkbox drew none.
+  const impostors = await demo.evaluate((root) => {
+    // A layout primitive around a control does not make the control a Looma control.
+    const layout = new Set([
+      "ui-stack", "ui-cluster", "ui-grid", "ui-container", "ui-switcher", "ui-reel", "ui-sidebar"
+    ]);
+    const controls = root.querySelectorAll("input, select, textarea, button, [role='button'], [role='checkbox'], [role='switch']");
+    return [...controls]
+      .filter((control) => {
+        const owner = control.closest("[data-component]");
+        const tag = owner?.getAttribute("data-component")?.split(" ")[0];
+        return !tag || layout.has(tag);
+      })
+      .map((control) => control.outerHTML.replace(/\s+/g, " ").slice(0, 80));
+  });
+  expect(impostors, "the live demo contains controls that are not Looma components").toEqual([]);
+
+  const components = await demo.evaluate((root) =>
+    [...new Set([...root.querySelectorAll("[data-component]")].map((node) => node.getAttribute("data-component")!.split(" ")[0]))].sort()
+  );
+  expect(components).toEqual(
+    expect.arrayContaining(["ui-avatar", "ui-badge", "ui-button", "ui-callout", "ui-checkbox", "ui-top-bar"])
+  );
+});
+
 test("a checked checkbox paints its tick", async ({ page }) => {
   await page.goto("components/ui-checkbox", { waitUntil: "domcontentloaded" });
   const control = page.locator("[data-preview-scenario]").first().getByRole("checkbox").first();
