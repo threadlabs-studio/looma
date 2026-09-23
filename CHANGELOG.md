@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Combobox with `multiple` keeps the items it selects. It reported each choice and waited for the
+  consumer to pass `items` back, so selecting an option appeared to do nothing. A consumer that
+  sets `items` still owns them.
+- Combobox's help affordance is a circled question mark beside the field, not a bare `?` inside the
+  box, and it opens its tooltip on press. A control's box holds its value.
+- Tooltip takes `trigger`: `hover` (also opens on keyboard focus), `click` for a help button where
+  hovering a question mark says nothing, or `focus`.
+
 ## v0.6.1
 
 Fixes for 0.6.0, found by a new rule that checks every token a stylesheet reads is defined.

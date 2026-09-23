@@ -14,14 +14,17 @@ export function DocsLandingHero(): JSX.Element {
           <img src={markUrl} alt="" />
           <span>Pre-1.0 release</span>
         </div>
-        <h1>Getting Started</h1>
+        <h1>Looma</h1>
         <p className="looma-home-hero__lede">
-          Declarative components, woven into the web platform. Semantic before JavaScript,
-          interactive after it, and inspectable all the way down.
+          The first UI library built on Declarative HTML Components. Write a component as markup,
+          and ship it as real native HTML or as Vue components with no runtime of ours inside them.
         </p>
         <div className="looma-home-hero__actions">
-          <Link className="looma-button looma-button--primary" to="/components">
-            Explore components <span aria-hidden="true">→</span>
+          <Link className="looma-button looma-button--primary" to="/getting-started">
+            Get started <span aria-hidden="true">→</span>
+          </Link>
+          <Link className="looma-button looma-button--secondary" to="/components">
+            Explore components
           </Link>
           <a className="looma-button looma-button--secondary" href="https://github.com/threadlabs-studio/looma">
             View on GitHub

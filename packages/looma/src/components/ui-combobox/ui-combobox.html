@@ -21,6 +21,7 @@
     <prop name="disclosure" type="boolean" default="false">disclosure token.</prop>
     <prop name="clearable" type="boolean" default="false">clearable token.</prop>
     <prop name="help" type="string" default="">help token.</prop>
+    <state name="internalItems" type="list(object({ id: string, value: string, label: string, group?: string, disabled?: boolean }))" :value="[]"></state>
     <state name="raw" :value="''"></state>
     <state name="display" :value="''"></state>
     <state name="selected" type="string | null" :value="null"></state>
@@ -79,68 +80,85 @@
   <div>
     <label :for="format('%s-input', uid)" class:sr-only="labelVisibility = 'sr-only'"><template $value="label"></template><template $if="required">
         *</template></label>
-    <div class="field" $ref="field">
-      <slot name="start"></slot>
-      <template $if="multiple">
-        <button
-          $each="item, index of items"
-          $key="item.id"
-          class="item"
-          type="button"
-          tabindex="-1"
-          :data-index="index"
-          :disabled="disabled or readonly or item.disabled"
-          :aria-label="format('%s, press Delete or Backspace to remove', item.label)"
+    <div class="control">
+      <div class="field" $ref="field">
+        <slot name="start"></slot>
+        <template $if="multiple">
+          <button
+            $each="item, index of internalItems"
+            $key="item.id"
+            class="item"
+            type="button"
+            tabindex="-1"
+            :data-index="index"
+            :disabled="disabled or readonly or item.disabled"
+            :aria-label="format('%s, press Delete or Backspace to remove', item.label)"
+          >
+            <slot :name="format('item-%s', item.id)"><ui-badge $value="item.label"></ui-badge></slot>
+          </button>
+        </template>
+        <input
+          $ref="input"
+          :id="format('%s-input', uid)"
+          role="combobox"
+          aria-autocomplete="list"
+          autocomplete="off"
+          :aria-controls="format('%s-listbox', uid)"
+          :aria-expanded="expanded"
+          :aria-invalid="validationStatus = 'error'"
+          :aria-busy="validationStatus = 'pending'"
+          .value="display"
+          :placeholder="placeholder"
+          :name="name"
+          :disabled="disabled"
+          :readonly="readonly"
+          :required="required"
         >
-          <slot :name="format('item-%s', item.id)"><ui-badge $value="item.label"></ui-badge></slot>
+        <button $if="clearable" type="button" data-combobox-action="clear" aria-label="Clear">
+          <svg class="affordance-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M7 7l10 10M17 7 7 17"></path>
+          </svg>
         </button>
-      </template>
-      <input
-        $ref="input"
-        :id="format('%s-input', uid)"
-        role="combobox"
-        aria-autocomplete="list"
-        autocomplete="off"
-        :aria-controls="format('%s-listbox', uid)"
-        :aria-expanded="expanded"
-        :aria-invalid="validationStatus = 'error'"
-        :aria-busy="validationStatus = 'pending'"
-        .value="display"
-        :placeholder="placeholder"
-        :name="name"
-        :disabled="disabled"
-        :readonly="readonly"
-        :required="required"
-      >
-      <button $if="clearable" type="button" data-combobox-action="clear" aria-label="Clear">
-        <svg class="affordance-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <path d="M7 7l10 10M17 7 7 17"></path>
-        </svg>
-      </button>
-      <button $if="help" :id="format('%s-help', uid)" type="button" aria-label="Help" :disabled="disabled"><span aria-hidden="true">?</span></button>
-      <button
-        $if="disclosure"
-        type="button"
-        data-combobox-action="disclosure"
-        tabindex="-1"
-        aria-label="Show suggestions"
-        :aria-controls="format('%s-listbox', uid)"
-      >
+        <button
+          $if="disclosure"
+          type="button"
+          data-combobox-action="disclosure"
+          tabindex="-1"
+          aria-label="Show suggestions"
+          :aria-controls="format('%s-listbox', uid)"
+        >
+          <svg
+            class="affordance-icon"
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.25"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="m6 9 6 6 6-6"></path>
+          </svg>
+        </button>
+      </div>
+      <button $if="help" class="help" :id="format('%s-help', uid)" type="button" aria-label="Help" :disabled="disabled">
         <svg
-          class="affordance-icon"
+          class="help-icon"
           aria-hidden="true"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          stroke-width="2.25"
+          stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
         >
-          <path d="m6 9 6 6 6-6"></path>
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"></path>
+          <path d="M12 17h.01"></path>
         </svg>
       </button>
     </div>
-    <ui-tooltip $if="help" :id="format('%s-help-text', uid)" :for="format('%s-help', uid)"><template $value="help"></template></ui-tooltip>
+    <ui-tooltip $if="help" trigger="click" :id="format('%s-help-text', uid)" :for="format('%s-help', uid)"><template $value="help"></template></ui-tooltip>
     <div class="popup" $ref="popup" :hidden="not expanded">
       <div role="listbox" $ref="listbox" :id="format('%s-listbox', uid)" :aria-label="format('%s suggestions', label)" :aria-busy="loading">
         <div $each="group of groups" $key="group.name" :role="group.role" :aria-label="group.label">
@@ -193,7 +211,17 @@
       font-size: var(--ui-combobox-label-font-size, 0.875rem);
       font-weight: 500;
     }
+    /* The field and anything that annotates it sit on one row; the help button is beside the box,
+       not inside it, because a control's box holds its value. */
+    .control {
+      display: flex;
+      align-items: center;
+      gap: var(--ui-space-2);
+      min-inline-size: 0;
+    }
+
     .field {
+      flex: 1 1 auto;
       display: flex;
       min-inline-size: 0;
       border: 1px solid var(--ui-control-border, var(--ui-border-default));
@@ -208,6 +236,44 @@
         var(--ui-control-inset),
         var(--ui-control-focus-halo-shadow);
     }
+    /* A ghost icon button: the affordance is the mark, not a box around it. */
+    .help {
+      flex: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      inline-size: var(--ui-control-size-sm);
+      block-size: var(--ui-control-size-sm);
+      padding: 0;
+      border: 0;
+      border-radius: var(--ui-radius-round);
+      background: transparent;
+      color: var(--ui-text-secondary);
+      cursor: pointer;
+      transition: background-color var(--ui-motion-fast) var(--ui-motion-ease), color var(--ui-motion-fast) var(--ui-motion-ease);
+    }
+
+    .help:hover:enabled,
+    .help[aria-expanded="true"] {
+      background: color-mix(in srgb, currentColor 8%, transparent);
+      color: var(--ui-text-primary);
+    }
+
+    .help:focus-visible {
+      outline: none;
+      box-shadow: var(--ui-focus-halo);
+    }
+
+    .help:disabled {
+      color: var(--ui-disabled-text);
+      cursor: not-allowed;
+    }
+
+    .help-icon {
+      inline-size: var(--ui-icon-size-sm);
+      block-size: var(--ui-icon-size-sm);
+    }
+
     input::selection {
       background: color-mix(in srgb, var(--ui-accent-solid) 20%, transparent);
       color: inherit;
