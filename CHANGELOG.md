@@ -1,6 +1,34 @@
 # Changelog
 
-## Unreleased
+## v0.7.0
+
+- Colour comes from eleven seeds: five intents, two intent foregrounds, three surfaces, and the
+  ink. Every neutral, hover, tint, border, and disabled colour is mixed from them, so a theme
+  states those eleven and stops. Light, dark, and high contrast set the same set — dark dropped 18
+  restated values, and high contrast keeps only the overrides it exists for. `docs/tokens` shows
+  the seeds and what falls out of them.
+- **Breaking:** buttons take a `tone` and a `variant`. Tone is the colour (accent, neutral, danger,
+  success, warning, info) and applies to every variant; variant is the volume (solid, outline,
+  ghost, link). A destructive secondary action is `tone="danger" variant="outline"` rather than a
+  missing case. `variant="danger"` still resolves to a solid danger button, and the default tone is
+  now `accent` rather than `neutral`.
+- An outline is an outline: its tone at the edge over that same tone at 5%. It used to be a filled
+  grey box with a white highlight, which read as a solid button and belonged to no palette. Every
+  variant now shares one corner, edge, highlight, and shadow, and pressing moves the shadow inside
+  instead of lifting the button.
+- Disabled is derived from the tone it disables and mixed toward the page: a disabled danger button
+  still reads as danger, a dark theme dims where a light one lightens, and each variant keeps its
+  shape — a disabled outline is still an outline. A disabled ghost takes a light surface, since it
+  has no hover to fall back on.
+- **Breaking:** `ui-select` drops `multiple`. Multi-select is the combobox's job, and a multiple
+  combobox now checks its options in place: chosen options stay in the list with a checkbox, toggle
+  off when chosen again, and report `aria-selected` — which they never did while they were being
+  removed from the list.
+- A checked checkbox draws its tick again. Lowering expands a shorthand into longhands, and
+  `border: solid var(--ui-text-on-accent)` came out with empty values, leaving the tick styleless
+  and so zero-width.
+- New `--ui-pressed` token: the counterpart to `--ui-raised`, for a control that takes its shadow
+  inside while pressed.
 
 ## v0.6.5
 

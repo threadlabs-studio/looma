@@ -113,13 +113,17 @@ export default function controller(host) {
       }
       const ids = new Set();
       const selected = host.state.multiple ? selectedValues() : undefined;
+      // Multiple keeps its chosen options in the list, checked. Dropping them hid what was picked
+      // from the list and from assistive technology, which only ever heard aria-selected="false".
       const filtered = options.filter((option) => {
         if (ids.has(option.id)) return false;
         ids.add(option.id);
         if (fullSet) return true;
-        const matches = option.label.toLocaleLowerCase().includes(query.toLocaleLowerCase());
-        return selected ? !selected.has(option.value) && matches : matches;
-      });
+        return option.label.toLocaleLowerCase().includes(query.toLocaleLowerCase());
+      }).map((option) => ({
+        ...option,
+        selected: selected ? selected.has(option.value) : option.value === host.state.selected
+      }));
       const groups = new Map();
       for (const row of filtered) {
         const group = row.group ?? "";
@@ -182,7 +186,16 @@ export default function controller(host) {
     input.value = query;
     host.dispatch("query-change", { query, display: query, trigger });
   };
-  const addSelectedItem = (option, trigger) => {
+  // A row carries a view-only `selected` flag; an item is the option itself, in its declared shape.
+  const asItem = ({ id, value, label, group, disabled }) => ({
+    id,
+    value,
+    label,
+    ...(group === undefined ? {} : { group }),
+    ...(disabled === undefined ? {} : { disabled })
+  });
+  const addSelectedItem = (row, trigger) => {
+    const option = asItem(row);
     const current = items();
     host.dispatch("add-item", { item: option, index: current.length, trigger });
     emitItems([...current, option]);
@@ -192,10 +205,19 @@ export default function controller(host) {
     const option = (host.state.rows ?? [])[index];
     if (option?.disabled) return;
     if (host.state.multiple) {
-      if (option) addSelectedItem(option, trigger);
+      if (option) {
+        // A checked row toggles off: the list is the selection, so it has to work both ways.
+        const position = items().findIndex((item) => item.value === option.value);
+        if (position >= 0) removeItemAt(position, trigger);
+        else addSelectedItem(option, trigger);
+      }
       else if (canCreate() && index === host.state.rows.length) createSelectedItem(String(host.state.raw).trim(), trigger);
       else return;
       setMultiQuery("", trigger);
+      // The list stays open so several can be chosen without reopening it.
+      search("selection");
+      input.focus();
+      return;
     } else if (option) commit(option.value, option.label, option, "selection", trigger);
     else if (canCreate() && index === host.state.rows.length) commit(null, host.state.raw, null, "create", trigger);
     else return;

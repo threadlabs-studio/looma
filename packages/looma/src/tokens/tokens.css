@@ -4,37 +4,22 @@
      from them, so a theme that sets only these still looks coherent. A component reads a derived
      value or its own `--ui-<component>-*` token; it never needs the product to set either. */
   :root {
-    /* Colour: intent and neutrals. */
+    /* Colour: the whole palette comes from these. An intent, its readable foreground, the page,
+       the two surfaces either side of it, and the ink. Everything else — hovers, tints, borders,
+       muted text, disabled — is mixed from them further down, so a theme sets these and stops. */
     --ui-accent: #5b55d6;
-    --ui-accent-hover: #4b45bd;
-    --ui-accent-active: #3e399e;
-    --ui-accent-subtle: #efeffc;
-    --ui-on-accent: #ffffff;
     --ui-danger: #b4233f;
-    --ui-danger-hover: #941d35;
-    --ui-on-danger: #ffffff;
     --ui-success: #007a33;
     --ui-warning: #b45309;
     --ui-info: #0066cc;
+    --ui-on-accent: #ffffff;
+    --ui-on-danger: #ffffff;
     --ui-surface: #ffffff;
+    /* Raised and sunken are seeded rather than mixed: which direction reads as "lifted" flips
+       between a light and a dark scheme, and only the theme knows which one it is. */
     --ui-surface-raised: #ffffff;
     --ui-surface-sunken: #f0f0ec;
-    /* The middle neutral step. It defaults to a mix of the two either side, but a palette with its
-       own value for it sets this rather than accepting the mix. */
-    --ui-surface-muted: color-mix(in srgb, var(--ui-surface-sunken) 50%, var(--ui-surface));
     --ui-text: #1a1a1a;
-    --ui-text-secondary: #5c5c5c;
-    --ui-text-muted: #9b9b9b;
-    --ui-border: #e4e4e0;
-    --ui-border-strong: #c8c8c4;
-
-    /* Disabled is one decision, not a per-component one: a neutral surface and text, at full
-       opacity, so a disabled control reads as unavailable rather than as a faded variant. */
-    --ui-disabled-surface: #f0f0ec;
-    --ui-disabled-text: #9b9b9b;
-
-    /* Focus. */
-    --ui-focus-ring: #5b55d6;
     --ui-focus-halo: 0 0 0 3px color-mix(in srgb, var(--ui-focus-ring) 40%, transparent);
 
     /* Type. */
@@ -83,7 +68,6 @@
     /* WCAG 2.5.5 counts CSS pixels, so this one stays in px: a smaller root font must not shrink
        a touch target below 44. */
     --ui-control-min-block-size: 44px;
-    --ui-control-border: #858580;
   }
 
   /* Derived values.
@@ -127,11 +111,36 @@
     --ui-overlay-backdrop: rgba(0, 0, 0, 0.4);
     --ui-control-inset: inset 0 1px 2px rgb(0 0 0 / 0.07), inset 0 1px 0 rgb(0 0 0 / 0.02);
     --ui-raised: 0 1px 2px rgb(0 0 0 / 0.07), 0 1px 1px rgb(0 0 0 / 0.04);
-    --ui-raised-highlight: linear-gradient(rgb(255 255 255 / 0.5), rgb(255 255 255 / 0));
+    --ui-raised-highlight: linear-gradient(rgb(255 255 255 / 0.16), rgb(255 255 255 / 0));
+    /* The counterpart to --ui-raised: a pressed control takes its shadow inside. */
+    --ui-pressed: inset 0 1px 2px rgb(0 0 0 / 0.12);
 
     --ui-motion-base: calc(var(--ui-motion-fast) * 1.5);
     /* Fast start, gentle settle: for reveals that should feel immediate. */
     --ui-motion-ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+    /* Neutrals: the ink mixed into the page. One ramp, so a theme that changes either end moves
+       every step with it. */
+    --ui-surface-muted: color-mix(in oklab, var(--ui-surface-sunken) 50%, var(--ui-surface));
+    --ui-text-secondary: color-mix(in oklab, var(--ui-text) 72%, var(--ui-surface));
+    --ui-text-muted: color-mix(in oklab, var(--ui-text) 45%, var(--ui-surface));
+    --ui-border: color-mix(in oklab, var(--ui-text) 12%, var(--ui-surface));
+    --ui-border-strong: color-mix(in oklab, var(--ui-text) 25%, var(--ui-surface));
+    --ui-control-border: color-mix(in oklab, var(--ui-text) 48%, var(--ui-surface));
+
+    /* States: toward the ink for pressure, toward the page for a tint. In a dark theme the ink is
+       light, so the same mixes brighten instead of darkening, without a second set of values. */
+    --ui-accent-hover: color-mix(in oklab, var(--ui-accent) 86%, var(--ui-text));
+    --ui-accent-active: color-mix(in oklab, var(--ui-accent) 74%, var(--ui-text));
+    --ui-accent-subtle: color-mix(in oklab, var(--ui-accent) 12%, var(--ui-surface));
+    --ui-danger-hover: color-mix(in oklab, var(--ui-danger) 86%, var(--ui-text));
+
+    /* Disabled is one decision, not a per-component one: the sunken surface and the muted ink, at
+       full opacity, so a disabled control reads as unavailable rather than as a faded variant. */
+    --ui-disabled-surface: var(--ui-surface-sunken);
+    --ui-disabled-text: var(--ui-text-muted);
+
+    --ui-focus-ring: var(--ui-accent);
 
     /* Surfaces and text, in the names components use. */
     --ui-surface-canvas: var(--ui-surface);

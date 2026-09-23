@@ -1,12 +1,12 @@
 <template component="ui-button">
   <defs>
     <prop name="variant" type="outline | solid | danger | ghost | link" default="outline"
-    >Visual emphasis and semantic intent. link is an inline text action that reads as a link.</prop>
+    >Emphasis: how loudly the button asks. solid fills with its tone, outline draws its tone at the edge over a wash of it, ghost carries only text until it is
+      hovered, and link is an inline text action that reads as a link. danger is solid in the danger tone, kept for the call sites that name it.</prop>
     <prop name="size" type="sm | md | lg" default="md">Control size.</prop>
-    <prop name="tone" type="neutral | accent" default="neutral"
-    >Intent of an outline, ghost, or link button. accent tints it with the accent colour, for a secondary action that still reads as the primary path. For a
-      product whose buttons are accent-tinted by default, point --ui-button-surface, --ui-button-border, and --ui-button-text at the accent values in your theme
-      rather than annotating every call site, and keep them as var() references so they follow a later change of accent.</prop>
+    <prop name="tone" type="accent | neutral | danger | success | warning | info" default="accent"
+    >Which colour the button speaks in. It applies to every variant, so an outline, a ghost, and a solid in the same tone are the same action at three volumes:
+      tone="danger" variant="outline" is a destructive secondary action. neutral is the quiet one, for a button that should not claim a colour.</prop>
     <prop name="disabled" type="boolean" default="false">disabled token.</prop>
     <prop name="align" type="center | start" default="center"
     >Content alignment. start lays the content out like a list option: from the start edge, with start-aligned text.</prop>
@@ -15,15 +15,23 @@
   <button type="button" :disabled="disabled"><slot></slot></button>
   <style>
     :host {
+      --_hue: var(--ui-accent);
+      --_hue-hover: var(--ui-accent-hover);
+      --_hue-active: var(--ui-accent-active);
+      --_hue-text: var(--ui-accent-active);
+      --_on-hue: var(--ui-on-accent);
+
+      --_tone: var(--_hue);
+      --_tone-hover: var(--_hue-hover);
+      --_tone-active: var(--_hue-active);
+      --_tone-text: var(--_hue-text);
+      --_on-tone: var(--_on-hue);
+
       display: inline-flex;
       align-items: center;
       justify-content: center;
       vertical-align: middle;
-      color: var(--ui-action-secondary-text, var(--ui-text-primary));
-    }
-
-    :host-state([variant="solid"]) {
-      color: var(--ui-action-primary-text, var(--ui-text-on-accent));
+      color: var(--_tone-text);
     }
 
     :host-state([align="start"]) {
@@ -39,23 +47,24 @@
     :host {
       appearance: none;
       min-block-size: var(--ui-button-min-block-size, var(--ui-control-size-md));
-      border: 1px solid var(--ui-button-border, var(--ui-border-strong));
+      border-style: solid;
+      border-width: 1px;
+      border-color: var(--ui-button-border, var(--_tone));
       border-radius: var(--ui-button-radius, var(--ui-radius-md));
-      background: var(--ui-button-surface, var(--ui-surface-elevated));
-      color: var(--ui-button-text, var(--ui-action-secondary-text, var(--ui-text-primary)));
+      background-color: var(--ui-button-surface, oklch(from var(--_tone) l c h / 5%));
+      color: var(--ui-button-text, var(--_tone-text));
       font: inherit;
       font-weight: var(--ui-font-medium);
       line-height: var(--ui-line-height-tight);
       padding: var(--ui-space-2) var(--ui-space-3);
       background-image: var(--ui-raised-highlight);
-      box-shadow: var(--ui-button-shadow, var(--ui-raised, var(--ui-shadow-xs)));
+      box-shadow: var(--ui-button-shadow, var(--ui-raised));
       cursor: pointer;
       transition:
         background-color var(--ui-motion-fast) var(--ui-motion-ease),
         border-color var(--ui-motion-fast) var(--ui-motion-ease),
         color var(--ui-motion-fast) var(--ui-motion-ease),
-        box-shadow var(--ui-motion-fast) var(--ui-motion-ease),
-        transform var(--ui-motion-fast) var(--ui-motion-ease);
+        box-shadow var(--ui-motion-fast) var(--ui-motion-ease);
       margin: 0;
     }
 
@@ -79,128 +88,141 @@
     }
 
     :host:hover:enabled {
-      background: var(--ui-action-secondary-surface-hover, var(--ui-surface-muted));
-      border-color: var(--ui-control-border-hover, var(--ui-border-strong));
+      border-color: var(--ui-button-hover-border, var(--_tone-hover));
+      background-color: var(--ui-button-hover-surface, oklch(from var(--_tone) l c h / 12%));
     }
 
+    /* Pressed reads as pressed in: the highlight goes, and the shadow moves inside. */
     :host:active:enabled {
-      background: var(--ui-surface-subtle);
+      background-color: var(--ui-button-active-surface, oklch(from var(--_tone) l c h / 18%));
+      background-image: none;
+      box-shadow: var(--ui-pressed);
     }
 
-    :host-state([variant="solid"]) {
-      border-color: var(--ui-action-primary-surface, var(--ui-accent-solid));
-      background: var(--ui-action-primary-surface, var(--ui-accent-solid));
-      color: var(--ui-action-primary-text, var(--ui-text-on-accent));
-      box-shadow: var(--ui-button-solid-shadow, inset 0 1px rgb(255 255 255 / 0.16), var(--ui-shadow-xs));
+    :host-state([variant="solid"]), :host-state([variant="danger"]) {
+      border-color: var(--_tone);
+      background-color: var(--_tone);
+      color: var(--_on-tone);
+      box-shadow: var(--ui-button-solid-shadow, var(--ui-raised));
     }
 
-    :host-state([variant="solid"]):hover:enabled {
-      background: var(--ui-action-primary-surface-hover, var(--ui-accent-hover));
-      border-color: var(--ui-action-primary-surface-hover, var(--ui-accent-hover));
-      box-shadow: var(--ui-shadow-sm);
-      transform: translateY(-1px);
+    :is(:host-state([variant="solid"]), :host-state([variant="danger"])):hover:enabled {
+      background-color: var(--_tone-hover);
+      border-color: var(--_tone-hover);
     }
 
-    :host-state([variant="solid"]):active:enabled {
-      background: var(--ui-action-primary-surface-active, var(--ui-accent-active));
-      border-color: var(--ui-action-primary-surface-active, var(--ui-accent-active));
-      box-shadow: none;
-      transform: translateY(0);
+    :is(:host-state([variant="solid"]), :host-state([variant="danger"])):active:enabled {
+      background-color: var(--_tone-active);
+      border-color: var(--_tone-active);
+      background-image: none;
+      box-shadow: var(--ui-pressed);
     }
 
-    :host-state([variant="danger"]) {
-      border-color: var(--ui-danger-solid);
-      background: var(--ui-danger-solid);
-      color: var(--ui-text-on-accent);
-      box-shadow: var(--ui-button-danger-shadow, inset 0 1px rgb(255 255 255 / 0.14), var(--ui-shadow-xs));
+    /* Tone is the colour, variant is the volume. Every pairing works: a danger outline is a
+       destructive secondary action, not a special case. */
+    :host-state([tone="neutral"]) {
+      --_hue: var(--ui-text);
+      --_hue-hover: var(--ui-text);
+      --_hue-active: var(--ui-text);
+      --_hue-text: var(--ui-text);
+      --_on-hue: var(--ui-surface);
     }
 
-    :host-state([variant="danger"]):hover:enabled {
-      background: var(--ui-danger-hover);
-      border-color: var(--ui-danger-hover);
-      box-shadow: var(--ui-shadow-sm);
-      transform: translateY(-1px);
+    :host-state([tone="danger"]), :host-state([variant="danger"]) {
+      --_hue: var(--ui-danger);
+      --_hue-hover: var(--ui-danger-hover);
+      --_hue-active: var(--ui-danger-hover);
+      --_hue-text: var(--ui-danger-hover);
+      --_on-hue: var(--ui-on-danger);
     }
 
-    :host-state([variant="danger"]):active:enabled {
-      box-shadow: none;
-      transform: translateY(0);
+    :host-state([tone="success"]) {
+      --_hue: var(--ui-success);
+      --_hue-hover: color-mix(in srgb, var(--ui-success) 85%, #000);
+      --_hue-active: color-mix(in srgb, var(--ui-success) 75%, #000);
+      --_hue-text: color-mix(in srgb, var(--ui-success) 85%, #000);
+      --_on-hue: var(--ui-surface);
     }
 
-    /* An accent-tinted secondary action: the outline, ghost, and link variants in the accent colour.
-       Solid and danger already carry their own intent. */
-    :host-state([tone="accent"]):host-state([variant="outline"]) {
-      border-color: var(--ui-button-accent-border, var(--ui-accent));
-      background: var(--ui-button-accent-surface, var(--ui-accent-subtle));
-      color: var(--ui-button-accent-text, var(--ui-accent-active));
+    :host-state([tone="warning"]) {
+      --_hue: var(--ui-warning);
+      --_hue-hover: color-mix(in srgb, var(--ui-warning) 85%, #000);
+      --_hue-active: color-mix(in srgb, var(--ui-warning) 75%, #000);
+      --_hue-text: color-mix(in srgb, var(--ui-warning) 85%, #000);
+      --_on-hue: var(--ui-surface);
     }
 
-    :host-state([tone="accent"]):host-state([variant="outline"]):hover:enabled {
-      border-color: var(--ui-button-accent-hover-border, var(--ui-accent-hover));
-      background: var(--ui-button-accent-hover-surface, color-mix(in srgb, var(--ui-accent) 16%, var(--ui-surface)));
-    }
-
-    :host-state([tone="accent"]):is(:host-state([variant="ghost"]), :host-state([variant="link"])) {
-      color: var(--ui-button-accent-text, var(--ui-accent-active));
+    :host-state([tone="info"]) {
+      --_hue: var(--ui-info);
+      --_hue-hover: color-mix(in srgb, var(--ui-info) 85%, #000);
+      --_hue-active: color-mix(in srgb, var(--ui-info) 75%, #000);
+      --_hue-text: color-mix(in srgb, var(--ui-info) 85%, #000);
+      --_on-hue: var(--ui-surface);
     }
 
     :host-state([variant="ghost"]) {
       border-color: transparent;
       background: transparent;
       box-shadow: none;
-      color: var(--ui-button-ghost-text, var(--ui-action-secondary-text, var(--ui-text-primary)));
+      color: var(--ui-button-ghost-text, var(--_tone-text));
     }
 
     /* Tints derive from the text colour, not a surface token, so hover and press show on any background. */
     :host-state([variant="ghost"]):hover:enabled {
-      background: var(--ui-button-ghost-hover-surface, color-mix(in srgb, currentColor 8%, transparent));
+      background-color: var(--ui-button-ghost-hover-surface, oklch(from var(--_tone) l c h / 10%));
       border-color: transparent;
     }
 
     :host-state([variant="ghost"]):active:enabled {
-      background: var(--ui-button-ghost-active-surface, color-mix(in srgb, currentColor 14%, transparent));
+      background-color: var(--ui-button-ghost-active-surface, oklch(from var(--_tone) l c h / 16%));
       border-color: transparent;
+      box-shadow: var(--ui-pressed);
     }
 
     /* A soft halo that transitions in with the other box-shadow changes, layered on the raised shadow. */
     :host:focus-visible {
       outline: none;
       box-shadow:
-        var(--ui-button-shadow, var(--ui-raised, var(--ui-shadow-xs))),
+        var(--ui-button-shadow, var(--ui-raised)),
         var(--ui-focus-halo);
     }
 
     :host-state([variant="solid"]):focus-visible {
       box-shadow:
-        var(--ui-button-solid-shadow, inset 0 1px rgb(255 255 255 / 0.16), var(--ui-shadow-xs)),
+        var(--ui-button-solid-shadow, var(--ui-raised)),
         var(--ui-focus-halo);
     }
 
-    /* Disabled colours fall back to each variant's own; ghost and link take only the text colour. */
+    /* Disabled drops the tone rather than the shape: every variant keeps its own structure, so a
+       disabled outline is still an outline and a disabled ghost is still text. Intent goes — an
+       unavailable action says "unavailable", not "unavailable, and destructive" — and so do the
+       highlight and shadow, because nothing that cannot be pressed should look raised. */
     :host:disabled {
+      /* Derived from the tone itself, not from a separate disabled palette: faded toward the
+         page, which desaturates it at the same time. Toward the page rather than toward white,
+         so a dark theme dims where a light one lightens — the same rule, both schemes. */
+      --_tone: color-mix(in oklab, var(--_hue) 58%, var(--ui-surface));
+      --_tone-hover: var(--_tone);
+      --_tone-active: var(--_tone);
+      --_tone-text: color-mix(in oklab, var(--_hue-text) 72%, var(--ui-surface));
+      --_on-tone: var(--_tone-text);
+
       opacity: var(--ui-button-disabled-opacity, 1);
       cursor: not-allowed;
-      border-color: var(--ui-button-disabled-border, var(--ui-border));
-      background-color: var(--ui-button-disabled-surface, var(--ui-disabled-surface));
-      color: var(--ui-button-disabled-text, var(--ui-disabled-text));
+      background-image: none;
+      box-shadow: none;
     }
 
-    :host-state([variant="solid"]):disabled {
-      border-color: var(--ui-button-disabled-border, var(--ui-border));
-      background-color: var(--ui-button-disabled-surface, var(--ui-disabled-surface));
-      color: var(--ui-button-disabled-text, var(--ui-disabled-text));
+    /* A filled button keeps its fill, faded further so its text stays legible on it. */
+    :is(:host-state([variant="solid"]), :host-state([variant="danger"])):disabled {
+      --_tone: color-mix(in oklab, var(--_hue) 34%, var(--ui-surface));
     }
 
-    :host-state([variant="danger"]):disabled {
-      border-color: var(--ui-button-disabled-border, var(--ui-border));
-      background-color: var(--ui-button-disabled-surface, var(--ui-disabled-surface));
-      color: var(--ui-button-disabled-text, var(--ui-disabled-text));
-    }
-
+    /* Ghost has no hover to fall back on, so disabled is the one state it has to state outright:
+       it takes a surface, light and tinted, rather than reading as plain text. */
     :host-state([variant="ghost"]):disabled {
-      background: none;
+      background-color: color-mix(in oklab, var(--_hue) 28%, var(--ui-surface));
       border-color: transparent;
-      color: var(--ui-button-disabled-text, var(--ui-disabled-text));
     }
 
     @media (pointer: coarse) {

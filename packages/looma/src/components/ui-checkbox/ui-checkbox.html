@@ -65,7 +65,10 @@
       margin: auto;
       inline-size: 0.32rem;
       block-size: 0.58rem;
-      border: solid var(--ui-text-on-accent);
+      /* Longhands, not `border: solid var(...)`: lowering drops a shorthand that omits a
+         component, which left the tick with no style and no colour. */
+      border-style: solid;
+      border-color: var(--ui-text-on-accent);
       border-width: 0 0.125rem 0.125rem 0;
       opacity: 1;
       transform: translateY(-0.11rem) rotate(45deg);
