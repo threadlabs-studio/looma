@@ -90,6 +90,22 @@ test("semantic controls lower directly to their native roots", async () => {
   );
 });
 
+test("a button renders as a link through its polymorphic root, not a second component", async () => {
+  const groups = await readDeclarativeContractGroups();
+  const contracts = Object.assign({}, ...groups.map((group) => group.contracts));
+  const source = await readFile(
+    new URL("../../packages/looma/src/components/ui-button/ui-button.html", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(source, /<button\s+as="button\|a"/);
+  for (const name of ["href", "target", "rel"]) {
+    assert.equal(contracts["ui-button"].props[name]?.type, "string", `ui-button declares ${name}`);
+  }
+  // A link can never be :enabled, so no interactive state may depend on it.
+  assert.doesNotMatch(contracts["ui-button"].style, /\S:enabled/);
+});
+
 test("public examples do not require implementation hooks", async () => {
   const source = await readFile(new URL("../../apps/docs/src/components/ComponentPreview.tsx", import.meta.url), "utf8");
   const hooks = [...source.matchAll(/\bdata-(?:ui|slot|dialog)-[a-z0-9-]+/g)].map((match) => match[0]);
@@ -187,6 +203,8 @@ test("semantic tones use one public vocabulary", async () => {
   assert.equal(contracts["ui-button"].props.variant.type, "outline | solid | danger | ghost | link");
   assert.equal(contracts["ui-callout"].props.tone.type, "info | note | warning | success | danger");
   assert.equal(contracts["ui-badge"].props.tone.type, "neutral | accent | info | success | warning | danger");
+  assert.equal(contracts["ui-badge"].props.shape.type, "pill | tag");
+  assert.equal(contracts["ui-badge"].props.shape.default, "pill");
   assert.doesNotMatch(previewSource, /variant=["']destructive["']|tone=["']error["']/);
 });
 
