@@ -203,6 +203,8 @@ test("semantic tones use one public vocabulary", async () => {
   assert.equal(contracts["ui-button"].props.variant.type, "outline | solid | danger | ghost | link");
   assert.equal(contracts["ui-callout"].props.tone.type, "info | note | warning | success | danger");
   assert.equal(contracts["ui-badge"].props.tone.type, "neutral | accent | info | success | warning | danger");
+  assert.equal(contracts["ui-badge"].props.shape.type, "pill | tag");
+  assert.equal(contracts["ui-badge"].props.shape.default, "pill");
   assert.doesNotMatch(previewSource, /variant=["']destructive["']|tone=["']error["']/);
 });
 

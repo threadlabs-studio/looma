@@ -2,6 +2,9 @@
 
 ## v0.7.4
 
+- Badge takes `shape="tag"`: flat at the start and pointed at the end, the label silhouette Chip
+  had before it was folded into Badge and lost in the move. `pill` stays the default.
+  `--ui-badge-point` sets the point's depth; right-to-left text points the other way.
 - A button can be a link: `as="a"` with `href` renders a real `<a>` that looks and responds
   exactly like the button in every variant, tone, size, and state, so an app never hand-styles a
   link to look like one. `target` and `rel` pass to the link. A link is a link to assistive
