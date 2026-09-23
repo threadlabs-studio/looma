@@ -549,6 +549,33 @@ describe("Vue editor components", () => {
   });
 });
 
+describe("Editor toolbar tooltips", () => {
+  it("labels its buttons with a Looma tooltip, not the browser's title", async () => {
+    const path = await bundle("vue-toolbar-tip", `
+      import { createApp, h, ref } from "vue";
+      import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+      const content = ref("<p>Hello</p>");
+      createApp({ render: () => h(LoomaEditor, { modelValue: content.value, toolbarMode: "sticky" }) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const bold = page.locator('[data-component~="ui-editor-toolbar"] button').first();
+    await bold.waitFor();
+    assert.equal(await bold.getAttribute("title"), null, "no native title");
+
+    const tip = page.locator('[data-component~="ui-tooltip"]');
+    await bold.hover();
+    await tip.waitFor({ state: "visible" });
+    assert.match((await tip.textContent()) ?? "", /Bold/);
+
+    // Moving along the row re-points the same tooltip without waiting again.
+    const italic = page.locator('[data-component~="ui-editor-toolbar"] button').nth(1);
+    await italic.hover();
+    await page.waitForFunction(() => /Italic/.test(document.querySelector('[data-component~="ui-tooltip"]')?.textContent ?? ""));
+    assert.equal(await tip.isVisible(), true);
+    await page.close();
+  });
+});
+
 describe("LoomaEditor", () => {
   it("names its editing surface for assistive technology", async () => {
     const path = await bundle("vue-editor-label", `
