@@ -8,7 +8,9 @@
  */
 
 export {
+  LOOMA_ACTIVE_BLOCK_BLUR_GRACE_MS,
   LOOMA_ACTIVE_BLOCK_CLASS,
+  LOOMA_ACTIVE_BLOCK_TYPING_IDLE_MS,
   LoomaActiveBlock,
   LoomaActiveBlockPluginKey,
 } from "./active-block";
