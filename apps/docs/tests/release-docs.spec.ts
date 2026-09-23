@@ -1359,49 +1359,78 @@ test("a multiple combobox checks its chosen options and unchecks them again", as
   await expect(scenario.locator(".item")).toHaveCount(0);
 });
 
-test("button variants share one treatment, and one disabled treatment", async ({ page }) => {
+test("tone is the colour, variant is the volume, and disabled keeps both", async ({ page }) => {
   await page.goto("components/ui-button", { waitUntil: "networkidle" });
   await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
-  await expect(page.locator("[data-preview-scenario='variant'] [data-component~='ui-button']").first()).toBeVisible();
-  const measure = (scenario: string) => page.locator(`[data-preview-scenario='${scenario}'] [data-component~='ui-button']`)
-    .evaluateAll((buttons) => buttons.map((button) => {
+  const stage = page.locator("[data-preview-scenario='variant'] .looma-preview-scenario__stage");
+  await expect(stage.locator("[data-component~='ui-button']").first()).toBeVisible();
+
+  const painted = await stage.evaluate(async (host) => {
+    host.innerHTML = "";
+    const wanted: Array<[string, string, boolean]> = [
+      ["outline", "accent", false], ["outline", "danger", false], ["outline", "neutral", false],
+      ["solid", "accent", false], ["ghost", "accent", false],
+      ["outline", "accent", true], ["outline", "danger", true], ["solid", "accent", true], ["ghost", "accent", true]
+    ];
+    for (const [variant, tone, disabled] of wanted) {
+      const button = document.createElement("ui-button");
+      button.setAttribute("variant", variant);
+      button.setAttribute("tone", tone);
+      if (disabled) button.setAttribute("disabled", "");
+      button.id = `${variant}-${tone}-${disabled}`;
+      button.textContent = `${tone} ${variant}`;
+      host.append(button);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    return Object.fromEntries([...host.querySelectorAll("[data-component~='ui-button']")].map((button) => {
       const style = getComputedStyle(button);
-      return {
-        label: button.textContent!.trim(),
-        radius: style.borderRadius,
-        borderWidth: style.borderWidth,
-        surface: style.backgroundColor,
+      return [button.id, {
         border: style.borderColor,
+        surface: style.backgroundColor,
         text: style.color,
-        shadow: style.boxShadow,
-        highlight: style.backgroundImage,
-        transform: style.transform
-      };
+        radius: style.borderRadius,
+        shadow: style.boxShadow
+      }];
     }));
+  });
 
-  const variants = await measure("variant");
-  const boxed = variants.filter((variant) => variant.label !== "Ghost");
-  // One material: same corner, same edge, same lift. Ghost is the quiet one and keeps no surface.
-  expect(new Set(boxed.map((variant) => variant.radius)).size).toBe(1);
-  expect(new Set(boxed.map((variant) => variant.borderWidth)).size).toBe(1);
-  expect(new Set(boxed.map((variant) => variant.shadow)).size).toBe(1);
-  expect(new Set(boxed.map((variant) => variant.highlight)).size).toBe(1);
-  // The outline is an outline: its edge is not its fill.
-  const outline = variants.find((variant) => variant.label === "Outline")!;
-  expect(outline.border).not.toBe(outline.surface);
+  // An outline is the tone at the edge over a wash of the same tone, so tone changes the colour of
+  // the whole button rather than only its text.
+  expect(painted["outline-accent-false"].border).not.toBe(painted["outline-danger-false"].border);
+  expect(painted["outline-accent-false"].border).not.toBe(painted["outline-neutral-false"].border);
+  // Colours serialize as rgb() or color(srgb ...) depending on how they were computed, so compare
+  // the channels rather than the text.
+  const channels = (value: string) => (value.match(/[\d.]+/g) ?? []).slice(0, 3).map(Number)
+    .map((channel, index) => (value.startsWith("color(") ? channel * 255 : channel) * (index >= 0 ? 1 : 1));
+  const sameColour = (left: string, right: string) =>
+    channels(left).every((channel, index) => Math.abs(channel - channels(right)[index]) <= 1.5);
 
-  const disabled = await measure("disabled");
-  expect(disabled.length).toBeGreaterThan(2);
-  // An unavailable action says "unavailable", not "unavailable, and destructive".
-  for (const key of ["surface", "border", "text", "shadow", "highlight"] as const) {
-    expect(new Set(disabled.map((button) => button[key])).size, `disabled ${key} differs by variant`).toBe(1);
+  for (const tone of ["accent", "danger"]) {
+    const outline = painted[`outline-${tone}-false`];
+    // The wash is the border colour, mostly transparent: same colour, different alpha.
+    expect(outline.surface).toContain("0.05");
+    expect(sameColour(outline.surface, outline.border), `${tone} wash is not its own border colour`).toBe(true);
   }
+  // Solid fills with the tone the outline draws with: one action at two volumes.
+  expect(sameColour(painted["solid-accent-false"].surface, painted["outline-accent-false"].border)).toBe(true);
+  expect(painted["ghost-accent-false"].shadow).toBe("none");
+
+  // Disabled keeps the shape and a trace of the tone: a disabled outline still reads as an
+  // unavailable outline in its own colour, not as a grey box.
+  for (const id of ["outline-accent-true", "outline-danger-true", "solid-accent-true", "ghost-accent-true"]) {
+    expect(painted[id].shadow, `${id} still looks raised`).toBe("none");
+  }
+  expect(painted["outline-accent-true"].border).not.toBe(painted["outline-danger-true"].border);
+  expect(painted["outline-accent-true"].border).not.toBe(painted["outline-accent-false"].border);
+  expect(painted["outline-accent-true"].border).not.toBe(painted["outline-accent-true"].surface);
+  expect(painted["solid-accent-true"].border).toBe(painted["solid-accent-true"].surface);
+  expect(new Set(Object.values(painted).map((paint) => paint.radius)).size).toBe(1);
 
   // Nothing jumps under the pointer.
-  const solid = page.locator("[data-preview-scenario='variant'] [data-component~='ui-button']").first();
-  const resting = await solid.evaluate((button) => getComputedStyle(button).transform);
-  await solid.hover();
-  await expect.poll(async () => solid.evaluate((button) => getComputedStyle(button).transform)).toBe(resting);
+  const button = stage.locator("[data-component~='ui-button']").first();
+  const resting = await button.evaluate((element) => getComputedStyle(element).transform);
+  await button.hover();
+  await expect.poll(async () => button.evaluate((element) => getComputedStyle(element).transform)).toBe(resting);
 });
 
 test("a checked checkbox paints its tick", async ({ page }) => {

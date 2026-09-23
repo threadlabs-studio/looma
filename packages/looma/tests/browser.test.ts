@@ -88,7 +88,11 @@ describe("Vue components", () => {
     assert.equal(await button.evaluate((element) => element.localName), "button");
     assert.equal(await button.getAttribute("class"), "consumer");
     assert.equal(await button.getAttribute("data-component"), "ui-button");
-    assert.equal(await button.getAttribute("data-ui-button-state"), "variant variant=solid align align=center size size=md tone tone=neutral");
+    // The state's tokens, not their order: the order follows how the adapter applied them.
+    assert.deepEqual(
+      (await button.getAttribute("data-ui-button-state"))?.split(" ").toSorted(),
+      ["align", "align=center", "size", "size=md", "tone", "tone=accent", "variant", "variant=solid"]
+    );
     assert.notEqual(await button.evaluate((element) => getComputedStyle(element).backgroundColor), "rgba(0, 0, 0, 0)");
     assert.equal(await page.evaluate(() => "HtmlRuntime" in window), false);
 
@@ -504,15 +508,18 @@ describe("Compact controls on touch", () => {
 });
 
 describe("Button tone and disabled", () => {
-  it("tints an outline button with the accent, and disables to the contract's neutral", async () => {
+  it("paints every variant in its tone, and keeps a trace of it when disabled", async () => {
     const path = await bundle("vue-tone", `
       import { createApp, h } from "vue";
       import { Button } from "@threadlabs/looma/vue";
       createApp({
         render: () => h("div", [
-          h(Button, { id: "plain" }, () => "Cancel"),
-          h(Button, { id: "accent", tone: "accent" }, () => "Review"),
+          h(Button, { id: "accent" }, () => "Review"),
+          h(Button, { id: "danger", tone: "danger" }, () => "Delete"),
+          h(Button, { id: "neutral", tone: "neutral" }, () => "Cancel"),
+          h(Button, { id: "solid", variant: "solid" }, () => "Save"),
           h(Button, { id: "off", disabled: true }, () => "Save"),
+          h(Button, { id: "off-danger", tone: "danger", disabled: true }, () => "Delete"),
           h(Button, { id: "off-solid", variant: "solid", disabled: true }, () => "Save"),
         ]),
       }).mount("#app");
@@ -520,20 +527,37 @@ describe("Button tone and disabled", () => {
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
     const paint = (id: string) => page.locator(`#${id}`).evaluate((element) => {
       const style = getComputedStyle(element);
-      return { background: style.backgroundColor, color: style.color, border: style.borderTopColor, opacity: style.opacity };
+      return {
+        background: style.backgroundColor,
+        color: style.color,
+        border: style.borderTopColor,
+        opacity: style.opacity,
+        shadow: style.boxShadow
+      };
     });
-    const plain = await paint("plain");
-    const accent = await paint("accent");
-    assert.notEqual(accent.background, plain.background, "an accent outline button is tinted");
-    assert.notEqual(accent.color, plain.color);
-    assert.notEqual(accent.border, plain.border);
 
-    // Disabled is one decision: the same neutral whatever the variant, at full opacity.
+    // Tone is the colour, and it reaches the whole button rather than only its text.
+    const accent = await paint("accent");
+    const danger = await paint("danger");
+    const neutral = await paint("neutral");
+    assert.notEqual(danger.border, accent.border, "tone changes an outline's edge");
+    assert.notEqual(danger.background, accent.background, "tone changes an outline's wash");
+    assert.notEqual(neutral.border, accent.border, "neutral is a tone of its own");
+
+    // Variant is the volume: solid fills with the colour the outline draws with.
+    const solid = await paint("solid");
+    assert.equal(solid.background, accent.border, "solid fills with the outline's tone");
+
+    // Disabled keeps the shape and a trace of the tone, and stops looking raised.
     const off = await paint("off");
+    const offDanger = await paint("off-danger");
     const offSolid = await paint("off-solid");
-    assert.equal(off.opacity, "1");
-    assert.deepEqual(offSolid, off, "a disabled solid button reads the same as any other");
-    assert.notEqual(off.background, plain.background);
+    assert.equal(off.opacity, "1", "disabled is a colour decision, not a transparency one");
+    assert.equal(off.shadow, "none", "a disabled button does not look raised");
+    assert.notEqual(off.border, off.background, "a disabled outline is still an outline");
+    assert.equal(offSolid.border, offSolid.background, "a disabled solid is still filled");
+    assert.notEqual(offDanger.border, off.border, "a disabled button still says which action it was");
+    assert.notEqual(off.border, accent.border, "and it no longer reads as available");
     await page.close();
   });
 });
