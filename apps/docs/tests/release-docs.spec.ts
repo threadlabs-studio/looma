@@ -1296,6 +1296,29 @@ test("tree row actions reveal on hover instead of reserving row width", async ({
   await expect
     .poll(async () => row.evaluate((element) => getComputedStyle(element.querySelector(".actions")!).opacity))
     .toBe("1");
+
+  // The label keeps its width while they are visible, so the name never re-truncates under the
+  // pointer. Its end fades out where they begin, and that fade replaces the ellipsis.
+  const hovered = await row.evaluate((element) => {
+    const actions = element.querySelector<HTMLElement>(".actions")!;
+    const label = element.querySelector<HTMLElement>(".label")!;
+    const labelStyle = getComputedStyle(label);
+    return {
+      position: getComputedStyle(actions).position,
+      mask: labelStyle.maskImage,
+      textOverflow: labelStyle.textOverflow,
+      publishedWidth: getComputedStyle(element.closest("[data-component~='ui-tree-item']")!)
+        .getPropertyValue("--_tree-actions-width"),
+      actionsWidth: actions.getBoundingClientRect().width,
+      labelToRowEnd: element.getBoundingClientRect().right - label.getBoundingClientRect().right
+    };
+  });
+  expect(hovered.position).toBe("absolute");
+  expect(hovered.mask).toContain("gradient");
+  expect(hovered.textOverflow).toBe("clip");
+  expect(Math.abs(hovered.labelToRowEnd)).toBeLessThanOrEqual(1);
+  // The fade ends where the controls start, so it tracks their measured width.
+  expect(parseFloat(hovered.publishedWidth)).toBeCloseTo(hovered.actionsWidth, 0);
 });
 
 test("the catalog renders one filter per sidebar category and each filter narrows the grid", async ({

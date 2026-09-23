@@ -63,7 +63,7 @@
       </button>
       <span class="leading"><slot name="leading"></slot></span>
       <span class="label"><slot name="label"><template $value="label"></template></slot></span>
-      <span class="actions"><slot name="actions"></slot></span>
+      <span class="actions" $ref="actions"><slot name="actions"></slot></span>
       <span class="drop-indicator row-drop-indicator" aria-hidden="true"></span>
     </div>
     <div class="children" $ref="children" role="group" :hidden="not (isContainer and internalExpanded)"><slot></slot></div>
@@ -73,7 +73,6 @@
     :host {
       --_tree-row-min-height: 32px;
       --_tree-disclosure-size: 16px;
-      --_tree-actions-backdrop: transparent;
 
       position: relative;
       display: block;
@@ -232,6 +231,32 @@
       min-inline-size: 0;
     }
 
+    /* The controls sit over the label's end, so the text fades out where they begin. The fade is
+       the truncation mark while it shows: an ellipsis under it would read as a second one. */
+    .row:hover > .label,
+    .row:focus-within > .label {
+      text-overflow: clip;
+      mask-image: linear-gradient(
+        to right,
+        #000 calc(100% - var(--_tree-actions-width, 1.75rem) - var(--ui-space-3)),
+        transparent calc(100% - var(--_tree-actions-width, 1.75rem))
+      );
+    }
+
+    .row:hover > .label:dir(rtl),
+    .row:focus-within > .label:dir(rtl) {
+      mask-image: linear-gradient(
+        to left,
+        #000 calc(100% - var(--_tree-actions-width, 1.75rem) - var(--ui-space-3)),
+        transparent calc(100% - var(--_tree-actions-width, 1.75rem))
+      );
+    }
+
+    .row:hover > .label > :slotted(*),
+    .row:focus-within > .label > :slotted(*) {
+      text-overflow: clip;
+    }
+
     .actions {
       position: absolute;
       z-index: 1;
@@ -240,23 +265,9 @@
       display: inline-flex;
       align-items: center;
       min-inline-size: 0;
-      padding-inline-start: var(--ui-space-3);
-      /* The label runs the full width and passes under these, so they carry the row's own
-         background and fade it in rather than sitting on the text. */
-      background: linear-gradient(to right, transparent, var(--_tree-actions-backdrop) var(--ui-space-3));
       opacity: 0;
       pointer-events: none;
       transition: opacity var(--ui-motion-fast) var(--ui-motion-ease);
-    }
-
-    .actions:dir(rtl) {
-      background: linear-gradient(to left, transparent, var(--_tree-actions-backdrop) var(--ui-space-3));
-    }
-
-    :host-state([selected]) .row,
-    .row:hover,
-    .row:focus-within {
-      --_tree-actions-backdrop: var(--ui-surface-muted);
     }
 
     .row:hover > .actions,
