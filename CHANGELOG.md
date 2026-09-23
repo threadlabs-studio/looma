@@ -8,6 +8,12 @@
   exposed methods are unchanged, and the shared module is internal. Needs
   `@nextwebwg/html-next` 1.0.0-alpha.3, which generates it.
 
+## v0.6.4
+
+- Tree Item's hover actions overlay the end of the row instead of reserving a column, so a long
+  label uses the full row width and fades where the controls begin. The disclosure chevron is
+  tighter and aligns with the content above it.
+
 ## v0.6.3
 
 - The editor toolbar labels its buttons with a Looma tooltip instead of the browser's `title`: one
