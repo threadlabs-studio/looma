@@ -36,7 +36,6 @@
       "Segoe UI Emoji";
     --ui-font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
     --ui-font-size: 1rem;
-    --ui-font-size-sm: 0.875rem;
     --ui-font-medium: 500;
     --ui-line-height: 1.4;
 
@@ -78,8 +77,8 @@
     /* Type scale, from the base size. */
     --ui-font-size-2xs: calc(var(--ui-font-size) * 0.6875);
     --ui-font-size-xs: calc(var(--ui-font-size) * 0.75);
-    /* Dense interactive text: legible without body-copy spacing. */
-    --ui-font-size-ui: calc(var(--ui-font-size) * 0.9375);
+    /* Dense text: controls, labels, and metadata. Two steps below body copy, never one pixel. */
+    --ui-font-size-sm: calc(var(--ui-font-size) * 0.875);
     --ui-font-size-md: var(--ui-font-size);
     --ui-font-size-lg: calc(var(--ui-font-size) * 1.125);
     --ui-font-size-xl: calc(var(--ui-font-size) * 1.25);

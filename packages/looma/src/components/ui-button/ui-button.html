@@ -99,13 +99,13 @@
     :host-state([size="sm"]) {
       min-block-size: var(--ui-control-size-sm);
       padding: var(--ui-space-1) var(--ui-space-2);
-      font-size: 0.875rem;
+      font-size: var(--ui-font-size-sm);
     }
 
     :host-state([size="lg"]) {
       min-block-size: var(--ui-control-size-lg);
       padding: var(--ui-space-3) var(--ui-space-4);
-      font-size: 1rem;
+      font-size: var(--ui-font-size-md);
     }
 
     /* A link is never :enabled, so interactive states test "not unavailable" instead: for a button that
