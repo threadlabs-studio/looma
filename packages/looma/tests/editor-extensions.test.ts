@@ -6,6 +6,7 @@ import Paragraph from "@tiptap/extension-paragraph";
 import Text from "@tiptap/extension-text";
 import {
   createLoomaMentionExtension,
+  LOOMA_ACTIVE_BLOCK_CLASS,
   filterLoomaMentionItems,
   getDefaultEditorExtensions,
   getDefaultSlashCommands,
@@ -386,6 +387,73 @@ describe("editor extension contract", () => {
     expect(editor.getText()).toContain("Keep");
     expect(editor.getText()).not.toContain("Clear me");
     expect(editor.getJSON().content?.[0]?.content?.[0]?.content).toHaveLength(2);
+    editor.destroy();
+  });
+});
+
+describe("active block marker", () => {
+  const mountEditor = () => {
+    const element = document.createElement("div");
+    document.body.append(element);
+    return new Editor({
+      element,
+      extensions: getDefaultEditorExtensions(),
+      content:
+        "<p>First paragraph</p><ul><li><p>One</p></li><li><p>Two</p></li></ul>",
+    });
+  };
+
+  const markedTags = (editor: Editor) =>
+    [...editor.view.dom.querySelectorAll(`.${LOOMA_ACTIVE_BLOCK_CLASS}`)].map(
+      (node) => node.tagName.toLowerCase()
+    );
+
+  const setFocus = (editor: Editor, focused: boolean) => {
+    editor.view.dom.dispatchEvent(new Event(focused ? "focus" : "blur"));
+  };
+
+  it("marks nothing while the editor is unfocused, so reading shows no chrome", () => {
+    const editor = mountEditor();
+    editor.commands.setTextSelection(3);
+
+    expect(markedTags(editor)).toEqual([]);
+
+    editor.destroy();
+  });
+
+  it("marks exactly the top-level block holding the caret", () => {
+    const editor = mountEditor();
+    setFocus(editor, true);
+    editor.commands.setTextSelection(3);
+
+    expect(markedTags(editor)).toEqual(["p"]);
+
+    editor.destroy();
+  });
+
+  // The outermost block is the stable target: marking the list item would make the
+  // bar step in and out of the list's inset as the caret moves between items.
+  it("marks the list rather than the item when the caret is nested", () => {
+    const editor = mountEditor();
+    setFocus(editor, true);
+    const listStart = editor.state.doc.content.firstChild!.nodeSize + 4;
+    editor.commands.setTextSelection(listStart);
+
+    expect(markedTags(editor)).toEqual(["ul"]);
+
+    editor.destroy();
+  });
+
+  it("drops the marker on blur", () => {
+    const editor = mountEditor();
+    setFocus(editor, true);
+    editor.commands.setTextSelection(3);
+    expect(markedTags(editor)).toHaveLength(1);
+
+    setFocus(editor, false);
+
+    expect(markedTags(editor)).toEqual([]);
+
     editor.destroy();
   });
 });
