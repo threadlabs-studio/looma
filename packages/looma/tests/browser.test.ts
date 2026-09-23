@@ -455,7 +455,7 @@ describe("Vue form controls", () => {
     assert.equal(await page.evaluate(() => (window as unknown as { topic: { value: string } }).topic.value), "problem");
 
     const fontSize = (selector: string) => page.locator(selector).evaluate((element) => getComputedStyle(element).fontSize);
-    assert.equal(await fontSize("#topic-label"), "15.2px");
+    assert.equal(await fontSize("#topic-label"), "14px");
     assert.equal(await fontSize("#topic-help"), "14px");
     await page.close();
   });
@@ -880,7 +880,7 @@ describe("HTML components", () => {
     assert.equal(await trigger.getAttribute("aria-expanded"), "true");
 
     await page.waitForSelector('[data-component~="ui-form-field"]');
-    assert.equal(await page.locator("#field-label").evaluate((element) => getComputedStyle(element).fontSize), "15.2px");
+    assert.equal(await page.locator("#field-label").evaluate((element) => getComputedStyle(element).fontSize), "14px");
     await page.close();
   });
 });
