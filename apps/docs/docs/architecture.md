@@ -2,6 +2,11 @@
 
 Looma is an SSR-first component system. Consumer-authored semantic HTML is the fallback contract; browser JavaScript progressively enhances it.
 
+Its component model is not Looma's own. Components are written as
+[Declarative HTML Components](https://nextwebwg.org/html-next/), the HTML Next proposal from the
+[NextWeb Working Group](https://nextwebwg.org/), and the HTML Next runtime lowers them. Read the
+proposal for the component language itself; this page covers what Looma adds on top of it.
+
 ## Release 1 public package
 
 `@threadlabs/looma` is the complete public artifact. Its explicit

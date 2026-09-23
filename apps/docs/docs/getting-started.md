@@ -66,7 +66,8 @@ Choose only one Looma theme file unless your application supplies its own semant
 
 ## How components load
 
-HTML Next defines two ways to load components, and they build the same components:
+[HTML Next](https://nextwebwg.org/html-next/) defines two ways to load components, and they build
+the same components:
 
 - **Installed package** (above). Your bundler imports Looma's entry points, which register the component definitions ahead of time. This is how Looma is used today.
 - **No build.** A page loads HTML Next's browser entry with a `<script type="module">` and links each component's HTML with `<link rel="component" href="…/@threadlabs/looma/components/ui-button/ui-button.html">`; definitions load on demand.
