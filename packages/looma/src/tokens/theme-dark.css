@@ -2,137 +2,56 @@
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme]) {
       color-scheme: dark;
-      --ui-surface-canvas: #1a1a1a;
-      --ui-surface-default: #1a1a1a;
-      --ui-surface-muted: #242424;
-      --ui-surface-subtle: #2e2e2e;
-      --ui-surface-elevated: #2a2a2a;
+      /* The same eleven seeds the light theme sets. Every neutral, tint, hover, and disabled
+         colour is mixed from these, and the mixes read the scheme from them: toward this ink
+         brightens here, where it darkened there. */
+      --ui-surface: #1a1a1a;
+      --ui-surface-raised: #2a2a2a;
+      --ui-surface-sunken: #2e2e2e;
+      --ui-text: #f0f0ec;
+      --ui-on-accent: #1a1a1a;
+      --ui-on-danger: #1a1a1a;
+
+      --ui-accent: #a99bf5;
+      --ui-danger: #ef6f86;
+      --ui-success: #33cc66;
+      --ui-warning: #ffaa22;
+      --ui-info: #4d9fff;
+
+      /* Depth reads differently on a dark surface: deeper shadows, a lit top edge. */
+      --ui-shadow-sm: 0 1px 3px rgb(0 0 0 / 0.45), 0 1px 2px rgb(0 0 0 / 0.3);
+      --ui-shadow-lg: 0 10px 28px rgb(0 0 0 / 0.55), 0 4px 10px rgb(0 0 0 / 0.35);
       --ui-control-inset: inset 0 1px 2px rgb(0 0 0 / 0.35);
       --ui-raised: 0 1px 2px rgb(0 0 0 / 0.4), inset 0 1px 0 rgb(255 255 255 / 0.06);
       --ui-raised-highlight: linear-gradient(rgb(255 255 255 / 0.04), rgb(255 255 255 / 0));
-      --ui-control-focus-halo: color-mix(in srgb, var(--ui-accent-solid) 30%, transparent);
       --ui-select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a0a09c' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-
-      --ui-shadow-xs: 0 1px 2px rgb(0 0 0 / 0.4);
-      --ui-shadow-sm: 0 1px 3px rgb(0 0 0 / 0.45), 0 1px 2px rgb(0 0 0 / 0.3);
-      --ui-shadow-md: 0 4px 12px rgb(0 0 0 / 0.5), 0 2px 4px rgb(0 0 0 / 0.3);
-      --ui-shadow-lg: 0 10px 28px rgb(0 0 0 / 0.55), 0 4px 10px rgb(0 0 0 / 0.35);
-      --ui-shadow-xl: 0 18px 48px rgb(0 0 0 / 0.6), 0 8px 18px rgb(0 0 0 / 0.4);
-
-      --ui-text-primary: #f0f0ec;
-      --ui-text-secondary: #a0a09c;
-      --ui-text-muted: #6a6a66;
-      --ui-text-on-accent: #1a1a1a;
-
-      --ui-border-subtle: #2b2b28;
-      --ui-border-default: #333330;
-      --ui-border-strong: #4a4a46;
-      --ui-focus-ring: #a99bf5;
-
-      /* Form controls need a visible 3:1 boundary and 4.5:1 placeholder text;
-         general dividers intentionally remain quieter. */
-      --ui-control-surface: #202020;
-      --ui-control-surface-disabled: #242424;
-      --ui-control-border: #6f6f69;
-      --ui-control-border-hover: #92928c;
-      --ui-control-placeholder: #a0a09c;
-
-      --ui-accent-solid: #a99bf5;
-      --ui-accent-hover: #b9adff;
-      --ui-accent-active: #c8beff;
-      --ui-accent-soft: #282342;
-
-      --ui-danger-solid: #ef6f86;
-      --ui-danger-hover: #f58a9d;
-      --ui-danger-soft: #321b22;
-      --ui-success-solid: #33cc66;
-      --ui-success-soft: #162a1f;
-      --ui-warning-solid: #ffaa22;
-      --ui-warning-soft: #2d2410;
-      --ui-info-solid: #4d9fff;
-      --ui-info-soft: #1a2a3d;
-      --ui-accent-strong-surface: #5148c8;
-      --ui-accent-on-strong: #ffffff;
-      --ui-accent-subtle-text: #b8b3ff;
-      --ui-danger-strong-surface: #a61b3c;
-      --ui-danger-on-strong: #ffffff;
-      --ui-danger-subtle-text: #ff9aae;
-      --ui-success-strong-surface: #006b2d;
-      --ui-success-on-strong: #ffffff;
-      --ui-success-subtle-text: #62dc89;
-      --ui-warning-strong-surface: #d69a0a;
-      --ui-warning-on-strong: #1f1500;
-      --ui-warning-subtle-text: #ffc45c;
-      --ui-info-strong-surface: #075cad;
-      --ui-info-on-strong: #ffffff;
-      --ui-info-subtle-text: #7eb8ff;
     }
   }
 
   [data-theme="dark"] {
     color-scheme: dark;
-    --ui-surface-canvas: #1a1a1a;
-    --ui-surface-default: #1a1a1a;
-    --ui-surface-muted: #242424;
-    --ui-surface-subtle: #2e2e2e;
-    --ui-surface-elevated: #2a2a2a;
+    /* The same eleven seeds the light theme sets. Every neutral, tint, hover, and disabled
+       colour is mixed from these, and the mixes read the scheme from them: toward this ink
+       brightens here, where it darkened there. */
+    --ui-surface: #1a1a1a;
+    --ui-surface-raised: #2a2a2a;
+    --ui-surface-sunken: #2e2e2e;
+    --ui-text: #f0f0ec;
+    --ui-on-accent: #1a1a1a;
+    --ui-on-danger: #1a1a1a;
+
+    --ui-accent: #a99bf5;
+    --ui-danger: #ef6f86;
+    --ui-success: #33cc66;
+    --ui-warning: #ffaa22;
+    --ui-info: #4d9fff;
+
+    /* Depth reads differently on a dark surface: deeper shadows, a lit top edge. */
+    --ui-shadow-sm: 0 1px 3px rgb(0 0 0 / 0.45), 0 1px 2px rgb(0 0 0 / 0.3);
+    --ui-shadow-lg: 0 10px 28px rgb(0 0 0 / 0.55), 0 4px 10px rgb(0 0 0 / 0.35);
     --ui-control-inset: inset 0 1px 2px rgb(0 0 0 / 0.35);
     --ui-raised: 0 1px 2px rgb(0 0 0 / 0.4), inset 0 1px 0 rgb(255 255 255 / 0.06);
     --ui-raised-highlight: linear-gradient(rgb(255 255 255 / 0.04), rgb(255 255 255 / 0));
-    --ui-control-focus-halo: color-mix(in srgb, var(--ui-accent-solid) 30%, transparent);
     --ui-select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a0a09c' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-
-    --ui-shadow-xs: 0 1px 2px rgb(0 0 0 / 0.4);
-    --ui-shadow-sm: 0 1px 3px rgb(0 0 0 / 0.45), 0 1px 2px rgb(0 0 0 / 0.3);
-    --ui-shadow-md: 0 4px 12px rgb(0 0 0 / 0.5), 0 2px 4px rgb(0 0 0 / 0.3);
-    --ui-shadow-lg: 0 10px 28px rgb(0 0 0 / 0.55), 0 4px 10px rgb(0 0 0 / 0.35);
-    --ui-shadow-xl: 0 18px 48px rgb(0 0 0 / 0.6), 0 8px 18px rgb(0 0 0 / 0.4);
-
-    --ui-text-primary: #f0f0ec;
-    --ui-text-secondary: #a0a09c;
-    --ui-text-muted: #6a6a66;
-    --ui-text-on-accent: #1a1a1a;
-
-    --ui-border-subtle: #2b2b28;
-    --ui-border-default: #333330;
-    --ui-border-strong: #4a4a46;
-    --ui-focus-ring: #a99bf5;
-
-    /* Keep explicit dark mode identical to the system-dark palette. */
-    --ui-control-surface: #202020;
-    --ui-control-surface-disabled: #242424;
-    --ui-control-border: #6f6f69;
-    --ui-control-border-hover: #92928c;
-    --ui-control-placeholder: #a0a09c;
-
-    --ui-accent-solid: #a99bf5;
-    --ui-accent-hover: #b9adff;
-    --ui-accent-active: #c8beff;
-    --ui-accent-soft: #282342;
-
-    --ui-danger-solid: #ef6f86;
-    --ui-danger-hover: #f58a9d;
-    --ui-danger-soft: #321b22;
-    --ui-success-solid: #33cc66;
-    --ui-success-soft: #162a1f;
-    --ui-warning-solid: #ffaa22;
-    --ui-warning-soft: #2d2410;
-    --ui-info-solid: #4d9fff;
-    --ui-info-soft: #1a2a3d;
-    --ui-accent-strong-surface: #5148c8;
-    --ui-accent-on-strong: #ffffff;
-    --ui-accent-subtle-text: #b8b3ff;
-    --ui-danger-strong-surface: #a61b3c;
-    --ui-danger-on-strong: #ffffff;
-    --ui-danger-subtle-text: #ff9aae;
-    --ui-success-strong-surface: #006b2d;
-    --ui-success-on-strong: #ffffff;
-    --ui-success-subtle-text: #62dc89;
-    --ui-warning-strong-surface: #d69a0a;
-    --ui-warning-on-strong: #1f1500;
-    --ui-warning-subtle-text: #ffc45c;
-    --ui-info-strong-surface: #075cad;
-    --ui-info-on-strong: #ffffff;
-    --ui-info-subtle-text: #7eb8ff;
   }
 }

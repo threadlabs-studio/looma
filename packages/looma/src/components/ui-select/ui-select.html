@@ -4,20 +4,19 @@
     <prop name="disabled" type="boolean" default="false">Prevents selection and form submission.</prop>
     <prop name="invalid" type="boolean" default="false">Exposes invalid state to assistive technology and styling.</prop>
     <prop name="required" type="boolean" default="false">Requires a non-empty option for form validation.</prop>
-    <prop name="multiple" type="boolean" default="false">Allows more than one option to be selected.</prop>
   </defs>
-  <select :disabled="disabled" :required="required" :multiple="multiple" :aria-invalid="invalid"><slot></slot></select>
+  <select :disabled="disabled" :required="required" :aria-invalid="invalid"><slot></slot></select>
   <style>
     :host {
       box-sizing: border-box;
       display: inline-block;
       inline-size: 100%;
       min-inline-size: 0;
-      min-block-size: var(--ui-control-size-md, 2.5rem);
+      min-block-size: var(--ui-control-size-md);
       margin: 0;
       padding: var(--ui-space-2) var(--ui-space-3);
       border: 1px solid var(--ui-control-border, var(--ui-border-strong));
-      border-radius: var(--ui-select-radius, var(--ui-radius-2));
+      border-radius: var(--ui-select-radius, var(--ui-radius-md));
       background-color: var(--ui-control-surface, var(--ui-surface-elevated));
       color: var(--ui-text-primary);
       color-scheme: light dark;
@@ -30,9 +29,9 @@
         background-color var(--ui-motion-fast) var(--ui-motion-ease);
     }
 
-    /* Single selects draw their own chevron: the native caret cannot be inset or sized consistently.
+    /* The select draws its own chevron: the native caret cannot be inset or sized consistently.
      * The root stays a native <select>, so the icon is a background image rather than an element. */
-    :host:not([multiple]) {
+    :host {
       appearance: none;
       padding-inline-end: calc(var(--ui-space-3) + 1.5rem);
       background-image: var(
@@ -73,7 +72,6 @@
       cursor: not-allowed;
     }
 
-    :host[multiple],
     :host[size]:not([size="1"]) {
       min-block-size: 7rem;
       padding: var(--ui-space-2);

@@ -88,7 +88,11 @@ describe("Vue components", () => {
     assert.equal(await button.evaluate((element) => element.localName), "button");
     assert.equal(await button.getAttribute("class"), "consumer");
     assert.equal(await button.getAttribute("data-component"), "ui-button");
-    assert.equal(await button.getAttribute("data-ui-button-state"), "variant variant=solid align align=center size size=md");
+    // The state's tokens, not their order: the order follows how the adapter applied them.
+    assert.deepEqual(
+      (await button.getAttribute("data-ui-button-state"))?.split(" ").toSorted(),
+      ["align", "align=center", "size", "size=md", "tone", "tone=accent", "variant", "variant=solid"]
+    );
     assert.notEqual(await button.evaluate((element) => getComputedStyle(element).backgroundColor), "rgba(0, 0, 0, 0)");
     assert.equal(await page.evaluate(() => "HtmlRuntime" in window), false);
 
@@ -186,8 +190,8 @@ describe("Tree", () => {
       });
       createApp({
         render: () => h(Tree, { label: "Pages" }, () => [
-          item("flush", "--ui-tree-row-min-height: 44px; --ui-tree-label-padding-block: 0; --ui-tree-label-padding-inline: 0"),
-          item("padded", "--ui-tree-row-min-height: 44px"),
+          item("flush", "--ui-tree-item-min-block-size: 44px; --ui-tree-item-label-padding-block: 0; --ui-tree-item-label-padding-inline: 0"),
+          item("padded", "--ui-tree-item-min-block-size: 44px"),
         ]),
       }).mount("#app");
     `);
@@ -285,7 +289,7 @@ describe("Overlays", () => {
       import { createApp, h } from "vue";
       import { Dialog, trackInputModality } from "@threadlabs/looma/vue";
       trackInputModality(document);
-      createApp({ render: () => h(Dialog, { id: "dialog", open: true, modal: true, label: "Details" }, () => "Body") }).mount("#app");
+      createApp({ render: () => h(Dialog, { id: "dialog", open: true, modal: true, dismissible: true, label: "Details" }, () => "Body") }).mount("#app");
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
     const close = page.locator("#dialog .close");
@@ -331,6 +335,80 @@ describe("Vue form controls", () => {
   });
 });
 
+describe("Help affordance", () => {
+  it("sits beside the field and opens its tooltip on click", async () => {
+    const path = await bundle("vue-help", `
+      import { createApp, h } from "vue";
+      import { Combobox } from "@threadlabs/looma/vue";
+      createApp({
+        render: () => h(Combobox, { id: "where", label: "Destination", help: "Where the export lands." }, () => [
+          h("option", { value: "alpha" }, "Alpha"),
+        ]),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const help = page.locator("#where .help");
+    const field = page.locator("#where .field");
+    const geometry = await page.locator("#where").evaluate((root) => {
+      const box = root.querySelector(".field")!.getBoundingClientRect();
+      const button = root.querySelector(".help")!.getBoundingClientRect();
+      return { outside: button.left >= box.right - 1, insideInput: root.querySelector("input")!.contains(root.querySelector(".help")) };
+    });
+    assert.equal(geometry.outside, true, "the help button follows the field");
+    assert.equal(geometry.insideInput, false);
+    assert.equal(await field.locator(".help").count(), 0, "it is not inside the box");
+
+    const tip = page.locator('[data-component~="ui-tooltip"]');
+    assert.equal(await tip.isVisible(), false);
+    // Hovering a question mark says nothing, so it opens on press and closes the same way.
+    await help.hover();
+    await page.waitForTimeout(700);
+    assert.equal(await tip.isVisible(), false, "hover does not open it");
+    await help.click();
+    await tip.waitFor({ state: "visible" });
+    assert.equal(await help.getAttribute("aria-expanded"), "true");
+    await help.click();
+    await tip.waitFor({ state: "hidden" });
+    await page.close();
+  });
+});
+
+describe("Combobox with multiple", () => {
+  it("keeps the items it selects, and follows a consumer that owns them", async () => {
+    const path = await bundle("vue-multi", `
+      import { createApp, h, ref } from "vue";
+      import { Combobox } from "@threadlabs/looma/vue";
+      const owned = ref([]);
+      window.owned = owned;
+      createApp({
+        render: () => h("div", [
+          h(Combobox, { id: "free", label: "Tags", multiple: true }, () => [
+            h("option", { value: "alpha" }, "Alpha"),
+            h("option", { value: "beta" }, "Beta"),
+          ]),
+          h(Combobox, { id: "owned", label: "Owned", multiple: true, items: owned.value }, () => [
+            h("option", { value: "alpha" }, "Alpha"),
+          ]),
+        ]),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    // Uncontrolled: selecting an option keeps it, with no consumer wiring.
+    await page.locator("#free input").click();
+    await page.locator("#free input").fill("Al");
+    await page.locator('#free [role="option"]').first().click();
+    await page.waitForFunction(() => document.querySelectorAll("#free .item").length === 1);
+    assert.equal(await page.locator("#free .item").first().textContent(), "Alpha");
+
+    // Controlled: the consumer's list wins.
+    await page.evaluate(() => {
+      (window as unknown as { owned: { value: unknown[] } }).owned.value = [{ id: "a", value: "alpha", label: "Alpha" }];
+    });
+    await page.waitForFunction(() => document.querySelectorAll("#owned .item").length === 1);
+    await page.close();
+  });
+});
+
 describe("Vue v-model on reported props", () => {
   it("keeps v-model:query in step with a Combobox's typing", async () => {
     const path = await bundle("vue-query", `
@@ -348,6 +426,170 @@ describe("Vue v-model on reported props", () => {
     await page.locator("#tags input").pressSequentially("Res");
     assert.equal(await page.locator("#tags input").inputValue(), "Res");
     assert.equal(await page.evaluate(() => (window as unknown as { query: { value: string } }).query.value), "Res");
+    await page.close();
+  });
+});
+
+describe("Tree Item label", () => {
+  it("fills its cell, so a slotted link is the row's hit area", async () => {
+    const path = await bundle("vue-tree-label-fill", `
+      import { createApp, h } from "vue";
+      import { Tree, TreeItem } from "@threadlabs/looma/vue";
+      createApp({
+        render: () => h("div", { style: "inline-size: 400px" }, [
+          h(Tree, { label: "Pages" }, () => [
+            h(TreeItem, { id: "page", itemId: "page", label: "Welcome" }, { label: () => h("a", { id: "link", href: "#welcome" }, "Welcome") }),
+          ]),
+        ]),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const widths = await page.locator("#page").evaluate((item) => {
+      const cell = item.querySelector(".label") as HTMLElement;
+      const style = getComputedStyle(cell);
+      return {
+        cell: cell.clientWidth - parseFloat(style.paddingInlineStart) - parseFloat(style.paddingInlineEnd),
+        link: (item.querySelector("#link") as HTMLElement).offsetWidth,
+      };
+    });
+    assert.ok(widths.link > 100, `the link fills the cell rather than its text (${widths.link}px)`);
+    assert.ok(Math.abs(widths.cell - widths.link) <= 2, `the link is the cell's width (${widths.link} of ${widths.cell})`);
+    await page.close();
+  });
+});
+
+describe("Light dismiss", () => {
+  it("needs a real press: a pointerdown with no coordinates keeps a modal dialog open", async () => {
+    const path = await bundle("vue-light-dismiss", `
+      import { createApp, h } from "vue";
+      import { Dialog } from "@threadlabs/looma/vue";
+      createApp({ render: () => h(Dialog, { id: "dialog", open: true, modal: true, dismissible: true, label: "Details" }, () => "Body") }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const dialog = page.locator("#dialog");
+    await dialog.waitFor();
+    // An activation with no pointer (assistive technology, or a synthetic event) reports 0,0, and
+    // lands on the document rather than inside the dialog.
+    await page.evaluate(() => {
+      document.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, composed: true, pointerType: "touch" }));
+    });
+    await page.waitForTimeout(50);
+    assert.equal(await dialog.evaluate((element) => (element as HTMLDialogElement).open), true, "the dialog stays open");
+    await page.close();
+  });
+});
+
+describe("Compact controls on touch", () => {
+  it("keep their size and still meet the touch target", async () => {
+    const path = await bundle("vue-compact-touch", `
+      import { createApp, h } from "vue";
+      import { IconButton, trackInputModality } from "@threadlabs/looma/vue";
+      trackInputModality(document);
+      createApp({ render: () => h("div", { style: "padding: 60px" }, [h(IconButton, { id: "small", size: "sm", label: "Remove" }, () => "x")]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await page.evaluate(() => document.dispatchEvent(new PointerEvent("pointerdown", { pointerType: "touch" })));
+    const target = await page.locator("#small").evaluate((element) => {
+      const hit = getComputedStyle(element, "::after");
+      const bounds = element.getBoundingClientRect();
+      const corner = { x: bounds.left + bounds.width / 2 + 21, y: bounds.top + bounds.height / 2 + 21 };
+      return {
+        visual: (element as HTMLElement).offsetWidth,
+        width: parseFloat(hit.inlineSize),
+        height: parseFloat(hit.blockSize),
+        hitsBeyondTheEdge: document.elementFromPoint(corner.x, corner.y) === element,
+      };
+    });
+    assert.ok(target.visual < 44, `a compact control stays compact (${target.visual}px)`);
+    assert.ok(target.width >= 44 && target.height >= 44, `its touch target is at least 44px (${target.width}x${target.height})`);
+    assert.equal(target.hitsBeyondTheEdge, true, "the target extends past the visual edge");
+    await page.close();
+  });
+});
+
+describe("Button tone and disabled", () => {
+  it("paints every variant in its tone, and keeps a trace of it when disabled", async () => {
+    const path = await bundle("vue-tone", `
+      import { createApp, h } from "vue";
+      import { Button } from "@threadlabs/looma/vue";
+      createApp({
+        render: () => h("div", [
+          h(Button, { id: "accent" }, () => "Review"),
+          h(Button, { id: "danger", tone: "danger" }, () => "Delete"),
+          h(Button, { id: "neutral", tone: "neutral" }, () => "Cancel"),
+          h(Button, { id: "solid", variant: "solid" }, () => "Save"),
+          h(Button, { id: "off", disabled: true }, () => "Save"),
+          h(Button, { id: "off-danger", tone: "danger", disabled: true }, () => "Delete"),
+          h(Button, { id: "off-solid", variant: "solid", disabled: true }, () => "Save"),
+        ]),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const paint = (id: string) => page.locator(`#${id}`).evaluate((element) => {
+      const style = getComputedStyle(element);
+      return {
+        background: style.backgroundColor,
+        color: style.color,
+        border: style.borderTopColor,
+        opacity: style.opacity,
+        shadow: style.boxShadow
+      };
+    });
+
+    // Tone is the colour, and it reaches the whole button rather than only its text.
+    const accent = await paint("accent");
+    const danger = await paint("danger");
+    const neutral = await paint("neutral");
+    assert.notEqual(danger.border, accent.border, "tone changes an outline's edge");
+    assert.notEqual(danger.background, accent.background, "tone changes an outline's wash");
+    assert.notEqual(neutral.border, accent.border, "neutral is a tone of its own");
+
+    // Variant is the volume: solid fills with the colour the outline draws with.
+    const solid = await paint("solid");
+    assert.equal(solid.background, accent.border, "solid fills with the outline's tone");
+
+    // Disabled keeps the shape and a trace of the tone, and stops looking raised.
+    const off = await paint("off");
+    const offDanger = await paint("off-danger");
+    const offSolid = await paint("off-solid");
+    assert.equal(off.opacity, "1", "disabled is a colour decision, not a transparency one");
+    assert.equal(off.shadow, "none", "a disabled button does not look raised");
+    assert.notEqual(off.border, off.background, "a disabled outline is still an outline");
+    assert.equal(offSolid.border, offSolid.background, "a disabled solid is still filled");
+    assert.notEqual(offDanger.border, off.border, "a disabled button still says which action it was");
+    assert.notEqual(off.border, accent.border, "and it no longer reads as available");
+    await page.close();
+  });
+});
+
+describe("Density", () => {
+  it("compacts menu rows and tab rows without rescaling a global token", async () => {
+    const path = await bundle("vue-density", `
+      import { createApp, h } from "vue";
+      import { Menu, MenuItem, Tabs } from "@threadlabs/looma/vue";
+      const menu = (id, density) => h(Menu, { id, density, open: true }, () => [
+        h(MenuItem, { id: id + "-item" }, () => "Rename"),
+      ]);
+      const tabs = (id, density) => h(Tabs, { id, density, label: "Views" }, () => [
+        h("section", { "aria-label": "One" }, "First"),
+      ]);
+      createApp({ render: () => h("div", [menu("roomy"), menu("tight", "compact"), tabs("roomy-tabs"), tabs("tight-tabs", "compact")]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const box = (selector: string) => page.locator(selector).evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { padding: style.paddingBlockStart, fontSize: style.fontSize, height: (element as HTMLElement).offsetHeight };
+    });
+    const roomyItem = await box("#roomy-item");
+    const tightItem = await box("#tight-item");
+    assert.ok(parseFloat(tightItem.padding) < parseFloat(roomyItem.padding), "compact menu rows are tighter");
+    assert.ok(parseFloat(tightItem.fontSize) < parseFloat(roomyItem.fontSize), "compact menu rows use the smaller type");
+
+    const roomyTab = await box('#roomy-tabs [role="tab"]');
+    const tightTab = await box('#tight-tabs [role="tab"]');
+    assert.ok(tightTab.height < roomyTab.height, "compact tabs are shorter");
+    // The globals the component reads are untouched, so nothing nested inside is rescaled.
+    assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--ui-space-2").trim()), "0.5rem");
     await page.close();
   });
 });
@@ -405,7 +647,52 @@ describe("Vue editor components", () => {
   });
 });
 
+describe("Editor toolbar tooltips", () => {
+  it("labels its buttons with a Looma tooltip, not the browser's title", async () => {
+    const path = await bundle("vue-toolbar-tip", `
+      import { createApp, h, ref } from "vue";
+      import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+      const content = ref("<p>Hello</p>");
+      createApp({ render: () => h(LoomaEditor, { modelValue: content.value, toolbarMode: "sticky" }) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const bold = page.locator('[data-component~="ui-editor-toolbar"] button').first();
+    await bold.waitFor();
+    assert.equal(await bold.getAttribute("title"), null, "no native title");
+
+    const tip = page.locator('[data-component~="ui-tooltip"]');
+    await bold.hover();
+    await tip.waitFor({ state: "visible" });
+    assert.match((await tip.textContent()) ?? "", /Bold/);
+
+    // Moving along the row re-points the same tooltip without waiting again.
+    const italic = page.locator('[data-component~="ui-editor-toolbar"] button').nth(1);
+    await italic.hover();
+    await page.waitForFunction(() => /Italic/.test(document.querySelector('[data-component~="ui-tooltip"]')?.textContent ?? ""));
+    assert.equal(await tip.isVisible(), true);
+    await page.close();
+  });
+});
+
 describe("LoomaEditor", () => {
+  it("names its editing surface for assistive technology", async () => {
+    const path = await bundle("vue-editor-label", `
+      import { createApp, h, ref } from "vue";
+      import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+      const label = ref("Page content");
+      window.label = label;
+      createApp({ render: () => h(LoomaEditor, { modelValue: { type: "doc", content: [] }, label: label.value }) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const prose = page.locator(".ProseMirror");
+    await prose.waitFor();
+    assert.equal(await prose.getAttribute("aria-label"), "Page content");
+    await page.evaluate(() => { (window as unknown as { label: { value: string } }).label.value = "Meeting notes"; });
+    await page.waitForFunction(() => document.querySelector(".ProseMirror")?.getAttribute("aria-label") === "Meeting notes");
+    await page.close();
+  });
+
+
   it("edits a document and opens the slash menu", async () => {
     const path = await bundle("vue-looma-editor", `
       import { createApp, h, ref } from "vue";

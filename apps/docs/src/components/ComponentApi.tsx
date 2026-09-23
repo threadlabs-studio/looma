@@ -121,7 +121,7 @@ export function ComponentApi({ component }: ComponentApiProps): JSX.Element {
   return (
     <div className="looma-api">
       {api.description ? <p>{api.description}</p> : null}
-      <p style={{ fontSize: "0.875rem", color: "var(--ifm-font-color-secondary)" }}>
+      <p style={{ fontSize: "var(--looma-text-xs)", color: "var(--ifm-font-color-secondary)" }}>
         <strong>Package:</strong> <code>{api.package}</code>
         {" · "}
         <strong>Native root:</strong> <code>{`<${api.root}>`}</code>

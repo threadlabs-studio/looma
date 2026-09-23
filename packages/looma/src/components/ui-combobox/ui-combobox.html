@@ -21,11 +21,16 @@
     <prop name="disclosure" type="boolean" default="false">disclosure token.</prop>
     <prop name="clearable" type="boolean" default="false">clearable token.</prop>
     <prop name="help" type="string" default="">help token.</prop>
+    <state name="internalItems" type="list(object({ id: string, value: string, label: string, group?: string, disabled?: boolean }))" :value="[]"></state>
     <state name="raw" :value="''"></state>
     <state name="display" :value="''"></state>
     <state name="selected" type="string | null" :value="null"></state>
     <state name="expanded" :value="false"></state>
-    <state name="rows" type="list(object({ id: string, value: string, label: string, group?: string, disabled: boolean }))" :value="[]"></state>
+    <state
+      name="rows"
+      type="list(object({ id: string, value: string, label: string, group?: string, disabled: boolean, selected: boolean }))"
+      :value="[]"
+    ></state>
     <state name="active" :value="-1"></state>
     <state name="loading" :value="false"></state>
     <state name="helpOpen" :value="false"></state>
@@ -38,7 +43,7 @@
     <state name="uid" :value="''"></state>
     <state
       name="groups"
-      type="list(object({ name: string, role: group | presentation, label: string | null, rows: list(object({ id: string, value: string, label: string, group?: string, disabled: boolean, index: integer })) }))"
+      type="list(object({ name: string, role: group | presentation, label: string | null, rows: list(object({ id: string, value: string, label: string, group?: string, disabled: boolean, selected: boolean, index: integer })) }))"
       :value="[]"
     ></state>
     <state name="creatable" :value="false"></state>
@@ -79,68 +84,85 @@
   <div>
     <label :for="format('%s-input', uid)" class:sr-only="labelVisibility = 'sr-only'"><template $value="label"></template><template $if="required">
         *</template></label>
-    <div class="field" $ref="field">
-      <slot name="start"></slot>
-      <template $if="multiple">
-        <button
-          $each="item, index of items"
-          $key="item.id"
-          class="item"
-          type="button"
-          tabindex="-1"
-          :data-index="index"
-          :disabled="disabled or readonly or item.disabled"
-          :aria-label="format('%s, press Delete or Backspace to remove', item.label)"
+    <div class="control">
+      <div class="field" $ref="field">
+        <slot name="start"></slot>
+        <template $if="multiple">
+          <button
+            $each="item, index of internalItems"
+            $key="item.id"
+            class="item"
+            type="button"
+            tabindex="-1"
+            :data-index="index"
+            :disabled="disabled or readonly or item.disabled"
+            :aria-label="format('%s, press Delete or Backspace to remove', item.label)"
+          >
+            <slot :name="format('item-%s', item.id)"><ui-badge $value="item.label"></ui-badge></slot>
+          </button>
+        </template>
+        <input
+          $ref="input"
+          :id="format('%s-input', uid)"
+          role="combobox"
+          aria-autocomplete="list"
+          autocomplete="off"
+          :aria-controls="format('%s-listbox', uid)"
+          :aria-expanded="expanded"
+          :aria-invalid="validationStatus = 'error'"
+          :aria-busy="validationStatus = 'pending'"
+          .value="display"
+          :placeholder="placeholder"
+          :name="name"
+          :disabled="disabled"
+          :readonly="readonly"
+          :required="required"
         >
-          <slot :name="format('item-%s', item.id)"><ui-badge $value="item.label"></ui-badge></slot>
+        <button $if="clearable" type="button" data-combobox-action="clear" aria-label="Clear">
+          <svg class="affordance-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M7 7l10 10M17 7 7 17"></path>
+          </svg>
         </button>
-      </template>
-      <input
-        $ref="input"
-        :id="format('%s-input', uid)"
-        role="combobox"
-        aria-autocomplete="list"
-        autocomplete="off"
-        :aria-controls="format('%s-listbox', uid)"
-        :aria-expanded="expanded"
-        :aria-invalid="validationStatus = 'error'"
-        :aria-busy="validationStatus = 'pending'"
-        .value="display"
-        :placeholder="placeholder"
-        :name="name"
-        :disabled="disabled"
-        :readonly="readonly"
-        :required="required"
-      >
-      <button $if="clearable" type="button" data-combobox-action="clear" aria-label="Clear">
-        <svg class="affordance-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <path d="M7 7l10 10M17 7 7 17"></path>
-        </svg>
-      </button>
-      <button $if="help" :id="format('%s-help', uid)" type="button" aria-label="Help" :disabled="disabled"><span aria-hidden="true">?</span></button>
-      <button
-        $if="disclosure"
-        type="button"
-        data-combobox-action="disclosure"
-        tabindex="-1"
-        aria-label="Show suggestions"
-        :aria-controls="format('%s-listbox', uid)"
-      >
+        <button
+          $if="disclosure"
+          type="button"
+          data-combobox-action="disclosure"
+          tabindex="-1"
+          aria-label="Show suggestions"
+          :aria-controls="format('%s-listbox', uid)"
+        >
+          <svg
+            class="affordance-icon"
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.25"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="m6 9 6 6 6-6"></path>
+          </svg>
+        </button>
+      </div>
+      <button $if="help" class="help" :id="format('%s-help', uid)" type="button" aria-label="Help" :disabled="disabled">
         <svg
-          class="affordance-icon"
+          class="help-icon"
           aria-hidden="true"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          stroke-width="2.25"
+          stroke-width="2"
           stroke-linecap="round"
           stroke-linejoin="round"
         >
-          <path d="m6 9 6 6 6-6"></path>
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"></path>
+          <path d="M12 17h.01"></path>
         </svg>
       </button>
     </div>
-    <ui-tooltip $if="help" :id="format('%s-help-text', uid)" :for="format('%s-help', uid)"><template $value="help"></template></ui-tooltip>
+    <ui-tooltip $if="help" trigger="click" :id="format('%s-help-text', uid)" :for="format('%s-help', uid)"><template $value="help"></template></ui-tooltip>
     <div class="popup" $ref="popup" :hidden="not expanded">
       <div role="listbox" $ref="listbox" :id="format('%s-listbox', uid)" :aria-label="format('%s suggestions', label)" :aria-busy="loading">
         <div $each="group of groups" $key="group.name" :role="group.role" :aria-label="group.label">
@@ -152,7 +174,7 @@
             class:active="row.index = active"
             role="option"
             :id="format('%s-option-%s', uid, row.index)"
-            :aria-selected="row.value = selected"
+            :aria-selected="row.selected"
             :aria-disabled="row.disabled"
             :data-index="row.index"
           >
@@ -189,15 +211,25 @@
       font: inherit;
     }
     label {
-      color: var(--ui-field-label-color, var(--ui-text-primary));
-      font-size: var(--ui-field-label-size, 0.875rem);
-      font-weight: var(--ui-field-label-weight, 500);
+      color: var(--ui-combobox-label-text, var(--ui-text-primary));
+      font-size: var(--ui-combobox-label-font-size, 0.875rem);
+      font-weight: 500;
     }
+    /* The field and anything that annotates it sit on one row; the help button is beside the box,
+       not inside it, because a control's box holds its value. */
+    .control {
+      display: flex;
+      align-items: center;
+      gap: var(--ui-space-2);
+      min-inline-size: 0;
+    }
+
     .field {
+      flex: 1 1 auto;
       display: flex;
       min-inline-size: 0;
       border: 1px solid var(--ui-control-border, var(--ui-border-default));
-      border-radius: var(--ui-radius-2);
+      border-radius: var(--ui-radius-md);
       background: var(--ui-control-surface, var(--ui-surface-default));
       box-shadow: var(--ui-control-inset);
       transition: border-color var(--ui-motion-fast) var(--ui-motion-ease), box-shadow var(--ui-motion-fast) var(--ui-motion-ease);
@@ -208,6 +240,44 @@
         var(--ui-control-inset),
         var(--ui-control-focus-halo-shadow);
     }
+    /* A ghost icon button: the affordance is the mark, not a box around it. */
+    .help {
+      flex: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      inline-size: var(--ui-control-size-sm);
+      block-size: var(--ui-control-size-sm);
+      padding: 0;
+      border: 0;
+      border-radius: var(--ui-radius-round);
+      background: transparent;
+      color: var(--ui-text-secondary);
+      cursor: pointer;
+      transition: background-color var(--ui-motion-fast) var(--ui-motion-ease), color var(--ui-motion-fast) var(--ui-motion-ease);
+    }
+
+    .help:hover:enabled,
+    .help[aria-expanded="true"] {
+      background: color-mix(in srgb, currentColor 8%, transparent);
+      color: var(--ui-text-primary);
+    }
+
+    .help:focus-visible {
+      outline: none;
+      box-shadow: var(--ui-focus-halo);
+    }
+
+    .help:disabled {
+      color: var(--ui-disabled-text);
+      cursor: not-allowed;
+    }
+
+    .help-icon {
+      inline-size: var(--ui-icon-size-sm);
+      block-size: var(--ui-icon-size-sm);
+    }
+
     input::selection {
       background: color-mix(in srgb, var(--ui-accent-solid) 20%, transparent);
       color: inherit;
@@ -216,7 +286,7 @@
       appearance: none;
       width: 100%;
       min-inline-size: 0;
-      min-block-size: calc(var(--ui-control-size-md, 2.5rem) - 2px);
+      min-block-size: calc(var(--ui-control-size-md) - 2px);
       box-sizing: border-box;
       border: 0;
       border-radius: inherit;
@@ -229,7 +299,7 @@
       outline: none;
     }
     :host-state([size="sm"]) input {
-      min-block-size: calc(var(--ui-field-compact-size, var(--ui-control-size-sm, 2rem)) - 2px);
+      min-block-size: calc(var(--ui-control-size-sm) - 2px);
       padding: var(--ui-space-1) var(--ui-space-2);
     }
     button {
@@ -238,19 +308,19 @@
       place-items: center;
       align-self: stretch;
       border: 0;
-      border-radius: var(--ui-radius-2);
+      border-radius: var(--ui-radius-md);
       background: transparent;
-      color: var(--ui-field-affordance-color, var(--ui-text-secondary));
+      color: var(--ui-combobox-affordance-text, var(--ui-text-secondary));
       font: inherit;
-      font-weight: var(--ui-field-affordance-weight, 400);
+      font-weight: 400;
       min-inline-size: 2rem;
       padding: 0 var(--ui-space-1);
       cursor: pointer;
     }
     .affordance-icon {
       display: block;
-      inline-size: var(--ui-icon-size-sm, 1rem);
-      block-size: var(--ui-icon-size-sm, 1rem);
+      inline-size: var(--ui-icon-size-sm);
+      block-size: var(--ui-icon-size-sm);
     }
     button:hover:enabled {
       background: var(--ui-surface-muted);
@@ -280,7 +350,7 @@
       margin: 0;
       padding: var(--ui-space-1);
       border: 1px solid var(--ui-border-default);
-      border-radius: var(--ui-radius-2);
+      border-radius: var(--ui-radius-md);
       background: var(--ui-surface-elevated);
       color: var(--ui-text-primary);
       box-shadow: var(--ui-elevation-overlay, var(--ui-shadow-lg));
@@ -290,13 +360,13 @@
     }
     .option {
       padding: var(--ui-space-2) var(--ui-space-3);
-      border-radius: var(--ui-radius-1);
+      border-radius: var(--ui-radius-sm);
       cursor: pointer;
       overflow-wrap: anywhere;
     }
     .option:hover, .option.active {
       background: var(--ui-surface-muted);
-      outline: 1px solid var(--ui-focus-ring, currentColor);
+      outline: 1px solid var(--ui-focus-ring);
       outline-offset: -1px;
     }
     .option[aria-disabled="true"] {
@@ -305,12 +375,12 @@
     }
     .primary {
       display: block;
-      color: var(--ui-option-primary-color, var(--ui-text-primary));
-      font-weight: var(--ui-option-primary-weight, 500);
+      color: var(--ui-combobox-option-text, var(--ui-text-primary));
+      font-weight: 500;
     }
     .message, .group {
-      color: var(--ui-field-message-color, var(--ui-text-secondary));
-      font-weight: var(--ui-field-message-weight, 400);
+      color: var(--ui-combobox-message-text, var(--ui-text-secondary));
+      font-weight: 400;
       font-size: var(--ui-font-size-sm);
       line-height: var(--ui-line-height-md);
       overflow-wrap: anywhere;
@@ -341,16 +411,49 @@
       }
     }
 
+    /* Multiple mode: every option carries a checkbox, so a list that takes several answers says so
+       before anything is picked. aria-selected is the state; this draws it.
+       Longhands, not shorthands: lowering drops a shorthand that omits a component. */
+    :host-state([multiple]) .option {
+      display: flex;
+      gap: var(--ui-space-2);
+      align-items: center;
+    }
+
+    :host-state([multiple]) .option::before {
+      content: "";
+      flex: none;
+      inline-size: 1.125rem;
+      block-size: 1.125rem;
+      border-style: solid;
+      border-width: 1px;
+      border-color: var(--ui-control-border-hover, var(--ui-border-strong));
+      border-radius: var(--ui-radius-sm);
+      background-color: var(--ui-control-surface, var(--ui-surface-default));
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 0.7rem;
+    }
+
+    :host-state([multiple]) .option[aria-selected="true"]::before {
+      border-color: var(--ui-accent-solid);
+      background-color: var(--ui-accent-solid);
+      background-image: var(
+        --ui-combobox-option-check,
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12 5 5 9-9'/%3E%3C/svg%3E")
+      );
+    }
+
     /* Multiple mode: chips wrap before the cursor on one flexible field line. */
     :host-state([multiple]) .field {
       flex-wrap: wrap;
       align-items: center;
       gap: var(--ui-space-1);
-      min-block-size: var(--ui-multi-combobox-min-block-size, 2.5rem);
+      min-block-size: var(--ui-combobox-item-min-block-size, 2.5rem);
       padding: var(--ui-space-1);
     }
     :host-state([multiple]) input {
-      flex: 1 0 var(--ui-multi-combobox-input-min-inline-size, 5rem);
+      flex: 1 0 var(--ui-combobox-item-input-min-inline-size, 5rem);
       width: auto;
       min-block-size: 1.75rem;
       padding: var(--ui-space-0-5) var(--ui-space-1);
@@ -359,18 +462,18 @@
       appearance: none;
       display: inline-flex;
       min-inline-size: 0;
-      max-inline-size: min(100%, var(--ui-multi-combobox-item-max-inline-size, 12rem));
+      max-inline-size: min(100%, var(--ui-combobox-item-item-max-inline-size, 12rem));
       overflow: hidden;
       padding: 0;
       border: 0;
-      border-radius: var(--ui-radius-1);
+      border-radius: var(--ui-radius-sm);
       background: transparent;
       color: inherit;
       font: inherit;
       cursor: default;
     }
     .item:focus-visible {
-      outline: 2px solid var(--ui-focus-ring, currentColor);
+      outline: 2px solid var(--ui-focus-ring);
       outline-offset: 1px;
     }
     .item:disabled {

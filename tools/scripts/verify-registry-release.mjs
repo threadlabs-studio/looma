@@ -3,7 +3,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { RELEASE_PACKAGES } from "./release-config.mjs";
+import { distTag, RELEASE_PACKAGES, RELEASE_VERSION } from "./release-config.mjs";
 import { collectRegistryReleaseIssues } from "./registry-release.mjs";
 import { argumentValue, fileDigests } from "./publish-release.mjs";
 
@@ -134,7 +134,7 @@ export function registryEvidence({ manifest, registryPackages, requiredTags }) {
 }
 
 async function main() {
-  const tag = "latest";
+  const tag = distTag(RELEASE_VERSION);
   const manifestPath = path.resolve(
     repoRoot,
     argumentValue("--manifest", ".release/artifacts/release-manifest.json")

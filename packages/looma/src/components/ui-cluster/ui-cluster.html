@@ -6,30 +6,30 @@
   <div><slot></slot></div>
   <style>
     :host {
-      --_layout-gap: var(--ui-space-3, 0.75rem);
+      --_layout-gap: var(--ui-space-3);
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: var(--ui-layout-gap, var(--_layout-gap));
+      gap: var(--ui-cluster-gap, var(--_layout-gap));
       min-inline-size: 0;
       max-inline-size: 100%;
       margin: 0;
     }
 
     :host-state([gap="xs"]) {
-      --_layout-gap: var(--ui-space-2, 0.5rem);
+      --_layout-gap: var(--ui-space-2);
     }
     :host-state([gap="s"]) {
-      --_layout-gap: var(--ui-space-3, 0.75rem);
+      --_layout-gap: var(--ui-space-3);
     }
     :host-state([gap="m"]) {
-      --_layout-gap: var(--ui-space-4, 1rem);
+      --_layout-gap: var(--ui-space-4);
     }
     :host-state([gap="l"]) {
-      --_layout-gap: var(--ui-space-5, 1.5rem);
+      --_layout-gap: var(--ui-space-5);
     }
     :host-state([gap="xl"]) {
-      --_layout-gap: var(--ui-space-6, 2rem);
+      --_layout-gap: var(--ui-space-6);
     }
     :host-state([align="start"]) {
       align-items: flex-start;

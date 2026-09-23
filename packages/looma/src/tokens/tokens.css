@@ -1,6 +1,29 @@
 @layer tokens {
+  /* The theme contract.
+     These are the values a product sets to theme Looma. Everything else in this file is derived
+     from them, so a theme that sets only these still looks coherent. A component reads a derived
+     value or its own `--ui-<component>-*` token; it never needs the product to set either. */
   :root {
-    --ui-font-stack-system:
+    /* Colour: the whole palette comes from these. An intent, its readable foreground, the page,
+       the two surfaces either side of it, and the ink. Everything else — hovers, tints, borders,
+       muted text, disabled — is mixed from them further down, so a theme sets these and stops. */
+    --ui-accent: #5b55d6;
+    --ui-danger: #b4233f;
+    --ui-success: #007a33;
+    --ui-warning: #b45309;
+    --ui-info: #0066cc;
+    --ui-on-accent: #ffffff;
+    --ui-on-danger: #ffffff;
+    --ui-surface: #ffffff;
+    /* Raised and sunken are seeded rather than mixed: which direction reads as "lifted" flips
+       between a light and a dark scheme, and only the theme knows which one it is. */
+    --ui-surface-raised: #ffffff;
+    --ui-surface-sunken: #f0f0ec;
+    --ui-text: #1a1a1a;
+    --ui-focus-halo: 0 0 0 3px color-mix(in srgb, var(--ui-focus-ring) 40%, transparent);
+
+    /* Type. */
+    --ui-font-sans:
       system-ui,
       -apple-system,
       BlinkMacSystemFont,
@@ -11,246 +34,189 @@
       sans-serif,
       "Apple Color Emoji",
       "Segoe UI Emoji";
-    --ui-font-stack-neo-grotesque:
-      Inter,
-      Roboto,
-      "Helvetica Neue",
-      "Arial Nova",
-      "Nimbus Sans",
-      Arial,
-      sans-serif;
-    --ui-font-stack-humanist:
-      Seravek,
-      "Gill Sans Nova",
-      Ubuntu,
-      Calibri,
-      "DejaVu Sans",
-      source-sans-pro,
-      sans-serif;
-    --ui-font-stack-rounded:
-      ui-rounded,
-      "Hiragino Maru Gothic ProN",
-      Quicksand,
-      Comfortaa,
-      Manjari,
-      "Arial Rounded MT",
-      "Arial Rounded MT Bold",
-      Calibri,
-      source-sans-pro,
-      sans-serif;
-    --ui-font-family-sans: var(--ui-font-stack-system);
-    /* Quiet metadata scale for compact, non-interactive component labels. */
-    --ui-font-size-2xs: 0.6875rem;
-    --ui-font-size-xs: 0.75rem;
+    --ui-font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    --ui-font-size: 1rem;
     --ui-font-size-sm: 0.875rem;
-    /* Dense interactive text: legible at 15px without body-copy spacing. */
-    --ui-font-size-ui: 0.9375rem;
-    --ui-font-size-md: 1rem;
-    --ui-font-size-lg: 1.125rem;
-    --ui-font-size-xl: 1.25rem;
-    --ui-font-size-2xl: 1.5rem;
-    --ui-line-height-tight: 1.2;
-    --ui-line-height-md: 1.4;
-    --ui-line-height-relaxed: 1.6;
-
-    --ui-font-normal: 400;
     --ui-font-medium: 500;
-    --ui-font-semibold: 600;
-    --ui-font-bold: 700;
+    --ui-line-height: 1.4;
 
-    --ui-space-0-5: 0.125rem;
+    /* Space: the steps components lay out with. */
     --ui-space-1: 0.25rem;
     --ui-space-2: 0.5rem;
     --ui-space-3: 0.75rem;
     --ui-space-4: 1rem;
-    --ui-space-5: 1.5rem;
-    --ui-space-6: 2rem;
-    --ui-space-7: 2.5rem;
-    --ui-space-8: 3rem;
 
-    --ui-radius-1: 0.25rem;
-    --ui-radius-2: 0.5rem;
-    --ui-radius-3: 0.75rem;
-    --ui-radius-4: 1rem;
-    --ui-radius-dialog: 1rem;
+    /* Radius. */
+    --ui-radius-sm: 0.25rem;
+    --ui-radius-md: 0.5rem;
+    /* Derived from --ui-radius-md by default, in the contract because a product that rounds large
+       surfaces differently needs to pin it. */
+    --ui-radius-lg: calc(var(--ui-radius-md) * 1.5);
     --ui-radius-round: 999px;
 
-    --ui-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+    /* Elevation: a resting shadow and a floating one. */
     --ui-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
-    --ui-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
     --ui-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.06);
-    --ui-shadow-xl: 0 16px 40px rgba(0, 0, 0, 0.14), 0 8px 16px rgba(0, 0, 0, 0.08);
-    --ui-shadow-dialog: var(--ui-shadow-xl);
 
-    /* Semantic elevation: every floating surface uses one of these so overlays read consistently. */
-    --ui-elevation-tooltip: var(--ui-shadow-md);
-    --ui-elevation-overlay: var(--ui-shadow-lg);
-    --ui-elevation-dialog: var(--ui-shadow-xl);
-    --ui-overlay-backdrop: rgba(0, 0, 0, 0.4);
-
+    /* Motion. */
     --ui-motion-fast: 120ms;
-    --ui-motion-base: 180ms;
     --ui-motion-ease: cubic-bezier(0.2, 0, 0.2, 1);
-    /* Fast start, gentle settle: for reveals that should feel immediate (expanding panels). */
+
+    /* Controls: the contract every button and field shares. */
+    --ui-control-size: 2.5rem;
+    --ui-control-size-sm: 2rem;
+    /* WCAG 2.5.5 counts CSS pixels, so this one stays in px: a smaller root font must not shrink
+       a touch target below 44. */
+    --ui-control-min-block-size: 44px;
+  }
+
+  /* Derived values.
+     Each is computed from the contract above. A theme may set one to diverge deliberately, but
+     never has to: these exist so components share one vocabulary, not to be configured. */
+  :root,
+  :where([data-theme], [data-contrast]) {
+    /* Type scale, from the base size. */
+    --ui-font-size-2xs: calc(var(--ui-font-size) * 0.6875);
+    --ui-font-size-xs: calc(var(--ui-font-size) * 0.75);
+    /* Dense interactive text: legible without body-copy spacing. */
+    --ui-font-size-ui: calc(var(--ui-font-size) * 0.9375);
+    --ui-font-size-md: var(--ui-font-size);
+    --ui-font-size-lg: calc(var(--ui-font-size) * 1.125);
+    --ui-font-size-xl: calc(var(--ui-font-size) * 1.25);
+    --ui-font-size-2xl: calc(var(--ui-font-size) * 1.5);
+    --ui-line-height-tight: 1.2;
+    --ui-line-height-md: var(--ui-line-height);
+    /* Prose, not controls: the editor's document body reads at a looser line height. */
+    --ui-line-height-relaxed: calc(var(--ui-line-height) * 1.15);
+    --ui-font-normal: 400;
+    --ui-font-semibold: 600;
+    --ui-font-bold: 700;
+    --ui-font-family-sans: var(--ui-font-sans);
+    --ui-font-family-mono: var(--ui-font-mono);
+
+    /* Space steps either side of the contract's four. */
+    --ui-space-0-5: calc(var(--ui-space-1) * 0.5);
+    --ui-space-5: calc(var(--ui-space-4) * 1.5);
+    --ui-space-6: calc(var(--ui-space-4) * 2);
+
+    --ui-radius-dialog: calc(var(--ui-radius-md) * 2);
+
+    /* Elevation: one resting shadow, one floating, and the overlays in between. */
+    --ui-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --ui-shadow-md: var(--ui-shadow-sm);
+    --ui-shadow-xl: var(--ui-shadow-lg);
+    --ui-elevation-tooltip: var(--ui-shadow-sm);
+    --ui-elevation-overlay: var(--ui-shadow-lg);
+    --ui-elevation-dialog: var(--ui-shadow-lg);
+    --ui-overlay-backdrop: rgba(0, 0, 0, 0.4);
+    --ui-control-inset: inset 0 1px 2px rgb(0 0 0 / 0.07), inset 0 1px 0 rgb(0 0 0 / 0.02);
+    --ui-raised: 0 1px 2px rgb(0 0 0 / 0.07), 0 1px 1px rgb(0 0 0 / 0.04);
+    --ui-raised-highlight: linear-gradient(rgb(255 255 255 / 0.16), rgb(255 255 255 / 0));
+    /* The counterpart to --ui-raised: a pressed control takes its shadow inside. */
+    --ui-pressed: inset 0 1px 2px rgb(0 0 0 / 0.12);
+
+    --ui-motion-base: calc(var(--ui-motion-fast) * 1.5);
+    /* Fast start, gentle settle: for reveals that should feel immediate. */
     --ui-motion-ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
 
-    /* Anticipatory interaction: guide → near → direct → active. */
-    --ui-affordance-guide-size: 0.25rem;
+    /* Neutrals: the ink mixed into the page. One ramp, so a theme that changes either end moves
+       every step with it. */
+    --ui-surface-muted: color-mix(in oklab, var(--ui-surface-sunken) 50%, var(--ui-surface));
+    --ui-text-secondary: color-mix(in oklab, var(--ui-text) 72%, var(--ui-surface));
+    --ui-text-muted: color-mix(in oklab, var(--ui-text) 45%, var(--ui-surface));
+    --ui-border: color-mix(in oklab, var(--ui-text) 12%, var(--ui-surface));
+    --ui-border-strong: color-mix(in oklab, var(--ui-text) 25%, var(--ui-surface));
+    --ui-control-border: color-mix(in oklab, var(--ui-text) 48%, var(--ui-surface));
+
+    /* States: toward the ink for pressure, toward the page for a tint. In a dark theme the ink is
+       light, so the same mixes brighten instead of darkening, without a second set of values. */
+    --ui-accent-hover: color-mix(in oklab, var(--ui-accent) 86%, var(--ui-text));
+    --ui-accent-active: color-mix(in oklab, var(--ui-accent) 74%, var(--ui-text));
+    --ui-accent-subtle: color-mix(in oklab, var(--ui-accent) 12%, var(--ui-surface));
+    --ui-danger-hover: color-mix(in oklab, var(--ui-danger) 86%, var(--ui-text));
+
+    /* Disabled is one decision, not a per-component one: the sunken surface and the muted ink, at
+       full opacity, so a disabled control reads as unavailable rather than as a faded variant. */
+    --ui-disabled-surface: var(--ui-surface-sunken);
+    --ui-disabled-text: var(--ui-text-muted);
+
+    --ui-focus-ring: var(--ui-accent);
+
+    /* Surfaces and text, in the names components use. */
+    --ui-surface-canvas: var(--ui-surface);
+    --ui-surface-default: var(--ui-surface);
+    --ui-surface-elevated: var(--ui-surface-raised);
+    --ui-surface-subtle: var(--ui-surface-sunken);
+    --ui-surface-hover: var(--ui-surface-muted);
+    --ui-text-primary: var(--ui-text);
+    --ui-text-on-accent: var(--ui-on-accent);
+    --ui-border-subtle: color-mix(in srgb, var(--ui-border) 55%, var(--ui-surface));
+    --ui-border-default: var(--ui-border);
+
+    /* Intent tones: a solid surface, its foreground, and a soft tint of each. */
+    --ui-accent-solid: var(--ui-accent);
+    --ui-accent-soft: var(--ui-accent-subtle);
+    --ui-accent-contrast: var(--ui-on-accent);
+    --ui-accent-strong-surface: var(--ui-accent);
+    --ui-accent-on-strong: var(--ui-on-accent);
+    --ui-accent-subtle-text: var(--ui-accent-active);
+    --ui-danger-solid: var(--ui-danger);
+    --ui-danger-soft: color-mix(in srgb, var(--ui-danger) 8%, var(--ui-surface));
+    --ui-danger-strong-surface: var(--ui-danger);
+    --ui-danger-on-strong: var(--ui-on-danger);
+    --ui-danger-subtle-text: var(--ui-danger-hover);
+    --ui-success-solid: var(--ui-success);
+    --ui-success-hover: color-mix(in srgb, var(--ui-success) 85%, var(--ui-text));
+    --ui-success-soft: color-mix(in srgb, var(--ui-success) 8%, var(--ui-surface));
+    --ui-success-strong-surface: var(--ui-success);
+    --ui-success-on-strong: var(--ui-on-accent);
+    --ui-success-subtle-text: color-mix(in srgb, var(--ui-success) 85%, var(--ui-text));
+    --ui-warning-solid: var(--ui-warning);
+    --ui-warning-soft: color-mix(in srgb, var(--ui-warning) 8%, var(--ui-surface));
+    --ui-warning-strong-surface: var(--ui-warning);
+    --ui-warning-on-strong: var(--ui-on-accent);
+    --ui-warning-subtle-text: color-mix(in srgb, var(--ui-warning) 85%, var(--ui-text));
+    --ui-info-solid: var(--ui-info);
+    --ui-info-soft: color-mix(in srgb, var(--ui-info) 8%, var(--ui-surface));
+    --ui-info-strong-surface: var(--ui-info);
+    --ui-info-on-strong: var(--ui-on-accent);
+    --ui-info-subtle-text: color-mix(in srgb, var(--ui-info) 85%, var(--ui-text));
+
+    /* Interaction roles: what a control paints, whatever its intent. */
+    --ui-action-primary-surface: var(--ui-accent);
+    --ui-action-primary-surface-hover: var(--ui-accent-hover);
+    --ui-action-primary-surface-active: var(--ui-accent-active);
+    --ui-action-primary-text: var(--ui-on-accent);
+    --ui-action-secondary-surface-hover: var(--ui-surface-muted);
+    --ui-action-secondary-text: var(--ui-text);
+    --ui-control-surface: var(--ui-surface);
+    --ui-control-surface-disabled: var(--ui-surface-muted);
+    --ui-control-border-hover: var(--ui-border-strong);
+    --ui-control-placeholder: var(--ui-text-secondary);
+    --ui-control-focus: var(--ui-focus-ring);
+    /* Derived from the ring, not a near-white tint, so the halo shows on any surface. */
+    --ui-control-focus-halo: color-mix(in srgb, var(--ui-focus-ring) 24%, transparent);
+    --ui-control-focus-halo-shadow: 0 0 0 3px var(--ui-control-focus-halo);
+    --ui-control-size-md: var(--ui-control-size);
+    --ui-control-size-lg: calc(var(--ui-control-size) * 1.2);
+
+    /* Icon sizes, used by icon buttons and field affordances. */
+    --ui-icon-size-sm: var(--ui-font-size);
+    --ui-icon-size-md: calc(var(--ui-font-size) * 1.25);
+    --ui-icon-size-lg: calc(var(--ui-font-size) * 1.5);
+
+    /* Anticipatory interaction: guide → near → direct. */
+    --ui-affordance-guide-size: var(--ui-space-1);
     --ui-affordance-guide-opacity: 0.42;
     --ui-affordance-guide-color: var(--ui-border-strong);
     --ui-affordance-near-color: var(--ui-text-secondary);
-    --ui-affordance-direct-color: var(--ui-accent-solid);
-    --ui-affordance-active-color: var(--ui-accent-active);
+    --ui-affordance-direct-color: var(--ui-accent);
     --ui-affordance-motion: var(--ui-motion-fast);
-
-    --ui-surface-canvas: #ffffff;
-    --ui-surface-default: #ffffff;
-    --ui-surface-muted: #f8f8f6;
-    --ui-surface-subtle: #f0f0ec;
-    --ui-surface-elevated: #ffffff;
-
-    --ui-text-primary: #1a1a1a;
-    --ui-text-secondary: #5c5c5c;
-    --ui-text-muted: #9b9b9b;
-    --ui-text-on-accent: #ffffff;
-
-    --ui-border-subtle: #ecece8;
-    --ui-border-default: #e4e4e0;
-    --ui-border-strong: #c8c8c4;
-    --ui-focus-ring: #5b55d6;
-
-    --ui-accent-solid: #5b55d6;
-    --ui-accent-hover: #4b45bd;
-    --ui-accent-active: #3e399e;
-    --ui-accent-soft: #efeffc;
-
-    --ui-danger-solid: #b4233f;
-    --ui-danger-hover: #941d35;
-    --ui-danger-soft: #fceef1;
-    --ui-success-solid: #007a33;
-    --ui-success-soft: #edf7f1;
-    --ui-warning-solid: #cc8800;
-    --ui-warning-soft: #fdf7e6;
-    --ui-info-solid: #0066cc;
-    --ui-info-soft: #e8f0fb;
-
-    /* Intent colors split readable foreground use from filled-surface use. */
-    --ui-accent-strong-surface: #5b55d6;
-    --ui-accent-on-strong: #ffffff;
-    --ui-accent-subtle-text: #3e399e;
-    --ui-danger-strong-surface: #b4233f;
-    --ui-danger-on-strong: #ffffff;
-    --ui-danger-subtle-text: #941d35;
-    --ui-success-strong-surface: #007a33;
-    --ui-success-on-strong: #ffffff;
-    --ui-success-subtle-text: #006629;
-    /* Deeper amber so the solid warning badge carries white text like the other tones (5:1). */
-    --ui-warning-strong-surface: #b45309;
-    --ui-warning-on-strong: #ffffff;
-    --ui-warning-subtle-text: #704800;
-    --ui-info-strong-surface: #0066cc;
-    --ui-info-on-strong: #ffffff;
-    --ui-info-subtle-text: #0058b0;
-
-    /* Depth and focus. Fields read as a shallow well; buttons as gently raised. Focus is a soft halo
-       that transitions in (no hard outline ring). */
-    --ui-control-inset: inset 0 1px 2px rgb(0 0 0 / 0.07), inset 0 1px 0 rgb(0 0 0 / 0.02);
-    --ui-control-focus-halo-shadow: 0 0 0 3px var(--ui-control-focus-halo, color-mix(in srgb, var(--ui-focus-ring) 24%, transparent));
-    --ui-raised: 0 1px 2px rgb(0 0 0 / 0.07), 0 1px 1px rgb(0 0 0 / 0.04);
-    --ui-raised-highlight: linear-gradient(rgb(255 255 255 / 0.5), rgb(255 255 255 / 0));
-    --ui-focus-halo: 0 0 0 3px color-mix(in srgb, var(--ui-focus-ring) 40%, transparent);
-
-    /* Icon sizes, used by icon buttons and field affordances. */
-    --ui-icon-size-sm: 1rem;
-    --ui-icon-size-md: 1.25rem;
-    --ui-icon-size-lg: 1.5rem;
-
-    /* One height scale for every form control and button size. */
-    --ui-control-size-sm: 2rem;
-    --ui-control-size-md: 2.5rem;
-    --ui-control-size-lg: 3rem;
-    /* Touch-target floor applied under coarse pointers. */
-    --ui-control-min-block-size: 2.75rem;
-
-    /* Compatibility aliases used by the editor's public styling surface.
-       Each alias resolves through the canonical semantic token so an app only
-       needs to override the canonical Looma theme contract. */
-    --ui-surface: var(--ui-surface-elevated);
-    --ui-surface-hover: var(--ui-surface-muted);
-    --ui-text: var(--ui-text-primary);
-    --ui-border: var(--ui-border-default);
-    --ui-accent: var(--ui-accent-solid);
-    --ui-accent-subtle: var(--ui-accent-soft);
-    --ui-accent-contrast: var(--ui-text-on-accent);
-    --ui-danger: var(--ui-danger-solid);
-    --ui-radius-sm: var(--ui-radius-1);
-    --ui-radius-md: var(--ui-radius-2);
-    --ui-radius-lg: var(--ui-radius-3);
-    --ui-radius-xl: var(--ui-radius-4);
-    --ui-text-sm: var(--ui-font-size-sm);
-  }
-
-  /* Custom-property references resolve where declared, before inheritance.
-     Rebind semantic roles at theme boundaries to use the local palette. */
-  :root,
-  :where([data-theme], [data-contrast]) {
-    /* Semantic interaction roles. Products can theme intent without coupling
-       every component to a single brand accent. */
-    --ui-action-primary-surface: var(--ui-accent-solid);
-    --ui-action-primary-surface-hover: var(--ui-accent-hover);
-    --ui-action-primary-surface-active: var(--ui-accent-active);
-    --ui-action-primary-text: var(--ui-text-on-accent);
-    --ui-action-secondary-surface: var(--ui-surface-default);
-    --ui-action-secondary-surface-hover: var(--ui-surface-muted);
-    --ui-action-secondary-text: var(--ui-text-primary);
-    --ui-control-surface: var(--ui-surface-default);
-    --ui-control-surface-disabled: var(--ui-surface-muted);
-    --ui-control-border: var(--ui-border-default);
-    --ui-control-border-hover: var(--ui-border-strong);
-    --ui-control-focus: var(--ui-focus-ring);
-    /* Derived from the ring, not the near-white accent tint, so the halo shows on any surface. */
-    --ui-control-focus-halo: color-mix(in srgb, var(--ui-focus-ring) 24%, transparent);
-  }
-
-  @supports (color: oklch(0.5 0.1 240)) {
-    :root {
-      --ui-surface-canvas: oklch(0.99 0.01 250);
-      --ui-surface-default: oklch(1 0 0);
-      --ui-surface-muted: oklch(0.97 0.01 250);
-      --ui-surface-subtle: oklch(0.95 0.01 250);
-      --ui-surface-elevated: oklch(1 0 0);
-
-      --ui-text-primary: oklch(0.23 0.02 260);
-      --ui-text-secondary: oklch(0.36 0.02 260);
-      --ui-text-muted: oklch(0.5 0.02 260);
-      --ui-text-on-accent: oklch(0.99 0.01 250);
-
-      --ui-border-subtle: oklch(0.9 0.01 250);
-      --ui-border-default: oklch(0.84 0.01 250);
-      --ui-border-strong: oklch(0.7 0.02 250);
-      --ui-focus-ring: oklch(0.57 0.17 285);
-
-      --ui-accent-solid: oklch(0.57 0.17 285);
-      --ui-accent-hover: oklch(0.52 0.18 285);
-      --ui-accent-active: oklch(0.46 0.16 285);
-      --ui-accent-soft: oklch(0.96 0.025 285);
-
-      --ui-danger-solid: oklch(0.5 0.17 18);
-      --ui-danger-hover: oklch(0.44 0.16 18);
-      --ui-danger-soft: oklch(0.97 0.025 18);
-      --ui-success-solid: oklch(0.5 0.15 145);
-      --ui-success-soft: oklch(0.96 0.03 145);
-      --ui-warning-solid: oklch(0.7 0.15 85);
-      --ui-warning-soft: oklch(0.97 0.04 85);
-      --ui-info-solid: oklch(0.62 0.18 250);
-      --ui-info-soft: oklch(0.95 0.03 250);
-    }
   }
 
   @media (prefers-reduced-motion: reduce) {
     :root {
       --ui-motion-fast: 0ms;
-      --ui-motion-base: 0ms;
     }
   }
 }
