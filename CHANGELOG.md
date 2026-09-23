@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- The editor toolbar labels its buttons with a Looma tooltip instead of the browser's `title`: one
+  tooltip follows the row, waiting before the first button and moving immediately along it, and it
+  shows on keyboard focus, which `title` never did.
+
 ## v0.6.1
 
 Fixes for 0.6.0, found by a new rule that checks every token a stylesheet reads is defined.
