@@ -47,6 +47,21 @@ Each component exposes `--ui-<component>[-<variant>][-<state>]-<property>` for d
 divergence, and each falls back to a semantic value. Set one on an element to change that instance,
 or in your theme to change the product.
 
+### A component sizes itself from its token
+
+Where a component reads a token for a property, set that token, not the property. A rule of your
+own loses to the component's own declaration, which usually reads as the override being ignored:
+
+```css
+/* Does nothing: the component sets inline-size from its token. */
+.my-row .actions ui-icon-button { inline-size: 0; }
+
+/* Works. */
+.my-row .actions ui-icon-button { --ui-icon-button-size: 0; }
+```
+
+The component's API tab lists the tokens it reads, and each one names the property it sets.
+
 ### Changing a component's default appearance
 
 A component's default is a product decision, so express it in the theme rather than at every call
