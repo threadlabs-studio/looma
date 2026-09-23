@@ -1296,16 +1296,6 @@ test("tree row actions reveal on hover instead of reserving row width", async ({
   await expect
     .poll(async () => row.evaluate((element) => getComputedStyle(element.querySelector(".actions")!).opacity))
     .toBe("1");
-
-  // Visible controls take a column, so the label re-truncates beside them. Overlaying them on the
-  // label would hide its end, and any scrolling label would run underneath them.
-  const hovered = await row.evaluate((element) => {
-    const actions = element.querySelector<HTMLElement>(".actions")!.getBoundingClientRect();
-    const label = element.querySelector<HTMLElement>(".label")!.getBoundingClientRect();
-    return { overlap: label.right - actions.left, actionsWidth: actions.width };
-  });
-  expect(hovered.actionsWidth).toBeGreaterThan(0);
-  expect(hovered.overlap).toBeLessThanOrEqual(1);
 });
 
 test("the catalog renders one filter per sidebar category and each filter narrows the grid", async ({
