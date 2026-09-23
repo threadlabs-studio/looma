@@ -11,4 +11,15 @@ truthful drag-and-drop previews. `ui-tree` coordinates the interaction while
 `ui-tree-item` supplies rows and nested groups.
 
 
+## Rows and their controls
+
+A row is a grid of disclosure, leading content, label, and the `actions` slot. The actions overlay
+the end of the row rather than taking a column, so **whatever you put in `actions` never changes
+how wide a label is**: a long title runs the full width of the row and fades where the controls
+begin, whether they are showing or not.
+
+That means row controls need no width management of their own. Hide them with `opacity` or
+`visibility` if they should appear on hover; there is nothing to collapse, and collapsing them
+changes nothing about the label.
+
 <ComponentExamplesApiTabs component="ui-tree" />
