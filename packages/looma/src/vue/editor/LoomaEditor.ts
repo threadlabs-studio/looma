@@ -40,7 +40,7 @@ import {
   type TableActionCapabilities,
   type TableContextMenuAction,
 } from "@threadlabs/looma/editor";
-import { IconButton, Popover } from "@threadlabs/looma/vue";
+import { IconButton, Popover, Tooltip } from "@threadlabs/looma/vue";
 import { getVisualViewportRect, LOOMA_ICONS, type LoomaIconName } from "@threadlabs/looma/editor";
 import {
   EditorInsertTableGrid,
@@ -230,6 +230,32 @@ export const LoomaEditor = defineComponent({
     const root = ref<HTMLElement | null>(null);
     const fileInput = ref<HTMLInputElement | null>(null);
     const tablePickerAnchorId = `looma-editor-table-picker-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
+    // One tooltip follows the row: the first button waits, and moving along the row is immediate,
+    // which is what a toolbar needs and what the native `title` attribute cannot do.
+    const toolbarScope = `looma-editor-tool-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
+    const tooltipFor = ref("");
+    const tooltipLabel = ref("");
+    const tooltipOpen = ref(false);
+    let tooltipTimer = 0;
+    const clearTooltipTimer = () => {
+      if (tooltipTimer) window.clearTimeout(tooltipTimer);
+      tooltipTimer = 0;
+    };
+    const showTool = (id: string, label: string, immediate: boolean) => {
+      clearTooltipTimer();
+      tooltipFor.value = id;
+      tooltipLabel.value = label;
+      if (immediate || tooltipOpen.value) {
+        tooltipOpen.value = true;
+        return;
+      }
+      tooltipTimer = window.setTimeout(() => { tooltipOpen.value = true; }, 400);
+    };
+    const hideTool = () => {
+      clearTooltipTimer();
+      tooltipOpen.value = false;
+    };
+    onBeforeUnmount(clearTooltipTimer);
     const tableToolbarShell = ref<HTMLElement | null>(null);
     const tableOverlayShell = ref<HTMLElement | null>(null);
     const tableMenuShell = ref<HTMLElement | null>(null);
@@ -820,11 +846,16 @@ export const LoomaEditor = defineComponent({
           : vnode.el.querySelector("button");
         if (button) button.disabled = disabled;
       };
+      const id = `${toolbarScope}-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
       return h(IconButton, {
+        id,
         class: "looma-editor__toolbar-button",
         label,
-        title: label,
         size: "sm",
+        onPointerenter: () => showTool(id, label, false),
+        onPointerleave: hideTool,
+        onFocusin: () => showTool(id, label, true),
+        onFocusout: hideTool,
         variant: "ghost",
         disabled,
         // A toggle reports its state to assistive technology; the tint is the visual half of it.
@@ -859,8 +890,11 @@ export const LoomaEditor = defineComponent({
           id: tablePickerAnchorId,
           class: "looma-editor__toolbar-button",
           label: "Insert table",
-          title: "Insert table",
           size: "sm",
+          onPointerenter: () => showTool(tablePickerAnchorId, "Insert table", false),
+          onPointerleave: hideTool,
+          onFocusin: () => showTool(tablePickerAnchorId, "Insert table", true),
+          onFocusout: hideTool,
           variant: tablePickerOpen.value ? "solid" : "ghost",
           "aria-expanded": tablePickerOpen.value ? "true" : "false",
           onClick: () => { tablePickerOpen.value = !tablePickerOpen.value; },
@@ -870,7 +904,16 @@ export const LoomaEditor = defineComponent({
         commandButton("Undo", "undo", false, !instance.can().undo(), () => instance.chain().focus().undo().run()),
         commandButton("Redo", "redo", false, !instance.can().redo(), () => instance.chain().focus().redo().run()),
       ];
-      return h(EditorToolbar, { floating }, () => buttons);
+      return h(EditorToolbar, { floating }, () => [
+        ...buttons,
+        h(Tooltip, {
+          class: "looma-editor__toolbar-tip",
+          for: tooltipFor.value,
+          open: tooltipOpen.value,
+          placement: floating ? "top" : "bottom",
+          trigger: "focus",
+        }, () => tooltipLabel.value),
+      ]);
     };
 
     const focus = (position: "start" | "end" = "start") => {
