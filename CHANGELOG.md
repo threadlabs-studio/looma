@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## v0.6.5
+
+- The converted Vue components share one controller host module instead of each carrying its own,
+  so an app that uses several components ships less of them.
+
 - The Vue components share one controller host and event dispatcher instead of repeating both in
   every component. Vue output is 31% less JavaScript (202 kB, from 293 kB), loaded as one shared
   chunk rather than 33 copies. Nothing in the public contract moves: props, events, slots, and
