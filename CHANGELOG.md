@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- A checked checkbox draws its tick again. Lowering expands a shorthand into longhands, and
+  `border: solid var(--ui-text-on-accent)` came out with empty values, leaving the tick styleless
+  and so zero-width.
+- Tree rows give their hover controls no width until they show, so a label runs to the tree's edge;
+  the label then fades where the controls begin instead of re-truncating or hiding under them.
+- The disclosure chevron is tighter and lighter, and its ink starts the row, so a heading above the
+  tree lines up with it.
+
 ## v0.6.3
 
 - The editor toolbar labels its buttons with a Looma tooltip instead of the browser's `title`: one
