@@ -11,8 +11,28 @@
     <prop name="align" type="center | start" default="center"
     >Content alignment. start lays the content out like a list option: from the start edge, with start-aligned text.</prop>
     <prop name="stretch" type="boolean" default="false">Fills the inline size of its container.</prop>
+    <prop name="type" type="button | submit | reset" default="button"
+    >The button's type, as on a native button. button by default, so it never submits a form by accident. A link has no type.</prop>
+    <prop name="href" type="string"
+    >The link's destination. Pair it with as="a" so the button renders as a real link that navigates. A disabled link drops its href and states
+      aria-disabled="true", so it cannot be followed.</prop>
+    <prop name="target" type="string">Where a link opens, as on a native link. Only meaningful with as="a".</prop>
+    <prop name="rel" type="string">The link's relationship to its destination, as on a native link. Only meaningful with as="a".</prop>
+    <!-- One root, a button or a link (as="a"). The language has no conditional expression, so a table keyed
+         by a boolean's text picks each value, and null leaves the attribute off: a link never carries type or
+         disabled, and a disabled link loses its href and states aria-disabled instead. -->
   </defs>
-  <button type="button" :disabled="disabled"><slot></slot></button>
+  <button
+    as="button|a"
+    :type="{ true: type, false: null }[format('%s', not href)]"
+    :disabled="{ true: true, false: null }[format('%s', disabled and not href)]"
+    :href="{ true: null, false: href }[format('%s', disabled)]"
+    :target="target"
+    :rel="rel"
+    :aria-disabled="{ true: 'true', false: null }[format('%s', disabled and href)]"
+  >
+    <slot></slot>
+  </button>
   <style>
     :host {
       --_hue: var(--ui-accent);
@@ -55,6 +75,7 @@
       color: var(--ui-button-text, var(--_tone-text));
       font: inherit;
       font-weight: var(--ui-font-medium);
+      text-decoration: none;
       line-height: var(--ui-line-height-tight);
       padding: var(--ui-space-2) var(--ui-space-3);
       background-image: var(--ui-raised-highlight);
@@ -87,13 +108,15 @@
       font-size: 1rem;
     }
 
-    :host:hover:enabled {
+    /* A link is never :enabled, so interactive states test "not unavailable" instead: for a button that
+       is exactly :enabled, at the same specificity, and it also matches a link that can be followed. */
+    :host:hover:not(:disabled, [aria-disabled="true"]) {
       border-color: var(--ui-button-hover-border, var(--_tone-hover));
       background-color: var(--ui-button-hover-surface, oklch(from var(--_tone) l c h / 12%));
     }
 
     /* Pressed reads as pressed in: the highlight goes, and the shadow moves inside. */
-    :host:active:enabled {
+    :host:active:not(:disabled, [aria-disabled="true"]) {
       background-color: var(--ui-button-active-surface, oklch(from var(--_tone) l c h / 18%));
       background-image: none;
       box-shadow: var(--ui-pressed);
@@ -106,12 +129,12 @@
       box-shadow: var(--ui-button-solid-shadow, var(--ui-raised));
     }
 
-    :is(:host-state([variant="solid"]), :host-state([variant="danger"])):hover:enabled {
+    :is(:host-state([variant="solid"]), :host-state([variant="danger"])):hover:not(:disabled, [aria-disabled="true"]) {
       background-color: var(--_tone-hover);
       border-color: var(--_tone-hover);
     }
 
-    :is(:host-state([variant="solid"]), :host-state([variant="danger"])):active:enabled {
+    :is(:host-state([variant="solid"]), :host-state([variant="danger"])):active:not(:disabled, [aria-disabled="true"]) {
       background-color: var(--_tone-active);
       border-color: var(--_tone-active);
       background-image: none;
@@ -168,12 +191,12 @@
     }
 
     /* Tints derive from the text colour, not a surface token, so hover and press show on any background. */
-    :host-state([variant="ghost"]):hover:enabled {
+    :host-state([variant="ghost"]):hover:not(:disabled, [aria-disabled="true"]) {
       background-color: var(--ui-button-ghost-hover-surface, oklch(from var(--_tone) l c h / 10%));
       border-color: transparent;
     }
 
-    :host-state([variant="ghost"]):active:enabled {
+    :host-state([variant="ghost"]):active:not(:disabled, [aria-disabled="true"]) {
       background-color: var(--ui-button-ghost-active-surface, oklch(from var(--_tone) l c h / 16%));
       border-color: transparent;
       box-shadow: var(--ui-pressed);
@@ -197,7 +220,7 @@
        disabled outline is still an outline and a disabled ghost still has no edge. Intent goes — an
        unavailable action says "unavailable", not "unavailable, and destructive" — and so do the
        highlight and shadow, because nothing that cannot be pressed should look raised. */
-    :host:disabled {
+    :host:is(:disabled, [aria-disabled="true"]) {
       /* Derived from the tone itself, not from a separate disabled palette: faded toward the
          page, which desaturates it at the same time. Toward the page rather than toward white,
          so a dark theme dims where a light one lightens — the same rule, both schemes. */
@@ -214,7 +237,7 @@
     }
 
     /* A filled button keeps its fill, faded further so its text stays legible on it. */
-    :is(:host-state([variant="solid"]), :host-state([variant="danger"])):disabled {
+    :is(:host-state([variant="solid"]), :host-state([variant="danger"])):is(:disabled, [aria-disabled="true"]) {
       --_tone: color-mix(in oklab, var(--_hue) 34%, var(--ui-surface));
     }
 
@@ -222,7 +245,7 @@
        it takes a surface rather than reading as plain text. The surface is a wash of the faded tone,
        the way hover washes the live one, so it stays light in every tone. An opaque mix toward the
        hue came out a mid-grey slab for neutral, whose hue is the ink: louder than the enabled button. */
-    :host-state([variant="ghost"]):disabled {
+    :host-state([variant="ghost"]):is(:disabled, [aria-disabled="true"]) {
       background-color: oklch(from var(--_tone) l c h / 14%);
       border-color: transparent;
     }
@@ -252,19 +275,19 @@
       transition: color var(--ui-motion-fast) var(--ui-motion-ease), text-decoration-color var(--ui-motion-fast) var(--ui-motion-ease);
     }
 
-    :host-state([variant="link"]):hover:enabled {
+    :host-state([variant="link"]):hover:not(:disabled, [aria-disabled="true"]) {
       color: var(--ui-button-link-hover-text, var(--ui-text-primary));
       text-decoration-color: currentColor;
       background: none;
       transform: none;
     }
 
-    :host-state([variant="link"]):active:enabled {
+    :host-state([variant="link"]):active:not(:disabled, [aria-disabled="true"]) {
       background: none;
       transform: none;
     }
 
-    :host-state([variant="link"]):disabled {
+    :host-state([variant="link"]):is(:disabled, [aria-disabled="true"]) {
       background: none;
       border-color: transparent;
       color: var(--ui-button-disabled-text, var(--ui-disabled-text));

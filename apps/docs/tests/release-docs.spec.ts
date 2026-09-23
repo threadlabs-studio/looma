@@ -790,6 +790,12 @@ test("ui-button authors one declarative element and lowers directly to a native 
   await ghost.hover();
   const after = await ghost.evaluate((element) => getComputedStyle(element).backgroundColor);
   expect(after).not.toBe(before);
+
+  const links = page.locator("[data-preview-scenario='as a link'] a[data-component~='ui-button']");
+  await expect(links).toHaveCount(3);
+  await expect(links.first()).toHaveAttribute("href", "#get-started");
+  await expect(links.last()).not.toHaveAttribute("href");
+  await expect(links.last()).toHaveAttribute("aria-disabled", "true");
 });
 
 test("ui-input authors one declarative element and lowers directly to an editable native input", async ({ page }) => {
@@ -891,8 +897,8 @@ test("Examples and API keep configuration demos separate from exhaustive referen
 }) => {
   await page.goto("components/ui-button", { waitUntil: "domcontentloaded" });
 
-  // Default, variant, Link, size, disabled, align and stretch.
-  await expect(page.locator(".looma-preview-scenario")).toHaveCount(6);
+  // Default, variant, Link, size, disabled, align and stretch, as a link.
+  await expect(page.locator(".looma-preview-scenario")).toHaveCount(7);
   await expect(page.locator(".looma-api")).toHaveCount(0);
   await page.getByRole("tab", { name: "API" }).click();
   await expect(page.locator(".looma-preview-scenario")).toHaveCount(0);
