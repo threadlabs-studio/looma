@@ -1,0 +1,16 @@
+import { chromium } from "@playwright/test";
+const b = await chromium.launch();
+const p = await b.newPage({ viewport: { width: 1300, height: 900 } });
+p.on("pageerror", e => console.log("PAGEERROR", String(e).slice(0, 160)));
+await p.goto("http://localhost:4257/looma/components/ui-combobox/", { waitUntil: "networkidle" });
+await p.waitForTimeout(900);
+const scen = p.locator("[data-preview-scenario='multiple']");
+await scen.scrollIntoViewIfNeeded();
+const input = scen.getByRole("combobox").first();
+await input.click(); await input.press("ArrowDown"); await p.waitForTimeout(400);
+console.log("options before:", await scen.locator(".option").count());
+await scen.locator(".option").first().click();
+await p.waitForTimeout(600);
+console.log("chips after click:", await scen.locator(".item").count(), "| options:", await scen.locator(".option").count());
+console.log("expanded:", await scen.locator('[aria-expanded]').first().getAttribute("aria-expanded"));
+await b.close();

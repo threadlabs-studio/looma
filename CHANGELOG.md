@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- Every button variant shares one treatment: the same corner, edge, highlight, and shadow, with a
+  press that moves the shadow inside. Outline is an outline again — its own colour at the edge over
+  a wash of it — rather than a filled grey button. Nothing lifts on hover.
+- One disabled treatment for every variant. A disabled destructive button no longer keeps its red:
+  an unavailable action says "unavailable", not "unavailable, and destructive".
+- `ui-select` drops `multiple`. Multi-select is the combobox's job, and a multiple combobox now
+  checks its options in place: chosen options stay in the list with a checkbox, toggle off when
+  chosen again, and report `aria-selected` — which they never did while they were being removed
+  from the list.
+- New `--ui-pressed` token: the counterpart to `--ui-raised`, for a control that takes its shadow
+  inside while pressed.
+
 - A checked checkbox draws its tick again. Lowering expands a shorthand into longhands, and
   `border: solid var(--ui-text-on-accent)` came out with empty values, leaving the tick styleless
   and so zero-width.
