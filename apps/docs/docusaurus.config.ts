@@ -123,6 +123,14 @@ const config: Config = {
           title: "Resources",
           items: [
             {
+              label: "HTML Next proposal",
+              href: "https://nextwebwg.org/html-next/"
+            },
+            {
+              label: "NextWeb Working Group",
+              href: "https://nextwebwg.org/"
+            },
+            {
               label: "GitHub",
               href: "https://github.com/threadlabs-studio/looma"
             }
