@@ -1,14 +1,10 @@
 ---
-slug: /
+slug: /getting-started
 title: Getting Started
-hide_title: true
 hide_table_of_contents: true
 ---
 
-import { DocsLandingHero } from "@site/src/components/DocsLandingHero";
 import { DeclarativeModel } from "@site/src/components/DeclarativeModel";
-
-<DocsLandingHero />
 
 <DeclarativeModel />
 

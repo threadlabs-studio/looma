@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## v0.6.2
+
+- Combobox with `multiple` keeps the items it selects. It reported each choice and waited for the
+  consumer to pass `items` back, so selecting an option appeared to do nothing. A consumer that
+  sets `items` still owns them.
+- Combobox's help affordance is a circled question mark beside the field, not a bare `?` inside the
+  box, and it opens its tooltip on press. A control's box holds its value.
+- Tooltip takes `trigger`: `hover` (also opens on keyboard focus), `click` for a help button where
+  hovering a question mark says nothing, or `focus`.
 - The editor toolbar labels its buttons with a Looma tooltip instead of the browser's `title`: one
   tooltip follows the row, waiting before the first button and moving immediately along it, and it
   shows on keyboard focus, which `title` never did.

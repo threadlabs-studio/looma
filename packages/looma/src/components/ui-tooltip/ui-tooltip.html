@@ -3,6 +3,9 @@
     <prop name="for" type="string" default="">ID of the control described and visually anchored by the tooltip.</prop>
     <prop name="open" type="boolean" default="false">Whether the tooltip is open initially or when set externally.</prop>
     <prop name="placement" type="string" default="top-start">Positions the description relative to its trigger.</prop>
+    <prop name="trigger" type="hover | click | focus" default="hover"
+    >How the trigger opens it. hover also opens on keyboard focus; click toggles it and suits a help button, where hovering a question mark says nothing; focus
+      opens only while the trigger holds focus.</prop>
     <prop name="showDelay" type="number" default="500">Waits this many milliseconds before showing after pointer entry.</prop>
     <prop name="hideDelay" type="number" default="100">Waits this many milliseconds before hiding after pointer exit.</prop>
     <prop name="inverse" type="boolean" default="false">Use the high-contrast inverse surface (dark on light themes, light on dark themes).</prop>
