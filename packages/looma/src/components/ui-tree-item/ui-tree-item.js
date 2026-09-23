@@ -82,17 +82,28 @@ export default function controller(host) {
   const stop = host.effect(apply);
   apply();
   /**
-   * A hovered row reads its whole name. The distance is what the label overflows by, measured
-   * while hovered because the controls take their column then, and the duration comes from that
-   * distance so a longer name travels at the same speed rather than in the same time.
+   * A hovered row reads its whole name. The controls overlay the label's end rather than taking
+   * width from it, so the width the name actually has while hovered is the label minus them:
+   * measuring against the full label scrolls short and leaves the tail under the controls.
    */
-  const MARQUEE_SPEED = 45; // CSS pixels per second.
+  const MARQUEE_SPEED = 36; // CSS pixels per second.
+  const MARQUEE_SLACK = 4; // So the tail clears the edge rather than stopping on it.
+  // The tree sets this for its items; an item's own prop overrides it either way.
+  const marqueeWanted = () => host.state.marquee
+    || getComputedStyle(element).getPropertyValue("--ui-tree-item-marquee").trim() === "1";
   const startMarquee = () => {
-    if (!labelText) return;
-    const overflow = Math.round(labelText.scrollWidth - labelText.clientWidth);
-    if (overflow < 2) return;
-    row.style.setProperty("--_marquee-distance", `${-overflow}px`);
-    row.style.setProperty("--_marquee-duration", `${Math.max(0.6, overflow / MARQUEE_SPEED).toFixed(2)}s`);
+    if (!labelText || !marqueeWanted()) return;
+    const covered = actions?.offsetWidth ?? 0;
+    const visible = labelText.clientWidth - covered;
+    const overflow = Math.round(labelText.scrollWidth - visible);
+    if (overflow <= 0) return;
+    const distance = overflow + MARQUEE_SLACK;
+    const rightToLeft = getComputedStyle(element).direction === "rtl";
+    row.style.setProperty("--_marquee-distance", `${rightToLeft ? distance : -distance}px`);
+    row.style.setProperty(
+      "--_marquee-duration",
+      `${Math.min(10, Math.max(1.4, distance / MARQUEE_SPEED)).toFixed(2)}s`
+    );
     row.dataset.uiMarquee = "";
   };
   const stopMarquee = () => {
