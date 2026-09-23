@@ -201,10 +201,10 @@
       /* Derived from the tone itself, not from a separate disabled palette: faded toward the
          page, which desaturates it at the same time. Toward the page rather than toward white,
          so a dark theme dims where a light one lightens — the same rule, both schemes. */
-      --_tone: color-mix(in oklab, var(--_hue) 30%, var(--ui-surface));
+      --_tone: color-mix(in oklab, var(--_hue) 58%, var(--ui-surface));
       --_tone-hover: var(--_tone);
       --_tone-active: var(--_tone);
-      --_tone-text: color-mix(in oklab, var(--_hue-text) 38%, var(--ui-surface));
+      --_tone-text: color-mix(in oklab, var(--_hue-text) 72%, var(--ui-surface));
       --_on-tone: var(--_tone-text);
 
       opacity: var(--ui-button-disabled-opacity, 1);
@@ -215,13 +215,13 @@
 
     /* A filled button keeps its fill, faded further so its text stays legible on it. */
     :is(:host-state([variant="solid"]), :host-state([variant="danger"])):disabled {
-      --_tone: color-mix(in oklab, var(--_hue) 16%, var(--ui-surface));
+      --_tone: color-mix(in oklab, var(--_hue) 34%, var(--ui-surface));
     }
 
     /* Ghost has no hover to fall back on, so disabled is the one state it has to state outright:
        it takes a surface, light and tinted, rather than reading as plain text. */
     :host-state([variant="ghost"]):disabled {
-      background-color: color-mix(in oklab, var(--_hue) 12%, var(--ui-surface));
+      background-color: color-mix(in oklab, var(--_hue) 28%, var(--ui-surface));
       border-color: transparent;
     }
 
