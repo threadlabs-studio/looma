@@ -170,6 +170,10 @@
   combobox now checks its options in place: chosen options stay in the list with a checkbox, toggle
   off when chosen again, and report `aria-selected` — which they never did while they were being
   removed from the list.
+- A tree row whose name is too long for it scrolls that name while hovered or focused, then puts
+  it back. The distance is what the name overflows by and the duration comes from that distance, so
+  a longer name travels at the same speed rather than in the same time. A name that fits stays
+  still, and reduced motion keeps the fade instead.
 - A checked checkbox draws its tick again. Lowering expands a shorthand into longhands, and
   `border: solid var(--ui-text-on-accent)` came out with empty values, leaving the tick styleless
   and so zero-width.

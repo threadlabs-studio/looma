@@ -1503,6 +1503,54 @@ test("a checked checkbox paints its tick", async ({ page }) => {
   expect(await markedPixels(control), "checked checkbox draws no tick").toBeGreaterThan(10);
 });
 
+test("a tree name too long for its row scrolls while hovered, and a short one stays put", async ({
+  page
+}) => {
+  await page.goto("components/ui-tree-item", { waitUntil: "networkidle" });
+  const scenario = page.locator("[data-preview-scenario='Actions slot']");
+  const row = scenario.locator("[data-component~='ui-tree-item'] .row").first();
+  await expect(row).toBeVisible();
+
+  const setName = (name: string) => scenario.evaluate((host, value) => {
+    const tree = host.querySelector<HTMLElement>("[data-component~='ui-tree']")!;
+    tree.style.width = "240px";
+    tree.style.display = "block";
+    const label = host.querySelector<HTMLElement>("[data-component~='ui-tree-item'] .label-text")!;
+    (label.firstElementChild ?? label).textContent = value;
+  }, name);
+
+  // A name that fits says nothing: the row is still, because movement has to mean something.
+  await setName("Docs");
+  await row.hover();
+  await page.waitForTimeout(700);
+  await expect(row).not.toHaveAttribute("data-ui-marquee", /.*/);
+
+  await setName("How to Use This Bible and Everything Inside It");
+  await page.mouse.move(0, 0);
+  await row.hover();
+  await expect(row).toHaveAttribute("data-ui-marquee", "");
+
+  const travel = await row.evaluate((element) => ({
+    distance: getComputedStyle(element).getPropertyValue("--_marquee-distance").trim(),
+    duration: getComputedStyle(element).getPropertyValue("--_marquee-duration").trim()
+  }));
+  // The distance is what the name overflows by, and the duration comes from it, so a longer name
+  // travels at the same speed rather than in the same time.
+  expect(parseFloat(travel.distance)).toBeLessThan(0);
+  expect(parseFloat(travel.duration)).toBeGreaterThan(0.5);
+
+  const offset = () => row.evaluate((element) => {
+    const matrix = new DOMMatrix(getComputedStyle(element.querySelector(".label-text")!).transform);
+    return matrix.m41;
+  });
+  await expect.poll(offset, { timeout: 4000 }).toBeLessThan(-8);
+
+  // Leaving puts the name back where it started.
+  await page.mouse.move(0, 0);
+  await expect(row).not.toHaveAttribute("data-ui-marquee", /.*/);
+  await expect.poll(offset).toBe(0);
+});
+
 test("tree row actions reveal on hover instead of reserving row width", async ({ page }) => {
   await page.goto("components/ui-tree-item", { waitUntil: "domcontentloaded" });
   const scenario = page.locator("[data-preview-scenario='Actions slot']");

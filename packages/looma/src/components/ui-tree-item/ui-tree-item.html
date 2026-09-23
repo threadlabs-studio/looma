@@ -83,7 +83,7 @@
         <span class="disclosure-icon" aria-hidden="true"></span>
       </button>
       <span class="leading"><slot name="leading"></slot></span>
-      <span class="label"><slot name="label"><template $value="label"></template></slot></span>
+      <span class="label"><span class="label-text" $ref="labelText"><slot name="label"><template $value="label"></template></slot></span></span>
       <span class="actions" $ref="actions"><slot name="actions"></slot></span>
       <span class="drop-indicator row-drop-indicator" aria-hidden="true"></span>
     </div>
@@ -242,14 +242,74 @@
       display: flex;
       align-items: center;
       min-inline-size: 0;
+      /* The cell clips: a name longer than the row slides inside it rather than over its icons. */
+      overflow: hidden;
       padding: var(--ui-tree-item-label-padding-block, var(--ui-space-1)) var(--ui-tree-item-label-padding-inline, var(--ui-space-2));
     }
 
     /* Slotted label content fills the cell, so a link is the row's hit area rather than sizing to
        its own text and reading as overflow. */
-    .label > :slotted(*) {
+    .label-text {
+      display: flex;
+      align-items: center;
+      /* Stretches, so slotted content can still be the row's full-height hit area. */
+      align-self: stretch;
+      block-size: 100%;
+      min-inline-size: 0;
+      inline-size: 100%;
+      white-space: nowrap;
+    }
+
+    .label-text > :slotted(*) {
       flex: 1 1 auto;
       min-inline-size: 0;
+    }
+
+    /* A hovered row reads its whole name: the label slides far enough to show the end, waits
+       there, and comes back. Only when it actually overflows — the controller measures by how
+       much and hands over the distance and a duration from it, so a longer name travels no
+       faster. */
+    .row[data-ui-marquee] > .label > .label-text {
+      animation: ui-tree-item-marquee var(--_marquee-duration) var(--ui-motion-ease) 0.45s infinite alternate;
+    }
+
+    /* While it slides, the start fades too: the name is leaving the cell at both ends, and a hard
+       edge beside the icon reads as a collision rather than as more text. */
+    .row[data-ui-marquee] > .label {
+      mask-image: linear-gradient(
+        to right,
+        transparent 0,
+        #000 var(--ui-space-2),
+        #000 calc(100% - var(--_tree-actions-width, 1.75rem) - var(--ui-space-3)),
+        transparent calc(100% - var(--_tree-actions-width, 1.75rem))
+      );
+    }
+
+    .row[data-ui-marquee] > .label:dir(rtl) {
+      mask-image: linear-gradient(
+        to left,
+        transparent 0,
+        #000 var(--ui-space-2),
+        #000 calc(100% - var(--_tree-actions-width, 1.75rem) - var(--ui-space-3)),
+        transparent calc(100% - var(--_tree-actions-width, 1.75rem))
+      );
+    }
+
+    @keyframes ui-tree-item-marquee {
+      from {
+        transform: translateX(0);
+      }
+
+      to {
+        transform: translateX(var(--_marquee-distance));
+      }
+    }
+
+    /* Reduced motion keeps the fade, which already says the name continues. */
+    @media (prefers-reduced-motion: reduce) {
+      .row[data-ui-marquee] > .label > .label-text {
+        animation: none;
+      }
     }
 
     /* The controls sit over the label's end, so the text fades out where they begin. The fade is
