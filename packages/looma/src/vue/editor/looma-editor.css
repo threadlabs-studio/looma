@@ -45,11 +45,19 @@
   z-index: 1;
   inset-block: 0;
   inset-inline-start: calc(-1 * var(--ui-editor-active-block-offset, var(--ui-space-3)));
-  inline-size: var(--ui-editor-active-block-width, 2px);
+  inline-size: var(--ui-editor-active-block-width, 1px);
   border-radius: var(--ui-radius-round);
-  background: var(--ui-editor-active-block-color, var(--ui-border-strong));
+  background: var(--ui-editor-active-block-color, var(--ui-border));
   content: "";
   pointer-events: none;
+  /* Fades in rather than snapping on, wherever it appears. Reduced motion zeroes the duration. */
+  animation: looma-active-block-in var(--ui-motion-base, 180ms) var(--ui-motion-ease-out, ease-out) both;
+}
+
+@keyframes looma-active-block-in {
+  from {
+    opacity: 0;
+  }
 }
 
 .looma-editor .ProseMirror p {
