@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.7.4
+
+- A button can be a link: `as="a"` with `href` renders a real `<a>` that looks and responds
+  exactly like the button in every variant, tone, size, and state, so an app never hand-styles a
+  link to look like one. `target` and `rel` pass to the link. A link is a link to assistive
+  technology — no `role="button"`, no `type`, no `disabled` — and a disabled one drops its `href`
+  and states `aria-disabled="true"` with the disabled look, so it cannot be followed or focused.
+  `as` is HTML Next's polymorphic root, so it works the same in HTML, the DOM factories, and Vue
+  (`<Button as="a" href="…">`), and server-rendered output is the link itself.
+- `type` is a declared prop (`button`, the default, `submit`, or `reset`), so a button keeps the type
+  its author gives it now that a link has none. `aria-disabled` is set from `disabled`: a disabled
+  link states it, and an author-supplied `aria-disabled` no longer passes through.
+- Hover and press no longer test `:enabled`, which a link never matches; they test "not disabled
+  and not `aria-disabled`", which is `:enabled` for a button at the same specificity. A button looks
+  and responds as before.
+
 ## v0.7.3
 
 - A disabled ghost button is a light wash of its tone again, in every tone. It was an opaque mix
