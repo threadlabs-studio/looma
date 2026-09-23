@@ -6,7 +6,7 @@
   <div><slot></slot></div>
   <style>
     :host {
-      --_grid-gap: var(--ui-space-4, 1rem);
+      --_grid-gap: var(--ui-space-4);
       --_grid-min: 12rem;
       display: grid;
       gap: var(--ui-grid-gap, var(--_grid-gap));
@@ -17,19 +17,19 @@
     }
 
     :host-state([gap="xs"]) {
-      --_grid-gap: var(--ui-space-2, 0.5rem);
+      --_grid-gap: var(--ui-space-2);
     }
     :host-state([gap="s"]) {
-      --_grid-gap: var(--ui-space-3, 0.75rem);
+      --_grid-gap: var(--ui-space-3);
     }
     :host-state([gap="m"]) {
-      --_grid-gap: var(--ui-space-4, 1rem);
+      --_grid-gap: var(--ui-space-4);
     }
     :host-state([gap="l"]) {
-      --_grid-gap: var(--ui-space-5, 1.5rem);
+      --_grid-gap: var(--ui-space-5);
     }
     :host-state([gap="xl"]) {
-      --_grid-gap: var(--ui-space-6, 2rem);
+      --_grid-gap: var(--ui-space-6);
     }
     :host-state([min="md"]) {
       --_grid-min: 16rem;

@@ -53,6 +53,9 @@ jobs:
       - name: Test in a browser
         run: pnpm test:browser
 
+      - name: Check that merged package changes will publish
+        run: pnpm release:pending
+
   release-package:
     runs-on: ubuntu-latest
     timeout-minutes: 30

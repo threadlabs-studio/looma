@@ -7,6 +7,7 @@ import { setTimeout as sleep } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
 
 import {
+  distTag,
   assertExactReleasePackageSet,
   RELEASE_PACKAGES,
   RELEASE_VERSION
@@ -120,7 +121,7 @@ export async function waitForRegistryIntegrity({
 
 async function main() {
   const execute = process.argv.includes("--execute");
-  const tag = "latest";
+  const tag = distTag(RELEASE_VERSION);
   const manifestArgument = argumentValue(
     "--manifest",
     ".release/artifacts/release-manifest.json"

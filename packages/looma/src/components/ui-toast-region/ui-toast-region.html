@@ -67,17 +67,17 @@
       gap: var(--ui-space-2);
       align-items: start;
       border: 1px solid var(--ui-border-default);
-      border-radius: var(--ui-radius-3);
+      border-radius: var(--ui-radius-lg);
       padding: var(--ui-space-3) var(--ui-space-4);
       background: var(--ui-surface-elevated);
       color: var(--ui-text-primary);
       box-shadow: var(--ui-elevation-overlay, var(--ui-shadow-lg));
-      animation: ui-toast-enter var(--ui-toast-enter-duration, 0.32s) var(--ui-motion-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) both;
+      animation: ui-toast-enter var(--ui-toast-region-enter-duration, 0.32s) var(--ui-motion-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) both;
     }
 
     /* Leaving slides on down and fades; the controller removes the toast when this ends. */
     .toast.closing {
-      animation: ui-toast-exit var(--ui-toast-exit-duration, 0.22s) var(--ui-motion-ease, ease) both;
+      animation: ui-toast-exit var(--ui-toast-region-exit-duration, 0.22s) var(--ui-motion-ease) both;
       pointer-events: none;
     }
 

@@ -30,7 +30,7 @@ const recordByTag = new Map((componentApi.components as ComponentRecord[]).map((
 function sidebarComponents(items: readonly SidebarItem[], category: string): { tag: string; label: string; category: string }[] {
   return items.flatMap((item) => {
     if (item.type === "category") return sidebarComponents(item.items ?? [], item.label);
-    const tag = /\/components\/(ui-[a-z-]+)$/.exec(item.href ?? "")?.[1];
+    const tag = /\/components\/(ui-[a-z-]+)\/?$/.exec(item.href ?? "")?.[1];
     return tag && recordByTag.has(tag) ? [{ tag, label: item.label, category }] : [];
   });
 }
@@ -82,7 +82,11 @@ export function ComponentCatalog(): JSX.Element {
     [items],
   );
   // Filters follow the sidebar's group order; cards are alphabetical.
-  const categoryOrder = [...new Set(sidebarComponents(items, items[0]?.label ?? "").map(({ category }) => category))];
+  // Array.from, not array spread: the browser bundle downlevels iterable spread into a concat,
+  // which wraps the Set itself instead of its values and renders one filter holding every label.
+  const categoryOrder = Array.from(
+    new Set(sidebarComponents(items, items[0]?.label ?? "").map(({ category }) => category)),
+  );
   const componentCountByCategory = new Map(
     categoryOrder.map((category) => [category, components.filter((component) => component.category === category).length] as const),
   );

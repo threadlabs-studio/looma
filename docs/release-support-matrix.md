@@ -1,14 +1,14 @@
 # Release 1 Support Matrix
 
-Release 1 is a public npm **Candidate `0.5.2`** for the smallest Looma surface
-needed by Knit. It is not semver `1.0.0`, a Stable declaration, or a
-promise that every repository package and roadmap item is supported.
+Release 1 is the published npm surface of `@threadlabs/looma`, the smallest surface needed by
+Knit. It is pre-1.0: not a Stable declaration, and not a promise that every repository package and
+roadmap item is supported.
 
 ## Package Classification
 
 | Package/workspace | R1 classification | Format and DOM contract | Required proof |
 | --- | --- | --- | --- |
-| `@threadlabs/looma` | Published Candidate | Explicit root/core, loader, layout, editor, editor-extension, Vue, and CSS subpaths | Singleton package integrity and behavioral qualification |
+| `@threadlabs/looma` | Published | Explicit root/core, loader, layout, editor, editor-extension, Vue, and CSS subpaths | Singleton package integrity and behavioral qualification |
 | implementation workspaces | Internal | Private modular build inputs | Not public artifacts |
 | React | In development | Not published | None |
 | docs, Storybook, examples, tooling | Internal | Private workspaces | Release tooling/docs gates only |
@@ -18,12 +18,12 @@ authorization still requires the protected owner preflight before registry mutat
 
 ## Published Source Elements
 
-### Layout: published Candidate
+### Layout: published
 
 `ui-container`, `ui-grid`, `ui-cluster`, `ui-reel`, `ui-separator`,
 `ui-sidebar`, `ui-stack`, `ui-switcher`.
 
-### Core: published Candidate
+### Core: published
 
 `ui-affordance-scope`, `ui-avatar`, `ui-avatar-group`, `ui-badge`, `ui-button`, `ui-checkbox`,
 `ui-callout`, `ui-chip`, `ui-combobox`, `ui-context-menu`, `ui-dialog`, `ui-disclosure`, `ui-editable`, `ui-floating-action-button`,
@@ -32,7 +32,7 @@ authorization still requires the protected owner preflight before registry mutat
 `ui-search-shell`, `ui-select`, `ui-switch`, `ui-tabs`, `ui-textarea`,
 `ui-toast-region`, `ui-tooltip`, `ui-top-bar`, `ui-tree`, `ui-tree-item`.
 
-### Editor: published Candidate
+### Editor: published
 
 `ui-editor-insert-table-grid`, `ui-editor-mention-menu`, `ui-editor-slash-menu`,
 `ui-editor-table-context-menu`, `ui-editor-table-overlay`,
@@ -78,10 +78,10 @@ is a release defect, not a reason to silently shrink the source inventory.
 | ContextMenu projections | API metadata, docs, navigation, contract README, Vue map/export, and render test complete | Must stay clean through publication |
 | Browser/a11y/adapter/package gates | Chromium interaction and axe checks pass for representative core/editor surfaces; Vue registers and renders the supported baseline without warnings; Node imports public core and packed graph entries without DOM globals | Keep mandatory, unskipped, and warning-clean in CI |
 | Turnkey editor and table kit | Vue browser behavior, theme-token inheritance, Tiptap table integrity, and Knit integration pass | Keep the complete and extension-only paths green |
-| Packed package | One local `@threadlabs/looma@0.5.2` tarball passes content/export/hash inspection | License approval, clean protected build, and external/Knit fixtures remain |
+| Packed package | One local `@threadlabs/looma@0.6.5` tarball passes content/export/hash inspection | License approval, clean protected build, and external/Knit fixtures remain |
 
 Automated accessibility does not replace manual assistive-technology, forced-color,
-zoom/reflow, or platform long-press checks. Those are documented manual Candidate
+zoom/reflow, or platform long-press checks. Those are documented manual
 checks for the public docs and consumer pass; essential actions do not depend on
 long-press because ContextMenu and editor table controls provide visible native
 buttons.

@@ -19,9 +19,9 @@
       box-sizing: border-box;
       max-inline-size: min(
         20rem,
-        calc(100vw - var(--ui-popover-viewport-gap, var(--ui-space-2, 0.5rem)) * 2)
+        calc(100vw - var(--ui-popover-viewport-gap, var(--ui-space-2)) * 2)
       );
-      max-block-size: calc(100dvh - var(--ui-popover-viewport-gap, var(--ui-space-2, 0.5rem)) * 2);
+      max-block-size: calc(100dvh - var(--ui-popover-viewport-gap, var(--ui-space-2)) * 2);
       overflow: visible;
       padding: 0;
       border: 0;
@@ -39,7 +39,7 @@
       padding: var(--ui-space-3);
       background: var(--ui-surface-elevated);
       border: 1px solid var(--ui-border-default);
-      border-radius: var(--ui-radius-3);
+      border-radius: var(--ui-radius-lg);
       box-shadow: var(--ui-elevation-overlay, var(--ui-shadow-lg));
     }
 

@@ -1,5 +1,6 @@
 <template component="ui-menu" controller="./ui-menu.js">
   <defs>
+    <prop name="density" type="comfortable | compact" default="comfortable">Compact trades padding and type size for rows that fit more on screen.</prop>
     <prop name="open" type="boolean" default="false">Whether the menu is open initially or when set externally.</prop>
     <prop name="for" type="string" default="">ID of the control that toggles and anchors the menu.</prop>
     <prop name="placement" type="string" default="bottom-start">Positions an associated menu relative to its trigger.</prop>
@@ -13,13 +14,23 @@
   </defs>
   <div role="menu" aria-orientation="vertical"><div class="surface"><slot></slot></div></div>
   <style>
+    /* Compact sets the part tokens its items read, so nothing has to rescale a global. */
+    :host-state([density="compact"]) {
+      --ui-menu-item-padding-block: var(--ui-space-1);
+      --ui-menu-item-padding-inline: var(--ui-space-2);
+      --ui-menu-item-font-size: var(--ui-font-size-sm);
+      --ui-menu-item-radius: var(--ui-radius-sm);
+      padding: var(--ui-space-1);
+      gap: 0;
+    }
+
     :host {
       display: flex;
       flex-direction: column;
       box-sizing: border-box;
       inline-size: max-content;
-      min-inline-size: min(12rem, calc(100vw - var(--ui-menu-viewport-gap, var(--ui-space-2, 0.5rem)) * 2));
-      max-inline-size: calc(100vw - var(--ui-menu-viewport-gap, var(--ui-space-2, 0.5rem)) * 2);
+      min-inline-size: min(12rem, calc(100vw - var(--ui-menu-viewport-gap, var(--ui-space-2)) * 2));
+      max-inline-size: calc(100vw - var(--ui-menu-viewport-gap, var(--ui-space-2)) * 2);
       padding: 0;
       border: 0;
       outline: 0;
@@ -37,7 +48,7 @@
       padding: var(--ui-space-1);
       background: var(--ui-surface-elevated);
       border: 1px solid var(--ui-border-default);
-      border-radius: var(--ui-radius-3);
+      border-radius: var(--ui-radius-lg);
       box-shadow: var(--ui-elevation-overlay, var(--ui-shadow-lg));
       max-block-size: inherit;
       overflow: auto;
@@ -52,7 +63,7 @@
       inset: auto;
       margin: 0;
       overflow: visible;
-      max-block-size: calc(100dvh - var(--ui-menu-viewport-gap, var(--ui-space-2, 0.5rem)) * 2);
+      max-block-size: calc(100dvh - var(--ui-menu-viewport-gap, var(--ui-space-2)) * 2);
       opacity: 0;
       transform: translateY(-4px) scale(0.99);
       transition:

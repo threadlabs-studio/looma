@@ -1,6 +1,158 @@
 # Changelog
 
-## Unreleased
+## v0.7.0
+
+- Colour comes from eleven seeds: five intents, two intent foregrounds, three surfaces, and the
+  ink. Every neutral, hover, tint, border, and disabled colour is mixed from them, so a theme
+  states those eleven and stops. Light, dark, and high contrast set the same set — dark dropped 18
+  restated values, and high contrast keeps only the overrides it exists for. `docs/tokens` shows
+  the seeds and what falls out of them.
+- **Breaking:** buttons take a `tone` and a `variant`. Tone is the colour (accent, neutral, danger,
+  success, warning, info) and applies to every variant; variant is the volume (solid, outline,
+  ghost, link). A destructive secondary action is `tone="danger" variant="outline"` rather than a
+  missing case. `variant="danger"` still resolves to a solid danger button, and the default tone is
+  now `accent` rather than `neutral`.
+- An outline is an outline: its tone at the edge over that same tone at 5%. It used to be a filled
+  grey box with a white highlight, which read as a solid button and belonged to no palette. Every
+  variant now shares one corner, edge, highlight, and shadow, and pressing moves the shadow inside
+  instead of lifting the button.
+- Disabled is derived from the tone it disables and mixed toward the page: a disabled danger button
+  still reads as danger, a dark theme dims where a light one lightens, and each variant keeps its
+  shape — a disabled outline is still an outline. A disabled ghost takes a light surface, since it
+  has no hover to fall back on.
+- **Breaking:** `ui-select` drops `multiple`. Multi-select is the combobox's job, and a multiple
+  combobox now checks its options in place: chosen options stay in the list with a checkbox, toggle
+  off when chosen again, and report `aria-selected` — which they never did while they were being
+  removed from the list.
+- A checked checkbox draws its tick again. Lowering expands a shorthand into longhands, and
+  `border: solid var(--ui-text-on-accent)` came out with empty values, leaving the tick styleless
+  and so zero-width.
+- New `--ui-pressed` token: the counterpart to `--ui-raised`, for a control that takes its shadow
+  inside while pressed.
+
+## v0.6.5
+
+- The converted Vue components share one controller host module instead of each carrying its own,
+  so an app that uses several components ships less of them.
+
+- The Vue components share one controller host and event dispatcher instead of repeating both in
+  every component. Vue output is 31% less JavaScript (202 kB, from 293 kB), loaded as one shared
+  chunk rather than 33 copies. Nothing in the public contract moves: props, events, slots, and
+  exposed methods are unchanged, and the shared module is internal. Needs
+  `@nextwebwg/html-next` 1.0.0-alpha.3, which generates it.
+
+## v0.6.4
+
+- Tree Item's hover actions overlay the end of the row instead of reserving a column, so a long
+  label uses the full row width and fades where the controls begin. The disclosure chevron is
+  tighter and aligns with the content above it.
+
+## v0.6.3
+
+- The editor toolbar labels its buttons with a Looma tooltip instead of the browser's `title`: one
+  tooltip follows the row, waiting before the first button and moving immediately along it, and it
+  shows on keyboard focus, which `title` never did.
+
+## v0.6.2
+
+- Combobox with `multiple` keeps the items it selects. It reported each choice and waited for the
+  consumer to pass `items` back, so selecting an option appeared to do nothing. A consumer that
+  sets `items` still owns them.
+- Combobox's help affordance is a circled question mark beside the field, not a bare `?` inside the
+  box, and it opens its tooltip on press. A control's box holds its value.
+- Tooltip takes `trigger`: `hover` (also opens on keyboard focus), `click` for a help button where
+  hovering a question mark says nothing, or `focus`.
+
+## v0.6.1
+
+Fixes for 0.6.0, found by a new rule that checks every token a stylesheet reads is defined.
+
+- The editor's stylesheet still referenced tokens 0.6.0 renamed (`--ui-radius-1`/`-2`,
+  `--ui-editor-toolbar-bg`, `--ui-space-1-5`). `var()` with no fallback is invalid when the name is
+  undefined, so those radii computed as 0 and `--ui-editor-toolbar-surface` was ignored.
+- Restored `--ui-font-size-xl`, `--ui-font-size-2xl`, and `--ui-line-height-relaxed`, which the
+  editor's prose reads: 0.6.0 removed them as unread.
+- The editor toolbar marks an active mark with a tint, not a solid fill. Solid is the strongest
+  emphasis and means "this is the action to take"; a row of nineteen controls should not shout at
+  rest. `--ui-editor-toolbar-active-surface`, `-text`, and `-border` set it. Each toggle now also
+  reports `aria-pressed`.
+- The pinned editor toolbar wraps instead of scrolling behind a hidden scrollbar, so controls that
+  do not fit the text column stay reachable.
+- Tokens that never matched their component are renamed: `--ui-layout-gap` is `--ui-stack-gap` and
+  `--ui-cluster-gap`; `--ui-toast-enter-duration`/`-exit-duration` are
+  `--ui-toast-region-enter-duration`/`-exit-duration`. Per-instance values the component sets
+  itself (the insert-table grid's dimensions, the table swatch colours) are private.
+
+## v0.6.0
+
+Migrating a theme:
+
+- Set the contract (about 40 values) and delete everything that restated a derived value: the
+  `*-solid`/`*-soft` intent pairs, `--ui-surface-default`/`-elevated`/`-canvas`/`-hover`,
+  `--ui-text-primary`, `--ui-font-family-*`, `--ui-font-normal`/`-semibold`/`-bold`,
+  `--ui-space-5`/`-6`, `--ui-shadow-xs`/`-md`/`-xl`, `--ui-motion-base`. A converted product theme
+  dropped from 104 declarations to 74, and a third of it was restating Looma's own derivation.
+- Rename: `-bg`/`-color` component tokens are `-surface`/`-text`; `--ui-radius-1`…`-4`/`-xl` are
+  `-sm`/`-md`/`-lg`/`-dialog`; `--ui-text-sm` is `--ui-font-size-sm`; `--ui-color-focus` is
+  `--ui-focus-ring`; `--ui-tree-row-min-height` is `--ui-tree-item-min-block-size`.
+- If you redefined an Icon Button per-size token (`--ui-icon-button-size-sm`/`-size-lg`), set
+  `--ui-icon-button-size` on the element instead; the `size` prop resolves the default.
+- If you want a disabled state other than the neutral default, set `--ui-disabled-surface` and
+  `--ui-disabled-text` once, rather than per component.
+
+- The editor's editing surface carries `role="textbox"` and `aria-multiline="true"` with its
+  `label`. A name on a plain `contenteditable` div is prohibited by ARIA, which rc.1 tripped.
+- Disabled is a contract decision: `--ui-disabled-surface` and `--ui-disabled-text` give every
+  component the same neutral disabled state at full opacity, instead of each variant fading its
+  own colours. `--ui-<component>-disabled-*` still overrides it.
+- `tone="accent"` on Button tints an outline, ghost, or link button with the accent colour, for a
+  secondary action that still reads as the primary path.
+- The editor toolbar's `--ui-editor-toolbar-button-size` and `-mobile-button-size` work again:
+  they set `--ui-icon-button-size`, which replaced the per-size tokens.
+
+### Also in 0.6.0
+
+Breaking: the theming surface. A product themes Looma through a contract of about 40 values; every
+other global derives from them. See the entries below for the renames and removals.
+
+- Editor: a `label` prop names the editing surface (default "Document"). Without it the text box
+  had no accessible name, which fails WCAG 4.1.2.
+- `--ui-surface-muted` and `--ui-radius-lg` are contract values, not derived ones: a palette with
+  its own middle neutral, or a product that rounds large surfaces differently, sets them rather
+  than accepting the derivation.
+- Theming has a contract: about 40 `--ui-*` values (intent colour, neutrals, focus, type, space,
+  radius, elevation, motion, and the shared control sizes) that a product sets to theme Looma.
+  Every other global is derived from them, so a theme that sets only the contract stays coherent.
+- The duplicate `oklch` palette is gone: one palette per theme, in the theme files.
+- Removed the parallel radius and text scales: `--ui-radius-1`…`-4` and `--ui-radius-xl` are
+  `--ui-radius-sm`, `-md`, `-lg`, and `-dialog`; `--ui-text-sm` was a font size and is
+  `--ui-font-size-sm`; `--ui-color-focus` is `--ui-focus-ring`; `--ui-space-1-5` and
+  `--ui-space-12` are gone.
+- Tree Item's label cell stretches its slotted content, so a link in the label slot is the row's
+  hit area instead of sizing to its own text.
+- Light dismiss needs a press it can place: a pointerdown reporting no coordinates (assistive
+  technology, or a synthetic event) no longer closes a dismissible overlay.
+- `--ui-control-min-block-size` is `44px`, not `2.75rem`: WCAG counts CSS pixels, so a smaller root
+  font must not shrink a touch target below the minimum.
+- `density="compact"` on Menu, Tabs, Disclosure, and Tree: rows trade padding and type size for
+  fit. Nothing has to rescale a global token to compact a menu any more. Menu Item reads
+  `--ui-menu-item-padding-block`/`-padding-inline`, `-font-size`, `-radius`, and `-hover-surface`.
+- One token vocabulary, `--ui-<component>[-<variant>][-<state>]-<property>`: `-bg` and `-color`
+  become `-surface` and `-text` (Icon Button, Top Bar, Search Shell, Search Result Row, Editor
+  Toolbar), and the state comes before the property (`--ui-button-ghost-hover-surface`,
+  `--ui-button-link-text`).
+- Tokens that restated a prop are gone: `--ui-icon-button-size-sm`/`-size-lg` (the `size` prop
+  resolves the size; `--ui-icon-button-size` still overrides it on an element), and the Floating
+  Action Button's colour and size family (it reads the accent and control values directly, and
+  keeps `--ui-floating-action-button-inset-block-end`/`-inset-inline-end`/`-z-index`).
+- Names that never matched their component are renamed or gone: `--ui-field-*`, `--ui-option-*`,
+  and `--ui-multi-combobox-*` are `--ui-combobox-*`; `--ui-z-overlay` is
+  `--ui-context-menu-z-index`; the tree's row tokens carry the name of the component that reads
+  them (`--ui-tree-item-min-block-size`, `-font-size`, `-label-padding-block`/`-inline`).
+- Every component colour token's fallback chain ends in a semantic token, and the dead literal
+  fallbacks on global tokens are gone.
+- A dark theme's intent tones take a dark foreground (`--ui-on-accent`, `--ui-on-danger`), since
+  its solid tones are light.
 
 - Editor: the formatting toolbar's Insert table opens its grid. The button toggled the picker and
   the popover anchored to it toggled it back on the same click.

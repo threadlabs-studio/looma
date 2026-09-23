@@ -185,10 +185,10 @@ test("generates public API metadata from declarative contracts", async () => {
   ]);
   assert.deepEqual(
     button.designTokens.component.find(({ name }) => name === "--ui-button-radius"),
-    { name: "--ui-button-radius", fallbacks: ["var(--ui-radius-2)"] },
+    { name: "--ui-button-radius", fallbacks: ["var(--ui-radius-md)"] },
   );
   assert.ok(button.designTokens.shared.some(({ name }) => name === "--ui-font-medium"));
-  assert.ok(stack.designTokens.component.some(({ name }) => name === "--ui-layout-gap"));
+  assert.ok(stack.designTokens.component.some(({ name }) => name === "--ui-stack-gap"));
   assert.ok(!stack.designTokens.component.some(({ name }) => name === "--ui-grid-gap"));
   assert.ok(tableOverlay.designTokens.shared.some(
     ({ name }) => name === "--ui-affordance-near-color",
