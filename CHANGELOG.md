@@ -1,41 +1,51 @@
 # Changelog
 
-## Unreleased
+## v0.7.0
 
-- The colour system comes from eleven seeds: five intents, two intent foregrounds, three surfaces,
-  and the ink. Every neutral, hover, tint, border, and disabled colour is mixed from them, so a
-  theme states those eleven and stops. Light, dark, and high contrast now set the same set — dark
-  dropped 18 restated values, and high contrast keeps only the overrides it exists for.
-- Disabled colours are derived from the tone they disable and mixed toward the page, so a disabled
-  danger button still reads as danger, and a dark theme dims where a light one lightens. A disabled
-  ghost takes a light surface, since it has no hover to fall back on.
-- Buttons take a `tone` and a `variant`: tone is the colour (accent, neutral, danger, success,
-  warning, info), variant is the volume (solid, outline, ghost, link). Every pairing works, so a
-  destructive secondary action is `tone="danger" variant="outline"` rather than a missing case.
-  `variant="danger"` still resolves to a solid danger button.
+- Colour comes from eleven seeds: five intents, two intent foregrounds, three surfaces, and the
+  ink. Every neutral, hover, tint, border, and disabled colour is mixed from them, so a theme
+  states those eleven and stops. Light, dark, and high contrast set the same set — dark dropped 18
+  restated values, and high contrast keeps only the overrides it exists for. `docs/tokens` shows
+  the seeds and what falls out of them.
+- **Breaking:** buttons take a `tone` and a `variant`. Tone is the colour (accent, neutral, danger,
+  success, warning, info) and applies to every variant; variant is the volume (solid, outline,
+  ghost, link). A destructive secondary action is `tone="danger" variant="outline"` rather than a
+  missing case. `variant="danger"` still resolves to a solid danger button, and the default tone is
+  now `accent` rather than `neutral`.
 - An outline is an outline: its tone at the edge over that same tone at 5%. It used to be a filled
-  grey box with a white highlight, which read as a solid button and belonged to no palette.
-- Disabled keeps the shape and a trace of the tone: a disabled outline is still an outline in its
-  own colour, a disabled solid is still filled, and neither looks raised.
-- Every button variant shares one treatment: the same corner, edge, highlight, and shadow, with a
-  press that moves the shadow inside. Outline is an outline again — its own colour at the edge over
-  a wash of it — rather than a filled grey button. Nothing lifts on hover.
-- One disabled treatment for every variant. A disabled destructive button no longer keeps its red:
-  an unavailable action says "unavailable", not "unavailable, and destructive".
-- `ui-select` drops `multiple`. Multi-select is the combobox's job, and a multiple combobox now
-  checks its options in place: chosen options stay in the list with a checkbox, toggle off when
-  chosen again, and report `aria-selected` — which they never did while they were being removed
-  from the list.
-- New `--ui-pressed` token: the counterpart to `--ui-raised`, for a control that takes its shadow
-  inside while pressed.
-
+  grey box with a white highlight, which read as a solid button and belonged to no palette. Every
+  variant now shares one corner, edge, highlight, and shadow, and pressing moves the shadow inside
+  instead of lifting the button.
+- Disabled is derived from the tone it disables and mixed toward the page: a disabled danger button
+  still reads as danger, a dark theme dims where a light one lightens, and each variant keeps its
+  shape — a disabled outline is still an outline. A disabled ghost takes a light surface, since it
+  has no hover to fall back on.
+- **Breaking:** `ui-select` drops `multiple`. Multi-select is the combobox's job, and a multiple
+  combobox now checks its options in place: chosen options stay in the list with a checkbox, toggle
+  off when chosen again, and report `aria-selected` — which they never did while they were being
+  removed from the list.
 - A checked checkbox draws its tick again. Lowering expands a shorthand into longhands, and
   `border: solid var(--ui-text-on-accent)` came out with empty values, leaving the tick styleless
   and so zero-width.
-- Tree rows give their hover controls no width until they show, so a label runs to the tree's edge;
-  the label then fades where the controls begin instead of re-truncating or hiding under them.
-- The disclosure chevron is tighter and lighter, and its ink starts the row, so a heading above the
-  tree lines up with it.
+- New `--ui-pressed` token: the counterpart to `--ui-raised`, for a control that takes its shadow
+  inside while pressed.
+
+## v0.6.5
+
+- The converted Vue components share one controller host module instead of each carrying its own,
+  so an app that uses several components ships less of them.
+
+- The Vue components share one controller host and event dispatcher instead of repeating both in
+  every component. Vue output is 31% less JavaScript (202 kB, from 293 kB), loaded as one shared
+  chunk rather than 33 copies. Nothing in the public contract moves: props, events, slots, and
+  exposed methods are unchanged, and the shared module is internal. Needs
+  `@nextwebwg/html-next` 1.0.0-alpha.3, which generates it.
+
+## v0.6.4
+
+- Tree Item's hover actions overlay the end of the row instead of reserving a column, so a long
+  label uses the full row width and fades where the controls begin. The disclosure chevron is
+  tighter and aligns with the content above it.
 
 ## v0.6.3
 
