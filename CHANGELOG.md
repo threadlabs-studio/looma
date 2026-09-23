@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.6.2
+
 - Combobox with `multiple` keeps the items it selects. It reported each choice and waited for the
   consumer to pass `items` back, so selecting an option appeared to do nothing. A consumer that
   sets `items` still owns them.
