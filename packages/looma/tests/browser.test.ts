@@ -155,6 +155,132 @@ describe("Button layout", () => {
   });
 });
 
+// The look a link must share with its button: every variant at rest and hovered, and disabled.
+const LOOK = ["display", "backgroundColor", "color", "borderColor", "boxShadow", "minHeight", "paddingTop", "paddingLeft",
+  "textDecorationLine", "cursor"] as const;
+const look = (page: Page, selector: string) => page.locator(selector).evaluate((element, keys) => {
+  const style = getComputedStyle(element);
+  return Object.fromEntries(keys.map((key) => [key, style[key as keyof CSSStyleDeclaration]]));
+}, LOOK as unknown as string[]);
+
+describe("Button as a link", () => {
+  it("renders a real link that looks and responds exactly like the button", async () => {
+    const variants = ["outline", "solid", "danger", "ghost", "link"];
+    const path = await bundle("vue-button-link", `
+      import { createApp, h } from "vue";
+      import { Button } from "@threadlabs/looma/vue";
+      const pair = (id, props) => [
+        h(Button, { id: id + "-button", ...props }, () => "Go"),
+        h(Button, { id: id + "-link", as: "a", href: "#next", ...props }, () => "Go"),
+      ];
+      createApp({
+        render: () => h("div", [
+          ${JSON.stringify(variants)}.flatMap((variant) => pair(variant, { variant })),
+          ...pair("large", { size: "lg", tone: "success" }),
+          ...pair("off", { variant: "solid", disabled: true }),
+          ...pair("off-ghost", { variant: "ghost", disabled: true }),
+          h(Button, { id: "new-tab", as: "a", href: "https://example.com/", target: "_blank", rel: "noreferrer" }, () => "Docs"),
+          h(Button, { id: "submit", type: "submit" }, () => "Send"),
+        ]),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    // End states, not the transition between them.
+    await page.addStyleTag({ content: "* { transition: none !important; }" });
+
+    const link = page.locator("#solid-link");
+    assert.equal(await link.evaluate((element) => element.localName), "a");
+    assert.equal(await link.getAttribute("href"), "#next");
+    assert.equal(await link.getAttribute("data-component"), "ui-button");
+    for (const attribute of ["type", "disabled", "aria-disabled", "role"]) {
+      assert.equal(await link.getAttribute(attribute), null, `a link carries no ${attribute}`);
+    }
+    assert.equal(await page.locator("#solid-button").getAttribute("type"), "button");
+    assert.equal(await page.locator("#submit").getAttribute("type"), "submit");
+    assert.equal(await page.locator("#new-tab").getAttribute("target"), "_blank");
+    assert.equal(await page.locator("#new-tab").getAttribute("rel"), "noreferrer");
+
+    for (const id of [...variants, "large"]) {
+      assert.deepEqual(await look(page, `#${id}-link`), await look(page, `#${id}-button`), `${id} at rest`);
+      await page.hover(`#${id}-button`);
+      const hovered = await look(page, `#${id}-button`);
+      await page.hover(`#${id}-link`);
+      assert.deepEqual(await look(page, `#${id}-link`), hovered, `${id} hovered`);
+    }
+    assert.equal((await look(page, "#outline-link")).textDecorationLine, "none");
+    assert.equal((await look(page, "#link-link")).textDecorationLine, "underline");
+
+    // A disabled link cannot be followed or focused; it says so, and it looks like a disabled button.
+    const off = page.locator("#off-link");
+    assert.equal(await off.getAttribute("href"), null);
+    assert.equal(await off.getAttribute("aria-disabled"), "true");
+    assert.equal(await off.getAttribute("disabled"), null);
+    assert.equal(await page.locator("#off-button").getAttribute("aria-disabled"), null);
+    for (const id of ["off", "off-ghost"]) {
+      await page.hover(`#${id}-button`, { force: true });
+      const disabled = await look(page, `#${id}-button`);
+      await page.hover(`#${id}-link`);
+      assert.deepEqual(await look(page, `#${id}-link`), disabled, `${id} disabled`);
+    }
+
+    await page.focus("#solid-button");
+    await page.keyboard.press("Tab");
+    assert.equal(await page.evaluate(() => document.activeElement?.id), "solid-link");
+    assert.equal(await link.evaluate((element) => element.matches(":focus-visible")), true);
+    assert.match((await look(page, "#solid-link")).boxShadow, /,/, "the focus halo layers on the shadow");
+    await page.keyboard.press("Enter");
+    await page.waitForFunction(() => location.hash === "#next");
+    await page.close();
+  });
+
+  it("lowers to a link from HTML", async () => {
+    const path = await bundle("html-button-link", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-button id="button" variant="solid">Go</ui-button>
+      <ui-button id="link" as="a" href="#next" variant="solid">Go</ui-button>
+      <ui-button id="off" as="a" href="#next" variant="solid" disabled>Go</ui-button>
+      <ui-button id="submit" type="submit">Send</ui-button>
+    `, [join(root, "tokens.css")]);
+    await page.waitForSelector('#off[data-component="ui-button"]');
+    assert.equal(await page.locator("#link").evaluate((element) => element.localName), "a");
+    assert.equal(await page.locator("#link").getAttribute("href"), "#next");
+    assert.equal(await page.locator("#link").getAttribute("type"), null);
+    assert.deepEqual(await look(page, "#link"), await look(page, "#button"));
+    assert.equal(await page.locator("#off").getAttribute("href"), null);
+    assert.equal(await page.locator("#off").getAttribute("aria-disabled"), "true");
+    assert.equal(await page.locator("#button").getAttribute("type"), "button");
+    assert.equal(await page.locator("#submit").getAttribute("type"), "submit");
+    await page.close();
+  });
+});
+
+describe("Badge shape", () => {
+  it("draws a tag flat at the start and pointed at the end, leaving the pill as it was", async () => {
+    const path = await bundle("html-badge-shape", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-badge id="pill">Pill</ui-badge>
+      <ui-badge id="tag" shape="tag">Tag</ui-badge>
+      <ui-badge id="rtl" shape="tag" dir="rtl">Tag</ui-badge>
+    `, [join(root, "tokens.css")]);
+    await page.waitForSelector('#rtl[data-component="ui-badge"]');
+    const shape = (selector: string) => page.locator(selector).evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { clip: style.clipPath, radius: style.borderTopLeftRadius, border: style.borderTopColor, end: style.paddingInlineEnd, start: style.paddingInlineStart };
+    });
+    const pill = await shape("#pill"), tag = await shape("#tag"), rtl = await shape("#rtl");
+    assert.equal(pill.clip, "none");
+    assert.notEqual(pill.radius, "0px");
+    assert.match(tag.clip, /^polygon\(/);
+    assert.equal(tag.radius, "0px");
+    assert.equal(tag.border, "rgba(0, 0, 0, 0)");
+    // The point takes room of its own, so the label never runs into it.
+    assert.ok(parseFloat(tag.end) > parseFloat(tag.start));
+    assert.ok(parseFloat(rtl.start) > parseFloat(rtl.end));
+    assert.notEqual(rtl.clip, tag.clip);
+    await page.close();
+  });
+});
+
 describe("Icon Button", () => {
   it("grows its hit area, not its size, once touch is used", async () => {
     const path = await bundle("vue-icon-button-touch", `

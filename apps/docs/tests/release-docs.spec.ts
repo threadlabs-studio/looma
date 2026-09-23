@@ -790,6 +790,12 @@ test("ui-button authors one declarative element and lowers directly to a native 
   await ghost.hover();
   const after = await ghost.evaluate((element) => getComputedStyle(element).backgroundColor);
   expect(after).not.toBe(before);
+
+  const links = page.locator("[data-preview-scenario='as a link'] a[data-component~='ui-button']");
+  await expect(links).toHaveCount(3);
+  await expect(links.first()).toHaveAttribute("href", "#get-started");
+  await expect(links.last()).not.toHaveAttribute("href");
+  await expect(links.last()).toHaveAttribute("aria-disabled", "true");
 });
 
 test("ui-input authors one declarative element and lowers directly to an editable native input", async ({ page }) => {
@@ -891,8 +897,8 @@ test("Examples and API keep configuration demos separate from exhaustive referen
 }) => {
   await page.goto("components/ui-button", { waitUntil: "domcontentloaded" });
 
-  // Default, variant, Link, size, disabled, align and stretch.
-  await expect(page.locator(".looma-preview-scenario")).toHaveCount(6);
+  // Default, variant, Link, size, disabled, align and stretch, as a link.
+  await expect(page.locator(".looma-preview-scenario")).toHaveCount(7);
   await expect(page.locator(".looma-api")).toHaveCount(0);
   await page.getByRole("tab", { name: "API" }).click();
   await expect(page.locator(".looma-preview-scenario")).toHaveCount(0);
@@ -1654,7 +1660,8 @@ test("every badge tone remains legible and visually distinct in light and dark t
     await page.reload({ waitUntil: "domcontentloaded" });
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
     const badges = page.locator("[data-preview-scenario] [data-component~='ui-badge']");
-    await expect(badges).toHaveCount(11);
+    // Default, five solid tones, five subtle tones, then the shape example.
+    await expect(badges).toHaveCount(15);
     const treatments = await badges.evaluateAll((surfaces) => surfaces.map((surface) => {
       const style = getComputedStyle(surface);
       const canvas = document.createElement("canvas");
@@ -1687,7 +1694,7 @@ test("every badge tone remains legible and visually distinct in light and dark t
     expect(treatments[0]!.fontWeight).toBeGreaterThanOrEqual(500);
     expect(contrastRatio(treatments[0]!.border, treatments[0]!.background)).toBeGreaterThanOrEqual(3);
     expect(new Set(treatments.slice(1, 6).map(({ background }) => background)).size).toBe(5);
-    expect(new Set(treatments.slice(6).map(({ background }) => background)).size).toBe(5);
+    expect(new Set(treatments.slice(6, 11).map(({ background }) => background)).size).toBe(5);
   }
 });
 

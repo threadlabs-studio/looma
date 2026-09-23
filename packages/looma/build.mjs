@@ -8,7 +8,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
-import { assembleComponentPackage } from "@nextwebwg/html-next";
+import { assembleComponentPackage, parseSourceComponent } from "@nextwebwg/html-next";
 import vue from "@vitejs/plugin-vue";
 import { build } from "vite";
 
@@ -35,8 +35,33 @@ for (const name of ["dist", "vanilla", "components", "styles"]) {
   });
 }
 
-// Vue: the entry names each component as Looma documents it (UiButton.vue exports as Button).
 const vueSource = join(assembled, "vue");
+
+// A polymorphic root (`<button as="button|a">`) lets an invocation pick its root with `as`, which the
+// runtime and the DOM factories honour but HTML Next's Vue conversion does not yet: it always emits the
+// markup root. Until it does, the converted component takes the same `as` prop and renders the chosen
+// root through <component :is>, so Vue and HTML agree. Remove this once the conversion emits it.
+for (const tag of tags) {
+  const source = join(componentsRoot, tag, `${tag}.html`);
+  // Dependency links belong to the package graph, not to one definition's parse.
+  const html = (await readFile(source, "utf8")).replace(/^\s*<link\s+rel="component"[^>]*>\s*$/gm, "");
+  const { root: definitionRoot } = parseSourceComponent(html, source);
+  if (definitionRoot?.kind !== "native" || definitionRoot.choices.length < 2) continue;
+  const file = join(vueSource, `${tag.replace(/(?:^|-)([a-z])/g, (_, letter) => letter.toUpperCase())}.vue`);
+  const { element, choices } = definitionRoot;
+  const vue = await readFile(file, "utf8");
+  const polymorphic = vue
+    .replace("defineProps<{\n", `defineProps<{\n    as?: ${choices.map((choice) => `'${choice}'`).join(" | ")}\n`)
+    .replace(/withDefaults\(\s*defineProps<\{[\s\S]*?\}>\(\),\s*\{\n/, (match) => `${match}    as: '${element}',\n`)
+    .replace(new RegExp(`(<template>\\s*)<${element}\\b`), `$1<component\n    :is="as"`)
+    .replace(new RegExp(`</${element}>(\\s*</template>\\s*(?:<style|$))`), "</component>$1");
+  if (!/:is="as"/.test(polymorphic) || !/<\/component>/.test(polymorphic) || !/as: '/.test(polymorphic)) {
+    throw new Error(`${tag}: could not give the Vue component its polymorphic root`);
+  }
+  await writeFile(file, polymorphic);
+}
+
+// Vue: the entry names each component as Looma documents it (UiButton.vue exports as Button).
 const names = (await readdir(vueSource)).filter((file) => file.endsWith(".vue")).map((file) => file.slice(0, -4)).sort();
 await writeFile(join(vueSource, "index.ts"), names.map((name) =>
   `export { default as ${name.replace(/^Ui(?=[A-Z])/, "")} } from "./${name}.vue";`).join("\n") +

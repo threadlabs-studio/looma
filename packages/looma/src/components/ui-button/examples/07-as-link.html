@@ -1,0 +1,9 @@
+<!--
+title: as a link
+description: as="a" with href renders a real link that looks and responds exactly like the button, in every variant. target and rel pass to the link. A disabled link drops its href and states aria-disabled, so it cannot be followed.
+-->
+<ui-cluster gap="s">
+  <ui-button as="a" href="#get-started" variant="solid">Get started</ui-button>
+  <ui-button as="a" href="https://example.com/" target="_blank" rel="noreferrer">Read the guide</ui-button>
+  <ui-button as="a" href="#get-started" disabled>Unavailable</ui-button>
+</ui-cluster>
