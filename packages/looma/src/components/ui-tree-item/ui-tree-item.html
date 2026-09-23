@@ -31,6 +31,9 @@
     <prop name="selected" type="boolean" default="false"
     >Marks the item selected: it sets aria-selected and gives the row the highlighted surface. The tree does not select on click, so drive it from your own
       state.</prop>
+    <prop name="marquee" type="boolean" default="false"
+    >Scrolls a name too long for its row while the row is hovered or focused, then puts it back. Off by default: a tree of short names should not move, and a
+      product decides whether reading the whole name matters more than a still list.</prop>
     <prop name="disabled" type="boolean" default="false"
     >Makes the item unavailable: faded, skipped by keyboard navigation, unable to expand or be dragged, and closed to drops inside it.</prop>
     <state name="internalExpanded" :value="false"></state>
@@ -267,10 +270,13 @@
 
     /* A hovered row reads its whole name: the label slides far enough to show the end, waits
        there, and comes back. Only when it actually overflows — the controller measures by how
-       much and hands over the distance and a duration from it, so a longer name travels no
-       faster. */
+       much — after the controls have taken their place over its end — and hands over the distance
+       and a duration from it, so a longer name travels no faster. */
     .row[data-ui-marquee] > .label > .label-text {
-      animation: ui-tree-item-marquee var(--_marquee-duration) var(--ui-motion-ease) 0.45s infinite alternate;
+      /* Once, and it stays at the end while the pointer is there: a name that keeps sliding back
+         and forth under the pointer is harder to read than one that arrives and holds. */
+      animation: ui-tree-item-marquee var(--_marquee-duration) linear 0.5s 1 normal forwards;
+      will-change: transform;
     }
 
     /* While it slides, the start fades too: the name is leaving the cell at both ends, and a hard

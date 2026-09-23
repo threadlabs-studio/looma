@@ -9,6 +9,9 @@
     <prop name="maxDepth" type="number" default="0"
     >The deepest level a drag may produce, counting the top level as 1. A drop that would place the dragged item, or any item beneath it, deeper than this is
       refused and reported as reorder-rejected. 0 means no limit.</prop>
+    <prop name="marquee" type="boolean" default="false"
+    >Scrolls a name too long for its row while that row is hovered or focused, then puts it back. Off by default: a tree of names that fit should not move. An
+      item may set its own marquee to opt in or out on its own.</prop>
     <event
       name="reorder"
       type="object({ sourceId: string, targetId: string, position: before | inside | after, sourceType: string, targetType: string, sourceScope: string, targetScope: string, trigger: keyboard | pointer | programmatic })"
@@ -20,6 +23,12 @@
   </defs>
   <div role="tree"><slot></slot></div>
   <style>
+    /* Reaches the items the way density does, so the setting lives on the tree the way a reader
+       thinks about it: this list scrolls its long names. */
+    :host-state([marquee]) {
+      --ui-tree-item-marquee: 1;
+    }
+
     :host-state([density="compact"]) {
       --ui-tree-item-min-block-size: var(--ui-control-size-sm);
       --ui-tree-item-font-size: var(--ui-font-size-sm);

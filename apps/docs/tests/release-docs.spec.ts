@@ -1503,51 +1503,53 @@ test("a checked checkbox paints its tick", async ({ page }) => {
   expect(await markedPixels(control), "checked checkbox draws no tick").toBeGreaterThan(10);
 });
 
-test("a tree name too long for its row scrolls while hovered, and a short one stays put", async ({
+test("a tree scrolls a name too long for its row, only when asked, and clears its controls", async ({
   page
 }) => {
-  await page.goto("components/ui-tree-item", { waitUntil: "networkidle" });
-  const scenario = page.locator("[data-preview-scenario='Actions slot']");
-  const row = scenario.locator("[data-component~='ui-tree-item'] .row").first();
-  await expect(row).toBeVisible();
+  await page.goto("components/ui-tree", { waitUntil: "networkidle" });
+  await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
 
-  const setName = (name: string) => scenario.evaluate((host, value) => {
-    const tree = host.querySelector<HTMLElement>("[data-component~='ui-tree']")!;
-    tree.style.width = "240px";
-    tree.style.display = "block";
-    const label = host.querySelector<HTMLElement>("[data-component~='ui-tree-item'] .label-text")!;
-    (label.firstElementChild ?? label).textContent = value;
-  }, name);
+  // Off by default: a tree of names that fit should not move.
+  const plain = page.locator("[data-preview-scenario='Default'] [data-component~='ui-tree-item'] .row").first();
+  await plain.hover();
+  await page.waitForTimeout(900);
+  await expect(plain).not.toHaveAttribute("data-ui-marquee", /.*/);
 
-  // A name that fits says nothing: the row is still, because movement has to mean something.
-  await setName("Docs");
-  await row.hover();
+  const scenario = page.locator("[data-preview-scenario='marquee']");
+  await scenario.scrollIntoViewIfNeeded();
+  const rows = scenario.locator("[data-component~='ui-tree-item'] .row");
+  const fits = rows.nth(0);
+  const overflows = rows.nth(1);
+
+  await fits.hover();
   await page.waitForTimeout(700);
-  await expect(row).not.toHaveAttribute("data-ui-marquee", /.*/);
+  await expect(fits, "a name that fits does not move").not.toHaveAttribute("data-ui-marquee", /.*/);
 
-  await setName("How to Use This Bible and Everything Inside It");
   await page.mouse.move(0, 0);
-  await row.hover();
-  await expect(row).toHaveAttribute("data-ui-marquee", "");
+  await overflows.hover();
+  await expect(overflows).toHaveAttribute("data-ui-marquee", "");
 
-  const travel = await row.evaluate((element) => ({
-    distance: getComputedStyle(element).getPropertyValue("--_marquee-distance").trim(),
-    duration: getComputedStyle(element).getPropertyValue("--_marquee-duration").trim()
-  }));
-  // The distance is what the name overflows by, and the duration comes from it, so a longer name
-  // travels at the same speed rather than in the same time.
-  expect(parseFloat(travel.distance)).toBeLessThan(0);
-  expect(parseFloat(travel.duration)).toBeGreaterThan(0.5);
-
-  const offset = () => row.evaluate((element) => {
-    const matrix = new DOMMatrix(getComputedStyle(element.querySelector(".label-text")!).transform);
-    return matrix.m41;
+  const travel = await overflows.evaluate((element) => {
+    const text = element.querySelector<HTMLElement>(".label-text")!;
+    const actions = element.querySelector<HTMLElement>(".actions")!;
+    return {
+      distance: parseFloat(getComputedStyle(element).getPropertyValue("--_marquee-distance")),
+      duration: parseFloat(getComputedStyle(element).getPropertyValue("--_marquee-duration")),
+      hidden: text.scrollWidth - (text.clientWidth - actions.offsetWidth)
+    };
   });
-  await expect.poll(offset, { timeout: 4000 }).toBeLessThan(-8);
+  // The controls overlay the label's end, so the name has to travel past them: measuring against
+  // the label's full width scrolls short and leaves the tail underneath them.
+  expect(Math.abs(travel.distance)).toBeGreaterThanOrEqual(travel.hidden);
+  // The duration comes from the distance, so a longer name travels at the same speed.
+  expect(travel.duration).toBeCloseTo(Math.min(10, Math.max(1.4, Math.abs(travel.distance) / 36)), 1);
 
-  // Leaving puts the name back where it started.
+  const offset = () => overflows.evaluate((element) =>
+    new DOMMatrix(getComputedStyle(element.querySelector(".label-text")!).transform).m41);
+  await expect.poll(offset, { timeout: 5000 }).toBeLessThan(-12);
+
   await page.mouse.move(0, 0);
-  await expect(row).not.toHaveAttribute("data-ui-marquee", /.*/);
+  await expect(overflows).not.toHaveAttribute("data-ui-marquee", /.*/);
   await expect.poll(offset).toBe(0);
 });
 
