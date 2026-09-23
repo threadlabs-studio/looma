@@ -48,7 +48,9 @@ export default function controller(host) {
     allowFreeText: Boolean(host.state.allowFreeText),
     allowCreate: Boolean(host.state.allowCreate),
   });
-  const items = () => host.state.multiple && Array.isArray(host.state.items) ? host.state.items : [];
+  // Selected items work uncontrolled: the component keeps them and reports every change. A consumer
+  // that owns `items` stays in charge, because the prop resyncs whatever it sets.
+  const items = () => host.state.multiple && Array.isArray(host.state.internalItems) ? host.state.internalItems : [];
   const selectedValues = () => new Set(items().map((item) => item.value));
   const setValidation = (result, touched = host.state.validation?.touched ?? false) => {
     const issues = result.issues ?? [];
@@ -168,7 +170,10 @@ export default function controller(host) {
       proposedChange = undefined;
     });
   };
-  const emitItems = (next) => host.dispatch("value-change", next);
+  const emitItems = (next) => {
+    host.state.internalItems = next;
+    host.dispatch("value-change", next);
+  };
   const setMultiQuery = (query, trigger) => {
     if (host.state.query === undefined) {
       host.state.raw = query;
@@ -412,7 +417,14 @@ export default function controller(host) {
   };
   const observer = new MutationObserver(relabel);
   observer.observe(authored, { childList: true, subtree: true, characterData: true, attributes: true });
+  let lastItems = host.state.items;
+  if (Array.isArray(lastItems)) host.state.internalItems = lastItems;
   const stop = host.effect(() => {
+    // A consumer that sets `items` owns them; otherwise the component keeps its own.
+    if (host.state.items !== lastItems) {
+      lastItems = host.state.items;
+      if (Array.isArray(lastItems)) host.state.internalItems = lastItems;
+    }
     if (host.state.value !== lastValue) { lastValue = host.state.value; syncValue(); }
     if (host.state.query !== lastQuery) { lastQuery = host.state.query; syncQuery(); }
     if (host.state.disabled || host.state.readonly) close();
