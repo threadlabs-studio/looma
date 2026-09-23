@@ -1,11 +1,12 @@
 // @vitest-environment jsdom
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { Editor, type JSONContent } from "@tiptap/core";
 import Document from "@tiptap/extension-document";
 import Paragraph from "@tiptap/extension-paragraph";
 import Text from "@tiptap/extension-text";
 import {
   createLoomaMentionExtension,
+  LOOMA_ACTIVE_BLOCK_BLUR_GRACE_MS,
   LOOMA_ACTIVE_BLOCK_CLASS,
   filterLoomaMentionItems,
   getDefaultEditorExtensions,
@@ -444,16 +445,24 @@ describe("active block marker", () => {
     editor.destroy();
   });
 
-  it("drops the marker on blur", () => {
-    const editor = mountEditor();
-    setFocus(editor, true);
-    editor.commands.setTextSelection(3);
-    expect(markedTags(editor)).toHaveLength(1);
+  it("drops the marker once focus has stayed away past the grace period", () => {
+    vi.useFakeTimers();
+    try {
+      const editor = mountEditor();
+      setFocus(editor, true);
+      editor.commands.setTextSelection(3);
+      expect(markedTags(editor)).toHaveLength(1);
 
-    setFocus(editor, false);
+      setFocus(editor, false);
+      // A blur that might be a toolbar click or a momentary focus hop does not blink it off.
+      expect(markedTags(editor)).toHaveLength(1);
 
-    expect(markedTags(editor)).toEqual([]);
+      vi.advanceTimersByTime(LOOMA_ACTIVE_BLOCK_BLUR_GRACE_MS);
+      expect(markedTags(editor)).toEqual([]);
 
-    editor.destroy();
+      editor.destroy();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

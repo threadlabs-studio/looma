@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.8.1
+
+- The editor's active-block marker is quieter. It steps aside while text is being typed and returns
+  once typing pauses, instead of riding along with every keystroke. Focus moving to the editor's
+  own toolbar or a menu, or leaving and coming straight back, no longer blinks it off. It fades in
+  rather than snapping on (reduced motion makes that instant), and it is thinner and lighter by
+  default: 1px in `--ui-border` rather than 2px in `--ui-border-strong`.
+  `--ui-editor-active-block-width` and `--ui-editor-active-block-color` still set both.
 ## v0.8.0
 
 - **Breaking:** the type scale derives entirely from `--ui-font-size`. `--ui-font-size-sm` is now
