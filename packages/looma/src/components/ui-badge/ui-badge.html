@@ -2,6 +2,8 @@
   <defs>
     <prop name="variant" type="solid | subtle" default="subtle">variant token.</prop>
     <prop name="tone" type="neutral | accent | info | success | warning | danger" default="neutral">tone token.</prop>
+    <prop name="shape" type="pill | tag" default="pill"
+    >Silhouette. pill is rounded at both ends; tag is a label: flat at the start and coming to a point at the end, for a tag or a chosen chip.</prop>
   </defs>
   <span><slot></slot></span>
   <style>
@@ -98,6 +100,24 @@
       --_badge-surface: var(--ui-info-soft);
       --_badge-border: var(--ui-info-soft);
       --_badge-text: var(--ui-info-subtle-text, var(--ui-info-solid));
+    }
+
+    /* A tag is flat at the start and points at the end. The point is cut from the box, so it has no
+       outline to follow: the edge is the fill. The end padding grows by the point's depth so the
+       label never runs into it. */
+    :host-state([shape="tag"]) {
+      --_badge-point: var(--ui-badge-point, var(--ui-space-2));
+
+      border-color: transparent;
+      border-radius: 0;
+      padding-inline-end: calc(var(--ui-badge-padding-inline, var(--ui-space-2)) + var(--_badge-point));
+      clip-path: polygon(0 0, calc(100% - var(--_badge-point)) 0, 100% 50%, calc(100% - var(--_badge-point)) 100%, 0 100%);
+    }
+
+    :host-state([shape="tag"]):dir(rtl) {
+      padding-inline-end: var(--ui-badge-padding-inline, var(--ui-space-2));
+      padding-inline-start: calc(var(--ui-badge-padding-inline, var(--ui-space-2)) + var(--_badge-point));
+      clip-path: polygon(var(--_badge-point) 0, 100% 0, 100% 100%, var(--_badge-point) 100%, 0 50%);
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */

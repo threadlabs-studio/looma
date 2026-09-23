@@ -254,6 +254,33 @@ describe("Button as a link", () => {
   });
 });
 
+describe("Badge shape", () => {
+  it("draws a tag flat at the start and pointed at the end, leaving the pill as it was", async () => {
+    const path = await bundle("html-badge-shape", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-badge id="pill">Pill</ui-badge>
+      <ui-badge id="tag" shape="tag">Tag</ui-badge>
+      <ui-badge id="rtl" shape="tag" dir="rtl">Tag</ui-badge>
+    `, [join(root, "tokens.css")]);
+    await page.waitForSelector('#rtl[data-component="ui-badge"]');
+    const shape = (selector: string) => page.locator(selector).evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { clip: style.clipPath, radius: style.borderTopLeftRadius, border: style.borderTopColor, end: style.paddingInlineEnd, start: style.paddingInlineStart };
+    });
+    const pill = await shape("#pill"), tag = await shape("#tag"), rtl = await shape("#rtl");
+    assert.equal(pill.clip, "none");
+    assert.notEqual(pill.radius, "0px");
+    assert.match(tag.clip, /^polygon\(/);
+    assert.equal(tag.radius, "0px");
+    assert.equal(tag.border, "rgba(0, 0, 0, 0)");
+    // The point takes room of its own, so the label never runs into it.
+    assert.ok(parseFloat(tag.end) > parseFloat(tag.start));
+    assert.ok(parseFloat(rtl.start) > parseFloat(rtl.end));
+    assert.notEqual(rtl.clip, tag.clip);
+    await page.close();
+  });
+});
+
 describe("Icon Button", () => {
   it("grows its hit area, not its size, once touch is used", async () => {
     const path = await bundle("vue-icon-button-touch", `
