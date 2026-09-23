@@ -304,6 +304,22 @@ async function copyCleanFixture(destination) {
   });
 }
 
+function installWithRetries(installArgs, consumerDirectory, environment, attempts = 6, waitMs = 30_000) {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      run("pnpm", installArgs, { cwd: consumerDirectory, env: environment });
+      return;
+    } catch (error) {
+      const missingTarball = /ERR_PNPM_FETCH_404|404 Not Found/.test(String(error));
+      if (!missingTarball || attempt >= attempts) throw error;
+      process.stdout.write(
+        `\nThe published tarball is not servable yet (attempt ${attempt} of ${attempts}); waiting ${waitMs / 1000}s.\n`,
+      );
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, waitMs);
+    }
+  }
+}
+
 async function installedReleasePackages(consumerDirectory, manifest, resolutions) {
   const canonicalConsumer = await realpath(consumerDirectory);
   const canonicalRepository = await realpath(repoRoot);
@@ -395,7 +411,9 @@ async function main() {
     await writeFile(globalConfigPath, "", "utf8");
     const environment = publicRegistryEnvironment({ userConfigPath, globalConfigPath });
 
-    run("pnpm", installArgs, { cwd: consumerDirectory, env: environment });
+    // npm serves a new version's metadata before its tarball, so an install straight after
+    // publishing can 404 for a minute or two. Retry rather than fail a release that is fine.
+    installWithRetries(installArgs, consumerDirectory, environment);
     run("pnpm", ["run", "typecheck"], { cwd: consumerDirectory, env: environment });
     run("pnpm", ["run", "verify:ssr"], { cwd: consumerDirectory, env: environment });
 
