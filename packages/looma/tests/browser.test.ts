@@ -521,6 +521,8 @@ describe("Button tone and disabled", () => {
           h(Button, { id: "off", disabled: true }, () => "Save"),
           h(Button, { id: "off-danger", tone: "danger", disabled: true }, () => "Delete"),
           h(Button, { id: "off-solid", variant: "solid", disabled: true }, () => "Save"),
+          h(Button, { id: "off-ghost", variant: "ghost", disabled: true }, () => "Review"),
+          h(Button, { id: "off-ghost-neutral", variant: "ghost", tone: "neutral", disabled: true }, () => "Cancel"),
         ]),
       }).mount("#app");
     `);
@@ -558,6 +560,15 @@ describe("Button tone and disabled", () => {
     assert.equal(offSolid.border, offSolid.background, "a disabled solid is still filled");
     assert.notEqual(offDanger.border, off.border, "a disabled button still says which action it was");
     assert.notEqual(off.border, accent.border, "and it no longer reads as available");
+
+    // A disabled ghost states itself with a surface, but a wash of its tone, as hover is: an opaque
+    // mix toward the ink came out a mid-grey slab for neutral, louder than the enabled button.
+    const alpha = (color: string) => Number(/\/\s*([\d.]+)\)$/.exec(color)?.[1] ?? 1);
+    for (const id of ["off-ghost", "off-ghost-neutral"]) {
+      const ghost = await paint(id);
+      assert.ok(alpha(ghost.background) > 0, `${id} still has a surface`);
+      assert.ok(alpha(ghost.background) < 0.3, `${id} is a wash, not a slab: ${ghost.background}`);
+    }
     await page.close();
   });
 });

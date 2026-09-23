@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.7.3
+
+- A disabled ghost button is a light wash of its tone again, in every tone. It was an opaque mix
+  28% of the way from the page to the tone's hue, which reads light for accent but, for neutral,
+  whose hue is the ink, came out a mid-grey slab louder than the enabled button. It now washes the
+  faded tone the way hover washes the live one.
+- Releases no longer push to `main`. The release job stamped the version into a commit and pushed
+  it, which `main`'s pull-request protection rejects, so two merges never reached npm. Each job now
+  rebuilds the same release commit in its own runner, and the release is recorded as an annotated
+  `vX.Y.Z` tag after it publishes.
+
 ## v0.7.2
 
 - The editor marks the block you are editing with a bar in the gutter beside it, so the caret's
