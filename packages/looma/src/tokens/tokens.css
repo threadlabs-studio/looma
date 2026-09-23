@@ -127,7 +127,9 @@
     --ui-overlay-backdrop: rgba(0, 0, 0, 0.4);
     --ui-control-inset: inset 0 1px 2px rgb(0 0 0 / 0.07), inset 0 1px 0 rgb(0 0 0 / 0.02);
     --ui-raised: 0 1px 2px rgb(0 0 0 / 0.07), 0 1px 1px rgb(0 0 0 / 0.04);
-    --ui-raised-highlight: linear-gradient(rgb(255 255 255 / 0.5), rgb(255 255 255 / 0));
+    --ui-raised-highlight: linear-gradient(rgb(255 255 255 / 0.16), rgb(255 255 255 / 0));
+    /* The counterpart to --ui-raised: a pressed control takes its shadow inside. */
+    --ui-pressed: inset 0 1px 2px rgb(0 0 0 / 0.12);
 
     --ui-motion-base: calc(var(--ui-motion-fast) * 1.5);
     /* Fast start, gentle settle: for reveals that should feel immediate. */

@@ -26,7 +26,7 @@
     <state name="display" :value="''"></state>
     <state name="selected" type="string | null" :value="null"></state>
     <state name="expanded" :value="false"></state>
-    <state name="rows" type="list(object({ id: string, value: string, label: string, group?: string, disabled: boolean }))" :value="[]"></state>
+    <state name="rows" type="list(object({ id: string, value: string, label: string, group?: string, disabled: boolean, selected: boolean }))" :value="[]"></state>
     <state name="active" :value="-1"></state>
     <state name="loading" :value="false"></state>
     <state name="helpOpen" :value="false"></state>
@@ -39,7 +39,7 @@
     <state name="uid" :value="''"></state>
     <state
       name="groups"
-      type="list(object({ name: string, role: group | presentation, label: string | null, rows: list(object({ id: string, value: string, label: string, group?: string, disabled: boolean, index: integer })) }))"
+      type="list(object({ name: string, role: group | presentation, label: string | null, rows: list(object({ id: string, value: string, label: string, group?: string, disabled: boolean, selected: boolean, index: integer })) }))"
       :value="[]"
     ></state>
     <state name="creatable" :value="false"></state>
@@ -170,7 +170,7 @@
             class:active="row.index = active"
             role="option"
             :id="format('%s-option-%s', uid, row.index)"
-            :aria-selected="row.value = selected"
+            :aria-selected="row.selected"
             :aria-disabled="row.disabled"
             :data-index="row.index"
           >
@@ -405,6 +405,39 @@
       .option.active {
         outline-color: Highlight;
       }
+    }
+
+    /* Multiple mode: every option carries a checkbox, so a list that takes several answers says so
+       before anything is picked. aria-selected is the state; this draws it.
+       Longhands, not shorthands: lowering drops a shorthand that omits a component. */
+    :host-state([multiple]) .option {
+      display: flex;
+      gap: var(--ui-space-2);
+      align-items: center;
+    }
+
+    :host-state([multiple]) .option::before {
+      content: "";
+      flex: none;
+      inline-size: 1.125rem;
+      block-size: 1.125rem;
+      border-style: solid;
+      border-width: 1px;
+      border-color: var(--ui-control-border-hover, var(--ui-border-strong));
+      border-radius: var(--ui-radius-sm);
+      background-color: var(--ui-control-surface, var(--ui-surface-default));
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 0.7rem;
+    }
+
+    :host-state([multiple]) .option[aria-selected="true"]::before {
+      border-color: var(--ui-accent-solid);
+      background-color: var(--ui-accent-solid);
+      background-image: var(
+        --ui-combobox-option-check,
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12 5 5 9-9'/%3E%3C/svg%3E")
+      );
     }
 
     /* Multiple mode: chips wrap before the cursor on one flexible field line. */

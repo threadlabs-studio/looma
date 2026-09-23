@@ -39,23 +39,24 @@
     :host {
       appearance: none;
       min-block-size: var(--ui-button-min-block-size, var(--ui-control-size-md));
-      border: 1px solid var(--ui-button-border, var(--ui-border-strong));
+      border-style: solid;
+      border-width: 1px;
+      border-color: var(--ui-button-border, color-mix(in srgb, currentColor 55%, transparent));
       border-radius: var(--ui-button-radius, var(--ui-radius-md));
-      background: var(--ui-button-surface, var(--ui-surface-elevated));
+      background-color: var(--ui-button-surface, color-mix(in srgb, currentColor 8%, transparent));
       color: var(--ui-button-text, var(--ui-action-secondary-text, var(--ui-text-primary)));
       font: inherit;
       font-weight: var(--ui-font-medium);
       line-height: var(--ui-line-height-tight);
       padding: var(--ui-space-2) var(--ui-space-3);
       background-image: var(--ui-raised-highlight);
-      box-shadow: var(--ui-button-shadow, var(--ui-raised, var(--ui-shadow-xs)));
+      box-shadow: var(--ui-button-shadow, var(--ui-raised));
       cursor: pointer;
       transition:
         background-color var(--ui-motion-fast) var(--ui-motion-ease),
         border-color var(--ui-motion-fast) var(--ui-motion-ease),
         color var(--ui-motion-fast) var(--ui-motion-ease),
-        box-shadow var(--ui-motion-fast) var(--ui-motion-ease),
-        transform var(--ui-motion-fast) var(--ui-motion-ease);
+        box-shadow var(--ui-motion-fast) var(--ui-motion-ease);
       margin: 0;
     }
 
@@ -79,65 +80,57 @@
     }
 
     :host:hover:enabled {
-      background: var(--ui-action-secondary-surface-hover, var(--ui-surface-muted));
-      border-color: var(--ui-control-border-hover, var(--ui-border-strong));
+      border-color: var(--ui-button-hover-border, color-mix(in srgb, currentColor 70%, transparent));
+      background-color: var(--ui-button-hover-surface, color-mix(in srgb, currentColor 11%, transparent));
     }
 
+    /* Pressed reads as pressed in: the highlight goes, and the shadow moves inside. */
     :host:active:enabled {
-      background: var(--ui-surface-subtle);
+      background-color: var(--ui-button-active-surface, color-mix(in srgb, currentColor 16%, transparent));
+      background-image: none;
+      box-shadow: var(--ui-pressed);
     }
 
     :host-state([variant="solid"]) {
       border-color: var(--ui-action-primary-surface, var(--ui-accent-solid));
-      background: var(--ui-action-primary-surface, var(--ui-accent-solid));
+      background-color: var(--ui-action-primary-surface, var(--ui-accent-solid));
       color: var(--ui-action-primary-text, var(--ui-text-on-accent));
-      box-shadow: var(--ui-button-solid-shadow, inset 0 1px rgb(255 255 255 / 0.16), var(--ui-shadow-xs));
+      box-shadow: var(--ui-button-solid-shadow, var(--ui-raised));
     }
 
     :host-state([variant="solid"]):hover:enabled {
-      background: var(--ui-action-primary-surface-hover, var(--ui-accent-hover));
+      background-color: var(--ui-action-primary-surface-hover, var(--ui-accent-hover));
       border-color: var(--ui-action-primary-surface-hover, var(--ui-accent-hover));
-      box-shadow: var(--ui-shadow-sm);
-      transform: translateY(-1px);
     }
 
     :host-state([variant="solid"]):active:enabled {
-      background: var(--ui-action-primary-surface-active, var(--ui-accent-active));
+      background-color: var(--ui-action-primary-surface-active, var(--ui-accent-active));
       border-color: var(--ui-action-primary-surface-active, var(--ui-accent-active));
-      box-shadow: none;
-      transform: translateY(0);
+      background-image: none;
+      box-shadow: var(--ui-pressed);
     }
 
     :host-state([variant="danger"]) {
       border-color: var(--ui-danger-solid);
-      background: var(--ui-danger-solid);
+      background-color: var(--ui-danger-solid);
       color: var(--ui-text-on-accent);
-      box-shadow: var(--ui-button-danger-shadow, inset 0 1px rgb(255 255 255 / 0.14), var(--ui-shadow-xs));
+      box-shadow: var(--ui-button-danger-shadow, var(--ui-raised));
     }
 
     :host-state([variant="danger"]):hover:enabled {
-      background: var(--ui-danger-hover);
+      background-color: var(--ui-danger-hover);
       border-color: var(--ui-danger-hover);
-      box-shadow: var(--ui-shadow-sm);
-      transform: translateY(-1px);
     }
 
     :host-state([variant="danger"]):active:enabled {
-      box-shadow: none;
-      transform: translateY(0);
+      background-image: none;
+      box-shadow: var(--ui-pressed);
     }
 
     /* An accent-tinted secondary action: the outline, ghost, and link variants in the accent colour.
        Solid and danger already carry their own intent. */
     :host-state([tone="accent"]):host-state([variant="outline"]) {
-      border-color: var(--ui-button-accent-border, var(--ui-accent));
-      background: var(--ui-button-accent-surface, var(--ui-accent-subtle));
       color: var(--ui-button-accent-text, var(--ui-accent-active));
-    }
-
-    :host-state([tone="accent"]):host-state([variant="outline"]):hover:enabled {
-      border-color: var(--ui-button-accent-hover-border, var(--ui-accent-hover));
-      background: var(--ui-button-accent-hover-surface, color-mix(in srgb, var(--ui-accent) 16%, var(--ui-surface)));
     }
 
     :host-state([tone="accent"]):is(:host-state([variant="ghost"]), :host-state([variant="link"])) {
@@ -153,54 +146,47 @@
 
     /* Tints derive from the text colour, not a surface token, so hover and press show on any background. */
     :host-state([variant="ghost"]):hover:enabled {
-      background: var(--ui-button-ghost-hover-surface, color-mix(in srgb, currentColor 8%, transparent));
+      background-color: var(--ui-button-ghost-hover-surface, color-mix(in srgb, currentColor 8%, transparent));
       border-color: transparent;
     }
 
     :host-state([variant="ghost"]):active:enabled {
-      background: var(--ui-button-ghost-active-surface, color-mix(in srgb, currentColor 14%, transparent));
+      background-color: var(--ui-button-ghost-active-surface, color-mix(in srgb, currentColor 14%, transparent));
       border-color: transparent;
+      box-shadow: var(--ui-pressed);
     }
 
     /* A soft halo that transitions in with the other box-shadow changes, layered on the raised shadow. */
     :host:focus-visible {
       outline: none;
       box-shadow:
-        var(--ui-button-shadow, var(--ui-raised, var(--ui-shadow-xs))),
+        var(--ui-button-shadow, var(--ui-raised)),
         var(--ui-focus-halo);
     }
 
     :host-state([variant="solid"]):focus-visible {
       box-shadow:
-        var(--ui-button-solid-shadow, inset 0 1px rgb(255 255 255 / 0.16), var(--ui-shadow-xs)),
+        var(--ui-button-solid-shadow, var(--ui-raised)),
         var(--ui-focus-halo);
     }
 
-    /* Disabled colours fall back to each variant's own; ghost and link take only the text colour. */
+    /* One disabled treatment for every variant. An unavailable action says "unavailable", not
+       "unavailable, and destructive": intent belongs to actions that can still be taken. The
+       highlight and shadow go too, so a disabled button reads flat next to a live one. */
     :host:disabled {
       opacity: var(--ui-button-disabled-opacity, 1);
       cursor: not-allowed;
       border-color: var(--ui-button-disabled-border, var(--ui-border));
       background-color: var(--ui-button-disabled-surface, var(--ui-disabled-surface));
+      background-image: none;
+      box-shadow: none;
       color: var(--ui-button-disabled-text, var(--ui-disabled-text));
     }
 
-    :host-state([variant="solid"]):disabled {
-      border-color: var(--ui-button-disabled-border, var(--ui-border));
-      background-color: var(--ui-button-disabled-surface, var(--ui-disabled-surface));
-      color: var(--ui-button-disabled-text, var(--ui-disabled-text));
-    }
-
-    :host-state([variant="danger"]):disabled {
-      border-color: var(--ui-button-disabled-border, var(--ui-border));
-      background-color: var(--ui-button-disabled-surface, var(--ui-disabled-surface));
-      color: var(--ui-button-disabled-text, var(--ui-disabled-text));
-    }
-
+    /* Ghost has no surface to disable, so it keeps its own emptiness. */
     :host-state([variant="ghost"]):disabled {
-      background: none;
+      background-color: transparent;
       border-color: transparent;
-      color: var(--ui-button-disabled-text, var(--ui-disabled-text));
     }
 
     @media (pointer: coarse) {

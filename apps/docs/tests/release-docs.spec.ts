@@ -1330,6 +1330,80 @@ test("the home demo is built from Looma components, as it says it is", async ({ 
   );
 });
 
+test("a multiple combobox checks its chosen options and unchecks them again", async ({ page }) => {
+  await page.goto("components/ui-combobox", { waitUntil: "domcontentloaded" });
+  const scenario = page.locator("[data-preview-scenario='multiple']");
+  const input = scenario.getByRole("combobox").first();
+  await input.click();
+  await input.press("ArrowDown");
+
+  const first = scenario.locator(".option").first();
+  await expect(first).toBeVisible();
+  const mark = () => first.evaluate((option) => ({
+    selected: option.getAttribute("aria-selected"),
+    box: getComputedStyle(option, "::before").width,
+    tick: getComputedStyle(option, "::before").backgroundImage
+  }));
+
+  // Every option carries a checkbox, so a list that takes several answers says so before anything
+  // is picked; the chosen ones stay in the list rather than vanishing into the field.
+  expect(await mark()).toMatchObject({ selected: "false", box: "18px", tick: "none" });
+
+  await first.click();
+  await expect.poll(async () => (await mark()).selected).toBe("true");
+  expect((await mark()).tick).toContain("svg");
+  await expect(scenario.locator(".item")).toHaveCount(1);
+
+  await first.click();
+  await expect.poll(async () => (await mark()).selected).toBe("false");
+  await expect(scenario.locator(".item")).toHaveCount(0);
+});
+
+test("button variants share one treatment, and one disabled treatment", async ({ page }) => {
+  await page.goto("components/ui-button", { waitUntil: "networkidle" });
+  await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
+  await expect(page.locator("[data-preview-scenario='variant'] [data-component~='ui-button']").first()).toBeVisible();
+  const measure = (scenario: string) => page.locator(`[data-preview-scenario='${scenario}'] [data-component~='ui-button']`)
+    .evaluateAll((buttons) => buttons.map((button) => {
+      const style = getComputedStyle(button);
+      return {
+        label: button.textContent!.trim(),
+        radius: style.borderRadius,
+        borderWidth: style.borderWidth,
+        surface: style.backgroundColor,
+        border: style.borderColor,
+        text: style.color,
+        shadow: style.boxShadow,
+        highlight: style.backgroundImage,
+        transform: style.transform
+      };
+    }));
+
+  const variants = await measure("variant");
+  const boxed = variants.filter((variant) => variant.label !== "Ghost");
+  // One material: same corner, same edge, same lift. Ghost is the quiet one and keeps no surface.
+  expect(new Set(boxed.map((variant) => variant.radius)).size).toBe(1);
+  expect(new Set(boxed.map((variant) => variant.borderWidth)).size).toBe(1);
+  expect(new Set(boxed.map((variant) => variant.shadow)).size).toBe(1);
+  expect(new Set(boxed.map((variant) => variant.highlight)).size).toBe(1);
+  // The outline is an outline: its edge is not its fill.
+  const outline = variants.find((variant) => variant.label === "Outline")!;
+  expect(outline.border).not.toBe(outline.surface);
+
+  const disabled = await measure("disabled");
+  expect(disabled.length).toBeGreaterThan(2);
+  // An unavailable action says "unavailable", not "unavailable, and destructive".
+  for (const key of ["surface", "border", "text", "shadow", "highlight"] as const) {
+    expect(new Set(disabled.map((button) => button[key])).size, `disabled ${key} differs by variant`).toBe(1);
+  }
+
+  // Nothing jumps under the pointer.
+  const solid = page.locator("[data-preview-scenario='variant'] [data-component~='ui-button']").first();
+  const resting = await solid.evaluate((button) => getComputedStyle(button).transform);
+  await solid.hover();
+  await expect.poll(async () => solid.evaluate((button) => getComputedStyle(button).transform)).toBe(resting);
+});
+
 test("a checked checkbox paints its tick", async ({ page }) => {
   await page.goto("components/ui-checkbox", { waitUntil: "domcontentloaded" });
   const control = page.locator("[data-preview-scenario]").first().getByRole("checkbox").first();
