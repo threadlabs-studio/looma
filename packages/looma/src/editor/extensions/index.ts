@@ -8,6 +8,11 @@
  */
 
 export {
+  LOOMA_ACTIVE_BLOCK_CLASS,
+  LoomaActiveBlock,
+  LoomaActiveBlockPluginKey,
+} from "./active-block";
+export {
   LoomaCallout,
   LOOMA_CALLOUT_TONES,
   type LoomaCalloutTone,
