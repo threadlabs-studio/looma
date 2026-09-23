@@ -1,7 +1,7 @@
 {
   "name": "looma-monorepo",
   "private": true,
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Stack-agnostic UI library built on web standards and Open UI principles.",
   "license": "MIT",
   "author": "Threadlabs Studio",
@@ -19,7 +19,7 @@
     "ui",
     "design-system"
   ],
-  "packageManager": "pnpm@10.7.0",
+  "packageManager": "pnpm@10.7.1",
   "engines": {
     "node": ">=20"
   },
