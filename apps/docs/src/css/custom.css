@@ -32,7 +32,15 @@
   --ifm-heading-font-family: "Manrope", system-ui, sans-serif;
   --ifm-heading-font-weight: 700;
   --ifm-heading-line-height: 1.08;
-  --ifm-code-font-size: var(--looma-text-xs);
+  /* Type scale. --looma-text-xs is the smallest size the docs use. */
+  --looma-text-xs: 0.9rem;
+  --looma-text-sm: 1rem;
+  --looma-text-body: 1.0625rem;
+  --looma-text-md: 1.125rem;
+  --looma-text-lg: 1.3rem;
+  --looma-text-xl: 1.5rem;
+  /* Never below the floor, even inside smaller text. */
+  --ifm-code-font-size: max(var(--looma-text-xs), 0.9em);
   --ifm-navbar-height: 4.25rem;
   --ifm-navbar-background-color: rgb(251 249 244 / 0.92);
   --ifm-footer-background-color: #2b2538;
