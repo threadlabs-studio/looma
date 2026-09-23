@@ -14,14 +14,17 @@ export function DocsLandingHero(): JSX.Element {
           <img src={markUrl} alt="" />
           <span>Pre-1.0 release</span>
         </div>
-        <h1>Getting Started</h1>
+        <h1>Looma</h1>
         <p className="looma-home-hero__lede">
-          Declarative components, woven into the web platform. Semantic before JavaScript,
-          interactive after it, and inspectable all the way down.
+          The first UI library built on Declarative HTML Components. Write a component as markup,
+          and ship it as real native HTML or as Vue components with no runtime of ours inside them.
         </p>
         <div className="looma-home-hero__actions">
-          <Link className="looma-button looma-button--primary" to="/components">
-            Explore components <span aria-hidden="true">→</span>
+          <Link className="looma-button looma-button--primary" to="/getting-started">
+            Get started <span aria-hidden="true">→</span>
+          </Link>
+          <Link className="looma-button looma-button--secondary" to="/components">
+            Explore components
           </Link>
           <a className="looma-button looma-button--secondary" href="https://github.com/threadlabs-studio/looma">
             View on GitHub
@@ -41,9 +44,18 @@ export function DocsLandingHero(): JSX.Element {
         <LiveExample>
           <div className="looma-demo-app">
             <ui-top-bar style={{ "--ui-top-bar-z-index": 1 } as React.CSSProperties}>
-              <button slot="leading" type="button" aria-label="Open navigation">☰</button>
+              <ui-icon-button slot="leading" label="Open navigation" variant="ghost" size="md">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 5h16M4 12h16M4 19h16" />
+                </svg>
+              </ui-icon-button>
               <strong>Project Atlas</strong>
-              <button slot="search" type="button" aria-label="Search">⌕</button>
+              <ui-icon-button slot="search" label="Search" variant="ghost" size="md">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="m21 21-4.3-4.3" />
+                </svg>
+              </ui-icon-button>
               <ui-avatar slot="actions" name="Maya Chen" fallback="MC"></ui-avatar>
             </ui-top-bar>
             <div className="looma-demo-app__body">

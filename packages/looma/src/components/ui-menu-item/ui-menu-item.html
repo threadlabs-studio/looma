@@ -20,6 +20,19 @@
       transition: background-color var(--ui-motion-fast) var(--ui-motion-ease), color var(--ui-motion-fast) var(--ui-motion-ease);
     }
 
+    /* Centre the glyphs, not the line box: a label without descenders otherwise reads high. */
+    /* Centre the glyphs, not the line box: a label without descenders otherwise reads high.
+     * Trimming applies to block containers, so the box is a block with centred content. */
+    @supports (text-box-trim: trim-both) {
+      :host {
+        display: block;
+        min-block-size: var(--ui-menu-item-min-block-size, var(--ui-control-size-md, 2.5rem));
+        align-content: center;
+        text-box-trim: trim-both;
+        text-box-edge: cap alphabetic;
+      }
+    }
+
     :host:is(:hover, :focus-visible):not([aria-disabled="true"]) {
       background: var(--ui-menu-item-hover-surface, var(--ui-surface-subtle));
     }
