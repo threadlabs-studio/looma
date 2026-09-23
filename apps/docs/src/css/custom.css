@@ -180,6 +180,86 @@ body {
 
 .theme-doc-markdown tbody tr:last-child td, .looma-api-table tbody tr:last-child td { border-bottom: 0; }
 
+/* The home page is a page, not a document: full width, sections that breathe, no sidebar. */
+.looma-home {
+  --looma-home-measure: 68rem;
+  padding-block-end: 4rem;
+}
+
+.looma-home-section {
+  max-width: var(--looma-home-measure);
+  margin: 0 auto;
+  padding: 3rem 1.5rem 0;
+}
+
+.looma-home-section > h2 {
+  font-size: 1.75rem;
+  margin-block-end: 0.5rem;
+}
+
+.looma-home-section__lede {
+  max-width: 44rem;
+  color: var(--ui-text-secondary);
+  font-size: 1.05rem;
+}
+
+.looma-home-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1.5rem;
+  margin-block-start: 1.5rem;
+}
+
+.looma-home-grid > article {
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-lg);
+  background: var(--ui-surface-raised);
+  padding: 1.25rem;
+}
+
+.looma-home-grid > article > h3 {
+  font-size: 0.8125rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ui-text-secondary);
+  margin-block-end: 0.75rem;
+}
+
+.looma-home-grid pre {
+  margin: 0 0 0.75rem;
+  padding: 0.75rem;
+  border-radius: var(--ui-radius-md);
+  background: var(--ui-surface-sunken);
+  color: var(--ui-text);
+  font-size: 0.8125rem;
+  /* Wrapping keeps the sample readable at any width, and avoids a scroll region a keyboard cannot reach. */
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.looma-home-grid p {
+  margin: 0;
+  color: var(--ui-text-secondary);
+  font-size: 0.9375rem;
+}
+
+/* Inline code inherits the card's text colour, so it reads in both themes. */
+.looma-home-grid p code,
+.looma-home-section--cta code {
+  color: var(--ui-text);
+  background: var(--ui-surface-sunken);
+  border: 0;
+}
+
+.looma-home-section--cta {
+  text-align: center;
+  margin-block-start: 2rem;
+}
+
+.looma-home-section--cta .looma-home-hero__actions {
+  justify-content: center;
+}
+
 .looma-home-hero {
   position: relative;
   display: grid;

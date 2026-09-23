@@ -21,9 +21,15 @@ export default function controller(host) {
   const setOpen = (open, input) => {
     if (Boolean(host.state.internalOpen) === open) return;
     host.state.internalOpen = open;
+    if (trigger && host.state.trigger === "click") trigger.setAttribute("aria-expanded", String(open));
     host.dispatch(open ? "open" : "close", { open, reason: "action", trigger: input });
   };
-  const onKeydown = (event) => { if (event.key === "Escape") clearTimers(); };
+  const onKeydown = (event) => {
+    if (event.key !== "Escape") return;
+    clearTimers();
+    // A tooltip the reader opened is theirs to close.
+    if (host.state.trigger === "click" && host.state.internalOpen) setOpen(false, "keyboard");
+  };
   const onEnter = (event) => {
     if (event.pointerType === "touch") return;
     clearHide();
@@ -58,10 +64,16 @@ export default function controller(host) {
     if (ids.length) trigger.setAttribute("aria-describedby", ids.join(" "));
     else trigger.removeAttribute("aria-describedby");
     trigger.removeEventListener("keydown", onKeydown);
+    trigger.removeEventListener("click", onClick);
+    trigger.removeAttribute("aria-expanded");
     trigger.removeEventListener("pointerenter", onEnter);
     trigger.removeEventListener("pointerleave", onLeave);
     trigger.removeEventListener("focusin", onFocusin);
     trigger.removeEventListener("focusout", onFocusout);
+  };
+  const onClick = () => {
+    clearTimers();
+    setOpen(!host.state.internalOpen, "pointer");
   };
   const attach = () => {
     if (!trigger) return;
@@ -69,8 +81,17 @@ export default function controller(host) {
     ids.add(element.id);
     trigger.setAttribute("aria-describedby", [...ids].join(" "));
     trigger.addEventListener("keydown", onKeydown);
-    trigger.addEventListener("pointerenter", onEnter);
-    trigger.addEventListener("pointerleave", onLeave);
+    const how = host.state.trigger ?? "hover";
+    if (how === "click") {
+      // A question-mark button says nothing on hover: it opens when pressed, and closes the same way.
+      trigger.addEventListener("click", onClick);
+      trigger.setAttribute("aria-expanded", String(Boolean(host.state.internalOpen)));
+      return;
+    }
+    if (how === "hover") {
+      trigger.addEventListener("pointerenter", onEnter);
+      trigger.addEventListener("pointerleave", onLeave);
+    }
     trigger.addEventListener("focusin", onFocusin);
     trigger.addEventListener("focusout", onFocusout);
   };

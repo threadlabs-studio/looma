@@ -331,6 +331,80 @@ describe("Vue form controls", () => {
   });
 });
 
+describe("Help affordance", () => {
+  it("sits beside the field and opens its tooltip on click", async () => {
+    const path = await bundle("vue-help", `
+      import { createApp, h } from "vue";
+      import { Combobox } from "@threadlabs/looma/vue";
+      createApp({
+        render: () => h(Combobox, { id: "where", label: "Destination", help: "Where the export lands." }, () => [
+          h("option", { value: "alpha" }, "Alpha"),
+        ]),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const help = page.locator("#where .help");
+    const field = page.locator("#where .field");
+    const geometry = await page.locator("#where").evaluate((root) => {
+      const box = root.querySelector(".field")!.getBoundingClientRect();
+      const button = root.querySelector(".help")!.getBoundingClientRect();
+      return { outside: button.left >= box.right - 1, insideInput: root.querySelector("input")!.contains(root.querySelector(".help")) };
+    });
+    assert.equal(geometry.outside, true, "the help button follows the field");
+    assert.equal(geometry.insideInput, false);
+    assert.equal(await field.locator(".help").count(), 0, "it is not inside the box");
+
+    const tip = page.locator('[data-component~="ui-tooltip"]');
+    assert.equal(await tip.isVisible(), false);
+    // Hovering a question mark says nothing, so it opens on press and closes the same way.
+    await help.hover();
+    await page.waitForTimeout(700);
+    assert.equal(await tip.isVisible(), false, "hover does not open it");
+    await help.click();
+    await tip.waitFor({ state: "visible" });
+    assert.equal(await help.getAttribute("aria-expanded"), "true");
+    await help.click();
+    await tip.waitFor({ state: "hidden" });
+    await page.close();
+  });
+});
+
+describe("Combobox with multiple", () => {
+  it("keeps the items it selects, and follows a consumer that owns them", async () => {
+    const path = await bundle("vue-multi", `
+      import { createApp, h, ref } from "vue";
+      import { Combobox } from "@threadlabs/looma/vue";
+      const owned = ref([]);
+      window.owned = owned;
+      createApp({
+        render: () => h("div", [
+          h(Combobox, { id: "free", label: "Tags", multiple: true }, () => [
+            h("option", { value: "alpha" }, "Alpha"),
+            h("option", { value: "beta" }, "Beta"),
+          ]),
+          h(Combobox, { id: "owned", label: "Owned", multiple: true, items: owned.value }, () => [
+            h("option", { value: "alpha" }, "Alpha"),
+          ]),
+        ]),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    // Uncontrolled: selecting an option keeps it, with no consumer wiring.
+    await page.locator("#free input").click();
+    await page.locator("#free input").fill("Al");
+    await page.locator('#free [role="option"]').first().click();
+    await page.waitForFunction(() => document.querySelectorAll("#free .item").length === 1);
+    assert.equal(await page.locator("#free .item").first().textContent(), "Alpha");
+
+    // Controlled: the consumer's list wins.
+    await page.evaluate(() => {
+      (window as unknown as { owned: { value: unknown[] } }).owned.value = [{ id: "a", value: "alpha", label: "Alpha" }];
+    });
+    await page.waitForFunction(() => document.querySelectorAll("#owned .item").length === 1);
+    await page.close();
+  });
+});
+
 describe("Vue v-model on reported props", () => {
   it("keeps v-model:query in step with a Combobox's typing", async () => {
     const path = await bundle("vue-query", `
