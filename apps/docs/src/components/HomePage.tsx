@@ -28,7 +28,7 @@ export function HomePage(): JSX.Element {
           <p className="looma-home-section__lede">
             Looma is the first UI library built on{" "}
             <a href="https://nextwebwg.org/html-next/">Declarative HTML Components</a>, a proposal to
-            give HTML its own component model. Every Looma component is written once as that markup,
+            give HTML its own reactive component model. Every Looma component is written once as that markup,
             and the same definition ships two ways.
           </p>
           <div className="looma-home-grid">
