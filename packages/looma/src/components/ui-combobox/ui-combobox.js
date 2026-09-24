@@ -223,7 +223,7 @@ export default function controller(host) {
       search("selection");
       input.focus();
       return;
-    } else if (option) commit(option.value, option.label, option, "selection", trigger);
+    } else if (option) commit(option.value, option.label, asItem(option), "selection", trigger);
     else if (canCreate() && index === host.state.rows.length) commit(null, host.state.raw, null, "create", trigger);
     else return;
     close();
