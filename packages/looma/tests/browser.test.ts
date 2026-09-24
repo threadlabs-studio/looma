@@ -381,19 +381,57 @@ describe("Editor toolbar row", () => {
   });
 });
 
+describe("Avatar initials", () => {
+  it("meet text contrast on their surface", async () => {
+    const path = await bundle("html-avatar-contrast", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-avatar id="person" name="Ada Lovelace"></ui-avatar>
+      <ui-badge id="badge" tone="accent" variant="subtle">Tag</ui-badge>`, [join(root, "tokens.css"), join(root, "theme-light.css")]);
+    await page.waitForSelector('#person[data-component~="ui-avatar"]');
+    await page.waitForSelector('#badge[data-component~="ui-badge"]');
+    // Text on the soft accent surface is the theme's subtle accent text, as a subtle accent badge's is:
+    // a theme whose accent is too light to read on its own soft tint tunes that one token for both.
+    const colour = (id: string) => page.evaluate((selector) => getComputedStyle(document.querySelector(selector)!).color, id);
+    assert.equal(await colour("#person"), await colour("#badge"));
+    const ratio = await page.evaluate(() => {
+      // Resolve any CSS colour (oklch, color-mix) to sRGB the way the browser paints it.
+      const context = document.createElement("canvas").getContext("2d")!;
+      const rgb = (color: string) => {
+        context.clearRect(0, 0, 1, 1);
+        context.fillStyle = color;
+        context.fillRect(0, 0, 1, 1);
+        return [...context.getImageData(0, 0, 1, 1).data.slice(0, 3)];
+      };
+      const luminance = (channels: number[]) => {
+        const [r, g, b] = channels.map((value) => {
+          const c = value / 255;
+          return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+        });
+        return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
+      };
+      const style = getComputedStyle(document.querySelector("#person")!);
+      const [light, dark] = [luminance(rgb(style.color)), luminance(rgb(style.backgroundColor))].sort((a, b) => b - a);
+      return (light! + 0.05) / (dark! + 0.05);
+    });
+    assert.ok(ratio >= 4.5, `initials contrast is ${ratio.toFixed(2)}:1`);
+    await page.close();
+  });
+});
+
 describe("Tree link rows", () => {
   const markup = `
     <ui-tree label="Pages">
       <ui-tree-item id="page" item-id="page" label="Welcome">
         <span slot="leading" id="page-icon">icon</span>
         <a slot="label" id="page-link" href="#welcome">Welcome</a>
-        <button slot="actions" id="page-action" type="button">More</button>
+        <span slot="actions"><button id="page-action" type="button">More</button><div role="menu"><div role="menuitem" id="page-menu-item" tabindex="-1">Move up</div></div></span>
       </ui-tree-item>
       <ui-tree-item id="plain" item-id="plain" label="Plain">
         <span slot="leading" id="plain-icon">icon</span>
       </ui-tree-item>
       <ui-tree-item id="folder" item-id="folder" label="Folder" container>
         <span slot="leading" id="folder-icon">icon</span>
+        <div slot="actions" role="menu"><div role="menuitem" id="folder-menu-item" tabindex="-1">Rename</div></div>
       </ui-tree-item>
     </ui-tree>`;
 
@@ -420,6 +458,9 @@ describe("Tree link rows", () => {
     await page.locator("#page").hover();
     await page.locator("#page-action").click({ force: true });
     assert.equal((await clicks()).length, before, "a control does not follow the label link");
+    // Nor does an item of a menu the row holds, such as its options.
+    await page.locator("#page-menu-item").click({ force: true });
+    assert.equal((await clicks()).length, before, "a menu item in the row does not follow the label link");
 
     // A leaf without a link does nothing; a branch still toggles.
     await page.locator("#plain-icon").click();
@@ -429,6 +470,8 @@ describe("Tree link rows", () => {
       return item?.getAttribute("aria-expanded");
     });
     assert.equal(await expanded(), "false");
+    await page.locator("#folder-menu-item").click({ force: true });
+    assert.equal(await expanded(), "false", "a menu item in a branch row does not toggle it");
     await page.locator("#folder-icon").click();
     await page.waitForFunction(() => {
       const folder = document.querySelector("#folder")!;
@@ -452,10 +495,16 @@ describe("Tree link rows", () => {
         h(TreeItem, { id: "page", itemId: "page", label: "Welcome" }, {
           leading: () => h("span", { id: "page-icon" }, "icon"),
           label: () => h("a", { id: "page-link", href: "#welcome" }, "Welcome"),
-          actions: () => h("button", { id: "page-action", type: "button" }, "More"),
+          actions: () => h("span", [
+            h("button", { id: "page-action", type: "button" }, "More"),
+            h("div", { role: "menu" }, [h("div", { role: "menuitem", id: "page-menu-item", tabindex: -1 }, "Move up")]),
+          ]),
         }),
         h(TreeItem, { id: "plain", itemId: "plain", label: "Plain" }, { leading: () => h("span", { id: "plain-icon" }, "icon") }),
-        h(TreeItem, { id: "folder", itemId: "folder", label: "Folder", container: true }, { leading: () => h("span", { id: "folder-icon" }, "icon") }),
+        h(TreeItem, { id: "folder", itemId: "folder", label: "Folder", container: true }, {
+          leading: () => h("span", { id: "folder-icon" }, "icon"),
+          actions: () => h("div", { role: "menu" }, [h("div", { role: "menuitem", id: "folder-menu-item", tabindex: -1 }, "Rename")]),
+        }),
       ]) }).mount("#app");
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
