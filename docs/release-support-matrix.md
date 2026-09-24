@@ -20,7 +20,7 @@ authorization still requires the protected owner preflight before registry mutat
 
 ### Layout: published
 
-`ui-container`, `ui-grid`, `ui-cluster`, `ui-reel`, `ui-separator`,
+`ui-container`, `ui-grid`, `ui-cluster`, `ui-reel`, `ui-scroll-area`, `ui-separator`,
 `ui-sidebar`, `ui-stack`, `ui-switcher`.
 
 ### Core: published

@@ -61,6 +61,9 @@
     --ui-motion-fast: 120ms;
     --ui-motion-ease: cubic-bezier(0.2, 0, 0.2, 1);
 
+    /* Scrolling: how far the fade reaches at each edge of a scroller that hides content. */
+    --ui-scroll-fade-size: 24px;
+
     /* Controls: the contract every button and field shares. */
     --ui-control-size: 2.5rem;
     --ui-control-size-sm: 2rem;
@@ -218,4 +221,45 @@
       --ui-motion-fast: 0ms;
     }
   }
+}
+
+/* The scroll fade every Looma scroller uses (see ui-scroll-area). Scroll-driven animations grow each
+   edge's fade in as content leaves that edge, up to the scroller's --_ui-scroll-fade-size, and take it
+   away as the last content arrives. A scroller whose content fits has no active scroll timeline, so it
+   shows no fade; a browser without scroll-driven animations shows none either.
+
+   Each edge is a ramp and a hold, neither with a fill, whose ranges never end inside the scroll range
+   with a value left over: an animation that finishes holding a value keeps it (in Chromium) after its
+   scroller stops overflowing, which would leave a fade over content that fits.
+
+   Registered here, at the top level, because a component's scoped styles cannot register properties
+   or declare keyframes. */
+@property --_ui-scroll-fade-start {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --_ui-scroll-fade-end {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@keyframes ui-scroll-fade-start {
+  from { --_ui-scroll-fade-start: 0px; }
+  to { --_ui-scroll-fade-start: var(--_ui-scroll-fade-size, 24px); }
+}
+
+@keyframes ui-scroll-fade-start-hold {
+  from, to { --_ui-scroll-fade-start: var(--_ui-scroll-fade-size, 24px); }
+}
+
+@keyframes ui-scroll-fade-end-hold {
+  from, to { --_ui-scroll-fade-end: var(--_ui-scroll-fade-size, 24px); }
+}
+
+@keyframes ui-scroll-fade-end {
+  from { --_ui-scroll-fade-end: var(--_ui-scroll-fade-size, 24px); }
+  to { --_ui-scroll-fade-end: 0px; }
 }

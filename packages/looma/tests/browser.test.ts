@@ -323,12 +323,74 @@ describe("Combobox validation message", () => {
   });
 });
 
+// Whether each edge of a scroller shows the shared scroll fade: "1" while that edge hides content.
+function scrollFades(page: Page, selector: string) {
+  return page.locator(selector).evaluate((element) => {
+    const style = getComputedStyle(element);
+    const on = (name: string) => (parseFloat(style.getPropertyValue(name)) > 0 ? "1" : "0");
+    return { start: on("--_ui-scroll-fade-start"), end: on("--_ui-scroll-fade-end") };
+  });
+}
+
+describe("Scroll area", () => {
+  const items = Array.from({ length: 30 }, (_, index) => `<p>Item ${index}</p>`).join("");
+  const settle = (page: Page) => page.waitForTimeout(250);
+
+  async function checkFades(page: Page) {
+    const area = page.locator("#area");
+    await area.waitFor();
+    await settle(page);
+    assert.equal(await area.evaluate((element) => getComputedStyle(element).overflowY), "auto");
+    assert.deepEqual(await scrollFades(page, "#area"), { start: "0", end: "1" }, "only the end hides content at first");
+    assert.notEqual(await area.evaluate((element) => getComputedStyle(element).maskImage), "none");
+
+    await area.evaluate((element) => { element.scrollTop = element.scrollHeight; });
+    await settle(page);
+    assert.deepEqual(await scrollFades(page, "#area"), { start: "1", end: "0" }, "scrolled to the end, only the start hides content");
+
+    await area.evaluate((element) => { element.scrollTop = (element.scrollHeight - element.clientHeight) / 2; });
+    await settle(page);
+    assert.deepEqual(await scrollFades(page, "#area"), { start: "1", end: "1" }, "in the middle, both edges hide content");
+
+    await area.evaluate((element) => { (element as HTMLElement).style.height = "5000px"; });
+    await settle(page);
+    assert.deepEqual(await scrollFades(page, "#area"), { start: "0", end: "0" }, "content that fits shows no fade");
+  }
+
+  it("fades only the edges that hide content, in HTML", async () => {
+    const path = await bundle("html-scroll-area", `import "@threadlabs/looma";`);
+    const page = await open(path, `<ui-scroll-area id="area" style="height: 120px">${items}</ui-scroll-area>`, [join(root, "tokens.css")]);
+    await page.waitForSelector('#area[data-component~="ui-scroll-area"]');
+    await checkFades(page);
+    await page.close();
+  });
+
+  it("fades only the edges that hide content, in Vue", async () => {
+    const path = await bundle("vue-scroll-area", `
+      import { createApp, h } from "vue";
+      import { ScrollArea } from "@threadlabs/looma/vue";
+      createApp({ render: () => h(ScrollArea, { id: "area", style: "height: 120px" },
+        () => Array.from({ length: 30 }, (_, index) => h("p", "Item " + index))) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await checkFades(page);
+    await page.close();
+  });
+
+  it("fades sideways, from the start edge, in a right-to-left horizontal area", async () => {
+    const path = await bundle("html-scroll-area-rtl", `import "@threadlabs/looma";`);
+    const page = await open(path, `<div dir="rtl"><ui-scroll-area id="area" orientation="horizontal" style="width: 200px"><p style="width: 2000px">Wide</p></ui-scroll-area></div>`, [join(root, "tokens.css")]);
+    await page.waitForSelector('#area[data-component~="ui-scroll-area"]');
+    await settle(page);
+    assert.deepEqual(await scrollFades(page, "#area"), { start: "0", end: "1" });
+    assert.match(await page.locator("#area").evaluate((element) => getComputedStyle(element).maskImage), /^linear-gradient\(to left/);
+    await page.close();
+  });
+});
+
 describe("Editor toolbar row", () => {
   const buttons = Array.from({ length: 18 }, (_, index) => `<button type="button">B${index}</button>`).join("");
-  const fades = (page: Page) => page.locator("#toolbar").evaluate((element) => ({
-    start: getComputedStyle(element, "::before").opacity,
-    end: getComputedStyle(element, "::after").opacity,
-  }));
+  const fades = (page: Page) => scrollFades(page, "#toolbar .strip");
   const settle = (page: Page) => page.waitForTimeout(250);
 
   async function checkRow(page: Page) {
