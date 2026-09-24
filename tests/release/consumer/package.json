@@ -1,7 +1,7 @@
 {
   "name": "looma-release-consumer-fixture",
   "private": true,
-  "version": "0.10.2",
+  "version": "0.10.9",
   "type": "module",
   "packageManager": "pnpm@10.7.1",
   "scripts": {
