@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.10.0
+
+- Radio Group's `required` works. It was declared but did nothing; now the group states
+  `aria-required="true"`, marks each of its radios required, and native form validation fails until
+  one is checked, as for a required native radio group. A radio's own `required` still counts.
+
 ## v0.9.2
 
 - Every component option is documented where authors read it. The API tab shows each option's

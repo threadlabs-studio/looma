@@ -889,3 +889,47 @@ describe("HTML components", () => {
     await page.close();
   });
 });
+
+describe("Radio group required", () => {
+  // As on native radios: one required radio makes its whole group required.
+  const check = async (page: Page) => {
+    const group = page.locator('#plan[role="radiogroup"]');
+    await group.waitFor();
+    assert.equal(await group.getAttribute("aria-required"), "true");
+    assert.deepEqual(await page.locator("#plan input").evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).required)), [true, true]);
+    const valid = () => page.locator("#form").evaluate((form) => (form as HTMLFormElement).checkValidity());
+    assert.equal(await valid(), false, "nothing chosen");
+    await page.locator('#plan input[value="pro"]').check();
+    assert.equal(await valid(), true);
+    assert.equal(await page.locator('#optional[role="radiogroup"]').getAttribute("aria-required"), "false");
+    assert.deepEqual(await page.locator("#optional input").evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).required)), [false, true]);
+  };
+
+  it("marks the group required and its radios required, in HTML", async () => {
+    const path = await bundle("html-radio-required", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <form id="form">
+        <ui-radio-group id="plan" name="plan" label="Plan" required><ui-radio value="free">Free</ui-radio><ui-radio value="pro">Pro</ui-radio></ui-radio-group>
+        <ui-radio-group id="optional" name="optional" label="Optional" value="b"><ui-radio value="a">A</ui-radio><ui-radio value="b" required>B</ui-radio></ui-radio-group>
+      </form>
+    `, [join(root, "tokens.css")]);
+    await check(page);
+    await page.close();
+  });
+
+  it("marks the group required and its radios required, in Vue", async () => {
+    const path = await bundle("vue-radio-required", `
+      import { createApp, h } from "vue";
+      import { Radio, RadioGroup } from "@threadlabs/looma/vue";
+      createApp({
+        render: () => h("form", { id: "form" }, [
+          h(RadioGroup, { id: "plan", name: "plan", label: "Plan", required: true }, () => [h(Radio, { value: "free" }, () => "Free"), h(Radio, { value: "pro" }, () => "Pro")]),
+          h(RadioGroup, { id: "optional", name: "optional", label: "Optional", value: "b" }, () => [h(Radio, { value: "a" }, () => "A"), h(Radio, { value: "b", required: true }, () => "B")]),
+        ]),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await check(page);
+    await page.close();
+  });
+});
