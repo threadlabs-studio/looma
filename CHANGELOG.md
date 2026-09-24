@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.10.4
+
+- A leaf tree row whose label is a link is that link everywhere a control is not: a click on its
+  `leading` icon or its padding follows the link, with the same modifier keys, so a modified click
+  still opens a new tab. Controls keep their own behaviour and a branch row still expands. This lets
+  an icon live in `leading`, where it stays put while a long name scrolls with `marquee`, without
+  shrinking the row's link to the name. The Tree page documents where icons and links go.
 ## v0.10.3
 
 - `ui-tree` takes `marquee`: a name too long for its row scrolls while that row is hovered or
