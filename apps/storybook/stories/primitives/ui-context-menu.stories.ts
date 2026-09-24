@@ -12,10 +12,11 @@ const meta = {
   render: () => `
     <div style="padding: 2rem;">
       <p style="margin-bottom: 1rem; color: var(--ui-text-secondary); font-size: 0.875rem;">
-        Use the visible action button, or right-click the larger region.
+        Right-click or long-press the region, or focus it and press Shift+F10.
       </p>
       <div
         id="context-menu-demo-target"
+        tabindex="0"
         style="
           display: flex;
           align-items: center;
@@ -30,8 +31,8 @@ const meta = {
           user-select: none;
         "
       >
+        Right-click this area
         <ui-context-menu for="context-menu-demo-target">
-          <button slot="trigger" type="button">Document actions</button>
           <ui-menu-item value="edit">Edit</ui-menu-item>
           <ui-menu-item value="duplicate">Duplicate</ui-menu-item>
           <ui-menu-item value="archive">Archive</ui-menu-item>

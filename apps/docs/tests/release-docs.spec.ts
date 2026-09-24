@@ -166,24 +166,36 @@ test("the documentation shell uses the Looma mark", async ({ page }) => {
   );
 });
 
-test("the context-menu docs expose both visible and pointer action paths", async ({
+test("the context menu opens on a context click, not a plain click", async ({
   page
 }) => {
   await page.goto("components/ui-context-menu", { waitUntil: "domcontentloaded" });
   await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
 
   const scenario = page.locator("[data-preview-scenario='Target binding']");
-  const trigger = scenario.getByRole("button", { name: "Open menu", exact: true });
   const target = scenario.locator("#context-menu-target");
+  const firstItem = page.getByRole("menuitem", { name: "First item", exact: true });
 
-  await expect(trigger).toBeVisible();
   await expect(target).toBeVisible();
-  await expect(target).toHaveText("Open menu");
-
   // Leave room below the pointer so the menu opens downward instead of flipping.
   await target.evaluate((element) => element.scrollIntoView({ block: "center", behavior: "instant" }));
+
+  await target.click();
+  await expect(firstItem).not.toBeVisible();
+
+  await target.focus();
+  await page.keyboard.press("Shift+F10");
+  await expect(firstItem).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(firstItem).not.toBeVisible();
+
+  // iOS fires no contextmenu on long-press, so a held touch opens the menu on its own.
+  await target.dispatchEvent("pointerdown", { pointerType: "touch", clientX: 40, clientY: 40 });
+  await expect(firstItem).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(firstItem).not.toBeVisible();
+
   await target.click({ button: "right", position: { x: 24, y: 24 } });
-  const firstItem = page.getByRole("menuitem", { name: "First item", exact: true });
   await expect(firstItem).toBeVisible();
   const contextSurface = page.locator("[data-component~='ui-context-menu'] [popover]").first();
   await expect(contextSurface).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 0)");
