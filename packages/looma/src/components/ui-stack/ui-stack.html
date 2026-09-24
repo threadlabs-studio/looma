@@ -1,8 +1,14 @@
 <template component="ui-stack">
   <defs>
-    <prop name="gap" type="xs | s | m | l | xl">gap token.</prop>
-    <prop name="align" type="start | center | end | stretch">align token.</prop>
-    <prop name="justify" type="start | center | end | between">justify token.</prop>
+    <prop name="gap" type="xs | s | m | l | xl"
+    >Space between items, on the spacing scale: xs is 0.5rem, s 0.75rem, m 1rem (also the default), l 1.5rem, and xl 2rem. The --ui-stack-gap custom property,
+      when set, overrides it.</prop>
+    <prop name="align" type="start | center | end | stretch"
+    >How items sit across the stack: stretch (the default) makes each fill the stack's width; start, center, and end keep each at its own width, against the
+      start, in the middle, or against the end.</prop>
+    <prop name="justify" type="start | center | end | between"
+    >Where items sit along a stack that is taller than its content: start (the default), center, end, or between, which spreads the spare space between items.
+      It has no effect unless the stack is given a height or stretched to one.</prop>
   </defs>
   <div><slot></slot></div>
   <style>

@@ -1,8 +1,14 @@
 <template component="ui-switcher">
   <defs>
-    <prop name="gap" type="xs | s | m | l | xl">gap token.</prop>
-    <prop name="threshold" type="xs | sm | md | lg">threshold token.</prop>
-    <prop name="align" type="start | center | end | stretch">align token.</prop>
+    <prop name="gap" type="xs | s | m | l | xl"
+    >Space between items, on the spacing scale: xs is 0.5rem, s 0.75rem, m 1rem (also the default), l 1.5rem, and xl 2rem. The --ui-switcher-gap custom
+      property, when set, overrides it.</prop>
+    <prop name="threshold" type="xs | sm | md | lg"
+    >The container width at which items switch between a row and a stack: wider, they all sit side by side; narrower, each takes the full width. xs is 20rem, sm
+      is 30rem (also the default), md is 45rem, and lg is 60rem.</prop>
+    <prop name="align" type="start | center | end | stretch"
+    >How items line up while they sit in a row: stretch (the default) makes them equally tall; start, center, and end align their tops, middles, or
+      bottoms.</prop>
   </defs>
   <div><slot></slot></div>
   <style>

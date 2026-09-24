@@ -1,9 +1,11 @@
 <template component="ui-switch" controller="./ui-switch.js">
   <defs>
     <prop name="checked" type="boolean" default="false">Whether the switch is checked initially or when set externally.</prop>
-    <prop name="disabled" type="boolean" default="false">disabled token.</prop>
-    <prop name="required" type="boolean" default="false">required token.</prop>
-    <prop name="value" type="string" default="on">value token.</prop>
+    <prop name="disabled" type="boolean" default="false">Disables the native switch, so it cannot be toggled or focused.</prop>
+    <prop name="required" type="boolean" default="false">Marks the native switch required, so native form validation treats it as invalid until it is on.</prop>
+    <prop name="value" type="string" default="on"
+    >The value set on the native input and reported in the change event's detail, so one handler can tell switches apart. on by default, as on a native
+      checkbox.</prop>
     <state name="internalChecked" :value="false"></state>
     <event name="change" type="object({ checked: boolean, value: string, trigger: keyboard | pointer | programmatic })"></event>
   </defs>

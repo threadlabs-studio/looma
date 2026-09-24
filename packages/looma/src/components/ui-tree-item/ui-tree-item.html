@@ -1,17 +1,38 @@
 <template component="ui-tree-item" controller="./ui-tree-item.js">
   <defs>
-    <prop name="itemId" type="string" default="">itemId token.</prop>
+    <prop name="itemId" type="string" default=""
+    >The item's identifier, reported as sourceId and targetId in the tree's reorder events and as id in its expand event. A sortable item needs one to be
+      dragged, and a drop onto an item without one is not reported.</prop>
     <prop name="label" type="string" default="">The item's accessible name, also shown as the row text unless the label slot supplies content.</prop>
-    <prop name="dropDepth" type="number">dropDepth token.</prop>
-    <prop name="subtreeDepth" type="number">subtreeDepth token.</prop>
-    <prop name="container" type="boolean" default="false">container token.</prop>
-    <prop name="sortable" type="boolean" default="false">sortable token.</prop>
-    <prop name="dragType" type="string" default="item">dragType token.</prop>
-    <prop name="dropScope" type="string" default="">dropScope token.</prop>
-    <prop name="accepts" type="string" default="">accepts token.</prop>
-    <prop name="expanded" type="boolean" default="false">expanded token.</prop>
-    <prop name="selected" type="boolean" default="false">selected token.</prop>
-    <prop name="disabled" type="boolean" default="false">disabled token.</prop>
+    <prop name="dropDepth" type="number"
+    >Overrides the level this item counts as when the tree checks maxDepth for a drop onto it. Unset, its level in the rendered tree is used; set it when the
+      item sits deeper in the real hierarchy than the rendered tree shows.</prop>
+    <prop name="subtreeDepth" type="number"
+    >Overrides how many levels sit beneath this item when the tree checks maxDepth for a drag of it. Unset, the tree counts the rendered descendants; set it
+      when some are not rendered, such as children that load later.</prop>
+    <prop name="container" type="boolean" default="false"
+    >Makes the item a branch even before it has children: it gets the expand button and aria-expanded, and accepts drops inside it. An item with nested items is
+      a branch without it.</prop>
+    <prop name="sortable" type="boolean" default="false"
+    >Gives the item a drag handle, shown on hover, so it can be dragged to a new place in the tree. The tree reports the drop as a reorder event and leaves
+      moving the item to you. Needs itemId; a disabled item, and any item under touch input, shows no handle.</prop>
+    <prop name="dragType" type="string" default="item"
+    >The item's kind, for drag rules: it can be dropped before or after only items of the same type, and inside a branch only if that branch's accepts allows
+      it. Reported as sourceType and targetType.</prop>
+    <prop name="dropScope" type="string" default=""
+    >A label passed through as sourceScope and targetScope in the tree's reorder events. The tree does not enforce it; use it to tell drops within a scope from
+      drops across scopes.</prop>
+    <prop name="accepts" type="string" default=""
+    >A comma-separated list of the dragType values this branch accepts dropped inside it. Empty accepts any type. It does not affect drops before or after the
+      item.</prop>
+    <prop name="expanded" type="boolean" default="false"
+    >Whether the branch shows its children, initially or when set externally. The expand button, a click on the row, and the arrow keys toggle it from there,
+      each reported as an expand event. Only meaningful for a branch.</prop>
+    <prop name="selected" type="boolean" default="false"
+    >Marks the item selected: it sets aria-selected and gives the row the highlighted surface. The tree does not select on click, so drive it from your own
+      state.</prop>
+    <prop name="disabled" type="boolean" default="false"
+    >Makes the item unavailable: faded, skipped by keyboard navigation, unable to expand or be dragged, and closed to drops inside it.</prop>
     <state name="internalExpanded" :value="false"></state>
     <state name="structuralLevel" :value="1"></state>
     <state name="tabStop" :value="false"></state>

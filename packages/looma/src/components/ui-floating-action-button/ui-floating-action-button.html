@@ -1,8 +1,10 @@
 <template component="ui-floating-action-button">
   <defs>
-    <prop name="disabled" type="boolean" default="false">disabled token.</prop>
-    <prop name="mobileOnly" type="boolean" default="false">mobileOnly token.</prop>
-    <prop name="label" type="string" default="">label token.</prop>
+    <prop name="disabled" type="boolean" default="false">Disables the button, so it cannot be pressed or focused, and fades it to 60% opacity.</prop>
+    <prop name="mobileOnly" type="boolean" default="false"
+    >Hides the button on viewports 768px wide and wider, for a shortcut that only phones need. Make sure the action is reachable another way at those
+      widths.</prop>
+    <prop name="label" type="string" default="">The button's accessible name. The button usually holds only an icon, so name the action it performs.</prop>
   </defs>
   <button type="button" :aria-label="label" :disabled="disabled"><slot></slot></button>
   <style>

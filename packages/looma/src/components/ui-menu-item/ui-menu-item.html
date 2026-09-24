@@ -1,7 +1,10 @@
 <template component="ui-menu-item">
   <defs>
-    <prop name="disabled" type="boolean" default="false">disabled token.</prop>
-    <prop name="value" type="string" default="">value token.</prop>
+    <prop name="disabled" type="boolean" default="false"
+    >Makes the item unavailable: it is faded, skipped by the arrow keys, and choosing it does nothing. It stays visible and is announced as disabled.</prop>
+    <prop name="value" type="string" default=""
+    >The value the enclosing menu reports in its select event when this item is chosen. Give each item a distinct value so one handler can tell them
+      apart.</prop>
   </defs>
   <div role="menuitem" tabindex="-1" :aria-disabled="disabled" :data-value="value"><slot></slot></div>
   <style>

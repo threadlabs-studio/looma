@@ -7,6 +7,15 @@ from those files. It reads only the intro line from each component MDX page for 
 description. Legacy classes and source decorators are not API inputs, and no migration converter
 runs during normal development.
 
+## Option descriptions
+
+Each option's description is the prose inside its `<prop>` element. The generator carries it into
+`generated/component-api.json`, and the API tab shows it beside the option's name. Write it for the
+person choosing a value: what the option does, what each value means, and what it pairs with. A
+rule test (`tools/scripts/option-docs-rule.test.mjs`) fails on an option with no real description,
+such as a name restated as "tone token.". A polymorphic root (`<button as="button|a">`) is listed as
+an `as` option with the elements it can render.
+
 ## Commands
 
 - `pnpm generate:api` regenerates `generated/component-api.json` for the docs and Storybook consumers.

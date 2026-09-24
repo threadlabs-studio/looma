@@ -917,6 +917,14 @@ test("Examples and API keep configuration demos separate from exhaustive referen
   await expect(page.locator(".looma-api")).toBeVisible();
   await expect(page.getByRole("heading", { level: 2, name: "Attributes" })).toBeVisible();
   await expect(page.getByRole("heading", { level: 2, name: "Framework props" })).toBeVisible();
+
+  // Each option carries its authored description, including the polymorphic `as` root.
+  const attributes = page.locator(".looma-api-table").filter({ has: page.getByRole("columnheader", { name: "Property" }) });
+  await expect(attributes.getByRole("columnheader", { name: "Description" })).toBeVisible();
+  const asRow = attributes.getByRole("row").filter({ has: page.getByRole("cell", { name: "as", exact: true }) });
+  await expect(asRow).toContainText("button or a");
+  const hrefRow = attributes.getByRole("row").filter({ has: page.getByRole("cell", { name: "href", exact: true }) });
+  await expect(hrefRow).toContainText("Pair it with as=\"a\"");
 });
 
 test("code panes scroll inside the example and expose readable authored IDs", async ({ page }) => {
