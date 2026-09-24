@@ -1,0 +1,14 @@
+<!--
+title: Link rows
+description: An icon in leading and a link in label. The whole leaf row follows the link, and with marquee only the name scrolls; the icon stays put.
+-->
+<ui-tree label="Pages" marquee style="width: 15rem">
+  <ui-tree-item item-id="welcome" label="Welcome">
+    <ui-icon slot="leading" name="pilcrow"></ui-icon>
+    <a slot="label" href="#welcome">Welcome</a>
+  </ui-tree-item>
+  <ui-tree-item item-id="handbook" label="How to Use This Handbook and Everything Inside It">
+    <ui-icon slot="leading" name="pilcrow"></ui-icon>
+    <a slot="label" href="#handbook">How to Use This Handbook and Everything Inside It</a>
+  </ui-tree-item>
+</ui-tree>
