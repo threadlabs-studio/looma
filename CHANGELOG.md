@@ -10,6 +10,9 @@
   reaches them anyway changes nothing.
 - Search Result Row's `selected` reaches assistive technology: the row's button states
   `aria-current="true"` as well as taking the highlighted surface. It had been visual only.
+- Checkbox and Switch take `name`, passed to the native input, so they submit with a form: checked
+  sends `name=value` (value defaults to `on`) and unchecked sends nothing, as a native checkbox
+  does. Without it, neither could submit at all.
 
 ## v0.9.2
 

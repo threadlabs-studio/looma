@@ -1022,3 +1022,46 @@ describe("Search Result Row selected", () => {
     await page.close();
   });
 });
+
+describe("Checkbox and Switch name", () => {
+  // Like a native checkbox: checked sends name=value, unchecked sends nothing.
+  const check = async (page: Page) => {
+    await page.locator("#alerts input").waitFor();
+    const entries = () => page.locator("#form").evaluate((form) =>
+      Array.from(new FormData(form as HTMLFormElement), ([name, value]) => [name, String(value)]));
+    assert.deepEqual(await entries(), [["terms", "on"]]);
+    await page.locator("#news input").check();
+    await page.locator("#alerts input").check();
+    assert.deepEqual(await entries(), [["terms", "on"], ["news", "weekly"], ["alerts", "push"]]);
+  };
+
+  it("submits a checked box with its form in HTML", async () => {
+    const path = await bundle("html-checkbox-name", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <form id="form">
+        <ui-checkbox name="terms" checked>Terms</ui-checkbox>
+        <ui-checkbox id="news" name="news" value="weekly">News</ui-checkbox>
+        <ui-switch id="alerts" name="alerts" value="push">Alerts</ui-switch>
+      </form>
+    `, [join(root, "tokens.css")]);
+    await check(page);
+    await page.close();
+  });
+
+  it("submits a checked box with its form in Vue", async () => {
+    const path = await bundle("vue-checkbox-name", `
+      import { createApp, h } from "vue";
+      import { Checkbox, Switch } from "@threadlabs/looma/vue";
+      createApp({
+        render: () => h("form", { id: "form" }, [
+          h(Checkbox, { name: "terms", checked: true }, () => "Terms"),
+          h(Checkbox, { id: "news", name: "news", value: "weekly" }, () => "News"),
+          h(Switch, { id: "alerts", name: "alerts", value: "push" }, () => "Alerts"),
+        ]),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await check(page);
+    await page.close();
+  });
+});

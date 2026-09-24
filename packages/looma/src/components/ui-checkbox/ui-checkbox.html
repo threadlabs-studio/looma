@@ -7,14 +7,17 @@
       independent of checked, so update it as the group changes.</prop>
     <prop name="required" type="boolean" default="false"
     >Marks the native checkbox required, so native form validation treats it as invalid until it is checked.</prop>
+    <prop name="name" type="string" default=""
+    >The native name the checkbox submits under: a form that contains it sends name=value while it is checked, and nothing while it is unchecked, as a
+      native checkbox does. Left empty, it takes no part in form submission.</prop>
     <prop name="value" type="string" default="on"
-    >The value set on the native input and reported in the change event's detail, so one handler can tell checkboxes apart. on by default, as on a native
-      checkbox.</prop>
+    >The value a form submits under name while the checkbox is checked, also reported in the change event's detail so one handler can tell checkboxes apart. on
+      by default, as on a native checkbox.</prop>
     <state name="internalChecked" :value="false"></state>
     <event name="change" type="object({ checked: boolean, value: string, trigger: keyboard | pointer | programmatic })"></event>
   </defs>
   <label>
-    <input type="checkbox" $ref="input" .checked="internalChecked" .indeterminate="indeterminate" :disabled="disabled" :required="required" :value="value">
+    <input type="checkbox" $ref="input" .checked="internalChecked" .indeterminate="indeterminate" :disabled="disabled" :required="required" :name="name" :value="value">
     <span class="label"><slot></slot></span>
   </label>
   <style>
