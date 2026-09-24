@@ -2,10 +2,10 @@
   <defs>
     <prop name="disabled" type="boolean" default="false">Disables the row's button, so it cannot be chosen or focused, and fades it to 60% opacity.</prop>
     <prop name="selected" type="boolean" default="false"
-    >Highlights the row with its hover surface, to mark the current result. It is visual only and sets no ARIA state, so convey the selection to assistive
-      technology another way where it matters.</prop>
+    >Marks the row as the current result: it gets the hover surface and aria-current="true", which assistive technology announces as current. Set it on one row
+      at a time, such as the result the arrow keys have moved to.</prop>
   </defs>
-  <button type="button" :disabled="disabled">
+  <button type="button" :disabled="disabled" :aria-current="selected">
     <span class="leading"><slot name="leading"></slot></span>
     <span class="content">
       <span class="title"><slot name="title"></slot></span>
