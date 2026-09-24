@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.9.0
+
+- **Breaking:** Context Menu opens only on a context click: right-click, Shift+F10 or the Menu key
+  on the focused target, or a touch long-press (about half a second, which iOS Safari needs since
+  it fires no `contextmenu`). A plain click or Enter on the `for` element no longer opens it, and it
+  no longer sets `aria-haspopup` or `aria-expanded` on that element. For a visible button that opens
+  the same actions, pair a `ui-menu` with it.
+
 ## v0.8.1
 
 - The editor's active-block marker is quieter. It steps aside while text is being typed and returns
