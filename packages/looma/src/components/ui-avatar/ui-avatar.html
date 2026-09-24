@@ -1,9 +1,17 @@
 <template component="ui-avatar" controller="./ui-avatar.js">
   <defs>
-    <prop name="src" type="string">Image URL.</prop>
-    <prop name="alt" type="string" default="">alt token.</prop>
-    <prop name="name" type="string" default="">name token.</prop>
-    <prop name="fallback" type="string" default="">fallback token.</prop>
+    <prop name="src" type="string"
+    >The image to show, cropped to fill the circle. Until it loads, or if it fails, the avatar shows initials instead. An img element authored inside the avatar
+      takes precedence over src.</prop>
+    <prop name="alt" type="string" default=""
+    >The avatar's accessible name, announced for it as an image. When empty, name is used, then "Avatar". Initials come from name first, so alt supplies them
+      only when name is empty. An authored img carries its own alt instead.</prop>
+    <prop name="name" type="string" default=""
+    >The person's name. The initials are drawn from it: the first letters of the first two words, or the first two letters of a single word. It is also the
+      accessible name when alt is empty.</prop>
+    <prop name="fallback" type="string" default=""
+    >Text shown instead of the initials derived from name or alt, whenever there is no image. It is uppercased; keep it to a couple of characters, because the
+      circle clips anything wider.</prop>
     <state name="hasImage" :value="false"></state>
     <state name="hasAuthoredImage" :value="false"></state>
     <state name="initials" :value="'?'"></state>

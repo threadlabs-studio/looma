@@ -50,6 +50,26 @@ function inferRoot(source, tag) {
   return match[1];
 }
 
+/** A polymorphic root (`<button as="button|a">`) lists the elements an author may pick with `as`. */
+function inferRootAlternatives(source) {
+  const template = stripDefinitionPreamble(source)
+    .replace(/^\s*<template\b[^>]*>/, "")
+    .trim();
+  const root = /^<[a-z][a-z0-9-]*\b([^>]*)>/i.exec(template);
+  const as = root ? parseAttributes(root[1]).as : undefined;
+  return as ? as.split("|").map((value) => value.trim()).filter(Boolean) : undefined;
+}
+
+/** Each prop's authored description: the prose inside its `<prop>` element. */
+function parsePropDescriptions(defs) {
+  const descriptions = {};
+  for (const match of defs.matchAll(/<prop\b([^>]*)>([\s\S]*?)<\/prop>/g)) {
+    const { name } = parseAttributes(match[1]);
+    if (name) descriptions[name] = match[2].replace(/\s+/g, " ").trim();
+  }
+  return Object.freeze(descriptions);
+}
+
 function parseProps(defs) {
   const props = {};
   for (const match of defs.matchAll(/<prop\b([^>]*)>([\s\S]*?)<\/prop>/g)) {
@@ -104,7 +124,9 @@ export function parseDeclarativeContract(source, expectedTag) {
 
   return Object.freeze({
     root: inferRoot(source, tag),
+    ...(inferRootAlternatives(source) ? { rootAlternatives: inferRootAlternatives(source) } : {}),
     props: parseProps(defs),
+    propDescriptions: parsePropDescriptions(defs),
     slots: parseSlots(source),
     methods: parseNamedDefinitions(defs, "method", (attributes) => ({
       name: attributes.name,

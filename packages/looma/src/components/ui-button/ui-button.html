@@ -3,11 +3,15 @@
     <prop name="variant" type="outline | solid | danger | ghost | link" default="outline"
     >Emphasis: how loudly the button asks. solid fills with its tone, outline draws its tone at the edge over a wash of it, ghost carries only text until it is
       hovered, and link is an inline text action that reads as a link. danger is solid in the danger tone, kept for the call sites that name it.</prop>
-    <prop name="size" type="sm | md | lg" default="md">Control size.</prop>
+    <prop name="size" type="sm | md | lg" default="md"
+    >Height, padding, and type size. sm is the small control height (2rem by default) with tighter padding and smaller text, md is the standard control height
+      (2.5rem), and lg is taller (3rem) with roomier padding.</prop>
     <prop name="tone" type="accent | neutral | danger | success | warning | info" default="accent"
     >Which colour the button speaks in. It applies to every variant, so an outline, a ghost, and a solid in the same tone are the same action at three volumes:
       tone="danger" variant="outline" is a destructive secondary action. neutral is the quiet one, for a button that should not claim a colour.</prop>
-    <prop name="disabled" type="boolean" default="false">disabled token.</prop>
+    <prop name="disabled" type="boolean" default="false"
+    >Makes the button unavailable: it cannot be pressed, its tone fades, and it loses its raised look. A disabled link (as="a" with href) drops its href and
+      states aria-disabled="true" instead, because a link has no native disabled state.</prop>
     <prop name="align" type="center | start" default="center"
     >Content alignment. start lays the content out like a list option: from the start edge, with start-aligned text.</prop>
     <prop name="stretch" type="boolean" default="false">Fills the inline size of its container.</prop>

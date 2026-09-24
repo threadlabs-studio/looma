@@ -8,6 +8,8 @@ interface ComponentApiProps {
 
 interface ComponentApiAttribute {
   name: string;
+  /** The option's authored description, from its `<prop>` definition. */
+  description?: string;
   property: string;
   type: string;
   default?: unknown;
@@ -162,6 +164,7 @@ export function ComponentApi({ component }: ComponentApiProps): JSX.Element {
           <thead>
             <tr>
               <th>Name</th>
+              <th>Description</th>
               <th>Property</th>
               <th>Type</th>
               <th>Default</th>
@@ -174,6 +177,7 @@ export function ComponentApi({ component }: ComponentApiProps): JSX.Element {
                 <td>
                   <code>{attribute.name}</code>
                 </td>
+                <td>{attribute.description || "-"}</td>
                 <td>
                   <code>{attribute.property}</code>
                 </td>

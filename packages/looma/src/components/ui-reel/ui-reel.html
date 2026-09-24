@@ -1,8 +1,14 @@
 <template component="ui-reel">
   <defs>
-    <prop name="gap" type="xs | s | m | l | xl">gap token.</prop>
-    <prop name="itemWidth" type="sm | md | lg">itemWidth token.</prop>
-    <prop name="snap" type="start | center">snap token.</prop>
+    <prop name="gap" type="xs | s | m | l | xl"
+    >Space between items, on the spacing scale: xs is 0.5rem, s 0.75rem, m 1rem (also the default), l 1.5rem, and xl 2rem. The --ui-reel-gap custom property,
+      when set, overrides it.</prop>
+    <prop name="itemWidth" type="sm | md | lg"
+    >A fixed width for every item: sm is 12rem, md is 16rem, and lg is 20rem. Unset, each item keeps its content's width. Items never shrink to fit, so the reel
+      scrolls sideways once they overflow.</prop>
+    <prop name="snap" type="start | center"
+    >Snaps scrolling to items: start comes to rest with an item's start edge at the reel's start, and center with an item centred in the reel. Unset, the reel
+      scrolls freely.</prop>
   </defs>
   <div role="region" tabindex="0"><slot></slot></div>
   <style>
