@@ -9,40 +9,37 @@ export default function controller(host) {
   const document = element.ownerDocument;
   const menuSurface = host.refs.menu;
   const overlayId = `ui-context-menu-${Math.random().toString(36).slice(2, 11)}`;
-  let trigger = null;
-  let contextTarget = null;
+  let target = null;
   let surface = null;
   let point = null;
+  let press = null;
   let lastFor = host.state.for;
   let lastOpenProp = Boolean(host.state.open);
   host.state.internalOpen = lastOpenProp;
 
   const items = () => Array.from(element.querySelectorAll('[data-component~="ui-menu-item"]')).filter((item) => !disabled(item));
   const focusFirst = () => requestAnimationFrame(() => items()[0]?.focus());
+  const targetEvents = { contextmenu: onContextMenu, keydown: onTargetKeydown, pointerdown: onPointerdown, pointerup: endPress, pointercancel: endPress };
   const detach = () => {
-    trigger?.removeEventListener("click", onTriggerClick);
-    trigger?.removeEventListener("keydown", onTriggerKeydown);
-    contextTarget?.removeEventListener("contextmenu", onContextMenu);
+    for (const [type, listener] of Object.entries(targetEvents)) target?.removeEventListener(type, listener);
+    endPress();
   };
   const ids = createIdResolver(document, () => resolveTargets());
   const resolveTargets = () => {
-    const nextTrigger = ids.get(String(host.state.for ?? ""));
-    const nextContext = nextTrigger;
-    if (nextTrigger === trigger && nextContext === contextTarget) return;
+    const next = ids.get(String(host.state.for ?? ""));
+    if (next === target) return;
     detach();
-    trigger = nextTrigger;
-    contextTarget = nextContext;
-    trigger?.addEventListener("click", onTriggerClick);
-    trigger?.addEventListener("keydown", onTriggerKeydown);
-    contextTarget?.addEventListener("contextmenu", onContextMenu);
-    surface?.setAnchor(trigger);
+    target = next;
+    for (const [type, listener] of Object.entries(targetEvents)) target?.addEventListener(type, listener);
+    surface?.setAnchor(target);
   };
-  // Light dismiss leaves focus where the user pointed instead of pulling it back to the trigger.
+  // Light dismiss leaves focus where the user pointed instead of pulling it back to the target.
   const close = (reason, input, returnFocus = reason !== "light-dismiss") => {
     if (!host.state.internalOpen) return;
     host.state.internalOpen = false;
+    endPress();
     host.dispatch("close", { open: false, reason, trigger: input });
-    if (returnFocus) trigger?.focus();
+    if (returnFocus) target?.focus();
   };
   const apply = () => {
     if (host.state.for !== lastFor) {
@@ -54,12 +51,7 @@ export default function controller(host) {
       lastOpenProp = externalOpen;
       host.state.internalOpen = externalOpen;
     }
-    const open = Boolean(host.state.internalOpen);
-    if (trigger) {
-      trigger.setAttribute("aria-haspopup", "menu");
-      trigger.setAttribute("aria-expanded", String(open));
-    }
-    if (open) {
+    if (host.state.internalOpen) {
       if (point) surface?.showAtPoint(point);
       else surface?.show();
       openOverlay({ id: overlayId, modal: false, element, dismissible: true, requestClose: close });
@@ -68,31 +60,46 @@ export default function controller(host) {
       closeOverlay(document, overlayId);
     }
   };
-  const openFromTrigger = (input) => {
-    if (!trigger) return;
-    point = null;
+  // A null point anchors the menu to the target, for keyboard opens that have no pointer position.
+  const openAt = (at, input) => {
+    point = at;
+    if (at) surface?.showAtPoint(at);
     host.state.internalOpen = true;
     host.dispatch("open", { open: true, reason: "action", trigger: input });
     focusFirst();
   };
-  function onTriggerClick(event) {
-    const input = event.detail === 0 ? "keyboard" : "pointer";
-    if (host.state.internalOpen) close("action", input);
-    else openFromTrigger(input);
-  }
-  function onTriggerKeydown(event) {
-    if (!["Enter", " ", "ArrowDown"].includes(event.key)) return;
-    event.preventDefault();
-    if (!host.state.internalOpen) openFromTrigger("keyboard");
-    else focusFirst();
-  }
+  // A nested target that already opened its own menu prevents the default, so outer targets stay shut.
   function onContextMenu(event) {
+    if (event.defaultPrevented) return;
     event.preventDefault();
-    point = { x: event.clientX, y: event.clientY };
-    surface?.showAtPoint(point);
-    host.state.internalOpen = true;
-    host.dispatch("open", { open: true, reason: "action", trigger: "pointer" });
-    focusFirst();
+    // A touch long-press opens the menu itself; Android's own contextmenu for that press is the same gesture.
+    if (press) {
+      clearTimeout(press.timer);
+      if (!press.opened) openAt(press.at, "pointer");
+      press.opened = true;
+      return;
+    }
+    openAt({ x: event.clientX, y: event.clientY }, "pointer");
+  }
+  // Shift+F10 and the Menu key, handled here so every browser (Safari fires no contextmenu for them) behaves alike.
+  function onTargetKeydown(event) {
+    if (event.defaultPrevented || !(event.key === "ContextMenu" || (event.shiftKey && event.key === "F10"))) return;
+    event.preventDefault();
+    openAt(null, "keyboard");
+  }
+  // iOS Safari fires no contextmenu on long-press, so touch opens the menu after a held press.
+  function onPointerdown(event) {
+    if (event.pointerType !== "touch") return;
+    endPress();
+    press = { at: { x: event.clientX, y: event.clientY }, opened: false };
+    press.timer = setTimeout(() => {
+      press.opened = true;
+      openAt(press.at, "pointer");
+    }, 500);
+  }
+  function endPress() {
+    clearTimeout(press?.timer);
+    press = null;
   }
   const onKeydown = (event) => {
     if (!host.state.internalOpen) return;
@@ -123,7 +130,7 @@ export default function controller(host) {
     close("action", "pointer");
   };
   resolveTargets();
-  if (menuSurface) surface = createAnchoredSurface(menuSurface, { anchor: trigger, placement: "bottom-start" });
+  if (menuSurface) surface = createAnchoredSurface(menuSurface, { anchor: target, placement: "bottom-start" });
   element.addEventListener("keydown", onKeydown);
   element.addEventListener("click", onClick);
   const observer = new MutationObserver(resolveTargets);
