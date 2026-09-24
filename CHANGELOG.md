@@ -1,12 +1,20 @@
 # Changelog
 
-## v0.10.5
+## v0.10.7
 
 - Combobox reports options in their declared shape. Since 0.10.3 each option in `options-change`,
   and the chosen option in a single combobox's `value-change`, carried the list's internal
   `selected` flag, which the Vue adapter's event check rejects: every search threw `HR002` and a
   single choice never reached `@value-change`. Events now carry `id`, `value`, `label`, and, when
   set, `group` and `disabled`, as multiple mode's `add-item` already did.
+
+## v0.10.5
+
+- A tree item's drag handle sits beside what it drags. A leaf row's handle takes the empty
+  disclosure column right before its icon, where it used to sit outside the row, a column and an
+  indent away (25px from a nested icon, now 7px). A branch's handle sits just outside its
+  disclosure. The handle has no resting surface, which read as a faint patch, and takes the hover
+  tint only when pointed at.
 
 ## v0.10.4
 
