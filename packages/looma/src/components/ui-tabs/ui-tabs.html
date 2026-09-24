@@ -1,9 +1,14 @@
 <template component="ui-tabs" controller="./ui-tabs.js">
   <defs>
     <prop name="density" type="comfortable | compact" default="comfortable">Compact trades padding and type size for rows that fit more on screen.</prop>
-    <prop name="label" type="string" default="Tabs">label token.</prop>
-    <prop name="value" type="string" default="">value token.</prop>
-    <prop name="orientation" type="horizontal | vertical" default="horizontal">orientation token.</prop>
+    <prop name="label" type="string" default="Tabs"
+    >The tab list's accessible name, announced when focus enters the list. Name what the tabs switch between.</prop>
+    <prop name="value" type="string" default=""
+    >The id of the selected panel, initially or when set externally; empty selects the first panel. Choosing a tab updates it from there and reports a select
+      event. A panel without an id is given a generated one.</prop>
+    <prop name="orientation" type="horizontal | vertical" default="horizontal"
+    >horizontal puts the tabs in a row above the panels, moved between with the Left and Right arrow keys; vertical puts them in a column beside the panels,
+      moved between with Up and Down.</prop>
     <prop name="stretch" type="boolean" default="false">Share the full width of the tab list equally between tabs instead of sizing each to its label.</prop>
     <state name="internalValue" :value="''"></state>
     <state name="tabs" type="list(object({ id: string, label: string }))" :value="[]"></state>

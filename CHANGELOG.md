@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.9.2
+
+- Every component option is documented where authors read it. The API tab shows each option's
+  description beside its name (the generator had been dropping it), and 95 options that said only
+  "tone token." or "Control size." now explain what they do, what each value means, and what they
+  pair with. A polymorphic root is listed as an `as` option, so Button's `as="a"` appears in its
+  API. A rule test fails on any option without a real description.
 ## v0.9.0
 
 - **Breaking:** Context Menu opens only on a context click: right-click, Shift+F10 or the Menu key

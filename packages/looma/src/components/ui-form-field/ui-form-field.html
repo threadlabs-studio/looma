@@ -1,8 +1,14 @@
 <template component="ui-form-field" controller="./ui-form-field.js">
   <defs>
-    <prop name="invalid" type="boolean" default="false">invalid token.</prop>
-    <prop name="disabled" type="boolean" default="false">disabled token.</prop>
-    <prop name="required" type="boolean" default="false">required token.</prop>
+    <prop name="invalid" type="boolean" default="false"
+    >Marks the field's control invalid by setting aria-invalid on it. Pair it with content in the error slot, which the field already links to the control as
+      its description.</prop>
+    <prop name="disabled" type="boolean" default="false"
+    >Disables the field's control: the first input, textarea, or select inside it. The field writes this to the control whenever it updates, so set it here
+      rather than on the control.</prop>
+    <prop name="required" type="boolean" default="false"
+    >Marks the field's control required, for native form validation. Like disabled, it is written to the control, so set it here rather than on the control. It
+      adds no visual marker; show one in the label if the form needs it.</prop>
   </defs>
   <div>
     <div class="label"><slot name="label"></slot></div>

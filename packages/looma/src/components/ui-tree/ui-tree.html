@@ -2,9 +2,13 @@
 <template component="ui-tree" controller="./ui-tree.js">
   <defs>
     <prop name="density" type="comfortable | compact" default="comfortable">Compact trades padding and type size for rows that fit more on screen.</prop>
-    <prop name="label" type="string" default="Tree">label token.</prop>
-    <prop name="hoverExpandDelay" type="number" default="700">hoverExpandDelay token.</prop>
-    <prop name="maxDepth" type="number" default="0">maxDepth token.</prop>
+    <prop name="label" type="string" default="Tree">The tree's accessible name, announced when focus enters it. Name what the tree holds.</prop>
+    <prop name="hoverExpandDelay" type="number" default="700"
+    >How long, in milliseconds, a dragged item must hover over the middle of a collapsed branch before the branch opens to receive it. 0 opens it at
+      once.</prop>
+    <prop name="maxDepth" type="number" default="0"
+    >The deepest level a drag may produce, counting the top level as 1. A drop that would place the dragged item, or any item beneath it, deeper than this is
+      refused and reported as reorder-rejected. 0 means no limit.</prop>
     <event
       name="reorder"
       type="object({ sourceId: string, targetId: string, position: before | inside | after, sourceType: string, targetType: string, sourceScope: string, targetScope: string, trigger: keyboard | pointer | programmatic })"

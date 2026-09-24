@@ -4,7 +4,9 @@
     <prop name="open" type="boolean" default="false">Whether the menu is open.</prop>
     <prop name="query" type="string" default="">The text typed after the slash.</prop>
     <prop name="items" type="list(object({ title: string, description: string, icon: string }))">The blocks the menu offers.</prop>
-    <prop name="selectedIndex" type="integer" default="0">The highlighted item.</prop>
+    <prop name="selectedIndex" type="integer" default="0"
+    >The zero-based index of the highlighted item. The menu does not handle arrow keys itself: the editor sets this as the user moves, while hovering an item
+      highlights it and reports a highlight event.</prop>
     <prop
       name="anchorRect"
       type="object({ left?: number, top?: number, right?: number, bottom?: number, x?: number, y?: number, width?: number, height?: number }) | null"

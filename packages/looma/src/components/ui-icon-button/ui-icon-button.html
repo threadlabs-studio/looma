@@ -1,10 +1,17 @@
 <template component="ui-icon-button" controller="./ui-icon-button.js">
   <defs>
-    <prop name="disabled" type="boolean" default="false">disabled token.</prop>
+    <prop name="disabled" type="boolean" default="false"
+    >Disables the button, so it cannot be pressed or focused, and greys the icon; outline and solid also take the disabled surface.</prop>
     <prop name="label" type="string">Accessible name for the icon.</prop>
-    <prop name="size" type="sm | md | lg" default="md">size token.</prop>
-    <prop name="variant" type="ghost | outline | solid" default="ghost">variant token.</prop>
-    <prop name="anticipatory" type="boolean" default="false">anticipatory token.</prop>
+    <prop name="size" type="sm | md | lg" default="md"
+    >Button and icon size together: sm is 1.75rem with a small icon, md is 2rem, and lg is 2.5rem with a large icon. On touch, every size gets an invisible hit
+      area of at least 44px.</prop>
+    <prop name="variant" type="ghost | outline | solid" default="ghost"
+    >Emphasis. ghost shows only the icon until it is hovered, for toolbars and dense rows; outline adds a border on the default surface; solid fills with the
+      accent colour, for the one primary action in a group.</prop>
+    <prop name="anticipatory" type="boolean" default="false"
+    >Keeps the button out of sight until it is wanted: at rest a fine pointer sees only a small guide dot, and the button appears on hover, on focus, or when
+      the pointer comes near inside a ui-affordance-scope. Touch devices and the solid variant always show it.</prop>
     <prop name="round" type="boolean" default="false">Use a fully circular shape.</prop>
   </defs>
   <button :disabled="disabled" type="button" :aria-label="label"><slot></slot></button>
