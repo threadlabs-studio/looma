@@ -22,4 +22,15 @@ That means row controls need no width management of their own. Hide them with `o
 `visibility` if they should appear on hover; there is nothing to collapse, and collapsing them
 changes nothing about the label.
 
+## Icons and links in a row
+
+Put an item's icon in the `leading` slot and its name in the `label` slot. The label is what moves
+when a long name scrolls (`marquee`) and what fades under the controls, so an icon inside the label
+would move and fade with the name.
+
+When a leaf row's label is a link, the whole row is that link: a click on its icon or padding
+follows the link, with the same modifier keys, so a modified click still opens a new tab. Clicks on
+controls (the drag handle, anything in `actions`) keep their own behaviour, and a branch row's
+click still expands and collapses it.
+
 <ComponentExamplesApiTabs component="ui-tree" />
