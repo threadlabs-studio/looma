@@ -1,33 +1,84 @@
-<template component="ui-editor-toolbar">
+<template component="ui-editor-toolbar" controller="./ui-editor-toolbar.js">
   <defs>
     <prop name="floating" type="boolean" default="false">Shows the toolbar as a floating bar beside the selection rather than pinned to the editor.</prop>
+    <state name="overflowStart" :value="false"></state>
+    <state name="overflowEnd" :value="false"></state>
   </defs>
-  <div role="toolbar" aria-label="Editor toolbar"><slot></slot></div>
+  <div role="toolbar" aria-label="Editor toolbar"><div class="strip" $ref="strip"><slot></slot></div></div>
   <style>
     :host {
+      /* The colour the edge fades blend into: whatever the toolbar is painted with. */
+      --_matte: var(--ui-editor-toolbar-surface, var(--ui-surface));
+
       position: sticky;
       top: 0;
       z-index: var(--ui-editor-toolbar-z-index, 10);
       display: flex;
       align-items: center;
-      justify-content: flex-start;
-      gap: var(--ui-editor-toolbar-gap, 2px);
       padding: var(--ui-editor-toolbar-padding-block, 6px) var(--ui-editor-toolbar-padding-inline, 12px);
       min-height: var(--ui-editor-toolbar-min-height, 48px);
-      /* More controls than the column is wide is normal at a readable measure, so the row wraps.
-         Scrolling hid the tail behind an invisible scrollbar. */
-      flex-wrap: wrap;
-      row-gap: var(--ui-editor-toolbar-row-gap, var(--ui-editor-toolbar-gap, 2px));
       background: var(--ui-editor-toolbar-surface, var(--ui-surface));
       border-bottom: 1px solid var(--ui-editor-toolbar-border, var(--ui-border));
     }
 
-    :host::-webkit-scrollbar {
+    /* One row, always. When the controls outgrow the space, the row scrolls sideways rather than
+       wrapping into several lines, and a fade at each edge that has more to show says so. */
+    .strip {
+      display: flex;
+      flex: 1 1 auto;
+      align-items: center;
+      justify-content: flex-start;
+      gap: var(--ui-editor-toolbar-gap, 2px);
+      min-width: 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+      overscroll-behavior-inline: contain;
+      scrollbar-width: none;
+    }
+
+    .strip::-webkit-scrollbar {
       display: none;
     }
 
-    :host > :slotted(*) {
+    .strip > :slotted(*) {
       flex: 0 0 auto;
+    }
+
+    /* The fades are mattes laid over the strip in the toolbar's own colour, not a mask, so a floating
+       toolbar's border and shadow stay whole. Each appears only while that edge hides controls. */
+    :host::before,
+    :host::after {
+      position: absolute;
+      z-index: 1;
+      inset-block: 0;
+      inline-size: var(--ui-editor-toolbar-fade-size, 32px);
+      content: "";
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--ui-motion-fast, 120ms) var(--ui-motion-ease, ease);
+    }
+
+    :host::before {
+      inset-inline-start: 0;
+      background: linear-gradient(to right, var(--_matte), transparent);
+    }
+
+    :host::after {
+      inset-inline-end: 0;
+      background: linear-gradient(to left, var(--_matte), transparent);
+    }
+
+    :host:dir(rtl)::before {
+      background: linear-gradient(to left, var(--_matte), transparent);
+    }
+
+    :host:dir(rtl)::after {
+      background: linear-gradient(to right, var(--_matte), transparent);
+    }
+
+    :host-state([overflowStart])::before,
+    :host-state([overflowEnd])::after {
+      opacity: 1;
     }
 
     :slotted(.divider) {
@@ -39,14 +90,12 @@
     }
 
     :host-state([floating]) {
-      flex-wrap: nowrap;
-      position: static;
+      position: relative;
       top: auto;
       width: max-content;
       max-width: min(calc(100vw - 24px), 100%);
       min-height: auto;
       padding: var(--ui-editor-toolbar-floating-padding, 4px);
-      overflow-x: visible;
       background: color-mix(in srgb, var(--ui-editor-toolbar-surface, var(--ui-surface)) 96%, transparent);
       border: 1px solid var(--ui-editor-toolbar-border, var(--ui-border));
       border-radius: var(--ui-editor-toolbar-floating-radius, var(--ui-radius-lg));
@@ -68,7 +117,7 @@
       }
 
       :host-state([floating]) {
-        position: static;
+        position: relative;
         inset: auto;
         min-height: auto;
         border: 1px solid var(--ui-editor-toolbar-border, var(--ui-border));
@@ -79,9 +128,10 @@
 
     /* Inside LoomaEditor's sticky shell, the shell is the sticky surface. */
     .looma-editor__sticky-toolbar-shell :host {
-      position: static;
+      --_matte: var(--ui-editor-toolbar-surface, var(--ui-surface));
+
+      position: relative;
       min-height: var(--ui-editor-toolbar-min-height, 48px);
-      overscroll-behavior-inline: contain;
       background: transparent;
       border: 0;
       box-shadow: none;
@@ -93,15 +143,15 @@
       max-width: none;
       min-height: 100%;
       padding: 0;
-      overflow-x: auto;
-      overflow-y: hidden;
-      overscroll-behavior-inline: contain;
-      scroll-snap-type: x mandatory;
       background: transparent;
       border: 0;
       border-radius: 0;
       box-shadow: none;
       backdrop-filter: none;
+    }
+
+    .looma-editor__mobile-toolbar-shell :host-state([floating]) .strip {
+      scroll-snap-type: x mandatory;
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */
