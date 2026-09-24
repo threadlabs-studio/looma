@@ -281,6 +281,64 @@ describe("Badge shape", () => {
   });
 });
 
+describe("Editor toolbar row", () => {
+  const buttons = Array.from({ length: 18 }, (_, index) => `<button type="button">B${index}</button>`).join("");
+  const fades = (page: Page) => page.locator("#toolbar").evaluate((element) => ({
+    start: getComputedStyle(element, "::before").opacity,
+    end: getComputedStyle(element, "::after").opacity,
+  }));
+  const settle = (page: Page) => page.waitForTimeout(250);
+
+  async function checkRow(page: Page) {
+    const toolbar = page.locator("#toolbar");
+    await toolbar.waitFor();
+    assert.equal(await toolbar.getAttribute("role"), "toolbar");
+    const layout = await toolbar.evaluate((element) => {
+      const strip = element.querySelector(".strip") as HTMLElement;
+      const tops = [...element.querySelectorAll("button")].map((button) => Math.round(button.getBoundingClientRect().top));
+      return { rows: new Set(tops).size, hidden: strip.scrollWidth - strip.clientWidth };
+    });
+    // Never wraps: one row that scrolls when it is too long.
+    assert.equal(layout.rows, 1);
+    assert.ok(layout.hidden > 0, "the narrow row overflows");
+    await settle(page);
+    assert.deepEqual(await fades(page), { start: "0", end: "1" }, "only the end hides controls at first");
+
+    await toolbar.evaluate((element) => { const strip = element.querySelector(".strip")!; strip.scrollLeft = strip.scrollWidth; });
+    await settle(page);
+    assert.deepEqual(await fades(page), { start: "1", end: "0" }, "scrolled to the end, only the start hides controls");
+
+    await toolbar.evaluate((element) => { const strip = element.querySelector(".strip")!; strip.scrollLeft = (strip.scrollWidth - strip.clientWidth) / 2; });
+    await settle(page);
+    assert.deepEqual(await fades(page), { start: "1", end: "1" }, "in the middle, both edges hide controls");
+
+    await page.locator("#frame").evaluate((element) => { (element as HTMLElement).style.width = "3000px"; });
+    await settle(page);
+    assert.deepEqual(await fades(page), { start: "0", end: "0" }, "a row that fits shows no fade");
+  }
+
+  it("keeps one row that scrolls, fading only the edges that hide controls, in HTML", async () => {
+    const path = await bundle("html-toolbar-row", `import "@threadlabs/looma";`);
+    const page = await open(path, `<div id="frame" style="width: 320px"><ui-editor-toolbar id="toolbar">${buttons}</ui-editor-toolbar></div>`, [join(root, "tokens.css")]);
+    await page.waitForSelector('#toolbar[data-component~="ui-editor-toolbar"]');
+    await checkRow(page);
+    await page.close();
+  });
+
+  it("keeps one row that scrolls, fading only the edges that hide controls, in Vue", async () => {
+    const path = await bundle("vue-toolbar-row", `
+      import { createApp, h } from "vue";
+      import { EditorToolbar } from "@threadlabs/looma/vue/editor";
+      createApp({ render: () => h("div", { id: "frame", style: "width: 320px" }, [
+        h(EditorToolbar, { id: "toolbar" }, () => Array.from({ length: 18 }, (_, index) => h("button", { type: "button" }, "B" + index))),
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await checkRow(page);
+    await page.close();
+  });
+});
+
 describe("Icon Button", () => {
   it("grows its hit area, not its size, once touch is used", async () => {
     const path = await bundle("vue-icon-button-touch", `
