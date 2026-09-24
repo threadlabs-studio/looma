@@ -1,8 +1,14 @@
 <!--
 title: Target binding
-description: The for property binds the menu to a separate context-click target while the trigger slot remains available.
+description: The for property binds the menu to a context target. Right-click or long-press it, or focus it and press Shift+F10. A plain click does nothing.
 -->
-<ui-button id="context-menu-target">Open menu</ui-button>
+<div
+  id="context-menu-target"
+  tabindex="0"
+  style="display: grid; place-items: center; block-size: 8rem; border: 1px dashed var(--ui-border-default); border-radius: var(--ui-radius-lg); color: var(--ui-text-secondary); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none"
+>
+  Right-click this area
+</div>
 <ui-context-menu for="context-menu-target">
   <ui-menu-item value="first">First item</ui-menu-item>
   <ui-menu-item value="second">Second item</ui-menu-item>
