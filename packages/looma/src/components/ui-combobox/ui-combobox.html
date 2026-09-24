@@ -230,7 +230,7 @@
       </div>
       <slot name="footer"></slot>
     </div>
-    <div class="message" :id="format('%s-validation', uid)" :hidden="not validation.issues.length">
+    <div class="message" :id="format('%s-validation', uid)" :hidden="not validation.issues[0]">
       <div $each="issue of validation.issues" $value="issue.message"></div>
     </div>
     <div class="sr-only" role="status" aria-live="polite" aria-atomic="true" $value="statusText"></div>
