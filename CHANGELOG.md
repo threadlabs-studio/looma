@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.10.5
+
+- A tree item's drag handle sits beside what it drags. A leaf row's handle takes the empty
+  disclosure column right before its icon, where it used to sit outside the row, a column and an
+  indent away (25px from a nested icon, now 7px). A branch's handle sits just outside its
+  disclosure. The handle has no resting surface, which read as a faint patch, and takes the hover
+  tint only when pointed at.
 ## v0.10.4
 
 - A leaf tree row whose label is a link is that link everywhere a control is not: a click on its

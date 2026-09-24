@@ -380,19 +380,23 @@
       }
     }
 
+    /* The handle sits beside what it drags. A leaf row has no disclosure, so the handle takes that
+       empty column, right before the icon; a branch's disclosure is there, so its handle sits just
+       outside the row. It is bare until pointed at: a resting surface behind it read as a faint
+       patch rather than as a control. */
     .drag-handle {
       position: absolute;
       z-index: 2;
       inset-block-start: 50%;
-      inset-inline-start: -22px;
-      inline-size: 20px;
-      block-size: 32px;
+      inset-inline-start: 0;
+      inline-size: var(--_tree-disclosure-size);
+      block-size: 24px;
       display: grid;
       place-items: center;
-      padding: 7px 3px;
+      padding: 5px 2px;
       color: var(--ui-text-muted);
-      background: var(--ui-surface-elevated);
-      border: 1px solid transparent;
+      background: transparent;
+      border: 0;
       border-radius: var(--ui-radius-sm);
       cursor: grab;
       /* Hidden until the row is hovered, but always hittable: the handle sits outside the row, and moving
@@ -407,6 +411,16 @@
     .drag-handle:focus-visible,
     :host[data-dragging] > .row > .drag-handle {
       opacity: 1;
+    }
+
+    :host-state([isContainer]) > .row > .drag-handle {
+      inset-inline-start: calc(-1 * var(--_tree-disclosure-size) - 2px);
+    }
+
+    .drag-handle:hover,
+    .drag-handle:focus-visible {
+      color: var(--ui-text-primary);
+      background: var(--ui-surface-hover);
     }
 
     .drag-handle:active {
