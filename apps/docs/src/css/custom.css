@@ -770,13 +770,15 @@ body {
   ui-switcher,
   ui-sidebar,
   ui-reel,
+  ui-scroll-area,
   [data-component~="ui-stack"],
   [data-component~="ui-cluster"],
   [data-component~="ui-grid"],
   [data-component~="ui-container"],
   [data-component~="ui-switcher"],
   [data-component~="ui-sidebar"],
-  [data-component~="ui-reel"]
+  [data-component~="ui-reel"],
+  [data-component~="ui-scroll-area"]
 ) { width: min(100%, var(--looma-preview-width, 100%)); }
 
 /* The card injects example markup into plain wrappers; stretch them so a layout
@@ -796,12 +798,14 @@ body {
   ui-container,
   ui-switcher,
   ui-reel,
+  ui-scroll-area,
   [data-component~="ui-stack"],
   [data-component~="ui-cluster"],
   [data-component~="ui-grid"],
   [data-component~="ui-container"],
   [data-component~="ui-switcher"],
-  [data-component~="ui-reel"]
+  [data-component~="ui-reel"],
+  [data-component~="ui-scroll-area"]
 ) { width: 100%; }
 
 /* A card is narrower than the grid's 12rem default column, so it would read as one
@@ -896,7 +900,8 @@ body {
 
 .looma-preview-scenario__stage > :is(
   ui-reel,
-  [data-component~="ui-reel"]
+  [data-component~="ui-reel"],
+  [data-component~="ui-scroll-area"]
 ) {
   padding: 0.75rem 0.25rem;
   border-block: 1px solid var(--looma-line-strong);

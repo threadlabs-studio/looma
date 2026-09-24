@@ -21,6 +21,8 @@ breakpoint state.
   the side region above or below it when the pair cannot fit.
 - `ui-reel` contains intentional horizontal overflow, remains keyboard
   focusable, and optionally exposes inline scroll snapping.
+- `ui-scroll-area` scrolls content that outgrows it, vertically or sideways, and
+  fades only the edges that hide content. Every Looma scroller shares its fade.
 - Named spacing and measure attributes remain token-driven. Applications can
   tune the corresponding custom properties without coupling layout to a fixed
   viewport breakpoint.

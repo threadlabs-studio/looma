@@ -1,0 +1,26 @@
+---
+slug: /components/ui-scroll-area
+---
+
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# Scroll Area
+
+A region that scrolls when its content outgrows it, and fades each edge that hides content so the reader can tell there is more. Use it for any scrolling region: a navigation list, a panel's body, a strip of controls.
+
+- **Only the edges that hide content fade.** At the top of a list only its bottom edge fades; scrolled to the end, only the top does. Content that fits shows no fade at all.
+- **The fade grows in.** As content leaves an edge, that edge's fade grows with the distance scrolled, up to its full size, rather than snapping on.
+- **It is a mask.** The fade blends into whatever is behind the area, so it needs no background colour and works on any surface.
+- **No script.** A CSS scroll-driven animation draws the fade, so it works before JavaScript runs. A browser without scroll-driven animations shows no fade, and scrolls as usual.
+
+Every Looma component that scrolls its own content (Sidebar, Reel, the editor toolbar, a dialog's body, search results, and the editor's slash and mention menus) fades its edges this same way.
+
+## Size
+
+`--ui-scroll-fade-size` sets how far each fade reaches (24px by default), for every Looma scroller at once or for one area. The editor toolbar also reads `--ui-editor-toolbar-fade-size`.
+
+## Keyboard
+
+A keyboard user scrolls an area by moving focus through what is inside it. When nothing inside can take focus, give the area `tabindex="0"`, `role="region"`, and an `aria-label`, so it can be focused and scrolled with the arrow keys.
+
+<ComponentExamplesApiTabs component="ui-scroll-area" />

@@ -1,15 +1,10 @@
-<template component="ui-editor-toolbar" controller="./ui-editor-toolbar.js">
+<template component="ui-editor-toolbar">
   <defs>
     <prop name="floating" type="boolean" default="false">Shows the toolbar as a floating bar beside the selection rather than pinned to the editor.</prop>
-    <state name="overflowStart" :value="false"></state>
-    <state name="overflowEnd" :value="false"></state>
   </defs>
   <div role="toolbar" aria-label="Editor toolbar"><div class="strip" $ref="strip"><slot></slot></div></div>
   <style>
     :host {
-      /* The colour the edge fades blend into: whatever the toolbar is painted with. */
-      --_matte: var(--ui-editor-toolbar-surface, var(--ui-surface));
-
       position: sticky;
       top: 0;
       z-index: var(--ui-editor-toolbar-z-index, 10);
@@ -44,41 +39,29 @@
       flex: 0 0 auto;
     }
 
-    /* The fades are mattes laid over the strip in the toolbar's own colour, not a mask, so a floating
-       toolbar's border and shadow stay whole. Each appears only while that edge hides controls. */
-    :host::before,
-    :host::after {
-      position: absolute;
-      z-index: 1;
-      inset-block: 0;
-      inline-size: var(--ui-editor-toolbar-fade-size, 32px);
-      content: "";
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity var(--ui-motion-fast, 120ms) var(--ui-motion-ease, ease);
+    /* The edge fades are the scroll fade every Looma scroller uses (see ui-scroll-area), a mask on the
+       strip, so a floating toolbar's border and shadow stay whole. */
+    .strip {
+      --_ui-scroll-fade-direction: to right;
+      --_ui-scroll-fade-size: var(--ui-editor-toolbar-fade-size, var(--ui-scroll-fade-size, 24px));
+      mask-image: linear-gradient(
+        var(--_ui-scroll-fade-direction),
+        transparent,
+        #000 var(--_ui-scroll-fade-start),
+        #000 calc(100% - var(--_ui-scroll-fade-end)),
+        transparent
+      );
+      animation: ui-scroll-fade-start linear, ui-scroll-fade-start-hold linear, ui-scroll-fade-end-hold linear, ui-scroll-fade-end linear;
+      animation-timeline: scroll(self inline);
+      animation-range:
+        0 var(--_ui-scroll-fade-size),
+        var(--_ui-scroll-fade-size) calc(100% + 1px),
+        -1px calc(100% - var(--_ui-scroll-fade-size)),
+        calc(100% - var(--_ui-scroll-fade-size)) 100%;
     }
 
-    :host::before {
-      inset-inline-start: 0;
-      background: linear-gradient(to right, var(--_matte), transparent);
-    }
-
-    :host::after {
-      inset-inline-end: 0;
-      background: linear-gradient(to left, var(--_matte), transparent);
-    }
-
-    :host:dir(rtl)::before {
-      background: linear-gradient(to left, var(--_matte), transparent);
-    }
-
-    :host:dir(rtl)::after {
-      background: linear-gradient(to right, var(--_matte), transparent);
-    }
-
-    :host-state([overflowStart])::before,
-    :host-state([overflowEnd])::after {
-      opacity: 1;
+    :host:dir(rtl) .strip {
+      --_ui-scroll-fade-direction: to left;
     }
 
     :slotted(.divider) {
@@ -128,8 +111,6 @@
 
     /* Inside LoomaEditor's sticky shell, the shell is the sticky surface. */
     .looma-editor__sticky-toolbar-shell :host {
-      --_matte: var(--ui-editor-toolbar-surface, var(--ui-surface));
-
       position: relative;
       min-height: var(--ui-editor-toolbar-min-height, 48px);
       background: transparent;
