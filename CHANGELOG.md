@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.10.6
+
+- A click that starts in a tree row's `actions` slot is never the row's. 0.10.4 let a leaf row's
+  label link take clicks from the rest of the row, but a menu opened from a control in `actions` has
+  items that are not buttons, so choosing one also followed the link and navigated away.
 ## v0.10.5
 
 - A tree item's drag handle sits beside what it drags. A leaf row's handle takes the empty

@@ -68,6 +68,10 @@ export default function controller(host) {
     }
     // A leaf row whose label is a link is that link everywhere a control is not: its icon and padding
     // follow it too. The click is replayed with its modifiers, so a modified click still opens a tab.
+    // Anything in the actions slot is the row's controls — a button, or a menu opened from one, whose
+    // items are not buttons — so a click that starts there is never the row's.
+    const path = event.composedPath();
+    if (actions && path.includes(actions)) return;
     const link = labelText?.querySelector("a[href]");
     if (link) link.dispatchEvent(new MouseEvent("click", event));
   };

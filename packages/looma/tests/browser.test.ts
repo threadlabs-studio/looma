@@ -387,7 +387,7 @@ describe("Tree link rows", () => {
       <ui-tree-item id="page" item-id="page" label="Welcome">
         <span slot="leading" id="page-icon">icon</span>
         <a slot="label" id="page-link" href="#welcome">Welcome</a>
-        <button slot="actions" id="page-action" type="button">More</button>
+        <span slot="actions"><button id="page-action" type="button">More</button><span id="page-menu-item" role="menuitem">Move up</span></span>
       </ui-tree-item>
       <ui-tree-item id="plain" item-id="plain" label="Plain">
         <span slot="leading" id="plain-icon">icon</span>
@@ -420,6 +420,9 @@ describe("Tree link rows", () => {
     await page.locator("#page").hover();
     await page.locator("#page-action").click({ force: true });
     assert.equal((await clicks()).length, before, "a control does not follow the label link");
+    // Nor does anything else in the actions slot, such as the items of a menu opened from a control.
+    await page.locator("#page-menu-item").click({ force: true });
+    assert.equal((await clicks()).length, before, "a menu item in the actions does not follow the label link");
 
     // A leaf without a link does nothing; a branch still toggles.
     await page.locator("#plain-icon").click();
@@ -452,7 +455,7 @@ describe("Tree link rows", () => {
         h(TreeItem, { id: "page", itemId: "page", label: "Welcome" }, {
           leading: () => h("span", { id: "page-icon" }, "icon"),
           label: () => h("a", { id: "page-link", href: "#welcome" }, "Welcome"),
-          actions: () => h("button", { id: "page-action", type: "button" }, "More"),
+          actions: () => h("span", [h("button", { id: "page-action", type: "button" }, "More"), h("span", { id: "page-menu-item", role: "menuitem" }, "Move up")]),
         }),
         h(TreeItem, { id: "plain", itemId: "plain", label: "Plain" }, { leading: () => h("span", { id: "plain-icon" }, "icon") }),
         h(TreeItem, { id: "folder", itemId: "folder", label: "Folder", container: true }, { leading: () => h("span", { id: "folder-icon" }, "icon") }),
