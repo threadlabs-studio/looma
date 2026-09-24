@@ -2,6 +2,16 @@
 
 ## v0.10.3
 
+- Combobox with `allowCreate` highlights the offer to create what was typed when nothing else
+  matches, so Enter creates it. In multiple mode, Enter with nothing highlighted commits the typed
+  text as a token separator does (choosing an exact match, or creating). Before, only a separator
+  such as a comma did.
+- Multiple Combobox shows a consumer's changes at once: an option added while the list is open (the
+  one just created, say) appears without another keystroke, and an item the consumer adds or removes
+  is checked or unchecked in the list immediately rather than at the next search.
+
+## v0.10.3
+
 - `ui-tree` takes `marquee`: a name too long for its row scrolls while that row is hovered or
   focused, then returns. Off by default, set on the tree, and overridable per item. The distance
   counts the width the hover controls overlay, which is the part an app-side marquee could not see:
