@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.8.2
+
+- The editor toolbar drops Checklist and Divider so it fits on one row at page width. Both remain in
+  the slash menu, and typing `[ ]` or `---` still makes them.
 ## v0.8.1
 
 - The editor's active-block marker is quieter. It steps aside while text is being typed and returns
