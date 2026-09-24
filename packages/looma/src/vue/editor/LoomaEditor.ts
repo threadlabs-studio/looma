@@ -868,6 +868,8 @@ export const LoomaEditor = defineComponent({
     };
 
     const renderToolbar = (instance: Editor, floating = true) => {
+      // One row at page width: checklists and dividers are inserted from the slash menu or typed
+      // ([ ] and ---), so they do not take toolbar room.
       const buttons = [
         commandButton("Bold", "bold", instance.isActive("bold"), !instance.can().toggleBold(), () => instance.chain().focus().toggleBold().run()),
         commandButton("Italic", "italic", instance.isActive("italic"), !instance.can().toggleItalic(), () => instance.chain().focus().toggleItalic().run()),
@@ -881,10 +883,8 @@ export const LoomaEditor = defineComponent({
         commandButton("Heading 3", "heading-3", instance.isActive("heading", { level: 3 }), false, () => instance.chain().focus().toggleHeading({ level: 3 }).run()),
         commandButton("Bullet list", "list", instance.isActive("bulletList"), false, () => instance.chain().focus().toggleBulletList().run()),
         commandButton("Numbered list", "list-ordered", instance.isActive("orderedList"), false, () => instance.chain().focus().toggleOrderedList().run()),
-        commandButton("Checklist", "list-todo", instance.isActive("taskList"), false, () => instance.chain().focus().toggleTaskList().run()),
         commandButton("Blockquote", "quote", instance.isActive("blockquote"), !instance.can().toggleBlockquote(), () => instance.chain().focus().toggleBlockquote().run()),
         commandButton("Code block", "braces", instance.isActive("codeBlock"), !instance.can().toggleCodeBlock(), () => instance.chain().focus().toggleCodeBlock().run()),
-        commandButton("Divider", "minus", false, !instance.can().setHorizontalRule(), () => instance.chain().focus().setHorizontalRule().run()),
         h("span", { class: "divider", "aria-hidden": "true" }),
         h(IconButton, {
           id: tablePickerAnchorId,
