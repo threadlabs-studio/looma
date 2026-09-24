@@ -49,10 +49,28 @@
       border-inline-start: 1px solid var(--ui-sidebar-border, var(--ui-border-default));
     }
 
+    /* The panel's content scrolls, and each edge that hides content fades: the scroll fade every
+       Looma scroller uses (see ui-scroll-area). */
     .content {
       flex: 1;
       min-block-size: 0;
       overflow: auto;
+      --_ui-scroll-fade-direction: to bottom;
+      --_ui-scroll-fade-size: var(--ui-scroll-fade-size, 24px);
+      mask-image: linear-gradient(
+        var(--_ui-scroll-fade-direction),
+        transparent,
+        #000 var(--_ui-scroll-fade-start),
+        #000 calc(100% - var(--_ui-scroll-fade-end)),
+        transparent
+      );
+      animation: ui-scroll-fade-start linear, ui-scroll-fade-start-hold linear, ui-scroll-fade-end-hold linear, ui-scroll-fade-end linear;
+      animation-timeline: scroll(self block);
+      animation-range:
+        0 var(--_ui-scroll-fade-size),
+        var(--_ui-scroll-fade-size) calc(100% + 1px),
+        -1px calc(100% - var(--_ui-scroll-fade-size)),
+        calc(100% - var(--_ui-scroll-fade-size)) 100%;
     }
 
     /* Collapsed while docked. */

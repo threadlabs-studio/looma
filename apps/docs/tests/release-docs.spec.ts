@@ -366,8 +366,8 @@ test("the component catalog exposes the complete library and filters live previe
     "Core, layout, form, display, and overlay building blocks"
   );
   await expect(page.locator(".looma-catalog-hero")).not.toContainText("Forty-nine");
-  await expect(page.locator(".looma-component-card")).toHaveCount(36);
-  await expect(page.getByText("Showing 36 components", { exact: true })).toBeVisible();
+  await expect(page.locator(".looma-component-card")).toHaveCount(37);
+  await expect(page.getByText("Showing 37 components", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { level: 2, name: "Chip" })).toHaveCount(0);
   await expect(page.getByRole("heading", { level: 2, name: "Floating Action Button" })).toHaveCount(0);
   await expect(page.getByRole("heading", { level: 2, name: "Menu Item" })).toHaveCount(0);
@@ -1353,7 +1353,7 @@ test("the home demo is built from Looma components, as it says it is", async ({ 
   const impostors = await demo.evaluate((root) => {
     // A layout primitive around a control does not make the control a Looma control.
     const layout = new Set([
-      "ui-stack", "ui-cluster", "ui-grid", "ui-container", "ui-switcher", "ui-reel", "ui-sidebar"
+      "ui-stack", "ui-cluster", "ui-grid", "ui-container", "ui-switcher", "ui-reel", "ui-scroll-area", "ui-sidebar"
     ]);
     const controls = root.querySelectorAll("input, select, textarea, button, [role='button'], [role='checkbox'], [role='switch']");
     return [...controls]

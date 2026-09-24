@@ -26,6 +26,30 @@
       overscroll-behavior-inline: contain;
     }
 
+    /* Each end that hides items fades: the scroll fade every Looma scroller uses (see ui-scroll-area). */
+    :host {
+      --_ui-scroll-fade-direction: to right;
+      --_ui-scroll-fade-size: var(--ui-scroll-fade-size, 24px);
+      mask-image: linear-gradient(
+        var(--_ui-scroll-fade-direction),
+        transparent,
+        #000 var(--_ui-scroll-fade-start),
+        #000 calc(100% - var(--_ui-scroll-fade-end)),
+        transparent
+      );
+      animation: ui-scroll-fade-start linear, ui-scroll-fade-start-hold linear, ui-scroll-fade-end-hold linear, ui-scroll-fade-end linear;
+      animation-timeline: scroll(self inline);
+      animation-range:
+        0 var(--_ui-scroll-fade-size),
+        var(--_ui-scroll-fade-size) calc(100% + 1px),
+        -1px calc(100% - var(--_ui-scroll-fade-size)),
+        calc(100% - var(--_ui-scroll-fade-size)) 100%;
+    }
+
+    :host:dir(rtl) {
+      --_ui-scroll-fade-direction: to left;
+    }
+
     :host > :slotted(*) {
       min-inline-size: 0;
       flex: 0 0 var(--ui-reel-item-width, var(--_reel-item-width));
