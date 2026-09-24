@@ -1065,3 +1065,66 @@ describe("Checkbox and Switch name", () => {
     await page.close();
   });
 });
+
+describe("Combobox name", () => {
+  // The form gets the chosen value, never the label shown in the field: one entry in single mode,
+  // one per chosen item in multiple mode, the typed text when free text is allowed.
+  const check = async (page: Page) => {
+    await page.locator('#off input[role="combobox"]').waitFor();
+    const entries = () => page.locator("#form").evaluate((form) =>
+      Array.from(new FormData(form as HTMLFormElement), ([name, value]) => [name, String(value)]));
+    const pick = async (id: string, label: string) => {
+      await page.locator(`#${id} input[role="combobox"]`).fill(label.slice(0, 2));
+      await page.locator(`#${id} [role="option"]`).filter({ hasText: label }).first().click();
+    };
+    assert.deepEqual(await entries(), [["fruit", ""], ["city", ""], ["country", "no"]]);
+    assert.equal(await page.locator('#fruit input[role="combobox"]').getAttribute("name"), null, "the visible text is not submitted");
+    await pick("fruit", "Pear");
+    await pick("tags", "Alpha");
+    await pick("tags", "Beta");
+    await page.locator('#city input[role="combobox"]').fill("Oslo");
+    assert.equal(await page.locator('#fruit input[role="combobox"]').inputValue(), "Pear");
+    assert.deepEqual(await entries(), [["fruit", "pear"], ["tags", "alpha"], ["tags", "beta"], ["city", "Oslo"], ["country", "no"]]);
+    assert.equal(await page.locator("#unnamed input").count(), 1, "an unnamed combobox adds no form field");
+  };
+  const fruit = `<option value="apple">Apple</option><option value="pear">Pear</option>`;
+  const tags = `<option value="alpha">Alpha</option><option value="beta">Beta</option>`;
+
+  it("submits the value, not the label, in HTML", async () => {
+    const path = await bundle("html-combobox-name", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <form id="form">
+        <ui-combobox id="fruit" name="fruit" label="Fruit">${fruit}</ui-combobox>
+        <ui-combobox id="tags" name="tags" label="Tags" multiple>${tags}</ui-combobox>
+        <ui-combobox id="city" name="city" label="City" allow-free-text></ui-combobox>
+        <ui-combobox name="country" label="Country" value="no" readonly><option value="no">Norway</option></ui-combobox>
+        <ui-combobox id="off" name="off" label="Off" value="apple" disabled>${fruit}</ui-combobox>
+        <ui-combobox id="unnamed" label="Unnamed">${fruit}</ui-combobox>
+      </form>
+    `, [join(root, "tokens.css")]);
+    await check(page);
+    await page.close();
+  });
+
+  it("submits the value, not the label, in Vue", async () => {
+    const path = await bundle("vue-combobox-name", `
+      import { createApp, h } from "vue";
+      import { Combobox } from "@threadlabs/looma/vue";
+      const list = (pairs) => () => pairs.map(([value, label]) => h("option", { value }, label));
+      const fruit = list([["apple", "Apple"], ["pear", "Pear"]]);
+      createApp({
+        render: () => h("form", { id: "form" }, [
+          h(Combobox, { id: "fruit", name: "fruit", label: "Fruit" }, fruit),
+          h(Combobox, { id: "tags", name: "tags", label: "Tags", multiple: true }, list([["alpha", "Alpha"], ["beta", "Beta"]])),
+          h(Combobox, { id: "city", name: "city", label: "City", allowFreeText: true }),
+          h(Combobox, { name: "country", label: "Country", value: "no", readonly: true }, list([["no", "Norway"]])),
+          h(Combobox, { id: "off", name: "off", label: "Off", value: "apple", disabled: true }, fruit),
+          h(Combobox, { id: "unnamed", label: "Unnamed" }, fruit),
+        ]),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await check(page);
+    await page.close();
+  });
+});

@@ -335,6 +335,8 @@ export default function controller(host) {
     host.state.groups = groups;
     host.state.creatable = canCreate();
     host.state.createIndex = rows.length;
+    // What a named combobox submits in single mode: the value, never the label the field shows.
+    host.state.submitted = String(host.state.selected ?? (host.state.allowFreeText ? host.state.raw ?? "" : ""));
     host.state.message = host.state.loading ? "Loading suggestions…"
       : host.state.lookupError || (!rows.length && !host.state.creatable ? "No suggestions." : "");
     const validation = host.state.validation ?? { status: "pristine", issues: [] };

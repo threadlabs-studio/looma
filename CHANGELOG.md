@@ -2,6 +2,13 @@
 
 ## v0.10.0
 
+- **Breaking:** a named Combobox submits its value, not the label shown in the field. The visible
+  input no longer carries `name`; a hidden field does. Single mode sends one entry (the selected
+  option's value, the typed text when `allowFreeText` is set and nothing is selected, or an empty
+  string), and multiple mode sends one entry per chosen item's value, so `name="tags"` with two
+  items submits `tags=alpha&tags=beta` rather than the input's leftover text. A disabled combobox
+  sends nothing. Server code that read the label from the form must read the value instead. An
+  unnamed combobox renders no hidden field.
 - Radio Group's `required` works. It was declared but did nothing; now the group states
   `aria-required="true"`, marks each of its radios required, and native form validation fails until
   one is checked, as for a required native radio group. A radio's own `required` still counts.
