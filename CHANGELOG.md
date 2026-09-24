@@ -23,6 +23,20 @@
 - Clicking from an Editable that is being edited into another field saves the edit and leaves focus
   in the field that was clicked. It had pulled focus back to the Editable a frame later, which
   closed a combobox list the click had just opened.
+- A form's `reset()` returns every Looma control to its `value` or `checked` prop, in HTML and in
+  Vue, as a native control returns to its default. Textarea had reset to empty, Select to its first
+  option, Checkbox, Switch, and Radio to unchecked (in Vue, to whatever was last checked), Radio
+  Group to no choice, and Combobox kept its selection while its field went blank. As with native
+  controls, a reset fires no change events.
+- Radio Group's `disabled` disables its radios through its native fieldset, so a radio disabled on
+  its own stays disabled when the group is enabled. The group had re-enabled it.
+- A required multiple Combobox is satisfied by its chosen items. Native validation had still
+  required text in the input, so the form could not be submitted, and validation reported "A value
+  is required." with items chosen.
+- A browser test puts every Looma form control in a real form, in HTML and in Vue, and asserts the
+  exact `FormData` entries it submits, what it leaves out (unchecked, disabled, the in-place
+  Editable), and what `reset()` restores. A rule test fails when a control with a `name` prop or a
+  native form control is missing from it.
 
 ## v0.9.2
 

@@ -1,6 +1,8 @@
 <template component="ui-select" controller="./ui-select.js">
   <defs>
-    <prop name="value" type="string">Currently selected option value.</prop>
+    <prop name="value" type="string"
+    >The value of the selected option, initially or when set externally. It is also the default, so a form reset returns to it rather than to the first
+      option.</prop>
     <prop name="disabled" type="boolean" default="false">Prevents selection and form submission.</prop>
     <prop name="invalid" type="boolean" default="false">Exposes invalid state to assistive technology and styling.</prop>
     <prop name="required" type="boolean" default="false">Requires a non-empty option for form validation.</prop>

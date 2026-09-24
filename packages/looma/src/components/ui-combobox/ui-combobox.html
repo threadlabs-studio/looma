@@ -8,12 +8,14 @@
     <prop name="placeholder" type="string" default=""
     >Hint text shown in the empty input, as on a native input. It disappears as the user types, so it never replaces label.</prop>
     <prop name="name" type="string" default=""
-    >The form field name the combobox submits its value under, never the label shown in the field. Single mode sends one entry: the selected option's
-      value, the typed text when allowFreeText is set and no option is selected, or an empty string. Multiple mode sends one entry per chosen item's value, and
-      nothing when none is chosen. A disabled combobox sends nothing.</prop>
-    <prop name="value" type="string | null">The selected value in single mode.</prop>
+    >The form field name the combobox submits its value under, never the label shown in the field. Single mode sends one entry: the selected option's value, the
+      typed text when allowFreeText is set and no option is selected, or an empty string. Multiple mode sends one entry per chosen item's value, and nothing
+      when none is chosen. A disabled combobox sends nothing.</prop>
+    <prop name="value" type="string | null"
+    >The selected value in single mode, which a named combobox submits with its form. The field shows the matching option's label, and a form reset returns to
+      this value.</prop>
     <prop name="items" type="list(object({ id: string, value: string, label: string, group?: string, disabled?: boolean }))"
-    >The selected items in multiple mode, as JSON.</prop>
+    >The selected items in multiple mode, as JSON; a named combobox submits each one's value. A form reset returns to these items, or to none when unset.</prop>
     <prop name="multiple" type="boolean" default="false"
     >Lets the user choose several options. Each choice becomes a removable badge before the input, the list stays open between picks, and choosing a checked
       option removes it. value-change then reports the whole list of items; use items, not value, in this mode.</prop>
@@ -26,13 +28,14 @@
     <prop name="allowFreeText" type="boolean" default="false">Allows values that do not match an authored option.</prop>
     <prop name="allowCreate" type="boolean" default="false">Offers the current query as a new option.</prop>
     <prop name="disabled" type="boolean" default="false"
-    >Disables the input and every button in the field: the chosen-item badges, the clear and disclosure buttons, and the help button. The list closes and
-      cannot be opened, the value cannot be cleared, and a named combobox submits nothing with its form.</prop>
+    >Disables the input and every button in the field: the chosen-item badges, the clear and disclosure buttons, and the help button. The list closes and cannot
+      be opened, the value cannot be cleared, and a named combobox submits nothing with its form.</prop>
     <prop name="readonly" type="boolean" default="false"
     >Shows the current value without letting it change: the text can be selected but not edited, the list does not open, and the clear, disclosure, and badge
       remove buttons are disabled. A named combobox still submits its value.</prop>
     <prop name="required" type="boolean" default="false"
-    >Marks the input required, adds an asterisk to the label, and makes validation report "A value is required." when the field is left empty.</prop>
+    >Requires a value: adds an asterisk to the label, marks the input required for native form validation, and makes validation report "A value is required."
+      when the field is left empty. In multiple mode a chosen item satisfies it, whatever is left in the input.</prop>
     <prop name="size" type="sm | md" default="md"
     >Field height. md is the standard control height; sm is the small control height with tighter padding, for dense forms.</prop>
     <prop name="labelVisibility" type="visible | sr-only" default="visible"
@@ -142,7 +145,7 @@
           :placeholder="placeholder"
           :disabled="disabled"
           :readonly="readonly"
-          :required="required"
+          :required="required and not (multiple and internalItems[0])"
         >
         <input $if="name and not multiple" type="hidden" :name="name" :value="submitted" :disabled="disabled">
         <template $if="name and multiple">
