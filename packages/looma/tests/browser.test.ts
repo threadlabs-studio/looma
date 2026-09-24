@@ -281,6 +281,19 @@ describe("Badge shape", () => {
   });
 });
 
+describe("Combobox validation message", () => {
+  it("shows its validation message in HTML, not only in Vue", async () => {
+    const path = await bundle("html-combobox-validation", `import "@threadlabs/looma";`);
+    const page = await open(path, `<ui-combobox id="fruit" label="Fruit" required></ui-combobox>`, [join(root, "tokens.css")]);
+    await page.waitForSelector('#fruit[data-component~="ui-combobox"]');
+    await page.evaluate(() => (document.querySelector("#fruit") as unknown as { validate(): Promise<unknown> }).validate());
+    const message = page.locator("#fruit [id$=\"-validation\"]");
+    await message.waitFor({ state: "visible" });
+    assert.match((await message.textContent()) ?? "", /A value is required/);
+    await page.close();
+  });
+});
+
 describe("Icon Button", () => {
   it("grows its hit area, not its size, once touch is used", async () => {
     const path = await bundle("vue-icon-button-touch", `

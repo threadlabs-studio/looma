@@ -2,6 +2,8 @@
 
 ## v0.10.0
 
+- Combobox shows its validation message in HTML too. The message hid while `validation.issues`
+  had entries because the HTML runtime cannot read an array's `length`; Vue was unaffected.
 - **Breaking:** a named Combobox submits its value, not the label shown in the field. The visible
   input no longer carries `name`; a hidden field does. Single mode sends one entry (the selected
   option's value, the typed text when `allowFreeText` is set and nothing is selected, or an empty
