@@ -20,6 +20,9 @@
 - Checkbox and Switch take `name`, passed to the native input, so they submit with a form: checked
   sends `name=value` (value defaults to `on`) and unchecked sends nothing, as a native checkbox
   does. Without it, neither could submit at all.
+- Clicking from an Editable that is being edited into another field saves the edit and leaves focus
+  in the field that was clicked. It had pulled focus back to the Editable a frame later, which
+  closed a combobox list the click had just opened.
 
 ## v0.9.2
 
