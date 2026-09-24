@@ -20,8 +20,8 @@
     >The item's kind, for drag rules: it can be dropped before or after only items of the same type, and inside a branch only if that branch's accepts allows
       it. Reported as sourceType and targetType.</prop>
     <prop name="dropScope" type="string" default=""
-    >A label passed through as sourceScope and targetScope in the tree's reorder events. The tree does not enforce it; use it to tell drops within a scope from
-      drops across scopes.</prop>
+    >Names the list the item sits in, such as its parent's id, and is reported as sourceScope and targetScope in the tree's reorder events, so a handler can
+      tell a reorder within one list from a move between lists. It never restricts where an item can be dropped; dragType and accepts do that.</prop>
     <prop name="accepts" type="string" default=""
     >A comma-separated list of the dragType values this branch accepts dropped inside it. Empty accepts any type. It does not affect drops before or after the
       item.</prop>
