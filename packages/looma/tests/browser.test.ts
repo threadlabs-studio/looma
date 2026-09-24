@@ -984,3 +984,41 @@ describe("Combobox disabled", () => {
     await page.close();
   });
 });
+
+describe("Search Result Row selected", () => {
+  // A row is a button in the shell's results, not an option in a listbox, so the current result is
+  // stated with aria-current, which a button supports; aria-selected would be ignored on it.
+  const check = async (page: Page) => {
+    await page.locator("#other").waitFor();
+    assert.equal(await page.locator("#current").evaluate((element) => element.localName), "button");
+    assert.equal(await page.locator("#current").getAttribute("aria-current"), "true");
+    assert.notEqual(await page.locator("#other").getAttribute("aria-current"), "true");
+    assert.equal(await page.locator("#current").getAttribute("aria-selected"), null);
+  };
+
+  it("states the current result to assistive technology in HTML", async () => {
+    const path = await bundle("html-search-row", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-search-result-row id="current" selected><span slot="title">Tokens</span></ui-search-result-row>
+      <ui-search-result-row id="other"><span slot="title">Themes</span></ui-search-result-row>
+    `, [join(root, "tokens.css")]);
+    await check(page);
+    await page.close();
+  });
+
+  it("states the current result to assistive technology in Vue", async () => {
+    const path = await bundle("vue-search-row", `
+      import { createApp, h } from "vue";
+      import { SearchResultRow } from "@threadlabs/looma/vue";
+      createApp({
+        render: () => h("div", [
+          h(SearchResultRow, { id: "current", selected: true }, { title: () => "Tokens" }),
+          h(SearchResultRow, { id: "other" }, { title: () => "Themes" }),
+        ]),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await check(page);
+    await page.close();
+  });
+});

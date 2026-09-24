@@ -8,6 +8,8 @@
 - A disabled or read-only Combobox can no longer be cleared. Its clear and disclosure buttons are
   disabled with the rest of the field (the badges and help button already were), and a click that
   reaches them anyway changes nothing.
+- Search Result Row's `selected` reaches assistive technology: the row's button states
+  `aria-current="true"` as well as taking the highlighted surface. It had been visual only.
 
 ## v0.9.2
 
