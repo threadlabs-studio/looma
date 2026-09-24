@@ -5,6 +5,15 @@ const instances = new WeakMap();
 
 let comboboxes = 0;
 
+// A row carries a view-only `selected` flag; events report the option itself, in its declared shape.
+const asItem = ({ id, value, label, group, disabled }) => ({
+  id,
+  value,
+  label,
+  ...(group === undefined ? {} : { group }),
+  ...(disabled === undefined ? {} : { disabled })
+});
+
 function authoredOptions(container) {
   return Array.from(container.querySelectorAll("option")).map((option, index) => ({
     id: option.id || option.value || `option-${index}`,
@@ -139,7 +148,7 @@ export default function controller(host) {
       // When nothing matches what was typed, the offer to create it is the only choice, so it is
       // the one Enter makes, and it is highlighted as such.
       if (query && !host.state.rows.some((row) => !row.disabled) && canCreate()) host.state.active = host.state.rows.length;
-      host.dispatch("options-change", host.state.rows);
+      host.dispatch("options-change", host.state.rows.map(asItem));
     };
     applyOptions(current.options);
   };
@@ -190,14 +199,6 @@ export default function controller(host) {
     input.value = query;
     host.dispatch("query-change", { query, display: query, trigger });
   };
-  // A row carries a view-only `selected` flag; an item is the option itself, in its declared shape.
-  const asItem = ({ id, value, label, group, disabled }) => ({
-    id,
-    value,
-    label,
-    ...(group === undefined ? {} : { group }),
-    ...(disabled === undefined ? {} : { disabled })
-  });
   const addSelectedItem = (row, trigger) => {
     const option = asItem(row);
     const current = items();
@@ -222,7 +223,7 @@ export default function controller(host) {
       search("selection");
       input.focus();
       return;
-    } else if (option) commit(option.value, option.label, option, "selection", trigger);
+    } else if (option) commit(option.value, option.label, asItem(option), "selection", trigger);
     else if (canCreate() && index === host.state.rows.length) commit(null, host.state.raw, null, "create", trigger);
     else return;
     close();
