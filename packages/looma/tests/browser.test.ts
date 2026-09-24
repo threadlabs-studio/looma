@@ -1162,6 +1162,38 @@ describe("Radio group required", () => {
   });
 });
 
+describe("Combobox events", () => {
+  // The list marks the chosen row with a view-only flag; events report options in their declared
+  // shape, so Vue's detail checks accept them and the choice reaches the consumer.
+  it("reports options and a single choice in their declared shape in Vue", async () => {
+    const path = await bundle("vue-combobox-event-shape", `
+      import { createApp, h } from "vue";
+      import { Combobox } from "@threadlabs/looma/vue";
+      window.events = [];
+      createApp({
+        render: () => h(Combobox, {
+          label: "Fruit",
+          onOptionsChange: (detail) => window.events.push(["options", detail]),
+          onValueChange: (detail) => window.events.push(["value", detail]),
+        }, () => [h("option", { value: "apple" }, "Apple"), h("option", { value: "pear" }, "Pear")]),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await page.locator('input[role="combobox"]').pressSequentially("pe");
+    await page.getByRole("option", { name: "Pear" }).click();
+    assert.deepEqual(errors, []);
+    const events = await page.evaluate(() => (window as unknown as { events: [string, any][] }).events);
+    const pear = { id: "pear", value: "pear", label: "Pear", disabled: false };
+    assert.deepEqual(events.filter(([name]) => name === "options").at(-1)?.[1], [pear]);
+    const choice = events.find(([name]) => name === "value")?.[1];
+    assert.equal(choice.kind, "selection");
+    assert.deepEqual(choice.option, pear);
+    await page.close();
+  });
+});
+
 describe("Combobox disabled", () => {
   // Every part the user can press follows disabled: the clear, disclosure, help, and badge buttons.
   const check = async (page: Page) => {

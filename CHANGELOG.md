@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.10.5
+
+- Combobox reports options in their declared shape. Since 0.10.3 each option in `options-change`,
+  and the chosen option in a single combobox's `value-change`, carried the list's internal
+  `selected` flag, which the Vue adapter's event check rejects: every search threw `HR002` and a
+  single choice never reached `@value-change`. Events now carry `id`, `value`, `label`, and, when
+  set, `group` and `disabled`, as multiple mode's `add-item` already did.
+
 ## v0.10.4
 
 - A leaf tree row whose label is a link is that link everywhere a control is not: a click on its
