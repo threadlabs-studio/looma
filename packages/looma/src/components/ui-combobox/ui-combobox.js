@@ -1,3 +1,4 @@
+import { afterFormReset } from "../shared/form-reset.js";
 import { closeOverlay, createAnchoredSurface, openOverlay } from "../shared/overlay.js";
 
 const instances = new WeakMap();
@@ -288,7 +289,8 @@ export default function controller(host) {
       // Native constraints and the free-text policy; application validation stays in the form.
       const current = config();
       const result = { output: host.state.raw, issues: [] };
-      if (host.state.required && !String(host.state.raw).trim()) result.issues = [...result.issues, { message: "A value is required." }];
+      const empty = host.state.multiple ? !items().length : !String(host.state.raw).trim();
+      if (host.state.required && empty) result.issues = [...result.issues, { message: "A value is required." }];
       else if (host.state.raw && host.state.selected === null && !current.allowFreeText && !current.allowCreate) result.issues = [...result.issues, { message: "Choose a suggestion." }];
       if (result.issues.some((issue) => issue.severity !== "warning")) result.output = undefined;
       if (!run.signal.aborted && alive) setValidation(result);
@@ -409,18 +411,22 @@ export default function controller(host) {
   const onTooltipOpen = (event) => { if (event.target.closest?.('[data-component~="ui-tooltip"]')) host.state.helpOpen = true; };
   const onTooltipClose = (event) => { if (event.target.closest?.('[data-component~="ui-tooltip"]')) host.state.helpOpen = false; };
 
-  if (host.state.multiple) {
-    host.state.selected = null;
-    host.state.raw = host.state.query ?? "";
-  } else {
-    host.state.selected = host.state.value ?? null;
-    host.state.raw = host.state.query ?? "";
-    if (host.state.query === undefined && !host.state.raw && host.state.selected !== null) {
-      host.state.raw = config().options?.find((row) => row.value === host.state.selected)?.label ?? host.state.selected;
+  // The selection the props describe: where the combobox starts, and where a form reset returns it.
+  const applyDefaults = () => {
+    if (host.state.multiple) {
+      host.state.selected = null;
+      host.state.raw = host.state.query ?? "";
+    } else {
+      host.state.selected = host.state.value ?? null;
+      host.state.raw = host.state.query ?? "";
+      if (host.state.query === undefined && !host.state.raw && host.state.selected !== null) {
+        host.state.raw = config().options?.find((row) => row.value === host.state.selected)?.label ?? host.state.selected;
+      }
+      if (host.state.query === undefined && host.state.selected !== null && host.state.raw === host.state.selected) awaitingLabel = host.state.selected;
     }
-    if (host.state.query === undefined && host.state.selected !== null && host.state.raw === host.state.selected) awaitingLabel = host.state.selected;
-  }
-  host.state.display = host.state.raw;
+    host.state.display = host.state.raw;
+  };
+  applyDefaults();
   initialRaw = host.state.raw;
   host.state.validation = { status: "pristine", touched: false, dirty: false, issues: [] };
   surface = createAnchoredSurface(popup, { anchor: field, placement: "bottom-start" });
@@ -440,6 +446,15 @@ export default function controller(host) {
     host.state.display = label;
     awaitingLabel = null;
   };
+  // Like a native control, a reset reports no change; the browser has already emptied the input.
+  const stopReset = afterFormReset(input, () => {
+    close();
+    lastSelection = null;
+    host.state.internalItems = Array.isArray(host.state.items) ? host.state.items : [];
+    applyDefaults();
+    input.value = host.state.display;
+    resetValidation();
+  });
   const observer = new MutationObserver(relabel);
   observer.observe(authored, { childList: true, subtree: true, characterData: true, attributes: true });
   let lastItems = host.state.items;
@@ -459,6 +474,7 @@ export default function controller(host) {
   return () => {
     alive = false;
     stop();
+    stopReset();
     observer.disconnect();
     for (const [name, listener] of Object.entries(listeners)) element.removeEventListener(name, listener);
     close();
