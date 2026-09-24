@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.10.8
+
+- A click inside a tree row's menu (an options menu in `actions`, say) is the menu's, not the row's.
+  A leaf row followed its label link and a branch row toggled when a menu item was clicked, because
+  only links, buttons, and form fields counted as controls; menu items, options, checkboxes, tabs,
+  and the other interactive roles now count too.
+- Avatar initials use the theme's subtle accent text on the soft accent surface, as a subtle accent
+  Badge does. They used the solid accent, which a light accent leaves below text contrast.
+
 ## v0.10.7
 
 - Multiple Combobox reports `options-change` with options in their declared shape. Its rows carried
