@@ -1503,6 +1503,56 @@ test("a checked checkbox paints its tick", async ({ page }) => {
   expect(await markedPixels(control), "checked checkbox draws no tick").toBeGreaterThan(10);
 });
 
+test("a tree scrolls a name too long for its row, only when asked, and clears its controls", async ({
+  page
+}) => {
+  await page.goto("components/ui-tree", { waitUntil: "networkidle" });
+  await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
+
+  // Off by default: a tree of names that fit should not move.
+  const plain = page.locator("[data-preview-scenario='Default'] [data-component~='ui-tree-item'] .row").first();
+  await plain.hover();
+  await page.waitForTimeout(900);
+  await expect(plain).not.toHaveAttribute("data-ui-marquee", /.*/);
+
+  const scenario = page.locator("[data-preview-scenario='marquee']");
+  await scenario.scrollIntoViewIfNeeded();
+  const rows = scenario.locator("[data-component~='ui-tree-item'] .row");
+  const fits = rows.nth(0);
+  const overflows = rows.nth(1);
+
+  await fits.hover();
+  await page.waitForTimeout(700);
+  await expect(fits, "a name that fits does not move").not.toHaveAttribute("data-ui-marquee", /.*/);
+
+  await page.mouse.move(0, 0);
+  await overflows.hover();
+  await expect(overflows).toHaveAttribute("data-ui-marquee", "");
+
+  const travel = await overflows.evaluate((element) => {
+    const text = element.querySelector<HTMLElement>(".label-text")!;
+    const actions = element.querySelector<HTMLElement>(".actions")!;
+    return {
+      distance: parseFloat(getComputedStyle(element).getPropertyValue("--_marquee-distance")),
+      duration: parseFloat(getComputedStyle(element).getPropertyValue("--_marquee-duration")),
+      hidden: text.scrollWidth - (text.clientWidth - actions.offsetWidth)
+    };
+  });
+  // The controls overlay the label's end, so the name has to travel past them: measuring against
+  // the label's full width scrolls short and leaves the tail underneath them.
+  expect(Math.abs(travel.distance)).toBeGreaterThanOrEqual(travel.hidden);
+  // The duration comes from the distance, so a longer name travels at the same speed.
+  expect(travel.duration).toBeCloseTo(Math.min(10, Math.max(1.4, Math.abs(travel.distance) / 36)), 1);
+
+  const offset = () => overflows.evaluate((element) =>
+    new DOMMatrix(getComputedStyle(element.querySelector(".label-text")!).transform).m41);
+  await expect.poll(offset, { timeout: 5000 }).toBeLessThan(-12);
+
+  await page.mouse.move(0, 0);
+  await expect(overflows).not.toHaveAttribute("data-ui-marquee", /.*/);
+  await expect.poll(offset).toBe(0);
+});
+
 test("tree row actions reveal on hover instead of reserving row width", async ({ page }) => {
   await page.goto("components/ui-tree-item", { waitUntil: "domcontentloaded" });
   const scenario = page.locator("[data-preview-scenario='Actions slot']");
