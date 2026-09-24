@@ -1,6 +1,6 @@
 {
   "name": "@threadlabs/looma",
-  "version": "0.10.0",
+  "version": "0.10.2",
   "type": "module",
   "description": "Looma components as HTML, Vue, and plain DOM, with design tokens.",
   "license": "MIT",
@@ -84,7 +84,7 @@
     "test:browser": "vitest run && vitest run --config vitest.browser.config.ts"
   },
   "dependencies": {
-    "@nextwebwg/html-next": "^1.0.0-alpha.3",
+    "@nextwebwg/html-next": "^1.0.0-alpha.5",
     "lowlight": "^3.3.0",
     "markdown-it": "14.3.1",
     "lucide": "~0.554.0"

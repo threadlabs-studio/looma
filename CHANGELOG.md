@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.10.2
+
+- In Vue, `v-model:value` on Radio Group hears each choice once. A choice is reported as both
+  `select` and `change`, and the Vue adapter updated the model for each, so a handler bound to
+  `update:value` ran twice for one click. The same holds for any component that reports one change
+  through more than one event: the adapter now updates a modeled prop once per change. (HTML Next
+  1.0.0-alpha.5.)
+
 ## v0.10.1
 
 - The editor toolbar is always one row. When its controls outgrow the space it has, the row scrolls
