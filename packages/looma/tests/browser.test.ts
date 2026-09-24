@@ -683,6 +683,51 @@ describe("Help affordance", () => {
 });
 
 describe("Combobox with multiple", () => {
+  it("offers to create what was typed, creates it on Enter, and checks it once the consumer adds it", async () => {
+    const path = await bundle("vue-multi-create", `
+      import { createApp, h, ref } from "vue";
+      import { Combobox } from "@threadlabs/looma/vue";
+      const options = ref([{ value: "bar", label: "Bar" }]);
+      const items = ref([]);
+      const created = [];
+      window.created = created;
+      createApp({
+        render: () => h(Combobox, {
+          id: "tags", label: "Tags", multiple: true, allowCreate: true, items: items.value,
+          // A consumer creates asynchronously, then offers and selects the new option.
+          onCreateItem: ({ query }) => {
+            created.push(query);
+            setTimeout(() => {
+              const option = { value: query.toLowerCase(), label: query };
+              options.value = [...options.value, option];
+              items.value = [...items.value, { id: option.value, ...option }];
+            }, 50);
+          },
+        }, () => options.value.map((option) => h("option", { key: option.value, value: option.value }, option.label))),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const input = page.locator("#tags input");
+    await input.click();
+    await input.pressSequentially("Foo");
+
+    // Nothing matches, so the offer to create is the choice Enter makes, and it looks it.
+    const create = page.locator('#tags [role="option"]', { hasText: "Create" });
+    await create.waitFor();
+    assert.equal(await input.getAttribute("aria-activedescendant"), await create.getAttribute("id"));
+
+    await input.press("Enter");
+    assert.deepEqual(await page.evaluate(() => (window as unknown as { created: string[] }).created), ["Foo"]);
+
+    // Once the consumer adds it, it is checked in the list without another keystroke.
+    const foo = page.locator('#tags [role="option"]', { hasText: /^Foo$/ });
+    await foo.waitFor();
+    await page.waitForFunction(() => [...document.querySelectorAll('#tags [role="option"]')]
+      .some((option) => option.textContent?.trim() === "Foo" && option.getAttribute("aria-selected") === "true"), null, { timeout: 2000 });
+
+    await page.close();
+  });
+
   it("keeps the items it selects, and follows a consumer that owns them", async () => {
     const path = await bundle("vue-multi", `
       import { createApp, h, ref } from "vue";
