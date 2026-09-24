@@ -796,6 +796,11 @@ describe("Editor toolbar tooltips", () => {
     const bold = page.locator('[data-component~="ui-editor-toolbar"] button').first();
     await bold.waitFor();
     assert.equal(await bold.getAttribute("title"), null, "no native title");
+    // Checklist and Divider live in the slash menu, so the row fits at page width.
+    const labels = await page.locator('[data-component~="ui-editor-toolbar"] button')
+      .evaluateAll((buttons) => buttons.map((button) => button.getAttribute("aria-label")));
+    assert.ok(labels.includes("Bold") && labels.includes("Redo"), `toolbar labels: ${labels.join(", ")}`);
+    assert.equal(labels.includes("Checklist") || labels.includes("Divider"), false);
 
     const tip = page.locator('[data-component~="ui-tooltip"]');
     await bold.hover();

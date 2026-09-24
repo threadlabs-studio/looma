@@ -7,6 +7,12 @@
   "tone token." or "Control size." now explain what they do, what each value means, and what they
   pair with. A polymorphic root is listed as an `as` option, so Button's `as="a"` appears in its
   API. A rule test fails on any option without a real description.
+
+## v0.9.1
+
+- The editor toolbar drops Checklist and Divider so it fits on one row at page width. Both remain in
+  the slash menu, and typing `[ ]` or `---` still makes them.
+
 ## v0.9.0
 
 - **Breaking:** Context Menu opens only on a context click: right-click, Shift+F10 or the Menu key
