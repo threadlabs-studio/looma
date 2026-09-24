@@ -26,7 +26,9 @@
     >The input's text, when the consumer controls it. Once set, the consumer owns the text: typing reports query-change, and the input returns to query unless
       query is updated to match. Leave it unset to let the combobox manage its own text, showing the chosen option's label.</prop>
     <prop name="allowFreeText" type="boolean" default="false">Allows values that do not match an authored option.</prop>
-    <prop name="allowCreate" type="boolean" default="false">Offers the current query as a new option.</prop>
+    <prop name="allowCreate" type="boolean" default="false"
+    >Offers the current query as a new option, reported as create-item. When nothing else matches, the offer is highlighted, so Enter creates it; with nothing
+      highlighted, Enter in multiple mode commits the typed text as a token separator does.</prop>
     <prop name="disabled" type="boolean" default="false"
     >Disables the input and every button in the field: the chosen-item badges, the clear and disclosure buttons, and the help button. The list closes and cannot
       be opened, the value cannot be cleared, and a named combobox submits nothing with its form.</prop>

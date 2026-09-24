@@ -136,6 +136,9 @@ export default function controller(host) {
       // iterator row instead of the option objects it contains.
       host.state.rows = Array.from(groups.values()).flat();
       host.state.loading = false;
+      // When nothing matches what was typed, the offer to create it is the only choice, so it is
+      // the one Enter makes, and it is highlighted as such.
+      if (query && !host.state.rows.some((row) => !row.disabled) && canCreate()) host.state.active = host.state.rows.length;
       host.dispatch("options-change", host.state.rows);
     };
     applyOptions(current.options);
@@ -385,6 +388,9 @@ export default function controller(host) {
     else if (["Home", "End"].includes(event.key) && host.state.expanded && host.state.active >= 0) { event.preventDefault(); move(event.key); }
     else if (event.key === "Enter" && host.state.expanded) {
       if (host.state.active >= 0) { event.preventDefault(); choose(host.state.active, "keyboard"); }
+      // With nothing highlighted, Enter commits what was typed, as a token separator does.
+      else if (host.state.multiple && String(host.state.raw).trim()) { event.preventDefault(); commitQuery("keyboard"); }
+      else if (canCreate()) { event.preventDefault(); choose((host.state.rows ?? []).length, "keyboard"); }
       else if (config().allowFreeText) { event.preventDefault(); commit(null, host.state.raw, null, "free-entry", "keyboard"); close(); }
     }
   };
@@ -455,7 +461,17 @@ export default function controller(host) {
     input.value = host.state.display;
     resetValidation();
   });
-  const observer = new MutationObserver(relabel);
+  // Options can change while the list is open, as when a consumer adds the option it just created;
+  // the open list shows them at once rather than at the next keystroke.
+  const optionsKey = () => JSON.stringify((config().options ?? []).map((row) => [row.value, row.label, row.disabled]));
+  let lastOptionsKey = optionsKey();
+  const observer = new MutationObserver(() => {
+    relabel();
+    const key = optionsKey();
+    if (key === lastOptionsKey) return;
+    lastOptionsKey = key;
+    if (host.state.expanded) search(fullSet ? "disclosure" : "options");
+  });
   observer.observe(authored, { childList: true, subtree: true, characterData: true, attributes: true });
   let lastItems = host.state.items;
   if (Array.isArray(lastItems)) host.state.internalItems = lastItems;
@@ -464,6 +480,12 @@ export default function controller(host) {
     if (host.state.items !== lastItems) {
       lastItems = host.state.items;
       if (Array.isArray(lastItems)) host.state.internalItems = lastItems;
+      // The list shows the selection; a consumer that adds or removes an item later (after creating
+      // it, say) is reflected at once rather than at the next search.
+      if (host.state.multiple && host.state.rows?.length) {
+        const selected = selectedValues();
+        host.state.rows = host.state.rows.map((row) => ({ ...row, selected: selected.has(row.value) }));
+      }
     }
     if (host.state.value !== lastValue) { lastValue = host.state.value; syncValue(); }
     if (host.state.query !== lastQuery) { lastQuery = host.state.query; syncQuery(); }
