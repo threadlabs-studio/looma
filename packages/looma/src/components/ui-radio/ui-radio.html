@@ -1,6 +1,8 @@
 <template component="ui-radio" controller="./ui-radio.js">
   <defs>
-    <prop name="checked" type="boolean" default="false">Whether the radio is checked initially or when set externally.</prop>
+    <prop name="checked" type="boolean" default="false"
+    >Whether the radio is checked initially or when set externally. A form reset returns it to this. Inside a ui-radio-group the group's value decides
+      instead.</prop>
     <prop name="disabled" type="boolean" default="false">Disables the native radio, so it cannot be chosen, focused, or reached with the arrow keys.</prop>
     <prop name="name" type="string" default=""
     >The native name that groups radios: of the radios that share a name, only one can be checked, and the arrow keys move between them. Inside a ui-radio-group

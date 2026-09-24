@@ -2,7 +2,7 @@
   <defs>
     <prop name="value" type="string" default=""
     >The value of the checked radio, initially or when set externally; empty checks none. The user's choice updates it from there and is reported as select and
-      change events.</prop>
+      change events, and a form reset returns the group to it.</prop>
     <prop name="name" type="string" default=""
     >The native name given to every radio in the group, under which a form submits the chosen value. Left empty, the group generates a unique name that keeps
       the radios together, so set it when the choice submits with a form.</prop>
@@ -10,15 +10,17 @@
     >The group's legend, shown above the radios and announced as the group's name. Phrase it as the question the radios answer.</prop>
     <prop name="orientation" type="horizontal | vertical" default="horizontal"
     >horizontal lays the radios out in a row; vertical stacks them in a column. The arrow keys move between radios either way.</prop>
-    <prop name="disabled" type="boolean" default="false">Disables every radio in the group, so no choice can be made.</prop>
+    <prop name="disabled" type="boolean" default="false"
+    >Disables every radio in the group through the native fieldset, so no choice can be made and the group submits nothing with its form. A radio disabled on
+      its own stays disabled when the group is enabled.</prop>
     <prop name="required" type="boolean" default="false"
-    >Not applied yet: the group neither marks its radios required nor checks that one is chosen. Set required on the ui-radio children instead, which native
-      form validation honours for the whole group.</prop>
+    >Makes a choice required, as a required native radio does for its group: the group states aria-required, every radio in it is marked required, and native
+      form validation fails until one is checked.</prop>
     <state name="internalValue" :value="''"></state>
     <event name="select" type="object({ value: string, previousValue: string, trigger: keyboard | pointer | programmatic })"></event>
     <event name="change" type="object({ checked: boolean, value: string, trigger: keyboard | pointer | programmatic })"></event>
   </defs>
-  <fieldset role="radiogroup">
+  <fieldset role="radiogroup" :aria-required="required" :disabled="disabled">
     <legend><template $value="label"></template></legend>
     <slot></slot>
   </fieldset>

@@ -281,6 +281,19 @@ describe("Badge shape", () => {
   });
 });
 
+describe("Combobox validation message", () => {
+  it("shows its validation message in HTML, not only in Vue", async () => {
+    const path = await bundle("html-combobox-validation", `import "@threadlabs/looma";`);
+    const page = await open(path, `<ui-combobox id="fruit" label="Fruit" required></ui-combobox>`, [join(root, "tokens.css")]);
+    await page.waitForSelector('#fruit[data-component~="ui-combobox"]');
+    await page.evaluate(() => (document.querySelector("#fruit") as unknown as { validate(): Promise<unknown> }).validate());
+    const message = page.locator("#fruit [id$=\"-validation\"]");
+    await message.waitFor({ state: "visible" });
+    assert.match((await message.textContent()) ?? "", /A value is required/);
+    await page.close();
+  });
+});
+
 describe("Icon Button", () => {
   it("grows its hit area, not its size, once touch is used", async () => {
     const path = await bundle("vue-icon-button-touch", `
@@ -886,6 +899,438 @@ describe("HTML components", () => {
 
     await page.waitForSelector('[data-component~="ui-form-field"]');
     assert.equal(await page.locator("#field-label").evaluate((element) => getComputedStyle(element).fontSize), "14px");
+    await page.close();
+  });
+});
+
+describe("Radio group required", () => {
+  // As on native radios: one required radio makes its whole group required.
+  const check = async (page: Page) => {
+    const group = page.locator('#plan[role="radiogroup"]');
+    await group.waitFor();
+    assert.equal(await group.getAttribute("aria-required"), "true");
+    assert.deepEqual(await page.locator("#plan input").evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).required)), [true, true]);
+    const valid = () => page.locator("#form").evaluate((form) => (form as HTMLFormElement).checkValidity());
+    assert.equal(await valid(), false, "nothing chosen");
+    await page.locator('#plan input[value="pro"]').check();
+    assert.equal(await valid(), true);
+    assert.equal(await page.locator('#optional[role="radiogroup"]').getAttribute("aria-required"), "false");
+    assert.deepEqual(await page.locator("#optional input").evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).required)), [false, true]);
+  };
+
+  it("marks the group required and its radios required, in HTML", async () => {
+    const path = await bundle("html-radio-required", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <form id="form">
+        <ui-radio-group id="plan" name="plan" label="Plan" required><ui-radio value="free">Free</ui-radio><ui-radio value="pro">Pro</ui-radio></ui-radio-group>
+        <ui-radio-group id="optional" name="optional" label="Optional" value="b"><ui-radio value="a">A</ui-radio><ui-radio value="b" required>B</ui-radio></ui-radio-group>
+      </form>
+    `, [join(root, "tokens.css")]);
+    await check(page);
+    await page.close();
+  });
+
+  it("marks the group required and its radios required, in Vue", async () => {
+    const path = await bundle("vue-radio-required", `
+      import { createApp, h } from "vue";
+      import { Radio, RadioGroup } from "@threadlabs/looma/vue";
+      createApp({
+        render: () => h("form", { id: "form" }, [
+          h(RadioGroup, { id: "plan", name: "plan", label: "Plan", required: true }, () => [h(Radio, { value: "free" }, () => "Free"), h(Radio, { value: "pro" }, () => "Pro")]),
+          h(RadioGroup, { id: "optional", name: "optional", label: "Optional", value: "b" }, () => [h(Radio, { value: "a" }, () => "A"), h(Radio, { value: "b", required: true }, () => "B")]),
+        ]),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await check(page);
+    await page.close();
+  });
+});
+
+describe("Combobox disabled", () => {
+  // Every part the user can press follows disabled: the clear, disclosure, help, and badge buttons.
+  const check = async (page: Page) => {
+    const locked = page.locator("#locked");
+    await locked.locator('[data-combobox-action="clear"]').waitFor();
+    const buttons = await locked.locator("button").evaluateAll((all) => all.map((button) =>
+      [button.getAttribute("data-combobox-action") ?? button.className, (button as HTMLButtonElement).disabled]));
+    assert.deepEqual(buttons, [["item", true], ["clear", true], ["disclosure", true], ["help", true]]);
+    // Even a click that reaches the clear button (a script, or a stale reference) changes nothing.
+    await locked.locator('[data-combobox-action="clear"]').evaluate((button) => button.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+    await page.locator("#single").locator('[data-combobox-action="clear"]').evaluate((button) => button.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+    assert.equal(await page.locator('#single input[role="combobox"]').inputValue(), "Apple");
+    assert.deepEqual(await page.evaluate(() => (window as unknown as { changes: unknown[] }).changes), []);
+  };
+  const options = `<option value="apple">Apple</option><option value="pear">Pear</option>`;
+
+  it("cannot be cleared or opened in HTML", async () => {
+    const path = await bundle("html-combobox-disabled", `
+      import "@threadlabs/looma";
+      window.changes = [];
+      document.addEventListener("value-change", (event) => window.changes.push(event.detail));
+    `);
+    const page = await open(path, `
+      <ui-combobox id="locked" label="Tags" multiple clearable disclosure help="Pick tags." disabled items='[{"id":"apple","value":"apple","label":"Apple"}]'>${options}</ui-combobox>
+      <ui-combobox id="single" label="Fruit" value="apple" clearable disabled>${options}</ui-combobox>
+    `, [join(root, "tokens.css")]);
+    await check(page);
+    await page.close();
+  });
+
+  it("cannot be cleared or opened in Vue", async () => {
+    const path = await bundle("vue-combobox-disabled", `
+      import { createApp, h } from "vue";
+      import { Combobox } from "@threadlabs/looma/vue";
+      window.changes = [];
+      const options = () => [h("option", { value: "apple" }, "Apple"), h("option", { value: "pear" }, "Pear")];
+      const onValueChange = (detail) => window.changes.push(detail);
+      createApp({
+        render: () => h("div", [
+          h(Combobox, { id: "locked", label: "Tags", multiple: true, clearable: true, disclosure: true, help: "Pick tags.", disabled: true,
+            items: [{ id: "apple", value: "apple", label: "Apple" }], onValueChange }, options),
+          h(Combobox, { id: "single", label: "Fruit", value: "apple", clearable: true, disabled: true, onValueChange }, options),
+        ]),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await check(page);
+    await page.close();
+  });
+});
+
+describe("Search Result Row selected", () => {
+  // A row is a button in the shell's results, not an option in a listbox, so the current result is
+  // stated with aria-current, which a button supports; aria-selected would be ignored on it.
+  const check = async (page: Page) => {
+    await page.locator("#other").waitFor();
+    assert.equal(await page.locator("#current").evaluate((element) => element.localName), "button");
+    assert.equal(await page.locator("#current").getAttribute("aria-current"), "true");
+    assert.notEqual(await page.locator("#other").getAttribute("aria-current"), "true");
+    assert.equal(await page.locator("#current").getAttribute("aria-selected"), null);
+  };
+
+  it("states the current result to assistive technology in HTML", async () => {
+    const path = await bundle("html-search-row", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-search-result-row id="current" selected><span slot="title">Tokens</span></ui-search-result-row>
+      <ui-search-result-row id="other"><span slot="title">Themes</span></ui-search-result-row>
+    `, [join(root, "tokens.css")]);
+    await check(page);
+    await page.close();
+  });
+
+  it("states the current result to assistive technology in Vue", async () => {
+    const path = await bundle("vue-search-row", `
+      import { createApp, h } from "vue";
+      import { SearchResultRow } from "@threadlabs/looma/vue";
+      createApp({
+        render: () => h("div", [
+          h(SearchResultRow, { id: "current", selected: true }, { title: () => "Tokens" }),
+          h(SearchResultRow, { id: "other" }, { title: () => "Themes" }),
+        ]),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await check(page);
+    await page.close();
+  });
+});
+
+describe("Checkbox and Switch name", () => {
+  // Like a native checkbox: checked sends name=value, unchecked sends nothing.
+  const check = async (page: Page) => {
+    await page.locator("#alerts input").waitFor();
+    const entries = () => page.locator("#form").evaluate((form) =>
+      Array.from(new FormData(form as HTMLFormElement), ([name, value]) => [name, String(value)]));
+    assert.deepEqual(await entries(), [["terms", "on"]]);
+    await page.locator("#news input").check();
+    await page.locator("#alerts input").check();
+    assert.deepEqual(await entries(), [["terms", "on"], ["news", "weekly"], ["alerts", "push"]]);
+  };
+
+  it("submits a checked box with its form in HTML", async () => {
+    const path = await bundle("html-checkbox-name", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <form id="form">
+        <ui-checkbox name="terms" checked>Terms</ui-checkbox>
+        <ui-checkbox id="news" name="news" value="weekly">News</ui-checkbox>
+        <ui-switch id="alerts" name="alerts" value="push">Alerts</ui-switch>
+      </form>
+    `, [join(root, "tokens.css")]);
+    await check(page);
+    await page.close();
+  });
+
+  it("submits a checked box with its form in Vue", async () => {
+    const path = await bundle("vue-checkbox-name", `
+      import { createApp, h } from "vue";
+      import { Checkbox, Switch } from "@threadlabs/looma/vue";
+      createApp({
+        render: () => h("form", { id: "form" }, [
+          h(Checkbox, { name: "terms", checked: true }, () => "Terms"),
+          h(Checkbox, { id: "news", name: "news", value: "weekly" }, () => "News"),
+          h(Switch, { id: "alerts", name: "alerts", value: "push" }, () => "Alerts"),
+        ]),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await check(page);
+    await page.close();
+  });
+});
+
+describe("Combobox name", () => {
+  // The form gets the chosen value, never the label shown in the field: one entry in single mode,
+  // one per chosen item in multiple mode, the typed text when free text is allowed.
+  const check = async (page: Page) => {
+    await page.locator('#off input[role="combobox"]').waitFor();
+    const entries = () => page.locator("#form").evaluate((form) =>
+      Array.from(new FormData(form as HTMLFormElement), ([name, value]) => [name, String(value)]));
+    const pick = async (id: string, label: string) => {
+      await page.locator(`#${id} input[role="combobox"]`).fill(label.slice(0, 2));
+      await page.locator(`#${id} [role="option"]`).filter({ hasText: label }).first().click();
+    };
+    assert.deepEqual(await entries(), [["fruit", ""], ["city", ""], ["country", "no"]]);
+    assert.equal(await page.locator('#fruit input[role="combobox"]').getAttribute("name"), null, "the visible text is not submitted");
+    await pick("fruit", "Pear");
+    await pick("tags", "Alpha");
+    await pick("tags", "Beta");
+    await page.locator('#city input[role="combobox"]').fill("Oslo");
+    assert.equal(await page.locator('#fruit input[role="combobox"]').inputValue(), "Pear");
+    assert.deepEqual(await entries(), [["fruit", "pear"], ["tags", "alpha"], ["tags", "beta"], ["city", "Oslo"], ["country", "no"]]);
+    assert.equal(await page.locator("#unnamed input").count(), 1, "an unnamed combobox adds no form field");
+  };
+  const fruit = `<option value="apple">Apple</option><option value="pear">Pear</option>`;
+  const tags = `<option value="alpha">Alpha</option><option value="beta">Beta</option>`;
+
+  it("submits the value, not the label, in HTML", async () => {
+    const path = await bundle("html-combobox-name", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <form id="form">
+        <ui-combobox id="fruit" name="fruit" label="Fruit">${fruit}</ui-combobox>
+        <ui-combobox id="tags" name="tags" label="Tags" multiple>${tags}</ui-combobox>
+        <ui-combobox id="city" name="city" label="City" allow-free-text></ui-combobox>
+        <ui-combobox name="country" label="Country" value="no" readonly><option value="no">Norway</option></ui-combobox>
+        <ui-combobox id="off" name="off" label="Off" value="apple" disabled>${fruit}</ui-combobox>
+        <ui-combobox id="unnamed" label="Unnamed">${fruit}</ui-combobox>
+      </form>
+    `, [join(root, "tokens.css")]);
+    await check(page);
+    await page.close();
+  });
+
+  it("submits the value, not the label, in Vue", async () => {
+    const path = await bundle("vue-combobox-name", `
+      import { createApp, h } from "vue";
+      import { Combobox } from "@threadlabs/looma/vue";
+      const list = (pairs) => () => pairs.map(([value, label]) => h("option", { value }, label));
+      const fruit = list([["apple", "Apple"], ["pear", "Pear"]]);
+      createApp({
+        render: () => h("form", { id: "form" }, [
+          h(Combobox, { id: "fruit", name: "fruit", label: "Fruit" }, fruit),
+          h(Combobox, { id: "tags", name: "tags", label: "Tags", multiple: true }, list([["alpha", "Alpha"], ["beta", "Beta"]])),
+          h(Combobox, { id: "city", name: "city", label: "City", allowFreeText: true }),
+          h(Combobox, { name: "country", label: "Country", value: "no", readonly: true }, list([["no", "Norway"]])),
+          h(Combobox, { id: "off", name: "off", label: "Off", value: "apple", disabled: true }, fruit),
+          h(Combobox, { id: "unnamed", label: "Unnamed" }, fruit),
+        ]),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await check(page);
+    await page.close();
+  });
+});
+
+describe("Editable click away", () => {
+  // Clicking another field saves the edit and leaves focus in the field that was clicked.
+  const check = async (page: Page) => {
+    await page.locator("#note .preview").click();
+    await page.waitForFunction(() => document.activeElement?.matches("#note input"));
+    await page.locator("#other").click();
+    await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
+    assert.equal(await page.evaluate(() => document.activeElement?.id), "other");
+  };
+
+  it("keeps focus where the user clicked in HTML", async () => {
+    const path = await bundle("html-editable-away", `import "@threadlabs/looma";`);
+    const page = await open(path, `<ui-editable id="note" value="Inline"></ui-editable><input id="other" aria-label="Other">`, [join(root, "tokens.css")]);
+    await page.locator('#note[data-component~="ui-editable"]').waitFor();
+    await check(page);
+    await page.close();
+  });
+
+  it("keeps focus where the user clicked in Vue", async () => {
+    const path = await bundle("vue-editable-away", `
+      import { createApp, h } from "vue";
+      import { Editable } from "@threadlabs/looma/vue";
+      createApp({ render: () => h("div", [h(Editable, { id: "note", value: "Inline" }), h("input", { id: "other", "aria-label": "Other" })]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await check(page);
+    await page.close();
+  });
+});
+
+// Every Looma control that can carry a name sits in a real form here, in HTML and in Vue, and is
+// used the way a person would use it. The form's own FormData is the contract: what a submit sends.
+// tools/scripts/form-participation-rule.test.mjs fails if a named control is missing from this block.
+describe("Form participation", () => {
+  const options = (values: readonly [string, string][]) => values.map(([value, label]) => `<option value="${value}">${label}</option>`).join("");
+  const fruit = options([["apple", "Apple"], ["pear", "Pear"]]);
+  const tags = options([["alpha", "Alpha"], ["beta", "Beta"]]);
+  const topics = options([["problem", "Problem"], ["help", "Help"]]);
+  const html = `
+    <form id="form">
+      <ui-input id="title" name="title" value="Draft"></ui-input>
+      <ui-input name="off-input" value="Hidden" disabled></ui-input>
+      <ui-textarea id="body" name="body" value="Hello"></ui-textarea>
+      <ui-select id="topic" name="topic" value="help">${topics}</ui-select>
+      <ui-checkbox id="agree" name="agree" value="yes">Agree</ui-checkbox>
+      <ui-checkbox id="news" name="news" value="weekly" checked>News</ui-checkbox>
+      <ui-checkbox name="unticked">Unticked</ui-checkbox>
+      <ui-checkbox name="off-check" checked disabled>Off</ui-checkbox>
+      <ui-switch id="alerts" name="alerts" value="push">Alerts</ui-switch>
+      <ui-switch name="off-switch" checked disabled>Off</ui-switch>
+      <ui-radio-group id="size" name="size" value="m" label="Size">
+        <ui-radio value="s">Small</ui-radio><ui-radio value="m">Medium</ui-radio><ui-radio id="size-l" value="l" disabled>Large</ui-radio>
+      </ui-radio-group>
+      <ui-radio-group name="off-group" value="a" label="Off" disabled><ui-radio value="a">A</ui-radio></ui-radio-group>
+      <ui-radio id="free" name="plan" value="free">Free</ui-radio>
+      <ui-radio name="plan" value="pro" checked>Pro</ui-radio>
+      <ui-combobox id="fruit" name="fruit" label="Fruit">${fruit}</ui-combobox>
+      <ui-combobox id="tags" name="tags" label="Tags" multiple>${tags}</ui-combobox>
+      <ui-combobox id="city" name="city" label="City" allow-free-text></ui-combobox>
+      <ui-combobox name="country" label="Country" value="no" readonly><option value="no">Norway</option></ui-combobox>
+      <ui-combobox name="off-combo" label="Off" value="apple" disabled>${fruit}</ui-combobox>
+      <ui-editable id="note" value="Inline"></ui-editable>
+    </form>
+    <form id="rules">
+      <ui-radio-group id="req-group" name="req" label="Required" required><ui-radio value="x">X</ui-radio><ui-radio value="y">Y</ui-radio></ui-radio-group>
+      <ui-combobox id="req-tags" name="req-tags" label="Required tags" multiple required>${tags}</ui-combobox>
+    </form>
+  `;
+  const vue = `
+    import { createApp, h } from "vue";
+    import { Checkbox, Combobox, Editable, Input, Radio, RadioGroup, Select, Switch, Textarea } from "@threadlabs/looma/vue";
+    const list = (pairs) => () => pairs.map(([value, label]) => h("option", { value }, label));
+    const fruit = list([["apple", "Apple"], ["pear", "Pear"]]);
+    const tags = list([["alpha", "Alpha"], ["beta", "Beta"]]);
+    const text = (value) => () => value;
+    createApp({
+      render: () => h("div", [
+        h("form", { id: "form" }, [
+          h(Input, { id: "title", name: "title", value: "Draft" }),
+          h(Input, { name: "off-input", value: "Hidden", disabled: true }),
+          h(Textarea, { id: "body", name: "body", value: "Hello" }),
+          h(Select, { id: "topic", name: "topic", value: "help" }, list([["problem", "Problem"], ["help", "Help"]])),
+          h(Checkbox, { id: "agree", name: "agree", value: "yes" }, text("Agree")),
+          h(Checkbox, { id: "news", name: "news", value: "weekly", checked: true }, text("News")),
+          h(Checkbox, { name: "unticked" }, text("Unticked")),
+          h(Checkbox, { name: "off-check", checked: true, disabled: true }, text("Off")),
+          h(Switch, { id: "alerts", name: "alerts", value: "push" }, text("Alerts")),
+          h(Switch, { name: "off-switch", checked: true, disabled: true }, text("Off")),
+          h(RadioGroup, { id: "size", name: "size", value: "m", label: "Size" }, () => [
+            h(Radio, { value: "s" }, text("Small")), h(Radio, { value: "m" }, text("Medium")), h(Radio, { id: "size-l", value: "l", disabled: true }, text("Large")),
+          ]),
+          h(RadioGroup, { name: "off-group", value: "a", label: "Off", disabled: true }, () => [h(Radio, { value: "a" }, text("A"))]),
+          h(Radio, { id: "free", name: "plan", value: "free" }, text("Free")),
+          h(Radio, { name: "plan", value: "pro", checked: true }, text("Pro")),
+          h(Combobox, { id: "fruit", name: "fruit", label: "Fruit" }, fruit),
+          h(Combobox, { id: "tags", name: "tags", label: "Tags", multiple: true }, tags),
+          h(Combobox, { id: "city", name: "city", label: "City", allowFreeText: true }),
+          h(Combobox, { name: "country", label: "Country", value: "no", readonly: true }, list([["no", "Norway"]])),
+          h(Combobox, { name: "off-combo", label: "Off", value: "apple", disabled: true }, fruit),
+          h(Editable, { id: "note", value: "Inline" }),
+        ]),
+        h("form", { id: "rules" }, [
+          h(RadioGroup, { id: "req-group", name: "req", label: "Required", required: true }, () => [h(Radio, { value: "x" }, text("X")), h(Radio, { value: "y" }, text("Y"))]),
+          h(Combobox, { id: "req-tags", name: "req-tags", label: "Required tags", multiple: true, required: true }, tags),
+        ]),
+      ]),
+    }).mount("#app");
+  `;
+
+  // Defaults: unchecked boxes, disabled controls, the multiple combobox with nothing chosen, and the
+  // in-place editor (which has no form value by design) send nothing.
+  const initial = [
+    ["title", "Draft"], ["body", "Hello"], ["topic", "help"], ["news", "weekly"], ["size", "m"], ["plan", "pro"],
+    ["fruit", ""], ["city", ""], ["country", "no"],
+  ];
+  const chosen = [
+    ["title", "Final"], ["body", "Hi there"], ["topic", "problem"], ["agree", "yes"], ["alerts", "push"], ["size", "s"],
+    ["plan", "free"], ["fruit", "pear"], ["tags", "alpha"], ["tags", "beta"], ["city", "Oslo"], ["country", "no"],
+  ];
+  const entries = (page: Page, form = "#form") => page.locator(form).evaluate((element) =>
+    Array.from(new FormData(element as HTMLFormElement), ([name, value]) => [name, String(value)]));
+  // Some controls resync after the browser's own reset, so the entries are given a moment to settle.
+  const settles = async (page: Page, expected: string[][]) => {
+    await page.waitForFunction((want) => {
+      const got = Array.from(new FormData(document.querySelector("#form") as HTMLFormElement), ([name, value]) => [name, String(value)]);
+      return JSON.stringify(got) === JSON.stringify(want);
+    }, expected, { timeout: 2000 }).catch(() => undefined);
+    assert.deepEqual(await entries(page), expected);
+  };
+  const pick = async (page: Page, id: string, typed: string) => {
+    await page.locator(`#${id} input[role="combobox"]`).click();
+    await page.locator(`#${id} input[role="combobox"]`).fill(typed);
+    await page.locator(`#${id} [role="option"]`).filter({ hasText: typed }).first().click();
+  };
+
+  const exercise = async (page: Page) => {
+    await page.waitForSelector('#req-tags[data-component~="ui-combobox"] input[role="combobox"]');
+    assert.deepEqual(await entries(page), initial);
+
+    await page.locator("#title").fill("Final");
+    await page.locator("#body").fill("Hi there");
+    await page.locator("#topic").selectOption("problem");
+    await page.locator("#agree input").check();
+    await page.locator("#news input").uncheck();
+    await page.locator("#alerts input").check();
+    await page.locator('#size input[value="s"]').check();
+    await page.locator("#free input").check();
+    await pick(page, "fruit", "Pear");
+    await page.locator("#note .preview").click();
+    await pick(page, "tags", "Alpha");
+    await pick(page, "tags", "Beta");
+    await page.locator('#city input[role="combobox"]').fill("Oslo");
+    await page.locator("#title").focus();
+    assert.equal(await page.locator('#fruit input[role="combobox"]').inputValue(), "Pear", "the field shows the label");
+    assert.deepEqual(await entries(page), chosen);
+    // A radio its author disabled stays disabled inside an enabled group.
+    assert.equal(await page.locator("#size-l input").isDisabled(), true);
+
+    await page.locator("#form").evaluate((form) => (form as HTMLFormElement).reset());
+    await settles(page, initial);
+    assert.equal(await page.locator("#agree input").isChecked(), false);
+    assert.equal(await page.locator("#news input").isChecked(), true);
+    assert.equal(await page.locator('#fruit input[role="combobox"]').inputValue(), "");
+    assert.equal(await page.locator("#tags .item").count(), 0);
+
+    // A required group is required to assistive technology and to the form's own validation, and a
+    // required multiple combobox is satisfied by its chosen items, not by text left in its input.
+    const valid = () => page.locator("#rules").evaluate((form) => (form as HTMLFormElement).checkValidity());
+    assert.equal(await page.locator('#req-group [role="radiogroup"], #req-group[role="radiogroup"]').first().getAttribute("aria-required"), "true");
+    assert.deepEqual(await page.locator("#req-group input").evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).required)), [true, true]);
+    assert.equal(await valid(), false);
+    await page.locator('#req-group input[value="y"]').check();
+    await pick(page, "req-tags", "Alpha");
+    await page.locator("#title").focus();
+    assert.equal(await valid(), true);
+    assert.deepEqual(await entries(page, "#rules"), [["req", "y"], ["req-tags", "alpha"]]);
+  };
+
+  it("submits each HTML control's value, leaves out what a native control would, and resets", async () => {
+    const path = await bundle("html-form", `import "@threadlabs/looma";`);
+    const page = await open(path, html, [join(root, "tokens.css")]);
+    await exercise(page);
+    await page.close();
+  });
+
+  it("submits the same entries from the Vue components", async () => {
+    const path = await bundle("vue-form-participation", vue);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await exercise(page);
     await page.close();
   });
 });
