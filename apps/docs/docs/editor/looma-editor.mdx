@@ -1,0 +1,73 @@
+---
+slug: /editor/looma-editor
+title: Turnkey editor
+sidebar_label: Turnkey editor
+---
+
+# Turnkey editor
+
+`LoomaEditor` (from `@threadlabs/looma/vue/editor`) is a complete rich-text editor built from the
+editor components in this section. The application passes content, editability, and upload or
+mention callbacks, and persists the document the editor emits; Looma owns the extensions,
+formatting commands, selection and focus, and every editor control. See
+[Getting started](/getting-started) for installation and a first example.
+
+## Props
+
+| Prop | Default | Purpose |
+|---|---|---|
+| `modelValue` | an empty document | The document, as Tiptap JSON. Use `v-model`. |
+| `editable` | `true` | Whether the document can be edited. |
+| `placeholder` | `Type “/” for commands, or start writing…` | Shown in an empty document. |
+| `label` | `Document` | The editing surface's accessible name. |
+| `extensions` | `[]` | Extra Tiptap extensions, added after Looma's own. |
+| `mentionItems`, `mentionProvider`, `mentionLimit` | none, none, 8 | People to suggest after `@`: a fixed list, or a function that searches. |
+| `uploadImage` | none | Uploads a chosen image and returns its URL and alt text. Without it, Insert image is disabled. |
+| `resolveImageAttributes` | none | Adjusts an image's attributes, such as a responsive `srcset`, before it renders. |
+| `toolbarMode` | `bubble` | `bubble` shows the toolbar beside a selection; `sticky` keeps it pinned above the document. |
+
+## Toolbar
+
+The toolbar is one row at page width, in four groups:
+
+- **Text:** Bold, Italic, Underline, Strike, Highlight, Inline code.
+- **Blocks:** Heading 1–3, Bullet list, Numbered list, Blockquote, Code block.
+- **Insert:** Table (opens the size grid), Image.
+- **History:** Undo, Redo.
+
+A mark or block that applies to the selection is shown as active: a tint and an inset edge in the
+accent, with `aria-pressed="true"`, never a solid fill. On a narrow screen the toolbar docks to the
+bottom of the viewport. Its buttons follow the [Toolbar](/components/ui-editor-toolbar) tokens, plus
+`--ui-editor-toolbar-button-size`, `--ui-editor-toolbar-button-radius`,
+`--ui-editor-toolbar-icon-size`, and the active-state `--ui-editor-toolbar-active-surface`,
+`--ui-editor-toolbar-active-text`, and `--ui-editor-toolbar-active-border`.
+
+## Slash menu
+
+Typing `/` opens the [slash menu](/components/ui-editor-slash-menu), which inserts every block the
+editor supports, including those without a toolbar button: headings, Info, Note, and Warning
+callouts, bullet, numbered, and checklist lists, blockquote, inline and block code, table, divider,
+and image. Markdown-style typing works too: `#` for headings, `-` for bullets, `[ ]` for a checklist,
+and `---` for a divider.
+
+## Active-block marker
+
+While the editor has focus, a thin line in the margin marks the top-level block being edited, so
+you can find your place without a border or fill around the text. It is deliberately quiet:
+
+- It steps aside while you type and returns once typing pauses (`LOOMA_ACTIVE_BLOCK_TYPING_IDLE_MS`,
+  800 ms).
+- Focus moving to the editor's own toolbar or menus, or leaving and coming straight back, does not
+  remove it; it goes only once focus has stayed away for `LOOMA_ACTIVE_BLOCK_BLUR_GRACE_MS` (200 ms).
+- It fades in rather than snapping on, and appears instantly under reduced motion.
+
+| Token | Default | Purpose |
+|---|---|---|
+| `--ui-editor-active-block-color` | `--ui-border` | The line's colour. |
+| `--ui-editor-active-block-width` | `1px` | The line's width. |
+| `--ui-editor-active-block-offset` | `--ui-space-3` | Its distance into the gutter from the text. |
+
+The line sits outside the content box, so a consumer that sets
+`--ui-editor-content-padding-inline` to `0` must leave it room on its own wrapper. The marker comes
+from the `LoomaActiveBlock` extension in `@threadlabs/looma/editor/extensions`, which adds the
+`looma-active-block` class to the block and nothing else.
