@@ -1,20 +1,21 @@
 # Changelog
 
-## v0.10.5
+## v0.10.7
+
+- Multiple Combobox reports `options-change` with options in their declared shape. Its rows carried
+  the list's view-only `selected` flag, which failed the event's type check; with a consumer that
+  owns `query`, the failure happened inside Vue's update and stopped the component rendering, so an
+  item created on Enter never appeared.
+
+## v0.10.6
 
 - A tree item's drag handle sits beside what it drags. A leaf row's handle takes the empty
   disclosure column right before its icon, where it used to sit outside the row, a column and an
   indent away (25px from a nested icon, now 7px). A branch's handle sits just outside its
   disclosure. The handle has no resting surface, which read as a faint patch, and takes the hover
   tint only when pointed at.
-## v0.10.4
 
-- A leaf tree row whose label is a link is that link everywhere a control is not: a click on its
-  `leading` icon or its padding follows the link, with the same modifier keys, so a modified click
-  still opens a new tab. Controls keep their own behaviour and a branch row still expands. This lets
-  an icon live in `leading`, where it stays put while a long name scrolls with `marquee`, without
-  shrinking the row's link to the name. The Tree page documents where icons and links go.
-## v0.10.3
+## v0.10.5
 
 - Combobox with `allowCreate` highlights the offer to create what was typed when nothing else
   matches, so Enter creates it. In multiple mode, Enter with nothing highlighted commits the typed
@@ -23,6 +24,14 @@
 - Multiple Combobox shows a consumer's changes at once: an option added while the list is open (the
   one just created, say) appears without another keystroke, and an item the consumer adds or removes
   is checked or unchecked in the list immediately rather than at the next search.
+
+## v0.10.4
+
+- A leaf tree row whose label is a link is that link everywhere a control is not: a click on its
+  `leading` icon or its padding follows the link, with the same modifier keys, so a modified click
+  still opens a new tab. Controls keep their own behaviour and a branch row still expands. This lets
+  an icon live in `leading`, where it stays put while a long name scrolls with `marquee`, without
+  shrinking the row's link to the name. The Tree page documents where icons and links go.
 
 ## v0.10.3
 
