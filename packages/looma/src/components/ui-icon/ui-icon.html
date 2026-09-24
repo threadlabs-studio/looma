@@ -1,6 +1,8 @@
 <template component="ui-icon" controller="./ui-icon.js">
   <defs>
-    <prop name="name" type="string" default="">The icon's name.</prop>
+    <prop name="name" type="string" default=""
+    >Which icon to draw, by its name in Looma's icon set (LOOMA_ICONS), such as "align-left". An unknown or empty name draws nothing. The icon is hidden from
+      assistive technology, so name the control it sits in.</prop>
     <state
       name="shapes"
       type="list(object({ tag: path | circle | rect, d?: string, cx?: string, cy?: string, r?: string, x?: string, y?: string, width?: string, height?: string, rx?: string }))"

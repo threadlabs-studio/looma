@@ -3,7 +3,9 @@
     <prop name="open" type="boolean" default="false">Whether the menu is open.</prop>
     <prop name="query" type="string" default="">The text typed after the @.</prop>
     <prop name="items" type="list(object({ id: string, label: string, detail?: string, initials?: string }))">The people the menu offers.</prop>
-    <prop name="selectedIndex" type="integer" default="0">The highlighted person.</prop>
+    <prop name="selectedIndex" type="integer" default="0"
+    >The zero-based index of the highlighted person, capped at the last one shown, and announced through aria-activedescendant. The menu does not handle arrow
+      keys itself: the editor sets this as the user moves, while hovering a person highlights them and reports a highlight event.</prop>
     <prop name="loading" type="boolean" default="false">Whether a search is in progress.</prop>
     <prop
       name="anchorRect"

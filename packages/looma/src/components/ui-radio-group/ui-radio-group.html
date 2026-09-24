@@ -1,11 +1,19 @@
 <template component="ui-radio-group" controller="./ui-radio-group.js">
   <defs>
-    <prop name="value" type="string" default="">value token.</prop>
-    <prop name="name" type="string" default="">name token.</prop>
-    <prop name="label" type="string" default="Options">label token.</prop>
-    <prop name="orientation" type="horizontal | vertical" default="horizontal">orientation token.</prop>
-    <prop name="disabled" type="boolean" default="false">disabled token.</prop>
-    <prop name="required" type="boolean" default="false">required token.</prop>
+    <prop name="value" type="string" default=""
+    >The value of the checked radio, initially or when set externally; empty checks none. The user's choice updates it from there and is reported as select and
+      change events.</prop>
+    <prop name="name" type="string" default=""
+    >The native name given to every radio in the group, under which a form submits the chosen value. Left empty, the group generates a unique name that keeps
+      the radios together, so set it when the choice submits with a form.</prop>
+    <prop name="label" type="string" default="Options"
+    >The group's legend, shown above the radios and announced as the group's name. Phrase it as the question the radios answer.</prop>
+    <prop name="orientation" type="horizontal | vertical" default="horizontal"
+    >horizontal lays the radios out in a row; vertical stacks them in a column. The arrow keys move between radios either way.</prop>
+    <prop name="disabled" type="boolean" default="false">Disables every radio in the group, so no choice can be made.</prop>
+    <prop name="required" type="boolean" default="false"
+    >Not applied yet: the group neither marks its radios required nor checks that one is chosen. Set required on the ui-radio children instead, which native
+      form validation honours for the whole group.</prop>
     <state name="internalValue" :value="''"></state>
     <event name="select" type="object({ value: string, previousValue: string, trigger: keyboard | pointer | programmatic })"></event>
     <event name="change" type="object({ checked: boolean, value: string, trigger: keyboard | pointer | programmatic })"></event>

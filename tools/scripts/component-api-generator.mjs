@@ -438,8 +438,10 @@ function slotDescription(name) {
 }
 
 function contractMetadata(tag, packageName, contract, description, designTokens) {
+  const describe = (name) => contract.propDescriptions?.[name] ?? "";
   const properties = Object.entries(contract.props ?? {}).map(([name, declaration]) => ({
     name,
+    description: describe(name),
     type: declarativeTypeToTypeScript(declaration.type),
     ...(Object.hasOwn(declaration, "default") ? { default: declaration.default } : {}),
     ...(literalOptions(declaration.type) ? { options: literalOptions(declaration.type) } : {}),
@@ -449,10 +451,25 @@ function contractMetadata(tag, packageName, contract, description, designTokens)
     .map(([name, declaration]) => ({
       name: publicAttributeName(name, declaration),
       property: name,
+      description: describe(name),
       type: declarativeTypeToTypeScript(declaration.type),
       ...(Object.hasOwn(declaration, "default") ? { default: declaration.default } : {}),
       ...(literalOptions(declaration.type) ? { options: literalOptions(declaration.type) } : {}),
     }));
+  // A polymorphic root is chosen with `as`, which the template language owns rather than a prop.
+  if (contract.rootAlternatives) {
+    const options = contract.rootAlternatives;
+    const asOption = {
+      name: "as",
+      property: "as",
+      description: `The element to render: ${options.join(" or ")}. Defaults to ${options[0]}; choosing another keeps every style and behaviour.`,
+      type: options.map((option) => `'${option}'`).join(" | "),
+      default: options[0],
+      options,
+    };
+    attributes.push(asOption);
+    properties.push(asOption);
+  }
   const events = (contract.events ?? []).map((event) => {
     const type = declarativeTypeToTypeScript(event.type ?? "unknown");
     return {

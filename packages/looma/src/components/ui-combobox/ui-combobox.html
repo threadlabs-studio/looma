@@ -2,25 +2,47 @@
 <link rel="component" href="../ui-tooltip/ui-tooltip.html">
 <template component="ui-combobox" controller="./ui-combobox.js">
   <defs>
-    <prop name="label" type="string" default="">label token.</prop>
-    <prop name="placeholder" type="string" default="">placeholder token.</prop>
-    <prop name="name" type="string" default="">name token.</prop>
+    <prop name="label" type="string" default=""
+    >The field's label, tied to its input and shown above it; required adds an asterisk. It also names the suggestion list. Pair it with
+      labelVisibility="sr-only" when the context already labels the field visibly.</prop>
+    <prop name="placeholder" type="string" default=""
+    >Hint text shown in the empty input, as on a native input. It disappears as the user types, so it never replaces label.</prop>
+    <prop name="name" type="string" default=""
+    >The form field name set on the native input. A form submits the input's text, which after a selection is the chosen option's label, not its value; read
+      value-change for the value.</prop>
     <prop name="value" type="string | null">The selected value in single mode.</prop>
     <prop name="items" type="list(object({ id: string, value: string, label: string, group?: string, disabled?: boolean }))"
     >The selected items in multiple mode, as JSON.</prop>
-    <prop name="multiple" type="boolean" default="false">multiple token.</prop>
-    <prop name="tokenSeparators" type="list(string)">tokenSeparators token.</prop>
-    <prop name="query" type="string">query token.</prop>
+    <prop name="multiple" type="boolean" default="false"
+    >Lets the user choose several options. Each choice becomes a removable badge before the input, the list stays open between picks, and choosing a checked
+      option removes it. value-change then reports the whole list of items; use items, not value, in this mode.</prop>
+    <prop name="tokenSeparators" type="list(string)"
+    >Keys that commit the typed text in multiple mode, as KeyboardEvent key values such as "," or ";". The text is added as the option whose label matches it,
+      ignoring case, or with allowCreate is reported as create-item; otherwise it stays in the input.</prop>
+    <prop name="query" type="string"
+    >The input's text, when the consumer controls it. Once set, the consumer owns the text: typing reports query-change, and the input returns to query unless
+      query is updated to match. Leave it unset to let the combobox manage its own text, showing the chosen option's label.</prop>
     <prop name="allowFreeText" type="boolean" default="false">Allows values that do not match an authored option.</prop>
     <prop name="allowCreate" type="boolean" default="false">Offers the current query as a new option.</prop>
-    <prop name="disabled" type="boolean" default="false">disabled token.</prop>
+    <prop name="disabled" type="boolean" default="false"
+    >Disables the input, the chosen-item badges, and the help button. The list closes and cannot be opened.</prop>
     <prop name="readonly" type="boolean" default="false">Whether the current value may be selected but not edited.</prop>
-    <prop name="required" type="boolean" default="false">required token.</prop>
-    <prop name="size" type="sm | md" default="md">size token.</prop>
-    <prop name="labelVisibility" type="visible | sr-only" default="visible">labelVisibility token.</prop>
-    <prop name="disclosure" type="boolean" default="false">disclosure token.</prop>
-    <prop name="clearable" type="boolean" default="false">clearable token.</prop>
-    <prop name="help" type="string" default="">help token.</prop>
+    <prop name="required" type="boolean" default="false"
+    >Marks the input required, adds an asterisk to the label, and makes validation report "A value is required." when the field is left empty.</prop>
+    <prop name="size" type="sm | md" default="md"
+    >Field height. md is the standard control height; sm is the small control height with tighter padding, for dense forms.</prop>
+    <prop name="labelVisibility" type="visible | sr-only" default="visible"
+    >visible shows the label above the field; sr-only hides it visually but keeps it as the input's accessible name. Use sr-only only when the surrounding
+      layout already makes the field's purpose clear.</prop>
+    <prop name="disclosure" type="boolean" default="false"
+    >Adds a chevron button that opens and closes the full, unfiltered list of options, for users who would rather browse than type. ArrowDown opens the same
+      list with or without it.</prop>
+    <prop name="clearable" type="boolean" default="false"
+    >Adds a clear button to the field that empties the input and clears the selection, reported as value-change with kind "clear". In multiple mode it clears
+      only the typed text; chosen items stay.</prop>
+    <prop name="help" type="string" default=""
+    >Help text for the field. When set, a help button appears beside the field and opens a tooltip with this text; while it is open, the input is described by
+      it.</prop>
     <state name="internalItems" type="list(object({ id: string, value: string, label: string, group?: string, disabled?: boolean }))" :value="[]"></state>
     <state name="raw" :value="''"></state>
     <state name="display" :value="''"></state>

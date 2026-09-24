@@ -1,10 +1,15 @@
 <template component="ui-checkbox" controller="./ui-checkbox.js">
   <defs>
     <prop name="checked" type="boolean" default="false">Whether the checkbox is checked initially or when set externally.</prop>
-    <prop name="disabled" type="boolean" default="false">disabled token.</prop>
-    <prop name="indeterminate" type="boolean" default="false">indeterminate token.</prop>
-    <prop name="required" type="boolean" default="false">required token.</prop>
-    <prop name="value" type="string" default="on">value token.</prop>
+    <prop name="disabled" type="boolean" default="false">Disables the native checkbox, so it cannot be toggled or focused.</prop>
+    <prop name="indeterminate" type="boolean" default="false"
+    >Shows the mixed state, for a checkbox that summarises a group whose items are partly checked. It sets the native indeterminate property, which is
+      independent of checked, so update it as the group changes.</prop>
+    <prop name="required" type="boolean" default="false"
+    >Marks the native checkbox required, so native form validation treats it as invalid until it is checked.</prop>
+    <prop name="value" type="string" default="on"
+    >The value set on the native input and reported in the change event's detail, so one handler can tell checkboxes apart. on by default, as on a native
+      checkbox.</prop>
     <state name="internalChecked" :value="false"></state>
     <event name="change" type="object({ checked: boolean, value: string, trigger: keyboard | pointer | programmatic })"></event>
   </defs>
