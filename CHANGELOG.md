@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.10.1
+
+- The editor toolbar is always one row. When its controls outgrow the space it has, the row scrolls
+  sideways instead of wrapping into several lines, and each edge that hides controls fades into the
+  toolbar's own colour; a row that fits shows no fade. The fades are mattes over the row rather than
+  a mask, so a floating toolbar keeps its border and shadow, and right-to-left rows fade the right
+  edges. `--ui-editor-toolbar-fade-size` sets the fade's width (32px). `--ui-editor-toolbar-row-gap`
+  is gone with the wrapping it spaced.
+
 ## v0.10.0
 
 - Combobox shows its validation message in HTML too. The message hid while `validation.issues`
