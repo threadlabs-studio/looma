@@ -134,6 +134,10 @@
       "status": "published",
       "package": "@threadlabs/looma"
     },
+    "ui-scroll-area": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
     "ui-search-result-row": {
       "status": "published",
       "package": "@threadlabs/looma",

@@ -1,0 +1,56 @@
+<template component="ui-scroll-area">
+  <defs>
+    <prop name="orientation" type="vertical | horizontal" default="vertical"
+    >The direction the content scrolls. Vertical scrolls up and down and clips sideways overflow; horizontal scrolls sideways and clips vertical
+      overflow.</prop>
+  </defs>
+  <div><slot></slot></div>
+  <style>
+    /* A region that scrolls when its content outgrows it. Each edge that hides content fades, growing
+       in as the content leaves that edge (the scroll fade in tokens.css), so the reader can tell there
+       is more; an edge with nothing past it stays crisp, and content that fits shows no fade. The
+       fade is a mask, so it blends into whatever is behind the area without knowing its colour. */
+    :host {
+      display: block;
+      box-sizing: border-box;
+      min-block-size: 0;
+      min-inline-size: 0;
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      --_ui-scroll-fade-direction: to bottom;
+      --_ui-scroll-fade-inline: to right;
+      --_ui-scroll-fade-size: var(--ui-scroll-fade-size, 24px);
+      mask-image: linear-gradient(
+        var(--_ui-scroll-fade-direction),
+        transparent,
+        #000 var(--_ui-scroll-fade-start),
+        #000 calc(100% - var(--_ui-scroll-fade-end)),
+        transparent
+      );
+      animation: ui-scroll-fade-start linear, ui-scroll-fade-start-hold linear, ui-scroll-fade-end-hold linear, ui-scroll-fade-end linear;
+      animation-timeline: scroll(self block);
+      animation-range:
+        0 var(--_ui-scroll-fade-size),
+        var(--_ui-scroll-fade-size) calc(100% + 1px),
+        -1px calc(100% - var(--_ui-scroll-fade-size)),
+        calc(100% - var(--_ui-scroll-fade-size)) 100%;
+    }
+
+    :host-state([orientation="horizontal"]) {
+      overflow-x: auto;
+      overflow-y: hidden;
+      --_ui-scroll-fade-direction: var(--_ui-scroll-fade-inline);
+      animation-timeline: scroll(self inline);
+    }
+
+    :host:dir(rtl) {
+      --_ui-scroll-fade-inline: to left;
+    }
+
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
+</template>

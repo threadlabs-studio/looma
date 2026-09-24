@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.10.10
+
+- New: Scroll Area (`ui-scroll-area`, Vue `ScrollArea`), a region that scrolls when its content
+  outgrows it, vertically or (`orientation="horizontal"`) sideways, and fades each edge that hides
+  content. Only an edge with content past it fades; the fade grows in with the distance scrolled;
+  content that fits shows none. The fade is a mask drawn by a CSS scroll-driven animation, so it
+  blends into any surface and needs no script. `--ui-scroll-fade-size` sets its reach (24px).
+- Every Looma scroller fades its edges the same way: Sidebar's content, Reel, the editor toolbar's
+  row, a Dialog's body, Search Shell's results, and the editor's slash and mention menus. The editor
+  toolbar's fades were mattes in its own colour, 32px wide, driven by a script; they are now the
+  shared mask, 24px unless `--ui-editor-toolbar-fade-size` says otherwise. A rule test holds every
+  scroller to the shared fade; menus and popovers, whose scroller is also their bordered surface,
+  are listed until they get an inner scroller.
+
 ## v0.10.9
 
 - A single Combobox reports the chosen option in its declared shape. `value-change` passed the
