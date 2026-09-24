@@ -10,6 +10,9 @@ export default function controller(host) {
   const [trigger, stopTracking] = trackTrigger(host);
   const inputs = () => Array.from(element.querySelectorAll('[data-component~="ui-radio"] input[type="radio"]'));
   let external = host.state.value;
+  // A radio's own required survives until the group's required changes, since either one makes the
+  // whole name group required.
+  let required = false;
   host.state.internalValue = String(external ?? "");
   const stop = host.effect(() => {
     if (host.state.value !== external) {
@@ -18,7 +21,10 @@ export default function controller(host) {
     }
     const value = host.state.internalValue;
     const disabled = Boolean(host.state.disabled);
+    const applyRequired = Boolean(host.state.required) !== required;
+    required = Boolean(host.state.required);
     for (const input of inputs()) {
+      if (applyRequired) input.required = required;
       input.name = name;
       input.checked = input.value === value;
       input.disabled = disabled;
