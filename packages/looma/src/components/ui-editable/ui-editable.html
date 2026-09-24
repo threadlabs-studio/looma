@@ -1,6 +1,8 @@
 <template component="ui-editable" controller="./ui-editable.js">
   <defs>
-    <prop name="value" type="string" default="">The displayed and initial editable value.</prop>
+    <prop name="value" type="string" default=""
+    >The displayed value, and the text the editor starts from. It is not a form field: nothing is submitted with a form, so a form that needs the value copies
+      it from the change event into a field of its own.</prop>
     <prop name="label" type="string" default="Edit value">Accessible name for the editor.</prop>
     <prop name="edit" type="boolean" default="false">Whether edit mode is active initially or when set externally.</prop>
     <prop name="disabled" type="boolean" default="false">Prevents entering or changing edit mode.</prop>

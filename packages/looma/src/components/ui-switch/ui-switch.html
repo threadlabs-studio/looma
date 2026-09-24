@@ -1,16 +1,19 @@
 <template component="ui-switch" controller="./ui-switch.js">
   <defs>
-    <prop name="checked" type="boolean" default="false">Whether the switch is checked initially or when set externally.</prop>
+    <prop name="checked" type="boolean" default="false">Whether the switch is checked initially or when set externally. A form reset returns it to this.</prop>
     <prop name="disabled" type="boolean" default="false">Disables the native switch, so it cannot be toggled or focused.</prop>
     <prop name="required" type="boolean" default="false">Marks the native switch required, so native form validation treats it as invalid until it is on.</prop>
+    <prop name="name" type="string" default=""
+    >The native name the switch submits under: a form that contains it sends name=value while it is on, and nothing while it is off, as a native checkbox does.
+      Left empty, it takes no part in form submission.</prop>
     <prop name="value" type="string" default="on"
-    >The value set on the native input and reported in the change event's detail, so one handler can tell switches apart. on by default, as on a native
-      checkbox.</prop>
+    >The value a form submits under name while the switch is on, also reported in the change event's detail so one handler can tell switches apart. on by
+      default, as on a native checkbox.</prop>
     <state name="internalChecked" :value="false"></state>
     <event name="change" type="object({ checked: boolean, value: string, trigger: keyboard | pointer | programmatic })"></event>
   </defs>
   <label>
-    <input type="checkbox" role="switch" $ref="input" .checked="internalChecked" :disabled="disabled" :required="required" :value="value">
+    <input type="checkbox" role="switch" $ref="input" .checked="internalChecked" :disabled="disabled" :required="required" :name="name" :value="value">
     <span class="label"><slot></slot></span>
   </label>
   <style>
