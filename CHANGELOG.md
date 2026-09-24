@@ -5,6 +5,9 @@
 - Radio Group's `required` works. It was declared but did nothing; now the group states
   `aria-required="true"`, marks each of its radios required, and native form validation fails until
   one is checked, as for a required native radio group. A radio's own `required` still counts.
+- A disabled or read-only Combobox can no longer be cleared. Its clear and disclosure buttons are
+  disabled with the rest of the field (the badges and help button already were), and a click that
+  reaches them anyway changes nothing.
 
 ## v0.9.2
 

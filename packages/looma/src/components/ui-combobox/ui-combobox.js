@@ -388,6 +388,7 @@ export default function controller(host) {
     const option = event.target.closest?.('[role="option"][data-index]');
     if (option) { choose(Number(option.dataset.index), "pointer"); return; }
     const action = event.target.closest?.("[data-combobox-action]")?.dataset.comboboxAction;
+    if (action && (host.state.disabled || host.state.readonly)) return;
     if (action === "clear") { lastSelection = null; commit(null, "", null, "clear", "pointer"); close(); input.focus(); }
     else if (action === "disclosure") { host.state.expanded ? close() : open("disclosure"); input.focus(); }
     else if (field.contains(event.target) && !event.target.closest?.("button")) input.focus();
