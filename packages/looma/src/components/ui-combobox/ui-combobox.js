@@ -5,15 +5,6 @@ const instances = new WeakMap();
 
 let comboboxes = 0;
 
-// A row carries a view-only `selected` flag; events report the option itself, in its declared shape.
-const asItem = ({ id, value, label, group, disabled }) => ({
-  id,
-  value,
-  label,
-  ...(group === undefined ? {} : { group }),
-  ...(disabled === undefined ? {} : { disabled })
-});
-
 function authoredOptions(container) {
   return Array.from(container.querySelectorAll("option")).map((option, index) => ({
     id: option.id || option.value || `option-${index}`,
@@ -148,6 +139,7 @@ export default function controller(host) {
       // When nothing matches what was typed, the offer to create it is the only choice, so it is
       // the one Enter makes, and it is highlighted as such.
       if (query && !host.state.rows.some((row) => !row.disabled) && canCreate()) host.state.active = host.state.rows.length;
+      // Options in their declared shape: a row's `selected` flag is the list's own view state.
       host.dispatch("options-change", host.state.rows.map(asItem));
     };
     applyOptions(current.options);
@@ -199,6 +191,14 @@ export default function controller(host) {
     input.value = query;
     host.dispatch("query-change", { query, display: query, trigger });
   };
+  // A row carries a view-only `selected` flag; an item is the option itself, in its declared shape.
+  const asItem = ({ id, value, label, group, disabled }) => ({
+    id,
+    value,
+    label,
+    ...(group === undefined ? {} : { group }),
+    ...(disabled === undefined ? {} : { disabled })
+  });
   const addSelectedItem = (row, trigger) => {
     const option = asItem(row);
     const current = items();
