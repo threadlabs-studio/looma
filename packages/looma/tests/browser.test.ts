@@ -381,6 +381,89 @@ describe("Editor toolbar row", () => {
   });
 });
 
+describe("Tree link rows", () => {
+  const markup = `
+    <ui-tree label="Pages">
+      <ui-tree-item id="page" item-id="page" label="Welcome">
+        <span slot="leading" id="page-icon">icon</span>
+        <a slot="label" id="page-link" href="#welcome">Welcome</a>
+        <button slot="actions" id="page-action" type="button">More</button>
+      </ui-tree-item>
+      <ui-tree-item id="plain" item-id="plain" label="Plain">
+        <span slot="leading" id="plain-icon">icon</span>
+      </ui-tree-item>
+      <ui-tree-item id="folder" item-id="folder" label="Folder" container>
+        <span slot="leading" id="folder-icon">icon</span>
+      </ui-tree-item>
+    </ui-tree>`;
+
+  async function checkRows(page: Page) {
+    await page.waitForSelector('#folder[data-component~="ui-tree-item"]');
+    await page.evaluate(() => {
+      (window as unknown as { clicks: { meta: boolean }[] }).clicks = [];
+      document.querySelector("#page-link")!.addEventListener("click", (event) => {
+        (window as unknown as { clicks: { meta: boolean }[] }).clicks.push({ meta: (event as MouseEvent).metaKey });
+      });
+    });
+    const clicks = () => page.evaluate(() => (window as unknown as { clicks: { meta: boolean }[] }).clicks);
+
+    // The icon of a leaf row whose label is a link follows the link.
+    await page.locator("#page-icon").click();
+    await page.waitForFunction(() => location.hash === "#welcome");
+    assert.deepEqual(await clicks(), [{ meta: false }]);
+    // A modified click carries its modifiers to the link.
+    await page.locator("#page-icon").click({ modifiers: ["Meta"] });
+    assert.deepEqual((await clicks()).at(-1), { meta: true });
+
+    // Controls keep their own behaviour.
+    const before = (await clicks()).length;
+    await page.locator("#page").hover();
+    await page.locator("#page-action").click({ force: true });
+    assert.equal((await clicks()).length, before, "a control does not follow the label link");
+
+    // A leaf without a link does nothing; a branch still toggles.
+    await page.locator("#plain-icon").click();
+    const expanded = () => page.evaluate(() => {
+      const folder = document.querySelector("#folder")!;
+      const item = folder.matches('[role="treeitem"]') ? folder : folder.querySelector('[role="treeitem"]');
+      return item?.getAttribute("aria-expanded");
+    });
+    assert.equal(await expanded(), "false");
+    await page.locator("#folder-icon").click();
+    await page.waitForFunction(() => {
+      const folder = document.querySelector("#folder")!;
+      const item = folder.matches('[role="treeitem"]') ? folder : folder.querySelector('[role="treeitem"]');
+      return item?.getAttribute("aria-expanded") === "true";
+    });
+  }
+
+  it("follows a leaf row's label link from the rest of the row, in HTML", async () => {
+    const path = await bundle("html-tree-link-rows", `import "@threadlabs/looma";`);
+    const page = await open(path, markup, [join(root, "tokens.css")]);
+    await checkRows(page);
+    await page.close();
+  });
+
+  it("follows a leaf row's label link from the rest of the row, in Vue", async () => {
+    const path = await bundle("vue-tree-link-rows", `
+      import { createApp, h } from "vue";
+      import { Tree, TreeItem } from "@threadlabs/looma/vue";
+      createApp({ render: () => h(Tree, { label: "Pages" }, () => [
+        h(TreeItem, { id: "page", itemId: "page", label: "Welcome" }, {
+          leading: () => h("span", { id: "page-icon" }, "icon"),
+          label: () => h("a", { id: "page-link", href: "#welcome" }, "Welcome"),
+          actions: () => h("button", { id: "page-action", type: "button" }, "More"),
+        }),
+        h(TreeItem, { id: "plain", itemId: "plain", label: "Plain" }, { leading: () => h("span", { id: "plain-icon" }, "icon") }),
+        h(TreeItem, { id: "folder", itemId: "folder", label: "Folder", container: true }, { leading: () => h("span", { id: "folder-icon" }, "icon") }),
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await checkRows(page);
+    await page.close();
+  });
+});
+
 describe("Icon Button", () => {
   it("grows its hit area, not its size, once touch is used", async () => {
     const path = await bundle("vue-icon-button-touch", `

@@ -59,9 +59,17 @@ export default function controller(host) {
   };
   const onDisclosureClick = (event) => { event.stopPropagation(); setExpanded(!Boolean(host.state.internalExpanded), triggerFor(event)); };
   const onRowClick = (event) => {
-    if (!isContainer() || host.state.disabled) return;
+    if (host.state.disabled) return;
     const interactive = event.composedPath().some((node) => node instanceof HTMLElement && node.matches?.('a, button, input, select, textarea, [role="button"], [role="link"]'));
-    if (!interactive) setExpanded(!Boolean(host.state.internalExpanded), triggerFor(event));
+    if (interactive) return;
+    if (isContainer()) {
+      setExpanded(!Boolean(host.state.internalExpanded), triggerFor(event));
+      return;
+    }
+    // A leaf row whose label is a link is that link everywhere a control is not: its icon and padding
+    // follow it too. The click is replayed with its modifiers, so a modified click still opens a tab.
+    const link = labelText?.querySelector("a[href]");
+    if (link) link.dispatchEvent(new MouseEvent("click", event));
   };
   const onRoving = (event) => { host.state.tabStop = Boolean(event.detail?.active) && !host.state.disabled; apply(); };
   const onExpansionRequest = (event) => {
