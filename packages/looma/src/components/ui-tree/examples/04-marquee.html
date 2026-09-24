@@ -1,0 +1,16 @@
+<!--
+title: marquee
+description: With marquee, a name too long for its row scrolls while that row is hovered or focused, then returns. A name that fits does not move.
+-->
+<ui-tree label="Pages" marquee style="width: 15rem">
+  <ui-tree-item item-id="overview" label="Overview"></ui-tree-item>
+  <ui-tree-item item-id="handbook" label="How to Use This Handbook and Everything Inside It">
+    <ui-icon-button slot="actions" label="More actions for the handbook" size="sm">
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor">
+        <circle cx="5" cy="12" r="1.6"></circle>
+        <circle cx="12" cy="12" r="1.6"></circle>
+        <circle cx="19" cy="12" r="1.6"></circle>
+      </svg>
+    </ui-icon-button>
+  </ui-tree-item>
+</ui-tree>

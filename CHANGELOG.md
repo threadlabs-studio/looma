@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.10.3
+
+- `ui-tree` takes `marquee`: a name too long for its row scrolls while that row is hovered or
+  focused, then returns. Off by default, set on the tree, and overridable per item. The distance
+  counts the width the hover controls overlay, which is the part an app-side marquee could not see:
+  measured against the label alone, a name that overflows only by the controls' width never scrolls
+  at all, and a longer one stops with its tail still underneath them. A name that fits stays still,
+  and reduced motion keeps the fade instead.
+
 ## v0.10.2
 
 - In Vue, `v-model:value` on Radio Group hears each choice once. A choice is reported as both
@@ -170,6 +179,7 @@
   combobox now checks its options in place: chosen options stay in the list with a checkbox, toggle
   off when chosen again, and report `aria-selected` — which they never did while they were being
   removed from the list.
+
 - A checked checkbox draws its tick again. Lowering expands a shorthand into longhands, and
   `border: solid var(--ui-text-on-accent)` came out with empty values, leaving the tick styleless
   and so zero-width.

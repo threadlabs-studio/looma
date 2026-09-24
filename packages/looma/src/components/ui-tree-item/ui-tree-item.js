@@ -11,7 +11,7 @@ function parentItem(element) {
 /** Synchronizes an inferred tree hierarchy after nested component lowering. */
 export default function controller(host) {
   const element = host.element;
-  const { row, disclosure, children, actions } = host.refs;
+  const { row, disclosure, children, actions, labelText } = host.refs;
   // Touch use enlarges rows and hides drag handles (see the template's styles).
   trackInputModality(element.ownerDocument);
   const childItems = () => Array.from(children?.children ?? [])
@@ -81,6 +81,42 @@ export default function controller(host) {
   updateLevel();
   const stop = host.effect(apply);
   apply();
+  /**
+   * A hovered row reads its whole name. The controls overlay the label's end rather than taking
+   * width from it, so the width the name actually has while hovered is the label minus them:
+   * measuring against the full label scrolls short and leaves the tail under the controls.
+   */
+  const MARQUEE_SPEED = 36; // CSS pixels per second.
+  const MARQUEE_SLACK = 4; // So the tail clears the edge rather than stopping on it.
+  // The tree sets this for its items; an item's own prop overrides it either way.
+  const marqueeWanted = () => host.state.marquee
+    || getComputedStyle(element).getPropertyValue("--ui-tree-item-marquee").trim() === "1";
+  const startMarquee = () => {
+    if (!labelText || !marqueeWanted()) return;
+    const covered = actions?.offsetWidth ?? 0;
+    const visible = labelText.clientWidth - covered;
+    const overflow = Math.round(labelText.scrollWidth - visible);
+    if (overflow <= 0) return;
+    const distance = overflow + MARQUEE_SLACK;
+    const rightToLeft = getComputedStyle(element).direction === "rtl";
+    row.style.setProperty("--_marquee-distance", `${rightToLeft ? distance : -distance}px`);
+    row.style.setProperty(
+      "--_marquee-duration",
+      `${Math.min(10, Math.max(1.4, distance / MARQUEE_SPEED)).toFixed(2)}s`
+    );
+    row.dataset.uiMarquee = "";
+  };
+  const stopMarquee = () => {
+    delete row.dataset.uiMarquee;
+    row.style.removeProperty("--_marquee-distance");
+    row.style.removeProperty("--_marquee-duration");
+  };
+  // Pointer and focus both count: a keyboard walk through a tree reads the same names.
+  row.addEventListener("pointerenter", startMarquee);
+  row.addEventListener("pointerleave", stopMarquee);
+  row.addEventListener("focusin", startMarquee);
+  row.addEventListener("focusout", stopMarquee);
+
   // The label's fade has to end where the controls begin, and only the controls know their width.
   const actionsSize = new ResizeObserver(([entry]) => {
     const width = entry.borderBoxSize?.[0]?.inlineSize ?? entry.contentRect.width;
@@ -92,6 +128,10 @@ export default function controller(host) {
     stop?.();
     observer.disconnect();
     actionsSize.disconnect();
+    row.removeEventListener("pointerenter", startMarquee);
+    row.removeEventListener("pointerleave", stopMarquee);
+    row.removeEventListener("focusin", startMarquee);
+    row.removeEventListener("focusout", stopMarquee);
     element.removeEventListener("ui-tree-auto-expand", onAutoExpand);
     element.removeEventListener("ui-tree-structure-sync", onStructure);
     element.removeEventListener("ui-tree-roving-tab-stop", onRoving);
