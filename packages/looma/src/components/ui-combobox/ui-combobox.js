@@ -139,7 +139,8 @@ export default function controller(host) {
       // When nothing matches what was typed, the offer to create it is the only choice, so it is
       // the one Enter makes, and it is highlighted as such.
       if (query && !host.state.rows.some((row) => !row.disabled) && canCreate()) host.state.active = host.state.rows.length;
-      host.dispatch("options-change", host.state.rows);
+      // Options in their declared shape: a row's `selected` flag is the list's own view state.
+      host.dispatch("options-change", host.state.rows.map(asItem));
     };
     applyOptions(current.options);
   };

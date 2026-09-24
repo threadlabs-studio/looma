@@ -742,6 +742,45 @@ describe("Help affordance", () => {
 });
 
 describe("Combobox with multiple", () => {
+  it("creates on Enter when the consumer also owns the query", async () => {
+    const path = await bundle("vue-multi-create-query", `
+      import { createApp, h, ref } from "vue";
+      import { Combobox } from "@threadlabs/looma/vue";
+      const options = ref([{ value: "bar", label: "Bar" }]);
+      const items = ref([]);
+      const query = ref("");
+      const created = [];
+      window.created = created;
+      window.errors = [];
+      const app = createApp({
+        render: () => h(Combobox, {
+          id: "tags", label: "Tags", multiple: true, allowCreate: true, items: items.value,
+          query: query.value, "onUpdate:query": (value) => { query.value = value; },
+          // Created optimistically: offered and selected at once, confirmed later.
+          onCreateItem: ({ query: name }) => {
+            created.push(name);
+            const option = { value: name.toLowerCase(), label: name };
+            options.value = [...options.value, option];
+            items.value = [...items.value, { id: option.value, ...option }];
+          },
+        }, () => options.value.map((option) => h("option", { key: option.value, value: option.value }, option.label))),
+      });
+      app.config.errorHandler = (error) => { window.errors.push(String(error && error.stack || error)); };
+      app.mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const input = page.locator("#tags input");
+    await input.click();
+    await input.pressSequentially("Foo");
+    await input.press("Enter");
+    await page.waitForTimeout(300);
+    assert.deepEqual(await page.evaluate(() => (window as unknown as { errors: string[] }).errors), []);
+    assert.deepEqual(await page.evaluate(() => (window as unknown as { created: string[] }).created), ["Foo"]);
+    assert.deepEqual(await page.locator("#tags .item").allTextContents(), ["Foo"]);
+    assert.equal(await input.inputValue(), "");
+    await page.close();
+  });
+
   it("offers to create what was typed, creates it on Enter, and checks it once the consumer adds it", async () => {
     const path = await bundle("vue-multi-create", `
       import { createApp, h, ref } from "vue";
