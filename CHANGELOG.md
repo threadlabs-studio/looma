@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.10.9
+
+- A single Combobox reports the chosen option in its declared shape. `value-change` passed the
+  list's row, with its view-only `selected` flag, as `option`; the Vue adapter's event check
+  rejected it, so choosing an option threw `HR002` and `@value-change` never ran. It reports the
+  option as `add-item` and `options-change` do.
+
 ## v0.10.8
 
 - A click inside a tree row's menu (an options menu in `actions`, say) is the menu's, not the row's.
