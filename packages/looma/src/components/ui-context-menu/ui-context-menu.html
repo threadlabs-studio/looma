@@ -1,7 +1,7 @@
 <template component="ui-context-menu" controller="./ui-context-menu.js">
   <defs>
     <prop name="open" type="boolean" default="false">Whether the context menu is open initially or when set externally.</prop>
-    <prop name="for" type="string" default="">ID of the control that opens the menu by click, keyboard activation, or context click.</prop>
+    <prop name="for" type="string" default="">ID of the element whose context click (right-click, long-press, Shift+F10, or the Menu key) opens the menu.</prop>
     <state name="internalOpen" :value="false"></state>
     <event
       name="open"

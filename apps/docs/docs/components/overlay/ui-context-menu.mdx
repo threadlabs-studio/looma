@@ -6,7 +6,19 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 # Context Menu
 
-Action menu with a visible keyboard/touch trigger plus supplemental pointer-context support.
+Action menu that opens where its target is context-clicked: right-click, touch long-press, or Shift+F10 / the Menu key on the focused target. A plain click does nothing; for a button that opens a menu, use [Menu](./ui-menu.mdx).
 
+## When to use it
+
+A context menu is a shortcut, not a way in. **Every action in it should also be reachable by a
+plain click or tap somewhere else**: a toolbar, a Menu button, or the item itself. Right-click and
+long-press are invisible until someone thinks to try them, and some people never will, so a
+command that lives only in a context menu is a command many users cannot find.
+
+## Touch
+
+A held press of about half a second opens the menu, since iOS Safari fires no `contextmenu` event
+of its own. Give the target `user-select: none` and `-webkit-touch-callout: none` so the
+long-press isn't taken by text selection or the system callout first.
 
 <ComponentExamplesApiTabs component="ui-context-menu" />
