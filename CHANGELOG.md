@@ -8,6 +8,47 @@
   a mask, so a floating toolbar keeps its border and shadow, and right-to-left rows fade the right
   edges. `--ui-editor-toolbar-fade-size` sets the fade's width (32px). `--ui-editor-toolbar-row-gap`
   is gone with the wrapping it spaced.
+
+## v0.10.0
+
+- Combobox shows its validation message in HTML too. The message hid while `validation.issues`
+  had entries because the HTML runtime cannot read an array's `length`; Vue was unaffected.
+- **Breaking:** a named Combobox submits its value, not the label shown in the field. The visible
+  input no longer carries `name`; a hidden field does. Single mode sends one entry (the selected
+  option's value, the typed text when `allowFreeText` is set and nothing is selected, or an empty
+  string), and multiple mode sends one entry per chosen item's value, so `name="tags"` with two
+  items submits `tags=alpha&tags=beta` rather than the input's leftover text. A disabled combobox
+  sends nothing. Server code that read the label from the form must read the value instead. An
+  unnamed combobox renders no hidden field.
+- Radio Group's `required` works. It was declared but did nothing; now the group states
+  `aria-required="true"`, marks each of its radios required, and native form validation fails until
+  one is checked, as for a required native radio group. A radio's own `required` still counts.
+- A disabled or read-only Combobox can no longer be cleared. Its clear and disclosure buttons are
+  disabled with the rest of the field (the badges and help button already were), and a click that
+  reaches them anyway changes nothing.
+- Search Result Row's `selected` reaches assistive technology: the row's button states
+  `aria-current="true"` as well as taking the highlighted surface. It had been visual only.
+- Checkbox and Switch take `name`, passed to the native input, so they submit with a form: checked
+  sends `name=value` (value defaults to `on`) and unchecked sends nothing, as a native checkbox
+  does. Without it, neither could submit at all.
+- Clicking from an Editable that is being edited into another field saves the edit and leaves focus
+  in the field that was clicked. It had pulled focus back to the Editable a frame later, which
+  closed a combobox list the click had just opened.
+- A form's `reset()` returns every Looma control to its `value` or `checked` prop, in HTML and in
+  Vue, as a native control returns to its default. Textarea had reset to empty, Select to its first
+  option, Checkbox, Switch, and Radio to unchecked (in Vue, to whatever was last checked), Radio
+  Group to no choice, and Combobox kept its selection while its field went blank. As with native
+  controls, a reset fires no change events.
+- Radio Group's `disabled` disables its radios through its native fieldset, so a radio disabled on
+  its own stays disabled when the group is enabled. The group had re-enabled it.
+- A required multiple Combobox is satisfied by its chosen items. Native validation had still
+  required text in the input, so the form could not be submitted, and validation reported "A value
+  is required." with items chosen.
+- A browser test puts every Looma form control in a real form, in HTML and in Vue, and asserts the
+  exact `FormData` entries it submits, what it leaves out (unchecked, disabled, the in-place
+  Editable), and what `reset()` restores. A rule test fails when a control with a `name` prop or a
+  native form control is missing from it.
+
 ## v0.9.2
 
 - Every component option is documented where authors read it. The API tab shows each option's

@@ -31,10 +31,11 @@ export default function controller(host) {
     input.tabIndex = host.state.internalEdit ? 0 : -1;
   };
 
-  const setEditing = (next, reason, trigger) => {
+  const setEditing = (next, reason, trigger, returnFocus = true) => {
     if (host.state.disabled || Boolean(host.state.internalEdit) === next) return;
-    // Measured before the input is disabled, which drops focus to the body.
-    const focusWasInside = element.contains(document.activeElement);
+    // Measured before the input is disabled, which drops focus to the body. A press elsewhere has
+    // not moved focus yet, so it says not to return it.
+    const focusWasInside = returnFocus && element.contains(document.activeElement);
     if (next) host.state.draft = host.state.internalValue;
     host.state.internalEdit = next;
     apply();
@@ -51,11 +52,11 @@ export default function controller(host) {
       input.select();
     });
   };
-  const commit = (trigger) => {
+  const commit = (trigger, returnFocus) => {
     const previousValue = String(host.state.internalValue ?? "");
     const value = String(host.state.draft ?? "");
     host.state.internalValue = value;
-    setEditing(false, "commit", trigger);
+    setEditing(false, "commit", trigger, returnFocus);
     if (value !== previousValue) host.dispatch("change", { value, previousValue, trigger });
   };
   const cancel = (reason, trigger) => {
@@ -87,7 +88,7 @@ export default function controller(host) {
   };
   // Leaving the field saves, as with other in-place editors; Escape is the way to discard.
   const onDocumentPointerdown = (event) => {
-    if (host.state.internalEdit && !event.composedPath().includes(element)) commit("pointer");
+    if (host.state.internalEdit && !event.composedPath().includes(element)) commit("pointer", false);
   };
   // Only the input's own blur counts: hiding the display button during the swap also moves focus,
   // and must not end the edit. Tabbing to another control saves; clicks away are handled above.
