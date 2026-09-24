@@ -33,4 +33,11 @@ follows the link, with the same modifier keys, so a modified click still opens a
 controls (the drag handle, anything in `actions`) keep their own behaviour, and a branch row's
 click still expands and collapses it.
 
+## Drag handles
+
+A `sortable` item shows a grip while its row is hovered. It sits beside what it drags: a leaf row has
+no disclosure, so the grip takes that empty column right before the icon; a branch keeps its
+disclosure there, so its grip sits just outside the row. The grip has no surface until it is pointed
+at, then takes the hover tint. Under touch input there is no grip; reorder from a menu instead.
+
 <ComponentExamplesApiTabs component="ui-tree" />
