@@ -30,8 +30,9 @@ would move and fade with the name.
 
 When a leaf row's label is a link, the whole row is that link: a click on its icon or padding
 follows the link, with the same modifier keys, so a modified click still opens a new tab. Clicks on
-controls (the drag handle, anything in `actions`) keep their own behaviour, and a branch row's
-click still expands and collapses it.
+controls (the drag handle, anything in `actions`, including an item of a menu the row holds) keep
+their own behaviour: they neither follow the link nor expand the row. A branch row's click elsewhere
+still expands and collapses it.
 
 ## Drag handles
 
