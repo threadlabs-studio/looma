@@ -9,6 +9,14 @@ function parentItem(element) {
 }
 
 /** Synchronizes an inferred tree hierarchy after nested component lowering. */
+// What a row click leaves alone: a control, or anything inside one, such as an item of the options
+// menu a row holds. Clicking those neither follows the row's link nor toggles a branch.
+const CONTROLS = [
+  "a", "button", "input", "select", "textarea", "label", "summary", '[contenteditable=""]', '[contenteditable="true"]',
+  ...["button", "link", "menu", "menuitem", "menuitemcheckbox", "menuitemradio", "listbox", "option", "checkbox",
+    "radio", "switch", "tab", "slider", "spinbutton", "combobox", "textbox", "dialog"].map((role) => `[role="${role}"]`),
+].join(", ");
+
 export default function controller(host) {
   const element = host.element;
   const { row, disclosure, children, actions, labelText } = host.refs;
@@ -60,7 +68,7 @@ export default function controller(host) {
   const onDisclosureClick = (event) => { event.stopPropagation(); setExpanded(!Boolean(host.state.internalExpanded), triggerFor(event)); };
   const onRowClick = (event) => {
     if (host.state.disabled) return;
-    const interactive = event.composedPath().some((node) => node instanceof HTMLElement && node.matches?.('a, button, input, select, textarea, [role="button"], [role="link"]'));
+    const interactive = event.composedPath().some((node) => node instanceof HTMLElement && node.matches?.(CONTROLS));
     if (interactive) return;
     if (isContainer()) {
       setExpanded(!Boolean(host.state.internalExpanded), triggerFor(event));
