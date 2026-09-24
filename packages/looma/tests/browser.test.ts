@@ -55,6 +55,35 @@ afterAll(async () => {
 });
 
 describe("Vue components", () => {
+  it("update a v-model prop once per choice, though the choice is two events", async () => {
+    const path = await bundle("vue-radio-model", `
+      import { createApp, h, ref } from "vue";
+      import { Radio, RadioGroup } from "@threadlabs/looma/vue";
+      const choice = ref("open");
+      const updates = [];
+      window.updates = updates;
+      createApp({
+        render: () => h(RadioGroup, {
+          id: "access",
+          label: "Access",
+          value: choice.value,
+          "onUpdate:value": (value) => { updates.push(value); choice.value = value; },
+        }, () => [
+          h(Radio, { value: "open" }, () => "Open"),
+          h(Radio, { value: "private" }, () => "Private"),
+        ]),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+
+    // A choice is reported as select and as change; a v-model consumer hears it once.
+    await page.locator('#access input[value="private"]').click();
+    assert.deepEqual(await page.evaluate(() => (window as unknown as { updates: string[] }).updates), ["private"]);
+    await page.locator('#access input[value="open"]').click();
+    assert.deepEqual(await page.evaluate(() => (window as unknown as { updates: string[] }).updates), ["private", "open"]);
+    await page.close();
+  });
+
   it("render, style, and behave with no HTML Next runtime", async () => {
     const path = await bundle("vue-app", `
       import { createApp, h, ref } from "vue";
