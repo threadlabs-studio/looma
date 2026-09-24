@@ -1,8 +1,8 @@
 <!--
 title: multiple
-description: Multiple collects several selections as removable items inside the field.
+description: Multiple collects several selections as removable items inside the field. With name, a form submits one entry per chosen item's value (here teams=design, teams=docs), never the labels.
 -->
-<ui-combobox label="Teams" multiple disclosure placeholder="Add a team…">
+<ui-combobox label="Teams" name="teams" multiple disclosure placeholder="Add a team…">
   <option value="design">Design</option>
   <option value="docs">Docs</option>
   <option value="platform">Platform</option>
