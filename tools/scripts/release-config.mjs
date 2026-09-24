@@ -1,4 +1,4 @@
-export const RELEASE_VERSION = "0.10.2";
+export const RELEASE_VERSION = "0.10.3";
 export const RELEASE_PACKAGES = [
   {
     name: "@threadlabs/looma",

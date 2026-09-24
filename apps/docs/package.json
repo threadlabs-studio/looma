@@ -1,7 +1,7 @@
 {
   "name": "@threadlabs/looma-docs",
   "private": true,
-  "version": "0.10.2",
+  "version": "0.10.3",
   "scripts": {
     "dev": "pnpm generate:api && docusaurus start --port 4173",
     "build": "pnpm generate:api && BROWSERSLIST_IGNORE_OLD_DATA=true docusaurus build",
