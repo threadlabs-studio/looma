@@ -14,10 +14,10 @@
     <prop name="value" type="string" default="on"
     >The value a form submits under name while the checkbox is checked, also reported in the change event's detail so one handler can tell checkboxes apart. on
       by default, as on a native checkbox.</prop>
-    <prop name="size" type="sm | md" default="md"
-    >Aligns the checkbox with fields and buttons of the same size. It keeps its box size; sm sets the label in the small controls' type size and centres its
-      first line in the small control height (2rem by default), so in a row of small inputs, selects, and buttons it shares their height and their text
-      baseline. Under a coarse pointer the row grows to the 44px touch minimum, as they do. md is the standard layout.</prop>
+    <prop name="size" type="sm | md | lg" default="md"
+    >Aligns the checkbox with fields and buttons of the same size. It keeps its box size; the label takes that size's field type size and its first line centres
+      in that control height (sm 2rem, lg 3rem by default), so in a row of inputs, selects, and buttons of one size it shares their height and their text
+      baseline. Under a coarse pointer an sm row grows to the 44px touch minimum, as they do. md is the standard layout.</prop>
     <state name="internalChecked" :value="false"></state>
     <event name="change" type="object({ checked: boolean, value: string, trigger: keyboard | pointer | programmatic })"></event>
   </defs>
@@ -158,17 +158,28 @@
       cursor: not-allowed;
     }
 
-    /* A small choice keeps its box and aligns instead: the label takes the small controls' type size,
-       and the first line centres in their height, so the label shares their baseline in a row.
+    /* A sized choice keeps its box and aligns instead: the label takes that size's field type size,
+       and the first line centres in that control height, so the label shares a row's baseline.
        Multi-line labels and descriptions still grow downward from that first line. */
     :host-state([size="sm"]) {
-      --_line: calc(var(--ui-font-size-sm) * var(--ui-line-height-md));
+      --_font: var(--ui-font-size-sm);
       --_row: var(--ui-control-size-sm);
-      font-size: var(--ui-font-size-sm);
+    }
+
+    :host-state([size="lg"]) {
+      --_font: var(--ui-font-size-md);
+      --_row: var(--ui-control-size-lg);
+    }
+
+    :host-state([size="sm"]),
+    :host-state([size="lg"]) {
+      --_line: calc(var(--_font) * var(--ui-line-height-md));
+      font-size: var(--_font);
       padding-block: calc((var(--_row) - var(--_line)) / 2);
     }
 
-    :host-state([size="sm"]) input {
+    :host-state([size="sm"]) input,
+    :host-state([size="lg"]) input {
       margin-top: calc((var(--_line) - var(--_ui-checkbox-size, 1.125rem)) / 2);
     }
 

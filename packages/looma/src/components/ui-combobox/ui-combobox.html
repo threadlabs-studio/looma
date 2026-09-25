@@ -576,6 +576,13 @@
       min-block-size: calc(var(--_row) - 2px - 2 * var(--ui-space-0-5));
       padding: 0 var(--ui-space-1);
     }
+    /* A large multiple field starts at the large control height, as sm starts at the small one. */
+    :host-state([multiple]):host-state([size="lg"]) .field {
+      min-block-size: 0;
+    }
+    :host-state([multiple]):host-state([size="lg"]) input {
+      min-block-size: calc(var(--ui-control-size-lg) - 2px - 2 * var(--ui-space-1));
+    }
     .item {
       appearance: none;
       display: inline-flex;

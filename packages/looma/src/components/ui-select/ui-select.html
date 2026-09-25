@@ -10,7 +10,7 @@
     >Height, padding, chevron, and type size, matching Button's sizes so a field and a button of one size share a row. sm is the small control height (2rem by
       default) with smaller text and a smaller chevron, for compact rows such as a table row or a filter bar; md is the standard control height; lg is taller
       with roomier padding. Under a coarse pointer, sm grows to the 44px touch minimum and keeps body-size text. It is not the native size attribute: a select
-      is always a single-choice dropdown.</prop>
+      is always a single-choice dropdown. Change it after render through this option; the element's size property is the native one.</prop>
   </defs>
   <select :disabled="disabled" :required="required" :aria-invalid="invalid"><slot></slot></select>
   <style>

@@ -18,12 +18,16 @@ takes its input's size, so a small input makes a small group.
 | --- | --- | --- |
 | Input, Select, Combobox | Shrinks to the small control height (2rem), with tighter padding and smaller text; Select's chevron shrinks too | Grows to 3rem, with roomier padding |
 | Textarea | Tighter padding and smaller text; `rows` sets the height | Roomier padding |
-| Checkbox, Radio, Switch | Aligns rather than shrinks: the box or track keeps its size, the label takes the smaller text, and its first line centres in the small control height | No `lg` |
+| Checkbox, Radio, Switch | Aligns rather than shrinks: the box or track keeps its size, the label takes the smaller text, and its first line centres in the small control height | Aligns the same way: the label keeps body text and its first line centres in the 3rem height |
 
 Under a coarse pointer, `sm` grows to the 44px touch minimum, as a small Button does, and the text
 fields keep body-size text, because iOS zooms the page into a focused field whose text is under 16px.
-`size` is Looma's option, not the native attribute: an Input fills its container's width, and a Select
-is always a single-choice dropdown.
+`size` is Looma's option, not the native attribute: an Input fills its container's width (set a
+character width in CSS, such as `inline-size: 12ch`), and a Select is always a single-choice dropdown
+(use a `multiple` Combobox for a list that shows several choices at once). A numeric `size` fails the
+option's type. To change the size after a field renders, set the option: the Vue `size` prop, or a DOM
+factory's props. The rendered element's own `size` property is the native input's or select's, and
+its `data-size` attribute only records the option.
 
 ## Styling hooks
 
