@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.12.5
+## v0.12.6
 
 - Muted text reads at WCAG AA. `--ui-text-muted` was the ink at 45% into the page, about 3.3:1 on
   white and 2.8:1 on the sunken surface, so help text, captions, descriptions, and the editor's
@@ -13,6 +13,13 @@
 - `data-contrast="high"` on the root takes its own ink. The light theme, and the dark theme when it
   follows the system preference, outranked its seeds, so the ink stayed `#1a1a1a` while its own
   secondary and muted steps applied, and both read darker than primary text.
+
+## v0.12.5
+
+- `@nextwebwg/html-next` is pinned to `1.0.0-alpha.5` instead of `^1.0.0-alpha.5`. A caret range on a
+  prerelease admits later alphas, and the next one is expected to replace the root `as` form that
+  Button and Nav Item are compiled from; Looma moves to it, with both components rewritten, in one
+  release.
 
 ## v0.12.4
 
