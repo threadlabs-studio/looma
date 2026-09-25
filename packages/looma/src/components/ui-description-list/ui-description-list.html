@@ -1,12 +1,11 @@
 <template component="ui-description-list">
   <defs>
     <prop name="layout" type="rows | stacked | grid | tiles" default="rows"
-    >rows sets each term beside its value, one per line, for a short summary, and sets the term above its value once the list is narrower than 24rem; stacked
-      sets every term above its value, one pair per line; grid sets the pairs, term above value, in as many columns as fit, for facts to scan across; tiles sets
-      each pair on its own bordered tile in a grid, for figures to compare.</prop>
-    <prop name="columns" type="number"
-    >The most columns grid and tiles set: 2, 3, or 4 stops there on a wide list, and a narrow list still drops to fewer. Left unset, they fit as many as the
-      width allows.</prop>
+    >rows sets each term beside its value, one per line, for a short summary; stacked sets every term above its value, one pair per line, for a narrow space;
+      grid sets the pairs, term above value, in as many columns as fit, for facts to scan across; tiles sets each pair on its own bordered tile in a grid, for
+      figures to compare.</prop>
+    <prop name="columns" type="'2' | '3' | '4'"
+    >The most columns grid and tiles set on a wide list; a narrow list still drops to fewer. Left unset, they fit as many as the width allows.</prop>
     <prop name="density" type="comfortable | compact" default="comfortable"
     >How much room each pair takes. comfortable spaces the pairs apart to read; compact sets them close together, for facts inside other content such as a card
       or a table's detail row.</prop>
@@ -25,10 +24,6 @@
       display: grid;
       grid-template-columns: minmax(6rem, max-content) minmax(0, 1fr);
       gap: var(--_gap) var(--_column-gap);
-      /* The items read the list's width to stack a narrow rows list. A size container sizes itself
-         from its container, never its content. */
-      container-type: inline-size;
-      inline-size: 100%;
       min-inline-size: 0;
       margin: 0;
     }

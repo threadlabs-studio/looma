@@ -6,6 +6,8 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 # Description List
 
-Named values: each `ui-description-item` is a `term` and its value, rendered as a `<dl>` of `<div><dt/><dd/></div>` groups. `layout="rows"` lines terms up in one column and values in the next, for a short summary, and sets each term above its value once the list is narrower than 24rem; `layout="stacked"` always sets the term above its value; `layout="grid"` sets the pairs in columns, term above value, for facts to scan across; `layout="tiles"` sets each pair on its own tile, for figures to compare. `columns` caps how many columns grid and tiles set, and `density="compact"` sets the pairs close together. A value can hold code ([Text](/components/ui-text) `variant="code"`), a [Badge](/components/ui-badge), or a long identifier, which wraps rather than overflowing.
+Named values: each `ui-description-item` is a `term` and its value, rendered as a `<dl>` of `<div><dt/><dd/></div>` groups. `layout="rows"` lines terms up in one column and values in the next, for a short summary; `layout="stacked"` sets every term above its value, for a narrow space such as a side panel or a popover; `layout="grid"` sets the pairs in columns, term above value, for facts to scan across; `layout="tiles"` sets each pair on its own tile, for figures to compare. `columns` (`2`, `3`, or `4`) caps how many columns grid and tiles set, and `density="compact"` sets the pairs close together. A rows list does not stack on its own; choose `stacked` where it will be narrow. A value can hold code ([Text](/components/ui-text) `variant="code"`), a [Badge](/components/ui-badge), or a long identifier, which wraps rather than overflowing.
+
+`layout="grid"` is a layout of this list, not the [Grid](/components/ui-grid) layout primitive: it arranges the list's own pairs, and a Grid is for placing other components.
 
 <ComponentExamplesApiTabs component="ui-description-list" />

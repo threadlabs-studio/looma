@@ -8,18 +8,23 @@ export default function controller(host) {
   const authored = element.hasAttribute("tabindex") || element.hasAttribute("role");
   if (authored) return undefined;
 
+  // What this controller set, so a table moved or re-inserted starts plain and is judged again.
+  let region = false;
   let labelled = false;
-  const update = () => {
-    const scrolls = element.scrollWidth > element.clientWidth || element.scrollHeight > element.clientHeight;
-    if (!scrolls) {
+  const plain = () => {
+    if (region) {
       element.removeAttribute("role");
       element.removeAttribute("tabindex");
-      if (labelled) element.removeAttribute("aria-labelledby");
-      labelled = false;
-      return;
     }
+    if (labelled) element.removeAttribute("aria-labelledby");
+    region = labelled = false;
+  };
+  const update = () => {
+    const scrolls = element.scrollWidth > element.clientWidth || element.scrollHeight > element.clientHeight;
+    if (!scrolls) return plain();
     element.setAttribute("role", "region");
     element.setAttribute("tabindex", "0");
+    region = true;
     const caption = element.querySelector(":scope > table > caption");
     if (caption && !element.hasAttribute("aria-label") && !element.hasAttribute("aria-labelledby")) {
       caption.id ||= `ui-table-caption-${++captions}`;
@@ -45,5 +50,6 @@ export default function controller(host) {
   return () => {
     resize.disconnect();
     children.disconnect();
+    plain();
   };
 }
