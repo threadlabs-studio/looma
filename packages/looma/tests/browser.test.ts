@@ -1439,6 +1439,9 @@ describe("LoomaEditor", () => {
     const slash = page.locator('[data-component="ui-editor-slash-menu"]');
     await slash.locator('[role="option"]').first().waitFor();
     assert.ok(await slash.locator('[role="option"]').count() > 3, "slash menu lists blocks");
+    const blank = await slash.locator('[role="option"]').evaluateAll((options) =>
+      options.filter((option) => !option.querySelector(".icon svg > *")).map((option) => option.textContent?.trim()));
+    assert.deepEqual(blank, [], "every block's icon draws");
     await page.close();
   });
 });
