@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.12.8
+
+- Avatar Group takes `size` (`sm` or `md`), to match small avatars: the +N badge is the same size,
+  and they overlap by 0.25rem instead of 0.5rem so their initials stay clear of the next one.
+
 ## v0.12.7
 
 - Muted text reads at WCAG AA. `--ui-text-muted` was the ink at 45% into the page, about 3.3:1 on
