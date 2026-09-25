@@ -1,28 +1,16 @@
 import type { Meta, StoryObj } from "@storybook/web-components-vite";
-import {
-  createComponentArgTypes,
-  createComponentDocsParameters
-} from "../shared/componentApi";
+import { createComponentArgTypes, createComponentDocsParameters } from "../shared/componentApi";
+import { renderAllExamples, renderExample } from "../shared/examples";
 
 const meta = {
   title: "Forms/Button",
   tags: ["autodocs"],
   argTypes: createComponentArgTypes("ui-button"),
   parameters: createComponentDocsParameters("ui-button"),
-  render: ({ variant, size, disabled }) => `
-    <ui-button variant="${variant}" size="${size}" ${disabled ? "disabled" : ""}>
-      <button type="button">Action</button>
-    </ui-button>
-  `
+  render: (args) => renderExample("ui-button", args)
 } satisfies Meta;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
-
-export const Default: Story = {
-  args: {
-    variant: "solid",
-    size: "sm",
-    disabled: false
-  }
-};
+export const Default: Story = {};
+export const Examples: Story = { render: () => renderAllExamples("ui-button") };

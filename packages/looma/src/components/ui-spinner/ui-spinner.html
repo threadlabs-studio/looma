@@ -1,0 +1,48 @@
+<template component="ui-spinner">
+  <defs>
+    <prop name="label" type="string" default=""
+    >What is loading, for assistive technology ("Loading pages"). With a label the spinner is a status that is announced; without one it is decoration, for a
+      spinner beside visible text that already says so.</prop>
+    <prop name="size" type="sm | md" default="md">sm fits inside a button or a line of small text; md sits beside body text.</prop>
+  </defs>
+  <span
+    :role="{ true: 'status', false: null }[format('%s', label != '')]"
+    :aria-label="{ true: label, false: null }[format('%s', label != '')]"
+    :aria-hidden="{ true: null, false: 'true' }[format('%s', label != '')]"
+  >
+    <ui-icon name="loader"></ui-icon>
+  </span>
+  <style>
+    /* Something is on its way. It turns in the current text colour; with reduced motion it holds still,
+       and the label (or the text beside it) still says what is happening. */
+    :host {
+      display: inline-flex;
+      flex: none;
+      color: currentColor;
+      font-size: var(--ui-font-size-lg);
+      line-height: 1;
+      animation: ui-spinner-turn 0.8s linear infinite;
+    }
+
+    :host-state([size="sm"]) {
+      font-size: var(--ui-font-size-md);
+    }
+
+    @keyframes ui-spinner-turn {
+      to {
+        transform: rotate(1turn);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      :host {
+        animation: none;
+      }
+    }
+
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
+</template>

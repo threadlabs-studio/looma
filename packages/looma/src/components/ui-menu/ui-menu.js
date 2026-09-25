@@ -14,7 +14,7 @@ export default function controller(host) {
   const element = host.element;
   const document = element.ownerDocument;
   const overlayId = `ui-menu-${Math.random().toString(36).slice(2, 11)}`;
-  const items = () => Array.from(element.querySelectorAll('[data-component~="ui-menu-item"]'));
+  const items = () => Array.from(element.querySelectorAll('[role="menuitem"]'));
   let anchor = null;
   let surface = null;
   let lastFor;
@@ -77,7 +77,7 @@ export default function controller(host) {
     host.dispatch("close", { open: false, reason: "action", trigger });
     host.state.internalOpen = false;
   };
-  const onClick = (event) => select(event.target.closest?.('[data-component~="ui-menu-item"]'), triggerFor(event));
+  const onClick = (event) => select(event.target.closest?.('[role="menuitem"]'), triggerFor(event));
   const onKeydown = (event) => {
     if (event.key === "Escape") {
       event.preventDefault();
@@ -85,7 +85,7 @@ export default function controller(host) {
       return;
     }
     const enabled = items().filter((item) => !disabled(item));
-    const target = event.target.closest?.('[data-component~="ui-menu-item"]');
+    const target = event.target.closest?.('[role="menuitem"]');
     const index = target ? enabled.indexOf(target) : -1;
     if (["Enter", " "].includes(event.key)) {
       if (index >= 0) {

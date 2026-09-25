@@ -20,13 +20,13 @@ authorization still requires the protected owner preflight before registry mutat
 
 ### Layout: published
 
-`ui-container`, `ui-grid`, `ui-cluster`, `ui-reel`, `ui-scroll-area`, `ui-separator`,
+`ui-container`, `ui-cover`, `ui-grid`, `ui-cluster`, `ui-reel`, `ui-scroll-area`, `ui-separator`,
 `ui-sidebar`, `ui-stack`, `ui-switcher`.
 
 ### Core: published
 
 `ui-affordance-scope`, `ui-avatar`, `ui-avatar-group`, `ui-badge`, `ui-button`, `ui-checkbox`,
-`ui-callout`, `ui-chip`, `ui-combobox`, `ui-context-menu`, `ui-dialog`, `ui-disclosure`, `ui-editable`, `ui-floating-action-button`,
+`ui-breadcrumbs`, `ui-breadcrumb-item`, `ui-callout`, `ui-card`, `ui-chip`, `ui-description-list`, `ui-description-item`, `ui-page-header`, `ui-section`, `ui-spinner`, `ui-status-message`, `ui-text`, `ui-combobox`, `ui-context-menu`, `ui-dialog`, `ui-disclosure`, `ui-editable`, `ui-floating-action-button`,
 `ui-form-field`, `ui-icon-button`, `ui-input`, `ui-list`, `ui-list-item`, `ui-menu`, `ui-menu-item`,
 `ui-popover`, `ui-radio`, `ui-radio-group`, `ui-search-result-row`,
 `ui-search-shell`, `ui-select`, `ui-switch`, `ui-tabs`, `ui-textarea`,
