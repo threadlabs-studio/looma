@@ -1,0 +1,14 @@
+<!--
+title: Action
+description: One button at the end of the field, inside its border, for the one thing the field is for. A small button keeps the field at its usual height.
+-->
+<form>
+  <ui-form-field>
+    <label slot="label" for="site-address-action">Site address</label>
+    <ui-input-group>
+      <ui-input id="site-address-action" name="site" placeholder="your-site"></ui-input>
+      <span slot="suffix">.example.com</span>
+      <ui-button slot="action" type="submit" variant="solid" size="sm">Continue</ui-button>
+    </ui-input-group>
+  </ui-form-field>
+</form>
