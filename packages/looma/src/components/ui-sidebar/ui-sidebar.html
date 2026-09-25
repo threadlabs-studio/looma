@@ -130,7 +130,7 @@
       inset-inline-start: 3px;
       inline-size: 2px;
       background: color-mix(in srgb, var(--ui-affordance-guide-color, var(--ui-border-strong)) 45%, transparent);
-      opacity: var(--ui-affordance-guide-opacity);
+      opacity: calc(var(--ui-affordance-guide-opacity) * var(--ui-affordance-scope-guide, 1));
       transition:
         background-color var(--ui-affordance-motion, var(--ui-motion-fast)) var(--ui-motion-ease),
         opacity var(--ui-affordance-motion, var(--ui-motion-fast)) var(--ui-motion-ease);
