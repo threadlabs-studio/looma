@@ -2789,9 +2789,9 @@ describe("Table", () => {
       <ui-table id="fits">
         <table>
           <caption>Orders</caption>
-          <thead><tr><th scope="col" id="fits-head">Name</th><th scope="col" data-align="end">Seats</th></tr></thead>
+          <thead><tr><th scope="col" id="fits-head">Name</th><th scope="col" data-ui-align="end">Seats</th></tr></thead>
           <tbody>
-            <tr id="fits-text"><th scope="row">Ada</th><td data-align="end" id="fits-figure">3</td></tr>
+            <tr id="fits-text"><th scope="row">Ada</th><td data-ui-align="end" id="fits-figure">3</td></tr>
             <tr id="fits-control"><th scope="row"><ui-checkbox>Grace</ui-checkbox></th><td><ui-select aria-label="Role"><option>Editor</option></ui-select></td></tr>
           </tbody>
         </table>
@@ -2873,6 +2873,24 @@ describe("Table", () => {
     await page.close();
   });
 
+  it("judges a moved table again, so a table re-inserted and then widened is plain", async () => {
+    const path = await bundle("html-table", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <div id="moved-box" style="width: 200px">
+        <ui-table id="moved"><table><caption>Moved</caption><tbody><tr>${figures.map((figure) => `<td>${figure}</td>`).join("")}</tr></tbody></table></ui-table>
+      </div>`, [join(root, "tokens.css")]);
+    await page.getByRole("region", { name: "Moved" }).waitFor();
+    await page.evaluate(() => { (window as unknown as { moved: Element }).moved = document.querySelector("#moved")!; document.querySelector("#moved")!.remove(); });
+    await page.waitForTimeout(50);
+    await page.evaluate(() => { document.querySelector("#moved-box")!.append((window as unknown as { moved: Element }).moved); });
+    await page.getByRole("region", { name: "Moved" }).waitFor();
+    await page.locator("#moved-box").evaluate((element) => { element.style.width = "2000px"; });
+    await page.waitForFunction(() => !document.querySelector("#moved")!.hasAttribute("role"));
+    assert.equal(await page.locator("#moved").getAttribute("tabindex"), null);
+    assert.equal(await page.locator("#moved").getAttribute("aria-labelledby"), null);
+    await page.close();
+  });
+
   it("styles an authored table, and makes a table too wide a named, scrollable region, in Vue", async () => {
     const path = await bundle("vue-table", `
       import { createApp, h } from "vue";
@@ -2881,9 +2899,9 @@ describe("Table", () => {
       createApp({ render: () => [
         h("div", { id: "fits-box", style: "width: 640px" }, h(Table, { id: "fits" }, () => h("table", [
           h("caption", "Orders"),
-          h("thead", h("tr", [h("th", { scope: "col", id: "fits-head" }, "Name"), h("th", { scope: "col", "data-align": "end" }, "Seats")])),
+          h("thead", h("tr", [h("th", { scope: "col", id: "fits-head" }, "Name"), h("th", { scope: "col", "data-ui-align": "end" }, "Seats")])),
           h("tbody", [
-            h("tr", { id: "fits-text" }, [h("th", { scope: "row" }, "Ada"), h("td", { "data-align": "end", id: "fits-figure" }, "3")]),
+            h("tr", { id: "fits-text" }, [h("th", { scope: "row" }, "Ada"), h("td", { "data-ui-align": "end", id: "fits-figure" }, "3")]),
             h("tr", { id: "fits-control" }, [
               h("th", { scope: "row" }, h(Checkbox, null, () => "Grace")),
               h("td", h(Select, { "aria-label": "Role" }, () => h("option", "Editor"))),
@@ -2928,12 +2946,14 @@ describe("Table", () => {
 
 describe("Description list layouts", () => {
   const hash = "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08";
+  // A default list in a shrink-to-fit box and in a flex row keeps its content width.
   const lists = [
-    { id: "rows", width: 720, props: {} },
-    { id: "narrow", width: 300, props: {} },
-    { id: "stacked", width: 720, props: { layout: "stacked" } },
-    { id: "grid", width: 720, props: { layout: "grid", columns: 3 } },
-    { id: "compact", width: 720, props: { density: "compact" } },
+    { id: "rows", style: "width: 720px", props: {} },
+    { id: "stacked", style: "width: 720px", props: { layout: "stacked" } },
+    { id: "grid", style: "width: 720px", props: { layout: "grid", columns: "3" } },
+    { id: "compact", style: "width: 720px", props: { density: "compact" } },
+    { id: "floating", style: "position: absolute; inset-block-start: 0; inset-inline-end: 0; width: fit-content", props: {} },
+    { id: "flex", style: "display: flex; width: 720px", props: {} },
   ];
   const terms = ["Order", "Status", "Total", "Checksum"];
 
@@ -2941,11 +2961,18 @@ describe("Description list layouts", () => {
     await page.locator("#grid-4 dd").waitFor();
     const box = async (selector: string) => (await page.locator(selector).boundingBox())!;
 
-    // Rows set the term beside its value; narrower than 24rem, or stacked, the term is above it.
+    // Rows set the term beside its value; stacked sets it above.
     assert.ok(Math.abs((await box("#rows-1 dt")).y - (await box("#rows-1 dd")).y) <= 1, "rows: term beside value");
-    for (const id of ["narrow", "stacked"]) {
-      const [term, value] = [await box(`#${id}-1 dt`), await box(`#${id}-1 dd`)];
-      assert.ok(value.y >= term.y + term.height - 1, `${id}: term above value`);
+    const [term, value] = [await box("#stacked-1 dt"), await box("#stacked-1 dd")];
+    assert.ok(value.y >= term.y + term.height - 1, "stacked: term above value");
+
+    // Sized by its content, a default list neither collapses in a shrink-to-fit box nor stretches
+    // across a flex row.
+    for (const id of ["floating", "flex"]) {
+      const [list, term, value] = [await box(`#${id}`), await box(`#${id}-1 dt`), await box(`#${id}-1 dd`)];
+      assert.ok(Math.abs(term.y - value.y) <= 1, `${id}: term beside value`);
+      assert.ok(value.x + value.width <= list.x + list.width + 1 && value.width > 0, `${id}: the value is inside the list`);
+      assert.ok(list.width < 400, `${id}: the list is ${list.width}px, not stretched`);
     }
 
     // A grid of three columns: three facts per row, the fourth on the next.
@@ -2966,9 +2993,9 @@ describe("Description list layouts", () => {
   it("lays out facts in rows, stacked, and in a grid, in HTML", async () => {
     const path = await bundle("html-description-list-layouts", `import "@threadlabs/looma";`);
     const attributes = (props: Record<string, unknown>) => Object.entries(props).map(([name, value]) => ` ${name}="${value}"`).join("");
-    const page = await open(path, lists.map(({ id, width, props }) => `
-      <div style="width: ${width}px"><ui-description-list id="${id}"${attributes(props)}>
-        ${terms.map((term, index) => `<ui-description-item id="${id}-${index + 1}" term="${term}">${index === 3 ? `<ui-text variant="code">${hash}</ui-text>` : "Value"}</ui-description-item>`).join("")}
+    const page = await open(path, lists.map(({ id, style, props }) => `
+      <div style="${style}"><ui-description-list id="${id}"${attributes(props)}>
+        ${terms.map((term, index) => `<ui-description-item id="${id}-${index + 1}" term="${term}">${id === "grid" && index === 3 ? `<ui-text variant="code">${hash}</ui-text>` : "Value"}</ui-description-item>`).join("")}
       </ui-description-list></div>`).join(""), [join(root, "tokens.css")]);
     await checkLists(page);
     await page.close();
@@ -2980,8 +3007,8 @@ describe("Description list layouts", () => {
       import { DescriptionItem, DescriptionList, Text } from "@threadlabs/looma/vue";
       const lists = ${JSON.stringify(lists)};
       const terms = ${JSON.stringify(terms)};
-      createApp({ render: () => lists.map(({ id, width, props }) => h("div", { style: \`width: \${width}px\` }, h(DescriptionList, { id, ...props }, () =>
-        terms.map((term, index) => h(DescriptionItem, { id: \`\${id}-\${index + 1}\`, term }, () => index === 3 ? h(Text, { variant: "code" }, () => "${hash}") : "Value"))))) }).mount("#app");
+      createApp({ render: () => lists.map(({ id, style, props }) => h("div", { style }, h(DescriptionList, { id, ...props }, () =>
+        terms.map((term, index) => h(DescriptionItem, { id: \`\${id}-\${index + 1}\`, term }, () => id === "grid" && index === 3 ? h(Text, { variant: "code" }, () => "${hash}") : "Value"))))) }).mount("#app");
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
     await checkLists(page);

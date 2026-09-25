@@ -24,15 +24,6 @@
       font-size: var(--ui-font-size-sm);
     }
 
-    /* A list narrower than 24rem (the list is the size container) sets the term above its value, so
-       a rows list stacks on a small screen. Container queries cannot read custom properties, so the
-       width is fixed. */
-    @container (inline-size < 24rem) {
-      :host {
-        display: flex;
-      }
-    }
-
     dt {
       color: var(--ui-text-muted);
     }

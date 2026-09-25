@@ -13,8 +13,8 @@
     /* Styles an authored <table> (caption, thead, tbody, th scope) without replacing it: the table is
        meaningful before JavaScript, and a screen reader reads it as a table. The root scrolls a table
        wider than it, or taller than a bounded height; while it does, the controller makes the root a named, focusable region so a
-       keyboard can scroll it. A cell with data-align="end" sets its content at the end edge, for a
-       column of figures. */
+       keyboard can scroll it. A cell's data-ui-align (start, center, or end; start by default) sets its
+       content along the row, such as end for a column of figures. */
     :host {
       --_pad-block: var(--ui-space-1);
       --_pad-inline: var(--ui-space-3);
@@ -109,7 +109,11 @@
       border-block-end-width: 0;
     }
 
-    :slotted([data-align="end"]) {
+    :slotted([data-ui-align="center"]) {
+      text-align: center;
+    }
+
+    :slotted([data-ui-align="end"]) {
       text-align: end;
     }
 
