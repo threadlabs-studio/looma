@@ -1,6 +1,10 @@
 {
   "schemaVersion": 1,
   "tags": {
+    "ui-action-bar": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
     "ui-affordance-scope": {
       "status": "published",
       "package": "@threadlabs/looma"
