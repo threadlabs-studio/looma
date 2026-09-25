@@ -7,7 +7,7 @@
   Nav Item, Card, and Text are rewritten on it, and `as` works as before in HTML, the DOM factories,
   and Vue. The Vue components now get `as` from the conversion itself, so the build step that patched
   it in is gone. Changing `as` after a component renders swaps in the chosen element and keeps its
-  state, content, attributes, and focus.
+  state, content, and attributes; in HTML and the DOM factories it keeps focus too.
 - Card and Text list `as` among their documented options, with the elements each can render.
 - Combobox hides its validation message with `issues.length` again, now that the HTML runtime reads a
   list's length.
