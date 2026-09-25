@@ -8,15 +8,42 @@
   </defs>
   <div role="menuitem" tabindex="-1" :aria-disabled="disabled" :data-value="value"><slot></slot></div>
   <style>
+    /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-menu-item-font-size {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-menu-item-hover-surface {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-menu-item-min-block-size {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-menu-item-padding-block {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-menu-item-padding-inline {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-menu-item-radius {
+      syntax: "*";
+      inherits: false;
+    }
+
     :host {
       display: block;
       box-sizing: border-box;
       width: 100%;
-      padding: var(--ui-menu-item-padding-block, var(--ui-space-2)) var(--ui-menu-item-padding-inline, var(--ui-space-3));
+      padding: var(--ui-menu-item-padding-block, var(--_ui-default-menu-item-padding-block, var(--ui-space-2)))
+        var(--ui-menu-item-padding-inline, var(--_ui-default-menu-item-padding-inline, var(--ui-space-3)));
       text-align: left;
-      border-radius: var(--ui-menu-item-radius, var(--ui-radius-md));
+      border-radius: var(--ui-menu-item-radius, var(--_ui-default-menu-item-radius, var(--ui-radius-md)));
       color: var(--ui-text-primary);
-      font-size: var(--ui-menu-item-font-size, var(--ui-font-size-md));
+      font-size: var(--ui-menu-item-font-size, var(--_ui-default-menu-item-font-size, var(--ui-font-size-md)));
       font-weight: var(--ui-font-medium);
       cursor: pointer;
       outline: none;

@@ -17,7 +17,16 @@
     <div class="error"><slot name="error"></slot></div>
   </div>
   <style>
+    /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-form-field-help-min-block-size {
+      syntax: "*";
+      inherits: false;
+    }
+
     :host {
+      /* Hooks do not inherit, so the parts below read them from the root. */
+      --_ui-form-field-help-min-block-size: var(--ui-form-field-help-min-block-size);
+
       display: grid;
       gap: var(--ui-space-2);
       min-inline-size: 0;
@@ -45,7 +54,7 @@
     }
 
     .help > :slotted(*) {
-      min-block-size: var(--ui-form-field-help-min-block-size, 0);
+      min-block-size: var(--_ui-form-field-help-min-block-size, 0);
     }
 
     /* An error reads in the danger colour, the one the invalid control's border takes. */

@@ -9,6 +9,16 @@
   </defs>
   <ul role="list"><slot></slot></ul>
   <style>
+    /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-list-gap {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-list-min-item-width {
+      syntax: "*";
+      inherits: false;
+    }
+
     /* A list of items (ui-list-item). It owns the spacing between them, so a view never sets it. The
        explicit list role keeps the list announced as one: some browsers drop it from a list with no
        markers. */

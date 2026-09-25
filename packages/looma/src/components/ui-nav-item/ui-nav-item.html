@@ -29,6 +29,20 @@
     </span>
   </button>
   <style>
+    /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-nav-item-current-surface {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-nav-item-indicator-color {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-nav-item-indicator-width {
+      syntax: "*";
+      inherits: false;
+    }
+
     /* One destination in a side or rail navigation: an icon to find it by (leading), its name (the
        default slot), and an optional line under it (description), such as the record a section
        belongs to. Label and description are one line each and end in an ellipsis, so every item in a
