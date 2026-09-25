@@ -1,6 +1,10 @@
 {
   "schemaVersion": 1,
   "tags": {
+    "ui-action-bar": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
     "ui-affordance-scope": {
       "status": "published",
       "package": "@threadlabs/looma"
@@ -132,6 +136,10 @@
       "package": "@threadlabs/looma"
     },
     "ui-input": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-input-group": {
       "status": "published",
       "package": "@threadlabs/looma"
     },

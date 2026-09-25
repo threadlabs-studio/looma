@@ -388,6 +388,124 @@ describe("Scroll area", () => {
   });
 });
 
+describe("Input group", () => {
+  async function checkGroup(page: Page) {
+    const group = page.locator("#group");
+    await group.waitFor();
+    // The input inside is still the form's field, affixes and all.
+    await page.locator("#site").fill("acme");
+    assert.deepEqual(await page.locator("#form").evaluate((form) => [...new FormData(form as HTMLFormElement).entries()]), [["site", "acme"]]);
+    // The group draws the frame and the focus ring; the input inside draws neither.
+    const input = await page.locator("#site").evaluate((element) => ({ border: getComputedStyle(element).borderTopColor, shadow: getComputedStyle(element).boxShadow }));
+    assert.equal(input.border, "rgba(0, 0, 0, 0)");
+    assert.equal(input.shadow, "none");
+    await page.locator("#site").focus();
+    await page.waitForTimeout(200);
+    assert.match(await group.evaluate((element) => getComputedStyle(element).boxShadow), /3px/);
+    assert.equal(await page.locator("#group").getByText(".example.com").count(), 1);
+    // An invalid input marks the whole group, not a second border inside it; its error is danger.
+    await page.locator("#site").evaluate((element) => element.setAttribute("aria-invalid", "true"));
+    await page.locator("#site").blur();
+    await page.waitForTimeout(200);
+    assert.equal(await page.locator("#site").evaluate((element) => getComputedStyle(element).borderTopColor), "rgba(0, 0, 0, 0)");
+    const danger = await page.evaluate(() => { const probe = document.createElement("span"); probe.style.color = "var(--ui-danger-solid)"; document.body.append(probe); const color = getComputedStyle(probe).color; probe.remove(); return color; });
+    assert.equal(await group.evaluate((element) => getComputedStyle(element).borderTopColor), danger);
+  }
+
+  it("frames an input and its affixes as one field, in HTML", async () => {
+    const path = await bundle("html-input-group", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <form id="form">
+        <ui-input-group id="group"><ui-input id="site" name="site"></ui-input><span slot="suffix">.example.com</span></ui-input-group>
+      </form>`, [join(root, "tokens.css")]);
+    await checkGroup(page);
+    await page.close();
+  });
+
+  it("frames an input and its affixes as one field, in Vue", async () => {
+    const path = await bundle("vue-input-group", `
+      import { createApp, h } from "vue";
+      import { Input, InputGroup } from "@threadlabs/looma/vue";
+      createApp({ render: () => h("form", { id: "form" }, [
+        h(InputGroup, { id: "group" }, { default: () => h(Input, { id: "site", name: "site" }), suffix: () => h("span", ".example.com") }),
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await checkGroup(page);
+    await page.close();
+  });
+});
+
+describe("Button touch target", () => {
+  it("takes a press within the control minimum under touch, link-style included", async () => {
+    const path = await bundle("html-button-touch", `import "@threadlabs/looma";`);
+    const page = await open(path, `<div style="padding: 80px"><ui-button id="see-all" variant="link" size="sm">See all activity</ui-button><ui-button id="boxed" variant="outline" size="sm">Tag</ui-button></div>`, [join(root, "tokens.css")]);
+    await page.waitForSelector('#see-all[data-component~="ui-button"]');
+    await page.evaluate(() => document.documentElement.setAttribute("data-ui-input-modality", "touch"));
+    const reaches = await page.locator("#see-all").evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      const x = rect.x + rect.width / 2;
+      const y = rect.y + rect.height / 2;
+      const lands = (dy: number) => { const hit = document.elementFromPoint(x, y + dy); return Boolean(hit && (hit === element || element.contains(hit))); };
+      return { height: rect.height, above: lands(-21), below: lands(21) };
+    });
+    assert.ok(reaches.height < 44, "the button itself stays small");
+    assert.deepEqual({ above: reaches.above, below: reaches.below }, { above: true, below: true });
+    // A boxed button gets no hit area, so it cannot reach over a neighbour.
+    assert.equal(await page.locator("#boxed").evaluate((element) => getComputedStyle(element, "::after").content), "none");
+    await page.close();
+  });
+});
+
+describe("Text links", () => {
+  it("underlines a link in running text", async () => {
+    const path = await bundle("html-text-link", `import "@threadlabs/looma";`);
+    const page = await open(path, `<ui-text id="line">Already have a site? <a id="link" href="#sign-in">Sign in</a>.</ui-text>`, [join(root, "tokens.css")]);
+    await page.waitForSelector('#line[data-component~="ui-text"]');
+    assert.match(await page.locator("#link").evaluate((element) => getComputedStyle(element).textDecorationLine), /underline/);
+    await page.close();
+  });
+});
+
+describe("Form field error", () => {
+  it("reads in the danger colour", async () => {
+    const path = await bundle("html-field-error", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-form-field invalid>
+        <label slot="label" for="name">Name</label>
+        <ui-input id="name" name="name"></ui-input>
+        <span slot="error" id="message">That name is taken.</span>
+      </ui-form-field>`, [join(root, "tokens.css")]);
+    await page.waitForSelector('#name[data-component~="ui-input"]');
+    const colours = await page.evaluate(() => {
+      const probe = document.createElement("span");
+      probe.style.color = "var(--ui-danger)";
+      document.body.append(probe);
+      const danger = getComputedStyle(probe).color;
+      probe.remove();
+      return { danger, message: getComputedStyle(document.querySelector("#message")!).color };
+    });
+    assert.equal(colours.message, colours.danger);
+    await page.close();
+  });
+});
+
+describe("Compact list", () => {
+  it("sets items close together, with no row padding", async () => {
+    const path = await bundle("html-compact-list", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-list id="rows" aria-label="Rows"><ui-list-item id="row">One</ui-list-item></ui-list>
+      <ui-list id="facts" density="compact" aria-label="Facts"><ui-list-item id="fact">One</ui-list-item></ui-list>`, [join(root, "tokens.css")]);
+    await page.waitForSelector('#fact[data-component~="ui-list-item"]');
+    const size = (id: string) => page.locator(id).evaluate((element) => ({ height: element.getBoundingClientRect().height, padding: getComputedStyle(element).paddingInlineStart }));
+    const row = await size("#row");
+    const fact = await size("#fact");
+    assert.ok(fact.height < row.height, `compact ${fact.height} < ${row.height}`);
+    assert.equal(fact.padding, "0px");
+    await page.close();
+  });
+});
+
 describe("View primitives", () => {
   const markup = `
     <ui-page-header id="header">Planning<span slot="description">Roadmaps and decisions.</span></ui-page-header>
@@ -456,6 +574,102 @@ describe("View primitives", () => {
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
     await checkPrimitives(page);
+    await page.close();
+  });
+});
+
+describe("Action bar", () => {
+  // Each bar: tertiary, secondary, and primary buttons whose ids share the bar's prefix.
+  const bars = [
+    { id: "wide", style: "width: 600px" },
+    { id: "narrow", style: "width: 280px" },
+    { id: "rtl", style: "width: 600px", dir: "rtl" },
+  ];
+
+  async function checkActionBar(page: Page) {
+    await page.locator("#wide-p").waitFor();
+    const box = async (selector: string) => (await page.locator(selector).boundingBox())!;
+    const near = (a: number, b: number, what: string) => assert.ok(Math.abs(a - b) <= 1, `${what}: ${a} vs ${b}`);
+
+    // Wide: tertiary at the start edge; secondary just before primary, which ends the row.
+    const wide = await box("#wide");
+    const [t, s, p] = [await box("#wide-t"), await box("#wide-s"), await box("#wide-p")];
+    near(t.x, wide.x, "tertiary starts the row");
+    near(p.x + p.width, wide.x + wide.width, "primary ends the row");
+    assert.ok(s.x + s.width < p.x && p.x - (s.x + s.width) <= 16, "secondary sits just before primary");
+    assert.ok(t.x + t.width < s.x - 100, "the spare space is between tertiary and the rest");
+    assert.deepEqual([t.y, s.y].map(Math.round), [p.y, p.y].map(Math.round));
+
+    // Without tertiary or secondary actions, the primary still ends the row.
+    const solo = await box("#solo");
+    const soloPrimary = await box("#solo-p");
+    near(soloPrimary.x + soloPrimary.width, solo.x + solo.width, "a lone primary ends the row");
+
+    // RTL mirrors: primary at the left edge, tertiary at the right.
+    const rtl = await box("#rtl");
+    near((await box("#rtl-p")).x, rtl.x, "primary ends an RTL row on the left");
+    const rtlTertiary = await box("#rtl-t");
+    near(rtlTertiary.x + rtlTertiary.width, rtl.x + rtl.width, "tertiary starts an RTL row on the right");
+
+    // Narrow: full width, stacked primary first, by the bar's own width, not the viewport's.
+    const narrow = await box("#narrow");
+    const stacked = [await box("#narrow-p"), await box("#narrow-s"), await box("#narrow-t")];
+    for (const item of stacked) near(item.width, narrow.width, "a stacked action is full width");
+    assert.ok(stacked[0].y < stacked[1].y && stacked[1].y < stacked[2].y, "primary, secondary, tertiary from the top");
+
+    // Tab order follows the source, tertiary to primary, at every width.
+    for (const id of ["wide", "narrow", "rtl"]) {
+      await page.locator(`#${id}-t`).focus();
+      const order = [await page.evaluate(() => document.activeElement?.id)];
+      for (let step = 0; step < 2; step += 1) {
+        await page.keyboard.press("Tab");
+        order.push(await page.evaluate(() => document.activeElement?.id));
+      }
+      assert.deepEqual(order, [`${id}-t`, `${id}-s`, `${id}-p`]);
+    }
+
+    // In a dialog's actions, the bar fills the footer.
+    const footer = await box("#dialog footer");
+    const [dialogTertiary, dialogPrimary] = [await box("#dialog-t"), await box("#dialog-p")];
+    const inset = await page.locator("#dialog footer").evaluate((element) => parseFloat(getComputedStyle(element).paddingLeft));
+    near(dialogTertiary.x, footer.x + inset, "tertiary starts the dialog footer");
+    near(dialogPrimary.x + dialogPrimary.width, footer.x + footer.width - inset, "primary ends the dialog footer");
+  }
+
+  it("orders actions by priority, stacks them in a narrow container, and mirrors in RTL, in HTML", async () => {
+    const path = await bundle("html-action-bar", `import "@threadlabs/looma";`);
+    const bar = (id: string) => `
+      <ui-action-bar id="${id}">
+        <ui-button id="${id}-t" slot="tertiary" variant="ghost">Cancel</ui-button>
+        <ui-button id="${id}-s" slot="secondary">Save as draft</ui-button>
+        <ui-button id="${id}-p" slot="primary" variant="solid">Save</ui-button>
+      </ui-action-bar>`;
+    const page = await open(path, `
+      ${bars.map(({ id, style, dir }) => `<div style="${style}"${dir ? ` dir="${dir}"` : ""}>${bar(id)}</div>`).join("")}
+      <div style="width: 600px"><ui-action-bar id="solo"><ui-button id="solo-p" slot="primary">Save</ui-button></ui-action-bar></div>
+      <ui-dialog id="dialog" open label="Unsaved changes">Body${bar("dialog").replace("<ui-action-bar", '<ui-action-bar slot="actions"')}</ui-dialog>`,
+    [join(root, "tokens.css")]);
+    await checkActionBar(page);
+    await page.close();
+  });
+
+  it("orders actions by priority, stacks them in a narrow container, and mirrors in RTL, in Vue", async () => {
+    const path = await bundle("vue-action-bar", `
+      import { createApp, h } from "vue";
+      import { ActionBar, Button, Dialog } from "@threadlabs/looma/vue";
+      const bar = (id, props = {}) => h(ActionBar, { id, ...props }, {
+        tertiary: () => h(Button, { id: id + "-t", variant: "ghost" }, () => "Cancel"),
+        secondary: () => h(Button, { id: id + "-s" }, () => "Save as draft"),
+        primary: () => h(Button, { id: id + "-p", variant: "solid" }, () => "Save"),
+      });
+      createApp({ render: () => [
+        ...${JSON.stringify(bars)}.map(({ id, style, dir }) => h("div", { style, dir }, [bar(id)])),
+        h("div", { style: "width: 600px" }, [h(ActionBar, { id: "solo" }, { primary: () => h(Button, { id: "solo-p" }, () => "Save") })]),
+        h(Dialog, { id: "dialog", open: true, label: "Unsaved changes" }, { default: () => "Body", actions: () => bar("dialog") }),
+      ] }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await checkActionBar(page);
     await page.close();
   });
 });

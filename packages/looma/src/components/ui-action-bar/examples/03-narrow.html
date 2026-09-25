@@ -1,0 +1,11 @@
+<!--
+title: Narrow container
+description: Below 24rem of its own width, not the viewport's, the bar stacks its actions full width with the primary action on top, then secondary, then tertiary. Tab order stays tertiary, secondary, primary at every width.
+-->
+<div style="max-inline-size: 18rem">
+  <ui-action-bar>
+    <ui-button slot="tertiary" variant="ghost" tone="neutral">Back</ui-button>
+    <ui-button slot="secondary">Preview</ui-button>
+    <ui-button slot="primary" variant="solid">Send</ui-button>
+  </ui-action-bar>
+</div>

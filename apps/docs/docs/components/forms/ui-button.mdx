@@ -9,4 +9,11 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 Essential button primitive that enhances semantic button markup and styling hooks.
 
 
+## Touch targets
+
+Under touch input, every button takes presses within the control minimum, 44px. A boxed button grows
+to it under a coarse pointer. A link-style button keeps its text size and gets an invisible hit area of
+that size centred on it, as Icon Button does, so a standalone one ("See all" under a list) is easy to
+press. Only the link-style button gets the area, so close neighbours never take each other's presses.
+
 <ComponentExamplesApiTabs component="ui-button" />
