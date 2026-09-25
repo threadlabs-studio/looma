@@ -15,6 +15,40 @@
     <span class="trailing"><slot name="trailing"></slot></span>
   </button>
   <style>
+    /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-search-result-row-border {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-search-result-row-gap {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-search-result-row-hover-surface {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-search-result-row-min-height {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-search-result-row-padding-block {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-search-result-row-padding-inline {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-search-result-row-selected-bg {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-search-result-row-surface {
+      syntax: "*";
+      inherits: false;
+    }
+
     :host {
       appearance: none;
       inline-size: 100%;

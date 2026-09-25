@@ -88,31 +88,62 @@ Do not restate a derived value in a theme. Setting `--ui-accent` gives you `--ui
 ## Component tokens
 
 Each component exposes `--ui-<component>[-<variant>][-<state>]-<property>` for deliberate
-divergence, and each falls back to a semantic value. Set one on an element to change that instance,
-or in your theme to change the product.
+divergence, and each falls back to a semantic value. These are the component's hooks.
 
-### A component sizes itself from its token
+### A hook styles the element it is set on
 
-Where a component reads a token for a property, set that token, not the property. A rule of your
-own loses to the component's own declaration, which usually reads as the override being ignored:
+Custom properties inherit, so a hook set on a container would reach every component of that kind
+inside it and override their defaults, and even their props: `--ui-stack-gap: 0` on a page's outer
+stack would collapse every stack in the page, including one with `gap="l"`. So a hook does not
+inherit. Looma registers each one with `@property { syntax: "*"; inherits: false; }`, and it styles
+only the component whose root it is set on:
 
 ```css
-/* Does nothing: the component sets inline-size from its token. */
-.my-row .actions ui-icon-button { inline-size: 0; }
-
-/* Works. */
-.my-row .actions ui-icon-button { --ui-icon-button-size: 0; }
+/* Removes the outer stack's gap and nothing else. */
+.page-shell { --ui-stack-gap: 0; }
 ```
 
-The component's API tab lists the tokens it reads, and each one names the property it sets.
+Set on an ancestor that is not the component, a hook does nothing. Set on the component itself it
+beats the component's own default, and where the component documents it, its prop (a Stack's
+`--ui-stack-gap` over its `gap`); an inherited value never can.
+
+Theme tokens are different: `--ui-accent`, `--ui-text`, `--ui-surface`, the spacing and type steps,
+radii, and everything else in `tokens.css` inherit on purpose, so setting one on an element themes
+its whole subtree. The editor's `--ui-editor-*` hooks inherit too: the editor is one surface whose
+parts (toolbars, menus, overlays, and the content) are separate elements, and editors do not nest.
+
+| Kind | Names | Inherits | Set it on |
+| --- | --- | --- | --- |
+| Theme token | `--ui-accent`, `--ui-space-4`, `--ui-radius-md` … | yes | `:root`, a theme, or any subtree |
+| Component hook | `--ui-<component>-*` | no | the component, or all of them with a selector |
+| Editor hook | `--ui-editor-*` | yes | the editor or an ancestor |
+| Private | `--_*` | yes, inside the component | nothing: not API |
+
+### A component sizes itself from its hook
+
+Where a component reads a hook for a property, set that hook, not the property. A rule of your own
+loses to the component's own declaration, which usually reads as the override being ignored:
+
+```css
+/* Does nothing: the component sets inline-size from its hook. */
+.my-row .actions [data-component~="ui-icon-button"] { inline-size: 0; }
+
+/* Works. */
+.my-row .actions [data-component~="ui-icon-button"] { --ui-icon-button-size: 0; }
+```
+
+Every component's root carries `data-component="ui-<name>"`, in HTML and in Vue, so
+`[data-component~="ui-icon-button"]` selects each one. The component's API tab lists the hooks it
+reads, and each one names the property it sets.
 
 ### Changing a component's default appearance
 
 A component's default is a product decision, so express it in the theme rather than at every call
-site. An accent-tinted default button, product-wide:
+site. A hook does not inherit, so select the components rather than setting it on `:root`. An
+accent-tinted default button, product-wide:
 
 ```css
-:root {
+[data-component~="ui-button"] {
   --ui-button-surface: var(--ui-accent-subtle);
   --ui-button-border: var(--ui-accent);
   --ui-button-text: var(--ui-accent-active);
@@ -121,8 +152,8 @@ site. An accent-tinted default button, product-wide:
 
 Point these at the semantic values, not at fixed colours. A pinned colour stops adapting: a hover
 tint pinned to one surface's colour disappears on every other surface, and a pinned tone ignores a
-later change of accent. Where a product needs both, the prop overrides the theme per instance:
-`<ui-button tone="accent">` for an accent action in an otherwise neutral product.
+later change of accent. A hook set on a component beats its props, so these buttons ignore `tone`;
+where a product needs both, narrow the selector to the buttons the theme means.
 
 ## Typography
 

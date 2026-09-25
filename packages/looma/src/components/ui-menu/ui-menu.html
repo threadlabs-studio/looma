@@ -14,17 +14,29 @@
   </defs>
   <div role="menu" aria-orientation="vertical"><div class="surface"><slot></slot></div></div>
   <style>
-    /* Compact sets the part tokens its items read, so nothing has to rescale a global. */
+    /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-menu-viewport-gap {
+      syntax: "*";
+      inherits: false;
+    }
+
+    /* Compact sets its items' defaults, so nothing has to rescale a global; an item's own hooks
+       still win. */
     :host-state([density="compact"]) {
-      --ui-menu-item-padding-block: var(--ui-space-1);
-      --ui-menu-item-padding-inline: var(--ui-space-2);
-      --ui-menu-item-font-size: var(--ui-font-size-sm);
-      --ui-menu-item-radius: var(--ui-radius-sm);
+      --_ui-default-menu-item-padding-block: var(--ui-space-1);
+      --_ui-default-menu-item-padding-inline: var(--ui-space-2);
+      --_ui-default-menu-item-font-size: var(--ui-font-size-sm);
+      --_ui-default-menu-item-radius: var(--ui-radius-sm);
       padding: var(--ui-space-1);
       gap: 0;
     }
 
     :host {
+      /* A menu nested in a compact one starts again from its own density. */
+      --_ui-default-menu-item-padding-block: initial;
+      --_ui-default-menu-item-padding-inline: initial;
+      --_ui-default-menu-item-font-size: initial;
+      --_ui-default-menu-item-radius: initial;
       display: flex;
       flex-direction: column;
       box-sizing: border-box;
