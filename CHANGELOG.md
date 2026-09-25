@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.11.3
+
+- Tree marquee: every name slides at the same speed. The duration was clamped between 1.4s and 10s,
+  so a name only a little too long crawled and a very long one rushed.
+
 ## v0.11.2
 
 - New: Input Group (`ui-input-group`, Vue `InputGroup`), an Input with fixed text before or after it
