@@ -1,0 +1,13 @@
+<!--
+title: Prefix and suffix
+description: Fixed text on both sides, such as the slashes around a path. An invalid input marks the whole group.
+-->
+<ui-form-field invalid>
+  <label slot="label" for="route">Address</label>
+  <ui-input-group>
+    <span slot="prefix">/</span>
+    <ui-input id="route" name="route" value="team notes" invalid></ui-input>
+    <span slot="suffix">/</span>
+  </ui-input-group>
+  <span slot="error">Use letters, numbers, and hyphens.</span>
+</ui-form-field>

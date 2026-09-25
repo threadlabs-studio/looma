@@ -19,9 +19,9 @@
       margin: 0;
       padding: var(--ui-space-2) var(--ui-space-3);
       appearance: none;
-      border: 1px solid var(--ui-control-border, var(--ui-border-strong));
+      border: 1px solid var(--ui-input-border, var(--ui-control-border, var(--ui-border-strong)));
       border-radius: var(--ui-input-radius, var(--ui-radius-md));
-      background: var(--ui-control-surface, var(--ui-surface-elevated));
+      background: var(--ui-input-surface, var(--ui-control-surface, var(--ui-surface-elevated)));
       color: var(--ui-text-primary);
       font: inherit;
       line-height: var(--ui-line-height-md);
@@ -44,11 +44,11 @@
     }
 
     :host:hover:not(:focus):not(:disabled) {
-      border-color: var(--ui-control-border-hover, var(--ui-text-secondary));
+      border-color: var(--ui-input-border-hover, var(--ui-control-border-hover, var(--ui-text-secondary)));
     }
 
     :host:focus-visible {
-      border-color: var(--ui-control-focus, var(--ui-accent-solid));
+      border-color: var(--ui-input-focus-border, var(--ui-control-focus, var(--ui-accent-solid)));
       outline: none;
       box-shadow: var(--ui-input-focus-shadow, var(--ui-control-inset), var(--ui-control-focus-halo-shadow));
     }
