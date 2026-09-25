@@ -14,22 +14,74 @@
   </defs>
   <input :value="value" :disabled="disabled" :readonly="readonly" :required="required" :aria-invalid="invalid">
   <style>
+    /* This component's hooks style the element they are set on, and never a nested one. An Input
+       Group sets --_ui-default-input-* for the input inside it, below the input's own hooks. */
+    @property --ui-input-border {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-input-border-hover {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-input-border-width {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-input-focus-border {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-input-focus-outline {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-input-focus-shadow {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-input-invalid-border {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-input-invalid-focus-shadow {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-input-min-block-size {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-input-radius {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-input-shadow {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-input-surface {
+      syntax: "*";
+      inherits: false;
+    }
+
     :host {
       box-sizing: border-box;
       display: inline-block;
       inline-size: 100%;
       min-inline-size: 0;
-      min-block-size: var(--ui-input-min-block-size, var(--ui-control-size-md));
+      min-block-size: var(--ui-input-min-block-size, var(--_ui-default-input-min-block-size, var(--ui-control-size-md)));
       margin: 0;
       padding: var(--ui-space-2) var(--ui-space-3);
       appearance: none;
-      border: var(--ui-input-border-width, 1px) solid var(--ui-input-border, var(--ui-control-border, var(--ui-border-strong)));
-      border-radius: var(--ui-input-radius, var(--ui-radius-md));
-      background: var(--ui-input-surface, var(--ui-control-surface, var(--ui-surface-elevated)));
+      border: var(--ui-input-border-width, var(--_ui-default-input-border-width, 1px)) solid
+        var(--ui-input-border, var(--_ui-default-input-border, var(--ui-control-border, var(--ui-border-strong))));
+      border-radius: var(--ui-input-radius, var(--_ui-default-input-radius, var(--ui-radius-md)));
+      background: var(--ui-input-surface, var(--_ui-default-input-surface, var(--ui-control-surface, var(--ui-surface-elevated))));
       color: var(--ui-text-primary);
       font: inherit;
       line-height: var(--ui-line-height-md);
-      box-shadow: var(--ui-input-shadow, var(--ui-control-inset));
+      box-shadow: var(--ui-input-shadow, var(--_ui-default-input-shadow, var(--ui-control-inset)));
       transition:
         border-color var(--ui-motion-fast) var(--ui-motion-ease),
         box-shadow var(--ui-motion-fast) var(--ui-motion-ease),
@@ -70,26 +122,29 @@
     }
 
     :host:hover:not(:focus):not(:disabled) {
-      border-color: var(--ui-input-border-hover, var(--ui-control-border-hover, var(--ui-text-secondary)));
+      border-color: var(--ui-input-border-hover, var(--_ui-default-input-border-hover, var(--ui-control-border-hover, var(--ui-text-secondary))));
     }
 
     :host:focus-visible {
-      border-color: var(--ui-input-focus-border, var(--ui-control-focus, var(--ui-accent-solid)));
+      border-color: var(--ui-input-focus-border, var(--_ui-default-input-focus-border, var(--ui-control-focus, var(--ui-accent-solid))));
       outline: none;
-      box-shadow: var(--ui-input-focus-shadow, var(--ui-control-inset), var(--ui-control-focus-halo-shadow));
+      box-shadow: var(--ui-input-focus-shadow, var(--_ui-default-input-focus-shadow, var(--ui-control-inset), var(--ui-control-focus-halo-shadow)));
     }
 
     /* The app's invalid flag, or the browser's own verdict once the user has left an invalid field. */
     :host[aria-invalid="true"],
     :host:user-invalid {
-      border-color: var(--ui-input-invalid-border, var(--ui-danger-solid));
+      border-color: var(--ui-input-invalid-border, var(--_ui-default-input-invalid-border, var(--ui-danger-solid)));
     }
 
     :host:is([aria-invalid="true"], :user-invalid):focus-visible {
       box-shadow: var(
         --ui-input-invalid-focus-shadow,
-        var(--ui-control-inset),
-        0 0 0 3px color-mix(in srgb, var(--ui-danger-solid) 22%, transparent)
+        var(
+          --_ui-default-input-invalid-focus-shadow,
+          var(--ui-control-inset),
+          0 0 0 3px color-mix(in srgb, var(--ui-danger-solid) 22%, transparent)
+        )
       );
     }
 
@@ -103,7 +158,7 @@
     /* Forced colors drop box shadows, so the focus ring becomes an outline. */
     @media (forced-colors: active) {
       :host:focus-visible {
-        outline: var(--ui-input-focus-outline, 2px solid Highlight);
+        outline: var(--ui-input-focus-outline, var(--_ui-default-input-focus-outline, 2px solid Highlight));
         outline-offset: 1px;
       }
     }

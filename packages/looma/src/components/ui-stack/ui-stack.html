@@ -2,7 +2,7 @@
   <defs>
     <prop name="gap" type="xs | s | m | l | xl"
     >Space between items, on the spacing scale: xs is 0.5rem, s 0.75rem, m 1rem (also the default), l 1.5rem, and xl 2rem. The --ui-stack-gap custom property,
-      when set, overrides it.</prop>
+      set on the stack itself, overrides it; set on an ancestor, it does nothing.</prop>
     <prop name="align" type="start | center | end | stretch"
     >How items sit across the stack: stretch (the default) makes each fill the stack's width; start, center, and end keep each at its own width, against the
       start, in the middle, or against the end.</prop>
@@ -12,6 +12,12 @@
   </defs>
   <div><slot></slot></div>
   <style>
+    /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-stack-gap {
+      syntax: "*";
+      inherits: false;
+    }
+
     :host {
       --_layout-gap: var(--ui-space-4);
       display: flex;

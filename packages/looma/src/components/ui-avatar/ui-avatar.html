@@ -27,6 +27,24 @@
     <span class="fallback" :aria-hidden="hasImage" :hidden="hasImage" $value="initials"></span>
   </span>
   <style>
+    /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-avatar-border {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-avatar-surface {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-avatar-text {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-avatar-active-ring {
+      syntax: "*";
+      inherits: false;
+    }
+
     :host {
       display: inline-grid;
       place-items: center;

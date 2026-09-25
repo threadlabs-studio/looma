@@ -38,7 +38,20 @@
     </span>
   </label>
   <style>
+    /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-checkbox-gap {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-checkbox-size {
+      syntax: "*";
+      inherits: false;
+    }
+
     :host {
+      /* Hooks do not inherit, so the parts below read them from the root. */
+      --_ui-checkbox-size: var(--ui-checkbox-size);
+
       display: inline-flex;
       align-items: flex-start;
       gap: var(--ui-checkbox-gap, var(--ui-space-2));
@@ -75,8 +88,8 @@
       -webkit-appearance: none;
       position: relative;
       flex: 0 0 auto;
-      inline-size: var(--ui-checkbox-size, 1.125rem);
-      block-size: var(--ui-checkbox-size, 1.125rem);
+      inline-size: var(--_ui-checkbox-size, 1.125rem);
+      block-size: var(--_ui-checkbox-size, 1.125rem);
       margin: 0.125em 0 0;
       border: 1px solid var(--ui-control-border-hover, var(--ui-border-strong));
       border-radius: var(--ui-radius-sm);

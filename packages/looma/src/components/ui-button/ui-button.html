@@ -38,6 +38,76 @@
     <slot></slot>
   </button>
   <style>
+    /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-button-active-surface {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-button-border {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-button-disabled-filter {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-button-disabled-opacity {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-button-ghost-active-surface {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-button-ghost-hover-surface {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-button-ghost-text {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-button-hover-border {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-button-hover-surface {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-button-link-hover-text {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-button-link-text {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-button-min-block-size {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-button-radius {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-button-shadow {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-button-solid-shadow {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-button-surface {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-button-text {
+      syntax: "*";
+      inherits: false;
+    }
+
     :host {
       --_hue: var(--ui-accent);
       --_hue-hover: var(--ui-accent-hover);

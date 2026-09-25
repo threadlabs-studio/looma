@@ -9,10 +9,19 @@
     </div>
   </div>
   <style>
+    /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-action-bar-gap {
+      syntax: "*";
+      inherits: false;
+    }
+
     /* The action row of a form or dialog. Tertiary actions (Back, Cancel, Discard) sit at the start
        edge; secondary actions (Save as draft, Preview) sit just before the primary one, which ends the
        row. The bar arranges its actions and leaves their look to them. */
     :host {
+      /* Hooks do not inherit, so the parts below read them from the root. */
+      --_ui-action-bar-gap: var(--ui-action-bar-gap);
+
       --_gap: var(--ui-space-2);
       display: block;
       /* A size container sizes itself from its container, never its content. */
@@ -28,7 +37,7 @@
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: var(--ui-action-bar-gap, var(--_gap));
+      gap: var(--_ui-action-bar-gap, var(--_gap));
     }
 
     /* The tertiary group takes the spare space, pushing the rest to the end edge; without it, the

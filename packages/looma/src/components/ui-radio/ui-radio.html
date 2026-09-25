@@ -27,7 +27,20 @@
     </span>
   </label>
   <style>
+    /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-radio-gap {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-radio-size {
+      syntax: "*";
+      inherits: false;
+    }
+
     :host {
+      /* Hooks do not inherit, so the parts below read them from the root. */
+      --_ui-radio-size: var(--ui-radio-size);
+
       display: inline-flex;
       align-items: flex-start;
       gap: var(--ui-radio-gap, var(--ui-space-2));
@@ -61,8 +74,8 @@
 
     input {
       flex: 0 0 auto;
-      inline-size: var(--ui-radio-size, 1.125rem);
-      block-size: var(--ui-radio-size, 1.125rem);
+      inline-size: var(--_ui-radio-size, 1.125rem);
+      block-size: var(--_ui-radio-size, 1.125rem);
       margin: 0.125em 0 0;
       accent-color: var(--ui-accent-solid);
       cursor: pointer;
