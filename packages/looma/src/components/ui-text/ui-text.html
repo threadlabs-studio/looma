@@ -78,6 +78,15 @@
       font-family: var(--ui-font-family-mono);
     }
 
+    /* A link in running text is underlined, so it stands apart from the words around it by more than
+       colour. */
+    :host :slotted(a) {
+      color: var(--ui-accent-active);
+      text-decoration: underline;
+      text-decoration-thickness: 0.06em;
+      text-underline-offset: 0.18em;
+    }
+
     :host-state([truncate]) {
       overflow: hidden;
       text-overflow: ellipsis;

@@ -19,9 +19,9 @@
       margin: 0;
       padding: var(--ui-space-2) var(--ui-space-3);
       appearance: none;
-      border: 1px solid var(--ui-control-border, var(--ui-border-strong));
+      border: 1px solid var(--ui-input-border, var(--ui-control-border, var(--ui-border-strong)));
       border-radius: var(--ui-input-radius, var(--ui-radius-md));
-      background: var(--ui-control-surface, var(--ui-surface-elevated));
+      background: var(--ui-input-surface, var(--ui-control-surface, var(--ui-surface-elevated)));
       color: var(--ui-text-primary);
       font: inherit;
       line-height: var(--ui-line-height-md);
@@ -44,11 +44,11 @@
     }
 
     :host:hover:not(:focus):not(:disabled) {
-      border-color: var(--ui-control-border-hover, var(--ui-text-secondary));
+      border-color: var(--ui-input-border-hover, var(--ui-control-border-hover, var(--ui-text-secondary)));
     }
 
     :host:focus-visible {
-      border-color: var(--ui-control-focus, var(--ui-accent-solid));
+      border-color: var(--ui-input-focus-border, var(--ui-control-focus, var(--ui-accent-solid)));
       outline: none;
       box-shadow: var(--ui-input-focus-shadow, var(--ui-control-inset), var(--ui-control-focus-halo-shadow));
     }
@@ -56,13 +56,15 @@
     /* The app's invalid flag, or the browser's own verdict once the user has left an invalid field. */
     :host[aria-invalid="true"],
     :host:user-invalid {
-      border-color: var(--ui-danger-solid);
+      border-color: var(--ui-input-invalid-border, var(--ui-danger-solid));
     }
 
     :host:is([aria-invalid="true"], :user-invalid):focus-visible {
-      box-shadow:
+      box-shadow: var(
+        --ui-input-invalid-focus-shadow,
         var(--ui-control-inset),
-        0 0 0 3px color-mix(in srgb, var(--ui-danger-solid) 22%, transparent);
+        0 0 0 3px color-mix(in srgb, var(--ui-danger-solid) 22%, transparent)
+      );
     }
 
     :host:disabled {
@@ -70,37 +72,6 @@
       color: var(--ui-text-muted);
       box-shadow: none;
       cursor: not-allowed;
-    }
-
-    /* Forced colors drop box shadows, so the focus ring becomes an outline. */
-    @media (forced-colors: active) {
-      :host:focus-visible {
-        outline: 2px solid Highlight;
-        outline-offset: 1px;
-      }
-    }
-
-    /* In an Input Group, the group draws the box and its states around the input, which is the
-       borderless, transparent text area inside it. :is(:enabled, :disabled) matches any input; it
-       lifts this rule over the state rules above. */
-    [data-component~="ui-input-group"] :host:is(:enabled, :disabled) {
-      flex: 1 1 auto;
-      inline-size: auto;
-      min-block-size: 0;
-      border-width: 0;
-      border-radius: 0;
-      background: transparent;
-      box-shadow: none;
-      outline: none;
-      cursor: inherit;
-    }
-
-    [data-component~="ui-input-group"] [data-affix="prefix"] + :host {
-      padding-inline-start: var(--ui-input-affix-gap, var(--ui-space-1));
-    }
-
-    [data-component~="ui-input-group"] :host:has(+ [data-affix="suffix"]) {
-      padding-inline-end: var(--ui-input-affix-gap, var(--ui-space-1));
     }
 
     /* No text-box-trim here: trimming a native input's line box below its line height lets the text

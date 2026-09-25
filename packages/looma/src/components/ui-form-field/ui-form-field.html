@@ -48,9 +48,10 @@
       min-block-size: var(--ui-form-field-help-min-block-size, 0);
     }
 
+    /* An error reads in the danger colour, the one the invalid control's border takes. */
     .error,
     :slotted([role="alert"]) {
-      color: var(--ui-accent-active);
+      color: var(--ui-danger);
       font-size: var(--ui-font-size-sm);
     }
 

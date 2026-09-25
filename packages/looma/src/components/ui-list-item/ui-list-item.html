@@ -32,9 +32,9 @@
       align-items: center;
       gap: var(--ui-list-item-gap, var(--ui-space-3));
       min-inline-size: 0;
-      min-block-size: var(--ui-control-size, 2.5rem);
-      padding-block: var(--ui-list-item-padding-block, var(--ui-space-2));
-      padding-inline: var(--ui-list-item-padding-inline, var(--ui-space-3));
+      min-block-size: var(--_ui-list-item-min-size, var(--ui-control-size, 2.5rem));
+      padding-block: var(--ui-list-item-padding-block, var(--_ui-list-item-padding-block, var(--ui-space-2)));
+      padding-inline: var(--ui-list-item-padding-inline, var(--_ui-list-item-padding-inline, var(--ui-space-3)));
       border-radius: var(--ui-radius-md);
       color: var(--ui-text-primary);
       transition: background-color var(--ui-motion-fast) var(--ui-motion-ease), border-color var(--ui-motion-fast) var(--ui-motion-ease);
@@ -104,7 +104,7 @@
 
     .title {
       font-size: var(--ui-font-size-md);
-      font-weight: var(--ui-font-medium);
+      font-weight: var(--_ui-list-item-title-weight, var(--ui-font-medium));
       line-height: var(--ui-line-height-tight);
     }
 

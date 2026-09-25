@@ -141,8 +141,7 @@
     },
     "ui-input-group": {
       "status": "published",
-      "package": "@threadlabs/looma",
-      "navigationParent": "ui-input"
+      "package": "@threadlabs/looma"
     },
     "ui-list": {
       "status": "published",
