@@ -32,8 +32,27 @@
     <div class="panels" $ref="panels"><slot></slot></div>
   </div>
   <style>
+    /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-tabs-tab-min-block-size {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-tabs-tab-padding-block {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-tabs-tab-padding-inline {
+      syntax: "*";
+      inherits: false;
+    }
+
     /* Density resolves into the tab row's own values; the public tokens still override them. */
     :host {
+      /* Hooks do not inherit, so the parts below read them from the root. */
+      --_ui-tabs-tab-min-block-size: var(--ui-tabs-tab-min-block-size);
+      --_ui-tabs-tab-padding-block: var(--ui-tabs-tab-padding-block);
+      --_ui-tabs-tab-padding-inline: var(--ui-tabs-tab-padding-inline);
+
       --_tab-min-block-size: var(--ui-control-size);
       --_tab-padding-block: var(--ui-space-2);
       --_tab-padding-inline: var(--ui-space-3);
@@ -69,9 +88,9 @@
     }
 
     .list button {
-      min-block-size: var(--ui-tabs-tab-min-block-size, var(--_tab-min-block-size));
+      min-block-size: var(--_ui-tabs-tab-min-block-size, var(--_tab-min-block-size));
       margin: 0 0 -1px;
-      padding: var(--ui-tabs-tab-padding-block, var(--_tab-padding-block)) var(--ui-tabs-tab-padding-inline, var(--_tab-padding-inline));
+      padding: var(--_ui-tabs-tab-padding-block, var(--_tab-padding-block)) var(--_ui-tabs-tab-padding-inline, var(--_tab-padding-inline));
       border: 0;
       border-block-end: 2px solid transparent;
       background: transparent;

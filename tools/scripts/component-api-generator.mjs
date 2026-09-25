@@ -390,9 +390,26 @@ function tokenRecord(name, declarations, references) {
   };
 }
 
+// Hooks do not inherit, so a root relays one to its parts as `--_ui-x: var(--ui-x)`, and a Looma
+// parent sets a default for a child's hook in `--_ui-default-x`. Neither is API: a relay's fallbacks
+// are its hook's, and a parent's default gives way to the fallback after it.
+function foldRelays(references) {
+  const unwrap = (fallback) => /^var\(--_ui-default-[A-Za-z0-9_-]+,\s*([\s\S]*)\)$/.exec(fallback)?.[1].trim() ?? fallback;
+  for (const [name, fallbacks] of references) {
+    const hook = /^--_(ui-[A-Za-z0-9_-]+)$/.exec(name)?.[1];
+    if (hook && references.has(`--${hook}`)) {
+      const target = references.get(`--${hook}`);
+      for (const fallback of fallbacks) if (!target.includes(fallback)) target.push(fallback);
+      references.delete(name);
+    }
+  }
+  for (const [name, fallbacks] of references) references.set(name, [...new Set(fallbacks.map(unwrap))].filter((fallback) => !/^var\(--_ui-default-[A-Za-z0-9_-]+\)$/.test(fallback)));
+  return references;
+}
+
 export function extractDesignTokensFromCss({ tag, source }) {
   const declarations = customPropertyDeclarations(source);
-  const references = customPropertyReferences(source);
+  const references = foldRelays(customPropertyReferences(source));
   const componentPrefix = `--${tag}-`;
   const isPrivate = (name) => name.startsWith("--_");
   const hasPrivateDefault = (name) => (references.get(name) ?? []).some((fallback) => privateReference.test(fallback));

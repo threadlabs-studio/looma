@@ -2859,3 +2859,113 @@ describe("Sidebar", () => {
     await page.close();
   });
 });
+
+describe("Component hooks", () => {
+  // A tree of components, one spec for both adapters: [component or element, attributes, children].
+  type Node = [string, Record<string, string | boolean>, (Node | string)[]?];
+  const hook = (name: string, value: string) => ({ style: `${name}: ${value}` });
+  const mark = "rgb(1, 2, 3)";
+  const tree: Node[] = [
+    // A hook on the outer stack removes only its gap; the nested stacks keep their prop or default.
+    ["Stack", { id: "stack-outer", ...hook("--ui-stack-gap", "0") }, [
+      ["Stack", { id: "stack-prop", gap: "l" }, [["span", {}, ["a"]], ["span", {}, ["b"]]]],
+      ["Stack", { id: "stack-default" }, [["span", {}, ["a"]], ["span", {}, ["b"]]]],
+      ["Stack", { id: "stack-own", ...hook("--ui-stack-gap", "7px") }, [["span", {}, ["a"]], ["span", {}, ["b"]]]],
+    ]],
+    ["Cluster", { id: "cluster-outer", ...hook("--ui-cluster-gap", "0") }, [
+      ["Cluster", { id: "cluster-nested" }, [["span", {}, ["a"]], ["span", {}, ["b"]]]],
+      ["Cluster", { id: "cluster-own", ...hook("--ui-cluster-gap", "7px") }, [["span", {}, ["a"]], ["span", {}, ["b"]]]],
+    ]],
+    ["Grid", { id: "grid-outer", ...hook("--ui-grid-gap", "0") }, [
+      ["Grid", { id: "grid-nested" }, [["span", {}, ["a"]], ["span", {}, ["b"]]]],
+      ["Grid", { id: "grid-own", ...hook("--ui-grid-gap", "7px") }, [["span", {}, ["a"]], ["span", {}, ["b"]]]],
+    ]],
+    ["div", hook("--ui-badge-border", mark), [["Badge", { id: "badge-nested" }, ["New"]]]],
+    ["Badge", { id: "badge-plain" }, ["New"]],
+    ["Badge", { id: "badge-own", ...hook("--ui-badge-border", mark) }, ["New"]],
+    ["div", hook("--ui-button-surface", mark), [["Button", { id: "button-nested" }, ["Save"]]]],
+    ["Button", { id: "button-plain" }, ["Save"]],
+    ["Button", { id: "button-own", ...hook("--ui-button-surface", mark) }, ["Save"]],
+    ["div", hook("--ui-input-radius", "7px"), [["Input", { id: "input-nested", "aria-label": "Nested" }]]],
+    ["Input", { id: "input-plain", "aria-label": "Plain" }],
+    ["Input", { id: "input-own", "aria-label": "Own", ...hook("--ui-input-radius", "7px") }],
+    ["nav", { "aria-label": "Hooked", ...hook("--ui-nav-item-indicator-color", mark) }, [["NavItem", { id: "nav-nested", current: true }, ["Home"]]]],
+    ["NavItem", { id: "nav-plain", current: true }, ["Home"]],
+    ["NavItem", { id: "nav-own", current: true, ...hook("--ui-nav-item-indicator-color", mark) }, ["Home"]],
+    // A hook a component reads on an inner part reaches that part from the root, and no further.
+    ["Callout", { id: "callout-outer", ...hook("--ui-callout-icon", mark) }, [["Callout", { id: "callout-nested" }, ["Inner"]]]],
+    ["Callout", { id: "callout-plain" }, ["Plain"]],
+    // Theme tokens still theme a subtree.
+    ["div", { style: `--ui-space-5: 40px; --ui-accent: ${mark}` }, [
+      ["Stack", { id: "stack-themed", gap: "l" }, [["span", {}, ["a"]], ["span", {}, ["b"]]]],
+      ["NavItem", { id: "nav-themed", current: true }, ["Home"]],
+    ]],
+  ];
+
+  const kebab = (name: string) => name.replace(/[A-Z]/g, (letter, index) => `${index ? "-" : ""}${letter.toLowerCase()}`);
+  const html = (nodes: (Node | string)[]): string => nodes.map((node) => {
+    if (typeof node === "string") return node;
+    const [name, attributes, children = []] = node;
+    const tag = /^[A-Z]/.test(name) ? `ui-${kebab(name)}` : name;
+    const attrs = Object.entries(attributes).map(([key, value]) => value === true ? key : `${key}="${value}"`).join(" ");
+    return `<${tag} ${attrs}>${html(children)}</${tag}>`;
+  }).join("");
+
+  async function checkHooks(page: Page) {
+    await page.locator("#nav-themed").waitFor();
+    const style = (id: string, property: string, part?: string) => page.locator(`#${id}`).evaluate((element, [property, part]) =>
+      getComputedStyle(part ? element.querySelector(part)! : element).getPropertyValue(property!), [property, part]);
+
+    // The Stack bug: a hook on a container reached every nested Stack and beat an explicit gap prop.
+    assert.equal(await style("stack-outer", "row-gap"), "0px", "the hook styles the stack it is set on");
+    assert.equal(await style("stack-prop", "row-gap"), "24px", "a nested stack keeps its gap prop");
+    assert.equal(await style("stack-default", "row-gap"), "16px", "a nested stack keeps its default");
+    assert.equal(await style("stack-own", "row-gap"), "7px", "the hook set on the stack itself wins over its default");
+    assert.equal(await style("cluster-nested", "column-gap"), "12px", "a nested cluster keeps its default");
+    assert.equal(await style("cluster-own", "column-gap"), "7px", "the hook set on the cluster itself wins");
+    assert.equal(await style("grid-nested", "row-gap"), "16px", "a nested grid keeps its default");
+    assert.equal(await style("grid-own", "row-gap"), "7px", "the hook set on the grid itself wins");
+
+    for (const [component, property, value, part] of [
+      ["badge", "border-top-color", mark],
+      ["button", "background-color", mark],
+      ["input", "border-top-left-radius", "7px"],
+      ["nav", "border-inline-start-color", mark, ".indicator"],
+    ] as const) {
+      const plain = await style(`${component}-plain`, property, part);
+      assert.notEqual(plain, value, `${component}: the default differs from the hook's value`);
+      assert.equal(await style(`${component}-nested`, property, part), plain, `${component}: a hook on a container leaves the instance inside at its default`);
+      assert.equal(await style(`${component}-own`, property, part), value, `${component}: a hook on the instance styles it`);
+    }
+
+    assert.equal(await style("callout-outer", "color", ".icon"), mark, "a callout's hook reaches its own icon");
+    assert.equal(await style("callout-nested", "color", ".icon"), await style("callout-plain", "color", ".icon"), "and not a nested callout's");
+
+    assert.equal(await style("stack-themed", "row-gap"), "40px", "a spacing token themes the stacks in its subtree");
+    assert.equal(await style("nav-themed", "border-inline-start-color", ".indicator"), mark, "the accent themes the nav items in its subtree");
+  }
+
+  it("style only the instance they are set on, in HTML", async () => {
+    const path = await bundle("html-hooks", `import "@threadlabs/looma";`);
+    const page = await open(path, html(tree), [join(root, "tokens.css")]);
+    await page.waitForSelector('#nav-themed[data-component~="ui-nav-item"]');
+    await checkHooks(page);
+    await page.close();
+  });
+
+  it("style only the instance they are set on, in Vue", async () => {
+    const path = await bundle("vue-hooks", `
+      import { createApp, h } from "vue";
+      import * as looma from "@threadlabs/looma/vue";
+      const render = (node) => {
+        if (typeof node === "string") return node;
+        const [name, attributes, children = []] = node;
+        return h(/^[A-Z]/.test(name) ? looma[name] : name, attributes, /^[A-Z]/.test(name) ? () => children.map(render) : children.map(render));
+      };
+      createApp({ render: () => ${JSON.stringify(tree)}.map(render) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await checkHooks(page);
+    await page.close();
+  });
+});
