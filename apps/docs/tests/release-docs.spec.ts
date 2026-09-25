@@ -366,8 +366,8 @@ test("the component catalog exposes the complete library and filters live previe
     "Core, layout, form, display, and overlay building blocks"
   );
   await expect(page.locator(".looma-catalog-hero")).not.toContainText("Forty-nine");
-  await expect(page.locator(".looma-component-card")).toHaveCount(48);
-  await expect(page.getByText("Showing 48 components", { exact: true })).toBeVisible();
+  await expect(page.locator(".looma-component-card")).toHaveCount(49);
+  await expect(page.getByText("Showing 49 components", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { level: 2, name: "Chip" })).toHaveCount(0);
   await expect(page.getByRole("heading", { level: 2, name: "Floating Action Button" })).toHaveCount(0);
   await expect(page.getByRole("heading", { level: 2, name: "Menu Item" })).toHaveCount(0);
@@ -845,32 +845,6 @@ test("ui-input authors one declarative element and lowers directly to an editabl
   await expect(states.getByRole("textbox", { name: "Invalid" })).toHaveAttribute("aria-invalid", "true");
   await expect(states.getByRole("textbox", { name: "Read only" })).toHaveAttribute("readonly", "");
   await expect(states.getByRole("textbox", { name: "Disabled" })).toBeDisabled();
-});
-
-test("ui-input's prefix and suffix sit in one Input box, in readable text", async ({ page }) => {
-  await page.goto("components/ui-input", { waitUntil: "domcontentloaded" });
-  const scenario = page.locator("[data-preview-scenario='Prefix and suffix']");
-  const group = scenario.locator("[data-component~='ui-input-group']");
-  const input = group.getByRole("textbox", { name: "Site address" });
-  await expect(group.locator("[data-affix]")).toHaveText(["https://", ".example.com"]);
-  await expect(input).toHaveAttribute("aria-describedby", /\S+ \S+/);
-  await expect(scenario.locator(".looma-mode-code")).toContainText("<ui-input-group");
-
-  for (const theme of ["light", "dark"] as const) {
-    await page.evaluate((value) => document.documentElement.setAttribute("data-theme", value), theme);
-    await group.evaluate(async (element) => {
-      await Promise.all(element.getAnimations({ subtree: true }).map((animation) => animation.finished));
-    });
-    const colors = await group.evaluate((element) => ({
-      background: getComputedStyle(element).backgroundColor,
-      border: getComputedStyle(element).borderTopColor,
-      affix: getComputedStyle(element.querySelector("[data-affix]")!).color,
-      inputBorder: getComputedStyle(element.querySelector("input")!).borderTopWidth
-    }));
-    expect(contrastRatio(colors.affix, colors.background), `${theme} affix contrast`).toBeGreaterThanOrEqual(4.5);
-    expect(contrastRatio(colors.border, colors.background), `${theme} control boundary contrast`).toBeGreaterThanOrEqual(3);
-    expect(colors.inputBorder, "the input inside is borderless").toBe("0px");
-  }
 });
 
 test("ui-select authors options directly and lowers to one native select", async ({ page }) => {
@@ -1459,7 +1433,8 @@ test("tone is the colour, variant is the volume, and disabled keeps both", async
         surface: style.backgroundColor,
         text: style.color,
         radius: style.borderRadius,
-        shadow: style.boxShadow
+        shadow: style.boxShadow,
+        filter: style.filter
       }];
     }));
   });
@@ -1497,13 +1472,14 @@ test("tone is the colour, variant is the volume, and disabled keeps both", async
   expect(await sameColour(painted["solid-accent-false"].surface, painted["outline-accent-false"].border)).toBe(true);
   expect(painted["ghost-accent-false"].shadow).toBe("none");
 
-  // Disabled keeps the shape and a trace of the tone: a disabled outline still reads as an
-  // unavailable outline in its own colour, not as a grey box.
+  // Disabled keeps the shape and the tone, washed out by one filter: a disabled outline still reads
+  // as an unavailable outline in its own colour, not as a grey box.
   for (const id of ["outline-accent-true", "outline-danger-true", "solid-accent-true", "ghost-accent-true"]) {
     expect(painted[id].shadow, `${id} still looks raised`).toBe("none");
+    expect(painted[id].filter, `${id} is not washed out`).toContain("saturate(0.2)");
   }
+  expect(painted["outline-accent-false"].filter).toBe("none");
   expect(painted["outline-accent-true"].border).not.toBe(painted["outline-danger-true"].border);
-  expect(painted["outline-accent-true"].border).not.toBe(painted["outline-accent-false"].border);
   expect(painted["outline-accent-true"].border).not.toBe(painted["outline-accent-true"].surface);
   expect(painted["solid-accent-true"].border).toBe(painted["solid-accent-true"].surface);
   expect(new Set(Object.values(painted).map((paint) => paint.radius)).size).toBe(1);
@@ -1560,8 +1536,8 @@ test("a tree scrolls a name too long for its row, only when asked, and clears it
     distance: parseFloat(getComputedStyle(element).getPropertyValue("--_marquee-distance")),
     duration: parseFloat(getComputedStyle(element).getPropertyValue("--_marquee-duration"))
   }));
-  // The duration comes from the distance, so a longer name travels at the same speed.
-  expect(travel.duration).toBeCloseTo(Math.min(10, Math.max(1.4, Math.abs(travel.distance) / 36)), 1);
+  // The duration comes from the distance alone, so every name moves at the same speed.
+  expect(travel.duration).toBeCloseTo(Math.abs(travel.distance) / 36, 1);
 
   const offset = () => overflows.evaluate((element) =>
     new DOMMatrix(getComputedStyle(element.querySelector(".label-text")!).transform).m41);

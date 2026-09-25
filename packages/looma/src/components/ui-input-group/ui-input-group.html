@@ -1,96 +1,83 @@
-<template component="ui-input-group" controller="./ui-input-group.js">
+<template component="ui-input-group">
   <defs>
-    <prop name="prefix" type="string"
-    >Static text shown inside the field before the typed value, such as https://. It is never editable or submitted, and screen readers hear it as part of the
-      input's description.</prop>
-    <prop name="suffix" type="string"
-    >Static text shown inside the field after the typed value, such as .example.com. It is never editable or submitted, and screen readers hear it as part of
-      the input's description.</prop>
+    <prop name="disabled" type="boolean" default="false">Fades the group's framing to match a disabled input inside it. Disable the input itself too.</prop>
   </defs>
   <div>
-    <span $if="prefix" class="affix" data-affix="prefix" aria-hidden="true" $value="prefix"></span>
-    <slot></slot>
-    <span $if="suffix" class="affix" data-affix="suffix" aria-hidden="true" $value="suffix"></span>
+    <span class="affix"><slot name="prefix"></slot></span>
+    <span class="field"><slot></slot></span>
+    <span class="affix"><slot name="suffix"></slot></span>
   </div>
   <style>
-    /* The group draws the Input's box, and its states, around the Input it holds; the Input inside
-       is borderless and transparent (ui-input styles itself for that), so the affixes sit in the field. */
+    /* An input with fixed text before or after it, such as a domain after a site's name
+       ("acme" + ".example.com") or slashes around a path. The group draws the field's border and
+       focus ring around the input and its affixes together; the input inside drops its own through
+       its custom properties, so it is still the one ui-input, with its form behaviour intact. The
+       affixes are plain text beside the input, so name the input with a label that says what the
+       whole value is. */
     :host {
-      box-sizing: border-box;
+      --ui-input-border: transparent;
+      --ui-input-border-hover: transparent;
+      --ui-input-focus-border: transparent;
+      --ui-input-invalid-border: transparent;
+      --ui-input-invalid-focus-shadow: none;
+      --ui-input-shadow: none;
+      --ui-input-focus-shadow: none;
+      --ui-input-radius: 0;
+      --ui-input-surface: transparent;
+
       display: flex;
       align-items: stretch;
+      box-sizing: border-box;
       inline-size: 100%;
       min-inline-size: 0;
       min-block-size: var(--ui-control-size-md);
-      border: 1px solid var(--ui-control-border, var(--ui-border-strong));
-      border-radius: var(--ui-input-radius, var(--ui-radius-md));
-      background: var(--ui-control-surface, var(--ui-surface-elevated));
-      color: var(--ui-text-primary);
-      font: inherit;
-      line-height: var(--ui-line-height-md);
-      box-shadow: var(--ui-input-shadow, var(--ui-control-inset));
-      cursor: text;
-      transition:
-        border-color var(--ui-motion-fast) var(--ui-motion-ease),
-        box-shadow var(--ui-motion-fast) var(--ui-motion-ease),
-        background-color var(--ui-motion-fast) var(--ui-motion-ease);
+      border: 1px solid var(--ui-border-strong);
+      border-radius: var(--ui-radius-md);
+      background: var(--ui-surface-elevated);
+      box-shadow: var(--ui-control-inset);
+      overflow: hidden;
+      transition: border-color var(--ui-motion-fast) var(--ui-motion-ease), box-shadow var(--ui-motion-fast) var(--ui-motion-ease);
     }
 
-    /* The affix is the field's own text, not a value: it never wraps, shrinks, or selects. */
-    .affix {
-      display: flex;
-      flex: none;
-      align-items: center;
-      color: var(--ui-input-affix-color, var(--ui-text-secondary));
-      white-space: nowrap;
-      user-select: none;
+    :host:hover:not(:focus-within) {
+      border-color: var(--ui-text-secondary);
     }
 
-    [data-affix="prefix"] {
-      padding-inline-start: var(--ui-space-3);
+    :host:focus-within {
+      border-color: var(--ui-accent-solid);
+      box-shadow:
+        var(--ui-control-inset),
+        var(--ui-control-focus-halo-shadow);
     }
 
-    [data-affix="suffix"] {
-      padding-inline-end: var(--ui-space-3);
-    }
-
-    /* The same states as a lone Input, read from the Input inside. */
-    :host:hover:not(:has(input:focus, input:disabled)) {
-      border-color: var(--ui-control-border-hover, var(--ui-text-secondary));
-    }
-
-    :host:has(input:focus-visible) {
-      border-color: var(--ui-control-focus, var(--ui-accent-solid));
-      box-shadow: var(--ui-input-focus-shadow, var(--ui-control-inset), var(--ui-control-focus-halo-shadow));
-    }
-
-    :host:has(input:is([aria-invalid="true"], :user-invalid)) {
+    :host:has([aria-invalid="true"], :user-invalid) {
       border-color: var(--ui-danger-solid);
     }
 
-    :host:has(input:is([aria-invalid="true"], :user-invalid):focus-visible) {
-      box-shadow:
-        var(--ui-control-inset),
-        0 0 0 3px color-mix(in srgb, var(--ui-danger-solid) 22%, transparent);
-    }
-
-    :host:has(input:disabled) {
-      background: var(--ui-control-surface-disabled, var(--ui-surface-muted));
-      color: var(--ui-text-muted);
+    :host-state([disabled]) {
+      background: var(--ui-surface-muted);
       box-shadow: none;
-      cursor: not-allowed;
     }
 
-    :host:has(input:disabled) .affix {
-      color: var(--ui-text-muted);
+    .field {
+      display: flex;
+      flex: 1;
+      min-inline-size: 0;
     }
 
-    /* Forced colors drop box shadows, so the focus ring becomes an outline. */
-    @media (forced-colors: active) {
-      :host:has(input:focus-visible) {
-        outline: 2px solid Highlight;
-        outline-offset: 1px;
-      }
+    .affix {
+      display: inline-flex;
+      flex: none;
+      align-items: center;
+      padding-inline: var(--ui-space-2);
+      color: var(--ui-text-secondary);
+      font-family: var(--ui-font-family-mono);
+      font-size: var(--ui-font-size-sm);
+      white-space: nowrap;
+    }
+
+    .affix:empty {
+      display: none;
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */

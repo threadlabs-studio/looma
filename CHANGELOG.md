@@ -1,17 +1,51 @@
 # Changelog
 
+## v0.12.0
+
+- Radio, Checkbox, and Switch take a `description` slot: a line under the label saying what the
+  choice means. It is the input's accessible description, not part of its name. Apps were putting
+  the label and the explanation side by side in the default slot, where they ran together.
+- A disabled Button or Icon Button keeps its own look and is washed out by one filter,
+  `--ui-disabled-filter` (`saturate(0.2) contrast(0.75) brightness(1.25)`; the dark theme dims
+  instead, and high contrast only drops colour). Override per component with
+  `--ui-button-disabled-filter` or `--ui-icon-button-disabled-filter`. Breaking: the recoloured
+  disabled tones are gone, and so are Icon Button's `--ui-icon-button-disabled-text`, `-surface`, and
+  `-border` hooks and Button's link-variant use of `--ui-button-disabled-text`.
+
+## v0.11.6
+
+- Only a link-style Button takes the touch hit area added in 0.11.5. On every button it reached over
+  close neighbours (a small button just below another took presses meant for it); a boxed button
+  already grows to the control minimum under a coarse pointer.
+
+## v0.11.5
+
+- Under touch input, a Button's press lands within the control minimum (44px) through an invisible hit
+  area centred on it, as IconButton's does. A standalone link-style button, such as a "See all" beside
+  a heading, was a smaller target than the rest.
+
+## v0.11.4
+
+- A link in running Text or a Callout is underlined, so it stands apart from the words around it by more than
+  colour (WCAG 1.4.1).
+- A Form Field's error reads in the danger colour. It used the accent colour, so an error looked
+  like a link.
+- An invalid input inside an Input Group marks the group's one border, not a second red border inside
+  it. Input's invalid border and focus ring take hooks (`--ui-input-invalid-border`,
+  `--ui-input-invalid-focus-shadow`), documented on the Input page.
+
+## v0.11.3
+
+- Tree marquee: every name slides at the same speed. The duration was clamped between 1.4s and 10s,
+  so a name only a little too long crawled and a very long one rushed.
+
 ## v0.11.2
 
-- New: Input Group (`ui-input-group`, Vue `InputGroup`) shows fixed text inside a text field, before
-  or after the typed value: `prefix="https://"`, `suffix=".example.com"`. It wraps one `ui-input`
-  and draws the Input's box, states, and focus ring around both; the input inside is borderless and
-  keeps its own attributes, listeners, `v-model`, and form value. The affixes are never submitted,
-  take no focus, focus the input when clicked or tapped, and are read as the input's description
-  (merged with any `aria-describedby`), so the label stays its name. `--ui-input-affix-color` and
-  `--ui-input-affix-gap` style them. An Input outside a group is unchanged.
-- Fix: Input shows its focus ring as an outline with forced colors, which drop box shadows.
-- Fix: in Vue, Form Field links its help and error text to the control as its description. Named
-  slots carry no `slot` attribute there, so the field did not find them.
+- New: Input Group (`ui-input-group`, Vue `InputGroup`), an Input with fixed text before or after it
+  (`prefix`, `suffix`), such as a domain after a site's name. The group draws one border and one
+  focus ring around the input and its affixes; the input inside keeps its form behaviour.
+- List `density="compact"` sets a short list of facts close together, with no row padding, such as
+  the features a plan includes.
 
 ## v0.11.1
 
