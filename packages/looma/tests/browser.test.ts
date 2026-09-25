@@ -436,6 +436,16 @@ describe("Input group", () => {
   });
 });
 
+describe("Text links", () => {
+  it("underlines a link in running text", async () => {
+    const path = await bundle("html-text-link", `import "@threadlabs/looma";`);
+    const page = await open(path, `<ui-text id="line">Already have a site? <a id="link" href="#sign-in">Sign in</a>.</ui-text>`, [join(root, "tokens.css")]);
+    await page.waitForSelector('#line[data-component~="ui-text"]');
+    assert.match(await page.locator("#link").evaluate((element) => getComputedStyle(element).textDecorationLine), /underline/);
+    await page.close();
+  });
+});
+
 describe("Form field error", () => {
   it("reads in the danger colour", async () => {
     const path = await bundle("html-field-error", `import "@threadlabs/looma";`);

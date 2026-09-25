@@ -2,6 +2,8 @@
 
 ## v0.11.3
 
+- A link in running Text or a Callout is underlined, so it stands apart from the words around it by more than
+  colour (WCAG 1.4.1).
 - A Form Field's error reads in the danger colour. It used the accent colour, so an error looked
   like a link.
 - An invalid input inside an Input Group marks the group's one border, not a second red border inside
