@@ -2,11 +2,26 @@
 
 ## v0.12.2
 
+- Input Group: the focus ring shows when the input inside is focus-visible, as a lone Input's does,
+  and turns danger-coloured on an invalid input. The frame reads the shared control tokens with a
+  lone Input's fallbacks (its resting border was lighter, and its hover darker) and is a lone
+  Input's height (it was 2px taller). A disabled input fades the frame without the `disabled` prop.
+- Input Group: a click or tap on an affix, or anywhere in the frame, focuses the input without
+  selecting the affix or moving the caret, and does nothing when disabled. A text affix is the
+  input's accessible description, merged with any `aria-describedby`, and is hidden on its own so
+  it is read once; the label stays the name.
+- Input: with forced colors, which drop box shadows, the focus ring is an outline
+  (`--ui-input-focus-outline`). New hooks `--ui-input-border-width` and `--ui-input-min-block-size`.
+- Form Field in Vue links its help and error text to the control as its description. Named slots
+  carry no `slot` attribute there, so the field did not find them.
+
+## v0.12.1
+
 - Input Group takes an `action` slot: one button at the end of the field, inside its border, for the
   one thing the field is for ("Continue" after a site's address). A small button keeps the field at
   its usual height. The group's focus ring now follows the field's focus, not the action's.
 
-## v0.12.1
+## v0.12.0
 
 - Sidebar drawer: opening or closing it no longer overflows the call stack. The sidebar reports
   each change with its own `toggle` event, which shares the popover's event name and bubbles, so
@@ -16,9 +31,6 @@
 - Editor: a rule test keeps every default slash command's icon in `ui-icon`'s catalog, and the
   heading commands' icon names are type-checked rather than cast. Before v0.11.0 most of them
   (Heading 2 and 3, the lists, the callouts, the code blocks, Divider, Image) drew an empty box.
-
-## v0.12.0
-
 - Radio, Checkbox, and Switch take a `description` slot: a line under the label saying what the
   choice means. It is the input's accessible description, not part of its name. Apps were putting
   the label and the explanation side by side in the default slot, where they ran together.

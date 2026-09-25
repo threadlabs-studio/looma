@@ -1,4 +1,4 @@
-<template component="ui-input-group">
+<template component="ui-input-group" controller="./ui-input-group.js">
   <defs>
     <prop name="disabled" type="boolean" default="false">Fades the group's framing to match a disabled input inside it. Disable the input itself too.</prop>
   </defs>
@@ -18,6 +18,9 @@
        thing the field is for ("Continue" after a site's address), so it reads as the field's action
        and not the form's. */
     :host {
+      /* The group's own border and height stand for the input's, so the group is a lone Input's height. */
+      --ui-input-border-width: 0;
+      --ui-input-min-block-size: 0;
       --ui-input-border: transparent;
       --ui-input-border-hover: transparent;
       --ui-input-focus-border: transparent;
@@ -25,6 +28,7 @@
       --ui-input-invalid-focus-shadow: none;
       --ui-input-shadow: none;
       --ui-input-focus-shadow: none;
+      --ui-input-focus-outline: none;
       --ui-input-radius: 0;
       --ui-input-surface: transparent;
 
@@ -34,21 +38,25 @@
       inline-size: 100%;
       min-inline-size: 0;
       min-block-size: var(--ui-control-size-md);
-      border: 1px solid var(--ui-border-strong);
+      /* The frame reads the shared control tokens with a lone Input's fallbacks, so the two match. */
+      border: 1px solid var(--ui-control-border, var(--ui-border-strong));
       border-radius: var(--ui-radius-md);
-      background: var(--ui-surface-elevated);
+      background: var(--ui-control-surface, var(--ui-surface-elevated));
       box-shadow: var(--ui-control-inset);
       overflow: hidden;
+      /* A press anywhere in the frame focuses the input. */
+      cursor: text;
       transition: border-color var(--ui-motion-fast) var(--ui-motion-ease), box-shadow var(--ui-motion-fast) var(--ui-motion-ease);
     }
 
-    :host:hover:not(:focus-within) {
-      border-color: var(--ui-text-secondary);
+    :host:hover:not(:has(input:focus, input:disabled)) {
+      border-color: var(--ui-control-border-hover, var(--ui-text-secondary));
     }
 
-    /* The field's focus, not the action's: a focused button draws its own ring. */
-    :host:has(.field :focus) {
-      border-color: var(--ui-accent-solid);
+    /* The ring shows when the field's input would show its own: when it is focus-visible, which a
+       text input is for a pointer as well as a keyboard. A focused action button draws its own. */
+    :host:has(.field input:focus-visible) {
+      border-color: var(--ui-control-focus, var(--ui-accent-solid));
       box-shadow:
         var(--ui-control-inset),
         var(--ui-control-focus-halo-shadow);
@@ -58,9 +66,25 @@
       border-color: var(--ui-danger-solid);
     }
 
-    :host-state([disabled]) {
-      background: var(--ui-surface-muted);
+    :host:has(input:is([aria-invalid="true"], :user-invalid):focus-visible) {
+      box-shadow:
+        var(--ui-control-inset),
+        0 0 0 3px color-mix(in srgb, var(--ui-danger-solid) 22%, transparent);
+    }
+
+    /* Forced colors drop box shadows, so the focus ring becomes an outline. */
+    @media (forced-colors: active) {
+      :host:has(input:focus-visible) {
+        outline: 2px solid Highlight;
+        outline-offset: 1px;
+      }
+    }
+
+    :host-state([disabled]),
+    :host:has(input:disabled) {
+      background: var(--ui-control-surface-disabled, var(--ui-surface-muted));
       box-shadow: none;
+      cursor: not-allowed;
     }
 
     .field {
@@ -80,11 +104,13 @@
       white-space: nowrap;
     }
 
+    /* Centred rather than padded above and below: the group is exactly a lone Input's height, so a
+       small button sits inside it with the difference split evenly, and the field keeps its height. */
     .action {
       display: flex;
       flex: none;
-      align-items: stretch;
-      padding: var(--ui-space-1);
+      align-items: center;
+      padding-inline: var(--ui-space-1);
     }
 
     .affix:empty,
