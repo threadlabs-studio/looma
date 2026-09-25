@@ -1,0 +1,11 @@
+<!--
+title: Suffix
+description: Fixed text after the input, such as the domain a site's address ends in. The label names the whole value.
+-->
+<ui-form-field>
+  <label slot="label" for="site-address">Site address</label>
+  <ui-input-group>
+    <ui-input id="site-address" name="site" placeholder="your-site"></ui-input>
+    <span slot="suffix">.example.com</span>
+  </ui-input-group>
+</ui-form-field>

@@ -102,7 +102,7 @@ export default function controller(host) {
    * at its own width; it has to end where the fade before the controls begins, since the controls
    * overlay the label's end rather than taking width from it.
    */
-  const MARQUEE_SPEED = 36; // CSS pixels per second.
+  const MARQUEE_SPEED = 36; // CSS pixels per second, for every name: a clamped duration made short slides crawl.
   // The tree sets this for its items; an item's own prop overrides it either way.
   const marqueeWanted = () => host.state.marquee
     || getComputedStyle(element).getPropertyValue("--ui-tree-item-marquee").trim() === "1";
@@ -121,10 +121,7 @@ export default function controller(host) {
     const lead = icon?.width ? (rightToLeft ? icon.right - cell.right : cell.left - icon.left) : 0;
     row.style.setProperty("--_marquee-lead", `${Math.max(0, lead)}px`);
     row.style.setProperty("--_marquee-distance", `${rightToLeft ? distance : -distance}px`);
-    row.style.setProperty(
-      "--_marquee-duration",
-      `${Math.min(10, Math.max(1.4, distance / MARQUEE_SPEED)).toFixed(2)}s`
-    );
+    row.style.setProperty("--_marquee-duration", `${(distance / MARQUEE_SPEED).toFixed(2)}s`);
     row.dataset.uiMarquee = "";
   };
   const stopMarquee = () => {

@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.11.1
+## v0.11.7
 
 - Sidebar drawer: opening or closing it no longer overflows the call stack. The sidebar reports
   each change with its own `toggle` event, which shares the popover's event name and bubbles, so
@@ -10,6 +10,51 @@
 - Editor: a rule test keeps every default slash command's icon in `ui-icon`'s catalog, and the
   heading commands' icon names are type-checked rather than cast. Before v0.11.0 most of them
   (Heading 2 and 3, the lists, the callouts, the code blocks, Divider, Image) drew an empty box.
+
+## v0.11.6
+
+- Only a link-style Button takes the touch hit area added in 0.11.5. On every button it reached over
+  close neighbours (a small button just below another took presses meant for it); a boxed button
+  already grows to the control minimum under a coarse pointer.
+
+## v0.11.5
+
+- Under touch input, a Button's press lands within the control minimum (44px) through an invisible hit
+  area centred on it, as IconButton's does. A standalone link-style button, such as a "See all" beside
+  a heading, was a smaller target than the rest.
+
+## v0.11.4
+
+- A link in running Text or a Callout is underlined, so it stands apart from the words around it by more than
+  colour (WCAG 1.4.1).
+- A Form Field's error reads in the danger colour. It used the accent colour, so an error looked
+  like a link.
+- An invalid input inside an Input Group marks the group's one border, not a second red border inside
+  it. Input's invalid border and focus ring take hooks (`--ui-input-invalid-border`,
+  `--ui-input-invalid-focus-shadow`), documented on the Input page.
+
+## v0.11.3
+
+- Tree marquee: every name slides at the same speed. The duration was clamped between 1.4s and 10s,
+  so a name only a little too long crawled and a very long one rushed.
+
+## v0.11.2
+
+- New: Input Group (`ui-input-group`, Vue `InputGroup`), an Input with fixed text before or after it
+  (`prefix`, `suffix`), such as a domain after a site's name. The group draws one border and one
+  focus ring around the input and its affixes; the input inside keeps its form behaviour.
+- List `density="compact"` sets a short list of facts close together, with no row padding, such as
+  the features a plan includes.
+
+## v0.11.1
+
+- New: Action Bar (`ui-action-bar`, Vue `ActionBar`), the action row of a form or dialog, which
+  places each action by what it does: `primary` (the one commit, a solid button) ends the row,
+  `secondary` (also the default slot) sits just before it, and `tertiary` (Back, Cancel, a safe
+  Discard) waits at the start edge. Logical edges mirror in right-to-left pages. Below 24rem of its
+  own width it stacks full width, primary on top. Source and Tab order are tertiary, secondary,
+  primary at every width. It only arranges; the buttons keep their own variants and tones.
+  `--ui-action-bar-gap` sets the space between actions. It fills a dialog's `actions` footer.
 
 ## v0.11.0
 

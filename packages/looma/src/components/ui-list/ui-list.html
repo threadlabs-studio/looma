@@ -3,6 +3,9 @@
     <prop name="layout" type="rows | grid" default="rows"
     >How the items are laid out. Rows stack the items one per line, for a list read top to bottom. Grid sets them in as many columns as fit, each at least
       --ui-list-min-item-width (14rem) wide, for card items such as pinned or featured entries.</prop>
+    <prop name="density" type="comfortable | compact" default="comfortable"
+    >How much room each item takes. comfortable is a full row, easy to point at, for lists of things to open; compact sets items close together with no row
+      padding, for a short list of facts inside other content, such as the features a plan includes.</prop>
   </defs>
   <ul role="list"><slot></slot></ul>
   <style>
@@ -17,6 +20,15 @@
       margin: 0;
       padding: 0;
       list-style: none;
+    }
+
+    /* Compact passes its size to the items through private properties, which cross into each item. */
+    :host-state([density="compact"]) {
+      --_ui-list-item-min-size: 0;
+      --_ui-list-item-padding-block: 0;
+      --_ui-list-item-padding-inline: 0;
+      --_ui-list-item-title-weight: var(--ui-font-normal);
+      gap: var(--ui-list-gap, var(--ui-space-2));
     }
 
     :host-state([layout="grid"]) {
