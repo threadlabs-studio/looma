@@ -9,6 +9,20 @@
   </defs>
   <select :disabled="disabled" :required="required" :aria-invalid="invalid"><slot></slot></select>
   <style>
+    /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-select-focus-shadow {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-select-radius {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-select-shadow {
+      syntax: "*";
+      inherits: false;
+    }
+
     :host {
       box-sizing: border-box;
       display: inline-block;

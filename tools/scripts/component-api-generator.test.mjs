@@ -148,6 +148,25 @@ test("extracts component tokens, shared dependencies, and literal fallback relat
   ]);
 });
 
+test("reports a relayed hook's fallback, and the fallback behind a parent's default, as the hook's", () => {
+  const tokens = extractDesignTokensFromCss({
+    tag: "ui-example",
+    source: `
+      :host {
+        --_ui-example-icon: var(--ui-example-icon);
+        border-width: var(--ui-example-border-width, var(--_ui-default-example-border-width, 1px));
+      }
+      .icon { color: var(--_ui-example-icon, var(--ui-text-primary)); }
+    `,
+  });
+
+  assert.deepEqual(tokens.component, [
+    { name: "--ui-example-border-width", fallbacks: ["1px"] },
+    { name: "--ui-example-icon", fallbacks: ["var(--ui-text-primary)"] },
+  ]);
+  assert.deepEqual(tokens.shared, [{ name: "--ui-text-primary" }]);
+});
+
 test("generates public API metadata from declarative contracts", async () => {
   const metadata = await generateComponentApiMetadata();
   const combobox = metadata.components.find(({ tag }) => tag === "ui-combobox");

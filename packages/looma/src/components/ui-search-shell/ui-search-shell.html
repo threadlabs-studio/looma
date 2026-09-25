@@ -21,22 +21,76 @@
     </dialog>
   </div>
   <style>
+    /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-search-shell-border {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-search-shell-focus-color {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-search-shell-max-height {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-search-shell-max-width {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-search-shell-padding-top {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-search-shell-radius {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-search-shell-shadow {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-search-shell-surface {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-search-shell-viewport-gap {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-search-shell-z-index {
+      syntax: "*";
+      inherits: false;
+    }
+
     :host {
+      /* Hooks do not inherit, so the parts below read them from the root. */
+      --_ui-search-shell-z-index: var(--ui-search-shell-z-index);
+      --_ui-search-shell-padding-top: var(--ui-search-shell-padding-top);
+      --_ui-search-shell-viewport-gap: var(--ui-search-shell-viewport-gap);
+      --_ui-search-shell-max-width: var(--ui-search-shell-max-width);
+      --_ui-search-shell-max-height: var(--ui-search-shell-max-height);
+      --_ui-search-shell-surface: var(--ui-search-shell-surface);
+      --_ui-search-shell-border: var(--ui-search-shell-border);
+      --_ui-search-shell-radius: var(--ui-search-shell-radius);
+      --_ui-search-shell-shadow: var(--ui-search-shell-shadow);
+      --_ui-search-shell-focus-color: var(--ui-search-shell-focus-color);
+
       display: contents;
     }
 
     dialog {
       position: fixed;
       inset: 0;
-      z-index: var(--ui-search-shell-z-index, 400);
+      z-index: var(--_ui-search-shell-z-index, 400);
       box-sizing: border-box;
       inline-size: 100%;
       max-inline-size: none;
       block-size: 100%;
       max-block-size: none;
       margin: 0;
-      padding: var(--ui-search-shell-padding-top, 10vh) var(--ui-search-shell-viewport-gap, var(--ui-space-4))
-        var(--ui-search-shell-viewport-gap, var(--ui-space-4));
+      padding: var(--_ui-search-shell-padding-top, 10vh) var(--_ui-search-shell-viewport-gap, var(--ui-space-4))
+        var(--_ui-search-shell-viewport-gap, var(--ui-space-4));
       overflow: auto;
       border: 0;
       background: var(--ui-overlay-backdrop);
@@ -51,14 +105,14 @@
       position: relative;
       display: flex;
       flex-direction: column;
-      inline-size: min(100%, var(--ui-search-shell-max-width, 40rem));
-      max-block-size: var(--ui-search-shell-max-height, 80vh);
+      inline-size: min(100%, var(--_ui-search-shell-max-width, 40rem));
+      max-block-size: var(--_ui-search-shell-max-height, 80vh);
       margin-inline: auto;
       overflow: hidden;
-      background: var(--ui-search-shell-surface, var(--ui-surface-elevated));
-      border: 1px solid var(--ui-search-shell-border, var(--ui-border-default));
-      border-radius: var(--ui-search-shell-radius, var(--ui-radius-dialog));
-      box-shadow: var(--ui-search-shell-shadow, var(--ui-elevation-dialog, var(--ui-shadow-xl)));
+      background: var(--_ui-search-shell-surface, var(--ui-surface-elevated));
+      border: 1px solid var(--_ui-search-shell-border, var(--ui-border-default));
+      border-radius: var(--_ui-search-shell-radius, var(--ui-radius-dialog));
+      box-shadow: var(--_ui-search-shell-shadow, var(--ui-elevation-dialog, var(--ui-shadow-xl)));
     }
 
     .search {
@@ -69,8 +123,8 @@
 
     /* The search region shows where typing goes, whatever the author put in it. */
     .search:focus-within {
-      border-block-end-color: var(--ui-search-shell-focus-color, var(--ui-control-focus));
-      box-shadow: inset 0 -1px 0 var(--ui-search-shell-focus-color, var(--ui-control-focus));
+      border-block-end-color: var(--_ui-search-shell-focus-color, var(--ui-control-focus));
+      box-shadow: inset 0 -1px 0 var(--_ui-search-shell-focus-color, var(--ui-control-focus));
     }
 
     :slotted(input[slot="search"]) {
