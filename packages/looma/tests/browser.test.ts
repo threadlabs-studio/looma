@@ -1064,6 +1064,142 @@ describe("List item", () => {
   });
 });
 
+describe("Nav item", () => {
+  const longDescription = "A description long enough that it cannot fit on one line of a narrow rail and must end in an ellipsis";
+
+  // A colour as the page computes it, for comparing with a computed style.
+  const resolveColor = (page: Page, color: string) => page.evaluate((value) => {
+    const probe = document.body.appendChild(document.createElement("i"));
+    probe.style.color = value;
+    const computed = getComputedStyle(probe).color;
+    probe.remove();
+    return computed;
+  }, color);
+
+  async function checkNavItem(page: Page) {
+    await page.locator("#page").waitFor();
+    const box = async (selector: string) => (await page.locator(selector).boundingBox())!;
+    const near = (a: number, b: number, what: string) => assert.ok(Math.abs(a - b) <= 1, `${what}: ${a} vs ${b}`);
+
+    // current states aria-current: the page by default, or the kind of place asked for.
+    assert.equal(await page.locator("#page").getAttribute("aria-current"), "page");
+    assert.equal(await page.locator("#step").getAttribute("aria-current"), "step");
+    assert.equal(await page.locator("#other").getAttribute("aria-current"), null);
+
+    // The current item carries a solid bar on its start edge, inset from its top and bottom.
+    const checkBar = async (id: string, edge: "start" | "end") => {
+      const item = await box(`#${id}`);
+      const bar = await box(`#${id} .indicator`);
+      near(bar.width, 3, `${id}: the bar is 3px wide`);
+      if (edge === "start") near(bar.x, item.x, `${id}: the bar is on the left edge`);
+      else near(bar.x + bar.width, item.x + item.width, `${id}: the bar is on the right edge`);
+      assert.ok(bar.y > item.y && bar.y + bar.height < item.y + item.height && bar.height > 0, `${id}: the bar is inset vertically`);
+    };
+    await checkBar("page", "start");
+    assert.equal(await page.locator("#other .indicator").isVisible(), false, "an item that is not current has no bar");
+    const look = (id: string) => page.locator(id).evaluate((element) => {
+      const style = getComputedStyle(element);
+      const bar = getComputedStyle(element.querySelector(".indicator")!);
+      return { surface: style.backgroundColor, weight: Number(style.fontWeight), bar: bar.borderInlineStartColor, barStyle: bar.borderInlineStartStyle };
+    });
+    const [current, other] = [await look("#page"), await look("#other")];
+    assert.notEqual(current.surface, other.surface, "the current item takes the selected surface");
+    assert.ok(current.weight > other.weight, "the current label is stronger");
+    assert.equal(current.barStyle, "solid");
+    assert.equal(current.bar, await resolveColor(page, "var(--ui-accent)"), "the bar is the accent colour");
+
+    // In a right-to-left page the bar mirrors to the right edge.
+    await checkBar("rtl", "end");
+
+    // A link item is a real link: it navigates, and target and rel reach it.
+    const link = page.locator("#other");
+    assert.equal(await link.evaluate((element) => element.localName), "a");
+    assert.equal(await link.getAttribute("type"), null);
+    assert.equal(await page.locator("#page").getAttribute("target"), "_self");
+    assert.equal(await page.locator("#page").getAttribute("rel"), "bookmark");
+    assert.equal(await page.getByRole("link", { name: "Invoices" }).count(), 1);
+    await link.click();
+    await page.waitForFunction(() => location.hash === "#invoices");
+
+    // A button item is a button that never submits, and fires its click.
+    const button = page.locator("#view");
+    assert.equal(await button.evaluate((element) => element.localName), "button");
+    assert.equal(await button.getAttribute("type"), "button");
+    await button.click();
+    assert.equal(await page.evaluate(() => (window as unknown as { clicks: number }).clicks), 1);
+
+    // Keyboard focus shows a ring, and Enter presses the focused item.
+    await page.locator("#other").focus();
+    await page.keyboard.press("Tab");
+    assert.equal(await page.evaluate(() => document.activeElement?.id), "view");
+    const ring = await button.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { visible: element.matches(":focus-visible"), outline: `${style.outlineStyle} ${style.outlineWidth}` };
+    });
+    assert.deepEqual(ring, { visible: true, outline: "solid 2px" });
+    await page.keyboard.press("Enter");
+    assert.equal(await page.evaluate(() => (window as unknown as { clicks: number }).clicks), 2);
+
+    // Label and description are one line each, ending in an ellipsis.
+    const lines = await page.locator("#long").evaluate((element) => [".label", ".description"].map((part) => {
+      const region = element.querySelector(part) as HTMLElement;
+      const style = getComputedStyle(region);
+      return { overflowing: region.scrollWidth > region.clientWidth, ellipsis: style.textOverflow, wrap: style.whiteSpace };
+    }));
+    assert.deepEqual(lines[1], { overflowing: true, ellipsis: "ellipsis", wrap: "nowrap" });
+    assert.deepEqual([lines[0].ellipsis, lines[0].wrap], ["ellipsis", "nowrap"]);
+
+    // Forced colors drop backgrounds; the bar is a border, so it stays, in the system highlight.
+    await page.emulateMedia({ forcedColors: "active" });
+    await checkBar("page", "start");
+    const forced = await page.locator("#page .indicator").evaluate((element) => getComputedStyle(element).borderInlineStartColor);
+    assert.equal(forced, await resolveColor(page, "Highlight"), "the bar takes the system highlight colour");
+    await page.emulateMedia({ forcedColors: "none" });
+  }
+
+  it("marks the current item with a start-edge bar and works as a link or a button, in HTML", async () => {
+    const path = await bundle("html-nav-item", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <script>window.clicks = 0;</script>
+      <nav aria-label="Main" style="width: 240px">
+        <ui-list>
+          <li><ui-nav-item id="page" as="a" href="#shipments" target="_self" rel="bookmark" current><span slot="leading">*</span>Shipments</ui-nav-item></li>
+          <li><ui-nav-item id="other" as="a" href="#invoices">Invoices</ui-nav-item></li>
+          <li><ui-nav-item id="view" onclick="window.clicks += 1">Overview</ui-nav-item></li>
+          <li><ui-nav-item id="step" current="step">Team</ui-nav-item></li>
+          <li><ui-nav-item id="long">Customer<span slot="description">${longDescription}</span></ui-nav-item></li>
+        </ui-list>
+      </nav>
+      <nav aria-label="RTL" dir="rtl" style="width: 240px"><ui-nav-item id="rtl" current>Shipments</ui-nav-item></nav>`,
+    [join(root, "tokens.css")]);
+    await page.waitForSelector('#long[data-component~="ui-nav-item"]');
+    await checkNavItem(page);
+    await page.close();
+  });
+
+  it("marks the current item with a start-edge bar and works as a link or a button, in Vue", async () => {
+    const path = await bundle("vue-nav-item", `
+      import { createApp, h } from "vue";
+      import { List, NavItem } from "@threadlabs/looma/vue";
+      window.clicks = 0;
+      const item = (props, slots) => h("li", [h(NavItem, props, slots)]);
+      createApp({ render: () => [
+        h("nav", { "aria-label": "Main", style: "width: 240px" }, [h(List, null, () => [
+          item({ id: "page", as: "a", href: "#shipments", target: "_self", rel: "bookmark", current: true }, { leading: () => h("span", "*"), default: () => "Shipments" }),
+          item({ id: "other", as: "a", href: "#invoices" }, () => "Invoices"),
+          item({ id: "view", onClick: () => { window.clicks += 1; } }, () => "Overview"),
+          item({ id: "step", current: "step" }, () => "Team"),
+          item({ id: "long" }, { default: () => "Customer", description: () => h("span", ${JSON.stringify(longDescription)}) }),
+        ])]),
+        h("nav", { "aria-label": "RTL", dir: "rtl", style: "width: 240px" }, [h(NavItem, { id: "rtl", current: true }, () => "Shipments")]),
+      ] }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await checkNavItem(page);
+    await page.close();
+  });
+});
+
 describe("Editor toolbar row", () => {
   const buttons = Array.from({ length: 18 }, (_, index) => `<button type="button">B${index}</button>`).join("");
   const fades = (page: Page) => scrollFades(page, "#toolbar .strip");
