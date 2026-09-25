@@ -109,6 +109,15 @@
       "status": "published",
       "package": "@threadlabs/looma"
     },
+    "ui-list": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-list-item": {
+      "status": "published",
+      "package": "@threadlabs/looma",
+      "navigationParent": "ui-list"
+    },
     "ui-menu": {
       "status": "published",
       "package": "@threadlabs/looma"

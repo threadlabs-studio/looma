@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.10.12
+
+- New: List (`ui-list`, Vue `List`) and List Item (`ui-list-item`, Vue `ListItem`), one shape for
+  every entry a view lists: `leading` (an icon), the title (default slot), a one-line
+  `description`, and `trailing` (a button or badge). Title and description are one line each and
+  end in an ellipsis, so every item has the same height. A link in the title is the whole item: the
+  icon and padding follow it, the item takes its hover surface and focus ring, and it stays a real
+  link (router links and "open in new tab" work); a trailing control keeps its own clicks.
+  `variant="card"` draws the same parts on a bordered surface, `layout="grid"` sets cards in
+  columns, and `current` marks the item you are in.
+
 ## v0.10.11
 
 - Tree marquee: a name that fits beside a row's controls no longer scrolls. It was measured against
