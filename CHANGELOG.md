@@ -1,12 +1,26 @@
 # Changelog
 
-## v0.13.4
+## v0.13.3
 
 - Combobox `selectedValues` controls a `multiple` combobox's selection by option value, so a form field
   with a fixed option list can start from data and stay bound: Vue `v-model:selected-values`. Each value
   shows as a badge with its option's label and submits under `name`. Adding or removing one, by
   pointer, keyboard, or badge, reports `selected-values-change` (`{ selectedValues, trigger }`) with
   the new list; setting it reports nothing. Uncontrolled `multiple` and `items` work as before.
+
+## v0.13.2
+
+- `@nextwebwg/html-next` moves to `1.0.0-alpha.7`. Its polymorphic root is an `as` prop that chooses
+  between explicit native roots with `$match`, not an `as` attribute that retags one element. Button,
+  Nav Item, Card, and Text are rewritten on it, and `as` works as before in HTML, the DOM factories,
+  and Vue. The Vue components now get `as` from the conversion itself, so the build step that patched
+  it in is gone. Changing `as` after a component renders swaps in the chosen element and keeps its
+  state, content, and attributes; in HTML and the DOM factories it keeps focus too.
+- Card and Text list `as` among their documented options, with the elements each can render.
+- Combobox hides its validation message with `issues.length` again, now that the HTML runtime reads a
+  list's length.
+- A rendered component's `data-*` attributes record the options it was given. Writing one no longer
+  changes the option; set the option on the component instead.
 
 ## v0.13.1
 
