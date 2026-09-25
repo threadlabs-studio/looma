@@ -61,7 +61,8 @@ Set one API vocabulary that all components and adapters follow, including state 
   framework-neutral components. Framework adapters render the same icon nodes
   as native VNodes.
 - Icons inherit `currentColor` and are `1em` by default, so they follow the text
-  around them; `--ui-icon-size` and `--ui-icon-stroke-width` restyle one icon.
+  around them. A container such as Icon Button sets its icon's default size
+  instead. `--ui-icon-size` and `--ui-icon-stroke-width` restyle one icon.
   Accessible names belong to the button or menu item, while decorative SVGs
   remain hidden from assistive technology.
 - Components whose icon is consumer content may continue to accept a slot, but

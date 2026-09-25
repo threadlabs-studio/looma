@@ -882,6 +882,61 @@ describe("Button touch target", () => {
   });
 });
 
+describe("Cluster justify", () => {
+  it("spreads a row's items to its ends with justify=between", async () => {
+    const path = await bundle("html-cluster-justify", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-cluster id="between" justify="between" style="inline-size: 400px"><span id="first">Title</span><span id="last">Action</span></ui-cluster>
+      <ui-cluster id="end" justify="end"><span>Action</span></ui-cluster>
+      <ui-cluster id="plain"><span>Action</span></ui-cluster>
+    `, [join(root, "tokens.css")]);
+    await page.waitForSelector('#plain[data-component~="ui-cluster"]');
+    const justify = (selector: string) => page.locator(selector).evaluate((element) => getComputedStyle(element).justifyContent);
+    assert.equal(await justify("#between"), "space-between");
+    assert.equal(await justify("#end"), "flex-end");
+    assert.equal(await justify("#plain"), "normal");
+    const edges = await page.evaluate(() => {
+      const box = document.querySelector("#between")!.getBoundingClientRect();
+      return { start: document.querySelector("#first")!.getBoundingClientRect().left - box.left, end: box.right - document.querySelector("#last")!.getBoundingClientRect().right };
+    });
+    assert.deepEqual(edges, { start: 0, end: 0 });
+    await page.close();
+  });
+});
+
+describe("Help toggletip", () => {
+  it("sizes the help icon like any icon, and opens its tooltip from the keyboard", async () => {
+    const path = await bundle("html-help-toggletip", `import "@threadlabs/looma";`);
+    const svg = `<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 5v14" /></svg>`;
+    const page = await open(path, `
+      <ui-icon-button id="help-sm" size="sm" variant="ghost" round label="Help for Email"><ui-icon name="help"></ui-icon></ui-icon-button>
+      <ui-icon-button id="svg-sm" size="sm" label="Add">${svg}</ui-icon-button>
+      <ui-icon-button id="help-md" variant="ghost" round label="Help for Name"><ui-icon name="help"></ui-icon></ui-icon-button>
+      <ui-icon-button id="svg-md" label="Add">${svg}</ui-icon-button>
+      <ui-tooltip id="tip" for="help-sm" trigger="click">Receipts go to this address.</ui-tooltip>
+    `, [join(root, "tokens.css")]);
+    await page.waitForSelector('#help-md [data-component~="ui-icon"] circle');
+    const size = (selector: string) => page.locator(selector).evaluate((element) => {
+      const { width, height } = element.getBoundingClientRect();
+      return { width, height, stroke: getComputedStyle(element.querySelector("svg") ?? element).strokeWidth };
+    });
+    assert.equal(await page.locator('#help-md [data-component~="ui-icon"] svg > g > *').count(), 3, "circle-help: a circle and two paths");
+    assert.deepEqual(await size('#help-sm [data-component~="ui-icon"]'), await size("#svg-sm svg"));
+    assert.deepEqual(await size('#help-md [data-component~="ui-icon"]'), await size("#svg-md svg"));
+    assert.ok((await size('#help-sm [data-component~="ui-icon"]')).width < (await size('#help-md [data-component~="ui-icon"]')).width);
+
+    const tip = page.locator("#tip");
+    await page.locator("#help-sm").focus();
+    await page.keyboard.press("Enter");
+    await tip.waitFor({ state: "visible" });
+    assert.equal(await page.locator("#help-sm").getAttribute("aria-expanded"), "true");
+    assert.equal(await page.locator("#help-sm").getAttribute("aria-label"), "Help for Email");
+    await page.keyboard.press("Escape");
+    await tip.waitFor({ state: "hidden" });
+    await page.close();
+  });
+});
+
 describe("Text links", () => {
   it("underlines a link in running text", async () => {
     const path = await bundle("html-text-link", `import "@threadlabs/looma";`);
