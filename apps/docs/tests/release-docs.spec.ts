@@ -1810,7 +1810,8 @@ test("every badge tone remains legible and visually distinct in light and dark t
     }
     expect(treatments[0]!.fontSize).toBeGreaterThanOrEqual(14);
     expect(treatments[0]!.fontWeight).toBeGreaterThanOrEqual(500);
-    expect(contrastRatio(treatments[0]!.border, treatments[0]!.background)).toBeGreaterThanOrEqual(3);
+    // Every tone's edge is its fill, the neutral default's included: no tone carries an outline.
+    for (const treatment of treatments.slice(0, 11)) expect(treatment.border).toBe(treatment.background);
     expect(new Set(treatments.slice(1, 6).map(({ background }) => background)).size).toBe(5);
     expect(new Set(treatments.slice(6, 11).map(({ background }) => background)).size).toBe(5);
   }
