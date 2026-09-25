@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.12.5
+
+- `@nextwebwg/html-next` is pinned to `1.0.0-alpha.5` instead of `^1.0.0-alpha.5`. A caret range on a
+  prerelease admits later alphas, and the next one is expected to replace the root `as` form that
+  Button and Nav Item are compiled from; Looma moves to it, with both components rewritten, in one
+  release.
+
 ## v0.12.4
 
 - New: Nav Item (`ui-nav-item`, Vue `NavItem`), one destination in a side or rail navigation: a
