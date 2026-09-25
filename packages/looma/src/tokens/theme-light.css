@@ -1,5 +1,5 @@
 @layer base {
-  :root:not([data-theme]),
+  :root:not([data-theme], [data-contrast="high"]),
   [data-theme="light"] {
     color-scheme: light;
     /* The seeds, and only the seeds. Neutrals, hovers, tints, and disabled colours are mixed from
