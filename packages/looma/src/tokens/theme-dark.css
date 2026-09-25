@@ -1,6 +1,6 @@
 @layer base {
   @media (prefers-color-scheme: dark) {
-    :root:not([data-theme]) {
+    :root:not([data-theme], [data-contrast="high"]) {
       color-scheme: dark;
       /* The same eleven seeds the light theme sets. Every neutral, tint, hover, and disabled
          colour is mixed from these, and the mixes read the scheme from them: toward this ink
