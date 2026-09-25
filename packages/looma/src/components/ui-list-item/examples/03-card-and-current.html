@@ -1,0 +1,9 @@
+<!--
+title: Card and current
+description: variant="card" draws the same parts on a bordered surface, for a grid. current marks the item you are in.
+-->
+<ui-list layout="grid" aria-label="Sites">
+  <ui-list-item variant="card" current><a href="#acme">Acme</a><span slot="description">acme.example.com</span><ui-badge slot="trailing"
+    >Current</ui-badge></ui-list-item>
+  <ui-list-item variant="card"><a href="#globex">Globex</a><span slot="description">globex.example.com</span></ui-list-item>
+</ui-list>

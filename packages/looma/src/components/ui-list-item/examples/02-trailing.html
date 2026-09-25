@@ -1,0 +1,12 @@
+<!--
+title: Trailing control
+description: A trailing control stays its own: pressing Restore does not follow a title link. An item with no link has no hover surface.
+-->
+<ui-list aria-label="Deleted pages">
+  <ui-list-item>
+    <ui-icon slot="leading" name="file-text"></ui-icon>
+    Old roadmap
+    <span slot="description">Deleted 3 days ago</span>
+    <ui-button slot="trailing" size="sm" variant="outline">Restore</ui-button>
+  </ui-list-item>
+</ui-list>

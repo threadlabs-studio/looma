@@ -388,6 +388,79 @@ describe("Scroll area", () => {
   });
 });
 
+describe("List item", () => {
+  const longTitle = "A title long enough that it cannot fit on one line of a narrow list and must end in an ellipsis";
+
+  async function checkItem(page: Page) {
+    const item = page.locator("#item");
+    await item.waitFor();
+    // The icon and padding follow the title's link.
+    const box = (await page.locator("#icon").boundingBox())!;
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+    await page.waitForFunction(() => location.hash === "#target");
+    // A trailing control is its own: it does not follow the link.
+    await page.evaluate(() => { history.replaceState(null, "", "#start"); });
+    await page.locator("#restore").click();
+    assert.equal(await page.evaluate(() => location.hash), "#start");
+    assert.equal(await page.evaluate(() => (window as unknown as { restored: number }).restored), 1);
+    // One line each, ending in an ellipsis.
+    const title = await item.evaluate((element) => {
+      const region = element.querySelector(".title") as HTMLElement;
+      return { overflowing: region.scrollWidth > region.clientWidth, ellipsis: getComputedStyle(region).textOverflow };
+    });
+    assert.deepEqual(title, { overflowing: true, ellipsis: "ellipsis" });
+    // A link item takes the hover surface; a card is bordered.
+    const before = await item.evaluate((element) => getComputedStyle(element).backgroundColor);
+    await page.locator("#item a").hover();
+    await page.waitForTimeout(200);
+    assert.notEqual(await item.evaluate((element) => getComputedStyle(element).backgroundColor), before);
+    assert.notEqual(await page.locator("#card").evaluate((element) => getComputedStyle(element).borderTopStyle), "none");
+    assert.equal(await page.locator("#list").evaluate((element) => [element.tagName, element.getAttribute("role")].join(" ")), "UL list");
+    assert.equal(await item.evaluate((element) => element.tagName), "LI");
+  }
+
+  it("follows its title link from anywhere but a trailing control, in HTML", async () => {
+    const path = await bundle("html-list-item", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <div style="width: 320px">
+        <ui-list id="list" aria-label="Pages">
+          <ui-list-item id="item">
+            <span slot="leading" id="icon" style="display: inline-block; width: 18px; height: 18px">*</span>
+            <a href="#target">${longTitle}</a>
+            <span slot="description">Edited 2h ago</span>
+            <button slot="trailing" id="restore" type="button" onclick="window.restored = (window.restored || 0) + 1">Restore</button>
+          </ui-list-item>
+          <ui-list-item id="card" variant="card"><a href="#card">Card</a></ui-list-item>
+        </ui-list>
+      </div>`, [join(root, "tokens.css")]);
+    await page.waitForSelector('#item[data-component~="ui-list-item"]');
+    await checkItem(page);
+    await page.close();
+  });
+
+  it("follows its title link from anywhere but a trailing control, in Vue", async () => {
+    const path = await bundle("vue-list-item", `
+      import { createApp, h } from "vue";
+      import { List, ListItem } from "@threadlabs/looma/vue";
+      window.restored = 0;
+      createApp({ render: () => h("div", { style: "width: 320px" }, [
+        h(List, { id: "list", "aria-label": "Pages" }, () => [
+          h(ListItem, { id: "item" }, {
+            leading: () => h("span", { id: "icon", style: "display: inline-block; width: 18px; height: 18px" }, "*"),
+            default: () => h("a", { href: "#target" }, ${JSON.stringify(longTitle)}),
+            description: () => h("span", "Edited 2h ago"),
+            trailing: () => h("button", { id: "restore", type: "button", onClick: () => { window.restored += 1; } }, "Restore"),
+          }),
+          h(ListItem, { id: "card", variant: "card" }, () => h("a", { href: "#card" }, "Card")),
+        ]),
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await checkItem(page);
+    await page.close();
+  });
+});
+
 describe("Editor toolbar row", () => {
   const buttons = Array.from({ length: 18 }, (_, index) => `<button type="button">B${index}</button>`).join("");
   const fades = (page: Page) => scrollFades(page, "#toolbar .strip");
