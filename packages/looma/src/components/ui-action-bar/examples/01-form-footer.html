@@ -1,0 +1,17 @@
+<!--
+title: Form footer
+description: The primary action ends the row as the one solid button, the secondary action sits just before it in outline, and the tertiary action waits at the start edge as a ghost button. The bar only places them; each button keeps its own variant and tone.
+-->
+<form onsubmit="event.preventDefault()">
+  <ui-stack>
+    <ui-form-field>
+      <label slot="label">Title</label>
+      <ui-input></ui-input>
+    </ui-form-field>
+    <ui-action-bar>
+      <ui-button slot="tertiary" variant="ghost" tone="neutral">Cancel</ui-button>
+      <ui-button slot="secondary">Save as draft</ui-button>
+      <ui-button slot="primary" variant="solid" type="submit">Publish</ui-button>
+    </ui-action-bar>
+  </ui-stack>
+</form>

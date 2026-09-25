@@ -1,0 +1,72 @@
+<template component="ui-action-bar">
+  <div>
+    <!-- Source order is tertiary, secondary, primary: the order the row reads in, so reading and focus
+         order match what a wide bar shows (WCAG 1.3.2, 2.4.3), and they stay the same at every width. -->
+    <div class="bar">
+      <span class="tertiary"><slot name="tertiary"></slot></span>
+      <span class="secondary"><slot name="secondary"></slot><slot></slot></span>
+      <span class="primary"><slot name="primary"></slot></span>
+    </div>
+  </div>
+  <style>
+    /* The action row of a form or dialog. Tertiary actions (Back, Cancel, Discard) sit at the start
+       edge; secondary actions (Save as draft, Preview) sit just before the primary one, which ends the
+       row. The bar arranges its actions and leaves their look to them. */
+    :host {
+      --_gap: var(--ui-space-2);
+      display: block;
+      /* A size container sizes itself from its container, never its content. */
+      container-type: inline-size;
+      inline-size: 100%;
+      min-inline-size: 0;
+    }
+
+    .bar,
+    .tertiary,
+    .secondary,
+    .primary {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--ui-action-bar-gap, var(--_gap));
+    }
+
+    /* The tertiary group takes the spare space, pushing the rest to the end edge; without it, the
+       rest still ends the row. */
+    .bar {
+      justify-content: flex-end;
+    }
+
+    .tertiary {
+      flex: 1 1 auto;
+    }
+
+    .tertiary:empty,
+    .secondary:empty,
+    .primary:empty {
+      display: none;
+    }
+
+    /* A narrow container stacks the actions full width, primary on top: the row turned on its end,
+       read from its end edge. Container queries cannot read custom properties, so the width is fixed. */
+    @container (inline-size < 24rem) {
+      .bar,
+      .tertiary,
+      .secondary,
+      .primary {
+        flex-direction: column-reverse;
+        flex-wrap: nowrap;
+        align-items: stretch;
+      }
+
+      .tertiary {
+        flex: none;
+      }
+    }
+
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
+</template>
