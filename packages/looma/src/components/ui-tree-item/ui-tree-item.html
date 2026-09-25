@@ -85,8 +85,8 @@
       <button class="disclosure" $ref="disclosure" type="button" :disabled="disabled" :hidden="not isContainer">
         <span class="disclosure-icon" aria-hidden="true"></span>
       </button>
-      <span class="leading"><slot name="leading"></slot></span>
-      <span class="label"><span class="label-text" $ref="labelText"><slot name="label"><template $value="label"></template></slot></span></span>
+      <span class="leading" $ref="leading"><slot name="leading"></slot></span>
+      <span class="label" $ref="label"><span class="label-text" $ref="labelText"><slot name="label"><template $value="label"></template></slot></span></span>
       <span class="actions" $ref="actions"><slot name="actions"></slot></span>
       <span class="drop-indicator row-drop-indicator" aria-hidden="true"></span>
     </div>
@@ -221,6 +221,9 @@
       block-size: 1em;
       margin-inline-start: var(--ui-space-1);
       color: var(--ui-text-muted);
+      /* Above the label, so a sliding name passes under the icon. */
+      position: relative;
+      z-index: 1;
     }
 
     .leading:empty {
@@ -248,6 +251,9 @@
       /* The cell clips: a name longer than the row slides inside it rather than over its icons. */
       overflow: hidden;
       padding: var(--ui-tree-item-label-padding-block, var(--ui-space-1)) var(--ui-tree-item-label-padding-inline, var(--ui-space-2));
+      /* The length of the fade before the controls. The label's one flex child lays out no gap; this
+         is where the controller reads the length in pixels to stop a sliding name before the fade. */
+      column-gap: var(--ui-space-3);
     }
 
     /* Slotted label content fills the cell, so a link is the row's hit area rather than sizing to
@@ -266,56 +272,6 @@
     .label-text > :slotted(*) {
       flex: 1 1 auto;
       min-inline-size: 0;
-    }
-
-    /* A hovered row reads its whole name: the label slides far enough to show the end, waits
-       there, and comes back. Only when it actually overflows — the controller measures by how
-       much — after the controls have taken their place over its end — and hands over the distance
-       and a duration from it, so a longer name travels no faster. */
-    .row[data-ui-marquee] > .label > .label-text {
-      /* Once, and it stays at the end while the pointer is there: a name that keeps sliding back
-         and forth under the pointer is harder to read than one that arrives and holds. */
-      animation: ui-tree-item-marquee var(--_marquee-duration) linear 0.5s 1 normal forwards;
-      will-change: transform;
-    }
-
-    /* While it slides, the start fades too: the name is leaving the cell at both ends, and a hard
-       edge beside the icon reads as a collision rather than as more text. */
-    .row[data-ui-marquee] > .label {
-      mask-image: linear-gradient(
-        to right,
-        transparent 0,
-        #000 var(--ui-space-2),
-        #000 calc(100% - var(--_tree-actions-width, 1.75rem) - var(--ui-space-3)),
-        transparent calc(100% - var(--_tree-actions-width, 1.75rem))
-      );
-    }
-
-    .row[data-ui-marquee] > .label:dir(rtl) {
-      mask-image: linear-gradient(
-        to left,
-        transparent 0,
-        #000 var(--ui-space-2),
-        #000 calc(100% - var(--_tree-actions-width, 1.75rem) - var(--ui-space-3)),
-        transparent calc(100% - var(--_tree-actions-width, 1.75rem))
-      );
-    }
-
-    @keyframes ui-tree-item-marquee {
-      from {
-        transform: translateX(0);
-      }
-
-      to {
-        transform: translateX(var(--_marquee-distance));
-      }
-    }
-
-    /* Reduced motion keeps the fade, which already says the name continues. */
-    @media (prefers-reduced-motion: reduce) {
-      .row[data-ui-marquee] > .label > .label-text {
-        animation: none;
-      }
     }
 
     /* The controls sit over the label's end, so the text fades out where they begin. The fade is
@@ -337,6 +293,60 @@
         #000 calc(100% - var(--_tree-actions-width, 1.75rem) - var(--ui-space-3)),
         transparent calc(100% - var(--_tree-actions-width, 1.75rem))
       );
+    }
+
+    /* A hovered row reads its whole name: the label slides far enough to show the end, waits
+       there, and comes back. Only when it actually overflows — the controller measures by how
+       much — after the controls have taken their place over its end — and hands over the distance
+       and a duration from it, so a longer name travels no faster. */
+    .row[data-ui-marquee] > .label > .label-text {
+      /* Once, and it stays at the end while the pointer is there: a name that keeps sliding back
+         and forth under the pointer is harder to read than one that arrives and holds. */
+      animation: ui-tree-item-marquee var(--_marquee-duration) linear 0.5s 1 normal forwards;
+      will-change: transform;
+    }
+
+    /* This comes after the hover fade, which it replaces at the same specificity. While the name
+       slides, the label reaches back under the icon (the controller measures how far) with its text
+       where it was, and fades out across that stretch, gone by the icon's middle: the name slips
+       under the icon rather than stopping at a hard edge beside it. */
+    .row[data-ui-marquee] > .label {
+      margin-inline-start: calc(-1 * var(--_marquee-lead, 0px));
+      padding-inline-start: calc(var(--_marquee-lead, 0px) + var(--ui-tree-item-label-padding-inline, var(--ui-space-2)));
+      mask-image: linear-gradient(
+        to right,
+        transparent calc(var(--_marquee-lead, 0px) / 2),
+        #000 calc(var(--_marquee-lead, 0px) + var(--ui-tree-item-label-padding-inline, var(--ui-space-2))),
+        #000 calc(100% - var(--_tree-actions-width, 1.75rem) - var(--ui-space-3)),
+        transparent calc(100% - var(--_tree-actions-width, 1.75rem))
+      );
+    }
+
+    .row[data-ui-marquee] > .label:dir(rtl) {
+      mask-image: linear-gradient(
+        to left,
+        transparent calc(var(--_marquee-lead, 0px) / 2),
+        #000 calc(var(--_marquee-lead, 0px) + var(--ui-tree-item-label-padding-inline, var(--ui-space-2))),
+        #000 calc(100% - var(--_tree-actions-width, 1.75rem) - var(--ui-space-3)),
+        transparent calc(100% - var(--_tree-actions-width, 1.75rem))
+      );
+    }
+
+    @keyframes ui-tree-item-marquee {
+      from {
+        transform: translateX(0);
+      }
+
+      to {
+        transform: translateX(var(--_marquee-distance));
+      }
+    }
+
+    /* Reduced motion keeps the fade, which already says the name continues. */
+    @media (prefers-reduced-motion: reduce) {
+      .row[data-ui-marquee] > .label > .label-text {
+        animation: none;
+      }
     }
 
     .row:hover > .label > :slotted(*),

@@ -1523,30 +1523,55 @@ test("a tree scrolls a name too long for its row, only when asked, and clears it
 
   await fits.hover();
   await page.waitForTimeout(700);
-  await expect(fits, "a name that fits does not move").not.toHaveAttribute("data-ui-marquee", /.*/);
+  // Its controls cover the label box's end but not the name, so there is nothing to scroll.
+  await expect(fits, "a name that fits beside its controls does not move").not.toHaveAttribute("data-ui-marquee", /.*/);
 
   await page.mouse.move(0, 0);
   await overflows.hover();
   await expect(overflows).toHaveAttribute("data-ui-marquee", "");
 
-  const travel = await overflows.evaluate((element) => {
-    const text = element.querySelector<HTMLElement>(".label-text")!;
-    const actions = element.querySelector<HTMLElement>(".actions")!;
-    return {
-      distance: parseFloat(getComputedStyle(element).getPropertyValue("--_marquee-distance")),
-      duration: parseFloat(getComputedStyle(element).getPropertyValue("--_marquee-duration")),
-      hidden: text.scrollWidth - (text.clientWidth - actions.offsetWidth)
-    };
-  });
-  // The controls overlay the label's end, so the name has to travel past them: measuring against
-  // the label's full width scrolls short and leaves the tail underneath them.
-  expect(Math.abs(travel.distance)).toBeGreaterThanOrEqual(travel.hidden);
+  const travel = await overflows.evaluate((element) => ({
+    distance: parseFloat(getComputedStyle(element).getPropertyValue("--_marquee-distance")),
+    duration: parseFloat(getComputedStyle(element).getPropertyValue("--_marquee-duration"))
+  }));
   // The duration comes from the distance, so a longer name travels at the same speed.
   expect(travel.duration).toBeCloseTo(Math.min(10, Math.max(1.4, Math.abs(travel.distance) / 36)), 1);
 
   const offset = () => overflows.evaluate((element) =>
     new DOMMatrix(getComputedStyle(element.querySelector(".label-text")!).transform).m41);
   await expect.poll(offset, { timeout: 5000 }).toBeLessThan(-12);
+  // Where it stops, the whole tail is readable: it ends where the fade before the controls begins.
+  const tailClearance = () => overflows.evaluate((element) => {
+    const label = element.querySelector<HTMLElement>(".label")!;
+    const range = document.createRange();
+    range.selectNodeContents(element.querySelector(".label-text")!);
+    const fadeStart = label.getBoundingClientRect().right - element.querySelector<HTMLElement>(".actions")!.offsetWidth
+      - parseFloat(getComputedStyle(label).columnGap);
+    return Math.round(fadeStart - range.getBoundingClientRect().right);
+  });
+  await expect.poll(tailClearance, { timeout: 5000 }).toBeGreaterThanOrEqual(0);
+  expect(await tailClearance(), "the tail stops at the fade, not short of it").toBeLessThanOrEqual(1);
+
+  // A row with an icon: the sliding name passes under the icon and fades out there, rather than
+  // being cut off at a hard edge beside it.
+  const linkRow = page.locator("[data-preview-scenario='Link rows'] [data-item-id='handbook'] .row");
+  await page.mouse.move(0, 0);
+  await linkRow.scrollIntoViewIfNeeded();
+  await linkRow.hover();
+  await expect(linkRow).toHaveAttribute("data-ui-marquee", "");
+  const underIcon = await linkRow.evaluate((element) => {
+    const label = element.querySelector<HTMLElement>(".label")!;
+    return {
+      labelStart: label.getBoundingClientRect().left,
+      iconStart: element.querySelector<HTMLElement>(".leading")!.getBoundingClientRect().left,
+      mask: getComputedStyle(label).maskImage
+    };
+  });
+  expect(underIcon.labelStart).toBeCloseTo(underIcon.iconStart, 0);
+  expect(underIcon.mask).toMatch(/^linear-gradient\(to right, rgba\(0, 0, 0, 0\)/);
+  await page.mouse.move(0, 0);
+  await overflows.hover();
+  await expect(overflows).toHaveAttribute("data-ui-marquee", "");
 
   await page.mouse.move(0, 0);
   await expect(overflows).not.toHaveAttribute("data-ui-marquee", /.*/);

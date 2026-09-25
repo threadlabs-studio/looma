@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.10.11
+
+- Tree marquee: a name that fits beside a row's controls no longer scrolls. It was measured against
+  the label box, which always fills the row, so any row with controls slid by their width.
+- Tree marquee: a sliding name passes under the row's icon and fades out there, instead of being
+  cut off at a hard edge beside it. The fade was written but the hover fade overrode it.
+- Tree marquee: the name stops where the fade before the controls begins, so its tail is fully
+  readable rather than half faded.
+
 ## v0.10.10
 
 - New: Scroll Area (`ui-scroll-area`, Vue `ScrollArea`), a region that scrolls when its content
