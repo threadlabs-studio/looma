@@ -104,11 +104,13 @@
       white-space: nowrap;
     }
 
+    /* Centred rather than padded above and below: the group is exactly a lone Input's height, so a
+       small button sits inside it with the difference split evenly, and the field keeps its height. */
     .action {
       display: flex;
       flex: none;
-      align-items: stretch;
-      padding: var(--ui-space-1);
+      align-items: center;
+      padding-inline: var(--ui-space-1);
     }
 
     .affix:empty,
