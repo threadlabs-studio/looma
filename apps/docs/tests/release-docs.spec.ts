@@ -847,6 +847,27 @@ test("ui-input authors one declarative element and lowers directly to an editabl
   await expect(states.getByRole("textbox", { name: "Disabled" })).toBeDisabled();
 });
 
+test("ui-input-group frames its input like a lone Input, in readable text", async ({ page }) => {
+  await page.goto("components/ui-input-group", { waitUntil: "domcontentloaded" });
+  const group = page.locator("[data-preview-scenario='Suffix'] [data-component~='ui-input-group']");
+  const input = group.getByRole("textbox", { name: "Site address" });
+  await expect(input).toHaveAttribute("aria-describedby", /\S/);
+
+  for (const theme of ["light", "dark"] as const) {
+    await page.evaluate((value) => document.documentElement.setAttribute("data-theme", value), theme);
+    await group.evaluate(async (element) => {
+      await Promise.all(element.getAnimations({ subtree: true }).map((animation) => animation.finished));
+    });
+    const colors = await group.evaluate((element) => ({
+      background: getComputedStyle(element).backgroundColor,
+      border: getComputedStyle(element).borderTopColor,
+      affix: getComputedStyle(element.querySelector(".affix")!).color
+    }));
+    expect(contrastRatio(colors.affix, colors.background), `${theme} affix contrast`).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(colors.border, colors.background), `${theme} control boundary contrast`).toBeGreaterThanOrEqual(3);
+  }
+});
+
 test("ui-select authors options directly and lowers to one native select", async ({ page }) => {
   await page.goto("components/ui-select", { waitUntil: "domcontentloaded" });
   const defaultScenario = page.locator("[data-preview-scenario='Default']");
