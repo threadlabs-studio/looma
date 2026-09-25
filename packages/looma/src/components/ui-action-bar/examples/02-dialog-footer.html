@@ -1,0 +1,13 @@
+<!--
+title: Dialog footer
+description: In a dialog's actions slot the bar fills the footer, so a safe destructive action can wait at the start edge, away from the primary action at the end.
+-->
+<ui-button id="open-action-bar-dialog">Open dialog</ui-button>
+<ui-dialog id="action-bar-dialog" for="open-action-bar-dialog" label="Unsaved changes">
+  <p>You have edits that are not saved yet.</p>
+  <ui-action-bar slot="actions">
+    <ui-button slot="tertiary" variant="ghost" tone="danger" commandfor="action-bar-dialog" command="close">Discard</ui-button>
+    <ui-button slot="secondary" commandfor="action-bar-dialog" command="close">Keep editing</ui-button>
+    <ui-button slot="primary" variant="solid" commandfor="action-bar-dialog" command="close">Save</ui-button>
+  </ui-action-bar>
+</ui-dialog>
