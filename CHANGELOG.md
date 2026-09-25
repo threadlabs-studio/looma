@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.12.6
+
+- Avatar takes `active`: a ring in the success colour (`--ui-avatar-active-ring`) for someone active
+  now, such as editing the same page. It is an outline, so it survives the circle's clip and the
+  overlap in an Avatar Group. The ring is not announced; say what it means in `alt`.
+- Avatar takes `size`: `md` (2.5rem, the default) or `sm` (1.75rem, smaller initials) for a row of
+  people in a toolbar or header.
+
 ## v0.12.5
 
 - `@nextwebwg/html-next` is pinned to `1.0.0-alpha.5` instead of `^1.0.0-alpha.5`. A caret range on a
