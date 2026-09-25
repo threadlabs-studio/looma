@@ -138,7 +138,7 @@ loses to the component's own declaration, which usually reads as the override be
 
 Name the component with a class of your own and set its hooks there. Do not select the markers a
 runtime renders on a component, such as `data-component` or its state attributes: they are how a
-runtime draws it, not API, and not every adapter renders them. The component's API tab lists the
+runtime draws it, an implementation detail that can change, not API. The component's API tab lists the
 hooks it reads, and each one names the property it sets.
 
 ### Changing a component's default appearance
