@@ -265,7 +265,7 @@
       height: var(--ui-affordance-guide-size);
       border-radius: var(--ui-radius-round);
       background: var(--ui-affordance-guide-color, var(--ui-border-strong));
-      opacity: var(--ui-affordance-guide-opacity);
+      opacity: calc(var(--ui-affordance-guide-opacity) * var(--ui-affordance-scope-guide, 1));
       transition: opacity var(--ui-affordance-motion, var(--ui-motion-fast)) var(--ui-motion-ease);
     }
 
@@ -354,7 +354,7 @@
       inset: 50% auto auto 50%;
       border-radius: var(--ui-radius-round);
       background: var(--ui-affordance-guide-color, var(--ui-border-strong));
-      opacity: var(--ui-affordance-guide-opacity);
+      opacity: calc(var(--ui-affordance-guide-opacity) * var(--ui-affordance-scope-guide, 1));
       transform: translate(-50%, -50%);
       transition: opacity var(--ui-affordance-motion, var(--ui-motion-fast)) var(--ui-motion-ease);
       pointer-events: none;

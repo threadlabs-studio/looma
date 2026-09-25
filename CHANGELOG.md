@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.13.3
+## v0.13.4
 
 - Combobox `selectedValues` controls a `multiple` combobox's selection by option value, so a form field
   with a fixed option list can start from data and stay bound: Vue `v-model:selected-values`. Each value
@@ -9,6 +9,13 @@
   the new list; setting it reports nothing. Uncontrolled `multiple` and `items` work as before.
 - A `multiple` combobox shows a repeated `selectedValues` entry once, and typing the label of an option
   already chosen, then a token separator or Enter, clears the text instead of adding it again.
+
+## v0.13.3
+
+- Affordance Scope: `guide` sets what marks an anticipatory control at rest. `dot` (the default,
+  unchanged) shows the small guide dot; `none` shows nothing until the pointer nears the control, it
+  is hovered, or it takes focus. It reaches every guide inside the scope, including a sidebar's
+  resize line and the editor table's handles.
 
 ## v0.13.2
 
