@@ -6,8 +6,15 @@
     <prop name="padding" type="sm | md | lg" default="md"
     >The space inside the card: sm is snug (0.75rem), md is the default (1.5rem), and lg is roomy (2rem).</prop>
     <prop name="tone" type="neutral | danger" default="neutral">danger draws an outlined card's border in the danger colour.</prop>
+    <prop name="as" type="div | section | article | aside" default="div"
+    >The native element the card renders. Choose the one that names the content: a section of a page, a self-contained article, or an aside.</prop>
   </defs>
-  <div as="div|section|article|aside"><slot></slot></div>
+  <template $match>
+    <section $when="as = 'section'"><slot></slot></section>
+    <article $when="as = 'article'"><slot></slot></article>
+    <aside $when="as = 'aside'"><slot></slot></aside>
+    <div $else><slot></slot></div>
+  </template>
   <style>
     /* A surface that groups content. Its children stack with even space between them, so a card
        needs no layout of its own. */
