@@ -31,7 +31,28 @@
     </div>
   </aside>
   <style>
+    /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-sidebar-backdrop {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-sidebar-border {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-sidebar-surface {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-sidebar-width {
+      syntax: "*";
+      inherits: false;
+    }
+
     :host {
+      /* Hooks do not inherit, so the parts below read them from the root. */
+      --_ui-sidebar-backdrop: var(--ui-sidebar-backdrop);
+
       position: relative;
       box-sizing: border-box;
       display: flex;
@@ -184,7 +205,7 @@
     }
 
     :host[popover]::backdrop {
-      background: var(--ui-sidebar-backdrop, rgb(0 0 0 / 0.32));
+      background: var(--_ui-sidebar-backdrop, rgb(0 0 0 / 0.32));
     }
 
     @media (prefers-reduced-motion: reduce) {

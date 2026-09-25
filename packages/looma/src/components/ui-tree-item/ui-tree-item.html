@@ -94,14 +94,43 @@
     <span class="drop-indicator subtree-drop-indicator" aria-hidden="true"></span>
   </div>
   <style>
+    /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-tree-item-depth {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-tree-item-font-size {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-tree-item-label-padding-block {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-tree-item-label-padding-inline {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-tree-item-min-block-size {
+      syntax: "*";
+      inherits: false;
+    }
+
     :host {
+      /* Hooks do not inherit, so the parts below read them from the root. The tree's density
+         sets the defaults, in --_ui-default-*. */
+      --_ui-tree-item-min-block-size: var(--ui-tree-item-min-block-size, var(--_ui-default-tree-item-min-block-size));
+      --_ui-tree-item-font-size: var(--ui-tree-item-font-size, var(--_ui-default-tree-item-font-size));
+      --_ui-tree-item-label-padding-block: var(--ui-tree-item-label-padding-block, var(--_ui-default-tree-item-label-padding-block));
+      --_ui-tree-item-label-padding-inline: var(--ui-tree-item-label-padding-inline);
+
       --_tree-row-min-height: 32px;
       --_tree-disclosure-size: 16px;
 
       position: relative;
       display: block;
       min-inline-size: 0;
-      margin-inline-start: calc(var(--ui-tree-item-depth, 0) * var(--ui-tree-indent, 16px));
+      margin-inline-start: calc(var(--ui-tree-item-depth, 0) * var(--_ui-tree-indent, 16px));
     }
 
     .row {
@@ -109,9 +138,9 @@
       display: grid;
       grid-template-columns: var(--_tree-disclosure-size) auto minmax(0, 1fr);
       align-items: center;
-      min-block-size: var(--ui-tree-item-min-block-size, var(--_tree-row-min-height));
+      min-block-size: var(--_ui-tree-item-min-block-size, var(--_tree-row-min-height));
       min-inline-size: 0;
-      font-size: var(--ui-tree-item-font-size, var(--ui-font-size-sm));
+      font-size: var(--_ui-tree-item-font-size, var(--ui-font-size-sm));
       border-radius: var(--ui-radius-md);
       color: var(--ui-text-secondary);
       transition:
@@ -148,7 +177,7 @@
     /* Child combinators: drop feedback belongs to this item's own row, not the rows nested in it. */
     :host[data-drop-position="inside"] > .row {
       background: var(--ui-accent-subtle);
-      box-shadow: inset 0 0 0 1px var(--ui-tree-drop-color, var(--ui-accent-solid));
+      box-shadow: inset 0 0 0 1px var(--_ui-tree-drop-color, var(--ui-accent-solid));
     }
 
     .disclosure,
@@ -250,7 +279,7 @@
       min-inline-size: 0;
       /* The cell clips: a name longer than the row slides inside it rather than over its icons. */
       overflow: hidden;
-      padding: var(--ui-tree-item-label-padding-block, var(--ui-space-1)) var(--ui-tree-item-label-padding-inline, var(--ui-space-2));
+      padding: var(--_ui-tree-item-label-padding-block, var(--ui-space-1)) var(--_ui-tree-item-label-padding-inline, var(--ui-space-2));
       /* The length of the fade before the controls. The label's one flex child lays out no gap; this
          is where the controller reads the length in pixels to stop a sliding name before the fade. */
       column-gap: var(--ui-space-3);
@@ -312,11 +341,11 @@
        under the icon rather than stopping at a hard edge beside it. */
     .row[data-ui-marquee] > .label {
       margin-inline-start: calc(-1 * var(--_marquee-lead, 0px));
-      padding-inline-start: calc(var(--_marquee-lead, 0px) + var(--ui-tree-item-label-padding-inline, var(--ui-space-2)));
+      padding-inline-start: calc(var(--_marquee-lead, 0px) + var(--_ui-tree-item-label-padding-inline, var(--ui-space-2)));
       mask-image: linear-gradient(
         to right,
         transparent calc(var(--_marquee-lead, 0px) / 2),
-        #000 calc(var(--_marquee-lead, 0px) + var(--ui-tree-item-label-padding-inline, var(--ui-space-2))),
+        #000 calc(var(--_marquee-lead, 0px) + var(--_ui-tree-item-label-padding-inline, var(--ui-space-2))),
         #000 calc(100% - var(--_tree-actions-width, 1.75rem) - var(--ui-space-3)),
         transparent calc(100% - var(--_tree-actions-width, 1.75rem))
       );
@@ -326,7 +355,7 @@
       mask-image: linear-gradient(
         to left,
         transparent calc(var(--_marquee-lead, 0px) / 2),
-        #000 calc(var(--_marquee-lead, 0px) + var(--ui-tree-item-label-padding-inline, var(--ui-space-2))),
+        #000 calc(var(--_marquee-lead, 0px) + var(--_ui-tree-item-label-padding-inline, var(--ui-space-2))),
         #000 calc(100% - var(--_tree-actions-width, 1.75rem) - var(--ui-space-3)),
         transparent calc(100% - var(--_tree-actions-width, 1.75rem))
       );
@@ -444,7 +473,7 @@
       display: none;
       block-size: 2px;
       border-radius: 999px;
-      background: var(--ui-tree-drop-color, var(--ui-accent-solid));
+      background: var(--_ui-tree-drop-color, var(--ui-accent-solid));
       pointer-events: none;
     }
 
@@ -455,7 +484,7 @@
       inset-block-start: 50%;
       inline-size: 7px;
       block-size: 7px;
-      border: 2px solid var(--ui-tree-drop-color, var(--ui-accent-solid));
+      border: 2px solid var(--_ui-tree-drop-color, var(--ui-accent-solid));
       border-radius: 999px;
       background: var(--ui-surface-elevated);
       transform: translateY(-50%);

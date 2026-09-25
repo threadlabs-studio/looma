@@ -7,6 +7,20 @@ Shared domain vocabulary for this project — entities, named processes, and sta
 ### Anticipatory Affordance
 An interactive cue that progresses from a quiet guide through near and direct intent to an active state, while keeping only the visible control in the pointer hit-test region.
 
+## Styling
+
+### Theme Token
+A `--ui-*` custom property defined in `tokens.css` or a theme (`--ui-accent`, `--ui-text`, `--ui-space-4`). It inherits on purpose: set on an element, it themes the whole subtree.
+
+### Component Hook
+A `--ui-<component>-*` custom property a component reads to diverge from its default (`--ui-stack-gap`, `--ui-button-surface`). Registered with `@property` and `inherits: false`, so it styles only the component whose root it is set on, where it beats the component's default and props; set on an ancestor, it does nothing. The editor's `--ui-editor-*` hooks are the exception and inherit, since the editor is one surface of separate parts. `tools/scripts/component-hook-inheritance-rule.test.mjs` enforces the registration.
+
+### Hook Relay
+A root's private copy of its own hook, `--_ui-<hook>: var(--ui-<hook>)`, for the inner parts, slotted children, and pseudo-elements that read it: a non-inheriting hook has its value on the root alone.
+
+### Parent Default
+A private `--_ui-default-<hook>` a Looma component sets for the children it composes (Input Group's input, a compact Menu's items, a Tree's density, an editor surface's icons). The child reads it below its own hook, so a hook set on the child still wins.
+
 ## Release qualification
 
 ### Package Identity Graph
