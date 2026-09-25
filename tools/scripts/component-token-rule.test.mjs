@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const componentRoots = [path.join(repoRoot, "packages/looma/src/components")];
 // State a component publishes to its descendants, not a consumer setting.
-const publishedState = new Set(["--ui-affordance-scope-engaged"]);
+const publishedState = new Set(["--ui-affordance-scope-engaged", "--ui-affordance-scope-guide"]);
 
 test("components never redeclare public --ui-* tokens", async () => {
   const violations = [];
