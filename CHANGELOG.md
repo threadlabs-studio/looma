@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.11.6
+
+- Only a link-style Button takes the touch hit area added in 0.11.5. On every button it reached over
+  close neighbours (a small button just below another took presses meant for it); a boxed button
+  already grows to the control minimum under a coarse pointer.
+
 ## v0.11.5
 
 - Under touch input, a Button's press lands within the control minimum (44px) through an invisible hit
