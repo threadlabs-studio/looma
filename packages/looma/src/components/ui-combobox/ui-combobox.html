@@ -246,7 +246,61 @@
     <div class="authored-options" $ref="options" hidden aria-hidden="true"><slot></slot></div>
   </div>
   <style>
+    /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-combobox-affordance-text {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-combobox-item-input-min-inline-size {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-combobox-item-item-max-inline-size {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-combobox-item-min-block-size {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-combobox-label-font-size {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-combobox-label-text {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-combobox-max-block-size {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-combobox-message-text {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-combobox-option-check {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-combobox-option-text {
+      syntax: "*";
+      inherits: false;
+    }
+
     :host {
+      /* Hooks do not inherit, so the parts below read them from the root. */
+      --_ui-combobox-label-text: var(--ui-combobox-label-text);
+      --_ui-combobox-label-font-size: var(--ui-combobox-label-font-size);
+      --_ui-combobox-affordance-text: var(--ui-combobox-affordance-text);
+      --_ui-combobox-max-block-size: var(--ui-combobox-max-block-size);
+      --_ui-combobox-option-text: var(--ui-combobox-option-text);
+      --_ui-combobox-message-text: var(--ui-combobox-message-text);
+      --_ui-combobox-option-check: var(--ui-combobox-option-check);
+      --_ui-combobox-item-min-block-size: var(--ui-combobox-item-min-block-size);
+      --_ui-combobox-item-input-min-inline-size: var(--ui-combobox-item-input-min-inline-size);
+      --_ui-combobox-item-item-max-inline-size: var(--ui-combobox-item-item-max-inline-size);
+
       display: grid;
       gap: var(--ui-space-1);
       min-inline-size: 0;
@@ -254,8 +308,8 @@
       font: inherit;
     }
     label {
-      color: var(--ui-combobox-label-text, var(--ui-text-primary));
-      font-size: var(--ui-combobox-label-font-size, var(--ui-font-size-sm));
+      color: var(--_ui-combobox-label-text, var(--ui-text-primary));
+      font-size: var(--_ui-combobox-label-font-size, var(--ui-font-size-sm));
       font-weight: 500;
     }
     /* The field and anything that annotates it sit on one row; the help button is beside the box,
@@ -353,7 +407,7 @@
       border: 0;
       border-radius: var(--ui-radius-md);
       background: transparent;
-      color: var(--ui-combobox-affordance-text, var(--ui-text-secondary));
+      color: var(--_ui-combobox-affordance-text, var(--ui-text-secondary));
       font: inherit;
       font-weight: 400;
       min-inline-size: 2rem;
@@ -388,7 +442,7 @@
       box-sizing: border-box;
       min-inline-size: 12rem;
       max-inline-size: calc(100vw - 1rem);
-      max-block-size: var(--ui-combobox-max-block-size, 18rem);
+      max-block-size: var(--_ui-combobox-max-block-size, 18rem);
       overflow: auto;
       margin: 0;
       padding: var(--ui-space-1);
@@ -418,11 +472,11 @@
     }
     .primary {
       display: block;
-      color: var(--ui-combobox-option-text, var(--ui-text-primary));
+      color: var(--_ui-combobox-option-text, var(--ui-text-primary));
       font-weight: 500;
     }
     .message, .group {
-      color: var(--ui-combobox-message-text, var(--ui-text-secondary));
+      color: var(--_ui-combobox-message-text, var(--ui-text-secondary));
       font-weight: 400;
       font-size: var(--ui-font-size-sm);
       line-height: var(--ui-line-height-md);
@@ -482,7 +536,7 @@
       border-color: var(--ui-accent-solid);
       background-color: var(--ui-accent-solid);
       background-image: var(
-        --ui-combobox-option-check,
+        --_ui-combobox-option-check,
         url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12 5 5 9-9'/%3E%3C/svg%3E")
       );
     }
@@ -492,11 +546,11 @@
       flex-wrap: wrap;
       align-items: center;
       gap: var(--ui-space-1);
-      min-block-size: var(--ui-combobox-item-min-block-size, 2.5rem);
+      min-block-size: var(--_ui-combobox-item-min-block-size, 2.5rem);
       padding: var(--ui-space-1);
     }
     :host-state([multiple]) input {
-      flex: 1 0 var(--ui-combobox-item-input-min-inline-size, 5rem);
+      flex: 1 0 var(--_ui-combobox-item-input-min-inline-size, 5rem);
       width: auto;
       min-block-size: 1.75rem;
       padding: var(--ui-space-0-5) var(--ui-space-1);
@@ -505,7 +559,7 @@
       appearance: none;
       display: inline-flex;
       min-inline-size: 0;
-      max-inline-size: min(100%, var(--ui-combobox-item-item-max-inline-size, 12rem));
+      max-inline-size: min(100%, var(--_ui-combobox-item-item-max-inline-size, 12rem));
       overflow: hidden;
       padding: 0;
       border: 0;

@@ -23,19 +23,42 @@
   </defs>
   <div role="tree"><slot></slot></div>
   <style>
+    /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-tree-drop-color {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-tree-gutter {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-tree-indent {
+      syntax: "*";
+      inherits: false;
+    }
+
     /* Reaches the items the way density does, so the setting lives on the tree the way a reader
        thinks about it: this list scrolls its long names. */
     :host-state([marquee]) {
-      --ui-tree-item-marquee: 1;
+      --_ui-default-tree-item-marquee: 1;
     }
 
+    /* The items' defaults for this density: an item's own hook still wins. */
     :host-state([density="compact"]) {
-      --ui-tree-item-min-block-size: var(--ui-control-size-sm);
-      --ui-tree-item-font-size: var(--ui-font-size-sm);
-      --ui-tree-item-label-padding-block: 0;
+      --_ui-default-tree-item-min-block-size: var(--ui-control-size-sm);
+      --_ui-default-tree-item-font-size: var(--ui-font-size-sm);
+      --_ui-default-tree-item-label-padding-block: 0;
     }
 
     :host {
+      /* Hooks do not inherit: the tree hands its own to its items here, and a tree nested in an item
+         starts again from its own settings. */
+      --_ui-tree-indent: var(--ui-tree-indent);
+      --_ui-tree-drop-color: var(--ui-tree-drop-color);
+      --_ui-default-tree-item-marquee: initial;
+      --_ui-default-tree-item-min-block-size: initial;
+      --_ui-default-tree-item-font-size: initial;
+      --_ui-default-tree-item-label-padding-block: initial;
       display: block;
       min-inline-size: 0;
       padding-inline-start: var(--ui-tree-gutter, 0px);
