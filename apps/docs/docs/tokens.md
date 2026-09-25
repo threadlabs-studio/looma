@@ -115,7 +115,7 @@ parts (toolbars, menus, overlays, and the content) are separate elements, and ed
 | Kind | Names | Inherits | Set it on |
 | --- | --- | --- | --- |
 | Theme token | `--ui-accent`, `--ui-space-4`, `--ui-radius-md` … | yes | `:root`, a theme, or any subtree |
-| Component hook | `--ui-<component>-*` | no | the component, or all of them with a selector |
+| Component hook | `--ui-<component>-*` | no | the component itself, through a class of your own |
 | Editor hook | `--ui-editor-*` | yes | the editor or an ancestor |
 | Private | `--_*` | yes, inside the component | nothing: not API |
 
@@ -124,36 +124,49 @@ parts (toolbars, menus, overlays, and the content) are separate elements, and ed
 Where a component reads a hook for a property, set that hook, not the property. A rule of your own
 loses to the component's own declaration, which usually reads as the override being ignored:
 
-```css
-/* Does nothing: the component sets inline-size from its hook. */
-.my-row .actions [data-component~="ui-icon-button"] { inline-size: 0; }
-
-/* Works. */
-.my-row .actions [data-component~="ui-icon-button"] { --ui-icon-button-size: 0; }
+```html
+<ui-icon-button class="row-action" label="More">…</ui-icon-button>
 ```
 
-Every component's root carries `data-component="ui-<name>"`, in HTML and in Vue, so
-`[data-component~="ui-icon-button"]` selects each one. The component's API tab lists the hooks it
-reads, and each one names the property it sets.
+```css
+/* Does nothing: the component sets inline-size from its hook. */
+.row-action { inline-size: 0; }
+
+/* Works. */
+.row-action { --ui-icon-button-size: 0; }
+```
+
+Name the component with a class of your own and set its hooks there. Do not select the markers a
+runtime renders on a component, such as `data-component` or its state attributes: they are how a
+runtime draws it, an implementation detail that can change, not API. The component's API tab lists the
+hooks it reads, and each one names the property it sets.
 
 ### Changing a component's default appearance
 
-A component's default is a product decision, so express it in the theme rather than at every call
-site. A hook does not inherit, so select the components rather than setting it on `:root`. An
-accent-tinted default button, product-wide:
+A hook does not inherit, so setting it on `:root` or a theme block changes nothing. To change a
+component's default across a product, make that decision once, in a component of your own that
+wraps Looma's and sets its hooks, and use it everywhere. An accent-tinted default button in Vue:
 
-```css
-[data-component~="ui-button"] {
+```vue
+<!-- ProductButton.vue -->
+<template>
+  <Button class="product-button" v-bind="$attrs"><slot /></Button>
+</template>
+
+<style scoped>
+.product-button {
   --ui-button-surface: var(--ui-accent-subtle);
   --ui-button-border: var(--ui-accent);
   --ui-button-text: var(--ui-accent-active);
 }
+</style>
 ```
 
-Point these at the semantic values, not at fixed colours. A pinned colour stops adapting: a hover
-tint pinned to one surface's colour disappears on every other surface, and a pinned tone ignores a
-later change of accent. A hook set on a component beats its props, so these buttons ignore `tone`;
-where a product needs both, narrow the selector to the buttons the theme means.
+Where one screen needs the change, put the class on those components directly. Point hooks at the
+semantic values, not at fixed colours. A pinned colour stops adapting: a hover tint pinned to one
+surface's colour disappears on every other surface, and a pinned tone ignores a later change of
+accent. A hook set on a component beats its props, so these buttons ignore `tone`; where a product
+needs both, apply the class only to the buttons it means.
 
 ## Typography
 

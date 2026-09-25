@@ -256,6 +256,17 @@ test("affordance-scope visibly reveals an anticipatory Looma control near the po
   await page.mouse.move(bounds!.x - 8, bounds!.y + bounds!.height / 2);
   await expect(affordance).toHaveAttribute("data-ui-proximity", "near");
   await expect(affordance).not.toHaveCSS("color", "rgba(0, 0, 0, 0)");
+
+  // guide="none": nothing marks the button at rest, and it still reveals as the pointer nears.
+  await page.mouse.move(0, 0);
+  const quiet = page.locator("[data-preview-scenario='guide=\"none\"'] [data-component~='ui-icon-button']").first();
+  await quiet.scrollIntoViewIfNeeded();
+  await expect(quiet).toHaveCSS("color", "rgba(0, 0, 0, 0)");
+  expect(await quiet.evaluate((element) => getComputedStyle(element, "::before").opacity)).toBe("0");
+  const quietBounds = await quiet.boundingBox();
+  await page.mouse.move(quietBounds!.x - 8, quietBounds!.y + quietBounds!.height / 2);
+  await expect(quiet).toHaveAttribute("data-ui-proximity", "near");
+  await expect(quiet).not.toHaveCSS("color", "rgba(0, 0, 0, 0)");
 });
 
 test("popover trigger opens, positions, and closes the settled component", async ({ page }) => {
@@ -898,13 +909,14 @@ test("component pages order representative configurations and show the exact cod
 }) => {
   await page.goto("components/ui-cluster", { waitUntil: "domcontentloaded" });
 
-  await expect(page.locator("[data-preview-scenario]")).toHaveCount(3);
+  await expect(page.locator("[data-preview-scenario]")).toHaveCount(4);
   expect(await page.locator("[data-preview-scenario]").evaluateAll((elements) =>
     elements.map((element) => element.getAttribute("data-preview-scenario"))
   )).toEqual([
     "Default",
     `gap="l"`,
-    `align="end"`
+    `align="end"`,
+    `justify="between"`
   ]);
   const wrapping = page.locator("[data-preview-scenario='Default']");
   await expect(wrapping.locator(".looma-mode-code")).toContainText("Release");
@@ -932,7 +944,7 @@ test("Examples and API keep configuration demos separate from exhaustive referen
   const attributes = page.locator(".looma-api-table").filter({ has: page.getByRole("columnheader", { name: "Property" }) });
   await expect(attributes.getByRole("columnheader", { name: "Description" })).toBeVisible();
   const asRow = attributes.getByRole("row").filter({ has: page.getByRole("cell", { name: "as", exact: true }) });
-  await expect(asRow).toContainText("button or a");
+  await expect(asRow).toContainText("button | a");
   const hrefRow = attributes.getByRole("row").filter({ has: page.getByRole("cell", { name: "href", exact: true }) });
   await expect(hrefRow).toContainText("Pair it with as=\"a\"");
 });
