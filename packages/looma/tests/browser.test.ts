@@ -151,7 +151,7 @@ describe("Vue components", () => {
       createApp({
         render: () => h(AvatarGroup, { label: "On this page" }, () => [
           h(Avatar, { id: "editing", name: "Ada Lovelace", alt: "Ada Lovelace, editing", active: true }),
-          h(Avatar, { id: "viewing", name: "Grace Hopper" }),
+          h(Avatar, { id: "viewing", name: "Grace Hopper", size: "sm" }),
         ]),
       }).mount("#app");
     `);
@@ -160,6 +160,8 @@ describe("Vue components", () => {
     assert.equal(await outline("editing"), "solid");
     assert.equal(await outline("viewing"), "none");
     assert.equal(await page.locator("#editing").getAttribute("aria-label"), "Ada Lovelace, editing");
+    const width = (id: string) => page.locator(`#${id}`).evaluate((element) => element.getBoundingClientRect().width);
+    assert.ok(await width("viewing") < await width("editing"), "sm is smaller than md");
     await page.close();
   });
 
