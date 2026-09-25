@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { chromium, type Browser, type Page } from "playwright";
+import { chromium, type Browser, type BrowserContextOptions, type Page } from "playwright";
 import { build } from "vite";
 import { afterAll, beforeAll, describe, it } from "vitest";
 
@@ -30,8 +30,8 @@ async function bundle(name: string, source: string): Promise<string> {
   return join(directory, name, "bundle.js");
 }
 
-async function open(bundlePath: string, body: string, css: readonly string[]): Promise<Page> {
-  const page = await browser.newPage();
+async function open(bundlePath: string, body: string, css: readonly string[], options: BrowserContextOptions = {}): Promise<Page> {
+  const page = await browser.newPage(options);
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.setContent(`<!doctype html><html><body>${body}</body></html>`);
@@ -81,6 +81,66 @@ describe("Vue components", () => {
     assert.deepEqual(await page.evaluate(() => (window as unknown as { updates: string[] }).updates), ["private"]);
     await page.locator('#access input[value="open"]').click();
     assert.deepEqual(await page.evaluate(() => (window as unknown as { updates: string[] }).updates), ["private", "open"]);
+    await page.close();
+  });
+
+  it("name a choice by its label and describe it by its description", async () => {
+    const path = await bundle("vue-radio-description", `
+      import { createApp, h } from "vue";
+      import { Radio, RadioGroup } from "@threadlabs/looma/vue";
+      createApp({
+        render: () => [
+          h(RadioGroup, { label: "Who can open it", value: "open" }, () => [
+            h(Radio, { value: "open" }, { default: () => "Open", description: () => "Everyone on the site can open it." }),
+            h(Radio, { value: "private" }, () => "Private"),
+          ]),
+        ],
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+
+    // The description is on its own line and is not part of the name.
+    const open_ = page.getByRole("radio", { name: "Open", exact: true });
+    assert.equal(await open_.count(), 1);
+    const description = await open_.evaluate((input) => document.getElementById(input.getAttribute("aria-describedby") ?? "")?.textContent);
+    assert.equal(description, "Everyone on the site can open it.");
+    const [label, line] = await page.locator("label", { has: open_ }).evaluate((label) =>
+      [".label", ".description"].map((part) => label.querySelector(part)!.getBoundingClientRect().top));
+    assert.ok(line > label, "the description sits under the label");
+    // A choice with no description shows no empty line.
+    assert.equal(await page.locator("label", { has: page.getByRole("radio", { name: "Private" }) }).locator(".description").isVisible(), false);
+    await page.close();
+  });
+
+  it("put an input group's action at its end, inside its border, at the field's height", async () => {
+    const path = await bundle("vue-input-group-action", `
+      import { createApp, h } from "vue";
+      import { Button, Input, InputGroup } from "@threadlabs/looma/vue";
+      createApp({
+        render: () => [
+          h(InputGroup, { id: "plain" }, { default: () => h(Input, { "aria-label": "Site" }), suffix: () => ".example.com" }),
+          h(InputGroup, { id: "with-action" }, {
+            default: () => h(Input, { "aria-label": "Site" }),
+            suffix: () => ".example.com",
+            action: () => h(Button, { id: "go", size: "sm", variant: "solid" }, () => "Continue"),
+          }),
+        ],
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const box = (selector: string) => page.locator(selector).evaluate((element) => element.getBoundingClientRect().toJSON());
+    const plain = await box("#plain");
+    const group = await box("#with-action");
+    const button = await box("#go");
+    assert.equal(group.height, plain.height, "a small action keeps the field's height");
+    assert.ok(button.right <= group.right && button.right > group.right - 8, "the action sits at the end, inside the border");
+    // Focusing the action does not light the field's focus ring; focusing the input does.
+    const shadow = (selector: string) => page.locator(selector).evaluate((element) => getComputedStyle(element).boxShadow);
+    const resting = await shadow("#with-action");
+    await page.locator("#go").focus();
+    assert.equal(await shadow("#with-action"), resting, "a focused action leaves the field's ring off");
+    await page.locator("#with-action input").focus();
+    assert.notEqual(await shadow("#with-action"), resting, "a focused input lights it");
     await page.close();
   });
 
@@ -310,6 +370,87 @@ describe("Badge shape", () => {
   });
 });
 
+describe("Badge box", () => {
+  const tones = ["neutral", "accent", "info", "success", "warning", "danger"];
+  const variants = ["subtle", "solid"];
+
+  // Sizes to its label in a plain block (a table cell), as in a flex row; each variant's edge is its
+  // fill in every tone, and forced colors draw that edge in every tone.
+  async function checkBadges(page: Page) {
+    await page.waitForSelector('#flex [data-component~="ui-badge"]');
+    const width = (selector: string) => page.locator(selector).evaluate((element) => element.getBoundingClientRect().width);
+    const sizes = async () => {
+      const block = await width('#block [data-component~="ui-badge"]');
+      assert.ok(block < 200, `a badge in a 400px block is ${block}px wide`);
+      assert.ok(Math.abs(block - await width('#flex [data-component~="ui-badge"]')) < 0.5, "a badge in a block is as wide as in a flex row");
+      // max-width: 100% still caps a long label (the host is content-box, so padding sits outside it).
+      assert.equal(await page.locator('#narrow [data-component~="ui-badge"]').evaluate((element) => getComputedStyle(element).width), "60px");
+    };
+    assert.equal(await page.evaluate(() => CSS.supports("text-box-trim: trim-both")), true);
+    await sizes();
+
+    const edges = () => page.locator('#tones [data-component~="ui-badge"]').evaluateAll((elements) => elements.map((element) => {
+      const style = getComputedStyle(element);
+      return { badge: element.getAttribute("data-ui-badge-state") ?? element.outerHTML, border: style.borderTopColor, surface: style.backgroundColor };
+    }));
+    const drawn = await edges();
+    assert.equal(drawn.length, tones.length * variants.length);
+    for (const { badge, border, surface } of drawn) assert.equal(border, surface, `${badge} has an edge of its own`);
+
+    await page.emulateMedia({ forcedColors: "active" });
+    for (const { badge, border, surface } of await edges()) {
+      assert.notEqual(border, surface, `${badge} has no edge in forced colors`);
+      assert.notEqual(border, "rgba(0, 0, 0, 0)", `${badge} has no edge in forced colors`);
+    }
+    await page.emulateMedia({ forcedColors: "none" });
+
+    // A browser without text-box-trim skips the @supports block: drop it and measure again.
+    await page.evaluate(() => {
+      const drop = (list: CSSRuleList, remove: (index: number) => void) => {
+        for (let index = list.length - 1; index >= 0; index -= 1) {
+          const rule = list[index];
+          if (rule instanceof CSSSupportsRule && rule.conditionText.includes("text-box-trim")) remove(index);
+          else if (rule instanceof CSSGroupingRule) drop(rule.cssRules, (at) => rule.deleteRule(at));
+          else if (rule instanceof CSSStyleRule && rule.cssRules.length) drop(rule.cssRules, (at) => rule.deleteRule(at));
+        }
+      };
+      for (const sheet of [...document.styleSheets, ...document.adoptedStyleSheets]) drop(sheet.cssRules, (at) => sheet.deleteRule(at));
+    });
+    assert.notEqual(await page.locator('#block [data-component~="ui-badge"]').evaluate((element) => getComputedStyle(element).textBoxTrim), "trim-both");
+    await sizes();
+  }
+
+  const body = (badge: (attributes: string, label: string) => string) => `
+    <div id="block" style="width: 400px">${badge("", "Open")}</div>
+    <div id="flex" style="display: flex; width: 400px">${badge("", "Open")}</div>
+    <div id="narrow" style="width: 60px">${badge("", "A label longer than its container")}</div>
+    <div id="tones">${variants.flatMap((variant) => tones.map((tone) => badge(`variant="${variant}" tone="${tone}"`, tone))).join("")}</div>`;
+
+  it("sizes to its label and draws the same edge in every tone, in HTML", async () => {
+    const path = await bundle("html-badge-box", `import "@threadlabs/looma";`);
+    const page = await open(path, body((attributes, label) => `<ui-badge ${attributes}>${label}</ui-badge>`), [join(root, "tokens.css")]);
+    await checkBadges(page);
+    await page.close();
+  });
+
+  it("sizes to its label and draws the same edge in every tone, in Vue", async () => {
+    const path = await bundle("vue-badge-box", `
+      import { createApp, h } from "vue";
+      import { Badge } from "@threadlabs/looma/vue";
+      const tones = ${JSON.stringify(tones)}, variants = ${JSON.stringify(variants)};
+      createApp({ render: () => [
+        h("div", { id: "block", style: "width: 400px" }, [h(Badge, null, () => "Open")]),
+        h("div", { id: "flex", style: "display: flex; width: 400px" }, [h(Badge, null, () => "Open")]),
+        h("div", { id: "narrow", style: "width: 60px" }, [h(Badge, null, () => "A label longer than its container")]),
+        h("div", { id: "tones" }, variants.flatMap((variant) => tones.map((tone) => h(Badge, { variant, tone }, () => tone)))),
+      ] }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await checkBadges(page);
+    await page.close();
+  });
+});
+
 describe("Combobox validation message", () => {
   it("shows its validation message in HTML, not only in Vue", async () => {
     const path = await bundle("html-combobox-validation", `import "@threadlabs/looma";`);
@@ -435,6 +576,263 @@ describe("Input group", () => {
     await page.close();
   });
 });
+
+describe("Input group behavior", () => {
+  const long = "a-value-long-enough-to-scroll-inside-a-narrow-field";
+  // Each field is an Input in a group, bar #plain; ids name the inner inputs.
+  const html = `
+    <button id="before">Before</button>
+    <form id="form">
+      <label id="site-label" for="site">Website</label>
+      <ui-input-group id="g-site"><span slot="prefix" class="prefix">https://</span><ui-input id="site" name="site" value="example.com" autocomplete="url" aria-describedby="site-hint" data-testid="site"></ui-input></ui-input-group>
+      <p id="site-hint">Your public address.</p>
+      <ui-input-group id="g-sub"><ui-input id="sub" name="sub" aria-label="Subdomain" required></ui-input><span slot="suffix" class="suffix">.example.com</span></ui-input-group>
+      <ui-input-group id="g-both"><span slot="prefix" class="prefix">https://</span><ui-input id="both" name="both" aria-label="Both"></ui-input><span slot="suffix" class="suffix">.example.com</span></ui-input-group>
+      <ui-input id="plain" name="plain" aria-label="Plain"></ui-input>
+    </form>
+    <ui-input-group id="g-invalid"><ui-input id="invalid" invalid aria-label="Invalid"></ui-input><span slot="suffix" class="suffix">.example.com</span></ui-input-group>
+    <ui-input-group id="g-disabled"><ui-input id="disabled" disabled aria-label="Disabled"></ui-input><span slot="suffix" class="suffix">.example.com</span></ui-input-group>
+    <ui-input-group id="g-readonly"><ui-input id="readonly" readonly value="fixed" aria-label="Read only"></ui-input><span slot="suffix" class="suffix">.example.com</span></ui-input-group>
+    <ui-input id="plain-invalid" invalid aria-label="Plain invalid"></ui-input>
+    <ui-input id="plain-disabled" disabled aria-label="Plain disabled"></ui-input>
+    <ui-form-field id="field">
+      <label slot="label">Workspace</label>
+      <ui-input-group><ui-input id="ff" name="ff"></ui-input><span slot="suffix" class="suffix">.example.com</span></ui-input-group>
+      <span slot="help">Letters and hyphens.</span>
+    </ui-form-field>
+    <div dir="rtl" style="width: 375px">
+      <ui-input-group id="g-rtl"><span slot="prefix" class="prefix">https://</span><ui-input id="rtl" aria-label="RTL" value="${long}"></ui-input><span slot="suffix" class="suffix">.example.com</span></ui-input-group>
+    </div>
+    <ui-input-group><ui-input id="auto" aria-label="Autofocus" autofocus></ui-input><span slot="suffix" class="suffix">.example.com</span></ui-input-group>`;
+  const vue = `
+    import { createApp, h, ref } from "vue";
+    import { FormField, Input, InputGroup } from "@threadlabs/looma/vue";
+    const site = ref("example.com");
+    const log = [];
+    const siteRef = ref(null);
+    Object.assign(window, { site, log, siteRef });
+    // Affixes are slots: a prefix and a suffix span beside the Input.
+    const affixes = ({ prefix, suffix }) => ({
+      ...(prefix ? { prefix: () => h("span", { class: "prefix" }, prefix) } : {}),
+      ...(suffix ? { suffix: () => h("span", { class: "suffix" }, suffix) } : {}),
+    });
+    const grouped = (id, text, input) => h(InputGroup, { id }, { default: () => h(Input, input), ...affixes(text) });
+    createApp({
+      render: () => [
+        h("button", { id: "before" }, "Before"),
+        h("form", { id: "form" }, [
+          h("label", { id: "site-label", for: "site" }, "Website"),
+          grouped("g-site", { prefix: "https://" }, {
+            id: "site", name: "site", modelValue: site.value, "onUpdate:modelValue": (value) => { site.value = value; },
+            autocomplete: "url", "aria-describedby": "site-hint", "data-testid": "site", ref: siteRef,
+            onInput: () => log.push("input"), onBlur: () => log.push("blur"),
+          }),
+          h("p", { id: "site-hint" }, "Your public address."),
+          grouped("g-sub", { suffix: ".example.com" }, { id: "sub", name: "sub", "aria-label": "Subdomain", required: true }),
+          grouped("g-both", { prefix: "https://", suffix: ".example.com" }, { id: "both", name: "both", "aria-label": "Both" }),
+          h(Input, { id: "plain", name: "plain", "aria-label": "Plain" }),
+        ]),
+        grouped("g-invalid", { suffix: ".example.com" }, { id: "invalid", invalid: true, "aria-label": "Invalid" }),
+        grouped("g-disabled", { suffix: ".example.com" }, { id: "disabled", disabled: true, "aria-label": "Disabled" }),
+        grouped("g-readonly", { suffix: ".example.com" }, { id: "readonly", readonly: true, value: "fixed", "aria-label": "Read only" }),
+        h(Input, { id: "plain-invalid", invalid: true, "aria-label": "Plain invalid" }),
+        h(Input, { id: "plain-disabled", disabled: true, "aria-label": "Plain disabled" }),
+        h(FormField, { id: "field" }, {
+          label: () => h("label", "Workspace"),
+          default: () => grouped(undefined, { suffix: ".example.com" }, { id: "ff", name: "ff" }),
+          help: () => h("span", "Letters and hyphens."),
+        }),
+        h("div", { dir: "rtl", style: "width: 375px" }, [
+          grouped("g-rtl", { prefix: "https://", suffix: ".example.com" }, { id: "rtl", "aria-label": "RTL", value: ${JSON.stringify(long)} }),
+        ]),
+        grouped(undefined, { suffix: ".example.com" }, { id: "auto", "aria-label": "Autofocus", autofocus: true }),
+      ],
+    }).mount("#app");
+  `;
+
+  const style = (page: Page, selector: string, property: string) =>
+    page.locator(selector).evaluate((element, name) => getComputedStyle(element).getPropertyValue(name), property);
+  const active = (page: Page) => page.evaluate(() => document.activeElement?.id ?? "");
+  const box = async (page: Page, selector: string) => (await page.locator(selector).boundingBox())!;
+  const entries = (page: Page) => page.locator("#form").evaluate((form) =>
+    Array.from(new FormData(form as HTMLFormElement), ([name, value]) => [name, String(value)]));
+
+  // The accessibility tree Chromium gives assistive technology: each textbox's name and description.
+  async function textboxes(page: Page) {
+    const client = await page.context().newCDPSession(page);
+    const { nodes } = await client.send("Accessibility.getFullAXTree");
+    await client.detach();
+    return Object.fromEntries(nodes
+      .filter((node) => node.role?.value === "textbox" && !node.ignored)
+      .map((node) => [String(node.name?.value ?? ""), String(node.description?.value ?? "")]));
+  }
+
+  async function checkInputGroup(page: Page) {
+    await page.waitForFunction(() => document.querySelector("#ff")?.getAttribute("aria-describedby")?.split(" ").length === 2, undefined, { timeout: 3000 })
+      .catch(async () => assert.fail(await page.locator("#field").evaluate((element) => element.outerHTML)));
+    assert.equal(await active(page), "auto", "autofocus lands on the inner input");
+
+    // Without an affix, Input is the bare native input it always was.
+    assert.equal(await page.locator("#plain").evaluate((element) => `${element.localName} in ${element.parentElement?.id}`), "input in form");
+    assert.equal(await style(page, "#plain", "border-top-width"), "1px");
+
+    // One box: the group draws the Input's border, and the input inside draws none.
+    assert.equal(await style(page, "#g-site", "border-top-width"), "1px");
+    assert.equal(await style(page, "#g-site", "border-top-color"), await style(page, "#plain", "border-top-color"));
+    assert.equal(await style(page, "#g-site", "border-radius"), await style(page, "#plain", "border-radius"));
+    assert.equal(await style(page, "#g-site", "background-color"), await style(page, "#plain", "background-color"));
+    assert.equal(await style(page, "#site", "background-color"), "rgba(0, 0, 0, 0)");
+    assert.equal((await box(page, "#g-site")).height, (await box(page, "#plain")).height, "the group is an Input's height");
+
+    // Attributes land on the inner input; FormData holds its value, never an affix.
+    const site = page.locator("#site");
+    assert.equal(await site.evaluate((element) => element.localName), "input");
+    assert.equal(await site.getAttribute("autocomplete"), "url");
+    assert.equal(await site.getAttribute("data-testid"), "site");
+    assert.equal(await page.locator("#sub").evaluate((element) => (element as HTMLInputElement).required), true);
+    assert.deepEqual(await entries(page), [["site", "example.com"], ["sub", ""], ["both", ""], ["plain", ""]]);
+    await page.locator("#sub").fill("my-team");
+    assert.deepEqual(await entries(page), [["site", "example.com"], ["sub", "my-team"], ["both", ""], ["plain", ""]]);
+
+    // The name stays the label; the affix is the description, before the consumer's own and a Form Field's help.
+    const tree = await textboxes(page);
+    assert.equal(tree["Website"], "https:// Your public address.");
+    assert.equal(tree["Subdomain"], ".example.com");
+    assert.equal(tree["Both"], "https:// .example.com");
+    assert.equal(tree["Workspace"], ".example.com Letters and hyphens.");
+    assert.equal(tree["Plain"], "");
+    assert.equal(await page.locator("#g-site .affix").first().getAttribute("aria-hidden"), "true");
+
+    // Exactly one tab stop per field, the inner input, in DOM order both ways.
+    assert.equal(await page.locator("[data-component~='ui-input-group'][tabindex], [data-component~='ui-input-group'] span[tabindex]").count(), 0);
+    await page.locator("#before").focus();
+    const forward = [];
+    for (let step = 0; step < 4; step += 1) {
+      await page.keyboard.press("Tab");
+      forward.push(await active(page));
+    }
+    assert.deepEqual(forward, ["site", "sub", "both", "plain"]);
+    const backward = [];
+    for (let step = 0; step < 4; step += 1) {
+      await page.keyboard.press("Shift+Tab");
+      backward.push(await active(page));
+    }
+    assert.deepEqual(backward, ["both", "sub", "site", "before"]);
+
+    // The ring is the plain Input's, shown when the inner input is focus-visible, by keyboard or pointer.
+    await page.locator("#before").focus();
+    await page.keyboard.press("Tab");
+    await page.keyboard.press("Tab");
+    await page.keyboard.press("Tab");
+    await page.keyboard.press("Tab");
+    assert.equal(await active(page), "plain");
+    await page.waitForTimeout(250);
+    const ring = { border: await style(page, "#plain", "border-top-color"), shadow: await style(page, "#plain", "box-shadow") };
+    await page.locator("#site").click();
+    await page.waitForTimeout(250);
+    assert.deepEqual({ border: await style(page, "#g-site", "border-top-color"), shadow: await style(page, "#g-site", "box-shadow") }, ring);
+    assert.equal(await style(page, "#site", "outline-style"), "none");
+    await page.emulateMedia({ forcedColors: "active" });
+    assert.equal(await style(page, "#g-site", "outline-style"), "solid");
+    assert.equal(await style(page, "#g-site", "outline-width"), "2px");
+    await page.locator("#plain").focus();
+    assert.equal(await style(page, "#plain", "outline-style"), "solid");
+    await page.emulateMedia({ forcedColors: "none" });
+
+    // Hover matches the plain Input's.
+    await page.locator("#before").focus();
+    await page.locator("#plain").hover();
+    await page.waitForTimeout(250);
+    const hover = await style(page, "#plain", "border-top-color");
+    await page.locator("#g-sub .suffix").hover();
+    await page.waitForTimeout(250);
+    assert.equal(await style(page, "#g-sub", "border-top-color"), hover);
+
+    // A click on an affix focuses the input, selects nothing, and leaves a focused input's caret alone.
+    await page.locator("#before").focus();
+    await page.locator("#g-both .prefix").click();
+    assert.equal(await active(page), "both");
+    await page.locator("#both").fill("docs");
+    await page.locator("#both").evaluate((input) => (input as HTMLInputElement).setSelectionRange(2, 2));
+    await page.locator("#g-both .suffix").click();
+    assert.equal(await active(page), "both");
+    assert.deepEqual(await page.locator("#both").evaluate((input) => [(input as HTMLInputElement).selectionStart, (input as HTMLInputElement).selectionEnd]), [2, 2]);
+    await page.locator("#g-both .suffix").dblclick();
+    assert.equal(await page.evaluate(() => window.getSelection()?.toString() ?? ""), "");
+    assert.equal(await page.locator("#both").inputValue(), "docs");
+    await page.locator("#before").focus();
+    await page.locator("#g-sub .suffix").tap();
+    assert.equal(await active(page), "sub", "a tap focuses the input too");
+
+    // Labels target the inner input, from outside and from a Form Field.
+    await page.locator("#before").focus();
+    await page.locator("#site-label").click();
+    assert.equal(await active(page), "site");
+    await page.locator("#field label").click();
+    assert.equal(await active(page), "ff");
+    await page.locator("#site").evaluate((input) => (input as HTMLInputElement).blur());
+    await page.locator("#site").evaluate((input) => (input as HTMLInputElement).focus());
+    assert.equal(await active(page), "site");
+
+    // Paste and composed text act on the inner input.
+    await page.locator("#sub").fill("");
+    await page.locator("#plain").fill("pasted");
+    await page.locator("#plain").selectText();
+    await page.keyboard.press("ControlOrMeta+C");
+    await page.locator("#plain").fill("");
+    await page.locator("#sub").focus();
+    await page.keyboard.press("ControlOrMeta+V");
+    await page.keyboard.insertText("-text");
+    assert.equal(await page.locator("#sub").inputValue(), "pasted-text");
+
+    // Invalid, disabled, and read-only look and behave as a plain Input's.
+    assert.equal(await style(page, "#g-invalid", "border-top-color"), await style(page, "#plain-invalid", "border-top-color"));
+    assert.equal(await style(page, "#g-disabled", "background-color"), await style(page, "#plain-disabled", "background-color"));
+    assert.equal(await style(page, "#g-disabled", "cursor"), "not-allowed");
+    await page.locator("#before").focus();
+    await page.locator("#g-disabled .suffix").click({ force: true });
+    assert.equal(await active(page), "before");
+    await page.locator("#g-readonly .suffix").click();
+    assert.equal(await active(page), "readonly");
+    await page.keyboard.type("x");
+    assert.equal(await page.locator("#readonly").inputValue(), "fixed");
+
+    // At 375px, right to left: the prefix leads on the right, both affixes stay in the box, and the
+    // long value scrolls inside the input.
+    const [group, prefix, input, suffix] = await Promise.all(
+      ["#g-rtl", "#g-rtl .prefix", "#rtl", "#g-rtl .suffix"].map((selector) => box(page, selector)));
+    assert.ok(prefix.x > input.x && input.x > suffix.x, "prefix, input, suffix run right to left");
+    assert.ok(suffix.x >= group.x && prefix.x + prefix.width <= group.x + group.width, "the affixes stay in the box");
+    assert.equal(group.width, 375);
+    assert.ok(await page.locator("#rtl").evaluate((element) => element.scrollWidth > element.clientWidth), "the value scrolls");
+  }
+
+  const touch = { hasTouch: true };
+
+  it("focuses, describes, and submits like a lone Input, in HTML", async () => {
+    const path = await bundle("html-input-group-behavior", `import "@threadlabs/looma";`);
+    const page = await open(path, html, [join(root, "tokens.css")], touch);
+    await checkInputGroup(page);
+    await page.close();
+  });
+
+  it("focuses, describes, and submits like a lone Input, in Vue", async () => {
+    const path = await bundle("vue-input-group-behavior", vue);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")], touch);
+    await checkInputGroup(page);
+
+    // v-model, listeners, and a template ref reach the inner input.
+    type Window = { site: { value: string }; log: string[]; siteRef: { value: { $el: HTMLInputElement } } };
+    await page.locator("#site").fill("docs.example.com");
+    await page.locator("#before").focus();
+    assert.equal(await page.evaluate(() => (window as unknown as Window).site.value), "docs.example.com");
+    assert.deepEqual([...new Set(await page.evaluate(() => (window as unknown as Window).log))].sort(), ["blur", "input"]);
+    await page.evaluate(() => (window as unknown as Window).siteRef.value.$el.focus());
+    assert.equal(await active(page), "site");
+    await page.close();
+  });
+});
+
 
 describe("Button touch target", () => {
   it("takes a press within the control minimum under touch, link-style included", async () => {
@@ -743,6 +1141,142 @@ describe("List item", () => {
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
     await checkItem(page);
+    await page.close();
+  });
+});
+
+describe("Nav item", () => {
+  const longDescription = "A description long enough that it cannot fit on one line of a narrow rail and must end in an ellipsis";
+
+  // A colour as the page computes it, for comparing with a computed style.
+  const resolveColor = (page: Page, color: string) => page.evaluate((value) => {
+    const probe = document.body.appendChild(document.createElement("i"));
+    probe.style.color = value;
+    const computed = getComputedStyle(probe).color;
+    probe.remove();
+    return computed;
+  }, color);
+
+  async function checkNavItem(page: Page) {
+    await page.locator("#page").waitFor();
+    const box = async (selector: string) => (await page.locator(selector).boundingBox())!;
+    const near = (a: number, b: number, what: string) => assert.ok(Math.abs(a - b) <= 1, `${what}: ${a} vs ${b}`);
+
+    // current states aria-current: the page by default, or the kind of place asked for.
+    assert.equal(await page.locator("#page").getAttribute("aria-current"), "page");
+    assert.equal(await page.locator("#step").getAttribute("aria-current"), "step");
+    assert.equal(await page.locator("#other").getAttribute("aria-current"), null);
+
+    // The current item carries a solid bar on its start edge, inset from its top and bottom.
+    const checkBar = async (id: string, edge: "start" | "end") => {
+      const item = await box(`#${id}`);
+      const bar = await box(`#${id} .indicator`);
+      near(bar.width, 3, `${id}: the bar is 3px wide`);
+      if (edge === "start") near(bar.x, item.x, `${id}: the bar is on the left edge`);
+      else near(bar.x + bar.width, item.x + item.width, `${id}: the bar is on the right edge`);
+      assert.ok(bar.y > item.y && bar.y + bar.height < item.y + item.height && bar.height > 0, `${id}: the bar is inset vertically`);
+    };
+    await checkBar("page", "start");
+    assert.equal(await page.locator("#other .indicator").isVisible(), false, "an item that is not current has no bar");
+    const look = (id: string) => page.locator(id).evaluate((element) => {
+      const style = getComputedStyle(element);
+      const bar = getComputedStyle(element.querySelector(".indicator")!);
+      return { surface: style.backgroundColor, weight: Number(style.fontWeight), bar: bar.borderInlineStartColor, barStyle: bar.borderInlineStartStyle };
+    });
+    const [current, other] = [await look("#page"), await look("#other")];
+    assert.notEqual(current.surface, other.surface, "the current item takes the selected surface");
+    assert.ok(current.weight > other.weight, "the current label is stronger");
+    assert.equal(current.barStyle, "solid");
+    assert.equal(current.bar, await resolveColor(page, "var(--ui-accent)"), "the bar is the accent colour");
+
+    // In a right-to-left page the bar mirrors to the right edge.
+    await checkBar("rtl", "end");
+
+    // A link item is a real link: it navigates, and target and rel reach it.
+    const link = page.locator("#other");
+    assert.equal(await link.evaluate((element) => element.localName), "a");
+    assert.equal(await link.getAttribute("type"), null);
+    assert.equal(await page.locator("#page").getAttribute("target"), "_self");
+    assert.equal(await page.locator("#page").getAttribute("rel"), "bookmark");
+    assert.equal(await page.getByRole("link", { name: "Invoices" }).count(), 1);
+    await link.click();
+    await page.waitForFunction(() => location.hash === "#invoices");
+
+    // A button item is a button that never submits, and fires its click.
+    const button = page.locator("#view");
+    assert.equal(await button.evaluate((element) => element.localName), "button");
+    assert.equal(await button.getAttribute("type"), "button");
+    await button.click();
+    assert.equal(await page.evaluate(() => (window as unknown as { clicks: number }).clicks), 1);
+
+    // Keyboard focus shows a ring, and Enter presses the focused item.
+    await page.locator("#other").focus();
+    await page.keyboard.press("Tab");
+    assert.equal(await page.evaluate(() => document.activeElement?.id), "view");
+    const ring = await button.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { visible: element.matches(":focus-visible"), outline: `${style.outlineStyle} ${style.outlineWidth}` };
+    });
+    assert.deepEqual(ring, { visible: true, outline: "solid 2px" });
+    await page.keyboard.press("Enter");
+    assert.equal(await page.evaluate(() => (window as unknown as { clicks: number }).clicks), 2);
+
+    // Label and description are one line each, ending in an ellipsis.
+    const lines = await page.locator("#long").evaluate((element) => [".label", ".description"].map((part) => {
+      const region = element.querySelector(part) as HTMLElement;
+      const style = getComputedStyle(region);
+      return { overflowing: region.scrollWidth > region.clientWidth, ellipsis: style.textOverflow, wrap: style.whiteSpace };
+    }));
+    assert.deepEqual(lines[1], { overflowing: true, ellipsis: "ellipsis", wrap: "nowrap" });
+    assert.deepEqual([lines[0].ellipsis, lines[0].wrap], ["ellipsis", "nowrap"]);
+
+    // Forced colors drop backgrounds; the bar is a border, so it stays, in the system highlight.
+    await page.emulateMedia({ forcedColors: "active" });
+    await checkBar("page", "start");
+    const forced = await page.locator("#page .indicator").evaluate((element) => getComputedStyle(element).borderInlineStartColor);
+    assert.equal(forced, await resolveColor(page, "Highlight"), "the bar takes the system highlight colour");
+    await page.emulateMedia({ forcedColors: "none" });
+  }
+
+  it("marks the current item with a start-edge bar and works as a link or a button, in HTML", async () => {
+    const path = await bundle("html-nav-item", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <script>window.clicks = 0;</script>
+      <nav aria-label="Main" style="width: 240px">
+        <ui-list>
+          <li><ui-nav-item id="page" as="a" href="#shipments" target="_self" rel="bookmark" current><span slot="leading">*</span>Shipments</ui-nav-item></li>
+          <li><ui-nav-item id="other" as="a" href="#invoices">Invoices</ui-nav-item></li>
+          <li><ui-nav-item id="view" onclick="window.clicks += 1">Overview</ui-nav-item></li>
+          <li><ui-nav-item id="step" current="step">Team</ui-nav-item></li>
+          <li><ui-nav-item id="long">Customer<span slot="description">${longDescription}</span></ui-nav-item></li>
+        </ui-list>
+      </nav>
+      <nav aria-label="RTL" dir="rtl" style="width: 240px"><ui-nav-item id="rtl" current>Shipments</ui-nav-item></nav>`,
+    [join(root, "tokens.css")]);
+    await page.waitForSelector('#long[data-component~="ui-nav-item"]');
+    await checkNavItem(page);
+    await page.close();
+  });
+
+  it("marks the current item with a start-edge bar and works as a link or a button, in Vue", async () => {
+    const path = await bundle("vue-nav-item", `
+      import { createApp, h } from "vue";
+      import { List, NavItem } from "@threadlabs/looma/vue";
+      window.clicks = 0;
+      const item = (props, slots) => h("li", [h(NavItem, props, slots)]);
+      createApp({ render: () => [
+        h("nav", { "aria-label": "Main", style: "width: 240px" }, [h(List, null, () => [
+          item({ id: "page", as: "a", href: "#shipments", target: "_self", rel: "bookmark", current: true }, { leading: () => h("span", "*"), default: () => "Shipments" }),
+          item({ id: "other", as: "a", href: "#invoices" }, () => "Invoices"),
+          item({ id: "view", onClick: () => { window.clicks += 1; } }, () => "Overview"),
+          item({ id: "step", current: "step" }, () => "Team"),
+          item({ id: "long" }, { default: () => "Customer", description: () => h("span", ${JSON.stringify(longDescription)}) }),
+        ])]),
+        h("nav", { "aria-label": "RTL", dir: "rtl", style: "width: 240px" }, [h(NavItem, { id: "rtl", current: true }, () => "Shipments")]),
+      ] }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await checkNavItem(page);
     await page.close();
   });
 });
@@ -1169,6 +1703,8 @@ describe("Vue form controls", () => {
     const fontSize = (selector: string) => page.locator(selector).evaluate((element) => getComputedStyle(element).fontSize);
     assert.equal(await fontSize("#topic-label"), "14px");
     assert.equal(await fontSize("#topic-help"), "14px");
+    // A named slot in Vue has no slot attribute; the field still links its help to the control.
+    assert.equal(await select.getAttribute("aria-describedby"), "topic-help");
     await page.close();
   });
 });
@@ -1456,7 +1992,8 @@ describe("Button tone and disabled", () => {
         color: style.color,
         border: style.borderTopColor,
         opacity: style.opacity,
-        shadow: style.boxShadow
+        shadow: style.boxShadow,
+        filter: style.filter
       };
     });
 
@@ -1472,7 +2009,7 @@ describe("Button tone and disabled", () => {
     const solid = await paint("solid");
     assert.equal(solid.background, accent.border, "solid fills with the outline's tone");
 
-    // Disabled keeps the shape and a trace of the tone, and stops looking raised.
+    // Disabled keeps the shape and a trace of the tone, washes out, and stops looking raised.
     const off = await paint("off");
     const offDanger = await paint("off-danger");
     const offSolid = await paint("off-solid");
@@ -1481,7 +2018,8 @@ describe("Button tone and disabled", () => {
     assert.notEqual(off.border, off.background, "a disabled outline is still an outline");
     assert.equal(offSolid.border, offSolid.background, "a disabled solid is still filled");
     assert.notEqual(offDanger.border, off.border, "a disabled button still says which action it was");
-    assert.notEqual(off.border, accent.border, "and it no longer reads as available");
+    assert.equal(off.filter, "saturate(0.2) contrast(0.75) brightness(1.25)", "and it is washed out, so it no longer reads as available");
+    assert.equal(accent.filter, "none", "an available button is not");
 
     // A disabled ghost states itself with a surface, but a wash of its tone, as hover is: an opaque
     // mix toward the ink came out a mid-grey slab for neutral, louder than the enabled button.
@@ -1653,6 +2191,9 @@ describe("LoomaEditor", () => {
     const slash = page.locator('[data-component="ui-editor-slash-menu"]');
     await slash.locator('[role="option"]').first().waitFor();
     assert.ok(await slash.locator('[role="option"]').count() > 3, "slash menu lists blocks");
+    const blank = await slash.locator('[role="option"]').evaluateAll((options) =>
+      options.filter((option) => !option.querySelector(".icon svg > *")).map((option) => option.textContent?.trim()));
+    assert.deepEqual(blank, [], "every block's icon draws");
     await page.close();
   });
 });
@@ -2101,6 +2642,7 @@ describe("Form participation", () => {
     <form id="form">
       <ui-input id="title" name="title" value="Draft"></ui-input>
       <ui-input name="off-input" value="Hidden" disabled></ui-input>
+      <ui-input-group><span slot="prefix">https://</span><ui-input id="site" name="site" value="docs"></ui-input><span slot="suffix">.example.com</span></ui-input-group>
       <ui-textarea id="body" name="body" value="Hello"></ui-textarea>
       <ui-select id="topic" name="topic" value="help">${topics}</ui-select>
       <ui-checkbox id="agree" name="agree" value="yes">Agree</ui-checkbox>
@@ -2129,7 +2671,7 @@ describe("Form participation", () => {
   `;
   const vue = `
     import { createApp, h } from "vue";
-    import { Checkbox, Combobox, Editable, Input, Radio, RadioGroup, Select, Switch, Textarea } from "@threadlabs/looma/vue";
+    import { Checkbox, Combobox, Editable, Input, InputGroup, Radio, RadioGroup, Select, Switch, Textarea } from "@threadlabs/looma/vue";
     const list = (pairs) => () => pairs.map(([value, label]) => h("option", { value }, label));
     const fruit = list([["apple", "Apple"], ["pear", "Pear"]]);
     const tags = list([["alpha", "Alpha"], ["beta", "Beta"]]);
@@ -2139,6 +2681,7 @@ describe("Form participation", () => {
         h("form", { id: "form" }, [
           h(Input, { id: "title", name: "title", value: "Draft" }),
           h(Input, { name: "off-input", value: "Hidden", disabled: true }),
+          h(InputGroup, null, { prefix: text("https://"), default: () => h(Input, { id: "site", name: "site", value: "docs" }), suffix: text(".example.com") }),
           h(Textarea, { id: "body", name: "body", value: "Hello" }),
           h(Select, { id: "topic", name: "topic", value: "help" }, list([["problem", "Problem"], ["help", "Help"]])),
           h(Checkbox, { id: "agree", name: "agree", value: "yes" }, text("Agree")),
@@ -2171,11 +2714,11 @@ describe("Form participation", () => {
   // Defaults: unchecked boxes, disabled controls, the multiple combobox with nothing chosen, and the
   // in-place editor (which has no form value by design) send nothing.
   const initial = [
-    ["title", "Draft"], ["body", "Hello"], ["topic", "help"], ["news", "weekly"], ["size", "m"], ["plan", "pro"],
+    ["title", "Draft"], ["site", "docs"], ["body", "Hello"], ["topic", "help"], ["news", "weekly"], ["size", "m"], ["plan", "pro"],
     ["fruit", ""], ["city", ""], ["country", "no"],
   ];
   const chosen = [
-    ["title", "Final"], ["body", "Hi there"], ["topic", "problem"], ["agree", "yes"], ["alerts", "push"], ["size", "s"],
+    ["title", "Final"], ["site", "wiki"], ["body", "Hi there"], ["topic", "problem"], ["agree", "yes"], ["alerts", "push"], ["size", "s"],
     ["plan", "free"], ["fruit", "pear"], ["tags", "alpha"], ["tags", "beta"], ["city", "Oslo"], ["country", "no"],
   ];
   const entries = (page: Page, form = "#form") => page.locator(form).evaluate((element) =>
@@ -2199,6 +2742,7 @@ describe("Form participation", () => {
     assert.deepEqual(await entries(page), initial);
 
     await page.locator("#title").fill("Final");
+    await page.locator("#site").fill("wiki");
     await page.locator("#body").fill("Hi there");
     await page.locator("#topic").selectOption("problem");
     await page.locator("#agree input").check();
@@ -2248,6 +2792,92 @@ describe("Form participation", () => {
     const path = await bundle("vue-form-participation", vue);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
     await exercise(page);
+    await page.close();
+  });
+});
+
+describe("Sidebar", () => {
+  type Probe = { toggles: unknown[]; resizes: unknown[] };
+  const probe = (page: Page) => page.evaluate(() => (window as unknown as { probe: Probe }).probe);
+  const watchErrors = (page: Page) => {
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    return errors;
+  };
+
+  // Below its breakpoint the sidebar is a popover drawer; the invoker opens and closes it, and each
+  // change is one toggle event, not a loop through the popover's own toggle event of the same name.
+  async function checkDrawer(page: Page) {
+    await page.setViewportSize({ width: 375, height: 700 });
+    await page.locator("#nav[popover]").waitFor({ state: "attached" });
+    const errors = watchErrors(page);
+    await page.locator("#menu").click();
+    await page.locator("#nav").waitFor({ state: "visible" });
+    await page.waitForTimeout(50);
+    // The open drawer covers the invoker, as it would a phone's menu button; activate it directly.
+    await page.locator("#menu").evaluate((button) => (button as HTMLButtonElement).click());
+    await page.locator("#nav").waitFor({ state: "hidden" });
+    await page.waitForTimeout(50);
+    assert.deepEqual(errors, []);
+    assert.deepEqual((await probe(page)).toggles, [
+      { open: true, mode: "drawer", trigger: "programmatic" },
+      { open: false, mode: "drawer", trigger: "programmatic" },
+    ]);
+  }
+
+  it("opens and closes as a drawer, announcing each change once, in HTML", async () => {
+    const path = await bundle("html-sidebar-drawer", `
+      import "@threadlabs/looma";
+      window.probe = { toggles: [], resizes: [] };
+      document.getElementById("nav").addEventListener("toggle", (event) => {
+        if (event instanceof CustomEvent) window.probe.toggles.push(event.detail);
+      });
+    `);
+    const page = await open(path, `
+      <button id="menu" commandfor="nav" command="--toggle">Menu</button>
+      <ui-sidebar id="nav" aria-label="Workspace"><a href="#inbox">Inbox</a></ui-sidebar>
+    `, [join(root, "tokens.css")]);
+    await checkDrawer(page);
+    await page.close();
+  });
+
+  it("opens and closes as a drawer, announcing each change once, in Vue", async () => {
+    const path = await bundle("vue-sidebar-drawer", `
+      import { createApp, h } from "vue";
+      import { Sidebar } from "@threadlabs/looma/vue";
+      window.probe = { toggles: [], resizes: [] };
+      createApp({ render: () => [
+        h("button", { id: "menu", commandfor: "nav", command: "--toggle" }, "Menu"),
+        h(Sidebar, { id: "nav", "aria-label": "Workspace", width: 256, onToggle: (detail) => window.probe.toggles.push(detail) },
+          () => h("a", { href: "#inbox" }, "Inbox")),
+      ] }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await checkDrawer(page);
+    await page.close();
+  });
+
+  it("takes its docked width from the width prop, in Vue", async () => {
+    const path = await bundle("vue-sidebar-width", `
+      import { createApp, h, ref } from "vue";
+      import { Sidebar } from "@threadlabs/looma/vue";
+      window.probe = { toggles: [], resizes: [] };
+      const width = ref(256);
+      window.width = width;
+      createApp({ render: () => h(Sidebar, {
+        id: "nav", "aria-label": "Workspace", width: width.value, resizable: true,
+        onResize: (detail) => window.probe.resizes.push(detail),
+      }, () => h("a", { href: "#inbox" }, "Inbox")) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const errors = watchErrors(page);
+    const width = () => page.locator("#nav").evaluate((element) => element.getBoundingClientRect().width);
+    assert.equal(await width(), 256);
+    await page.evaluate(() => { (window as unknown as { width: { value: number } }).width.value = 300; });
+    await page.waitForTimeout(50);
+    assert.equal(await width(), 300);
+    assert.deepEqual(errors, []);
+    assert.deepEqual((await probe(page)).resizes, [{ width: 256, trigger: "programmatic" }, { width: 300, trigger: "programmatic" }]);
     await page.close();
   });
 });

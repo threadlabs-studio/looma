@@ -5,7 +5,7 @@
       assistive technology, so name the control it sits in.</prop>
     <state
       name="shapes"
-      type="list(object({ tag: path | circle | rect, d?: string, cx?: string, cy?: string, r?: string, x?: string, y?: string, width?: string, height?: string, rx?: string }))"
+      type="list(object({ tag: path | circle | rect | line, d?: string, cx?: string, cy?: string, r?: string, x?: string, y?: string, width?: string, height?: string, rx?: string, x1?: string, x2?: string, y1?: string, y2?: string }))"
       :value="[]"
     ></state>
   </defs>
@@ -15,6 +15,7 @@
         <path $if="shape.tag = 'path'" :d="shape.d"></path>
         <circle $if="shape.tag = 'circle'" :cx="shape.cx" :cy="shape.cy" :r="shape.r"></circle>
         <rect $if="shape.tag = 'rect'" :x="shape.x" :y="shape.y" :width="shape.width" :height="shape.height" :rx="shape.rx"></rect>
+        <line $if="shape.tag = 'line'" :x1="shape.x1" :x2="shape.x2" :y1="shape.y1" :y2="shape.y2"></line>
       </g>
     </svg>
   </span>
