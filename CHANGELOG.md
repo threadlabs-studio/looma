@@ -2,6 +2,12 @@
 
 ## v0.13.4
 
+- New icon: `help` (Lucide's circle-help), for `<ui-icon name="help">`. Icon Button sizes a slotted
+  `ui-icon` the way it sizes a slotted `svg`, at every size; it drew at the text size before. Icon
+  Button documents the help toggletip: a round ghost Icon Button labelled for what it explains, with
+  the help icon, and a `ui-tooltip trigger="click"` for it.
+- Cluster takes `justify` (`start`, `center`, `end`, `between`), as Stack does, so a row can push a
+  title and its actions to opposite ends.
 - Docs: styling guidance no longer selects `data-component`. It is a marker a runtime renders, an
   implementation detail that differs by target, not API. Set a component's hooks through a class of your own on it,
   and make a product-wide default in a component of your own that wraps Looma's. A rule test keeps
