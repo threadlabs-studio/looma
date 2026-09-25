@@ -1,29 +1,16 @@
 import type { Meta, StoryObj } from "@storybook/web-components-vite";
-import {
-  createComponentArgTypes,
-  createComponentDocsParameters
-} from "../shared/componentApi";
+import { createComponentArgTypes, createComponentDocsParameters } from "../shared/componentApi";
+import { renderAllExamples, renderExample } from "../shared/examples";
 
 const meta = {
   title: "Layout/Grid",
   tags: ["autodocs"],
   argTypes: createComponentArgTypes("ui-grid"),
   parameters: createComponentDocsParameters("ui-grid"),
-  render: ({ gap, min }) => `
-    <ui-grid gap="${gap}" min="${min}">
-      <article style="padding: 1rem; border: 1px solid var(--ui-border-default);">Card A</article>
-      <article style="padding: 1rem; border: 1px solid var(--ui-border-default);">Card B</article>
-      <article style="padding: 1rem; border: 1px solid var(--ui-border-default);">Card C</article>
-    </ui-grid>
-  `
+  render: (args) => renderExample("ui-grid", args)
 } satisfies Meta;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
-
-export const Default: Story = {
-  args: {
-    gap: "m",
-    min: "md"
-  }
-};
+export const Default: Story = {};
+export const Examples: Story = { render: () => renderAllExamples("ui-grid") };

@@ -1,0 +1,10 @@
+<!--
+title: Empty, loading, and error
+description: The one way a view says it has nothing yet, is loading, or failed. An empty view offers its next step.
+-->
+<ui-stack gap="s">
+  <ui-status-message heading="No pages yet">Pages you create appear here.<ui-button slot="action" size="sm" variant="solid"
+    >Create a page</ui-button></ui-status-message>
+  <ui-status-message kind="loading">Loading pages…</ui-status-message>
+  <ui-status-message kind="error">Activity could not be loaded.</ui-status-message>
+</ui-stack>

@@ -23,7 +23,7 @@ export default function controller(host) {
   input.addEventListener("change", onChange);
   const stopReset = afterFormReset(input, () => {
     // Inside a ui-radio-group the group's value decides, whichever reset runs first.
-    if (input.closest('[data-component~="ui-radio-group"]')) return;
+    if (input.closest('[role="radiogroup"]')) return;
     host.state.internalChecked = Boolean(external);
     input.checked = Boolean(external);
   });

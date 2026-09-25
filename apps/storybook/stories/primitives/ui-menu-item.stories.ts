@@ -1,27 +1,16 @@
 import type { Meta, StoryObj } from "@storybook/web-components-vite";
-import {
-  createComponentArgTypes,
-  createComponentDocsParameters
-} from "../shared/componentApi";
+import { createComponentArgTypes, createComponentDocsParameters } from "../shared/componentApi";
+import { renderAllExamples, renderExample } from "../shared/examples";
 
 const meta = {
   title: "Overlay/Menu Item",
   tags: ["autodocs"],
   argTypes: createComponentArgTypes("ui-menu-item"),
   parameters: createComponentDocsParameters("ui-menu-item"),
-  render: ({ value, disabled }) => `
-    <ui-menu role="menu" aria-label="Single item menu">
-      <ui-menu-item value="${value}" ${disabled ? "disabled" : ""}>${value}</ui-menu-item>
-    </ui-menu>
-  `
+  render: (args) => renderExample("ui-menu-item", args)
 } satisfies Meta;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
-
-export const Default: Story = {
-  args: {
-    value: "edit",
-    disabled: false
-  }
-};
+export const Default: Story = {};
+export const Examples: Story = { render: () => renderAllExamples("ui-menu-item") };

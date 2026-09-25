@@ -1,0 +1,37 @@
+<template component="ui-description-list">
+  <defs>
+    <prop name="layout" type="rows | tiles" default="rows"
+    >rows sets each term beside its value, one per line, for a short summary; tiles sets each pair on its own bordered tile in a grid, term above value, for
+      figures and facts to scan.</prop>
+  </defs>
+  <dl><slot></slot></dl>
+  <style>
+    /* Named values: a term and what it is, for each item (ui-description-item). */
+    /* Rows line every term up in one column and every value in the next, through subgrid. */
+    :host {
+      display: grid;
+      grid-template-columns: minmax(6rem, max-content) minmax(0, 1fr);
+      gap: var(--ui-space-2) var(--ui-space-6);
+      min-inline-size: 0;
+      margin: 0;
+    }
+
+    /* Tiles pass their shape to the items through private properties, which cross into each item. */
+    :host-state([layout="tiles"]) {
+      --_ui-description-display: flex;
+      --_ui-description-column: auto;
+      --_ui-description-align: flex-start;
+      --_ui-description-value-size: var(--ui-font-size-lg);
+      --_ui-description-padding: var(--ui-space-3);
+      --_ui-description-border-width: 1px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 10rem), 1fr));
+      gap: var(--ui-space-3);
+    }
+
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
+</template>

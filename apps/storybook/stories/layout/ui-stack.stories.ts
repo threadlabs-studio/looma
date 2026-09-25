@@ -1,30 +1,16 @@
 import type { Meta, StoryObj } from "@storybook/web-components-vite";
-import {
-  createComponentArgTypes,
-  createComponentDocsParameters
-} from "../shared/componentApi";
+import { createComponentArgTypes, createComponentDocsParameters } from "../shared/componentApi";
+import { renderAllExamples, renderExample } from "../shared/examples";
 
 const meta = {
   title: "Layout/Stack",
   tags: ["autodocs"],
   argTypes: createComponentArgTypes("ui-stack"),
   parameters: createComponentDocsParameters("ui-stack"),
-  render: ({ gap, align, justify }) => `
-    <ui-stack gap="${gap}" align="${align}" justify="${justify}">
-      <div>Header</div>
-      <div>Body</div>
-      <div>Footer</div>
-    </ui-stack>
-  `
+  render: (args) => renderExample("ui-stack", args)
 } satisfies Meta;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
-
-export const Default: Story = {
-  args: {
-    gap: "m",
-    align: "stretch",
-    justify: "start"
-  }
-};
+export const Default: Story = {};
+export const Examples: Story = { render: () => renderAllExamples("ui-stack") };

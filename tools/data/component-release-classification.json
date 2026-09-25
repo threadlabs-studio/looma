@@ -17,11 +17,24 @@
       "status": "published",
       "package": "@threadlabs/looma"
     },
+    "ui-breadcrumb-item": {
+      "status": "published",
+      "package": "@threadlabs/looma",
+      "navigationParent": "ui-breadcrumbs"
+    },
+    "ui-breadcrumbs": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
     "ui-button": {
       "status": "published",
       "package": "@threadlabs/looma"
     },
     "ui-callout": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-card": {
       "status": "published",
       "package": "@threadlabs/looma"
     },
@@ -42,6 +55,19 @@
       "package": "@threadlabs/looma"
     },
     "ui-context-menu": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-cover": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-description-item": {
+      "status": "published",
+      "package": "@threadlabs/looma",
+      "navigationParent": "ui-description-list"
+    },
+    "ui-description-list": {
       "status": "published",
       "package": "@threadlabs/looma"
     },
@@ -127,6 +153,10 @@
       "package": "@threadlabs/looma",
       "navigationParent": "ui-menu"
     },
+    "ui-page-header": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
     "ui-popover": {
       "status": "published",
       "package": "@threadlabs/looma"
@@ -156,6 +186,10 @@
       "status": "published",
       "package": "@threadlabs/looma"
     },
+    "ui-section": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
     "ui-select": {
       "status": "published",
       "package": "@threadlabs/looma"
@@ -168,7 +202,15 @@
       "status": "published",
       "package": "@threadlabs/looma"
     },
+    "ui-spinner": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
     "ui-stack": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-status-message": {
       "status": "published",
       "package": "@threadlabs/looma"
     },
@@ -181,6 +223,10 @@
       "package": "@threadlabs/looma"
     },
     "ui-tabs": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
+    "ui-text": {
       "status": "published",
       "package": "@threadlabs/looma"
     },

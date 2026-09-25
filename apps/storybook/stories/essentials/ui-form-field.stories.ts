@@ -1,32 +1,16 @@
 import type { Meta, StoryObj } from "@storybook/web-components-vite";
-import {
-  createComponentArgTypes,
-  createComponentDocsParameters
-} from "../shared/componentApi";
+import { createComponentArgTypes, createComponentDocsParameters } from "../shared/componentApi";
+import { renderAllExamples, renderExample } from "../shared/examples";
 
 const meta = {
   title: "Forms/Form Field",
   tags: ["autodocs"],
   argTypes: createComponentArgTypes("ui-form-field"),
   parameters: createComponentDocsParameters("ui-form-field"),
-  render: ({ required, disabled, invalid }) => `
-    <ui-form-field ${required ? "required" : ""} ${disabled ? "disabled" : ""} ${invalid ? "invalid" : ""}>
-      <label for="storybook-email">Email</label>
-      <ui-input>
-        <input id="storybook-email" name="email" type="email" />
-      </ui-input>
-      <small data-slot="help">Used only for account notifications.</small>
-    </ui-form-field>
-  `
+  render: (args) => renderExample("ui-form-field", args)
 } satisfies Meta;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
-
-export const Default: Story = {
-  args: {
-    required: true,
-    disabled: false,
-    invalid: false
-  }
-};
+export const Default: Story = {};
+export const Examples: Story = { render: () => renderAllExamples("ui-form-field") };

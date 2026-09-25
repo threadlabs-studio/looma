@@ -388,6 +388,78 @@ describe("Scroll area", () => {
   });
 });
 
+describe("View primitives", () => {
+  const markup = `
+    <ui-page-header id="header">Planning<span slot="description">Roadmaps and decisions.</span></ui-page-header>
+    <ui-section id="section" heading="Pinned"><ui-text id="text" tone="muted" size="sm">Edited 2h ago</ui-text></ui-section>
+    <ui-section id="bare"><ui-text>No heading</ui-text></ui-section>
+    <ui-status-message id="loading" kind="loading">Loading pages…</ui-status-message>
+    <ui-status-message id="failed" kind="error">Could not load.</ui-status-message>
+    <ui-breadcrumbs id="trail">
+      <ui-breadcrumb-item><a href="#home">Home</a></ui-breadcrumb-item>
+      <ui-breadcrumb-item current>Roadmap</ui-breadcrumb-item>
+    </ui-breadcrumbs>
+    <ui-description-list id="facts"><ui-description-item term="Role">Editor</ui-description-item></ui-description-list>
+    <ui-spinner id="spinner" label="Loading pages"></ui-spinner>`;
+
+  async function checkPrimitives(page: Page) {
+    await page.locator("#trail").waitFor();
+    // One h1 per header, an h2 per headed section, and none for a section without a heading.
+    assert.equal(await page.locator("#header h1").textContent(), "Planning");
+    assert.equal(await page.locator("#section h2").textContent(), "Pinned");
+    assert.equal(await page.locator("#bare h2:visible").count(), 0);
+    // Text is a paragraph in its tone, smaller than the text around it.
+    assert.equal(await page.locator("#text").evaluate((element) => element.tagName), "P");
+    // Loading is a polite status with a spinner; an error is an alert.
+    assert.equal(await page.locator("#loading").getAttribute("role"), "status");
+    assert.equal(await page.locator("#failed").getAttribute("role"), "alert");
+    assert.equal(await page.locator("#loading svg").count() > 0, true);
+    // A trail is a navigation landmark of an ordered list; the current step is marked; the first
+    // step has no separator before it.
+    assert.equal(await page.getByRole("navigation", { name: "Breadcrumb" }).count(), 1);
+    assert.equal(await page.locator("#trail ol li").count(), 2);
+    assert.equal(await page.locator('#trail li[aria-current="page"]').textContent().then((text) => text?.trim()), "Roadmap");
+    const separators = await page.locator("#trail li").evaluateAll((items) => items.map((item) => getComputedStyle(item.querySelector(".separator")!).display));
+    assert.deepEqual(separators.map((display) => display !== "none"), [false, true]);
+    // Named values are a description list of terms and definitions.
+    assert.equal(await page.locator("#facts").evaluate((element) => element.tagName), "DL");
+    assert.equal(await page.locator("#facts dt").textContent(), "Role");
+    assert.equal(await page.locator("#facts dd").textContent().then((text) => text?.trim()), "Editor");
+    // A labelled spinner is an announced status.
+    assert.equal(await page.getByRole("status", { name: "Loading pages" }).count(), 1);
+  }
+
+  it("give a view its structure and semantics, in HTML", async () => {
+    const path = await bundle("html-view-primitives", `import "@threadlabs/looma";`);
+    const page = await open(path, markup, [join(root, "tokens.css")]);
+    await checkPrimitives(page);
+    await page.close();
+  });
+
+  it("give a view its structure and semantics, in Vue", async () => {
+    const path = await bundle("vue-view-primitives", `
+      import { createApp, h } from "vue";
+      import { Breadcrumbs, BreadcrumbItem, DescriptionItem, DescriptionList, PageHeader, Section, Spinner, StatusMessage, Text } from "@threadlabs/looma/vue";
+      createApp({ render: () => [
+        h(PageHeader, { id: "header" }, { default: () => "Planning", description: () => "Roadmaps and decisions." }),
+        h(Section, { id: "section", heading: "Pinned" }, () => h(Text, { id: "text", tone: "muted", size: "sm" }, () => "Edited 2h ago")),
+        h(Section, { id: "bare" }, () => h(Text, null, () => "No heading")),
+        h(StatusMessage, { id: "loading", kind: "loading" }, () => "Loading pages…"),
+        h(StatusMessage, { id: "failed", kind: "error" }, () => "Could not load."),
+        h(Breadcrumbs, { id: "trail" }, () => [
+          h(BreadcrumbItem, null, () => h("a", { href: "#home" }, "Home")),
+          h(BreadcrumbItem, { current: true }, () => "Roadmap"),
+        ]),
+        h(DescriptionList, { id: "facts" }, () => h(DescriptionItem, { term: "Role" }, () => "Editor")),
+        h(Spinner, { id: "spinner", label: "Loading pages" }),
+      ] }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await checkPrimitives(page);
+    await page.close();
+  });
+});
+
 describe("List item", () => {
   const longTitle = "A title long enough that it cannot fit on one line of a narrow list and must end in an ellipsis";
 

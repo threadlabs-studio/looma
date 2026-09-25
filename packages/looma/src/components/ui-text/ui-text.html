@@ -1,0 +1,96 @@
+<template component="ui-text">
+  <defs>
+    <prop name="size" type="inherit | xs | sm | md | lg" default="inherit"
+    >The step on the type scale. inherit (the default) keeps the size of the text around it; xs is for fine print, sm for supporting text such as help and
+      metadata, md is body text, and lg is a lead paragraph.</prop>
+    <prop name="tone" type="default | secondary | muted | accent | danger | success" default="default"
+    >The text's colour, by meaning. secondary is supporting prose such as a description; muted is quieter still, for metadata and hints; accent draws the eye;
+      danger states an error; success confirms one.</prop>
+    <prop name="weight" type="inherit | normal | medium | semibold" default="inherit"
+    >The weight. inherit keeps the surrounding weight; medium and semibold emphasise a name or a figure.</prop>
+    <prop name="variant" type="body | eyebrow | code" default="body"
+    >body is running text. eyebrow is a short, uppercase, tracked label that names what follows, such as a group of links; code sets a value to copy or read
+      exactly, such as an address, in the monospace face.</prop>
+    <prop name="truncate" type="boolean" default="false">Keeps the text on one line, ending in an ellipsis when it does not fit.</prop>
+    <prop name="align" type="start | center" default="start">Aligns the text within its line.</prop>
+  </defs>
+  <p as="p|span|div|small|strong|label"><slot></slot></p>
+  <style>
+    /* Running text, set on the type scale and in a tone that says what it is, so a view never styles
+       text of its own. The root is a paragraph unless as= names a span, div, small, strong, or label. */
+    :host {
+      margin: 0;
+      min-inline-size: 0;
+      color: var(--ui-text-primary);
+      text-align: start;
+    }
+
+    :host-state([size="xs"]) {
+      font-size: var(--ui-font-size-xs);
+      line-height: var(--ui-line-height);
+    }
+    :host-state([size="sm"]) {
+      font-size: var(--ui-font-size-sm);
+      line-height: var(--ui-line-height);
+    }
+    :host-state([size="md"]) {
+      font-size: var(--ui-font-size-md);
+      line-height: var(--ui-line-height);
+    }
+    :host-state([size="lg"]) {
+      font-size: var(--ui-font-size-lg);
+      line-height: var(--ui-line-height-relaxed);
+    }
+
+    :host-state([tone="secondary"]) {
+      color: var(--ui-text-secondary);
+    }
+    :host-state([tone="muted"]) {
+      color: var(--ui-text-muted);
+    }
+    :host-state([tone="accent"]) {
+      color: var(--ui-accent-active);
+    }
+    :host-state([tone="danger"]) {
+      color: var(--ui-danger);
+    }
+    :host-state([tone="success"]) {
+      color: var(--ui-success);
+    }
+
+    :host-state([weight="normal"]) {
+      font-weight: var(--ui-font-normal);
+    }
+    :host-state([weight="medium"]) {
+      font-weight: var(--ui-font-medium);
+    }
+    :host-state([weight="semibold"]) {
+      font-weight: var(--ui-font-semibold);
+    }
+
+    :host-state([variant="eyebrow"]) {
+      font-size: var(--ui-font-size-xs);
+      font-weight: var(--ui-font-semibold);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    :host-state([variant="code"]) {
+      font-family: var(--ui-font-family-mono);
+    }
+
+    :host-state([truncate]) {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    :host-state([align="center"]) {
+      text-align: center;
+    }
+
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
+</template>

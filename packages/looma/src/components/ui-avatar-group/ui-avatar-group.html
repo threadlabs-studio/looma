@@ -15,10 +15,10 @@
   </div>
   <style>
     :host {
-      /* Avatars separate with a tight, crisp edge, matching Looma's 1px borders rather than the
-       * diffuse elevation overlays use. */
-      --_overlap-shadow: -2px 0 2px -1px rgba(0, 0, 0, 0.22);
-      --_edge-ring: 0 0 0 1px rgba(0, 0, 0, 0.08);
+      /* Each avatar is ringed in the surface colour, so where one overlaps the next it reads as a
+       * whole circle set on top, not a shape cut into the one beneath. */
+      --_overlap-shadow: 0 0 0 0 transparent;
+      --_edge-ring: 0 0 0 2px var(--ui-surface);
 
       display: flex;
       align-items: center;
@@ -29,7 +29,7 @@
     /* Overlap and the separating shadow are applied by the controller: slotted avatars are nested
      * component roots outside this style scope. */
     :slotted(*) {
-      margin-inline-start: -0.625rem;
+      margin-inline-start: -0.5rem;
       flex-shrink: 0;
       border-radius: 999px;
     }
@@ -39,7 +39,7 @@
     }
 
     .overflow {
-      margin-inline-start: -0.625rem;
+      margin-inline-start: -0.5rem;
       display: inline-flex;
       align-items: center;
       justify-content: center;

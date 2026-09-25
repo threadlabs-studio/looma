@@ -8,7 +8,7 @@ export default function controller(host) {
     const avatars = Array.from(element.children).filter((child) => child !== host.refs.overflow);
     avatars.forEach((avatar, index) => {
       avatar.style.display = index >= visible ? "none" : "";
-      avatar.style.marginInlineStart = index === 0 ? "0px" : "-0.625rem";
+      avatar.style.marginInlineStart = index === 0 ? "0px" : "-0.5rem";
       avatar.style.borderRadius = "999px";
       // Later avatars cast a crisp shadow back onto the one they overlap; the first overlaps nothing.
       avatar.style.boxShadow = index === 0
