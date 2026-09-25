@@ -260,6 +260,22 @@
       }
     }
 
+    /* Under touch, every button's press lands within the control minimum: an invisible hit area,
+       centred on it, like IconButton's. A standalone link-style button (a "See all" beside a
+       heading) is a target of its own, not text, so it gets one too. */
+    html[data-ui-input-modality="touch"] :host {
+      position: relative;
+    }
+
+    html[data-ui-input-modality="touch"] :host::after {
+      position: absolute;
+      inset: 50% auto auto 50%;
+      inline-size: max(100%, var(--ui-control-min-block-size));
+      block-size: max(100%, var(--ui-control-min-block-size));
+      transform: translate(-50%, -50%);
+      content: "";
+    }
+
     /* Link: an inline text action. No box, padding, or minimum height (inline targets are exempt under
        WCAG 2.5.8); the inherited font; an underline that strengthens on hover; a visible focus ring. */
     :host-state([variant="link"]) {

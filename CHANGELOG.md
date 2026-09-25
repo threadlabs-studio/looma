@@ -1,6 +1,12 @@
 # Changelog
 
-## v0.11.3
+## v0.11.5
+
+- Under touch input, a Button's press lands within the control minimum (44px) through an invisible hit
+  area centred on it, as IconButton's does. A standalone link-style button, such as a "See all" beside
+  a heading, was a smaller target than the rest.
+
+## v0.11.4
 
 - A link in running Text or a Callout is underlined, so it stands apart from the words around it by more than
   colour (WCAG 1.4.1).
