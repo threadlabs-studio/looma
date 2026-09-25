@@ -7,6 +7,8 @@
   shows as a badge with its option's label and submits under `name`. Adding or removing one, by
   pointer, keyboard, or badge, reports `selected-values-change` (`{ selectedValues, trigger }`) with
   the new list; setting it reports nothing. Uncontrolled `multiple` and `items` work as before.
+- A `multiple` combobox shows a repeated `selectedValues` entry once, and typing the label of an option
+  already chosen, then a token separator or Enter, clears the text instead of adding it again.
 
 ## v0.13.2
 

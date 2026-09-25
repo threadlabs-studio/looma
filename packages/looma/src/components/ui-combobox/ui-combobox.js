@@ -56,10 +56,11 @@ export default function controller(host) {
   const selectedSet = () => new Set(items().map((item) => item.value));
   const controlledValues = () => Array.isArray(host.state.selectedValues);
   // Each controlled value shows its authored option; a value no option describes yet keeps the chip it
-  // had, or shows the value itself until its option arrives.
+  // had, or shows the value itself until its option arrives. A repeated value shows once: the chips and
+  // hidden inputs are keyed by value. Array.from, not a spread: a loose transpile turns [...set] into [set].
   const itemsForValues = () => {
     const options = config().options;
-    return host.state.selectedValues.map((value) => asItem(options.find((option) => option.value === value)
+    return Array.from(new Set(host.state.selectedValues)).map((value) => asItem(options.find((option) => option.value === value)
       ?? items().find((item) => item.value === value) ?? { id: value, value, label: value }));
   };
   const markSelectedRows = () => {
@@ -286,7 +287,8 @@ export default function controller(host) {
     const query = String(host.state.raw).trim();
     if (!query) return;
     const option = (host.state.rows ?? []).find((row) => row.label.trim().toLocaleLowerCase() === query.toLocaleLowerCase());
-    if (option) { setMultiQuery("", trigger); addSelectedItem(option, trigger); }
+    // Typing a label already chosen just clears the text; adding it again would duplicate the chip.
+    if (option) { setMultiQuery("", trigger); if (!selectedSet().has(option.value)) addSelectedItem(option, trigger); }
     else if (config().allowCreate) { setMultiQuery("", trigger); createSelectedItem(query, trigger); }
   };
   const itemButtons = () => Array.from(field.querySelectorAll(".item"));

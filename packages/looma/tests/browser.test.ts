@@ -2452,6 +2452,9 @@ describe("Combobox selectedValues", () => {
     const entries = () => page.locator("#form").evaluate((form) => Array.from(new FormData(form as HTMLFormElement), ([name, value]) => [name, String(value)]));
     const valid = () => page.locator("#form").evaluate((form) => (form as HTMLFormElement).checkValidity());
     const input = page.locator('#teams input[role="combobox"]');
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
     await input.waitFor();
     await settle();
 
@@ -2489,6 +2492,20 @@ describe("Combobox selectedValues", () => {
     await settle();
     assert.deepEqual(await chips("teams"), labelled("Design", "Platform"));
 
+    // A repeated value shows one chip and submits once; the chips and hidden inputs are keyed by value.
+    await page.evaluate(() => (window as unknown as { setValues: (values: string[]) => void }).setValues(["design", "design", "platform"]));
+    await settle();
+    assert.deepEqual(await chips("teams"), labelled("Design", "Platform"));
+    assert.deepEqual(await entries(), [["teams", "design"], ["teams", "platform"]]);
+    // Typing a label already chosen and a separator clears the text without adding it again.
+    await input.fill("design");
+    await page.keyboard.press(",");
+    await settle();
+    assert.equal(await input.inputValue(), "");
+    assert.deepEqual(await chips("teams"), labelled("Design", "Platform"));
+    assert.equal((await reports()).length, 3);
+    assert.deepEqual(errors, []);
+
     // The consumer that ignores the change keeps its chips.
     await page.locator('#fixed input[role="combobox"]').focus();
     await page.keyboard.press("Backspace");
@@ -2500,10 +2517,11 @@ describe("Combobox selectedValues", () => {
   it("follows selectedValues and reports the user's changes in HTML", async () => {
     const path = await bundle("html-combobox-selected-values", `
       import "@threadlabs/looma";
+      import { updateComponentProps } from "@nextwebwg/html-next/runtime";
       window.reports = [];
       const teams = () => document.querySelector("#teams");
-      // The upgraded root takes later prop writes as data- attributes.
-      window.setValues = (values) => teams().setAttribute("data-selected-values", JSON.stringify(values));
+      // A rendered component's data-* attributes only record its options; the prop channel sets them.
+      window.setValues = (values) => updateComponentProps(teams(), { selectedValues: values });
       document.addEventListener("selected-values-change", (event) => {
         if (event.target !== teams()) return;
         window.reports.push(event.detail.selectedValues);
@@ -2512,7 +2530,7 @@ describe("Combobox selectedValues", () => {
     `);
     const page = await open(path, `
       <form id="form">
-        <ui-combobox id="teams" name="teams" label="Teams" multiple required selected-values='["docs"]'>${options}</ui-combobox>
+        <ui-combobox id="teams" name="teams" label="Teams" multiple required token-separators='[","]' selected-values='["docs"]'>${options}</ui-combobox>
         <ui-combobox id="fixed" label="Fixed" multiple selected-values='["docs"]'>${options}</ui-combobox>
       </form>
     `, [join(root, "tokens.css")]);
@@ -2530,7 +2548,7 @@ describe("Combobox selectedValues", () => {
       const options = () => [["design", "Design"], ["docs", "Docs"], ["platform", "Platform"]].map(([value, label]) => h("option", { value }, label));
       createApp({
         render: () => h("form", { id: "form" }, [
-          h(Combobox, { id: "teams", name: "teams", label: "Teams", multiple: true, required: true, selectedValues: selected.value,
+          h(Combobox, { id: "teams", name: "teams", label: "Teams", multiple: true, required: true, tokenSeparators: [","], selectedValues: selected.value,
             "onUpdate:selectedValues": (values) => { window.reports.push(values); selected.value = values; } }, options),
           h(Combobox, { id: "fixed", label: "Fixed", multiple: true, selectedValues: ["docs"] }, options),
         ]),
