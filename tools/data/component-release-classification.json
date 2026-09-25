@@ -161,6 +161,10 @@
       "package": "@threadlabs/looma",
       "navigationParent": "ui-menu"
     },
+    "ui-nav-item": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
     "ui-page-header": {
       "status": "published",
       "package": "@threadlabs/looma"

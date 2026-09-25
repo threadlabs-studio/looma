@@ -15,11 +15,11 @@
       display: inline-block;
       inline-size: 100%;
       min-inline-size: 0;
-      min-block-size: var(--ui-control-size-md);
+      min-block-size: var(--ui-input-min-block-size, var(--ui-control-size-md));
       margin: 0;
       padding: var(--ui-space-2) var(--ui-space-3);
       appearance: none;
-      border: 1px solid var(--ui-input-border, var(--ui-control-border, var(--ui-border-strong)));
+      border: var(--ui-input-border-width, 1px) solid var(--ui-input-border, var(--ui-control-border, var(--ui-border-strong)));
       border-radius: var(--ui-input-radius, var(--ui-radius-md));
       background: var(--ui-input-surface, var(--ui-control-surface, var(--ui-surface-elevated)));
       color: var(--ui-text-primary);
@@ -72,6 +72,14 @@
       color: var(--ui-text-muted);
       box-shadow: none;
       cursor: not-allowed;
+    }
+
+    /* Forced colors drop box shadows, so the focus ring becomes an outline. */
+    @media (forced-colors: active) {
+      :host:focus-visible {
+        outline: var(--ui-input-focus-outline, 2px solid Highlight);
+        outline-offset: 1px;
+      }
     }
 
     /* No text-box-trim here: trimming a native input's line box below its line height lets the text
