@@ -933,7 +933,7 @@ test("Examples and API keep configuration demos separate from exhaustive referen
   const attributes = page.locator(".looma-api-table").filter({ has: page.getByRole("columnheader", { name: "Property" }) });
   await expect(attributes.getByRole("columnheader", { name: "Description" })).toBeVisible();
   const asRow = attributes.getByRole("row").filter({ has: page.getByRole("cell", { name: "as", exact: true }) });
-  await expect(asRow).toContainText("button or a");
+  await expect(asRow).toContainText("button | a");
   const hrefRow = attributes.getByRole("row").filter({ has: page.getByRole("cell", { name: "href", exact: true }) });
   await expect(hrefRow).toContainText("Pair it with as=\"a\"");
 });
