@@ -21,7 +21,56 @@
   </defs>
   <span role="tooltip" :hidden="not internalOpen"><div class="surface"><slot></slot></div></span>
   <style>
+    /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-tooltip-arrow-size {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-tooltip-border {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-tooltip-inverse-surface {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-tooltip-inverse-text {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-tooltip-max-inline-size {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-tooltip-radius {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-tooltip-shadow {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-tooltip-surface {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-tooltip-text {
+      syntax: "*";
+      inherits: false;
+    }
+
     :host {
+      /* Hooks do not inherit, so the parts below read them from the root. */
+      --_ui-tooltip-border: var(--ui-tooltip-border);
+      --_ui-tooltip-max-inline-size: var(--ui-tooltip-max-inline-size);
+      --_ui-tooltip-radius: var(--ui-tooltip-radius);
+      --_ui-tooltip-surface: var(--ui-tooltip-surface);
+      --_ui-tooltip-text: var(--ui-tooltip-text);
+      --_ui-tooltip-shadow: var(--ui-tooltip-shadow);
+      --_ui-tooltip-inverse-surface: var(--ui-tooltip-inverse-surface);
+      --_ui-tooltip-inverse-text: var(--ui-tooltip-inverse-text);
+      --_ui-tooltip-arrow-size: var(--ui-tooltip-arrow-size);
+
       position: fixed;
       inset: auto;
       margin: 0;
@@ -44,25 +93,25 @@
     }
 
     .surface {
-      --_tooltip-line: var(--ui-tooltip-border, var(--ui-border-default));
+      --_tooltip-line: var(--_ui-tooltip-border, var(--ui-border-default));
       position: relative;
       box-sizing: border-box;
-      max-inline-size: var(--ui-tooltip-max-inline-size, 18rem);
+      max-inline-size: var(--_ui-tooltip-max-inline-size, 18rem);
       border: 1px solid var(--_tooltip-line);
-      border-radius: var(--ui-tooltip-radius, var(--ui-radius-sm));
-      background: var(--ui-tooltip-surface, var(--ui-surface-elevated));
-      color: var(--ui-tooltip-text, var(--ui-text-primary));
+      border-radius: var(--_ui-tooltip-radius, var(--ui-radius-sm));
+      background: var(--_ui-tooltip-surface, var(--ui-surface-elevated));
+      color: var(--_ui-tooltip-text, var(--ui-text-primary));
       padding: var(--ui-space-1) var(--ui-space-2);
       font-family: var(--ui-font-family-sans);
       font-size: var(--ui-font-size-sm);
       line-height: var(--ui-line-height-tight);
-      box-shadow: var(--ui-tooltip-shadow, var(--ui-elevation-tooltip, var(--ui-shadow-md)));
+      box-shadow: var(--_ui-tooltip-shadow, var(--ui-elevation-tooltip, var(--ui-shadow-md)));
     }
 
     :host-state([inverse]) .surface {
-      --_tooltip-line: var(--ui-tooltip-inverse-surface, var(--ui-text-primary));
-      background: var(--ui-tooltip-inverse-surface, var(--ui-text-primary));
-      color: var(--ui-tooltip-inverse-text, var(--ui-surface-default));
+      --_tooltip-line: var(--_ui-tooltip-inverse-surface, var(--ui-text-primary));
+      background: var(--_ui-tooltip-inverse-surface, var(--ui-text-primary));
+      color: var(--_ui-tooltip-inverse-text, var(--ui-surface-default));
     }
 
     /* A rotated square shares the surface fill and draws the two outward border edges. Its centre sits on
@@ -72,9 +121,9 @@
       position: absolute;
       z-index: 1;
       inset-inline-start: var(--ui-space-3);
-      inset-block-end: calc(var(--ui-tooltip-arrow-size, 0.5rem) / -2 - 0.5px);
-      inline-size: var(--ui-tooltip-arrow-size, 0.5rem);
-      block-size: var(--ui-tooltip-arrow-size, 0.5rem);
+      inset-block-end: calc(var(--_ui-tooltip-arrow-size, 0.5rem) / -2 - 0.5px);
+      inline-size: var(--_ui-tooltip-arrow-size, 0.5rem);
+      block-size: var(--_ui-tooltip-arrow-size, 0.5rem);
       box-sizing: border-box;
       background: inherit;
       border: 0 solid var(--_tooltip-line);
@@ -85,7 +134,7 @@
     }
 
     :is(:host-state([placement="bottom"]), :host-state([placement="bottom-start"]), :host-state([placement="bottom-end"])) .surface::after {
-      inset-block-start: calc(var(--ui-tooltip-arrow-size, 0.5rem) / -2 - 0.5px);
+      inset-block-start: calc(var(--_ui-tooltip-arrow-size, 0.5rem) / -2 - 0.5px);
       inset-block-end: auto;
       border-inline-end-width: 0;
       border-block-end-width: 0;

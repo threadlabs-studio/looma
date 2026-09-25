@@ -108,6 +108,53 @@
   font-style: italic;
 }
 
+/* A callout in the content reads Callout's hooks, which style the element they are set on and never
+   a nested one. */
+@property --ui-callout-border {
+  syntax: "*";
+  inherits: false;
+}
+@property --ui-callout-border-width {
+  syntax: "*";
+  inherits: false;
+}
+@property --ui-callout-gap {
+  syntax: "*";
+  inherits: false;
+}
+@property --ui-callout-icon {
+  syntax: "*";
+  inherits: false;
+}
+@property --ui-callout-icon-column {
+  syntax: "*";
+  inherits: false;
+}
+@property --ui-callout-icon-size {
+  syntax: "*";
+  inherits: false;
+}
+@property --ui-callout-leading-border-width {
+  syntax: "*";
+  inherits: false;
+}
+@property --ui-callout-padding-block {
+  syntax: "*";
+  inherits: false;
+}
+@property --ui-callout-padding-inline {
+  syntax: "*";
+  inherits: false;
+}
+@property --ui-callout-surface {
+  syntax: "*";
+  inherits: false;
+}
+@property --ui-callout-text {
+  syntax: "*";
+  inherits: false;
+}
+
 .looma-editor .ProseMirror aside[data-looma-callout][data-tone] {
   --ui-callout-padding-block: var(--ui-space-2);
   --ui-callout-padding-inline: var(--ui-space-3);
@@ -136,6 +183,9 @@
 }
 
 .looma-editor .ProseMirror aside[data-looma-callout][data-tone]::before {
+  /* The icon is a pseudo-element, which inherits nothing a hook sets on the callout unless asked. */
+  --ui-callout-icon-size: inherit;
+  --ui-callout-icon: inherit;
   width: var(--ui-callout-icon-size);
   height: var(--ui-callout-icon-size);
   margin-top: 0.2em;

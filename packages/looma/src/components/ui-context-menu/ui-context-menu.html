@@ -15,7 +15,16 @@
   </defs>
   <span><div class="menu" $ref="menu" role="menu" aria-orientation="vertical"><slot></slot></div></span>
   <style>
+    /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-context-menu-z-index {
+      syntax: "*";
+      inherits: false;
+    }
+
     :host {
+      /* Hooks do not inherit, so the parts below read them from the root. */
+      --_ui-context-menu-z-index: var(--ui-context-menu-z-index);
+
       display: contents;
     }
 
@@ -33,7 +42,7 @@
       box-shadow: var(--ui-elevation-overlay, var(--ui-shadow-lg));
       outline: 0;
       overflow: auto;
-      z-index: var(--ui-context-menu-z-index, 1000);
+      z-index: var(--_ui-context-menu-z-index, 1000);
       min-width: 12rem;
       opacity: 0;
       transform: translateY(-4px) scale(0.99);

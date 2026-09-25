@@ -18,19 +18,20 @@
        thing the field is for ("Continue" after a site's address), so it reads as the field's action
        and not the form's. */
     :host {
-      /* The group's own border and height stand for the input's, so the group is a lone Input's height. */
-      --ui-input-border-width: 0;
-      --ui-input-min-block-size: 0;
-      --ui-input-border: transparent;
-      --ui-input-border-hover: transparent;
-      --ui-input-focus-border: transparent;
-      --ui-input-invalid-border: transparent;
-      --ui-input-invalid-focus-shadow: none;
-      --ui-input-shadow: none;
-      --ui-input-focus-shadow: none;
-      --ui-input-focus-outline: none;
-      --ui-input-radius: 0;
-      --ui-input-surface: transparent;
+      /* The group's own border and height stand for the input's, so the group is a lone Input's height.
+         Hooks do not inherit, so these are defaults for the input; its own hooks still win. */
+      --_ui-default-input-border-width: 0;
+      --_ui-default-input-min-block-size: 0;
+      --_ui-default-input-border: transparent;
+      --_ui-default-input-border-hover: transparent;
+      --_ui-default-input-focus-border: transparent;
+      --_ui-default-input-invalid-border: transparent;
+      --_ui-default-input-invalid-focus-shadow: none;
+      --_ui-default-input-shadow: none;
+      --_ui-default-input-focus-shadow: none;
+      --_ui-default-input-focus-outline: none;
+      --_ui-default-input-radius: 0;
+      --_ui-default-input-surface: transparent;
 
       display: flex;
       align-items: stretch;
