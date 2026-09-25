@@ -206,33 +206,6 @@
       box-shadow: var(--ui-pressed);
     }
 
-    /* Current: the navigation item for the page or step you are on, marked with aria-current as on
-       a native link (any value but "false"). A wash says it at a glance; a bar in the tone gives the
-       state 3:1 contrast on its own. Neither moves the layout, which a heavier weight would. The bar
-       runs down the start edge of a start-aligned item, as in a side list, and under a centred one. */
-    :is(:host-state([variant="ghost"]), :host-state([variant="outline"]))[aria-current]:not([aria-current="false"]) {
-      position: relative;
-      background-color: var(--ui-button-current-surface, oklch(from var(--_tone) l c h / 12%));
-      color: var(--_tone-text);
-    }
-
-    :is(:host-state([variant="ghost"]), :host-state([variant="outline"]))[aria-current]:not([aria-current="false"])::before {
-      position: absolute;
-      inset-block-end: 0;
-      inset-inline: var(--ui-space-2);
-      block-size: 2px;
-      border-radius: var(--ui-radius-round);
-      background: var(--_tone);
-      content: "";
-    }
-
-    :is(:host-state([variant="ghost"]), :host-state([variant="outline"]))[aria-current]:not([aria-current="false"]):host-state([align="start"])::before {
-      inset-block: var(--ui-space-2);
-      inset-inline: 0 auto;
-      inline-size: 3px;
-      block-size: auto;
-    }
-
     /* A soft halo that transitions in with the other box-shadow changes, layered on the raised shadow. */
     :host:focus-visible {
       outline: none;
@@ -247,29 +220,17 @@
         var(--ui-focus-halo);
     }
 
-    /* Disabled drops the tone rather than the shape: every variant keeps its own structure, so a
-       disabled outline is still an outline and a disabled ghost still has no edge. Intent goes — an
-       unavailable action says "unavailable", not "unavailable, and destructive" — and so do the
-       highlight and shadow, because nothing that cannot be pressed should look raised. */
+    /* Disabled keeps the shape and washes out the rest: every variant keeps its own structure, so a
+       disabled outline is still an outline and a disabled ghost still has no edge. One filter fades
+       fill, border, and text together (--ui-disabled-filter), and the theme decides which way is
+       toward the page. The highlight and shadow go, because nothing that cannot be pressed should
+       look raised. */
     :host:is(:disabled, [aria-disabled="true"]) {
-      /* Derived from the tone itself, not from a separate disabled palette: faded toward the
-         page, which desaturates it at the same time. Toward the page rather than toward white,
-         so a dark theme dims where a light one lightens — the same rule, both schemes. */
-      --_tone: color-mix(in oklab, var(--_hue) 58%, var(--ui-surface));
-      --_tone-hover: var(--_tone);
-      --_tone-active: var(--_tone);
-      --_tone-text: color-mix(in oklab, var(--_hue-text) 72%, var(--ui-surface));
-      --_on-tone: var(--_tone-text);
-
+      filter: var(--ui-button-disabled-filter, var(--ui-disabled-filter));
       opacity: var(--ui-button-disabled-opacity, 1);
       cursor: not-allowed;
       background-image: none;
       box-shadow: none;
-    }
-
-    /* A filled button keeps its fill, faded further so its text stays legible on it. */
-    :is(:host-state([variant="solid"]), :host-state([variant="danger"])):is(:disabled, [aria-disabled="true"]) {
-      --_tone: color-mix(in oklab, var(--_hue) 34%, var(--ui-surface));
     }
 
     /* Ghost has no hover to fall back on, so disabled is the one state it has to state outright:
@@ -330,13 +291,6 @@
       transform: none;
     }
 
-    /* A current link reads as the strong text with a solid, heavier underline. */
-    :host-state([variant="link"])[aria-current]:not([aria-current="false"]) {
-      color: var(--ui-button-link-hover-text, var(--ui-text-primary));
-      text-decoration-color: currentColor;
-      text-decoration-thickness: 2px;
-    }
-
     :host-state([variant="link"]):active:not(:disabled, [aria-disabled="true"]) {
       background: none;
       transform: none;
@@ -345,7 +299,6 @@
     :host-state([variant="link"]):is(:disabled, [aria-disabled="true"]) {
       background: none;
       border-color: transparent;
-      color: var(--ui-button-disabled-text, var(--ui-disabled-text));
     }
 
     :host-state([variant="link"]):focus-visible {

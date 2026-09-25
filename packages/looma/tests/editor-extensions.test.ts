@@ -157,6 +157,15 @@ describe("editor extension contract", () => {
       .not.toContain("mention");
   });
 
+  it("draws every default slash command's icon", async () => {
+    // The slash menu draws each icon with ui-icon, which knows only its catalog: a name missing
+    // from it draws an empty box.
+    const { icons } = await import("../src/components/shared/icons.js");
+    const commands = getDefaultSlashCommands();
+    expect(commands.length).toBeGreaterThan(10);
+    expect(commands.filter((command) => !(command.icon in icons)).map((command) => command.title)).toEqual([]);
+  });
+
   it("includes durable colored callouts and matching slash commands", () => {
     expect(getDefaultEditorExtensions({ mention: false }).map((extension) => extension.name))
       .toContain("loomaCallout");

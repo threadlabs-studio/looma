@@ -16,13 +16,4 @@ to it under a coarse pointer. A link-style button keeps its text size and gets a
 that size centred on it, as Icon Button does, so a standalone one ("See all" under a list) is easy to
 press. Only the link-style button gets the area, so close neighbours never take each other's presses.
 
-## Current item
-
-In a list of navigation buttons, mark the one for where you are with the standard `aria-current`
-attribute, usually `aria-current="page"`. Any value but `"false"` counts, and assistive technology
-announces it. A ghost or outline button takes a tinted surface and a bar in its tone: down the start
-edge when `align="start"`, as in a side list, and along the bottom otherwise. A link-style button takes
-a solid underline. Nothing changes size, so marking an item never moves the layout. Themes can set the
-surface with `--ui-button-current-surface`.
-
 <ComponentExamplesApiTabs component="ui-button" />

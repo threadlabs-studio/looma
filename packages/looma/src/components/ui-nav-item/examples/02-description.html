@@ -1,0 +1,26 @@
+<!--
+title: Description
+description: A description is one more line under the label, such as the record a section belongs to. Without as="a" and href the item is a button, for switching views inside the app. Label and description each end in an ellipsis.
+-->
+<nav aria-label="Order outline" style="max-inline-size: 16rem">
+  <ui-list>
+    <li>
+      <ui-nav-item current>
+        <ui-icon slot="leading" name="users"></ui-icon>Customer
+        <span slot="description">Pine Street Motors</span>
+      </ui-nav-item>
+    </li>
+    <li>
+      <ui-nav-item>
+        <ui-icon slot="leading" name="credit-card"></ui-icon>Payment
+        <span slot="description">Card ending 4242, charged on delivery</span>
+      </ui-nav-item>
+    </li>
+    <li>
+      <ui-nav-item>
+        <ui-icon slot="leading" name="calculator"></ui-icon>Totals
+        <span slot="description">Three lines</span>
+      </ui-nav-item>
+    </li>
+  </ui-list>
+</nav>

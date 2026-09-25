@@ -1,7 +1,7 @@
 <template component="ui-icon-button" controller="./ui-icon-button.js">
   <defs>
     <prop name="disabled" type="boolean" default="false"
-    >Disables the button, so it cannot be pressed or focused, and greys the icon; outline and solid also take the disabled surface.</prop>
+    >Disables the button, so it cannot be pressed or focused, and washes it out: the same shape, with less colour and contrast (--ui-disabled-filter).</prop>
     <prop name="label" type="string">Accessible name for the icon.</prop>
     <prop name="size" type="sm | md | lg" default="md"
     >Button and icon size together: sm is 1.75rem with a small icon, md is 2rem, and lg is 2.5rem with a large icon. On touch, every size gets an invisible hit
@@ -177,22 +177,12 @@
     }
 
     /* Disabled colours fall back to each variant's own; ghost takes only the icon colour. */
+    /* Disabled washes the button out the way Button does: the same shape, one filter. */
     :host:disabled {
+      filter: var(--ui-icon-button-disabled-filter, var(--ui-disabled-filter));
       opacity: var(--ui-icon-button-disabled-opacity, 1);
-      color: var(--ui-icon-button-disabled-text, var(--ui-disabled-text));
       cursor: not-allowed;
-    }
-
-    :host-state([variant="outline"]):disabled {
-      border-color: var(--ui-icon-button-disabled-border, var(--ui-border));
-      background-color: var(--ui-icon-button-disabled-surface, var(--ui-disabled-surface));
-      color: var(--ui-icon-button-disabled-text, var(--ui-disabled-text));
-    }
-
-    :host-state([variant="solid"]):disabled {
-      border-color: var(--ui-icon-button-disabled-border, var(--ui-border));
-      background-color: var(--ui-icon-button-disabled-surface, var(--ui-disabled-surface));
-      color: var(--ui-icon-button-disabled-text, var(--ui-disabled-text));
+      box-shadow: none;
     }
 
     :host {

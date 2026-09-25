@@ -791,7 +791,11 @@ body {
   min-width: 0;
 }
 
-.looma-component-card__preview :is(
+/* Only the example's own root: a layout component inside another component's demo (the
+ * cluster holding Affordance Scope's buttons) would otherwise pin that demo to the card's edge.
+ * A form fills the card too, so a form's footer has the width it would have on a page. */
+.looma-component-card__preview > .looma-component-preview > div > :is(
+  form,
   ui-stack,
   ui-cluster,
   ui-grid,
