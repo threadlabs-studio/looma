@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.13.3
+## v0.13.4
 
 - New icon: `help` (Lucide's circle-help), for `<ui-icon name="help">`. Icon Button sizes a slotted
   `ui-icon` the way it sizes a slotted `svg`, at every size; it drew at the text size before. Icon
@@ -8,6 +8,13 @@
   the help icon, and a `ui-tooltip trigger="click"` for it.
 - Cluster takes `justify` (`start`, `center`, `end`, `between`), as Stack does, so a row can push a
   title and its actions to opposite ends.
+
+## v0.13.3
+
+- Affordance Scope: `guide` sets what marks an anticipatory control at rest. `dot` (the default,
+  unchanged) shows the small guide dot; `none` shows nothing until the pointer nears the control, it
+  is hovered, or it takes focus. It reaches every guide inside the scope, including a sidebar's
+  resize line and the editor table's handles.
 
 ## v0.13.2
 
