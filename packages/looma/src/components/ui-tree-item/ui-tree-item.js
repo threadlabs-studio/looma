@@ -105,7 +105,7 @@ export default function controller(host) {
   const MARQUEE_SPEED = 36; // CSS pixels per second, for every name: a clamped duration made short slides crawl.
   // The tree sets this for its items; an item's own prop overrides it either way.
   const marqueeWanted = () => host.state.marquee
-    || getComputedStyle(element).getPropertyValue("--ui-tree-item-marquee").trim() === "1";
+    || getComputedStyle(element).getPropertyValue("--_ui-default-tree-item-marquee").trim() === "1";
   const startMarquee = () => {
     if (!labelText || !label || !marqueeWanted()) return;
     labelText.style.flex = "none";

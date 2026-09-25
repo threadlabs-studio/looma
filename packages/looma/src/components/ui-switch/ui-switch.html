@@ -20,7 +20,25 @@
     </span>
   </label>
   <style>
+    /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-switch-gap {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-switch-track-height {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-switch-track-width {
+      syntax: "*";
+      inherits: false;
+    }
+
     :host {
+      /* Hooks do not inherit, so the parts below read them from the root. */
+      --_ui-switch-track-width: var(--ui-switch-track-width);
+      --_ui-switch-track-height: var(--ui-switch-track-height);
+
       display: inline-flex;
       align-items: flex-start;
       gap: var(--ui-switch-gap, var(--ui-space-2));
@@ -57,8 +75,8 @@
       -webkit-appearance: none;
       position: relative;
       flex: 0 0 auto;
-      width: var(--ui-switch-track-width, 2.5rem);
-      height: var(--ui-switch-track-height, 1.5rem);
+      width: var(--_ui-switch-track-width, 2.5rem);
+      height: var(--_ui-switch-track-height, 1.5rem);
       padding: 0;
       border: 1px solid var(--ui-control-border-hover, var(--ui-border-strong));
       border-radius: 999px;

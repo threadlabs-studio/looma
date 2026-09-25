@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.12.12
+## v0.13.5
 
 - New: Table (`ui-table`, Vue `Table`) styles an authored `<table>` in place: caption, header and
   row headers, row separators, and `data-align="end"` for a column of figures. `density`
@@ -13,6 +13,36 @@
   pairs in columns, term above value; `columns` caps how many columns grid and tiles set;
   `density="compact"` sets the pairs close together. A `rows` list narrower than 24rem now sets each
   term above its value.
+
+## v0.13.0
+
+- Breaking: component hooks no longer inherit. A hook (`--ui-<component>-*`, such as
+  `--ui-stack-gap`, `--ui-button-surface`, or `--ui-nav-item-indicator-color`) styles only the
+  component whose root it is set on. Each is registered with
+  `@property --ui-x { syntax: "*"; inherits: false; }` in the component's own stylesheet, which
+  reaches the document in HTML, in the prebuilt styles, and in Vue's `components.css`. Before, a hook
+  set on a container reached every nested component of that kind and overrode its default, and even
+  its props: `--ui-stack-gap: 0` on an outer Stack collapsed every Stack inside it, `gap="l"` or
+  not. A hook set on the component itself still beats its default and, where documented, its prop.
+  Theme tokens (`--ui-accent`, `--ui-text`, the spacing and type steps, and everything else in
+  `tokens.css`) and the editor's `--ui-editor-*` hooks inherit as before.
+- Migration: set a hook on each component rather than on a container, `:root`, or a theme block. To
+  restyle every instance, select them by their root: `[data-component~="ui-button"] { --ui-button-surface: … }`.
+  Icons are `1em`, so a container sizes the icons in it with `font-size`; `--ui-icon-size` now sizes
+  one icon. `--ui-tree-indent`, `--ui-tree-gutter`, and `--ui-tree-drop-color` go on the Tree and
+  still reach its items; `--ui-tree-item-*` goes on each item.
+- Parts inside a component, slotted children, and pseudo-elements read a hook through a private relay
+  on the root (`--_ui-<hook>`), so a Callout's `--ui-callout-icon` still colours its icon, and not a
+  nested Callout's. Looma components that configure the children they compose (Input Group's input,
+  a compact Menu's items, a Tree's density and marquee, the editor's icons) set the child's defaults
+  in private `--_ui-default-*` variables, below the child's own hooks.
+- Separator styles its root in HTML as well as in Vue. Its rules named the `hr`, which in a scoped
+  stylesheet matches only a descendant, so an HTML separator drew the browser's own rule.
+- The editor's table overlay handles use their own hover colours; they read Icon Button's hooks,
+  which no longer reach them.
+- `tools/scripts/component-hook-inheritance-rule.test.mjs` fails when a stylesheet reads a component
+  hook it has not registered as non-inheriting, reads its own hook anywhere but its root, or reads
+  another component's hook.
 
 ## v0.12.7
 
