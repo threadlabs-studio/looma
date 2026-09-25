@@ -1,0 +1,101 @@
+<template component="ui-input-group" controller="./ui-input-group.js">
+  <defs>
+    <prop name="prefix" type="string"
+    >Static text shown inside the field before the typed value, such as https://. It is never editable or submitted, and screen readers hear it as part of the
+      input's description.</prop>
+    <prop name="suffix" type="string"
+    >Static text shown inside the field after the typed value, such as .example.com. It is never editable or submitted, and screen readers hear it as part of
+      the input's description.</prop>
+  </defs>
+  <div>
+    <span $if="prefix" class="affix" data-affix="prefix" aria-hidden="true" $value="prefix"></span>
+    <slot></slot>
+    <span $if="suffix" class="affix" data-affix="suffix" aria-hidden="true" $value="suffix"></span>
+  </div>
+  <style>
+    /* The group draws the Input's box, and its states, around the Input it holds; the Input inside
+       is borderless and transparent (ui-input styles itself for that), so the affixes sit in the field. */
+    :host {
+      box-sizing: border-box;
+      display: flex;
+      align-items: stretch;
+      inline-size: 100%;
+      min-inline-size: 0;
+      min-block-size: var(--ui-control-size-md);
+      border: 1px solid var(--ui-control-border, var(--ui-border-strong));
+      border-radius: var(--ui-input-radius, var(--ui-radius-md));
+      background: var(--ui-control-surface, var(--ui-surface-elevated));
+      color: var(--ui-text-primary);
+      font: inherit;
+      line-height: var(--ui-line-height-md);
+      box-shadow: var(--ui-input-shadow, var(--ui-control-inset));
+      cursor: text;
+      transition:
+        border-color var(--ui-motion-fast) var(--ui-motion-ease),
+        box-shadow var(--ui-motion-fast) var(--ui-motion-ease),
+        background-color var(--ui-motion-fast) var(--ui-motion-ease);
+    }
+
+    /* The affix is the field's own text, not a value: it never wraps, shrinks, or selects. */
+    .affix {
+      display: flex;
+      flex: none;
+      align-items: center;
+      color: var(--ui-input-affix-color, var(--ui-text-secondary));
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    [data-affix="prefix"] {
+      padding-inline-start: var(--ui-space-3);
+    }
+
+    [data-affix="suffix"] {
+      padding-inline-end: var(--ui-space-3);
+    }
+
+    /* The same states as a lone Input, read from the Input inside. */
+    :host:hover:not(:has(input:focus, input:disabled)) {
+      border-color: var(--ui-control-border-hover, var(--ui-text-secondary));
+    }
+
+    :host:has(input:focus-visible) {
+      border-color: var(--ui-control-focus, var(--ui-accent-solid));
+      box-shadow: var(--ui-input-focus-shadow, var(--ui-control-inset), var(--ui-control-focus-halo-shadow));
+    }
+
+    :host:has(input:is([aria-invalid="true"], :user-invalid)) {
+      border-color: var(--ui-danger-solid);
+    }
+
+    :host:has(input:is([aria-invalid="true"], :user-invalid):focus-visible) {
+      box-shadow:
+        var(--ui-control-inset),
+        0 0 0 3px color-mix(in srgb, var(--ui-danger-solid) 22%, transparent);
+    }
+
+    :host:has(input:disabled) {
+      background: var(--ui-control-surface-disabled, var(--ui-surface-muted));
+      color: var(--ui-text-muted);
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    :host:has(input:disabled) .affix {
+      color: var(--ui-text-muted);
+    }
+
+    /* Forced colors drop box shadows, so the focus ring becomes an outline. */
+    @media (forced-colors: active) {
+      :host:has(input:focus-visible) {
+        outline: 2px solid Highlight;
+        outline-offset: 1px;
+      }
+    }
+
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
+</template>

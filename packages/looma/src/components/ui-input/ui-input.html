@@ -72,6 +72,37 @@
       cursor: not-allowed;
     }
 
+    /* Forced colors drop box shadows, so the focus ring becomes an outline. */
+    @media (forced-colors: active) {
+      :host:focus-visible {
+        outline: 2px solid Highlight;
+        outline-offset: 1px;
+      }
+    }
+
+    /* In an Input Group, the group draws the box and its states around the input, which is the
+       borderless, transparent text area inside it. :is(:enabled, :disabled) matches any input; it
+       lifts this rule over the state rules above. */
+    [data-component~="ui-input-group"] :host:is(:enabled, :disabled) {
+      flex: 1 1 auto;
+      inline-size: auto;
+      min-block-size: 0;
+      border-width: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+      outline: none;
+      cursor: inherit;
+    }
+
+    [data-component~="ui-input-group"] [data-affix="prefix"] + :host {
+      padding-inline-start: var(--ui-input-affix-gap, var(--ui-space-1));
+    }
+
+    [data-component~="ui-input-group"] :host:has(+ [data-affix="suffix"]) {
+      padding-inline-end: var(--ui-input-affix-gap, var(--ui-space-1));
+    }
+
     /* No text-box-trim here: trimming a native input's line box below its line height lets the text
      * scroll vertically inside the field. Native inputs already center their single line. */
 
