@@ -84,6 +84,34 @@ describe("Vue components", () => {
     await page.close();
   });
 
+  it("name a choice by its label and describe it by its description", async () => {
+    const path = await bundle("vue-radio-description", `
+      import { createApp, h } from "vue";
+      import { Radio, RadioGroup } from "@threadlabs/looma/vue";
+      createApp({
+        render: () => [
+          h(RadioGroup, { label: "Who can open it", value: "open" }, () => [
+            h(Radio, { value: "open" }, { default: () => "Open", description: () => "Everyone on the site can open it." }),
+            h(Radio, { value: "private" }, () => "Private"),
+          ]),
+        ],
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+
+    // The description is on its own line and is not part of the name.
+    const open_ = page.getByRole("radio", { name: "Open", exact: true });
+    assert.equal(await open_.count(), 1);
+    const description = await open_.evaluate((input) => document.getElementById(input.getAttribute("aria-describedby") ?? "")?.textContent);
+    assert.equal(description, "Everyone on the site can open it.");
+    const [label, line] = await page.locator("label", { has: open_ }).evaluate((label) =>
+      [".label", ".description"].map((part) => label.querySelector(part)!.getBoundingClientRect().top));
+    assert.ok(line > label, "the description sits under the label");
+    // A choice with no description shows no empty line.
+    assert.equal(await page.locator("label", { has: page.getByRole("radio", { name: "Private" }) }).locator(".description").isVisible(), false);
+    await page.close();
+  });
+
   it("render, style, and behave with no HTML Next runtime", async () => {
     const path = await bundle("vue-app", `
       import { createApp, h, ref } from "vue";
@@ -1456,7 +1484,8 @@ describe("Button tone and disabled", () => {
         color: style.color,
         border: style.borderTopColor,
         opacity: style.opacity,
-        shadow: style.boxShadow
+        shadow: style.boxShadow,
+        filter: style.filter
       };
     });
 
@@ -1472,7 +1501,7 @@ describe("Button tone and disabled", () => {
     const solid = await paint("solid");
     assert.equal(solid.background, accent.border, "solid fills with the outline's tone");
 
-    // Disabled keeps the shape and a trace of the tone, and stops looking raised.
+    // Disabled keeps the shape and a trace of the tone, washes out, and stops looking raised.
     const off = await paint("off");
     const offDanger = await paint("off-danger");
     const offSolid = await paint("off-solid");
@@ -1481,7 +1510,8 @@ describe("Button tone and disabled", () => {
     assert.notEqual(off.border, off.background, "a disabled outline is still an outline");
     assert.equal(offSolid.border, offSolid.background, "a disabled solid is still filled");
     assert.notEqual(offDanger.border, off.border, "a disabled button still says which action it was");
-    assert.notEqual(off.border, accent.border, "and it no longer reads as available");
+    assert.equal(off.filter, "saturate(0.2) contrast(0.75) brightness(1.25)", "and it is washed out, so it no longer reads as available");
+    assert.equal(accent.filter, "none", "an available button is not");
 
     // A disabled ghost states itself with a surface, but a wash of its tone, as hover is: an opaque
     // mix toward the ink came out a mid-grey slab for neutral, louder than the enabled button.

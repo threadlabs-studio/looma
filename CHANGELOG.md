@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.12.0
+
+- Radio, Checkbox, and Switch take a `description` slot: a line under the label saying what the
+  choice means. It is the input's accessible description, not part of its name. Apps were putting
+  the label and the explanation side by side in the default slot, where they ran together.
+- A disabled Button or Icon Button keeps its own look and is washed out by one filter,
+  `--ui-disabled-filter` (`saturate(0.2) contrast(0.75) brightness(1.25)`; the dark theme dims
+  instead, and high contrast only drops colour). Override per component with
+  `--ui-button-disabled-filter` or `--ui-icon-button-disabled-filter`. Breaking: the recoloured
+  disabled tones are gone, and so are Icon Button's `--ui-icon-button-disabled-text`, `-surface`, and
+  `-border` hooks and Button's link-variant use of `--ui-button-disabled-text`.
+
 ## v0.11.6
 
 - Only a link-style Button takes the touch hit area added in 0.11.5. On every button it reached over
