@@ -135,6 +135,10 @@
       "status": "published",
       "package": "@threadlabs/looma"
     },
+    "ui-input-group": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
     "ui-list": {
       "status": "published",
       "package": "@threadlabs/looma"

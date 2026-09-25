@@ -388,6 +388,63 @@ describe("Scroll area", () => {
   });
 });
 
+describe("Input group", () => {
+  async function checkGroup(page: Page) {
+    const group = page.locator("#group");
+    await group.waitFor();
+    // The input inside is still the form's field, affixes and all.
+    await page.locator("#site").fill("acme");
+    assert.deepEqual(await page.locator("#form").evaluate((form) => [...new FormData(form as HTMLFormElement).entries()]), [["site", "acme"]]);
+    // The group draws the frame and the focus ring; the input inside draws neither.
+    const input = await page.locator("#site").evaluate((element) => ({ border: getComputedStyle(element).borderTopColor, shadow: getComputedStyle(element).boxShadow }));
+    assert.equal(input.border, "rgba(0, 0, 0, 0)");
+    assert.equal(input.shadow, "none");
+    await page.locator("#site").focus();
+    await page.waitForTimeout(200);
+    assert.match(await group.evaluate((element) => getComputedStyle(element).boxShadow), /3px/);
+    assert.equal(await page.locator("#group").getByText(".example.com").count(), 1);
+  }
+
+  it("frames an input and its affixes as one field, in HTML", async () => {
+    const path = await bundle("html-input-group", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <form id="form">
+        <ui-input-group id="group"><ui-input id="site" name="site"></ui-input><span slot="suffix">.example.com</span></ui-input-group>
+      </form>`, [join(root, "tokens.css")]);
+    await checkGroup(page);
+    await page.close();
+  });
+
+  it("frames an input and its affixes as one field, in Vue", async () => {
+    const path = await bundle("vue-input-group", `
+      import { createApp, h } from "vue";
+      import { Input, InputGroup } from "@threadlabs/looma/vue";
+      createApp({ render: () => h("form", { id: "form" }, [
+        h(InputGroup, { id: "group" }, { default: () => h(Input, { id: "site", name: "site" }), suffix: () => h("span", ".example.com") }),
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await checkGroup(page);
+    await page.close();
+  });
+});
+
+describe("Compact list", () => {
+  it("sets items close together, with no row padding", async () => {
+    const path = await bundle("html-compact-list", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-list id="rows" aria-label="Rows"><ui-list-item id="row">One</ui-list-item></ui-list>
+      <ui-list id="facts" density="compact" aria-label="Facts"><ui-list-item id="fact">One</ui-list-item></ui-list>`, [join(root, "tokens.css")]);
+    await page.waitForSelector('#fact[data-component~="ui-list-item"]');
+    const size = (id: string) => page.locator(id).evaluate((element) => ({ height: element.getBoundingClientRect().height, padding: getComputedStyle(element).paddingInlineStart }));
+    const row = await size("#row");
+    const fact = await size("#fact");
+    assert.ok(fact.height < row.height, `compact ${fact.height} < ${row.height}`);
+    assert.equal(fact.padding, "0px");
+    await page.close();
+  });
+});
+
 describe("View primitives", () => {
   const markup = `
     <ui-page-header id="header">Planning<span slot="description">Roadmaps and decisions.</span></ui-page-header>
