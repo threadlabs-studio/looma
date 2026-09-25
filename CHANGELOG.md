@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.12.2
+
+- Icon draws without JavaScript. `ui-icon` derives its shapes from `name` as it renders, so a Vue
+  server render (`renderToString`) and the first render in HTML carry the whole SVG; before, the
+  shapes came from a controller, so the server sent an empty `<svg>` and the icon appeared only once
+  JavaScript ran. Changing `name` still redraws it. Icons drawn with lines (`italic`,
+  `strikethrough`, `underline`) now draw them, and `image` keeps its rectangle's `ry`.
+
 ## v0.12.1
 
 - Sidebar drawer: opening or closing it no longer overflows the call stack. The sidebar reports
