@@ -13,6 +13,7 @@ const tokensRoot = path.join(repoRoot, "packages/looma/src/tokens");
 const INHERITED = [
   // State a component publishes to its descendants.
   ["--ui-affordance-scope-engaged", /^--ui-affordance-scope-engaged$/],
+  ["--ui-affordance-scope-guide", /^--ui-affordance-scope-guide$/],
   // The editor is one surface whose parts (toolbars, menus, overlays, the content) are separate
   // elements, and editors do not nest: an --ui-editor-* value set on the editor reaches its parts.
   ["--ui-editor-*", /^--ui-editor-/],
