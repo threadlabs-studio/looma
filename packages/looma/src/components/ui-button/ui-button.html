@@ -260,14 +260,15 @@
       }
     }
 
-    /* Under touch, every button's press lands within the control minimum: an invisible hit area,
-       centred on it, like IconButton's. A standalone link-style button (a "See all" beside a
-       heading) is a target of its own, not text, so it gets one too. */
-    html[data-ui-input-modality="touch"] :host {
+    /* Under touch, a link-style button's press lands within the control minimum: an invisible hit
+       area, centred on it, like IconButton's. A boxed button grows to the minimum itself (below);
+       a link-style one keeps its text size, so a standalone one ("See all" under a list) needs the
+       area. Only the link needs it: a hit area on every button would reach over its neighbours. */
+    html[data-ui-input-modality="touch"] :host-state([variant="link"]) {
       position: relative;
     }
 
-    html[data-ui-input-modality="touch"] :host::after {
+    html[data-ui-input-modality="touch"] :host-state([variant="link"])::after {
       position: absolute;
       inset: 50% auto auto 50%;
       inline-size: max(100%, var(--ui-control-min-block-size));
