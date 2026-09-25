@@ -10,6 +10,8 @@
   shrink: the box or track keeps its size, the label takes the small type size, and its first line
   centres in the small control height, so it shares a row's height and baseline. `md` is the default
   and unchanged. `size` is Looma's option, not the native attribute, on Input and Select.
+- Input Group takes its input's size: a `sm` or `lg` Input inside it makes the whole frame that
+  height, so a small group lines up with small buttons and fields.
 - Under a coarse pointer every `sm` control grows to the 44px touch minimum, and the text fields keep
   body-size text (iOS zooms into a focused field under 16px). A small Button now grows too, as a boxed
   button was documented to: its size rule outranked the coarse-pointer minimum.
