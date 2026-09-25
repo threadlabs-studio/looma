@@ -2296,6 +2296,77 @@ describe("Table", () => {
   });
 });
 
+describe("Table column alignment", () => {
+  // Qty and price align to the end through one <col span="2">, the note column centres. The second
+  // body row's header spans two rows, so the third row starts one column in; a cell spanning a start
+  // column and figures takes no column alignment; a cell's own data-align wins.
+  const markup = `
+    <ui-table id="columns">
+      <table>
+        <caption>Lines</caption>
+        <colgroup><col><col data-align="end" span="2"><col data-align="center"></colgroup>
+        <thead><tr><th scope="col">Item</th><th scope="col" id="head-qty">Qty</th><th scope="col">Price</th><th scope="col">Note</th></tr></thead>
+        <tbody id="lines">
+          <tr><th scope="row" id="item">A</th><td id="qty">2</td><td id="price">$4</td><td id="note">x</td></tr>
+          <tr><th scope="row" rowspan="2">B</th><td colspan="2" data-align="start" id="override">Included</td><td id="after-colspan">y</td></tr>
+          <tr><td id="under-rowspan">3</td><td>$5</td><td id="last">z</td></tr>
+        </tbody>
+        <tfoot><tr><th scope="row" colspan="2" id="total">Total</th><td id="total-price">$9</td><td></td></tr></tfoot>
+      </table>
+    </ui-table>`;
+
+  async function checkColumns(page: Page, addRow: () => Promise<void>) {
+    await page.locator("#qty").waitFor();
+    const align = (id: string) => page.locator(`#${id}`).evaluate((element) => getComputedStyle(element).textAlign);
+    const expected = {
+      "head-qty": "end", item: "start", qty: "end", price: "end", note: "center",
+      override: "start", "after-colspan": "center", "under-rowspan": "end", last: "center",
+      total: "start", "total-price": "end",
+    };
+    await page.waitForFunction(() => document.querySelector("#qty")!.hasAttribute("data-column-align"));
+    const actual = Object.fromEntries(await Promise.all(Object.keys(expected).map(async (id) => [id, await align(id)])));
+    assert.deepEqual(actual, expected);
+
+    // A row added later takes its column's alignment.
+    await addRow();
+    await page.locator("#added").waitFor();
+    await page.waitForFunction(() => getComputedStyle(document.querySelector("#added")!).textAlign === "end");
+  }
+
+  it("aligns cells by their <col>, with colspan, rowspan, and cell overrides, in HTML", async () => {
+    const path = await bundle("html-table-columns", `import "@threadlabs/looma";`);
+    const page = await open(path, markup, [join(root, "tokens.css")]);
+    await checkColumns(page, () => page.evaluate(() => {
+      document.querySelector("#lines")!.insertAdjacentHTML("beforeend", '<tr><th scope="row">C</th><td id="added">7</td><td>$1</td><td>w</td></tr>');
+    }));
+    await page.close();
+  });
+
+  it("aligns cells by their <col>, with colspan, rowspan, and cell overrides, in Vue", async () => {
+    const path = await bundle("vue-table-columns", `
+      import { createApp, h, ref } from "vue";
+      import { Table } from "@threadlabs/looma/vue";
+      const added = ref(false);
+      window.addRow = () => { added.value = true; };
+      createApp({ render: () => h(Table, { id: "columns" }, () => h("table", [
+        h("caption", "Lines"),
+        h("colgroup", [h("col"), h("col", { "data-align": "end", span: 2 }), h("col", { "data-align": "center" })]),
+        h("thead", h("tr", [h("th", { scope: "col" }, "Item"), h("th", { scope: "col", id: "head-qty" }, "Qty"), h("th", { scope: "col" }, "Price"), h("th", { scope: "col" }, "Note")])),
+        h("tbody", { id: "lines" }, [
+          h("tr", [h("th", { scope: "row", id: "item" }, "A"), h("td", { id: "qty" }, "2"), h("td", { id: "price" }, "$4"), h("td", { id: "note" }, "x")]),
+          h("tr", [h("th", { scope: "row", rowspan: 2 }, "B"), h("td", { colspan: 2, "data-align": "start", id: "override" }, "Included"), h("td", { id: "after-colspan" }, "y")]),
+          h("tr", [h("td", { id: "under-rowspan" }, "3"), h("td", "$5"), h("td", { id: "last" }, "z")]),
+          added.value ? h("tr", [h("th", { scope: "row" }, "C"), h("td", { id: "added" }, "7"), h("td", "$1"), h("td", "w")]) : null,
+        ]),
+        h("tfoot", h("tr", [h("th", { scope: "row", colspan: 2, id: "total" }, "Total"), h("td", { id: "total-price" }, "$9"), h("td")])),
+      ])) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await checkColumns(page, () => page.evaluate(() => (window as unknown as { addRow: () => void }).addRow()));
+    await page.close();
+  });
+});
+
 describe("Description list layouts", () => {
   const hash = "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08";
   const lists = [

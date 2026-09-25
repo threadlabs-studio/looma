@@ -3,12 +3,15 @@
 ## v0.11.7
 
 - New: Table (`ui-table`, Vue `Table`) styles an authored `<table>` in place: caption, header and
-  row headers, row separators, and `data-align="end"` for a column of figures. `density`
-  (`comfortable`, `compact`) sets the row height, and every row is at least one control tall, so a
+  row headers, and row separators. `density` (`comfortable`, `compact`) sets the row height, and every row is at least one control tall, so a
   row holding a checkbox or a small button lines up with the rest. `sticky-header` keeps the header
   in view in a table of bounded height. A table wider than its container scrolls sideways with the
   shared edge fade; while it scrolls, it is a region named by its caption that the keyboard can
   focus and scroll. Presentation only: no sorting, paging, or row selection.
+- Table alignment: `data-align` (`start`, `center`, `end`) on a `<col>` aligns its whole column,
+  resolved through `colspan`, `rowspan`, and `<col span>` and kept current as rows change; on a
+  cell, it aligns that cell and overrides its column. Column alignment applies once the component
+  upgrades; a cell's own `data-align` works before JavaScript.
 - Description List: `layout="stacked"` sets every term above its value; `layout="grid"` sets the
   pairs in columns, term above value; `columns` caps how many columns grid and tiles set;
   `density="compact"` sets the pairs close together. A `rows` list narrower than 24rem now sets each
