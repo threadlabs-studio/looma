@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.12.2
+
+- Input Group takes an `action` slot: one button at the end of the field, inside its border, for the
+  one thing the field is for ("Continue" after a site's address). A small button keeps the field at
+  its usual height. The group's focus ring now follows the field's focus, not the action's.
+
 ## v0.12.1
 
 - Sidebar drawer: opening or closing it no longer overflows the call stack. The sidebar reports
