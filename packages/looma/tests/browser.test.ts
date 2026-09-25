@@ -1051,6 +1051,8 @@ describe("Vue form controls", () => {
     const fontSize = (selector: string) => page.locator(selector).evaluate((element) => getComputedStyle(element).fontSize);
     assert.equal(await fontSize("#topic-label"), "14px");
     assert.equal(await fontSize("#topic-help"), "14px");
+    // A named slot in Vue has no slot attribute; the field still links its help to the control.
+    assert.equal(await select.getAttribute("aria-describedby"), "topic-help");
     await page.close();
   });
 });
