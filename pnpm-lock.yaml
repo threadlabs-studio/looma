@@ -100,7 +100,7 @@ importers:
   packages/looma:
     dependencies:
       '@nextwebwg/html-next':
-        specifier: ^1.0.0-alpha.5
+        specifier: 1.0.0-alpha.5
         version: 1.0.0-alpha.5
       lowlight:
         specifier: ^3.3.0
