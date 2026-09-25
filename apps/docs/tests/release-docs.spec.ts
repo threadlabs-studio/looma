@@ -909,13 +909,14 @@ test("component pages order representative configurations and show the exact cod
 }) => {
   await page.goto("components/ui-cluster", { waitUntil: "domcontentloaded" });
 
-  await expect(page.locator("[data-preview-scenario]")).toHaveCount(3);
+  await expect(page.locator("[data-preview-scenario]")).toHaveCount(4);
   expect(await page.locator("[data-preview-scenario]").evaluateAll((elements) =>
     elements.map((element) => element.getAttribute("data-preview-scenario"))
   )).toEqual([
     "Default",
     `gap="l"`,
-    `align="end"`
+    `align="end"`,
+    `justify="between"`
   ]);
   const wrapping = page.locator("[data-preview-scenario='Default']");
   await expect(wrapping.locator(".looma-mode-code")).toContainText("Release");
