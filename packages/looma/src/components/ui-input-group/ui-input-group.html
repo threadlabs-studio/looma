@@ -6,6 +6,7 @@
     <span class="affix"><slot name="prefix"></slot></span>
     <span class="field"><slot></slot></span>
     <span class="affix"><slot name="suffix"></slot></span>
+    <span class="action"><slot name="action"></slot></span>
   </div>
   <style>
     /* An input with fixed text before or after it, such as a domain after a site's name
@@ -13,7 +14,9 @@
        focus ring around the input and its affixes together; the input inside drops its own through
        its custom properties, so it is still the one ui-input, with its form behaviour intact. The
        affixes are plain text beside the input, so name the input with a label that says what the
-       whole value is. */
+       whole value is. The action slot takes one button at the end, inside the border, for the one
+       thing the field is for ("Continue" after a site's address), so it reads as the field's action
+       and not the form's. */
     :host {
       /* The group's own border and height stand for the input's, so the group is a lone Input's height. */
       --ui-input-border-width: 0;
@@ -50,9 +53,9 @@
       border-color: var(--ui-control-border-hover, var(--ui-text-secondary));
     }
 
-    /* The ring shows when the input would show its own: when it is focus-visible, which a text
-       input is for a pointer as well as a keyboard. */
-    :host:has(input:focus-visible) {
+    /* The ring shows when the field's input would show its own: when it is focus-visible, which a
+       text input is for a pointer as well as a keyboard. A focused action button draws its own. */
+    :host:has(.field input:focus-visible) {
       border-color: var(--ui-control-focus, var(--ui-accent-solid));
       box-shadow:
         var(--ui-control-inset),
@@ -101,7 +104,15 @@
       white-space: nowrap;
     }
 
-    .affix:empty {
+    .action {
+      display: flex;
+      flex: none;
+      align-items: stretch;
+      padding: var(--ui-space-1);
+    }
+
+    .affix:empty,
+    .action:empty {
       display: none;
     }
 
