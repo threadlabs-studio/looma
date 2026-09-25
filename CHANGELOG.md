@@ -1,12 +1,17 @@
 # Changelog
 
-## v0.13.3
+## v0.13.4
 
 - Combobox `selectedValues` controls a `multiple` combobox's selection by option value, so a form field
   with a fixed option list can start from data and stay bound: Vue `v-model:selected-values`. Each value
   shows as a badge with its option's label and submits under `name`. Adding or removing one, by
   pointer, keyboard, or badge, reports `selected-values-change` (`{ selectedValues, trigger }`) with
   the new list; setting it reports nothing. Uncontrolled `multiple` and `items` work as before.
+
+## v0.13.1
+
+- Avatar Group takes `size` (`sm` or `md`), to match small avatars: the +N badge is the same size,
+  and they overlap by 0.25rem instead of 0.5rem so their initials stay clear of the next one.
 
 ## v0.13.0
 
