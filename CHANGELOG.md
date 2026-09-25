@@ -1,12 +1,20 @@
 # Changelog
 
-## v0.12.8
+## v0.12.9
 
 - Combobox `selectedValues` controls a `multiple` combobox's selection by option value, so a form field
   with a fixed option list can start from data and stay bound: Vue `v-model:selected-values`. Each value
   shows as a badge with its option's label and submits under `name`. Adding or removing one, by
   pointer, keyboard, or badge, reports `selected-values-change` (`{ selectedValues, trigger }`) with
   the new list; setting it reports nothing. Uncontrolled `multiple` and `items` work as before.
+
+## v0.12.6
+
+- Avatar takes `active`: a ring in the success colour (`--ui-avatar-active-ring`) for someone active
+  now, such as editing the same page. It is an outline, so it survives the circle's clip and the
+  overlap in an Avatar Group. The ring is not announced; say what it means in `alt`.
+- Avatar takes `size`: `md` (2.5rem, the default) or `sm` (1.75rem, smaller initials) for a row of
+  people in a toolbar or header.
 
 ## v0.12.5
 
