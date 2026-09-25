@@ -8,9 +8,9 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../
 
 // What Looma tells people to write must use its API: props, slots, events, and hooks set through a
 // class of their own. A runtime marker on a component's root (data-component, its state attributes)
-// is how a runtime draws it, not API: an adapter need not render it (Vue's scoped styles do not need
-// it, and html-next is dropping it there), and a selector on one then silently matches nothing. Docs,
-// examples, READMEs, and the changelog never show one.
+// is how a runtime draws it: an implementation detail that differs by target and can change (the
+// html-next spec says so), not API, so a selector on one breaks when it does. Docs, examples,
+// READMEs, and the changelog never show one.
 const MARKER_SELECTOR = /\[data-component\b|\[data-ui-[a-z-]+-state\b/;
 
 async function files(directory, pattern) {
