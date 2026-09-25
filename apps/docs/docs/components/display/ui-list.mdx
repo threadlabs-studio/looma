@@ -1,0 +1,39 @@
+---
+slug: /components/ui-list
+---
+
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# List
+
+A list of items: pages, people, sites, results. `ui-list` sets the items out and owns the space
+between them; `ui-list-item` is each entry. Use them for any list of things a view shows, so every
+list in a product has the same rhythm and every entry the same shape.
+
+## One shape for every entry
+
+Every item has the same four parts, in the same places:
+
+- **leading**: something to recognise it by, usually an icon or an avatar.
+- **title** (the default slot): its name, on one line, ending in an ellipsis when it is too long.
+- **description**: one line about it, such as where it lives and when it changed ("Planning · Edited
+  2h ago"), muted and smaller.
+- **trailing**: what it offers or says at a glance, such as a Restore button or a "Current" badge.
+
+A list reads the same whether it holds recent pages, a feed of edits, or the contents of a folder,
+so a reader learns it once.
+
+## Rows and cards
+
+`layout="rows"` (the default) stacks flat rows. `layout="grid"` sets items in as many columns as
+fit, for `variant="card"` items: the same parts on a bordered surface, for a handful of featured or
+pinned entries.
+
+## Links
+
+Put a link in the title and the whole item follows it: the icon and padding are part of the link's
+hit area, and the item takes the link's hover surface and focus ring. It stays a real link, so a
+router link, a modified click, and "open in new tab" all work. A control in `trailing` keeps its own
+clicks. An item with no link has no hover surface, so it does not look pressable.
+
+<ComponentExamplesApiTabs component="ui-list" />
