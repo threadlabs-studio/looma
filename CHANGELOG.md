@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.11.1
+
+- Sidebar drawer: opening or closing it no longer overflows the call stack. The sidebar reports
+  each change with its own `toggle` event, which shares the popover's event name and bubbles, so
+  its handler for the popover's toggle heard its own report and reported again, forever (a
+  `RangeError`, and a flood of `open: false` for Vue `@toggle`). It now answers only the popover's
+  own ToggleEvent, so each open and close is one `toggle` event, with or without a `width`.
+
 ## v0.11.0
 
 - New view primitives, so a product's views are composed of components and style nothing of their

@@ -130,8 +130,10 @@ export default function controller(host) {
     if (!invoker || !element.id || invoker.getAttribute("commandfor") !== element.id) return;
     toggle(triggerOf(invoker));
   };
+  // The sidebar's own toggle event shares the popover's event name and bubbles; hearing it here would
+  // report it again, forever. Only the drawer's own popover ToggleEvent, which has a newState, counts.
   const onPopoverToggle = (event) => {
-    if (!host.state.drawer) return;
+    if (!host.state.drawer || event.target !== element || typeof event.newState !== "string") return;
     host.dispatch("toggle", { open: event.newState === "open", mode: "drawer", trigger: "programmatic" });
   };
 
