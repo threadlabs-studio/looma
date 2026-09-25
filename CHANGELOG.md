@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.13.2
+
+- Affordance Scope: `guide` sets what marks an anticipatory control at rest. `dot` (the default,
+  unchanged) shows the small guide dot; `none` shows nothing until the pointer nears the control, it
+  is hovered, or it takes focus. It reaches every guide inside the scope, including a sidebar's
+  resize line and the editor table's handles.
+
 ## v0.13.1
 
 - Avatar Group takes `size` (`sm` or `md`), to match small avatars: the +N badge is the same size,

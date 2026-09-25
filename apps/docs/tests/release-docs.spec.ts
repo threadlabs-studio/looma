@@ -256,6 +256,17 @@ test("affordance-scope visibly reveals an anticipatory Looma control near the po
   await page.mouse.move(bounds!.x - 8, bounds!.y + bounds!.height / 2);
   await expect(affordance).toHaveAttribute("data-ui-proximity", "near");
   await expect(affordance).not.toHaveCSS("color", "rgba(0, 0, 0, 0)");
+
+  // guide="none": nothing marks the button at rest, and it still reveals as the pointer nears.
+  await page.mouse.move(0, 0);
+  const quiet = page.locator("[data-preview-scenario='guide=\"none\"'] [data-component~='ui-icon-button']").first();
+  await quiet.scrollIntoViewIfNeeded();
+  await expect(quiet).toHaveCSS("color", "rgba(0, 0, 0, 0)");
+  expect(await quiet.evaluate((element) => getComputedStyle(element, "::before").opacity)).toBe("0");
+  const quietBounds = await quiet.boundingBox();
+  await page.mouse.move(quietBounds!.x - 8, quietBounds!.y + quietBounds!.height / 2);
+  await expect(quiet).toHaveAttribute("data-ui-proximity", "near");
+  await expect(quiet).not.toHaveCSS("color", "rgba(0, 0, 0, 0)");
 });
 
 test("popover trigger opens, positions, and closes the settled component", async ({ page }) => {
