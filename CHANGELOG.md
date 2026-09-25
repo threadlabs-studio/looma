@@ -14,6 +14,7 @@
   (`--ui-input-focus-outline`). New hooks `--ui-input-border-width` and `--ui-input-min-block-size`.
 - Form Field in Vue links its help and error text to the control as its description. Named slots
   carry no `slot` attribute there, so the field did not find them.
+
 ## v0.12.1
 
 - Sidebar drawer: opening or closing it no longer overflows the call stack. The sidebar reports
