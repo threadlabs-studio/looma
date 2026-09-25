@@ -2,6 +2,14 @@
 
 ## v0.11.3
 
+- A Form Field's error reads in the danger colour. It used the accent colour, so an error looked
+  like a link.
+- An invalid input inside an Input Group marks the group's one border, not a second red border inside
+  it. Input's invalid border and focus ring take hooks (`--ui-input-invalid-border`,
+  `--ui-input-invalid-focus-shadow`), documented on the Input page.
+
+## v0.11.3
+
 - Tree marquee: every name slides at the same speed. The duration was clamped between 1.4s and 10s,
   so a name only a little too long crawled and a very long one rushed.
 
