@@ -19,7 +19,7 @@ const CONTROLS = [
 
 export default function controller(host) {
   const element = host.element;
-  const { row, disclosure, children, actions, labelText } = host.refs;
+  const { row, disclosure, children, leading, label, actions, labelText } = host.refs;
   // Touch use enlarges rows and hides drag handles (see the template's styles).
   trackInputModality(element.ownerDocument);
   const childItems = () => Array.from(children?.children ?? [])
@@ -98,23 +98,28 @@ export default function controller(host) {
   const stop = host.effect(apply);
   apply();
   /**
-   * A hovered row reads its whole name. The controls overlay the label's end rather than taking
-   * width from it, so the width the name actually has while hovered is the label minus them:
-   * measuring against the full label scrolls short and leaves the tail under the controls.
+   * A hovered row reads its whole name. The label box always fills the row, so the name is measured
+   * at its own width; it has to end where the fade before the controls begins, since the controls
+   * overlay the label's end rather than taking width from it.
    */
   const MARQUEE_SPEED = 36; // CSS pixels per second.
-  const MARQUEE_SLACK = 4; // So the tail clears the edge rather than stopping on it.
   // The tree sets this for its items; an item's own prop overrides it either way.
   const marqueeWanted = () => host.state.marquee
     || getComputedStyle(element).getPropertyValue("--ui-tree-item-marquee").trim() === "1";
   const startMarquee = () => {
-    if (!labelText || !marqueeWanted()) return;
-    const covered = actions?.offsetWidth ?? 0;
-    const visible = labelText.clientWidth - covered;
-    const overflow = Math.round(labelText.scrollWidth - visible);
-    if (overflow <= 0) return;
-    const distance = overflow + MARQUEE_SLACK;
+    if (!labelText || !label || !marqueeWanted()) return;
+    labelText.style.flex = "none";
+    labelText.style.inlineSize = "max-content";
+    const text = labelText.getBoundingClientRect();
+    labelText.style.flex = labelText.style.inlineSize = "";
+    const cell = label.getBoundingClientRect();
+    const icon = leading?.getBoundingClientRect();
+    const stop = (actions?.offsetWidth ?? 0) + parseFloat(getComputedStyle(label).columnGap);
     const rightToLeft = getComputedStyle(element).direction === "rtl";
+    const distance = Math.ceil(rightToLeft ? cell.left + stop - text.left : text.right - (cell.right - stop));
+    if (distance <= 0) return;
+    const lead = icon?.width ? (rightToLeft ? icon.right - cell.right : cell.left - icon.left) : 0;
+    row.style.setProperty("--_marquee-lead", `${Math.max(0, lead)}px`);
     row.style.setProperty("--_marquee-distance", `${rightToLeft ? distance : -distance}px`);
     row.style.setProperty(
       "--_marquee-duration",
@@ -124,6 +129,7 @@ export default function controller(host) {
   };
   const stopMarquee = () => {
     delete row.dataset.uiMarquee;
+    row.style.removeProperty("--_marquee-lead");
     row.style.removeProperty("--_marquee-distance");
     row.style.removeProperty("--_marquee-duration");
   };
