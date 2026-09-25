@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.12.1
+
+- Input Group takes an `action` slot: one button at the end of the field, inside its border, for the
+  one thing the field is for ("Continue" after a site's address). A small button keeps the field at
+  its usual height. The group's focus ring now follows the field's focus, not the action's.
+
 ## v0.12.0
 
 - Radio, Checkbox, and Switch take a `description` slot: a line under the label saying what the
