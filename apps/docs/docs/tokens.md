@@ -52,21 +52,18 @@ because each is mixed from it.
 | `--ui-accent-hover`, `-active` | accent + ink | toward the ink, for pressure |
 | `--ui-accent-subtle`, `--ui-danger-soft` | accent + page | toward the page, for a tint |
 | `--ui-disabled-surface`, `--ui-disabled-text` | sunken surface, muted ink | one decision, not a per-component one |
+| `--ui-disabled-filter` | `saturate(0.2) contrast(0.75) brightness(1.25)` | how a disabled button washes out; dark dims (`brightness(0.8)`), high contrast only drops colour (`saturate(0)`) |
 | `--ui-focus-ring` | accent | the focus ring is the accent |
 
 The mixes are directional rather than absolute: they move *toward the ink* or *toward the page*.
 In a dark theme the ink is light, so the same mix brightens where it darkened in a light one, and
 one set of rules serves both.
 
-Component states derive the same way. A button's disabled colours are its own tone lightened
-toward the surface with most of its chroma removed, using relative colour:
-
-```css
---_tone: oklch(from var(--_hue) calc(l + (1 - l) * 0.72) calc(c * 0.22) h);
-```
-
-So a disabled danger button still reads as danger, and a retheme carries through without a second
-palette to keep in step.
+A disabled button keeps its own look and is washed out by one filter, `--ui-disabled-filter`:
+less colour, less contrast, and a step toward the page. Every variant and tone fades the same way,
+so a disabled danger button still reads as danger, and a retheme carries through without a second
+palette to keep in step. Button and Icon Button take it through `--ui-button-disabled-filter` and
+`--ui-icon-button-disabled-filter`.
 
 ### The rest of the contract
 

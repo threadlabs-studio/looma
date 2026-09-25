@@ -1,0 +1,81 @@
+---
+slug: /components/ui-nav-item
+---
+
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# Nav Item
+
+One destination in a side or rail navigation: the sections of a product, or the parts of a record.
+Every item has the same shape and marks where you are the same way, so no one hand-builds a
+navigation button.
+
+## Parts
+
+- **leading**: something to find it by, usually a `ui-icon`.
+- **label** (the default slot): its name.
+- **description**: an optional line under the label, such as the record a section belongs to
+  ("Pine Street Motors" under "Customer").
+
+The label and the description are one line each and end in an ellipsis, so every item is the same
+height and a narrow rail never grows sideways. Everything in the item is its accessible name.
+
+## Link or button
+
+Like Button, the item is one real element, and `as` picks which:
+
+- `as="a"` with `href` is a real link. A modified click, "open in new tab", and the browser's
+  history all work, and `target` and `rel` pass to it. Use it for anything with a URL.
+- Without it the item is a `button type="button"`, for switching views inside the app with a click
+  handler. It never submits a form.
+
+A router drives a link item through the link it renders. In Vue, give Vue Router's `RouterLink` the
+`custom` prop and hand its `href` and `navigate` to the item, so a plain click routes in the app
+and a modified click still opens a new tab:
+
+```vue
+<RouterLink v-slot="{ href, navigate, isActive }" to="/shipments" custom>
+  <NavItem as="a" :href="href" :current="isActive" @click="navigate">
+    <template #leading><Icon name="truck" /></template>
+    Shipments
+  </NavItem>
+</RouterLink>
+```
+
+## Current
+
+`current` marks where you are. It sets `aria-current`, which assistive technology announces: plain
+`current` (or `true`) is the page, `current="step"` the step of a process, and `current="location"`
+your place in a set. Set it on one item at a time.
+
+The current item takes the selected surface, a stronger label, and a solid bar on its start edge.
+The bar is a border rather than a fill, so it stays when forced colors (Windows High Contrast)
+replace backgrounds, in the system highlight colour. Its edge is logical, so in a right-to-left
+page it is on the right. The focus ring is an outline inside the item, which forced colors keep and
+a scrolling rail cannot clip.
+
+| Token | Default | Sets |
+| --- | --- | --- |
+| `--ui-nav-item-indicator-width` | `3px` | The bar's width. |
+| `--ui-nav-item-indicator-color` | `--ui-accent` | The bar's colour. |
+| `--ui-nav-item-current-surface` | `--ui-accent-soft` | The current item's surface. |
+
+## Grouping
+
+There is no navigation wrapper component: the semantics are native HTML. Put the items in a `nav`
+with an `aria-label`, so the navigation is a landmark, and in a List with an `li` around each item,
+so it is announced as a list with a count:
+
+```html
+<nav aria-label="Main">
+  <ui-list>
+    <li><ui-nav-item as="a" href="/shipments" current>Shipments</ui-nav-item></li>
+    <li><ui-nav-item as="a" href="/invoices">Invoices</ui-nav-item></li>
+  </ui-list>
+</nav>
+```
+
+The List owns the space between items. Tab moves through them, as through any links; arrow keys
+are for menus and tabs, not navigation.
+
+<ComponentExamplesApiTabs component="ui-nav-item" />
