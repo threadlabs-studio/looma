@@ -2,7 +2,7 @@
   <defs>
     <prop name="gap" type="xs | s | m | l | xl"
     >Space between items, on the spacing scale: xs is 0.5rem, s 0.75rem, m 1rem (also the default), l 1.5rem, and xl 2rem. The --ui-switcher-gap custom
-      property, when set, overrides it.</prop>
+      property, set on the switcher itself, overrides it; set on an ancestor, it does nothing.</prop>
     <prop name="threshold" type="xs | sm | md | lg"
     >The container width at which items switch between a row and a stack: wider, they all sit side by side; narrower, each takes the full width. xs is 20rem, sm
       is 30rem (also the default), md is 45rem, and lg is 60rem.</prop>
@@ -12,7 +12,20 @@
   </defs>
   <div><slot></slot></div>
   <style>
+    /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-switcher-gap {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-switcher-threshold {
+      syntax: "*";
+      inherits: false;
+    }
+
     :host {
+      /* Hooks do not inherit, so the parts below read them from the root. */
+      --_ui-switcher-threshold: var(--ui-switcher-threshold);
+
       --_switcher-gap: var(--ui-space-4);
       display: flex;
       flex-wrap: wrap;
@@ -26,7 +39,7 @@
       min-inline-size: 0;
       flex-grow: 1;
       /* The large multiplier makes the basis flip as a group at the intrinsic threshold. */
-      flex-basis: calc((var(--ui-switcher-threshold, 30rem) - 100%) * 999);
+      flex-basis: calc((var(--_ui-switcher-threshold, 30rem) - 100%) * 999);
     }
 
     :host-state([gap="xs"]) {
@@ -45,13 +58,13 @@
       --_switcher-gap: var(--ui-space-6);
     }
     :host-state([threshold="xs"]) > :slotted(*) {
-      flex-basis: calc((var(--ui-switcher-threshold, 20rem) - 100%) * 999);
+      flex-basis: calc((var(--_ui-switcher-threshold, 20rem) - 100%) * 999);
     }
     :host-state([threshold="md"]) > :slotted(*) {
-      flex-basis: calc((var(--ui-switcher-threshold, 45rem) - 100%) * 999);
+      flex-basis: calc((var(--_ui-switcher-threshold, 45rem) - 100%) * 999);
     }
     :host-state([threshold="lg"]) > :slotted(*) {
-      flex-basis: calc((var(--ui-switcher-threshold, 60rem) - 100%) * 999);
+      flex-basis: calc((var(--_ui-switcher-threshold, 60rem) - 100%) * 999);
     }
     :host-state([align="start"]) {
       align-items: flex-start;

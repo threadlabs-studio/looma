@@ -29,7 +29,21 @@
     </div>
   </div>
   <style>
+    /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-toast-region-enter-duration {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-toast-region-exit-duration {
+      syntax: "*";
+      inherits: false;
+    }
+
     :host {
+      /* Hooks do not inherit, so the parts below read them from the root. */
+      --_ui-toast-region-enter-duration: var(--ui-toast-region-enter-duration);
+      --_ui-toast-region-exit-duration: var(--ui-toast-region-exit-duration);
+
       position: fixed;
       top: calc(var(--ui-space-4) + env(safe-area-inset-top));
       right: auto;
@@ -72,12 +86,12 @@
       background: var(--ui-surface-elevated);
       color: var(--ui-text-primary);
       box-shadow: var(--ui-elevation-overlay, var(--ui-shadow-lg));
-      animation: ui-toast-enter var(--ui-toast-region-enter-duration, 0.32s) var(--ui-motion-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) both;
+      animation: ui-toast-enter var(--_ui-toast-region-enter-duration, 0.32s) var(--ui-motion-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) both;
     }
 
     /* Leaving slides on down and fades; the controller removes the toast when this ends. */
     .toast.closing {
-      animation: ui-toast-exit var(--ui-toast-region-exit-duration, 0.22s) var(--ui-motion-ease) both;
+      animation: ui-toast-exit var(--_ui-toast-region-exit-duration, 0.22s) var(--ui-motion-ease) both;
       pointer-events: none;
     }
 
