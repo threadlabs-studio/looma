@@ -1,4 +1,5 @@
 import { afterFormReset } from "../shared/form-reset.js";
+import { describeInput } from "../shared/describe.js";
 import { trackTrigger } from "../shared/trigger.js";
 
 // `checked` sets the control initially and whenever it changes; the user's changes update the state.
@@ -6,6 +7,7 @@ import { trackTrigger } from "../shared/trigger.js";
 // the native default alone cannot hold it there.
 export default function controller(host) {
   const input = host.refs.input;
+  describeInput(input, host.refs.description);
   const [trigger, stopTracking] = trackTrigger(host);
   let external = host.state.checked;
   host.state.internalChecked = Boolean(external);

@@ -366,8 +366,8 @@ test("the component catalog exposes the complete library and filters live previe
     "Core, layout, form, display, and overlay building blocks"
   );
   await expect(page.locator(".looma-catalog-hero")).not.toContainText("Forty-nine");
-  await expect(page.locator(".looma-component-card")).toHaveCount(49);
-  await expect(page.getByText("Showing 49 components", { exact: true })).toBeVisible();
+  await expect(page.locator(".looma-component-card")).toHaveCount(50);
+  await expect(page.getByText("Showing 50 components", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { level: 2, name: "Chip" })).toHaveCount(0);
   await expect(page.getByRole("heading", { level: 2, name: "Floating Action Button" })).toHaveCount(0);
   await expect(page.getByRole("heading", { level: 2, name: "Menu Item" })).toHaveCount(0);
@@ -845,6 +845,27 @@ test("ui-input authors one declarative element and lowers directly to an editabl
   await expect(states.getByRole("textbox", { name: "Invalid" })).toHaveAttribute("aria-invalid", "true");
   await expect(states.getByRole("textbox", { name: "Read only" })).toHaveAttribute("readonly", "");
   await expect(states.getByRole("textbox", { name: "Disabled" })).toBeDisabled();
+});
+
+test("ui-input-group frames its input like a lone Input, in readable text", async ({ page }) => {
+  await page.goto("components/ui-input-group", { waitUntil: "domcontentloaded" });
+  const group = page.locator("[data-preview-scenario='Suffix'] [data-component~='ui-input-group']");
+  const input = group.getByRole("textbox", { name: "Site address" });
+  await expect(input).toHaveAttribute("aria-describedby", /\S/);
+
+  for (const theme of ["light", "dark"] as const) {
+    await page.evaluate((value) => document.documentElement.setAttribute("data-theme", value), theme);
+    await group.evaluate(async (element) => {
+      await Promise.all(element.getAnimations({ subtree: true }).map((animation) => animation.finished));
+    });
+    const colors = await group.evaluate((element) => ({
+      background: getComputedStyle(element).backgroundColor,
+      border: getComputedStyle(element).borderTopColor,
+      affix: getComputedStyle(element.querySelector(".affix")!).color
+    }));
+    expect(contrastRatio(colors.affix, colors.background), `${theme} affix contrast`).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(colors.border, colors.background), `${theme} control boundary contrast`).toBeGreaterThanOrEqual(3);
+  }
 });
 
 test("ui-select authors options directly and lowers to one native select", async ({ page }) => {
@@ -1445,7 +1466,8 @@ test("tone is the colour, variant is the volume, and disabled keeps both", async
         surface: style.backgroundColor,
         text: style.color,
         radius: style.borderRadius,
-        shadow: style.boxShadow
+        shadow: style.boxShadow,
+        filter: style.filter
       }];
     }));
   });
@@ -1483,13 +1505,14 @@ test("tone is the colour, variant is the volume, and disabled keeps both", async
   expect(await sameColour(painted["solid-accent-false"].surface, painted["outline-accent-false"].border)).toBe(true);
   expect(painted["ghost-accent-false"].shadow).toBe("none");
 
-  // Disabled keeps the shape and a trace of the tone: a disabled outline still reads as an
-  // unavailable outline in its own colour, not as a grey box.
+  // Disabled keeps the shape and the tone, washed out by one filter: a disabled outline still reads
+  // as an unavailable outline in its own colour, not as a grey box.
   for (const id of ["outline-accent-true", "outline-danger-true", "solid-accent-true", "ghost-accent-true"]) {
     expect(painted[id].shadow, `${id} still looks raised`).toBe("none");
+    expect(painted[id].filter, `${id} is not washed out`).toContain("saturate(0.2)");
   }
+  expect(painted["outline-accent-false"].filter).toBe("none");
   expect(painted["outline-accent-true"].border).not.toBe(painted["outline-danger-true"].border);
-  expect(painted["outline-accent-true"].border).not.toBe(painted["outline-accent-false"].border);
   expect(painted["outline-accent-true"].border).not.toBe(painted["outline-accent-true"].surface);
   expect(painted["solid-accent-true"].border).toBe(painted["solid-accent-true"].surface);
   expect(new Set(Object.values(painted).map((paint) => paint.radius)).size).toBe(1);
@@ -1641,6 +1664,28 @@ test("tree row actions reveal on hover instead of reserving row width", async ({
   expect(Math.abs(hovered.labelToRowEnd)).toBeLessThanOrEqual(1);
   // The fade ends where the controls start, so it tracks their measured width.
   expect(parseFloat(hovered.publishedWidth)).toBeCloseTo(hovered.actionsWidth, 0);
+});
+
+test("catalog cards centre a nested demo and give a form footer the card's width", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("components/", { waitUntil: "networkidle" });
+
+  // Affordance Scope's buttons sit in a cluster; only an example's own root layout fills the card.
+  const scope = page.locator("[data-component-card='ui-affordance-scope'] .looma-component-card__preview");
+  await scope.scrollIntoViewIfNeeded();
+  const offCentre = await scope.evaluate((preview) => {
+    const card = preview.getBoundingClientRect();
+    const buttons = Array.from(preview.querySelectorAll("[data-component~='ui-icon-button']"), (button) => button.getBoundingClientRect());
+    return Math.abs((buttons[0].left + buttons.at(-1)!.right) / 2 - (card.left + card.right) / 2);
+  });
+  expect(offCentre).toBeLessThan(2);
+
+  // The form fills the card, so its Action Bar is wide enough to set its actions in one row.
+  const bar = page.locator("[data-component-card='ui-action-bar'] [data-component~='ui-action-bar']");
+  await bar.scrollIntoViewIfNeeded();
+  const rows = await bar.locator("[data-component~='ui-button']").evaluateAll((buttons) =>
+    new Set(buttons.map((button) => Math.round(button.getBoundingClientRect().top))).size);
+  expect(rows).toBe(1);
 });
 
 test("the catalog renders one filter per sidebar category and each filter narrows the grid", async ({
@@ -1799,7 +1844,8 @@ test("every badge tone remains legible and visually distinct in light and dark t
     }
     expect(treatments[0]!.fontSize).toBeGreaterThanOrEqual(14);
     expect(treatments[0]!.fontWeight).toBeGreaterThanOrEqual(500);
-    expect(contrastRatio(treatments[0]!.border, treatments[0]!.background)).toBeGreaterThanOrEqual(3);
+    // Every tone's edge is its fill, the neutral default's included: no tone carries an outline.
+    for (const treatment of treatments.slice(0, 11)) expect(treatment.border).toBe(treatment.background);
     expect(new Set(treatments.slice(1, 6).map(({ background }) => background)).size).toBe(5);
     expect(new Set(treatments.slice(6, 11).map(({ background }) => background)).size).toBe(5);
   }

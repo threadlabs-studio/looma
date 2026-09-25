@@ -24,6 +24,7 @@
       --ui-text-secondary: #111111;
       --ui-text-muted: #222222;
       --ui-disabled-text: #333333;
+      --ui-disabled-filter: saturate(0);
       --ui-focus-ring: #0000ff;
     }
   }
@@ -52,6 +53,8 @@
     --ui-text-secondary: #111111;
     --ui-text-muted: #222222;
     --ui-disabled-text: #333333;
+    /* Disabled loses its colour, never its contrast. */
+    --ui-disabled-filter: saturate(0);
     --ui-focus-ring: #0000ff;
   }
 }
