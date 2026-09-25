@@ -1654,6 +1654,28 @@ test("tree row actions reveal on hover instead of reserving row width", async ({
   expect(parseFloat(hovered.publishedWidth)).toBeCloseTo(hovered.actionsWidth, 0);
 });
 
+test("catalog cards centre a nested demo and give a form footer the card's width", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("components/", { waitUntil: "networkidle" });
+
+  // Affordance Scope's buttons sit in a cluster; only an example's own root layout fills the card.
+  const scope = page.locator("[data-component-card='ui-affordance-scope'] .looma-component-card__preview");
+  await scope.scrollIntoViewIfNeeded();
+  const offCentre = await scope.evaluate((preview) => {
+    const card = preview.getBoundingClientRect();
+    const buttons = Array.from(preview.querySelectorAll("[data-component~='ui-icon-button']"), (button) => button.getBoundingClientRect());
+    return Math.abs((buttons[0].left + buttons.at(-1)!.right) / 2 - (card.left + card.right) / 2);
+  });
+  expect(offCentre).toBeLessThan(2);
+
+  // The form fills the card, so its Action Bar is wide enough to set its actions in one row.
+  const bar = page.locator("[data-component-card='ui-action-bar'] [data-component~='ui-action-bar']");
+  await bar.scrollIntoViewIfNeeded();
+  const rows = await bar.locator("[data-component~='ui-button']").evaluateAll((buttons) =>
+    new Set(buttons.map((button) => Math.round(button.getBoundingClientRect().top))).size);
+  expect(rows).toBe(1);
+});
+
 test("the catalog renders one filter per sidebar category and each filter narrows the grid", async ({
   page
 }) => {
