@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.13.5
+## v0.13.6
 
 - New: Table (`ui-table`, Vue `Table`) styles an authored `<table>` in place: caption, header and
   row headers, row separators, and `data-align="end"` for a column of figures. `density`
@@ -13,6 +13,11 @@
   pairs in columns, term above value; `columns` caps how many columns grid and tiles set;
   `density="compact"` sets the pairs close together. A `rows` list narrower than 24rem now sets each
   term above its value.
+
+## v0.13.1
+
+- Avatar Group takes `size` (`sm` or `md`), to match small avatars: the +N badge is the same size,
+  and they overlap by 0.25rem instead of 0.5rem so their initials stay clear of the next one.
 
 ## v0.13.0
 
