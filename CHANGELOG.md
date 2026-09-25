@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.11.2
+
+- New: Input Group (`ui-input-group`, Vue `InputGroup`) shows fixed text inside a text field, before
+  or after the typed value: `prefix="https://"`, `suffix=".example.com"`. It wraps one `ui-input`
+  and draws the Input's box, states, and focus ring around both; the input inside is borderless and
+  keeps its own attributes, listeners, `v-model`, and form value. The affixes are never submitted,
+  take no focus, focus the input when clicked or tapped, and are read as the input's description
+  (merged with any `aria-describedby`), so the label stays its name. `--ui-input-affix-color` and
+  `--ui-input-affix-gap` style them. An Input outside a group is unchanged.
+- Fix: Input shows its focus ring as an outline with forced colors, which drop box shadows.
+- Fix: in Vue, Form Field links its help and error text to the control as its description. Named
+  slots carry no `slot` attribute there, so the field did not find them.
+
 ## v0.11.1
 
 - New: Action Bar (`ui-action-bar`, Vue `ActionBar`), the action row of a form or dialog, which

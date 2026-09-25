@@ -10,3 +10,67 @@ Text input that lowers directly to a native `<input>` while applying Looma's sha
 
 
 <ComponentExamplesApiTabs component="ui-input" />
+
+## Prefix and suffix
+
+To show fixed text inside the field, before or after what the user types, wrap the Input in an
+[Input Group](/components/ui-input-group) and give the group a `prefix`, a `suffix`, or both:
+
+```html
+<ui-form-field>
+  <label slot="label">Site address</label>
+  <ui-input-group prefix="https://" suffix=".example.com">
+    <ui-input name="site"></ui-input>
+  </ui-input-group>
+</ui-form-field>
+```
+
+```vue
+<InputGroup suffix=".example.com">
+  <Input id="subdomain" v-model="subdomain" name="subdomain" required />
+</InputGroup>
+```
+
+The group draws the box of a lone Input, with the same border, radius, surface, height, and states,
+and the Input inside it becomes its borderless, transparent text area. An Input with no group is
+unchanged: it is the same bare `<input>`.
+
+Everything you set goes on the Input, as it would without the group: `id`, `name`, `v-model`,
+`required`, `disabled`, `invalid`, `readonly`, `autocomplete`, `aria-describedby`, `data-*`
+attributes, and listeners such as `@input` and `@blur`. A template ref on the Input reaches the input
+as it does without the group (its `$el` in Vue).
+
+What the group guarantees:
+
+- **Only the value is submitted.** The affixes are not form controls; a form's data holds the
+  input's value alone. Validate and store the value, and add the affixes back yourself if you need
+  the full address.
+- **One tab stop.** The input is the only focusable part. The group and its affixes take no focus, so
+  Tab and Shift+Tab move into and out of the input in document order.
+- **The same focus ring.** The group shows the Input's focus ring whenever the input inside it is
+  focus-visible, by keyboard or pointer, exactly when a lone Input would. With forced colors, where
+  box shadows are dropped, the ring is an outline in the system highlight color, on a lone Input too.
+- **The affix focuses the input.** A click or tap on an affix, or anywhere in the box, focuses the
+  input. It does not select the affix's text and does not move the caret of an input that is already
+  focused. In a disabled group it does nothing.
+- **Labels still target the input.** The `id` is the input's, so a `<label for>`, a Form Field's
+  label, and a click on either focus the input.
+- **The label is the name; the affix is the description.** Screen readers announce the field by its
+  label, then the affixes, then any description you or a Form Field linked: "Subdomain, edit text,
+  .example.com". The group adds its affixes to the input's `aria-describedby` and keeps every id
+  already there. The affixes are hidden from assistive technology on their own, so they are read
+  once.
+- **States follow the input.** A disabled input disables the whole box, a read-only one can be
+  focused and selected but not edited, and an invalid one (the `invalid` prop, or the browser's own
+  verdict after the user leaves the field) gives the box the invalid border. Hover looks the same as
+  a lone Input's.
+- **Typing is the input's own.** Paste, autofill, `autocomplete`, and input methods act on the input.
+- **Narrow and right to left.** The affixes never wrap or shrink; a long value scrolls inside the
+  input while the affixes stay in view. The prefix is at the inline start, so in a right-to-left
+  page it sits on the right.
+
+`--ui-input-affix-color` sets the affix text color (secondary text by default), and
+`--ui-input-affix-gap` sets the space between an affix and the typed value.
+
+The Prefix and suffix example above shows it live; the group's own API is on its
+[page](/components/ui-input-group).

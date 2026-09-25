@@ -1020,7 +1020,7 @@ body {
   height: 100%;
 }
 
-.looma-component-preview ui-combobox, .looma-component-preview ui-input, .looma-component-preview ui-select,
+.looma-component-preview ui-combobox, .looma-component-preview ui-input, .looma-component-preview ui-input-group, .looma-component-preview ui-select,
 .looma-component-preview ui-textarea, .looma-component-preview ui-form-field { width: min(100%, 19rem); }
 
 .looma-component-header { margin-bottom: 2rem; }
