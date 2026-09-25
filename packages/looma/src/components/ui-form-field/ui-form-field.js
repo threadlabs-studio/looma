@@ -23,8 +23,9 @@ export default function controller(host) {
   const wire = () => {
     const label = element.querySelector('[slot="label"], label');
     const input = element.querySelector("input, textarea, select");
-    const help = element.querySelector('[slot="help"]');
-    const error = element.querySelector('[slot="error"], [role="alert"]');
+    // A Vue named slot carries no slot attribute, so the help and error regions are read too.
+    const help = element.querySelector(':scope > .help > *, [slot="help"]');
+    const error = element.querySelector(':scope > .error > *, [slot="error"], [role="alert"]');
     if (input !== activeInput) {
       removeOwned(activeInput);
       activeInput = input;
