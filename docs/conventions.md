@@ -63,9 +63,10 @@ Set one API vocabulary that all components and adapters follow, including state 
 - Use `LoomaIconName` for typed command metadata and `loomaIconMarkup()` in
   framework-neutral components. Framework adapters render the same icon nodes
   as native VNodes.
-- Icons inherit `currentColor`; size and stroke width stay themeable through
-  Looma CSS tokens. Accessible names belong to the button or menu item, while
-  decorative SVGs remain hidden from assistive technology.
+- Icons inherit `currentColor` and are `1em` by default, so they follow the text
+  around them; `--ui-icon-size` and `--ui-icon-stroke-width` restyle one icon.
+  Accessible names belong to the button or menu item, while decorative SVGs
+  remain hidden from assistive technology.
 - Components whose icon is consumer content may continue to accept a slot, but
   Looma-owned defaults and turnkey features use the shared registry.
 - `ui-icon` derives its shapes from `name` in its template, so server-rendered and pre-upgrade HTML

@@ -34,7 +34,58 @@
     <div class="content"><slot></slot></div>
   </div>
   <style>
+    /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-callout-border {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-callout-border-width {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-callout-gap {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-callout-icon {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-callout-icon-column {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-callout-icon-size {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-callout-leading-border-width {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-callout-padding-block {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-callout-padding-inline {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-callout-surface {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-callout-text {
+      syntax: "*";
+      inherits: false;
+    }
+
     :host {
+      /* Hooks do not inherit, so the parts below read them from the root. */
+      --_ui-callout-icon-column: var(--ui-callout-icon-column);
+      --_ui-callout-icon: var(--ui-callout-icon);
+      --_ui-callout-icon-size: var(--ui-callout-icon-size);
+
       --_callout-surface: var(--ui-info-soft);
       --_callout-border: var(--ui-info-solid);
       --_callout-icon: var(--ui-info-solid);
@@ -60,14 +111,14 @@
     .icon {
       display: grid;
       place-items: center;
-      inline-size: var(--ui-callout-icon-column, 1.125rem);
+      inline-size: var(--_ui-callout-icon-column, 1.125rem);
       block-size: 1lh;
-      color: var(--ui-callout-icon, var(--_callout-icon));
+      color: var(--_ui-callout-icon, var(--_callout-icon));
     }
 
     .icon svg {
-      inline-size: var(--ui-callout-icon-size, 1.125rem);
-      block-size: var(--ui-callout-icon-size, 1.125rem);
+      inline-size: var(--_ui-callout-icon-size, 1.125rem);
+      block-size: var(--_ui-callout-icon-size, 1.125rem);
     }
 
     .content {
