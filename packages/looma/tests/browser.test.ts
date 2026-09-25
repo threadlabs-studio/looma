@@ -917,6 +917,19 @@ describe("Form control sizes", () => {
     await context.close();
   });
 
+  it("size an input group from its input", async () => {
+    const path = await bundle("html-form-sizes-group", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-input-group id="sm"><span slot="prefix">https://</span><ui-input size="sm" aria-label="Site"></ui-input></ui-input-group>
+      <ui-input-group id="md"><span slot="prefix">https://</span><ui-input aria-label="Site"></ui-input></ui-input-group>
+      <ui-input-group id="lg"><span slot="prefix">https://</span><ui-input size="lg" aria-label="Site"></ui-input></ui-input-group>
+    `, [join(root, "tokens.css")]);
+    await page.waitForSelector('#lg [data-component~="ui-input"]');
+    const heights = await page.evaluate(() => ["sm", "md", "lg"].map((id) => Math.round(document.getElementById(id)!.getBoundingClientRect().height)));
+    assert.deepEqual(heights, [32, 40, 48]);
+    await page.close();
+  });
+
   it("take size as a Vue prop", async () => {
     const path = await bundle("vue-form-sizes", `
       import { createApp, h } from "vue";

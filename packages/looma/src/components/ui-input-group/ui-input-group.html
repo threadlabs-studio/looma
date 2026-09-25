@@ -49,6 +49,21 @@
       transition: border-color var(--ui-motion-fast) var(--ui-motion-ease), box-shadow var(--ui-motion-fast) var(--ui-motion-ease);
     }
 
+    /* The frame takes its input's size, so a small group lines up with small buttons and fields. */
+    :host:has(.field [data-ui-input-state~="size=sm"]) {
+      min-block-size: var(--ui-control-size-sm);
+    }
+
+    :host:has(.field [data-ui-input-state~="size=lg"]) {
+      min-block-size: var(--ui-control-size-lg);
+    }
+
+    @media (pointer: coarse) {
+      :host:has(.field [data-ui-input-state~="size=sm"]) {
+        min-block-size: var(--ui-control-min-block-size);
+      }
+    }
+
     :host:hover:not(:has(input:focus, input:disabled)) {
       border-color: var(--ui-control-border-hover, var(--ui-text-secondary));
     }
