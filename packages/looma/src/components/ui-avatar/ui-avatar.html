@@ -12,6 +12,9 @@
     <prop name="fallback" type="string" default=""
     >Text shown instead of the initials derived from name or alt, whenever there is no image. It is uppercased; keep it to a couple of characters, because the
       circle clips anything wider.</prop>
+    <prop name="active" type="boolean" default="false"
+    >Marks the person as active now, such as editing the same page: a ring in the success colour around the avatar. The ring is not announced, so say what it
+      means in alt ("Ada Lovelace, editing").</prop>
     <state name="hasImage" :value="false"></state>
     <state name="hasAuthoredImage" :value="false"></state>
     <state name="initials" :value="'?'"></state>
@@ -36,6 +39,13 @@
       font-size: var(--ui-font-size-sm);
       font-weight: 600;
       text-transform: uppercase;
+    }
+
+    /* An outline, not a dot: the avatar clips its content to the circle, and an outline is drawn
+       outside the box, so the ring survives the clip and the overlap in an Avatar Group. */
+    :host-state([active]) {
+      outline: 2px solid var(--ui-avatar-active-ring, var(--ui-success));
+      outline-offset: 1px;
     }
 
     .image,
