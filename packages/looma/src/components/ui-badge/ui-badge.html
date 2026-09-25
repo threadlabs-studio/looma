@@ -11,6 +11,48 @@
   </defs>
   <span><slot></slot></span>
   <style>
+    /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-badge-border {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-badge-font-size {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-badge-font-weight {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-badge-line-height {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-badge-min-block-size {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-badge-padding-block {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-badge-padding-inline {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-badge-point {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-badge-surface {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-badge-text {
+      syntax: "*";
+      inherits: false;
+    }
+
     :host {
       --_badge-surface: var(--ui-surface-subtle);
       --_badge-text: var(--ui-text-secondary);
