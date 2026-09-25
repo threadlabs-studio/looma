@@ -112,7 +112,7 @@
       block-size: var(--ui-affordance-guide-size);
       border-radius: var(--ui-radius-round);
       background: var(--ui-affordance-guide-color, var(--ui-border-strong));
-      opacity: var(--ui-affordance-guide-opacity);
+      opacity: calc(var(--ui-affordance-guide-opacity) * var(--ui-affordance-scope-guide, 1));
       transform: translate(-50%, -50%);
       transition: opacity var(--ui-affordance-motion, var(--ui-motion-fast)) var(--ui-motion-ease);
       pointer-events: none;
@@ -265,6 +265,10 @@
 
     :host {
       --_icon-button-icon-default: var(--ui-icon-size-md);
+      /* A slotted ui-icon is its own component, out of reach of the svg rule below; these are its
+         defaults, which its own --ui-icon-* hooks still override. */
+      --_ui-default-icon-size: var(--_ui-icon-button-icon-size, var(--_icon-button-icon-default));
+      --_ui-default-icon-stroke-width: var(--_ui-icon-button-icon-stroke-width, 1.75);
     }
 
     :host-state([size="sm"]) {

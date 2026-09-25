@@ -9,25 +9,35 @@
       item is a button, for switching views inside the app.</prop>
     <prop name="target" type="string">Where a link opens, as on a native link. Only meaningful with as="a".</prop>
     <prop name="rel" type="string">The link's relationship to its destination, as on a native link. Only meaningful with as="a".</prop>
-    <!-- One root, a button or a link (as="a"), as Button does. A button never submits a form; a link
-         carries no type. The language has no conditional expression, so a table keyed by a value's
-         text picks each attribute, and null leaves it off. -->
+    <prop name="as" type="button | a" default="button">The native element the item renders: a button, or a link (a) that navigates to href.</prop>
+    <!-- A button or a link, as Button does. A button never submits a form; a link carries no type. The
+         language has no conditional expression, so a table keyed by a value's text picks each attribute,
+         and null leaves it off. -->
   </defs>
-  <button
-    as="button|a"
-    :type="{ true: 'button', false: null }[format('%s', not href)]"
-    :href="href"
-    :target="target"
-    :rel="rel"
-    :aria-current="{ true: 'page', false: null, page: 'page', step: 'step', location: 'location' }[format('%s', current)]"
-  >
-    <span class="indicator" aria-hidden="true"></span>
-    <span class="leading"><slot name="leading"></slot></span>
-    <span class="content">
-      <span class="label"><slot></slot></span>
-      <span class="description"><slot name="description"></slot></span>
-    </span>
-  </button>
+  <template $match>
+    <a
+      $when="as = 'a'"
+      :href="href"
+      :target="target"
+      :rel="rel"
+      :aria-current="{ true: 'page', false: null, page: 'page', step: 'step', location: 'location' }[format('%s', current)]"
+    >
+      <span class="indicator" aria-hidden="true"></span>
+      <span class="leading"><slot name="leading"></slot></span>
+      <span class="content">
+        <span class="label"><slot></slot></span>
+        <span class="description"><slot name="description"></slot></span>
+      </span>
+    </a>
+    <button $else type="button" :aria-current="{ true: 'page', false: null, page: 'page', step: 'step', location: 'location' }[format('%s', current)]">
+      <span class="indicator" aria-hidden="true"></span>
+      <span class="leading"><slot name="leading"></slot></span>
+      <span class="content">
+        <span class="label"><slot></slot></span>
+        <span class="description"><slot name="description"></slot></span>
+      </span>
+    </button>
+  </template>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
     @property --ui-nav-item-current-surface {
