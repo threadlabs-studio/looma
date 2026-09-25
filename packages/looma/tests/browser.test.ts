@@ -149,10 +149,13 @@ describe("Vue components", () => {
       import { createApp, h } from "vue";
       import { Avatar, AvatarGroup } from "@threadlabs/looma/vue";
       createApp({
-        render: () => h(AvatarGroup, { label: "On this page" }, () => [
+        render: () => [h(AvatarGroup, { label: "On this page" }, () => [
           h(Avatar, { id: "editing", name: "Ada Lovelace", alt: "Ada Lovelace, editing", active: true }),
           h(Avatar, { id: "viewing", name: "Grace Hopper", size: "sm" }),
-        ]),
+        ]), h(AvatarGroup, { id: "small", label: "Small", size: "sm", max: 1 }, () => [
+          h(Avatar, { id: "small-first", name: "Ada Lovelace", size: "sm" }),
+          h(Avatar, { id: "small-second", name: "Grace Hopper", size: "sm" }),
+        ])],
       }).mount("#app");
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
@@ -162,6 +165,9 @@ describe("Vue components", () => {
     assert.equal(await page.locator("#editing").getAttribute("aria-label"), "Ada Lovelace, editing");
     const width = (id: string) => page.locator(`#${id}`).evaluate((element) => element.getBoundingClientRect().width);
     assert.ok(await width("viewing") < await width("editing"), "sm is smaller than md");
+    // A small group's +N badge is as small as its avatars.
+    const badge = await page.locator("#small").getByRole("img", { name: "1 more" }).evaluate((element) => element.getBoundingClientRect().width);
+    assert.equal(Math.round(badge), Math.round(await width("small-first")));
     await page.close();
   });
 
