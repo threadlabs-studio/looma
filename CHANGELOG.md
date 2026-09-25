@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.11.7
+
+- Combobox `selectedValues` controls a `multiple` combobox's selection by option value, so a form field
+  with a fixed option list can start from data and stay bound: Vue `v-model:selected-values`. Each value
+  shows as a badge with its option's label and submits under `name`. Adding or removing one, by
+  pointer, keyboard, or badge, reports `selected-values-change` (`{ selectedValues, trigger }`) with
+  the new list; setting it reports nothing. Uncontrolled `multiple` and `items` work as before.
+
 ## v0.11.6
 
 - Only a link-style Button takes the touch hit area added in 0.11.5. On every button it reached over
