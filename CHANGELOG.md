@@ -1,12 +1,26 @@
 # Changelog
 
-## v0.12.9
+## v0.12.10
 
 - Combobox `selectedValues` controls a `multiple` combobox's selection by option value, so a form field
   with a fixed option list can start from data and stay bound: Vue `v-model:selected-values`. Each value
   shows as a badge with its option's label and submits under `name`. Adding or removing one, by
   pointer, keyboard, or badge, reports `selected-values-change` (`{ selectedValues, trigger }`) with
   the new list; setting it reports nothing. Uncontrolled `multiple` and `items` work as before.
+
+## v0.12.7
+
+- Muted text reads at WCAG AA. `--ui-text-muted` was the ink at 45% into the page, about 3.3:1 on
+  white and 2.8:1 on the sunken surface, so help text, captions, descriptions, and the editor's
+  placeholder were too light. It is now 62%, and `--ui-text-secondary` (and the control placeholder
+  that follows it) is 80%, up from 72%, so each step stays visibly lighter than the one above it.
+  Every text token now reaches 4.5:1 on every surface in the light, dark, and high-contrast themes.
+- Disabled text keeps its paler look: `--ui-disabled-text` is the ink at 45%, no longer an alias of
+  muted text, and Checkbox, Radio, Switch, Input, Textarea, Select, Combobox, Disclosure, and
+  Editable read it for their disabled state.
+- `data-contrast="high"` on the root takes its own ink. The light theme, and the dark theme when it
+  follows the system preference, outranked its seeds, so the ink stayed `#1a1a1a` while its own
+  secondary and muted steps applied, and both read darker than primary text.
 
 ## v0.12.6
 
