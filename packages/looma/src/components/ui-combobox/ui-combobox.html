@@ -16,9 +16,15 @@
       this value.</prop>
     <prop name="items" type="list(object({ id: string, value: string, label: string, group?: string, disabled?: boolean }))"
     >The selected items in multiple mode, as JSON; a named combobox submits each one's value. A form reset returns to these items, or to none when unset.</prop>
+    <prop name="selectedValues" type="list(string)"
+    >The selected option values in multiple mode, when the consumer controls the selection. Once set, the consumer owns it: each value shows as a badge with its
+      authored option's label, adding or removing one reports selected-values-change with the new list, and the badges follow selectedValues, not the user,
+      unless it is updated to match. Setting it reports nothing. It takes precedence over items; leave it unset to let the combobox keep its own
+      selection.</prop>
     <prop name="multiple" type="boolean" default="false"
     >Lets the user choose several options. Each choice becomes a removable badge before the input, the list stays open between picks, and choosing a checked
-      option removes it. value-change then reports the whole list of items; use items, not value, in this mode.</prop>
+      option removes it. value-change then reports the whole list of items, and selected-values-change the list of their values; use selectedValues or items,
+      not value, in this mode.</prop>
     <prop name="tokenSeparators" type="list(string)"
     >Keys that commit the typed text in multiple mode, as KeyboardEvent key values such as "," or ";". The text is added as the option whose label matches it,
       ignoring case, or with allowCreate is reported as create-item; otherwise it stays in the input.</prop>
@@ -110,6 +116,7 @@
       type="object({ item: object({ id: string, value: string, label: string, group?: string, disabled?: boolean }), index: integer, trigger: keyboard | pointer | programmatic })"
     ></event>
     <event name="create-item" type="object({ query: string, trigger: keyboard | pointer | programmatic })"></event>
+    <event name="selected-values-change" type="object({ selectedValues: list(string), trigger: keyboard | pointer | programmatic })"></event>
     <method name="validate" export="validate" returns="promise(unknown)"></method>
     <method name="focusInput" export="focusInput" returns="promise(undefined)"></method>
   </defs>

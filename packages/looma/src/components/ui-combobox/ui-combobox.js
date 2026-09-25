@@ -50,9 +50,31 @@ export default function controller(host) {
     allowCreate: Boolean(host.state.allowCreate),
   });
   // Selected items work uncontrolled: the component keeps them and reports every change. A consumer
-  // that owns `items` stays in charge, because the prop resyncs whatever it sets.
+  // that owns `items` stays in charge, because the prop resyncs whatever it sets. A consumer that sets
+  // `selectedValues` controls the selection: the chips follow it, and a user's change is only reported.
   const items = () => host.state.multiple && Array.isArray(host.state.internalItems) ? host.state.internalItems : [];
-  const selectedValues = () => new Set(items().map((item) => item.value));
+  const selectedSet = () => new Set(items().map((item) => item.value));
+  const controlledValues = () => Array.isArray(host.state.selectedValues);
+  // Each controlled value shows its authored option; a value no option describes yet keeps the chip it
+  // had, or shows the value itself until its option arrives.
+  const itemsForValues = () => {
+    const options = config().options;
+    return host.state.selectedValues.map((value) => asItem(options.find((option) => option.value === value)
+      ?? items().find((item) => item.value === value) ?? { id: value, value, label: value }));
+  };
+  const markSelectedRows = () => {
+    if (!host.state.multiple || !host.state.rows?.length) return;
+    const selected = selectedSet();
+    host.state.rows = host.state.rows.map((row) => ({ ...row, selected: selected.has(row.value) }));
+  };
+  const syncValues = () => {
+    if (!controlledValues()) return;
+    const next = itemsForValues();
+    // An equal selection (a re-rendered literal, an unrelated option edit) leaves the chips alone.
+    if (JSON.stringify(next) === JSON.stringify(items())) return;
+    host.state.internalItems = next;
+    markSelectedRows();
+  };
   const setValidation = (result, touched = host.state.validation?.touched ?? false) => {
     const issues = result.issues ?? [];
     const blocking = issues.some((issue) => issue.severity !== "warning");
@@ -113,7 +135,7 @@ export default function controller(host) {
           resetValidation();
       }
       const ids = new Set();
-      const selected = host.state.multiple ? selectedValues() : undefined;
+      const selected = host.state.multiple ? selectedSet() : undefined;
       // Multiple keeps its chosen options in the list, checked. Dropping them hid what was picked
       // from the list and from assistive technology, which only ever heard aria-selected="false".
       const filtered = options.filter((option) => {
@@ -179,9 +201,12 @@ export default function controller(host) {
       proposedChange = undefined;
     });
   };
-  const emitItems = (next) => {
-    host.state.internalItems = next;
+  const emitItems = (next, trigger) => {
+    if (!controlledValues()) host.state.internalItems = next;
     host.dispatch("value-change", next);
+    // Not `values`: Vue's adapter reads a modeled prop with `in`, and every list-shaped detail (this
+    // value-change, options-change) has Array.prototype.values, so it would emit update:values wrongly.
+    host.dispatch("selected-values-change", { selectedValues: next.map((item) => item.value), trigger });
   };
   const setMultiQuery = (query, trigger) => {
     if (host.state.query === undefined) {
@@ -203,7 +228,7 @@ export default function controller(host) {
     const option = asItem(row);
     const current = items();
     host.dispatch("add-item", { item: option, index: current.length, trigger });
-    emitItems([...current, option]);
+    emitItems([...current, option], trigger);
   };
   const createSelectedItem = (query, trigger) => { if (query) host.dispatch("create-item", { query, trigger }); };
   const choose = (index, trigger) => {
@@ -270,7 +295,7 @@ export default function controller(host) {
     const item = current[index];
     if (!item || item.disabled || host.state.disabled || host.state.readonly) return;
     host.dispatch("remove-item", { item, index, trigger });
-    emitItems(current.filter((_, position) => position !== index));
+    emitItems(current.filter((_, position) => position !== index), trigger);
     requestAnimationFrame(() => itemButtons()[Math.min(index, itemButtons().length - 1)]?.focus?.() ?? input.focus());
   };
   const move = (key) => {
@@ -457,7 +482,7 @@ export default function controller(host) {
   const stopReset = afterFormReset(input, () => {
     close();
     lastSelection = null;
-    host.state.internalItems = Array.isArray(host.state.items) ? host.state.items : [];
+    host.state.internalItems = controlledValues() ? itemsForValues() : Array.isArray(host.state.items) ? host.state.items : [];
     applyDefaults();
     input.value = host.state.display;
     resetValidation();
@@ -468,6 +493,8 @@ export default function controller(host) {
   let lastOptionsKey = optionsKey();
   const observer = new MutationObserver(() => {
     relabel();
+    // Controlled chips show their options' current labels, including options that arrive late.
+    if (host.state.multiple) syncValues();
     const key = optionsKey();
     if (key === lastOptionsKey) return;
     lastOptionsKey = key;
@@ -475,19 +502,19 @@ export default function controller(host) {
   });
   observer.observe(authored, { childList: true, subtree: true, characterData: true, attributes: true });
   let lastItems = host.state.items;
-  if (Array.isArray(lastItems)) host.state.internalItems = lastItems;
+  let lastSelectedValues = host.state.selectedValues;
+  if (controlledValues()) host.state.internalItems = itemsForValues();
+  else if (Array.isArray(lastItems)) host.state.internalItems = lastItems;
   const stop = host.effect(() => {
-    // A consumer that sets `items` owns them; otherwise the component keeps its own.
+    // A consumer that sets `items` owns them; otherwise the component keeps its own. selectedValues wins.
     if (host.state.items !== lastItems) {
       lastItems = host.state.items;
-      if (Array.isArray(lastItems)) host.state.internalItems = lastItems;
+      if (Array.isArray(lastItems) && !controlledValues()) host.state.internalItems = lastItems;
       // The list shows the selection; a consumer that adds or removes an item later (after creating
       // it, say) is reflected at once rather than at the next search.
-      if (host.state.multiple && host.state.rows?.length) {
-        const selected = selectedValues();
-        host.state.rows = host.state.rows.map((row) => ({ ...row, selected: selected.has(row.value) }));
-      }
+      markSelectedRows();
     }
+    if (host.state.selectedValues !== lastSelectedValues) { lastSelectedValues = host.state.selectedValues; syncValues(); }
     if (host.state.value !== lastValue) { lastValue = host.state.value; syncValue(); }
     if (host.state.query !== lastQuery) { lastQuery = host.state.query; syncQuery(); }
     if (host.state.disabled || host.state.readonly) close();
