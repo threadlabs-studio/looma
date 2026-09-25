@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.11.1
+
+- New: Action Bar (`ui-action-bar`, Vue `ActionBar`), the action row of a form or dialog, which
+  places each action by what it does: `primary` (the one commit, a solid button) ends the row,
+  `secondary` (also the default slot) sits just before it, and `tertiary` (Back, Cancel, a safe
+  Discard) waits at the start edge. Logical edges mirror in right-to-left pages. Below 24rem of its
+  own width it stacks full width, primary on top. Source and Tab order are tertiary, secondary,
+  primary at every width. It only arranges; the buttons keep their own variants and tones.
+  `--ui-action-bar-gap` sets the space between actions. It fills a dialog's `actions` footer.
+
 ## v0.11.0
 
 - New view primitives, so a product's views are composed of components and style nothing of their
