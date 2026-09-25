@@ -1433,7 +1433,8 @@ test("tone is the colour, variant is the volume, and disabled keeps both", async
         surface: style.backgroundColor,
         text: style.color,
         radius: style.borderRadius,
-        shadow: style.boxShadow
+        shadow: style.boxShadow,
+        filter: style.filter
       }];
     }));
   });
@@ -1471,13 +1472,14 @@ test("tone is the colour, variant is the volume, and disabled keeps both", async
   expect(await sameColour(painted["solid-accent-false"].surface, painted["outline-accent-false"].border)).toBe(true);
   expect(painted["ghost-accent-false"].shadow).toBe("none");
 
-  // Disabled keeps the shape and a trace of the tone: a disabled outline still reads as an
-  // unavailable outline in its own colour, not as a grey box.
+  // Disabled keeps the shape and the tone, washed out by one filter: a disabled outline still reads
+  // as an unavailable outline in its own colour, not as a grey box.
   for (const id of ["outline-accent-true", "outline-danger-true", "solid-accent-true", "ghost-accent-true"]) {
     expect(painted[id].shadow, `${id} still looks raised`).toBe("none");
+    expect(painted[id].filter, `${id} is not washed out`).toContain("saturate(0.2)");
   }
+  expect(painted["outline-accent-false"].filter).toBe("none");
   expect(painted["outline-accent-true"].border).not.toBe(painted["outline-danger-true"].border);
-  expect(painted["outline-accent-true"].border).not.toBe(painted["outline-accent-false"].border);
   expect(painted["outline-accent-true"].border).not.toBe(painted["outline-accent-true"].surface);
   expect(painted["solid-accent-true"].border).toBe(painted["solid-accent-true"].surface);
   expect(new Set(Object.values(painted).map((paint) => paint.radius)).size).toBe(1);
