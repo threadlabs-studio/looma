@@ -13,8 +13,18 @@
       exactly, such as an address, in the monospace face.</prop>
     <prop name="truncate" type="boolean" default="false">Keeps the text on one line, ending in an ellipsis when it does not fit.</prop>
     <prop name="align" type="start | center" default="start">Aligns the text within its line.</prop>
+    <prop name="as" type="p | span | div | small | strong | label" default="p"
+    >The native element the text renders: a paragraph by default, inline span, small, or strong within a line, a div for a block, or a label for a
+      control.</prop>
   </defs>
-  <p as="p|span|div|small|strong|label"><slot></slot></p>
+  <template $match>
+    <span $when="as = 'span'"><slot></slot></span>
+    <div $when="as = 'div'"><slot></slot></div>
+    <small $when="as = 'small'"><slot></slot></small>
+    <strong $when="as = 'strong'"><slot></slot></strong>
+    <label $when="as = 'label'"><slot></slot></label>
+    <p $else><slot></slot></p>
+  </template>
   <style>
     /* Running text, set on the type scale and in a tone that says what it is, so a view never styles
        text of its own. The root is a paragraph unless as= names a span, div, small, strong, or label. */
