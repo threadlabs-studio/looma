@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.13.4
+## v0.13.5
 
 - Combobox `selectedValues` controls a `multiple` combobox's selection by option value, so a form field
   with a fixed option list can start from data and stay bound: Vue `v-model:selected-values`. Each value
@@ -9,6 +9,19 @@
   the new list; setting it reports nothing. Uncontrolled `multiple` and `items` work as before.
 - A `multiple` combobox shows a repeated `selectedValues` entry once, and typing the label of an option
   already chosen, then a token separator or Enter, clears the text instead of adding it again.
+
+## v0.13.4
+
+- New icon: `help` (Lucide's circle-help), for `<ui-icon name="help">`. Icon Button sizes a slotted
+  `ui-icon` the way it sizes a slotted `svg`, at every size; it drew at the text size before. Icon
+  Button documents the help toggletip: a round ghost Icon Button labelled for what it explains, with
+  the help icon, and a `ui-tooltip trigger="click"` for it.
+- Cluster takes `justify` (`start`, `center`, `end`, `between`), as Stack does, so a row can push a
+  title and its actions to opposite ends.
+- Docs: styling guidance no longer selects `data-component`. It is a marker a runtime renders, an
+  implementation detail that differs by target, not API. Set a component's hooks through a class of your own on it,
+  and make a product-wide default in a component of your own that wraps Looma's. A rule test keeps
+  docs, examples, READMEs, and this changelog from selecting runtime markers.
 
 ## v0.13.3
 
@@ -48,8 +61,10 @@
   not. A hook set on the component itself still beats its default and, where documented, its prop.
   Theme tokens (`--ui-accent`, `--ui-text`, the spacing and type steps, and everything else in
   `tokens.css`) and the editor's `--ui-editor-*` hooks inherit as before.
-- Migration: set a hook on each component rather than on a container, `:root`, or a theme block. To
-  restyle every instance, select them by their root: `[data-component~="ui-button"] { --ui-button-surface: … }`.
+- Migration: set a hook on each component rather than on a container, `:root`, or a theme block,
+  through a class of your own on it. To change every instance, wrap the component in one of your own
+  that sets its hooks. Do not select the markers a runtime renders (`data-component` and the like):
+  they are an implementation detail that can change, not API.
   Icons are `1em`, so a container sizes the icons in it with `font-size`; `--ui-icon-size` now sizes
   one icon. `--ui-tree-indent`, `--ui-tree-gutter`, and `--ui-tree-drop-color` go on the Tree and
   still reach its items; `--ui-tree-item-*` goes on each item.
