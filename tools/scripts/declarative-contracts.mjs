@@ -45,19 +45,12 @@ function inferRoot(source, tag) {
     .replace(/^\s*<template\b[^>]*>/, "")
     .replace(/<\/template>\s*$/, "")
     .trim();
-  const match = /^<([a-z][a-z0-9-]*)\b/i.exec(body);
+  // A polymorphic root (`<template $match>`) renders its `$else` arm by default, as HTML Next records it.
+  const match = /^<template\s+\$match\b/.test(body)
+    ? /<([a-z][a-z0-9-]*)\b[^>]*\s\$else\b/i.exec(body)
+    : /^<([a-z][a-z0-9-]*)\b/i.exec(body);
   if (!match) throw new SyntaxError(`${tag}: declarative definition has no native root`);
   return match[1];
-}
-
-/** A polymorphic root (`<button as="button|a">`) lists the elements an author may pick with `as`. */
-function inferRootAlternatives(source) {
-  const template = stripDefinitionPreamble(source)
-    .replace(/^\s*<template\b[^>]*>/, "")
-    .trim();
-  const root = /^<[a-z][a-z0-9-]*\b([^>]*)>/i.exec(template);
-  const as = root ? parseAttributes(root[1]).as : undefined;
-  return as ? as.split("|").map((value) => value.trim()).filter(Boolean) : undefined;
 }
 
 /** Each prop's authored description: the prose inside its `<prop>` element. */
@@ -124,7 +117,6 @@ export function parseDeclarativeContract(source, expectedTag) {
 
   return Object.freeze({
     root: inferRoot(source, tag),
-    ...(inferRootAlternatives(source) ? { rootAlternatives: inferRootAlternatives(source) } : {}),
     props: parseProps(defs),
     propDescriptions: parsePropDescriptions(defs),
     slots: parseSlots(source),
