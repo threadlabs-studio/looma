@@ -370,6 +370,87 @@ describe("Badge shape", () => {
   });
 });
 
+describe("Badge box", () => {
+  const tones = ["neutral", "accent", "info", "success", "warning", "danger"];
+  const variants = ["subtle", "solid"];
+
+  // Sizes to its label in a plain block (a table cell), as in a flex row; each variant's edge is its
+  // fill in every tone, and forced colors draw that edge in every tone.
+  async function checkBadges(page: Page) {
+    await page.waitForSelector('#flex [data-component~="ui-badge"]');
+    const width = (selector: string) => page.locator(selector).evaluate((element) => element.getBoundingClientRect().width);
+    const sizes = async () => {
+      const block = await width('#block [data-component~="ui-badge"]');
+      assert.ok(block < 200, `a badge in a 400px block is ${block}px wide`);
+      assert.ok(Math.abs(block - await width('#flex [data-component~="ui-badge"]')) < 0.5, "a badge in a block is as wide as in a flex row");
+      // max-width: 100% still caps a long label (the host is content-box, so padding sits outside it).
+      assert.equal(await page.locator('#narrow [data-component~="ui-badge"]').evaluate((element) => getComputedStyle(element).width), "60px");
+    };
+    assert.equal(await page.evaluate(() => CSS.supports("text-box-trim: trim-both")), true);
+    await sizes();
+
+    const edges = () => page.locator('#tones [data-component~="ui-badge"]').evaluateAll((elements) => elements.map((element) => {
+      const style = getComputedStyle(element);
+      return { badge: element.getAttribute("data-ui-badge-state") ?? element.outerHTML, border: style.borderTopColor, surface: style.backgroundColor };
+    }));
+    const drawn = await edges();
+    assert.equal(drawn.length, tones.length * variants.length);
+    for (const { badge, border, surface } of drawn) assert.equal(border, surface, `${badge} has an edge of its own`);
+
+    await page.emulateMedia({ forcedColors: "active" });
+    for (const { badge, border, surface } of await edges()) {
+      assert.notEqual(border, surface, `${badge} has no edge in forced colors`);
+      assert.notEqual(border, "rgba(0, 0, 0, 0)", `${badge} has no edge in forced colors`);
+    }
+    await page.emulateMedia({ forcedColors: "none" });
+
+    // A browser without text-box-trim skips the @supports block: drop it and measure again.
+    await page.evaluate(() => {
+      const drop = (list: CSSRuleList, remove: (index: number) => void) => {
+        for (let index = list.length - 1; index >= 0; index -= 1) {
+          const rule = list[index];
+          if (rule instanceof CSSSupportsRule && rule.conditionText.includes("text-box-trim")) remove(index);
+          else if (rule instanceof CSSGroupingRule) drop(rule.cssRules, (at) => rule.deleteRule(at));
+          else if (rule instanceof CSSStyleRule && rule.cssRules.length) drop(rule.cssRules, (at) => rule.deleteRule(at));
+        }
+      };
+      for (const sheet of [...document.styleSheets, ...document.adoptedStyleSheets]) drop(sheet.cssRules, (at) => sheet.deleteRule(at));
+    });
+    assert.notEqual(await page.locator('#block [data-component~="ui-badge"]').evaluate((element) => getComputedStyle(element).textBoxTrim), "trim-both");
+    await sizes();
+  }
+
+  const body = (badge: (attributes: string, label: string) => string) => `
+    <div id="block" style="width: 400px">${badge("", "Open")}</div>
+    <div id="flex" style="display: flex; width: 400px">${badge("", "Open")}</div>
+    <div id="narrow" style="width: 60px">${badge("", "A label longer than its container")}</div>
+    <div id="tones">${variants.flatMap((variant) => tones.map((tone) => badge(`variant="${variant}" tone="${tone}"`, tone))).join("")}</div>`;
+
+  it("sizes to its label and draws the same edge in every tone, in HTML", async () => {
+    const path = await bundle("html-badge-box", `import "@threadlabs/looma";`);
+    const page = await open(path, body((attributes, label) => `<ui-badge ${attributes}>${label}</ui-badge>`), [join(root, "tokens.css")]);
+    await checkBadges(page);
+    await page.close();
+  });
+
+  it("sizes to its label and draws the same edge in every tone, in Vue", async () => {
+    const path = await bundle("vue-badge-box", `
+      import { createApp, h } from "vue";
+      import { Badge } from "@threadlabs/looma/vue";
+      const tones = ${JSON.stringify(tones)}, variants = ${JSON.stringify(variants)};
+      createApp({ render: () => [
+        h("div", { id: "block", style: "width: 400px" }, [h(Badge, null, () => "Open")]),
+        h("div", { id: "flex", style: "display: flex; width: 400px" }, [h(Badge, null, () => "Open")]),
+        h("div", { id: "narrow", style: "width: 60px" }, [h(Badge, null, () => "A label longer than its container")]),
+        h("div", { id: "tones" }, variants.flatMap((variant) => tones.map((tone) => h(Badge, { variant, tone }, () => tone)))),
+      ] }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await checkBadges(page);
+    await page.close();
+  });
+});
+
 describe("Combobox validation message", () => {
   it("shows its validation message in HTML, not only in Vue", async () => {
     const path = await bundle("html-combobox-validation", `import "@threadlabs/looma";`);

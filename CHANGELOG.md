@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.12.3
+## v0.12.4
 
 - New: Nav Item (`ui-nav-item`, Vue `NavItem`), one destination in a side or rail navigation: a
   `leading` icon, the label, and an optional one-line `description`, each line ending in an
@@ -14,6 +14,15 @@
   and `calculator`, from Lucide.
 - Icon draws a shape's `line` elements. `italic`, `strikethrough`, and `underline` were missing
   strokes in `ui-icon`, and the new `credit-card` and `calculator` need them.
+
+## v0.12.3
+
+- Badge sizes to its label wherever it sits. In a browser with `text-box-trim` it was a block, so in
+  a plain block container (a table cell's `div`) it stretched to the container's full width; it is
+  now an inline-block, which still centres the glyphs and still stops at `max-width: 100%`.
+- A neutral Badge has no outline. Its border was a grey mix of the secondary text colour, while
+  every other tone's border is its own fill; the neutral border is now its fill too, in both
+  variants. Forced colors still draw the edge of every badge.
 
 ## v0.12.2
 
