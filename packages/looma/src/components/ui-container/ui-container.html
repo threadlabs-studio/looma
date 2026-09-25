@@ -2,12 +2,23 @@
   <defs>
     <prop name="measure" type="narrow | wide"
     >The container's maximum width, in characters of the current font: narrow is 45ch, wide is 80ch, and unset is 65ch, a comfortable reading line. The
-      container centres itself when its parent is wider. The --ui-container-measure custom property, when set, overrides it.</prop>
+      container centres itself when its parent is wider. The --ui-container-measure custom property, set on the container itself, overrides it; set on an
+      ancestor, it does nothing.</prop>
     <prop name="gutters" type="s | m | l"
     >Inline padding on both sides, which keeps content off the edges of a narrow screen: s is 0.75rem, m is 1rem (also the default), and l is 1.5rem.</prop>
   </defs>
   <div><slot></slot></div>
   <style>
+    /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-container-gutters {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-container-measure {
+      syntax: "*";
+      inherits: false;
+    }
+
     :host {
       --_container-measure: 65ch;
       --_container-gutters: var(--ui-space-4);
