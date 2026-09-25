@@ -1,11 +1,16 @@
 # Changelog
 
-## v0.13.2
+## v0.13.3
 
 - Icon draws without JavaScript. `ui-icon` derives its shapes from `name` as it renders, so a Vue
   server render (`renderToString`) and the first render in HTML carry the whole SVG; before, the
   shapes came from a controller, so the server sent an empty `<svg>` and the icon appeared only once
   JavaScript ran. Changing `name` still redraws it, and `image` keeps its rectangle's `ry`.
+
+## v0.13.1
+
+- Avatar Group takes `size` (`sm` or `md`), to match small avatars: the +N badge is the same size,
+  and they overlap by 0.25rem instead of 0.5rem so their initials stay clear of the next one.
 
 ## v0.13.0
 
