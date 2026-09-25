@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.13.3
+## v0.13.4
 
 - New: Table (`ui-table`, Vue `Table`) styles an authored `<table>` in place: caption, header and
   row headers, and row separators. A cell's `data-ui-align` (`start`, `center`, or `end`; `start`
@@ -14,6 +14,13 @@
   pairs in columns, term above value; `columns` (`2`, `3`, or `4`) caps how many columns grid and
   tiles set; `density="compact"` sets the pairs close together. A list still sizes as before, so a
   rows list does not stack on its own in a narrow space; use `stacked` there.
+
+## v0.13.3
+
+- Affordance Scope: `guide` sets what marks an anticipatory control at rest. `dot` (the default,
+  unchanged) shows the small guide dot; `none` shows nothing until the pointer nears the control, it
+  is hovered, or it takes focus. It reaches every guide inside the scope, including a sidebar's
+  resize line and the editor table's handles.
 
 ## v0.13.2
 
