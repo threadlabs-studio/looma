@@ -230,6 +230,10 @@
       "status": "published",
       "package": "@threadlabs/looma"
     },
+    "ui-table": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
     "ui-tabs": {
       "status": "published",
       "package": "@threadlabs/looma"

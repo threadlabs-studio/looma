@@ -1,0 +1,37 @@
+<!--
+title: Compact, with controls
+description: density="compact" sets shorter rows for long tables to scan. Every row is at least one control tall, so a row holding a checkbox or a small button keeps the rhythm of the rows around it.
+-->
+<ui-table density="compact">
+  <table>
+    <caption>Team members</caption>
+    <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Role</th>
+        <th scope="col" data-align="end">Seats</th>
+        <th scope="col" data-align="end">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th scope="row"><ui-checkbox checked>Ada Lovelace</ui-checkbox></th>
+        <td>Owner</td>
+        <td data-align="end">3</td>
+        <td data-align="end"><ui-button size="sm" variant="ghost" aria-label="Edit Ada Lovelace">Edit</ui-button></td>
+      </tr>
+      <tr>
+        <th scope="row"><ui-checkbox>Grace Hopper</ui-checkbox></th>
+        <td>Editor</td>
+        <td data-align="end">1</td>
+        <td data-align="end"><ui-button size="sm" variant="ghost" aria-label="Edit Grace Hopper">Edit</ui-button></td>
+      </tr>
+      <tr>
+        <th scope="row"><ui-checkbox>Alan Turing</ui-checkbox></th>
+        <td>Viewer</td>
+        <td data-align="end">1</td>
+        <td data-align="end"><ui-button size="sm" variant="ghost" aria-label="Edit Alan Turing">Edit</ui-button></td>
+      </tr>
+    </tbody>
+  </table>
+</ui-table>

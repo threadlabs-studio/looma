@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.11.7
+
+- New: Table (`ui-table`, Vue `Table`) styles an authored `<table>` in place: caption, header and
+  row headers, row separators, and `data-align="end"` for a column of figures. `density`
+  (`comfortable`, `compact`) sets the row height, and every row is at least one control tall, so a
+  row holding a checkbox or a small button lines up with the rest. `sticky-header` keeps the header
+  in view in a table of bounded height. A table wider than its container scrolls sideways with the
+  shared edge fade; while it scrolls, it is a region named by its caption that the keyboard can
+  focus and scroll. Presentation only: no sorting, paging, or row selection.
+- Description List: `layout="stacked"` sets every term above its value; `layout="grid"` sets the
+  pairs in columns, term above value; `columns` caps how many columns grid and tiles set;
+  `density="compact"` sets the pairs close together. A `rows` list narrower than 24rem now sets each
+  term above its value.
+- Badge is as wide as its label in a block container, such as a table cell or a description's
+  value. It filled the container where the browser trims text boxes.
+
 ## v0.11.6
 
 - Only a link-style Button takes the touch hit area added in 0.11.5. On every button it reached over
