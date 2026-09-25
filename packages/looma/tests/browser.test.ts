@@ -144,6 +144,27 @@ describe("Vue components", () => {
     await page.close();
   });
 
+  it("ring an active avatar, and not another", async () => {
+    const path = await bundle("vue-avatar-active", `
+      import { createApp, h } from "vue";
+      import { Avatar, AvatarGroup } from "@threadlabs/looma/vue";
+      createApp({
+        render: () => h(AvatarGroup, { label: "On this page" }, () => [
+          h(Avatar, { id: "editing", name: "Ada Lovelace", alt: "Ada Lovelace, editing", active: true }),
+          h(Avatar, { id: "viewing", name: "Grace Hopper", size: "sm" }),
+        ]),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const outline = (id: string) => page.locator(`#${id}`).evaluate((element) => getComputedStyle(element).outlineStyle);
+    assert.equal(await outline("editing"), "solid");
+    assert.equal(await outline("viewing"), "none");
+    assert.equal(await page.locator("#editing").getAttribute("aria-label"), "Ada Lovelace, editing");
+    const width = (id: string) => page.locator(`#${id}`).evaluate((element) => element.getBoundingClientRect().width);
+    assert.ok(await width("viewing") < await width("editing"), "sm is smaller than md");
+    await page.close();
+  });
+
   it("render, style, and behave with no HTML Next runtime", async () => {
     const path = await bundle("vue-app", `
       import { createApp, h, ref } from "vue";
@@ -1370,6 +1391,65 @@ describe("Avatar initials", () => {
     });
     assert.ok(ratio >= 4.5, `initials contrast is ${ratio.toFixed(2)}:1`);
     await page.close();
+  });
+});
+
+describe("Text tokens", () => {
+  // Every token meant for readable text, on every surface a component paints it on. Disabled text
+  // is exempt (WCAG 1.4.3), so --ui-disabled-text is not here.
+  const texts = ["--ui-text", "--ui-text-primary", "--ui-text-secondary", "--ui-text-muted", "--ui-control-placeholder"];
+  const surfaces = [
+    "--ui-surface", "--ui-surface-canvas", "--ui-surface-default", "--ui-surface-raised", "--ui-surface-elevated",
+    "--ui-surface-sunken", "--ui-surface-subtle", "--ui-surface-muted", "--ui-surface-hover", "--ui-control-surface",
+  ];
+  const themes = [
+    { name: "light", attributes: "", media: {} },
+    { name: "dark", attributes: `data-theme="dark"`, media: {} },
+    { name: "dark by preference", attributes: "", media: { colorScheme: "dark" } },
+    { name: "high contrast", attributes: `data-contrast="high"`, media: {} },
+    { name: "high contrast by preference", attributes: "", media: { contrast: "more" } },
+  ] as const;
+
+  it("reach 4.5:1 on every surface, in every theme, primary to muted", async () => {
+    const css = ["tokens.css", "theme-light.css", "theme-dark.css", "theme-high-contrast.css"].map((file) => join(root, file));
+    const failures: string[] = [];
+    for (const theme of themes) {
+      const page = await browser.newPage();
+      await page.emulateMedia(theme.media);
+      await page.setContent(`<!doctype html><html ${theme.attributes}><body><span id="probe"></span></body></html>`);
+      for (const path of css) await page.addStyleTag({ path });
+      const ratios = await page.evaluate(({ texts, surfaces }) => {
+        const probe = document.querySelector<HTMLElement>("#probe")!;
+        // Resolve the token (a color-mix) as the browser paints it: computed, then drawn to sRGB.
+        const context = document.createElement("canvas").getContext("2d", { willReadFrequently: true })!;
+        const luminance = (token: string) => {
+          probe.style.color = `var(${token})`;
+          context.clearRect(0, 0, 1, 1);
+          context.fillStyle = getComputedStyle(probe).color;
+          context.fillRect(0, 0, 1, 1);
+          const [r, g, b] = [...context.getImageData(0, 0, 1, 1).data.slice(0, 3)].map((value) => {
+            const c = value / 255;
+            return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+          });
+          return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
+        };
+        return texts.map((text) => surfaces.map((surface) => {
+          const [light, dark] = [luminance(text), luminance(surface)].sort((a, b) => b - a);
+          return (light! + 0.05) / (dark! + 0.05);
+        }));
+      }, { texts, surfaces });
+      texts.forEach((text, row) => surfaces.forEach((surface, column) => {
+        const ratio = ratios[row]![column]!;
+        if (ratio < 4.5) failures.push(`${theme.name}: ${text} on ${surface} is ${ratio.toFixed(2)}:1`);
+      }));
+      // The hierarchy holds: each step is lighter than the one above it, on the page.
+      const [primary, secondary, muted] = ["--ui-text", "--ui-text-secondary", "--ui-text-muted"].map((token) => ratios[texts.indexOf(token)]![0]!);
+      if (!(primary > secondary && secondary > muted)) {
+        failures.push(`${theme.name}: primary ${primary.toFixed(2)}, secondary ${secondary.toFixed(2)}, muted ${muted.toFixed(2)} are out of order`);
+      }
+      await page.close();
+    }
+    assert.deepEqual(failures, []);
   });
 });
 
