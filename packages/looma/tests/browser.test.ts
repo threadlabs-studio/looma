@@ -1683,6 +1683,9 @@ describe("LoomaEditor", () => {
     const slash = page.locator('[data-component="ui-editor-slash-menu"]');
     await slash.locator('[role="option"]').first().waitFor();
     assert.ok(await slash.locator('[role="option"]').count() > 3, "slash menu lists blocks");
+    const blank = await slash.locator('[role="option"]').evaluateAll((options) =>
+      options.filter((option) => !option.querySelector(".icon svg > *")).map((option) => option.textContent?.trim()));
+    assert.deepEqual(blank, [], "every block's icon draws");
     await page.close();
   });
 });
@@ -2176,6 +2179,92 @@ describe("Form participation", () => {
     const path = await bundle("vue-form-participation", vue);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
     await exercise(page);
+    await page.close();
+  });
+});
+
+describe("Sidebar", () => {
+  type Probe = { toggles: unknown[]; resizes: unknown[] };
+  const probe = (page: Page) => page.evaluate(() => (window as unknown as { probe: Probe }).probe);
+  const watchErrors = (page: Page) => {
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    return errors;
+  };
+
+  // Below its breakpoint the sidebar is a popover drawer; the invoker opens and closes it, and each
+  // change is one toggle event, not a loop through the popover's own toggle event of the same name.
+  async function checkDrawer(page: Page) {
+    await page.setViewportSize({ width: 375, height: 700 });
+    await page.locator("#nav[popover]").waitFor({ state: "attached" });
+    const errors = watchErrors(page);
+    await page.locator("#menu").click();
+    await page.locator("#nav").waitFor({ state: "visible" });
+    await page.waitForTimeout(50);
+    // The open drawer covers the invoker, as it would a phone's menu button; activate it directly.
+    await page.locator("#menu").evaluate((button) => (button as HTMLButtonElement).click());
+    await page.locator("#nav").waitFor({ state: "hidden" });
+    await page.waitForTimeout(50);
+    assert.deepEqual(errors, []);
+    assert.deepEqual((await probe(page)).toggles, [
+      { open: true, mode: "drawer", trigger: "programmatic" },
+      { open: false, mode: "drawer", trigger: "programmatic" },
+    ]);
+  }
+
+  it("opens and closes as a drawer, announcing each change once, in HTML", async () => {
+    const path = await bundle("html-sidebar-drawer", `
+      import "@threadlabs/looma";
+      window.probe = { toggles: [], resizes: [] };
+      document.getElementById("nav").addEventListener("toggle", (event) => {
+        if (event instanceof CustomEvent) window.probe.toggles.push(event.detail);
+      });
+    `);
+    const page = await open(path, `
+      <button id="menu" commandfor="nav" command="--toggle">Menu</button>
+      <ui-sidebar id="nav" aria-label="Workspace"><a href="#inbox">Inbox</a></ui-sidebar>
+    `, [join(root, "tokens.css")]);
+    await checkDrawer(page);
+    await page.close();
+  });
+
+  it("opens and closes as a drawer, announcing each change once, in Vue", async () => {
+    const path = await bundle("vue-sidebar-drawer", `
+      import { createApp, h } from "vue";
+      import { Sidebar } from "@threadlabs/looma/vue";
+      window.probe = { toggles: [], resizes: [] };
+      createApp({ render: () => [
+        h("button", { id: "menu", commandfor: "nav", command: "--toggle" }, "Menu"),
+        h(Sidebar, { id: "nav", "aria-label": "Workspace", width: 256, onToggle: (detail) => window.probe.toggles.push(detail) },
+          () => h("a", { href: "#inbox" }, "Inbox")),
+      ] }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await checkDrawer(page);
+    await page.close();
+  });
+
+  it("takes its docked width from the width prop, in Vue", async () => {
+    const path = await bundle("vue-sidebar-width", `
+      import { createApp, h, ref } from "vue";
+      import { Sidebar } from "@threadlabs/looma/vue";
+      window.probe = { toggles: [], resizes: [] };
+      const width = ref(256);
+      window.width = width;
+      createApp({ render: () => h(Sidebar, {
+        id: "nav", "aria-label": "Workspace", width: width.value, resizable: true,
+        onResize: (detail) => window.probe.resizes.push(detail),
+      }, () => h("a", { href: "#inbox" }, "Inbox")) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const errors = watchErrors(page);
+    const width = () => page.locator("#nav").evaluate((element) => element.getBoundingClientRect().width);
+    assert.equal(await width(), 256);
+    await page.evaluate(() => { (window as unknown as { width: { value: number } }).width.value = 300; });
+    await page.waitForTimeout(50);
+    assert.equal(await width(), 300);
+    assert.deepEqual(errors, []);
+    assert.deepEqual((await probe(page)).resizes, [{ width: 256, trigger: "programmatic" }, { width: 300, trigger: "programmatic" }]);
     await page.close();
   });
 });

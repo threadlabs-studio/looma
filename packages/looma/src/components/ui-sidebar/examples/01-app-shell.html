@@ -1,6 +1,6 @@
 <!--
 title: App shell
-description: The sidebar is the panel only; the page places it beside its main content. The button toggles it with commandfor and command="--toggle": docked it collapses, and below the breakpoint (48rem by default) it opens as a drawer.
+description: The sidebar is the panel only; the page places it beside its main content. The button toggles it with commandfor and command="--toggle": docked it collapses, and below the breakpoint (48rem by default) it opens as a drawer. Each open and close is one toggle event, whose detail gives open, mode, and trigger; as a drawer the popover's own toggle event, which has no detail, reaches the panel too.
 -->
 <div class="demo-app-shell">
   <ui-sidebar id="sidebar-nav" aria-label="Workspace">
