@@ -1,0 +1,97 @@
+<template component="ui-page-header">
+  <defs>
+    <prop name="align" type="start | center" default="start"
+    >Where the header sits. start runs along the page's start edge with actions at the end; center stacks everything centred, for a standalone card such as
+      sign-in.</prop>
+  </defs>
+  <header>
+    <span class="leading"><slot name="leading"></slot></span>
+    <span class="copy">
+      <span class="eyebrow"><slot name="eyebrow"></slot></span>
+      <h1 class="title"><slot></slot></h1>
+      <span class="description"><slot name="description"></slot></span>
+    </span>
+    <span class="actions"><slot name="actions"></slot></span>
+  </header>
+  <style>
+    /* The top of a view: its title (the page's one h1), with an optional icon or mark before it, a
+       short eyebrow above it, a line or two of description under it, and the view's own actions at
+       the end. Every view titles itself the same way, at the same size. */
+    :host {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--ui-space-3) var(--ui-space-4);
+      min-inline-size: 0;
+    }
+
+    .leading {
+      display: inline-flex;
+      flex: none;
+      align-self: center;
+      color: var(--ui-text-muted);
+      font-size: var(--ui-font-size-2xl);
+    }
+
+    .copy {
+      display: flex;
+      flex: 1 1 16rem;
+      flex-direction: column;
+      gap: var(--ui-space-1);
+      min-inline-size: 0;
+    }
+
+    .eyebrow {
+      color: var(--ui-text-muted);
+      font-size: var(--ui-font-size-xs);
+      font-weight: var(--ui-font-semibold);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .title {
+      margin: 0;
+      color: var(--ui-text-primary);
+      font-size: var(--ui-font-size-2xl);
+      font-weight: var(--ui-font-bold, 700);
+      line-height: var(--ui-line-height-tight);
+      overflow-wrap: anywhere;
+    }
+
+    .description {
+      color: var(--ui-text-secondary);
+      font-size: var(--ui-font-size-md);
+      line-height: var(--ui-line-height);
+    }
+
+    .actions {
+      display: inline-flex;
+      flex: none;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--ui-space-2);
+    }
+
+    :host-state([align="center"]) {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    :host-state([align="center"]) .copy {
+      align-items: center;
+      flex-basis: auto;
+    }
+
+    .leading:empty,
+    .eyebrow:empty,
+    .description:empty,
+    .actions:empty {
+      display: none;
+    }
+
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
+</template>

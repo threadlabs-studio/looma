@@ -1,28 +1,16 @@
 import type { Meta, StoryObj } from "@storybook/web-components-vite";
-import {
-  createComponentArgTypes,
-  createComponentDocsParameters
-} from "../shared/componentApi";
+import { createComponentArgTypes, createComponentDocsParameters } from "../shared/componentApi";
+import { renderAllExamples, renderExample } from "../shared/examples";
 
 const meta = {
   title: "Layout/Container",
   tags: ["autodocs"],
   argTypes: createComponentArgTypes("ui-container"),
   parameters: createComponentDocsParameters("ui-container"),
-  render: ({ measure, gutters }) => `
-    <ui-container measure="${measure}" gutters="${gutters}">
-      <h2 style="margin: 0;">Centered Content</h2>
-      <p style="margin: 0.5rem 0 0;">Readable measure and consistent gutters.</p>
-    </ui-container>
-  `
+  render: (args) => renderExample("ui-container", args)
 } satisfies Meta;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
-
-export const Default: Story = {
-  args: {
-    measure: "wide",
-    gutters: "m"
-  }
-};
+export const Default: Story = {};
+export const Examples: Story = { render: () => renderAllExamples("ui-container") };

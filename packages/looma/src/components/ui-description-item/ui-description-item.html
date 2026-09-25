@@ -1,0 +1,46 @@
+<template component="ui-description-item">
+  <defs>
+    <prop name="term" type="string" default="">What the value is, such as "Invited by". The value is the item's content.</prop>
+  </defs>
+  <div>
+    <dt><template $value="term"></template></dt>
+    <dd><slot></slot></dd>
+  </div>
+  <style>
+    /* One term and its value in a ui-description-list, laid out by the list's layout. */
+    :host {
+      display: var(--_ui-description-display, grid);
+      grid-column: var(--_ui-description-column, 1 / -1);
+      grid-template-columns: subgrid;
+      flex-direction: column;
+      align-items: var(--_ui-description-align, baseline);
+      gap: var(--ui-space-1) var(--ui-space-6);
+      min-inline-size: 0;
+      padding: var(--_ui-description-padding, 0);
+      border-width: var(--_ui-description-border-width, 0);
+      border-style: solid;
+      border-color: var(--ui-border-default);
+      border-radius: var(--ui-radius-md);
+      font-size: var(--ui-font-size-sm);
+    }
+
+    dt {
+      color: var(--ui-text-muted);
+    }
+
+    dd {
+      margin: 0;
+      min-inline-size: 0;
+      color: var(--ui-text-primary);
+      font-weight: var(--ui-font-medium);
+      font-size: var(--_ui-description-value-size, inherit);
+      text-align: start;
+      overflow-wrap: anywhere;
+    }
+
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
+</template>

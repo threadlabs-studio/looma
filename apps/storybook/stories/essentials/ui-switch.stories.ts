@@ -1,35 +1,16 @@
 import type { Meta, StoryObj } from "@storybook/web-components-vite";
-import {
-  createComponentArgTypes,
-  createComponentDocsParameters
-} from "../shared/componentApi";
+import { createComponentArgTypes, createComponentDocsParameters } from "../shared/componentApi";
+import { renderAllExamples, renderExample } from "../shared/examples";
 
 const meta = {
   title: "Forms/Switch",
   tags: ["autodocs"],
   argTypes: createComponentArgTypes("ui-switch"),
   parameters: createComponentDocsParameters("ui-switch"),
-  render: ({ checked, disabled, required, value }) => `
-    <ui-switch
-      ${checked ? "checked" : ""}
-      ${disabled ? "disabled" : ""}
-      ${required ? "required" : ""}
-      value="${value}"
-    >
-      <input type="checkbox" />
-      Enable notifications
-    </ui-switch>
-  `
+  render: (args) => renderExample("ui-switch", args)
 } satisfies Meta;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
-
-export const Default: Story = {
-  args: {
-    checked: false,
-    disabled: false,
-    required: false,
-    value: "notifications"
-  }
-};
+export const Default: Story = {};
+export const Examples: Story = { render: () => renderAllExamples("ui-switch") };

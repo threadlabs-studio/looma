@@ -5,7 +5,7 @@ function triggerFor(event) {
 }
 
 function parentItem(element) {
-  return element.parentElement?.closest('[data-component~="ui-tree-item"]') ?? null;
+  return element.parentElement?.closest('[role="treeitem"]') ?? null;
 }
 
 /** Synchronizes an inferred tree hierarchy after nested component lowering. */
@@ -23,13 +23,13 @@ export default function controller(host) {
   // Touch use enlarges rows and hides drag handles (see the template's styles).
   trackInputModality(element.ownerDocument);
   const childItems = () => Array.from(children?.children ?? [])
-    .filter((child) => child.matches?.('[data-component~="ui-tree-item"]'));
+    .filter((child) => child.matches?.('[role="treeitem"]'));
   let lastExternalExpanded = Boolean(host.state.expanded);
   host.state.internalExpanded = lastExternalExpanded;
 
   const isContainer = () => Boolean(host.state.container) || childItems().length > 0;
   const updateLevel = () => {
-    const tree = element.closest('[data-component~="ui-tree"]');
+    const tree = element.closest('[role="tree"]');
     let ancestor = parentItem(element);
     let level = 1;
     while (ancestor && tree?.contains(ancestor)) {

@@ -10,7 +10,7 @@ export default function controller(host) {
   const element = host.element;
   const name = String(host.state.name || `ui-radio-group-${++groups}`);
   const [trigger, stopTracking] = trackTrigger(host);
-  const inputs = () => Array.from(element.querySelectorAll('[data-component~="ui-radio"] input[type="radio"]'));
+  const inputs = () => Array.from(element.querySelectorAll('input[type="radio"]'));
   let external = host.state.value;
   // A radio's own required survives until the group's required changes, since either one makes the
   // whole name group required.

@@ -12,14 +12,14 @@ function itemId(item) {
 }
 
 function parentItem(item, tree) {
-  const parent = item.parentElement?.closest('[data-component~="ui-tree-item"]') ?? null;
+  const parent = item.parentElement?.closest('[role="treeitem"]') ?? null;
   return parent && tree.contains(parent) ? parent : null;
 }
 
 export default function controller(host) {
   const element = host.element;
   const document = element.ownerDocument;
-  const itemSelector = '[data-component~="ui-tree-item"]';
+  const itemSelector = '[role="treeitem"]';
   let source = null;
   let target = null;
   let position = null;

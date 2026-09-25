@@ -1,5 +1,34 @@
 # Changelog
 
+## v0.11.0
+
+- New view primitives, so a product's views are composed of components and style nothing of their
+  own:
+  - Text (`ui-text`): running text on the type scale in a tone that says what it is (default,
+    secondary, muted, accent, danger, success), with `eyebrow` and `code` variants and `truncate`.
+  - Page Header (`ui-page-header`): a view's one `h1`, with `leading`, `eyebrow`, `description`,
+    and `actions`; `align="center"` for a standalone card.
+  - Section (`ui-section`): an `h2` heading, description, actions, and content; `card`, `divided`,
+    and a `danger` tone.
+  - Status Message (`ui-status-message`): the one way to say loading, empty, or failed, with an
+    optional action; `panel` and `fill` layouts; status and alert roles.
+  - Spinner (`ui-spinner`), Card (`ui-card`: outlined, subtle, elevated), Description List
+    (`ui-description-list` and `ui-description-item`: rows on a shared column, or tiles),
+    Breadcrumbs (`ui-breadcrumbs` and `ui-breadcrumb-item`), and Cover (`ui-cover`), a layout
+    primitive that centres a view's one card.
+- Icons: `arrow-left`, `chevron-right`, `file-text`, `folder`, and `loader`. `ui-icon` drew from a
+  hand-copied catalog that had fallen behind Looma's icon set (`bold`, `info`, `list`, and more drew
+  nothing); it is now generated from `LOOMA_ICONS`, and a rule test keeps the two equal.
+- Controllers find related parts by public contract, from their root: menu items by
+  `role="menuitem"`, tree rows by `role="treeitem"`, radio groups by `role="radiogroup"`, never by
+  the `data-component` styling marker. A rule test forbids implementation markers in controllers.
+- Avatar Group rings each avatar in the surface colour and overlaps by 0.5rem, so initials stay
+  whole.
+- Storybook renders every component's own examples, so its stories cannot drift from the
+  components: several showed a native control inside the component that draws its own (two
+  checkboxes, a button in a button). Every component now has a story. The editor table playground,
+  a Vue-only story in the vanilla Storybook, is removed.
+
 ## v0.10.12
 
 - New: List (`ui-list`, Vue `List`) and List Item (`ui-list-item`, Vue `ListItem`), one shape for
