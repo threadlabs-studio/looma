@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.12.6
+## v0.12.7
 
 - New icon: `help` (Lucide's circle-help), for `<ui-icon name="help">`. Icon Button sizes a slotted
   `ui-icon` the way it sizes a slotted `svg`, at every size; it drew at the text size before. Icon
@@ -8,6 +8,14 @@
   the help icon, and a `ui-tooltip trigger="click"` for it.
 - Cluster takes `justify` (`start`, `center`, `end`, `between`), as Stack does, so a row can push a
   title and its actions to opposite ends.
+
+## v0.12.6
+
+- Avatar takes `active`: a ring in the success colour (`--ui-avatar-active-ring`) for someone active
+  now, such as editing the same page. It is an outline, so it survives the circle's clip and the
+  overlap in an Avatar Group. The ring is not announced; say what it means in `alt`.
+- Avatar takes `size`: `md` (2.5rem, the default) or `sm` (1.75rem, smaller initials) for a row of
+  people in a toolbar or header.
 
 ## v0.12.5
 
