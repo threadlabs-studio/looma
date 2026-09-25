@@ -307,13 +307,16 @@ async function copyCleanFixture(destination) {
 function installWithRetries(installArgs, consumerDirectory, environment, attempts = 6, waitMs = 30_000) {
   for (let attempt = 1; ; attempt++) {
     try {
-      run("pnpm", installArgs, { cwd: consumerDirectory, env: environment });
+      // Captured, so a failure's message carries pnpm's output for the check below to read.
+      process.stdout.write(`${run("pnpm", installArgs, { cwd: consumerDirectory, env: environment, capture: true })}\n`);
       return;
     } catch (error) {
-      const missingTarball = /ERR_PNPM_FETCH_404|404 Not Found/.test(String(error));
+      // Seconds after publish the registry may not list the version yet, or not serve its tarball.
+      const missingTarball = /ERR_PNPM_FETCH_404|404 Not Found|ERR_PNPM_NO_MATCHING_VERSION/.test(String(error));
       if (!missingTarball || attempt >= attempts) throw error;
+      process.stdout.write(`${error.message}\n`);
       process.stdout.write(
-        `\nThe published tarball is not servable yet (attempt ${attempt} of ${attempts}); waiting ${waitMs / 1000}s.\n`,
+        `\nThe published version is not servable yet (attempt ${attempt} of ${attempts}); waiting ${waitMs / 1000}s.\n`,
       );
       Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, waitMs);
     }
