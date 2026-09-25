@@ -14,7 +14,10 @@
   </defs>
   <label>
     <input type="checkbox" role="switch" $ref="input" .checked="internalChecked" :disabled="disabled" :required="required" :name="name" :value="value">
-    <span class="label"><slot></slot></span>
+    <span class="text">
+      <span class="label"><slot></slot></span>
+      <span class="description" $ref="description" aria-hidden="true"><slot name="description"></slot></span>
+    </span>
   </label>
   <style>
     :host {
@@ -26,9 +29,27 @@
       cursor: pointer;
     }
 
+    /* The label, and under it an optional line saying what the choice means. */
+    .text {
+      display: flex;
+      flex-direction: column;
+      gap: var(--ui-space-1);
+      min-inline-size: 0;
+    }
+
     .label {
       min-inline-size: 0;
       line-height: var(--ui-line-height-md);
+    }
+
+    .description {
+      color: var(--ui-text-secondary);
+      font-size: var(--ui-font-size-sm);
+      line-height: var(--ui-line-height);
+    }
+
+    .description:empty {
+      display: none;
     }
 
     input {

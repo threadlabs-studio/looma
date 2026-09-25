@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.11.7
+## v0.12.1
 
 - Sidebar drawer: opening or closing it no longer overflows the call stack. The sidebar reports
   each change with its own `toggle` event, which shares the popover's event name and bubbles, so
@@ -10,6 +10,18 @@
 - Editor: a rule test keeps every default slash command's icon in `ui-icon`'s catalog, and the
   heading commands' icon names are type-checked rather than cast. Before v0.11.0 most of them
   (Heading 2 and 3, the lists, the callouts, the code blocks, Divider, Image) drew an empty box.
+
+## v0.12.0
+
+- Radio, Checkbox, and Switch take a `description` slot: a line under the label saying what the
+  choice means. It is the input's accessible description, not part of its name. Apps were putting
+  the label and the explanation side by side in the default slot, where they ran together.
+- A disabled Button or Icon Button keeps its own look and is washed out by one filter,
+  `--ui-disabled-filter` (`saturate(0.2) contrast(0.75) brightness(1.25)`; the dark theme dims
+  instead, and high contrast only drops colour). Override per component with
+  `--ui-button-disabled-filter` or `--ui-icon-button-disabled-filter`. Breaking: the recoloured
+  disabled tones are gone, and so are Icon Button's `--ui-icon-button-disabled-text`, `-surface`, and
+  `-border` hooks and Button's link-variant use of `--ui-button-disabled-text`.
 
 ## v0.11.6
 

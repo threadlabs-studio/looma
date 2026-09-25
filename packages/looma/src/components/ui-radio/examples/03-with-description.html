@@ -1,0 +1,8 @@
+<!--
+title: With a description
+description: The description slot says what a choice means, on a line under its label. It is the input's accessible description, not part of its name.
+-->
+<ui-radio-group label="Who can open it" name="radio-description" orientation="vertical" value="open">
+  <ui-radio value="open">Open<span slot="description">Everyone on the site can open it, with the role they have on the site.</span></ui-radio>
+  <ui-radio value="private">Private<span slot="description">Only the people you add can open it.</span></ui-radio>
+</ui-radio-group>
