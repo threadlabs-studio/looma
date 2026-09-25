@@ -1,0 +1,151 @@
+<template component="ui-nav-item">
+  <defs>
+    <prop name="current" type="boolean | page | step | location" default="false"
+    >Marks the item as where you are: it takes the selected surface, a stronger label, and a bar on its start edge, and states aria-current, which assistive
+      technology announces. true means the current page (aria-current="page"); step marks the current step of a process, and location the current place in a
+      set, such as a section of a record. Set it on one item at a time.</prop>
+    <prop name="href" type="string"
+    >The link's destination. Pair it with as="a" so the item renders as a real link: a router, a modified click, and "open in new tab" all work. Without it the
+      item is a button, for switching views inside the app.</prop>
+    <prop name="target" type="string">Where a link opens, as on a native link. Only meaningful with as="a".</prop>
+    <prop name="rel" type="string">The link's relationship to its destination, as on a native link. Only meaningful with as="a".</prop>
+    <!-- One root, a button or a link (as="a"), as Button does. A button never submits a form; a link
+         carries no type. The language has no conditional expression, so a table keyed by a value's
+         text picks each attribute, and null leaves it off. -->
+  </defs>
+  <button
+    as="button|a"
+    :type="{ true: 'button', false: null }[format('%s', not href)]"
+    :href="href"
+    :target="target"
+    :rel="rel"
+    :aria-current="{ true: 'page', false: null, page: 'page', step: 'step', location: 'location' }[format('%s', current)]"
+  >
+    <span class="indicator" aria-hidden="true"></span>
+    <span class="leading"><slot name="leading"></slot></span>
+    <span class="content">
+      <span class="label"><slot></slot></span>
+      <span class="description"><slot name="description"></slot></span>
+    </span>
+  </button>
+  <style>
+    /* One destination in a side or rail navigation: an icon to find it by (leading), its name (the
+       default slot), and an optional line under it (description), such as the record a section
+       belongs to. Label and description are one line each and end in an ellipsis, so every item in a
+       navigation has the same height and the rail never grows sideways. */
+    :host {
+      --_indicator-width: var(--ui-nav-item-indicator-width, 3px);
+      --_indicator-color: var(--ui-nav-item-indicator-color, var(--ui-accent));
+      position: relative;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      gap: var(--ui-space-3);
+      inline-size: 100%;
+      min-inline-size: 0;
+      min-block-size: var(--ui-control-size, 2.5rem);
+      margin: 0;
+      padding-block: var(--ui-space-2);
+      padding-inline: var(--ui-space-3);
+      border: 0;
+      border-radius: var(--ui-radius-md);
+      background: transparent;
+      color: var(--ui-text-secondary);
+      font: inherit;
+      font-weight: var(--ui-font-medium);
+      text-align: start;
+      text-decoration: none;
+      cursor: pointer;
+      appearance: none;
+      transition: background-color var(--ui-motion-fast) var(--ui-motion-ease), color var(--ui-motion-fast) var(--ui-motion-ease);
+    }
+
+    :host:hover:not([aria-current]) {
+      background: var(--ui-surface-hover);
+      color: var(--ui-text-primary);
+    }
+
+    /* The ring is an outline, drawn inside the item: forced colors keep an outline where they drop a
+       box shadow, and a scrolling rail cannot clip a ring that stays within the item. */
+    :host:focus-visible {
+      outline: 2px solid var(--ui-focus-ring);
+      outline-offset: -2px;
+    }
+
+    :host[aria-current] {
+      background: var(--ui-nav-item-current-surface, var(--ui-accent-soft));
+      color: var(--ui-accent-subtle-text, var(--ui-text-primary));
+      font-weight: var(--ui-font-semibold);
+    }
+
+    /* The bar on the start edge is a border, not a fill: forced colors replace backgrounds but keep a
+       border, so the current item stays marked in high contrast. Logical edges mirror it in a
+       right-to-left page. */
+    .indicator {
+      position: absolute;
+      inset-block: var(--ui-space-2);
+      inset-inline-start: 0;
+      display: none;
+      border-inline-start: var(--_indicator-width) solid var(--_indicator-color);
+      border-radius: var(--ui-radius-round);
+    }
+
+    :host[aria-current] .indicator {
+      display: block;
+    }
+
+    @media (forced-colors: active) {
+      .indicator {
+        border-inline-start-color: Highlight;
+      }
+    }
+
+    .leading {
+      display: inline-flex;
+      flex: none;
+      align-items: center;
+      color: inherit;
+      font-size: var(--ui-font-size-lg);
+    }
+
+    .content {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      gap: var(--ui-space-0-5, 2px);
+      min-inline-size: 0;
+    }
+
+    .label,
+    .description {
+      display: block;
+      min-inline-size: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .label {
+      font-size: var(--ui-font-size-md);
+      line-height: var(--ui-line-height-tight);
+    }
+
+    .description {
+      color: var(--ui-text-muted);
+      font-size: var(--ui-font-size-sm);
+      font-weight: var(--ui-font-normal);
+      line-height: var(--ui-line-height-tight);
+    }
+
+    /* An unused region takes no space. */
+    .leading:empty,
+    .description:empty {
+      display: none;
+    }
+
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
+</template>

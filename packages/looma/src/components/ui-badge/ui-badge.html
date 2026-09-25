@@ -14,7 +14,8 @@
     :host {
       --_badge-surface: var(--ui-surface-subtle);
       --_badge-text: var(--ui-text-secondary);
-      --_badge-border: color-mix(in srgb, var(--ui-text-secondary) 30%, transparent);
+      /* Every tone's edge is its fill, so it is unseen until forced colors draw it. */
+      --_badge-border: var(--ui-surface-subtle);
 
       display: inline-flex;
       align-items: center;
@@ -32,12 +33,12 @@
       white-space: nowrap;
     }
 
-    /* Centre the glyphs, not the line box: a label without descenders otherwise reads high. */
     /* Centre the glyphs, not the line box: a label without descenders otherwise reads high.
-     * Trimming applies to block containers, so the box is a block with centred content. */
+     * Trimming applies to block containers; an inline-block is one and, like the inline-flex it
+     * replaces, still sizes to its label rather than filling its container. */
     @supports (text-box-trim: trim-both) {
       :host {
-        display: block;
+        display: inline-block;
         min-block-size: var(--ui-badge-min-block-size, 1.5rem);
         text-align: center;
         align-content: center;
