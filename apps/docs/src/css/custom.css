@@ -681,23 +681,6 @@ body {
 .looma-component-preview > div { max-width: 100%; }
 .looma-component-preview svg { width: 1.15rem; height: 1.15rem; }
 
-/* The full Affordance Scope example intentionally begins with its
- * anticipatory control hidden so readers can reveal it with the pointer. A
- * catalog thumbnail has no room to teach that interaction, so show the same
- * control at its revealed state instead of rendering an apparently empty
- * card. */
-.looma-component-preview--compact
-  [data-component~="ui-icon-button"][data-ui-affordance] {
-  border-color: var(--ui-icon-button-border, var(--ui-border-default)) !important;
-  background: var(--ui-icon-button-outline-bg, var(--ui-surface-default)) !important;
-  color: var(--ui-icon-button-outline-color, var(--ui-text-primary)) !important;
-}
-
-.looma-component-preview--compact
-  [data-component~="ui-icon-button"][data-ui-affordance]::before {
-  opacity: 0 !important;
-}
-
 /* Catalog previews are miniature stages, not application viewports. Editor
  * suggestion surfaces normally use fixed viewport coordinates supplied by an
  * editor selection, so pin those two compact previews to their card instead

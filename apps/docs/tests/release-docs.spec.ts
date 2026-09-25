@@ -378,26 +378,15 @@ test("the component catalog exposes the complete library and filters live previe
   await expect(sidebar.getByRole("link", { name: "Floating Action Button", exact: true })).toHaveCount(0);
   await expect(sidebar.getByRole("link", { name: "Editor Table Overlay", exact: true })).toHaveCount(0);
 
-  const affordanceCard = page.locator('[data-component-card="ui-affordance-scope"]');
-  const anticipatoryControl = affordanceCard.locator(
-    '[data-component~="ui-icon-button"][data-ui-affordance]'
-  ).first();
-  await expect(anticipatoryControl).toBeVisible();
-  await expect(anticipatoryControl).toHaveCSS("opacity", "1");
-  const affordanceTreatment = await anticipatoryControl.evaluate((element) => {
-    const style = getComputedStyle(element);
-    const bounds = element.getBoundingClientRect();
-    return {
-      background: style.backgroundColor,
-      border: style.borderTopStyle,
-      width: bounds.width,
-      height: bounds.height
-    };
-  });
-  expect(affordanceTreatment.background).not.toBe("rgba(0, 0, 0, 0)");
-  expect(affordanceTreatment.border).not.toBe("none");
-  expect(affordanceTreatment.width).toBeGreaterThanOrEqual(32);
-  expect(affordanceTreatment.height).toBeGreaterThanOrEqual(32);
+  // Cards are live like the component pages: a guide dot at rest, the button as the pointer nears it.
+  const anticipatoryControl = page.locator('[data-component-card="ui-affordance-scope"] [data-component~="ui-icon-button"]').first();
+  await anticipatoryControl.scrollIntoViewIfNeeded();
+  await expect(anticipatoryControl).toHaveCSS("color", "rgba(0, 0, 0, 0)");
+  expect(await anticipatoryControl.evaluate((element) => getComputedStyle(element, "::before").opacity)).not.toBe("0");
+  const controlBounds = await anticipatoryControl.boundingBox();
+  await page.mouse.move(controlBounds!.x - 8, controlBounds!.y + controlBounds!.height / 2);
+  await expect(anticipatoryControl).toHaveAttribute("data-ui-proximity", "near");
+  await expect(anticipatoryControl).not.toHaveCSS("color", "rgba(0, 0, 0, 0)");
 
   const search = page.getByRole("searchbox", { name: "Search components" });
   await search.fill("toast");
