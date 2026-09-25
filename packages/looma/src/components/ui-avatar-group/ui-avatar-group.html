@@ -5,6 +5,8 @@
       the badge.</prop>
     <prop name="label" type="string" default="People"
     >The group's accessible name, announced for the set of avatars as a whole. Name who they are rather than repeating the default.</prop>
+    <prop name="size" type="sm | md" default="md"
+    >The size of the avatars inside, matched by the +N badge and the overlap. Give each Avatar the same size.</prop>
     <state name="overflowCount" :value="0"></state>
   </defs>
   <div role="group" :aria-label="label">
@@ -70,6 +72,12 @@
       font-size: var(--ui-font-size-xs);
       font-weight: 600;
       flex-shrink: 0;
+    }
+
+    :host-state([size="sm"]) .overflow {
+      margin-inline-start: -0.25rem;
+      inline-size: 1.75rem;
+      block-size: 1.75rem;
     }
 
     .overflow[hidden] {

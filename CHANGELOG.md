@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.13.4
+## v0.13.5
 
 - Every form control takes Button's `size`, so one size across a row lines up. Input and Select take
   `sm`, `md`, and `lg` (32, 40, and 48px, with Button's padding and type sizes; Select's chevron
@@ -15,6 +15,11 @@
 - Under a coarse pointer every `sm` control grows to the 44px touch minimum, and the text fields keep
   body-size text (iOS zooms into a focused field under 16px). A small Button now grows too, as a boxed
   button was documented to: its size rule outranked the coarse-pointer minimum.
+
+## v0.13.1
+
+- Avatar Group takes `size` (`sm` or `md`), to match small avatars: the +N badge is the same size,
+  and they overlap by 0.25rem instead of 0.5rem so their initials stay clear of the next one.
 
 ## v0.13.0
 
