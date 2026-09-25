@@ -20,6 +20,7 @@ const EVENT_DETAIL_DOCS = {
   select: "Emitted when a selectable option becomes active.",
   change: "Emitted when a toggleable control changes checked state.",
   dismiss: "Emitted when a toast item is dismissed from its region.",
+  toggle: "Emitted once each time the panel opens or closes, docked or as a drawer.",
 };
 
 /**
