@@ -1,0 +1,86 @@
+<template component="ui-input-group">
+  <defs>
+    <prop name="disabled" type="boolean" default="false">Fades the group's framing to match a disabled input inside it. Disable the input itself too.</prop>
+  </defs>
+  <div>
+    <span class="affix"><slot name="prefix"></slot></span>
+    <span class="field"><slot></slot></span>
+    <span class="affix"><slot name="suffix"></slot></span>
+  </div>
+  <style>
+    /* An input with fixed text before or after it, such as a domain after a site's name
+       ("acme" + ".example.com") or slashes around a path. The group draws the field's border and
+       focus ring around the input and its affixes together; the input inside drops its own through
+       its custom properties, so it is still the one ui-input, with its form behaviour intact. The
+       affixes are plain text beside the input, so name the input with a label that says what the
+       whole value is. */
+    :host {
+      --ui-input-border: transparent;
+      --ui-input-border-hover: transparent;
+      --ui-input-focus-border: transparent;
+      --ui-input-shadow: none;
+      --ui-input-focus-shadow: none;
+      --ui-input-radius: 0;
+      --ui-input-surface: transparent;
+
+      display: flex;
+      align-items: stretch;
+      box-sizing: border-box;
+      inline-size: 100%;
+      min-inline-size: 0;
+      min-block-size: var(--ui-control-size-md);
+      border: 1px solid var(--ui-border-strong);
+      border-radius: var(--ui-radius-md);
+      background: var(--ui-surface-elevated);
+      box-shadow: var(--ui-control-inset);
+      overflow: hidden;
+      transition: border-color var(--ui-motion-fast) var(--ui-motion-ease), box-shadow var(--ui-motion-fast) var(--ui-motion-ease);
+    }
+
+    :host:hover:not(:focus-within) {
+      border-color: var(--ui-text-secondary);
+    }
+
+    :host:focus-within {
+      border-color: var(--ui-accent-solid);
+      box-shadow:
+        var(--ui-control-inset),
+        var(--ui-control-focus-halo-shadow);
+    }
+
+    :host:has([aria-invalid="true"], :user-invalid) {
+      border-color: var(--ui-danger-solid);
+    }
+
+    :host-state([disabled]) {
+      background: var(--ui-surface-muted);
+      box-shadow: none;
+    }
+
+    .field {
+      display: flex;
+      flex: 1;
+      min-inline-size: 0;
+    }
+
+    .affix {
+      display: inline-flex;
+      flex: none;
+      align-items: center;
+      padding-inline: var(--ui-space-2);
+      color: var(--ui-text-secondary);
+      font-family: var(--ui-font-family-mono);
+      font-size: var(--ui-font-size-sm);
+      white-space: nowrap;
+    }
+
+    .affix:empty {
+      display: none;
+    }
+
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
+</template>

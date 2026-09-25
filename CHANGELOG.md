@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.11.1
+
+- New: Input Group (`ui-input-group`, Vue `InputGroup`), an Input with fixed text before or after it
+  (`prefix`, `suffix`), such as a domain after a site's name. The group draws one border and one
+  focus ring around the input and its affixes; the input inside keeps its form behaviour.
+- List `density="compact"` sets a short list of facts close together, with no row padding, such as
+  the features a plan includes.
+
 ## v0.11.0
 
 - New view primitives, so a product's views are composed of components and style nothing of their

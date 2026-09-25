@@ -8,5 +8,19 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 Text input that lowers directly to a native `<input>` while applying Looma's shared control theme.
 
+## Styling hooks
+
+An input follows the shared control tokens (`--ui-control-border`, `--ui-control-surface`, and so on).
+To restyle inputs alone, or one input from a parent, set its own hooks, which fall back to those:
+
+| Hook | Sets |
+| --- | --- |
+| `--ui-input-border`, `--ui-input-border-hover`, `--ui-input-focus-border` | the border at rest, under the pointer, and when focused |
+| `--ui-input-surface` | the fill |
+| `--ui-input-radius` | the corner radius |
+| `--ui-input-shadow`, `--ui-input-focus-shadow` | the inset shadow at rest and the focus ring |
+
+[Input Group](/components/ui-input-group) uses them to draw one field around an input and its affixes.
+
 
 <ComponentExamplesApiTabs component="ui-input" />
