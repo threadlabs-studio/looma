@@ -12,4 +12,43 @@ focus ring, and an invalid input marks the whole group. The input inside is stil
 submits with its form and takes its own `id`, `name`, and `v-model`. Name it with a label that says
 what the whole value is ("Site address"); the affixes are plain text beside it.
 
+```vue
+<InputGroup>
+  <Input id="subdomain" v-model="subdomain" name="subdomain" required />
+  <template #suffix>.example.com</template>
+</InputGroup>
+```
+
+## What the group guarantees
+
+- **Only the value is submitted.** The affixes are not form controls; the form's data holds the
+  input's value alone.
+- **Everything you set stays on the input.** `id`, `name`, `v-model`, `required`, `invalid`,
+  `readonly`, `autocomplete`, `aria-describedby`, `data-*` attributes, listeners such as `@input` and
+  `@blur`, `autofocus`, and a template ref all reach the input as they do without the group.
+- **One tab stop.** The input is the only focusable part. The group and its affixes take no focus, so
+  Tab and Shift+Tab move into and out of the input in document order.
+- **The same focus ring as a lone Input.** The group shows it when the input inside is
+  focus-visible, which a text input is for a pointer as well as a keyboard, and the ring turns
+  danger-coloured on an invalid input. With forced colors, which drop box shadows, it is an outline
+  in the system highlight colour, as on a lone Input. The frame, its hover, and its disabled surface
+  follow the shared control tokens with a lone Input's fallbacks, and it is a lone Input's height.
+- **An affix focuses the input.** A click or tap on an affix, or anywhere in the frame, focuses the
+  input. It does not select the affix's text and does not move the caret of an input that is already
+  focused. In a disabled group it does nothing. An affix that holds a control, such as a button,
+  keeps its own clicks.
+- **Labels still target the input.** The `id` is the input's, so a `<label for>`, a Form Field's
+  label, and a click on either focus the input.
+- **The label is the name; the affix is the description.** A screen reader announces the field by
+  its label, then its affixes: "Site address, edit text, .example.com". The group adds each text
+  affix to the input's `aria-describedby`, ahead of any ids already there (yours, or a Form Field's
+  help and error), and hides the affix itself from assistive technology so it is read once.
+- **States follow the input.** A disabled input fades the frame (the `disabled` prop does too), a
+  read-only one can be focused and selected but not edited, and an invalid one (the `invalid` prop,
+  or the browser's own verdict once the user leaves the field) marks the frame's border.
+- **Typing is the input's own.** Paste, autofill, `autocomplete`, and input methods act on the input.
+- **Narrow and right to left.** Affixes never wrap or shrink; a long value scrolls inside the input
+  while they stay in view. The prefix is at the inline start, so in a right-to-left page it sits on
+  the right.
+
 <ComponentExamplesApiTabs component="ui-input-group" />
