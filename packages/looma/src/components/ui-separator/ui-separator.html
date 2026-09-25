@@ -5,7 +5,14 @@
   </defs>
   <hr :aria-orientation="orientation">
   <style>
-    hr {
+    /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-separator-color {
+      syntax: "*";
+      inherits: false;
+    }
+
+    /* The root is the hr, so the rules name :host; a bare hr matches only a descendant. */
+    :host {
       box-sizing: border-box;
       align-self: stretch;
       margin: 0;
@@ -13,7 +20,7 @@
       border-block-start: 1px solid var(--ui-separator-color, var(--ui-border-default));
     }
 
-    hr[aria-orientation="vertical"] {
+    :host[aria-orientation="vertical"] {
       block-size: auto;
       border-block-start: 0;
       border-inline-start: 1px solid var(--ui-separator-color, var(--ui-border-default));

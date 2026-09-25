@@ -40,8 +40,11 @@ test("every global token a stylesheet reads is defined", async () => {
     const source = await readFile(file, "utf8");
     // A stylesheet that sets a token itself may read it back without a fallback.
     const local = new Set([...source.matchAll(/(--ui-[\w-]+)\s*:/g)].map((match) => match[1]));
+    // A root relaying its hook to its parts, `--_ui-x: var(--ui-x)`, passes an unset hook on as unset;
+    // the parts that read `--_ui-x` supply the fallback.
+    const relays = new Set([...source.matchAll(/--_(ui-[\w-]+)\s*:\s*var\(--(ui-[\w-]+)\)/g)].filter(([, relay, hook]) => relay === hook).map(([, , hook]) => `--${hook}`));
     for (const [, token, next] of source.matchAll(/var\((--ui-[\w-]+)\s*(,|\))/g)) {
-      if (defined.has(token) || local.has(token)) continue;
+      if (defined.has(token) || local.has(token) || relays.has(token)) continue;
       // A component's own token is defined by whoever sets it, so a fallback is the contract.
       if (prefixes.some((prefix) => token.startsWith(`--${prefix}`))) {
         if (next === ")") {

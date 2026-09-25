@@ -190,8 +190,8 @@
     }
 
     .handle {
-      --ui-icon-size: 14px;
-      --ui-icon-stroke-width: 2;
+      --_ui-default-icon-size: 14px;
+      --_ui-default-icon-stroke-width: 2;
     }
 
     .handle[data-ui-proximity="near"],
@@ -339,8 +339,8 @@
 
     .selector:hover,
     .cell-menu:hover {
-      background: var(--ui-icon-button-hover-surface, var(--ui-surface-muted));
-      color: var(--ui-icon-button-hover-text, var(--ui-text-primary));
+      background: var(--ui-surface-muted);
+      color: var(--ui-text-primary);
       box-shadow: var(--ui-shadow-xs, 0 1px 2px rgb(0 0 0 / 0.05));
     }
 
@@ -364,8 +364,8 @@
       display: block;
       width: 14px;
       height: 14px;
-      --ui-icon-size: 14px;
-      --ui-icon-stroke-width: 2;
+      --_ui-default-icon-size: 14px;
+      --_ui-default-icon-stroke-width: 2;
       opacity: 0;
       transform: scale(0.72);
       transition:
@@ -427,8 +427,8 @@
     }
 
     .cell-menu {
-      --ui-icon-size: 15px;
-      --ui-icon-stroke-width: 2;
+      --_ui-default-icon-size: 15px;
+      --_ui-default-icon-stroke-width: 2;
     }
 
     :host[hidden] {

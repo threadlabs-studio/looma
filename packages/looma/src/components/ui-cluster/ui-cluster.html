@@ -2,13 +2,19 @@
   <defs>
     <prop name="gap" type="xs | s | m | l | xl"
     >Space between items, on the spacing scale: xs is 0.5rem, s 0.75rem (also the default), m 1rem, l 1.5rem, and xl 2rem. The --ui-cluster-gap custom property,
-      when set, overrides it.</prop>
+      set on the cluster itself, overrides it; set on an ancestor, it does nothing.</prop>
     <prop name="align" type="start | center | end | stretch"
     >How items line up within each row: center (the default) aligns their middles, start their tops, end their bottoms, and stretch makes every item as tall as
       its row.</prop>
   </defs>
   <div><slot></slot></div>
   <style>
+    /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-cluster-gap {
+      syntax: "*";
+      inherits: false;
+    }
+
     :host {
       --_layout-gap: var(--ui-space-3);
       display: flex;

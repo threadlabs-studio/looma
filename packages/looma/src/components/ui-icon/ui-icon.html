@@ -79,17 +79,31 @@
     </svg>
   </span>
   <style>
+    /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-icon-size {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-icon-stroke-width {
+      syntax: "*";
+      inherits: false;
+    }
+
     :host {
+      /* Hooks do not inherit, so the svg reads the stroke from the root. A Looma component that
+         sizes the icons it renders sets --_ui-default-icon-*, which the icon's own hooks override. */
+      --_ui-icon-stroke-width: var(--ui-icon-stroke-width, var(--_ui-default-icon-stroke-width));
+
       display: inline-flex;
       flex: none;
-      inline-size: var(--ui-icon-size, 1em);
-      block-size: var(--ui-icon-size, 1em);
+      inline-size: var(--ui-icon-size, var(--_ui-default-icon-size, 1em));
+      block-size: var(--ui-icon-size, var(--_ui-default-icon-size, 1em));
     }
 
     svg {
       inline-size: 100%;
       block-size: 100%;
-      stroke-width: var(--ui-icon-stroke-width, 2);
+      stroke-width: var(--_ui-icon-stroke-width, 2);
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */
