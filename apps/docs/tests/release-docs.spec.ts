@@ -888,13 +888,14 @@ test("component pages order representative configurations and show the exact cod
 }) => {
   await page.goto("components/ui-cluster", { waitUntil: "domcontentloaded" });
 
-  await expect(page.locator("[data-preview-scenario]")).toHaveCount(3);
+  await expect(page.locator("[data-preview-scenario]")).toHaveCount(4);
   expect(await page.locator("[data-preview-scenario]").evaluateAll((elements) =>
     elements.map((element) => element.getAttribute("data-preview-scenario"))
   )).toEqual([
     "Default",
     `gap="l"`,
-    `align="end"`
+    `align="end"`,
+    `justify="between"`
   ]);
   const wrapping = page.locator("[data-preview-scenario='Default']");
   await expect(wrapping.locator(".looma-mode-code")).toContainText("Release");
@@ -909,8 +910,8 @@ test("Examples and API keep configuration demos separate from exhaustive referen
 }) => {
   await page.goto("components/ui-button", { waitUntil: "domcontentloaded" });
 
-  // Default, variant, Link, size, disabled, align and stretch, as a link.
-  await expect(page.locator(".looma-preview-scenario")).toHaveCount(7);
+  // Default, variant, Link, size, disabled, align and stretch, as a link, current item.
+  await expect(page.locator(".looma-preview-scenario")).toHaveCount(8);
   await expect(page.locator(".looma-api")).toHaveCount(0);
   await page.getByRole("tab", { name: "API" }).click();
   await expect(page.locator(".looma-preview-scenario")).toHaveCount(0);

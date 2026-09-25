@@ -1,0 +1,11 @@
+<!--
+title: Help toggletip
+description: A round ghost button holding the help icon, named for what it explains, opens a click-triggered tooltip. It opens on click, Enter, or Space, and closes the same way or with Escape.
+-->
+<ui-cluster gap="xs">
+  <ui-text weight="medium">Email</ui-text>
+  <ui-icon-button id="email-help" label="Help for Email" variant="ghost" size="sm" round>
+    <ui-icon name="help"></ui-icon>
+  </ui-icon-button>
+</ui-cluster>
+<ui-tooltip for="email-help" trigger="click">Receipts and sign-in links go to this address.</ui-tooltip>
