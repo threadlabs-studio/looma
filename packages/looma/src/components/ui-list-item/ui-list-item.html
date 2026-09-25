@@ -1,0 +1,146 @@
+<template component="ui-list-item">
+  <defs>
+    <prop name="variant" type="row | card" default="row"
+    >How the item is drawn. A row is flat and takes a hover surface when it is a link, for items read down a list. A card sits on a raised, bordered surface,
+      for items set in a grid (a List with layout="grid"). Both have the same parts: leading, title, description, and trailing.</prop>
+    <prop name="current" type="boolean" default="false"
+    >Marks the item as the current one, such as the site you are in: it takes the selected surface and aria-current="true", which assistive technology
+      announces. Set it on one item at a time.</prop>
+  </defs>
+  <li :aria-current="current">
+    <span class="leading"><slot name="leading"></slot></span>
+    <span class="content">
+      <span class="title"><slot></slot></span>
+      <span class="description"><slot name="description"></slot></span>
+    </span>
+    <span class="trailing"><slot name="trailing"></slot></span>
+  </li>
+  <style>
+    /* One entry in a list: something to recognise (leading, usually an icon), its name (the default
+       slot), one line about it (description), and what it offers (trailing, such as a button or a
+       badge). The title and description are one line each and end in an ellipsis, so every item in a
+       list has the same height.
+
+       A link in the title is the whole item: its hit area stretches over the item, so the icon and the
+       padding follow it too, and the item takes the link's focus ring. The link stays a real link, so
+       a router, a modified click, and "open in new tab" all work. Trailing controls sit above it and
+       stay their own. */
+    :host {
+      position: relative;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      gap: var(--ui-list-item-gap, var(--ui-space-3));
+      min-inline-size: 0;
+      min-block-size: var(--ui-control-size, 2.5rem);
+      padding-block: var(--ui-list-item-padding-block, var(--ui-space-2));
+      padding-inline: var(--ui-list-item-padding-inline, var(--ui-space-3));
+      border-radius: var(--ui-radius-md);
+      color: var(--ui-text-primary);
+      transition: background-color var(--ui-motion-fast) var(--ui-motion-ease), border-color var(--ui-motion-fast) var(--ui-motion-ease);
+    }
+
+    :host-state([variant="card"]) {
+      padding-block: var(--ui-list-item-padding-block, var(--ui-space-3));
+      padding-inline: var(--ui-list-item-padding-inline, var(--ui-space-4));
+      border: 1px solid var(--ui-border-default);
+      border-radius: var(--ui-radius-lg);
+      background: var(--ui-surface-raised);
+    }
+
+    :host:has(.title a[href]:hover) {
+      background: var(--ui-surface-hover);
+    }
+
+    :host-state([variant="card"]):has(.title a[href]:hover) {
+      border-color: var(--ui-border-strong);
+    }
+
+    :host-state([current]) {
+      background: var(--ui-surface-hover);
+    }
+
+    :host:has(.title a[href]:focus-visible) {
+      box-shadow: 0 0 0 2px var(--ui-focus-ring);
+    }
+
+    .leading,
+    .trailing {
+      display: inline-flex;
+      flex: none;
+      align-items: center;
+      gap: var(--ui-space-2);
+    }
+
+    .leading {
+      color: var(--ui-text-muted);
+      font-size: var(--ui-list-item-icon-size, var(--ui-font-size-lg));
+    }
+
+    /* Trailing controls take their own clicks, above the title link's stretched hit area. */
+    .trailing {
+      position: relative;
+      z-index: 1;
+      color: var(--ui-text-muted);
+      font-size: var(--ui-font-size-sm);
+    }
+
+    .content {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      gap: var(--ui-space-0-5, 2px);
+      min-inline-size: 0;
+    }
+
+    .title,
+    .description {
+      display: block;
+      min-inline-size: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .title {
+      font-size: var(--ui-font-size-md);
+      font-weight: var(--ui-font-medium);
+      line-height: var(--ui-line-height-tight);
+    }
+
+    .description {
+      color: var(--ui-text-muted);
+      font-size: var(--ui-font-size-sm);
+      line-height: var(--ui-line-height-tight);
+    }
+
+    .title > :slotted(a) {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .title > :slotted(a:focus-visible) {
+      outline: none;
+      box-shadow: none;
+    }
+
+    .title > :slotted(a[href])::after {
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      content: "";
+    }
+
+    /* An unused region takes no space. */
+    .leading:empty,
+    .description:empty,
+    .trailing:empty {
+      display: none;
+    }
+
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
+</template>
