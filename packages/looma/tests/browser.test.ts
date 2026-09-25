@@ -144,6 +144,27 @@ describe("Vue components", () => {
     await page.close();
   });
 
+  it("ring an active avatar, and not another", async () => {
+    const path = await bundle("vue-avatar-active", `
+      import { createApp, h } from "vue";
+      import { Avatar, AvatarGroup } from "@threadlabs/looma/vue";
+      createApp({
+        render: () => h(AvatarGroup, { label: "On this page" }, () => [
+          h(Avatar, { id: "editing", name: "Ada Lovelace", alt: "Ada Lovelace, editing", active: true }),
+          h(Avatar, { id: "viewing", name: "Grace Hopper", size: "sm" }),
+        ]),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const outline = (id: string) => page.locator(`#${id}`).evaluate((element) => getComputedStyle(element).outlineStyle);
+    assert.equal(await outline("editing"), "solid");
+    assert.equal(await outline("viewing"), "none");
+    assert.equal(await page.locator("#editing").getAttribute("aria-label"), "Ada Lovelace, editing");
+    const width = (id: string) => page.locator(`#${id}`).evaluate((element) => element.getBoundingClientRect().width);
+    assert.ok(await width("viewing") < await width("editing"), "sm is smaller than md");
+    await page.close();
+  });
+
   it("render, style, and behave with no HTML Next runtime", async () => {
     const path = await bundle("vue-app", `
       import { createApp, h, ref } from "vue";
