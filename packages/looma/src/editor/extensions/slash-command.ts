@@ -114,7 +114,7 @@ export function getDefaultSlashCommands(
     ...([1, 2, 3] as const).map((level) => ({
       title: `Heading ${level}`,
       description: level === 1 ? "Big section title" : level === 2 ? "Medium section title" : "Small section title",
-      icon: `heading-${level}` as LoomaIconName,
+      icon: `heading-${level}` as const,
       keywords: [`h${level}`, "heading", "title"],
       command: ({ editor, range }: LoomaSlashCommandContext) => {
         editor.chain().focus().deleteRange(range).setHeading({ level }).run();
