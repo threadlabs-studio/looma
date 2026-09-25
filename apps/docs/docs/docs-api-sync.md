@@ -13,8 +13,8 @@ Each option's description is the prose inside its `<prop>` element. The generato
 `generated/component-api.json`, and the API tab shows it beside the option's name. Write it for the
 person choosing a value: what the option does, what each value means, and what it pairs with. A
 rule test (`tools/scripts/option-docs-rule.test.mjs`) fails on an option with no real description,
-such as a name restated as "tone token.". A polymorphic root (`<button as="button|a">`) is listed as
-an `as` option with the elements it can render.
+such as a name restated as "tone token.". A polymorphic root declares an `as` prop and chooses between explicit native
+roots with `$match`, so its `as` option is documented like any other prop.
 
 ## Commands
 
