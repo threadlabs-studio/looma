@@ -141,6 +141,9 @@
        full opacity, so a disabled control reads as unavailable rather than as a faded variant. */
     --ui-disabled-surface: var(--ui-surface-sunken);
     --ui-disabled-text: var(--ui-text-muted);
+    /* A disabled button keeps its own look, washed out: less colour, less contrast, toward the page.
+       A filter rather than a second palette, so every variant and tone fades the same way. */
+    --ui-disabled-filter: saturate(0.2) contrast(0.75) brightness(1.25);
 
     --ui-focus-ring: var(--ui-accent);
 
