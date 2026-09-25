@@ -22,21 +22,25 @@
       aria-disabled="true", so it cannot be followed.</prop>
     <prop name="target" type="string">Where a link opens, as on a native link. Only meaningful with as="a".</prop>
     <prop name="rel" type="string">The link's relationship to its destination, as on a native link. Only meaningful with as="a".</prop>
-    <!-- One root, a button or a link (as="a"). The language has no conditional expression, so a table keyed
-         by a boolean's text picks each value, and null leaves the attribute off: a link never carries type or
-         disabled, and a disabled link loses its href and states aria-disabled instead. -->
+    <prop name="as" type="button | a" default="button">The native element the button renders: a button, or a link (a) that navigates to href.</prop>
+    <!-- Each root carries only its own attributes: a link has no type or disabled, and a disabled link
+         loses its href and states aria-disabled instead. The language has no conditional expression, so a
+         table keyed by a boolean's text picks each value, and null leaves the attribute off. -->
   </defs>
-  <button
-    as="button|a"
-    :type="{ true: type, false: null }[format('%s', not href)]"
-    :disabled="{ true: true, false: null }[format('%s', disabled and not href)]"
-    :href="{ true: null, false: href }[format('%s', disabled)]"
-    :target="target"
-    :rel="rel"
-    :aria-disabled="{ true: 'true', false: null }[format('%s', disabled and href)]"
-  >
-    <slot></slot>
-  </button>
+  <template $match>
+    <a
+      $when="as = 'a'"
+      :href="{ true: null, false: href }[format('%s', disabled)]"
+      :target="target"
+      :rel="rel"
+      :aria-disabled="{ true: 'true', false: null }[format('%s', disabled and href)]"
+    >
+      <slot></slot>
+    </a>
+    <button $else :type="type" :disabled="disabled">
+      <slot></slot>
+    </button>
+  </template>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
     @property --ui-button-active-surface {
