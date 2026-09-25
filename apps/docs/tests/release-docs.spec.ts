@@ -1534,8 +1534,8 @@ test("a tree scrolls a name too long for its row, only when asked, and clears it
     distance: parseFloat(getComputedStyle(element).getPropertyValue("--_marquee-distance")),
     duration: parseFloat(getComputedStyle(element).getPropertyValue("--_marquee-duration"))
   }));
-  // The duration comes from the distance, so a longer name travels at the same speed.
-  expect(travel.duration).toBeCloseTo(Math.min(10, Math.max(1.4, Math.abs(travel.distance) / 36)), 1);
+  // The duration comes from the distance alone, so every name moves at the same speed.
+  expect(travel.duration).toBeCloseTo(Math.abs(travel.distance) / 36, 1);
 
   const offset = () => overflows.evaluate((element) =>
     new DOMMatrix(getComputedStyle(element.querySelector(".label-text")!).transform).m41);
