@@ -23,7 +23,7 @@ gate is the authority; this table is a readable summary.
 
 | Element family | Elements | Vue contract |
 | --- | --- | --- |
-| Layout | `ui-stack`, `ui-cluster`, `ui-grid`, `ui-container`, `ui-switcher`, `ui-sidebar`, `ui-reel`, `ui-scroll-area`, `ui-cover`, `ui-separator` | Same names in PascalCase |
+| Layout | `ui-stack`, `ui-action-bar`, `ui-cluster`, `ui-grid`, `ui-container`, `ui-switcher`, `ui-sidebar`, `ui-reel`, `ui-scroll-area`, `ui-cover`, `ui-separator` | Same names in PascalCase |
 | Actions and forms | `ui-button`, `ui-icon-button`, `ui-input`, `ui-input-group`, `ui-select`, `ui-textarea`, `ui-form-field`, `ui-checkbox`, `ui-switch`, `ui-radio`, `ui-radio-group` | Same names in PascalCase |
 | Overlays, affordances, and navigation | `ui-affordance-scope`, `ui-dialog`, `ui-popover`, `ui-menu`, `ui-menu-item`, `ui-context-menu`, `ui-tooltip`, `ui-tabs`, `ui-disclosure`, `ui-tree`, `ui-tree-item` | Same names in PascalCase |
 | Display and app shell | `ui-text`, `ui-page-header`, `ui-section`, `ui-status-message`, `ui-spinner`, `ui-card`, `ui-description-list`, `ui-description-item`, `ui-breadcrumbs`, `ui-breadcrumb-item`, `ui-avatar`, `ui-avatar-group`, `ui-badge`, `ui-callout`, `ui-list`, `ui-list-item`, `ui-chip`, `ui-toast-region`, `ui-floating-action-button`, `ui-search-shell`, `ui-search-result-row`, `ui-top-bar` | Same names in PascalCase |
