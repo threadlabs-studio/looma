@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.12.2
+
+- Every form control takes Button's `size`, so one size across a row lines up. Input and Select take
+  `sm`, `md`, and `lg` (32, 40, and 48px, with Button's padding and type sizes; Select's chevron
+  shrinks at `sm`), and so do Textarea (padding and type size; `rows` still sets its height) and
+  Combobox, which already had `sm` and now also takes `lg`, sets smaller text at `sm`, and keeps a
+  `multiple` field at the small height. Checkbox, Radio, and Switch take `sm` and align rather than
+  shrink: the box or track keeps its size, the label takes the small type size, and its first line
+  centres in the small control height, so it shares a row's height and baseline. `md` is the default
+  and unchanged. `size` is Looma's option, not the native attribute, on Input and Select.
+- Under a coarse pointer every `sm` control grows to the 44px touch minimum, and the text fields keep
+  body-size text (iOS zooms into a focused field under 16px). A small Button now grows too, as a boxed
+  button was documented to: its size rule outranked the coarse-pointer minimum.
+
 ## v0.12.1
 
 - Sidebar drawer: opening or closing it no longer overflows the call stack. The sidebar reports

@@ -242,8 +242,9 @@
       border-color: transparent;
     }
 
+    /* The size states outrank :host, so sm is named too, or a small button would stay small. */
     @media (pointer: coarse) {
-      :host {
+      :host, :host-state([size="sm"]) {
         min-block-size: var(--ui-control-min-block-size);
       }
     }

@@ -8,6 +8,22 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 Text input that lowers directly to a native `<input>` while applying Looma's shared control theme.
 
+## Sizes
+
+Every form control takes the same `size` as [Button](/components/ui-button), so one size across a row
+lines up: see the Compact row example. `md` is the default.
+
+| Control | `sm` | `lg` |
+| --- | --- | --- |
+| Input, Select, Combobox | Shrinks to the small control height (2rem), with tighter padding and smaller text; Select's chevron shrinks too | Grows to 3rem, with roomier padding |
+| Textarea | Tighter padding and smaller text; `rows` sets the height | Roomier padding |
+| Checkbox, Radio, Switch | Aligns rather than shrinks: the box or track keeps its size, the label takes the smaller text, and its first line centres in the small control height | No `lg` |
+
+Under a coarse pointer, `sm` grows to the 44px touch minimum, as a small Button does, and the text
+fields keep body-size text, because iOS zooms the page into a focused field whose text is under 16px.
+`size` is Looma's option, not the native attribute: an Input fills its container's width, and a Select
+is always a single-choice dropdown.
+
 ## Styling hooks
 
 An input follows the shared control tokens (`--ui-control-border`, `--ui-control-surface`, and so on).

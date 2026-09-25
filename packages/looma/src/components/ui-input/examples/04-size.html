@@ -1,0 +1,18 @@
+<!--
+title: size
+description: Each size matches Button's (sm 32px, md 40px, lg 48px), so a field and a button of the same size share a row.
+-->
+<ui-stack gap="s">
+  <ui-cluster gap="s" align="center">
+    <ui-input size="sm" aria-label="Small" placeholder="Small" style="inline-size: 14rem"></ui-input>
+    <ui-button size="sm">Small</ui-button>
+  </ui-cluster>
+  <ui-cluster gap="s" align="center">
+    <ui-input aria-label="Medium" placeholder="Medium" style="inline-size: 14rem"></ui-input>
+    <ui-button>Medium</ui-button>
+  </ui-cluster>
+  <ui-cluster gap="s" align="center">
+    <ui-input size="lg" aria-label="Large" placeholder="Large" style="inline-size: 14rem"></ui-input>
+    <ui-button size="lg">Large</ui-button>
+  </ui-cluster>
+</ui-stack>

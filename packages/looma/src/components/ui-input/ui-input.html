@@ -7,6 +7,10 @@
     <prop name="invalid" type="boolean" default="false">Exposes invalid state to assistive technology and styling.</prop>
     <prop name="readonly" type="boolean" default="false">Allows selection without allowing edits.</prop>
     <prop name="required" type="boolean" default="false">Marks the control as required for form validation.</prop>
+    <prop name="size" type="sm | md | lg" default="md"
+    >Height, padding, and type size, matching Button's sizes so a field and a button of one size share a row. sm is the small control height (2rem by default)
+      with smaller text, for compact rows such as a table row or a filter bar; md is the standard control height; lg is taller with roomier padding. Under a
+      coarse pointer, sm grows to the 44px touch minimum and keeps body-size text.</prop>
   </defs>
   <input :value="value" :disabled="disabled" :readonly="readonly" :required="required" :aria-invalid="invalid">
   <style>
@@ -30,6 +34,27 @@
         border-color var(--ui-motion-fast) var(--ui-motion-ease),
         box-shadow var(--ui-motion-fast) var(--ui-motion-ease),
         background-color var(--ui-motion-fast) var(--ui-motion-ease);
+    }
+
+    :host-state([size="sm"]) {
+      min-block-size: var(--ui-control-size-sm);
+      padding: var(--ui-space-1) var(--ui-space-2);
+      font-size: var(--ui-font-size-sm);
+    }
+
+    :host-state([size="lg"]) {
+      min-block-size: var(--ui-control-size-lg);
+      padding: var(--ui-space-3) var(--ui-space-4);
+      font-size: var(--ui-font-size-md);
+    }
+
+    /* Under touch a small field is still a touch-sized target, as a small button is, and keeps
+       body-size text: below 16px, iOS zooms the page into the focused field. */
+    @media (pointer: coarse) {
+      :host-state([size="sm"]) {
+        min-block-size: var(--ui-control-min-block-size);
+        font-size: inherit;
+      }
     }
 
     /* Tabbing into a field selects its text; tint that selection softly instead of the page highlight. */

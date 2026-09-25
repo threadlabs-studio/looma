@@ -14,6 +14,10 @@
     <prop name="value" type="string" default="on"
     >The value a form submits under name while the checkbox is checked, also reported in the change event's detail so one handler can tell checkboxes apart. on
       by default, as on a native checkbox.</prop>
+    <prop name="size" type="sm | md" default="md"
+    >Aligns the checkbox with fields and buttons of the same size. It keeps its box size; sm sets the label in the small controls' type size and centres its
+      first line in the small control height (2rem by default), so in a row of small inputs, selects, and buttons it shares their height and their text
+      baseline. Under a coarse pointer the row grows to the 44px touch minimum, as they do. md is the standard layout.</prop>
     <state name="internalChecked" :value="false"></state>
     <event name="change" type="object({ checked: boolean, value: string, trigger: keyboard | pointer | programmatic })"></event>
   </defs>
@@ -139,6 +143,26 @@
       border-color: var(--ui-border-default);
       background: var(--ui-control-surface-disabled, var(--ui-surface-muted));
       cursor: not-allowed;
+    }
+
+    /* A small choice keeps its box and aligns instead: the label takes the small controls' type size,
+       and the first line centres in their height, so the label shares their baseline in a row.
+       Multi-line labels and descriptions still grow downward from that first line. */
+    :host-state([size="sm"]) {
+      --_line: calc(var(--ui-font-size-sm) * var(--ui-line-height-md));
+      --_row: var(--ui-control-size-sm);
+      font-size: var(--ui-font-size-sm);
+      padding-block: calc((var(--_row) - var(--_line)) / 2);
+    }
+
+    :host-state([size="sm"]) input {
+      margin-top: calc((var(--_line) - var(--ui-checkbox-size, 1.125rem)) / 2);
+    }
+
+    @media (pointer: coarse) {
+      :host-state([size="sm"]) {
+        --_row: var(--ui-control-min-block-size);
+      }
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */

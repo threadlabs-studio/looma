@@ -6,6 +6,11 @@
     <prop name="disabled" type="boolean" default="false">Prevents selection and form submission.</prop>
     <prop name="invalid" type="boolean" default="false">Exposes invalid state to assistive technology and styling.</prop>
     <prop name="required" type="boolean" default="false">Requires a non-empty option for form validation.</prop>
+    <prop name="size" type="sm | md | lg" default="md"
+    >Height, padding, chevron, and type size, matching Button's sizes so a field and a button of one size share a row. sm is the small control height (2rem by
+      default) with smaller text and a smaller chevron, for compact rows such as a table row or a filter bar; md is the standard control height; lg is taller
+      with roomier padding. Under a coarse pointer, sm grows to the 44px touch minimum and keeps body-size text. It is not the native size attribute: a select
+      is always a single-choice dropdown.</prop>
   </defs>
   <select :disabled="disabled" :required="required" :aria-invalid="invalid"><slot></slot></select>
   <style>
@@ -74,9 +79,30 @@
       cursor: not-allowed;
     }
 
-    :host[size]:not([size="1"]) {
-      min-block-size: 7rem;
-      padding: var(--ui-space-2);
+    :host-state([size="sm"]) {
+      min-block-size: var(--ui-control-size-sm);
+      padding: var(--ui-space-1) var(--ui-space-2);
+      padding-inline-end: calc(var(--ui-space-2) + var(--ui-icon-size-sm) + var(--ui-space-1));
+      background-position: right var(--ui-space-2) center;
+      background-size: var(--ui-icon-size-sm) var(--ui-icon-size-sm);
+      font-size: var(--ui-font-size-sm);
+    }
+
+    :host-state([size="lg"]) {
+      min-block-size: var(--ui-control-size-lg);
+      padding: var(--ui-space-3) var(--ui-space-4);
+      padding-inline-end: calc(var(--ui-space-4) + 1.5rem);
+      background-position: right var(--ui-space-4) center;
+      font-size: var(--ui-font-size-md);
+    }
+
+    /* Under touch a small field is still a touch-sized target, as a small button is, and keeps
+       body-size text: below 16px, iOS zooms the page into the focused field. */
+    @media (pointer: coarse) {
+      :host-state([size="sm"]) {
+        min-block-size: var(--ui-control-min-block-size);
+        font-size: inherit;
+      }
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */
