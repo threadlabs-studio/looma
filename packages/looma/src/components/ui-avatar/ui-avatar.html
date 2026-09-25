@@ -12,6 +12,8 @@
     <prop name="fallback" type="string" default=""
     >Text shown instead of the initials derived from name or alt, whenever there is no image. It is uppercased; keep it to a couple of characters, because the
       circle clips anything wider.</prop>
+    <prop name="size" type="sm | md" default="md"
+    >md is 2.5rem, for a person on their own (a profile, a comment); sm is 1.75rem with smaller initials, for a row of people in a toolbar or header.</prop>
     <prop name="active" type="boolean" default="false"
     >Marks the person as active now, such as editing the same page: a ring in the success colour around the avatar. The ring is not announced, so say what it
       means in alt ("Ada Lovelace, editing").</prop>
@@ -39,6 +41,12 @@
       font-size: var(--ui-font-size-sm);
       font-weight: 600;
       text-transform: uppercase;
+    }
+
+    :host-state([size="sm"]) {
+      inline-size: 1.75rem;
+      block-size: 1.75rem;
+      font-size: var(--ui-font-size-xs);
     }
 
     /* An outline, not a dot: the avatar clips its content to the circle, and an outline is drawn
