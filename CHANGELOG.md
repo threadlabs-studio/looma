@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.13.1
+
+- Avatar Group takes `size` (`sm` or `md`), to match small avatars: the +N badge is the same size,
+  and they overlap by 0.25rem instead of 0.5rem so their initials stay clear of the next one.
+
 ## v0.13.0
 
 - Breaking: component hooks no longer inherit. A hook (`--ui-<component>-*`, such as
