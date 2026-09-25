@@ -112,6 +112,38 @@ describe("Vue components", () => {
     await page.close();
   });
 
+  it("put an input group's action at its end, inside its border, at the field's height", async () => {
+    const path = await bundle("vue-input-group-action", `
+      import { createApp, h } from "vue";
+      import { Button, Input, InputGroup } from "@threadlabs/looma/vue";
+      createApp({
+        render: () => [
+          h(InputGroup, { id: "plain" }, { default: () => h(Input, { "aria-label": "Site" }), suffix: () => ".example.com" }),
+          h(InputGroup, { id: "with-action" }, {
+            default: () => h(Input, { "aria-label": "Site" }),
+            suffix: () => ".example.com",
+            action: () => h(Button, { id: "go", size: "sm", variant: "solid" }, () => "Continue"),
+          }),
+        ],
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const box = (selector: string) => page.locator(selector).evaluate((element) => element.getBoundingClientRect().toJSON());
+    const plain = await box("#plain");
+    const group = await box("#with-action");
+    const button = await box("#go");
+    assert.equal(group.height, plain.height, "a small action keeps the field's height");
+    assert.ok(button.right <= group.right && button.right > group.right - 8, "the action sits at the end, inside the border");
+    // Focusing the action does not light the field's focus ring; focusing the input does.
+    const shadow = (selector: string) => page.locator(selector).evaluate((element) => getComputedStyle(element).boxShadow);
+    const resting = await shadow("#with-action");
+    await page.locator("#go").focus();
+    assert.equal(await shadow("#with-action"), resting, "a focused action leaves the field's ring off");
+    await page.locator("#with-action input").focus();
+    assert.notEqual(await shadow("#with-action"), resting, "a focused input lights it");
+    await page.close();
+  });
+
   it("render, style, and behave with no HTML Next runtime", async () => {
     const path = await bundle("vue-app", `
       import { createApp, h, ref } from "vue";
