@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.13.3
+
+- Docs: styling guidance no longer selects `data-component`. It is a marker a runtime renders, not
+  API, and an adapter need not render it. Set a component's hooks through a class of your own on it,
+  and make a product-wide default in a component of your own that wraps Looma's. A rule test keeps
+  docs, examples, READMEs, and this changelog from selecting runtime markers.
+
 ## v0.13.2
 
 - `@nextwebwg/html-next` moves to `1.0.0-alpha.7`. Its polymorphic root is an `as` prop that chooses
@@ -31,8 +38,10 @@
   not. A hook set on the component itself still beats its default and, where documented, its prop.
   Theme tokens (`--ui-accent`, `--ui-text`, the spacing and type steps, and everything else in
   `tokens.css`) and the editor's `--ui-editor-*` hooks inherit as before.
-- Migration: set a hook on each component rather than on a container, `:root`, or a theme block. To
-  restyle every instance, select them by their root: `[data-component~="ui-button"] { --ui-button-surface: … }`.
+- Migration: set a hook on each component rather than on a container, `:root`, or a theme block,
+  through a class of your own on it. To change every instance, wrap the component in one of your own
+  that sets its hooks. Do not select the markers a runtime renders (`data-component` and the like):
+  they are not API, and not every adapter renders them.
   Icons are `1em`, so a container sizes the icons in it with `font-size`; `--ui-icon-size` now sizes
   one icon. `--ui-tree-indent`, `--ui-tree-gutter`, and `--ui-tree-drop-color` go on the Tree and
   still reach its items; `--ui-tree-item-*` goes on each item.
