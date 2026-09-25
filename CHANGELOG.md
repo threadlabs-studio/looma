@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.12.10
+## v0.12.11
 
 - Every form control takes Button's `size`, so one size across a row lines up. Input and Select take
   `sm`, `md`, and `lg` (32, 40, and 48px, with Button's padding and type sizes; Select's chevron
@@ -15,6 +15,20 @@
 - Under a coarse pointer every `sm` control grows to the 44px touch minimum, and the text fields keep
   body-size text (iOS zooms into a focused field under 16px). A small Button now grows too, as a boxed
   button was documented to: its size rule outranked the coarse-pointer minimum.
+
+## v0.12.7
+
+- Muted text reads at WCAG AA. `--ui-text-muted` was the ink at 45% into the page, about 3.3:1 on
+  white and 2.8:1 on the sunken surface, so help text, captions, descriptions, and the editor's
+  placeholder were too light. It is now 62%, and `--ui-text-secondary` (and the control placeholder
+  that follows it) is 80%, up from 72%, so each step stays visibly lighter than the one above it.
+  Every text token now reaches 4.5:1 on every surface in the light, dark, and high-contrast themes.
+- Disabled text keeps its paler look: `--ui-disabled-text` is the ink at 45%, no longer an alias of
+  muted text, and Checkbox, Radio, Switch, Input, Textarea, Select, Combobox, Disclosure, and
+  Editable read it for their disabled state.
+- `data-contrast="high"` on the root takes its own ink. The light theme, and the dark theme when it
+  follows the system preference, outranked its seeds, so the ink stayed `#1a1a1a` while its own
+  secondary and muted steps applied, and both read darker than primary text.
 
 ## v0.12.6
 
