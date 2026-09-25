@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.12.9
+## v0.12.10
 
 - Every form control takes Button's `size`, so one size across a row lines up. Input and Select take
   `sm`, `md`, and `lg` (32, 40, and 48px, with Button's padding and type sizes; Select's chevron
@@ -15,6 +15,14 @@
 - Under a coarse pointer every `sm` control grows to the 44px touch minimum, and the text fields keep
   body-size text (iOS zooms into a focused field under 16px). A small Button now grows too, as a boxed
   button was documented to: its size rule outranked the coarse-pointer minimum.
+
+## v0.12.6
+
+- Avatar takes `active`: a ring in the success colour (`--ui-avatar-active-ring`) for someone active
+  now, such as editing the same page. It is an outline, so it survives the circle's clip and the
+  overlap in an Avatar Group. The ring is not announced; say what it means in `alt`.
+- Avatar takes `size`: `md` (2.5rem, the default) or `sm` (1.75rem, smaller initials) for a row of
+  people in a toolbar or header.
 
 ## v0.12.5
 
