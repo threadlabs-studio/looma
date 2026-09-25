@@ -32,12 +32,18 @@ To restyle inputs alone, or one input from a parent, set its own hooks, which fa
 | Hook | Sets |
 | --- | --- |
 | `--ui-input-border`, `--ui-input-border-hover`, `--ui-input-focus-border` | the border at rest, under the pointer, and when focused |
+| `--ui-input-border-width` | the border's width (`1px`) |
+| `--ui-input-min-block-size` | the minimum height (the control size) |
 | `--ui-input-surface` | the fill |
 | `--ui-input-radius` | the corner radius |
 | `--ui-input-shadow`, `--ui-input-focus-shadow` | the inset shadow at rest and the focus ring |
 | `--ui-input-invalid-border`, `--ui-input-invalid-focus-shadow` | the border and focus ring of an invalid input |
+| `--ui-input-focus-outline` | the focus ring under forced colors, which drop box shadows (`2px solid Highlight`) |
 
-[Input Group](/components/ui-input-group) uses them to draw one field around an input and its affixes.
+[Input Group](/components/ui-input-group) uses them to draw one field around an input and its
+affixes: fixed text before or after the value, such as `https://` or `.example.com`. The input keeps
+its behaviour there, and the group's page lists what it guarantees: one tab stop, a lone Input's
+focus ring, affixes that focus the input when pressed, and affixes read as the input's description.
 
 
 <ComponentExamplesApiTabs component="ui-input" />
