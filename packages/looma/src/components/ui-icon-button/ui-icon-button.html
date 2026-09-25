@@ -16,7 +16,85 @@
   </defs>
   <button :disabled="disabled" type="button" :aria-label="label"><slot></slot></button>
   <style>
+    /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-icon-button-active-scale {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-icon-button-border {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-icon-button-disabled-filter {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-icon-button-disabled-opacity {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-icon-button-hover-border {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-icon-button-hover-surface {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-icon-button-hover-text {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-icon-button-icon-size {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-icon-button-icon-stroke-width {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-icon-button-outline-surface {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-icon-button-outline-text {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-icon-button-radius {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-icon-button-size {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-icon-button-solid-hover-surface {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-icon-button-solid-shadow {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-icon-button-solid-surface {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-icon-button-solid-text {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-icon-button-surface {
+      syntax: "*";
+      inherits: false;
+    }
+
     :host {
+      /* Hooks do not inherit, so the parts below read them from the root. */
+      --_ui-icon-button-icon-size: var(--ui-icon-button-icon-size);
+      --_ui-icon-button-icon-stroke-width: var(--ui-icon-button-icon-stroke-width);
+
       display: inline-flex;
       color: var(--ui-text-secondary);
     }
@@ -201,10 +279,10 @@
     }
 
     :slotted(svg) {
-      inline-size: var(--ui-icon-button-icon-size, var(--_icon-button-icon-default));
-      block-size: var(--ui-icon-button-icon-size, var(--_icon-button-icon-default));
+      inline-size: var(--_ui-icon-button-icon-size, var(--_icon-button-icon-default));
+      block-size: var(--_ui-icon-button-icon-size, var(--_icon-button-icon-default));
       flex-shrink: 0;
-      stroke-width: var(--ui-icon-button-icon-stroke-width, 1.75);
+      stroke-width: var(--_ui-icon-button-icon-stroke-width, 1.75);
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */

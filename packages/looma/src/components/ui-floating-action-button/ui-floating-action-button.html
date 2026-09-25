@@ -8,6 +8,20 @@
   </defs>
   <button type="button" :aria-label="label" :disabled="disabled"><slot></slot></button>
   <style>
+    /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-floating-action-button-inset-block-end {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-floating-action-button-inset-inline-end {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-floating-action-button-z-index {
+      syntax: "*";
+      inherits: false;
+    }
+
     :host {
       position: fixed;
       inset-block-end: calc(var(--ui-floating-action-button-inset-block-end, var(--ui-space-6)) + env(safe-area-inset-bottom));

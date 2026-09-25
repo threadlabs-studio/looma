@@ -2,7 +2,7 @@
   <defs>
     <prop name="gap" type="xs | s | m | l | xl"
     >Space between items, on the spacing scale: xs is 0.5rem, s 0.75rem, m 1rem (also the default), l 1.5rem, and xl 2rem. The --ui-reel-gap custom property,
-      when set, overrides it.</prop>
+      set on the reel itself, overrides it; set on an ancestor, it does nothing.</prop>
     <prop name="itemWidth" type="sm | md | lg"
     >A fixed width for every item: sm is 12rem, md is 16rem, and lg is 20rem. Unset, each item keeps its content's width. Items never shrink to fit, so the reel
       scrolls sideways once they overflow.</prop>
@@ -12,7 +12,20 @@
   </defs>
   <div role="region" tabindex="0"><slot></slot></div>
   <style>
+    /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-reel-gap {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-reel-item-width {
+      syntax: "*";
+      inherits: false;
+    }
+
     :host {
+      /* Hooks do not inherit, so the parts below read them from the root. */
+      --_ui-reel-item-width: var(--ui-reel-item-width);
+
       --_reel-gap: var(--ui-space-4);
       --_reel-item-width: auto;
       display: flex;
@@ -52,7 +65,7 @@
 
     :host > :slotted(*) {
       min-inline-size: 0;
-      flex: 0 0 var(--ui-reel-item-width, var(--_reel-item-width));
+      flex: 0 0 var(--_ui-reel-item-width, var(--_reel-item-width));
     }
 
     :host-state([gap="xs"]) {
