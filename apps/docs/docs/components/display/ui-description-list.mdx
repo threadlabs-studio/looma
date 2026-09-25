@@ -6,6 +6,6 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 # Description List
 
-Named values: each `ui-description-item` is a `term` and its value. `layout="rows"` lines terms up in one column and values in the next, for a short summary; `layout="tiles"` sets each pair on its own tile, term above value, for figures to scan.
+Named values: each `ui-description-item` is a `term` and its value, rendered as a `<dl>` of `<div><dt/><dd/></div>` groups. `layout="rows"` lines terms up in one column and values in the next, for a short summary, and sets each term above its value once the list is narrower than 24rem; `layout="stacked"` always sets the term above its value; `layout="grid"` sets the pairs in columns, term above value, for facts to scan across; `layout="tiles"` sets each pair on its own tile, for figures to compare. `columns` caps how many columns grid and tiles set, and `density="compact"` sets the pairs close together. A value can hold code ([Text](/components/ui-text) `variant="code"`), a [Badge](/components/ui-badge), or a long identifier, which wraps rather than overflowing.
 
 <ComponentExamplesApiTabs component="ui-description-list" />
