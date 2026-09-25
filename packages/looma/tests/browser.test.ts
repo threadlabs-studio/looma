@@ -439,7 +439,7 @@ describe("Input group", () => {
 describe("Button touch target", () => {
   it("takes a press within the control minimum under touch, link-style included", async () => {
     const path = await bundle("html-button-touch", `import "@threadlabs/looma";`);
-    const page = await open(path, `<div style="padding: 80px"><ui-button id="see-all" variant="link" size="sm">See all activity</ui-button></div>`, [join(root, "tokens.css")]);
+    const page = await open(path, `<div style="padding: 80px"><ui-button id="see-all" variant="link" size="sm">See all activity</ui-button><ui-button id="boxed" variant="outline" size="sm">Tag</ui-button></div>`, [join(root, "tokens.css")]);
     await page.waitForSelector('#see-all[data-component~="ui-button"]');
     await page.evaluate(() => document.documentElement.setAttribute("data-ui-input-modality", "touch"));
     const reaches = await page.locator("#see-all").evaluate((element) => {
@@ -451,6 +451,8 @@ describe("Button touch target", () => {
     });
     assert.ok(reaches.height < 44, "the button itself stays small");
     assert.deepEqual({ above: reaches.above, below: reaches.below }, { above: true, below: true });
+    // A boxed button gets no hit area, so it cannot reach over a neighbour.
+    assert.equal(await page.locator("#boxed").evaluate((element) => getComputedStyle(element, "::after").content), "none");
     await page.close();
   });
 });
