@@ -29,6 +29,13 @@ Breaking: `size` on Input and Select is now Looma's `sm | md | lg`, not the nati
   body-size text (iOS zooms into a focused field under 16px). A small Button now grows too, as a boxed
   button was documented to: its size rule outranked the coarse-pointer minimum.
 
+## v0.13.3
+
+- Affordance Scope: `guide` sets what marks an anticipatory control at rest. `dot` (the default,
+  unchanged) shows the small guide dot; `none` shows nothing until the pointer nears the control, it
+  is hovered, or it takes focus. It reaches every guide inside the scope, including a sidebar's
+  resize line and the editor table's handles.
+
 ## v0.13.2
 
 - `@nextwebwg/html-next` moves to `1.0.0-alpha.7`. Its polymorphic root is an `as` prop that chooses
