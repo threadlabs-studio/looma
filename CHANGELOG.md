@@ -14,6 +14,16 @@
   (`--ui-input-focus-outline`). New hooks `--ui-input-border-width` and `--ui-input-min-block-size`.
 - Form Field in Vue links its help and error text to the control as its description. Named slots
   carry no `slot` attribute there, so the field did not find them.
+## v0.12.1
+
+- Sidebar drawer: opening or closing it no longer overflows the call stack. The sidebar reports
+  each change with its own `toggle` event, which shares the popover's event name and bubbles, so
+  its handler for the popover's toggle heard its own report and reported again, forever (a
+  `RangeError`, and a flood of `open: false` for Vue `@toggle`). It now answers only the popover's
+  own ToggleEvent, so each open and close is one `toggle` event, with or without a `width`.
+- Editor: a rule test keeps every default slash command's icon in `ui-icon`'s catalog, and the
+  heading commands' icon names are type-checked rather than cast. Before v0.11.0 most of them
+  (Heading 2 and 3, the lists, the callouts, the code blocks, Divider, Image) drew an empty box.
 
 ## v0.12.0
 
