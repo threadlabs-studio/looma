@@ -8,6 +8,9 @@
     <prop name="readonly" type="boolean" default="false">Allows selection without allowing edits.</prop>
     <prop name="required" type="boolean" default="false">Marks the control as required for form validation.</prop>
     <prop name="rows" type="integer" default="4">Initial number of visible text rows.</prop>
+    <prop name="size" type="sm | md | lg" default="md"
+    >Padding and type size, matching Input's sizes so a textarea sits with fields of the same size; rows sets its height. sm has tighter padding and smaller
+      text, for compact forms; lg has roomier padding. Under a coarse pointer, sm keeps body-size text.</prop>
   </defs>
   <textarea :value="value" :disabled="disabled" :readonly="readonly" :required="required" :aria-invalid="invalid" :rows="rows"></textarea>
   <style>
@@ -72,6 +75,23 @@
       color: var(--ui-text-muted);
       box-shadow: none;
       cursor: not-allowed;
+    }
+
+    :host-state([size="sm"]) {
+      padding: var(--ui-space-1) var(--ui-space-2);
+      font-size: var(--ui-font-size-sm);
+    }
+
+    :host-state([size="lg"]) {
+      padding: var(--ui-space-3) var(--ui-space-4);
+      font-size: var(--ui-font-size-md);
+    }
+
+    /* Below 16px, iOS zooms the page into the focused field, so touch keeps body-size text. */
+    @media (pointer: coarse) {
+      :host-state([size="sm"]) {
+        font-size: inherit;
+      }
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */
