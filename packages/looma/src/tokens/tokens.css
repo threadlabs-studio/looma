@@ -122,10 +122,11 @@
     --ui-motion-ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
 
     /* Neutrals: the ink mixed into the page. One ramp, so a theme that changes either end moves
-       every step with it. */
+       every step with it. Muted is the lightest text that still reads at 4.5:1 (WCAG AA) on the
+       sunken surface as well as the page, and secondary sits halfway between it and the ink. */
     --ui-surface-muted: color-mix(in oklab, var(--ui-surface-sunken) 50%, var(--ui-surface));
-    --ui-text-secondary: color-mix(in oklab, var(--ui-text) 72%, var(--ui-surface));
-    --ui-text-muted: color-mix(in oklab, var(--ui-text) 45%, var(--ui-surface));
+    --ui-text-secondary: color-mix(in oklab, var(--ui-text) 80%, var(--ui-surface));
+    --ui-text-muted: color-mix(in oklab, var(--ui-text) 62%, var(--ui-surface));
     --ui-border: color-mix(in oklab, var(--ui-text) 12%, var(--ui-surface));
     --ui-border-strong: color-mix(in oklab, var(--ui-text) 25%, var(--ui-surface));
     --ui-control-border: color-mix(in oklab, var(--ui-text) 48%, var(--ui-surface));
@@ -137,10 +138,11 @@
     --ui-accent-subtle: color-mix(in oklab, var(--ui-accent) 12%, var(--ui-surface));
     --ui-danger-hover: color-mix(in oklab, var(--ui-danger) 86%, var(--ui-text));
 
-    /* Disabled is one decision, not a per-component one: the sunken surface and the muted ink, at
-       full opacity, so a disabled control reads as unavailable rather than as a faded variant. */
+    /* Disabled is one decision, not a per-component one: the sunken surface and a pale ink, at
+       full opacity, so a disabled control reads as unavailable rather than as a faded variant.
+       Lighter than muted text, which must stay readable; disabled text is exempt from contrast. */
     --ui-disabled-surface: var(--ui-surface-sunken);
-    --ui-disabled-text: var(--ui-text-muted);
+    --ui-disabled-text: color-mix(in oklab, var(--ui-text) 45%, var(--ui-surface));
     /* A disabled button keeps its own look, washed out: less colour, less contrast, toward the page.
        A filter rather than a second palette, so every variant and tone fades the same way. */
     --ui-disabled-filter: saturate(0.2) contrast(0.75) brightness(1.25);

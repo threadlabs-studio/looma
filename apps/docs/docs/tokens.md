@@ -47,11 +47,11 @@ because each is mixed from it.
 
 | Derived | From | How |
 | --- | --- | --- |
-| `--ui-text-secondary`, `--ui-text-muted` | ink + page | the ink mixed into the page, 72% and 45% |
+| `--ui-text-secondary`, `--ui-text-muted` | ink + page | the ink mixed into the page, 80% and 62%: muted is the lightest step that still reads at 4.5:1 on the sunken surface |
 | `--ui-border`, `-strong`, `--ui-control-border` | ink + page | the same ramp, at 12%, 25%, and 48% |
 | `--ui-accent-hover`, `-active` | accent + ink | toward the ink, for pressure |
 | `--ui-accent-subtle`, `--ui-danger-soft` | accent + page | toward the page, for a tint |
-| `--ui-disabled-surface`, `--ui-disabled-text` | sunken surface, muted ink | one decision, not a per-component one |
+| `--ui-disabled-surface`, `--ui-disabled-text` | sunken surface, ink + page | one decision, not a per-component one; the ink at 45%, lighter than muted text |
 | `--ui-disabled-filter` | `saturate(0.2) contrast(0.75) brightness(1.25)` | how a disabled button washes out; dark dims (`brightness(0.8)`), high contrast only drops colour (`saturate(0)`) |
 | `--ui-focus-ring` | accent | the focus ring is the accent |
 

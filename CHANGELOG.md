@@ -30,6 +30,28 @@
   hook it has not registered as non-inheriting, reads its own hook anywhere but its root, or reads
   another component's hook.
 
+## v0.12.7
+
+- Muted text reads at WCAG AA. `--ui-text-muted` was the ink at 45% into the page, about 3.3:1 on
+  white and 2.8:1 on the sunken surface, so help text, captions, descriptions, and the editor's
+  placeholder were too light. It is now 62%, and `--ui-text-secondary` (and the control placeholder
+  that follows it) is 80%, up from 72%, so each step stays visibly lighter than the one above it.
+  Every text token now reaches 4.5:1 on every surface in the light, dark, and high-contrast themes.
+- Disabled text keeps its paler look: `--ui-disabled-text` is the ink at 45%, no longer an alias of
+  muted text, and Checkbox, Radio, Switch, Input, Textarea, Select, Combobox, Disclosure, and
+  Editable read it for their disabled state.
+- `data-contrast="high"` on the root takes its own ink. The light theme, and the dark theme when it
+  follows the system preference, outranked its seeds, so the ink stayed `#1a1a1a` while its own
+  secondary and muted steps applied, and both read darker than primary text.
+
+## v0.12.6
+
+- Avatar takes `active`: a ring in the success colour (`--ui-avatar-active-ring`) for someone active
+  now, such as editing the same page. It is an outline, so it survives the circle's clip and the
+  overlap in an Avatar Group. The ring is not announced; say what it means in `alt`.
+- Avatar takes `size`: `md` (2.5rem, the default) or `sm` (1.75rem, smaller initials) for a row of
+  people in a toolbar or header.
+
 ## v0.12.5
 
 - `@nextwebwg/html-next` is pinned to `1.0.0-alpha.5` instead of `^1.0.0-alpha.5`. A caret range on a
