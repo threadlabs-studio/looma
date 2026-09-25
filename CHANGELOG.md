@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.13.1
+## v0.13.2
 
 - New icon: `help` (Lucide's circle-help), for `<ui-icon name="help">`. Icon Button sizes a slotted
   `ui-icon` the way it sizes a slotted `svg`, at every size; it drew at the text size before. Icon
@@ -8,6 +8,11 @@
   the help icon, and a `ui-tooltip trigger="click"` for it.
 - Cluster takes `justify` (`start`, `center`, `end`, `between`), as Stack does, so a row can push a
   title and its actions to opposite ends.
+
+## v0.13.1
+
+- Avatar Group takes `size` (`sm` or `md`), to match small avatars: the +N badge is the same size,
+  and they overlap by 0.25rem instead of 0.5rem so their initials stay clear of the next one.
 
 ## v0.13.0
 
