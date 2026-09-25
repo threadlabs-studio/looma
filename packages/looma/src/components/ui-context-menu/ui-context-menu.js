@@ -17,7 +17,7 @@ export default function controller(host) {
   let lastOpenProp = Boolean(host.state.open);
   host.state.internalOpen = lastOpenProp;
 
-  const items = () => Array.from(element.querySelectorAll('[data-component~="ui-menu-item"]')).filter((item) => !disabled(item));
+  const items = () => Array.from(element.querySelectorAll('[role="menuitem"]')).filter((item) => !disabled(item));
   const focusFirst = () => requestAnimationFrame(() => items()[0]?.focus());
   const targetEvents = { contextmenu: onContextMenu, keydown: onTargetKeydown, pointerdown: onPointerdown, pointerup: endPress, pointercancel: endPress };
   const detach = () => {
@@ -107,7 +107,7 @@ export default function controller(host) {
       event.preventDefault();
       requestTopOverlayClose(document, "escape", "keyboard");
     } else if (["Enter", " "].includes(event.key)) {
-      const item = event.target.closest?.('[data-component~="ui-menu-item"]');
+      const item = event.target.closest?.('[role="menuitem"]');
       if (!item || disabled(item)) return;
       event.preventDefault();
       host.dispatch("select", { value: item.getAttribute("data-value") ?? item.getAttribute("value") ?? "", trigger: "keyboard" });
@@ -116,7 +116,7 @@ export default function controller(host) {
       const enabled = items();
       if (!enabled.length) return;
       event.preventDefault();
-      const index = enabled.indexOf(event.target.closest?.('[data-component~="ui-menu-item"]'));
+      const index = enabled.indexOf(event.target.closest?.('[role="menuitem"]'));
       const next = event.key === "ArrowDown"
         ? (index < 0 ? 0 : Math.min(index + 1, enabled.length - 1))
         : (index <= 0 ? enabled.length - 1 : index - 1);
@@ -124,7 +124,7 @@ export default function controller(host) {
     }
   };
   const onClick = (event) => {
-    const item = event.target.closest?.('[data-component~="ui-menu-item"]');
+    const item = event.target.closest?.('[role="menuitem"]');
     if (!item || disabled(item)) return;
     host.dispatch("select", { value: item.getAttribute("data-value") ?? item.getAttribute("value") ?? "", trigger: "pointer" });
     close("action", "pointer");

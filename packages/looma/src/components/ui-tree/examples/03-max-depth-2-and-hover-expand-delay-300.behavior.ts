@@ -9,8 +9,8 @@ export default function applyTreeReorder(root: HTMLElement): () => void {
       targetId: string;
       position: "before" | "inside" | "after";
     }>).detail;
-    const tree = (event.target as Element | null)?.closest('[data-component-root~="ui-tree"]');
-    const item = (id: string) => tree?.querySelector<HTMLElement>(`[data-component-root~="ui-tree-item"][data-item-id="${CSS.escape(id)}"]`);
+    const tree = (event.target as Element | null)?.closest('[role="tree"]');
+    const item = (id: string) => tree?.querySelector<HTMLElement>(`[role="treeitem"][data-item-id="${CSS.escape(id)}"]`);
     const source = item(sourceId);
     const target = item(targetId);
     if (!source || !target || source === target || source.contains(target)) return;

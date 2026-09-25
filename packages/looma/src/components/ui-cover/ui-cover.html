@@ -1,0 +1,36 @@
+<template component="ui-cover">
+  <defs>
+    <prop name="size" type="screen | fill" default="screen"
+    >How tall the cover is. screen is at least the viewport's height, for a view that is one centred card, such as sign-in; fill takes the space its parent
+      gives it.</prop>
+  </defs>
+  <div><slot></slot></div>
+  <style>
+    /* A layout primitive that centres its content in the space, both ways, with room around it: the
+       frame for a view that is one card or one message. */
+    :host {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: var(--ui-space-6);
+      box-sizing: border-box;
+      min-block-size: 100dvh;
+      padding: var(--ui-space-6) var(--ui-space-4);
+    }
+
+    :host-state([size="fill"]) {
+      flex: 1;
+      min-block-size: 100%;
+    }
+
+    :host > :slotted(*) {
+      max-inline-size: 100%;
+    }
+
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
+</template>

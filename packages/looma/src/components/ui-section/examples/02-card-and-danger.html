@@ -1,0 +1,17 @@
+<!--
+title: Card, divided, and danger
+description: variant="card" for a settings group, variant="divided" for the next part of a long form, and tone="danger" for destructive actions.
+-->
+<ui-stack gap="l">
+  <ui-section heading="Profile" variant="card">
+    <span slot="description">How people see you in this site.</span>
+    <ui-text>Ada Lovelace</ui-text>
+  </ui-section>
+  <ui-section heading="Address" variant="divided">
+    <ui-text variant="code" tone="secondary" size="sm">acme.example.com</ui-text>
+  </ui-section>
+  <ui-section heading="Delete this site" variant="card" tone="danger">
+    <ui-button slot="actions" size="sm" variant="solid" tone="danger">Delete site</ui-button>
+    <ui-text tone="secondary" size="sm">Everything in it is deleted for everyone.</ui-text>
+  </ui-section>
+</ui-stack>

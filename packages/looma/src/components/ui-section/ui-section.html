@@ -1,0 +1,108 @@
+<template component="ui-section">
+  <defs>
+    <prop name="heading" type="string" default=""
+    >The section's heading, an h2. Leave it empty for a section with no visible heading, and name the section with aria-label.</prop>
+    <prop name="variant" type="plain | card | divided" default="plain"
+    >How the section is set apart. plain is a heading and content in the flow of the page; card sits it on a bordered surface, for a settings group; divided
+      rules it off from the section before it, for a long form.</prop>
+    <prop name="tone" type="neutral | danger" default="neutral"
+    >danger marks a section of destructive actions (a danger zone): its heading and a card's border take the danger colour.</prop>
+  </defs>
+  <section>
+    <span class="head">
+      <span class="copy">
+        <h2 class="heading" :hidden="not heading"><template $value="heading"></template></h2>
+        <span class="description"><slot name="description"></slot></span>
+      </span>
+      <span class="actions"><slot name="actions"></slot></span>
+    </span>
+    <span class="body"><slot></slot></span>
+  </section>
+  <style>
+    /* A part of a view: a heading, an optional line under it, actions for the whole section at its
+       end, and the content. Sections space themselves out through the Stack around them. */
+    :host {
+      display: flex;
+      flex-direction: column;
+      gap: var(--ui-space-4);
+      min-inline-size: 0;
+    }
+
+    :host-state([variant="card"]) {
+      padding: var(--ui-space-5);
+      border: 1px solid var(--ui-border-default);
+      border-radius: var(--ui-radius-lg);
+      background: var(--ui-surface-raised);
+    }
+
+    :host-state([variant="divided"]) {
+      padding-block-start: var(--ui-space-6);
+      border-block-start: 1px solid var(--ui-border-default);
+    }
+
+    :host-state([variant="card"][tone="danger"]) {
+      border-color: var(--ui-danger);
+    }
+
+    .head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--ui-space-2) var(--ui-space-4);
+    }
+
+    .copy {
+      display: flex;
+      flex: 1 1 16rem;
+      flex-direction: column;
+      gap: var(--ui-space-1);
+      min-inline-size: 0;
+    }
+
+    .heading {
+      margin: 0;
+      color: var(--ui-text-primary);
+      font-size: var(--ui-font-size-lg);
+      font-weight: var(--ui-font-semibold);
+      line-height: var(--ui-line-height-tight);
+    }
+
+    :host-state([tone="danger"]) .heading {
+      color: var(--ui-danger);
+    }
+
+    .description {
+      color: var(--ui-text-secondary);
+      font-size: var(--ui-font-size-sm);
+      line-height: var(--ui-line-height);
+    }
+
+    .actions {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: var(--ui-space-2);
+    }
+
+    .body {
+      display: flex;
+      flex-direction: column;
+      gap: var(--ui-space-4);
+      min-inline-size: 0;
+    }
+
+    .description:empty,
+    .actions:empty {
+      display: none;
+    }
+
+    .head:has(.heading[hidden]):has(.description:empty):has(.actions:empty) {
+      display: none;
+    }
+
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
+</template>

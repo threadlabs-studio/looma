@@ -1,0 +1,60 @@
+<template component="ui-breadcrumb-item">
+  <defs>
+    <prop name="current" type="boolean" default="false"
+    >Marks the step as the view you are on: it is plain text with aria-current="page". Every other step holds a link.</prop>
+  </defs>
+  <li :aria-current="{ true: 'page', false: null }[format('%s', current)]">
+    <span class="separator" aria-hidden="true"><ui-icon name="chevron-right"></ui-icon></span>
+    <span class="content"><slot></slot></span>
+  </li>
+  <style>
+    /* One step in a ui-breadcrumbs trail: a link up to that place, or the current view. A chevron leads
+       every step but the first. An icon slotted before the name sits with it. */
+    :host {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--ui-space-2);
+      min-inline-size: 0;
+    }
+
+    .separator {
+      display: inline-flex;
+      color: var(--ui-text-muted);
+      font-size: var(--ui-font-size-xs);
+    }
+
+    :host:first-child .separator {
+      display: none;
+    }
+
+    .content {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--ui-space-1);
+      min-inline-size: 0;
+    }
+
+    .content > :slotted(a) {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--ui-space-1);
+      color: var(--ui-text-secondary);
+      text-decoration: none;
+    }
+
+    .content > :slotted(a:hover) {
+      color: var(--ui-text-primary);
+      text-decoration: underline;
+    }
+
+    :host-state([current]) .content {
+      color: var(--ui-text-primary);
+      font-weight: var(--ui-font-medium);
+    }
+
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
+</template>

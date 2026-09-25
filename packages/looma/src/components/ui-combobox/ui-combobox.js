@@ -415,8 +415,8 @@ export default function controller(host) {
   };
   const onCompositionstart = (event) => { if (event.target === input) composing = true; };
   const onCompositionend = (event) => { if (event.target === input) { composing = false; onInput(new InputEvent("input")); } };
-  const onTooltipOpen = (event) => { if (event.target.closest?.('[data-component~="ui-tooltip"]')) host.state.helpOpen = true; };
-  const onTooltipClose = (event) => { if (event.target.closest?.('[data-component~="ui-tooltip"]')) host.state.helpOpen = false; };
+  const onTooltipOpen = (event) => { if (event.target.closest?.('[role="tooltip"]')) host.state.helpOpen = true; };
+  const onTooltipClose = (event) => { if (event.target.closest?.('[role="tooltip"]')) host.state.helpOpen = false; };
 
   // The selection the props describe: where the combobox starts, and where a form reset returns it.
   const applyDefaults = () => {

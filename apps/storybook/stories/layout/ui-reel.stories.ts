@@ -1,18 +1,16 @@
 import type { Meta, StoryObj } from "@storybook/web-components-vite";
 import { createComponentArgTypes, createComponentDocsParameters } from "../shared/componentApi";
+import { renderAllExamples, renderExample } from "../shared/examples";
 
 const meta = {
   title: "Layout/Reel",
   tags: ["autodocs"],
   argTypes: createComponentArgTypes("ui-reel"),
   parameters: createComponentDocsParameters("ui-reel"),
-  render: ({ gap, itemWidth, snap }) => `
-    <ui-reel gap="${gap}" item-width="${itemWidth}" snap="${snap}" aria-label="Recent pages">
-      ${["One", "Two", "Three", "Four"].map((label) => `<article style="padding: 1rem; border: 1px solid var(--ui-border-default);">Page ${label}</article>`).join("")}
-    </ui-reel>
-  `
+  render: (args) => renderExample("ui-reel", args)
 } satisfies Meta;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
-export const Default: Story = { args: { gap: "m", itemWidth: "md", snap: "start" } };
+export const Default: Story = {};
+export const Examples: Story = { render: () => renderAllExamples("ui-reel") };
