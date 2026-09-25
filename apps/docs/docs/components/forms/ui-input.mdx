@@ -12,8 +12,8 @@ Text input that lowers directly to a native `<input>` while applying Looma's sha
 
 An input follows the shared control tokens (`--ui-control-border`, `--ui-control-surface`, and so on).
 To restyle inputs alone, set an input's own hooks, which fall back to those. A hook styles the input it
-is set on and does not inherit, so set it on the input (or on every input with
-`[data-component~="ui-input"]`), not on a form around it:
+is set on and does not inherit, so set it on the input, through a class of your own, not on a form
+around it:
 
 | Hook | Sets |
 | --- | --- |
