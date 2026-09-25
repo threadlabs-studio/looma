@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.11.7
+
+- New icon: `help` (Lucide's circle-help), for `<ui-icon name="help">`. Icon Button sizes a slotted
+  `ui-icon` the way it sizes a slotted `svg`, at every size; it drew at the text size before. Icon
+  Button documents the help toggletip: a round ghost Icon Button labelled for what it explains, with
+  the help icon, and a `ui-tooltip trigger="click"` for it.
+- Button shows the current item of a navigation list. Set `aria-current` (any value but `"false"`),
+  such as `aria-current="page"`: a ghost or outline button takes a tinted surface and a bar in its
+  tone, and a link-style one a solid underline, with no change in size. Themes can set the surface
+  with `--ui-button-current-surface`.
+- Cluster takes `justify` (`start`, `center`, `end`, `between`), as Stack does, so a row can push a
+  title and its actions to opposite ends.
+
 ## v0.11.6
 
 - Only a link-style Button takes the touch hit area added in 0.11.5. On every button it reached over

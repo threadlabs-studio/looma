@@ -197,6 +197,9 @@
 
     :host {
       --_icon-button-icon-default: var(--ui-icon-size-md);
+      /* A slotted ui-icon is its own component, out of reach of the svg rule below; it reads these. */
+      --ui-icon-size: var(--ui-icon-button-icon-size, var(--_icon-button-icon-default));
+      --ui-icon-stroke-width: var(--ui-icon-button-icon-stroke-width, 1.75);
     }
 
     :host-state([size="sm"]) {

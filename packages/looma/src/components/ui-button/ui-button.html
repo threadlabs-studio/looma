@@ -206,6 +206,33 @@
       box-shadow: var(--ui-pressed);
     }
 
+    /* Current: the navigation item for the page or step you are on, marked with aria-current as on
+       a native link (any value but "false"). A wash says it at a glance; a bar in the tone gives the
+       state 3:1 contrast on its own. Neither moves the layout, which a heavier weight would. The bar
+       runs down the start edge of a start-aligned item, as in a side list, and under a centred one. */
+    :is(:host-state([variant="ghost"]), :host-state([variant="outline"]))[aria-current]:not([aria-current="false"]) {
+      position: relative;
+      background-color: var(--ui-button-current-surface, oklch(from var(--_tone) l c h / 12%));
+      color: var(--_tone-text);
+    }
+
+    :is(:host-state([variant="ghost"]), :host-state([variant="outline"]))[aria-current]:not([aria-current="false"])::before {
+      position: absolute;
+      inset-block-end: 0;
+      inset-inline: var(--ui-space-2);
+      block-size: 2px;
+      border-radius: var(--ui-radius-round);
+      background: var(--_tone);
+      content: "";
+    }
+
+    :is(:host-state([variant="ghost"]), :host-state([variant="outline"]))[aria-current]:not([aria-current="false"]):host-state([align="start"])::before {
+      inset-block: var(--ui-space-2);
+      inset-inline: 0 auto;
+      inline-size: 3px;
+      block-size: auto;
+    }
+
     /* A soft halo that transitions in with the other box-shadow changes, layered on the raised shadow. */
     :host:focus-visible {
       outline: none;
@@ -301,6 +328,13 @@
       text-decoration-color: currentColor;
       background: none;
       transform: none;
+    }
+
+    /* A current link reads as the strong text with a solid, heavier underline. */
+    :host-state([variant="link"])[aria-current]:not([aria-current="false"]) {
+      color: var(--ui-button-link-hover-text, var(--ui-text-primary));
+      text-decoration-color: currentColor;
+      text-decoration-thickness: 2px;
     }
 
     :host-state([variant="link"]):active:not(:disabled, [aria-disabled="true"]) {
