@@ -88,15 +88,15 @@
         background-color var(--ui-motion-fast) var(--ui-motion-ease);
     }
 
-    /* Each size reads the min-block-size hook first, so an Input Group, which draws the frame, can zero it. */
+    /* Each size reads the hook and then an Input Group's default first, so a group, which draws the frame, can zero it. */
     :host-state([size="sm"]) {
-      min-block-size: var(--ui-input-min-block-size, var(--ui-control-size-sm));
+      min-block-size: var(--ui-input-min-block-size, var(--_ui-default-input-min-block-size, var(--ui-control-size-sm)));
       padding: var(--ui-space-1) var(--ui-space-2);
       font-size: var(--ui-font-size-sm);
     }
 
     :host-state([size="lg"]) {
-      min-block-size: var(--ui-input-min-block-size, var(--ui-control-size-lg));
+      min-block-size: var(--ui-input-min-block-size, var(--_ui-default-input-min-block-size, var(--ui-control-size-lg)));
       padding: var(--ui-space-3) var(--ui-space-4);
       font-size: var(--ui-font-size-md);
     }
@@ -105,7 +105,7 @@
        body-size text: below 16px, iOS zooms the page into the focused field. */
     @media (pointer: coarse) {
       :host-state([size="sm"]) {
-        min-block-size: var(--ui-input-min-block-size, var(--ui-control-min-block-size));
+        min-block-size: var(--ui-input-min-block-size, var(--_ui-default-input-min-block-size, var(--ui-control-min-block-size)));
         font-size: inherit;
       }
     }
