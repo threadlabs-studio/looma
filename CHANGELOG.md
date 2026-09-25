@@ -11,7 +11,7 @@ Breaking: `size` on Input and Select is now Looma's `sm | md | lg`, not the nati
   the same way); a select is always a single-choice dropdown. Migration: use a `multiple` Combobox for
   a list that shows several choices at once.
 - Breaking: a small Combobox (`size="sm"`) sets smaller text, to match a small Button and Input.
-  Migration: none needed for height; set the input's `font-size` if the old body-size text is wanted.
+  Migration: use the default `md` where body-size text matters more than the small height.
 - On Input and Select, change `size` after render through the option (the Vue prop or a DOM factory's
   props). The element's own `size` property is the native one, and `data-size` only records the
   option.

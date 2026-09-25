@@ -883,17 +883,18 @@ describe("Button touch target", () => {
 });
 
 describe("Form control sizes", () => {
-  const row = `<div style="display: flex; align-items: flex-start; gap: 8px; inline-size: 1400px">
-    <ui-input id="input" size="sm" aria-label="Search"></ui-input>
-    <ui-select id="select" size="sm" aria-label="Status"><option>Open</option></ui-select>
-    <ui-combobox id="combobox" size="sm" label="Owner" label-visibility="sr-only" disclosure><option value="ada">Ada</option></ui-combobox>
-    <ui-combobox id="multiple" size="sm" label="Tags" label-visibility="sr-only" multiple><option value="a">A</option></ui-combobox>
-    <ui-button id="button" size="sm">Apply</ui-button>
-    <ui-checkbox id="checkbox" size="sm">Mine</ui-checkbox>
-    <ui-radio id="radio" size="sm">Week</ui-radio>
-    <ui-switch id="switch" size="sm">Archived</ui-switch>
+  const sizedRow = (size: "sm" | "lg") => `<div style="display: flex; align-items: flex-start; gap: 8px; inline-size: 1400px">
+    <ui-input id="input" size="${size}" aria-label="Search"></ui-input>
+    <ui-select id="select" size="${size}" aria-label="Status"><option>Open</option></ui-select>
+    <ui-combobox id="combobox" size="${size}" label="Owner" label-visibility="sr-only" disclosure><option value="ada">Ada</option></ui-combobox>
+    <ui-combobox id="multiple" size="${size}" label="Tags" label-visibility="sr-only" multiple><option value="a">A</option></ui-combobox>
+    <ui-button id="button" size="${size}">Apply</ui-button>
+    <ui-checkbox id="checkbox" size="${size}">Mine</ui-checkbox>
+    <ui-radio id="radio" size="${size}">Week</ui-radio>
+    <ui-switch id="switch" size="${size}">Archived</ui-switch>
   </div>
   <ui-input id="default" aria-label="Default"></ui-input>`;
+  const row = sizedRow("sm");
   // Each control's own box, top-aligned, so the row height is each control's and not the row's.
   const measure = (page: Page) => page.evaluate(() => {
     const box = (selector: string) => document.querySelector(selector)!.getBoundingClientRect();
@@ -924,6 +925,18 @@ describe("Form control sizes", () => {
     // md is unchanged: the standard control height and body text.
     assert.ok(sizes.defaultHeight >= 40, `md stays ${sizes.defaultHeight}px`);
     assert.equal(sizes.defaultFontSize, "16px");
+    await page.close();
+  });
+
+  it("line up large fields, buttons, and choices on one row", async () => {
+    const path = await bundle("html-form-sizes-lg", `import "@threadlabs/looma";`);
+    const page = await open(path, sizedRow("lg"), [join(root, "tokens.css")]);
+    await page.waitForSelector('#switch[data-component~="ui-switch"]');
+    assert.match((await page.locator("#radio").getAttribute("data-ui-radio-state")) ?? "", /(^| )size=lg( |$)/);
+    const sizes = await measure(page);
+    assert.deepEqual(sizes.heights, { input: 48, select: 48, combobox: 48, multiple: 48, button: 48, checkbox: 48, radio: 48, switch: 48 });
+    assert.deepEqual(sizes.labels, [0, 0, 0]);
+    assert.deepEqual([sizes.fontSize, sizes.labelFontSize], ["16px", "16px"]);
     await page.close();
   });
 

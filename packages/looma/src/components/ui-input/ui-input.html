@@ -10,7 +10,8 @@
     <prop name="size" type="sm | md | lg" default="md"
     >Height, padding, and type size, matching Button's sizes so a field and a button of one size share a row. sm is the small control height (2rem by default)
       with smaller text, for compact rows such as a table row or a filter bar; md is the standard control height; lg is taller with roomier padding. Under a
-      coarse pointer, sm grows to the 44px touch minimum and keeps body-size text.</prop>
+      coarse pointer, sm grows to the 44px touch minimum and keeps body-size text. Change it after render through this option; the element's size property is
+      the native one.</prop>
   </defs>
   <input :value="value" :disabled="disabled" :readonly="readonly" :required="required" :aria-invalid="invalid">
   <style>
