@@ -16,7 +16,21 @@
       ></template></span>
   </div>
   <style>
+    /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-avatar-group-edge-ring {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-avatar-group-overlap-shadow {
+      syntax: "*";
+      inherits: false;
+    }
+
     :host {
+      /* Hooks do not inherit, so the parts below read them from the root. */
+      --_ui-avatar-group-overlap-shadow: var(--ui-avatar-group-overlap-shadow);
+      --_ui-avatar-group-edge-ring: var(--ui-avatar-group-edge-ring);
+
       /* Each avatar is ringed in the surface colour, so where one overlaps the next it reads as a
        * whole circle set on top, not a shape cut into the one beneath. */
       --_overlap-shadow: 0 0 0 0 transparent;
@@ -52,8 +66,8 @@
       background: var(--ui-surface-elevated);
       color: var(--ui-text-primary);
       box-shadow:
-        var(--ui-avatar-group-overlap-shadow, var(--_overlap-shadow)),
-        var(--ui-avatar-group-edge-ring, var(--_edge-ring));
+        var(--_ui-avatar-group-overlap-shadow, var(--_overlap-shadow)),
+        var(--_ui-avatar-group-edge-ring, var(--_edge-ring));
       font: inherit;
       font-size: var(--ui-font-size-xs);
       font-weight: 600;

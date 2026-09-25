@@ -6,7 +6,40 @@
     <div class="actions"><slot name="actions"></slot></div>
   </header>
   <style>
+    /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-top-bar-actions-gap {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-top-bar-border {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-top-bar-gap {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-top-bar-height {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-top-bar-padding-inline {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-top-bar-surface {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-top-bar-z-index {
+      syntax: "*";
+      inherits: false;
+    }
+
     :host {
+      /* Hooks do not inherit, so the parts below read them from the root. */
+      --_ui-top-bar-actions-gap: var(--ui-top-bar-actions-gap);
+
       position: sticky;
       inset-block-start: 0;
       z-index: var(--ui-top-bar-z-index, 100);
@@ -30,7 +63,7 @@
     }
 
     .actions {
-      gap: var(--ui-top-bar-actions-gap, var(--ui-space-1));
+      gap: var(--_ui-top-bar-actions-gap, var(--ui-space-1));
     }
 
     .title {

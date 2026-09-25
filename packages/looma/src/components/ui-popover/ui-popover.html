@@ -15,6 +15,12 @@
   </defs>
   <span><div class="surface"><slot></slot></div></span>
   <style>
+    /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-popover-viewport-gap {
+      syntax: "*";
+      inherits: false;
+    }
+
     :host {
       box-sizing: border-box;
       max-inline-size: min(
