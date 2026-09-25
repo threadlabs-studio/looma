@@ -403,6 +403,13 @@ describe("Input group", () => {
     await page.waitForTimeout(200);
     assert.match(await group.evaluate((element) => getComputedStyle(element).boxShadow), /3px/);
     assert.equal(await page.locator("#group").getByText(".example.com").count(), 1);
+    // An invalid input marks the whole group, not a second border inside it; its error is danger.
+    await page.locator("#site").evaluate((element) => element.setAttribute("aria-invalid", "true"));
+    await page.locator("#site").blur();
+    await page.waitForTimeout(200);
+    assert.equal(await page.locator("#site").evaluate((element) => getComputedStyle(element).borderTopColor), "rgba(0, 0, 0, 0)");
+    const danger = await page.evaluate(() => { const probe = document.createElement("span"); probe.style.color = "var(--ui-danger-solid)"; document.body.append(probe); const color = getComputedStyle(probe).color; probe.remove(); return color; });
+    assert.equal(await group.evaluate((element) => getComputedStyle(element).borderTopColor), danger);
   }
 
   it("frames an input and its affixes as one field, in HTML", async () => {
@@ -425,6 +432,39 @@ describe("Input group", () => {
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
     await checkGroup(page);
+    await page.close();
+  });
+});
+
+describe("Text links", () => {
+  it("underlines a link in running text", async () => {
+    const path = await bundle("html-text-link", `import "@threadlabs/looma";`);
+    const page = await open(path, `<ui-text id="line">Already have a site? <a id="link" href="#sign-in">Sign in</a>.</ui-text>`, [join(root, "tokens.css")]);
+    await page.waitForSelector('#line[data-component~="ui-text"]');
+    assert.match(await page.locator("#link").evaluate((element) => getComputedStyle(element).textDecorationLine), /underline/);
+    await page.close();
+  });
+});
+
+describe("Form field error", () => {
+  it("reads in the danger colour", async () => {
+    const path = await bundle("html-field-error", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-form-field invalid>
+        <label slot="label" for="name">Name</label>
+        <ui-input id="name" name="name"></ui-input>
+        <span slot="error" id="message">That name is taken.</span>
+      </ui-form-field>`, [join(root, "tokens.css")]);
+    await page.waitForSelector('#name[data-component~="ui-input"]');
+    const colours = await page.evaluate(() => {
+      const probe = document.createElement("span");
+      probe.style.color = "var(--ui-danger)";
+      document.body.append(probe);
+      const danger = getComputedStyle(probe).color;
+      probe.remove();
+      return { danger, message: getComputedStyle(document.querySelector("#message")!).color };
+    });
+    assert.equal(colours.message, colours.danger);
     await page.close();
   });
 });
