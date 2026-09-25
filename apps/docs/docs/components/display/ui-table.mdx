@@ -6,9 +6,7 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 # Table
 
-Styles an authored `<table>` in place: write the `caption`, `thead`, `tbody`, and `th scope` yourself, and the table reads as a table before JavaScript and to a screen reader. Compose a value with a muted line beneath it from [Text](/components/ui-text). Table is presentation only: it does not sort, page, or select rows.
-
-Align a whole column with `data-align` (`start`, `center`, or `end`) on its `<col>` in a `<colgroup>`; `span` covers several columns. Every cell in the column follows it, header and footer included, and a cell's own `data-align` overrides its column. Table works out each cell's column through `colspan` and `rowspan`, as the browser does, and keeps new rows in step; a cell spanning columns takes their alignment only when they agree. Column alignment is applied once the component upgrades, while a cell's own `data-align` works before JavaScript, so a server-rendered table that must be aligned on first paint can set it on its cells.
+Styles an authored `<table>` in place: write the `caption`, `thead`, `tbody`, and `th scope` yourself, and the table reads as a table before JavaScript and to a screen reader. A cell with `data-align="end"` sets its content at the end edge, for a column of figures; compose a value with a muted line beneath it from [Text](/components/ui-text). Table is presentation only: it does not sort, page, or select rows.
 
 A table wider than its container scrolls sideways and fades the edge that hides columns. While it scrolls, the table is a region the keyboard can focus and scroll, named by its caption; without a caption, name it with `aria-label`. `density` sets the row height, and every row is at least one control tall, so a row holding a checkbox or a small button lines up with the rest. `sticky-header` keeps the header in view within a table of bounded height.
 

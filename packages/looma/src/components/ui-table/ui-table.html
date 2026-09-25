@@ -13,8 +13,8 @@
     /* Styles an authored <table> (caption, thead, tbody, th scope) without replacing it: the table is
        meaningful before JavaScript, and a screen reader reads it as a table. The root scrolls a table
        wider than it, or taller than a bounded height; while it does, the controller makes the root a named, focusable region so a
-       keyboard can scroll it. data-align (start, center, or end) on a <col> aligns every cell in
-       that column, and on a cell aligns that cell, overriding its column. */
+       keyboard can scroll it. A cell with data-align="end" sets its content at the end edge, for a
+       column of figures. */
     :host {
       --_pad-block: var(--ui-space-1);
       --_pad-inline: var(--ui-space-3);
@@ -101,36 +101,14 @@
       vertical-align: bottom;
     }
 
-    :slotted(tbody th),
-    :slotted(tfoot th) {
+    :slotted(tbody th) {
       font-weight: var(--ui-font-medium);
-    }
-
-    /* A footer, such as a total, is set off from the rows above it. */
-    :slotted(tfoot td),
-    :slotted(tfoot th) {
-      border-block-start: 1px solid var(--ui-border-default);
-      border-block-end-width: 0;
     }
 
     :slotted(tbody tr:last-child > *) {
       border-block-end-width: 0;
     }
 
-    /* A column's alignment (data-align on its <col>) reaches its cells as data-column-align, which
-       the controller sets; a cell's own data-align comes later, so it wins. */
-    :slotted([data-column-align="center"]) {
-      text-align: center;
-    }
-    :slotted([data-column-align="end"]) {
-      text-align: end;
-    }
-    :slotted([data-align="start"]) {
-      text-align: start;
-    }
-    :slotted([data-align="center"]) {
-      text-align: center;
-    }
     :slotted([data-align="end"]) {
       text-align: end;
     }
