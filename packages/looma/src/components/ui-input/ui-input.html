@@ -56,13 +56,15 @@
     /* The app's invalid flag, or the browser's own verdict once the user has left an invalid field. */
     :host[aria-invalid="true"],
     :host:user-invalid {
-      border-color: var(--ui-danger-solid);
+      border-color: var(--ui-input-invalid-border, var(--ui-danger-solid));
     }
 
     :host:is([aria-invalid="true"], :user-invalid):focus-visible {
-      box-shadow:
+      box-shadow: var(
+        --ui-input-invalid-focus-shadow,
         var(--ui-control-inset),
-        0 0 0 3px color-mix(in srgb, var(--ui-danger-solid) 22%, transparent);
+        0 0 0 3px color-mix(in srgb, var(--ui-danger-solid) 22%, transparent)
+      );
     }
 
     :host:disabled {
