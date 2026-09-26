@@ -3112,6 +3112,242 @@ describe("Form participation", () => {
   });
 });
 
+describe("Table", () => {
+  // A comfortable and a compact table, each with a text row and a row of controls; a table too wide
+  // for its box; and a bounded table whose header sticks.
+  const figures = ["1,204,000", "1,388,000", "1,522,000", "1,610,000", "5,724,000", "4,443,000"];
+  const markup = `
+    <div id="fits-box" style="width: 640px">
+      <ui-table id="fits">
+        <table>
+          <caption>Orders</caption>
+          <thead><tr><th scope="col" id="fits-head">Name</th><th scope="col" data-ui-align="end">Seats</th></tr></thead>
+          <tbody>
+            <tr id="fits-text"><th scope="row">Ada</th><td data-ui-align="end" id="fits-figure">3</td></tr>
+            <tr id="fits-control"><th scope="row"><ui-checkbox>Grace</ui-checkbox></th><td><ui-select aria-label="Role"><option>Editor</option></ui-select></td></tr>
+          </tbody>
+        </table>
+      </ui-table>
+    </div>
+    <ui-table id="compact" density="compact">
+      <table>
+        <caption>Members</caption>
+        <tbody>
+          <tr id="compact-text"><th scope="row">Ada</th><td>Owner</td></tr>
+          <tr id="compact-control"><th scope="row"><ui-checkbox>Grace</ui-checkbox></th><td><ui-button size="sm">Edit</ui-button></td></tr>
+        </tbody>
+      </table>
+    </ui-table>
+    <div id="wide-box" style="width: 200px">
+      <ui-table id="wide">
+        <table>
+          <caption>Quarterly figures</caption>
+          <tbody><tr>${figures.map((figure) => `<td>${figure}</td>`).join("")}</tr></tbody>
+        </table>
+      </ui-table>
+    </div>
+    <ui-table id="sticky" sticky-header style="block-size: 7rem">
+      <table>
+        <caption>Days</caption>
+        <thead><tr><th scope="col" id="sticky-head">Day</th></tr></thead>
+        <tbody>${["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => `<tr><td>${day}</td></tr>`).join("")}</tbody>
+      </table>
+    </ui-table>`;
+
+  async function checkTable(page: Page) {
+    await page.locator("#sticky-head").waitFor();
+    // A row's height inside its separator: the last row has none.
+    const height = (selector: string) => page.locator(selector).evaluate((row) => (row as HTMLTableRowElement).cells[0].clientHeight);
+
+    // The authored table stays a table, captioned, with its header scopes.
+    assert.equal(await page.locator("#fits > table > caption").textContent(), "Orders");
+    assert.equal(await page.getByRole("table", { name: "Orders" }).count(), 1);
+    assert.equal(await page.locator('#fits th[scope="col"]').count(), 2);
+    assert.equal(await page.locator("#fits-figure").evaluate((element) => getComputedStyle(element).textAlign), "end");
+
+    // A row of controls keeps the rhythm of a row of text, and compact rows are shorter.
+    assert.equal(await height("#fits-control"), await height("#fits-text"));
+    assert.equal(await height("#compact-control"), await height("#compact-text"));
+    assert.ok(await height("#compact-text") < await height("#fits-text"), "compact rows are shorter");
+
+    // A table that fits is not a region or a tab stop.
+    assert.equal(await page.locator("#fits").getAttribute("role"), null);
+    assert.equal(await page.locator("#fits").getAttribute("tabindex"), null);
+
+    // A table wider than its box is a region named by its caption, which the keyboard scrolls.
+    const region = page.getByRole("region", { name: "Quarterly figures" });
+    await region.waitFor();
+    assert.equal(await region.getAttribute("tabindex"), "0");
+    await region.focus();
+    await page.keyboard.press("ArrowRight");
+    await page.waitForFunction(() => document.querySelector("#wide")!.scrollLeft > 0);
+
+    // Given room, it is plain again; narrowed, the fitting table becomes a region.
+    await page.locator("#wide-box").evaluate((element) => { element.style.width = "2000px"; });
+    await page.waitForFunction(() => !document.querySelector("#wide")!.hasAttribute("role"));
+    assert.equal(await page.locator("#wide").getAttribute("tabindex"), null);
+    await page.locator("#fits-box").evaluate((element) => { element.style.width = "80px"; });
+    await page.getByRole("region", { name: "Orders" }).waitFor();
+
+    // A sticky header stays at the top of its table as the rows scroll, and a table that scrolls
+    // only down is a region the keyboard can reach too.
+    await page.getByRole("region", { name: "Days" }).waitFor();
+    assert.equal(await page.locator("#fits-head").evaluate((element) => getComputedStyle(element).position), "static");
+    await page.locator("#sticky").evaluate((element) => { element.scrollTop = 60; });
+    const [head, box] = await Promise.all([page.locator("#sticky-head").boundingBox(), page.locator("#sticky").boundingBox()]);
+    assert.ok(Math.abs(head!.y - box!.y) <= 1, `header ${head!.y} at the top ${box!.y}`);
+  }
+
+  it("styles an authored table, and makes a table too wide a named, scrollable region, in HTML", async () => {
+    const path = await bundle("html-table", `import "@threadlabs/looma";`);
+    const page = await open(path, markup, [join(root, "tokens.css")]);
+    await checkTable(page);
+    await page.close();
+  });
+
+  it("judges a moved table again, so a table re-inserted and then widened is plain", async () => {
+    const path = await bundle("html-table", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <div id="moved-box" style="width: 200px">
+        <ui-table id="moved"><table><caption>Moved</caption><tbody><tr>${figures.map((figure) => `<td>${figure}</td>`).join("")}</tr></tbody></table></ui-table>
+      </div>`, [join(root, "tokens.css")]);
+    await page.getByRole("region", { name: "Moved" }).waitFor();
+    await page.evaluate(() => { (window as unknown as { moved: Element }).moved = document.querySelector("#moved")!; document.querySelector("#moved")!.remove(); });
+    await page.waitForTimeout(50);
+    await page.evaluate(() => { document.querySelector("#moved-box")!.append((window as unknown as { moved: Element }).moved); });
+    await page.getByRole("region", { name: "Moved" }).waitFor();
+    await page.locator("#moved-box").evaluate((element) => { element.style.width = "2000px"; });
+    await page.waitForFunction(() => !document.querySelector("#moved")!.hasAttribute("role"));
+    assert.equal(await page.locator("#moved").getAttribute("tabindex"), null);
+    assert.equal(await page.locator("#moved").getAttribute("aria-labelledby"), null);
+    await page.close();
+  });
+
+  it("styles an authored table, and makes a table too wide a named, scrollable region, in Vue", async () => {
+    const path = await bundle("vue-table", `
+      import { createApp, h } from "vue";
+      import { Button, Checkbox, Select, Table } from "@threadlabs/looma/vue";
+      const figures = ${JSON.stringify(figures)};
+      createApp({ render: () => [
+        h("div", { id: "fits-box", style: "width: 640px" }, h(Table, { id: "fits" }, () => h("table", [
+          h("caption", "Orders"),
+          h("thead", h("tr", [h("th", { scope: "col", id: "fits-head" }, "Name"), h("th", { scope: "col", "data-ui-align": "end" }, "Seats")])),
+          h("tbody", [
+            h("tr", { id: "fits-text" }, [h("th", { scope: "row" }, "Ada"), h("td", { "data-ui-align": "end", id: "fits-figure" }, "3")]),
+            h("tr", { id: "fits-control" }, [
+              h("th", { scope: "row" }, h(Checkbox, null, () => "Grace")),
+              h("td", h(Select, { "aria-label": "Role" }, () => h("option", "Editor"))),
+            ]),
+          ]),
+        ]))),
+        h(Table, { id: "compact", density: "compact" }, () => h("table", [
+          h("caption", "Members"),
+          h("tbody", [
+            h("tr", { id: "compact-text" }, [h("th", { scope: "row" }, "Ada"), h("td", "Owner")]),
+            h("tr", { id: "compact-control" }, [h("th", { scope: "row" }, h(Checkbox, null, () => "Grace")), h("td", h(Button, { size: "sm" }, () => "Edit"))]),
+          ]),
+        ])),
+        h("div", { id: "wide-box", style: "width: 200px" }, h(Table, { id: "wide" }, () => h("table", [
+          h("caption", "Quarterly figures"),
+          h("tbody", h("tr", figures.map((figure) => h("td", figure)))),
+        ]))),
+        h(Table, { id: "sticky", stickyHeader: true, style: "block-size: 7rem" }, () => h("table", [
+          h("caption", "Days"),
+          h("thead", h("tr", h("th", { scope: "col", id: "sticky-head" }, "Day"))),
+          h("tbody", ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => h("tr", h("td", day)))),
+        ])),
+      ] }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await checkTable(page);
+    await page.close();
+  });
+
+  it("renders the authored table on the server, with no region until it scrolls", async () => {
+    const { createSSRApp, h } = await import("vue");
+    const { renderToString } = await import("vue/server-renderer");
+    const { Table } = await import("@threadlabs/looma/vue");
+    const html = await renderToString(createSSRApp({
+      render: () => h(Table, { density: "compact", stickyHeader: true }, () => h("table", [h("caption", "Orders"), h("tbody", h("tr", h("td", "1")))])),
+    }));
+    assert.match(html, /^<div data-component="ui-table" data-ui-table-state="density density=compact stickyHeader"/);
+    assert.match(html, /<table[^>]*><caption[^>]*>Orders<\/caption>/);
+    assert.doesNotMatch(html, /role=|tabindex=/);
+  });
+});
+
+describe("Description list layouts", () => {
+  const hash = "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08";
+  // A default list in a shrink-to-fit box and in a flex row keeps its content width.
+  const lists = [
+    { id: "rows", style: "width: 720px", props: {} },
+    { id: "stacked", style: "width: 720px", props: { layout: "stacked" } },
+    { id: "grid", style: "width: 720px", props: { layout: "grid", columns: "3" } },
+    { id: "compact", style: "width: 720px", props: { density: "compact" } },
+    { id: "floating", style: "position: absolute; inset-block-start: 0; inset-inline-end: 0; width: fit-content", props: {} },
+    { id: "flex", style: "display: flex; width: 720px", props: {} },
+  ];
+  const terms = ["Order", "Status", "Total", "Checksum"];
+
+  async function checkLists(page: Page) {
+    await page.locator("#grid-4 dd").waitFor();
+    const box = async (selector: string) => (await page.locator(selector).boundingBox())!;
+
+    // Rows set the term beside its value; stacked sets it above.
+    assert.ok(Math.abs((await box("#rows-1 dt")).y - (await box("#rows-1 dd")).y) <= 1, "rows: term beside value");
+    const [term, value] = [await box("#stacked-1 dt"), await box("#stacked-1 dd")];
+    assert.ok(value.y >= term.y + term.height - 1, "stacked: term above value");
+
+    // Sized by its content, a default list neither collapses in a shrink-to-fit box nor stretches
+    // across a flex row.
+    for (const id of ["floating", "flex"]) {
+      const [list, term, value] = [await box(`#${id}`), await box(`#${id}-1 dt`), await box(`#${id}-1 dd`)];
+      assert.ok(Math.abs(term.y - value.y) <= 1, `${id}: term beside value`);
+      assert.ok(value.x + value.width <= list.x + list.width + 1 && value.width > 0, `${id}: the value is inside the list`);
+      assert.ok(list.width < 400, `${id}: the list is ${list.width}px, not stretched`);
+    }
+
+    // A grid of three columns: three facts per row, the fourth on the next.
+    const tops = await Promise.all([1, 2, 3, 4].map(async (n) => Math.round((await box(`#grid-${n}`)).y)));
+    assert.deepEqual(tops.slice(0, 3), [tops[0], tops[0], tops[0]]);
+    assert.ok(tops[3] > tops[0], "the fourth fact starts a new row");
+
+    // A long identifier wraps inside its value rather than overflowing.
+    const [list, fact] = [await box("#grid"), await box("#grid-4")];
+    assert.ok(fact.x + fact.width <= list.x + list.width + 1, "the fact stays within the list");
+    assert.equal(await page.locator("#grid-4 dd").evaluate((element) => element.scrollWidth <= element.clientWidth), true);
+
+    // Compact sets the pairs closer together.
+    const gap = async (id: string) => (await box(`#${id}-2`)).y - ((await box(`#${id}-1`)).y + (await box(`#${id}-1`)).height);
+    assert.ok(await gap("compact") < await gap("rows"), "compact pairs are closer");
+  }
+
+  it("lays out facts in rows, stacked, and in a grid, in HTML", async () => {
+    const path = await bundle("html-description-list-layouts", `import "@threadlabs/looma";`);
+    const attributes = (props: Record<string, unknown>) => Object.entries(props).map(([name, value]) => ` ${name}="${value}"`).join("");
+    const page = await open(path, lists.map(({ id, style, props }) => `
+      <div style="${style}"><ui-description-list id="${id}"${attributes(props)}>
+        ${terms.map((term, index) => `<ui-description-item id="${id}-${index + 1}" term="${term}">${id === "grid" && index === 3 ? `<ui-text variant="code">${hash}</ui-text>` : "Value"}</ui-description-item>`).join("")}
+      </ui-description-list></div>`).join(""), [join(root, "tokens.css")]);
+    await checkLists(page);
+    await page.close();
+  });
+
+  it("lays out facts in rows, stacked, and in a grid, in Vue", async () => {
+    const path = await bundle("vue-description-list-layouts", `
+      import { createApp, h } from "vue";
+      import { DescriptionItem, DescriptionList, Text } from "@threadlabs/looma/vue";
+      const lists = ${JSON.stringify(lists)};
+      const terms = ${JSON.stringify(terms)};
+      createApp({ render: () => lists.map(({ id, style, props }) => h("div", { style }, h(DescriptionList, { id, ...props }, () =>
+        terms.map((term, index) => h(DescriptionItem, { id: \`\${id}-\${index + 1}\`, term }, () => id === "grid" && index === 3 ? h(Text, { variant: "code" }, () => "${hash}") : "Value"))))) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await checkLists(page);
+    await page.close();
+  });
+});
+
 describe("Sidebar", () => {
   type Probe = { toggles: unknown[]; resizes: unknown[] };
   const probe = (page: Page) => page.evaluate(() => (window as unknown as { probe: Probe }).probe);

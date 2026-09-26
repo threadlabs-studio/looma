@@ -1,32 +1,77 @@
 <template component="ui-description-list">
   <defs>
-    <prop name="layout" type="rows | tiles" default="rows"
-    >rows sets each term beside its value, one per line, for a short summary; tiles sets each pair on its own bordered tile in a grid, term above value, for
-      figures and facts to scan.</prop>
+    <prop name="layout" type="rows | stacked | grid | tiles" default="rows"
+    >rows sets each term beside its value, one per line, for a short summary; stacked sets every term above its value, one pair per line, for a narrow space;
+      grid sets the pairs, term above value, in as many columns as fit, for facts to scan across; tiles sets each pair on its own bordered tile in a grid, for
+      figures to compare.</prop>
+    <prop name="columns" type="'2' | '3' | '4'"
+    >The most columns grid and tiles set on a wide list; a narrow list still drops to fewer. Left unset, they fit as many as the width allows.</prop>
+    <prop name="density" type="comfortable | compact" default="comfortable"
+    >How much room each pair takes. comfortable spaces the pairs apart to read; compact sets them close together, for facts inside other content such as a card
+      or a table's detail row.</prop>
   </defs>
   <dl><slot></slot></dl>
   <style>
     /* Named values: a term and what it is, for each item (ui-description-item). */
     /* Rows line every term up in one column and every value in the next, through subgrid. */
     :host {
+      --_gap: var(--ui-space-2);
+      --_gap-compact: var(--ui-space-1);
+      --_column-gap: var(--ui-space-6);
+      --_min: 10rem;
+      --_track: var(--_min);
+      --_tile-padding: var(--ui-space-3);
       display: grid;
       grid-template-columns: minmax(6rem, max-content) minmax(0, 1fr);
-      gap: var(--ui-space-2) var(--ui-space-6);
+      gap: var(--_gap) var(--_column-gap);
       min-inline-size: 0;
       margin: 0;
     }
 
-    /* Tiles pass their shape to the items through private properties, which cross into each item. */
+    /* Stacked, grid, and tiles set each term above its value, passing the shape to the items through
+       private properties, which cross into each item. */
+    :host-state([layout="stacked"]),
+    :host-state([layout="grid"]),
     :host-state([layout="tiles"]) {
       --_ui-description-display: flex;
       --_ui-description-column: auto;
+      --_ui-description-align: stretch;
+      --_gap: var(--ui-space-4);
+      --_gap-compact: var(--ui-space-2);
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    /* A column is at least --_min wide; with columns set, at least its share of the width, so no more
+       than that many fit. */
+    :host-state([layout="grid"]),
+    :host-state([layout="tiles"]) {
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--_track)), 1fr));
+    }
+
+    :host-state([layout="tiles"]) {
       --_ui-description-align: flex-start;
       --_ui-description-value-size: var(--ui-font-size-lg);
-      --_ui-description-padding: var(--ui-space-3);
+      --_ui-description-padding: var(--_tile-padding);
       --_ui-description-border-width: 1px;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(min(100%, 10rem), 1fr));
-      gap: var(--ui-space-3);
+      --_gap: var(--ui-space-3);
+      --_gap-compact: var(--ui-space-2);
+      --_column-gap: var(--_gap);
+    }
+
+    :host-state([columns="2"]) {
+      --_track: max(var(--_min), (100% - var(--_column-gap)) / 2);
+    }
+    :host-state([columns="3"]) {
+      --_track: max(var(--_min), (100% - 2 * var(--_column-gap)) / 3);
+    }
+    :host-state([columns="4"]) {
+      --_track: max(var(--_min), (100% - 3 * var(--_column-gap)) / 4);
+    }
+
+    /* Compact takes each layout's closer spacing. */
+    :host-state([density="compact"]) {
+      --_gap: var(--_gap-compact);
+      --_tile-padding: var(--ui-space-2);
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */

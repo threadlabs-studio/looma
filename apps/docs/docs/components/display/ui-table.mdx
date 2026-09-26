@@ -1,0 +1,13 @@
+---
+slug: /components/ui-table
+---
+
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# Table
+
+Styles an authored `<table>` in place: write the `caption`, `thead`, `tbody`, and `th scope` yourself, and the table reads as a table before JavaScript and to a screen reader. A cell's `data-ui-align` (`start`, `center`, or `end`; `start` when unset) sets its content along the row, such as `end` for a column of figures; compose a value with a muted line beneath it from [Text](/components/ui-text). Table is presentation only: it does not sort, page, or select rows.
+
+A table wider than its container scrolls sideways and fades the edge that hides columns. While it scrolls, the table is a region the keyboard can focus and scroll, named by its caption; without a caption, name it with `aria-label`. `density` sets the row height, and every row is at least one control tall, so a row holding a checkbox or a small button lines up with the rest. `sticky-header` keeps the header in view within a table of bounded height.
+
+<ComponentExamplesApiTabs component="ui-table" />

@@ -1,0 +1,46 @@
+<!--
+title: Default
+description: An authored table, styled in place: a caption names it, th scope marks column and row headers, and data-ui-align="end" sets a column of figures at the end edge. A cell can hold a value with a muted line beneath it, composed from Text.
+-->
+<ui-table>
+  <table>
+    <caption>Recent orders</caption>
+    <thead>
+      <tr>
+        <th scope="col">Order</th>
+        <th scope="col">Customer</th>
+        <th scope="col">Status</th>
+        <th scope="col" data-ui-align="end">Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th scope="row">
+          <ui-text variant="code">ORD-20931</ui-text>
+          <ui-text tone="muted" size="xs">Placed 2 April</ui-text>
+        </th>
+        <td>Northwind Traders</td>
+        <td><ui-badge tone="success">Paid</ui-badge></td>
+        <td data-ui-align="end">$1,240.00</td>
+      </tr>
+      <tr>
+        <th scope="row">
+          <ui-text variant="code">ORD-20932</ui-text>
+          <ui-text tone="muted" size="xs">Placed 3 April</ui-text>
+        </th>
+        <td>Contoso</td>
+        <td><ui-badge tone="warning">Due</ui-badge></td>
+        <td data-ui-align="end">$86.50</td>
+      </tr>
+      <tr>
+        <th scope="row">
+          <ui-text variant="code">ORD-20933</ui-text>
+          <ui-text tone="muted" size="xs">Placed 3 April</ui-text>
+        </th>
+        <td>Fabrikam</td>
+        <td><ui-badge>Draft</ui-badge></td>
+        <td data-ui-align="end">$12,000.00</td>
+      </tr>
+    </tbody>
+  </table>
+</ui-table>

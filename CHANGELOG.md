@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.14.1
+
+- New: Table (`ui-table`, Vue `Table`) styles an authored `<table>` in place: caption, header and
+  row headers, and row separators. A cell's `data-ui-align` (`start`, `center`, or `end`; `start`
+  when unset) sets its content along the row, such as `end` for a column of figures. `density`
+  (`comfortable`, `compact`) sets the row height, and every row is at least one control tall, so a
+  row holding a checkbox or a small button lines up with the rest. `sticky-header` keeps the header
+  in view in a table of bounded height. A table wider than its container scrolls sideways with the
+  shared edge fade; while it scrolls, it is a region named by its caption that the keyboard can
+  focus and scroll. Presentation only: no sorting, paging, or row selection.
+- Description List: `layout="stacked"` sets every term above its value; `layout="grid"` sets the
+  pairs in columns, term above value; `columns` (`2`, `3`, or `4`) caps how many columns grid and
+  tiles set; `density="compact"` sets the pairs close together. A list still sizes as before, so a
+  rows list does not stack on its own in a narrow space; use `stacked` there.
+
 ## v0.14.0
 
 Breaking: `size` on Input and Select is now Looma's `sm | md | lg`, not the native attribute.
