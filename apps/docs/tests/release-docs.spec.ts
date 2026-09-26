@@ -1196,7 +1196,7 @@ test("every combobox scenario receives its authored native options", async ({ pa
   await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
 
   const comboboxes = page.locator("[data-component~='ui-combobox']");
-  await expect(comboboxes).toHaveCount(7);
+  await expect(comboboxes).toHaveCount(8);
   await expect(comboboxes.nth(0).locator(".authored-options option")).toHaveCount(2);
   await expect(comboboxes.nth(1).locator(".authored-options option")).toHaveCount(2);
   await comboboxes.nth(0).evaluate((element) => {
@@ -1223,6 +1223,18 @@ test("every combobox scenario receives its authored native options", async ({ pa
   await expect(page.getByRole("option", { name: /North terminal/ })).toHaveCount(1);
   await input.press("Enter");
   await expect(input).toHaveValue("North terminal");
+});
+
+test("the selected values example starts from data and keeps the user's changes", async ({ page }) => {
+  await page.goto("components/ui-combobox", { waitUntil: "domcontentloaded" });
+  const regions = page.locator("[data-component~='ui-combobox']").filter({ has: page.getByRole("combobox", { name: /Regions/ }) });
+  const chips = regions.locator(".item");
+  await expect(chips).toHaveText(["North", "West"]);
+  await regions.getByRole("combobox").fill("Ea");
+  await regions.getByRole("option", { name: "East" }).click();
+  await expect(chips).toHaveText(["North", "West", "East"]);
+  await page.keyboard.press("Backspace");
+  await expect(chips).toHaveText(["North", "West"]);
 });
 
 test("the desktop hero stays inside the content column", async ({ page }) => {
