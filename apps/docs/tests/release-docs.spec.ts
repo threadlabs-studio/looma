@@ -1334,7 +1334,8 @@ test("dark mode tab labels meet WCAG AA text contrast", async ({ page }) => {
 for (const darkPage of ["./", "components"] as const) {
   test(`${darkPage} has no automated dark-mode accessibility violations`, async ({ page }) => {
     await page.addInitScript(() => window.localStorage.setItem("theme", "dark"));
-    await page.goto(darkPage, { waitUntil: "domcontentloaded" });
+    // Controllers load lazily after a component lowers; axe audits the page once they have run.
+    await page.goto(darkPage, { waitUntil: "networkidle" });
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
     await expectNoAxeViolations(page);
   });
