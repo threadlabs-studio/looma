@@ -1,5 +1,34 @@
 # Changelog
 
+## v0.14.0
+
+Breaking: `size` on Input and Select is now Looma's `sm | md | lg`, not the native attribute.
+
+- Breaking: a numeric `size` on `ui-input` (a character width) fails the option's type with HR002,
+  which stops every component on the page from upgrading. Migration: drop `size` and set the width in
+  CSS, such as `inline-size: 12ch` on the input.
+- Breaking: `ui-select` no longer renders a native listbox for `size` above 1 (a numeric `size` fails
+  the same way); a select is always a single-choice dropdown. Migration: use a `multiple` Combobox for
+  a list that shows several choices at once.
+- Breaking: a small Combobox (`size="sm"`) sets smaller text, to match a small Button and Input.
+  Migration: use the default `md` where body-size text matters more than the small height.
+- On Input and Select, change `size` after render through the option (the Vue prop or a DOM factory's
+  props). The element's own `size` property is the native one, and `data-size` only records the
+  option.
+- Every form control takes Button's `size`, so one size across a row lines up. Input and Select take
+  `sm`, `md`, and `lg` (32, 40, and 48px, with Button's padding and type sizes; Select's chevron
+  shrinks at `sm`), and so do Textarea (padding and type size; `rows` still sets its height) and
+  Combobox, which already had `sm` and now also takes `lg`, sets smaller text at `sm`, and keeps a
+  `multiple` field at the small or large height. Checkbox, Radio, and Switch take `sm`, `md`, and `lg`
+  and align rather than shrink: the box or track keeps its size, the label takes that size's type,
+  and its first line centres in that control height, so it shares a row's height and baseline. `md`
+  is the default and unchanged.
+- Input Group takes its input's size: a `sm` or `lg` Input inside it makes the whole frame that
+  height, so a small group lines up with small buttons and fields.
+- Under a coarse pointer every `sm` control grows to the 44px touch minimum, and the text fields keep
+  body-size text (iOS zooms into a focused field under 16px). A small Button now grows too, as a boxed
+  button was documented to: its size rule outranked the coarse-pointer minimum.
+
 ## v0.13.6
 
 - Icon draws without JavaScript. `ui-icon` derives its shapes from `name` as it renders, so a Vue

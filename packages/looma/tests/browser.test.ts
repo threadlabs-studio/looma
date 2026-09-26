@@ -882,6 +882,114 @@ describe("Button touch target", () => {
   });
 });
 
+describe("Form control sizes", () => {
+  const sizedRow = (size: "sm" | "lg") => `<div style="display: flex; align-items: flex-start; gap: 8px; inline-size: 1400px">
+    <ui-input id="input" size="${size}" aria-label="Search"></ui-input>
+    <ui-select id="select" size="${size}" aria-label="Status"><option>Open</option></ui-select>
+    <ui-combobox id="combobox" size="${size}" label="Owner" label-visibility="sr-only" disclosure><option value="ada">Ada</option></ui-combobox>
+    <ui-combobox id="multiple" size="${size}" label="Tags" label-visibility="sr-only" multiple><option value="a">A</option></ui-combobox>
+    <ui-button id="button" size="${size}">Apply</ui-button>
+    <ui-checkbox id="checkbox" size="${size}">Mine</ui-checkbox>
+    <ui-radio id="radio" size="${size}">Week</ui-radio>
+    <ui-switch id="switch" size="${size}">Archived</ui-switch>
+  </div>
+  <ui-input id="default" aria-label="Default"></ui-input>`;
+  const row = sizedRow("sm");
+  // Each control's own box, top-aligned, so the row height is each control's and not the row's.
+  const measure = (page: Page) => page.evaluate(() => {
+    const box = (selector: string) => document.querySelector(selector)!.getBoundingClientRect();
+    const middle = (rect: DOMRect) => rect.top + rect.height / 2;
+    const ids = ["input", "select", "combobox", "multiple", "button", "checkbox", "radio", "switch"];
+    return {
+      heights: Object.fromEntries(ids.map((id) => [id, Math.round(box(`#${id}`).height)])),
+      // A field centres its one line of text, so a choice's label shares its baseline when their middles meet.
+      labels: ["checkbox", "radio", "switch"].map((id) => Math.abs(Math.round(middle(box(`#${id} .label`)) - middle(box("#input"))))),
+      fontSize: getComputedStyle(document.querySelector("#input")!).fontSize,
+      labelFontSize: getComputedStyle(document.querySelector("#checkbox .label")!).fontSize,
+      defaultHeight: box("#default").height,
+      defaultFontSize: getComputedStyle(document.querySelector("#default")!).fontSize,
+    };
+  });
+  const small = { input: 32, select: 32, combobox: 32, multiple: 32, button: 32, checkbox: 32, radio: 32, switch: 32 };
+
+  it("line up small fields, buttons, and choices on one row, and leave md alone", async () => {
+    const path = await bundle("html-form-sizes", `import "@threadlabs/looma";`);
+    const page = await open(path, row, [join(root, "tokens.css")]);
+    await page.waitForSelector('#switch[data-component~="ui-switch"]');
+    assert.match((await page.locator("#input").getAttribute("data-ui-input-state")) ?? "", /(^| )size=sm( |$)/);
+    assert.match((await page.locator("#checkbox").getAttribute("data-ui-checkbox-state")) ?? "", /(^| )size=sm( |$)/);
+    const sizes = await measure(page);
+    assert.deepEqual(sizes.heights, small);
+    assert.deepEqual(sizes.labels, [0, 0, 0]);
+    assert.deepEqual([sizes.fontSize, sizes.labelFontSize], ["14px", "14px"]);
+    // md is unchanged: the standard control height and body text.
+    assert.ok(sizes.defaultHeight >= 40, `md stays ${sizes.defaultHeight}px`);
+    assert.equal(sizes.defaultFontSize, "16px");
+    await page.close();
+  });
+
+  it("line up large fields, buttons, and choices on one row", async () => {
+    const path = await bundle("html-form-sizes-lg", `import "@threadlabs/looma";`);
+    const page = await open(path, sizedRow("lg"), [join(root, "tokens.css")]);
+    await page.waitForSelector('#switch[data-component~="ui-switch"]');
+    assert.match((await page.locator("#radio").getAttribute("data-ui-radio-state")) ?? "", /(^| )size=lg( |$)/);
+    const sizes = await measure(page);
+    assert.deepEqual(sizes.heights, { input: 48, select: 48, combobox: 48, multiple: 48, button: 48, checkbox: 48, radio: 48, switch: 48 });
+    assert.deepEqual(sizes.labels, [0, 0, 0]);
+    assert.deepEqual([sizes.fontSize, sizes.labelFontSize], ["16px", "16px"]);
+    await page.close();
+  });
+
+  it("grow small controls to the touch minimum under a coarse pointer, with body-size field text", async () => {
+    const path = await bundle("html-form-sizes-touch", `import "@threadlabs/looma";`);
+    const context = await browser.newContext({ hasTouch: true, isMobile: true });
+    const page = await context.newPage();
+    await page.setContent(`<!doctype html><html><body>${row}</body></html>`);
+    await page.addStyleTag({ path: join(root, "tokens.css") });
+    await page.addScriptTag({ path });
+    await page.waitForSelector('#switch[data-component~="ui-switch"]');
+    assert.equal(await page.evaluate(() => matchMedia("(pointer: coarse)").matches), true);
+    const sizes = await measure(page);
+    // The combobox's clear and disclosure buttons are 44px themselves, inside its 1px border.
+    assert.deepEqual(sizes.heights, { input: 44, select: 44, combobox: 46, multiple: 44, button: 44, checkbox: 44, radio: 44, switch: 44 });
+    assert.deepEqual(sizes.labels, [0, 0, 0]);
+    assert.equal(sizes.fontSize, "16px");
+    await context.close();
+  });
+
+  it("size an input group from its input", async () => {
+    const path = await bundle("html-form-sizes-group", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-input-group id="sm"><span slot="prefix">https://</span><ui-input size="sm" aria-label="Site"></ui-input></ui-input-group>
+      <ui-input-group id="md"><span slot="prefix">https://</span><ui-input aria-label="Site"></ui-input></ui-input-group>
+      <ui-input-group id="lg"><span slot="prefix">https://</span><ui-input size="lg" aria-label="Site"></ui-input></ui-input-group>
+    `, [join(root, "tokens.css")]);
+    await page.waitForSelector('#lg [data-component~="ui-input"]');
+    const heights = await page.evaluate(() => ["sm", "md", "lg"].map((id) => Math.round(document.getElementById(id)!.getBoundingClientRect().height)));
+    assert.deepEqual(heights, [32, 40, 48]);
+    await page.close();
+  });
+
+  it("take size as a Vue prop", async () => {
+    const path = await bundle("vue-form-sizes", `
+      import { createApp, h } from "vue";
+      import { Button, Checkbox, Input, Select } from "@threadlabs/looma/vue";
+      createApp({ render: () => h("div", { style: "display: flex; align-items: flex-start; gap: 8px" }, [
+        h(Input, { id: "input", size: "sm", "aria-label": "Search" }),
+        h(Select, { id: "select", size: "sm", "aria-label": "Status" }, () => h("option", "Open")),
+        h(Button, { id: "button", size: "sm" }, () => "Apply"),
+        h(Checkbox, { id: "checkbox", size: "sm" }, () => "Mine"),
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await page.waitForSelector("#checkbox");
+    assert.match((await page.locator("#input").getAttribute("data-ui-input-state")) ?? "", /(^| )size=sm( |$)/);
+    const heights = await page.evaluate(() => ["input", "select", "button", "checkbox"].map((id) => Math.round(document.getElementById(id)!.getBoundingClientRect().height)));
+    assert.deepEqual(heights, [32, 32, 32, 32]);
+    await page.close();
+  });
+});
+
 describe("Cluster justify", () => {
   it("spreads a row's items to its ends with justify=between", async () => {
     const path = await bundle("html-cluster-justify", `import "@threadlabs/looma";`);
