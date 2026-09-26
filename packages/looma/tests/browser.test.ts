@@ -1055,6 +1055,34 @@ describe("Text links", () => {
   });
 });
 
+describe("Text tones", () => {
+  it("colours info and warning with the tone's text token", async () => {
+    const path = await bundle("html-text-tones", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-text id="info" tone="info">Scheduled for pickup.</ui-text>
+      <ui-text id="warning" tone="warning">Needs a carrier.</ui-text>`, [join(root, "tokens.css")]);
+    await page.waitForSelector('#warning[data-component~="ui-text"]');
+    const colours = await page.evaluate(() => {
+      const resolve = (token: string) => {
+        const probe = document.createElement("span");
+        probe.style.color = `var(${token})`;
+        document.body.append(probe);
+        const color = getComputedStyle(probe).color;
+        probe.remove();
+        return color;
+      };
+      const color = (id: string) => getComputedStyle(document.querySelector(id)!).color;
+      return {
+        info: [color("#info"), resolve("--ui-info-subtle-text")],
+        warning: [color("#warning"), resolve("--ui-warning-subtle-text")],
+      };
+    });
+    assert.equal(colours.info[0], colours.info[1]);
+    assert.equal(colours.warning[0], colours.warning[1]);
+    await page.close();
+  });
+});
+
 describe("Form field error", () => {
   it("reads in the danger colour", async () => {
     const path = await bundle("html-field-error", `import "@threadlabs/looma";`);
@@ -1566,7 +1594,11 @@ describe("Avatar initials", () => {
 describe("Text tokens", () => {
   // Every token meant for readable text, on every surface a component paints it on. Disabled text
   // is exempt (WCAG 1.4.3), so --ui-disabled-text is not here.
-  const texts = ["--ui-text", "--ui-text-primary", "--ui-text-secondary", "--ui-text-muted", "--ui-control-placeholder"];
+  // The last five are ui-text's tones: accent, danger, success, info, and warning.
+  const texts = [
+    "--ui-text", "--ui-text-primary", "--ui-text-secondary", "--ui-text-muted", "--ui-control-placeholder",
+    "--ui-accent-active", "--ui-danger", "--ui-success", "--ui-info-subtle-text", "--ui-warning-subtle-text",
+  ];
   const surfaces = [
     "--ui-surface", "--ui-surface-canvas", "--ui-surface-default", "--ui-surface-raised", "--ui-surface-elevated",
     "--ui-surface-sunken", "--ui-surface-subtle", "--ui-surface-muted", "--ui-surface-hover", "--ui-control-surface",

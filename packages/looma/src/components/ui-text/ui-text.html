@@ -3,9 +3,10 @@
     <prop name="size" type="inherit | xs | sm | md | lg" default="inherit"
     >The step on the type scale. inherit (the default) keeps the size of the text around it; xs is for fine print, sm for supporting text such as help and
       metadata, md is body text, and lg is a lead paragraph.</prop>
-    <prop name="tone" type="default | secondary | muted | accent | danger | success" default="default"
+    <prop name="tone" type="default | secondary | muted | accent | danger | success | info | warning" default="default"
     >The text's colour, by meaning. secondary is supporting prose such as a description; muted is quieter still, for metadata and hints; accent draws the eye;
-      danger states an error; success confirms one.</prop>
+      danger states an error; success confirms one; info marks something moving forward normally; warning marks something that needs attention. Colour alone
+      does not carry the meaning, so the words must say it too.</prop>
     <prop name="weight" type="inherit | normal | medium | semibold" default="inherit"
     >The weight. inherit keeps the surrounding weight; medium and semibold emphasise a name or a figure.</prop>
     <prop name="variant" type="body | eyebrow | code" default="body"
@@ -66,6 +67,14 @@
     }
     :host-state([tone="success"]) {
       color: var(--ui-success);
+    }
+    /* The base info and warning colours fall short of 4.5:1 on sunken surfaces, so these use the
+       text-safe tokens a subtle badge sets its words in. */
+    :host-state([tone="info"]) {
+      color: var(--ui-info-subtle-text);
+    }
+    :host-state([tone="warning"]) {
+      color: var(--ui-warning-subtle-text);
     }
 
     :host-state([weight="normal"]) {
