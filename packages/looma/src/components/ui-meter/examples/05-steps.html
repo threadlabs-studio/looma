@@ -1,0 +1,58 @@
+<!--
+title: Steps
+description: segments draws the bar as steps, so it reads as how far along a sequence is rather than as a percentage. max is the number of steps and value the steps done, the label beside it names the current step, and valueText says the step and where it falls.
+-->
+<ui-table>
+  <table>
+    <caption>Orders</caption>
+    <thead>
+      <tr>
+        <th scope="col">Order</th>
+        <th scope="col">Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th scope="row">1041</th>
+        <td>
+          <ui-cluster gap="s"><ui-meter
+              size="sm"
+              segments="6"
+              value="1"
+              max="6"
+              label="Status"
+              value-text="Placed, step 1 of 6"
+            ></ui-meter>Placed</ui-cluster>
+        </td>
+      </tr>
+      <tr>
+        <th scope="row">1042</th>
+        <td>
+          <ui-cluster gap="s"><ui-meter
+              size="sm"
+              segments="6"
+              value="4"
+              max="6"
+              tone="info"
+              label="Status"
+              value-text="Shipped, step 4 of 6"
+            ></ui-meter>Shipped</ui-cluster>
+        </td>
+      </tr>
+      <tr>
+        <th scope="row">1043</th>
+        <td>
+          <ui-cluster gap="s"><ui-meter
+              size="sm"
+              segments="6"
+              value="6"
+              max="6"
+              tone="success"
+              label="Status"
+              value-text="Delivered, step 6 of 6"
+            ></ui-meter>Delivered</ui-cluster>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</ui-table>
