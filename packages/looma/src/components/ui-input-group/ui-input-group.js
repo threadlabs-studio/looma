@@ -1,3 +1,5 @@
+import { DEV, duplicateId, warnOnce } from "../shared/authoring.js";
+
 let nextAffixId = 0;
 // An affix holding a control keeps it: its clicks are its own, and it is not hidden or described.
 const INTERACTIVE = "a[href], button, input, select, textarea, [tabindex], [contenteditable]";
@@ -5,6 +7,9 @@ const INTERACTIVE = "a[href], button, input, select, textarea, [tabindex], [cont
 function descriptionIds(input) {
   return (input.getAttribute("aria-describedby") ?? "").split(/\s+/).filter(Boolean);
 }
+
+const affixProblem = (affix) =>
+  `ui-input-group: the affix id "${affix.id}" is used by another element in the same document or shadow root, so the input's description can read the wrong element. Give each affix its own id, or leave it off and the group adds one.`;
 
 // A text affix is hidden from assistive technology and linked to the input as its description
 // instead, so the input's name stays its label and the affix is read once, with the input. The
@@ -14,6 +19,7 @@ export default function controller(host) {
   const element = host.element;
   let owned = [];
   let described = null;
+  const warned = new Set();
   const wire = () => {
     const input = element.querySelector(".field input");
     const affixes = Array.from(element.querySelectorAll(":scope > .affix")).filter((affix) => {
@@ -23,6 +29,7 @@ export default function controller(host) {
       return text;
     });
     for (const affix of affixes) affix.id ||= `ui-input-group-affix-${(nextAffixId += 1)}`;
+    if (DEV) warnOnce(warned, affixes.filter(duplicateId).map(affixProblem), element);
     if (described && described !== input) {
       const rest = descriptionIds(described).filter((id) => !owned.includes(id));
       if (rest.length) described.setAttribute("aria-describedby", rest.join(" "));

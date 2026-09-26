@@ -8,5 +8,17 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 Form-field composition primitive that links label/control/description semantics.
 
+## Labels without JavaScript
+
+Link the label to its control in the HTML: give the control an `id` and the label a matching `for`,
+or put the control inside the `<label>`. Either works before JavaScript runs. The field links a label
+that has no `for` once its controller loads, as a convenience, but until then the label names
+nothing. Keep each `id` unique on the page; a copied field that keeps its `id` leaves its label
+pointing at the first control.
+
+In development, the field warns in the console when it links a label for you, when its control's
+`id` is not unique, or when its label's `for` points at another element. Production builds
+(`process.env.NODE_ENV` set to `"production"`) do not warn.
+
 
 <ComponentExamplesApiTabs component="ui-form-field" />
