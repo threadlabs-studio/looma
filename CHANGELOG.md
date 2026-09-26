@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.14.5
+
+- Text: the `danger` and `success` tones now use the same text-safe tokens as `info` and `warning`
+  (`--ui-danger-subtle-text`, `--ui-success-subtle-text`, as on a subtle Badge), so text and badges in
+  one tone match. Danger and success text shifts slightly toward the text colour.
+
 ## v0.14.4
 
 - Text: `tone` adds `info`, for something moving forward normally, and `warning`, for something that
