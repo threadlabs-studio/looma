@@ -19,3 +19,16 @@ export async function loomaIconCatalog() {
     lucide[component].map(([tag, attributes]) => [tag, Object.fromEntries(Object.entries(attributes).filter(([key]) => key !== "key"))]),
   ]));
 }
+
+/**
+ * The catalog as an HTML Next expression: a map from icon name to shapes, indexed by ui-icon's
+ * `name`. ui-icon derives its shapes from it with `<computed>`, so every render path, a server
+ * render included, draws the icon without running a controller.
+ */
+export function iconShapesExpression(catalog) {
+  const text = (value) => `'${value}'`;
+  const shape = ([tag, attributes]) =>
+    `{ ${[["tag", tag], ...Object.entries(attributes)].map(([key, value]) => `${key}: ${text(value)}`).join(", ")} }`;
+  const entries = Object.entries(catalog).map(([name, nodes]) => `        ${text(name)}: [${nodes.map(shape).join(", ")}],`);
+  return `{\n${entries.join("\n")}\n      }[name]`;
+}

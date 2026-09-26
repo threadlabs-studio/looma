@@ -6,6 +6,9 @@
     <prop name="align" type="start | center | end | stretch"
     >How items line up within each row: center (the default) aligns their middles, start their tops, end their bottoms, and stretch makes every item as tall as
       its row.</prop>
+    <prop name="justify" type="start | center | end | between"
+    >Where items sit along each row: start (the default), center, end, or between, which pushes the first and last items to the ends of the row and spreads the
+      spare space between them, as for a title with its actions.</prop>
   </defs>
   <div><slot></slot></div>
   <style>
@@ -49,6 +52,15 @@
     }
     :host-state([align="stretch"]) {
       align-items: stretch;
+    }
+    :host-state([justify="center"]) {
+      justify-content: center;
+    }
+    :host-state([justify="end"]) {
+      justify-content: flex-end;
+    }
+    :host-state([justify="between"]) {
+      justify-content: space-between;
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */
