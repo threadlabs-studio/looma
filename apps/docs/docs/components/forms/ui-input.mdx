@@ -8,12 +8,33 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 Text input that lowers directly to a native `<input>` while applying Looma's shared control theme.
 
+## Sizes
+
+Every form control takes the same `size` as [Button](/components/ui-button), so one size across a row
+lines up: see the Compact row example. `md` is the default. An [Input Group](/components/ui-input-group)
+takes its input's size, so a small input makes a small group.
+
+| Control | `sm` | `lg` |
+| --- | --- | --- |
+| Input, Select, Combobox | Shrinks to the small control height (2rem), with tighter padding and smaller text; Select's chevron shrinks too | Grows to 3rem, with roomier padding |
+| Textarea | Tighter padding and smaller text; `rows` sets the height | Roomier padding |
+| Checkbox, Radio, Switch | Aligns rather than shrinks: the box or track keeps its size, the label takes the smaller text, and its first line centres in the small control height | Aligns the same way: the label keeps body text and its first line centres in the 3rem height |
+
+Under a coarse pointer, `sm` grows to the 44px touch minimum, as a small Button does, and the text
+fields keep body-size text, because iOS zooms the page into a focused field whose text is under 16px.
+`size` is Looma's option, not the native attribute: an Input fills its container's width (set a
+character width in CSS, such as `inline-size: 12ch`), and a Select is always a single-choice dropdown
+(use a `multiple` Combobox for a list that shows several choices at once). A numeric `size` fails the
+option's type. To change the size after a field renders, set the option: the Vue `size` prop, or a DOM
+factory's props. The rendered element's own `size` property is the native input's or select's, and
+its `data-size` attribute only records the option.
+
 ## Styling hooks
 
 An input follows the shared control tokens (`--ui-control-border`, `--ui-control-surface`, and so on).
 To restyle inputs alone, set an input's own hooks, which fall back to those. A hook styles the input it
-is set on and does not inherit, so set it on the input (or on every input with
-`[data-component~="ui-input"]`), not on a form around it:
+is set on and does not inherit, so set it on the input, through a class of your own, not on a form
+around it:
 
 | Hook | Sets |
 | --- | --- |

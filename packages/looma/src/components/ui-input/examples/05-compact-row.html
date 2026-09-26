@@ -1,0 +1,21 @@
+<!--
+title: Compact row
+description: size="sm" across a row. Inputs, selects, comboboxes, and buttons shrink to the small control height; a checkbox, radio, or switch keeps its box and centres its label in that height, so every control and label lines up.
+-->
+<ui-cluster gap="s" align="center">
+  <ui-input size="sm" type="search" aria-label="Search orders" placeholder="Search orders" style="inline-size: 12rem"></ui-input>
+  <ui-select size="sm" aria-label="Status" style="inline-size: 9rem">
+    <option value="">Any status</option>
+    <option value="open">Open</option>
+    <option value="closed">Closed</option>
+  </ui-select>
+  <ui-combobox size="sm" label="Owner" label-visibility="sr-only" placeholder="Owner" disclosure style="inline-size: 10rem">
+    <option value="ada">Ada</option>
+    <option value="grace">Grace</option>
+  </ui-combobox>
+  <ui-checkbox size="sm">Mine only</ui-checkbox>
+  <ui-radio size="sm" name="compact-row-range" value="week" checked>This week</ui-radio>
+  <ui-radio size="sm" name="compact-row-range" value="month">This month</ui-radio>
+  <ui-switch size="sm">Archived</ui-switch>
+  <ui-button size="sm" variant="solid">Apply</ui-button>
+</ui-cluster>
