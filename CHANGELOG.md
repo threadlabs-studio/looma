@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.14.4
+
+- Text: `tone` adds `info`, for something moving forward normally, and `warning`, for something that
+  needs attention, matching Badge and Meter, so text or an inline icon (`<ui-text tone="warning">`
+  around a `<ui-icon>`) can carry either state. Each is set in the tone's text-safe colour
+  (`--ui-info-subtle-text`, `--ui-warning-subtle-text`, as on a subtle Badge), at 4.5:1 or more on
+  every surface in light, dark, and high contrast; say the state in the words too.
+
 ## v0.14.3
 
 - Meter: `segments` draws the bar as that many equal segments with a gap between them, from 2 to
