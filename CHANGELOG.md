@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.13.6
+
+- Icon draws without JavaScript. `ui-icon` derives its shapes from `name` as it renders, so a Vue
+  server render (`renderToString`) and the first render in HTML carry the whole SVG; before, the
+  shapes came from a controller, so the server sent an empty `<svg>` and the icon appeared only once
+  JavaScript ran. Changing `name` still redraws it, and `image` keeps its rectangle's `ry`.
+
 ## v0.13.5
 
 - Combobox `selectedValues` controls a `multiple` combobox's selection by option value, so a form field
