@@ -215,12 +215,21 @@ export function declarativeTypeToTypeScript(type) {
   }
 
   if (/^[a-z][a-z0-9-]*$/.test(normalized)) return JSON.stringify(normalized);
+  const quoted = quotedKeyword(normalized);
+  if (quoted !== undefined) return JSON.stringify(quoted);
   return "unknown";
+}
+
+/** A keyword written quoted, such as '2', which the bare form cannot spell. */
+function quotedKeyword(part) {
+  return /^(['"])([^'"\\]*)\1$/.exec(part)?.[2];
 }
 
 function literalOptions(type) {
   const parts = splitTopLevel(type, "|");
-  const options = parts.filter((part) => /^[a-z][a-z0-9-]*$/.test(part) && !TYPE_KEYWORDS.has(part));
+  const options = parts
+    .map((part) => (/^[a-z][a-z0-9-]*$/.test(part) && !TYPE_KEYWORDS.has(part) ? part : quotedKeyword(part)))
+    .filter((option) => option !== undefined);
   return options.length > 0 ? options : undefined;
 }
 

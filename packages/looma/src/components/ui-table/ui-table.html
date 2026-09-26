@@ -1,0 +1,131 @@
+<template component="ui-table" controller="./ui-table.js">
+  <defs>
+    <prop name="density" type="comfortable | compact" default="comfortable"
+    >How tall each row is. Every row is at least one control tall, so a row holding a control lines up with the rows around it. comfortable fits a control of
+      the standard height (2.5rem), for tables read or edited at a glance; compact fits a small one (2rem), such as a Checkbox or a Button with size="sm", for
+      long tables to scan.</prop>
+    <prop name="stickyHeader" type="boolean" default="false"
+    >Keeps the header row in view while the rows scroll beneath it. The table scrolls inside its own box, so this needs a bounded height, such as a table that
+      fills a fixed-height panel.</prop>
+  </defs>
+  <div><slot></slot></div>
+  <style>
+    /* Styles an authored <table> (caption, thead, tbody, th scope) without replacing it: the table is
+       meaningful before JavaScript, and a screen reader reads it as a table. The root scrolls a table
+       wider than it, or taller than a bounded height; while it does, the controller makes the root a named, focusable region so a
+       keyboard can scroll it. A cell's data-ui-align (start, center, or end; start by default) sets its
+       content along the row, such as end for a column of figures. */
+    :host {
+      --_pad-block: var(--ui-space-1);
+      --_pad-inline: var(--ui-space-3);
+      --_row-size: var(--ui-control-size);
+      display: block;
+      box-sizing: border-box;
+      max-inline-size: 100%;
+      min-inline-size: 0;
+      min-block-size: 0;
+      overflow: auto;
+      overscroll-behavior-inline: contain;
+      /* The sideways scroll fade every Looma scroller uses (see ui-scroll-area). Only the inline edges
+         fade, so a sticky header never fades. */
+      --_ui-scroll-fade-direction: to right;
+      --_ui-scroll-fade-size: var(--ui-scroll-fade-size, 24px);
+      mask-image: linear-gradient(
+        var(--_ui-scroll-fade-direction),
+        transparent,
+        #000 var(--_ui-scroll-fade-start),
+        #000 calc(100% - var(--_ui-scroll-fade-end)),
+        transparent
+      );
+      animation: ui-scroll-fade-start linear, ui-scroll-fade-start-hold linear, ui-scroll-fade-end-hold linear, ui-scroll-fade-end linear;
+      animation-timeline: scroll(self inline);
+      animation-range:
+        0 var(--_ui-scroll-fade-size),
+        var(--_ui-scroll-fade-size) calc(100% + 1px),
+        -1px calc(100% - var(--_ui-scroll-fade-size)),
+        calc(100% - var(--_ui-scroll-fade-size)) 100%;
+    }
+
+    :host:dir(rtl) {
+      --_ui-scroll-fade-direction: to left;
+    }
+
+    :host:focus-visible {
+      outline: 2px solid var(--ui-focus-ring);
+      outline-offset: -2px;
+    }
+
+    :host-state([density="compact"]) {
+      --_pad-block: var(--ui-space-0-5);
+      --_pad-inline: var(--ui-space-2);
+      --_row-size: var(--ui-control-size-sm);
+    }
+
+    /* Separate borders stay on their cells when a sticky header scrolls; collapsed ones stay behind. */
+    :slotted(table) {
+      inline-size: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      color: var(--ui-text-primary);
+      font-size: var(--ui-font-size-sm);
+      line-height: var(--ui-line-height);
+      font-variant-numeric: tabular-nums;
+    }
+
+    :slotted(caption) {
+      padding-block-end: var(--ui-space-2);
+      color: var(--ui-text-secondary);
+      font-weight: var(--ui-font-medium);
+      text-align: start;
+    }
+
+    /* Every row is at least one control tall, so a row holding a checkbox, select, or input keeps the
+       rhythm of the rows around it. A cell's height is its minimum. */
+    :slotted(th),
+    :slotted(td) {
+      block-size: var(--_row-size);
+      padding: var(--_pad-block) var(--_pad-inline);
+      border-block-end: 1px solid var(--ui-border-subtle);
+      text-align: start;
+      vertical-align: middle;
+    }
+
+    :slotted(thead th) {
+      block-size: auto;
+      padding-block: var(--ui-space-2);
+      border-block-end-color: var(--ui-border-default);
+      background: var(--ui-surface);
+      color: var(--ui-text-muted);
+      font-weight: var(--ui-font-medium);
+      white-space: nowrap;
+      vertical-align: bottom;
+    }
+
+    :slotted(tbody th) {
+      font-weight: var(--ui-font-medium);
+    }
+
+    :slotted(tbody tr:last-child > *) {
+      border-block-end-width: 0;
+    }
+
+    :slotted([data-ui-align="center"]) {
+      text-align: center;
+    }
+
+    :slotted([data-ui-align="end"]) {
+      text-align: end;
+    }
+
+    :host-state([stickyHeader]) :slotted(thead th) {
+      position: sticky;
+      inset-block-start: 0;
+      z-index: 1;
+    }
+
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
+</template>

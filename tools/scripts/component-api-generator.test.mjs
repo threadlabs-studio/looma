@@ -118,6 +118,7 @@ test("translates framework-neutral declarative types without legacy class names"
     declarativeTypeToTypeScript("object({ value: string, trigger: keyboard | pointer })"),
     '{ value: string; trigger: "keyboard" | "pointer" }'
   );
+  assert.equal(declarativeTypeToTypeScript("'2' | '3' | \"4\""), '"2" | "3" | "4"');
 });
 
 test("extracts component tokens, shared dependencies, and literal fallback relationships", () => {
