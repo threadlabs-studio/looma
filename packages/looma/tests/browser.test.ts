@@ -3585,10 +3585,13 @@ describe("Meter", () => {
     ["thin", { size: "sm", value: 0.5, label: "Thin" }],
     ["named", { value: 3, max: 5, "aria-labelledby": "steps-label" }],
     ["wide", { class: "wide", value: 0.5, label: "Wide" }],
+    ["steps", { class: "steps", segments: 6, value: 4, max: 6, tone: "accent", label: "Status", valueText: "Shipped, step 4 of 6" }],
     ...tones.map((tone): [string, Record<string, unknown>] => [`tone-${tone}`, { tone, value: 1, label: tone }]),
   ];
   const css = ["tokens.css", "theme-light.css", "theme-dark.css"].map((file) => join(root, file));
-  const hook = `<style>.wide { --ui-meter-inline-size: 300px; }</style><span id="steps-label">Setup checklist</span>`;
+  // 296px and a 4px gap make six segments of 46px, each starting on a whole pixel; the margin keeps
+  // its neighbours out of the pixels either side of it.
+  const hook = `<style>.wide { --ui-meter-inline-size: 300px; } .steps { --ui-meter-inline-size: 296px; margin-inline: 4px; }</style><span id="steps-label">Setup checklist</span>`;
 
   async function checkMeters(page: Page) {
     await page.locator("#tone-danger").waitFor();
@@ -3654,7 +3657,47 @@ describe("Meter", () => {
     await page.emulateMedia({ colorScheme: "light" });
 
     // Forced colours drop the track's colour: the outline draws the track and the fill is text-coloured.
+    // Segments: the page shows through each gap, the fill covers the steps done, the track the rest.
+    const row = async () => {
+      const box = await page.locator("#steps").evaluate((element) => {
+        const { x, y, width, height } = element.getBoundingClientRect();
+        return { x, y, width, height };
+      });
+      // Two pixels of page either side of the meter, along its middle row.
+      const png = await page.screenshot({ clip: { x: box.x - 2, y: box.y + box.height / 2, width: box.width + 4, height: 1 } });
+      return page.evaluate(async (data) => {
+        const image = new Image();
+        image.src = `data:image/png;base64,${data}`;
+        await image.decode();
+        const context = document.createElement("canvas").getContext("2d", { willReadFrequently: true })!;
+        context.drawImage(image, 0, 0);
+        return Array.from({ length: image.width }, (_, x) => context.getImageData(x, 0, 1, 1).data.slice(0, 3).join());
+      }, png.toString("base64"));
+    };
+    const at = (pixels: string[], x: number) => pixels[Math.floor(x) + 2];
+    const segment = (index: number) => index * 50;
+    assert.equal(await page.locator("#steps").getAttribute("aria-valuetext"), "Shipped, step 4 of 6");
+    const drawn = await row();
+    const page0 = at(drawn, -1);
+    for (let index = 0; index < 5; index++) assert.equal(at(drawn, segment(index) + 48), page0, `gap ${index + 1} shows the page`);
+    const done = [0, 1, 2, 3].map((index) => at(drawn, segment(index) + 23));
+    const todo = [4, 5].map((index) => at(drawn, segment(index) + 23));
+    assert.equal(new Set(done).size, 1, "the steps done are one colour");
+    assert.equal(new Set(todo).size, 1, "the steps to do are one colour");
+    assert.notEqual(done[0], todo[0], "the fill differs from the track");
+    assert.notEqual(todo[0], page0, "the track differs from the page");
+
     await page.emulateMedia({ forcedColors: "active" });
+    // Forced colours: each segment keeps its outline, and the gaps still show the page.
+    const outlined = await row();
+    const canvas = at(outlined, -1);
+    for (let index = 0; index < 5; index++) assert.equal(at(outlined, segment(index) + 48), canvas, `forced gap ${index + 1} shows the page`);
+    for (const index of [4, 5]) {
+      assert.equal(at(outlined, segment(index) + 23), canvas, `forced step ${index + 1} is hollow`);
+      assert.notEqual(at(outlined, segment(index)), canvas, `forced step ${index + 1} draws its start`);
+      assert.notEqual(at(outlined, segment(index) + 45), canvas, `forced step ${index + 1} draws its end`);
+    }
+    for (const index of [0, 1, 2, 3]) assert.equal(at(outlined, segment(index) + 23), at(outlined, segment(4)), `forced step ${index + 1} is filled`);
     const forced = await page.locator("#partial").evaluate((element) => ({
       outline: getComputedStyle(element).outlineColor,
       fill: getComputedStyle(element.querySelector(".fill")!).backgroundColor,

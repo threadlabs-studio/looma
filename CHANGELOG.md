@@ -8,6 +8,15 @@
   (`--ui-info-subtle-text`, `--ui-warning-subtle-text`, as on a subtle Badge), at 4.5:1 or more on
   every surface in light, dark, and high contrast; say the state in the words too.
 
+## v0.14.3
+
+- Meter: `segments` draws the bar as that many equal segments with a gap between them, from 2 to
+  12, so it reads as a count of steps ("step 4 of 6") rather than as a percentage, such as an order
+  moving from placed to delivered in a table cell. Set `max` to the same number and `value` to the
+  steps done so whole segments fill; a value between steps fills part of one. Say the step in
+  `valueText` ("Shipped, step 4 of 6"). The segments are drawn as it renders, before JavaScript, and
+  each keeps its own outline in forced colours. `0`, the default, draws the continuous bar as before.
+
 ## v0.14.2
 
 - New: Meter (`ui-meter`, Vue `Meter`) shows how far along something is at a glance, such as the
