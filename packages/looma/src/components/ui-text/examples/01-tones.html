@@ -1,10 +1,12 @@
 <!--
 title: Tones
-description: A tone says what the text is. Default for content, secondary for supporting prose, muted for metadata and hints, danger for an error.
+description: A tone says what the text is. Default for content, secondary for supporting prose, muted for metadata and hints, info for something moving forward, warning for something that needs attention, danger for an error.
 -->
 <ui-stack gap="xs">
   <ui-text>Default: the content itself.</ui-text>
   <ui-text tone="secondary">Secondary: a description that supports it.</ui-text>
   <ui-text tone="muted" size="sm">Muted, small: Edited 2h ago</ui-text>
+  <ui-text tone="info" size="sm">Info: Scheduled for tomorrow.</ui-text>
+  <ui-text tone="warning" size="sm">Warning: Add a billing address before you publish.</ui-text>
   <ui-text tone="danger" size="sm">Danger: That address is taken.</ui-text>
 </ui-stack>
