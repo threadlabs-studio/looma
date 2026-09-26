@@ -1,0 +1,11 @@
+{
+  "theme.NotFound.title": {
+    "message": "This page slipped off the loom"
+  },
+  "theme.NotFound.p1": {
+    "message": "We couldn't find what you were looking for."
+  },
+  "theme.NotFound.p2": {
+    "message": "Try the search, or start again from the components."
+  }
+}
