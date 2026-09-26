@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.14.6
+
+- Form Field: in development, warns in the console when it links a label that has no `for`, which
+  works only once JavaScript runs; when its input's `id` is not unique in its document or shadow
+  root; and when its label's `for` points at an element other than its input. Each warning names the
+  native fix: an `id` on the input and a matching `for` on the label, or the input inside the
+  label. Input Group warns the same way when an affix's `id` is not unique. Linking is unchanged.
+  Production builds, where the bundler sets `process.env.NODE_ENV` to `"production"`, do not warn.
+- Form Field examples link the label with `for` and `id`, and the docs add "Labels without
+  JavaScript".
+
 ## v0.14.5
 
 - Text: the `danger` and `success` tones now use the same text-safe tokens as `info` and `warning`
