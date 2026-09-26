@@ -46,6 +46,9 @@ Set one API vocabulary that all components and adapters follow, including state 
 - SSR HTML must be meaningful and usable before JS.
 - Upgrade attaches behavior without rewriting the tree shape.
 - Required ARIA attributes must be derivable from SSR markup.
+- Derive what a component shows from its props with `<computed>`, not a controller effect: a
+  controller runs only after upgrade (a Vue component's only once mounted, never on the server), so
+  anything it fills in is missing from server-rendered and first-rendered HTML.
 
 ## No External Margin Rule
 
@@ -67,3 +70,6 @@ Set one API vocabulary that all components and adapters follow, including state 
   remain hidden from assistive technology.
 - Components whose icon is consumer content may continue to accept a slot, but
   Looma-owned defaults and turnkey features use the shared registry.
+- `ui-icon` derives its shapes from `name` in its template, so server-rendered and pre-upgrade HTML
+  already carry the whole SVG; a component need not inline an icon's SVG to draw it before
+  JavaScript. `tools/scripts/generate-icon-catalog.mjs` writes those shapes from `LOOMA_ICONS`.
