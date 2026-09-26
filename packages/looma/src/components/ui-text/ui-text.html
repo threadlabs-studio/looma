@@ -62,14 +62,14 @@
     :host-state([tone="accent"]) {
       color: var(--ui-accent-active);
     }
+    /* Every status tone uses the text-safe token a subtle badge sets its words in, so text and badges
+       in one tone match, and each holds 4.5:1 on sunken surfaces where some base colours fall short. */
     :host-state([tone="danger"]) {
-      color: var(--ui-danger);
+      color: var(--ui-danger-subtle-text);
     }
     :host-state([tone="success"]) {
-      color: var(--ui-success);
+      color: var(--ui-success-subtle-text);
     }
-    /* The base info and warning colours fall short of 4.5:1 on sunken surfaces, so these use the
-       text-safe tokens a subtle badge sets its words in. */
     :host-state([tone="info"]) {
       color: var(--ui-info-subtle-text);
     }
