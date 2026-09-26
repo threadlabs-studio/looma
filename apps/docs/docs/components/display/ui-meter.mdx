@@ -10,4 +10,6 @@ How far along something is, at a glance: the share of an invoice collected, of i
 
 A meter is `role="meter"` with its value, bounds, and `valueText` as ARIA values; name it with `label`, or with `aria-labelledby` from visible text. `tone` colours the fill to carry a state, such as nothing yet, partial, complete, or needs attention; say that state in `valueText` or in text beside the meter too, since colour alone reaches no one using assistive technology or forced colours. `size="sm"` is a thin bar for a table cell or a list row. Set `--ui-meter-inline-size` on a meter to change its width.
 
+For a count of steps, such as an order moving from placed to delivered, `segments` draws the bar as that many equal segments (from 2 to 12), so it reads as "step 4 of 6" rather than as a percentage. Set `max` to the same number and `value` to the steps done, and say the step in `valueText` ("Shipped, step 4 of 6"), since the segments are drawn, not read. The segments are drawn as the page renders too, and each keeps its own outline in forced colours.
+
 <ComponentExamplesApiTabs component="ui-meter" />
