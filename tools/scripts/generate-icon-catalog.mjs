@@ -1,10 +1,11 @@
-// Writes packages/looma/src/components/shared/icons.js: Looma's icon set (LOOMA_ICONS) as plain
-// data, so controllers can import it straight into a browser without a bundler. Run after adding an
-// icon to editor/icons.ts; icon-catalog-rule.test.mjs holds the two equal.
-import { writeFile } from "node:fs/promises";
+// Writes Looma's icon set (LOOMA_ICONS) as plain data: packages/looma/src/components/shared/icons.js,
+// which controllers import straight into a browser without a bundler, and ui-icon's shapes, which it
+// derives in its template. Run after adding an icon to editor/icons.ts; icon-catalog-rule.test.mjs
+// holds all three equal.
+import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { loomaIconCatalog } from "./icon-catalog.mjs";
+import { iconShapesExpression, loomaIconCatalog } from "./icon-catalog.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const catalog = await loomaIconCatalog();
@@ -14,4 +15,9 @@ export const icons = {
 ${entries.join("\n")}
 };
 `);
+const iconPath = path.join(repoRoot, "packages/looma/src/components/ui-icon/ui-icon.html");
+const html = await readFile(iconPath, "utf8");
+const computed = /(<computed\s+name="shapes"\s+from=")[^"]*(")/;
+if (!computed.test(html)) throw new Error("ui-icon.html has no <computed name=\"shapes\" from=\"...\">");
+await writeFile(iconPath, html.replace(computed, (_, open, close) => `${open}${iconShapesExpression(catalog)}${close}`));
 console.log(`Wrote ${entries.length} icons.`);

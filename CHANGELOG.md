@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.13.4
+## v0.14.1
 
 - New: Table (`ui-table`, Vue `Table`) styles an authored `<table>` in place: caption, header and
   row headers, and row separators. A cell's `data-ui-align` (`start`, `center`, or `end`; `start`
@@ -14,6 +14,65 @@
   pairs in columns, term above value; `columns` (`2`, `3`, or `4`) caps how many columns grid and
   tiles set; `density="compact"` sets the pairs close together. A list still sizes as before, so a
   rows list does not stack on its own in a narrow space; use `stacked` there.
+
+## v0.14.0
+
+Breaking: `size` on Input and Select is now Looma's `sm | md | lg`, not the native attribute.
+
+- Breaking: a numeric `size` on `ui-input` (a character width) fails the option's type with HR002,
+  which stops every component on the page from upgrading. Migration: drop `size` and set the width in
+  CSS, such as `inline-size: 12ch` on the input.
+- Breaking: `ui-select` no longer renders a native listbox for `size` above 1 (a numeric `size` fails
+  the same way); a select is always a single-choice dropdown. Migration: use a `multiple` Combobox for
+  a list that shows several choices at once.
+- Breaking: a small Combobox (`size="sm"`) sets smaller text, to match a small Button and Input.
+  Migration: use the default `md` where body-size text matters more than the small height.
+- On Input and Select, change `size` after render through the option (the Vue prop or a DOM factory's
+  props). The element's own `size` property is the native one, and `data-size` only records the
+  option.
+- Every form control takes Button's `size`, so one size across a row lines up. Input and Select take
+  `sm`, `md`, and `lg` (32, 40, and 48px, with Button's padding and type sizes; Select's chevron
+  shrinks at `sm`), and so do Textarea (padding and type size; `rows` still sets its height) and
+  Combobox, which already had `sm` and now also takes `lg`, sets smaller text at `sm`, and keeps a
+  `multiple` field at the small or large height. Checkbox, Radio, and Switch take `sm`, `md`, and `lg`
+  and align rather than shrink: the box or track keeps its size, the label takes that size's type,
+  and its first line centres in that control height, so it shares a row's height and baseline. `md`
+  is the default and unchanged.
+- Input Group takes its input's size: a `sm` or `lg` Input inside it makes the whole frame that
+  height, so a small group lines up with small buttons and fields.
+- Under a coarse pointer every `sm` control grows to the 44px touch minimum, and the text fields keep
+  body-size text (iOS zooms into a focused field under 16px). A small Button now grows too, as a boxed
+  button was documented to: its size rule outranked the coarse-pointer minimum.
+
+## v0.13.6
+
+- Icon draws without JavaScript. `ui-icon` derives its shapes from `name` as it renders, so a Vue
+  server render (`renderToString`) and the first render in HTML carry the whole SVG; before, the
+  shapes came from a controller, so the server sent an empty `<svg>` and the icon appeared only once
+  JavaScript ran. Changing `name` still redraws it, and `image` keeps its rectangle's `ry`.
+
+## v0.13.5
+
+- Combobox `selectedValues` controls a `multiple` combobox's selection by option value, so a form field
+  with a fixed option list can start from data and stay bound: Vue `v-model:selected-values`. Each value
+  shows as a badge with its option's label and submits under `name`. Adding or removing one, by
+  pointer, keyboard, or badge, reports `selected-values-change` (`{ selectedValues, trigger }`) with
+  the new list; setting it reports nothing. Uncontrolled `multiple` and `items` work as before.
+- A `multiple` combobox shows a repeated `selectedValues` entry once, and typing the label of an option
+  already chosen, then a token separator or Enter, clears the text instead of adding it again.
+
+## v0.13.4
+
+- New icon: `help` (Lucide's circle-help), for `<ui-icon name="help">`. Icon Button sizes a slotted
+  `ui-icon` the way it sizes a slotted `svg`, at every size; it drew at the text size before. Icon
+  Button documents the help toggletip: a round ghost Icon Button labelled for what it explains, with
+  the help icon, and a `ui-tooltip trigger="click"` for it.
+- Cluster takes `justify` (`start`, `center`, `end`, `between`), as Stack does, so a row can push a
+  title and its actions to opposite ends.
+- Docs: styling guidance no longer selects `data-component`. It is a marker a runtime renders, an
+  implementation detail that differs by target, not API. Set a component's hooks through a class of your own on it,
+  and make a product-wide default in a component of your own that wraps Looma's. A rule test keeps
+  docs, examples, READMEs, and this changelog from selecting runtime markers.
 
 ## v0.13.3
 
@@ -53,8 +112,10 @@
   not. A hook set on the component itself still beats its default and, where documented, its prop.
   Theme tokens (`--ui-accent`, `--ui-text`, the spacing and type steps, and everything else in
   `tokens.css`) and the editor's `--ui-editor-*` hooks inherit as before.
-- Migration: set a hook on each component rather than on a container, `:root`, or a theme block. To
-  restyle every instance, select them by their root: `[data-component~="ui-button"] { --ui-button-surface: … }`.
+- Migration: set a hook on each component rather than on a container, `:root`, or a theme block,
+  through a class of your own on it. To change every instance, wrap the component in one of your own
+  that sets its hooks. Do not select the markers a runtime renders (`data-component` and the like):
+  they are an implementation detail that can change, not API.
   Icons are `1em`, so a container sizes the icons in it with `font-size`; `--ui-icon-size` now sizes
   one icon. `--ui-tree-indent`, `--ui-tree-gutter`, and `--ui-tree-drop-color` go on the Tree and
   still reach its items; `--ui-tree-item-*` goes on each item.

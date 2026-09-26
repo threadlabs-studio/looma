@@ -16,9 +16,15 @@
       this value.</prop>
     <prop name="items" type="list(object({ id: string, value: string, label: string, group?: string, disabled?: boolean }))"
     >The selected items in multiple mode, as JSON; a named combobox submits each one's value. A form reset returns to these items, or to none when unset.</prop>
+    <prop name="selectedValues" type="list(string)"
+    >The selected option values in multiple mode, when the consumer controls the selection. Once set, the consumer owns it: each value shows as a badge with its
+      authored option's label, adding or removing one reports selected-values-change with the new list, and the badges follow selectedValues, not the user,
+      unless it is updated to match. Setting it reports nothing. It takes precedence over items; leave it unset to let the combobox keep its own
+      selection.</prop>
     <prop name="multiple" type="boolean" default="false"
     >Lets the user choose several options. Each choice becomes a removable badge before the input, the list stays open between picks, and choosing a checked
-      option removes it. value-change then reports the whole list of items; use items, not value, in this mode.</prop>
+      option removes it. value-change then reports the whole list of items, and selected-values-change the list of their values; use selectedValues or items,
+      not value, in this mode.</prop>
     <prop name="tokenSeparators" type="list(string)"
     >Keys that commit the typed text in multiple mode, as KeyboardEvent key values such as "," or ";". The text is added as the option whose label matches it,
       ignoring case, or with allowCreate is reported as create-item; otherwise it stays in the input.</prop>
@@ -38,8 +44,10 @@
     <prop name="required" type="boolean" default="false"
     >Requires a value: adds an asterisk to the label, marks the input required for native form validation, and makes validation report "A value is required."
       when the field is left empty. In multiple mode a chosen item satisfies it, whatever is left in the input.</prop>
-    <prop name="size" type="sm | md" default="md"
-    >Field height. md is the standard control height; sm is the small control height with tighter padding, for dense forms.</prop>
+    <prop name="size" type="sm | md | lg" default="md"
+    >Field height, padding, and type size, matching Button's sizes so a field and a button of one size share a row. sm is the small control height (2rem by
+      default) with smaller text, for compact rows such as a table row or a filter bar; md is the standard control height; lg is taller with roomier padding.
+      Under a coarse pointer, sm grows to the 44px touch minimum and keeps body-size text. The label keeps its size.</prop>
     <prop name="labelVisibility" type="visible | sr-only" default="visible"
     >visible shows the label above the field; sr-only hides it visually but keeps it as the input's accessible name. Use sr-only only when the surrounding
       layout already makes the field's purpose clear.</prop>
@@ -110,6 +118,7 @@
       type="object({ item: object({ id: string, value: string, label: string, group?: string, disabled?: boolean }), index: integer, trigger: keyboard | pointer | programmatic })"
     ></event>
     <event name="create-item" type="object({ query: string, trigger: keyboard | pointer | programmatic })"></event>
+    <event name="selected-values-change" type="object({ selectedValues: list(string), trigger: keyboard | pointer | programmatic })"></event>
     <method name="validate" export="validate" returns="promise(unknown)"></method>
     <method name="focusInput" export="focusInput" returns="promise(undefined)"></method>
   </defs>
@@ -388,9 +397,18 @@
       margin: 0;
       outline: none;
     }
+    :host-state([size="sm"]) {
+      --_row: var(--ui-control-size-sm);
+    }
     :host-state([size="sm"]) input {
-      min-block-size: calc(var(--ui-control-size-sm) - 2px);
+      min-block-size: calc(var(--_row) - 2px);
       padding: var(--ui-space-1) var(--ui-space-2);
+      font-size: var(--ui-font-size-sm);
+    }
+    :host-state([size="lg"]) input {
+      min-block-size: calc(var(--ui-control-size-lg) - 2px);
+      padding: var(--ui-space-3) var(--ui-space-4);
+      font-size: var(--ui-font-size-md);
     }
     button {
       appearance: none;
@@ -491,6 +509,14 @@
         min-inline-size: 2.75rem;
         min-block-size: 2.75rem;
       }
+      /* Under touch a small field is still a touch-sized target, as a small button is, and keeps
+         body-size text: below 16px, iOS zooms the page into the focused field. */
+      :host-state([size="sm"]) {
+        --_row: var(--ui-control-min-block-size);
+      }
+      :host-state([size="sm"]) input {
+        font-size: inherit;
+      }
     }
     @media (forced-colors: active) {
       .field, .popup {
@@ -547,6 +573,22 @@
       width: auto;
       min-block-size: 1.75rem;
       padding: var(--ui-space-0-5) var(--ui-space-1);
+    }
+    /* A small multiple field starts at the small control height; chosen items still wrap it taller. */
+    :host-state([multiple]):host-state([size="sm"]) .field {
+      min-block-size: 0;
+      padding: var(--ui-space-0-5);
+    }
+    :host-state([multiple]):host-state([size="sm"]) input {
+      min-block-size: calc(var(--_row) - 2px - 2 * var(--ui-space-0-5));
+      padding: 0 var(--ui-space-1);
+    }
+    /* A large multiple field starts at the large control height, as sm starts at the small one. */
+    :host-state([multiple]):host-state([size="lg"]) .field {
+      min-block-size: 0;
+    }
+    :host-state([multiple]):host-state([size="lg"]) input {
+      min-block-size: calc(var(--ui-control-size-lg) - 2px - 2 * var(--ui-space-1));
     }
     .item {
       appearance: none;
