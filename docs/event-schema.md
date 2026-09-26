@@ -46,6 +46,25 @@ All state-change events include `trigger: 'keyboard' | 'pointer' | 'programmatic
 
 **Components:** ui-toast-region
 
+### query-change
+
+```ts
+{ query: string; display: string; trigger }
+```
+
+**Components:** ui-combobox
+
+### selected-values-change
+
+```ts
+{ selectedValues: string[]; trigger }
+```
+
+The whole new list of selected option values, reported when the user adds or removes one; setting
+`selectedValues` reports nothing. Vue binds it as `v-model:selected-values`.
+
+**Components:** ui-combobox (`multiple`)
+
 ### Vue editor image activation
 
 `LoomaEditor` emits framework-level events rather than custom-element events:
