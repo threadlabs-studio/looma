@@ -1,0 +1,68 @@
+<!--
+title: In a table
+description: size="sm" is a thin bar that sits in a line of text. Here it leads each amount in an end-aligned column, the tone marks each invoice's state, and valueText reads the amounts and the state.
+-->
+<ui-table>
+  <table>
+    <caption>Invoices</caption>
+    <thead>
+      <tr>
+        <th scope="col">Invoice</th>
+        <th scope="col" data-ui-align="end">Collected</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <th scope="row">INV-1041</th>
+        <td data-ui-align="end">
+          <ui-cluster gap="s" justify="end"><ui-meter
+              size="sm"
+              value="0"
+              max="1240"
+              label="Collected"
+              value-text="Nothing collected yet, $0 of $1,240"
+            ></ui-meter>$0.00</ui-cluster>
+        </td>
+      </tr>
+      <tr>
+        <th scope="row">INV-1042</th>
+        <td data-ui-align="end">
+          <ui-cluster gap="s" justify="end"><ui-meter
+              size="sm"
+              value="750"
+              max="1240"
+              tone="info"
+              label="Collected"
+              value-text="Partly collected, $750 of $1,240"
+            ></ui-meter>$750.00</ui-cluster>
+        </td>
+      </tr>
+      <tr>
+        <th scope="row">INV-1043</th>
+        <td data-ui-align="end">
+          <ui-cluster gap="s" justify="end"><ui-meter
+              size="sm"
+              value="86.5"
+              max="86.5"
+              tone="success"
+              label="Collected"
+              value-text="Fully collected, $86.50 of $86.50"
+            ></ui-meter>$86.50</ui-cluster>
+        </td>
+      </tr>
+      <tr>
+        <th scope="row">INV-1044</th>
+        <td data-ui-align="end">
+          <ui-cluster gap="s" justify="end"><ui-meter
+              size="sm"
+              value="3000"
+              max="12000"
+              tone="warning"
+              label="Collected"
+              value-text="Overdue, $3,000 of $12,000 collected"
+            ></ui-meter>$3,000.00</ui-cluster>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</ui-table>

@@ -1,0 +1,9 @@
+<!--
+title: Checklist progress
+description: Standing on its own, a meter takes its name from visible text through aria-labelledby, and max is the number of steps.
+-->
+<ui-stack gap="xs">
+  <ui-text id="setup-steps" size="sm">Setup checklist</ui-text>
+  <ui-meter value="3" max="5" tone="accent" aria-labelledby="setup-steps" value-text="3 of 5 steps done"></ui-meter>
+  <ui-text tone="muted" size="xs">3 of 5 steps done</ui-text>
+</ui-stack>

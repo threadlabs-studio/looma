@@ -1,0 +1,103 @@
+<template component="ui-meter">
+  <defs>
+    <prop name="value" type="number" default="0"
+    >How far along, from 0 to max. A value outside that range draws at the nearer end: below 0 is an empty track, above max a full bar.</prop>
+    <prop name="max" type="number" default="1"
+    >The value of a full bar, as on a native meter: 1 for a fraction, or the whole amount (a total, a count of items) with value as the part of it. Must be
+      above 0; otherwise the bar is empty.</prop>
+    <prop name="tone" type="neutral | accent | info | success | warning | danger" default="neutral"
+    >Which colour the filled part speaks in, as on Badge: neutral is a quiet grey, accent draws the eye, and info, success, warning, and danger mark a state
+      (such as nothing yet, partial, complete, or needs attention). Colour alone says nothing to assistive technology or in forced colours, so say the state in
+      valueText or in text beside the meter too.</prop>
+    <prop name="size" type="sm | md" default="md"
+    >Thickness. sm is a thin bar that sits in a line of text, such as a table cell beside an amount; md stands on its own.</prop>
+    <prop name="label" type="string" default=""
+    >What the meter measures, as its accessible name ("Collected"). Leave it empty only when aria-labelledby names the meter from visible text.</prop>
+    <prop name="valueText" type="string" default=""
+    >The value as assistive technology reads it ("$750 of $1,240 collected", "3 of 5 done, overdue"). Empty reads the percentage.</prop>
+    <!-- Derived as it renders, so every render path, a server render included, draws the bar and states its value without JavaScript. -->
+    <computed name="amount" from="clamp(0, value, max)"></computed>
+    <computed name="percent" from="{ true: amount / max * 100, false: 0 }[format('%s', max > 0)]"></computed>
+    <!-- percent rounded half up, for the text: round() on a derived number does not compile to Vue yet. -->
+    <computed name="whole" from="percent + 0.5 - (percent + 0.5) % 1"></computed>
+  </defs>
+  <span
+    role="meter"
+    aria-valuemin="0"
+    :aria-valuemax="max"
+    :aria-valuenow="amount"
+    :aria-valuetext="{ true: valueText, false: format('%s%', whole) }[format('%s', valueText != '')]"
+    :aria-label="{ true: label, false: null }[format('%s', label != '')]"
+  >
+    <span class="fill" style:inline-size="format('%s%', percent)"></span>
+  </span>
+  <style>
+    /* How far along something is: a track, filled from the start in the tone's colour. The track is a
+       quiet border colour, so an empty meter still shows; every tone's fill keeps 3:1 against the
+       track and the page. */
+    @property --ui-meter-inline-size {
+      syntax: "*";
+      inherits: false;
+    }
+
+    :host {
+      --_meter-fill: var(--ui-text-muted);
+
+      display: inline-block;
+      flex: none;
+      vertical-align: middle;
+      inline-size: var(--ui-meter-inline-size, 8rem);
+      max-inline-size: 100%;
+      block-size: var(--ui-space-2);
+      overflow: hidden;
+      border-radius: var(--ui-radius-round);
+      background: var(--ui-border);
+      /* Unseen until forced colours draw it, where the track's own colour is gone. */
+      outline: 1px solid transparent;
+    }
+
+    :host-state([size="sm"]) {
+      inline-size: var(--ui-meter-inline-size, 5rem);
+      block-size: var(--ui-space-1);
+    }
+
+    .fill {
+      display: block;
+      block-size: 100%;
+      background: var(--_meter-fill);
+    }
+
+    :host-state([tone="accent"]) {
+      --_meter-fill: var(--ui-accent-solid);
+    }
+
+    :host-state([tone="info"]) {
+      --_meter-fill: var(--ui-info-solid);
+    }
+
+    :host-state([tone="success"]) {
+      --_meter-fill: var(--ui-success-solid);
+    }
+
+    :host-state([tone="warning"]) {
+      --_meter-fill: var(--ui-warning-solid);
+    }
+
+    :host-state([tone="danger"]) {
+      --_meter-fill: var(--ui-danger-solid);
+    }
+
+    /* Forced colours drop backgrounds: draw the fill in the text colour inside the outlined track. */
+    @media (forced-colors: active) {
+      .fill {
+        forced-color-adjust: none;
+        background: CanvasText;
+      }
+    }
+
+    /* A component that sets its display still honours the hidden attribute on its root. */
+    :host[hidden] {
+      display: none;
+    }
+  </style>
+</template>
