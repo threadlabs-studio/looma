@@ -1,0 +1,16 @@
+<!--
+title: tone
+description: The fill's colour carries the state, such as nothing yet, partial, complete, or needs attention. Colour alone reaches no one using assistive technology or forced colours, so valueText, and the text beside the meter, say the state too.
+-->
+<ui-stack gap="xs">
+  <ui-cluster gap="s"><ui-meter value="0" max="1240" label="Collected" value-text="Nothing collected yet, $0 of $1,240"></ui-meter><ui-text size="sm"
+    >Not started</ui-text></ui-cluster>
+  <ui-cluster gap="s"><ui-meter value="750" max="1240" tone="info" label="Collected" value-text="Partly collected, $750 of $1,240"></ui-meter><ui-text size="sm"
+    >Partial</ui-text></ui-cluster>
+  <ui-cluster gap="s"><ui-meter value="1240" max="1240" tone="success" label="Collected" value-text="Fully collected, $1,240 of $1,240"></ui-meter><ui-text
+      size="sm"
+    >Complete</ui-text></ui-cluster>
+  <ui-cluster gap="s"><ui-meter value="200" max="1240" tone="warning" label="Collected" value-text="Overdue, $200 of $1,240 collected"></ui-meter><ui-text
+      size="sm"
+    >Overdue</ui-text></ui-cluster>
+</ui-stack>
