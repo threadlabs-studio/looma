@@ -1,6 +1,6 @@
 {
   "name": "@threadlabs/looma",
-  "version": "0.13.0",
+  "version": "0.13.5",
   "type": "module",
   "description": "Looma components as HTML, Vue, and plain DOM, with design tokens.",
   "license": "MIT",
