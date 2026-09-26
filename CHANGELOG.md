@@ -1,11 +1,21 @@
 # Changelog
 
-## v0.13.5
+## v0.13.6
 
 - Icon draws without JavaScript. `ui-icon` derives its shapes from `name` as it renders, so a Vue
   server render (`renderToString`) and the first render in HTML carry the whole SVG; before, the
   shapes came from a controller, so the server sent an empty `<svg>` and the icon appeared only once
   JavaScript ran. Changing `name` still redraws it, and `image` keeps its rectangle's `ry`.
+
+## v0.13.5
+
+- Combobox `selectedValues` controls a `multiple` combobox's selection by option value, so a form field
+  with a fixed option list can start from data and stay bound: Vue `v-model:selected-values`. Each value
+  shows as a badge with its option's label and submits under `name`. Adding or removing one, by
+  pointer, keyboard, or badge, reports `selected-values-change` (`{ selectedValues, trigger }`) with
+  the new list; setting it reports nothing. Uncontrolled `multiple` and `items` work as before.
+- A `multiple` combobox shows a repeated `selectedValues` entry once, and typing the label of an option
+  already chosen, then a token separator or Enter, clears the text instead of adding it again.
 
 ## v0.13.4
 

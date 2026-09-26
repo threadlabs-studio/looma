@@ -1,0 +1,10 @@
+<!--
+title: selected values
+description: selectedValues sets the chosen options from data, here a required field with a fixed option list. The consumer owns the selection: each change the user makes is reported as selected-values-change with the new list of values, which Vue binds two-way with v-model:selected-values. A form submits one regions entry per value.
+-->
+<ui-combobox label="Regions" name="regions" multiple required disclosure selected-values='["north","west"]'>
+  <option value="north">North</option>
+  <option value="south">South</option>
+  <option value="east">East</option>
+  <option value="west">West</option>
+</ui-combobox>
