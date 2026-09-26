@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.14.2
+
+- New: Meter (`ui-meter`, Vue `Meter`) shows how far along something is at a glance, such as the
+  share of an invoice collected or of a checklist done. `value` runs from 0 to `max` (1 by default, as
+  on a native `<meter>`) and is clamped to it, so an empty meter still shows its track and a full one
+  fills it. It is `role="meter"` with its bounds and value as ARIA values, named by `label` (or
+  `aria-labelledby`), and reads `valueText` ("$750 of $1,240 collected"), or the whole percentage
+  without it. `tone` (`neutral`, `accent`, `info`, `success`, `warning`, `danger`, as on Badge)
+  colours the fill to carry a state, each at 3:1 or more against the track and the page in light and
+  dark; say the state in `valueText` too. `size="sm"` is a thin bar for a table cell or a list row;
+  `--ui-meter-inline-size` sets the width. The fill and the ARIA values derive from the props as it
+  renders, so a server render and the first render in HTML already draw and state the value.
+
 ## v0.14.1
 
 - New: Table (`ui-table`, Vue `Table`) styles an authored `<table>` in place: caption, header and

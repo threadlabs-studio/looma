@@ -3543,3 +3543,119 @@ describe("Component hooks", () => {
     await page.close();
   });
 });
+
+describe("Meter", () => {
+  const tones = ["neutral", "accent", "info", "success", "warning", "danger"];
+  const meters: [string, Record<string, unknown>][] = [
+    ["partial", { value: 750, max: 1240, tone: "info", label: "Collected", valueText: "$750 of $1,240 collected" }],
+    ["empty", { value: 0, max: 10, label: "Reviewed" }],
+    ["full", { value: 12, max: 10, tone: "success", label: "Done" }],
+    ["thin", { size: "sm", value: 0.5, label: "Thin" }],
+    ["named", { value: 3, max: 5, "aria-labelledby": "steps-label" }],
+    ["wide", { class: "wide", value: 0.5, label: "Wide" }],
+    ...tones.map((tone): [string, Record<string, unknown>] => [`tone-${tone}`, { tone, value: 1, label: tone }]),
+  ];
+  const css = ["tokens.css", "theme-light.css", "theme-dark.css"].map((file) => join(root, file));
+  const hook = `<style>.wide { --ui-meter-inline-size: 300px; }</style><span id="steps-label">Setup checklist</span>`;
+
+  async function checkMeters(page: Page) {
+    await page.locator("#tone-danger").waitFor();
+    // Named by its label, or by visible text; the value reads as valueText, or as the percentage.
+    const collected = page.getByRole("meter", { name: "Collected" });
+    assert.equal(await collected.getAttribute("aria-valuetext"), "$750 of $1,240 collected");
+    assert.equal(await page.getByRole("meter", { name: "Setup checklist" }).getAttribute("aria-valuetext"), "60%");
+
+    const box = (selector: string) => page.locator(selector).evaluate((element) => {
+      const track = element.getBoundingClientRect();
+      const fill = element.querySelector(".fill")!.getBoundingClientRect();
+      return { width: track.width, height: track.height, fill: fill.width / track.width, start: fill.left - track.left };
+    });
+    const partial = await box("#partial");
+    assert.ok(Math.abs(partial.fill - 750 / 1240) < 0.01, `a partial meter fills ${partial.fill}`);
+    assert.equal(partial.start, 0, "the fill starts at the track's start");
+    // An empty meter still shows its track; a value above max fills it and no further.
+    const empty = await box("#empty");
+    assert.equal(empty.fill, 0);
+    assert.ok(empty.width > 0 && empty.height > 0, "an empty meter shows its track");
+    assert.notEqual(await page.locator("#empty").evaluate((element) => getComputedStyle(element).backgroundColor), "rgba(0, 0, 0, 0)");
+    assert.equal((await box("#full")).fill, 1);
+    assert.equal(await page.locator("#full").getAttribute("aria-valuenow"), "10");
+    // sm is a thinner bar; the hook sets the width.
+    assert.ok((await box("#thin")).height < partial.height, "sm is thinner than md");
+    assert.equal((await box("#wide")).width, 300);
+
+    // Every tone's fill is its own colour and keeps 3:1 against the track and the page, light and dark.
+    const colors = () => page.evaluate((tones) => {
+      const context = document.createElement("canvas").getContext("2d", { willReadFrequently: true })!;
+      const luminance = (color: string) => {
+        context.clearRect(0, 0, 1, 1);
+        context.fillStyle = color;
+        context.fillRect(0, 0, 1, 1);
+        const [r, g, b] = [...context.getImageData(0, 0, 1, 1).data.slice(0, 3)].map((value) => {
+          const c = value / 255;
+          return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+        });
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      };
+      const ratio = (a: number, b: number) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+      const probe = document.createElement("span");
+      probe.style.color = "var(--ui-surface)";
+      document.body.append(probe);
+      const surface = luminance(getComputedStyle(probe).color);
+      probe.remove();
+      return tones.map((tone) => {
+        const meter = document.querySelector(`#tone-${tone}`)!;
+        const fill = getComputedStyle(meter.querySelector(".fill")!).backgroundColor;
+        const value = luminance(fill);
+        return { tone, fill, track: ratio(value, luminance(getComputedStyle(meter).backgroundColor)), surface: ratio(value, surface) };
+      });
+    }, tones);
+    for (const scheme of ["light", "dark"] as const) {
+      await page.emulateMedia({ colorScheme: scheme });
+      const drawn = await colors();
+      assert.equal(new Set(drawn.map(({ fill }) => fill)).size, tones.length, `${scheme}: each tone has its own fill`);
+      for (const { tone, track, surface } of drawn) {
+        assert.ok(track >= 3, `${scheme} ${tone}: fill against track is ${track.toFixed(2)}:1`);
+        assert.ok(surface >= 3, `${scheme} ${tone}: fill against the page is ${surface.toFixed(2)}:1`);
+      }
+    }
+    await page.emulateMedia({ colorScheme: "light" });
+
+    // Forced colours drop the track's colour: the outline draws the track and the fill is text-coloured.
+    await page.emulateMedia({ forcedColors: "active" });
+    const forced = await page.locator("#partial").evaluate((element) => ({
+      outline: getComputedStyle(element).outlineColor,
+      fill: getComputedStyle(element.querySelector(".fill")!).backgroundColor,
+    }));
+    assert.equal(forced.fill, forced.outline, "the fill takes the text colour the track's outline has");
+    assert.notEqual(forced.fill, "rgba(0, 0, 0, 0)");
+    await page.emulateMedia({ forcedColors: "none" });
+  }
+
+  it("fills its track, names its value, and keeps its tones legible, in HTML", async () => {
+    const path = await bundle("html-meter", `import "@threadlabs/looma";`);
+    const attributes = (props: Record<string, unknown>) =>
+      Object.entries(props).map(([name, value]) => `${name.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)}="${value}"`).join(" ");
+    const page = await open(path, hook + meters.map(([id, props]) => `<ui-meter id="${id}" ${attributes(props)}></ui-meter>`).join(""), css);
+    await checkMeters(page);
+    await page.close();
+  });
+
+  it("fills its track, names its value, keeps its tones legible, and follows its value, in Vue", async () => {
+    const path = await bundle("vue-meter", `
+      import { createApp, h, ref } from "vue";
+      import { Meter } from "@threadlabs/looma/vue";
+      const value = ref(750);
+      window.meterValue = value;
+      const meters = ${JSON.stringify(meters)};
+      createApp({ render: () => meters.map(([id, props]) => h(Meter, { id, ...props, ...(id === "partial" ? { value: value.value } : {}) })) }).mount("#app");
+    `);
+    const page = await open(path, `${hook}<div id="app"></div>`, [...css, join(root, "vue/components.css")]);
+    await checkMeters(page);
+    await page.evaluate(() => { (window as unknown as { meterValue: { value: number } }).meterValue.value = 1240; });
+    await page.waitForFunction(() => document.querySelector("#partial")?.getAttribute("aria-valuenow") === "1240");
+    const fill = await page.locator("#partial").evaluate((element) => element.querySelector(".fill")!.getBoundingClientRect().width / element.getBoundingClientRect().width);
+    assert.equal(fill, 1);
+    await page.close();
+  });
+});

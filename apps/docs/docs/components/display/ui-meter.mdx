@@ -1,0 +1,13 @@
+---
+slug: /components/ui-meter
+---
+
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# Meter
+
+How far along something is, at a glance: the share of an invoice collected, of items reviewed, of a checklist done. `value` runs from 0 to `max` (1 by default, as on a native `<meter>`); a value outside that range draws at the nearer end, so an empty meter still shows its track and a full one fills it. The bar is drawn as the page renders, on the server and before JavaScript.
+
+A meter is `role="meter"` with its value, bounds, and `valueText` as ARIA values; name it with `label`, or with `aria-labelledby` from visible text. `tone` colours the fill to carry a state, such as nothing yet, partial, complete, or needs attention; say that state in `valueText` or in text beside the meter too, since colour alone reaches no one using assistive technology or forced colours. `size="sm"` is a thin bar for a table cell or a list row. Set `--ui-meter-inline-size` on a meter to change its width.
+
+<ComponentExamplesApiTabs component="ui-meter" />
