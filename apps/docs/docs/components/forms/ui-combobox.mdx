@@ -31,5 +31,19 @@ mixes kinds of result, such as people, businesses, and places:
   `value-change`, and the other item events. An option without them reports the same shape as
   before.
 
+## Server search
+
+When the application searches on the server as the user types and renders the results as options,
+set `filter="none"`. The combobox then lists every option it is given rather than narrowing them
+again by label, so a result that matched on other data still shows, such as a contact found through
+the business in its description. Grouping, keyboard navigation, and the empty state work as before.
+Leaving the field commits an option whose label matches the text, or the only one listed.
+
+```html
+<ui-combobox label="Directory" filter="none">
+  <option value="riley" data-description="Harbor Auto Group">Riley Kim</option>
+</ui-combobox>
+```
+
 
 <ComponentExamplesApiTabs component="ui-combobox" />
