@@ -12,5 +12,16 @@ Use `variant="outline"` for toned text and a visible edge on the theme surface. 
 both pill and pointed tag shapes, including right-to-left layouts. On a surface other than the
 theme page, set `--ui-badge-surface` on that badge to match its surrounding surface.
 
+Tones mean a status. To colour a category instead, such as Business, Person, and Location, set
+`--ui-badge-color` on the badge to any CSS colour. It overrides the tone and derives the rest from
+the theme: subtle (the default) gets a 15% wash of the colour and text mixed 35% into the theme's
+text colour, which keeps 4.5:1 contrast for any colour in light and dark themes; solid fills with
+that text colour and uses the theme surface for its label; outline draws its edge and text in it.
+`--ui-badge-surface`, `--ui-badge-text`, and `--ui-badge-border` still win over it.
+
+```html
+<ui-badge style="--ui-badge-color: teal">Business</ui-badge>
+```
+
 
 <ComponentExamplesApiTabs component="ui-badge" />

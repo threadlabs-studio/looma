@@ -1,15 +1,15 @@
 <!--
 title: Descriptions and tags
-description: A row can carry context under its label (data-description) and a short tag after it (data-tag, with data-tag-tone for one of Badge's tones). The label stays the option's name, what filtering matches, and what the field shows once chosen; the tag and description are read as its description.
+description: A row can carry context under its label (data-description) and a short tag after it (data-tag, with data-tag-tone for a status tone or data-tag-color for a category colour). The label stays the option's name, what filtering matches, and what the field shows once chosen; the tag and description are read as its description.
 -->
 <ui-combobox label="Directory" placeholder="Search people, businesses, and places…" disclosure>
   <optgroup label="People">
-    <option value="p-riley" data-description="Harbor Supply Co." data-tag="Contact">Riley Kim</option>
+    <option value="p-riley" data-description="Harbor Supply Co." data-tag="Contact" data-tag-color="rebeccapurple">Riley Kim</option>
     <option value="p-sam" data-description="Northwind Traders" data-tag="Inactive" data-tag-tone="warning">Sam Ortiz</option>
   </optgroup>
   <optgroup label="Businesses">
-    <option value="b-harbor" data-description="Portland, OR" data-tag="Business" data-tag-tone="info">Harbor Supply Co.</option>
-    <option value="b-northwind" data-description="Tacoma, WA" data-tag="Business" data-tag-tone="info">Northwind Traders</option>
+    <option value="b-harbor" data-description="Portland, OR" data-tag="Business" data-tag-color="teal">Harbor Supply Co.</option>
+    <option value="b-northwind" data-description="Tacoma, WA" data-tag="Business" data-tag-color="teal">Northwind Traders</option>
   </optgroup>
   <optgroup label="Places">
     <option value="l-dock" data-description="Portland, OR">Dock 4 warehouse</option>

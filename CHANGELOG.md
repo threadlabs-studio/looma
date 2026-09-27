@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.15.3
+
+- Badge adds a `--ui-badge-color` hook for categorical labels that should not borrow a status tone.
+  Set to any CSS colour, it derives the badge's wash, text, and edge from the theme's surface and
+  text, keeping 4.5:1 text contrast in light and dark themes and in every variant. It overrides
+  `tone`; `--ui-badge-surface`, `--ui-badge-text`, and `--ui-badge-border` override it.
+- Combobox options accept `data-tag-color`, reported as `tag.color` and applied to the tag's badge as
+  its `--ui-badge-color`.
+
 ## v0.15.2
 
 - Form Field adds a `label-action` slot for a small action about the label, such as a help
