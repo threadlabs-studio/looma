@@ -97,6 +97,7 @@ because each is mixed from it.
 | `--ui-disabled-surface`, `--ui-disabled-text` | sunken surface, ink + page | one decision, not a per-component one; the ink at 45%, lighter than muted text |
 | `--ui-disabled-filter` | `saturate(0.2) contrast(0.75) brightness(1.25)` | how a disabled button washes out; dark dims (`brightness(0.8)`), high contrast only drops colour (`saturate(0)`) |
 | `--ui-focus-ring` | accent | the focus ring is the accent |
+| `--ui-warning-subtle-text` | warning + ink | 55% warning toward the ink. Amber is the lightest intent, so it takes more ink to read at 4.5:1, and a theme can keep a bright, saturated warning for tints, borders, and icons |
 
 The mixes are directional rather than absolute: they move *toward the ink* or *toward the page*.
 In a dark theme the ink is light, so the same mix brightens where it darkened in a light one, and

@@ -2867,6 +2867,42 @@ describe("Text tokens", () => {
     }
     assert.deepEqual(failures, []);
   });
+
+  it("keep warning text readable when a theme picks a bright amber", async () => {
+    // Amber is the lightest intent, so a theme's vivid warning seed must not drag its text under 4.5:1.
+    const css = ["tokens.css", "theme-light.css"].map((file) => join(root, file));
+    const failures: string[] = [];
+    for (const seed of ["#cc8800", "#e5a000"]) {
+      const page = await browser.newPage();
+      await page.setContent(`<!doctype html><html><body><span id="probe"></span></body></html>`);
+      for (const path of css) await page.addStyleTag({ path });
+      await page.addStyleTag({ content: `:root { --ui-warning: ${seed}; }` });
+      const ratios = await page.evaluate((surfaces) => {
+        const probe = document.querySelector<HTMLElement>("#probe")!;
+        const context = document.createElement("canvas").getContext("2d", { willReadFrequently: true })!;
+        const luminance = (token: string) => {
+          probe.style.color = `var(${token})`;
+          context.clearRect(0, 0, 1, 1);
+          context.fillStyle = getComputedStyle(probe).color;
+          context.fillRect(0, 0, 1, 1);
+          const [r, g, b] = [...context.getImageData(0, 0, 1, 1).data.slice(0, 3)].map((value) => {
+            const c = value / 255;
+            return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+          });
+          return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
+        };
+        return surfaces.map((surface) => {
+          const [light, dark] = [luminance("--ui-warning-subtle-text"), luminance(surface)].sort((a, b) => b - a);
+          return [surface, (light! + 0.05) / (dark! + 0.05)] as const;
+        });
+      }, ["--ui-surface", "--ui-surface-subtle", "--ui-surface-muted", "--ui-warning-soft"]);
+      for (const [surface, ratio] of ratios) {
+        if (ratio < 4.5) failures.push(`${seed}: warning text on ${surface} is ${ratio.toFixed(2)}:1`);
+      }
+      await page.close();
+    }
+    assert.deepEqual(failures, []);
+  });
 });
 
 describe("Tree link rows", () => {
