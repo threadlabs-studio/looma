@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.15.4
+
+- Warning text (`--ui-warning-subtle-text`, used by subtle warning Badges and warning Text) mixes 55%
+  of the warning colour with the ink instead of 85%, so a theme can choose a bright, saturated amber
+  for tints, borders, and icons and its warning text still reads at 4.5:1 on every surface. Warning
+  text in the default theme is slightly darker.
+
 ## v0.15.3
 
 - Badge adds a `--ui-badge-color` hook for categorical labels that should not borrow a status tone.

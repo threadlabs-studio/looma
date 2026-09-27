@@ -185,7 +185,8 @@
     --ui-warning-soft: color-mix(in srgb, var(--ui-warning) 8%, var(--ui-surface));
     --ui-warning-strong-surface: var(--ui-warning);
     --ui-warning-on-strong: var(--ui-on-accent);
-    --ui-warning-subtle-text: color-mix(in srgb, var(--ui-warning) 85%, var(--ui-text));
+    /* Amber is the lightest intent: it takes more ink than the others to read at 4.5:1, even from a bright seed. */
+    --ui-warning-subtle-text: color-mix(in srgb, var(--ui-warning) 55%, var(--ui-text));
     --ui-info-solid: var(--ui-info);
     --ui-info-soft: color-mix(in srgb, var(--ui-info) 8%, var(--ui-surface));
     --ui-info-strong-surface: var(--ui-info);
