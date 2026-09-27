@@ -16,7 +16,7 @@
       this value.</prop>
     <prop
       name="items"
-      type="list(object({ id: string, value: string, label: string, group?: string, disabled?: boolean, description?: string, tag?: object({ label: string, tone?: neutral | accent | info | success | warning | danger }) }))"
+      type="list(object({ id: string, value: string, label: string, group?: string, disabled?: boolean, description?: string, tag?: object({ label: string, tone?: neutral | accent | info | success | warning | danger, color?: string }) }))"
     >The selected items in multiple mode, as JSON; a named combobox submits each one's value. A form reset returns to these items, or to none when unset.</prop>
     <prop name="selectedValues" type="list(string)"
     >The selected option values in multiple mode, when the consumer controls the selection. Once set, the consumer owns it: each value shows as a badge with its
@@ -73,7 +73,7 @@
       it.</prop>
     <state
       name="internalItems"
-      type="list(object({ id: string, value: string, label: string, group?: string, disabled?: boolean, description?: string, tag?: object({ label: string, tone?: neutral | accent | info | success | warning | danger }) }))"
+      type="list(object({ id: string, value: string, label: string, group?: string, disabled?: boolean, description?: string, tag?: object({ label: string, tone?: neutral | accent | info | success | warning | danger, color?: string }) }))"
       :value="[]"
     ></state>
     <state name="raw" :value="''"></state>
@@ -82,7 +82,7 @@
     <state name="expanded" :value="false"></state>
     <state
       name="rows"
-      type="list(object({ id: string, value: string, label: string, group?: string, disabled: boolean, selected: boolean, description?: string, tag?: object({ label: string, tone?: neutral | accent | info | success | warning | danger }) }))"
+      type="list(object({ id: string, value: string, label: string, group?: string, disabled: boolean, selected: boolean, description?: string, tag?: object({ label: string, tone?: neutral | accent | info | success | warning | danger, color?: string }) }))"
       :value="[]"
     ></state>
     <state name="active" :value="-1"></state>
@@ -97,7 +97,7 @@
     <state name="submitted" :value="''"></state>
     <state
       name="groups"
-      type="list(object({ name: string, role: group | presentation, label: string | null, rows: list(object({ id: string, value: string, label: string, group?: string, disabled: boolean, selected: boolean, description?: string, tag?: object({ label: string, tone?: neutral | accent | info | success | warning | danger }), index: integer, labelledBy: string | null, detail: string | null })) }))"
+      type="list(object({ name: string, role: group | presentation, label: string | null, rows: list(object({ id: string, value: string, label: string, group?: string, disabled: boolean, selected: boolean, description?: string, tag?: object({ label: string, tone?: neutral | accent | info | success | warning | danger, color?: string }), index: integer, labelledBy: string | null, detail: string | null })) }))"
       :value="[]"
     ></state>
     <state name="creatable" :value="false"></state>
@@ -108,15 +108,15 @@
     <event name="query-change" type="object({ query: string, display: string, trigger: keyboard | pointer | programmatic })"></event>
     <event
       name="value-change"
-      type="object({ value: string | null, query: string, option: object({ id: string, value: string, label: string, group?: string, disabled?: boolean, description?: string, tag?: object({ label: string, tone?: neutral | accent | info | success | warning | danger }) }) | null, kind: selection | clear | free-entry | create, trigger: keyboard | pointer | programmatic }) | list(object({ id: string, value: string, label: string, group?: string, disabled?: boolean, description?: string, tag?: object({ label: string, tone?: neutral | accent | info | success | warning | danger }) }))"
+      type="object({ value: string | null, query: string, option: object({ id: string, value: string, label: string, group?: string, disabled?: boolean, description?: string, tag?: object({ label: string, tone?: neutral | accent | info | success | warning | danger, color?: string }) }) | null, kind: selection | clear | free-entry | create, trigger: keyboard | pointer | programmatic }) | list(object({ id: string, value: string, label: string, group?: string, disabled?: boolean, description?: string, tag?: object({ label: string, tone?: neutral | accent | info | success | warning | danger, color?: string }) }))"
     ></event>
     <event
       name="free-entry"
-      type="object({ value: string | null, query: string, option: object({ id: string, value: string, label: string, group?: string, disabled?: boolean, description?: string, tag?: object({ label: string, tone?: neutral | accent | info | success | warning | danger }) }) | null, kind: selection | clear | free-entry | create, trigger: keyboard | pointer | programmatic })"
+      type="object({ value: string | null, query: string, option: object({ id: string, value: string, label: string, group?: string, disabled?: boolean, description?: string, tag?: object({ label: string, tone?: neutral | accent | info | success | warning | danger, color?: string }) }) | null, kind: selection | clear | free-entry | create, trigger: keyboard | pointer | programmatic })"
     ></event>
     <event
       name="create-entry"
-      type="object({ value: string | null, query: string, option: object({ id: string, value: string, label: string, group?: string, disabled?: boolean, description?: string, tag?: object({ label: string, tone?: neutral | accent | info | success | warning | danger }) }) | null, kind: selection | clear | free-entry | create, trigger: keyboard | pointer | programmatic })"
+      type="object({ value: string | null, query: string, option: object({ id: string, value: string, label: string, group?: string, disabled?: boolean, description?: string, tag?: object({ label: string, tone?: neutral | accent | info | success | warning | danger, color?: string }) }) | null, kind: selection | clear | free-entry | create, trigger: keyboard | pointer | programmatic })"
     ></event>
     <event
       name="validation-change"
@@ -124,15 +124,15 @@
     ></event>
     <event
       name="options-change"
-      type="list(object({ id: string, value: string, label: string, group?: string, disabled?: boolean, description?: string, tag?: object({ label: string, tone?: neutral | accent | info | success | warning | danger }) }))"
+      type="list(object({ id: string, value: string, label: string, group?: string, disabled?: boolean, description?: string, tag?: object({ label: string, tone?: neutral | accent | info | success | warning | danger, color?: string }) }))"
     ></event>
     <event
       name="add-item"
-      type="object({ item: object({ id: string, value: string, label: string, group?: string, disabled?: boolean, description?: string, tag?: object({ label: string, tone?: neutral | accent | info | success | warning | danger }) }), index: integer, trigger: keyboard | pointer | programmatic })"
+      type="object({ item: object({ id: string, value: string, label: string, group?: string, disabled?: boolean, description?: string, tag?: object({ label: string, tone?: neutral | accent | info | success | warning | danger, color?: string }) }), index: integer, trigger: keyboard | pointer | programmatic })"
     ></event>
     <event
       name="remove-item"
-      type="object({ item: object({ id: string, value: string, label: string, group?: string, disabled?: boolean, description?: string, tag?: object({ label: string, tone?: neutral | accent | info | success | warning | danger }) }), index: integer, trigger: keyboard | pointer | programmatic })"
+      type="object({ item: object({ id: string, value: string, label: string, group?: string, disabled?: boolean, description?: string, tag?: object({ label: string, tone?: neutral | accent | info | success | warning | danger, color?: string }) }), index: integer, trigger: keyboard | pointer | programmatic })"
     ></event>
     <event name="create-item" type="object({ query: string, trigger: keyboard | pointer | programmatic })"></event>
     <event name="selected-values-change" type="object({ selectedValues: list(string), trigger: keyboard | pointer | programmatic })"></event>
@@ -246,7 +246,10 @@
               <span $if="row.detail" class="detail">
                 <span class="line">
                   <span class="primary" :id="format('%s-option-%s-label', uid, row.index)" $value="row.label"></span>
-                  <ui-badge $if="row.tag" :tone="row.tag.tone"><span :id="format('%s-option-%s-tag', uid, row.index)" $value="row.tag.label"></span></ui-badge>
+                  <ui-badge $if="row.tag" :tone="row.tag.tone" style:--ui-badge-color="row.tag.color"><span
+                      :id="format('%s-option-%s-tag', uid, row.index)"
+                      $value="row.tag.label"
+                    ></span></ui-badge>
                 </span>
                 <span $if="row.description" class="description" :id="format('%s-option-%s-description', uid, row.index)" $value="row.description"></span>
               </span>

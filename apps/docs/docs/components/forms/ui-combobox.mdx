@@ -31,10 +31,12 @@ mixes kinds of result, such as people, businesses, and places:
 - `data-tag` is a [Badge](/components/ui-badge) after the label; `data-tag-tone` picks one of its
   tones (`neutral`, the default, `accent`, `info`, `success`, `warning`, or `danger`). Pick the tone
   by what the tag means, and say it in the words too.
+- `data-tag-color` gives a category tag, such as Business or Person, a colour of its own: any CSS
+  colour, set as the badge's `--ui-badge-color`. It overrides `data-tag-tone`; keep tones for status.
 - The label stays the option's accessible name, the text filtering matches, and what the field shows
   once chosen. The tag and the description are the option's accessible description, so a screen
   reader announces the name first and the context after it.
-- Options report them as `description` and `tag: { label, tone? }` in `options-change`,
+- Options report them as `description` and `tag: { label, tone?, color? }` in `options-change`,
   `value-change`, and the other item events. An option without them reports the same shape as
   before.
 
