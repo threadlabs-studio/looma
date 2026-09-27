@@ -271,3 +271,15 @@
   from { --_ui-scroll-fade-end: var(--_ui-scroll-fade-size, 24px); }
   to { --_ui-scroll-fade-end: 0px; }
 }
+
+/* Focus moved by script to a non-interactive target, such as a page's <h1 tabindex="-1"> after
+   navigation so a screen reader announces the new page, draws no focus ring: tabindex="-1" keeps
+   the target out of the Tab order, so there is no keyboard focus position to show, and the ring
+   around a wrapped heading is a jagged, notched box. Controls, links, editable regions, and any
+   element with a role (menu items, options, tabs, and other roving-focus widgets) keep their ring.
+   Layered, so any page or component focus style still wins. */
+@layer base {
+  [tabindex="-1"]:not(a[href], area[href], audio, button, iframe, input, select, summary, textarea, video, [contenteditable], [role]):focus-visible {
+    outline: none;
+  }
+}

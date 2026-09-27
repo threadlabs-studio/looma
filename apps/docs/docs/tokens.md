@@ -45,7 +45,10 @@ before it. A custom palette still needs contrast checks in light, dark and high 
 
 ## Files
 
-- `@threadlabs/looma/tokens.css`: the contract and everything derived from it.
+- `@threadlabs/looma/tokens.css`: the contract and everything derived from it. It also carries one
+  base rule, in `@layer base`: an element with `tabindex="-1"` that focus reaches only by script,
+  such as a page's `<h1 tabindex="-1">` after navigation, draws no focus ring. Controls, links,
+  editable regions, and elements with a `role` keep theirs.
 - `@threadlabs/looma/theme-light.css`, `theme-dark.css`, `theme-high-contrast.css`: the palettes.
 
 ```css
