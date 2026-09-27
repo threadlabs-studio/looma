@@ -2,7 +2,11 @@
   <defs>
     <prop name="for" type="string" default="">ID of the control described and visually anchored by the tooltip.</prop>
     <prop name="open" type="boolean" default="false">Whether the tooltip is open initially or when set externally.</prop>
-    <prop name="placement" type="string" default="top-start">Positions the description relative to its trigger.</prop>
+    <prop
+      name="placement"
+      type="top | top-start | top-end | bottom | bottom-start | bottom-end | left | left-start | left-end | right | right-start | right-end"
+      default="top"
+    >Positions the description around its trigger. Start and end on top or bottom follow the writing direction.</prop>
     <prop name="trigger" type="hover | click | focus" default="hover"
     >How the trigger opens it. hover also opens on keyboard focus; click toggles it and suits a help button, where hovering a question mark says nothing; focus
       opens only while the trigger holds focus.</prop>
@@ -39,6 +43,10 @@
       inherits: false;
     }
     @property --ui-tooltip-max-inline-size {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-tooltip-offset {
       syntax: "*";
       inherits: false;
     }
@@ -93,19 +101,19 @@
     }
 
     .surface {
-      --_tooltip-line: var(--_ui-tooltip-border, var(--ui-border-default));
+      --_tooltip-line: var(--_ui-tooltip-border, var(--ui-overlay-border, var(--ui-border-default)));
       position: relative;
       box-sizing: border-box;
       max-inline-size: var(--_ui-tooltip-max-inline-size, 18rem);
       border: 1px solid var(--_tooltip-line);
-      border-radius: var(--_ui-tooltip-radius, var(--ui-radius-sm));
-      background: var(--_ui-tooltip-surface, var(--ui-surface-elevated));
+      border-radius: var(--_ui-tooltip-radius, var(--ui-overlay-radius, var(--ui-radius-sm)));
+      background: var(--_ui-tooltip-surface, var(--ui-overlay-surface, var(--ui-surface-elevated)));
       color: var(--_ui-tooltip-text, var(--ui-text-primary));
       padding: var(--ui-space-1) var(--ui-space-2);
       font-family: var(--ui-font-family-sans);
       font-size: var(--ui-font-size-sm);
       line-height: var(--ui-line-height-tight);
-      box-shadow: var(--_ui-tooltip-shadow, var(--ui-elevation-tooltip, var(--ui-shadow-md)));
+      box-shadow: var(--_ui-tooltip-shadow, var(--ui-overlay-shadow, var(--ui-elevation-tooltip, var(--ui-shadow-md))));
     }
 
     :host-state([inverse]) .surface {
@@ -133,7 +141,7 @@
       transform: rotate(45deg);
     }
 
-    :is(:host-state([placement="bottom"]), :host-state([placement="bottom-start"]), :host-state([placement="bottom-end"])) .surface::after {
+    :host[data-ui-actual-placement="bottom"] .surface::after {
       inset-block-start: calc(var(--_ui-tooltip-arrow-size, 0.5rem) / -2 - 0.5px);
       inset-block-end: auto;
       border-inline-end-width: 0;
@@ -144,9 +152,45 @@
       border-start-start-radius: 1px;
     }
 
-    :is(:host-state([placement="top-end"]), :host-state([placement="bottom-end"])) .surface::after {
+    :host[data-ui-actual-align="center"] .surface::after {
+      inset-inline-start: calc(50% - var(--_ui-tooltip-arrow-size, 0.5rem) / 2);
+    }
+
+    :host[data-ui-actual-align="end"] .surface::after {
       inset-inline-start: auto;
       inset-inline-end: var(--ui-space-3);
+    }
+
+    :host[data-ui-actual-placement="left"] .surface::after,
+    :host[data-ui-actual-placement="right"] .surface::after {
+      inset-block-start: calc(50% - var(--_ui-tooltip-arrow-size, 0.5rem) / 2);
+      inset-block-end: auto;
+      border: 0 solid var(--_tooltip-line);
+    }
+
+    :host[data-ui-actual-placement="left"] .surface::after {
+      inset-inline-start: auto;
+      inset-inline-end: calc(var(--_ui-tooltip-arrow-size, 0.5rem) / -2 - 0.5px);
+      border-inline-end-width: 1px;
+      border-block-end-width: 1px;
+    }
+
+    :host[data-ui-actual-placement="right"] .surface::after {
+      inset-inline-start: calc(var(--_ui-tooltip-arrow-size, 0.5rem) / -2 - 0.5px);
+      inset-inline-end: auto;
+      border-inline-start-width: 1px;
+      border-block-start-width: 1px;
+    }
+
+    :host[data-ui-actual-placement="left"][data-ui-actual-align="start"] .surface::after,
+    :host[data-ui-actual-placement="right"][data-ui-actual-align="start"] .surface::after {
+      inset-block-start: var(--ui-space-3);
+    }
+
+    :host[data-ui-actual-placement="left"][data-ui-actual-align="end"] .surface::after,
+    :host[data-ui-actual-placement="right"][data-ui-actual-align="end"] .surface::after {
+      inset-block-start: auto;
+      inset-block-end: var(--ui-space-3);
     }
 
     :host:popover-open {

@@ -1,7 +1,7 @@
 import { backgrounds } from "../shared/editor.js";
 
 const overflowSections = [
-  ["Structure", [["add-row-before", "Add row above", "panel-top"], ["add-column-before", "Add column left", "panel-left"]]],
+  ["Structure", [["add-row-before", "Add row above", "panel-top"], ["add-column-before", "Add column left", "panel-left"], ["toggle-header-row", "Header row", "rows"], ["toggle-header-column", "Header column", "columns"], ["move-row-up", "Move row up", "rows"], ["move-row-down", "Move row down", "rows"], ["move-column-left", "Move column left", "columns"], ["move-column-right", "Move column right", "columns"]]],
   ["Cells", [["clear-cells", "Clear selected cells", "eraser"], ["merge-cells", "Merge selected cells", "merge"], ["split-cell", "Split merged cell", "split"]]],
   ["Table", [["delete-row", "Delete row", "trash", "danger"], ["delete-column", "Delete column", "trash", "danger"], ["delete-table", "Delete table", "trash", "danger"]]],
 ];
@@ -25,7 +25,7 @@ export default function controller(host) {
       .map(([heading, items]) => ({
         heading,
         items: items.filter(([action]) => enabled.has(action))
-          .map(([action, label, icon, tone]) => ({ action, label, icon, danger: tone === "danger" })),
+          .map(([action, label, icon, tone]) => ({ action, label, icon, danger: tone === "danger", checkable: action.startsWith("toggle-header-"), checked: action === "toggle-header-row" ? Boolean(host.state.headerRow) : action === "toggle-header-column" ? Boolean(host.state.headerColumn) : false })),
       }))
       .filter((section) => section.items.length);
     host.state.hasOverflow = host.state.swatches.length > 0 || host.state.sections.length > 0;

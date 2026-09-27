@@ -30,15 +30,41 @@ would move and fade with the name.
 
 When a leaf row's label is a link, the whole row is that link: a click on its icon or padding
 follows the link, with the same modifier keys, so a modified click still opens a new tab. Clicks on
-controls (the drag handle, anything in `actions`, including an item of a menu the row holds) keep
-their own behaviour: they neither follow the link nor expand the row. A branch row's click elsewhere
-still expands and collapses it.
+controls (the move handle, anything in `actions`, including an item of a menu the row holds) keep
+their own behaviour. With the default `selection="none"`, a branch row's click elsewhere expands
+and collapses it.
 
-## Drag handles
+## Selection
+
+Set `selection="single"` to let a row click or Space request one selected item. Set
+`selection="multiple"` to show checkboxes; choosing a branch requests it and its descendants
+together. A partly selected branch shows a mixed checkbox. In either mode, the disclosure button
+still expands the branch, and links and other controls keep their own action. The default `none`
+keeps existing navigation trees from changing state on row clicks.
+
+Tree selection is controlled: each Tree Item's `selected` prop draws the current state. A `select`
+event reports `{ ids, trigger }` with the requested IDs in tree order; update those props from the
+event. The tree sets `aria-multiselectable` in multiple mode. This keeps application data as the
+source of truth when a list is loaded or reordered.
+
+## Moving items
 
 A `sortable` item shows a grip while its row is hovered. It sits beside what it drags: a leaf row has
 no disclosure, so the grip takes that empty column right before the icon; a branch keeps its
 disclosure there, so its grip sits just outside the row. The grip has no surface until it is pointed
-at, then takes the hover tint. Under touch input there is no grip; reorder from a menu instead.
+at, then takes the hover tint. Dragging still works. A second path uses separate clicks or taps:
+activate the grip, then click the destination row near its top, middle (to nest inside a branch),
+or bottom. The destination marker shows the pending position. On touch, the grip stays visible and
+has a 44px target.
+
+With the grip focused, press Enter or Space to start a move. Up and Down choose a position before
+or after a target; Right nests inside a branch, and Left returns to a sibling position. Enter places
+the item and Escape cancels. The tree announces each choice. Both paths emit `reorder` and leave
+the actual data update to your application. This pointer path satisfies the separate
+[WCAG 2.2 dragging alternative](https://www.w3.org/WAI/WCAG22/Understanding/dragging-movements).
+
+Typing the beginning of a visible item's name moves focus to it. A `lazy` Tree Item is expandable
+before its children exist: opening it emits `expand` so the application can load children, and it
+stays `aria-busy` until child Tree Items appear. Clear `lazy` if loading finishes empty.
 
 <ComponentExamplesApiTabs component="ui-tree" />

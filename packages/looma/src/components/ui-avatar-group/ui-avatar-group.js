@@ -11,13 +11,17 @@ export default function controller(host) {
     avatars.forEach((avatar, index) => {
       avatar.style.display = index >= visible ? "none" : "";
       avatar.style.marginInlineStart = index === 0 ? "0px" : overlap;
-      avatar.style.borderRadius = "999px";
       // Later avatars cast a crisp shadow back onto the one they overlap; the first overlaps nothing.
       avatar.style.boxShadow = index === 0
         ? "var(--ui-avatar-group-edge-ring, var(--_edge-ring))"
         : "var(--ui-avatar-group-overlap-shadow, var(--_overlap-shadow)), var(--ui-avatar-group-edge-ring, var(--_edge-ring))";
     });
-    host.state.overflowCount = Math.max(0, avatars.length - visible);
+    const authoredVisible = Math.min(avatars.length, visible);
+    const suppliedTotal = Number(host.state.total);
+    const total = host.state.total === undefined || !Number.isFinite(suppliedTotal) ? avatars.length : Math.max(avatars.length, suppliedTotal);
+    const count = Math.max(0, total - authoredVisible);
+    host.state.overflowCount = count;
+    host.state.overflowAnnouncement = String(host.state.overflowLabel || "{count} more").replaceAll("{count}", String(count));
   };
   const observer = new MutationObserver(update);
   observer.observe(element, { childList: true });

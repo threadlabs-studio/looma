@@ -1,0 +1,24 @@
+---
+slug: /components/ui-listbox
+---
+
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# Listbox
+
+Use Listbox when choices should stay visible. It is a native `<select>` with a visible `rows`
+count, so arrow keys, typeahead, Shift and Command or Control selection, form submission, reset,
+and assistive technology semantics work without JavaScript. Use [Select](/components/ui-select)
+for a compact single-choice dropdown or [Combobox](/components/ui-combobox) for a searchable list.
+
+Put native `<option>` and `<optgroup>` children inside it, and give it a visible `<label>` or an
+accessible name. `multiple` permits several selections and submits one entry per selected option.
+Read `selectedOptions` from the native `change` event; `value` and `values` set single and multiple
+selections from application state. When those props are omitted, native `selected` options own the
+initial state. Listbox follows `--ui-field-radius` and `--ui-field-danger`; local
+`--ui-listbox-*` hooks override its surface, border, radius, focus shadow, or invalid border.
+
+Native options are text only. Use a different composed collection when each choice needs rich
+interactive content.
+
+<ComponentExamplesApiTabs component="ui-listbox" />

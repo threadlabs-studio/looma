@@ -19,6 +19,14 @@
       syntax: "*";
       inherits: false;
     }
+    @property --ui-select-invalid-border {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-select-invalid-focus-shadow {
+      syntax: "*";
+      inherits: false;
+    }
     @property --ui-select-radius {
       syntax: "*";
       inherits: false;
@@ -37,7 +45,7 @@
       margin: 0;
       padding: var(--ui-space-2) var(--ui-space-3);
       border: 1px solid var(--ui-control-border, var(--ui-border-strong));
-      border-radius: var(--ui-select-radius, var(--ui-radius-md));
+      border-radius: var(--ui-select-radius, var(--ui-field-radius, var(--ui-radius-md)));
       background-color: var(--ui-control-surface, var(--ui-surface-elevated));
       color: var(--ui-text-primary);
       color-scheme: light dark;
@@ -77,13 +85,15 @@
     /* The app's invalid flag, or the browser's own verdict once the user has left an invalid field. */
     :host[aria-invalid="true"],
     :host:user-invalid {
-      border-color: var(--ui-danger-solid);
+      border-color: var(--ui-select-invalid-border, var(--ui-field-danger, var(--ui-danger-solid)));
     }
 
     :host:is([aria-invalid="true"], :user-invalid):focus-visible {
-      box-shadow:
+      box-shadow: var(
+        --ui-select-invalid-focus-shadow,
         var(--ui-control-inset),
-        0 0 0 3px color-mix(in srgb, var(--ui-danger-solid) 22%, transparent);
+        0 0 0 3px color-mix(in srgb, var(--ui-select-invalid-border, var(--ui-field-danger, var(--ui-danger-solid))) 22%, transparent)
+      );
     }
 
     :host:disabled {

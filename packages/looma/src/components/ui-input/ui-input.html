@@ -77,7 +77,7 @@
       appearance: none;
       border: var(--ui-input-border-width, var(--_ui-default-input-border-width, 1px)) solid
         var(--ui-input-border, var(--_ui-default-input-border, var(--ui-control-border, var(--ui-border-strong))));
-      border-radius: var(--ui-input-radius, var(--_ui-default-input-radius, var(--ui-radius-md)));
+      border-radius: var(--ui-input-radius, var(--_ui-default-input-radius, var(--ui-field-radius, var(--ui-radius-md))));
       background: var(--ui-input-surface, var(--_ui-default-input-surface, var(--ui-control-surface, var(--ui-surface-elevated))));
       color: var(--ui-text-primary);
       font: inherit;
@@ -135,7 +135,7 @@
     /* The app's invalid flag, or the browser's own verdict once the user has left an invalid field. */
     :host[aria-invalid="true"],
     :host:user-invalid {
-      border-color: var(--ui-input-invalid-border, var(--_ui-default-input-invalid-border, var(--ui-danger-solid)));
+      border-color: var(--ui-input-invalid-border, var(--_ui-default-input-invalid-border, var(--ui-field-danger, var(--ui-danger-solid))));
     }
 
     :host:is([aria-invalid="true"], :user-invalid):focus-visible {
@@ -144,7 +144,7 @@
         var(
           --_ui-default-input-invalid-focus-shadow,
           var(--ui-control-inset),
-          0 0 0 3px color-mix(in srgb, var(--ui-danger-solid) 22%, transparent)
+          0 0 0 3px color-mix(in srgb, var(--ui-input-invalid-border, var(--ui-field-danger, var(--ui-danger-solid))) 22%, transparent)
         )
       );
     }

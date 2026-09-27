@@ -1,7 +1,11 @@
+<link rel="component" href="../ui-spinner/ui-spinner.html">
 <template component="ui-icon-button" controller="./ui-icon-button.js">
   <defs>
     <prop name="disabled" type="boolean" default="false"
     >Disables the button, so it cannot be pressed or focused, and washes it out: the same shape, with less colour and contrast (--ui-disabled-filter).</prop>
+    <prop name="pending" type="boolean" default="false"
+    >Keeps the button focusable and named while work is in progress. It shows a spinner, states aria-disabled and aria-busy, and prevents activation until
+      cleared.</prop>
     <prop name="label" type="string">Accessible name for the icon.</prop>
     <prop name="size" type="sm | md | lg" default="md"
     >Button and icon size together: sm is 1.75rem with a small icon, md is 2rem, and lg is 2.5rem with a large icon. On touch, every size gets an invisible hit
@@ -14,7 +18,10 @@
       the pointer comes near inside a ui-affordance-scope. Touch devices and the solid variant always show it.</prop>
     <prop name="round" type="boolean" default="false">Use a fully circular shape.</prop>
   </defs>
-  <button :disabled="disabled" type="button" :aria-label="label"><slot></slot></button>
+  <button :disabled="disabled" type="button" :aria-label="label" :aria-disabled="{ true: 'true', false: null }[format('%s', pending)]" :aria-busy="pending">
+    <ui-spinner $if="pending" size="sm"></ui-spinner>
+    <span class="content"><slot></slot></span>
+  </button>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
     @property --ui-icon-button-active-scale {
@@ -145,7 +152,7 @@
       padding: 0;
       margin: 0;
       border: 1px solid transparent;
-      border-radius: var(--ui-icon-button-radius, var(--ui-radius-md));
+      border-radius: var(--ui-icon-button-radius, var(--ui-action-radius, var(--ui-radius-md)));
       background: var(--ui-icon-button-surface, transparent);
       color: inherit;
       display: inline-flex;
@@ -231,22 +238,34 @@
       );
     }
 
-    :host:hover:enabled {
+    :host:hover:enabled:not([aria-disabled="true"]) {
       /* Derived from the text colour so the ghost hover shows on any background. */
       background: var(--ui-icon-button-hover-surface, color-mix(in srgb, currentColor 8%, transparent));
       color: var(--ui-icon-button-hover-text, var(--ui-text-primary));
     }
 
-    :host-state([variant="outline"]):hover:enabled {
+    :host-state([variant="outline"]):hover:enabled:not([aria-disabled="true"]) {
       border-color: var(--ui-icon-button-hover-border, var(--ui-border-strong));
     }
 
-    :host-state([variant="solid"]):hover:enabled {
+    :host-state([variant="solid"]):hover:enabled:not([aria-disabled="true"]) {
       background: var(--ui-icon-button-solid-hover-surface, var(--ui-accent-hover));
     }
 
-    :host:active:enabled {
+    :host:active:enabled:not([aria-disabled="true"]) {
       transform: scale(var(--ui-icon-button-active-scale, 0.96));
+    }
+
+    :host-state([pending]) {
+      cursor: progress;
+    }
+
+    .content {
+      display: contents;
+    }
+
+    :host-state([pending]) .content {
+      display: none;
     }
 
     :host:focus-visible {

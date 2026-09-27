@@ -7,6 +7,15 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 # Table Context Menu
 
 Cell and table action menu whose available commands are controlled by app-provided capabilities.
+Include `toggle-header-row` and `toggle-header-column` in `actions` when the editor can run them;
+`header-row` and `header-column` set the corresponding checked menu state. The menu emits an
+`action` request and leaves the document mutation to the editor integration.
+
+For a selected cell, enable `move-row-up`, `move-row-down`, `move-column-left`, and
+`move-column-right` when the corresponding move is valid. LoomaEditor's integration uses the
+table package's move commands and omits moves at an edge or through an incompatible span.
+Set `scope="row"` or `scope="column"` when a table handle opened the menu; unrelated structure
+commands are filtered out. `scope="cell"` keeps the full selection menu.
 
 
 <ComponentExamplesApiTabs component="ui-editor-table-context-menu" />

@@ -1,5 +1,98 @@
 # Changelog
 
+## v0.15.0
+
+- LoomaEditor's toolbar now opens a link form for selected text, an existing link, or a new link
+  at the caret. The form supports safe URL schemes and relative URLs, live preview, new-tab choice,
+  and link removal while preserving the editor selection through form focus.
+- LoomaEditor's Block actions menu inserts below, duplicates, and deletes the active top-level
+  block; it is available in the same keyboard-accessible toolbar on desktop and mobile.
+- Search Shell now moves keyboard focus between enabled result rows from its search field and
+  closes on Escape. `dismissible` controls backdrop dismissal alone.
+- Listbox is a visible native option collection with single or multiple selection, controlled
+  initial values, form reset, and field radius and danger theming. It keeps native keyboard and
+  assistive technology behavior.
+- Grid adds an optional `columns` cap while keeping its intrinsic minimum width and responsive
+  column reduction. Switcher adds an optional `limit` that stacks all children when their count
+  exceeds the allowed row length; it updates when children or the limit change.
+- Popover and Tooltip accept all twelve side and alignment placements. Shared positioning flips
+  toward available space, shifts inside the viewport, and respects RTL for top/bottom alignment.
+  Each has a local CSS offset hook; Tooltip defaults to centered `top` and shows consecutive hints
+  immediately while the previous one is visible or has recently closed.
+- Tabs adds `activation="manual"`: arrows and Home/End move focus without switching panels,
+  and Enter or Space selects the focused tab. Automatic activation remains the default.
+- Tabs accepts authored buttons in its `tab` slot for rich labels such as icons and counts. Their
+  values link to panel IDs; the controller supplies tab and panel ARIA relationships and skips
+  disabled authored tabs in keyboard navigation.
+- Disclosure adds `name` for exclusive groups, an authored `summary` slot that overrides the text
+  shorthand, and `heading-level` for accordion heading semantics. Closed panels remain available to
+  find-in-page and fragment links, which open the matching panel and close its named peer.
+- Insert Table Grid now inserts when a cell is activated, with one roving tab stop, arrow-key
+  navigation, and 44px touch cells; the extra confirmation button is removed.
+- Editor Toolbar now gives its authored controls one Tab stop and uses Left/Right and Home/End to
+  move focus among enabled commands, including when Vue updates the toolbar.
+- Slash Menu accepts authored Slash Menu Item and Group children, filters their labels and keywords,
+  and supports empty, header, and footer slots. Mention Menu accepts authored Mention Menu Item
+  children with an Avatar start slot plus empty and header slots. Both retain their data `items`
+  option, respect an authored accessible label, and include a stable `value` beside `index` in
+  `select` and `highlight` events. Hard-coded English suggestion headers and hints are removed;
+  Mention Menu's loading status can be localized.
+- Table Toolbar and Table Context Menu now offer header row and column toggles when the editor
+  enables them. They announce the current setting as checked; LoomaEditor's integration executes
+  the matching Tiptap commands and keeps that state in sync with the table. Row and column move
+  actions use the table package's move commands and are offered only when the destination is valid.
+  Table Overlay's row and column handles now open a menu scoped to their axis after selecting it;
+  a cell handle keeps the full menu.
+- Tree adds a click or tap move path and a keyboard move mode for sortable items, emitting the
+  existing `reorder` detail with the corresponding trigger. The move handle stays available at a
+  44px target on touch. Typing a visible item name moves focus to it. Tree Item adds `lazy`, making
+  an empty branch expandable and busy until its children arrive.
+- Tree adds `selection="none|single|multiple"` and a `select` request containing ordered IDs.
+  Single mode selects by row click or Space; multiple mode shows checkboxes and selects descendants
+  with a branch. Tree Item's `selected` prop remains controlled by the application, while a
+  partly selected branch displays a mixed checkbox. `none` remains the default for navigation trees.
+- Dialog is modal by default; `modeless` replaces `modal`. `closedby="closerequest"` closes on Escape,
+  `"any"` also closes on an outside press, and `"none"` requires an action, replacing `dismissible`.
+  `alert` adds alert dialog semantics and hides the header close button, `size` offers small, medium,
+  large, and fullscreen layouts, and trigger activation now emits `open`.
+- Editable accepts Save and Cancel labels, a draft placeholder, and native required and maximum
+  length constraints; invalid drafts remain open and do not emit `change`.
+- Form Field only displays and describes its authored error slot while `invalid` is true.
+- Menu and Context Menu gain named groups, native separators, link items, shortcut hints, wrapping
+  arrow navigation, Home/End, and typeahead across enabled items.
+- Menu Item adds checkbox and radio choices with `aria-checked`, a `change` event, and a Lucide
+  check indicator. Radio choices are exclusive within their nearest Menu Group. Checkable choices
+  keep Menu or Context Menu open, and their `select` detail includes the resulting `checked` value.
+- Toast Region supports six logical placements and a single `duration` setting (0 means persistent),
+  replacing `auto`. It appears whenever it has authored or generated content; `open`, `message`,
+  and the region-wide `close` event are removed. Programmatic `show()` keeps per-toast tone and
+  duration options. New `ui-toast` authors semantic tone, rich content, an action slot, and its own
+  `dismiss` event; the application removes authored toasts after that event.
+- Textarea adds `autosize`, which grows and shrinks with content while keeping `rows` as its
+  minimum height where CSS field sizing is supported. Other browsers keep native row sizing.
+- Checkbox and Radio Group add `invalid`. Their native controls expose `aria-invalid`, and their
+  validation styling follows `--ui-field-danger` or a local component hook.
+- Combobox adds `invalid`, `open-on-focus`, and `loading`. The list can
+  show an authored `empty` slot after loading; busy state is announced while options are being
+  supplied. `filter="none"` lets applications supply their own filtered option set.
+- Button and Icon Button add `pending`: they keep focus and accessible names, show a spinner,
+  expose busy and disabled state, and suppress activation until the action finishes. Pending links
+  cannot navigate; pending submit buttons cannot submit.
+- Callout adds the `neutral` tone for a muted aside, matching the semantic tone vocabulary. The
+  existing `note` spelling remains an alias.
+- Avatar adds square shape, decorative semantics, and a Lucide person glyph when no image or name
+  is available. Avatar Group adds `total` for truncated markup and a templated `overflow-label`;
+  it preserves each Avatar's shape and follows the global round radius.
+- Badge adds `variant="outline"` across semantic tones and both pill and pointed tag shapes,
+  including RTL and forced-colour edges.
+- Theming now has an optional inherited group layer between global theme values and local
+  component hooks. `--ui-field-radius` and `--ui-field-danger` style related form controls together;
+  `--ui-action-radius` styles Button and Icon Button; `--ui-overlay-radius`, `-surface`, `-border`,
+  and `-shadow` style related floating surfaces. Unset group values retain every previous default.
+  Local hooks on each field and overlay can override those group values for one instance. The
+  theming guide explains the three levels, precedence, theme boundaries, and practical recipes.
+  Round controls and status shapes now follow the global `--ui-radius-round` value.
+
 ## v0.14.8
 
 - Combobox: `filter` sets how the list narrows as the user types. `label`, the default, lists the

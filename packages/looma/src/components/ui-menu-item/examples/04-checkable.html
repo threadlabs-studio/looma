@@ -1,0 +1,11 @@
+<!--
+title: Checkable items
+description: Checked state is announced through menuitemcheckbox or menuitemradio. A checked item emits change and the menu stays open.
+-->
+<ui-menu open aria-label="View options">
+  <ui-menu-item type="checkbox" value="grid" checked>Show grid</ui-menu-item>
+  <ui-menu-group label="Sort by">
+    <ui-menu-item type="radio" value="name" checked>Name</ui-menu-item>
+    <ui-menu-item type="radio" value="date">Date</ui-menu-item>
+  </ui-menu-group>
+</ui-menu>

@@ -10,6 +10,13 @@ A normal text field with contextual rich suggestions and integrated optional hel
 and validation. Labels and option titles use restrained medium weight; metadata and
 messages use regular weight. Domain lookups and persistence stay in the application.
 
+Use `open-on-focus` when browsing should start before typing. `filter="label"` narrows
+authored options by label; `filter="none"` displays every option currently supplied by the
+application, which is useful for server-filtered results. While those results load, set `loading`:
+the list announces its busy state and hides the empty state. Provide an `empty` slot for the
+settled no-results message. Set `invalid` when validation is owned by the form; it remains in
+effect until the application clears it.
+
 ## Descriptions and tags
 
 An option can carry a line of context under its label and a short tag after it, for a list that

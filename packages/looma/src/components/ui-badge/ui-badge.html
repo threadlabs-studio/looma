@@ -1,8 +1,8 @@
 <template component="ui-badge">
   <defs>
-    <prop name="variant" type="solid | subtle" default="subtle"
-    >Emphasis. subtle sets the text in its tone over a soft wash of it; solid fills with the tone and uses contrasting text, for a status that has to stand out.
-      The neutral tone looks the same in both.</prop>
+    <prop name="variant" type="solid | subtle | outline" default="subtle"
+    >Emphasis. subtle sets toned text over a soft wash; solid fills with the tone and uses contrasting text; outline keeps the surface with a toned edge.
+      Neutral looks the same in solid and subtle.</prop>
     <prop name="tone" type="neutral | accent | info | success | warning | danger" default="neutral"
     >Which colour the badge speaks in. neutral is a quiet grey for plain labels; accent draws the eye in the accent colour; info, success, warning, and danger
       mark a status, so match the tone to what the badge says.</prop>
@@ -58,6 +58,7 @@
       --_badge-text: var(--ui-text-secondary);
       /* Every tone's edge is its fill, so it is unseen until forced colors draw it. */
       --_badge-border: var(--ui-surface-subtle);
+      --_badge-outline-surface: var(--ui-badge-surface, var(--_badge-surface));
 
       display: inline-flex;
       align-items: center;
@@ -66,7 +67,7 @@
       padding: var(--ui-badge-padding-block, var(--ui-space-0-5)) var(--ui-badge-padding-inline, var(--ui-space-2));
       border: 1px solid var(--ui-badge-border, var(--_badge-border));
       border-radius: var(--ui-radius-round);
-      background: var(--ui-badge-surface, var(--_badge-surface));
+      background: var(--_badge-outline-surface);
       color: var(--ui-badge-text, var(--_badge-text));
       font-family: var(--ui-font-family-sans);
       font-size: var(--ui-badge-font-size, var(--ui-font-size-sm));
@@ -149,6 +150,37 @@
       --_badge-text: var(--ui-info-subtle-text, var(--ui-info-solid));
     }
 
+    :host-state([variant="outline"]) {
+      --_badge-surface: var(--ui-surface-default);
+      --_badge-border: var(--ui-border-strong);
+      --_badge-text: var(--ui-text-secondary);
+    }
+
+    :host-state([variant="outline"][tone="accent"]) {
+      --_badge-border: var(--ui-accent-solid);
+      --_badge-text: var(--ui-accent-subtle-text, var(--ui-accent-solid));
+    }
+
+    :host-state([variant="outline"][tone="danger"]) {
+      --_badge-border: var(--ui-danger-solid);
+      --_badge-text: var(--ui-danger-subtle-text, var(--ui-danger-solid));
+    }
+
+    :host-state([variant="outline"][tone="success"]) {
+      --_badge-border: var(--ui-success-solid);
+      --_badge-text: var(--ui-success-subtle-text, var(--ui-success-solid));
+    }
+
+    :host-state([variant="outline"][tone="warning"]) {
+      --_badge-border: var(--ui-warning-solid);
+      --_badge-text: var(--ui-warning-subtle-text, var(--ui-warning-solid));
+    }
+
+    :host-state([variant="outline"][tone="info"]) {
+      --_badge-border: var(--ui-info-solid);
+      --_badge-text: var(--ui-info-subtle-text, var(--ui-info-solid));
+    }
+
     /* A tag is flat at the start and points at the end. The point is cut from the box, so it has no
        outline to follow: the edge is the fill. The end padding grows by the point's depth so the
        label never runs into it. */
@@ -165,6 +197,40 @@
       padding-inline-end: var(--ui-badge-padding-inline, var(--ui-space-2));
       padding-inline-start: calc(var(--ui-badge-padding-inline, var(--ui-space-2)) + var(--_badge-point));
       clip-path: polygon(var(--_badge-point) 0, 100% 0, 100% 100%, var(--_badge-point) 100%, 0 50%);
+    }
+
+    /* The tag clips its point, including the native border. Draw the outer shape in the border
+       colour and an inset inner shape in the surface colour to keep a visible diagonal edge. */
+    :host-state([variant="outline"][shape="tag"]) {
+      position: relative;
+      isolation: isolate;
+      background: var(--ui-badge-border, var(--_badge-border));
+    }
+
+    :host-state([variant="outline"][shape="tag"])::before {
+      content: "";
+      position: absolute;
+      inset: 1px;
+      z-index: -1;
+      background: var(--_badge-outline-surface);
+      clip-path: polygon(0 0, calc(100% - var(--_badge-point)) 0, 100% 50%, calc(100% - var(--_badge-point)) 100%, 0 100%);
+      pointer-events: none;
+    }
+
+    :host-state([variant="outline"][shape="tag"]):dir(rtl)::before {
+      clip-path: polygon(var(--_badge-point) 0, 100% 0, 100% 100%, var(--_badge-point) 100%, 0 50%);
+    }
+
+    @media (forced-colors: active) {
+      :host-state([variant="outline"][shape="tag"]) {
+        forced-color-adjust: none;
+        background: CanvasText;
+        color: CanvasText;
+      }
+
+      :host-state([variant="outline"][shape="tag"])::before {
+        background: Canvas;
+      }
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */

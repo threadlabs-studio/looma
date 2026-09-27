@@ -2,7 +2,7 @@
   <defs>
     <prop name="open" type="boolean" default="false">Shows the search surface.</prop>
     <prop name="modal" type="boolean" default="false">Makes the rest of the page inert while the search surface is open.</prop>
-    <prop name="dismissible" type="boolean" default="false">Allows Escape and backdrop activation to close the search surface.</prop>
+    <prop name="dismissible" type="boolean" default="false">Allows backdrop activation to close the search surface. Escape always closes it.</prop>
     <prop name="label" type="string" default="Search">Provides the native dialog's accessible name.</prop>
     <state name="internalOpen" :value="false"></state>
     <event
@@ -109,10 +109,10 @@
       max-block-size: var(--_ui-search-shell-max-height, 80vh);
       margin-inline: auto;
       overflow: hidden;
-      background: var(--_ui-search-shell-surface, var(--ui-surface-elevated));
-      border: 1px solid var(--_ui-search-shell-border, var(--ui-border-default));
-      border-radius: var(--_ui-search-shell-radius, var(--ui-radius-dialog));
-      box-shadow: var(--_ui-search-shell-shadow, var(--ui-elevation-dialog, var(--ui-shadow-xl)));
+      background: var(--_ui-search-shell-surface, var(--ui-overlay-surface, var(--ui-surface-elevated)));
+      border: 1px solid var(--_ui-search-shell-border, var(--ui-overlay-border, var(--ui-border-default)));
+      border-radius: var(--_ui-search-shell-radius, var(--ui-overlay-radius, var(--ui-radius-dialog)));
+      box-shadow: var(--_ui-search-shell-shadow, var(--ui-overlay-shadow, var(--ui-elevation-dialog, var(--ui-shadow-xl))));
     }
 
     .search {
@@ -133,7 +133,7 @@
       min-block-size: var(--ui-control-min-block-size);
       padding: var(--ui-space-2) var(--ui-space-3);
       border: 1px solid var(--ui-control-border);
-      border-radius: var(--ui-radius-md);
+      border-radius: var(--ui-field-radius, var(--ui-radius-md));
       background: var(--ui-control-surface);
       color: var(--ui-text-primary);
       font: inherit;

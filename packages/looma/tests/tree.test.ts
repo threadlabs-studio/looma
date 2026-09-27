@@ -37,7 +37,7 @@ type Spec = { tree?: Record<string, unknown>; items: Node[] };
 type Detail = Record<string, unknown>;
 
 // Renders `spec` as a Vue Tree. Every item is sortable unless it says otherwise.
-async function open(spec: Spec): Promise<Page> {
+async function open(spec: Spec, script = bundlePath): Promise<Page> {
   // Reduced motion turns the rows' style transitions off, so computed styles settle immediately.
   const page = await browser.newPage({ reducedMotion: "reduce" });
   const errors: string[] = [];
@@ -45,7 +45,7 @@ async function open(spec: Spec): Promise<Page> {
   await page.setContent(`<!doctype html><html><body style="margin:0;padding:40px 40px 40px 60px;width:320px"><div id="app"></div></body></html>`);
   for (const path of [join(root, "tokens.css"), join(root, "vue/components.css")]) await page.addStyleTag({ path });
   await page.evaluate((value) => { (window as unknown as { spec: Spec }).spec = value; }, spec);
-  await page.addScriptTag({ path: bundlePath });
+  await page.addScriptTag({ path: script });
   await page.waitForSelector('[data-component="ui-tree"] [role="treeitem"]');
   await page.waitForTimeout(50);
   assert.deepEqual(errors, []);
@@ -116,6 +116,7 @@ beforeAll(async () => {
         ...window.spec.tree,
         onReorder: (detail) => events.push(["reorder", detail]),
         onReorderRejected: (detail) => events.push(["reorder-rejected", detail]),
+        onSelect: (detail) => events.push(["select", detail]),
       }, () => window.spec.items.map(render)),
     }).mount("#app");
   `);
@@ -349,7 +350,109 @@ describe("Tree drag and drop", () => {
     await page.close();
   });
 
-  // Tree declares `trigger: "keyboard"` on reorder, but its controller only moves focus and expands with the
-  // keyboard; it has no keyboard reordering to test.
-  it.todo("reorders with the keyboard");
+  it("reorders with two clicks, without dragging", async () => {
+    const page = await open({ items: files });
+    await page.getByRole("button", { name: "Drag License to reorder" }).click();
+    const box = await rowBox(page, "readme");
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height * 0.2);
+    assert.deepEqual(await events(page), [["reorder", {
+      sourceId: "license", targetId: "readme", position: "before", sourceType: "item", targetType: "item", sourceScope: "", targetScope: "", trigger: "pointer",
+    }]]);
+    await page.close();
+  });
+
+  it("reorders with the keyboard and can cancel a move", async () => {
+    const page = await open({ items: files });
+    const handle = page.getByRole("button", { name: "Drag Readme to reorder" });
+    await handle.focus();
+    await page.keyboard.press("Space");
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("Enter");
+    assert.deepEqual(await events(page), [["reorder", {
+      sourceId: "readme", targetId: "license", position: "after", sourceType: "item", targetType: "item", sourceScope: "", targetScope: "", trigger: "keyboard",
+    }]]);
+    await handle.focus();
+    await page.keyboard.press("Space");
+    await page.keyboard.press("ArrowUp");
+    await page.keyboard.press("Escape");
+    assert.equal((await events(page)).length, 1);
+    await page.close();
+  });
+
+  it("keeps a 44px move control available under touch input", async () => {
+    const page = await open({ items: files });
+    await page.evaluate(() => document.documentElement.setAttribute("data-ui-input-modality", "touch"));
+    const handle = page.getByRole("button", { name: "Drag Readme to reorder" });
+    const box = await handle.boundingBox();
+    assert.ok(box && box.width >= 44 && box.height >= 44, JSON.stringify(box));
+    await handle.click();
+    const target = await rowBox(page, "license");
+    await page.mouse.click(target.x + target.width / 2, target.y + target.height * 0.8);
+    assert.equal((await events(page))[0]?.[1].trigger, "pointer");
+    await page.close();
+  });
+
+  it("finds items by typed name and marks an empty lazy branch busy while opening", async () => {
+    const page = await open({ items: [{ id: "remote", label: "Remote", lazy: true }, ...files] });
+    assert.equal(await item(page, "remote").getAttribute("aria-expanded"), "false");
+    await item(page, "readme").focus();
+    await page.keyboard.press("l");
+    assert.equal(await page.evaluate(() => (document.activeElement as HTMLElement)?.dataset.itemId), "license");
+    await item(page, "remote").getByRole("button", { name: "Expand Remote" }).click();
+    assert.equal(await item(page, "remote").getAttribute("aria-busy"), "true");
+    await page.close();
+  });
+});
+
+describe("Tree selection", () => {
+  it("requests one selected item on row click or Space in single mode", async () => {
+    const page = await open({ tree: { selection: "single" }, items: files });
+    await item(page, "readme").click();
+    await item(page, "license").focus();
+    await page.keyboard.press("Space");
+    assert.deepEqual(await events(page), [
+      ["select", { ids: ["readme"], trigger: "pointer" }],
+      ["select", { ids: ["license"], trigger: "keyboard" }],
+    ]);
+    await page.close();
+  });
+
+  it("shows multiple checkboxes and requests descendant selection together", async () => {
+    const page = await open({ tree: { selection: "multiple" }, items: files });
+    assert.equal(await page.locator('[role="tree"]').getAttribute("aria-multiselectable"), "true");
+    const checkbox = item(page, "docs").locator(":scope > .row > .selection-hit > .selection-checkbox");
+    assert.equal(await checkbox.isVisible(), true);
+    await page.evaluate(() => document.documentElement.setAttribute("data-ui-input-modality", "touch"));
+    const touchTarget = await item(page, "docs").locator(":scope > .row > .selection-hit").boundingBox();
+    assert.ok(touchTarget && touchTarget.width >= 44 && touchTarget.height >= 44, JSON.stringify(touchTarget));
+    await checkbox.click();
+    assert.deepEqual(await events(page), [["select", { ids: ["docs", "guide", "api"], trigger: "pointer" }]]);
+    await page.close();
+  });
+
+  it("follows a controlled Vue selection and marks a partially selected branch", async () => {
+    const script = await bundle("vue-controlled-tree-selection", `
+      import { createApp, h, ref } from "vue";
+      import { Tree, TreeItem } from "@threadlabs/looma/vue";
+      const ids = ref(["guide"]);
+      window.events = [];
+      createApp({ render: () => h(Tree, {
+        label: "Files", selection: "multiple",
+        onSelect: (detail) => { window.events.push(["select", detail]); ids.value = detail.ids; },
+      }, () => h(TreeItem, { itemId: "docs", label: "Docs", container: true, expanded: true, selected: ids.value.includes("docs") }, () => [
+        h(TreeItem, { itemId: "guide", label: "Guide", selected: ids.value.includes("guide") }),
+        h(TreeItem, { itemId: "api", label: "API", selected: ids.value.includes("api") }),
+      ])) }).mount("#app");
+    `);
+    const page = await open({ items: [] }, script);
+    const docsCheckbox = item(page, "docs").locator(":scope > .row > .selection-hit > .selection-checkbox");
+    assert.equal(await docsCheckbox.evaluate((element: HTMLInputElement) => element.indeterminate), true);
+    await item(page, "api").locator(":scope > .row > .selection-hit > .selection-checkbox").click();
+    assert.deepEqual(await events(page), [["select", { ids: ["docs", "guide", "api"], trigger: "pointer" }]]);
+    await page.waitForFunction(() => document.querySelector('[data-item-id="docs"]')?.getAttribute("aria-selected") === "true");
+    assert.equal(await docsCheckbox.evaluate((element: HTMLInputElement) => element.indeterminate), false);
+    await docsCheckbox.click();
+    assert.deepEqual((await events(page))[1], ["select", { ids: [], trigger: "pointer" }]);
+    await page.close();
+  });
 });

@@ -29,7 +29,7 @@
     <state name="activeKey" :value="''"></state>
     <event
       name="action"
-      type="object({ action: add-row-before | add-row-after | add-column-before | add-column-after, boundaryIndex: integer }) | object({ action: select-row | select-column, rowIndex: integer, columnIndex: integer }) | object({ action: open-cell-menu, rowIndex: integer, columnIndex: integer, anchor: object({ left: number, top: number, right: number, bottom: number }) })"
+      type="object({ action: add-row-before | add-row-after | add-column-before | add-column-after, boundaryIndex: integer }) | object({ action: select-row | select-column, rowIndex: integer, columnIndex: integer }) | object({ action: open-cell-menu | open-row-menu | open-column-menu, rowIndex: integer, columnIndex: integer, anchor: object({ left: number, top: number, right: number, bottom: number }) })"
     ></event>
   </defs>
   <div aria-label="Table controls" :hidden="not open">
@@ -89,8 +89,8 @@
         data-action="select-row"
         :data-row-index="hovered.rowIndex"
         :data-column-index="hovered.columnIndex"
-        title="Select row"
-        aria-label="Select row"
+        title="Row actions"
+        aria-label="Row actions"
       >
         <span class="glyph"><ui-icon name="grip-vertical"></ui-icon></span>
       </button>
@@ -101,8 +101,8 @@
         data-action="select-column"
         :data-row-index="hovered.rowIndex"
         :data-column-index="hovered.columnIndex"
-        title="Select column"
-        aria-label="Select column"
+        title="Column actions"
+        aria-label="Column actions"
       >
         <span class="glyph"><ui-icon name="grip-horizontal"></ui-icon></span>
       </button>

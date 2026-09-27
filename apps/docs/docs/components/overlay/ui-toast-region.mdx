@@ -6,7 +6,14 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 # Toast Region
 
-Live-region container primitive for stackable dismissible toasts.
+Toast Region stacks authored `<ui-toast>` children and messages added with `show()` or the
+`--show-toast` command. It appears while it contains messages. Use `placement="top|top-start|top-end|bottom|bottom-start|bottom-end"`
+to choose the screen edge; start and end follow the writing direction.
+
+`duration="0"` keeps generated messages until dismissed. A positive duration starts a timer for
+each, paused by hover or focus. An individual `show()` call can override the duration and tone.
+Commands take their message from the invoking button's `value`. For authored content, see
+[Toast](../../parts/ui-toast.mdx): the application owns its removal after `dismiss`.
 
 
 <ComponentExamplesApiTabs component="ui-toast-region" />

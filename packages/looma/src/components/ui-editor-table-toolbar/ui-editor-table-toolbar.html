@@ -4,23 +4,25 @@
     <prop name="open" type="boolean" default="false">Shows the toolbar while a table selection is active.</prop>
     <prop name="cellAlignment" type="left | center | right" default="left">Marks the alignment command that is active for the current cell.</prop>
     <prop name="cellBackground" type="string" default="">Identifies the background choice that is active for the current cell.</prop>
+    <prop name="headerRow" type="boolean" default="false">Whether the table's first row currently uses header cells.</prop>
+    <prop name="headerColumn" type="boolean" default="false">Whether the table's first column currently uses header cells.</prop>
     <prop
       name="actions"
-      type="list(align-left | align-center | align-right | background-none | background-gray | background-yellow | background-blue | background-green | background-red | add-row-before | add-row-after | add-column-before | add-column-after | clear-cells | merge-cells | split-cell | delete-row | delete-column | delete-table)"
+      type="list(align-left | align-center | align-right | background-none | background-gray | background-yellow | background-blue | background-green | background-red | add-row-before | add-row-after | add-column-before | add-column-after | toggle-header-row | toggle-header-column | move-row-up | move-row-down | move-column-left | move-column-right | clear-cells | merge-cells | split-cell | delete-row | delete-column | delete-table)"
     >The complete set of commands the current selection permits.</prop>
     <state name="alignments" type="list(object({ action: align-left | align-center | align-right, label: string, active: boolean }))" :value="[]"></state>
     <state name="structure" type="list(object({ action: add-row-after | add-column-after, label: string, icon: string }))" :value="[]"></state>
     <state name="swatches" type="list(object({ action: string, label: string, color: string, selected: boolean }))" :value="[]"></state>
     <state
       name="sections"
-      type="list(object({ heading: string, items: list(object({ action: string, label: string, icon: string, danger: boolean })) }))"
+      type="list(object({ heading: string, items: list(object({ action: string, label: string, icon: string, danger: boolean, checkable: boolean, checked: boolean })) }))"
       :value="[]"
     ></state>
     <state name="hasOverflow" :value="false"></state>
     <state name="overflowOpen" :value="false"></state>
     <event
       name="action"
-      type="object({ action: align-left | align-center | align-right | background-none | background-gray | background-yellow | background-blue | background-green | background-red | add-row-before | add-row-after | add-column-before | add-column-after | clear-cells | merge-cells | split-cell | delete-row | delete-column | delete-table })"
+      type="object({ action: align-left | align-center | align-right | background-none | background-gray | background-yellow | background-blue | background-green | background-red | add-row-before | add-row-after | add-column-before | add-column-after | toggle-header-row | toggle-header-column | move-row-up | move-row-down | move-column-left | move-column-right | clear-cells | merge-cells | split-cell | delete-row | delete-column | delete-table })"
     ></event>
   </defs>
   <div role="toolbar" aria-label="Table actions" :hidden="not open">
@@ -74,7 +76,15 @@
         </div>
         <div $each="section of sections" $key="section.heading" class="menu-section divided" role="none">
           <div class="menu-heading" role="presentation" $value="section.heading"></div>
-          <button $each="item of section.items" $key="item.action" type="button" role="menuitem" class:danger="item.danger" :data-action="item.action">
+          <button
+            $each="item of section.items"
+            $key="item.action"
+            type="button"
+            :role="{ true: 'menuitemcheckbox', false: 'menuitem' }[format('%s', item.checkable)]"
+            :aria-checked="{ true: item.checked, false: null }[format('%s', item.checkable)]"
+            class:danger="item.danger"
+            :data-action="item.action"
+          >
             <ui-icon :name="item.icon"></ui-icon>
             <span $value="item.label"></span>
           </button>

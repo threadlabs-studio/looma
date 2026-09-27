@@ -6,7 +6,11 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 # Popover
 
-Non-modal overlay primitive with shared open/close overlay lifecycle.
+Non-modal overlay primitive with shared open/close overlay lifecycle. `placement` accepts `top`,
+`bottom`, `left`, and `right`, each with optional `-start` or `-end` alignment. An unqualified side
+centers the popover on the trigger. Top and bottom start/end follow the writing direction. The
+surface flips to the opposite side when there is more room there, then shifts inside the viewport.
+Set `--ui-popover-offset` on this popover to change the gap from its trigger (4px by default).
 
 
 <ComponentExamplesApiTabs component="ui-popover" />

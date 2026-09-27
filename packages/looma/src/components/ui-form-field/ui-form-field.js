@@ -44,7 +44,7 @@ export default function controller(host) {
       if (!help.id) help.id = id("form-field-help");
       described.push(help.id);
     }
-    if (error) {
+    if (error && host.state.invalid) {
       if (!error.id) error.id = id("form-field-error");
       described.push(error.id);
     }

@@ -6,7 +6,9 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 # Grid
 
-Responsive auto-fit grid primitive.
+Responsive auto-fit grid primitive. Set `min` to choose the narrowest column. `columns` caps how
+many columns appear on a wide container, while the grid still drops to fewer columns as it narrows.
+Omit `columns` when the number of columns should be decided solely by `min` and available space.
 
 
 <ComponentExamplesApiTabs component="ui-grid" />

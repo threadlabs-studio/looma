@@ -1,0 +1,8 @@
+<!--
+title: Link and shortcut
+description: A destination renders a native anchor, while the shortcut slot is a display hint and does not bind a key.
+-->
+<ui-menu open aria-label="File actions">
+  <ui-menu-item value="templates" href="#templates">Browse templates</ui-menu-item>
+  <ui-menu-item value="new">New file <kbd slot="shortcut">⌘N</kbd></ui-menu-item>
+</ui-menu>

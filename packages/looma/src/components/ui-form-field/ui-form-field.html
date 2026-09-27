@@ -1,8 +1,8 @@
 <template component="ui-form-field" controller="./ui-form-field.js">
   <defs>
     <prop name="invalid" type="boolean" default="false"
-    >Marks the field's control invalid by setting aria-invalid on it. Pair it with content in the error slot, which the field already links to the control as
-      its description.</prop>
+    >Marks the field's control invalid by setting aria-invalid on it. Only while invalid, the error slot appears and becomes part of the control's
+      description.</prop>
     <prop name="disabled" type="boolean" default="false"
     >Disables the field's control: the first input, textarea, or select inside it. The field writes this to the control whenever it updates, so set it here
       rather than on the control.</prop>
@@ -18,6 +18,10 @@
   </div>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-form-field-danger {
+      syntax: "*";
+      inherits: false;
+    }
     @property --ui-form-field-help-min-block-size {
       syntax: "*";
       inherits: false;
@@ -25,6 +29,7 @@
 
     :host {
       /* Hooks do not inherit, so the parts below read them from the root. */
+      --_ui-form-field-danger: var(--ui-form-field-danger);
       --_ui-form-field-help-min-block-size: var(--ui-form-field-help-min-block-size);
 
       display: grid;
@@ -57,10 +62,18 @@
       min-block-size: var(--_ui-form-field-help-min-block-size, 0);
     }
 
+    .error {
+      display: none;
+    }
+
+    :host-state([invalid]) .error {
+      display: contents;
+    }
+
     /* An error reads in the danger colour, the one the invalid control's border takes. */
     .error,
     :slotted([role="alert"]) {
-      color: var(--ui-danger);
+      color: var(--_ui-form-field-danger, var(--ui-field-danger, var(--ui-danger)));
       font-size: var(--ui-font-size-sm);
     }
 

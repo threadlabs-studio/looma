@@ -8,5 +8,11 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 A lightweight interaction scope that lets nearby controls anticipate pointer movement without adding listeners or hit regions to every control.
 
+Put Looma controls with their declared `anticipatory` option inside the scope, such as
+`<ui-icon-button anticipatory>`. The controls register themselves; application markup does not
+need `data-*` markers. Focus always reveals a control, and coarse pointers show its full target.
+The scope's `guide="dot|none"` changes the resting guide, not the button's accessible name or
+hit target.
+
 
 <ComponentExamplesApiTabs component="ui-affordance-scope" />

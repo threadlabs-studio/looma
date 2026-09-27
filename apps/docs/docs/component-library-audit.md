@@ -2,6 +2,10 @@
 
 Last updated: 2026-09-21 (Looma 0.3)
 
+> This is the 0.3 decision record, not a live shipped-feature checklist. A
+> [current-source checkpoint](https://github.com/threadlabs-studio/looma/blob/main/docs/audits/library-coverage-2026-09-26.md)
+> reconciles its decisions against later component definitions.
+
 Looma compared the configuration options of each baseline component against the equivalent components in other UI libraries. This page records the decisions. Looma 0.3 publishes the decisions; most additions ship after 0.3.
 
 ## Method
@@ -77,7 +81,7 @@ Fix these first. They are defects, not new options.
 | `ui-switch` | `name` (bug) | Size (tokens), on/off track labels, readonly, invalid |
 | `ui-form-field` | Show and describe the `error` slot only while the field is invalid. Fall back to the control's native `validationMessage`. Add a CSS required marker | Keyed per-validity messages (for now), orientation |
 | `ui-editable` | `save-label`, `cancel-label`, `placeholder`, `required` and `maxlength` (invalid text does not commit). `label` defaults to `""` | Multiline (for now), arbitrary edit content, activation and submit modes |
-| `ui-combobox` | `loading` with an `empty` slot, `filter: "contains" \| "none"` (`none` for server-side filtering), `open-on-focus`, `invalid`. Later (0.14.7): an option description and tag, as `data-description`, `data-tag` and `data-tag-tone` on `<option>`, read as the option's accessible description. Later (0.14.8): `filter: "label" \| "none"` | Function hooks, debounce, minimum characters, virtualization, custom match functions |
+| `ui-combobox` | `loading` with an `empty` slot, `filter: "label" \| "none"` (`none` for server-side filtering), `open-on-focus`, `invalid`. Option descriptions and tags use `data-description`, `data-tag`, and `data-tag-tone` on `<option>` and become the option's accessible description. | Function hooks, debounce, minimum characters, virtualization, custom match functions |
 
 Validation stays declarative everywhere. Validation functions are replaced by native constraint attributes, `setCustomValidity()`, the `invalid` prop and Form Field's error slot.
 

@@ -93,8 +93,11 @@ export default function controller(host) {
     if (!button) return;
     const action = button.dataset.action;
     const cell = { rowIndex: Number(button.dataset.rowIndex), columnIndex: Number(button.dataset.columnIndex) };
-    if (action === "select-row" || action === "select-column") host.dispatch("action", { action, ...cell });
-    else if (action === "open-cell-menu") {
+    if (action === "select-row" || action === "select-column") {
+      host.dispatch("action", { action, ...cell });
+      const rect = button.getBoundingClientRect();
+      host.dispatch("action", { action: action === "select-row" ? "open-row-menu" : "open-column-menu", ...cell, anchor: { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom } });
+    } else if (action === "open-cell-menu") {
       const rect = button.getBoundingClientRect();
       host.dispatch("action", { action, ...cell, anchor: { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom } });
     } else host.dispatch("action", { action, boundaryIndex: Number(button.dataset.boundaryIndex) });

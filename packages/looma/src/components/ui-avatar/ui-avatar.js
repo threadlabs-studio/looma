@@ -29,11 +29,17 @@ export default function controller(host) {
       authored.hidden = !host.state.hasImage;
       element.removeAttribute("role");
       element.removeAttribute("aria-label");
-    } else {
+    } else if (!host.state.decorative) {
       element.setAttribute("role", "img");
       element.setAttribute("aria-label", host.state.alt || host.state.name || "Avatar");
     }
+    if (host.state.decorative) {
+      element.setAttribute("aria-hidden", "true");
+      element.removeAttribute("role");
+      element.removeAttribute("aria-label");
+    } else element.removeAttribute("aria-hidden");
     host.state.initials = host.state.fallback || toInitials(host.state.name || host.state.alt);
+    host.state.showGlyph = !String(host.state.name || "").trim() && !String(host.state.alt || "").trim() && !String(host.state.fallback || "").trim();
   };
   const observer = new MutationObserver(apply);
   observer.observe(element, { childList: true });

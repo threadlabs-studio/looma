@@ -19,7 +19,9 @@ export type TableOverlayAction =
   | TableInsertionAction
   | "select-row"
   | "select-column"
-  | "open-cell-menu";
+  | "open-cell-menu"
+  | "open-row-menu"
+  | "open-column-menu";
 
 /**
  * Discriminated action payload.
@@ -31,7 +33,7 @@ export type TableOverlayActionEventDetail =
   | { action: TableInsertionAction; boundaryIndex: number }
   | { action: "select-row" | "select-column"; rowIndex: number; columnIndex: number }
   | {
-      action: "open-cell-menu";
+      action: "open-cell-menu" | "open-row-menu" | "open-column-menu";
       rowIndex: number;
       columnIndex: number;
       anchor: { left: number; top: number; right: number; bottom: number };
@@ -177,4 +179,3 @@ function measureCellRect(
     columnIndex: coordinate?.columnIndex ?? 0,
   };
 }
-

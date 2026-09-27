@@ -6,8 +6,10 @@
     <prop name="min" type="sm | md | lg"
     >The narrowest a column may get before the grid drops to fewer columns: sm is 12rem (also the default), md is 16rem, and lg is 20rem. The grid fits as many
       equal columns as its width allows, and a single column never overflows a narrower container.</prop>
+    <prop name="columns" type="integer"
+    >Maximum columns when there is room. Omit for no cap. The grid still drops columns as its container narrows; it never forces a fixed column count.</prop>
   </defs>
-  <div><slot></slot></div>
+  <div style:--_grid-column-cap="columns"><slot></slot></div>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
     @property --ui-grid-gap {
@@ -24,7 +26,20 @@
       --_grid-min: 12rem;
       display: grid;
       gap: var(--ui-grid-gap, var(--_grid-gap));
-      grid-template-columns: repeat(auto-fit, minmax(min(var(--ui-grid-min, var(--_grid-min)), 100%), 1fr));
+      grid-template-columns:
+        repeat(
+        auto-fit,
+        minmax(
+          min(
+            max(
+              var(--ui-grid-min, var(--_grid-min)),
+              calc((100% - (max(1, var(--_grid-column-cap, 9999)) - 1) * var(--ui-grid-gap, var(--_grid-gap))) / max(1, var(--_grid-column-cap, 9999)))
+            ),
+            100%
+          ),
+          1fr
+        )
+      );
       min-inline-size: 0;
       max-inline-size: 100%;
       margin: 0;

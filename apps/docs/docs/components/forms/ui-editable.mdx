@@ -10,5 +10,10 @@ Reveal an editing control from an explicit presentation trigger. The component
 owns the accessible activation, focus handoff, Escape behavior, and outside-click
 dismissal; the application owns the displayed value and persistence.
 
+Use `save-label` and `cancel-label` to name the visible actions, and `placeholder` for an empty
+draft. `required` and `max-length` use the native input constraint and keep invalid text in edit
+mode instead of reporting a `change`. The component is not a form field; copy a valid `change`
+value into your form state when a form must submit it.
+
 
 <ComponentExamplesApiTabs component="ui-editable" />

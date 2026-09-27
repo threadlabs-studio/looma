@@ -8,6 +8,7 @@ import type { LoomaIconName } from "./icons";
  * headless extension executes the command from its current ephemeral snapshot.
  */
 export interface SlashMenuItem {
+  value?: string;
   title: string;
   description: string;
   icon: LoomaIconName;
@@ -16,11 +17,13 @@ export interface SlashMenuItem {
 /** Pointer-hover request; selection remains owned by the suggestion extension. */
 export interface SlashMenuHighlightEventDetail {
   index: number;
+  value: string;
 }
 
 /** Activation request for an item in the current published snapshot. */
 export interface SlashMenuSelectEventDetail {
   index: number;
+  value: string;
 }
 
 /**

@@ -3,6 +3,7 @@
     <prop name="checked" type="boolean" default="false"
     >Whether the checkbox is checked initially or when set externally. A form reset returns it to this.</prop>
     <prop name="disabled" type="boolean" default="false">Disables the native checkbox, so it cannot be toggled or focused.</prop>
+    <prop name="invalid" type="boolean" default="false">Exposes an externally validated error and styles the checkbox with the field danger colour.</prop>
     <prop name="indeterminate" type="boolean" default="false"
     >Shows the mixed state, for a checkbox that summarises a group whose items are partly checked. It sets the native indeterminate property, which is
       independent of checked, so update it as the group changes.</prop>
@@ -28,6 +29,7 @@
       .checked="internalChecked"
       .indeterminate="indeterminate"
       :disabled="disabled"
+      :aria-invalid="invalid"
       :required="required"
       :name="name"
       :value="value"
@@ -43,6 +45,10 @@
       syntax: "*";
       inherits: false;
     }
+    @property --ui-checkbox-invalid-border {
+      syntax: "*";
+      inherits: false;
+    }
     @property --ui-checkbox-size {
       syntax: "*";
       inherits: false;
@@ -51,6 +57,7 @@
     :host {
       /* Hooks do not inherit, so the parts below read them from the root. */
       --_ui-checkbox-size: var(--ui-checkbox-size);
+      --_ui-checkbox-invalid-border: var(--ui-checkbox-invalid-border, var(--ui-field-danger, var(--ui-danger-solid)));
 
       display: inline-flex;
       align-items: flex-start;
@@ -146,6 +153,10 @@
     input:focus-visible {
       outline: 2px solid var(--ui-focus-ring, var(--ui-accent-solid));
       outline-offset: 2px;
+    }
+
+    :host-state([invalid]) input {
+      border-color: var(--_ui-checkbox-invalid-border);
     }
 
     :host-state([disabled]) {
