@@ -33,6 +33,10 @@
     <prop name="query" type="string"
     >The input's text, when the consumer controls it. Once set, the consumer owns the text: typing reports query-change, and the input returns to query unless
       query is updated to match. Leave it unset to let the combobox manage its own text, showing the chosen option's label.</prop>
+    <prop name="filter" type="label | none" default="label"
+    >How the list narrows as the user types. label lists the options whose label contains the typed text, ignoring case. none lists every authored option, for
+      options already narrowed elsewhere, such as a server search, so a result that matched on data other than its label still shows. Leaving the field still
+      commits an option whose label matches the text, or the only one listed.</prop>
     <prop name="allowFreeText" type="boolean" default="false">Allows values that do not match an authored option.</prop>
     <prop name="allowCreate" type="boolean" default="false"
     >Offers the current query as a new option, reported as create-item. When nothing else matches, the offer is highlighted, so Enter creates it; with nothing
