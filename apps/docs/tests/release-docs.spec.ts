@@ -1197,7 +1197,7 @@ test("every combobox scenario receives its authored native options", async ({ pa
   await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
 
   const comboboxes = page.locator("[data-component~='ui-combobox']");
-  await expect(comboboxes).toHaveCount(9);
+  await expect(comboboxes).toHaveCount(10);
   await expect(comboboxes.nth(0).locator(".authored-options option")).toHaveCount(2);
   await expect(comboboxes.nth(1).locator(".authored-options option")).toHaveCount(2);
   await comboboxes.nth(0).evaluate((element) => {
