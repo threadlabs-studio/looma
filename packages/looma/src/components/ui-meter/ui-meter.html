@@ -11,6 +11,10 @@
       valueText or in text beside the meter too.</prop>
     <prop name="size" type="sm | md" default="md"
     >Thickness. sm is a thin bar that sits in a line of text, such as a table cell beside an amount; md stands on its own.</prop>
+    <prop name="segments" type="number" default="0"
+    >How many equal segments to draw the bar as, from 2 to 12, for a count of steps: set max to the same number and value to the steps done, so whole segments
+      fill, and say the step in valueText ("Shipped, step 4 of 6"). A value between steps fills part of a segment. 0 draws one continuous bar, as does any other
+      number.</prop>
     <prop name="label" type="string" default=""
     >What the meter measures, as its accessible name ("Collected"). Leave it empty only when aria-labelledby names the meter from visible text.</prop>
     <prop name="valueText" type="string" default=""
@@ -28,6 +32,7 @@
     :aria-valuenow="amount"
     :aria-valuetext="{ true: valueText, false: format('%s%', whole) }[format('%s', valueText != '')]"
     :aria-label="{ true: label, false: null }[format('%s', label != '')]"
+    :data-ui-meter-segments="{ true: segments, false: null }[format('%s', segments > 1)]"
   >
     <span class="fill" style:inline-size="format('%s%', percent)"></span>
   </span>
@@ -87,11 +92,89 @@
       --_meter-fill: var(--ui-danger-solid);
     }
 
+    /* Segments: the track and its fill show through a mask of equal segments with a gap between them.
+       A mask over the whole meter, rather than one element per segment, because the expression
+       language has no range to render N elements from, and one mask lines the fill up with the track
+       for free. Each period is a segment and the gap after it; N periods span the track plus one
+       trailing gap, so the segments sit symmetrically and right to left needs nothing of its own.
+       The count arrives as an attribute, not an inline custom property (which would add a style
+       attribute to every meter), so a continuous meter renders exactly as before, and the rules below
+       turn it into a number. That caps it at 12, until attr() with a type reads any count in every engine. */
+    :host[data-ui-meter-segments="2"] {
+      --_segments: 2;
+    }
+
+    :host[data-ui-meter-segments="3"] {
+      --_segments: 3;
+    }
+
+    :host[data-ui-meter-segments="4"] {
+      --_segments: 4;
+    }
+
+    :host[data-ui-meter-segments="5"] {
+      --_segments: 5;
+    }
+
+    :host[data-ui-meter-segments="6"] {
+      --_segments: 6;
+    }
+
+    :host[data-ui-meter-segments="7"] {
+      --_segments: 7;
+    }
+
+    :host[data-ui-meter-segments="8"] {
+      --_segments: 8;
+    }
+
+    :host[data-ui-meter-segments="9"] {
+      --_segments: 9;
+    }
+
+    :host[data-ui-meter-segments="10"] {
+      --_segments: 10;
+    }
+
+    :host[data-ui-meter-segments="11"] {
+      --_segments: 11;
+    }
+
+    :host[data-ui-meter-segments="12"] {
+      --_segments: 12;
+    }
+
+    :host[data-ui-meter-segments] {
+      --_meter-gap: var(--ui-space-1);
+      --_meter-period: calc((100% + var(--_meter-gap)) / var(--_segments));
+      --_meter-segment: calc(var(--_meter-period) - var(--_meter-gap));
+
+      mask-image: repeating-linear-gradient(to right, #000 0 var(--_meter-segment), transparent 0 var(--_meter-period));
+    }
+
+    :host-state([size="sm"])[data-ui-meter-segments] {
+      --_meter-gap: var(--ui-space-0-5);
+    }
+
     /* Forced colours drop backgrounds: draw the fill in the text colour inside the outlined track. */
     @media (forced-colors: active) {
       .fill {
         forced-color-adjust: none;
         background: CanvasText;
+      }
+
+      /* The mask clips the track's outline, so each segment draws its own: the inset shadow draws the
+         top and bottom edges and the gradient the ends. */
+      :host[data-ui-meter-segments] {
+        forced-color-adjust: none;
+        background: repeating-linear-gradient(
+          to right,
+          CanvasText 0 1px,
+          Canvas 0 calc(var(--_meter-segment) - 1px),
+          CanvasText 0 var(--_meter-segment),
+          transparent 0 var(--_meter-period)
+        );
+        box-shadow: inset 0 0 0 1px CanvasText;
       }
     }
 

@@ -72,7 +72,7 @@
   minimum height where CSS field sizing is supported. Other browsers keep native row sizing.
 - Checkbox and Radio Group add `invalid`. Their native controls expose `aria-invalid`, and their
   validation styling follows `--ui-field-danger` or a local component hook.
-- Combobox adds `invalid`, `filter="contains|none"`, `open-on-focus`, and `loading`. The list can
+- Combobox adds `invalid`, `open-on-focus`, and `loading`. The list can
   show an authored `empty` slot after loading; busy state is announced while options are being
   supplied. `filter="none"` lets applications supply their own filtered option set.
 - Button and Icon Button add `pending`: they keep focus and accessible names, show a spinner,
@@ -92,6 +92,59 @@
   Local hooks on each field and overlay can override those group values for one instance. The
   theming guide explains the three levels, precedence, theme boundaries, and practical recipes.
   Round controls and status shapes now follow the global `--ui-radius-round` value.
+
+## v0.14.8
+
+- Combobox: `filter` sets how the list narrows as the user types. `label`, the default, lists the
+  options whose label contains the text, as before. `none` lists every authored option, for options
+  already narrowed elsewhere, such as a server search, so a result that matched on data other than
+  its label still shows. Grouping, keyboard navigation, the empty state, creating, and free text work
+  the same. Leaving a strict combobox still commits the highlighted option, an exact label, or the
+  first label the text begins; with `none`, the only option listed also counts, whatever its label.
+
+## v0.14.7
+
+- Combobox: an option can carry a description, a muted line under its label, and a tag, a Badge
+  after it, from `data-description`, `data-tag`, and `data-tag-tone` (one of Badge's six tones,
+  `neutral` by default) on its `<option>`. The label stays the option's accessible name, what
+  filtering matches, and what a choice commits; the tag and description are its accessible
+  description (`aria-labelledby` and `aria-describedby` on the option). Item events and `items`
+  carry them as `description` and `tag: { label, tone? }`. An option without them renders and
+  reports as before. A new "Descriptions and tags" example shows a grouped directory search.
+
+## v0.14.6
+
+- Form Field: in development, warns in the console when it links a label that has no `for`, which
+  works only once JavaScript runs; when its input's `id` is not unique in its document or shadow
+  root; and when its label's `for` points at an element other than its input. Each warning names the
+  native fix: an `id` on the input and a matching `for` on the label, or the input inside the
+  label. Input Group warns the same way when an affix's `id` is not unique. Linking is unchanged.
+  Production builds, where the bundler sets `process.env.NODE_ENV` to `"production"`, do not warn.
+- Form Field examples link the label with `for` and `id`, and the docs add "Labels without
+  JavaScript".
+
+## v0.14.5
+
+- Text: the `danger` and `success` tones now use the same text-safe tokens as `info` and `warning`
+  (`--ui-danger-subtle-text`, `--ui-success-subtle-text`, as on a subtle Badge), so text and badges in
+  one tone match. Danger and success text shifts slightly toward the text colour.
+
+## v0.14.4
+
+- Text: `tone` adds `info`, for something moving forward normally, and `warning`, for something that
+  needs attention, matching Badge and Meter, so text or an inline icon (`<ui-text tone="warning">`
+  around a `<ui-icon>`) can carry either state. Each is set in the tone's text-safe colour
+  (`--ui-info-subtle-text`, `--ui-warning-subtle-text`, as on a subtle Badge), at 4.5:1 or more on
+  every surface in light, dark, and high contrast; say the state in the words too.
+
+## v0.14.3
+
+- Meter: `segments` draws the bar as that many equal segments with a gap between them, from 2 to
+  12, so it reads as a count of steps ("step 4 of 6") rather than as a percentage, such as an order
+  moving from placed to delivered in a table cell. Set `max` to the same number and `value` to the
+  steps done so whole segments fill; a value between steps fills part of one. Say the step in
+  `valueText` ("Shipped, step 4 of 6"). The segments are drawn as it renders, before JavaScript, and
+  each keeps its own outline in forced colours. `0`, the default, draws the continuous bar as before.
 
 ## v0.14.2
 

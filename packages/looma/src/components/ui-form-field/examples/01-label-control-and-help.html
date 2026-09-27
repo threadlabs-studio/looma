@@ -1,9 +1,9 @@
 <!--
 title: Label, control, and help
-description: Named label and help slots wrap a Looma input without manual IDs or ARIA wiring.
+description: Named label and help slots around a Looma input. The label's for and the input's id link them before JavaScript runs; the field links the help text.
 -->
 <ui-form-field>
-  <label slot="label">Label</label>
-  <ui-input aria-label="Label"> </ui-input>
+  <label slot="label" for="form-field-label">Label</label>
+  <ui-input id="form-field-label"> </ui-input>
   <small slot="help">Help text</small>
 </ui-form-field>
