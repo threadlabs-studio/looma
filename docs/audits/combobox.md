@@ -211,7 +211,7 @@ Legend: Y = built-in option, R = documented recipe/composition only, - = absent,
 | Value accessor / equality | Y (`id`) | Y (`by`) | Y | Y | Y | - | Y | - | - | 6 | **yes** |
 | Option disabled | Y | Y | Y | Y | Y | Y | Y | Y ? | ? | 7+ | **yes** |
 | Grouping | Y | - | Y | Y | Y | Y | ? | ? | ? | 5 | **yes** |
-| Option description | Y | - | R | R | R | R | R | - | - | 1 | no |
+| Option description | Y | - | R | R | R | R | R | - | - | 1 | no (adopted in 0.14.7 as `<option>` data attributes) |
 | Chips/tags for multiple | R | - | Y | R | Y | Y | Y | Y | - | 5 | **yes** |
 | limitTags / max visible | - | - | Y | - | - | - | - | Y | - | 2 | no |
 | Placeholder | Y | native | via input | Y | Y | Y | ? | Y | Y | 7+ | **yes** |
