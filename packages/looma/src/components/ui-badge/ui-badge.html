@@ -66,8 +66,9 @@
       /* --ui-badge-color derives a wash and an ink from one colour, between the tone and the explicit
          surface, text, and border hooks. Each value is invalid, so the tone shows, while it is unset. The
          mixes keep 4.5:1 text contrast for any colour, in a light theme or a dark one. */
-      --_badge-color-wash: color-mix(in oklab, var(--ui-badge-color) 15%, var(--ui-surface-default));
-      --_badge-color-ink: color-mix(in oklab, var(--ui-badge-color) 35%, var(--ui-text-primary));
+      --_ui-badge-color: var(--ui-badge-color);
+      --_badge-color-wash: color-mix(in oklab, var(--_ui-badge-color) 15%, var(--ui-surface-default));
+      --_badge-color-ink: color-mix(in oklab, var(--_ui-badge-color) 35%, var(--ui-text-primary));
       --_badge-color-surface: var(--_badge-color-wash);
       --_badge-color-border: var(--_badge-color-wash);
       --_badge-color-text: var(--_badge-color-ink);
@@ -168,7 +169,7 @@
     :host-state([variant="solid"]) {
       --_badge-color-surface: var(--_badge-color-ink);
       --_badge-color-border: var(--_badge-color-ink);
-      --_badge-color-text: color-mix(in oklab, var(--ui-badge-color) 0%, var(--ui-surface-default));
+      --_badge-color-text: color-mix(in oklab, var(--_ui-badge-color) 0%, var(--ui-surface-default));
     }
 
     :host-state([variant="outline"]) {
