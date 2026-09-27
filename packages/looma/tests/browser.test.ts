@@ -2682,6 +2682,87 @@ describe("Combobox events", () => {
   });
 });
 
+describe("Combobox option detail", () => {
+  // A row's description and tag describe it: the label stays its name, what filtering matches, and what
+  // a choice commits; a row with neither keeps its name from its content, as before.
+  const check = async (page: Page) => {
+    const input = page.locator('#people input[role="combobox"]');
+    await input.waitFor();
+    await input.press("ArrowDown");
+    const riley = page.getByRole("option", { name: "Riley Kim", exact: true });
+    const description = (option: typeof riley) => option.evaluate((element) =>
+      (element.getAttribute("aria-describedby") ?? "").split(" ").filter(Boolean)
+        .map((id) => (element.getRootNode() as Document).getElementById(id)?.textContent?.trim()).join(", "));
+    assert.equal(await description(riley), "Contact, Harbor Supply Co.");
+    const tone = (option: typeof riley) => option.locator('[data-component="ui-badge"]').getAttribute("data-ui-badge-state");
+    assert.match(await tone(riley) ?? "", /\btone=neutral\b/, "an untoned tag is neutral");
+    const sam = page.getByRole("option", { name: "Sam Ortiz", exact: true });
+    assert.equal(await description(sam), "Harbor Supply Co.");
+    assert.equal(await sam.locator('[data-component="ui-badge"]').count(), 0);
+    const harbor = page.getByRole("option", { name: "Harbor Supply Co.", exact: true });
+    assert.equal(await description(harbor), "Inactive");
+    assert.match(await tone(harbor) ?? "", /\btone=warning\b/);
+    // A plain row renders as it always has.
+    const plain = page.getByRole("option", { name: "Pat Lee", exact: true });
+    assert.deepEqual(await plain.evaluate((element) => [element.getAttribute("aria-labelledby"), element.getAttribute("aria-describedby"),
+      Array.from(element.children, (child) => child.className)]), [null, null, ["primary"]]);
+    // Filtering matches labels only: Riley and Sam work at Harbor, but only the business is suggested.
+    await input.fill("harbor");
+    assert.deepEqual(await page.locator('#people [role="option"]').evaluateAll((all) => all.map((option) => option.querySelector(".primary")?.textContent)),
+      ["Harbor Supply Co."]);
+    await input.fill("riley");
+    await riley.click();
+    assert.equal(await input.inputValue(), "Riley Kim");
+    const choice = await page.evaluate(() => (window as unknown as { changes: any[] }).changes.at(-1));
+    assert.deepEqual(choice.option, { id: "riley", value: "riley", label: "Riley Kim", group: "People", disabled: false, description: "Harbor Supply Co.", tag: { label: "Contact" } });
+  };
+
+  it("names each option by its label and describes it by its tag and description in HTML", async () => {
+    const path = await bundle("html-combobox-option-detail", `
+      import "@threadlabs/looma";
+      window.changes = [];
+      document.addEventListener("value-change", (event) => window.changes.push(event.detail));
+    `);
+    const page = await open(path, `
+      <ui-combobox id="people" label="Directory">
+        <optgroup label="People">
+          <option value="riley" data-description="Harbor Supply Co." data-tag="Contact">Riley Kim</option>
+          <option value="sam" data-description="Harbor Supply Co.">Sam Ortiz</option>
+          <option value="pat">Pat Lee</option>
+        </optgroup>
+        <optgroup label="Businesses">
+          <option value="harbor" data-tag="Inactive" data-tag-tone="warning">Harbor Supply Co.</option>
+        </optgroup>
+      </ui-combobox>
+    `, [join(root, "tokens.css")]);
+    await check(page);
+    await page.close();
+  });
+
+  it("names each option by its label and describes it by its tag and description in Vue", async () => {
+    const path = await bundle("vue-combobox-option-detail", `
+      import { createApp, h } from "vue";
+      import { Combobox } from "@threadlabs/looma/vue";
+      window.changes = [];
+      createApp({
+        render: () => h(Combobox, { id: "people", label: "Directory", onValueChange: (detail) => window.changes.push(detail) }, () => [
+          h("optgroup", { label: "People" }, [
+            h("option", { value: "riley", "data-description": "Harbor Supply Co.", "data-tag": "Contact" }, "Riley Kim"),
+            h("option", { value: "sam", "data-description": "Harbor Supply Co." }, "Sam Ortiz"),
+            h("option", { value: "pat" }, "Pat Lee"),
+          ]),
+          h("optgroup", { label: "Businesses" }, [
+            h("option", { value: "harbor", "data-tag": "Inactive", "data-tag-tone": "warning" }, "Harbor Supply Co."),
+          ]),
+        ]),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await check(page);
+    await page.close();
+  });
+});
+
 describe("Combobox disabled", () => {
   // Every part the user can press follows disabled: the clear, disclosure, help, and badge buttons.
   const check = async (page: Page) => {

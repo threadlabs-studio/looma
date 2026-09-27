@@ -10,5 +10,26 @@ A normal text field with contextual rich suggestions and integrated optional hel
 and validation. Labels and option titles use restrained medium weight; metadata and
 messages use regular weight. Domain lookups and persistence stay in the application.
 
+## Descriptions and tags
+
+An option can carry a line of context under its label and a short tag after it, for a list that
+mixes kinds of result, such as people, businesses, and places:
+
+```html
+<option value="riley" data-description="Harbor Supply Co." data-tag="Contact">Riley Kim</option>
+<option value="yard" data-description="Tacoma, WA" data-tag="Closed" data-tag-tone="danger">East yard</option>
+```
+
+- `data-description` is the muted line under the label.
+- `data-tag` is a [Badge](/components/ui-badge) after the label; `data-tag-tone` picks one of its
+  tones (`neutral`, the default, `accent`, `info`, `success`, `warning`, or `danger`). Pick the tone
+  by what the tag means, and say it in the words too.
+- The label stays the option's accessible name, the text filtering matches, and what the field shows
+  once chosen. The tag and the description are the option's accessible description, so a screen
+  reader announces the name first and the context after it.
+- Options report them as `description` and `tag: { label, tone? }` in `options-change`,
+  `value-change`, and the other item events. An option without them reports the same shape as
+  before.
+
 
 <ComponentExamplesApiTabs component="ui-combobox" />
