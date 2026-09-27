@@ -1374,6 +1374,66 @@ describe("Badge shape", () => {
   });
 });
 
+describe("Badge colour", () => {
+  // --ui-badge-color derives a wash and an ink from one colour: it beats the tone, the explicit hooks
+  // beat it, and its text keeps 4.5:1 for any hue in every variant and theme.
+  const hues = { teal: "teal", violet: "#7c3aed", amber: "#f59e0b", paleYellow: "#fef9c3", black: "black", white: "white" };
+  const variants = ["subtle", "solid", "outline"];
+
+  it("overrides the tone, yields to explicit hooks, and keeps text contrast", async () => {
+    const path = await bundle("html-badge-color", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-badge id="tone" tone="danger">Tone</ui-badge>
+      <ui-badge id="neutral">Plain</ui-badge>
+      <ui-badge id="coloured" tone="danger" style="--ui-badge-color: teal">Coloured</ui-badge>
+      <ui-badge id="explicit" tone="danger" style="--ui-badge-color: teal; --ui-badge-surface: rgb(1, 2, 3); --ui-badge-text: rgb(4, 5, 6); --ui-badge-border: rgb(7, 8, 9)">Explicit</ui-badge>
+      <div style="--ui-badge-color: teal"><ui-badge id="nested">Nested</ui-badge></div>
+      ${Object.entries(hues).flatMap(([name, hue]) => variants.map((variant) =>
+        `<ui-badge id="${name}-${variant}" class="hue" variant="${variant}" style="--ui-badge-color: ${hue}">${name}</ui-badge>`)).join("")}
+    `, [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "theme-dark.css")]);
+    await page.waitForSelector('#explicit[data-component~="ui-badge"]');
+    const paint = (selector: string) => page.locator(selector).evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { surface: style.backgroundColor, text: style.color, border: style.borderTopColor };
+    });
+    const tone = await paint("#tone"), coloured = await paint("#coloured");
+    assert.notEqual(coloured.surface, tone.surface, "the colour replaces the tone's surface");
+    assert.notEqual(coloured.text, tone.text, "the colour replaces the tone's text");
+    assert.equal(coloured.border, coloured.surface, "a coloured badge's edge is its fill, as a tone's is");
+    assert.deepEqual(await paint("#explicit"), { surface: "rgb(1, 2, 3)", text: "rgb(4, 5, 6)", border: "rgb(7, 8, 9)" });
+    assert.deepEqual(await paint("#nested"), await paint("#neutral"), "the hook styles only the badge it is set on");
+
+    for (const theme of ["light", "dark"]) {
+      await page.evaluate((value) => document.documentElement.setAttribute("data-theme", value), theme);
+      const ratios = await page.locator(".hue").evaluateAll((badges) => {
+        const context = document.createElement("canvas").getContext("2d")!;
+        const luminance = (colour: string) => {
+          context.clearRect(0, 0, 1, 1);
+          context.fillStyle = colour;
+          context.fillRect(0, 0, 1, 1);
+          const channels = [...context.getImageData(0, 0, 1, 1).data.slice(0, 3)].map((value) => {
+            const channel = value / 255;
+            return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+          });
+          return 0.2126 * channels[0]! + 0.7152 * channels[1]! + 0.0722 * channels[2]!;
+        };
+        return badges.map((badge) => {
+          const style = getComputedStyle(badge);
+          const [bright, dim] = [luminance(style.color), luminance(style.backgroundColor)].sort((a, b) => b - a);
+          return { badge: badge.id, ratio: (bright! + 0.05) / (dim! + 0.05) };
+        });
+      });
+      assert.equal(ratios.length, Object.keys(hues).length * variants.length);
+      for (const { badge, ratio } of ratios) assert.ok(ratio >= 4.5, `${theme}: ${badge} text is ${ratio.toFixed(2)}:1`);
+    }
+
+    await page.emulateMedia({ forcedColors: "active" });
+    const forced = await paint("#coloured");
+    assert.notEqual(forced.border, forced.surface, "forced colours draw a coloured badge's edge");
+    await page.close();
+  });
+});
+
 describe("Badge box", () => {
   const tones = ["neutral", "accent", "info", "success", "warning", "danger"];
   const variants = ["subtle", "solid"];
@@ -3933,6 +3993,11 @@ describe("Combobox option detail", () => {
     const harbor = page.getByRole("option", { name: "Harbor Supply Co.", exact: true });
     assert.equal(await description(harbor), "Inactive");
     assert.match(await tone(harbor) ?? "", /\btone=warning\b/);
+    // A tag colour reaches the tag's badge as its colour hook.
+    const northwind = page.getByRole("option", { name: "Northwind Traders", exact: true });
+    const hook = (option: typeof riley) => option.locator('[data-component="ui-badge"]').evaluate((badge) => getComputedStyle(badge).getPropertyValue("--ui-badge-color").trim());
+    assert.equal(await hook(northwind), "teal");
+    assert.equal(await hook(harbor), "", "an uncoloured tag sets no colour");
     // A plain row renders as it always has.
     const plain = page.getByRole("option", { name: "Pat Lee", exact: true });
     assert.deepEqual(await plain.evaluate((element) => [element.getAttribute("aria-labelledby"), element.getAttribute("aria-describedby"),
@@ -3941,6 +4006,9 @@ describe("Combobox option detail", () => {
     await input.fill("harbor");
     assert.deepEqual(await page.locator('#people [role="option"]').evaluateAll((all) => all.map((option) => option.querySelector(".primary")?.textContent)),
       ["Harbor Supply Co."]);
+    await input.fill("northwind");
+    await northwind.click();
+    assert.deepEqual((await page.evaluate(() => (window as unknown as { changes: any[] }).changes.at(-1))).option.tag, { label: "Business", color: "teal" });
     await input.fill("riley");
     await riley.click();
     assert.equal(await input.inputValue(), "Riley Kim");
@@ -3963,6 +4031,7 @@ describe("Combobox option detail", () => {
         </optgroup>
         <optgroup label="Businesses">
           <option value="harbor" data-tag="Inactive" data-tag-tone="warning">Harbor Supply Co.</option>
+          <option value="northwind" data-tag="Business" data-tag-color="teal">Northwind Traders</option>
         </optgroup>
       </ui-combobox>
     `, [join(root, "tokens.css")]);
@@ -3984,6 +4053,7 @@ describe("Combobox option detail", () => {
           ]),
           h("optgroup", { label: "Businesses" }, [
             h("option", { value: "harbor", "data-tag": "Inactive", "data-tag-tone": "warning" }, "Harbor Supply Co."),
+            h("option", { value: "northwind", "data-tag": "Business", "data-tag-color": "teal" }, "Northwind Traders"),
           ]),
         ]),
       }).mount("#app");
