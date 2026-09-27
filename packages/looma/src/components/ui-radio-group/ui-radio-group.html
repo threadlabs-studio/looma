@@ -16,16 +16,24 @@
     <prop name="required" type="boolean" default="false"
     >Makes a choice required, as a required native radio does for its group: the group states aria-required, every radio in it is marked required, and native
       form validation fails until one is checked.</prop>
+    <prop name="invalid" type="boolean" default="false"
+    >Exposes an externally validated error on the group and styles its legend with the field danger colour.</prop>
     <state name="internalValue" :value="''"></state>
     <event name="select" type="object({ value: string, previousValue: string, trigger: keyboard | pointer | programmatic })"></event>
     <event name="change" type="object({ checked: boolean, value: string, trigger: keyboard | pointer | programmatic })"></event>
   </defs>
-  <fieldset role="radiogroup" :aria-required="required" :disabled="disabled">
+  <fieldset role="radiogroup" :aria-required="required" :aria-invalid="invalid" :disabled="disabled">
     <legend><template $value="label"></template></legend>
     <slot></slot>
   </fieldset>
   <style>
+    @property --ui-radio-group-invalid-text {
+      syntax: "*";
+      inherits: false;
+    }
+
     :host {
+      --_ui-radio-group-invalid-text: var(--ui-radio-group-invalid-text, var(--ui-field-danger, var(--ui-danger-solid)));
       display: inline-flex;
       align-items: center;
       gap: var(--ui-space-2);
@@ -46,6 +54,10 @@
 
     legend + * {
       clear: both;
+    }
+
+    :host-state([invalid]) legend {
+      color: var(--_ui-radio-group-invalid-text);
     }
 
     :host-state([orientation="vertical"]) {

@@ -30,8 +30,8 @@ formatting commands, selection and focus, and every editor control. See
 
 The toolbar is always one row, in four groups. When it is wider than the space it has, the row scrolls sideways instead of wrapping, and each edge that hides controls fades into the toolbar's colour:
 
-- **Text:** Bold, Italic, Underline, Strike, Highlight, Inline code.
-- **Blocks:** Heading 1–3, Bullet list, Numbered list, Blockquote, Code block.
+- **Text:** Bold, Italic, Underline, Strike, Highlight, Inline code, Link.
+- **Blocks:** Heading 1–3, Bullet list, Numbered list, Blockquote, Code block, Block actions.
 - **Insert:** Table (opens the size grid), Image.
 - **History:** Undo, Redo.
 
@@ -41,6 +41,28 @@ bottom of the viewport. Its buttons follow the [Toolbar](/components/ui-editor-t
 `--ui-editor-toolbar-button-size`, `--ui-editor-toolbar-button-radius`,
 `--ui-editor-toolbar-icon-size`, and the active-state `--ui-editor-toolbar-active-surface`,
 `--ui-editor-toolbar-active-text`, and `--ui-editor-toolbar-active-border`.
+
+### Links
+
+Select text and choose **Link** to add one, or place the caret in a link to edit or remove it.
+With no selection, the form also asks for link text. It accepts `http:`, `https:`, `mailto:`,
+`tel:`, and relative URLs beginning with `/`, `#`, or `?`; other schemes are rejected before the
+document changes. A preview opens separately with `noopener noreferrer`. The **Open in new tab**
+choice controls the saved link's `target` and `rel` attributes. The editor restores its selection
+when the form saves, so moving focus to the form does not change the text being linked.
+
+The form follows the same theme layers as the rest of Looma: its surface, border, radius and shadow
+read inherited `--ui-overlay-*` values; its input radius reads `--ui-field-radius`; its invalid
+message reads `--ui-field-danger`. Set those on the editor's container for a local treatment.
+
+### Block actions
+
+Place the caret in a block and choose **Block actions** to insert a paragraph after it, duplicate
+it, or delete it. The menu acts on the top-level block even when the caret sits in a nested list or
+table cell. Deleting the only block leaves an empty paragraph to continue writing. The same menu
+works in the mobile toolbar; its trigger and items follow native button and menu keyboard behavior.
+Block type changes remain in the adjacent heading, list, quote, and code commands, and the slash
+menu provides insertion choices. This keeps block actions reachable without a hover-only gutter.
 
 ## Slash menu
 

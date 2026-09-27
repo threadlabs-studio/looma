@@ -2,6 +2,10 @@
 
 Last updated: 2026-09-21 (Looma 0.3)
 
+> This is the 0.3 decision record, not a live shipped-feature checklist. A
+> [current-source checkpoint](https://github.com/threadlabs-studio/looma/blob/main/docs/audits/library-coverage-2026-09-26.md)
+> reconciles its decisions against later component definitions.
+
 Looma compared the configuration options of each baseline component against the equivalent components in other UI libraries. This page records the decisions. Looma 0.3 publishes the decisions; most additions ship after 0.3.
 
 ## Method

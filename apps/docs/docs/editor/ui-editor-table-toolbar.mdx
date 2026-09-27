@@ -7,6 +7,10 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 # Table Toolbar
 
 Selection-aware quick toolbar for table alignment and structural actions.
+Its overflow menu accepts the same header row and column toggle actions as Table Context Menu.
+Pass `header-row` and `header-column` to announce their checked state, and handle the `action`
+event in the editor integration.
+The overflow also accepts row and column move actions when the current selection supports them.
 
 
 <ComponentExamplesApiTabs component="ui-editor-table-toolbar" />

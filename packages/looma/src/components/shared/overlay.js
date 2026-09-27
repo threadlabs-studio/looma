@@ -1,6 +1,4 @@
 const stacks = new WeakMap();
-let anchorSequence = 0;
-const anchorBindings = new WeakMap();
 
 function stateFor(document) {
   let state = stacks.get(document);
@@ -18,7 +16,7 @@ function syncScrollLock(document, state) {
 
 function requestClose(document, reason, trigger) {
   const record = stateFor(document).records.at(-1);
-  if (!record || (record.dismissible === false && (reason === "escape" || reason === "light-dismiss"))) return false;
+  if (!record || (record.dismissible === false && (reason === "escape" || reason === "light-dismiss")) || record.canClose?.(reason) === false) return false;
   record.requestClose(reason, trigger);
   return true;
 }
@@ -102,25 +100,6 @@ function hide(surface) {
   surface.hidden = true;
 }
 
-function bindAnchor(anchor, name) {
-  const binding = anchorBindings.get(anchor) ?? { original: anchor.style.getPropertyValue("anchor-name"), names: new Set() };
-  binding.names.add(name);
-  anchorBindings.set(anchor, binding);
-  anchor.style.setProperty("anchor-name", [binding.original, ...binding.names].filter(Boolean).join(", "));
-}
-
-function unbindAnchor(anchor, name) {
-  const binding = anchorBindings.get(anchor);
-  if (!binding) return;
-  binding.names.delete(name);
-  if (binding.names.size) anchor.style.setProperty("anchor-name", [binding.original, ...binding.names].filter(Boolean).join(", "));
-  else {
-    if (binding.original) anchor.style.setProperty("anchor-name", binding.original);
-    else anchor.style.removeProperty("anchor-name");
-    anchorBindings.delete(anchor);
-  }
-}
-
 function viewport(owner) {
   const visual = owner.visualViewport;
   const left = visual?.offsetLeft ?? 0;
@@ -151,13 +130,33 @@ function layoutRect(surface) {
 
 function fallbackPosition(surface, anchor, placement, gap, viewportGap, surfaceRect = layoutRect(surface)) {
   const bounds = viewport(surface.ownerDocument.defaultView);
-  const preferTop = placement.startsWith("top");
-  const preferEnd = placement.endsWith("end");
-  const below = bounds.bottom - anchor.bottom - viewportGap;
-  const above = anchor.top - bounds.top - viewportGap;
-  const useTop = preferTop ? !(above < surfaceRect.height + gap && below > above) : below < surfaceRect.height + gap && above > below;
-  const top = useTop ? anchor.top - surfaceRect.height - gap : anchor.bottom + gap;
-  const left = preferEnd ? anchor.right - surfaceRect.width : anchor.left;
+  const [preferred, align = "center"] = placement.split("-");
+  const side = ["top", "bottom", "left", "right"].includes(preferred) ? preferred : "bottom";
+  const opposite = { top: "bottom", bottom: "top", left: "right", right: "left" }[side];
+  const available = {
+    top: anchor.top - bounds.top - viewportGap,
+    bottom: bounds.bottom - anchor.bottom - viewportGap,
+    left: anchor.left - bounds.left - viewportGap,
+    right: bounds.right - anchor.right - viewportGap,
+  };
+  const needed = (side === "top" || side === "bottom" ? surfaceRect.height : surfaceRect.width) + gap;
+  const actual = available[side] < needed && available[opposite] > available[side] ? opposite : side;
+  surface.dataset.uiActualPlacement = actual;
+  surface.dataset.uiActualAlign = align;
+  const rtl = getComputedStyle(surface).direction === "rtl";
+  let left;
+  let top;
+  if (actual === "top" || actual === "bottom") {
+    top = actual === "top" ? anchor.top - surfaceRect.height - gap : anchor.bottom + gap;
+    left = align === "start"
+      ? (rtl ? anchor.right - surfaceRect.width : anchor.left)
+      : align === "end"
+        ? (rtl ? anchor.left : anchor.right - surfaceRect.width)
+        : (anchor.left + anchor.right - surfaceRect.width) / 2;
+  } else {
+    left = actual === "left" ? anchor.left - surfaceRect.width - gap : anchor.right + gap;
+    top = align === "start" ? anchor.top : align === "end" ? anchor.bottom - surfaceRect.height : (anchor.top + anchor.bottom - surfaceRect.height) / 2;
+  }
   const shift = clamp({ left, top, right: left + surfaceRect.width, bottom: top + surfaceRect.height, width: surfaceRect.width, height: surfaceRect.height }, bounds, viewportGap);
   surface.style.left = `${Math.round(left + shift.x)}px`;
   surface.style.top = `${Math.round(top + shift.y)}px`;
@@ -168,10 +167,8 @@ function fallbackPosition(surface, anchor, placement, gap, viewportGap, surfaceR
 export function createAnchoredSurface(surface, options = {}) {
   const owner = surface.ownerDocument.defaultView;
   let placement = options.placement ?? "bottom-start";
-  const gap = Math.max(0, options.gap ?? 4);
+  const gap = () => Math.max(0, Number(typeof options.gap === "function" ? options.gap() : options.gap ?? 4) || 0);
   const viewportGap = Math.max(0, options.viewportGap ?? 8);
-  const nativeAnchor = owner.CSS?.supports?.("anchor-name: --ui-anchor-test") && owner.CSS.supports("position-anchor: --ui-anchor-test") && owner.CSS.supports("top: anchor(bottom)");
-  const anchorName = `--ui-anchor-${++anchorSequence}`;
   let anchor = options.anchor ?? null;
   let point = null;
   let open = false;
@@ -179,40 +176,17 @@ export function createAnchoredSurface(surface, options = {}) {
   let abort = null;
   let sizeObserver = null;
   surface.setAttribute("popover", "manual");
-  surface.dataset.uiPositioning = nativeAnchor ? "anchor" : "fallback";
   surface.style.position = "fixed";
   surface.style.margin = "0";
-  const bind = (next) => {
-    if (anchor) unbindAnchor(anchor, anchorName);
-    anchor = next;
-    if (anchor) {
-      bindAnchor(anchor, anchorName);
-      surface.style.setProperty("position-anchor", anchorName);
-    } else surface.style.removeProperty("position-anchor");
-  };
   const position = () => {
     frame = null;
     if (!open) return;
     if (point) {
-      fallbackPosition(surface, { left: point.x, right: point.x, top: point.y, bottom: point.y, width: 0, height: 0 }, "bottom-start", gap, viewportGap);
+      fallbackPosition(surface, { left: point.x, right: point.x, top: point.y, bottom: point.y, width: 0, height: 0 }, "bottom-start", gap(), viewportGap);
       return;
     }
     if (!anchor) return;
-    let rect;
-    if (nativeAnchor) {
-      const blockEnd = placement.startsWith("bottom");
-      const inlineEnd = placement.endsWith("end");
-      surface.style.top = blockEnd ? `calc(anchor(bottom) + ${gap}px)` : "auto";
-      surface.style.bottom = blockEnd ? "auto" : `calc(anchor(top) + ${gap}px)`;
-      surface.style.left = inlineEnd ? "auto" : "anchor(left)";
-      surface.style.right = inlineEnd ? "anchor(right)" : "auto";
-      surface.style.setProperty("position-try-fallbacks", "flip-block, flip-inline");
-      rect = layoutRect(surface);
-      if (!rect.width || !rect.height) return;
-      const shift = clamp(rect, viewport(owner), viewportGap);
-      if (!shift.x && !shift.y) return;
-    }
-    fallbackPosition(surface, anchor.getBoundingClientRect(), placement, gap, viewportGap, rect);
+    fallbackPosition(surface, anchor.getBoundingClientRect(), placement, gap(), viewportGap);
   };
   const schedule = () => {
     if (open && frame === null) frame = owner.requestAnimationFrame(position);
@@ -238,15 +212,14 @@ export function createAnchoredSurface(surface, options = {}) {
     sizeObserver.observe(surface);
   };
   const stopSize = () => { sizeObserver?.disconnect(); sizeObserver = null; };
-  bind(anchor);
   return {
-    setAnchor(next) { point = null; bind(next); syncListeners(); schedule(); },
+    setAnchor(next) { point = null; anchor = next; syncListeners(); schedule(); },
     setPlacement(next) { placement = next || "bottom-start"; schedule(); },
     show() { point = null; open = true; syncListeners(); show(surface); position(); schedule(); observeSize(); },
     showAtPoint(next) { point = next; open = true; syncListeners(); show(surface); position(); schedule(); observeSize(); },
     hide() { open = false; point = null; syncListeners(); stopSize(); if (frame !== null) owner.cancelAnimationFrame(frame); frame = null; hide(surface); },
     refresh: schedule,
-    destroy() { open = false; abort?.abort(); abort = null; stopSize(); if (frame !== null) owner.cancelAnimationFrame(frame); frame = null; hide(surface); bind(null); },
+    destroy() { open = false; abort?.abort(); abort = null; stopSize(); if (frame !== null) owner.cancelAnimationFrame(frame); frame = null; hide(surface); anchor = null; },
   };
 }
 

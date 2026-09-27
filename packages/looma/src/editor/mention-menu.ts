@@ -3,9 +3,11 @@
 /** Zero-based candidate position requested by pointer-driven menu highlighting. */
 export interface MentionMenuHighlightEventDetail {
   index: number;
+  value: string;
 }
 
 /** Zero-based candidate position the host should commit as the chosen mention. */
 export interface MentionMenuSelectEventDetail {
   index: number;
+  value: string;
 }

@@ -8,5 +8,10 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 Responsive dialog structure for application search and command palettes. It owns visibility, dismissal, accessible dialog semantics, and the search/status/body/footer regions while applications retain query and result state.
 
+Escape closes the shell. `dismissible` controls backdrop clicks only. Arrow Down from the search
+field moves to the first enabled Search Result Row; Arrow Up moves to the last. Arrows then wrap
+among enabled rows, and Home/End jump to the ends. A row remains a native button, so Enter or Space
+activates it. The application still owns filtering and any `selected` state it wants to display.
+
 
 <ComponentExamplesApiTabs component="ui-search-shell" />

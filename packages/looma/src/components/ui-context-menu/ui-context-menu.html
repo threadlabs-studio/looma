@@ -11,11 +11,27 @@
       name="close"
       type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"
     ></event>
-    <event name="select" type="object({ value: string, trigger: keyboard | pointer | programmatic })"></event>
+    <event name="select" type="object({ value: string, checked?: boolean, trigger: keyboard | pointer | programmatic })"></event>
   </defs>
   <span><div class="menu" $ref="menu" role="menu" aria-orientation="vertical"><slot></slot></div></span>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-context-menu-surface {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-context-menu-border {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-context-menu-radius {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-context-menu-shadow {
+      syntax: "*";
+      inherits: false;
+    }
     @property --ui-context-menu-z-index {
       syntax: "*";
       inherits: false;
@@ -23,6 +39,10 @@
 
     :host {
       /* Hooks do not inherit, so the parts below read them from the root. */
+      --_ui-context-menu-surface: var(--ui-context-menu-surface);
+      --_ui-context-menu-border: var(--ui-context-menu-border);
+      --_ui-context-menu-radius: var(--ui-context-menu-radius);
+      --_ui-context-menu-shadow: var(--ui-context-menu-shadow);
       --_ui-context-menu-z-index: var(--ui-context-menu-z-index);
 
       display: contents;
@@ -36,10 +56,10 @@
       flex-direction: column;
       box-sizing: border-box;
       padding: var(--ui-space-1);
-      background: var(--ui-surface-elevated);
-      border: 1px solid var(--ui-border-default);
-      border-radius: var(--ui-radius-lg);
-      box-shadow: var(--ui-elevation-overlay, var(--ui-shadow-lg));
+      background: var(--_ui-context-menu-surface, var(--ui-overlay-surface, var(--ui-surface-elevated)));
+      border: 1px solid var(--_ui-context-menu-border, var(--ui-overlay-border, var(--ui-border-default)));
+      border-radius: var(--_ui-context-menu-radius, var(--ui-overlay-radius, var(--ui-radius-lg)));
+      box-shadow: var(--_ui-context-menu-shadow, var(--ui-overlay-shadow, var(--ui-elevation-overlay, var(--ui-shadow-lg))));
       outline: 0;
       overflow: auto;
       z-index: var(--_ui-context-menu-z-index, 1000);
@@ -51,6 +71,14 @@
         transform var(--ui-motion-fast) var(--ui-motion-ease),
         display var(--ui-motion-fast) allow-discrete,
         overlay var(--ui-motion-fast) allow-discrete;
+    }
+
+    .menu hr {
+      align-self: stretch;
+      block-size: 0;
+      margin: var(--ui-space-1) 0;
+      border: 0;
+      border-block-start: 1px solid var(--ui-border-default);
     }
 
     .menu:popover-open {

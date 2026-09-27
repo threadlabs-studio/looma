@@ -6,7 +6,9 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 # Switcher
 
-Intrinsic equal-column layout that stacks when its own container becomes too narrow.
+Intrinsic equal-column layout that stacks when its own container becomes too narrow. Set `limit`
+to the most children allowed in a horizontal row. If the authored child count exceeds the limit,
+all children stack even when the container is wide. Omit it when only `threshold` should decide.
 
 
 <ComponentExamplesApiTabs component="ui-switcher" />

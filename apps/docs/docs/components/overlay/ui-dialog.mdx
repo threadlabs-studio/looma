@@ -8,5 +8,25 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 Overlay primitive that coordinates native `dialog` behavior with shared overlay stack rules.
 
+Dialogs are modal by default. Use `modeless` only when people should keep interacting with the
+page. Escape closes a dialog by default; `closedby="any"` also enables outside presses, and
+`closedby="none"` requires an explicit close action. `alert` gives an urgent confirmation the
+`alertdialog` role, hides the header close button, and never permits outside dismissal. Give every
+alert dialog a clear label, a short explanation, and at least one visible action. For destructive
+choices, put `autofocus` on the least destructive action. Native `commandfor` and `command="close"`
+work for action buttons; `for` also wires a trigger with `aria-haspopup`, `aria-controls`, and
+`aria-expanded`.
+
+`size="sm|md|lg|fullscreen"` covers common widths. Set `--ui-dialog-max-width` on one dialog when
+those widths do not fit. The `open` and `close` events carry `{open, reason, trigger}`; the initial
+`open` attribute does not emit an event.
+
+## Theming
+
+Dialog reads the inherited overlay group values for its surface, border, radius and shadow. Set
+`--ui-overlay-radius` to give Dialog and other floating surfaces the same corner treatment, or leave
+it unset to keep their own radius defaults. The [theming guide](/tokens) explains the global and
+group values.
+
 
 <ComponentExamplesApiTabs component="ui-dialog" />

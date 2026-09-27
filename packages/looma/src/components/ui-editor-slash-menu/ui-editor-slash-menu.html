@@ -1,9 +1,14 @@
 <link rel="component" href="../ui-icon/ui-icon.html">
+<link rel="component" href="../ui-editor-slash-menu-item/ui-editor-slash-menu-item.html">
+<link rel="component" href="../ui-editor-slash-menu-group/ui-editor-slash-menu-group.html">
 <template component="ui-editor-slash-menu" controller="./ui-editor-slash-menu.js">
   <defs>
     <prop name="open" type="boolean" default="false">Whether the menu is open.</prop>
     <prop name="query" type="string" default="">The text typed after the slash.</prop>
-    <prop name="items" type="list(object({ title: string, description: string, icon: string }))">The blocks the menu offers.</prop>
+    <prop name="items" type="list(object({ value?: string, title: string, description: string, icon: string }))"
+    >Integration-supplied commands. Authored Slash Menu Item children are the markup alternative.</prop>
+    <prop name="label" type="string" default="Insert block"
+    >Accessible name of the suggestion list, used unless an aria-label or aria-labelledby is authored.</prop>
     <prop name="selectedIndex" type="integer" default="0"
     >The zero-based index of the highlighted item. The menu does not handle arrow keys itself: the editor sets this as the user moves, while hovering an item
       highlights it and reports a highlight event.</prop>
@@ -13,23 +18,29 @@
     >Where the slash was typed, in viewport coordinates.</prop>
     <state name="visible" :value="false"></state>
     <state name="active" :value="0"></state>
-    <event name="highlight" type="object({ index: integer })"></event>
-    <event name="select" type="object({ index: integer })"></event>
+    <state name="rows" type="list(object({ value: string, title: string, description: string, icon: string }))" :value="[]"></state>
+    <event name="highlight" type="object({ index: integer, value: string })"></event>
+    <event name="select" type="object({ index: integer, value: string })"></event>
   </defs>
-  <div role="listbox" aria-label="Insert block" :hidden="not visible">
-    <div class="header" aria-hidden="true">
-      <span class="header-label">Insert</span>
-      <span $if="query" class="header-query" $value="query"></span>
-    </div>
+  <div role="listbox" :hidden="not visible">
+    <div class="header"><slot name="header"></slot></div>
     <ul class="list" role="presentation">
-      <li $each="item, index of items" class="item" class:active="index = active" role="option" :aria-selected="index = active" :data-index="index">
+      <li
+        $each="item, index of rows"
+        class="item"
+        class:active="index = active"
+        role="option"
+        :aria-selected="index = active"
+        :data-index="index"
+        :data-value="item.value"
+      >
         <span class="icon" aria-hidden="true"><ui-icon :name="item.icon"></ui-icon></span>
         <span class="body"><span class="title" $value="item.title"></span><span class="description" $value="item.description"></span></span>
       </li>
+      <slot></slot>
     </ul>
-    <div class="footer" aria-hidden="true">
-      <kbd>↑↓</kbd> navigate · <kbd>↵</kbd> insert · <kbd>Esc</kbd> close
-    </div>
+    <div class="empty" $ref="empty"><slot name="empty"></slot></div>
+    <div class="footer"><slot name="footer"></slot></div>
   </div>
   <style>
     :host {
@@ -66,21 +77,20 @@
       letter-spacing: 0.05em;
     }
 
+    .header:not(:has(> *)), .footer:not(:has(> *)), .empty:not(:has(> *)) {
+      display: none;
+    }
+
+    .empty {
+      padding: var(--ui-space-3);
+      color: var(--ui-text-muted);
+      font-size: var(--ui-font-size-sm);
+    }
+
     @media (max-width: 767px) {
       .header {
         display: flex;
       }
-    }
-
-    .header-query {
-      background: var(--ui-surface-hover);
-      border-radius: var(--ui-radius-sm);
-      padding: 0.1em 0.4em;
-      font-family: var(--ui-font-family-mono, ui-monospace, monospace);
-      font-size: var(--ui-font-size-xs);
-      color: var(--ui-accent);
-      text-transform: none;
-      letter-spacing: 0;
     }
 
     .list {
@@ -183,17 +193,10 @@
     }
 
     .footer {
-      display: none;
       padding: var(--ui-space-2) var(--ui-space-3);
       border-top: 1px solid var(--ui-border);
       font-size: var(--ui-font-size-xs);
       color: var(--ui-text-muted);
-    }
-
-    @media (min-width: 768px) {
-      .footer {
-        display: block;
-      }
     }
 
     :host kbd {

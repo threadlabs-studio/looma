@@ -1,3 +1,4 @@
+<link rel="component" href="../ui-editor-mention-menu-item/ui-editor-mention-menu-item.html">
 <template component="ui-editor-mention-menu" controller="./ui-editor-mention-menu.js">
   <defs>
     <prop name="open" type="boolean" default="false">Whether the menu is open.</prop>
@@ -7,6 +8,8 @@
     >The zero-based index of the highlighted person, capped at the last one shown, and announced through aria-activedescendant. The menu does not handle arrow
       keys itself: the editor sets this as the user moves, while hovering a person highlights them and reports a highlight event.</prop>
     <prop name="loading" type="boolean" default="false">Whether a search is in progress.</prop>
+    <prop name="label" type="string" default="Mentions">Accessible name of the suggestion list.</prop>
+    <prop name="loadingLabel" type="string" default="Searching…">Status text shown while loading an empty result list.</prop>
     <prop
       name="anchorRect"
       type="object({ left?: number, top?: number, right?: number, bottom?: number, x?: number, y?: number, width?: number, height?: number }) | null"
@@ -16,15 +19,12 @@
     <state name="searching" :value="false"></state>
     <state name="active" :value="0"></state>
     <state name="prefix" :value="'ui-editor-mention-menu'"></state>
-    <event name="highlight" type="object({ index: integer })"></event>
-    <event name="select" type="object({ index: integer })"></event>
+    <event name="highlight" type="object({ index: integer, value: string })"></event>
+    <event name="select" type="object({ index: integer, value: string })"></event>
   </defs>
-  <div role="listbox" aria-label="Mention a person" :aria-busy="loading" :hidden="not visible">
-    <div class="header">
-      <span>People</span>
-      <span class="hint">Type after @ to search</span>
-    </div>
-    <div $if="searching" class="loading" role="status">Searching…</div>
+  <div role="listbox" :aria-busy="loading" :hidden="not visible">
+    <div class="header"><slot name="header"></slot></div>
+    <div $if="searching" class="loading" role="status" $value="loadingLabel"></div>
     <ul $if="not searching" class="list" role="presentation">
       <li
         $each="row, index of rows"
@@ -34,11 +34,14 @@
         role="option"
         :aria-selected="index = active"
         :data-index="index"
+        :data-value="row.id"
       >
         <span class="avatar" aria-hidden="true" $value="row.initials"></span>
         <span class="body"><span class="label" $value="row.label"></span><span $if="row.detail" class="detail" $value="row.detail"></span></span>
       </li>
+      <slot></slot>
     </ul>
+    <div class="empty" $ref="empty"><slot name="empty"></slot></div>
   </div>
   <style>
     :host {
@@ -65,6 +68,16 @@
       border-bottom: 1px solid var(--ui-border);
       font-size: var(--ui-font-size-xs);
       font-weight: var(--ui-font-semibold);
+    }
+
+    .header:not(:has(> *)), .empty:not(:has(> *)) {
+      display: none;
+    }
+
+    .empty {
+      padding: var(--ui-space-3);
+      color: var(--ui-text-muted);
+      font-size: var(--ui-font-size-sm);
     }
 
     .hint {
@@ -123,7 +136,7 @@
       flex: 0 0 auto;
       color: var(--ui-accent-active, var(--ui-accent-solid));
       background: var(--ui-accent-soft, var(--ui-accent-subtle));
-      border-radius: 999px;
+      border-radius: var(--ui-radius-round);
       font-size: var(--ui-font-size-xs);
       font-weight: var(--ui-font-semibold);
     }

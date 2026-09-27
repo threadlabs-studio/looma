@@ -3,15 +3,21 @@
     <prop name="max" type="number" default="5"
     >How many avatars to show. The rest are hidden and counted in a +N badge after the last visible one. Fractions round down, and 0 hides every avatar behind
       the badge.</prop>
+    <prop name="total" type="integer"
+    >The true number of people when only some avatars are authored. The overflow badge counts the people beyond the visible avatars; it never counts fewer than
+      the authored avatars.</prop>
+    <prop name="overflowLabel" type="string" default="{count} more"
+    >Accessible label for the overflow badge. Replace {count} with the number of people beyond the visible avatars.</prop>
     <prop name="label" type="string" default="People"
     >The group's accessible name, announced for the set of avatars as a whole. Name who they are rather than repeating the default.</prop>
     <prop name="size" type="sm | md" default="md"
     >The size of the avatars inside, matched by the +N badge and the overlap. Give each Avatar the same size.</prop>
     <state name="overflowCount" :value="0"></state>
+    <state name="overflowAnnouncement" :value="''"></state>
   </defs>
   <div role="group" :aria-label="label">
     <slot></slot>
-    <span class="overflow" $ref="overflow" role="img" :hidden="not overflowCount" :aria-label="format('%s more', overflowCount)"><template
+    <span class="overflow" $ref="overflow" role="img" :hidden="not overflowCount" :aria-label="overflowAnnouncement"><template
         $value="format('+%s', overflowCount)"
       ></template></span>
   </div>
@@ -47,7 +53,6 @@
     :slotted(*) {
       margin-inline-start: -0.5rem;
       flex-shrink: 0;
-      border-radius: 999px;
     }
 
     :slotted(*:first-child) {
@@ -61,7 +66,7 @@
       justify-content: center;
       inline-size: 2.5rem;
       block-size: 2.5rem;
-      border-radius: 999px;
+      border-radius: var(--ui-radius-round);
       border: 1px solid var(--ui-border-strong);
       background: var(--ui-surface-elevated);
       color: var(--ui-text-primary);

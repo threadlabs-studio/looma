@@ -95,9 +95,24 @@
       "status": "published",
       "package": "@threadlabs/looma"
     },
+    "ui-editor-mention-menu-item": {
+      "status": "published",
+      "package": "@threadlabs/looma",
+      "navigationParent": "ui-editor-mention-menu"
+    },
     "ui-editor-slash-menu": {
       "status": "published",
       "package": "@threadlabs/looma"
+    },
+    "ui-editor-slash-menu-item": {
+      "status": "published",
+      "package": "@threadlabs/looma",
+      "navigationParent": "ui-editor-slash-menu"
+    },
+    "ui-editor-slash-menu-group": {
+      "status": "published",
+      "package": "@threadlabs/looma",
+      "navigationParent": "ui-editor-slash-menu"
     },
     "ui-editor-table-context-menu": {
       "status": "published",
@@ -152,11 +167,20 @@
       "package": "@threadlabs/looma",
       "navigationParent": "ui-list"
     },
+    "ui-listbox": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
     "ui-menu": {
       "status": "published",
       "package": "@threadlabs/looma"
     },
     "ui-menu-item": {
+      "status": "published",
+      "package": "@threadlabs/looma",
+      "navigationParent": "ui-menu"
+    },
+    "ui-menu-group": {
       "status": "published",
       "package": "@threadlabs/looma",
       "navigationParent": "ui-menu"
@@ -257,6 +281,11 @@
     "ui-toast-region": {
       "status": "published",
       "package": "@threadlabs/looma"
+    },
+    "ui-toast": {
+      "status": "published",
+      "package": "@threadlabs/looma",
+      "navigationParent": "ui-toast-region"
     },
     "ui-tooltip": {
       "status": "published",

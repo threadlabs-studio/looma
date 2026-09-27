@@ -11,6 +11,8 @@ import {
   CellSelection,
   cellAround,
   deleteCellSelection,
+  moveTableColumn,
+  moveTableRow,
   TableMap,
   type TableRect,
 } from "@tiptap/pm/tables";
@@ -45,6 +47,12 @@ export interface InsertTableAtRangeOptions {
  * Tiptap's schema/selection rules or optimistically enabling invalid actions.
  */
 export interface TableActionCapabilities {
+  canToggleHeaderRow: boolean;
+  canToggleHeaderColumn: boolean;
+  canMoveRowUp: boolean;
+  canMoveRowDown: boolean;
+  canMoveColumnLeft: boolean;
+  canMoveColumnRight: boolean;
   canAddRowBefore: boolean;
   canAddRowAfter: boolean;
   canAddColumnBefore: boolean;
@@ -67,10 +75,18 @@ export interface ActiveTableUiState {
   showToolbar: boolean;
   cellAlignment: TableCellAlignment;
   cellBackground: TableCellBackground;
+  headerRow: boolean;
+  headerColumn: boolean;
   capabilities: TableActionCapabilities;
 }
 
 const NO_TABLE_CAPABILITIES: TableActionCapabilities = {
+  canToggleHeaderRow: false,
+  canToggleHeaderColumn: false,
+  canMoveRowUp: false,
+  canMoveRowDown: false,
+  canMoveColumnLeft: false,
+  canMoveColumnRight: false,
   canAddRowBefore: false,
   canAddRowAfter: false,
   canAddColumnBefore: false,
@@ -114,16 +130,42 @@ export function getActiveTableUiState(editor: Editor): ActiveTableUiState {
       showToolbar: false,
       cellAlignment: "left",
       cellBackground: null,
+      headerRow: false,
+      headerColumn: false,
       capabilities: { ...NO_TABLE_CAPABILITIES },
     };
   }
 
+  const table = findTable(editor)?.node;
+  const map = table ? TableMap.get(table) : null;
+  const headerRow = Boolean(table && map && Array.from({ length: map.width }, (_, column) =>
+    table.nodeAt(map.map[column]!)?.type.name === "tableHeader").every(Boolean));
+  const headerColumn = Boolean(table && map && Array.from({ length: map.height }, (_, row) =>
+    table.nodeAt(map.map[row * map.width]!)?.type.name === "tableHeader").every(Boolean));
+  const position = selectedTableCell(editor);
+  const canMove = (axis: "row" | "column", delta: -1 | 1) => {
+    if (!position || !map) return false;
+    const { row, column, cellPos } = position;
+    const from = axis === "row" ? row : column;
+    if (from + delta < 0 || from + delta >= (axis === "row" ? map.height : map.width)) return false;
+    const command = axis === "row" ? moveTableRow : moveTableColumn;
+    try { return command({ from, to: from + delta, pos: cellPos })(editor.state); }
+    catch { return false; }
+  };
   return {
     active: true,
     showToolbar: true,
     cellAlignment: getActiveTableCellAlignment(editor),
     cellBackground: getActiveTableCellBackground(editor),
+    headerRow,
+    headerColumn,
     capabilities: {
+      canToggleHeaderRow: editor.can().toggleHeaderRow(),
+      canToggleHeaderColumn: editor.can().toggleHeaderColumn(),
+      canMoveRowUp: canMove("row", -1),
+      canMoveRowDown: canMove("row", 1),
+      canMoveColumnLeft: canMove("column", -1),
+      canMoveColumnRight: canMove("column", 1),
       canAddRowBefore: editor.can().addRowBefore(),
       canAddRowAfter: editor.can().addRowAfter(),
       canAddColumnBefore: editor.can().addColumnBefore(),
@@ -177,6 +219,31 @@ export function handleTableAction(
       return editor.chain().focus().addColumnBefore().run();
     case "add-column-after":
       return editor.chain().focus().addColumnAfter().run();
+    case "toggle-header-row":
+      return editor.chain().focus().toggleHeaderRow().run();
+    case "toggle-header-column":
+      return editor.chain().focus().toggleHeaderColumn().run();
+    case "move-row-up":
+    case "move-row-down":
+    case "move-column-left":
+    case "move-column-right": {
+      const position = selectedTableCell(editor);
+      if (!position) return false;
+      const { row, column, cellPos } = position;
+      const axis = detail.action.startsWith("move-row") ? "row" : "column";
+      const from = axis === "row" ? row : column;
+      const delta = detail.action.endsWith("up") || detail.action.endsWith("left") ? -1 : 1;
+      const table = findTable(editor)?.node;
+      if (!table) return false;
+      const map = TableMap.get(table);
+      if (from + delta < 0 || from + delta >= (axis === "row" ? map.height : map.width)) return false;
+      const command = axis === "row" ? moveTableRow : moveTableColumn;
+      let moved = false;
+      try { moved = command({ from, to: from + delta, pos: cellPos })(editor.state, editor.view.dispatch); }
+      catch { return false; }
+      if (moved) editor.view.focus();
+      return moved;
+    }
     case "delete-row":
       return editor.chain().focus().deleteRow().run();
     case "delete-column":
@@ -300,6 +367,16 @@ function findTable(editor: Editor): { pos: number; node: ReturnType<Editor["stat
 
 function findSelectedCellPosition(editor: Editor): number | null {
   return cellAround(editor.state.selection.$from)?.pos ?? null;
+}
+
+function selectedTableCell(editor: Editor): { row: number; column: number; cellPos: number } | null {
+  const table = findTable(editor);
+  const cellPos = findSelectedCellPosition(editor);
+  if (!table || cellPos === null) return null;
+  const relative = cellPos - table.pos - 1;
+  if (relative < 0 || relative >= table.node.content.size) return null;
+  const rect = TableMap.get(table.node).findCell(relative);
+  return { row: rect.top, column: rect.left, cellPos };
 }
 
 function selectTableAxis(
@@ -469,7 +546,7 @@ export function handleTableOverlayAction(
       detail.columnIndex,
     );
   }
-  if (action === "open-cell-menu") return true;
+  if (action === "open-cell-menu" || action === "open-row-menu" || action === "open-column-menu") return true;
   if (!("boundaryIndex" in detail)) return false;
 
   const { boundaryIndex } = detail;

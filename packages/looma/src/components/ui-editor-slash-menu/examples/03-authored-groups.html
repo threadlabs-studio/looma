@@ -1,0 +1,15 @@
+<!--
+title: Authored groups and search terms
+description: Child items own stable values; groups and keywords make a larger command set easy to scan and filter.
+-->
+<ui-editor-slash-menu open query="h1" aria-label="Document commands" anchor-rect='{"left":0,"top":0,"right":240,"bottom":40}'>
+  <ui-editor-slash-menu-group label="Basic blocks">
+    <ui-editor-slash-menu-item value="heading-1" icon="heading-1" description="Large section heading" keywords="h1 title">Heading 1</ui-editor-slash-menu-item>
+    <ui-editor-slash-menu-item value="paragraph" icon="pilcrow">Paragraph</ui-editor-slash-menu-item>
+  </ui-editor-slash-menu-group>
+  <ui-editor-slash-menu-group label="Media">
+    <ui-editor-slash-menu-item value="table" icon="table">Table</ui-editor-slash-menu-item>
+  </ui-editor-slash-menu-group>
+  <div slot="empty">No matching commands</div>
+  <div slot="footer">Use arrow keys to choose a command.</div>
+</ui-editor-slash-menu>

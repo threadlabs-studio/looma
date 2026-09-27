@@ -1,0 +1,75 @@
+<link rel="component" href="../ui-icon/ui-icon.html">
+<template component="ui-editor-slash-menu-item">
+  <defs>
+    <prop name="value" type="string" default="">Stable identifier reported by the containing Slash Menu when this command is chosen.</prop>
+    <prop name="icon" type="string" default="">A Lucide icon name for the leading symbol.</prop>
+    <prop name="description" type="string" default="">One line explaining the command.</prop>
+    <prop name="keywords" type="string" default="">Additional space-separated search terms matched by the containing Slash Menu.</prop>
+    <prop name="disabled" type="boolean" default="false">Keeps the command visible but unavailable for selection.</prop>
+  </defs>
+  <li role="option" tabindex="-1" :aria-disabled="disabled" :data-value="value" :data-keywords="keywords">
+    <span $if="icon" class="icon" aria-hidden="true"><ui-icon :name="icon"></ui-icon></span>
+    <span class="body"><span class="title"><slot></slot></span><span $if="description" class="description" $value="description"></span></span>
+  </li>
+  <style>
+    :host {
+      display: flex;
+      align-items: center;
+      gap: var(--ui-space-3);
+      min-block-size: 44px;
+      padding: var(--ui-space-2) var(--ui-space-3);
+      cursor: pointer;
+      list-style: none;
+    }
+
+    :host[aria-selected="true"] {
+      background: var(--ui-accent-subtle);
+    }
+    :host[aria-disabled="true"] {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      inline-size: 32px;
+      block-size: 32px;
+      flex: 0 0 auto;
+      color: var(--ui-text-secondary);
+      background: var(--ui-surface-hover);
+      border: 1px solid var(--ui-border);
+      border-radius: var(--ui-radius-md);
+    }
+
+    .icon {
+      --_ui-default-icon-size: 1rem;
+    }
+
+    .body {
+      display: flex;
+      min-inline-size: 0;
+      flex-direction: column;
+      gap: 1px;
+    }
+    .title, .description {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .title {
+      color: var(--ui-text-primary);
+      font-size: var(--ui-font-size-sm);
+      font-weight: var(--ui-font-medium);
+    }
+    .description {
+      color: var(--ui-text-muted);
+      font-size: var(--ui-font-size-xs);
+    }
+
+    :host[hidden] {
+      display: none;
+    }
+  </style>
+</template>

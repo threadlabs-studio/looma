@@ -2,7 +2,11 @@
   <defs>
     <prop name="open" type="boolean" default="false">Whether the popover is open initially or when set externally.</prop>
     <prop name="for" type="string" default="">ID of the control that toggles and anchors the popover.</prop>
-    <prop name="placement" type="string" default="bottom-start">Positions the surface relative to its trigger.</prop>
+    <prop
+      name="placement"
+      type="top | top-start | top-end | bottom | bottom-start | bottom-end | left | left-start | left-end | right | right-start | right-end"
+      default="bottom-start"
+    >Positions the surface around its trigger. Start and end on top or bottom follow the writing direction.</prop>
     <state name="internalOpen" :value="false"></state>
     <event
       name="open"
@@ -16,12 +20,36 @@
   <span><div class="surface"><slot></slot></div></span>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-popover-surface {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-popover-border {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-popover-radius {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-popover-shadow {
+      syntax: "*";
+      inherits: false;
+    }
     @property --ui-popover-viewport-gap {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-popover-offset {
       syntax: "*";
       inherits: false;
     }
 
     :host {
+      --_ui-popover-surface: var(--ui-popover-surface);
+      --_ui-popover-border: var(--ui-popover-border);
+      --_ui-popover-radius: var(--ui-popover-radius);
+      --_ui-popover-shadow: var(--ui-popover-shadow);
       box-sizing: border-box;
       max-inline-size: min(
         20rem,
@@ -43,10 +71,10 @@
       max-block-size: inherit;
       overflow: auto;
       padding: var(--ui-space-3);
-      background: var(--ui-surface-elevated);
-      border: 1px solid var(--ui-border-default);
-      border-radius: var(--ui-radius-lg);
-      box-shadow: var(--ui-elevation-overlay, var(--ui-shadow-lg));
+      background: var(--_ui-popover-surface, var(--ui-overlay-surface, var(--ui-surface-elevated)));
+      border: 1px solid var(--_ui-popover-border, var(--ui-overlay-border, var(--ui-border-default)));
+      border-radius: var(--_ui-popover-radius, var(--ui-overlay-radius, var(--ui-radius-lg)));
+      box-shadow: var(--_ui-popover-shadow, var(--ui-overlay-shadow, var(--ui-elevation-overlay, var(--ui-shadow-lg))));
     }
 
     :host:not(:host-state([internalOpen])) {

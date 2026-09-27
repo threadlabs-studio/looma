@@ -78,6 +78,7 @@ const rows = (page: Page) => table(page).locator("tr");
 const cell = (page: Page, row: number, col: number) => rows(page).nth(row).locator("th, td").nth(col);
 const tableToolbar = (page: Page) => page.getByRole("toolbar", { name: "Table actions" });
 const tableMenu = (page: Page) => page.getByRole("menu", { name: "More table actions" });
+const linkForm = (page: Page) => page.locator(".looma-editor__link-form");
 
 async function insertTableFromSlashMenu(page: Page): Promise<void> {
   await prose(page).click();
@@ -121,6 +122,88 @@ afterAll(async () => {
   if (directory) await rm(directory, { recursive: true, force: true });
 });
 
+describe("LoomaEditor links", () => {
+  it("creates, edits, previews, and removes a link from selected text", async () => {
+    const page = await openEditor();
+    await prose(page).locator("p").click();
+    await page.keyboard.press("Home");
+    await page.keyboard.press("Shift+End");
+    assert.equal(await page.evaluate(() => window.getSelection()?.toString()), "Hello");
+    const linkButton = page.getByRole("toolbar", { name: "Editor toolbar" }).getByRole("button", { name: "Link" });
+    await linkButton.click();
+    assert.equal(await linkForm(page).getByRole("textbox", { name: "Text" }).count(), 0, "selected text does not need a text field");
+    await linkForm(page).getByRole("textbox", { name: "URL" }).fill("javascript:alert(1)");
+    await linkForm(page).getByRole("button", { name: "Save link" }).click();
+    await linkForm(page).getByRole("alert").waitFor();
+    assert.equal(await prose(page).locator("a").count(), 0);
+    await linkForm(page).getByRole("textbox", { name: "URL" }).fill("https://example.com/page");
+    assert.equal(await linkForm(page).getByRole("link", { name: "Preview link" }).getAttribute("rel"), "noopener noreferrer");
+    await linkForm(page).getByRole("button", { name: "Save link" }).click();
+    const link = prose(page).locator("a");
+    await equals(() => link.getAttribute("href"), "https://example.com/page", "selected text becomes a link");
+    assert.equal(await link.textContent(), "Hello");
+    await link.click();
+    await linkButton.click();
+    assert.equal(await linkForm(page).getByRole("textbox", { name: "URL" }).inputValue(), "https://example.com/page");
+    await linkForm(page).getByRole("checkbox", { name: "Open in new tab" }).uncheck();
+    await linkForm(page).getByRole("textbox", { name: "URL" }).fill("/changed");
+    await linkForm(page).getByRole("button", { name: "Save link" }).click();
+    await equals(() => link.getAttribute("href"), "/changed", "existing link URL changes");
+    assert.equal(await link.getAttribute("target"), "_self");
+    await link.click();
+    await linkButton.click();
+    await linkForm(page).getByRole("button", { name: "Remove link" }).click();
+    await equals(() => prose(page).locator("a").count(), 0, "link mark is removed");
+    assert.equal(await prose(page).locator("p").textContent(), "Hello");
+    await page.close();
+  });
+
+  it("inserts linked text at a caret", async () => {
+    const page = await openEditor("<p></p>");
+    await prose(page).locator("p").click();
+    await page.getByRole("toolbar", { name: "Editor toolbar" }).getByRole("button", { name: "Link" }).click();
+    await linkForm(page).getByRole("textbox", { name: "Text" }).fill("Read more");
+    await linkForm(page).getByRole("textbox", { name: "URL" }).fill("https://example.com");
+    await linkForm(page).getByRole("button", { name: "Save link" }).click();
+    await equals(() => prose(page).locator("a").textContent(), "Read more", "link text is inserted");
+    await page.close();
+  });
+});
+
+describe("LoomaEditor block actions", () => {
+  it("duplicates, deletes, and inserts below the current top-level block", async () => {
+    const page = await openEditor("<p>First</p><p>Second</p>");
+    const paragraphs = () => prose(page).locator(":scope > p");
+    const texts = () => paragraphs().allTextContents();
+    const openActions = async () => {
+      await page.getByRole("toolbar", { name: "Editor toolbar" }).getByRole("button", { name: "Block actions" }).click();
+    };
+    await paragraphs().first().click();
+    await openActions();
+    await page.getByRole("menuitem", { name: "Duplicate block" }).click();
+    assert.deepEqual(await texts(), ["First", "First", "Second"]);
+    await paragraphs().nth(1).click();
+    await openActions();
+    await page.getByRole("menuitem", { name: "Delete block" }).click();
+    assert.deepEqual(await texts(), ["First", "Second"]);
+    await paragraphs().nth(1).click();
+    await openActions();
+    await page.getByRole("menuitem", { name: "Insert paragraph below" }).click();
+    assert.deepEqual(await texts(), ["First", "Second", ""]);
+    await page.close();
+  });
+
+  it("keeps block actions available in the mobile toolbar", async () => {
+    const page = await openEditor("<p>Mobile</p>");
+    await page.setViewportSize({ width: 390, height: 844 });
+    await prose(page).locator("p").click();
+    await page.locator(".looma-editor__mobile-toolbar-shell").getByRole("button", { name: "Block actions" }).click();
+    await page.getByRole("menuitem", { name: "Duplicate block" }).click();
+    assert.deepEqual(await prose(page).locator(":scope > p").allTextContents(), ["Mobile", "Mobile"]);
+    await page.close();
+  });
+});
+
 describe("LoomaEditor tables", () => {
   // The toolbar's "Insert table" opens the grid through the popover anchored to it (`for`).
   it("inserts a table sized from the toolbar's insert-table grid", async () => {
@@ -131,17 +214,13 @@ describe("LoomaEditor tables", () => {
     await equals(() => insertTable.getAttribute("aria-expanded"), "true", "Insert table opens the grid");
     const grid = page.locator('[data-component="ui-editor-insert-table-grid"]');
     await grid.getByRole("group", { name: "Table dimensions" }).waitFor();
-    const hint = async () => (await grid.textContent())?.match(/\d+ × \d+( selected)?/)?.[0];
+    const hint = async () => (await grid.textContent())?.match(/\d+ × \d+/)?.[0];
     const twoByTwo = grid.getByRole("button", { name: "2 rows by 2 columns" });
+    await grid.getByRole("button", { name: "5 rows by 5 columns" }).hover();
+    await equals(hint, "5 × 5", "hovering another cell previews it");
     await twoByTwo.hover();
     await equals(hint, "2 × 2", "hovering previews 2 × 2");
     await twoByTwo.click();
-    await equals(hint, "2 × 2 selected", "clicking selects 2 × 2");
-    await equals(() => twoByTwo.getAttribute("aria-pressed"), "true", "selected cell is pressed");
-    await grid.getByRole("button", { name: "5 rows by 5 columns" }).hover();
-    await equals(hint, "5 × 5", "hovering another cell previews it");
-    // Insert uses the selected size, not the last preview.
-    await grid.getByRole("button", { name: "Insert table", exact: true }).click();
     await table(page).waitFor();
     assert.equal(await rows(page).count(), 2);
     assert.equal(await rows(page).nth(0).locator("th, td").count(), 2);
@@ -197,6 +276,79 @@ describe("LoomaEditor tables", () => {
     await equals(() => rows(page).count(), 2, "row deleted");
     await tableToolbar(page).getByRole("button", { name: /add row/i }).click();
     await equals(() => rows(page).count(), 3, "row added");
+    await page.close();
+  });
+
+  it("toggles header row and column from table options with checked state", async () => {
+    const page = await openEditor();
+    await insertTableFromSlashMenu(page);
+    await cell(page, 0, 0).click();
+    await openTableMenu(page);
+    const headerRow = () => tableMenu(page).getByRole("menuitemcheckbox", { name: "Header row" });
+    assert.equal(await headerRow().getAttribute("aria-checked"), "true");
+    await headerRow().click();
+    await equals(() => rows(page).first().locator("th").count(), 0, "first row becomes data cells");
+    await openTableMenu(page);
+    assert.equal(await headerRow().getAttribute("aria-checked"), "false");
+    await headerRow().click();
+    await equals(() => rows(page).first().locator("th").count(), 3, "first row is a header again");
+
+    await openTableMenu(page);
+    const headerColumn = () => tableMenu(page).getByRole("menuitemcheckbox", { name: "Header column" });
+    assert.equal(await headerColumn().getAttribute("aria-checked"), "false");
+    await headerColumn().click();
+    await equals(() => rows(page).nth(1).locator("th").count(), 1, "first column becomes a header");
+    await openTableMenu(page);
+    assert.equal(await headerColumn().getAttribute("aria-checked"), "true");
+    await cell(page, 1, 0).click({ button: "right" });
+    const context = page.locator('[data-component="ui-editor-table-context-menu"]');
+    await context.waitFor();
+    assert.equal(await context.getByRole("menuitemcheckbox", { name: "Header column" }).getAttribute("aria-checked"), "true");
+    await page.close();
+  });
+
+  it("moves rows and columns through the table action menu", async () => {
+    const page = await openEditor();
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await insertTableFromSlashMenu(page);
+    await cell(page, 1, 0).click();
+    await page.keyboard.type("Row A");
+    await cell(page, 2, 0).click();
+    await page.keyboard.type("Row B");
+    await cell(page, 2, 0).click({ button: "right" });
+    const context = () => page.locator('[data-component="ui-editor-table-context-menu"]');
+    assert.deepEqual(errors, []);
+    assert.equal(await context().count(), 1);
+    await context().getByRole("menuitem", { name: "Move row up" }).click();
+    await equals(() => cell(page, 1, 0).textContent(), "Row B", "the lower row moves above its sibling");
+
+    await cell(page, 1, 1).click();
+    await page.keyboard.type("Column A");
+    await cell(page, 1, 2).click();
+    await page.keyboard.type("Column B");
+    await cell(page, 1, 2).click({ button: "right" });
+    await context().getByRole("menuitem", { name: "Move column left" }).click();
+    await equals(() => cell(page, 1, 1).textContent(), "Column B", "the right column moves left");
+    await page.close();
+  });
+
+  it("opens row and column menus from their overlay handles", async () => {
+    const page = await openEditor();
+    await insertTableFromSlashMenu(page);
+    await cell(page, 1, 1).hover();
+    const overlay = page.locator('[data-component="ui-editor-table-overlay"]');
+    const context = page.locator('[data-component="ui-editor-table-context-menu"]');
+    await overlay.getByRole("button", { name: "Row actions" }).click();
+    await context.waitFor();
+    assert.equal(await context.getByRole("menuitem", { name: "Move row up" }).count(), 1);
+    assert.equal(await context.getByRole("menuitem", { name: "Move column left" }).count(), 0);
+    assert.equal(await page.locator(".selectedCell").count(), 3);
+    await cell(page, 1, 1).hover();
+    await overlay.getByRole("button", { name: "Column actions" }).click();
+    await context.waitFor();
+    assert.equal(await context.getByRole("menuitem", { name: "Move column left" }).count(), 1);
+    assert.equal(await context.getByRole("menuitem", { name: "Move row up" }).count(), 0);
     await page.close();
   });
 

@@ -35,7 +35,7 @@ test("derives the public contract from one maintained declarative definition", (
 test("loads every component contract from its folder", async () => {
   const groups = await readDeclarativeContractGroups();
   assert.deepEqual(groups.map(({ name }) => name), ["components"]);
-  assert.equal(Object.values(groups).flatMap(({ contracts }) => Object.keys(contracts)).length, 67);
+  assert.equal(Object.values(groups).flatMap(({ contracts }) => Object.keys(contracts)).length, 73);
   assert.equal(groups[0].contracts["ui-select"].root, "select");
 });
 
@@ -205,7 +205,7 @@ test("semantic tones use one public vocabulary", async () => {
   );
 
   assert.equal(contracts["ui-button"].props.variant.type, "outline | solid | danger | ghost | link");
-  assert.equal(contracts["ui-callout"].props.tone.type, "info | note | warning | success | danger");
+  assert.equal(contracts["ui-callout"].props.tone.type, "info | neutral | note | warning | success | danger");
   assert.equal(contracts["ui-badge"].props.tone.type, "neutral | accent | info | success | warning | danger");
   assert.equal(contracts["ui-badge"].props.shape.type, "pill | tag");
   assert.equal(contracts["ui-badge"].props.shape.default, "pill");

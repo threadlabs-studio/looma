@@ -5,7 +5,7 @@
     <prop name="for" type="string" default="">ID of the control that toggles and anchors the menu.</prop>
     <prop name="placement" type="string" default="bottom-start">Positions an associated menu relative to its trigger.</prop>
     <state name="internalOpen" :value="false"></state>
-    <event name="select" type="object({ value: string, trigger: keyboard | pointer | programmatic })"></event>
+    <event name="select" type="object({ value: string, checked?: boolean, trigger: keyboard | pointer | programmatic })"></event>
     <event name="open" type="object({ open: boolean, reason: action | programmatic, trigger: keyboard | pointer | programmatic })"></event>
     <event
       name="close"
@@ -15,6 +15,22 @@
   <div role="menu" aria-orientation="vertical"><div class="surface"><slot></slot></div></div>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-menu-surface {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-menu-border {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-menu-radius {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-menu-shadow {
+      syntax: "*";
+      inherits: false;
+    }
     @property --ui-menu-viewport-gap {
       syntax: "*";
       inherits: false;
@@ -32,6 +48,10 @@
     }
 
     :host {
+      --_ui-menu-surface: var(--ui-menu-surface);
+      --_ui-menu-border: var(--ui-menu-border);
+      --_ui-menu-radius: var(--ui-menu-radius);
+      --_ui-menu-shadow: var(--ui-menu-shadow);
       /* A menu nested in a compact one starts again from its own density. */
       --_ui-default-menu-item-padding-block: initial;
       --_ui-default-menu-item-padding-inline: initial;
@@ -58,12 +78,20 @@
       box-sizing: border-box;
       max-inline-size: inherit;
       padding: var(--ui-space-1);
-      background: var(--ui-surface-elevated);
-      border: 1px solid var(--ui-border-default);
-      border-radius: var(--ui-radius-lg);
-      box-shadow: var(--ui-elevation-overlay, var(--ui-shadow-lg));
+      background: var(--_ui-menu-surface, var(--ui-overlay-surface, var(--ui-surface-elevated)));
+      border: 1px solid var(--_ui-menu-border, var(--ui-overlay-border, var(--ui-border-default)));
+      border-radius: var(--_ui-menu-radius, var(--ui-overlay-radius, var(--ui-radius-lg)));
+      box-shadow: var(--_ui-menu-shadow, var(--ui-overlay-shadow, var(--ui-elevation-overlay, var(--ui-shadow-lg))));
       max-block-size: inherit;
       overflow: auto;
+    }
+
+    .surface hr {
+      align-self: stretch;
+      block-size: 0;
+      margin: var(--ui-space-1) 0;
+      border: 0;
+      border-block-start: 1px solid var(--ui-border-default);
     }
 
     :host:not(:host-state([internalOpen])) {

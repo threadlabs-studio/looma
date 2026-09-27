@@ -1,13 +1,19 @@
 <template component="ui-dialog" controller="./ui-dialog.js">
   <defs>
     <prop name="open" type="boolean" default="false">Whether the dialog is open initially or when set externally.</prop>
-    <prop name="modal" type="boolean" default="false">Open in the top layer with a backdrop and make the rest of the page inert.</prop>
-    <prop name="dismissible" type="boolean" default="false"
-    >Also close on Escape and on a pointer press outside the dialog. The header close button and actions always close it.</prop>
+    <prop name="modeless" type="boolean" default="false">Open without a backdrop or making the rest of the page inert; dialogs are modal by default.</prop>
+    <prop name="closedby" type="any | closerequest | none" default="closerequest"
+    >Which user close requests work: any includes outside presses, closerequest includes Escape, and none requires an action.</prop>
+    <prop name="alert" type="boolean" default="false">Use alert dialog semantics and require an explicit action instead of the header close button.</prop>
+    <prop name="size" type="sm | md | lg | fullscreen" default="md">Choose a compact, standard, wide, or viewport-filling dialog.</prop>
     <prop name="label" type="string">Visible title in the dialog header; also its accessible name.</prop>
     <prop name="for" type="string" default="">ID of the control that opens the dialog.</prop>
     <state name="internalOpen" :value="false"></state>
     <state name="accessibleLabel" :value="'Dialog'"></state>
+    <event
+      name="open"
+      type="object({ open: boolean, reason: action | programmatic, trigger: keyboard | pointer | programmatic })"
+    ></event>
     <event
       name="close"
       type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"
@@ -24,6 +30,22 @@
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
     @property --ui-dialog-duration {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-dialog-surface {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-dialog-border {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-dialog-radius {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-dialog-shadow {
       syntax: "*";
       inherits: false;
     }
@@ -45,7 +67,7 @@
       box-sizing: border-box;
       inline-size: min(
         calc(100% - var(--ui-dialog-viewport-gap, var(--ui-space-4)) * 2),
-        var(--ui-dialog-max-width, 440px)
+        var(--ui-dialog-max-width, var(--_ui-dialog-size, 440px))
       );
       max-inline-size: none;
       max-block-size: calc(100dvh - var(--ui-dialog-viewport-gap, var(--ui-space-4)) * 2);
@@ -53,10 +75,10 @@
       padding: 0;
       overflow: hidden;
       flex-direction: column;
-      background: var(--ui-surface-elevated);
-      border: 1px solid var(--ui-border-default);
-      border-radius: var(--ui-radius-dialog);
-      box-shadow: var(--ui-elevation-dialog, var(--ui-shadow-xl));
+      background: var(--ui-dialog-surface, var(--ui-overlay-surface, var(--ui-surface-elevated)));
+      border: 1px solid var(--ui-dialog-border, var(--ui-overlay-border, var(--ui-border-default)));
+      border-radius: var(--ui-dialog-radius, var(--ui-overlay-radius, var(--ui-radius-dialog)));
+      box-shadow: var(--ui-dialog-shadow, var(--ui-overlay-shadow, var(--ui-elevation-dialog, var(--ui-shadow-xl))));
       visibility: hidden;
       pointer-events: none;
       opacity: 0;
@@ -76,6 +98,27 @@
       opacity: 1;
       transform: scale(1);
       animation: ui-dialog-enter var(--ui-dialog-duration, var(--ui-motion-base)) var(--ui-motion-ease);
+    }
+
+    :host-state([size="sm"]) {
+      --_ui-dialog-size: 360px;
+    }
+
+    :host-state([size="lg"]) {
+      --_ui-dialog-size: 640px;
+    }
+
+    :host-state([size="fullscreen"]) {
+      inset: 0;
+      inline-size: 100%;
+      block-size: 100dvh;
+      max-block-size: none;
+      margin: 0;
+      border-radius: var(--ui-dialog-radius, 0);
+    }
+
+    :host-state([alert]) .close {
+      display: none;
     }
 
     /* Header and actions stay pinned; only the body scrolls when content is long. */

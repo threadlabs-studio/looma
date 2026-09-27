@@ -402,6 +402,7 @@
 }
 
 .looma-editor__table-picker-popover,
+.looma-editor__link-popover,
 .looma-editor__table-toolbar-shell,
 .looma-editor__table-menu-shell {
   z-index: var(--ui-editor-popover-z-index, 300);
@@ -412,6 +413,75 @@
   padding: 0;
   border: 0;
   background: transparent;
+}
+
+.looma-editor__link-popover {
+  inline-size: min(22rem, calc(100vw - 2rem));
+}
+
+.looma-editor__link-form,
+.looma-editor__link-form label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-2);
+}
+
+.looma-editor__link-form label {
+  font-size: var(--ui-font-size-sm);
+}
+
+.looma-editor__link-form input:not([type="checkbox"]) {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: var(--ui-control-min-block-size);
+  padding: var(--ui-space-2);
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-field-radius, var(--ui-radius-md));
+  background: var(--ui-control-surface);
+  color: var(--ui-text-primary);
+  font: inherit;
+}
+
+.looma-editor__link-form input:focus-visible,
+.looma-editor__link-form button:focus-visible,
+.looma-editor__link-preview:focus-visible {
+  outline: 2px solid var(--ui-focus-ring);
+  outline-offset: 2px;
+}
+
+.looma-editor__link-form .looma-editor__link-new-tab {
+  flex-direction: row;
+  align-items: center;
+}
+
+.looma-editor__link-error {
+  margin: 0;
+  color: var(--ui-field-danger, var(--ui-danger));
+  font-size: var(--ui-font-size-sm);
+}
+
+.looma-editor__link-preview {
+  width: fit-content;
+  color: var(--ui-accent);
+  font-size: var(--ui-font-size-sm);
+}
+
+.looma-editor__link-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--ui-space-2);
+}
+
+.looma-editor__link-actions button {
+  min-height: var(--ui-control-min-block-size);
+  padding: var(--ui-space-2) var(--ui-space-3);
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-action-radius, var(--ui-radius-md));
+  background: var(--ui-surface);
+  color: var(--ui-text-primary);
+  font: inherit;
+  cursor: pointer;
 }
 
 .looma-editor__table-toolbar-shell,

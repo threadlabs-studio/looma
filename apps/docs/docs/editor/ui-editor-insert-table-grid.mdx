@@ -6,7 +6,11 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 # Insert Table Grid
 
-Grid picker for committing table dimensions and optional header-row intent.
+Grid picker for table dimensions and optional header-row intent. Click or tap a cell to emit
+`insert` immediately. The grid has one Tab stop; arrow keys move between dimensions, Home and End
+move to the first and last column, and Enter or Space inserts the focused size. Tab then reaches
+the Header row checkbox. Touch cells are at least 44px square, and a wide grid scrolls within
+the picker.
 
 
 <ComponentExamplesApiTabs component="ui-editor-insert-table-grid" />

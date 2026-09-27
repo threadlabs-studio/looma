@@ -1,4 +1,4 @@
-<template component="ui-switcher">
+<template component="ui-switcher" controller="./ui-switcher.js">
   <defs>
     <prop name="gap" type="xs | s | m | l | xl"
     >Space between items, on the spacing scale: xs is 0.5rem, s 0.75rem, m 1rem (also the default), l 1.5rem, and xl 2rem. The --ui-switcher-gap custom
@@ -9,6 +9,9 @@
     <prop name="align" type="start | center | end | stretch"
     >How items line up while they sit in a row: stretch (the default) makes them equally tall; start, center, and end align their tops, middles, or
       bottoms.</prop>
+    <prop name="limit" type="integer"
+    >Most children allowed in a horizontal row. When the count exceeds this value, every child stacks regardless of width. Omit it for no count limit.</prop>
+    <state name="overLimit" :value="false"></state>
   </defs>
   <div><slot></slot></div>
   <style>
@@ -40,6 +43,10 @@
       flex-grow: 1;
       /* The large multiplier makes the basis flip as a group at the intrinsic threshold. */
       flex-basis: calc((var(--_ui-switcher-threshold, 30rem) - 100%) * 999);
+    }
+
+    :host-state([overLimit]) > :slotted(*) {
+      flex-basis: 100%;
     }
 
     :host-state([gap="xs"]) {

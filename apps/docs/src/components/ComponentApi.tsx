@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "@docusaurus/Link";
 
 import componentApi from "../../../../generated/component-api.json";
 
@@ -132,8 +133,9 @@ export function ComponentApi({ component }: ComponentApiProps): JSX.Element {
       <SectionHeader title="Design tokens" />
       <p>
         Extracted from <code>{api.designTokens.sources.join(", ")}</code>. Component tokens are
-        scoped customization points or variables declared by this component; shared tokens come
-        from Looma&apos;s token and theme layers.
+        scoped customization points or variables declared by this component. Shared tokens include
+        optional inherited group values and global theme values. The <Link to="/tokens">theming guide</Link>
+        explains their precedence and where to set them.
       </p>
       <h3>Component tokens</h3>
       {api.designTokens.component.length === 0 ? (
@@ -145,7 +147,7 @@ export function ComponentApi({ component }: ComponentApiProps): JSX.Element {
           showDeclarations
         />
       )}
-      <h3>Shared tokens consumed</h3>
+      <h3>Inherited group and global tokens consumed</h3>
       {api.designTokens.shared.length === 0 ? (
         <p>No shared tokens consumed.</p>
       ) : (

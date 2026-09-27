@@ -3,6 +3,14 @@ import { closeOverlay, createAnchoredSurface, createIdResolver, openOverlay, req
 export default function controller(host) {
   const element = host.element;
   const document = element.ownerDocument;
+  const offset = () => {
+    const value = getComputedStyle(element).getPropertyValue("--ui-popover-offset").trim();
+    const amount = Number.parseFloat(value);
+    if (!Number.isFinite(amount)) return 4;
+    if (value.endsWith("rem")) return amount * Number.parseFloat(getComputedStyle(document.documentElement).fontSize);
+    if (value.endsWith("em")) return amount * Number.parseFloat(getComputedStyle(element).fontSize);
+    return amount;
+  };
   const overlayId = `ui-popover-${Math.random().toString(36).slice(2, 11)}`;
   let anchor = null;
   let surface = null;
@@ -39,7 +47,7 @@ export default function controller(host) {
     anchor?.removeEventListener("click", onAnchorClick);
     anchor = ids.get(nextFor);
     anchor?.addEventListener("click", onAnchorClick);
-    surface = anchor ? createAnchoredSurface(element, { anchor, placement: nextPlacement }) : null;
+    surface = anchor ? createAnchoredSurface(element, { anchor, placement: nextPlacement, gap: offset }) : null;
   };
   const apply = () => {
     const externalOpen = Boolean(host.state.open);

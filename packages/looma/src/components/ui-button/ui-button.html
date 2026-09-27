@@ -1,4 +1,5 @@
-<template component="ui-button">
+<link rel="component" href="../ui-spinner/ui-spinner.html">
+<template component="ui-button" controller="./ui-button.js">
   <defs>
     <prop name="variant" type="outline | solid | danger | ghost | link" default="outline"
     >Emphasis: how loudly the button asks. solid fills with its tone, outline draws its tone at the edge over a wash of it, ghost carries only text until it is
@@ -12,6 +13,9 @@
     <prop name="disabled" type="boolean" default="false"
     >Makes the button unavailable: it cannot be pressed, its tone fades, and it loses its raised look. A disabled link (as="a" with href) drops its href and
       states aria-disabled="true" instead, because a link has no native disabled state.</prop>
+    <prop name="pending" type="boolean" default="false"
+    >Keeps the action focusable and its label visible while work is in progress. It shows a decorative spinner, states aria-disabled and aria-busy, and prevents
+      activation or form submission until cleared.</prop>
     <prop name="align" type="center | start" default="center"
     >Content alignment. start lays the content out like a list option: from the start edge, with start-aligned text.</prop>
     <prop name="stretch" type="boolean" default="false">Fills the inline size of its container.</prop>
@@ -30,14 +34,18 @@
   <template $match>
     <a
       $when="as = 'a'"
-      :href="{ true: null, false: href }[format('%s', disabled)]"
+      :href="{ true: null, false: href }[format('%s', disabled or pending)]"
       :target="target"
       :rel="rel"
-      :aria-disabled="{ true: 'true', false: null }[format('%s', disabled and href)]"
+      :aria-disabled="{ true: 'true', false: null }[format('%s', disabled or pending)]"
+      :aria-busy="pending"
+      :tabindex="{ true: '0', false: null }[format('%s', pending and not disabled)]"
     >
+      <ui-spinner $if="pending" size="sm" class="pending-spinner"></ui-spinner>
       <slot></slot>
     </a>
-    <button $else :type="type" :disabled="disabled">
+    <button $else :type="type" :disabled="disabled" :aria-disabled="{ true: 'true', false: null }[format('%s', pending)]" :aria-busy="pending">
+      <ui-spinner $if="pending" size="sm" class="pending-spinner"></ui-spinner>
       <slot></slot>
     </button>
   </template>
@@ -148,7 +156,7 @@
       border-style: solid;
       border-width: 1px;
       border-color: var(--ui-button-border, var(--_tone));
-      border-radius: var(--ui-button-radius, var(--ui-radius-md));
+      border-radius: var(--ui-button-radius, var(--ui-action-radius, var(--ui-radius-md)));
       background-color: var(--ui-button-surface, oklch(from var(--_tone) l c h / 5%));
       color: var(--ui-button-text, var(--_tone-text));
       font: inherit;
@@ -165,6 +173,10 @@
         color var(--ui-motion-fast) var(--ui-motion-ease),
         box-shadow var(--ui-motion-fast) var(--ui-motion-ease);
       margin: 0;
+    }
+
+    .pending-spinner {
+      margin-inline-end: var(--ui-space-2);
     }
 
     @supports (text-box-trim: trim-both) {
@@ -305,6 +317,10 @@
       cursor: not-allowed;
       background-image: none;
       box-shadow: none;
+    }
+
+    :host-state([pending]):focus-visible {
+      box-shadow: var(--ui-focus-halo);
     }
 
     /* Ghost has no hover to fall back on, so disabled is the one state it has to state outright:

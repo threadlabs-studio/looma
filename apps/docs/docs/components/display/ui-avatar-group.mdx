@@ -8,5 +8,9 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 Container that displays overlapping avatars with an optional "+N" overflow pill when the count exceeds the visible maximum.
 
+Set `total` when the markup contains only a sample of the people. The overflow badge subtracts the
+visible avatars from that true count. `overflow-label` names it for assistive technology; include
+`{count}` where the number should appear, such as `"{count} other contributors"`.
+
 
 <ComponentExamplesApiTabs component="ui-avatar-group" />

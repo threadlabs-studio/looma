@@ -9,6 +9,9 @@
     <prop name="orientation" type="horizontal | vertical" default="horizontal"
     >horizontal puts the tabs in a row above the panels, moved between with the Left and Right arrow keys; vertical puts them in a column beside the panels,
       moved between with Up and Down.</prop>
+    <prop name="activation" type="auto | manual" default="auto"
+    >In auto mode, arrow keys move focus and select the next panel. In manual mode, arrows move focus while Enter or Space selects a panel. Use manual when
+      displaying a panel takes time.</prop>
     <prop name="stretch" type="boolean" default="false">Share the full width of the tab list equally between tabs instead of sizing each to its label.</prop>
     <state name="internalValue" :value="''"></state>
     <state name="tabs" type="list(object({ id: string, label: string }))" :value="[]"></state>
@@ -16,18 +19,20 @@
   </defs>
   <div>
     <div class="list" $ref="list" role="tablist" :aria-label="label" :aria-orientation="orientation">
-      <button
-        $each="tab of tabs"
-        $key="tab.id"
-        type="button"
-        role="tab"
-        :id="format('%s-tab', tab.id)"
-        :value="tab.id"
-        :aria-controls="tab.id"
-        :aria-selected="tab.id = internalValue"
-        $value="tab.label"
-      >
-      </button>
+      <slot name="tab">
+        <button
+          $each="tab of tabs"
+          $key="tab.id"
+          type="button"
+          role="tab"
+          :id="format('%s-tab', tab.id)"
+          :value="tab.id"
+          :aria-controls="tab.id"
+          :aria-selected="tab.id = internalValue"
+          $value="tab.label"
+        >
+        </button>
+      </slot>
     </div>
     <div class="panels" $ref="panels"><slot></slot></div>
   </div>

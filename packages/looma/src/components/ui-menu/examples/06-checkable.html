@@ -1,0 +1,13 @@
+<!--
+title: Checkable view options
+description: Checkbox items toggle independently, while radio items choose one option within their named group. They keep the menu open so another choice can be made.
+-->
+<ui-button id="open-view-menu">View</ui-button>
+<ui-menu for="open-view-menu" aria-label="View options">
+  <ui-menu-item type="checkbox" value="grid" checked>Show grid</ui-menu-item>
+  <hr>
+  <ui-menu-group label="Sort by">
+    <ui-menu-item type="radio" value="name" checked>Name</ui-menu-item>
+    <ui-menu-item type="radio" value="date">Date</ui-menu-item>
+  </ui-menu-group>
+</ui-menu>

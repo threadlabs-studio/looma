@@ -1,3 +1,4 @@
+<link rel="component" href="../ui-icon/ui-icon.html">
 <template component="ui-avatar" controller="./ui-avatar.js">
   <defs>
     <prop name="src" type="string"
@@ -14,21 +15,31 @@
       circle clips anything wider.</prop>
     <prop name="size" type="sm | md" default="md"
     >md is 2.5rem, for a person on their own (a profile, a comment); sm is 1.75rem with smaller initials, for a row of people in a toolbar or header.</prop>
+    <prop name="shape" type="circle | square" default="circle">Circle by default; square uses the theme's medium radius.</prop>
+    <prop name="decorative" type="boolean" default="false">Hides the avatar from assistive technology when adjacent text already identifies the person.</prop>
     <prop name="active" type="boolean" default="false"
     >Marks the person as active now, such as editing the same page: a ring in the success colour around the avatar. The ring is not announced, so say what it
       means in alt ("Ada Lovelace, editing").</prop>
     <state name="hasImage" :value="false"></state>
     <state name="hasAuthoredImage" :value="false"></state>
     <state name="initials" :value="'?'"></state>
+    <state name="showGlyph" :value="false"></state>
   </defs>
   <span>
     <slot></slot>
     <img class="image" $ref="image" :src="src" alt="" aria-hidden="true" :hidden="hasAuthoredImage or not hasImage">
-    <span class="fallback" :aria-hidden="hasImage" :hidden="hasImage" $value="initials"></span>
+    <span class="fallback" :aria-hidden="hasImage" :hidden="hasImage">
+      <span :hidden="showGlyph" $value="initials"></span>
+      <span :hidden="not showGlyph"><ui-icon name="user-round"></ui-icon></span>
+    </span>
   </span>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
     @property --ui-avatar-border {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-avatar-radius {
       syntax: "*";
       inherits: false;
     }
@@ -46,12 +57,13 @@
     }
 
     :host {
+      --_ui-default-icon-size: 1.25rem;
       display: inline-grid;
       place-items: center;
       overflow: hidden;
       inline-size: 2.5rem;
       block-size: 2.5rem;
-      border-radius: 999px;
+      border-radius: var(--ui-avatar-radius, var(--ui-radius-round));
       border: 1px solid var(--ui-avatar-border, var(--ui-border-strong));
       background: var(--ui-avatar-surface, var(--ui-accent-soft));
       color: var(--ui-avatar-text, var(--ui-accent-subtle-text, var(--ui-accent-solid)));
@@ -62,9 +74,14 @@
     }
 
     :host-state([size="sm"]) {
+      --_ui-default-icon-size: 1rem;
       inline-size: 1.75rem;
       block-size: 1.75rem;
       font-size: var(--ui-font-size-xs);
+    }
+
+    :host-state([shape="square"]) {
+      border-radius: var(--ui-avatar-radius, var(--ui-radius-md));
     }
 
     /* An outline, not a dot: the avatar clips its content to the circle, and an outline is drawn

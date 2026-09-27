@@ -7,6 +7,11 @@ export default function controller(host) {
   const { list, panels: container } = host.refs;
   const [trigger, stopTracking] = trackTrigger(host);
   const panels = () => Array.from(container.children).filter((child) => child instanceof HTMLElement);
+  const tabButtons = () => Array.from(list.querySelectorAll("button"));
+  const focusTab = (button) => {
+    for (const tab of tabButtons()) tab.tabIndex = tab === button ? 0 : -1;
+    button.focus();
+  };
   let external = String(host.state.value || "");
   host.state.internalValue = external;
 
@@ -15,11 +20,28 @@ export default function controller(host) {
     host.state.tabs = items.map((panel, index) => {
       if (!panel.id) panel.id = `ui-tab-panel-${++panelIds}`;
       panel.setAttribute("role", "tabpanel");
-      panel.setAttribute("aria-labelledby", `${panel.id}-tab`);
       return { id: panel.id, label: panel.getAttribute("aria-label") || `Tab ${index + 1}` };
     });
     if (!items.some((panel) => panel.id === host.state.internalValue)) {
       host.state.internalValue = external || items[0]?.id || "";
+    }
+    syncButtons();
+  };
+  const syncButtons = () => {
+    const buttons = tabButtons();
+    const selected = host.state.internalValue;
+    const focused = list.contains(host.element.ownerDocument.activeElement) ? host.element.ownerDocument.activeElement : null;
+    for (const [index, panel] of panels().entries()) {
+      const button = buttons.find((candidate) => candidate.value === panel.id) ?? buttons[index];
+      if (!button) continue;
+      button.type = "button";
+      button.value = panel.id;
+      button.setAttribute("role", "tab");
+      if (!button.id) button.id = `${panel.id}-tab`;
+      button.setAttribute("aria-controls", panel.id);
+      button.setAttribute("aria-selected", String(panel.id === selected));
+      button.tabIndex = button.disabled ? -1 : button === focused || (!focused && button.value === selected) ? 0 : -1;
+      panel.setAttribute("aria-labelledby", button.id);
     }
   };
   const stop = host.effect(() => {
@@ -31,7 +53,7 @@ export default function controller(host) {
     const selected = host.state.internalValue;
     for (const panel of panels()) panel.hidden = panel.id !== selected;
     // Roving focus: only the selected tab is in the tab order.
-    for (const button of list.querySelectorAll('[role="tab"]')) button.tabIndex = button.value === selected ? 0 : -1;
+    syncButtons();
   });
 
   const select = (button, how) => {
@@ -46,16 +68,25 @@ export default function controller(host) {
   const onKeydown = (event) => {
     const button = event.target.closest?.('[role="tab"]');
     if (!button || !list.contains(button)) return;
-    const buttons = Array.from(list.querySelectorAll('[role="tab"]'));
+    const buttons = tabButtons().filter((candidate) => !candidate.disabled);
     const vertical = host.state.orientation === "vertical";
     const previousKey = vertical ? "ArrowUp" : "ArrowLeft";
     const nextKey = vertical ? "ArrowDown" : "ArrowRight";
-    if (event.key !== previousKey && event.key !== nextKey) return;
+    if (host.state.activation === "manual" && (event.key === "Enter" || event.key === " ")) {
+      event.preventDefault();
+      select(button, "keyboard");
+      return;
+    }
+    if (event.key !== previousKey && event.key !== nextKey && event.key !== "Home" && event.key !== "End") return;
     event.preventDefault();
     const index = buttons.indexOf(button);
-    const next = buttons[(index + (event.key === nextKey ? 1 : buttons.length - 1)) % buttons.length];
-    select(next, "keyboard");
-    next.focus();
+    const next = event.key === "Home" ? buttons[0] : event.key === "End" ? buttons.at(-1) : buttons[(index + (event.key === nextKey ? 1 : buttons.length - 1)) % buttons.length];
+    if (host.state.activation !== "manual") select(next, "keyboard");
+    focusTab(next);
+  };
+  const onFocusout = (event) => {
+    if (list.contains(event.relatedTarget)) return;
+    for (const button of tabButtons()) button.tabIndex = button.value === host.state.internalValue ? 0 : -1;
   };
   // A vertical mouse wheel over an overflowing strip scrolls it sideways instead of the page.
   // Trackpad gestures already carry a horizontal delta and are left to the browser.
@@ -66,16 +97,21 @@ export default function controller(host) {
   };
   list.addEventListener("click", onClick);
   list.addEventListener("keydown", onKeydown);
+  list.addEventListener("focusout", onFocusout);
   list.addEventListener("wheel", onWheel, { passive: false });
   const observer = new MutationObserver(readPanels);
   observer.observe(container, { childList: true });
+  const tabObserver = new MutationObserver(syncButtons);
+  tabObserver.observe(list, { childList: true });
   readPanels();
   return () => {
     stop();
     stopTracking();
     observer.disconnect();
+    tabObserver.disconnect();
     list.removeEventListener("click", onClick);
     list.removeEventListener("keydown", onKeydown);
+    list.removeEventListener("focusout", onFocusout);
     list.removeEventListener("wheel", onWheel);
   };
 }

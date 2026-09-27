@@ -13,9 +13,12 @@
     <prop name="container" type="boolean" default="false"
     >Makes the item a branch even before it has children: it gets the expand button and aria-expanded, and accepts drops inside it. An item with nested items is
       a branch without it.</prop>
+    <prop name="lazy" type="boolean" default="false"
+    >Keeps an empty item expandable while its children are supplied later. Expanding emits expand; the item is aria-busy until child Tree Items are appended.
+      Clear lazy if loading finishes with no children.</prop>
     <prop name="sortable" type="boolean" default="false"
-    >Gives the item a drag handle, shown on hover, so it can be dragged to a new place in the tree. The tree reports the drop as a reorder event and leaves
-      moving the item to you. Needs itemId; a disabled item, and any item under touch input, shows no handle.</prop>
+    >Gives the item a move handle. Drag it, or activate it and choose a target by a second click or the keyboard. The tree reports reorder and leaves moving the
+      item to you. Needs itemId; disabled items show no handle.</prop>
     <prop name="dragType" type="string" default="item"
     >The item's kind, for drag rules: it can be dropped before or after only items of the same type, and inside a branch only if that branch's accepts allows
       it. Reported as sourceType and targetType.</prop>
@@ -29,8 +32,8 @@
     >Whether the branch shows its children, initially or when set externally. The expand button, a click on the row, and the arrow keys toggle it from there,
       each reported as an expand event. Only meaningful for a branch.</prop>
     <prop name="selected" type="boolean" default="false"
-    >Marks the item selected: it sets aria-selected and gives the row the highlighted surface. The tree does not select on click, so drive it from your own
-      state.</prop>
+    >Marks the item selected: it sets aria-selected and highlights the row. This is controlled state; respond to the parent Tree's select request by updating
+      it.</prop>
     <prop name="marquee" type="boolean" default="false"
     >Scrolls a name too long for its row while the row is hovered or focused, then puts it back. Off by default: a tree of short names should not move, and a
       product decides whether reading the whole name matters more than a still list.</prop>
@@ -85,6 +88,14 @@
       <button class="disclosure" $ref="disclosure" type="button" :disabled="disabled" :hidden="not isContainer">
         <span class="disclosure-icon" aria-hidden="true"></span>
       </button>
+      <label class="selection-hit"><input
+          class="selection-checkbox"
+          type="checkbox"
+          tabindex="-1"
+          :checked="selected"
+          :disabled="disabled"
+          :aria-label="format('Select %s', label)"
+        ></label>
       <span class="leading" $ref="leading"><slot name="leading"></slot></span>
       <span class="label" $ref="label"><span class="label-text" $ref="labelText"><slot name="label"><template $value="label"></template></slot></span></span>
       <span class="actions" $ref="actions"><slot name="actions"></slot></span>
@@ -202,6 +213,35 @@
 
     .disclosure[hidden] {
       display: none;
+    }
+
+    .selection-hit {
+      display: none;
+      grid-column: 2;
+      grid-row: 1;
+      place-items: center;
+      inline-size: 1.25rem;
+      block-size: var(--_ui-tree-item-min-block-size, var(--_tree-row-min-height));
+      cursor: pointer;
+    }
+    .selection-checkbox {
+      inline-size: 1rem;
+      block-size: 1rem;
+      margin: 0;
+      accent-color: var(--ui-accent-solid);
+    }
+
+    :host[data-selection-mode="multiple"] > .row {
+      grid-template-columns: var(--_tree-disclosure-size) 1.25rem auto minmax(0, 1fr);
+    }
+    :host[data-selection-mode="multiple"] > .row > .selection-hit {
+      display: grid;
+    }
+    :host[data-selection-mode="multiple"] > .row > .leading {
+      grid-column: 3;
+    }
+    :host[data-selection-mode="multiple"] > .row > .label {
+      grid-column: 4;
     }
 
     .disclosure:hover {
@@ -472,7 +512,7 @@
       inset-inline: 1px;
       display: none;
       block-size: 2px;
-      border-radius: 999px;
+      border-radius: var(--ui-radius-round);
       background: var(--_ui-tree-drop-color, var(--ui-accent-solid));
       pointer-events: none;
     }
@@ -485,7 +525,7 @@
       inline-size: 7px;
       block-size: 7px;
       border: 2px solid var(--_ui-tree-drop-color, var(--ui-accent-solid));
-      border-radius: 999px;
+      border-radius: var(--ui-radius-round);
       background: var(--ui-surface-elevated);
       transform: translateY(-50%);
     }
@@ -515,8 +555,47 @@
       --_tree-row-min-height: 44px;
     }
 
-    html[data-ui-input-modality="touch"] :host .drag-handle {
-      display: none;
+    html[data-ui-input-modality="touch"] :host .row {
+      grid-template-columns: 44px var(--_tree-disclosure-size) auto minmax(0, 1fr);
+    }
+
+    html[data-ui-input-modality="touch"] :host .drag-handle,
+    html[data-ui-input-modality="touch"] :host-state([isContainer]) > .row > .drag-handle {
+      position: relative;
+      grid-column: 1;
+      grid-row: 1;
+      inset: auto;
+      inline-size: 44px;
+      block-size: 44px;
+      padding: 14px;
+      opacity: 1;
+      transform: none;
+      cursor: pointer;
+    }
+
+    html[data-ui-input-modality="touch"] :host .disclosure {
+      grid-column: 2;
+    }
+    html[data-ui-input-modality="touch"] :host .leading {
+      grid-column: 3;
+    }
+    html[data-ui-input-modality="touch"] :host .label {
+      grid-column: 4;
+    }
+
+    html[data-ui-input-modality="touch"] :host[data-selection-mode="multiple"] > .row {
+      grid-template-columns: 44px var(--_tree-disclosure-size) 44px auto minmax(0, 1fr);
+    }
+    html[data-ui-input-modality="touch"] :host[data-selection-mode="multiple"] > .row > .selection-hit {
+      grid-column: 3;
+      inline-size: 44px;
+      block-size: 44px;
+    }
+    html[data-ui-input-modality="touch"] :host[data-selection-mode="multiple"] > .row > .leading {
+      grid-column: 4;
+    }
+    html[data-ui-input-modality="touch"] :host[data-selection-mode="multiple"] > .row > .label {
+      grid-column: 5;
     }
 
     @media (prefers-reduced-motion: reduce) {

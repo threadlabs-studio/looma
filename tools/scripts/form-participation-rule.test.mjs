@@ -12,6 +12,8 @@ const EXEMPT = {
   "ui-avatar": "name is the person the avatar shows",
   "ui-icon": "name picks the icon",
   "ui-editor-insert-table-grid": "its header-row checkbox configures the editor's table insert",
+  "ui-disclosure": "name groups peer disclosures, not form fields",
+  "ui-tree-item": "its unnamed checkbox requests tree selection and never submits a form value",
 };
 
 /**
