@@ -2763,6 +2763,78 @@ describe("Combobox option detail", () => {
   });
 });
 
+describe("Combobox filter", () => {
+  // filter="none" lists every authored option, as a server search returned them; the default still
+  // narrows by label. Keyboard choice and the blur commit work over the listed options.
+  const check = async (page: Page) => {
+    const labels = (id: string) => page.locator(`#${id} [role="option"]`).evaluateAll((all) => all.map((option) => option.querySelector(".primary")?.textContent));
+    const server = page.locator('#server input[role="combobox"]');
+    await server.waitFor();
+    await server.fill("harb");
+    assert.deepEqual(await labels("server"), ["Riley Kim", "Harbor Auto Group"], "a result matched on its description still shows");
+    await server.press("ArrowDown");
+    assert.equal(await server.getAttribute("aria-activedescendant"), await page.getByRole("option", { name: "Riley Kim", exact: true }).getAttribute("id"));
+    await server.press("ArrowDown");
+    await server.press("Enter");
+    assert.equal(await server.inputValue(), "Harbor Auto Group");
+    const local = page.locator('#local input[role="combobox"]');
+    await local.fill("harb");
+    assert.deepEqual(await labels("local"), ["Harbor Auto Group"], "the default filters by label");
+    // Leaving with text that is no label commits the only option listed.
+    const single = page.locator('#single input[role="combobox"]');
+    await single.fill("harb");
+    await single.press("Tab");
+    assert.equal(await single.inputValue(), "Riley Kim");
+    assert.equal(await page.evaluate(() => (window as unknown as { changes: any[] }).changes.at(-1).value), "riley");
+  };
+
+  it("lists every option with filter none and filters by label by default in HTML", async () => {
+    const path = await bundle("html-combobox-filter", `
+      import "@threadlabs/looma";
+      window.changes = [];
+      document.addEventListener("value-change", (event) => window.changes.push(event.detail));
+    `);
+    const page = await open(path, `
+      <ui-combobox id="server" label="Server" filter="none">
+        <option value="riley" data-description="Harbor Auto Group">Riley Kim</option>
+        <option value="harbor">Harbor Auto Group</option>
+      </ui-combobox>
+      <ui-combobox id="local" label="Local">
+        <option value="riley" data-description="Harbor Auto Group">Riley Kim</option>
+        <option value="harbor">Harbor Auto Group</option>
+      </ui-combobox>
+      <ui-combobox id="single" label="Single" filter="none">
+        <option value="riley" data-description="Harbor Auto Group">Riley Kim</option>
+      </ui-combobox>
+      <button>After</button>
+    `, [join(root, "tokens.css")]);
+    await check(page);
+    await page.close();
+  });
+
+  it("lists every option with filter none and filters by label by default in Vue", async () => {
+    const path = await bundle("vue-combobox-filter", `
+      import { createApp, h } from "vue";
+      import { Combobox } from "@threadlabs/looma/vue";
+      window.changes = [];
+      const riley = () => h("option", { value: "riley", "data-description": "Harbor Auto Group" }, "Riley Kim");
+      const harbor = () => h("option", { value: "harbor" }, "Harbor Auto Group");
+      const onValueChange = (detail) => window.changes.push(detail);
+      createApp({
+        render: () => [
+          h(Combobox, { id: "server", label: "Server", filter: "none", onValueChange }, () => [riley(), harbor()]),
+          h(Combobox, { id: "local", label: "Local", onValueChange }, () => [riley(), harbor()]),
+          h(Combobox, { id: "single", label: "Single", filter: "none", onValueChange }, () => [riley()]),
+          h("button", "After"),
+        ],
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await check(page);
+    await page.close();
+  });
+});
+
 describe("Combobox disabled", () => {
   // Every part the user can press follows disabled: the clear, disclosure, help, and badge buttons.
   const check = async (page: Page) => {

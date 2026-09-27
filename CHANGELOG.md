@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.14.8
+
+- Combobox: `filter` sets how the list narrows as the user types. `label`, the default, lists the
+  options whose label contains the text, as before. `none` lists every authored option, for options
+  already narrowed elsewhere, such as a server search, so a result that matched on data other than
+  its label still shows. Grouping, keyboard navigation, the empty state, creating, and free text work
+  the same. Leaving a strict combobox still commits the highlighted option, an exact label, or the
+  first label the text begins; with `none`, the only option listed also counts, whatever its label.
+
 ## v0.14.7
 
 - Combobox: an option can carry a description, a muted line under its label, and a tag, a Badge
