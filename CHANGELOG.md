@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.15.2
+
+- Form Field adds a `label-action` slot for a small action about the label, such as a help
+  button. It sits after the label, centred on its first line, and never makes the label row
+  taller, so fields in one grid row keep the same gap between label and control.
+- `tokens.css` adds one base rule: an element with `tabindex="-1"` that only script focuses, such
+  as a page's `<h1 tabindex="-1">` after navigation, no longer draws a focus ring. Controls,
+  links, editable regions, and elements with a `role` keep theirs.
+
 ## v0.15.1
 
 - Cluster adds `wrap` (`wrap` or `nowrap`). The default still wraps; `nowrap` keeps a small group,

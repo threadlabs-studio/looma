@@ -11,7 +11,10 @@
       adds no visual marker; show one in the label if the form needs it.</prop>
   </defs>
   <div>
-    <div class="label"><slot name="label"></slot></div>
+    <div class="label">
+      <slot name="label"></slot>
+      <span class="label-action"><slot name="label-action"></slot></span>
+    </div>
     <slot></slot>
     <div class="help"><slot name="help"></slot></div>
     <div class="error"><slot name="error"></slot></div>
@@ -50,6 +53,25 @@
     .label {
       color: var(--ui-text-secondary);
       font-size: var(--ui-font-size-sm);
+    }
+
+    /* A label action, such as a small help button, sits after the label text in a box one line
+       tall, centred on the first line and overflowing it. A button taller than a line of label
+       text then never makes this field's label row taller than its neighbours' in a grid row. */
+    .label:has(> .label-action > *) {
+      display: flex;
+      align-items: start;
+      gap: var(--ui-space-1);
+    }
+
+    .label-action {
+      display: flex;
+      align-items: unsafe center;
+      block-size: 1lh;
+    }
+
+    .label-action:not(:has(> *)) {
+      display: none;
     }
 
     .help {
