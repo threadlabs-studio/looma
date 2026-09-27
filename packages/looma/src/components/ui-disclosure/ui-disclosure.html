@@ -7,8 +7,15 @@
     >Whether the disclosure is open initially or when set externally. The trigger toggles it from there, reporting each change as an open or close event.</prop>
     <prop name="disabled" type="boolean" default="false"
     >Disables the trigger and mutes its text, so the disclosure keeps its current state and the user cannot toggle it.</prop>
+    <prop name="name" type="string" default=""
+    >Disclosures with the same nonempty name form an exclusive group in one document: opening one closes the others. An empty name allows multiple open
+      items.</prop>
+    <prop name="headingLevel" type="integer" default="0"
+    >Adds heading semantics around the trigger at level 2 through 6. Zero leaves it a plain disclosure; choose a level that matches the page outline.</prop>
     <state name="internalOpen" :value="false"></state>
     <state name="contentId" :value="''"></state>
+    <state name="headingRole" :value="null"></state>
+    <state name="headingAriaLevel" :value="null"></state>
     <event
       name="open"
       type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"
@@ -19,11 +26,13 @@
     ></event>
   </defs>
   <div>
-    <button class="trigger" type="button" $ref="trigger" :aria-controls="contentId" :aria-expanded="internalOpen" :disabled="disabled">
-      <span $value="summary"></span>
-      <span class="chevron" aria-hidden="true"></span>
-    </button>
-    <div class="panel" :id="contentId" :inert="not internalOpen"><div class="panel-inner"><slot></slot></div></div>
+    <div class="heading" :role="headingRole" :aria-level="headingAriaLevel">
+      <button class="trigger" type="button" $ref="trigger" :aria-controls="contentId" :aria-expanded="internalOpen" :disabled="disabled">
+        <span class="summary"><slot name="summary"><template $value="summary"></template></slot></span>
+        <span class="chevron" aria-hidden="true"></span>
+      </button>
+    </div>
+    <div class="panel" $ref="panel" :id="contentId"><div class="panel-inner"><slot></slot></div></div>
   </div>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */

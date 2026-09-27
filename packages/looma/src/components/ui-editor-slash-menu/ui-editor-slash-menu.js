@@ -3,27 +3,60 @@ import { normalizeAnchor, positionMenu } from "../shared/editor.js";
 // Places the menu at the slash and tracks the highlighted item; the template renders the items.
 export default function controller(host) {
   const element = host.element;
+  const authoredLabel = element.hasAttribute("aria-label") || element.hasAttribute("aria-labelledby");
   const place = () => {
     if (host.state.visible) positionMenu(element, normalizeAnchor(host.state.anchorRect), 280);
   };
+  const options = () => Array.from(element.querySelectorAll('[role="option"]'));
+  const syncOptions = () => {
+    const query = String(host.state.query || "").trim().toLocaleLowerCase();
+    const generated = host.state.rows.length > 0;
+    for (const row of options()) {
+      if (generated) break;
+      const title = row.querySelector(".title")?.textContent ?? row.textContent ?? "";
+      const terms = `${title} ${row.dataset.keywords ?? ""}`.toLocaleLowerCase();
+      row.hidden = Boolean(query && !terms.includes(query));
+    }
+    for (const group of element.querySelectorAll('[role="group"]')) {
+      group.closest('[role="presentation"]')?.toggleAttribute("hidden", !group.querySelector('[role="option"]:not([hidden])'));
+    }
+    const rows = options().filter((row) => !row.hidden && !row.closest('[role="presentation"][hidden]')
+      && row.getAttribute("aria-disabled") !== "true");
+    const active = Math.min(Math.max(0, Number(host.state.active) || 0), Math.max(0, rows.length - 1));
+    rows.forEach((row, index) => {
+      row.dataset.index = String(index);
+      row.setAttribute("aria-selected", String(index === active));
+    });
+    host.refs.empty.hidden = rows.length > 0;
+    const visible = Boolean(host.state.open && normalizeAnchor(host.state.anchorRect)
+      && (rows.length > 0 || host.refs.empty.children.length));
+    if (host.state.visible !== visible) host.state.visible = visible;
+    place();
+  };
   const stop = host.effect(() => {
     const items = Array.isArray(host.state.items) ? host.state.items : [];
+    if (!authoredLabel) element.setAttribute("aria-label", String(host.state.label || "Insert block"));
+    host.state.rows = items.map((item) => ({ ...item, value: String(item.value ?? item.title) }));
     host.state.active = Number(host.state.selectedIndex ?? 0);
-    host.state.visible = Boolean(host.state.open && items.length > 0 && normalizeAnchor(host.state.anchorRect));
-    place();
+    queueMicrotask(syncOptions);
   });
-  const indexOf = (event) => Number(event.target.closest?.("[data-index]")?.dataset.index);
+  const rowOf = (event) => event.target.closest?.('[role="option"]');
   const onMousedown = (event) => event.preventDefault();
   const onClick = (event) => {
-    const index = indexOf(event);
-    if (Number.isFinite(index)) host.dispatch("select", { index });
+    const row = rowOf(event);
+    if (row && !row.hidden && row.getAttribute("aria-disabled") !== "true") host.dispatch("select", { index: Number(row.dataset.index), value: row.dataset.value ?? "" });
   };
   const onMouseover = (event) => {
-    const index = indexOf(event);
-    if (!Number.isFinite(index) || index === host.state.active) return;
+    const row = rowOf(event);
+    if (!row || row.hidden || row.getAttribute("aria-disabled") === "true") return;
+    const index = Number(row.dataset.index);
+    if (index === host.state.active) return;
     host.state.active = index;
-    host.dispatch("highlight", { index });
+    syncOptions();
+    host.dispatch("highlight", { index, value: row.dataset.value ?? "" });
   };
+  const observer = new MutationObserver(syncOptions);
+  observer.observe(element, { childList: true, subtree: true });
   element.addEventListener("mousedown", onMousedown);
   element.addEventListener("click", onClick);
   element.addEventListener("mouseover", onMouseover);
@@ -33,6 +66,7 @@ export default function controller(host) {
   window.visualViewport?.addEventListener("scroll", place);
   return () => {
     stop();
+    observer.disconnect();
     element.removeEventListener("mousedown", onMousedown);
     element.removeEventListener("click", onClick);
     element.removeEventListener("mouseover", onMouseover);

@@ -1,4 +1,5 @@
 import { closeOverlay, createAnchoredSurface, createIdResolver, openOverlay, requestTopOverlayClose } from "../shared/overlay.js";
+import { menuItemFrom, menuItems, navigateMenu } from "../shared/menu-navigation.js";
 
 function disabled(item) {
   return item.getAttribute("aria-disabled") === "true" || item.hasAttribute("disabled") || item.getAttribute("disabled") === "true";
@@ -17,7 +18,7 @@ export default function controller(host) {
   let lastOpenProp = Boolean(host.state.open);
   host.state.internalOpen = lastOpenProp;
 
-  const items = () => Array.from(element.querySelectorAll('[role="menuitem"]')).filter((item) => !disabled(item));
+  const items = () => menuItems(element);
   const focusFirst = () => requestAnimationFrame(() => items()[0]?.focus());
   const targetEvents = { contextmenu: onContextMenu, keydown: onTargetKeydown, pointerdown: onPointerdown, pointerup: endPress, pointercancel: endPress };
   const detach = () => {
@@ -101,33 +102,41 @@ export default function controller(host) {
     clearTimeout(press?.timer);
     press = null;
   }
+  const select = (item, trigger) => {
+    if (!item || disabled(item)) return;
+    const value = item.getAttribute("data-value") ?? item.getAttribute("value") ?? "";
+    if (item.getAttribute("role") !== "menuitem") {
+      const detail = { trigger, checked: undefined };
+      item.dispatchEvent(new CustomEvent("ui-menu-item-activate", { detail }));
+      host.dispatch("select", { value, checked: detail.checked, trigger });
+      return;
+    }
+    host.dispatch("select", { value, trigger });
+    close("action", trigger);
+  };
   const onKeydown = (event) => {
     if (!host.state.internalOpen) return;
     if (event.key === "Escape") {
       event.preventDefault();
       requestTopOverlayClose(document, "escape", "keyboard");
     } else if (["Enter", " "].includes(event.key)) {
-      const item = event.target.closest?.('[role="menuitem"]');
+      const item = menuItemFrom(event.target);
       if (!item || disabled(item)) return;
-      event.preventDefault();
-      host.dispatch("select", { value: item.getAttribute("data-value") ?? item.getAttribute("value") ?? "", trigger: "keyboard" });
-      close("action", "keyboard");
-    } else if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-      const enabled = items();
-      if (!enabled.length) return;
-      event.preventDefault();
-      const index = enabled.indexOf(event.target.closest?.('[role="menuitem"]'));
-      const next = event.key === "ArrowDown"
-        ? (index < 0 ? 0 : Math.min(index + 1, enabled.length - 1))
-        : (index <= 0 ? enabled.length - 1 : index - 1);
-      enabled[next].focus();
+      if (item.localName === "a") {
+        if (event.key === " ") { event.preventDefault(); item.click(); }
+      } else {
+        event.preventDefault();
+        select(item, "keyboard");
+      }
+    } else {
+      navigateMenu(event, element);
     }
   };
   const onClick = (event) => {
-    const item = event.target.closest?.('[role="menuitem"]');
+    const item = menuItemFrom(event.target);
     if (!item || disabled(item)) return;
-    host.dispatch("select", { value: item.getAttribute("data-value") ?? item.getAttribute("value") ?? "", trigger: "pointer" });
-    close("action", "pointer");
+    const trigger = event.detail === 0 ? "keyboard" : "pointer";
+    select(item, trigger);
   };
   resolveTargets();
   if (menuSurface) surface = createAnchoredSurface(menuSurface, { anchor: target, placement: "bottom-start" });

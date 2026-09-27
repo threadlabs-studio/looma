@@ -29,10 +29,19 @@ export default function controller(host) {
   let tabStop = null;
   let hoverTimer = null;
   let hoverKey = null;
+  let typed = "";
+  let lastTyped = 0;
+  let moveMode = false;
+  const announcer = document.createElement("span");
+  announcer.setAttribute("role", "status");
+  announcer.style.cssText = "position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap";
+  document.body.append(announcer);
+  const announce = (message) => { announcer.textContent = message; };
 
   const allItems = () => Array.from(element.querySelectorAll(itemSelector));
   const visibleItems = () => allItems().filter((item) => item.getClientRects().length > 0 && item.getAttribute("aria-disabled") !== "true");
   const rowFor = (item) => item.querySelector(":scope > .row");
+  const selectionMode = () => String(host.state.selection || "none");
   // Only a branch has aria-expanded.
   const acceptsChildren = (item) => item.hasAttribute("aria-expanded") && item.getAttribute("aria-disabled") !== "true";
   const metadata = (item) => ({
@@ -91,6 +100,8 @@ export default function controller(host) {
     cancelHover();
   };
   const finish = () => {
+    moveMode = false;
+    element.removeAttribute("data-move-mode");
     source?.removeAttribute("data-dragging");
     source = null;
     clearTarget();
@@ -100,15 +111,12 @@ export default function controller(host) {
   };
   const itemFromEvent = (event) => event.composedPath().find((node) => node instanceof HTMLElement && node.matches?.(itemSelector)) ?? null;
   const itemAtPoint = (x, y) => document.elementFromPoint(x, y)?.closest?.(itemSelector) ?? null;
-  const updateTarget = (nextTarget, y, transfer) => {
+  const chooseTarget = (nextTarget, nextPosition, transfer) => {
     if (!source || !nextTarget || nextTarget === source) {
       clearTarget();
       rejection = rejectedTarget = rejectedPosition = null;
       return false;
     }
-    const row = rowFor(nextTarget);
-    if (!row) return false;
-    const nextPosition = classify(row.getBoundingClientRect(), y, acceptsChildren(nextTarget));
     const nextRejection = rejected(source, nextTarget, nextPosition);
     if (nextRejection) {
       if (transfer) transfer.dropEffect = "none";
@@ -132,21 +140,126 @@ export default function controller(host) {
     else cancelHover();
     return true;
   };
-  const dispatchReorder = (from, to, nextPosition) => {
+  const updateTarget = (nextTarget, y, transfer) => {
+    const row = nextTarget && rowFor(nextTarget);
+    return row ? chooseTarget(nextTarget, classify(row.getBoundingClientRect(), y, acceptsChildren(nextTarget)), transfer) : false;
+  };
+  const dispatchReorder = (from, to, nextPosition, how = "pointer") => {
     const sourceId = itemId(from);
     const targetId = itemId(to);
     if (!sourceId || !targetId) return;
     if (nextPosition === "inside") expandTarget(targetId);
     const fromMeta = metadata(from);
     const toMeta = metadata(to);
-    host.dispatch("reorder", { sourceId, targetId, position: nextPosition, sourceType: fromMeta.type, targetType: toMeta.type, sourceScope: fromMeta.scope, targetScope: toMeta.scope, trigger: "pointer" });
+    host.dispatch("reorder", { sourceId, targetId, position: nextPosition, sourceType: fromMeta.type, targetType: toMeta.type, sourceScope: fromMeta.scope, targetScope: toMeta.scope, trigger: how });
   };
-  const dispatchRejected = (from, to, nextPosition, detail) => {
+  const dispatchRejected = (from, to, nextPosition, detail, how = "pointer") => {
     const sourceId = itemId(from);
     const targetId = itemId(to);
-    if (sourceId && targetId) host.dispatch("reorder-rejected", { sourceId, targetId, position: nextPosition, reason: "max-depth", maxDepth: detail.maxDepth, resultingDepth: detail.resultingDepth, trigger: "pointer" });
+    if (sourceId && targetId) host.dispatch("reorder-rejected", { sourceId, targetId, position: nextPosition, reason: "max-depth", maxDepth: detail.maxDepth, resultingDepth: detail.resultingDepth, trigger: how });
+  };
+  const nameOf = (item) => item.getAttribute("aria-label") || itemId(item) || "item";
+  const beginMove = (item) => {
+    if (!itemId(item) || item.getAttribute("aria-disabled") === "true") return;
+    finish();
+    moveMode = true;
+    source = item;
+    source.setAttribute("data-dragging", "true");
+    element.setAttribute("data-move-mode", "");
+    announce(`Moving ${nameOf(item)}. Choose a destination by click or the arrow keys. Press Enter to place or Escape to cancel.`);
+  };
+  const commitMove = (how) => {
+    if (!source) return;
+    if (target && position) {
+      const message = `Move requested: ${nameOf(source)} ${position} ${nameOf(target)}.`;
+      dispatchReorder(source, target, position, how);
+      finish();
+      announce(message);
+    } else if (rejection && rejectedTarget && rejectedPosition) {
+      dispatchRejected(source, rejectedTarget, rejectedPosition, rejection, how);
+      finish();
+      announce(`Cannot move ${nameOf(source)} there: maximum depth exceeded.`);
+    } else announce("Choose another destination row.");
+  };
+  const onMoveClick = (event) => {
+    const handle = event.composedPath().find((node) => node instanceof HTMLElement && node.classList.contains("drag-handle"));
+    if (handle) {
+      event.preventDefault();
+      event.stopPropagation();
+      const item = itemFromEvent(event);
+      if (item) beginMove(item);
+      return;
+    }
+    if (!moveMode) {
+      if (selectionMode() === "none") return;
+      const item = itemFromEvent(event);
+      if (!item || item.getAttribute("aria-disabled") === "true") return;
+      const path = event.composedPath();
+      const checkbox = path.some((node) => node instanceof HTMLElement && node.classList.contains("selection-checkbox"));
+      const control = path.some((node) => node instanceof HTMLElement && node !== item && node.matches?.('a, button, input, select, textarea, [role="button"], [role="link"]'));
+      if (control && !checkbox) return;
+      event.preventDefault();
+      event.stopPropagation();
+      selectItem(item, "pointer");
+      focusItem(item);
+      return;
+    }
+    const item = itemFromEvent(event);
+    if (!item) return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (updateTarget(item, event.clientY)) commitMove("pointer");
+    else if (rejection) commitMove("pointer");
+    else announce("Choose another destination row.");
+  };
+  const onMovePointer = (event) => {
+    if (!moveMode) return;
+    const item = itemFromEvent(event);
+    if (item && item !== source) updateTarget(item, event.clientY);
+  };
+  const onMoveKeydown = (event) => {
+    if (!moveMode) return false;
+    if (event.key === "Escape") {
+      event.preventDefault();
+      finish();
+      announce("Move cancelled.");
+      return true;
+    }
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      commitMove("keyboard");
+      return true;
+    }
+    if (event.key === "ArrowRight" && target) {
+      event.preventDefault();
+      if (chooseTarget(target, "inside")) announce(`Move ${nameOf(source)} inside ${nameOf(target)}.`);
+      else announce("That item cannot contain this one.");
+      return true;
+    }
+    if (event.key === "ArrowLeft" && target) {
+      event.preventDefault();
+      const side = allItems().indexOf(target) < allItems().indexOf(source) ? "before" : "after";
+      if (chooseTarget(target, side)) announce(`Move ${nameOf(source)} ${side} ${nameOf(target)}.`);
+      return true;
+    }
+    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return false;
+    event.preventDefault();
+    const items = visibleItems();
+    const step = event.key === "ArrowDown" ? 1 : -1;
+    let index = items.indexOf(target ?? source);
+    while (index + step >= 0 && index + step < items.length) {
+      index += step;
+      const candidate = items[index];
+      const side = step < 0 ? "before" : "after";
+      if (candidate !== source && chooseTarget(candidate, side)) {
+        announce(`Move ${nameOf(source)} ${side} ${nameOf(candidate)}. Press Enter to place.`);
+        break;
+      }
+    }
+    return true;
   };
   const onDragStart = (event) => {
+    if (moveMode) finish();
     const item = itemFromEvent(event);
     // An item renders its drag handle only while it is sortable and enabled.
     const fromHandle = event.composedPath().some((node) => node instanceof HTMLElement && node.classList.contains("drag-handle"));
@@ -204,9 +317,52 @@ export default function controller(host) {
     tabStop = next;
     for (const item of items) item.dispatchEvent(new CustomEvent("ui-tree-roving-tab-stop", { detail: { active: item === next } }));
   };
+  const syncSelection = () => {
+    const mode = selectionMode();
+    if (mode === "multiple") element.setAttribute("aria-multiselectable", "true");
+    else element.removeAttribute("aria-multiselectable");
+    for (const item of allItems()) {
+      if (mode === "multiple") item.setAttribute("data-selection-mode", "multiple");
+      else item.removeAttribute("data-selection-mode");
+      const checkbox = rowFor(item)?.querySelector(".selection-checkbox");
+      if (checkbox) {
+        const descendants = Array.from(item.querySelectorAll(itemSelector));
+        checkbox.indeterminate = mode === "multiple" && descendants.some((child) => child.getAttribute("aria-selected") === "true")
+          && (item.getAttribute("aria-selected") !== "true" || descendants.some((child) => child.getAttribute("aria-selected") !== "true"));
+      }
+    }
+  };
+  const selectItem = (item, how) => {
+    const mode = selectionMode();
+    const id = itemId(item);
+    if (mode === "none" || !id) return;
+    if (mode === "single") {
+      if (item.getAttribute("aria-selected") !== "true") host.dispatch("select", { ids: [id], trigger: how });
+      return;
+    }
+    const items = allItems();
+    const selected = new Set(items.filter((candidate) => candidate.getAttribute("aria-selected") === "true").map(itemId).filter(Boolean));
+    const subtree = [item, ...item.querySelectorAll(itemSelector)].filter((candidate) => candidate.getAttribute("aria-disabled") !== "true");
+    const adding = !selected.has(id);
+    for (const candidate of subtree) {
+      const candidateId = itemId(candidate);
+      if (!candidateId) continue;
+      if (adding) selected.add(candidateId);
+      else selected.delete(candidateId);
+    }
+    let ancestor = parentItem(item, element);
+    while (ancestor) {
+      const children = items.filter((candidate) => parentItem(candidate, element) === ancestor);
+      if (children.length && children.every((child) => selected.has(itemId(child)))) selected.add(itemId(ancestor));
+      else selected.delete(itemId(ancestor));
+      ancestor = parentItem(ancestor, element);
+    }
+    host.dispatch("select", { ids: items.map(itemId).filter((candidate) => candidate && selected.has(candidate)), trigger: how });
+  };
   const syncStructure = () => {
     for (const item of allItems()) item.dispatchEvent(new CustomEvent("ui-tree-structure-sync"));
     syncTabStop();
+    syncSelection();
   };
   const interactive = (event) => {
     for (const node of event.composedPath()) {
@@ -219,9 +375,15 @@ export default function controller(host) {
   const onFocusin = (event) => { if (!interactive(event)) { const item = itemFromEvent(event); if (item) syncTabStop(item); } };
   const onExpansion = () => requestAnimationFrame(() => syncTabStop());
   const onKeydown = (event) => {
+    if (onMoveKeydown(event)) return;
     if (interactive(event)) return;
     const current = itemFromEvent(event);
     if (!current) return;
+    if (event.key === " " && selectionMode() !== "none") {
+      event.preventDefault();
+      selectItem(current, "keyboard");
+      return;
+    }
     const items = visibleItems();
     const index = items.indexOf(current);
     if (index < 0) return;
@@ -234,17 +396,34 @@ export default function controller(host) {
       if (current.getAttribute("aria-expanded") === "false") { event.preventDefault(); current.dispatchEvent(new CustomEvent("ui-tree-request-expanded", { detail: { expanded: true, trigger: "keyboard" } })); }
       else if (current.getAttribute("aria-expanded") === "true") { const child = items.find((item) => parentItem(item, element) === current); if (child) { event.preventDefault(); focusItem(child); } }
     }
+    if (event.key.length === 1 && /^[\p{L}\p{N}]$/u.test(event.key) && !event.altKey && !event.ctrlKey && !event.metaKey) {
+      const now = Date.now();
+      typed = `${now - lastTyped < 700 ? typed : ""}${event.key.toLocaleLowerCase()}`;
+      lastTyped = now;
+      const candidates = [...items.slice(index + 1), ...items.slice(0, index + 1)];
+      const match = candidates.find((item) => (item.getAttribute("aria-label") || item.textContent || "").trim().toLocaleLowerCase().startsWith(typed));
+      if (match) { event.preventDefault(); focusItem(match); }
+    }
   };
-  const listeners = { dragstart: onDragStart, drag: onDrag, dragenter: onDragOver, dragover: onDragOver, dragleave: onDragLeave, drop: onDrop, dragend: onDragEnd, keydown: onKeydown, focusin: onFocusin, "ui-tree-expansion-change": onExpansion };
+  const listeners = { dragstart: onDragStart, drag: onDrag, dragenter: onDragOver, dragover: onDragOver, dragleave: onDragLeave, drop: onDrop, dragend: onDragEnd, keydown: onKeydown, focusin: onFocusin, pointermove: onMovePointer, "ui-tree-expansion-change": onExpansion };
   for (const [name, listener] of Object.entries(listeners)) element.addEventListener(name, listener);
-  const observer = new MutationObserver(syncStructure);
-  observer.observe(element, { childList: true, subtree: true });
-  const stop = host.effect(() => element.setAttribute("aria-label", String(host.state.label || "Tree")));
+  element.addEventListener("click", onMoveClick, true);
+  const observer = new MutationObserver((records) => {
+    if (records.some((record) => record.type === "childList")) syncStructure();
+    else syncSelection();
+  });
+  observer.observe(element, { childList: true, subtree: true, attributes: true, attributeFilter: ["aria-selected"] });
+  const stop = host.effect(() => {
+    element.setAttribute("aria-label", String(host.state.label || "Tree"));
+    syncSelection();
+  });
   syncStructure();
   return () => {
     stop();
     observer.disconnect();
     cancelHover();
+    announcer.remove();
     for (const [name, listener] of Object.entries(listeners)) element.removeEventListener(name, listener);
+    element.removeEventListener("click", onMoveClick, true);
   };
 }

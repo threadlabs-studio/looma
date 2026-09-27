@@ -6,7 +6,19 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 # Disclosure
 
-Progressively enhances a button/content pair into an accessible disclosure.
+Progressively enhances a button/content pair into an accessible disclosure. Set the same nonempty
+`name` on several disclosures when only one may be open at a time. Without `name`, each item opens
+independently. The `summary` attribute is a text shorthand; authored content in the `summary` slot
+wins and can include emphasis, a count, or an icon. Keep interactive controls outside the trigger.
+
+For an accordion section, set `heading-level` to 2 through 6 to give each trigger a heading role at
+the appropriate level. The default 0 keeps a plain disclosure without a heading. Choose the level
+from the page outline; opening a different item in a named group emits `close` on the former item.
+
+Closed content remains available to browser find-in-page and links to an element inside the panel.
+When the browser reveals a match or fragment target, the panel opens and emits `open` with a
+programmatic trigger; any open peer in its named group closes. A disabled trigger does not prevent
+the browser from revealing linked content.
 
 
 <ComponentExamplesApiTabs component="ui-disclosure" />

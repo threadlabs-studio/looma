@@ -1,0 +1,9 @@
+<!--
+title: Sizes and modeless mode
+description: Use size for a common width or modeless when the rest of the page should remain interactive. --ui-dialog-max-width is the one-off width escape hatch.
+-->
+<ui-button id="open-wide-dialog">Open wide dialog</ui-button>
+<ui-dialog id="wide-dialog" for="open-wide-dialog" size="lg" modeless label="Reference details">
+  <p>Keep the rest of the page available while reviewing these details.</p>
+  <ui-button slot="actions" commandfor="wide-dialog" command="close">Done</ui-button>
+</ui-dialog>

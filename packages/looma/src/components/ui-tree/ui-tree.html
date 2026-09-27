@@ -3,6 +3,9 @@
   <defs>
     <prop name="density" type="comfortable | compact" default="comfortable">Compact trades padding and type size for rows that fit more on screen.</prop>
     <prop name="label" type="string" default="Tree">The tree's accessible name, announced when focus enters it. Name what the tree holds.</prop>
+    <prop name="selection" type="none | single | multiple" default="none"
+    >How selection works. None keeps rows for navigation and expansion; single requests one selected item; multiple shows checkboxes and requests an item with
+      its descendants. The application owns each Tree Item's selected state and responds to select.</prop>
     <prop name="hoverExpandDelay" type="number" default="700"
     >How long, in milliseconds, a dragged item must hover over the middle of a collapsed branch before the branch opens to receive it. 0 opens it at
       once.</prop>
@@ -20,6 +23,7 @@
       name="reorder-rejected"
       type="object({ sourceId: string, targetId: string, position: before | inside | after, reason: max-depth, maxDepth: integer, resultingDepth: integer, trigger: keyboard | pointer | programmatic })"
     ></event>
+    <event name="select" type="object({ ids: list(string), trigger: keyboard | pointer | programmatic })"></event>
   </defs>
   <div role="tree"><slot></slot></div>
   <style>
@@ -62,6 +66,14 @@
       display: block;
       min-inline-size: 0;
       padding-inline-start: var(--ui-tree-gutter, 0px);
+    }
+
+    :host[data-move-mode]::after {
+      content: "Choose a destination row, or use Up and Down; Right nests inside a branch. Enter places it, Escape cancels.";
+      display: block;
+      padding: var(--ui-space-2);
+      color: var(--ui-text-secondary);
+      font-size: var(--ui-font-size-sm);
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */

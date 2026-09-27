@@ -253,7 +253,9 @@ test("affordance-scope visibly reveals an anticipatory Looma control near the po
   expect(await affordance.evaluate((element) => getComputedStyle(element, "::before").opacity)).not.toBe("0");
   const bounds = await affordance.boundingBox();
   expect(bounds).not.toBeNull();
-  await page.mouse.move(bounds!.x - 8, bounds!.y + bounds!.height / 2);
+  await affordance.scrollIntoViewIfNeeded();
+  const visibleBounds = await affordance.boundingBox();
+  await page.mouse.move(visibleBounds!.x - 8, visibleBounds!.y + visibleBounds!.height / 2);
   await expect(affordance).toHaveAttribute("data-ui-proximity", "near");
   await expect(affordance).not.toHaveCSS("color", "rgba(0, 0, 0, 0)");
 
@@ -277,6 +279,7 @@ test("popover trigger opens, positions, and closes the settled component", async
   const trigger = scenario.getByRole("button", { name: "Open popover" });
   const popover = scenario.locator("[data-component~='ui-popover']");
   await expect(popover).not.toBeVisible();
+  await trigger.evaluate((element) => element.scrollIntoView({ block: "center", behavior: "instant" }));
   await trigger.click();
   await expect(popover).toBeVisible();
   expect(await popover.evaluate((element) => element.matches(":popover-open"))).toBe(true);
@@ -331,7 +334,7 @@ test("tooltip uses a Looma trigger and a crisp, pointed overlay surface", async 
 
 test("toast-region starts empty, fires on demand, and uses a compact round dismiss control", async ({ page }) => {
   await page.goto("components/ui-toast-region", { waitUntil: "domcontentloaded" });
-  const scenario = page.locator("[data-preview-scenario='Default closed']");
+  const scenario = page.locator("[data-preview-scenario='Show a notification']");
   const region = scenario.locator("[data-component~='ui-toast-region']");
   // The region answers "show a toast" only once the runtime has lowered it and its controller ran.
   // It is a manual popover, so it stays hidden until it holds one.
@@ -377,8 +380,8 @@ test("the component catalog exposes the complete library and filters live previe
     "Core, layout, form, display, and overlay building blocks"
   );
   await expect(page.locator(".looma-catalog-hero")).not.toContainText("Forty-nine");
-  await expect(page.locator(".looma-component-card")).toHaveCount(52);
-  await expect(page.getByText("Showing 52 components", { exact: true })).toBeVisible();
+  await expect(page.locator(".looma-component-card")).toHaveCount(53);
+  await expect(page.getByText("Showing 53 components", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { level: 2, name: "Chip" })).toHaveCount(0);
   await expect(page.getByRole("heading", { level: 2, name: "Floating Action Button" })).toHaveCount(0);
   await expect(page.getByRole("heading", { level: 2, name: "Menu Item" })).toHaveCount(0);
@@ -931,8 +934,8 @@ test("Examples and API keep configuration demos separate from exhaustive referen
 }) => {
   await page.goto("components/ui-button", { waitUntil: "domcontentloaded" });
 
-  // Default, variant, Link, size, disabled, align and stretch, as a link.
-  await expect(page.locator(".looma-preview-scenario")).toHaveCount(7);
+  // Default, variant, Link, size, disabled, align and stretch, pending, as a link.
+  await expect(page.locator(".looma-preview-scenario")).toHaveCount(8);
   await expect(page.locator(".looma-api")).toHaveCount(0);
   await page.getByRole("tab", { name: "API" }).click();
   await expect(page.locator(".looma-preview-scenario")).toHaveCount(0);
@@ -1154,7 +1157,7 @@ test("dialog closes via header button, actions, Escape, and outside press, with 
   };
 
   let dialog = await open("Default");
-  expect(await dialog.evaluate((element: HTMLDialogElement) => element.matches(":modal"))).toBe(false);
+  expect(await dialog.evaluate((element: HTMLDialogElement) => element.matches(":modal"))).toBe(true);
   await expect(dialog.locator(".title")).toHaveText("Publish changes?");
   const footer = dialog.locator("footer");
   await expect(footer).toHaveCSS("justify-content", "flex-end");
@@ -1167,17 +1170,15 @@ test("dialog closes via header button, actions, Escape, and outside press, with 
   await dialog.getByRole("button", { name: "Close" }).click();
   await expect(dialog).not.toHaveAttribute("open", "");
 
-  dialog = await open("modal");
+  dialog = await open("Modal by default");
   expect(await dialog.evaluate((element: HTMLDialogElement) => element.matches(":modal"))).toBe(true);
   await page.keyboard.press("Escape");
-  await expect(dialog).toHaveAttribute("open", "");
-  await dialog.getByRole("button", { name: "Cancel" }).click();
   await expect(dialog).not.toHaveAttribute("open", "");
 
-  dialog = await open("dismissible");
+  dialog = await open("Outside dismissal");
   await page.keyboard.press("Escape");
   await expect(dialog).not.toHaveAttribute("open", "");
-  dialog = await open("dismissible");
+  dialog = await open("Outside dismissal");
   await page.mouse.click(8, 8);
   await expect(dialog).not.toHaveAttribute("open", "");
 
@@ -1196,7 +1197,7 @@ test("every combobox scenario receives its authored native options", async ({ pa
   await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
 
   const comboboxes = page.locator("[data-component~='ui-combobox']");
-  await expect(comboboxes).toHaveCount(8);
+  await expect(comboboxes).toHaveCount(9);
   await expect(comboboxes.nth(0).locator(".authored-options option")).toHaveCount(2);
   await expect(comboboxes.nth(1).locator(".authored-options option")).toHaveCount(2);
   await comboboxes.nth(0).evaluate((element) => {
@@ -1813,8 +1814,8 @@ test("every badge tone remains legible and visually distinct in light and dark t
     await page.reload({ waitUntil: "domcontentloaded" });
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
     const badges = page.locator("[data-preview-scenario] [data-component~='ui-badge']");
-    // Default, five solid tones, five subtle tones, then the shape example.
-    await expect(badges).toHaveCount(15);
+    // Default, five solid tones, five subtle tones, shape, then outline examples.
+    await expect(badges).toHaveCount(18);
     const treatments = await badges.evaluateAll((surfaces) => surfaces.map((surface) => {
       const style = getComputedStyle(surface);
       const canvas = document.createElement("canvas");
@@ -1829,9 +1830,17 @@ test("every badge tone remains legible and visually distinct in light and dark t
         const [red, green, blue] = context.getImageData(0, 0, 1, 1).data;
         return `rgb(${red} ${green} ${blue})`;
       };
+      let background = style.backgroundColor;
+      const inset = getComputedStyle(surface, "::before");
+      if (inset.content !== "none" && inset.backgroundColor !== "rgba(0, 0, 0, 0)") {
+        background = inset.backgroundColor;
+      }
+      if (background === "rgba(0, 0, 0, 0)" || background === "transparent") {
+        background = style.getPropertyValue("--ui-surface");
+      }
       return {
         color: rgb(style.color),
-        background: rgb(style.backgroundColor),
+        background: rgb(background),
         border: rgb(style.borderTopColor),
         fontSize: Number.parseFloat(style.fontSize),
         fontWeight: Number.parseInt(style.fontWeight, 10)
@@ -1855,7 +1864,7 @@ test("every badge tone remains legible and visually distinct in light and dark t
 test("every callout tone renders its icon without an empty oversized indent", async ({ page }) => {
   await page.goto("components/ui-callout", { waitUntil: "domcontentloaded" });
   const callouts = page.locator("[data-preview-scenario] [data-component~='ui-callout']");
-  await expect(callouts).toHaveCount(4);
+  await expect(callouts).toHaveCount(5);
   const treatments = await callouts.evaluateAll((roots) => roots.map((root) => {
     const surface = root;
     const content = root.querySelector(".content")!;

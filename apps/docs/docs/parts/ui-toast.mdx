@@ -1,0 +1,19 @@
+---
+slug: /components/ui-toast
+---
+
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# Toast
+
+Author a toast inside Toast Region when its message has a tone, rich content, or an action. The
+`action` slot can hold a button or link; your application handles its activation. An authored toast
+emits `dismiss` with `{id, reason, trigger}` after its close button, action, or duration fires. The
+application removes it from its rendered list; Looma never deletes authored content.
+
+`duration="0"` is persistent. A timed toast pauses on hover or focus. Give a person another route
+to a time-sensitive action, since the toast may disappear before they reach it. `tone="danger"`
+uses an assertive alert role; other tones use polite status semantics. A local hook such as
+`--ui-toast-surface` changes one toast, while `--ui-overlay-surface` changes the floating family.
+
+<ComponentExamplesApiTabs component="ui-toast" />

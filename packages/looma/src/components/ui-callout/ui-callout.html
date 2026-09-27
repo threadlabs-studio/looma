@@ -1,8 +1,8 @@
 <template component="ui-callout">
   <defs>
-    <prop name="tone" type="info | note | warning | success | danger" default="info"
-    >Which kind of message the callout carries, shown by its icon and colour: info (the default) for neutral information, note for an aside in muted grey,
-      warning for a caution, success for a confirmation, and danger for an error or a destructive consequence.</prop>
+    <prop name="tone" type="info | neutral | note | warning | success | danger" default="info"
+    >Which kind of message the callout carries, shown by its icon and colour: info (the default) for information, neutral for a muted aside, warning for a
+      caution, success for a confirmation, and danger for a harmful consequence. note remains as an alias for neutral.</prop>
   </defs>
   <div role="note">
     <span class="icon" aria-hidden="true">
@@ -11,7 +11,15 @@
         <path d="M12 16v-4"></path>
         <path d="M12 8h.01"></path>
       </svg>
-      <svg $if="tone = 'note'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <svg
+        $if="tone = 'neutral' or tone = 'note'"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
         <path d="M13.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8.5L13.5 2Z"></path>
         <path d="M13 2v7h7"></path>
         <path d="m9.5 17.5 4-4 2 2-4 4H9.5v-2Z"></path>
@@ -125,7 +133,7 @@
       min-inline-size: 0;
     }
 
-    :host-state([tone="note"]) {
+    :host-state([tone="neutral"]), :host-state([tone="note"]) {
       --_callout-surface: var(--ui-surface-muted);
       --_callout-border: var(--ui-border-strong);
       --_callout-icon: var(--ui-text-secondary);

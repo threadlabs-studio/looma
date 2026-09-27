@@ -1,0 +1,11 @@
+<!--
+title: Multiple selection
+description: A selectable tree shows checkboxes. Listen for select, then update each item's selected prop from its requested ids.
+-->
+<ui-tree label="Documents" selection="multiple">
+  <ui-tree-item item-id="reports" label="Reports" expanded>
+    <ui-tree-item item-id="quarterly" label="Quarterly" selected></ui-tree-item>
+    <ui-tree-item item-id="annual" label="Annual"></ui-tree-item>
+  </ui-tree-item>
+  <ui-tree-item item-id="notes" label="Notes"></ui-tree-item>
+</ui-tree>

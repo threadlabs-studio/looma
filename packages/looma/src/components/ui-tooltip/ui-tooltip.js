@@ -1,8 +1,30 @@
 import { closeOverlay, createAnchoredSurface, createIdResolver, openOverlay } from "../shared/overlay.js";
 
+const warmTooltips = new WeakMap();
+
 export default function controller(host) {
   const element = host.element;
   const document = element.ownerDocument;
+  const warm = warmTooltips.get(document) ?? { active: 0, until: 0 };
+  warmTooltips.set(document, warm);
+  let counted = false;
+  const trackVisible = (visible) => {
+    if (counted === visible) return;
+    counted = visible;
+    if (visible) warm.active += 1;
+    else {
+      warm.active = Math.max(0, warm.active - 1);
+      warm.until = Date.now() + 400;
+    }
+  };
+  const offset = () => {
+    const value = getComputedStyle(element).getPropertyValue("--ui-tooltip-offset").trim();
+    const amount = Number.parseFloat(value);
+    if (!Number.isFinite(amount)) return 4;
+    if (value.endsWith("rem")) return amount * Number.parseFloat(getComputedStyle(document.documentElement).fontSize);
+    if (value.endsWith("em")) return amount * Number.parseFloat(getComputedStyle(element).fontSize);
+    return amount;
+  };
   const overlayId = element.id || `ui-tooltip-${Math.random().toString(36).slice(2, 11)}`;
   if (!element.id) element.id = overlayId;
   let focused = false;
@@ -21,6 +43,7 @@ export default function controller(host) {
   const setOpen = (open, input) => {
     if (Boolean(host.state.internalOpen) === open) return;
     host.state.internalOpen = open;
+    trackVisible(open);
     if (trigger && host.state.trigger === "click") trigger.setAttribute("aria-expanded", String(open));
     host.dispatch(open ? "open" : "close", { open, reason: "action", trigger: input });
   };
@@ -37,7 +60,7 @@ export default function controller(host) {
     showTimer = setTimeout(() => {
       showTimer = null;
       setOpen(true, "pointer");
-    }, Math.max(0, Number(host.state.showDelay ?? 500)));
+    }, warm.active > 0 || warm.until > Date.now() ? 0 : Math.max(0, Number(host.state.showDelay ?? 500)));
   };
   const onLeave = () => {
     clearShow();
@@ -101,7 +124,7 @@ export default function controller(host) {
   });
   const setup = () => {
     const nextFor = String(host.state.for ?? "");
-    const nextPlacement = String(host.state.placement ?? "top-start");
+    const nextPlacement = String(host.state.placement ?? "top");
     if (surface && nextFor === lastFor && nextPlacement === lastPlacement) return;
     lastFor = nextFor;
     lastPlacement = nextPlacement;
@@ -112,12 +135,13 @@ export default function controller(host) {
       attach();
     }
     surface?.destroy();
-    surface = createAnchoredSurface(element, { anchor: trigger, placement: nextPlacement });
+    surface = createAnchoredSurface(element, { anchor: trigger, placement: nextPlacement, gap: offset });
   };
   const close = (reason, input) => {
     if (reason !== "escape" && reason !== "light-dismiss") return;
     clearTimers();
     host.state.internalOpen = false;
+    trackVisible(false);
     host.dispatch("close", { open: false, reason, trigger: input });
   };
   const apply = () => {
@@ -128,6 +152,7 @@ export default function controller(host) {
     }
     setup();
     const open = Boolean(host.state.internalOpen);
+    trackVisible(open);
     element.hidden = !open;
     if (open) {
       surface?.show();
@@ -146,6 +171,7 @@ export default function controller(host) {
     stop();
     ids.stop();
     clearTimers();
+    trackVisible(false);
     detach();
     surface?.destroy();
     element.removeEventListener("pointerenter", onSurfaceEnter);

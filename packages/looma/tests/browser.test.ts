@@ -54,6 +54,929 @@ afterAll(async () => {
   if (directory) await rm(directory, { recursive: true, force: true });
 });
 
+describe("Anchored overlay placement", () => {
+  it("positions Popover and Tooltip on every side and alignment, then flips at an edge", async () => {
+    const path = await bundle("html-overlay-placement", `import "@threadlabs/looma";`);
+    const placements = ["top", "top-start", "top-end", "bottom", "bottom-start", "bottom-end", "left", "left-start", "left-end", "right", "right-start", "right-end"];
+    for (const placement of placements) {
+      const page = await open(path, `
+        <button id="anchor" style="position: fixed; left: 500px; top: 250px; width: 100px; height: 40px">Anchor</button>
+        <ui-popover id="popover" for="anchor" open placement="${placement}">Popover content</ui-popover>
+        <ui-tooltip id="tooltip" for="anchor" open placement="${placement}">Tooltip content</ui-tooltip>
+      `, [join(root, "tokens.css")], { reducedMotion: "reduce" });
+      for (const tag of ["popover", "tooltip"]) {
+        const boxes = await page.evaluate((name) => {
+          const anchor = document.querySelector("#anchor")!.getBoundingClientRect();
+          const surface = document.querySelector(`#${name}`)!.getBoundingClientRect();
+          return { anchor: { left: anchor.left, right: anchor.right, top: anchor.top, bottom: anchor.bottom }, surface: { left: surface.left, right: surface.right, top: surface.top, bottom: surface.bottom } };
+        }, tag);
+        const { anchor, surface } = boxes;
+        const [side, align = "center"] = placement.split("-");
+        if (side === "top") assert.ok(surface.bottom <= anchor.top, `${tag} ${placement}: ${JSON.stringify(boxes)}`);
+        if (side === "bottom") assert.ok(surface.top >= anchor.bottom, `${tag} ${placement}: ${JSON.stringify(boxes)}`);
+        if (side === "left") assert.ok(surface.right <= anchor.left, `${tag} ${placement}: ${JSON.stringify(boxes)}`);
+        if (side === "right") assert.ok(surface.left >= anchor.right, `${tag} ${placement}: ${JSON.stringify(boxes)}`);
+        const near = (actual: number, expected: number) => assert.ok(Math.abs(actual - expected) <= 3, `${tag} ${placement}: ${JSON.stringify(boxes)}`);
+        if (side === "top" || side === "bottom") {
+          if (align === "start") near(surface.left, anchor.left);
+          else if (align === "end") near(surface.right, anchor.right);
+          else near((surface.left + surface.right) / 2, (anchor.left + anchor.right) / 2);
+        } else {
+          if (align === "start") near(surface.top, anchor.top);
+          else if (align === "end") near(surface.bottom, anchor.bottom);
+          else near((surface.top + surface.bottom) / 2, (anchor.top + anchor.bottom) / 2);
+        }
+      }
+      await page.close();
+    }
+    const rtl = await open(path, `
+      <button id="anchor" dir="rtl" style="position: fixed; left: 500px; top: 250px; width: 100px; height: 40px">Anchor</button>
+      <ui-popover id="popover" dir="rtl" for="anchor" open placement="top-start">Popover content</ui-popover>
+      <ui-tooltip id="tooltip" dir="rtl" for="anchor" open placement="top-start">Tooltip content</ui-tooltip>
+    `, [join(root, "tokens.css")], { reducedMotion: "reduce" });
+    for (const tag of ["popover", "tooltip"]) {
+      const distance = await rtl.evaluate((name) => document.querySelector("#anchor")!.getBoundingClientRect().right - document.querySelector(`#${name}`)!.getBoundingClientRect().right, tag);
+      assert.ok(Math.abs(distance) <= 3, `${tag} top-start follows the RTL inline start`);
+    }
+    await rtl.close();
+    const edge = await open(path, `
+      <button id="anchor" style="position: fixed; left: 500px; top: calc(100vh - 45px); width: 100px; height: 40px">Anchor</button>
+      <ui-popover id="popover" for="anchor" open placement="bottom">Popover content</ui-popover>
+      <ui-tooltip id="tooltip" for="anchor" open placement="bottom">Tooltip content</ui-tooltip>
+    `, [join(root, "tokens.css")], { reducedMotion: "reduce" });
+    for (const tag of ["popover", "tooltip"]) {
+      const flipped = await edge.evaluate((name) => document.querySelector(`#${name}`)!.getBoundingClientRect().bottom <= document.querySelector("#anchor")!.getBoundingClientRect().top, tag);
+      assert.equal(flipped, true, `${tag} flips above the anchor when the bottom edge cannot fit it`);
+    }
+    await edge.close();
+  });
+
+  it("lets one Popover set its main-axis offset in CSS", async () => {
+    const path = await bundle("html-popover-offset", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <button id="anchor" style="position: fixed; left: 500px; top: 250px; width: 100px; height: 40px">Anchor</button>
+      <ui-popover id="popover" for="anchor" open placement="bottom" style="--ui-popover-offset: 20px">Offset content</ui-popover>
+    `, [join(root, "tokens.css")], { reducedMotion: "reduce" });
+    const gap = await page.evaluate(() => document.querySelector("#popover")!.getBoundingClientRect().top - document.querySelector("#anchor")!.getBoundingClientRect().bottom);
+    assert.ok(Math.abs(gap - 20) <= 1, `Popover offset is ${gap}px`);
+    await page.close();
+  });
+
+  it("shows the next Tooltip without another hover delay and reads its local offset", async () => {
+    const path = await bundle("html-tooltip-warmup", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <button id="one" style="position: fixed; left: 300px; top: 200px">One</button>
+      <button id="two" style="position: fixed; left: 500px; top: 200px">Two</button>
+      <ui-tooltip id="first" for="one" show-delay="300" hide-delay="0">First hint</ui-tooltip>
+      <ui-tooltip id="second" for="two" show-delay="300" hide-delay="0" placement="bottom" style="--ui-tooltip-offset: 16px">Second hint</ui-tooltip>
+    `, [join(root, "tokens.css")], { reducedMotion: "reduce" });
+    await page.locator("#one").hover();
+    await page.waitForFunction(() => document.querySelector("#first")!.matches(":popover-open"));
+    await page.locator("#two").hover();
+    await page.waitForTimeout(80);
+    assert.equal(await page.locator("#second").evaluate((element) => element.matches(":popover-open")), true);
+    const gap = await page.evaluate(() => document.querySelector("#second")!.getBoundingClientRect().top - document.querySelector("#two")!.getBoundingClientRect().bottom);
+    assert.ok(Math.abs(gap - 16) <= 1, `Tooltip offset is ${gap}px`);
+    await page.close();
+  });
+});
+
+describe("Toast composition and placement", () => {
+  it("shows authored toasts, reports action dismissal, and leaves removal to the consumer", async () => {
+    const path = await bundle("html-authored-toast", `
+      import "@threadlabs/looma";
+      window.dismissals = [];
+      document.querySelector("#region").addEventListener("dismiss", (event) => window.dismissals.push(event.detail));
+    `);
+    const page = await open(path, `
+      <ui-toast-region id="region" placement="bottom-end">
+        <ui-toast id="saved" tone="success">Saved <button slot="action">Undo</button></ui-toast>
+        <ui-toast id="failed" tone="danger">Could not save</ui-toast>
+      </ui-toast-region>
+    `, [join(root, "tokens.css")]);
+    const region = page.locator("#region");
+    assert.equal(await region.evaluate((element) => element.matches(":popover-open")), true);
+    assert.equal(await page.locator("#saved").getAttribute("role"), "status");
+    assert.equal(await page.locator("#failed").getAttribute("role"), "alert");
+    const position = await region.evaluate((element) => {
+      const box = element.getBoundingClientRect();
+      return { bottom: innerHeight - box.bottom, right: innerWidth - box.right };
+    });
+    assert.ok(position.bottom < 40 && position.right < 40, JSON.stringify(position));
+    await page.getByRole("button", { name: "Undo" }).click();
+    assert.deepEqual(await page.evaluate(() => (window as any).dismissals), [{ id: "saved", reason: "action", trigger: "pointer" }]);
+    assert.equal(await page.locator("#saved").count(), 1, "authored content stays owned by the consumer");
+    await page.locator("#saved").evaluate((element) => element.remove());
+    await page.locator("#failed").evaluate((element) => element.remove());
+    await page.waitForFunction(() => !document.querySelector("#region")!.matches(":popover-open"));
+    await page.close();
+  });
+
+  it("pauses an authored duration on hover and dismisses after leaving", async () => {
+    const path = await bundle("html-timed-toast", `
+      import "@threadlabs/looma";
+      window.dismissals = [];
+      document.querySelector("#toast").addEventListener("dismiss", (event) => window.dismissals.push(event.detail));
+    `);
+    const page = await open(path, `<ui-toast-region><ui-toast id="toast" duration="250">Timed</ui-toast></ui-toast-region>`, [join(root, "tokens.css")]);
+    await page.locator("#toast").hover();
+    await page.waitForTimeout(300);
+    assert.deepEqual(await page.evaluate(() => (window as any).dismissals), []);
+    await page.mouse.move(0, 0);
+    await page.waitForFunction(() => (window as any).dismissals.length === 1);
+    assert.deepEqual(await page.evaluate(() => (window as any).dismissals), [{ id: "toast", reason: "timeout", trigger: "programmatic" }]);
+    await page.close();
+  });
+
+  it("pauses while an action has focus and supports keyboard dismissal across themes", async () => {
+    const path = await bundle("html-toast-focus", `
+      import "@threadlabs/looma";
+      window.dismissals = [];
+      document.querySelector("#toast").addEventListener("dismiss", (event) => window.dismissals.push(event.detail));
+    `);
+    const page = await open(path, `
+      <button id="before">Before</button>
+      <ui-toast-region><ui-toast id="toast" tone="danger" duration="250">
+        Save failed <button slot="action">Retry</button>
+      </ui-toast></ui-toast-region>
+    `, ["tokens.css", "theme-light.css", "theme-dark.css", "theme-high-contrast.css"].map((file) => join(root, file)));
+    for (const [attribute, value] of [["data-theme", "light"], ["data-theme", "dark"], ["data-contrast", "high"]] as const) {
+      await page.evaluate(() => { document.documentElement.removeAttribute("data-theme"); document.documentElement.removeAttribute("data-contrast"); });
+      await page.evaluate(([name, setting]) => document.documentElement.setAttribute(name, setting), [attribute, value]);
+      assert.equal(await page.locator("#toast").getAttribute("role"), "alert");
+      const colors = await page.locator("#toast").evaluate((element) => {
+        const css = getComputedStyle(element);
+        return { accent: css.borderInlineStartColor, surface: css.backgroundColor, text: css.color };
+      });
+      assert.notEqual(colors.accent, colors.surface, `${value}: danger accent is visible`);
+      assert.notEqual(colors.text, colors.surface, `${value}: message is visible`);
+    }
+    await page.getByRole("button", { name: "Retry" }).focus();
+    await page.waitForTimeout(300);
+    assert.deepEqual(await page.evaluate(() => (window as any).dismissals), []);
+    await page.getByRole("button", { name: "Retry" }).press("Tab");
+    await page.getByRole("button", { name: "Dismiss notification" }).press("Enter");
+    assert.deepEqual(await page.evaluate(() => (window as any).dismissals), [{ id: "toast", reason: "action", trigger: "keyboard" }]);
+    await page.close();
+  });
+
+  it("adds generated messages with tone and duration through the public method", async () => {
+    const path = await bundle("html-generated-toast", `import "@threadlabs/looma";`);
+    const page = await open(path, `<ui-toast-region id="region" placement="top-start" duration="0"></ui-toast-region>`, [join(root, "tokens.css")]);
+    const id = await page.locator("#region").evaluate(async (element: any) => element.show("Saved", { tone: "success", duration: 0 }));
+    assert.equal(typeof id, "string");
+    assert.equal(await page.locator("#region .toast[role='status'][data-tone='success']").count(), 1);
+    const region = page.locator("#region");
+    assert.equal(await region.evaluate((element) => element.matches(":popover-open")), true);
+    const position = await region.evaluate((element) => {
+      const box = element.getBoundingClientRect();
+      return { top: box.top, left: box.left };
+    });
+    assert.ok(position.top < 40 && position.left < 40, JSON.stringify(position));
+    await page.getByRole("button", { name: "Dismiss Saved" }).click();
+    await page.waitForFunction(() => !document.querySelector("#region")!.matches(":popover-open"));
+    await page.close();
+  });
+});
+
+describe("Intrinsic layout limits", () => {
+  it("caps Grid columns and stacks Switcher children above its count limit in HTML", async () => {
+    const path = await bundle("html-layout-limits", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-grid id="grid" columns="3" min="sm" style="width: 1000px">
+        <div>A</div><div>B</div><div>C</div><div>D</div><div>E</div>
+      </ui-grid>
+      <ui-switcher id="switcher" limit="3" style="width: 1000px">
+        <div>A</div><div>B</div><div>C</div><div>D</div>
+      </ui-switcher>
+    `, [join(root, "tokens.css")]);
+    const columns = () => page.locator("#grid").evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(" ").length);
+    assert.equal(await columns(), 3);
+    await page.locator("#grid").evaluate((element) => { element.style.width = "400px"; });
+    assert.ok((await columns()) < 3, "the cap still allows fewer columns in a narrow container");
+    const rows = () => page.locator("#switcher").evaluate((element) => Array.from(element.children).map((child) => Math.round(child.getBoundingClientRect().top)));
+    assert.equal(new Set(await rows()).size, 4);
+    await page.locator("#switcher > div").last().evaluate((element) => element.remove());
+    await page.waitForFunction(() => {
+      const children = Array.from(document.querySelector("#switcher")!.children);
+      return children.length === 3 && children.every((child) => child.getBoundingClientRect().top === children[0]!.getBoundingClientRect().top);
+    });
+    assert.equal(new Set(await rows()).size, 1);
+    await page.close();
+  });
+
+  it("passes Grid and Switcher limits through Vue", async () => {
+    const path = await bundle("vue-layout-limits", `
+      import { createApp, h } from "vue";
+      import { Grid, Switcher } from "@threadlabs/looma/vue";
+      createApp({ render: () => h("main", [
+        h(Grid, { id: "grid", columns: 2, style: { width: "1000px" } }, () => [h("div", "A"), h("div", "B"), h("div", "C")]),
+        h(Switcher, { id: "switcher", limit: 2, style: { width: "1000px" } }, () => [h("div", "A"), h("div", "B"), h("div", "C")]),
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    assert.equal(await page.locator("#grid").evaluate((element) => getComputedStyle(element).gridTemplateColumns.split(" ").length), 2);
+    assert.equal(await page.locator("#switcher").evaluate((element) => new Set(Array.from(element.children, (child) => Math.round(child.getBoundingClientRect().top))).size), 3);
+    await page.close();
+  });
+});
+
+describe("Tabs activation", () => {
+  it("moves focus without selecting in manual mode and selects on Enter or Space", async () => {
+    const path = await bundle("html-manual-tabs", `
+      import "@threadlabs/looma";
+      window.selections = [];
+      document.querySelector("#tabs").addEventListener("select", (event) => window.selections.push(event.detail));
+    `);
+    const page = await open(path, `
+      <ui-tabs id="tabs" label="Views" activation="manual">
+        <section id="overview" aria-label="Overview">Overview content</section>
+        <section id="details" aria-label="Details">Details content</section>
+        <section id="history" aria-label="History">History content</section>
+      </ui-tabs>
+    `, [join(root, "tokens.css")]);
+    await page.getByRole("tab", { name: "Overview" }).focus();
+    await page.keyboard.press("ArrowRight");
+    assert.equal(await page.getByRole("tab", { name: "Details" }).getAttribute("aria-selected"), "false");
+    assert.equal(await page.evaluate(() => document.activeElement?.textContent?.trim()), "Details");
+    assert.equal(await page.locator("#overview").isVisible(), true);
+    await page.keyboard.press("Enter");
+    assert.equal(await page.getByRole("tab", { name: "Details" }).getAttribute("aria-selected"), "true");
+    assert.equal(await page.locator("#details").isVisible(), true);
+    await page.keyboard.press("End");
+    assert.equal(await page.evaluate(() => document.activeElement?.textContent?.trim()), "History");
+    assert.equal(await page.getByRole("tab", { name: "History" }).getAttribute("aria-selected"), "false");
+    await page.keyboard.press("Space");
+    assert.equal(await page.getByRole("tab", { name: "History" }).getAttribute("aria-selected"), "true");
+    assert.deepEqual(await page.evaluate(() => (window as any).selections.map((event: any) => [event.value, event.trigger])), [["details", "keyboard"], ["history", "keyboard"]]);
+    await page.close();
+  });
+
+  it("keeps automatic activation when the Vue prop is omitted", async () => {
+    const path = await bundle("vue-auto-tabs", `
+      import { createApp, h } from "vue";
+      import { Tabs } from "@threadlabs/looma/vue";
+      createApp({ render: () => h(Tabs, { id: "tabs", label: "Views" }, () => [
+        h("section", { id: "overview", "aria-label": "Overview" }, "Overview content"),
+        h("section", { id: "details", "aria-label": "Details" }, "Details content"),
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await page.getByRole("tab", { name: "Overview" }).focus();
+    await page.keyboard.press("ArrowRight");
+    assert.equal(await page.getByRole("tab", { name: "Details" }).getAttribute("aria-selected"), "true");
+    await page.close();
+  });
+
+  it("uses authored tab buttons with rich labels in HTML", async () => {
+    const path = await bundle("html-rich-tabs", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-tabs label="Views">
+        <button slot="tab" value="overview"><ui-icon name="check"></ui-icon> Overview</button>
+        <button slot="tab" value="details">Details <span>(2)</span></button>
+        <section id="overview" aria-label="Overview">Overview content</section>
+        <section id="details" aria-label="Details">Details content</section>
+      </ui-tabs>
+    `, [join(root, "tokens.css")]);
+    assert.equal(await page.getByRole("tab", { name: "Overview" }).count(), 1);
+    assert.equal(await page.getByRole("tab", { name: "Details (2)" }).count(), 1);
+    await page.getByRole("tab", { name: "Details (2)" }).click();
+    assert.equal(await page.locator("#details").isVisible(), true);
+    assert.equal(await page.locator("#details").getAttribute("aria-labelledby"), await page.getByRole("tab", { name: "Details (2)" }).getAttribute("id"));
+    await page.close();
+  });
+
+  it("projects rich tab buttons through Vue", async () => {
+    const path = await bundle("vue-rich-tabs", `
+      import { createApp, h } from "vue";
+      import { Tabs, Icon } from "@threadlabs/looma/vue";
+      createApp({ render: () => h(Tabs, { label: "Views" }, {
+        tab: () => [
+          h("button", { value: "overview" }, [h(Icon, { name: "check" }), " Overview"]),
+          h("button", { value: "details" }, ["Details ", h("span", "(2)")]),
+        ],
+        default: () => [
+          h("section", { id: "overview", "aria-label": "Overview" }, "Overview content"),
+          h("section", { id: "details", "aria-label": "Details" }, "Details content"),
+        ],
+      }) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    assert.equal(await page.getByRole("tab", { name: "Details (2)" }).count(), 1);
+    await page.getByRole("tab", { name: "Details (2)" }).click();
+    assert.equal(await page.locator("#details").isVisible(), true);
+    await page.close();
+  });
+});
+
+describe("Disclosure composition", () => {
+  it("reveals closed content when a fragment targets it and closes its named peer", async () => {
+    const path = await bundle("html-disclosure-beforematch", `
+      import "@threadlabs/looma";
+      window.opens = [];
+      document.querySelector("#target").addEventListener("open", (event) => window.opens.push(event.detail));
+    `);
+    const page = await open(path, `
+      <ui-disclosure id="peer" name="faq" summary="Peer" open><p>Peer answer</p></ui-disclosure>
+      <ui-disclosure id="target" name="faq" summary="Target"><p id="answer">Findable answer</p></ui-disclosure>
+    `, [join(root, "tokens.css")], { reducedMotion: "reduce" });
+    assert.equal(await page.locator("#target .panel").getAttribute("hidden"), "until-found");
+    await page.evaluate(() => { location.hash = "answer"; });
+    await page.waitForFunction(() => document.querySelector("#target .trigger")?.getAttribute("aria-expanded") === "true");
+    assert.equal(await page.locator("#target .panel").getAttribute("hidden"), null);
+    assert.equal(await page.locator("#peer .trigger").getAttribute("aria-expanded"), "false");
+    assert.deepEqual(await page.evaluate(() => (window as any).opens), [{ open: true, reason: "programmatic", trigger: "programmatic" }]);
+    await page.close();
+  });
+
+  it("uses named exclusive groups, a rich summary, and an optional heading in HTML", async () => {
+    const path = await bundle("html-disclosure-group", `
+      import "@threadlabs/looma";
+      window.closes = [];
+      document.querySelector("#first").addEventListener("close", (event) => window.closes.push(event.detail));
+    `);
+    const page = await open(path, `
+      <ui-disclosure id="first" name="faq" summary="First" heading-level="3"><p>First answer</p></ui-disclosure>
+      <ui-disclosure id="second" name="faq" summary="Second" heading-level="3">
+        <strong slot="summary">Second <em>updated</em></strong><p>Second answer</p>
+      </ui-disclosure>
+      <ui-disclosure id="independent" name="other" summary="Independent"><p>Other answer</p></ui-disclosure>
+    `, [join(root, "tokens.css")]);
+    assert.equal(await page.getByRole("heading", { level: 3, name: "First" }).count(), 1);
+    assert.equal(await page.getByRole("heading", { level: 3, name: "Second updated" }).count(), 1);
+    assert.equal(await page.locator("#second .summary strong em").count(), 1);
+    await page.locator("#first .trigger").click();
+    await page.locator("#independent .trigger").click();
+    await page.locator("#second .trigger").click();
+    assert.equal(await page.locator("#first .trigger").getAttribute("aria-expanded"), "false");
+    assert.equal(await page.locator("#second .trigger").getAttribute("aria-expanded"), "true");
+    assert.equal(await page.locator("#independent .trigger").getAttribute("aria-expanded"), "true");
+    assert.deepEqual(await page.evaluate(() => (window as any).closes), [{ open: false, reason: "action", trigger: "pointer" }]);
+    await page.close();
+  });
+
+  it("keeps named groups and summary slots through Vue", async () => {
+    const path = await bundle("vue-disclosure-group", `
+      import { createApp, h } from "vue";
+      import { Disclosure } from "@threadlabs/looma/vue";
+      createApp({ render: () => h("div", [
+        h(Disclosure, { id: "first", name: "faq", summary: "First", headingLevel: 2 }, () => h("p", "First answer")),
+        h(Disclosure, { id: "second", name: "faq", summary: "Second", headingLevel: 2 }, {
+          summary: () => h("strong", "Rich second"),
+          default: () => h("p", "Second answer"),
+        }),
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    assert.equal(await page.getByRole("heading", { level: 2, name: "Rich second" }).count(), 1);
+    await page.locator("#first .trigger").click();
+    await page.locator("#second .trigger").click();
+    assert.equal(await page.locator("#first .trigger").getAttribute("aria-expanded"), "false");
+    await page.close();
+  });
+});
+
+describe("Menu structure and navigation", () => {
+  it("keeps link semantics, groups and separators, and moves through enabled items in HTML", async () => {
+    const path = await bundle("html-menu-structure", `
+      import "@threadlabs/looma";
+      window.selections = [];
+      document.querySelector("#menu").addEventListener("select", (event) => window.selections.push(event.detail));
+    `);
+    const page = await open(path, `
+      <ui-menu id="menu" open aria-label="Actions">
+        <ui-menu-group label="Files">
+          <ui-menu-item id="alpha" value="alpha">Alpha <kbd slot="shortcut">⌘A</kbd></ui-menu-item>
+          <ui-menu-item id="disabled" value="disabled" href="#disabled" disabled>Blocked</ui-menu-item>
+          <ui-menu-item id="bravo" value="bravo" href="#details">Bravo</ui-menu-item>
+        </ui-menu-group>
+        <hr id="separator">
+        <ui-menu-item id="charlie" value="charlie">Charlie</ui-menu-item>
+      </ui-menu>
+    `, [join(root, "tokens.css")]);
+    const menu = page.locator("#menu");
+    assert.equal(await menu.getByRole("group", { name: "Files" }).count(), 1);
+    assert.equal(await menu.getByRole("separator").count(), 1);
+    assert.equal(await page.locator("#bravo").evaluate((element) => element.localName), "a");
+    assert.equal(await page.locator("#disabled").getAttribute("href"), null);
+    assert.equal(await menu.locator(".shortcut").first().getAttribute("aria-hidden"), "true");
+    await page.locator("#alpha").focus();
+    const active = () => page.evaluate(() => document.activeElement?.id);
+    await page.keyboard.press("ArrowDown");
+    assert.equal(await active(), "bravo", "disabled items are skipped");
+    await page.keyboard.press("End");
+    assert.equal(await active(), "charlie");
+    await page.keyboard.press("ArrowDown");
+    assert.equal(await active(), "alpha", "arrows wrap");
+    await page.keyboard.press("c");
+    assert.equal(await active(), "charlie", "typeahead uses the item label, not its shortcut");
+    await page.keyboard.press("Home");
+    assert.equal(await active(), "alpha");
+    await page.locator("#bravo").click();
+    await page.waitForFunction(() => location.hash === "#details");
+    assert.deepEqual(await page.evaluate(() => (window as any).selections), [{ value: "bravo", trigger: "pointer" }]);
+    await page.close();
+  });
+
+  it("projects groups and links through Vue and navigates a context menu", async () => {
+    const path = await bundle("vue-menu-structure", `
+      import { createApp, h } from "vue";
+      import { ContextMenu, MenuGroup, MenuItem } from "@threadlabs/looma/vue";
+      createApp({ render: () => h(ContextMenu, { id: "menu", open: true, for: "target" }, () => [
+        h(MenuGroup, { label: "View" }, () => [
+          h(MenuItem, { id: "one", value: "one" }, () => "One"),
+          h(MenuItem, { id: "two", href: "#two", value: "two" }, () => "Two"),
+        ]),
+        h(MenuItem, { id: "three", value: "three" }, () => "Three"),
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, `<button id="target">Target</button><div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const menu = page.locator("#menu");
+    assert.equal(await menu.getByRole("group", { name: "View" }).count(), 1);
+    assert.equal(await page.locator("#two").evaluate((element) => element.localName), "a");
+    await page.locator("#one").focus();
+    await page.keyboard.press("End");
+    assert.equal(await page.evaluate(() => document.activeElement?.id), "three");
+    await page.keyboard.press("ArrowDown");
+    assert.equal(await page.evaluate(() => document.activeElement?.id), "one");
+    await page.close();
+  });
+
+  it("toggles checkboxes and keeps radio choices exclusive within their groups", async () => {
+    const path = await bundle("html-menu-checks", `
+      import "@threadlabs/looma";
+      window.menuEvents = [];
+      document.querySelector("#menu").addEventListener("select", (event) => window.menuEvents.push(["select", event.detail]));
+      document.addEventListener("change", (event) => { if (event.target.closest("#menu")) window.menuEvents.push(["change", event.detail]); });
+    `);
+    const page = await open(path, `
+      <ui-menu id="menu" open aria-label="View options">
+        <ui-menu-item id="grid" type="checkbox" value="grid">Show grid</ui-menu-item>
+        <ui-menu-group label="Sort">
+          <ui-menu-item id="name" type="radio" value="name" checked>Name</ui-menu-item>
+          <ui-menu-item id="date" type="radio" value="date">Date</ui-menu-item>
+        </ui-menu-group>
+        <ui-menu-group label="Direction">
+          <ui-menu-item id="ascending" type="radio" value="ascending" checked>Ascending</ui-menu-item>
+          <ui-menu-item id="descending" type="radio" value="descending">Descending</ui-menu-item>
+        </ui-menu-group>
+      </ui-menu>
+    `, [join(root, "tokens.css")]);
+    const menu = page.locator("#menu");
+    assert.equal(await page.locator("#grid").getAttribute("role"), "menuitemcheckbox");
+    assert.equal(await page.locator("#name").getAttribute("role"), "menuitemradio");
+    assert.equal(await page.locator("#name").getAttribute("aria-checked"), "true");
+    await page.locator("#grid").click();
+    assert.equal(await page.locator("#grid").getAttribute("aria-checked"), "true");
+    assert.equal(await menu.evaluate((element) => getComputedStyle(element).display === "none"), false, "checkable choice keeps menu open");
+    await page.locator("#grid").focus();
+    await page.keyboard.press("Space");
+    assert.equal(await page.locator("#grid").getAttribute("aria-checked"), "false");
+    await page.locator("#date").click();
+    assert.equal(await page.locator("#date").getAttribute("aria-checked"), "true");
+    assert.equal(await page.locator("#name").getAttribute("aria-checked"), "false");
+    assert.equal(await page.locator("#ascending").getAttribute("aria-checked"), "true", "another group keeps its radio choice");
+    assert.deepEqual(await page.evaluate(() => (window as any).menuEvents), [
+      ["change", { checked: true, value: "grid", type: "checkbox", trigger: "pointer" }],
+      ["select", { value: "grid", checked: true, trigger: "pointer" }],
+      ["change", { checked: false, value: "grid", type: "checkbox", trigger: "keyboard" }],
+      ["select", { value: "grid", checked: false, trigger: "keyboard" }],
+      ["change", { checked: false, value: "name", type: "radio", trigger: "pointer" }],
+      ["change", { checked: true, value: "date", type: "radio", trigger: "pointer" }],
+      ["select", { value: "date", checked: true, trigger: "pointer" }],
+    ]);
+    await page.close();
+  });
+
+  it("keeps a controlled Vue check item in sync inside a context menu", async () => {
+    const path = await bundle("vue-menu-check", `
+      import { createApp, h, ref } from "vue";
+      import { ContextMenu, MenuItem } from "@threadlabs/looma/vue";
+      const checked = ref(false);
+      window.changes = [];
+      createApp({ render: () => h(ContextMenu, { id: "menu", open: true, for: "target" }, () =>
+        h(MenuItem, { id: "grid", type: "checkbox", checked: checked.value, value: "grid", onChange: (detail) => { window.changes.push(detail); checked.value = detail.checked; } }, () => "Show grid"))
+      }).mount("#app");
+    `);
+    const page = await open(path, `<button id="target">Target</button><div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await page.locator("#grid").click();
+    assert.equal(await page.locator("#grid").getAttribute("aria-checked"), "true");
+    assert.deepEqual(await page.evaluate(() => (window as any).changes), [{ checked: true, value: "grid", type: "checkbox", trigger: "pointer" }]);
+    await page.close();
+  });
+
+  it("keeps checked indicators and keyboard focus visible across themes", async () => {
+    const path = await bundle("html-menu-themes", `import "@threadlabs/looma";`);
+    const css = ["tokens.css", "theme-light.css", "theme-dark.css", "theme-high-contrast.css"].map((file) => join(root, file));
+    const page = await open(path, `<ui-menu open aria-label="Options"><ui-menu-item id="grid" type="checkbox" checked>Show grid</ui-menu-item><ui-menu-item id="date" type="radio" checked>Date</ui-menu-item></ui-menu>`, css);
+    for (const [attribute, value] of [["data-theme", "light"], ["data-theme", "dark"], ["data-contrast", "high"]] as const) {
+      await page.evaluate(() => { document.documentElement.removeAttribute("data-theme"); document.documentElement.removeAttribute("data-contrast"); });
+      await page.evaluate(([attribute, value]) => document.documentElement.setAttribute(attribute, value), [attribute, value]);
+      const result = await page.locator("#grid").evaluate((item) => {
+        const color = (value: string) => value.match(/[\d.]+/g)!.slice(0, 3).map(Number);
+        const luminance = (value: string) => {
+          const [red, green, blue] = color(value).map((channel) => {
+            const scaled = channel / 255;
+            return scaled <= 0.04045 ? scaled / 12.92 : ((scaled + 0.055) / 1.055) ** 2.4;
+          });
+          return red! * 0.2126 + green! * 0.7152 + blue! * 0.0722;
+        };
+        const indicator = luminance(getComputedStyle(item.querySelector(".indicator")!).color);
+        const surface = luminance(getComputedStyle(item.closest(".surface")!).backgroundColor);
+        return { ratio: (Math.max(indicator, surface) + 0.05) / (Math.min(indicator, surface) + 0.05), icon: Boolean(item.querySelector(".indicator svg")) };
+      });
+      assert.equal(result.icon, true);
+      assert.ok(result.ratio >= 3, `${value} checked indicator has ${result.ratio.toFixed(2)}:1 contrast`);
+    }
+    await page.emulateMedia({ forcedColors: "active" });
+    await page.locator("#grid").focus();
+    await page.keyboard.press("ArrowDown");
+    const focus = await page.locator("#date").evaluate((item) => ({ style: getComputedStyle(item).outlineStyle, width: getComputedStyle(item).outlineWidth, active: document.activeElement?.id, visible: item.matches(":focus-visible") }));
+    assert.equal(focus.style, "solid", JSON.stringify(focus));
+    assert.equal(focus.width, "2px");
+    await page.close();
+  });
+});
+
+describe("Dialog close policy and presentation", () => {
+  it("opens modally, closes on Escape, and reports trigger and close events", async () => {
+    const path = await bundle("html-dialog-close-policy", `
+      import "@threadlabs/looma";
+      const dialog = document.querySelector("#dialog");
+      window.dialogEvents = [];
+      dialog.addEventListener("open", (event) => window.dialogEvents.push({ type: "open", ...event.detail }));
+      dialog.addEventListener("close", (event) => window.dialogEvents.push({ type: "close", ...event.detail }));
+    `);
+    const page = await open(path, `<ui-button id="trigger">Open</ui-button><ui-dialog id="dialog" for="trigger" label="Details">Body</ui-dialog>`, [join(root, "tokens.css")]);
+    await page.locator("#trigger").click();
+    const dialog = page.locator("#dialog");
+    assert.equal(await dialog.evaluate((element) => element.matches(":modal")), true);
+    assert.equal(await dialog.getAttribute("closedby"), "closerequest");
+    await page.keyboard.press("Escape");
+    await page.waitForFunction(() => !(document.querySelector("#dialog") as HTMLDialogElement).open);
+    assert.deepEqual(await page.evaluate(() => (window as any).dialogEvents), [
+      { type: "open", open: true, reason: "action", trigger: "pointer" },
+      { type: "close", open: false, reason: "escape", trigger: "keyboard" },
+    ]);
+    await page.close();
+  });
+
+  it("separates outside dismissal from Escape and keeps alerts action-only when requested", async () => {
+    const path = await bundle("html-dialog-alert", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-dialog id="dialog" open closedby="any" label="Info">Body</ui-dialog>
+      <ui-button id="alert-trigger">Show alert</ui-button>
+      <ui-dialog id="alert" for="alert-trigger" alert closedby="none" label="Delete?">Body<button commandfor="alert" command="close">Cancel</button></ui-dialog>
+    `, [join(root, "tokens.css")]);
+    const dialog = page.locator("#dialog");
+    await page.mouse.click(4, 4);
+    await page.waitForFunction(() => !(document.querySelector("#dialog") as HTMLDialogElement).open);
+    const alert = page.locator("#alert");
+    await page.locator("#alert-trigger").click();
+    assert.equal(await alert.getAttribute("role"), "alertdialog");
+    assert.equal(await alert.locator(".close").evaluate((element) => getComputedStyle(element).display), "none");
+    await page.keyboard.press("Escape");
+    assert.equal(await alert.evaluate((element) => (element as HTMLDialogElement).open), true);
+    await alert.getByText("Cancel").click();
+    await page.waitForFunction(() => !(document.querySelector("#alert") as HTMLDialogElement).open);
+    await page.close();
+  });
+
+  it("supports modeless and size choices while retaining the local width hook", async () => {
+    const path = await bundle("html-dialog-size", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-dialog id="small" open modeless size="sm" label="Small">Body</ui-dialog>
+      <ui-dialog id="large" open modeless size="lg" label="Large">Body</ui-dialog>
+      <ui-dialog id="custom" open modeless size="sm" style="--ui-dialog-max-width: 520px" label="Custom">Body</ui-dialog>
+      <ui-dialog id="full" open modeless size="fullscreen" label="Full">Body</ui-dialog>
+    `, [join(root, "tokens.css")]);
+    const measure = async (id: string) => page.locator(id).evaluate((element) => ({ modal: element.matches(":modal"), width: Number.parseFloat(getComputedStyle(element).width), height: Number.parseFloat(getComputedStyle(element).height) }));
+    const small = await measure("#small");
+    const large = await measure("#large");
+    const custom = await measure("#custom");
+    const full = await measure("#full");
+    assert.equal(small.modal, false);
+    assert.ok(small.width < large.width && large.width < full.width);
+    assert.ok(custom.width > small.width && custom.width < large.width);
+    assert.ok(Math.abs(full.height - (await page.evaluate(() => window.innerHeight))) < 2);
+    await page.close();
+  });
+
+  it("reports a controlled Vue open once when the consumer changes it", async () => {
+    const path = await bundle("vue-dialog-open", `
+      import { createApp, h, ref } from "vue";
+      import { Dialog } from "@threadlabs/looma/vue";
+      const open = ref(false);
+      window.dialogEvents = [];
+      createApp({ render: () => [
+        h("button", { id: "show", onClick: () => { open.value = true; } }, "Show"),
+        h(Dialog, { id: "dialog", open: open.value, modeless: true, label: "Details", onOpen: (detail) => window.dialogEvents.push(detail) }, () => "Body"),
+      ] }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    assert.deepEqual(await page.evaluate(() => (window as any).dialogEvents), []);
+    await page.locator("#show").click();
+    await page.waitForFunction(() => (document.querySelector("#dialog") as HTMLDialogElement).open);
+    assert.equal(await page.locator("#dialog").evaluate((element) => element.matches(":modal")), false);
+    assert.deepEqual(await page.evaluate(() => (window as any).dialogEvents), [{ open: true, reason: "programmatic", trigger: "programmatic" }]);
+    await page.close();
+  });
+});
+
+describe("Editable constraints", () => {
+  it("keeps invalid drafts open and uses authored action labels in HTML", async () => {
+    const path = await bundle("html-editable-constraints", `import "@threadlabs/looma";`);
+    const page = await open(path, `<ui-editable id="name" value="Old" label="Name" actions required max-length="4" save-label="Apply" cancel-label="Discard" placeholder="Name"></ui-editable>`, [join(root, "tokens.css")]);
+    const editable = page.locator("#name");
+    await editable.locator(".preview").click();
+    const input = editable.locator("input");
+    assert.equal(await input.getAttribute("placeholder"), "Name");
+    assert.equal(await input.getAttribute("maxlength"), "4");
+    await input.fill("");
+    await editable.getByRole("button", { name: "Apply" }).click();
+    assert.equal(await input.evaluate((element) => getComputedStyle(element).visibility), "visible");
+    assert.equal(await editable.locator(".text").textContent(), "Old");
+    await input.evaluate((element) => {
+      (element as HTMLInputElement).value = "Valid";
+      element.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await editable.getByRole("button", { name: "Apply" }).click();
+    assert.equal(await editable.locator(".text").textContent(), "Old", "overlong text does not commit");
+    await input.fill("New");
+    await editable.getByRole("button", { name: "Apply" }).click();
+    assert.equal(await editable.locator(".text").textContent(), "New");
+    await page.close();
+  });
+});
+
+describe("Form Field error visibility", () => {
+  it("shows and describes an authored error only while invalid in HTML", async () => {
+    const path = await bundle("html-form-field-error", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-form-field id="valid"><label slot="label">Name</label><ui-input aria-label="Name"></ui-input><small slot="help">A short name.</small><small slot="error" id="valid-error">Required.</small></ui-form-field>
+      <ui-form-field id="invalid" invalid><label slot="label">Email</label><ui-input aria-label="Email"></ui-input><small slot="error" id="invalid-error">Enter an email.</small></ui-form-field>
+    `, [join(root, "tokens.css")]);
+    const valid = page.locator("#valid");
+    const invalid = page.locator("#invalid");
+    assert.equal(await valid.locator(".error").evaluate((element) => getComputedStyle(element).display), "none");
+    assert.ok(!(await valid.locator("input").getAttribute("aria-describedby"))?.includes("valid-error"));
+    assert.equal(await invalid.locator(".error").evaluate((element) => getComputedStyle(element).display), "contents");
+    assert.ok((await invalid.locator("input").getAttribute("aria-describedby"))?.includes("invalid-error"));
+    await page.close();
+  });
+});
+
+describe("Textarea autosize", () => {
+  it("keeps rows as the minimum and grows and shrinks with input in HTML", async () => {
+    const path = await bundle("html-textarea-autosize", `import "@threadlabs/looma";`);
+    const page = await open(path, `<ui-textarea id="note" aria-label="Note" autosize rows="3"></ui-textarea>`, [join(root, "tokens.css")]);
+    const textarea = page.locator("#note");
+    const dimensions = () => textarea.evaluate((element) => ({
+      height: element.getBoundingClientRect().height,
+      lineHeight: Number.parseFloat(getComputedStyle(element).lineHeight),
+    }));
+    const empty = await dimensions();
+    assert.ok(empty.height >= empty.lineHeight * 3, "rows still establishes the minimum height");
+    await textarea.fill(Array.from({ length: 12 }, (_, index) => `Line ${index + 1}`).join("\n"));
+    const filled = await dimensions();
+    assert.ok(filled.height > empty.height + empty.lineHeight * 6, "the control grows to reveal text");
+    await textarea.fill("");
+    assert.ok(Math.abs((await dimensions()).height - empty.height) < 2, "the control shrinks to its row minimum");
+    await page.close();
+  });
+
+  it("passes autosize and rows through the Vue projection", async () => {
+    const path = await bundle("vue-textarea-autosize", `
+      import { createApp, h } from "vue";
+      import { Textarea } from "@threadlabs/looma/vue";
+      createApp({ render: () => h(Textarea, { id: "note", "aria-label": "Note", autosize: true, rows: 2 }) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const textarea = page.locator("#note");
+    const initial = await textarea.evaluate((element) => element.getBoundingClientRect().height);
+    await textarea.fill("One\nTwo\nThree\nFour\nFive\nSix");
+    assert.ok((await textarea.evaluate((element) => element.getBoundingClientRect().height)) > initial);
+    await page.close();
+  });
+});
+
+describe("Choice invalid states", () => {
+  const verify = async (page: Page) => {
+    const checkbox = page.locator("#terms input");
+    const group = page.locator('#choice [role="radiogroup"], #choice[role="radiogroup"]').first();
+    assert.equal(await checkbox.getAttribute("aria-invalid"), "true");
+    assert.equal(await group.getAttribute("aria-invalid"), "true");
+    assert.equal(await checkbox.evaluate((element) => getComputedStyle(element).borderTopColor), "rgb(146, 36, 64)");
+    assert.equal(await page.locator("#choice legend").evaluate((element) => getComputedStyle(element).color), "rgb(146, 36, 64)");
+  };
+
+  it("exposes and styles invalid choices in HTML", async () => {
+    const path = await bundle("html-invalid-choices", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <div style="--ui-field-danger: rgb(146, 36, 64)">
+        <ui-checkbox id="terms" invalid>Accept terms</ui-checkbox>
+        <ui-radio-group id="choice" label="Choose" invalid><ui-radio value="one">One</ui-radio></ui-radio-group>
+      </div>
+    `, [join(root, "tokens.css")]);
+    await verify(page);
+    await page.close();
+  });
+
+  it("exposes and styles invalid choices in Vue", async () => {
+    const path = await bundle("vue-invalid-choices", `
+      import { createApp, h } from "vue";
+      import { Checkbox, Radio, RadioGroup } from "@threadlabs/looma/vue";
+      createApp({ render: () => h("div", { style: "--ui-field-danger: rgb(146, 36, 64)" }, [
+        h(Checkbox, { id: "terms", invalid: true }, () => "Accept terms"),
+        h(RadioGroup, { id: "choice", label: "Choose", invalid: true }, () => h(Radio, { value: "one" }, () => "One")),
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await verify(page);
+    await page.close();
+  });
+});
+
+describe("Combobox option modes", () => {
+  const verify = async (page: Page) => {
+    const input = page.locator("#fruit input[role=combobox]");
+    await input.focus();
+    assert.equal(await input.getAttribute("aria-expanded"), "true");
+    assert.equal(await input.getAttribute("aria-invalid"), "true");
+    await input.fill("Ap");
+    assert.equal(await page.locator('#fruit [role="option"]').count(), 2, "filter none leaves both authored options visible");
+    await input.blur();
+    assert.equal(await input.getAttribute("aria-invalid"), "true", "external invalid state survives native validation");
+  };
+
+  it("opens on focus, leaves externally filtered options visible, and keeps invalid in HTML", async () => {
+    const path = await bundle("html-combobox-option-modes", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-combobox id="fruit" label="Fruit" filter="none" open-on-focus invalid>
+        <option value="apple">Apple</option><option value="pear">Pear</option>
+      </ui-combobox>
+    `, [join(root, "tokens.css")]);
+    await verify(page);
+    await page.close();
+  });
+
+  it("passes option modes through Vue", async () => {
+    const path = await bundle("vue-combobox-option-modes", `
+      import { createApp, h } from "vue";
+      import { Combobox } from "@threadlabs/looma/vue";
+      createApp({ render: () => h(Combobox, { id: "fruit", label: "Fruit", filter: "none", openOnFocus: true, invalid: true }, () => [
+        h("option", { value: "apple" }, "Apple"), h("option", { value: "pear" }, "Pear"),
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await verify(page);
+    await page.close();
+  });
+
+  it("announces loading and shows an authored empty state when settled in HTML", async () => {
+    const path = await bundle("html-combobox-loading", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-combobox id="fruit" label="Fruit" loading open-on-focus>
+        <span slot="empty">No fruit found</span>
+      </ui-combobox>
+    `, [join(root, "tokens.css")]);
+    const input = page.locator("#fruit input[role=combobox]");
+    await input.focus();
+    assert.equal(await input.getAttribute("aria-busy"), "true");
+    assert.equal(await page.locator('#fruit [role="listbox"]').getAttribute("aria-busy"), "true");
+    assert.equal(await page.getByText("No fruit found").isVisible(), false);
+    await page.close();
+
+    const settled = await open(path, `
+      <ui-combobox id="fruit" label="Fruit" open-on-focus><span slot="empty">No fruit found</span></ui-combobox>
+    `, [join(root, "tokens.css")]);
+    await settled.locator("#fruit input[role=combobox]").focus();
+    assert.equal(await settled.getByText("No fruit found").isVisible(), true);
+    assert.equal(await settled.locator("#fruit input[role=combobox]").getAttribute("aria-busy"), "false");
+    await settled.close();
+  });
+
+  it("follows a Vue consumer's loading state", async () => {
+    const path = await bundle("vue-combobox-loading", `
+      import { createApp, h, ref } from "vue";
+      import { Combobox } from "@threadlabs/looma/vue";
+      const loading = ref(true);
+      window.finishLoading = () => { loading.value = false; };
+      createApp({ render: () => h(Combobox, { id: "fruit", label: "Fruit", openOnFocus: true, loading: loading.value }, {
+        empty: () => h("span", "No fruit found"),
+      }) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const input = page.locator("#fruit input[role=combobox]");
+    await input.focus();
+    assert.equal(await input.getAttribute("aria-busy"), "true");
+    await page.evaluate(() => (window as unknown as { finishLoading: () => void }).finishLoading());
+    await page.getByText("No fruit found").waitFor({ state: "visible" });
+    assert.equal(await input.getAttribute("aria-busy"), "false");
+    await page.close();
+  });
+});
+
+describe("Pending actions", () => {
+  it("keeps focus and labels while blocking button submits, icon clicks, and link navigation in HTML", async () => {
+    const path = await bundle("html-pending-actions", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <form id="form"><ui-button id="save" type="submit" pending>Save</ui-button></form>
+      <ui-icon-button id="more" label="More" pending><ui-icon name="ellipsis"></ui-icon></ui-icon-button>
+      <ui-button id="link" as="a" href="#target" pending>Open</ui-button>
+    `, [join(root, "tokens.css")]);
+    await page.evaluate(() => {
+      (window as unknown as { activations: number }).activations = 0;
+      for (const id of ["save", "more", "link"]) document.getElementById(id)?.addEventListener("click", () => (window as unknown as { activations: number }).activations++);
+      document.getElementById("form")?.addEventListener("submit", (event) => { event.preventDefault(); (window as unknown as { activations: number }).activations++; });
+    });
+    for (const id of ["save", "more", "link"]) {
+      const action = page.locator(`#${id}`);
+      assert.equal(await action.getAttribute("aria-disabled"), "true");
+      assert.equal(await action.getAttribute("aria-busy"), "true");
+      assert.equal(await action.locator("ui-spinner, [data-component='ui-spinner']").count(), 1);
+      await action.focus();
+      assert.equal(await action.evaluate((element) => element === document.activeElement), true);
+      const box = await action.boundingBox();
+      assert.ok(box);
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+    }
+    assert.equal(await page.locator("#save").textContent().then((value) => value?.includes("Save")), true);
+    assert.equal(await page.locator("#more").getAttribute("aria-label"), "More");
+    assert.equal(await page.locator("#link").getAttribute("href"), null);
+    assert.equal(await page.locator("#link").getAttribute("tabindex"), "0");
+    assert.equal(await page.evaluate(() => (window as unknown as { activations: number }).activations), 0);
+    assert.equal(await page.evaluate(() => location.hash), "");
+    await page.close();
+  });
+
+  it("reactivates when a Vue consumer clears pending", async () => {
+    const path = await bundle("vue-pending-actions", `
+      import { createApp, h, ref } from "vue";
+      import { Button, IconButton } from "@threadlabs/looma/vue";
+      const pending = ref(true);
+      window.finish = () => { pending.value = false; };
+      createApp({ render: () => h("div", [
+        h(Button, { id: "save", pending: pending.value }, () => "Save"),
+        h(IconButton, { id: "more", label: "More", pending: pending.value }, () => h("svg", { viewBox: "0 0 24 24" })),
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await page.evaluate(() => {
+      (window as unknown as { activations: number }).activations = 0;
+      for (const id of ["save", "more"]) document.getElementById(id)?.addEventListener("click", () => (window as unknown as { activations: number }).activations++);
+    });
+    await page.locator("#save").evaluate((element) => (element as HTMLElement).click());
+    await page.locator("#more").evaluate((element) => (element as HTMLElement).click());
+    assert.equal(await page.evaluate(() => (window as unknown as { activations: number }).activations), 0);
+    await page.evaluate(() => (window as unknown as { finish: () => void }).finish());
+    await page.locator("#save").click();
+    await page.locator("#more").click();
+    assert.equal(await page.evaluate(() => (window as unknown as { activations: number }).activations), 2);
+    assert.equal(await page.locator("#save").getAttribute("aria-disabled"), null);
+    await page.close();
+  });
+});
+
+describe("Avatar fallbacks and counts", () => {
+  it("shows a person glyph, supports square and decorative avatars, and counts unauthored people in HTML", async () => {
+    const path = await bundle("html-avatar-coverage", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-avatar id="anonymous"></ui-avatar>
+      <ui-avatar id="decorative" name="Ada Lovelace" decorative></ui-avatar>
+      <ui-avatar-group id="group" max="2" total="7" overflow-label="{count} other contributors">
+        <ui-avatar id="square" name="Ada Lovelace" shape="square"></ui-avatar>
+        <ui-avatar name="Grace Hopper"></ui-avatar>
+      </ui-avatar-group>
+    `, [join(root, "tokens.css")]);
+    assert.equal(await page.locator("#anonymous").getAttribute("aria-label"), "Avatar");
+    assert.equal(await page.locator('#anonymous [data-component="ui-icon"]').count(), 1);
+    assert.equal(await page.locator("#anonymous .fallback ui-icon, #anonymous .fallback [data-component='ui-icon']").first().isVisible(), true, await page.locator("#anonymous .fallback").evaluate((element) => element.outerHTML));
+    assert.equal(await page.locator("#anonymous .fallback > span:first-child").isVisible(), false);
+    assert.equal(await page.locator("#decorative").getAttribute("aria-hidden"), "true");
+    assert.equal(await page.locator("#decorative").getAttribute("role"), null);
+    assert.equal(await page.locator("#square").evaluate((element) => getComputedStyle(element).borderTopLeftRadius), "8px");
+    assert.equal(await page.locator("#group .overflow").textContent(), "+5");
+    assert.equal(await page.locator("#group .overflow").getAttribute("aria-label"), "5 other contributors");
+    await page.close();
+  });
+
+  it("passes decorative, shape, total, and overflow label through Vue", async () => {
+    const path = await bundle("vue-avatar-coverage", `
+      import { createApp, h } from "vue";
+      import { Avatar, AvatarGroup } from "@threadlabs/looma/vue";
+      createApp({ render: () => h(AvatarGroup, { id: "group", max: 1, total: 4, overflowLabel: "{count} more teammates" }, () => [
+        h(Avatar, { id: "square", name: "Ada Lovelace", shape: "square", decorative: true }),
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    assert.equal(await page.locator("#square").getAttribute("aria-hidden"), "true");
+    assert.equal(await page.locator("#square").evaluate((element) => getComputedStyle(element).borderTopLeftRadius), "8px");
+    assert.equal(await page.locator("#group .overflow").getAttribute("aria-label"), "3 more teammates");
+    await page.close();
+  });
+});
+
 describe("Vue components", () => {
   it("update a v-model prop once per choice, though the choice is two events", async () => {
     const path = await bundle("vue-radio-model", `
@@ -393,6 +1316,60 @@ describe("Badge shape", () => {
     assert.ok(parseFloat(tag.end) > parseFloat(tag.start));
     assert.ok(parseFloat(rtl.start) > parseFloat(rtl.end));
     assert.notEqual(rtl.clip, tag.clip);
+    await page.close();
+  });
+
+  it("keeps an outline around pill and pointed tag shapes in light, dark, and forced colours", async () => {
+    const path = await bundle("html-badge-outline", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-badge id="pill" variant="outline" tone="danger">Danger</ui-badge>
+      <ui-badge id="tag" variant="outline" shape="tag" tone="danger">Danger</ui-badge>
+      <ui-badge id="rtl" variant="outline" shape="tag" tone="danger" dir="rtl">Danger</ui-badge>
+      ${["neutral", "accent", "info", "success", "warning", "danger"].map((tone) => `<ui-badge id="tone-${tone}" variant="outline" tone="${tone}">${tone}</ui-badge>`).join("")}
+    `, [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "theme-dark.css"), join(root, "theme-high-contrast.css")]);
+    const paint = (selector: string) => page.locator(selector).evaluate((element) => ({
+      border: getComputedStyle(element).borderTopColor,
+      outer: getComputedStyle(element).backgroundColor,
+      inner: getComputedStyle(element, "::before").backgroundColor,
+      innerClip: getComputedStyle(element, "::before").clipPath,
+    }));
+    for (const theme of ["light", "dark", "high contrast"]) {
+      await page.evaluate((value) => {
+        document.documentElement.removeAttribute("data-theme");
+        document.documentElement.removeAttribute("data-contrast");
+        document.documentElement.setAttribute(value === "high contrast" ? "data-contrast" : "data-theme", value === "high contrast" ? "high" : value);
+      }, theme);
+      const pill = await paint("#pill");
+      const tag = await paint("#tag");
+      const rtl = await paint("#rtl");
+      assert.notEqual(pill.border, pill.outer, `${theme}: pill draws an outline`);
+      assert.equal(tag.outer, pill.border, `${theme}: tag's outer shape uses the border colour`);
+      assert.equal(tag.inner, pill.outer, `${theme}: tag's inner shape uses the surface colour`);
+      assert.notEqual(tag.innerClip, rtl.innerClip, `${theme}: the pointed inner edge mirrors in RTL`);
+      const ratios = await page.evaluate(() => {
+        const context = document.createElement("canvas").getContext("2d")!;
+        const luminance = (colour: string) => {
+          context.clearRect(0, 0, 1, 1);
+          context.fillStyle = colour;
+          context.fillRect(0, 0, 1, 1);
+          const channels = [...context.getImageData(0, 0, 1, 1).data.slice(0, 3)].map((value) => {
+            const channel = value / 255;
+            return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+          });
+          return 0.2126 * channels[0]! + 0.7152 * channels[1]! + 0.0722 * channels[2]!;
+        };
+        return ["neutral", "accent", "info", "success", "warning", "danger"].map((tone) => {
+          const style = getComputedStyle(document.getElementById(`tone-${tone}`)!);
+          const [bright, dim] = [luminance(style.color), luminance(style.backgroundColor)].sort((a, b) => b - a);
+          return { tone, ratio: (bright! + 0.05) / (dim! + 0.05) };
+        });
+      });
+      for (const { tone, ratio } of ratios) assert.ok(ratio >= 4.5, `${theme}: ${tone} outline text is ${ratio.toFixed(2)}:1`);
+    }
+    await page.emulateMedia({ forcedColors: "active" });
+    const pill = await paint("#pill"), tag = await paint("#tag");
+    assert.notEqual(pill.border, pill.outer, "forced colours: pill keeps an edge");
+    assert.notEqual(tag.outer, tag.inner, "forced colours: tag keeps its pointed edge");
     await page.close();
   });
 });
@@ -1235,7 +2212,7 @@ describe("Action bar", () => {
     const page = await open(path, `
       ${bars.map(({ id, style, dir }) => `<div style="${style}"${dir ? ` dir="${dir}"` : ""}>${bar(id)}</div>`).join("")}
       <div style="width: 600px"><ui-action-bar id="solo"><ui-button id="solo-p" slot="primary">Save</ui-button></ui-action-bar></div>
-      <ui-dialog id="dialog" open label="Unsaved changes">Body${bar("dialog").replace("<ui-action-bar", '<ui-action-bar slot="actions"')}</ui-dialog>`,
+      <ui-dialog id="dialog" open modeless label="Unsaved changes">Body${bar("dialog").replace("<ui-action-bar", '<ui-action-bar slot="actions"')}</ui-dialog>`,
     [join(root, "tokens.css")]);
     await checkActionBar(page);
     await page.close();
@@ -1253,7 +2230,7 @@ describe("Action bar", () => {
       createApp({ render: () => [
         ...${JSON.stringify(bars)}.map(({ id, style, dir }) => h("div", { style, dir }, [bar(id)])),
         h("div", { style: "width: 600px" }, [h(ActionBar, { id: "solo" }, { primary: () => h(Button, { id: "solo-p" }, () => "Save") })]),
-        h(Dialog, { id: "dialog", open: true, label: "Unsaved changes" }, { default: () => "Body", actions: () => bar("dialog") }),
+        h(Dialog, { id: "dialog", open: true, modeless: true, label: "Unsaved changes" }, { default: () => "Body", actions: () => bar("dialog") }),
       ] }).mount("#app");
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
@@ -1472,6 +2449,42 @@ describe("Nav item", () => {
 });
 
 describe("Editor toolbar row", () => {
+  it("has one Tab stop and roves through enabled controls in HTML and Vue", async () => {
+    const htmlPath = await bundle("html-toolbar-roving", `import "@threadlabs/looma";`);
+    const vuePath = await bundle("vue-toolbar-roving", `
+      import { createApp, h } from "vue";
+      import { EditorToolbar } from "@threadlabs/looma/vue/editor";
+      createApp({ render: () => h("div", [
+        h("button", { id: "before" }, "Before"),
+        h(EditorToolbar, { id: "toolbar" }, () => [
+          h("button", { id: "first" }, "First"),
+          h("button", { id: "blocked", disabled: true }, "Blocked"),
+          h("button", { id: "last" }, "Last"),
+        ]),
+        h("button", { id: "after" }, "After"),
+      ]) }).mount("#app");
+    `);
+    for (const [path, body, css] of [
+      [htmlPath, `<button id="before">Before</button><ui-editor-toolbar id="toolbar"><button id="first">First</button><button id="blocked" disabled>Blocked</button><button id="last">Last</button></ui-editor-toolbar><button id="after">After</button>`, [join(root, "tokens.css")]],
+      [vuePath, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]],
+    ] as const) {
+      const page = await open(path, body, css);
+      assert.equal(await page.locator("#toolbar button[tabindex='0']").count(), 1);
+      await page.locator("#before").focus();
+      await page.keyboard.press("Tab");
+      assert.equal(await page.evaluate(() => document.activeElement?.id), "first");
+      await page.keyboard.press("ArrowRight");
+      assert.equal(await page.evaluate(() => document.activeElement?.id), "last");
+      await page.keyboard.press("ArrowRight");
+      assert.equal(await page.evaluate(() => document.activeElement?.id), "first");
+      await page.keyboard.press("End");
+      assert.equal(await page.evaluate(() => document.activeElement?.id), "last");
+      await page.keyboard.press("Tab");
+      assert.equal(await page.evaluate(() => document.activeElement?.id), "after");
+      await page.close();
+    }
+  });
+
   const buttons = Array.from({ length: 18 }, (_, index) => `<button type="button">B${index}</button>`).join("");
   const fades = (page: Page) => scrollFades(page, "#toolbar .strip");
   const settle = (page: Page) => page.waitForTimeout(250);
@@ -1959,7 +2972,7 @@ describe("Overlays", () => {
       import { createApp, h } from "vue";
       import { Dialog, trackInputModality } from "@threadlabs/looma/vue";
       trackInputModality(document);
-      createApp({ render: () => h(Dialog, { id: "dialog", open: true, modal: true, dismissible: true, label: "Details" }, () => "Body") }).mount("#app");
+      createApp({ render: () => h(Dialog, { id: "dialog", open: true, closedby: "any", label: "Details" }, () => "Body") }).mount("#app");
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
     const close = page.locator("#dialog .close");
@@ -2219,7 +3232,7 @@ describe("Light dismiss", () => {
     const path = await bundle("vue-light-dismiss", `
       import { createApp, h } from "vue";
       import { Dialog } from "@threadlabs/looma/vue";
-      createApp({ render: () => h(Dialog, { id: "dialog", open: true, modal: true, dismissible: true, label: "Details" }, () => "Body") }).mount("#app");
+      createApp({ render: () => h(Dialog, { id: "dialog", open: true, closedby: "any", label: "Details" }, () => "Body") }).mount("#app");
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
     const dialog = page.locator("#dialog");
@@ -2364,6 +3377,98 @@ describe("Density", () => {
 });
 
 describe("Vue editor components", () => {
+  it("filters authored Slash groups and reports the command value", async () => {
+    const path = await bundle("html-authored-slash-menu", `
+      import "@threadlabs/looma";
+      window.events = [];
+      document.querySelector("#slash").addEventListener("select", (event) => window.events.push(event.detail));
+    `);
+    const page = await open(path, `
+      <ui-editor-slash-menu id="slash" open query="h1" aria-label="Document commands" anchor-rect='{"left":500,"top":40,"right":520,"bottom":60}'>
+        <ui-editor-slash-menu-group label="Basic blocks">
+          <ui-editor-slash-menu-item value="heading-1" icon="heading-1" keywords="h1 title" description="Large section heading">Heading 1</ui-editor-slash-menu-item>
+          <ui-editor-slash-menu-item value="paragraph" icon="pilcrow">Paragraph</ui-editor-slash-menu-item>
+        </ui-editor-slash-menu-group>
+        <ui-editor-slash-menu-group label="Media">
+          <ui-editor-slash-menu-item value="image" icon="image">Image</ui-editor-slash-menu-item>
+        </ui-editor-slash-menu-group>
+        <div slot="empty">No matching commands</div>
+        <div slot="footer">Use arrows to choose</div>
+      </ui-editor-slash-menu>
+    `, [join(root, "tokens.css")]);
+    const menu = page.locator("#slash");
+    assert.equal(await menu.getAttribute("aria-label"), "Document commands");
+    assert.equal(await menu.getByRole("option").count(), 1);
+    assert.equal(await menu.getByRole("group", { name: "Basic blocks" }).count(), 1);
+    assert.equal(await menu.getByRole("group", { name: "Media" }).count(), 0);
+    assert.equal(await menu.locator(".footer").textContent(), "Use arrows to choose");
+    await menu.locator('[role="option"][data-value="heading-1"]').click();
+    assert.deepEqual(await page.evaluate(() => (window as any).events), [{ index: 0, value: "heading-1" }]);
+    await page.close();
+
+    const empty = await open(path, `
+      <ui-editor-slash-menu id="slash" open query="missing" anchor-rect='{"left":500,"top":40,"right":520,"bottom":60}'>
+        <ui-editor-slash-menu-item value="paragraph">Paragraph</ui-editor-slash-menu-item>
+        <div slot="empty">No matching commands</div>
+      </ui-editor-slash-menu>
+    `, [join(root, "tokens.css")]);
+    assert.equal(await empty.locator("#slash .empty").isVisible(), true);
+    assert.equal(await empty.locator("#slash [role='option']").isVisible(), false);
+    await empty.close();
+  });
+
+  it("projects authored editor suggestion items through Vue", async () => {
+    const path = await bundle("vue-authored-editor-menus", `
+      import { createApp, h } from "vue";
+      import { EditorSlashMenu, EditorSlashMenuGroup, EditorSlashMenuItem, EditorMentionMenu, EditorMentionMenuItem } from "@threadlabs/looma/vue";
+      const anchorRect = { left: 500, top: 40, right: 520, bottom: 60 };
+      createApp({ render: () => h("div", [
+        h(EditorSlashMenu, { id: "slash", open: true, query: "heading", anchorRect }, {
+          default: () => h(EditorSlashMenuGroup, { label: "Basic" }, () =>
+            h(EditorSlashMenuItem, { value: "heading", keywords: "h1" }, () => "Heading")),
+          empty: () => h("div", "No commands"),
+        }),
+        h(EditorMentionMenu, { id: "mention", open: true, anchorRect, label: "People" }, {
+          default: () => h(EditorMentionMenuItem, { value: "ada", initials: "AL" }, () => "Ada"),
+          header: () => h("div", "People in this document"),
+        }),
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    assert.equal(await page.locator("#slash").getByRole("option", { name: "Heading" }).count(), 1);
+    assert.equal(await page.locator("#mention").getByRole("option", { name: "Ada" }).count(), 1);
+    assert.equal(await page.locator("#mention .header").textContent(), "People in this document");
+    await page.close();
+  });
+
+  it("renders authored Mention items and empty/header slots with stable value events", async () => {
+    const path = await bundle("html-authored-mention-menu", `
+      import "@threadlabs/looma";
+      window.events = [];
+      document.querySelector("#mention").addEventListener("select", (event) => window.events.push(event.detail));
+    `);
+    const page = await open(path, `
+      <ui-editor-mention-menu id="mention" open label="People" aria-label="Project mentions" anchor-rect='{"left":500,"top":40,"right":520,"bottom":60}'>
+        <div slot="header">People in this document</div>
+        <ui-editor-mention-menu-item value="ada" detail="Design" initials="AL">Ada Lovelace</ui-editor-mention-menu-item>
+        <ui-editor-mention-menu-item value="grace" detail="Engineering"><span slot="start">GH</span>Grace Hopper</ui-editor-mention-menu-item>
+        <div slot="empty">No matching people</div>
+      </ui-editor-mention-menu>
+    `, [join(root, "tokens.css")]);
+    const menu = page.locator("#mention");
+    assert.equal(await menu.isVisible(), true);
+    assert.equal(await menu.getAttribute("aria-label"), "Project mentions");
+    assert.equal(await menu.getByRole("option").count(), 2);
+    assert.equal(await menu.locator(".header").textContent(), "People in this document");
+    assert.equal(await menu.locator(".empty").isVisible(), false);
+    await menu.locator('[role="option"][data-value="grace"]').click();
+    assert.deepEqual(await page.evaluate(() => (window as any).events), [{ index: 1, value: "grace" }]);
+    await menu.getByRole("option").evaluateAll((items) => items.forEach((item) => item.remove()));
+    await page.waitForFunction(() => document.querySelector("#mention .empty")?.getClientRects().length);
+    assert.equal(await menu.locator(".empty").textContent(), "No matching people");
+    await page.close();
+  });
+
   it("render menus, toolbars, and grids from their templates", async () => {
     const path = await bundle("vue-editor", `
       import { createApp, h } from "vue";
@@ -2387,11 +3492,12 @@ describe("Vue editor components", () => {
 
     const items = page.locator('#slash [role="option"]');
     assert.deepEqual(await items.locator(".title").allTextContents(), ["Table", "Text"]);
-    assert.equal(await page.locator("#slash .header-query").textContent(), "ta");
+    assert.equal(await page.locator("#slash .header").isVisible(), false);
     assert.ok(await items.first().locator("svg rect, svg path").count() > 0, "icons render as SVG shapes");
     assert.equal(await items.first().getAttribute("aria-selected"), "true");
     await items.nth(1).click();
 
+    await page.locator("#grid").evaluate((element) => { (element as HTMLElement).style.display = "none"; });
     const toolbar = page.locator("#toolbar");
     assert.equal(await toolbar.locator('[data-action="align-center"]').getAttribute("aria-pressed"), "true");
     assert.equal(await toolbar.locator(".menu").count(), 0);
@@ -2402,17 +3508,49 @@ describe("Vue editor components", () => {
     assert.equal(await toolbar.locator(".menu").count(), 0);
 
     const grid = page.locator("#grid");
+    await grid.evaluate((element) => { (element as HTMLElement).style.display = ""; });
     assert.equal(await grid.locator(".cell").count(), 20);
     await grid.locator('[data-row="2"][data-col="4"]').click();
     assert.equal(await grid.locator(".cell.selected").count(), 8);
-    await grid.locator(".insert").click();
 
     assert.deepEqual(await page.evaluate(() => (window as unknown as { events: unknown[] }).events), [
-      ["select", { index: 1 }],
+      ["select", { index: 1, value: "Text" }],
       ["action", { action: "delete-table" }],
       ["insert", { rows: 2, cols: 4, withHeaderRow: false }],
     ]);
     await page.close();
+  });
+
+  it("inserts from one roving table-picker tab stop and offers 44px touch cells", async () => {
+    const path = await bundle("html-table-picker-keyboard", `
+      import "@threadlabs/looma";
+      window.inserts = [];
+      document.querySelector("#picker").addEventListener("insert", (event) => window.inserts.push(event.detail));
+    `);
+    const page = await open(path, `
+      <button id="before">Before</button>
+      <ui-editor-insert-table-grid id="picker" open max-rows="4" max-cols="5" header-row></ui-editor-insert-table-grid>
+    `, [join(root, "tokens.css")]);
+    assert.equal(await page.locator("#picker .cell[tabindex='0']").count(), 1);
+    await page.locator("#before").focus();
+    await page.keyboard.press("Tab");
+    assert.equal(await page.locator("#picker [data-row='3'][data-col='3']").evaluate((element) => element === document.activeElement), true);
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("ArrowRight");
+    assert.equal(await page.locator("#picker [data-row='4'][data-col='4']").evaluate((element) => element === document.activeElement), true);
+    await page.keyboard.press("Enter");
+    assert.deepEqual(await page.evaluate(() => (window as any).inserts), [{ rows: 4, cols: 4, withHeaderRow: true }]);
+    await page.keyboard.press("Tab");
+    assert.equal(await page.locator("#picker .header input").evaluate((element) => element === document.activeElement), true);
+    await page.close();
+
+    const touch = await open(path, `<ui-editor-insert-table-grid id="picker" open></ui-editor-insert-table-grid>`, [join(root, "tokens.css")], { hasTouch: true, isMobile: true, viewport: { width: 375, height: 667 } });
+    const dimensions = await touch.locator("#picker .cell").first().evaluate((element) => {
+      const box = element.getBoundingClientRect();
+      return { width: box.width, height: box.height };
+    });
+    assert.ok(dimensions.width >= 44 && dimensions.height >= 44, JSON.stringify(dimensions));
+    await touch.close();
   });
 });
 
@@ -2810,6 +3948,96 @@ describe("Search Result Row selected", () => {
   });
 });
 
+describe("Search Shell keyboard results", () => {
+  const check = async (page: Page) => {
+    const search = page.getByRole("searchbox", { name: "Search" });
+    const first = page.locator("#first");
+    const last = page.locator("#last");
+    await search.focus();
+    await search.press("ArrowDown");
+    assert.equal(await first.evaluate((element) => element === document.activeElement), true);
+    await first.press("ArrowUp");
+    assert.equal(await last.evaluate((element) => element === document.activeElement), true);
+    await last.press("Home");
+    assert.equal(await first.evaluate((element) => element === document.activeElement), true);
+    await first.press("Escape");
+    await page.waitForFunction(() => !document.querySelector("dialog")?.open);
+    assert.equal(await page.locator("dialog").evaluate((element: HTMLDialogElement) => element.open), false);
+  };
+
+  it("moves among enabled rows and closes on Escape in HTML", async () => {
+    const path = await bundle("html-search-shell-keyboard", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-search-shell open label="Search">
+        <input slot="search" type="search" aria-label="Search">
+        <div slot="body">
+          <ui-search-result-row id="first"><span slot="title">First</span></ui-search-result-row>
+          <ui-search-result-row id="skip" disabled><span slot="title">Skip</span></ui-search-result-row>
+          <ui-search-result-row id="last"><span slot="title">Last</span></ui-search-result-row>
+        </div>
+      </ui-search-shell>
+    `, [join(root, "tokens.css")]);
+    await check(page);
+    await page.close();
+  });
+
+  it("moves among enabled rows and closes on Escape in Vue", async () => {
+    const path = await bundle("vue-search-shell-keyboard", `
+      import { createApp, h } from "vue";
+      import { SearchShell, SearchResultRow } from "@threadlabs/looma/vue";
+      const row = (id, title, disabled = false) => h(SearchResultRow, { id, disabled }, { title: () => title });
+      createApp({ render: () => h(SearchShell, { open: true, label: "Search" }, {
+        search: () => h("input", { type: "search", "aria-label": "Search" }),
+        body: () => h("div", [row("first", "First"), row("skip", "Skip", true), row("last", "Last")]),
+      }) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await check(page);
+    await page.close();
+  });
+});
+
+describe("Listbox native selection", () => {
+  const check = async (page: Page) => {
+    const listbox = page.locator("#regions");
+    assert.equal(await listbox.evaluate((element) => element.localName), "select");
+    assert.equal(await listbox.getAttribute("size"), "4");
+    assert.deepEqual(await listbox.evaluate((element: HTMLSelectElement) =>
+      Array.from(element.selectedOptions, (option) => option.value)), ["north", "west"]);
+    const entries = () => page.locator("#form").evaluate((form: HTMLFormElement) =>
+      Array.from(new FormData(form).getAll("regions"), String));
+    assert.deepEqual(await entries(), ["north", "west"]);
+    await listbox.selectOption(["south"]);
+    assert.deepEqual(await entries(), ["south"]);
+    await page.locator("#form").evaluate((form: HTMLFormElement) => form.reset());
+    assert.deepEqual(await entries(), ["north", "west"]);
+  };
+
+  it("uses native multi-selection and form reset in HTML", async () => {
+    const path = await bundle("html-listbox", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <form id="form"><ui-listbox id="regions" name="regions" rows="4" multiple values='["north","west"]'>
+        <option value="north">North</option><option value="south">South</option><option value="west">West</option>
+      </ui-listbox></form>
+    `, [join(root, "tokens.css")]);
+    await check(page);
+    await page.close();
+  });
+
+  it("uses native multi-selection and form reset in Vue", async () => {
+    const path = await bundle("vue-listbox", `
+      import { createApp, h } from "vue";
+      import { Listbox } from "@threadlabs/looma/vue";
+      createApp({ render: () => h("form", { id: "form" }, [h(Listbox, {
+        id: "regions", name: "regions", rows: 4, multiple: true, values: ["north", "west"],
+      }, () => ["north", "south", "west"].map((value) => h("option", { value }, value)))]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await check(page);
+    await page.close();
+  });
+});
+
 describe("Checkbox and Switch name", () => {
   // Like a native checkbox: checked sends name=value, unchecked sends nothing.
   const check = async (page: Page) => {
@@ -2961,6 +4189,7 @@ describe("Form participation", () => {
       <ui-input-group><span slot="prefix">https://</span><ui-input id="site" name="site" value="docs"></ui-input><span slot="suffix">.example.com</span></ui-input-group>
       <ui-textarea id="body" name="body" value="Hello"></ui-textarea>
       <ui-select id="topic" name="topic" value="help">${topics}</ui-select>
+      <ui-listbox id="regions" name="regions" rows="3" multiple values='["north","west"]'><option value="north">North</option><option value="south">South</option><option value="west">West</option></ui-listbox>
       <ui-checkbox id="agree" name="agree" value="yes">Agree</ui-checkbox>
       <ui-checkbox id="news" name="news" value="weekly" checked>News</ui-checkbox>
       <ui-checkbox name="unticked">Unticked</ui-checkbox>
@@ -2987,7 +4216,7 @@ describe("Form participation", () => {
   `;
   const vue = `
     import { createApp, h } from "vue";
-    import { Checkbox, Combobox, Editable, Input, InputGroup, Radio, RadioGroup, Select, Switch, Textarea } from "@threadlabs/looma/vue";
+    import { Checkbox, Combobox, Editable, Input, InputGroup, Listbox, Radio, RadioGroup, Select, Switch, Textarea } from "@threadlabs/looma/vue";
     const list = (pairs) => () => pairs.map(([value, label]) => h("option", { value }, label));
     const fruit = list([["apple", "Apple"], ["pear", "Pear"]]);
     const tags = list([["alpha", "Alpha"], ["beta", "Beta"]]);
@@ -3000,6 +4229,7 @@ describe("Form participation", () => {
           h(InputGroup, null, { prefix: text("https://"), default: () => h(Input, { id: "site", name: "site", value: "docs" }), suffix: text(".example.com") }),
           h(Textarea, { id: "body", name: "body", value: "Hello" }),
           h(Select, { id: "topic", name: "topic", value: "help" }, list([["problem", "Problem"], ["help", "Help"]])),
+          h(Listbox, { id: "regions", name: "regions", rows: 3, multiple: true, values: ["north", "west"] }, list([["north", "North"], ["south", "South"], ["west", "West"]])),
           h(Checkbox, { id: "agree", name: "agree", value: "yes" }, text("Agree")),
           h(Checkbox, { id: "news", name: "news", value: "weekly", checked: true }, text("News")),
           h(Checkbox, { name: "unticked" }, text("Unticked")),
@@ -3030,11 +4260,11 @@ describe("Form participation", () => {
   // Defaults: unchecked boxes, disabled controls, the multiple combobox with nothing chosen, and the
   // in-place editor (which has no form value by design) send nothing.
   const initial = [
-    ["title", "Draft"], ["site", "docs"], ["body", "Hello"], ["topic", "help"], ["news", "weekly"], ["size", "m"], ["plan", "pro"],
+    ["title", "Draft"], ["site", "docs"], ["body", "Hello"], ["topic", "help"], ["regions", "north"], ["regions", "west"], ["news", "weekly"], ["size", "m"], ["plan", "pro"],
     ["fruit", ""], ["city", ""], ["country", "no"],
   ];
   const chosen = [
-    ["title", "Final"], ["site", "wiki"], ["body", "Hi there"], ["topic", "problem"], ["agree", "yes"], ["alerts", "push"], ["size", "s"],
+    ["title", "Final"], ["site", "wiki"], ["body", "Hi there"], ["topic", "problem"], ["regions", "south"], ["agree", "yes"], ["alerts", "push"], ["size", "s"],
     ["plan", "free"], ["fruit", "pear"], ["tags", "alpha"], ["tags", "beta"], ["city", "Oslo"], ["country", "no"],
   ];
   const entries = (page: Page, form = "#form") => page.locator(form).evaluate((element) =>
@@ -3061,6 +4291,7 @@ describe("Form participation", () => {
     await page.locator("#site").fill("wiki");
     await page.locator("#body").fill("Hi there");
     await page.locator("#topic").selectOption("problem");
+    await page.locator("#regions").selectOption(["south"]);
     await page.locator("#agree input").check();
     await page.locator("#news input").uncheck();
     await page.locator("#alerts input").check();
@@ -3540,6 +4771,105 @@ describe("Component hooks", () => {
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
     await checkHooks(page);
+    await page.close();
+  });
+});
+
+describe("Theme levels", () => {
+  it("applies global, inherited group, and instance values in that order across themes", async () => {
+    const path = await bundle("html-theme-levels", `import "@threadlabs/looma";`);
+    const body = `
+      <style>:root { --ui-radius-md: 12px; --ui-danger: rgb(180, 10, 30); }</style>
+      <ui-input id="global-input" aria-label="Global" invalid></ui-input>
+      <ui-button id="global-danger" tone="danger" variant="solid">Delete</ui-button>
+      <section id="group" style="--ui-field-radius: 3px; --ui-field-danger: rgb(150, 20, 40); --ui-action-radius: 5px; --ui-overlay-radius: 9px; --ui-overlay-surface: rgb(237, 239, 242); --ui-overlay-border: rgb(22, 33, 44); --ui-overlay-shadow: none">
+        <ui-input id="group-input" aria-label="Grouped" invalid></ui-input>
+        <ui-input id="local-input" aria-label="Local" invalid style="--ui-input-radius: 7px"></ui-input>
+        <ui-select id="group-select" aria-label="Grouped select" invalid><option>One</option></ui-select>
+        <ui-select id="local-select" aria-label="Local select" invalid style="--ui-select-radius: 6px; --ui-select-invalid-border: rgb(90, 70, 130)"><option>One</option></ui-select>
+        <ui-listbox id="group-listbox" aria-label="Grouped listbox" invalid><option>One</option><option>Two</option></ui-listbox>
+        <ui-listbox id="local-listbox" aria-label="Local listbox" invalid style="--ui-listbox-radius: 6px; --ui-listbox-invalid-border: rgb(90, 70, 130)"><option>One</option><option>Two</option></ui-listbox>
+        <ui-textarea id="group-textarea" aria-label="Grouped textarea" invalid></ui-textarea>
+        <ui-form-field id="group-field" invalid><ui-input aria-label="Field input"></ui-input><span slot="error" role="alert" id="field-message">Required</span></ui-form-field>
+        <ui-button id="group-button">Save</ui-button>
+        <ui-button id="group-danger" tone="danger" variant="solid">Delete</ui-button>
+        <ui-icon-button id="group-icon-button" label="More"><ui-icon name="ellipsis"></ui-icon></ui-icon-button>
+        <ui-menu id="group-menu"><ui-menu-item value="one">One</ui-menu-item></ui-menu>
+        <ui-menu id="local-menu" style="--ui-menu-radius: 4px; --ui-menu-surface: rgb(210, 211, 212); --ui-menu-border: rgb(80, 81, 82); --ui-menu-shadow: none"><ui-menu-item value="two">Two</ui-menu-item></ui-menu>
+      </section>`;
+    const css = ["tokens.css", "theme-light.css", "theme-dark.css", "theme-high-contrast.css"].map((file) => join(root, file));
+    const page = await open(path, body, css);
+    await page.waitForSelector('#group-input[data-component~="ui-input"]');
+    const look = (selector: string, property: string) => page.locator(selector).evaluate((element, name) =>
+      getComputedStyle(element).getPropertyValue(name), property);
+
+    for (const [theme, value] of [["data-theme", "light"], ["data-theme", "dark"], ["data-contrast", "high"]] as const) {
+      await page.evaluate(() => { document.documentElement.removeAttribute("data-theme"); document.documentElement.removeAttribute("data-contrast"); });
+      await page.evaluate(([name, setting]) => document.documentElement.setAttribute(name, setting), [theme, value]);
+      assert.equal(await look("#global-input", "border-top-left-radius"), "12px", `${value}: global radius`);
+      for (const id of ["group-input", "group-select", "group-listbox", "group-textarea"]) {
+        assert.equal(await look(`#${id}`, "border-top-left-radius"), "3px", `${value}: ${id} inherits the field radius`);
+        assert.equal(await look(`#${id}`, "border-top-color"), "rgb(150, 20, 40)", `${value}: ${id} inherits field danger`);
+      }
+      assert.equal(await look("#local-input", "border-top-left-radius"), "7px", `${value}: component hook wins`);
+      assert.equal(await look("#local-select", "border-top-left-radius"), "6px", `${value}: local select radius wins`);
+      assert.equal(await look("#local-select", "border-top-color"), "rgb(90, 70, 130)", `${value}: local select danger wins`);
+      assert.equal(await look("#local-listbox", "border-top-left-radius"), "6px", `${value}: local listbox radius wins`);
+      assert.equal(await look("#local-listbox", "border-top-color"), "rgb(90, 70, 130)", `${value}: local listbox danger wins`);
+      assert.equal(await look("#field-message", "color"), "rgb(150, 20, 40)", `${value}: field message shares danger`);
+      for (const id of ["group-button", "group-icon-button"]) {
+        assert.equal(await look(`#${id}`, "border-top-left-radius"), "5px", `${value}: ${id} inherits action radius`);
+      }
+      assert.equal(await look("#group-menu .surface", "border-top-left-radius"), "9px", `${value}: menu inherits overlay radius`);
+      assert.equal(await look("#group-menu .surface", "background-color"), "rgb(237, 239, 242)", `${value}: menu inherits overlay surface`);
+      assert.equal(await look("#group-menu .surface", "border-top-color"), "rgb(22, 33, 44)", `${value}: menu inherits overlay border`);
+      assert.equal(await look("#group-menu .surface", "box-shadow"), "none", `${value}: menu inherits overlay shadow`);
+      assert.equal(await look("#local-menu .surface", "border-top-left-radius"), "4px", `${value}: local menu radius wins`);
+      assert.equal(await look("#local-menu .surface", "background-color"), "rgb(210, 211, 212)", `${value}: local menu surface wins`);
+      assert.equal(await look("#local-menu .surface", "border-top-color"), "rgb(80, 81, 82)", `${value}: local menu border wins`);
+      assert.equal(await look("#global-danger", "background-color"), await look("#group-danger", "background-color"), `${value}: field danger does not change destructive actions`);
+    }
+    await page.close();
+  });
+
+  it("keeps inherited group values in the generated Vue components", async () => {
+    const path = await bundle("vue-theme-levels", `
+      import { createApp, h } from "vue";
+      import { Button, Icon, IconButton, Input, Menu, MenuItem } from "@threadlabs/looma/vue";
+      createApp({ render: () => h("section", {
+        style: "--ui-field-radius: 3px; --ui-field-danger: rgb(150, 20, 40); --ui-action-radius: 5px; --ui-overlay-radius: 9px",
+      }, [
+        h(Input, { id: "field", invalid: true, "aria-label": "Field" }),
+        h(Button, { id: "action" }, () => "Save"),
+        h(IconButton, { id: "icon-action", label: "More" }, () => h(Icon, { name: "ellipsis" })),
+        h(Menu, { id: "menu" }, () => h(MenuItem, { value: "one" }, () => "One")),
+        h(Menu, { id: "local-menu", style: "--ui-menu-radius: 4px" }, () => h(MenuItem, { value: "two" }, () => "Two")),
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const look = (selector: string, property: string) => page.locator(selector).evaluate((element, name) =>
+      getComputedStyle(element).getPropertyValue(name), property);
+    assert.equal(await look("#field", "border-top-left-radius"), "3px");
+    assert.equal(await look("#field", "border-top-color"), "rgb(150, 20, 40)");
+    assert.equal(await look("#action", "border-top-left-radius"), "5px");
+    assert.equal(await look("#icon-action", "border-top-left-radius"), "5px");
+    assert.equal(await look("#menu .surface", "border-top-left-radius"), "9px");
+    assert.equal(await look("#local-menu .surface", "border-top-left-radius"), "4px");
+    await page.close();
+  });
+
+  it("applies the global round radius to round controls and status shapes", async () => {
+    const path = await bundle("html-round-radius", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-avatar id="avatar" name="Ada Lovelace"></ui-avatar>
+      <ui-switch id="switch">Enabled</ui-switch>
+      <ui-avatar-group id="avatars" max="1"><ui-avatar name="Ada"></ui-avatar><ui-avatar name="Grace"></ui-avatar></ui-avatar-group>
+    `, [join(root, "tokens.css")]);
+    await page.addStyleTag({ content: ":root { --ui-radius-round: 6px; }" });
+    const radius = (selector: string) => page.locator(selector).evaluate((element) => getComputedStyle(element).borderTopLeftRadius);
+    assert.equal(await radius("#avatar"), "6px");
+    assert.equal(await radius("#switch input"), "6px");
+    assert.equal(await radius("#avatars .overflow"), "6px");
     await page.close();
   });
 });

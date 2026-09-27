@@ -1,6 +1,6 @@
 /** Event contract for the declarative table-dimension picker. */
 
-/** Confirmed table dimensions emitted after preview state has been committed. */
+/** Table dimensions emitted when a cell is activated. */
 export interface InsertTableEventDetail {
   rows: number;
   cols: number;

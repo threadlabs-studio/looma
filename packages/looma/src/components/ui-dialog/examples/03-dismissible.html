@@ -1,8 +1,8 @@
 <!--
-title: dismissible
-description: Dismissible also closes the dialog when the user presses Escape or presses anywhere outside it.
+title: Outside dismissal
+description: Escape closes a dialog by default; closedby="any" also closes it after a press outside.
 -->
 <ui-button id="open-dismissible-dialog">Open dismissible dialog</ui-button>
-<ui-dialog id="dismissible-dialog" for="open-dismissible-dialog" modal dismissible label="Keyboard shortcuts">
+<ui-dialog id="dismissible-dialog" for="open-dismissible-dialog" closedby="any" label="Keyboard shortcuts">
   <p>Press <kbd>Escape</kbd> or click the backdrop to close this dialog.</p>
 </ui-dialog>

@@ -9,6 +9,18 @@
     <span class="action"><slot name="action"></slot></span>
   </div>
   <style>
+    @property --ui-input-group-radius {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-input-group-invalid-border {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-input-group-invalid-focus-shadow {
+      syntax: "*";
+      inherits: false;
+    }
     /* An input with fixed text before or after it, such as a domain after a site's name
        ("acme" + ".example.com") or slashes around a path. The group draws the field's border and
        focus ring around the input and its affixes together; the input inside drops its own through
@@ -41,7 +53,7 @@
       min-block-size: var(--ui-control-size-md);
       /* The frame reads the shared control tokens with a lone Input's fallbacks, so the two match. */
       border: 1px solid var(--ui-control-border, var(--ui-border-strong));
-      border-radius: var(--ui-radius-md);
+      border-radius: var(--ui-input-group-radius, var(--ui-field-radius, var(--ui-radius-md)));
       background: var(--ui-control-surface, var(--ui-surface-elevated));
       box-shadow: var(--ui-control-inset);
       overflow: hidden;
@@ -79,13 +91,15 @@
     }
 
     :host:has([aria-invalid="true"], :user-invalid) {
-      border-color: var(--ui-danger-solid);
+      border-color: var(--ui-input-group-invalid-border, var(--ui-field-danger, var(--ui-danger-solid)));
     }
 
     :host:has(input:is([aria-invalid="true"], :user-invalid):focus-visible) {
-      box-shadow:
+      box-shadow: var(
+        --ui-input-group-invalid-focus-shadow,
         var(--ui-control-inset),
-        0 0 0 3px color-mix(in srgb, var(--ui-danger-solid) 22%, transparent);
+        0 0 0 3px color-mix(in srgb, var(--ui-input-group-invalid-border, var(--ui-field-danger, var(--ui-danger-solid))) 22%, transparent)
+      );
     }
 
     /* Forced colors drop box shadows, so the focus ring becomes an outline. */

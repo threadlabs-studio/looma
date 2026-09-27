@@ -1,0 +1,10 @@
+<!--
+title: Alert confirmation
+description: Alert dialogs have no header close button and cannot close from outside. Keep an explicit, focused action available.
+-->
+<ui-button id="open-alert-dialog">Delete item</ui-button>
+<ui-dialog id="alert-dialog" for="open-alert-dialog" alert closedby="none" label="Delete item?">
+  <p id="alert-description">This action cannot be undone.</p>
+  <ui-button slot="actions" commandfor="alert-dialog" command="close" autofocus>Cancel</ui-button>
+  <ui-button slot="actions" variant="danger" commandfor="alert-dialog" command="close">Delete</ui-button>
+</ui-dialog>

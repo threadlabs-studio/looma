@@ -101,7 +101,6 @@ export default function controller(host) {
   const cancelLookup = () => {
     lookup?.abort();
     lookup = undefined;
-    host.state.loading = false;
   };
   const close = () => {
     host.state.expanded = false;
@@ -142,7 +141,7 @@ export default function controller(host) {
       const filtered = options.filter((option) => {
         if (ids.has(option.id)) return false;
         ids.add(option.id);
-        if (fullSet) return true;
+        if (fullSet || host.state.filter === "none") return true;
         return option.label.toLocaleLowerCase().includes(query.toLocaleLowerCase());
       }).map((option) => ({
         ...option,
@@ -158,7 +157,6 @@ export default function controller(host) {
       // the group-name list below. Concatenating a Map iterator produces one
       // iterator row instead of the option objects it contains.
       host.state.rows = Array.from(groups.values()).flat();
-      host.state.loading = false;
       // When nothing matches what was typed, the offer to create it is the only choice, so it is
       // the one Enter makes, and it is highlighted as such.
       if (query && !host.state.rows.some((row) => !row.disabled) && canCreate()) host.state.active = host.state.rows.length;
@@ -370,8 +368,7 @@ export default function controller(host) {
     host.state.createIndex = rows.length;
     // What a named combobox submits in single mode: the value, never the label the field shows.
     host.state.submitted = String(host.state.selected ?? (host.state.allowFreeText ? host.state.raw ?? "" : ""));
-    host.state.message = host.state.loading ? "Loading suggestions…"
-      : host.state.lookupError || (!rows.length && !host.state.creatable ? "No suggestions." : "");
+    host.state.message = host.state.loading ? "Loading suggestions…" : host.state.lookupError || "";
     const validation = host.state.validation ?? { status: "pristine", issues: [] };
     host.state.validationStatus = validation.status;
     const status = host.state.loading ? "Loading suggestions…" : host.state.lookupError || (host.state.expanded ? `${rows.length} suggestions available.` : "");
@@ -440,6 +437,9 @@ export default function controller(host) {
     if (!host.state.multiple && config().allowFreeText && host.state.selected === null) commit(null, host.state.raw, null, "free-entry", "keyboard");
     void validateCurrent();
   };
+  const onFocusin = (event) => {
+    if (event.target === input && host.state.openOnFocus && !host.state.expanded) open();
+  };
   const onCompositionstart = (event) => { if (event.target === input) composing = true; };
   const onCompositionend = (event) => { if (event.target === input) { composing = false; onInput(new InputEvent("input")); } };
   const onTooltipOpen = (event) => { if (event.target.closest?.('[role="tooltip"]')) host.state.helpOpen = true; };
@@ -467,7 +467,7 @@ export default function controller(host) {
 
   const api = { get input() { return input; }, validate: validateCurrent };
   instances.set(element, api);
-  const listeners = { input: onInput, keydown: onKeydown, click: onClick, pointerdown: onPointerdown, focusout: onFocusout, compositionstart: onCompositionstart, compositionend: onCompositionend, open: onTooltipOpen, close: onTooltipClose };
+  const listeners = { input: onInput, keydown: onKeydown, click: onClick, pointerdown: onPointerdown, focusin: onFocusin, focusout: onFocusout, compositionstart: onCompositionstart, compositionend: onCompositionend, open: onTooltipOpen, close: onTooltipClose };
   for (const [name, listener] of Object.entries(listeners)) element.addEventListener(name, listener);
   // Authored options can change after mount (renamed, replaced, or arriving late). A selected value
   // then shows its current label, unless the user is editing the text.

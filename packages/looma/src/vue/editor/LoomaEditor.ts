@@ -40,7 +40,7 @@ import {
   type TableActionCapabilities,
   type TableContextMenuAction,
 } from "@threadlabs/looma/editor";
-import { IconButton, Popover, Tooltip } from "@threadlabs/looma/vue";
+import { IconButton, Menu, MenuItem, Popover, Tooltip } from "@threadlabs/looma/vue";
 import { getVisualViewportRect, LOOMA_ICONS, type LoomaIconName } from "@threadlabs/looma/editor";
 import {
   EditorInsertTableGrid,
@@ -93,6 +93,12 @@ const EMPTY_DOCUMENT: JSONContent = { type: "doc", content: [] };
 let editorInstanceSequence = 0;
 
 const EMPTY_CAPABILITIES: TableActionCapabilities = {
+  canToggleHeaderRow: false,
+  canToggleHeaderColumn: false,
+  canMoveRowUp: false,
+  canMoveRowDown: false,
+  canMoveColumnLeft: false,
+  canMoveColumnRight: false,
   canAddRowBefore: false,
   canAddRowAfter: false,
   canAddColumnBefore: false,
@@ -106,6 +112,18 @@ const EMPTY_CAPABILITIES: TableActionCapabilities = {
 
 function sameDocument(left: JSONContent, right: JSONContent): boolean {
   return JSON.stringify(left) === JSON.stringify(right);
+}
+
+function validLinkHref(value: string): string | null {
+  const href = value.trim();
+  if (!href || /[\u0000-\u001f\u007f]/.test(href)) return null;
+  if (/^(\/|#|\?)/.test(href)) return href;
+  try {
+    const url = new URL(href);
+    return ["http:", "https:", "mailto:", "tel:"].includes(url.protocol) ? href : null;
+  } catch {
+    return null;
+  }
 }
 
 function managedMenuAnchorRect(rect: DOMRect | null): SlashMenuAnchorRect | null {
@@ -230,6 +248,16 @@ export const LoomaEditor = defineComponent({
     const root = ref<HTMLElement | null>(null);
     const fileInput = ref<HTMLInputElement | null>(null);
     const tablePickerAnchorId = `looma-editor-table-picker-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
+    const blockActionAnchorId = `ui-block-tools-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
+    let blockActionTarget: { position: number; node: Editor["state"]["doc"]["firstChild"] } | null = null;
+    const linkAnchorId = `looma-editor-link-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
+    const linkUrlInput = ref<HTMLInputElement | null>(null);
+    const linkOpen = ref(false);
+    const linkHref = ref("");
+    const linkText = ref("");
+    const linkNewTab = ref(true);
+    const linkError = ref("");
+    let linkSelection: { from: number; to: number; existing: boolean } | null = null;
     // One tooltip follows the row: the first button waits, and moving along the row is immediate,
     // which is what a toolbar needs and what the native `title` attribute cannot do.
     const toolbarScope = `looma-editor-tool-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
@@ -301,8 +329,11 @@ export const LoomaEditor = defineComponent({
       toolbarOpen: false,
       overlayOpen: false,
       menuOpen: false,
+      menuScope: "cell" as "cell" | "row" | "column",
       alignment: "left" as TableCellAlignment,
       background: null as TableCellBackground,
+      headerRow: false,
+      headerColumn: false,
       rows: 0,
       cols: 0,
       geometry: null as TableOverlayGeometry | null,
@@ -377,6 +408,89 @@ export const LoomaEditor = defineComponent({
       },
     });
 
+    const openLinkEditor = () => {
+      const instance = editor.value;
+      if (!instance || !props.editable) return;
+      const current = instance.state.selection;
+      const preserved = lastFocusedSelection?.text && lastFocusedSelection.from !== lastFocusedSelection.to
+        ? lastFocusedSelection : null;
+      const from = current.empty && preserved ? preserved.from : current.from;
+      const to = current.empty && preserved ? preserved.to : current.to;
+      const empty = from === to;
+      const existing = instance.isActive("link");
+      linkSelection = { from, to, existing };
+      const attrs = existing ? instance.getAttributes("link") : {};
+      linkHref.value = typeof attrs.href === "string" ? attrs.href : "";
+      linkNewTab.value = attrs.target !== "_self";
+      linkText.value = empty && !existing ? "" : instance.state.doc.textBetween(from, to);
+      linkError.value = "";
+      linkOpen.value = true;
+      void nextTick(() => linkUrlInput.value?.focus());
+    };
+    const saveLink = () => {
+      const instance = editor.value;
+      const selection = linkSelection;
+      if (!instance || !selection) return;
+      const href = validLinkHref(linkHref.value);
+      if (!href) {
+        linkError.value = "Enter an http, https, mailto, tel, or relative URL.";
+        linkUrlInput.value?.focus();
+        return;
+      }
+      const attrs = { href, target: linkNewTab.value ? "_blank" : "_self", rel: linkNewTab.value ? "noopener noreferrer" : null };
+      const chain = instance.chain().focus().setTextSelection({ from: selection.from, to: selection.to });
+      if (selection.from === selection.to && !selection.existing) {
+        const text = linkText.value.trim();
+        if (!text) { linkError.value = "Enter link text."; return; }
+        chain.insertContent({ type: "text", text, marks: [{ type: "link", attrs }] }).run();
+      } else {
+        if (selection.existing && selection.from === selection.to) chain.extendMarkRange("link");
+        chain.setLink(attrs).run();
+      }
+      linkOpen.value = false;
+    };
+    const removeLink = () => {
+      const instance = editor.value;
+      const selection = linkSelection;
+      if (!instance || !selection?.existing) return;
+      instance.chain().focus().setTextSelection({ from: selection.from, to: selection.to }).extendMarkRange("link").unsetLink().run();
+      linkOpen.value = false;
+    };
+    const captureBlockAction = () => {
+      const instance = editor.value;
+      const head = instance?.state.selection.$head;
+      const position = head && head.depth > 0 ? head.before(1) : null;
+      blockActionTarget = position === null ? null : { position, node: instance?.state.doc.nodeAt(position) ?? null };
+    };
+    const runBlockAction = (value: string) => {
+      const instance = editor.value;
+      const target = blockActionTarget;
+      if (!instance || !target || !props.editable) return;
+      const { state } = instance;
+      const { position } = target;
+      const block = state.doc.nodeAt(position);
+      if (!block || block !== target.node) return;
+      const end = position + block.nodeSize;
+      const transaction = state.tr;
+      let focusAt = end + 1;
+      if (value === "insert-below") {
+        transaction.insert(end, state.schema.nodes.paragraph.create());
+      } else if (value === "duplicate") {
+        transaction.insert(end, block);
+      } else if (value === "delete") {
+        if (state.doc.childCount === 1) {
+          transaction.replaceWith(position, end, state.schema.nodes.paragraph.create());
+          focusAt = 1;
+        } else {
+          transaction.delete(position, end);
+          focusAt = Math.min(position + 1, transaction.doc.content.size);
+        }
+      } else return;
+      transaction.setSelection(TextSelection.near(transaction.doc.resolve(Math.min(focusAt, transaction.doc.content.size))));
+      instance.view.dispatch(transaction);
+      instance.commands.focus();
+    };
+
     watch(() => props.editable, (editable) => editor.value?.setEditable(editable));
     watch(() => props.label, (label) => {
       editor.value?.setOptions({
@@ -429,8 +543,11 @@ export const LoomaEditor = defineComponent({
       tableUi.toolbarOpen = false;
       tableUi.overlayOpen = false;
       tableUi.menuOpen = false;
+      tableUi.menuScope = "cell";
       tableUi.alignment = "left";
       tableUi.background = null;
+      tableUi.headerRow = false;
+      tableUi.headerColumn = false;
       tableUi.geometry = null;
       tableUi.capabilities = { ...EMPTY_CAPABILITIES };
       overlayTableElement = null;
@@ -489,6 +606,8 @@ export const LoomaEditor = defineComponent({
       tableUi.overlayOpen = !mobile.value;
       tableUi.alignment = selectedTableIsActive ? state.cellAlignment : "left";
       tableUi.background = selectedTableIsActive ? state.cellBackground : null;
+      tableUi.headerRow = selectedTableIsActive && state.headerRow;
+      tableUi.headerColumn = selectedTableIsActive && state.headerColumn;
       tableUi.capabilities = selectedTableIsActive ? state.capabilities : { ...EMPTY_CAPABILITIES };
       const selectedCell = selectedTableIsActive ? selectedTableCellElement(instance) : null;
       const geometry = measureTableOverlayGeometry(
@@ -719,6 +838,7 @@ export const LoomaEditor = defineComponent({
         instance.chain().focus().setTextSelection(instance.view.posAtDOM(cell, 0) + 1).run();
       }
       updateTableUi();
+      tableUi.menuScope = "cell";
       tableUi.menuOpen = true;
       tableUi.menuStyle = { top: `${event.clientY}px`, left: `${event.clientX}px` };
     };
@@ -756,10 +876,18 @@ export const LoomaEditor = defineComponent({
           instance.commands.focus();
         }
         updateTableUi();
+        tableUi.menuScope = "cell";
         tableUi.menuStyle = {
           top: `${detail.anchor.bottom + 4}px`,
           left: `${detail.anchor.right}px`,
         };
+        tableUi.menuOpen = true;
+        return;
+      }
+      if (detail.action === "open-row-menu" || detail.action === "open-column-menu") {
+        updateTableUi();
+        tableUi.menuScope = detail.action === "open-row-menu" ? "row" : "column";
+        tableUi.menuStyle = { top: `${detail.anchor.bottom + 4}px`, left: `${detail.anchor.right}px` };
         tableUi.menuOpen = true;
         return;
       }
@@ -877,6 +1005,20 @@ export const LoomaEditor = defineComponent({
         commandButton("Strike", "strikethrough", instance.isActive("strike"), !instance.can().toggleStrike(), () => instance.chain().focus().toggleStrike().run()),
         commandButton("Highlight", "highlighter", instance.isActive("highlight"), !instance.can().toggleHighlight(), () => instance.chain().focus().toggleHighlight().run()),
         commandButton("Inline code", "code-xml", instance.isActive("code"), !instance.can().toggleCode(), () => instance.chain().focus().toggleCode().run()),
+        h(IconButton, {
+          id: linkAnchorId,
+          class: "looma-editor__toolbar-button",
+          label: "Link",
+          size: "sm",
+          variant: "ghost",
+          "aria-expanded": linkOpen.value ? "true" : "false",
+          "aria-pressed": instance.isActive("link") ? "true" : "false",
+          "data-active": instance.isActive("link") ? "true" : "false",
+          onPointerenter: () => showTool(linkAnchorId, "Link", false),
+          onPointerleave: hideTool,
+          onFocusin: () => showTool(linkAnchorId, "Link", true),
+          onFocusout: hideTool,
+        }, () => loomaIcon("link")),
         h("span", { class: "divider", "aria-hidden": "true" }),
         commandButton("Heading 1", "heading-1", instance.isActive("heading", { level: 1 }), false, () => instance.chain().focus().toggleHeading({ level: 1 }).run()),
         commandButton("Heading 2", "heading-2", instance.isActive("heading", { level: 2 }), false, () => instance.chain().focus().toggleHeading({ level: 2 }).run()),
@@ -885,6 +1027,17 @@ export const LoomaEditor = defineComponent({
         commandButton("Numbered list", "list-ordered", instance.isActive("orderedList"), false, () => instance.chain().focus().toggleOrderedList().run()),
         commandButton("Blockquote", "quote", instance.isActive("blockquote"), !instance.can().toggleBlockquote(), () => instance.chain().focus().toggleBlockquote().run()),
         commandButton("Code block", "braces", instance.isActive("codeBlock"), !instance.can().toggleCodeBlock(), () => instance.chain().focus().toggleCodeBlock().run()),
+        h(IconButton, {
+          id: blockActionAnchorId,
+          class: "looma-editor__toolbar-button",
+          label: "Block actions",
+          size: "sm",
+          variant: "ghost",
+          onPointerenter: () => showTool(blockActionAnchorId, "Block actions", false),
+          onPointerleave: hideTool,
+          onFocusin: () => showTool(blockActionAnchorId, "Block actions", true),
+          onFocusout: hideTool,
+        }, () => loomaIcon("ellipsis")),
         h("span", { class: "divider", "aria-hidden": "true" }),
         h(IconButton, {
           id: tablePickerAnchorId,
@@ -943,6 +1096,12 @@ export const LoomaEditor = defineComponent({
         ...(tableUi.capabilities.canAddRowAfter ? ["add-row-after" as const] : []),
         ...(tableUi.capabilities.canAddColumnBefore ? ["add-column-before" as const] : []),
         ...(tableUi.capabilities.canAddColumnAfter ? ["add-column-after" as const] : []),
+        ...(tableUi.capabilities.canToggleHeaderRow ? ["toggle-header-row" as const] : []),
+        ...(tableUi.capabilities.canToggleHeaderColumn ? ["toggle-header-column" as const] : []),
+        ...(tableUi.capabilities.canMoveRowUp ? ["move-row-up" as const] : []),
+        ...(tableUi.capabilities.canMoveRowDown ? ["move-row-down" as const] : []),
+        ...(tableUi.capabilities.canMoveColumnLeft ? ["move-column-left" as const] : []),
+        ...(tableUi.capabilities.canMoveColumnRight ? ["move-column-right" as const] : []),
         ...(tableUi.capabilities.canMergeCells ? ["merge-cells" as const] : []),
         ...(tableUi.capabilities.canSplitCell ? ["split-cell" as const] : []),
         ...(tableUi.capabilities.canDeleteRow ? ["delete-row" as const] : []),
@@ -953,6 +1112,8 @@ export const LoomaEditor = defineComponent({
         open: true,
         cellAlignment: tableUi.alignment,
         cellBackground: tableUi.background ?? undefined,
+        headerRow: tableUi.headerRow,
+        headerColumn: tableUi.headerColumn,
         actions: tableActions,
         onAction: runTableAction,
       };
@@ -1058,6 +1219,59 @@ export const LoomaEditor = defineComponent({
             ])
           : null,
         h(Popover, {
+          class: "looma-editor__link-popover",
+          open: linkOpen.value,
+          for: linkAnchorId,
+          placement: mobile.value ? "top-start" : "bottom-start",
+          onOpen: openLinkEditor,
+          onClose: () => { linkOpen.value = false; },
+        }, () => h("form", {
+          class: "looma-editor__link-form",
+          "aria-label": "Edit link",
+          onSubmit: (event: Event) => { event.preventDefault(); saveLink(); },
+        }, [
+          linkSelection?.from === linkSelection?.to && !linkSelection?.existing
+            ? h("label", [h("span", "Text"), h("input", {
+                value: linkText.value,
+                onInput: (event: Event) => { linkText.value = (event.target as HTMLInputElement).value; linkError.value = ""; },
+              })])
+            : null,
+          h("label", [h("span", "URL"), h("input", {
+            ref: linkUrlInput,
+            type: "text",
+            inputmode: "url",
+            value: linkHref.value,
+            "aria-invalid": linkError.value ? "true" : undefined,
+            onInput: (event: Event) => { linkHref.value = (event.target as HTMLInputElement).value; linkError.value = ""; },
+          })]),
+          h("label", { class: "looma-editor__link-new-tab" }, [h("input", {
+            type: "checkbox",
+            checked: linkNewTab.value,
+            onChange: (event: Event) => { linkNewTab.value = (event.target as HTMLInputElement).checked; },
+          }), h("span", "Open in new tab")]),
+          linkError.value ? h("p", { class: "looma-editor__link-error", role: "alert" }, linkError.value) : null,
+          validLinkHref(linkHref.value) ? h("a", {
+            class: "looma-editor__link-preview",
+            href: validLinkHref(linkHref.value),
+            target: "_blank",
+            rel: "noopener noreferrer",
+          }, "Preview link") : null,
+          h("div", { class: "looma-editor__link-actions" }, [
+            linkSelection?.existing ? h("button", { type: "button", onClick: removeLink }, "Remove link") : null,
+            h("button", { type: "submit" }, "Save link"),
+          ]),
+        ])),
+        h(Menu, {
+          for: blockActionAnchorId,
+          placement: mobile.value ? "top-start" : "bottom-start",
+          onOpen: captureBlockAction,
+          onSelect: ({ value }: { value: string }) => runBlockAction(value),
+        }, () => [
+          h(MenuItem, { value: "insert-below" }, () => "Insert paragraph below"),
+          h(MenuItem, { value: "duplicate" }, () => "Duplicate block"),
+          h(MenuItem, { value: "delete" }, () => "Delete block"),
+        ]),
+        h(Popover, {
           class: "looma-editor__table-picker-popover",
           open: tablePickerOpen.value,
           for: tablePickerAnchorId,
@@ -1127,7 +1341,7 @@ export const LoomaEditor = defineComponent({
               ref: tableMenuShell,
               class: "looma-editor__table-menu-shell",
               style: tableUi.menuStyle,
-            }, [h(EditorTableContextMenu, tableProps)])
+            }, [h(EditorTableContextMenu, { ...tableProps, scope: tableUi.menuScope })])
           : null,
       ]);
     };

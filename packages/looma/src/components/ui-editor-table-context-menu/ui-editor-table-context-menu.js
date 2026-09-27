@@ -6,6 +6,12 @@ const sections = [
     ["add-row-after", "Add row below", "panel-bottom"],
     ["add-column-before", "Add column left", "panel-left"],
     ["add-column-after", "Add column right", "panel-right"],
+    ["toggle-header-row", "Header row", "rows"],
+    ["toggle-header-column", "Header column", "columns"],
+    ["move-row-up", "Move row up", "rows"],
+    ["move-row-down", "Move row down", "rows"],
+    ["move-column-left", "Move column left", "columns"],
+    ["move-column-right", "Move column right", "columns"],
   ]],
   ["Cells", [
     ["clear-cells", "Clear selected cells", "eraser"],
@@ -42,7 +48,9 @@ export default function controller(host) {
     frame = requestAnimationFrame(nudge);
   };
   const stop = host.effect(() => {
-    const enabled = new Set(Array.isArray(host.state.actions) ? host.state.actions : []);
+    const scope = String(host.state.scope || "cell");
+    const enabled = new Set((Array.isArray(host.state.actions) ? host.state.actions : []).filter((action) =>
+      scope === "cell" || (scope === "row" ? !action.includes("column") : !action.includes("row"))));
     const background = String(host.state.cellBackground ?? "");
     const swatches = backgrounds.filter(([action]) => enabled.has(action))
       .map(([action, label, color]) => ({ action, label, color, selected: color === background }));
@@ -51,7 +59,7 @@ export default function controller(host) {
       .map(([heading, items]) => ({
         heading,
         items: items.filter(([action]) => enabled.has(action))
-          .map(([action, label, icon, tone]) => ({ action, label, icon, danger: tone === "danger" })),
+          .map(([action, label, icon, tone]) => ({ action, label, icon, danger: tone === "danger", checkable: action.startsWith("toggle-header-"), checked: action === "toggle-header-row" ? Boolean(host.state.headerRow) : action === "toggle-header-column" ? Boolean(host.state.headerColumn) : false })),
       }))
       .filter((section) => section.items.length);
     if (host.state.open) schedule();

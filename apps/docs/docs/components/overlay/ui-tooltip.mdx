@@ -6,7 +6,11 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 # Tooltip
 
-Contextual overlay primitive that links descriptive content to a trigger element.
+Contextual overlay primitive that links descriptive content to a trigger element. It prefers a
+centered `top` position by default; `placement` also accepts the other three sides and `-start` or
+`-end` alignment. It flips and shifts to stay in view. Set `--ui-tooltip-offset` on one tooltip to
+change its 4px trigger gap. After a tooltip appears, moving to another tooltip shows it immediately
+while the first is visible and for a short time after it closes.
 
 
 <ComponentExamplesApiTabs component="ui-tooltip" />

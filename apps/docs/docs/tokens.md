@@ -1,7 +1,47 @@
 # Tokens
 
-Looma is themed with CSS custom properties, in three layers: a contract you set, derived values
-computed from it, and per-component tokens for deliberate divergence.
+Looma is themed with CSS custom properties. Start with a few global values; use inherited group
+values when a family of components needs a different treatment; set a component hook when one
+instance needs to differ. A component's fallback chain reads **component → group → global** where
+that group applies. The group and component levels are optional.
+
+| Level | Example | Reach | Use it for |
+| --- | --- | --- | --- |
+| Global theme | `--ui-accent`, `--ui-radius-md` | The whole theme or a theme boundary | A brand palette, type and spacing scale, default corners, elevation and motion |
+| Group | `--ui-field-radius`, `--ui-field-danger`, `--ui-overlay-surface` | Every participating component below the element where it is set | Forms, actions or overlays that need a shared treatment |
+| Component hook | `--ui-input-radius`, `--ui-tooltip-surface` | Only the component whose root carries it | One component instance or a product wrapper for that component |
+
+Global seeds are defined in `tokens.css`. Derived semantic values are computed from them. Group
+values are **not preset**: each participating component falls back to its global value, so there is
+no second theme to maintain. Group values inherit normally. Component hooks are registered as
+non-inheriting properties so a hook on an outer component cannot accidentally restyle nested ones.
+
+## Start with the global values
+
+Changing the accent and the corner scale takes only a few declarations. The large radius derives
+from the medium radius unless you pin it separately; round shapes have their own radius.
+
+```css
+:root {
+  --ui-accent: #3859b8;
+  --ui-radius-sm: 0.125rem;
+  --ui-radius-md: 0.375rem;
+  --ui-radius-round: 999px;
+}
+
+/* Choose an accent that also reads well on dark surfaces. */
+[data-theme="dark"] {
+  --ui-accent: #a9bdff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) { --ui-accent: #a9bdff; }
+}
+```
+
+Set a full palette by changing the eleven colour seeds below. Keep custom theme CSS unlayered, as
+in these examples, or place it in a layer after Looma's layers. Import the token and theme files
+before it. A custom palette still needs contrast checks in light, dark and high contrast modes.
 
 ## Files
 
@@ -85,6 +125,55 @@ and space steps either side of the contract's own, the elevation names, and the 
 Do not restate a derived value in a theme. Setting `--ui-accent` gives you `--ui-accent-solid`,
 `--ui-action-primary-surface` and the rest for free, and they keep agreeing when the accent changes.
 
+## Group values
+
+Group values are the middle layer. They inherit from a page, form, dialog, theme root or other
+ancestor, and work only in the components listed here. They are intentionally absent from
+`tokens.css`; an unset group value leaves the global design intact.
+
+| Group value | Components it changes | Global fallback |
+| --- | --- | --- |
+| `--ui-field-radius` | Input, Input Group, Select, Listbox, Textarea, Combobox field, Search Shell's slotted search input, editor link form | `--ui-radius-md` |
+| `--ui-field-danger` | Invalid Input, Input Group, Select, Listbox, Textarea, Combobox, Checkbox, Radio Group legend, Form Field message, editor link form | `--ui-danger` and its solid alias |
+| `--ui-action-radius` | Button, Icon Button, except the Icon Button's explicit `round` shape | `--ui-radius-md` |
+| `--ui-overlay-radius` | Dialog, Menu, Context Menu, Popover, Tooltip, Search Shell panel, Toast and Toast Region's generated toast, Combobox popup | Each component's former radius default |
+| `--ui-overlay-surface`, `--ui-overlay-border`, `--ui-overlay-shadow` | The same overlay surfaces, except an inverse Tooltip uses its own surface and border | The existing elevated surface, border and elevation tokens |
+
+For example, one form can have tighter corners and a distinct danger shade while destructive
+buttons elsewhere continue to use the global danger value:
+
+```css
+.compact-form {
+  --ui-field-radius: 0.25rem;
+  --ui-field-danger: #a32642;
+}
+
+.floating-workspace {
+  --ui-overlay-radius: 0.75rem;
+  --ui-overlay-surface: var(--ui-surface-raised);
+  --ui-overlay-border: var(--ui-border-strong);
+}
+```
+
+Set `--ui-danger` instead when validation, destructive actions, badges and callouts should all
+change together. `danger` is the one semantic intent; `--ui-field-danger` is a narrower override,
+not a second error palette. An override that changes contrast still needs a readable foreground.
+
+The last step is local. An Input can set `--ui-input-invalid-border`, a Select can set
+`--ui-select-invalid-border`, and a Form Field can set `--ui-form-field-danger`; each wins over
+`--ui-field-danger` on that instance. Overlay surfaces have the same path: `--ui-menu-surface`,
+`--ui-dialog-radius`, `--ui-tooltip-border`, and equivalent hooks on the other overlay components
+win over the inherited overlay group. The component API tab lists the hooks that particular
+component reads.
+
+```css
+/* One menu can differ without changing another menu in the same overlay group. */
+.account-menu {
+  --ui-menu-surface: var(--ui-surface-sunken);
+  --ui-menu-radius: var(--ui-radius-sm);
+}
+```
+
 ## Component tokens
 
 Each component exposes `--ui-<component>[-<variant>][-<state>]-<property>` for deliberate
@@ -107,14 +196,17 @@ Set on an ancestor that is not the component, a hook does nothing. Set on the co
 beats the component's own default, and where the component documents it, its prop (a Stack's
 `--ui-stack-gap` over its `gap`); an inherited value never can.
 
-Theme tokens are different: `--ui-accent`, `--ui-text`, `--ui-surface`, the spacing and type steps,
-radii, and everything else in `tokens.css` inherit on purpose, so setting one on an element themes
-its whole subtree. The editor's `--ui-editor-*` hooks inherit too: the editor is one surface whose
-parts (toolbars, menus, overlays, and the content) are separate elements, and editors do not nest.
+Global theme values inherit on purpose. Set global seeds on `:root` or a `[data-theme]` theme
+boundary: `tokens.css` computes the derived values at those boundaries. A seed set on an arbitrary
+subtree without a theme boundary will not recompute derived values inherited from above it. Use a
+theme boundary for a local palette and group values for a local family change. The editor's
+`--ui-editor-*` hooks inherit too: the editor is one surface whose parts are separate elements, and
+editors do not nest.
 
 | Kind | Names | Inherits | Set it on |
 | --- | --- | --- | --- |
-| Theme token | `--ui-accent`, `--ui-space-4`, `--ui-radius-md` … | yes | `:root`, a theme, or any subtree |
+| Global theme value | `--ui-accent`, `--ui-space-4`, `--ui-radius-md` … | yes | `:root` or a `[data-theme]` boundary for a coherent derived palette |
+| Group value | `--ui-field-radius`, `--ui-overlay-surface` … | yes | An ancestor of the participating components |
 | Component hook | `--ui-<component>-*` | no | the component itself, through a class of your own |
 | Editor hook | `--ui-editor-*` | yes | the editor or an ancestor |
 | Private | `--_*` | yes, inside the component | nothing: not API |

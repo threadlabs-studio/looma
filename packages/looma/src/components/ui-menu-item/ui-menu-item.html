@@ -1,12 +1,46 @@
-<template component="ui-menu-item">
+<link rel="component" href="../ui-icon/ui-icon.html">
+<template component="ui-menu-item" controller="./ui-menu-item.js">
   <defs>
     <prop name="disabled" type="boolean" default="false"
     >Makes the item unavailable: it is faded, skipped by the arrow keys, and choosing it does nothing. It stays visible and is announced as disabled.</prop>
     <prop name="value" type="string" default=""
     >The value the enclosing menu reports in its select event when this item is chosen. Give each item a distinct value so one handler can tell them
       apart.</prop>
+    <prop name="href" type="string" default="">A destination makes an action item a real link, with native navigation and link context actions.</prop>
+    <prop name="type" type="action | checkbox | radio" default="action"
+    >An action closes its menu; a checkbox toggles, and a radio chooses one item within its nearest Menu Group. Checkable items keep the menu open.</prop>
+    <prop name="checked" type="boolean" default="false">Initial or externally controlled checked state of a checkbox or radio item.</prop>
+    <state name="internalChecked" :value="false"></state>
+    <event name="change" type="object({ checked: boolean, value: string, type: checkbox | radio, trigger: keyboard | pointer | programmatic })"></event>
   </defs>
-  <div role="menuitem" tabindex="-1" :aria-disabled="disabled" :data-value="value"><slot></slot></div>
+  <template $match>
+    <a
+      $when="href and type = 'action'"
+      role="menuitem"
+      tabindex="-1"
+      :aria-disabled="disabled"
+      :data-value="value"
+      :href="{ true: null, false: href }[format('%s', disabled)]"
+    >
+      <span class="label"><slot></slot></span>
+      <span class="shortcut" aria-hidden="true"><slot name="shortcut"></slot></span>
+    </a>
+    <div
+      $else
+      :role="{ action: 'menuitem', checkbox: 'menuitemcheckbox', radio: 'menuitemradio' }[type]"
+      :aria-checked="{ action: null, checkbox: internalChecked, radio: internalChecked }[type]"
+      tabindex="-1"
+      :aria-disabled="disabled"
+      :data-value="value"
+    >
+      <span class="indicator" aria-hidden="true">
+        <ui-icon $if="type = 'checkbox' and internalChecked" name="check"></ui-icon>
+        <ui-icon $if="type = 'radio' and internalChecked" name="circle-dot"></ui-icon>
+      </span>
+      <span class="label"><slot></slot></span>
+      <span class="shortcut" aria-hidden="true"><slot name="shortcut"></slot></span>
+    </div>
+  </template>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
     @property --ui-menu-item-font-size {
@@ -35,7 +69,9 @@
     }
 
     :host {
-      display: block;
+      display: flex;
+      align-items: center;
+      gap: var(--ui-space-5);
       box-sizing: border-box;
       width: 100%;
       padding: var(--ui-menu-item-padding-block, var(--_ui-default-menu-item-padding-block, var(--ui-space-2)))
@@ -45,19 +81,44 @@
       color: var(--ui-text-primary);
       font-size: var(--ui-menu-item-font-size, var(--_ui-default-menu-item-font-size, var(--ui-font-size-md)));
       font-weight: var(--ui-font-medium);
+      text-decoration: none;
       cursor: pointer;
       outline: none;
       transition: background-color var(--ui-motion-fast) var(--ui-motion-ease), color var(--ui-motion-fast) var(--ui-motion-ease);
     }
 
-    /* Centre the glyphs, not the line box: a label without descenders otherwise reads high. */
-    /* Centre the glyphs, not the line box: a label without descenders otherwise reads high.
-     * Trimming applies to block containers, so the box is a block with centred content. */
+    .label {
+      flex: 1;
+      min-inline-size: 0;
+    }
+
+    .indicator {
+      display: inline-flex;
+      place-items: center;
+      flex: none;
+      inline-size: var(--ui-icon-size-md);
+      color: var(--ui-accent-solid);
+    }
+
+    :host-state([type="action"]) .indicator {
+      display: none;
+    }
+
+    .shortcut {
+      margin-inline-start: auto;
+      color: var(--ui-text-secondary);
+      font-size: var(--ui-font-size-sm);
+      font-weight: var(--ui-font-normal);
+    }
+
+    .shortcut:empty {
+      display: none;
+    }
+
+    /* Keep the text row at the shared control height where cap trimming is available. */
     @supports (text-box-trim: trim-both) {
       :host {
-        display: block;
         min-block-size: var(--ui-menu-item-min-block-size, var(--ui-control-size-md, 2.5rem));
-        align-content: center;
         text-box-trim: trim-both;
         text-box-edge: cap alphabetic;
       }
@@ -67,9 +128,20 @@
       background: var(--ui-menu-item-hover-surface, var(--ui-surface-subtle));
     }
 
+    :host:focus-visible {
+      outline: 2px solid var(--ui-focus-ring);
+      outline-offset: -2px;
+    }
+
     :host[aria-disabled="true"] {
       opacity: 0.6;
       cursor: not-allowed;
+    }
+
+    @media (forced-colors: active) {
+      :host:focus-visible {
+        outline-color: Highlight;
+      }
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */

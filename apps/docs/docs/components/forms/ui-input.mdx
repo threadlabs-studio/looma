@@ -31,10 +31,11 @@ its `data-size` attribute only records the option.
 
 ## Styling hooks
 
-An input follows the shared control tokens (`--ui-control-border`, `--ui-control-surface`, and so on).
-To restyle inputs alone, set an input's own hooks, which fall back to those. A hook styles the input it
-is set on and does not inherit, so set it on the input, through a class of your own, not on a form
-around it:
+An input follows the global control tokens (`--ui-control-border`, `--ui-control-surface`, and so on).
+For a form-wide change, set the inherited `--ui-field-radius` or `--ui-field-danger` on the form:
+Input, Input Group, Select, Textarea, Combobox and Form Field pick up the relevant value together.
+See the [three theming levels](/tokens). To restyle one input, set its own hooks on that input through
+a class of your own. Those hooks do not inherit:
 
 | Hook | Sets |
 | --- | --- |

@@ -8,5 +8,23 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 Menu container primitive that manages focus and selection across `ui-menu-item` children.
 
+Use `<ui-menu-group label="…">` to name related commands and `<hr>` to separate sections. An
+item with `href` is a native link; its `shortcut` slot is a visible hint, not a keyboard binding.
+Arrow keys wrap between enabled items, Home and End move to the ends, and typing a label's first
+letters moves focus. The same item markup and keyboard behavior work in Context Menu. These
+behaviors follow the [WAI menu pattern](https://www.w3.org/WAI/ARIA/apg/patterns/menubar/).
+
+Use `type="checkbox"` for an independent toggle and `type="radio"` inside a Menu Group for a
+single choice. Checkable items keep the menu open. They emit `change` with their new `checked`
+state; the menu's `select` event also includes `checked` for those items. Set `checked` from
+application state when the application owns the choice. `href` applies to action items only.
+
+## Theming
+
+Menus share inherited `--ui-overlay-radius`, `--ui-overlay-surface`, `--ui-overlay-border`, and
+`--ui-overlay-shadow` with Dialog, Popover, Tooltip, Context Menu, Search Shell and generated toasts.
+Set those on a page or theme root to change the related floating surfaces together. See the
+[theming guide](/tokens) for their fallbacks and local component hooks.
+
 
 <ComponentExamplesApiTabs component="ui-menu" />

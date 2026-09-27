@@ -1,8 +1,7 @@
 # Release 1 Support Matrix
 
-Release 1 is the published npm surface of `@threadlabs/looma`, the smallest surface needed by
-Knit. It is pre-1.0: not a Stable declaration, and not a promise that every repository package and
-roadmap item is supported.
+Release 1 describes the public npm surface of `@threadlabs/looma`. It is pre-1.0: not a Stable
+declaration, and not a promise that every repository package and roadmap item is supported.
 
 ## Package Classification
 
@@ -26,15 +25,16 @@ authorization still requires the protected owner preflight before registry mutat
 ### Core: published
 
 `ui-affordance-scope`, `ui-avatar`, `ui-avatar-group`, `ui-badge`, `ui-button`, `ui-checkbox`,
-`ui-breadcrumbs`, `ui-breadcrumb-item`, `ui-callout`, `ui-card`, `ui-chip`, `ui-description-list`, `ui-description-item`, `ui-table`, `ui-page-header`, `ui-section`, `ui-spinner`, `ui-meter`, `ui-status-message`, `ui-text`, `ui-combobox`, `ui-context-menu`, `ui-dialog`, `ui-disclosure`, `ui-editable`, `ui-floating-action-button`,
-`ui-form-field`, `ui-icon-button`, `ui-input`, `ui-input-group`, `ui-list`, `ui-list-item`, `ui-menu`, `ui-menu-item`,
+`ui-breadcrumbs`, `ui-breadcrumb-item`, `ui-callout`, `ui-card`, `ui-description-list`, `ui-description-item`, `ui-table`, `ui-page-header`, `ui-section`, `ui-spinner`, `ui-meter`, `ui-status-message`, `ui-text`, `ui-combobox`, `ui-context-menu`, `ui-dialog`, `ui-disclosure`, `ui-editable`,
+`ui-form-field`, `ui-icon-button`, `ui-input`, `ui-input-group`, `ui-list`, `ui-list-item`, `ui-listbox`, `ui-menu`, `ui-menu-group`, `ui-menu-item`,
 `ui-nav-item`, `ui-popover`, `ui-radio`, `ui-radio-group`, `ui-search-result-row`,
 `ui-search-shell`, `ui-select`, `ui-switch`, `ui-tabs`, `ui-textarea`,
-`ui-toast-region`, `ui-tooltip`, `ui-top-bar`, `ui-tree`, `ui-tree-item`.
+`ui-toast`, `ui-toast-region`, `ui-tooltip`, `ui-top-bar`, `ui-tree`, `ui-tree-item`.
 
 ### Editor: published
 
-`ui-editor-insert-table-grid`, `ui-editor-mention-menu`, `ui-editor-slash-menu`,
+`ui-editor-insert-table-grid`, `ui-editor-mention-menu`, `ui-editor-mention-menu-item`,
+`ui-editor-slash-menu`, `ui-editor-slash-menu-group`, `ui-editor-slash-menu-item`,
 `ui-editor-table-context-menu`, `ui-editor-table-overlay`,
 `ui-editor-table-toolbar`, `ui-editor-toolbar`.
 
@@ -48,9 +48,11 @@ is a release defect, not a reason to silently shrink the source inventory.
   outside-edge insertion overlay, cell backgrounds, merge/split, and column
   resizing; Tiptap round-trip tests prove structural operations retain existing
   table and surrounding content. Data loss or corruption remains release-blocking.
-- AlertDialog, Listbox, Drawer/Sheet, HoverCard, CommandPalette,
-  Accordion group API, interactive single Chip behavior, link editor, and emoji
-  picker are deferred roadmap items.
+- Alert semantics use `ui-dialog alert`; visible choice uses Listbox; a responsive drawer uses
+  Sidebar; Search Shell covers a command palette; named Disclosure groups cover exclusive
+  accordions; the turnkey editor includes link editing. These do not need duplicate components.
+- Nested menus, hover-only rich cards, gutter block dragging, an interactive single Chip, and an
+  emoji picker remain deferred until a distinct use case justifies their interaction models.
 - Mention suggestions are capped, keyboard- and pointer-operable, and accept a
   host-owned async provider; directory authorization remains outside Looma.
 - Domain behavior such as saves, upload transport, collaboration, presence, workspace/page
@@ -63,22 +65,18 @@ is a release defect, not a reason to silently shrink the source inventory.
   registry or shadow-root implementation is part of the public model.
 - No-JS fallback is the author's semantic light DOM; lowering and controller behavior require JavaScript.
 - Public imports must be SSR-safe at module evaluation time.
-- The internal Knit qualification harness must demonstrate server-process imports of `@threadlabs/looma`,
+- A consumer qualification harness must demonstrate server-process imports of `@threadlabs/looma`,
   `@threadlabs/looma/editor`, `@threadlabs/looma/editor/ui`, `@threadlabs/looma/editor/extensions`, `@threadlabs/looma/vue`, and `@threadlabs/looma/vue/editor`. The
   release gate repeats that proof from packed artifacts outside the workspace.
 
-## Proof Status At Contract Freeze
+## Proof status
 
 | Evidence | Current status | Release requirement |
 | --- | --- | --- |
-| Exact source inventory | Contract-derived classification and projection gate passing for all 48 tags | Must stay clean through publication |
-| Knit linked-workspace build | Passing | Must repeat against approved packed artifacts |
-| SSR imports through Knit graph | Passing for core/editor/editor extensions/Vue | Must repeat from clean tarball fixture |
-| Package names publicly absent | Observed via unauthenticated npm lookup | Authenticated namespace ownership/publish authorization required |
-| ContextMenu projections | API metadata, docs, navigation, contract README, Vue map/export, and render test complete | Must stay clean through publication |
-| Browser/a11y/adapter/package gates | Chromium interaction and axe checks pass for representative core/editor surfaces; Vue registers and renders the supported baseline without warnings; Node imports public core and packed graph entries without DOM globals | Keep mandatory, unskipped, and warning-clean in CI |
-| Turnkey editor and table kit | Vue browser behavior, theme-token inheritance, Tiptap table integrity, and Knit integration pass | Keep the complete and extension-only paths green |
-| Packed package | One local `@threadlabs/looma@0.6.5` tarball passes content/export/hash inspection | License approval, clean protected build, and external/Knit fixtures remain |
+| Exact source inventory | Contract-derived classification and projection gates cover 73 definitions: 71 published, one deferred, one internal | Must stay clean through publication |
+| Browser, accessibility and adapter gates | HTML and Vue interaction tests, editor browser tests, docs axe and contrast checks, and light/dark/high-contrast theme checks pass | Keep mandatory and unskipped in CI |
+| Docs and component catalog | Generated API metadata, docs and Storybook builds, and 65 docs browser checks pass | Keep source definitions, examples and navigation in sync |
+| Packed package | A local `@threadlabs/looma@0.15.0` tarball passes the facade consumer matrix, TypeScript checks, and SSR imports | Repeat from the final release commit |
 
 Automated accessibility does not replace manual assistive-technology, forced-color,
 zoom/reflow, or platform long-press checks. Those are documented manual
@@ -90,5 +88,5 @@ The shipping core build uses the declarative graph and does not invoke Stencil.
 Legacy source remains only as migration input and drift evidence; it is not part
 of the packed runtime or public API.
 
-No row in this matrix authorizes registry mutation. Publication occurs only after
-the separate release checklist is fully approved.
+No row in this matrix authorizes registry mutation. Publication follows the protected release
+workflow.

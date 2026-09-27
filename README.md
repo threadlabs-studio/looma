@@ -66,6 +66,7 @@ currently promises. React support is in development.
 ## Documentation
 
 - [Getting started](apps/docs/docs/getting-started.md)
+- [Theming: global, group, and component values](apps/docs/docs/tokens.md)
 - [Release 1 support](apps/docs/docs/release-1-support.md)
 - [Architecture](docs/architecture.md)
 - [Adapters](docs/adapters.md)

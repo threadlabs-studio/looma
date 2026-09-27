@@ -1,0 +1,81 @@
+<template component="ui-listbox" controller="./ui-listbox.js">
+  <defs>
+    <prop name="rows" type="number" default="5">The number of option rows visible at once. Use at least two.</prop>
+    <prop name="multiple" type="boolean" default="false">Allows several options to be selected with native keyboard and pointer behavior.</prop>
+    <prop name="value" type="string">The initial or externally set single selection. Authored selected options work when it is omitted.</prop>
+    <prop name="values" type="list(string)">The initial or externally set selections in multiple mode. Authored selected options work when it is omitted.</prop>
+    <prop name="disabled" type="boolean" default="false">Prevents selection and form submission.</prop>
+    <prop name="required" type="boolean" default="false">Requires at least one selection for form validation.</prop>
+    <prop name="invalid" type="boolean" default="false">Exposes invalid state to assistive technology and styling.</prop>
+  </defs>
+  <select :size="rows" :multiple="multiple" :disabled="disabled" :required="required" :aria-invalid="invalid"><slot></slot></select>
+  <style>
+    @property --ui-listbox-radius {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-listbox-border {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-listbox-surface {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-listbox-focus-shadow {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-listbox-invalid-border {
+      syntax: "*";
+      inherits: false;
+    }
+
+    :host {
+      box-sizing: border-box;
+      display: block;
+      inline-size: 100%;
+      min-inline-size: 0;
+      min-block-size: var(--ui-control-min-block-size);
+      margin: 0;
+      padding: var(--ui-space-1);
+      border: 1px solid var(--ui-listbox-border, var(--ui-control-border));
+      border-radius: var(--ui-listbox-radius, var(--ui-field-radius, var(--ui-radius-md)));
+      background: var(--ui-listbox-surface, var(--ui-control-surface));
+      color: var(--ui-text-primary);
+      color-scheme: light dark;
+      font: inherit;
+      line-height: var(--ui-line-height-md);
+      box-shadow: var(--ui-control-inset);
+    }
+
+    :host option,
+    :host optgroup {
+      padding: var(--ui-space-2);
+      font: inherit;
+    }
+
+    :host:focus-visible {
+      border-color: var(--ui-control-focus);
+      outline: 2px solid var(--ui-focus-ring);
+      outline-offset: 2px;
+      box-shadow: var(--ui-listbox-focus-shadow, var(--ui-focus-halo));
+    }
+
+    :host[aria-invalid="true"],
+    :host:user-invalid {
+      border-color: var(--ui-listbox-invalid-border, var(--ui-field-danger, var(--ui-danger)));
+    }
+
+    :host:disabled {
+      background: var(--ui-control-surface-disabled);
+      color: var(--ui-disabled-text);
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    :host[hidden] {
+      display: none;
+    }
+  </style>
+</template>

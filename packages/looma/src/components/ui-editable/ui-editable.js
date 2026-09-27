@@ -29,6 +29,9 @@ export default function controller(host) {
     }
     // The inactive input stays in layout (it shares the value's cell) but out of the tab order.
     input.tabIndex = host.state.internalEdit ? 0 : -1;
+    const maxLength = Number(host.state.maxLength);
+    if (Number.isFinite(maxLength) && maxLength > 0) input.maxLength = Math.floor(maxLength);
+    else input.removeAttribute("maxlength");
   };
 
   const setEditing = (next, reason, trigger, returnFocus = true) => {
@@ -55,6 +58,10 @@ export default function controller(host) {
   const commit = (trigger, returnFocus) => {
     const previousValue = String(host.state.internalValue ?? "");
     const value = String(host.state.draft ?? "");
+    if (!input.checkValidity() || (input.maxLength >= 0 && value.length > input.maxLength)) {
+      input.reportValidity();
+      return;
+    }
     host.state.internalValue = value;
     setEditing(false, "commit", trigger, returnFocus);
     if (value !== previousValue) host.dispatch("change", { value, previousValue, trigger });

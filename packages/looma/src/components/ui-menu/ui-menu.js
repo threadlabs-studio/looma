@@ -1,8 +1,9 @@
 import { closeOverlay, createAnchoredSurface, createIdResolver, openOverlay, requestTopOverlayClose } from "../shared/overlay.js";
+import { menuItemFrom, menuItems, navigateMenu } from "../shared/menu-navigation.js";
 
 function triggerFor(event) {
   if (event instanceof KeyboardEvent) return "keyboard";
-  if (event instanceof MouseEvent || event instanceof PointerEvent) return "pointer";
+  if (event instanceof MouseEvent || event instanceof PointerEvent) return event.detail === 0 ? "keyboard" : "pointer";
   return "programmatic";
 }
 
@@ -14,7 +15,7 @@ export default function controller(host) {
   const element = host.element;
   const document = element.ownerDocument;
   const overlayId = `ui-menu-${Math.random().toString(36).slice(2, 11)}`;
-  const items = () => Array.from(element.querySelectorAll('[role="menuitem"]'));
+  const items = () => menuItems(element);
   let anchor = null;
   let surface = null;
   let lastFor;
@@ -28,7 +29,7 @@ export default function controller(host) {
     else {
       host.state.internalOpen = true;
       host.dispatch("open", { open: true, reason: "action", trigger });
-      requestAnimationFrame(() => items().find((item) => !disabled(item))?.focus());
+      requestAnimationFrame(() => items()[0]?.focus());
     }
   };
   const close = (reason, trigger) => {
@@ -73,29 +74,34 @@ export default function controller(host) {
   const select = (item, trigger) => {
     if (!item || disabled(item)) return;
     const value = item.getAttribute("data-value") ?? item.getAttribute("value") ?? "";
+    if (item.getAttribute("role") !== "menuitem") {
+      const detail = { trigger, checked: undefined };
+      item.dispatchEvent(new CustomEvent("ui-menu-item-activate", { detail }));
+      host.dispatch("select", { value, checked: detail.checked, trigger });
+      return;
+    }
     host.dispatch("select", { value, trigger });
     host.dispatch("close", { open: false, reason: "action", trigger });
     host.state.internalOpen = false;
   };
-  const onClick = (event) => select(event.target.closest?.('[role="menuitem"]'), triggerFor(event));
+  const onClick = (event) => select(menuItemFrom(event.target), triggerFor(event));
   const onKeydown = (event) => {
     if (event.key === "Escape") {
       event.preventDefault();
       requestTopOverlayClose(document, "escape", "keyboard");
       return;
     }
-    const enabled = items().filter((item) => !disabled(item));
-    const target = event.target.closest?.('[role="menuitem"]');
-    const index = target ? enabled.indexOf(target) : -1;
+    const target = menuItemFrom(event.target);
     if (["Enter", " "].includes(event.key)) {
-      if (index >= 0) {
+      if (!target || disabled(target)) return;
+      if (target.localName === "a") {
+        if (event.key === " ") { event.preventDefault(); target.click(); }
+      } else {
         event.preventDefault();
         select(target, "keyboard");
       }
-    } else if (["ArrowDown", "ArrowUp"].includes(event.key) && enabled.length) {
-      event.preventDefault();
-      const next = event.key === "ArrowDown" ? (index < 0 ? 0 : Math.min(index + 1, enabled.length - 1)) : (index <= 0 ? enabled.length - 1 : index - 1);
-      enabled[next]?.focus();
+    } else {
+      navigateMenu(event, element);
     }
   };
   element.addEventListener("click", onClick);
