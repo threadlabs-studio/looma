@@ -196,7 +196,7 @@ Legend: Y = built-in option, R = documented recipe/composition only, - = absent,
 | Built-in filtering | Y | - | Y | R | Y | - | - | Y | Y | 5 | **yes** |
 | Filter match keyword (contains/startsWith) | R (fns) | - | Y (`matchFrom`) | R (fns) | - | - | - | - | Y (fixed startsWith) | 2 | no |
 | Custom filter fn | Y | R | Y | Y | Y | R | R | Y | - | 5 | **yes** |
-| Turn off filtering (server filters) | Y (`items`) | n/a | Y (identity fn) | n/a | Y (`no-filter`) | n/a | n/a | Y (fn) | Y (`none`) | - | (every lib supports app-side filtering) |
+| Turn off filtering (server filters) | Y (`items`) | n/a | Y (identity fn) | n/a | Y (`no-filter`) | n/a | n/a | Y (fn) | Y (`none`) | - | (every lib supports app-side filtering; adopted in 0.14.8 as `filter="none"`) |
 | Case/accent sensitivity option | Y | - | Y | Y | Y (accents) | - | - | - | - | 4 | no |
 | Multiple | Y | Y | Y | Y | Y | Y | Y | Y | - | 8 | **yes** |
 | Custom/free text value | Y | R | Y | Y | Y | Y | Y | Y | Y | 8 | **yes** |

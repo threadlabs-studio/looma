@@ -55,6 +55,8 @@ export default function controller(host) {
     options: authoredOptions(authored),
     allowFreeText: Boolean(host.state.allowFreeText),
     allowCreate: Boolean(host.state.allowCreate),
+    // "none": the consumer already narrowed the options (a server search), so every one is listed.
+    filterByLabel: host.state.filter !== "none",
   });
   // Selected items work uncontrolled: the component keeps them and reports every change. A consumer
   // that owns `items` stays in charge, because the prop resyncs whatever it sets. A consumer that sets
@@ -149,7 +151,7 @@ export default function controller(host) {
       const filtered = options.filter((option) => {
         if (ids.has(option.id)) return false;
         ids.add(option.id);
-        if (fullSet) return true;
+        if (fullSet || !current.filterByLabel) return true;
         return option.label.toLocaleLowerCase().includes(query.toLocaleLowerCase());
       }).map((option) => ({
         ...option,
@@ -267,7 +269,8 @@ export default function controller(host) {
   };
   // A strict combobox (single, no free text, no create) behaves like a select: leaving it resolves the
   // typed text to a valid option (the highlighted one, an exact label, the first label it begins, or the
-  // only remaining option); with no match it reverts to the previous selection, or clears.
+  // only remaining option); with no match it reverts to the previous selection, or clears. With filter
+  // "none" the remaining options are all of them, whatever their labels, so the only one listed counts.
   const resolveTyped = (trigger) => {
     const current = config();
     if (host.state.multiple || current.allowFreeText || current.allowCreate) return;
@@ -285,7 +288,7 @@ export default function controller(host) {
         ?? enabled.find((row) => row.label.toLocaleLowerCase() === query)
         ?? enabled.find((row) => row.label.toLocaleLowerCase().startsWith(query))
         ?? (() => {
-          const containing = enabled.filter((option) => option.label.toLocaleLowerCase().includes(query));
+          const containing = current.filterByLabel ? enabled.filter((option) => option.label.toLocaleLowerCase().includes(query)) : enabled;
           return containing.length === 1 ? containing[0] : undefined;
         })();
     if (match) commit(match.value, match.label, match, "selection", trigger);
