@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.14.7
+
+- Combobox: an option can carry a description, a muted line under its label, and a tag, a Badge
+  after it, from `data-description`, `data-tag`, and `data-tag-tone` (one of Badge's six tones,
+  `neutral` by default) on its `<option>`. The label stays the option's accessible name, what
+  filtering matches, and what a choice commits; the tag and description are its accessible
+  description (`aria-labelledby` and `aria-describedby` on the option). Item events and `items`
+  carry them as `description` and `tag: { label, tone? }`. An option without them renders and
+  reports as before. A new "Descriptions and tags" example shows a grouped directory search.
+
 ## v0.14.6
 
 - Form Field: in development, warns in the console when it links a label that has no `for`, which
