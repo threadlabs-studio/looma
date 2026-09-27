@@ -16,6 +16,11 @@ apps/docs/build/
 apps/docs/playwright-report/
 apps/docs/test-results/
 apps/storybook/storybook-static/
+apps/storybook/test-results/
+# Storywright: commit accepted baselines, ignore transient runs/reports
+apps/storybook/.storywright/tmp/
+apps/storybook/.storywright/report/
+apps/storybook/.storywright/review/
 .release/
 
 # Compiled Java class files
