@@ -2038,6 +2038,47 @@ describe("Cluster justify", () => {
   });
 });
 
+describe("Cluster wrap", () => {
+  // Two 40px items in a 60px cluster: the default wraps them onto two rows, nowrap keeps one row.
+  const item = (id: string) => `<span id="${id}" style="display: inline-block; inline-size: 40px; flex: none">x</span>`;
+  const fixture = `
+    <div style="inline-size: 60px">
+      <ui-cluster id="wraps">${item("wraps-a")}${item("wraps-b")}</ui-cluster>
+      <ui-cluster id="nowrap" wrap="nowrap">${item("nowrap-a")}${item("nowrap-b")}</ui-cluster>
+    </div>`;
+
+  async function checkWrap(page: Page) {
+    await page.waitForSelector('#nowrap[data-component~="ui-cluster"]');
+    const top = (id: string) => page.locator(`#${id}`).evaluate((element) => Math.round(element.getBoundingClientRect().top));
+    assert.equal(await page.locator("#wraps").evaluate((element) => getComputedStyle(element).flexWrap), "wrap");
+    assert.equal(await page.locator("#nowrap").evaluate((element) => getComputedStyle(element).flexWrap), "nowrap");
+    assert.notEqual(await top("wraps-a"), await top("wraps-b"), "the default wraps in a narrow container");
+    assert.equal(await top("nowrap-a"), await top("nowrap-b"), "nowrap keeps its items on one row");
+  }
+
+  it("keeps a nowrap cluster on one row, in HTML", async () => {
+    const path = await bundle("html-cluster-wrap", `import "@threadlabs/looma";`);
+    const page = await open(path, fixture, [join(root, "tokens.css")]);
+    await checkWrap(page);
+    await page.close();
+  });
+
+  it("keeps a nowrap cluster on one row, in Vue", async () => {
+    const path = await bundle("vue-cluster-wrap", `
+      import { createApp, h } from "vue";
+      import { Cluster } from "@threadlabs/looma/vue";
+      const item = (id) => h("span", { id, style: "display: inline-block; inline-size: 40px; flex: none" }, "x");
+      createApp({ render: () => h("div", { style: "inline-size: 60px" }, [
+        h(Cluster, { id: "wraps" }, () => [item("wraps-a"), item("wraps-b")]),
+        h(Cluster, { id: "nowrap", wrap: "nowrap" }, () => [item("nowrap-a"), item("nowrap-b")]),
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await checkWrap(page);
+    await page.close();
+  });
+});
+
 describe("Help toggletip", () => {
   it("sizes the help icon like any icon, and opens its tooltip from the keyboard", async () => {
     const path = await bundle("html-help-toggletip", `import "@threadlabs/looma";`);

@@ -912,14 +912,15 @@ test("component pages order representative configurations and show the exact cod
 }) => {
   await page.goto("components/ui-cluster", { waitUntil: "domcontentloaded" });
 
-  await expect(page.locator("[data-preview-scenario]")).toHaveCount(4);
+  await expect(page.locator("[data-preview-scenario]")).toHaveCount(5);
   expect(await page.locator("[data-preview-scenario]").evaluateAll((elements) =>
     elements.map((element) => element.getAttribute("data-preview-scenario"))
   )).toEqual([
     "Default",
     `gap="l"`,
     `align="end"`,
-    `justify="between"`
+    `justify="between"`,
+    `wrap="nowrap"`
   ]);
   const wrapping = page.locator("[data-preview-scenario='Default']");
   await expect(wrapping.locator(".looma-mode-code")).toContainText("Release");
@@ -1008,6 +1009,11 @@ test("ui-cluster wraps and applies its declared spacing and alignment values", a
   const alignment = page.locator(`[data-preview-scenario='align="end"'] [data-component~='ui-cluster']`);
   await expect(alignment).toHaveCSS("gap", "12px");
   await expect(alignment).toHaveCSS("align-items", "flex-end");
+
+  const oneRow = page.locator(`[data-preview-scenario='wrap="nowrap"'] [data-component~='ui-cluster']`);
+  await expect(oneRow).toHaveCSS("flex-wrap", "nowrap");
+  const oneRowTops = await oneRow.locator(":scope > *").evaluateAll((items) => new Set(items.map((item) => Math.round(item.getBoundingClientRect().top))).size);
+  expect(oneRowTops).toBe(1);
 
   const values = await page.evaluate(async () => {
     const fixture = document.createElement("div");

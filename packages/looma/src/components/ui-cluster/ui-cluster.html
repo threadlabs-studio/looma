@@ -9,6 +9,10 @@
     <prop name="justify" type="start | center | end | between"
     >Where items sit along each row: start (the default), center, end, or between, which pushes the first and last items to the ends of the row and spreads the
       spare space between them, as for a title with its actions.</prop>
+    <prop name="wrap" type="wrap | nowrap"
+    >Whether items move onto a new row when they run out of space: wrap (the default) or nowrap, which keeps them on one row at their own sizes. Use nowrap for
+      a small group that must read as one unit, such as a meter and its value in a table cell, so the cell grows to fit it; a whole row of actions should keep
+      wrapping so it fits narrow screens.</prop>
   </defs>
   <div><slot></slot></div>
   <style>
@@ -61,6 +65,9 @@
     }
     :host-state([justify="between"]) {
       justify-content: space-between;
+    }
+    :host-state([wrap="nowrap"]) {
+      flex-wrap: nowrap;
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */
