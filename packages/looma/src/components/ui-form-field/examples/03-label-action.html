@@ -1,0 +1,18 @@
+<!--
+title: Label action
+description: A small help button in the label-action slot sits after the label, centred on its first line. It never makes the label row taller, so fields beside it in a grid keep the same label-to-control gap.
+-->
+<ui-grid>
+  <ui-form-field>
+    <label slot="label" for="form-field-name">Name</label>
+    <ui-input id="form-field-name"> </ui-input>
+  </ui-form-field>
+  <ui-form-field>
+    <label slot="label" for="form-field-price">Price</label>
+    <ui-icon-button slot="label-action" id="form-field-price-help" label="Help for Price" variant="ghost" size="sm" round>
+      <ui-icon name="help"></ui-icon>
+    </ui-icon-button>
+    <ui-input id="form-field-price"> </ui-input>
+  </ui-form-field>
+</ui-grid>
+<ui-tooltip for="form-field-price-help" trigger="click">The amount before tax.</ui-tooltip>
