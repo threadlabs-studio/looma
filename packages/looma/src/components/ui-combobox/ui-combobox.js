@@ -9,7 +9,7 @@ let comboboxes = 0;
 // it would run into its label before JavaScript. A row without them keeps the declared shape exactly.
 function authoredOptions(container) {
   return Array.from(container.querySelectorAll("option")).map((option, index) => {
-    const { description, tag, tagTone } = option.dataset;
+    const { description, tag, tagTone, tagColor } = option.dataset;
     return {
       id: option.id || option.value || `option-${index}`,
       value: option.value,
@@ -17,7 +17,7 @@ function authoredOptions(container) {
       group: option.closest("optgroup")?.label || undefined,
       disabled: option.disabled,
       ...(description ? { description } : {}),
-      ...(tag ? { tag: tagTone ? { label: tag, tone: tagTone } : { label: tag } } : {}),
+      ...(tag ? { tag: { label: tag, ...(tagTone ? { tone: tagTone } : {}), ...(tagColor ? { color: tagColor } : {}) } } : {}),
     };
   });
 }
