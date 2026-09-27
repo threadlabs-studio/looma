@@ -81,7 +81,7 @@ Fix these first. They are defects, not new options.
 | `ui-switch` | `name` (bug) | Size (tokens), on/off track labels, readonly, invalid |
 | `ui-form-field` | Show and describe the `error` slot only while the field is invalid. Fall back to the control's native `validationMessage`. Add a CSS required marker | Keyed per-validity messages (for now), orientation |
 | `ui-editable` | `save-label`, `cancel-label`, `placeholder`, `required` and `maxlength` (invalid text does not commit). `label` defaults to `""` | Multiline (for now), arbitrary edit content, activation and submit modes |
-| `ui-combobox` | `loading` with an `empty` slot, `filter: "contains" \| "none"` (`none` for server-side filtering), `open-on-focus`, `invalid` | Function hooks, option descriptions, debounce, minimum characters, virtualization, custom match functions |
+| `ui-combobox` | `loading` with an `empty` slot, `filter: "label" \| "none"` (`none` for server-side filtering), `open-on-focus`, `invalid`. Option descriptions and tags use `data-description`, `data-tag`, and `data-tag-tone` on `<option>` and become the option's accessible description. | Function hooks, debounce, minimum characters, virtualization, custom match functions |
 
 Validation stays declarative everywhere. Validation functions are replaced by native constraint attributes, `setCustomValidity()`, the `invalid` prop and Form Field's error slot.
 

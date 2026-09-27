@@ -196,7 +196,7 @@ Legend: Y = built-in option, R = documented recipe/composition only, - = absent,
 | Built-in filtering | Y | - | Y | R | Y | - | - | Y | Y | 5 | **yes** |
 | Filter match keyword (contains/startsWith) | R (fns) | - | Y (`matchFrom`) | R (fns) | - | - | - | - | Y (fixed startsWith) | 2 | no |
 | Custom filter fn | Y | R | Y | Y | Y | R | R | Y | - | 5 | **yes** |
-| Turn off filtering (server filters) | Y (`items`) | n/a | Y (identity fn) | n/a | Y (`no-filter`) | n/a | n/a | Y (fn) | Y (`none`) | - | (every lib supports app-side filtering) |
+| Turn off filtering (server filters) | Y (`items`) | n/a | Y (identity fn) | n/a | Y (`no-filter`) | n/a | n/a | Y (fn) | Y (`none`) | - | (every lib supports app-side filtering; adopted in 0.14.8 as `filter="none"`) |
 | Case/accent sensitivity option | Y | - | Y | Y | Y (accents) | - | - | - | - | 4 | no |
 | Multiple | Y | Y | Y | Y | Y | Y | Y | Y | - | 8 | **yes** |
 | Custom/free text value | Y | R | Y | Y | Y | Y | Y | Y | Y | 8 | **yes** |
@@ -211,7 +211,7 @@ Legend: Y = built-in option, R = documented recipe/composition only, - = absent,
 | Value accessor / equality | Y (`id`) | Y (`by`) | Y | Y | Y | - | Y | - | - | 6 | **yes** |
 | Option disabled | Y | Y | Y | Y | Y | Y | Y | Y ? | ? | 7+ | **yes** |
 | Grouping | Y | - | Y | Y | Y | Y | ? | ? | ? | 5 | **yes** |
-| Option description | Y | - | R | R | R | R | R | - | - | 1 | no |
+| Option description | Y | - | R | R | R | R | R | - | - | 1 | no (adopted in 0.14.7 as `<option>` data attributes) |
 | Chips/tags for multiple | R | - | Y | R | Y | Y | Y | Y | - | 5 | **yes** |
 | limitTags / max visible | - | - | Y | - | - | - | - | Y | - | 2 | no |
 | Placeholder | Y | native | via input | Y | Y | Y | ? | Y | Y | 7+ | **yes** |

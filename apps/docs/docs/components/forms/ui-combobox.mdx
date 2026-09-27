@@ -10,12 +10,47 @@ A normal text field with contextual rich suggestions and integrated optional hel
 and validation. Labels and option titles use restrained medium weight; metadata and
 messages use regular weight. Domain lookups and persistence stay in the application.
 
-Use `open-on-focus` when browsing should start before typing. `filter="contains"` narrows
+Use `open-on-focus` when browsing should start before typing. `filter="label"` narrows
 authored options by label; `filter="none"` displays every option currently supplied by the
 application, which is useful for server-filtered results. While those results load, set `loading`:
 the list announces its busy state and hides the empty state. Provide an `empty` slot for the
 settled no-results message. Set `invalid` when validation is owned by the form; it remains in
 effect until the application clears it.
+
+## Descriptions and tags
+
+An option can carry a line of context under its label and a short tag after it, for a list that
+mixes kinds of result, such as people, businesses, and places:
+
+```html
+<option value="riley" data-description="Harbor Supply Co." data-tag="Contact">Riley Kim</option>
+<option value="yard" data-description="Tacoma, WA" data-tag="Closed" data-tag-tone="danger">East yard</option>
+```
+
+- `data-description` is the muted line under the label.
+- `data-tag` is a [Badge](/components/ui-badge) after the label; `data-tag-tone` picks one of its
+  tones (`neutral`, the default, `accent`, `info`, `success`, `warning`, or `danger`). Pick the tone
+  by what the tag means, and say it in the words too.
+- The label stays the option's accessible name, the text filtering matches, and what the field shows
+  once chosen. The tag and the description are the option's accessible description, so a screen
+  reader announces the name first and the context after it.
+- Options report them as `description` and `tag: { label, tone? }` in `options-change`,
+  `value-change`, and the other item events. An option without them reports the same shape as
+  before.
+
+## Server search
+
+When the application searches on the server as the user types and renders the results as options,
+set `filter="none"`. The combobox then lists every option it is given rather than narrowing them
+again by label, so a result that matched on other data still shows, such as a contact found through
+the business in its description. Grouping, keyboard navigation, and the empty state work as before.
+Leaving the field commits an option whose label matches the text, or the only one listed.
+
+```html
+<ui-combobox label="Directory" filter="none">
+  <option value="riley" data-description="Harbor Auto Group">Riley Kim</option>
+</ui-combobox>
+```
 
 
 <ComponentExamplesApiTabs component="ui-combobox" />

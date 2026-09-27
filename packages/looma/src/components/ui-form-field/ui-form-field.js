@@ -1,3 +1,5 @@
+import { DEV, fieldProblems, warnOnce } from "../shared/authoring.js";
+
 let nextFieldId = 0;
 
 function id(prefix) {
@@ -14,6 +16,7 @@ export default function controller(host) {
   let activeInput = null;
   let owned = new Set();
   let queued = false;
+  const warned = new Set();
   const removeOwned = (input) => {
     if (!input || owned.size === 0) return;
     const remaining = descriptionIds(input).filter((value) => !owned.has(value));
@@ -32,6 +35,7 @@ export default function controller(host) {
       owned = new Set();
     }
     if (!input) return;
+    if (DEV) warnOnce(warned, fieldProblems(label, input), element);
     if (!input.id) input.id = id("form-field-input");
     if (label && !label.getAttribute("for")) label.setAttribute("for", input.id);
     const external = descriptionIds(input).filter((value) => !owned.has(value));

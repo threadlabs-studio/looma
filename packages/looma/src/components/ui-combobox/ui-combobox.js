@@ -5,14 +5,21 @@ const instances = new WeakMap();
 
 let comboboxes = 0;
 
+// An option's secondary line and tag ride on data-* attributes: <option> holds only text, so markup inside
+// it would run into its label before JavaScript. A row without them keeps the declared shape exactly.
 function authoredOptions(container) {
-  return Array.from(container.querySelectorAll("option")).map((option, index) => ({
-    id: option.id || option.value || `option-${index}`,
-    value: option.value,
-    label: option.label || option.textContent?.trim() || option.value,
-    group: option.closest("optgroup")?.label || undefined,
-    disabled: option.disabled,
-  }));
+  return Array.from(container.querySelectorAll("option")).map((option, index) => {
+    const { description, tag, tagTone } = option.dataset;
+    return {
+      id: option.id || option.value || `option-${index}`,
+      value: option.value,
+      label: option.label || option.textContent?.trim() || option.value,
+      group: option.closest("optgroup")?.label || undefined,
+      disabled: option.disabled,
+      ...(description ? { description } : {}),
+      ...(tag ? { tag: tagTone ? { label: tag, tone: tagTone } : { label: tag } } : {}),
+    };
+  });
 }
 
 export async function validate(host) {
@@ -48,6 +55,8 @@ export default function controller(host) {
     options: authoredOptions(authored),
     allowFreeText: Boolean(host.state.allowFreeText),
     allowCreate: Boolean(host.state.allowCreate),
+    // "none": the consumer already narrowed the options (a server search), so every one is listed.
+    filterByLabel: host.state.filter !== "none",
   });
   // Selected items work uncontrolled: the component keeps them and reports every change. A consumer
   // that owns `items` stays in charge, because the prop resyncs whatever it sets. A consumer that sets
@@ -141,7 +150,7 @@ export default function controller(host) {
       const filtered = options.filter((option) => {
         if (ids.has(option.id)) return false;
         ids.add(option.id);
-        if (fullSet || host.state.filter === "none") return true;
+        if (fullSet || !current.filterByLabel) return true;
         return option.label.toLocaleLowerCase().includes(query.toLocaleLowerCase());
       }).map((option) => ({
         ...option,
@@ -216,12 +225,14 @@ export default function controller(host) {
     host.dispatch("query-change", { query, display: query, trigger });
   };
   // A row carries a view-only `selected` flag; an item is the option itself, in its declared shape.
-  const asItem = ({ id, value, label, group, disabled }) => ({
+  const asItem = ({ id, value, label, group, disabled, description, tag }) => ({
     id,
     value,
     label,
     ...(group === undefined ? {} : { group }),
-    ...(disabled === undefined ? {} : { disabled })
+    ...(disabled === undefined ? {} : { disabled }),
+    ...(description === undefined ? {} : { description }),
+    ...(tag === undefined ? {} : { tag })
   });
   const addSelectedItem = (row, trigger) => {
     const option = asItem(row);
@@ -256,7 +267,8 @@ export default function controller(host) {
   };
   // A strict combobox (single, no free text, no create) behaves like a select: leaving it resolves the
   // typed text to a valid option (the highlighted one, an exact label, the first label it begins, or the
-  // only remaining option); with no match it reverts to the previous selection, or clears.
+  // only remaining option); with no match it reverts to the previous selection, or clears. With filter
+  // "none" the remaining options are all of them, whatever their labels, so the only one listed counts.
   const resolveTyped = (trigger) => {
     const current = config();
     if (host.state.multiple || current.allowFreeText || current.allowCreate) return;
@@ -274,7 +286,7 @@ export default function controller(host) {
         ?? enabled.find((row) => row.label.toLocaleLowerCase() === query)
         ?? enabled.find((row) => row.label.toLocaleLowerCase().startsWith(query))
         ?? (() => {
-          const containing = enabled.filter((option) => option.label.toLocaleLowerCase().includes(query));
+          const containing = current.filterByLabel ? enabled.filter((option) => option.label.toLocaleLowerCase().includes(query)) : enabled;
           return containing.length === 1 ? containing[0] : undefined;
         })();
     if (match) commit(match.value, match.label, match, "selection", trigger);
@@ -361,7 +373,10 @@ export default function controller(host) {
         group = { name, role: name ? "group" : "presentation", label: name || null, rows: [] };
         groups.push(group);
       }
-      group.rows.push({ ...row, index });
+      // The label names the option and the tag and description describe it, as a listbox option's
+      // label and description parts do; a row without either keeps its name from its content.
+      const detail = [row.tag ? `${uid}-option-${index}-tag` : "", row.description ? `${uid}-option-${index}-description` : ""].filter(Boolean).join(" ");
+      group.rows.push({ ...row, index, labelledBy: detail ? `${uid}-option-${index}-label` : null, detail: detail || null });
     });
     host.state.groups = groups;
     host.state.creatable = canCreate();
@@ -491,7 +506,7 @@ export default function controller(host) {
   });
   // Options can change while the list is open, as when a consumer adds the option it just created;
   // the open list shows them at once rather than at the next keystroke.
-  const optionsKey = () => JSON.stringify((config().options ?? []).map((row) => [row.value, row.label, row.disabled]));
+  const optionsKey = () => JSON.stringify((config().options ?? []).map((row) => [row.value, row.label, row.disabled, row.description, row.tag]));
   let lastOptionsKey = optionsKey();
   const observer = new MutationObserver(() => {
     relabel();

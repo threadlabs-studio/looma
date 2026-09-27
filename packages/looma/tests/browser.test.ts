@@ -12,7 +12,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 let directory = "";
 let browser: Browser;
 
-async function bundle(name: string, source: string): Promise<string> {
+async function bundle(name: string, source: string, mode = "production"): Promise<string> {
   const entry = join(directory, `${name}.js`);
   await writeFile(entry, source);
   await build({
@@ -20,7 +20,7 @@ async function bundle(name: string, source: string): Promise<string> {
     logLevel: "silent",
     root: directory,
     resolve: { alias: { "@threadlabs/looma": root } },
-    define: { "process.env.NODE_ENV": JSON.stringify("production") },
+    define: { "process.env.NODE_ENV": JSON.stringify(mode) },
     build: {
       outDir: join(directory, name),
       minify: false,
@@ -1533,6 +1533,55 @@ describe("Scroll area", () => {
   });
 });
 
+describe("Authoring warnings", () => {
+  // Each case is a field with one mistake; #good and #wrapped are authored correctly.
+  const html = `
+    <ui-form-field><label slot="label" for="good">Good</label><ui-input id="good"></ui-input></ui-form-field>
+    <ui-form-field><label slot="label">Wrapped <input id="wrapped"></label></ui-form-field>
+    <ui-form-field><label slot="label" id="linked-label">Linked</label><ui-input></ui-input></ui-form-field>
+    <ui-form-field><label slot="label" for="twice">Twice</label><ui-input id="twice"></ui-input></ui-form-field>
+    <span id="twice"></span>
+    <input id="elsewhere" aria-label="Elsewhere">
+    <ui-form-field><label slot="label" for="elsewhere">Stray</label><ui-input id="stray"></ui-input></ui-form-field>
+    <ui-input-group id="group"><ui-input id="site" aria-label="Site"></ui-input><span slot="suffix">.example.com</span></ui-input-group>`;
+
+  async function warnings(mode: string): Promise<string[]> {
+    const path = await bundle(`html-authoring-${mode}`, `import "@threadlabs/looma";`, mode);
+    const page = await browser.newPage();
+    const messages: string[] = [];
+    page.on("console", (message) => {
+      if (message.type() === "warning" && message.text().startsWith("ui-")) messages.push(message.text());
+    });
+    await page.setContent(`<!doctype html><html><body>${html}</body></html>`);
+    await page.addScriptTag({ path });
+    // Wait for both controllers to have linked their fields.
+    await page.waitForFunction(() => document.querySelector("#linked-label")?.hasAttribute("for") && document.querySelector("#site")?.hasAttribute("aria-describedby"));
+    // A copy of a linked group keeps its affix's id.
+    await page.evaluate(() => {
+      const copy = document.querySelector("#group")!.cloneNode(true) as Element;
+      copy.id = "copy";
+      copy.querySelector("input")!.id = "copy-site";
+      document.body.append(copy);
+    });
+    await page.waitForTimeout(200);
+    await page.close();
+    return messages.map((message) => message.split(",")[0]).sort();
+  }
+
+  it("say what a field worked around, once each, in development", async () => {
+    assert.deepEqual(await warnings("development"), [
+      "ui-form-field: the input's id \"twice\" is used by another element in the same document or shadow root",
+      "ui-form-field: the label has no for",
+      "ui-form-field: the label's for=\"elsewhere\" does not point at this field's input",
+      "ui-input-group: the affix id \"ui-input-group-affix-1\" is used by another element in the same document or shadow root",
+    ]);
+  });
+
+  it("say nothing in a production build", async () => {
+    assert.deepEqual(await warnings("production"), []);
+  });
+});
+
 describe("Input group", () => {
   async function checkGroup(page: Page) {
     const group = page.locator("#group");
@@ -2028,6 +2077,34 @@ describe("Text links", () => {
     const page = await open(path, `<ui-text id="line">Already have a site? <a id="link" href="#sign-in">Sign in</a>.</ui-text>`, [join(root, "tokens.css")]);
     await page.waitForSelector('#line[data-component~="ui-text"]');
     assert.match(await page.locator("#link").evaluate((element) => getComputedStyle(element).textDecorationLine), /underline/);
+    await page.close();
+  });
+});
+
+describe("Text tones", () => {
+  it("colours info and warning with the tone's text token", async () => {
+    const path = await bundle("html-text-tones", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-text id="info" tone="info">Scheduled for pickup.</ui-text>
+      <ui-text id="warning" tone="warning">Needs a carrier.</ui-text>`, [join(root, "tokens.css")]);
+    await page.waitForSelector('#warning[data-component~="ui-text"]');
+    const colours = await page.evaluate(() => {
+      const resolve = (token: string) => {
+        const probe = document.createElement("span");
+        probe.style.color = `var(${token})`;
+        document.body.append(probe);
+        const color = getComputedStyle(probe).color;
+        probe.remove();
+        return color;
+      };
+      const color = (id: string) => getComputedStyle(document.querySelector(id)!).color;
+      return {
+        info: [color("#info"), resolve("--ui-info-subtle-text")],
+        warning: [color("#warning"), resolve("--ui-warning-subtle-text")],
+      };
+    });
+    assert.equal(colours.info[0], colours.info[1]);
+    assert.equal(colours.warning[0], colours.warning[1]);
     await page.close();
   });
 });
@@ -2579,7 +2656,11 @@ describe("Avatar initials", () => {
 describe("Text tokens", () => {
   // Every token meant for readable text, on every surface a component paints it on. Disabled text
   // is exempt (WCAG 1.4.3), so --ui-disabled-text is not here.
-  const texts = ["--ui-text", "--ui-text-primary", "--ui-text-secondary", "--ui-text-muted", "--ui-control-placeholder"];
+  // The last five are ui-text's tones: accent, danger, success, info, and warning.
+  const texts = [
+    "--ui-text", "--ui-text-primary", "--ui-text-secondary", "--ui-text-muted", "--ui-control-placeholder",
+    "--ui-accent-active", "--ui-danger", "--ui-success", "--ui-info-subtle-text", "--ui-warning-subtle-text",
+  ];
   const surfaces = [
     "--ui-surface", "--ui-surface-canvas", "--ui-surface-default", "--ui-surface-raised", "--ui-surface-elevated",
     "--ui-surface-sunken", "--ui-surface-subtle", "--ui-surface-muted", "--ui-surface-hover", "--ui-control-surface",
@@ -3739,6 +3820,159 @@ describe("Combobox events", () => {
   });
 });
 
+describe("Combobox option detail", () => {
+  // A row's description and tag describe it: the label stays its name, what filtering matches, and what
+  // a choice commits; a row with neither keeps its name from its content, as before.
+  const check = async (page: Page) => {
+    const input = page.locator('#people input[role="combobox"]');
+    await input.waitFor();
+    await input.press("ArrowDown");
+    const riley = page.getByRole("option", { name: "Riley Kim", exact: true });
+    const description = (option: typeof riley) => option.evaluate((element) =>
+      (element.getAttribute("aria-describedby") ?? "").split(" ").filter(Boolean)
+        .map((id) => (element.getRootNode() as Document).getElementById(id)?.textContent?.trim()).join(", "));
+    assert.equal(await description(riley), "Contact, Harbor Supply Co.");
+    const tone = (option: typeof riley) => option.locator('[data-component="ui-badge"]').getAttribute("data-ui-badge-state");
+    assert.match(await tone(riley) ?? "", /\btone=neutral\b/, "an untoned tag is neutral");
+    const sam = page.getByRole("option", { name: "Sam Ortiz", exact: true });
+    assert.equal(await description(sam), "Harbor Supply Co.");
+    assert.equal(await sam.locator('[data-component="ui-badge"]').count(), 0);
+    const harbor = page.getByRole("option", { name: "Harbor Supply Co.", exact: true });
+    assert.equal(await description(harbor), "Inactive");
+    assert.match(await tone(harbor) ?? "", /\btone=warning\b/);
+    // A plain row renders as it always has.
+    const plain = page.getByRole("option", { name: "Pat Lee", exact: true });
+    assert.deepEqual(await plain.evaluate((element) => [element.getAttribute("aria-labelledby"), element.getAttribute("aria-describedby"),
+      Array.from(element.children, (child) => child.className)]), [null, null, ["primary"]]);
+    // Filtering matches labels only: Riley and Sam work at Harbor, but only the business is suggested.
+    await input.fill("harbor");
+    assert.deepEqual(await page.locator('#people [role="option"]').evaluateAll((all) => all.map((option) => option.querySelector(".primary")?.textContent)),
+      ["Harbor Supply Co."]);
+    await input.fill("riley");
+    await riley.click();
+    assert.equal(await input.inputValue(), "Riley Kim");
+    const choice = await page.evaluate(() => (window as unknown as { changes: any[] }).changes.at(-1));
+    assert.deepEqual(choice.option, { id: "riley", value: "riley", label: "Riley Kim", group: "People", disabled: false, description: "Harbor Supply Co.", tag: { label: "Contact" } });
+  };
+
+  it("names each option by its label and describes it by its tag and description in HTML", async () => {
+    const path = await bundle("html-combobox-option-detail", `
+      import "@threadlabs/looma";
+      window.changes = [];
+      document.addEventListener("value-change", (event) => window.changes.push(event.detail));
+    `);
+    const page = await open(path, `
+      <ui-combobox id="people" label="Directory">
+        <optgroup label="People">
+          <option value="riley" data-description="Harbor Supply Co." data-tag="Contact">Riley Kim</option>
+          <option value="sam" data-description="Harbor Supply Co.">Sam Ortiz</option>
+          <option value="pat">Pat Lee</option>
+        </optgroup>
+        <optgroup label="Businesses">
+          <option value="harbor" data-tag="Inactive" data-tag-tone="warning">Harbor Supply Co.</option>
+        </optgroup>
+      </ui-combobox>
+    `, [join(root, "tokens.css")]);
+    await check(page);
+    await page.close();
+  });
+
+  it("names each option by its label and describes it by its tag and description in Vue", async () => {
+    const path = await bundle("vue-combobox-option-detail", `
+      import { createApp, h } from "vue";
+      import { Combobox } from "@threadlabs/looma/vue";
+      window.changes = [];
+      createApp({
+        render: () => h(Combobox, { id: "people", label: "Directory", onValueChange: (detail) => window.changes.push(detail) }, () => [
+          h("optgroup", { label: "People" }, [
+            h("option", { value: "riley", "data-description": "Harbor Supply Co.", "data-tag": "Contact" }, "Riley Kim"),
+            h("option", { value: "sam", "data-description": "Harbor Supply Co." }, "Sam Ortiz"),
+            h("option", { value: "pat" }, "Pat Lee"),
+          ]),
+          h("optgroup", { label: "Businesses" }, [
+            h("option", { value: "harbor", "data-tag": "Inactive", "data-tag-tone": "warning" }, "Harbor Supply Co."),
+          ]),
+        ]),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await check(page);
+    await page.close();
+  });
+});
+
+describe("Combobox filter", () => {
+  // filter="none" lists every authored option, as a server search returned them; the default still
+  // narrows by label. Keyboard choice and the blur commit work over the listed options.
+  const check = async (page: Page) => {
+    const labels = (id: string) => page.locator(`#${id} [role="option"]`).evaluateAll((all) => all.map((option) => option.querySelector(".primary")?.textContent));
+    const server = page.locator('#server input[role="combobox"]');
+    await server.waitFor();
+    await server.fill("harb");
+    assert.deepEqual(await labels("server"), ["Riley Kim", "Harbor Auto Group"], "a result matched on its description still shows");
+    await server.press("ArrowDown");
+    assert.equal(await server.getAttribute("aria-activedescendant"), await page.getByRole("option", { name: "Riley Kim", exact: true }).getAttribute("id"));
+    await server.press("ArrowDown");
+    await server.press("Enter");
+    assert.equal(await server.inputValue(), "Harbor Auto Group");
+    const local = page.locator('#local input[role="combobox"]');
+    await local.fill("harb");
+    assert.deepEqual(await labels("local"), ["Harbor Auto Group"], "the default filters by label");
+    // Leaving with text that is no label commits the only option listed.
+    const single = page.locator('#single input[role="combobox"]');
+    await single.fill("harb");
+    await single.press("Tab");
+    assert.equal(await single.inputValue(), "Riley Kim");
+    assert.equal(await page.evaluate(() => (window as unknown as { changes: any[] }).changes.at(-1).value), "riley");
+  };
+
+  it("lists every option with filter none and filters by label by default in HTML", async () => {
+    const path = await bundle("html-combobox-filter", `
+      import "@threadlabs/looma";
+      window.changes = [];
+      document.addEventListener("value-change", (event) => window.changes.push(event.detail));
+    `);
+    const page = await open(path, `
+      <ui-combobox id="server" label="Server" filter="none">
+        <option value="riley" data-description="Harbor Auto Group">Riley Kim</option>
+        <option value="harbor">Harbor Auto Group</option>
+      </ui-combobox>
+      <ui-combobox id="local" label="Local">
+        <option value="riley" data-description="Harbor Auto Group">Riley Kim</option>
+        <option value="harbor">Harbor Auto Group</option>
+      </ui-combobox>
+      <ui-combobox id="single" label="Single" filter="none">
+        <option value="riley" data-description="Harbor Auto Group">Riley Kim</option>
+      </ui-combobox>
+      <button>After</button>
+    `, [join(root, "tokens.css")]);
+    await check(page);
+    await page.close();
+  });
+
+  it("lists every option with filter none and filters by label by default in Vue", async () => {
+    const path = await bundle("vue-combobox-filter", `
+      import { createApp, h } from "vue";
+      import { Combobox } from "@threadlabs/looma/vue";
+      window.changes = [];
+      const riley = () => h("option", { value: "riley", "data-description": "Harbor Auto Group" }, "Riley Kim");
+      const harbor = () => h("option", { value: "harbor" }, "Harbor Auto Group");
+      const onValueChange = (detail) => window.changes.push(detail);
+      createApp({
+        render: () => [
+          h(Combobox, { id: "server", label: "Server", filter: "none", onValueChange }, () => [riley(), harbor()]),
+          h(Combobox, { id: "local", label: "Local", onValueChange }, () => [riley(), harbor()]),
+          h(Combobox, { id: "single", label: "Single", filter: "none", onValueChange }, () => [riley()]),
+          h("button", "After"),
+        ],
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await check(page);
+    await page.close();
+  });
+});
+
 describe("Combobox disabled", () => {
   // Every part the user can press follows disabled: the clear, disclosure, help, and badge buttons.
   const check = async (page: Page) => {
@@ -4883,10 +5117,13 @@ describe("Meter", () => {
     ["thin", { size: "sm", value: 0.5, label: "Thin" }],
     ["named", { value: 3, max: 5, "aria-labelledby": "steps-label" }],
     ["wide", { class: "wide", value: 0.5, label: "Wide" }],
+    ["steps", { class: "steps", segments: 6, value: 4, max: 6, tone: "accent", label: "Status", valueText: "Shipped, step 4 of 6" }],
     ...tones.map((tone): [string, Record<string, unknown>] => [`tone-${tone}`, { tone, value: 1, label: tone }]),
   ];
   const css = ["tokens.css", "theme-light.css", "theme-dark.css"].map((file) => join(root, file));
-  const hook = `<style>.wide { --ui-meter-inline-size: 300px; }</style><span id="steps-label">Setup checklist</span>`;
+  // 296px and a 4px gap make six segments of 46px, each starting on a whole pixel; the margin keeps
+  // its neighbours out of the pixels either side of it.
+  const hook = `<style>.wide { --ui-meter-inline-size: 300px; } .steps { --ui-meter-inline-size: 296px; margin-inline: 4px; }</style><span id="steps-label">Setup checklist</span>`;
 
   async function checkMeters(page: Page) {
     await page.locator("#tone-danger").waitFor();
@@ -4952,7 +5189,47 @@ describe("Meter", () => {
     await page.emulateMedia({ colorScheme: "light" });
 
     // Forced colours drop the track's colour: the outline draws the track and the fill is text-coloured.
+    // Segments: the page shows through each gap, the fill covers the steps done, the track the rest.
+    const row = async () => {
+      const box = await page.locator("#steps").evaluate((element) => {
+        const { x, y, width, height } = element.getBoundingClientRect();
+        return { x, y, width, height };
+      });
+      // Two pixels of page either side of the meter, along its middle row.
+      const png = await page.screenshot({ clip: { x: box.x - 2, y: box.y + box.height / 2, width: box.width + 4, height: 1 } });
+      return page.evaluate(async (data) => {
+        const image = new Image();
+        image.src = `data:image/png;base64,${data}`;
+        await image.decode();
+        const context = document.createElement("canvas").getContext("2d", { willReadFrequently: true })!;
+        context.drawImage(image, 0, 0);
+        return Array.from({ length: image.width }, (_, x) => context.getImageData(x, 0, 1, 1).data.slice(0, 3).join());
+      }, png.toString("base64"));
+    };
+    const at = (pixels: string[], x: number) => pixels[Math.floor(x) + 2];
+    const segment = (index: number) => index * 50;
+    assert.equal(await page.locator("#steps").getAttribute("aria-valuetext"), "Shipped, step 4 of 6");
+    const drawn = await row();
+    const page0 = at(drawn, -1);
+    for (let index = 0; index < 5; index++) assert.equal(at(drawn, segment(index) + 48), page0, `gap ${index + 1} shows the page`);
+    const done = [0, 1, 2, 3].map((index) => at(drawn, segment(index) + 23));
+    const todo = [4, 5].map((index) => at(drawn, segment(index) + 23));
+    assert.equal(new Set(done).size, 1, "the steps done are one colour");
+    assert.equal(new Set(todo).size, 1, "the steps to do are one colour");
+    assert.notEqual(done[0], todo[0], "the fill differs from the track");
+    assert.notEqual(todo[0], page0, "the track differs from the page");
+
     await page.emulateMedia({ forcedColors: "active" });
+    // Forced colours: each segment keeps its outline, and the gaps still show the page.
+    const outlined = await row();
+    const canvas = at(outlined, -1);
+    for (let index = 0; index < 5; index++) assert.equal(at(outlined, segment(index) + 48), canvas, `forced gap ${index + 1} shows the page`);
+    for (const index of [4, 5]) {
+      assert.equal(at(outlined, segment(index) + 23), canvas, `forced step ${index + 1} is hollow`);
+      assert.notEqual(at(outlined, segment(index)), canvas, `forced step ${index + 1} draws its start`);
+      assert.notEqual(at(outlined, segment(index) + 45), canvas, `forced step ${index + 1} draws its end`);
+    }
+    for (const index of [0, 1, 2, 3]) assert.equal(at(outlined, segment(index) + 23), at(outlined, segment(4)), `forced step ${index + 1} is filled`);
     const forced = await page.locator("#partial").evaluate((element) => ({
       outline: getComputedStyle(element).outlineColor,
       fill: getComputedStyle(element.querySelector(".fill")!).backgroundColor,

@@ -96,7 +96,7 @@ export function HomePage(): JSX.Element {
           <h2>Start with one component</h2>
           <p>
             Add the package, import the styles, and put a <code>&lt;ui-button&gt;</code> on a page.
-            Nothing else changes.
+            Nothing else changes. Weave in the rest one thread at a time.
           </p>
           <div className="looma-home-hero__actions">
             <Link className="looma-button looma-button--primary" to="/getting-started">
