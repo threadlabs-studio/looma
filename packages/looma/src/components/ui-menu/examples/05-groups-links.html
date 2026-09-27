@@ -1,0 +1,13 @@
+<!--
+title: Groups, links, and shortcuts
+description: Group headings, native separators, real links, and display-only shortcut hints make larger menus easier to scan.
+-->
+<ui-button id="open-file-menu">File</ui-button>
+<ui-menu for="open-file-menu" aria-label="File actions">
+  <ui-menu-group label="Create">
+    <ui-menu-item value="new">New file <kbd slot="shortcut">⌘N</kbd></ui-menu-item>
+    <ui-menu-item value="template" href="#templates">From template</ui-menu-item>
+  </ui-menu-group>
+  <hr>
+  <ui-menu-item value="settings">Settings</ui-menu-item>
+</ui-menu>

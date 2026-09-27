@@ -6,7 +6,17 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 # Mention Menu
 
-Bounded, responsive suggestion surface for an app-provided people directory.
+Bounded, responsive suggestion surface for an app-provided people directory. Supply
+`ui-editor-mention-menu-item` children with stable `value` identifiers, optional `detail`, and
+fallback `initials`, or put an Avatar in the item's `start` slot. The menu accepts an authored
+`header` and `empty` slot. It shows `loading-label` while loading an empty result set, so that
+message can be localized. An authored `aria-label` or `aria-labelledby` takes precedence over
+the `label` prop.
+
+The existing `items` data option remains for async editor integrations. Both paths emit
+`select` and `highlight` with `{ index, value }`; the index points into the current visible list,
+and `value` is the authored identifier or a data item's `id`. The application owns provider
+filtering, loading, and insertion.
 
 
 <ComponentExamplesApiTabs component="ui-editor-mention-menu" />

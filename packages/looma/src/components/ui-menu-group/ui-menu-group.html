@@ -1,0 +1,27 @@
+<template component="ui-menu-group">
+  <defs>
+    <prop name="label" type="string" default="">Visible heading and accessible name for this group of menu items.</prop>
+  </defs>
+  <div role="group" :aria-label="label">
+    <div class="heading" $if="label" $value="label"></div>
+    <slot></slot>
+  </div>
+  <style>
+    :host {
+      display: flex;
+      flex-direction: column;
+      min-inline-size: 0;
+    }
+
+    .heading {
+      padding: var(--ui-space-2) var(--ui-space-3) var(--ui-space-1);
+      color: var(--ui-text-muted);
+      font-size: var(--ui-font-size-sm);
+      font-weight: var(--ui-font-semibold);
+    }
+
+    :host[hidden] {
+      display: none;
+    }
+  </style>
+</template>

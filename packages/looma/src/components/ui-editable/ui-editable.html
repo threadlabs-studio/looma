@@ -9,6 +9,11 @@
     <prop name="hint" type="string" default="">Optional text shown beside the value to signal it is editable (for example "Edit").</prop>
     <prop name="actions" type="boolean" default="false"
     >Show explicit Save and Cancel buttons while editing. Without them, Enter or leaving the field saves and Escape cancels.</prop>
+    <prop name="saveLabel" type="string" default="Save">Visible text for the Save action.</prop>
+    <prop name="cancelLabel" type="string" default="Cancel">Visible text for the Cancel action.</prop>
+    <prop name="placeholder" type="string" default="">Hint shown in the text input while the draft is empty.</prop>
+    <prop name="required" type="boolean" default="false">Prevent an empty draft from being saved.</prop>
+    <prop name="maxLength" type="number" default="0">Maximum draft length; 0 leaves the length unrestricted.</prop>
     <state name="internalEdit" :value="false"></state>
     <state name="internalValue" :value="''"></state>
     <state name="draft" :value="''"></state>
@@ -25,11 +30,20 @@
         <span class="text" $value="internalValue"></span>
         <span $if="hint" class="hint" aria-hidden="true" $value="hint"></span>
       </button>
-      <input class="input" $ref="input" type="text" .value="draft" :aria-label="label" :disabled="disabled or not internalEdit">
+      <input
+        class="input"
+        $ref="input"
+        type="text"
+        .value="draft"
+        :aria-label="label"
+        :placeholder="placeholder"
+        :required="required"
+        :disabled="disabled or not internalEdit"
+      >
     </div>
     <div $if="actions" class="actions">
-      <button class="save" type="button">Save</button>
-      <button class="cancel" type="button">Cancel</button>
+      <button class="save" type="button" $value="saveLabel"></button>
+      <button class="cancel" type="button" $value="cancelLabel"></button>
     </div>
   </div>
   <style>

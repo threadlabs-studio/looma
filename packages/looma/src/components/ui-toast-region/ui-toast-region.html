@@ -1,35 +1,48 @@
 <link rel="component" href="../ui-icon-button/ui-icon-button.html">
+<link rel="component" href="../ui-icon/ui-icon.html">
 <template component="ui-toast-region" controller="./ui-toast-region.js">
   <defs>
-    <prop name="open" type="boolean" default="false">Whether the messages authored inside the region are visible.</prop>
-    <prop name="message" type="string" default="Notification">Fallback message used by the declarative show command.</prop>
-    <prop name="auto" type="boolean" default="false"
-    >Dismiss each message automatically after its duration. Timers pause while the pointer or focus is on a message.</prop>
-    <prop name="duration" type="number" default="5000">Milliseconds an automatically dismissed message stays visible.</prop>
-    <state name="internalOpen" :value="false"></state>
-    <state name="toasts" type="list(object({ id: string, message: string, role: alert | status, closing: boolean }))" :value="[]"></state>
-    <event
-      name="close"
-      type="object({ open: boolean, reason: action | timeout | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"
-    ></event>
+    <prop name="duration" type="number" default="0"
+    >Default milliseconds for toasts added with show() or the show command; 0 keeps each until dismissed. Hover or focus pauses a timer.</prop>
+    <prop name="placement" type="top | top-start | top-end | bottom | bottom-start | bottom-end" default="top"
+    >Screen edge where the stack appears. Start and end follow the writing direction.</prop>
+    <state
+      name="toasts"
+      type="list(object({ id: string, message: string, tone: neutral | info | success | warning | danger, role: alert | status, closing: boolean }))"
+      :value="[]"
+    ></state>
     <event name="dismiss" type="object({ id: string, reason: action | timeout, trigger: keyboard | pointer | programmatic })"></event>
     <method name="show" export="show" returns="promise(string)"></method>
   </defs>
   <div role="region" aria-label="Notifications" aria-live="polite" popover="manual">
     <slot></slot>
-    <div $each="toast of toasts" $key="toast.id" class="toast" class:closing="toast.closing" :id="toast.id" :role="toast.role">
+    <div $each="toast of toasts" $key="toast.id" class="toast" class:closing="toast.closing" :id="toast.id" :role="toast.role" :data-tone="toast.tone">
       <span class="message" $value="toast.message"></span>
       <span class="dismiss" :data-toast="toast.id">
         <ui-icon-button size="sm" variant="ghost" :round="true" :label="format('Dismiss %s', toast.message)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-            <path d="M18 6 6 18M6 6l12 12"></path>
-          </svg>
+          <ui-icon name="x"></ui-icon>
         </ui-icon-button>
       </span>
     </div>
   </div>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-toast-region-surface {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-toast-region-border {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-toast-region-radius {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-toast-region-shadow {
+      syntax: "*";
+      inherits: false;
+    }
     @property --ui-toast-region-enter-duration {
       syntax: "*";
       inherits: false;
@@ -41,6 +54,10 @@
 
     :host {
       /* Hooks do not inherit, so the parts below read them from the root. */
+      --_ui-toast-region-surface: var(--ui-toast-region-surface);
+      --_ui-toast-region-border: var(--ui-toast-region-border);
+      --_ui-toast-region-radius: var(--ui-toast-region-radius);
+      --_ui-toast-region-shadow: var(--ui-toast-region-shadow);
       --_ui-toast-region-enter-duration: var(--ui-toast-region-enter-duration);
       --_ui-toast-region-exit-duration: var(--ui-toast-region-exit-duration);
 
@@ -70,6 +87,29 @@
       display: none;
     }
 
+    :host-state([placement="top-start"]),
+    :host-state([placement="bottom-start"]) {
+      left: auto;
+      right: auto;
+      inset-inline-start: calc(var(--ui-space-4) + env(safe-area-inset-left));
+      transform: none;
+    }
+
+    :host-state([placement="top-end"]),
+    :host-state([placement="bottom-end"]) {
+      left: auto;
+      right: auto;
+      inset-inline-end: calc(var(--ui-space-4) + env(safe-area-inset-right));
+      transform: none;
+    }
+
+    :host-state([placement="bottom"]),
+    :host-state([placement="bottom-start"]),
+    :host-state([placement="bottom-end"]) {
+      top: auto;
+      bottom: calc(var(--ui-space-4) + env(safe-area-inset-bottom));
+    }
+
     :host > .toast,
     :host > :slotted(*) {
       pointer-events: auto;
@@ -80,19 +120,40 @@
       grid-template-columns: 1fr auto;
       gap: var(--ui-space-2);
       align-items: start;
-      border: 1px solid var(--ui-border-default);
-      border-radius: var(--ui-radius-lg);
+      border: 1px solid var(--_ui-toast-region-border, var(--ui-overlay-border, var(--ui-border-default)));
+      border-radius: var(--_ui-toast-region-radius, var(--ui-overlay-radius, var(--ui-radius-lg)));
       padding: var(--ui-space-3) var(--ui-space-4);
-      background: var(--ui-surface-elevated);
+      background: var(--_ui-toast-region-surface, var(--ui-overlay-surface, var(--ui-surface-elevated)));
       color: var(--ui-text-primary);
-      box-shadow: var(--ui-elevation-overlay, var(--ui-shadow-lg));
+      box-shadow: var(--_ui-toast-region-shadow, var(--ui-overlay-shadow, var(--ui-elevation-overlay, var(--ui-shadow-lg))));
       animation: ui-toast-enter var(--_ui-toast-region-enter-duration, 0.32s) var(--ui-motion-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) both;
+    }
+
+    .toast[data-tone="info"] {
+      border-inline-start: 3px solid var(--ui-info-solid);
+    }
+    .toast[data-tone="success"] {
+      border-inline-start: 3px solid var(--ui-success-solid);
+    }
+    .toast[data-tone="warning"] {
+      border-inline-start: 3px solid var(--ui-warning-solid);
+    }
+    .toast[data-tone="danger"] {
+      border-inline-start: 3px solid var(--ui-danger-solid);
     }
 
     /* Leaving slides on down and fades; the controller removes the toast when this ends. */
     .toast.closing {
       animation: ui-toast-exit var(--_ui-toast-region-exit-duration, 0.22s) var(--ui-motion-ease) both;
       pointer-events: none;
+    }
+
+    :is(:host-state([placement="bottom"]), :host-state([placement="bottom-start"]), :host-state([placement="bottom-end"])) .toast {
+      animation-name: ui-toast-enter-bottom;
+    }
+
+    :is(:host-state([placement="bottom"]), :host-state([placement="bottom-start"]), :host-state([placement="bottom-end"])) .toast.closing {
+      animation-name: ui-toast-exit-bottom;
     }
 
     @keyframes ui-toast-enter {
@@ -114,6 +175,28 @@
       to {
         opacity: 0;
         transform: translateY(0.75rem);
+      }
+    }
+
+    @keyframes ui-toast-enter-bottom {
+      from {
+        opacity: 0;
+        transform: translateY(1rem);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes ui-toast-exit-bottom {
+      from {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      to {
+        opacity: 0;
+        transform: translateY(-0.75rem);
       }
     }
 

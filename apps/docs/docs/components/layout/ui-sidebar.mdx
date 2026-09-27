@@ -8,5 +8,9 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 An application sidebar panel. Docked beside the page's main content it can be resized and collapsed; below its breakpoint it becomes an off-canvas drawer. It is only the panel: the page lays it out next to its content.
 
+The application owns persistence. Give the Sidebar its saved `collapsed` and `width` values at
+render time, then save the values reported by `toggle` and `resize` alongside other workspace
+preferences. Looma does not choose a storage key or persist transient drawer visibility.
+
 
 <ComponentExamplesApiTabs component="ui-sidebar" />

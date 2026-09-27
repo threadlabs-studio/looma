@@ -8,19 +8,16 @@ export async function show(host, message, options = {}) {
 }
 
 /**
- * Shows the region while `open` is set and it has authored messages, or while any message added
- * with show() or the --show-toast command remains. Added messages dismiss by action or timeout.
+ * Shows the region while it has authored or generated messages. Generated messages dismiss by
+ * action or timeout; authored ui-toast children own their removal through the dismiss event.
  */
 export default function controller(host) {
   const element = host.element;
   const [trigger, stopTracking] = trackTrigger(host);
-  let external = host.state.open;
-  host.state.internalOpen = Boolean(external);
-
   const toasts = () => host.state.toasts ?? [];
   const authored = () => Array.from(element.children).some((child) => !child.classList.contains("toast"));
   const sync = () => {
-    const visible = (host.state.internalOpen && authored()) || toasts().length > 0;
+    const visible = authored() || toasts().length > 0;
     if (visible && !element.matches(":popover-open")) element.showPopover();
     else if (!visible && element.matches(":popover-open")) element.hidePopover();
   };
@@ -59,7 +56,6 @@ export default function controller(host) {
     if (!toast || toast.closing) return;
     host.state.toasts = toasts().map((candidate) => candidate.id === id ? { ...candidate, closing: true } : candidate);
     host.dispatch("dismiss", { id, reason, trigger: how });
-    if (toasts().every((candidate) => candidate.closing)) host.dispatch("close", { open: false, reason, trigger: how });
     // Removed once the exit animation ends; reduced motion has none, and the timeout guards a missed end.
     const node = element.ownerDocument.getElementById(id);
     if (!node || getComputedStyle(node).animationName === "none") remove(id);
@@ -70,9 +66,11 @@ export default function controller(host) {
   };
   const add = (message, options = {}) => {
     const id = String(options.id || `ui-toast-${++toastIds}`);
-    host.state.toasts = [...toasts(), { id, message: String(message), role: options.tone === "danger" ? "alert" : "status", closing: false }];
-    if (options.auto ?? host.state.auto) {
-      timers.set(id, { remaining: Math.max(0, Number(options.duration ?? host.state.duration ?? 5000)), started: 0, handle: 0 });
+    const tone = ["neutral", "info", "success", "warning", "danger"].includes(options.tone) ? options.tone : "neutral";
+    host.state.toasts = [...toasts(), { id, message: String(message), tone, role: tone === "danger" ? "alert" : "status", closing: false }];
+    const duration = Math.max(0, Number(options.duration ?? host.state.duration ?? 0));
+    if (duration > 0) {
+      timers.set(id, { remaining: duration, started: 0, handle: 0 });
       startTimer(id);
     }
     return id;
@@ -83,15 +81,9 @@ export default function controller(host) {
     if (id) dismiss(id, "action", trigger());
   };
   const onCommand = (event) => {
-    if (event.command === "--show-toast") add(event.source?.value || host.state.message || "Notification");
+    if (event.command === "--show-toast" && event.source?.value) add(event.source.value);
   };
-  const stop = host.effect(() => {
-    if (host.state.open !== external) {
-      external = host.state.open;
-      host.state.internalOpen = Boolean(external);
-    }
-    sync();
-  });
+  const stop = host.effect(sync);
   const observer = new MutationObserver(sync);
   observer.observe(element, { childList: true });
   element.addEventListener("click", onClick);

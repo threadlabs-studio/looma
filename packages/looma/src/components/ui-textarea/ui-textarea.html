@@ -8,14 +8,25 @@
     <prop name="readonly" type="boolean" default="false">Allows selection without allowing edits.</prop>
     <prop name="required" type="boolean" default="false">Marks the control as required for form validation.</prop>
     <prop name="rows" type="integer" default="4">Initial number of visible text rows.</prop>
+    <prop name="autosize" type="boolean" default="false"
+    >Grow with the text while keeping rows as the minimum visible height. Uses CSS field sizing where supported; other browsers keep the native rows
+      behavior.</prop>
     <prop name="size" type="sm | md | lg" default="md"
     >Padding and type size, matching Input's sizes so a textarea sits with fields of the same size; rows sets its height. sm has tighter padding and smaller
       text, for compact forms; lg has roomier padding. Under a coarse pointer, sm keeps body-size text.</prop>
   </defs>
-  <textarea :value="value" :disabled="disabled" :readonly="readonly" :required="required" :aria-invalid="invalid" :rows="rows"></textarea>
+  <textarea :value="value" :disabled="disabled" :readonly="readonly" :required="required" :aria-invalid="invalid" :rows="rows" style:--_rows="rows"></textarea>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
     @property --ui-textarea-focus-shadow {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-textarea-invalid-border {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-textarea-invalid-focus-shadow {
       syntax: "*";
       inherits: false;
     }
@@ -35,11 +46,12 @@
       min-inline-size: 0;
       min-block-size: calc(3rem * 2);
       margin: 0;
+      --_padding-block: var(--ui-space-2);
       padding: var(--ui-space-2) var(--ui-space-3);
       appearance: none;
       resize: vertical;
       border: 1px solid var(--ui-control-border, var(--ui-border-strong));
-      border-radius: var(--ui-textarea-radius, var(--ui-radius-md));
+      border-radius: var(--ui-textarea-radius, var(--ui-field-radius, var(--ui-radius-md)));
       background: var(--ui-control-surface, var(--ui-surface-elevated));
       color: var(--ui-text-primary);
       font: inherit;
@@ -75,13 +87,15 @@
     /* The app's invalid flag, or the browser's own verdict once the user has left an invalid field. */
     :host[aria-invalid="true"],
     :host:user-invalid {
-      border-color: var(--ui-danger-solid);
+      border-color: var(--ui-textarea-invalid-border, var(--ui-field-danger, var(--ui-danger-solid)));
     }
 
     :host:is([aria-invalid="true"], :user-invalid):focus-visible {
-      box-shadow:
+      box-shadow: var(
+        --ui-textarea-invalid-focus-shadow,
         var(--ui-control-inset),
-        0 0 0 3px color-mix(in srgb, var(--ui-danger-solid) 22%, transparent);
+        0 0 0 3px color-mix(in srgb, var(--ui-textarea-invalid-border, var(--ui-field-danger, var(--ui-danger-solid))) 22%, transparent)
+      );
     }
 
     :host:disabled {
@@ -92,13 +106,22 @@
     }
 
     :host-state([size="sm"]) {
+      --_padding-block: var(--ui-space-1);
       padding: var(--ui-space-1) var(--ui-space-2);
       font-size: var(--ui-font-size-sm);
     }
 
     :host-state([size="lg"]) {
+      --_padding-block: var(--ui-space-3);
       padding: var(--ui-space-3) var(--ui-space-4);
       font-size: var(--ui-font-size-md);
+    }
+
+    @supports (field-sizing: content) {
+      :host-state([autosize]) {
+        field-sizing: content;
+        min-block-size: calc(var(--_rows) * 1lh + var(--_padding-block) + var(--_padding-block) + 2px);
+      }
     }
 
     /* Below 16px, iOS zooms the page into the focused field, so touch keeps body-size text. */

@@ -1,0 +1,12 @@
+<!--
+title: Rich tab labels
+description: Author tab buttons in the tab slot when labels need icons or counts; each button value matches a panel id.
+-->
+<ui-tabs label="Workspace views">
+  <button slot="tab" value="inbox-view">
+    <ui-icon name="folder"></ui-icon> Inbox <span>(3)</span>
+  </button>
+  <button slot="tab" value="archive-view">Archive</button>
+  <section id="inbox-view" aria-label="Inbox">Unread and recent items.</section>
+  <section id="archive-view" aria-label="Archive">Older items.</section>
+</ui-tabs>

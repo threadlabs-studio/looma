@@ -9,6 +9,13 @@ const tokensRoot = path.join(repoRoot, "packages/looma/src/tokens");
 const componentsRoot = path.join(repoRoot, "packages/looma/src/components");
 const editorStyles = path.join(repoRoot, "packages/looma/src/vue/editor/looma-editor.css");
 
+// Optional inherited middle layer. These are deliberately unset in tokens.css, so each component
+// reads its global fallback when a consumer has not themed that group.
+const GROUP_TOKENS = new Set([
+  "--ui-field-radius", "--ui-field-danger", "--ui-action-radius",
+  "--ui-overlay-radius", "--ui-overlay-surface", "--ui-overlay-border", "--ui-overlay-shadow",
+]);
+
 async function definedTokens() {
   const files = await readdir(tokensRoot);
   const sources = await Promise.all(files.map((file) => readFile(path.join(tokensRoot, file), "utf8")));
@@ -44,7 +51,7 @@ test("every global token a stylesheet reads is defined", async () => {
     // the parts that read `--_ui-x` supply the fallback.
     const relays = new Set([...source.matchAll(/--_(ui-[\w-]+)\s*:\s*var\(--(ui-[\w-]+)\)/g)].filter(([, relay, hook]) => relay === hook).map(([, , hook]) => `--${hook}`));
     for (const [, token, next] of source.matchAll(/var\((--ui-[\w-]+)\s*(,|\))/g)) {
-      if (defined.has(token) || local.has(token) || relays.has(token)) continue;
+      if (defined.has(token) || GROUP_TOKENS.has(token) || local.has(token) || relays.has(token)) continue;
       // A component's own token is defined by whoever sets it, so a fallback is the contract.
       if (prefixes.some((prefix) => token.startsWith(`--${prefix}`))) {
         if (next === ")") {
@@ -56,4 +63,18 @@ test("every global token a stylesheet reads is defined", async () => {
     }
   }
   assert.deepEqual(violations, []);
+});
+
+test("group tokens stay optional and shared across components", async () => {
+  const defined = await definedTokens();
+  const tags = (await readdir(componentsRoot)).filter((name) => name.startsWith("ui-"));
+  for (const token of GROUP_TOKENS) {
+    assert.equal(defined.has(token), false, `${token} must be unset so its fallback remains live`);
+    const users = [];
+    for (const tag of tags) {
+      const source = await readFile(path.join(componentsRoot, tag, `${tag}.html`), "utf8");
+      if (source.includes(`var(${token},`)) users.push(tag);
+    }
+    assert.ok(users.length >= 2, `${token} should theme a group, not only ${users.join(", ")}`);
+  }
 });

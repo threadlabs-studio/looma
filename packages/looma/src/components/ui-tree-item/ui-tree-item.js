@@ -27,7 +27,7 @@ export default function controller(host) {
   let lastExternalExpanded = Boolean(host.state.expanded);
   host.state.internalExpanded = lastExternalExpanded;
 
-  const isContainer = () => Boolean(host.state.container) || childItems().length > 0;
+  const isContainer = () => Boolean(host.state.container) || Boolean(host.state.lazy) || childItems().length > 0;
   const updateLevel = () => {
     const tree = element.closest('[role="tree"]');
     let ancestor = parentItem(element);
@@ -52,6 +52,8 @@ export default function controller(host) {
     // A leaf has no aria-expanded at all; "false" would announce it as a collapsed branch.
     if (container) element.setAttribute("aria-expanded", String(expanded));
     else element.removeAttribute("aria-expanded");
+    if (host.state.lazy && expanded && childItems().length === 0) element.setAttribute("aria-busy", "true");
+    else element.removeAttribute("aria-busy");
     element.tabIndex = host.state.disabled || !host.state.tabStop ? -1 : 0;
     element.style.setProperty("--ui-tree-item-depth", String(Number(host.state.structuralLevel ?? 1) - 1));
     disclosure.setAttribute("aria-expanded", String(expanded));

@@ -4,7 +4,11 @@
     <prop name="maxRows" type="integer" default="8">The most rows the grid offers (at most 10).</prop>
     <prop name="maxCols" type="integer" default="8">The most columns the grid offers (at most 10).</prop>
     <prop name="headerRow" type="boolean" default="false">Whether table insertion initially includes a header row.</prop>
-    <state name="cells" type="list(object({ key: string, row: integer, col: integer, label: string, selected: boolean }))" :value="[]"></state>
+    <state
+      name="cells"
+      type="list(object({ key: string, row: integer, col: integer, label: string, selected: boolean, tabIndex: integer }))"
+      :value="[]"
+    ></state>
     <state name="rows" :value="8"></state>
     <state name="cols" :value="8"></state>
     <state name="hint" :value="''"></state>
@@ -13,7 +17,7 @@
   </defs>
   <div :hidden="not open">
     <p class="hint" $value="hint"></p>
-    <div class="grid" role="group" aria-label="Table dimensions" style:--_rows="rows" style:--_cols="cols">
+    <div class="grid" $ref="grid" role="group" aria-label="Table dimensions" style:--_rows="rows" style:--_cols="cols">
       <button
         $each="cell of cells"
         $key="cell.key"
@@ -24,11 +28,11 @@
         :data-col="cell.col"
         :aria-label="cell.label"
         :aria-pressed="cell.selected"
+        :tabindex="cell.tabIndex"
       >
       </button>
     </div>
     <label class="header"><input type="checkbox" $ref="header" .checked="withHeaderRow"> Header row</label>
-    <button type="button" class="insert" $ref="insert">Insert table</button>
   </div>
   <style>
     :host {
@@ -51,6 +55,28 @@
       grid-template-rows: repeat(var(--_rows, 8), 1.25rem);
       gap: 2px;
       margin-bottom: var(--ui-space-2);
+      max-inline-size: 100%;
+      overflow: auto;
+      --_ui-scroll-fade-direction: to right;
+      --_ui-scroll-fade-size: var(--ui-scroll-fade-size, 24px);
+      mask-image: linear-gradient(
+        var(--_ui-scroll-fade-direction),
+        transparent,
+        #000 var(--_ui-scroll-fade-start),
+        #000 calc(100% - var(--_ui-scroll-fade-end)),
+        transparent
+      );
+      animation: ui-scroll-fade-start linear, ui-scroll-fade-start-hold linear, ui-scroll-fade-end-hold linear, ui-scroll-fade-end linear;
+      animation-timeline: scroll(self inline);
+      animation-range:
+        0 var(--_ui-scroll-fade-size),
+        var(--_ui-scroll-fade-size) calc(100% + 1px),
+        -1px calc(100% - var(--_ui-scroll-fade-size)),
+        calc(100% - var(--_ui-scroll-fade-size)) 100%;
+    }
+
+    :host:dir(rtl) .grid {
+      --_ui-scroll-fade-direction: to left;
     }
 
     .cell {
@@ -68,6 +94,11 @@
       border-color: var(--ui-accent-solid, var(--ui-accent));
     }
 
+    .cell:focus-visible {
+      outline: 2px solid var(--ui-focus-ring);
+      outline-offset: -2px;
+    }
+
     .header {
       display: block;
       margin-bottom: var(--ui-space-2);
@@ -75,19 +106,22 @@
       cursor: pointer;
     }
 
-    :host .insert {
-      width: 100%;
-      padding: var(--ui-space-2) var(--ui-space-3);
-      border: 1px solid var(--ui-border);
-      border-radius: var(--ui-radius-sm);
-      background: var(--ui-accent-solid, var(--ui-accent));
-      color: var(--ui-accent-contrast);
-      font-size: var(--ui-font-size-sm);
-      cursor: pointer;
+    @media (pointer: coarse) {
+      .grid {
+        grid-template-columns: repeat(var(--_cols, 8), 44px);
+        grid-template-rows: repeat(var(--_rows, 8), 44px);
+      }
+
+      .cell {
+        width: 44px;
+        height: 44px;
+      }
     }
 
-    :host .insert:hover {
-      filter: brightness(1.05);
+    @media (forced-colors: active) {
+      .cell:focus-visible {
+        outline-color: Highlight;
+      }
     }
 
     :host[hidden] {

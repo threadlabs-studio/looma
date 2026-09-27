@@ -50,6 +50,11 @@
     <prop name="required" type="boolean" default="false"
     >Requires a value: adds an asterisk to the label, marks the input required for native form validation, and makes validation report "A value is required."
       when the field is left empty. In multiple mode a chosen item satisfies it, whatever is left in the input.</prop>
+    <prop name="invalid" type="boolean" default="false"
+    >Exposes an externally validated error on the input and field. It remains until the consumer clears it, independently of native validation.</prop>
+    <prop name="openOnFocus" type="boolean" default="false">Opens suggestions when the input receives focus, before typing.</prop>
+    <prop name="loading" type="boolean" default="false"
+    >Marks the suggestion list busy while the consumer loads options. It announces loading and suppresses the empty state and create offer until cleared.</prop>
     <prop name="size" type="sm | md | lg" default="md"
     >Field height, padding, and type size, matching Button's sizes so a field and a button of one size share a row. sm is the small control height (2rem by
       default) with smaller text, for compact rows such as a table row or a filter bar; md is the standard control height; lg is taller with roomier padding.
@@ -81,7 +86,6 @@
       :value="[]"
     ></state>
     <state name="active" :value="-1"></state>
-    <state name="loading" :value="false"></state>
     <state name="helpOpen" :value="false"></state>
     <state name="lookupError" :value="''"></state>
     <state
@@ -163,8 +167,8 @@
           autocomplete="off"
           :aria-controls="format('%s-listbox', uid)"
           :aria-expanded="expanded"
-          :aria-invalid="validationStatus = 'error'"
-          :aria-busy="validationStatus = 'pending'"
+          :aria-invalid="invalid or validationStatus = 'error'"
+          :aria-busy="loading or validationStatus = 'pending'"
           .value="display"
           :placeholder="placeholder"
           :disabled="disabled"
@@ -262,6 +266,7 @@
         >
         </div>
         <div $if="message" class="message" $value="message"></div>
+        <div $if="not loading and not rows[0] and not creatable and not lookupError" class="message"><slot name="empty">No suggestions.</slot></div>
       </div>
       <slot name="footer"></slot>
     </div>
@@ -313,6 +318,30 @@
       syntax: "*";
       inherits: false;
     }
+    @property --ui-combobox-radius {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-combobox-invalid-border {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-combobox-popup-surface {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-combobox-popup-border {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-combobox-popup-radius {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-combobox-popup-shadow {
+      syntax: "*";
+      inherits: false;
+    }
 
     :host {
       /* Hooks do not inherit, so the parts below read them from the root. */
@@ -326,6 +355,12 @@
       --_ui-combobox-item-min-block-size: var(--ui-combobox-item-min-block-size);
       --_ui-combobox-item-input-min-inline-size: var(--ui-combobox-item-input-min-inline-size);
       --_ui-combobox-item-item-max-inline-size: var(--ui-combobox-item-item-max-inline-size);
+      --_ui-combobox-radius: var(--ui-combobox-radius);
+      --_ui-combobox-invalid-border: var(--ui-combobox-invalid-border);
+      --_ui-combobox-popup-surface: var(--ui-combobox-popup-surface);
+      --_ui-combobox-popup-border: var(--ui-combobox-popup-border);
+      --_ui-combobox-popup-radius: var(--ui-combobox-popup-radius);
+      --_ui-combobox-popup-shadow: var(--ui-combobox-popup-shadow);
 
       display: grid;
       gap: var(--ui-space-1);
@@ -352,7 +387,7 @@
       display: flex;
       min-inline-size: 0;
       border: 1px solid var(--ui-control-border, var(--ui-border-default));
-      border-radius: var(--ui-radius-md);
+      border-radius: var(--_ui-combobox-radius, var(--ui-field-radius, var(--ui-radius-md)));
       background: var(--ui-control-surface, var(--ui-surface-default));
       box-shadow: var(--ui-control-inset);
       transition: border-color var(--ui-motion-fast) var(--ui-motion-ease), box-shadow var(--ui-motion-fast) var(--ui-motion-ease);
@@ -470,8 +505,9 @@
     .field:has(input:disabled) {
       background: var(--ui-control-surface-disabled, var(--ui-surface-muted));
     }
-    :host-state([validationStatus="error"]) .field {
-      border-color: var(--ui-danger-solid, var(--ui-accent-active));
+    :host-state([validationStatus="error"]) .field,
+    :host-state([invalid]) .field {
+      border-color: var(--_ui-combobox-invalid-border, var(--ui-field-danger, var(--ui-danger-solid, var(--ui-accent-active))));
     }
     .popup {
       box-sizing: border-box;
@@ -481,11 +517,11 @@
       overflow: auto;
       margin: 0;
       padding: var(--ui-space-1);
-      border: 1px solid var(--ui-border-default);
-      border-radius: var(--ui-radius-md);
-      background: var(--ui-surface-elevated);
+      border: 1px solid var(--_ui-combobox-popup-border, var(--ui-overlay-border, var(--ui-border-default)));
+      border-radius: var(--_ui-combobox-popup-radius, var(--ui-overlay-radius, var(--ui-radius-md)));
+      background: var(--_ui-combobox-popup-surface, var(--ui-overlay-surface, var(--ui-surface-elevated)));
       color: var(--ui-text-primary);
-      box-shadow: var(--ui-elevation-overlay, var(--ui-shadow-lg));
+      box-shadow: var(--_ui-combobox-popup-shadow, var(--ui-overlay-shadow, var(--ui-elevation-overlay, var(--ui-shadow-lg))));
     }
     [hidden] {
       display: none;

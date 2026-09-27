@@ -1,4 +1,7 @@
 @layer tokens {
+  /* Optional group values (for example --ui-field-radius and --ui-overlay-surface) are not
+     declared here. A component reads group → global as a fallback chain, so changing a global
+     value remains effective until a consumer deliberately sets the inherited group value. */
   /* The theme contract.
      These are the values a product sets to theme Looma. Everything else in this file is derived
      from them, so a theme that sets only these still looks coherent. A component reads a derived

@@ -6,7 +6,17 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 # Tabs
 
-Tablist primitive that synchronizes tab focus, selection, and panel visibility.
+Tablist primitive that synchronizes tab focus, selection, and panel visibility. The default
+`activation="auto"` selects a panel as arrow keys move focus. Use `activation="manual"` when a
+panel takes time to render or load: arrows and Home/End move focus without changing the selected
+panel; Enter or Space selects the focused tab. Clicking a tab selects it in either mode.
+
+Panels are authored sections with an `id` and `aria-label`; Looma generates simple tab buttons
+from them. When a tab needs an icon, count, or other rich label, author `<button slot="tab"
+value="panel-id">…</button>` for each panel. The button's `value` matches the panel's `id`.
+Looma adds the tab role, selection state, keyboard behavior, and panel labelling; a native
+`disabled` button is skipped during arrow navigation. Keep the panel's `aria-label` as a text
+fallback and name the tab list with `label`.
 
 
 <ComponentExamplesApiTabs component="ui-tabs" />

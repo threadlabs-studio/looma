@@ -6,7 +6,15 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 # Menu Item
 
-Focusable menu item primitive intended for use inside `ui-menu`.
+Use an item inside a Menu or Context Menu. `value` identifies the choice in the menu's `select`
+event. Set `href` for a real link with native navigation, including modified clicks and the
+browser's link context menu. Disabled link items have no active destination. The `shortcut` slot
+shows a key hint without installing a key binding.
+
+`type="checkbox"` toggles independently. `type="radio"` chooses one item within the nearest
+Menu Group. Both expose `aria-checked`, emit `change` with `{checked, value, type, trigger}`, and
+leave their menu open. The `checked` option supplies the initial state or follows application
+state when that option changes. An action item closes its menu after selection.
 
 
 <ComponentExamplesApiTabs component="ui-menu-item" />

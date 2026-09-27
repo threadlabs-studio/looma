@@ -1,0 +1,67 @@
+<template component="ui-editor-mention-menu-item">
+  <defs>
+    <prop name="value" type="string" default="">Stable identifier reported by the containing Mention Menu when this person is chosen.</prop>
+    <prop name="detail" type="string" default="">Secondary text, such as a team or role.</prop>
+    <prop name="initials" type="string" default="">Text fallback for the start slot when no avatar is supplied.</prop>
+  </defs>
+  <li role="option" tabindex="-1" :data-value="value">
+    <span class="avatar" aria-hidden="true"><slot name="start"><template $value="initials"></template></slot></span>
+    <span class="body"><span class="label"><slot></slot></span><span $if="detail" class="detail" $value="detail"></span></span>
+  </li>
+  <style>
+    :host {
+      display: flex;
+      align-items: center;
+      min-block-size: 44px;
+      padding: var(--ui-space-2) var(--ui-space-3);
+      gap: var(--ui-space-3);
+      cursor: pointer;
+      list-style: none;
+    }
+
+    :host[aria-selected="true"] {
+      background: var(--ui-accent-subtle);
+    }
+
+    .avatar {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      inline-size: 32px;
+      block-size: 32px;
+      flex: 0 0 auto;
+      color: var(--ui-accent-active);
+      background: var(--ui-accent-soft);
+      border-radius: var(--ui-radius-round);
+      font-size: var(--ui-font-size-xs);
+      font-weight: var(--ui-font-semibold);
+    }
+
+    .body {
+      display: flex;
+      min-inline-size: 0;
+      flex-direction: column;
+    }
+
+    .label, .detail {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .label {
+      color: var(--ui-text-primary);
+      font-size: var(--ui-font-size-sm);
+      font-weight: var(--ui-font-medium);
+    }
+
+    .detail {
+      color: var(--ui-text-muted);
+      font-size: var(--ui-font-size-xs);
+    }
+
+    :host[hidden] {
+      display: none;
+    }
+  </style>
+</template>

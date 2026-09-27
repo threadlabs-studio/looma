@@ -10,5 +10,11 @@ The row primitive used inside `ui-tree`. It provides semantic tree-item state,
 disclosure, a Lucide drag grip, action and leading slots, nested children, and
 the visual before/inside/after drop states coordinated by its parent tree.
 
+Set `lazy` when children arrive after expansion. The item remains a branch with no authored
+children, emits `expand` when opened, and reports `aria-busy` until children are appended. A
+`sortable` item provides drag, click or tap, and keyboard move paths through its handle.
+The `selected` prop is controlled by the application; the parent Tree's `select` event requests
+new selected IDs. In multiple mode, the item shows a checkbox, and a branch can show a mixed state.
+
 
 <ComponentExamplesApiTabs component="ui-tree-item" />

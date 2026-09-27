@@ -8,6 +8,10 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 Form-field composition primitive that links label/control/description semantics.
 
+Put help in the `help` slot and a validation message in the `error` slot. The message stays hidden
+and out of the control's description until `invalid` is true. Pair `required` with a visible cue
+in the authored label so people know a value is needed before validation runs.
+
 ## Labels without JavaScript
 
 Link the label to its control in the HTML: give the control an `id` and the label a matching `for`,

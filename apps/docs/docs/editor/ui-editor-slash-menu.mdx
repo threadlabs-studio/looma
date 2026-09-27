@@ -6,7 +6,19 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 # Slash Menu
 
-Responsive suggestion surface for app-provided slash commands.
+Responsive suggestion surface for app-provided slash commands. Author
+`ui-editor-slash-menu-item` children with stable `value` identifiers and optional `keywords`,
+`description`, and Lucide `icon`. Wrap related items in a
+`ui-editor-slash-menu-group label="…"`; the menu filters authored items by label and keywords as
+`query` changes, hides empty groups, and displays an authored `empty` slot when nothing matches.
+An optional `footer` slot can show local keyboard hints. A `header` slot appears on mobile; the
+menu supplies no hard-coded English header or footer.
+
+The existing `items` data option remains for editor integrations that already publish a filtered
+command snapshot. Both paths emit `select` and `highlight` with `{ index, value }`; the index is
+within the currently visible list, and `value` is the authored identifier or the supplied item's
+`value` (falling back to its title). An authored `aria-label` or `aria-labelledby` takes precedence
+over the `label` prop. Keep command execution in the editor integration.
 
 
 <ComponentExamplesApiTabs component="ui-editor-slash-menu" />

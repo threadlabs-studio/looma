@@ -38,14 +38,30 @@ export default function controller(host) {
 
   const onCancel = (event) => {
     event.preventDefault();
-    if (host.state.dismissible) dispatchClose("escape", "keyboard");
-  };
-  // A search field spends the first Escape clearing itself and the dialog never sees a cancel,
-  // so a dismissible shell closes on Escape from anywhere inside it.
-  const onKeydown = (event) => {
-    if (event.key !== "Escape" || event.defaultPrevented || !host.state.dismissible) return;
-    event.preventDefault();
     dispatchClose("escape", "keyboard");
+  };
+  const resultRows = () => Array.from(dialog.querySelectorAll(".body button[aria-current]"))
+    .filter((row) => !row.disabled && !row.hidden && !row.closest("[hidden]"));
+  // A search field can spend Escape clearing itself before the native dialog sees a cancel.
+  const onKeydown = (event) => {
+    if (event.defaultPrevented) return;
+    if (event.key === "Escape") {
+      event.preventDefault();
+      dispatchClose("escape", "keyboard");
+      return;
+    }
+    if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
+    const rows = resultRows();
+    if (!rows.length) return;
+    const target = event.target;
+    const fromSearch = target.closest?.(".search") && target.matches?.("input, [role='searchbox'], [role='combobox']");
+    const index = rows.indexOf(target.closest?.(".body button[aria-current]"));
+    if (!fromSearch && index < 0) return;
+    event.preventDefault();
+    if (event.key === "Home") rows[0].focus();
+    else if (event.key === "End") rows.at(-1).focus();
+    else if (event.key === "ArrowDown") rows[fromSearch ? 0 : (index + 1) % rows.length].focus();
+    else rows[fromSearch ? rows.length - 1 : (index - 1 + rows.length) % rows.length].focus();
   };
   const onClick = (event) => {
     if (host.state.dismissible && event.target === dialog) dispatchClose("light-dismiss", trigger());
