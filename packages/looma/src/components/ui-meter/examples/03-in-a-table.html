@@ -1,6 +1,6 @@
 <!--
 title: In a table
-description: size="sm" is a thin bar that sits in a line of text. Here it leads each amount in an end-aligned column, the tone marks each invoice's state, and valueText reads the amounts and the state.
+description: size="sm" is a thin bar that sits in a line of text. Here it leads each amount in an end-aligned column, a nowrap Cluster keeps each bar beside its amount, the tone marks each invoice's state, and valueText reads the amounts and the state.
 -->
 <ui-table>
   <table>
@@ -15,7 +15,7 @@ description: size="sm" is a thin bar that sits in a line of text. Here it leads 
       <tr>
         <th scope="row">INV-1041</th>
         <td data-ui-align="end">
-          <ui-cluster gap="s" justify="end"><ui-meter
+          <ui-cluster gap="s" justify="end" wrap="nowrap"><ui-meter
               size="sm"
               value="0"
               max="1240"
@@ -27,7 +27,7 @@ description: size="sm" is a thin bar that sits in a line of text. Here it leads 
       <tr>
         <th scope="row">INV-1042</th>
         <td data-ui-align="end">
-          <ui-cluster gap="s" justify="end"><ui-meter
+          <ui-cluster gap="s" justify="end" wrap="nowrap"><ui-meter
               size="sm"
               value="750"
               max="1240"
@@ -40,7 +40,7 @@ description: size="sm" is a thin bar that sits in a line of text. Here it leads 
       <tr>
         <th scope="row">INV-1043</th>
         <td data-ui-align="end">
-          <ui-cluster gap="s" justify="end"><ui-meter
+          <ui-cluster gap="s" justify="end" wrap="nowrap"><ui-meter
               size="sm"
               value="86.5"
               max="86.5"
@@ -53,7 +53,7 @@ description: size="sm" is a thin bar that sits in a line of text. Here it leads 
       <tr>
         <th scope="row">INV-1044</th>
         <td data-ui-align="end">
-          <ui-cluster gap="s" justify="end"><ui-meter
+          <ui-cluster gap="s" justify="end" wrap="nowrap"><ui-meter
               size="sm"
               value="3000"
               max="12000"

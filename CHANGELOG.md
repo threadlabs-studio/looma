@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.15.1
+
+- Cluster adds `wrap` (`wrap` or `nowrap`). The default still wraps; `nowrap` keeps a small group,
+  such as a meter and its value in a table cell, on one row at its items' own sizes.
+
 ## v0.15.0
 
 - LoomaEditor's toolbar now opens a link form for selected text, an existing link, or a new link
