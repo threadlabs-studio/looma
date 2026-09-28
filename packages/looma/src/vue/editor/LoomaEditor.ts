@@ -29,7 +29,6 @@ import {
   normalizeActiveTableColumnWidths,
   resolveTableCellAt,
   shouldShowTextFormattingToolbar,
-  type LoomaEditorHighlight,
   type LoomaSlashMenuSnapshot,
   type LoomaMentionItem,
   type LoomaMentionMenuSnapshot,
@@ -237,12 +236,12 @@ export const LoomaEditor = defineComponent({
       default: "bubble",
     },
     /**
-     * `display` shows stored highlights but offers no way to add one: no toolbar
-     * button, shortcut, `==text==` rule, or `<mark>` paste. Read once, when the editor is created.
+     * Authors can't highlight: no toolbar button, shortcut, `==text==` rule, or `<mark>` paste.
+     * Highlights already in the document still show. Read once, when the editor is created.
      */
-    highlight: {
-      type: String as PropType<LoomaEditorHighlight>,
-      default: "editable",
+    disableHighlight: {
+      type: Boolean,
+      default: false,
     },
   },
   emits: {
@@ -393,13 +392,13 @@ export const LoomaEditor = defineComponent({
       };
     };
 
-    const authorHighlight = props.highlight !== "display";
+    const authorHighlight = !props.disableHighlight;
     const editor = useEditor({
       extensions: [
         ...getDefaultEditorExtensions({
           placeholder: props.placeholder,
           mention: mentionExtension ?? false,
-          highlight: authorHighlight ? "editable" : "display",
+          disableHighlight: props.disableHighlight,
         }),
         imageDelivery.extension,
         slashExtension,

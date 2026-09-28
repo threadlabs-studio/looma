@@ -54,21 +54,17 @@ export interface DefaultEditorExtensionsOptions {
   /** Custom mention extension, the Looma default, or false to omit mentions. */
   mention?: AnyExtension | false;
   /**
-   * `editable` (default) lets authors apply the highlight mark. `display` keeps
-   * it in the schema so stored JSON highlights still load and render, but
-   * removes every way to create one: the Mod-Shift-H shortcut, `==text==`
-   * typing and paste rules, and `<mark>` parsing from pasted or HTML content.
-   * Use it when the application reserves highlighting for itself.
+   * Removes every way for authors to apply the highlight mark: the Mod-Shift-H
+   * shortcut, `==text==` typing and paste rules, and `<mark>` parsing from
+   * pasted or HTML content. Highlights already stored in a document still load
+   * and render. Use it when the application reserves highlighting for itself.
    */
-  highlight?: LoomaEditorHighlight;
+  disableHighlight?: boolean;
 }
 
-/** Whether authors may apply the highlight mark or only see stored highlights. */
-export type LoomaEditorHighlight = "editable" | "display";
-
 // Removing the mark from the schema would make Tiptap discard any stored
-// document that uses it, so display mode strips only the ways to create it.
-const DisplayOnlyHighlight = Highlight.extend({
+// document that uses it, so disabling it strips only the ways to create it.
+const StoredOnlyHighlight = Highlight.extend({
   parseHTML: () => [],
   addKeyboardShortcuts: () => ({}),
   addInputRules: () => [],
@@ -115,7 +111,7 @@ export function getDefaultEditorExtensions(
     linkOpenOnClick = false,
     imageInline = false,
     mention = createLoomaMentionExtension(),
-    highlight = "editable",
+    disableHighlight = false,
   } = options;
 
   return [
@@ -144,7 +140,7 @@ export function getDefaultEditorExtensions(
       HTMLAttributes: { rel: "noopener noreferrer", target: "_blank" },
     }),
     Image.configure({ inline: imageInline }),
-    (highlight === "display" ? DisplayOnlyHighlight : Highlight).configure({ multicolor: false }),
+    (disableHighlight ? StoredOnlyHighlight : Highlight).configure({ multicolor: false }),
     Code,
     LoomaSmartPaste,
     CodeBlockLowlight.configure({ lowlight }),

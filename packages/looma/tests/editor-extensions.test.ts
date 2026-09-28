@@ -368,15 +368,15 @@ describe("editor extension contract", () => {
     codeElement.remove();
   });
 
-  it("keeps stored highlights but offers no way to create one in display mode", () => {
+  it("keeps stored highlights but offers no way to create one when highlight is disabled", () => {
     const stored: JSONContent = {
       type: "doc",
       content: [{ type: "paragraph", content: [{ type: "text", text: "kept", marks: [{ type: "highlight" }] }] }],
     };
-    const mount = (highlight: "editable" | "display") => {
+    const mount = (disableHighlight: boolean) => {
       const element = document.createElement("div");
       document.body.append(element);
-      return new Editor({ element, extensions: getDefaultEditorExtensions({ highlight }), content: "<p>word</p>" });
+      return new Editor({ element, extensions: getDefaultEditorExtensions({ disableHighlight }), content: "<p>word</p>" });
     };
     const highlightsAfter = (editor: Editor, act: () => void) => {
       editor.commands.setContent("<p>word</p>");
@@ -400,22 +400,22 @@ describe("editor extension contract", () => {
       pasteFromSourceEditor(editor, "<p>a <mark>marked</mark> b</p>", undefined, "<p>a <mark>marked</mark> b</p>");
     };
 
-    const editable = mount("editable");
+    const editable = mount(false);
     expect(highlightsAfter(editable, shortcut(editable))).toBe(true);
     expect(highlightsAfter(editable, typed(editable))).toBe(true);
     expect(highlightsAfter(editable, pasted(editable))).toBe(true);
 
-    const display = mount("display");
-    expect(highlightsAfter(display, shortcut(display))).toBe(false);
-    expect(highlightsAfter(display, typed(display))).toBe(false);
-    expect(highlightsAfter(display, pasted(display))).toBe(false);
-    expect(display.getText()).toContain("marked");
-    display.commands.setContent(stored);
-    expect(display.getJSON()).toEqual(stored);
-    expect(display.getHTML()).toContain("<mark>kept</mark>");
+    const disabled = mount(true);
+    expect(highlightsAfter(disabled, shortcut(disabled))).toBe(false);
+    expect(highlightsAfter(disabled, typed(disabled))).toBe(false);
+    expect(highlightsAfter(disabled, pasted(disabled))).toBe(false);
+    expect(disabled.getText()).toContain("marked");
+    disabled.commands.setContent(stored);
+    expect(disabled.getJSON()).toEqual(stored);
+    expect(disabled.getHTML()).toContain("<mark>kept</mark>");
 
     editable.destroy();
-    display.destroy();
+    disabled.destroy();
     document.body.innerHTML = "";
   });
 
