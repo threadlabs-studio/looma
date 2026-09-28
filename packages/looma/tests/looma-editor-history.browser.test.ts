@@ -63,6 +63,23 @@ afterEach(async () => {
 });
 
 describe("LoomaEditor history (real browser)", () => {
+  it("omits inline display-none source content from a formatted paste", async () => {
+    const { editor } = await mountEditor();
+    editor.commands.focus("start");
+    pasteFromSourceEditor(editor,
+      '<p>Visible <span style="display   :   none">Hidden</span>text</p>',
+      "html");
+    await flushBrowser();
+
+    expect(editor.getText()).toBe("Visible text");
+    expect(editor.getHTML()).not.toContain("Hidden");
+
+    editor.commands.selectAll();
+    pasteFromSourceEditor(editor, '<p style="display:none">Not inserted</p>', "html");
+    await flushBrowser();
+    expect(editor.getText()).toBe("Visible text");
+  });
+
   it("undoes and redoes a structured document paste with keyboard shortcuts", async () => {
     const { editor } = await mountEditor();
     editor.commands.focus("start");
