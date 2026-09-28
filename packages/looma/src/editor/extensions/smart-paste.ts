@@ -1,5 +1,5 @@
 import { Extension } from "@tiptap/core";
-import { DOMParser as ProseMirrorDOMParser, type Schema, type Slice } from "@tiptap/pm/model";
+import { DOMParser as ProseMirrorDOMParser, type Schema, Slice } from "@tiptap/pm/model";
 import { Plugin } from "@tiptap/pm/state";
 import DOMPurify from "dompurify";
 import MarkdownIt from "markdown-it";
@@ -49,6 +49,10 @@ function looksLikeMarkdown(value: string): boolean {
 
 function parseHtmlSlice(schema: Schema, value: string): Slice | null {
   const parsed = new globalThis.DOMParser().parseFromString(value, "text/html");
+  if (parsed.body.style.display === "none") return Slice.empty;
+  for (const element of parsed.body.querySelectorAll<HTMLElement>("[style]")) {
+    if (element.style.display === "none") element.remove();
+  }
   const container = document.createElement("div");
   container.append(DOMPurify.sanitize(parsed.body.innerHTML, {
     USE_PROFILES: { html: true },
@@ -56,7 +60,7 @@ function parseHtmlSlice(schema: Schema, value: string): Slice | null {
     FORBID_ATTR: ["style"],
     RETURN_DOM_FRAGMENT: true,
   }));
-  if (!container.textContent?.trim() && !container.querySelector("img, hr")) return null;
+  if (!container.textContent?.trim() && !container.querySelector("img, hr")) return Slice.empty;
   return ProseMirrorDOMParser.fromSchema(schema).parseSlice(container, {
     preserveWhitespace: false,
   });
@@ -101,6 +105,7 @@ export const LoomaSmartPaste = Extension.create({
             if (!plainText.trim()) return false;
             const slice = documentSlice(view.state.schema, plainText);
             if (!slice) return false;
+            if (slice.size === 0) return true;
 
             const transaction = view.state.tr
               .replaceSelection(slice)
