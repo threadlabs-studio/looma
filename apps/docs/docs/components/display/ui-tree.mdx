@@ -28,6 +28,11 @@ Put an item's icon in the `leading` slot and its name in the `label` slot. The l
 when a long name scrolls (`marquee`) and what fades under the controls, so an icon inside the label
 would move and fade with the name.
 
+With `marquee`, a name too long for its row scrolls while a pointer hovers the row or keyboard
+focus is on it. It fades out before the leading icon as it slides, rests at the end, then scrolls
+again from the start until the pointer or focus leaves. A touch never starts it, so a swipe through
+a long list stays still. Reduced motion keeps the fade and skips the scroll.
+
 When a leaf row's label is a link, the whole row is that link: a click on its icon or padding
 follows the link, with the same modifier keys, so a modified click still opens a new tab. Clicks on
 controls (the move handle, anything in `actions`, including an item of a menu the row holds) keep

@@ -105,6 +105,10 @@ export default function controller(host) {
    * overlay the label's end rather than taking width from it.
    */
   const MARQUEE_SPEED = 36; // CSS pixels per second, for every name: a clamped duration made short slides crawl.
+  const MARQUEE_REST = 1800; // Milliseconds the name holds at its end before the next pass.
+  let marqueeRestart;
+  let pointerHover = false;
+  let keyboardFocus = false;
   // The tree sets this for its items; an item's own prop overrides it either way.
   const marqueeWanted = () => host.state.marquee
     || getComputedStyle(element).getPropertyValue("--_ui-default-tree-item-marquee").trim() === "1";
@@ -122,21 +126,60 @@ export default function controller(host) {
     if (distance <= 0) return;
     const lead = icon?.width ? (rightToLeft ? icon.right - cell.right : cell.left - icon.left) : 0;
     row.style.setProperty("--_marquee-lead", `${Math.max(0, lead)}px`);
+    row.style.setProperty("--_marquee-icon-width", `${icon?.width ?? 0}px`);
     row.style.setProperty("--_marquee-distance", `${rightToLeft ? distance : -distance}px`);
     row.style.setProperty("--_marquee-duration", `${(distance / MARQUEE_SPEED).toFixed(2)}s`);
     row.dataset.uiMarquee = "";
   };
   const stopMarquee = () => {
+    clearTimeout(marqueeRestart);
     delete row.dataset.uiMarquee;
     row.style.removeProperty("--_marquee-lead");
+    row.style.removeProperty("--_marquee-icon-width");
     row.style.removeProperty("--_marquee-distance");
     row.style.removeProperty("--_marquee-duration");
   };
-  // Pointer and focus both count: a keyboard walk through a tree reads the same names.
-  row.addEventListener("pointerenter", startMarquee);
-  row.addEventListener("pointerleave", stopMarquee);
-  row.addEventListener("focusin", startMarquee);
-  row.addEventListener("focusout", stopMarquee);
+  // A hovering pointer and keyboard focus both count: a keyboard walk through a tree reads the same
+  // names. A touch does not, so a swipe down the list, or the focus a tap leaves, never starts it.
+  const onPointerEnter = (event) => {
+    if (event.pointerType === "touch") return;
+    pointerHover = true;
+    startMarquee();
+  };
+  const onPointerLeave = (event) => {
+    if (event.pointerType === "touch") return;
+    pointerHover = false;
+    if (!keyboardFocus) stopMarquee();
+  };
+  // Keyboard focus lands on the item itself as the tree roves, or on a control in its row; a nested
+  // item's focus is that item's own.
+  const ownFocus = (event) => event.target === element || row.contains(event.target);
+  const onFocusIn = (event) => {
+    if (!ownFocus(event) || !event.target.matches?.(":focus-visible")) return;
+    keyboardFocus = true;
+    startMarquee();
+  };
+  const onFocusOut = (event) => {
+    if (!ownFocus(event)) return;
+    keyboardFocus = false;
+    if (!pointerHover) stopMarquee();
+  };
+  // After a rest at the end, the name goes again from the start for as long as it is being read.
+  const onMarqueeEnd = (event) => {
+    if (event.target !== labelText || !("uiMarquee" in row.dataset)) return;
+    clearTimeout(marqueeRestart);
+    marqueeRestart = setTimeout(() => {
+      if (!pointerHover && !keyboardFocus) return;
+      delete row.dataset.uiMarquee;
+      void labelText.offsetWidth; // Flushes the finished animation, so the next one starts over.
+      row.dataset.uiMarquee = "";
+    }, MARQUEE_REST);
+  };
+  row.addEventListener("pointerenter", onPointerEnter);
+  row.addEventListener("pointerleave", onPointerLeave);
+  element.addEventListener("focusin", onFocusIn);
+  element.addEventListener("focusout", onFocusOut);
+  labelText?.addEventListener("animationend", onMarqueeEnd);
 
   // The label's fade has to end where the controls begin, and only the controls know their width.
   const actionsSize = new ResizeObserver(([entry]) => {
@@ -146,13 +189,15 @@ export default function controller(host) {
   if (actions) actionsSize.observe(actions);
 
   return () => {
+    clearTimeout(marqueeRestart);
     stop?.();
     observer.disconnect();
     actionsSize.disconnect();
-    row.removeEventListener("pointerenter", startMarquee);
-    row.removeEventListener("pointerleave", stopMarquee);
-    row.removeEventListener("focusin", startMarquee);
-    row.removeEventListener("focusout", stopMarquee);
+    row.removeEventListener("pointerenter", onPointerEnter);
+    row.removeEventListener("pointerleave", onPointerLeave);
+    element.removeEventListener("focusin", onFocusIn);
+    element.removeEventListener("focusout", onFocusOut);
+    labelText?.removeEventListener("animationend", onMarqueeEnd);
     element.removeEventListener("ui-tree-auto-expand", onAutoExpand);
     element.removeEventListener("ui-tree-structure-sync", onStructure);
     element.removeEventListener("ui-tree-roving-tab-stop", onRoving);
