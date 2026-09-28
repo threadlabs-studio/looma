@@ -1163,7 +1163,7 @@ test("dialog closes via header button, actions, Escape, and outside press, with 
   };
 
   let dialog = await open("Default");
-  expect(await dialog.evaluate((element: HTMLDialogElement) => element.matches(":modal"))).toBe(true);
+  expect(await dialog.evaluate((element: HTMLDialogElement) => element.matches(":modal"))).toBe(false);
   await expect(dialog.locator(".title")).toHaveText("Publish changes?");
   const footer = dialog.locator("footer");
   await expect(footer).toHaveCSS("justify-content", "flex-end");
@@ -1176,7 +1176,7 @@ test("dialog closes via header button, actions, Escape, and outside press, with 
   await dialog.getByRole("button", { name: "Close" }).click();
   await expect(dialog).not.toHaveAttribute("open", "");
 
-  dialog = await open("Modal by default");
+  dialog = await open("modal");
   expect(await dialog.evaluate((element: HTMLDialogElement) => element.matches(":modal"))).toBe(true);
   await page.keyboard.press("Escape");
   await expect(dialog).not.toHaveAttribute("open", "");

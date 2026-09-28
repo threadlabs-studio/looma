@@ -58,8 +58,10 @@ export default function controller(host) {
     else dialog?.removeAttribute("role");
     syncTrigger();
     const open = Boolean(host.state.internalOpen);
-    const modal = !host.state.modeless;
-    const requestedClosedBy = String(host.state.closedby ?? "closerequest");
+    // `modeless` is a deprecated no-op: non-modal is the default. An alert dialog is always modal (APG alertdialog).
+    const modal = Boolean(host.state.modal || host.state.alert);
+    // An unset or unknown closedby follows native <dialog>'s auto state: closerequest when modal, none otherwise.
+    const requestedClosedBy = ["any", "closerequest", "none"].includes(host.state.closedby) ? host.state.closedby : modal ? "closerequest" : "none";
     const closedBy = host.state.alert && requestedClosedBy === "any" ? "closerequest" : requestedClosedBy;
     trigger?.setAttribute("aria-expanded", String(open));
     if (!dialog) return;

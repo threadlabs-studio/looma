@@ -599,7 +599,41 @@ describe("Menu structure and navigation", () => {
 });
 
 describe("Dialog close policy and presentation", () => {
-  it("opens modally, closes on Escape, and reports trigger and close events", async () => {
+  const isOpen = (id: string) => `document.querySelector("#${id}").open`;
+
+  it("is non-modal by default, like native show(): no backdrop, no scroll lock, Escape and outside presses do not close it", async () => {
+    const path = await bundle("html-dialog-default", `
+      import "@threadlabs/looma";
+      const dialog = document.querySelector("#dialog");
+      window.dialogEvents = [];
+      dialog.addEventListener("open", (event) => window.dialogEvents.push({ type: "open", ...event.detail }));
+      dialog.addEventListener("close", (event) => window.dialogEvents.push({ type: "close", ...event.detail }));
+    `);
+    const page = await open(path, `<ui-button id="trigger">Open</ui-button><button id="outside">Outside</button><ui-dialog id="dialog" for="trigger" label="Details"><button id="inside">Inside</button></ui-dialog>`, [join(root, "tokens.css")]);
+    await page.locator("#trigger").click();
+    const dialog = page.locator("#dialog");
+    await page.waitForFunction(isOpen("dialog"));
+    assert.equal(await dialog.evaluate((element) => element.matches(":modal")), false);
+    assert.equal(await dialog.getAttribute("closedby"), "none");
+    assert.equal(await page.evaluate(() => document.documentElement.hasAttribute("data-ui-scroll-lock")), false);
+    // Focus moves into the dialog, and the rest of the page stays usable.
+    assert.equal(await page.evaluate(() => document.querySelector("#dialog")!.contains(document.activeElement)), true);
+    await page.keyboard.press("Escape");
+    await page.locator("#outside").click();
+    assert.equal(await page.evaluate(() => document.activeElement?.id), "outside");
+    assert.equal(await dialog.evaluate((element) => (element as HTMLDialogElement).open), true);
+    // The header close button is the visible exit.
+    await dialog.getByRole("button", { name: "Close" }).click();
+    await page.waitForFunction(`!${isOpen("dialog")}`);
+    assert.equal(await page.evaluate(() => document.activeElement?.closest("#trigger") !== null), true, "focus returns to the trigger");
+    assert.deepEqual(await page.evaluate(() => (window as any).dialogEvents), [
+      { type: "open", open: true, reason: "action", trigger: "pointer" },
+      { type: "close", open: false, reason: "action", trigger: "pointer" },
+    ]);
+    await page.close();
+  });
+
+  it("opens modally with modal, locks scroll, closes on Escape, returns focus, and reports trigger and close events", async () => {
     const path = await bundle("html-dialog-close-policy", `
       import "@threadlabs/looma";
       const dialog = document.querySelector("#dialog");
@@ -607,13 +641,17 @@ describe("Dialog close policy and presentation", () => {
       dialog.addEventListener("open", (event) => window.dialogEvents.push({ type: "open", ...event.detail }));
       dialog.addEventListener("close", (event) => window.dialogEvents.push({ type: "close", ...event.detail }));
     `);
-    const page = await open(path, `<ui-button id="trigger">Open</ui-button><ui-dialog id="dialog" for="trigger" label="Details">Body</ui-dialog>`, [join(root, "tokens.css")]);
+    const page = await open(path, `<ui-button id="trigger">Open</ui-button><ui-dialog id="dialog" for="trigger" modal label="Details"><button id="inside">Inside</button></ui-dialog>`, [join(root, "tokens.css")]);
     await page.locator("#trigger").click();
     const dialog = page.locator("#dialog");
     assert.equal(await dialog.evaluate((element) => element.matches(":modal")), true);
     assert.equal(await dialog.getAttribute("closedby"), "closerequest");
+    assert.equal(await page.evaluate(() => document.documentElement.hasAttribute("data-ui-scroll-lock")), true);
+    assert.equal(await page.evaluate(() => document.querySelector("#dialog")!.contains(document.activeElement)), true);
     await page.keyboard.press("Escape");
-    await page.waitForFunction(() => !(document.querySelector("#dialog") as HTMLDialogElement).open);
+    await page.waitForFunction(`!${isOpen("dialog")}`);
+    assert.equal(await page.evaluate(() => document.documentElement.hasAttribute("data-ui-scroll-lock")), false);
+    assert.equal(await page.evaluate(() => document.activeElement?.closest("#trigger") !== null), true);
     assert.deepEqual(await page.evaluate(() => (window as any).dialogEvents), [
       { type: "open", open: true, reason: "action", trigger: "pointer" },
       { type: "close", open: false, reason: "escape", trigger: "keyboard" },
@@ -621,34 +659,102 @@ describe("Dialog close policy and presentation", () => {
     await page.close();
   });
 
-  it("separates outside dismissal from Escape and keeps alerts action-only when requested", async () => {
+  it("keeps modeless as a no-op: non-modal alone, and modal wins when both are set", async () => {
+    const path = await bundle("html-dialog-modeless", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-dialog id="modeless" open modeless label="Modeless">Body</ui-dialog>
+      <ui-dialog id="both" open modal modeless label="Both">Body</ui-dialog>
+    `, [join(root, "tokens.css")]);
+    assert.equal(await page.locator("#modeless").evaluate((element) => element.matches(":modal")), false);
+    assert.equal(await page.locator("#modeless").getAttribute("closedby"), "none");
+    assert.equal(await page.locator("#both").evaluate((element) => element.matches(":modal")), true);
+    assert.equal(await page.locator("#both").getAttribute("closedby"), "closerequest");
+    await page.close();
+  });
+
+  it("follows closedby in each mode", async () => {
+    const path = await bundle("html-dialog-closedby", `import "@threadlabs/looma";`);
+    for (const modal of [false, true]) {
+      const attribute = modal ? " modal" : "";
+      const page = await open(path, `
+        <ui-dialog id="any" open${attribute} closedby="any" label="Any">Body</ui-dialog>
+        <ui-dialog id="request" open${attribute} closedby="closerequest" label="Request">Body</ui-dialog>
+        <ui-dialog id="none" open${attribute} closedby="none" label="None">Body</ui-dialog>
+      `, [join(root, "tokens.css")]);
+      // The last opened dialog is on top of the stack; each close uncovers the next.
+      await page.keyboard.press("Escape");
+      await page.mouse.click(4, 4);
+      assert.equal(await page.evaluate(isOpen("none")), true, `closedby="none" ignores Escape and outside presses (modal: ${modal})`);
+      await page.locator("#none").getByRole("button", { name: "Close" }).click();
+      await page.waitForFunction(`!${isOpen("none")}`);
+      await page.mouse.click(4, 4);
+      await page.waitForTimeout(50);
+      assert.equal(await page.evaluate(isOpen("request")), true, `closedby="closerequest" ignores outside presses (modal: ${modal})`);
+      await page.keyboard.press("Escape");
+      await page.waitForFunction(`!${isOpen("request")}`);
+      await page.mouse.click(4, 4);
+      await page.waitForFunction(`!${isOpen("any")}`);
+      await page.close();
+    }
+  });
+
+  it("switches between non-modal and modal while open in Vue, and keeps the close default in step", async () => {
+    const path = await bundle("vue-dialog-modal-switch", `
+      import { createApp, h, ref } from "vue";
+      import { Dialog } from "@threadlabs/looma/vue";
+      const modal = ref(false);
+      window.dialogModal = modal;
+      createApp({ render: () => h(Dialog, { id: "dialog", open: true, modal: modal.value, label: "Switch" }, () => "Body") }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const dialog = page.locator("#dialog");
+    assert.equal(await dialog.evaluate((element) => element.matches(":modal")), false);
+    assert.equal(await dialog.getAttribute("closedby"), "none");
+    await page.evaluate(() => { (window as any).dialogModal.value = true; });
+    await page.waitForFunction(() => document.querySelector("#dialog")!.matches(":modal"));
+    assert.equal(await dialog.getAttribute("closedby"), "closerequest");
+    await page.evaluate(() => { (window as any).dialogModal.value = false; });
+    await page.waitForFunction(() => !document.querySelector("#dialog")!.matches(":modal"));
+    assert.equal(await dialog.getAttribute("closedby"), "none");
+    assert.equal(await page.evaluate(isOpen("dialog")), true);
+    await page.close();
+  });
+
+  it("separates outside dismissal from Escape and keeps alerts modal and action-only when requested", async () => {
     const path = await bundle("html-dialog-alert", `import "@threadlabs/looma";`);
     const page = await open(path, `
-      <ui-dialog id="dialog" open closedby="any" label="Info">Body</ui-dialog>
+      <ui-dialog id="dialog" open modal closedby="any" label="Info">Body</ui-dialog>
       <ui-button id="alert-trigger">Show alert</ui-button>
       <ui-dialog id="alert" for="alert-trigger" alert closedby="none" label="Delete?">Body<button commandfor="alert" command="close">Cancel</button></ui-dialog>
+      <ui-button id="alert-default-trigger">Discard</ui-button>
+      <ui-dialog id="alert-default" for="alert-default-trigger" alert label="Discard?">Body</ui-dialog>
     `, [join(root, "tokens.css")]);
-    const dialog = page.locator("#dialog");
     await page.mouse.click(4, 4);
-    await page.waitForFunction(() => !(document.querySelector("#dialog") as HTMLDialogElement).open);
+    await page.waitForFunction(`!${isOpen("dialog")}`);
     const alert = page.locator("#alert");
     await page.locator("#alert-trigger").click();
     assert.equal(await alert.getAttribute("role"), "alertdialog");
+    assert.equal(await alert.evaluate((element) => element.matches(":modal")), true);
     assert.equal(await alert.locator(".close").evaluate((element) => getComputedStyle(element).display), "none");
     await page.keyboard.press("Escape");
     assert.equal(await alert.evaluate((element) => (element as HTMLDialogElement).open), true);
     await alert.getByText("Cancel").click();
-    await page.waitForFunction(() => !(document.querySelector("#alert") as HTMLDialogElement).open);
+    await page.waitForFunction(`!${isOpen("alert")}`);
+    // An alert without modal is still modal, with the modal close default.
+    await page.locator("#alert-default-trigger").click();
+    await page.waitForFunction(isOpen("alert-default"));
+    assert.equal(await page.locator("#alert-default").evaluate((element) => element.matches(":modal")), true);
+    assert.equal(await page.locator("#alert-default").getAttribute("closedby"), "closerequest");
     await page.close();
   });
 
-  it("supports modeless and size choices while retaining the local width hook", async () => {
+  it("supports size choices while retaining the local width hook", async () => {
     const path = await bundle("html-dialog-size", `import "@threadlabs/looma";`);
     const page = await open(path, `
-      <ui-dialog id="small" open modeless size="sm" label="Small">Body</ui-dialog>
-      <ui-dialog id="large" open modeless size="lg" label="Large">Body</ui-dialog>
-      <ui-dialog id="custom" open modeless size="sm" style="--ui-dialog-max-width: 520px" label="Custom">Body</ui-dialog>
-      <ui-dialog id="full" open modeless size="fullscreen" label="Full">Body</ui-dialog>
+      <ui-dialog id="small" open size="sm" label="Small">Body</ui-dialog>
+      <ui-dialog id="large" open size="lg" label="Large">Body</ui-dialog>
+      <ui-dialog id="custom" open size="sm" style="--ui-dialog-max-width: 520px" label="Custom">Body</ui-dialog>
+      <ui-dialog id="full" open size="fullscreen" label="Full">Body</ui-dialog>
     `, [join(root, "tokens.css")]);
     const measure = async (id: string) => page.locator(id).evaluate((element) => ({ modal: element.matches(":modal"), width: Number.parseFloat(getComputedStyle(element).width), height: Number.parseFloat(getComputedStyle(element).height) }));
     const small = await measure("#small");
@@ -670,7 +776,7 @@ describe("Dialog close policy and presentation", () => {
       window.dialogEvents = [];
       createApp({ render: () => [
         h("button", { id: "show", onClick: () => { open.value = true; } }, "Show"),
-        h(Dialog, { id: "dialog", open: open.value, modeless: true, label: "Details", onOpen: (detail) => window.dialogEvents.push(detail) }, () => "Body"),
+        h(Dialog, { id: "dialog", open: open.value, label: "Details", onOpen: (detail) => window.dialogEvents.push(detail) }, () => "Body"),
       ] }).mount("#app");
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
@@ -2442,7 +2548,7 @@ describe("Action bar", () => {
     const page = await open(path, `
       ${bars.map(({ id, style, dir }) => `<div style="${style}"${dir ? ` dir="${dir}"` : ""}>${bar(id)}</div>`).join("")}
       <div style="width: 600px"><ui-action-bar id="solo"><ui-button id="solo-p" slot="primary">Save</ui-button></ui-action-bar></div>
-      <ui-dialog id="dialog" open modeless label="Unsaved changes">Body${bar("dialog").replace("<ui-action-bar", '<ui-action-bar slot="actions"')}</ui-dialog>`,
+      <ui-dialog id="dialog" open label="Unsaved changes">Body${bar("dialog").replace("<ui-action-bar", '<ui-action-bar slot="actions"')}</ui-dialog>`,
     [join(root, "tokens.css")]);
     await checkActionBar(page);
     await page.close();
@@ -2460,7 +2566,7 @@ describe("Action bar", () => {
       createApp({ render: () => [
         ...${JSON.stringify(bars)}.map(({ id, style, dir }) => h("div", { style, dir }, [bar(id)])),
         h("div", { style: "width: 600px" }, [h(ActionBar, { id: "solo" }, { primary: () => h(Button, { id: "solo-p" }, () => "Save") })]),
-        h(Dialog, { id: "dialog", open: true, modeless: true, label: "Unsaved changes" }, { default: () => "Body", actions: () => bar("dialog") }),
+        h(Dialog, { id: "dialog", open: true, label: "Unsaved changes" }, { default: () => "Body", actions: () => bar("dialog") }),
       ] }).mount("#app");
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
@@ -3502,7 +3608,7 @@ describe("Light dismiss", () => {
     const path = await bundle("vue-light-dismiss", `
       import { createApp, h } from "vue";
       import { Dialog } from "@threadlabs/looma/vue";
-      createApp({ render: () => h(Dialog, { id: "dialog", open: true, closedby: "any", label: "Details" }, () => "Body") }).mount("#app");
+      createApp({ render: () => h(Dialog, { id: "dialog", open: true, modal: true, closedby: "any", label: "Details" }, () => "Body") }).mount("#app");
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
     const dialog = page.locator("#dialog");
