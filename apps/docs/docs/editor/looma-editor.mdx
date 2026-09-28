@@ -25,6 +25,7 @@ formatting commands, selection and focus, and every editor control. See
 | `uploadImage` | none | Uploads a chosen image and returns its URL and alt text. Without it, Insert image is disabled. |
 | `resolveImageAttributes` | none | Adjusts an image's attributes, such as a responsive `srcset`, before it renders. |
 | `toolbarMode` | `bubble` | `bubble` shows the toolbar beside a selection; `sticky` keeps it pinned above the document. |
+| `highlight` | `editable` | `editable` lets authors highlight text. `display` shows highlights already in the document but offers no way to add one; see [Reserving highlight](#reserving-highlight). |
 
 ## Toolbar
 
@@ -41,6 +42,17 @@ bottom of the viewport. Its buttons follow the [Toolbar](/components/ui-editor-t
 `--ui-editor-toolbar-button-size`, `--ui-editor-toolbar-button-radius`,
 `--ui-editor-toolbar-icon-size`, and the active-state `--ui-editor-toolbar-active-surface`,
 `--ui-editor-toolbar-active-text`, and `--ui-editor-toolbar-active-border`.
+
+### Reserving highlight
+
+Set `highlight="display"` when the application uses highlighting for its own purposes, such as
+marking what changed, and an author's highlight would be mistaken for it. The editor then offers
+no Highlight button, `Mod-Shift-H` does nothing, typing or pasting `==text==` stays plain text,
+and pasted HTML `<mark>` keeps its text without the highlight. Highlights already stored in the
+document's JSON still load and render as `<mark>`; the mark stays in the schema because removing
+it would make the editor discard any document that uses it. The setting is read when the editor
+is created. Outside `LoomaEditor`, pass the same `highlight` option to
+`getDefaultEditorExtensions`.
 
 ### Links
 

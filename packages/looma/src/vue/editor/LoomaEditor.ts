@@ -29,6 +29,7 @@ import {
   normalizeActiveTableColumnWidths,
   resolveTableCellAt,
   shouldShowTextFormattingToolbar,
+  type LoomaEditorHighlight,
   type LoomaSlashMenuSnapshot,
   type LoomaMentionItem,
   type LoomaMentionMenuSnapshot,
@@ -235,6 +236,14 @@ export const LoomaEditor = defineComponent({
       type: String as PropType<LoomaEditorToolbarMode>,
       default: "bubble",
     },
+    /**
+     * `display` shows stored highlights but offers no way to add one: no toolbar
+     * button, shortcut, `==text==` rule, or `<mark>` paste. Read once, when the editor is created.
+     */
+    highlight: {
+      type: String as PropType<LoomaEditorHighlight>,
+      default: "editable",
+    },
   },
   emits: {
     "update:modelValue": (_value: JSONContent) => true,
@@ -384,11 +393,13 @@ export const LoomaEditor = defineComponent({
       };
     };
 
+    const authorHighlight = props.highlight !== "display";
     const editor = useEditor({
       extensions: [
         ...getDefaultEditorExtensions({
           placeholder: props.placeholder,
           mention: mentionExtension ?? false,
+          highlight: authorHighlight ? "editable" : "display",
         }),
         imageDelivery.extension,
         slashExtension,
@@ -1003,7 +1014,9 @@ export const LoomaEditor = defineComponent({
         commandButton("Italic", "italic", instance.isActive("italic"), !instance.can().toggleItalic(), () => instance.chain().focus().toggleItalic().run()),
         commandButton("Underline", "underline", instance.isActive("underline"), !instance.can().toggleUnderline(), () => instance.chain().focus().toggleUnderline().run()),
         commandButton("Strike", "strikethrough", instance.isActive("strike"), !instance.can().toggleStrike(), () => instance.chain().focus().toggleStrike().run()),
-        commandButton("Highlight", "highlighter", instance.isActive("highlight"), !instance.can().toggleHighlight(), () => instance.chain().focus().toggleHighlight().run()),
+        ...(authorHighlight
+          ? [commandButton("Highlight", "highlighter", instance.isActive("highlight"), !instance.can().toggleHighlight(), () => instance.chain().focus().toggleHighlight().run())]
+          : []),
         commandButton("Inline code", "code-xml", instance.isActive("code"), !instance.can().toggleCode(), () => instance.chain().focus().toggleCode().run()),
         h(IconButton, {
           id: linkAnchorId,

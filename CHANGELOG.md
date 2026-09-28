@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- LoomaEditor adds a `highlight` prop (and `getDefaultEditorExtensions` a `highlight` option). Set
+  to `display`, the editor still renders stored highlights but offers no way to add one: no
+  Highlight button, no `Mod-Shift-H`, no `==text==` typing or paste rule, and pasted `<mark>` keeps
+  only its text. The default, `editable`, is unchanged.
 - LoomaEditor recognizes Markdown and HTML document source by its contents when pasted, even if
   the clipboard also carries preformatted HTML. Headings, lists, links, tables, and source code
   blocks become editable editor content; imported HTML is sanitized before insertion.

@@ -53,7 +53,27 @@ export interface DefaultEditorExtensionsOptions {
   imageInline?: boolean;
   /** Custom mention extension, the Looma default, or false to omit mentions. */
   mention?: AnyExtension | false;
+  /**
+   * `editable` (default) lets authors apply the highlight mark. `display` keeps
+   * it in the schema so stored JSON highlights still load and render, but
+   * removes every way to create one: the Mod-Shift-H shortcut, `==text==`
+   * typing and paste rules, and `<mark>` parsing from pasted or HTML content.
+   * Use it when the application reserves highlighting for itself.
+   */
+  highlight?: LoomaEditorHighlight;
 }
+
+/** Whether authors may apply the highlight mark or only see stored highlights. */
+export type LoomaEditorHighlight = "editable" | "display";
+
+// Removing the mark from the schema would make Tiptap discard any stored
+// document that uses it, so display mode strips only the ways to create it.
+const DisplayOnlyHighlight = Highlight.extend({
+  parseHTML: () => [],
+  addKeyboardShortcuts: () => ({}),
+  addInputRules: () => [],
+  addPasteRules: () => [],
+});
 
 const lowlight = createLowlight(common);
 
@@ -95,6 +115,7 @@ export function getDefaultEditorExtensions(
     linkOpenOnClick = false,
     imageInline = false,
     mention = createLoomaMentionExtension(),
+    highlight = "editable",
   } = options;
 
   return [
@@ -123,7 +144,7 @@ export function getDefaultEditorExtensions(
       HTMLAttributes: { rel: "noopener noreferrer", target: "_blank" },
     }),
     Image.configure({ inline: imageInline }),
-    Highlight.configure({ multicolor: false }),
+    (highlight === "display" ? DisplayOnlyHighlight : Highlight).configure({ multicolor: false }),
     Code,
     LoomaSmartPaste,
     CodeBlockLowlight.configure({ lowlight }),

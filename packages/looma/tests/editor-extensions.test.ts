@@ -368,6 +368,57 @@ describe("editor extension contract", () => {
     codeElement.remove();
   });
 
+  it("keeps stored highlights but offers no way to create one in display mode", () => {
+    const stored: JSONContent = {
+      type: "doc",
+      content: [{ type: "paragraph", content: [{ type: "text", text: "kept", marks: [{ type: "highlight" }] }] }],
+    };
+    const mount = (highlight: "editable" | "display") => {
+      const element = document.createElement("div");
+      document.body.append(element);
+      return new Editor({ element, extensions: getDefaultEditorExtensions({ highlight }), content: "<p>word</p>" });
+    };
+    const highlightsAfter = (editor: Editor, act: () => void) => {
+      editor.commands.setContent("<p>word</p>");
+      act();
+      return JSON.stringify(editor.getJSON()).includes('"highlight"');
+    };
+    const shortcut = (editor: Editor) => () => {
+      editor.commands.setTextSelection({ from: 1, to: 5 });
+      const mac = /Mac/.test(navigator.platform);
+      const event = new KeyboardEvent("keydown", { key: "h", shiftKey: true, ctrlKey: !mac, metaKey: mac });
+      editor.view.someProp("handleKeyDown", (handle) => handle(editor.view, event));
+    };
+    const typed = (editor: Editor) => () => {
+      editor.commands.setTextSelection(5);
+      editor.commands.insertContent(" ==new=");
+      const { from } = editor.state.selection;
+      editor.view.someProp("handleTextInput", (handle) => handle(editor.view, from, from, "=", () => editor.state.tr));
+    };
+    const pasted = (editor: Editor) => () => {
+      editor.commands.setTextSelection(5);
+      pasteFromSourceEditor(editor, "<p>a <mark>marked</mark> b</p>", undefined, "<p>a <mark>marked</mark> b</p>");
+    };
+
+    const editable = mount("editable");
+    expect(highlightsAfter(editable, shortcut(editable))).toBe(true);
+    expect(highlightsAfter(editable, typed(editable))).toBe(true);
+    expect(highlightsAfter(editable, pasted(editable))).toBe(true);
+
+    const display = mount("display");
+    expect(highlightsAfter(display, shortcut(display))).toBe(false);
+    expect(highlightsAfter(display, typed(display))).toBe(false);
+    expect(highlightsAfter(display, pasted(display))).toBe(false);
+    expect(display.getText()).toContain("marked");
+    display.commands.setContent(stored);
+    expect(display.getJSON()).toEqual(stored);
+    expect(display.getHTML()).toContain("<mark>kept</mark>");
+
+    editable.destroy();
+    display.destroy();
+    document.body.innerHTML = "";
+  });
+
   it("offers table editing as both a standalone kit and the turnkey preset", () => {
     expect(LoomaTableKit.name).toBe("loomaTableKit");
     expect(getLoomaTableExtensions().map((extension) => extension.name)).toEqual([
