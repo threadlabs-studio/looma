@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- LoomaEditor recognizes Markdown and HTML document source by its contents when pasted, even if
+  the clipboard also carries preformatted HTML. Headings, lists, links, tables, and source code
+  blocks become editable editor content; imported HTML is sanitized before insertion.
+- The focused empty-editor placeholder remains readable when the active-block marker is enabled.
+
 ## v0.15.4
 
 - Warning text (`--ui-warning-subtle-text`, used by subtle warning Badges and warning Text) mixes 55%
