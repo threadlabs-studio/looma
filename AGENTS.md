@@ -48,6 +48,27 @@ Never claim a check passed unless it was run.
   behavior from the underlying contract.
 - Use Lucide icons from `LOOMA_ICONS`, never Unicode glyphs as icon stand-ins.
 
+## Changing an API
+
+Every app using Looma pays for a changed API, so the bar is high.
+
+- A rename, removal, changed event, or changed value is a breaking change. Make
+  one only with a strong justification, written in the PR description and in
+  the CHANGELOG entry: what goes wrong for users or apps today, why an additive
+  change (a new option, value, or alias) can't fix it, and how to migrate. "More
+  consistent" or "cleaner" is not enough on its own.
+- Changing a default needs the strongest justification of all. It silently
+  changes behaviour for every app that never set the option. State who is
+  affected and why the new default is right for nearly all of them.
+- Prefer additive changes. When a clearer name arrives, keep the old one working
+  unless keeping it causes real harm.
+- The boolean rule (an omitted boolean means `false`) is never by itself a
+  reason to change a default or invert a name. If making something the default
+  would need a negative name (`modeless`, `no-…`, `disable-…` for an existing
+  capability), keep the existing positive option instead.
+- Matching a native HTML attribute (for example `<dialog closedby>`) is a good
+  reason to adopt its name and values. Say so in the justification.
+
 ## Releases and Docs
 
 - Merging a change to `packages/looma/src` releases it: once CI passes, the
