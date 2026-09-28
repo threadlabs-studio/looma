@@ -25,10 +25,10 @@ describe("editor extension contract", () => {
   const cellText = (row: JSONContent | undefined, column = 0) =>
     row?.content?.[column]?.content?.[0]?.content?.[0]?.text ?? "";
 
-  const pasteFromSourceEditor = (editor: Editor, text: string, mode?: string) => {
+  const pasteFromSourceEditor = (editor: Editor, text: string, mode?: string, html?: string) => {
     const values = new Map<string, string>([
       ["text/plain", text],
-      ["text/html", mode ? `<pre>${text}</pre>` : ""],
+      ["text/html", html ?? (mode ? `<pre>${text}</pre>` : "")],
     ]);
     if (mode) values.set("vscode-editor-data", JSON.stringify({ mode }));
     const event = new Event("paste", { bubbles: true, cancelable: true });
@@ -98,6 +98,239 @@ describe("editor extension contract", () => {
       .toEqual([{ type: "bold" }]);
     expect(editor.getText()).toContain("Imported title");
     expect(editor.getText()).toContain("First");
+    editor.destroy();
+    element.remove();
+  });
+
+  it("pastes Markdown from preformatted clipboard HTML after an old code block is deleted", () => {
+    const element = document.createElement("div");
+    document.body.append(element);
+    const editor = new Editor({
+      element,
+      extensions: getDefaultEditorExtensions(),
+      content: "<pre><code>Old source</code></pre>",
+    });
+    editor.commands.selectAll();
+    editor.commands.deleteSelection();
+    expect(editor.state.selection.$from.parent.type.name).toBe("paragraph");
+
+    const text = "# Working notes\n\n- First item\n- Second item";
+    pasteFromSourceEditor(editor, text, undefined, `<pre><code>${text}</code></pre>`);
+
+    expect(editor.getJSON().content?.map((node) => node.type)).toEqual(["heading", "bulletList"]);
+    expect(editor.getText()).toContain("Working notes");
+    editor.destroy();
+    element.remove();
+  });
+
+  it("detects Markdown document content despite clipboard code-block metadata", () => {
+    const element = document.createElement("div");
+    document.body.append(element);
+    const editor = new Editor({
+      element,
+      extensions: getDefaultEditorExtensions(),
+      content: "<p></p>",
+    });
+    editor.commands.focus("start");
+
+    const text = "# Project notes\n\n- First decision\n- Second decision";
+    pasteFromSourceEditor(editor, text, undefined, `<pre data-pm-slice="0 0 []"><code>${text}</code></pre>`);
+
+    expect(editor.getJSON().content?.map((node) => node.type)).toEqual(["heading", "bulletList"]);
+    editor.destroy();
+    element.remove();
+  });
+
+  it("detects HTML source content without editor metadata", () => {
+    const element = document.createElement("div");
+    document.body.append(element);
+    const editor = new Editor({
+      element,
+      extensions: getDefaultEditorExtensions(),
+      content: "<p></p>",
+    });
+    editor.commands.focus("start");
+
+    pasteFromSourceEditor(editor, "<strong>Important detail</strong>", undefined, "<pre>&lt;strong&gt;Important detail&lt;/strong&gt;</pre>");
+
+    expect(editor.getJSON().content?.[0]).toMatchObject({
+      type: "paragraph",
+      content: [{ type: "text", text: "Important detail", marks: [{ type: "bold" }] }],
+    });
+    editor.destroy();
+    element.remove();
+  });
+
+  it("detects Markdown content even when a source editor labels it as code", () => {
+    const element = document.createElement("div");
+    document.body.append(element);
+    const editor = new Editor({
+      element,
+      extensions: getDefaultEditorExtensions(),
+      content: "<p></p>",
+    });
+    editor.commands.focus("start");
+
+    pasteFromSourceEditor(editor, "# Imported title\n\n- First item", "javascript");
+
+    expect(editor.getJSON().content?.map((node) => node.type)).toEqual(["heading", "bulletList"]);
+    editor.destroy();
+    element.remove();
+  });
+
+  it("recognizes a single nonempty Markdown heading without editor metadata", () => {
+    const element = document.createElement("div");
+    document.body.append(element);
+    const editor = new Editor({ element, extensions: getDefaultEditorExtensions(), content: "<p></p>" });
+    editor.commands.focus("start");
+
+    pasteFromSourceEditor(editor, "# One clear heading", undefined, "<pre># One clear heading</pre>");
+
+    expect(editor.getJSON().content?.map((node) => node.type)).toEqual(["heading"]);
+    editor.destroy();
+    element.remove();
+  });
+
+  it("does not classify an empty hash line before source code as a Markdown heading", () => {
+    const element = document.createElement("div");
+    document.body.append(element);
+    const editor = new Editor({ element, extensions: getDefaultEditorExtensions(), content: "<p></p>" });
+    editor.commands.focus("start");
+
+    pasteFromSourceEditor(editor, "# \nconst answer = 42;", "javascript");
+
+    expect(editor.getJSON().content?.map((node) => node.type)).toEqual(["codeBlock"]);
+    editor.destroy();
+    element.remove();
+  });
+
+  it("recognizes HTML after a leading comment and whitespace", () => {
+    const element = document.createElement("div");
+    document.body.append(element);
+    const editor = new Editor({ element, extensions: getDefaultEditorExtensions(), content: "<p></p>" });
+    editor.commands.focus("start");
+
+    const text = "  <!-- Source note -->\n<h2>Imported section</h2><p>Readable body</p>";
+    pasteFromSourceEditor(editor, text, undefined, `<pre>${text.replace(/</g, "&lt;")}</pre>`);
+
+    expect(editor.getJSON().content?.map((node) => node.type)).toEqual(["heading", "paragraph"]);
+    editor.destroy();
+    element.remove();
+  });
+
+  it("recognizes a prose-led HTML fragment without requiring a tag at the start", () => {
+    const element = document.createElement("div");
+    document.body.append(element);
+    const editor = new Editor({ element, extensions: getDefaultEditorExtensions(), content: "<p></p>" });
+    editor.commands.focus("start");
+
+    pasteFromSourceEditor(editor, "Intro <strong>important</strong> detail.");
+
+    expect(editor.getJSON().content?.[0]?.content).toEqual([
+      { type: "text", text: "Intro " },
+      { type: "text", text: "important", marks: [{ type: "bold" }] },
+      { type: "text", text: " detail." },
+    ]);
+    editor.destroy();
+    element.remove();
+  });
+
+  it("does not turn a source-code string containing an HTML tag into document content", () => {
+    const element = document.createElement("div");
+    document.body.append(element);
+    const editor = new Editor({ element, extensions: getDefaultEditorExtensions(), content: "<p></p>" });
+    editor.commands.focus("start");
+
+    const source = 'const template = "<p>Not a document</p>";';
+    pasteFromSourceEditor(editor, source, "javascript");
+
+    expect(editor.getJSON().content?.[0]).toMatchObject({ type: "codeBlock" });
+    expect(editor.getText()).toContain(source);
+    editor.destroy();
+    element.remove();
+  });
+
+  it("does not classify a bare URL in source code as Markdown", () => {
+    const element = document.createElement("div");
+    document.body.append(element);
+    const editor = new Editor({ element, extensions: getDefaultEditorExtensions(), content: "<p></p>" });
+    editor.commands.focus("start");
+
+    const source = 'const url = "https://example.test/page";';
+    pasteFromSourceEditor(editor, source, "javascript");
+
+    expect(editor.getJSON().content?.[0]).toMatchObject({ type: "codeBlock" });
+    expect(editor.getText()).toContain(source);
+    editor.destroy();
+    element.remove();
+  });
+
+  it("keeps fenced code and supported raw HTML inside one Markdown document", () => {
+    const element = document.createElement("div");
+    document.body.append(element);
+    const editor = new Editor({
+      element,
+      extensions: getDefaultEditorExtensions(),
+      content: "<p></p>",
+    });
+    editor.commands.focus("start");
+
+    const text = [
+      "# Mixed guide",
+      "",
+      "An <strong>important</strong> note.",
+      "",
+      "```js",
+      "const answer = 42;",
+      "```",
+      "",
+      "<p>Raw <em>HTML</em> block.</p>",
+      "",
+      "<script>alert('not content')</script>",
+    ].join("\n");
+    const escaped = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    pasteFromSourceEditor(editor, text, undefined, `<pre><code>${escaped}</code></pre>`);
+
+    expect(editor.getJSON().content?.map((node) => node.type)).toEqual([
+      "heading", "paragraph", "codeBlock", "paragraph",
+    ]);
+    expect(editor.getHTML()).toContain("<strong>important</strong>");
+    expect(editor.getHTML()).toContain("<em>HTML</em>");
+    expect(editor.getHTML()).not.toContain("alert(");
+    editor.destroy();
+    element.remove();
+  });
+
+  it("preserves an HTML document's own code block instead of parsing its contents as Markdown", () => {
+    const element = document.createElement("div");
+    document.body.append(element);
+    const editor = new Editor({ element, extensions: getDefaultEditorExtensions(), content: "<p></p>" });
+    editor.commands.focus("start");
+
+    const text = "<h1>Reference</h1>\n<pre><code># sample\n- line</code></pre>";
+    pasteFromSourceEditor(editor, text, undefined, `<pre>${text.replace(/</g, "&lt;")}</pre>`);
+
+    expect(editor.getJSON().content?.map((node) => node.type)).toEqual(["heading", "codeBlock"]);
+    expect(editor.getJSON().content?.[1]?.content?.[0]?.text).toContain("# sample");
+    editor.destroy();
+    element.remove();
+  });
+
+  it("does not retain executable attributes or URLs from HTML source", () => {
+    const element = document.createElement("div");
+    document.body.append(element);
+    const editor = new Editor({
+      element,
+      extensions: getDefaultEditorExtensions(),
+      content: "<p></p>",
+    });
+    editor.commands.focus("start");
+
+    pasteFromSourceEditor(editor, '<p><a href="javascript:alert(1)" onclick="alert(1)">link</a> <img src="javascript:alert(1)" onerror="alert(1)"></p>');
+
+    expect(editor.getHTML()).not.toContain("javascript:");
+    expect(editor.getHTML()).not.toContain("onclick");
+    expect(editor.getHTML()).not.toContain("onerror");
     editor.destroy();
     element.remove();
   });

@@ -21,8 +21,8 @@ async function flushBrowser() {
   }
 }
 
-async function mountEditor() {
-  const modelValue = ref<JSONContent>({
+async function mountEditor(initialContent?: JSONContent) {
+  const modelValue = ref<JSONContent>(initialContent ?? {
     type: "doc",
     content: [
       { type: "paragraph", content: [{ type: "text", text: "First" }] },
@@ -108,5 +108,21 @@ describe("active block marker", () => {
     const marker = getComputedStyle(block, "::before");
     expect(marker.animationName).toBe("looma-active-block-in");
     expect(marker.width).toBe("1px");
+  });
+
+  it("keeps the focused empty-editor placeholder at readable width", async () => {
+    const { editor, host } = await mountEditor({
+      type: "doc",
+      content: [{ type: "paragraph" }],
+    });
+    editor.commands.focus("start");
+    await flushBrowser();
+
+    const emptyBlock = host.querySelector<HTMLElement>(".ProseMirror > .is-editor-empty")!;
+    expect(emptyBlock.classList.contains(LOOMA_ACTIVE_BLOCK_CLASS)).toBe(true);
+    const placeholder = getComputedStyle(emptyBlock, "::before");
+    expect(placeholder.content).toContain("Type");
+    expect(placeholder.position).toBe("static");
+    expect(placeholder.width).not.toBe("1px");
   });
 });
