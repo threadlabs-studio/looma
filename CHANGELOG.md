@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Tree `marquee`: a long name fades out fully before the leading icon as it slides (it faded to
+  the icon's middle), rests at the end, then scrolls again while the row stays hovered or keyboard
+  focused; it used to stop at the end. Keyboard focus on the item itself, as the tree roves, now
+  starts it. A touch pointer, or the focus a tap leaves, no longer does.
 - LoomaEditor adds a `disableHighlight` prop (and `getDefaultEditorExtensions` a
   `disableHighlight` option). When set, authors can't highlight: no Highlight button, no
   `Mod-Shift-H`, no `==text==` typing or paste rule, and pasted `<mark>` keeps only its text.

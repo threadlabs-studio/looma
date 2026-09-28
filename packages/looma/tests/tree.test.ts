@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { chromium, type Browser, type Page } from "playwright";
+import { chromium, type Browser, type BrowserContextOptions, type Page } from "playwright";
 import { build } from "vite";
 import { afterAll, beforeAll, describe, it } from "vitest";
 
@@ -13,6 +13,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 let directory = "";
 let browser: Browser;
 let bundlePath = "";
+let marqueePath = "";
 
 async function bundle(name: string, source: string): Promise<string> {
   const entry = join(directory, `${name}.js`);
@@ -37,9 +38,9 @@ type Spec = { tree?: Record<string, unknown>; items: Node[] };
 type Detail = Record<string, unknown>;
 
 // Renders `spec` as a Vue Tree. Every item is sortable unless it says otherwise.
-async function open(spec: Spec, script = bundlePath): Promise<Page> {
+async function open(spec: Spec, script = bundlePath, options: BrowserContextOptions = { reducedMotion: "reduce" }): Promise<Page> {
   // Reduced motion turns the rows' style transitions off, so computed styles settle immediately.
-  const page = await browser.newPage({ reducedMotion: "reduce" });
+  const page = await browser.newPage(options);
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.setContent(`<!doctype html><html><body style="margin:0;padding:40px 40px 40px 60px;width:320px"><div id="app"></div></body></html>`);
@@ -118,6 +119,20 @@ beforeAll(async () => {
         onReorderRejected: (detail) => events.push(["reorder-rejected", detail]),
         onSelect: (detail) => events.push(["select", detail]),
       }, () => window.spec.items.map(render)),
+    }).mount("#app");
+  `);
+  marqueePath = await bundle("vue-tree-marquee", `
+    import { createApp, h } from "vue";
+    import { Tree, TreeItem } from "@threadlabs/looma/vue";
+    const name = "A name long enough to run past the end of its row and under the controls";
+    createApp({
+      render: () => h(Tree, { label: "Files", marquee: true }, () => [
+        h(TreeItem, { itemId: "short", label: "Short" }),
+        h(TreeItem, { itemId: "long", label: name }, {
+          leading: () => h("span", { "data-testid": "icon", style: "display:block;width:16px;height:16px" }),
+          actions: () => h("button", { type: "button" }, "More"),
+        }),
+      ]),
     }).mount("#app");
   `);
 });
@@ -453,6 +468,46 @@ describe("Tree selection", () => {
     assert.equal(await docsCheckbox.evaluate((element: HTMLInputElement) => element.indeterminate), false);
     await docsCheckbox.click();
     assert.deepEqual((await events(page))[1], ["select", { ids: [], trigger: "pointer" }]);
+    await page.close();
+  });
+});
+
+describe("Tree marquee", () => {
+  const row = (page: Page) => item(page, "long").locator(":scope > :first-child");
+  const moving = async (page: Page) => (await row(page).getAttribute("data-ui-marquee")) !== null;
+
+  it("fades a long name out before the icon and runs it again after a rest while hovered", async () => {
+    const page = await open({ items: [] }, marqueePath, { reducedMotion: "no-preference", hasTouch: true });
+    await page.evaluate(() => {
+      const counts = { starts: 0 };
+      (window as unknown as { counts: typeof counts }).counts = counts;
+      document.addEventListener("animationstart", () => { counts.starts += 1; }, true);
+    });
+    await row(page).hover();
+    assert.ok(await moving(page));
+    const fade = await row(page).evaluate((element) => ({
+      masks: Array.from(element.children).map((child) => getComputedStyle(child).maskImage).filter((mask) => mask !== "none"),
+      // ponytail: the icon's slot box is its parent; the fade is measured against that box.
+      icon: element.querySelector('[data-testid="icon"]')!.parentElement!.getBoundingClientRect().width,
+    }));
+    assert.ok(fade.masks.some((mask) => mask.includes(`rgba(0, 0, 0, 0) ${fade.icon}px`)), `the name is gone by the icon: ${fade.masks.join(" | ")}`);
+    await row(page).evaluate((element) => element.style.setProperty("--_marquee-duration", "0.1s"));
+    await page.waitForFunction(() => (window as unknown as { counts: { starts: number } }).counts.starts >= 2, null, { timeout: 5_000 });
+    await page.mouse.move(0, 0);
+    assert.equal(await moving(page), false);
+    await page.close();
+  });
+
+  it("starts for a hovering pointer or keyboard focus, never for a touch", async () => {
+    const page = await open({ items: [] }, marqueePath, { reducedMotion: "no-preference", hasTouch: true });
+    const box = (await row(page).boundingBox())!;
+    await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+    assert.equal(await moving(page), false, "a tap neither hovers nor focuses it into motion");
+    await page.keyboard.press("Home");
+    await page.keyboard.press("ArrowDown");
+    assert.ok(await moving(page), "arrowing onto the row starts it");
+    await page.keyboard.press("ArrowUp");
+    assert.equal(await moving(page), false);
     await page.close();
   });
 });

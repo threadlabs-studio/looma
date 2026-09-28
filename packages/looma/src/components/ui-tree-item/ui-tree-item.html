@@ -35,8 +35,9 @@
     >Marks the item selected: it sets aria-selected and highlights the row. This is controlled state; respond to the parent Tree's select request by updating
       it.</prop>
     <prop name="marquee" type="boolean" default="false"
-    >Scrolls a name too long for its row while the row is hovered or focused, then puts it back. Off by default: a tree of short names should not move, and a
-      product decides whether reading the whole name matters more than a still list.</prop>
+    >Scrolls a name too long for its row while a pointer hovers the row or keyboard focus is in it, rests at the end, then scrolls it again from the start. A
+      touch does not start it. Off by default: a tree of short names should not move, and a product decides whether reading the whole name matters more than a
+      still list.</prop>
     <prop name="disabled" type="boolean" default="false"
     >Makes the item unavailable: faded, skipped by keyboard navigation, unable to expand or be dragged, and closed to drops inside it.</prop>
     <state name="internalExpanded" :value="false"></state>
@@ -364,27 +365,27 @@
       );
     }
 
-    /* A hovered row reads its whole name: the label slides far enough to show the end, waits
-       there, and comes back. Only when it actually overflows — the controller measures by how
+    /* A hovered row reads its whole name: the label slides far enough to show the end, rests
+       there, and starts again. Only when it actually overflows — the controller measures by how
        much — after the controls have taken their place over its end — and hands over the distance
        and a duration from it, so every name moves at the same speed. */
     .row[data-ui-marquee] > .label > .label-text {
-      /* Once, and it stays at the end while the pointer is there: a name that keeps sliding back
-         and forth under the pointer is harder to read than one that arrives and holds. */
+      /* Once per pass: the controller restarts it after a rest at the end, so the name holds still
+         long enough to read rather than sliding back and forth. */
       animation: ui-tree-item-marquee var(--_marquee-duration) linear 0.5s 1 normal forwards;
       will-change: transform;
     }
 
     /* This comes after the hover fade, which it replaces at the same specificity. While the name
        slides, the label reaches back under the icon (the controller measures how far) with its text
-       where it was, and fades out across that stretch, gone by the icon's middle: the name slips
-       under the icon rather than stopping at a hard edge beside it. */
+       where it was, and fades out across the gap before the icon, fully gone where the icon begins
+       to cover it: the name slips under the icon rather than stopping at a hard edge beside it. */
     .row[data-ui-marquee] > .label {
       margin-inline-start: calc(-1 * var(--_marquee-lead, 0px));
       padding-inline-start: calc(var(--_marquee-lead, 0px) + var(--_ui-tree-item-label-padding-inline, var(--ui-space-2)));
       mask-image: linear-gradient(
         to right,
-        transparent calc(var(--_marquee-lead, 0px) / 2),
+        transparent var(--_marquee-icon-width, 0px),
         #000 calc(var(--_marquee-lead, 0px) + var(--_ui-tree-item-label-padding-inline, var(--ui-space-2))),
         #000 calc(100% - var(--_tree-actions-width, 1.75rem) - var(--ui-space-3)),
         transparent calc(100% - var(--_tree-actions-width, 1.75rem))
@@ -394,7 +395,7 @@
     .row[data-ui-marquee] > .label:dir(rtl) {
       mask-image: linear-gradient(
         to left,
-        transparent calc(var(--_marquee-lead, 0px) / 2),
+        transparent var(--_marquee-icon-width, 0px),
         #000 calc(var(--_marquee-lead, 0px) + var(--_ui-tree-item-label-padding-inline, var(--ui-space-2))),
         #000 calc(100% - var(--_tree-actions-width, 1.75rem) - var(--ui-space-3)),
         transparent calc(100% - var(--_tree-actions-width, 1.75rem))
