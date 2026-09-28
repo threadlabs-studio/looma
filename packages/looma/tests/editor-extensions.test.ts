@@ -307,11 +307,12 @@ describe("editor extension contract", () => {
     const editor = new Editor({ element, extensions: getDefaultEditorExtensions(), content: "<p></p>" });
     editor.commands.focus("start");
 
-    const text = "<h1>Reference</h1>\n<pre><code># sample\n- line</code></pre>";
+    const text = '<h1>Reference</h1>\n<pre><code># sample\n- line\n&lt;span style="display:none"&gt;literal&lt;/span&gt;</code></pre>';
     pasteFromSourceEditor(editor, text, undefined, `<pre>${text.replace(/</g, "&lt;")}</pre>`);
 
     expect(editor.getJSON().content?.map((node) => node.type)).toEqual(["heading", "codeBlock"]);
     expect(editor.getJSON().content?.[1]?.content?.[0]?.text).toContain("# sample");
+    expect(editor.getJSON().content?.[1]?.content?.[0]?.text).toContain('<span style="display:none">literal</span>');
     editor.destroy();
     element.remove();
   });
@@ -331,6 +332,43 @@ describe("editor extension contract", () => {
     expect(editor.getHTML()).not.toContain("javascript:");
     expect(editor.getHTML()).not.toContain("onclick");
     expect(editor.getHTML()).not.toContain("onerror");
+    editor.destroy();
+    element.remove();
+  });
+
+  it("omits source HTML with inline display none while retaining visible wrapper text", () => {
+    const element = document.createElement("div");
+    document.body.append(element);
+    const editor = new Editor({ element, extensions: getDefaultEditorExtensions(), content: "<p></p>" });
+    editor.commands.focus("start");
+
+    pasteFromSourceEditor(editor,
+      '<div><span>Keep </span><span style="display:none"><strong>hidden one</strong></span>'
+      + '<span style="display    :    none">hidden two</span><span>this</span></div>');
+
+    expect(editor.getJSON().content).toEqual([{
+      type: "paragraph",
+      content: [{ type: "text", text: "Keep this" }],
+    }]);
+    expect(editor.getHTML()).not.toMatch(/<(?:div|span)\b/);
+    editor.destroy();
+    element.remove();
+  });
+
+  it("does not paste or delete a selection when all source HTML is display none", () => {
+    const element = document.createElement("div");
+    document.body.append(element);
+    const editor = new Editor({ element, extensions: getDefaultEditorExtensions(), content: "<p>Keep me</p>" });
+
+    for (const source of [
+      '<p style="display:none">Hidden paragraph</p>',
+      '<body style="display : none"><p>Hidden body</p></body>',
+    ]) {
+      editor.commands.selectAll();
+      pasteFromSourceEditor(editor, source);
+      expect(editor.getText()).toBe("Keep me");
+    }
+
     editor.destroy();
     element.remove();
   });

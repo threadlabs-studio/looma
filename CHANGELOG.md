@@ -4,7 +4,11 @@
 
 - LoomaEditor recognizes Markdown and HTML document source by its contents when pasted, even if
   the clipboard also carries preformatted HTML. Headings, lists, links, tables, and source code
-  blocks become editable editor content; imported HTML is sanitized before insertion.
+  blocks become editable editor content. Source markup is reconstructed as supported editor nodes,
+  rather than inserted verbatim; surplus layout wrappers lose their tags while retaining ordinary text.
+- Pasted HTML elements with an inline `display: none` declaration are omitted with their contents.
+  A paste containing only such elements leaves the document unchanged. Literal HTML inside a code
+  block remains code text.
 - The focused empty-editor placeholder remains readable when the active-block marker is enabled.
 
 ## v0.15.4
