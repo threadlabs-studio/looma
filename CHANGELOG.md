@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+- **Breaking (0.16.0): Dialog is non-modal again unless you set `modal`.** `<ui-dialog modal>` and
+  `<Dialog modal>` open it with `showModal()`: top layer, backdrop, the rest of the page inert, and
+  page scroll locked. Without `modal` it opens with `show()`, as before 0.15 and like native
+  `<dialog>`. `closedby` stays, and when unset it now follows native `<dialog>`: `closerequest`
+  (Escape closes) for a modal dialog, `none` for a non-modal one. `alert` dialogs are always modal.
+  `size`, `alert`, and the trigger `open` event are unchanged.
+  - What went wrong: 0.15.0 flipped the default to modal without a stated reason in its changelog
+    or pull request, and replaced `modal` with the negative name `modeless`, which the rule that an
+    omitted boolean means `false` forced. Every app that never set the option silently changed
+    behaviour: its non-modal dialogs started trapping the page, showing a backdrop, locking scroll,
+    and closing on Escape, and `modal` stopped doing anything.
+  - Why an additive change wasn't enough: the default itself was the problem. A new option can't
+    give back the non-modal default to apps that never set anything, and keeping modal as the
+    default would keep the negative name.
+  - Migration: an app that relied on 0.15's modal default adds `modal` to each dialog that should be
+    modal. `modeless` is deprecated and does nothing now; it is still accepted, `modal` wins when both
+    are set, and it can be removed. A non-modal dialog that should still close on Escape sets
+    `closedby="closerequest"`.
 - Tree `marquee`: a long name fades out fully before the leading icon as it slides (it faded to
   the icon's middle), rests at the end, then scrolls again while the row stays hovered or keyboard
   focused; it used to stop at the end. Keyboard focus on the item itself, as the tree roves, now

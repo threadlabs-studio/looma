@@ -5,7 +5,8 @@ The overlay contract is shared by `ui-dialog` and `ui-popover` through a central
 ## Types
 
 - `ui-popover`: non-modal, dismissible by default.
-- `ui-dialog`: modal by default (`modal !== "false"`), integrated with native `dialog`.
+- `ui-dialog`: non-modal by default, like native `dialog.show()`; `modal` opens it with
+  `showModal()`.
 
 ## Close Semantics
 

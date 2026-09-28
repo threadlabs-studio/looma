@@ -8,14 +8,28 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 Overlay primitive that coordinates native `dialog` behavior with shared overlay stack rules.
 
-Dialogs are modal by default. Use `modeless` only when people should keep interacting with the
-page. Escape closes a dialog by default; `closedby="any"` also enables outside presses, and
-`closedby="none"` requires an explicit close action. `alert` gives an urgent confirmation the
-`alertdialog` role, hides the header close button, and never permits outside dismissal. Give every
-alert dialog a clear label, a short explanation, and at least one visible action. For destructive
-choices, put `autofocus` on the least destructive action. Native `commandfor` and `command="close"`
-work for action buttons; `for` also wires a trigger with `aria-haspopup`, `aria-controls`, and
+A dialog is non-modal unless you set `modal`, like the native `<dialog>`: `show()` is non-modal
+and `showModal()` is modal. A non-modal dialog leaves the rest of the page usable, with no backdrop
+and no scroll lock. `modal` opens it in the top layer over a backdrop, makes the rest of the page
+inert, and locks page scrolling until it closes. Either way, focus moves into the dialog when it
+opens and returns to where it was when it closes.
+
+`closedby` uses the native `<dialog closedby>` values. Unset, it follows native `<dialog>`: a modal
+dialog closes on Escape (`closerequest`) and a non-modal one does not (`none`). `closedby="any"`
+also closes the dialog after a press outside it, `closedby="closerequest"` closes it on Escape, and
+`closedby="none"` requires an explicit close action. The header close button and actions always
+close it.
+
+`alert` gives an urgent confirmation the `alertdialog` role, hides the header close button, and
+never permits outside dismissal. An alert dialog is always modal. Give every alert dialog a clear
+label, a short explanation, and at least one visible action. For destructive choices, put
+`autofocus` on the least destructive action. Native `commandfor` and `command="close"` work for
+action buttons; `for` also wires a trigger with `aria-haspopup`, `aria-controls`, and
 `aria-expanded`.
+
+`modeless` is deprecated and does nothing: 0.15 made dialogs modal by default and added `modeless`
+to opt out, and 0.16 restored the non-modal default. It is still accepted so 0.15 markup keeps
+working, and `modal` wins when both are set. Remove it when convenient.
 
 `size="sm|md|lg|fullscreen"` covers common widths. Set `--ui-dialog-max-width` on one dialog when
 those widths do not fit. The `open` and `close` events carry `{open, reason, trigger}`; the initial
