@@ -21,7 +21,7 @@ async function historyShortcut(direction: "undo" | "redo") {
   await userEvent.keyboard(`{${modifier}>}${shift}z${releaseShift}{/${modifier}}`);
 }
 
-async function mountEditor(options: { controlled?: boolean; toolbarMode?: "bubble" | "sticky" } = {}) {
+async function mountEditor(options: { controlled?: boolean; toolbarMode?: "bubble" | "sticky"; highlight?: "editable" | "display" } = {}) {
   vi.spyOn(window, "innerWidth", "get").mockReturnValue(1280);
   const modelValue = ref<JSONContent>({ type: "doc", content: [{ type: "paragraph" }] });
   const host = document.createElement("div");
@@ -31,6 +31,7 @@ async function mountEditor(options: { controlled?: boolean; toolbarMode?: "bubbl
     render: () => h(LoomaEditor, {
       modelValue: modelValue.value,
       ...(options.toolbarMode ? { toolbarMode: options.toolbarMode } : {}),
+      ...(options.highlight ? { highlight: options.highlight } : {}),
       ...(options.controlled === false ? {} : {
         "onUpdate:modelValue": (value: JSONContent) => { modelValue.value = value; },
       }),
@@ -109,5 +110,31 @@ describe("LoomaEditor history (real browser)", () => {
     redo.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
     await flushBrowser();
     expect(editor.getText()).toBe("Undo me");
+  });
+
+  it("offers a Highlight control only while authors may highlight", async () => {
+    const control = (host: HTMLElement, label: string) => host.querySelector(
+      `.looma-editor__sticky-toolbar-shell [aria-label="${label}"]`,
+    );
+    const modifier = navigator.userAgent.includes("Mac OS X") ? "Meta" : "Control";
+    const highlightShortcut = async (editor: Editor) => {
+      editor.commands.insertContent("word");
+      editor.commands.focus();
+      await flushBrowser();
+      editor.commands.setTextSelection({ from: 1, to: 5 });
+      expect(editor.isFocused).toBe(true);
+      await userEvent.keyboard(`{${modifier}>}{Shift>}h{/Shift}{/${modifier}}`);
+      await flushBrowser();
+    };
+    const editable = await mountEditor({ toolbarMode: "sticky" });
+    expect(control(editable.host, "Highlight")).toBeTruthy();
+    await highlightShortcut(editable.editor);
+    expect(JSON.stringify(editable.editor.getJSON())).toContain("highlight");
+
+    const display = await mountEditor({ toolbarMode: "sticky", highlight: "display" });
+    expect(control(display.host, "Bold")).toBeTruthy();
+    expect(control(display.host, "Highlight")).toBeNull();
+    await highlightShortcut(display.editor);
+    expect(JSON.stringify(display.editor.getJSON())).not.toContain("highlight");
   });
 });
