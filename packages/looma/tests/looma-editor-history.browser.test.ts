@@ -21,7 +21,7 @@ async function historyShortcut(direction: "undo" | "redo") {
   await userEvent.keyboard(`{${modifier}>}${shift}z${releaseShift}{/${modifier}}`);
 }
 
-async function mountEditor(options: { controlled?: boolean; toolbarMode?: "bubble" | "sticky"; highlight?: "editable" | "display" } = {}) {
+async function mountEditor(options: { controlled?: boolean; toolbarMode?: "bubble" | "sticky"; disableHighlight?: boolean } = {}) {
   vi.spyOn(window, "innerWidth", "get").mockReturnValue(1280);
   const modelValue = ref<JSONContent>({ type: "doc", content: [{ type: "paragraph" }] });
   const host = document.createElement("div");
@@ -31,7 +31,7 @@ async function mountEditor(options: { controlled?: boolean; toolbarMode?: "bubbl
     render: () => h(LoomaEditor, {
       modelValue: modelValue.value,
       ...(options.toolbarMode ? { toolbarMode: options.toolbarMode } : {}),
-      ...(options.highlight ? { highlight: options.highlight } : {}),
+      ...(options.disableHighlight ? { disableHighlight: true } : {}),
       ...(options.controlled === false ? {} : {
         "onUpdate:modelValue": (value: JSONContent) => { modelValue.value = value; },
       }),
@@ -131,10 +131,10 @@ describe("LoomaEditor history (real browser)", () => {
     await highlightShortcut(editable.editor);
     expect(JSON.stringify(editable.editor.getJSON())).toContain("highlight");
 
-    const display = await mountEditor({ toolbarMode: "sticky", highlight: "display" });
-    expect(control(display.host, "Bold")).toBeTruthy();
-    expect(control(display.host, "Highlight")).toBeNull();
-    await highlightShortcut(display.editor);
-    expect(JSON.stringify(display.editor.getJSON())).not.toContain("highlight");
+    const disabled = await mountEditor({ toolbarMode: "sticky", disableHighlight: true });
+    expect(control(disabled.host, "Bold")).toBeTruthy();
+    expect(control(disabled.host, "Highlight")).toBeNull();
+    await highlightShortcut(disabled.editor);
+    expect(JSON.stringify(disabled.editor.getJSON())).not.toContain("highlight");
   });
 });
