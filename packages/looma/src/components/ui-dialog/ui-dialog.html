@@ -1,10 +1,17 @@
 <template component="ui-dialog" controller="./ui-dialog.js">
   <defs>
     <prop name="open" type="boolean" default="false">Whether the dialog is open initially or when set externally.</prop>
-    <prop name="modeless" type="boolean" default="false">Open without a backdrop or making the rest of the page inert; dialogs are modal by default.</prop>
-    <prop name="closedby" type="any | closerequest | none" default="closerequest"
-    >Which user close requests work: any includes outside presses, closerequest includes Escape, and none requires an action.</prop>
-    <prop name="alert" type="boolean" default="false">Use alert dialog semantics and require an explicit action instead of the header close button.</prop>
+    <prop name="modal" type="boolean" default="false"
+    >Open in the top layer with a backdrop and make the rest of the page inert until it closes, like native showModal(). Without it the dialog is non-modal,
+      like native show().</prop>
+    <prop name="modeless" type="boolean" default="false"
+    >Deprecated: does nothing, since dialogs are non-modal unless modal is set. Accepted so markup written for 0.15 keeps working; modal wins when both are
+      set.</prop>
+    <prop name="closedby" type="any | closerequest | none"
+    >Which user close requests work: any includes outside presses, closerequest includes Escape, and none requires an action. Unset follows native dialog:
+      closerequest when modal, none when not.</prop>
+    <prop name="alert" type="boolean" default="false"
+    >Use alert dialog semantics and require an explicit action instead of the header close button. An alert dialog is always modal.</prop>
     <prop name="size" type="sm | md | lg | fullscreen" default="md">Choose a compact, standard, wide, or viewport-filling dialog.</prop>
     <prop name="label" type="string">Visible title in the dialog header; also its accessible name.</prop>
     <prop name="for" type="string" default="">ID of the control that opens the dialog.</prop>

@@ -101,7 +101,7 @@ Validation stays declarative everywhere. Validation functions are replaced by na
 
 | Component | Adopt | Declined |
 |---|---|---|
-| `ui-dialog` | `closedby: "any" \| "closerequest" \| "none"` (native vocabulary) replaces `dismissible`. `modeless` replaces `modal`, so modal is the default. `alert` (`role="alertdialog"`, no close button). `size: "sm" \| "md" \| "lg"`. An `open` event | A fullscreen presentation, initial or return focus props (native `autofocus` and `<dialog>` already do this), description, draggable |
+| `ui-dialog` | `closedby: "any" \| "closerequest" \| "none"` (native vocabulary) replaces `dismissible`. `modal` stays opt-in, as in native `<dialog>`; 0.15 briefly made modal the default with a `modeless` opt-out, which 0.16 reverted (`modeless` is a deprecated no-op). `alert` (`role="alertdialog"`, no close button). `size: "sm" \| "md" \| "lg"`. An `open` event | A fullscreen presentation, initial or return focus props (native `autofocus` and `<dialog>` already do this), description, draggable |
 | `ui-popover` | The full `placement` set as a typed keyword. A `--ui-popover-offset` token | Arrow, modal or focus trap (use Dialog), dismiss toggles |
 | `ui-tooltip` | The full `placement` set, defaulting to `top`. Instant display for the next tooltip after one has shown | `disabled`, trigger modes, arrow toggle. The evidence suggested dropping `inverse`; Looma keeps it for dark tooltips |
 | `ui-menu`, `ui-menu-item` | `<hr>` separators. `ui-menu-group` with a `label`. Typeahead and Home/End. `href` link items. A `shortcut` slot. `type: "action" \| "checkbox" \| "radio"` with `checked`. Later: submenus | A close-on-select option, an icon slot, a destructive tone |
