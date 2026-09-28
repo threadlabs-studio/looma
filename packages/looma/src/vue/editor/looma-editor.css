@@ -40,7 +40,7 @@
   position: relative;
 }
 
-.looma-editor .ProseMirror > .looma-active-block::before {
+.looma-editor .ProseMirror > .looma-active-block:not(.is-editor-empty)::before {
   position: absolute;
   z-index: 1;
   inset-block: 0;
