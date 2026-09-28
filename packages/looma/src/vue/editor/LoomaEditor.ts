@@ -235,6 +235,14 @@ export const LoomaEditor = defineComponent({
       type: String as PropType<LoomaEditorToolbarMode>,
       default: "bubble",
     },
+    /**
+     * Authors can't highlight: no toolbar button, shortcut, `==text==` rule, or `<mark>` paste.
+     * Highlights already in the document still show. Read once, when the editor is created.
+     */
+    disableHighlight: {
+      type: Boolean,
+      default: false,
+    },
   },
   emits: {
     "update:modelValue": (_value: JSONContent) => true,
@@ -384,11 +392,13 @@ export const LoomaEditor = defineComponent({
       };
     };
 
+    const authorHighlight = !props.disableHighlight;
     const editor = useEditor({
       extensions: [
         ...getDefaultEditorExtensions({
           placeholder: props.placeholder,
           mention: mentionExtension ?? false,
+          disableHighlight: props.disableHighlight,
         }),
         imageDelivery.extension,
         slashExtension,
@@ -1003,7 +1013,9 @@ export const LoomaEditor = defineComponent({
         commandButton("Italic", "italic", instance.isActive("italic"), !instance.can().toggleItalic(), () => instance.chain().focus().toggleItalic().run()),
         commandButton("Underline", "underline", instance.isActive("underline"), !instance.can().toggleUnderline(), () => instance.chain().focus().toggleUnderline().run()),
         commandButton("Strike", "strikethrough", instance.isActive("strike"), !instance.can().toggleStrike(), () => instance.chain().focus().toggleStrike().run()),
-        commandButton("Highlight", "highlighter", instance.isActive("highlight"), !instance.can().toggleHighlight(), () => instance.chain().focus().toggleHighlight().run()),
+        ...(authorHighlight
+          ? [commandButton("Highlight", "highlighter", instance.isActive("highlight"), !instance.can().toggleHighlight(), () => instance.chain().focus().toggleHighlight().run())]
+          : []),
         commandButton("Inline code", "code-xml", instance.isActive("code"), !instance.can().toggleCode(), () => instance.chain().focus().toggleCode().run()),
         h(IconButton, {
           id: linkAnchorId,

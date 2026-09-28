@@ -53,7 +53,23 @@ export interface DefaultEditorExtensionsOptions {
   imageInline?: boolean;
   /** Custom mention extension, the Looma default, or false to omit mentions. */
   mention?: AnyExtension | false;
+  /**
+   * Removes every way for authors to apply the highlight mark: the Mod-Shift-H
+   * shortcut, `==text==` typing and paste rules, and `<mark>` parsing from
+   * pasted or HTML content. Highlights already stored in a document still load
+   * and render. Use it when the application reserves highlighting for itself.
+   */
+  disableHighlight?: boolean;
 }
+
+// Removing the mark from the schema would make Tiptap discard any stored
+// document that uses it, so disabling it strips only the ways to create it.
+const StoredOnlyHighlight = Highlight.extend({
+  parseHTML: () => [],
+  addKeyboardShortcuts: () => ({}),
+  addInputRules: () => [],
+  addPasteRules: () => [],
+});
 
 const lowlight = createLowlight(common);
 
@@ -95,6 +111,7 @@ export function getDefaultEditorExtensions(
     linkOpenOnClick = false,
     imageInline = false,
     mention = createLoomaMentionExtension(),
+    disableHighlight = false,
   } = options;
 
   return [
@@ -123,7 +140,7 @@ export function getDefaultEditorExtensions(
       HTMLAttributes: { rel: "noopener noreferrer", target: "_blank" },
     }),
     Image.configure({ inline: imageInline }),
-    Highlight.configure({ multicolor: false }),
+    (disableHighlight ? StoredOnlyHighlight : Highlight).configure({ multicolor: false }),
     Code,
     LoomaSmartPaste,
     CodeBlockLowlight.configure({ lowlight }),
