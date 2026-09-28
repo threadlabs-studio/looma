@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- LoomaEditor adds a `disableHighlight` prop (and `getDefaultEditorExtensions` a
+  `disableHighlight` option). When set, authors can't highlight: no Highlight button, no
+  `Mod-Shift-H`, no `==text==` typing or paste rule, and pasted `<mark>` keeps only its text.
+  Highlights already in the document still show. Off by default, so nothing changes.
 - LoomaEditor recognizes Markdown and HTML document source by its contents when pasted, even if
   the clipboard also carries preformatted HTML. Headings, lists, links, tables, and source code
   blocks become editable editor content. Source markup is reconstructed as supported editor nodes,
