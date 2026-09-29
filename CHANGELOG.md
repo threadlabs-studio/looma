@@ -2,6 +2,30 @@
 
 ## Unreleased
 
+- Input takes a number. Its `value` and Vue `modelValue` accept `string | number` (`modelValue`
+  also takes `null`), so a `type="number"` field binds to a number, and it reports a number as the
+  user types, or an empty string while it holds no number, as Vue's `v-model` does. The Vue
+  `update:modelValue` event is still typed `string`; typing it from the value awaits the generator. Bound to a number, the field never writes
+  over text that means the same number while the user types it: `12.`, `1.0`, `1e3`, or an empty
+  field keep their text and caret. A field bound to text was rewritten on every keystroke, so typing
+  `12.5`, Backspace, `8` lost the point.
+- New hooks, all additive and unset by default, so an app styles these from a class of its own:
+  - Button: `--ui-button-white-space` (for example `nowrap` to keep a label on one line). Unset, a
+    button still wraps as its container does.
+  - Select: `--ui-select-surface`, `--ui-select-border`, `--ui-select-border-hover`, and
+    `--ui-select-focus-border`, matching Input's.
+  - Widths: `--ui-input-inline-size`, `--ui-select-inline-size`, `--ui-nav-item-inline-size`, and
+    `--ui-form-field-min-inline-size`.
+  - Form Field: `--ui-form-field-label-text`, `--ui-form-field-label-font-size`,
+    `--ui-form-field-help-text`, and `--ui-form-field-help-font-size`.
+- Text's `as` adds heading levels, `h2` to `h6`, for a heading below a Page Header's `h1` and a
+  Section's `h2`. A Text heading takes its size and weight from `size` and `weight`, not from the
+  browser's heading styles.
+- Docs: the conventions page no longer describes a host reset, `@layer components`, `.ui-scope`,
+  font-stack presets, or `data-ui-inherit-typography`. Those belonged to packages Looma retired
+  before this one; no current component or runtime implements them. The page now says what does
+  apply: components style themselves and inherit everything else from the page.
+
 - Pasting recognizable rendered HTML now keeps its headings and inline formatting even when the accompanying
   plain text resembles Markdown. Literal Markdown or HTML copied as source still becomes editable
   document structure; native editor content stays native.

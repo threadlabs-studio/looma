@@ -25,7 +25,7 @@ test("every component option has a real description", async () => {
 test("a polymorphic root's as option lists the elements it can render", async () => {
   const groups = await readDeclarativeContractGroups();
   const contracts = Object.assign({}, ...groups.map((group) => group.contracts));
-  for (const [tag, type] of [["ui-button", "button | a"], ["ui-nav-item", "button | a"], ["ui-card", "div | section | article | aside"], ["ui-text", "p | span | div | small | strong | label"]]) {
+  for (const [tag, type] of [["ui-button", "button | a"], ["ui-nav-item", "button | a"], ["ui-card", "div | section | article | aside"], ["ui-text", "p | span | div | small | strong | label | h2 | h3 | h4 | h5 | h6"]]) {
     assert.equal(contracts[tag].props.as?.type, type, tag);
     assert.ok(contracts[tag].propDescriptions.as, `${tag} describes as`);
   }
