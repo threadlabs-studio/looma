@@ -1298,7 +1298,7 @@ export const LoomaEditor = defineComponent({
           class: "looma-editor__chip-popover",
           open: chipOpen.value,
           for: chipAnchorId,
-          placement: mobile.value ? "top-start" : "bottom-start",
+          placement: "bottom-start",
           onClose: () => { chipOpen.value = false; },
         }, () => h("div", { class: "looma-editor__chip-form", role: "dialog", "aria-label": "Edit chip" }, [
           h("input", {

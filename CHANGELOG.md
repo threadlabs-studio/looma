@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- A short YAML frontmatter block at the start of pasted Markdown stays as an editable
+  YAML code block, while the following heading and body become document structure.
+- Two-column editor tables now fit their available width and wrap cell text. Tables
+  with many columns or deliberately wide saved columns still scroll horizontally.
+- The inline chip editor now opens below a chip on a narrow page when there is room,
+  so editing a chip near the page heading does not cover the title and actions.
+  It still flips above when the viewport has more room there.
 - Pasting recognizable rendered HTML now keeps its headings and inline formatting even when the accompanying
   plain text resembles Markdown. Literal Markdown or HTML copied as source still becomes editable
   document structure; native editor content stays native.
