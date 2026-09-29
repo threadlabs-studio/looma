@@ -15,6 +15,7 @@ import {
   handleTableAction,
   handleTableOverlayAction,
   LoomaCallout,
+  LoomaChip,
   LoomaTable,
   LoomaTableKit,
   setActiveTableCellBackground,
@@ -517,6 +518,80 @@ describe("editor extension contract", () => {
       expect(editor.getHTML()).not.toContain("aria-label");
       editor.destroy();
     }
+  });
+
+  it("round-trips a compact inline chip with its label and palette color", () => {
+    const editor = new Editor({
+      extensions: [Document, Paragraph, Text, LoomaChip],
+      content: '<p>Article <span data-looma-chip="" data-label="90% confidence" data-color="blue">90% confidence</span> next</p>',
+    });
+
+    expect(editor.getJSON().content?.[0]?.content).toEqual([
+      { type: "text", text: "Article " },
+      { type: "loomaChip", attrs: { label: "90% confidence", color: "blue" } },
+      { type: "text", text: " next" },
+    ]);
+    expect(editor.getHTML()).toContain('data-label="90% confidence"');
+    expect(editor.getHTML()).toContain('data-color="blue"');
+    expect(editor.getText()).toContain("90% confidence");
+    editor.destroy();
+  });
+
+  it("turns selected text into one chip and leaves adjacent prose plain", () => {
+    const editor = new Editor({
+      extensions: [Document, Paragraph, Text, LoomaChip],
+      content: "<p>Article draft follows.</p>",
+    });
+
+    expect(editor.chain().setTextSelection({ from: 9, to: 14 }).insertLoomaChip().run()).toBe(true);
+    expect(editor.getJSON().content?.[0]?.content).toEqual([
+      { type: "text", text: "Article " },
+      { type: "loomaChip", attrs: { label: "draft", color: "neutral" } },
+      { type: "text", text: " follows." },
+    ]);
+    editor.destroy();
+  });
+
+  it("does not infer a chip from an ordinary styled HTML span", () => {
+    const editor = new Editor({
+      extensions: [Document, Paragraph, Text, LoomaChip],
+      content: '<p><span class="badge">Article</span></p>',
+    });
+
+    expect(editor.getJSON().content?.[0]?.content).toEqual([{ type: "text", text: "Article" }]);
+    expect(editor.getHTML()).toBe("<p>Article</p>");
+    editor.destroy();
+  });
+
+  it("inserts a chip through the slash menu without splitting its paragraph", () => {
+    const editor = new Editor({
+      extensions: getDefaultEditorExtensions({ mention: false }),
+      content: "<p>Article /chip follows.</p>",
+    });
+    const chip = getDefaultSlashCommands().find((command) => command.title === "Chip")!;
+
+    chip.command({ editor, range: { from: 9, to: 14 } });
+
+    expect(editor.getJSON().content?.map((node) => node.type)).toEqual(["paragraph"]);
+    expect(editor.getJSON().content?.[0]?.content?.[1]).toEqual({
+      type: "loomaChip",
+      attrs: { label: "", color: "neutral" },
+    });
+    expect(editor.getHTML()).toContain("Set a label");
+    editor.destroy();
+  });
+
+  it("normalizes unknown palette values and keeps copied chip text", () => {
+    const editor = new Editor({
+      extensions: [Document, Paragraph, Text, LoomaChip],
+      content: '<p><span data-looma-chip="" data-color="not-a-color">Copied label</span></p>',
+    });
+
+    expect(editor.getJSON().content?.[0]?.content?.[0]).toEqual({
+      type: "loomaChip",
+      attrs: { label: "Copied label", color: "neutral" },
+    });
+    editor.destroy();
   });
 
   it("filters mention candidates by label or detail without persisting display metadata", () => {

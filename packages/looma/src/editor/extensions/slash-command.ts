@@ -58,6 +58,7 @@ export interface LoomaSlashCommandOptions {
   commands: LoomaSlashCommand[];
   onStateChange?: (state: LoomaSlashMenuSnapshot) => void;
   onOpenImagePicker?: () => void;
+  onOpenChipEditor?: (editor: Editor, position: number) => void;
 }
 
 const CALLOUT_COMMANDS: ReadonlyArray<{
@@ -100,6 +101,7 @@ const CALLOUT_COMMANDS: ReadonlyArray<{
  */
 export function getDefaultSlashCommands(
   onOpenImagePicker?: () => void,
+  onOpenChipEditor?: (editor: Editor, position: number) => void,
 ): LoomaSlashCommand[] {
   return [
     {
@@ -165,6 +167,17 @@ export function getDefaultSlashCommands(
         editor.chain().focus().deleteRange(range).setLoomaCallout(tone).run();
       },
     })),
+    {
+      title: "Chip",
+      description: "Inline label with text and color",
+      icon: "tag",
+      keywords: ["chip", "label", "badge", "tag"],
+      command: ({ editor, range }) => {
+        if (editor.chain().focus().deleteRange(range).setTextSelection(range.from).insertLoomaChip({ label: "" }).run()) {
+          onOpenChipEditor?.(editor, range.from);
+        }
+      },
+    },
     {
       title: "Inline code",
       description: "Monospace code span",
@@ -275,7 +288,7 @@ export const LoomaSlashCommand = Extension.create<LoomaSlashCommandOptions>({
           const normalized = query.toLowerCase().trim();
           const commands = this.options.commands.length > 0
             ? this.options.commands
-            : getDefaultSlashCommands(this.options.onOpenImagePicker);
+            : getDefaultSlashCommands(this.options.onOpenImagePicker, this.options.onOpenChipEditor);
           if (!normalized) return commands;
           return commands.filter((command) =>
             command.title.toLowerCase().includes(normalized)
@@ -343,8 +356,9 @@ export function createLoomaSlashCommandExtension(
   options: Partial<LoomaSlashCommandOptions> = {},
 ) {
   const onOpenImagePicker = options.onOpenImagePicker;
+  const onOpenChipEditor = options.onOpenChipEditor;
   return LoomaSlashCommand.configure({
     ...options,
-    commands: options.commands ?? getDefaultSlashCommands(onOpenImagePicker),
+    commands: options.commands ?? getDefaultSlashCommands(onOpenImagePicker, onOpenChipEditor),
   });
 }
