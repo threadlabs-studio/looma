@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Adjacent span labels from pasted HTML layout wrappers keep a readable space
+  when the wrapper is reconstructed as editor text.
 - The Link toolbar keeps selected text when pressing its button moves focus out of the editor.
 - A short YAML frontmatter block at the start of pasted Markdown stays as an editable
   YAML code block, while the following heading and body become document structure.
