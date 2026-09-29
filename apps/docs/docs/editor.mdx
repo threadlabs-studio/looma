@@ -72,12 +72,20 @@ inline label without splitting the paragraph. Choose its text and tone in the po
 the chip to edit it. Markdown-style shortcuts also work: `#` for headings, `-` for a bullet list,
 `[ ]` for a checklist, and `---` for a divider.
 
+Block actions can insert a paragraph after the current block, duplicate it, or delete it.
+
+## Code blocks
+
+Code blocks retain their language in the document. Looma loads no syntax grammars by default.
+Import only the languages your app needs from `highlight.js` and pass them as `codeLanguages` when
+creating the editor. The same option works with `getDefaultEditorExtensions` for a headless editor.
+Untyped code blocks can be detected from the registered languages.
+
 ## Pasting documents
 
 Pasting formatted HTML keeps its headings and inline formatting, even when the clipboard's plain
 text resembles Markdown. Looma also turns Markdown or HTML copied as source into editable blocks.
 Pasting inside a code block stays literal.
-Block actions can insert a paragraph after the current block, duplicate it, or delete it.
 
 ## Mentions
 
@@ -125,6 +133,7 @@ accepts `http:`, `https:`, `mailto:`, `tel:`, and relative URLs beginning with `
 | `extensions` | `[]` | Additional Tiptap extensions |
 | `toolbarMode` | `bubble` | `bubble` or `sticky` toolbar placement |
 | `disableHighlight` | `false` | Reserve highlighting for the application |
+| `codeLanguages` | None | Syntax grammars to load for code blocks |
 | `mentionItems`, `mentionProvider`, `mentionLimit` | Empty, none, 8 | Fixed or searched mention candidates |
 | `uploadImage`, `resolveImageAttributes` | None | Image delivery and rendering |
 
