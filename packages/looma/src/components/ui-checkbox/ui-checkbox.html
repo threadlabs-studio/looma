@@ -123,7 +123,7 @@
       box-shadow: var(--ui-control-inset);
     }
 
-    /* Centre the tick's box, then lift it: a rotated L's ink sits ~0.11rem below its box centre. */
+    /* Centre the tick's box and lift it slightly for the rotated check shape. */
     input:checked::after {
       inset: 0;
       margin: auto;
@@ -135,7 +135,7 @@
       border-color: var(--ui-text-on-accent);
       border-width: 0 0.125rem 0.125rem 0;
       opacity: 1;
-      transform: translate(0.07rem, -0.09rem) rotate(45deg);
+      transform: translateY(-0.09rem) rotate(45deg);
       animation: ui-checkbox-check 180ms var(--ui-motion-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) both;
     }
 
@@ -151,15 +151,15 @@
     @keyframes ui-checkbox-check {
       from {
         opacity: 0;
-        transform: translate(0.07rem, -0.09rem) rotate(45deg) scale(0.55);
+        transform: translateY(-0.09rem) rotate(45deg) scale(0.55);
       }
       65% {
         opacity: 1;
-        transform: translate(0.07rem, -0.09rem) rotate(45deg) scale(1.12);
+        transform: translateY(-0.09rem) rotate(45deg) scale(1.12);
       }
       to {
         opacity: 1;
-        transform: translate(0.07rem, -0.09rem) rotate(45deg) scale(1);
+        transform: translateY(-0.09rem) rotate(45deg) scale(1);
       }
     }
 

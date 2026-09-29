@@ -172,14 +172,14 @@
       inset-inline-start: auto;
       inset-inline-end: calc(var(--_ui-tooltip-arrow-size, 0.625rem) / -2 - 0.5px);
       border-inline-end-width: 1px;
-      border-block-end-width: 1px;
+      border-block-start-width: 1px;
     }
 
     :host[data-ui-actual-placement="right"] .surface::after {
       inset-inline-start: calc(var(--_ui-tooltip-arrow-size, 0.625rem) / -2 - 0.5px);
       inset-inline-end: auto;
       border-inline-start-width: 1px;
-      border-block-start-width: 1px;
+      border-block-end-width: 1px;
     }
 
     :host[data-ui-actual-placement="left"][data-ui-actual-align="start"] .surface::after,

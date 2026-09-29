@@ -117,14 +117,6 @@
 
     .search {
       padding: var(--ui-space-3);
-      border-block-end: 1px solid var(--ui-border-divider);
-      transition: border-color var(--ui-motion-fast) var(--ui-motion-ease), box-shadow var(--ui-motion-fast) var(--ui-motion-ease);
-    }
-
-    /* The search region shows where typing goes, whatever the author put in it. */
-    .search:focus-within {
-      border-block-end-color: var(--_ui-search-shell-focus-color, var(--ui-control-focus));
-      box-shadow: inset 0 -1px 0 var(--_ui-search-shell-focus-color, var(--ui-control-focus));
     }
 
     :slotted(input[slot="search"]) {
@@ -141,7 +133,7 @@
     }
 
     :slotted(input[slot="search"]:focus-visible) {
-      border-color: var(--ui-control-focus);
+      border-color: var(--_ui-search-shell-focus-color, var(--ui-control-focus));
       outline: 2px solid var(--ui-focus-ring);
       outline-offset: 2px;
     }
@@ -155,7 +147,7 @@
     }
 
     .status {
-      border-block-end: 1px solid var(--ui-border-divider);
+      padding-block-start: 0;
     }
 
     /* Laid out like the dialog's action row: actions right-aligned, spaced as buttons, no fill. */
@@ -166,7 +158,6 @@
       justify-content: flex-end;
       gap: var(--ui-space-2);
       padding: var(--ui-space-3) var(--ui-space-4);
-      border-block-start: 1px solid var(--ui-border-divider);
     }
 
     .status:empty,

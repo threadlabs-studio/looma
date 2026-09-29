@@ -8,6 +8,8 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 Icon-only button primitive with stable square sizing and variant tokens for shell controls, compact actions, and editor chrome.
 
+<ComponentExamplesApiTabs component="ui-icon-button" />
+
 Set `loading` while an action runs. The icon gives way to a spinner; the button keeps its accessible
 `label` and focus, exposes `aria-disabled` and `aria-busy`, and blocks activation until cleared.
 
@@ -18,5 +20,3 @@ For help beside a label, put `<ui-icon name="help">` in a round ghost Icon Butto
 what it explains ("Help for Email"), and point a `ui-tooltip` with `trigger="click"` at the button's
 `id`. Hovering a question mark says nothing, so the tooltip opens on press: click, Enter, or Space.
 Pressing again or Escape closes it. A slotted `ui-icon` takes the button's icon size, as an `svg` does.
-
-<ComponentExamplesApiTabs component="ui-icon-button" />
