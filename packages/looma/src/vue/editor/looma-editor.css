@@ -403,6 +403,7 @@
 
 .looma-editor__table-picker-popover,
 .looma-editor__link-popover,
+.looma-editor__chip-popover,
 .looma-editor__table-toolbar-shell,
 .looma-editor__table-menu-shell {
   z-index: var(--ui-editor-popover-z-index, 300);
@@ -417,6 +418,55 @@
 
 .looma-editor__link-popover {
   inline-size: min(22rem, calc(100vw - 2rem));
+}
+
+.looma-editor__chip-popover {
+  inline-size: min(15rem, calc(100vw - 2rem));
+}
+
+.looma-editor__chip-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-3);
+}
+
+.looma-editor__chip-form input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: var(--ui-control-min-block-size);
+  padding: var(--ui-space-2);
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-field-radius, var(--ui-radius-md));
+  background: var(--ui-control-surface);
+  color: var(--ui-text-primary);
+  font: inherit;
+}
+
+.looma-editor__chip-colors {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--ui-space-1);
+}
+
+.looma-editor__chip-color {
+  display: grid;
+  place-items: center;
+  width: 1.65rem;
+  height: 1.65rem;
+  padding: 0;
+  border: 1px solid var(--_chip-border);
+  border-radius: 50%;
+  background: var(--_chip-surface);
+  color: var(--_chip-text);
+  font: inherit;
+  font-size: var(--ui-font-size-xs);
+  cursor: pointer;
+}
+
+.looma-editor__chip-form :is(input, button):focus-visible,
+.looma-editor .ProseMirror [data-looma-chip]:focus-visible {
+  outline: 2px solid var(--ui-focus-ring);
+  outline-offset: 2px;
 }
 
 .looma-editor__link-form,
@@ -565,6 +615,59 @@
   border-radius: var(--ui-radius-sm, 4px);
   font-weight: var(--ui-font-medium, 500);
   white-space: nowrap;
+}
+
+.looma-editor .ProseMirror [data-looma-chip],
+.looma-editor__chip-color {
+  --_chip-tone-surface: var(--ui-surface-subtle);
+  --_chip-tone-text: var(--ui-text-secondary);
+  --_chip-surface: var(--ui-editor-chip-surface, var(--_chip-tone-surface));
+  --_chip-text: var(--ui-editor-chip-text, var(--_chip-tone-text));
+  --_chip-border: var(--ui-editor-chip-border, color-mix(in srgb, var(--_chip-surface) 75%, var(--_chip-text) 25%));
+}
+
+.looma-editor .ProseMirror [data-looma-chip][data-color="blue"],
+.looma-editor__chip-color[data-color="blue"] {
+  --_chip-tone-surface: var(--ui-info-soft);
+  --_chip-tone-text: var(--ui-info-subtle-text);
+}
+
+.looma-editor .ProseMirror [data-looma-chip][data-color="green"],
+.looma-editor__chip-color[data-color="green"] {
+  --_chip-tone-surface: var(--ui-success-soft);
+  --_chip-tone-text: var(--ui-success-subtle-text);
+}
+
+.looma-editor .ProseMirror [data-looma-chip][data-color="yellow"],
+.looma-editor__chip-color[data-color="yellow"] {
+  --_chip-tone-surface: var(--ui-warning-soft);
+  --_chip-tone-text: var(--ui-warning-subtle-text);
+}
+
+.looma-editor .ProseMirror [data-looma-chip][data-color="red"],
+.looma-editor__chip-color[data-color="red"] {
+  --_chip-tone-surface: var(--ui-danger-soft);
+  --_chip-tone-text: var(--ui-danger-subtle-text);
+}
+
+.looma-editor .ProseMirror [data-looma-chip][data-color="purple"],
+.looma-editor__chip-color[data-color="purple"] {
+  --_chip-tone-surface: var(--ui-accent-soft);
+  --_chip-tone-text: var(--ui-accent-subtle-text);
+}
+
+.looma-editor .ProseMirror [data-looma-chip] {
+  padding: 0.08em 0.45em;
+  border: 1px solid var(--_chip-border);
+  border-radius: var(--ui-radius-round);
+  background: var(--_chip-surface);
+  color: var(--_chip-text);
+  font-size: var(--ui-editor-chip-font-size, var(--ui-font-size-sm));
+  font-weight: var(--ui-font-medium);
+  line-height: var(--ui-line-height-tight);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  cursor: pointer;
 }
 
 .ProseMirror .tableWrapper {

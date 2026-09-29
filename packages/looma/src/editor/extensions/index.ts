@@ -19,6 +19,7 @@ export {
   LOOMA_CALLOUT_TONES,
   type LoomaCalloutTone,
 } from "./callout";
+export { LoomaChip, LOOMA_CHIP_COLORS, normalizeLoomaChipColor, type LoomaChipColor } from "./chip";
 export {
   getDefaultEditorExtensions,
   getLoomaTableExtensions,

@@ -78,11 +78,19 @@ menu provides insertion choices. This keeps block actions reachable without a ho
 
 ## Slash menu
 
-Typing `/` opens the [slash menu](/components/ui-editor-slash-menu), which inserts every block the
-editor supports, including those without a toolbar button: headings, Info, Note, and Warning
-callouts, bullet, numbered, and checklist lists, blockquote, inline and block code, table, divider,
-and image. Markdown-style typing works too: `#` for headings, `-` for bullets, `[ ]` for a checklist,
-and `---` for a divider.
+Typing `/` opens the [slash menu](/components/ui-editor-slash-menu), which inserts headings,
+Info, Note, and Warning callouts, bullet, numbered, and checklist lists, blockquote, a clickable
+inline chip, inline and block code, table, divider, and image. Markdown-style typing works too:
+`#` for headings, `-` for bullets, `[ ]` for a checklist, and `---` for a divider.
+
+**Chip** inserts an inline label without splitting its paragraph. Choosing `/chip` opens a focused
+popover: enter the label and choose neutral, blue, green, yellow, red, or purple. Click the chip to
+reopen that popover. The headless `editor.commands.insertLoomaChip()` command turns selected words
+into one chip or inserts an empty one at the caret. Chips are atomic editor nodes stored as semantic
+`<span data-looma-chip data-label="…" data-color="…">…</span>` elements, so their labels survive
+HTML and plain-text copy. Their borders sit between the soft fill and the stronger theme tone;
+hosts can override surface, border, text, and font size with `--ui-editor-chip-*`
+tokens. Plain pasted HTML spans do not turn into chips.
 
 ## Active-block marker
 
