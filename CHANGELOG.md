@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Pasting recognizable rendered HTML now keeps its headings and inline formatting even when the accompanying
+  plain text resembles Markdown. Literal Markdown or HTML copied as source still becomes editable
+  document structure; native editor content stays native.
 - **Breaking (0.16.0): Dialog is non-modal again unless you set `modal`.** `<ui-dialog modal>` and
   `<Dialog modal>` open it with `showModal()`: top layer, backdrop, the rest of the page inert, and
   page scroll locked. Without `modal` it opens with `show()`, as before 0.15 and like native

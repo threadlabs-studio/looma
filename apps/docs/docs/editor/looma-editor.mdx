@@ -92,6 +92,14 @@ HTML and plain-text copy. Their borders sit between the soft fill and the strong
 hosts can override surface, border, text, and font size with `--ui-editor-chip-*`
 tokens. Plain pasted HTML spans do not turn into chips.
 
+## Pasting documents
+
+Looma detects recognizable Markdown and HTML copied as source, including source wrapped in a
+clipboard code block, and turns supported headings, lists, links, tables, and code blocks into
+editable nodes. Pasting inside an existing code block stays literal. When a clipboard already
+contains recognizable formatted HTML, Looma keeps that formatting even if the plain-text copy happens to begin
+with a Markdown marker. Content copied from another editor page keeps its native structure.
+
 ## Active-block marker
 
 While the editor has focus, a thin line in the margin marks the top-level block being edited, so
