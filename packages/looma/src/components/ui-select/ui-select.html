@@ -15,7 +15,23 @@
   <select :disabled="disabled" :required="required" :aria-invalid="invalid"><slot></slot></select>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-select-border {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-select-border-hover {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-select-focus-border {
+      syntax: "*";
+      inherits: false;
+    }
     @property --ui-select-focus-shadow {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-select-inline-size {
       syntax: "*";
       inherits: false;
     }
@@ -35,18 +51,22 @@
       syntax: "*";
       inherits: false;
     }
+    @property --ui-select-surface {
+      syntax: "*";
+      inherits: false;
+    }
 
     :host {
       box-sizing: border-box;
       display: inline-block;
-      inline-size: 100%;
+      inline-size: var(--ui-select-inline-size, 100%);
       min-inline-size: 0;
       min-block-size: var(--ui-control-size-md);
       margin: 0;
       padding: var(--ui-space-2) var(--ui-space-3);
-      border: 1px solid var(--ui-control-border, var(--ui-border-strong));
+      border: 1px solid var(--ui-select-border, var(--ui-control-border, var(--ui-border-strong)));
       border-radius: var(--ui-select-radius, var(--ui-field-radius, var(--ui-radius-md)));
-      background-color: var(--ui-control-surface, var(--ui-surface-elevated));
+      background-color: var(--ui-select-surface, var(--ui-control-surface, var(--ui-surface-elevated)));
       color: var(--ui-text-primary);
       color-scheme: light dark;
       font: inherit;
@@ -73,11 +93,11 @@
     }
 
     :host:hover:not(:focus):not(:disabled) {
-      border-color: var(--ui-control-border-hover, var(--ui-text-secondary));
+      border-color: var(--ui-select-border-hover, var(--ui-control-border-hover, var(--ui-text-secondary)));
     }
 
     :host:focus-visible {
-      border-color: var(--ui-control-focus, var(--ui-accent-solid));
+      border-color: var(--ui-select-focus-border, var(--ui-control-focus, var(--ui-accent-solid)));
       outline: none;
       box-shadow: var(--ui-select-focus-shadow, var(--ui-control-inset), var(--ui-control-focus-halo-shadow));
     }
