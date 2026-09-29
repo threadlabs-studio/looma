@@ -25,6 +25,7 @@ export {
   getLoomaTableExtensions,
   LoomaTableKit,
   type DefaultEditorExtensionsOptions,
+  type LoomaCodeLanguages,
 } from "./preset";
 export { LoomaSmartPaste } from "./smart-paste";
 export {

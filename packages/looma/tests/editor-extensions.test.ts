@@ -4,6 +4,7 @@ import { Editor, type JSONContent } from "@tiptap/core";
 import Document from "@tiptap/extension-document";
 import Paragraph from "@tiptap/extension-paragraph";
 import Text from "@tiptap/extension-text";
+import { common } from "lowlight";
 import {
   createLoomaMentionExtension,
   LOOMA_ACTIVE_BLOCK_BLUR_GRACE_MS,
@@ -23,6 +24,40 @@ import {
 } from "../src/editor/extensions";
 
 describe("editor extension contract", () => {
+  it("highlights only configured code languages while preserving code block content", () => {
+    const content = '<pre><code class="language-sql">SELECT name FROM people WHERE id = 1</code></pre>';
+    const plainElement = document.createElement("div");
+    const plainEditor = new Editor({
+      element: plainElement,
+      extensions: getDefaultEditorExtensions(),
+      content,
+    });
+    expect(plainEditor.getJSON().content?.[0]?.attrs).toEqual({ language: "sql" });
+    expect(plainElement.querySelector(".hljs-keyword")).toBeNull();
+
+    const highlightedElement = document.createElement("div");
+    const highlightedEditor = new Editor({
+      element: highlightedElement,
+      extensions: getDefaultEditorExtensions({ codeLanguages: { sql: common.sql } }),
+      content,
+    });
+    expect(highlightedElement.querySelectorAll(".hljs-keyword").length).toBeGreaterThan(0);
+    expect(highlightedEditor.getJSON()).toEqual(plainEditor.getJSON());
+    expect(highlightedEditor.getHTML()).toBe(plainEditor.getHTML());
+    highlightedEditor.commands.setContent('<pre><code></code></pre>');
+    highlightedEditor.commands.focus("start");
+    pasteFromSourceEditor(highlightedEditor, "SELECT name FROM people");
+    expect(highlightedEditor.getJSON().content?.[0]?.attrs).toEqual({ language: null });
+    expect(highlightedElement.querySelectorAll(".hljs-keyword").length).toBeGreaterThan(0);
+
+    highlightedEditor.commands.setContent("<p></p>");
+    highlightedEditor.commands.focus("start");
+    pasteFromSourceEditor(highlightedEditor, "SELECT name FROM people");
+    expect(highlightedEditor.getJSON().content?.[0]?.type).toBe("paragraph");
+    plainEditor.destroy();
+    highlightedEditor.destroy();
+  });
+
   const cellText = (row: JSONContent | undefined, column = 0) =>
     row?.content?.[column]?.content?.[0]?.content?.[0]?.text ?? "";
 
