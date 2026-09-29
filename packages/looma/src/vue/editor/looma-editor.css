@@ -247,6 +247,27 @@
   background: none;
 }
 
+.looma-editor .ProseMirror pre :is(.hljs-keyword, .hljs-literal, .hljs-selector-tag) {
+  color: var(--ui-editor-code-keyword, var(--ui-accent-solid));
+}
+
+.looma-editor .ProseMirror pre :is(.hljs-string, .hljs-attr, .hljs-addition) {
+  color: var(--ui-editor-code-string, var(--ui-success-subtle-text));
+}
+
+.looma-editor .ProseMirror pre :is(.hljs-number, .hljs-type, .hljs-built_in) {
+  color: var(--ui-editor-code-number, var(--ui-warning-subtle-text));
+}
+
+.looma-editor .ProseMirror pre :is(.hljs-title, .hljs-function, .hljs-variable) {
+  color: var(--ui-editor-code-name, var(--ui-info-subtle-text));
+}
+
+.looma-editor .ProseMirror pre .hljs-comment {
+  color: var(--ui-editor-code-comment, var(--ui-text-secondary));
+  font-style: italic;
+}
+
 .looma-editor .ProseMirror hr {
   margin: var(--ui-space-6) 0;
   border: 0;
