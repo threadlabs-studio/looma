@@ -1599,12 +1599,12 @@ describe("Badge box", () => {
     const edges = () => page.locator('#tones [data-component~="ui-badge"]').evaluateAll((elements) => elements.map((element) => {
       const style = getComputedStyle(element);
       const badge = element.getAttribute("data-ui-badge-state") ?? element.outerHTML;
-      return { badge, filled: badge.includes("variant=solid") && !badge.includes("tone=neutral"), border: style.borderTopColor, surface: style.backgroundColor };
+      return { badge, border: style.borderTopColor, surface: style.backgroundColor };
     }));
     const drawn = await edges();
     assert.equal(drawn.length, tones.length * variants.length);
     for (const { badge, border, surface } of drawn) {
-      if (badge.includes("variant=subtle") && !badge.includes("tone=neutral")) assert.notEqual(border, surface, `${badge} has a defined subtle edge`);
+      if (badge.includes("variant=subtle") || badge.includes("tone=neutral")) assert.notEqual(border, surface, `${badge} has a defined edge`);
       else assert.equal(border, surface, `${badge} carries its solid fill to the edge`);
     }
 

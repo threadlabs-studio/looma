@@ -1782,8 +1782,9 @@ test("every badge tone remains legible and visually distinct in light and dark t
     }
     expect(treatments[0]!.fontSize).toBeGreaterThanOrEqual(14);
     expect(treatments[0]!.fontWeight).toBeGreaterThanOrEqual(500);
-    // Solid tones carry their fill to the edge; subtle tones use a slightly firmer edge.
-    for (const treatment of treatments.slice(0, 6)) expect(treatment.border).toBe(treatment.background);
+    // Neutral and subtle tones have a defined edge; solid colour tones carry their fill to it.
+    expect(treatments[0]!.border).not.toBe(treatments[0]!.background);
+    for (const treatment of treatments.slice(1, 6)) expect(treatment.border).toBe(treatment.background);
     for (const treatment of treatments.slice(6, 11)) expect(treatment.border).not.toBe(treatment.background);
     expect(new Set(treatments.slice(1, 6).map(({ background }) => background)).size).toBe(5);
     expect(new Set(treatments.slice(6, 11).map(({ background }) => background)).size).toBe(5);
