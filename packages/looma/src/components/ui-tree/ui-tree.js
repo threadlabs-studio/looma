@@ -202,6 +202,7 @@ export default function controller(host) {
       event.stopPropagation();
       selectItem(item, "pointer");
       focusItem(item);
+      if (checkbox) requestAnimationFrame(syncSelection);
       return;
     }
     const item = itemFromEvent(event);
@@ -326,6 +327,7 @@ export default function controller(host) {
       else item.removeAttribute("data-selection-mode");
       const checkbox = rowFor(item)?.querySelector(".selection-checkbox");
       if (checkbox) {
+        checkbox.checked = item.getAttribute("aria-selected") === "true";
         const descendants = Array.from(item.querySelectorAll(itemSelector));
         checkbox.indeterminate = mode === "multiple" && descendants.some((child) => child.getAttribute("aria-selected") === "true")
           && (item.getAttribute("aria-selected") !== "true" || descendants.some((child) => child.getAttribute("aria-selected") !== "true"));
@@ -342,7 +344,8 @@ export default function controller(host) {
     }
     const items = allItems();
     const selected = new Set(items.filter((candidate) => candidate.getAttribute("aria-selected") === "true").map(itemId).filter(Boolean));
-    const subtree = [item, ...item.querySelectorAll(itemSelector)].filter((candidate) => candidate.getAttribute("aria-disabled") !== "true");
+    const subtree = [item, ...Array.from(item.querySelectorAll(itemSelector))]
+      .filter((candidate) => candidate.getAttribute("aria-disabled") !== "true");
     const adding = !selected.has(id);
     for (const candidate of subtree) {
       const candidateId = itemId(candidate);

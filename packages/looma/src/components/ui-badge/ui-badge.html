@@ -135,27 +135,32 @@
     }
 
     :host-state([variant="subtle"][tone="accent"]) {
-      --_badge-surface: var(--ui-accent-soft);
+      --_badge-surface: color-mix(in srgb, var(--ui-accent-solid) 22%, var(--ui-surface-default));
+      --_badge-border: color-mix(in srgb, var(--ui-accent-solid) 28%, var(--ui-surface-default));
       --_badge-text: var(--ui-accent-subtle-text, var(--ui-accent-solid));
     }
 
     :host-state([variant="subtle"][tone="danger"]) {
-      --_badge-surface: var(--ui-danger-soft);
+      --_badge-surface: color-mix(in srgb, var(--ui-danger-solid) 22%, var(--ui-surface-default));
+      --_badge-border: color-mix(in srgb, var(--ui-danger-solid) 28%, var(--ui-surface-default));
       --_badge-text: var(--ui-danger-subtle-text, var(--ui-danger-solid));
     }
 
     :host-state([variant="subtle"][tone="success"]) {
-      --_badge-surface: var(--ui-success-soft);
+      --_badge-surface: color-mix(in srgb, var(--ui-success-solid) 22%, var(--ui-surface-default));
+      --_badge-border: color-mix(in srgb, var(--ui-success-solid) 28%, var(--ui-surface-default));
       --_badge-text: var(--ui-success-subtle-text, var(--ui-success-solid));
     }
 
     :host-state([variant="subtle"][tone="warning"]) {
-      --_badge-surface: var(--ui-warning-soft);
+      --_badge-surface: color-mix(in srgb, var(--ui-warning-solid) 22%, var(--ui-surface-default));
+      --_badge-border: color-mix(in srgb, var(--ui-warning-solid) 28%, var(--ui-surface-default));
       --_badge-text: var(--ui-warning-subtle-text, var(--ui-warning-solid));
     }
 
     :host-state([variant="subtle"][tone="info"]) {
-      --_badge-surface: var(--ui-info-soft);
+      --_badge-surface: color-mix(in srgb, var(--ui-info-solid) 22%, var(--ui-surface-default));
+      --_badge-border: color-mix(in srgb, var(--ui-info-solid) 28%, var(--ui-surface-default));
       --_badge-text: var(--ui-info-subtle-text, var(--ui-info-solid));
     }
 

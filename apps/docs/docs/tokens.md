@@ -5,6 +5,12 @@ values when a family of components needs a different treatment; set a component 
 instance needs to differ. A component's fallback chain reads **component → group → global** where
 that group applies. The group and component levels are optional.
 
+Borders and elevation follow [one visual role guide](https://github.com/threadlabs-studio/looma/blob/main/docs/visual-system.md):
+`--ui-border-divider` separates content, `--ui-border-strong` encloses panels and floating
+surfaces, and `--ui-control-border` marks interactive controls. Actions use a modest highlight and
+raised shadow that settle when pressed; disabled controls are flat. Tone changes the colour, not
+the border or elevation role.
+
 | Level | Example | Reach | Use it for |
 | --- | --- | --- | --- |
 | Global theme | `--ui-accent`, `--ui-radius-md` | The whole theme or a theme boundary | A brand palette, type and spacing scale, default corners, elevation and motion |
@@ -65,9 +71,9 @@ stopping.
 :root {
   /* Intent: what an action means. */
   --ui-accent: #5b55d6;
-  --ui-danger: #b4233f;
+  --ui-danger: #c92d1e;
   --ui-success: #007a33;
-  --ui-warning: #b45309;
+  --ui-warning: #ba5b0b;
   --ui-info: #0066cc;
 
   /* The readable foreground on a filled accent or danger surface. */
@@ -91,11 +97,11 @@ because each is mixed from it.
 | Derived | From | How |
 | --- | --- | --- |
 | `--ui-text-secondary`, `--ui-text-muted` | ink + page | the ink mixed into the page, 80% and 62%: muted is the lightest step that still reads at 4.5:1 on the sunken surface |
-| `--ui-border`, `-strong`, `--ui-control-border` | ink + page | the same ramp, at 12%, 25%, and 48% |
+| `--ui-border`, `-strong`, `--ui-control-border` | ink + page | the same ramp: 12% for separators, 25% for overlay edges, 48% for enabled control edges |
 | `--ui-accent-hover`, `-active` | accent + ink | toward the ink, for pressure |
 | `--ui-accent-subtle`, `--ui-danger-soft` | accent + page | toward the page, for a tint |
-| `--ui-disabled-surface`, `--ui-disabled-text` | sunken surface, ink + page | one decision, not a per-component one; the ink at 45%, lighter than muted text |
-| `--ui-disabled-filter` | `saturate(0.2) contrast(0.75) brightness(1.25)` | how a disabled button washes out; dark dims (`brightness(0.8)`), high contrast only drops colour (`saturate(0)`) |
+| `--ui-disabled-surface`, `--ui-disabled-text`, `--ui-disabled-border` | sunken surface, ink + page | flat surface, pale ink, and a low-contrast edge distinguish a disabled control from every enabled tone |
+| `--ui-disabled-filter` | `none` | compatibility hook for custom disabled treatments |
 | `--ui-focus-ring` | accent | the focus ring is the accent |
 | `--ui-warning-subtle-text` | warning + ink | 55% warning toward the ink. Amber is the lightest intent, so it takes more ink to read at 4.5:1, and a theme can keep a bright, saturated warning for tints, borders, and icons |
 
@@ -103,11 +109,9 @@ The mixes are directional rather than absolute: they move *toward the ink* or *t
 In a dark theme the ink is light, so the same mix brightens where it darkened in a light one, and
 one set of rules serves both.
 
-A disabled button keeps its own look and is washed out by one filter, `--ui-disabled-filter`:
-less colour, less contrast, and a step toward the page. Every variant and tone fades the same way,
-so a disabled danger button still reads as danger, and a retheme carries through without a second
-palette to keep in step. Button and Icon Button take it through `--ui-button-disabled-filter` and
-`--ui-icon-button-disabled-filter`.
+A disabled Button or Icon Button uses the shared neutral surface, text, and border instead of its
+active tone. Its shadow and highlight disappear. The compatibility filter hook remains available
+through `--ui-button-disabled-filter` and `--ui-icon-button-disabled-filter`.
 
 ### The rest of the contract
 
@@ -141,7 +145,7 @@ ancestor, and work only in the components listed here. They are intentionally ab
 | `--ui-field-danger` | Invalid Input, Input Group, Select, Listbox, Textarea, Combobox, Checkbox, Radio Group legend, Form Field message, editor link form | `--ui-danger` and its solid alias |
 | `--ui-action-radius` | Button, Icon Button, except the Icon Button's explicit `round` shape | `--ui-radius-md` |
 | `--ui-overlay-radius` | Dialog, Menu, Context Menu, Popover, Tooltip, Search Shell panel, Toast and Toast Region's generated toast, Combobox popup | Each component's former radius default |
-| `--ui-overlay-surface`, `--ui-overlay-border`, `--ui-overlay-shadow` | The same overlay surfaces, except an inverse Tooltip uses its own surface and border | The existing elevated surface, border and elevation tokens |
+| `--ui-overlay-surface`, `--ui-overlay-border`, `--ui-overlay-shadow` | The same overlay surfaces, except an inverse Tooltip uses its own surface and border | The elevated surface, strong border, and elevation tokens |
 
 For example, one form can have tighter corners and a distinct danger shade while destructive
 buttons elsewhere continue to use the global danger value:
@@ -299,7 +303,7 @@ shadows if depth should read differently on its surfaces:
   --ui-on-accent: #1a1a1a;
   --ui-on-danger: #1a1a1a;
   --ui-accent: #a99bf5;
-  --ui-danger: #ef6f86;
+  --ui-danger: #ff6b6b;
   --ui-success: #33cc66;
   --ui-warning: #ffaa22;
   --ui-info: #4d9fff;

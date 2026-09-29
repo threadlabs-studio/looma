@@ -6,36 +6,56 @@
     <prop name="size" type="sm | md" default="md">sm fits inside a button or a line of small text; md sits beside body text.</prop>
   </defs>
   <span
+    class="ring"
     :role="{ true: 'status', false: null }[format('%s', label != '')]"
     :aria-label="{ true: label, false: null }[format('%s', label != '')]"
     :aria-hidden="{ true: null, false: 'true' }[format('%s', label != '')]"
-  >
-    <ui-icon name="loader"></ui-icon>
-  </span>
+  ></span>
   <style>
-    /* Something is on its way. It turns in the current text colour; with reduced motion it holds still,
+    /* Something is on its way. The ring chases in the current text colour; with reduced motion it holds still,
        and the label (or the text beside it) still says what is happening. */
     :host {
       display: inline-flex;
       flex: none;
+      align-items: center;
+      justify-content: center;
+      inline-size: 1em;
+      block-size: 1em;
       color: currentColor;
       font-size: var(--ui-font-size-lg);
       line-height: 1;
-      animation: ui-spinner-turn 0.8s linear infinite;
+    }
+
+    .ring {
+      display: block;
+      box-sizing: border-box;
+      inline-size: 100%;
+      block-size: 100%;
+      border: 2px solid transparent;
+      border-block-start-color: currentColor;
+      border-inline-end-color: color-mix(in srgb, currentColor 52%, transparent);
+      border-radius: 50%;
+      animation: ui-spinner-chase 1s linear infinite;
     }
 
     :host-state([size="sm"]) {
       font-size: var(--ui-font-size-md);
     }
 
-    @keyframes ui-spinner-turn {
-      to {
+    @keyframes ui-spinner-chase {
+      0% {
+        transform: rotate(0);
+      }
+      70% {
+        transform: rotate(160deg);
+      }
+      100% {
         transform: rotate(1turn);
       }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      :host {
+      .ring {
         animation: none;
       }
     }

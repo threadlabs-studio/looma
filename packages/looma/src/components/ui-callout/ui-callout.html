@@ -103,7 +103,9 @@
       gap: var(--ui-callout-gap, calc(var(--ui-space-2) * 0.75));
       align-items: start;
       max-width: 100%;
-      padding: var(--ui-callout-padding-block, var(--ui-space-2)) var(--ui-callout-padding-inline, var(--ui-space-3));
+      padding-block: var(--ui-callout-padding-block, var(--ui-space-2));
+      padding-inline-start: var(--ui-callout-padding-inline, var(--ui-space-2));
+      padding-inline-end: var(--ui-callout-padding-inline, var(--ui-space-3));
       border: var(--ui-callout-border-width, 1px) solid color-mix(in srgb, var(--ui-callout-border, var(--_callout-border)) 35%, transparent);
       border-inline-start: var(--ui-callout-leading-border-width, 4px) solid var(--ui-callout-border, var(--_callout-border));
       border-radius: var(--ui-radius-md);

@@ -101,7 +101,7 @@ test("a button renders as a link through its polymorphic root, not a second comp
   // An `as` prop chooses between explicit native roots; the prop does not retag an element.
   assert.equal(contracts["ui-button"].props.as?.type, "button | a");
   assert.match(source, /<template \$match>\s*<a\s+\$when="as = 'a'"/);
-  assert.match(source, /<button \$else\b/);
+  assert.match(source, /<button\s+\$else\b/);
   assert.equal(contracts["ui-button"].root, "button");
   for (const name of ["href", "target", "rel"]) {
     assert.equal(contracts["ui-button"].props[name]?.type, "string", `ui-button declares ${name}`);

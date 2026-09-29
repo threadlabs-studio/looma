@@ -45,6 +45,7 @@
        than that many fit. */
     :host-state([layout="grid"]),
     :host-state([layout="tiles"]) {
+      inline-size: 100%;
       grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--_track)), 1fr));
     }
 
@@ -53,6 +54,7 @@
       --_ui-description-value-size: var(--ui-font-size-lg);
       --_ui-description-padding: var(--_tile-padding);
       --_ui-description-border-width: 1px;
+      --_ui-description-border-color: var(--ui-border-strong);
       --_gap: var(--ui-space-3);
       --_gap-compact: var(--ui-space-2);
       --_column-gap: var(--_gap);
