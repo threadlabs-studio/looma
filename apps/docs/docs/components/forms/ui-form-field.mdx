@@ -17,6 +17,19 @@ Put a small action about the label, such as a help button that opens a toggletip
 centred on the first line, so a button taller than the text never makes that field's label row
 taller than its neighbours' in a grid row. Name the button for what it explains ("Help for Price").
 
+## Styling hooks
+
+Set these on the field through a class of your own. They do not inherit, so a field inside the one
+you set them on keeps its defaults.
+
+| Hook | Sets |
+| --- | --- |
+| `--ui-form-field-label-text`, `--ui-form-field-label-font-size` | the label's colour (`--ui-text-secondary`) and size (`--ui-font-size-sm`) |
+| `--ui-form-field-help-text`, `--ui-form-field-help-font-size` | the help text's colour (`--ui-text-muted`) and size (`--ui-font-size-sm`) |
+| `--ui-form-field-help-min-block-size` | a minimum height for the help, so fields in a row line up |
+| `--ui-form-field-min-inline-size` | the narrowest the field gets (`0`), such as `16rem` in a wrapping row |
+| `--ui-form-field-danger` | the error message's colour, over the inherited `--ui-field-danger` |
+
 ## Labels without JavaScript
 
 Link the label to its control in the HTML: give the control an `id` and the label a matching `for`,

@@ -4,7 +4,13 @@ export default function controller(host) {
   return host.effect(() => {
     const value = host.state.value;
     if (value === undefined || value === null) return;
-    host.element.defaultValue = String(value);
-    if (host.element.value !== String(value)) host.element.value = String(value);
+    const input = host.element;
+    const text = String(value);
+    input.defaultValue = text;
+    if (input.value === text) return;
+    // A number field's text can differ from the number it means (1.0 is 1, and Chromium reads 12. as
+    // 12). Writing the value would erase what the user is typing, so a field that means it stays.
+    if (input.type === "number" && input.value !== "" && Number(input.value) === Number(value)) return;
+    input.value = text;
   });
 }
