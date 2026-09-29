@@ -123,6 +123,24 @@ afterAll(async () => {
 });
 
 describe("LoomaEditor links", () => {
+  it("keeps selected text when the link button press collapses the editor selection", async () => {
+    const page = await openEditor();
+    await prose(page).locator("p").click();
+    await page.keyboard.press("Home");
+    await page.keyboard.press("Shift+End");
+    const linkButton = page.getByRole("toolbar", { name: "Editor toolbar" }).getByRole("button", { name: "Link" });
+    await linkButton.evaluate((button) => {
+      button.addEventListener("pointerdown", () => {
+        const selection = window.getSelection();
+        selection?.collapseToEnd();
+        document.dispatchEvent(new Event("selectionchange"));
+      });
+    });
+    await linkButton.click();
+    assert.equal(await linkForm(page).getByRole("textbox", { name: "Text" }).count(), 0);
+    await page.close();
+  });
+
   it("creates, edits, previews, and removes a link from selected text", async () => {
     const page = await openEditor();
     await prose(page).locator("p").click();
