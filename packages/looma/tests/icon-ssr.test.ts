@@ -26,8 +26,11 @@ describe("Icon server render", () => {
     ]);
   });
 
-  it("draws an icon another component renders", async () => {
-    expect(shapes(await render(h(Spinner)))).toEqual(['<path d="M21 12a9 9 0 1 1-6.219-8.56">']);
+  it("renders the spinner's CSS ring without requiring an SVG asset", async () => {
+    const html = await render(h(Spinner));
+    expect(html).toContain('class="ring"');
+    expect(html).toContain('aria-hidden="true"');
+    expect(shapes(html)).toEqual([]);
   });
 
   it("draws nothing for an unknown or empty name, and stays hidden from assistive technology", async () => {

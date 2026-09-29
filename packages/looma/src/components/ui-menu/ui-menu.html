@@ -2,6 +2,7 @@
   <defs>
     <prop name="density" type="comfortable | compact" default="comfortable">Compact trades padding and type size for rows that fit more on screen.</prop>
     <prop name="open" type="boolean" default="false">Whether the menu is open initially or when set externally.</prop>
+    <prop name="inline" type="boolean" default="false">Displays the menu in the page flow without an overlay or trigger, for an embedded list of actions.</prop>
     <prop name="for" type="string" default="">ID of the control that toggles and anchors the menu.</prop>
     <prop name="placement" type="string" default="bottom-start">Positions an associated menu relative to its trigger.</prop>
     <state name="internalOpen" :value="false"></state>
@@ -79,7 +80,7 @@
       max-inline-size: inherit;
       padding: var(--ui-space-1);
       background: var(--_ui-menu-surface, var(--ui-overlay-surface, var(--ui-surface-elevated)));
-      border: 1px solid var(--_ui-menu-border, var(--ui-overlay-border, var(--ui-border-default)));
+      border: 1px solid var(--_ui-menu-border, var(--ui-overlay-border, var(--ui-border-strong)));
       border-radius: var(--_ui-menu-radius, var(--ui-overlay-radius, var(--ui-radius-lg)));
       box-shadow: var(--_ui-menu-shadow, var(--ui-overlay-shadow, var(--ui-elevation-overlay, var(--ui-shadow-lg))));
       max-block-size: inherit;
@@ -91,10 +92,10 @@
       block-size: 0;
       margin: var(--ui-space-1) 0;
       border: 0;
-      border-block-start: 1px solid var(--ui-border-default);
+      border-block-start: 1px solid var(--ui-border-divider);
     }
 
-    :host:not(:host-state([internalOpen])) {
+    :host:not(:host-state([internalOpen])):not(:host-state([inline])) {
       display: none;
     }
 

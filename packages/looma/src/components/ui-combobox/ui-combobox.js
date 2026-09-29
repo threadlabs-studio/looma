@@ -58,6 +58,10 @@ export default function controller(host) {
     // "none": the consumer already narrowed the options (a server search), so every one is listed.
     filterByLabel: host.state.filter !== "none",
   });
+  const authoredDefaults = () => {
+    const values = new Set(Array.from(authored.querySelectorAll("option[selected]"), (option) => option.value));
+    return config().options.filter((option) => values.has(option.value));
+  };
   // Selected items work uncontrolled: the component keeps them and reports every change. A consumer
   // that owns `items` stays in charge, because the prop resyncs whatever it sets. A consumer that sets
   // `selectedValues` controls the selection: the chips follow it, and a user's change is only reported.
@@ -466,7 +470,7 @@ export default function controller(host) {
       host.state.selected = null;
       host.state.raw = host.state.query ?? "";
     } else {
-      host.state.selected = host.state.value ?? null;
+      host.state.selected = host.state.value !== undefined ? host.state.value : authoredDefaults()[0]?.value ?? null;
       host.state.raw = host.state.query ?? "";
       if (host.state.query === undefined && !host.state.raw && host.state.selected !== null) {
         host.state.raw = config().options?.find((row) => row.value === host.state.selected)?.label ?? host.state.selected;
@@ -499,7 +503,7 @@ export default function controller(host) {
   const stopReset = afterFormReset(input, () => {
     close();
     lastSelection = null;
-    host.state.internalItems = controlledValues() ? itemsForValues() : Array.isArray(host.state.items) ? host.state.items : [];
+    host.state.internalItems = controlledValues() ? itemsForValues() : Array.isArray(host.state.items) ? host.state.items : authoredDefaults();
     applyDefaults();
     input.value = host.state.display;
     resetValidation();
@@ -522,6 +526,7 @@ export default function controller(host) {
   let lastSelectedValues = host.state.selectedValues;
   if (controlledValues()) host.state.internalItems = itemsForValues();
   else if (Array.isArray(lastItems)) host.state.internalItems = lastItems;
+  else host.state.internalItems = authoredDefaults();
   const stop = host.effect(() => {
     // A consumer that sets `items` owns them; otherwise the component keeps its own. selectedValues wins.
     if (host.state.items !== lastItems) {

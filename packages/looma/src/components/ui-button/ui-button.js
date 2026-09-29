@@ -1,7 +1,7 @@
-// Pending actions retain focus but cannot activate, navigate, submit, or notify click consumers.
+// Loading actions retain focus but cannot activate, navigate, submit, or notify click consumers.
 export default function controller(host) {
   const onClick = (event) => {
-    if (!host.state.pending) return;
+    if (!host.state.loading && !host.state.pending) return;
     event.preventDefault();
     event.stopImmediatePropagation();
   };

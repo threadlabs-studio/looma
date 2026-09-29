@@ -1,6 +1,6 @@
 <template component="ui-floating-action-button">
   <defs>
-    <prop name="disabled" type="boolean" default="false">Disables the button, so it cannot be pressed or focused, and fades it to 60% opacity.</prop>
+    <prop name="disabled" type="boolean" default="false">Disables the button, so it cannot be pressed or focused, and gives it a flat muted treatment.</prop>
     <prop name="mobileOnly" type="boolean" default="false"
     >Hides the button on viewports 768px wide and wider, for a shortcut that only phones need. Make sure the action is reachable another way at those
       widths.</prop>
@@ -69,7 +69,9 @@
     }
 
     :host:disabled {
-      opacity: 0.6;
+      background: var(--ui-disabled-surface);
+      color: var(--ui-disabled-text);
+      box-shadow: none;
       cursor: not-allowed;
     }
 

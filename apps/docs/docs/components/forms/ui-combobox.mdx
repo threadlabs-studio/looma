@@ -17,6 +17,11 @@ the list announces its busy state and hides the empty state. Provide an `empty` 
 settled no-results message. Set `invalid` when validation is owned by the form; it remains in
 effect until the application clears it.
 
+For an initial HTML selection, put `selected` on an authored `<option>` (on several options in
+`multiple` mode). A form reset restores those defaults. Use `value`, `items`, or `selected-values`
+when the application owns the selection; `selected-values` is the controlled multiple-selection
+API, so the application must accept each reported change to keep it.
+
 ## Descriptions and tags
 
 An option can carry a line of context under its label and a short tag after it, for a list that

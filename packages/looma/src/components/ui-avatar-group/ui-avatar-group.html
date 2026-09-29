@@ -37,10 +37,9 @@
       --_ui-avatar-group-overlap-shadow: var(--ui-avatar-group-overlap-shadow);
       --_ui-avatar-group-edge-ring: var(--ui-avatar-group-edge-ring);
 
-      /* Each avatar is ringed in the surface colour, so where one overlaps the next it reads as a
-       * whole circle set on top, not a shape cut into the one beneath. */
-      --_overlap-shadow: 0 0 0 0 transparent;
-      --_edge-ring: 0 0 0 2px var(--ui-surface);
+      /* A one-pixel shadow on the leading edge separates overlapping circles without cutting
+       * a white gap out of the avatar underneath. */
+      --_overlap-shadow: -1px 0 0 0 rgb(0 0 0 / 0.22);
 
       display: flex;
       align-items: center;
@@ -59,6 +58,10 @@
       margin-inline-start: 0;
     }
 
+    :host:dir(rtl) {
+      --_overlap-shadow: 1px 0 0 0 rgb(0 0 0 / 0.22);
+    }
+
     .overflow {
       margin-inline-start: -0.5rem;
       display: inline-flex;
@@ -72,7 +75,7 @@
       color: var(--ui-text-primary);
       box-shadow:
         var(--_ui-avatar-group-overlap-shadow, var(--_overlap-shadow)),
-        var(--_ui-avatar-group-edge-ring, var(--_edge-ring));
+        var(--_ui-avatar-group-edge-ring, 0 0 0 0 transparent);
       font: inherit;
       font-size: var(--ui-font-size-xs);
       font-weight: 600;

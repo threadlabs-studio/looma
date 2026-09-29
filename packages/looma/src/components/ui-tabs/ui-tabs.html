@@ -89,10 +89,11 @@
       overflow-y: hidden;
       overscroll-behavior: contain;
       scrollbar-width: thin;
-      border-block-end: 1px solid var(--ui-border-default);
+      border-block-end: 1px solid var(--ui-border-divider);
     }
 
-    .list button {
+    .list button,
+    .list > :slotted(button[slot="tab"]) {
       min-block-size: var(--_ui-tabs-tab-min-block-size, var(--_tab-min-block-size));
       margin: 0 0 -1px;
       padding: var(--_ui-tabs-tab-padding-block, var(--_tab-padding-block)) var(--_ui-tabs-tab-padding-inline, var(--_tab-padding-inline));
@@ -114,7 +115,8 @@
     /* Centre the glyphs, not the line box: a label without descenders otherwise reads high.
      * Trimming applies to block containers, so the box is a block with centred content. */
     @supports (text-box-trim: trim-both) {
-      .list button {
+      .list button,
+      .list > :slotted(button[slot="tab"]) {
         display: block;
         text-align: center;
         align-content: center;
@@ -127,19 +129,23 @@
       grid-auto-columns: minmax(max-content, 1fr);
     }
 
-    .list button {
+    .list button,
+    .list > :slotted(button[slot="tab"]) {
       white-space: nowrap;
     }
 
-    .list button:hover {
+    .list button:hover,
+    .list > :slotted(button[slot="tab"]:hover) {
       color: var(--ui-text-primary);
       background: var(--ui-surface-muted);
     }
-    .list button[aria-selected="true"] {
+    .list button[aria-selected="true"],
+    .list > :slotted(button[slot="tab"][aria-selected="true"]) {
       color: var(--ui-accent-solid);
       border-block-end-color: var(--ui-accent-solid);
     }
-    .list button:focus-visible {
+    .list button:focus-visible,
+    .list > :slotted(button[slot="tab"]:focus-visible) {
       position: relative;
       outline: none;
       box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--ui-focus-ring) 45%, transparent);
@@ -149,7 +155,7 @@
     .panels {
       min-inline-size: 0;
     }
-    :slotted(*) {
+    .panels > :slotted(*) {
       padding: var(--ui-space-4);
     }
 
@@ -162,22 +168,25 @@
       grid-auto-flow: row;
       grid-auto-columns: auto;
       border-block-end: 0;
-      border-inline-end: 1px solid var(--ui-border-default);
+      border-inline-end: 1px solid var(--ui-border-divider);
     }
 
-    :host-state([orientation="vertical"]) .list button {
+    :host-state([orientation="vertical"]) .list button,
+    :host-state([orientation="vertical"]) .list > :slotted(button[slot="tab"]) {
       margin: 0 -1px 0 0;
       border-block-end: 0;
       border-inline-end: 2px solid transparent;
       text-align: start;
     }
 
-    :host-state([orientation="vertical"]) .list button[aria-selected="true"] {
+    :host-state([orientation="vertical"]) .list button[aria-selected="true"],
+    :host-state([orientation="vertical"]) .list > :slotted(button[slot="tab"][aria-selected="true"]) {
       border-inline-end-color: var(--ui-accent-solid);
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .list button {
+      .list button,
+      .list > :slotted(button[slot="tab"]) {
         transition: none;
       }
     }

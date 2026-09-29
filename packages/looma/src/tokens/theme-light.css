@@ -12,10 +12,10 @@
     --ui-on-danger: #ffffff;
 
     --ui-accent: #5b55d6;
-    --ui-danger: #b4233f;
+    --ui-danger: #c92d1e;
     --ui-success: #007a33;
-    /* Deep amber, so a solid warning surface carries white text like the other tones (5:1). */
-    --ui-warning: #b45309;
+    /* Rich amber, with enough depth for white text on solid warning surfaces. */
+    --ui-warning: #ba5b0b;
     --ui-info: #0066cc;
   }
 }
