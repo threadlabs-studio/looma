@@ -103,6 +103,40 @@ describe("editor extension contract", () => {
     element.remove();
   });
 
+  it("keeps Markdown frontmatter as source metadata and parses the document after it", () => {
+    const element = document.createElement("div");
+    document.body.append(element);
+    const editor = new Editor({ element, extensions: getDefaultEditorExtensions(), content: "<p></p>" });
+    editor.commands.focus("start");
+
+    pasteFromSourceEditor(editor, "---\ndate: 2026-09-25\ntopic: knowledge\n---\n\n# Working notes\n\n```ts\nconst answer = 42\n```");
+
+    expect(editor.getJSON().content?.map((node) => node.type)).toEqual(["codeBlock", "heading", "codeBlock"]);
+    expect(editor.getJSON().content?.[0]).toMatchObject({
+      attrs: { language: "yaml" },
+      content: [{ text: "---\ndate: 2026-09-25\ntopic: knowledge\n---" }],
+    });
+    expect(editor.getJSON().content?.[1]).toMatchObject({ attrs: { level: 1 }, content: [{ text: "Working notes" }] });
+    expect(editor.getJSON().content?.[2]).toMatchObject({ attrs: { language: "ts" } });
+    editor.destroy();
+    element.remove();
+  });
+
+  it("recognizes frontmatter without a heading but leaves an ordinary divider literal", () => {
+    const element = document.createElement("div");
+    document.body.append(element);
+    const editor = new Editor({ element, extensions: getDefaultEditorExtensions(), content: "<p></p>" });
+    editor.commands.focus("start");
+
+    pasteFromSourceEditor(editor, "---\ntopic: knowledge\n---\nA short note.");
+    expect(editor.getJSON().content?.map((node) => node.type)).toEqual(["codeBlock", "paragraph"]);
+    editor.commands.clearContent();
+    pasteFromSourceEditor(editor, "---\nA short note.\n---");
+    expect(editor.getJSON().content?.[0]?.type).not.toBe("codeBlock");
+    editor.destroy();
+    element.remove();
+  });
+
   it("preserves real rich HTML when its plain-text companion looks like Markdown", () => {
     const element = document.createElement("div");
     document.body.append(element);

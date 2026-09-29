@@ -23,6 +23,40 @@ afterEach(async () => {
 });
 
 describe("LoomaEditor inline chips (real browser)", () => {
+  it("places the chip editor below a chip near the top of a narrow page", async () => {
+    const originalWidth = Object.getOwnPropertyDescriptor(window, "innerWidth");
+    Object.defineProperty(window, "innerWidth", { configurable: true, value: 375 });
+    try {
+      const host = document.createElement("div");
+      host.style.width = "min(480px, 100%)";
+      host.style.marginTop = "240px";
+      document.body.append(host);
+      let editor: Editor | null = null;
+      const app = createApp({
+        render: () => h(LoomaEditor, { onReady: (instance: Editor) => { editor = instance; } }),
+      });
+      apps.push(app);
+      app.mount(host);
+      await flushBrowser();
+
+      editor!.chain().focus().insertContent("Article /chip").run();
+      await flushBrowser();
+      const option = [...(host.querySelectorAll<HTMLElement>('[data-component~="ui-editor-slash-menu"] [role="option"]'))]
+        .find((item) => item.textContent?.includes("Chip"));
+      expect(option).toBeTruthy();
+      await userEvent.click(option!);
+      await flushBrowser();
+
+      const chip = host.querySelector<HTMLElement>(".ProseMirror [data-looma-chip]");
+      const popover = document.querySelector<HTMLElement>(".looma-editor__chip-popover");
+      expect(chip).toBeTruthy();
+      expect(popover?.dataset.uiActualPlacement).toBe("bottom");
+      expect(popover!.getBoundingClientRect().top).toBeGreaterThanOrEqual(chip!.getBoundingClientRect().bottom);
+    } finally {
+      if (originalWidth) Object.defineProperty(window, "innerWidth", originalWidth);
+    }
+  });
+
   it("creates and edits a colored inline chip through its focused popover", async () => {
     const host = document.createElement("div");
     host.style.width = "min(480px, 100%)";
