@@ -26,8 +26,13 @@
       background: var(--ui-accent-subtle);
     }
     :host[aria-disabled="true"] {
-      opacity: 0.6;
+      background: var(--ui-disabled-surface);
       cursor: not-allowed;
+    }
+    :host[aria-disabled="true"] .title,
+    :host[aria-disabled="true"] .description,
+    :host[aria-disabled="true"] .icon {
+      color: var(--ui-disabled-text);
     }
 
     .icon {

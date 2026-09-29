@@ -13,16 +13,17 @@
       when none is chosen. A disabled combobox sends nothing.</prop>
     <prop name="value" type="string | null"
     >The selected value in single mode, which a named combobox submits with its form. The field shows the matching option's label, and a form reset returns to
-      this value.</prop>
+      this value. If omitted, the first authored option with selected sets the initial value.</prop>
     <prop
       name="items"
       type="list(object({ id: string, value: string, label: string, group?: string, disabled?: boolean, description?: string, tag?: object({ label: string, tone?: neutral | accent | info | success | warning | danger, color?: string }) }))"
-    >The selected items in multiple mode, as JSON; a named combobox submits each one's value. A form reset returns to these items, or to none when unset.</prop>
+    >The selected items in multiple mode, as JSON; a named combobox submits each one's value. A form reset returns to these items, or to authored selected
+      options when unset.</prop>
     <prop name="selectedValues" type="list(string)"
-    >The selected option values in multiple mode, when the consumer controls the selection. Once set, the consumer owns it: each value shows as a badge with its
-      authored option's label, adding or removing one reports selected-values-change with the new list, and the badges follow selectedValues, not the user,
-      unless it is updated to match. Setting it reports nothing. It takes precedence over items; leave it unset to let the combobox keep its own
-      selection.</prop>
+    >The selected option values in multiple mode, when the consumer controls the selection. Without it or items, authored options with selected set the initial
+      selection. Once set, the consumer owns it: each value shows as a badge with its authored option's label, adding or removing one reports
+      selected-values-change with the new list, and the badges follow selectedValues, not the user, unless it is updated to match. Setting it reports nothing.
+      It takes precedence over items; leave it unset to let the combobox keep its own selection.</prop>
     <prop name="multiple" type="boolean" default="false"
     >Lets the user choose several options. Each choice becomes a removable badge before the input, the list stays open between picks, and choosing a checked
       option removes it. value-change then reports the whole list of items, and selected-values-change the list of their values; use selectedValues or items,
@@ -66,8 +67,8 @@
     >Adds a chevron button that opens and closes the full, unfiltered list of options, for users who would rather browse than type. ArrowDown opens the same
       list with or without it.</prop>
     <prop name="clearable" type="boolean" default="false"
-    >Adds a clear button to the field that empties the input and clears the selection, reported as value-change with kind "clear". In multiple mode it clears
-      only the typed text; chosen items stay.</prop>
+    >Adds a clear button to the field that empties the input and clears the selection, reported as value-change with kind "clear". It is disabled when there is
+      nothing to clear. In multiple mode it clears only the typed text; chosen items stay.</prop>
     <prop name="help" type="string" default=""
     >Help text for the field. When set, a help button appears beside the field and opens a tooltip with this text; while it is open, the input is described by
       it.</prop>
@@ -144,42 +145,50 @@
         *</template></label>
     <div class="control">
       <div class="field" $ref="field">
-        <slot name="start"></slot>
-        <template $if="multiple">
-          <button
-            $each="item, index of internalItems"
-            $key="item.id"
-            class="item"
-            type="button"
-            tabindex="-1"
-            :data-index="index"
-            :disabled="disabled or readonly or item.disabled"
-            :aria-label="format('%s, press Delete or Backspace to remove', item.label)"
+        <div class="entry">
+          <slot name="start"></slot>
+          <template $if="multiple">
+            <button
+              $each="item, index of internalItems"
+              $key="item.id"
+              class="item"
+              type="button"
+              tabindex="-1"
+              :data-index="index"
+              :disabled="disabled or readonly or item.disabled"
+              :aria-label="format('%s, press Delete or Backspace to remove', item.label)"
+            >
+              <slot :name="format('item-%s', item.id)"><ui-badge $value="item.label"></ui-badge></slot>
+            </button>
+          </template>
+          <input
+            $ref="input"
+            :id="format('%s-input', uid)"
+            role="combobox"
+            aria-autocomplete="list"
+            autocomplete="off"
+            :aria-controls="format('%s-listbox', uid)"
+            :aria-expanded="expanded"
+            :aria-invalid="invalid or validationStatus = 'error'"
+            :aria-busy="loading or validationStatus = 'pending'"
+            .value="display"
+            :placeholder="placeholder"
+            :disabled="disabled"
+            :readonly="readonly"
+            :required="required and not (multiple and internalItems[0])"
           >
-            <slot :name="format('item-%s', item.id)"><ui-badge $value="item.label"></ui-badge></slot>
-          </button>
-        </template>
-        <input
-          $ref="input"
-          :id="format('%s-input', uid)"
-          role="combobox"
-          aria-autocomplete="list"
-          autocomplete="off"
-          :aria-controls="format('%s-listbox', uid)"
-          :aria-expanded="expanded"
-          :aria-invalid="invalid or validationStatus = 'error'"
-          :aria-busy="loading or validationStatus = 'pending'"
-          .value="display"
-          :placeholder="placeholder"
-          :disabled="disabled"
-          :readonly="readonly"
-          :required="required and not (multiple and internalItems[0])"
-        >
+        </div>
         <input $if="name and not multiple" type="hidden" :name="name" :value="submitted" :disabled="disabled">
         <template $if="name and multiple">
           <input $each="item of internalItems" $key="item.id" type="hidden" :name="name" :value="item.value" :disabled="disabled">
         </template>
-        <button $if="clearable" type="button" data-combobox-action="clear" aria-label="Clear" :disabled="disabled or readonly">
+        <button
+          $if="clearable"
+          type="button"
+          data-combobox-action="clear"
+          aria-label="Clear"
+          :disabled="disabled or readonly or (not raw and (multiple or selected = null))"
+        >
           <svg class="affordance-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
             <path d="M7 7l10 10M17 7 7 17"></path>
           </svg>
@@ -401,6 +410,11 @@
         var(--ui-control-inset),
         var(--ui-control-focus-halo-shadow);
     }
+    .entry {
+      display: flex;
+      flex: 1 1 auto;
+      min-inline-size: 0;
+    }
     /* A ghost icon button: the affordance is the mark, not a box around it. */
     .help {
       flex: none;
@@ -520,7 +534,7 @@
       overflow: auto;
       margin: 0;
       padding: var(--ui-space-1);
-      border: 1px solid var(--_ui-combobox-popup-border, var(--ui-overlay-border, var(--ui-border-default)));
+      border: 1px solid var(--_ui-combobox-popup-border, var(--ui-overlay-border, var(--ui-border-strong)));
       border-radius: var(--_ui-combobox-popup-radius, var(--ui-overlay-radius, var(--ui-radius-md)));
       background: var(--_ui-combobox-popup-surface, var(--ui-overlay-surface, var(--ui-surface-elevated)));
       color: var(--ui-text-primary);
@@ -543,6 +557,10 @@
     .option[aria-disabled="true"] {
       color: var(--ui-disabled-text);
       cursor: not-allowed;
+    }
+    .option[aria-disabled="true"] .primary,
+    .option[aria-disabled="true"] .secondary {
+      color: var(--ui-disabled-text);
     }
     .primary {
       display: block;
@@ -640,13 +658,21 @@
       );
     }
 
-    /* Multiple mode: chips wrap before the cursor on one flexible field line. */
+    /* Multiple mode keeps one control height. Chips and the input scroll within the entry,
+       while the clear and disclosure controls remain fixed at the end of the field. */
     :host-state([multiple]) .field {
-      flex-wrap: wrap;
       align-items: center;
-      gap: var(--ui-space-1);
       min-block-size: var(--_ui-combobox-item-min-block-size, 2.5rem);
       padding: var(--ui-space-1);
+    }
+    :host-state([multiple]) .entry {
+      align-items: center;
+      gap: var(--ui-space-1);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    :host-state([multiple]) .entry::-webkit-scrollbar {
+      display: none;
     }
     :host-state([multiple]) input {
       flex: 1 0 var(--_ui-combobox-item-input-min-inline-size, 5rem);
@@ -654,7 +680,7 @@
       min-block-size: 1.75rem;
       padding: var(--ui-space-0-5) var(--ui-space-1);
     }
-    /* A small multiple field starts at the small control height; chosen items still wrap it taller. */
+    /* Size variants keep their control height as selections are added. */
     :host-state([multiple]):host-state([size="sm"]) .field {
       min-block-size: 0;
       padding: var(--ui-space-0-5);
@@ -673,6 +699,7 @@
     .item {
       appearance: none;
       display: inline-flex;
+      flex: none;
       min-inline-size: 0;
       max-inline-size: min(100%, var(--_ui-combobox-item-item-max-inline-size, 12rem));
       overflow: hidden;
@@ -689,7 +716,7 @@
       outline-offset: 1px;
     }
     .item:disabled {
-      opacity: 0.6;
+      color: var(--ui-disabled-text);
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */

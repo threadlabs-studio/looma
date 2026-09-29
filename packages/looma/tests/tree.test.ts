@@ -465,6 +465,9 @@ describe("Tree selection", () => {
     await item(page, "api").locator(":scope > .row > .selection-hit > .selection-checkbox").click();
     assert.deepEqual(await events(page), [["select", { ids: ["docs", "guide", "api"], trigger: "pointer" }]]);
     await page.waitForFunction(() => document.querySelector('[data-item-id="docs"]')?.getAttribute("aria-selected") === "true");
+    assert.equal(await docsCheckbox.isChecked(), true);
+    await page.waitForFunction(() => (document.querySelector('[data-item-id="api"] .selection-checkbox') as HTMLInputElement | null)?.checked === true);
+    assert.equal(await item(page, "api").locator(":scope > .row > .selection-hit > .selection-checkbox").isChecked(), true);
     assert.equal(await docsCheckbox.evaluate((element: HTMLInputElement) => element.indeterminate), false);
     await docsCheckbox.click();
     assert.deepEqual((await events(page))[1], ["select", { ids: [], trigger: "pointer" }]);

@@ -8,6 +8,10 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 Menu container primitive that manages focus and selection across `ui-menu-item` children.
 
+Use `inline` when the menu should appear in the page flow, as in the first example. Use `for` to
+anchor an overlay menu to a button; its `open` prop controls that overlay's initial or external
+state.
+
 Use `<ui-menu-group label="…">` to name related commands and `<hr>` to separate sections. An
 item with `href` is a native link; its `shortcut` slot is a visible hint, not a keyboard binding.
 Arrow keys wrap between enabled items, Home and End move to the ends, and typing a label's first

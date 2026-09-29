@@ -128,7 +128,7 @@
       gap: var(--ui-space-1);
       padding: var(--ui-space-1);
       background: color-mix(in srgb, var(--ui-surface) 94%, transparent);
-      border: 1px solid var(--ui-border);
+      border: 1px solid var(--ui-border-strong);
       border-radius: calc(var(--ui-radius-md) + 2px);
       box-shadow: var(--ui-shadow-lg, 0 10px 15px -3px rgb(0 0 0 / 0.1));
       backdrop-filter: blur(10px);
@@ -144,7 +144,7 @@
     .sep {
       width: 1px;
       align-self: stretch;
-      background: var(--ui-border);
+      background: var(--ui-border-divider);
     }
 
     .overflow {
@@ -217,7 +217,7 @@
       min-width: 12rem;
       padding: var(--ui-space-1);
       background: var(--ui-surface);
-      border: 1px solid var(--ui-border);
+      border: 1px solid var(--ui-border-strong);
       border-radius: var(--ui-radius-md);
       box-shadow: var(--ui-shadow-lg, 0 10px 15px -3px rgb(0 0 0 / 0.1));
       display: flex;
@@ -229,7 +229,7 @@
     .menu-section + .menu-section {
       margin-top: var(--ui-space-1);
       padding-top: var(--ui-space-1);
-      border-top: 1px solid color-mix(in srgb, var(--ui-border) 80%, transparent);
+      border-top: 1px solid var(--ui-border-divider);
     }
 
     .menu-heading {

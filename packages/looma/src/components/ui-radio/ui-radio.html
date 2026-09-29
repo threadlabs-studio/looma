@@ -76,7 +76,7 @@
       flex: 0 0 auto;
       inline-size: var(--_ui-radio-size, 1.125rem);
       block-size: var(--_ui-radio-size, 1.125rem);
-      margin: 0.125em 0 0;
+      margin: calc(0.125em + 1px) 0 0;
       accent-color: var(--ui-accent-solid);
       cursor: pointer;
     }
@@ -89,6 +89,9 @@
     :host-state([disabled]) {
       color: var(--ui-disabled-text);
       cursor: not-allowed;
+    }
+    :host-state([disabled]) .description {
+      color: var(--ui-disabled-text);
     }
     :host-state([disabled]) input {
       cursor: not-allowed;
@@ -116,7 +119,7 @@
 
     :host-state([size="sm"]) input,
     :host-state([size="lg"]) input {
-      margin-top: calc((var(--_line) - var(--_ui-radio-size, 1.125rem)) / 2);
+      margin-top: calc((var(--_line) - var(--_ui-radio-size, 1.125rem)) / 2 + 1px);
     }
 
     @media (pointer: coarse) {

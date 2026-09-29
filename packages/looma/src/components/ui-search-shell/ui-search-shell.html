@@ -16,7 +16,7 @@
         <div class="search"><slot name="search"></slot></div>
         <div class="status"><slot name="status"></slot></div>
         <div class="body"><slot name="body"></slot></div>
-        <div class="footer"><slot name="footer"></slot></div>
+        <div class="actions"><slot name="footer"></slot></div>
       </div>
     </dialog>
   </div>
@@ -110,14 +110,14 @@
       margin-inline: auto;
       overflow: hidden;
       background: var(--_ui-search-shell-surface, var(--ui-overlay-surface, var(--ui-surface-elevated)));
-      border: 1px solid var(--_ui-search-shell-border, var(--ui-overlay-border, var(--ui-border-default)));
+      border: 1px solid var(--_ui-search-shell-border, var(--ui-overlay-border, var(--ui-border-strong)));
       border-radius: var(--_ui-search-shell-radius, var(--ui-overlay-radius, var(--ui-radius-dialog)));
       box-shadow: var(--_ui-search-shell-shadow, var(--ui-overlay-shadow, var(--ui-elevation-dialog, var(--ui-shadow-xl))));
     }
 
     .search {
       padding: var(--ui-space-3);
-      border-block-end: 1px solid var(--ui-border-default);
+      border-block-end: 1px solid var(--ui-border-divider);
       transition: border-color var(--ui-motion-fast) var(--ui-motion-ease), box-shadow var(--ui-motion-fast) var(--ui-motion-ease);
     }
 
@@ -147,7 +147,7 @@
     }
 
     .status,
-    .footer {
+    .actions {
       flex-shrink: 0;
       padding: var(--ui-space-2) var(--ui-space-4);
       color: var(--ui-text-secondary);
@@ -155,22 +155,22 @@
     }
 
     .status {
-      border-block-end: 1px solid var(--ui-border-default);
+      border-block-end: 1px solid var(--ui-border-divider);
     }
 
     /* Laid out like the dialog's action row: actions right-aligned, spaced as buttons, no fill. */
-    .footer {
+    .actions {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       justify-content: flex-end;
       gap: var(--ui-space-2);
       padding: var(--ui-space-3) var(--ui-space-4);
-      border-block-start: 1px solid var(--ui-border-default);
+      border-block-start: 1px solid var(--ui-border-divider);
     }
 
     .status:empty,
-    .footer:empty {
+    .actions:empty {
       display: none;
     }
 

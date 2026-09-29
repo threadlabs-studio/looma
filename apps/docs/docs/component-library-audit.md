@@ -89,8 +89,8 @@ Validation stays declarative everywhere. Validation functions are replaced by na
 
 | Component | Adopt | Declined |
 |---|---|---|
-| `ui-button` | `pending`: keeps focus and the label, sets `aria-disabled` and shows a spinner | `type`, `name`, `value` and `form` (native attributes already reach the button), a separate tone axis, icon slots. Deferred: rendering as a link |
-| `ui-icon-button` | `pending` | `pressed` (write native `aria-pressed`), tone |
+| `ui-button` | `loading`: keeps focus and the label, sets `aria-disabled` and shows a spinner | `type`, `name`, `value` and `form` (native attributes already reach the button), a separate tone axis, icon slots. Deferred: rendering as a link |
+| `ui-icon-button` | `loading` | `pressed` (write native `aria-pressed`), tone |
 | `ui-badge` | `outline` variant | Size (badges follow the font size), icon, pill, anchored count badge (a separate component if ever needed) |
 | `ui-callout` | Rename tone `note` to `neutral` to match Badge | Icon slot (a per-tone icon is built in), variant, size, `dismissible` (a candidate if banners need it), live region (write native `role`) |
 | `ui-avatar` | `size`, `shape: "circle" \| "square"`, a built-in person glyph when there is no image or name, `decorative` | Status event, lazy loading, background colour |

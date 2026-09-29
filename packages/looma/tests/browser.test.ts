@@ -526,6 +526,11 @@ describe("Menu structure and navigation", () => {
     assert.equal(await page.locator("#grid").getAttribute("role"), "menuitemcheckbox");
     assert.equal(await page.locator("#name").getAttribute("role"), "menuitemradio");
     assert.equal(await page.locator("#name").getAttribute("aria-checked"), "true");
+    for (const id of ["grid", "date"]) {
+      const indicator = page.locator(`#${id} .indicator`);
+      assert.equal(await indicator.evaluate((element) => getComputedStyle(element).borderStyle), "solid", `${id} shows an unchecked control`);
+      assert.ok((await indicator.boundingBox())?.width, `${id} reserves a visible control`);
+    }
     await page.locator("#grid").click();
     assert.equal(await page.locator("#grid").getAttribute("aria-checked"), "true");
     assert.equal(await menu.evaluate((element) => getComputedStyle(element).display === "none"), false, "checkable choice keeps menu open");
@@ -581,7 +586,7 @@ describe("Menu structure and navigation", () => {
           });
           return red! * 0.2126 + green! * 0.7152 + blue! * 0.0722;
         };
-        const indicator = luminance(getComputedStyle(item.querySelector(".indicator")!).color);
+        const indicator = luminance(getComputedStyle(item.querySelector(".indicator")!).backgroundColor);
         const surface = luminance(getComputedStyle(item.closest(".surface")!).backgroundColor);
         return { ratio: (Math.max(indicator, surface) + 0.05) / (Math.min(indicator, surface) + 0.05), icon: Boolean(item.querySelector(".indicator svg")) };
       });
@@ -983,13 +988,13 @@ describe("Combobox option modes", () => {
   });
 });
 
-describe("Pending actions", () => {
+describe("Loading actions", () => {
   it("keeps focus and labels while blocking button submits, icon clicks, and link navigation in HTML", async () => {
-    const path = await bundle("html-pending-actions", `import "@threadlabs/looma";`);
+    const path = await bundle("html-loading-actions", `import "@threadlabs/looma";`);
     const page = await open(path, `
-      <form id="form"><ui-button id="save" type="submit" pending>Save</ui-button></form>
-      <ui-icon-button id="more" label="More" pending><ui-icon name="ellipsis"></ui-icon></ui-icon-button>
-      <ui-button id="link" as="a" href="#target" pending>Open</ui-button>
+      <form id="form"><ui-button id="save" type="submit" loading><span>Save</span></ui-button></form>
+      <ui-icon-button id="more" label="More" loading><ui-icon name="ellipsis"></ui-icon></ui-icon-button>
+      <ui-button id="link" as="a" href="#target" loading>Open</ui-button>
     `, [join(root, "tokens.css")]);
     await page.evaluate(() => {
       (window as unknown as { activations: number }).activations = 0;
@@ -1011,20 +1016,25 @@ describe("Pending actions", () => {
     assert.equal(await page.locator("#more").getAttribute("aria-label"), "More");
     assert.equal(await page.locator("#link").getAttribute("href"), null);
     assert.equal(await page.locator("#link").getAttribute("tabindex"), "0");
+    const spinner = await page.locator("#save ui-spinner, #save [data-component='ui-spinner']").boundingBox();
+    const label = await page.locator("#save span").last().boundingBox();
+    assert.ok(spinner && label);
+    assert.ok(Math.abs(spinner.width - spinner.height) < 1, "spinner rotates inside a square box");
+    assert.ok(label.x - (spinner.x + spinner.width) >= 7, "loading spinner has space before the label");
     assert.equal(await page.evaluate(() => (window as unknown as { activations: number }).activations), 0);
     assert.equal(await page.evaluate(() => location.hash), "");
     await page.close();
   });
 
-  it("reactivates when a Vue consumer clears pending", async () => {
-    const path = await bundle("vue-pending-actions", `
+  it("reactivates when a Vue consumer clears loading", async () => {
+    const path = await bundle("vue-loading-actions", `
       import { createApp, h, ref } from "vue";
       import { Button, IconButton } from "@threadlabs/looma/vue";
-      const pending = ref(true);
-      window.finish = () => { pending.value = false; };
+      const loading = ref(true);
+      window.finish = () => { loading.value = false; };
       createApp({ render: () => h("div", [
-        h(Button, { id: "save", pending: pending.value }, () => "Save"),
-        h(IconButton, { id: "more", label: "More", pending: pending.value }, () => h("svg", { viewBox: "0 0 24 24" })),
+        h(Button, { id: "save", loading: loading.value }, () => "Save"),
+        h(IconButton, { id: "more", label: "More", loading: loading.value }, () => h("svg", { viewBox: "0 0 24 24" })),
       ]) }).mount("#app");
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
@@ -1040,6 +1050,33 @@ describe("Pending actions", () => {
     await page.locator("#more").click();
     assert.equal(await page.evaluate(() => (window as unknown as { activations: number }).activations), 2);
     assert.equal(await page.locator("#save").getAttribute("aria-disabled"), null);
+    await page.close();
+  });
+});
+
+describe("Disabled action appearance", () => {
+  it("uses a flat neutral palette instead of retaining active button tones", async () => {
+    const path = await bundle("html-disabled-actions", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-button id="active">Publish</ui-button>
+      <ui-button id="outline" disabled>Publish</ui-button>
+      <ui-button id="danger" variant="danger" disabled>Delete</ui-button>
+      <ui-icon-button id="icon" label="More" variant="outline" disabled><ui-icon name="ellipsis"></ui-icon></ui-icon-button>
+    `, [join(root, "tokens.css"), join(root, "theme-light.css")]);
+    const style = (id: string) => page.locator(`#${id}`).evaluate((element) => {
+      const css = getComputedStyle(element);
+      return { color: css.color, background: css.backgroundColor, border: css.borderTopColor, shadow: css.boxShadow };
+    });
+    const active = await style("active");
+    const outline = await style("outline");
+    const danger = await style("danger");
+    const icon = await style("icon");
+    assert.notEqual(outline.color, active.color);
+    assert.notEqual(outline.border, active.border);
+    assert.equal(outline.color, danger.color);
+    assert.equal(outline.background, danger.background);
+    assert.equal(icon.color, outline.color);
+    assert.equal(outline.shadow, "none");
     await page.close();
   });
 });
@@ -1544,8 +1581,8 @@ describe("Badge box", () => {
   const tones = ["neutral", "accent", "info", "success", "warning", "danger"];
   const variants = ["subtle", "solid"];
 
-  // Sizes to its label in a plain block (a table cell), as in a flex row. Subtle edges
-  // contrast with their fills; solid edges match. Forced colors draw both.
+  // Sizes to its label in a plain block (a table cell), as in a flex row. Subtle variants have a
+  // distinct edge; solid variants carry their fill to the edge. Forced colors draw every edge.
   async function checkBadges(page: Page) {
     await page.waitForSelector('#flex [data-component~="ui-badge"]');
     const width = (selector: string) => page.locator(selector).evaluate((element) => element.getBoundingClientRect().width);
@@ -1566,9 +1603,9 @@ describe("Badge box", () => {
     }));
     const drawn = await edges();
     assert.equal(drawn.length, tones.length * variants.length);
-    for (const { badge, filled, border, surface } of drawn) {
-      if (filled) assert.equal(border, surface, `${badge} has a solid edge`);
-      else assert.notEqual(border, surface, `${badge} has a contrasting subtle edge`);
+    for (const { badge, border, surface } of drawn) {
+      if (badge.includes("variant=subtle") && !badge.includes("tone=neutral")) assert.notEqual(border, surface, `${badge} has a defined subtle edge`);
+      else assert.equal(border, surface, `${badge} carries its solid fill to the edge`);
     }
 
     await page.emulateMedia({ forcedColors: "active" });
@@ -2436,7 +2473,7 @@ describe("View primitives", () => {
     // Loading is a polite status with a spinner; an error is an alert.
     assert.equal(await page.locator("#loading").getAttribute("role"), "status");
     assert.equal(await page.locator("#failed").getAttribute("role"), "alert");
-    assert.equal(await page.locator("#loading svg").count() > 0, true);
+    assert.equal(await page.locator("#loading [data-component~='ui-spinner'] .ring, #loading [data-component~='ui-spinner'].ring").count() > 0, true);
     // A trail is a navigation landmark of an ordered list; the current step is marked; the first
     // step has no separator before it.
     assert.equal(await page.getByRole("navigation", { name: "Breadcrumb" }).count(), 1);
@@ -3657,7 +3694,7 @@ describe("Compact controls on touch", () => {
 });
 
 describe("Button tone and disabled", () => {
-  it("paints every variant in its tone, and keeps a trace of it when disabled", async () => {
+  it("paints available variants in their tone and gives disabled actions one neutral treatment", async () => {
     const path = await bundle("vue-tone", `
       import { createApp, h } from "vue";
       import { Button } from "@threadlabs/looma/vue";
@@ -3700,25 +3737,27 @@ describe("Button tone and disabled", () => {
     const solid = await paint("solid");
     assert.equal(solid.background, accent.border, "solid fills with the outline's tone");
 
-    // Disabled keeps the shape and a trace of the tone, washes out, and stops looking raised.
+    // Disabled actions share a flat neutral palette so no tone still looks actionable.
     const off = await paint("off");
     const offDanger = await paint("off-danger");
     const offSolid = await paint("off-solid");
     assert.equal(off.opacity, "1", "disabled is a colour decision, not a transparency one");
     assert.equal(off.shadow, "none", "a disabled button does not look raised");
-    assert.notEqual(off.border, off.background, "a disabled outline is still an outline");
-    assert.equal(offSolid.border, offSolid.background, "a disabled solid is still filled");
-    assert.notEqual(offDanger.border, off.border, "a disabled button still says which action it was");
-    assert.equal(off.filter, "saturate(0.2) contrast(0.75) brightness(1.25)", "and it is washed out, so it no longer reads as available");
+    assert.notEqual(off.border, off.background, "a disabled outline keeps its shape");
+    for (const variant of [offDanger, offSolid]) {
+      assert.equal(variant.background, off.background, "disabled variants share a neutral surface");
+      assert.equal(variant.border, off.border, "disabled variants share a neutral border");
+      assert.equal(variant.color, off.color, "disabled variants share muted text");
+    }
+    assert.equal(off.filter, "none", "disabled colours are chosen directly");
     assert.equal(accent.filter, "none", "an available button is not");
 
-    // A disabled ghost states itself with a surface, but a wash of its tone, as hover is: an opaque
-    // mix toward the ink came out a mid-grey slab for neutral, louder than the enabled button.
-    const alpha = (color: string) => Number(/\/\s*([\d.]+)\)$/.exec(color)?.[1] ?? 1);
+    // Ghosts keep their borderless shape but gain the same muted fill and text.
     for (const id of ["off-ghost", "off-ghost-neutral"]) {
       const ghost = await paint(id);
-      assert.ok(alpha(ghost.background) > 0, `${id} still has a surface`);
-      assert.ok(alpha(ghost.background) < 0.3, `${id} is a wash, not a slab: ${ghost.background}`);
+      assert.equal(ghost.background, off.background);
+      assert.equal(ghost.color, off.color);
+      assert.equal(ghost.border, "rgba(0, 0, 0, 0)");
     }
     await page.close();
   });
@@ -4329,6 +4368,51 @@ describe("Combobox disabled", () => {
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
     await check(page);
+    await page.close();
+  });
+});
+
+describe("Combobox authored defaults and affordances", () => {
+  it("starts from selected options, disables empty Clear, and keeps multiple selections on one row", async () => {
+    const path = await bundle("html-combobox-authored-defaults", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <form id="form">
+        <ui-combobox id="single" name="region" label="Region" clearable disclosure>
+          <option value="north" selected>North</option><option value="south">South</option>
+        </ui-combobox>
+        <ui-combobox id="empty" label="Empty" clearable disclosure></ui-combobox>
+        <ui-combobox id="multi" name="teams" label="Teams" multiple clearable disclosure style="width: 19rem">
+          <option value="design" selected>Design</option><option value="docs" selected>Docs</option><option value="platform">Platform</option>
+        </ui-combobox>
+        <ui-combobox id="locked" label="Locked" disabled disclosure><option value="north">North</option></ui-combobox>
+        <ui-combobox id="read" label="Read" readonly disclosure><option value="north" selected>North</option></ui-combobox>
+      </form>
+    `, [join(root, "tokens.css")]);
+    const entries = () => page.locator("#form").evaluate((form: HTMLFormElement) => ({
+      region: new FormData(form).get("region"), teams: new FormData(form).getAll("teams"),
+    }));
+    assert.deepEqual(await entries(), { region: "north", teams: ["design", "docs"] });
+    assert.equal(await page.locator("#empty [data-combobox-action='clear']").isDisabled(), true);
+    assert.equal(await page.locator("#multi [data-combobox-action='clear']").isDisabled(), true);
+    assert.equal(await page.locator("#single [data-combobox-action='clear']").isEnabled(), true);
+    for (const id of ["locked", "read"]) {
+      assert.equal(await page.locator(`#${id} [data-combobox-action='disclosure']`).isVisible(), true);
+      assert.equal(await page.locator(`#${id} [data-combobox-action='disclosure']`).isDisabled(), true);
+    }
+    const initialHeight = await page.locator("#multi .field").evaluate((field) => field.getBoundingClientRect().height);
+    await page.locator("#multi [data-combobox-action='disclosure']").click();
+    await page.locator("#multi [role='option']").filter({ hasText: "Platform" }).click();
+    const selectedHeight = await page.locator("#multi .field").evaluate((field) => field.getBoundingClientRect().height);
+    assert.ok(Math.abs(selectedHeight - initialHeight) < 1, "adding chips does not grow the field");
+    await page.locator("#empty input[role='combobox']").fill("north");
+    assert.equal(await page.locator("#empty [data-combobox-action='clear']").isEnabled(), true);
+    await page.locator("#empty [data-combobox-action='clear']").click();
+    assert.equal(await page.locator("#empty [data-combobox-action='clear']").isDisabled(), true);
+    await page.locator("#single [data-combobox-action='clear']").click();
+    assert.equal(await page.locator("#single [data-combobox-action='clear']").isDisabled(), true);
+    await page.locator("#form").evaluate((form: HTMLFormElement) => form.reset());
+    await page.waitForTimeout(30);
+    assert.deepEqual(await entries(), { region: "north", teams: ["design", "docs"] });
     await page.close();
   });
 });
@@ -5523,7 +5607,8 @@ describe("Meter", () => {
     for (let index = 0; index < 5; index++) assert.equal(at(drawn, segment(index) + 48), page0, `gap ${index + 1} shows the page`);
     const done = [0, 1, 2, 3].map((index) => at(drawn, segment(index) + 23));
     const todo = [4, 5].map((index) => at(drawn, segment(index) + 23));
-    assert.equal(new Set(done).size, 1, "the steps done are one colour");
+    const near = (left: string, right: string) => left.split(",").every((channel, index) => Math.abs(Number(channel) - Number(right.split(",")[index])) <= 2);
+    assert.ok(done.every((pixel) => near(pixel, done[0]!)), `the shaded steps done share one fill: ${done}`);
     assert.equal(new Set(todo).size, 1, "the steps to do are one colour");
     assert.notEqual(done[0], todo[0], "the fill differs from the track");
     assert.notEqual(todo[0], page0, "the track differs from the page");

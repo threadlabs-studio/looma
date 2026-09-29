@@ -11,9 +11,9 @@
        the two surfaces either side of it, and the ink. Everything else — hovers, tints, borders,
        muted text, disabled — is mixed from them further down, so a theme sets these and stops. */
     --ui-accent: #5b55d6;
-    --ui-danger: #b4233f;
+    --ui-danger: #c92d1e;
     --ui-success: #007a33;
-    --ui-warning: #b45309;
+    --ui-warning: #ba5b0b;
     --ui-info: #0066cc;
     --ui-on-accent: #ffffff;
     --ui-on-danger: #ffffff;
@@ -115,7 +115,7 @@
     --ui-elevation-dialog: var(--ui-shadow-lg);
     --ui-overlay-backdrop: rgba(0, 0, 0, 0.4);
     --ui-control-inset: inset 0 1px 2px rgb(0 0 0 / 0.07), inset 0 1px 0 rgb(0 0 0 / 0.02);
-    --ui-raised: 0 1px 2px rgb(0 0 0 / 0.07), 0 1px 1px rgb(0 0 0 / 0.04);
+    --ui-raised: 0 2px 4px rgb(0 0 0 / 0.12), 0 1px 1px rgb(0 0 0 / 0.06);
     --ui-raised-highlight: linear-gradient(rgb(255 255 255 / 0.16), rgb(255 255 255 / 0));
     /* The counterpart to --ui-raised: a pressed control takes its shadow inside. */
     --ui-pressed: inset 0 1px 2px rgb(0 0 0 / 0.12);
@@ -131,6 +131,8 @@
     --ui-text-secondary: color-mix(in oklab, var(--ui-text) 80%, var(--ui-surface));
     --ui-text-muted: color-mix(in oklab, var(--ui-text) 62%, var(--ui-surface));
     --ui-border: color-mix(in oklab, var(--ui-text) 12%, var(--ui-surface));
+    /* Lines divide content; stronger edges enclose surfaces; control edges identify inputs. */
+    --ui-border-divider: color-mix(in oklab, var(--ui-border) 50%, var(--ui-border-strong));
     --ui-border-strong: color-mix(in oklab, var(--ui-text) 25%, var(--ui-surface));
     --ui-control-border: color-mix(in oklab, var(--ui-text) 48%, var(--ui-surface));
 
@@ -146,9 +148,10 @@
        Lighter than muted text, which must stay readable; disabled text is exempt from contrast. */
     --ui-disabled-surface: var(--ui-surface-sunken);
     --ui-disabled-text: color-mix(in oklab, var(--ui-text) 45%, var(--ui-surface));
-    /* A disabled button keeps its own look, washed out: less colour, less contrast, toward the page.
-       A filter rather than a second palette, so every variant and tone fades the same way. */
-    --ui-disabled-filter: saturate(0.2) contrast(0.75) brightness(1.25);
+    --ui-disabled-border: color-mix(in oklab, var(--ui-text) 20%, var(--ui-surface));
+    /* Component filter hooks remain available, but the default disabled state uses the explicit
+       neutral surface, text, and border above so a colored outline cannot still look active. */
+    --ui-disabled-filter: none;
 
     --ui-focus-ring: var(--ui-accent);
 

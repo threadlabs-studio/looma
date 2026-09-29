@@ -35,6 +35,9 @@ working, and `modal` wins when both are set. Remove it when convenient.
 those widths do not fit. The `open` and `close` events carry `{open, reason, trigger}`; the initial
 `open` attribute does not emit an event.
 
+The header and actions stay in place while long content scrolls in a Scroll Area. Its edges fade
+only when content continues beyond them, blending into the dialog's own surface in any theme.
+
 ## Theming
 
 Dialog reads the inherited overlay group values for its surface, border, radius and shadow. Set
