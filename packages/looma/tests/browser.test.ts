@@ -5660,3 +5660,215 @@ describe("Meter", () => {
     await page.close();
   });
 });
+
+describe("Input with numbers", () => {
+  // A number field's model is a number. v-model reads the field as a number, so text the user is
+  // still typing that means the model's number (12., 1.0, 1e3, empty) is never written over. Chromium
+  // reports "12." as "12", so the check is that nothing writes the field's value while it has focus.
+  const spyOnWrites = `
+    window.writes = [];
+    const value = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");
+    Object.defineProperty(HTMLInputElement.prototype, "value", {
+      ...value,
+      set(text) {
+        if (document.activeElement === this) window.writes.push(text);
+        value.set.call(this, text);
+      },
+    });
+  `;
+  const numberField = (name: string, binding: string) => bundle(name, `
+    import { createApp, h, ref } from "vue";
+    import { Input } from "@threadlabs/looma/vue";
+    ${spyOnWrites}
+    const amount = ref(12);
+    const updates = [];
+    window.updates = updates;
+    const record = (value) => { updates.push(value); amount.value = value; };
+    createApp({
+      render: () => h(Input, { id: "amount", type: "number", "aria-label": "Amount", ${binding} }),
+    }).mount("#app");
+  `);
+  const read = (page: Page) => page.evaluate(() => {
+    const { updates, writes } = window as unknown as { updates: unknown[]; writes: string[] };
+    return { updates: [...updates], writes: [...writes] };
+  });
+
+  const typing = async (page: Page) => {
+    const input = page.locator("#amount");
+    assert.equal(await input.inputValue(), "12");
+    await input.click();
+    await input.press("ControlOrMeta+a");
+    await input.press("Backspace");
+    // 12.5, then Backspace leaves "12.", and 8 makes 12.8, not 128 or 812.
+    await input.pressSequentially("12.5");
+    await input.press("Backspace");
+    await input.pressSequentially("8");
+    assert.equal(await input.inputValue(), "12.8");
+    for (const text of ["1.0", "1e3", "0.50"]) {
+      await input.press("ControlOrMeta+a");
+      await input.press("Backspace");
+      await input.pressSequentially(text);
+      assert.equal(await input.inputValue(), text);
+    }
+    // 1e3 less its 3 is not yet a number, so the field reads as empty; its 1 is 1 again.
+    await input.press("ControlOrMeta+a");
+    await input.pressSequentially("1e3");
+    await input.press("Backspace");
+    await input.press("Backspace");
+    assert.equal(await input.inputValue(), "1");
+    await input.press("Backspace");
+    assert.equal(await input.inputValue(), "");
+    return read(page);
+  };
+
+  it("reports numbers through v-model and never rewrites the text being typed", async () => {
+    const path = await numberField("vue-input-number-model", `modelValue: amount.value, "onUpdate:modelValue": record`);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const { updates, writes } = await typing(page);
+    assert.deepEqual(writes, []);
+    // Numbers, or an empty string while the field holds no number, as Vue's v-model reports them.
+    assert.ok(updates.every((value) => typeof value === "number" || value === ""), JSON.stringify(updates));
+    for (const value of [12.5, 12.8, 1, 1000, 0.5]) assert.ok(updates.includes(value), `reports ${value}`);
+    assert.equal(updates.at(-1), "");
+    await page.close();
+  });
+
+  it("takes a number value and follows input events without rewriting the text being typed", async () => {
+    const path = await numberField("vue-input-number-value", `value: amount.value, onInput: (event) => record(event.target.value === "" ? null : Number(event.target.value))`);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const { writes } = await typing(page);
+    assert.deepEqual(writes, []);
+    await page.close();
+  });
+});
+
+describe("App styling hooks", () => {
+  // An app styles a component from a plain class of its own, through the component's hooks: no
+  // selector of Looma's markup and no specificity to win. Each check runs on both targets.
+  const appCss = `
+    :root { --ui-motion-fast: 0s; }
+    .frame { inline-size: 400px; }
+    .narrow-input { --ui-input-inline-size: 150px; }
+    .narrow-select {
+      --ui-select-inline-size: 160px;
+      --ui-select-surface: rgb(1, 2, 3);
+      --ui-select-border: rgb(4, 5, 6);
+      --ui-select-focus-border: rgb(7, 8, 9);
+    }
+    .narrow-nav { --ui-nav-item-inline-size: 170px; }
+    .wide-field {
+      --ui-form-field-min-inline-size: 300px;
+      --ui-form-field-label-text: rgb(10, 20, 30);
+      --ui-form-field-label-font-size: 18px;
+      --ui-form-field-help-text: rgb(40, 50, 60);
+      --ui-form-field-help-font-size: 11px;
+    }
+    .one-line { --ui-button-white-space: nowrap; }
+    .tight { inline-size: 60px; }
+  `;
+  const label = "Save all the changes";
+
+  async function check(page: Page) {
+    await page.addStyleTag({ content: appCss });
+    await page.locator("#heading-sized").waitFor();
+    const style = (selector: string, property: string) =>
+      page.locator(selector).evaluate((element, name) => getComputedStyle(element).getPropertyValue(name), property);
+    const width = async (selector: string) => Math.round((await page.locator(selector).boundingBox())!.width);
+
+    // Widths: the hook sizes the component; unset, it fills its container as before.
+    assert.equal(await width("#input"), 150);
+    assert.equal(await width("#input-default"), 400);
+    assert.equal(await width("#select"), 160);
+    assert.equal(await width("#select-default"), 400);
+    assert.equal(await width("#nav"), 170);
+    assert.equal(await width("#nav-default"), 400);
+    assert.equal(await width("#field"), 300, "a field keeps its minimum in a narrower track");
+
+    // Select takes Input's surface and border hooks.
+    assert.equal(await style("#select", "background-color"), "rgb(1, 2, 3)");
+    assert.equal(await style("#select", "border-top-color"), "rgb(4, 5, 6)");
+    await page.locator("#select").focus();
+    await page.keyboard.press("Shift+Tab");
+    await page.keyboard.press("Tab");
+    assert.equal(await style("#select", "border-top-color"), "rgb(7, 8, 9)");
+
+    // Form Field's label and help text.
+    assert.equal(await style("#field-label", "color"), "rgb(10, 20, 30)");
+    assert.equal(await style("#field-label", "font-size"), "18px");
+    assert.equal(await style("#field-help", "color"), "rgb(40, 50, 60)");
+    assert.equal(await style("#field-help", "font-size"), "11px");
+
+    // A label kept on one line; unset, a button still wraps as its container does.
+    assert.equal(await style("#one-line", "white-space"), "nowrap");
+    assert.equal(await style("#wraps", "white-space"), "normal");
+    const height = async (selector: string) => (await page.locator(selector).boundingBox())!.height;
+    assert.ok(await height("#wraps") > await height("#one-line"), "the unset label wraps in a narrow row");
+
+    // A heading level on Text: its size and weight come from its options, not the browser's.
+    assert.equal(await page.locator("#heading").evaluate((element) => element.tagName), "H3");
+    assert.equal(await style("#heading", "font-size"), await style(".frame", "font-size"));
+    assert.equal(await style("#heading", "font-weight"), await style(".frame", "font-weight"));
+    assert.equal(await page.locator("#heading-sized").evaluate((element) => element.tagName), "H2");
+    assert.equal(await style("#heading-sized", "font-size"), await page.evaluate(() => {
+      const probe = document.body.appendChild(document.createElement("i"));
+      probe.style.fontSize = "var(--ui-font-size-lg)";
+      const size = getComputedStyle(probe).fontSize;
+      probe.remove();
+      return size;
+    }));
+    assert.equal(await style("#heading-sized", "font-weight"), "600");
+  }
+
+  it("apply from an app class in HTML", async () => {
+    const path = await bundle("html-app-hooks", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <div class="frame">
+        <ui-input id="input" class="narrow-input" aria-label="Amount"></ui-input>
+        <ui-input id="input-default" aria-label="Note"></ui-input>
+        <ui-select id="select" class="narrow-select" aria-label="Status"><option>Open</option></ui-select>
+        <ui-select id="select-default" aria-label="Owner"><option>Ada</option></ui-select>
+        <ui-nav-item id="nav" class="narrow-nav">Shipments</ui-nav-item>
+        <ui-nav-item id="nav-default">Orders</ui-nav-item>
+        <div class="tight"><ui-form-field id="field" class="wide-field">
+          <label slot="label" id="field-label" for="name">Name</label>
+          <ui-input id="name"></ui-input>
+          <p slot="help" id="field-help">As it appears on the invoice.</p>
+        </ui-form-field></div>
+        <div class="tight"><ui-button id="one-line" class="one-line">${label}</ui-button></div>
+        <div class="tight"><ui-button id="wraps">${label}</ui-button></div>
+        <ui-text id="heading" as="h3">Billing</ui-text>
+        <ui-text id="heading-sized" as="h2" size="lg" weight="semibold">Billing</ui-text>
+      </div>`, [join(root, "tokens.css")]);
+    await check(page);
+    await page.close();
+  });
+
+  it("apply from an app class in Vue", async () => {
+    const path = await bundle("vue-app-hooks", `
+      import { createApp, h } from "vue";
+      import { Button, FormField, Input, NavItem, Select, Text } from "@threadlabs/looma/vue";
+      createApp({
+        render: () => h("div", { class: "frame" }, [
+          h(Input, { id: "input", class: "narrow-input", "aria-label": "Amount" }),
+          h(Input, { id: "input-default", "aria-label": "Note" }),
+          h(Select, { id: "select", class: "narrow-select", "aria-label": "Status" }, () => [h("option", "Open")]),
+          h(Select, { id: "select-default", "aria-label": "Owner" }, () => [h("option", "Ada")]),
+          h(NavItem, { id: "nav", class: "narrow-nav" }, () => "Shipments"),
+          h(NavItem, { id: "nav-default" }, () => "Orders"),
+          h("div", { class: "tight" }, [h(FormField, { id: "field", class: "wide-field" }, {
+            label: () => h("label", { id: "field-label", for: "name" }, "Name"),
+            default: () => h(Input, { id: "name" }),
+            help: () => h("p", { id: "field-help" }, "As it appears on the invoice."),
+          })]),
+          h("div", { class: "tight" }, [h(Button, { id: "one-line", class: "one-line" }, () => "${label}")]),
+          h("div", { class: "tight" }, [h(Button, { id: "wraps" }, () => "${label}")]),
+          h(Text, { id: "heading", as: "h3" }, () => "Billing"),
+          h(Text, { id: "heading-sized", as: "h2", size: "lg", weight: "semibold" }, () => "Billing"),
+        ]),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await check(page);
+    await page.close();
+  });
+});

@@ -4,6 +4,7 @@ import { Editor, type JSONContent } from "@tiptap/core";
 import Document from "@tiptap/extension-document";
 import Paragraph from "@tiptap/extension-paragraph";
 import Text from "@tiptap/extension-text";
+import { common } from "lowlight";
 import {
   createLoomaMentionExtension,
   LOOMA_ACTIVE_BLOCK_BLUR_GRACE_MS,
@@ -23,6 +24,40 @@ import {
 } from "../src/editor/extensions";
 
 describe("editor extension contract", () => {
+  it("highlights only configured code languages while preserving code block content", () => {
+    const content = '<pre><code class="language-sql">SELECT name FROM people WHERE id = 1</code></pre>';
+    const plainElement = document.createElement("div");
+    const plainEditor = new Editor({
+      element: plainElement,
+      extensions: getDefaultEditorExtensions(),
+      content,
+    });
+    expect(plainEditor.getJSON().content?.[0]?.attrs).toEqual({ language: "sql" });
+    expect(plainElement.querySelector(".hljs-keyword")).toBeNull();
+
+    const highlightedElement = document.createElement("div");
+    const highlightedEditor = new Editor({
+      element: highlightedElement,
+      extensions: getDefaultEditorExtensions({ codeLanguages: { sql: common.sql } }),
+      content,
+    });
+    expect(highlightedElement.querySelectorAll(".hljs-keyword").length).toBeGreaterThan(0);
+    expect(highlightedEditor.getJSON()).toEqual(plainEditor.getJSON());
+    expect(highlightedEditor.getHTML()).toBe(plainEditor.getHTML());
+    highlightedEditor.commands.setContent('<pre><code></code></pre>');
+    highlightedEditor.commands.focus("start");
+    pasteFromSourceEditor(highlightedEditor, "SELECT name FROM people");
+    expect(highlightedEditor.getJSON().content?.[0]?.attrs).toEqual({ language: null });
+    expect(highlightedElement.querySelectorAll(".hljs-keyword").length).toBeGreaterThan(0);
+
+    highlightedEditor.commands.setContent("<p></p>");
+    highlightedEditor.commands.focus("start");
+    pasteFromSourceEditor(highlightedEditor, "SELECT name FROM people");
+    expect(highlightedEditor.getJSON().content?.[0]?.type).toBe("paragraph");
+    plainEditor.destroy();
+    highlightedEditor.destroy();
+  });
+
   const cellText = (row: JSONContent | undefined, column = 0) =>
     row?.content?.[column]?.content?.[0]?.content?.[0]?.text ?? "";
 
@@ -82,6 +117,21 @@ describe("editor extension contract", () => {
     element.remove();
   });
 
+  it("separates adjacent span labels from an HTML layout wrapper", () => {
+    const element = document.createElement("div");
+    document.body.append(element);
+    const editor = new Editor({ element, extensions: getDefaultEditorExtensions(), content: "<p></p>" });
+    editor.commands.focus("start");
+
+    pasteFromSourceEditor(editor,
+      '<div class="meta"><span>2026-09-28</span><span>Topic: ERP</span><span>Mode: repo-grounded</span></div>');
+
+    expect(editor.getText()).toBe("2026-09-28 Topic: ERP Mode: repo-grounded");
+    expect(editor.getHTML()).not.toMatch(/<(?:div|span)\b/);
+    editor.destroy();
+    element.remove();
+  });
+
   it("pastes Markdown documents as editable structure", () => {
     const element = document.createElement("div");
     document.body.append(element);
@@ -99,6 +149,40 @@ describe("editor extension contract", () => {
       .toEqual([{ type: "bold" }]);
     expect(editor.getText()).toContain("Imported title");
     expect(editor.getText()).toContain("First");
+    editor.destroy();
+    element.remove();
+  });
+
+  it("keeps Markdown frontmatter as source metadata and parses the document after it", () => {
+    const element = document.createElement("div");
+    document.body.append(element);
+    const editor = new Editor({ element, extensions: getDefaultEditorExtensions(), content: "<p></p>" });
+    editor.commands.focus("start");
+
+    pasteFromSourceEditor(editor, "---\ndate: 2026-09-25\ntopic: knowledge\n---\n\n# Working notes\n\n```ts\nconst answer = 42\n```");
+
+    expect(editor.getJSON().content?.map((node) => node.type)).toEqual(["codeBlock", "heading", "codeBlock"]);
+    expect(editor.getJSON().content?.[0]).toMatchObject({
+      attrs: { language: "yaml" },
+      content: [{ text: "---\ndate: 2026-09-25\ntopic: knowledge\n---" }],
+    });
+    expect(editor.getJSON().content?.[1]).toMatchObject({ attrs: { level: 1 }, content: [{ text: "Working notes" }] });
+    expect(editor.getJSON().content?.[2]).toMatchObject({ attrs: { language: "ts" } });
+    editor.destroy();
+    element.remove();
+  });
+
+  it("recognizes frontmatter without a heading but leaves an ordinary divider literal", () => {
+    const element = document.createElement("div");
+    document.body.append(element);
+    const editor = new Editor({ element, extensions: getDefaultEditorExtensions(), content: "<p></p>" });
+    editor.commands.focus("start");
+
+    pasteFromSourceEditor(editor, "---\ntopic: knowledge\n---\nA short note.");
+    expect(editor.getJSON().content?.map((node) => node.type)).toEqual(["codeBlock", "paragraph"]);
+    editor.commands.clearContent();
+    pasteFromSourceEditor(editor, "---\nA short note.\n---");
+    expect(editor.getJSON().content?.[0]?.type).not.toBe("codeBlock");
     editor.destroy();
     element.remove();
   });

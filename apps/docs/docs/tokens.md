@@ -236,6 +236,16 @@ loses to the component's own declaration, which usually reads as the override be
 .row-action { --ui-icon-button-size: 0; }
 ```
 
+Widths work the same way. Input, Select, and Nav Item fill their container, and a Form Field can
+shrink to nothing; each reads a hook for it:
+
+```css
+.quantity { --ui-input-inline-size: 8ch; }
+.status-filter { --ui-select-inline-size: 12rem; }
+.rail-item { --ui-nav-item-inline-size: auto; }
+.address-field { --ui-form-field-min-inline-size: 16rem; }
+```
+
 Name the component with a class of your own and set its hooks there. Do not select the markers a
 runtime renders on a component, such as `data-component` or its state attributes: they are how a
 runtime draws it, an implementation detail that can change, not API. The component's API tab lists the

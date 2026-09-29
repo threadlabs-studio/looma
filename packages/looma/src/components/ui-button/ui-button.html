@@ -126,6 +126,10 @@
       syntax: "*";
       inherits: false;
     }
+    @property --ui-button-white-space {
+      syntax: "*";
+      inherits: false;
+    }
 
     :host {
       --_hue: var(--ui-accent);
@@ -169,6 +173,8 @@
       font: inherit;
       font-weight: var(--ui-font-medium);
       text-decoration: none;
+      /* Unset, a button wraps as its container does. */
+      white-space: var(--ui-button-white-space, inherit);
       line-height: var(--ui-line-height-tight);
       padding: var(--ui-space-2) var(--ui-space-3);
       background-image: var(--ui-raised-highlight);

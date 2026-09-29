@@ -1,9 +1,12 @@
 import { userEvent } from "@vitest/browser/context";
 import type { Editor, JSONContent } from "@tiptap/core";
+import { common } from "lowlight";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, ref, type App } from "vue";
 import { LoomaEditor } from "../src/vue/editor/LoomaEditor";
 import "../vue/components.css";
+import "../tokens.css";
+import "../theme-light.css";
 
 const apps: App[] = [];
 
@@ -21,7 +24,7 @@ async function historyShortcut(direction: "undo" | "redo") {
   await userEvent.keyboard(`{${modifier}>}${shift}z${releaseShift}{/${modifier}}`);
 }
 
-async function mountEditor(options: { controlled?: boolean; toolbarMode?: "bubble" | "sticky"; disableHighlight?: boolean } = {}) {
+async function mountEditor(options: { controlled?: boolean; toolbarMode?: "bubble" | "sticky"; disableHighlight?: boolean; codeLanguages?: { sql: typeof common.sql } } = {}) {
   vi.spyOn(window, "innerWidth", "get").mockReturnValue(1280);
   const modelValue = ref<JSONContent>({ type: "doc", content: [{ type: "paragraph" }] });
   const host = document.createElement("div");
@@ -32,6 +35,7 @@ async function mountEditor(options: { controlled?: boolean; toolbarMode?: "bubbl
       modelValue: modelValue.value,
       ...(options.toolbarMode ? { toolbarMode: options.toolbarMode } : {}),
       ...(options.disableHighlight ? { disableHighlight: true } : {}),
+      ...(options.codeLanguages ? { codeLanguages: options.codeLanguages } : {}),
       ...(options.controlled === false ? {} : {
         "onUpdate:modelValue": (value: JSONContent) => { modelValue.value = value; },
       }),
@@ -64,6 +68,26 @@ afterEach(async () => {
 });
 
 describe("LoomaEditor history (real browser)", () => {
+  it("shows SQL tokens with theme colors when the SQL grammar is configured", async () => {
+    const { editor, host } = await mountEditor({ codeLanguages: { sql: common.sql } });
+    editor.commands.setContent('<pre><code></code></pre>');
+    editor.commands.focus("start");
+    const clipboardData = new DataTransfer();
+    clipboardData.setData("text/plain", "SELECT name FROM people");
+    editor.view.dom.dispatchEvent(new ClipboardEvent("paste", {
+      bubbles: true,
+      cancelable: true,
+      clipboardData,
+    }));
+    await flushBrowser();
+
+    expect(editor.getJSON().content?.[0]?.attrs).toEqual({ language: null });
+    const keyword = host.querySelector<HTMLElement>("pre .hljs-keyword");
+    const code = host.querySelector<HTMLElement>("pre code");
+    expect(keyword?.textContent).toBe("SELECT");
+    expect(getComputedStyle(keyword!).color).not.toBe(getComputedStyle(code!).color);
+  });
+
   it("omits inline display-none source content from a formatted paste", async () => {
     const { editor } = await mountEditor();
     editor.commands.focus("start");
