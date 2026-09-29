@@ -110,7 +110,7 @@ describe("LoomaEditor history (real browser)", () => {
     const sql = [...host.querySelectorAll<HTMLElement>('[role="option"]')]
       .find((option) => option.textContent?.trim() === "SQL");
     expect(sql).toBeTruthy();
-    await userEvent.click(sql!);
+    await userEvent.keyboard("{End}{Enter}");
     await flushBrowser();
 
     const saved = editor.getJSON();
