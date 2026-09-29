@@ -82,6 +82,21 @@ describe("editor extension contract", () => {
     element.remove();
   });
 
+  it("separates adjacent span labels from an HTML layout wrapper", () => {
+    const element = document.createElement("div");
+    document.body.append(element);
+    const editor = new Editor({ element, extensions: getDefaultEditorExtensions(), content: "<p></p>" });
+    editor.commands.focus("start");
+
+    pasteFromSourceEditor(editor,
+      '<div class="meta"><span>2026-09-28</span><span>Topic: ERP</span><span>Mode: repo-grounded</span></div>');
+
+    expect(editor.getText()).toBe("2026-09-28 Topic: ERP Mode: repo-grounded");
+    expect(editor.getHTML()).not.toMatch(/<(?:div|span)\b/);
+    editor.destroy();
+    element.remove();
+  });
+
   it("pastes Markdown documents as editable structure", () => {
     const element = document.createElement("div");
     document.body.append(element);
