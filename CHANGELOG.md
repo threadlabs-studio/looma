@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The Link toolbar keeps selected text when pressing its button moves focus out of the editor.
 - A short YAML frontmatter block at the start of pasted Markdown stays as an editable
   YAML code block, while the following heading and body become document structure.
 - Two-column editor tables now fit their available width and wrap cell text. Tables
