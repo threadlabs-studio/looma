@@ -29,5 +29,17 @@ In development, the field warns in the console when it links a label for you, wh
 `id` is not unique, or when its label's `for` points at another element. Production builds
 (`process.env.NODE_ENV` set to `"production"`) do not warn.
 
-
 <ComponentExamplesApiTabs component="ui-form-field" />
+
+## Styling hooks
+
+Set these on the field through a class of your own. They do not inherit, so a field inside the one
+you set them on keeps its defaults.
+
+| Hook | Sets |
+| --- | --- |
+| `--ui-form-field-label-text`, `--ui-form-field-label-font-size` | the label's colour (`--ui-text-secondary`) and size (`--ui-font-size-sm`) |
+| `--ui-form-field-help-text`, `--ui-form-field-help-font-size` | the help text's colour (`--ui-text-muted`) and size (`--ui-font-size-sm`) |
+| `--ui-form-field-help-min-block-size` | a minimum height for the help, so fields in a row line up |
+| `--ui-form-field-min-inline-size` | the narrowest the field gets (`0`), such as `16rem` in a wrapping row |
+| `--ui-form-field-danger` | the error message's colour, over the inherited `--ui-field-danger` |

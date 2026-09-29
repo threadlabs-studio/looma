@@ -33,6 +33,7 @@ import {
   type LoomaMentionItem,
   type LoomaMentionMenuSnapshot,
   type LoomaMentionProvider,
+  type LoomaCodeLanguages,
   LOOMA_CHIP_COLORS,
   normalizeLoomaChipColor,
   type LoomaChipColor,
@@ -213,6 +214,11 @@ export const LoomaEditor = defineComponent({
     extensions: {
       type: Array as PropType<AnyExtension[]>,
       default: () => [],
+    },
+    /** Code block grammars to register when this editor is created. */
+    codeLanguages: {
+      type: Object as PropType<LoomaCodeLanguages>,
+      default: () => ({}),
     },
     mentionItems: {
       type: Array as PropType<LoomaMentionItem[]>,
@@ -415,6 +421,7 @@ export const LoomaEditor = defineComponent({
       to: number;
       text: boolean;
     } | null = null;
+    let linkPressedSelection: { from: number; to: number } | null = null;
     const rememberSelection = (instance: Editor) => {
       if (!instance.isFocused) return;
       const selection = instance.view.state.selection;
@@ -433,6 +440,7 @@ export const LoomaEditor = defineComponent({
           placeholder: props.placeholder,
           mention: mentionExtension ?? false,
           disableHighlight: props.disableHighlight,
+          codeLanguages: props.codeLanguages,
         }),
         imageDelivery.extension,
         slashExtension,
@@ -458,8 +466,10 @@ export const LoomaEditor = defineComponent({
       const current = instance.state.selection;
       const preserved = lastFocusedSelection?.text && lastFocusedSelection.from !== lastFocusedSelection.to
         ? lastFocusedSelection : null;
-      const from = current.empty && preserved ? preserved.from : current.from;
-      const to = current.empty && preserved ? preserved.to : current.to;
+      const selection = linkPressedSelection ?? (current.empty ? preserved : null);
+      linkPressedSelection = null;
+      const from = selection?.from ?? current.from;
+      const to = selection?.to ?? current.to;
       const empty = from === to;
       const existing = instance.isActive("link");
       linkSelection = { from, to, existing };
@@ -1091,6 +1101,10 @@ export const LoomaEditor = defineComponent({
           "data-active": instance.isActive("link") ? "true" : "false",
           onPointerenter: () => showTool(linkAnchorId, "Link", false),
           onPointerleave: hideTool,
+          onPointerdown: () => {
+            const selection = instance.state.selection;
+            linkPressedSelection = selection.empty ? null : { from: selection.from, to: selection.to };
+          },
           onFocusin: () => showTool(linkAnchorId, "Link", true),
           onFocusout: hideTool,
         }, () => loomaIcon("link")),
@@ -1298,7 +1312,7 @@ export const LoomaEditor = defineComponent({
           class: "looma-editor__chip-popover",
           open: chipOpen.value,
           for: chipAnchorId,
-          placement: mobile.value ? "top-start" : "bottom-start",
+          placement: "bottom-start",
           onClose: () => { chipOpen.value = false; },
         }, () => h("div", { class: "looma-editor__chip-form", role: "dialog", "aria-label": "Edit chip" }, [
           h("input", {
@@ -1339,7 +1353,7 @@ export const LoomaEditor = defineComponent({
           for: linkAnchorId,
           placement: mobile.value ? "top-start" : "bottom-start",
           onOpen: openLinkEditor,
-          onClose: () => { linkOpen.value = false; },
+          onClose: () => { linkOpen.value = false; linkPressedSelection = null; },
         }, () => h("form", {
           class: "looma-editor__link-form",
           "aria-label": "Edit link",

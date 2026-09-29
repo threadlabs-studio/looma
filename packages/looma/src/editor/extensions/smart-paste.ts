@@ -70,6 +70,18 @@ function parseHtmlSlice(schema: Schema, value: string): Slice | null {
   for (const element of parsed.body.querySelectorAll<HTMLElement>("[style]")) {
     if (element.style.display === "none") element.remove();
   }
+  // Layout wrappers often place separate labels in sibling spans without
+  // source whitespace. Their visual gap disappears when the wrappers become
+  // plain editor text, so retain one readable separator before reconstruction.
+  for (const wrapper of parsed.body.querySelectorAll("div")) {
+    for (const child of wrapper.children) {
+      const next = child.nextSibling;
+      if (child.localName !== "span" || next?.nodeType !== 1 || (next as Element).localName !== "span") continue;
+      if (!child.textContent?.trim() || !next.textContent?.trim()) continue;
+      if (/\s$/.test(child.textContent) || /^\s/.test(next.textContent)) continue;
+      wrapper.insertBefore(parsed.createTextNode(" "), next);
+    }
+  }
   const container = document.createElement("div");
   container.append(DOMPurify.sanitize(parsed.body.innerHTML, {
     USE_PROFILES: { html: true },
@@ -83,9 +95,23 @@ function parseHtmlSlice(schema: Schema, value: string): Slice | null {
   });
 }
 
+function markdownFrontmatter(value: string): { source: string; body: string } | null {
+  const match = /^---[ \t]*\r?\n([\s\S]*?)\r?\n(?:---|\.\.\.)[ \t]*(?:\r?\n|$)/.exec(value.slice(0, 8_192));
+  if (!match || !/^[A-Za-z][\w-]*:[ \t]*\S/m.test(match[1])) return null;
+  return { source: match[0].trimEnd(), body: value.slice(match[0].length) };
+}
+
+function escapeHtmlText(value: string): string {
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
 function documentSlice(schema: Schema, plainText: string): Slice | null {
-  if (looksLikeMarkdown(plainText)) {
-    return parseHtmlSlice(schema, markdown.render(plainText));
+  const frontmatter = markdownFrontmatter(plainText);
+  if (frontmatter || looksLikeMarkdown(plainText)) {
+    return parseHtmlSlice(schema, frontmatter
+      ? `<pre><code class="language-yaml">${escapeHtmlText(frontmatter.source)}</code></pre>${markdown.render(frontmatter.body)}`
+      : markdown.render(plainText));
   }
   if (looksLikeDocumentHtml(plainText)) {
     return parseHtmlSlice(schema, plainText);

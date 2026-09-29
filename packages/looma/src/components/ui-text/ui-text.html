@@ -14,9 +14,9 @@
       exactly, such as an address, in the monospace face.</prop>
     <prop name="truncate" type="boolean" default="false">Keeps the text on one line, ending in an ellipsis when it does not fit.</prop>
     <prop name="align" type="start | center" default="start">Aligns the text within its line.</prop>
-    <prop name="as" type="p | span | div | small | strong | label" default="p"
-    >The native element the text renders: a paragraph by default, inline span, small, or strong within a line, a div for a block, or a label for a
-      control.</prop>
+    <prop name="as" type="p | span | div | small | strong | label | h2 | h3 | h4 | h5 | h6" default="p"
+    >The native element the text renders: a paragraph by default, inline span, small, or strong within a line, a div for a block, a label for a control, or a
+      heading, h2 to h6, below a Page Header's h1 and a Section's h2. A heading takes its size and weight from size and weight, like any other text.</prop>
   </defs>
   <template $match>
     <span $when="as = 'span'"><slot></slot></span>
@@ -24,16 +24,29 @@
     <small $when="as = 'small'"><slot></slot></small>
     <strong $when="as = 'strong'"><slot></slot></strong>
     <label $when="as = 'label'"><slot></slot></label>
+    <h2 $when="as = 'h2'"><slot></slot></h2>
+    <h3 $when="as = 'h3'"><slot></slot></h3>
+    <h4 $when="as = 'h4'"><slot></slot></h4>
+    <h5 $when="as = 'h5'"><slot></slot></h5>
+    <h6 $when="as = 'h6'"><slot></slot></h6>
     <p $else><slot></slot></p>
   </template>
   <style>
     /* Running text, set on the type scale and in a tone that says what it is, so a view never styles
-       text of its own. The root is a paragraph unless as= names a span, div, small, strong, or label. */
+       text of its own. The root is a paragraph unless as= names a span, div, small, strong, label, or
+       heading. */
     :host {
       margin: 0;
       min-inline-size: 0;
       color: var(--ui-text-primary);
       text-align: start;
+    }
+
+    /* A heading drops the browser's heading size and weight, so size and weight set it as they set
+       any text, and inherit keeps the text around it. */
+    :host:is(h2, h3, h4, h5, h6) {
+      font-size: inherit;
+      font-weight: inherit;
     }
 
     :host-state([size="xs"]) {
