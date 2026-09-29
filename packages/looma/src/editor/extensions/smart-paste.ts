@@ -70,6 +70,18 @@ function parseHtmlSlice(schema: Schema, value: string): Slice | null {
   for (const element of parsed.body.querySelectorAll<HTMLElement>("[style]")) {
     if (element.style.display === "none") element.remove();
   }
+  // Layout wrappers often place separate labels in sibling spans without
+  // source whitespace. Their visual gap disappears when the wrappers become
+  // plain editor text, so retain one readable separator before reconstruction.
+  for (const wrapper of parsed.body.querySelectorAll("div")) {
+    for (const child of wrapper.children) {
+      const next = child.nextSibling;
+      if (child.localName !== "span" || next?.nodeType !== 1 || (next as Element).localName !== "span") continue;
+      if (!child.textContent?.trim() || !next.textContent?.trim()) continue;
+      if (/\s$/.test(child.textContent) || /^\s/.test(next.textContent)) continue;
+      wrapper.insertBefore(parsed.createTextNode(" "), next);
+    }
+  }
   const container = document.createElement("div");
   container.append(DOMPurify.sanitize(parsed.body.innerHTML, {
     USE_PROFILES: { html: true },
