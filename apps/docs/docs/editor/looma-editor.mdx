@@ -75,6 +75,10 @@ Install `highlight.js` in the application that imports a grammar. The same optio
 `getDefaultEditorExtensions({ codeLanguages })` for a headless editor. A code block tagged
 `sql` highlights SQL; an untagged code block can be detected from the registered languages.
 Paste SQL into a code block to keep it as code. Plain text pasted into a paragraph stays prose.
+An editable code block shows a language selector in its upper-right corner when grammars are
+registered. **Auto** shows the detected language; choosing a language saves that choice with the
+document. Choose **Auto** again to resume detection. Type three backticks at the start of an empty
+paragraph to create a code block and place the cursor inside it.
 Token colors use the theme's semantic text colors and can be overridden with
 `--ui-editor-code-keyword`, `--ui-editor-code-string`, `--ui-editor-code-number`,
 `--ui-editor-code-name`, and `--ui-editor-code-comment`.
