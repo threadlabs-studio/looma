@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Spinner draws its ring on the rendered element, restoring loading indicators in Button and Icon Button. The Button loading example now starts pressable and demonstrates the transition.
+- Solid Icon Button keeps its accent fill in generated CSS, so its light icon stays readable. Boxed Button links resist ordinary page link underlines.
+- Search Shell removes redundant internal divider lines; Search Result Rows use spacing and hover or selected surfaces. Side Tooltip pointers draw both edges toward their trigger, Checkbox checks sit centrally, and Input Group affixes use muted text.
+- Component pages put examples and API immediately after a short introduction, with longer guidance below.
+
 - Code block syntax grammars are now opt-in through `codeLanguages` on `LoomaEditor`
   and `getDefaultEditorExtensions`. Apps can load only the languages they use; Looma
   styles the highlighted tokens with theme-aware colors.

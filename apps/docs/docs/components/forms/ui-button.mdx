@@ -8,6 +8,8 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 Essential button primitive that enhances semantic button markup and styling hooks.
 
+<ComponentExamplesApiTabs component="ui-button" />
+
 Set `loading` while an action is running. The button keeps its label and keyboard focus, shows a
 spinner, exposes `aria-disabled` and `aria-busy`, and blocks clicks and form submission. Clear the
 prop when the action finishes. This also works with `as="a"`: the loading link keeps its focus
@@ -31,5 +33,3 @@ Under touch input, every button takes presses within the control minimum, 44px. 
 to it under a coarse pointer. A link-style button keeps its text size and gets an invisible hit area of
 that size centred on it, as Icon Button does, so a standalone one ("See all" under a list) is easy to
 press. Only the link-style button gets the area, so close neighbours never take each other's presses.
-
-<ComponentExamplesApiTabs component="ui-button" />

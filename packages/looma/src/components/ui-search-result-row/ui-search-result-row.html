@@ -61,16 +61,12 @@
       align-items: flex-start;
       gap: var(--ui-search-result-row-gap, var(--ui-space-3));
       background: var(--ui-search-result-row-surface, transparent);
-      border: none;
-      border-block-end: 1px solid var(--ui-search-result-row-border, var(--ui-border-divider));
+      border: 1px solid var(--ui-search-result-row-border, transparent);
+      border-radius: var(--ui-radius-md);
       color: inherit;
       cursor: pointer;
       text-align: left;
       transition: background-color var(--ui-motion-fast) var(--ui-motion-ease);
-    }
-
-    :host:last-child {
-      border-block-end: none;
     }
 
     :host:hover:enabled {
