@@ -3,7 +3,7 @@
  * Uses the Vanilla JS Tiptap API; apps provide @tiptap/core and Looma ships the preset extensions.
  */
 
-import { Extension, type AnyExtension } from "@tiptap/core";
+import { Extension, textblockTypeInputRule, type AnyExtension, type NodeViewRenderer } from "@tiptap/core";
 import Document from "@tiptap/extension-document";
 import Paragraph from "@tiptap/extension-paragraph";
 import Text from "@tiptap/extension-text";
@@ -66,7 +66,18 @@ export interface DefaultEditorExtensionsOptions {
   disableHighlight?: boolean;
   /** Code block grammars to register. None are loaded by default. */
   codeLanguages?: LoomaCodeLanguages;
+  /** Optional presentation for a code block; the Vue editor supplies its language control. */
+  codeBlockNodeView?: NodeViewRenderer;
 }
+
+const LoomaCodeBlock = CodeBlockLowlight.extend({
+  addInputRules() {
+    return [
+      ...(this.parent?.() ?? []),
+      textblockTypeInputRule({ find: /^```$/, type: this.type }),
+    ];
+  },
+});
 
 // Removing the mark from the schema would make Tiptap discard any stored
 // document that uses it, so disabling it strips only the ways to create it.
@@ -106,6 +117,9 @@ export function getLoomaTableExtensions(): AnyExtension[] {
  * can be replaced without coupling UI chrome to an application directory.
  * Use with `new Editor({ extensions: getDefaultEditorExtensions(), ... })` or a
  * framework's Tiptap editor hook.
+ * @contract Code blocks accept three backticks in an empty paragraph as an
+ * immediate typing shortcut. An optional node view changes presentation only;
+ * the code and explicit language stay in the document schema.
  */
 export function getDefaultEditorExtensions(
   options: DefaultEditorExtensionsOptions = {}
@@ -117,7 +131,10 @@ export function getDefaultEditorExtensions(
     mention = createLoomaMentionExtension(),
     disableHighlight = false,
     codeLanguages,
+    codeBlockNodeView,
   } = options;
+
+  const codeBlock = LoomaCodeBlock.configure({ lowlight: createLowlight(codeLanguages) });
 
   return [
     Document,
@@ -149,7 +166,7 @@ export function getDefaultEditorExtensions(
     (disableHighlight ? StoredOnlyHighlight : Highlight).configure({ multicolor: false }),
     Code,
     LoomaSmartPaste,
-    CodeBlockLowlight.configure({ lowlight: createLowlight(codeLanguages) }),
+    codeBlockNodeView ? codeBlock.extend({ addNodeView: () => codeBlockNodeView }) : codeBlock,
     Typography,
     Placeholder.configure({
       placeholder: ({ node }) =>

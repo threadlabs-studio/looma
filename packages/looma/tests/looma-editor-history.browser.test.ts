@@ -1,4 +1,4 @@
-import { userEvent } from "@vitest/browser/context";
+import { page, userEvent } from "@vitest/browser/context";
 import type { Editor, JSONContent } from "@tiptap/core";
 import { common } from "lowlight";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -24,15 +24,17 @@ async function historyShortcut(direction: "undo" | "redo") {
   await userEvent.keyboard(`{${modifier}>}${shift}z${releaseShift}{/${modifier}}`);
 }
 
-async function mountEditor(options: { controlled?: boolean; toolbarMode?: "bubble" | "sticky"; disableHighlight?: boolean; codeLanguages?: { sql: typeof common.sql } } = {}) {
+async function mountEditor(options: { controlled?: boolean; editable?: boolean; toolbarMode?: "bubble" | "sticky"; disableHighlight?: boolean; codeLanguages?: Record<string, typeof common.sql> } = {}) {
   vi.spyOn(window, "innerWidth", "get").mockReturnValue(1280);
   const modelValue = ref<JSONContent>({ type: "doc", content: [{ type: "paragraph" }] });
+  const editable = ref(options.editable ?? true);
   const host = document.createElement("div");
   document.body.append(host);
   let editor: Editor | null = null;
   const app = createApp({
     render: () => h(LoomaEditor, {
       modelValue: modelValue.value,
+      editable: editable.value,
       ...(options.toolbarMode ? { toolbarMode: options.toolbarMode } : {}),
       ...(options.disableHighlight ? { disableHighlight: true } : {}),
       ...(options.codeLanguages ? { codeLanguages: options.codeLanguages } : {}),
@@ -45,7 +47,7 @@ async function mountEditor(options: { controlled?: boolean; toolbarMode?: "bubbl
   apps.push(app);
   app.mount(host);
   await flushBrowser();
-  return { editor: editor!, host };
+  return { editor: editor!, host, editable };
 }
 
 function pasteFromSourceEditor(editor: Editor, text: string, mode: string) {
@@ -86,6 +88,86 @@ describe("LoomaEditor history (real browser)", () => {
     const code = host.querySelector<HTMLElement>("pre code");
     expect(keyword?.textContent).toBe("SELECT");
     expect(getComputedStyle(keyword!).color).not.toBe(getComputedStyle(code!).color);
+  });
+
+  it("lets a person override a code block's detected language and saves the choice", async () => {
+    await page.viewport(375, 700);
+    const { editor, host } = await mountEditor({ codeLanguages: { ini: common.ini, sql: common.sql } });
+    host.style.width = "375px";
+    editor.commands.setContent('<pre><code>SELECT id, name FROM users WHERE active = true;</code></pre>');
+    await flushBrowser();
+
+    const language = host.querySelector<HTMLInputElement>('pre [role="combobox"]');
+    expect(language?.value).toBe("Auto (INI)");
+    const blockBounds = host.querySelector("pre")!.getBoundingClientRect();
+    const controlBounds = language!.getBoundingClientRect();
+    expect(controlBounds.right).toBeLessThanOrEqual(blockBounds.right);
+    expect(controlBounds.left).toBeGreaterThanOrEqual(blockBounds.left);
+    await page.viewport(1280, 720);
+    language!.focus();
+    await userEvent.keyboard("{ArrowDown}");
+    await flushBrowser();
+    const sql = [...host.querySelectorAll<HTMLElement>('[role="option"]')]
+      .find((option) => option.textContent?.trim() === "SQL");
+    expect(sql).toBeTruthy();
+    await userEvent.keyboard("{End}{Enter}");
+    await flushBrowser();
+
+    const saved = editor.getJSON();
+    expect(saved.content?.[0]?.attrs).toEqual({ language: "sql" });
+    expect(saved.content?.[0]?.content?.[0]?.text).toBe("SELECT id, name FROM users WHERE active = true;");
+    expect(host.querySelector('pre .hljs-keyword')?.textContent).toBe("SELECT");
+
+    const selected = host.querySelector<HTMLInputElement>('pre [role="combobox"]')!;
+    selected.focus();
+    await userEvent.keyboard("{ArrowDown}");
+    await flushBrowser();
+    const auto = [...host.querySelectorAll<HTMLElement>('[role="option"]')]
+      .find((option) => option.textContent?.trim() === "Auto (INI)");
+    expect(auto).toBeTruthy();
+    await userEvent.click(auto!);
+    await flushBrowser();
+    expect(editor.getJSON().content?.[0]?.attrs).toEqual({ language: null });
+    editor.commands.undo();
+    await flushBrowser();
+    expect(editor.getJSON().content?.[0]?.attrs).toEqual({ language: "sql" });
+    editor.commands.redo();
+    await flushBrowser();
+    expect(editor.getJSON().content?.[0]?.attrs).toEqual({ language: null });
+
+    editor.commands.setContent(saved);
+    await flushBrowser();
+    expect(host.querySelector<HTMLInputElement>('pre [role="combobox"]')?.value).toBe("SQL");
+
+    editor.commands.setContent('<pre><code class="language-rust">fn main() {}</code></pre>');
+    await flushBrowser();
+    expect(host.querySelector<HTMLInputElement>('pre [role="combobox"]')?.value).toBe("RUST (unavailable)");
+    expect(editor.getJSON().content?.[0]?.attrs).toEqual({ language: "rust" });
+  });
+
+  it("turns three typed backticks into a code block with the cursor inside", async () => {
+    const { editor, host } = await mountEditor();
+    editor.commands.focus("start");
+    await userEvent.type(editor.view.dom, "```");
+    await flushBrowser();
+
+    expect(editor.getJSON().content?.[0]).toMatchObject({ type: "codeBlock", attrs: { language: null } });
+    expect(editor.state.selection.$head.parent.type.name).toBe("codeBlock");
+    expect(host.querySelector('pre [role="combobox"]')).toBeNull();
+    await userEvent.keyboard("SELECT 1");
+    expect(editor.getJSON().content?.[0]?.content?.[0]?.text).toBe("SELECT 1");
+  });
+
+  it("hides the code language control when the editor becomes read-only", async () => {
+    const { editor, host, editable } = await mountEditor({ codeLanguages: { sql: common.sql } });
+    editor.commands.setContent('<pre><code>SELECT 1</code></pre>');
+    await flushBrowser();
+    expect(host.querySelector('pre [role="combobox"]')).toBeTruthy();
+
+    editable.value = false;
+    await flushBrowser();
+    expect(host.querySelector('pre [role="combobox"]')).toBeNull();
+    expect(host.querySelector('pre code')?.textContent).toBe('SELECT 1');
   });
 
   it("omits inline display-none source content from a formatted paste", async () => {
