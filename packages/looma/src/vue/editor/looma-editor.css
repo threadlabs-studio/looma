@@ -234,6 +234,20 @@
   font-size: var(--ui-font-size-sm);
 }
 
+.looma-editor .ProseMirror pre.looma-editor__code-block--has-language {
+  position: relative;
+  padding-block-start: calc(var(--ui-space-4) + 2rem);
+}
+
+.looma-editor__code-language {
+  position: absolute;
+  inset-block-start: var(--ui-space-2);
+  inset-inline-end: var(--ui-space-2);
+  inline-size: min(8.5rem, calc(100% - 2 * var(--ui-space-2)));
+  z-index: 1;
+  font-family: var(--ui-font-family-sans, sans-serif);
+}
+
 .looma-editor .ProseMirror code {
   padding: 0.1em 0.3em;
   border-radius: var(--ui-radius-sm);

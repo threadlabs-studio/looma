@@ -1,6 +1,6 @@
 import "./looma-editor.css";
 import type { AnyExtension, Editor, JSONContent } from "@tiptap/core";
-import { BubbleMenu, EditorContent, useEditor } from "@tiptap/vue-3";
+import { BubbleMenu, EditorContent, useEditor, VueNodeViewRenderer } from "@tiptap/vue-3";
 import { TextSelection, type SelectionBookmark } from "@tiptap/pm/state";
 import {
   computed,
@@ -65,6 +65,7 @@ import {
   type LoomaImageDescriptor,
   type LoomaImageRenditionErrorDetail,
 } from "./image-delivery";
+import { createCodeBlockView } from "./code-block-view";
 
 /**
  * Host upload result normalized into the editor's durable image descriptor.
@@ -441,6 +442,7 @@ export const LoomaEditor = defineComponent({
           mention: mentionExtension ?? false,
           disableHighlight: props.disableHighlight,
           codeLanguages: props.codeLanguages,
+          codeBlockNodeView: VueNodeViewRenderer(createCodeBlockView(props.codeLanguages)),
         }),
         imageDelivery.extension,
         slashExtension,

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Editable code blocks now show a compact language selector when the app registers syntax
+  grammars. **Auto** names the detected language; a manual choice is saved in the document and
+  can be cleared back to Auto. Typing three backticks starts a code block immediately.
 - Code block syntax grammars are now opt-in through `codeLanguages` on `LoomaEditor`
   and `getDefaultEditorExtensions`. Apps can load only the languages they use; Looma
   styles the highlighted tokens with theme-aware colors.
