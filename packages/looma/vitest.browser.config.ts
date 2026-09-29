@@ -9,6 +9,7 @@ export default defineConfig({
       "tests/looma-editor-active-block.browser.test.ts",
       "tests/looma-editor-history.browser.test.ts",
       "tests/looma-editor-mention.browser.test.ts",
+      "tests/looma-editor-chip.browser.test.ts",
       "tests/mention-typing.browser.test.ts",
     ],
     browser: { enabled: true, provider: "playwright", headless: true, instances: [{ browser: "chromium" }] },

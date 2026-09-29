@@ -33,6 +33,9 @@ import {
   type LoomaMentionItem,
   type LoomaMentionMenuSnapshot,
   type LoomaMentionProvider,
+  LOOMA_CHIP_COLORS,
+  normalizeLoomaChipColor,
+  type LoomaChipColor,
   type SlashMenuAnchorRect,
   type TableOverlayGeometry,
   type TableCellAlignment,
@@ -265,6 +268,11 @@ export const LoomaEditor = defineComponent({
     const linkText = ref("");
     const linkNewTab = ref(true);
     const linkError = ref("");
+    const chipAnchorId = `looma-editor-chip-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
+    const chipInput = ref<HTMLInputElement | null>(null);
+    const chipOpen = ref(false);
+    const chipLabel = ref("");
+    const chipColor = ref<LoomaChipColor>("neutral");
     let linkSelection: { from: number; to: number; existing: boolean } | null = null;
     // One tooltip follows the row: the first button waits, and moving along the row is immediate,
     // which is what a toolbar needs and what the native `title` attribute cannot do.
@@ -351,8 +359,34 @@ export const LoomaEditor = defineComponent({
       capabilities: { ...EMPTY_CAPABILITIES },
     });
 
+    const openChipEditor = (instance: Editor, position: number) => {
+      if (!props.editable) return;
+      const node = instance.state.doc.nodeAt(position);
+      const element = instance.view.nodeDOM(position);
+      if (node?.type.name !== "loomaChip" || !(element instanceof HTMLElement)) return;
+      root.value?.querySelector(`#${chipAnchorId}`)?.removeAttribute("id");
+      element.id = chipAnchorId;
+      chipLabel.value = String(node.attrs.label ?? "");
+      chipColor.value = normalizeLoomaChipColor(node.attrs.color);
+      chipOpen.value = true;
+      void nextTick(() => chipInput.value?.focus());
+    };
+    const changeChip = (changes: { label?: string; color?: LoomaChipColor }) => {
+      const instance = editor.value;
+      const element = root.value?.querySelector<HTMLElement>(`#${chipAnchorId}`);
+      if (!instance || !element) { chipOpen.value = false; return; }
+      const position = instance.view.posAtDOM(element, 0);
+      const node = instance.state.doc.nodeAt(position);
+      if (node?.type.name !== "loomaChip") { chipOpen.value = false; return; }
+      instance.view.dispatch(instance.state.tr.setNodeMarkup(position, undefined, { ...node.attrs, ...changes }));
+    };
+    const closeChip = (focusChip = false) => {
+      chipOpen.value = false;
+      if (focusChip) root.value?.querySelector<HTMLElement>(`#${chipAnchorId}`)?.focus();
+    };
     const slashExtension = createLoomaSlashCommandExtension({
       onOpenImagePicker: () => fileInput.value?.click(),
+      onOpenChipEditor: openChipEditor,
       onStateChange: (state) => {
         Object.assign(slash, state);
       },
@@ -501,7 +535,13 @@ export const LoomaEditor = defineComponent({
       instance.commands.focus();
     };
 
-    watch(() => props.editable, (editable) => editor.value?.setEditable(editable));
+    watch(() => props.editable, (editable) => {
+      editor.value?.setEditable(editable);
+      root.value?.querySelectorAll<HTMLElement>("[data-looma-chip]").forEach((chip) => {
+        chip.setAttribute("aria-disabled", String(!editable));
+      });
+      if (!editable) chipOpen.value = false;
+    });
     watch(() => props.label, (label) => {
       editor.value?.setOptions({
         editorProps: { attributes: { role: "textbox", "aria-multiline": "true", "aria-label": label } },
@@ -743,6 +783,23 @@ export const LoomaEditor = defineComponent({
       if (image) emit("imageActivate", { ...image, trigger });
     };
 
+    const chipElementForEvent = (event: Event): HTMLElement | null => {
+      const element = event.target instanceof Element
+        ? event.target.closest<HTMLElement>("[data-looma-chip]") : null;
+      return element && root.value?.contains(element) ? element : null;
+    };
+
+    const onChipClickCapture = (event: MouseEvent) => {
+      const chip = chipElementForEvent(event);
+      if (chip && editor.value && props.editable) {
+        event.preventDefault();
+        // ui-popover attaches its own anchor click toggle. Handle chips here so
+        // a click on the open chip cannot close and immediately reopen it.
+        event.stopPropagation();
+        openChipEditor(editor.value, editor.value.view.posAtDOM(chip, 0));
+      }
+    };
+
     const onImageClick = (event: MouseEvent) => {
       const element = imageElementForEvent(event);
       if (element && !props.editable) activateImage(element, "pointer");
@@ -755,6 +812,12 @@ export const LoomaEditor = defineComponent({
 
     const onImageKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Enter" && event.key !== " ") return;
+      const chip = chipElementForEvent(event);
+      if (chip && editor.value && props.editable) {
+        event.preventDefault();
+        openChipEditor(editor.value, editor.value.view.posAtDOM(chip, 0));
+        return;
+      }
       const element = imageElementForEvent(event);
       if (!element) return;
       event.preventDefault();
@@ -1147,6 +1210,7 @@ export const LoomaEditor = defineComponent({
           dragLeaveTimer = setTimeout(() => { dragOver.value = false; }, 100);
         },
         onDrop,
+        onClickCapture: onChipClickCapture,
         onClick: onImageClick,
         onDblclick: onImageDoubleClick,
         onKeydown: onImageKeyDown,
@@ -1230,6 +1294,45 @@ export const LoomaEditor = defineComponent({
               h("span", "Drop image to upload"),
             ])
           : null,
+        h(Popover, {
+          class: "looma-editor__chip-popover",
+          open: chipOpen.value,
+          for: chipAnchorId,
+          placement: mobile.value ? "top-start" : "bottom-start",
+          onClose: () => { chipOpen.value = false; },
+        }, () => h("div", { class: "looma-editor__chip-form", role: "dialog", "aria-label": "Edit chip" }, [
+          h("input", {
+            ref: chipInput,
+            type: "text",
+            value: chipLabel.value,
+            placeholder: "Set a label",
+            "aria-label": "Chip text",
+            onInput: (event: Event) => {
+              chipLabel.value = (event.target as HTMLInputElement).value;
+              changeChip({ label: chipLabel.value });
+            },
+            onKeydown: (event: KeyboardEvent) => {
+              if (event.key === "Enter" || event.key === "Escape") {
+                event.preventDefault();
+                closeChip(true);
+              }
+            },
+          }),
+          h("div", { class: "looma-editor__chip-colors", role: "group", "aria-label": "Chip color" },
+            LOOMA_CHIP_COLORS.map((color) => h("button", {
+              type: "button",
+              class: "looma-editor__chip-color",
+              "data-color": color,
+              "aria-label": `${color[0].toUpperCase()}${color.slice(1)} chip`,
+              "aria-pressed": chipColor.value === color,
+              onClick: () => {
+                if (chipColor.value === color) { chipInput.value?.focus(); return; }
+                chipColor.value = color;
+                changeChip({ color });
+                chipInput.value?.focus();
+              },
+            }, chipColor.value === color ? "✓" : ""))),
+        ])),
         h(Popover, {
           class: "looma-editor__link-popover",
           open: linkOpen.value,

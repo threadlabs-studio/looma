@@ -1505,7 +1505,7 @@ describe("Badge colour", () => {
     const tone = await paint("#tone"), coloured = await paint("#coloured");
     assert.notEqual(coloured.surface, tone.surface, "the colour replaces the tone's surface");
     assert.notEqual(coloured.text, tone.text, "the colour replaces the tone's text");
-    assert.equal(coloured.border, coloured.surface, "a coloured badge's edge is its fill, as a tone's is");
+    assert.notEqual(coloured.border, coloured.surface, "a coloured subtle badge has a stronger edge than its fill");
     assert.deepEqual(await paint("#explicit"), { surface: "rgb(1, 2, 3)", text: "rgb(4, 5, 6)", border: "rgb(7, 8, 9)" });
     assert.deepEqual(await paint("#nested"), await paint("#neutral"), "the hook styles only the badge it is set on");
 
@@ -1544,8 +1544,8 @@ describe("Badge box", () => {
   const tones = ["neutral", "accent", "info", "success", "warning", "danger"];
   const variants = ["subtle", "solid"];
 
-  // Sizes to its label in a plain block (a table cell), as in a flex row; each variant's edge is its
-  // fill in every tone, and forced colors draw that edge in every tone.
+  // Sizes to its label in a plain block (a table cell), as in a flex row. Subtle edges
+  // contrast with their fills; solid edges match. Forced colors draw both.
   async function checkBadges(page: Page) {
     await page.waitForSelector('#flex [data-component~="ui-badge"]');
     const width = (selector: string) => page.locator(selector).evaluate((element) => element.getBoundingClientRect().width);
@@ -1561,11 +1561,15 @@ describe("Badge box", () => {
 
     const edges = () => page.locator('#tones [data-component~="ui-badge"]').evaluateAll((elements) => elements.map((element) => {
       const style = getComputedStyle(element);
-      return { badge: element.getAttribute("data-ui-badge-state") ?? element.outerHTML, border: style.borderTopColor, surface: style.backgroundColor };
+      const badge = element.getAttribute("data-ui-badge-state") ?? element.outerHTML;
+      return { badge, filled: badge.includes("variant=solid") && !badge.includes("tone=neutral"), border: style.borderTopColor, surface: style.backgroundColor };
     }));
     const drawn = await edges();
     assert.equal(drawn.length, tones.length * variants.length);
-    for (const { badge, border, surface } of drawn) assert.equal(border, surface, `${badge} has an edge of its own`);
+    for (const { badge, filled, border, surface } of drawn) {
+      if (filled) assert.equal(border, surface, `${badge} has a solid edge`);
+      else assert.notEqual(border, surface, `${badge} has a contrasting subtle edge`);
+    }
 
     await page.emulateMedia({ forcedColors: "active" });
     for (const { badge, border, surface } of await edges()) {
@@ -1596,14 +1600,14 @@ describe("Badge box", () => {
     <div id="narrow" style="width: 60px">${badge("", "A label longer than its container")}</div>
     <div id="tones">${variants.flatMap((variant) => tones.map((tone) => badge(`variant="${variant}" tone="${tone}"`, tone))).join("")}</div>`;
 
-  it("sizes to its label and draws the same edge in every tone, in HTML", async () => {
+  it("sizes to its label and shades subtle edges in every tone, in HTML", async () => {
     const path = await bundle("html-badge-box", `import "@threadlabs/looma";`);
     const page = await open(path, body((attributes, label) => `<ui-badge ${attributes}>${label}</ui-badge>`), [join(root, "tokens.css")]);
     await checkBadges(page);
     await page.close();
   });
 
-  it("sizes to its label and draws the same edge in every tone, in Vue", async () => {
+  it("sizes to its label and shades subtle edges in every tone, in Vue", async () => {
     const path = await bundle("vue-badge-box", `
       import { createApp, h } from "vue";
       import { Badge } from "@threadlabs/looma/vue";

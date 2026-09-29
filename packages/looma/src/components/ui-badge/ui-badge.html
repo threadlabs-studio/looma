@@ -61,8 +61,8 @@
     :host {
       --_badge-surface: var(--ui-surface-subtle);
       --_badge-text: var(--ui-text-secondary);
-      /* Every tone's edge is its fill, so it is unseen until forced colors draw it. */
-      --_badge-border: var(--ui-surface-subtle);
+      /* Sit between the soft fill and its stronger theme ink. */
+      --_badge-border: color-mix(in srgb, var(--_badge-surface) 75%, var(--_badge-text) 25%);
       /* --ui-badge-color derives a wash and an ink from one colour, between the tone and the explicit
          surface, text, and border hooks. Each value is invalid, so the tone shows, while it is unset. The
          mixes keep 4.5:1 text contrast for any colour, in a light theme or a dark one. */
@@ -70,7 +70,7 @@
       --_badge-color-wash: color-mix(in oklab, var(--_ui-badge-color) 15%, var(--ui-surface-default));
       --_badge-color-ink: color-mix(in oklab, var(--_ui-badge-color) 35%, var(--ui-text-primary));
       --_badge-color-surface: var(--_badge-color-wash);
-      --_badge-color-border: var(--_badge-color-wash);
+      --_badge-color-border: color-mix(in srgb, var(--_badge-color-wash) 75%, var(--_badge-color-ink) 25%);
       --_badge-color-text: var(--_badge-color-ink);
       --_badge-outline-surface: var(--ui-badge-surface, var(--_badge-color-surface, var(--_badge-surface)));
 
@@ -136,31 +136,26 @@
 
     :host-state([variant="subtle"][tone="accent"]) {
       --_badge-surface: var(--ui-accent-soft);
-      --_badge-border: var(--ui-accent-soft);
       --_badge-text: var(--ui-accent-subtle-text, var(--ui-accent-solid));
     }
 
     :host-state([variant="subtle"][tone="danger"]) {
       --_badge-surface: var(--ui-danger-soft);
-      --_badge-border: var(--ui-danger-soft);
       --_badge-text: var(--ui-danger-subtle-text, var(--ui-danger-solid));
     }
 
     :host-state([variant="subtle"][tone="success"]) {
       --_badge-surface: var(--ui-success-soft);
-      --_badge-border: var(--ui-success-soft);
       --_badge-text: var(--ui-success-subtle-text, var(--ui-success-solid));
     }
 
     :host-state([variant="subtle"][tone="warning"]) {
       --_badge-surface: var(--ui-warning-soft);
-      --_badge-border: var(--ui-warning-soft);
       --_badge-text: var(--ui-warning-subtle-text, var(--ui-warning-solid));
     }
 
     :host-state([variant="subtle"][tone="info"]) {
       --_badge-surface: var(--ui-info-soft);
-      --_badge-border: var(--ui-info-soft);
       --_badge-text: var(--ui-info-subtle-text, var(--ui-info-solid));
     }
 
