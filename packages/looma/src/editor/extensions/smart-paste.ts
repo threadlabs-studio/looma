@@ -47,6 +47,23 @@ function looksLikeMarkdown(value: string): boolean {
   });
 }
 
+function hasRichClipboardStructure(value: string): boolean {
+  if (!value.trim()) return false;
+  const body = new globalThis.DOMParser().parseFromString(value, "text/html").body;
+  // A source editor may provide HTML merely to preserve its literal lines.
+  // Its pre/code wrapper is not evidence that those lines were formatted.
+  const pre = body.querySelector("pre");
+  if (pre && body.textContent?.trim() === pre.textContent?.trim()) return false;
+  const outsideSource = (selector: string) => [...body.querySelectorAll(selector)]
+    .some((element) => !element.closest("pre, code"));
+  if (outsideSource("h1, h2, h3, h4, h5, h6, ul, ol, li, blockquote, table, th, td, strong, em, b, i, a, img, hr, [data-looma-chip], [data-looma-mention]")) {
+    return true;
+  }
+  if (outsideSource("[style]")) return true;
+  if (body.querySelector("[data-pm-slice]") && !body.querySelector("pre")) return true;
+  return body.querySelectorAll("p").length > 1;
+}
+
 function parseHtmlSlice(schema: Schema, value: string): Slice | null {
   const parsed = new globalThis.DOMParser().parseFromString(value, "text/html");
   if (parsed.body.style.display === "none") return Slice.empty;
@@ -103,6 +120,7 @@ export const LoomaSmartPaste = Extension.create({
 
             const plainText = event.clipboardData.getData("text/plain");
             if (!plainText.trim()) return false;
+            if (hasRichClipboardStructure(event.clipboardData.getData("text/html"))) return false;
             const slice = documentSlice(view.state.schema, plainText);
             if (!slice) return false;
             if (slice.size === 0) return true;

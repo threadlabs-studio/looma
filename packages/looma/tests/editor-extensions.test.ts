@@ -103,6 +103,40 @@ describe("editor extension contract", () => {
     element.remove();
   });
 
+  it("preserves real rich HTML when its plain-text companion looks like Markdown", () => {
+    const element = document.createElement("div");
+    document.body.append(element);
+    const editor = new Editor({ element, extensions: getDefaultEditorExtensions(), content: "<p></p>" });
+    editor.commands.focus("start");
+
+    pasteFromSourceEditor(editor, "# Heading\nSome text", undefined,
+      "<h2><strong># Heading</strong></h2><p>Some <em>text</em></p>");
+
+    expect(editor.getJSON().content).toMatchObject([
+      { type: "heading", attrs: { level: 2 }, content: [{ text: "# Heading", marks: [{ type: "bold" }] }] },
+      { type: "paragraph", content: [{ text: "Some " }, { text: "text", marks: [{ type: "italic" }] }] },
+    ]);
+    editor.destroy();
+    element.remove();
+  });
+
+  it("keeps a native editor paragraph with Markdown-looking text literal", () => {
+    const element = document.createElement("div");
+    document.body.append(element);
+    const editor = new Editor({ element, extensions: getDefaultEditorExtensions(), content: "<p></p>" });
+    editor.commands.focus("start");
+
+    pasteFromSourceEditor(editor, "# Not a heading", undefined,
+      '<p data-pm-slice="0 0 []"># Not a heading</p>');
+
+    expect(editor.getJSON().content?.[0]).toMatchObject({
+      type: "paragraph",
+      content: [{ text: "# Not a heading" }],
+    });
+    editor.destroy();
+    element.remove();
+  });
+
   it("pastes Markdown from preformatted clipboard HTML after an old code block is deleted", () => {
     const element = document.createElement("div");
     document.body.append(element);
@@ -120,6 +154,20 @@ describe("editor extension contract", () => {
 
     expect(editor.getJSON().content?.map((node) => node.type)).toEqual(["heading", "bulletList"]);
     expect(editor.getText()).toContain("Working notes");
+    editor.destroy();
+    element.remove();
+  });
+
+  it("recognizes source inside a styled clipboard wrapper", () => {
+    const element = document.createElement("div");
+    document.body.append(element);
+    const editor = new Editor({ element, extensions: getDefaultEditorExtensions(), content: "<p></p>" });
+    editor.commands.focus("start");
+
+    pasteFromSourceEditor(editor, "# Wrapped source", undefined,
+      '<div style="background:#eee"><pre># Wrapped source</pre></div>');
+
+    expect(editor.getJSON().content?.[0]).toMatchObject({ type: "heading", attrs: { level: 1 } });
     editor.destroy();
     element.remove();
   });
