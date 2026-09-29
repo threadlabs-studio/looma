@@ -188,6 +188,11 @@
       margin: 0;
     }
 
+    /* An anchor keeps the boxed button look even when an app styles ordinary links. */
+    :host:is(a) {
+      text-decoration: none;
+    }
+
     .spinner-wrap {
       display: inline-flex;
       flex: none;

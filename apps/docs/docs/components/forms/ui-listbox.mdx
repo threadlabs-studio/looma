@@ -11,6 +11,8 @@ count, so arrow keys, typeahead, Shift and Command or Control selection, form su
 and assistive technology semantics work without JavaScript. Use [Select](/components/ui-select)
 for a compact single-choice dropdown or [Combobox](/components/ui-combobox) for a searchable list.
 
+<ComponentExamplesApiTabs component="ui-listbox" />
+
 Put native `<option>` and `<optgroup>` children inside it, and give it a visible `<label>` or an
 accessible name. `multiple` permits several selections and submits one entry per selected option.
 Read `selectedOptions` from the native `change` event; `value` and `values` set single and multiple
@@ -20,5 +22,3 @@ initial state. Listbox follows `--ui-field-radius` and `--ui-field-danger`; loca
 
 Native options are text only. Use a different composed collection when each choice needs rich
 interactive content.
-
-<ComponentExamplesApiTabs component="ui-listbox" />

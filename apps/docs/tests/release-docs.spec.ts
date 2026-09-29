@@ -330,6 +330,25 @@ test("tooltip uses a Looma trigger and a crisp, pointed overlay surface", async 
   expect(treatment.shadow).not.toBe("none");
   expect(treatment.arrowContent).not.toBe("none");
   expect(treatment.arrowWidth).toBeGreaterThan(0);
+
+  const sideScenario = page.locator("[data-preview-scenario='Side placement']");
+  await sideScenario.locator("#side-tooltip-trigger").focus();
+  const sideArrow = await sideScenario.locator("[data-component~='ui-tooltip'] .surface").evaluate((element) => {
+    const style = getComputedStyle(element, "::after");
+    return { left: style.borderLeftWidth, bottom: style.borderBottomWidth, top: style.borderTopWidth };
+  });
+  expect(sideArrow).toEqual({ left: "1px", bottom: "1px", top: "0px" });
+});
+
+test("solid icon buttons keep their fill and loading shows a ring", async ({ page }) => {
+  await page.goto("components/ui-icon-button", { waitUntil: "domcontentloaded" });
+  for (const scenario of ["Size and variant", "round"]) {
+    const solid = page.locator(`[data-preview-scenario='${scenario}'] [data-component~='ui-icon-button'][data-ui-icon-button-state~='variant=solid']`);
+    const colors = await computedOpaqueColors(solid);
+    expect(contrastRatio(colors.foreground, colors.background)).toBeGreaterThanOrEqual(4.5);
+  }
+  const spinner = page.locator("[data-preview-scenario='Loading icon action'] [data-component~='ui-spinner']");
+  await expect(spinner).toHaveCSS("border-top-width", "2px");
 });
 
 test("toast-region starts empty, fires on demand, and uses a compact round dismiss control", async ({ page }) => {
@@ -731,6 +750,16 @@ test("ui-button authors one declarative element and lowers directly to a native 
   await expect(links.first()).toHaveAttribute("href", "#get-started");
   await expect(links.last()).not.toHaveAttribute("href");
   await expect(links.last()).toHaveAttribute("aria-disabled", "true");
+  for (const link of await links.all()) {
+    await expect(link).toHaveCSS("text-decoration-line", "none");
+  }
+
+  const loading = page.locator("[data-preview-scenario='Loading action'] button[data-component~='ui-button']");
+  await expect(loading).toHaveAttribute("aria-busy", "false");
+  await loading.click();
+  await expect(loading).toHaveAttribute("aria-busy", "true");
+  await expect(loading.locator("[data-component~='ui-spinner']")).toHaveCSS("border-top-width", "2px");
+  await expect(loading).toHaveAttribute("aria-busy", "false");
 });
 
 test("ui-input authors one declarative element and lowers directly to an editable native input", async ({ page }) => {
