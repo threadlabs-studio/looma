@@ -24,15 +24,17 @@ async function historyShortcut(direction: "undo" | "redo") {
   await userEvent.keyboard(`{${modifier}>}${shift}z${releaseShift}{/${modifier}}`);
 }
 
-async function mountEditor(options: { controlled?: boolean; toolbarMode?: "bubble" | "sticky"; disableHighlight?: boolean; codeLanguages?: Record<string, typeof common.sql> } = {}) {
+async function mountEditor(options: { controlled?: boolean; editable?: boolean; toolbarMode?: "bubble" | "sticky"; disableHighlight?: boolean; codeLanguages?: Record<string, typeof common.sql> } = {}) {
   vi.spyOn(window, "innerWidth", "get").mockReturnValue(1280);
   const modelValue = ref<JSONContent>({ type: "doc", content: [{ type: "paragraph" }] });
+  const editable = ref(options.editable ?? true);
   const host = document.createElement("div");
   document.body.append(host);
   let editor: Editor | null = null;
   const app = createApp({
     render: () => h(LoomaEditor, {
       modelValue: modelValue.value,
+      editable: editable.value,
       ...(options.toolbarMode ? { toolbarMode: options.toolbarMode } : {}),
       ...(options.disableHighlight ? { disableHighlight: true } : {}),
       ...(options.codeLanguages ? { codeLanguages: options.codeLanguages } : {}),
@@ -45,7 +47,7 @@ async function mountEditor(options: { controlled?: boolean; toolbarMode?: "bubbl
   apps.push(app);
   app.mount(host);
   await flushBrowser();
-  return { editor: editor!, host };
+  return { editor: editor!, host, editable };
 }
 
 function pasteFromSourceEditor(editor: Editor, text: string, mode: string) {
@@ -154,6 +156,18 @@ describe("LoomaEditor history (real browser)", () => {
     expect(host.querySelector('pre [role="combobox"]')).toBeNull();
     await userEvent.keyboard("SELECT 1");
     expect(editor.getJSON().content?.[0]?.content?.[0]?.text).toBe("SELECT 1");
+  });
+
+  it("hides the code language control when the editor becomes read-only", async () => {
+    const { editor, host, editable } = await mountEditor({ codeLanguages: { sql: common.sql } });
+    editor.commands.setContent('<pre><code>SELECT 1</code></pre>');
+    await flushBrowser();
+    expect(host.querySelector('pre [role="combobox"]')).toBeTruthy();
+
+    editable.value = false;
+    await flushBrowser();
+    expect(host.querySelector('pre [role="combobox"]')).toBeNull();
+    expect(host.querySelector('pre code')?.textContent).toBe('SELECT 1');
   });
 
   it("omits inline display-none source content from a formatted paste", async () => {

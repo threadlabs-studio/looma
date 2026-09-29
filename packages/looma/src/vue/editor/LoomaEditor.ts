@@ -442,7 +442,7 @@ export const LoomaEditor = defineComponent({
           mention: mentionExtension ?? false,
           disableHighlight: props.disableHighlight,
           codeLanguages: props.codeLanguages,
-          codeBlockNodeView: VueNodeViewRenderer(createCodeBlockView(props.codeLanguages)),
+          codeBlockNodeView: VueNodeViewRenderer(createCodeBlockView(props.codeLanguages, () => props.editable)),
         }),
         imageDelivery.extension,
         slashExtension,

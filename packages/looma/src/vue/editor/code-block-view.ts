@@ -7,7 +7,7 @@ import type { LoomaCodeLanguages } from "@threadlabs/looma/editor";
 import { Combobox } from "@threadlabs/looma/vue";
 
 /** Per-block language control; the document stores only the code and explicit language. */
-export function createCodeBlockView(languages: LoomaCodeLanguages) {
+export function createCodeBlockView(languages: LoomaCodeLanguages, isEditable: () => boolean) {
   const lowlight = createLowlight(languages);
   const names = Object.keys(languages).sort();
 
@@ -40,11 +40,13 @@ export function createCodeBlockView(languages: LoomaCodeLanguages) {
         props.editor.view.dispatch(closeHistory(props.editor.state.tr));
       };
 
+      const showControl = () => names.length > 0 && isEditable() && props.editor.isEditable;
+
       return () => h(NodeViewWrapper, {
         as: "pre",
-        class: names.length && props.editor.isEditable ? "looma-editor__code-block--has-language" : undefined,
+        class: showControl() ? "looma-editor__code-block--has-language" : undefined,
       }, () => [
-        names.length && props.editor.isEditable
+        showControl()
           ? h("div", { class: "looma-editor__code-language", contenteditable: "false" }, [
               h(Combobox, {
                 label: "Code language",
