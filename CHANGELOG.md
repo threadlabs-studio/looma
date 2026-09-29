@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- The Link toolbar keeps selected text when pressing its button moves focus out of the editor.
+- A short YAML frontmatter block at the start of pasted Markdown stays as an editable
+  YAML code block, while the following heading and body become document structure.
+- Two-column editor tables now fit their available width and wrap cell text. Tables
+  with many columns or deliberately wide saved columns still scroll horizontally.
+- The inline chip editor now opens below a chip on a narrow page when there is room,
+  so editing a chip near the page heading does not cover the title and actions.
+  It still flips above when the viewport has more room there.
 - Input takes a number. Its `value` and Vue `modelValue` accept `string | number` (`modelValue`
   also takes `null`), so a `type="number"` field binds to a number, and it reports a number as the
   user types, or an empty string while it holds no number, as Vue's `v-model` does. The Vue
