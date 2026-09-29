@@ -1,8 +1,9 @@
 <template component="ui-input" controller="./ui-input.js">
   <defs>
-    <prop name="value" type="string"
-    >The input's text. Setting or changing it replaces the live text; between changes the user's typing stands, so follow input events to keep it in step. It is
-      also the input's default, so a form reset returns to it.</prop>
+    <prop name="value" type="string | number"
+    >The input's value: text, or a number for a type="number" field. Setting or changing it replaces the live text; between changes the user's typing stands, so
+      follow input events to keep it in step. A number field keeps text that means the same number, such as 1.0 for 1. It is also the input's default, so a form
+      reset returns to it.</prop>
     <prop name="disabled" type="boolean" default="false">Prevents editing and form submission.</prop>
     <prop name="invalid" type="boolean" default="false">Exposes invalid state to assistive technology and styling.</prop>
     <prop name="readonly" type="boolean" default="false">Allows selection without allowing edits.</prop>
@@ -41,6 +42,10 @@
       syntax: "*";
       inherits: false;
     }
+    @property --ui-input-inline-size {
+      syntax: "*";
+      inherits: false;
+    }
     @property --ui-input-invalid-border {
       syntax: "*";
       inherits: false;
@@ -69,7 +74,7 @@
     :host {
       box-sizing: border-box;
       display: inline-block;
-      inline-size: 100%;
+      inline-size: var(--ui-input-inline-size, 100%);
       min-inline-size: 0;
       min-block-size: var(--ui-input-min-block-size, var(--_ui-default-input-min-block-size, var(--ui-control-size-md)));
       margin: 0;

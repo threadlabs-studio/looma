@@ -67,65 +67,27 @@ event payload keys are semver-protected.
 
 Components do not set external margins. Layout primitives own inter-component rhythm via `gap`.
 
-## DOM and style isolation contract
+## Styles and typography
 
-All component families lower to light-DOM native roots while preserving consumer-authored semantic content through slots. To keep host integration predictable:
+Every component renders light-DOM native elements and preserves the content you author through its
+slots.
 
-- Light-DOM Looma hosts apply a scoped reset (`all: revert-layer`) and re-add required defaults from Looma tokens.
-- Each Looma host uses token-driven typography/color by default (`--ui-font-*`, `--ui-text-*`).
-- Component subtrees use scoped border-box (`host`, `host *`, `host *::before`, `host *::after`).
-- We do not apply a global page reset from Looma packages.
+- A component styles its own root and parts. Everything it does not set, such as the font family,
+  inherits from the page as it would for any element.
+- `tokens.css` puts its values in `@layer tokens` and its one base rule in `@layer base`, so
+  unlayered theme CSS overrides them. Component styles are unlayered: change a component through its
+  [hooks](/tokens), not by competing with its selectors.
+- Components that present text or controls (Text, Button, Input, Badge, and so on) set the size,
+  weight, and colour their design needs from the global type and colour tokens. Theme them through
+  those tokens and the component's hooks, never by selecting the markup a runtime renders.
 
-### Hybrid Layer Strategy
+To give a page Looma's type, set it on the page itself:
 
-Looma uses a hybrid `@layer` approach so isolation stays robust while theming stays overridable:
-
-- **Unlayered (contract):** Host reset (`all: revert-layer`), scoped box-sizing, core typography baseline, and `data-ui-inherit-typography` behavior. `revert-layer` removes unrelated unlayered defaults while revealing Looma's own component-layer display and sizing declarations; later unlayered page CSS can still compose the host.
-- **Layered (theme/variants):** Component visual styles (colors, borders, sizes, variants) and utilities (`.ui-scope`, `.ui-font-*`) live in `@layer components` and `@layer utilities`. Unlayered page CSS can override them for theming.
-
-### Opt-in Typography Inheritance
-
-Some surfaces should intentionally blend with host typography (for example markdown prose containers). For those cases, set:
-
-- `data-ui-inherit-typography` on a Looma host element.
-
-When present, Looma host typography is inherited for:
-
-- `font-family`, `font-size`, `line-height`, `font-weight`, `color`
-- `direction`, `writing-mode`, `text-orientation`
-- `text-rendering`, `font-feature-settings`, `font-variation-settings`
-
-### Utility Pattern (`.ui-scope`)
-
-Use `.ui-scope` on a container when you want an explicit Looma baseline in host apps:
-
-```html
-<section class="ui-scope">
-  <ui-stack gap="m">
-    <ui-button>Save</ui-button>
-  </ui-stack>
-</section>
+```css
+body {
+  font-family: var(--ui-font-sans);
+  font-size: var(--ui-font-size);
+  line-height: var(--ui-line-height);
+  color: var(--ui-text);
+}
 ```
-
-`.ui-scope` applies token-driven baseline typography/color and scoped border-box to descendants.
-
-### Utility Pattern (Font Stack Presets)
-
-Use utility classes or a data attribute to opt into a font stack preset per subtree:
-
-```html
-<section class="ui-scope ui-font-neo-grotesque">
-  <ui-button>Save</ui-button>
-</section>
-
-<section class="ui-scope" data-ui-font-stack="rounded">
-  <ui-badge>Beta</ui-badge>
-</section>
-```
-
-Supported presets:
-
-- `system` (`.ui-font-system` or `data-ui-font-stack="system"`)
-- `neo-grotesque` (`.ui-font-neo-grotesque` or `data-ui-font-stack="neo-grotesque"`)
-- `humanist` (`.ui-font-humanist` or `data-ui-font-stack="humanist"`)
-- `rounded` (`.ui-font-rounded` or `data-ui-font-stack="rounded"`)
