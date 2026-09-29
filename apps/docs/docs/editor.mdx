@@ -6,16 +6,138 @@ hide_title: true
 hide_table_of_contents: true
 ---
 
-import { ComponentCatalog } from "@site/src/components/ComponentCatalog";
+import { EditorGuideDemo } from "@site/src/components/EditorGuideDemo";
 
 <header className="looma-catalog-heading">
-  <p className="looma-eyebrow">Rich-text UI</p>
+  <p className="looma-eyebrow">Rich text</p>
   <h1>Editor</h1>
   <p>
-    Focused surfaces for formatting, suggestions, tables, and other editor interactions.
-    Applications retain document state and command execution; Looma owns the visible,
-    accessible interaction layer.
+    A ready-to-use writing surface with formatting, slash commands, mentions, tables, and image
+    support. Start with the complete editor; configure its capabilities through props and callbacks.
   </p>
 </header>
 
-<ComponentCatalog />
+## Try the editor
+
+<EditorGuideDemo />
+
+Select text to see formatting controls. Type `/` to insert a block or `@` to mention Ada or Grace.
+The toolbar control above changes where formatting actions appear. The highlighting control
+shows how an application can reserve `<mark>` for its own meaning. This playground keeps edits in
+this browser session; it does not save them to a server.
+
+## Add it to a Vue app
+
+Install Looma and the editor peers, import the theme and Vue component styles, then use
+`LoomaEditor` with `v-model`:
+
+```vue
+<script setup lang="ts">
+import { ref } from "vue";
+import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+import "@threadlabs/looma/tokens.css";
+import "@threadlabs/looma/theme-light.css";
+import "@threadlabs/looma/vue.css";
+
+const document = ref({ type: "doc", content: [] });
+</script>
+
+<template>
+  <LoomaEditor v-model="document" label="Article body" />
+</template>
+```
+
+The value is Tiptap JSON. The app owns saving, loading, and collaboration; the editor emits a
+new document on each change. [Getting started](/getting-started) includes installation and a
+first integration.
+
+## Formatting and toolbar
+
+Select text for bold, italic, underline, strike, highlight, inline code, and links. The editor
+also supports headings, lists, quotes, code blocks, tables, images, undo, and redo. Set
+`toolbarMode="sticky"` to keep the toolbar above the document, or use the default `bubble` mode
+beside a selection. On narrow screens the toolbar docks at the bottom and scrolls sideways when
+its controls do not fit.
+
+Set `disableHighlight` when authored highlighting would be confused with an application marker.
+The Highlight control, shortcut, and `==text==` input rule then disappear; existing `<mark>`
+content still renders. Choose this when creating the editor, since it changes the editor's
+extensions.
+
+## Slash commands and blocks
+
+Type `/` for headings, callouts, lists, a quote, code, a divider, a table, or an image. Keep
+typing to narrow the menu; use arrow keys and Enter to choose. The **Chip** command inserts an
+inline label without splitting the paragraph. Choose its text and tone in the popover, then click
+the chip to edit it. Markdown-style shortcuts also work: `#` for headings, `-` for a bullet list,
+`[ ]` for a checklist, and `---` for a divider.
+
+Block actions can insert a paragraph after the current block, duplicate it, or delete it.
+
+## Code blocks
+
+Code blocks retain their language in the document. Looma loads no syntax grammars by default.
+Import only the languages your app needs from `highlight.js` and pass them as `codeLanguages` when
+creating the editor. The same option works with `getDefaultEditorExtensions` for a headless editor.
+Untyped code blocks can be detected from the registered languages.
+
+## Pasting documents
+
+Pasting formatted HTML keeps its headings and inline formatting, even when the clipboard's plain
+text resembles Markdown. Looma also turns Markdown or HTML copied as source into editable blocks.
+Pasting inside a code block stays literal.
+
+## Mentions
+
+Pass `mentionItems` for a short known list, as in the playground, or `mentionProvider` for a
+directory search. Each item needs a stable `id` and visible `label`; `detail` and `initials` are
+optional display hints. `mentionLimit` defaults to 8. The editor stores the ID and label in the
+document, while the application owns directory lookup and identity.
+
+```vue
+<LoomaEditor
+  v-model="document"
+  :mention-items="[
+    { id: 'ada', label: 'Ada Lovelace', detail: 'Design', initials: 'AL' },
+    { id: 'grace', label: 'Grace Hopper', detail: 'Engineering', initials: 'GH' }
+  ]"
+/>
+```
+
+## Tables
+
+Choose **Table** from the toolbar or slash menu, then pick dimensions in the grid. Once a cell
+is selected, row and column handles and the table toolbar expose the actions that are valid for
+that selection: add, delete, move, merge, split, alignment, and header rows or columns. Keyboard
+users can reach the same controls. The editor updates the document; consumers do not need to
+wire a separate table menu.
+
+## Images and links
+
+Provide `uploadImage` to enable image insertion from a file, paste, or drop. It receives a `File`
+and returns a URL or an object with a URL, alt text, and optional dimensions. A rejected upload
+leaves the document unchanged and emits `uploadError`, so the app can show recovery UI.
+`resolveImageAttributes` can supply responsive image attributes when rendering saved content.
+
+Select text and choose **Link**, or put the caret in a link to edit or remove it. The editor
+accepts `http:`, `https:`, `mailto:`, `tel:`, and relative URLs beginning with `/`, `#`, or `?`.
+
+## Configuration and events
+
+| Prop | Default | Purpose |
+| --- | --- | --- |
+| `modelValue` | Empty document | Document JSON; use `v-model` |
+| `editable` | `true` | Allow editing or show the document read only |
+| `placeholder` | `Type “/” for commands, or start writing…` | Empty document prompt |
+| `label` | `Document` | Accessible name for the editing surface |
+| `extensions` | `[]` | Additional Tiptap extensions |
+| `toolbarMode` | `bubble` | `bubble` or `sticky` toolbar placement |
+| `disableHighlight` | `false` | Reserve highlighting for the application |
+| `codeLanguages` | None | Syntax grammars to load for code blocks |
+| `mentionItems`, `mentionProvider`, `mentionLimit` | Empty, none, 8 | Fixed or searched mention candidates |
+| `uploadImage`, `resolveImageAttributes` | None | Image delivery and rendering |
+
+`update:modelValue` and `update` report document changes; `ready` exposes the underlying Tiptap
+editor for integrations. The app decides when and where to persist the document. If you are
+building a custom Tiptap integration instead of using `LoomaEditor`, the underlying
+`ui-editor-*` components remain available in the package, with their [component reference](https://github.com/threadlabs-studio/looma/tree/main/packages/looma/src/components).

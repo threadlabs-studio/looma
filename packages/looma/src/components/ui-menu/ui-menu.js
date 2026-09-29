@@ -40,7 +40,7 @@ export default function controller(host) {
   };
   const ids = createIdResolver(document, () => apply());
   const setup = () => {
-    const nextFor = String(host.state.for ?? "");
+    const nextFor = host.state.inline ? "" : String(host.state.for ?? "");
     const nextPlacement = String(host.state.placement ?? "bottom-start");
     if (nextFor === lastFor && nextPlacement === lastPlacement && surface) return;
     lastFor = nextFor;
@@ -52,18 +52,22 @@ export default function controller(host) {
     surface = anchor ? createAnchoredSurface(element, { anchor, placement: nextPlacement }) : null;
   };
   const apply = () => {
+    const inline = Boolean(host.state.inline);
     const externalOpen = Boolean(host.state.open);
     if (externalOpen !== lastExternalOpen) {
       lastExternalOpen = externalOpen;
       host.state.internalOpen = externalOpen;
     }
     setup();
-    const open = Boolean(host.state.internalOpen);
+    const open = inline || Boolean(host.state.internalOpen);
     if (anchor) {
       anchor.setAttribute("aria-haspopup", "menu");
       anchor.setAttribute("aria-expanded", String(open));
     }
-    if (open) {
+    if (inline) {
+      surface?.hide();
+      closeOverlay(document, overlayId);
+    } else if (open) {
       surface?.show();
       openOverlay({ id: overlayId, modal: false, element, relatedElements: anchor ? [anchor] : [], dismissible: true, requestClose: close });
     } else {
@@ -81,12 +85,14 @@ export default function controller(host) {
       return;
     }
     host.dispatch("select", { value, trigger });
+    if (host.state.inline) return;
     host.dispatch("close", { open: false, reason: "action", trigger });
     host.state.internalOpen = false;
   };
   const onClick = (event) => select(menuItemFrom(event.target), triggerFor(event));
   const onKeydown = (event) => {
     if (event.key === "Escape") {
+      if (host.state.inline) return;
       event.preventDefault();
       requestTopOverlayClose(document, "escape", "keyboard");
       return;

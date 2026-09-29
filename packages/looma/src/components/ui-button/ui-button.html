@@ -11,11 +11,12 @@
     >Which colour the button speaks in. It applies to every variant, so an outline, a ghost, and a solid in the same tone are the same action at three volumes:
       tone="danger" variant="outline" is a destructive secondary action. neutral is the quiet one, for a button that should not claim a colour.</prop>
     <prop name="disabled" type="boolean" default="false"
-    >Makes the button unavailable: it cannot be pressed, its tone fades, and it loses its raised look. A disabled link (as="a" with href) drops its href and
-      states aria-disabled="true" instead, because a link has no native disabled state.</prop>
-    <prop name="pending" type="boolean" default="false"
+    >Makes the button unavailable: it cannot be pressed, uses a flat neutral palette, and loses its raised look. A disabled link (as="a" with href) drops its
+      href and states aria-disabled="true" instead, because a link has no native disabled state.</prop>
+    <prop name="loading" type="boolean" default="false"
     >Keeps the action focusable and its label visible while work is in progress. It shows a decorative spinner, states aria-disabled and aria-busy, and prevents
       activation or form submission until cleared.</prop>
+    <prop name="pending" type="boolean" default="false">Deprecated alias for loading.</prop>
     <prop name="align" type="center | start" default="center"
     >Content alignment. start lays the content out like a list option: from the start edge, with start-aligned text.</prop>
     <prop name="stretch" type="boolean" default="false">Fills the inline size of its container.</prop>
@@ -34,18 +35,24 @@
   <template $match>
     <a
       $when="as = 'a'"
-      :href="{ true: null, false: href }[format('%s', disabled or pending)]"
+      :href="{ true: null, false: href }[format('%s', disabled or loading or pending)]"
       :target="target"
       :rel="rel"
-      :aria-disabled="{ true: 'true', false: null }[format('%s', disabled or pending)]"
-      :aria-busy="pending"
-      :tabindex="{ true: '0', false: null }[format('%s', pending and not disabled)]"
+      :aria-disabled="{ true: 'true', false: null }[format('%s', disabled or loading or pending)]"
+      :aria-busy="loading or pending"
+      :tabindex="{ true: '0', false: null }[format('%s', (loading or pending) and not disabled)]"
     >
-      <ui-spinner $if="pending" size="sm" class="pending-spinner"></ui-spinner>
+      <span $if="loading or pending" class="spinner-wrap"><ui-spinner size="sm"></ui-spinner></span>
       <slot></slot>
     </a>
-    <button $else :type="type" :disabled="disabled" :aria-disabled="{ true: 'true', false: null }[format('%s', pending)]" :aria-busy="pending">
-      <ui-spinner $if="pending" size="sm" class="pending-spinner"></ui-spinner>
+    <button
+      $else
+      :type="type"
+      :disabled="disabled"
+      :aria-disabled="{ true: 'true', false: null }[format('%s', loading or pending)]"
+      :aria-busy="loading or pending"
+    >
+      <span $if="loading or pending" class="spinner-wrap"><ui-spinner size="sm"></ui-spinner></span>
       <slot></slot>
     </button>
   </template>
@@ -177,12 +184,15 @@
         background-color var(--ui-motion-fast) var(--ui-motion-ease),
         border-color var(--ui-motion-fast) var(--ui-motion-ease),
         color var(--ui-motion-fast) var(--ui-motion-ease),
-        box-shadow var(--ui-motion-fast) var(--ui-motion-ease);
+        box-shadow var(--ui-motion-base) var(--ui-motion-ease);
       margin: 0;
     }
 
-    .pending-spinner {
+    .spinner-wrap {
+      display: inline-flex;
+      flex: none;
       margin-inline-end: var(--ui-space-2);
+      vertical-align: middle;
     }
 
     @supports (text-box-trim: trim-both) {
@@ -312,12 +322,12 @@
         var(--ui-focus-halo);
     }
 
-    /* Disabled keeps the shape and washes out the rest: every variant keeps its own structure, so a
-       disabled outline is still an outline and a disabled ghost still has no edge. One filter fades
-       fill, border, and text together (--ui-disabled-filter), and the theme decides which way is
-       toward the page. The highlight and shadow go, because nothing that cannot be pressed should
-       look raised. */
-    :host:is(:disabled, [aria-disabled="true"]) {
+    /* A loading action stays visually active; only an explicitly disabled action takes the
+       neutral disabled palette. Its flat surface and muted ink make the state unambiguous. */
+    :host:is(:disabled, [aria-disabled="true"]:not([aria-busy="true"])) {
+      border-color: var(--ui-disabled-border);
+      background-color: var(--ui-disabled-surface);
+      color: var(--ui-disabled-text);
       filter: var(--ui-button-disabled-filter, var(--ui-disabled-filter));
       opacity: var(--ui-button-disabled-opacity, 1);
       cursor: not-allowed;
@@ -325,16 +335,13 @@
       box-shadow: none;
     }
 
-    :host-state([pending]):focus-visible {
+    :is(:host-state([loading]), :host-state([pending])):focus-visible {
       box-shadow: var(--ui-focus-halo);
     }
 
-    /* Ghost has no hover to fall back on, so disabled is the one state it has to state outright:
-       it takes a surface rather than reading as plain text. The surface is a wash of the faded tone,
-       the way hover washes the live one, so it stays light in every tone. An opaque mix toward the
-       hue came out a mid-grey slab for neutral, whose hue is the ink: louder than the enabled button. */
-    :host-state([variant="ghost"]):is(:disabled, [aria-disabled="true"]) {
-      background-color: oklch(from var(--_tone) l c h / 14%);
+    /* Ghost keeps no border, but gains the same neutral surface as other disabled buttons. */
+    :host-state([variant="ghost"]):is(:disabled, [aria-disabled="true"]:not([aria-busy="true"])) {
+      background-color: var(--ui-disabled-surface);
       border-color: transparent;
     }
 
@@ -393,7 +400,7 @@
       transform: none;
     }
 
-    :host-state([variant="link"]):is(:disabled, [aria-disabled="true"]) {
+    :host-state([variant="link"]):is(:disabled, [aria-disabled="true"]:not([aria-busy="true"])) {
       background: none;
       border-color: transparent;
     }

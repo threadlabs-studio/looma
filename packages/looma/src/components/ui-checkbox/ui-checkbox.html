@@ -98,10 +98,10 @@
       inline-size: var(--_ui-checkbox-size, 1.125rem);
       block-size: var(--_ui-checkbox-size, 1.125rem);
       margin: 0.125em 0 0;
-      border: 1px solid var(--ui-control-border-hover, var(--ui-border-strong));
+      border: 1px solid var(--ui-control-border, var(--ui-border-strong));
       border-radius: var(--ui-radius-sm);
       background: var(--ui-control-surface, var(--ui-surface-default));
-      box-shadow: inset 0 1px 2px color-mix(in srgb, var(--ui-text-primary) 8%, transparent);
+      box-shadow: var(--ui-control-inset);
       cursor: pointer;
       transition:
         background-color var(--ui-motion-fast) var(--ui-motion-ease),
@@ -113,28 +113,30 @@
       content: "";
       position: absolute;
       opacity: 0;
+      transition: opacity 120ms var(--ui-motion-ease);
     }
 
     input:checked,
     input:indeterminate {
       border-color: var(--ui-accent-solid);
       background: var(--ui-accent-solid);
-      box-shadow: inset 0 1px 2px color-mix(in srgb, #000 16%, transparent);
+      box-shadow: var(--ui-control-inset);
     }
 
     /* Centre the tick's box, then lift it: a rotated L's ink sits ~0.11rem below its box centre. */
     input:checked::after {
       inset: 0;
       margin: auto;
-      inline-size: 0.32rem;
-      block-size: 0.58rem;
+      inline-size: 0.28rem;
+      block-size: 0.5rem;
       /* Longhands, not `border: solid var(...)`: lowering drops a shorthand that omits a
          component, which left the tick with no style and no colour. */
       border-style: solid;
       border-color: var(--ui-text-on-accent);
       border-width: 0 0.125rem 0.125rem 0;
       opacity: 1;
-      transform: translateY(-0.11rem) rotate(45deg);
+      transform: translate(0.07rem, -0.09rem) rotate(45deg);
+      animation: ui-checkbox-check 180ms var(--ui-motion-ease-out, cubic-bezier(0.16, 1, 0.3, 1)) both;
     }
 
     input:indeterminate::after {
@@ -144,6 +146,28 @@
       background: var(--ui-text-on-accent);
       opacity: 1;
       transform: translateY(-50%);
+    }
+
+    @keyframes ui-checkbox-check {
+      from {
+        opacity: 0;
+        transform: translate(0.07rem, -0.09rem) rotate(45deg) scale(0.55);
+      }
+      65% {
+        opacity: 1;
+        transform: translate(0.07rem, -0.09rem) rotate(45deg) scale(1.12);
+      }
+      to {
+        opacity: 1;
+        transform: translate(0.07rem, -0.09rem) rotate(45deg) scale(1);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      input::after {
+        transition: none;
+        animation: none;
+      }
     }
 
     input:hover:enabled {
@@ -163,9 +187,13 @@
       color: var(--ui-disabled-text);
       cursor: not-allowed;
     }
+    :host-state([disabled]) .description {
+      color: var(--ui-disabled-text);
+    }
     :host-state([disabled]) input {
-      border-color: var(--ui-border-default);
-      background: var(--ui-control-surface-disabled, var(--ui-surface-muted));
+      border-color: var(--ui-disabled-border);
+      background: var(--ui-disabled-surface);
+      box-shadow: none;
       cursor: not-allowed;
     }
 

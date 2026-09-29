@@ -11,10 +11,10 @@ export default function controller(host) {
     avatars.forEach((avatar, index) => {
       avatar.style.display = index >= visible ? "none" : "";
       avatar.style.marginInlineStart = index === 0 ? "0px" : overlap;
-      // Later avatars cast a crisp shadow back onto the one they overlap; the first overlaps nothing.
+      // Later avatars darken only their leading edge; the first overlaps nothing.
       avatar.style.boxShadow = index === 0
-        ? "var(--ui-avatar-group-edge-ring, var(--_edge-ring))"
-        : "var(--ui-avatar-group-overlap-shadow, var(--_overlap-shadow)), var(--ui-avatar-group-edge-ring, var(--_edge-ring))";
+        ? "var(--ui-avatar-group-edge-ring, none)"
+        : "var(--ui-avatar-group-overlap-shadow, var(--_overlap-shadow)), var(--ui-avatar-group-edge-ring, 0 0 0 0 transparent)";
     });
     const authoredVisible = Math.min(avatars.length, visible);
     const suppliedTotal = Number(host.state.total);

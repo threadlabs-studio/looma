@@ -73,7 +73,7 @@
       display: block;
       inline-size: 100%;
       overflow: clip;
-      border-block-end: 1px solid var(--ui-border-default);
+      border-block-end: 1px solid var(--ui-border-divider);
       color: var(--ui-text-primary);
     }
 
@@ -98,7 +98,7 @@
     }
 
     .trigger:hover:not(:disabled) {
-      background: var(--ui-surface-muted);
+      background: color-mix(in srgb, currentColor 6%, transparent);
     }
     .trigger:focus-visible {
       outline: none;

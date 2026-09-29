@@ -17,7 +17,11 @@
     "@docusaurus/preset-classic": "^3.9.2",
     "@mdx-js/react": "^3.1.0",
     "@threadlabs/looma": "workspace:*",
-    "prismjs": "^1.30.0"
+    "@tiptap/core": "^2.11.5",
+    "@tiptap/pm": "^2.11.5",
+    "@tiptap/vue-3": "^2.11.5",
+    "prismjs": "^1.30.0",
+    "vue": "^3.5.43"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^3.9.2",

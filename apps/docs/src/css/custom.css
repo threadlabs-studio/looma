@@ -126,14 +126,50 @@ body {
 .theme-doc-markdown { font-size: var(--looma-text-body); line-height: 1.72; }
 .theme-doc-markdown > h1 { font-size: clamp(2.5rem, 5vw, 4.6rem); letter-spacing: -0.06em; }
 
-.theme-doc-markdown h2 {
+.theme-doc-markdown > h2 {
   margin-top: 3.25rem;
   padding-top: 1.35rem;
   border-top: 1px solid var(--looma-line);
   letter-spacing: -0.035em;
 }
 
-.theme-doc-markdown h3 { margin-top: 2rem; letter-spacing: -0.025em; }
+.theme-doc-markdown > h3 { margin-top: 2rem; letter-spacing: -0.025em; }
+
+.looma-editor-guide-demo {
+  margin-block: 1.25rem;
+  border: 1px solid var(--looma-line);
+  border-radius: 0.75rem;
+  background: var(--ui-surface, #fff);
+  overflow: clip;
+}
+
+.looma-editor-guide-demo__settings {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.5rem;
+  padding: 0.75rem 1rem;
+  border-block-end: 1px solid var(--looma-line);
+}
+
+.looma-editor-guide-demo__settings label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.looma-editor-guide-demo__settings select {
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--ui-control-border);
+  border-radius: 0.375rem;
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  font: inherit;
+}
+
+.looma-editor-guide-demo__editor { min-block-size: 13rem; }
 
 .theme-doc-markdown a:not(.hash-link):not(.looma-button):not(.looma-component-card__link):not([data-component]) {
   text-decoration: underline;

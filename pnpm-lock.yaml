@@ -37,9 +37,21 @@ importers:
       '@threadlabs/looma':
         specifier: workspace:*
         version: link:../../packages/looma
+      '@tiptap/core':
+        specifier: ^2.11.5
+        version: 2.27.2(@tiptap/pm@2.27.2)
+      '@tiptap/pm':
+        specifier: ^2.11.5
+        version: 2.27.2
+      '@tiptap/vue-3':
+        specifier: ^2.11.5
+        version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))(@tiptap/pm@2.27.2)(vue@3.5.43(typescript@5.9.3))
       prismjs:
         specifier: ^1.30.0
         version: 1.30.0
+      vue:
+        specifier: ^3.5.43
+        version: 3.5.43(typescript@5.9.3)
     devDependencies:
       '@docusaurus/module-type-aliases':
         specifier: ^3.9.2

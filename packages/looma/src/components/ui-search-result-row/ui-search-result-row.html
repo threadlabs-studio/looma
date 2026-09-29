@@ -1,6 +1,7 @@
 <template component="ui-search-result-row">
   <defs>
-    <prop name="disabled" type="boolean" default="false">Disables the row's button, so it cannot be chosen or focused, and fades it to 60% opacity.</prop>
+    <prop name="disabled" type="boolean" default="false"
+    >Disables the row's button, so it cannot be chosen or focused, and gives it a flat muted treatment.</prop>
     <prop name="selected" type="boolean" default="false"
     >Marks the row as the current result: it gets the hover surface and aria-current="true", which assistive technology announces as current. Set it on one row
       at a time, such as the result the arrow keys have moved to.</prop>
@@ -61,7 +62,7 @@
       gap: var(--ui-search-result-row-gap, var(--ui-space-3));
       background: var(--ui-search-result-row-surface, transparent);
       border: none;
-      border-block-end: 1px solid var(--ui-search-result-row-border, var(--ui-border));
+      border-block-end: 1px solid var(--ui-search-result-row-border, var(--ui-border-divider));
       color: inherit;
       cursor: pointer;
       text-align: left;
@@ -89,7 +90,8 @@
     }
 
     :host:disabled {
-      opacity: 0.6;
+      background: var(--ui-disabled-surface);
+      color: var(--ui-disabled-text);
       cursor: not-allowed;
     }
 

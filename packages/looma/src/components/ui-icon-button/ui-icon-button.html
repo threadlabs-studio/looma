@@ -2,10 +2,11 @@
 <template component="ui-icon-button" controller="./ui-icon-button.js">
   <defs>
     <prop name="disabled" type="boolean" default="false"
-    >Disables the button, so it cannot be pressed or focused, and washes it out: the same shape, with less colour and contrast (--ui-disabled-filter).</prop>
-    <prop name="pending" type="boolean" default="false"
+    >Disables the button, so it cannot be pressed or focused, and gives it a flat neutral surface and muted icon.</prop>
+    <prop name="loading" type="boolean" default="false"
     >Keeps the button focusable and named while work is in progress. It shows a spinner, states aria-disabled and aria-busy, and prevents activation until
       cleared.</prop>
+    <prop name="pending" type="boolean" default="false">Deprecated alias for loading.</prop>
     <prop name="label" type="string">Accessible name for the icon.</prop>
     <prop name="size" type="sm | md | lg" default="md"
     >Button and icon size together: sm is 1.75rem with a small icon, md is 2rem, and lg is 2.5rem with a large icon. On touch, every size gets an invisible hit
@@ -18,8 +19,14 @@
       the pointer comes near inside a ui-affordance-scope. Touch devices and the solid variant always show it.</prop>
     <prop name="round" type="boolean" default="false">Use a fully circular shape.</prop>
   </defs>
-  <button :disabled="disabled" type="button" :aria-label="label" :aria-disabled="{ true: 'true', false: null }[format('%s', pending)]" :aria-busy="pending">
-    <ui-spinner $if="pending" size="sm"></ui-spinner>
+  <button
+    :disabled="disabled"
+    type="button"
+    :aria-label="label"
+    :aria-disabled="{ true: 'true', false: null }[format('%s', loading or pending)]"
+    :aria-busy="loading or pending"
+  >
+    <ui-spinner $if="loading or pending" size="sm"></ui-spinner>
     <span class="content"><slot></slot></span>
   </button>
   <style>
@@ -125,15 +132,30 @@
       pointer-events: none;
     }
 
-    /* At rest an anticipatory button shows only its guide dot; proximity, hover, or focus reveals the
-     * surface and icon. The root is the native button, so hiding it outright would hide the dot
-     * too, and slotted icons sit outside this scope; `color: transparent` hides currentColor icons. */
+    :host-state([anticipatory]):disabled::before {
+      opacity: 0;
+    }
+
+    /* At rest an anticipatory button shows only its guide dot. The icon grows into place when
+       proximity, hover, or focus reveals it; the button's hit area and guide remain stable. */
+    :host-state([anticipatory]) .content {
+      opacity: 1;
+      transform: scale(1);
+      transition: opacity var(--ui-motion-fast) var(--ui-motion-ease), transform calc(var(--ui-motion-fast) * 2) cubic-bezier(0.2, 1.4, 0.35, 1);
+    }
+
     @media (hover: hover) and (pointer: fine) {
-      :host-state([anticipatory]):not(:host-state([variant="solid"]), [data-ui-proximity="near"], :hover, :focus-visible) {
+      :host-state([anticipatory]):not(:host-state([variant="solid"]), :host-state([loading]), :host-state([pending]), :disabled, [data-ui-proximity="near"], :hover, :focus-visible) {
         border-color: transparent;
         background: transparent;
         box-shadow: none;
-        color: transparent;
+      }
+
+      :host-state([anticipatory]):not(:host-state([variant="solid"]), :host-state([loading]), :host-state([pending]), :disabled, [data-ui-proximity="near"], :hover, :focus-visible)
+        .content {
+        opacity: 0;
+        transform: scale(0.65);
+        transition-duration: var(--ui-motion-fast);
       }
     }
 
@@ -163,7 +185,7 @@
         background-color var(--ui-motion-fast) var(--ui-motion-ease),
         border-color var(--ui-motion-fast) var(--ui-motion-ease),
         color var(--ui-motion-fast) var(--ui-motion-ease),
-        box-shadow var(--ui-motion-fast) var(--ui-motion-ease),
+        box-shadow var(--ui-motion-base) var(--ui-motion-ease),
         transform var(--ui-motion-fast) var(--ui-motion-ease);
     }
 
@@ -224,13 +246,16 @@
     }
 
     :host-state([variant="outline"]) {
-      border-color: var(--ui-icon-button-border, var(--ui-border-default));
+      border-color: var(--ui-icon-button-border, var(--ui-control-border, var(--ui-border-strong)));
       background: var(--ui-icon-button-outline-surface, var(--ui-surface-default));
+      background-image: var(--ui-raised-highlight);
       color: var(--ui-icon-button-outline-text, var(--ui-text-primary));
+      box-shadow: var(--ui-raised);
     }
 
     :host-state([variant="solid"]) {
       background: var(--ui-icon-button-solid-surface, var(--ui-accent-solid));
+      background-image: var(--ui-raised-highlight);
       color: var(--ui-icon-button-solid-text, var(--ui-text-on-accent));
       box-shadow: var(
         --ui-icon-button-solid-shadow,
@@ -245,7 +270,7 @@
     }
 
     :host-state([variant="outline"]):hover:enabled:not([aria-disabled="true"]) {
-      border-color: var(--ui-icon-button-hover-border, var(--ui-border-strong));
+      border-color: var(--ui-icon-button-hover-border, var(--ui-control-border-hover, var(--ui-control-border)));
     }
 
     :host-state([variant="solid"]):hover:enabled:not([aria-disabled="true"]) {
@@ -256,16 +281,24 @@
       transform: scale(var(--ui-icon-button-active-scale, 0.96));
     }
 
-    :host-state([pending]) {
+    :is(:host-state([loading]), :host-state([pending])) {
       cursor: progress;
     }
 
     .content {
-      display: contents;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    :host-state([pending]) .content {
+    :is(:host-state([loading]), :host-state([pending])) .content {
       display: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      :host-state([anticipatory]) .content {
+        transition: none;
+      }
     }
 
     :host:focus-visible {
@@ -273,13 +306,20 @@
       box-shadow: var(--ui-focus-halo);
     }
 
-    /* Disabled colours fall back to each variant's own; ghost takes only the icon colour. */
-    /* Disabled washes the button out the way Button does: the same shape, one filter. */
+    /* Disabled is a flat neutral control, independent of the active variant's tone. */
     :host:disabled {
+      border-color: var(--ui-disabled-border);
+      background: var(--ui-disabled-surface);
+      color: var(--ui-disabled-text);
       filter: var(--ui-icon-button-disabled-filter, var(--ui-disabled-filter));
       opacity: var(--ui-icon-button-disabled-opacity, 1);
       cursor: not-allowed;
       box-shadow: none;
+      background-image: none;
+    }
+
+    :host-state([variant="ghost"]):disabled {
+      border-color: transparent;
     }
 
     :host {

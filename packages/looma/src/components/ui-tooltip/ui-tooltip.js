@@ -20,7 +20,7 @@ export default function controller(host) {
   const offset = () => {
     const value = getComputedStyle(element).getPropertyValue("--ui-tooltip-offset").trim();
     const amount = Number.parseFloat(value);
-    if (!Number.isFinite(amount)) return 4;
+    if (!Number.isFinite(amount)) return 10;
     if (value.endsWith("rem")) return amount * Number.parseFloat(getComputedStyle(document.documentElement).fontSize);
     if (value.endsWith("em")) return amount * Number.parseFloat(getComputedStyle(element).fontSize);
     return amount;

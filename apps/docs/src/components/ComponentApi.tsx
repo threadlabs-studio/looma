@@ -130,34 +130,6 @@ export function ComponentApi({ component }: ComponentApiProps): JSX.Element {
         <strong>Native root:</strong> <code>{`<${api.root}>`}</code>
       </p>
 
-      <SectionHeader title="Design tokens" />
-      <p>
-        Extracted from <code>{api.designTokens.sources.join(", ")}</code>. Component tokens are
-        scoped customization points or variables declared by this component. Shared tokens include
-        optional inherited group values and global theme values. The <Link to="/tokens">theming guide</Link>
-        explains their precedence and where to set them.
-      </p>
-      <h3>Component tokens</h3>
-      {api.designTokens.component.length === 0 ? (
-        <p>No component-scoped custom properties.</p>
-      ) : (
-        <DesignTokenTable
-          tokens={api.designTokens.component}
-          firstColumn="Component token"
-          showDeclarations
-        />
-      )}
-      <h3>Inherited group and global tokens consumed</h3>
-      {api.designTokens.shared.length === 0 ? (
-        <p>No shared tokens consumed.</p>
-      ) : (
-        <DesignTokenTable
-          tokens={api.designTokens.shared}
-          firstColumn="Shared token"
-          showDeclarations={false}
-        />
-      )}
-
       <SectionHeader title="Attributes" />
       {api.attributes.length === 0 ? (
         <p>No observed attributes.</p>
@@ -309,6 +281,34 @@ export function ComponentApi({ component }: ComponentApiProps): JSX.Element {
             ))}
           </tbody>
         </table>
+      )}
+
+      <SectionHeader title="Design tokens" />
+      <p>
+        Extracted from <code>{api.designTokens.sources.join(", ")}</code>. Component tokens are
+        scoped customization points or variables declared by this component. Shared tokens include
+        optional inherited group values and global theme values. The <Link to="/tokens">theming guide</Link>
+        explains their precedence and where to set them.
+      </p>
+      <h3>Component tokens</h3>
+      {api.designTokens.component.length === 0 ? (
+        <p>No component-scoped custom properties.</p>
+      ) : (
+        <DesignTokenTable
+          tokens={api.designTokens.component}
+          firstColumn="Component token"
+          showDeclarations
+        />
+      )}
+      <h3>Inherited group and global tokens consumed</h3>
+      {api.designTokens.shared.length === 0 ? (
+        <p>No shared tokens consumed.</p>
+      ) : (
+        <DesignTokenTable
+          tokens={api.designTokens.shared}
+          firstColumn="Shared token"
+          showDeclarations={false}
+        />
       )}
 
       {metadata.components

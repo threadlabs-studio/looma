@@ -43,6 +43,97 @@
 - Pasting recognizable rendered HTML now keeps its headings and inline formatting even when the accompanying
   plain text resembles Markdown. Literal Markdown or HTML copied as source still becomes editable
   document structure; native editor content stays native.
+- Disabled Button and Icon Button use a flat neutral surface, border, and text so their disabled
+  state remains clear across variants and tones. The default danger red is brighter in light and
+  dark themes. `loading` is the preferred Button and Icon Button prop; `pending` remains as a
+  deprecated alias. Spinner rotation uses a centered square box and Button gives it a consistent
+  gap from the label.
+- Combobox disables Clear when there is no text or selection to clear. Multiple selections stay
+  in a single scrolling field row, and the readonly and disabled examples retain their disclosure
+  caret so the control type remains visible. Authored `<option selected>` elements now set the
+  initial selection when `value`, `items`, and `selectedValues` are unset; form reset restores it.
+- Anticipatory Icon Button icons grow into view with a short settle instead of appearing instantly;
+  reduced-motion users get an immediate reveal.
+- Checkable Menu and Context Menu items draw their checkbox or radio shape even when unchecked,
+  so their meaning is visible before activation. The checkable context example uses a Looma Button
+  and names the right-click gesture.
+- Scroll Area measures its edges for the fade, including browsers where CSS scroll timelines do
+  not animate it. The authored area remains scrollable before enhancement.
+- Separator's default line sits midway between the theme's regular and strong borders, so it
+  remains visible without dominating the content it divides.
+- Dialog removes the lines below its header and above its actions. Long content scrolls in a
+  Scroll Area whose mask fades into the dialog surface, including custom themes.
+- Menu adds `inline` for a visible, in-flow action list. Its first example now renders in the
+  preview instead of opening an unanchored overlay. Disabled Menu items use a neutral surface and
+  muted text instead of opacity alone.
+- Search Shell's action row no longer picks up a site's generic `.footer` styles. Its docs preview
+  retains the shell surface across the full panel. The timed Toast example dismisses after three
+  seconds.
+- Tooltip has a more defined edge and a broader pointer with enough trigger clearance on every
+  side. Checkbox's checkmark sits further inside its box and settles quickly into view; Radio's
+  label aligns with Checkbox's first line.
+- Switch transitions its track and thumb colours over the same short interval as its movement.
+  Disabled switches use a flat muted track and thumb, without the dark active thumb or inset shine.
+- Enabled Checkbox and Switch controls now use the same control border strength as Input, Select,
+  Textarea, and Combobox. Overlay surfaces share a stronger edge through `--ui-overlay-border`,
+  bringing Popover, Tooltip, Menu, Dialog, and related surfaces into the same border family. This
+  changes the default wherever an app left those border tokens unset, so controls and floating
+  surfaces have consistent definition without per-component overrides.
+- Disabled choice descriptions, Combobox options, Search Result Rows, floating actions, editor menu
+  items, and Tree rows use the same muted text treatment as disabled fields instead of leaving
+  strong nested text or dimming the entire control with opacity.
+- Avatar Group removes the light cutout ring around each avatar. Later avatars and the overflow
+  count cast a one-pixel dark edge over the circle beneath; standalone Avatar borders stay as they
+  were. The old edge-ring hook remains available for custom styling.
+- Checkbox and Switch reuse the same shallow field inset as Input, Select, Textarea, and Combobox.
+  Outlined and solid Icon Buttons use the Button family's small raised shadow and soft highlight;
+  disabled variants remain flat.
+- The action shadow is now visible as a small two-pixel lift on outlined and solid Buttons. It
+  settles into the existing inset pressed shadow over a short transition, making their interaction
+  feel related without increasing their size or rounding.
+- The light theme's warning amber is a little brighter. Warning labels still use the separate
+  subtle text token, while solid warning surfaces retain readable white text.
+- Subtle Badge fills and edges are stronger, bringing them closer to solid badges while keeping
+  their text and light surface treatment. Breadcrumb items now reset page list margins and size
+  chevrons to match slotted icons, keeping the trail on one visual line.
+- Callout's default leading inset is smaller, bringing the icon closer to its coloured rule while
+  keeping the text and trailing side comfortably padded.
+- Danger Card now uses a soft danger surface and a strong leading edge, so its tone is clear beyond
+  a red rectangle border. Its example includes the destructive action the card describes.
+- Description List tiles have the same defined edge as outlined Cards, and its grid and tiles
+  layouts fill the available width. Disclosure hover uses a faint wash of its foreground colour.
+- List supports direct native `<li>` children, optional bullets, and a numbered `<ol>` alongside
+  structured List Items. Its native list fills the available width; native cards and structured
+  cards share the outlined surface border.
+- Meter adds a small highlight to the fill and shallow inset shading to its track.
+- Nav Item's current-page indicator is a straight line with square ends.
+- Spinner uses a centered CSS ring with a short trailing arc and a faster sweep near the end of
+  each turn; reduced-motion mode holds the ring still.
+- Page Header centers its action against the title block and fills the available width;
+  the first example's New page button no longer sits optically high.
+- Section spaces its heading and content within the native section. The example no longer puts an
+  isolated divider between cards; danger sections use the same soft surface and leading edge as
+  danger Cards.
+- Docs page heading borders no longer leak into a Section component's own heading in previews.
+- Status Message's panel uses the same defined border strength as other panels. Outline Icon Button
+  uses the shared control border instead of the separator border.
+- Table's compact controls example aligns the Name header with names after their checkboxes and
+  centers the Actions header over its buttons.
+- Separator, Tabs, Disclosure, table headers, Sidebar, Top Bar, and divided Sections share one
+  medium divider border. Panels and cards use the stronger surface edge; interactive controls use
+  the control border.
+- Rich authored Tabs use the same button styles as generated tabs. Panel padding no longer lands
+  on authored tab buttons.
+- A visual roles guide now defines divider, surface, floating, control, action, disabled, and tone
+  treatments across components. Older editor popups use the same surface edge as Menu and Popover,
+  with the shared divider for internal rules.
+- Tree's click and keyboard move example now applies its reorder events so items actually move.
+- Tree's multiple selection works in bundled builds: descendant items are expanded into an array
+  before filtering, so selecting a checkbox no longer throws. The example applies requested IDs
+  to its items, allowing several checkboxes to remain selected.
+- The Editor docs now use one guide with section links in the sidebar. An interactive editor
+  playground demonstrates toolbar placement, highlighting, slash commands, mentions, and tables.
+  Empty mention and slash menu header areas stay hidden in the docs build.
 - **Breaking (0.16.0): Dialog is non-modal again unless you set `modal`.** `<ui-dialog modal>` and
   `<Dialog modal>` open it with `showModal()`: top layer, backdrop, the rest of the page inert, and
   page scroll locked. Without `modal` it opens with `show()`, as before 0.15 and like native
