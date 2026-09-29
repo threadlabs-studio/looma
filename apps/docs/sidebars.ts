@@ -26,6 +26,7 @@ const sidebars: SidebarsConfig = {
     { type: "link", label: "Add it to Vue", href: "/looma/editor/#add-it-to-a-vue-app" },
     { type: "link", label: "Formatting", href: "/looma/editor/#formatting-and-toolbar" },
     { type: "link", label: "Slash commands", href: "/looma/editor/#slash-commands-and-blocks" },
+    { type: "link", label: "Code blocks", href: "/looma/editor/#code-blocks" },
     { type: "link", label: "Pasting", href: "/looma/editor/#pasting-documents" },
     { type: "link", label: "Mentions", href: "/looma/editor/#mentions" },
     { type: "link", label: "Tables", href: "/looma/editor/#tables" },
