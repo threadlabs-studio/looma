@@ -20,6 +20,11 @@
     modal. `modeless` is deprecated and does nothing now; it is still accepted, `modal` wins when both
     are set, and it can be removed. A non-modal dialog that should still close on Escape sets
     `closedby="closerequest"`.
+- LoomaEditor adds clickable inline chips through `/chip` or `insertLoomaChip()` on selected text.
+  A focused popover edits the label and six theme colors; each chip gets a slightly stronger,
+  theme-matched border and persists as a semantic text span within its paragraph.
+- Subtle badges and tags now have a slightly darker tone-matched edge instead of a border identical
+  to their fill. Colored solid and outline variants keep their existing treatments.
 - Tree `marquee`: a long name fades out fully before the leading icon as it slides (it faded to
   the icon's middle), rests at the end, then scrolls again while the row stays hovered or keyboard
   focused; it used to stop at the end. Keyboard focus on the item itself, as the tree roves, now
