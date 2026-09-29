@@ -6,9 +6,10 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 # Combobox
 
-A normal text field with contextual rich suggestions and integrated optional help
-and validation. Labels and option titles use restrained medium weight; metadata and
-messages use regular weight. Domain lookups and persistence stay in the application.
+A searchable text field with authored `<option>` suggestions. It supports descriptions, tags,
+multiple selections, and validation.
+
+<ComponentExamplesApiTabs component="ui-combobox" />
 
 Use `open-on-focus` when browsing should start before typing. `filter="label"` narrows
 authored options by label; `filter="none"` displays every option currently supplied by the
@@ -58,6 +59,3 @@ Leaving the field commits an option whose label matches the text, or the only on
   <option value="riley" data-description="Harbor Auto Group">Riley Kim</option>
 </ui-combobox>
 ```
-
-
-<ComponentExamplesApiTabs component="ui-combobox" />

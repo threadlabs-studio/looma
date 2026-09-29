@@ -1017,10 +1017,12 @@ describe("Loading actions", () => {
     assert.equal(await page.locator("#link").getAttribute("href"), null);
     assert.equal(await page.locator("#link").getAttribute("tabindex"), "0");
     const spinner = await page.locator("#save ui-spinner, #save [data-component='ui-spinner']").boundingBox();
+    const spinnerWrap = await page.locator("#save .spinner-wrap").boundingBox();
     const label = await page.locator("#save span").last().boundingBox();
-    assert.ok(spinner && label);
-    assert.ok(Math.abs(spinner.width - spinner.height) < 1, "spinner rotates inside a square box");
-    assert.ok(label.x - (spinner.x + spinner.width) >= 7, "loading spinner has space before the label");
+    assert.ok(spinner && spinnerWrap && label);
+    assert.ok(Math.abs(spinnerWrap.width - spinnerWrap.height) < 1, "spinner rotates inside a square box");
+    assert.equal(await page.locator("#save [data-component~='ui-spinner']").evaluate((element) => getComputedStyle(element).borderTopWidth), "2px");
+    assert.ok(label.x - (spinnerWrap.x + spinnerWrap.width) >= 7, "loading spinner has space before the label");
     assert.equal(await page.evaluate(() => (window as unknown as { activations: number }).activations), 0);
     assert.equal(await page.evaluate(() => location.hash), "");
     await page.close();
@@ -3325,13 +3327,10 @@ describe("Overlays", () => {
       }).mount("#app");
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
-    const region = page.locator("#search .search");
-    const edge = () => region.evaluate((element) => getComputedStyle(element).borderBottomColor);
-    const idle = await edge();
-    await page.locator("#query").fill("wel");
-    // The edge colour transitions in; wait for it rather than sampling mid-transition.
-    await page.waitForFunction((before) => getComputedStyle(document.querySelector("#search .search")!).borderBottomColor !== before, idle, { timeout: 2000 });
-    assert.notEqual(await edge(), idle, "the search region shows focus");
+    const field = page.locator("#query");
+    await field.fill("wel");
+    assert.equal(await field.evaluate((element) => element === document.activeElement), true);
+    assert.notEqual(await field.evaluate((element) => getComputedStyle(element).outlineStyle), "none", "the search field shows focus");
     await page.keyboard.press("Escape");
     assert.deepEqual(await page.evaluate(() => (window as unknown as { closes: unknown[] }).closes), [
       { open: false, reason: "escape", trigger: "keyboard" },

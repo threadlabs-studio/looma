@@ -147,7 +147,7 @@
     @media (hover: hover) and (pointer: fine) {
       :host-state([anticipatory]):not(:host-state([variant="solid"]), :host-state([loading]), :host-state([pending]), :disabled, [data-ui-proximity="near"], :hover, :focus-visible) {
         border-color: transparent;
-        background: transparent;
+        background-color: transparent;
         box-shadow: none;
       }
 
@@ -175,7 +175,7 @@
       margin: 0;
       border: 1px solid transparent;
       border-radius: var(--ui-icon-button-radius, var(--ui-action-radius, var(--ui-radius-md)));
-      background: var(--ui-icon-button-surface, transparent);
+      background-color: var(--ui-icon-button-surface, transparent);
       color: inherit;
       display: inline-flex;
       align-items: center;
@@ -247,14 +247,14 @@
 
     :host-state([variant="outline"]) {
       border-color: var(--ui-icon-button-border, var(--ui-control-border, var(--ui-border-strong)));
-      background: var(--ui-icon-button-outline-surface, var(--ui-surface-default));
+      background-color: var(--ui-icon-button-outline-surface, var(--ui-surface-default));
       background-image: var(--ui-raised-highlight);
       color: var(--ui-icon-button-outline-text, var(--ui-text-primary));
       box-shadow: var(--ui-raised);
     }
 
     :host-state([variant="solid"]) {
-      background: var(--ui-icon-button-solid-surface, var(--ui-accent-solid));
+      background-color: var(--ui-icon-button-solid-surface, var(--ui-accent-solid));
       background-image: var(--ui-raised-highlight);
       color: var(--ui-icon-button-solid-text, var(--ui-text-on-accent));
       box-shadow: var(
@@ -265,7 +265,7 @@
 
     :host:hover:enabled:not([aria-disabled="true"]) {
       /* Derived from the text colour so the ghost hover shows on any background. */
-      background: var(--ui-icon-button-hover-surface, color-mix(in srgb, currentColor 8%, transparent));
+      background-color: var(--ui-icon-button-hover-surface, color-mix(in srgb, currentColor 8%, transparent));
       color: var(--ui-icon-button-hover-text, var(--ui-text-primary));
     }
 
@@ -274,7 +274,7 @@
     }
 
     :host-state([variant="solid"]):hover:enabled:not([aria-disabled="true"]) {
-      background: var(--ui-icon-button-solid-hover-surface, var(--ui-accent-hover));
+      background-color: var(--ui-icon-button-solid-hover-surface, var(--ui-accent-hover));
     }
 
     :host:active:enabled:not([aria-disabled="true"]) {
@@ -309,7 +309,7 @@
     /* Disabled is a flat neutral control, independent of the active variant's tone. */
     :host:disabled {
       border-color: var(--ui-disabled-border);
-      background: var(--ui-disabled-surface);
+      background-color: var(--ui-disabled-surface);
       color: var(--ui-disabled-text);
       filter: var(--ui-icon-button-disabled-filter, var(--ui-disabled-filter));
       opacity: var(--ui-icon-button-disabled-opacity, 1);

@@ -8,6 +8,8 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 Form-field composition primitive that links label/control/description semantics.
 
+<ComponentExamplesApiTabs component="ui-form-field" />
+
 Put help in the `help` slot and a validation message in the `error` slot. The message stays hidden
 and out of the control's description until `invalid` is true. Pair `required` with a visible cue
 in the authored label so people know a value is needed before validation runs.
@@ -28,8 +30,6 @@ first control.
 In development, the field warns in the console when it links a label for you, when its control's
 `id` is not unique, or when its label's `for` points at another element. Production builds
 (`process.env.NODE_ENV` set to `"production"`) do not warn.
-
-<ComponentExamplesApiTabs component="ui-form-field" />
 
 ## Styling hooks
 
