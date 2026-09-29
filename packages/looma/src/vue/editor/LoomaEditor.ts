@@ -33,6 +33,7 @@ import {
   type LoomaMentionItem,
   type LoomaMentionMenuSnapshot,
   type LoomaMentionProvider,
+  type LoomaCodeLanguages,
   LOOMA_CHIP_COLORS,
   normalizeLoomaChipColor,
   type LoomaChipColor,
@@ -213,6 +214,11 @@ export const LoomaEditor = defineComponent({
     extensions: {
       type: Array as PropType<AnyExtension[]>,
       default: () => [],
+    },
+    /** Code block grammars to register when this editor is created. */
+    codeLanguages: {
+      type: Object as PropType<LoomaCodeLanguages>,
+      default: () => ({}),
     },
     mentionItems: {
       type: Array as PropType<LoomaMentionItem[]>,
@@ -434,6 +440,7 @@ export const LoomaEditor = defineComponent({
           placeholder: props.placeholder,
           mention: mentionExtension ?? false,
           disableHighlight: props.disableHighlight,
+          codeLanguages: props.codeLanguages,
         }),
         imageDelivery.extension,
         slashExtension,

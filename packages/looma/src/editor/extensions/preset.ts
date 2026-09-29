@@ -30,7 +30,7 @@ import Typography from "@tiptap/extension-typography";
 import Placeholder from "@tiptap/extension-placeholder";
 import Code from "@tiptap/extension-code";
 import { CodeBlockLowlight } from "@tiptap/extension-code-block-lowlight";
-import { common, createLowlight } from "lowlight";
+import { createLowlight } from "lowlight";
 import TableRow from "@tiptap/extension-table-row";
 import { LoomaActiveBlock } from "./active-block";
 import { LoomaCallout } from "./callout";
@@ -39,6 +39,9 @@ import { LoomaListBehavior } from "./list-behavior";
 import { createLoomaMentionExtension } from "./mention";
 import { LoomaSmartPaste } from "./smart-paste";
 import { LoomaTable, LoomaTableCell, LoomaTableHeader } from "./table-formatting";
+
+/** Grammars supplied by the host; importing a language remains the host's choice. */
+export type LoomaCodeLanguages = NonNullable<Parameters<typeof createLowlight>[0]>;
 
 /**
  * Deliberate policy knobs in Looma's default extension set.
@@ -61,6 +64,8 @@ export interface DefaultEditorExtensionsOptions {
    * and render. Use it when the application reserves highlighting for itself.
    */
   disableHighlight?: boolean;
+  /** Code block grammars to register. None are loaded by default. */
+  codeLanguages?: LoomaCodeLanguages;
 }
 
 // Removing the mark from the schema would make Tiptap discard any stored
@@ -71,8 +76,6 @@ const StoredOnlyHighlight = Highlight.extend({
   addInputRules: () => [],
   addPasteRules: () => [],
 });
-
-const lowlight = createLowlight(common);
 
 /**
  * Complete Looma table schema as one Tiptap extension.
@@ -113,6 +116,7 @@ export function getDefaultEditorExtensions(
     imageInline = false,
     mention = createLoomaMentionExtension(),
     disableHighlight = false,
+    codeLanguages,
   } = options;
 
   return [
@@ -145,7 +149,7 @@ export function getDefaultEditorExtensions(
     (disableHighlight ? StoredOnlyHighlight : Highlight).configure({ multicolor: false }),
     Code,
     LoomaSmartPaste,
-    CodeBlockLowlight.configure({ lowlight }),
+    CodeBlockLowlight.configure({ lowlight: createLowlight(codeLanguages) }),
     Typography,
     Placeholder.configure({
       placeholder: ({ node }) =>
