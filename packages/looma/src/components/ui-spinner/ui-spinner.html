@@ -9,11 +9,16 @@
     class="ring"
     :role="{ true: 'status', false: null }[format('%s', label != '')]"
     :aria-label="{ true: label, false: null }[format('%s', label != '')]"
+    :aria-live="{ true: 'polite', false: null }[format('%s', label != '')]"
     :aria-hidden="{ true: null, false: 'true' }[format('%s', label != '')]"
-  ></span>
+  >
+    <svg viewBox="0 0 50 50" fill="none" aria-hidden="true" focusable="false">
+      <circle class="track" cx="25" cy="25" r="20"></circle>
+      <circle class="arc" cx="25" cy="25" r="20"></circle>
+    </svg>
+  </span>
   <style>
-    /* Something is on its way. The ring chases in the current text colour; with reduced motion it holds still,
-       and the label (or the text beside it) still says what is happening. */
+    /* A rounded SVG arc grows and recedes over a quiet full-circle track. */
     :host {
       display: inline-flex;
       flex: none;
@@ -22,34 +27,62 @@
       box-sizing: border-box;
       inline-size: 1em;
       block-size: 1em;
-      border: 2px solid transparent;
-      border-block-start-color: currentColor;
-      border-inline-end-color: color-mix(in srgb, currentColor 52%, transparent);
-      border-radius: 50%;
       color: currentColor;
       font-size: var(--ui-font-size-lg);
       line-height: 1;
-      animation: ui-spinner-chase 1s linear infinite;
     }
 
     :host-state([size="sm"]) {
       font-size: var(--ui-font-size-md);
     }
 
-    @keyframes ui-spinner-chase {
-      0% {
-        transform: rotate(0);
-      }
-      70% {
-        transform: rotate(160deg);
-      }
+    svg {
+      display: block;
+      inline-size: 100%;
+      block-size: 100%;
+      animation: ui-spinner-rotate 2s linear infinite;
+    }
+
+    circle {
+      stroke-width: 3;
+      stroke-linecap: round;
+    }
+
+    .track {
+      stroke: color-mix(in srgb, currentColor 16%, transparent);
+    }
+
+    .arc {
+      stroke: currentColor;
+      stroke-dasharray: 90, 150;
+      stroke-dashoffset: 0;
+      animation: ui-spinner-dash 1.5s ease-in-out infinite;
+    }
+
+    @keyframes ui-spinner-rotate {
       100% {
         transform: rotate(1turn);
       }
     }
 
+    @keyframes ui-spinner-dash {
+      0% {
+        stroke-dasharray: 1, 150;
+        stroke-dashoffset: 0;
+      }
+      50% {
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -35;
+      }
+      100% {
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -124;
+      }
+    }
+
     @media (prefers-reduced-motion: reduce) {
-      :host {
+      svg,
+      .arc {
         animation: none;
       }
     }

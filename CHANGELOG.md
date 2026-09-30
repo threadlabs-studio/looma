@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- **Breaking for Listbox:** its visible upgraded root is now an ARIA listbox with styled choice rows instead of a native `<select size>`. The native control's option styling could not show the same checked choices as Combobox or follow Looma's surface treatment; an additive variant would leave the default Listbox with the same problem. A plain native select remains visible before JavaScript upgrades the component, then becomes hidden and disabled. Authored `<option>` children, `value`/`values`, `name`, reset, and required form validation still work. Code that queried the root as an `HTMLSelectElement` or read `selectedOptions` must use its `change` event (`detail.value` and `detail.values`) or the authored options instead. The root remains focusable and supports arrows, typeahead, click, and Space to toggle multiple choices.
+- Combobox and Listbox now draw multiple-choice rows and checkmarks from the same style rules. Checkbox's Select all example demonstrates how a group restores the native mixed state after one item changes.
+- Input and Textarea rest with a softer control edge and gain a modestly stronger edge on hover. Error and readonly borders stay stable on hover; Input Group and Select also preserve error borders.
+- Fallback Avatars use a quiet accent edge; the active ring uses a finer accent line. Subtle Badges have slightly lighter fills, and tag shapes keep a visible edge around their point.
+- Spinner now uses a rounded SVG arc that changes length over a faint circular track. Button and Icon Button loading states share this motion, and reduced-motion mode holds the arc still.
 - Spinner draws its ring on the rendered element, restoring loading indicators in Button and Icon Button. The Button loading example now starts pressable and demonstrates the transition.
 - Solid Icon Button keeps its accent fill in generated CSS, so its light icon stays readable. Boxed Button links resist ordinary page link underlines.
 - Search Shell removes redundant internal divider lines; Search Result Rows use spacing and hover or selected surfaces. Side Tooltip pointers draw both edges toward their trigger, Checkbox checks sit centrally, and Input Group affixes use muted text.

@@ -59,7 +59,7 @@
     }
 
     :host {
-      --_badge-surface: var(--ui-surface-subtle);
+      --_badge-surface: color-mix(in srgb, var(--ui-surface-subtle) 80%, var(--ui-surface-default));
       --_badge-text: var(--ui-text-secondary);
       /* Sit between the soft fill and its stronger theme ink. */
       --_badge-border: color-mix(in srgb, var(--_badge-surface) 75%, var(--_badge-text) 25%);
@@ -67,7 +67,7 @@
          surface, text, and border hooks. Each value is invalid, so the tone shows, while it is unset. The
          mixes keep 4.5:1 text contrast for any colour, in a light theme or a dark one. */
       --_ui-badge-color: var(--ui-badge-color);
-      --_badge-color-wash: color-mix(in oklab, var(--_ui-badge-color) 15%, var(--ui-surface-default));
+      --_badge-color-wash: color-mix(in oklab, var(--_ui-badge-color) 13%, var(--ui-surface-default));
       --_badge-color-ink: color-mix(in oklab, var(--_ui-badge-color) 35%, var(--ui-text-primary));
       --_badge-color-surface: var(--_badge-color-wash);
       --_badge-color-border: color-mix(in srgb, var(--_badge-color-wash) 75%, var(--_badge-color-ink) 25%);
@@ -135,32 +135,32 @@
     }
 
     :host-state([variant="subtle"][tone="accent"]) {
-      --_badge-surface: color-mix(in srgb, var(--ui-accent-solid) 22%, var(--ui-surface-default));
-      --_badge-border: color-mix(in srgb, var(--ui-accent-solid) 28%, var(--ui-surface-default));
+      --_badge-surface: color-mix(in srgb, var(--ui-accent-solid) 19%, var(--ui-surface-default));
+      --_badge-border: color-mix(in srgb, var(--ui-accent-solid) 25%, var(--ui-surface-default));
       --_badge-text: var(--ui-accent-subtle-text, var(--ui-accent-solid));
     }
 
     :host-state([variant="subtle"][tone="danger"]) {
-      --_badge-surface: color-mix(in srgb, var(--ui-danger-solid) 22%, var(--ui-surface-default));
-      --_badge-border: color-mix(in srgb, var(--ui-danger-solid) 28%, var(--ui-surface-default));
+      --_badge-surface: color-mix(in srgb, var(--ui-danger-solid) 19%, var(--ui-surface-default));
+      --_badge-border: color-mix(in srgb, var(--ui-danger-solid) 25%, var(--ui-surface-default));
       --_badge-text: var(--ui-danger-subtle-text, var(--ui-danger-solid));
     }
 
     :host-state([variant="subtle"][tone="success"]) {
-      --_badge-surface: color-mix(in srgb, var(--ui-success-solid) 22%, var(--ui-surface-default));
-      --_badge-border: color-mix(in srgb, var(--ui-success-solid) 28%, var(--ui-surface-default));
+      --_badge-surface: color-mix(in srgb, var(--ui-success-solid) 19%, var(--ui-surface-default));
+      --_badge-border: color-mix(in srgb, var(--ui-success-solid) 25%, var(--ui-surface-default));
       --_badge-text: var(--ui-success-subtle-text, var(--ui-success-solid));
     }
 
     :host-state([variant="subtle"][tone="warning"]) {
-      --_badge-surface: color-mix(in srgb, var(--ui-warning-solid) 22%, var(--ui-surface-default));
-      --_badge-border: color-mix(in srgb, var(--ui-warning-solid) 28%, var(--ui-surface-default));
+      --_badge-surface: color-mix(in srgb, var(--ui-warning-solid) 19%, var(--ui-surface-default));
+      --_badge-border: color-mix(in srgb, var(--ui-warning-solid) 25%, var(--ui-surface-default));
       --_badge-text: var(--ui-warning-subtle-text, var(--ui-warning-solid));
     }
 
     :host-state([variant="subtle"][tone="info"]) {
-      --_badge-surface: color-mix(in srgb, var(--ui-info-solid) 22%, var(--ui-surface-default));
-      --_badge-border: color-mix(in srgb, var(--ui-info-solid) 28%, var(--ui-surface-default));
+      --_badge-surface: color-mix(in srgb, var(--ui-info-solid) 19%, var(--ui-surface-default));
+      --_badge-border: color-mix(in srgb, var(--ui-info-solid) 25%, var(--ui-surface-default));
       --_badge-text: var(--ui-info-subtle-text, var(--ui-info-solid));
     }
 
@@ -206,16 +206,28 @@
       --_badge-text: var(--ui-info-subtle-text, var(--ui-info-solid));
     }
 
-    /* A tag is flat at the start and points at the end. The point is cut from the box, so it has no
-       outline to follow: the edge is the fill. The end padding grows by the point's depth so the
-       label never runs into it. */
+    /* The clipped point needs an inset surface over an outer border-colour shape: a native border
+       has no diagonal edge to follow. Keep this edge for every tag variant. */
     :host-state([shape="tag"]) {
       --_badge-point: var(--ui-badge-point, var(--ui-space-2));
 
+      position: relative;
+      isolation: isolate;
       border-color: transparent;
       border-radius: 0;
+      background: var(--ui-badge-border, var(--_badge-color-border, var(--_badge-border)));
       padding-inline-end: calc(var(--ui-badge-padding-inline, var(--ui-space-2)) + var(--_badge-point));
       clip-path: polygon(0 0, calc(100% - var(--_badge-point)) 0, 100% 50%, calc(100% - var(--_badge-point)) 100%, 0 100%);
+    }
+
+    :host-state([shape="tag"])::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background: var(--_badge-outline-surface);
+      clip-path: polygon(0 0, calc(100% - var(--_badge-point)) 0, 100% 50%, calc(100% - var(--_badge-point)) 100%, 0 100%);
+      pointer-events: none;
     }
 
     :host-state([shape="tag"]):dir(rtl) {
@@ -224,36 +236,18 @@
       clip-path: polygon(var(--_badge-point) 0, 100% 0, 100% 100%, var(--_badge-point) 100%, 0 50%);
     }
 
-    /* The tag clips its point, including the native border. Draw the outer shape in the border
-       colour and an inset inner shape in the surface colour to keep a visible diagonal edge. */
-    :host-state([variant="outline"][shape="tag"]) {
-      position: relative;
-      isolation: isolate;
-      background: var(--ui-badge-border, var(--_badge-color-border, var(--_badge-border)));
-    }
-
-    :host-state([variant="outline"][shape="tag"])::before {
-      content: "";
-      position: absolute;
-      inset: 1px;
-      z-index: -1;
-      background: var(--_badge-outline-surface);
-      clip-path: polygon(0 0, calc(100% - var(--_badge-point)) 0, 100% 50%, calc(100% - var(--_badge-point)) 100%, 0 100%);
-      pointer-events: none;
-    }
-
-    :host-state([variant="outline"][shape="tag"]):dir(rtl)::before {
+    :host-state([shape="tag"]):dir(rtl)::before {
       clip-path: polygon(var(--_badge-point) 0, 100% 0, 100% 100%, var(--_badge-point) 100%, 0 50%);
     }
 
     @media (forced-colors: active) {
-      :host-state([variant="outline"][shape="tag"]) {
+      :host-state([shape="tag"]) {
         forced-color-adjust: none;
         background: CanvasText;
         color: CanvasText;
       }
 
-      :host-state([variant="outline"][shape="tag"])::before {
+      :host-state([shape="tag"])::before {
         background: Canvas;
       }
     }
