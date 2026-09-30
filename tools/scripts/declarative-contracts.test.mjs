@@ -186,7 +186,7 @@ test("primitive contracts do not own application policy or a second interaction 
       false,
       `${tag} should not expose one boolean per editor command`,
     );
-    assert.equal(props.actions.type, "array");
+    assert.equal(props.actions.type, "list");
     assert.match(contracts[tag].propTypes.actions, /readonly.*"align-left".*"align-right"/);
   }
 });

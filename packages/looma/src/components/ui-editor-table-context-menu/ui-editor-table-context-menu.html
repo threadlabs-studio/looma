@@ -8,7 +8,7 @@
     <prop name="headerColumn" type="boolean" default="false">Whether the table's first column currently uses header cells.</prop>
     <prop
       name="actions"
-      type="array"
+      type="list"
     >
       <prop
         type="keyword"
@@ -16,7 +16,7 @@
       ></prop>
       The complete set of commands the current selection permits.
     </prop>
-    <state name="swatches" type="array" :value="[]" nullable>
+    <state name="swatches" type="list" :value="[]" nullable>
       <prop type="object">
         <prop name="action" required type="string"></prop>
         <prop name="label" required type="string"></prop>

@@ -9,7 +9,7 @@
     <prop name="headerColumn" type="boolean" default="false">Whether the table's first column currently uses header cells.</prop>
     <prop
       name="actions"
-      type="array"
+      type="list"
     >
       <prop
         type="keyword"
@@ -17,14 +17,14 @@
       ></prop>
       The complete set of commands the current selection permits.
     </prop>
-    <state name="alignments" type="array" :value="[]">
+    <state name="alignments" type="list" :value="[]">
       <prop type="object">
         <prop name="action" required type="keyword" values="align-left, align-center, align-right"></prop>
         <prop name="label" required type="string"></prop>
         <prop name="active" required type="boolean"></prop>
       </prop>
     </state>
-    <state name="structure" type="array" :value="[]">
+    <state name="structure" type="list" :value="[]">
       <prop type="object">
         <prop name="action" required type="keyword" values="add-row-after, add-column-after"></prop>
         <prop name="label" required type="string"></prop>
