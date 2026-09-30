@@ -1,7 +1,7 @@
 {
   "name": "looma-monorepo",
   "private": true,
-  "version": "0.18.0",
+  "version": "0.19.0",
   "description": "Stack-agnostic UI library built on web standards and Open UI principles.",
   "license": "MIT",
   "author": "Threadlabs Studio",
@@ -34,6 +34,7 @@
     "format": "dprint fmt",
     "format:check": "dprint check",
     "generate:api": "node ./tools/scripts/generate-component-api.mjs",
+    "generate:code-languages": "node ./tools/scripts/generate-code-language-catalog.mjs",
     "generate:docs": "pnpm generate:api",
     "lint": "pnpm -r run lint",
     "release:inspect": "node tools/scripts/verify-packages.mjs --output-dir .release/artifacts --allow-dirty --allow-missing-license",

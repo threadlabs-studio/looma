@@ -9,6 +9,20 @@ const overflowSections = [
 // Lists the actions the table selection permits; the overflow menu opens and closes here.
 export default function controller(host) {
   const element = host.element;
+  const positionMenu = () => {
+    const button = element.querySelector(".more");
+    const menu = element.querySelector(".menu");
+    if (!button || !menu) return;
+    const rect = button.getBoundingClientRect();
+    const viewport = window.visualViewport;
+    const top = viewport?.offsetTop ?? 0;
+    const bottom = top + (viewport?.height ?? window.innerHeight);
+    const above = rect.top - top - 20;
+    const below = bottom - rect.bottom - 20;
+    menu.style.maxHeight = `${Math.max(80, Math.floor(Math.max(above, below)))}px`;
+    menu.style.top = below >= above ? "calc(100% + var(--ui-space-2))" : "auto";
+    menu.style.bottom = below >= above ? "auto" : "calc(100% + var(--ui-space-2))";
+  };
   const stop = host.effect(() => {
     const enabled = new Set(Array.isArray(host.state.actions) ? host.state.actions : []);
     const alignment = host.state.cellAlignment === "center" || host.state.cellAlignment === "right" ? host.state.cellAlignment : "left";
@@ -36,6 +50,7 @@ export default function controller(host) {
     if (!action) return;
     if (action === "toggle-overflow") {
       host.state.overflowOpen = !host.state.overflowOpen;
+      if (host.state.overflowOpen) requestAnimationFrame(positionMenu);
       return;
     }
     host.state.overflowOpen = false;
@@ -44,11 +59,25 @@ export default function controller(host) {
   const onOutside = (event) => {
     if (host.state.overflowOpen && !event.composedPath().includes(element)) host.state.overflowOpen = false;
   };
+  const onKeydown = (event) => {
+    if (event.key === "Escape" && host.state.overflowOpen) {
+      host.state.overflowOpen = false;
+      event.preventDefault();
+      event.stopPropagation();
+      element.querySelector(".more")?.focus();
+    }
+  };
   element.addEventListener("click", onClick);
   document.addEventListener("pointerdown", onOutside, true);
+  document.addEventListener("keydown", onKeydown, true);
+  window.addEventListener("resize", positionMenu);
+  window.visualViewport?.addEventListener("resize", positionMenu);
   return () => {
     stop();
     element.removeEventListener("click", onClick);
     document.removeEventListener("pointerdown", onOutside, true);
+    document.removeEventListener("keydown", onKeydown, true);
+    window.removeEventListener("resize", positionMenu);
+    window.visualViewport?.removeEventListener("resize", positionMenu);
   };
 }
