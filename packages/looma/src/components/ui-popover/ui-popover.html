@@ -44,12 +44,17 @@
       syntax: "*";
       inherits: false;
     }
+    @property --ui-popover-padding {
+      syntax: "*";
+      inherits: false;
+    }
 
     :host {
       --_ui-popover-surface: var(--ui-popover-surface);
       --_ui-popover-border: var(--ui-popover-border);
       --_ui-popover-radius: var(--ui-popover-radius);
       --_ui-popover-shadow: var(--ui-popover-shadow);
+      --_ui-popover-padding: var(--ui-popover-padding);
       box-sizing: border-box;
       max-inline-size: min(
         20rem,
@@ -70,7 +75,7 @@
       max-inline-size: inherit;
       max-block-size: inherit;
       overflow: auto;
-      padding: var(--ui-space-3);
+      padding: var(--_ui-popover-padding, var(--ui-space-3));
       background: var(--_ui-popover-surface, var(--ui-overlay-surface, var(--ui-surface-elevated)));
       border: 1px solid var(--_ui-popover-border, var(--ui-overlay-border, var(--ui-border-strong)));
       border-radius: var(--_ui-popover-radius, var(--ui-overlay-radius, var(--ui-radius-lg)));
