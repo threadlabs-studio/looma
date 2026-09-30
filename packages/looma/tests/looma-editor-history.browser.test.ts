@@ -168,6 +168,47 @@ describe("LoomaEditor history (real browser)", () => {
     expect(host.querySelector(".looma-editor__code-language")).toBeNull();
   });
 
+  it("opens the full toolbar from an app button in popover mode, with a text-only selection bubble", async () => {
+    await page.viewport(1280, 720);
+    vi.spyOn(window, "innerWidth", "get").mockReturnValue(1280);
+    const open = ref(false);
+    const host = document.createElement("div");
+    document.body.append(host);
+    const app = createApp({
+      render: () => h("div", [
+        h("button", { id: "format-trigger", type: "button" }, "Format"),
+        h(LoomaEditor, {
+          modelValue: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Hello world" }] }] },
+          toolbarMode: "popover",
+          toolbarTriggerId: "format-trigger",
+          toolbarOpen: open.value,
+          "onUpdate:toolbarOpen": (value: boolean) => { open.value = value; },
+        }),
+      ]),
+    });
+    apps.push(app);
+    app.mount(host);
+    await flushBrowser();
+
+    // The selection bubble offers only text formatting; the rest lives in the app-opened popover.
+    await userEvent.click(host.querySelector(".ProseMirror p")!);
+    await userEvent.keyboard("{Home}{Shift>}{End}{/Shift}");
+    const bubbleToolbar = () => [...document.querySelectorAll('[aria-label="Bold"]')]
+      .find((button) => !button.closest(".looma-editor__formatting-popover"))?.closest('[role="toolbar"]');
+    await expect.poll(bubbleToolbar, { timeout: 3000 }).toBeTruthy();
+    expect(bubbleToolbar()?.querySelector('[aria-label="Heading 1"]')).toBeNull();
+
+    await userEvent.click(host.querySelector("#format-trigger")!);
+    const popover = () => host.querySelector<HTMLElement>(".looma-editor__formatting-popover");
+    await expect.poll(() => popover()?.matches(":popover-open")).toBe(true);
+    expect(popover()?.querySelector('[aria-label="Heading 1"]')).toBeTruthy();
+    expect(open.value).toBe(true);
+
+    await userEvent.click(host.querySelector("#format-trigger")!);
+    await expect.poll(() => open.value).toBe(false);
+    expect(popover()?.matches(":popover-open")).toBe(false);
+  });
+
   it("turns three typed backticks into a code block with the cursor inside", async () => {
     const { editor, host } = await mountEditor();
     editor.commands.focus("start");
