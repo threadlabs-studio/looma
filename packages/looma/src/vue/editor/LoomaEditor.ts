@@ -1,6 +1,8 @@
 import "./looma-editor.css";
 import type { AnyExtension, Editor, JSONContent } from "@tiptap/core";
-import { BubbleMenu, EditorContent, useEditor, VueNodeViewRenderer } from "@tiptap/vue-3";
+import { BubbleMenu, EditorContent, useEditor } from "@tiptap/vue-3";
+import { closeHistory } from "@tiptap/pm/history";
+import { createLowlight } from "lowlight";
 import { TextSelection, type SelectionBookmark } from "@tiptap/pm/state";
 import {
   computed,
@@ -44,7 +46,7 @@ import {
   type TableActionCapabilities,
   type TableContextMenuAction,
 } from "@threadlabs/looma/editor";
-import { IconButton, Menu, MenuItem, Popover, Tooltip } from "@threadlabs/looma/vue";
+import { Combobox, IconButton, Menu, MenuItem, Popover, Tooltip } from "@threadlabs/looma/vue";
 import { getVisualViewportRect, LOOMA_ICONS, type LoomaIconName } from "@threadlabs/looma/editor";
 import {
   EditorInsertTableGrid,
@@ -65,7 +67,6 @@ import {
   type LoomaImageDescriptor,
   type LoomaImageRenditionErrorDetail,
 } from "./image-delivery";
-import { createCodeBlockView } from "./code-block-view";
 
 /**
  * Host upload result normalized into the editor's durable image descriptor.
@@ -311,6 +312,7 @@ export const LoomaEditor = defineComponent({
     const tableOverlayShell = ref<HTMLElement | null>(null);
     const tableMenuShell = ref<HTMLElement | null>(null);
     const mobileToolbarShell = ref<HTMLElement | null>(null);
+    const codeLanguageShell = ref<HTMLElement | null>(null);
     const dragOver = ref(false);
     const uploading = ref(false);
     const failedUpload = ref<{ file: File } | null>(null);
@@ -442,7 +444,6 @@ export const LoomaEditor = defineComponent({
           mention: mentionExtension ?? false,
           disableHighlight: props.disableHighlight,
           codeLanguages: props.codeLanguages,
-          codeBlockNodeView: VueNodeViewRenderer(createCodeBlockView(props.codeLanguages, () => props.editable)),
         }),
         imageDelivery.extension,
         slashExtension,
@@ -635,6 +636,67 @@ export const LoomaEditor = defineComponent({
       });
     };
 
+    // Like the table toolbar, the language picker floats above the code block holding the cursor.
+    const codeLanguageNames = Object.keys(props.codeLanguages).sort();
+    const codeLowlight = createLowlight(props.codeLanguages);
+    const codeUi = reactive({ open: false, pos: 0, language: "auto", text: "", style: {} as CSSProperties });
+    let codeBlurTimer: ReturnType<typeof setTimeout> | undefined;
+    const updateCodeUi = (focusSettled = false) => {
+      const instance = editor.value?.isDestroyed ? undefined : editor.value;
+      const selection = instance?.state.selection;
+      const block = selection?.$from.parent;
+      const dom = instance && block?.type.name === "codeBlock" && selection!.$from.sameParent(selection!.$to)
+        ? instance.view.nodeDOM(selection!.$from.before())
+        : null;
+      if (!instance || !props.editable || !codeLanguageNames.length || !(dom instanceof HTMLElement)) {
+        codeUi.open = false;
+        return;
+      }
+      if (!instance.isFocused && !codeLanguageShell.value?.contains(document.activeElement)) {
+        // The editor blurs before focus lands; the picker stays if that focus lands in it.
+        clearTimeout(codeBlurTimer);
+        if (codeUi.open && !focusSettled) codeBlurTimer = setTimeout(() => updateCodeUi(true), 0);
+        else codeUi.open = false;
+        return;
+      }
+      const rect = dom.getBoundingClientRect();
+      const above = rect.top > 76;
+      codeUi.open = true;
+      codeUi.pos = selection!.$from.before();
+      codeUi.language = typeof block!.attrs.language === "string" && block!.attrs.language ? block!.attrs.language : "auto";
+      codeUi.text = block!.textContent;
+      codeUi.style = {
+        top: `${above ? rect.top - 8 : rect.bottom + 8}px`,
+        left: `${rect.left + rect.width / 2}px`,
+        transform: `translate(-50%, ${above ? "-100%" : "0"})`,
+      };
+    };
+    const codeLanguageOptions = computed(() => {
+      const detected = codeUi.open && codeUi.text.trim() ? codeLowlight.highlightAuto(codeUi.text).data?.language : null;
+      return [
+        { value: "auto", label: typeof detected === "string" ? `Auto (${detected.toUpperCase()})` : "Auto" },
+        ...(codeUi.language !== "auto" && !Object.hasOwn(props.codeLanguages, codeUi.language)
+          ? [{ value: codeUi.language, label: `${codeUi.language.toUpperCase()} (unavailable)` }]
+          : []),
+        ...codeLanguageNames.map((name) => ({ value: name, label: name.toUpperCase() })),
+      ];
+    });
+    const chooseCodeLanguage = (detail: { value: string | null; kind: string }) => {
+      const instance = editor.value;
+      if (!instance || detail.kind !== "selection" || !detail.value) return;
+      const language = detail.value === "auto" ? null : detail.value;
+      if (language !== null && !Object.hasOwn(props.codeLanguages, language)) return;
+      const node = instance.state.doc.nodeAt(codeUi.pos);
+      if (node?.type.name !== "codeBlock") return;
+      // Each choice is its own undo step, separate from typing around it.
+      instance.view.dispatch(closeHistory(instance.state.tr));
+      instance.view.dispatch(instance.state.tr.setNodeMarkup(codeUi.pos, undefined, { ...node.attrs, language }));
+      instance.view.dispatch(closeHistory(instance.state.tr));
+    };
+    const onCodeTransaction = () => updateCodeUi();
+    watch(() => props.editable, () => nextTick(onCodeTransaction));
+    onBeforeUnmount(() => clearTimeout(codeBlurTimer));
+
     const updateTableUi = () => {
       const instance = editor.value;
       if (
@@ -696,11 +758,13 @@ export const LoomaEditor = defineComponent({
     const onEditorFocus = () => {
       editorFocused.value = true;
       updateTableUi();
+      updateCodeUi();
       updateMobileViewport();
     };
 
     const onEditorBlur = () => {
       updateTableUi();
+      updateCodeUi();
       setTimeout(() => {
         if (!tableInteractionActive && !editor.value?.isFocused) editorFocused.value = false;
       }, 0);
@@ -710,6 +774,7 @@ export const LoomaEditor = defineComponent({
       if (!instance) return;
       instance.on("selectionUpdate", updateTableUi);
       instance.on("transaction", updateTableUi);
+      instance.on("transaction", onCodeTransaction);
       instance.on("focus", onEditorFocus);
       instance.on("blur", onEditorBlur);
       nextTick(updateTableUi);
@@ -719,6 +784,7 @@ export const LoomaEditor = defineComponent({
       if (!instance) return;
       instance.off("selectionUpdate", updateTableUi);
       instance.off("transaction", updateTableUi);
+      instance.off("transaction", onCodeTransaction);
       instance.off("focus", onEditorFocus);
       instance.off("blur", onEditorBlur);
     };
@@ -731,6 +797,7 @@ export const LoomaEditor = defineComponent({
     const onViewportChange = () => {
       updateMobileViewport();
       updateTableUi();
+      updateCodeUi();
       tableUi.menuOpen = false;
     };
 
@@ -1253,6 +1320,22 @@ export const LoomaEditor = defineComponent({
             }, [renderToolbar(instance, false)])
           : null,
         instance ? h(EditorContent, { editor: instance }) : null,
+        codeUi.open
+          ? h("div", {
+              ref: codeLanguageShell,
+              class: "looma-editor__code-language",
+              style: codeUi.style,
+              onFocusout: () => updateCodeUi(),
+            }, [h(Combobox, {
+              label: "Code language",
+              labelVisibility: "sr-only",
+              size: "sm",
+              disclosure: true,
+              filter: "label",
+              value: codeUi.language,
+              onValueChange: chooseCodeLanguage,
+            }, () => codeLanguageOptions.value.map((option) => h("option", { value: option.value }, option.label)))])
+          : null,
         instance && props.editable && mobile.value && editorFocused.value
           ? h("div", {
               ref: mobileToolbarShell,
