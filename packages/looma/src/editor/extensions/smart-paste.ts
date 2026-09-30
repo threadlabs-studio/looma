@@ -82,6 +82,13 @@ function parseHtmlSlice(schema: Schema, value: string): Slice | null {
       wrapper.insertBefore(parsed.createTextNode(" "), next);
     }
   }
+  // Markdown and most HTML sources end code with the newline that closes its
+  // last line. Kept, it becomes an empty last line in the code block.
+  for (const pre of parsed.body.querySelectorAll("pre")) {
+    let last: Node = pre;
+    while (last.lastChild) last = last.lastChild;
+    if (last.nodeType === Node.TEXT_NODE) last.textContent = last.textContent?.replace(/\r?\n$/, "") ?? "";
+  }
   const container = document.createElement("div");
   container.append(DOMPurify.sanitize(parsed.body.innerHTML, {
     USE_PROFILES: { html: true },
