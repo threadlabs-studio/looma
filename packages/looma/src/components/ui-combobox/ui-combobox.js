@@ -186,8 +186,8 @@ export default function controller(host) {
     openOverlay({ id: overlayId, element: popup, relatedElements: [element], modal: false, requestClose: close });
     search(reason);
   };
-  // The last option the user committed. Typing clears the selection while searching; leaving a strict
-  // combobox with unmatched text restores this rather than keeping the text.
+  // The last option the user committed. A strict combobox keeps that selection while searching;
+  // leaving with unmatched text restores its label rather than keeping the search draft.
   let lastSelection = null;
   const commit = (value, query, option, kind, trigger) => {
     awaitingLabel = null;
@@ -271,14 +271,22 @@ export default function controller(host) {
   };
   // A strict combobox (single, no free text, no create) behaves like a select: leaving it resolves the
   // typed text to a valid option (the highlighted one, an exact label, the first label it begins, or the
-  // only remaining option); with no match it reverts to the previous selection, or clears. With filter
+  // only remaining option); with no match it reverts to the previous selection, or empties the draft. With filter
   // "none" the remaining options are all of them, whatever their labels, so the only one listed counts.
   const resolveTyped = (trigger) => {
     const current = config();
     if (host.state.multiple || current.allowFreeText || current.allowCreate) return;
     const typed = String(host.state.raw ?? "");
-    const selectedOption = (current.options ?? []).find((option) => option.value === host.state.selected) ?? lastSelection;
+    const selectedOption = (current.options ?? []).find((option) => option.value === host.state.selected)
+      ?? knownOptions.get(host.state.selected) ?? lastSelection;
     if (selectedOption && selectedOption.label === typed) return;
+    const restoreDraft = (label) => {
+      if (host.state.query !== undefined || label === host.state.raw) return;
+      host.state.raw = label;
+      host.state.display = label;
+      resetValidation();
+      host.dispatch("query-change", { query: label, display: label, trigger });
+    };
     const query = typed.trim().toLocaleLowerCase();
     // Match against every option, not only the filtered list: filtering is asynchronous, and a fast
     // Tab can arrive before it settles. A highlighted row still wins.
@@ -293,9 +301,10 @@ export default function controller(host) {
           const containing = current.filterByLabel ? enabled.filter((option) => option.label.toLocaleLowerCase().includes(query)) : enabled;
           return containing.length === 1 ? containing[0] : undefined;
         })();
-    if (match) commit(match.value, match.label, match, "selection", trigger);
-    else if (selectedOption && query !== "") commit(selectedOption.value, selectedOption.label, selectedOption, "selection", trigger);
-    else if (host.state.selected !== null || typed !== "") { lastSelection = null; commit(null, "", null, "clear", trigger); }
+    if (match && match.value !== host.state.selected) commit(match.value, match.label, match, "selection", trigger);
+    else if (match) restoreDraft(match.label);
+    else if (selectedOption) restoreDraft(selectedOption.label);
+    else restoreDraft("");
   };
   const commitQuery = (trigger) => {
     const query = String(host.state.raw).trim();
@@ -406,7 +415,11 @@ export default function controller(host) {
     host.state.display = input.value;
     resetValidation();
     host.dispatch("query-change", { query: host.state.raw, display: host.state.display, trigger: "keyboard" });
-    if (host.state.selected !== null) commit(null, host.state.raw, null, "clear", "keyboard");
+    // A strict combobox keeps its committed selection while the input holds a search draft.
+    // Clearing a controlled value here makes the consumer restore its label on every keystroke.
+    if (host.state.selected !== null && (host.state.allowFreeText || host.state.allowCreate)) {
+      commit(null, host.state.raw, null, "clear", "keyboard");
+    }
     open();
     queueMicrotask(() => { if (host.state.query !== undefined && host.state.query !== host.state.raw) syncQuery(); });
   };

@@ -4395,6 +4395,48 @@ describe("Combobox filter", () => {
   });
 });
 
+describe("Controlled strict Combobox search", () => {
+  it("keeps a typed search draft, restores an unmatched draft on blur, and commits a chosen option", async () => {
+    const path = await bundle("vue-controlled-combobox-search", `
+      import { createApp, h, ref } from "vue";
+      import { Combobox } from "@threadlabs/looma/vue";
+      const selected = ref("apple");
+      window.changes = [];
+      createApp({ render: () => h(Combobox, {
+        id: "fruit", label: "Fruit", name: "fruit", value: selected.value,
+        onValueChange: (detail) => {
+          window.changes.push(detail);
+          if (detail.kind === "selection") selected.value = detail.value;
+        },
+      }, () => [h("option", { value: "apple" }, "Apple"), h("option", { value: "pear" }, "Pear")]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div><button id="after">After</button>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const input = page.locator('#fruit input[role="combobox"]');
+    assert.equal(await input.inputValue(), "Apple");
+    await input.fill("pea");
+    assert.equal(await input.inputValue(), "pea", "a search draft stays visible while the selection is controlled");
+    assert.equal(await page.locator('#fruit input[type="hidden"][name="fruit"]').inputValue(), "apple", "searching keeps the committed form value");
+    assert.deepEqual(await page.locator('#fruit [role="option"]').allTextContents(), ["Pear"]);
+    assert.deepEqual(await page.evaluate(() => (window as unknown as { changes: { kind: string }[] }).changes.map(({ kind }) => kind)), [], "typing does not clear the committed value");
+    await input.fill("zz");
+    assert.equal(await input.inputValue(), "zz");
+    await page.locator("#after").focus();
+    assert.equal(await input.inputValue(), "Apple", "an unmatched draft restores the previous selection on blur");
+    assert.deepEqual(await page.evaluate(() => (window as unknown as { changes: unknown[] }).changes), [], "restoring a draft is not a new selection");
+    await input.fill("");
+    await page.locator("#after").focus();
+    assert.equal(await input.inputValue(), "Apple", "an empty draft also restores the selection; Clear is a separate action");
+    await input.fill("zz");
+    await input.press("Tab");
+    assert.equal(await input.inputValue(), "Apple", "keyboard focus departure restores an unmatched draft too");
+    await input.fill("pea");
+    await page.locator('#fruit [role="option"]').getByText("Pear").click();
+    assert.equal(await input.inputValue(), "Pear");
+    assert.deepEqual(await page.evaluate(() => (window as unknown as { changes: { kind: string; value: string }[] }).changes.map(({ kind, value }) => ({ kind, value }))), [{ kind: "selection", value: "pear" }]);
+    await page.close();
+  });
+});
+
 describe("Combobox disabled", () => {
   // Every part the user can press follows disabled: the clear, disclosure, help, and badge buttons.
   const check = async (page: Page) => {

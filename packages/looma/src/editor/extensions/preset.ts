@@ -3,7 +3,7 @@
  * Uses the Vanilla JS Tiptap API; apps provide @tiptap/core and Looma ships the preset extensions.
  */
 
-import { Extension, textblockTypeInputRule, type AnyExtension, type NodeViewRenderer } from "@tiptap/core";
+import { Extension, mergeAttributes, textblockTypeInputRule, type AnyExtension, type NodeViewRenderer } from "@tiptap/core";
 import Document from "@tiptap/extension-document";
 import Paragraph from "@tiptap/extension-paragraph";
 import Text from "@tiptap/extension-text";
@@ -71,6 +71,16 @@ export interface DefaultEditorExtensionsOptions {
 }
 
 const LoomaCodeBlock = CodeBlockLowlight.extend({
+  renderHTML({ node, HTMLAttributes }) {
+    return [
+      "pre",
+      mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, { spellcheck: "false" }),
+      ["code", {
+        class: node.attrs.language ? `${this.options.languageClassPrefix}${node.attrs.language}` : null,
+        spellcheck: "false",
+      }, 0],
+    ];
+  },
   addInputRules() {
     return [
       ...(this.parent?.() ?? []),
