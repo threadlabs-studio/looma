@@ -1,7 +1,7 @@
 {
   "name": "@threadlabs/looma-storybook",
   "private": true,
-  "version": "0.18.0",
+  "version": "0.18.6",
   "type": "module",
   "scripts": {
     "dev": "storybook dev -p 6006",
