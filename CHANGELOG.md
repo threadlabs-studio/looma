@@ -19,6 +19,8 @@
   and `getDefaultEditorExtensions`. Apps can load only the languages they use; Looma
   styles the highlighted tokens with theme-aware colors.
 
+- Pasted Markdown or HTML code blocks no longer end with an extra empty line. The newline that
+  closes a code block's last line is dropped; a blank line the author typed stays.
 - Adjacent span labels from pasted HTML layout wrappers keep a readable space
   when the wrapper is reconstructed as editor text.
 - The Link toolbar keeps selected text when pressing its button moves focus out of the editor.
