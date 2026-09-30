@@ -27,10 +27,10 @@
   </defs>
   <span>
     <slot></slot>
-    <img class="image" $ref="image" :src="src" alt="" aria-hidden="true" :hidden="hasAuthoredImage or not hasImage">
-    <span class="fallback" :aria-hidden="hasImage" :hidden="hasImage">
-      <span :hidden="showGlyph" $value="initials"></span>
-      <span :hidden="not showGlyph"><ui-icon name="user-round"></ui-icon></span>
+    <img class="image" $ref="image" from:src="src" alt="" aria-hidden="true" from:hidden="hasAuthoredImage or not hasImage">
+    <span class="fallback" from:aria-hidden="hasImage" from:hidden="hasImage">
+      <span from:hidden="showGlyph" $value="initials"></span>
+      <span from:hidden="not showGlyph"><ui-icon name="user-round"></ui-icon></span>
     </span>
   </span>
   <style>

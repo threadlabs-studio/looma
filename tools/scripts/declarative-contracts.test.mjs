@@ -18,7 +18,7 @@ test("derives the public contract from one maintained declarative definition", (
         <event name="change" type="object({ value: string })"></event>
         <method name="focus" returns="promise(undefined)"></method>
       </defs>
-      <input :disabled="disabled">
+      <input from:disabled="disabled">
       <style>:scope { color: var(--ui-text-primary); }</style>
     </template>
   `, "ui-example");

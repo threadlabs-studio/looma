@@ -8,10 +8,10 @@
     >Where it sits. inline takes its place in the view's flow; panel sits it on a dashed surface, for an empty area in a page; fill centres it in all the space
       it is given, for a whole view that is loading or failed.</prop>
   </defs>
-  <div :role="{ true: 'alert', false: 'status' }[format('%s', kind = 'error')]">
-    <ui-spinner size="sm" :hidden="kind != 'loading'"></ui-spinner>
+  <div from:role="{ true: 'alert', false: 'status' }[format('%s', kind = 'error')]">
+    <ui-spinner size="sm" from:hidden="kind != 'loading'"></ui-spinner>
     <span class="copy">
-      <strong class="heading" :hidden="not heading"><template $value="heading"></template></strong>
+      <strong class="heading" from:hidden="not heading"><template $value="heading"></template></strong>
       <span class="message"><slot></slot></span>
     </span>
     <span class="action"><slot name="action"></slot></span>

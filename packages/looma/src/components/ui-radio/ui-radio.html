@@ -24,7 +24,7 @@
     </event>
   </defs>
   <label>
-    <input type="radio" $ref="input" .checked="internalChecked" :disabled="disabled" :required="required" :value="value" :name="name">
+    <input type="radio" $ref="input" .checked="internalChecked" from:disabled="disabled" from:required="required" from:value="value" from:name="name">
     <span class="text">
       <span class="label"><slot></slot></span>
       <span class="description" $ref="description" aria-hidden="true"><slot name="description"></slot></span>

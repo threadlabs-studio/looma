@@ -15,7 +15,7 @@
     <state name="withHeaderRow" :value="false"></state>
     <event name="insert" type="object({ rows: integer, cols: integer, withHeaderRow: boolean })"></event>
   </defs>
-  <div :hidden="not open">
+  <div from:hidden="not open">
     <p class="hint" $value="hint"></p>
     <div class="grid" $ref="grid" role="group" aria-label="Table dimensions" style:--_rows="rows" style:--_cols="cols">
       <button
@@ -24,11 +24,11 @@
         type="button"
         class="cell"
         class:selected="cell.selected"
-        :data-row="cell.row"
-        :data-col="cell.col"
-        :aria-label="cell.label"
-        :aria-pressed="cell.selected"
-        :tabindex="cell.tabIndex"
+        from:data-row="cell.row"
+        from:data-col="cell.col"
+        from:aria-label="cell.label"
+        from:aria-pressed="cell.selected"
+        from:tabindex="cell.tabIndex"
       >
       </button>
     </div>

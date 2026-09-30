@@ -12,7 +12,7 @@
       with roomier padding. Under a coarse pointer, sm grows to the 44px touch minimum and keeps body-size text. It is not the native size attribute: a select
       is always a single-choice dropdown. Change it after render through this option; the element's size property is the native one.</prop>
   </defs>
-  <select :disabled="disabled" :required="required" :aria-invalid="invalid"><slot></slot></select>
+  <select from:disabled="disabled" from:required="required" from:aria-invalid="invalid"><slot></slot></select>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
     @property --ui-select-border {

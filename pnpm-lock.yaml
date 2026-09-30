@@ -112,8 +112,8 @@ importers:
   packages/looma:
     dependencies:
       '@nextwebwg/html-next':
-        specifier: 1.0.0-alpha.11
-        version: 1.0.0-alpha.11
+        specifier: 1.0.0-alpha.12
+        version: 1.0.0-alpha.12
       dompurify:
         specifier: 3.4.15
         version: 3.4.15
@@ -2059,8 +2059,8 @@ packages:
       '@types/react': '>=16'
       react: '>=16'
 
-  '@nextwebwg/html-next@1.0.0-alpha.11':
-    resolution: {integrity: sha512-kYwFxrLVMARbCDBugtJurOYV7hezn7rNSjRL/KPFj+vhcJ5yzKmjXGpELS/eYKnX5XXuipE6q3fu3zH6cWn3Ug==}
+  '@nextwebwg/html-next@1.0.0-alpha.12':
+    resolution: {integrity: sha512-VarzAORP94nbyD372vGCCRT8J4q/krGGJbyuzE+v7kmjr59+5rRV1pi3+LMVaBojtBBgCggaZtIii7skJ8joPQ==}
     engines: {node: '>=22.13 <23 || >=24 <25'}
     hasBin: true
 
@@ -5720,11 +5720,6 @@ packages:
 
   multicast-dns@7.2.5:
     resolution: {integrity: sha512-2eznPJP8z2BFLX50tf0LuODrpINqP1RVIm/CObbTcBRITQgmC/TjcREF1NeTBzIcR5XO/ukWo+YHOjBbFwIupg==}
-    hasBin: true
-
-  nanoid@3.3.11:
-    resolution: {integrity: sha512-N8SpfPUnUp1bK+PMYW8qSWdl9U+wwNWI4QKxOYDy9JAro3WMX7p2OeVRF9v+347pnakNevPmiHhNmZ2HbFA76w==}
-    engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
   nanoid@3.3.19:
@@ -10293,7 +10288,7 @@ snapshots:
       '@types/react': 19.2.14
       react: 19.2.4
 
-  '@nextwebwg/html-next@1.0.0-alpha.11':
+  '@nextwebwg/html-next@1.0.0-alpha.12':
     dependencies:
       '@dprint/formatter': 0.5.1
       '@dprint/typescript': 0.96.1
@@ -14684,8 +14679,6 @@ snapshots:
       dns-packet: 5.6.1
       thunky: 1.1.0
 
-  nanoid@3.3.11: {}
-
   nanoid@3.3.19: {}
 
   negotiator@0.6.3: {}
@@ -15415,7 +15408,7 @@ snapshots:
 
   postcss@8.5.8:
     dependencies:
-      nanoid: 3.3.11
+      nanoid: 3.3.19
       picocolors: 1.1.1
       source-map-js: 1.2.1
 

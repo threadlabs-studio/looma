@@ -20,11 +20,11 @@
     <prop name="round" type="boolean" default="false">Use a fully circular shape.</prop>
   </defs>
   <button
-    :disabled="disabled"
+    from:disabled="disabled"
     type="button"
-    :aria-label="label"
-    :aria-disabled="{ true: 'true', false: null }[format('%s', loading or pending)]"
-    :aria-busy="loading or pending"
+    from:aria-label="label"
+    from:aria-disabled="{ true: 'true', false: null }[format('%s', loading or pending)]"
+    from:aria-busy="loading or pending"
   >
     <ui-spinner $if="loading or pending" size="sm"></ui-spinner>
     <span class="content"><slot></slot></span>

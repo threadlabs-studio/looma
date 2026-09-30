@@ -36,7 +36,7 @@
       coarse pointer, sm grows to the 44px touch minimum and keeps body-size text. Change it after render through this option; the element's size property is
       the native one.</prop>
   </defs>
-  <input :type="type" :value="value" :disabled="disabled" :readonly="readonly" :required="required" :aria-invalid="invalid">
+  <input from:type="type" from:value="value" from:disabled="disabled" from:readonly="readonly" from:required="required" from:aria-invalid="invalid">
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. An Input
        Group sets --_ui-default-input-* for the input inside it, below the input's own hooks. */

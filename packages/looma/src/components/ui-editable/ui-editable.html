@@ -37,7 +37,7 @@
   </defs>
   <div>
     <div class="field">
-      <button class="preview" $ref="preview" type="button" :disabled="disabled">
+      <button class="preview" $ref="preview" type="button" from:disabled="disabled">
         <span class="text" $value="internalValue"></span>
         <span $if="hint" class="hint" aria-hidden="true" $value="hint"></span>
       </button>
@@ -46,10 +46,10 @@
         $ref="input"
         type="text"
         .value="draft"
-        :aria-label="label"
-        :placeholder="placeholder"
-        :required="required"
-        :disabled="disabled or not internalEdit"
+        from:aria-label="label"
+        from:placeholder="placeholder"
+        from:required="required"
+        from:disabled="disabled or not internalEdit"
       >
     </div>
     <div $if="actions" class="actions">

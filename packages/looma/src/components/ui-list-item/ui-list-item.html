@@ -7,7 +7,7 @@
     >Marks the item as the current one, such as the site you are in: it takes the selected surface and aria-current="true", which assistive technology
       announces. Set it on one item at a time.</prop>
   </defs>
-  <li :aria-current="current">
+  <li from:aria-current="current">
     <span class="leading"><slot name="leading"></slot></span>
     <span class="content">
       <span class="title"><slot></slot></span>
