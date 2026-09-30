@@ -324,7 +324,7 @@
       padding: var(--_ui-tree-item-label-padding-block, var(--ui-space-1)) var(--_ui-tree-item-label-padding-inline, var(--ui-space-2));
       /* The length of the fade before the controls. The label's one flex child lays out no gap; this
          is where the controller reads the length in pixels to stop a sliding name before the fade. */
-      column-gap: var(--ui-space-3);
+      column-gap: var(--ui-space-1);
     }
 
     /* Slotted label content fills the cell, so a link is the row's hit area rather than sizing to
@@ -352,7 +352,7 @@
       text-overflow: clip;
       mask-image: linear-gradient(
         to right,
-        #000 calc(100% - var(--_tree-actions-width, 1.75rem) - var(--ui-space-3)),
+        #000 calc(100% - var(--_tree-actions-width, 1.75rem) - var(--ui-space-1)),
         transparent calc(100% - var(--_tree-actions-width, 1.75rem))
       );
     }
@@ -361,7 +361,7 @@
     .row:focus-within > .label:dir(rtl) {
       mask-image: linear-gradient(
         to left,
-        #000 calc(100% - var(--_tree-actions-width, 1.75rem) - var(--ui-space-3)),
+        #000 calc(100% - var(--_tree-actions-width, 1.75rem) - var(--ui-space-1)),
         transparent calc(100% - var(--_tree-actions-width, 1.75rem))
       );
     }
@@ -388,7 +388,7 @@
         to right,
         transparent var(--_marquee-icon-width, 0px),
         #000 calc(var(--_marquee-lead, 0px) + var(--_ui-tree-item-label-padding-inline, var(--ui-space-2))),
-        #000 calc(100% - var(--_tree-actions-width, 1.75rem) - var(--ui-space-3)),
+        #000 calc(100% - var(--_tree-actions-width, 1.75rem) - var(--ui-space-1)),
         transparent calc(100% - var(--_tree-actions-width, 1.75rem))
       );
     }
@@ -398,7 +398,7 @@
         to left,
         transparent var(--_marquee-icon-width, 0px),
         #000 calc(var(--_marquee-lead, 0px) + var(--_ui-tree-item-label-padding-inline, var(--ui-space-2))),
-        #000 calc(100% - var(--_tree-actions-width, 1.75rem) - var(--ui-space-3)),
+        #000 calc(100% - var(--_tree-actions-width, 1.75rem) - var(--ui-space-1)),
         transparent calc(100% - var(--_tree-actions-width, 1.75rem))
       );
     }
