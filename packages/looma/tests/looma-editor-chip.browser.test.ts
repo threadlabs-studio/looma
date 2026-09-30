@@ -1,6 +1,6 @@
 import type { Editor } from "@tiptap/core";
 import { userEvent } from "@vitest/browser/context";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, type App } from "vue";
 import { LoomaEditor } from "../src/vue/editor/LoomaEditor";
 import "../tokens.css";
@@ -41,10 +41,10 @@ describe("LoomaEditor inline chips (real browser)", () => {
 
       editor!.chain().focus().insertContent("Article /chip").run();
       await flushBrowser();
-      const option = [...(host.querySelectorAll<HTMLElement>('[data-component~="ui-editor-slash-menu"] [role="option"]'))]
+      const chipOption = () => [...(host.querySelectorAll<HTMLElement>('[data-component~="ui-editor-slash-menu"] [role="option"]'))]
         .find((item) => item.textContent?.includes("Chip"));
-      expect(option).toBeTruthy();
-      await userEvent.click(option!);
+      await vi.waitFor(() => expect(chipOption()).toBeTruthy(), { timeout: 3000 });
+      await userEvent.click(chipOption()!);
       await flushBrowser();
 
       const chip = host.querySelector<HTMLElement>(".ProseMirror [data-looma-chip]");
