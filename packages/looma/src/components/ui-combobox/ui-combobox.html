@@ -17,7 +17,7 @@
       option with selected sets the initial value.</prop>
     <prop
       name="items"
-      type="array"
+      type="list"
     >
       <prop type="object">
         <prop name="id" required type="string"></prop>
@@ -90,7 +90,7 @@
       it.</prop>
     <state
       name="internalItems"
-      type="array"
+      type="list"
       :value="[]"
     >
       <prop type="object">
@@ -113,7 +113,7 @@
     <state name="expanded" :value="false"></state>
     <state
       name="rows"
-      type="array"
+      type="list"
       :value="[]"
     >
       <prop type="object">
@@ -143,7 +143,7 @@
       <prop name="status" required type="keyword" values="pristine, pending, valid, warning, error"></prop>
       <prop name="touched" required type="boolean"></prop>
       <prop name="dirty" required type="boolean"></prop>
-      <prop name="issues" required type="array">
+      <prop name="issues" required type="list">
         <prop type="object">
           <prop name="message" required type="string"></prop>
         </prop>
@@ -153,14 +153,14 @@
     <state name="submitted" :value="''"></state>
     <state
       name="groups"
-      type="array"
+      type="list"
       :value="[]"
     >
       <prop type="object">
         <prop name="name" required type="string"></prop>
         <prop name="role" required type="keyword" values="group, presentation"></prop>
         <prop name="label" required nullable type="string"></prop>
-        <prop name="rows" required type="array">
+        <prop name="rows" required type="list">
           <prop type="object">
             <prop name="id" required type="string"></prop>
             <prop name="value" required type="string"></prop>
@@ -215,7 +215,7 @@
     </event>
     <event
       name="items-change"
-      type="array"
+      type="list"
     >
       <prop type="object">
         <prop name="id" required type="string"></prop>
@@ -282,10 +282,10 @@
       <prop name="status" required type="keyword" values="pristine, pending, valid, warning, error"></prop>
       <prop name="touched" required type="boolean"></prop>
       <prop name="dirty" required type="boolean"></prop>
-      <prop name="issues" required type="array">
+      <prop name="issues" required type="list">
         <prop type="object">
           <prop name="message" required type="string"></prop>
-          <prop name="path" type="array">
+          <prop name="path" type="list">
             <prop type="unknown"></prop>
           </prop>
           <prop name="severity" type="keyword" values="error, warning"></prop>
@@ -295,7 +295,7 @@
     </event>
     <event
       name="options-change"
-      type="array"
+      type="list"
     >
       <prop type="object">
         <prop name="id" required type="string"></prop>
@@ -356,7 +356,7 @@
       <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
     </event>
     <event name="selected-values-change" type="object">
-      <prop name="selectedValues" required type="array">
+      <prop name="selectedValues" required type="list">
         <prop type="string"></prop>
       </prop>
       <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
