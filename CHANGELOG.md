@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The app-triggered editor toolbar now uses the same compact floating surface as the selection toolbar. A caret inside a link shows nearby actions to open, edit, or remove it; the edit action uses the same link form as the toolbar button.
 - Strict Comboboxes keep typed search text visible even when their selected value is controlled. Leaving an unmatched search restores the previous label without reporting a new selection. Editable code blocks no longer inherit prose spell-check, while ordinary editor text still does.
 - `LoomaEditor` has a `popover` toolbar mode: the full toolbar opens from an app's own button
   (`toolbarTriggerId`, `v-model:toolbar-open`), and selecting text shows a text-only bubble. Use it

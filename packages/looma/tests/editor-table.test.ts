@@ -61,12 +61,12 @@ const equals = <T>(read: () => Promise<T>, expected: T, message: string) =>
 const style = (locator: Locator, property: string) => () =>
   locator.evaluate((element, name) => getComputedStyle(element).getPropertyValue(name), property);
 
-async function openEditor(html = "<p>Hello</p>"): Promise<Page> {
+async function openEditor(html = "<p>Hello</p>", mode: "sticky" | "popover" = "sticky"): Promise<Page> {
   const page = await open(editorBundle, `<div id="app" style="width: 720px"></div><button id="outside">Outside</button>`, [
     join(root, "tokens.css"),
     join(root, "vue/components.css"),
   ]);
-  await page.evaluate((value) => (window as unknown as { mountEditor(html: string): void }).mountEditor(value), html);
+  await page.evaluate(({ value, mode }) => (window as unknown as { mountEditor(html: string, mode: string): void }).mountEditor(value, mode), { value: html, mode });
   page.setDefaultTimeout(5000);
   await page.locator(".ProseMirror").waitFor();
   return page;
@@ -108,10 +108,21 @@ beforeAll(async () => {
   editorBundle = await bundle("vue-looma-editor-table", `
     import { createApp, h, ref } from "vue";
     import { LoomaEditor } from "@threadlabs/looma/vue/editor";
-    window.mountEditor = (html) => {
+    window.mountEditor = (html, mode = "sticky") => {
       const content = ref(html);
+      const toolbarOpen = ref(false);
       createApp({
-        render: () => h(LoomaEditor, { modelValue: content.value, toolbarMode: "sticky", "onUpdate:modelValue": (value) => { content.value = value; } }),
+        render: () => [
+          mode === "popover" ? h("button", { id: "format-trigger", type: "button" }, "Formatting tools") : null,
+          h(LoomaEditor, {
+            modelValue: content.value,
+            toolbarMode: mode,
+            toolbarTriggerId: mode === "popover" ? "format-trigger" : undefined,
+            toolbarOpen: toolbarOpen.value,
+            "onUpdate:toolbarOpen": (value) => { toolbarOpen.value = value; },
+            "onUpdate:modelValue": (value) => { content.value = value; },
+          }),
+        ],
       }).mount("#app");
     };
   `);
@@ -123,6 +134,50 @@ afterAll(async () => {
 });
 
 describe("LoomaEditor links", () => {
+  it("shows link actions at a caret inside linked text and edits that link in place", async () => {
+    const page = await openEditor('<p>See <a href="/guide" target="_self">guide</a> next</p>');
+    const link = prose(page).getByRole("link", { name: "guide" });
+    await link.click();
+    const actions = page.getByRole("group", { name: "Link actions" });
+    await actions.waitFor();
+    assert.match(await actions.textContent() ?? "", /\/guide/);
+    await actions.getByRole("button", { name: "Edit link" }).click();
+    await linkForm(page).getByRole("textbox", { name: "URL" }).fill("/new-guide");
+    await linkForm(page).getByRole("button", { name: "Save link" }).click();
+    await equals(() => link.getAttribute("href"), "/new-guide", "caret link is edited");
+    await prose(page).locator("p").click({ position: { x: 2, y: 8 } });
+    await equals(() => actions.count(), 0, "link actions close outside the link");
+    await link.click();
+    await actions.getByRole("button", { name: "Remove link" }).click();
+    await equals(() => prose(page).locator("a").count(), 0, "caret link is removed");
+    await page.close();
+  });
+
+  it("reveals link actions when the keyboard moves the caret into a link", async () => {
+    const page = await openEditor('<p>Before <a href="/guide">guide</a> after</p>');
+    await prose(page).locator("p").click();
+    await page.keyboard.press("Home");
+    for (let index = 0; index < 9; index++) await page.keyboard.press("ArrowRight");
+    await page.getByRole("group", { name: "Link actions" }).waitFor();
+    await page.close();
+  });
+
+  it("embeds the full toolbar as one compact surface in a formatting popover", async () => {
+    const page = await openEditor("<p>Formatting</p>", "popover");
+    await page.getByRole("button", { name: "Formatting tools" }).click();
+    const popover = page.locator(".looma-editor__formatting-popover");
+    await popover.getByRole("toolbar", { name: "Editor toolbar" }).waitFor();
+    const toolbar = popover.getByRole("toolbar", { name: "Editor toolbar" });
+    assert.deepEqual(await toolbar.evaluate((element) => {
+      const host = element.getRootNode() instanceof ShadowRoot
+        ? (element.getRootNode() as ShadowRoot).host : element;
+      const style = getComputedStyle(host);
+      return { borderLeft: style.borderLeftWidth, paddingLeft: style.paddingLeft };
+    }), { borderLeft: "1px", paddingLeft: "4px" });
+    assert.equal(await popover.evaluate((element) => getComputedStyle(element.shadowRoot?.querySelector('.surface') ?? element.querySelector('.surface')!).paddingLeft), "0px");
+    await page.close();
+  });
+
   it("keeps selected text when the link button press collapses the editor selection", async () => {
     const page = await openEditor();
     await prose(page).focus();

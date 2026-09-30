@@ -287,6 +287,7 @@ export const LoomaEditor = defineComponent({
     const linkAnchorId = `looma-editor-link-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
     const linkUrlInput = ref<HTMLInputElement | null>(null);
     const linkOpen = ref(false);
+    const linkContextEditing = ref(false);
     const linkHref = ref("");
     const linkText = ref("");
     const linkNewTab = ref(true);
@@ -469,7 +470,12 @@ export const LoomaEditor = defineComponent({
       editorProps: { attributes: { role: "textbox", "aria-multiline": "true", "aria-label": props.label } },
       onCreate: ({ editor: instance }) => emit("ready", instance),
       onFocus: ({ editor: instance }) => rememberSelection(instance),
-      onSelectionUpdate: ({ editor: instance }) => rememberSelection(instance),
+      onSelectionUpdate: ({ editor: instance }) => {
+        rememberSelection(instance);
+        if (linkContextEditing.value && instance.state.selection.from !== linkSelection?.from) {
+          linkContextEditing.value = false;
+        }
+      },
       onTransaction: () => { editorStateVersion.value += 1; },
       onUpdate: ({ editor: instance }) => {
         const value = instance.getJSON();
@@ -478,7 +484,7 @@ export const LoomaEditor = defineComponent({
       },
     });
 
-    const openLinkEditor = () => {
+    const openLinkEditor = (context = false) => {
       const instance = editor.value;
       if (!instance || !props.editable) return;
       const current = instance.state.selection;
@@ -496,7 +502,8 @@ export const LoomaEditor = defineComponent({
       linkNewTab.value = attrs.target !== "_self";
       linkText.value = empty && !existing ? "" : instance.state.doc.textBetween(from, to);
       linkError.value = "";
-      linkOpen.value = true;
+      linkContextEditing.value = context;
+      linkOpen.value = !context;
       void nextTick(() => linkUrlInput.value?.focus());
     };
     const saveLink = () => {
@@ -520,6 +527,7 @@ export const LoomaEditor = defineComponent({
         chain.setLink(attrs).run();
       }
       linkOpen.value = false;
+      linkContextEditing.value = false;
     };
     const removeLink = () => {
       const instance = editor.value;
@@ -527,6 +535,69 @@ export const LoomaEditor = defineComponent({
       if (!instance || !selection?.existing) return;
       instance.chain().focus().setTextSelection({ from: selection.from, to: selection.to }).extendMarkRange("link").unsetLink().run();
       linkOpen.value = false;
+      linkContextEditing.value = false;
+    };
+    const removeCurrentLink = () => {
+      const instance = editor.value;
+      if (!instance?.isActive("link")) return;
+      instance.chain().focus().extendMarkRange("link").unsetLink().run();
+      linkContextEditing.value = false;
+    };
+    const renderLinkForm = () => h("form", {
+      class: "looma-editor__link-form",
+      "aria-label": "Edit link",
+      onSubmit: (event: Event) => { event.preventDefault(); saveLink(); },
+    }, [
+      linkSelection?.from === linkSelection?.to && !linkSelection?.existing
+        ? h("label", [h("span", "Text"), h("input", {
+            value: linkText.value,
+            onInput: (event: Event) => { linkText.value = (event.target as HTMLInputElement).value; linkError.value = ""; },
+          })])
+        : null,
+      h("label", [h("span", "URL"), h("input", {
+        ref: linkUrlInput,
+        type: "text",
+        inputmode: "url",
+        value: linkHref.value,
+        "aria-invalid": linkError.value ? "true" : undefined,
+        onInput: (event: Event) => { linkHref.value = (event.target as HTMLInputElement).value; linkError.value = ""; },
+      })]),
+      h("label", { class: "looma-editor__link-new-tab" }, [h("input", {
+        type: "checkbox",
+        checked: linkNewTab.value,
+        onChange: (event: Event) => { linkNewTab.value = (event.target as HTMLInputElement).checked; },
+      }), h("span", "Open in new tab")]),
+      linkError.value ? h("p", { class: "looma-editor__link-error", role: "alert" }, linkError.value) : null,
+      validLinkHref(linkHref.value) ? h("a", {
+        class: "looma-editor__link-preview",
+        href: validLinkHref(linkHref.value),
+        target: "_blank",
+        rel: "noopener noreferrer",
+      }, "Preview link") : null,
+      h("div", { class: "looma-editor__link-actions" }, [
+        linkSelection?.existing ? h("button", { type: "button", onClick: removeLink }, "Remove link") : null,
+        h("button", { type: "submit" }, "Save link"),
+      ]),
+    ]);
+    const renderLinkContext = (instance: Editor) => {
+      if (linkContextEditing.value) return renderLinkForm();
+      const rawHref = instance.getAttributes("link").href;
+      const href = typeof rawHref === "string" ? rawHref : "";
+      const safeHref = validLinkHref(href);
+      return h("div", { class: "looma-editor__link-context-actions", role: "group", "aria-label": "Link actions" }, [
+        h("span", { class: "looma-editor__link-context-url", title: href }, href),
+        h("button", {
+          type: "button",
+          onPointerdown: (event: PointerEvent) => event.preventDefault(),
+          onClick: () => openLinkEditor(true),
+        }, "Edit link"),
+        h("button", {
+          type: "button",
+          onPointerdown: (event: PointerEvent) => event.preventDefault(),
+          onClick: removeCurrentLink,
+        }, "Remove link"),
+        safeHref ? h("a", { href: safeHref, target: "_blank", rel: "noopener noreferrer" }, "Open link") : null,
+      ]);
     };
     const captureBlockAction = () => {
       const instance = editor.value;
@@ -1317,12 +1388,13 @@ export const LoomaEditor = defineComponent({
         onKeydown: onImageKeyDown,
       }, [
         instance && props.editable && !mobile.value
-          && (props.toolbarMode === "bubble" || (props.toolbarMode === "popover" && !props.toolbarOpen))
+          && (props.toolbarMode === "bubble" || props.toolbarMode === "popover")
           ? h(BubbleMenu, {
               editor: instance,
               pluginKey: "looma-text-formatting-menu",
               shouldShow: ({ editor: menuEditor, from, to }: { editor: Editor; from: number; to: number }) =>
-                shouldShowTextFormattingToolbar(menuEditor, from, to),
+                (props.toolbarMode !== "popover" || !props.toolbarOpen)
+                && shouldShowTextFormattingToolbar(menuEditor, from, to),
               tippyOptions: {
                 appendTo: () => root.value ?? document.body,
                 duration: 100,
@@ -1330,6 +1402,22 @@ export const LoomaEditor = defineComponent({
                 placement: "top",
               },
             }, { default: () => renderToolbar(instance, true, props.toolbarMode === "popover") })
+          : null,
+        instance && props.editable && !mobile.value
+          ? h(BubbleMenu, {
+              editor: instance,
+              pluginKey: "looma-link-context-menu",
+              shouldShow: ({ editor: menuEditor, from, to }: { editor: Editor; from: number; to: number }) =>
+                from === to && menuEditor.isActive("link") && !linkOpen.value,
+              tippyOptions: {
+                appendTo: () => root.value ?? document.body,
+                duration: 100,
+                maxWidth: "none",
+                placement: "bottom",
+              },
+            }, { default: () => h("div", {
+              class: ["looma-editor__link-context", { "looma-editor__link-context--editing": linkContextEditing.value }],
+            }, [renderLinkContext(instance)]) })
           : null,
         instance && props.editable && !mobile.value && props.toolbarMode === "popover" && props.toolbarTriggerId
           ? h(Popover, {
@@ -1342,7 +1430,7 @@ export const LoomaEditor = defineComponent({
               // The popover owns its trigger's toggle; the app only binds v-model:toolbar-open.
               onOpen: () => emit("update:toolbarOpen", true),
               onClose: () => emit("update:toolbarOpen", false),
-            }, () => [renderToolbar(instance, false)])
+            }, () => [renderToolbar(instance, true)])
           : null,
         instance && props.editable && !mobile.value && props.toolbarMode === "sticky"
           ? h("div", {
@@ -1469,44 +1557,9 @@ export const LoomaEditor = defineComponent({
           open: linkOpen.value,
           for: linkAnchorId,
           placement: mobile.value ? "top-start" : "bottom-start",
-          onOpen: openLinkEditor,
+          onOpen: () => openLinkEditor(),
           onClose: () => { linkOpen.value = false; linkPressedSelection = null; },
-        }, () => h("form", {
-          class: "looma-editor__link-form",
-          "aria-label": "Edit link",
-          onSubmit: (event: Event) => { event.preventDefault(); saveLink(); },
-        }, [
-          linkSelection?.from === linkSelection?.to && !linkSelection?.existing
-            ? h("label", [h("span", "Text"), h("input", {
-                value: linkText.value,
-                onInput: (event: Event) => { linkText.value = (event.target as HTMLInputElement).value; linkError.value = ""; },
-              })])
-            : null,
-          h("label", [h("span", "URL"), h("input", {
-            ref: linkUrlInput,
-            type: "text",
-            inputmode: "url",
-            value: linkHref.value,
-            "aria-invalid": linkError.value ? "true" : undefined,
-            onInput: (event: Event) => { linkHref.value = (event.target as HTMLInputElement).value; linkError.value = ""; },
-          })]),
-          h("label", { class: "looma-editor__link-new-tab" }, [h("input", {
-            type: "checkbox",
-            checked: linkNewTab.value,
-            onChange: (event: Event) => { linkNewTab.value = (event.target as HTMLInputElement).checked; },
-          }), h("span", "Open in new tab")]),
-          linkError.value ? h("p", { class: "looma-editor__link-error", role: "alert" }, linkError.value) : null,
-          validLinkHref(linkHref.value) ? h("a", {
-            class: "looma-editor__link-preview",
-            href: validLinkHref(linkHref.value),
-            target: "_blank",
-            rel: "noopener noreferrer",
-          }, "Preview link") : null,
-          h("div", { class: "looma-editor__link-actions" }, [
-            linkSelection?.existing ? h("button", { type: "button", onClick: removeLink }, "Remove link") : null,
-            h("button", { type: "submit" }, "Save link"),
-          ]),
-        ])),
+        }, renderLinkForm),
         h(Menu, {
           for: blockActionAnchorId,
           placement: mobile.value ? "top-start" : "bottom-start",
