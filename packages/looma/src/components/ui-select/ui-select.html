@@ -92,7 +92,7 @@
       background-size: 1.125rem 1.125rem;
     }
 
-    :host:hover:not(:focus):not(:disabled) {
+    :host:hover:not(:focus):not(:disabled):not([aria-invalid="true"]):not(:user-invalid) {
       border-color: var(--ui-select-border-hover, var(--ui-control-border-hover, var(--ui-text-secondary)));
     }
 

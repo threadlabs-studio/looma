@@ -7,8 +7,8 @@ import { fileURLToPath } from "node:url";
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
 /**
- * Multi-select is the combobox's job. A native <select multiple> is a scrolling list that hides
- * what is chosen and takes a modifier key to choose it; ui-select stays the single-choice control.
+ * ui-select stays the compact single-choice control. Combobox and Listbox show checkmarks for
+ * multiple choices without relying on a native <select multiple> and its modifier-key behavior.
  */
 test("ui-select offers no multiple, and steers multi-select to the combobox", async () => {
   const select = await readFile(
@@ -24,6 +24,9 @@ test("ui-select offers no multiple, and steers multi-select to the combobox", as
     "utf8"
   );
   assert.match(combobox, /name="multiple"/);
-  // The checkbox on every row is what makes a multiple combobox read as multiple.
-  assert.match(combobox, /:host-state\(\[multiple\]\) \.option::before/);
+  const listbox = await readFile(path.join(repoRoot, "packages/looma/src/components/ui-listbox/ui-listbox.html"), "utf8");
+  const tokens = await readFile(path.join(repoRoot, "packages/looma/src/tokens/tokens.css"), "utf8");
+  assert.match(combobox, /data-ui-choice-option/);
+  assert.match(listbox, /data-ui-choice-option/);
+  assert.match(tokens, /\[data-ui-choice-option\]\[data-multiple\]::before/);
 });
