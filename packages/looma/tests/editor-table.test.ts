@@ -155,13 +155,17 @@ describe("LoomaEditor links", () => {
 
   it("reveals link actions when the keyboard moves the caret into a link", async () => {
     const page = await openEditor('<p>Before <a href="/guide">guide</a> after</p>');
-    await prose(page).locator("p").click();
+    await prose(page).focus();
     await page.keyboard.press("Home");
-    // "Before " is seven characters, so nine steps put the caret after "gu", inside the link.
-    // Sampling the caret after every step raced the editor's own selection handling.
-    for (let index = 0; index < 9; index++) await page.keyboard.press("ArrowRight");
+    // Step right one character at a time, giving the actions their show delay after each step.
+    // Keys sent milliseconds apart were sometimes dropped, which made fixed counts flaky.
     const actions = page.getByRole("group", { name: "Link actions" });
-    await actions.waitFor();
+    let revealed = false;
+    for (let index = 0; index < 18 && !revealed; index++) {
+      await page.keyboard.press("ArrowRight");
+      revealed = await actions.waitFor({ timeout: 400 }).then(() => true, () => false);
+    }
+    assert.equal(revealed, true, "link actions appear once the keyboard caret is in the link");
     assert.match(await actions.textContent() ?? "", /\/guide/);
     await page.close();
   });
