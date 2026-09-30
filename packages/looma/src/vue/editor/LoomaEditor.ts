@@ -67,6 +67,7 @@ import {
   type LoomaImageDescriptor,
   type LoomaImageRenditionErrorDetail,
 } from "./image-delivery";
+import { autoCodeLanguageNames, codeLanguageCatalog } from "./code-language-catalog";
 
 /**
  * Host upload result normalized into the editor's durable image descriptor.
@@ -218,10 +219,10 @@ export const LoomaEditor = defineComponent({
       type: Array as PropType<AnyExtension[]>,
       default: () => [],
     },
-    /** Code block grammars to register when this editor is created. */
+    /** Override the lazy built-in catalog with application-owned code grammars. An empty object disables highlighting. */
     codeLanguages: {
-      type: Object as PropType<LoomaCodeLanguages>,
-      default: () => ({}),
+      type: Object as PropType<LoomaCodeLanguages | null>,
+      default: null,
     },
     mentionItems: {
       type: Array as PropType<LoomaMentionItem[]>,
@@ -287,6 +288,7 @@ export const LoomaEditor = defineComponent({
     const linkAnchorId = `looma-editor-link-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
     const linkUrlInput = ref<HTMLInputElement | null>(null);
     const linkOpen = ref(false);
+    const linkContextEditing = ref(false);
     const linkHref = ref("");
     const linkText = ref("");
     const linkNewTab = ref(true);
@@ -452,13 +454,66 @@ export const LoomaEditor = defineComponent({
     };
 
     const authorHighlight = !props.disableHighlight;
+    const codeLowlight = createLowlight(props.codeLanguages ?? undefined);
+    const codeHighlightLowlight = props.codeLanguages === null
+      ? {
+          ...codeLowlight,
+          highlightAuto: (value: string) => codeLowlight.highlightAuto(value, { subset: [...autoCodeLanguageNames] }),
+        }
+      : codeLowlight;
+    const codeLanguageNames = props.codeLanguages === null
+      ? [
+          ...autoCodeLanguageNames,
+          ...Object.keys(codeLanguageCatalog).filter((name) =>
+            !autoCodeLanguageNames.includes(name as typeof autoCodeLanguageNames[number])
+          ).sort(),
+        ]
+      : Object.keys(props.codeLanguages).sort();
+    const codeUi = reactive({ open: false, pos: 0, language: "auto", text: "", grammarVersion: 0, style: {} as CSSProperties });
+    const grammarLoads = new Map<string, Promise<void>>();
+    let catalogLoad: Promise<void> | undefined;
+    const refreshCodeHighlights = (instance: Editor) => {
+      if (instance.isDestroyed) return;
+      codeUi.grammarVersion += 1;
+      // Tiptap refreshes lowlight decorations only after a document change.
+      const tr = instance.state.tr;
+      instance.state.doc.descendants((node, pos) => {
+        if (node.type.name === "codeBlock") tr.setNodeMarkup(pos, undefined, node.attrs);
+      });
+      if (tr.docChanged) instance.view.dispatch(tr.setMeta("addToHistory", false));
+    };
+    const loadGrammar = (name: keyof typeof codeLanguageCatalog) => {
+      const existing = grammarLoads.get(name);
+      if (existing) return existing;
+      const pending = codeLanguageCatalog[name]().then((grammar) => {
+        codeLowlight.register({ [name]: grammar });
+      }).catch((error: unknown) => {
+        grammarLoads.delete(name);
+        throw error;
+      });
+      grammarLoads.set(name, pending);
+      return pending;
+    };
+    const loadForCodeBlock = (instance: Editor, language: unknown, value: string) => {
+      if (props.codeLanguages !== null || instance.isDestroyed) return;
+      if (typeof language === "string" && Object.hasOwn(codeLanguageCatalog, language)) {
+        if (codeLowlight.registered(language) || grammarLoads.has(language)) return;
+        void loadGrammar(language as keyof typeof codeLanguageCatalog)
+          .then(() => refreshCodeHighlights(instance)).catch(() => {});
+      } else if (!language && value.trim()) {
+        catalogLoad ??= Promise.all(autoCodeLanguageNames.map((name) =>
+          loadGrammar(name)
+        )).then(() => refreshCodeHighlights(instance)).catch(() => { catalogLoad = undefined; });
+      }
+    };
     const editor = useEditor({
       extensions: [
         ...getDefaultEditorExtensions({
           placeholder: props.placeholder,
           mention: mentionExtension ?? false,
           disableHighlight: props.disableHighlight,
-          codeLanguages: props.codeLanguages,
+          codeLanguages: props.codeLanguages ?? undefined,
+          codeLowlight: codeHighlightLowlight,
         }),
         imageDelivery.extension,
         slashExtension,
@@ -467,9 +522,19 @@ export const LoomaEditor = defineComponent({
       content: props.modelValue,
       editable: props.editable,
       editorProps: { attributes: { role: "textbox", "aria-multiline": "true", "aria-label": props.label } },
-      onCreate: ({ editor: instance }) => emit("ready", instance),
+      onCreate: ({ editor: instance }) => {
+        emit("ready", instance);
+        instance.state.doc.descendants((node) => {
+          if (node.type.name === "codeBlock") loadForCodeBlock(instance, node.attrs.language, node.textContent);
+        });
+      },
       onFocus: ({ editor: instance }) => rememberSelection(instance),
-      onSelectionUpdate: ({ editor: instance }) => rememberSelection(instance),
+      onSelectionUpdate: ({ editor: instance }) => {
+        rememberSelection(instance);
+        if (linkContextEditing.value && instance.state.selection.from !== linkSelection?.from) {
+          linkContextEditing.value = false;
+        }
+      },
       onTransaction: () => { editorStateVersion.value += 1; },
       onUpdate: ({ editor: instance }) => {
         const value = instance.getJSON();
@@ -478,7 +543,7 @@ export const LoomaEditor = defineComponent({
       },
     });
 
-    const openLinkEditor = () => {
+    const openLinkEditor = (context = false) => {
       const instance = editor.value;
       if (!instance || !props.editable) return;
       const current = instance.state.selection;
@@ -496,7 +561,8 @@ export const LoomaEditor = defineComponent({
       linkNewTab.value = attrs.target !== "_self";
       linkText.value = empty && !existing ? "" : instance.state.doc.textBetween(from, to);
       linkError.value = "";
-      linkOpen.value = true;
+      linkContextEditing.value = context;
+      linkOpen.value = !context;
       void nextTick(() => linkUrlInput.value?.focus());
     };
     const saveLink = () => {
@@ -520,6 +586,7 @@ export const LoomaEditor = defineComponent({
         chain.setLink(attrs).run();
       }
       linkOpen.value = false;
+      linkContextEditing.value = false;
     };
     const removeLink = () => {
       const instance = editor.value;
@@ -527,6 +594,69 @@ export const LoomaEditor = defineComponent({
       if (!instance || !selection?.existing) return;
       instance.chain().focus().setTextSelection({ from: selection.from, to: selection.to }).extendMarkRange("link").unsetLink().run();
       linkOpen.value = false;
+      linkContextEditing.value = false;
+    };
+    const removeCurrentLink = () => {
+      const instance = editor.value;
+      if (!instance?.isActive("link")) return;
+      instance.chain().focus().extendMarkRange("link").unsetLink().run();
+      linkContextEditing.value = false;
+    };
+    const renderLinkForm = () => h("form", {
+      class: "looma-editor__link-form",
+      "aria-label": "Edit link",
+      onSubmit: (event: Event) => { event.preventDefault(); saveLink(); },
+    }, [
+      linkSelection?.from === linkSelection?.to && !linkSelection?.existing
+        ? h("label", [h("span", "Text"), h("input", {
+            value: linkText.value,
+            onInput: (event: Event) => { linkText.value = (event.target as HTMLInputElement).value; linkError.value = ""; },
+          })])
+        : null,
+      h("label", [h("span", "URL"), h("input", {
+        ref: linkUrlInput,
+        type: "text",
+        inputmode: "url",
+        value: linkHref.value,
+        "aria-invalid": linkError.value ? "true" : undefined,
+        onInput: (event: Event) => { linkHref.value = (event.target as HTMLInputElement).value; linkError.value = ""; },
+      })]),
+      h("label", { class: "looma-editor__link-new-tab" }, [h("input", {
+        type: "checkbox",
+        checked: linkNewTab.value,
+        onChange: (event: Event) => { linkNewTab.value = (event.target as HTMLInputElement).checked; },
+      }), h("span", "Open in new tab")]),
+      linkError.value ? h("p", { class: "looma-editor__link-error", role: "alert" }, linkError.value) : null,
+      validLinkHref(linkHref.value) ? h("a", {
+        class: "looma-editor__link-preview",
+        href: validLinkHref(linkHref.value),
+        target: "_blank",
+        rel: "noopener noreferrer",
+      }, "Preview link") : null,
+      h("div", { class: "looma-editor__link-actions" }, [
+        linkSelection?.existing ? h("button", { type: "button", onClick: removeLink }, "Remove link") : null,
+        h("button", { type: "submit" }, "Save link"),
+      ]),
+    ]);
+    const renderLinkContext = (instance: Editor) => {
+      if (linkContextEditing.value) return renderLinkForm();
+      const rawHref = instance.getAttributes("link").href;
+      const href = typeof rawHref === "string" ? rawHref : "";
+      const safeHref = validLinkHref(href);
+      return h("div", { class: "looma-editor__link-context-actions", role: "group", "aria-label": "Link actions" }, [
+        h("span", { class: "looma-editor__link-context-url", title: href }, href),
+        h("button", {
+          type: "button",
+          onPointerdown: (event: PointerEvent) => event.preventDefault(),
+          onClick: () => openLinkEditor(true),
+        }, "Edit link"),
+        h("button", {
+          type: "button",
+          onPointerdown: (event: PointerEvent) => event.preventDefault(),
+          onClick: removeCurrentLink,
+        }, "Remove link"),
+        safeHref ? h("a", { href: safeHref, target: "_blank", rel: "noopener noreferrer" }, "Open link") : null,
+      ]);
     };
     const captureBlockAction = () => {
       const instance = editor.value;
@@ -652,9 +782,6 @@ export const LoomaEditor = defineComponent({
     };
 
     // Like the table toolbar, the language picker floats above the code block holding the cursor.
-    const codeLanguageNames = Object.keys(props.codeLanguages).sort();
-    const codeLowlight = createLowlight(props.codeLanguages);
-    const codeUi = reactive({ open: false, pos: 0, language: "auto", text: "", style: {} as CSSProperties });
     let codeBlurTimer: ReturnType<typeof setTimeout> | undefined;
     const updateCodeUi = (focusSettled = false) => {
       const instance = editor.value?.isDestroyed ? undefined : editor.value;
@@ -667,6 +794,7 @@ export const LoomaEditor = defineComponent({
         codeUi.open = false;
         return;
       }
+      loadForCodeBlock(instance, block!.attrs.language, block!.textContent);
       if (!instance.isFocused && !codeLanguageShell.value?.contains(document.activeElement)) {
         // The editor blurs before focus lands; the picker stays if that focus lands in it.
         clearTimeout(codeBlurTimer);
@@ -687,10 +815,12 @@ export const LoomaEditor = defineComponent({
       };
     };
     const codeLanguageOptions = computed(() => {
-      const detected = codeUi.open && codeUi.text.trim() ? codeLowlight.highlightAuto(codeUi.text).data?.language : null;
+      // The lowlight registry is mutable rather than reactive; this version tracks async imports.
+      void codeUi.grammarVersion;
+      const detected = codeUi.open && codeUi.text.trim() ? codeHighlightLowlight.highlightAuto(codeUi.text).data?.language : null;
       return [
         { value: "auto", label: typeof detected === "string" ? `Auto (${detected.toUpperCase()})` : "Auto" },
-        ...(codeUi.language !== "auto" && !Object.hasOwn(props.codeLanguages, codeUi.language)
+        ...(codeUi.language !== "auto" && !codeLanguageNames.includes(codeUi.language)
           ? [{ value: codeUi.language, label: `${codeUi.language.toUpperCase()} (unavailable)` }]
           : []),
         ...codeLanguageNames.map((name) => ({ value: name, label: name.toUpperCase() })),
@@ -700,7 +830,7 @@ export const LoomaEditor = defineComponent({
       const instance = editor.value;
       if (!instance || detail.kind !== "selection" || !detail.value) return;
       const language = detail.value === "auto" ? null : detail.value;
-      if (language !== null && !Object.hasOwn(props.codeLanguages, language)) return;
+      if (language !== null && !codeLanguageNames.includes(language)) return;
       const node = instance.state.doc.nodeAt(codeUi.pos);
       if (node?.type.name !== "codeBlock") return;
       // Each choice is its own undo step, separate from typing around it.
@@ -714,10 +844,13 @@ export const LoomaEditor = defineComponent({
 
     const updateTableUi = () => {
       const instance = editor.value;
+      const focusInTableUi = [tableToolbarShell.value, tableOverlayShell.value, tableMenuShell.value]
+        .some((shell) => shell?.contains(document.activeElement));
       if (
         !instance
+        || instance.isDestroyed
         || !props.editable
-        || (!instance.isFocused && !tableInteractionActive && !hoveredTableCell)
+        || (!instance.isFocused && !tableInteractionActive && !hoveredTableCell && !focusInTableUi)
       ) {
         closeTableUi();
         return;
@@ -778,7 +911,7 @@ export const LoomaEditor = defineComponent({
     };
 
     const onEditorBlur = () => {
-      updateTableUi();
+      queueMicrotask(updateTableUi);
       updateCodeUi();
       setTimeout(() => {
         if (!tableInteractionActive && !editor.value?.isFocused) editorFocused.value = false;
@@ -809,7 +942,10 @@ export const LoomaEditor = defineComponent({
       bindEditorUi(instance);
     }, { immediate: true });
 
-    const onViewportChange = () => {
+    const onViewportChange = (event?: Event) => {
+      // A menu's own scroll does not move its anchor or change the active table.
+      if (event?.type === "scroll" && event.target instanceof Node
+        && (tableToolbarShell.value?.contains(event.target) || tableMenuShell.value?.contains(event.target))) return;
       updateMobileViewport();
       updateTableUi();
       updateCodeUi();
@@ -1024,6 +1160,8 @@ export const LoomaEditor = defineComponent({
       if (!table) return;
       const targetCell = "rowIndex" in detail
         ? resolveTableCellAt(table, detail.rowIndex, detail.columnIndex)
+        : "fromIndex" in detail
+          ? resolveTableCellAt(table, detail.action === "reorder-row" ? detail.fromIndex : 0, detail.action === "reorder-column" ? detail.fromIndex : 0)
         : resolveTableCellAt(
             table,
             detail.action.startsWith("add-row") ? Math.max(0, detail.boundaryIndex - 1) : 0,
@@ -1126,6 +1264,7 @@ export const LoomaEditor = defineComponent({
         : null;
       if (action) event.preventDefault();
     };
+
 
     const commandButton = (
       label: string,
@@ -1317,12 +1456,13 @@ export const LoomaEditor = defineComponent({
         onKeydown: onImageKeyDown,
       }, [
         instance && props.editable && !mobile.value
-          && (props.toolbarMode === "bubble" || (props.toolbarMode === "popover" && !props.toolbarOpen))
+          && (props.toolbarMode === "bubble" || props.toolbarMode === "popover")
           ? h(BubbleMenu, {
               editor: instance,
               pluginKey: "looma-text-formatting-menu",
               shouldShow: ({ editor: menuEditor, from, to }: { editor: Editor; from: number; to: number }) =>
-                shouldShowTextFormattingToolbar(menuEditor, from, to),
+                (props.toolbarMode !== "popover" || !props.toolbarOpen)
+                && shouldShowTextFormattingToolbar(menuEditor, from, to),
               tippyOptions: {
                 appendTo: () => root.value ?? document.body,
                 duration: 100,
@@ -1330,6 +1470,22 @@ export const LoomaEditor = defineComponent({
                 placement: "top",
               },
             }, { default: () => renderToolbar(instance, true, props.toolbarMode === "popover") })
+          : null,
+        instance && props.editable && !mobile.value
+          ? h(BubbleMenu, {
+              editor: instance,
+              pluginKey: "looma-link-context-menu",
+              shouldShow: ({ editor: menuEditor, from, to }: { editor: Editor; from: number; to: number }) =>
+                from === to && menuEditor.isActive("link") && !linkOpen.value,
+              tippyOptions: {
+                appendTo: () => root.value ?? document.body,
+                duration: 100,
+                maxWidth: "none",
+                placement: "bottom",
+              },
+            }, { default: () => h("div", {
+              class: ["looma-editor__link-context", { "looma-editor__link-context--editing": linkContextEditing.value }],
+            }, [renderLinkContext(instance)]) })
           : null,
         instance && props.editable && !mobile.value && props.toolbarMode === "popover" && props.toolbarTriggerId
           ? h(Popover, {
@@ -1342,7 +1498,7 @@ export const LoomaEditor = defineComponent({
               // The popover owns its trigger's toggle; the app only binds v-model:toolbar-open.
               onOpen: () => emit("update:toolbarOpen", true),
               onClose: () => emit("update:toolbarOpen", false),
-            }, () => [renderToolbar(instance, false)])
+            }, () => [renderToolbar(instance, true)])
           : null,
         instance && props.editable && !mobile.value && props.toolbarMode === "sticky"
           ? h("div", {
@@ -1469,44 +1625,9 @@ export const LoomaEditor = defineComponent({
           open: linkOpen.value,
           for: linkAnchorId,
           placement: mobile.value ? "top-start" : "bottom-start",
-          onOpen: openLinkEditor,
+          onOpen: () => openLinkEditor(),
           onClose: () => { linkOpen.value = false; linkPressedSelection = null; },
-        }, () => h("form", {
-          class: "looma-editor__link-form",
-          "aria-label": "Edit link",
-          onSubmit: (event: Event) => { event.preventDefault(); saveLink(); },
-        }, [
-          linkSelection?.from === linkSelection?.to && !linkSelection?.existing
-            ? h("label", [h("span", "Text"), h("input", {
-                value: linkText.value,
-                onInput: (event: Event) => { linkText.value = (event.target as HTMLInputElement).value; linkError.value = ""; },
-              })])
-            : null,
-          h("label", [h("span", "URL"), h("input", {
-            ref: linkUrlInput,
-            type: "text",
-            inputmode: "url",
-            value: linkHref.value,
-            "aria-invalid": linkError.value ? "true" : undefined,
-            onInput: (event: Event) => { linkHref.value = (event.target as HTMLInputElement).value; linkError.value = ""; },
-          })]),
-          h("label", { class: "looma-editor__link-new-tab" }, [h("input", {
-            type: "checkbox",
-            checked: linkNewTab.value,
-            onChange: (event: Event) => { linkNewTab.value = (event.target as HTMLInputElement).checked; },
-          }), h("span", "Open in new tab")]),
-          linkError.value ? h("p", { class: "looma-editor__link-error", role: "alert" }, linkError.value) : null,
-          validLinkHref(linkHref.value) ? h("a", {
-            class: "looma-editor__link-preview",
-            href: validLinkHref(linkHref.value),
-            target: "_blank",
-            rel: "noopener noreferrer",
-          }, "Preview link") : null,
-          h("div", { class: "looma-editor__link-actions" }, [
-            linkSelection?.existing ? h("button", { type: "button", onClick: removeLink }, "Remove link") : null,
-            h("button", { type: "submit" }, "Save link"),
-          ]),
-        ])),
+        }, renderLinkForm),
         h(Menu, {
           for: blockActionAnchorId,
           placement: mobile.value ? "top-start" : "bottom-start",
@@ -1585,6 +1706,8 @@ export const LoomaEditor = defineComponent({
               onAddColumnAfter: ({ boundaryIndex }: { boundaryIndex: number }) => runOverlayAction({ action: "add-column-after", boundaryIndex }),
               onSelectRow: ({ rowIndex, columnIndex }: { rowIndex: number; columnIndex: number }) => runOverlayAction({ action: "select-row", rowIndex, columnIndex }),
               onSelectColumn: ({ rowIndex, columnIndex }: { rowIndex: number; columnIndex: number }) => runOverlayAction({ action: "select-column", rowIndex, columnIndex }),
+              onReorderRow: ({ fromIndex, toIndex }: { fromIndex: number; toIndex: number }) => runOverlayAction({ action: "reorder-row", fromIndex, toIndex }),
+              onReorderColumn: ({ fromIndex, toIndex }: { fromIndex: number; toIndex: number }) => runOverlayAction({ action: "reorder-column", fromIndex, toIndex }),
               onOpenCellMenu: (detail: { rowIndex: number; columnIndex: number; anchor: { left: number; top: number; right: number; bottom: number } }) => runOverlayAction({ action: "open-cell-menu", ...detail }),
               onOpenRowMenu: (detail: { rowIndex: number; columnIndex: number; anchor: { left: number; top: number; right: number; bottom: number } }) => runOverlayAction({ action: "open-row-menu", ...detail }),
               onOpenColumnMenu: (detail: { rowIndex: number; columnIndex: number; anchor: { left: number; top: number; right: number; bottom: number } }) => runOverlayAction({ action: "open-column-menu", ...detail }),

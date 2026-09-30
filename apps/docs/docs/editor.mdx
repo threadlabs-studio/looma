@@ -76,9 +76,12 @@ Block actions can insert a paragraph after the current block, duplicate it, or d
 
 ## Code blocks
 
-Code blocks retain their language in the document. Looma loads no syntax grammars by default.
-Import only the languages your app needs from `highlight.js` and pass them as `codeLanguages` when
-creating the editor. The same option works with `getDefaultEditorExtensions` for a headless editor.
+Code blocks retain their language in the document. The searchable language picker offers every
+bundled Highlight.js grammar, including HTML, JavaScript, TypeScript, CSS, JSON, Python, SQL, and
+Bash. An explicit choice loads only its grammar on demand. **Auto** uses 20 common grammars when
+code is present to keep detection light. Pass
+`codeLanguages` to replace the list with your own grammars, or
+`{}` for plain code blocks. Headless editors pass grammars to `getDefaultEditorExtensions`.
 Untyped code blocks can be detected from the registered languages.
 While the cursor is in an editable code block, an **Auto** language control floats above it; choose a language to save an explicit
 choice with the document. Type three backticks at the start of an empty paragraph to create a
@@ -96,6 +99,10 @@ Pass `mentionItems` for a short known list, as in the playground, or `mentionPro
 directory search. Each item needs a stable `id` and visible `label`; `detail` and `initials` are
 optional display hints. `mentionLimit` defaults to 8. The editor stores the ID and label in the
 document, while the application owns directory lookup and identity.
+
+Suggestions open only when someone types `@` where a mention can go. `@` text that was pasted or
+loaded, or that someone clicks into later, stays plain and starts no search, and so does `@` in
+inline code or a code block.
 
 ```vue
 <LoomaEditor
@@ -137,7 +144,7 @@ accepts `http:`, `https:`, `mailto:`, `tel:`, and relative URLs beginning with `
 | `toolbarMode` | `bubble` | `bubble`, `sticky`, or `popover` toolbar placement |
 | `toolbarTriggerId`, `toolbarOpen` | `""`, `false` | The button that opens the `popover` toolbar, and whether it is open (`v-model:toolbar-open`) |
 | `disableHighlight` | `false` | Reserve highlighting for the application |
-| `codeLanguages` | None | Syntax grammars to load for code blocks |
+| `codeLanguages` | Built-in catalog | Replace the default code languages with an application-owned grammar map; `{}` keeps code plain |
 | `mentionItems`, `mentionProvider`, `mentionLimit` | Empty, none, 8 | Fixed or searched mention candidates |
 | `uploadImage`, `resolveImageAttributes` | None | Image delivery and rendering |
 

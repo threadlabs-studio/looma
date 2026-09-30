@@ -95,6 +95,8 @@
     <event name="add-column-after" type="object({ boundaryIndex: integer })"></event>
     <event name="select-row" type="object({ rowIndex: integer, columnIndex: integer })"></event>
     <event name="select-column" type="object({ rowIndex: integer, columnIndex: integer })"></event>
+    <event name="reorder-row" type="object({ fromIndex: integer, toIndex: integer })"></event>
+    <event name="reorder-column" type="object({ fromIndex: integer, toIndex: integer })"></event>
     <event
       name="open-cell-menu"
       type="object({ rowIndex: integer, columnIndex: integer, anchor: object({ left: number, top: number, right: number, bottom: number }) })"
@@ -165,7 +167,7 @@
         data-action="select-row"
         :data-row-index="hovered.rowIndex"
         :data-column-index="hovered.columnIndex"
-        title="Row actions"
+        title="Drag row to reorder; click for actions"
         aria-label="Row actions"
       >
         <span class="glyph"><ui-icon name="grip-vertical"></ui-icon></span>
@@ -177,7 +179,7 @@
         data-action="select-column"
         :data-row-index="hovered.rowIndex"
         :data-column-index="hovered.columnIndex"
-        title="Column actions"
+        title="Drag column to reorder; click for actions"
         aria-label="Column actions"
       >
         <span class="glyph"><ui-icon name="grip-horizontal"></ui-icon></span>
@@ -197,6 +199,7 @@
     >
       <ui-icon name="chevron-down"></ui-icon>
     </button>
+    <span class="drop-indicator" data-drop-indicator hidden aria-hidden="true"></span>
   </div>
   <style>
     :host {
@@ -422,6 +425,12 @@
 
     .selector {
       border-radius: var(--ui-radius-round);
+      touch-action: none;
+      cursor: grab;
+    }
+
+    .selector:active {
+      cursor: grabbing;
     }
 
     .selector::before {
@@ -505,6 +514,30 @@
     .cell-menu {
       --_ui-default-icon-size: 15px;
       --_ui-default-icon-stroke-width: 2;
+    }
+
+    .drop-indicator {
+      position: absolute;
+      z-index: 3;
+      background: var(--ui-accent-solid);
+      box-shadow: 0 0 0 2px var(--ui-surface);
+      pointer-events: none;
+    }
+
+    .drop-indicator.row {
+      left: 0;
+      width: 100%;
+      height: 2px;
+    }
+
+    .drop-indicator.column {
+      top: 0;
+      width: 2px;
+      height: 100%;
+    }
+
+    .drop-indicator[hidden] {
+      display: none;
     }
 
     :host[hidden] {

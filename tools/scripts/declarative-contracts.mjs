@@ -137,10 +137,12 @@ function selectedTypeDescription(select) {
     groups.set(type, [...(groups.get(type) ?? []), String(option.value)]);
   }
   const entries = [...groups.entries()];
-  const single = entries.length === 2 ? entries.find(([, values]) => values.length === 1) : undefined;
-  if (single && entries.some((entry) => entry !== single && entry[1].length > 1)) {
-    const other = entries.find((entry) => entry !== single);
-    return `${select.from}=${single[1][0]} → ${single[0]}; otherwise → ${other[0]}`;
+  const special = entries.length === 2 && entries[0][1].length !== entries[1][1].length
+    ? entries.find(([, values]) => values.length === Math.min(...entries.map(([, choices]) => choices.length)))
+    : undefined;
+  if (special) {
+    const other = entries.find((entry) => entry !== special);
+    return `${select.from}=${special[1].join(", ")} → ${special[0]}; otherwise → ${other[0]}`;
   }
   return entries.map(([type, values]) => `${select.from}=${values.join(", ")} → ${type}`).join("; ");
 }

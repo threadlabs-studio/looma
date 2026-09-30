@@ -61,12 +61,12 @@ const equals = <T>(read: () => Promise<T>, expected: T, message: string) =>
 const style = (locator: Locator, property: string) => () =>
   locator.evaluate((element, name) => getComputedStyle(element).getPropertyValue(name), property);
 
-async function openEditor(html = "<p>Hello</p>"): Promise<Page> {
+async function openEditor(html = "<p>Hello</p>", mode: "sticky" | "popover" = "sticky"): Promise<Page> {
   const page = await open(editorBundle, `<div id="app" style="width: 720px"></div><button id="outside">Outside</button>`, [
     join(root, "tokens.css"),
     join(root, "vue/components.css"),
   ]);
-  await page.evaluate((value) => (window as unknown as { mountEditor(html: string): void }).mountEditor(value), html);
+  await page.evaluate(({ value, mode }) => (window as unknown as { mountEditor(html: string, mode: string): void }).mountEditor(value, mode), { value: html, mode });
   page.setDefaultTimeout(5000);
   await page.locator(".ProseMirror").waitFor();
   return page;
@@ -108,10 +108,21 @@ beforeAll(async () => {
   editorBundle = await bundle("vue-looma-editor-table", `
     import { createApp, h, ref } from "vue";
     import { LoomaEditor } from "@threadlabs/looma/vue/editor";
-    window.mountEditor = (html) => {
+    window.mountEditor = (html, mode = "sticky") => {
       const content = ref(html);
+      const toolbarOpen = ref(false);
       createApp({
-        render: () => h(LoomaEditor, { modelValue: content.value, toolbarMode: "sticky", "onUpdate:modelValue": (value) => { content.value = value; } }),
+        render: () => [
+          mode === "popover" ? h("button", { id: "format-trigger", type: "button" }, "Formatting tools") : null,
+          h(LoomaEditor, {
+            modelValue: content.value,
+            toolbarMode: mode,
+            toolbarTriggerId: mode === "popover" ? "format-trigger" : undefined,
+            toolbarOpen: toolbarOpen.value,
+            "onUpdate:toolbarOpen": (value) => { toolbarOpen.value = value; },
+            "onUpdate:modelValue": (value) => { content.value = value; },
+          }),
+        ],
       }).mount("#app");
     };
   `);
@@ -123,6 +134,58 @@ afterAll(async () => {
 });
 
 describe("LoomaEditor links", () => {
+  it("shows link actions at a caret inside linked text and edits that link in place", async () => {
+    const page = await openEditor('<p>See <a href="/guide" target="_self">guide</a> next</p>');
+    const link = prose(page).getByRole("link", { name: "guide" });
+    await link.click();
+    const actions = page.getByRole("group", { name: "Link actions" });
+    await actions.waitFor();
+    assert.match(await actions.textContent() ?? "", /\/guide/);
+    await actions.getByRole("button", { name: "Edit link" }).click();
+    await linkForm(page).getByRole("textbox", { name: "URL" }).fill("/new-guide");
+    await linkForm(page).getByRole("button", { name: "Save link" }).click();
+    await equals(() => link.getAttribute("href"), "/new-guide", "caret link is edited");
+    await prose(page).locator("p").click({ position: { x: 2, y: 8 } });
+    await equals(() => actions.count(), 0, "link actions close outside the link");
+    await link.click();
+    await actions.getByRole("button", { name: "Remove link" }).click();
+    await equals(() => prose(page).locator("a").count(), 0, "caret link is removed");
+    await page.close();
+  });
+
+  it("reveals link actions when the keyboard moves the caret into a link", async () => {
+    const page = await openEditor('<p>Before <a href="/guide">guide</a> after</p>');
+    await prose(page).focus();
+    await page.keyboard.press("Home");
+    // Step right one character at a time, giving the actions their show delay after each step.
+    // Keys sent milliseconds apart were sometimes dropped, which made fixed counts flaky.
+    const actions = page.getByRole("group", { name: "Link actions" });
+    let revealed = false;
+    for (let index = 0; index < 18 && !revealed; index++) {
+      await page.keyboard.press("ArrowRight");
+      revealed = await actions.waitFor({ timeout: 400 }).then(() => true, () => false);
+    }
+    assert.equal(revealed, true, "link actions appear once the keyboard caret is in the link");
+    assert.match(await actions.textContent() ?? "", /\/guide/);
+    await page.close();
+  });
+
+  it("embeds the full toolbar as one compact surface in a formatting popover", async () => {
+    const page = await openEditor("<p>Formatting</p>", "popover");
+    await page.getByRole("button", { name: "Formatting tools" }).click();
+    const popover = page.locator(".looma-editor__formatting-popover");
+    await popover.getByRole("toolbar", { name: "Editor toolbar" }).waitFor();
+    const toolbar = popover.getByRole("toolbar", { name: "Editor toolbar" });
+    assert.deepEqual(await toolbar.evaluate((element) => {
+      const host = element.getRootNode() instanceof ShadowRoot
+        ? (element.getRootNode() as ShadowRoot).host : element;
+      const style = getComputedStyle(host);
+      return { borderLeft: style.borderLeftWidth, paddingLeft: style.paddingLeft };
+    }), { borderLeft: "1px", paddingLeft: "4px" });
+    assert.equal(await popover.evaluate((element) => getComputedStyle(element.shadowRoot?.querySelector('.surface') ?? element.querySelector('.surface')!).paddingLeft), "0px");
+    await page.close();
+  });
+
   it("keeps selected text when the link button press collapses the editor selection", async () => {
     const page = await openEditor();
     await prose(page).focus();
@@ -222,6 +285,86 @@ describe("LoomaEditor block actions", () => {
 });
 
 describe("LoomaEditor tables", () => {
+  it("keeps table options reachable and dismissible in a short viewport", async () => {
+    const page = await openEditor();
+    await page.setViewportSize({ width: 800, height: 420 });
+    await insertTableFromSlashMenu(page);
+    await cell(page, 0, 0).click();
+    await openTableMenu(page);
+    const menu = tableMenu(page);
+    const bounds = await menu.boundingBox();
+    assert.ok(bounds && bounds.y >= 0 && bounds.y + bounds.height <= 420, "menu fits the viewport");
+    const swatchShape = await menu.locator(".swatch").first().evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { width: parseFloat(style.width), height: parseFloat(style.height), radius: parseFloat(style.borderRadius) };
+    });
+    assert.equal(swatchShape.width, swatchShape.height, "swatch is square");
+    assert.ok(swatchShape.radius >= swatchShape.width / 2, "swatch renders as a circle");
+    const deleteTable = menu.getByRole("menuitem", { name: "Delete table" });
+    const scroll = await menu.evaluate((element) => {
+      const overflow = element.scrollHeight - element.clientHeight;
+      element.scrollTop = element.scrollHeight;
+      return { overflow, top: element.scrollTop };
+    });
+    assert.ok(scroll.overflow === 0 || scroll.top > 0, "menu scrolls when lower actions overflow");
+    const deleteBounds = await deleteTable.boundingBox();
+    assert.ok(deleteBounds && deleteBounds.y >= bounds.y && deleteBounds.y + deleteBounds.height <= bounds.y + bounds.height,
+      "the last action is reachable within the menu");
+    await menu.hover();
+    await page.mouse.wheel(0, -300);
+    await menu.waitFor();
+    await page.keyboard.press("Escape");
+    await menu.waitFor({ state: "hidden" });
+    await openTableMenu(page);
+    await page.locator("#outside").click();
+    await menu.waitFor({ state: "hidden" });
+    await page.close();
+  });
+
+  it("reorders rows and columns by dragging their grips", async () => {
+    const page = await openEditor();
+    await insertTableFromSlashMenu(page);
+    await cell(page, 1, 0).click();
+    await page.keyboard.type("Row A");
+    await cell(page, 2, 0).click();
+    await page.keyboard.type("Row B");
+    await cell(page, 1, 1).click();
+    await page.keyboard.type("Column A");
+    await cell(page, 1, 2).click();
+    await page.keyboard.type("Column B");
+    const overlay = page.locator('[data-component="ui-editor-table-overlay"]');
+    await cell(page, 2, 0).hover();
+    const rowGrip = overlay.getByRole("button", { name: "Row actions" });
+    const rowBox = await rowGrip.boundingBox();
+    const targetRow = await cell(page, 1, 0).boundingBox();
+    assert.ok(rowBox && targetRow);
+    await page.mouse.move(rowBox.x + rowBox.width / 2, rowBox.y + rowBox.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(rowBox.x + rowBox.width / 2, targetRow.y + targetRow.height / 2, { steps: 6 });
+    assert.equal(await overlay.locator("[data-drop-indicator]").getAttribute("hidden"), null, "row drop indicator appears");
+    await page.mouse.up();
+    await equals(() => cell(page, 1, 0).textContent(), "Row B", "row moved by drag");
+    assert.equal(await page.locator('[data-component="ui-editor-table-context-menu"]').count(), 0, "drag does not open an action menu");
+    await cell(page, 2, 2).hover();
+    const columnGrip = overlay.getByRole("button", { name: "Column actions" });
+    const columnBox = await columnGrip.boundingBox();
+    const targetColumn = await cell(page, 2, 1).boundingBox();
+    assert.ok(columnBox && targetColumn);
+    await page.mouse.move(columnBox.x + columnBox.width / 2, columnBox.y + columnBox.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(targetColumn.x + targetColumn.width / 2, columnBox.y + columnBox.height / 2, { steps: 6 });
+    await page.mouse.up();
+    await equals(() => cell(page, 2, 1).textContent(), "Column B", "column moved by drag");
+    await page.close();
+  });
+
+  it("spaces a paragraph following a table", async () => {
+    const page = await openEditor("<table><tbody><tr><td><p>Cell</p></td></tr></tbody></table><p>After</p>");
+    const followingParagraph = prose(page).locator(".tableWrapper + p");
+    assert.equal(await followingParagraph.count(), 1, "paragraph follows the table wrapper");
+    assert.ok(parseFloat(await style(followingParagraph, "margin-top")()) > 0, "paragraph has space after the table");
+    await page.close();
+  });
   // The toolbar's "Insert table" opens the grid through the popover anchored to it (`for`).
   it("inserts a table sized from the toolbar's insert-table grid", async () => {
     const page = await openEditor();

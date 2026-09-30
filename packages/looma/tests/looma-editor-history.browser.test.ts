@@ -70,6 +70,57 @@ afterEach(async () => {
 });
 
 describe("LoomaEditor history (real browser)", () => {
+  it("lazily offers HTML and highlights markup in a default editor", async () => {
+    const { editor, host } = await mountEditor();
+    const lowlight = editor.extensionManager.extensions.find((extension) => extension.name === "codeBlock")!
+      .options.lowlight as { listLanguages(): string[] };
+    expect(lowlight.listLanguages()).toEqual([]);
+    editor.commands.setContent('<pre><code></code></pre>');
+    editor.commands.focus("start");
+    await flushBrowser();
+
+    const language = host.querySelector<HTMLInputElement>('.looma-editor__code-language [role="combobox"]')!;
+    expect(language).toBeTruthy();
+    language.focus();
+    await userEvent.keyboard("{ArrowDown}");
+    await flushBrowser();
+    const html = [...host.querySelectorAll<HTMLElement>('[role="option"]')]
+      .find((option) => option.textContent?.trim() === "HTML");
+    expect(html).toBeTruthy();
+    await userEvent.click(html!);
+    await flushBrowser();
+    expect(editor.getJSON().content?.[0]?.attrs).toEqual({ language: "html" });
+    await vi.waitFor(() => expect(lowlight.listLanguages()).toEqual(["html"]));
+    editor.commands.setContent('<pre><code class="language-html">&lt;main class="card"&gt;Hello&lt;/main&gt;</code></pre>');
+    await flushBrowser();
+    expect(host.querySelector("pre .hljs-tag")).toBeTruthy();
+  });
+
+  it("offers languages outside Auto without loading their grammars until selected", async () => {
+    const { editor, host } = await mountEditor();
+    const lowlight = editor.extensionManager.extensions.find((extension) => extension.name === "codeBlock")!
+      .options.lowlight as { listLanguages(): string[]; highlightAuto(value: string): { data?: { language?: string } } };
+    editor.commands.setContent('<pre><code></code></pre>');
+    editor.commands.focus("start");
+    await flushBrowser();
+
+    const language = host.querySelector<HTMLInputElement>('.looma-editor__code-language [role="combobox"]')!;
+    language.focus();
+    language.select();
+    await userEvent.keyboard("dockerfile");
+    await flushBrowser();
+    expect([...host.querySelectorAll<HTMLElement>('[role="option"]')].map((option) => option.textContent?.trim()))
+      .toEqual(["DOCKERFILE"]);
+    expect(lowlight.listLanguages()).toEqual([]);
+    await userEvent.keyboard("{ArrowDown}{Enter}");
+    await vi.waitFor(() => expect(lowlight.listLanguages()).toEqual(["dockerfile"]));
+    expect(lowlight.highlightAuto("FROM node:20").data?.language).not.toBe("dockerfile");
+    expect(editor.getJSON().content?.[0]?.attrs).toEqual({ language: "dockerfile" });
+    editor.commands.setContent('<pre><code class="language-dockerfile">FROM node:20</code></pre>');
+    await flushBrowser();
+    expect(host.querySelector("pre .hljs-keyword")?.textContent).toBe("FROM");
+  });
+
   it("does not spell-check code blocks while leaving prose spell-check available", async () => {
     const { editor, host } = await mountEditor({ codeLanguages: { sql: common.sql } });
     editor.commands.setContent('<p>Some prose</p><pre><code>SELECT colum FROM records</code></pre>');
@@ -240,9 +291,12 @@ describe("LoomaEditor history (real browser)", () => {
 
     expect(editor.getJSON().content?.[0]).toMatchObject({ type: "codeBlock", attrs: { language: null } });
     expect(editor.state.selection.$head.parent.type.name).toBe("codeBlock");
-    expect(host.querySelector('.looma-editor__code-language [role="combobox"]')).toBeNull();
+    expect(host.querySelector<HTMLInputElement>('.looma-editor__code-language [role="combobox"]')?.value).toBe("Auto");
     await userEvent.keyboard("SELECT 1");
     expect(editor.getJSON().content?.[0]?.content?.[0]?.text).toBe("SELECT 1");
+    const lowlight = editor.extensionManager.extensions.find((extension) => extension.name === "codeBlock")!
+      .options.lowlight as { listLanguages(): string[] };
+    await vi.waitFor(() => expect(lowlight.listLanguages()).toHaveLength(20));
   });
 
   it("hides the code language control when the editor becomes read-only", async () => {
