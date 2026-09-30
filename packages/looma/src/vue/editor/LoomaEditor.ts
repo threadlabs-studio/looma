@@ -90,10 +90,11 @@ export type LoomaImageUploader = (
 ) => Promise<string | LoomaImageUploadResult>;
 
 /**
- * Chooses whether formatting controls follow a selection or occupy persistent
- * editor chrome; it does not alter document commands or stored content.
+ * Chooses whether formatting controls follow a selection, occupy persistent
+ * editor chrome, or open from an app-owned button (`popover`, with a text-only
+ * bubble for selections); it does not alter document commands or stored content.
  */
-export type LoomaEditorToolbarMode = "bubble" | "sticky";
+export type LoomaEditorToolbarMode = "bubble" | "sticky" | "popover";
 
 const EMPTY_DOCUMENT: JSONContent = { type: "doc", content: [] };
 let editorInstanceSequence = 0;
@@ -247,6 +248,19 @@ export const LoomaEditor = defineComponent({
       default: "bubble",
     },
     /**
+     * In `popover` mode, the ID of the app's button that toggles the full toolbar and anchors it.
+     * The button needs no click handler of its own.
+     */
+    toolbarTriggerId: {
+      type: String,
+      default: "",
+    },
+    /** In `popover` mode, whether the full toolbar is open. Use with `v-model:toolbar-open`. */
+    toolbarOpen: {
+      type: Boolean,
+      default: false,
+    },
+    /**
      * Authors can't highlight: no toolbar button, shortcut, `==text==` rule, or `<mark>` paste.
      * Highlights already in the document still show. Read once, when the editor is created.
      */
@@ -257,6 +271,7 @@ export const LoomaEditor = defineComponent({
   },
   emits: {
     "update:modelValue": (_value: JSONContent) => true,
+    "update:toolbarOpen": (_value: boolean) => true,
     update: (_value: JSONContent) => true,
     ready: (_editor: Editor) => true,
     uploadError: (_error: unknown, _file: File) => true,
@@ -1147,10 +1162,10 @@ export const LoomaEditor = defineComponent({
       }, () => loomaIcon(icon));
     };
 
-    const renderToolbar = (instance: Editor, floating = true) => {
+    const renderToolbar = (instance: Editor, floating = true, textOnly = false) => {
       // One row at page width: checklists and dividers are inserted from the slash menu or typed
       // ([ ] and ---), so they do not take toolbar room.
-      const buttons = [
+      const textButtons = [
         commandButton("Bold", "bold", instance.isActive("bold"), !instance.can().toggleBold(), () => instance.chain().focus().toggleBold().run()),
         commandButton("Italic", "italic", instance.isActive("italic"), !instance.can().toggleItalic(), () => instance.chain().focus().toggleItalic().run()),
         commandButton("Underline", "underline", instance.isActive("underline"), !instance.can().toggleUnderline(), () => instance.chain().focus().toggleUnderline().run()),
@@ -1159,6 +1174,9 @@ export const LoomaEditor = defineComponent({
           ? [commandButton("Highlight", "highlighter", instance.isActive("highlight"), !instance.can().toggleHighlight(), () => instance.chain().focus().toggleHighlight().run())]
           : []),
         commandButton("Inline code", "code-xml", instance.isActive("code"), !instance.can().toggleCode(), () => instance.chain().focus().toggleCode().run()),
+      ];
+      const buttons = textOnly ? textButtons : [
+        ...textButtons,
         h(IconButton, {
           id: linkAnchorId,
           class: "looma-editor__toolbar-button",
@@ -1298,7 +1316,8 @@ export const LoomaEditor = defineComponent({
         onDblclick: onImageDoubleClick,
         onKeydown: onImageKeyDown,
       }, [
-        instance && props.editable && !mobile.value && props.toolbarMode === "bubble"
+        instance && props.editable && !mobile.value
+          && (props.toolbarMode === "bubble" || (props.toolbarMode === "popover" && !props.toolbarOpen))
           ? h(BubbleMenu, {
               editor: instance,
               pluginKey: "looma-text-formatting-menu",
@@ -1310,7 +1329,20 @@ export const LoomaEditor = defineComponent({
                 maxWidth: "none",
                 placement: "top",
               },
-            }, { default: () => renderToolbar(instance) })
+            }, { default: () => renderToolbar(instance, true, props.toolbarMode === "popover") })
+          : null,
+        instance && props.editable && !mobile.value && props.toolbarMode === "popover" && props.toolbarTriggerId
+          ? h(Popover, {
+              class: "looma-editor__formatting-popover",
+              role: "region",
+              "aria-label": "Formatting tools",
+              open: props.toolbarOpen,
+              for: props.toolbarTriggerId,
+              placement: "bottom-end",
+              // The popover owns its trigger's toggle; the app only binds v-model:toolbar-open.
+              onOpen: () => emit("update:toolbarOpen", true),
+              onClose: () => emit("update:toolbarOpen", false),
+            }, () => [renderToolbar(instance, false)])
           : null,
         instance && props.editable && !mobile.value && props.toolbarMode === "sticky"
           ? h("div", {

@@ -55,8 +55,8 @@ first integration.
 
 Select text for bold, italic, underline, strike, highlight, inline code, and links. The editor
 also supports headings, lists, quotes, code blocks, tables, images, undo, and redo. Set
-`toolbarMode="sticky"` to keep the toolbar above the document, or use the default `bubble` mode
-beside a selection. On narrow screens the toolbar docks at the bottom and scrolls sideways when
+`toolbarMode="sticky"` to keep the toolbar above the document, `popover` to open it from your own
+button, or use the default `bubble` mode beside a selection. On narrow screens the toolbar docks at the bottom and scrolls sideways when
 its controls do not fit.
 
 Set `disableHighlight` when authored highlighting would be confused with an application marker.
@@ -134,13 +134,15 @@ accepts `http:`, `https:`, `mailto:`, `tel:`, and relative URLs beginning with `
 | `placeholder` | `Type “/” for commands, or start writing…` | Empty document prompt |
 | `label` | `Document` | Accessible name for the editing surface |
 | `extensions` | `[]` | Additional Tiptap extensions |
-| `toolbarMode` | `bubble` | `bubble` or `sticky` toolbar placement |
+| `toolbarMode` | `bubble` | `bubble`, `sticky`, or `popover` toolbar placement |
+| `toolbarTriggerId`, `toolbarOpen` | `""`, `false` | The button that opens the `popover` toolbar, and whether it is open (`v-model:toolbar-open`) |
 | `disableHighlight` | `false` | Reserve highlighting for the application |
 | `codeLanguages` | None | Syntax grammars to load for code blocks |
 | `mentionItems`, `mentionProvider`, `mentionLimit` | Empty, none, 8 | Fixed or searched mention candidates |
 | `uploadImage`, `resolveImageAttributes` | None | Image delivery and rendering |
 
-`update:modelValue` and `update` report document changes; `ready` exposes the underlying Tiptap
+`update:modelValue` and `update` report document changes; `update:toolbarOpen` reports the
+`popover` toolbar opening and closing; `ready` exposes the underlying Tiptap
 editor for integrations. The app decides when and where to persist the document. If you are
 building a custom Tiptap integration instead of using `LoomaEditor`, the underlying
 `ui-editor-*` components remain available in the package, with their [component reference](https://github.com/threadlabs-studio/looma/tree/main/packages/looma/src/components).
