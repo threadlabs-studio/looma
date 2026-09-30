@@ -175,6 +175,21 @@ describe("Tree drag and drop", () => {
     await page.close();
   });
 
+  it("indents each nested row by one step", async () => {
+    const page = await open({
+      tree: { style: "--ui-tree-indent: 20px" },
+      items: [{ id: "root", label: "Root", container: true, expanded: true, children: [
+        { id: "folder", label: "Folder", container: true, expanded: true, children: [
+          { id: "page", label: "Page" },
+        ] },
+      ] }],
+    });
+    const positions = await Promise.all(["root", "folder", "page"].map(async (id) => (await rowBox(page, id)).x));
+    assert.deepEqual(positions, [60, 80, 100]);
+    assert.equal(await item(page, "page").getAttribute("aria-level"), "3");
+    await page.close();
+  });
+
   it("reorders a leaf before and after a sibling", async () => {
     const page = await open({ items: files });
     await drag(page, "License", "readme", 0.2);
