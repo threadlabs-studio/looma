@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Nested Tree items now advance by one indent per level, keeping deeper pages and folders aligned instead of shifting them progressively farther right.
 - Looma's declarative component definitions now use `from:attr` for reactive one-way values. This follows HTML Next alpha.12; component consumers keep the same HTML and Vue APIs. Authors of custom HTML Next definitions should replace `:attr` with `from:attr` in rendered markup. The `:value` expression on `<state>`, `<set>`, and `<dispatch>` keeps its existing syntax because it is evaluated when that declaration or handler runs.
 - **Breaking runtime requirement:** Looma now supports Node 22.13 and Node 24, matching its HTML Next dependency. Node 20 is no longer supported.
 - **Breaking for Table Overlay:** its catch-all `action` event is replaced by named insertion, selection, reorder, and menu events. Listen for `add-row-before`, `add-row-after`, `add-column-before`, `add-column-after`, `select-row`, `select-column`, `reorder-row`, `reorder-column`, `open-cell-menu`, `open-row-menu`, or `open-column-menu` and read the fields directly from each event detail. The editor adapter continues to handle these actions.
