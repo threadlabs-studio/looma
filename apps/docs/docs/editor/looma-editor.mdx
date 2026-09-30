@@ -25,7 +25,9 @@ formatting commands, selection and focus, and every editor control. See
 | `mentionItems`, `mentionProvider`, `mentionLimit` | none, none, 8 | People to suggest after `@`: a fixed list, or a function that searches. |
 | `uploadImage` | none | Uploads a chosen image and returns its URL and alt text. Without it, Insert image is disabled. |
 | `resolveImageAttributes` | none | Adjusts an image's attributes, such as a responsive `srcset`, before it renders. |
-| `toolbarMode` | `bubble` | `bubble` shows the toolbar beside a selection; `sticky` keeps it pinned above the document. |
+| `toolbarMode` | `bubble` | `bubble` shows the toolbar beside a selection; `sticky` keeps it pinned above the document; `popover` opens it from your own button (see [Opening the toolbar from your own button](#opening-the-toolbar-from-your-own-button)). |
+| `toolbarTriggerId` | `""` | In `popover` mode, the ID of the button that toggles the toolbar and anchors it. |
+| `toolbarOpen` | `false` | In `popover` mode, whether the toolbar is open. Bind it with `v-model:toolbar-open`. |
 | `disableHighlight` | `false` | Authors can't highlight text. Highlights already in the document still show; see [Reserving highlight](#reserving-highlight). |
 
 ## Toolbar
@@ -43,6 +45,18 @@ bottom of the viewport. Its buttons follow the [Toolbar](/components/ui-editor-t
 `--ui-editor-toolbar-button-size`, `--ui-editor-toolbar-button-radius`,
 `--ui-editor-toolbar-icon-size`, and the active-state `--ui-editor-toolbar-active-surface`,
 `--ui-editor-toolbar-active-text`, and `--ui-editor-toolbar-active-border`.
+
+### Opening the toolbar from your own button
+
+Set `toolbar-mode="popover"` when the page already has a place for tools, such as a page bar. Give
+the editor the ID of your button: clicking it opens the full toolbar in a popover anchored there, and
+clicking again, pressing Escape, or clicking elsewhere closes it. The button needs no click handler.
+Selecting text still shows a small bubble with the text controls (Bold through Inline code).
+
+```vue
+<IconButton id="formatting" label="Formatting">…</IconButton>
+<LoomaEditor toolbar-mode="popover" toolbar-trigger-id="formatting" v-model:toolbar-open="formattingOpen" />
+```
 
 ### Reserving highlight
 
