@@ -39,6 +39,20 @@ test("loads every component contract from its folder", async () => {
   assert.equal(groups[0].contracts["ui-select"].root, "select");
 });
 
+test("API metadata keeps base types, choices, and selected types readable", async () => {
+  const groups = await readDeclarativeContractGroups();
+  const contracts = groups[0].contracts;
+  assert.equal(contracts["ui-button"].propValueTypes.variant, "keyword");
+  assert.deepEqual(contracts["ui-button"].propOptions.variant, ["outline", "solid", "danger", "ghost", "link"]);
+  assert.equal(contracts["ui-input"].propValueTypes.value, "type=number → number; otherwise → string");
+  assert.equal(contracts["ui-checkbox"].events[0].detailShape, "object");
+  assert.deepEqual(contracts["ui-checkbox"].events[0].fields.find((field) => field.path === "trigger"), {
+    path: "trigger", type: "keyword", required: true, values: ["keyboard", "pointer", "programmatic"],
+  });
+  assert.match(contracts["ui-checkbox"].events[0].detailType, /trigger: "keyboard" \| "pointer" \| "programmatic"/);
+  assert.ok(contracts["ui-combobox"].propFields.items.some((field) => field.path === "[].tag.tone"));
+});
+
 test("raw HTML contracts use native state names and false-default booleans", async () => {
   const groups = await readDeclarativeContractGroups();
   const violations = [];
@@ -99,7 +113,8 @@ test("a button renders as a link through its polymorphic root, not a second comp
   );
 
   // An `as` prop chooses between explicit native roots; the prop does not retag an element.
-  assert.equal(contracts["ui-button"].props.as?.type, "button | a");
+  assert.equal(contracts["ui-button"].props.as?.type, "keyword");
+  assert.deepEqual(contracts["ui-button"].propOptions.as, ["button", "a"]);
   assert.match(source, /<template \$match>\s*<a\s+\$when="as = 'a'"/);
   assert.match(source, /<button\s+\$else\b/);
   assert.equal(contracts["ui-button"].root, "button");
@@ -171,7 +186,8 @@ test("primitive contracts do not own application policy or a second interaction 
       false,
       `${tag} should not expose one boolean per editor command`,
     );
-    assert.match(props.actions.type, /^list\(.+\|.+\)$/);
+    assert.equal(props.actions.type, "array");
+    assert.match(contracts[tag].propTypes.actions, /readonly.*"align-left".*"align-right"/);
   }
 });
 
@@ -204,10 +220,10 @@ test("semantic tones use one public vocabulary", async () => {
     "utf8",
   );
 
-  assert.equal(contracts["ui-button"].props.variant.type, "outline | solid | danger | ghost | link");
-  assert.equal(contracts["ui-callout"].props.tone.type, "info | neutral | note | warning | success | danger");
-  assert.equal(contracts["ui-badge"].props.tone.type, "neutral | accent | info | success | warning | danger");
-  assert.equal(contracts["ui-badge"].props.shape.type, "pill | tag");
+  assert.deepEqual(contracts["ui-button"].propOptions.variant, ["outline", "solid", "danger", "ghost", "link"]);
+  assert.deepEqual(contracts["ui-callout"].propOptions.tone, ["info", "neutral", "note", "warning", "success", "danger"]);
+  assert.deepEqual(contracts["ui-badge"].propOptions.tone, ["neutral", "accent", "info", "success", "warning", "danger"]);
+  assert.deepEqual(contracts["ui-badge"].propOptions.shape, ["pill", "tag"]);
   assert.equal(contracts["ui-badge"].props.shape.default, "pill");
   assert.doesNotMatch(previewSource, /variant=["']destructive["']|tone=["']error["']/);
 });
@@ -219,7 +235,7 @@ test("events describe the interaction instead of repeating the package and compo
     .flatMap(([, contract]) => contract.events.map(({ name }) => name));
   assert.deepEqual(
     [...new Set(editorEventNames)].sort(),
-    ["action", "highlight", "insert", "select"],
+    ["action", "add-column-after", "add-column-before", "add-row-after", "add-row-before", "highlight", "insert", "open-cell-menu", "open-column-menu", "open-row-menu", "select", "select-column", "select-row"],
   );
   assert.equal(editorEventNames.some((name) => name.startsWith("looma-editor-")), false);
 

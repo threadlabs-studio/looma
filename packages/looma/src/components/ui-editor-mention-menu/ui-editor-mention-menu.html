@@ -12,7 +12,7 @@
     <prop name="loadingLabel" type="string" default="Searching…">Status text shown while loading an empty result list.</prop>
     <prop
       name="anchorRect"
-      type="object({ left?: number, top?: number, right?: number, bottom?: number, x?: number, y?: number, width?: number, height?: number }) | null"
+      type="object({ left?: number, top?: number, right?: number, bottom?: number, x?: number, y?: number, width?: number, height?: number })"
     >Where the @ was typed, in viewport coordinates.</prop>
     <state name="visible" :value="false"></state>
     <state name="rows" type="list(object({ id: string, label: string, detail?: string, initials: string }))" :value="[]"></state>

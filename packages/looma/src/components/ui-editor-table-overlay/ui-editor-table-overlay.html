@@ -4,32 +4,108 @@
     <prop name="open" type="boolean" default="false">Shows the controls after the editor has supplied current geometry.</prop>
     <prop
       name="geometry"
-      type="object({ rowBoundaries: list(number), columnBoundaries: list(number), activeCell: object({ left: number, top: number, width: number, height: number, rowIndex: integer, columnIndex: integer }) | null, hoveredCell?: object({ left: number, top: number, width: number, height: number, rowIndex: integer, columnIndex: integer }) | null }) | null"
-    >The authoritative editor-measured table boundaries and active or hovered cell rectangles.</prop>
+      type="object"
+    >
+      <prop name="rowBoundaries" required type="array">
+        <prop type="number"></prop>
+      </prop>
+      <prop name="columnBoundaries" required type="array">
+        <prop type="number"></prop>
+      </prop>
+      <prop name="activeCell" required nullable type="object">
+        <prop name="left" required type="number"></prop>
+        <prop name="top" required type="number"></prop>
+        <prop name="width" required type="number"></prop>
+        <prop name="height" required type="number"></prop>
+        <prop name="rowIndex" required type="integer"></prop>
+        <prop name="columnIndex" required type="integer"></prop>
+      </prop>
+      <prop name="hoveredCell" nullable type="object">
+        <prop name="left" required type="number"></prop>
+        <prop name="top" required type="number"></prop>
+        <prop name="width" required type="number"></prop>
+        <prop name="height" required type="number"></prop>
+        <prop name="rowIndex" required type="integer"></prop>
+        <prop name="columnIndex" required type="integer"></prop>
+      </prop>
+      The authoritative editor-measured table boundaries and active or hovered cell rectangles.
+    </prop>
     <state
       name="rows"
-      type="list(object({ key: string, index: integer, offset: string, affordance: insert-row | insert-column, action: add-row-before | add-row-after | add-column-before | add-column-after, label: string }))"
+      type="array"
       :value="[]"
-    ></state>
+    >
+      <prop type="object">
+        <prop name="key" required type="string"></prop>
+        <prop name="index" required type="integer"></prop>
+        <prop name="offset" required type="string"></prop>
+        <prop name="affordance" required type="keyword" values="insert-row, insert-column"></prop>
+        <prop name="action" required type="keyword" values="add-row-before, add-row-after, add-column-before, add-column-after"></prop>
+        <prop name="label" required type="string"></prop>
+      </prop>
+    </state>
     <state
       name="cols"
-      type="list(object({ key: string, index: integer, offset: string, affordance: insert-row | insert-column, action: add-row-before | add-row-after | add-column-before | add-column-after, label: string }))"
+      type="array"
       :value="[]"
-    ></state>
+    >
+      <prop type="object">
+        <prop name="key" required type="string"></prop>
+        <prop name="index" required type="integer"></prop>
+        <prop name="offset" required type="string"></prop>
+        <prop name="affordance" required type="keyword" values="insert-row, insert-column"></prop>
+        <prop name="action" required type="keyword" values="add-row-before, add-row-after, add-column-before, add-column-after"></prop>
+        <prop name="label" required type="string"></prop>
+      </prop>
+    </state>
     <state
       name="hovered"
-      type="object({ left: number, top: number, width: number, height: number, rowIndex: integer, columnIndex: integer, rowOffset: string, columnOffset: string }) | null"
+      type="object"
       :value="null"
-    ></state>
+      nullable
+    >
+      <prop name="left" required type="number"></prop>
+      <prop name="top" required type="number"></prop>
+      <prop name="width" required type="number"></prop>
+      <prop name="height" required type="number"></prop>
+      <prop name="rowIndex" required type="integer"></prop>
+      <prop name="columnIndex" required type="integer"></prop>
+      <prop name="rowOffset" required type="string"></prop>
+      <prop name="columnOffset" required type="string"></prop>
+    </state>
     <state
       name="active"
-      type="object({ left: number, top: number, width: number, height: number, rowIndex: integer, columnIndex: integer, menuLeft: string, menuTop: string }) | null"
+      type="object"
       :value="null"
-    ></state>
+      nullable
+    >
+      <prop name="left" required type="number"></prop>
+      <prop name="top" required type="number"></prop>
+      <prop name="width" required type="number"></prop>
+      <prop name="height" required type="number"></prop>
+      <prop name="rowIndex" required type="integer"></prop>
+      <prop name="columnIndex" required type="integer"></prop>
+      <prop name="menuLeft" required type="string"></prop>
+      <prop name="menuTop" required type="string"></prop>
+    </state>
     <state name="activeKey" :value="''"></state>
+    <event name="add-row-before" type="object({ boundaryIndex: integer })"></event>
+    <event name="add-row-after" type="object({ boundaryIndex: integer })"></event>
+    <event name="add-column-before" type="object({ boundaryIndex: integer })"></event>
+    <event name="add-column-after" type="object({ boundaryIndex: integer })"></event>
+    <event name="select-row" type="object({ rowIndex: integer, columnIndex: integer })"></event>
+    <event name="select-column" type="object({ rowIndex: integer, columnIndex: integer })"></event>
     <event
-      name="action"
-      type="object({ action: add-row-before | add-row-after | add-column-before | add-column-after, boundaryIndex: integer }) | object({ action: select-row | select-column, rowIndex: integer, columnIndex: integer }) | object({ action: open-cell-menu | open-row-menu | open-column-menu, rowIndex: integer, columnIndex: integer, anchor: object({ left: number, top: number, right: number, bottom: number }) })"
+      name="open-cell-menu"
+      type="object({ rowIndex: integer, columnIndex: integer, anchor: object({ left: number, top: number, right: number, bottom: number }) })"
+    ></event>
+    <event
+      name="open-row-menu"
+      type="object({ rowIndex: integer, columnIndex: integer, anchor: object({ left: number, top: number, right: number, bottom: number }) })"
+    ></event>
+    <event
+      name="open-column-menu"
+      type="object({ rowIndex: integer, columnIndex: integer, anchor: object({ left: number, top: number, right: number, bottom: number }) })"
     ></event>
   </defs>
   <div aria-label="Table controls" :hidden="not open">

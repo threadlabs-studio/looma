@@ -1,6 +1,28 @@
 <template component="ui-input" controller="./ui-input.js">
   <defs>
-    <prop name="value" type="string | number"
+    <prop
+      name="type"
+      type="keyword"
+      values="text, search, tel, url, email, password, date, month, week, time, datetime-local, number, range, color"
+      default="text"
+    >The native input mode. Number mode accepts a numeric value; the other supported modes accept strings.</prop>
+    <type name="input-value" from="type">
+      <option value="text" type="string"></option>
+      <option value="search" type="string"></option>
+      <option value="tel" type="string"></option>
+      <option value="url" type="string"></option>
+      <option value="email" type="string"></option>
+      <option value="password" type="string"></option>
+      <option value="date" type="string"></option>
+      <option value="month" type="string"></option>
+      <option value="week" type="string"></option>
+      <option value="time" type="string"></option>
+      <option value="datetime-local" type="string"></option>
+      <option value="number" type="number"></option>
+      <option value="range" type="string"></option>
+      <option value="color" type="string"></option>
+    </type>
+    <prop name="value" type="input-value"
     >The input's value: text, or a number for a type="number" field. Setting or changing it replaces the live text; between changes the user's typing stands, so
       follow input events to keep it in step. A number field keeps text that means the same number, such as 1.0 for 1. It is also the input's default, so a form
       reset returns to it.</prop>
@@ -8,13 +30,13 @@
     <prop name="invalid" type="boolean" default="false">Exposes invalid state to assistive technology and styling.</prop>
     <prop name="readonly" type="boolean" default="false">Allows selection without allowing edits.</prop>
     <prop name="required" type="boolean" default="false">Marks the control as required for form validation.</prop>
-    <prop name="size" type="sm | md | lg" default="md"
+    <prop name="size" type="keyword" values="sm, md, lg" default="md"
     >Height, padding, and type size, matching Button's sizes so a field and a button of one size share a row. sm is the small control height (2rem by default)
       with smaller text, for compact rows such as a table row or a filter bar; md is the standard control height; lg is taller with roomier padding. Under a
       coarse pointer, sm grows to the 44px touch minimum and keeps body-size text. Change it after render through this option; the element's size property is
       the native one.</prop>
   </defs>
-  <input :value="value" :disabled="disabled" :readonly="readonly" :required="required" :aria-invalid="invalid">
+  <input :type="type" :value="value" :disabled="disabled" :readonly="readonly" :required="required" :aria-invalid="invalid">
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. An Input
        Group sets --_ui-default-input-* for the input inside it, below the input's own hooks. */

@@ -1579,7 +1579,15 @@ export const LoomaEditor = defineComponent({
             }, [h(EditorTableOverlay, {
               open: true,
               geometry: tableUi.geometry,
-              onAction: runOverlayAction,
+              onAddRowBefore: ({ boundaryIndex }: { boundaryIndex: number }) => runOverlayAction({ action: "add-row-before", boundaryIndex }),
+              onAddRowAfter: ({ boundaryIndex }: { boundaryIndex: number }) => runOverlayAction({ action: "add-row-after", boundaryIndex }),
+              onAddColumnBefore: ({ boundaryIndex }: { boundaryIndex: number }) => runOverlayAction({ action: "add-column-before", boundaryIndex }),
+              onAddColumnAfter: ({ boundaryIndex }: { boundaryIndex: number }) => runOverlayAction({ action: "add-column-after", boundaryIndex }),
+              onSelectRow: ({ rowIndex, columnIndex }: { rowIndex: number; columnIndex: number }) => runOverlayAction({ action: "select-row", rowIndex, columnIndex }),
+              onSelectColumn: ({ rowIndex, columnIndex }: { rowIndex: number; columnIndex: number }) => runOverlayAction({ action: "select-column", rowIndex, columnIndex }),
+              onOpenCellMenu: (detail: { rowIndex: number; columnIndex: number; anchor: { left: number; top: number; right: number; bottom: number } }) => runOverlayAction({ action: "open-cell-menu", ...detail }),
+              onOpenRowMenu: (detail: { rowIndex: number; columnIndex: number; anchor: { left: number; top: number; right: number; bottom: number } }) => runOverlayAction({ action: "open-row-menu", ...detail }),
+              onOpenColumnMenu: (detail: { rowIndex: number; columnIndex: number; anchor: { left: number; top: number; right: number; bottom: number } }) => runOverlayAction({ action: "open-column-menu", ...detail }),
             })])
           : null,
         tableUi.menuOpen

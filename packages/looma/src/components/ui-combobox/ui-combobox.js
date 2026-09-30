@@ -215,9 +215,9 @@ export default function controller(host) {
   };
   const emitItems = (next, trigger) => {
     if (!controlledValues()) host.state.internalItems = next;
-    host.dispatch("value-change", next);
-    // Not `values`: Vue's adapter reads a modeled prop with `in`, and every list-shaped detail (this
-    // value-change, options-change) has Array.prototype.values, so it would emit update:values wrongly.
+    host.dispatch("items-change", next);
+    // Not `values`: Vue's adapter reads a modeled prop with `in`, and list-shaped details have
+    // Array.prototype.values, so it would emit update:values wrongly.
     host.dispatch("selected-values-change", { selectedValues: next.map((item) => item.value), trigger });
   };
   const setMultiQuery = (query, trigger) => {

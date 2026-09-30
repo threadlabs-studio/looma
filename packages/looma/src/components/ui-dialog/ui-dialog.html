@@ -8,24 +8,32 @@
     <prop name="modeless" type="boolean" default="false"
     >Deprecated: does nothing, since dialogs are non-modal unless modal is set. Accepted so markup written for 0.15 keeps working; modal wins when both are
       set.</prop>
-    <prop name="closedby" type="any | closerequest | none"
+    <prop name="closedby" type="keyword" values="any, closerequest, none"
     >Which user close requests work: any includes outside presses, closerequest includes Escape, and none requires an action. Unset follows native dialog:
       closerequest when modal, none when not.</prop>
     <prop name="alert" type="boolean" default="false"
     >Use alert dialog semantics and require an explicit action instead of the header close button. An alert dialog is always modal.</prop>
-    <prop name="size" type="sm | md | lg | fullscreen" default="md">Choose a compact, standard, wide, or viewport-filling dialog.</prop>
+    <prop name="size" type="keyword" values="sm, md, lg, fullscreen" default="md">Choose a compact, standard, wide, or viewport-filling dialog.</prop>
     <prop name="label" type="string">Visible title in the dialog header; also its accessible name.</prop>
     <prop name="for" type="string" default="">ID of the control that opens the dialog.</prop>
     <state name="internalOpen" :value="false"></state>
     <state name="accessibleLabel" :value="'Dialog'"></state>
     <event
       name="open"
-      type="object({ open: boolean, reason: action | programmatic, trigger: keyboard | pointer | programmatic })"
-    ></event>
+      type="object"
+    >
+      <prop name="open" required type="boolean"></prop>
+      <prop name="reason" required type="keyword" values="action, programmatic"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
     <event
       name="close"
-      type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"
-    ></event>
+      type="object"
+    >
+      <prop name="open" required type="boolean"></prop>
+      <prop name="reason" required type="keyword" values="action, programmatic, light-dismiss, escape"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
   </defs>
   <dialog :aria-label="accessibleLabel">
     <header>

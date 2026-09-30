@@ -1,11 +1,12 @@
 <template component="ui-list">
   <defs>
-    <prop name="as" type="ul | ol" default="ul">The native list element. Use ol when item order matters; its native numbers are shown.</prop>
-    <prop name="markers" type="none | disc" default="none">Show disc bullets for a ul of native li elements. An ol always shows native numbers.</prop>
-    <prop name="layout" type="rows | grid" default="rows"
+    <prop name="as" type="keyword" values="ul, ol" default="ul">The native list element. Use ol when item order matters; its native numbers are shown.</prop>
+    <prop name="markers" type="keyword" values="none, disc" default="none"
+    >Show disc bullets for a ul of native li elements. An ol always shows native numbers.</prop>
+    <prop name="layout" type="keyword" values="rows, grid" default="rows"
     >How the items are laid out. Rows stack the items one per line, for a list read top to bottom. Grid sets them in as many columns as fit, each at least
       --ui-list-min-item-width (14rem) wide, for card items such as pinned or featured entries.</prop>
-    <prop name="density" type="comfortable | compact" default="comfortable"
+    <prop name="density" type="keyword" values="comfortable, compact" default="comfortable"
     >How much room each item takes. comfortable is a full row, easy to point at, for lists of things to open; compact sets items close together with no row
       padding, for a short list of facts inside other content, such as the features a plan includes.</prop>
   </defs>
