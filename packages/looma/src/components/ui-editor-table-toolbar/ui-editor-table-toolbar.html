@@ -211,10 +211,12 @@
     }
 
     .menu {
+      box-sizing: border-box;
       position: absolute;
       top: calc(100% + var(--ui-space-2));
       right: 0;
       min-width: 12rem;
+      max-width: min(17rem, calc(100vw - 24px));
       padding: var(--ui-space-1);
       background: var(--ui-surface);
       border: 1px solid var(--ui-border-strong);
@@ -224,6 +226,9 @@
       flex-direction: column;
       gap: 2px;
       z-index: 2;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
     }
 
     .menu-section + .menu-section {
@@ -250,7 +255,7 @@
 
     .swatches {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 2px;
     }
 
@@ -264,7 +269,7 @@
       height: 14px;
       flex: 0 0 14px;
       border: 1px solid color-mix(in srgb, var(--ui-border) 80%, #000);
-      border-radius: 3px;
+      border-radius: var(--ui-radius-round);
       background: var(--_swatch);
     }
 

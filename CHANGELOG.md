@@ -5,6 +5,8 @@
 - Mention suggestions open only when an author types `@`. Pasted or loaded `@` text, clicking into
   it later, and `@` in inline code or code blocks no longer start a search.
 - The app-triggered editor toolbar now uses the same compact floating surface as the selection toolbar. A caret inside a link shows nearby actions to open, edit, or remove it; the edit action uses the same link form as the toolbar button.
+- **Changed default for `LoomaEditor` code blocks:** apps that omitted `codeLanguages` previously had no language picker or syntax highlighting, even though they could insert code blocks. The editor now offers every bundled Highlight.js grammar in its searchable picker. An explicit choice loads only its grammar; Auto loads 20 common grammars when code is present. This makes code blocks useful in the usual editor setup without adding grammars to documents that contain no code. Pass `{}` to retain plain code blocks, or a grammar map to keep an application-owned list.
+- Editor table options stay within the viewport, scroll to every action, and close with Escape or an outside click. Row and column grips can drag to reorder while clicks still open their action menus. The options swatches are round and have more room, and paragraphs after tables have a larger gap.
 - Strict Comboboxes keep typed search text visible even when their selected value is controlled. Leaving an unmatched search restores the previous label without reporting a new selection. Editable code blocks no longer inherit prose spell-check, while ordinary editor text still does.
 - `LoomaEditor` has a `popover` toolbar mode: the full toolbar opens from an app's own button
   (`toolbarTriggerId`, `v-model:toolbar-open`), and selecting text shows a text-only bubble. Use it

@@ -781,6 +781,10 @@
   -webkit-overflow-scrolling: touch;
 }
 
+.looma-editor .ProseMirror .tableWrapper + p {
+  margin-top: var(--ui-editor-table-following-gap, var(--ui-space-4));
+}
+
 /* ProseMirror table (for when Looma editor content is rendered) */
 .ProseMirror:focus-visible {
   outline: none;
