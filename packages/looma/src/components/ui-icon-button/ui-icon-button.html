@@ -35,6 +35,10 @@
       syntax: "*";
       inherits: false;
     }
+    @property --ui-icon-button-active-surface {
+      syntax: "*";
+      inherits: false;
+    }
     @property --ui-icon-button-border {
       syntax: "*";
       inherits: false;
@@ -275,6 +279,12 @@
 
     :host-state([variant="solid"]):hover:enabled:not([aria-disabled="true"]) {
       background-color: var(--ui-icon-button-solid-hover-surface, var(--ui-accent-hover));
+    }
+
+    :host-state([variant="ghost"])[aria-expanded="true"]:enabled:not([aria-disabled="true"]) {
+      background-color: var(--ui-icon-button-active-surface, color-mix(in srgb, currentColor 16%, transparent));
+      color: var(--ui-icon-button-hover-text, var(--ui-text-primary));
+      box-shadow: var(--ui-pressed);
     }
 
     :host:active:enabled:not([aria-disabled="true"]) {

@@ -13,6 +13,7 @@ export default function controller(host) {
   };
   const overlayId = `ui-popover-${Math.random().toString(36).slice(2, 11)}`;
   let anchor = null;
+  let anchorExpanded = null;
   let surface = null;
   let lastFor;
   let lastPlacement;
@@ -37,6 +38,14 @@ export default function controller(host) {
     host.dispatch("open", { open: true, reason: "action", trigger });
   };
   const ids = createIdResolver(document, () => apply());
+  const releaseAnchor = () => {
+    if (!anchor) return;
+    anchor.removeEventListener("click", onAnchorClick);
+    if (anchorExpanded === null) anchor.removeAttribute("aria-expanded");
+    else anchor.setAttribute("aria-expanded", anchorExpanded);
+    anchor = null;
+    anchorExpanded = null;
+  };
   const setup = () => {
     const nextFor = String(host.state.for ?? "");
     const nextPlacement = String(host.state.placement ?? "bottom-start");
@@ -44,8 +53,9 @@ export default function controller(host) {
     lastFor = nextFor;
     lastPlacement = nextPlacement;
     surface?.destroy();
-    anchor?.removeEventListener("click", onAnchorClick);
+    releaseAnchor();
     anchor = ids.get(nextFor);
+    if (anchor) anchorExpanded = anchor.getAttribute("aria-expanded");
     anchor?.addEventListener("click", onAnchorClick);
     surface = anchor ? createAnchoredSurface(element, { anchor, placement: nextPlacement, gap: offset }) : null;
   };
@@ -57,6 +67,7 @@ export default function controller(host) {
     }
     setup();
     const open = Boolean(host.state.internalOpen);
+    if (anchor) anchor.setAttribute("aria-expanded", String(open));
     if (open) {
       surface?.show();
       openOverlay({ id: overlayId, modal: false, element, relatedElements: anchor ? [anchor] : [], dismissible: true, requestClose: close });
@@ -79,8 +90,8 @@ export default function controller(host) {
     stop();
     ids.stop();
     element.removeEventListener("keydown", onKeydown);
-    anchor?.removeEventListener("click", onAnchorClick);
     surface?.destroy();
     closeOverlay(document, overlayId);
+    releaseAnchor();
   };
 }

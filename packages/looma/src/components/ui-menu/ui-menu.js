@@ -17,6 +17,7 @@ export default function controller(host) {
   const overlayId = `ui-menu-${Math.random().toString(36).slice(2, 11)}`;
   const items = () => menuItems(element);
   let anchor = null;
+  let anchorAria = null;
   let surface = null;
   let lastFor;
   let lastPlacement;
@@ -39,6 +40,16 @@ export default function controller(host) {
     if (reason === "escape") anchor?.focus();
   };
   const ids = createIdResolver(document, () => apply());
+  const releaseAnchor = () => {
+    if (!anchor) return;
+    anchor.removeEventListener("click", onAnchorClick);
+    for (const [name, value] of Object.entries(anchorAria ?? {})) {
+      if (value === null) anchor.removeAttribute(name);
+      else anchor.setAttribute(name, value);
+    }
+    anchor = null;
+    anchorAria = null;
+  };
   const setup = () => {
     const nextFor = host.state.inline ? "" : String(host.state.for ?? "");
     const nextPlacement = String(host.state.placement ?? "bottom-start");
@@ -46,8 +57,9 @@ export default function controller(host) {
     lastFor = nextFor;
     lastPlacement = nextPlacement;
     surface?.destroy();
-    anchor?.removeEventListener("click", onAnchorClick);
+    releaseAnchor();
     anchor = ids.get(nextFor);
+    if (anchor) anchorAria = { "aria-haspopup": anchor.getAttribute("aria-haspopup"), "aria-expanded": anchor.getAttribute("aria-expanded") };
     anchor?.addEventListener("click", onAnchorClick);
     surface = anchor ? createAnchoredSurface(element, { anchor, placement: nextPlacement }) : null;
   };
@@ -119,8 +131,8 @@ export default function controller(host) {
     ids.stop();
     element.removeEventListener("click", onClick);
     element.removeEventListener("keydown", onKeydown);
-    anchor?.removeEventListener("click", onAnchorClick);
     surface?.destroy();
     closeOverlay(document, overlayId);
+    releaseAnchor();
   };
 }
