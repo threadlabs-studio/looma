@@ -97,6 +97,10 @@ directory search. Each item needs a stable `id` and visible `label`; `detail` an
 optional display hints. `mentionLimit` defaults to 8. The editor stores the ID and label in the
 document, while the application owns directory lookup and identity.
 
+Suggestions open only when someone types `@` where a mention can go. `@` text that was pasted or
+loaded, or that someone clicks into later, stays plain and starts no search, and so does `@` in
+inline code or a code block.
+
 ```vue
 <LoomaEditor
   v-model="document"
