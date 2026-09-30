@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Tree marquee measures the rendered name instead of a full-width link and its padding, so short names stay still and long names stop beside row actions without extra travel.
 - Mention suggestions open only when an author types `@`. Pasted or loaded `@` text, clicking into
   it later, and `@` in inline code or code blocks no longer start a search.
 - The app-triggered editor toolbar now uses the same compact floating surface as the selection toolbar. A caret inside a link shows nearby actions to open, edit, or remove it; the edit action uses the same link form as the toolbar button.
