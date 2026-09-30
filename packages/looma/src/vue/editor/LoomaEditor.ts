@@ -67,6 +67,7 @@ import {
   type LoomaImageDescriptor,
   type LoomaImageRenditionErrorDetail,
 } from "./image-delivery";
+import { autoCodeLanguageNames, codeLanguageCatalog } from "./code-language-catalog";
 
 /**
  * Host upload result normalized into the editor's durable image descriptor.
@@ -218,10 +219,10 @@ export const LoomaEditor = defineComponent({
       type: Array as PropType<AnyExtension[]>,
       default: () => [],
     },
-    /** Code block grammars to register when this editor is created. */
+    /** Override the lazy built-in catalog with application-owned code grammars. An empty object disables highlighting. */
     codeLanguages: {
-      type: Object as PropType<LoomaCodeLanguages>,
-      default: () => ({}),
+      type: Object as PropType<LoomaCodeLanguages | null>,
+      default: null,
     },
     mentionItems: {
       type: Array as PropType<LoomaMentionItem[]>,
@@ -453,13 +454,66 @@ export const LoomaEditor = defineComponent({
     };
 
     const authorHighlight = !props.disableHighlight;
+    const codeLowlight = createLowlight(props.codeLanguages ?? undefined);
+    const codeHighlightLowlight = props.codeLanguages === null
+      ? {
+          ...codeLowlight,
+          highlightAuto: (value: string) => codeLowlight.highlightAuto(value, { subset: [...autoCodeLanguageNames] }),
+        }
+      : codeLowlight;
+    const codeLanguageNames = props.codeLanguages === null
+      ? [
+          ...autoCodeLanguageNames,
+          ...Object.keys(codeLanguageCatalog).filter((name) =>
+            !autoCodeLanguageNames.includes(name as typeof autoCodeLanguageNames[number])
+          ).sort(),
+        ]
+      : Object.keys(props.codeLanguages).sort();
+    const codeUi = reactive({ open: false, pos: 0, language: "auto", text: "", grammarVersion: 0, style: {} as CSSProperties });
+    const grammarLoads = new Map<string, Promise<void>>();
+    let catalogLoad: Promise<void> | undefined;
+    const refreshCodeHighlights = (instance: Editor) => {
+      if (instance.isDestroyed) return;
+      codeUi.grammarVersion += 1;
+      // Tiptap refreshes lowlight decorations only after a document change.
+      const tr = instance.state.tr;
+      instance.state.doc.descendants((node, pos) => {
+        if (node.type.name === "codeBlock") tr.setNodeMarkup(pos, undefined, node.attrs);
+      });
+      if (tr.docChanged) instance.view.dispatch(tr.setMeta("addToHistory", false));
+    };
+    const loadGrammar = (name: keyof typeof codeLanguageCatalog) => {
+      const existing = grammarLoads.get(name);
+      if (existing) return existing;
+      const pending = codeLanguageCatalog[name]().then((grammar) => {
+        codeLowlight.register({ [name]: grammar });
+      }).catch((error: unknown) => {
+        grammarLoads.delete(name);
+        throw error;
+      });
+      grammarLoads.set(name, pending);
+      return pending;
+    };
+    const loadForCodeBlock = (instance: Editor, language: unknown, value: string) => {
+      if (props.codeLanguages !== null || instance.isDestroyed) return;
+      if (typeof language === "string" && Object.hasOwn(codeLanguageCatalog, language)) {
+        if (codeLowlight.registered(language) || grammarLoads.has(language)) return;
+        void loadGrammar(language as keyof typeof codeLanguageCatalog)
+          .then(() => refreshCodeHighlights(instance)).catch(() => {});
+      } else if (!language && value.trim()) {
+        catalogLoad ??= Promise.all(autoCodeLanguageNames.map((name) =>
+          loadGrammar(name)
+        )).then(() => refreshCodeHighlights(instance)).catch(() => { catalogLoad = undefined; });
+      }
+    };
     const editor = useEditor({
       extensions: [
         ...getDefaultEditorExtensions({
           placeholder: props.placeholder,
           mention: mentionExtension ?? false,
           disableHighlight: props.disableHighlight,
-          codeLanguages: props.codeLanguages,
+          codeLanguages: props.codeLanguages ?? undefined,
+          codeLowlight: codeHighlightLowlight,
         }),
         imageDelivery.extension,
         slashExtension,
@@ -468,7 +522,12 @@ export const LoomaEditor = defineComponent({
       content: props.modelValue,
       editable: props.editable,
       editorProps: { attributes: { role: "textbox", "aria-multiline": "true", "aria-label": props.label } },
-      onCreate: ({ editor: instance }) => emit("ready", instance),
+      onCreate: ({ editor: instance }) => {
+        emit("ready", instance);
+        instance.state.doc.descendants((node) => {
+          if (node.type.name === "codeBlock") loadForCodeBlock(instance, node.attrs.language, node.textContent);
+        });
+      },
       onFocus: ({ editor: instance }) => rememberSelection(instance),
       onSelectionUpdate: ({ editor: instance }) => {
         rememberSelection(instance);
@@ -723,9 +782,6 @@ export const LoomaEditor = defineComponent({
     };
 
     // Like the table toolbar, the language picker floats above the code block holding the cursor.
-    const codeLanguageNames = Object.keys(props.codeLanguages).sort();
-    const codeLowlight = createLowlight(props.codeLanguages);
-    const codeUi = reactive({ open: false, pos: 0, language: "auto", text: "", style: {} as CSSProperties });
     let codeBlurTimer: ReturnType<typeof setTimeout> | undefined;
     const updateCodeUi = (focusSettled = false) => {
       const instance = editor.value?.isDestroyed ? undefined : editor.value;
@@ -738,6 +794,7 @@ export const LoomaEditor = defineComponent({
         codeUi.open = false;
         return;
       }
+      loadForCodeBlock(instance, block!.attrs.language, block!.textContent);
       if (!instance.isFocused && !codeLanguageShell.value?.contains(document.activeElement)) {
         // The editor blurs before focus lands; the picker stays if that focus lands in it.
         clearTimeout(codeBlurTimer);
@@ -758,10 +815,12 @@ export const LoomaEditor = defineComponent({
       };
     };
     const codeLanguageOptions = computed(() => {
-      const detected = codeUi.open && codeUi.text.trim() ? codeLowlight.highlightAuto(codeUi.text).data?.language : null;
+      // The lowlight registry is mutable rather than reactive; this version tracks async imports.
+      void codeUi.grammarVersion;
+      const detected = codeUi.open && codeUi.text.trim() ? codeHighlightLowlight.highlightAuto(codeUi.text).data?.language : null;
       return [
         { value: "auto", label: typeof detected === "string" ? `Auto (${detected.toUpperCase()})` : "Auto" },
-        ...(codeUi.language !== "auto" && !Object.hasOwn(props.codeLanguages, codeUi.language)
+        ...(codeUi.language !== "auto" && !codeLanguageNames.includes(codeUi.language)
           ? [{ value: codeUi.language, label: `${codeUi.language.toUpperCase()} (unavailable)` }]
           : []),
         ...codeLanguageNames.map((name) => ({ value: name, label: name.toUpperCase() })),
@@ -771,7 +830,7 @@ export const LoomaEditor = defineComponent({
       const instance = editor.value;
       if (!instance || detail.kind !== "selection" || !detail.value) return;
       const language = detail.value === "auto" ? null : detail.value;
-      if (language !== null && !Object.hasOwn(props.codeLanguages, language)) return;
+      if (language !== null && !codeLanguageNames.includes(language)) return;
       const node = instance.state.doc.nodeAt(codeUi.pos);
       if (node?.type.name !== "codeBlock") return;
       // Each choice is its own undo step, separate from typing around it.
@@ -785,10 +844,13 @@ export const LoomaEditor = defineComponent({
 
     const updateTableUi = () => {
       const instance = editor.value;
+      const focusInTableUi = [tableToolbarShell.value, tableOverlayShell.value, tableMenuShell.value]
+        .some((shell) => shell?.contains(document.activeElement));
       if (
         !instance
+        || instance.isDestroyed
         || !props.editable
-        || (!instance.isFocused && !tableInteractionActive && !hoveredTableCell)
+        || (!instance.isFocused && !tableInteractionActive && !hoveredTableCell && !focusInTableUi)
       ) {
         closeTableUi();
         return;
@@ -849,7 +911,7 @@ export const LoomaEditor = defineComponent({
     };
 
     const onEditorBlur = () => {
-      updateTableUi();
+      queueMicrotask(updateTableUi);
       updateCodeUi();
       setTimeout(() => {
         if (!tableInteractionActive && !editor.value?.isFocused) editorFocused.value = false;
@@ -880,7 +942,10 @@ export const LoomaEditor = defineComponent({
       bindEditorUi(instance);
     }, { immediate: true });
 
-    const onViewportChange = () => {
+    const onViewportChange = (event?: Event) => {
+      // A menu's own scroll does not move its anchor or change the active table.
+      if (event?.type === "scroll" && event.target instanceof Node
+        && (tableToolbarShell.value?.contains(event.target) || tableMenuShell.value?.contains(event.target))) return;
       updateMobileViewport();
       updateTableUi();
       updateCodeUi();
@@ -1095,6 +1160,8 @@ export const LoomaEditor = defineComponent({
       if (!table) return;
       const targetCell = "rowIndex" in detail
         ? resolveTableCellAt(table, detail.rowIndex, detail.columnIndex)
+        : "fromIndex" in detail
+          ? resolveTableCellAt(table, detail.action === "reorder-row" ? detail.fromIndex : 0, detail.action === "reorder-column" ? detail.fromIndex : 0)
         : resolveTableCellAt(
             table,
             detail.action.startsWith("add-row") ? Math.max(0, detail.boundaryIndex - 1) : 0,
@@ -1197,6 +1264,7 @@ export const LoomaEditor = defineComponent({
         : null;
       if (action) event.preventDefault();
     };
+
 
     const commandButton = (
       label: string,

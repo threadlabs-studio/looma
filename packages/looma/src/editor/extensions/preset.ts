@@ -66,6 +66,8 @@ export interface DefaultEditorExtensionsOptions {
   disableHighlight?: boolean;
   /** Code block grammars to register. None are loaded by default. */
   codeLanguages?: LoomaCodeLanguages;
+  /** Shared highlighter that can receive grammars after editor creation. */
+  codeLowlight?: ReturnType<typeof createLowlight>;
   /** Optional presentation for a code block; the Vue editor supplies its language control. */
   codeBlockNodeView?: NodeViewRenderer;
 }
@@ -141,10 +143,11 @@ export function getDefaultEditorExtensions(
     mention = createLoomaMentionExtension(),
     disableHighlight = false,
     codeLanguages,
+    codeLowlight,
     codeBlockNodeView,
   } = options;
 
-  const codeBlock = LoomaCodeBlock.configure({ lowlight: createLowlight(codeLanguages) });
+  const codeBlock = LoomaCodeBlock.configure({ lowlight: codeLowlight ?? createLowlight(codeLanguages) });
 
   return [
     Document,

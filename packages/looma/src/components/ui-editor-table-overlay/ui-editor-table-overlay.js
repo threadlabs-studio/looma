@@ -52,6 +52,52 @@ function createProximity(scope, selector = ".handle[data-ui-affordance]", radius
 export default function controller(host) {
   const element = host.element;
   const proximity = createProximity(element);
+  let drag = null;
+  let suppressClick = false;
+  const indicator = () => element.querySelector("[data-drop-indicator]");
+  const clearDrag = () => {
+    drag = null;
+    const guide = indicator();
+    if (guide) {
+      guide.hidden = true;
+      guide.classList.remove("row", "column");
+    }
+  };
+  const onPointerDown = (event) => {
+    const button = event.target.closest?.("button.selector[data-action]");
+    if (!button || event.button !== 0) return;
+    const axis = button.dataset.action === "select-row" ? "row" : "column";
+    drag = { pointerId: event.pointerId, axis, from: Number(button.dataset[axis === "row" ? "rowIndex" : "columnIndex"]), x: event.clientX, y: event.clientY, to: null };
+    button.setPointerCapture(event.pointerId);
+    event.preventDefault();
+  };
+  const onPointerMove = (event) => {
+    if (!drag || event.pointerId !== drag.pointerId) return;
+    if (Math.hypot(event.clientX - drag.x, event.clientY - drag.y) < 5 && drag.to === null) return;
+    const rect = element.getBoundingClientRect();
+    const values = boundaries(drag.axis);
+    const coordinate = drag.axis === "row" ? event.clientY - rect.top : event.clientX - rect.left;
+    const found = values.findIndex((_, index) => index < values.length - 1 && coordinate < values[index + 1]);
+    const to = found < 0 ? values.length - 2 : found;
+    drag.to = to;
+    const guide = indicator();
+    if (!guide) return;
+    guide.hidden = false;
+    guide.classList.toggle("row", drag.axis === "row");
+    guide.classList.toggle("column", drag.axis === "column");
+    const boundary = to > drag.from ? values[to + 1] : values[to];
+    if (drag.axis === "row") guide.style.top = `${boundary}px`;
+    else guide.style.left = `${boundary}px`;
+  };
+  const onPointerUp = (event) => {
+    if (!drag || event.pointerId !== drag.pointerId) return;
+    const { axis, from, to } = drag;
+    clearDrag();
+    if (to === null) return;
+    suppressClick = true;
+    setTimeout(() => { suppressClick = false; }, 0);
+    if (to !== from) host.dispatch("action", { action: axis === "row" ? "reorder-row" : "reorder-column", fromIndex: from, toIndex: to });
+  };
   const boundaries = (axis) => {
     const values = host.state.geometry?.[axis === "row" ? "rowBoundaries" : "columnBoundaries"];
     if (Array.isArray(values) && values.length >= 2 && values.every(Number.isFinite)) return values;
@@ -89,6 +135,7 @@ export default function controller(host) {
     queueMicrotask(proximity.refresh);
   });
   const onClick = (event) => {
+    if (suppressClick) { event.preventDefault(); return; }
     const button = event.target.closest?.("button[data-action]");
     if (!button) return;
     const action = button.dataset.action;
@@ -106,6 +153,10 @@ export default function controller(host) {
   const enter = (event) => { host.state.activeKey = keyOf(event.target); };
   const leave = (event) => { host.state.activeKey = keyOf(event.relatedTarget); };
   element.addEventListener("click", onClick);
+  element.addEventListener("pointerdown", onPointerDown);
+  document.addEventListener("pointermove", onPointerMove, true);
+  document.addEventListener("pointerup", onPointerUp, true);
+  document.addEventListener("pointercancel", clearDrag, true);
   element.addEventListener("pointerover", enter);
   element.addEventListener("pointerout", leave);
   element.addEventListener("focusin", enter);
@@ -114,6 +165,10 @@ export default function controller(host) {
     stop();
     proximity.destroy();
     element.removeEventListener("click", onClick);
+    element.removeEventListener("pointerdown", onPointerDown);
+    document.removeEventListener("pointermove", onPointerMove, true);
+    document.removeEventListener("pointerup", onPointerUp, true);
+    document.removeEventListener("pointercancel", clearDrag, true);
     element.removeEventListener("pointerover", enter);
     element.removeEventListener("pointerout", leave);
     element.removeEventListener("focusin", enter);
