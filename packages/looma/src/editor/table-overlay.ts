@@ -24,7 +24,7 @@ export type TableOverlayAction =
   | "open-column-menu";
 
 /**
- * Discriminated action payload.
+ * Discriminated command payload assembled by editor adapters from the overlay's named events.
  * Boundary indices refer to entries in the measured boundary arrays. Cell
  * indices refer to the logical grid after row/column spans are expanded. The
  * menu anchor uses CSS-pixel viewport coordinates suitable for fixed surfaces.

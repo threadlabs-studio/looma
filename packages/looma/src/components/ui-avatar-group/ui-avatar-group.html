@@ -10,7 +10,7 @@
     >Accessible label for the overflow badge. Replace {count} with the number of people beyond the visible avatars.</prop>
     <prop name="label" type="string" default="People"
     >The group's accessible name, announced for the set of avatars as a whole. Name who they are rather than repeating the default.</prop>
-    <prop name="size" type="sm | md" default="md"
+    <prop name="size" type="keyword" values="sm, md" default="md"
     >The size of the avatars inside, matched by the +N badge and the overlap. Give each Avatar the same size.</prop>
     <state name="overflowCount" :value="0"></state>
     <state name="overflowAnnouncement" :value="''"></state>

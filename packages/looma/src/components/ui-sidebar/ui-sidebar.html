@@ -1,6 +1,6 @@
 <template component="ui-sidebar" controller="./ui-sidebar.js">
   <defs>
-    <prop name="side" type="start | end" default="start">The edge the sidebar sits on. The page places it beside its main content.</prop>
+    <prop name="side" type="keyword" values="start, end" default="start">The edge the sidebar sits on. The page places it beside its main content.</prop>
     <prop name="width" type="number" default="0">Docked width in pixels. 0 uses --ui-sidebar-width (280px by default); dragging the handle updates it.</prop>
     <prop name="minWidth" type="number" default="200">The narrowest width the resize handle allows, in pixels.</prop>
     <prop name="maxWidth" type="number" default="480">The widest width the resize handle allows, in pixels.</prop>
@@ -8,12 +8,19 @@
     <prop name="resizeStep" type="number" default="16">Arrow-key resize step in pixels.</prop>
     <prop name="resizeLabel" type="string" default="Resize sidebar">Accessible name of the resize handle.</prop>
     <prop name="collapsed" type="boolean" default="false">Whether the docked sidebar is collapsed.</prop>
-    <prop name="breakpoint" type="sm | md | lg" default="md"
+    <prop name="breakpoint" type="keyword" values="sm, md, lg" default="md"
     >Below this viewport width (40rem, 48rem, 64rem) the sidebar becomes an off-canvas drawer, closed until toggled.</prop>
     <state name="internalCollapsed" :value="false"></state>
     <state name="drawer" :value="false"></state>
-    <event name="resize" type="object({ width: number, trigger: keyboard | pointer | programmatic })"></event>
-    <event name="toggle" type="object({ open: boolean, mode: docked | drawer, trigger: keyboard | pointer | programmatic })"></event>
+    <event name="resize" type="object">
+      <prop name="width" required type="number"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
+    <event name="toggle" type="object">
+      <prop name="open" required type="boolean"></prop>
+      <prop name="mode" required type="keyword" values="docked, drawer"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
   </defs>
   <aside>
     <div class="content"><slot></slot></div>

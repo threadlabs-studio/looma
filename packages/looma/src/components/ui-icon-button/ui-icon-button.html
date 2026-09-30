@@ -8,10 +8,10 @@
       cleared.</prop>
     <prop name="pending" type="boolean" default="false">Deprecated alias for loading.</prop>
     <prop name="label" type="string">Accessible name for the icon.</prop>
-    <prop name="size" type="sm | md | lg" default="md"
+    <prop name="size" type="keyword" values="sm, md, lg" default="md"
     >Button and icon size together: sm is 1.75rem with a small icon, md is 2rem, and lg is 2.5rem with a large icon. On touch, every size gets an invisible hit
       area of at least 44px.</prop>
-    <prop name="variant" type="ghost | outline | solid" default="ghost"
+    <prop name="variant" type="keyword" values="ghost, outline, solid" default="ghost"
     >Emphasis. ghost shows only the icon until it is hovered, for toolbars and dense rows; outline adds a border on the default surface; solid fills with the
       accent colour, for the one primary action in a group.</prop>
     <prop name="anticipatory" type="boolean" default="false"

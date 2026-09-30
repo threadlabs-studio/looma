@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- **Breaking for Table Overlay:** its catch-all `action` event is replaced by the named `add-row-before`, `add-row-after`, `add-column-before`, `add-column-after`, `select-row`, `select-column`, `open-cell-menu`, `open-row-menu`, and `open-column-menu` events. The old event mixed three incompatible detail shapes, leaving generated component types unable to describe an individual action precisely. Adding the new events while retaining `action` would dispatch each request twice and preserve that ambiguous event contract. Listen for the names you handle, and read `boundaryIndex`, `rowIndex`/`columnIndex`, or `anchor` directly from each event detail instead of reading `detail.action`. The editor adapter continues to handle all nine actions.
 - Strict Comboboxes keep typed search text visible even when their selected value is controlled. Leaving an unmatched search restores the previous label without reporting a new selection. Editable code blocks no longer inherit prose spell-check, while ordinary editor text still does.
 - `LoomaEditor` has a `popover` toolbar mode: the full toolbar opens from an app's own button
   (`toolbarTriggerId`, `v-model:toolbar-open`), and selecting text shows a text-only bubble. Use it

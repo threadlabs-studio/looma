@@ -216,6 +216,10 @@ body {
 
 .theme-doc-markdown tbody tr:last-child td, .looma-api-table tbody tr:last-child td { border-bottom: 0; }
 
+.looma-api-fields { margin: 0.45rem 0 0; padding-left: 1.1rem; }
+.looma-api-fields li + li { margin-top: 0.3rem; }
+.looma-api-table td code { overflow-wrap: anywhere; }
+
 /* The home page is a page, not a document: full width, sections that breathe, no sidebar. */
 .looma-home {
   --looma-home-measure: 68rem;

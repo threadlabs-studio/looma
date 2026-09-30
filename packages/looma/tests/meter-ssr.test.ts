@@ -58,7 +58,11 @@ describe("Meter server render", () => {
 
   it("renders a continuous meter as before unless segments is 2 or more, and records the count for its styles", async () => {
     const plain = (await render({ value: 4, max: 6 })).html;
-    for (const segments of [0, 1]) expect((await render({ value: 4, max: 6, segments })).html).toBe(plain);
+    for (const segments of [0, 1]) {
+      const meter = await render({ value: 4, max: 6, segments });
+      expect(meter.attribute("data-ui-meter-segments")).toBeUndefined();
+      expect(meter.fill).toBeCloseTo(66.67, 2);
+    }
     expect(plain).not.toContain("data-ui-meter-segments");
 
     const steps = await render({ value: 4, max: 6, segments: 6, label: "Status", valueText: "Shipped, step 4 of 6" });

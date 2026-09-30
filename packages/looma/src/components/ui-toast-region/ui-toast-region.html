@@ -4,14 +4,26 @@
   <defs>
     <prop name="duration" type="number" default="0"
     >Default milliseconds for toasts added with show() or the show command; 0 keeps each until dismissed. Hover or focus pauses a timer.</prop>
-    <prop name="placement" type="top | top-start | top-end | bottom | bottom-start | bottom-end" default="top"
+    <prop name="placement" type="keyword" values="top, top-start, top-end, bottom, bottom-start, bottom-end" default="top"
     >Screen edge where the stack appears. Start and end follow the writing direction.</prop>
     <state
       name="toasts"
-      type="list(object({ id: string, message: string, tone: neutral | info | success | warning | danger, role: alert | status, closing: boolean }))"
+      type="array"
       :value="[]"
-    ></state>
-    <event name="dismiss" type="object({ id: string, reason: action | timeout, trigger: keyboard | pointer | programmatic })"></event>
+    >
+      <prop type="object">
+        <prop name="id" required type="string"></prop>
+        <prop name="message" required type="string"></prop>
+        <prop name="tone" required type="keyword" values="neutral, info, success, warning, danger"></prop>
+        <prop name="role" required type="keyword" values="alert, status"></prop>
+        <prop name="closing" required type="boolean"></prop>
+      </prop>
+    </state>
+    <event name="dismiss" type="object">
+      <prop name="id" required type="string"></prop>
+      <prop name="reason" required type="keyword" values="action, timeout"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
     <method name="show" export="show" returns="promise(string)"></method>
   </defs>
   <div role="region" aria-label="Notifications" aria-live="polite" popover="manual">

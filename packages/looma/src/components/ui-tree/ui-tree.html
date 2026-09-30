@@ -1,9 +1,10 @@
 <link rel="component" href="../ui-tree-item/ui-tree-item.html">
 <template component="ui-tree" controller="./ui-tree.js">
   <defs>
-    <prop name="density" type="comfortable | compact" default="comfortable">Compact trades padding and type size for rows that fit more on screen.</prop>
+    <prop name="density" type="keyword" values="comfortable, compact" default="comfortable"
+    >Compact trades padding and type size for rows that fit more on screen.</prop>
     <prop name="label" type="string" default="Tree">The tree's accessible name, announced when focus enters it. Name what the tree holds.</prop>
-    <prop name="selection" type="none | single | multiple" default="none"
+    <prop name="selection" type="keyword" values="none, single, multiple" default="none"
     >How selection works. None keeps rows for navigation and expansion; single requests one selected item; multiple shows checkboxes and requests an item with
       its descendants. The application owns each Tree Item's selected state and responds to select.</prop>
     <prop name="hoverExpandDelay" type="number" default="700"
@@ -17,13 +18,35 @@
       that fit should not move. An item may set its own marquee to opt in or out on its own.</prop>
     <event
       name="reorder"
-      type="object({ sourceId: string, targetId: string, position: before | inside | after, sourceType: string, targetType: string, sourceScope: string, targetScope: string, trigger: keyboard | pointer | programmatic })"
-    ></event>
+      type="object"
+    >
+      <prop name="sourceId" required type="string"></prop>
+      <prop name="targetId" required type="string"></prop>
+      <prop name="position" required type="keyword" values="before, inside, after"></prop>
+      <prop name="sourceType" required type="string"></prop>
+      <prop name="targetType" required type="string"></prop>
+      <prop name="sourceScope" required type="string"></prop>
+      <prop name="targetScope" required type="string"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
     <event
       name="reorder-rejected"
-      type="object({ sourceId: string, targetId: string, position: before | inside | after, reason: max-depth, maxDepth: integer, resultingDepth: integer, trigger: keyboard | pointer | programmatic })"
-    ></event>
-    <event name="select" type="object({ ids: list(string), trigger: keyboard | pointer | programmatic })"></event>
+      type="object"
+    >
+      <prop name="sourceId" required type="string"></prop>
+      <prop name="targetId" required type="string"></prop>
+      <prop name="position" required type="keyword" values="before, inside, after"></prop>
+      <prop name="reason" required type="keyword" values="max-depth"></prop>
+      <prop name="maxDepth" required type="integer"></prop>
+      <prop name="resultingDepth" required type="integer"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
+    <event name="select" type="object">
+      <prop name="ids" required type="array">
+        <prop type="string"></prop>
+      </prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
   </defs>
   <div role="tree"><slot></slot></div>
   <style>

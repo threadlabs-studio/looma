@@ -1,15 +1,16 @@
 <template component="ui-nav-item">
   <defs>
-    <prop name="current" type="boolean | page | step | location" default="false"
+    <prop name="current" type="keyword" values="true, false, page, step, location" default="false"
     >Marks the item as where you are: it takes the selected surface, a stronger label, and a bar on its start edge, and states aria-current, which assistive
-      technology announces. true means the current page (aria-current="page"); step marks the current step of a process, and location the current place in a
-      set, such as a section of a record. Set it on one item at a time.</prop>
+      technology announces. "true" means the current page (aria-current="page"); "step" marks the current step of a process, and "location" the current place in
+      a set, such as a section of a record. Set it on one item at a time.</prop>
     <prop name="href" type="string"
     >The link's destination. Pair it with as="a" so the item renders as a real link: a router, a modified click, and "open in new tab" all work. Without it the
       item is a button, for switching views inside the app.</prop>
     <prop name="target" type="string">Where a link opens, as on a native link. Only meaningful with as="a".</prop>
     <prop name="rel" type="string">The link's relationship to its destination, as on a native link. Only meaningful with as="a".</prop>
-    <prop name="as" type="button | a" default="button">The native element the item renders: a button, or a link (a) that navigates to href.</prop>
+    <prop name="as" type="keyword" values="button, a" default="button"
+    >The native element the item renders: a button, or a link (a) that navigates to href.</prop>
     <!-- A button or a link, as Button does. A button never submits a form; a link carries no type. The
          language has no conditional expression, so a table keyed by a value's text picks each attribute,
          and null leaves it off. -->

@@ -14,3 +14,8 @@ without owning editor commands.
 
 
 <ComponentExamplesApiTabs component="ui-editor-table-overlay" />
+
+Table Overlay emits one event per action. Listen for `add-row-before`, `add-row-after`,
+`add-column-before`, or `add-column-after` to receive `{ boundaryIndex }`; for `select-row`
+or `select-column` to receive `{ rowIndex, columnIndex }`; and for `open-cell-menu`,
+`open-row-menu`, or `open-column-menu` to receive those indices plus `anchor`.

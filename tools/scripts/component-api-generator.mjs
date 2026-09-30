@@ -469,9 +469,11 @@ function contractMetadata(tag, packageName, contract, description, designTokens)
   const properties = Object.entries(contract.props ?? {}).map(([name, declaration]) => ({
     name,
     description: describe(name),
-    type: declarativeTypeToTypeScript(declaration.type),
+    type: contract.propTypes?.[name] ?? declarativeTypeToTypeScript(declaration.type),
+    ...(contract.propFields?.[name] ? { fields: contract.propFields[name] } : {}),
     ...(Object.hasOwn(declaration, "default") ? { default: declaration.default } : {}),
-    ...(literalOptions(declaration.type) ? { options: literalOptions(declaration.type) } : {}),
+    ...(contract.propOptions?.[name] ?? (contract.propTypes?.[name] ? undefined : literalOptions(declaration.type))
+      ? { options: contract.propOptions?.[name] ?? literalOptions(declaration.type) } : {}),
   }));
   // Every prop is an HTML attribute (structured shapes as JSON text); there is no property-only channel.
   const attributes = Object.entries(contract.props ?? {})
@@ -479,16 +481,19 @@ function contractMetadata(tag, packageName, contract, description, designTokens)
       name: publicAttributeName(name, declaration),
       property: name,
       description: describe(name),
-      type: declarativeTypeToTypeScript(declaration.type),
+      type: contract.propValueTypes?.[name] ?? declarativeTypeToTypeScript(declaration.type),
+      ...(contract.propFields?.[name] ? { fields: contract.propFields[name] } : {}),
       ...(Object.hasOwn(declaration, "default") ? { default: declaration.default } : {}),
-      ...(literalOptions(declaration.type) ? { options: literalOptions(declaration.type) } : {}),
+      ...(contract.propOptions?.[name] ?? (contract.propTypes?.[name] ? undefined : literalOptions(declaration.type))
+        ? { options: contract.propOptions?.[name] ?? literalOptions(declaration.type) } : {}),
     }));
   const events = (contract.events ?? []).map((event) => {
-    const type = declarativeTypeToTypeScript(event.type ?? "unknown");
+    const type = event.detailType ?? declarativeTypeToTypeScript(event.type ?? "unknown");
     return {
       name: event.name,
       detailType: type,
-      detailSchema: type,
+      detailSchema: event.detailShape ?? type,
+      ...(event.fields?.length ? { fields: event.fields } : {}),
       detailDocs: EVENT_DETAIL_DOCS[event.name] ?? "Emitted with the declared detail payload.",
     };
   });

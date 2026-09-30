@@ -1,12 +1,13 @@
 <template component="ui-card">
   <defs>
-    <prop name="variant" type="outlined | subtle | elevated" default="outlined"
+    <prop name="variant" type="keyword" values="outlined, subtle, elevated" default="outlined"
     >The surface. outlined is a bordered panel on the page; subtle is a quiet filled one with no border, for supporting details set apart from the flow;
       elevated floats above the page with a shadow, for a view's one card, such as sign-in.</prop>
-    <prop name="padding" type="sm | md | lg" default="md"
+    <prop name="padding" type="keyword" values="sm, md, lg" default="md"
     >The space inside the card: sm is snug (0.75rem), md is the default (1.5rem), and lg is roomy (2rem).</prop>
-    <prop name="tone" type="neutral | danger" default="neutral">danger adds a soft danger surface and a strong leading edge for consequential content.</prop>
-    <prop name="as" type="div | section | article | aside" default="div"
+    <prop name="tone" type="keyword" values="neutral, danger" default="neutral"
+    >danger adds a soft danger surface and a strong leading edge for consequential content.</prop>
+    <prop name="as" type="keyword" values="div, section, article, aside" default="div"
     >The native element the card renders. Choose the one that names the content: a section of a page, a self-contained article, or an aside.</prop>
   </defs>
   <template $match>

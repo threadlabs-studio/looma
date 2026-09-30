@@ -5,11 +5,11 @@
     <prop name="max" type="number" default="1"
     >The value of a full bar, as on a native meter: 1 for a fraction, or the whole amount (a total, a count of items) with value as the part of it. Must be
       above 0; otherwise the bar is empty.</prop>
-    <prop name="tone" type="neutral | accent | info | success | warning | danger" default="neutral"
+    <prop name="tone" type="keyword" values="neutral, accent, info, success, warning, danger" default="neutral"
     >Which colour the filled part speaks in, as on Badge: neutral is a quiet grey, accent draws the eye, and info, success, warning, and danger mark a state
       (such as nothing yet, partial, complete, or needs attention). Colour alone says nothing to assistive technology or in forced colours, so say the state in
       valueText or in text beside the meter too.</prop>
-    <prop name="size" type="sm | md" default="md"
+    <prop name="size" type="keyword" values="sm, md" default="md"
     >Thickness. sm is a thin bar that sits in a line of text, such as a table cell beside an amount; md stands on its own.</prop>
     <prop name="segments" type="number" default="0"
     >How many equal segments to draw the bar as, from 2 to 12, for a count of steps: set max to the same number and value to the steps done, so whole segments

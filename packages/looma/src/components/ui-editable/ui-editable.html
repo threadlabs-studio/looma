@@ -17,12 +17,23 @@
     <state name="internalEdit" :value="false"></state>
     <state name="internalValue" :value="''"></state>
     <state name="draft" :value="''"></state>
-    <event name="input" type="object({ value: string, trigger: keyboard | pointer | programmatic })"></event>
-    <event name="change" type="object({ value: string, previousValue: string, trigger: keyboard | pointer | programmatic })"></event>
+    <event name="input" type="object">
+      <prop name="value" required type="string"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
+    <event name="change" type="object">
+      <prop name="value" required type="string"></prop>
+      <prop name="previousValue" required type="string"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
     <event
       name="edit-change"
-      type="object({ edit: boolean, reason: activate | commit | cancel | light-dismiss | escape | programmatic, trigger: keyboard | pointer | programmatic })"
-    ></event>
+      type="object"
+    >
+      <prop name="edit" required type="boolean"></prop>
+      <prop name="reason" required type="keyword" values="activate, commit, cancel, light-dismiss, escape, programmatic"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
   </defs>
   <div>
     <div class="field">
