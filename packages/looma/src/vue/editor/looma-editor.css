@@ -234,17 +234,18 @@
   font-size: var(--ui-font-size-sm);
 }
 
-.looma-editor .ProseMirror pre.looma-editor__code-block--has-language {
-  position: relative;
-  padding-block-start: calc(var(--ui-space-4) + 2rem);
-}
-
+/* Same surface as the floating formatting and table toolbars. */
 .looma-editor__code-language {
-  position: absolute;
-  inset-block-start: var(--ui-space-2);
-  inset-inline-end: var(--ui-space-2);
-  inline-size: min(8.5rem, calc(100% - 2 * var(--ui-space-2)));
-  z-index: 1;
+  position: fixed;
+  z-index: var(--ui-editor-popover-z-index, 300);
+  box-sizing: content-box;
+  inline-size: 8.5rem;
+  padding: var(--ui-editor-toolbar-floating-padding, 4px);
+  background: color-mix(in srgb, var(--ui-editor-toolbar-surface, var(--ui-surface)) 96%, transparent);
+  border: 1px solid var(--ui-editor-toolbar-border, var(--ui-border-strong));
+  border-radius: var(--ui-editor-toolbar-floating-radius, var(--ui-radius-lg));
+  box-shadow: var(--ui-editor-toolbar-floating-shadow, var(--ui-shadow-lg, 0 10px 24px rgb(0 0 0 / 0.12)));
+  backdrop-filter: blur(10px);
   font-family: var(--ui-font-family-sans, sans-serif);
 }
 

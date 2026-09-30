@@ -113,14 +113,11 @@ describe("LoomaEditor history (real browser)", () => {
     const { editor, host } = await mountEditor({ codeLanguages: { ini: common.ini, sql: common.sql } });
     host.style.width = "375px";
     editor.commands.setContent('<pre><code>SELECT id, name FROM users WHERE active = true;</code></pre>');
+    editor.commands.focus("start");
     await flushBrowser();
 
-    const language = host.querySelector<HTMLInputElement>('pre [role="combobox"]');
+    const language = host.querySelector<HTMLInputElement>('.looma-editor__code-language [role="combobox"]');
     expect(language?.value).toBe("Auto (INI)");
-    const blockBounds = host.querySelector("pre")!.getBoundingClientRect();
-    const controlBounds = language!.getBoundingClientRect();
-    expect(controlBounds.right).toBeLessThanOrEqual(blockBounds.right);
-    expect(controlBounds.left).toBeGreaterThanOrEqual(blockBounds.left);
     await page.viewport(1280, 720);
     language!.focus();
     language!.select();
@@ -141,7 +138,7 @@ describe("LoomaEditor history (real browser)", () => {
     expect(saved.content?.[0]?.content?.[0]?.text).toBe("SELECT id, name FROM users WHERE active = true;");
     expect(host.querySelector('pre .hljs-keyword')?.textContent).toBe("SELECT");
 
-    const selected = host.querySelector<HTMLInputElement>('pre [role="combobox"]')!;
+    const selected = host.querySelector<HTMLInputElement>('.looma-editor__code-language [role="combobox"]')!;
     selected.focus();
     await userEvent.keyboard("{ArrowDown}");
     await flushBrowser();
@@ -159,13 +156,39 @@ describe("LoomaEditor history (real browser)", () => {
     expect(editor.getJSON().content?.[0]?.attrs).toEqual({ language: null });
 
     editor.commands.setContent(saved);
+    editor.commands.focus("start");
     await flushBrowser();
-    expect(host.querySelector<HTMLInputElement>('pre [role="combobox"]')?.value).toBe("SQL");
+    expect(host.querySelector<HTMLInputElement>('.looma-editor__code-language [role="combobox"]')?.value).toBe("SQL");
 
     editor.commands.setContent('<pre><code class="language-rust">fn main() {}</code></pre>');
+    editor.commands.focus("start");
     await flushBrowser();
-    expect(host.querySelector<HTMLInputElement>('pre [role="combobox"]')?.value).toBe("RUST (unavailable)");
+    expect(host.querySelector<HTMLInputElement>('.looma-editor__code-language [role="combobox"]')?.value).toBe("RUST (unavailable)");
     expect(editor.getJSON().content?.[0]?.attrs).toEqual({ language: "rust" });
+  });
+
+  it("floats the code language picker above the code block holding the cursor", async () => {
+    const { editor, host } = await mountEditor({ codeLanguages: { sql: common.sql } });
+    editor.commands.setContent('<p>Intro</p><p>More</p><p>Even more</p><pre><code>SELECT 1;</code></pre><p>After</p>');
+    editor.commands.focus("start");
+    await flushBrowser();
+    expect(host.querySelector(".looma-editor__code-language")).toBeNull();
+
+    let codePos = 0;
+    editor.state.doc.forEach((node, offset) => { if (node.type.name === "codeBlock") codePos = offset + 1; });
+    editor.commands.setTextSelection(codePos);
+    await flushBrowser();
+    const pre = host.querySelector("pre")!;
+    const block = pre.getBoundingClientRect();
+    const picker = host.querySelector(".looma-editor__code-language")!.getBoundingClientRect();
+    expect(picker.bottom).toBeLessThanOrEqual(block.top);
+    expect(Math.abs((picker.left + picker.right) / 2 - (block.left + block.right) / 2)).toBeLessThan(1);
+    // No space is reserved inside the block for the picker.
+    expect(getComputedStyle(pre).paddingTop).toBe(getComputedStyle(pre).paddingBottom);
+
+    editor.commands.setTextSelection(1);
+    await flushBrowser();
+    expect(host.querySelector(".looma-editor__code-language")).toBeNull();
   });
 
   it("turns three typed backticks into a code block with the cursor inside", async () => {
@@ -176,7 +199,7 @@ describe("LoomaEditor history (real browser)", () => {
 
     expect(editor.getJSON().content?.[0]).toMatchObject({ type: "codeBlock", attrs: { language: null } });
     expect(editor.state.selection.$head.parent.type.name).toBe("codeBlock");
-    expect(host.querySelector('pre [role="combobox"]')).toBeNull();
+    expect(host.querySelector('.looma-editor__code-language [role="combobox"]')).toBeNull();
     await userEvent.keyboard("SELECT 1");
     expect(editor.getJSON().content?.[0]?.content?.[0]?.text).toBe("SELECT 1");
   });
@@ -184,12 +207,13 @@ describe("LoomaEditor history (real browser)", () => {
   it("hides the code language control when the editor becomes read-only", async () => {
     const { editor, host, editable } = await mountEditor({ codeLanguages: { sql: common.sql } });
     editor.commands.setContent('<pre><code>SELECT 1</code></pre>');
+    editor.commands.focus("start");
     await flushBrowser();
-    expect(host.querySelector('pre [role="combobox"]')).toBeTruthy();
+    expect(host.querySelector('.looma-editor__code-language [role="combobox"]')).toBeTruthy();
 
     editable.value = false;
     await flushBrowser();
-    expect(host.querySelector('pre [role="combobox"]')).toBeNull();
+    expect(host.querySelector('.looma-editor__code-language [role="combobox"]')).toBeNull();
     expect(host.querySelector('pre code')?.textContent).toBe('SELECT 1');
   });
 
