@@ -17,7 +17,7 @@ test("keeps the singleton facade release manifest deterministic", () => {
 test("records a deterministic inventory of every packed file", () => {
   const manifest = createReleaseManifest({
     sourceCommit: "a".repeat(40),
-    nodeVersion: "v20.19.6",
+    nodeVersion: "v24.0.0",
     pnpmVersion: "10.15.0",
     npmVersion: "10.8.2",
     packages: [

@@ -235,7 +235,7 @@ test("events describe the interaction instead of repeating the package and compo
     .flatMap(([, contract]) => contract.events.map(({ name }) => name));
   assert.deepEqual(
     [...new Set(editorEventNames)].sort(),
-    ["action", "add-column-after", "add-column-before", "add-row-after", "add-row-before", "highlight", "insert", "open-cell-menu", "open-column-menu", "open-row-menu", "select", "select-column", "select-row"],
+    ["action", "add-column-after", "add-column-before", "add-row-after", "add-row-before", "highlight", "insert", "open-cell-menu", "open-column-menu", "open-row-menu", "reorder-column", "reorder-row", "select", "select-column", "select-row"],
   );
   assert.equal(editorEventNames.some((name) => name.startsWith("looma-editor-")), false);
 

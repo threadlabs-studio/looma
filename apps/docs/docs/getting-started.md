@@ -12,7 +12,7 @@ import { DeclarativeModel } from "@site/src/components/DeclarativeModel";
 
 Looma is published on npm for Vue 3 and direct declarative HTML use. It is pre-1.0, so the surface can still change between minor versions. React support is in development.
 
-Use Node 20 or newer:
+Use Node 22.13 or Node 24:
 
 ```bash npm2yarn
 pnpm add @threadlabs/looma
