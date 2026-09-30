@@ -14,6 +14,7 @@ let directory = "";
 let browser: Browser;
 let bundlePath = "";
 let marqueePath = "";
+let paddedMarqueePath = "";
 
 async function bundle(name: string, source: string): Promise<string> {
   const entry = join(directory, `${name}.js`);
@@ -134,6 +135,25 @@ beforeAll(async () => {
         }),
       ]),
     }).mount("#app");
+  `);
+  // A full-width link keeps its hit area across the row while its title may be short.
+  paddedMarqueePath = await bundle("vue-tree-marquee-padded", `
+    import { createApp, h } from "vue";
+    import { Tree, TreeItem } from "@threadlabs/looma/vue";
+    createApp({ render: () => h(Tree, { label: "Files", marquee: true, style: "width:220px" }, () => [
+      h(TreeItem, { itemId: "padded", label: "A moderately long file name" }, {
+        leading: () => h("span", { style: "display:block;width:16px;height:16px" }),
+        label: () => h("a", { href: "#", style: "display:flex;width:100%;padding:0 8px;box-sizing:border-box" },
+          h("span", { "data-testid": "title", style: "white-space:nowrap" }, "A moderately long file name")),
+        actions: () => h("span", { style: "display:flex;width:56px" }, "•••"),
+      }),
+      h(TreeItem, { itemId: "short-link", label: "Fact notes" }, {
+        leading: () => h("span", { style: "display:block;width:16px;height:16px" }),
+        label: () => h("a", { href: "#", style: "display:flex;width:100%;padding:0 8px;box-sizing:border-box" },
+          h("span", { style: "white-space:nowrap" }, "Fact notes")),
+        actions: () => h("span", { style: "display:flex;width:56px" }, "•••"),
+      }),
+    ]) }).mount("#app");
   `);
 });
 
@@ -478,6 +498,30 @@ describe("Tree selection", () => {
 describe("Tree marquee", () => {
   const row = (page: Page) => item(page, "long").locator(":scope > :first-child");
   const moving = async (page: Page) => (await row(page).getAttribute("data-ui-marquee")) !== null;
+
+  it("moves a slotted link title only as far as its visible letters require", async () => {
+    const page = await open({ items: [] }, paddedMarqueePath, { reducedMotion: "no-preference" });
+    const padded = item(page, "padded").locator(":scope > :first-child");
+    await padded.hover();
+    assert.equal(await padded.getAttribute("data-ui-marquee"), "");
+    const measure = await padded.evaluate((element) => {
+      const track = element.querySelector<HTMLElement>(".label-text")!;
+      const title = element.querySelector<HTMLElement>("[data-testid=title]")!;
+      const actions = element.querySelector<HTMLElement>(".actions")!;
+      track.style.animation = "none";
+      return {
+        textEnd: title.getBoundingClientRect().right,
+        actionsStart: actions.getBoundingClientRect().left,
+        distance: Number.parseFloat(getComputedStyle(element).getPropertyValue("--_marquee-distance")),
+      };
+    });
+    assert.ok(Math.abs(measure.textEnd + measure.distance - measure.actionsStart) <= 1,
+      `title should end at actions, not ${measure.textEnd + measure.distance - measure.actionsStart}px before them`);
+    await item(page, "short-link").hover();
+    assert.equal(await item(page, "short-link").locator(":scope > :first-child").getAttribute("data-ui-marquee"), null,
+      "a full-row link whose title fits beside the controls must stay still");
+    await page.close();
+  });
 
   it("fades a long name out before the icon and runs it again after a rest while hovered", async () => {
     const page = await open({ items: [] }, marqueePath, { reducedMotion: "no-preference", hasTouch: true });

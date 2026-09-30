@@ -112,17 +112,34 @@ export default function controller(host) {
   // The tree sets this for its items; an item's own prop overrides it either way.
   const marqueeWanted = () => host.state.marquee
     || getComputedStyle(element).getPropertyValue("--_ui-default-tree-item-marquee").trim() === "1";
+  // A slotted link may fill the row and have padding past its name. Measure the rendered letters,
+  // since moving that link's box to the actions would send a short name too far (or move it at all).
+  const textEdge = (rightToLeft) => {
+    const walker = element.ownerDocument.createTreeWalker(labelText, NodeFilter.SHOW_TEXT);
+    const range = element.ownerDocument.createRange();
+    let edge = rightToLeft ? Infinity : -Infinity;
+    while (walker.nextNode()) {
+      if (!walker.currentNode.textContent?.trim()) continue;
+      range.selectNodeContents(walker.currentNode);
+      for (const rect of range.getClientRects()) {
+        if (rect.width === 0 || rect.height === 0) continue;
+        edge = rightToLeft ? Math.min(edge, rect.left) : Math.max(edge, rect.right);
+      }
+    }
+    return Number.isFinite(edge) ? edge : rightToLeft
+      ? labelText.getBoundingClientRect().left : labelText.getBoundingClientRect().right;
+  };
   const startMarquee = () => {
     if (!labelText || !label || !marqueeWanted()) return;
     labelText.style.flex = "none";
     labelText.style.inlineSize = "max-content";
-    const text = labelText.getBoundingClientRect();
+    const rightToLeft = getComputedStyle(element).direction === "rtl";
+    const end = textEdge(rightToLeft);
     labelText.style.flex = labelText.style.inlineSize = "";
     const cell = label.getBoundingClientRect();
     const icon = leading?.getBoundingClientRect();
-    const stop = (actions?.offsetWidth ?? 0) + parseFloat(getComputedStyle(label).columnGap);
-    const rightToLeft = getComputedStyle(element).direction === "rtl";
-    const distance = Math.ceil(rightToLeft ? cell.left + stop - text.left : text.right - (cell.right - stop));
+    const stop = actions?.offsetWidth ?? 0;
+    const distance = Math.ceil(rightToLeft ? cell.left + stop - end : end - (cell.right - stop));
     if (distance <= 0) return;
     const lead = icon?.width ? (rightToLeft ? icon.right - cell.right : cell.left - icon.left) : 0;
     row.style.setProperty("--_marquee-lead", `${Math.max(0, lead)}px`);
