@@ -157,7 +157,12 @@ describe("LoomaEditor links", () => {
     const page = await openEditor('<p>Before <a href="/guide">guide</a> after</p>');
     await prose(page).locator("p").click();
     await page.keyboard.press("Home");
-    for (let index = 0; index < 9; index++) await page.keyboard.press("ArrowRight");
+    let caretInsideLink = false;
+    for (let index = 0; index < 20 && !caretInsideLink; index++) {
+      await page.keyboard.press("ArrowRight");
+      caretInsideLink = await page.evaluate(() => Boolean(window.getSelection()?.anchorNode?.parentElement?.closest("a")));
+    }
+    assert.equal(caretInsideLink, true, "keyboard caret enters the link");
     await page.getByRole("group", { name: "Link actions" }).waitFor();
     await page.close();
   });
