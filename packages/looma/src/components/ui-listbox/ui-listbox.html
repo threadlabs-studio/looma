@@ -25,11 +25,11 @@
   </defs>
   <div
     role="listbox"
-    :tabindex="{ true: '-1', false: '0' }[format('%s', disabled)]"
-    :aria-multiselectable="multiple"
-    :aria-disabled="disabled"
-    :aria-required="required"
-    :aria-invalid="invalid or validationError"
+    from:tabindex="{ true: '-1', false: '0' }[format('%s', disabled)]"
+    from:aria-multiselectable="multiple"
+    from:aria-disabled="disabled"
+    from:aria-required="required"
+    from:aria-invalid="invalid or validationError"
     style:--_rows="rows"
   >
     <ui-scroll-area class="choices" $ref="choices">
@@ -40,28 +40,37 @@
         class:active="choice.index = active"
         role="option"
         data-ui-choice-option
-        :data-multiple="multiple"
-        :id="format('%s-option-%s', uid, choice.index)"
-        :data-index="choice.index"
-        :aria-selected="choice.selected"
-        :aria-disabled="choice.disabled"
+        from:data-multiple="multiple"
+        from:id="format('%s-option-%s', uid, choice.index)"
+        from:data-index="choice.index"
+        from:aria-selected="choice.selected"
+        from:aria-disabled="choice.disabled"
       >
         <span $value="choice.label"></span>
       </div>
     </ui-scroll-area>
-    <select class="fallback" $ref="options" :size="rows" :multiple="multiple" :disabled="disabled" :required="required" :name="name" aria-label="Choices">
+    <select
+      class="fallback"
+      $ref="options"
+      from:size="rows"
+      from:multiple="multiple"
+      from:disabled="disabled"
+      from:required="required"
+      from:name="name"
+      aria-label="Choices"
+    >
       <slot></slot>
     </select>
     <template $if="name and not disabled">
-      <input $each="selected of selection" type="hidden" :name="name" :value="selected">
+      <input $each="selected of selection" type="hidden" from:name="name" from:value="selected">
     </template>
     <input
       class="validity"
       $ref="validity"
       type="checkbox"
-      :required="required and not hasSelection and not disabled"
-      :checked="hasSelection"
-      :disabled="disabled"
+      from:required="required and not hasSelection and not disabled"
+      from:checked="hasSelection"
+      from:disabled="disabled"
       aria-hidden="true"
       tabindex="-1"
     >

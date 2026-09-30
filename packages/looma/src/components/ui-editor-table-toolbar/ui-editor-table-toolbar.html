@@ -51,7 +51,7 @@
       ></prop>
     </event>
   </defs>
-  <div role="toolbar" aria-label="Table actions" :hidden="not open">
+  <div role="toolbar" aria-label="Table actions" from:hidden="not open">
     <div $if="alignments" class="group" role="group" aria-label="Cell alignment">
       <button
         $each="item of alignments"
@@ -59,24 +59,24 @@
         type="button"
         class="icon-button"
         class:active="item.active"
-        :data-action="item.action"
-        :aria-label="item.label"
-        :title="item.label"
-        :aria-pressed="item.active"
+        from:data-action="item.action"
+        from:aria-label="item.label"
+        from:title="item.label"
+        from:aria-pressed="item.active"
       >
-        <ui-icon :name="item.action"></ui-icon>
+        <ui-icon from:name="item.action"></ui-icon>
       </button>
     </div>
     <div $if="alignments and structure" class="sep" aria-hidden="true"></div>
     <div $if="structure" class="group" role="group" aria-label="Table structure">
-      <button $each="item of structure" $key="item.action" type="button" :data-action="item.action">
-        <ui-icon :name="item.icon"></ui-icon>
+      <button $each="item of structure" $key="item.action" type="button" from:data-action="item.action">
+        <ui-icon from:name="item.icon"></ui-icon>
         <span $value="item.label"></span>
       </button>
     </div>
     <div $if="(alignments or structure) and hasOverflow" class="sep" aria-hidden="true"></div>
     <div $if="hasOverflow" class="overflow">
-      <button type="button" class="more" data-action="toggle-overflow" aria-haspopup="menu" :aria-expanded="overflowOpen">
+      <button type="button" class="more" data-action="toggle-overflow" aria-haspopup="menu" from:aria-expanded="overflowOpen">
         <ui-icon name="table"></ui-icon>
         <span>Table options</span>
         <span class="chevron"><ui-icon name="chevron-down"></ui-icon></span>
@@ -92,8 +92,8 @@
               class="swatch-button"
               class:selected="swatch.selected"
               role="menuitemradio"
-              :aria-checked="swatch.selected"
-              :data-action="swatch.action"
+              from:aria-checked="swatch.selected"
+              from:data-action="swatch.action"
             >
               <span class="swatch" class:default="not swatch.color" style:--_swatch="swatch.color"></span>
               <span $value="swatch.label"></span>
@@ -106,12 +106,12 @@
             $each="item of section.items"
             $key="item.action"
             type="button"
-            :role="{ true: 'menuitemcheckbox', false: 'menuitem' }[format('%s', item.checkable)]"
-            :aria-checked="{ true: item.checked, false: null }[format('%s', item.checkable)]"
+            from:role="{ true: 'menuitemcheckbox', false: 'menuitem' }[format('%s', item.checkable)]"
+            from:aria-checked="{ true: item.checked, false: null }[format('%s', item.checkable)]"
             class:danger="item.danger"
-            :data-action="item.action"
+            from:data-action="item.action"
           >
-            <ui-icon :name="item.icon"></ui-icon>
+            <ui-icon from:name="item.icon"></ui-icon>
             <span $value="item.label"></span>
           </button>
         </div>
