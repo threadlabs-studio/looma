@@ -6,7 +6,7 @@
       widths.</prop>
     <prop name="label" type="string" default="">The button's accessible name. The button usually holds only an icon, so name the action it performs.</prop>
   </defs>
-  <button type="button" :aria-label="label" :disabled="disabled"><slot></slot></button>
+  <button type="button" from:aria-label="label" from:disabled="disabled"><slot></slot></button>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
     @property --ui-floating-action-button-inset-block-end {

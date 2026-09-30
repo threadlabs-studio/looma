@@ -23,20 +23,20 @@
       $when="href and type = 'action'"
       role="menuitem"
       tabindex="-1"
-      :aria-disabled="disabled"
-      :data-value="value"
-      :href="{ true: null, false: href }[format('%s', disabled)]"
+      from:aria-disabled="disabled"
+      from:data-value="value"
+      from:href="{ true: null, false: href }[format('%s', disabled)]"
     >
       <span class="label"><slot></slot></span>
       <span class="shortcut" aria-hidden="true"><slot name="shortcut"></slot></span>
     </a>
     <div
       $else
-      :role="{ action: 'menuitem', checkbox: 'menuitemcheckbox', radio: 'menuitemradio' }[type]"
-      :aria-checked="{ action: null, checkbox: internalChecked, radio: internalChecked }[type]"
+      from:role="{ action: 'menuitem', checkbox: 'menuitemcheckbox', radio: 'menuitemradio' }[type]"
+      from:aria-checked="{ action: null, checkbox: internalChecked, radio: internalChecked }[type]"
       tabindex="-1"
-      :aria-disabled="disabled"
-      :data-value="value"
+      from:aria-disabled="disabled"
+      from:data-value="value"
     >
       <span class="indicator" aria-hidden="true">
         <ui-icon $if="type = 'checkbox' and internalChecked" name="check"></ui-icon>

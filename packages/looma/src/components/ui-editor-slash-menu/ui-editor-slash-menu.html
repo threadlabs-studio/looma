@@ -22,7 +22,7 @@
     <event name="highlight" type="object({ index: integer, value: string })"></event>
     <event name="select" type="object({ index: integer, value: string })"></event>
   </defs>
-  <div role="listbox" :hidden="not visible">
+  <div role="listbox" from:hidden="not visible">
     <div class="header"><slot name="header"></slot></div>
     <ul class="list" role="presentation">
       <li
@@ -30,11 +30,11 @@
         class="item"
         class:active="index = active"
         role="option"
-        :aria-selected="index = active"
-        :data-index="index"
-        :data-value="item.value"
+        from:aria-selected="index = active"
+        from:data-index="index"
+        from:data-value="item.value"
       >
-        <span class="icon" aria-hidden="true"><ui-icon :name="item.icon"></ui-icon></span>
+        <span class="icon" aria-hidden="true"><ui-icon from:name="item.icon"></ui-icon></span>
         <span class="body"><span class="title" $value="item.title"></span><span class="description" $value="item.description"></span></span>
       </li>
       <slot></slot>

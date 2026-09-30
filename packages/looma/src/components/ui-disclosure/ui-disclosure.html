@@ -35,13 +35,13 @@
     </event>
   </defs>
   <div>
-    <div class="heading" :role="headingRole" :aria-level="headingAriaLevel">
-      <button class="trigger" type="button" $ref="trigger" :aria-controls="contentId" :aria-expanded="internalOpen" :disabled="disabled">
+    <div class="heading" from:role="headingRole" from:aria-level="headingAriaLevel">
+      <button class="trigger" type="button" $ref="trigger" from:aria-controls="contentId" from:aria-expanded="internalOpen" from:disabled="disabled">
         <span class="summary"><slot name="summary"><template $value="summary"></template></slot></span>
         <span class="chevron" aria-hidden="true"></span>
       </button>
     </div>
-    <div class="panel" $ref="panel" :id="contentId"><div class="panel-inner"><slot></slot></div></div>
+    <div class="panel" $ref="panel" from:id="contentId"><div class="panel-inner"><slot></slot></div></div>
   </div>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */

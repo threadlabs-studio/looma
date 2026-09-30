@@ -7,10 +7,10 @@
   </defs>
   <span
     class="ring"
-    :role="{ true: 'status', false: null }[format('%s', label != '')]"
-    :aria-label="{ true: label, false: null }[format('%s', label != '')]"
-    :aria-live="{ true: 'polite', false: null }[format('%s', label != '')]"
-    :aria-hidden="{ true: null, false: 'true' }[format('%s', label != '')]"
+    from:role="{ true: 'status', false: null }[format('%s', label != '')]"
+    from:aria-label="{ true: label, false: null }[format('%s', label != '')]"
+    from:aria-live="{ true: 'polite', false: null }[format('%s', label != '')]"
+    from:aria-hidden="{ true: null, false: 'true' }[format('%s', label != '')]"
   >
     <svg viewBox="0 0 50 50" fill="none" aria-hidden="true" focusable="false">
       <circle class="track" cx="25" cy="25" r="20"></circle>
