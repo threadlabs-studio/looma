@@ -55,7 +55,10 @@ export default function controller(host) {
     if (host.state.lazy && expanded && childItems().length === 0) element.setAttribute("aria-busy", "true");
     else element.removeAttribute("aria-busy");
     element.tabIndex = host.state.disabled || !host.state.tabStop ? -1 : 0;
-    element.style.setProperty("--ui-tree-item-depth", String(Number(host.state.structuralLevel ?? 1) - 1));
+    const depth = Number(host.state.structuralLevel ?? 1) - 1;
+    element.style.setProperty("--ui-tree-item-depth", String(depth));
+    // Nested items already sit inside their parent's indented box. Add just one local step.
+    element.style.setProperty("--_ui-tree-item-indent-step", depth > 0 ? "1" : "0");
     disclosure.setAttribute("aria-expanded", String(expanded));
     disclosure.setAttribute("aria-label", `${expanded ? "Collapse" : "Expand"} ${name}`);
   };
