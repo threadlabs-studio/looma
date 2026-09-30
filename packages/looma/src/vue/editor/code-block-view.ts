@@ -44,6 +44,7 @@ export function createCodeBlockView(languages: LoomaCodeLanguages, isEditable: (
 
       return () => h(NodeViewWrapper, {
         as: "pre",
+        spellcheck: "false",
         class: showControl() ? "looma-editor__code-block--has-language" : undefined,
       }, () => [
         showControl()

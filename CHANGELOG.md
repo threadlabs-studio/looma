@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Strict Comboboxes keep typed search text visible even when their selected value is controlled. Leaving an unmatched search restores the previous label without reporting a new selection. Editable code blocks no longer inherit prose spell-check, while ordinary editor text still does.
 - **Breaking for Listbox:** its visible upgraded root is now an ARIA listbox with styled choice rows instead of a native `<select size>`. The native control's option styling could not show the same checked choices as Combobox or follow Looma's surface treatment; an additive variant would leave the default Listbox with the same problem. A plain native select remains visible before JavaScript upgrades the component, then becomes hidden and disabled. Authored `<option>` children, `value`/`values`, `name`, reset, and required form validation still work. Code that queried the root as an `HTMLSelectElement` or read `selectedOptions` must use its `change` event (`detail.value` and `detail.values`) or the authored options instead. The root remains focusable and supports arrows, typeahead, click, and Space to toggle multiple choices.
 - Combobox and Listbox now draw multiple-choice rows and checkmarks from the same style rules. Checkbox's Select all example demonstrates how a group restores the native mixed state after one item changes.
 - Input and Textarea rest with a softer control edge and gain a modestly stronger edge on hover. Error and readonly borders stay stable on hover; Input Group and Select also preserve error borders.

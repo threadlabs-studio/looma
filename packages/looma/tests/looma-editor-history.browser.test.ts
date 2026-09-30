@@ -70,6 +70,24 @@ afterEach(async () => {
 });
 
 describe("LoomaEditor history (real browser)", () => {
+  it("does not spell-check code blocks while leaving prose spell-check available", async () => {
+    const { editor, host } = await mountEditor({ codeLanguages: { sql: common.sql } });
+    editor.commands.setContent('<p>Some prose</p><pre><code>SELECT colum FROM records</code></pre>');
+    await flushBrowser();
+
+    const prose = host.querySelector<HTMLElement>("p")!;
+    const code = host.querySelector<HTMLElement>("pre code")!;
+    expect(prose.spellcheck).toBe(true);
+    expect(code.spellcheck).toBe(false);
+    expect(host.querySelector("pre")?.getAttribute("spellcheck")).toBe("false");
+
+    const plain = await mountEditor();
+    plain.editor.commands.setContent('<pre><code>const colum = 1</code></pre>');
+    await flushBrowser();
+    expect(plain.host.querySelector<HTMLElement>("pre code")?.spellcheck).toBe(false);
+    expect(plain.host.querySelector('pre [role="combobox"]')).toBeNull();
+  });
+
   it("shows SQL tokens with theme colors when the SQL grammar is configured", async () => {
     const { editor, host } = await mountEditor({ codeLanguages: { sql: common.sql } });
     editor.commands.setContent('<pre><code></code></pre>');
@@ -105,6 +123,11 @@ describe("LoomaEditor history (real browser)", () => {
     expect(controlBounds.left).toBeGreaterThanOrEqual(blockBounds.left);
     await page.viewport(1280, 720);
     language!.focus();
+    language!.select();
+    await userEvent.keyboard("sq");
+    await flushBrowser();
+    expect(language!.value).toBe("sq");
+    expect([...host.querySelectorAll<HTMLElement>('[role="option"]')].map((option) => option.textContent?.trim())).toEqual(["SQL"]);
     await userEvent.keyboard("{ArrowDown}");
     await flushBrowser();
     const sql = [...host.querySelectorAll<HTMLElement>('[role="option"]')]
