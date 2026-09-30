@@ -159,15 +159,17 @@ describe("editor extension contract", () => {
     const editor = new Editor({ element, extensions: getDefaultEditorExtensions(), content: "<p></p>" });
     editor.commands.focus("start");
 
-    pasteFromSourceEditor(editor, "---\ndate: 2026-09-25\ntopic: knowledge\n---\n\n# Working notes\n\n```ts\nconst answer = 42\n```");
+    pasteFromSourceEditor(editor, "---\ndate: 2026-09-25\ntopic: knowledge\n---\n\n# Working notes\n\n```ts\nconst answer = 42\n```\n\n```sql\nSELECT 1;\n\n```");
 
-    expect(editor.getJSON().content?.map((node) => node.type)).toEqual(["codeBlock", "heading", "codeBlock"]);
+    expect(editor.getJSON().content?.map((node) => node.type)).toEqual(["codeBlock", "heading", "codeBlock", "codeBlock"]);
     expect(editor.getJSON().content?.[0]).toMatchObject({
       attrs: { language: "yaml" },
       content: [{ text: "---\ndate: 2026-09-25\ntopic: knowledge\n---" }],
     });
     expect(editor.getJSON().content?.[1]).toMatchObject({ attrs: { level: 1 }, content: [{ text: "Working notes" }] });
-    expect(editor.getJSON().content?.[2]).toMatchObject({ attrs: { language: "ts" } });
+    // No empty last line from the fence's closing newline; an authored blank line stays.
+    expect(editor.getJSON().content?.[2]).toMatchObject({ attrs: { language: "ts" }, content: [{ text: "const answer = 42" }] });
+    expect(editor.getJSON().content?.[3]).toMatchObject({ attrs: { language: "sql" }, content: [{ text: "SELECT 1;\n" }] });
     editor.destroy();
     element.remove();
   });
