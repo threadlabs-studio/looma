@@ -23,17 +23,17 @@
     </event>
   </defs>
   <div>
-    <div class="list" $ref="list" role="tablist" :aria-label="label" :aria-orientation="orientation">
+    <div class="list" $ref="list" role="tablist" from:aria-label="label" from:aria-orientation="orientation">
       <slot name="tab">
         <button
           $each="tab of tabs"
           $key="tab.id"
           type="button"
           role="tab"
-          :id="format('%s-tab', tab.id)"
-          :value="tab.id"
-          :aria-controls="tab.id"
-          :aria-selected="tab.id = internalValue"
+          from:id="format('%s-tab', tab.id)"
+          from:value="tab.id"
+          from:aria-controls="tab.id"
+          from:aria-selected="tab.id = internalValue"
           $value="tab.label"
         >
         </button>

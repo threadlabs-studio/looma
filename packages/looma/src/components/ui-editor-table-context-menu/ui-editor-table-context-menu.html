@@ -41,7 +41,7 @@
       ></prop>
     </event>
   </defs>
-  <div role="menu" :hidden="not open">
+  <div role="menu" from:hidden="not open">
     <div $if="swatches" class="section" role="none">
       <div class="heading" role="presentation">Cell background</div>
       <div class="swatches" role="group" aria-label="Cell background">
@@ -52,8 +52,8 @@
           class="swatch-button"
           class:selected="swatch.selected"
           role="menuitemradio"
-          :aria-checked="swatch.selected"
-          :data-action="swatch.action"
+          from:aria-checked="swatch.selected"
+          from:data-action="swatch.action"
         >
           <span class="swatch" class:default="not swatch.color" style:--_swatch="swatch.color"></span>
           <span class="swatch-label" $value="swatch.label"></span>
@@ -68,12 +68,12 @@
           $each="item of section.items"
           $key="item.action"
           type="button"
-          :role="{ true: 'menuitemcheckbox', false: 'menuitem' }[format('%s', item.checkable)]"
-          :aria-checked="{ true: item.checked, false: null }[format('%s', item.checkable)]"
+          from:role="{ true: 'menuitemcheckbox', false: 'menuitem' }[format('%s', item.checkable)]"
+          from:aria-checked="{ true: item.checked, false: null }[format('%s', item.checkable)]"
           class:danger="item.danger"
-          :data-action="item.action"
+          from:data-action="item.action"
         >
-          <ui-icon :name="item.icon"></ui-icon>
+          <ui-icon from:name="item.icon"></ui-icon>
           <span $value="item.label"></span>
         </button>
       </div>

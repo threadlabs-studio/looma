@@ -28,10 +28,18 @@
   </defs>
   <div role="region" aria-label="Notifications" aria-live="polite" popover="manual">
     <slot></slot>
-    <div $each="toast of toasts" $key="toast.id" class="toast" class:closing="toast.closing" :id="toast.id" :role="toast.role" :data-tone="toast.tone">
+    <div
+      $each="toast of toasts"
+      $key="toast.id"
+      class="toast"
+      class:closing="toast.closing"
+      from:id="toast.id"
+      from:role="toast.role"
+      from:data-tone="toast.tone"
+    >
       <span class="message" $value="toast.message"></span>
-      <span class="dismiss" :data-toast="toast.id">
-        <ui-icon-button size="sm" variant="ghost" :round="true" :label="format('Dismiss %s', toast.message)">
+      <span class="dismiss" from:data-toast="toast.id">
+        <ui-icon-button size="sm" variant="ghost" from:round="true" from:label="format('Dismiss %s', toast.message)">
           <ui-icon name="x"></ui-icon>
         </ui-icon-button>
       </span>

@@ -24,7 +24,7 @@ typed values and reflected properties.
 - Lists, records, objects, and functions are property-only inputs because HTML has no lossless,
   native syntax for them.
 
-Expression syntax such as `:modal="false"` belongs inside a Declarative Component template. It is
+Expression syntax such as `from:modal="false"` belongs inside a Declarative Component template. It is
 not consumer syntax for an HTML page; page authors write `<ui-dialog modal="false">` or omit
 `modal`.
 

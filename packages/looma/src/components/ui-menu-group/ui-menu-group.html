@@ -2,7 +2,7 @@
   <defs>
     <prop name="label" type="string" default="">Visible heading and accessible name for this group of menu items.</prop>
   </defs>
-  <div role="group" :aria-label="label">
+  <div role="group" from:aria-label="label">
     <div class="heading" $if="label" $value="label"></div>
     <slot></slot>
   </div>

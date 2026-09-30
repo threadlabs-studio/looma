@@ -3,7 +3,7 @@
     <prop name="orientation" type="keyword" values="horizontal, vertical" default="horizontal"
     >Whether the separator divides stacked content (horizontal) or inline content (vertical).</prop>
   </defs>
-  <hr :aria-orientation="orientation">
+  <hr from:aria-orientation="orientation">
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
     @property --ui-separator-color {

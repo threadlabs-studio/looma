@@ -12,10 +12,10 @@
       <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
     </event>
   </defs>
-  <div :role="{ neutral: 'status', info: 'status', success: 'status', warning: 'status', danger: 'alert' }[tone]">
+  <div from:role="{ neutral: 'status', info: 'status', success: 'status', warning: 'status', danger: 'alert' }[tone]">
     <div class="message"><slot></slot></div>
     <div class="action" $ref="action"><slot name="action"></slot></div>
-    <ui-icon-button class="dismiss" size="sm" variant="ghost" :round="true" label="Dismiss notification">
+    <ui-icon-button class="dismiss" size="sm" variant="ghost" from:round="true" label="Dismiss notification">
       <ui-icon name="x"></ui-icon>
     </ui-icon-button>
   </div>

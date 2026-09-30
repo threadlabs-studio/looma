@@ -4,7 +4,7 @@
     <prop name="detail" type="string" default="">Secondary text, such as a team or role.</prop>
     <prop name="initials" type="string" default="">Text fallback for the start slot when no avatar is supplied.</prop>
   </defs>
-  <li role="option" tabindex="-1" :data-value="value">
+  <li role="option" tabindex="-1" from:data-value="value">
     <span class="avatar" aria-hidden="true"><slot name="start"><template $value="initials"></template></slot></span>
     <span class="body"><span class="label"><slot></slot></span><span $if="detail" class="detail" $value="detail"></span></span>
   </li>

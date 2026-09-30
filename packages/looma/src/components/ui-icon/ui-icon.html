@@ -78,10 +78,19 @@
   <span aria-hidden="true">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false">
       <g $each="shape of shapes">
-        <path $if="shape.tag = 'path'" :d="shape.d"></path>
-        <circle $if="shape.tag = 'circle'" :cx="shape.cx" :cy="shape.cy" :r="shape.r"></circle>
-        <rect $if="shape.tag = 'rect'" :x="shape.x" :y="shape.y" :width="shape.width" :height="shape.height" :rx="shape.rx" :ry="shape.ry"></rect>
-        <line $if="shape.tag = 'line'" :x1="shape.x1" :y1="shape.y1" :x2="shape.x2" :y2="shape.y2"></line>
+        <path $if="shape.tag = 'path'" from:d="shape.d"></path>
+        <circle $if="shape.tag = 'circle'" from:cx="shape.cx" from:cy="shape.cy" from:r="shape.r"></circle>
+        <rect
+          $if="shape.tag = 'rect'"
+          from:x="shape.x"
+          from:y="shape.y"
+          from:width="shape.width"
+          from:height="shape.height"
+          from:rx="shape.rx"
+          from:ry="shape.ry"
+        >
+        </rect>
+        <line $if="shape.tag = 'line'" from:x1="shape.x1" from:y1="shape.y1" from:x2="shape.x2" from:y2="shape.y2"></line>
       </g>
     </svg>
   </span>

@@ -15,7 +15,15 @@
     >Padding and type size, matching Input's sizes so a textarea sits with fields of the same size; rows sets its height. sm has tighter padding and smaller
       text, for compact forms; lg has roomier padding. Under a coarse pointer, sm keeps body-size text.</prop>
   </defs>
-  <textarea :value="value" :disabled="disabled" :readonly="readonly" :required="required" :aria-invalid="invalid" :rows="rows" style:--_rows="rows"></textarea>
+  <textarea
+    from:value="value"
+    from:disabled="disabled"
+    from:readonly="readonly"
+    from:required="required"
+    from:aria-invalid="invalid"
+    from:rows="rows"
+    style:--_rows="rows"
+  ></textarea>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
     @property --ui-textarea-focus-shadow {

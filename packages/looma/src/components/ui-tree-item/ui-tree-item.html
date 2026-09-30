@@ -52,16 +52,16 @@
   </defs>
   <div
     role="treeitem"
-    :aria-label="label"
-    :aria-level="structuralLevel"
-    :aria-selected="selected"
-    :aria-disabled="disabled"
-    :data-item-id="itemId"
-    :data-drag-type="dragType"
-    :data-drop-scope="dropScope"
-    :data-accepts="accepts"
-    :data-drop-depth="dropDepth"
-    :data-subtree-depth="subtreeDepth"
+    from:aria-label="label"
+    from:aria-level="structuralLevel"
+    from:aria-selected="selected"
+    from:aria-disabled="disabled"
+    from:data-item-id="itemId"
+    from:data-drag-type="dragType"
+    from:data-drop-scope="dropScope"
+    from:data-accepts="accepts"
+    from:data-drop-depth="dropDepth"
+    from:data-subtree-depth="subtreeDepth"
   >
     <div class="row" $ref="row">
       <button
@@ -70,7 +70,7 @@
         $ref="dragHandle"
         type="button"
         draggable="true"
-        :aria-label="format('Drag %s to reorder', label)"
+        from:aria-label="format('Drag %s to reorder', label)"
       >
         <svg
           aria-hidden="true"
@@ -90,23 +90,23 @@
           <circle cx="15" cy="19" r="1"></circle>
         </svg>
       </button>
-      <button class="disclosure" $ref="disclosure" type="button" :disabled="disabled" :hidden="not isContainer">
+      <button class="disclosure" $ref="disclosure" type="button" from:disabled="disabled" from:hidden="not isContainer">
         <span class="disclosure-icon" aria-hidden="true"></span>
       </button>
       <label class="selection-hit"><input
           class="selection-checkbox"
           type="checkbox"
           tabindex="-1"
-          :checked="selected"
-          :disabled="disabled"
-          :aria-label="format('Select %s', label)"
+          from:checked="selected"
+          from:disabled="disabled"
+          from:aria-label="format('Select %s', label)"
         ></label>
       <span class="leading" $ref="leading"><slot name="leading"></slot></span>
       <span class="label" $ref="label"><span class="label-text" $ref="labelText"><slot name="label"><template $value="label"></template></slot></span></span>
       <span class="actions" $ref="actions"><slot name="actions"></slot></span>
       <span class="drop-indicator row-drop-indicator" aria-hidden="true"></span>
     </div>
-    <div class="children" $ref="children" role="group" :hidden="not (isContainer and internalExpanded)"><slot></slot></div>
+    <div class="children" $ref="children" role="group" from:hidden="not (isContainer and internalExpanded)"><slot></slot></div>
     <span class="drop-indicator subtree-drop-indicator" aria-hidden="true"></span>
   </div>
   <style>
