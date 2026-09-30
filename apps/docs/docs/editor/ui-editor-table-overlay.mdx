@@ -17,5 +17,6 @@ without owning editor commands.
 
 Table Overlay emits one event per action. Listen for `add-row-before`, `add-row-after`,
 `add-column-before`, or `add-column-after` to receive `{ boundaryIndex }`; for `select-row`
-or `select-column` to receive `{ rowIndex, columnIndex }`; and for `open-cell-menu`,
+or `select-column` to receive `{ rowIndex, columnIndex }`; for `reorder-row` or
+`reorder-column` to receive `{ fromIndex, toIndex }`; and for `open-cell-menu`,
 `open-row-menu`, or `open-column-menu` to receive those indices plus `anchor`.

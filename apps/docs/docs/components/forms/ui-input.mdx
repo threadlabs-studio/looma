@@ -33,15 +33,14 @@ its `data-size` attribute only records the option.
 
 ## Numbers
 
-A `type="number"` field's value is a number. In Vue, bind `v-model` to a number (or `null` for no
-value), not to text: the field reports a number as the user types, and an empty string while it
-holds no number yet, such as when it is empty or reads `1e`. The same goes for `value` with an
-input handler. In TypeScript the `update:modelValue` event is still typed `string`, so a handler
-you write yourself takes `string | number`; `v-model` needs nothing.
+A `type="number"` or `type="range"` field's value is a number. In Vue, bind `v-model` to a number
+or `null` for no value. A number field reports a number as the user types and `null` while it
+holds no number yet, such as when it is empty or reads `1e`. The same value types apply to
+`value` and `update:modelValue`.
 
 ```vue
 <script setup lang="ts">
-const quantity = ref<number | "" | null>(1);
+const quantity = ref<number | null>(1);
 </script>
 
 <template>

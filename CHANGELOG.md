@@ -2,7 +2,12 @@
 
 ## Unreleased
 
-- **Breaking for Table Overlay:** its catch-all `action` event is replaced by the named `add-row-before`, `add-row-after`, `add-column-before`, `add-column-after`, `select-row`, `select-column`, `open-cell-menu`, `open-row-menu`, and `open-column-menu` events. The old event mixed three incompatible detail shapes, leaving generated component types unable to describe an individual action precisely. Adding the new events while retaining `action` would dispatch each request twice and preserve that ambiguous event contract. Listen for the names you handle, and read `boundaryIndex`, `rowIndex`/`columnIndex`, or `anchor` directly from each event detail instead of reading `detail.action`. The editor adapter continues to handle all nine actions.
+- **Breaking for Table Overlay:** its catch-all `action` event is replaced by named insertion, selection, reorder, and menu events. Listen for `add-row-before`, `add-row-after`, `add-column-before`, `add-column-after`, `select-row`, `select-column`, `reorder-row`, `reorder-column`, `open-cell-menu`, `open-row-menu`, or `open-column-menu` and read the fields directly from each event detail. The editor adapter continues to handle these actions.
+- Mention suggestions open only when an author types `@`. Pasted or loaded `@` text, clicking into
+  it later, and `@` in inline code or code blocks no longer start a search.
+- The app-triggered editor toolbar now uses the same compact floating surface as the selection toolbar. A caret inside a link shows nearby actions to open, edit, or remove it; the edit action uses the same link form as the toolbar button.
+- **Changed default for `LoomaEditor` code blocks:** apps that omitted `codeLanguages` previously had no language picker or syntax highlighting, even though they could insert code blocks. The editor now offers every bundled Highlight.js grammar in its searchable picker. An explicit choice loads only its grammar; Auto loads 20 common grammars when code is present. This makes code blocks useful in the usual editor setup without adding grammars to documents that contain no code. Pass `{}` to retain plain code blocks, or a grammar map to keep an application-owned list.
+- Editor table options stay within the viewport, scroll to every action, and close with Escape or an outside click. Row and column grips can drag to reorder while clicks still open their action menus. The options swatches are round and have more room, and paragraphs after tables have a larger gap.
 - Strict Comboboxes keep typed search text visible even when their selected value is controlled. Leaving an unmatched search restores the previous label without reporting a new selection. Editable code blocks no longer inherit prose spell-check, while ordinary editor text still does.
 - `LoomaEditor` has a `popover` toolbar mode: the full toolbar opens from an app's own button
   (`toolbarTriggerId`, `v-model:toolbar-open`), and selecting text shows a text-only bubble. Use it
@@ -39,13 +44,7 @@
 - The inline chip editor now opens below a chip on a narrow page when there is room,
   so editing a chip near the page heading does not cover the title and actions.
   It still flips above when the viewport has more room there.
-- Input takes a number. Its `value` and Vue `modelValue` accept `string | number` (`modelValue`
-  also takes `null`), so a `type="number"` field binds to a number, and it reports a number as the
-  user types, or an empty string while it holds no number, as Vue's `v-model` does. The Vue
-  `update:modelValue` event is still typed `string`; typing it from the value awaits the generator. Bound to a number, the field never writes
-  over text that means the same number while the user types it: `12.`, `1.0`, `1e3`, or an empty
-  field keep their text and caret. A field bound to text was rewritten on every keystroke, so typing
-  `12.5`, Backspace, `8` lost the point.
+- **Breaking for Input:** `type` selects the declared `value` and Vue `modelValue` type. Number and range modes use a JavaScript number; other modes use a string. An omitted value without a default is `null`, and a number field reports `null` when its text contains no number. Generated Vue types preserve the relationship. Numeric bindings keep in-progress text such as `12.`, `1.0`, and `1e3` without moving the caret.
 - New hooks, all additive and unset by default, so an app styles these from a class of its own:
   - Button: `--ui-button-white-space` (for example `nowrap` to keep a label on one line). Unset, a
     button still wraps as its container does.

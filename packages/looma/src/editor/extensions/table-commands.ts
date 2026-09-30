@@ -521,7 +521,7 @@ export function normalizeActiveTableColumnWidths(
  *
  * Boundary indices address the visual grid edges measured by the overlay. The
  * helper maps them into the current table transaction, rejects indices that do
- * not represent a legal insertion edge, dispatches once, and restores editor
+ * not represent a legal insertion edge or reorder destination, dispatches once, and restores editor
  * focus. `open-cell-menu` returns handled without editing because menu ownership
  * remains with the application/adapter.
  *
@@ -538,6 +538,22 @@ export function handleTableOverlayAction(
   if (!tableInfo) return false;
 
   const { action } = detail;
+  if (action === "reorder-row" || action === "reorder-column") {
+    const { fromIndex, toIndex } = detail;
+    const { pos: tablePos, node: table } = tableInfo;
+    const map = TableMap.get(table);
+    const axis = action === "reorder-row" ? "row" : "column";
+    const limit = axis === "row" ? map.height : map.width;
+    if (!Number.isInteger(fromIndex) || !Number.isInteger(toIndex)
+      || fromIndex < 0 || toIndex < 0 || fromIndex >= limit || toIndex >= limit || fromIndex === toIndex) return false;
+    const cellPos = tablePos + 1 + map.map[axis === "row" ? fromIndex * map.width : fromIndex]!;
+    const command = axis === "row" ? moveTableRow : moveTableColumn;
+    try {
+      const moved = command({ from: fromIndex, to: toIndex, pos: cellPos })(editor.state, editor.view.dispatch);
+      if (moved) editor.view.focus();
+      return moved;
+    } catch { return false; }
+  }
   if (action === "select-row" || action === "select-column") {
     return selectTableAxis(
       editor,

@@ -44,7 +44,7 @@ test("API metadata keeps base types, choices, and selected types readable", asyn
   const contracts = groups[0].contracts;
   assert.equal(contracts["ui-button"].propValueTypes.variant, "keyword");
   assert.deepEqual(contracts["ui-button"].propOptions.variant, ["outline", "solid", "danger", "ghost", "link"]);
-  assert.equal(contracts["ui-input"].propValueTypes.value, "type=number → number; otherwise → string");
+  assert.equal(contracts["ui-input"].propValueTypes.value, "type=number, range → number; otherwise → string");
   assert.equal(contracts["ui-checkbox"].events[0].detailShape, "object");
   assert.deepEqual(contracts["ui-checkbox"].events[0].fields.find((field) => field.path === "trigger"), {
     path: "trigger", type: "keyword", required: true, values: ["keyboard", "pointer", "programmatic"],

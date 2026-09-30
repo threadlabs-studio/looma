@@ -5,7 +5,7 @@
       type="keyword"
       values="text, search, tel, url, email, password, date, month, week, time, datetime-local, number, range, color"
       default="text"
-    >The native input mode. Number mode accepts a numeric value; the other supported modes accept strings.</prop>
+    >The native input mode. Number and range modes accept numeric values; the other supported modes accept strings.</prop>
     <type name="input-value" from="type">
       <option value="text" type="string"></option>
       <option value="search" type="string"></option>
@@ -19,13 +19,13 @@
       <option value="time" type="string"></option>
       <option value="datetime-local" type="string"></option>
       <option value="number" type="number"></option>
-      <option value="range" type="string"></option>
+      <option value="range" type="number"></option>
       <option value="color" type="string"></option>
     </type>
     <prop name="value" type="input-value"
-    >The input's value: text, or a number for a type="number" field. Setting or changing it replaces the live text; between changes the user's typing stands, so
-      follow input events to keep it in step. A number field keeps text that means the same number, such as 1.0 for 1. It is also the input's default, so a form
-      reset returns to it.</prop>
+    >The input's value: text, or a number for type="number" and type="range" fields. Setting or changing it replaces the live text; between changes the user's
+      typing stands, so follow input events to keep it in step. A number field keeps text that means the same number, such as 1.0 for 1. It is also the input's
+      default, so a form reset returns to it.</prop>
     <prop name="disabled" type="boolean" default="false">Prevents editing and form submission.</prop>
     <prop name="invalid" type="boolean" default="false">Exposes invalid state to assistive technology and styling.</prop>
     <prop name="readonly" type="boolean" default="false">Allows selection without allowing edits.</prop>

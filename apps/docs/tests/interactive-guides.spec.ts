@@ -40,6 +40,20 @@ test("editor guide sidebar jumps to sections and its live editor responds to con
   await expect(mentions.locator(".header")).toBeHidden();
 });
 
+test("editor guide offers HTML code highlighting", async ({ page }) => {
+  await page.goto("editor", { waitUntil: "domcontentloaded" });
+  const editor = page.getByRole("textbox", { name: "Editor guide playground" });
+  await expect(editor).toBeVisible();
+  await editor.click();
+  await editor.press("ControlOrMeta+End");
+  await editor.press("Enter");
+  await editor.pressSequentially("```");
+  const language = page.locator('.looma-editor__code-language [role="combobox"]');
+  await expect(language).toBeVisible();
+  await language.press("ArrowDown");
+  await expect(page.getByRole("option", { name: "HTML", exact: true })).toBeVisible();
+});
+
 test("rich authored tabs receive the same control styling as generated tabs", async ({ page }) => {
   await page.goto("components/ui-tabs", { waitUntil: "domcontentloaded" });
   const rich = page.locator('[data-preview-scenario="Rich tab labels"] [role="tab"]').first();

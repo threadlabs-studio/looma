@@ -5868,10 +5868,10 @@ describe("Input with numbers", () => {
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
     const { updates, writes } = await typing(page);
     assert.deepEqual(writes, []);
-    // Numbers, or an empty string while the field holds no number, as Vue's v-model reports them.
-    assert.ok(updates.every((value) => typeof value === "number" || value === ""), JSON.stringify(updates));
+    // The declared numeric value is null while the field holds no number.
+    assert.ok(updates.every((value) => typeof value === "number" || value === null), JSON.stringify(updates));
     for (const value of [12.5, 12.8, 1, 1000, 0.5]) assert.ok(updates.includes(value), `reports ${value}`);
-    assert.equal(updates.at(-1), "");
+    assert.equal(updates.at(-1), null);
     await page.close();
   });
 
