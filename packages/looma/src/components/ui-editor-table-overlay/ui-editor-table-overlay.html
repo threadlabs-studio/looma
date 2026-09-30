@@ -6,10 +6,10 @@
       name="geometry"
       type="object"
     >
-      <prop name="rowBoundaries" required type="array">
+      <prop name="rowBoundaries" required type="list">
         <prop type="number"></prop>
       </prop>
-      <prop name="columnBoundaries" required type="array">
+      <prop name="columnBoundaries" required type="list">
         <prop type="number"></prop>
       </prop>
       <prop name="activeCell" required nullable type="object">
@@ -32,7 +32,7 @@
     </prop>
     <state
       name="rows"
-      type="array"
+      type="list"
       :value="[]"
     >
       <prop type="object">
@@ -46,7 +46,7 @@
     </state>
     <state
       name="cols"
-      type="array"
+      type="list"
       :value="[]"
     >
       <prop type="object">
