@@ -18,8 +18,8 @@
     <prop name="shape" type="circle | square" default="circle">Circle by default; square uses the theme's medium radius.</prop>
     <prop name="decorative" type="boolean" default="false">Hides the avatar from assistive technology when adjacent text already identifies the person.</prop>
     <prop name="active" type="boolean" default="false"
-    >Marks the person as active now, such as editing the same page: a ring in the success colour around the avatar. The ring is not announced, so say what it
-      means in alt ("Ada Lovelace, editing").</prop>
+    >Marks the person as active now, such as editing the same page: a fine accent ring around the avatar. The ring is not announced, so say what it means in alt
+      ("Ada Lovelace, editing").</prop>
     <state name="hasImage" :value="false"></state>
     <state name="hasAuthoredImage" :value="false"></state>
     <state name="initials" :value="'?'"></state>
@@ -64,7 +64,7 @@
       inline-size: 2.5rem;
       block-size: 2.5rem;
       border-radius: var(--ui-avatar-radius, var(--ui-radius-round));
-      border: 1px solid var(--ui-avatar-border, var(--ui-border-strong));
+      border: 1px solid var(--ui-avatar-border, color-mix(in srgb, var(--ui-accent-solid) 35%, var(--ui-surface-default)));
       background: var(--ui-avatar-surface, var(--ui-accent-soft));
       color: var(--ui-avatar-text, var(--ui-accent-subtle-text, var(--ui-accent-solid)));
       font: inherit;
@@ -80,6 +80,10 @@
       font-size: var(--ui-font-size-xs);
     }
 
+    :host-state([hasImage]) {
+      border-color: var(--ui-avatar-border, var(--ui-border-strong));
+    }
+
     :host-state([shape="square"]) {
       border-radius: var(--ui-avatar-radius, var(--ui-radius-md));
     }
@@ -87,7 +91,7 @@
     /* An outline, not a dot: the avatar clips its content to the circle, and an outline is drawn
        outside the box, so the ring survives the clip and the overlap in an Avatar Group. */
     :host-state([active]) {
-      outline: 2px solid var(--ui-avatar-active-ring, var(--ui-success));
+      outline: 1px solid var(--ui-avatar-active-ring, var(--ui-accent-solid));
       outline-offset: 1px;
     }
 

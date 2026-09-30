@@ -13,3 +13,5 @@ Set `invalid` when form validation reports an error. The native checkbox receive
 
 
 <ComponentExamplesApiTabs component="ui-checkbox" />
+
+`indeterminate` works like the native checkbox property: a click clears the mixed appearance. If the checkbox summarizes several items, recompute it after any item changes. Clear `indeterminate` when the parent selects or clears the group; set it again when some, but not all, items are selected. The **Select all and mixed state** example does this in both directions.

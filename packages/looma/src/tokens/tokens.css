@@ -134,7 +134,7 @@
     /* Lines divide content; stronger edges enclose surfaces; control edges identify inputs. */
     --ui-border-divider: color-mix(in oklab, var(--ui-border) 50%, var(--ui-border-strong));
     --ui-border-strong: color-mix(in oklab, var(--ui-text) 25%, var(--ui-surface));
-    --ui-control-border: color-mix(in oklab, var(--ui-text) 48%, var(--ui-surface));
+    --ui-control-border: color-mix(in oklab, var(--ui-text) 43%, var(--ui-surface));
 
     /* States: toward the ink for pressure, toward the page for a tint. In a dark theme the ink is
        light, so the same mixes brighten instead of darkening, without a second set of values. */
@@ -205,7 +205,7 @@
     --ui-action-secondary-text: var(--ui-text);
     --ui-control-surface: var(--ui-surface);
     --ui-control-surface-disabled: var(--ui-surface-muted);
-    --ui-control-border-hover: var(--ui-border-strong);
+    --ui-control-border-hover: color-mix(in oklab, var(--ui-text) 50%, var(--ui-surface));
     --ui-control-placeholder: var(--ui-text-secondary);
     --ui-control-focus: var(--ui-focus-ring);
     /* Derived from the ring, not a near-white tint, so the halo shows on any surface. */
@@ -285,5 +285,70 @@
 @layer base {
   [tabindex="-1"]:not(a[href], area[href], audio, button, iframe, input, select, summary, textarea, video, [contenteditable], [role]):focus-visible {
     outline: none;
+  }
+}
+
+/* Combobox suggestions and visible Listbox choices share the same row and checkmark. */
+@layer components {
+  [data-ui-choice-option] {
+    padding: var(--ui-space-2) var(--ui-space-3);
+    border-radius: var(--ui-radius-sm);
+    cursor: pointer;
+    overflow-wrap: anywhere;
+  }
+
+  [data-ui-choice-option]:is(:hover, .active) {
+    background: var(--ui-surface-muted);
+    outline: 1px solid var(--ui-focus-ring);
+    outline-offset: -1px;
+  }
+
+  [data-ui-choice-option][aria-disabled="true"],
+  [data-ui-choice-option][aria-disabled="true"]:hover {
+    color: var(--ui-disabled-text);
+    background: transparent;
+    outline: none;
+    cursor: not-allowed;
+  }
+
+  [data-ui-choice-option]:not([data-multiple])[aria-selected="true"] {
+    background: color-mix(in srgb, var(--ui-accent-solid) 10%, var(--ui-control-surface));
+    box-shadow: inset 2px 0 var(--ui-accent-solid);
+  }
+
+  [data-ui-choice-option][data-multiple] {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-2);
+  }
+
+  [data-ui-choice-option][data-multiple]::before {
+    content: "";
+    flex: none;
+    inline-size: 1.125rem;
+    block-size: 1.125rem;
+    border: 1px solid var(--ui-control-border-hover, var(--ui-border-strong));
+    border-radius: var(--ui-radius-sm);
+    background-color: var(--ui-control-surface);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 0.7rem;
+  }
+
+  [data-ui-choice-option][data-multiple][aria-selected="true"]::before {
+    border-color: var(--ui-accent-solid);
+    background-color: var(--ui-accent-solid);
+    background-image: var(
+      --_ui-combobox-option-check,
+      var(
+        --ui-choice-check-icon,
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12 5 5 9-9'/%3E%3C/svg%3E")
+      )
+    );
+  }
+
+  [aria-disabled="true"] [data-ui-choice-option] {
+    color: var(--ui-disabled-text);
+    cursor: not-allowed;
   }
 }

@@ -348,7 +348,52 @@ test("solid icon buttons keep their fill and loading shows a ring", async ({ pag
     expect(contrastRatio(colors.foreground, colors.background)).toBeGreaterThanOrEqual(4.5);
   }
   const spinner = page.locator("[data-preview-scenario='Loading icon action'] [data-component~='ui-spinner']");
-  await expect(spinner).toHaveCSS("border-top-width", "2px");
+  await expect(spinner.locator("svg .arc")).toHaveCSS("stroke-linecap", "round");
+  await expect(spinner.locator("svg .arc")).toHaveCSS("animation-name", "ui-spinner-dash");
+});
+
+test("listbox previews use shared checked rows and allow repeated selection", async ({ page }) => {
+  await page.goto("components/ui-listbox", { waitUntil: "domcontentloaded" });
+  const scenario = page.locator("[data-preview-scenario='Multiple choice']");
+  const rows = scenario.locator("[role='option']");
+  await expect(rows.nth(0)).toHaveAttribute("aria-selected", "true");
+  await expect(rows.nth(3)).toHaveAttribute("aria-selected", "true");
+  await expect(rows.nth(0)).toHaveCSS("display", "flex");
+  await rows.nth(1).click();
+  await expect(rows.nth(1)).toHaveAttribute("aria-selected", "true");
+  await scenario.locator("[role='listbox']").press(" ");
+  await expect(rows.nth(1)).toHaveAttribute("aria-selected", "false");
+});
+
+test("mixed checkbox demo returns to mixed after an item changes", async ({ page }) => {
+  await page.goto("components/ui-checkbox", { waitUntil: "domcontentloaded" });
+  const scenario = page.locator("[data-preview-scenario='Select all and mixed state']");
+  const all = scenario.locator("#docs-checkbox-all input");
+  const items = scenario.locator(".docs-checkbox-item input");
+  await expect(all).toHaveJSProperty("indeterminate", true);
+  await all.click();
+  await expect(all).toHaveJSProperty("indeterminate", false);
+  for (const item of await items.all()) await expect(item).toBeChecked();
+  await items.nth(1).click();
+  await expect(all).toHaveJSProperty("indeterminate", true);
+});
+
+test("text fields keep error and readonly borders stable on hover", async ({ page }) => {
+  for (const [component, scenario] of [["ui-input", "invalid, readonly, and disabled"], ["ui-textarea", "rows, invalid, and readonly"]] as const) {
+    await page.goto(`components/${component}`, { waitUntil: "domcontentloaded" });
+    const preview = page.locator(`[data-preview-scenario='${scenario}']`);
+    const invalid = preview.locator(`[data-component~='${component}'][aria-invalid='true']`).first();
+    const readonly = preview.locator(`[data-component~='${component}'][readonly]`).first();
+    const border = (field: typeof invalid) => field.evaluate((element) => getComputedStyle(element).borderTopColor);
+    const invalidRest = await border(invalid);
+    const readonlyRest = await border(readonly);
+    await invalid.hover();
+    await page.waitForTimeout(150);
+    expect(await border(invalid)).toBe(invalidRest);
+    await readonly.hover();
+    await page.waitForTimeout(150);
+    expect(await border(readonly)).toBe(readonlyRest);
+  }
 });
 
 test("toast-region starts empty, fires on demand, and uses a compact round dismiss control", async ({ page }) => {
@@ -758,7 +803,7 @@ test("ui-button authors one declarative element and lowers directly to a native 
   await expect(loading).toHaveAttribute("aria-busy", "false");
   await loading.click();
   await expect(loading).toHaveAttribute("aria-busy", "true");
-  await expect(loading.locator("[data-component~='ui-spinner']")).toHaveCSS("border-top-width", "2px");
+  await expect(loading.locator("[data-component~='ui-spinner'] svg .arc")).toHaveCSS("stroke-linecap", "round");
   await expect(loading).toHaveAttribute("aria-busy", "false");
 });
 

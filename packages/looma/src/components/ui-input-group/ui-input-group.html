@@ -77,7 +77,7 @@
       }
     }
 
-    :host:hover:not(:has(input:focus, input:disabled)) {
+    :host:hover:not(:has(input:focus, input:disabled, input:read-only, [aria-invalid="true"], :user-invalid)) {
       border-color: var(--ui-control-border-hover, var(--ui-text-secondary));
     }
 

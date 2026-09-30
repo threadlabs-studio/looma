@@ -1021,7 +1021,9 @@ describe("Loading actions", () => {
     const label = await page.locator("#save span").last().boundingBox();
     assert.ok(spinner && spinnerWrap && label);
     assert.ok(Math.abs(spinnerWrap.width - spinnerWrap.height) < 1, "spinner rotates inside a square box");
-    assert.equal(await page.locator("#save [data-component~='ui-spinner']").evaluate((element) => getComputedStyle(element).borderTopWidth), "2px");
+    const arc = page.locator("#save [data-component~='ui-spinner'] svg .arc");
+    assert.equal(await arc.evaluate((element) => getComputedStyle(element).strokeLinecap), "round");
+    assert.equal(await arc.evaluate((element) => getComputedStyle(element).animationName), "ui-spinner-dash");
     assert.ok(label.x - (spinnerWrap.x + spinnerWrap.width) >= 7, "loading spinner has space before the label");
     assert.equal(await page.evaluate(() => (window as unknown as { activations: number }).activations), 0);
     assert.equal(await page.evaluate(() => location.hash), "");
@@ -2475,7 +2477,8 @@ describe("View primitives", () => {
     // Loading is a polite status with a spinner; an error is an alert.
     assert.equal(await page.locator("#loading").getAttribute("role"), "status");
     assert.equal(await page.locator("#failed").getAttribute("role"), "alert");
-    assert.equal(await page.locator("#loading [data-component~='ui-spinner'] .ring, #loading [data-component~='ui-spinner'].ring").count() > 0, true);
+    assert.equal(await page.locator("#loading [data-component~='ui-spinner'] svg .track").count(), 1);
+    assert.equal(await page.locator("#loading [data-component~='ui-spinner'] svg .arc").count(), 1);
     // A trail is a navigation landmark of an ordered list; the current step is marked; the first
     // step has no separator before it.
     assert.equal(await page.getByRole("navigation", { name: "Breadcrumb" }).count(), 1);
@@ -4623,23 +4626,29 @@ describe("Search Shell keyboard results", () => {
   });
 });
 
-describe("Listbox native selection", () => {
+describe("Listbox choice rows", () => {
   const check = async (page: Page) => {
     const listbox = page.locator("#regions");
-    assert.equal(await listbox.evaluate((element) => element.localName), "select");
-    assert.equal(await listbox.getAttribute("size"), "4");
-    assert.deepEqual(await listbox.evaluate((element: HTMLSelectElement) =>
-      Array.from(element.selectedOptions, (option) => option.value)), ["north", "west"]);
+    assert.equal(await listbox.evaluate((element) => element.localName), "div");
+    assert.equal(await listbox.getAttribute("role"), "listbox");
+    assert.equal(await listbox.getAttribute("data-enhanced"), "");
+    assert.equal(await listbox.locator("select.fallback").isVisible(), false);
+    assert.equal(await listbox.locator("select.fallback").isDisabled(), true);
+    assert.equal(await listbox.locator('[role="option"]').count(), 3);
+    assert.deepEqual((await listbox.locator('[role="option"][aria-selected="true"]').allTextContents()).map((label) => label.toLowerCase()), ["north", "west"]);
+    assert.equal(await listbox.locator('[role="option"]').first().evaluate((element) => getComputedStyle(element, "::before").content), '""');
     const entries = () => page.locator("#form").evaluate((form: HTMLFormElement) =>
       Array.from(new FormData(form).getAll("regions"), String));
     assert.deepEqual(await entries(), ["north", "west"]);
-    await listbox.selectOption(["south"]);
-    assert.deepEqual(await entries(), ["south"]);
+    await listbox.locator('[role="option"]').nth(1).click();
+    assert.deepEqual(await entries(), ["north", "south", "west"]);
+    await listbox.press(" ");
+    assert.deepEqual(await entries(), ["north", "west"]);
     await page.locator("#form").evaluate((form: HTMLFormElement) => form.reset());
     assert.deepEqual(await entries(), ["north", "west"]);
   };
 
-  it("uses native multi-selection and form reset in HTML", async () => {
+  it("uses checked choice rows and form reset in HTML", async () => {
     const path = await bundle("html-listbox", `import "@threadlabs/looma";`);
     const page = await open(path, `
       <form id="form"><ui-listbox id="regions" name="regions" rows="4" multiple values='["north","west"]'>
@@ -4650,7 +4659,7 @@ describe("Listbox native selection", () => {
     await page.close();
   });
 
-  it("uses native multi-selection and form reset in Vue", async () => {
+  it("uses checked choice rows and form reset in Vue", async () => {
     const path = await bundle("vue-listbox", `
       import { createApp, h } from "vue";
       import { Listbox } from "@threadlabs/looma/vue";
@@ -4660,6 +4669,24 @@ describe("Listbox native selection", () => {
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
     await check(page);
+    await page.close();
+  });
+
+  it("keeps required form validation and a native label association", async () => {
+    const path = await bundle("html-required-listbox", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <form id="form"><label for="plan">Plan</label><ui-listbox id="plan" name="plan" required>
+        <option value="basic">Basic</option><option value="team">Team</option>
+      </ui-listbox></form>
+    `, [join(root, "tokens.css")]);
+    const listbox = page.locator("#plan");
+    assert.equal(await listbox.getAttribute("aria-labelledby"), await page.locator("label").getAttribute("id"));
+    assert.equal(await page.locator("#form").evaluate((form: HTMLFormElement) => form.checkValidity()), false);
+    await listbox.locator('[role="option"]').nth(1).click();
+    assert.equal(await page.locator("#form").evaluate((form: HTMLFormElement) => form.checkValidity()), true);
+    assert.deepEqual(await page.locator("#form").evaluate((form: HTMLFormElement) => Array.from(new FormData(form).getAll("plan"))), ["team"]);
+    await page.locator("#form").evaluate((form: HTMLFormElement) => form.reset());
+    assert.equal(await page.locator("#form").evaluate((form: HTMLFormElement) => form.checkValidity()), false);
     await page.close();
   });
 });
@@ -4917,7 +4944,9 @@ describe("Form participation", () => {
     await page.locator("#site").fill("wiki");
     await page.locator("#body").fill("Hi there");
     await page.locator("#topic").selectOption("problem");
-    await page.locator("#regions").selectOption(["south"]);
+    await page.locator('#regions [data-index="0"]').click();
+    await page.locator('#regions [data-index="2"]').click();
+    await page.locator('#regions [data-index="1"]').click();
     await page.locator("#agree input").check();
     await page.locator("#news input").uncheck();
     await page.locator("#alerts input").check();
