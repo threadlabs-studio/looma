@@ -19,6 +19,8 @@
   and `getDefaultEditorExtensions`. Apps can load only the languages they use; Looma
   styles the highlighted tokens with theme-aware colors.
 
+- The code language selector floats above the code block holding the cursor, like the table toolbar,
+  instead of reserving empty space at the top of every editable code block.
 - Pasted Markdown or HTML code blocks no longer end with an extra empty line. The newline that
   closes a code block's last line is dropped; a blank line the author typed stays.
 - Adjacent span labels from pasted HTML layout wrappers keep a readable space
