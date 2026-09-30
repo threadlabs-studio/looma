@@ -235,9 +235,20 @@ test("menu for association toggles the anchored menu", async ({ page }) => {
   const trigger = scenario.getByRole("button", { name: "Open menu" });
   const menu = scenario.getByRole("menu", { name: "Document actions" });
   await expect(menu).not.toBeVisible();
+  const restingSurface = await trigger.evaluate((element) => getComputedStyle(element).backgroundColor);
   await trigger.click();
   await expect(menu).toBeVisible();
   await expect(trigger).toHaveAttribute("aria-expanded", "true");
+  await page.mouse.move(0, 0);
+  await expect.poll(() => trigger.evaluate((element) => getComputedStyle(element).backgroundColor)).not.toBe(restingSurface);
+  const iconGap = await menu.getByRole("menuitem", { name: "Share" }).locator(".label").evaluate((label) => {
+    const icon = label.querySelector("svg")!;
+    const text = Array.from(label.childNodes).find((node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim())!;
+    const range = document.createRange();
+    range.selectNodeContents(text);
+    return range.getBoundingClientRect().left - icon.getBoundingClientRect().right;
+  });
+  expect(iconGap).toBeGreaterThanOrEqual(6);
   await page.keyboard.press("Escape");
   await expect(menu).not.toBeVisible();
   await expect(trigger).toHaveAttribute("aria-expanded", "false");
@@ -279,9 +290,14 @@ test("popover trigger opens, positions, and closes the settled component", async
   const trigger = scenario.getByRole("button", { name: "Open popover" });
   const popover = scenario.locator("[data-component~='ui-popover']");
   await expect(popover).not.toBeVisible();
+  await expect(trigger).toHaveAttribute("aria-expanded", "false");
+  const restingSurface = await trigger.evaluate((element) => getComputedStyle(element).backgroundColor);
   await trigger.evaluate((element) => element.scrollIntoView({ block: "center", behavior: "instant" }));
   await trigger.click();
   await expect(popover).toBeVisible();
+  await expect(trigger).toHaveAttribute("aria-expanded", "true");
+  await page.mouse.move(0, 0);
+  await expect.poll(() => trigger.evaluate((element) => getComputedStyle(element).backgroundColor)).not.toBe(restingSurface);
   expect(await popover.evaluate((element) => element.matches(":popover-open"))).toBe(true);
   const positions = await Promise.all([trigger.boundingBox(), popover.boundingBox()]);
   expect(positions[0]).not.toBeNull();
@@ -289,6 +305,7 @@ test("popover trigger opens, positions, and closes the settled component", async
   expect(positions[1]!.y).toBeGreaterThanOrEqual(positions[0]!.y + positions[0]!.height);
   await page.keyboard.press("Escape");
   await expect(popover).not.toBeVisible();
+  await expect(trigger).toHaveAttribute("aria-expanded", "false");
 
   const placed = page.locator(`[data-preview-scenario='placement="top-end"']`);
   const placedPopover = placed.locator("[data-component~='ui-popover']");
