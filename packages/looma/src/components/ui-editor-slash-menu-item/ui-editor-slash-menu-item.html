@@ -7,8 +7,8 @@
     <prop name="keywords" type="string" default="">Additional space-separated search terms matched by the containing Slash Menu.</prop>
     <prop name="disabled" type="boolean" default="false">Keeps the command visible but unavailable for selection.</prop>
   </defs>
-  <li role="option" tabindex="-1" :aria-disabled="disabled" :data-value="value" :data-keywords="keywords">
-    <span $if="icon" class="icon" aria-hidden="true"><ui-icon :name="icon"></ui-icon></span>
+  <li role="option" tabindex="-1" from:aria-disabled="disabled" from:data-value="value" from:data-keywords="keywords">
+    <span $if="icon" class="icon" aria-hidden="true"><ui-icon from:name="icon"></ui-icon></span>
     <span class="body"><span class="title"><slot></slot></span><span $if="description" class="description" $value="description"></span></span>
   </li>
   <style>

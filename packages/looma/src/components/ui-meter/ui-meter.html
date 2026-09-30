@@ -28,11 +28,11 @@
   <span
     role="meter"
     aria-valuemin="0"
-    :aria-valuemax="max"
-    :aria-valuenow="amount"
-    :aria-valuetext="{ true: valueText, false: format('%s%', whole) }[format('%s', valueText != '')]"
-    :aria-label="{ true: label, false: null }[format('%s', label != '')]"
-    :data-ui-meter-segments="{ true: segments, false: null }[format('%s', segments > 1)]"
+    from:aria-valuemax="max"
+    from:aria-valuenow="amount"
+    from:aria-valuetext="{ true: valueText, false: format('%s%', whole) }[format('%s', valueText != '')]"
+    from:aria-label="{ true: label, false: null }[format('%s', label != '')]"
+    from:data-ui-meter-segments="{ true: segments, false: null }[format('%s', segments > 1)]"
   >
     <span class="fill" style:inline-size="format('%s%', percent)"></span>
   </span>
