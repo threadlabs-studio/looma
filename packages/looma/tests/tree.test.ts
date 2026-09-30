@@ -505,18 +505,19 @@ describe("Tree marquee", () => {
     await padded.hover();
     assert.equal(await padded.getAttribute("data-ui-marquee"), "");
     const measure = await padded.evaluate((element) => {
+      const label = element.querySelector<HTMLElement>(".label")!;
       const track = element.querySelector<HTMLElement>(".label-text")!;
       const title = element.querySelector<HTMLElement>("[data-testid=title]")!;
       const actions = element.querySelector<HTMLElement>(".actions")!;
       track.style.animation = "none";
       return {
         textEnd: title.getBoundingClientRect().right,
-        actionsStart: actions.getBoundingClientRect().left,
+        fadeStart: actions.getBoundingClientRect().left - Number.parseFloat(getComputedStyle(label).columnGap),
         distance: Number.parseFloat(getComputedStyle(element).getPropertyValue("--_marquee-distance")),
       };
     });
-    assert.ok(Math.abs(measure.textEnd + measure.distance - measure.actionsStart) <= 1,
-      `title should end at actions, not ${measure.textEnd + measure.distance - measure.actionsStart}px before them`);
+    assert.ok(Math.abs(measure.textEnd + measure.distance - measure.fadeStart) <= 1,
+      `title should end at the fade, not ${measure.textEnd + measure.distance - measure.fadeStart}px beyond it`);
     await item(page, "short-link").hover();
     assert.equal(await item(page, "short-link").locator(":scope > :first-child").getAttribute("data-ui-marquee"), null,
       "a full-row link whose title fits beside the controls must stay still");
