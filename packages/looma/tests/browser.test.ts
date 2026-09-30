@@ -632,7 +632,7 @@ describe("Menu structure and navigation", () => {
       const checked = ref(false);
       window.changes = [];
       createApp({ render: () => h(ContextMenu, { id: "menu", open: true, for: "target" }, () =>
-        h(MenuItem, { id: "grid", type: "checkbox", checked: checked.value, value: "grid", onChange: (detail) => { window.changes.push(detail); checked.value = detail.checked; } }, () => "Show grid"))
+        h(MenuItem, { id: "grid", type: "checkbox", checked: checked.value, value: "grid", onChange: (event) => { window.changes.push(event.detail); checked.value = event.detail.checked; } }, () => "Show grid"))
       }).mount("#app");
     `);
     const page = await open(path, `<button id="target">Target</button><div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
@@ -853,7 +853,7 @@ describe("Dialog close policy and presentation", () => {
       window.dialogEvents = [];
       createApp({ render: () => [
         h("button", { id: "show", onClick: () => { open.value = true; } }, "Show"),
-        h(Dialog, { id: "dialog", open: open.value, label: "Details", onOpen: (detail) => window.dialogEvents.push(detail) }, () => "Body"),
+        h(Dialog, { id: "dialog", open: open.value, label: "Details", onOpen: (event) => window.dialogEvents.push(event.detail) }, () => "Body"),
       ] }).mount("#app");
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
@@ -1326,7 +1326,7 @@ describe("Vue components", () => {
       createApp({
         render: () => h(Stack, { gap: "s" }, () => [
           h(Button, { id: "save", variant: "solid", class: "consumer" }, () => "Save"),
-          h(Checkbox, { id: "agree", checked: checked.value, onChange: (detail) => changes.push(detail) }, () => "Agree"),
+          h(Checkbox, { id: "agree", checked: checked.value, onChange: (event) => changes.push(event.detail) }, () => "Agree"),
           h(Tabs, { id: "tabs", label: "Views" }, () => [
             h("section", { "aria-label": "One" }, "First"),
             h("section", { "aria-label": "Two" }, "Second"),
@@ -2865,14 +2865,14 @@ describe("Nav item", () => {
       <script>window.clicks = 0;</script>
       <nav aria-label="Main" style="width: 240px">
         <ui-list>
-          <li><ui-nav-item id="page" as="a" href="#shipments" target="_self" rel="bookmark" current><span slot="leading">*</span>Shipments</ui-nav-item></li>
+          <li><ui-nav-item id="page" as="a" href="#shipments" target="_self" rel="bookmark" current="true"><span slot="leading">*</span>Shipments</ui-nav-item></li>
           <li><ui-nav-item id="other" as="a" href="#invoices">Invoices</ui-nav-item></li>
           <li><ui-nav-item id="view" onclick="window.clicks += 1">Overview</ui-nav-item></li>
           <li><ui-nav-item id="step" current="step">Team</ui-nav-item></li>
           <li><ui-nav-item id="long">Customer<span slot="description">${longDescription}</span></ui-nav-item></li>
         </ui-list>
       </nav>
-      <nav aria-label="RTL" dir="rtl" style="width: 240px"><ui-nav-item id="rtl" current>Shipments</ui-nav-item></nav>`,
+      <nav aria-label="RTL" dir="rtl" style="width: 240px"><ui-nav-item id="rtl" current="true">Shipments</ui-nav-item></nav>`,
     [join(root, "tokens.css")]);
     await page.waitForSelector('#long[data-component~="ui-nav-item"]');
     await checkNavItem(page);
@@ -2887,13 +2887,13 @@ describe("Nav item", () => {
       const item = (props, slots) => h("li", [h(NavItem, props, slots)]);
       createApp({ render: () => [
         h("nav", { "aria-label": "Main", style: "width: 240px" }, [h(List, null, () => [
-          item({ id: "page", as: "a", href: "#shipments", target: "_self", rel: "bookmark", current: true }, { leading: () => h("span", "*"), default: () => "Shipments" }),
+          item({ id: "page", as: "a", href: "#shipments", target: "_self", rel: "bookmark", current: "true" }, { leading: () => h("span", "*"), default: () => "Shipments" }),
           item({ id: "other", as: "a", href: "#invoices" }, () => "Invoices"),
           item({ id: "view", onClick: () => { window.clicks += 1; } }, () => "Overview"),
           item({ id: "step", current: "step" }, () => "Team"),
           item({ id: "long" }, { default: () => "Customer", description: () => h("span", ${JSON.stringify(longDescription)}) }),
         ])]),
-        h("nav", { "aria-label": "RTL", dir: "rtl", style: "width: 240px" }, [h(NavItem, { id: "rtl", current: true }, () => "Shipments")]),
+        h("nav", { "aria-label": "RTL", dir: "rtl", style: "width: 240px" }, [h(NavItem, { id: "rtl", current: "true" }, () => "Shipments")]),
       ] }).mount("#app");
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
@@ -3397,7 +3397,7 @@ describe("Overlays", () => {
       createApp({
         render: () => h(SearchShell, {
           id: "search", open: open.value, modal: true, dismissible: true, label: "Search",
-          onClose: (detail) => { closes.push(detail); open.value = false; },
+          onClose: (event) => { closes.push(event.detail); open.value = false; },
         }, { search: () => h("input", { id: "query", type: "search", "aria-label": "Search" }) }),
       }).mount("#app");
     `);
@@ -3425,8 +3425,8 @@ describe("Overlays", () => {
           h(Button, { id: "trigger" }, () => "Icon"),
           h(Popover, {
             id: "picker", for: "trigger", open: open.value,
-            onOpen: (detail) => { events.push(["open", detail]); open.value = true; },
-            onClose: (detail) => { events.push(["close", detail]); open.value = false; },
+            onOpen: (event) => { events.push(["open", event.detail]); open.value = true; },
+            onClose: (event) => { events.push(["close", event.detail]); open.value = false; },
           }, () => "Choose an icon"),
         ]),
       }).mount("#app");
@@ -3565,7 +3565,8 @@ describe("Combobox with multiple", () => {
           id: "tags", label: "Tags", multiple: true, allowCreate: true, items: items.value,
           query: query.value, "onUpdate:query": (value) => { query.value = value; },
           // Created optimistically: offered and selected at once, confirmed later.
-          onCreateItem: ({ query: name }) => {
+          onCreateItem: (event) => {
+            const { query: name } = event.detail;
             created.push(name);
             const option = { value: name.toLowerCase(), label: name };
             options.value = [...options.value, option];
@@ -3601,7 +3602,8 @@ describe("Combobox with multiple", () => {
         render: () => h(Combobox, {
           id: "tags", label: "Tags", multiple: true, allowCreate: true, items: items.value,
           // A consumer creates asynchronously, then offers and selects the new option.
-          onCreateItem: ({ query }) => {
+          onCreateItem: (event) => {
+            const { query } = event.detail;
             created.push(query);
             setTimeout(() => {
               const option = { value: query.toLowerCase(), label: query };
@@ -3972,12 +3974,12 @@ describe("Vue editor components", () => {
         render: () => h("div", [
           h(EditorSlashMenu, { id: "slash", open: true, query: "ta", anchorRect: { left: 800, top: 20, right: 820, bottom: 40 },
             items: [{ title: "Table", description: "Rows and columns", icon: "table" }, { title: "Text", description: "Paragraph", icon: "pilcrow" }],
-            onSelect: (detail) => events.push(["select", detail]) }),
+            onSelect: (event) => events.push(["select", event.detail]) }),
           h(EditorTableToolbar, { id: "toolbar", open: true, cellAlignment: "center",
             actions: ["align-left", "align-center", "add-row-after", "background-yellow", "delete-table"],
-            onAction: (detail) => events.push(["action", detail]) }),
+            onAction: (event) => events.push(["action", event.detail]) }),
           h(EditorInsertTableGrid, { id: "grid", open: true, maxRows: 4, maxCols: 5,
-            onInsert: (detail) => events.push(["insert", detail]) }),
+            onInsert: (event) => events.push(["insert", event.detail]) }),
         ]),
       }).mount("#app");
     `);
@@ -4211,8 +4213,8 @@ describe("Combobox events", () => {
       createApp({
         render: () => h(Combobox, {
           label: "Fruit",
-          onOptionsChange: (detail) => window.events.push(["options", detail]),
-          onValueChange: (detail) => window.events.push(["value", detail]),
+          onOptionsChange: (event) => window.events.push(["options", event.detail]),
+          onValueChange: (event) => window.events.push(["value", event.detail]),
         }, () => [h("option", { value: "apple" }, "Apple"), h("option", { value: "pear" }, "Pear")]),
       }).mount("#app");
     `);
@@ -4304,7 +4306,7 @@ describe("Combobox option detail", () => {
       import { Combobox } from "@threadlabs/looma/vue";
       window.changes = [];
       createApp({
-        render: () => h(Combobox, { id: "people", label: "Directory", onValueChange: (detail) => window.changes.push(detail) }, () => [
+        render: () => h(Combobox, { id: "people", label: "Directory", onValueChange: (event) => window.changes.push(event.detail) }, () => [
           h("optgroup", { label: "People" }, [
             h("option", { value: "riley", "data-description": "Harbor Supply Co.", "data-tag": "Contact" }, "Riley Kim"),
             h("option", { value: "sam", "data-description": "Harbor Supply Co." }, "Sam Ortiz"),
@@ -4379,7 +4381,7 @@ describe("Combobox filter", () => {
       window.changes = [];
       const riley = () => h("option", { value: "riley", "data-description": "Harbor Auto Group" }, "Riley Kim");
       const harbor = () => h("option", { value: "harbor" }, "Harbor Auto Group");
-      const onValueChange = (detail) => window.changes.push(detail);
+      const onValueChange = (event) => window.changes.push(event.detail);
       createApp({
         render: () => [
           h(Combobox, { id: "server", label: "Server", filter: "none", onValueChange }, () => [riley(), harbor()]),
@@ -4404,9 +4406,9 @@ describe("Controlled strict Combobox search", () => {
       window.changes = [];
       createApp({ render: () => h(Combobox, {
         id: "fruit", label: "Fruit", name: "fruit", value: selected.value,
-        onValueChange: (detail) => {
-          window.changes.push(detail);
-          if (detail.kind === "selection") selected.value = detail.value;
+        onValueChange: (event) => {
+          window.changes.push(event.detail);
+          if (event.detail.kind === "selection") selected.value = event.detail.value;
         },
       }, () => [h("option", { value: "apple" }, "Apple"), h("option", { value: "pear" }, "Pear")]) }).mount("#app");
     `);
@@ -4473,7 +4475,7 @@ describe("Combobox disabled", () => {
       import { Combobox } from "@threadlabs/looma/vue";
       window.changes = [];
       const options = () => [h("option", { value: "apple" }, "Apple"), h("option", { value: "pear" }, "Pear")];
-      const onValueChange = (detail) => window.changes.push(detail);
+      const onValueChange = (event) => window.changes.push(event.detail);
       createApp({
         render: () => h("div", [
           h(Combobox, { id: "locked", label: "Tags", multiple: true, clearable: true, disclosure: true, help: "Pick tags.", disabled: true,
@@ -5270,7 +5272,8 @@ describe("Table", () => {
     const html = await renderToString(createSSRApp({
       render: () => h(Table, { density: "compact", stickyHeader: true }, () => h("table", [h("caption", "Orders"), h("tbody", h("tr", h("td", "1")))])),
     }));
-    assert.match(html, /^<div data-component="ui-table" data-ui-table-state="density density=compact stickyHeader"/);
+    assert.match(html, /^<div data-component="ui-table"/);
+    assert.match(html, /data-ui-table-state="density density=compact stickyHeader"/);
     assert.match(html, /<table[^>]*><caption[^>]*>Orders<\/caption>/);
     assert.doesNotMatch(html, /role=|tabindex=/);
   });
@@ -5400,7 +5403,7 @@ describe("Sidebar", () => {
       window.probe = { toggles: [], resizes: [] };
       createApp({ render: () => [
         h("button", { id: "menu", commandfor: "nav", command: "--toggle" }, "Menu"),
-        h(Sidebar, { id: "nav", "aria-label": "Workspace", width: 256, onToggle: (detail) => window.probe.toggles.push(detail) },
+        h(Sidebar, { id: "nav", "aria-label": "Workspace", width: 256, onToggle: (event) => window.probe.toggles.push(event.detail) },
           () => h("a", { href: "#inbox" }, "Inbox")),
       ] }).mount("#app");
     `);
@@ -5418,7 +5421,7 @@ describe("Sidebar", () => {
       window.width = width;
       createApp({ render: () => h(Sidebar, {
         id: "nav", "aria-label": "Workspace", width: width.value, resizable: true,
-        onResize: (detail) => window.probe.resizes.push(detail),
+        onResize: (event) => window.probe.resizes.push(event.detail),
       }, () => h("a", { href: "#inbox" }, "Inbox")) }).mount("#app");
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
@@ -5463,16 +5466,16 @@ describe("Component hooks", () => {
     ["div", hook("--ui-input-radius", "7px"), [["Input", { id: "input-nested", "aria-label": "Nested" }]]],
     ["Input", { id: "input-plain", "aria-label": "Plain" }],
     ["Input", { id: "input-own", "aria-label": "Own", ...hook("--ui-input-radius", "7px") }],
-    ["nav", { "aria-label": "Hooked", ...hook("--ui-nav-item-indicator-color", mark) }, [["NavItem", { id: "nav-nested", current: true }, ["Home"]]]],
-    ["NavItem", { id: "nav-plain", current: true }, ["Home"]],
-    ["NavItem", { id: "nav-own", current: true, ...hook("--ui-nav-item-indicator-color", mark) }, ["Home"]],
+    ["nav", { "aria-label": "Hooked", ...hook("--ui-nav-item-indicator-color", mark) }, [["NavItem", { id: "nav-nested", current: "true" }, ["Home"]]]],
+    ["NavItem", { id: "nav-plain", current: "true" }, ["Home"]],
+    ["NavItem", { id: "nav-own", current: "true", ...hook("--ui-nav-item-indicator-color", mark) }, ["Home"]],
     // A hook a component reads on an inner part reaches that part from the root, and no further.
     ["Callout", { id: "callout-outer", ...hook("--ui-callout-icon", mark) }, [["Callout", { id: "callout-nested" }, ["Inner"]]]],
     ["Callout", { id: "callout-plain" }, ["Plain"]],
     // Theme tokens still theme a subtree.
     ["div", { style: `--ui-space-5: 40px; --ui-accent: ${mark}` }, [
       ["Stack", { id: "stack-themed", gap: "l" }, [["span", {}, ["a"]], ["span", {}, ["b"]]]],
-      ["NavItem", { id: "nav-themed", current: true }, ["Home"]],
+      ["NavItem", { id: "nav-themed", current: "true" }, ["Home"]],
     ]],
   ];
 
@@ -5868,10 +5871,10 @@ describe("Input with numbers", () => {
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
     const { updates, writes } = await typing(page);
     assert.deepEqual(writes, []);
-    // Numbers, or an empty string while the field holds no number, as Vue's v-model reports them.
-    assert.ok(updates.every((value) => typeof value === "number" || value === ""), JSON.stringify(updates));
+    // The declared numeric value is null while the field holds no number.
+    assert.ok(updates.every((value) => typeof value === "number" || value === null), JSON.stringify(updates));
     for (const value of [12.5, 12.8, 1, 1000, 0.5]) assert.ok(updates.includes(value), `reports ${value}`);
-    assert.equal(updates.at(-1), "");
+    assert.equal(updates.at(-1), null);
     await page.close();
   });
 

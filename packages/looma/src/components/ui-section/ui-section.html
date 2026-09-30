@@ -2,10 +2,10 @@
   <defs>
     <prop name="heading" type="string" default=""
     >The section's heading, an h2. Leave it empty for a section with no visible heading, and name the section with aria-label.</prop>
-    <prop name="variant" type="plain | card | divided" default="plain"
+    <prop name="variant" type="keyword" values="plain, card, divided" default="plain"
     >How the section is set apart. plain is a heading and content in the flow of the page; card sits it on a bordered surface, for a settings group; divided
       rules it off from the section before it, for a long form.</prop>
-    <prop name="tone" type="neutral | danger" default="neutral"
+    <prop name="tone" type="keyword" values="neutral, danger" default="neutral"
     >danger marks a section of destructive actions (a danger zone): its heading and a card's border take the danger colour.</prop>
   </defs>
   <section>

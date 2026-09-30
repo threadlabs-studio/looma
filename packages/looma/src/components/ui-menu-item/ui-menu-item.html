@@ -7,11 +7,16 @@
     >The value the enclosing menu reports in its select event when this item is chosen. Give each item a distinct value so one handler can tell them
       apart.</prop>
     <prop name="href" type="string" default="">A destination makes an action item a real link, with native navigation and link context actions.</prop>
-    <prop name="type" type="action | checkbox | radio" default="action"
+    <prop name="type" type="keyword" values="action, checkbox, radio" default="action"
     >An action closes its menu; a checkbox toggles, and a radio chooses one item within its nearest Menu Group. Checkable items keep the menu open.</prop>
     <prop name="checked" type="boolean" default="false">Initial or externally controlled checked state of a checkbox or radio item.</prop>
     <state name="internalChecked" :value="false"></state>
-    <event name="change" type="object({ checked: boolean, value: string, type: checkbox | radio, trigger: keyboard | pointer | programmatic })"></event>
+    <event name="change" type="object">
+      <prop name="checked" required type="boolean"></prop>
+      <prop name="value" required type="string"></prop>
+      <prop name="type" required type="keyword" values="checkbox, radio"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
   </defs>
   <template $match>
     <a

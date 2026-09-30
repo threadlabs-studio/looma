@@ -11,15 +11,30 @@
     >The form field name the combobox submits its value under, never the label shown in the field. Single mode sends one entry: the selected option's value, the
       typed text when allowFreeText is set and no option is selected, or an empty string. Multiple mode sends one entry per chosen item's value, and nothing
       when none is chosen. A disabled combobox sends nothing.</prop>
-    <prop name="value" type="string | null"
+    <prop name="value" type="string"
     >The selected value in single mode, which a named combobox submits with its form. The field shows the matching option's label, and a form reset returns to
       this value. In a strict combobox, typing a search does not change the selection; leaving with no match restores its label. If omitted, the first authored
       option with selected sets the initial value.</prop>
     <prop
       name="items"
-      type="list(object({ id: string, value: string, label: string, group?: string, disabled?: boolean, description?: string, tag?: object({ label: string, tone?: neutral | accent | info | success | warning | danger, color?: string }) }))"
-    >The selected items in multiple mode, as JSON; a named combobox submits each one's value. A form reset returns to these items, or to authored selected
-      options when unset.</prop>
+      type="array"
+    >
+      <prop type="object">
+        <prop name="id" required type="string"></prop>
+        <prop name="value" required type="string"></prop>
+        <prop name="label" required type="string"></prop>
+        <prop name="group" type="string"></prop>
+        <prop name="disabled" type="boolean"></prop>
+        <prop name="description" type="string"></prop>
+        <prop name="tag" type="object">
+          <prop name="label" required type="string"></prop>
+          <prop name="tone" type="keyword" values="neutral, accent, info, success, warning, danger"></prop>
+          <prop name="color" type="string"></prop>
+        </prop>
+      </prop>
+      The selected items in multiple mode, as JSON; a named combobox submits each one's value. A form reset returns to these items, or to authored selected
+      options when unset.
+    </prop>
     <prop name="selectedValues" type="list(string)"
     >The selected option values in multiple mode, when the consumer controls the selection. Without it or items, authored options with selected set the initial
       selection. Once set, the consumer owns it: each value shows as a badge with its authored option's label, adding or removing one reports
@@ -27,7 +42,7 @@
       It takes precedence over items; leave it unset to let the combobox keep its own selection.</prop>
     <prop name="multiple" type="boolean" default="false"
     >Lets the user choose several options. Each choice becomes a removable badge before the input, the list stays open between picks, and choosing a checked
-      option removes it. value-change then reports the whole list of items, and selected-values-change the list of their values; use selectedValues or items,
+      option removes it. items-change then reports the whole list of items, and selected-values-change the list of their values; use selectedValues or items,
       not value, in this mode.</prop>
     <prop name="tokenSeparators" type="list(string)"
     >Keys that commit the typed text in multiple mode, as KeyboardEvent key values such as "," or ";". The text is added as the option whose label matches it,
@@ -35,7 +50,7 @@
     <prop name="query" type="string"
     >The input's text, when the consumer controls it. Once set, the consumer owns the text: typing reports query-change, and the input returns to query unless
       query is updated to match. Leave it unset to let the combobox manage its own text, showing the chosen option's label.</prop>
-    <prop name="filter" type="label | none" default="label"
+    <prop name="filter" type="keyword" values="label, none" default="label"
     >How the list narrows as the user types. label lists the options whose label contains the typed text, ignoring case. none lists every authored option, for
       options already narrowed elsewhere, such as a server search, so a result that matched on data other than its label still shows. Leaving the field still
       commits an option whose label matches the text, or the only one listed.</prop>
@@ -57,11 +72,11 @@
     <prop name="openOnFocus" type="boolean" default="false">Opens suggestions when the input receives focus, before typing.</prop>
     <prop name="loading" type="boolean" default="false"
     >Marks the suggestion list busy while the consumer loads options. It announces loading and suppresses the empty state and create offer until cleared.</prop>
-    <prop name="size" type="sm | md | lg" default="md"
+    <prop name="size" type="keyword" values="sm, md, lg" default="md"
     >Field height, padding, and type size, matching Button's sizes so a field and a button of one size share a row. sm is the small control height (2rem by
       default) with smaller text, for compact rows such as a table row or a filter bar; md is the standard control height; lg is taller with roomier padding.
       Under a coarse pointer, sm grows to the 44px touch minimum and keeps body-size text. The label keeps its size.</prop>
-    <prop name="labelVisibility" type="visible | sr-only" default="visible"
+    <prop name="labelVisibility" type="keyword" values="visible, sr-only" default="visible"
     >visible shows the label above the field; sr-only hides it visually but keeps it as the input's accessible name. Use sr-only only when the surrounding
       layout already makes the field's purpose clear.</prop>
     <prop name="disclosure" type="boolean" default="false"
@@ -75,69 +90,277 @@
       it.</prop>
     <state
       name="internalItems"
-      type="list(object({ id: string, value: string, label: string, group?: string, disabled?: boolean, description?: string, tag?: object({ label: string, tone?: neutral | accent | info | success | warning | danger, color?: string }) }))"
+      type="array"
       :value="[]"
-    ></state>
+    >
+      <prop type="object">
+        <prop name="id" required type="string"></prop>
+        <prop name="value" required type="string"></prop>
+        <prop name="label" required type="string"></prop>
+        <prop name="group" type="string"></prop>
+        <prop name="disabled" type="boolean"></prop>
+        <prop name="description" type="string"></prop>
+        <prop name="tag" type="object">
+          <prop name="label" required type="string"></prop>
+          <prop name="tone" type="keyword" values="neutral, accent, info, success, warning, danger"></prop>
+          <prop name="color" type="string"></prop>
+        </prop>
+      </prop>
+    </state>
     <state name="raw" :value="''"></state>
     <state name="display" :value="''"></state>
-    <state name="selected" type="string | null" :value="null"></state>
+    <state name="selected" type="string" :value="null" nullable></state>
     <state name="expanded" :value="false"></state>
     <state
       name="rows"
-      type="list(object({ id: string, value: string, label: string, group?: string, disabled: boolean, selected: boolean, description?: string, tag?: object({ label: string, tone?: neutral | accent | info | success | warning | danger, color?: string }) }))"
+      type="array"
       :value="[]"
-    ></state>
+    >
+      <prop type="object">
+        <prop name="id" required type="string"></prop>
+        <prop name="value" required type="string"></prop>
+        <prop name="label" required type="string"></prop>
+        <prop name="group" type="string"></prop>
+        <prop name="disabled" required type="boolean"></prop>
+        <prop name="selected" required type="boolean"></prop>
+        <prop name="description" type="string"></prop>
+        <prop name="tag" type="object">
+          <prop name="label" required type="string"></prop>
+          <prop name="tone" type="keyword" values="neutral, accent, info, success, warning, danger"></prop>
+          <prop name="color" type="string"></prop>
+        </prop>
+      </prop>
+    </state>
     <state name="active" :value="-1"></state>
     <state name="helpOpen" :value="false"></state>
     <state name="lookupError" :value="''"></state>
     <state
       name="validation"
-      type="object({ status: pristine | pending | valid | warning | error, touched: boolean, dirty: boolean, issues: list(object({ message: string })), ... })"
+      type="object"
       :value="{ status: 'pristine', touched: false, dirty: false, issues: [] }"
-    ></state>
+      open
+    >
+      <prop name="status" required type="keyword" values="pristine, pending, valid, warning, error"></prop>
+      <prop name="touched" required type="boolean"></prop>
+      <prop name="dirty" required type="boolean"></prop>
+      <prop name="issues" required type="array">
+        <prop type="object">
+          <prop name="message" required type="string"></prop>
+        </prop>
+      </prop>
+    </state>
     <state name="uid" :value="''"></state>
     <state name="submitted" :value="''"></state>
     <state
       name="groups"
-      type="list(object({ name: string, role: group | presentation, label: string | null, rows: list(object({ id: string, value: string, label: string, group?: string, disabled: boolean, selected: boolean, description?: string, tag?: object({ label: string, tone?: neutral | accent | info | success | warning | danger, color?: string }), index: integer, labelledBy: string | null, detail: string | null })) }))"
+      type="array"
       :value="[]"
-    ></state>
+    >
+      <prop type="object">
+        <prop name="name" required type="string"></prop>
+        <prop name="role" required type="keyword" values="group, presentation"></prop>
+        <prop name="label" required nullable type="string"></prop>
+        <prop name="rows" required type="array">
+          <prop type="object">
+            <prop name="id" required type="string"></prop>
+            <prop name="value" required type="string"></prop>
+            <prop name="label" required type="string"></prop>
+            <prop name="group" type="string"></prop>
+            <prop name="disabled" required type="boolean"></prop>
+            <prop name="selected" required type="boolean"></prop>
+            <prop name="description" type="string"></prop>
+            <prop name="tag" type="object">
+              <prop name="label" required type="string"></prop>
+              <prop name="tone" type="keyword" values="neutral, accent, info, success, warning, danger"></prop>
+              <prop name="color" type="string"></prop>
+            </prop>
+            <prop name="index" required type="integer"></prop>
+            <prop name="labelledBy" required nullable type="string"></prop>
+            <prop name="detail" required nullable type="string"></prop>
+          </prop>
+        </prop>
+      </prop>
+    </state>
     <state name="creatable" :value="false"></state>
     <state name="createIndex" :value="0"></state>
     <state name="message" :value="''"></state>
     <state name="statusText" :value="''"></state>
     <state name="validationStatus" :value="'pristine'"></state>
-    <event name="query-change" type="object({ query: string, display: string, trigger: keyboard | pointer | programmatic })"></event>
+    <event name="query-change" type="object">
+      <prop name="query" required type="string"></prop>
+      <prop name="display" required type="string"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
     <event
       name="value-change"
-      type="object({ value: string | null, query: string, option: object({ id: string, value: string, label: string, group?: string, disabled?: boolean, description?: string, tag?: object({ label: string, tone?: neutral | accent | info | success | warning | danger, color?: string }) }) | null, kind: selection | clear | free-entry | create, trigger: keyboard | pointer | programmatic }) | list(object({ id: string, value: string, label: string, group?: string, disabled?: boolean, description?: string, tag?: object({ label: string, tone?: neutral | accent | info | success | warning | danger, color?: string }) }))"
-    ></event>
+      type="object"
+    >
+      <prop name="value" required nullable type="string"></prop>
+      <prop name="query" required type="string"></prop>
+      <prop name="option" required nullable type="object">
+        <prop name="id" required type="string"></prop>
+        <prop name="value" required type="string"></prop>
+        <prop name="label" required type="string"></prop>
+        <prop name="group" type="string"></prop>
+        <prop name="disabled" type="boolean"></prop>
+        <prop name="description" type="string"></prop>
+        <prop name="tag" type="object">
+          <prop name="label" required type="string"></prop>
+          <prop name="tone" type="keyword" values="neutral, accent, info, success, warning, danger"></prop>
+          <prop name="color" type="string"></prop>
+        </prop>
+      </prop>
+      <prop name="kind" required type="keyword" values="selection, clear, free-entry, create"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
+    <event
+      name="items-change"
+      type="array"
+    >
+      <prop type="object">
+        <prop name="id" required type="string"></prop>
+        <prop name="value" required type="string"></prop>
+        <prop name="label" required type="string"></prop>
+        <prop name="group" type="string"></prop>
+        <prop name="disabled" type="boolean"></prop>
+        <prop name="description" type="string"></prop>
+        <prop name="tag" type="object">
+          <prop name="label" required type="string"></prop>
+          <prop name="tone" type="keyword" values="neutral, accent, info, success, warning, danger"></prop>
+          <prop name="color" type="string"></prop>
+        </prop>
+      </prop>
+    </event>
     <event
       name="free-entry"
-      type="object({ value: string | null, query: string, option: object({ id: string, value: string, label: string, group?: string, disabled?: boolean, description?: string, tag?: object({ label: string, tone?: neutral | accent | info | success | warning | danger, color?: string }) }) | null, kind: selection | clear | free-entry | create, trigger: keyboard | pointer | programmatic })"
-    ></event>
+      type="object"
+    >
+      <prop name="value" required nullable type="string"></prop>
+      <prop name="query" required type="string"></prop>
+      <prop name="option" required nullable type="object">
+        <prop name="id" required type="string"></prop>
+        <prop name="value" required type="string"></prop>
+        <prop name="label" required type="string"></prop>
+        <prop name="group" type="string"></prop>
+        <prop name="disabled" type="boolean"></prop>
+        <prop name="description" type="string"></prop>
+        <prop name="tag" type="object">
+          <prop name="label" required type="string"></prop>
+          <prop name="tone" type="keyword" values="neutral, accent, info, success, warning, danger"></prop>
+          <prop name="color" type="string"></prop>
+        </prop>
+      </prop>
+      <prop name="kind" required type="keyword" values="selection, clear, free-entry, create"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
     <event
       name="create-entry"
-      type="object({ value: string | null, query: string, option: object({ id: string, value: string, label: string, group?: string, disabled?: boolean, description?: string, tag?: object({ label: string, tone?: neutral | accent | info | success | warning | danger, color?: string }) }) | null, kind: selection | clear | free-entry | create, trigger: keyboard | pointer | programmatic })"
-    ></event>
+      type="object"
+    >
+      <prop name="value" required nullable type="string"></prop>
+      <prop name="query" required type="string"></prop>
+      <prop name="option" required nullable type="object">
+        <prop name="id" required type="string"></prop>
+        <prop name="value" required type="string"></prop>
+        <prop name="label" required type="string"></prop>
+        <prop name="group" type="string"></prop>
+        <prop name="disabled" type="boolean"></prop>
+        <prop name="description" type="string"></prop>
+        <prop name="tag" type="object">
+          <prop name="label" required type="string"></prop>
+          <prop name="tone" type="keyword" values="neutral, accent, info, success, warning, danger"></prop>
+          <prop name="color" type="string"></prop>
+        </prop>
+      </prop>
+      <prop name="kind" required type="keyword" values="selection, clear, free-entry, create"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
     <event
       name="validation-change"
-      type="object({ status: pristine | pending | valid | warning | error, touched: boolean, dirty: boolean, issues: list(object({ message: string, path?: list(unknown), severity?: error | warning })), output?: unknown })"
-    ></event>
+      type="object"
+    >
+      <prop name="status" required type="keyword" values="pristine, pending, valid, warning, error"></prop>
+      <prop name="touched" required type="boolean"></prop>
+      <prop name="dirty" required type="boolean"></prop>
+      <prop name="issues" required type="array">
+        <prop type="object">
+          <prop name="message" required type="string"></prop>
+          <prop name="path" type="array">
+            <prop type="unknown"></prop>
+          </prop>
+          <prop name="severity" type="keyword" values="error, warning"></prop>
+        </prop>
+      </prop>
+      <prop name="output" type="unknown"></prop>
+    </event>
     <event
       name="options-change"
-      type="list(object({ id: string, value: string, label: string, group?: string, disabled?: boolean, description?: string, tag?: object({ label: string, tone?: neutral | accent | info | success | warning | danger, color?: string }) }))"
-    ></event>
+      type="array"
+    >
+      <prop type="object">
+        <prop name="id" required type="string"></prop>
+        <prop name="value" required type="string"></prop>
+        <prop name="label" required type="string"></prop>
+        <prop name="group" type="string"></prop>
+        <prop name="disabled" type="boolean"></prop>
+        <prop name="description" type="string"></prop>
+        <prop name="tag" type="object">
+          <prop name="label" required type="string"></prop>
+          <prop name="tone" type="keyword" values="neutral, accent, info, success, warning, danger"></prop>
+          <prop name="color" type="string"></prop>
+        </prop>
+      </prop>
+    </event>
     <event
       name="add-item"
-      type="object({ item: object({ id: string, value: string, label: string, group?: string, disabled?: boolean, description?: string, tag?: object({ label: string, tone?: neutral | accent | info | success | warning | danger, color?: string }) }), index: integer, trigger: keyboard | pointer | programmatic })"
-    ></event>
+      type="object"
+    >
+      <prop name="item" required type="object">
+        <prop name="id" required type="string"></prop>
+        <prop name="value" required type="string"></prop>
+        <prop name="label" required type="string"></prop>
+        <prop name="group" type="string"></prop>
+        <prop name="disabled" type="boolean"></prop>
+        <prop name="description" type="string"></prop>
+        <prop name="tag" type="object">
+          <prop name="label" required type="string"></prop>
+          <prop name="tone" type="keyword" values="neutral, accent, info, success, warning, danger"></prop>
+          <prop name="color" type="string"></prop>
+        </prop>
+      </prop>
+      <prop name="index" required type="integer"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
     <event
       name="remove-item"
-      type="object({ item: object({ id: string, value: string, label: string, group?: string, disabled?: boolean, description?: string, tag?: object({ label: string, tone?: neutral | accent | info | success | warning | danger, color?: string }) }), index: integer, trigger: keyboard | pointer | programmatic })"
-    ></event>
-    <event name="create-item" type="object({ query: string, trigger: keyboard | pointer | programmatic })"></event>
-    <event name="selected-values-change" type="object({ selectedValues: list(string), trigger: keyboard | pointer | programmatic })"></event>
+      type="object"
+    >
+      <prop name="item" required type="object">
+        <prop name="id" required type="string"></prop>
+        <prop name="value" required type="string"></prop>
+        <prop name="label" required type="string"></prop>
+        <prop name="group" type="string"></prop>
+        <prop name="disabled" type="boolean"></prop>
+        <prop name="description" type="string"></prop>
+        <prop name="tag" type="object">
+          <prop name="label" required type="string"></prop>
+          <prop name="tone" type="keyword" values="neutral, accent, info, success, warning, danger"></prop>
+          <prop name="color" type="string"></prop>
+        </prop>
+      </prop>
+      <prop name="index" required type="integer"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
+    <event name="create-item" type="object">
+      <prop name="query" required type="string"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
+    <event name="selected-values-change" type="object">
+      <prop name="selectedValues" required type="array">
+        <prop type="string"></prop>
+      </prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
     <method name="validate" export="validate" returns="promise(unknown)"></method>
     <method name="focusInput" export="focusInput" returns="promise(undefined)"></method>
   </defs>

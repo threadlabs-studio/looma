@@ -5,7 +5,7 @@ This file is the canonical guidance for AI coding agents in this repository.
 
 ## Repository
 
-- pnpm workspace (`pnpm@10`, Node 20+). The only package is `packages/looma`
+- pnpm workspace (`pnpm@10`, Node 22.13 or 24). The only package is `packages/looma`
   (`@threadlabs/looma`). Each component lives in
   `packages/looma/src/components/<tag>/` as its HTML definition, controller, and
   examples; that source is authoritative — never regenerate it from older shapes.

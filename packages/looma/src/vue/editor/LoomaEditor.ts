@@ -1430,7 +1430,7 @@ export const LoomaEditor = defineComponent({
         headerRow: tableUi.headerRow,
         headerColumn: tableUi.headerColumn,
         actions: tableActions,
-        onAction: runTableAction,
+        onAction: (event: CustomEvent<Parameters<typeof handleTableAction>[1]>) => runTableAction(event.detail),
       };
 
       return h("div", {
@@ -1521,7 +1521,7 @@ export const LoomaEditor = defineComponent({
               disclosure: true,
               filter: "label",
               value: codeUi.language,
-              onValueChange: chooseCodeLanguage,
+              onValueChange: (event: CustomEvent<{ value: string | null; kind: string }>) => chooseCodeLanguage(event.detail),
             }, () => codeLanguageOptions.value.map((option) => h("option", { value: option.value }, option.label)))])
           : null,
         instance && props.editable && mobile.value && editorFocused.value
@@ -1632,7 +1632,7 @@ export const LoomaEditor = defineComponent({
           for: blockActionAnchorId,
           placement: mobile.value ? "top-start" : "bottom-start",
           onOpen: captureBlockAction,
-          onSelect: ({ value }: { value: string }) => runBlockAction(value),
+          onSelect: (event: CustomEvent<{ value: string }>) => runBlockAction(event.detail.value),
         }, () => [
           h(MenuItem, { value: "insert-below" }, () => "Insert paragraph below"),
           h(MenuItem, { value: "duplicate" }, () => "Duplicate block"),
@@ -1647,8 +1647,8 @@ export const LoomaEditor = defineComponent({
           onClose: () => { tablePickerOpen.value = false; },
         }, () => [h(EditorInsertTableGrid, {
               open: true,
-              onInsert: (detail: { rows: number; cols: number; withHeaderRow: boolean }) => {
-                instance?.chain().focus().insertTable(detail).run();
+              onInsert: (event: CustomEvent<{ rows: number; cols: number; withHeaderRow: boolean }>) => {
+                instance?.chain().focus().insertTable(event.detail).run();
                 tablePickerOpen.value = false;
               },
             })]),
@@ -1659,9 +1659,9 @@ export const LoomaEditor = defineComponent({
               items: managedSlashMenuItems(slash.items),
               selectedIndex: slash.selectedIndex,
               anchorRect: managedMenuAnchorRect(slash.rect),
-              onHighlight: ({ index }: { index: number }) => { slash.selectedIndex = index; },
-              onSelect: ({ index }: { index: number }) => {
-                slash.select?.(index);
+              onHighlight: (event: CustomEvent<{ index: number }>) => { slash.selectedIndex = event.detail.index; },
+              onSelect: (event: CustomEvent<{ index: number }>) => {
+                slash.select?.(event.detail.index);
               },
             })
           : null,
@@ -1674,12 +1674,12 @@ export const LoomaEditor = defineComponent({
               selectedIndex: mention.selectedIndex,
               anchorRect: managedMenuAnchorRect(mention.rect),
               loading: mention.loading,
-              onHighlight: ({ index }: { index: number }) => {
-                mention.selectedIndex = index;
-                mention.highlight?.(index);
+              onHighlight: (event: CustomEvent<{ index: number }>) => {
+                mention.selectedIndex = event.detail.index;
+                mention.highlight?.(event.detail.index);
               },
-              onSelect: ({ index }: { index: number }) => {
-                mention.select?.(index);
+              onSelect: (event: CustomEvent<{ index: number }>) => {
+                mention.select?.(event.detail.index);
               },
             })
           : null,
@@ -1700,7 +1700,17 @@ export const LoomaEditor = defineComponent({
             }, [h(EditorTableOverlay, {
               open: true,
               geometry: tableUi.geometry,
-              onAction: runOverlayAction,
+              onAddRowBefore: (event: CustomEvent<{ boundaryIndex: number }>) => runOverlayAction({ action: "add-row-before", boundaryIndex: event.detail.boundaryIndex }),
+              onAddRowAfter: (event: CustomEvent<{ boundaryIndex: number }>) => runOverlayAction({ action: "add-row-after", boundaryIndex: event.detail.boundaryIndex }),
+              onAddColumnBefore: (event: CustomEvent<{ boundaryIndex: number }>) => runOverlayAction({ action: "add-column-before", boundaryIndex: event.detail.boundaryIndex }),
+              onAddColumnAfter: (event: CustomEvent<{ boundaryIndex: number }>) => runOverlayAction({ action: "add-column-after", boundaryIndex: event.detail.boundaryIndex }),
+              onSelectRow: (event: CustomEvent<{ rowIndex: number; columnIndex: number }>) => runOverlayAction({ action: "select-row", ...event.detail }),
+              onSelectColumn: (event: CustomEvent<{ rowIndex: number; columnIndex: number }>) => runOverlayAction({ action: "select-column", ...event.detail }),
+              onReorderRow: (event: CustomEvent<{ fromIndex: number; toIndex: number }>) => runOverlayAction({ action: "reorder-row", ...event.detail }),
+              onReorderColumn: (event: CustomEvent<{ fromIndex: number; toIndex: number }>) => runOverlayAction({ action: "reorder-column", ...event.detail }),
+              onOpenCellMenu: (event: CustomEvent<{ rowIndex: number; columnIndex: number; anchor: { left: number; top: number; right: number; bottom: number } }>) => runOverlayAction({ action: "open-cell-menu", ...event.detail }),
+              onOpenRowMenu: (event: CustomEvent<{ rowIndex: number; columnIndex: number; anchor: { left: number; top: number; right: number; bottom: number } }>) => runOverlayAction({ action: "open-row-menu", ...event.detail }),
+              onOpenColumnMenu: (event: CustomEvent<{ rowIndex: number; columnIndex: number; anchor: { left: number; top: number; right: number; bottom: number } }>) => runOverlayAction({ action: "open-column-menu", ...event.detail }),
             })])
           : null,
         tableUi.menuOpen

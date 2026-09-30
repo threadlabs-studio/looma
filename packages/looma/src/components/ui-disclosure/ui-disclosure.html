@@ -1,6 +1,7 @@
 <template component="ui-disclosure" controller="./ui-disclosure.js">
   <defs>
-    <prop name="density" type="comfortable | compact" default="comfortable">Compact trades padding and type size for rows that fit more on screen.</prop>
+    <prop name="density" type="keyword" values="comfortable, compact" default="comfortable"
+    >Compact trades padding and type size for rows that fit more on screen.</prop>
     <prop name="summary" type="string" default="Details"
     >The text of the trigger row that opens and closes the disclosure. It is the trigger button's accessible name, so name what the content is.</prop>
     <prop name="open" type="boolean" default="false"
@@ -18,12 +19,20 @@
     <state name="headingAriaLevel" :value="null"></state>
     <event
       name="open"
-      type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"
-    ></event>
+      type="object"
+    >
+      <prop name="open" required type="boolean"></prop>
+      <prop name="reason" required type="keyword" values="action, programmatic, light-dismiss, escape"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
     <event
       name="close"
-      type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"
-    ></event>
+      type="object"
+    >
+      <prop name="open" required type="boolean"></prop>
+      <prop name="reason" required type="keyword" values="action, programmatic, light-dismiss, escape"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
   </defs>
   <div>
     <div class="heading" :role="headingRole" :aria-level="headingAriaLevel">
