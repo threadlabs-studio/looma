@@ -157,13 +157,12 @@ describe("LoomaEditor links", () => {
     const page = await openEditor('<p>Before <a href="/guide">guide</a> after</p>');
     await prose(page).locator("p").click();
     await page.keyboard.press("Home");
-    let caretInsideLink = false;
-    for (let index = 0; index < 20 && !caretInsideLink; index++) {
-      await page.keyboard.press("ArrowRight");
-      caretInsideLink = await page.evaluate(() => Boolean(window.getSelection()?.anchorNode?.parentElement?.closest("a")));
-    }
-    assert.equal(caretInsideLink, true, "keyboard caret enters the link");
-    await page.getByRole("group", { name: "Link actions" }).waitFor();
+    // "Before " is seven characters, so nine steps put the caret after "gu", inside the link.
+    // Sampling the caret after every step raced the editor's own selection handling.
+    for (let index = 0; index < 9; index++) await page.keyboard.press("ArrowRight");
+    const actions = page.getByRole("group", { name: "Link actions" });
+    await actions.waitFor();
+    assert.match(await actions.textContent() ?? "", /\/guide/);
     await page.close();
   });
 
