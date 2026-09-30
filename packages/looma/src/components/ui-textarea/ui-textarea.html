@@ -74,7 +74,7 @@
       opacity: 1;
     }
 
-    :host:hover:not(:focus):not(:disabled) {
+    :host:hover:not(:focus):not(:disabled):not(:read-only):not([aria-invalid="true"]):not(:user-invalid) {
       border-color: var(--ui-control-border-hover, var(--ui-text-secondary));
     }
 

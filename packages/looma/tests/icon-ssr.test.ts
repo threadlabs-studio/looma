@@ -26,11 +26,14 @@ describe("Icon server render", () => {
     ]);
   });
 
-  it("renders the spinner's CSS ring without requiring an SVG asset", async () => {
+  it("renders the spinner's SVG track and arc without requiring an external asset", async () => {
     const html = await render(h(Spinner));
     expect(html).toContain('class="ring"');
     expect(html).toContain('aria-hidden="true"');
-    expect(shapes(html)).toEqual([]);
+    expect(shapes(html)).toEqual([
+      '<circle class="track" cx="25" cy="25" r="20">',
+      '<circle class="arc" cx="25" cy="25" r="20">',
+    ]);
   });
 
   it("draws nothing for an unknown or empty name, and stays hidden from assistive technology", async () => {

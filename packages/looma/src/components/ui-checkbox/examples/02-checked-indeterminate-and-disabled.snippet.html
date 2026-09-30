@@ -1,0 +1,29 @@
+<script type="module">
+  import "@threadlabs/looma";
+  import { updateComponentProps } from "@nextwebwg/html-next/runtime";
+
+  const all = document.querySelector("#docs-checkbox-all");
+  const items = [...document.querySelectorAll(".docs-checkbox-item")];
+  const isChecked = (item) => item.querySelector('input[type="checkbox"]').checked;
+
+  all.addEventListener("change", (event) => {
+    if (typeof event.detail?.checked !== "boolean") return;
+    for (const item of items) updateComponentProps(item, { checked: event.detail.checked });
+    updateComponentProps(all, { indeterminate: false });
+  });
+
+  for (const item of items) item.addEventListener("change", (event) => {
+    if (typeof event.detail?.checked !== "boolean") return;
+    const count = items.filter(isChecked).length;
+    updateComponentProps(all, { checked: count === items.length, indeterminate: count > 0 && count < items.length });
+  });
+</script>
+
+<ui-stack gap="s">
+  <ui-checkbox id="docs-checkbox-all" indeterminate>Select all</ui-checkbox>
+  <ui-stack gap="xs" style="padding-inline-start: 1.5rem">
+    <ui-checkbox class="docs-checkbox-item" checked>Design</ui-checkbox>
+    <ui-checkbox class="docs-checkbox-item">Build</ui-checkbox>
+    <ui-checkbox class="docs-checkbox-item">Review</ui-checkbox>
+  </ui-stack>
+</ui-stack>

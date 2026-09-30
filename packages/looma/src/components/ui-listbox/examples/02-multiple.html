@@ -1,11 +1,11 @@
 <!--
 title: Multiple choice
-description: Native multi-selection submits one form entry per selected option and supports Shift and Command or Control selection.
+description: Checked rows show every selection. Click a row or press Space to toggle it.
 -->
-<label for="regions">Regions</label>
-<ui-listbox id="regions" name="regions" rows="5" multiple values='["north","west"]'>
-  <option value="north">North</option>
+<div id="regions-label">Regions</div>
+<ui-listbox id="regions" name="regions" aria-labelledby="regions-label" rows="4" multiple>
+  <option value="north" selected>North</option>
   <option value="south">South</option>
   <option value="east">East</option>
-  <option value="west">West</option>
+  <option value="west" selected>West</option>
 </ui-listbox>
