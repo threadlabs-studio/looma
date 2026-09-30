@@ -35,7 +35,7 @@ and a modified click still opens a new tab:
 
 ```vue
 <RouterLink v-slot="{ href, navigate, isActive }" to="/shipments" custom>
-  <NavItem as="a" :href="href" :current="isActive" @click="navigate">
+  <NavItem as="a" :href="href" :current="isActive ? 'true' : 'false'" @click="navigate">
     <template #leading><Icon name="truck" /></template>
     Shipments
   </NavItem>
@@ -44,8 +44,8 @@ and a modified click still opens a new tab:
 
 ## Current
 
-`current` marks where you are. It sets `aria-current`, which assistive technology announces: plain
-`current` (or `true`) is the page, `current="step"` the step of a process, and `current="location"`
+`current` marks where you are. It sets `aria-current`, which assistive technology announces:
+`current="true"` (or `current="page"`) is the page, `current="step"` the step of a process, and `current="location"`
 your place in a set. Set it on one item at a time.
 
 The current item takes the selected surface, a stronger label, and a solid bar on its start edge.
@@ -70,7 +70,7 @@ so it is announced as a list with a count:
 ```html
 <nav aria-label="Main">
   <ui-list>
-    <li><ui-nav-item as="a" href="/shipments" current>Shipments</ui-nav-item></li>
+    <li><ui-nav-item as="a" href="/shipments" current="true">Shipments</ui-nav-item></li>
     <li><ui-nav-item as="a" href="/invoices">Invoices</ui-nav-item></li>
   </ui-list>
 </nav>

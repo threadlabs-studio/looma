@@ -18,7 +18,7 @@ export default function controller(host) {
     });
     const authoredVisible = Math.min(avatars.length, visible);
     const suppliedTotal = Number(host.state.total);
-    const total = host.state.total === undefined || !Number.isFinite(suppliedTotal) ? avatars.length : Math.max(avatars.length, suppliedTotal);
+    const total = host.state.total == null || !Number.isFinite(suppliedTotal) ? avatars.length : Math.max(avatars.length, suppliedTotal);
     const count = Math.max(0, total - authoredVisible);
     host.state.overflowCount = count;
     host.state.overflowAnnouncement = String(host.state.overflowLabel || "{count} more").replaceAll("{count}", String(count));
