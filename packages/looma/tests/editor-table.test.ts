@@ -296,8 +296,19 @@ describe("LoomaEditor tables", () => {
     });
     assert.equal(swatchShape.width, swatchShape.height, "swatch is square");
     assert.ok(swatchShape.radius >= swatchShape.width / 2, "swatch renders as a circle");
-    await menu.getByRole("menuitem", { name: "Delete table" }).scrollIntoViewIfNeeded();
-    assert.ok(await menu.evaluate((element) => element.scrollTop > 0), "menu scrolls to lower actions");
+    const deleteTable = menu.getByRole("menuitem", { name: "Delete table" });
+    const scroll = await menu.evaluate((element) => {
+      const overflow = element.scrollHeight - element.clientHeight;
+      element.scrollTop = element.scrollHeight;
+      return { overflow, top: element.scrollTop };
+    });
+    assert.ok(scroll.overflow === 0 || scroll.top > 0, "menu scrolls when lower actions overflow");
+    const deleteBounds = await deleteTable.boundingBox();
+    assert.ok(deleteBounds && deleteBounds.y >= bounds.y && deleteBounds.y + deleteBounds.height <= bounds.y + bounds.height,
+      "the last action is reachable within the menu");
+    await menu.hover();
+    await page.mouse.wheel(0, -300);
+    await menu.waitFor();
     await page.keyboard.press("Escape");
     await menu.waitFor({ state: "hidden" });
     await openTableMenu(page);
