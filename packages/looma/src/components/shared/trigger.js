@@ -4,14 +4,19 @@
  */
 export function trackTrigger(host) {
   let trigger = "programmatic";
-  const offKey = host.on("keydown", (event) => {
+  const onKey = (event) => {
     if (event.key === " " || event.key === "Enter" || event.key.startsWith("Arrow")) trigger = "keyboard";
-  });
-  const offPointer = host.on("pointerdown", () => { trigger = "pointer"; });
+  };
+  const onPointer = () => { trigger = "pointer"; };
+  host.element.addEventListener("keydown", onKey);
+  host.element.addEventListener("pointerdown", onPointer);
   const take = () => {
     const current = trigger;
     trigger = "programmatic";
     return current;
   };
-  return [take, () => { offKey(); offPointer(); }];
+  return [take, () => {
+    host.element.removeEventListener("keydown", onKey);
+    host.element.removeEventListener("pointerdown", onPointer);
+  }];
 }

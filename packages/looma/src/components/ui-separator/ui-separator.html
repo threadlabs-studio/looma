@@ -1,6 +1,6 @@
 <template component="ui-separator">
   <defs>
-    <prop name="orientation" type="horizontal | vertical" default="horizontal"
+    <prop name="orientation" type="keyword" values="horizontal, vertical" default="horizontal"
     >Whether the separator divides stacked content (horizontal) or inline content (vertical).</prop>
   </defs>
   <hr :aria-orientation="orientation">

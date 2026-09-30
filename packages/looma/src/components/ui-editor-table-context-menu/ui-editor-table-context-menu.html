@@ -2,15 +2,28 @@
 <template component="ui-editor-table-context-menu" controller="./ui-editor-table-context-menu.js">
   <defs>
     <prop name="open" type="boolean" default="false">Shows the menu at the position owned by the editor integration.</prop>
-    <prop name="scope" type="cell | row | column" default="cell">Keeps structure actions relevant to a cell, row handle, or column handle.</prop>
+    <prop name="scope" type="keyword" values="cell, row, column" default="cell">Keeps structure actions relevant to a cell, row handle, or column handle.</prop>
     <prop name="cellBackground" type="string" default="">Identifies the background choice that is active for the current cell.</prop>
     <prop name="headerRow" type="boolean" default="false">Whether the table's first row currently uses header cells.</prop>
     <prop name="headerColumn" type="boolean" default="false">Whether the table's first column currently uses header cells.</prop>
     <prop
       name="actions"
-      type="list(align-left | align-center | align-right | background-none | background-gray | background-yellow | background-blue | background-green | background-red | add-row-before | add-row-after | add-column-before | add-column-after | toggle-header-row | toggle-header-column | move-row-up | move-row-down | move-column-left | move-column-right | clear-cells | merge-cells | split-cell | delete-row | delete-column | delete-table)"
-    >The complete set of commands the current selection permits.</prop>
-    <state name="swatches" type="list(object({ action: string, label: string, color: string, selected: boolean })) | null" :value="[]"></state>
+      type="array"
+    >
+      <prop
+        type="keyword"
+        values="align-left, align-center, align-right, background-none, background-gray, background-yellow, background-blue, background-green, background-red, add-row-before, add-row-after, add-column-before, add-column-after, toggle-header-row, toggle-header-column, move-row-up, move-row-down, move-column-left, move-column-right, clear-cells, merge-cells, split-cell, delete-row, delete-column, delete-table"
+      ></prop>
+      The complete set of commands the current selection permits.
+    </prop>
+    <state name="swatches" type="array" :value="[]" nullable>
+      <prop type="object">
+        <prop name="action" required type="string"></prop>
+        <prop name="label" required type="string"></prop>
+        <prop name="color" required type="string"></prop>
+        <prop name="selected" required type="boolean"></prop>
+      </prop>
+    </state>
     <state
       name="sections"
       type="list(object({ heading: string, items: list(object({ action: string, label: string, icon: string, danger: boolean, checkable: boolean, checked: boolean })) }))"
@@ -18,8 +31,15 @@
     ></state>
     <event
       name="action"
-      type="object({ action: align-left | align-center | align-right | background-none | background-gray | background-yellow | background-blue | background-green | background-red | add-row-before | add-row-after | add-column-before | add-column-after | toggle-header-row | toggle-header-column | move-row-up | move-row-down | move-column-left | move-column-right | clear-cells | merge-cells | split-cell | delete-row | delete-column | delete-table })"
-    ></event>
+      type="object"
+    >
+      <prop
+        name="action"
+        required
+        type="keyword"
+        values="align-left, align-center, align-right, background-none, background-gray, background-yellow, background-blue, background-green, background-red, add-row-before, add-row-after, add-column-before, add-column-after, toggle-header-row, toggle-header-column, move-row-up, move-row-down, move-column-left, move-column-right, clear-cells, merge-cells, split-cell, delete-row, delete-column, delete-table"
+      ></prop>
+    </event>
   </defs>
   <div role="menu" :hidden="not open">
     <div $if="swatches" class="section" role="none">

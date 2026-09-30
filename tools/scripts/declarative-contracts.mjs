@@ -2,6 +2,8 @@ import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { formatType, parseComponentResource, typeScriptType } from "../../packages/looma/node_modules/@nextwebwg/html-next/dist/index.js";
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "../..");
 
@@ -53,20 +55,42 @@ function inferRoot(source, tag) {
   return match[1];
 }
 
-/** Each prop's authored description: the prose inside its `<prop>` element. */
-function parsePropDescriptions(defs) {
-  const descriptions = {};
-  for (const match of defs.matchAll(/<prop\b([^>]*)>([\s\S]*?)<\/prop>/g)) {
-    const { name } = parseAttributes(match[1]);
-    if (name) descriptions[name] = match[2].replace(/\s+/g, " ").trim();
+/** Direct <defs> props only; nested object fields belong to their owning declaration. */
+function directProps(defs) {
+  const props = [];
+  const stack = [];
+  const tags = /<\/?([a-z][a-z0-9-]*)\b[^>]*>/gi;
+  let current;
+  for (const match of defs.matchAll(tags)) {
+    const closing = match[0].startsWith("</");
+    const tag = match[1].toLowerCase();
+    if (!closing) {
+      if (tag === "prop" && stack.length === 0) {
+        current = { attributes: parseAttributes(match[0]), start: match.index + match[0].length };
+      }
+      stack.push(tag);
+    } else {
+      if (stack.pop() !== tag) throw new SyntaxError(`Mismatched </${tag}> in <defs>`);
+      if (tag === "prop" && stack.length === 0 && current) {
+        const body = defs.slice(current.start, match.index);
+        props.push({ attributes: current.attributes, description: body.replace(/<prop\b[^>]*>[\s\S]*?<\/prop>/g, "").replace(/\s+/g, " ").trim() });
+        current = undefined;
+      }
+    }
   }
-  return Object.freeze(descriptions);
+  return props;
+}
+
+/** Each prop's authored description: the prose inside its direct `<prop>` element. */
+function parsePropDescriptions(defs) {
+  return Object.freeze(Object.fromEntries(directProps(defs)
+    .filter(({ attributes }) => attributes.name)
+    .map(({ attributes, description }) => [attributes.name, description])));
 }
 
 function parseProps(defs) {
   const props = {};
-  for (const match of defs.matchAll(/<prop\b([^>]*)>([\s\S]*?)<\/prop>/g)) {
-    const attributes = parseAttributes(match[1]);
+  for (const { attributes } of directProps(defs)) {
     if (!attributes.name || !attributes.type) throw new SyntaxError("Every declarative prop needs name and type");
     const declaration = {
       type: attributes.type,
@@ -104,6 +128,52 @@ function parseSlots(source) {
 function parseDependencies(source) {
   return Object.freeze([...source.matchAll(/<link\s+rel="component"\s+href="\.\.\/(ui-[a-z0-9-]+)\/\1\.html"\s*>/g)]
     .map((match) => match[1]));
+}
+
+function selectedTypeDescription(select) {
+  const groups = new Map();
+  for (const option of select.options) {
+    const type = formatType(option.type);
+    groups.set(type, [...(groups.get(type) ?? []), String(option.value)]);
+  }
+  const entries = [...groups.entries()];
+  const special = entries.length === 2 && entries[0][1].length !== entries[1][1].length
+    ? entries.find(([, values]) => values.length === Math.min(...entries.map(([, choices]) => choices.length)))
+    : undefined;
+  if (special) {
+    const other = entries.find((entry) => entry !== special);
+    return `${select.from}=${special[1].join(", ")} → ${special[0]}; otherwise → ${other[0]}`;
+  }
+  return entries.map(([type, values]) => `${select.from}=${values.join(", ")} → ${type}`).join("; ");
+}
+
+function fieldType(node) {
+  if (node.kind === "constrained") return fieldType(node.base);
+  if (node.kind === "object") return "object";
+  if (node.kind === "list") return `list(${fieldType(node.item)})`;
+  if (node.kind === "union" && node.members.length === 2) {
+    const base = node.members.find((member) => !(member.kind === "terminal" && member.name === "null"));
+    const nullable = node.members.some((member) => member.kind === "terminal" && member.name === "null");
+    if (nullable && base) return `${fieldType(base)} | null`;
+  }
+  return formatType(node);
+}
+
+function shapeFields(node, prefix = "") {
+  if (node.kind === "list") return shapeFields(node.item, `${prefix}[]`);
+  if (node.kind !== "object") return [];
+  return node.fields.flatMap((field) => {
+    const path = prefix ? `${prefix}.${field.name}` : field.name;
+    const base = field.type.kind === "union"
+      ? field.type.members.find((member) => !(member.kind === "terminal" && member.name === "null")) ?? field.type
+      : field.type;
+    return [{
+      path,
+      type: fieldType(field.type),
+      required: !field.optional,
+      ...(base.kind === "constrained" ? { values: base.values.map(String) } : {}),
+    }, ...shapeFields(base, path)];
+  });
 }
 
 export function parseDeclarativeContract(source, expectedTag) {
@@ -144,8 +214,33 @@ export async function readDeclarativeContractGroups() {
     const entries = await Promise.all(tags.map(async (tag) => {
       const sourcePath = path.posix.join(componentDirectory, tag, `${tag}.html`);
       const source = await readFile(path.join(repoRoot, sourcePath), "utf8");
+      const contract = parseDeclarativeContract(source, tag);
+      const definition = parseComponentResource(source, sourcePath).definition;
+      const propTypes = Object.fromEntries(Object.entries(definition.contract.props).map(([name, parsed]) => [
+        name, parsed.values ? parsed.values.map((value) => JSON.stringify(value)).join(" | ") : typeScriptType(parsed.type),
+      ]));
+      const propOptions = Object.fromEntries(Object.entries(definition.contract.props)
+        .filter(([, parsed]) => parsed.values)
+        .map(([name, parsed]) => [name, parsed.values]));
+      const propValueTypes = Object.fromEntries(Object.entries(definition.contract.props).map(([name, parsed]) => [
+        name, parsed.select
+          ? selectedTypeDescription(parsed.select)
+          : parsed.type.kind === "object" || parsed.type.kind === "list" ? fieldType(parsed.type) : contract.props[name]?.type ?? formatType(parsed.type),
+      ]));
+      const propFields = Object.fromEntries(Object.entries(definition.contract.props)
+        .filter(([, parsed]) => shapeFields(parsed.type).length > 0)
+        .map(([name, parsed]) => [name, shapeFields(parsed.type)]));
+      const events = definition.declarations.filter((item) => item.kind === "event")
+        .map((item) => ({ name: item.name, type: item.type, detailType: typeScriptType(item.shape ?? item.type), detailShape: fieldType(item.shape ?? item.type), fields: shapeFields(item.shape ?? item.type) }));
       return [tag, Object.freeze({
-        ...parseDeclarativeContract(source, tag),
+        ...contract,
+        propTypes: Object.freeze(propTypes),
+        propOptions: Object.freeze(propOptions),
+        propFields: Object.freeze(propFields),
+        propValueTypes: Object.freeze(propValueTypes),
+        propDescriptions: Object.freeze(Object.fromEntries(Object.entries(definition.contract.props)
+          .map(([name, prop]) => [name, prop.description.replace(/\s+/g, " ").trim()]))),
+        events: Object.freeze(events),
         source,
         sourcePath,
       })];

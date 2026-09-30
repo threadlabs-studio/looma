@@ -10,11 +10,12 @@ let comboboxes = 0;
 function authoredOptions(container) {
   return Array.from(container.querySelectorAll("option")).map((option, index) => {
     const { description, tag, tagTone, tagColor } = option.dataset;
+    const group = option.closest("optgroup")?.label;
     return {
       id: option.id || option.value || `option-${index}`,
       value: option.value,
       label: option.label || option.textContent?.trim() || option.value,
-      group: option.closest("optgroup")?.label || undefined,
+      ...(group ? { group } : {}),
       disabled: option.disabled,
       ...(description ? { description } : {}),
       ...(tag ? { tag: { label: tag, ...(tagTone ? { tone: tagTone } : {}), ...(tagColor ? { color: tagColor } : {}) } } : {}),
@@ -141,7 +142,7 @@ export default function controller(host) {
       if (controller.signal.aborted || !alive) return;
       for (const option of options) knownOptions.set(option.value, option);
       const selectedOption = host.state.selected == null ? undefined : knownOptions.get(host.state.selected);
-      if (host.state.query === undefined && awaitingLabel === host.state.selected && selectedOption) {
+      if (host.state.query == null && awaitingLabel === host.state.selected && selectedOption) {
         host.state.raw = selectedOption.label;
         host.state.display = selectedOption.label;
         awaitingLabel = null;
@@ -193,8 +194,8 @@ export default function controller(host) {
     awaitingLabel = null;
     if (kind === "selection") lastSelection = option;
     const queryChanged = query !== host.state.raw;
-    if (host.state.value === undefined) host.state.selected = value;
-    if (host.state.query === undefined && queryChanged) {
+    if (host.state.value == null) host.state.selected = value;
+    if (host.state.query == null && queryChanged) {
       host.state.raw = query;
       host.state.display = query;
     }
@@ -208,20 +209,20 @@ export default function controller(host) {
     if (kind === "free-entry") host.dispatch("free-entry", detail);
     queueMicrotask(() => {
       if (proposedChange !== proposal) return;
-      if (host.state.value !== undefined && host.state.value !== proposal.value) syncValue();
-      if (host.state.query !== undefined && host.state.query !== proposal.query) syncQuery();
+      if (host.state.value != null && host.state.value !== proposal.value) syncValue();
+      if (host.state.query != null && host.state.query !== proposal.query) syncQuery();
       proposedChange = undefined;
     });
   };
   const emitItems = (next, trigger) => {
     if (!controlledValues()) host.state.internalItems = next;
-    host.dispatch("value-change", next);
-    // Not `values`: Vue's adapter reads a modeled prop with `in`, and every list-shaped detail (this
-    // value-change, options-change) has Array.prototype.values, so it would emit update:values wrongly.
+    host.dispatch("items-change", next);
+    // Not `values`: Vue's adapter reads a modeled prop with `in`, and list-shaped details have
+    // Array.prototype.values, so it would emit update:values wrongly.
     host.dispatch("selected-values-change", { selectedValues: next.map((item) => item.value), trigger });
   };
   const setMultiQuery = (query, trigger) => {
-    if (host.state.query === undefined) {
+    if (host.state.query == null) {
       host.state.raw = query;
       host.state.display = query;
     }
@@ -281,7 +282,7 @@ export default function controller(host) {
       ?? knownOptions.get(host.state.selected) ?? lastSelection;
     if (selectedOption && selectedOption.label === typed) return;
     const restoreDraft = (label) => {
-      if (host.state.query !== undefined || label === host.state.raw) return;
+      if (host.state.query != null || label === host.state.raw) return;
       host.state.raw = label;
       host.state.display = label;
       resetValidation();
@@ -352,9 +353,9 @@ export default function controller(host) {
     return host.state.validation;
   };
   const syncValue = () => {
-    if (host.state.multiple || host.state.value === undefined) return;
+    if (host.state.multiple || host.state.value == null) return;
     host.state.selected = host.state.value;
-    if (host.state.query === undefined) {
+    if (host.state.query == null) {
       const proposal = proposedChange;
       const option = config().options?.find((row) => row.value === host.state.selected) ?? (host.state.selected == null ? undefined : knownOptions.get(host.state.selected));
       const nextRaw = proposal?.value === host.state.selected ? proposal.query : option?.label ?? host.state.selected ?? "";
@@ -367,8 +368,8 @@ export default function controller(host) {
     resetValidation();
   };
   const syncQuery = () => {
-    if (host.state.query === undefined || host.state.query === host.state.raw) return;
-    if (host.state.value === undefined && proposedChange?.query !== host.state.query) host.state.selected = null;
+    if (host.state.query == null || host.state.query === host.state.raw) return;
+    if (host.state.value == null && proposedChange?.query !== host.state.query) host.state.selected = null;
     awaitingLabel = null;
     host.state.raw = host.state.query;
     host.state.display = host.state.query;
@@ -421,7 +422,7 @@ export default function controller(host) {
       commit(null, host.state.raw, null, "clear", "keyboard");
     }
     open();
-    queueMicrotask(() => { if (host.state.query !== undefined && host.state.query !== host.state.raw) syncQuery(); });
+    queueMicrotask(() => { if (host.state.query != null && host.state.query !== host.state.raw) syncQuery(); });
   };
   const onKeydown = (event) => {
     const item = event.target.closest?.(".item");
@@ -483,12 +484,12 @@ export default function controller(host) {
       host.state.selected = null;
       host.state.raw = host.state.query ?? "";
     } else {
-      host.state.selected = host.state.value !== undefined ? host.state.value : authoredDefaults()[0]?.value ?? null;
+      host.state.selected = host.state.value != null ? host.state.value : authoredDefaults()[0]?.value ?? null;
       host.state.raw = host.state.query ?? "";
-      if (host.state.query === undefined && !host.state.raw && host.state.selected !== null) {
+      if (host.state.query == null && !host.state.raw && host.state.selected !== null) {
         host.state.raw = config().options?.find((row) => row.value === host.state.selected)?.label ?? host.state.selected;
       }
-      if (host.state.query === undefined && host.state.selected !== null && host.state.raw === host.state.selected) awaitingLabel = host.state.selected;
+      if (host.state.query == null && host.state.selected !== null && host.state.raw === host.state.selected) awaitingLabel = host.state.selected;
     }
     host.state.display = host.state.raw;
   };
@@ -504,7 +505,7 @@ export default function controller(host) {
   // Authored options can change after mount (renamed, replaced, or arriving late). A selected value
   // then shows its current label, unless the user is editing the text.
   const relabel = () => {
-    if (host.state.multiple || host.state.query !== undefined || host.state.selected == null) return;
+    if (host.state.multiple || host.state.query != null || host.state.selected == null) return;
     if (element.ownerDocument.activeElement === input) return;
     const label = config().options?.find((row) => row.value === host.state.selected)?.label;
     if (label === undefined || label === host.state.raw) return;

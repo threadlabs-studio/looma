@@ -9,7 +9,6 @@ import type {
   SlashMenuHighlightEventDetail,
   SlashMenuSelectEventDetail,
   TableContextMenuActionEventDetail,
-  TableOverlayActionEventDetail,
 } from "@threadlabs/looma/editor";
 
 export {
@@ -26,8 +25,17 @@ export {
 export interface VueEditorAdapterEventMap {
   highlight: MentionMenuHighlightEventDetail | SlashMenuHighlightEventDetail;
   select: MentionMenuSelectEventDetail | SlashMenuSelectEventDetail;
-  action: TableContextMenuActionEventDetail | TableOverlayActionEventDetail;
+  action: TableContextMenuActionEventDetail;
   insert: InsertTableEventDetail;
+  "add-row-before": { boundaryIndex: number };
+  "add-row-after": { boundaryIndex: number };
+  "add-column-before": { boundaryIndex: number };
+  "add-column-after": { boundaryIndex: number };
+  "select-row": { rowIndex: number; columnIndex: number };
+  "select-column": { rowIndex: number; columnIndex: number };
+  "open-cell-menu": { rowIndex: number; columnIndex: number; anchor: { left: number; top: number; right: number; bottom: number } };
+  "open-row-menu": { rowIndex: number; columnIndex: number; anchor: { left: number; top: number; right: number; bottom: number } };
+  "open-column-menu": { rowIndex: number; columnIndex: number; anchor: { left: number; top: number; right: number; bottom: number } };
 }
 
 /** Each Vue editor component's element tag, for tooling that enumerates them. */

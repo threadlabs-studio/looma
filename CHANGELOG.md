@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Breaking runtime requirement:** Looma now supports Node 22.13 and Node 24, matching its HTML Next dependency. Node 20 is no longer supported.
+- **Breaking for Table Overlay:** its catch-all `action` event is replaced by named insertion, selection, reorder, and menu events. Listen for `add-row-before`, `add-row-after`, `add-column-before`, `add-column-after`, `select-row`, `select-column`, `reorder-row`, `reorder-column`, `open-cell-menu`, `open-row-menu`, or `open-column-menu` and read the fields directly from each event detail. The editor adapter continues to handle these actions.
 - Tree marquee measures the rendered name instead of a full-width link and its padding, so short names stay still and long names stop at a narrow fade before row actions without extra travel.
 - Mention suggestions open only when an author types `@`. Pasted or loaded `@` text, clicking into
   it later, and `@` in inline code or code blocks no longer start a search.
@@ -44,13 +46,7 @@
 - The inline chip editor now opens below a chip on a narrow page when there is room,
   so editing a chip near the page heading does not cover the title and actions.
   It still flips above when the viewport has more room there.
-- Input takes a number. Its `value` and Vue `modelValue` accept `string | number` (`modelValue`
-  also takes `null`), so a `type="number"` field binds to a number, and it reports a number as the
-  user types, or an empty string while it holds no number, as Vue's `v-model` does. The Vue
-  `update:modelValue` event is still typed `string`; typing it from the value awaits the generator. Bound to a number, the field never writes
-  over text that means the same number while the user types it: `12.`, `1.0`, `1e3`, or an empty
-  field keep their text and caret. A field bound to text was rewritten on every keystroke, so typing
-  `12.5`, Backspace, `8` lost the point.
+- **Breaking for Input:** `type` selects the declared `value` and Vue `modelValue` type. Number and range modes use a JavaScript number; other modes use a string. An omitted value without a default is `null`, and a number field reports `null` when its text contains no number. Generated Vue types preserve the relationship. Numeric bindings keep in-progress text such as `12.`, `1.0`, and `1e3` without moving the caret.
 - New hooks, all additive and unset by default, so an app styles these from a class of its own:
   - Button: `--ui-button-white-space` (for example `nowrap` to keep a label on one line). Unset, a
     button still wraps as its container does.

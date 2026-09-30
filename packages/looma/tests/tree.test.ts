@@ -116,9 +116,9 @@ beforeAll(async () => {
       render: () => h(Tree, {
         label: "Files",
         ...window.spec.tree,
-        onReorder: (detail) => events.push(["reorder", detail]),
-        onReorderRejected: (detail) => events.push(["reorder-rejected", detail]),
-        onSelect: (detail) => events.push(["select", detail]),
+        onReorder: (event) => events.push(["reorder", event.detail]),
+        onReorderRejected: (event) => events.push(["reorder-rejected", event.detail]),
+        onSelect: (event) => events.push(["select", event.detail]),
       }, () => window.spec.items.map(render)),
     }).mount("#app");
   `);
@@ -473,7 +473,7 @@ describe("Tree selection", () => {
       window.events = [];
       createApp({ render: () => h(Tree, {
         label: "Files", selection: "multiple",
-        onSelect: (detail) => { window.events.push(["select", detail]); ids.value = detail.ids; },
+        onSelect: (event) => { window.events.push(["select", event.detail]); ids.value = event.detail.ids; },
       }, () => h(TreeItem, { itemId: "docs", label: "Docs", container: true, expanded: true, selected: ids.value.includes("docs") }, () => [
         h(TreeItem, { itemId: "guide", label: "Guide", selected: ids.value.includes("guide") }),
         h(TreeItem, { itemId: "api", label: "API", selected: ids.value.includes("api") }),

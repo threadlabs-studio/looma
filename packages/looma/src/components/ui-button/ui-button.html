@@ -1,13 +1,13 @@
 <link rel="component" href="../ui-spinner/ui-spinner.html">
 <template component="ui-button" controller="./ui-button.js">
   <defs>
-    <prop name="variant" type="outline | solid | danger | ghost | link" default="outline"
+    <prop name="variant" type="keyword" values="outline, solid, danger, ghost, link" default="outline"
     >Emphasis: how loudly the button asks. solid fills with its tone, outline draws its tone at the edge over a wash of it, ghost carries only text until it is
       hovered, and link is an inline text action that reads as a link. danger is solid in the danger tone, kept for the call sites that name it.</prop>
-    <prop name="size" type="sm | md | lg" default="md"
+    <prop name="size" type="keyword" values="sm, md, lg" default="md"
     >Height, padding, and type size. sm is the small control height (2rem by default) with tighter padding and smaller text, md is the standard control height
       (2.5rem), and lg is taller (3rem) with roomier padding.</prop>
-    <prop name="tone" type="accent | neutral | danger | success | warning | info" default="accent"
+    <prop name="tone" type="keyword" values="accent, neutral, danger, success, warning, info" default="accent"
     >Which colour the button speaks in. It applies to every variant, so an outline, a ghost, and a solid in the same tone are the same action at three volumes:
       tone="danger" variant="outline" is a destructive secondary action. neutral is the quiet one, for a button that should not claim a colour.</prop>
     <prop name="disabled" type="boolean" default="false"
@@ -17,17 +17,18 @@
     >Keeps the action focusable and its label visible while work is in progress. It shows a decorative spinner, states aria-disabled and aria-busy, and prevents
       activation or form submission until cleared.</prop>
     <prop name="pending" type="boolean" default="false">Deprecated alias for loading.</prop>
-    <prop name="align" type="center | start" default="center"
+    <prop name="align" type="keyword" values="center, start" default="center"
     >Content alignment. start lays the content out like a list option: from the start edge, with start-aligned text.</prop>
     <prop name="stretch" type="boolean" default="false">Fills the inline size of its container.</prop>
-    <prop name="type" type="button | submit | reset" default="button"
+    <prop name="type" type="keyword" values="button, submit, reset" default="button"
     >The button's type, as on a native button. button by default, so it never submits a form by accident. A link has no type.</prop>
     <prop name="href" type="string"
     >The link's destination. Pair it with as="a" so the button renders as a real link that navigates. A disabled link drops its href and states
       aria-disabled="true", so it cannot be followed.</prop>
     <prop name="target" type="string">Where a link opens, as on a native link. Only meaningful with as="a".</prop>
     <prop name="rel" type="string">The link's relationship to its destination, as on a native link. Only meaningful with as="a".</prop>
-    <prop name="as" type="button | a" default="button">The native element the button renders: a button, or a link (a) that navigates to href.</prop>
+    <prop name="as" type="keyword" values="button, a" default="button"
+    >The native element the button renders: a button, or a link (a) that navigates to href.</prop>
     <!-- Each root carries only its own attributes: a link has no type or disabled, and a disabled link
          loses its href and states aria-disabled instead. The language has no conditional expression, so a
          table keyed by a boolean's text picks each value, and null leaves the attribute off. -->

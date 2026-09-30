@@ -96,7 +96,7 @@ export default function controller(host) {
     if (to === null) return;
     suppressClick = true;
     setTimeout(() => { suppressClick = false; }, 0);
-    if (to !== from) host.dispatch("action", { action: axis === "row" ? "reorder-row" : "reorder-column", fromIndex: from, toIndex: to });
+    if (to !== from) host.dispatch(axis === "row" ? "reorder-row" : "reorder-column", { fromIndex: from, toIndex: to });
   };
   const boundaries = (axis) => {
     const values = host.state.geometry?.[axis === "row" ? "rowBoundaries" : "columnBoundaries"];
@@ -141,13 +141,13 @@ export default function controller(host) {
     const action = button.dataset.action;
     const cell = { rowIndex: Number(button.dataset.rowIndex), columnIndex: Number(button.dataset.columnIndex) };
     if (action === "select-row" || action === "select-column") {
-      host.dispatch("action", { action, ...cell });
+      host.dispatch(action, cell);
       const rect = button.getBoundingClientRect();
-      host.dispatch("action", { action: action === "select-row" ? "open-row-menu" : "open-column-menu", ...cell, anchor: { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom } });
+      host.dispatch(action === "select-row" ? "open-row-menu" : "open-column-menu", { ...cell, anchor: { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom } });
     } else if (action === "open-cell-menu") {
       const rect = button.getBoundingClientRect();
-      host.dispatch("action", { action, ...cell, anchor: { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom } });
-    } else host.dispatch("action", { action, boundaryIndex: Number(button.dataset.boundaryIndex) });
+      host.dispatch(action, { ...cell, anchor: { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom } });
+    } else host.dispatch(action, { boundaryIndex: Number(button.dataset.boundaryIndex) });
   };
   const keyOf = (target) => target instanceof Element ? target.closest("[data-control-key]")?.dataset.controlKey ?? "" : "";
   const enter = (event) => { host.state.activeKey = keyOf(event.target); };
