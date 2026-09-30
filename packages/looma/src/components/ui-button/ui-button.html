@@ -307,7 +307,7 @@
       border-color: transparent;
     }
 
-    :host-state([variant="ghost"]):active:not(:disabled, [aria-disabled="true"]) {
+    :host-state([variant="ghost"]):is(:active, [aria-expanded="true"]):not(:disabled, [aria-disabled="true"]) {
       background-color: var(--ui-button-ghost-active-surface, oklch(from var(--_tone) l c h / 16%));
       border-color: transparent;
       box-shadow: var(--ui-pressed);

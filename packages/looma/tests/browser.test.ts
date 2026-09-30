@@ -437,6 +437,78 @@ describe("Disclosure composition", () => {
 });
 
 describe("Menu structure and navigation", () => {
+  it("spaces slotted icons and keeps ghost triggers pressed while overlays are open", async () => {
+    const path = await bundle("html-menu-icon-and-ghost-trigger", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-icon-button id="menu-trigger" variant="ghost" label="Page actions"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5" /></svg></ui-icon-button>
+      <ui-menu id="actions" for="menu-trigger" density="compact" aria-label="Page actions">
+        <ui-menu-item id="move" value="move"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16"><path d="M2 8h12" /></svg>Move to…</ui-menu-item>
+      </ui-menu>
+      <ui-button id="popover-trigger" variant="ghost">Details</ui-button>
+      <ui-popover id="details" for="popover-trigger">More details.</ui-popover>
+    `, [join(root, "tokens.css")]);
+    const menuTrigger = page.locator("#menu-trigger");
+    const popoverTrigger = page.locator("#popover-trigger");
+    const background = (selector: string) => page.locator(selector).evaluate((element) => getComputedStyle(element).backgroundColor);
+    const menuRest = await background("#menu-trigger");
+    const popoverRest = await background("#popover-trigger");
+
+    await menuTrigger.click();
+    await page.mouse.move(0, 0);
+    await page.waitForTimeout(250);
+    assert.equal(await menuTrigger.getAttribute("aria-expanded"), "true");
+    assert.notEqual(await background("#menu-trigger"), menuRest, "open menu keeps the ghost trigger pressed");
+    const gap = await page.locator("#move .label").evaluate((label) => {
+      const icon = label.querySelector("svg")!;
+      const text = Array.from(label.childNodes).find((node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim())!;
+      const range = document.createRange();
+      range.selectNodeContents(text);
+      return range.getBoundingClientRect().left - icon.getBoundingClientRect().right;
+    });
+    assert.ok(gap >= 6, `menu icon and label need a visible gap, got ${gap}px`);
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(250);
+    assert.equal(await menuTrigger.getAttribute("aria-expanded"), "false");
+    assert.equal(await background("#menu-trigger"), menuRest);
+
+    await popoverTrigger.click();
+    await page.mouse.move(0, 0);
+    await page.waitForTimeout(250);
+    assert.equal(await popoverTrigger.getAttribute("aria-expanded"), "true");
+    assert.notEqual(await background("#popover-trigger"), popoverRest, "open popover keeps the ghost trigger pressed");
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(250);
+    assert.equal(await popoverTrigger.getAttribute("aria-expanded"), "false");
+    assert.equal(await background("#popover-trigger"), popoverRest);
+    await page.close();
+  });
+
+  it("clears trigger expansion when a Vue menu or popover unmounts", async () => {
+    const path = await bundle("vue-overlay-trigger-cleanup", `
+      import { createApp, h, ref } from "vue";
+      import { Button, IconButton, Menu, MenuItem, Popover } from "@threadlabs/looma/vue";
+      const menuVisible = ref(true);
+      const popoverVisible = ref(true);
+      window.hideOverlays = () => { menuVisible.value = false; popoverVisible.value = false; };
+      createApp({ render: () => h("div", [
+        h(IconButton, { id: "menu-trigger", label: "Actions", variant: "ghost" }, () => "…"),
+        menuVisible.value ? h(Menu, { id: "menu", for: "menu-trigger", open: true }, () => h(MenuItem, { value: "edit" }, () => "Edit")) : null,
+        h(Button, { id: "popover-trigger", variant: "ghost" }, () => "Details"),
+        popoverVisible.value ? h(Popover, { id: "popover", for: "popover-trigger", open: true }, () => "Details") : null,
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const menuTrigger = page.locator("#menu-trigger");
+    const popoverTrigger = page.locator("#popover-trigger");
+    assert.equal(await menuTrigger.getAttribute("aria-expanded"), "true");
+    assert.equal(await popoverTrigger.getAttribute("aria-expanded"), "true");
+    await page.evaluate(() => (window as any).hideOverlays());
+    await page.waitForFunction(() => !document.querySelector("#menu") && !document.querySelector("#popover"));
+    assert.notEqual(await menuTrigger.getAttribute("aria-expanded"), "true");
+    assert.notEqual(await popoverTrigger.getAttribute("aria-expanded"), "true");
+    await page.close();
+  });
+
   it("keeps link semantics, groups and separators, and moves through enabled items in HTML", async () => {
     const path = await bundle("html-menu-structure", `
       import "@threadlabs/looma";
