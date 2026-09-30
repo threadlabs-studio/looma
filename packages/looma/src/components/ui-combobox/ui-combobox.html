@@ -13,7 +13,8 @@
       when none is chosen. A disabled combobox sends nothing.</prop>
     <prop name="value" type="string | null"
     >The selected value in single mode, which a named combobox submits with its form. The field shows the matching option's label, and a form reset returns to
-      this value. If omitted, the first authored option with selected sets the initial value.</prop>
+      this value. In a strict combobox, typing a search does not change the selection; leaving with no match restores its label. If omitted, the first authored
+      option with selected sets the initial value.</prop>
     <prop
       name="items"
       type="list(object({ id: string, value: string, label: string, group?: string, disabled?: boolean, description?: string, tag?: object({ label: string, tone?: neutral | accent | info | success | warning | danger, color?: string }) }))"
