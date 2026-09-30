@@ -456,6 +456,73 @@
   inline-size: min(22rem, calc(100vw - 2rem));
 }
 
+/* The floating toolbar supplies the surface; the containing popover only
+   positions it beside the app-owned trigger. */
+.looma-editor__formatting-popover {
+  --ui-popover-padding: 0;
+  --ui-popover-surface: transparent;
+  --ui-popover-border: transparent;
+  --ui-popover-shadow: none;
+}
+
+.looma-editor__link-context {
+  box-sizing: border-box;
+  max-width: min(24rem, calc(100vw - 1.5rem));
+  padding: var(--ui-editor-toolbar-floating-padding, 4px);
+  border: 1px solid var(--ui-editor-toolbar-border, var(--ui-border-strong));
+  border-radius: var(--ui-editor-toolbar-floating-radius, var(--ui-radius-lg));
+  background: var(--ui-editor-toolbar-surface, var(--ui-surface));
+  box-shadow: var(--ui-editor-toolbar-floating-shadow, var(--ui-shadow-lg, 0 10px 24px rgb(0 0 0 / 0.12)));
+  color: var(--ui-text-primary);
+  font-family: var(--ui-font-family-sans, sans-serif);
+}
+
+.looma-editor__link-context-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-1);
+}
+
+.looma-editor__link-context-url {
+  min-width: 0;
+  max-width: 10rem;
+  overflow: hidden;
+  padding-inline: var(--ui-space-2);
+  color: var(--ui-text-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.looma-editor__link-context-actions :is(button, a) {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  min-height: var(--ui-control-min-block-size);
+  padding: 0 var(--ui-space-2);
+  border: 0;
+  border-radius: var(--ui-radius-sm);
+  background: transparent;
+  color: var(--ui-text-primary);
+  font: inherit;
+  font-size: var(--ui-font-size-sm);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.looma-editor__link-context-actions :is(button, a):is(:hover, :focus-visible) {
+  background: var(--ui-surface-subtle);
+}
+
+.looma-editor__link-context-actions :is(button, a):focus-visible {
+  outline: 2px solid var(--ui-focus-ring);
+  outline-offset: 2px;
+}
+
+.looma-editor__link-context--editing {
+  width: min(22rem, calc(100vw - 1.5rem));
+  padding: var(--ui-space-3);
+}
+
 .looma-editor__chip-popover {
   inline-size: min(15rem, calc(100vw - 2rem));
 }
