@@ -15,6 +15,7 @@ const EXEMPT = {
   "ui-combobox :host-state([multiple]) .entry": "the single-line chip strip keeps the text cursor fully visible while it scrolls",
   "ui-context-menu .menu": SURFACE,
   "ui-editor-table-context-menu :host": SURFACE,
+  "ui-editor-table-toolbar .menu": SURFACE,
   "ui-editor-table-toolbar .looma-editor__mobile-toolbar-shell :host .menu": SURFACE,
   "ui-menu .surface": SURFACE,
   "ui-popover .surface": SURFACE,

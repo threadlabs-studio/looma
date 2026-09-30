@@ -844,10 +844,13 @@ export const LoomaEditor = defineComponent({
 
     const updateTableUi = () => {
       const instance = editor.value;
+      const focusInTableUi = [tableToolbarShell.value, tableOverlayShell.value, tableMenuShell.value]
+        .some((shell) => shell?.contains(document.activeElement));
       if (
         !instance
+        || instance.isDestroyed
         || !props.editable
-        || (!instance.isFocused && !tableInteractionActive && !hoveredTableCell)
+        || (!instance.isFocused && !tableInteractionActive && !hoveredTableCell && !focusInTableUi)
       ) {
         closeTableUi();
         return;
@@ -908,7 +911,7 @@ export const LoomaEditor = defineComponent({
     };
 
     const onEditorBlur = () => {
-      updateTableUi();
+      queueMicrotask(updateTableUi);
       updateCodeUi();
       setTimeout(() => {
         if (!tableInteractionActive && !editor.value?.isFocused) editorFocused.value = false;
@@ -939,7 +942,10 @@ export const LoomaEditor = defineComponent({
       bindEditorUi(instance);
     }, { immediate: true });
 
-    const onViewportChange = () => {
+    const onViewportChange = (event?: Event) => {
+      // A menu's own scroll does not move its anchor or change the active table.
+      if (event?.type === "scroll" && event.target instanceof Node
+        && (tableToolbarShell.value?.contains(event.target) || tableMenuShell.value?.contains(event.target))) return;
       updateMobileViewport();
       updateTableUi();
       updateCodeUi();
@@ -1258,6 +1264,7 @@ export const LoomaEditor = defineComponent({
         : null;
       if (action) event.preventDefault();
     };
+
 
     const commandButton = (
       label: string,
