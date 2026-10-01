@@ -16,9 +16,9 @@
       name="anchorRect"
       type="object({ left?: number, top?: number, right?: number, bottom?: number, x?: number, y?: number, width?: number, height?: number })"
     >Where the slash was typed, in viewport coordinates.</prop>
-    <state name="visible" :value="false"></state>
-    <state name="active" :value="0"></state>
-    <state name="rows" type="list(object({ value: string, title: string, description: string, icon: string }))" :value="[]"></state>
+    <state type="boolean" name="visible" value="false"></state>
+    <state type="integer" name="active" value="0"></state>
+    <state name="rows" type="list(object({ value: string, title: string, description: string, icon: string }))" value="[]"></state>
     <event name="highlight" type="object({ index: integer, value: string })"></event>
     <event name="select" type="object({ index: integer, value: string })"></event>
   </defs>

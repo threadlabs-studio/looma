@@ -91,7 +91,7 @@
     <state
       name="internalItems"
       type="list"
-      :value="[]"
+      value="[]"
     >
       <prop type="object">
         <prop name="id" required type="string"></prop>
@@ -107,14 +107,14 @@
         </prop>
       </prop>
     </state>
-    <state name="raw" :value="''"></state>
-    <state name="display" :value="''"></state>
-    <state name="selected" type="string" :value="null" nullable></state>
-    <state name="expanded" :value="false"></state>
+    <state type="string" name="raw" value=""></state>
+    <state type="string" name="display" value=""></state>
+    <state name="selected" type="string"></state>
+    <state type="boolean" name="expanded" value="false"></state>
     <state
       name="rows"
       type="list"
-      :value="[]"
+      value="[]"
     >
       <prop type="object">
         <prop name="id" required type="string"></prop>
@@ -131,13 +131,13 @@
         </prop>
       </prop>
     </state>
-    <state name="active" :value="-1"></state>
-    <state name="helpOpen" :value="false"></state>
-    <state name="lookupError" :value="''"></state>
+    <state type="integer" name="active" value="-1"></state>
+    <state type="boolean" name="helpOpen" value="false"></state>
+    <state type="string" name="lookupError" value=""></state>
     <state
       name="validation"
       type="object"
-      :value="{ status: 'pristine', touched: false, dirty: false, issues: [] }"
+      value="{ status: 'pristine', touched: false, dirty: false, issues: [] }"
       open
     >
       <prop name="status" required type="keyword" values="pristine, pending, valid, warning, error"></prop>
@@ -149,12 +149,12 @@
         </prop>
       </prop>
     </state>
-    <state name="uid" :value="''"></state>
-    <state name="submitted" :value="''"></state>
+    <state type="string" name="uid" value=""></state>
+    <state type="string" name="submitted" value=""></state>
     <state
       name="groups"
       type="list"
-      :value="[]"
+      value="[]"
     >
       <prop type="object">
         <prop name="name" required type="string"></prop>
@@ -181,11 +181,11 @@
         </prop>
       </prop>
     </state>
-    <state name="creatable" :value="false"></state>
-    <state name="createIndex" :value="0"></state>
-    <state name="message" :value="''"></state>
-    <state name="statusText" :value="''"></state>
-    <state name="validationStatus" :value="'pristine'"></state>
+    <state type="boolean" name="creatable" value="false"></state>
+    <state type="integer" name="createIndex" value="0"></state>
+    <state type="string" name="message" value=""></state>
+    <state type="string" name="statusText" value=""></state>
+    <state type="string" name="validationStatus" value="pristine"></state>
     <event name="query-change" type="object">
       <prop name="query" required type="string"></prop>
       <prop name="display" required type="string"></prop>

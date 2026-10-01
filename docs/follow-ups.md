@@ -50,7 +50,7 @@ Remaining:
 
 Decisions and findings from side conversations, kept here so they are not lost.
 
-- **Separator is a native `<hr>`.** Done on the reorg branch: `<hr :aria-orientation="orientation">`,
+- **Separator is a native `<hr>`.** Done on the reorg branch: `<hr from:aria-orientation="orientation">`,
   styles in the template, controller deleted (it only added `role` and `aria-orientation` at
   runtime). A labelled "— or —" divider is a different component: ARIA makes a separator's
   children presentational. Modern `<hr>` styling needs one reset (`margin: 0`, `border: 0`, one

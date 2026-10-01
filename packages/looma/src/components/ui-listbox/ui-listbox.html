@@ -9,12 +9,12 @@
     <prop name="disabled" type="boolean" default="false">Prevents selection and form submission.</prop>
     <prop name="required" type="boolean" default="false">Requires at least one choice before form submission.</prop>
     <prop name="invalid" type="boolean" default="false">Exposes invalid state to assistive technology and styling.</prop>
-    <state name="choices" type="list(object({ value: string, label: string, disabled: boolean, selected: boolean, index: integer }))" :value="[]"></state>
-    <state name="selection" type="list(string)" :value="[]"></state>
-    <state name="hasSelection" type="boolean" :value="false"></state>
-    <state name="active" type="integer" :value="-1"></state>
-    <state name="uid" type="string" :value="''"></state>
-    <state name="validationError" type="boolean" :value="false"></state>
+    <state name="choices" type="list(object({ value: string, label: string, disabled: boolean, selected: boolean, index: integer }))" value="[]"></state>
+    <state name="selection" type="list(string)" value="[]"></state>
+    <state name="hasSelection" type="boolean" value="false"></state>
+    <state name="active" type="integer" value="-1"></state>
+    <state name="uid" type="string" value=""></state>
+    <state name="validationError" type="boolean" value="false"></state>
     <event name="change" type="object">
       <prop name="value" required nullable type="string"></prop>
       <prop name="values" required type="list">

@@ -10,8 +10,8 @@
     <prop name="collapsed" type="boolean" default="false">Whether the docked sidebar is collapsed.</prop>
     <prop name="breakpoint" type="keyword" values="sm, md, lg" default="md"
     >Below this viewport width (40rem, 48rem, 64rem) the sidebar becomes an off-canvas drawer, closed until toggled.</prop>
-    <state name="internalCollapsed" :value="false"></state>
-    <state name="drawer" :value="false"></state>
+    <state type="boolean" name="internalCollapsed" value="false"></state>
+    <state type="boolean" name="drawer" value="false"></state>
     <event name="resize" type="object">
       <prop name="width" required type="number"></prop>
       <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
