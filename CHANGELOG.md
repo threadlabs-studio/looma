@@ -3,6 +3,7 @@
 ## Unreleased
 
 - `@threadlabs/looma/vue/editor` also exports the menus' authored rows: `EditorMentionMenuItem`, `EditorSlashMenuItem`, and `EditorSlashMenuGroup`, so an app can compose the editor's person and command rows from the editor entry point alone.
+- Looma now uses HTML Next alpha.15. Its component definitions declare typed literal state values and rely on the new value constraints and validity behavior. This changes authored definitions; the public component tags and JavaScript arrays retain their existing shape.
 - Avatar Group has an `xs` size for a group inside a line of small text: xs avatars overlap by a smaller amount and the +N badge matches their size.
 - Extra-small Buttons have 1px more room above and below their content and 1px less at each side, so an avatar inside an `xs` pill no longer touches its edge. Under touch, an `xs` Button keeps its size inside its line of text and takes presses through an invisible touch-sized hit area, as link Buttons do, instead of growing to the touch minimum.
 - Vue components accept a bare boolean attribute as `true`, as Vue does: `<Avatar decorative />` now works instead of throwing. This follows HTML Next alpha.14.
@@ -14,7 +15,7 @@
 - Avatar has an `xs` size (1.25rem) with the smallest initials, for naming a person inline in a line of small text.
 - Component definitions use HTML Next's `list` declaration for nested collections. This changes authored definitions only; consumers still receive JavaScript arrays and use the same component APIs.
 - Nested Tree items now advance by one indent per level, keeping deeper pages and folders aligned instead of shifting them progressively farther right.
-- Looma's declarative component definitions now use `from:attr` for reactive one-way values. This follows HTML Next alpha.12; component consumers keep the same HTML and Vue APIs. Authors of custom HTML Next definitions should replace `:attr` with `from:attr` in rendered markup. The `:value` expression on `<state>`, `<set>`, and `<dispatch>` keeps its existing syntax because it is evaluated when that declaration or handler runs.
+- Looma's declarative component definitions use `from:attr` for reactive one-way values. Component consumers keep the same HTML and Vue APIs. Authors of custom HTML Next definitions should replace `:attr` with `from:attr` in rendered markup, use typed literal `value` on `<state>`, and use `expr:value` for action-time expressions on `<set>` and `<dispatch>`.
 - **Breaking runtime requirement:** Looma now supports Node 22.13 and Node 24, matching its HTML Next dependency. Node 20 is no longer supported.
 - **Breaking for Table Overlay:** its catch-all `action` event is replaced by named insertion, selection, reorder, and menu events. Listen for `add-row-before`, `add-row-after`, `add-column-before`, `add-column-after`, `select-row`, `select-column`, `reorder-row`, `reorder-column`, `open-cell-menu`, `open-row-menu`, or `open-column-menu` and read the fields directly from each event detail. The editor adapter continues to handle these actions.
 - Tree marquee measures the rendered name instead of a full-width link and its padding, so short names stay still and long names stop at a narrow fade before row actions without extra travel.

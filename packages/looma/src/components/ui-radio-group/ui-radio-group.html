@@ -18,7 +18,7 @@
       form validation fails until one is checked.</prop>
     <prop name="invalid" type="boolean" default="false"
     >Exposes an externally validated error on the group and styles its legend with the field danger colour.</prop>
-    <state name="internalValue" :value="''"></state>
+    <state type="string" name="internalValue" value=""></state>
     <event name="select" type="object">
       <prop name="value" required type="string"></prop>
       <prop name="previousValue" required type="string"></prop>

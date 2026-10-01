@@ -11,7 +11,7 @@
       bottoms.</prop>
     <prop name="limit" type="integer"
     >Most children allowed in a horizontal row. When the count exceeds this value, every child stacks regardless of width. Omit it for no count limit.</prop>
-    <state name="overLimit" :value="false"></state>
+    <state type="boolean" name="overLimit" value="false"></state>
   </defs>
   <div><slot></slot></div>
   <style>

@@ -7,12 +7,12 @@
     <state
       name="cells"
       type="list(object({ key: string, row: integer, col: integer, label: string, selected: boolean, tabIndex: integer }))"
-      :value="[]"
+      value="[]"
     ></state>
-    <state name="rows" :value="8"></state>
-    <state name="cols" :value="8"></state>
-    <state name="hint" :value="''"></state>
-    <state name="withHeaderRow" :value="false"></state>
+    <state type="integer" name="rows" value="8"></state>
+    <state type="integer" name="cols" value="8"></state>
+    <state type="string" name="hint" value=""></state>
+    <state type="boolean" name="withHeaderRow" value="false"></state>
     <event name="insert" type="object({ rows: integer, cols: integer, withHeaderRow: boolean })"></event>
   </defs>
   <div from:hidden="not open">
