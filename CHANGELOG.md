@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- `@threadlabs/looma/vue/editor` also exports the menus' authored rows: `EditorMentionMenuItem`, `EditorSlashMenuItem`, and `EditorSlashMenuGroup`, so an app can compose the editor's person and command rows from the editor entry point alone.
 - Looma now uses HTML Next alpha.15. Its component definitions declare typed literal state values and rely on the new value constraints and validity behavior. This changes authored definitions; the public component tags and JavaScript arrays retain their existing shape.
 - Avatar Group has an `xs` size for a group inside a line of small text: xs avatars overlap by a smaller amount and the +N badge matches their size.
 - Extra-small Buttons have 1px more room above and below their content and 1px less at each side, so an avatar inside an `xs` pill no longer touches its edge. Under touch, an `xs` Button keeps its size inside its line of text and takes presses through an invisible touch-sized hit area, as link Buttons do, instead of growing to the touch minimum.
