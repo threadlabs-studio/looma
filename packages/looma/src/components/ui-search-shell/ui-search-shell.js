@@ -66,7 +66,9 @@ export default function controller(host) {
   const onClick = (event) => {
     if (host.state.dismissible && event.target === dialog) dispatchClose("light-dismiss", trigger());
   };
-  const onClose = () => {
+  // Only the dialog's own close: a tooltip, menu, or popover inside it reports "close" too, and it bubbles.
+  const onClose = (event) => {
+    if (event.target !== dialog) return;
     if (!suppressNativeClose && host.state.internalOpen) dispatchClose("action", trigger());
   };
   dialog.addEventListener("cancel", onCancel);
