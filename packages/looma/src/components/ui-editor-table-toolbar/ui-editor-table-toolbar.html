@@ -17,28 +17,28 @@
       ></prop>
       The complete set of commands the current selection permits.
     </prop>
-    <state name="alignments" type="list" :value="[]">
+    <state name="alignments" type="list" value="[]">
       <prop type="object">
         <prop name="action" required type="keyword" values="align-left, align-center, align-right"></prop>
         <prop name="label" required type="string"></prop>
         <prop name="active" required type="boolean"></prop>
       </prop>
     </state>
-    <state name="structure" type="list" :value="[]">
+    <state name="structure" type="list" value="[]">
       <prop type="object">
         <prop name="action" required type="keyword" values="add-row-after, add-column-after"></prop>
         <prop name="label" required type="string"></prop>
         <prop name="icon" required type="string"></prop>
       </prop>
     </state>
-    <state name="swatches" type="list(object({ action: string, label: string, color: string, selected: boolean }))" :value="[]"></state>
+    <state name="swatches" type="list(object({ action: string, label: string, color: string, selected: boolean }))" value="[]"></state>
     <state
       name="sections"
       type="list(object({ heading: string, items: list(object({ action: string, label: string, icon: string, danger: boolean, checkable: boolean, checked: boolean })) }))"
-      :value="[]"
+      value="[]"
     ></state>
-    <state name="hasOverflow" :value="false"></state>
-    <state name="overflowOpen" :value="false"></state>
+    <state type="boolean" name="hasOverflow" value="false"></state>
+    <state type="boolean" name="overflowOpen" value="false"></state>
     <event
       name="action"
       type="object"

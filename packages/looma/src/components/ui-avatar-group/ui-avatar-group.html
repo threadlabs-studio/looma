@@ -13,8 +13,8 @@
     <prop name="size" type="keyword" values="xs, sm, md" default="md"
     >The size of the avatars inside, matched by the +N badge and the overlap. Give each Avatar the same size. xs suits a group inside a line of small text, such
       as the people listed under a title.</prop>
-    <state name="overflowCount" :value="0"></state>
-    <state name="overflowAnnouncement" :value="''"></state>
+    <state type="integer" name="overflowCount" value="0"></state>
+    <state type="string" name="overflowAnnouncement" value=""></state>
   </defs>
   <div role="group" from:aria-label="label">
     <slot></slot>

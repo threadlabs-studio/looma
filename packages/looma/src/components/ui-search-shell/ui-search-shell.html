@@ -4,7 +4,7 @@
     <prop name="modal" type="boolean" default="false">Makes the rest of the page inert while the search surface is open.</prop>
     <prop name="dismissible" type="boolean" default="false">Allows backdrop activation to close the search surface. Escape always closes it.</prop>
     <prop name="label" type="string" default="Search">Provides the native dialog's accessible name.</prop>
-    <state name="internalOpen" :value="false"></state>
+    <state type="boolean" name="internalOpen" value="false"></state>
     <event
       name="close"
       type="object"

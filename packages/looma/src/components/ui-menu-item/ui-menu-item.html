@@ -10,7 +10,7 @@
     <prop name="type" type="keyword" values="action, checkbox, radio" default="action"
     >An action closes its menu; a checkbox toggles, and a radio chooses one item within its nearest Menu Group. Checkable items keep the menu open.</prop>
     <prop name="checked" type="boolean" default="false">Initial or externally controlled checked state of a checkbox or radio item.</prop>
-    <state name="internalChecked" :value="false"></state>
+    <state type="boolean" name="internalChecked" value="false"></state>
     <event name="change" type="object">
       <prop name="checked" required type="boolean"></prop>
       <prop name="value" required type="string"></prop>
