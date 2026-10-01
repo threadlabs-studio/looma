@@ -10,8 +10,9 @@
     >Accessible label for the overflow badge. Replace {count} with the number of people beyond the visible avatars.</prop>
     <prop name="label" type="string" default="People"
     >The group's accessible name, announced for the set of avatars as a whole. Name who they are rather than repeating the default.</prop>
-    <prop name="size" type="keyword" values="sm, md" default="md"
-    >The size of the avatars inside, matched by the +N badge and the overlap. Give each Avatar the same size.</prop>
+    <prop name="size" type="keyword" values="xs, sm, md" default="md"
+    >The size of the avatars inside, matched by the +N badge and the overlap. Give each Avatar the same size. xs suits a group inside a line of small text, such
+      as the people listed under a title.</prop>
     <state type="integer" name="overflowCount" value="0"></state>
     <state type="string" name="overflowAnnouncement" value=""></state>
   </defs>
@@ -86,6 +87,15 @@
       margin-inline-start: -0.25rem;
       inline-size: 1.75rem;
       block-size: 1.75rem;
+    }
+
+    :host-state([size="xs"]) .overflow {
+      margin-inline-start: -0.1875rem;
+      inline-size: 1.25rem;
+      block-size: 1.25rem;
+      /* Matches the xs Avatar's initials. */
+      font-size: calc(var(--ui-font-size) * 0.5625);
+      line-height: 1;
     }
 
     .overflow[hidden] {

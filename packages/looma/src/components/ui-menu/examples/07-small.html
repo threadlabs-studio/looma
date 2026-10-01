@@ -1,0 +1,10 @@
+<!--
+title: Small menu
+description: size="sm" matches a menu to a small trigger, such as an xs or sm button. The chosen radio item shows a check, as in every menu.
+-->
+<ui-button id="open-small-menu" variant="ghost" tone="neutral" size="xs" shape="pill">Sort: Name</ui-button>
+<ui-menu for="open-small-menu" size="sm" aria-label="Sort by">
+  <ui-menu-item type="radio" value="name" checked>Name</ui-menu-item>
+  <ui-menu-item type="radio" value="date">Date</ui-menu-item>
+  <ui-menu-item type="radio" value="size">Size</ui-menu-item>
+</ui-menu>
