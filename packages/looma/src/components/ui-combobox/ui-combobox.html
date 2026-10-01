@@ -399,7 +399,7 @@
             from:placeholder="placeholder"
             from:disabled="disabled"
             from:readonly="readonly"
-            from:required="required and not (multiple and internalItems[0])"
+            from:required="required and not (multiple and internalItems.0)"
           >
         </div>
         <input $if="name and not multiple" type="hidden" from:name="name" from:value="submitted" from:disabled="disabled">
@@ -508,7 +508,7 @@
         >
         </div>
         <div $if="message" class="message" $value="message"></div>
-        <div $if="not loading and not rows[0] and not creatable and not lookupError" class="message"><slot name="empty">No suggestions.</slot></div>
+        <div $if="not loading and not rows.0 and not creatable and not lookupError" class="message"><slot name="empty">No suggestions.</slot></div>
       </div>
       <slot name="footer"></slot>
     </div>
