@@ -1349,7 +1349,7 @@ describe("Vue components", () => {
     // The state's tokens, not their order: the order follows how the adapter applied them.
     assert.deepEqual(
       (await button.getAttribute("data-ui-button-state"))?.split(" ").toSorted(),
-      ["align", "align=center", "size", "size=md", "tone", "tone=accent", "variant", "variant=solid"]
+      ["align", "align=center", "shape", "shape=rounded", "size", "size=md", "tone", "tone=accent", "variant", "variant=solid"]
     );
     assert.notEqual(await button.evaluate((element) => getComputedStyle(element).backgroundColor), "rgba(0, 0, 0, 0)");
     assert.equal(await page.evaluate(() => "HtmlRuntime" in window), false);
@@ -2989,6 +2989,86 @@ describe("Editor toolbar row", () => {
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
     await checkRow(page);
+    await page.close();
+  });
+});
+
+describe("Vue bare boolean props", () => {
+  it("reads a bare boolean attribute as true, as Vue does", async () => {
+    const path = await bundle("vue-bare-boolean", `
+      import { createApp } from "vue/dist/vue.esm-bundler.js";
+      import { Avatar } from "@threadlabs/looma/vue";
+      createApp({ components: { Avatar }, template: '<Avatar id="bare" name="Ada Lovelace" decorative /><Avatar id="named" name="Ada Lovelace" />' }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await page.waitForSelector("#named");
+    assert.equal(await page.locator("#bare").getAttribute("aria-hidden"), "true");
+    assert.notEqual(await page.locator("#named").getAttribute("aria-hidden"), "true");
+    await page.close();
+  });
+});
+
+describe("Small pill button and small menu", () => {
+  it("draws an xs pill at 24px with fully rounded ends", async () => {
+    const path = await bundle("html-button-xs-pill", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-button id="xs" variant="ghost" tone="neutral" size="xs" shape="pill">On track</ui-button>
+      <ui-button id="sm" size="sm">Small</ui-button>`, [join(root, "tokens.css"), join(root, "theme-light.css")]);
+    await page.waitForSelector('#xs[data-component~="ui-button"]');
+    const xs = await page.evaluate(() => {
+      const button = document.querySelector<HTMLElement>("#xs")!;
+      const style = getComputedStyle(button);
+      return { height: button.getBoundingClientRect().height, radius: parseFloat(style.borderTopLeftRadius), font: parseFloat(style.fontSize) };
+    });
+    const smFont = await page.evaluate(() => parseFloat(getComputedStyle(document.querySelector("#sm")!).fontSize));
+    assert.equal(xs.height, 24);
+    assert.ok(xs.radius >= xs.height / 2, `pill radius ${xs.radius}px rounds the ends fully`);
+    assert.ok(xs.font < smFont, "xs text is smaller than sm text");
+    await page.close();
+  });
+
+  it("holds an open menu's ghost trigger lighter than its hover", async () => {
+    const path = await bundle("html-ghost-open", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-button id="hovered" variant="ghost" tone="neutral">Hovered</ui-button>
+      <ui-button id="open" variant="ghost" tone="neutral" aria-expanded="true">Open</ui-button>`, [join(root, "tokens.css"), join(root, "theme-light.css")]);
+    await page.waitForSelector('#open[data-component~="ui-button"]');
+    await page.hover("#hovered");
+    await page.waitForTimeout(300);
+    const lightness = (id: string) => page.evaluate((selector) => {
+      const canvas = document.createElement("canvas").getContext("2d")!;
+      canvas.fillStyle = getComputedStyle(document.querySelector(selector)!).backgroundColor;
+      canvas.fillRect(0, 0, 1, 1);
+      const [r, g, b] = canvas.getImageData(0, 0, 1, 1).data;
+      return r + g + b;
+    }, id);
+    assert.ok(await lightness("#open") > await lightness("#hovered"), "the open trigger is lighter than hover");
+    await page.close();
+  });
+
+  it("sizes a small menu's rows and checks the chosen radio item", async () => {
+    const path = await bundle("html-menu-sm", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-menu id="sm" inline size="sm" aria-label="Stage">
+        <ui-menu-item type="radio" value="early">Early</ui-menu-item>
+        <ui-menu-item type="radio" value="on" checked>On track</ui-menu-item>
+      </ui-menu>
+      <ui-menu id="md" inline aria-label="Standard">
+        <ui-menu-item value="a">Standard</ui-menu-item>
+      </ui-menu>`, [join(root, "tokens.css"), join(root, "theme-light.css")]);
+    await page.waitForSelector('#md [data-component~="ui-menu-item"]');
+    const row = (selector: string) => page.evaluate((target) => {
+      const item = document.querySelector<HTMLElement>(target)!;
+      return { height: item.getBoundingClientRect().height, font: parseFloat(getComputedStyle(item).fontSize) };
+    }, selector);
+    const [small, standard] = [await row('#sm [data-component~="ui-menu-item"]'), await row('#md [data-component~="ui-menu-item"]')];
+    assert.ok(small.height < standard.height, `small rows (${small.height}px) are shorter than standard (${standard.height}px)`);
+    assert.ok(small.font < standard.font, "small rows use smaller text");
+    const widths = await page.evaluate(() => ["#sm", "#md"].map((id) => document.querySelector(id)!.getBoundingClientRect().width));
+    assert.ok(widths[0]! < widths[1]!, `a small menu (${widths[0]}px) is narrower than a standard one (${widths[1]}px)`);
+    const checks = await page.evaluate(() => [...document.querySelectorAll('#sm [data-component~="ui-menu-item"]')]
+      .map((item) => Boolean(item.querySelector(".indicator svg"))));
+    assert.deepEqual(checks, [false, true]);
     await page.close();
   });
 });
