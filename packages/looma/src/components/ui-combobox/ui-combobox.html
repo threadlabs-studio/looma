@@ -159,7 +159,7 @@
       <prop type="object">
         <prop name="name" required type="string"></prop>
         <prop name="role" required type="keyword" values="group, presentation"></prop>
-        <prop name="label" required type="string"></prop>
+        <prop name="label" required nullable type="string"></prop>
         <prop name="rows" required type="list">
           <prop type="object">
             <prop name="id" required type="string"></prop>
@@ -175,8 +175,8 @@
               <prop name="color" type="string"></prop>
             </prop>
             <prop name="index" required type="integer"></prop>
-            <prop name="labelledBy" required type="string"></prop>
-            <prop name="detail" required type="string"></prop>
+            <prop name="labelledBy" required nullable type="string"></prop>
+            <prop name="detail" required nullable type="string"></prop>
           </prop>
         </prop>
       </prop>
@@ -195,9 +195,9 @@
       name="value-change"
       type="object"
     >
-      <prop name="value" required type="string"></prop>
+      <prop name="value" required nullable type="string"></prop>
       <prop name="query" required type="string"></prop>
-      <prop name="option" required type="object">
+      <prop name="option" required nullable type="object">
         <prop name="id" required type="string"></prop>
         <prop name="value" required type="string"></prop>
         <prop name="label" required type="string"></prop>
@@ -235,9 +235,9 @@
       name="free-entry"
       type="object"
     >
-      <prop name="value" required type="string"></prop>
+      <prop name="value" required nullable type="string"></prop>
       <prop name="query" required type="string"></prop>
-      <prop name="option" required type="object">
+      <prop name="option" required nullable type="object">
         <prop name="id" required type="string"></prop>
         <prop name="value" required type="string"></prop>
         <prop name="label" required type="string"></prop>
@@ -257,9 +257,9 @@
       name="create-entry"
       type="object"
     >
-      <prop name="value" required type="string"></prop>
+      <prop name="value" required nullable type="string"></prop>
       <prop name="query" required type="string"></prop>
-      <prop name="option" required type="object">
+      <prop name="option" required nullable type="object">
         <prop name="id" required type="string"></prop>
         <prop name="value" required type="string"></prop>
         <prop name="label" required type="string"></prop>
