@@ -4297,11 +4297,18 @@ describe("Editor toolbar tooltips", () => {
     const apple = await page.evaluate(() => /Mac|iPhone|iPad|iPod/.test(navigator.platform));
     assert.equal(await tip.locator("kbd").textContent(), apple ? "⌘B" : "Ctrl+B");
 
+    // In a secure context Client Hints name the platform "macOS", lowercase "mac", and still mean ⌘.
+    await page.evaluate(() => {
+      Object.defineProperty(navigator, "userAgentData", { configurable: true, value: { platform: "macOS" } });
+      Object.defineProperty(navigator, "platform", { configurable: true, value: "" });
+    });
+
     // Moving along the row re-points the same tooltip without waiting again.
     const italic = page.locator('[data-component~="ui-editor-toolbar"] button').nth(1);
     await italic.hover();
     await page.waitForFunction(() => /Italic/.test(document.querySelector('[data-component~="ui-tooltip"]')?.textContent ?? ""));
     assert.equal(await tip.isVisible(), true);
+    assert.equal(await tip.locator("kbd").textContent(), "⌘I");
     await page.close();
   });
 });
