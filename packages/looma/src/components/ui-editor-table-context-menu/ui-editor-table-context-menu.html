@@ -16,7 +16,7 @@
       ></prop>
       The complete set of commands the current selection permits.
     </prop>
-    <state name="swatches" type="list" :value="[]" nullable>
+    <state name="swatches" type="list" value="[]">
       <prop type="object">
         <prop name="action" required type="string"></prop>
         <prop name="label" required type="string"></prop>
@@ -27,7 +27,7 @@
     <state
       name="sections"
       type="list(object({ heading: string, items: list(object({ action: string, label: string, icon: string, danger: boolean, checkable: boolean, checked: boolean })) }))"
-      :value="[]"
+      value="[]"
     ></state>
     <event
       name="action"

@@ -40,10 +40,10 @@
       still list.</prop>
     <prop name="disabled" type="boolean" default="false"
     >Makes the item unavailable: faded, skipped by keyboard navigation, unable to expand or be dragged, and closed to drops inside it.</prop>
-    <state name="internalExpanded" :value="false"></state>
-    <state name="structuralLevel" :value="1"></state>
-    <state name="tabStop" :value="false"></state>
-    <state name="isContainer" :value="false"></state>
+    <state type="boolean" name="internalExpanded" value="false"></state>
+    <state type="integer" name="structuralLevel" value="1"></state>
+    <state type="boolean" name="tabStop" value="false"></state>
+    <state type="boolean" name="isContainer" value="false"></state>
     <event name="expand" bubbles="false" type="object">
       <prop name="id" required type="string"></prop>
       <prop name="expanded" required type="boolean"></prop>
