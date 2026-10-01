@@ -7,7 +7,7 @@ export default function controller(host) {
     const visible = Number.isFinite(max) ? Math.max(0, Math.floor(max)) : 0;
     const avatars = Array.from(element.children).filter((child) => child !== host.refs.overflow);
     // Small avatars overlap less, so their initials stay clear of the next one.
-    const overlap = host.state.size === "sm" ? "-0.25rem" : "-0.5rem";
+    const overlap = { xs: "-0.1875rem", sm: "-0.25rem" }[host.state.size] ?? "-0.5rem";
     avatars.forEach((avatar, index) => {
       avatar.style.display = index >= visible ? "none" : "";
       avatar.style.marginInlineStart = index === 0 ? "0px" : overlap;
