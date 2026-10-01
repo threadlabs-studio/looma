@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- A `<kbd>` in Tooltip's or Menu Item's `shortcut` slot reads in the surrounding type in Vue too, instead of the browser's monospace.
 - Looma now uses HTML Next alpha.18. Combobox expressions use dotted list indexes (`rows.0` and `internalItems.0`) so they compile under the updated expression grammar; the public Combobox API is unchanged.
 - The editor toolbar's shortcut hints show ⌘ on a Mac in a secure context too, where the browser reports the platform as "macOS" rather than "MacIntel".
 - Tooltip has a `shortcut` slot: a keyboard shortcut follows the label after a thin divider, in smaller, quieter text, as Menu Item shows one. The editor toolbar's tooltips now show each command's shortcut this way, written for the reader's platform (⌘B on Apple devices, Ctrl+B elsewhere).
