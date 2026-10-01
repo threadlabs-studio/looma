@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Vue components accept a bare boolean attribute as `true`, as Vue does: `<Avatar decorative />` now works instead of throwing. This follows HTML Next alpha.14.
+- Button has an `xs` size (1.5rem) and a `shape="pill"` option with fully rounded ends, for a small choice inside a line of text, such as a status or a person.
+- Menu has a `size="sm"` option that matches a small trigger: smaller text, shorter rows, a smaller check, and a narrower minimum width.
+- **Visual change for radio Menu Items:** the chosen item now shows a check instead of a filled radio circle, the same mark checkbox items use. A radio circle reads as a form control inside a menu, and a check is the convention people expect there. Unchosen items keep an empty slot, so labels stay aligned.
+- **Visual change for Ghost Button:** while pressed or holding its menu open, it sinks into a light surface with a faint edge, instead of a darker tinted fill. The darker fill read as heavier than hover, so an open menu's trigger looked stuck.
 - Avatar's `xs` initials are smaller (9px), so two initials sit comfortably inside the 1.25rem circle. Every size sets its own line height, so the initials sit the same wherever the avatar appears.
 - Avatar has an `xs` size (1.25rem) with the smallest initials, for naming a person inline in a line of small text.
 - Component definitions use HTML Next's `list` declaration for nested collections. This changes authored definitions only; consumers still receive JavaScript arrays and use the same component APIs.
