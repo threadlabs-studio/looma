@@ -81,8 +81,9 @@ function formatEditorShortcut(keys: string, apple: boolean): string {
   return [has("Mod") || has("Ctrl") ? "Ctrl" : "", has("Alt") ? "Alt" : "", has("Shift") ? "Shift" : "", key].filter(Boolean).join("+");
 }
 
+// Client Hints report "macOS" in a secure context; navigator.platform reports "MacIntel" or "iPhone".
 const isApplePlatform = () => typeof navigator !== "undefined"
-  && /Mac|iPhone|iPad|iPod/.test((navigator as Navigator & { userAgentData?: { platform?: string } }).userAgentData?.platform || navigator.platform || navigator.userAgent);
+  && /mac|iphone|ipad|ipod/i.test((navigator as Navigator & { userAgentData?: { platform?: string } }).userAgentData?.platform || navigator.platform || navigator.userAgent);
 
 /**
  * Host upload result normalized into the editor's durable image descriptor.
