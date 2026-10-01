@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Tooltip has a `shortcut` slot: a keyboard shortcut follows the label after a thin divider, in smaller, quieter text, as Menu Item shows one. The editor toolbar's tooltips now show each command's shortcut this way, written for the reader's platform (⌘B on Apple devices, Ctrl+B elsewhere).
 - Looma now uses HTML Next alpha.16. Vue components that validate their props no longer overflow the call stack on mount in a DOM without native form validity, such as happy-dom in component tests.
 - `@threadlabs/looma/vue/editor` also exports the menus' authored rows: `EditorMentionMenuItem`, `EditorSlashMenuItem`, and `EditorSlashMenuGroup`, so an app can compose the editor's person and command rows from the editor entry point alone.
 - Looma now uses HTML Next alpha.15. Its component definitions declare typed literal state values and rely on the new value constraints and validity behavior. This changes authored definitions; the public component tags and JavaScript arrays retain their existing shape.
