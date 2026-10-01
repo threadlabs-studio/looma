@@ -947,7 +947,7 @@ test("Examples and API keep configuration demos separate from exhaustive referen
   await page.goto("components/ui-button", { waitUntil: "domcontentloaded" });
 
   // Default, variant, Link, size, disabled, align and stretch, pending, as a link.
-  await expect(page.locator(".looma-preview-scenario")).toHaveCount(8);
+  await expect(page.locator(".looma-preview-scenario")).toHaveCount(9);
   await expect(page.locator(".looma-api")).toHaveCount(0);
   await page.getByRole("tab", { name: "API" }).click();
   await expect(page.locator(".looma-preview-scenario")).toHaveCount(0);
