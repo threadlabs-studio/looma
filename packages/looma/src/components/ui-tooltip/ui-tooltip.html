@@ -147,7 +147,8 @@
       display: none;
     }
 
-    .shortcut kbd {
+    /* A <kbd> takes the browser's monospace; the hint reads in the tooltip's own type. */
+    .shortcut :slotted(kbd) {
       font: inherit;
     }
 
