@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Looma now uses HTML Next alpha.18. Combobox expressions use dotted list indexes (`rows.0` and `internalItems.0`) so they compile under the updated expression grammar; the public Combobox API is unchanged.
+- Tooltip has a `shortcut` slot: a keyboard shortcut follows the label after a thin divider, in smaller, quieter text, as Menu Item shows one. The editor toolbar's tooltips now show each command's shortcut this way, written for the reader's platform (⌘B on Apple devices, Ctrl+B elsewhere).
 - Mention rows keep a highlighted person's initials visible: on the highlighted row the initials circle takes the surface colour with a fine accent ring instead of blending into the highlight. A photo Avatar placed in a Mention Menu Item's `start` slot shows as its own circle, without the initials circle behind it.
 - Looma now uses HTML Next alpha.16. Vue components that validate their props no longer overflow the call stack on mount in a DOM without native form validity, such as happy-dom in component tests.
 - `@threadlabs/looma/vue/editor` also exports the menus' authored rows: `EditorMentionMenuItem`, `EditorSlashMenuItem`, and `EditorSlashMenuGroup`, so an app can compose the editor's person and command rows from the editor entry point alone.

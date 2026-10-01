@@ -141,6 +141,38 @@ describe("Anchored overlay placement", () => {
   });
 });
 
+describe("Tooltip shortcut", () => {
+  it("shows a shortcut after the label behind a divider, and nothing when there is none", async () => {
+    const path = await bundle("html-tooltip-shortcut", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <button id="one" style="position: fixed; left: 200px; top: 200px">Search</button>
+      <button id="two" style="position: fixed; left: 500px; top: 200px">Close</button>
+      <ui-tooltip id="with" for="one" open placement="bottom">Search<kbd slot="shortcut">⌘K</kbd></ui-tooltip>
+      <ui-tooltip id="without" for="two" open placement="bottom">Close</ui-tooltip>
+    `, [join(root, "tokens.css")], { reducedMotion: "reduce" });
+    const layout = await page.evaluate(() => {
+      const tip = document.querySelector("#with")!;
+      const surface = tip.querySelector(".surface")!;
+      const kbd = tip.querySelector("kbd")!;
+      const shortcut = kbd.closest(".shortcut")!;
+      const label = document.createRange();
+      label.selectNodeContents(document.createTreeWalker(surface, NodeFilter.SHOW_TEXT).nextNode()!);
+      const style = getComputedStyle(shortcut);
+      const empty = document.querySelector("#without .shortcut");
+      return {
+        afterLabel: kbd.getBoundingClientRect().left > label.getBoundingClientRect().right,
+        sameLine: Math.abs((kbd.getBoundingClientRect().top + kbd.getBoundingClientRect().bottom) / 2 - (label.getBoundingClientRect().top + label.getBoundingClientRect().bottom) / 2) < 3,
+        divider: style.borderInlineStartWidth,
+        smaller: Number.parseFloat(style.fontSize) < Number.parseFloat(getComputedStyle(surface).fontSize),
+        text: tip.textContent?.trim(),
+        emptyHidden: !empty || getComputedStyle(empty).display === "none",
+      };
+    });
+    assert.deepEqual(layout, { afterLabel: true, sameLine: true, divider: "1px", smaller: true, text: "Search⌘K", emptyHidden: true });
+    await page.close();
+  });
+});
+
 describe("Toast composition and placement", () => {
   it("shows authored toasts, reports action dismissal, and leaves removal to the consumer", async () => {
     const path = await bundle("html-authored-toast", `
@@ -4261,6 +4293,9 @@ describe("Editor toolbar tooltips", () => {
     await bold.hover();
     await tip.waitFor({ state: "visible" });
     assert.match((await tip.textContent()) ?? "", /Bold/);
+    // The command's own key binding follows the label, written for this platform.
+    const apple = await page.evaluate(() => /Mac|iPhone|iPad|iPod/.test(navigator.platform));
+    assert.equal(await tip.locator("kbd").textContent(), apple ? "⌘B" : "Ctrl+B");
 
     // Moving along the row re-points the same tooltip without waiting again.
     const italic = page.locator('[data-component~="ui-editor-toolbar"] button').nth(1);
