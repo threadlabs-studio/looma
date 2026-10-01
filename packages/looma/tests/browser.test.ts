@@ -171,6 +171,28 @@ describe("Tooltip shortcut", () => {
     assert.deepEqual(layout, { afterLabel: true, sameLine: true, divider: "1px", smaller: true, text: "Search⌘K", emptyHidden: true });
     await page.close();
   });
+
+  it("sets a slotted kbd in the label's type, not the browser's monospace, in Vue", async () => {
+    const path = await bundle("vue-shortcut-kbd", `
+      import { createApp, h } from "vue";
+      import { Menu, MenuItem, Tooltip } from "@threadlabs/looma/vue";
+      createApp({ render: () => h("main", [
+        h("button", { id: "one", style: { position: "fixed", left: "200px", top: "200px" } }, "Search"),
+        h(Tooltip, { for: "one", open: true, placement: "bottom" }, { default: () => "Search", shortcut: () => h("kbd", "⌘K") }),
+        h(Menu, { inline: true, "aria-label": "File" }, () => [
+          h(MenuItem, { value: "new" }, { default: () => "New file", shortcut: () => h("kbd", "⌘N") }),
+        ]),
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")], { reducedMotion: "reduce" });
+    const fonts = await page.evaluate(() => Array.from(document.querySelectorAll("kbd"), (kbd) => ({
+      kbd: getComputedStyle(kbd).fontFamily,
+      region: getComputedStyle(kbd.parentElement!).fontFamily,
+    })));
+    assert.equal(fonts.length, 2);
+    for (const font of fonts) assert.equal(font.kbd, font.region);
+    await page.close();
+  });
 });
 
 describe("Toast composition and placement", () => {

@@ -140,6 +140,11 @@
       display: none;
     }
 
+    /* A <kbd> takes the browser's monospace; the hint reads in the item's own type. */
+    .shortcut :slotted(kbd) {
+      font: inherit;
+    }
+
     /* Keep the text row at the shared control height where cap trimming is available. */
     @supports (text-box-trim: trim-both) {
       :host {
