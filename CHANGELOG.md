@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Looma now uses HTML Next alpha.18. Combobox expressions use dotted list indexes (`rows.0` and `internalItems.0`) so they compile under the updated expression grammar; the public Combobox API is unchanged.
 - The editor toolbar's shortcut hints show ⌘ on a Mac in a secure context too, where the browser reports the platform as "macOS" rather than "MacIntel".
 - Tooltip has a `shortcut` slot: a keyboard shortcut follows the label after a thin divider, in smaller, quieter text, as Menu Item shows one. The editor toolbar's tooltips now show each command's shortcut this way, written for the reader's platform (⌘B on Apple devices, Ctrl+B elsewhere).
 - Mention rows keep a highlighted person's initials visible: on the highlighted row the initials circle takes the surface colour with a fine accent ring instead of blending into the highlight. A photo Avatar placed in a Mention Menu Item's `start` slot shows as its own circle, without the initials circle behind it.
