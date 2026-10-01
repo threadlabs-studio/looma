@@ -3022,6 +3022,8 @@ describe("Small pill button and small menu", () => {
     });
     const smFont = await page.evaluate(() => parseFloat(getComputedStyle(document.querySelector("#sm")!).fontSize));
     assert.equal(xs.height, 24);
+    const padding = await page.evaluate(() => { const style = getComputedStyle(document.querySelector("#xs")!); return [style.paddingTop, style.paddingLeft]; });
+    assert.deepEqual(padding, ["3px", "5px"], "an avatar inside the pill keeps a pixel of room from its edge");
     assert.ok(xs.radius >= xs.height / 2, `pill radius ${xs.radius}px rounds the ends fully`);
     assert.ok(xs.font < smFont, "xs text is smaller than sm text");
     await page.close();
