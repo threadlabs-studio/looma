@@ -32,7 +32,10 @@
       <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
     </event>
   </defs>
-  <span role="tooltip" from:hidden="not internalOpen"><div class="surface"><slot></slot></div></span>
+  <span role="tooltip" from:hidden="not internalOpen"><div class="surface">
+      <slot></slot>
+      <span class="shortcut"><slot name="shortcut"></slot></span>
+    </div></span>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
     @property --ui-tooltip-arrow-size {
@@ -123,6 +126,29 @@
       font-size: var(--ui-font-size-sm);
       line-height: var(--ui-line-height-tight);
       box-shadow: var(--_ui-tooltip-shadow, var(--ui-overlay-shadow, var(--ui-elevation-tooltip, var(--ui-shadow-md))));
+    }
+
+    /* A keyboard shortcut follows the label after a thin divider, smaller and quieter, as menus show
+       it. The label stays first in the description, so a screen reader hears the name, then the keys. */
+    .shortcut {
+      display: inline-flex;
+      align-items: center;
+      margin-inline-start: var(--ui-space-2);
+      padding-inline-start: var(--ui-space-2);
+      border-inline-start: 1px solid color-mix(in oklab, currentColor 28%, transparent);
+      color: color-mix(in oklab, currentColor 72%, transparent);
+      font-size: var(--ui-font-size-xs);
+      font-weight: var(--ui-font-normal);
+      white-space: nowrap;
+      vertical-align: baseline;
+    }
+
+    .shortcut:empty {
+      display: none;
+    }
+
+    .shortcut kbd {
+      font: inherit;
     }
 
     :host-state([inverse]) .surface {
