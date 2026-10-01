@@ -3,7 +3,8 @@
     <prop name="density" type="keyword" values="comfortable, compact" default="comfortable"
     >Compact trades padding and type size for rows that fit more on screen.</prop>
     <prop name="size" type="keyword" values="sm, md" default="md"
-    >sm sizes the menu to a small trigger, such as an xs or sm button: smallest text, short rows, and a small check. md is the standard size.</prop>
+    >sm sizes the menu to a small trigger, such as an xs or sm button: smallest text, short rows, a small check, and a narrower minimum width. md is the
+      standard size.</prop>
     <prop name="open" type="boolean" default="false">Whether the menu is open initially or when set externally.</prop>
     <prop name="inline" type="boolean" default="false">Displays the menu in the page flow without an overlay or trigger, for an embedded list of actions.</prop>
     <prop name="for" type="string" default="">ID of the control that toggles and anchors the menu.</prop>
@@ -71,6 +72,7 @@
       --_ui-default-menu-item-radius: var(--ui-radius-sm);
       --_ui-default-menu-item-min-block-size: 1.5rem;
       --_ui-default-menu-indicator-size: 0.75rem;
+      min-inline-size: min(8rem, calc(100vw - var(--ui-menu-viewport-gap, var(--ui-space-2)) * 2));
       padding: var(--ui-space-1);
       gap: 0;
     }

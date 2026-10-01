@@ -3064,6 +3064,8 @@ describe("Small pill button and small menu", () => {
     const [small, standard] = [await row('#sm [data-component~="ui-menu-item"]'), await row('#md [data-component~="ui-menu-item"]')];
     assert.ok(small.height < standard.height, `small rows (${small.height}px) are shorter than standard (${standard.height}px)`);
     assert.ok(small.font < standard.font, "small rows use smaller text");
+    const widths = await page.evaluate(() => ["#sm", "#md"].map((id) => document.querySelector(id)!.getBoundingClientRect().width));
+    assert.ok(widths[0]! < widths[1]!, `a small menu (${widths[0]}px) is narrower than a standard one (${widths[1]}px)`);
     const checks = await page.evaluate(() => [...document.querySelectorAll('#sm [data-component~="ui-menu-item"]')]
       .map((item) => Boolean(item.querySelector(".indicator svg"))));
     assert.deepEqual(checks, [false, true]);
