@@ -2993,6 +2993,21 @@ describe("Editor toolbar row", () => {
   });
 });
 
+describe("Vue bare boolean props", () => {
+  it("reads a bare boolean attribute as true, as Vue does", async () => {
+    const path = await bundle("vue-bare-boolean", `
+      import { createApp } from "vue/dist/vue.esm-bundler.js";
+      import { Avatar } from "@threadlabs/looma/vue";
+      createApp({ components: { Avatar }, template: '<Avatar id="bare" name="Ada Lovelace" decorative /><Avatar id="named" name="Ada Lovelace" />' }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await page.waitForSelector("#named");
+    assert.equal(await page.locator("#bare").getAttribute("aria-hidden"), "true");
+    assert.notEqual(await page.locator("#named").getAttribute("aria-hidden"), "true");
+    await page.close();
+  });
+});
+
 describe("Small pill button and small menu", () => {
   it("draws an xs pill at 24px with fully rounded ends", async () => {
     const path = await bundle("html-button-xs-pill", `import "@threadlabs/looma";`);
