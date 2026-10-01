@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Extra-small Buttons have 1px more room above and below their content and 1px less at each side, so an avatar inside an `xs` pill no longer touches its edge.
 - Vue components accept a bare boolean attribute as `true`, as Vue does: `<Avatar decorative />` now works instead of throwing. This follows HTML Next alpha.14.
 - Button has an `xs` size (1.5rem) and a `shape="pill"` option with fully rounded ends, for a small choice inside a line of text, such as a status or a person.
 - Menu has a `size="sm"` option that matches a small trigger: smaller text, shorter rows, a smaller check, and a narrower minimum width.
