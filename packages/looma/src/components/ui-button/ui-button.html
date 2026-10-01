@@ -4,9 +4,12 @@
     <prop name="variant" type="keyword" values="outline, solid, danger, ghost, link" default="outline"
     >Emphasis: how loudly the button asks. solid fills with its tone, outline draws its tone at the edge over a wash of it, ghost carries only text until it is
       hovered, and link is an inline text action that reads as a link. danger is solid in the danger tone, kept for the call sites that name it.</prop>
-    <prop name="size" type="keyword" values="sm, md, lg" default="md"
-    >Height, padding, and type size. sm is the small control height (2rem by default) with tighter padding and smaller text, md is the standard control height
-      (2.5rem), and lg is taller (3rem) with roomier padding.</prop>
+    <prop name="size" type="keyword" values="xs, sm, md, lg" default="md"
+    >Height, padding, and type size. xs is 1.5rem with the smallest text, for a control inside a line of small text; sm is the small control height (2rem by
+      default) with tighter padding and smaller text, md is the standard control height (2.5rem), and lg is taller (3rem) with roomier padding. Under touch, sm
+      grows to the touch minimum, while xs keeps its size inside its line and gains an invisible touch-sized hit area.</prop>
+    <prop name="shape" type="keyword" values="rounded, pill" default="rounded"
+    >rounded uses the theme's action radius; pill rounds the ends fully, for a compact choice such as a status or a person.</prop>
     <prop name="tone" type="keyword" values="accent, neutral, danger, success, warning, info" default="accent"
     >Which colour the button speaks in. It applies to every variant, so an outline, a ghost, and a solid in the same tone are the same action at three volumes:
       tone="danger" variant="outline" is a destructive secondary action. neutral is the quiet one, for a button that should not claim a colour.</prop>
@@ -208,6 +211,16 @@
       }
     }
 
+    :host-state([size="xs"]) {
+      min-block-size: 1.5rem;
+      padding: calc(var(--ui-space-0-5) * 1.5) calc(var(--ui-space-1) * 1.25);
+      font-size: var(--ui-font-size-xs);
+    }
+
+    :host-state([shape="pill"]) {
+      border-radius: var(--ui-button-radius, var(--ui-radius-round));
+    }
+
     :host-state([size="sm"]) {
       min-block-size: var(--ui-control-size-sm);
       padding: var(--ui-space-1) var(--ui-space-2);
@@ -308,10 +321,12 @@
       border-color: transparent;
     }
 
+    /* Pressed, or holding its menu open, a ghost button sinks slightly: a light surface with a faint
+       edge and a soft inner shadow. Lighter than hover, so an open menu's trigger never reads as heavy. */
     :host-state([variant="ghost"]):is(:active, [aria-expanded="true"]):not(:disabled, [aria-disabled="true"]) {
-      background-color: var(--ui-button-ghost-active-surface, oklch(from var(--_tone) l c h / 16%));
+      background-color: var(--ui-button-ghost-active-surface, color-mix(in oklch, var(--ui-surface), var(--_tone) 3%));
       border-color: transparent;
-      box-shadow: var(--ui-pressed);
+      box-shadow: inset 0 0 0 1px oklch(from var(--_tone) l c h / 10%), inset 0 1px 2px oklch(from var(--_tone) l c h / 8%);
     }
 
     /* A soft halo that transitions in with the other box-shadow changes, layered on the raised shadow. */
@@ -361,12 +376,15 @@
     /* Under touch, a link-style button's press lands within the control minimum: an invisible hit
        area, centred on it, like IconButton's. A boxed button grows to the minimum itself (below);
        a link-style one keeps its text size, so a standalone one ("See all" under a list) needs the
-       area. Only the link needs it: a hit area on every button would reach over its neighbours. */
-    html[data-ui-input-modality="touch"] :host-state([variant="link"]) {
+       area. xs sits inside a line of text the same way, so it keeps its size and gains the area too.
+       Only these need it: a hit area on every button would reach over its neighbours. */
+    html[data-ui-input-modality="touch"] :host-state([variant="link"]),
+    html[data-ui-input-modality="touch"] :host-state([size="xs"]) {
       position: relative;
     }
 
-    html[data-ui-input-modality="touch"] :host-state([variant="link"])::after {
+    html[data-ui-input-modality="touch"] :host-state([variant="link"])::after,
+    html[data-ui-input-modality="touch"] :host-state([size="xs"])::after {
       position: absolute;
       inset: 50% auto auto 50%;
       inline-size: max(100%, var(--ui-control-min-block-size));
