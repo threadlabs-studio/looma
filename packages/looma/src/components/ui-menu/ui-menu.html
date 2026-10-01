@@ -2,6 +2,8 @@
   <defs>
     <prop name="density" type="keyword" values="comfortable, compact" default="comfortable"
     >Compact trades padding and type size for rows that fit more on screen.</prop>
+    <prop name="size" type="keyword" values="sm, md" default="md"
+    >sm sizes the menu to a small trigger, such as an xs or sm button: smallest text, short rows, and a small check. md is the standard size.</prop>
     <prop name="open" type="boolean" default="false">Whether the menu is open initially or when set externally.</prop>
     <prop name="inline" type="boolean" default="false">Displays the menu in the page flow without an overlay or trigger, for an embedded list of actions.</prop>
     <prop name="for" type="string" default="">ID of the control that toggles and anchors the menu.</prop>
@@ -61,6 +63,18 @@
       gap: 0;
     }
 
+    /* Small follows its trigger down: an item's own hooks still win. */
+    :host-state([size="sm"]) {
+      --_ui-default-menu-item-padding-block: var(--ui-space-0-5);
+      --_ui-default-menu-item-padding-inline: var(--ui-space-2);
+      --_ui-default-menu-item-font-size: var(--ui-font-size-xs);
+      --_ui-default-menu-item-radius: var(--ui-radius-sm);
+      --_ui-default-menu-item-min-block-size: 1.5rem;
+      --_ui-default-menu-indicator-size: 0.75rem;
+      padding: var(--ui-space-1);
+      gap: 0;
+    }
+
     :host {
       --_ui-menu-surface: var(--ui-menu-surface);
       --_ui-menu-border: var(--ui-menu-border);
@@ -71,6 +85,8 @@
       --_ui-default-menu-item-padding-inline: initial;
       --_ui-default-menu-item-font-size: initial;
       --_ui-default-menu-item-radius: initial;
+      --_ui-default-menu-item-min-block-size: initial;
+      --_ui-default-menu-indicator-size: initial;
       display: flex;
       flex-direction: column;
       box-sizing: border-box;
