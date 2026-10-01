@@ -3010,6 +3010,21 @@ describe("Vue bare boolean props", () => {
   });
 });
 
+describe("Vue editor entry point", () => {
+  it("renders authored mention rows from the editor entry alone", async () => {
+    const path = await bundle("vue-editor-mention-rows", `
+      import { createApp, h } from "vue";
+      import { EditorMentionMenuItem } from "@threadlabs/looma/vue/editor";
+      createApp({ render: () => h("ul", { role: "listbox" }, [h(EditorMentionMenuItem, { id: "ada", value: "ada", initials: "AL", detail: "ada@example.com" }, () => "Ada Lovelace")]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await page.waitForSelector("#ada");
+    assert.equal(await page.locator("#ada").getAttribute("role"), "option");
+    assert.match(await page.locator("#ada").innerText(), /Ada Lovelace\s+ada@example.com/);
+    await page.close();
+  });
+});
+
 describe("Avatar group xs", () => {
   it("overlaps xs avatars and sizes the +N badge to match", async () => {
     const path = await bundle("html-avatar-group-xs", `import "@threadlabs/looma";`);
