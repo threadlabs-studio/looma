@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Vue components accept a bare boolean attribute as `true`, as Vue does: `<Avatar decorative />` now works instead of throwing. This follows HTML Next alpha.14.
 - Button has an `xs` size (1.5rem) and a `shape="pill"` option with fully rounded ends, for a small choice inside a line of text, such as a status or a person.
 - Menu has a `size="sm"` option that matches a small trigger: smaller text, shorter rows, and a smaller check.
 - **Visual change for radio Menu Items:** the chosen item now shows a check instead of a filled radio circle, the same mark checkbox items use. A radio circle reads as a form control inside a menu, and a check is the convention people expect there. Unchosen items keep an empty slot, so labels stay aligned.
