@@ -21,10 +21,10 @@
     <prop name="active" type="boolean" default="false"
     >Marks the person as active now, such as editing the same page: a fine accent ring around the avatar. The ring is not announced, so say what it means in alt
       ("Ada Lovelace, editing").</prop>
-    <state name="hasImage" :value="false"></state>
-    <state name="hasAuthoredImage" :value="false"></state>
-    <state name="initials" :value="'?'"></state>
-    <state name="showGlyph" :value="false"></state>
+    <state type="boolean" name="hasImage" value="false"></state>
+    <state type="boolean" name="hasAuthoredImage" value="false"></state>
+    <state type="string" name="initials" value="?"></state>
+    <state type="boolean" name="showGlyph" value="false"></state>
   </defs>
   <span>
     <slot></slot>

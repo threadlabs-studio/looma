@@ -16,7 +16,7 @@
     >Aligns the radio with fields and buttons of the same size. It keeps its box size; the label takes that size's field type size and its first line centres in
       that control height (sm 2rem, lg 3rem by default), so in a row of inputs, selects, and buttons of one size it shares their height and their text baseline.
       Under a coarse pointer an sm row grows to the 44px touch minimum, as they do. md is the standard layout.</prop>
-    <state name="internalChecked" :value="false"></state>
+    <state type="boolean" name="internalChecked" value="false"></state>
     <event name="change" type="object">
       <prop name="checked" required type="boolean"></prop>
       <prop name="value" required type="string"></prop>

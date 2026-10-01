@@ -4,7 +4,7 @@
     <prop name="guide" type="keyword" values="dot, none" default="dot"
     >What marks an anticipatory control at rest. dot shows a small guide dot where it will appear; none shows nothing until the pointer nears it, it is hovered,
       or it takes focus. Every guide inside the scope follows it, including a sidebar's resize line and the editor table's handles.</prop>
-    <state name="engaged" :value="false"></state>
+    <state type="boolean" name="engaged" value="false"></state>
   </defs>
   <span><slot></slot></span>
   <style>
