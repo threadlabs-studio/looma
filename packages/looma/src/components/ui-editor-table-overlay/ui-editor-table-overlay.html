@@ -12,7 +12,7 @@
       <prop name="columnBoundaries" required type="list">
         <prop type="number"></prop>
       </prop>
-      <prop name="activeCell" required nullable type="object">
+      <prop name="activeCell" required type="object">
         <prop name="left" required type="number"></prop>
         <prop name="top" required type="number"></prop>
         <prop name="width" required type="number"></prop>
@@ -20,7 +20,7 @@
         <prop name="rowIndex" required type="integer"></prop>
         <prop name="columnIndex" required type="integer"></prop>
       </prop>
-      <prop name="hoveredCell" nullable type="object">
+      <prop name="hoveredCell" type="object">
         <prop name="left" required type="number"></prop>
         <prop name="top" required type="number"></prop>
         <prop name="width" required type="number"></prop>
@@ -33,7 +33,7 @@
     <state
       name="rows"
       type="list"
-      :value="[]"
+      value="[]"
     >
       <prop type="object">
         <prop name="key" required type="string"></prop>
@@ -47,7 +47,7 @@
     <state
       name="cols"
       type="list"
-      :value="[]"
+      value="[]"
     >
       <prop type="object">
         <prop name="key" required type="string"></prop>
@@ -61,8 +61,6 @@
     <state
       name="hovered"
       type="object"
-      :value="null"
-      nullable
     >
       <prop name="left" required type="number"></prop>
       <prop name="top" required type="number"></prop>
@@ -76,8 +74,6 @@
     <state
       name="active"
       type="object"
-      :value="null"
-      nullable
     >
       <prop name="left" required type="number"></prop>
       <prop name="top" required type="number"></prop>
@@ -88,7 +84,7 @@
       <prop name="menuLeft" required type="string"></prop>
       <prop name="menuTop" required type="string"></prop>
     </state>
-    <state name="activeKey" :value="''"></state>
+    <state type="string" name="activeKey" value=""></state>
     <event name="add-row-before" type="object({ boundaryIndex: integer })"></event>
     <event name="add-row-after" type="object({ boundaryIndex: integer })"></event>
     <event name="add-column-before" type="object({ boundaryIndex: integer })"></event>

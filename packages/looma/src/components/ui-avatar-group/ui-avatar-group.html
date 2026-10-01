@@ -12,8 +12,8 @@
     >The group's accessible name, announced for the set of avatars as a whole. Name who they are rather than repeating the default.</prop>
     <prop name="size" type="keyword" values="sm, md" default="md"
     >The size of the avatars inside, matched by the +N badge and the overlap. Give each Avatar the same size.</prop>
-    <state name="overflowCount" :value="0"></state>
-    <state name="overflowAnnouncement" :value="''"></state>
+    <state type="integer" name="overflowCount" value="0"></state>
+    <state type="string" name="overflowAnnouncement" value=""></state>
   </defs>
   <div role="group" from:aria-label="label">
     <slot></slot>

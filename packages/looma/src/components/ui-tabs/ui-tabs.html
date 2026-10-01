@@ -14,8 +14,8 @@
     >In auto mode, arrow keys move focus and select the next panel. In manual mode, arrows move focus while Enter or Space selects a panel. Use manual when
       displaying a panel takes time.</prop>
     <prop name="stretch" type="boolean" default="false">Share the full width of the tab list equally between tabs instead of sizing each to its label.</prop>
-    <state name="internalValue" :value="''"></state>
-    <state name="tabs" type="list(object({ id: string, label: string }))" :value="[]"></state>
+    <state type="string" name="internalValue" value=""></state>
+    <state name="tabs" type="list(object({ id: string, label: string }))" value="[]"></state>
     <event name="select" type="object">
       <prop name="value" required type="string"></prop>
       <prop name="previousValue" required type="string"></prop>

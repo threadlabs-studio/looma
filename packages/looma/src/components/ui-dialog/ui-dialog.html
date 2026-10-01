@@ -16,8 +16,8 @@
     <prop name="size" type="keyword" values="sm, md, lg, fullscreen" default="md">Choose a compact, standard, wide, or viewport-filling dialog.</prop>
     <prop name="label" type="string">Visible title in the dialog header; also its accessible name.</prop>
     <prop name="for" type="string" default="">ID of the control that opens the dialog.</prop>
-    <state name="internalOpen" :value="false"></state>
-    <state name="accessibleLabel" :value="'Dialog'"></state>
+    <state type="boolean" name="internalOpen" value="false"></state>
+    <state type="string" name="accessibleLabel" value="Dialog"></state>
     <event
       name="open"
       type="object"

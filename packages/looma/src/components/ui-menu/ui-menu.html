@@ -6,7 +6,7 @@
     <prop name="inline" type="boolean" default="false">Displays the menu in the page flow without an overlay or trigger, for an embedded list of actions.</prop>
     <prop name="for" type="string" default="">ID of the control that toggles and anchors the menu.</prop>
     <prop name="placement" type="string" default="bottom-start">Positions an associated menu relative to its trigger.</prop>
-    <state name="internalOpen" :value="false"></state>
+    <state type="boolean" name="internalOpen" value="false"></state>
     <event name="select" type="object">
       <prop name="value" required type="string"></prop>
       <prop name="checked" type="boolean"></prop>

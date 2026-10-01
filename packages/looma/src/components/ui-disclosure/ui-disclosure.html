@@ -13,10 +13,10 @@
       items.</prop>
     <prop name="headingLevel" type="integer" default="0"
     >Adds heading semantics around the trigger at level 2 through 6. Zero leaves it a plain disclosure; choose a level that matches the page outline.</prop>
-    <state name="internalOpen" :value="false"></state>
-    <state name="contentId" :value="''"></state>
-    <state name="headingRole" :value="null"></state>
-    <state name="headingAriaLevel" :value="null"></state>
+    <state type="boolean" name="internalOpen" value="false"></state>
+    <state type="string" name="contentId" value=""></state>
+    <state type="keyword" name="headingRole"></state>
+    <state type="integer" name="headingAriaLevel"></state>
     <event
       name="open"
       type="object"
