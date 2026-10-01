@@ -70,6 +70,21 @@ import {
 import { autoCodeLanguageNames, codeLanguageCatalog } from "./code-language-catalog";
 
 /**
+ * Shows a key binding in ProseMirror notation ("Mod-Shift-8") the way the reader's platform writes
+ * it: modifier symbols in Apple's order on Apple devices (⇧⌘8), and Ctrl+Shift+8 elsewhere.
+ */
+function formatEditorShortcut(keys: string, apple: boolean): string {
+  const parts = keys.split("-");
+  const key = (parts.pop() ?? "").toUpperCase();
+  const has = (name: string) => parts.includes(name);
+  if (apple) return `${has("Ctrl") ? "⌃" : ""}${has("Alt") ? "⌥" : ""}${has("Shift") ? "⇧" : ""}${has("Mod") ? "⌘" : ""}${key}`;
+  return [has("Mod") || has("Ctrl") ? "Ctrl" : "", has("Alt") ? "Alt" : "", has("Shift") ? "Shift" : "", key].filter(Boolean).join("+");
+}
+
+const isApplePlatform = () => typeof navigator !== "undefined"
+  && /Mac|iPhone|iPad|iPod/.test((navigator as Navigator & { userAgentData?: { platform?: string } }).userAgentData?.platform || navigator.platform || navigator.userAgent);
+
+/**
  * Host upload result normalized into the editor's durable image descriptor.
  * `url` becomes the stored `src`; optional dimensions preserve layout before
  * the image loads and `responsive` opts into host-provided rendition policy.
@@ -304,16 +319,18 @@ export const LoomaEditor = defineComponent({
     const toolbarScope = `looma-editor-tool-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
     const tooltipFor = ref("");
     const tooltipLabel = ref("");
+    const tooltipShortcut = ref("");
     const tooltipOpen = ref(false);
     let tooltipTimer = 0;
     const clearTooltipTimer = () => {
       if (tooltipTimer) window.clearTimeout(tooltipTimer);
       tooltipTimer = 0;
     };
-    const showTool = (id: string, label: string, immediate: boolean) => {
+    const showTool = (id: string, label: string, immediate: boolean, shortcut = "") => {
       clearTooltipTimer();
       tooltipFor.value = id;
       tooltipLabel.value = label;
+      tooltipShortcut.value = shortcut ? formatEditorShortcut(shortcut, isApplePlatform()) : "";
       if (immediate || tooltipOpen.value) {
         tooltipOpen.value = true;
         return;
@@ -1272,6 +1289,7 @@ export const LoomaEditor = defineComponent({
       active: boolean,
       disabled: boolean,
       run: () => void,
+      shortcut = "",
     ) => {
       const syncNativeDisabled = (vnode: VNode) => {
         if (!(vnode.el instanceof Element)) return;
@@ -1286,9 +1304,9 @@ export const LoomaEditor = defineComponent({
         class: "looma-editor__toolbar-button",
         label,
         size: "sm",
-        onPointerenter: () => showTool(id, label, false),
+        onPointerenter: () => showTool(id, label, false, shortcut),
         onPointerleave: hideTool,
-        onFocusin: () => showTool(id, label, true),
+        onFocusin: () => showTool(id, label, true, shortcut),
         onFocusout: hideTool,
         variant: "ghost",
         disabled,
@@ -1305,14 +1323,14 @@ export const LoomaEditor = defineComponent({
       // One row at page width: checklists and dividers are inserted from the slash menu or typed
       // ([ ] and ---), so they do not take toolbar room.
       const textButtons = [
-        commandButton("Bold", "bold", instance.isActive("bold"), !instance.can().toggleBold(), () => instance.chain().focus().toggleBold().run()),
-        commandButton("Italic", "italic", instance.isActive("italic"), !instance.can().toggleItalic(), () => instance.chain().focus().toggleItalic().run()),
-        commandButton("Underline", "underline", instance.isActive("underline"), !instance.can().toggleUnderline(), () => instance.chain().focus().toggleUnderline().run()),
-        commandButton("Strike", "strikethrough", instance.isActive("strike"), !instance.can().toggleStrike(), () => instance.chain().focus().toggleStrike().run()),
+        commandButton("Bold", "bold", instance.isActive("bold"), !instance.can().toggleBold(), () => instance.chain().focus().toggleBold().run(), "Mod-b"),
+        commandButton("Italic", "italic", instance.isActive("italic"), !instance.can().toggleItalic(), () => instance.chain().focus().toggleItalic().run(), "Mod-i"),
+        commandButton("Underline", "underline", instance.isActive("underline"), !instance.can().toggleUnderline(), () => instance.chain().focus().toggleUnderline().run(), "Mod-u"),
+        commandButton("Strike", "strikethrough", instance.isActive("strike"), !instance.can().toggleStrike(), () => instance.chain().focus().toggleStrike().run(), "Mod-Shift-s"),
         ...(authorHighlight
-          ? [commandButton("Highlight", "highlighter", instance.isActive("highlight"), !instance.can().toggleHighlight(), () => instance.chain().focus().toggleHighlight().run())]
+          ? [commandButton("Highlight", "highlighter", instance.isActive("highlight"), !instance.can().toggleHighlight(), () => instance.chain().focus().toggleHighlight().run(), "Mod-Shift-h")]
           : []),
-        commandButton("Inline code", "code-xml", instance.isActive("code"), !instance.can().toggleCode(), () => instance.chain().focus().toggleCode().run()),
+        commandButton("Inline code", "code-xml", instance.isActive("code"), !instance.can().toggleCode(), () => instance.chain().focus().toggleCode().run(), "Mod-e"),
       ];
       const buttons = textOnly ? textButtons : [
         ...textButtons,
@@ -1335,13 +1353,13 @@ export const LoomaEditor = defineComponent({
           onFocusout: hideTool,
         }, () => loomaIcon("link")),
         h("span", { class: "divider", "aria-hidden": "true" }),
-        commandButton("Heading 1", "heading-1", instance.isActive("heading", { level: 1 }), false, () => instance.chain().focus().toggleHeading({ level: 1 }).run()),
-        commandButton("Heading 2", "heading-2", instance.isActive("heading", { level: 2 }), false, () => instance.chain().focus().toggleHeading({ level: 2 }).run()),
-        commandButton("Heading 3", "heading-3", instance.isActive("heading", { level: 3 }), false, () => instance.chain().focus().toggleHeading({ level: 3 }).run()),
-        commandButton("Bullet list", "list", instance.isActive("bulletList"), false, () => instance.chain().focus().toggleBulletList().run()),
-        commandButton("Numbered list", "list-ordered", instance.isActive("orderedList"), false, () => instance.chain().focus().toggleOrderedList().run()),
-        commandButton("Blockquote", "quote", instance.isActive("blockquote"), !instance.can().toggleBlockquote(), () => instance.chain().focus().toggleBlockquote().run()),
-        commandButton("Code block", "braces", instance.isActive("codeBlock"), !instance.can().toggleCodeBlock(), () => instance.chain().focus().toggleCodeBlock().run()),
+        commandButton("Heading 1", "heading-1", instance.isActive("heading", { level: 1 }), false, () => instance.chain().focus().toggleHeading({ level: 1 }).run(), "Mod-Alt-1"),
+        commandButton("Heading 2", "heading-2", instance.isActive("heading", { level: 2 }), false, () => instance.chain().focus().toggleHeading({ level: 2 }).run(), "Mod-Alt-2"),
+        commandButton("Heading 3", "heading-3", instance.isActive("heading", { level: 3 }), false, () => instance.chain().focus().toggleHeading({ level: 3 }).run(), "Mod-Alt-3"),
+        commandButton("Bullet list", "list", instance.isActive("bulletList"), false, () => instance.chain().focus().toggleBulletList().run(), "Mod-Shift-8"),
+        commandButton("Numbered list", "list-ordered", instance.isActive("orderedList"), false, () => instance.chain().focus().toggleOrderedList().run(), "Mod-Shift-7"),
+        commandButton("Blockquote", "quote", instance.isActive("blockquote"), !instance.can().toggleBlockquote(), () => instance.chain().focus().toggleBlockquote().run(), "Mod-Shift-b"),
+        commandButton("Code block", "braces", instance.isActive("codeBlock"), !instance.can().toggleCodeBlock(), () => instance.chain().focus().toggleCodeBlock().run(), "Mod-Alt-c"),
         h(IconButton, {
           id: blockActionAnchorId,
           class: "looma-editor__toolbar-button",
@@ -1370,8 +1388,8 @@ export const LoomaEditor = defineComponent({
         }, () => loomaIcon("table")),
         commandButton(uploading.value ? "Uploading image" : "Insert image", "image", false, uploading.value || !props.uploadImage, () => fileInput.value?.click()),
         h("span", { class: "divider", "aria-hidden": "true" }),
-        commandButton("Undo", "undo", false, !instance.can().undo(), () => instance.chain().focus().undo().run()),
-        commandButton("Redo", "redo", false, !instance.can().redo(), () => instance.chain().focus().redo().run()),
+        commandButton("Undo", "undo", false, !instance.can().undo(), () => instance.chain().focus().undo().run(), "Mod-z"),
+        commandButton("Redo", "redo", false, !instance.can().redo(), () => instance.chain().focus().redo().run(), isApplePlatform() ? "Mod-Shift-z" : "Mod-y"),
       ];
       return h(EditorToolbar, { floating }, () => [
         ...buttons,
@@ -1381,7 +1399,10 @@ export const LoomaEditor = defineComponent({
           open: tooltipOpen.value,
           placement: floating ? "top" : "bottom",
           trigger: "focus",
-        }, () => tooltipLabel.value),
+        }, {
+          default: () => tooltipLabel.value,
+          shortcut: () => (tooltipShortcut.value ? h("kbd", tooltipShortcut.value) : null),
+        }),
       ]);
     };
 
