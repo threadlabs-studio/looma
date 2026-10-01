@@ -112,8 +112,8 @@ importers:
   packages/looma:
     dependencies:
       '@nextwebwg/html-next':
-        specifier: 1.0.0-alpha.16
-        version: 1.0.0-alpha.16
+        specifier: 1.0.0-alpha.18
+        version: 1.0.0-alpha.18
       dompurify:
         specifier: 3.4.15
         version: 3.4.15
@@ -2059,8 +2059,8 @@ packages:
       '@types/react': '>=16'
       react: '>=16'
 
-  '@nextwebwg/html-next@1.0.0-alpha.16':
-    resolution: {integrity: sha512-fRYyz21goM+l8TDlm7IvhSVcAUS4pLtFvLEyHl47ePTIVRrB8n2dQFUYPaEDZJyAWXZA6YPUVbfys19dsIoeow==}
+  '@nextwebwg/html-next@1.0.0-alpha.18':
+    resolution: {integrity: sha512-vOJ/mi+lP1Pz5oq/461GnC6o6dADJqNovaF1PGocqbWF2DSbsJxogmxrin7/a7KLd8Cj7hGMyVK/GGoD0sWYsA==}
     engines: {node: '>=22.13 <23 || >=24 <25'}
     hasBin: true
 
@@ -10288,7 +10288,7 @@ snapshots:
       '@types/react': 19.2.14
       react: 19.2.4
 
-  '@nextwebwg/html-next@1.0.0-alpha.16':
+  '@nextwebwg/html-next@1.0.0-alpha.18':
     dependencies:
       '@dprint/formatter': 0.5.1
       '@dprint/typescript': 0.96.1
