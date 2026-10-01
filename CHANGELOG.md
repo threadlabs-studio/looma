@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Avatar's `xs` initials are smaller (9px), so two initials sit comfortably inside the 1.25rem circle. Every size sets its own line height, so the initials sit the same wherever the avatar appears.
 - Avatar has an `xs` size (1.25rem) with the smallest initials, for naming a person inline in a line of small text.
 - Component definitions use HTML Next's `list` declaration for nested collections. This changes authored definitions only; consumers still receive JavaScript arrays and use the same component APIs.
 - Nested Tree items now advance by one indent per level, keeping deeper pages and folders aligned instead of shifting them progressively farther right.

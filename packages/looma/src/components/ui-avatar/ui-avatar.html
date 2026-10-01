@@ -15,7 +15,7 @@
       circle clips anything wider.</prop>
     <prop name="size" type="keyword" values="xs, sm, md" default="md"
     >md is 2.5rem, for a person on their own (a profile, a comment); sm is 1.75rem with smaller initials, for a row of people in a toolbar or header; xs is
-      1.25rem with the smallest initials, for a person named inline in a line of small text.</prop>
+      1.25rem with small initials, for a person named inline in a line of small text.</prop>
     <prop name="shape" type="keyword" values="circle, square" default="circle">Circle by default; square uses the theme's medium radius.</prop>
     <prop name="decorative" type="boolean" default="false">Hides the avatar from assistive technology when adjacent text already identifies the person.</prop>
     <prop name="active" type="boolean" default="false"
@@ -71,6 +71,8 @@
       font: inherit;
       font-size: var(--ui-font-size-sm);
       font-weight: 600;
+      /* The initials centre in the circle wherever it sits, whatever line height surrounds it. */
+      line-height: 1;
       text-transform: uppercase;
     }
 
@@ -85,7 +87,9 @@
       --_ui-default-icon-size: 0.75rem;
       inline-size: 1.25rem;
       block-size: 1.25rem;
-      font-size: var(--ui-font-size-2xs);
+      /* Below the type scale on purpose: two initials need room inside a 1.25rem circle. */
+      font-size: calc(var(--ui-font-size) * 0.5625);
+      letter-spacing: 0.02em;
     }
 
     :host-state([hasImage]) {
