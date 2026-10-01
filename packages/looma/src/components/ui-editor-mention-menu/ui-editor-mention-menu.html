@@ -127,6 +127,13 @@
       background: var(--ui-accent-subtle, rgb(59 130 246 / 0.1));
     }
 
+    /* The highlight and the initials circle share a tint; on the highlighted row the circle takes
+       the surface and a fine accent ring, so the initials stay visible. */
+    .item.active .avatar {
+      background: var(--ui-surface);
+      box-shadow: inset 0 0 0 1px var(--ui-accent-soft, var(--ui-accent-subtle));
+    }
+
     .avatar {
       display: inline-flex;
       align-items: center;
