@@ -3013,6 +3013,28 @@ describe("Avatar sizes", () => {
     assert.ok(xs.fits, "xs initials fit inside the circle");
     await page.close();
   });
+
+  it("centres the initials in the circle whatever line of text surrounds it", async () => {
+    const path = await bundle("html-avatar-centred", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <span style="font-size: 12px; line-height: 2.2">Looked after by: <ui-avatar id="inline" name="Grace Hopper" size="xs"></ui-avatar> Grace</span>
+      <ui-avatar id="alone" name="Grace Hopper" size="xs"></ui-avatar>`, [join(root, "tokens.css"), join(root, "theme-light.css")]);
+    await page.waitForSelector('#inline[data-component~="ui-avatar"]');
+    const offset = (id: string) => page.evaluate((selector) => {
+      const avatar = document.querySelector<HTMLElement>(selector)!;
+      const text = [...avatar.querySelectorAll("*"), avatar].map((element) => [...element.childNodes])
+        .flat().find((node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim())!;
+      const range = document.createRange();
+      range.selectNodeContents(text);
+      const glyphs = range.getBoundingClientRect();
+      const circle = avatar.getBoundingClientRect();
+      return (glyphs.top + glyphs.height / 2) - (circle.top + circle.height / 2);
+    }, id);
+    const [inline, alone] = [await offset("#inline"), await offset("#alone")];
+    assert.ok(Math.abs(inline) <= 1, `initials sit ${inline}px off centre inside a line of text`);
+    assert.ok(Math.abs(inline - alone) <= 0.5, "an avatar's initials sit the same in a line of text as on their own");
+    await page.close();
+  });
 });
 
 describe("Avatar initials", () => {
