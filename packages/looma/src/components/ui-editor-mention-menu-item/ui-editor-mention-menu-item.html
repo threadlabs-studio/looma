@@ -23,6 +23,19 @@
       background: var(--ui-accent-subtle);
     }
 
+    /* The highlight and the initials circle share a tint; on the highlighted row the circle takes
+       the surface and a fine accent ring, so the initials stay visible. */
+    :host[aria-selected="true"] .avatar {
+      background: var(--ui-surface);
+      box-shadow: inset 0 0 0 1px var(--ui-accent-soft);
+    }
+
+    /* A slotted Avatar (a person's photo) is its own circle. */
+    :host .avatar:has(> [data-component~="ui-avatar"]) {
+      background: none;
+      box-shadow: none;
+    }
+
     .avatar {
       display: inline-flex;
       align-items: center;
