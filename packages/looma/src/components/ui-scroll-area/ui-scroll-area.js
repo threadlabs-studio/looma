@@ -4,7 +4,7 @@ export default function controller(host) {
 
   const update = () => {
     frame = 0;
-    const horizontal = host.state.orientation === "horizontal";
+    const horizontal = host.props.orientation.value === "horizontal";
     const extent = horizontal ? area.scrollWidth - area.clientWidth : area.scrollHeight - area.clientHeight;
     const rtl = horizontal && getComputedStyle(area).direction === "rtl";
     const position = horizontal ? (rtl ? -area.scrollLeft : area.scrollLeft) : area.scrollTop;

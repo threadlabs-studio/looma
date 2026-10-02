@@ -5,11 +5,11 @@ export default function controller(host) {
   const element = host.element;
   const authoredLabel = element.hasAttribute("aria-label") || element.hasAttribute("aria-labelledby");
   const place = () => {
-    if (host.state.visible) positionMenu(element, normalizeAnchor(host.state.anchorRect), 280);
+    if (host.state.visible) positionMenu(element, normalizeAnchor(host.props.anchorRect.value), 280);
   };
   const options = () => Array.from(element.querySelectorAll('[role="option"]'));
   const syncOptions = () => {
-    const query = String(host.state.query || "").trim().toLocaleLowerCase();
+    const query = String(host.props.query.value || "").trim().toLocaleLowerCase();
     const generated = host.state.rows.length > 0;
     for (const row of options()) {
       if (generated) break;
@@ -28,16 +28,16 @@ export default function controller(host) {
       row.setAttribute("aria-selected", String(index === active));
     });
     host.refs.empty.hidden = rows.length > 0;
-    const visible = Boolean(host.state.open && normalizeAnchor(host.state.anchorRect)
+    const visible = Boolean(host.props.open.value && normalizeAnchor(host.props.anchorRect.value)
       && (rows.length > 0 || host.refs.empty.children.length));
     if (host.state.visible !== visible) host.state.visible = visible;
     place();
   };
   const stop = host.effect(() => {
-    const items = Array.isArray(host.state.items) ? host.state.items : [];
-    if (!authoredLabel) element.setAttribute("aria-label", String(host.state.label || "Insert block"));
+    const items = Array.isArray(host.props.items.value) ? host.props.items.value : [];
+    if (!authoredLabel) element.setAttribute("aria-label", String(host.props.label.value || "Insert block"));
     host.state.rows = items.map((item) => ({ ...item, value: String(item.value ?? item.title) }));
-    host.state.active = Number(host.state.selectedIndex ?? 0);
+    host.state.active = Number(host.props.selectedIndex.value ?? 0);
     queueMicrotask(syncOptions);
   });
   const rowOf = (event) => event.target.closest?.('[role="option"]');

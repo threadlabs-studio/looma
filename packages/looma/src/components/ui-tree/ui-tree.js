@@ -41,7 +41,7 @@ export default function controller(host) {
   const allItems = () => Array.from(element.querySelectorAll(itemSelector));
   const visibleItems = () => allItems().filter((item) => item.getClientRects().length > 0 && item.getAttribute("aria-disabled") !== "true");
   const rowFor = (item) => item.querySelector(":scope > .row");
-  const selectionMode = () => String(host.state.selection || "none");
+  const selectionMode = () => String(host.props.selection.value || "none");
   // Only a branch has aria-expanded.
   const acceptsChildren = (item) => item.hasAttribute("aria-expanded") && item.getAttribute("aria-disabled") !== "true";
   const metadata = (item) => ({
@@ -70,7 +70,7 @@ export default function controller(host) {
     if (nextPosition === "inside") {
       if (!acceptsChildren(to) || (toMeta.accepts.length && !toMeta.accepts.includes(fromMeta.type))) return { reason: "incompatible" };
     } else if (fromMeta.type !== toMeta.type) return { reason: "incompatible" };
-    const maxDepth = Math.max(0, Math.floor(Number(host.state.maxDepth ?? 0)));
+    const maxDepth = Math.max(0, Math.floor(Number(host.props.maxDepth.value ?? 0)));
     if (maxDepth > 0) {
       const resultingDepth = Math.max(0, Math.floor(depth(to))) + (nextPosition === "inside" ? 1 : 0) + subtreeDepth(from);
       if (resultingDepth > maxDepth) return { reason: "max-depth", maxDepth, resultingDepth };
@@ -91,7 +91,7 @@ export default function controller(host) {
       hoverTimer = null;
       hoverKey = null;
       if (key) expandTarget(key);
-    }, Math.max(0, Number(host.state.hoverExpandDelay ?? 700)));
+    }, Math.max(0, Number(host.props.hoverExpandDelay.value ?? 700)));
   };
   const clearTarget = () => {
     target?.removeAttribute("data-drop-position");
@@ -417,7 +417,7 @@ export default function controller(host) {
   });
   observer.observe(element, { childList: true, subtree: true, attributes: true, attributeFilter: ["aria-selected"] });
   const stop = host.effect(() => {
-    element.setAttribute("aria-label", String(host.state.label || "Tree"));
+    element.setAttribute("aria-label", String(host.props.label.value || "Tree"));
     syncSelection();
   });
   syncStructure();
