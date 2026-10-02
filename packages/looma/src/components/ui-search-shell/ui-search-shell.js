@@ -7,8 +7,8 @@ export default function controller(host) {
   const document = dialog.ownerDocument;
   const overlayId = `ui-search-shell-${Math.random().toString(36).slice(2, 11)}`;
   const [trigger, stopTracking] = trackTrigger(host);
-  let external = host.state.open;
-  let activeModal = Boolean(host.state.modal);
+  let external = host.props.open.value;
+  let activeModal = Boolean(host.props.modal.value);
   let suppressNativeClose = false;
   host.state.internalOpen = Boolean(external);
 
@@ -24,11 +24,11 @@ export default function controller(host) {
     suppressNativeClose = false;
   };
   const stop = host.effect(() => {
-    if (host.state.open !== external) {
-      external = host.state.open;
+    if (host.props.open.value !== external) {
+      external = host.props.open.value;
       host.state.internalOpen = Boolean(external);
     }
-    const modal = Boolean(host.state.modal);
+    const modal = Boolean(host.props.modal.value);
     if (dialog.open && modal !== activeModal) closeNative();
     activeModal = modal;
     if (host.state.internalOpen && !dialog.open) {
@@ -71,7 +71,7 @@ export default function controller(host) {
     else rows[fromSearch ? rows.length - 1 : (index - 1 + rows.length) % rows.length].focus();
   };
   const onClick = (event) => {
-    if (host.state.dismissible && event.target === dialog) dispatchClose("light-dismiss", trigger());
+    if (host.props.dismissible.value && event.target === dialog) dispatchClose("light-dismiss", trigger());
   };
   // Only the dialog's own close: a tooltip, menu, or popover inside it reports "close" too, and it bubbles.
   const onClose = (event) => {

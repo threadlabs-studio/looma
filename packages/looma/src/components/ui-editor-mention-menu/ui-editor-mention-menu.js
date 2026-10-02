@@ -5,7 +5,7 @@ export default function controller(host) {
   const element = host.element;
   const authoredLabel = element.hasAttribute("aria-label") || element.hasAttribute("aria-labelledby");
   const place = () => {
-    if (host.state.visible) positionMenu(element, normalizeAnchor(host.state.anchorRect), 320);
+    if (host.state.visible) positionMenu(element, normalizeAnchor(host.props.anchorRect.value), 320);
   };
   const options = () => Array.from(element.querySelectorAll('[role="option"]'));
   const syncOptions = () => {
@@ -19,18 +19,18 @@ export default function controller(host) {
     if (rows.length) element.setAttribute("aria-activedescendant", rows[active].id);
     else element.removeAttribute("aria-activedescendant");
     const empty = Boolean(host.refs.empty.children.length);
-    host.refs.empty.hidden = rows.length > 0 || host.state.loading;
-    const visible = Boolean(host.state.open && normalizeAnchor(host.state.anchorRect)
-      && (host.state.loading || rows.length > 0 || empty));
+    host.refs.empty.hidden = rows.length > 0 || host.props.loading.value;
+    const visible = Boolean(host.props.open.value && normalizeAnchor(host.props.anchorRect.value)
+      && (host.props.loading.value || rows.length > 0 || empty));
     if (host.state.visible !== visible) host.state.visible = visible;
     place();
   };
   const stop = host.effect(() => {
-    if (!authoredLabel) element.setAttribute("aria-label", String(host.state.label || "Mentions"));
-    const items = (Array.isArray(host.state.items) ? host.state.items : []).slice(0, 20);
+    if (!authoredLabel) element.setAttribute("aria-label", String(host.props.label.value || "Mentions"));
+    const items = (Array.isArray(host.props.items.value) ? host.props.items.value : []).slice(0, 20);
     host.state.rows = items.map((item) => ({ ...item, initials: item.initials ?? String(item.label).slice(0, 2).toUpperCase() }));
-    host.state.searching = Boolean(host.state.loading && !items.length);
-    host.state.active = Math.min(Number(host.state.selectedIndex ?? 0), Math.max(0, items.length - 1));
+    host.state.searching = Boolean(host.props.loading.value && !items.length);
+    host.state.active = Math.min(Number(host.props.selectedIndex.value ?? 0), Math.max(0, items.length - 1));
     host.state.prefix = element.id || "ui-editor-mention-menu";
     queueMicrotask(syncOptions);
   });

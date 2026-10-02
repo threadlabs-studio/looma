@@ -99,7 +99,7 @@ export default function controller(host) {
     if (to !== from) host.dispatch(axis === "row" ? "reorder-row" : "reorder-column", { fromIndex: from, toIndex: to });
   };
   const boundaries = (axis) => {
-    const values = host.state.geometry?.[axis === "row" ? "rowBoundaries" : "columnBoundaries"];
+    const values = host.props.geometry.value?.[axis === "row" ? "rowBoundaries" : "columnBoundaries"];
     if (Array.isArray(values) && values.length >= 2 && values.every(Number.isFinite)) return values;
     const rect = element.getBoundingClientRect();
     return fallbackBoundaries(3, axis === "row" ? rect.height : rect.width);
@@ -118,19 +118,19 @@ export default function controller(host) {
     };
   });
   const stop = host.effect(() => {
-    if (!host.state.open) {
+    if (!host.props.open.value) {
       host.state.activeKey = "";
       return;
     }
     host.state.rows = controls("row");
     host.state.cols = controls("col");
-    const hovered = host.state.geometry?.hoveredCell ?? null;
+    const hovered = host.props.geometry.value?.hoveredCell ?? null;
     host.state.hovered = hovered && {
       ...hovered,
       rowOffset: `${hovered.top + hovered.height / 2}px`,
       columnOffset: `${hovered.left + hovered.width / 2}px`,
     };
-    const active = host.state.geometry?.activeCell ?? null;
+    const active = host.props.geometry.value?.activeCell ?? null;
     host.state.active = active && { ...active, menuLeft: `${active.left + active.width - 30}px`, menuTop: `${active.top + 6}px` };
     queueMicrotask(proximity.refresh);
   });

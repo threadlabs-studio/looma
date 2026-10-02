@@ -47,17 +47,17 @@ export default function controller(host) {
   let initialRaw = "";
   let awaitingLabel = null;
   let proposedChange;
-  let lastValue = host.state.value;
-  let lastQuery = host.state.query;
+  let lastValue = host.props.value.value;
+  let lastQuery = host.props.query.value;
   const knownOptions = new Map();
 
   // Options come from authored <option>/<optgroup> children; everything else is an attribute.
   const config = () => ({
     options: authoredOptions(authored),
-    allowFreeText: Boolean(host.state.allowFreeText),
-    allowCreate: Boolean(host.state.allowCreate),
+    allowFreeText: Boolean(host.props.allowFreeText.value),
+    allowCreate: Boolean(host.props.allowCreate.value),
     // "none": the consumer already narrowed the options (a server search), so every one is listed.
-    filterByLabel: host.state.filter !== "none",
+    filterByLabel: host.props.filter.value !== "none",
   });
   const authoredDefaults = () => {
     const values = new Set(Array.from(authored.querySelectorAll("option[selected]"), (option) => option.value));
@@ -66,19 +66,19 @@ export default function controller(host) {
   // Selected items work uncontrolled: the component keeps them and reports every change. A consumer
   // that owns `items` stays in charge, because the prop resyncs whatever it sets. A consumer that sets
   // `selectedValues` controls the selection: the chips follow it, and a user's change is only reported.
-  const items = () => host.state.multiple && Array.isArray(host.state.internalItems) ? host.state.internalItems : [];
+  const items = () => host.props.multiple.value && Array.isArray(host.state.internalItems) ? host.state.internalItems : [];
   const selectedSet = () => new Set(items().map((item) => item.value));
-  const controlledValues = () => Array.isArray(host.state.selectedValues);
+  const controlledValues = () => Array.isArray(host.props.selectedValues.value);
   // Each controlled value shows its authored option; a value no option describes yet keeps the chip it
   // had, or shows the value itself until its option arrives. A repeated value shows once: the chips and
   // hidden inputs are keyed by value. Array.from, not a spread: a loose transpile turns [...set] into [set].
   const itemsForValues = () => {
     const options = config().options;
-    return Array.from(new Set(host.state.selectedValues)).map((value) => asItem(options.find((option) => option.value === value)
+    return Array.from(new Set(host.props.selectedValues.value)).map((value) => asItem(options.find((option) => option.value === value)
       ?? items().find((item) => item.value === value) ?? { id: value, value, label: value }));
   };
   const markSelectedRows = () => {
-    if (!host.state.multiple || !host.state.rows?.length) return;
+    if (!host.props.multiple.value || !host.state.rows?.length) return;
     const selected = selectedSet();
     host.state.rows = host.state.rows.map((row) => ({ ...row, selected: selected.has(row.value) }));
   };
@@ -126,7 +126,7 @@ export default function controller(host) {
   const canCreate = () => {
     const current = config();
     const candidates = current.options ? [...current.options, ...(host.state.rows ?? [])] : (host.state.rows ?? []);
-    return Boolean(current.allowCreate && String(host.state.raw).trim() && !host.state.loading && !host.state.lookupError
+    return Boolean(current.allowCreate && String(host.state.raw).trim() && !host.props.loading.value && !host.state.lookupError
       && !candidates.some((row) => row.label.toLocaleLowerCase() === String(host.state.raw).toLocaleLowerCase()));
   };
   const search = (reason) => {
@@ -142,14 +142,14 @@ export default function controller(host) {
       if (controller.signal.aborted || !alive) return;
       for (const option of options) knownOptions.set(option.value, option);
       const selectedOption = host.state.selected == null ? undefined : knownOptions.get(host.state.selected);
-      if (host.state.query == null && awaitingLabel === host.state.selected && selectedOption) {
+      if (host.props.query.value == null && awaitingLabel === host.state.selected && selectedOption) {
         host.state.raw = selectedOption.label;
         host.state.display = selectedOption.label;
         awaitingLabel = null;
           resetValidation();
       }
       const ids = new Set();
-      const selected = host.state.multiple ? selectedSet() : undefined;
+      const selected = host.props.multiple.value ? selectedSet() : undefined;
       // Multiple keeps its chosen options in the list, checked. Dropping them hid what was picked
       // from the list and from assistive technology, which only ever heard aria-selected="false".
       const filtered = options.filter((option) => {
@@ -180,7 +180,7 @@ export default function controller(host) {
     applyOptions(current.options);
   };
   const open = (reason = "input") => {
-    if (host.state.disabled || host.state.readonly) return;
+    if (host.props.disabled.value || host.props.readonly.value) return;
     host.state.expanded = true;
     popup.style.minWidth = `${field.getBoundingClientRect().width}px`;
     surface.show();
@@ -194,8 +194,8 @@ export default function controller(host) {
     awaitingLabel = null;
     if (kind === "selection") lastSelection = option;
     const queryChanged = query !== host.state.raw;
-    if (host.state.value == null) host.state.selected = value;
-    if (host.state.query == null && queryChanged) {
+    if (host.props.value.value == null) host.state.selected = value;
+    if (host.props.query.value == null && queryChanged) {
       host.state.raw = query;
       host.state.display = query;
     }
@@ -209,8 +209,8 @@ export default function controller(host) {
     if (kind === "free-entry") host.dispatch("free-entry", detail);
     queueMicrotask(() => {
       if (proposedChange !== proposal) return;
-      if (host.state.value != null && host.state.value !== proposal.value) syncValue();
-      if (host.state.query != null && host.state.query !== proposal.query) syncQuery();
+      if (host.props.value.value != null && host.props.value.value !== proposal.value) syncValue();
+      if (host.props.query.value != null && host.props.query.value !== proposal.query) syncQuery();
       proposedChange = undefined;
     });
   };
@@ -222,7 +222,7 @@ export default function controller(host) {
     host.dispatch("selected-values-change", { selectedValues: next.map((item) => item.value), trigger });
   };
   const setMultiQuery = (query, trigger) => {
-    if (host.state.query == null) {
+    if (host.props.query.value == null) {
       host.state.raw = query;
       host.state.display = query;
     }
@@ -249,7 +249,7 @@ export default function controller(host) {
   const choose = (index, trigger) => {
     const option = (host.state.rows ?? [])[index];
     if (option?.disabled) return;
-    if (host.state.multiple) {
+    if (host.props.multiple.value) {
       if (option) {
         // A checked row toggles off: the list is the selection, so it has to work both ways.
         const position = items().findIndex((item) => item.value === option.value);
@@ -268,7 +268,7 @@ export default function controller(host) {
     else return;
     close();
     input.focus();
-    if (!host.state.multiple) queueMicrotask(() => void validateCurrent());
+    if (!host.props.multiple.value) queueMicrotask(() => void validateCurrent());
   };
   // A strict combobox (single, no free text, no create) behaves like a select: leaving it resolves the
   // typed text to a valid option (the highlighted one, an exact label, the first label it begins, or the
@@ -276,13 +276,13 @@ export default function controller(host) {
   // "none" the remaining options are all of them, whatever their labels, so the only one listed counts.
   const resolveTyped = (trigger) => {
     const current = config();
-    if (host.state.multiple || current.allowFreeText || current.allowCreate) return;
+    if (host.props.multiple.value || current.allowFreeText || current.allowCreate) return;
     const typed = String(host.state.raw ?? "");
     const selectedOption = (current.options ?? []).find((option) => option.value === host.state.selected)
       ?? knownOptions.get(host.state.selected) ?? lastSelection;
     if (selectedOption && selectedOption.label === typed) return;
     const restoreDraft = (label) => {
-      if (host.state.query != null || label === host.state.raw) return;
+      if (host.props.query.value != null || label === host.state.raw) return;
       host.state.raw = label;
       host.state.display = label;
       resetValidation();
@@ -319,7 +319,7 @@ export default function controller(host) {
   const removeItemAt = (index, trigger) => {
     const current = items();
     const item = current[index];
-    if (!item || item.disabled || host.state.disabled || host.state.readonly) return;
+    if (!item || item.disabled || host.props.disabled.value || host.props.readonly.value) return;
     host.dispatch("remove-item", { item, index, trigger });
     emitItems(current.filter((_, position) => position !== index), trigger);
     requestAnimationFrame(() => itemButtons()[Math.min(index, itemButtons().length - 1)]?.focus?.() ?? input.focus());
@@ -344,8 +344,8 @@ export default function controller(host) {
       // Native constraints and the free-text policy; application validation stays in the form.
       const current = config();
       const result = { output: host.state.raw, issues: [] };
-      const empty = host.state.multiple ? !items().length : !String(host.state.raw).trim();
-      if (host.state.required && empty) result.issues = [...result.issues, { message: "A value is required." }];
+      const empty = host.props.multiple.value ? !items().length : !String(host.state.raw).trim();
+      if (host.props.required.value && empty) result.issues = [...result.issues, { message: "A value is required." }];
       else if (host.state.raw && host.state.selected === null && !current.allowFreeText && !current.allowCreate) result.issues = [...result.issues, { message: "Choose a suggestion." }];
       if (result.issues.some((issue) => issue.severity !== "warning")) result.output = undefined;
       if (!run.signal.aborted && alive) setValidation(result);
@@ -353,9 +353,9 @@ export default function controller(host) {
     return host.state.validation;
   };
   const syncValue = () => {
-    if (host.state.multiple || host.state.value == null) return;
-    host.state.selected = host.state.value;
-    if (host.state.query == null) {
+    if (host.props.multiple.value || host.props.value.value == null) return;
+    host.state.selected = host.props.value.value;
+    if (host.props.query.value == null) {
       const proposal = proposedChange;
       const option = config().options?.find((row) => row.value === host.state.selected) ?? (host.state.selected == null ? undefined : knownOptions.get(host.state.selected));
       const nextRaw = proposal?.value === host.state.selected ? proposal.query : option?.label ?? host.state.selected ?? "";
@@ -368,11 +368,11 @@ export default function controller(host) {
     resetValidation();
   };
   const syncQuery = () => {
-    if (host.state.query == null || host.state.query === host.state.raw) return;
-    if (host.state.value == null && proposedChange?.query !== host.state.query) host.state.selected = null;
+    if (host.props.query.value == null || host.props.query.value === host.state.raw) return;
+    if (host.props.value.value == null && proposedChange?.query !== host.props.query.value) host.state.selected = null;
     awaitingLabel = null;
-    host.state.raw = host.state.query;
-    host.state.display = host.state.query;
+    host.state.raw = host.props.query.value;
+    host.state.display = host.props.query.value;
     resetValidation();
     if (host.state.expanded) search("input");
   };
@@ -396,11 +396,11 @@ export default function controller(host) {
     host.state.creatable = canCreate();
     host.state.createIndex = rows.length;
     // What a named combobox submits in single mode: the value, never the label the field shows.
-    host.state.submitted = String(host.state.selected ?? (host.state.allowFreeText ? host.state.raw ?? "" : ""));
-    host.state.message = host.state.loading ? "Loading suggestions…" : host.state.lookupError || "";
+    host.state.submitted = String(host.state.selected ?? (host.props.allowFreeText.value ? host.state.raw ?? "" : ""));
+    host.state.message = host.props.loading.value ? "Loading suggestions…" : host.state.lookupError || "";
     const validation = host.state.validation ?? { status: "pristine", issues: [] };
     host.state.validationStatus = validation.status;
-    const status = host.state.loading ? "Loading suggestions…" : host.state.lookupError || (host.state.expanded ? `${rows.length} suggestions available.` : "");
+    const status = host.props.loading.value ? "Loading suggestions…" : host.state.lookupError || (host.state.expanded ? `${rows.length} suggestions available.` : "");
     host.state.statusText = `${status} ${validation.status === "pending" ? "Checking value…" : (validation.issues ?? []).map((issue) => issue.message).join(" ")}`.trim();
     if (host.state.expanded && host.state.active >= 0) input.setAttribute("aria-activedescendant", `${uid}-option-${host.state.active}`);
     else input.removeAttribute("aria-activedescendant");
@@ -418,11 +418,11 @@ export default function controller(host) {
     host.dispatch("query-change", { query: host.state.raw, display: host.state.display, trigger: "keyboard" });
     // A strict combobox keeps its committed selection while the input holds a search draft.
     // Clearing a controlled value here makes the consumer restore its label on every keystroke.
-    if (host.state.selected !== null && (host.state.allowFreeText || host.state.allowCreate)) {
+    if (host.state.selected !== null && (host.props.allowFreeText.value || host.props.allowCreate.value)) {
       commit(null, host.state.raw, null, "clear", "keyboard");
     }
     open();
-    queueMicrotask(() => { if (host.state.query != null && host.state.query !== host.state.raw) syncQuery(); });
+    queueMicrotask(() => { if (host.props.query.value != null && host.props.query.value !== host.state.raw) syncQuery(); });
   };
   const onKeydown = (event) => {
     const item = event.target.closest?.(".item");
@@ -434,9 +434,9 @@ export default function controller(host) {
       else if (["Backspace", "Delete"].includes(event.key)) { event.preventDefault(); removeItemAt(index, "keyboard"); }
       return;
     }
-    if (event.target !== input || composing || event.isComposing || host.state.disabled || host.state.readonly) return;
-    if (host.state.multiple && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
-      if ((host.state.tokenSeparators ?? []).includes(event.key)) { event.preventDefault(); commitQuery("keyboard"); return; }
+    if (event.target !== input || composing || event.isComposing || host.props.disabled.value || host.props.readonly.value) return;
+    if (host.props.multiple.value && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
+      if ((host.props.tokenSeparators.value ?? []).includes(event.key)) { event.preventDefault(); commitQuery("keyboard"); return; }
       if (!host.state.raw && (input.selectionStart ?? 0) === 0 && event.key === "ArrowLeft" && items().length) { event.preventDefault(); itemButtons().at(-1)?.focus(); return; }
       if (!host.state.raw && (input.selectionStart ?? 0) === 0 && event.key === "Backspace" && items().length) { event.preventDefault(); removeItemAt(items().length - 1, "keyboard"); return; }
     }
@@ -447,7 +447,7 @@ export default function controller(host) {
     else if (event.key === "Enter" && host.state.expanded) {
       if (host.state.active >= 0) { event.preventDefault(); choose(host.state.active, "keyboard"); }
       // With nothing highlighted, Enter commits what was typed, as a token separator does.
-      else if (host.state.multiple && String(host.state.raw).trim()) { event.preventDefault(); commitQuery("keyboard"); }
+      else if (host.props.multiple.value && String(host.state.raw).trim()) { event.preventDefault(); commitQuery("keyboard"); }
       else if (canCreate()) { event.preventDefault(); choose((host.state.rows ?? []).length, "keyboard"); }
       else if (config().allowFreeText) { event.preventDefault(); commit(null, host.state.raw, null, "free-entry", "keyboard"); close(); }
     }
@@ -456,7 +456,7 @@ export default function controller(host) {
     const option = event.target.closest?.('[role="option"][data-index]');
     if (option) { choose(Number(option.dataset.index), "pointer"); return; }
     const action = event.target.closest?.("[data-combobox-action]")?.dataset.comboboxAction;
-    if (action && (host.state.disabled || host.state.readonly)) return;
+    if (action && (host.props.disabled.value || host.props.readonly.value)) return;
     if (action === "clear") { lastSelection = null; commit(null, "", null, "clear", "pointer"); close(); input.focus(); }
     else if (action === "disclosure") { host.state.expanded ? close() : open("disclosure"); input.focus(); }
     else if (field.contains(event.target) && !event.target.closest?.("button")) input.focus();
@@ -467,11 +467,11 @@ export default function controller(host) {
     close();
     host.state.validation = { ...host.state.validation, touched: true };
     resolveTyped("pointer");
-    if (!host.state.multiple && config().allowFreeText && host.state.selected === null) commit(null, host.state.raw, null, "free-entry", "keyboard");
+    if (!host.props.multiple.value && config().allowFreeText && host.state.selected === null) commit(null, host.state.raw, null, "free-entry", "keyboard");
     void validateCurrent();
   };
   const onFocusin = (event) => {
-    if (event.target === input && host.state.openOnFocus && !host.state.expanded) open();
+    if (event.target === input && host.props.openOnFocus.value && !host.state.expanded) open();
   };
   const onCompositionstart = (event) => { if (event.target === input) composing = true; };
   const onCompositionend = (event) => { if (event.target === input) { composing = false; onInput(new InputEvent("input")); } };
@@ -480,16 +480,16 @@ export default function controller(host) {
 
   // The selection the props describe: where the combobox starts, and where a form reset returns it.
   const applyDefaults = () => {
-    if (host.state.multiple) {
+    if (host.props.multiple.value) {
       host.state.selected = null;
-      host.state.raw = host.state.query ?? "";
+      host.state.raw = host.props.query.value ?? "";
     } else {
-      host.state.selected = host.state.value != null ? host.state.value : authoredDefaults()[0]?.value ?? null;
-      host.state.raw = host.state.query ?? "";
-      if (host.state.query == null && !host.state.raw && host.state.selected !== null) {
+      host.state.selected = host.props.value.value != null ? host.props.value.value : authoredDefaults()[0]?.value ?? null;
+      host.state.raw = host.props.query.value ?? "";
+      if (host.props.query.value == null && !host.state.raw && host.state.selected !== null) {
         host.state.raw = config().options?.find((row) => row.value === host.state.selected)?.label ?? host.state.selected;
       }
-      if (host.state.query == null && host.state.selected !== null && host.state.raw === host.state.selected) awaitingLabel = host.state.selected;
+      if (host.props.query.value == null && host.state.selected !== null && host.state.raw === host.state.selected) awaitingLabel = host.state.selected;
     }
     host.state.display = host.state.raw;
   };
@@ -505,7 +505,7 @@ export default function controller(host) {
   // Authored options can change after mount (renamed, replaced, or arriving late). A selected value
   // then shows its current label, unless the user is editing the text.
   const relabel = () => {
-    if (host.state.multiple || host.state.query != null || host.state.selected == null) return;
+    if (host.props.multiple.value || host.props.query.value != null || host.state.selected == null) return;
     if (element.ownerDocument.activeElement === input) return;
     const label = config().options?.find((row) => row.value === host.state.selected)?.label;
     if (label === undefined || label === host.state.raw) return;
@@ -517,7 +517,7 @@ export default function controller(host) {
   const stopReset = afterFormReset(input, () => {
     close();
     lastSelection = null;
-    host.state.internalItems = controlledValues() ? itemsForValues() : Array.isArray(host.state.items) ? host.state.items : authoredDefaults();
+    host.state.internalItems = controlledValues() ? itemsForValues() : Array.isArray(host.props.items.value) ? host.props.items.value : authoredDefaults();
     applyDefaults();
     input.value = host.state.display;
     resetValidation();
@@ -529,31 +529,31 @@ export default function controller(host) {
   const observer = new MutationObserver(() => {
     relabel();
     // Controlled chips show their options' current labels, including options that arrive late.
-    if (host.state.multiple) syncValues();
+    if (host.props.multiple.value) syncValues();
     const key = optionsKey();
     if (key === lastOptionsKey) return;
     lastOptionsKey = key;
     if (host.state.expanded) search(fullSet ? "disclosure" : "options");
   });
   observer.observe(authored, { childList: true, subtree: true, characterData: true, attributes: true });
-  let lastItems = host.state.items;
-  let lastSelectedValues = host.state.selectedValues;
+  let lastItems = host.props.items.value;
+  let lastSelectedValues = host.props.selectedValues.value;
   if (controlledValues()) host.state.internalItems = itemsForValues();
   else if (Array.isArray(lastItems)) host.state.internalItems = lastItems;
   else host.state.internalItems = authoredDefaults();
   const stop = host.effect(() => {
     // A consumer that sets `items` owns them; otherwise the component keeps its own. selectedValues wins.
-    if (host.state.items !== lastItems) {
-      lastItems = host.state.items;
+    if (host.props.items.value !== lastItems) {
+      lastItems = host.props.items.value;
       if (Array.isArray(lastItems) && !controlledValues()) host.state.internalItems = lastItems;
       // The list shows the selection; a consumer that adds or removes an item later (after creating
       // it, say) is reflected at once rather than at the next search.
       markSelectedRows();
     }
-    if (host.state.selectedValues !== lastSelectedValues) { lastSelectedValues = host.state.selectedValues; syncValues(); }
-    if (host.state.value !== lastValue) { lastValue = host.state.value; syncValue(); }
-    if (host.state.query !== lastQuery) { lastQuery = host.state.query; syncQuery(); }
-    if (host.state.disabled || host.state.readonly) close();
+    if (host.props.selectedValues.value !== lastSelectedValues) { lastSelectedValues = host.props.selectedValues.value; syncValues(); }
+    if (host.props.value.value !== lastValue) { lastValue = host.props.value.value; syncValue(); }
+    if (host.props.query.value !== lastQuery) { lastQuery = host.props.query.value; syncQuery(); }
+    if (host.props.disabled.value || host.props.readonly.value) close();
     updateView();
   });
 

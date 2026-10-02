@@ -8,12 +8,12 @@ export default function controller(host) {
   const element = host.element;
   let selected = { rows: 3, cols: 3 };
   let preview = null;
-  let lastHeaderRow = Boolean(host.state.headerRow);
+  let lastHeaderRow = Boolean(host.props.headerRow.value);
   host.state.withHeaderRow = lastHeaderRow;
 
   const update = () => {
-    const rows = bounded(host.state.maxRows, 8);
-    const cols = bounded(host.state.maxCols, 8);
+    const rows = bounded(host.props.maxRows.value, 8);
+    const cols = bounded(host.props.maxCols.value, 8);
     selected = { rows: Math.min(selected.rows, rows), cols: Math.min(selected.cols, cols) };
     const active = preview ?? selected;
     host.state.rows = rows;
@@ -26,7 +26,7 @@ export default function controller(host) {
     });
   };
   const stop = host.effect(() => {
-    const headerRow = Boolean(host.state.headerRow);
+    const headerRow = Boolean(host.props.headerRow.value);
     if (headerRow !== lastHeaderRow) {
       lastHeaderRow = headerRow;
       host.state.withHeaderRow = headerRow;

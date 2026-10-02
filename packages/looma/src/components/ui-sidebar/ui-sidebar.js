@@ -18,14 +18,14 @@ export default function controller(host) {
   const view = document.defaultView;
   let pointerAbort;
   let media;
-  let lastCollapsed = Boolean(host.state.collapsed);
-  let lastWidth = Number(host.state.width) || 0;
+  let lastCollapsed = Boolean(host.props.collapsed.value);
+  let lastWidth = Number(host.props.width.value) || 0;
   host.state.internalCollapsed = lastCollapsed;
   host.state.drawer = false;
 
   const bounds = () => {
-    const min = positive(host.state.minWidth, 200);
-    return { min, max: Math.max(min, positive(host.state.maxWidth, 480)), step: positive(host.state.resizeStep, 16) };
+    const min = positive(host.props.minWidth.value, 200);
+    return { min, max: Math.max(min, positive(host.props.maxWidth.value, 480)), step: positive(host.props.resizeStep.value, 16) };
   };
   const currentWidth = () => element.getBoundingClientRect().width || 280;
   const setWidth = (value, trigger = "programmatic") => {
@@ -46,7 +46,7 @@ export default function controller(host) {
     if (event.key === "End") next = max;
     if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
       const delta = event.key === "ArrowRight" ? step : -step;
-      next = currentWidth() + (host.state.side === "end" ? -delta : delta);
+      next = currentWidth() + (host.props.side.value === "end" ? -delta : delta);
     }
     if (next === null) return;
     event.preventDefault();
@@ -57,7 +57,7 @@ export default function controller(host) {
     event.preventDefault();
     const startX = event.clientX;
     const startWidth = currentWidth();
-    const multiplier = host.state.side === "end" ? -1 : 1;
+    const multiplier = host.props.side.value === "end" ? -1 : 1;
     pointerAbort = new AbortController();
     const signal = pointerAbort.signal;
     const finish = () => {
@@ -77,7 +77,7 @@ export default function controller(host) {
     pointerAbort = undefined;
   };
   const syncHandle = () => {
-    if (!host.state.resizable || host.state.drawer || host.state.internalCollapsed) { endPointer(); return; }
+    if (!host.props.resizable.value || host.state.drawer || host.state.internalCollapsed) { endPointer(); return; }
     const { min, max } = bounds();
     handle.setAttribute("aria-valuemin", String(min));
     handle.setAttribute("aria-valuemax", String(max));
@@ -105,7 +105,7 @@ export default function controller(host) {
     media?.removeEventListener("change", applyMode);
     // Without media queries (a non-browser DOM) the sidebar simply stays docked.
     if (typeof view.matchMedia !== "function") return;
-    const width = BREAKPOINTS[host.state.breakpoint] ?? BREAKPOINTS.md;
+    const width = BREAKPOINTS[host.props.breakpoint.value] ?? BREAKPOINTS.md;
     media = view.matchMedia(`(width < ${width})`);
     media.addEventListener("change", applyMode);
     applyMode();
@@ -141,12 +141,12 @@ export default function controller(host) {
   };
 
   const apply = () => {
-    const collapsed = Boolean(host.state.collapsed);
+    const collapsed = Boolean(host.props.collapsed.value);
     if (collapsed !== lastCollapsed) {
       lastCollapsed = collapsed;
       host.state.internalCollapsed = collapsed;
     }
-    const width = Number(host.state.width) || 0;
+    const width = Number(host.props.width.value) || 0;
     if (width !== lastWidth) {
       lastWidth = width;
       if (width > 0) setWidth(width);
@@ -163,9 +163,9 @@ export default function controller(host) {
   if (!invokerCommands) document.addEventListener("click", onDocumentClick);
   if (lastWidth > 0) setWidth(lastWidth);
   watchBreakpoint();
-  let lastBreakpoint = host.state.breakpoint;
+  let lastBreakpoint = host.props.breakpoint.value;
   const stop = host.effect(() => {
-    if (host.state.breakpoint !== lastBreakpoint) { lastBreakpoint = host.state.breakpoint; watchBreakpoint(); }
+    if (host.props.breakpoint.value !== lastBreakpoint) { lastBreakpoint = host.props.breakpoint.value; watchBreakpoint(); }
     apply();
   });
   apply();

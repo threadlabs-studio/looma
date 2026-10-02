@@ -29,17 +29,17 @@ export default function controller(host) {
       authored.hidden = !host.state.hasImage;
       element.removeAttribute("role");
       element.removeAttribute("aria-label");
-    } else if (!host.state.decorative) {
+    } else if (!host.props.decorative.value) {
       element.setAttribute("role", "img");
-      element.setAttribute("aria-label", host.state.alt || host.state.name || "Avatar");
+      element.setAttribute("aria-label", host.props.alt.value || host.props.name.value || "Avatar");
     }
-    if (host.state.decorative) {
+    if (host.props.decorative.value) {
       element.setAttribute("aria-hidden", "true");
       element.removeAttribute("role");
       element.removeAttribute("aria-label");
     } else element.removeAttribute("aria-hidden");
-    host.state.initials = host.state.fallback || toInitials(host.state.name || host.state.alt);
-    host.state.showGlyph = !String(host.state.name || "").trim() && !String(host.state.alt || "").trim() && !String(host.state.fallback || "").trim();
+    host.state.initials = host.props.fallback.value || toInitials(host.props.name.value || host.props.alt.value);
+    host.state.showGlyph = !String(host.props.name.value || "").trim() && !String(host.props.alt.value || "").trim() && !String(host.props.fallback.value || "").trim();
   };
   const observer = new MutationObserver(apply);
   observer.observe(element, { childList: true });
