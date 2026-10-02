@@ -1715,6 +1715,8 @@ describe("Badge box", () => {
   // distinct edge; solid variants carry their fill to the edge. Forced colors draw every edge.
   async function checkBadges(page: Page) {
     await page.waitForSelector('#flex [data-component~="ui-badge"]');
+    const compact = await page.locator('#compact [data-component~="ui-badge"]').boundingBox();
+    assert.ok(compact && compact.height <= 18 && compact.width <= 18, `compact count badge is ${JSON.stringify(compact)}`);
     const width = (selector: string) => page.locator(selector).evaluate((element) => element.getBoundingClientRect().width);
     const sizes = async () => {
       const block = await width('#block [data-component~="ui-badge"]');
@@ -1762,6 +1764,7 @@ describe("Badge box", () => {
   }
 
   const body = (badge: (attributes: string, label: string) => string) => `
+    <div id="compact">${badge('size="xs" variant="solid" tone="warning"', "1")}</div>
     <div id="block" style="width: 400px">${badge("", "Open")}</div>
     <div id="flex" style="display: flex; width: 400px">${badge("", "Open")}</div>
     <div id="narrow" style="width: 60px">${badge("", "A label longer than its container")}</div>
@@ -1780,6 +1783,7 @@ describe("Badge box", () => {
       import { Badge } from "@threadlabs/looma/vue";
       const tones = ${JSON.stringify(tones)}, variants = ${JSON.stringify(variants)};
       createApp({ render: () => [
+        h("div", { id: "compact" }, [h(Badge, { size: "xs", variant: "solid", tone: "warning" }, () => "1")]),
         h("div", { id: "block", style: "width: 400px" }, [h(Badge, null, () => "Open")]),
         h("div", { id: "flex", style: "display: flex; width: 400px" }, [h(Badge, null, () => "Open")]),
         h("div", { id: "narrow", style: "width: 60px" }, [h(Badge, null, () => "A label longer than its container")]),
