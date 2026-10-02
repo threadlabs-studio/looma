@@ -3,11 +3,11 @@
 export default function controller(host) {
   const element = host.element;
   const update = () => {
-    const max = Number(host.state.max);
+    const max = Number(host.props.max.value);
     const visible = Number.isFinite(max) ? Math.max(0, Math.floor(max)) : 0;
     const avatars = Array.from(element.children).filter((child) => child !== host.refs.overflow);
     // Small avatars overlap less, so their initials stay clear of the next one.
-    const overlap = { xs: "-0.1875rem", sm: "-0.25rem" }[host.state.size] ?? "-0.5rem";
+    const overlap = { xs: "-0.1875rem", sm: "-0.25rem" }[host.props.size.value] ?? "-0.5rem";
     avatars.forEach((avatar, index) => {
       avatar.style.display = index >= visible ? "none" : "";
       avatar.style.marginInlineStart = index === 0 ? "0px" : overlap;
@@ -17,11 +17,11 @@ export default function controller(host) {
         : "var(--ui-avatar-group-overlap-shadow, var(--_overlap-shadow)), var(--ui-avatar-group-edge-ring, 0 0 0 0 transparent)";
     });
     const authoredVisible = Math.min(avatars.length, visible);
-    const suppliedTotal = Number(host.state.total);
-    const total = host.state.total == null || !Number.isFinite(suppliedTotal) ? avatars.length : Math.max(avatars.length, suppliedTotal);
+    const suppliedTotal = Number(host.props.total.value);
+    const total = host.props.total.value == null || !Number.isFinite(suppliedTotal) ? avatars.length : Math.max(avatars.length, suppliedTotal);
     const count = Math.max(0, total - authoredVisible);
     host.state.overflowCount = count;
-    host.state.overflowAnnouncement = String(host.state.overflowLabel || "{count} more").replaceAll("{count}", String(count));
+    host.state.overflowAnnouncement = String(host.props.overflowLabel.value || "{count} more").replaceAll("{count}", String(count));
   };
   const observer = new MutationObserver(update);
   observer.observe(element, { childList: true });

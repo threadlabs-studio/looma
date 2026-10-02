@@ -11,7 +11,7 @@ export default function controller(host) {
   let frame = null;
   let point = null;
   let dirty = false;
-  let nearRadius = Number(host.state.nearRadius ?? 16);
+  let nearRadius = Number(host.props.nearRadius.value ?? 16);
   const clear = () => {
     for (const anchor of anchors) anchor.element.removeAttribute("data-ui-proximity");
     host.state.engaged = false;
@@ -57,7 +57,7 @@ export default function controller(host) {
   owner.visualViewport?.addEventListener("resize", invalidate, { passive: true });
   owner.visualViewport?.addEventListener("scroll", invalidate, { passive: true });
   const stop = host.effect(() => {
-    const configured = Number(host.state.nearRadius ?? 16);
+    const configured = Number(host.props.nearRadius.value ?? 16);
     nearRadius = Number.isFinite(configured) ? Math.max(0, configured) : 16;
     invalidate();
   });

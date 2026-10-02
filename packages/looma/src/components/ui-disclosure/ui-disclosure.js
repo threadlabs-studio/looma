@@ -16,7 +16,7 @@ export default function controller(host) {
   const document = host.element.ownerDocument;
   const [trigger, stopTracking] = trackTrigger(host);
   host.state.contentId = `ui-disclosure-${++disclosures}`;
-  let external = host.state.open;
+  let external = host.props.open.value;
   host.state.internalOpen = Boolean(external);
   let groupName = "";
   const member = {
@@ -27,7 +27,7 @@ export default function controller(host) {
     },
   };
   const syncGroup = (reason, how) => {
-    const name = String(host.state.name || "");
+    const name = String(host.props.name.value || "");
     if (name !== groupName) {
       if (groupName) groupFor(document, groupName).delete(member);
       groupName = name;
@@ -38,11 +38,11 @@ export default function controller(host) {
     }
   };
   const stop = host.effect(() => {
-    if (host.state.open !== external) {
-      external = host.state.open;
+    if (host.props.open.value !== external) {
+      external = host.props.open.value;
       host.state.internalOpen = Boolean(external);
     }
-    const level = Number(host.state.headingLevel);
+    const level = Number(host.props.headingLevel.value);
     host.state.headingRole = Number.isInteger(level) && level >= 2 && level <= 6 ? "heading" : null;
     host.state.headingAriaLevel = host.state.headingRole ? level : null;
     syncGroup("programmatic", "programmatic");
@@ -50,7 +50,7 @@ export default function controller(host) {
     else host.refs.panel.setAttribute("hidden", "until-found");
   });
   const onClick = () => {
-    if (host.state.disabled) return;
+    if (host.props.disabled.value) return;
     const open = !host.state.internalOpen;
     const how = trigger();
     host.state.internalOpen = open;

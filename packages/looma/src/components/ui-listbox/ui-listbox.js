@@ -33,11 +33,11 @@ export default function controller(host) {
   let typeaheadTimer;
 
   const selected = () => Array.isArray(host.state.selection) ? host.state.selection : [];
-  const externallySelected = () => host.state.multiple
-    ? (Array.isArray(host.state.values) ? Array.from(new Set(host.state.values.map(String))) : null)
-    : (host.state.value === undefined || host.state.value === null ? null : [String(host.state.value)]);
+  const externallySelected = () => host.props.multiple.value
+    ? (Array.isArray(host.props.values.value) ? Array.from(new Set(host.props.values.value.map(String))) : null)
+    : (host.props.value.value === undefined || host.props.value.value === null ? null : [String(host.props.value.value)]);
   const defaultSelection = () => externallySelected()
-    ?? options.filter((option) => option.selected).map((option) => option.value).slice(0, host.state.multiple ? undefined : 1);
+    ?? options.filter((option) => option.selected).map((option) => option.value).slice(0, host.props.multiple.value ? undefined : 1);
   const enabledIndices = () => options.filter((option) => !option.disabled).map((option) => option.index);
   const render = () => {
     const set = new Set(selected());
@@ -83,9 +83,9 @@ export default function controller(host) {
   };
   const choose = (index, trigger) => {
     const option = options[index];
-    if (!option || option.disabled || host.state.disabled) return;
+    if (!option || option.disabled || host.props.disabled.value) return;
     activate(index);
-    if (host.state.multiple) {
+    if (host.props.multiple.value) {
       const current = selected();
       setSelection(current.includes(option.value)
         ? current.filter((value) => value !== option.value)
@@ -101,17 +101,17 @@ export default function controller(host) {
         : key === "ArrowDown" ? indices[(current + 1) % indices.length]
           : indices[(current <= 0 ? indices.length : current) - 1];
     activate(next);
-    if (!host.state.multiple) choose(next, "keyboard");
+    if (!host.props.multiple.value) choose(next, "keyboard");
   };
   const onClick = (event) => {
-    if (host.state.disabled) return;
+    if (host.props.disabled.value) return;
     const row = event.target.closest("[data-index]");
     if (!row || !element.contains(row)) return;
     element.focus();
     choose(Number(row.dataset.index), "pointer");
   };
   const onKeydown = (event) => {
-    if (host.state.disabled || event.altKey || event.metaKey || event.ctrlKey) return;
+    if (host.props.disabled.value || event.altKey || event.metaKey || event.ctrlKey) return;
     if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
       event.preventDefault();
       move(event.key);
@@ -125,7 +125,7 @@ export default function controller(host) {
       const match = options.find((option) => !option.disabled && option.label.toLocaleLowerCase().startsWith(typeahead));
       if (match) {
         activate(match.index);
-        if (!host.state.multiple) choose(match.index, "keyboard");
+        if (!host.props.multiple.value) choose(match.index, "keyboard");
       }
     }
   };
@@ -145,7 +145,7 @@ export default function controller(host) {
   authored.disabled = true;
   element.setAttribute("data-enhanced", "");
   const stop = host.effect(() => {
-    const signature = JSON.stringify([host.state.multiple, host.state.value, host.state.values]);
+    const signature = JSON.stringify([host.props.multiple.value, host.props.value.value, host.props.values.value]);
     if (signature !== external) {
       external = signature;
       initial = defaultSelection();
@@ -160,7 +160,7 @@ export default function controller(host) {
   return () => {
     stop();
     observer.disconnect();
-    authored.disabled = host.state.disabled;
+    authored.disabled = host.props.disabled.value;
     element.removeAttribute("data-enhanced");
     clearTimeout(typeaheadTimer);
     element.removeEventListener("click", onClick);

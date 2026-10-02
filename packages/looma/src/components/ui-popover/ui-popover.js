@@ -18,7 +18,7 @@ export default function controller(host) {
   let lastFor;
   let lastPlacement;
   let lastOpen;
-  let lastExternalOpen = Boolean(host.state.open);
+  let lastExternalOpen = Boolean(host.props.open.value);
   host.state.internalOpen = lastExternalOpen;
 
   const close = (reason, trigger) => {
@@ -47,8 +47,8 @@ export default function controller(host) {
     anchorExpanded = null;
   };
   const setup = () => {
-    const nextFor = String(host.state.for ?? "");
-    const nextPlacement = String(host.state.placement ?? "bottom-start");
+    const nextFor = String(host.props.for.value ?? "");
+    const nextPlacement = String(host.props.placement.value ?? "bottom-start");
     if (surface && nextFor === lastFor && nextPlacement === lastPlacement) return;
     lastFor = nextFor;
     lastPlacement = nextPlacement;
@@ -60,7 +60,7 @@ export default function controller(host) {
     surface = anchor ? createAnchoredSurface(element, { anchor, placement: nextPlacement, gap: offset }) : null;
   };
   const apply = () => {
-    const externalOpen = Boolean(host.state.open);
+    const externalOpen = Boolean(host.props.open.value);
     if (externalOpen !== lastExternalOpen) {
       lastExternalOpen = externalOpen;
       host.state.internalOpen = externalOpen;

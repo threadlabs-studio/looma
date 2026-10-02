@@ -24,10 +24,10 @@ export default function controller(host) {
   trackInputModality(element.ownerDocument);
   const childItems = () => Array.from(children?.children ?? [])
     .filter((child) => child.matches?.('[role="treeitem"]'));
-  let lastExternalExpanded = Boolean(host.state.expanded);
+  let lastExternalExpanded = Boolean(host.props.expanded.value);
   host.state.internalExpanded = lastExternalExpanded;
 
-  const isContainer = () => Boolean(host.state.container) || Boolean(host.state.lazy) || childItems().length > 0;
+  const isContainer = () => Boolean(host.props.container.value) || Boolean(host.props.lazy.value) || childItems().length > 0;
   const updateLevel = () => {
     const tree = element.closest('[role="tree"]');
     let ancestor = parentItem(element);
@@ -40,21 +40,21 @@ export default function controller(host) {
   };
 
   const apply = () => {
-    const externalExpanded = Boolean(host.state.expanded);
+    const externalExpanded = Boolean(host.props.expanded.value);
     if (externalExpanded !== lastExternalExpanded) {
       lastExternalExpanded = externalExpanded;
       host.state.internalExpanded = externalExpanded;
     }
     const container = isContainer();
     const expanded = container && Boolean(host.state.internalExpanded);
-    const name = String(host.state.label || "Unnamed item");
+    const name = String(host.props.label.value || "Unnamed item");
     host.state.isContainer = container;
     // A leaf has no aria-expanded at all; "false" would announce it as a collapsed branch.
     if (container) element.setAttribute("aria-expanded", String(expanded));
     else element.removeAttribute("aria-expanded");
-    if (host.state.lazy && expanded && childItems().length === 0) element.setAttribute("aria-busy", "true");
+    if (host.props.lazy.value && expanded && childItems().length === 0) element.setAttribute("aria-busy", "true");
     else element.removeAttribute("aria-busy");
-    element.tabIndex = host.state.disabled || !host.state.tabStop ? -1 : 0;
+    element.tabIndex = host.props.disabled.value || !host.state.tabStop ? -1 : 0;
     const depth = Number(host.state.structuralLevel ?? 1) - 1;
     element.style.setProperty("--ui-tree-item-depth", String(depth));
     // Nested items already sit inside their parent's indented box. Add just one local step.
@@ -64,15 +64,15 @@ export default function controller(host) {
   };
 
   const setExpanded = (next, trigger) => {
-    if (!isContainer() || host.state.disabled || Boolean(host.state.internalExpanded) === next) return;
+    if (!isContainer() || host.props.disabled.value || Boolean(host.state.internalExpanded) === next) return;
     host.state.internalExpanded = next;
     apply();
-    host.dispatch("expand", { id: String(host.state.itemId || ""), expanded: next, trigger });
+    host.dispatch("expand", { id: String(host.props.itemId.value || ""), expanded: next, trigger });
     element.dispatchEvent(new CustomEvent("ui-tree-expansion-change", { bubbles: true }));
   };
   const onDisclosureClick = (event) => { event.stopPropagation(); setExpanded(!Boolean(host.state.internalExpanded), triggerFor(event)); };
   const onRowClick = (event) => {
-    if (host.state.disabled) return;
+    if (host.props.disabled.value) return;
     const interactive = event.composedPath().some((node) => node instanceof HTMLElement && node.matches?.(CONTROLS));
     if (interactive) return;
     if (isContainer()) {
@@ -84,7 +84,7 @@ export default function controller(host) {
     const link = labelText?.querySelector("a[href]");
     if (link) link.dispatchEvent(new MouseEvent("click", event));
   };
-  const onRoving = (event) => { host.state.tabStop = Boolean(event.detail?.active) && !host.state.disabled; apply(); };
+  const onRoving = (event) => { host.state.tabStop = Boolean(event.detail?.active) && !host.props.disabled.value; apply(); };
   const onExpansionRequest = (event) => {
     if (typeof event.detail?.expanded === "boolean") setExpanded(event.detail.expanded, event.detail.trigger ?? "keyboard");
   };
@@ -113,7 +113,7 @@ export default function controller(host) {
   let pointerHover = false;
   let keyboardFocus = false;
   // The tree sets this for its items; an item's own prop overrides it either way.
-  const marqueeWanted = () => host.state.marquee
+  const marqueeWanted = () => host.props.marquee.value
     || getComputedStyle(element).getPropertyValue("--_ui-default-tree-item-marquee").trim() === "1";
   // A slotted link may fill the row and have padding past its name. Measure the rendered letters,
   // since moving that link's box to the actions would send a short name too far (or move it at all).

@@ -9,17 +9,17 @@ export default function controller(host) {
   const input = host.refs.input;
   describeInput(input, host.refs.description);
   const [trigger, stopTracking] = trackTrigger(host);
-  let external = host.state.checked;
+  let external = host.props.checked.value;
   host.state.internalChecked = Boolean(external);
   const stop = host.effect(() => {
-    input.defaultChecked = Boolean(host.state.checked);
-    if (host.state.checked === external) return;
-    external = host.state.checked;
+    input.defaultChecked = Boolean(host.props.checked.value);
+    if (host.props.checked.value === external) return;
+    external = host.props.checked.value;
     host.state.internalChecked = Boolean(external);
   });
   const onChange = () => {
     host.state.internalChecked = input.checked;
-    host.dispatch("change", { checked: input.checked, value: String(host.state.value ?? "on"), trigger: trigger() });
+    host.dispatch("change", { checked: input.checked, value: String(host.props.value.value ?? "on"), trigger: trigger() });
   };
   input.addEventListener("change", onChange);
   const stopReset = afterFormReset(input, () => {

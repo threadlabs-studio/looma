@@ -50,7 +50,7 @@ export default function controller(host) {
   };
   // Click, not pointerdown: a tap's click is a user activation, so a touch keyboard opens.
   const onClick = (event) => {
-    if (pressedAround(event) && !host.state.disabled) element.querySelector(".field input")?.focus();
+    if (pressedAround(event) && !host.props.disabled.value) element.querySelector(".field input")?.focus();
   };
   element.addEventListener("mousedown", onMousedown);
   element.addEventListener("click", onClick);
