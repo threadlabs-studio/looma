@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Badges can use `size="xs"` for compact counts beside small controls, with the usual tone and variant choices.
+
 - Search Shell stays open when a component inside it, such as a Tooltip on its Clear button, reports its own `close`. Only the dialog closing itself closes the shell.
 - A `<kbd>` in Tooltip's or Menu Item's `shortcut` slot reads in the surrounding type in Vue too, instead of the browser's monospace.
 - Looma now uses HTML Next alpha.18. Combobox expressions use dotted list indexes (`rows.0` and `internalItems.0`) so they compile under the updated expression grammar; the public Combobox API is unchanged.
