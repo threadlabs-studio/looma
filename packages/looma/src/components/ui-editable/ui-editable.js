@@ -8,15 +8,15 @@ export default function controller(host) {
   const document = element.ownerDocument;
   const { preview, input } = host.refs;
 
-  let lastExternalEdit = Boolean(host.state.edit);
-  let lastExternalValue = String(host.state.value ?? "");
+  let lastExternalEdit = Boolean(host.props.edit.value);
+  let lastExternalValue = String(host.props.value.value ?? "");
   host.state.internalEdit = lastExternalEdit;
   host.state.internalValue = lastExternalValue;
   host.state.draft = lastExternalValue;
 
   const apply = () => {
-    const externalEdit = Boolean(host.state.edit);
-    const externalValue = String(host.state.value ?? "");
+    const externalEdit = Boolean(host.props.edit.value);
+    const externalValue = String(host.props.value.value ?? "");
     if (externalEdit !== lastExternalEdit) {
       lastExternalEdit = externalEdit;
       host.state.internalEdit = externalEdit;
@@ -29,13 +29,13 @@ export default function controller(host) {
     }
     // The inactive input stays in layout (it shares the value's cell) but out of the tab order.
     input.tabIndex = host.state.internalEdit ? 0 : -1;
-    const maxLength = Number(host.state.maxLength);
+    const maxLength = Number(host.props.maxLength.value);
     if (Number.isFinite(maxLength) && maxLength > 0) input.maxLength = Math.floor(maxLength);
     else input.removeAttribute("maxlength");
   };
 
   const setEditing = (next, reason, trigger, returnFocus = true) => {
-    if (host.state.disabled || Boolean(host.state.internalEdit) === next) return;
+    if (host.props.disabled.value || Boolean(host.state.internalEdit) === next) return;
     // Measured before the input is disabled, which drops focus to the body. A press elsewhere has
     // not moved focus yet, so it says not to return it.
     const focusWasInside = returnFocus && element.contains(document.activeElement);

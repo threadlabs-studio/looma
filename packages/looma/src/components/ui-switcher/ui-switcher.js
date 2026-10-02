@@ -2,7 +2,7 @@
 export default function controller(host) {
   const element = host.element;
   const update = () => {
-    const limit = Number(host.state.limit);
+    const limit = Number(host.props.limit.value);
     host.state.overLimit = Number.isFinite(limit) && limit >= 1 && element.children.length > Math.floor(limit);
   };
   const stop = host.effect(update);

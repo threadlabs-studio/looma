@@ -24,26 +24,26 @@ export default function controller(host) {
     menu.style.bottom = below >= above ? "auto" : "calc(100% + var(--ui-space-2))";
   };
   const stop = host.effect(() => {
-    const enabled = new Set(Array.isArray(host.state.actions) ? host.state.actions : []);
-    const alignment = host.state.cellAlignment === "center" || host.state.cellAlignment === "right" ? host.state.cellAlignment : "left";
+    const enabled = new Set(Array.isArray(host.props.actions.value) ? host.props.actions.value : []);
+    const alignment = host.props.cellAlignment.value === "center" || host.props.cellAlignment.value === "right" ? host.props.cellAlignment.value : "left";
     host.state.alignments = [["align-left", "Align left"], ["align-center", "Align center"], ["align-right", "Align right"]]
       .filter(([action]) => enabled.has(action))
       .map(([action, label]) => ({ action, label, active: action === `align-${alignment}` }));
     host.state.structure = [["add-row-after", "Add row", "rows"], ["add-column-after", "Add column", "columns"]]
       .filter(([action]) => enabled.has(action))
       .map(([action, label, icon]) => ({ action, label, icon }));
-    const background = String(host.state.cellBackground ?? "");
+    const background = String(host.props.cellBackground.value ?? "");
     host.state.swatches = backgrounds.filter(([action]) => enabled.has(action))
       .map(([action, label, color]) => ({ action, label, color, selected: color === background }));
     host.state.sections = overflowSections
       .map(([heading, items]) => ({
         heading,
         items: items.filter(([action]) => enabled.has(action))
-          .map(([action, label, icon, tone]) => ({ action, label, icon, danger: tone === "danger", checkable: action.startsWith("toggle-header-"), checked: action === "toggle-header-row" ? Boolean(host.state.headerRow) : action === "toggle-header-column" ? Boolean(host.state.headerColumn) : false })),
+          .map(([action, label, icon, tone]) => ({ action, label, icon, danger: tone === "danger", checkable: action.startsWith("toggle-header-"), checked: action === "toggle-header-row" ? Boolean(host.props.headerRow.value) : action === "toggle-header-column" ? Boolean(host.props.headerColumn.value) : false })),
       }))
       .filter((section) => section.items.length);
     host.state.hasOverflow = host.state.swatches.length > 0 || host.state.sections.length > 0;
-    if (!host.state.open || !host.state.hasOverflow) host.state.overflowOpen = false;
+    if (!host.props.open.value || !host.state.hasOverflow) host.state.overflowOpen = false;
   });
   const onClick = (event) => {
     const action = event.target.closest?.("[data-action]")?.dataset.action;
