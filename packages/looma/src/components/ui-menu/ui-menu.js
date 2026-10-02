@@ -21,7 +21,7 @@ export default function controller(host) {
   let surface = null;
   let lastFor;
   let lastPlacement;
-  let lastExternalOpen = Boolean(host.state.open);
+  let lastExternalOpen = Boolean(host.props.open.value);
   host.state.internalOpen = lastExternalOpen;
 
   const onAnchorClick = (event) => {
@@ -51,8 +51,8 @@ export default function controller(host) {
     anchorAria = null;
   };
   const setup = () => {
-    const nextFor = host.state.inline ? "" : String(host.state.for ?? "");
-    const nextPlacement = String(host.state.placement ?? "bottom-start");
+    const nextFor = host.props.inline.value ? "" : String(host.props.for.value ?? "");
+    const nextPlacement = String(host.props.placement.value ?? "bottom-start");
     if (nextFor === lastFor && nextPlacement === lastPlacement && surface) return;
     lastFor = nextFor;
     lastPlacement = nextPlacement;
@@ -64,8 +64,8 @@ export default function controller(host) {
     surface = anchor ? createAnchoredSurface(element, { anchor, placement: nextPlacement }) : null;
   };
   const apply = () => {
-    const inline = Boolean(host.state.inline);
-    const externalOpen = Boolean(host.state.open);
+    const inline = Boolean(host.props.inline.value);
+    const externalOpen = Boolean(host.props.open.value);
     if (externalOpen !== lastExternalOpen) {
       lastExternalOpen = externalOpen;
       host.state.internalOpen = externalOpen;
@@ -97,14 +97,14 @@ export default function controller(host) {
       return;
     }
     host.dispatch("select", { value, trigger });
-    if (host.state.inline) return;
+    if (host.props.inline.value) return;
     host.dispatch("close", { open: false, reason: "action", trigger });
     host.state.internalOpen = false;
   };
   const onClick = (event) => select(menuItemFrom(event.target), triggerFor(event));
   const onKeydown = (event) => {
     if (event.key === "Escape") {
-      if (host.state.inline) return;
+      if (host.props.inline.value) return;
       event.preventDefault();
       requestTopOverlayClose(document, "escape", "keyboard");
       return;

@@ -72,7 +72,7 @@ export default function controller(host) {
     const id = String(options.id || `ui-toast-${++toastIds}`);
     const tone = ["neutral", "info", "success", "warning", "danger"].includes(options.tone) ? options.tone : "neutral";
     host.state.toasts = [...toasts(), { id, message: String(message), tone, role: tone === "danger" ? "alert" : "status", closing: false }];
-    const duration = Math.max(0, Number(options.duration ?? host.state.duration ?? 0));
+    const duration = Math.max(0, Number(options.duration ?? host.props.duration.value ?? 0));
     if (duration > 0) {
       timers.set(id, { remaining: duration, started: 0, handle: 0 });
       startTimer(id);

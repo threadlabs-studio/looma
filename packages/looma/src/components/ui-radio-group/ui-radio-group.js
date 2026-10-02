@@ -8,22 +8,22 @@ let groups = 0;
 // them, so a radio's own disabled is never overwritten.
 export default function controller(host) {
   const element = host.element;
-  const name = String(host.state.name || `ui-radio-group-${++groups}`);
+  const name = String(host.props.name.value || `ui-radio-group-${++groups}`);
   const [trigger, stopTracking] = trackTrigger(host);
   const inputs = () => Array.from(element.querySelectorAll('input[type="radio"]'));
-  let external = host.state.value;
+  let external = host.props.value.value;
   // A radio's own required survives until the group's required changes, since either one makes the
   // whole name group required.
   let required = false;
   host.state.internalValue = String(external ?? "");
   const stop = host.effect(() => {
-    if (host.state.value !== external) {
-      external = host.state.value;
+    if (host.props.value.value !== external) {
+      external = host.props.value.value;
       host.state.internalValue = String(external ?? "");
     }
     const value = host.state.internalValue;
-    const applyRequired = Boolean(host.state.required) !== required;
-    required = Boolean(host.state.required);
+    const applyRequired = Boolean(host.props.required.value) !== required;
+    required = Boolean(host.props.required.value);
     for (const input of inputs()) {
       if (applyRequired) input.required = required;
       input.name = name;
