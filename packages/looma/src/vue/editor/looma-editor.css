@@ -501,6 +501,10 @@
   color: var(--ui-text-primary);
 }
 
+.looma-editor__link-context-kind {
+  font-size: var(--ui-font-size-xs);
+}
+
 .looma-editor__link-context-actions :is(button, a) {
   display: inline-flex;
   flex: 0 0 auto;
