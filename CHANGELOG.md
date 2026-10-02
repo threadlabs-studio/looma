@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Looma now uses HTML Next alpha.19. Its controllers read declared props through `host.props.<name>.value`, matching HTML Next’s separate prop handles. This preserves the existing component API while allowing the host to expose each prop’s supplied input and validity independently from component-owned state.
 - Badges can use `size="xs"` for compact counts beside small controls, with the usual tone and variant choices.
 
 - Search Shell stays open when a component inside it, such as a Tooltip on its Clear button, reports its own `close`. Only the dialog closing itself closes the shell.

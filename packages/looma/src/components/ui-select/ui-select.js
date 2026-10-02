@@ -4,7 +4,7 @@
 export default function controller(host) {
   const select = host.element;
   const apply = () => {
-    const value = host.state.value;
+    const value = host.props.value.value;
     if (value === undefined || value === null) return;
     for (const option of select.options) option.defaultSelected = option.value === String(value);
     if (select.value !== String(value)) select.value = String(value);

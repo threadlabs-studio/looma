@@ -14,8 +14,8 @@ export default function controller(host) {
   let surface = null;
   let point = null;
   let press = null;
-  let lastFor = host.state.for;
-  let lastOpenProp = Boolean(host.state.open);
+  let lastFor = host.props.for.value;
+  let lastOpenProp = Boolean(host.props.open.value);
   host.state.internalOpen = lastOpenProp;
 
   const items = () => menuItems(element);
@@ -27,7 +27,7 @@ export default function controller(host) {
   };
   const ids = createIdResolver(document, () => resolveTargets());
   const resolveTargets = () => {
-    const next = ids.get(String(host.state.for ?? ""));
+    const next = ids.get(String(host.props.for.value ?? ""));
     if (next === target) return;
     detach();
     target = next;
@@ -43,11 +43,11 @@ export default function controller(host) {
     if (returnFocus) target?.focus();
   };
   const apply = () => {
-    if (host.state.for !== lastFor) {
-      lastFor = host.state.for;
+    if (host.props.for.value !== lastFor) {
+      lastFor = host.props.for.value;
       resolveTargets();
     }
-    const externalOpen = Boolean(host.state.open);
+    const externalOpen = Boolean(host.props.open.value);
     if (externalOpen !== lastOpenProp) {
       lastOpenProp = externalOpen;
       host.state.internalOpen = externalOpen;
