@@ -72,7 +72,7 @@ export default function controller(host) {
         if (modal) dialog.showModal();
         else dialog.show();
       }
-      openOverlay({ id: overlayId, modal, element, dismissible: true, canClose: (reason) => reason === "light-dismiss" ? closedBy === "any" : reason !== "escape" || closedBy !== "none", requestClose });
+      openOverlay({ id: overlayId, modal, element, modalElement: dialog, dismissible: true, canClose: (reason) => reason === "light-dismiss" ? closedBy === "any" : reason !== "escape" || closedBy !== "none", requestClose });
     } else {
       if (dialog.open) dialog.close();
       closeOverlay(document, overlayId);
@@ -83,7 +83,7 @@ export default function controller(host) {
     lastOpen = open;
   };
   const onClose = (event) => {
-    if (event instanceof CustomEvent) return;
+    if (event instanceof CustomEvent || event.target !== dialog) return;
     // Consumers receive one Looma close event with a reason, not an additional native close event.
     event.stopImmediatePropagation();
     if (dialog.open || !host.state.internalOpen) return;

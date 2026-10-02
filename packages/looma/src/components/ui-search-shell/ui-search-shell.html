@@ -105,6 +105,14 @@
       background: var(--ui-overlay-backdrop);
     }
 
+    dialog:modal {
+      background: transparent;
+    }
+
+    dialog[data-ui-backdrop-hidden]::backdrop {
+      background: transparent;
+    }
+
     .panel {
       position: relative;
       display: flex;

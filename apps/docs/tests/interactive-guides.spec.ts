@@ -22,16 +22,32 @@ test("tree demos keep controlled selection and apply a keyboard reorder", async 
   await expect(selectTree.getByRole("treeitem", { name: "Notes" })).toHaveAttribute("aria-selected", "true");
 });
 
-test("editor guide sidebar jumps to sections and its live editor responds to configuration", async ({ page }) => {
+test("editor guide demonstrates both toolbar placements and mentions", async ({ page }) => {
   await page.goto("editor", { waitUntil: "domcontentloaded" });
   const sidebar = page.getByRole("navigation", { name: "Docs sidebar" });
   await expect(sidebar.getByRole("link", { name: "Mentions" })).toHaveAttribute("href", /#mentions$/);
   await expect(sidebar.getByRole("link", { name: "Configuration" })).toHaveAttribute("href", /#configuration-and-events$/);
   const editor = page.getByRole("textbox", { name: "Editor guide playground" });
   await expect(editor).toBeVisible();
+  const demo = page.locator(".looma-editor-guide-demo");
+  const scroller = demo.locator(".looma-editor-guide-demo__editor");
+  const stickyToolbar = demo.getByRole("toolbar", { name: "Editor tools" });
+  await expect(stickyToolbar).toBeVisible();
   await expect(page.getByRole("button", { name: "Highlight", exact: true })).toBeVisible();
-  await page.getByRole("checkbox", { name: "Reserve highlighting for the application" }).check();
-  await expect(page.getByRole("button", { name: "Highlight", exact: true })).toHaveCount(0);
+  await scroller.evaluate((element) => { element.scrollTop = element.scrollHeight; });
+  await expect.poll(() => stickyToolbar.boundingBox().then((box) => box?.y)).toBeCloseTo((await scroller.boundingBox())!.y, 0);
+  const previousEditor = await editor.elementHandle();
+  await demo.getByRole("button", { name: "Beside selection" }).click();
+  await previousEditor!.waitForElementState("hidden");
+  await expect(editor).toBeVisible();
+  await expect(stickyToolbar).toHaveCount(0);
+  await expect(demo.getByText("Select some text to reveal the toolbar.")).toBeVisible();
+  await demo.evaluate((element) => { element.style.overflow = "clip"; });
+  await editor.locator("p").first().click();
+  await editor.press("Shift+ArrowRight");
+  const selectionToolbar = page.locator("[data-tippy-root]:visible").filter({ has: page.getByRole("button", { name: "Bold" }) });
+  await expect(selectionToolbar).toBeVisible();
+  expect(await selectionToolbar.evaluate((element) => element.parentElement === document.body)).toBe(true);
   await editor.click();
   await editor.press("End");
   await editor.pressSequentially(" @Ada");

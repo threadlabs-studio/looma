@@ -134,6 +134,20 @@
       white-space: nowrap;
     }
 
+    /* Fixed text is part of the value, but should not look editable. */
+    .affix:has([slot="prefix"]),
+    .affix:has([slot="suffix"]) {
+      background: var(--ui-surface-muted);
+    }
+
+    .affix:has([slot="prefix"]) {
+      border-inline-end: 1px solid var(--ui-border-divider);
+    }
+
+    .affix:has([slot="suffix"]) {
+      border-inline-start: 1px solid var(--ui-border-divider);
+    }
+
     /* Centred rather than padded above and below: the group is exactly a lone Input's height, so a
        small button sits inside it with the difference split evenly, and the field keeps its height. */
     .action {
