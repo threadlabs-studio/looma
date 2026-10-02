@@ -479,18 +479,26 @@
 
 .looma-editor__link-context-actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--ui-space-1);
 }
 
 .looma-editor__link-context-url {
   min-width: 0;
-  max-width: 10rem;
-  overflow: hidden;
+  flex: 1 1 100%;
   padding-inline: var(--ui-space-2);
   color: var(--ui-text-secondary);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  font-size: var(--ui-font-size-sm);
+}
+
+.looma-editor__link-context-url :is(strong, small) {
+  display: block;
+}
+
+.looma-editor__link-context-url strong {
+  color: var(--ui-text-primary);
 }
 
 .looma-editor__link-context-actions :is(button, a) {
@@ -605,6 +613,57 @@
 .looma-editor__link-form .looma-editor__link-new-tab {
   flex-direction: row;
   align-items: center;
+}
+
+.looma-editor__link-modes {
+  display: flex;
+  gap: var(--ui-space-1);
+}
+
+.looma-editor__link-modes button,
+.looma-editor__link-results button {
+  min-height: var(--ui-control-min-block-size);
+  padding: var(--ui-space-2);
+  border: 1px solid var(--ui-control-border);
+  border-radius: var(--ui-field-radius, var(--ui-radius-md));
+  background: var(--ui-control-surface);
+  color: var(--ui-text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.looma-editor__link-modes button[aria-pressed="true"] {
+  border-color: var(--ui-accent);
+  color: var(--ui-accent);
+}
+
+.looma-editor__link-results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-1);
+  max-height: 15rem;
+  overflow-y: auto;
+}
+
+.looma-editor__link-results p {
+  margin: 0;
+  color: var(--ui-text-secondary);
+  font-size: var(--ui-font-size-sm);
+}
+
+.looma-editor__link-results button {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.looma-editor__link-results button:is(:hover, :focus-visible) {
+  background: var(--ui-surface-subtle);
+}
+
+.looma-editor__link-results button small {
+  color: var(--ui-text-secondary);
 }
 
 .looma-editor__link-error {
