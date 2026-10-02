@@ -1,3 +1,4 @@
+import { announceOverlayOpen } from "../shared/overlay.js";
 import { trackTrigger } from "../shared/trigger.js";
 
 const instances = new WeakMap();
@@ -16,8 +17,11 @@ export default function controller(host) {
   const [trigger, stopTracking] = trackTrigger(host);
   const toasts = () => host.state.toasts ?? [];
   const authored = () => Array.from(element.children).some((child) => !child.classList.contains("toast"));
+  let announcedVisible = false;
   const sync = () => {
     const visible = authored() || toasts().length > 0;
+    if (visible && !announcedVisible) announceOverlayOpen(element.ownerDocument, element);
+    announcedVisible = visible;
     if (visible && !element.matches(":popover-open")) element.showPopover();
     else if (!visible && element.matches(":popover-open")) element.hidePopover();
   };

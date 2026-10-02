@@ -254,6 +254,12 @@
       animation: ui-dialog-backdrop-enter var(--_ui-dialog-duration, var(--ui-motion-base)) var(--ui-motion-ease);
     }
 
+    :host[open][data-ui-backdrop-hidden]::backdrop {
+      background-color: transparent;
+      animation: none;
+      transition: none;
+    }
+
     @keyframes ui-dialog-backdrop-enter {
       from {
         background-color: transparent;

@@ -1,8 +1,11 @@
+import { closeOverlay, openOverlay } from "../shared/overlay.js";
 import { trackTrigger } from "../shared/trigger.js";
 
 /** Owns native dialog state while leaving query and result state to the application. */
 export default function controller(host) {
   const dialog = host.refs.dialog;
+  const document = dialog.ownerDocument;
+  const overlayId = `ui-search-shell-${Math.random().toString(36).slice(2, 11)}`;
   const [trigger, stopTracking] = trackTrigger(host);
   let external = host.state.open;
   let activeModal = Boolean(host.state.modal);
@@ -31,8 +34,12 @@ export default function controller(host) {
     if (host.state.internalOpen && !dialog.open) {
       if (modal) dialog.showModal();
       else dialog.show();
-    } else if (!host.state.internalOpen) {
+    }
+    if (host.state.internalOpen) {
+      openOverlay({ id: overlayId, modal, element: dialog, modalElement: dialog, dismissible: false, requestClose: () => {} });
+    } else {
       closeNative();
+      closeOverlay(document, overlayId);
     }
   });
 
@@ -69,6 +76,8 @@ export default function controller(host) {
   // Only the dialog's own close: a tooltip, menu, or popover inside it reports "close" too, and it bubbles.
   const onClose = (event) => {
     if (event.target !== dialog) return;
+    if (dialog.open) return;
+    closeOverlay(document, overlayId);
     if (!suppressNativeClose && host.state.internalOpen) dispatchClose("action", trigger());
   };
   dialog.addEventListener("cancel", onCancel);
@@ -83,5 +92,6 @@ export default function controller(host) {
     dialog.removeEventListener("click", onClick);
     dialog.removeEventListener("close", onClose);
     closeNative();
+    closeOverlay(document, overlayId);
   };
 }

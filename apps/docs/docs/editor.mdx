@@ -21,10 +21,9 @@ import { EditorGuideDemo } from "@site/src/components/EditorGuideDemo";
 
 <EditorGuideDemo />
 
-Select text to see formatting controls. Type `/` to insert a block or `@` to mention Ada or Grace.
-The toolbar control above changes where formatting actions appear. The highlighting control
-shows how an application can reserve `<mark>` for its own meaning. This playground keeps edits in
-this browser session; it does not save them to a server.
+Scroll inside the sample to see the always-visible toolbar stay at the top, or switch to
+**Beside selection** and select text to see formatting appear nearby. Type `/` to insert a block
+or `@` to mention Ada or Grace. Edits here last only until you leave the page.
 
 ## Add it to a Vue app
 
@@ -58,11 +57,6 @@ also supports headings, lists, quotes, code blocks, tables, images, undo, and re
 `toolbarMode="sticky"` to keep the toolbar above the document, `popover` to open it from your own
 button, or use the default `bubble` mode beside a selection. On narrow screens the toolbar docks at the bottom and scrolls sideways when
 its controls do not fit.
-
-Set `disableHighlight` when authored highlighting would be confused with an application marker.
-The Highlight control, shortcut, and `==text==` input rule then disappear; existing `<mark>`
-content still renders. Choose this when creating the editor, since it changes the editor's
-extensions.
 
 ## Slash commands and blocks
 
@@ -143,7 +137,6 @@ accepts `http:`, `https:`, `mailto:`, `tel:`, and relative URLs beginning with `
 | `extensions` | `[]` | Additional Tiptap extensions |
 | `toolbarMode` | `bubble` | `bubble`, `sticky`, or `popover` toolbar placement |
 | `toolbarTriggerId`, `toolbarOpen` | `""`, `false` | The button that opens the `popover` toolbar, and whether it is open (`v-model:toolbar-open`) |
-| `disableHighlight` | `false` | Reserve highlighting for the application |
 | `codeLanguages` | Built-in catalog | Replace the default code languages with an application-owned grammar map; `{}` keeps code plain |
 | `mentionItems`, `mentionProvider`, `mentionLimit` | Empty, none, 8 | Fixed or searched mention candidates |
 | `uploadImage`, `resolveImageAttributes` | None | Image delivery and rendering |
