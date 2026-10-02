@@ -171,6 +171,28 @@ describe("Tooltip shortcut", () => {
     assert.deepEqual(layout, { afterLabel: true, sameLine: true, divider: "1px", smaller: true, text: "Search⌘K", emptyHidden: true });
     await page.close();
   });
+
+  it("sets a slotted kbd in the label's type, not the browser's monospace, in Vue", async () => {
+    const path = await bundle("vue-shortcut-kbd", `
+      import { createApp, h } from "vue";
+      import { Menu, MenuItem, Tooltip } from "@threadlabs/looma/vue";
+      createApp({ render: () => h("main", [
+        h("button", { id: "one", style: { position: "fixed", left: "200px", top: "200px" } }, "Search"),
+        h(Tooltip, { for: "one", open: true, placement: "bottom" }, { default: () => "Search", shortcut: () => h("kbd", "⌘K") }),
+        h(Menu, { inline: true, "aria-label": "File" }, () => [
+          h(MenuItem, { value: "new" }, { default: () => "New file", shortcut: () => h("kbd", "⌘N") }),
+        ]),
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")], { reducedMotion: "reduce" });
+    const fonts = await page.evaluate(() => Array.from(document.querySelectorAll("kbd"), (kbd) => ({
+      kbd: getComputedStyle(kbd).fontFamily,
+      region: getComputedStyle(kbd.parentElement!).fontFamily,
+    })));
+    assert.equal(fonts.length, 2);
+    for (const font of fonts) assert.equal(font.kbd, font.region);
+    await page.close();
+  });
 });
 
 describe("Toast composition and placement", () => {
@@ -1693,6 +1715,8 @@ describe("Badge box", () => {
   // distinct edge; solid variants carry their fill to the edge. Forced colors draw every edge.
   async function checkBadges(page: Page) {
     await page.waitForSelector('#flex [data-component~="ui-badge"]');
+    const compact = await page.locator('#compact [data-component~="ui-badge"]').boundingBox();
+    assert.ok(compact && compact.height <= 18 && compact.width <= 18, `compact count badge is ${JSON.stringify(compact)}`);
     const width = (selector: string) => page.locator(selector).evaluate((element) => element.getBoundingClientRect().width);
     const sizes = async () => {
       const block = await width('#block [data-component~="ui-badge"]');
@@ -1740,6 +1764,7 @@ describe("Badge box", () => {
   }
 
   const body = (badge: (attributes: string, label: string) => string) => `
+    <div id="compact">${badge('size="xs" variant="solid" tone="warning"', "1")}</div>
     <div id="block" style="width: 400px">${badge("", "Open")}</div>
     <div id="flex" style="display: flex; width: 400px">${badge("", "Open")}</div>
     <div id="narrow" style="width: 60px">${badge("", "A label longer than its container")}</div>
@@ -1758,6 +1783,7 @@ describe("Badge box", () => {
       import { Badge } from "@threadlabs/looma/vue";
       const tones = ${JSON.stringify(tones)}, variants = ${JSON.stringify(variants)};
       createApp({ render: () => [
+        h("div", { id: "compact" }, [h(Badge, { size: "xs", variant: "solid", tone: "warning" }, () => "1")]),
         h("div", { id: "block", style: "width: 400px" }, [h(Badge, null, () => "Open")]),
         h("div", { id: "flex", style: "display: flex; width: 400px" }, [h(Badge, null, () => "Open")]),
         h("div", { id: "narrow", style: "width: 60px" }, [h(Badge, null, () => "A label longer than its container")]),
@@ -4921,6 +4947,24 @@ describe("Search Result Row selected", () => {
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
     await check(page);
+    await page.close();
+  });
+});
+
+describe("Search Shell ignores a close from inside it", () => {
+  it("stays open when a tooltip or menu inside it reports close", async () => {
+    const path = await bundle("html-search-shell-inner-close", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-search-shell id="shell" open label="Search">
+        <span slot="search"><input type="search" aria-label="Search"><button id="clear" type="button">x</button></span>
+      </ui-search-shell>`, [join(root, "tokens.css")]);
+    await page.waitForSelector("dialog[open]");
+    await page.evaluate(() => { (window as any).closes = 0; document.querySelector("#shell")!.addEventListener("close", () => { (window as any).closes += 1; }); });
+    // Components report their own "close" as a bubbling event, as a Tooltip does when its button goes away.
+    await page.evaluate(() => document.querySelector("#clear")!.dispatchEvent(new CustomEvent("close", { bubbles: true, detail: { open: false } })));
+    await page.waitForTimeout(200);
+    assert.equal(await page.locator("dialog").evaluate((element: HTMLDialogElement) => element.open), true);
+    assert.equal(await page.evaluate(() => (window as any).closes), 1, "only the inner event itself reached the shell");
     await page.close();
   });
 });
