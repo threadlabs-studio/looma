@@ -875,9 +875,11 @@ test("ui-input-group frames its input like a lone Input, in readable text", asyn
     const colors = await group.evaluate((element) => ({
       background: getComputedStyle(element).backgroundColor,
       border: getComputedStyle(element).borderTopColor,
-      affix: getComputedStyle(element.querySelector(".affix")!).color
+      affix: getComputedStyle(element.querySelector(".affix:has([slot='suffix'])")!).color,
+      affixBackground: getComputedStyle(element.querySelector(".affix:has([slot='suffix'])")!).backgroundColor
     }));
     expect(contrastRatio(colors.affix, colors.background), `${theme} affix contrast`).toBeGreaterThanOrEqual(4.5);
+    expect(colors.affixBackground, `${theme} fixed text surface`).not.toBe(colors.background);
     expect(contrastRatio(colors.border, colors.background), `${theme} control boundary contrast`).toBeGreaterThanOrEqual(3);
   }
 });
