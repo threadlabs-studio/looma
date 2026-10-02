@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Editor links can search host-provided destinations separately from website URLs. Existing links show the destination's full address or resolved title, with clear edit, remove, and open actions.
 - Tooltips now close immediately when another tooltip, popup, dialog, Search Shell, sidebar drawer, toast, or editor toolbar opens, including while a delayed tooltip is queued. Nested modal dialogs keep one visible backdrop and closing a child leaves its parent open.
 - Editor selection and link toolbars escape clipped containers. The editor guide now shows how sticky and selection toolbars behave, and Input Group gives fixed affixes a neutral surface and divider.
 

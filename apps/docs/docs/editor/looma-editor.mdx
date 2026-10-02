@@ -23,6 +23,7 @@ formatting commands, selection and focus, and every editor control. See
 | `extensions` | `[]` | Extra Tiptap extensions, added after Looma's own. |
 | `codeLanguages` | built-in catalog | Override the built-in code language list with application-owned grammars. Pass `{}` to disable syntax highlighting. |
 | `mentionItems`, `mentionProvider`, `mentionLimit` | none, none, 8 | People to suggest after `@`: a fixed list, or a function that searches. |
+| `linkSearch`, `linkResolve`, `linkTargetLabel` | none, none, `Item` | Search host destinations for links and describe a saved destination from its `href`. |
 | `uploadImage` | none | Uploads a chosen image and returns its URL and alt text. Without it, Insert image is disabled. |
 | `resolveImageAttributes` | none | Adjusts an image's attributes, such as a responsive `srcset`, before it renders. |
 | `toolbarMode` | `bubble` | `bubble` shows the toolbar beside a selection; `sticky` keeps it pinned above the document; `popover` opens it from your own button (see [Opening the toolbar from your own button](#opening-the-toolbar-from-your-own-button)). |

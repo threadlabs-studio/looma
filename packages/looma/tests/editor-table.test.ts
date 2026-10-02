@@ -61,12 +61,12 @@ const equals = <T>(read: () => Promise<T>, expected: T, message: string) =>
 const style = (locator: Locator, property: string) => () =>
   locator.evaluate((element, name) => getComputedStyle(element).getPropertyValue(name), property);
 
-async function openEditor(html = "<p>Hello</p>", mode: "sticky" | "popover" = "sticky"): Promise<Page> {
+async function openEditor(html = "<p>Hello</p>", mode: "sticky" | "popover" = "sticky", links = false): Promise<Page> {
   const page = await open(editorBundle, `<div id="app" style="width: 720px"></div><button id="outside">Outside</button>`, [
     join(root, "tokens.css"),
     join(root, "vue/components.css"),
   ]);
-  await page.evaluate(({ value, mode }) => (window as unknown as { mountEditor(html: string, mode: string): void }).mountEditor(value, mode), { value: html, mode });
+  await page.evaluate(({ value, mode, links }) => (window as unknown as { mountEditor(html: string, mode: string, links: boolean): void }).mountEditor(value, mode, links), { value: html, mode, links });
   page.setDefaultTimeout(5000);
   await page.locator(".ProseMirror").waitFor();
   return page;
@@ -108,14 +108,21 @@ beforeAll(async () => {
   editorBundle = await bundle("vue-looma-editor-table", `
     import { createApp, h, ref } from "vue";
     import { LoomaEditor } from "@threadlabs/looma/vue/editor";
-    window.mountEditor = (html, mode = "sticky") => {
+    window.mountEditor = (html, mode = "sticky", links = false) => {
       const content = ref(html);
       const toolbarOpen = ref(false);
+      const targets = [
+        { id: "one", label: "Guide", detail: "Team / Guides", href: "/records/one" },
+        { id: "two", label: "Guide", detail: "Personal / Guides", href: "/records/two" },
+      ];
       createApp({
         render: () => [
           mode === "popover" ? h("button", { id: "format-trigger", type: "button" }, "Formatting tools") : null,
           h(LoomaEditor, {
             modelValue: content.value,
+            linkSearch: links ? async (query) => targets.filter(target => target.label.toLowerCase().includes(query.toLowerCase())) : undefined,
+            linkResolve: links ? async (href) => targets.find(target => target.href === href) ?? null : undefined,
+            linkTargetLabel: "Page",
             toolbarMode: mode,
             toolbarTriggerId: mode === "popover" ? "format-trigger" : undefined,
             toolbarOpen: toolbarOpen.value,
@@ -134,6 +141,62 @@ afterAll(async () => {
 });
 
 describe("LoomaEditor links", () => {
+  it("searches host targets, keeps their identity URL, and describes the chosen target", async () => {
+    const page = await openEditor("<p>Hello</p>", "sticky", true);
+    await prose(page).focus();
+    await page.keyboard.press("ControlOrMeta+A");
+    await page.getByRole("toolbar", { name: "Editor toolbar" }).getByRole("button", { name: "Link" }).click();
+    const form = linkForm(page);
+    await form.getByRole("searchbox", { name: "Find a page" }).fill("Guide");
+    const results = form.getByLabel("Destination search results").getByRole("button");
+    await equals(() => results.count(), 2, "duplicate titles keep distinct context");
+    await form.getByRole("searchbox", { name: "Find a page" }).press("ArrowDown");
+    assert.equal(await results.first().evaluate(element => document.activeElement === element), true);
+    await results.nth(1).click();
+    await form.getByRole("button", { name: "Save link" }).click();
+    const link = prose(page).getByRole("link", { name: "Hello" });
+    await equals(() => link.getAttribute("href"), "/records/two", "host destination is saved");
+    assert.equal(await link.getAttribute("target"), "_self");
+    await link.click();
+    await until(() => page.getByRole("group", { name: "Link actions" }).textContent(), value => value?.includes("Personal / Guides") ?? false, "context shows resolved target");
+    await page.close();
+  });
+
+  it("keeps the URL flow distinct and rejects an unselected relative path", async () => {
+    const page = await openEditor("<p>Hello</p>", "sticky", true);
+    await prose(page).focus();
+    await page.keyboard.press("ControlOrMeta+A");
+    await page.getByRole("toolbar", { name: "Editor toolbar" }).getByRole("button", { name: "Link" }).click();
+    const form = linkForm(page);
+    await form.getByRole("button", { name: "URL" }).click();
+    await form.getByRole("textbox", { name: "URL" }).fill("/guide");
+    await form.getByRole("button", { name: "Save link" }).click();
+    await form.getByRole("alert").waitFor();
+    assert.equal(await prose(page).locator("a").count(), 0);
+    await form.getByRole("textbox", { name: "URL" }).fill("https://example.com/guide");
+    await form.getByRole("button", { name: "Save link" }).click();
+    await equals(() => prose(page).locator("a").getAttribute("href"), "https://example.com/guide", "external URL stays absolute");
+    await page.close();
+  });
+
+  it("resolves an existing host link and keeps the picker inside a phone viewport", async () => {
+    const page = await openEditor('<p>Read <a href="/records/one" target="_self">this guide</a></p>', "sticky", true);
+    await prose(page).getByRole("link", { name: "this guide" }).click();
+    const actions = page.getByRole("group", { name: "Link actions" });
+    await until(() => actions.textContent(), value => value?.includes("Team / Guides") ?? false, "saved target is resolved");
+    await actions.getByRole("button", { name: "Edit link" }).click();
+    await equals(() => linkForm(page).getByRole("searchbox", { name: "Find a page" }).inputValue(), "Guide", "picker opens in target mode");
+    await page.close();
+
+    const phone = await openEditor("<p>Hello</p>", "sticky", true);
+    await phone.setViewportSize({ width: 375, height: 760 });
+    await prose(phone).locator("p").click();
+    await phone.locator(".looma-editor__mobile-toolbar-shell").getByRole("button", { name: "Link" }).click();
+    const bounds = await linkForm(phone).boundingBox();
+    assert.ok(bounds && bounds.x >= 0 && bounds.x + bounds.width <= 375, "link form fits phone viewport");
+    await phone.close();
+  });
+
   it("shows link actions at a caret inside linked text and edits that link in place", async () => {
     const page = await openEditor('<p>See <a href="/guide" target="_self">guide</a> next</p>');
     const link = prose(page).getByRole("link", { name: "guide" });

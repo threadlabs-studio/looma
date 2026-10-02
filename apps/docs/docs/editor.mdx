@@ -125,6 +125,11 @@ leaves the document unchanged and emits `uploadError`, so the app can show recov
 
 Select text and choose **Link**, or put the caret in a link to edit or remove it. The editor
 accepts `http:`, `https:`, `mailto:`, `tel:`, and relative URLs beginning with `/`, `#`, or `?`.
+Pass `linkSearch(query)` to offer a separate destination search beside URL entry. Return items
+with `id`, `label`, `href`, and optional `detail`; the host owns access checks and durable URLs.
+Pass `linkResolve(href)` to show a saved destination's current name and context when its link is
+selected. Set `linkTargetLabel` to name that kind of destination in the picker. A failed lookup
+leaves the original URL visible and editable.
 
 ## Configuration and events
 
@@ -139,6 +144,7 @@ accepts `http:`, `https:`, `mailto:`, `tel:`, and relative URLs beginning with `
 | `toolbarTriggerId`, `toolbarOpen` | `""`, `false` | The button that opens the `popover` toolbar, and whether it is open (`v-model:toolbar-open`) |
 | `codeLanguages` | Built-in catalog | Replace the default code languages with an application-owned grammar map; `{}` keeps code plain |
 | `mentionItems`, `mentionProvider`, `mentionLimit` | Empty, none, 8 | Fixed or searched mention candidates |
+| `linkSearch`, `linkResolve`, `linkTargetLabel` | None, none, `Item` | Search app destinations and describe existing identity links |
 | `uploadImage`, `resolveImageAttributes` | None | Image delivery and rendering |
 
 `update:modelValue` and `update` report document changes; `update:toolbarOpen` reports the
