@@ -1,6 +1,7 @@
 import "./looma-editor.css";
 import type { AnyExtension, Editor, JSONContent } from "@tiptap/core";
 import { BubbleMenu, EditorContent, useEditor } from "@tiptap/vue-3";
+import { announceOverlayOpen } from "../../components/shared/overlay.js";
 import { closeHistory } from "@tiptap/pm/history";
 import { createLowlight } from "lowlight";
 import { TextSelection, type SelectionBookmark } from "@tiptap/pm/state";
@@ -1486,7 +1487,9 @@ export const LoomaEditor = defineComponent({
                 (props.toolbarMode !== "popover" || !props.toolbarOpen)
                 && shouldShowTextFormattingToolbar(menuEditor, from, to),
               tippyOptions: {
-                appendTo: () => root.value ?? document.body,
+                // Escape clipped panels, but stay in the top layer when the editor is in a dialog or popover.
+                appendTo: () => root.value?.closest<HTMLElement>("dialog[open], [popover]") ?? document.body,
+                onShow: () => announceOverlayOpen(root.value?.ownerDocument ?? document, root.value),
                 duration: 100,
                 maxWidth: "none",
                 placement: "top",
@@ -1500,7 +1503,8 @@ export const LoomaEditor = defineComponent({
               shouldShow: ({ editor: menuEditor, from, to }: { editor: Editor; from: number; to: number }) =>
                 from === to && menuEditor.isActive("link") && !linkOpen.value,
               tippyOptions: {
-                appendTo: () => root.value ?? document.body,
+                appendTo: () => root.value?.closest<HTMLElement>("dialog[open], [popover]") ?? document.body,
+                onShow: () => announceOverlayOpen(root.value?.ownerDocument ?? document, root.value),
                 duration: 100,
                 maxWidth: "none",
                 placement: "bottom",

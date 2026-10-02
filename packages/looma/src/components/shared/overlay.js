@@ -14,6 +14,13 @@ function syncScrollLock(document, state) {
   else document.documentElement.style.removeProperty("overflow");
 }
 
+function syncModalBackdrops(state) {
+  const topModal = state.records.findLast((record) => record.modal);
+  for (const record of state.records) {
+    (record.modalElement ?? record.element).toggleAttribute("data-ui-backdrop-hidden", Boolean(record.modal && record !== topModal));
+  }
+}
+
 function requestClose(document, reason, trigger) {
   const record = stateFor(document).records.at(-1);
   if (!record || (record.dismissible === false && (reason === "escape" || reason === "light-dismiss")) || record.canClose?.(reason) === false) return false;
@@ -55,13 +62,36 @@ function removeListeners(document, state) {
 export function openOverlay(record) {
   const document = record.element.ownerDocument;
   const state = stateFor(document);
-  closeOverlay(document, record.id);
+  const index = state.records.findIndex((entry) => entry.id === record.id);
+  if (index >= 0) {
+    const previous = state.records[index];
+    state.records[index] = record;
+    if (previous.modal !== record.modal) {
+      state.modalCount += record.modal ? 1 : -1;
+      syncScrollLock(document, state);
+    }
+    if (previous.modalElement && previous.modalElement !== record.modalElement) previous.modalElement.removeAttribute("data-ui-backdrop-hidden");
+    syncModalBackdrops(state);
+    return;
+  }
   state.records.push(record);
   if (record.modal) {
     state.modalCount += 1;
     syncScrollLock(document, state);
   }
+  syncModalBackdrops(state);
   ensureListeners(document, state);
+  announceOverlayOpen(document, record.id);
+}
+
+export function onOverlayOpen(document, listener) {
+  const onOpen = (event) => listener(event.detail.id);
+  document.addEventListener("ui-overlay-open", onOpen);
+  return () => document.removeEventListener("ui-overlay-open", onOpen);
+}
+
+export function announceOverlayOpen(document, id) {
+  document.dispatchEvent(new CustomEvent("ui-overlay-open", { detail: { id } }));
 }
 
 export function closeOverlay(document, id) {
@@ -69,10 +99,12 @@ export function closeOverlay(document, id) {
   const index = state.records.findIndex((record) => record.id === id);
   if (index >= 0) {
     const [record] = state.records.splice(index, 1);
+    (record.modalElement ?? record.element).removeAttribute("data-ui-backdrop-hidden");
     if (record?.modal) {
       state.modalCount = Math.max(0, state.modalCount - 1);
       syncScrollLock(document, state);
     }
+    syncModalBackdrops(state);
   }
   removeListeners(document, state);
 }

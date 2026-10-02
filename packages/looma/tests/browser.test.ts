@@ -127,7 +127,7 @@ describe("Anchored overlay placement", () => {
     const page = await open(path, `
       <button id="one" style="position: fixed; left: 300px; top: 200px">One</button>
       <button id="two" style="position: fixed; left: 500px; top: 200px">Two</button>
-      <ui-tooltip id="first" for="one" show-delay="300" hide-delay="0">First hint</ui-tooltip>
+      <ui-tooltip id="first" for="one" show-delay="300" hide-delay="400">First hint</ui-tooltip>
       <ui-tooltip id="second" for="two" show-delay="300" hide-delay="0" placement="bottom" style="--ui-tooltip-offset: 16px">Second hint</ui-tooltip>
     `, [join(root, "tokens.css")], { reducedMotion: "reduce" });
     await page.locator("#one").hover();
@@ -135,8 +135,86 @@ describe("Anchored overlay placement", () => {
     await page.locator("#two").hover();
     await page.waitForTimeout(80);
     assert.equal(await page.locator("#second").evaluate((element) => element.matches(":popover-open")), true);
+    assert.equal(await page.locator("#first").evaluate((element) => element.matches(":popover-open")), false, "the previous tooltip closes as soon as the next opens");
     const gap = await page.evaluate(() => document.querySelector("#second")!.getBoundingClientRect().top - document.querySelector("#two")!.getBoundingClientRect().bottom);
     assert.ok(Math.abs(gap - 16) <= 1, `Tooltip offset is ${gap}px`);
+    await page.close();
+  });
+
+  it("closes a tooltip when another popup opens and cancels delayed tooltips", async () => {
+    const path = await bundle("html-tooltip-overlay-coordination", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <button id="hint-trigger">Hint</button>
+      <ui-tooltip id="hint" for="hint-trigger" show-delay="0">Helpful hint</ui-tooltip>
+      <button id="popup-trigger">Popup</button>
+      <ui-popover id="popup" for="popup-trigger">Popup content</ui-popover>
+    `, [join(root, "tokens.css")], { reducedMotion: "reduce" });
+    await page.locator("#hint-trigger").hover();
+    await page.waitForFunction(() => document.querySelector("#hint")!.matches(":popover-open"));
+    await page.locator("#popup-trigger").evaluate((element: HTMLButtonElement) => element.click());
+    await page.waitForFunction(() => document.querySelector("#popup")!.matches(":popover-open"));
+    assert.equal(await page.locator("#hint").evaluate((element) => element.matches(":popover-open")), false, "opening a popup closes the tooltip");
+    await page.close();
+
+    const pending = await open(path, `
+      <button id="hint-trigger">Hint</button>
+      <ui-tooltip id="hint" for="hint-trigger" show-delay="150">Helpful hint</ui-tooltip>
+      <button id="dialog-trigger">Dialog</button>
+      <ui-dialog id="dialog" for="dialog-trigger" modal label="Dialog">Dialog content</ui-dialog>
+    `, [join(root, "tokens.css")], { reducedMotion: "reduce" });
+    await pending.locator("#hint-trigger").hover();
+    await pending.locator("#dialog-trigger").evaluate((element: HTMLButtonElement) => element.click());
+    await pending.waitForFunction(() => document.querySelector("#dialog")!.matches(":modal"));
+    await pending.waitForTimeout(200);
+    assert.equal(await pending.locator("#hint").evaluate((element) => element.matches(":popover-open")), false, "a queued tooltip does not appear over a modal");
+    await pending.close();
+
+    for (const [name, popup] of [
+      ["search shell", `<ui-search-shell open modal label="Search"><input slot="search" aria-label="Search"></ui-search-shell>`],
+      ["toast", `<ui-toast-region><ui-toast>Saved</ui-toast></ui-toast-region>`],
+    ] as const) {
+      const other = await open(path, `
+        <button id="hint-trigger">Hint</button>
+        <ui-tooltip id="hint" for="hint-trigger" open>Helpful hint</ui-tooltip>
+        ${popup}
+      `, [join(root, "tokens.css")], { reducedMotion: "reduce" });
+      await other.waitForFunction(() => document.querySelector("dialog")?.open || document.querySelector("ui-toast-region, [data-component~='ui-toast-region']")?.matches(":popover-open"));
+      assert.equal(await other.locator("#hint").evaluate((element) => element.matches(":popover-open")), false, `${name} closes an existing tooltip`);
+      await other.close();
+    }
+
+    const drawer = await open(path, `
+      <button id="hint-trigger">Hint</button>
+      <ui-tooltip id="hint" for="hint-trigger" open>Helpful hint</ui-tooltip>
+      <ui-sidebar id="navigation" label="Navigation">Navigation content</ui-sidebar>
+    `, [join(root, "tokens.css")], { viewport: { width: 600, height: 800 }, reducedMotion: "reduce" });
+    await drawer.waitForFunction(() => document.querySelector("#navigation")?.hasAttribute("popover"));
+    await drawer.locator("#navigation").evaluate((element: HTMLElement) => element.showPopover());
+    await drawer.waitForFunction(() => document.querySelector("#navigation")?.matches(":popover-open"));
+    assert.equal(await drawer.locator("#hint").evaluate((element) => element.matches(":popover-open")), false, "opening a sidebar drawer closes the tooltip");
+    await drawer.close();
+  });
+
+  it("closes a tooltip when the editor selection toolbar opens", async () => {
+    const path = await bundle("vue-editor-tooltip-coordination", `
+      import "@threadlabs/looma";
+      import { createApp, h } from "vue";
+      import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+      createApp({ render: () => h(LoomaEditor, {
+        label: "Writing",
+        modelValue: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Select some words" }] }] },
+      }) }).mount("#app");
+    `);
+    const page = await open(path, `
+      <button id="hint-trigger">Hint</button>
+      <ui-tooltip id="hint" for="hint-trigger" open>Helpful hint</ui-tooltip>
+      <div id="app"></div>
+    `, [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "vue/components.css")], { reducedMotion: "reduce" });
+    const editor = page.getByRole("textbox", { name: "Writing" });
+    await editor.focus();
+    await editor.press("Shift+ArrowRight");
+    await page.waitForFunction(() => document.querySelector("[data-tippy-root]")?.getBoundingClientRect().width);
+    assert.equal(await page.locator("#hint").evaluate((element) => element.matches(":popover-open")), false);
     await page.close();
   });
 });
@@ -148,7 +226,7 @@ describe("Tooltip shortcut", () => {
       <button id="one" style="position: fixed; left: 200px; top: 200px">Search</button>
       <button id="two" style="position: fixed; left: 500px; top: 200px">Close</button>
       <ui-tooltip id="with" for="one" open placement="bottom">Search<kbd slot="shortcut">⌘K</kbd></ui-tooltip>
-      <ui-tooltip id="without" for="two" open placement="bottom">Close</ui-tooltip>
+      <ui-tooltip id="without" for="two" placement="bottom">Close</ui-tooltip>
     `, [join(root, "tokens.css")], { reducedMotion: "reduce" });
     const layout = await page.evaluate(() => {
       const tip = document.querySelector("#with")!;
@@ -731,6 +809,51 @@ describe("Menu structure and navigation", () => {
 
 describe("Dialog close policy and presentation", () => {
   const isOpen = (id: string) => `document.querySelector("#${id}").open`;
+
+  it("keeps nested modal dialogs open with only one visible backdrop", async () => {
+    const path = await bundle("html-dialog-nested-backdrops", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-dialog id="parent" open modal label="Parent">
+        <button id="child-trigger">Open child</button>
+        <ui-dialog id="child" for="child-trigger" modal label="Child">Child content</ui-dialog>
+      </ui-dialog>
+    `, [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "styles/ui-dialog.css")], { reducedMotion: "reduce" });
+    await page.locator("#child-trigger").click();
+    await page.waitForFunction(() => document.querySelector("#child")!.matches(":modal"));
+    const backdrops = () => page.evaluate(() => ["parent", "child"].map((id) => getComputedStyle(document.getElementById(id)!, "::backdrop").backgroundColor));
+    const [parent, child] = await backdrops();
+    assert.equal(parent, "rgba(0, 0, 0, 0)", "the lower modal backdrop is transparent");
+    assert.notEqual(child, "rgba(0, 0, 0, 0)", "the top modal supplies the backdrop");
+    assert.equal(await page.locator("#parent").evaluate((element) => (element as HTMLDialogElement).open), true);
+    await page.locator("#child").getByRole("button", { name: "Close" }).click();
+    await page.waitForFunction(() => !document.querySelector("#child")!.matches(":modal"));
+    assert.notEqual((await backdrops())[0], "rgba(0, 0, 0, 0)", "the parent backdrop returns when the child closes");
+    await page.locator("#child-trigger").click();
+    await page.waitForFunction(() => document.querySelector("#child")!.matches(":modal"));
+    await page.keyboard.press("Escape");
+    await page.waitForFunction(() => !document.querySelector("#child")!.matches(":modal"));
+    assert.equal(await page.locator("#parent").evaluate((element) => (element as HTMLDialogElement).open), true, "Escape closes only the top modal");
+    await page.close();
+  });
+
+  it("shares one backdrop when a modal Search Shell opens inside a modal Dialog", async () => {
+    const path = await bundle("html-dialog-search-shell-backdrop", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-dialog id="parent" open modal label="Parent">
+        <ui-search-shell id="search" open modal label="Search"><input slot="search" aria-label="Query"></ui-search-shell>
+      </ui-dialog>
+    `, [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "styles/ui-dialog.css"), join(root, "styles/ui-search-shell.css")], { reducedMotion: "reduce" });
+    const search = page.locator("#search dialog");
+    await page.waitForFunction(() => document.querySelector("#search dialog")?.matches(":modal"));
+    assert.equal(await page.locator("#parent").evaluate((element) => getComputedStyle(element, "::backdrop").backgroundColor), "rgba(0, 0, 0, 0)");
+    assert.notEqual(await search.evaluate((element) => getComputedStyle(element, "::backdrop").backgroundColor), "rgba(0, 0, 0, 0)");
+    assert.equal(await search.evaluate((element) => getComputedStyle(element).backgroundColor), "rgba(0, 0, 0, 0)");
+    await search.evaluate((element: HTMLDialogElement) => element.close());
+    await page.waitForFunction(() => !document.querySelector("#search dialog")?.open);
+    await page.waitForFunction(() => getComputedStyle(document.querySelector("#parent")!, "::backdrop").backgroundColor !== "rgba(0, 0, 0, 0)");
+    assert.notEqual(await page.locator("#parent").evaluate((element) => getComputedStyle(element, "::backdrop").backgroundColor), "rgba(0, 0, 0, 0)");
+    await page.close();
+  });
 
   it("is non-modal by default, like native show(): no backdrop, no scroll lock, Escape and outside presses do not close it", async () => {
     const path = await bundle("html-dialog-default", `

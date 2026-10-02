@@ -1,3 +1,5 @@
+import { announceOverlayOpen } from "../shared/overlay.js";
+
 const BREAKPOINTS = { sm: "40rem", md: "48rem", lg: "64rem" };
 
 function positive(value, fallback) {
@@ -134,6 +136,7 @@ export default function controller(host) {
   // report it again, forever. Only the drawer's own popover ToggleEvent, which has a newState, counts.
   const onPopoverToggle = (event) => {
     if (!host.state.drawer || event.target !== element || typeof event.newState !== "string") return;
+    if (event.newState === "open") announceOverlayOpen(document, element);
     host.dispatch("toggle", { open: event.newState === "open", mode: "drawer", trigger: "programmatic" });
   };
 

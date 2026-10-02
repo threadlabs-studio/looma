@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Tooltips now close immediately when another tooltip, popup, dialog, Search Shell, sidebar drawer, toast, or editor toolbar opens, including while a delayed tooltip is queued. Nested modal dialogs keep one visible backdrop and closing a child leaves its parent open.
+- Editor selection and link toolbars escape clipped containers. The editor guide now shows how sticky and selection toolbars behave, and Input Group gives fixed affixes a neutral surface and divider.
+
 - Looma now uses HTML Next alpha.19. Its controllers read declared props through `host.props.<name>.value`, matching HTML Next’s separate prop handles. This preserves the existing component API while allowing the host to expose each prop’s supplied input and validity independently from component-owned state.
 - Badges can use `size="xs"` for compact counts beside small controls, with the usual tone and variant choices.
 

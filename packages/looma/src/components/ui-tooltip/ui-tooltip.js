@@ -1,4 +1,4 @@
-import { closeOverlay, createAnchoredSurface, createIdResolver, openOverlay } from "../shared/overlay.js";
+import { closeOverlay, createAnchoredSurface, createIdResolver, onOverlayOpen, openOverlay } from "../shared/overlay.js";
 
 const warmTooltips = new WeakMap();
 
@@ -138,12 +138,22 @@ export default function controller(host) {
     surface = createAnchoredSurface(element, { anchor: trigger, placement: nextPlacement, gap: offset });
   };
   const close = (reason, input) => {
-    if (reason !== "escape" && reason !== "light-dismiss") return;
+    if (reason !== "escape" && reason !== "light-dismiss" && reason !== "programmatic") return;
     clearTimers();
+    if (!host.state.internalOpen) return;
     host.state.internalOpen = false;
     trackVisible(false);
+    surface?.hide();
+    closeOverlay(document, overlayId);
+    if (trigger && host.props.trigger.value === "click") trigger.setAttribute("aria-expanded", "false");
     host.dispatch("close", { open: false, reason, trigger: input });
   };
+  const stopOverlayOpen = onOverlayOpen(document, (id) => {
+    if (id === overlayId) return;
+    clearTimers();
+    focused = false;
+    close("programmatic", "programmatic");
+  });
   const apply = () => {
     const externalOpen = Boolean(host.props.open.value);
     if (externalOpen !== lastExternalOpen) {
@@ -169,6 +179,7 @@ export default function controller(host) {
   apply();
   return () => {
     stop();
+    stopOverlayOpen();
     ids.stop();
     clearTimers();
     trackVisible(false);
