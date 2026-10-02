@@ -9,6 +9,7 @@
       colour, which overrides the tone.</prop>
     <prop name="shape" type="keyword" values="pill, tag" default="pill"
     >Silhouette. pill is rounded at both ends; tag is a label: flat at the start and coming to a point at the end, for a tag or a chosen chip.</prop>
+    <prop name="size" type="keyword" values="xs, md" default="md">Scale. xs is a compact count beside small controls; md is the usual text badge.</prop>
   </defs>
   <span><slot></slot></span>
   <style>
@@ -102,6 +103,15 @@
         text-box-trim: trim-both;
         text-box-edge: cap alphabetic;
       }
+    }
+
+    :host-state([size="xs"]) {
+      box-sizing: border-box;
+      min-inline-size: 1rem;
+      min-block-size: var(--ui-badge-min-block-size, 1rem);
+      padding: var(--ui-badge-padding-block, 0) var(--ui-badge-padding-inline, 0.125rem);
+      font-size: var(--ui-badge-font-size, var(--ui-font-size-2xs));
+      line-height: var(--ui-badge-line-height, 1);
     }
 
     :host-state([tone="accent"]) {
