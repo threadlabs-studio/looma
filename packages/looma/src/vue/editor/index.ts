@@ -5,6 +5,9 @@ export * from "./primitives";
 export {
   LoomaEditor,
   type LoomaEditorToolbarMode,
+  type LoomaLinkTarget,
+  type LoomaLinkSearch,
+  type LoomaLinkResolve,
   type LoomaImageUploader,
   type LoomaImageUploadResult,
 } from "./LoomaEditor";
