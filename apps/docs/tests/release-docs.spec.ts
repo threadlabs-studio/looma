@@ -1836,8 +1836,8 @@ test("every badge tone remains legible and visually distinct in light and dark t
     await page.reload({ waitUntil: "domcontentloaded" });
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
     const badges = page.locator("[data-preview-scenario] [data-component~='ui-badge']:not([data-ui-badge-state~='shape=dot'])");
-    // Default, five solid tones, five subtle tones, shape, outline, then custom colour examples.
-    await expect(badges).toHaveCount(23);
+    // Text treatments retain their order; the three square icon marks extend the gallery.
+    await expect(badges).toHaveCount(26);
     const treatments = await badges.evaluateAll((surfaces) => surfaces.map((surface) => {
       const style = getComputedStyle(surface);
       const canvas = document.createElement("canvas");
@@ -1899,6 +1899,15 @@ test("every badge tone remains legible and visually distinct in light and dark t
       expect(signal.clippedLabel).toBe("inset(50%)");
     }
     expect(signals[0]!.background).not.toBe(signals[1]!.background);
+    const squares = page.locator("[data-preview-scenario] [data-component~='ui-badge'][data-ui-badge-state~='shape=square']");
+    await expect(squares).toHaveCount(3);
+    for (const [index, size] of [32, 32, 24].entries()) {
+      const mark = squares.nth(index);
+      await expect(mark.locator("svg")).toBeVisible();
+      const bounds = await mark.boundingBox();
+      expect(bounds?.width).toBe(size);
+      expect(bounds?.height).toBe(size);
+    }
   }
 });
 
