@@ -103,7 +103,7 @@
 .looma-editor .ProseMirror blockquote {
   margin: var(--ui-space-4) 0;
   padding-left: var(--ui-space-4);
-  border-left: 3px solid var(--ui-accent-solid);
+  border-left: var(--ui-accent-line-width) solid var(--ui-accent-solid);
   color: var(--ui-text-secondary);
   font-style: italic;
 }
@@ -161,8 +161,8 @@
   --ui-callout-icon-column: 1rem;
   --ui-callout-gap: var(--ui-space-2);
   --ui-callout-icon-size: 1rem;
-  --ui-callout-border-width: 1px;
-  --ui-callout-leading-border-width: 4px;
+  --ui-callout-border-width: var(--ui-border-width);
+  --ui-callout-leading-border-width: var(--ui-accent-line-width);
   --ui-callout-surface: var(--ui-accent-soft);
   --ui-callout-text: var(--ui-text-primary);
   --ui-callout-border: var(--ui-accent-solid);
@@ -227,7 +227,7 @@
   margin: var(--ui-space-4) 0;
   padding: var(--ui-space-4);
   overflow-x: auto;
-  border: 1px solid var(--ui-border-default);
+  border: var(--ui-border-width) solid var(--ui-border-default);
   border-radius: var(--ui-radius-md);
   background: var(--ui-surface-muted);
   font-family: var(--ui-font-family-mono, ui-monospace, monospace);
@@ -242,7 +242,7 @@
   inline-size: 8.5rem;
   padding: var(--ui-editor-toolbar-floating-padding, 4px);
   background: color-mix(in srgb, var(--ui-editor-toolbar-surface, var(--ui-surface)) 96%, transparent);
-  border: 1px solid var(--ui-editor-toolbar-border, var(--ui-border-strong));
+  border: var(--ui-border-width) solid var(--ui-editor-toolbar-border, var(--ui-border-strong));
   border-radius: var(--ui-editor-toolbar-floating-radius, var(--ui-radius-lg));
   box-shadow: var(--ui-editor-toolbar-floating-shadow, var(--ui-shadow-lg, 0 10px 24px rgb(0 0 0 / 0.12)));
   backdrop-filter: blur(10px);
@@ -286,7 +286,7 @@
 .looma-editor .ProseMirror hr {
   margin: var(--ui-space-6) 0;
   border: 0;
-  border-top: 1px solid var(--ui-border-default);
+  border-top: var(--ui-border-width) solid var(--ui-border-default);
 }
 
 .looma-editor .ProseMirror mark {
@@ -337,8 +337,8 @@
 }
 
 .looma-editor .ProseMirror img[data-looma-image]:focus-visible {
-  outline: 2px solid var(--ui-focus-ring);
-  outline-offset: 3px;
+  outline: var(--ui-focus-width) solid var(--ui-focus-ring);
+  outline-offset: calc(var(--ui-focus-width) + var(--ui-border-width));
 }
 
 .looma-editor__file-input {
@@ -356,7 +356,7 @@
   gap: var(--ui-space-3);
   margin-top: var(--ui-space-3);
   padding: var(--ui-space-2) var(--ui-space-3);
-  border: 1px solid var(--ui-danger-solid);
+  border: var(--ui-border-width) solid var(--ui-danger-solid);
   border-radius: var(--ui-radius-md);
   background: var(--ui-danger-soft);
   color: var(--ui-text);
@@ -376,8 +376,8 @@
 }
 
 .looma-editor__upload-error button:focus-visible {
-  outline: 2px solid var(--ui-focus-ring);
-  outline-offset: 2px;
+  outline: var(--ui-focus-width) solid var(--ui-focus-ring);
+  outline-offset: var(--ui-focus-width);
 }
 
 .looma-editor__upload-error button:disabled {
@@ -394,7 +394,7 @@
   align-items: center;
   justify-content: center;
   gap: var(--ui-space-3);
-  border: 2px dashed var(--ui-accent-solid);
+  border: var(--ui-accent-line-width) dashed var(--ui-accent-solid);
   border-radius: var(--ui-radius-md);
   background: color-mix(in srgb, var(--ui-accent-soft) 92%, transparent);
   color: var(--ui-accent-active);
@@ -434,7 +434,7 @@
   z-index: var(--ui-editor-toolbar-z-index, 10);
   min-width: 0;
   background: var(--ui-editor-toolbar-surface, var(--ui-surface, #fff));
-  border-bottom: 1px solid var(--ui-editor-toolbar-border, var(--ui-border, #e5e7eb));
+  border-bottom: var(--ui-border-width) solid var(--ui-editor-toolbar-border, var(--ui-border, #e5e7eb));
 }
 
 .looma-editor__table-picker-popover,
@@ -475,7 +475,7 @@
   width: 100%;
   min-height: var(--ui-control-min-block-size);
   padding: var(--ui-space-2);
-  border: 1px solid var(--ui-control-border);
+  border: var(--ui-border-width) solid var(--ui-control-border);
   border-radius: var(--ui-field-radius, var(--ui-radius-md));
   background: var(--ui-control-surface);
   color: var(--ui-text-primary);
@@ -494,7 +494,7 @@
   width: 1.65rem;
   height: 1.65rem;
   padding: 0;
-  border: 1px solid var(--_chip-border);
+  border: var(--ui-border-width) solid var(--_chip-border);
   border-radius: 50%;
   background: var(--_chip-surface);
   color: var(--_chip-text);
@@ -505,8 +505,8 @@
 
 .looma-editor__chip-form :is(input, button):focus-visible,
 .looma-editor .ProseMirror [data-looma-chip]:focus-visible {
-  outline: 2px solid var(--ui-focus-ring);
-  outline-offset: 2px;
+  outline: var(--ui-focus-width) solid var(--ui-focus-ring);
+  outline-offset: var(--ui-focus-width);
 }
 
 .looma-editor__table-toolbar-shell,
@@ -531,7 +531,7 @@
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
   background: var(--ui-editor-toolbar-surface, var(--ui-surface, #fff));
-  border-top: 1px solid var(--ui-editor-toolbar-border, var(--ui-border, #e5e7eb));
+  border-top: var(--ui-border-width) solid var(--ui-editor-toolbar-border, var(--ui-border, #e5e7eb));
   box-shadow: var(--ui-editor-toolbar-mobile-shadow, 0 -2px 8px rgb(0 0 0 / 0.06));
 }
 
@@ -633,7 +633,7 @@
 
 .looma-editor .ProseMirror [data-looma-chip] {
   padding: 0.08em 0.45em;
-  border: 1px solid var(--_chip-border);
+  border: var(--ui-border-width) solid var(--_chip-border);
   border-radius: var(--ui-radius-round);
   background: var(--_chip-surface);
   color: var(--_chip-text);
@@ -680,7 +680,7 @@
 .ProseMirror th,
 .ProseMirror td {
   position: relative;
-  border: 1px solid var(--ui-border, #e5e7eb);
+  border: var(--ui-border-width) solid var(--ui-border, #e5e7eb);
   padding: var(--ui-space-2, 8px) var(--ui-space-3, 12px);
   vertical-align: top;
   min-width: var(--ui-editor-table-cell-min-width, 112px);

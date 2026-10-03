@@ -52,6 +52,11 @@ event reports `{ ids, trigger }` with the requested IDs in tree order; update th
 event. The tree sets `aria-multiselectable` in multiple mode. This keeps application data as the
 source of truth when a list is loaded or reordered.
 
+Tree rows share `--ui-selection-surface`, `--ui-selection-text`, and `--ui-selection-radius`
+with navigation and other selected rows. Their faint accent surface and readable accent text derive
+from the theme. The text token also reaches an automatic leading icon; an icon with an explicitly
+supplied color keeps it. Selection does not change the label weight.
+
 ## Moving items
 
 A `sortable` item shows a grip while its row is hovered. It sits beside what it drags: a leaf row has

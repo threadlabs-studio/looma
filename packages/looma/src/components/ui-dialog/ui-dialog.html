@@ -92,7 +92,7 @@
       overflow: hidden;
       flex-direction: column;
       background: var(--ui-dialog-surface, var(--ui-overlay-surface, var(--ui-surface-elevated)));
-      border: 1px solid var(--ui-dialog-border, var(--ui-overlay-border, var(--ui-border-strong)));
+      border: var(--ui-border-width) solid var(--ui-dialog-border, var(--ui-overlay-border, var(--ui-border-strong)));
       border-radius: var(--ui-dialog-radius, var(--ui-overlay-radius, var(--ui-radius-dialog)));
       box-shadow: var(--ui-dialog-shadow, var(--ui-overlay-shadow, var(--ui-elevation-dialog, var(--ui-shadow-xl))));
       visibility: hidden;
@@ -198,8 +198,8 @@
     }
 
     .close:focus-visible {
-      outline: 2px solid var(--ui-focus-ring);
-      outline-offset: 2px;
+      outline: var(--ui-focus-width) solid var(--ui-focus-ring);
+      outline-offset: var(--ui-focus-width);
     }
 
     /* A touch target, like Button on coarse pointers. */

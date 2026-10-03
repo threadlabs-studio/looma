@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Borders, dividers, emphasis edges, and keyboard focus now follow shared semantic width tokens across components and the editor.
+- **Visual default change for selected rows (0.23):** navigation, trees, lists, search results, and choices share a faint accent surface, readable accent text, and selection corners. Nav Item keeps regular label weight and has no stripe by default; `variant="line"` provides a square, continuous edge marker. The previous rounded surface and inset stripe combined incompatible edge treatments; the surface default works alongside other row selections, while apps that need an edge explicitly choose `variant="line"`. Existing instance hooks remain available.
+- Nav Item supports compact rows. The icon catalog includes compass and history icons.
+
+- Disclosure can fill the available height in a bounded accordion, keeping its header visible while a nested Scroll Area scrolls. Its indicator slot accepts a custom decorative icon.
+
 - Link pickers use standard fields, flat rich search results, and primary/secondary actions. With a destination search provider, one field searches or accepts a pasted full URL without switching modes. Existing-link actions use the same controls and UI font. Compact results show three rows before scrolling. Link is available from selected text, and `linkBaseUrl` makes newly inserted same-origin links relative across picker and paste flows.
 
 - Typing `/link` opens the editor's link picker, including host-supplied destination search when available.

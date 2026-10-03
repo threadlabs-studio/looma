@@ -38,7 +38,7 @@
     :host {
       padding: var(--ui-space-3);
       background: var(--ui-surface);
-      border: 1px solid var(--ui-border-strong);
+      border: var(--ui-border-width) solid var(--ui-border-strong);
       border-radius: var(--ui-radius-md);
       box-shadow: var(--ui-shadow-lg, 0 10px 15px -3px rgb(0 0 0 / 0.1));
     }
@@ -83,8 +83,8 @@
       width: 1.25rem;
       height: 1.25rem;
       padding: 0;
-      border: 1px solid var(--ui-control-border);
-      border-radius: 2px;
+      border: var(--ui-border-width) solid var(--ui-control-border);
+      border-radius: var(--ui-radius-sm);
       background: var(--ui-surface);
       cursor: pointer;
     }
@@ -95,8 +95,8 @@
     }
 
     .cell:focus-visible {
-      outline: 2px solid var(--ui-focus-ring);
-      outline-offset: -2px;
+      outline: var(--ui-focus-width) solid var(--ui-focus-ring);
+      outline-offset: calc(-1 * var(--ui-focus-width));
     }
 
     .header {

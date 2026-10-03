@@ -117,7 +117,7 @@
       position: relative;
       box-sizing: border-box;
       max-inline-size: var(--_ui-tooltip-max-inline-size, 18rem);
-      border: 1px solid var(--_tooltip-line);
+      border: var(--ui-border-width) solid var(--_tooltip-line);
       border-radius: var(--_ui-tooltip-radius, var(--ui-overlay-radius, var(--ui-radius-md)));
       background: var(--_ui-tooltip-surface, var(--ui-overlay-surface, var(--ui-surface-elevated)));
       color: var(--_ui-tooltip-text, var(--ui-text-primary));
@@ -165,27 +165,27 @@
       position: absolute;
       z-index: 1;
       inset-inline-start: var(--ui-space-3);
-      inset-block-end: calc(var(--_ui-tooltip-arrow-size, 0.625rem) / -2 - 0.5px);
+      inset-block-end: calc(var(--_ui-tooltip-arrow-size, 0.625rem) / -2 - var(--ui-border-width) / 2);
       inline-size: var(--_ui-tooltip-arrow-size, 0.625rem);
       block-size: var(--_ui-tooltip-arrow-size, 0.625rem);
       box-sizing: border-box;
       background: inherit;
       border: 0 solid var(--_tooltip-line);
-      border-inline-end-width: 1px;
-      border-block-end-width: 1px;
-      border-end-end-radius: 1px;
+      border-inline-end-width: var(--ui-border-width);
+      border-block-end-width: var(--ui-border-width);
+      border-end-end-radius: var(--ui-border-width);
       transform: rotate(45deg) scaleX(1.25) scaleY(0.85);
     }
 
     :host[data-ui-actual-placement="bottom"] .surface::after {
-      inset-block-start: calc(var(--_ui-tooltip-arrow-size, 0.625rem) / -2 - 0.5px);
+      inset-block-start: calc(var(--_ui-tooltip-arrow-size, 0.625rem) / -2 - var(--ui-border-width) / 2);
       inset-block-end: auto;
       border-inline-end-width: 0;
       border-block-end-width: 0;
-      border-inline-start-width: 1px;
-      border-block-start-width: 1px;
+      border-inline-start-width: var(--ui-border-width);
+      border-block-start-width: var(--ui-border-width);
       border-end-end-radius: 0;
-      border-start-start-radius: 1px;
+      border-start-start-radius: var(--ui-border-width);
     }
 
     :host[data-ui-actual-align="center"] .surface::after {
@@ -206,16 +206,16 @@
 
     :host[data-ui-actual-placement="left"] .surface::after {
       inset-inline-start: auto;
-      inset-inline-end: calc(var(--_ui-tooltip-arrow-size, 0.625rem) / -2 - 0.5px);
-      border-inline-end-width: 1px;
-      border-block-start-width: 1px;
+      inset-inline-end: calc(var(--_ui-tooltip-arrow-size, 0.625rem) / -2 - var(--ui-border-width) / 2);
+      border-inline-end-width: var(--ui-border-width);
+      border-block-start-width: var(--ui-border-width);
     }
 
     :host[data-ui-actual-placement="right"] .surface::after {
-      inset-inline-start: calc(var(--_ui-tooltip-arrow-size, 0.625rem) / -2 - 0.5px);
+      inset-inline-start: calc(var(--_ui-tooltip-arrow-size, 0.625rem) / -2 - var(--ui-border-width) / 2);
       inset-inline-end: auto;
-      border-inline-start-width: 1px;
-      border-block-end-width: 1px;
+      border-inline-start-width: var(--ui-border-width);
+      border-block-end-width: var(--ui-border-width);
     }
 
     :host[data-ui-actual-placement="left"][data-ui-actual-align="start"] .surface::after,

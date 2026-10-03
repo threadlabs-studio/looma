@@ -49,7 +49,7 @@
 
     :host {
       background: var(--ui-surface);
-      border: 1px solid var(--ui-border-strong);
+      border: var(--ui-border-width) solid var(--ui-border-strong);
       border-radius: var(--ui-radius-dialog);
       box-shadow: var(--ui-shadow-lg, 0 8px 24px rgb(0 0 0 / 0.12));
       overflow: hidden;
@@ -69,7 +69,7 @@
       align-items: center;
       gap: var(--ui-space-2);
       padding: var(--ui-space-3) var(--ui-space-4);
-      border-bottom: 1px solid var(--ui-border-divider);
+      border-bottom: var(--ui-border-width) solid var(--ui-border-divider);
       font-size: var(--ui-font-size-xs);
       color: var(--ui-text-muted);
       font-weight: var(--ui-font-semibold);
@@ -147,7 +147,7 @@
       width: 32px;
       height: 32px;
       background: var(--ui-surface-hover);
-      border: 1px solid var(--ui-border);
+      border: var(--ui-border-width) solid var(--ui-border);
       border-radius: var(--ui-radius-md);
       font-size: var(--ui-font-size-sm);
       font-weight: var(--ui-font-bold);
@@ -194,7 +194,7 @@
 
     .footer {
       padding: var(--ui-space-2) var(--ui-space-3);
-      border-top: 1px solid var(--ui-border-divider);
+      border-top: var(--ui-border-width) solid var(--ui-border-divider);
       font-size: var(--ui-font-size-xs);
       color: var(--ui-text-muted);
     }
@@ -206,8 +206,8 @@
       font-family: var(--ui-font-family-mono, ui-monospace, monospace);
       font-size: var(--ui-font-size-2xs);
       background: var(--ui-surface-hover);
-      border: 1px solid var(--ui-border);
-      border-radius: 3px;
+      border: var(--ui-border-width) solid var(--ui-border);
+      border-radius: var(--ui-radius-sm);
       padding: 0 3px;
       color: var(--ui-text-secondary);
     }

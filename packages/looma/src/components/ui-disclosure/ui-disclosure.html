@@ -2,6 +2,9 @@
   <defs>
     <prop name="density" type="keyword" values="comfortable, compact" default="comfortable"
     >Compact trades padding and type size for rows that fit more on screen.</prop>
+    <prop name="fill" type="boolean" default="false"
+    >In a column with a bounded height, an open disclosure fills the remaining space and keeps its trigger visible. The content slot can contain a Scroll Area.
+      Closed items keep only their trigger height.</prop>
     <prop name="summary" type="string" default="Details"
     >The text of the trigger row that opens and closes the disclosure. It is the trigger button's accessible name, so name what the content is.</prop>
     <prop name="open" type="boolean" default="false"
@@ -38,7 +41,7 @@
     <div class="heading" from:role="headingRole" from:aria-level="headingAriaLevel">
       <button class="trigger" type="button" $ref="trigger" from:aria-controls="contentId" from:aria-expanded="internalOpen" from:disabled="disabled">
         <span class="summary"><slot name="summary"><template $value="summary"></template></slot></span>
-        <span class="chevron" aria-hidden="true"></span>
+        <slot name="indicator"><span class="chevron" aria-hidden="true"></span></slot>
       </button>
     </div>
     <div class="panel" $ref="panel" from:id="contentId"><div class="panel-inner"><slot></slot></div></div>
@@ -82,7 +85,7 @@
       display: block;
       inline-size: 100%;
       overflow: clip;
-      border-block-end: 1px solid var(--ui-border-divider);
+      border-block-end: var(--ui-border-width) solid var(--ui-border-divider);
       color: var(--ui-text-primary);
     }
 
@@ -111,7 +114,7 @@
     }
     .trigger:focus-visible {
       outline: none;
-      box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--ui-focus-ring) 45%, transparent);
+      box-shadow: inset 0 0 0 var(--ui-focus-width) color-mix(in srgb, var(--ui-focus-ring) 45%, transparent);
     }
     .trigger:disabled {
       color: var(--ui-disabled-text);
@@ -147,6 +150,43 @@
     }
     :host-state([internalOpen]) .chevron {
       transform: rotate(225deg) translate(-1px, -1px);
+    }
+
+    /* A bounded accordion owns one flexible body, so its trigger never scrolls away. The
+     * normal content-sized layout and its animation remain unchanged when fill is omitted. */
+    :host-state([fill]) {
+      display: flex;
+      flex-direction: column;
+      flex: none;
+      min-block-size: 0;
+      border-block-end: 0;
+      border-block-start: var(--ui-border-width) solid var(--ui-border-divider);
+    }
+    :host-state([fill][internalOpen]) {
+      flex: 1;
+    }
+    :host-state([fill]) .heading {
+      flex: none;
+    }
+    :host-state([fill]) .trigger {
+      border-radius: 0;
+    }
+    :host-state([fill]) .panel {
+      display: flex;
+      flex: 1;
+      min-block-size: 0;
+      transition: none;
+    }
+    :host-state([fill]) .panel[hidden] {
+      flex: none;
+      block-size: 0;
+    }
+    :host-state([fill]) .panel-inner {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-block-size: 0;
+      padding: 0;
     }
 
     @media (prefers-reduced-motion: reduce) {

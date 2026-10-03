@@ -122,7 +122,7 @@
       margin-inline: auto;
       overflow: hidden;
       background: var(--_ui-search-shell-surface, var(--ui-overlay-surface, var(--ui-surface-elevated)));
-      border: 1px solid var(--_ui-search-shell-border, var(--ui-overlay-border, var(--ui-border-strong)));
+      border: var(--ui-border-width) solid var(--_ui-search-shell-border, var(--ui-overlay-border, var(--ui-border-strong)));
       border-radius: var(--_ui-search-shell-radius, var(--ui-overlay-radius, var(--ui-radius-dialog)));
       box-shadow: var(--_ui-search-shell-shadow, var(--ui-overlay-shadow, var(--ui-elevation-dialog, var(--ui-shadow-xl))));
     }
@@ -136,7 +136,7 @@
       inline-size: 100%;
       min-block-size: var(--ui-control-min-block-size);
       padding: var(--ui-space-2) var(--ui-space-3);
-      border: 1px solid var(--ui-control-border);
+      border: var(--ui-border-width) solid var(--ui-control-border);
       border-radius: var(--ui-field-radius, var(--ui-radius-md));
       background: var(--ui-control-surface);
       color: var(--ui-text-primary);
@@ -146,8 +146,8 @@
 
     :slotted(input[slot="search"]:focus-visible) {
       border-color: var(--_ui-search-shell-focus-color, var(--ui-control-focus));
-      outline: 2px solid var(--ui-focus-ring);
-      outline-offset: 2px;
+      outline: var(--ui-focus-width) solid var(--ui-focus-ring);
+      outline-offset: var(--ui-focus-width);
     }
 
     .status,

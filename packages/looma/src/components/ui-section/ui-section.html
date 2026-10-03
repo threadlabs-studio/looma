@@ -30,19 +30,19 @@
 
     :host-state([variant="card"]) {
       padding: var(--ui-space-5);
-      border: 1px solid var(--ui-border-strong);
+      border: var(--ui-border-width) solid var(--ui-border-strong);
       border-radius: var(--ui-radius-lg);
       background: var(--ui-surface-raised);
     }
 
     :host-state([variant="divided"]) {
       padding-block-start: var(--ui-space-6);
-      border-block-start: 1px solid var(--ui-border-divider);
+      border-block-start: var(--ui-border-width) solid var(--ui-border-divider);
     }
 
     :host-state([variant="card"][tone="danger"]) {
       border-color: color-mix(in srgb, var(--ui-danger) 45%, var(--ui-border-default));
-      border-inline-start: 4px solid var(--ui-danger);
+      border-inline-start: var(--ui-accent-line-width) solid var(--ui-danger);
       background: var(--ui-danger-soft);
     }
 

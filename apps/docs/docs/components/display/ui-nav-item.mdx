@@ -42,23 +42,36 @@ and a modified click still opens a new tab:
 </RouterLink>
 ```
 
+Set `density="compact"` for the smaller type and row spacing used alongside a compact tree.
+
 ## Current
 
 `current` marks where you are. It sets `aria-current`, which assistive technology announces:
 `current="true"` (or `current="page"`) is the page, `current="step"` the step of a process, and `current="location"`
 your place in a set. Set it on one item at a time.
 
-The current item takes the selected surface, a stronger label, and a solid bar on its start edge.
-The bar is a border rather than a fill, so it stays when forced colors (Windows High Contrast)
-replace backgrounds, in the system highlight colour. Its edge is logical, so in a right-to-left
-page it is on the right. The focus ring is an outline inside the item, which forced colors keep and
-a scrolling rail cannot clip.
+The default `variant="surface"` uses a faint selected surface and accent text, with the same
+label weight as an unselected item. It has rounded corners and no edge stripe. Set
+`variant="line"` for a square item with a continuous line along its logical start edge. The line
+moves to the right in a right-to-left page. These are complete treatments; do not combine a rounded
+surface with an inset stripe.
+
+**Migration:** the default used to combine rounded corners, a stronger label, and an inset bar.
+Use `variant="line"` when the edge marker is useful. Its default width now follows the global
+accent-line width rather than a separate three-pixel value.
+
+Both treatments retain an inset keyboard-focus outline. In forced colors, a current surface item
+gets a complete highlight outline; a line item retains its highlight edge. Focus remains distinct
+from selection.
 
 | Token | Default | Sets |
 | --- | --- | --- |
-| `--ui-nav-item-indicator-width` | `3px` | The bar's width. |
-| `--ui-nav-item-indicator-color` | `--ui-accent` | The bar's colour. |
-| `--ui-nav-item-current-surface` | `--ui-accent-soft` | The current item's surface. |
+| `--ui-selection-surface` | 6% accent mixed into the page surface | Selected rows across navigation, trees, lists, search and choices. |
+| `--ui-selection-text` | `--ui-accent-subtle-text` | Their selected foreground. Explicitly colored icons keep their colors. |
+| `--ui-selection-radius` | `--ui-radius-md` | Their surface corners. Line navigation stays square. |
+| `--ui-nav-item-indicator-width` | `--ui-accent-line-width` | The line variant's edge width. |
+| `--ui-nav-item-indicator-color` | `--ui-accent` | The line variant's edge color. |
+| `--ui-nav-item-current-surface` | `--ui-selection-surface` | A deliberate surface override on this instance. |
 | `--ui-nav-item-inline-size` | `100%` | The item's width. It fills its container unless set. |
 
 ## Grouping

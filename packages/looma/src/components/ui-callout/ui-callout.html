@@ -106,8 +106,9 @@
       padding-block: var(--ui-callout-padding-block, var(--ui-space-2));
       padding-inline-start: var(--ui-callout-padding-inline, var(--ui-space-2));
       padding-inline-end: var(--ui-callout-padding-inline, var(--ui-space-3));
-      border: var(--ui-callout-border-width, 1px) solid color-mix(in srgb, var(--ui-callout-border, var(--_callout-border)) 35%, transparent);
-      border-inline-start: var(--ui-callout-leading-border-width, 4px) solid var(--ui-callout-border, var(--_callout-border));
+      border: var(--ui-callout-border-width, var(--ui-border-width)) solid
+        color-mix(in srgb, var(--ui-callout-border, var(--_callout-border)) 35%, transparent);
+      border-inline-start: var(--ui-callout-leading-border-width, var(--ui-accent-line-width)) solid var(--ui-callout-border, var(--_callout-border));
       border-radius: var(--ui-radius-md);
       background: var(--ui-callout-surface, var(--_callout-surface));
       color: var(--ui-callout-text, var(--ui-text-primary));

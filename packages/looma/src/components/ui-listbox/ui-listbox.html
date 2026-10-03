@@ -105,7 +105,7 @@
       min-inline-size: 0;
       margin: 0;
       padding: var(--ui-space-1);
-      border: 1px solid var(--ui-listbox-border, var(--ui-control-border));
+      border: var(--ui-border-width) solid var(--ui-listbox-border, var(--ui-control-border));
       border-radius: var(--ui-listbox-radius, var(--ui-field-radius, var(--ui-radius-md)));
       background: var(--ui-listbox-surface, var(--ui-control-surface));
       color: var(--ui-text-primary);
@@ -149,8 +149,8 @@
 
     :host:focus-visible {
       border-color: var(--ui-control-focus);
-      outline: 2px solid var(--ui-focus-ring);
-      outline-offset: 2px;
+      outline: var(--ui-focus-width) solid var(--ui-focus-ring);
+      outline-offset: var(--ui-focus-width);
       box-shadow: var(--ui-listbox-focus-shadow, var(--ui-focus-halo));
     }
 

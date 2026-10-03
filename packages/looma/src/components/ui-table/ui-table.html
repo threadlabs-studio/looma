@@ -51,8 +51,8 @@
     }
 
     :host:focus-visible {
-      outline: 2px solid var(--ui-focus-ring);
-      outline-offset: -2px;
+      outline: var(--ui-focus-width) solid var(--ui-focus-ring);
+      outline-offset: calc(-1 * var(--ui-focus-width));
     }
 
     :host-state([density="compact"]) {
@@ -85,7 +85,7 @@
     :slotted(td) {
       block-size: var(--_row-size);
       padding: var(--_pad-block) var(--_pad-inline);
-      border-block-end: 1px solid var(--ui-border-subtle);
+      border-block-end: var(--ui-border-width) solid var(--ui-border-subtle);
       text-align: start;
       vertical-align: middle;
     }

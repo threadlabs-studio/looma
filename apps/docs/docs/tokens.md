@@ -124,6 +124,36 @@ through `--ui-button-disabled-filter` and `--ui-icon-button-disabled-filter`.
 | Motion | `--ui-motion-fast`, `--ui-motion-ease` |
 | Controls | `--ui-control-size`, `-size-sm`, `--ui-control-min-block-size` |
 
+## Line weights and selection
+
+Use semantic dimensions for visual edges. `--ui-border-width` defaults to `1px` for ordinary
+borders and dividers. `--ui-accent-line-width` aliases it for emphasis edges and line selection.
+`--ui-focus-width` defaults to `2px` for keyboard focus. Changing the border width therefore
+changes the emphasis width too, unless a theme deliberately sets them independently.
+
+Selected navigation, tree, list, search, and choice rows share `--ui-selection-surface`,
+`--ui-selection-text`, and `--ui-selection-radius`. They derive from the accent, page surface,
+readable accent text, and medium radius. The default tint is 6%; selected navigation keeps its
+resting label weight. A Nav Item's `variant="line"` is a discrete square-edge treatment, not a
+radius override.
+
+```css
+:root {
+  --ui-border-width: 1px;
+  --ui-focus-width: 2px;
+  --ui-radius-md: 0.5rem;
+}
+
+/* A deliberate independent emphasis weight at a theme boundary. */
+[data-theme="dark"] {
+  --ui-accent-line-width: 2px;
+}
+```
+
+A component hook can still override its own edge or surface. Glyph strokes, circular shapes,
+shadow lighting, and positioning corrections are not surface-border roles; they retain their
+own geometry. The shared focus role never doubles as the selected-state marker.
+
 ## Derived values
 
 Everything else in `tokens.css` is computed from the contract: the intent tones (`--ui-accent-solid`,
