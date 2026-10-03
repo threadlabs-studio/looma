@@ -19,4 +19,6 @@ test('inline styling is inspected in full rather than only its first property', 
   assert.equal(inlineStyles('el.style.color = "red"; el.style.setProperty("--x", "1"); el.setAttribute("style", "color:red");').length, 3);
   assert.equal(inlineStyles('Object.assign(el.style, { color: "red" });').length, 1);
   assert.deepEqual(additions([...original, ...original], original), original);
+  assert.ok(inlineStyles('<div :style="appearance" />').length > 0, 'Vue template style bindings are checked');
+  assert.ok(inlineStyles('const view = <div style={{ padding: 24 }} />;').length > 0, 'JSX style attributes are checked');
 });
