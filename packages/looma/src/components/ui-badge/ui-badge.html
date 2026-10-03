@@ -7,15 +7,21 @@
     >Which colour the badge speaks in. neutral is a quiet grey for plain labels; accent draws the eye in the accent colour; info, success, warning, and danger
       mark a status, so match the tone to what the badge says. For a category rather than a status, set the --ui-badge-color hook on the badge instead: any CSS
       colour, which overrides the tone.</prop>
-    <prop name="shape" type="keyword" values="pill, tag, dot" default="pill"
+    <prop name="shape" type="keyword" values="pill, tag, dot, square" default="pill"
     >Silhouette. pill is rounded at both ends; tag is a pointed label. dot is a compact circular signal with visually hidden text: include a state label, or set
-      aria-hidden when the surrounding control already names that state.</prop>
-    <prop name="size" type="keyword" values="xs, md" default="md">Scale. xs is a compact count beside small controls; md is the usual text badge.</prop>
+      aria-hidden when the surrounding control already names that state. square is a fixed rounded square for an icon or single glyph beside a heading; hide a
+      decorative icon when adjacent words name it.</prop>
+    <prop name="size" type="keyword" values="xs, md" default="md"
+    >Scale. xs is a compact count beside small controls; md is the usual text badge. A square is 24px at xs and 32px at md with default spacing.</prop>
   </defs>
   <span><span class="label"><slot></slot></span></span>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
     @property --ui-badge-border {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-badge-square-size {
       syntax: "*";
       inherits: false;
     }
@@ -219,6 +225,31 @@
     :host-state([variant="outline"][tone="info"]) {
       --_badge-border: var(--ui-info-solid);
       --_badge-text: var(--ui-info-subtle-text, var(--ui-info-solid));
+    }
+
+    /* An icon mark keeps the existing tone recipe and follows the global spacing and radius. */
+    :host-state([shape="square"]) {
+      --_badge-square-size: var(--ui-badge-square-size, calc(var(--ui-space-4) * 2));
+      display: inline-flex;
+      box-sizing: border-box;
+      flex: none;
+      inline-size: var(--_badge-square-size);
+      block-size: var(--_badge-square-size);
+      min-inline-size: var(--_badge-square-size);
+      min-block-size: var(--_badge-square-size);
+      padding: 0;
+      border-radius: var(--ui-radius-md);
+      text-box-trim: none;
+    }
+
+    :host-state([shape="square"][size="xs"]) {
+      --_badge-square-size: var(--ui-badge-square-size, calc(var(--ui-space-3) * 2));
+    }
+
+    :host-state([shape="square"]) .label {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
 
     /* A dot uses the badge's tone recipe; only its silhouette and visible label change. */
