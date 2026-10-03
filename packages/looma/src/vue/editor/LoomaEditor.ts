@@ -1552,7 +1552,8 @@ export const LoomaEditor = defineComponent({
           "data-active": instance.isActive("link") ? "true" : "false",
           onPointerenter: () => showTool(linkTriggerId, "Link", false),
           onPointerleave: hideTool,
-          onPointerdown: () => {
+          onPointerdown: (event: PointerEvent) => {
+            event.preventDefault();
             linkPopoverAnchorId.value = linkTriggerId;
             const selection = instance.state.selection;
             linkPressedSelection = selection.empty ? null : { from: selection.from, to: selection.to };
@@ -1760,7 +1761,7 @@ export const LoomaEditor = defineComponent({
               onValueChange: (event: CustomEvent<{ value: string | null; kind: string }>) => chooseCodeLanguage(event.detail),
             }, () => codeLanguageOptions.value.map((option) => h("option", { value: option.value }, option.label)))])
           : null,
-        instance && props.editable && mobile.value && editorFocused.value
+        instance && props.editable && mobile.value && (editorFocused.value || linkOpen.value)
           ? h("div", {
               ref: mobileToolbarShell,
               class: "looma-editor__mobile-toolbar-shell",
