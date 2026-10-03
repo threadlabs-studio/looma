@@ -3059,6 +3059,51 @@ describe("Quiet attention presentation", () => {
   });
 });
 
+describe("Readable explanatory lists", () => {
+  it("wraps full titles and descriptions at 375px in HTML and Vue", async () => {
+    const title = "A person asked you to review the updated account recovery guide";
+    const description = "Check the recovery steps, device checks, and the contact details before continuing.";
+    for (const framework of ["html", "vue"] as const) {
+      const path = await bundle(`${framework}-wrapped-list`, framework === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { List, ListItem, Button, Icon, IconButton } from "@threadlabs/looma/vue";
+        createApp({ render: () => [
+          h(IconButton, { id: "bell", label: "Notifications" }, () => h(Icon, { name: "bell" })),
+          h(List, {}, () => [
+            h(ListItem, { id: "wrapped", wrap: true }, { default: () => ${JSON.stringify(title)}, description: () => ${JSON.stringify(description)}, trailing: () => h(Button, { size: "sm" }, () => "Review") }),
+            h(ListItem, { id: "ordinary" }, () => ${JSON.stringify(title)}),
+          ]),
+        ] }).mount("#app");
+      `);
+      const page = await open(path, framework === "vue" ? '<div id="app"></div>' : `
+        <ui-icon-button id="bell" label="Notifications"><ui-icon name="bell"></ui-icon></ui-icon-button>
+        <ui-list>
+          <ui-list-item id="wrapped" wrap>${title}<span slot="description">${description}</span><ui-button slot="trailing" size="sm">Review</ui-button></ui-list-item>
+          <ui-list-item id="ordinary">${title}</ui-list-item>
+        </ui-list>
+      `, [join(root, "tokens.css"), join(root, "vue/components.css")], { viewport: { width: 375, height: 812 } });
+      const geometry = await page.evaluate(() => {
+        const title = document.querySelector("#wrapped .title")! as HTMLElement;
+        const description = document.querySelector("#wrapped .description")! as HTMLElement;
+        const ordinary = document.querySelector("#ordinary .title")!;
+        return { title: { wrap: getComputedStyle(title).whiteSpace, height: title.clientHeight, scroll: title.scrollWidth, width: title.clientWidth },
+          description: { wrap: getComputedStyle(description).whiteSpace, height: description.clientHeight, scroll: description.scrollWidth, width: description.clientWidth },
+          ordinary: getComputedStyle(ordinary).whiteSpace, width: document.documentElement.scrollWidth,
+          icon: document.querySelectorAll("#bell svg path").length };
+      });
+      assert.equal(geometry.ordinary, "nowrap");
+      for (const text of [geometry.title, geometry.description]) {
+        assert.equal(text.wrap, "normal");
+        assert.ok(text.height > 24, `${framework}: explanatory text has multiple visible lines`);
+        assert.ok(text.scroll <= text.width, `${framework}: full text fits without horizontal clipping`);
+      }
+      assert.ok(geometry.width <= 375);
+      assert.ok(geometry.icon > 0);
+      await page.close();
+    }
+  });
+});
+
 describe("Shared visual geometry", () => {
   it("themes border, accent, focus, and row corners through global semantic dimensions", async () => {
     const path = await bundle("html-global-visual-geometry", `import "@threadlabs/looma";`);
