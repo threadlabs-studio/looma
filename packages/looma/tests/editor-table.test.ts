@@ -167,6 +167,7 @@ describe("LoomaEditor links", () => {
   it("keeps the icon gap compact and shows three results before scrolling", async () => {
     for (const width of [1280, 375]) {
       const page = await openEditor("<p>Hello</p>", "sticky", true);
+      await page.addStyleTag({ content: "body { font: 16px/1.5 sans-serif; } button { font: inherit; }" });
       await page.setViewportSize({ width, height: 760 });
       await prose(page).locator("p").dblclick({ position: { x: 16, y: 8 } });
       const toolbar = width === 375 ? page.locator(".looma-editor__mobile-toolbar-shell") : page.getByRole("toolbar");
