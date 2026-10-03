@@ -768,7 +768,8 @@ export const LoomaEditor = defineComponent({
               const value = (event.target as HTMLInputElement).value;
               if (props.linkSearch) {
                 linkQuery.value = value;
-                linkMode.value = /^(https?:\/\/|mailto:|tel:)/i.test(value.trim()) ? "url" : "target";
+                linkMode.value = /^(https?:\/\/|mailto:|tel:)/i.test(value.trim())
+                  || (linkSelection?.existing && /^(\/|\.\.?\/|#|\?)/.test(value.trim())) ? "url" : "target";
                 linkSelectedTarget.value = null;
               }
               linkHref.value = value;
@@ -857,7 +858,7 @@ export const LoomaEditor = defineComponent({
       const target = linkContextTarget.value;
       return h(Cluster, { gap: "xs", wrap: "nowrap", role: "group", "aria-label": "Link actions" }, () => [
         loomaIcon(target ? "file-text" : "link"),
-        h(Stack, { gap: "none", title: href, "aria-label": `${target ? props.linkTargetLabel : "External URL"}: ${target?.label ?? href}` }, () => [
+        h(Stack, { gap: "none", title: href, "aria-label": `${target ? props.linkTargetLabel : "URL"}: ${target?.label ?? href}` }, () => [
           h(Text, { as: "strong", size: "sm", weight: "medium", font: "sans", wrap: "anywhere" }, () => target?.label ?? href),
           target?.detail ? h(Text, { as: "small", size: "xs", tone: "secondary", font: "sans" }, () => target.detail) : null,
         ]),

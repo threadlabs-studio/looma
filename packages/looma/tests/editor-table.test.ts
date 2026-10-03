@@ -341,13 +341,23 @@ describe("LoomaEditor links", () => {
     await phone.close();
   });
 
+  it("edits an existing relative URL in the combined destination field", async () => {
+    const page = await openEditor('<p><a href="/before#part">Read</a></p>', "sticky", true);
+    await prose(page).getByRole("link", { name: "Read" }).click();
+    await page.getByRole("group", { name: "Link actions" }).getByRole("button", { name: "Edit link" }).click();
+    await linkForm(page).getByRole("searchbox", { name: "Link destination" }).fill("/after?q=one#part");
+    await linkForm(page).getByRole("button", { name: "Save link" }).click();
+    await equals(() => prose(page).getByRole("link", { name: "Read" }).getAttribute("href"), "/after?q=one#part", "editing a relative destination does not turn it into a search query");
+    await page.close();
+  });
+
   it("shows link actions at a caret inside linked text and edits that link in place", async () => {
     const page = await openEditor('<p>See <a href="/guide" target="_self">guide</a> next</p>');
     const link = prose(page).getByRole("link", { name: "guide" });
     await link.click();
     const actions = page.getByRole("group", { name: "Link actions" });
     await actions.waitFor();
-    assert.equal(await actions.getByLabel("External URL: /guide").count(), 1);
+    assert.equal(await actions.getByLabel("URL: /guide").count(), 1);
     assert.match(await actions.textContent() ?? "", /\/guide/);
     await actions.getByRole("button", { name: "Edit link" }).click();
     await linkForm(page).getByRole("textbox", { name: "URL" }).fill("/new-guide");
