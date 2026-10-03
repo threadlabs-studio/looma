@@ -12,6 +12,9 @@ import { assembleComponentPackage } from "@nextwebwg/html-next";
 import vue from "@vitejs/plugin-vue";
 import { build } from "vite";
 
+import { assertStyleSources } from "../../tools/scripts/style-source-policy.mjs";
+await assertStyleSources();
+
 const root = dirname(fileURLToPath(import.meta.url));
 const assembled = join(root, ".build");
 const outputs = ["dist", "vue", "vanilla", "components", "styles", "editor"];

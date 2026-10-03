@@ -1,5 +1,7 @@
 <template component="ui-search-result-row">
   <defs>
+    <prop name="density" type="keyword" values="comfortable, compact" default="comfortable"
+    >Compact keeps a title and location together in a 3.125rem row for small destination pickers; comfortable preserves the existing rich result spacing.</prop>
     <prop name="disabled" type="boolean" default="false"
     >Disables the row's button, so it cannot be chosen or focused, and gives it a flat muted treatment.</prop>
     <prop name="selected" type="boolean" default="false"
@@ -67,6 +69,15 @@
       cursor: pointer;
       text-align: left;
       transition: background-color var(--ui-motion-fast) var(--ui-motion-ease);
+    }
+
+    :host-state([density="compact"]) {
+      min-block-size: var(--ui-search-result-row-min-height, 3.125rem);
+      padding-block: var(--ui-search-result-row-padding-block, var(--ui-space-1));
+      padding-inline: var(--ui-search-result-row-padding-inline, var(--ui-space-2));
+      gap: var(--ui-search-result-row-gap, var(--ui-space-2));
+      align-items: center;
+      font-family: var(--ui-font-family-sans, sans-serif);
     }
 
     :host:hover:enabled {
