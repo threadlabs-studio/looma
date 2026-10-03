@@ -23,7 +23,7 @@
     --ui-surface-raised: #ffffff;
     --ui-surface-sunken: #f0f0ec;
     --ui-text: #1a1a1a;
-    --ui-focus-halo: 0 0 0 3px color-mix(in srgb, var(--ui-focus-ring) 40%, transparent);
+    --ui-focus-halo: 0 0 0 calc(var(--ui-focus-width) * 1.5) color-mix(in srgb, var(--ui-focus-ring) 40%, transparent);
 
     /* Type. */
     --ui-font-sans:
@@ -47,6 +47,11 @@
     --ui-space-2: 0.5rem;
     --ui-space-3: 0.75rem;
     --ui-space-4: 1rem;
+
+    /* Line dimensions by role. Accent edges follow ordinary lines unless deliberately themed;
+       keyboard focus is independent so a quiet border theme cannot erase the focus indicator. */
+    --ui-border-width: 1px;
+    --ui-focus-width: 2px;
 
     /* Radius. */
     --ui-radius-sm: 0.25rem;
@@ -80,6 +85,8 @@
      never has to: these exist so components share one vocabulary, not to be configured. */
   :root,
   :where([data-theme], [data-contrast]) {
+    --ui-accent-line-width: var(--ui-border-width);
+
     /* Type scale, from the base size. */
     --ui-font-size-2xs: calc(var(--ui-font-size) * 0.6875);
     --ui-font-size-xs: calc(var(--ui-font-size) * 0.75);
@@ -168,10 +175,11 @@
 
     /* Intent tones: a solid surface, its foreground, and a soft tint of each. */
     --ui-accent-solid: var(--ui-accent);
-    /* Optional inherited selection semantics. CSS-wide initial leaves these unset, so each
-     * component keeps its established fallback until a theme opts into a shared treatment. */
-    --ui-selection-surface: initial;
-    --ui-selection-text: initial;
+    /* One quiet selection recipe for destination/content rows. Hue derives from the brand;
+       corners derive from the scale, and selected labels retain their resting weight. */
+    --ui-selection-surface: color-mix(in oklab, var(--ui-accent) 6%, var(--ui-surface));
+    --ui-selection-text: var(--ui-accent-subtle-text);
+    --ui-selection-radius: var(--ui-radius-md);
 
     --ui-accent-soft: var(--ui-accent-subtle);
     --ui-accent-contrast: var(--ui-on-accent);
@@ -215,7 +223,7 @@
     --ui-control-focus: var(--ui-focus-ring);
     /* Derived from the ring, not a near-white tint, so the halo shows on any surface. */
     --ui-control-focus-halo: color-mix(in srgb, var(--ui-focus-ring) 24%, transparent);
-    --ui-control-focus-halo-shadow: 0 0 0 3px var(--ui-control-focus-halo);
+    --ui-control-focus-halo-shadow: 0 0 0 calc(var(--ui-focus-width) * 1.5) var(--ui-control-focus-halo);
     --ui-control-size-md: var(--ui-control-size);
     --ui-control-size-lg: calc(var(--ui-control-size) * 1.2);
 
@@ -297,15 +305,16 @@
 @layer components {
   [data-ui-choice-option] {
     padding: var(--ui-space-2) var(--ui-space-3);
-    border-radius: var(--ui-radius-sm);
+    border-radius: var(--ui-selection-radius);
+    color: var(--ui-text-primary);
     cursor: pointer;
     overflow-wrap: anywhere;
   }
 
   [data-ui-choice-option]:is(:hover, .active) {
     background: var(--ui-surface-muted);
-    outline: 1px solid var(--ui-focus-ring);
-    outline-offset: -1px;
+    outline: var(--ui-border-width) solid var(--ui-focus-ring);
+    outline-offset: calc(-1 * var(--ui-border-width));
   }
 
   [data-ui-choice-option][aria-disabled="true"],
@@ -316,9 +325,9 @@
     cursor: not-allowed;
   }
 
-  [data-ui-choice-option]:not([data-multiple])[aria-selected="true"] {
-    background: color-mix(in srgb, var(--ui-accent-solid) 10%, var(--ui-control-surface));
-    box-shadow: inset 2px 0 var(--ui-accent-solid);
+  [data-ui-choice-option][aria-selected="true"]:not([aria-disabled="true"]) {
+    background: var(--ui-selection-surface);
+    color: var(--ui-selection-text);
   }
 
   [data-ui-choice-option][data-multiple] {
@@ -332,7 +341,7 @@
     flex: none;
     inline-size: 1.125rem;
     block-size: 1.125rem;
-    border: 1px solid var(--ui-control-border-hover, var(--ui-border-strong));
+    border: var(--ui-border-width) solid var(--ui-control-border-hover, var(--ui-border-strong));
     border-radius: var(--ui-radius-sm);
     background-color: var(--ui-control-surface);
     background-repeat: no-repeat;
@@ -350,6 +359,13 @@
         url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12 5 5 9-9'/%3E%3C/svg%3E")
       )
     );
+  }
+
+  @media (forced-colors: active) {
+    [data-ui-choice-option][aria-selected="true"]:not([aria-disabled="true"]):not(.active) {
+      outline: var(--ui-border-width) solid Highlight;
+      outline-offset: calc(-1 * var(--ui-border-width));
+    }
   }
 
   [aria-disabled="true"] [data-ui-choice-option] {

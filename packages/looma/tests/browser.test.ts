@@ -3003,6 +3003,58 @@ describe("List item", () => {
   });
 });
 
+describe("Shared visual geometry", () => {
+  it("themes border, accent, focus, and row corners through global semantic dimensions", async () => {
+    const path = await bundle("html-global-visual-geometry", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <div id="theme" style="--ui-border-width:3px;--ui-accent-line-width:5px;--ui-focus-width:4px;--ui-selection-radius:13px;--ui-selection-surface:rgb(245,240,255);--ui-selection-text:rgb(81,50,140)">
+        <ui-button id="action" variant="outline">Save</ui-button>
+        <ui-input id="field" aria-label="Name"></ui-input>
+        <ui-separator id="divider"></ui-separator>
+        <ui-disclosure id="disclosure" summary="Details">Body</ui-disclosure>
+        <ui-card id="card" tone="danger">Notice</ui-card>
+        <ui-callout id="callout">Note</ui-callout>
+        <ui-nav-item id="nav" current="page">Overview</ui-nav-item>
+        <ui-nav-item id="line-nav" variant="line" current="page">Reports</ui-nav-item>
+        <ui-tree label="Documents"><ui-tree-item id="tree-row" selected label="Guide"></ui-tree-item></ui-tree>
+        <ui-list><ui-list-item id="list-row" current><a href="#guide">Guide</a></ui-list-item></ui-list>
+        <ui-search-result-row id="search-row" selected><span slot="title">Guide</span></ui-search-result-row>
+        <ui-listbox id="choices"><option selected>Guide</option><option>Notes</option></ui-listbox>
+        <div class="looma-editor"><div class="ProseMirror"><blockquote id="quote">Quote</blockquote><aside id="editor-callout" data-looma-callout data-tone="info">Note</aside></div></div>
+      </div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const css = (selector: string, property: string) => page.locator(selector).evaluate((el, p) => getComputedStyle(el).getPropertyValue(p), property);
+    for (const selector of ["#action", "#field", "#card", "#callout", "#editor-callout"]) {
+      assert.equal(await css(selector, "border-top-width"), "3px", `${selector} follows ordinary border width`);
+    }
+    assert.equal(await css("#divider", "border-top-width"), "3px");
+    assert.equal(await css("#disclosure", "border-bottom-width"), "3px");
+    for (const selector of ["#card", "#callout", "#editor-callout", "#quote"]) {
+      assert.equal(await css(selector, "border-inline-start-width"), "5px", `${selector} follows accent-line width`);
+    }
+    assert.equal(await css("#line-nav .indicator", "border-inline-start-width"), "5px");
+    for (const selector of ["#nav", "#tree-row > .row", "#list-row", "#search-row", '#choices [role="option"][aria-selected="true"]']) {
+      assert.equal(await css(selector, "border-top-left-radius"), "13px", `${selector} follows row corners`);
+      assert.equal(await css(selector, "background-color"), "rgb(245, 240, 255)", `${selector} follows selected surface`);
+      assert.equal(await css(selector, "color"), "rgb(81, 50, 140)", `${selector} follows selected text`);
+    }
+    await page.keyboard.press("Tab");
+    await page.locator("#nav").focus();
+    assert.equal(await css("#nav", "outline-width"), "4px", "keyboard focus has its own semantic weight");
+    assert.equal(await css("#nav", "outline-offset"), "-4px", "the ring remains inside the row at any configured width");
+    // Theme values remain live, rather than being copied into component declarations.
+    await page.locator("#theme").evaluate(el => (el as HTMLElement).style.setProperty("--ui-selection-radius", "7px"));
+    assert.equal(await css("#nav", "border-top-left-radius"), "7px");
+    assert.equal(await css("#tree-row > .row", "border-top-left-radius"), "7px");
+    await page.emulateMedia({ forcedColors: "active" });
+    for (const [target, surface] of [["#tree-row", "#tree-row > .row"], ["#list-row a", "#list-row"]]) {
+      await page.locator(target).focus();
+      assert.equal(await css(surface, "outline-width"), "4px", "forced colors keep the independent keyboard-focus weight");
+      assert.equal(await css(surface, "outline-style"), "solid");
+    }
+    await page.close();
+  });
+});
+
 describe("Nav item", () => {
   const longDescription = "A description long enough that it cannot fit on one line of a narrow rail and must end in an ellipsis";
 
@@ -3046,6 +3098,25 @@ describe("Nav item", () => {
     await page.close();
   });
 
+  it("separates rounded surface selection from straight continuous line selection", async () => {
+    const path = await bundle("html-navigation-selection-geometry", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <div style="--ui-accent-line-width:5px;--ui-selection-radius:13px">
+        <ui-nav-item id="surface" current="page">Overview</ui-nav-item>
+        <ui-nav-item id="line" variant="line" current="page">Reports</ui-nav-item>
+      </div>`, [join(root, "tokens.css")]);
+    await page.waitForSelector('#surface[data-component~="ui-nav-item"]');
+    assert.equal(await page.locator("#surface .indicator").isVisible(), false, "rounded surface selection has no edge stripe");
+    assert.equal(await page.locator("#surface").evaluate(el => getComputedStyle(el).borderRadius), "13px");
+    assert.equal(await page.locator("#line").evaluate(el => getComputedStyle(el).borderRadius), "0px");
+    const row = (await page.locator("#line").boundingBox())!;
+    const marker = (await page.locator("#line .indicator").boundingBox())!;
+    assert.equal(marker.width, 5);
+    assert.equal(marker.y, row.y);
+    assert.equal(marker.height, row.height);
+    await page.close();
+  });
+
   async function checkNavItem(page: Page) {
     await page.locator("#page").waitFor();
     const box = async (selector: string) => (await page.locator(selector).boundingBox())!;
@@ -3056,30 +3127,26 @@ describe("Nav item", () => {
     assert.equal(await page.locator("#step").getAttribute("aria-current"), "step");
     assert.equal(await page.locator("#other").getAttribute("aria-current"), null);
 
-    // The current item carries a solid bar on its start edge, inset from its top and bottom.
-    const checkBar = async (id: string, edge: "start" | "end") => {
-      const item = await box(`#${id}`);
-      const bar = await box(`#${id} .indicator`);
-      near(bar.width, 3, `${id}: the bar is 3px wide`);
-      if (edge === "start") near(bar.x, item.x, `${id}: the bar is on the left edge`);
-      else near(bar.x + bar.width, item.x + item.width, `${id}: the bar is on the right edge`);
-      assert.ok(bar.y > item.y && bar.y + bar.height < item.y + item.height && bar.height > 0, `${id}: the bar is inset vertically`);
-    };
-    await checkBar("page", "start");
-    assert.equal(await page.locator("#other .indicator").isVisible(), false, "an item that is not current has no bar");
+    // Surface rows use one shape: all corners follow the shared radius and no inset stripe.
+    assert.equal(await page.locator("#page .indicator").isVisible(), false);
+    assert.equal(await page.locator("#rtl .indicator").isVisible(), false);
     const look = (id: string) => page.locator(id).evaluate((element) => {
       const style = getComputedStyle(element);
-      const bar = getComputedStyle(element.querySelector(".indicator")!);
-      return { surface: style.backgroundColor, weight: Number(style.fontWeight), bar: bar.borderInlineStartColor, barStyle: bar.borderInlineStartStyle };
+      return { surface: style.backgroundColor, weight: Number(style.fontWeight), radius: style.borderRadius };
     });
     const [current, other] = [await look("#page"), await look("#other")];
     assert.notEqual(current.surface, other.surface, "the current item takes the selected surface");
-    assert.ok(current.weight > other.weight, "the current label is stronger");
-    assert.equal(current.barStyle, "solid");
-    assert.equal(current.bar, await resolveColor(page, "var(--ui-accent)"), "the bar is the accent colour");
-
-    // In a right-to-left page the bar mirrors to the right edge.
-    await checkBar("rtl", "end");
+    assert.equal(current.weight, other.weight, "selection keeps the resting label weight");
+    assert.equal(current.radius, "8px");
+    const line = await box("#line");
+    const marker = await box("#line .indicator");
+    near(marker.width, 1, "the line uses the shared 1px accent weight");
+    near(marker.y, line.y, "the line begins at the top");
+    near(marker.height, line.height, "the line spans the complete row");
+    assert.equal((await look("#line")).radius, "0px");
+    const rtlLine = await box("#rtl-line");
+    const rtlMarker = await box("#rtl-line .indicator");
+    near(rtlMarker.x + rtlMarker.width, rtlLine.x + rtlLine.width, "a continuous line mirrors in RTL");
 
     // A link item is a real link: it navigates, and target and rel reach it.
     const link = page.locator("#other");
@@ -3119,15 +3186,19 @@ describe("Nav item", () => {
     assert.deepEqual(lines[1], { overflowing: true, ellipsis: "ellipsis", wrap: "nowrap" });
     assert.deepEqual([lines[0].ellipsis, lines[0].wrap], ["ellipsis", "nowrap"]);
 
-    // Forced colors drop backgrounds; the bar is a border, so it stays, in the system highlight.
+    // System colors keep a complete surface outline or a continuous line; focus stays separate.
     await page.emulateMedia({ forcedColors: "active" });
-    await checkBar("page", "start");
-    const forced = await page.locator("#page .indicator").evaluate((element) => getComputedStyle(element).borderInlineStartColor);
-    assert.equal(forced, await resolveColor(page, "Highlight"), "the bar takes the system highlight colour");
+    const selectedOutline = await page.locator("#page").evaluate((element) => {
+      const s = getComputedStyle(element);
+      return { width: s.outlineWidth, color: s.outlineColor };
+    });
+    assert.deepEqual(selectedOutline, { width: "1px", color: await resolveColor(page, "Highlight") });
+    assert.equal(await page.locator("#page .indicator").isVisible(), false);
+    assert.equal(await page.locator("#line .indicator").evaluate(el => getComputedStyle(el).borderInlineStartColor), await resolveColor(page, "Highlight"));
     await page.emulateMedia({ forcedColors: "none" });
   }
 
-  it("marks the current item with a start-edge bar and works as a link or a button, in HTML", async () => {
+  it("marks the current item with coherent surface or line geometry and works as a link or a button, in HTML", async () => {
     const path = await bundle("html-nav-item", `import "@threadlabs/looma";`);
     const page = await open(path, `
       <script>window.clicks = 0;</script>
@@ -3137,17 +3208,18 @@ describe("Nav item", () => {
           <li><ui-nav-item id="other" as="a" href="#invoices">Invoices</ui-nav-item></li>
           <li><ui-nav-item id="view" onclick="window.clicks += 1">Overview</ui-nav-item></li>
           <li><ui-nav-item id="step" current="step">Team</ui-nav-item></li>
+          <li><ui-nav-item id="line" variant="line" current="page">Reports</ui-nav-item></li>
           <li><ui-nav-item id="long">Customer<span slot="description">${longDescription}</span></ui-nav-item></li>
         </ui-list>
       </nav>
-      <nav aria-label="RTL" dir="rtl" style="width: 240px"><ui-nav-item id="rtl" current="true">Shipments</ui-nav-item></nav>`,
+      <nav aria-label="RTL" dir="rtl" style="width: 240px"><ui-nav-item id="rtl" current="true">Shipments</ui-nav-item><ui-nav-item id="rtl-line" variant="line" current="true">Reports</ui-nav-item></nav>`,
     [join(root, "tokens.css")]);
     await page.waitForSelector('#long[data-component~="ui-nav-item"]');
     await checkNavItem(page);
     await page.close();
   });
 
-  it("marks the current item with a start-edge bar and works as a link or a button, in Vue", async () => {
+  it("marks the current item with coherent surface or line geometry and works as a link or a button, in Vue", async () => {
     const path = await bundle("vue-nav-item", `
       import { createApp, h } from "vue";
       import { List, NavItem } from "@threadlabs/looma/vue";
@@ -3159,9 +3231,10 @@ describe("Nav item", () => {
           item({ id: "other", as: "a", href: "#invoices" }, () => "Invoices"),
           item({ id: "view", onClick: () => { window.clicks += 1; } }, () => "Overview"),
           item({ id: "step", current: "step" }, () => "Team"),
+          item({ id: "line", variant: "line", current: "page" }, () => "Reports"),
           item({ id: "long" }, { default: () => "Customer", description: () => h("span", ${JSON.stringify(longDescription)}) }),
         ])]),
-        h("nav", { "aria-label": "RTL", dir: "rtl", style: "width: 240px" }, [h(NavItem, { id: "rtl", current: "true" }, () => "Shipments")]),
+        h("nav", { "aria-label": "RTL", dir: "rtl", style: "width: 240px" }, [h(NavItem, { id: "rtl", current: "true" }, () => "Shipments"), h(NavItem, { id: "rtl-line", variant: "line", current: "true" }, () => "Reports")]),
       ] }).mount("#app");
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
@@ -5950,16 +6023,16 @@ describe("Component hooks", () => {
     ["div", hook("--ui-input-radius", "7px"), [["Input", { id: "input-nested", "aria-label": "Nested" }]]],
     ["Input", { id: "input-plain", "aria-label": "Plain" }],
     ["Input", { id: "input-own", "aria-label": "Own", ...hook("--ui-input-radius", "7px") }],
-    ["nav", { "aria-label": "Hooked", ...hook("--ui-nav-item-indicator-color", mark) }, [["NavItem", { id: "nav-nested", current: "true" }, ["Home"]]]],
-    ["NavItem", { id: "nav-plain", current: "true" }, ["Home"]],
-    ["NavItem", { id: "nav-own", current: "true", ...hook("--ui-nav-item-indicator-color", mark) }, ["Home"]],
+    ["nav", { "aria-label": "Hooked", ...hook("--ui-nav-item-indicator-color", mark) }, [["NavItem", { id: "nav-nested", variant: "line", current: "true" }, ["Home"]]]],
+    ["NavItem", { id: "nav-plain", variant: "line", current: "true" }, ["Home"]],
+    ["NavItem", { id: "nav-own", variant: "line", current: "true", ...hook("--ui-nav-item-indicator-color", mark) }, ["Home"]],
     // A hook a component reads on an inner part reaches that part from the root, and no further.
     ["Callout", { id: "callout-outer", ...hook("--ui-callout-icon", mark) }, [["Callout", { id: "callout-nested" }, ["Inner"]]]],
     ["Callout", { id: "callout-plain" }, ["Plain"]],
     // Theme tokens still theme a subtree.
     ["div", { style: `--ui-space-5: 40px; --ui-accent: ${mark}` }, [
       ["Stack", { id: "stack-themed", gap: "l" }, [["span", {}, ["a"]], ["span", {}, ["b"]]]],
-      ["NavItem", { id: "nav-themed", current: "true" }, ["Home"]],
+      ["NavItem", { id: "nav-themed", variant: "line", current: "true" }, ["Home"]],
     ]],
   ];
 

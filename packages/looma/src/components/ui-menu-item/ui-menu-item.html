@@ -81,7 +81,7 @@
       padding: var(--ui-menu-item-padding-block, var(--_ui-default-menu-item-padding-block, var(--ui-space-2)))
         var(--ui-menu-item-padding-inline, var(--_ui-default-menu-item-padding-inline, var(--ui-space-3)));
       text-align: left;
-      border-radius: var(--ui-menu-item-radius, var(--_ui-default-menu-item-radius, var(--ui-radius-md)));
+      border-radius: var(--ui-menu-item-radius, var(--_ui-default-menu-item-radius, var(--ui-selection-radius)));
       color: var(--ui-text-primary);
       font-size: var(--ui-menu-item-font-size, var(--_ui-default-menu-item-font-size, var(--ui-font-size-md)));
       font-weight: var(--ui-font-medium);
@@ -107,7 +107,7 @@
       box-sizing: border-box;
       inline-size: var(--_ui-default-menu-indicator-size, var(--ui-icon-size-sm));
       block-size: var(--_ui-default-menu-indicator-size, var(--ui-icon-size-sm));
-      border: 1.5px solid var(--ui-control-border);
+      border: var(--ui-border-width) solid var(--ui-control-border);
       border-radius: var(--ui-radius-sm);
       color: var(--ui-surface);
       --_ui-default-icon-size: 0.75rem;
@@ -159,8 +159,8 @@
     }
 
     :host:focus-visible {
-      outline: 2px solid var(--ui-focus-ring);
-      outline-offset: -2px;
+      outline: var(--ui-focus-width) solid var(--ui-focus-ring);
+      outline-offset: calc(-1 * var(--ui-focus-width));
     }
 
     :host[aria-disabled="true"] {

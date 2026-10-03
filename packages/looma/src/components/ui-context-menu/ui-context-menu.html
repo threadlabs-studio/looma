@@ -69,7 +69,7 @@
       box-sizing: border-box;
       padding: var(--ui-space-1);
       background: var(--_ui-context-menu-surface, var(--ui-overlay-surface, var(--ui-surface-elevated)));
-      border: 1px solid var(--_ui-context-menu-border, var(--ui-overlay-border, var(--ui-border-strong)));
+      border: var(--ui-border-width) solid var(--_ui-context-menu-border, var(--ui-overlay-border, var(--ui-border-strong)));
       border-radius: var(--_ui-context-menu-radius, var(--ui-overlay-radius, var(--ui-radius-lg)));
       box-shadow: var(--_ui-context-menu-shadow, var(--ui-overlay-shadow, var(--ui-elevation-overlay, var(--ui-shadow-lg))));
       outline: 0;
@@ -90,7 +90,7 @@
       block-size: 0;
       margin: var(--ui-space-1) 0;
       border: 0;
-      border-block-start: 1px solid var(--ui-border-divider);
+      border-block-start: var(--ui-border-width) solid var(--ui-border-divider);
     }
 
     .menu:popover-open {

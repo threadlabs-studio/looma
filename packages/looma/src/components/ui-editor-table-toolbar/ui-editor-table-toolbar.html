@@ -154,8 +154,8 @@
       gap: var(--ui-space-1);
       padding: var(--ui-space-1);
       background: color-mix(in srgb, var(--ui-surface) 94%, transparent);
-      border: 1px solid var(--ui-border-strong);
-      border-radius: calc(var(--ui-radius-md) + 2px);
+      border: var(--ui-border-width) solid var(--ui-border-strong);
+      border-radius: calc(var(--ui-radius-md) + 2 * var(--ui-border-width));
       box-shadow: var(--ui-shadow-lg, 0 10px 15px -3px rgb(0 0 0 / 0.1));
       backdrop-filter: blur(10px);
     }
@@ -245,7 +245,7 @@
       max-width: min(17rem, calc(100vw - 24px));
       padding: var(--ui-space-1);
       background: var(--ui-surface);
-      border: 1px solid var(--ui-border-strong);
+      border: var(--ui-border-width) solid var(--ui-border-strong);
       border-radius: var(--ui-radius-md);
       box-shadow: var(--ui-shadow-lg, 0 10px 15px -3px rgb(0 0 0 / 0.1));
       display: flex;
@@ -260,7 +260,7 @@
     .menu-section + .menu-section {
       margin-top: var(--ui-space-1);
       padding-top: var(--ui-space-1);
-      border-top: 1px solid var(--ui-border-divider);
+      border-top: var(--ui-border-width) solid var(--ui-border-divider);
     }
 
     .menu-heading {
@@ -294,7 +294,7 @@
       width: 14px;
       height: 14px;
       flex: 0 0 14px;
-      border: 1px solid color-mix(in srgb, var(--ui-border) 80%, #000);
+      border: var(--ui-border-width) solid color-mix(in srgb, var(--ui-border) 80%, #000);
       border-radius: var(--ui-radius-round);
       background: var(--_swatch);
     }

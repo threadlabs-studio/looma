@@ -1,11 +1,14 @@
 <template component="ui-nav-item">
   <defs>
+    <prop name="variant" type="keyword" values="surface, line" default="surface"
+    >surface marks the current row with a quiet filled surface and shared corners. line uses square corners and a continuous logical start edge. Both retain the
+      resting label weight and expose aria-current.</prop>
     <prop name="density" type="keyword" values="comfortable, compact" default="comfortable"
     >Compact uses smaller type and row spacing to sit alongside a compact tree; comfortable keeps the regular navigation row.</prop>
     <prop name="current" type="keyword" values="true, false, page, step, location" default="false"
-    >Marks the item as where you are: it takes the selected surface, a stronger label, and a bar on its start edge, and states aria-current, which assistive
-      technology announces. "true" means the current page (aria-current="page"); "step" marks the current step of a process, and "location" the current place in
-      a set, such as a section of a record. Set it on one item at a time.</prop>
+    >Marks the item as where you are: it takes the selected surface, the selected text, and the chosen surface or line treatment, and states aria-current, which
+      assistive technology announces. "true" means the current page (aria-current="page"); "step" marks the current step of a process, and "location" the
+      current place in a set, such as a section of a record. Set it on one item at a time.</prop>
     <prop name="href" type="string"
     >The link's destination. Pair it with as="a" so the item renders as a real link: a router, a modified click, and "open in new tab" all work. Without it the
       item is a button, for switching views inside the app.</prop>
@@ -65,7 +68,7 @@
        belongs to. Label and description are one line each and end in an ellipsis, so every item in a
        navigation has the same height and the rail never grows sideways. */
     :host {
-      --_indicator-width: var(--ui-nav-item-indicator-width, 3px);
+      --_indicator-width: var(--ui-nav-item-indicator-width, var(--ui-accent-line-width));
       --_indicator-color: var(--ui-nav-item-indicator-color, var(--ui-accent));
       position: relative;
       box-sizing: border-box;
@@ -79,11 +82,11 @@
       padding-block: var(--ui-space-2);
       padding-inline: var(--ui-space-3);
       border: 0;
-      border-radius: var(--ui-radius-md);
+      border-radius: var(--ui-selection-radius);
       background: transparent;
       color: var(--ui-text-secondary);
       font: inherit;
-      font-weight: var(--ui-font-medium);
+      font-weight: var(--ui-font-normal);
       text-align: start;
       text-decoration: none;
       cursor: pointer;
@@ -99,32 +102,43 @@
     /* The ring is an outline, drawn inside the item: forced colors keep an outline where they drop a
        box shadow, and a scrolling rail cannot clip a ring that stays within the item. */
     :host:focus-visible {
-      outline: 2px solid var(--ui-focus-ring);
-      outline-offset: -2px;
+      outline: var(--ui-focus-width) solid var(--ui-focus-ring);
+      outline-offset: calc(-1 * var(--ui-focus-width));
     }
 
     :host[aria-current] {
-      background: var(--ui-nav-item-current-surface, var(--ui-selection-surface, var(--ui-accent-soft)));
-      color: var(--ui-selection-text, var(--ui-accent-subtle-text, var(--ui-text-primary)));
-      font-weight: var(--ui-font-semibold);
+      background: var(--ui-nav-item-current-surface, var(--ui-selection-surface));
+      color: var(--ui-selection-text);
     }
 
-    /* The bar on the start edge is a border, not a fill: forced colors replace backgrounds but keep a
+    :host-state([variant="line"]) {
+      border-radius: 0;
+    }
+
+    /* A line treatment has straight corners and a continuous edge. Surface treatment has
+       shared rounded corners and no edge marker; never combine the two geometries.
+       The line is a border, not a fill: forced colors replace backgrounds but keep a
        border, so the current item stays marked in high contrast. Logical edges mirror it in a
        right-to-left page. */
     .indicator {
       position: absolute;
-      inset-block: var(--ui-space-2);
+      inset-block: 0;
       inset-inline-start: 0;
       display: none;
       border-inline-start: var(--_indicator-width) solid var(--_indicator-color);
     }
 
-    :host[aria-current] .indicator {
+    :host-state([variant="line"])[aria-current] .indicator {
       display: block;
     }
 
     @media (forced-colors: active) {
+      /* System colors may erase the selected fill. Trace the complete surface, without
+         creating an edge stripe; the stronger keyboard focus outline keeps precedence. */
+      :host-state([variant="surface"])[aria-current]:not(:focus-visible) {
+        outline: var(--ui-border-width) solid Highlight;
+        outline-offset: calc(-1 * var(--ui-border-width));
+      }
       .indicator {
         border-inline-start-color: Highlight;
       }
@@ -172,6 +186,7 @@
       padding-block: var(--ui-space-1);
       padding-inline: var(--ui-space-2);
     }
+    :host-state([density="compact"]) .leading,
     :host-state([density="compact"]) .label {
       font-size: var(--ui-font-size-sm);
     }

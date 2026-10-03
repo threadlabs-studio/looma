@@ -157,7 +157,7 @@
       min-block-size: var(--_ui-tree-item-min-block-size, var(--_tree-row-min-height));
       min-inline-size: 0;
       font-size: var(--_ui-tree-item-font-size, var(--ui-font-size-sm));
-      border-radius: var(--ui-radius-md);
+      border-radius: var(--ui-selection-radius);
       color: var(--ui-text-secondary);
       transition:
         background-color var(--ui-motion-fast) var(--ui-motion-ease),
@@ -173,14 +173,13 @@
       background: var(--ui-surface-muted);
     }
 
-    /* Shared selection semantics can be themed once across navigation and trees. Defaults
-     * preserve the existing tree treatment. Only this item's own row is selected. */
+    /* Selection is the same surface recipe as destination and choice rows. */
     :host-state([selected]) > .row {
-      color: var(--ui-selection-text, var(--ui-text-primary));
-      background: var(--ui-selection-surface, var(--ui-surface-muted));
+      color: var(--ui-selection-text);
+      background: var(--ui-selection-surface);
     }
-    :host-state([selected]) > .row > .leading {
-      color: var(--ui-selection-text, var(--ui-text-muted));
+    :host-state([selected]):not([aria-disabled="true"]) > .row > .leading {
+      color: var(--ui-selection-text);
     }
 
     :host-state([disabled]) .row {
@@ -197,13 +196,13 @@
     }
 
     :host:focus-visible .row {
-      box-shadow: 0 0 0 2px var(--ui-focus-ring);
+      box-shadow: 0 0 0 var(--ui-focus-width) var(--ui-focus-ring);
     }
 
     /* Child combinators: drop feedback belongs to this item's own row, not the rows nested in it. */
     :host[data-drop-position="inside"] > .row {
       background: var(--ui-accent-subtle);
-      box-shadow: inset 0 0 0 1px var(--_ui-tree-drop-color, var(--ui-accent-solid));
+      box-shadow: inset 0 0 0 var(--ui-accent-line-width) var(--_ui-tree-drop-color, var(--ui-accent-solid));
     }
 
     .disclosure,
@@ -526,7 +525,7 @@
       z-index: 3;
       inset-inline: 1px;
       display: none;
-      block-size: 2px;
+      block-size: var(--ui-accent-line-width);
       border-radius: var(--ui-radius-round);
       background: var(--_ui-tree-drop-color, var(--ui-accent-solid));
       pointer-events: none;
@@ -539,7 +538,7 @@
       inset-block-start: 50%;
       inline-size: 7px;
       block-size: 7px;
-      border: 2px solid var(--_ui-tree-drop-color, var(--ui-accent-solid));
+      border: var(--ui-accent-line-width) solid var(--_ui-tree-drop-color, var(--ui-accent-solid));
       border-radius: var(--ui-radius-round);
       background: var(--ui-surface-elevated);
       transform: translateY(-50%);
@@ -554,12 +553,12 @@
 
     :host[data-drop-position="before"] > .row > .row-drop-indicator {
       display: block;
-      inset-block-start: -1px;
+      inset-block-start: calc(-0.5 * var(--ui-accent-line-width));
     }
 
     :host[data-drop-position="after"] > .subtree-drop-indicator {
       display: block;
-      inset-block-end: -1px;
+      inset-block-end: calc(-0.5 * var(--ui-accent-line-width));
     }
 
     .children[hidden] {
@@ -618,6 +617,17 @@
       .disclosure-icon,
       .drag-handle {
         transition: none;
+      }
+    }
+
+    @media (forced-colors: active) {
+      :host:focus-visible > .row {
+        outline: var(--ui-focus-width) solid Highlight;
+        outline-offset: calc(-1 * var(--ui-focus-width));
+      }
+      :host-state([selected]):not(:focus-visible):not([aria-disabled="true"]) > .row {
+        outline: var(--ui-border-width) solid Highlight;
+        outline-offset: calc(-1 * var(--ui-border-width));
       }
     }
 
