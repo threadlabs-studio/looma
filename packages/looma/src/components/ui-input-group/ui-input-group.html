@@ -98,7 +98,11 @@
       box-shadow: var(
         --ui-input-group-invalid-focus-shadow,
         var(--ui-control-inset),
-        0 0 0 calc(var(--ui-focus-width) * 1.5) color-mix(in srgb, var(--ui-input-group-invalid-border, var(--ui-field-danger, var(--ui-danger-solid))) 22%, transparent)
+        0 0 0 calc(var(--ui-focus-width) * 1.5) color-mix(
+          in srgb,
+          var(--ui-input-group-invalid-border, var(--ui-field-danger, var(--ui-danger-solid))) 22%,
+          transparent
+        )
       );
     }
 
