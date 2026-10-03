@@ -477,6 +477,7 @@ export const LoomaEditor = defineComponent({
     const slashExtension = createLoomaSlashCommandExtension({
       onOpenImagePicker: () => fileInput.value?.click(),
       onOpenChipEditor: openChipEditor,
+      onOpenLinkEditor: () => openLinkEditor(),
       onStateChange: (state) => {
         Object.assign(slash, state);
       },
@@ -830,9 +831,12 @@ export const LoomaEditor = defineComponent({
       const href = typeof rawHref === "string" ? rawHref : "";
       const safeHref = validLinkHref(href);
       return h("div", { class: "looma-editor__link-context-actions", role: "group", "aria-label": "Link actions" }, [
-        h("span", { class: "looma-editor__link-context-url", title: href }, linkContextTarget.value
-          ? [h("strong", linkContextTarget.value.label), linkContextTarget.value.detail ? h("small", linkContextTarget.value.detail) : null]
-          : href),
+        h("span", { class: "looma-editor__link-context-url", title: href }, [
+          h("small", { class: "looma-editor__link-context-kind" }, linkContextTarget.value ? props.linkTargetLabel : "External URL"),
+          ...(linkContextTarget.value
+            ? [h("strong", linkContextTarget.value.label), linkContextTarget.value.detail ? h("small", linkContextTarget.value.detail) : null]
+            : [href]),
+        ]),
         h("button", {
           type: "button",
           onPointerdown: (event: PointerEvent) => event.preventDefault(),

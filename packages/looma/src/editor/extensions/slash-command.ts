@@ -59,6 +59,7 @@ export interface LoomaSlashCommandOptions {
   onStateChange?: (state: LoomaSlashMenuSnapshot) => void;
   onOpenImagePicker?: () => void;
   onOpenChipEditor?: (editor: Editor, position: number) => void;
+  onOpenLinkEditor?: () => void;
 }
 
 const CALLOUT_COMMANDS: ReadonlyArray<{
@@ -93,8 +94,9 @@ const CALLOUT_COMMANDS: ReadonlyArray<{
 
 /**
  * Builds Looma's default command policy as fresh objects for one editor.
- * The image command delegates asset selection because Looma does not own upload,
- * persistence, or media-library concerns.
+ * Image and link commands delegate their picker because Looma does not own
+ * upload, persistence, or destination search. Link appears only when a picker
+ * callback is supplied, so a headless default inventory has no dead action.
  *
  * @ownership Returned command objects belong to the caller and are recreated
  * per call so one editor cannot mutate another editor's command inventory.
@@ -102,6 +104,7 @@ const CALLOUT_COMMANDS: ReadonlyArray<{
 export function getDefaultSlashCommands(
   onOpenImagePicker?: () => void,
   onOpenChipEditor?: (editor: Editor, position: number) => void,
+  onOpenLinkEditor?: () => void,
 ): LoomaSlashCommand[] {
   return [
     {
@@ -214,6 +217,16 @@ export function getDefaultSlashCommands(
         editor.chain().focus().deleteRange(range).setHorizontalRule().run();
       },
     },
+    ...(onOpenLinkEditor ? [{
+      title: "Link",
+      description: "Link to a destination or URL",
+      icon: "link" as const,
+      keywords: ["link", "url", "website"],
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).run();
+        onOpenLinkEditor();
+      },
+    } satisfies LoomaSlashCommand] : []),
     {
       title: "Image",
       description: "Upload an image",
@@ -357,8 +370,9 @@ export function createLoomaSlashCommandExtension(
 ) {
   const onOpenImagePicker = options.onOpenImagePicker;
   const onOpenChipEditor = options.onOpenChipEditor;
+  const onOpenLinkEditor = options.onOpenLinkEditor;
   return LoomaSlashCommand.configure({
     ...options,
-    commands: options.commands ?? getDefaultSlashCommands(onOpenImagePicker, onOpenChipEditor),
+    commands: options.commands ?? getDefaultSlashCommands(onOpenImagePicker, onOpenChipEditor, onOpenLinkEditor),
   });
 }

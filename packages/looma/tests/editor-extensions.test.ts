@@ -623,6 +623,18 @@ describe("editor extension contract", () => {
     expect(commands.filter((command) => !(command.icon in icons)).map((command) => command.title)).toEqual([]);
   });
 
+  it("offers Link only when a picker is supplied and removes the slash query first", () => {
+    expect(getDefaultSlashCommands().map(command => command.title)).not.toContain("Link");
+    const openLink = vi.fn();
+    const editor = new Editor({ extensions: [Document, Paragraph, Text], content: "<p>/link</p>" });
+    const link = getDefaultSlashCommands(undefined, undefined, openLink).find(command => command.title === "Link");
+    expect(link).toBeDefined();
+    link!.command({ editor, range: { from: 1, to: 6 } });
+    expect(editor.getText()).toBe("");
+    expect(openLink).toHaveBeenCalledOnce();
+    editor.destroy();
+  });
+
   it("includes durable colored callouts and matching slash commands", () => {
     expect(getDefaultEditorExtensions({ mention: false }).map((extension) => extension.name))
       .toContain("loomaCallout");
