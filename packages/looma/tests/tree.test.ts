@@ -92,6 +92,34 @@ const rowStyle = (page: Page, id: string) => item(page, id).locator(":scope > :f
   return { background: style.backgroundColor, shadow: style.boxShadow };
 });
 
+it("activates a single-selection row by click and Enter even when already selected", async () => {
+  const page = await open({ tree: { selection: "single" }, items: [{ id: "chosen", label: "Chosen", selected: true, sortable: false }] });
+  await item(page, "chosen").click();
+  await item(page, "chosen").press("Enter");
+  assert.deepEqual((await events(page)).filter(([name]) => name === "activate"), [
+    ["activate", { id: "chosen", trigger: "pointer" }],
+    ["activate", { id: "chosen", trigger: "keyboard" }],
+  ]);
+  assert.deepEqual((await events(page)).filter(([name]) => name === "select"), []);
+  await page.close();
+});
+
+it("keeps activation away from disabled rows, controls and multiple-selection checkboxes", async () => {
+  const page = await open({ tree: { selection: "single" }, items: [{ id: "disabled", label: "Disabled", disabled: true, sortable: false }] });
+  await item(page, "disabled").click({ force: true });
+  await item(page, "disabled").press("Enter");
+  assert.deepEqual(await events(page), []);
+  await page.close();
+  const controls = await open({ tree: { selection: "single" }, items: [{ id: "folder", label: "Folder", container: true, sortable: false, children: [{ id: "child", label: "Child" }] }] });
+  await item(controls, "folder").getByRole("button", { name: "Expand Folder" }).click();
+  assert.deepEqual((await events(controls)).filter(([name]) => name === "activate"), []);
+  await controls.close();
+  const multiple = await open({ tree: { selection: "multiple" }, items: [{ id: "many", label: "Many", sortable: false }] });
+  await item(multiple, "many").click();
+  assert.deepEqual((await events(multiple)).filter(([name]) => name === "activate"), []);
+  await multiple.close();
+});
+
 const files: Node[] = [
   { id: "docs", label: "Docs", container: true, expanded: true, children: [
     { id: "guide", label: "Guide" },
@@ -119,6 +147,7 @@ beforeAll(async () => {
         onReorder: (event) => events.push(["reorder", event.detail]),
         onReorderRejected: (event) => events.push(["reorder-rejected", event.detail]),
         onSelect: (event) => events.push(["select", event.detail]),
+        onActivate: (event) => events.push(["activate", event.detail]),
       }, () => window.spec.items.map(render)),
     }).mount("#app");
   `);
@@ -462,6 +491,7 @@ describe("Tree selection", () => {
     await page.keyboard.press("Space");
     assert.deepEqual(await events(page), [
       ["select", { ids: ["readme"], trigger: "pointer" }],
+      ["activate", { id: "readme", trigger: "pointer" }],
       ["select", { ids: ["license"], trigger: "keyboard" }],
     ]);
     await page.close();

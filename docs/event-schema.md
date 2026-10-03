@@ -28,6 +28,15 @@ Tabs and Radio Group report `{ value, previousValue, trigger }`. Menu and Contex
 `{ ids: string[], trigger }`: the requested selected IDs in tree order. Tree Item `selected` remains
 consumer controlled. Editor suggestion menus report `{ index, value }`.
 
+### activate
+
+Tree in single-selection mode reports `{ id: string, trigger: 'keyboard' | 'pointer' }`
+when a row is clicked or Enter is pressed. This is a default-action request,
+including for an already selected item; it never changes consumer-owned state.
+Space requests selection only. Controls, disabled rows, and multiple-selection
+checkboxes do not activate. Trees without selection retain their link and
+expansion behavior.
+
 ### change
 
 ```ts
