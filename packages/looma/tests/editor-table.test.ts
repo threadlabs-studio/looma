@@ -141,6 +141,16 @@ afterAll(async () => {
 });
 
 describe("LoomaEditor links", () => {
+  it("opens the same link picker from the slash command", async () => {
+    const page = await openEditor("<p></p>", "sticky", true);
+    await prose(page).locator("p").click();
+    await page.keyboard.type("/link");
+    await page.getByRole("option", { name: /link link to a destination or url/i }).click();
+    await linkForm(page).getByRole("searchbox", { name: "Find a page" }).waitFor();
+    assert.equal(await prose(page).locator("p").textContent(), "");
+    await page.close();
+  });
+
   it("searches host targets, keeps their identity URL, and describes the chosen target", async () => {
     const page = await openEditor("<p>Hello</p>", "sticky", true);
     await prose(page).focus();
@@ -159,6 +169,7 @@ describe("LoomaEditor links", () => {
     assert.equal(await link.getAttribute("target"), "_self");
     await link.click();
     await until(() => page.getByRole("group", { name: "Link actions" }).textContent(), value => value?.includes("Personal / Guides") ?? false, "context shows resolved target");
+    assert.match(await page.getByRole("group", { name: "Link actions" }).textContent() ?? "", /Page/);
     await page.close();
   });
 
@@ -203,6 +214,7 @@ describe("LoomaEditor links", () => {
     await link.click();
     const actions = page.getByRole("group", { name: "Link actions" });
     await actions.waitFor();
+    assert.match(await actions.textContent() ?? "", /External URL/);
     assert.match(await actions.textContent() ?? "", /\/guide/);
     await actions.getByRole("button", { name: "Edit link" }).click();
     await linkForm(page).getByRole("textbox", { name: "URL" }).fill("/new-guide");
