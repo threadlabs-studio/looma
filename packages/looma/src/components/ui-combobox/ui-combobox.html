@@ -54,6 +54,12 @@
     >How the list narrows as the user types. label lists the options whose label contains the typed text, ignoring case. none lists every authored option, for
       options already narrowed elsewhere, such as a server search, so a result that matched on data other than its label still shows. Leaving the field still
       commits an option whose label matches the text, or the only one listed.</prop>
+    <prop name="autoHighlight" type="keyword" values="none, single" default="none"
+    >single highlights the only enabled authored suggestion while typing. Ambiguous results and an empty query stay unhighlighted. none preserves manual
+      highlighting with the arrow keys.</prop>
+    <prop name="selectOnTab" type="boolean" default="false"
+    >Commits a highlighted authored suggestion on forward Tab, then lets focus advance normally. In multiple mode a selected suggestion is retained without
+      duplication or removal. Shift+Tab does not commit, and Tab never chooses the create offer.</prop>
     <prop name="allowFreeText" type="boolean" default="false">Allows values that do not match an authored option.</prop>
     <prop name="allowCreate" type="boolean" default="false"
     >Offers the current query as a new option, reported as create-item. When nothing else matches, the offer is highlighted, so Enter creates it; with nothing
