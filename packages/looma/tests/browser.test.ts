@@ -730,6 +730,29 @@ describe("Disclosure composition", () => {
 });
 
 describe("Menu structure and navigation", () => {
+  it("dismisses only the top menu when Escape bubbles through its containing popover", async () => {
+    const path = await bundle("html-nested-menu-escape", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-button id="settings-trigger">Settings</ui-button>
+      <ui-popover id="settings" for="settings-trigger">
+        <ui-button id="format-trigger">Formatting</ui-button>
+        <ui-menu id="format" for="format-trigger" aria-label="Formatting">
+          <ui-menu-item value="plain" type="radio">Plain</ui-menu-item>
+          <ui-menu-item value="numbered" type="radio">Numbered</ui-menu-item>
+        </ui-menu>
+      </ui-popover>
+    `, [join(root, "tokens.css")]);
+    await page.locator("#settings-trigger").click();
+    await page.locator("#format-trigger").click();
+    await page.getByRole("menuitemradio", { name: "Plain" }).focus();
+    await page.keyboard.press("Escape");
+    assert.equal(await page.locator("#format-trigger").getAttribute("aria-expanded"), "false");
+    assert.equal(await page.locator("#settings-trigger").getAttribute("aria-expanded"), "true");
+    await page.keyboard.press("Escape");
+    assert.equal(await page.locator("#settings-trigger").getAttribute("aria-expanded"), "false");
+    await page.close();
+  });
+
   it("spaces slotted icons and keeps ghost triggers pressed while overlays are open", async () => {
     const path = await bundle("html-menu-icon-and-ghost-trigger", `import "@threadlabs/looma";`);
     const page = await open(path, `

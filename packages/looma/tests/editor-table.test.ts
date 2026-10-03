@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { chromium, type Browser, type Locator, type Page } from "playwright";
+import { chromium, type Browser, type BrowserContextOptions, type Locator, type Page } from "playwright";
 import { build } from "vite";
 import { afterAll, beforeAll, describe, it } from "vitest";
 
@@ -32,8 +32,8 @@ async function bundle(name: string, source: string): Promise<string> {
   return join(directory, name, "bundle.js");
 }
 
-async function open(bundlePath: string, body: string, css: readonly string[]): Promise<Page> {
-  const page = await browser.newPage();
+async function open(bundlePath: string, body: string, css: readonly string[], options: BrowserContextOptions = {}): Promise<Page> {
+  const page = await browser.newPage(options);
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.setContent(`<!doctype html><html><body>${body}</body></html>`);
@@ -61,11 +61,11 @@ const equals = <T>(read: () => Promise<T>, expected: T, message: string) =>
 const style = (locator: Locator, property: string) => () =>
   locator.evaluate((element, name) => getComputedStyle(element).getPropertyValue(name), property);
 
-async function openEditor(html = "<p>Hello</p>", mode: "sticky" | "popover" = "sticky", links = false): Promise<Page> {
+async function openEditor(html = "<p>Hello</p>", mode: "sticky" | "popover" = "sticky", links = false, options: BrowserContextOptions = {}): Promise<Page> {
   const page = await open(editorBundle, `<div id="app" style="width: 720px"></div><button id="outside">Outside</button>`, [
     join(root, "tokens.css"),
     join(root, "vue/components.css"),
-  ]);
+  ], options);
   await page.evaluate(({ value, mode, links }) => (window as unknown as { mountEditor(html: string, mode: string, links: boolean): void }).mountEditor(value, mode, links), { value: html, mode, links });
   page.setDefaultTimeout(5000);
   await page.locator(".ProseMirror").waitFor();
@@ -144,6 +144,36 @@ afterAll(async () => {
 });
 
 describe("LoomaEditor links", () => {
+  it("opens the existing link form from slash, selects a host result by keyboard, and cancels", async () => {
+    const page = await openEditor("<p>Read </p>", "sticky", true);
+    await prose(page).locator("p").click();
+    await page.keyboard.press("End");
+    await page.keyboard.type(" /link");
+    await page.getByRole("option", { name: /Link Link to a destination or URL/i }).waitFor();
+    await page.keyboard.press("Enter");
+    const form = linkForm(page);
+    await form.getByRole("searchbox", { name: "Link destination" }).fill("Guide");
+    await equals(() => form.getByLabel("Destination search results").getByRole("button").count(), 2, "host results are ready for keyboard selection");
+    await mkdir(join(root, "../../.context"), { recursive: true });
+    await page.screenshot({ animations: "disabled", path: join(root, "../../.context/link-verification.png") });
+    await form.getByRole("searchbox").press("ArrowDown");
+    await page.keyboard.press("Enter");
+    await form.getByRole("textbox", { name: "Text", exact: true }).fill("Guide");
+    await form.getByRole("button", { name: "Save link" }).click();
+    await equals(() => prose(page).getByRole("link", { name: "Guide" }).getAttribute("href"), "/records/one", "slash uses the same host picker");
+    await prose(page).getByRole("link", { name: "Guide" }).click();
+    await page.getByRole("group", { name: "Link actions" }).waitFor();
+    await page.screenshot({ animations: "disabled", path: join(root, "../../.context/link-actions-verification.png") });
+    await prose(page).locator("p").click();
+    await page.keyboard.press("End");
+    await page.keyboard.type(" /link");
+    await page.getByRole("option", { name: /Link Link to a destination or URL/i }).waitFor();
+    await page.keyboard.press("Enter");
+    await form.getByRole("button", { name: "Cancel", exact: true }).click();
+    assert.equal(await prose(page).locator("a").count(), 1, "cancel inserts no second link");
+    await page.close();
+  });
+
   it("uses one standard form hierarchy with flat results and a primary save action", async () => {
     const page = await openEditor("<p>Hello</p>", "sticky", true);
     await prose(page).focus();
@@ -485,6 +515,88 @@ describe("LoomaEditor links", () => {
     await linkForm(page).getByRole("textbox", { name: "URL" }).fill("https://example.com");
     await linkForm(page).getByRole("button", { name: "Save link" }).click();
     await equals(() => prose(page).locator("a").textContent(), "Read more", "link text is inserted");
+    await page.close();
+  });
+});
+
+describe("LoomaEditor automatic table of contents", () => {
+  it("inserts from slash, configures standard dropdowns, and navigates in read-only mode", async () => {
+    for (const width of [1280, 375]) {
+      const page = await openEditor("<p></p><h1>Overview</h1><h2>Details</h2><h3>Deep detail</h3>", "sticky", false, { hasTouch: width === 375, viewport: { width, height: 760 } });
+      const activate = (control: Locator) => width === 375 ? control.tap() : control.click();
+      await page.locator("#app").evaluate(element => { (element as HTMLElement).style.width = "min(720px, 100%)"; });
+      await prose(page).locator("p").first().click();
+      await page.keyboard.type("/toc");
+      await page.getByRole("option", { name: /Table of contents Automatic links/i }).waitFor();
+      await page.keyboard.press("Enter");
+      const nav = prose(page).getByRole("navigation", { name: "Table of contents" });
+      await equals(() => nav.getByRole("link").count(), 3, "all headings appear automatically");
+      await activate(nav.getByRole("button", { name: "Table of contents settings" }));
+      const settings = page.locator('[data-component="ui-popover"][aria-label="Table of contents settings"]');
+      await activate(settings.getByRole("button", { name: "Formatting", exact: true }));
+      const format = page.getByRole("menu", { name: "Formatting", exact: true });
+      if (width === 1280) {
+        await equals(() => format.getByRole("menuitemradio", { name: "Plain", exact: true }).evaluate(element => element === document.activeElement), true, "menu autofocus has completed before keyboard navigation");
+        await page.keyboard.press("ArrowDown");
+        await page.keyboard.press("ArrowDown");
+        await page.keyboard.press("Enter");
+      } else {
+        await activate(format.getByRole("menuitemradio", { name: "Numbered" }));
+      }
+      await page.keyboard.press("Escape");
+      assert.equal(await settings.isVisible(), true, "Escape closes only the nested dropdown");
+      await activate(settings.getByRole("button", { name: "Heading depth", exact: true }));
+      await activate(page.getByRole("menu", { name: "Heading depth", exact: true }).getByRole("menuitemradio", { name: "Through heading 2" }));
+      await page.keyboard.press("Escape");
+      await mkdir(join(root, "../../.context"), { recursive: true });
+      await page.screenshot({ animations: "disabled", path: join(root, `../../.context/toc-settings-${width}.png`) });
+      assert.ok(await settings.evaluate(element => {
+        const box = element.getBoundingClientRect(); return box.left >= 0 && box.right <= innerWidth;
+      }), "settings fit the viewport");
+      await activate(settings.getByRole("button", { name: "Save", exact: true }));
+      await equals(() => nav.getByRole("link").count(), 2, "depth filters headings");
+      assert.equal(await nav.locator("ol").count(), 2, "numbered nested lists preserve hierarchy");
+      await activate(nav.getByRole("button", { name: "Table of contents settings" }));
+      await activate(settings.getByRole("button", { name: "Formatting", exact: true }));
+      await activate(page.getByRole("menu", { name: "Formatting", exact: true }).getByRole("menuitemradio", { name: "Bulleted" }));
+      await page.keyboard.press("Escape");
+      await activate(settings.getByRole("button", { name: "Cancel", exact: true }));
+      assert.equal(await nav.getAttribute("data-format"), "numbered", "cancel discards draft settings");
+      await page.evaluate(() => {
+        const editor = (window as unknown as { fixtureEditor: import("@tiptap/core").Editor }).fixtureEditor;
+        let range = { from: 0, to: 0 };
+        editor.state.doc.descendants((node, position) => {
+          if (node.type.name === "heading" && node.attrs.level === 1) range = { from: position + 1, to: position + 1 + node.content.size };
+        });
+        editor.commands.insertContentAt(range, "Updated");
+        editor.setEditable(false);
+      });
+      await equals(() => nav.getByRole("button", { name: "Table of contents settings" }).count(), 0, "readers see no settings control");
+      await equals(() => nav.getByRole("link").first().textContent(), "Updated", "heading edits update entries");
+      if (width === 1280) {
+        await nav.getByRole("link").first().focus();
+        await page.keyboard.press("Enter");
+        assert.equal(await prose(page).locator("h1").evaluate(element => element === document.activeElement), true, "keyboard navigation focuses the destination");
+      }
+      await activate(nav.getByRole("link", { name: "Details", exact: true }));
+      assert.equal(await page.getByRole("group", { name: "Link actions" }).count(), 0, "TOC navigation does not open link editing");
+      assert.equal(await prose(page).locator("h2").evaluate(element => element === document.activeElement), true);
+      await page.screenshot({ animations: "disabled", path: join(root, `../../.context/toc-reader-${width}.png`) });
+      await page.close();
+    }
+  });
+
+  it("uses the existing chip editor for /status", async () => {
+    const page = await openEditor("<p></p>");
+    await prose(page).click();
+    await page.keyboard.type("/status");
+    await page.getByRole("option", { name: /Chip Inline label/i }).waitFor();
+    await page.keyboard.press("Enter");
+    const input = page.getByRole("textbox", { name: "Chip text" });
+    await input.fill("In progress");
+    await page.getByRole("button", { name: "Blue chip", exact: true }).click();
+    await equals(() => prose(page).locator("[data-looma-chip]").getAttribute("data-label"), "In progress", "status uses existing chip content");
+    assert.equal(await prose(page).locator("[data-looma-chip]").getAttribute("data-color"), "blue");
     await page.close();
   });
 });
