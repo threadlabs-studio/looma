@@ -11,4 +11,10 @@ description. A link in the title makes the whole item follow it; a trailing cont
 clicks. `variant="card"` draws it on a bordered surface for a grid, and `current` marks the item you
 are in. See [List](/components/ui-list).
 
+Use `highlighted` for items that deserve a quiet accent wash, such as newly
+arrived messages. Several rows can be highlighted together. It changes only
+the surface: it does not mark a current destination, select an item, make its
+text heavier, or set `aria-current`. Describe the meaning in the row's text.
+The wash follows the shared `--ui-selection-surface` theme recipe.
+
 <ComponentExamplesApiTabs component="ui-list-item" />
