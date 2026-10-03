@@ -1835,7 +1835,7 @@ test("every badge tone remains legible and visually distinct in light and dark t
     await page.evaluate((selectedTheme) => window.localStorage.setItem("theme", selectedTheme), theme);
     await page.reload({ waitUntil: "domcontentloaded" });
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
-    const badges = page.locator("[data-preview-scenario] [data-component~='ui-badge']");
+    const badges = page.locator("[data-preview-scenario] [data-component~='ui-badge']:not([data-ui-badge-state~='shape=dot'])");
     // Default, five solid tones, five subtle tones, shape, outline, then custom colour examples.
     await expect(badges).toHaveCount(23);
     const treatments = await badges.evaluateAll((surfaces) => surfaces.map((surface) => {
@@ -1882,6 +1882,23 @@ test("every badge tone remains legible and visually distinct in light and dark t
     for (const treatment of treatments.slice(6, 11)) expect(treatment.border).not.toBe(treatment.background);
     expect(new Set(treatments.slice(1, 6).map(({ background }) => background)).size).toBe(5);
     expect(new Set(treatments.slice(6, 11).map(({ background }) => background)).size).toBe(5);
+    const dots = page.locator("[data-preview-scenario] [data-component~='ui-badge'][data-ui-badge-state~='shape=dot']");
+    await expect(dots).toHaveCount(2);
+    await expect(dots.nth(0)).toContainText("New messages");
+    await expect(dots.nth(1)).toContainText("Waiting for your reply");
+    const signals = await dots.evaluateAll((surfaces) => surfaces.map((surface) => {
+      const bounds = surface.getBoundingClientRect();
+      const label = surface.querySelector(".label")!;
+      return { width: bounds.width, height: bounds.height,
+        background: getComputedStyle(surface).backgroundColor,
+        clippedLabel: getComputedStyle(label).clipPath };
+    }));
+    for (const signal of signals) {
+      expect(signal.width).toBe(8);
+      expect(signal.height).toBe(8);
+      expect(signal.clippedLabel).toBe("inset(50%)");
+    }
+    expect(signals[0]!.background).not.toBe(signals[1]!.background);
   }
 });
 
