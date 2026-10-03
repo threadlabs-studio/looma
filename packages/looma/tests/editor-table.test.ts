@@ -184,7 +184,8 @@ describe("LoomaEditor links", () => {
       assert.ok(iconBox && inputBox && inputBox.x + padding - iconBox.x - iconBox.width <= 8.5, "one icon-to-value gap");
       const resultBox = await results.boundingBox();
       const rowBox = await rows.first().boundingBox();
-      assert.ok(resultBox && rowBox && Math.abs(resultBox.height - rowBox.height * 3) <= 2, "three compact rows fill the viewport");
+      assert.ok(resultBox && rowBox && resultBox.height >= rowBox.height * 3 + 24 - 1, "three complete rows stay ahead of the overflow fade");
+      assert.ok(resultBox && rowBox && resultBox.height < rowBox.height * 4, "the next row is only an overflow hint");
       assert.ok(await results.evaluate(element => element.scrollHeight > element.clientHeight), "additional results scroll");
       await page.screenshot({ animations: "disabled", path: join(root, ".build", `link-picker-three-${width}.png`) });
       await results.hover();
