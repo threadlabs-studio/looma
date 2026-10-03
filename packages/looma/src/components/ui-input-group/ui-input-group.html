@@ -1,5 +1,7 @@
 <template component="ui-input-group" controller="./ui-input-group.js">
   <defs>
+    <prop name="prefixKind" type="keyword" values="text, icon" default="text"
+    >Text affixes have their own framing. An icon prefix shares the field surface and uses one compact icon-to-value gap.</prop>
     <prop name="disabled" type="boolean" default="false">Fades the group's framing to match a disabled input inside it. Disable the input itself too.</prop>
   </defs>
   <div>
@@ -146,6 +148,15 @@
 
     .affix:has([slot="suffix"]) {
       border-inline-start: 1px solid var(--ui-border-divider);
+    }
+
+    :host-state([prefixKind="icon"]) {
+      --_ui-default-input-padding-inline-start: var(--ui-space-2);
+    }
+    :host-state([prefixKind="icon"]) .affix:first-child {
+      padding-inline-end: 0;
+      border-inline-end: 0;
+      background: transparent;
     }
 
     /* Centred rather than padded above and below: the group is exactly a lone Input's height, so a

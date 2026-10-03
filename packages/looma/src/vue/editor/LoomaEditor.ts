@@ -39,6 +39,7 @@ import {
   type LoomaCodeLanguages,
   LOOMA_CHIP_COLORS,
   normalizeLoomaChipColor,
+  siteRelativeHref,
   type LoomaChipColor,
   type SlashMenuAnchorRect,
   type TableOverlayGeometry,
@@ -47,7 +48,7 @@ import {
   type TableActionCapabilities,
   type TableContextMenuAction,
 } from "@threadlabs/looma/editor";
-import { Combobox, IconButton, Menu, MenuItem, Popover, Tooltip } from "@threadlabs/looma/vue";
+import { Button, Card, Checkbox, Cluster, Combobox, FormField, Input, InputGroup, IconButton, Menu, MenuItem, Popover, ScrollArea, SearchResultRow, Separator, Stack, Text, Tooltip } from "@threadlabs/looma/vue";
 import { getVisualViewportRect, LOOMA_ICONS, type LoomaIconName } from "@threadlabs/looma/editor";
 import {
   EditorInsertTableGrid,
@@ -214,6 +215,7 @@ function loomaIcon(name: LoomaIconName) {
     "aria-hidden": "true",
     focusable: "false",
     viewBox: "0 0 24 24",
+    width: 16, height: 16,
     fill: "none",
     stroke: "currentColor",
     "stroke-width": 2,
@@ -275,6 +277,8 @@ export const LoomaEditor = defineComponent({
       type: Number,
       default: DEFAULT_MENTION_RESULT_LIMIT,
     },
+    /** Site origin for relative links. Applied to newly inserted links, including paste over selected text. */
+    linkBaseUrl: { type: String, default: "" },
     /** Host-owned search and identity lookup for links to application records. */
     linkSearch: {
       type: Function as PropType<LoomaLinkSearch | undefined>,
@@ -338,7 +342,8 @@ export const LoomaEditor = defineComponent({
     const blockActionAnchorId = `ui-block-tools-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
     let blockActionTarget: { position: number; node: Editor["state"]["doc"]["firstChild"] } | null = null;
     const linkAnchorId = `looma-editor-link-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
-    const linkUrlInput = ref<HTMLInputElement | null>(null);
+    const linkPopoverAnchorId = ref(linkAnchorId);
+    const linkDestinationInput = () => linkFormRoot.value?.querySelector<HTMLInputElement>("[data-link-destination]");
     const linkFormRoot = ref<HTMLFormElement | null>(null);
     const linkOpen = ref(false);
     const linkContextEditing = ref(false);
@@ -575,6 +580,7 @@ export const LoomaEditor = defineComponent({
       extensions: [
         ...getDefaultEditorExtensions({
           placeholder: props.placeholder,
+          linkBaseUrl: props.linkBaseUrl,
           mention: mentionExtension ?? false,
           disableHighlight: props.disableHighlight,
           codeLanguages: props.codeLanguages ?? undefined,
@@ -682,7 +688,7 @@ export const LoomaEditor = defineComponent({
       linkError.value = "";
       linkSelectedTarget.value = linkTargetCache.get(linkHref.value) ?? null;
       linkMode.value = props.linkSearch && (!existing || linkSelectedTarget.value) ? "target" : "url";
-      linkQuery.value = linkSelectedTarget.value?.label ?? "";
+      linkQuery.value = linkSelectedTarget.value?.label ?? linkHref.value;
       linkContextEditing.value = context;
       linkOpen.value = !context;
       if (existing && props.linkResolve && !linkTargetCache.has(linkHref.value)) {
@@ -697,7 +703,7 @@ export const LoomaEditor = defineComponent({
         }).catch(() => {});
       }
       void nextTick(() => (linkMode.value === "url"
-        ? linkUrlInput.value
+        ? linkDestinationInput()
         : linkFormRoot.value?.querySelector<HTMLInputElement>("[data-link-search]"))?.focus());
     };
     const saveLink = () => {
@@ -707,15 +713,16 @@ export const LoomaEditor = defineComponent({
       const href = linkMode.value === "target" ? validLinkHref(linkSelectedTarget.value?.href ?? "") : validLinkHref(linkHref.value);
       if (!href) {
         linkError.value = linkMode.value === "target" ? "Choose a destination from the results." : "Enter an http, https, mailto, tel, or relative URL.";
-        (linkMode.value === "url" ? linkUrlInput.value : linkFormRoot.value?.querySelector<HTMLInputElement>("[data-link-search]"))?.focus();
+        (linkMode.value === "url" ? linkDestinationInput() : linkFormRoot.value?.querySelector<HTMLInputElement>("[data-link-search]"))?.focus();
         return;
       }
       if (linkMode.value === "url" && props.linkSearch && !selection.existing && !/^(https?:|mailto:|tel:)/i.test(href)) {
         linkError.value = "Enter a full website, email, or phone URL, or choose a destination.";
-        linkUrlInput.value?.focus();
+        linkDestinationInput()?.focus();
         return;
       }
-      const attrs = { href, target: linkNewTab.value ? "_blank" : "_self", rel: linkNewTab.value ? "noopener noreferrer" : null };
+      const destination = props.linkBaseUrl ? siteRelativeHref(href, props.linkBaseUrl) : href;
+      const attrs = { href: destination, target: linkNewTab.value ? "_blank" : "_self", rel: linkNewTab.value ? "noopener noreferrer" : null };
       const chain = instance.chain().focus().setTextSelection({ from: selection.from, to: selection.to });
       if (selection.from === selection.to && !selection.existing) {
         const text = linkText.value.trim();
@@ -723,7 +730,7 @@ export const LoomaEditor = defineComponent({
         chain.insertContent({ type: "text", text, marks: [{ type: "link", attrs }] }).run();
       } else {
         if (selection.existing && selection.from === selection.to) chain.extendMarkRange("link");
-        chain.setLink(attrs).run();
+        chain.setLink(attrs).setTextSelection(selection.to).run();
       }
       linkOpen.value = false;
       linkContextEditing.value = false;
@@ -732,7 +739,7 @@ export const LoomaEditor = defineComponent({
       const instance = editor.value;
       const selection = linkSelection;
       if (!instance || !selection?.existing) return;
-      instance.chain().focus().setTextSelection({ from: selection.from, to: selection.to }).extendMarkRange("link").unsetLink().run();
+      instance.chain().focus().setTextSelection({ from: selection.from, to: selection.to }).extendMarkRange("link").unsetLink().setTextSelection(selection.to).run();
       linkOpen.value = false;
       linkContextEditing.value = false;
     };
@@ -742,114 +749,138 @@ export const LoomaEditor = defineComponent({
       instance.chain().focus().extendMarkRange("link").unsetLink().run();
       linkContextEditing.value = false;
     };
-    const renderLinkForm = () => h("form", {
-      ref: linkFormRoot,
-      class: "looma-editor__link-form",
-      "aria-label": "Edit link",
-      onSubmit: (event: Event) => { event.preventDefault(); saveLink(); },
-    }, [
-      linkSelection?.from === linkSelection?.to && !linkSelection?.existing
-        ? h("label", [h("span", "Text"), h("input", {
-            value: linkText.value,
-            onInput: (event: Event) => { linkText.value = (event.target as HTMLInputElement).value; linkError.value = ""; },
-          })])
-        : null,
-      props.linkSearch ? h("div", { class: "looma-editor__link-modes", role: "group", "aria-label": "Link destination" }, [
-        h("button", { type: "button", "aria-pressed": linkMode.value === "target", onClick: () => {
-          linkMode.value = "target"; linkHref.value = ""; linkSelectedTarget.value = null; linkQuery.value = ""; linkError.value = "";
-          void nextTick(() => linkFormRoot.value?.querySelector<HTMLInputElement>("[data-link-search]")?.focus());
-        } }, props.linkTargetLabel),
-        h("button", { type: "button", "aria-pressed": linkMode.value === "url", onClick: () => {
-          linkMode.value = "url"; linkHref.value = ""; linkSelectedTarget.value = null; linkError.value = "";
-          void nextTick(() => linkUrlInput.value?.focus());
-        } }, "URL"),
-      ]) : null,
-      linkMode.value === "target" && props.linkSearch
-        ? h("label", [h("span", `Find a ${props.linkTargetLabel.toLowerCase()}`), h("input", {
-            "data-link-search": "",
-            type: "search",
-            value: linkQuery.value,
-            autocomplete: "off",
-            "aria-invalid": linkError.value ? "true" : undefined,
+    const cancelLink = () => {
+      linkOpen.value = false;
+      linkContextEditing.value = false;
+      const selection = linkSelection;
+      if (selection) editor.value?.chain().focus().setTextSelection(selection.to).run();
+    };
+    const renderLinkDestination = (mode: "target" | "url") => [
+      h(FormField, { invalid: Boolean(linkError.value) }, {
+        label: () => h("label", props.linkSearch ? "Link destination" : "URL"),
+        default: () => {
+          const input = h(Input, {
+            "data-link-destination": "",
+            ...(props.linkSearch ? { "data-link-search": "", type: "text", role: "searchbox", autocomplete: "off", placeholder: `Search ${props.linkTargetLabel.toLowerCase()}s or paste a URL…` } : { type: "text", inputmode: "url", placeholder: "https://example.com" }),
+            size: props.linkSearch ? "md" : "sm",
+            value: props.linkSearch ? linkQuery.value : linkHref.value,
             onInput: (event: Event) => {
-              linkQuery.value = (event.target as HTMLInputElement).value;
-              linkSelectedTarget.value = null;
+              const value = (event.target as HTMLInputElement).value;
+              if (props.linkSearch) {
+                linkQuery.value = value;
+                linkMode.value = /^(https?:\/\/|mailto:|tel:)/i.test(value.trim()) ? "url" : "target";
+                linkSelectedTarget.value = null;
+              }
+              linkHref.value = value;
               linkError.value = "";
             },
             onKeydown: (event: KeyboardEvent) => {
-              if (event.key === "ArrowDown") moveLinkResultFocus(event, 1);
+              if (mode === "target" && event.key === "ArrowDown") moveLinkResultFocus(event, 1);
             },
-          })])
-        : h("label", [h("span", "URL"), h("input", {
-            ref: linkUrlInput,
-            type: "text",
-            inputmode: "url",
-            value: linkHref.value,
-            "aria-invalid": linkError.value ? "true" : undefined,
-            onInput: (event: Event) => { linkHref.value = (event.target as HTMLInputElement).value; linkError.value = ""; },
-          })]),
-      linkMode.value === "target" && props.linkSearch
-        ? h("div", { class: "looma-editor__link-results", "aria-label": "Destination search results" }, [
-            linkSearching.value ? h("p", { role: "status" }, "Searching…") : null,
-            linkSelectedTarget.value ? h("p", { class: "looma-editor__link-selected" },
-              `Selected: ${linkSelectedTarget.value.label}${linkSelectedTarget.value.detail ? ` · ${linkSelectedTarget.value.detail}` : ""}`) : null,
+          });
+          return props.linkSearch ? h(InputGroup, { prefixKind: "icon" }, {
+            prefix: () => loomaIcon(mode === "target" ? "search" : "link"),
+            default: () => input,
+            action: () => linkQuery.value ? h(IconButton, {
+              label: "Clear search", variant: "ghost", size: "sm", onClick: () => {
+                linkQuery.value = ""; linkHref.value = ""; linkMode.value = "target"; linkSelectedTarget.value = null; linkError.value = "";
+                void nextTick(() => linkFormRoot.value?.querySelector<HTMLInputElement>("[data-link-search]")?.focus());
+              },
+            }, () => loomaIcon("x")) : null,
+          }) : input;
+        },
+      }),
+      mode === "target"
+        ? h(ScrollArea, { size: "sm", "aria-label": "Destination search results" }, () => [
+            linkSearching.value ? h(Text, { size: "sm", tone: "secondary", role: "status" }, () => "Searching…") : null,
             !linkSearching.value && !linkSelectedTarget.value && linkQuery.value.trim().length < 2
-              ? h("p", "Type at least two letters to search.") : null,
+              ? h(Text, { size: "sm", tone: "secondary" }, () => "Type at least two letters to search.") : null,
             !linkSearching.value && !linkSelectedTarget.value && linkQuery.value.trim().length >= 2 && !linkResults.value.length && !linkError.value
-              ? h("p", "No results found.") : null,
-            ...linkResults.value.map((target) => h("button", {
-              key: target.id,
-              type: "button",
+              ? h(Text, { size: "sm", tone: "secondary" }, () => "No results found.") : null,
+            ...(linkSelectedTarget.value ? [linkSelectedTarget.value] : linkResults.value).map((target) => h(SearchResultRow, {
+              key: target.id, density: "compact",
+              selected: target.id === linkSelectedTarget.value?.id,
               "data-link-result": "",
               onClick: () => selectLinkTarget(target),
               onKeydown: (event: KeyboardEvent) => {
                 if (event.key === "ArrowDown") moveLinkResultFocus(event, 1);
                 if (event.key === "ArrowUp") moveLinkResultFocus(event, -1);
               },
-            }, [h("strong", target.label), target.detail ? h("small", target.detail) : null])),
+            }, {
+              leading: () => loomaIcon("file-text"),
+              title: () => h(Text, { as: "strong", size: "sm", weight: "medium", truncate: true, title: target.label }, () => target.label),
+              meta: () => target.detail ? h(Text, { as: "span", size: "xs", tone: "secondary", truncate: true, title: target.detail }, () => target.detail) : null,
+              trailing: () => target.id === linkSelectedTarget.value?.id ? loomaIcon("check") : null,
+            })),
           ])
-        : h("label", { class: "looma-editor__link-new-tab" }, [h("input", {
-            type: "checkbox",
-            checked: linkNewTab.value,
-            onChange: (event: Event) => { linkNewTab.value = (event.target as HTMLInputElement).checked; },
-          }), h("span", "Open in new tab")]),
-      linkError.value ? h("p", { class: "looma-editor__link-error", role: "alert" }, linkError.value) : null,
-      linkMode.value === "url" && validLinkHref(linkHref.value) ? h("a", {
-        class: "looma-editor__link-preview",
-        href: validLinkHref(linkHref.value),
-        target: "_blank",
-        rel: "noopener noreferrer",
-      }, "Preview link") : null,
-      h("div", { class: "looma-editor__link-actions" }, [
-        linkSelection?.existing ? h("button", { type: "button", onClick: removeLink }, "Remove link") : null,
-        h("button", { type: "submit" }, "Save link"),
+        : h(Checkbox, {
+            size: "sm", checked: linkNewTab.value,
+            onChange: (event: CustomEvent<{ checked: boolean }>) => { linkNewTab.value = event.detail.checked; },
+          }, () => "Open in new tab"),
+    ];
+    const renderLinkForm = () => h("form", {
+      ref: linkFormRoot,
+      class: "looma-editor__link-form",
+      "aria-label": "Edit link",
+      onSubmit: (event: Event) => { event.preventDefault(); saveLink(); },
+    }, [h(Stack, { gap: "s" }, () => [
+      h(Text, { as: "h3", size: "sm", weight: "semibold" }, () => linkSelection?.existing ? "Edit link" : "Add link"),
+      h(Stack, { gap: "s" }, () => renderLinkDestination(linkMode.value)),
+      linkSelection?.from === linkSelection?.to && !linkSelection?.existing
+        ? h(FormField, {}, {
+            label: () => h("label", "Text"),
+            default: () => h(Input, { size: "sm", value: linkText.value, onInput: (event: Event) => { linkText.value = (event.target as HTMLInputElement).value; linkError.value = ""; } }),
+          }) : null,
+      linkError.value ? h(Text, { size: "sm", tone: "danger", role: "alert" }, () => linkError.value) : null,
+      h(Separator),
+      h(Cluster, { gap: "xs", justify: "between" }, () => [
+        h(Cluster, { gap: "xs" }, () => [
+          linkSelection?.existing ? h(Button, { type: "button", variant: "ghost", tone: "danger", size: "sm", onClick: removeLink }, () => "Remove link") : null,
+          linkMode.value === "url" && validLinkHref(linkHref.value) ? h(Button, {
+            as: "a", variant: "link", size: "sm", href: validLinkHref(linkHref.value), target: "_blank", rel: "noopener noreferrer",
+          }, () => "Preview link") : null,
+        ]),
+        h(Cluster, { gap: "xs" }, () => [
+          h(Button, { type: "button", variant: "ghost", tone: "neutral", size: "sm", onClick: cancelLink }, () => "Cancel"),
+          h(Button, { type: "submit", variant: "solid", size: "sm" }, () => "Save link"),
+        ]),
       ]),
-    ]);
+    ])]);
     const renderLinkContext = (instance: Editor) => {
       if (linkContextEditing.value) return renderLinkForm();
       const rawHref = instance.getAttributes("link").href;
       const href = typeof rawHref === "string" ? rawHref : "";
       const safeHref = validLinkHref(href);
-      return h("div", { class: "looma-editor__link-context-actions", role: "group", "aria-label": "Link actions" }, [
-        h("span", { class: "looma-editor__link-context-url", title: href }, [
-          h("small", { class: "looma-editor__link-context-kind" }, linkContextTarget.value ? props.linkTargetLabel : "External URL"),
-          ...(linkContextTarget.value
-            ? [h("strong", linkContextTarget.value.label), linkContextTarget.value.detail ? h("small", linkContextTarget.value.detail) : null]
-            : [href]),
+      const editId = `${toolbarScope}-link-edit`;
+      const removeId = `${toolbarScope}-link-remove`;
+      const openId = `${toolbarScope}-link-open`;
+      const target = linkContextTarget.value;
+      return h(Cluster, { gap: "xs", wrap: "nowrap", role: "group", "aria-label": "Link actions" }, () => [
+        loomaIcon(target ? "file-text" : "link"),
+        h(Stack, { gap: "none", title: href, "aria-label": `${target ? props.linkTargetLabel : "External URL"}: ${target?.label ?? href}` }, () => [
+          h(Text, { as: "strong", size: "sm", weight: "medium", font: "sans", wrap: "anywhere" }, () => target?.label ?? href),
+          target?.detail ? h(Text, { as: "small", size: "xs", tone: "secondary", font: "sans" }, () => target.detail) : null,
         ]),
-        h("button", {
-          type: "button",
+        safeHref ? h(Button, {
+          id: openId, as: "a", variant: "ghost", tone: "neutral", size: "sm",
+          href: safeHref, target: "_blank", rel: "noopener noreferrer", "aria-label": "Open link",
+        }, () => loomaIcon("external-link")) : null,
+        safeHref ? h(Tooltip, { for: openId }, () => "Open link") : null,
+        h(IconButton, {
+          id: editId, label: "Edit link", variant: "ghost", size: "sm",
           onPointerdown: (event: PointerEvent) => event.preventDefault(),
           onClick: () => openLinkEditor(true),
-        }, "Edit link"),
-        h("button", {
-          type: "button",
+        }, () => loomaIcon("pencil")),
+        h(Tooltip, { for: editId }, () => "Edit link"),
+        h(IconButton, {
+          id: removeId, label: "Remove link", variant: "ghost", size: "sm",
           onPointerdown: (event: PointerEvent) => event.preventDefault(),
           onClick: removeCurrentLink,
-        }, "Remove link"),
-        safeHref ? h("a", { href: safeHref, target: "_blank", rel: "noopener noreferrer" }, "Open link") : null,
+        }, () => loomaIcon("unlink")),
+        h(Tooltip, { for: removeId }, () => "Remove link"),
       ]);
     };
+
     const captureBlockAction = () => {
       const instance = editor.value;
       const head = instance?.state.selection.$head;
@@ -1507,10 +1538,10 @@ export const LoomaEditor = defineComponent({
           : []),
         commandButton("Inline code", "code-xml", instance.isActive("code"), !instance.can().toggleCode(), () => instance.chain().focus().toggleCode().run(), "Mod-e"),
       ];
-      const buttons = textOnly ? textButtons : [
-        ...textButtons,
+      const linkTriggerId = textOnly ? `${linkAnchorId}-selection` : linkAnchorId;
+      textButtons.push(
         h(IconButton, {
-          id: linkAnchorId,
+          id: linkTriggerId,
           class: "looma-editor__toolbar-button",
           label: "Link",
           size: "sm",
@@ -1518,15 +1549,19 @@ export const LoomaEditor = defineComponent({
           "aria-expanded": linkOpen.value ? "true" : "false",
           "aria-pressed": instance.isActive("link") ? "true" : "false",
           "data-active": instance.isActive("link") ? "true" : "false",
-          onPointerenter: () => showTool(linkAnchorId, "Link", false),
+          onPointerenter: () => showTool(linkTriggerId, "Link", false),
           onPointerleave: hideTool,
           onPointerdown: () => {
+            linkPopoverAnchorId.value = linkTriggerId;
             const selection = instance.state.selection;
             linkPressedSelection = selection.empty ? null : { from: selection.from, to: selection.to };
           },
-          onFocusin: () => showTool(linkAnchorId, "Link", true),
+          onFocusin: () => { linkPopoverAnchorId.value = linkTriggerId; showTool(linkTriggerId, "Link", true); },
           onFocusout: hideTool,
-        }, () => loomaIcon("link")),
+        }, () => loomaIcon("link"))
+      );
+      const buttons = textOnly ? textButtons : [
+        ...textButtons,
         h("span", { class: "divider", "aria-hidden": "true" }),
         commandButton("Heading 1", "heading-1", instance.isActive("heading", { level: 1 }), false, () => instance.chain().focus().toggleHeading({ level: 1 }).run(), "Mod-Alt-1"),
         commandButton("Heading 2", "heading-2", instance.isActive("heading", { level: 2 }), false, () => instance.chain().focus().toggleHeading({ level: 2 }).run(), "Mod-Alt-2"),
@@ -1679,12 +1714,13 @@ export const LoomaEditor = defineComponent({
                 appendTo: () => root.value?.closest<HTMLElement>("dialog[open], [popover]") ?? document.body,
                 onShow: () => announceOverlayOpen(root.value?.ownerDocument ?? document, root.value),
                 duration: 100,
-                maxWidth: "none",
+                maxWidth: Math.min(480, window.innerWidth - 24),
                 placement: "bottom",
               },
-            }, { default: () => h("div", {
+            }, { default: () => h(Card, {
+              variant: "elevated", padding: linkContextEditing.value ? "sm" : "xs", size: linkContextEditing.value ? "sm" : "content",
               class: ["looma-editor__link-context", { "looma-editor__link-context--editing": linkContextEditing.value }],
-            }, [renderLinkContext(instance)]) })
+            }, () => [renderLinkContext(instance)]) })
           : null,
         instance && props.editable && !mobile.value && props.toolbarMode === "popover" && props.toolbarTriggerId
           ? h(Popover, {
@@ -1821,11 +1857,18 @@ export const LoomaEditor = defineComponent({
         ])),
         h(Popover, {
           class: "looma-editor__link-popover",
+          size: "sm",
           open: linkOpen.value,
-          for: linkAnchorId,
+          for: linkPopoverAnchorId.value,
           placement: mobile.value ? "top-start" : "bottom-start",
           onOpen: () => openLinkEditor(),
-          onClose: () => { linkOpen.value = false; linkPressedSelection = null; },
+          onClose: () => {
+            linkOpen.value = false; linkPressedSelection = null;
+            const current = editor.value?.state.selection;
+            if (current && !current.empty && linkSelection && current.from === linkSelection.from && current.to === linkSelection.to) {
+              editor.value?.commands.setTextSelection(current.to);
+            }
+          },
         }, renderLinkForm),
         h(Menu, {
           for: blockActionAnchorId,
