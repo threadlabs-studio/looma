@@ -90,7 +90,9 @@ export default function controller(host) {
   };
   const onStructure = () => { updateLevel(); apply(); };
   const onAutoExpand = () => setExpanded(true, "pointer");
+  const onMoveState = (event) => { host.state.moving = Boolean(event.detail?.moving); };
 
+  element.addEventListener("ui-tree-move-state", onMoveState);
   element.addEventListener("ui-tree-auto-expand", onAutoExpand);
   element.addEventListener("ui-tree-structure-sync", onStructure);
   element.addEventListener("ui-tree-roving-tab-stop", onRoving);
@@ -219,6 +221,7 @@ export default function controller(host) {
     element.removeEventListener("focusout", onFocusOut);
     labelText?.removeEventListener("animationend", onMarqueeEnd);
     element.removeEventListener("ui-tree-auto-expand", onAutoExpand);
+    element.removeEventListener("ui-tree-move-state", onMoveState);
     element.removeEventListener("ui-tree-structure-sync", onStructure);
     element.removeEventListener("ui-tree-roving-tab-stop", onRoving);
     element.removeEventListener("ui-tree-request-expanded", onExpansionRequest);

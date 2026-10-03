@@ -32,6 +32,7 @@ export default function controller(host) {
   let typed = "";
   let lastTyped = 0;
   let moveMode = false;
+  let handlePointerType = null;
   const announcer = document.createElement("span");
   announcer.setAttribute("role", "status");
   announcer.style.cssText = "position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap";
@@ -103,6 +104,8 @@ export default function controller(host) {
     moveMode = false;
     element.removeAttribute("data-move-mode");
     source?.removeAttribute("data-dragging");
+    source?.removeAttribute("data-move-source");
+    source?.dispatchEvent(new CustomEvent("ui-tree-move-state", { detail: { moving: false } }));
     source = null;
     clearTarget();
     rejection = null;
@@ -165,8 +168,16 @@ export default function controller(host) {
     moveMode = true;
     source = item;
     source.setAttribute("data-dragging", "true");
+    source.setAttribute("data-move-source", "");
+    source.dispatchEvent(new CustomEvent("ui-tree-move-state", { detail: { moving: true } }));
     element.setAttribute("data-move-mode", "");
-    announce(`Moving ${nameOf(item)}. Choose a destination by click or the arrow keys. Press Enter to place or Escape to cancel.`);
+    announce(`Moving ${nameOf(item)}. Choose a destination by click or the arrow keys. Press Enter to place, or use Cancel or Escape to cancel.`);
+  };
+  const cancelMove = () => {
+    const handle = source && rowFor(source)?.querySelector(".drag-handle");
+    finish();
+    handle?.focus();
+    announce("Move cancelled.");
   };
   const commitMove = (how) => {
     if (!source) return;
@@ -182,12 +193,21 @@ export default function controller(host) {
     } else announce("Choose another destination row.");
   };
   const onMoveClick = (event) => {
+    if (moveMode && event.composedPath().some((node) => node instanceof HTMLElement && node.hasAttribute("data-tree-cancel-move"))) {
+      event.preventDefault();
+      event.stopPropagation();
+      cancelMove();
+      return;
+    }
     const handle = event.composedPath().find((node) => node instanceof HTMLElement && node.classList.contains("drag-handle"));
     if (handle) {
       event.preventDefault();
       event.stopPropagation();
       const item = itemFromEvent(event);
-      if (item) beginMove(item);
+      if (moveMode && item === source) cancelMove();
+      else if (item && (host.props.moveActivation.value !== "keyboard-touch" || event.detail === 0
+        || (event.pointerType ?? handlePointerType) === "touch")) beginMove(item);
+      handlePointerType = null;
       return;
     }
     if (!moveMode) {
@@ -214,6 +234,7 @@ export default function controller(host) {
     else if (rejection) commitMove("pointer");
     else announce("Choose another destination row.");
   };
+  const onHandlePointerDown = (event) => { handlePointerType = event.pointerType; };
   const onMovePointer = (event) => {
     if (!moveMode) return;
     const item = itemFromEvent(event);
@@ -223,13 +244,15 @@ export default function controller(host) {
     if (!moveMode) return false;
     if (event.key === "Escape") {
       event.preventDefault();
-      finish();
-      announce("Move cancelled.");
+      cancelMove();
       return true;
     }
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
-      commitMove("keyboard");
+      const cancelling = event.composedPath().some((node) => node instanceof HTMLElement
+        && (node.hasAttribute("data-tree-cancel-move") || (node.classList.contains("drag-handle") && itemFromEvent(event) === source)));
+      if (cancelling) cancelMove();
+      else commitMove("keyboard");
       return true;
     }
     if (event.key === "ArrowRight" && target) {
@@ -254,6 +277,7 @@ export default function controller(host) {
       const candidate = items[index];
       const side = step < 0 ? "before" : "after";
       if (candidate !== source && chooseTarget(candidate, side)) {
+        focusItem(candidate);
         announce(`Move ${nameOf(source)} ${side} ${nameOf(candidate)}. Press Enter to place.`);
         break;
       }
@@ -364,6 +388,7 @@ export default function controller(host) {
     host.dispatch("select", { ids: items.map(itemId).filter((candidate) => candidate && selected.has(candidate)), trigger: how });
   };
   const syncStructure = () => {
+    if (source && !element.contains(source)) finish();
     for (const item of allItems()) item.dispatchEvent(new CustomEvent("ui-tree-structure-sync"));
     syncTabStop();
     syncSelection();
@@ -416,7 +441,7 @@ export default function controller(host) {
       if (match) { event.preventDefault(); focusItem(match); }
     }
   };
-  const listeners = { dragstart: onDragStart, drag: onDrag, dragenter: onDragOver, dragover: onDragOver, dragleave: onDragLeave, drop: onDrop, dragend: onDragEnd, keydown: onKeydown, focusin: onFocusin, pointermove: onMovePointer, "ui-tree-expansion-change": onExpansion };
+  const listeners = { dragstart: onDragStart, drag: onDrag, dragenter: onDragOver, dragover: onDragOver, dragleave: onDragLeave, drop: onDrop, dragend: onDragEnd, keydown: onKeydown, focusin: onFocusin, pointerdown: onHandlePointerDown, pointermove: onMovePointer, "ui-tree-expansion-change": onExpansion };
   for (const [name, listener] of Object.entries(listeners)) element.addEventListener(name, listener);
   element.addEventListener("click", onMoveClick, true);
   const observer = new MutationObserver((records) => {
@@ -430,6 +455,7 @@ export default function controller(host) {
   });
   syncStructure();
   return () => {
+    finish();
     stop();
     observer.disconnect();
     cancelHover();

@@ -1,3 +1,4 @@
+<link rel="component" href="../ui-button/ui-button.html">
 <template component="ui-tree-item" controller="./ui-tree-item.js">
   <defs>
     <prop name="itemId" type="string" default=""
@@ -17,8 +18,8 @@
     >Keeps an empty item expandable while its children are supplied later. Expanding emits expand; the item is aria-busy until child Tree Items are appended.
       Clear lazy if loading finishes with no children.</prop>
     <prop name="sortable" type="boolean" default="false"
-    >Gives the item a move handle. Drag it, or activate it and choose a target by a second click or the keyboard. The tree reports reorder and leaves moving the
-      item to you. Needs itemId; disabled items show no handle.</prop>
+    >Gives the item a move handle. Drag it, or activate it according to the tree's moveActivation and choose a target by a second click or the keyboard. A
+      guided move exposes Cancel on this row. The tree reports reorder and leaves moving the item to you. Needs itemId; disabled items show no handle.</prop>
     <prop name="dragType" type="string" default="item"
     >The item's kind, for drag rules: it can be dropped before or after only items of the same type, and inside a branch only if that branch's accepts allows
       it. Reported as sourceType and targetType.</prop>
@@ -44,6 +45,7 @@
     <state type="integer" name="structuralLevel" value="1"></state>
     <state type="boolean" name="tabStop" value="false"></state>
     <state type="boolean" name="isContainer" value="false"></state>
+    <state type="boolean" name="moving" value="false"></state>
     <event name="expand" bubbles="false" type="object">
       <prop name="id" required type="string"></prop>
       <prop name="expanded" required type="boolean"></prop>
@@ -70,7 +72,7 @@
         $ref="dragHandle"
         type="button"
         draggable="true"
-        from:aria-label="format('Drag %s to reorder', label)"
+        from:aria-label="{ true: format('Cancel moving %s', label), false: format('Drag %s to reorder', label) }[format('%s', moving)]"
       >
         <svg
           aria-hidden="true"
@@ -103,7 +105,10 @@
         ></label>
       <span class="leading" $ref="leading"><slot name="leading"></slot></span>
       <span class="label" $ref="label"><span class="label-text" $ref="labelText"><slot name="label"><template $value="label"></template></slot></span></span>
-      <span class="actions" $ref="actions"><slot name="actions"></slot></span>
+      <span class="actions" $ref="actions">
+        <ui-button $if="moving" data-tree-cancel-move variant="ghost" tone="neutral" size="sm" aria-label="Cancel move">Cancel</ui-button>
+        <span $else><slot name="actions"></slot></span>
+      </span>
       <span class="drop-indicator row-drop-indicator" aria-hidden="true"></span>
     </div>
     <div class="children" $ref="children" role="group" from:hidden="not (isContainer and internalExpanded)"><slot></slot></div>
@@ -187,7 +192,12 @@
       background: var(--ui-disabled-surface);
     }
 
-    :host[data-dragging] .row {
+    :host[data-dragging]:not([data-move-source]) .row {
+      opacity: 0.42;
+    }
+
+    :host[data-move-source] > .row > .label,
+    :host[data-move-source] > .row > .leading {
       opacity: 0.42;
     }
 
@@ -360,7 +370,8 @@
     /* The controls sit over the label's end, so the text fades out where they begin. The fade is
        the truncation mark while it shows: an ellipsis under it would read as a second one. */
     .row:hover > .label,
-    .row:focus-within > .label {
+    .row:focus-within > .label,
+    :host[data-move-source] > .row > .label {
       text-overflow: clip;
       mask-image: linear-gradient(
         to right,
@@ -370,7 +381,8 @@
     }
 
     .row:hover > .label:dir(rtl),
-    .row:focus-within > .label:dir(rtl) {
+    .row:focus-within > .label:dir(rtl),
+    :host[data-move-source] > .row > .label:dir(rtl) {
       mask-image: linear-gradient(
         to left,
         #000 calc(100% - var(--_tree-actions-width, 1.75rem) - var(--ui-space-1)),
@@ -451,7 +463,8 @@
     }
 
     .row:hover > .actions,
-    .row:focus-within > .actions {
+    .row:focus-within > .actions,
+    :host[data-move-source] > .row > .actions {
       opacity: 1;
       pointer-events: auto;
     }
