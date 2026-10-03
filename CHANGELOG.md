@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Single-selection trees report a row’s default action on click or Enter, including an already selected row; selection and activation remain separate events.
+
 - On phones, Link stays available during a held press and its picker keeps the toolbar anchor while its field has focus.
 
 - Small Scroll Areas leave room after three compact results for the overflow fade, keeping the third location readable.
