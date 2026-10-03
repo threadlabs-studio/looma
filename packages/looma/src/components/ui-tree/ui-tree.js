@@ -202,6 +202,7 @@ export default function controller(host) {
       event.stopPropagation();
       selectItem(item, "pointer");
       focusItem(item);
+      if (selectionMode() === "single" && !checkbox) host.dispatch("activate", { id: itemId(item), trigger: "pointer" });
       if (checkbox) requestAnimationFrame(syncSelection);
       return;
     }
@@ -382,6 +383,13 @@ export default function controller(host) {
     if (interactive(event)) return;
     const current = itemFromEvent(event);
     if (!current) return;
+    if (event.key === "Enter" && selectionMode() === "single" && !event.altKey && !event.ctrlKey && !event.metaKey) {
+      if (current.getAttribute("aria-disabled") === "true") return;
+      event.preventDefault();
+      selectItem(current, "keyboard");
+      host.dispatch("activate", { id: itemId(current), trigger: "keyboard" });
+      return;
+    }
     if (event.key === " " && selectionMode() !== "none") {
       event.preventDefault();
       selectItem(current, "keyboard");
