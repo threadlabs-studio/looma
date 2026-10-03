@@ -5,6 +5,9 @@
 - `/toc` inserts an automatic table of contents from document headings, with plain, bulleted, or numbered formatting and heading-depth settings built from shared controls. Heading anchors survive renames and moves, and read-only entries navigate without opening link editing. Headless integrations can inspect derived entries for document projections.
 - `/status` finds the existing Chip command and retains its label/color editor and document format. Existing `/link` behavior is covered through slash insertion, keyboard destination selection, and cancellation.
 - Escape closes only the top nested Menu or Popover, preserving its containing settings surface.
+- Trees can reserve guided move activation for keyboard and touch, leaving desktop grips drag-only. Guided moves offer a visible standard Cancel button, Escape, and source-handle cancellation without changing order.
+- Navigation disclosure labels, icons, and carets stay neutral when expanded; selection color remains reserved for current destinations.
+
 - Sidebar resize handles report the requested width while layout animation settles, including when restoring a saved width.
 
 - Disclosures can require one named-group member to stay open, animate bounded fill transfers, and rotate custom indicators without replacing them. Navigation headers and Nav Items share icon columns, spacing, and hover treatment; Nav Items support a trailing slot. Navigation icon columns now keep the body-size width at either density rather than shrinking compact icons below their neighbours.

@@ -3,7 +3,8 @@
     <prop name="density" type="keyword" values="comfortable, compact" default="comfortable"
     >Compact trades padding and type size for rows that fit more on screen.</prop>
     <prop name="variant" type="keyword" values="plain, navigation" default="plain"
-    >Navigation shares icon columns, spacing, type, hover, and corners with Nav Item. Plain retains the standard disclosure treatment.</prop>
+    >Navigation shares icon columns, spacing, type, hover, and corners with Nav Item, while keeping expanded sections neutral: opening content is not route
+      selection. Plain retains the standard disclosure treatment.</prop>
     <prop name="requiredOpen" type="boolean" default="false"
     >In a named exclusive group, keeps at least one member open. Clicking the last open trigger does not close it; opening another member transfers the open
       state.</prop>
@@ -226,9 +227,6 @@
     :host-state([variant="navigation"]) .trigger:hover:not(:disabled) {
       background: var(--ui-nav-hover-surface);
       color: var(--ui-text-primary);
-    }
-    :host-state([variant="navigation"][internalOpen]) .trigger {
-      color: var(--ui-selection-text);
     }
     :host-state([variant="navigation"]) :is(.leading, .indicator) {
       inline-size: var(--ui-nav-icon-size);

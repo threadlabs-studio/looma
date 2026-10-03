@@ -522,13 +522,13 @@ describe("Disclosure composition", () => {
     await page.close();
   });
 
-  it("shares navigation columns, typography, hover, and corners with Nav Item in HTML and Vue", async () => {
+  it("shares neutral navigation colors, columns, typography, hover, and corners in HTML and Vue", async () => {
     for (const adapter of ["html", "vue"]) {
       const path = await bundle(`${adapter}-navigation-geometry`, adapter === "html" ? `import "@threadlabs/looma";` : `
         import { createApp, h } from "vue";
         import { Disclosure, NavItem, Icon } from "@threadlabs/looma/vue";
         createApp({ render: () => h("div", { style: "width:240px" }, [
-          h(Disclosure, { id: "section", variant: "navigation", density: "compact", fill: true, summary: "Library" }, {
+          h(Disclosure, { id: "section", variant: "navigation", density: "compact", fill: true, open: true, summary: "Library" }, {
             leading: () => h(Icon, { name: "files" }), indicator: () => h(Icon, { name: "chevron-up" }),
           }),
           h(NavItem, { id: "destination", density: "compact" }, {
@@ -538,7 +538,7 @@ describe("Disclosure composition", () => {
       `);
       const page = await open(path, adapter === "html" ? `
         <div style="width:240px">
-          <ui-disclosure id="section" variant="navigation" density="compact" fill summary="Library"><ui-icon slot="leading" name="files"></ui-icon><ui-icon slot="indicator" name="chevron-up"></ui-icon></ui-disclosure>
+          <ui-disclosure id="section" variant="navigation" density="compact" fill open summary="Library"><ui-icon slot="leading" name="files"></ui-icon><ui-icon slot="indicator" name="chevron-up"></ui-icon></ui-disclosure>
           <ui-nav-item id="destination" density="compact"><ui-icon slot="leading" name="trash"></ui-icon>Archived<ui-icon slot="trailing" name="chevrons-up-down"></ui-icon></ui-nav-item>
         </div>
       ` : `<div id="app"></div>`, [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { reducedMotion: "reduce" });
@@ -555,6 +555,13 @@ describe("Disclosure composition", () => {
         };
       });
       for (const values of Object.values(geometry)) assert.equal(values[0], values[1], `${adapter}: ${JSON.stringify(geometry)}`);
+      const neutral = await page.locator("#destination").evaluate(element => getComputedStyle(element).color);
+      for (const selector of ["#section button", "#section .leading svg", "#section .indicator svg"]) {
+        assert.equal(await page.locator(selector).evaluate(element => getComputedStyle(element).color), neutral);
+      }
+      await page.locator("#section button").click();
+      await page.mouse.move(0, 0);
+      assert.equal(await page.locator("#section button").evaluate(element => getComputedStyle(element).color), neutral);
       await page.locator("#section button").hover();
       const sectionHover = await page.locator("#section button").evaluate(element => getComputedStyle(element).backgroundColor);
       await page.locator("#destination").hover();
