@@ -87,7 +87,8 @@ export default function controller(host) {
     const { min, max } = bounds();
     handle.setAttribute("aria-valuemin", String(min));
     handle.setAttribute("aria-valuemax", String(max));
-    handle.setAttribute("aria-valuenow", String(Math.round(currentWidth())));
+    const requestedWidth = Number.parseFloat(element.style.getPropertyValue("--_sidebar-width"));
+    handle.setAttribute("aria-valuenow", String(Math.round(positive(requestedWidth, currentWidth()))));
   };
   const onDoubleClick = () => {
     element.style.removeProperty("--_sidebar-width");

@@ -6264,6 +6264,7 @@ describe("Sidebar", () => {
     await page.evaluate(() => { (window as unknown as { width: { value: number } }).width.value = 300; });
     await page.waitForFunction(() => document.querySelector("#nav")!.getBoundingClientRect().width === 300);
     assert.equal(await width(), 300);
+    assert.equal(await page.locator("#nav .resizer").getAttribute("aria-valuenow"), "300");
     assert.deepEqual(errors, []);
     assert.deepEqual((await probe(page)).resizes, [{ width: 256, trigger: "programmatic" }, { width: 300, trigger: "programmatic" }]);
     await page.close();
