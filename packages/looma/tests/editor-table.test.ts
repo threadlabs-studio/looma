@@ -536,7 +536,7 @@ describe("LoomaEditor automatic table of contents", () => {
       await activate(settings.getByRole("button", { name: "Formatting", exact: true }));
       const format = page.getByRole("menu", { name: "Formatting", exact: true });
       if (width === 1280) {
-        await format.getByRole("menuitemradio", { name: "Plain", exact: true }).focus();
+        await equals(() => format.getByRole("menuitemradio", { name: "Plain", exact: true }).evaluate(element => element === document.activeElement), true, "menu autofocus has completed before keyboard navigation");
         await page.keyboard.press("ArrowDown");
         await page.keyboard.press("ArrowDown");
         await page.keyboard.press("Enter");
