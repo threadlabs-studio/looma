@@ -1,0 +1,22 @@
+<!--
+title: Full-height accordion
+description: An open section fills a bounded column while its content scrolls independently.
+-->
+<div style="display: flex; flex-direction: column; height: 320px; width: min(100%, 280px)">
+  <ui-disclosure name="library" summary="Overview" fill open>
+    <ui-scroll-area style="flex: 1; min-height: 0">
+      <ui-stack gap="m">
+        <p>Keep the overview open while you read its notes.</p>
+        <p>Only the content scrolls; both section headers stay in reach.</p>
+        <p>Longer notes remain available without moving the other header.</p>
+        <p>The next section expands into the same space when you open it.</p>
+        <p>Use a custom decorative icon in the indicator slot when appropriate.</p>
+      </ui-stack>
+    </ui-scroll-area>
+  </ui-disclosure>
+  <ui-disclosure name="library" summary="Documents" fill>
+    <ui-scroll-area style="flex: 1; min-height: 0">
+      <p>Documents in this library.</p>
+    </ui-scroll-area>
+  </ui-disclosure>
+</div>

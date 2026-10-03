@@ -502,23 +502,77 @@ describe("Tabs activation", () => {
 });
 
 describe("Disclosure composition", () => {
+  it("fills the remaining height with unboxed headers and a scrolling body in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const source = adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Disclosure, Icon } from "@threadlabs/looma/vue";
+        createApp({ render: () => h("div", { id: "panels", style: "display:flex;flex-direction:column;height:480px;width:240px" }, [
+          h(Disclosure, { id: "first", fill: true, name: "panels", summary: "Overview", open: true }, {
+            indicator: () => h(Icon, { name: "chevron-down", "aria-hidden": "true" }),
+            default: () => h("div", { id: "scroll", style: "flex:1;min-height:0;overflow:auto" }, h("p", { style: "height:1800px" }, "Overview content")),
+          }),
+          h(Disclosure, { id: "second", fill: true, name: "panels", summary: "Library" }, () => h("p", "Library content")),
+        ]) }).mount("#app");
+      `;
+      const path = await bundle(`${adapter}-disclosure-fill`, source);
+      const body = adapter === "html" ? `
+        <div id="panels" style="display:flex;flex-direction:column;height:480px;width:240px">
+          <ui-disclosure id="first" fill name="panels" summary="Overview" open>
+            <ui-icon slot="indicator" name="chevron-down" aria-hidden="true"></ui-icon>
+            <div id="scroll" style="flex:1;min-height:0;overflow:auto"><p style="height:1800px">Overview content</p></div>
+          </ui-disclosure>
+          <ui-disclosure id="second" fill name="panels" summary="Library"><p>Library content</p></ui-disclosure>
+        </div>` : `<div id="app"></div>`;
+      const page = await open(path, body, [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { reducedMotion: "reduce" });
+      assert.equal(await page.locator("#first .chevron").count(), 0, "custom indicator replaces the default");
+      const measure = () => page.evaluate(() => {
+        const first = document.querySelector("#first")!;
+        const second = document.querySelector("#second")!;
+        const trigger = first.querySelector("button")!;
+        const scroll = document.querySelector("#scroll")!;
+        return {
+          first: first.getBoundingClientRect().height, second: second.getBoundingClientRect().height,
+          width: first.getBoundingClientRect().width, triggerWidth: trigger.getBoundingClientRect().width,
+          background: getComputedStyle(trigger).backgroundColor, shadow: getComputedStyle(trigger).boxShadow,
+          scrollHeight: scroll.scrollHeight, visibleHeight: scroll.clientHeight,
+        };
+      });
+      const opened = await measure();
+      assert.ok(opened.first > 400 && opened.second < 64, `${adapter}: ${JSON.stringify(opened)}`);
+      assert.equal(opened.width, opened.triggerWidth);
+      assert.equal(opened.background, "rgba(0, 0, 0, 0)");
+      assert.equal(opened.shadow, "none");
+      assert.ok(opened.visibleHeight > 300 && opened.scrollHeight > opened.visibleHeight);
+      await page.locator("#second button").focus();
+      await page.keyboard.press("Enter");
+      assert.equal(await page.locator("#first button").getAttribute("aria-expanded"), "false");
+      assert.equal(await page.locator("#second button").getAttribute("aria-expanded"), "true");
+      const swapped = await measure();
+      assert.ok(swapped.second > 400 && swapped.first < 64);
+      await page.close();
+    }
+  });
+
   it("reveals closed content when a fragment targets it and closes its named peer", async () => {
     const path = await bundle("html-disclosure-beforematch", `
       import "@threadlabs/looma";
       window.opens = [];
       document.querySelector("#target").addEventListener("open", (event) => window.opens.push(event.detail));
     `);
-    const page = await open(path, `
-      <ui-disclosure id="peer" name="faq" summary="Peer" open><p>Peer answer</p></ui-disclosure>
-      <ui-disclosure id="target" name="faq" summary="Target"><p id="answer">Findable answer</p></ui-disclosure>
-    `, [join(root, "tokens.css")], { reducedMotion: "reduce" });
-    assert.equal(await page.locator("#target .panel").getAttribute("hidden"), "until-found");
-    await page.evaluate(() => { location.hash = "answer"; });
-    await page.waitForFunction(() => document.querySelector("#target .trigger")?.getAttribute("aria-expanded") === "true");
-    assert.equal(await page.locator("#target .panel").getAttribute("hidden"), null);
-    assert.equal(await page.locator("#peer .trigger").getAttribute("aria-expanded"), "false");
-    assert.deepEqual(await page.evaluate(() => (window as any).opens), [{ open: true, reason: "programmatic", trigger: "programmatic" }]);
-    await page.close();
+    for (const fill of [false, true]) {
+      const page = await open(path, `
+        <ui-disclosure ${fill ? "fill" : ""} id="peer" name="faq" summary="Peer" open><p>Peer answer</p></ui-disclosure>
+        <ui-disclosure ${fill ? "fill" : ""} id="target" name="faq" summary="Target"><p id="answer">Findable answer</p></ui-disclosure>
+      `, [join(root, "tokens.css")], { reducedMotion: "reduce" });
+      assert.equal(await page.locator("#target .panel").getAttribute("hidden"), "until-found");
+      await page.evaluate(() => { location.hash = "answer"; });
+      await page.waitForFunction(() => document.querySelector("#target .trigger")?.getAttribute("aria-expanded") === "true");
+      assert.equal(await page.locator("#target .panel").getAttribute("hidden"), null);
+      assert.equal(await page.locator("#peer .trigger").getAttribute("aria-expanded"), "false");
+      assert.deepEqual(await page.evaluate(() => (window as any).opens), [{ open: true, reason: "programmatic", trigger: "programmatic" }]);
+      await page.close();
+    }
   });
 
   it("uses named exclusive groups, a rich summary, and an optional heading in HTML", async () => {

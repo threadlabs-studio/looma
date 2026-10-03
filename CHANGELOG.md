@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Disclosure can fill the available height in a bounded accordion, keeping its header visible while a nested Scroll Area scrolls. Its indicator slot accepts a custom decorative icon.
+
 - Typing `/link` opens the editor's link picker, including host-supplied destination search when available.
 - Editor links can search host-provided destinations separately from website URLs. Existing links show the destination's full address or resolved title, with clear edit, remove, and open actions.
 - Tooltips now close immediately when another tooltip, popup, dialog, Search Shell, sidebar drawer, toast, or editor toolbar opens, including while a delayed tooltip is queued. Nested modal dialogs keep one visible backdrop and closing a child leaves its parent open.

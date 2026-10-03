@@ -21,4 +21,12 @@ programmatic trigger; any open peer in its named group closes. A disabled trigge
 the browser from revealing linked content.
 
 
+For a bounded column, set `fill` on each section. The open section takes the remaining height;
+closed sections keep their header height. Put a Scroll Area in the content slot to scroll only
+the body. This layout uses straight, full-width headers and top dividers. Without `fill`,
+disclosures retain their usual content-sized layout.
+
+The `indicator` slot replaces the default chevron. Supply a decorative icon with
+`aria-hidden="true"`; expansion is already announced by the trigger’s `aria-expanded` state.
+
 <ComponentExamplesApiTabs component="ui-disclosure" />
