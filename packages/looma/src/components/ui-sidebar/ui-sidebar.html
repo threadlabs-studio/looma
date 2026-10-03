@@ -12,6 +12,7 @@
     >Below this viewport width (40rem, 48rem, 64rem) the sidebar becomes an off-canvas drawer, closed until toggled.</prop>
     <state type="boolean" name="internalCollapsed" value="false"></state>
     <state type="boolean" name="drawer" value="false"></state>
+    <state type="boolean" name="resizing" value="false"></state>
     <event name="resize" type="object">
       <prop name="width" required type="number"></prop>
       <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
@@ -23,7 +24,7 @@
     </event>
   </defs>
   <aside>
-    <div class="content"><slot></slot></div>
+    <div class="viewport"><div class="content"><slot></slot></div></div>
     <div
       class="resizer"
       $ref="resizer"
@@ -55,10 +56,15 @@
       syntax: "*";
       inherits: false;
     }
+    @property --ui-sidebar-collapsed-width {
+      syntax: "*";
+      inherits: false;
+    }
 
     :host {
       /* Hooks do not inherit, so the parts below read them from the root. */
       --_ui-sidebar-backdrop: var(--ui-sidebar-backdrop);
+      --_ui-sidebar-expanded-width: var(--_sidebar-width, var(--ui-sidebar-width, 280px));
 
       position: relative;
       box-sizing: border-box;
@@ -70,6 +76,7 @@
       min-block-size: 0;
       background: var(--ui-sidebar-surface, var(--ui-surface-default));
       border-inline-end: var(--ui-border-width) solid var(--ui-sidebar-border, var(--ui-border-divider));
+      transition: inline-size var(--ui-motion-layout) var(--ui-motion-layout-ease), visibility var(--ui-motion-layout);
     }
 
     :host-state([side="end"]) {
@@ -79,10 +86,17 @@
 
     /* The panel's content scrolls, and each edge that hides content fades: the scroll fade every
        Looma scroller uses (see ui-scroll-area). */
-    .content {
+    .viewport {
       flex: 1;
       min-block-size: 0;
+      overflow: clip;
+    }
+    .content {
+      block-size: 100%;
+      inline-size: calc(var(--_ui-sidebar-expanded-width) - var(--ui-border-width));
+      min-block-size: 0;
       overflow: auto;
+      transition: transform var(--ui-motion-layout) var(--ui-motion-layout-ease);
       --_ui-scroll-fade-direction: to bottom;
       --_ui-scroll-fade-size: var(--ui-scroll-fade-size, 24px);
       mask-image: linear-gradient(
@@ -103,7 +117,17 @@
 
     /* Collapsed while docked. */
     :host-state([internalCollapsed]):not([popover]) {
-      display: none;
+      inline-size: var(--ui-sidebar-collapsed-width, 0px);
+      visibility: hidden;
+    }
+    :host-state([resizing]) {
+      transition: none;
+    }
+    :host-state([internalCollapsed]):not([popover]) .content {
+      transform: translateX(-100%);
+    }
+    :host-state([side="end"][internalCollapsed]):not([popover]) .content {
+      transform: translateX(100%);
     }
 
     .resizer {
@@ -182,9 +206,9 @@
       box-shadow: var(--ui-elevation-overlay, var(--ui-shadow-lg));
       transform: translateX(0);
       transition:
-        transform var(--ui-motion-base) var(--ui-motion-ease-out),
-        display var(--ui-motion-base) allow-discrete,
-        overlay var(--ui-motion-base) allow-discrete;
+        transform var(--ui-motion-reveal) var(--ui-motion-reveal-ease),
+        display var(--ui-motion-reveal) allow-discrete,
+        overlay var(--ui-motion-reveal) allow-discrete;
     }
 
     /* The author display above would otherwise override the UA rule that hides a closed popover. */
@@ -214,9 +238,14 @@
     :host[popover]::backdrop {
       background: var(--_ui-sidebar-backdrop, rgb(0 0 0 / 0.32));
     }
+    :host[popover] .content {
+      inline-size: 100%;
+    }
 
     @media (prefers-reduced-motion: reduce) {
-      :host[popover] {
+      :host,
+      :host[popover],
+      .content {
         transition: none;
       }
     }

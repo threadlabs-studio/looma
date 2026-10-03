@@ -128,6 +128,12 @@
     --ui-pressed: inset 0 1px 2px rgb(0 0 0 / 0.12);
 
     --ui-motion-base: calc(var(--ui-motion-fast) * 1.5);
+    --ui-motion-feedback: var(--ui-motion-fast);
+    --ui-motion-reveal: var(--ui-motion-base);
+    --ui-motion-layout: calc(var(--ui-motion-base) * 1.5);
+    --ui-motion-feedback-ease: var(--ui-motion-ease);
+    --ui-motion-reveal-ease: var(--ui-motion-ease-out);
+    --ui-motion-layout-ease: var(--ui-motion-ease-out);
     /* Fast start, gentle settle: for reveals that should feel immediate. */
     --ui-motion-ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
 
@@ -180,6 +186,15 @@
     --ui-selection-surface: color-mix(in oklab, var(--ui-accent) 6%, var(--ui-surface));
     --ui-selection-text: var(--ui-accent-subtle-text);
     --ui-selection-radius: var(--ui-radius-md);
+    --ui-nav-icon-size: var(--ui-font-size-md);
+    --ui-nav-gap: var(--ui-space-3);
+    --ui-nav-padding-inline: var(--ui-space-3);
+    --ui-nav-padding-block: var(--ui-space-2);
+    --ui-nav-min-block-size: var(--ui-control-size);
+    --ui-nav-compact-padding-inline: var(--ui-space-2);
+    --ui-nav-compact-padding-block: var(--ui-space-1);
+    --ui-nav-compact-min-block-size: var(--ui-control-size-sm);
+    --ui-nav-hover-surface: var(--ui-surface-hover);
 
     --ui-accent-soft: var(--ui-accent-subtle);
     --ui-accent-contrast: var(--ui-on-accent);
