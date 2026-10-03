@@ -85,7 +85,7 @@
       display: block;
       inline-size: 100%;
       overflow: clip;
-      border-block-end: 1px solid var(--ui-border-divider);
+      border-block-end: var(--ui-border-width) solid var(--ui-border-divider);
       color: var(--ui-text-primary);
     }
 
@@ -114,7 +114,7 @@
     }
     .trigger:focus-visible {
       outline: none;
-      box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--ui-focus-ring) 45%, transparent);
+      box-shadow: inset 0 0 0 var(--ui-focus-width) color-mix(in srgb, var(--ui-focus-ring) 45%, transparent);
     }
     .trigger:disabled {
       color: var(--ui-disabled-text);
@@ -160,7 +160,7 @@
       flex: none;
       min-block-size: 0;
       border-block-end: 0;
-      border-block-start: 1px solid var(--ui-border-divider);
+      border-block-start: var(--ui-border-width) solid var(--ui-border-divider);
     }
     :host-state([fill][internalOpen]) {
       flex: 1;

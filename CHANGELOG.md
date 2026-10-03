@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-- Nav Item supports compact rows. Optional shared selection surface and text tokens theme Nav Item and Tree Item together; explicitly colored leading icons keep their colors.
+- Borders, dividers, emphasis edges, and keyboard focus now follow shared semantic width tokens across components and the editor.
+- **Visual default change for selected rows (0.23):** navigation, trees, lists, search results, and choices share a faint accent surface, readable accent text, and selection corners. Nav Item keeps regular label weight and has no stripe by default; `variant="line"` provides a square, continuous edge marker. The previous rounded surface and inset stripe combined incompatible edge treatments; the surface default works alongside other row selections, while apps that need an edge explicitly choose `variant="line"`. Existing instance hooks remain available.
+- Nav Item supports compact rows. The icon catalog includes compass and history icons.
 
 - Disclosure can fill the available height in a bounded accordion, keeping its header visible while a nested Scroll Area scrolls. Its indicator slot accepts a custom decorative icon.
 
