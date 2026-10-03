@@ -1,0 +1,17 @@
+<!--
+title: Icon marks
+description: A rounded square groups a decorative icon with its heading. It reuses the badge tones, global radius and spacing; the words convey the meaning.
+-->
+<ui-cluster gap="m">
+  <ui-cluster gap="s"><ui-badge shape="square" tone="success" aria-hidden="true"><ui-icon name="check"></ui-icon></ui-badge><ui-text
+      as="h2"
+      size="lg"
+      weight="semibold"
+    >Published</ui-text></ui-cluster>
+  <ui-cluster gap="s"><ui-badge shape="square" tone="warning" aria-hidden="true"><ui-icon name="triangle-alert"></ui-icon></ui-badge><ui-text
+      as="h2"
+      size="lg"
+      weight="semibold"
+    >Needs attention</ui-text></ui-cluster>
+  <ui-badge shape="square" size="xs" role="img" aria-label="New messages"><ui-icon name="bell"></ui-icon></ui-badge>
+</ui-cluster>
