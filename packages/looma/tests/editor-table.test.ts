@@ -164,6 +164,25 @@ describe("LoomaEditor links", () => {
     await page.close();
   });
 
+  it("keeps a phone link trigger mounted throughout a held pointer press and field focus", async () => {
+    const page = await openEditor("<p>Hello</p>", "popover", true);
+    await page.setViewportSize({ width: 375, height: 760 });
+    await prose(page).locator("p").click({ position: { x: 8, y: 8 } });
+    const trigger = page.locator(".looma-editor__mobile-toolbar-shell").getByRole("button", { name: "Link" });
+    await trigger.hover();
+    await page.mouse.down();
+    // A real press is held briefly; an instantaneous automated click can miss the blur race.
+    await page.evaluate(() => new Promise(resolve => setTimeout(resolve, 100)));
+    assert.equal(await trigger.count(), 1, "the press cannot remove its own trigger");
+    await page.mouse.up();
+    const form = linkForm(page);
+    await form.getByRole("searchbox", { name: "Link destination" }).fill("More");
+    await equals(() => form.locator('[data-component="ui-search-result-row"]').count(), 5, "results appear");
+    assert.equal(await trigger.count(), 1, "the field keeps its mobile anchor mounted");
+    await form.getByRole("button", { name: "Cancel", exact: true }).click();
+    await page.close();
+  });
+
   it("keeps the icon gap compact and shows three results before scrolling", async () => {
     for (const width of [1280, 375]) {
       const page = await openEditor("<p>Hello</p>", "sticky", true);
