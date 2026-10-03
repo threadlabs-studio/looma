@@ -441,7 +441,7 @@ describe("Tree drag and drop", () => {
   });
 
   it("reorders with the keyboard and can cancel a move", async () => {
-    const page = await open({ items: files });
+    const page = await open({ tree: { moveActivation: "keyboard-touch" }, items: files });
     const handle = page.getByRole("button", { name: "Drag Readme to reorder" });
     await handle.focus();
     await page.keyboard.press("Space");
@@ -458,13 +458,57 @@ describe("Tree drag and drop", () => {
     await page.close();
   });
 
+  it("leaves desktop grip clicks inert in keyboard-touch mode but still drags", async () => {
+    const page = await open({ tree: { moveActivation: "keyboard-touch" }, items: files });
+    await page.getByRole("button", { name: "Drag Readme to reorder" }).click();
+    assert.equal(await page.locator("[data-move-mode]").count(), 0);
+    assert.equal(await item(page, "readme").getAttribute("data-dragging"), null);
+    assert.equal(await page.getByRole("button", { name: "Cancel move" }).count(), 0);
+    assert.deepEqual(await events(page), []);
+    await page.evaluate(() => document.documentElement.setAttribute("data-ui-input-modality", "touch"));
+    await page.getByRole("button", { name: "Drag Readme to reorder" }).click();
+    assert.equal(await page.locator("[data-move-mode]").count(), 0);
+    await drag(page, "Readme", "license", 0.8);
+    assert.equal((await events(page))[0]?.[1].sourceId, "readme");
+    assert.equal((await events(page))[0]?.[1].trigger, "pointer");
+    await page.close();
+  });
+
+  it("visibly cancels a guided move without hover and restores grip focus", async () => {
+    const page = await open({ tree: { moveActivation: "keyboard-touch" }, items: files });
+    const handle = page.getByRole("button", { name: "Drag Readme to reorder" });
+    await handle.focus();
+    await page.keyboard.press("Space");
+    await page.keyboard.press("ArrowDown");
+    await page.mouse.move(0, 0);
+    const cancel = page.getByRole("button", { name: "Cancel move" });
+    assert.equal(await cancel.isVisible(), true);
+    assert.equal(await cancel.evaluate((button) => getComputedStyle(button.parentElement!).opacity), "1");
+    await cancel.click();
+    assert.equal(await page.locator("[data-move-mode], [data-dragging], [data-drop-position]").count(), 0);
+    assert.deepEqual(await events(page), []);
+    assert.equal(await handle.evaluate((button) => button === document.activeElement), true);
+    await page.keyboard.press("Space");
+    await page.getByRole("button", { name: "Cancel moving Readme" }).click();
+    assert.equal(await page.locator("[data-move-mode], [data-dragging]").count(), 0);
+    assert.deepEqual(await events(page), []);
+    await page.keyboard.press("Space");
+    await page.keyboard.press("ArrowDown");
+    await page.getByRole("button", { name: "Cancel move" }).focus();
+    await page.keyboard.press("Enter");
+    assert.equal(await page.locator("[data-move-mode], [data-dragging], [data-drop-position]").count(), 0);
+    assert.deepEqual(await events(page), []);
+    await page.close();
+  });
+
   it("keeps a 44px move control available under touch input", async () => {
-    const page = await open({ items: files });
+    const page = await open({ tree: { moveActivation: "keyboard-touch" }, items: files }, bundlePath, { viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true });
     await page.evaluate(() => document.documentElement.setAttribute("data-ui-input-modality", "touch"));
     const handle = page.getByRole("button", { name: "Drag Readme to reorder" });
     const box = await handle.boundingBox();
-    assert.ok(box && box.width >= 44 && box.height >= 44, JSON.stringify(box));
-    await handle.click();
+    assert.ok(box && Math.round(box.width) >= 44 && Math.round(box.height) >= 44, JSON.stringify(box));
+    await handle.tap();
+    assert.equal(await page.getByRole("button", { name: "Cancel move" }).isVisible(), true);
     const target = await rowBox(page, "license");
     await page.mouse.click(target.x + target.width / 2, target.y + target.height * 0.8);
     assert.equal((await events(page))[0]?.[1].trigger, "pointer");
