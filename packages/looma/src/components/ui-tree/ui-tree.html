@@ -17,6 +17,10 @@
     <prop name="marquee" type="boolean" default="false"
     >Scrolls a name too long for its row while that row is hovered or keyboard focused, rests at the end, then scrolls it again. Off by default: a tree of names
       that fit should not move. An item may set its own marquee to opt in or out on its own.</prop>
+    <prop name="moveActivation" type="keyword" values="click, keyboard-touch" default="click"
+    >Which handle activations start guided moving. click preserves two-click moving with any pointer. keyboard-touch leaves ordinary mouse and pen clicks inert
+      while retaining keyboard activation and touch taps. Actual pointer dragging works in either mode. Guided moves show Cancel on the source row; Escape or
+      reactivating that source handle also cancels without requesting a reorder.</prop>
     <event
       name="reorder"
       type="object"

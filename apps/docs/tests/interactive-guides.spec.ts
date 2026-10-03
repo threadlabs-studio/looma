@@ -7,8 +7,10 @@ test("tree demos keep controlled selection and apply a keyboard reorder", async 
   await expect(moveTree.getByRole("treeitem")).toHaveCount(3);
   const handle = moveTree.getByRole("button", { name: "Drag Details to reorder" });
   await handle.click();
-  await handle.press("ArrowDown");
-  await handle.press("Enter");
+  await expect(moveTree.getByRole("button", { name: "Cancel move" })).toBeVisible();
+  await page.keyboard.press("ArrowDown");
+  await expect(moveTree.locator('[data-item-id="history"]')).toBeFocused();
+  await page.keyboard.press("Enter");
   await expect.poll(() => moveTree.getByRole("treeitem").evaluateAll((items) =>
     items.map((item) => item.getAttribute("data-item-id"))
   )).toEqual(["overview", "history", "details"]);
