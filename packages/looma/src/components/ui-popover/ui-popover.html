@@ -1,5 +1,7 @@
 <template component="ui-popover" controller="./ui-popover.js">
   <defs>
+    <prop name="size" type="keyword" values="content, sm, md, lg" default="content"
+    >Optional size preset. content keeps the existing intrinsic sizing; the other sizes constrain the surface for compact, medium, or large content.</prop>
     <prop name="open" type="boolean" default="false">Whether the popover is open initially or when set externally.</prop>
     <prop name="for" type="string" default="">ID of the control that toggles and anchors the popover.</prop>
     <prop
@@ -118,6 +120,19 @@
         opacity: 0;
         transform: translateY(-4px) scale(0.99);
       }
+    }
+
+    :host-state([size="sm"]) {
+      inline-size: min(22rem, calc(100vw - var(--ui-space-2) * 2));
+      max-inline-size: min(22rem, calc(100vw - var(--ui-space-2) * 2));
+    }
+    :host-state([size="md"]) {
+      inline-size: min(28rem, calc(100vw - var(--ui-space-2) * 2));
+      max-inline-size: min(28rem, calc(100vw - var(--ui-space-2) * 2));
+    }
+    :host-state([size="lg"]) {
+      inline-size: min(36rem, calc(100vw - var(--ui-space-2) * 2));
+      max-inline-size: min(36rem, calc(100vw - var(--ui-space-2) * 2));
     }
 
     :host[hidden] {

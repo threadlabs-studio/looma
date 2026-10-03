@@ -37,6 +37,7 @@ import { LoomaCallout } from "./callout";
 import { LoomaChip } from "./chip";
 import { LoomaListBehavior } from "./list-behavior";
 import { createLoomaMentionExtension } from "./mention";
+import { createSiteRelativeLinks } from "./relative-links";
 import { LoomaSmartPaste } from "./smart-paste";
 import { LoomaTable, LoomaTableCell, LoomaTableHeader } from "./table-formatting";
 
@@ -53,6 +54,8 @@ export interface DefaultEditorExtensionsOptions {
   placeholder?: string;
   /** Passed to Tiptap Link; defaults false to keep editing clicks in the editor. */
   linkOpenOnClick?: boolean;
+  /** Site origin whose newly inserted links become relative, across paste and editor commands. */
+  linkBaseUrl?: string;
   /** Passed to Tiptap Image; block images are the default document policy. */
   imageInline?: boolean;
   /** Custom mention extension, the Looma default, or false to omit mentions. */
@@ -139,6 +142,7 @@ export function getDefaultEditorExtensions(
   const {
     placeholder = "Type “/” for commands, or start writing…",
     linkOpenOnClick = false,
+    linkBaseUrl,
     imageInline = false,
     mention = createLoomaMentionExtension(),
     disableHighlight = false,
@@ -175,6 +179,7 @@ export function getDefaultEditorExtensions(
       openOnClick: linkOpenOnClick,
       HTMLAttributes: { rel: "noopener noreferrer", target: "_blank" },
     }),
+    ...(linkBaseUrl ? [createSiteRelativeLinks(linkBaseUrl)] : []),
     Image.configure({ inline: imageInline }),
     (disableHighlight ? StoredOnlyHighlight : Highlight).configure({ multicolor: false }),
     Code,
