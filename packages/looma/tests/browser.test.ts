@@ -3003,6 +3003,62 @@ describe("List item", () => {
   });
 });
 
+describe("Quiet attention presentation", () => {
+  it("uses the same highlighted rows and accessible dot geometry in HTML and Vue", async () => {
+    for (const framework of ["html", "vue"]) {
+      const path = await bundle(`${framework}-quiet-attention`, framework === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Badge, List, ListItem } from "@threadlabs/looma/vue";
+        createApp({ render: () => h("div", [
+          h(List, () => [
+            h(ListItem, { id: "plain" }, () => h("a", { href: "#plain" }, "Earlier message")),
+            h(ListItem, { id: "new-one", highlighted: true }, () => h("a", { href: "#one" }, "New message")),
+            h(ListItem, { id: "new-two", highlighted: true }, () => h("a", { href: "#two" }, "Another new message")),
+          ]),
+          h(Badge, { id: "new-dot", shape: "dot", tone: "accent", variant: "solid" }, () => "New messages"),
+          h(Badge, { id: "pending-dot", shape: "dot", tone: "warning" }, () => "Waiting for your reply"),
+        ]) }).mount("#app");
+      `);
+      const body = framework === "vue" ? `<div id="app"></div>` : `
+        <ui-list>
+          <ui-list-item id="plain"><a href="#plain">Earlier message</a></ui-list-item>
+          <ui-list-item id="new-one" highlighted><a href="#one">New message</a></ui-list-item>
+          <ui-list-item id="new-two" highlighted><a href="#two">Another new message</a></ui-list-item>
+        </ui-list>
+        <ui-badge id="new-dot" shape="dot" tone="accent" variant="solid">New messages</ui-badge>
+        <ui-badge id="pending-dot" shape="dot" tone="warning">Waiting for your reply</ui-badge>`;
+      const page = await open(path, body, [join(root, "tokens.css"), join(root, "vue/components.css")], { viewport: { width: 375, height: 812 } });
+      await page.waitForSelector('#new-one[data-component~="ui-list-item"]');
+      const style = (selector: string, property: string) => page.locator(selector).evaluate((element, name) => getComputedStyle(element).getPropertyValue(name), property);
+      assert.notEqual(await style("#new-one", "background-color"), await style("#plain", "background-color"));
+      assert.equal(await style("#new-one", "color"), await style("#plain", "color"));
+      assert.equal(await style("#new-one .title", "font-weight"), await style("#plain .title", "font-weight"));
+      for (const selector of ["#new-one", "#new-two"]) {
+        assert.notEqual(await page.locator(selector).getAttribute("aria-current"), "true");
+        assert.equal(await page.locator(selector).getAttribute("aria-selected"), null);
+      }
+      for (const selector of ["#new-dot", "#pending-dot"]) {
+        const box = await page.locator(selector).boundingBox();
+        assert.ok(box && box.width === box.height && box.width <= 10, "a signal stays a small circle regardless of its label");
+        assert.ok((await page.locator(selector).ariaSnapshot()).includes(selector === "#new-dot" ? "New messages" : "Waiting for your reply"));
+      }
+      assert.notEqual(await style("#new-dot", "background-color"), await style("#pending-dot", "background-color"));
+      await page.locator("#new-one a").focus();
+      await page.keyboard.press("Enter");
+      assert.equal(await page.evaluate(() => location.hash), "#one");
+      // Both options follow their existing theme owner, without changing text or action geometry.
+      await page.locator("body").evaluate(element => {
+        element.style.setProperty("--ui-selection-surface", "rgb(245, 240, 255)");
+      });
+      await page.waitForFunction(() => getComputedStyle(document.querySelector("#new-one")!).backgroundColor === "rgb(245, 240, 255)");
+      assert.equal(await style("#new-one", "background-color"), "rgb(245, 240, 255)");
+      await page.emulateMedia({ forcedColors: "active" });
+      assert.equal(await style("#pending-dot", "forced-color-adjust"), "none");
+      await page.close();
+    }
+  });
+});
+
 describe("Shared visual geometry", () => {
   it("themes border, accent, focus, and row corners through global semantic dimensions", async () => {
     const path = await bundle("html-global-visual-geometry", `import "@threadlabs/looma";`);

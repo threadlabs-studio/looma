@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- List Items can highlight several new items with a quiet accent wash without announcing a current or selected destination. Badges support a small dot shape with an accessible state label.
+
 - Single-selection trees report a row’s default action on click or Enter, including an already selected row; selection and activation remain separate events.
 
 - On phones, Link stays available during a held press and its picker keeps the toolbar anchor while its field has focus.
