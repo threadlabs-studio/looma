@@ -63,8 +63,8 @@
       align-items: flex-start;
       gap: var(--ui-search-result-row-gap, var(--ui-space-3));
       background: var(--ui-search-result-row-surface, transparent);
-      border: 1px solid var(--ui-search-result-row-border, transparent);
-      border-radius: var(--ui-radius-md);
+      border: var(--ui-border-width) solid var(--ui-search-result-row-border, transparent);
+      border-radius: var(--ui-selection-radius);
       color: inherit;
       cursor: pointer;
       text-align: left;
@@ -87,13 +87,14 @@
     :host-state([selected]) {
       background: var(
         --ui-search-result-row-selected-bg,
-        var(--ui-search-result-row-hover-surface, color-mix(in srgb, var(--ui-surface) 85%, black 3%))
+        var(--ui-selection-surface)
       );
+      color: var(--ui-selection-text);
     }
 
     :host:focus-visible {
-      outline: 2px solid var(--ui-focus-ring);
-      outline-offset: -2px;
+      outline: var(--ui-focus-width) solid var(--ui-focus-ring);
+      outline-offset: calc(-1 * var(--ui-focus-width));
     }
 
     :host:disabled {
@@ -136,6 +137,13 @@
     :slotted([slot="excerpt"]) {
       display: block;
       margin: 0;
+    }
+
+    @media (forced-colors: active) {
+      :host-state([selected]):not(:focus-visible):not(:disabled) {
+        outline: var(--ui-border-width) solid Highlight;
+        outline-offset: calc(-1 * var(--ui-border-width));
+      }
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */

@@ -169,7 +169,7 @@
       appearance: none;
       min-block-size: var(--ui-button-min-block-size, var(--ui-control-size-md));
       border-style: solid;
-      border-width: 1px;
+      border-width: var(--ui-border-width);
       border-color: var(--ui-button-border, var(--_tone));
       border-radius: var(--ui-button-radius, var(--ui-action-radius, var(--ui-radius-md)));
       background-color: var(--ui-button-surface, oklch(from var(--_tone) l c h / 5%));
@@ -432,8 +432,8 @@
     :host-state([variant="link"]):focus-visible {
       box-shadow: none;
       /* Fallback keeps the ring if the token is missing: an unresolved var() would void the outline. */
-      outline: 2px solid var(--ui-focus-ring);
-      outline-offset: 2px;
+      outline: var(--ui-focus-width) solid var(--ui-focus-ring);
+      outline-offset: var(--ui-focus-width);
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */

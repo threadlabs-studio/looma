@@ -56,7 +56,7 @@
       min-block-size: var(--_ui-list-item-min-size, var(--ui-control-size, 2.5rem));
       padding-block: var(--ui-list-item-padding-block, var(--_ui-list-item-padding-block, var(--ui-space-2)));
       padding-inline: var(--ui-list-item-padding-inline, var(--_ui-list-item-padding-inline, var(--ui-space-3)));
-      border-radius: var(--ui-radius-md);
+      border-radius: var(--ui-selection-radius);
       color: var(--ui-text-primary);
       transition: background-color var(--ui-motion-fast) var(--ui-motion-ease), border-color var(--ui-motion-fast) var(--ui-motion-ease);
     }
@@ -64,7 +64,7 @@
     :host-state([variant="card"]) {
       padding-block: var(--ui-list-item-padding-block, var(--ui-space-3));
       padding-inline: var(--ui-list-item-padding-inline, var(--ui-space-4));
-      border: 1px solid var(--ui-border-strong);
+      border: var(--ui-border-width) solid var(--ui-border-strong);
       border-radius: var(--ui-radius-lg);
       background: var(--ui-surface-raised);
     }
@@ -78,11 +78,12 @@
     }
 
     :host-state([current]) {
-      background: var(--ui-surface-hover);
+      background: var(--ui-selection-surface);
+      color: var(--ui-selection-text);
     }
 
     :host:has(.title a[href]:focus-visible) {
-      box-shadow: 0 0 0 2px var(--ui-focus-ring);
+      box-shadow: 0 0 0 var(--ui-focus-width) var(--ui-focus-ring);
     }
 
     .leading,
@@ -96,6 +97,10 @@
     .leading {
       color: var(--ui-text-muted);
       font-size: var(--_ui-list-item-icon-size, var(--ui-font-size-lg));
+    }
+
+    :host-state([current]) .leading {
+      color: var(--ui-selection-text);
     }
 
     /* Trailing controls take their own clicks, above the title link's stretched hit area. */
@@ -157,6 +162,17 @@
     .description:empty,
     .trailing:empty {
       display: none;
+    }
+
+    @media (forced-colors: active) {
+      :host:has(a:focus-visible) {
+        outline: var(--ui-focus-width) solid Highlight;
+        outline-offset: calc(-1 * var(--ui-focus-width));
+      }
+      :host-state([current]):not(:has(a:focus-visible)) {
+        outline: var(--ui-border-width) solid Highlight;
+        outline-offset: calc(-1 * var(--ui-border-width));
+      }
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */

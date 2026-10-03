@@ -69,12 +69,12 @@
       max-inline-size: 100%;
       min-block-size: 0;
       background: var(--ui-sidebar-surface, var(--ui-surface-default));
-      border-inline-end: 1px solid var(--ui-sidebar-border, var(--ui-border-divider));
+      border-inline-end: var(--ui-border-width) solid var(--ui-sidebar-border, var(--ui-border-divider));
     }
 
     :host-state([side="end"]) {
       border-inline-end: 0;
-      border-inline-start: 1px solid var(--ui-sidebar-border, var(--ui-border-divider));
+      border-inline-start: var(--ui-border-width) solid var(--ui-sidebar-border, var(--ui-border-divider));
     }
 
     /* The panel's content scrolls, and each edge that hides content fades: the scroll fade every
@@ -149,7 +149,7 @@
       inset-inline-start: 50%;
       inline-size: 6px;
       block-size: 22px;
-      border: 1px solid var(--ui-border-strong);
+      border: var(--ui-border-width) solid var(--ui-border-strong);
       border-radius: var(--ui-radius-round);
       background: var(--ui-surface-elevated);
       opacity: 0;

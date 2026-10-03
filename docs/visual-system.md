@@ -40,3 +40,20 @@ more than one role; for example, Section is plain by default and an enclosed sur
 When adding a component or variant, put it in a family and use that family's tokens. Check the
 rendered light and dark examples beside an existing member of the same family, including hover,
 pressed, disabled, and focus states where relevant.
+
+## Shared dimensions and selection geometry
+
+Ordinary borders and dividers use `--ui-border-width` (1px). Emphasis edges use
+`--ui-accent-line-width`, which aliases that width unless deliberately overridden. Keyboard focus
+uses `--ui-focus-width` (2px), with its offset following the same dimension. A thicker emphasis
+edge is a theme choice, not a component-specific default.
+
+Selected rows use `--ui-selection-surface`, `--ui-selection-text`, and
+`--ui-selection-radius`. Navigation uses regular label weight. A surface treatment has shared
+corners and no stripe; Nav Item's explicit line variant has square corners and a continuous
+logical-start edge. Forced colors preserve a complete outline for surface selection and the edge
+for line selection. Keyboard focus has its own outline.
+
+CSS-drawn glyph strokes, circular radii, lighting shadows, and placement corrections are geometry,
+not surface-border roles. Keep those distinctions when extending the source policy test. Component
+hooks remain the last, instance-specific level of the token chain.

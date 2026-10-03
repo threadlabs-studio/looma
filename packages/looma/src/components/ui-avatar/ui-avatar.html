@@ -65,7 +65,7 @@
       inline-size: 2.5rem;
       block-size: 2.5rem;
       border-radius: var(--ui-avatar-radius, var(--ui-radius-round));
-      border: 1px solid var(--ui-avatar-border, color-mix(in srgb, var(--ui-accent-solid) 35%, var(--ui-surface-default)));
+      border: var(--ui-border-width) solid var(--ui-avatar-border, color-mix(in srgb, var(--ui-accent-solid) 35%, var(--ui-surface-default)));
       background: var(--ui-avatar-surface, var(--ui-accent-soft));
       color: var(--ui-avatar-text, var(--ui-accent-subtle-text, var(--ui-accent-solid)));
       font: inherit;
@@ -103,8 +103,8 @@
     /* An outline, not a dot: the avatar clips its content to the circle, and an outline is drawn
        outside the box, so the ring survives the clip and the overlap in an Avatar Group. */
     :host-state([active]) {
-      outline: 1px solid var(--ui-avatar-active-ring, var(--ui-accent-solid));
-      outline-offset: 1px;
+      outline: var(--ui-border-width) solid var(--ui-avatar-active-ring, var(--ui-accent-solid));
+      outline-offset: var(--ui-border-width);
     }
 
     .image,

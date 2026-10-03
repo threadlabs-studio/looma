@@ -95,7 +95,7 @@
       width: var(--_ui-switch-track-width, 2.5rem);
       height: var(--_ui-switch-track-height, 1.5rem);
       padding: 0;
-      border: 1px solid var(--ui-control-border, var(--ui-border-strong));
+      border: var(--ui-border-width) solid var(--ui-control-border, var(--ui-border-strong));
       border-radius: var(--ui-radius-round);
       background-color: var(--ui-control-surface, var(--ui-surface-default));
       box-shadow: var(--ui-control-inset);
@@ -128,8 +128,8 @@
     }
 
     input:focus-visible {
-      outline: 2px solid var(--ui-focus-ring, var(--ui-accent-solid));
-      outline-offset: 2px;
+      outline: var(--ui-focus-width) solid var(--ui-focus-ring, var(--ui-accent-solid));
+      outline-offset: var(--ui-focus-width);
     }
 
     :host-state([disabled]) {

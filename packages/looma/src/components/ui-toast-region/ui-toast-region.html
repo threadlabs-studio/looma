@@ -140,7 +140,7 @@
       grid-template-columns: 1fr auto;
       gap: var(--ui-space-2);
       align-items: start;
-      border: 1px solid var(--_ui-toast-region-border, var(--ui-overlay-border, var(--ui-border-strong)));
+      border: var(--ui-border-width) solid var(--_ui-toast-region-border, var(--ui-overlay-border, var(--ui-border-strong)));
       border-radius: var(--_ui-toast-region-radius, var(--ui-overlay-radius, var(--ui-radius-lg)));
       padding: var(--ui-space-3) var(--ui-space-4);
       background: var(--_ui-toast-region-surface, var(--ui-overlay-surface, var(--ui-surface-elevated)));
@@ -150,16 +150,16 @@
     }
 
     .toast[data-tone="info"] {
-      border-inline-start: 3px solid var(--ui-info-solid);
+      border-inline-start: var(--ui-accent-line-width) solid var(--ui-info-solid);
     }
     .toast[data-tone="success"] {
-      border-inline-start: 3px solid var(--ui-success-solid);
+      border-inline-start: var(--ui-accent-line-width) solid var(--ui-success-solid);
     }
     .toast[data-tone="warning"] {
-      border-inline-start: 3px solid var(--ui-warning-solid);
+      border-inline-start: var(--ui-accent-line-width) solid var(--ui-warning-solid);
     }
     .toast[data-tone="danger"] {
-      border-inline-start: 3px solid var(--ui-danger-solid);
+      border-inline-start: var(--ui-accent-line-width) solid var(--ui-danger-solid);
     }
 
     /* Leaving slides on down and fades; the controller removes the toast when this ends. */
