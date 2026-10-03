@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Combobox can highlight a sole authored suggestion and commit it with Tab while preserving normal focus movement. Both behaviors are opt-in.
+
 - Trees can reserve guided move activation for keyboard and touch, leaving desktop grips drag-only. Guided moves offer a visible standard Cancel button, Escape, and source-handle cancellation without changing order.
 - Navigation disclosure labels, icons, and carets stay neutral when expanded; selection color remains reserved for current destinations.
 
