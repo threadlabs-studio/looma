@@ -1,5 +1,9 @@
 <template component="ui-text">
   <defs>
+    <prop name="font" type="keyword" values="inherit, sans" default="inherit"
+    >Use sans for UI text rendered outside its original font context; inherit preserves the surrounding typeface.</prop>
+    <prop name="wrap" type="keyword" values="normal, anywhere" default="normal"
+    >Use anywhere for unbroken values such as long destinations; ordinary prose keeps its normal wrapping.</prop>
     <prop name="size" type="keyword" values="inherit, xs, sm, md, lg" default="inherit"
     >The step on the type scale. inherit (the default) keeps the size of the text around it; xs is for fine print, sm for supporting text such as help and
       metadata, md is body text, and lg is a lead paragraph.</prop>
@@ -127,6 +131,14 @@
 
     :host-state([align="center"]) {
       text-align: center;
+    }
+
+    :host-state([font="sans"]) {
+      font-family: var(--ui-font-family-sans, sans-serif);
+    }
+
+    :host-state([wrap="anywhere"]) {
+      overflow-wrap: anywhere;
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */

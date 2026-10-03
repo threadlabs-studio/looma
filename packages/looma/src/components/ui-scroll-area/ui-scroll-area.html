@@ -1,5 +1,7 @@
 <template component="ui-scroll-area" controller="./ui-scroll-area.js">
   <defs>
+    <prop name="size" type="keyword" values="content, sm, md, lg" default="content"
+    >Optional height preset. content keeps intrinsic sizing; sm fits three compact 3.125rem result rows, md is 20rem, and lg is 30rem.</prop>
     <prop name="orientation" type="keyword" values="vertical, horizontal" default="vertical"
     >The direction the content scrolls. Vertical scrolls up and down and clips sideways overflow; horizontal scrolls sideways and clips vertical
       overflow.</prop>
@@ -41,6 +43,16 @@
 
     :host:dir(rtl) {
       --_ui-scroll-fade-inline: to left;
+    }
+
+    :host-state([size="sm"]) {
+      max-block-size: 9.375rem;
+    }
+    :host-state([size="md"]) {
+      max-block-size: 20rem;
+    }
+    :host-state([size="lg"]) {
+      max-block-size: 30rem;
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */

@@ -28,3 +28,7 @@ Every current Nav Item previously displayed an inset 3px stripe against a fully 
 - [Design Tokens Format Module 2025.10](https://www.designtokens.org/tr/2025.10/format/): typed values and aliases.
 - [Carbon token roles](https://carbondesignsystem.com/elements/color/tokens/): semantic naming by usage rather than component-specific palette values.
 - Existing `docs/visual-system.md`, token guide and component-system contract.
+
+## Integration with the style-source boundary
+
+The concurrently added style-source guard freezes editor CSS. This explicitly scoped semantic-dimension migration replaces existing border/focus values in that frozen source; it adds no selector, property, styled source, or inline exception. Update only those existing rule fingerprints after verifying identical selectors and declaration names. The guard remains exact and rejects subsequent edits. Removed link-control CSS stays removed, using the newly composed primitives. Remove the new inline-layout example rather than approving another styling exception; fill behavior retains HTML/Vue integration tests and real consumer qualification.
