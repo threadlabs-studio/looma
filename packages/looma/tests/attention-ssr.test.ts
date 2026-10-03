@@ -23,6 +23,16 @@ describe("Attention presentation before upgrade", () => {
     expect(ordinary).not.toMatch(/data-ui-list-item-state="[^"]*\bwrap\b/);
   });
 
+  it("renders a decorative square without introducing an action or live announcement", async () => {
+    const html = await renderToString(createSSRApp({ render: () =>
+      h(Badge, { shape: "square", tone: "success", "aria-hidden": "true" }, () => "P") }));
+    expect(html).toContain("shape=square");
+    expect(html).toContain('aria-hidden="true"');
+    expect(html).not.toContain("tabindex");
+    expect(html).not.toContain('role="status"');
+    expect(html).not.toContain("button");
+  });
+
   it("preserves a dot's state label in server-rendered markup", async () => {
     const html = await renderToString(createSSRApp({ render: () =>
       h(Badge, { shape: "dot", tone: "warning" }, () => "Waiting for your reply") }));
