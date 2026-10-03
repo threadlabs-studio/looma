@@ -2,6 +2,11 @@
   <defs>
     <prop name="density" type="keyword" values="comfortable, compact" default="comfortable"
     >Compact trades padding and type size for rows that fit more on screen.</prop>
+    <prop name="variant" type="keyword" values="plain, navigation" default="plain"
+    >Navigation shares icon columns, spacing, type, hover, and corners with Nav Item. Plain retains the standard disclosure treatment.</prop>
+    <prop name="requiredOpen" type="boolean" default="false"
+    >In a named exclusive group, keeps at least one member open. Clicking the last open trigger does not close it; opening another member transfers the open
+      state.</prop>
     <prop name="fill" type="boolean" default="false"
     >In a column with a bounded height, an open disclosure fills the remaining space and keeps its trigger visible. The content slot can contain a Scroll Area.
       Closed items keep only their trigger height.</prop>
@@ -38,10 +43,11 @@
     </event>
   </defs>
   <div>
-    <div class="heading" from:role="headingRole" from:aria-level="headingAriaLevel">
+    <div class="heading" $ref="heading" from:role="headingRole" from:aria-level="headingAriaLevel">
       <button class="trigger" type="button" $ref="trigger" from:aria-controls="contentId" from:aria-expanded="internalOpen" from:disabled="disabled">
+        <span class="leading"><slot name="leading"></slot></span>
         <span class="summary"><slot name="summary"><template $value="summary"></template></slot></span>
-        <slot name="indicator"><span class="chevron" aria-hidden="true"></span></slot>
+        <span class="indicator" aria-hidden="true"><slot name="indicator"><span class="chevron"></span></slot></span>
       </button>
     </div>
     <div class="panel" $ref="panel" from:id="contentId"><div class="panel-inner"><slot></slot></div></div>
@@ -90,8 +96,7 @@
     }
 
     .trigger {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
+      display: flex;
       gap: var(--ui-space-3);
       align-items: center;
       inline-size: 100%;
@@ -121,19 +126,40 @@
       cursor: not-allowed;
     }
 
+    .summary {
+      flex: 1;
+      min-inline-size: 0;
+    }
+
+    .leading,
+    .indicator {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: none;
+    }
+    .leading:empty {
+      display: none;
+    }
+    .indicator {
+      transition: transform var(--ui-motion-feedback) var(--ui-motion-feedback-ease);
+    }
+    :host-state([internalOpen]) .indicator {
+      transform: rotate(180deg);
+    }
+
     .chevron {
       inline-size: 0.5rem;
       block-size: 0.5rem;
       border-inline-end: 2px solid currentColor;
       border-block-end: 2px solid currentColor;
       transform: rotate(45deg) translate(-1px, -1px);
-      transition: transform var(--ui-motion-fast) var(--ui-motion-ease);
     }
 
     .panel {
       display: grid;
       grid-template-rows: 0fr;
-      transition: grid-template-rows var(--ui-motion-fast) var(--ui-motion-ease-out, var(--ui-motion-ease));
+      transition: grid-template-rows var(--ui-motion-reveal) var(--ui-motion-reveal-ease), content-visibility var(--ui-motion-reveal) allow-discrete;
     }
 
     .panel-inner {
@@ -148,22 +174,20 @@
     :host-state([internalOpen]) .panel-inner {
       padding-block: 0 var(--ui-space-3);
     }
-    :host-state([internalOpen]) .chevron {
-      transform: rotate(225deg) translate(-1px, -1px);
-    }
 
     /* A bounded accordion owns one flexible body, so its trigger never scrolls away. The
      * normal content-sized layout and its animation remain unchanged when fill is omitted. */
     :host-state([fill]) {
       display: flex;
       flex-direction: column;
-      flex: none;
-      min-block-size: 0;
+      flex: 0 0 var(--_ui-disclosure-heading-size, var(--_trigger-min-block-size));
+      min-block-size: calc(var(--_ui-disclosure-heading-size, var(--_trigger-min-block-size)) + var(--ui-border-width));
+      transition: flex-grow var(--ui-motion-layout) var(--ui-motion-layout-ease);
       border-block-end: 0;
       border-block-start: var(--ui-border-width) solid var(--ui-border-divider);
     }
     :host-state([fill][internalOpen]) {
-      flex: 1;
+      flex-grow: 1;
     }
     :host-state([fill]) .heading {
       flex: none;
@@ -172,14 +196,8 @@
       border-radius: 0;
     }
     :host-state([fill]) .panel {
-      display: flex;
       flex: 1;
       min-block-size: 0;
-      transition: none;
-    }
-    :host-state([fill]) .panel[hidden] {
-      flex: none;
-      block-size: 0;
     }
     :host-state([fill]) .panel-inner {
       display: flex;
@@ -189,9 +207,43 @@
       padding: 0;
     }
 
+    :host-state([variant="navigation"]) .trigger {
+      gap: var(--ui-nav-gap);
+      padding-inline: var(--ui-nav-padding-inline);
+      min-block-size: var(--ui-nav-min-block-size);
+      padding-block: var(--ui-nav-padding-block);
+      border-radius: var(--ui-selection-radius);
+      font-size: var(--ui-font-size-md);
+      font-weight: var(--ui-font-normal);
+      color: var(--ui-text-secondary);
+    }
+    :host-state([variant="navigation"][density="compact"]) .trigger {
+      padding-inline: var(--ui-nav-compact-padding-inline);
+      padding-block: var(--ui-nav-compact-padding-block);
+      min-block-size: var(--ui-nav-compact-min-block-size);
+      font-size: var(--ui-font-size-sm);
+    }
+    :host-state([variant="navigation"]) .trigger:hover:not(:disabled) {
+      background: var(--ui-nav-hover-surface);
+      color: var(--ui-text-primary);
+    }
+    :host-state([variant="navigation"][internalOpen]) .trigger {
+      color: var(--ui-selection-text);
+    }
+    :host-state([variant="navigation"]) :is(.leading, .indicator) {
+      inline-size: var(--ui-nav-icon-size);
+      font-size: var(--ui-nav-icon-size);
+    }
+    @media (pointer: coarse) {
+      :host-state([variant="navigation"][density="compact"]) .trigger {
+        min-block-size: var(--ui-control-min-block-size);
+      }
+    }
+
     @media (prefers-reduced-motion: reduce) {
+      :host-state([fill]),
       .panel,
-      .chevron {
+      .indicator {
         transition: none;
       }
     }
