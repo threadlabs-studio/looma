@@ -6858,3 +6858,53 @@ describe("App styling hooks", () => {
     await page.close();
   });
 });
+
+describe("Combobox completion", () => {
+  const check = async (page: Page) => {
+    const input = page.locator('#choices input[role="combobox"]');
+    await input.fill("Des");
+    await page.waitForFunction(() => Boolean(document.querySelector('#choices input')?.getAttribute('aria-activedescendant')));
+    assert.equal(await page.locator('#choices [role="option"].active').textContent(), "Design");
+    await input.press("Tab");
+    assert.equal(await page.locator('#choices .item').count(), 1);
+    assert.equal(await input.inputValue(), "");
+    assert.equal(await page.locator('#after').evaluate(element => element === document.activeElement), true);
+    await input.fill("Des");
+    await input.press("Tab");
+    assert.equal(await page.locator('#choices .item').count(), 1, "completion never toggles off a selected item");
+    await input.fill("Pla");
+    await input.press("Shift+Tab");
+    assert.equal(await page.locator('#choices .item').count(), 1, "reverse focus does not commit");
+    await input.fill("D");
+    assert.equal(await input.getAttribute("aria-activedescendant"), null, "ambiguous results stay unhighlighted");
+    await input.press("Tab");
+    assert.equal(await page.locator('#choices .item').count(), 1);
+  };
+  it("keeps default multiple completion manual and excludes disabled suggestions", async () => {
+    const path = await bundle("html-combobox-completion-default", `import "@threadlabs/looma";`);
+    const page = await open(path, `<ui-combobox id="manual" label="Manual" multiple><option value="design">Design</option></ui-combobox><ui-combobox id="disabled" label="Disabled" multiple auto-highlight="single" select-on-tab><option value="design" disabled>Design</option></ui-combobox><button>After</button>`, [join(root, "tokens.css")]);
+    try {
+      for (const id of ["manual", "disabled"]) {
+        const input = page.locator(`#${id} input[role="combobox"]`);
+        await input.fill("Des");
+        assert.equal(await input.getAttribute("aria-activedescendant"), null);
+        await input.press("Tab");
+        assert.equal(await page.locator(`#${id} .item`).count(), 0);
+      }
+    } finally { await page.close(); }
+  });
+  it("highlights a sole authored result and commits Tab in HTML", async () => {
+    const path = await bundle("html-combobox-completion", `import "@threadlabs/looma";`);
+    const page = await open(path, `<button id="before">Before</button><ui-combobox id="choices" label="Teams" multiple auto-highlight="single" select-on-tab><option value="design">Design</option><option value="docs">Docs</option><option value="platform">Platform</option></ui-combobox><button id="after">After</button>`, [join(root, "tokens.css")]);
+    try { await check(page); } finally { await page.close(); }
+  });
+  it("highlights a sole authored result and commits Tab in controlled Vue", async () => {
+    const path = await bundle("vue-combobox-completion", `
+      import { createApp, h, ref } from "vue";
+      import { Combobox } from "@threadlabs/looma/vue";
+      const selected = ref([]);
+      createApp({ render: () => h("div", [h("button", { id: "before" }, "Before"), h(Combobox, { id: "choices", label: "Teams", multiple: true, autoHighlight: "single", selectOnTab: true, selectedValues: selected.value, "onUpdate:selectedValues": values => selected.value = values }, () => [["design", "Design"], ["docs", "Docs"], ["platform", "Platform"]].map(([value,label]) => h("option", {value}, label))), h("button", {id:"after"}, "After")]) }).mount("#app");`);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    try { await check(page); } finally { await page.close(); }
+  });
+});
