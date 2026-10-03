@@ -55,18 +55,20 @@ export function inlineStyles(source) {
     || (ts.isElementAccessExpression(node) && ts.isStringLiteral(node.argumentExpression) && node.argumentExpression.text === 'style');
   const containsStyle = node => isStyle(node) || (node.expression && containsStyle(node.expression));
   const visit = node => {
+    const styleAttribute = ts.isJsxAttribute(node) && node.name.getText(tree) === 'style' && node.initializer && ts.isJsxExpression(node.initializer);
     const styleProperty = ts.isPropertyAssignment(node) && (node.name.text === 'style' || node.name.getText(tree) === 'style');
     const styleAssignment = ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.EqualsToken && containsStyle(node.left);
     const styleCall = ts.isCallExpression(node) && (containsStyle(node.expression)
       || (ts.isPropertyAccessExpression(node.expression) && node.expression.name.text === 'setAttribute' && node.arguments[0]?.text === 'style')
       || (node.expression.getText(tree) === 'Object.assign' && node.arguments.some(containsStyle)));
-    if (styleProperty || styleAssignment || styleCall) {
+    if (styleAttribute || styleProperty || styleAssignment || styleCall) {
       expressions.push(node.getText(tree).trim());
       return;
     }
     ts.forEachChild(node, visit);
   };
   visit(tree);
+  expressions.push(...[...source.matchAll(/\bstyle\s*=\s*(?:"[^"]*"|'[^']*')/g)].map(match => match[0]));
   return expressions;
 }
 
@@ -106,7 +108,7 @@ export async function styleSourceProblems() {
       if (!debt) problems.push(`${relative}: unapproved stylesheet; compose approved components via props`);
       else for (const rule of additions(blocks.flatMap(cssRules), debt)) problems.push(`${relative}: new or changed composition styling: ${rule.slice(0, 140)}`);
     }
-    const inline = /\.(?:ts|js|vue)$/.test(file) ? inlineStyles(source) : [...source.matchAll(/\bstyle\s*=\s*(?:"[^"]*"|'[^']*')/g)].map(match => match[0]);
+    const inline = inlineStyles(source);
     for (const expression of additions(inline, contract.frozenInlineStyleDebt[relative])) problems.push(`${relative}: unapproved inline styling: ${expression.slice(0, 140)}`);
   }
   return problems;
