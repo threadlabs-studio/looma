@@ -1,5 +1,7 @@
 <template component="ui-nav-item">
   <defs>
+    <prop name="density" type="keyword" values="comfortable, compact" default="comfortable"
+    >Compact uses smaller type and row spacing to sit alongside a compact tree; comfortable keeps the regular navigation row.</prop>
     <prop name="current" type="keyword" values="true, false, page, step, location" default="false"
     >Marks the item as where you are: it takes the selected surface, a stronger label, and a bar on its start edge, and states aria-current, which assistive
       technology announces. "true" means the current page (aria-current="page"); "step" marks the current step of a process, and "location" the current place in
@@ -102,8 +104,8 @@
     }
 
     :host[aria-current] {
-      background: var(--ui-nav-item-current-surface, var(--ui-accent-soft));
-      color: var(--ui-accent-subtle-text, var(--ui-text-primary));
+      background: var(--ui-nav-item-current-surface, var(--ui-selection-surface, var(--ui-accent-soft)));
+      color: var(--ui-selection-text, var(--ui-accent-subtle-text, var(--ui-text-primary)));
       font-weight: var(--ui-font-semibold);
     }
 
@@ -163,6 +165,21 @@
       font-size: var(--ui-font-size-sm);
       font-weight: var(--ui-font-normal);
       line-height: var(--ui-line-height-tight);
+    }
+
+    :host-state([density="compact"]) {
+      min-block-size: var(--ui-control-size-sm);
+      padding-block: var(--ui-space-1);
+      padding-inline: var(--ui-space-2);
+    }
+    :host-state([density="compact"]) .label {
+      font-size: var(--ui-font-size-sm);
+    }
+
+    @media (pointer: coarse) {
+      :host-state([density="compact"]) {
+        min-block-size: var(--ui-control-min-block-size);
+      }
     }
 
     /* An unused region takes no space. */

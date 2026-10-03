@@ -168,6 +168,11 @@
 
     /* Intent tones: a solid surface, its foreground, and a soft tint of each. */
     --ui-accent-solid: var(--ui-accent);
+    /* Optional inherited selection semantics. CSS-wide initial leaves these unset, so each
+     * component keeps its established fallback until a theme opts into a shared treatment. */
+    --ui-selection-surface: initial;
+    --ui-selection-text: initial;
+
     --ui-accent-soft: var(--ui-accent-subtle);
     --ui-accent-contrast: var(--ui-on-accent);
     --ui-accent-strong-surface: var(--ui-accent);
