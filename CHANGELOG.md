@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- List Items can wrap full titles and descriptions on narrow screens while preserving one-line rows by default. The shared icon catalog includes a notification bell.
+
 - List Items can highlight several new items with a quiet accent wash without announcing a current or selected destination. Badges support a small dot shape with an accessible state label.
 
 - Single-selection trees report a row’s default action on click or Enter, including an already selected row; selection and activation remain separate events.
