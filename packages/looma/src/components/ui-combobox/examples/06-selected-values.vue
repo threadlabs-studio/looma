@@ -12,7 +12,7 @@ const selected = ref<readonly string[]>(["north", "west"]);
 </script>
 
 <template>
-  <Combobox v-model:selected-values="selected" label="Regions" name="regions" multiple required disclosure>
+  <Combobox v-model:selected-values="selected" label="Regions" name="regions" multiple auto-highlight="single" select-on-tab required disclosure>
     <option v-for="region in regions" :key="region.value" :value="region.value">{{ region.label }}</option>
   </Combobox>
 </template>
