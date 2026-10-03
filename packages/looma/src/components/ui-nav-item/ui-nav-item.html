@@ -34,6 +34,7 @@
         <span class="label"><slot></slot></span>
         <span class="description"><slot name="description"></slot></span>
       </span>
+      <span class="trailing"><slot name="trailing"></slot></span>
     </a>
     <button $else type="button" from:aria-current="{ true: 'page', false: null, page: 'page', step: 'step', location: 'location' }[format('%s', current)]">
       <span class="indicator" aria-hidden="true"></span>
@@ -42,6 +43,7 @@
         <span class="label"><slot></slot></span>
         <span class="description"><slot name="description"></slot></span>
       </span>
+      <span class="trailing"><slot name="trailing"></slot></span>
     </button>
   </template>
   <style>
@@ -74,13 +76,13 @@
       box-sizing: border-box;
       display: flex;
       align-items: center;
-      gap: var(--ui-space-3);
+      gap: var(--ui-nav-gap);
       inline-size: var(--ui-nav-item-inline-size, 100%);
       min-inline-size: 0;
-      min-block-size: var(--ui-control-size, 2.5rem);
+      min-block-size: var(--ui-nav-min-block-size);
       margin: 0;
-      padding-block: var(--ui-space-2);
-      padding-inline: var(--ui-space-3);
+      padding-block: var(--ui-nav-padding-block);
+      padding-inline: var(--ui-nav-padding-inline);
       border: 0;
       border-radius: var(--ui-selection-radius);
       background: transparent;
@@ -95,7 +97,7 @@
     }
 
     :host:hover:not([aria-current]) {
-      background: var(--ui-surface-hover);
+      background: var(--ui-nav-hover-surface);
       color: var(--ui-text-primary);
     }
 
@@ -144,12 +146,15 @@
       }
     }
 
-    .leading {
+    .leading,
+    .trailing {
       display: inline-flex;
       flex: none;
       align-items: center;
+      justify-content: center;
+      inline-size: var(--ui-nav-icon-size);
       color: inherit;
-      font-size: var(--ui-font-size-lg);
+      font-size: var(--ui-nav-icon-size);
     }
 
     .content {
@@ -182,11 +187,10 @@
     }
 
     :host-state([density="compact"]) {
-      min-block-size: var(--ui-control-size-sm);
-      padding-block: var(--ui-space-1);
-      padding-inline: var(--ui-space-2);
+      min-block-size: var(--ui-nav-compact-min-block-size);
+      padding-block: var(--ui-nav-compact-padding-block);
+      padding-inline: var(--ui-nav-compact-padding-inline);
     }
-    :host-state([density="compact"]) .leading,
     :host-state([density="compact"]) .label {
       font-size: var(--ui-font-size-sm);
     }
@@ -199,6 +203,7 @@
 
     /* An unused region takes no space. */
     .leading:empty,
+    .trailing:empty,
     .description:empty {
       display: none;
     }

@@ -308,6 +308,33 @@ surface's colour disappears on every other surface, and a pinned tone ignores a 
 accent. A hook set on a component beats its props, so these buttons ignore `tone`; where a product
 needs both, apply the class only to the buttons it means.
 
+## Motion and navigation
+
+Motion uses three roles: `--ui-motion-feedback` for control state and caret rotation,
+`--ui-motion-reveal` for panels and drawers, and `--ui-motion-layout` for occupied
+space such as a docked sidebar. Each has a matching `-ease` token. They derive
+from the existing fast/base durations and ease/ease-out curves, so a theme can
+set one seed or tune a role once. Reduced-motion preferences disable component
+transitions even when a containing group overrides a duration.
+
+Nav Item and Disclosure's `variant="navigation"` share the `--ui-nav-*` semantic
+tokens: icon size, gap, padding, minimum row height, and hover surface. Both use
+the shared `--ui-selection-radius` for corners.
+Compact density uses the `--ui-nav-compact-*` padding and height values, not a
+different icon column. Nav Item's leading and trailing slots center their content
+on those columns; Disclosure's leading and indicator slots use the same columns.
+
+Use a unique `name` for each independent disclosure group. Add `requiredOpen`
+to keep one member open, including on initialization and after removing the open
+member. Unnamed disclosures and groups without this option remain freely
+collapsible. `fill` works within a bounded flex column and animates the flexible
+space transfer without scrolling its headers away. Custom indicators stay
+mounted and rotate a half-turn when opened; provide the closed-state icon.
+
+Sidebar's `--ui-sidebar-collapsed-width` hook defaults to zero. A separate rail
+can occupy that width while the sidebar's content remains inert and clipped.
+Its fixed-width content canvas avoids wrapping navigation text during collapse.
+
 ## Typography
 
 Font sizes are `rem`, so a host scales them from the root font size. One exception:

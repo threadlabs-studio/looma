@@ -502,27 +502,88 @@ describe("Tabs activation", () => {
 });
 
 describe("Disclosure composition", () => {
+  it("initializes required groups independently and transfers ownership when an open member is removed", async () => {
+    const path = await bundle("html-disclosure-required", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-disclosure id="first" name="required" required-open summary="First"><a href="#first-link">First link</a></ui-disclosure>
+      <ui-disclosure id="second" name="required" required-open summary="Second"><a href="#second-link">Second link</a></ui-disclosure>
+      <ui-disclosure id="independent" name="other" required-open summary="Independent">Other</ui-disclosure>
+      <ui-disclosure id="optional" name="optional" summary="Optional" open>Optional</ui-disclosure>
+    `, [join(root, "tokens.css")], { reducedMotion: "reduce" });
+    assert.equal(await page.locator("#first button").getAttribute("aria-expanded"), "true");
+    assert.equal(await page.locator("#second button").getAttribute("aria-expanded"), "false");
+    assert.equal(await page.locator("#independent button").getAttribute("aria-expanded"), "true");
+    await page.locator("#first button").click();
+    assert.equal(await page.locator("#first button").getAttribute("aria-expanded"), "true");
+    await page.locator("#optional button").click();
+    assert.equal(await page.locator("#optional button").getAttribute("aria-expanded"), "false");
+    await page.evaluate(() => document.querySelector("#first")!.remove());
+    await page.waitForFunction(() => document.querySelector("#second button")?.getAttribute("aria-expanded") === "true");
+    await page.close();
+  });
+
+  it("shares navigation columns, typography, hover, and corners with Nav Item in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-navigation-geometry`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Disclosure, NavItem, Icon } from "@threadlabs/looma/vue";
+        createApp({ render: () => h("div", { style: "width:240px" }, [
+          h(Disclosure, { id: "section", variant: "navigation", density: "compact", fill: true, summary: "Library" }, {
+            leading: () => h(Icon, { name: "files" }), indicator: () => h(Icon, { name: "chevron-up" }),
+          }),
+          h(NavItem, { id: "destination", density: "compact" }, {
+            leading: () => h(Icon, { name: "trash" }), trailing: () => h(Icon, { name: "chevrons-up-down" }), default: () => "Archived",
+          }),
+        ]) }).mount("#app");
+      `);
+      const page = await open(path, adapter === "html" ? `
+        <div style="width:240px">
+          <ui-disclosure id="section" variant="navigation" density="compact" fill summary="Library"><ui-icon slot="leading" name="files"></ui-icon><ui-icon slot="indicator" name="chevron-up"></ui-icon></ui-disclosure>
+          <ui-nav-item id="destination" density="compact"><ui-icon slot="leading" name="trash"></ui-icon>Archived<ui-icon slot="trailing" name="chevrons-up-down"></ui-icon></ui-nav-item>
+        </div>
+      ` : `<div id="app"></div>`, [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { reducedMotion: "reduce" });
+      const geometry = await page.evaluate(() => {
+        const summary = document.querySelector("#section button")!;
+        const nav = document.querySelector("#destination")!;
+        const center = (element: Element) => { const box = element.getBoundingClientRect(); return box.x + box.width / 2; };
+        return {
+          leading: [center(summary.querySelector(".leading")!), center(nav.querySelector(".leading")!)],
+          trailing: [center(summary.querySelector(".indicator")!), center(nav.querySelector(".trailing")!)],
+          label: [summary.querySelector(".summary")!.getBoundingClientRect().x, nav.querySelector(".label")!.getBoundingClientRect().x],
+          radius: [getComputedStyle(summary).borderRadius, getComputedStyle(nav).borderRadius],
+          weight: [getComputedStyle(summary).fontWeight, getComputedStyle(nav).fontWeight],
+        };
+      });
+      for (const values of Object.values(geometry)) assert.equal(values[0], values[1], `${adapter}: ${JSON.stringify(geometry)}`);
+      await page.locator("#section button").hover();
+      const sectionHover = await page.locator("#section button").evaluate(element => getComputedStyle(element).backgroundColor);
+      await page.locator("#destination").hover();
+      assert.equal(await page.locator("#destination").evaluate(element => getComputedStyle(element).backgroundColor), sectionHover);
+      await page.close();
+    }
+  });
+
   it("fills the remaining height with unboxed headers and a scrolling body in HTML and Vue", async () => {
     for (const adapter of ["html", "vue"]) {
       const source = adapter === "html" ? `import "@threadlabs/looma";` : `
         import { createApp, h } from "vue";
         import { Disclosure, Icon } from "@threadlabs/looma/vue";
         createApp({ render: () => h("div", { id: "panels", style: "display:flex;flex-direction:column;height:480px;width:240px" }, [
-          h(Disclosure, { id: "first", fill: true, name: "panels", summary: "Overview", open: true }, {
+          h(Disclosure, { id: "first", fill: true, requiredOpen: true, name: "panels", summary: "Overview", open: true }, {
             indicator: () => h(Icon, { name: "chevron-down", "aria-hidden": "true" }),
             default: () => h("div", { id: "scroll", style: "flex:1;min-height:0;overflow:auto" }, h("p", { style: "height:1800px" }, "Overview content")),
           }),
-          h(Disclosure, { id: "second", fill: true, name: "panels", summary: "Library" }, () => h("p", "Library content")),
+          h(Disclosure, { id: "second", fill: true, requiredOpen: true, name: "panels", summary: "Library" }, () => h("p", "Library content")),
         ]) }).mount("#app");
       `;
       const path = await bundle(`${adapter}-disclosure-fill`, source);
       const body = adapter === "html" ? `
         <div id="panels" style="display:flex;flex-direction:column;height:480px;width:240px">
-          <ui-disclosure id="first" fill name="panels" summary="Overview" open>
+          <ui-disclosure id="first" fill required-open name="panels" summary="Overview" open>
             <ui-icon slot="indicator" name="chevron-down" aria-hidden="true"></ui-icon>
             <div id="scroll" style="flex:1;min-height:0;overflow:auto"><p style="height:1800px">Overview content</p></div>
           </ui-disclosure>
-          <ui-disclosure id="second" fill name="panels" summary="Library"><p>Library content</p></ui-disclosure>
+          <ui-disclosure id="second" fill required-open name="panels" summary="Library"><p>Library content</p></ui-disclosure>
         </div>` : `<div id="app"></div>`;
       const page = await open(path, body, [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { reducedMotion: "reduce" });
       assert.equal(await page.locator("#first .chevron").count(), 0, "custom indicator replaces the default");
@@ -550,8 +611,47 @@ describe("Disclosure composition", () => {
       assert.equal(await page.locator("#second button").getAttribute("aria-expanded"), "true");
       const swapped = await measure();
       assert.ok(swapped.second > 400 && swapped.first < 64);
+      await page.locator("#second button").click();
+      assert.equal(await page.locator("#second button").getAttribute("aria-expanded"), "true", "the required group keeps its final panel open");
       await page.close();
     }
+  });
+
+  it("animates bounded fill transfer and a persistent custom indicator", async () => {
+    const path = await bundle("html-disclosure-motion", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <div style="display:flex;flex-direction:column;height:480px;width:240px;--ui-motion-layout:1000ms;--ui-motion-reveal:1000ms">
+        <ui-disclosure id="first" fill name="motion" summary="Overview" open><p>Overview content</p></ui-disclosure>
+        <ui-disclosure id="second" fill name="motion" summary="Library">
+          <ui-icon slot="indicator" name="chevron-up"></ui-icon><p>Library content</p>
+        </ui-disclosure>
+      </div>
+    `, [join(root, "tokens.css")], { reducedMotion: "no-preference" });
+    await page.locator("#second button").click();
+    await page.waitForTimeout(60);
+    const intermediate = await page.evaluate(() => {
+      const first = document.querySelector("#first")!;
+      const second = document.querySelector("#second")!;
+      return {
+        first: first.getBoundingClientRect().height,
+        second: second.getBoundingClientRect().height,
+        indicatorAnimating: Boolean(second.querySelector(".indicator")?.getAnimations().length),
+        panelAnimating: Boolean(second.querySelector(".panel")?.getAnimations().length),
+      };
+    });
+    assert.ok(intermediate.first > 64 && intermediate.first < 440, JSON.stringify(intermediate));
+    assert.ok(intermediate.second > 64 && intermediate.second < 440, JSON.stringify(intermediate));
+    assert.equal(intermediate.indicatorAnimating, true);
+    assert.equal(intermediate.panelAnimating, true);
+    await page.locator("#first button").click();
+    await page.waitForTimeout(1100);
+    assert.equal(await page.locator("#first button").getAttribute("aria-expanded"), "true");
+    assert.equal(await page.locator("#second button").getAttribute("aria-expanded"), "false");
+    assert.ok((await page.locator("#first").boundingBox())!.height > 400);
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.locator("#second button").click();
+    assert.ok((await page.locator("#second").boundingBox())!.height > 400);
+    await page.close();
   });
 
   it("reveals closed content when a fragment targets it and closes its named peer", async () => {
@@ -3023,6 +3123,47 @@ describe("List item", () => {
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
     await checkItem(page);
     await page.close();
+  });
+});
+
+describe("Square icon badges", () => {
+  it("centres equal-size heading marks in HTML and Vue and follows shared radius and spacing", async () => {
+    for (const framework of ["html", "vue"]) {
+      const path = await bundle(`${framework}-square-badges`, framework === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Badge, Icon } from "@threadlabs/looma/vue";
+        createApp({ render: () => [
+          h(Badge, { id: "square", shape: "square", tone: "success", "aria-hidden": "true" }, () => h(Icon, { name: "bell" })),
+          h(Badge, { id: "small", shape: "square", size: "xs", tone: "accent", "aria-hidden": "true" }, () => h(Icon, { name: "bell" })),
+          h(Badge, { id: "pill" }, () => "Published"),
+        ] }).mount("#app");
+      `);
+      const body = framework === "vue" ? `<div id="app"></div>` : `
+        <ui-badge id="square" shape="square" tone="success" aria-hidden="true"><ui-icon name="bell"></ui-icon></ui-badge>
+        <ui-badge id="small" shape="square" size="xs" tone="accent" aria-hidden="true"><ui-icon name="bell"></ui-icon></ui-badge>
+        <ui-badge id="pill">Published</ui-badge>`;
+      const page = await open(path, body, [join(root, "tokens.css"), join(root, "vue/components.css")], { viewport: { width: 375, height: 812 } });
+      await page.waitForSelector('#square[data-component~="ui-badge"]');
+      for (const [id, size] of [["square", 32], ["small", 24]] as const) {
+        const box = await page.locator(`#${id}`).boundingBox();
+        const icon = await page.locator(`#${id} svg`).boundingBox();
+        assert.ok(box && icon && box.width === size && box.height === size, `${framework} ${id} is a square`);
+        assert.ok(Math.abs(box.x + box.width / 2 - icon.x - icon.width / 2) < 1);
+        assert.ok(Math.abs(box.y + box.height / 2 - icon.y - icon.height / 2) < 1);
+        assert.equal(await page.locator(`#${id}`).getAttribute("aria-hidden"), "true");
+      }
+      assert.equal(await page.locator('#square').evaluate(el => getComputedStyle(el).borderRadius), '8px');
+      assert.notEqual(await page.locator('#square').evaluate(el => getComputedStyle(el).backgroundColor), await page.locator('#pill').evaluate(el => getComputedStyle(el).backgroundColor));
+      assert.ok((await page.locator('#pill').boundingBox())!.width > 32, "ordinary badges still fit their text");
+      await page.locator('body').evaluate(el => { el.style.setProperty('--ui-radius-md', '3px'); el.style.setProperty('--ui-space-4', '20px'); });
+      assert.equal((await page.locator('#square').boundingBox())!.width, 40);
+      assert.equal(await page.locator('#square').evaluate(el => getComputedStyle(el).borderRadius), '3px');
+      await page.locator('#square').evaluate(el => { (el as HTMLElement).style.setProperty('--ui-badge-square-size', '36px'); });
+      assert.equal((await page.locator('#square').boundingBox())!.height, 36);
+      await page.emulateMedia({ forcedColors: 'active' });
+      assert.equal(await page.locator('#square').evaluate(el => getComputedStyle(el).forcedColorAdjust), 'auto');
+      await page.close();
+    }
   });
 });
 
@@ -6033,6 +6174,40 @@ describe("Description list layouts", () => {
 });
 
 describe("Sidebar", () => {
+  it("animates docked occupancy with a fixed content canvas and follows pointer resizing immediately", async () => {
+    const path = await bundle("html-sidebar-layout-motion", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <div style="display:flex;width:900px;height:480px;--ui-motion-layout:1000ms">
+        <ui-sidebar id="nav" width="280" resizable style="--ui-sidebar-collapsed-width:56px"><a href="#content">Navigation</a></ui-sidebar>
+        <main id="content" style="flex:1">Content</main>
+      </div>
+      <button id="toggle" commandfor="nav" command="--toggle">Toggle</button>
+    `, [join(root, "tokens.css")], { viewport: { width: 1280, height: 800 }, reducedMotion: "no-preference" });
+    await page.locator("#toggle").click();
+    await page.waitForTimeout(80);
+    const intermediate = await page.evaluate(() => ({
+      sidebar: document.querySelector("#nav")!.getBoundingClientRect().width,
+      canvas: document.querySelector("#nav .content")!.getBoundingClientRect().width,
+      main: document.querySelector("#content")!.getBoundingClientRect().width,
+      inert: document.querySelector("#nav")!.hasAttribute("inert"),
+    }));
+    assert.ok(intermediate.sidebar > 56 && intermediate.sidebar < 280, JSON.stringify(intermediate));
+    assert.equal(intermediate.canvas, 279);
+    assert.ok(intermediate.main > 620 && intermediate.main < 844);
+    assert.equal(intermediate.inert, true);
+    await page.locator("#toggle").click();
+    await page.waitForTimeout(1100);
+    const handle = await page.locator("#nav .resizer").boundingBox();
+    await page.mouse.move(handle!.x + 4, handle!.y + 40);
+    await page.mouse.down();
+    await page.mouse.move(handle!.x + 84, handle!.y + 40);
+    assert.equal((await page.locator("#nav").boundingBox())!.width, 360);
+    await page.mouse.up();
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.locator("#toggle").click();
+    assert.equal((await page.locator("#nav").boundingBox())!.width, 56);
+    await page.close();
+  });
   type Probe = { toggles: unknown[]; resizes: unknown[] };
   const probe = (page: Page) => page.evaluate(() => (window as unknown as { probe: Probe }).probe);
   const watchErrors = (page: Page) => {
@@ -6110,8 +6285,9 @@ describe("Sidebar", () => {
     const width = () => page.locator("#nav").evaluate((element) => element.getBoundingClientRect().width);
     assert.equal(await width(), 256);
     await page.evaluate(() => { (window as unknown as { width: { value: number } }).width.value = 300; });
-    await page.waitForTimeout(50);
+    await page.waitForFunction(() => document.querySelector("#nav")!.getBoundingClientRect().width === 300);
     assert.equal(await width(), 300);
+    assert.equal(await page.locator("#nav .resizer").getAttribute("aria-valuenow"), "300");
     assert.deepEqual(errors, []);
     assert.deepEqual((await probe(page)).resizes, [{ width: 256, trigger: "programmatic" }, { width: 300, trigger: "programmatic" }]);
     await page.close();
