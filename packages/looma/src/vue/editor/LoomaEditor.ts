@@ -70,6 +70,7 @@ import {
   type LoomaImageRenditionErrorDetail,
 } from "./image-delivery";
 import { autoCodeLanguageNames, codeLanguageCatalog } from "./code-language-catalog";
+import { tableOfContentsNodeView } from "./table-of-contents";
 
 /**
  * Shows a key binding in ProseMirror notation ("Mod-Shift-8") the way the reader's platform writes
@@ -585,6 +586,7 @@ export const LoomaEditor = defineComponent({
           disableHighlight: props.disableHighlight,
           codeLanguages: props.codeLanguages ?? undefined,
           codeLowlight: codeHighlightLowlight,
+          tableOfContentsNodeView,
         }),
         imageDelivery.extension,
         slashExtension,

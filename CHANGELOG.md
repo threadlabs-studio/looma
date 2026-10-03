@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- `/toc` inserts an automatic table of contents from document headings, with plain, bulleted, or numbered formatting and heading-depth settings built from shared controls. Heading anchors survive renames and moves, and read-only entries navigate without opening link editing. Headless integrations can inspect derived entries for document projections.
+- `/status` finds the existing Chip command and retains its label/color editor and document format. Existing `/link` behavior is covered through slash insertion, keyboard destination selection, and cancellation.
+- Escape closes only the top nested Menu or Popover, preserving its containing settings surface.
+
 - List Items can wrap full titles and descriptions on narrow screens while preserving one-line rows by default. The shared icon catalog includes a notification bell.
 
 - List Items can highlight several new items with a quiet accent wash without announcing a current or selected destination. Badges support a small dot shape with an accessible state label.

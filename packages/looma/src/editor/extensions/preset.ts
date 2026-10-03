@@ -35,6 +35,7 @@ import TableRow from "@tiptap/extension-table-row";
 import { LoomaActiveBlock } from "./active-block";
 import { LoomaCallout } from "./callout";
 import { LoomaChip } from "./chip";
+import { LoomaTableOfContents } from "./table-of-contents";
 import { LoomaListBehavior } from "./list-behavior";
 import { createLoomaMentionExtension } from "./mention";
 import { createSiteRelativeLinks } from "./relative-links";
@@ -73,6 +74,8 @@ export interface DefaultEditorExtensionsOptions {
   codeLowlight?: ReturnType<typeof createLowlight>;
   /** Optional presentation for a code block; the Vue editor supplies its language control. */
   codeBlockNodeView?: NodeViewRenderer;
+  /** Optional TOC settings UI; schema, entries, and heading anchors remain shared. */
+  tableOfContentsNodeView?: NodeViewRenderer;
 }
 
 const LoomaCodeBlock = CodeBlockLowlight.extend({
@@ -149,6 +152,7 @@ export function getDefaultEditorExtensions(
     codeLanguages,
     codeLowlight,
     codeBlockNodeView,
+    tableOfContentsNodeView,
   } = options;
 
   const codeBlock = LoomaCodeBlock.configure({ lowlight: codeLowlight ?? createLowlight(codeLanguages) });
@@ -170,6 +174,7 @@ export function getDefaultEditorExtensions(
     Blockquote,
     LoomaCallout,
     LoomaChip,
+    LoomaTableOfContents.configure({ nodeView: tableOfContentsNodeView ?? null }),
     HorizontalRule,
     HardBreak,
     History,

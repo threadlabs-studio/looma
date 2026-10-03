@@ -62,11 +62,43 @@ its controls do not fit.
 
 Type `/` for headings, callouts, lists, a quote, code, a divider, a table, or an image. Keep
 typing to narrow the menu; use arrow keys and Enter to choose. The **Chip** command inserts an
-inline label without splitting the paragraph. Choose its text and tone in the popover, then click
-the chip to edit it. Markdown-style shortcuts also work: `#` for headings, `-` for a bullet list,
+inline label without splitting the paragraph; `/status` is an alias for the same command. Choose
+its text and tone in the popover, then click the chip to edit it. Markdown-style shortcuts also work: `#` for headings, `-` for a bullet list,
 `[ ]` for a checklist, and `---` for a divider.
 
 Block actions can insert a paragraph after the current block, duplicate it, or delete it.
+
+## Automatic table of contents
+
+Type `/toc` (or `/contents`) to insert links to headings throughout the document. The list updates
+when headings change, move, or disappear; there is no content wrapper or manual heading selection.
+Open **Table of contents settings** to choose plain, bulleted, or numbered formatting and the
+maximum heading level (H1, H2, or H3), then **Save**. **Cancel** discards those choices. The default
+is plain formatting through H3. With no headings, the block explains how to populate it.
+
+Read-only editors show the same navigation without settings. Activating an entry scrolls to and
+focuses its heading without opening link editing.
+
+The `loomaTableOfContents` node stores only `{ format, depth }`. Heading IDs are assigned when a
+TOC is present and retained across renames and moves; duplicate IDs are repaired. Both the node
+and heading IDs round-trip through editor JSON and HTML. `editor.getHTML()` includes the current
+entries as a named navigation landmark with real links.
+
+Headless editors using `getDefaultEditorExtensions` get the schema and a navigation node view;
+they can set choices with `insertLoomaTableOfContents({ format: "numbered", depth: 2 })` or supply
+`tableOfContentsNodeView` for their own settings composition. Turnkey Vue editors already supply
+settings built with shared FormField, Button, Menu, and Popover controls.
+
+For search, Markdown, plain text, or change-review projections, hosts can import
+`getTableOfContentsEntries` and `normalizeTableOfContentsConfig` from `@threadlabs/looma/editor`.
+The entry helper accepts a ProseMirror document and maximum heading level and returns current
+heading labels, IDs, levels, nesting depths, and positions. Use a linked list for Markdown or
+heading labels for plain text. A schema-only serializer such as Tiptap's `generateHTML` lacks
+whole-document context and emits a configuration placeholder for the TOC; use `editor.getHTML()`
+or derive entries in a document-aware host renderer when exporting complete navigation.
+
+Hosts should qualify their import/export, indexing, and review projections for this new node
+before enabling it in stored documents.
 
 ## Code blocks
 

@@ -21,6 +21,14 @@ export {
 } from "./callout";
 export { LoomaChip, LOOMA_CHIP_COLORS, normalizeLoomaChipColor, type LoomaChipColor } from "./chip";
 export {
+  LoomaTableOfContents,
+  getTableOfContentsEntries,
+  normalizeTableOfContentsConfig,
+  type LoomaTableOfContentsConfig,
+  type LoomaTableOfContentsEntry,
+  type LoomaTableOfContentsFormat,
+} from "./table-of-contents";
+export {
   getDefaultEditorExtensions,
   getLoomaTableExtensions,
   LoomaTableKit,

@@ -174,7 +174,7 @@ export function getDefaultSlashCommands(
       title: "Chip",
       description: "Inline label with text and color",
       icon: "tag",
-      keywords: ["chip", "label", "badge", "tag"],
+      keywords: ["chip", "label", "badge", "tag", "status"],
       command: ({ editor, range }) => {
         if (editor.chain().focus().deleteRange(range).setTextSelection(range.from).insertLoomaChip({ label: "" }).run()) {
           onOpenChipEditor?.(editor, range.from);
@@ -206,6 +206,15 @@ export function getDefaultSlashCommands(
       keywords: ["table", "grid", "rows", "columns"],
       command: ({ editor, range }) => {
         insertTableAtRange(editor, range);
+      },
+    },
+    {
+      title: "Table of contents",
+      description: "Automatic links to document headings",
+      icon: "list",
+      keywords: ["toc", "contents", "tableofcontents", "outline"],
+      command: ({ editor, range }) => {
+        editor.chain().focus().deleteRange(range).insertLoomaTableOfContents().run();
       },
     },
     {
