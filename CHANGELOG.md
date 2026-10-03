@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- On phones, Link stays available during a held press and its picker keeps the toolbar anchor while its field has focus.
+
 - Small Scroll Areas leave room after three compact results for the overflow fade, keeping the third location readable.
 
 - Compact search results keep their title and location together when app buttons inherit body typography, so three rows fit before scrolling.
