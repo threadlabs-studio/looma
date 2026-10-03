@@ -58,11 +58,13 @@ export default function controller(host) {
     const startX = event.clientX;
     const startWidth = currentWidth();
     const multiplier = host.props.side.value === "end" ? -1 : 1;
+    host.state.resizing = true;
     pointerAbort = new AbortController();
     const signal = pointerAbort.signal;
     const finish = () => {
       pointerAbort?.abort();
       pointerAbort = undefined;
+      host.state.resizing = false;
     };
     view.addEventListener("pointermove", (move) => {
       setWidth(startWidth + ((move.clientX - startX) * multiplier), "pointer");
@@ -75,8 +77,12 @@ export default function controller(host) {
   const endPointer = () => {
     pointerAbort?.abort();
     pointerAbort = undefined;
+    host.state.resizing = false;
   };
   const syncHandle = () => {
+    element.toggleAttribute("inert", host.state.internalCollapsed && !host.state.drawer);
+    if (host.state.internalCollapsed && !host.state.drawer) element.setAttribute("aria-hidden", "true");
+    else element.removeAttribute("aria-hidden");
     if (!host.props.resizable.value || host.state.drawer || host.state.internalCollapsed) { endPointer(); return; }
     const { min, max } = bounds();
     handle.setAttribute("aria-valuemin", String(min));
