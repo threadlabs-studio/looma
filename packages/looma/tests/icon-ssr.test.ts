@@ -26,6 +26,12 @@ describe("Icon server render", () => {
     ]);
   });
 
+  it("draws a notification bell before JavaScript runs", async () => {
+    const html = await render(h(Icon, { name: "bell" }));
+    expect(shapes(html).length).toBeGreaterThan(0);
+    expect(html).toContain('aria-hidden="true"');
+  });
+
   it("renders the spinner's SVG track and arc without requiring an external asset", async () => {
     const html = await render(h(Spinner));
     expect(html).toContain('class="ring"');

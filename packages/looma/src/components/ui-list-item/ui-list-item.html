@@ -3,6 +3,8 @@
     <prop name="variant" type="keyword" values="row, card" default="row"
     >How the item is drawn. A row is flat and takes a hover surface when it is a link, for items read down a list. A card sits on a raised, bordered surface,
       for items set in a grid (a List with layout="grid"). Both have the same parts: leading, title, description, and trailing.</prop>
+    <prop name="wrap" type="boolean" default="false"
+    >Lets the title and description wrap so explanatory text stays readable on narrow screens. Omit it for the default equal-height, one-line rows.</prop>
     <prop name="current" type="boolean" default="false"
     >Marks the item as the current one, such as the site you are in: it takes the selected surface and aria-current="true", which assistive technology
       announces. Set it on one item at a time.</prop>
@@ -133,6 +135,12 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+
+    :host-state([wrap]) .title,
+    :host-state([wrap]) .description {
+      white-space: normal;
+      overflow-wrap: anywhere;
     }
 
     .title {

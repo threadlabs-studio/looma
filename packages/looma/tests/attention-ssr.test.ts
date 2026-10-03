@@ -15,6 +15,14 @@ describe("Attention presentation before upgrade", () => {
     expect(html).not.toContain("aria-selected");
   });
 
+  it("can wrap explanatory rows without changing the default one-line contract", async () => {
+    const wrapped = await renderToString(createSSRApp({ render: () =>
+      h(ListItem, { wrap: true }, () => "A person asked you to review a long document title") }));
+    expect(wrapped).toMatch(/data-ui-list-item-state="[^"]*\bwrap\b/);
+    const ordinary = await renderToString(createSSRApp({ render: () => h(ListItem, {}, () => "Document") }));
+    expect(ordinary).not.toMatch(/data-ui-list-item-state="[^"]*\bwrap\b/);
+  });
+
   it("preserves a dot's state label in server-rendered markup", async () => {
     const html = await renderToString(createSSRApp({ render: () =>
       h(Badge, { shape: "dot", tone: "warning" }, () => "Waiting for your reply") }));
