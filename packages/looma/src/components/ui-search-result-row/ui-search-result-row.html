@@ -80,6 +80,17 @@
       font-family: var(--ui-font-family-sans, sans-serif);
     }
 
+    /* Slot wrappers own their line boxes even when an app makes buttons inherit body typography. */
+    :host-state([density="compact"]) .title {
+      font-size: var(--ui-font-size-sm);
+      line-height: var(--ui-line-height);
+    }
+
+    :host-state([density="compact"]) .meta {
+      font-size: var(--ui-font-size-xs);
+      line-height: var(--ui-line-height);
+    }
+
     :host:hover:enabled {
       background: var(--ui-search-result-row-hover-surface, color-mix(in srgb, var(--ui-surface) 85%, black 3%));
     }
