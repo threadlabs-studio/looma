@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Sidebar resize handles report the requested width while layout animation settles, including when restoring a saved width.
+
 - Disclosures can require one named-group member to stay open, animate bounded fill transfers, and rotate custom indicators without replacing them. Navigation headers and Nav Items share icon columns, spacing, and hover treatment; Nav Items support a trailing slot. Navigation icon columns now keep the body-size width at either density rather than shrinking compact icons below their neighbours.
 - Feedback, reveal, and layout motion derive from shared duration and easing tokens. Docked sidebars animate occupied width, keep their content canvas stable, disable hidden controls, and support a collapsed-width hook for a separate rail. Drag resizing remains immediate and reduced motion disables transitions.
 
