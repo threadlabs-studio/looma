@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Small Scroll Areas leave room after three compact results for the overflow fade, keeping the third location readable.
+
 - Compact search results keep their title and location together when app buttons inherit body typography, so three rows fit before scrolling.
 
 - Borders, dividers, emphasis edges, and keyboard focus now follow shared semantic width tokens across components and the editor.
