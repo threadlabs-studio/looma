@@ -3015,6 +3015,37 @@ describe("Nav item", () => {
     return computed;
   }, color);
 
+  it("shares configurable selection colors between compact navigation and tree rows", async () => {
+    const path = await bundle("html-shared-navigation-selection", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <div style="--ui-selection-surface:rgb(230,220,255);--ui-selection-text:rgb(81,50,140);width:240px">
+        <ui-nav-item id="compact-nav" density="compact" current="page" as="a" href="#overview">Overview</ui-nav-item>
+        <ui-nav-item id="plain-nav" density="compact" as="a" href="#activity">Activity</ui-nav-item>
+        <ui-tree density="compact" label="Documents">
+          <ui-tree-item id="selected-tree" selected label="Guide"><ui-icon slot="leading" name="file-text" aria-hidden="true"></ui-icon></ui-tree-item>
+          <ui-tree-item id="colored-tree" selected label="Reference"><ui-icon slot="leading" name="file-text" aria-hidden="true" style="color:rgb(180,60,40)"></ui-icon></ui-tree-item>
+          <ui-tree-item id="plain-tree" label="Notes"></ui-tree-item>
+        </ui-tree>
+      </div>`, [join(root, "tokens.css")], { reducedMotion: "reduce" });
+    const look = (selector: string) => page.locator(selector).evaluate(el => {
+      const s = getComputedStyle(el);
+      return { surface: s.backgroundColor, text: s.color, size: s.fontSize, height: el.getBoundingClientRect().height };
+    });
+    const nav = await look("#compact-nav");
+    const tree = await look("#selected-tree > .row");
+    assert.equal(nav.surface, "rgb(230, 220, 255)");
+    assert.equal(tree.surface, nav.surface);
+    assert.equal(tree.text, nav.text);
+    assert.equal(nav.text, "rgb(81, 50, 140)");
+    assert.equal((await look("#compact-nav .label")).size, tree.size);
+    assert.equal(nav.height, tree.height);
+    assert.notEqual((await look("#plain-nav")).surface, nav.surface);
+    assert.notEqual((await look("#plain-tree > .row")).surface, tree.surface);
+    assert.equal(await page.locator("#selected-tree .leading svg").evaluate(el => getComputedStyle(el).color), nav.text);
+    assert.equal(await page.locator("#colored-tree .leading svg").evaluate(el => getComputedStyle(el).color), "rgb(180, 60, 40)");
+    await page.close();
+  });
+
   async function checkNavItem(page: Page) {
     await page.locator("#page").waitFor();
     const box = async (selector: string) => (await page.locator(selector).boundingBox())!;

@@ -42,6 +42,8 @@ and a modified click still opens a new tab:
 </RouterLink>
 ```
 
+Set `density="compact"` for the smaller type and row spacing used alongside a compact tree.
+
 ## Current
 
 `current` marks where you are. It sets `aria-current`, which assistive technology announces:
@@ -60,6 +62,10 @@ a scrolling rail cannot clip.
 | `--ui-nav-item-indicator-color` | `--ui-accent` | The bar's colour. |
 | `--ui-nav-item-current-surface` | `--ui-accent-soft` | The current item's surface. |
 | `--ui-nav-item-inline-size` | `100%` | The item's width. It fills its container unless set. |
+
+The inherited `--ui-selection-surface` and `--ui-selection-text` tokens theme selected navigation
+and Tree Item rows together. They are optional; without them each component keeps its existing
+treatment. A Nav Item’s own `--ui-nav-item-current-surface` still takes precedence.
 
 ## Grouping
 

@@ -168,10 +168,19 @@
     }
 
     .row:hover,
-    :host-state([selected]) .row,
     .row:focus-within {
       color: var(--ui-text-primary);
       background: var(--ui-surface-muted);
+    }
+
+    /* Shared selection semantics can be themed once across navigation and trees. Defaults
+     * preserve the existing tree treatment. Only this item's own row is selected. */
+    :host-state([selected]) > .row {
+      color: var(--ui-selection-text, var(--ui-text-primary));
+      background: var(--ui-selection-surface, var(--ui-surface-muted));
+    }
+    :host-state([selected]) > .row > .leading {
+      color: var(--ui-selection-text, var(--ui-text-muted));
     }
 
     :host-state([disabled]) .row {

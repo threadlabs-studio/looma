@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Nav Item supports compact rows. Optional shared selection surface and text tokens theme Nav Item and Tree Item together; explicitly colored leading icons keep their colors.
+
 - Disclosure can fill the available height in a bounded accordion, keeping its header visible while a nested Scroll Area scrolls. Its indicator slot accepts a custom decorative icon.
 
 - Typing `/link` opens the editor's link picker, including host-supplied destination search when available.
