@@ -21,6 +21,7 @@ for (const theme of ["light", "dark"] as const) {
           await page.goto(doc.path, { waitUntil: "domcontentloaded" });
           await ready(page);
           await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+          if (doc.component === "ui-search-shell") await page.frameLocator("iframe").last().getByRole("searchbox").focus();
           const name = `${viewport.name}-${theme}/${doc.path === "./" ? "home" : doc.path.replaceAll("/", "--")}`;
           // This single slash glyph varies by three rasterized pixels across repeated Chromium captures.
           // Keep every other page at zero changed pixels; a larger catalog change still fails.
@@ -42,6 +43,7 @@ for (const theme of ["light", "dark"] as const) {
             await page.reload({ waitUntil: "domcontentloaded" });
             await ready(page);
             await expect(page.locator('.looma-mode-code[data-framework-mode="vue"]')).toHaveCount(doc.examples.length);
+            if (doc.component === "ui-search-shell") await page.frameLocator("iframe").last().getByRole("searchbox").focus();
             const vueImage = githubTable ? `${name}--vue--github-actions` : `${name}--vue`;
             await screenshot(page, `${vueImage}.png`, true);
           }
@@ -79,7 +81,8 @@ for (const theme of ["light", "dark"] as const) {
         await expect(dialog).toBeVisible();
         await expect.poll(() => dialog.evaluate(element => element.getAnimations().length)).toBe(0);
         await page.mouse.move(0, 0);
-        await expect(dialog).toHaveScreenshot(`${viewport.name}-${theme}/states/catalog-dialog.png`);
+        // Keep the containing page and dialog together; fractional locator crops can vary at rounded corners.
+        await screenshot(page, `${viewport.name}-${theme}/states/catalog-dialog.png`);
       });
       test("editor guide selection toolbar and mention suggestions", async ({ page }) => {
         await page.goto("editor/");

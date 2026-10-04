@@ -539,6 +539,18 @@ test("editor table menus use one action capability set", async ({ page }) => {
   ).toBeVisible();
 });
 
+test("table context menus fit a narrow presentation viewport", async ({ page }) => {
+  await page.goto("components/ui-editor-table-context-menu", { waitUntil: "domcontentloaded" });
+  const preview = page.locator("[data-preview-scenario='Actions'] iframe");
+  await preview.evaluate((frame) => { frame.style.width = "200px"; });
+  const menu = preview.contentFrame().locator('[data-component~="ui-editor-table-context-menu"]');
+  await expect(menu).toBeVisible();
+  await expect.poll(() => menu.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    return rect.left >= 0 && rect.right <= element.ownerDocument.documentElement.clientWidth;
+  })).toBe(true);
+});
+
 test("every component page renders distinct, visible, coded scenarios", async ({ page }) => {
   // Give each route its normal readiness allowance; the library-wide loop grows with the catalog.
   test.setTimeout(Math.max(90_000, componentApi.components.length * 5_000));
