@@ -4,6 +4,8 @@
     >Normal uses the decorative divider color; strong uses the stronger enclosing-edge color for clearer separation.</prop>
     <prop name="orientation" type="keyword" values="horizontal, vertical" default="horizontal"
     >Whether the separator divides stacked content (horizontal) or inline content (vertical).</prop>
+    <prop name="selectable" type="boolean" default="false">Gives a document divider a pointer-sized hit area. The editor owns selection and deletion.</prop>
+    <prop name="selected" type="boolean" default="false">Shows the selected document divider. Selection does not change separator semantics.</prop>
   </defs>
   <hr from:aria-orientation="orientation">
   <style>
@@ -30,6 +32,22 @@
       block-size: auto;
       border-block-start: 0;
       border-inline-start: var(--ui-border-width) solid var(--ui-separator-color, var(--_separator-color, var(--ui-border-divider)));
+    }
+
+    :host-state([selectable]) {
+      min-block-size: var(--ui-control-size-sm);
+      border: 0;
+      background: linear-gradient(var(--ui-separator-color, var(--ui-border-divider)), var(--ui-separator-color, var(--ui-border-divider))) center / 100%
+        var(--ui-border-width) no-repeat;
+      cursor: pointer;
+    }
+    :host-state([selectable]):hover {
+      background-color: var(--ui-surface-hover);
+    }
+    :host-state([selected]) {
+      outline: var(--ui-focus-width) solid var(--ui-focus-ring);
+      outline-offset: var(--ui-focus-width);
+      border-radius: var(--ui-radius-sm);
     }
   </style>
 </template>
