@@ -7182,6 +7182,22 @@ describe("Image surface", () => {
       await page.close();
     });
   }
+  for (const adapter of ["HTML", "Vue"]) {
+    it(`fits narrow grid tracks without horizontal scrolling in ${adapter}`, async () => {
+      const path = await bundle(`image-grid-${adapter}`, adapter === "HTML" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Image } from "@threadlabs/looma/vue";
+        createApp({ render: () => h(Image, { src: ${JSON.stringify(source)}, alt: "Landscape", width: 480, height: 240 }) }).mount("#grid");
+      `);
+      const page = await open(path, `<div id="grid" style="display: grid; place-items: center; width: 260px; padding: 20px; box-sizing: border-box">${adapter === "HTML" ? `<ui-image src="${source}" alt="Landscape" width="480" height="240"></ui-image>` : '<div id="mount"></div>'}</div>`, [join(root, "tokens.css"), ...(adapter === "Vue" ? [join(root, "vue/components.css")] : [])], {}, async page => {
+        await page.route(source, route => route.fulfill({ contentType: "image/svg+xml", body: svg }));
+      });
+      await page.locator("#grid img").evaluate(async element => { await (element as HTMLImageElement).decode(); });
+      assert.ok((await page.locator("#grid img").boundingBox())!.width <= 220);
+      assert.ok(await page.locator("#grid").evaluate(el => el.scrollWidth <= el.clientWidth));
+      await page.close();
+    });
+  }
   it("renders semantic media on the server before controllers run", async () => {
     const { createSSRApp, h } = await import("vue");
     const { renderToString } = await import("vue/server-renderer");

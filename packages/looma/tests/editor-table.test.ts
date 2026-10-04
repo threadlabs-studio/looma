@@ -1293,6 +1293,7 @@ describe("responsive image wrapping", () => {
     });
     await until(async () => (await image.boundingBox())!.width, width => Math.abs(width - phoneColumn) < 2, "phone full width");
     assert.equal(await style(prose(page).locator("figure"), "float")(), "none");
+    assert.equal(await prose(page).getByRole("button", { name: "Resize image from bottom right" }).isVisible(), false, "full-width phone wrapping has no inactive resize affordance");
     const media = (await image.boundingBox())!;
     assert.ok((await prose(page).locator("p").last().boundingBox())!.y >= media.y + media.height, "phone text follows image");
     await page.evaluate(() => (window as unknown as { fixtureSetEditable(value: boolean): void }).fixtureSetEditable(false));

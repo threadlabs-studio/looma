@@ -38,4 +38,5 @@ new style owners; frozen editor CSS and inline-style exceptions remain unchanged
 
 Choosing either wrap placement resets dimensions to responsive sizing: one-third of the column
 on desktop, stacked at full column width below 768px. A subsequent corner drag sets an explicit
-custom desktop size; small screens still fill the column. Every icon action uses the standard Tooltip on hover and keyboard focus.
+custom desktop size; small screens still fill the column. Wrapped images hide resize handles on
+small screens, where their width is fixed; block/center images remain directly resizable. Every icon action uses the standard Tooltip on hover and keyboard focus.
