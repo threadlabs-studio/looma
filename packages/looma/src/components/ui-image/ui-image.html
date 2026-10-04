@@ -2,7 +2,8 @@
   <defs>
     <prop name="src" type="string" default="">The image source, used by the default media.</prop>
     <prop name="alt" type="string" default="">A text alternative for the image.</prop>
-    <prop name="width" type="integer" nullable>Image width in CSS pixels; omitted uses the image's intrinsic size.</prop>
+    <prop name="width" type="integer" nullable
+    >Image width in CSS pixels; omitted uses intrinsic size in block/center placement or responsive sizing when wrapping.</prop>
     <prop name="height" type="integer" nullable>Image height in CSS pixels; resizing preserves the intrinsic aspect ratio.</prop>
     <prop name="placement" type="keyword" values="block, center, wrap-left, wrap-right" default="block"
     >Block keeps text below; center centers the image; wrap-left and wrap-right let following text flow beside it.</prop>
@@ -48,6 +49,16 @@
     :host-state([placement="wrap-right"]) {
       float: right;
       padding-inline-start: var(--ui-space-4);
+    }
+    :host:is(:host-state([placement="wrap-left"]), :host-state([placement="wrap-right"])) {
+      inline-size: calc(var(--_ui-image-width, calc(100% / 3)) + var(--ui-space-4));
+    }
+    :host:is(:host-state([placement="wrap-left"]), :host-state([placement="wrap-right"])) .frame {
+      inline-size: 100%;
+    }
+    :host:is(:host-state([placement="wrap-left"]), :host-state([placement="wrap-right"])) .frame img,
+    :host:is(:host-state([placement="wrap-left"]), :host-state([placement="wrap-right"])) .frame :slotted(img) {
+      inline-size: 100%;
     }
     .frame {
       position: relative;
@@ -116,6 +127,13 @@
     }
     .handles[hidden], :host[hidden] {
       display: none;
+    }
+    @media (max-width: 767px) {
+      :host:is(:host-state([placement="wrap-left"]), :host-state([placement="wrap-right"])) {
+        float: none;
+        inline-size: 100%;
+        padding-inline: 0;
+      }
     }
     @media (pointer: coarse) {
       .handle {

@@ -1274,6 +1274,47 @@ describe("image controls", () => {
 });
 
 
+describe("responsive image wrapping", () => {
+  it("defaults to one-third of the column, stacks full-width on phones, and permits custom dragging", async () => {
+    const page = await openEditor('<p>Before</p><img src="https://example.test/image.svg" width="320" height="160" alt="Landscape"><p>Following text wraps around the image.</p>');
+    const image = prose(page).locator("img");
+    await image.click();
+    const bar = page.getByRole("toolbar", { name: "Image actions" });
+    await bar.getByRole("button", { name: "Wrap text to the right" }).click();
+    const columnWidth = await prose(page).evaluate(el => {
+      const css = getComputedStyle(el); return el.clientWidth - parseFloat(css.paddingLeft) - parseFloat(css.paddingRight);
+    });
+    await until(async () => (await image.boundingBox())!.width, width => Math.abs(width - columnWidth / 3) < 2, "one-third column width");
+    assert.equal(await image.getAttribute("width"), null, "responsive sizing is not a hardcoded pixel width");
+    await page.setViewportSize({ width: 375, height: 800 });
+    await page.locator("#app").evaluate(el => { (el as HTMLElement).style.width = "100%"; });
+    const phoneColumn = await prose(page).evaluate(el => {
+      const css = getComputedStyle(el); return el.clientWidth - parseFloat(css.paddingLeft) - parseFloat(css.paddingRight);
+    });
+    await until(async () => (await image.boundingBox())!.width, width => Math.abs(width - phoneColumn) < 2, "phone full width");
+    assert.equal(await style(prose(page).locator("figure"), "float")(), "none");
+    const media = (await image.boundingBox())!;
+    assert.ok((await prose(page).locator("p").last().boundingBox())!.y >= media.y + media.height, "phone text follows image");
+    await page.evaluate(() => (window as unknown as { fixtureSetEditable(value: boolean): void }).fixtureSetEditable(false));
+    await equals(() => image.getAttribute("tabindex"), "0", "reader image");
+    assert.ok(Math.abs((await image.boundingBox())!.width - phoneColumn) < 2);
+    await page.evaluate(() => (window as unknown as { fixtureSetEditable(value: boolean): void }).fixtureSetEditable(true));
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await image.click();
+    const customStart = (await image.boundingBox())!.width;
+    const handle = prose(page).getByRole("button", { name: "Resize image from bottom right" });
+    const box = (await handle.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width / 2 - 60, box.y + box.height / 2 - 30);
+    await page.mouse.up();
+    await until(() => image.getAttribute("width"), value => Number(value) > 0 && Number(value) < customStart - 40, "custom drag overrides desktop default");
+    await page.setViewportSize({ width: 375, height: 800 });
+    await until(async () => (await image.boundingBox())!.width, width => Math.abs(width - phoneColumn) < 2, "custom image still fills phone column");
+    await page.close();
+  });
+});
+
 describe("image controls tooltips", () => {
   it("uses standard tooltips for every icon on hover and keyboard focus", async () => {
     const page = await openEditor('<p>Before</p><img src="https://example.test/image.svg" width="320" height="160" alt="Landscape"><p>After</p>');
@@ -1286,14 +1327,15 @@ describe("image controls tooltips", () => {
       const name = await button.getAttribute("aria-label");
       assert.equal(await button.getAttribute("title"), null, "no native tooltip");
       await button.hover();
-      const tooltip = page.getByRole("tooltip").filter({ hasText: name! });
+      const tooltip = page.locator('[data-component="ui-tooltip"]').filter({ hasText: name! });
       await tooltip.waitFor();
-      assert.equal(await tooltip.getAttribute("data-component"), "ui-tooltip");
+      assert.ok((await button.getAttribute("aria-describedby"))?.split(/\s+/).includes((await tooltip.getAttribute("id"))!), "standard described tooltip");
       await page.mouse.move(700, 700);
+      await tooltip.waitFor({ state: "hidden" });
       await button.focus();
       await tooltip.waitFor();
-      await page.keyboard.press("Escape");
       await page.evaluate(() => (document.activeElement as HTMLElement)?.blur());
+      await tooltip.waitFor({ state: "hidden" });
     }
     await page.close();
   });
