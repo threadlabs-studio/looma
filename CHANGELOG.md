@@ -10,6 +10,7 @@
 - `/toc` inserts an automatic table of contents from document headings, with plain, bulleted, or numbered formatting and heading-depth settings built from shared controls. Heading anchors survive renames and moves, and read-only entries navigate without opening link editing. Headless integrations can inspect derived entries for document projections.
 - `/status` finds the existing Chip command and retains its label/color editor and document format. Existing `/link` behavior is covered through slash insertion, keyboard destination selection, and cancellation.
 - Escape closes only the top nested Menu or Popover, preserving its containing settings surface.
+- Repeated component rows use inline text expressions; the updated converter emits the same direct Vue bindings as `$value`, without per-row text components.
 - Contextual formatting gives slash-command and mention suggestions priority, so their results remain clickable.
 - Trees retain a keyboard entry point when row controllers load later or a hidden tree becomes visible, preserving the last focused row.
 - Contextual editor controls stay inside the document area rather than covering actions above it; link actions share that surface without covering formatting commands.
