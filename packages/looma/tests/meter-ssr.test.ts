@@ -2,6 +2,7 @@
 // fill and its ARIA values come from the props as it renders, so the server's HTML shows and states
 // the value with no JavaScript.
 import { createSSRApp, h } from "vue";
+import { execFileSync } from "node:child_process";
 import { renderToString } from "vue/server-renderer";
 import { describe, expect, it } from "vitest";
 import Meter from "../vue/UiMeter.js";
@@ -15,6 +16,16 @@ const render = async (props: Record<string, unknown>) => {
 };
 
 describe("Meter server render", () => {
+  it("formats its default spoken percentage using the server locale", () => {
+    const html = execFileSync(process.execPath, ["--input-type=module", "--eval", `
+      import { createSSRApp, h } from 'vue';
+      import { renderToString } from 'vue/server-renderer';
+      import Meter from './vue/UiMeter.js';
+      process.stdout.write(await renderToString(createSSRApp({ render: () => h(Meter, { value: 0.29 }) })));
+    `], { cwd: new URL("../", import.meta.url), env: { ...process.env, LANG: "de_DE.UTF-8", LC_ALL: "de_DE.UTF-8" }, encoding: "utf8" });
+    expect(html).toContain('aria-valuetext="29\u00a0%"');
+    expect(Number(/inline-size:([\d.]+)%;/.exec(html)?.[1])).toBeCloseTo(29, 6);
+  });
   it("draws the fill and states its value, name, and bounds", async () => {
     const meter = await render({ value: 750, max: 1240, label: "Collected", valueText: "$750 of $1,240 collected" });
     expect(meter.fill).toBeCloseTo(60.48, 2);

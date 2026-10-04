@@ -72,7 +72,7 @@
         $ref="dragHandle"
         type="button"
         draggable="true"
-        from:aria-label="{ true: format('Cancel moving %s', label), false: format('Drag %s to reorder', label) }[format('%s', moving)]"
+        from:aria-label="{ true: concat('Cancel moving ', label), false: concat('Drag ', label, ' to reorder') }[concat(moving)]"
       >
         <svg
           aria-hidden="true"
@@ -101,10 +101,10 @@
           tabindex="-1"
           from:checked="selected"
           from:disabled="disabled"
-          from:aria-label="format('Select %s', label)"
+          from:aria-label="concat('Select ', label)"
         ></label>
       <span class="leading" $ref="leading"><slot name="leading"></slot></span>
-      <span class="label" $ref="label"><span class="label-text" $ref="labelText"><slot name="label"><template $value="label"></template></slot></span></span>
+      <span class="label" $ref="label"><span class="label-text" $ref="labelText"><slot name="label">{$label}</slot></span></span>
       <span class="actions" $ref="actions">
         <ui-button $if="moving" data-tree-cancel-move variant="ghost" tone="neutral" size="sm" aria-label="Cancel move">Cancel</ui-button>
         <span $else><slot name="actions"></slot></span>
