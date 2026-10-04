@@ -219,6 +219,30 @@ describe("Anchored overlay placement", () => {
   });
 });
 
+describe("Touch input typography", () => {
+  it("keeps editable fields readable inside caption typography", async () => {
+    const path = await bundle("touch-caption-input", `
+      import { createApp, h } from "vue";
+      import { Input } from "@threadlabs/looma/vue";
+      createApp({ render: () => h("div", { style: "font-size:12px" }, () => [
+        h(Input, { id: "normal", placeholder: "Search people" }),
+        h(Input, { id: "small", size: "sm", placeholder: "Search pages" }),
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, '<div id="app"></div>', [join(root, "tokens.css"), join(root, "vue/components.css")], {
+      viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true,
+    });
+    for (const id of ["normal", "small"]) {
+      const field = page.locator(`#${id}`);
+      assert.ok(await field.evaluate((element) => parseFloat(getComputedStyle(element).fontSize)) >= 16);
+      await field.tap();
+      await field.fill("Readable");
+      assert.equal(await field.inputValue(), "Readable");
+    }
+    await page.close();
+  });
+});
+
 describe("Tooltip shortcut", () => {
   it("shows a shortcut after the label behind a divider, and nothing when there is none", async () => {
     const path = await bundle("html-tooltip-shortcut", `import "@threadlabs/looma";`);
