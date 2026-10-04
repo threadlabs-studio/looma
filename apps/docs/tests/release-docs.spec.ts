@@ -1269,6 +1269,18 @@ for (const theme of ["light", "dark"] as const) {
   }
 }
 
+test("mobile group-token documentation can be scrolled by keyboard", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto("tokens", { waitUntil: "domcontentloaded" });
+  const table = page.getByRole("table", { name: "Group design tokens", exact: true });
+  await expect(table).toHaveAttribute("tabindex", "0");
+  await table.focus();
+  await expect(table).toBeFocused();
+  expect(await table.evaluate(element => element.scrollWidth > element.clientWidth)).toBe(true);
+  await page.keyboard.press("ArrowRight");
+  await expect.poll(() => table.evaluate(element => element.scrollLeft)).toBeGreaterThan(0);
+});
+
 test("dialog closes via header button, actions, Escape, and outside press, with pinned chrome", async ({ page }) => {
   await page.goto("components/ui-dialog", { waitUntil: "domcontentloaded" });
   await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);

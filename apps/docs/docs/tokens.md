@@ -169,13 +169,16 @@ Group values are the middle layer. They inherit from a page, form, dialog, theme
 ancestor, and work only in the components listed here. They are intentionally absent from
 `tokens.css`; an unset group value leaves the global design intact.
 
-| Group value | Components it changes | Global fallback |
-| --- | --- | --- |
-| `--ui-field-radius` | Input, Input Group, Select, Listbox, Textarea, Combobox field, Search Shell's slotted search input, editor link form | `--ui-radius-md` |
-| `--ui-field-danger` | Invalid Input, Input Group, Select, Listbox, Textarea, Combobox, Checkbox, Radio Group legend, Form Field message, editor link form | `--ui-danger` and its solid alias |
-| `--ui-action-radius` | Button, Icon Button, except the Icon Button's explicit `round` shape | `--ui-radius-md` |
-| `--ui-overlay-radius` | Dialog, Menu, Context Menu, Popover, Tooltip, Search Shell panel, Toast and Toast Region's generated toast, Combobox popup | Each component's former radius default |
-| `--ui-overlay-surface`, `--ui-overlay-border`, `--ui-overlay-shadow` | The same overlay surfaces, except an inverse Tooltip uses its own surface and border | The elevated surface, strong border, and elevation tokens |
+<table tabIndex={0} aria-label="Group design tokens">
+  <thead><tr><th>Group value</th><th>Components it changes</th><th>Global fallback</th></tr></thead>
+  <tbody>
+    <tr><td><code>--ui-field-radius</code></td><td>Input, Input Group, Select, Listbox, Textarea, Combobox field, Search Shell's slotted search input, editor link form</td><td><code>--ui-radius-md</code></td></tr>
+    <tr><td><code>--ui-field-danger</code></td><td>Invalid Input, Input Group, Select, Listbox, Textarea, Combobox, Checkbox, Radio Group legend, Form Field message, editor link form</td><td><code>--ui-danger</code> and its solid alias</td></tr>
+    <tr><td><code>--ui-action-radius</code></td><td>Button, Icon Button, except the Icon Button's explicit <code>round</code> shape</td><td><code>--ui-radius-md</code></td></tr>
+    <tr><td><code>--ui-overlay-radius</code></td><td>Dialog, Menu, Context Menu, Popover, Tooltip, Search Shell panel, Toast and Toast Region's generated toast, Combobox popup</td><td>Each component's former radius default</td></tr>
+    <tr><td><code>--ui-overlay-surface</code>, <code>--ui-overlay-border</code>, <code>--ui-overlay-shadow</code></td><td>The same overlay surfaces, except an inverse Tooltip uses its own surface and border</td><td>The elevated surface, strong border, and elevation tokens</td></tr>
+  </tbody>
+</table>
 
 For example, one form can have tighter corners and a distinct danger shade while destructive
 buttons elsewhere continue to use the global danger value:
