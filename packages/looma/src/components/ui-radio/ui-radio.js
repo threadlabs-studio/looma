@@ -1,5 +1,6 @@
 import { afterFormReset } from "../shared/form-reset.js";
 import { describeInput } from "../shared/describe.js";
+import { connectRadio, radioGroupOwns } from "../shared/radio-group.js";
 import { trackTrigger } from "../shared/trigger.js";
 
 // `checked` sets the control initially and whenever it changes; the user's changes update the state.
@@ -9,13 +10,15 @@ export default function controller(host) {
   const input = host.refs.input;
   describeInput(input, host.refs.description);
   const [trigger, stopTracking] = trackTrigger(host);
+  const stopRadio = connectRadio(input, (checked) => { host.state.internalChecked = checked; });
   let external = host.props.checked.value;
-  host.state.internalChecked = Boolean(external);
+  if (!radioGroupOwns(input)) host.state.internalChecked = Boolean(external);
   const stop = host.effect(() => {
-    input.defaultChecked = Boolean(host.props.checked.value);
+    const grouped = radioGroupOwns(input);
+    if (!grouped) input.defaultChecked = Boolean(host.props.checked.value);
     if (host.props.checked.value === external) return;
     external = host.props.checked.value;
-    host.state.internalChecked = Boolean(external);
+    if (!grouped) host.state.internalChecked = Boolean(external);
   });
   const onChange = () => {
     host.state.internalChecked = input.checked;
@@ -25,12 +28,13 @@ export default function controller(host) {
   input.addEventListener("change", onChange);
   const stopReset = afterFormReset(input, () => {
     // Inside a ui-radio-group the group's value decides, whichever reset runs first.
-    if (input.closest('[role="radiogroup"]')) return;
+    if (radioGroupOwns(input)) return;
     host.state.internalChecked = Boolean(external);
     input.checked = Boolean(external);
   });
   return () => {
     stop();
+    stopRadio();
     stopReset();
     stopTracking();
     input.removeEventListener("change", onChange);

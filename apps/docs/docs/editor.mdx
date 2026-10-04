@@ -11,10 +11,7 @@ import { EditorGuideDemo } from "@site/src/components/EditorGuideDemo";
 <header className="looma-catalog-heading">
   <p className="looma-eyebrow">Rich text</p>
   <h1>Editor</h1>
-  <p>
-    A ready-to-use writing surface with formatting, slash commands, mentions, tables, and image
-    support. Start with the complete editor; configure its capabilities through props and callbacks.
-  </p>
+  <p>A ready-to-use writing surface with formatting, slash commands, mentions, tables, and image support. Start with the complete editor; configure its capabilities through props and callbacks.</p>
 </header>
 
 ## Try the editor
@@ -55,8 +52,10 @@ first integration.
 Select text for bold, italic, underline, strike, highlight, inline code, and links. The editor
 also supports headings, lists, quotes, code blocks, tables, images, undo, and redo. Set
 `toolbarMode="sticky"` to keep the toolbar above the document, `popover` to open it from your own
-button, or use the default `bubble` mode beside a selection. On narrow screens the toolbar docks at the bottom and scrolls sideways when
+button, `contextual` for the full command set beside a focused caret or selection, or use the default `bubble` mode beside a selection. Contextual controls stay within the document area and flip below the first paragraph when there is no room above it. On narrow screens the toolbar docks at the bottom and scrolls sideways when
 its controls do not fit.
+
+Contextual formatting hides while slash-command or mention suggestions are active, then returns when the writer resumes editing.
 
 ## Slash commands and blocks
 
@@ -258,7 +257,7 @@ leaves the original URL visible and editable. Pass `linkBaseUrl` (for example, `
 | `placeholder` | `Type “/” for commands, or start writing…` | Empty document prompt |
 | `label` | `Document` | Accessible name for the editing surface |
 | `extensions` | `[]` | Additional Tiptap extensions |
-| `toolbarMode` | `bubble` | `bubble`, `sticky`, or `popover` toolbar placement |
+| `toolbarMode` | `bubble` | `bubble`, `sticky`, `popover`, or `contextual` toolbar placement |
 | `toolbarTriggerId`, `toolbarOpen` | `""`, `false` | The button that opens the `popover` toolbar, and whether it is open (`v-model:toolbar-open`) |
 | `codeLanguages` | Built-in catalog | Replace the default code languages with an application-owned grammar map; `{}` keeps code plain |
 | `mentionItems`, `mentionProvider`, `mentionLimit` | Empty, none, 8 | Fixed or searched mention candidates |

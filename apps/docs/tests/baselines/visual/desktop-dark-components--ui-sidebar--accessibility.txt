@@ -1,0 +1,32 @@
+[
+  {
+    "id": "landmark-main-is-top-level",
+    "impact": "moderate",
+    "targets": [
+      [
+        "section[data-preview-scenario=\"App shell\"] > .looma-preview-scenario__stage[data-component-preview=\"ui-sidebar\"] > .demo-app-shell > .demo-app-main"
+      ],
+      [
+        "section[data-preview-scenario=\"End side, resizable\"] > .looma-preview-scenario__stage[data-component-preview=\"ui-sidebar\"] > .demo-app-shell > .demo-app-main"
+      ]
+    ]
+  },
+  {
+    "id": "landmark-no-duplicate-main",
+    "impact": "moderate",
+    "targets": [
+      [
+        ".docMainContainer_HQ6G"
+      ]
+    ]
+  },
+  {
+    "id": "landmark-unique",
+    "impact": "moderate",
+    "targets": [
+      [
+        ".docMainContainer_HQ6G"
+      ]
+    ]
+  }
+]

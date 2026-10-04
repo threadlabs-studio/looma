@@ -1,0 +1,50 @@
+[
+  {
+    "id": "color-contrast",
+    "impact": "serious",
+    "targets": [
+      [
+        ".codeBlockContainer_N0k4.theme-code-block.language-css:nth-child(38) > .codeBlockContent_ant3 > pre > .codeBlockLines_ia7C > .token-line:nth-child(1) > .comment.token"
+      ],
+      [
+        ".codeBlockContainer_N0k4.theme-code-block.language-css:nth-child(43) > .codeBlockContent_ant3 > pre > .codeBlockLines_ia7C > .token-line:nth-child(1) > .comment.token"
+      ],
+      [
+        ".codeBlockContainer_N0k4.theme-code-block.language-css:nth-child(50) > .codeBlockContent_ant3 > pre > .codeBlockLines_ia7C > .token-line:nth-child(1) > .comment.token"
+      ],
+      [
+        ".language-vue > .codeBlockLines_ia7C > .token-line:nth-child(1) > .comment.token"
+      ],
+      [
+        ".token-line:nth-child(13) > .comment.token"
+      ],
+      [
+        ".token-line:nth-child(2) > .comment.token"
+      ],
+      [
+        ".token-line:nth-child(4) > .comment.token"
+      ],
+      [
+        ".token-line:nth-child(7) > .comment.token"
+      ],
+      [
+        ".token-line:nth-child(8) > .comment.token"
+      ],
+      [
+        ".token-line:nth-child(9) > .comment.token"
+      ]
+    ]
+  },
+  {
+    "id": "scrollable-region-focusable",
+    "impact": "serious",
+    "targets": [
+      [
+        "table:nth-child(4)"
+      ],
+      [
+        "table:nth-child(46)"
+      ]
+    ]
+  }
+]

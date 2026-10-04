@@ -72,7 +72,7 @@
         $ref="dragHandle"
         type="button"
         draggable="true"
-        from:aria-label="{ true: format('Cancel moving %s', label), false: format('Drag %s to reorder', label) }[format('%s', moving)]"
+        from:aria-label="{ true: concat('Cancel moving ', label), false: concat('Drag ', label, ' to reorder') }[concat(moving)]"
       >
         <svg
           aria-hidden="true"
@@ -101,10 +101,10 @@
           tabindex="-1"
           from:checked="selected"
           from:disabled="disabled"
-          from:aria-label="format('Select %s', label)"
+          from:aria-label="concat('Select ', label)"
         ></label>
       <span class="leading" $ref="leading"><slot name="leading"></slot></span>
-      <span class="label" $ref="label"><span class="label-text" $ref="labelText"><slot name="label"><template $value="label"></template></slot></span></span>
+      <span class="label" $ref="label"><span class="label-text" $ref="labelText"><slot name="label">{$label}</slot></span></span>
       <span class="actions" $ref="actions">
         <ui-button $if="moving" data-tree-cancel-move variant="ghost" tone="neutral" size="sm" aria-label="Cancel move">Cancel</ui-button>
         <span $else><slot name="actions"></slot></span>
@@ -470,7 +470,7 @@
     }
 
     /* Without hover there is no reveal, so the controls keep their own column. */
-    @media (hover: none) {
+    @media (hover: none), (pointer: coarse) {
       .row {
         grid-template-columns: var(--_tree-disclosure-size) auto minmax(0, 1fr) auto;
       }
@@ -483,6 +483,37 @@
         background: none;
         opacity: 1;
         pointer-events: auto;
+      }
+
+      .row:is(:hover, :focus-within) > .label,
+      .row:is(:hover, :focus-within) > .label:dir(rtl),
+      :host[data-move-source] > .row > .label,
+      :host[data-move-source] > .row > .label:dir(rtl) {
+        mask-image: none;
+      }
+
+      .row[data-ui-marquee] > .label {
+        mask-image: linear-gradient(
+          to right,
+          transparent var(--_marquee-icon-width, 0px),
+          #000 calc(var(--_marquee-lead, 0px) + var(--_ui-tree-item-label-padding-inline, var(--ui-space-2)))
+        );
+      }
+
+      .row[data-ui-marquee] > .label:dir(rtl) {
+        mask-image: linear-gradient(
+          to left,
+          transparent var(--_marquee-icon-width, 0px),
+          #000 calc(var(--_marquee-lead, 0px) + var(--_ui-tree-item-label-padding-inline, var(--ui-space-2)))
+        );
+      }
+
+      :host[data-selection-mode="multiple"] > .row {
+        grid-template-columns: var(--_tree-disclosure-size) 1.25rem auto minmax(0, 1fr) auto;
+      }
+
+      :host[data-selection-mode="multiple"] > .row > .actions {
+        grid-column: 5;
       }
     }
 
@@ -623,6 +654,24 @@
     }
     html[data-ui-input-modality="touch"] :host[data-selection-mode="multiple"] > .row > .label {
       grid-column: 5;
+    }
+
+    @media (hover: none), (pointer: coarse) {
+      html[data-ui-input-modality="touch"] :host .row {
+        grid-template-columns: 44px var(--_tree-disclosure-size) auto minmax(0, 1fr) auto;
+      }
+
+      html[data-ui-input-modality="touch"] :host .actions {
+        grid-column: 5;
+      }
+
+      html[data-ui-input-modality="touch"] :host[data-selection-mode="multiple"] > .row {
+        grid-template-columns: 44px var(--_tree-disclosure-size) 44px auto minmax(0, 1fr) auto;
+      }
+
+      html[data-ui-input-modality="touch"] :host[data-selection-mode="multiple"] > .row > .actions {
+        grid-column: 6;
+      }
     }
 
     @media (prefers-reduced-motion: reduce) {

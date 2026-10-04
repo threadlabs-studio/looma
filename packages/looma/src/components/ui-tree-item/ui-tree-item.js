@@ -143,7 +143,8 @@ export default function controller(host) {
     labelText.style.flex = labelText.style.inlineSize = "";
     const cell = label.getBoundingClientRect();
     const icon = leading?.getBoundingClientRect();
-    const stop = (actions?.offsetWidth ?? 0) + parseFloat(getComputedStyle(label).columnGap);
+    const overlayActions = actions && getComputedStyle(actions).position === "absolute";
+    const stop = overlayActions ? actions.offsetWidth + parseFloat(getComputedStyle(label).columnGap) : 0;
     const distance = Math.ceil(rightToLeft ? cell.left + stop - end : end - (cell.right - stop));
     if (distance <= 0) return;
     const lead = icon?.width ? (rightToLeft ? icon.right - cell.right : cell.left - icon.left) : 0;
@@ -209,6 +210,9 @@ export default function controller(host) {
     element.style.setProperty("--_tree-actions-width", `${width}px`);
   });
   if (actions) actionsSize.observe(actions);
+
+  // A parent may have sent its initial roving state before this controller loaded.
+  element.dispatchEvent(new CustomEvent("ui-tree-item-ready", { bubbles: true }));
 
   return () => {
     clearTimeout(marqueeRestart);

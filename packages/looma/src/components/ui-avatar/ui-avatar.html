@@ -30,7 +30,7 @@
     <slot></slot>
     <img class="image" $ref="image" from:src="src" alt="" aria-hidden="true" from:hidden="hasAuthoredImage or not hasImage">
     <span class="fallback" from:aria-hidden="hasImage" from:hidden="hasImage">
-      <span from:hidden="showGlyph" $value="initials"></span>
+      <span from:hidden="showGlyph">{$initials}</span>
       <span from:hidden="not showGlyph"><ui-icon name="user-round"></ui-icon></span>
     </span>
   </span>
