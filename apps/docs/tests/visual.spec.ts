@@ -25,7 +25,11 @@ for (const theme of ["light", "dark"] as const) {
           // This single slash glyph varies by three rasterized pixels across repeated Chromium captures.
           // Keep every other page at zero changed pixels; a larger catalog change still fails.
           const maxDiffPixels = name === "mobile-dark/components" ? 3 : 0;
-          await screenshot(page, `${name}.png`, true, maxDiffPixels);
+          // These two sticky-header captures have stable, reviewed GitHub-hosted rasterization variants.
+          // Keep both rendering environments at zero changed pixels instead of increasing tolerance.
+          const pageImage = process.env.GITHUB_ACTIONS === "true" && viewport.name === "desktop" && doc.path === "components/ui-table"
+            ? `${name}--github-actions` : name;
+          await screenshot(page, `${pageImage}.png`, true, maxDiffPixels);
           expect(JSON.stringify(await accessibilityFindings(page), null, 2)).toMatchSnapshot(`${name}--accessibility.txt`);
           if (doc.component) {
             await page.getByRole("tab", { name: "API", exact: true }).click();

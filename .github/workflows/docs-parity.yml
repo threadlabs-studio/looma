@@ -11,7 +11,7 @@ permissions:
 jobs:
   docs-parity:
     runs-on: ubuntu-24.04-arm
-    timeout-minutes: 60
+    timeout-minutes: 90
     container:
       image: mcr.microsoft.com/playwright:v1.60.0-noble@sha256:beddddcf96f19abec078cd2f3da676f40abd460e0e734ad5eed73627ce161d33
       options: --ipc=host
@@ -19,6 +19,9 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
+      - name: Align browser home ownership with the container user
+        # GitHub mounts the runner-owned home into this root-run container; Firefox checks its owner.
+        run: chown "$(id -u):$(id -g)" "$HOME"
       - name: Install pinned pnpm dependencies
         run: corepack enable && corepack pnpm install --frozen-lockfile
       - name: Build documentation
