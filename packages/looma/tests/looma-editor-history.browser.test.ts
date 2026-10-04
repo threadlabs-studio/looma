@@ -4,6 +4,7 @@ import { common } from "lowlight";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, ref, type App } from "vue";
 import { LoomaEditor } from "../src/vue/editor/LoomaEditor";
+import { Button } from "../vue/index";
 import "../vue/components.css";
 import "../tokens.css";
 import "../theme-light.css";
@@ -24,7 +25,13 @@ async function historyShortcut(direction: "undo" | "redo") {
   await userEvent.keyboard(`{${modifier}>}${shift}z${releaseShift}{/${modifier}}`);
 }
 
-async function mountEditor(options: { controlled?: boolean; editable?: boolean; toolbarMode?: "bubble" | "sticky"; disableHighlight?: boolean; codeLanguages?: Record<string, typeof common.sql> } = {}) {
+async function codeLanguageInput(host: HTMLElement) {
+  const input = host.querySelector<HTMLInputElement>('.looma-editor__code-language [role="combobox"]')!;
+  await vi.waitFor(() => expect(input.id).toMatch(/^ui-combobox-\d+-input$/));
+  return input;
+}
+
+async function mountEditor(options: { controlled?: boolean; editable?: boolean; toolbarMode?: "bubble" | "sticky" | "contextual"; disableHighlight?: boolean; codeLanguages?: Record<string, typeof common.sql>; mentionItems?: Array<{ id: string; label: string }> } = {}) {
   vi.spyOn(window, "innerWidth", "get").mockReturnValue(1280);
   const modelValue = ref<JSONContent>({ type: "doc", content: [{ type: "paragraph" }] });
   const editable = ref(options.editable ?? true);
@@ -38,6 +45,7 @@ async function mountEditor(options: { controlled?: boolean; editable?: boolean; 
       ...(options.toolbarMode ? { toolbarMode: options.toolbarMode } : {}),
       ...(options.disableHighlight ? { disableHighlight: true } : {}),
       ...(options.codeLanguages ? { codeLanguages: options.codeLanguages } : {}),
+      ...(options.mentionItems ? { mentionItems: options.mentionItems } : {}),
       ...(options.controlled === false ? {} : {
         "onUpdate:modelValue": (value: JSONContent) => { modelValue.value = value; },
       }),
@@ -70,6 +78,107 @@ afterEach(async () => {
 });
 
 describe("LoomaEditor history (real browser)", () => {
+  it.each(["slash", "mention"])("gives %s suggestions priority over contextual formatting", async (kind) => {
+    await page.viewport(1280, 720);
+    const { editor } = await mountEditor({ toolbarMode: "contextual", mentionItems: [{ id: "ada", label: "Ada Lovelace" }] });
+    editor.commands.focus("start");
+    await flushBrowser();
+    const toolbar = page.getByRole("toolbar", { name: "Editor toolbar", exact: true });
+    await expect.element(toolbar).toBeVisible();
+    await userEvent.keyboard(kind === "slash" ? "Article /chip" : "Article @ada");
+    const option = page.getByRole("option", { name: kind === "slash" ? /chip/i : /Ada Lovelace/ });
+    await expect.element(option).toBeVisible();
+    await vi.waitFor(() => {
+      const popup = document.querySelector('[aria-label="Editor toolbar"]')?.closest<HTMLElement>("[data-tippy-root]");
+      expect(popup?.style.visibility).not.toBe("visible");
+    });
+    await userEvent.click(option);
+    if (kind === "slash") {
+      await vi.waitFor(() => expect(document.activeElement).toBe(page.getByRole("textbox", { name: "Chip text" }).element()));
+    } else {
+      expect(editor.getJSON().content?.[0]?.content).toEqual(expect.arrayContaining([
+        expect.objectContaining({ type: "mention", attrs: expect.objectContaining({ id: "ada", label: "Ada Lovelace" }) }),
+      ]));
+      await expect.element(toolbar).toBeVisible();
+    }
+  });
+
+  it.each([768, 1280])("keeps contextual controls below document details at %ipx", async (width) => {
+    await page.viewport(width, 720);
+    const host = document.createElement("section");
+    host.style.marginBlockStart = "180px";
+    document.body.append(host);
+    let editor: Editor | null = null;
+    const detailsClicked = ref(false);
+    const app = createApp({
+      render: () => h("div", [
+        h(Button, { onClick: () => { detailsClicked.value = true; } }, () => "Document details"),
+        h(LoomaEditor, {
+          modelValue: { type: "doc", content: [{ type: "paragraph" }] },
+          toolbarMode: "contextual",
+          onReady: (instance: Editor) => { editor = instance; },
+        }),
+      ]),
+    });
+    apps.push(app);
+    app.mount(host);
+    await flushBrowser();
+    editor!.commands.focus("start");
+    editor!.commands.insertContent("A first paragraph.");
+    await flushBrowser();
+    const toolbar = page.getByRole("toolbar", { name: "Editor toolbar", exact: true });
+    await expect.element(toolbar).toBeVisible();
+    await vi.waitFor(() => {
+      const bounds = toolbar.element().getBoundingClientRect();
+      const content = host.querySelector<HTMLElement>(".looma-editor")!.getBoundingClientRect();
+      expect(bounds.top).toBeGreaterThanOrEqual(content.top);
+      expect(bounds.bottom).toBeLessThanOrEqual(content.bottom);
+    });
+    await userEvent.click(page.getByRole("button", { name: "Document details", exact: true }));
+    expect(detailsClicked.value).toBe(true);
+    await vi.waitFor(() => {
+      const popup = document.querySelector('[aria-label="Editor toolbar"]')?.closest<HTMLElement>("[data-tippy-root]");
+      expect(popup?.style.visibility).not.toBe("visible");
+    });
+  });
+
+  it("offers full contextual commands at an empty caret and a text selection", async () => {
+    await page.viewport(768, 720);
+    const { editor } = await mountEditor({ toolbarMode: "contextual" });
+    editor.commands.focus("start");
+    await flushBrowser();
+    for (const label of ["Bold", "Heading 1", "Insert table", "Undo", "Redo"]) {
+      expect(document.querySelector(`[aria-label="${label}"]`)).toBeTruthy();
+    }
+    editor.commands.setContent("<p>Select some text</p>");
+    editor.commands.setTextSelection({ from: 1, to: 7 });
+    await flushBrowser();
+    expect(document.querySelector('[aria-label="Heading 1"]')).toBeTruthy();
+    const toolbar = document.querySelector<HTMLElement>('[role="toolbar"]')!;
+    const bounds = toolbar.getBoundingClientRect();
+    expect(bounds.left).toBeGreaterThanOrEqual(0);
+    expect(bounds.right).toBeLessThanOrEqual(document.documentElement.clientWidth);
+    await userEvent.click(document.querySelector<HTMLElement>('[aria-label="Bold"]')!);
+    expect(editor.getHTML()).toContain("<strong>Select</strong>");
+    editor.commands.setLink({ href: "https://example.com" });
+    editor.commands.setTextSelection(3);
+    await flushBrowser();
+    expect(document.querySelector('[aria-label="Heading 1"]')).toBeTruthy();
+    expect(document.querySelector('.looma-editor__link-context')?.closest('[data-tippy-root]')).toBeTruthy();
+    expect(document.querySelector('[aria-label="Open link"]')?.getAttribute("href")).toBe("https://example.com");
+    expect(document.querySelector('[aria-label="Edit link"]')).toBeTruthy();
+    expect(document.querySelector('[aria-label="Remove link"]')).toBeTruthy();
+    const heading = page.getByRole("button", { name: "Heading 1", exact: true }).element();
+    const headingBounds = heading.getBoundingClientRect();
+    expect(document.elementFromPoint(headingBounds.x + headingBounds.width / 2,
+      headingBounds.y + headingBounds.height / 2)?.closest("button")).toBe(heading);
+    await userEvent.click(page.getByRole("button", { name: "Edit link", exact: true }));
+    await expect.element(page.getByRole("form", { name: "Edit link" })).toBeVisible();
+    await userEvent.click(page.getByRole("button", { name: "Cancel", exact: true }));
+    await expect.element(page.getByRole("group", { name: "Link actions", exact: true })).toBeVisible();
+    expect(editor.isActive("link")).toBe(true);
+  });
+
   it("lazily offers HTML and highlights markup in a default editor", async () => {
     const { editor, host } = await mountEditor();
     const lowlight = editor.extensionManager.extensions.find((extension) => extension.name === "codeBlock")!
@@ -79,7 +188,7 @@ describe("LoomaEditor history (real browser)", () => {
     editor.commands.focus("start");
     await flushBrowser();
 
-    const language = host.querySelector<HTMLInputElement>('.looma-editor__code-language [role="combobox"]')!;
+    const language = await codeLanguageInput(host);
     expect(language).toBeTruthy();
     language.focus();
     await userEvent.keyboard("{ArrowDown}");
@@ -104,7 +213,7 @@ describe("LoomaEditor history (real browser)", () => {
     editor.commands.focus("start");
     await flushBrowser();
 
-    const language = host.querySelector<HTMLInputElement>('.looma-editor__code-language [role="combobox"]')!;
+    const language = await codeLanguageInput(host);
     language.focus();
     language.select();
     await userEvent.keyboard("dockerfile");

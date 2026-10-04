@@ -1,0 +1,11 @@
+[
+  {
+    "id": "scrollable-region-focusable",
+    "impact": "serious",
+    "targets": [
+      [
+        "table"
+      ]
+    ]
+  }
+]

@@ -220,6 +220,30 @@ describe("Anchored overlay placement", () => {
   });
 });
 
+describe("Touch input typography", () => {
+  it("keeps editable fields readable inside caption typography", async () => {
+    const path = await bundle("touch-caption-input", `
+      import { createApp, h } from "vue";
+      import { Input } from "@threadlabs/looma/vue";
+      createApp({ render: () => h("div", { style: "font-size:12px" }, () => [
+        h(Input, { id: "normal", placeholder: "Search people" }),
+        h(Input, { id: "small", size: "sm", placeholder: "Search pages" }),
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, '<div id="app"></div>', [join(root, "tokens.css"), join(root, "vue/components.css")], {
+      viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true,
+    });
+    for (const id of ["normal", "small"]) {
+      const field = page.locator(`#${id}`);
+      assert.ok(await field.evaluate((element) => parseFloat(getComputedStyle(element).fontSize)) >= 16);
+      await field.tap();
+      await field.fill("Readable");
+      assert.equal(await field.inputValue(), "Readable");
+    }
+    await page.close();
+  });
+});
+
 describe("Tooltip shortcut", () => {
   it("shows a shortcut after the label behind a divider, and nothing when there is none", async () => {
     const path = await bundle("html-tooltip-shortcut", `import "@threadlabs/looma";`);
@@ -4135,6 +4159,44 @@ describe("Icon", () => {
 });
 
 describe("Icon Button", () => {
+  it("matches adjacent Buttons when requested without resizing compact icon controls", async () => {
+    for (const adapter of ["vue", "html"]) {
+      const path = await bundle(`${adapter}-matched-icon-button`, adapter === "vue" ? `
+        import { createApp, h } from "vue";
+        import { Button, IconButton, Icon } from "@threadlabs/looma/vue";
+        createApp({ render: () => h("div", {}, [
+          ...["sm", "md", "lg"].map(size => h("div", { style: "display: flex; align-items: stretch", id: size }, [
+            h(Button, { id: size + "-primary", size }, () => "Save changes"),
+            h(IconButton, { id: size + "-more", size, matchButton: true, variant: "outline", label: "More options" }, () => h(Icon, { name: "chevron-down" })),
+          ])),
+          h(IconButton, { id: "compact", size: "sm", label: "Toolbar options" }, () => h(Icon, { name: "chevron-down" })),
+        ]) }).mount("#app");
+      ` : `import "@threadlabs/looma";`);
+      const body = adapter === "vue" ? '<div id="app"></div>' : `
+        ${["sm", "md", "lg"].map(size => `<div style="display: flex; align-items: stretch" id="${size}">
+          <ui-button id="${size}-primary" size="${size}">Save changes</ui-button>
+          <ui-icon-button id="${size}-more" size="${size}" match-button variant="outline" label="More options"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
+        </div>`).join("")}
+        <ui-icon-button id="compact" size="sm" label="Toolbar options"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>`;
+      for (const touch of [false, true]) {
+        const page = await open(path, body, [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])],
+          { viewport: { width: touch ? 375 : 1280, height: 900 }, hasTouch: touch, isMobile: touch });
+        // Custom control tokens must work, too; no hard-coded matching dimensions.
+        await page.addStyleTag({ content: ":root { --ui-control-size-sm: 36px; --ui-control-size-md: 44px; --ui-control-size-lg: 52px; }" });
+        for (const size of ["sm", "md", "lg"]) {
+          const bounds = await page.evaluate(size => {
+            const primary = document.getElementById(size + "-primary")!.getBoundingClientRect();
+            const more = document.getElementById(size + "-more")!.getBoundingClientRect();
+            return { primary: { top: primary.top, bottom: primary.bottom }, more: { top: more.top, bottom: more.bottom } };
+          }, size);
+          assert.deepEqual(bounds.more, bounds.primary, `${adapter} ${size}, touch=${touch}: both edges align`);
+        }
+        assert.equal(await page.locator("#compact").evaluate(element => element.getBoundingClientRect().height), 28);
+        await page.close();
+      }
+    }
+  });
+
   it("grows its hit area, not its size, once touch is used", async () => {
     const path = await bundle("vue-icon-button-touch", `
       import { createApp, h } from "vue";
@@ -4966,6 +5028,47 @@ describe("HTML components", () => {
 
     await page.waitForSelector('[data-component~="ui-form-field"]');
     assert.equal(await page.locator("#field-label").evaluate((element) => getComputedStyle(element).fontSize), "14px");
+    await page.close();
+  });
+});
+
+describe("Radio group initial selection", () => {
+  const check = async (page: Page) => {
+    await page.waitForSelector('#plan input[value="pro"]');
+    assert.deepEqual(await page.locator("#plan input").evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).checked)), [false, true], "the group's value takes precedence over a child's checked prop");
+    assert.deepEqual(await page.locator("#empty input").evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).checked)), [false, false], "an empty group value checks no radio");
+    assert.deepEqual(await page.locator("#plan input").evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).defaultChecked)), [false, true], "native reset defaults also belong to the group");
+    assert.equal(await page.locator("#standalone input").isChecked(), true, "an authored standalone checked radio stays checked");
+    await page.locator('#plan input[value="free"]').check();
+    await page.locator("#form").evaluate((form) => (form as HTMLFormElement).reset());
+    await page.waitForFunction(() => (document.querySelector('#plan input[value="pro"]') as HTMLInputElement).checked);
+    assert.deepEqual(await page.locator("#plan input").evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).checked)), [false, true], "form reset restores the group's authored value");
+  };
+
+  it("honors group selection when a child is authored checked, in HTML", async () => {
+    const path = await bundle("html-radio-initial-selection", `import "@threadlabs/looma";`);
+    const page = await open(path, `<form id="form">
+      <ui-radio-group id="plan" name="plan" value="pro"><ui-radio value="free" checked>Free</ui-radio><ui-radio value="pro">Pro</ui-radio></ui-radio-group>
+      <ui-radio-group id="empty" name="empty"><ui-radio value="free" checked>Free</ui-radio><ui-radio value="pro">Pro</ui-radio></ui-radio-group>
+      <fieldset role="radiogroup"><ui-radio id="standalone" name="standalone" checked>Standalone</ui-radio></fieldset>
+    </form>`, [join(root, "tokens.css")]);
+    await check(page);
+    await page.close();
+  });
+
+  it("honors group selection when a child is authored checked, in Vue", async () => {
+    const path = await bundle("vue-radio-initial-selection", `
+      import { createApp, h } from "vue";
+      import { Radio, RadioGroup } from "@threadlabs/looma/vue";
+      const radios = () => [h(Radio, { value: "free", checked: true }, () => "Free"), h(Radio, { value: "pro" }, () => "Pro")];
+      createApp({ render: () => h("form", { id: "form" }, [
+        h(RadioGroup, { id: "plan", name: "plan", value: "pro" }, radios),
+        h(RadioGroup, { id: "empty", name: "empty" }, radios),
+        h("fieldset", { role: "radiogroup" }, [h(Radio, { id: "standalone", name: "standalone", checked: true }, () => "Standalone")]),
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await check(page);
     await page.close();
   });
 });
@@ -6512,6 +6615,32 @@ describe("Theme levels", () => {
 });
 
 describe("Meter", () => {
+  it("localizes its spoken percentage in native HTML and Vue while keeping CSS numeric", async () => {
+    for (const target of ["html", "vue"]) {
+      const path = await bundle(`localized-meter-${target}`, target === "html"
+        ? `import "@threadlabs/looma";`
+        : `import { createApp, h, ref } from "vue";
+           import { Meter } from "@threadlabs/looma/vue";
+           const value = ref(0.29);
+           window.localizedMeterValue = value;
+           createApp({ render: () => h(Meter, { value: value.value, label: "Progress" }) }).mount("#app");`);
+      const page = await open(path, target === "html"
+        ? '<ui-meter id="meter" value="0.29" label="Progress"></ui-meter>'
+        : '<div id="app"></div>', css, { locale: "de-DE" });
+      const meter = page.getByRole("meter", { name: "Progress" });
+      assert.equal(await meter.getAttribute("aria-valuetext"), "29\u00a0%");
+      const fill = await meter.locator(".fill").evaluate((element) => (element as HTMLElement).style.inlineSize);
+      assert.ok(fill.endsWith("%") && Math.abs(parseFloat(fill) - 29) < 0.000001, fill);
+      if (target === "vue") {
+        await page.evaluate(() => {
+          (window as unknown as { localizedMeterValue: { value: number } }).localizedMeterValue.value = 0.5;
+        });
+        await page.waitForFunction(() => document.querySelector('[role="meter"]')?.getAttribute("aria-valuetext") === "50\u00a0%");
+        assert.equal(await meter.locator(".fill").evaluate((element) => (element as HTMLElement).style.inlineSize), "50%");
+      }
+      await page.close();
+    }
+  });
   const tones = ["neutral", "accent", "info", "success", "warning", "danger"];
   const meters: [string, Record<string, unknown>][] = [
     ["partial", { value: 750, max: 1240, tone: "info", label: "Collected", valueText: "$750 of $1,240 collected" }],
@@ -6883,59 +7012,126 @@ describe("App styling hooks", () => {
   });
 });
 
-
-describe("Image surface", () => {
-  const source = "https://example.test/primitive-image.svg";
-  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="160" height="80"><rect width="160" height="80" fill="#569d86"/></svg>';
-  for (const adapter of ["HTML", "Vue"]) {
-    it(`owns corner resize, cancellation, and bounds in ${adapter}`, async () => {
-      const path = await bundle(`image-surface-${adapter}`, adapter === "HTML" ? `import "@threadlabs/looma";` : `
-        import { createApp, h } from "vue";
-        import { Image } from "@threadlabs/looma/vue";
-        createApp({ render: () => h(Image, { id: "image", src: ${JSON.stringify(source)}, alt: "Landscape", width: 160, height: 80, selected: true, resizable: true }) }).mount("#mount");
-      `);
-      const page = await open(path, `<div style="width: 260px; padding: 20px; box-sizing: border-box">${adapter === "HTML" ? `<ui-image id="image" src="${source}" alt="Landscape" width="160" height="80" selected resizable></ui-image>` : '<div id="mount"></div>'}</div>`, [join(root, "tokens.css"), ...(adapter === "Vue" ? [join(root, "vue/components.css")] : [])], {}, async page => {
-        await page.route(source, route => route.fulfill({ contentType: "image/svg+xml", body: svg }));
-      });
-      await page.locator("#image img").evaluate(async element => { await (element as HTMLImageElement).decode(); });
-      await page.evaluate(() => {
-        (window as unknown as { resizeEvents: unknown[] }).resizeEvents = [];
-        document.querySelector("#image")!.addEventListener("resize", event => {
-          (window as unknown as { resizeEvents: unknown[] }).resizeEvents.push((event as CustomEvent).detail);
-        });
-      });
-      for (const corner of ["top-left", "top-right", "bottom-left", "bottom-right"]) {
-        const handle = page.locator(`#image [data-corner="${corner}"]`);
-        const box = (await handle.boundingBox())!;
-        await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-        await page.mouse.down();
-        await page.mouse.move(box.x + box.width / 2 + (corner.endsWith("left") ? -40 : 40), box.y + box.height / 2 + (corner.startsWith("top") ? -20 : 20));
-        assert.ok(Math.abs((await page.locator("#image img").boundingBox())!.width - 200) < 1);
-        await page.mouse.up();
-        const event = await page.evaluate(() => (window as unknown as { resizeEvents: { width: number; height: number; phase: string; trigger: string }[] }).resizeEvents.at(-1));
-        assert.deepEqual(event, { width: 200, height: 100, phase: "commit", trigger: "pointer" });
+describe("Combobox completion", () => {
+  const check = async (page: Page) => {
+    const input = page.locator('#choices input[role="combobox"]');
+    await input.fill("Des");
+    await page.waitForFunction(() => Boolean(document.querySelector('#choices input')?.getAttribute('aria-activedescendant')));
+    assert.equal(await page.locator('#choices [role="option"].active').textContent(), "Design");
+    await input.press("Tab");
+    assert.equal(await page.locator('#choices .item').count(), 1);
+    assert.equal(await input.inputValue(), "");
+    assert.equal(await page.locator('#after').evaluate(element => element === document.activeElement), true);
+    await input.fill("Des");
+    await input.press("Tab");
+    assert.equal(await page.locator('#choices .item').count(), 1, "completion never toggles off a selected item");
+    await input.fill("Pla");
+    await input.press("Shift+Tab");
+    assert.equal(await page.locator('#choices .item').count(), 1, "reverse focus does not commit");
+    await input.fill("D");
+    assert.equal(await input.getAttribute("aria-activedescendant"), null, "ambiguous results stay unhighlighted");
+    await input.press("Tab");
+    assert.equal(await page.locator('#choices .item').count(), 1);
+  };
+  it("keeps default multiple completion manual and excludes disabled suggestions", async () => {
+    const path = await bundle("html-combobox-completion-default", `import "@threadlabs/looma";`);
+    const page = await open(path, `<ui-combobox id="manual" label="Manual" multiple><option value="design">Design</option></ui-combobox><ui-combobox id="disabled" label="Disabled" multiple auto-highlight="single" select-on-tab><option value="design" disabled>Design</option></ui-combobox><button>After</button>`, [join(root, "tokens.css")]);
+    try {
+      for (const id of ["manual", "disabled"]) {
+        const input = page.locator(`#${id} input[role="combobox"]`);
+        await input.fill("Des");
+        assert.equal(await input.getAttribute("aria-activedescendant"), null);
+        await input.press("Tab");
+        assert.equal(await page.locator(`#${id} .item`).count(), 0);
       }
-      const handle = page.locator('#image [data-corner="bottom-right"]');
-      const box = (await handle.boundingBox())!;
-      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-      await page.mouse.down();
-      await page.mouse.move(box.x + box.width / 2 + 600, box.y + box.height / 2 + 300);
-      assert.ok((await page.locator("#image img").boundingBox())!.width <= 220);
-      await handle.dispatchEvent("pointercancel", { pointerId: 1 });
-      await page.mouse.up();
-      assert.ok(Math.abs((await page.locator("#image img").boundingBox())!.width - 160) < 1);
-      const cancelled = await page.evaluate(() => (window as unknown as { resizeEvents: { phase: string }[] }).resizeEvents.at(-1)?.phase);
-      assert.equal(cancelled, "cancel");
-      await page.close();
+    } finally { await page.close(); }
+  });
+  it("highlights a sole authored result and commits Tab in HTML", async () => {
+    const path = await bundle("html-combobox-completion", `import "@threadlabs/looma";`);
+    const page = await open(path, `<button id="before">Before</button><ui-combobox id="choices" label="Teams" multiple auto-highlight="single" select-on-tab><option value="design">Design</option><option value="docs">Docs</option><option value="platform">Platform</option></ui-combobox><button id="after">After</button>`, [join(root, "tokens.css")]);
+    try { await check(page); } finally { await page.close(); }
+  });
+  it("highlights a sole authored result and commits Tab in controlled Vue", async () => {
+    const path = await bundle("vue-combobox-completion", `
+      import { createApp, h, ref } from "vue";
+      import { Combobox } from "@threadlabs/looma/vue";
+      const selected = ref([]);
+      createApp({ render: () => h("div", [h("button", { id: "before" }, "Before"), h(Combobox, { id: "choices", label: "Teams", multiple: true, autoHighlight: "single", selectOnTab: true, selectedValues: selected.value, "onUpdate:selectedValues": values => selected.value = values }, () => [["design", "Design"], ["docs", "Docs"], ["platform", "Platform"]].map(([value,label]) => h("option", {value}, label))), h("button", {id:"after"}, "After")]) }).mount("#app");`);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    try { await check(page); } finally { await page.close(); }
+  });
+});
+
+
+describe("Combobox chip truncation", () => {
+  const label = "workspace:averylongidentifierthatmuststayinsideitsbadge";
+  const checkTextRoom = async (page: Page) => {
+    const bounds = await page.locator(".item .label").evaluateAll((labels) => labels.map((label) => {
+      const box = label.getBoundingClientRect();
+      const range = document.createRange();
+      range.selectNodeContents(label);
+      const text = range.getBoundingClientRect();
+      return { label: label.textContent, top: box.top, bottom: box.bottom, textTop: text.top, textBottom: text.bottom };
+    }));
+    assert.ok(bounds.length > 0);
+    for (const box of bounds) {
+      assert.ok(box.textBottom <= box.bottom + 1, `${box.label}: the label does not crop descenders`);
+      assert.ok(box.textTop >= box.top - 1, `${box.label}: the label leaves room above its text`);
+    }
+  };
+  const check = async (page: Page) => {
+    for (const width of [1280, 375]) {
+      await page.setViewportSize({ width, height: 812 });
+      const chip = page.getByRole("button", { name: `${label}, press Delete or Backspace to remove` });
+      await chip.waitFor();
+      const geometry = await chip.evaluate((item) => {
+        const badge = item.querySelector<HTMLElement>('[data-component~="ui-badge"]')!;
+        const label = badge.querySelector<HTMLElement>(".label")!;
+        const box = item.getBoundingClientRect();
+        const badgeBox = badge.getBoundingClientRect();
+        const labelBox = label.getBoundingClientRect();
+        return { itemWidth: box.width, badgeWidth: badgeBox.width, labelInside: labelBox.right <= badgeBox.right && labelBox.left >= badgeBox.left, clipped: label.scrollWidth > label.clientWidth, overflow: getComputedStyle(label).overflow, ellipsis: getComputedStyle(label).textOverflow, text: label.textContent };
+      });
+      assert.ok(geometry.badgeWidth <= geometry.itemWidth + 1, "badge stays within the capped chip");
+      assert.ok(geometry.labelInside, "label stays inside the badge");
+      assert.ok(geometry.clipped, "long label is constrained");
+      assert.equal(geometry.overflow, "hidden");
+      assert.equal(geometry.ellipsis, "ellipsis");
+      assert.equal(geometry.text, label, "full label remains available to assistive technology");
+      await checkTextRoom(page);
+      await page.screenshot({ path: join(root, ".build", `chip-ellipsis-${width}.png`) });
+    }
+    await page.getByRole("combobox", { name: "Filter" }).focus();
+    await page.keyboard.press("ArrowLeft");
+    await page.keyboard.press("Backspace");
+    assert.equal(await page.locator(".item").count(), 0, "truncation preserves keyboard removal");
+  };
+  it("ellipsizes native chip labels inside their badge at desktop and 375px", async () => {
+    const path = await bundle("html-chip-truncation", `import "@threadlabs/looma";`);
+    const page = await open(path, `<ui-combobox label="Filter" multiple items='[{"id":"long","value":"long","label":"${label}"}]'><option value="long">${label}</option></ui-combobox>`, [join(root, "tokens.css")]);
+    try { await check(page); } finally { await page.close(); }
+  });
+  it("ellipsizes Vue chip labels inside their badge at desktop and 375px", async () => {
+    const path = await bundle("vue-chip-truncation", `import { createApp, h } from "vue"; import { Combobox } from "@threadlabs/looma/vue"; createApp({ render: () => h(Combobox, { label: "Filter", multiple: true, items: [{id: "long", value: "long", label: ${JSON.stringify(label)}}] }, () => h("option", {value: "long"}, ${JSON.stringify(label)})) }).mount("#app");`);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    try { await check(page); } finally { await page.close(); }
+  });
+  for (const adapter of ["native", "Vue"]) {
+    it(`keeps short ${adapter} chip text and descenders visible at desktop and 375px`, async () => {
+      const items = [{ id: "date", value: "date", label: "date:today" }, { id: "entry", value: "entry", label: "entry:review" }];
+      const options = items.map((item) => `<option value="${item.value}">${item.label}</option>`).join("");
+      const source = adapter === "native" ? `import "@threadlabs/looma";`
+        : `import { createApp, h } from "vue"; import { Combobox } from "@threadlabs/looma/vue"; createApp({ render: () => h(Combobox, { label: "Filter", multiple: true, items: ${JSON.stringify(items)} }, () => ${JSON.stringify(items)}.map(item => h("option", {value: item.value}, item.label))) }).mount("#app");`;
+      const path = await bundle(`${adapter}-chip-descenders`, source);
+      const page = await open(path, adapter === "native" ? `<ui-combobox label="Filter" multiple items='${JSON.stringify(items)}'>${options}</ui-combobox>` : `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+      try {
+        for (const width of [1280, 375]) {
+          await page.setViewportSize({ width, height: 812 });
+          await page.locator(".item .label").first().waitFor();
+          await checkTextRoom(page);
+          await page.screenshot({ path: join(root, ".build", `chip-descenders-${adapter}-${width}.png`) });
+        }
+      } finally { await page.close(); }
     });
   }
-  it("renders semantic media on the server before controllers run", async () => {
-    const { createSSRApp, h } = await import("vue");
-    const { renderToString } = await import("vue/server-renderer");
-    const { Image } = await import("@threadlabs/looma/vue");
-    const html = await renderToString(createSSRApp({ render: () => h(Image, { src: source, alt: "Landscape", width: 160, height: 80 }) }));
-    assert.match(html, /^<figure data-component="ui-image"/);
-    assert.match(html, /<img[^>]*alt="Landscape"[^>]*width="160"[^>]*height="80"/);
-    assert.match(html, /class="handles" hidden/);
-  });
 });

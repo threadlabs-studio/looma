@@ -6,7 +6,7 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium, type Browser, type BrowserContextOptions, type Page } from "playwright";
-import { build } from "vite";
+import { build, type Plugin } from "vite";
 import { afterAll, beforeAll, describe, it } from "vitest";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -15,14 +15,16 @@ let browser: Browser;
 let bundlePath = "";
 let marqueePath = "";
 let paddedMarqueePath = "";
+let lateItemsPath = "";
 
-async function bundle(name: string, source: string): Promise<string> {
+async function bundle(name: string, source: string, plugins: Plugin[] = []): Promise<string> {
   const entry = join(directory, `${name}.js`);
   await writeFile(entry, source);
   await build({
     configFile: false,
     logLevel: "silent",
     root: directory,
+    plugins,
     resolve: { alias: { "@threadlabs/looma": root } },
     define: { "process.env.NODE_ENV": JSON.stringify("production") },
     build: {
@@ -39,7 +41,7 @@ type Spec = { tree?: Record<string, unknown>; items: Node[] };
 type Detail = Record<string, unknown>;
 
 // Renders `spec` as a Vue Tree. Every item is sortable unless it says otherwise.
-async function open(spec: Spec, script = bundlePath, options: BrowserContextOptions = { reducedMotion: "reduce" }): Promise<Page> {
+async function open(spec: Spec, script = bundlePath, options: BrowserContextOptions = { reducedMotion: "reduce" }, state: "visible" | "attached" = "visible"): Promise<Page> {
   // Reduced motion turns the rows' style transitions off, so computed styles settle immediately.
   const page = await browser.newPage(options);
   const errors: string[] = [];
@@ -48,7 +50,7 @@ async function open(spec: Spec, script = bundlePath, options: BrowserContextOpti
   for (const path of [join(root, "tokens.css"), join(root, "vue/components.css")]) await page.addStyleTag({ path });
   await page.evaluate((value) => { (window as unknown as { spec: Spec }).spec = value; }, spec);
   await page.addScriptTag({ path: script });
-  await page.waitForSelector('[data-component="ui-tree"] [role="treeitem"]');
+  await page.waitForSelector('[data-component="ui-tree"] [role="treeitem"]', { state });
   await page.waitForTimeout(50);
   assert.deepEqual(errors, []);
   return page;
@@ -151,12 +153,30 @@ beforeAll(async () => {
       }, () => window.spec.items.map(render)),
     }).mount("#app");
   `);
+  lateItemsPath = await bundle("vue-tree-late-items", `
+    import { createApp, h } from "vue";
+    import { Tree, TreeItem } from "@threadlabs/looma/vue";
+    window.treeItemGate = new Promise(resolve => { window.releaseTreeItems = resolve; });
+    window.events = [];
+    createApp({ render: () => h(Tree, {
+      label: "Files", selection: "single",
+      onSelect: event => window.events.push(["select", event.detail]),
+    }, () => window.spec.items.map(({ id, ...props }) => h(TreeItem, { itemId: id, ...props }))) }).mount("#app");
+  `, [{
+    name: "delay-tree-item-controller",
+    transform(code, id) {
+      if (!id.endsWith("/components/ui-tree-item/ui-tree-item.js")) return;
+      const declaration = "export default function controller(host) {";
+      assert.ok(code.includes(declaration), "delay the real Tree Item controller");
+      return code.replace(declaration, "export default async function controller(host) { await window.treeItemGate;");
+    },
+  }]);
   marqueePath = await bundle("vue-tree-marquee", `
     import { createApp, h } from "vue";
     import { Tree, TreeItem } from "@threadlabs/looma/vue";
     const name = "A name long enough to run past the end of its row and under the controls";
     createApp({
-      render: () => h(Tree, { label: "Files", marquee: true }, () => [
+      render: () => h(Tree, { label: "Files", marquee: true, ...window.spec.tree }, () => [
         h(TreeItem, { itemId: "short", label: "Short" }),
         h(TreeItem, { itemId: "long", label: name }, {
           leading: () => h("span", { "data-testid": "icon", style: "display:block;width:16px;height:16px" }),
@@ -192,6 +212,38 @@ afterAll(async () => {
 });
 
 describe("Tree drag and drop", () => {
+  it("restores a keyboard entry point when row controllers initialize after the tree", async () => {
+    const page = await open({ items: [{ id: "first", label: "First" }, { id: "second", label: "Second" }] }, lateItemsPath);
+    assert.equal(await page.locator('[role="treeitem"][tabindex="0"]').count(), 0);
+    await page.evaluate(() => (window as unknown as { releaseTreeItems: () => void }).releaseTreeItems());
+    await page.waitForFunction(() => document.querySelector<HTMLElement>('[role="treeitem"]')?.tabIndex === 0, undefined, { timeout: 2_000 });
+    await page.keyboard.press("Tab");
+    assert.equal(await item(page, "first").evaluate(element => element === document.activeElement), true);
+    await page.keyboard.press("ArrowDown");
+    assert.equal(await item(page, "second").evaluate(element => element === document.activeElement), true);
+    await item(page, "second").click();
+    assert.deepEqual((await events(page)).filter(([name]) => name === "select"), [["select", { ids: ["second"], trigger: "pointer" }]]);
+    await page.close();
+  });
+
+  it("restores the keyboard entry point when an initially hidden tree becomes visible", async () => {
+    const page = await open({ tree: { style: "display:none" }, items: [{ id: "first", label: "First", sortable: false }, { id: "second", label: "Second", sortable: false }] }, bundlePath, { reducedMotion: "reduce" }, "attached");
+    await page.locator('[role="tree"]').evaluate((element: HTMLElement) => { element.style.display = "block"; });
+    await page.waitForFunction(() => document.querySelector<HTMLElement>('[role="treeitem"]')?.tabIndex === 0, undefined, { timeout: 2_000 });
+    await page.keyboard.press("Tab");
+    assert.equal(await item(page, "first").evaluate(element => element === document.activeElement), true);
+    await page.keyboard.press("ArrowDown");
+    for (const display of ["none", "block"]) {
+      await page.locator('[role="tree"]').evaluate(async (element: HTMLElement, value) => {
+        element.style.display = value;
+        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      }, display);
+    }
+    assert.equal(await item(page, "second").getAttribute("tabindex"), "0");
+    assert.equal(await item(page, "first").getAttribute("tabindex"), "-1");
+    await page.close();
+  });
+
   it("renders a tree with levels and expansion state", async () => {
     const page = await open({ items: files });
     assert.equal(await page.locator('[data-component="ui-tree"]').getAttribute("role"), "tree");
@@ -587,6 +639,50 @@ describe("Tree selection", () => {
 describe("Tree marquee", () => {
   const row = (page: Page) => item(page, "long").locator(":scope > :first-child");
   const moving = async (page: Page) => (await row(page).getAttribute("data-ui-marquee")) !== null;
+
+  it("keeps a touch-focused label clear of its separate actions without a desktop mask", async () => {
+    const page = await open({ items: [] }, marqueePath, {
+      viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true,
+    });
+    const target = row(page);
+    const bounds = (await target.boundingBox())!;
+    await page.touchscreen.tap(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+    const geometry = await target.evaluate((element) => {
+      const label = element.querySelector<HTMLElement>(".label")!;
+      const actions = element.querySelector<HTMLElement>(".actions")!;
+      return { mask: getComputedStyle(label).maskImage,
+        labelEnd: label.getBoundingClientRect().right,
+        actionsStart: actions.getBoundingClientRect().left };
+    });
+    assert.equal(geometry.mask, "none");
+    assert.ok(geometry.labelEnd <= geometry.actionsStart + 1);
+    assert.equal(await moving(page), false);
+    await page.close();
+  });
+
+  it("reserves an actions column for RTL touch rows and touch multiple selection", async () => {
+    for (const direction of ["ltr", "rtl"]) {
+      const page = await open({ tree: { selection: "multiple" }, items: [] }, marqueePath, {
+        viewport: { width: 375, height: 812 }, hasTouch: true, reducedMotion: "reduce",
+      });
+      await page.evaluate((value) => {
+        document.documentElement.dir = value;
+        document.documentElement.dataset.uiInputModality = "touch";
+      }, direction);
+      await row(page).locator('.selection-checkbox').focus();
+      const geometry = await row(page).evaluate((element) => {
+        const label = element.querySelector<HTMLElement>(".label")!;
+        const actions = element.querySelector<HTMLElement>(".actions")!;
+        const labelBounds = label.getBoundingClientRect();
+        const actionsBounds = actions.getBoundingClientRect();
+        return { labelWidth: labelBounds.width, start: labelBounds.left, end: labelBounds.right,
+          actionsStart: actionsBounds.left, actionsEnd: actionsBounds.right };
+      });
+      assert.ok(geometry.labelWidth > 20);
+      assert.ok(direction === "ltr" ? geometry.end <= geometry.actionsStart + 1 : geometry.start >= geometry.actionsEnd - 1);
+      await page.close();
+    }
+  });
 
   it("moves a slotted link title only as far as its visible letters require", async () => {
     const page = await open({ items: [] }, paddedMarqueePath, { reducedMotion: "no-preference" });

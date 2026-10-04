@@ -37,7 +37,7 @@
   </defs>
   <dialog from:aria-label="accessibleLabel">
     <header>
-      <h2 class="title" $if="label" $value="label"></h2>
+      <h2 class="title" $if="label">{$label}</h2>
       <button class="close" $ref="close" type="button" aria-label="Close"></button>
     </header>
     <ui-scroll-area class="body"><slot></slot></ui-scroll-area>

@@ -1,0 +1,11 @@
+[
+  {
+    "id": "scrollable-region-focusable",
+    "impact": "serious",
+    "targets": [
+      [
+        "section[data-preview-scenario=\"In a table\"] > .looma-preview-scenario__stage[data-component-preview=\"ui-meter\"] > div[data-component=\"ui-table\"][data-ui-table-state=\"density density=comfortable\"][data-valid=\"\"] > table"
+      ]
+    ]
+  }
+]
