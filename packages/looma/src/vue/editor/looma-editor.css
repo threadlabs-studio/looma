@@ -735,26 +735,3 @@
   width: 3px;
   background: var(--ui-affordance-direct-color, var(--ui-accent-solid, #5b55d6));
 }
-
-.ProseMirror .column-resize-handle::before {
-  content: "Drag to resize column";
-  position: absolute;
-  z-index: 4;
-  top: 4px;
-  left: calc(100% + 6px);
-  width: max-content;
-  padding: var(--ui-space-1, 4px) var(--ui-space-2, 8px);
-  border-radius: var(--ui-radius-sm, 4px);
-  background: var(--ui-text-primary, #1a1a1a);
-  color: var(--ui-surface-elevated, #fff);
-  font-size: var(--ui-font-size-xs, 0.75rem);
-  line-height: var(--ui-line-height-md, 1.4);
-  opacity: 0;
-  transform: none;
-  transition: opacity var(--ui-affordance-motion, var(--ui-motion-fast, 120ms)) var(--ui-motion-ease, ease);
-  pointer-events: none;
-}
-
-.ProseMirror .column-resize-handle:hover::before {
-  opacity: 1;
-}

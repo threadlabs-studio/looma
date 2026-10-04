@@ -111,6 +111,25 @@ describe("Anchored overlay placement", () => {
     await edge.close();
   });
 
+  it("keeps a Tooltip beside its trigger after an ancestor moves without resizing", async () => {
+    const path = await bundle("html-tooltip-moving-anchor", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <div id="moving" style="position: fixed; left: 100px; top: 200px; transition: transform 100ms linear">
+        <button id="anchor" style="width: 40px; height: 40px">Anchor</button>
+      </div>
+      <ui-tooltip id="tooltip" for="anchor" open placement="right">A helpful hint</ui-tooltip>
+    `, [join(root, "tokens.css")], { reducedMotion: "reduce" });
+    await page.evaluate(() => { document.querySelector<HTMLElement>("#moving")!.style.transform = "translateX(150px)"; });
+    await page.waitForFunction(() => document.querySelector("#anchor")!.getBoundingClientRect().left >= 249);
+    await page.waitForFunction(() => {
+      const anchor = document.querySelector("#anchor")!.getBoundingClientRect();
+      const hint = document.querySelector("#tooltip")!.getBoundingClientRect();
+      return Math.abs(hint.left - anchor.right - 10) <= 1;
+    }, undefined, { timeout: 2000 });
+    await page.locator("#anchor").click();
+    await page.close();
+  });
+
   it("lets one Popover set its main-axis offset in CSS", async () => {
     const path = await bundle("html-popover-offset", `import "@threadlabs/looma";`);
     const page = await open(path, `
