@@ -6591,6 +6591,32 @@ describe("Theme levels", () => {
 });
 
 describe("Meter", () => {
+  it("localizes its spoken percentage in native HTML and Vue while keeping CSS numeric", async () => {
+    for (const target of ["html", "vue"]) {
+      const path = await bundle(`localized-meter-${target}`, target === "html"
+        ? `import "@threadlabs/looma";`
+        : `import { createApp, h, ref } from "vue";
+           import { Meter } from "@threadlabs/looma/vue";
+           const value = ref(0.29);
+           window.localizedMeterValue = value;
+           createApp({ render: () => h(Meter, { value: value.value, label: "Progress" }) }).mount("#app");`);
+      const page = await open(path, target === "html"
+        ? '<ui-meter id="meter" value="0.29" label="Progress"></ui-meter>'
+        : '<div id="app"></div>', css, { locale: "de-DE" });
+      const meter = page.getByRole("meter", { name: "Progress" });
+      assert.equal(await meter.getAttribute("aria-valuetext"), "29\u00a0%");
+      const fill = await meter.locator(".fill").evaluate((element) => (element as HTMLElement).style.inlineSize);
+      assert.ok(fill.endsWith("%") && Math.abs(parseFloat(fill) - 29) < 0.000001, fill);
+      if (target === "vue") {
+        await page.evaluate(() => {
+          (window as unknown as { localizedMeterValue: { value: number } }).localizedMeterValue.value = 0.5;
+        });
+        await page.waitForFunction(() => document.querySelector('[role="meter"]')?.getAttribute("aria-valuetext") === "50\u00a0%");
+        assert.equal(await meter.locator(".fill").evaluate((element) => (element as HTMLElement).style.inlineSize), "50%");
+      }
+      await page.close();
+    }
+  });
   const tones = ["neutral", "accent", "info", "success", "warning", "danger"];
   const meters: [string, Record<string, unknown>][] = [
     ["partial", { value: 750, max: 1240, tone: "info", label: "Collected", valueText: "$750 of $1,240 collected" }],
