@@ -11,6 +11,9 @@
     <prop name="size" type="keyword" values="sm, md, lg" default="md"
     >Button and icon size together: sm is 1.75rem with a small icon, md is 2rem, and lg is 2.5rem with a large icon. On touch, every size gets an invisible hit
       area of at least 44px.</prop>
+    <prop name="matchButton" type="boolean" default="false"
+    >Matches a boxed Button of the same size when the two share a flex row. Uses the control-size theme tokens and stretches to the row's height, including
+      touch-sized controls. Leave it off for compact toolbar and inline icon buttons.</prop>
     <prop name="variant" type="keyword" values="ghost, outline, solid" default="ghost"
     >Emphasis. ghost shows only the icon until it is hovered, for toolbars and dense rows; outline adds a border on the default surface; solid fills with the
       accent colour, for the one primary action in a group.</prop>
@@ -23,6 +26,7 @@
     from:disabled="disabled"
     type="button"
     from:aria-label="label"
+    from:data-match-button="matchButton"
     from:aria-disabled="{ true: 'true', false: null }[format('%s', loading or pending)]"
     from:aria-busy="loading or pending"
   >
@@ -243,6 +247,29 @@
       block-size: var(--ui-icon-button-size, var(--_size));
       min-inline-size: var(--ui-icon-button-size, var(--_size));
       min-block-size: var(--ui-icon-button-size, var(--_size));
+    }
+
+    /* A text button's companion uses control geometry; compact icon buttons keep their own density. */
+    :host-state([matchButton]) {
+      --_size: var(--ui-control-size-md);
+      block-size: auto;
+      align-self: stretch;
+    }
+
+    :host-state([matchButton][size="sm"]) {
+      --_size: var(--ui-control-size-sm);
+    }
+
+    :host-state([matchButton][size="lg"]) {
+      --_size: var(--ui-control-size-lg);
+    }
+
+    @media (pointer: coarse) {
+      :host-state([matchButton]) {
+        inline-size: max(var(--ui-icon-button-size, var(--_size)), var(--ui-control-min-block-size));
+        min-inline-size: max(var(--ui-icon-button-size, var(--_size)), var(--ui-control-min-block-size));
+        min-block-size: max(var(--ui-icon-button-size, var(--_size)), var(--ui-control-min-block-size));
+      }
     }
 
     :host-state([round]) {
