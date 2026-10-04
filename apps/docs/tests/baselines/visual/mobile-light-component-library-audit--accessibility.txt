@@ -1,0 +1,26 @@
+[
+  {
+    "id": "scrollable-region-focusable",
+    "impact": "serious",
+    "targets": [
+      [
+        "table:nth-child(14)"
+      ],
+      [
+        "table:nth-child(16)"
+      ],
+      [
+        "table:nth-child(19)"
+      ],
+      [
+        "table:nth-child(21)"
+      ],
+      [
+        "table:nth-child(23)"
+      ],
+      [
+        "table:nth-child(25)"
+      ]
+    ]
+  }
+]
