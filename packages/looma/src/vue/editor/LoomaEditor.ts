@@ -1702,7 +1702,7 @@ export const LoomaEditor = defineComponent({
               shouldShow: ({ editor: menuEditor, from, to }: { editor: Editor; from: number; to: number }) =>
                 (props.toolbarMode !== "popover" || !props.toolbarOpen)
                 && (props.toolbarMode === "contextual"
-                  ? menuEditor.isFocused || linkContextEditing.value
+                  ? !slash.active && !mention.active && (menuEditor.isFocused || linkContextEditing.value)
                   : shouldShowTextFormattingToolbar(menuEditor, from, to)),
               tippyOptions: {
                 // Escape clipped panels, but stay in the top layer when the editor is in a dialog or popover.

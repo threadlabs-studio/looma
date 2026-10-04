@@ -31,7 +31,7 @@ async function codeLanguageInput(host: HTMLElement) {
   return input;
 }
 
-async function mountEditor(options: { controlled?: boolean; editable?: boolean; toolbarMode?: "bubble" | "sticky" | "contextual"; disableHighlight?: boolean; codeLanguages?: Record<string, typeof common.sql> } = {}) {
+async function mountEditor(options: { controlled?: boolean; editable?: boolean; toolbarMode?: "bubble" | "sticky" | "contextual"; disableHighlight?: boolean; codeLanguages?: Record<string, typeof common.sql>; mentionItems?: Array<{ id: string; label: string }> } = {}) {
   vi.spyOn(window, "innerWidth", "get").mockReturnValue(1280);
   const modelValue = ref<JSONContent>({ type: "doc", content: [{ type: "paragraph" }] });
   const editable = ref(options.editable ?? true);
@@ -45,6 +45,7 @@ async function mountEditor(options: { controlled?: boolean; editable?: boolean; 
       ...(options.toolbarMode ? { toolbarMode: options.toolbarMode } : {}),
       ...(options.disableHighlight ? { disableHighlight: true } : {}),
       ...(options.codeLanguages ? { codeLanguages: options.codeLanguages } : {}),
+      ...(options.mentionItems ? { mentionItems: options.mentionItems } : {}),
       ...(options.controlled === false ? {} : {
         "onUpdate:modelValue": (value: JSONContent) => { modelValue.value = value; },
       }),
@@ -77,6 +78,31 @@ afterEach(async () => {
 });
 
 describe("LoomaEditor history (real browser)", () => {
+  it.each(["slash", "mention"])("gives %s suggestions priority over contextual formatting", async (kind) => {
+    await page.viewport(1280, 720);
+    const { editor } = await mountEditor({ toolbarMode: "contextual", mentionItems: [{ id: "ada", label: "Ada Lovelace" }] });
+    editor.commands.focus("start");
+    await flushBrowser();
+    const toolbar = page.getByRole("toolbar", { name: "Editor toolbar", exact: true });
+    await expect.element(toolbar).toBeVisible();
+    await userEvent.keyboard(kind === "slash" ? "Article /chip" : "Article @ada");
+    const option = page.getByRole("option", { name: kind === "slash" ? /chip/i : /Ada Lovelace/ });
+    await expect.element(option).toBeVisible();
+    await vi.waitFor(() => {
+      const popup = document.querySelector('[aria-label="Editor toolbar"]')?.closest<HTMLElement>("[data-tippy-root]");
+      expect(popup?.style.visibility).not.toBe("visible");
+    });
+    await userEvent.click(option);
+    if (kind === "slash") {
+      await vi.waitFor(() => expect(document.activeElement).toBe(page.getByRole("textbox", { name: "Chip text" }).element()));
+    } else {
+      expect(editor.getJSON().content?.[0]?.content).toEqual(expect.arrayContaining([
+        expect.objectContaining({ type: "mention", attrs: expect.objectContaining({ id: "ada", label: "Ada Lovelace" }) }),
+      ]));
+      await expect.element(toolbar).toBeVisible();
+    }
+  });
+
   it.each([768, 1280])("keeps contextual controls below document details at %ipx", async (width) => {
     await page.viewport(width, 720);
     const host = document.createElement("section");
