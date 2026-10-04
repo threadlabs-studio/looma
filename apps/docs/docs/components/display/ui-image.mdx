@@ -1,0 +1,23 @@
+---
+slug: /components/ui-image
+---
+
+import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamplesApiTabs";
+
+# Image
+
+A semantic image surface with optional selection, corner resizing, and text wrapping.
+Use `src` and `alt` for the default image, or supply an ordinary `img` in the `media` slot
+when browser rendition attributes belong to your application. The `controls` slot accepts
+composed editing controls. The primitive does not select itself or write a document.
+
+Set `selected` to show the outline and `resizable` to enable four corner handles while selected.
+Drag preserves the intrinsic aspect ratio and stays within the containing content width.
+Resize events report `preview`, `commit`, or `cancel`: update saved dimensions on `commit`.
+Escape and pointer cancellation discard a preview. Focus a handle and use arrow keys for
+keyboard resizing, or Shift plus an arrow for a larger increment.
+
+Placement supports `block`, `center`, `wrap-left`, and `wrap-right`. A wrapping image floats;
+its surrounding layout owns float containment and the space between content blocks.
+
+<ComponentExamplesApiTabs component="ui-image" />

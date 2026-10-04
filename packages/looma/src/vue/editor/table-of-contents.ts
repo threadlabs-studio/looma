@@ -1,6 +1,6 @@
 import type { NodeViewRenderer } from "@tiptap/core";
 import { createApp, computed, h, ref, shallowRef } from "vue";
-import { Button, Cluster, FormField, Icon, IconButton, List, Menu, MenuItem, Popover, Stack, Text } from "@threadlabs/looma/vue";
+import { Button, Cluster, FormField, Icon, IconButton, List, Menu, MenuItem, Popover, Stack, Text, Tooltip } from "@threadlabs/looma/vue";
 import { getTableOfContentsEntries, normalizeTableOfContentsConfig, type LoomaTableOfContentsConfig } from "@threadlabs/looma/editor";
 import { navigateTableOfContents, tableOfContentsTree } from "../../editor/extensions/table-of-contents";
 
@@ -83,6 +83,7 @@ export const tableOfContentsNodeView: NodeViewRenderer = ({ editor, node, getPos
               h(Button, { variant: "solid", size: "sm", onClick: save }, () => "Save"),
             ]),
           ])) : null,
+          editable.value ? h(Tooltip, { for: id }, () => "Table of contents settings") : null,
         ]),
       ]);
     },

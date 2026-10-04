@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Editable images no longer become viewer tab stops. Clicking selects the image and shows one contextual bar for block/center placement, left/right text wrapping, description, and deletion. Drag any corner to resize at the intrinsic aspect ratio; release commits one undo step, and Escape cancels. A shared Image primitive owns selection and resize handles; controls retain the UI font. Reading mode retains viewer activation and placement. Image dimensions, placement, and responsiveness round-trip through the shared preset.
+- Document dividers use the shared Separator’s optional selectable/selected states for a larger pointer target and selection feedback. Text/code Tab inserts a literal tab instead of skipping down the document; list indentation and table cell navigation keep precedence, and Shift-Tab outside them allows keyboard exit.
+
+- `/expand`, `/toggle`, and `/details` insert collapsible sections with summary/default-expansion settings built from shared controls. Rich bodies round-trip through JSON and semantic HTML; plain text retains collapsed content. Reader toggles are temporary, and TOC navigation reveals hidden headings before focusing them.
+- Turnkey editors accept `slashCommands` to extend or replace the existing inventory. Commands support stable IDs, optional groups, and capability predicates. Slash search ranks exact aliases first, prioritizes callouts over the quote alias, shows an accessible no-results state, and rejects stale menu selections. Hover and keyboard selection stay synchronized. Image is omitted without an upload/picker capability; literal code does not open slash suggestions.
 - `/toc` inserts an automatic table of contents from document headings, with plain, bulleted, or numbered formatting and heading-depth settings built from shared controls. Heading anchors survive renames and moves, and read-only entries navigate without opening link editing. Headless integrations can inspect derived entries for document projections.
 - `/status` finds the existing Chip command and retains its label/color editor and document format. Existing `/link` behavior is covered through slash insertion, keyboard destination selection, and cancellation.
 - Escape closes only the top nested Menu or Popover, preserving its containing settings surface.

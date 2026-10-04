@@ -1,6 +1,7 @@
 import { Extension, Node, type NodeViewRenderer } from "@tiptap/core";
 import { DOMSerializer, type DOMOutputSpec, type Node as ProseMirrorNode } from "@tiptap/pm/model";
 import { Plugin, type EditorState } from "@tiptap/pm/state";
+import { revealLoomaExpandAt } from "./expand";
 
 /** Formatting affects presentation only; heading order remains document order. */
 export type LoomaTableOfContentsFormat = "plain" | "bulleted" | "numbered";
@@ -127,9 +128,12 @@ function contentsHtml(doc: ProseMirrorNode, config: LoomaTableOfContentsConfig):
  * Scrolls within this editor so multiple documents cannot cross-navigate by ID.
  * @contract Reader navigation does not edit content or invoke link-editing UI.
  */
-export function navigateTableOfContents(editor: import("@tiptap/core").Editor, id: string) {
+export async function navigateTableOfContents(editor: import("@tiptap/core").Editor, id: string) {
   const target = [...editor.view.dom.querySelectorAll<HTMLElement>("h1[id], h2[id], h3[id]")].find(heading => heading.id === id);
   if (!target) return;
+  const entry = getTableOfContentsEntries(editor.state.doc).find(heading => heading.id === id);
+  if (entry) await revealLoomaExpandAt(editor, entry.position + 1);
+  if (!target.isConnected || editor.isDestroyed) return;
   target.scrollIntoView({ block: "start", behavior: "auto" });
   target.tabIndex = -1;
   target.focus({ preventScroll: true });

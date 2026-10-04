@@ -30,8 +30,9 @@ async function bundle(name: string, source: string, mode = "production"): Promis
   return join(directory, name, "bundle.js");
 }
 
-async function open(bundlePath: string, body: string, css: readonly string[], options: BrowserContextOptions = {}): Promise<Page> {
+async function open(bundlePath: string, body: string, css: readonly string[], options: BrowserContextOptions = {}, beforeLoad?: (page: Page) => Promise<void>): Promise<Page> {
   const page = await browser.newPage(options);
+  await beforeLoad?.(page);
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.setContent(`<!doctype html><html><body>${body}</body></html>`);
@@ -6879,5 +6880,62 @@ describe("App styling hooks", () => {
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
     await check(page);
     await page.close();
+  });
+});
+
+
+describe("Image surface", () => {
+  const source = "https://example.test/primitive-image.svg";
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="160" height="80"><rect width="160" height="80" fill="#569d86"/></svg>';
+  for (const adapter of ["HTML", "Vue"]) {
+    it(`owns corner resize, cancellation, and bounds in ${adapter}`, async () => {
+      const path = await bundle(`image-surface-${adapter}`, adapter === "HTML" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Image } from "@threadlabs/looma/vue";
+        createApp({ render: () => h(Image, { id: "image", src: ${JSON.stringify(source)}, alt: "Landscape", width: 160, height: 80, selected: true, resizable: true }) }).mount("#mount");
+      `);
+      const page = await open(path, `<div style="width: 260px; padding: 20px; box-sizing: border-box">${adapter === "HTML" ? `<ui-image id="image" src="${source}" alt="Landscape" width="160" height="80" selected resizable></ui-image>` : '<div id="mount"></div>'}</div>`, [join(root, "tokens.css"), ...(adapter === "Vue" ? [join(root, "vue/components.css")] : [])], {}, async page => {
+        await page.route(source, route => route.fulfill({ contentType: "image/svg+xml", body: svg }));
+      });
+      await page.locator("#image img").evaluate(async element => { await (element as HTMLImageElement).decode(); });
+      await page.evaluate(() => {
+        (window as unknown as { resizeEvents: unknown[] }).resizeEvents = [];
+        document.querySelector("#image")!.addEventListener("resize", event => {
+          (window as unknown as { resizeEvents: unknown[] }).resizeEvents.push((event as CustomEvent).detail);
+        });
+      });
+      for (const corner of ["top-left", "top-right", "bottom-left", "bottom-right"]) {
+        const handle = page.locator(`#image [data-corner="${corner}"]`);
+        const box = (await handle.boundingBox())!;
+        await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+        await page.mouse.down();
+        await page.mouse.move(box.x + box.width / 2 + (corner.endsWith("left") ? -40 : 40), box.y + box.height / 2 + (corner.startsWith("top") ? -20 : 20));
+        assert.ok(Math.abs((await page.locator("#image img").boundingBox())!.width - 200) < 1);
+        await page.mouse.up();
+        const event = await page.evaluate(() => (window as unknown as { resizeEvents: { width: number; height: number; phase: string; trigger: string }[] }).resizeEvents.at(-1));
+        assert.deepEqual(event, { width: 200, height: 100, phase: "commit", trigger: "pointer" });
+      }
+      const handle = page.locator('#image [data-corner="bottom-right"]');
+      const box = (await handle.boundingBox())!;
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+      await page.mouse.down();
+      await page.mouse.move(box.x + box.width / 2 + 600, box.y + box.height / 2 + 300);
+      assert.ok((await page.locator("#image img").boundingBox())!.width <= 220);
+      await handle.dispatchEvent("pointercancel", { pointerId: 1 });
+      await page.mouse.up();
+      assert.ok(Math.abs((await page.locator("#image img").boundingBox())!.width - 160) < 1);
+      const cancelled = await page.evaluate(() => (window as unknown as { resizeEvents: { phase: string }[] }).resizeEvents.at(-1)?.phase);
+      assert.equal(cancelled, "cancel");
+      await page.close();
+    });
+  }
+  it("renders semantic media on the server before controllers run", async () => {
+    const { createSSRApp, h } = await import("vue");
+    const { renderToString } = await import("vue/server-renderer");
+    const { Image } = await import("@threadlabs/looma/vue");
+    const html = await renderToString(createSSRApp({ render: () => h(Image, { src: source, alt: "Landscape", width: 160, height: 80 }) }));
+    assert.match(html, /^<figure data-component="ui-image"/);
+    assert.match(html, /<img[^>]*alt="Landscape"[^>]*width="160"[^>]*height="80"/);
+    assert.match(html, /class="handles" hidden/);
   });
 });

@@ -150,6 +150,10 @@
       "status": "published",
       "package": "@threadlabs/looma"
     },
+    "ui-image": {
+      "status": "published",
+      "package": "@threadlabs/looma"
+    },
     "ui-input": {
       "status": "published",
       "package": "@threadlabs/looma"

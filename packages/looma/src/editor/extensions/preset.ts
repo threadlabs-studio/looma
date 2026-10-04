@@ -24,7 +24,7 @@ import History from "@tiptap/extension-history";
 import Dropcursor from "@tiptap/extension-dropcursor";
 import Gapcursor from "@tiptap/extension-gapcursor";
 import Link from "@tiptap/extension-link";
-import Image from "@tiptap/extension-image";
+import { LoomaImage } from "./image";
 import Highlight from "@tiptap/extension-highlight";
 import Typography from "@tiptap/extension-typography";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -32,9 +32,11 @@ import Code from "@tiptap/extension-code";
 import { CodeBlockLowlight } from "@tiptap/extension-code-block-lowlight";
 import { createLowlight } from "lowlight";
 import TableRow from "@tiptap/extension-table-row";
+import { LoomaBlockSelection } from "./block-selection";
 import { LoomaActiveBlock } from "./active-block";
 import { LoomaCallout } from "./callout";
 import { LoomaChip } from "./chip";
+import { LoomaExpand } from "./expand";
 import { LoomaTableOfContents } from "./table-of-contents";
 import { LoomaListBehavior } from "./list-behavior";
 import { createLoomaMentionExtension } from "./mention";
@@ -59,6 +61,10 @@ export interface DefaultEditorExtensionsOptions {
   linkBaseUrl?: string;
   /** Passed to Tiptap Image; block images are the default document policy. */
   imageInline?: boolean;
+  /** Optional image selection and sizing UI; durable formatting stays in the shared schema. */
+  imageNodeView?: NodeViewRenderer;
+  /** Optional selected-state UI for document dividers. */
+  dividerNodeView?: NodeViewRenderer;
   /** Custom mention extension, the Looma default, or false to omit mentions. */
   mention?: AnyExtension | false;
   /**
@@ -76,6 +82,8 @@ export interface DefaultEditorExtensionsOptions {
   codeBlockNodeView?: NodeViewRenderer;
   /** Optional TOC settings UI; schema, entries, and heading anchors remain shared. */
   tableOfContentsNodeView?: NodeViewRenderer;
+  /** Optional section settings; the shared schema owns summary and body content. */
+  expandNodeView?: NodeViewRenderer;
 }
 
 const LoomaCodeBlock = CodeBlockLowlight.extend({
@@ -147,14 +155,18 @@ export function getDefaultEditorExtensions(
     linkOpenOnClick = false,
     linkBaseUrl,
     imageInline = false,
+    imageNodeView,
+    dividerNodeView,
     mention = createLoomaMentionExtension(),
     disableHighlight = false,
     codeLanguages,
     codeLowlight,
     codeBlockNodeView,
     tableOfContentsNodeView,
+    expandNodeView,
   } = options;
 
+  const image = LoomaImage.configure({ inline: imageInline });
   const codeBlock = LoomaCodeBlock.configure({ lowlight: codeLowlight ?? createLowlight(codeLanguages) });
 
   return [
@@ -174,8 +186,9 @@ export function getDefaultEditorExtensions(
     Blockquote,
     LoomaCallout,
     LoomaChip,
+    LoomaExpand.configure({ nodeView: expandNodeView ?? null }),
     LoomaTableOfContents.configure({ nodeView: tableOfContentsNodeView ?? null }),
-    HorizontalRule,
+    dividerNodeView ? HorizontalRule.extend({ addNodeView: () => dividerNodeView }) : HorizontalRule,
     HardBreak,
     History,
     Dropcursor,
@@ -185,7 +198,7 @@ export function getDefaultEditorExtensions(
       HTMLAttributes: { rel: "noopener noreferrer", target: "_blank" },
     }),
     ...(linkBaseUrl ? [createSiteRelativeLinks(linkBaseUrl)] : []),
-    Image.configure({ inline: imageInline }),
+    imageNodeView ? image.extend({ addNodeView: () => imageNodeView }) : image,
     (disableHighlight ? StoredOnlyHighlight : Highlight).configure({ multicolor: false }),
     Code,
     LoomaSmartPaste,
@@ -200,5 +213,6 @@ export function getDefaultEditorExtensions(
     LoomaTableKit,
     LoomaListBehavior,
     LoomaActiveBlock,
+    LoomaBlockSelection,
   ];
 }
