@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Desktop floating toolbar behavior changes (0.24):** formatting opens on text selection or a held primary press and dismisses with Escape or caret movement. Previously, contextual tools appeared on every caret focus and obscured the writing surface. This shared default keeps floating tools tied to intent; an app-specific option would leave the obstructive default in other consumers. Apps needing persistent controls can use `toolbarMode="sticky"` or their explicit formatting popover. Small viewports retain the editing dock; toolbar placement defaults and document commands are unchanged.
+
 - Editable images no longer become viewer tab stops. Clicking selects the image and shows one contextual bar for block/center placement, left/right text wrapping, description, and deletion. Drag any corner to resize at the intrinsic aspect ratio; release commits one undo step, and Escape cancels. A shared Image primitive owns selection and resize handles; controls retain the UI font and standard hover/focus tooltips. Choosing wrapping uses one-third of the column on desktop and full-width stacking on small screens; corner dragging overrides the default size. Reading mode retains viewer activation and placement. Images fit narrow grid tracks without scrolling; full-width phone wrapping hides inactive resize handles. Image dimensions, placement, and responsiveness round-trip through the shared preset.
 - Document dividers use the shared Separator’s optional selectable/selected states for a larger pointer target and selection feedback. Text/code Tab inserts a literal tab instead of skipping down the document; list indentation and table cell navigation keep precedence, and Shift-Tab outside them allows keyboard exit.
 

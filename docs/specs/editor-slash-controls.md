@@ -218,3 +218,7 @@ required by the first implementation.
 4. Verify duplicate titles, explicit replacement/empty inventories, exact-alias
    ranking, unsupported contexts, and invalidation of stale selections. Update
    docs/changelog and run the same composition, documentation, build, and test gates.
+
+## Desktop floating activation
+
+Floating formatting surfaces open only on text selection or a primary pointer press held for 500ms without moving more than 8px. Releasing early, dragging, cancellation, blur, or changing viewport cancels a pending press. Escape dismisses the current surface until a new selection or held press; moving the caret dismisses a held-press surface. Formatting actions preserve their selected target. Persistent toolbars and explicitly opened formatting popovers remain available. Small viewports (up to 767px), including mouse-driven windows, retain their formatting dock while editing. Read-only content never exposes editing controls.
