@@ -8,6 +8,7 @@
 - Floating controls share one document scroll/viewport coordinator. Editor menus and floating toolbars also use the native top layer; suggestion snapshots can remeasure their caret anchor with `getRect()`. Static docs popup examples use isolated viewports instead of overriding production positioning. Dialog checks now compare desktop/mobile screenshots in both themes and sample real-motion positioning and stacking.
 - Table context menus keep their minimum width inside narrow presentation viewports.
 
+- Repeated component rows use inline text expressions; the updated converter emits the same direct Vue bindings as `$value`, without per-row text components.
 - Contextual formatting gives slash-command and mention suggestions priority, so their results remain clickable.
 - Trees retain a keyboard entry point when row controllers load later or a hidden tree becomes visible, preserving the last focused row.
 - Contextual editor controls stay inside the document area rather than covering actions above it; link actions share that surface without covering formatting commands.
