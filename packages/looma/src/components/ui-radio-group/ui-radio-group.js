@@ -1,4 +1,5 @@
 import { afterFormReset } from "../shared/form-reset.js";
+import { checkRadio, connectRadioGroup } from "../shared/radio-group.js";
 import { trackTrigger } from "../shared/trigger.js";
 
 let groups = 0;
@@ -15,6 +16,14 @@ export default function controller(host) {
   // A radio's own required survives until the group's required changes, since either one makes the
   // whole name group required.
   let required = false;
+  const apply = (input, value = host.state.internalValue) => {
+    if (required) input.required = true;
+    input.name = name;
+    checkRadio(input, input.value === value);
+    // The value prop is the choice a native form reset returns to.
+    input.defaultChecked = input.value === String(external ?? "");
+  };
+  const stopGroup = connectRadioGroup(element, apply);
   host.state.internalValue = String(external ?? "");
   const stop = host.effect(() => {
     if (host.props.value.value !== external) {
@@ -26,10 +35,7 @@ export default function controller(host) {
     required = Boolean(host.props.required.value);
     for (const input of inputs()) {
       if (applyRequired) input.required = required;
-      input.name = name;
-      input.checked = input.value === value;
-      // The value prop is the choice a form reset returns to.
-      input.defaultChecked = input.value === String(external ?? "");
+      apply(input, value);
     }
   });
   const onChange = (event) => {
@@ -44,10 +50,11 @@ export default function controller(host) {
   element.addEventListener("change", onChange);
   const stopReset = afterFormReset(element, () => {
     host.state.internalValue = String(external ?? "");
-    for (const input of inputs()) input.checked = input.value === host.state.internalValue;
+    for (const input of inputs()) checkRadio(input, input.value === host.state.internalValue);
   });
   return () => {
     stop();
+    stopGroup();
     stopReset();
     stopTracking();
     element.removeEventListener("change", onChange);

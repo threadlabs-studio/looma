@@ -68,8 +68,8 @@
           $each="item of section.items"
           $key="item.action"
           type="button"
-          from:role="{ true: 'menuitemcheckbox', false: 'menuitem' }[format('%s', item.checkable)]"
-          from:aria-checked="{ true: item.checked, false: null }[format('%s', item.checkable)]"
+          from:role="{ true: 'menuitemcheckbox', false: 'menuitem' }[concat(item.checkable)]"
+          from:aria-checked="{ true: item.checked, false: null }[concat(item.checkable)]"
           class:danger="item.danger"
           from:data-action="item.action"
         >

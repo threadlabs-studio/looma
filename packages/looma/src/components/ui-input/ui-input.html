@@ -133,9 +133,14 @@
     /* Under touch a small field is still a touch-sized target, as a small button is, and keeps
        body-size text: below 16px, iOS zooms the page into the focused field. */
     @media (pointer: coarse) {
+      :host,
+      :host-state([size="sm"]),
+      :host-state([size="lg"]) {
+        font-size: var(--ui-font-size-md);
+      }
+
       :host-state([size="sm"]) {
         min-block-size: var(--ui-input-min-block-size, var(--_ui-default-input-min-block-size, var(--ui-control-min-block-size)));
-        font-size: inherit;
       }
     }
 

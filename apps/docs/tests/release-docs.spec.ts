@@ -1,4 +1,5 @@
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expect, test, ready } from "./docs-fixture";
+import type { Locator, Page } from "@playwright/test";
 import axe from "axe-core";
 
 import componentApi from "../../../generated/component-api.json";
@@ -26,7 +27,7 @@ async function expectNoAxeViolations(page: Page): Promise<void> {
 
 /** Linear sRGB from any colour the browser hands back: rgb(), color(srgb ...), oklab(), oklch(). */
 function linearChannels(color: string): [number, number, number] {
-  const numbers = (color.match(/-?[\d.]+/g) ?? []).map(Number);
+  const numbers = (color.match(/[+-]?(?:\d*\.)?\d+(?:e[+-]?\d+)?/gi) ?? []).map(Number);
   if (numbers.length < 3) throw new Error(`Unsupported color: ${color}`);
   const gamma = (channel: number) =>
     channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
@@ -350,14 +351,17 @@ test("tooltip uses a Looma trigger and a crisp, pointed overlay surface", async 
 
   const sideScenario = page.locator("[data-preview-scenario='Side placement']");
   await sideScenario.locator("#side-tooltip-trigger").focus();
-  const sideArrow = await sideScenario.locator("[data-component~='ui-tooltip'] .surface").evaluate((element) => {
+  const sideTooltip = sideScenario.locator("[data-component~='ui-tooltip']");
+  await expect(sideTooltip).toHaveAttribute("data-ui-actual-placement", "right");
+  const sideArrow = () => sideTooltip.locator(".surface").evaluate((element) => {
     const style = getComputedStyle(element, "::after");
     return { left: style.borderLeftWidth, bottom: style.borderBottomWidth, top: style.borderTopWidth };
   });
-  expect(sideArrow).toEqual({ left: "1px", bottom: "1px", top: "0px" });
+  await expect.poll(sideArrow).toEqual({ left: "1px", bottom: "1px", top: "0px" });
 });
 
 test("solid icon buttons keep their fill and loading shows a ring", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("components/ui-icon-button", { waitUntil: "domcontentloaded" });
   for (const scenario of ["Size and variant", "round"]) {
     const solid = page.locator(`[data-preview-scenario='${scenario}'] [data-component~='ui-icon-button'][data-ui-icon-button-state~='variant=solid']`);
@@ -536,8 +540,8 @@ test("editor table menus use one action capability set", async ({ page }) => {
 });
 
 test("every component page renders distinct, visible, coded scenarios", async ({ page }) => {
-  // Visits every component page in one test.
-  test.setTimeout(90_000);
+  // Give each route its normal readiness allowance; the library-wide loop grows with the catalog.
+  test.setTimeout(Math.max(90_000, componentApi.components.length * 5_000));
   for (const component of componentApi.components) {
     await page.goto(`components/${component.tag}`, { waitUntil: "domcontentloaded" });
     await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
@@ -588,6 +592,7 @@ test("component pages supply a live preview when no bespoke example exists", asy
 
 test("avatar authoring uses ordinary images and avatar groups visibly overlap", async ({ page }) => {
   await page.goto("components/ui-avatar", { waitUntil: "domcontentloaded" });
+  await ready(page);
   const imageScenario = page.locator("[data-preview-scenario='Image']");
   const authoredImage = imageScenario.locator("[data-component~='ui-avatar'] img:not(.image)");
   await expect(authoredImage).toHaveCount(1);
@@ -597,6 +602,7 @@ test("avatar authoring uses ordinary images and avatar groups visibly overlap", 
   await expect(imageScenario.locator(".looma-mode-code")).not.toContainText("data-ui-avatar-fallback");
 
   await page.goto("components/ui-avatar-group", { waitUntil: "domcontentloaded" });
+  await ready(page);
   const group = page.locator("[data-preview-scenario='Default maximum'] [data-component~='ui-avatar-group']");
   const avatars = group.locator("[data-component~='ui-avatar']");
   await expect(avatars).toHaveCount(3);
@@ -612,8 +618,11 @@ test("avatar authoring uses ordinary images and avatar groups visibly overlap", 
 test("the docs sidebar treatment reaches the footer on tall pages in both themes", async ({ page }) => {
   for (const theme of ["light", "dark"] as const) {
     await page.goto("components/ui-avatar-group", { waitUntil: "domcontentloaded" });
+    await ready(page);
     await page.evaluate((selectedTheme) => localStorage.setItem("theme", selectedTheme), theme);
     await page.reload({ waitUntil: "domcontentloaded" });
+    await ready(page);
+    await page.waitForLoadState("networkidle");
     await expect(page.locator(".looma-component-preview")).toBeVisible();
 
     const geometry = await page.locator(".theme-doc-sidebar-container").evaluate((sidebar) => {
@@ -631,6 +640,7 @@ test("the docs sidebar treatment reaches the footer on tall pages in both themes
 });
 
 test("disclosure owns its trigger and animates one grid row between closed and open", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("components/ui-disclosure", { waitUntil: "domcontentloaded" });
   const scenario = page.locator("[data-preview-scenario='Default closed']");
   const disclosure = scenario.locator("[data-component~='ui-disclosure']");
@@ -1633,8 +1643,11 @@ test("a checked checkbox paints its tick", async ({ page }) => {
 test("a tree scrolls a name too long for its row, only when asked, and clears its controls", async ({
   page
 }) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("components/ui-tree", { waitUntil: "networkidle" });
-  await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
+  await ready(page);
+  // Keep marquee motion enabled, but finish page scrolling before measuring a stationary hover.
+  await page.evaluate(() => { document.documentElement.style.scrollBehavior = "auto"; });
 
   // Off by default: a tree of names that fit should not move.
   const plain = page.locator("[data-preview-scenario='Default'] [data-component~='ui-tree-item'] .row").first();
@@ -1656,6 +1669,10 @@ test("a tree scrolls a name too long for its row, only when asked, and clears it
   await page.mouse.move(0, 0);
   await overflows.hover();
   await expect(overflows).toHaveAttribute("data-ui-marquee", "");
+
+  await expect.poll(() => overflows.locator(".label-text").evaluate((element) =>
+    element.getAnimations().some((animation) => Number(animation.currentTime) > 0)
+  )).toBe(true);
 
   const travel = await overflows.evaluate((element) => ({
     distance: parseFloat(getComputedStyle(element).getPropertyValue("--_marquee-distance")),
@@ -1900,8 +1917,11 @@ test("checkbox, switch, and radio APIs generate their own aligned native control
 test("every badge tone remains legible and visually distinct in light and dark themes", async ({ page }) => {
   for (const theme of ["light", "dark"] as const) {
     await page.goto("components/ui-badge", { waitUntil: "domcontentloaded" });
+    await ready(page);
     await page.evaluate((selectedTheme) => window.localStorage.setItem("theme", selectedTheme), theme);
     await page.reload({ waitUntil: "domcontentloaded" });
+    await ready(page);
+    await page.waitForLoadState("networkidle");
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
     const badges = page.locator("[data-preview-scenario] [data-component~='ui-badge']:not([data-ui-badge-state~='shape=dot'])");
     // Text treatments retain their order; the three square icon marks extend the gallery.
@@ -2066,4 +2086,30 @@ test("tree disclosure is per node: expand does not bubble and never cascades to 
   await item("middle").getByRole("button", { name: "Collapse middle" }).click();
   await expect(item("middle")).toHaveAttribute("aria-expanded", "false");
   await expect(item("root")).toHaveAttribute("aria-expanded", "true");
+});
+
+
+test("documentation TOC follows viewport height and reader navigation", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("docs-api-sync/", { waitUntil: "domcontentloaded" });
+  await ready(page);
+  const toc = page.locator(".table-of-contents");
+  const options = toc.getByRole("link", { name: "Option descriptions", exact: true });
+  const settleScroll = async () => page.evaluate(async () => {
+    for (const top of [1, 0]) {
+      await new Promise<void>((resolve) => {
+        window.addEventListener("scroll", () => resolve(), { once: true });
+        window.scrollTo({ top, behavior: "instant" });
+      });
+    }
+  });
+  await settleScroll();
+  await expect(options).not.toHaveClass(/table-of-contents__link--active/);
+  await page.setViewportSize({ width: 1280, height: 1100 });
+  await settleScroll();
+  await expect(options).toHaveClass(/table-of-contents__link--active/);
+  const commands = toc.getByRole("link", { name: "Commands", exact: true });
+  await commands.click();
+  await expect(page).toHaveURL(/#commands$/);
+  await expect(commands).toHaveClass(/table-of-contents__link--active/);
 });
