@@ -84,7 +84,7 @@
     "test:browser": "vitest run && vitest run --config vitest.browser.config.ts"
   },
   "dependencies": {
-    "@nextwebwg/html-next": "1.0.0-alpha.25",
+    "@nextwebwg/html-next": "1.0.0-alpha.26",
     "dompurify": "3.4.15",
     "highlight.js": "11.11.2",
     "lowlight": "^3.3.0",
