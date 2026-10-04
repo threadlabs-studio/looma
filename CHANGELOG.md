@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Component text uses `{$variable}` for inline values and slot fallbacks. IDs and accessible labels use `concat()`; Intl `format()` is reserved for localized presentation.
+- Meters without `valueText` announce a whole percentage in the current browser or server locale, so assistive technology reads the appropriate digits and spacing. Explicit `valueText` stays verbatim, and fill widths remain locale-independent CSS percentages.
+
 - Touch tree rows keep labels separate from actions after tapping, including RTL and multiple selection.
 - Touch input text stays readable inside small captions without disabling browser zoom.
 - Editors can opt into a contextual toolbar with full commands at a focused caret or text selection; the existing mobile dock remains unchanged.
