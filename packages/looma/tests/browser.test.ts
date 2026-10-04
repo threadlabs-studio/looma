@@ -6908,3 +6908,44 @@ describe("Combobox completion", () => {
     try { await check(page); } finally { await page.close(); }
   });
 });
+
+
+describe("Combobox chip truncation", () => {
+  const label = "workspace:averylongidentifierthatmuststayinsideitsbadge";
+  const check = async (page: Page) => {
+    for (const width of [1280, 375]) {
+      await page.setViewportSize({ width, height: 812 });
+      const chip = page.getByRole("button", { name: `${label}, press Delete or Backspace to remove` });
+      await chip.waitFor();
+      const geometry = await chip.evaluate((item) => {
+        const badge = item.querySelector<HTMLElement>('[data-component~="ui-badge"]')!;
+        const label = badge.querySelector<HTMLElement>(".label")!;
+        const box = item.getBoundingClientRect();
+        const badgeBox = badge.getBoundingClientRect();
+        const labelBox = label.getBoundingClientRect();
+        return { itemWidth: box.width, badgeWidth: badgeBox.width, labelInside: labelBox.right <= badgeBox.right && labelBox.left >= badgeBox.left, clipped: label.scrollWidth > label.clientWidth, overflow: getComputedStyle(label).overflow, ellipsis: getComputedStyle(label).textOverflow, text: label.textContent };
+      });
+      assert.ok(geometry.badgeWidth <= geometry.itemWidth + 1, "badge stays within the capped chip");
+      assert.ok(geometry.labelInside, "label stays inside the badge");
+      assert.ok(geometry.clipped, "long label is constrained");
+      assert.equal(geometry.overflow, "hidden");
+      assert.equal(geometry.ellipsis, "ellipsis");
+      assert.equal(geometry.text, label, "full label remains available to assistive technology");
+      await page.screenshot({ path: join(root, ".build", `chip-ellipsis-${width}.png`) });
+    }
+    await page.getByRole("combobox", { name: "Filter" }).focus();
+    await page.keyboard.press("ArrowLeft");
+    await page.keyboard.press("Backspace");
+    assert.equal(await page.locator(".item").count(), 0, "truncation preserves keyboard removal");
+  };
+  it("ellipsizes native chip labels inside their badge at desktop and 375px", async () => {
+    const path = await bundle("html-chip-truncation", `import "@threadlabs/looma";`);
+    const page = await open(path, `<ui-combobox label="Filter" multiple items='[{"id":"long","value":"long","label":"${label}"}]'><option value="long">${label}</option></ui-combobox>`, [join(root, "tokens.css")]);
+    try { await check(page); } finally { await page.close(); }
+  });
+  it("ellipsizes Vue chip labels inside their badge at desktop and 375px", async () => {
+    const path = await bundle("vue-chip-truncation", `import { createApp, h } from "vue"; import { Combobox } from "@threadlabs/looma/vue"; createApp({ render: () => h(Combobox, { label: "Filter", multiple: true, items: [{id: "long", value: "long", label: ${JSON.stringify(label)}}] }, () => h("option", {value: "long"}, ${JSON.stringify(label)})) }).mount("#app");`);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    try { await check(page); } finally { await page.close(); }
+  });
+});
