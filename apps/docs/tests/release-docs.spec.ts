@@ -2019,3 +2019,29 @@ test("tree disclosure is per node: expand does not bubble and never cascades to 
   await expect(item("middle")).toHaveAttribute("aria-expanded", "false");
   await expect(item("root")).toHaveAttribute("aria-expanded", "true");
 });
+
+
+test("documentation TOC follows viewport height and reader navigation", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("docs-api-sync/", { waitUntil: "domcontentloaded" });
+  await ready(page);
+  const toc = page.locator(".table-of-contents");
+  const options = toc.getByRole("link", { name: "Option descriptions", exact: true });
+  const settleScroll = async () => page.evaluate(async () => {
+    for (const top of [1, 0]) {
+      await new Promise<void>((resolve) => {
+        window.addEventListener("scroll", () => resolve(), { once: true });
+        window.scrollTo({ top, behavior: "instant" });
+      });
+    }
+  });
+  await settleScroll();
+  await expect(options).not.toHaveClass(/table-of-contents__link--active/);
+  await page.setViewportSize({ width: 1280, height: 1100 });
+  await settleScroll();
+  await expect(options).toHaveClass(/table-of-contents__link--active/);
+  const commands = toc.getByRole("link", { name: "Commands", exact: true });
+  await commands.click();
+  await expect(page).toHaveURL(/#commands$/);
+  await expect(commands).toHaveClass(/table-of-contents__link--active/);
+});
