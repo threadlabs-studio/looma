@@ -56,14 +56,14 @@
           from:data-action="swatch.action"
         >
           <span class="swatch" class:default="not swatch.color" style:--_swatch="swatch.color"></span>
-          <span class="swatch-label" $value="swatch.label"></span>
+          <span class="swatch-label">{$swatch.label}</span>
         </button>
       </div>
     </div>
     <template $each="section of sections" $key="section.heading">
       <div class="sep"></div>
       <div class="section" role="none">
-        <div class="heading" role="presentation" $value="section.heading"></div>
+        <div class="heading" role="presentation">{$section.heading}</div>
         <button
           $each="item of section.items"
           $key="item.action"
@@ -74,7 +74,7 @@
           from:data-action="item.action"
         >
           <ui-icon from:name="item.icon"></ui-icon>
-          <span $value="item.label"></span>
+          <span>{$item.label}</span>
         </button>
       </div>
     </template>

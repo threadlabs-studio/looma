@@ -37,7 +37,7 @@
       from:role="toast.role"
       from:data-tone="toast.tone"
     >
-      <span class="message" $value="toast.message"></span>
+      <span class="message">{$toast.message}</span>
       <span class="dismiss" from:data-toast="toast.id">
         <ui-icon-button size="sm" variant="ghost" from:round="true" from:label="concat('Dismiss ', toast.message)">
           <ui-icon name="x"></ui-icon>
