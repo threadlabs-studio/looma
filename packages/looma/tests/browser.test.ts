@@ -7170,11 +7170,14 @@ describe("CardButton layout", () => {
           const geometry = await page.locator("#card").evaluate(el => {
             const style=getComputedStyle(el), box=el.getBoundingClientRect();
             const icon=el.querySelector(".card-icon")!.getBoundingClientRect(), content=el.querySelector(".card-content")!.getBoundingClientRect(), action=el.querySelector(".card-action")!.getBoundingClientRect();
-            return {iconHeight:icon.height,height:box.height,overflow:document.documentElement.scrollWidth>innerWidth,iconTop:icon.top,contentTop:content.top,actionMiddle:(action.top+action.bottom)/2,middle:(box.top+box.bottom)/2,paddingStart:style.paddingInlineStart,paddingEnd:style.paddingInlineEnd,borders:[style.borderTopWidth,style.borderRightWidth,style.borderBottomWidth,style.borderLeftWidth],colors:[style.borderTopColor,style.borderRightColor,style.borderBottomColor,style.borderLeftColor],gap:style.columnGap};
+            return {contentHeight:content.height,lineHeight:parseFloat(style.lineHeight),contentMiddle:(content.top+content.bottom)/2,iconHeight:icon.height,height:box.height,overflow:document.documentElement.scrollWidth>innerWidth,iconTop:icon.top,contentTop:content.top,actionMiddle:(action.top+action.bottom)/2,middle:(box.top+box.bottom)/2,paddingStart:style.paddingInlineStart,paddingEnd:style.paddingInlineEnd,borders:[style.borderTopWidth,style.borderRightWidth,style.borderBottomWidth,style.borderLeftWidth],colors:[style.borderTopColor,style.borderRightColor,style.borderBottomColor,style.borderLeftColor],gap:style.columnGap};
           });
           assert.ok(geometry.height>=44); assert.ok(geometry.iconHeight>0); assert.equal(geometry.overflow,false);
           assert.ok(Math.abs(geometry.iconTop-geometry.contentTop)<=1);
           assert.ok(Math.abs(geometry.actionMiddle-geometry.middle)<=1);
+          if (geometry.contentHeight <= geometry.lineHeight + 1) {
+            assert.ok(Math.abs(geometry.contentMiddle-geometry.middle)<=1, "a single-line label is vertically centered within the card");
+          }
           assert.equal(geometry.paddingStart,geometry.paddingEnd);
           assert.equal(new Set(geometry.borders).size,1); assert.equal(new Set(geometry.colors).size,1);
           assert.notEqual(geometry.gap,"normal");
