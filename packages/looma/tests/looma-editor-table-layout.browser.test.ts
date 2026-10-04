@@ -71,6 +71,15 @@ describe("LoomaEditor table layout (real browser)", () => {
     }
   );
 
+  it("keeps the column-resize hint inside a fitting phone table with larger text", () => {
+    const { wrapper, element } = mountTable(303, 2, "Sized column");
+    wrapper.style.setProperty("--ui-font-size-xs", "16px");
+    const handle = document.createElement("div");
+    handle.className = "column-resize-handle";
+    element.rows[0]!.cells[0]!.append(handle);
+    expect(wrapper.scrollWidth).toBe(wrapper.clientWidth);
+  });
+
   it("retains deliberately wide saved column widths as a scrollable table", () => {
     const { editor, wrapper, element } = mountTable(640, 2, "Sized column", 500);
     editor.commands.setTextSelection(3);
