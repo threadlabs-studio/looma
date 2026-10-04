@@ -59,13 +59,112 @@ Contextual formatting hides while slash-command or mention suggestions are activ
 
 ## Slash commands and blocks
 
-Type `/` for headings, callouts, lists, a quote, code, a divider, a table, or an image. Keep
-typing to narrow the menu; use arrow keys and Enter to choose. The **Chip** command inserts an
-inline label without splitting the paragraph. Choose its text and tone in the popover, then click
-the chip to edit it. Markdown-style shortcuts also work: `#` for headings, `-` for a bullet list,
+Type `/` for headings, callouts, lists, a quote, code, a divider, a table, or a collapsible
+section. Image appears when `uploadImage` is supplied. Keep typing to narrow the grouped menu;
+use arrow keys and Enter to choose. Exact names and aliases rank ahead of partial matches;
+`/callout` puts callouts before the quote alias. An unmatched query shows **No commands found**
+and remains in the document until you edit it or choose a command. Escape dismisses suggestions.
+Literal code never opens slash suggestions. The **Chip** command inserts an
+inline label without splitting the paragraph; `/status` is an alias for the same command. Choose
+its text and tone in the popover, then click the chip to edit it. Markdown-style shortcuts also work: `#` for headings, `-` for a bullet list,
 `[ ]` for a checklist, and `---` for a divider.
 
 Block actions can insert a paragraph after the current block, duplicate it, or delete it.
+
+### Host commands
+
+Pass `slashCommands` to customize the existing extension. An array replaces the inventory,
+including an empty array. A function receives fresh defaults and returns the inventory to use:
+
+```ts
+import type { LoomaEditorSlashCommands } from "@threadlabs/looma/vue/editor";
+
+const slashCommands: LoomaEditorSlashCommands = defaults => [
+  ...defaults,
+  {
+    id: "host-reference",
+    group: "Host content",
+    title: "Reference",
+    description: "Insert a reference label",
+    icon: "tag",
+    keywords: ["reference", "ref"],
+    command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).insertContent("Reference: ").run();
+    },
+  },
+];
+```
+
+Use a unique `id` for each command, especially when titles repeat. `group` is optional, so
+existing headless command objects keep working. Each command owns removal of the supplied
+range. Supply a pure `isAvailable({ editor, range })` predicate to omit a command when a host
+capability or editing context is unavailable; Looma checks it again before execution.
+Changing the inventory reference dismisses the open menu and keeps the typed query intact.
+Use a new array/function when changing the inventory rather than mutating it in place.
+
+Headless consumers use `createLoomaSlashCommandExtension({ commands, onStateChange })` and
+`filterLoomaSlashCommands`. Menu snapshots supply `select(index)` and `highlight(index)`;
+replace snapshots and discard old callbacks after updates. Call
+`editor.commands.dismissLoomaSlashMenu()` to dismiss without deleting the query.
+Default Link and Image commands require their picker callbacks. Default structural commands
+are omitted when the current editor schema or insertion context cannot apply them.
+
+## Collapsible sections
+
+Type `/expand`, `/toggle`, or `/details` to insert an independent section. The caret starts in
+its body, which accepts ordinary blocks such as lists, code, and tables. Use **Section settings**
+to edit the summary and **Initially expanded**, then **Save**; **Cancel** discards the draft.
+Press Cmd+Enter (Ctrl+Enter on other platforms) in the body to create a paragraph after the
+innermost section and continue writing. On phones, use **Block actions → Insert paragraph below**
+to continue after the section through the existing toolbar.
+
+Authors start with sections expanded. Readers start with the saved default and toggle through
+the shared Disclosure control by keyboard or touch. Reader toggles do not change the document
+or its saved default. TOC links reveal enclosing sections before scrolling to and focusing a
+heading. Hosts can `await revealLoomaExpandAt(editor, position)` before their own navigation.
+
+The `loomaExpand` node stores `{ summary, open }` plus ordinary block content. JSON and HTML
+round-trip that content; HTML exports semantic `details`/`summary`. Headless editors can insert
+with `insertLoomaExpand({ summary: "Details", open: false })`, leave with `exitLoomaExpand()`,
+and supply `expandNodeView` to customize presentation. The default headless view uses native
+details. Plain text includes summaries and all bodies, even while collapsed.
+
+For Markdown, retain the semantic HTML details block when the target supports embedded HTML,
+or render the summary followed by its fully expanded body. Search and change-review projections
+must traverse the body rather than omit collapsed content. Qualify these paths before storing
+the new node in host documents.
+
+## Automatic table of contents
+
+Type `/toc` (or `/contents`) to insert links to headings throughout the document. The list updates
+when headings change, move, or disappear; there is no content wrapper or manual heading selection.
+Open **Table of contents settings** to choose plain, bulleted, or numbered formatting and the
+maximum heading level (H1, H2, or H3), then **Save**. **Cancel** discards those choices. The default
+is plain formatting through H3. With no headings, the block explains how to populate it.
+
+Read-only editors show the same navigation without settings. Activating an entry scrolls to and
+focuses its heading without opening link editing.
+
+The `loomaTableOfContents` node stores only `{ format, depth }`. Heading IDs are assigned when a
+TOC is present and retained across renames and moves; duplicate IDs are repaired. Both the node
+and heading IDs round-trip through editor JSON and HTML. `editor.getHTML()` includes the current
+entries as a named navigation landmark with real links.
+
+Headless editors using `getDefaultEditorExtensions` get the schema and a navigation node view;
+they can set choices with `insertLoomaTableOfContents({ format: "numbered", depth: 2 })` or supply
+`tableOfContentsNodeView` for their own settings composition. Turnkey Vue editors already supply
+settings built with shared FormField, Button, Menu, and Popover controls.
+
+For search, Markdown, plain text, or change-review projections, hosts can import
+`getTableOfContentsEntries` and `normalizeTableOfContentsConfig` from `@threadlabs/looma/editor`.
+The entry helper accepts a ProseMirror document and maximum heading level and returns current
+heading labels, IDs, levels, nesting depths, and positions. Use a linked list for Markdown or
+heading labels for plain text. A schema-only serializer such as Tiptap's `generateHTML` lacks
+whole-document context and emits a configuration placeholder for the TOC; use `editor.getHTML()`
+or derive entries in a document-aware host renderer when exporting complete navigation.
+
+Hosts should qualify their import/export, indexing, and review projections for this new node
+before enabling it in stored documents.
 
 ## Code blocks
 
@@ -121,6 +220,27 @@ Provide `uploadImage` to enable image insertion from a file, paste, or drop. It 
 and returns a URL or an object with a URL, alt text, and optional dimensions. A rejected upload
 leaves the document unchanged and emits `uploadError`, so the app can show recovery UI.
 `resolveImageAttributes` can supply responsive image attributes when rendering saved content.
+
+Click or tap an editable image to select the entire node and show one **Image actions** bar.
+Choose in-line block placement, centering, or text wrapping on either side directly in the bar.
+Choosing wrapping resets the image to one-third of the content column. Below 768px it stacks
+above the text at full column width. Corner dragging sets a custom desktop size; small screens still use the full column.
+Drag any corner handle to resize; the intrinsic aspect ratio stays locked and the width stays
+within the document. Release commits one undo step. **Escape** cancels a drag; focused handles
+also accept arrow keys (**Shift** uses a larger increment). **Image description** opens the
+secondary alt-text field with **Save** and **Cancel**.
+
+**Delete** and **Backspace** remove a selected image, and undo restores it. Reading mode keeps
+placement and pointer/keyboard viewer activation, with author controls hidden. Images are viewer
+tab stops only in reading mode.
+
+Document dividers have a pointer-sized click target and a selected outline. Click one, then
+press **Delete** or **Backspace** to remove it. **Tab** inserts a literal tab in ordinary text
+and code; lists retain indent/outdent and tables retain cell navigation. Outside a list or
+table, **Shift+Tab** leaves the document through the browser’s normal focus navigation.
+
+The shared preset retains image `width`, `height`, `placement`, and `responsive` attributes in both JSON and
+HTML. Headless hosts can supply `imageNodeView` and `dividerNodeView` for custom presentation.
 
 Select text and choose **Link**, type `/link`, or put the caret in a link to edit or remove it. The editor
 accepts `http:`, `https:`, `mailto:`, `tel:`, and relative URLs beginning with `/`, `#`, or `?`.

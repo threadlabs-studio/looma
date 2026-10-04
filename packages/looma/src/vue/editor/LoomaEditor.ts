@@ -4,7 +4,7 @@ import { BubbleMenu, EditorContent, useEditor } from "@tiptap/vue-3";
 import { announceOverlayOpen } from "../../components/shared/overlay.js";
 import { closeHistory } from "@tiptap/pm/history";
 import { createLowlight } from "lowlight";
-import { TextSelection, type SelectionBookmark } from "@tiptap/pm/state";
+import { NodeSelection, TextSelection, type SelectionBookmark } from "@tiptap/pm/state";
 import {
   computed,
   defineComponent,
@@ -26,6 +26,7 @@ import {
   DEFAULT_MENTION_RESULT_LIMIT,
   getActiveTableUiState,
   getDefaultEditorExtensions,
+  getDefaultSlashCommands,
   handleTableAction,
   handleTableOverlayAction,
   measureTableOverlayGeometry,
@@ -33,6 +34,7 @@ import {
   resolveTableCellAt,
   shouldShowTextFormattingToolbar,
   type LoomaSlashMenuSnapshot,
+  type LoomaSlashCommand,
   type LoomaMentionItem,
   type LoomaMentionMenuSnapshot,
   type LoomaMentionProvider,
@@ -54,6 +56,8 @@ import {
   EditorInsertTableGrid,
   EditorMentionMenu,
   EditorSlashMenu,
+  EditorSlashMenuGroup,
+  EditorSlashMenuItem,
   EditorTableContextMenu,
   EditorTableOverlay,
   EditorTableToolbar,
@@ -70,6 +74,11 @@ import {
   type LoomaImageRenditionErrorDetail,
 } from "./image-delivery";
 import { autoCodeLanguageNames, codeLanguageCatalog } from "./code-language-catalog";
+import { tableOfContentsNodeView } from "./table-of-contents";
+import { expandNodeView } from "./expand";
+import { dividerNodeView } from "./divider";
+import { ImageControls } from "./image-controls";
+import { imageNodeView } from "./image";
 
 /**
  * Shows a key binding in ProseMirror notation ("Mod-Shift-8") the way the reader's platform writes
@@ -115,6 +124,13 @@ export type LoomaImageUploader = (
  * as well as a selection; it does not alter document commands or stored content.
  */
 export type LoomaEditorToolbarMode = "bubble" | "sticky" | "popover" | "contextual";
+
+/**
+ * Replace the slash inventory, or return retained defaults plus host commands.
+ * @ownership The host owns its command objects and mutations; Looma supplies
+ * fresh defaults and invokes this factory when the inventory prop changes.
+ */
+export type LoomaEditorSlashCommands = LoomaSlashCommand[] | ((defaults: LoomaSlashCommand[]) => LoomaSlashCommand[]);
 
 /** A destination supplied by the host application, such as a page or record. */
 export interface LoomaLinkTarget {
@@ -189,12 +205,17 @@ function managedMenuAnchorRect(rect: DOMRect | null): SlashMenuAnchorRect | null
   };
 }
 
-function managedSlashMenuItems(items: LoomaSlashMenuSnapshot["items"]) {
-  return items.map(({ title, description, icon }) => ({
-    title,
-    description,
-    icon,
-  }));
+function slashMenuRows(items: LoomaSlashCommand[]) {
+  const groups: Array<{ label?: string; rows: VNode[] }> = [];
+  for (const [index, item] of items.entries()) {
+    if (!groups.length || groups.at(-1)!.label !== item.group) groups.push({ label: item.group, rows: [] });
+    groups.at(-1)!.rows.push(h(EditorSlashMenuItem, {
+      key: item.id ?? `${item.title}-${index}`, value: item.id ?? item.title,
+      description: item.description, icon: item.icon, keywords: [...item.keywords, item.id ?? ""].join(" "),
+    }, () => item.title));
+  }
+  return groups.flatMap(({ label, rows }, index) => label
+    ? [h(EditorSlashMenuGroup, { key: `${label}-${index}`, label }, () => rows)] : rows);
 }
 
 function selectedTableElement(editor: Editor): HTMLTableElement | null {
@@ -260,6 +281,11 @@ export const LoomaEditor = defineComponent({
     extensions: {
       type: Array as PropType<AnyExtension[]>,
       default: () => [],
+    },
+    /** One inventory for the existing slash extension; an empty array intentionally supplies no commands. */
+    slashCommands: {
+      type: [Array, Function] as PropType<LoomaEditorSlashCommands>,
+      default: undefined,
     },
     /** Override the lazy built-in catalog with application-owned code grammars. An empty object disables highlighting. */
     codeLanguages: {
@@ -480,7 +506,12 @@ export const LoomaEditor = defineComponent({
       chipOpen.value = false;
       if (focusChip) root.value?.querySelector<HTMLElement>(`#${chipAnchorId}`)?.focus();
     };
+    const resolveSlashCommands = () => {
+      const defaults = getDefaultSlashCommands(props.uploadImage ? () => fileInput.value?.click() : undefined, openChipEditor, () => openLinkEditor());
+      return typeof props.slashCommands === "function" ? props.slashCommands(defaults) : props.slashCommands ?? defaults;
+    };
     const slashExtension = createLoomaSlashCommandExtension({
+      commands: resolveSlashCommands(),
       onOpenImagePicker: () => fileInput.value?.click(),
       onOpenChipEditor: openChipEditor,
       onOpenLinkEditor: () => openLinkEditor(),
@@ -505,6 +536,7 @@ export const LoomaEditor = defineComponent({
     });
     const imageDelivery = createLoomaImageDeliveryController({
       resolveAttributes: () => props.resolveImageAttributes,
+      isEditable: () => props.editable,
     });
     let lastFocusedSelection: {
       bookmark: SelectionBookmark;
@@ -586,6 +618,10 @@ export const LoomaEditor = defineComponent({
           disableHighlight: props.disableHighlight,
           codeLanguages: props.codeLanguages ?? undefined,
           codeLowlight: codeHighlightLowlight,
+          tableOfContentsNodeView,
+          expandNodeView,
+          dividerNodeView,
+          imageNodeView,
         }),
         imageDelivery.extension,
         slashExtension,
@@ -923,8 +959,13 @@ export const LoomaEditor = defineComponent({
       instance.commands.focus();
     };
 
+    watch([() => props.slashCommands, () => props.uploadImage], () => {
+      slashExtension.options.commands = resolveSlashCommands();
+      editor.value?.commands.dismissLoomaSlashMenu();
+    });
     watch(() => props.editable, (editable) => {
       editor.value?.setEditable(editable);
+      if (editor.value) imageDelivery.reset(editor.value);
       root.value?.querySelectorAll<HTMLElement>("[data-looma-chip]").forEach((chip) => {
         chip.setAttribute("aria-disabled", String(!editable));
       });
@@ -1223,7 +1264,10 @@ export const LoomaEditor = defineComponent({
       const instance = editor.value;
       if (!instance) return null;
       try {
-        const position = instance.view.posAtDOM(element, 0);
+        const frame = element.closest("[data-looma-image-node]");
+        const position = frame?.parentNode
+          ? instance.view.posAtDOM(frame.parentNode, Array.from(frame.parentNode.childNodes).indexOf(frame))
+          : instance.view.posAtDOM(element, 0);
         const node = instance.state.doc.nodeAt(position);
         return node?.type.name === "image" ? imageDescriptorFromAttrs(node.attrs) : null;
       } catch {
@@ -1279,7 +1323,7 @@ export const LoomaEditor = defineComponent({
         return;
       }
       const element = imageElementForEvent(event);
-      if (!element) return;
+      if (!element || props.editable) return;
       event.preventDefault();
       activateImage(element, "keyboard");
     };
@@ -1764,7 +1808,22 @@ export const LoomaEditor = defineComponent({
               "aria-label": "Editor tools",
             }, [renderToolbar(instance, false)])
           : null,
-        instance ? h(EditorContent, { editor: instance }) : null,
+        instance && props.editable
+          ? h(BubbleMenu, {
+              editor: instance,
+              pluginKey: "looma-image-actions",
+              shouldShow: ({ editor: menuEditor }: { editor: Editor }) => menuEditor.isEditable
+                && menuEditor.state.selection instanceof NodeSelection && menuEditor.state.selection.node.type.name === "image",
+              tippyOptions: {
+                appendTo: () => root.value?.closest<HTMLElement>("dialog[open], [popover]") ?? document.body,
+                placement: "top", duration: 100, maxWidth: window.innerWidth - 24,
+                getReferenceClientRect: () => {
+                  const dom = instance.view.nodeDOM(instance.state.selection.from);
+                  return (dom instanceof Element ? dom.querySelector("img") ?? dom : instance.view.dom).getBoundingClientRect();
+                },
+              },
+            }, { default: () => h(ImageControls, { editor: instance }) }) : null,
+        instance ? h(Stack, { gap: "none" }, () => h(EditorContent, { editor: instance })) : null,
         codeUi.open
           ? h("div", {
               ref: codeLanguageShell,
@@ -1916,17 +1975,19 @@ export const LoomaEditor = defineComponent({
                 tablePickerOpen.value = false;
               },
             })]),
-        slash.active && slash.items.length > 0
+        slash.active
           ? h(EditorSlashMenu, {
               open: true,
               query: slash.query,
-              items: managedSlashMenuItems(slash.items),
               selectedIndex: slash.selectedIndex,
               anchorRect: managedMenuAnchorRect(slash.rect),
-              onHighlight: (event: CustomEvent<{ index: number }>) => { slash.selectedIndex = event.detail.index; },
+              onHighlight: (event: CustomEvent<{ index: number }>) => { slash.highlight?.(event.detail.index); },
               onSelect: (event: CustomEvent<{ index: number }>) => {
                 slash.select?.(event.detail.index);
               },
+            }, {
+              default: () => slashMenuRows(slash.items),
+              empty: () => h(Text, { role: "status", size: "sm", tone: "muted" }, () => "No commands found."),
             })
           : null,
         mention.active && (mention.loading || mention.items.length > 0)
