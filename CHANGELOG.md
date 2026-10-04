@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Badge and combobox chip labels retain room for their full text, including descenders, while long labels still ellipsize.
 - Long badge and combobox chip labels truncate with an ellipsis inside their surface, preserving their full accessible text.
 
 - Combobox can highlight a sole authored suggestion and commit it with Tab while preserving normal focus movement. Both behaviors are opt-in.
