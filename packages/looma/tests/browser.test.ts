@@ -4135,6 +4135,44 @@ describe("Icon", () => {
 });
 
 describe("Icon Button", () => {
+  it("matches adjacent Buttons when requested without resizing compact icon controls", async () => {
+    for (const adapter of ["vue", "html"]) {
+      const path = await bundle(`${adapter}-matched-icon-button`, adapter === "vue" ? `
+        import { createApp, h } from "vue";
+        import { Button, IconButton, Icon } from "@threadlabs/looma/vue";
+        createApp({ render: () => h("div", {}, [
+          ...["sm", "md", "lg"].map(size => h("div", { style: "display: flex; align-items: stretch", id: size }, [
+            h(Button, { id: size + "-primary", size }, () => "Save changes"),
+            h(IconButton, { id: size + "-more", size, matchButton: true, variant: "outline", label: "More options" }, () => h(Icon, { name: "chevron-down" })),
+          ])),
+          h(IconButton, { id: "compact", size: "sm", label: "Toolbar options" }, () => h(Icon, { name: "chevron-down" })),
+        ]) }).mount("#app");
+      ` : `import "@threadlabs/looma";`);
+      const body = adapter === "vue" ? '<div id="app"></div>' : `
+        ${["sm", "md", "lg"].map(size => `<div style="display: flex; align-items: stretch" id="${size}">
+          <ui-button id="${size}-primary" size="${size}">Save changes</ui-button>
+          <ui-icon-button id="${size}-more" size="${size}" match-button variant="outline" label="More options"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
+        </div>`).join("")}
+        <ui-icon-button id="compact" size="sm" label="Toolbar options"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>`;
+      for (const touch of [false, true]) {
+        const page = await open(path, body, [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])],
+          { viewport: { width: touch ? 375 : 1280, height: 900 }, hasTouch: touch, isMobile: touch });
+        // Custom control tokens must work, too; no hard-coded matching dimensions.
+        await page.addStyleTag({ content: ":root { --ui-control-size-sm: 36px; --ui-control-size-md: 44px; --ui-control-size-lg: 52px; }" });
+        for (const size of ["sm", "md", "lg"]) {
+          const bounds = await page.evaluate(size => {
+            const primary = document.getElementById(size + "-primary")!.getBoundingClientRect();
+            const more = document.getElementById(size + "-more")!.getBoundingClientRect();
+            return { primary: { top: primary.top, bottom: primary.bottom }, more: { top: more.top, bottom: more.bottom } };
+          }, size);
+          assert.deepEqual(bounds.more, bounds.primary, `${adapter} ${size}, touch=${touch}: both edges align`);
+        }
+        assert.equal(await page.locator("#compact").evaluate(element => element.getBoundingClientRect().height), 28);
+        await page.close();
+      }
+    }
+  });
+
   it("grows its hit area, not its size, once touch is used", async () => {
     const path = await bundle("vue-icon-button-touch", `
       import { createApp, h } from "vue";
