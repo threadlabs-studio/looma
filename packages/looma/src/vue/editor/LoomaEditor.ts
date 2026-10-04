@@ -1714,7 +1714,7 @@ export const LoomaEditor = defineComponent({
               editor: instance,
               pluginKey: "looma-link-context-menu",
               shouldShow: ({ editor: menuEditor, from, to }: { editor: Editor; from: number; to: number }) =>
-                props.toolbarMode !== "contextual" && from === to && menuEditor.isActive("link") && !linkOpen.value,
+                from === to && menuEditor.isActive("link") && !linkOpen.value,
               tippyOptions: {
                 appendTo: () => root.value?.closest<HTMLElement>("dialog[open], [popover]") ?? document.body,
                 onShow: () => announceOverlayOpen(root.value?.ownerDocument ?? document, root.value),
