@@ -4,8 +4,8 @@ The editor should help writers link knowledge, organize long documents, and inse
 repeated content without leaving the keyboard. This specification extends the
 existing editor contract; it does not replace its slash, link, or chip controls.
 
-The first implementation covers S1 and S2. S3–S8 are separately tracked follow-up
-work.
+The first implementation covers S1 and S2. The next implementation covers S3 and
+S4; S5–S8 remain separately tracked follow-up work.
 
 | Spec | Ticket |
 | --- | --- |
@@ -96,6 +96,12 @@ Acceptance:
 Add **Expand**, searchable through `/expand`, `/toggle`, and `/details`, with an
 editable summary and an ordinary block-content body. Render semantic
 `details`/`summary` in HTML. Insertion requires no surrounding-page wrapper.
+
+Writer flow: `/expand` inserts an open editing body and places the caret inside;
+ordinary editor commands create its blocks. Section settings accept summary text
+and the initial reader expansion state. Save applies the draft; Cancel/Escape
+discard it. Cmd/Ctrl+Enter creates a paragraph after the innermost section. Readers
+toggle the shared Disclosure without persisting those temporary choices.
 
 Acceptance:
 
@@ -199,3 +205,16 @@ Acceptance:
 
 No dependency upgrade, framework migration, or unrelated toolbar redesign is
 required by the first implementation.
+
+## Next implementation units
+
+1. Implement Expand schema, rich-body serialization/projection, insertion/exit,
+   transient reader toggles, and navigation into collapsed sections.
+2. Compose shared Disclosure and section settings, then verify body editing,
+   cancellation, read-only navigation, keyboard, and touch at 375px.
+3. Extend the existing slash inventory with identity/group/capability metadata and
+   a turnkey customization boundary. Compose authored shared slash groups/rows,
+   keep no-results feedback visible, and synchronize hover with keyboard selection.
+4. Verify duplicate titles, explicit replacement/empty inventories, exact-alias
+   ranking, unsupported contexts, and invalidation of stale selections. Update
+   docs/changelog and run the same composition, documentation, build, and test gates.
