@@ -277,6 +277,11 @@
           "id": "09-pill",
           "title": "Pill",
           "behavior": false
+        },
+        {
+          "id": "10-card",
+          "title": "card action",
+          "behavior": false
         }
       ]
     },
@@ -1477,6 +1482,11 @@
         {
           "id": "02-orientation-vertical",
           "title": "orientation=\"vertical\"",
+          "behavior": false
+        },
+        {
+          "id": "03-strong",
+          "title": "strong emphasis",
           "behavior": false
         }
       ]
