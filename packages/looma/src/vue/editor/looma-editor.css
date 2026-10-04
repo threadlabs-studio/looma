@@ -329,13 +329,6 @@
   pointer-events: none;
 }
 
-.looma-editor .ProseMirror img {
-  max-width: 100%;
-  height: auto;
-  margin: var(--ui-space-3) 0;
-  border-radius: var(--ui-radius-md);
-}
-
 .looma-editor .ProseMirror img[data-looma-image]:focus-visible {
   outline: var(--ui-focus-width) solid var(--ui-focus-ring);
   outline-offset: calc(var(--ui-focus-width) + var(--ui-border-width));
