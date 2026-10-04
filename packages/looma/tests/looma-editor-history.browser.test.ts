@@ -92,7 +92,10 @@ describe("LoomaEditor history (real browser)", () => {
     editor.commands.setTextSelection(3);
     await flushBrowser();
     expect(document.querySelector('[aria-label="Heading 1"]')).toBeTruthy();
-    expect(document.querySelector('.looma-editor__link-context')?.closest('[data-tippy-root]')).toBeFalsy();
+    expect(document.querySelector('.looma-editor__link-context')?.closest('[data-tippy-root]')).toBeTruthy();
+    expect(document.querySelector('[aria-label="Open link"]')?.getAttribute("href")).toBe("https://example.com");
+    expect(document.querySelector('[aria-label="Edit link"]')).toBeTruthy();
+    expect(document.querySelector('[aria-label="Remove link"]')).toBeTruthy();
   });
 
   it("lazily offers HTML and highlights markup in a default editor", async () => {
