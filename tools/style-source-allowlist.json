@@ -67,6 +67,8 @@
     "packages/looma/src/components/ui-icon/ui-icon.html",
     "packages/looma/src/components/ui-input-group/ui-input-group.html",
     "packages/looma/src/components/ui-input-group/ui-input-group.js",
+    "packages/looma/src/components/ui-image/ui-image.html",
+    "packages/looma/src/components/ui-image/ui-image.js",
     "packages/looma/src/components/ui-input/ui-input.html",
     "packages/looma/src/components/ui-input/ui-input.js",
     "packages/looma/src/components/ui-list-item/ui-list-item.html",
