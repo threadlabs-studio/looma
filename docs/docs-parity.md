@@ -1,6 +1,6 @@
 # Documentation parity checks
 
-The documentation baseline is the site built from main at `3e0d7dda`, with the
+The documentation baseline is the site built from main at `7fafb64a`, with the
 Docusaurus iterable-spread correction in `apps/docs/babel.config.js` and the
 catalog/editor MDX paragraph correction and shared Vue highlighting registration.
 Nested paragraphs and server/browser Prism grammar differences previously
@@ -107,8 +107,9 @@ The existing `test:browser` command remains the Chromium compatibility check for
 the main quality workflow. The new Documentation parity workflow runs all three
 engines and the visual comparison, retaining separate behavior and visual HTML
 reports, traces, and image differences on failure. The strict test typecheck
-covers the new harness; the two older docs suites still have unchecked TypeScript
-annotations and are exercised as browser tests.
+covers the new harness and declares its Node types in the docs workspace, so
+it does not inherit them from a surrounding checkout. The two older docs suites
+still have unchecked TypeScript annotations and are exercised as browser tests.
 
 The visual wrapper uses the digest-pinned Playwright 1.60.0 Linux ARM64 image, with
 container-only dependency volumes. CI uses GitHub’s `ubuntu-24.04-arm` runner
