@@ -18,9 +18,7 @@
   </defs>
   <div role="group" from:aria-label="label">
     <slot></slot>
-    <span class="overflow" $ref="overflow" role="img" from:hidden="not overflowCount" from:aria-label="overflowAnnouncement"><template
-        $value="format('+%s', overflowCount)"
-      ></template></span>
+    <span class="overflow" $ref="overflow" role="img" from:hidden="not overflowCount" from:aria-label="overflowAnnouncement">+{$overflowCount}</span>
   </div>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */

@@ -39,12 +39,12 @@
   <template $match>
     <a
       $when="as = 'a'"
-      from:href="{ true: null, false: href }[format('%s', disabled or loading or pending)]"
+      from:href="{ true: null, false: href }[concat(disabled or loading or pending)]"
       from:target="target"
       from:rel="rel"
-      from:aria-disabled="{ true: 'true', false: null }[format('%s', disabled or loading or pending)]"
+      from:aria-disabled="{ true: 'true', false: null }[concat(disabled or loading or pending)]"
       from:aria-busy="loading or pending"
-      from:tabindex="{ true: '0', false: null }[format('%s', (loading or pending) and not disabled)]"
+      from:tabindex="{ true: '0', false: null }[concat((loading or pending) and not disabled)]"
     >
       <span $if="loading or pending" class="spinner-wrap"><ui-spinner size="sm"></ui-spinner></span>
       <slot></slot>
@@ -53,7 +53,7 @@
       $else
       from:type="type"
       from:disabled="disabled"
-      from:aria-disabled="{ true: 'true', false: null }[format('%s', loading or pending)]"
+      from:aria-disabled="{ true: 'true', false: null }[concat(loading or pending)]"
       from:aria-busy="loading or pending"
     >
       <span $if="loading or pending" class="spinner-wrap"><ui-spinner size="sm"></ui-spinner></span>
