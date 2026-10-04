@@ -52,7 +52,7 @@ Set one API vocabulary that all components and adapters follow, including state 
 
 ## Template Text And Formatting
 
-Use `{$label}` for reactive text and slot fallbacks, and mixed text such as `Create “{$query}”` for labels around a value. `$value` remains useful when an expression replaces an element's whole content, particularly when formatting would introduce whitespace around its text. Literal opening braces in template text use `\{`. Repeated rows may keep `$value` to preserve direct Vue text rendering; inline row expressions currently generate retained-text helper components.
+Use `{$label}` for reactive text and slot fallbacks, and mixed text such as `Create “{$query}”` for labels around a value. `$value` remains useful when an expression replaces an element's whole content, particularly when formatting would introduce whitespace around its text. Literal opening braces in template text use `\{`. Inline paths and equivalent `$value` bindings generate the same direct Vue text, including in repeated rows.
 
 Use `concat()` for IDs, slot names, CSS values, and composed strings. Use Intl `format()` for localized presentation, such as `format($percent / 100, 'percent', { maximumFractionDigits: 0 })` for a meter's spoken percentage. Formatting may also specify a locale as its final argument. Keep CSS and machine-readable attribute values independent of locale.
 
