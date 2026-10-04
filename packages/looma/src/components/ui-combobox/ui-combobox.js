@@ -174,6 +174,10 @@ export default function controller(host) {
       // When nothing matches what was typed, the offer to create it is the only choice, so it is
       // the one Enter makes, and it is highlighted as such.
       if (query && !host.state.rows.some((row) => !row.disabled) && canCreate()) host.state.active = host.state.rows.length;
+      if (query && host.props.autoHighlight.value === "single") {
+        const enabled = host.state.rows.flatMap((row, index) => row.disabled ? [] : [index]);
+        if (enabled.length === 1) host.state.active = enabled[0];
+      }
       // Options in their declared shape: a row's `selected` flag is the list's own view state.
       host.dispatch("options-change", host.state.rows.map(asItem));
     };
@@ -441,7 +445,19 @@ export default function controller(host) {
       if (!host.state.raw && (input.selectionStart ?? 0) === 0 && event.key === "Backspace" && items().length) { event.preventDefault(); removeItemAt(items().length - 1, "keyboard"); return; }
     }
     if (event.key === "Escape" && host.state.expanded) { event.preventDefault(); event.stopPropagation(); close(); }
-    else if (event.key === "Tab") { resolveTyped("keyboard"); close(); }
+    else if (event.key === "Tab") {
+      const highlighted = host.state.expanded ? (host.state.rows ?? [])[host.state.active] : undefined;
+      if (host.props.selectOnTab.value && !event.shiftKey && !event.altKey && !event.ctrlKey && !event.metaKey && highlighted && !highlighted.disabled) {
+        if (host.props.multiple.value) {
+          setMultiQuery("", "keyboard");
+          if (!selectedSet().has(highlighted.value)) addSelectedItem(highlighted, "keyboard");
+        } else {
+          commit(highlighted.value, highlighted.label, asItem(highlighted), "selection", "keyboard");
+          queueMicrotask(() => void validateCurrent());
+        }
+      } else if (!host.props.selectOnTab.value) resolveTyped("keyboard");
+      close();
+    }
     else if (!event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey && ["ArrowDown", "ArrowUp"].includes(event.key)) { event.preventDefault(); if (!host.state.expanded) open("disclosure"); move(event.key); }
     else if (["Home", "End"].includes(event.key) && host.state.expanded && host.state.active >= 0) { event.preventDefault(); move(event.key); }
     else if (event.key === "Enter" && host.state.expanded) {

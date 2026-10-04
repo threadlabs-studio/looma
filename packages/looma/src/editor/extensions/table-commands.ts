@@ -276,7 +276,7 @@ function arrayEquals(left: number[] | null | undefined, right: number[]): boolea
 function readRenderedColumnWidths(tableElement: HTMLTableElement): number[] {
   const colElements = Array.from(tableElement.querySelectorAll("colgroup col"));
   if (colElements.length > 0) {
-    return colElements.map((column) => Math.max(1, Math.round(column.getBoundingClientRect().width)));
+    return colElements.map((column) => Math.max(1, column.getBoundingClientRect().width));
   }
 
   const firstRow = tableElement.rows.item(0);
@@ -284,7 +284,7 @@ function readRenderedColumnWidths(tableElement: HTMLTableElement): number[] {
     return [];
   }
 
-  return Array.from(firstRow.cells).map((cell) => Math.max(1, Math.round(cell.getBoundingClientRect().width)));
+  return Array.from(firstRow.cells).map((cell) => Math.max(1, cell.getBoundingClientRect().width));
 }
 
 function distributeWidthDelta(widths: number[], availableWidth: number, minWidth: number): number[] {
@@ -438,8 +438,8 @@ export function insertTableAtRange(
  * Browser layout is the source of truth at the end of a pointer resize, but
  * ProseMirror must persist integer widths in the document. The algorithm keeps
  * proportions, enforces a minimum, and distributes rounding error so the final
- * sum still equals the rendered table width. Spanning cells are updated once at
- * their top-left map coordinate rather than once per covered grid position.
+ * sum fits the rendered column grid, excluding the outer table border. Spanning
+ * cells are updated once at their top-left map coordinate rather than once per covered grid position.
  *
  * @invariant Every persisted width is an integer at least `minWidth`, and each
  * spanning cell receives one width per logical column from its top-left origin.
@@ -461,7 +461,10 @@ export function normalizeActiveTableColumnWidths(
     return false;
   }
 
-  const availableWidth = Math.max(1, Math.round(tableElement.getBoundingClientRect().width));
+  const availableWidth = Math.max(
+    1,
+    Math.floor(renderedColumnWidths.reduce((sum, width) => sum + width, 0))
+  );
   const normalizedColumnWidths = normalizeColumnWidths(
     renderedColumnWidths,
     availableWidth,

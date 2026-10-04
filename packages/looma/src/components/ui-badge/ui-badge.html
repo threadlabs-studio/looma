@@ -2,7 +2,7 @@
   <defs>
     <prop name="variant" type="keyword" values="solid, subtle, outline" default="subtle"
     >Emphasis. subtle sets toned text over a soft wash; solid fills with the tone and uses contrasting text; outline keeps the surface with a toned edge.
-      Neutral looks the same in solid and subtle.</prop>
+      Neutral looks the same in solid and subtle. When space is constrained, the label truncates with an ellipsis while its full text remains available.</prop>
     <prop name="tone" type="keyword" values="neutral, accent, info, success, warning, danger" default="neutral"
     >Which colour the badge speaks in. neutral is a quiet grey for plain labels; accent draws the eye in the accent colour; info, success, warning, and danger
       mark a status, so match the tone to what the badge says. For a category rather than a status, set the --ui-badge-color hook on the badge instead: any CSS
@@ -89,7 +89,9 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      max-width: 100%;
+      box-sizing: border-box;
+      min-inline-size: 0;
+      max-inline-size: 100%;
       padding: var(--ui-badge-padding-block, var(--ui-space-0-5)) var(--ui-badge-padding-inline, var(--ui-space-2));
       border: var(--ui-border-width) solid var(--ui-badge-border, var(--_badge-color-border, var(--_badge-border)));
       border-radius: var(--ui-radius-round);
@@ -102,9 +104,17 @@
       white-space: nowrap;
     }
 
-    /* Centre the glyphs, not the line box: a label without descenders otherwise reads high.
-     * Trimming applies to block containers; an inline-block is one and, like the inline-flex it
-     * replaces, still sizes to its label rather than filling its container. */
+    /* A constrained badge keeps its surface intact and ellipsizes only its label. The full
+       text stays in the DOM for accessible names and consumers' selected values. */
+    .label {
+      display: block;
+      min-inline-size: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Trim leading while retaining the font's ascent and descent. A cap-to-baseline box
+       would crop glyphs where the label clips horizontal overflow for ellipsis. */
     @supports (text-box-trim: trim-both) {
       :host {
         display: inline-block;
@@ -112,7 +122,7 @@
         text-align: center;
         align-content: center;
         text-box-trim: trim-both;
-        text-box-edge: cap alphabetic;
+        text-box-edge: text;
       }
     }
 
