@@ -82,6 +82,12 @@ body {
   backdrop-filter: blur(18px);
 }
 
+/* A backdrop filter makes fixed descendants relative to the navbar instead of the viewport. */
+.navbar.navbar-sidebar--show {
+  backdrop-filter: none;
+  --ifm-navbar-background-color: var(--looma-paper);
+}
+
 .navbar__inner { max-width: 1500px; margin: 0 auto; }
 .navbar__brand { gap: 0.45rem; margin-right: 2.25rem; }
 .navbar__logo { height: 2.1rem; }

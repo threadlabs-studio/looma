@@ -25,7 +25,6 @@ const config: Config = {
     defaultLocale: "en",
     locales: ["en"]
   },
-  clientModules: [require.resolve("./src/prism-languages.ts")],
   stylesheets: [
     {
       href: "https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap"

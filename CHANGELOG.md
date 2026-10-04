@@ -9,6 +9,7 @@
 
 - Badge and combobox chip labels retain room for their full text, including descenders, while long labels still ellipsize.
 - Long badge and combobox chip labels truncate with an ellipsis inside their surface, preserving their full accessible text.
+- Radio Group's value consistently owns initial selection and form-reset selection in HTML and Vue, even when a child Radio is authored checked. The disabled example declares its selection on the group.
 
 - Combobox can highlight a sole authored suggestion and commit it with Tab while preserving normal focus movement. Both behaviors are opt-in.
 
