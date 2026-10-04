@@ -1,0 +1,1954 @@
+{
+  "schemaVersion": 1,
+  "pages": [
+    {
+      "path": "./",
+      "title": "Looma",
+      "source": "apps/docs/docs/index.mdx",
+      "component": null,
+      "examples": []
+    },
+    {
+      "path": "adapter-parity",
+      "title": "Adapter Support",
+      "source": "apps/docs/docs/adapter-parity.md",
+      "component": null,
+      "examples": []
+    },
+    {
+      "path": "architecture",
+      "title": "Architecture",
+      "source": "apps/docs/docs/architecture.md",
+      "component": null,
+      "examples": []
+    },
+    {
+      "path": "component-library-audit",
+      "title": "Component Option Audit",
+      "source": "apps/docs/docs/component-library-audit.md",
+      "component": null,
+      "examples": []
+    },
+    {
+      "path": "components",
+      "title": "Components",
+      "source": "apps/docs/docs/component-catalog.mdx",
+      "component": null,
+      "examples": []
+    },
+    {
+      "path": "components/ui-action-bar",
+      "title": "Action Bar",
+      "source": "apps/docs/docs/components/layout/ui-action-bar.mdx",
+      "component": "ui-action-bar",
+      "examples": [
+        {
+          "id": "01-form-footer",
+          "title": "Form footer",
+          "behavior": false
+        },
+        {
+          "id": "02-dialog-footer",
+          "title": "Dialog footer",
+          "behavior": false
+        },
+        {
+          "id": "03-narrow",
+          "title": "Narrow container",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-affordance-scope",
+      "title": "Affordance Scope",
+      "source": "apps/docs/docs/components/overlay/ui-affordance-scope.mdx",
+      "component": "ui-affordance-scope",
+      "examples": [
+        {
+          "id": "01-default-radius",
+          "title": "Default radius",
+          "behavior": false
+        },
+        {
+          "id": "02-near-radius-8",
+          "title": "near-radius=\"8\"",
+          "behavior": false
+        },
+        {
+          "id": "03-guide-none",
+          "title": "guide=\"none\"",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-avatar",
+      "title": "Avatar",
+      "source": "apps/docs/docs/components/display/ui-avatar.mdx",
+      "component": "ui-avatar",
+      "examples": [
+        {
+          "id": "01-name-and-fallback",
+          "title": "Name, fallback, and sizes",
+          "behavior": false
+        },
+        {
+          "id": "02-image",
+          "title": "Image",
+          "behavior": false
+        },
+        {
+          "id": "03-fallback-ux",
+          "title": "fallback=\"UX\"",
+          "behavior": false
+        },
+        {
+          "id": "04-active",
+          "title": "Active",
+          "behavior": false
+        },
+        {
+          "id": "05-shape-and-decorative",
+          "title": "Shape and decoration",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-avatar-group",
+      "title": "Avatar Group",
+      "source": "apps/docs/docs/components/display/ui-avatar-group.mdx",
+      "component": "ui-avatar-group",
+      "examples": [
+        {
+          "id": "01-default-maximum",
+          "title": "Default maximum",
+          "behavior": false
+        },
+        {
+          "id": "02-max-2",
+          "title": "max=\"2\"",
+          "behavior": false
+        },
+        {
+          "id": "03-total",
+          "title": "Truncated people",
+          "behavior": false
+        },
+        {
+          "id": "04-size",
+          "title": "size",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-badge",
+      "title": "Badge",
+      "source": "apps/docs/docs/components/display/ui-badge.mdx",
+      "component": "ui-badge",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Default",
+          "behavior": false
+        },
+        {
+          "id": "02-variant-solid-and-tone",
+          "title": "variant=\"solid\" and tone",
+          "behavior": false
+        },
+        {
+          "id": "03-variant-subtle-and-tone",
+          "title": "variant=\"subtle\" and tone",
+          "behavior": false
+        },
+        {
+          "id": "04-shape",
+          "title": "Shape",
+          "behavior": false
+        },
+        {
+          "id": "05-outline",
+          "title": "Outline",
+          "behavior": false
+        },
+        {
+          "id": "06-color",
+          "title": "Custom colour",
+          "behavior": false
+        },
+        {
+          "id": "07-dot",
+          "title": "Compact state signals",
+          "behavior": false
+        },
+        {
+          "id": "08-square",
+          "title": "Icon marks",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-breadcrumb-item",
+      "title": "Breadcrumb Item",
+      "source": "apps/docs/docs/parts/ui-breadcrumb-item.mdx",
+      "component": "ui-breadcrumb-item",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Default",
+          "behavior": false
+        },
+        {
+          "id": "02-icon",
+          "title": "With an icon",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-breadcrumbs",
+      "title": "Breadcrumbs",
+      "source": "apps/docs/docs/components/display/ui-breadcrumbs.mdx",
+      "component": "ui-breadcrumbs",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Default",
+          "behavior": false
+        },
+        {
+          "id": "02-label",
+          "title": "Named trail",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-button",
+      "title": "Button",
+      "source": "apps/docs/docs/components/forms/ui-button.mdx",
+      "component": "ui-button",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Default",
+          "behavior": false
+        },
+        {
+          "id": "02-variant",
+          "title": "variant",
+          "behavior": false
+        },
+        {
+          "id": "03-link",
+          "title": "Link",
+          "behavior": false
+        },
+        {
+          "id": "04-size",
+          "title": "size",
+          "behavior": false
+        },
+        {
+          "id": "05-disabled",
+          "title": "disabled",
+          "behavior": false
+        },
+        {
+          "id": "06-align-and-stretch",
+          "title": "align and stretch",
+          "behavior": false
+        },
+        {
+          "id": "07-as-link",
+          "title": "as a link",
+          "behavior": false
+        },
+        {
+          "id": "08-loading",
+          "title": "Loading action",
+          "behavior": true
+        },
+        {
+          "id": "09-pill",
+          "title": "Pill",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-callout",
+      "title": "Callout",
+      "source": "apps/docs/docs/components/display/ui-callout.mdx",
+      "component": "ui-callout",
+      "examples": [
+        {
+          "id": "01-default-tone",
+          "title": "Default tone",
+          "behavior": false
+        },
+        {
+          "id": "02-tone-values",
+          "title": "Tone values",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-card",
+      "title": "Card",
+      "source": "apps/docs/docs/components/display/ui-card.mdx",
+      "component": "ui-card",
+      "examples": [
+        {
+          "id": "01-variants",
+          "title": "Variants",
+          "behavior": false
+        },
+        {
+          "id": "02-danger",
+          "title": "Danger",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-checkbox",
+      "title": "Checkbox",
+      "source": "apps/docs/docs/components/forms/ui-checkbox.mdx",
+      "component": "ui-checkbox",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Default",
+          "behavior": false
+        },
+        {
+          "id": "02-checked-indeterminate-and-disabled",
+          "title": "Select all and mixed state",
+          "behavior": true
+        },
+        {
+          "id": "03-multi-line-label",
+          "title": "Multi-line label",
+          "behavior": false
+        },
+        {
+          "id": "04-name-value-and-required",
+          "title": "name, value, and required",
+          "behavior": false
+        },
+        {
+          "id": "05-with-description",
+          "title": "With a description",
+          "behavior": false
+        },
+        {
+          "id": "06-size",
+          "title": "size",
+          "behavior": false
+        },
+        {
+          "id": "07-invalid",
+          "title": "Invalid choice",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-cluster",
+      "title": "Cluster",
+      "source": "apps/docs/docs/components/layout/ui-cluster.mdx",
+      "component": "ui-cluster",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Default",
+          "behavior": false
+        },
+        {
+          "id": "02-gap-l",
+          "title": "gap=\"l\"",
+          "behavior": false
+        },
+        {
+          "id": "03-align-end",
+          "title": "align=\"end\"",
+          "behavior": false
+        },
+        {
+          "id": "04-justify-between",
+          "title": "justify=\"between\"",
+          "behavior": false
+        },
+        {
+          "id": "05-wrap-nowrap",
+          "title": "wrap=\"nowrap\"",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-combobox",
+      "title": "Combobox",
+      "source": "apps/docs/docs/components/forms/ui-combobox.mdx",
+      "component": "ui-combobox",
+      "examples": [
+        {
+          "id": "01-label-and-options",
+          "title": "Label and options",
+          "behavior": false
+        },
+        {
+          "id": "02-disclosure-clearable-and-size",
+          "title": "Disclosure, clearable, and size",
+          "behavior": false
+        },
+        {
+          "id": "03-multiple",
+          "title": "multiple",
+          "behavior": false
+        },
+        {
+          "id": "04-help-and-label-visibility-sr-only",
+          "title": "help and label-visibility=\"sr-only\"",
+          "behavior": false
+        },
+        {
+          "id": "05-readonly-disabled-and-required",
+          "title": "readonly, disabled, and required",
+          "behavior": false
+        },
+        {
+          "id": "06-selected-values",
+          "title": "selected values",
+          "behavior": true
+        },
+        {
+          "id": "07-browse-and-external-filter",
+          "title": "Browse-first suggestions",
+          "behavior": false
+        },
+        {
+          "id": "07-directory-search",
+          "title": "Descriptions and tags",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-container",
+      "title": "Container",
+      "source": "apps/docs/docs/components/layout/ui-container.mdx",
+      "component": "ui-container",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Default",
+          "behavior": false
+        },
+        {
+          "id": "02-measure-narrow",
+          "title": "measure=\"narrow\"",
+          "behavior": false
+        },
+        {
+          "id": "03-gutters-l",
+          "title": "gutters=\"l\"",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-context-menu",
+      "title": "Context Menu",
+      "source": "apps/docs/docs/components/overlay/ui-context-menu.mdx",
+      "component": "ui-context-menu",
+      "examples": [
+        {
+          "id": "01-target-binding",
+          "title": "Target binding",
+          "behavior": false
+        },
+        {
+          "id": "02-disabled-items",
+          "title": "Disabled items",
+          "behavior": false
+        },
+        {
+          "id": "03-checkable",
+          "title": "Checkable context choices",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-cover",
+      "title": "Cover",
+      "source": "apps/docs/docs/components/layout/ui-cover.mdx",
+      "component": "ui-cover",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Default",
+          "behavior": false
+        },
+        {
+          "id": "02-message",
+          "title": "A message",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-description-item",
+      "title": "Description Item",
+      "source": "apps/docs/docs/parts/ui-description-item.mdx",
+      "component": "ui-description-item",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Default",
+          "behavior": false
+        },
+        {
+          "id": "02-tile",
+          "title": "As a tile",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-description-list",
+      "title": "Description List",
+      "source": "apps/docs/docs/components/display/ui-description-list.mdx",
+      "component": "ui-description-list",
+      "examples": [
+        {
+          "id": "01-rows",
+          "title": "Rows",
+          "behavior": false
+        },
+        {
+          "id": "02-tiles",
+          "title": "Tiles",
+          "behavior": false
+        },
+        {
+          "id": "03-stacked",
+          "title": "Stacked",
+          "behavior": false
+        },
+        {
+          "id": "04-grid",
+          "title": "Grid of facts",
+          "behavior": false
+        },
+        {
+          "id": "05-compact",
+          "title": "Compact",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-dialog",
+      "title": "Dialog",
+      "source": "apps/docs/docs/components/overlay/ui-dialog.mdx",
+      "component": "ui-dialog",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Default",
+          "behavior": false
+        },
+        {
+          "id": "02-modal",
+          "title": "modal",
+          "behavior": false
+        },
+        {
+          "id": "03-dismissible",
+          "title": "Outside dismissal",
+          "behavior": false
+        },
+        {
+          "id": "04-long-content",
+          "title": "Long content",
+          "behavior": false
+        },
+        {
+          "id": "05-alert",
+          "title": "Alert confirmation",
+          "behavior": false
+        },
+        {
+          "id": "06-sizes",
+          "title": "Sizes",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-disclosure",
+      "title": "Disclosure",
+      "source": "apps/docs/docs/components/display/ui-disclosure.mdx",
+      "component": "ui-disclosure",
+      "examples": [
+        {
+          "id": "01-default-closed",
+          "title": "Default closed",
+          "behavior": false
+        },
+        {
+          "id": "02-open-and-disabled",
+          "title": "open and disabled",
+          "behavior": false
+        },
+        {
+          "id": "03-named-group",
+          "title": "Named group and rich summary",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-editable",
+      "title": "Editable",
+      "source": "apps/docs/docs/components/forms/ui-editable.mdx",
+      "component": "ui-editable",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Default",
+          "behavior": false
+        },
+        {
+          "id": "02-hint-rename",
+          "title": "hint=\"Rename\"",
+          "behavior": false
+        },
+        {
+          "id": "03-actions",
+          "title": "actions",
+          "behavior": false
+        },
+        {
+          "id": "04-edit-and-disabled",
+          "title": "edit and disabled",
+          "behavior": false
+        },
+        {
+          "id": "05-constraints",
+          "title": "Required short text",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-editor-insert-table-grid",
+      "title": "Insert Table Grid",
+      "source": "apps/docs/docs/editor/ui-editor-insert-table-grid.mdx",
+      "component": "ui-editor-insert-table-grid",
+      "examples": [
+        {
+          "id": "01-open-and-grid-limits",
+          "title": "Open and grid limits",
+          "behavior": false
+        },
+        {
+          "id": "02-max-rows-6-max-cols-6-and-header-row",
+          "title": "max-rows=\"6\", max-cols=\"6\", and header-row",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-editor-mention-menu",
+      "title": "Mention Menu",
+      "source": "apps/docs/docs/editor/ui-editor-mention-menu.mdx",
+      "component": "ui-editor-mention-menu",
+      "examples": [
+        {
+          "id": "01-open",
+          "title": "Open",
+          "behavior": false
+        },
+        {
+          "id": "02-loading-and-query",
+          "title": "loading and query",
+          "behavior": false
+        },
+        {
+          "id": "03-authored-people",
+          "title": "Authored people",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-editor-mention-menu-item",
+      "title": "Mention Menu Item",
+      "source": "apps/docs/docs/parts/ui-editor-mention-menu-item.mdx",
+      "component": "ui-editor-mention-menu-item",
+      "examples": [
+        {
+          "id": "01-person",
+          "title": "Authored person",
+          "behavior": false
+        },
+        {
+          "id": "02-avatar",
+          "title": "Avatar and detail",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-editor-slash-menu",
+      "title": "Slash Menu",
+      "source": "apps/docs/docs/editor/ui-editor-slash-menu.mdx",
+      "component": "ui-editor-slash-menu",
+      "examples": [
+        {
+          "id": "01-open",
+          "title": "Open",
+          "behavior": false
+        },
+        {
+          "id": "02-query-and-selected-index",
+          "title": "query and selected-index",
+          "behavior": false
+        },
+        {
+          "id": "03-authored-groups",
+          "title": "Authored groups and search terms",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-editor-slash-menu-group",
+      "title": "Slash Menu Group",
+      "source": "apps/docs/docs/parts/ui-editor-slash-menu-group.mdx",
+      "component": "ui-editor-slash-menu-group",
+      "examples": [
+        {
+          "id": "01-basic",
+          "title": "Named command group",
+          "behavior": false
+        },
+        {
+          "id": "02-filtered",
+          "title": "Filtered group",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-editor-slash-menu-item",
+      "title": "Slash Menu Item",
+      "source": "apps/docs/docs/parts/ui-editor-slash-menu-item.mdx",
+      "component": "ui-editor-slash-menu-item",
+      "examples": [
+        {
+          "id": "01-command",
+          "title": "Authored command",
+          "behavior": false
+        },
+        {
+          "id": "02-disabled",
+          "title": "Unavailable command",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-editor-table-context-menu",
+      "title": "Table Context Menu",
+      "source": "apps/docs/docs/editor/ui-editor-table-context-menu.mdx",
+      "component": "ui-editor-table-context-menu",
+      "examples": [
+        {
+          "id": "01-open",
+          "title": "Open",
+          "behavior": false
+        },
+        {
+          "id": "02-actions",
+          "title": "Actions",
+          "behavior": false
+        },
+        {
+          "id": "03-row-scope",
+          "title": "Row actions",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-editor-table-overlay",
+      "title": "Table Overlay",
+      "source": "apps/docs/docs/editor/ui-editor-table-overlay.mdx",
+      "component": "ui-editor-table-overlay",
+      "examples": [
+        {
+          "id": "01-open-with-geometry",
+          "title": "Open with geometry",
+          "behavior": false
+        },
+        {
+          "id": "02-hovered-cell-geometry",
+          "title": "Hovered cell geometry",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-editor-table-toolbar",
+      "title": "Table Toolbar",
+      "source": "apps/docs/docs/editor/ui-editor-table-toolbar.mdx",
+      "component": "ui-editor-table-toolbar",
+      "examples": [
+        {
+          "id": "01-open",
+          "title": "Open",
+          "behavior": false
+        },
+        {
+          "id": "02-actions",
+          "title": "Actions",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-editor-toolbar",
+      "title": "Toolbar",
+      "source": "apps/docs/docs/editor/ui-editor-toolbar.mdx",
+      "component": "ui-editor-toolbar",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Default",
+          "behavior": false
+        },
+        {
+          "id": "02-custom-controls",
+          "title": "Custom controls",
+          "behavior": false
+        },
+        {
+          "id": "03-narrow",
+          "title": "Narrow",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-form-field",
+      "title": "Form Field",
+      "source": "apps/docs/docs/components/forms/ui-form-field.mdx",
+      "component": "ui-form-field",
+      "examples": [
+        {
+          "id": "01-label-control-and-help",
+          "title": "Label, control, and help",
+          "behavior": false
+        },
+        {
+          "id": "02-required-and-invalid",
+          "title": "required and invalid",
+          "behavior": false
+        },
+        {
+          "id": "03-label-action",
+          "title": "Label action",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-grid",
+      "title": "Grid",
+      "source": "apps/docs/docs/components/layout/ui-grid.mdx",
+      "component": "ui-grid",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Default",
+          "behavior": false
+        },
+        {
+          "id": "02-gap-and-minimum-column-width",
+          "title": "Gap and minimum column width",
+          "behavior": false
+        },
+        {
+          "id": "03-column-cap",
+          "title": "Cap the column count",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-icon-button",
+      "title": "Icon Button",
+      "source": "apps/docs/docs/components/forms/ui-icon-button.mdx",
+      "component": "ui-icon-button",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Default",
+          "behavior": false
+        },
+        {
+          "id": "02-size-and-variant",
+          "title": "Size and variant",
+          "behavior": false
+        },
+        {
+          "id": "03-round",
+          "title": "round",
+          "behavior": false
+        },
+        {
+          "id": "04-disabled",
+          "title": "disabled",
+          "behavior": false
+        },
+        {
+          "id": "05-help-toggletip",
+          "title": "Help toggletip",
+          "behavior": false
+        },
+        {
+          "id": "06-loading",
+          "title": "Loading icon action",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-input",
+      "title": "Input",
+      "source": "apps/docs/docs/components/forms/ui-input.mdx",
+      "component": "ui-input",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Default",
+          "behavior": false
+        },
+        {
+          "id": "02-invalid-readonly-and-disabled",
+          "title": "invalid, readonly, and disabled",
+          "behavior": false
+        },
+        {
+          "id": "03-required",
+          "title": "required",
+          "behavior": false
+        },
+        {
+          "id": "04-size",
+          "title": "size",
+          "behavior": false
+        },
+        {
+          "id": "05-compact-row",
+          "title": "Compact row",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-input-group",
+      "title": "Input Group",
+      "source": "apps/docs/docs/components/forms/ui-input-group.mdx",
+      "component": "ui-input-group",
+      "examples": [
+        {
+          "id": "01-suffix",
+          "title": "Suffix",
+          "behavior": false
+        },
+        {
+          "id": "02-prefix-and-suffix",
+          "title": "Prefix and suffix",
+          "behavior": false
+        },
+        {
+          "id": "03-action",
+          "title": "Action",
+          "behavior": false
+        },
+        {
+          "id": "04-icon-prefix",
+          "title": "Icon prefix",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-list",
+      "title": "List",
+      "source": "apps/docs/docs/components/display/ui-list.mdx",
+      "component": "ui-list",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Native list items",
+          "behavior": false
+        },
+        {
+          "id": "02-grid",
+          "title": "Grid",
+          "behavior": false
+        },
+        {
+          "id": "03-compact",
+          "title": "Compact",
+          "behavior": false
+        },
+        {
+          "id": "04-structured",
+          "title": "Structured rows",
+          "behavior": false
+        },
+        {
+          "id": "05-native-cards",
+          "title": "Native cards",
+          "behavior": false
+        },
+        {
+          "id": "06-bullets",
+          "title": "Bullets",
+          "behavior": false
+        },
+        {
+          "id": "07-numbered",
+          "title": "Numbered steps",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-list-item",
+      "title": "List Item",
+      "source": "apps/docs/docs/parts/ui-list-item.mdx",
+      "component": "ui-list-item",
+      "examples": [
+        {
+          "id": "01-link",
+          "title": "Link",
+          "behavior": false
+        },
+        {
+          "id": "02-trailing",
+          "title": "Trailing control",
+          "behavior": false
+        },
+        {
+          "id": "03-card-and-current",
+          "title": "Card and current",
+          "behavior": false
+        },
+        {
+          "id": "05-highlighted",
+          "title": "New items",
+          "behavior": false
+        },
+        {
+          "id": "06-wrapping",
+          "title": "Wrapped descriptions",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-listbox",
+      "title": "Listbox",
+      "source": "apps/docs/docs/components/forms/ui-listbox.mdx",
+      "component": "ui-listbox",
+      "examples": [
+        {
+          "id": "01-single",
+          "title": "Visible single choice",
+          "behavior": false
+        },
+        {
+          "id": "02-multiple",
+          "title": "Multiple choice",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-menu",
+      "title": "Menu",
+      "source": "apps/docs/docs/components/overlay/ui-menu.mdx",
+      "component": "ui-menu",
+      "examples": [
+        {
+          "id": "01-open",
+          "title": "Inline menu",
+          "behavior": false
+        },
+        {
+          "id": "02-for",
+          "title": "for",
+          "behavior": false
+        },
+        {
+          "id": "03-disabled-items",
+          "title": "disabled items",
+          "behavior": false
+        },
+        {
+          "id": "04-placement-top-end",
+          "title": "placement=\"top-end\"",
+          "behavior": false
+        },
+        {
+          "id": "05-groups-links",
+          "title": "Groups, links, and shortcuts",
+          "behavior": false
+        },
+        {
+          "id": "06-checkable",
+          "title": "Checkable view options",
+          "behavior": false
+        },
+        {
+          "id": "07-small",
+          "title": "Small menu",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-menu-group",
+      "title": "Menu Group",
+      "source": "apps/docs/docs/parts/ui-menu-group.mdx",
+      "component": "ui-menu-group",
+      "examples": [
+        {
+          "id": "01-sort",
+          "title": "Named group",
+          "behavior": false
+        },
+        {
+          "id": "02-radio",
+          "title": "Radio choices",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-menu-item",
+      "title": "Menu Item",
+      "source": "apps/docs/docs/parts/ui-menu-item.mdx",
+      "component": "ui-menu-item",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Default",
+          "behavior": false
+        },
+        {
+          "id": "02-disabled",
+          "title": "disabled",
+          "behavior": false
+        },
+        {
+          "id": "03-link-and-shortcut",
+          "title": "Link and shortcut",
+          "behavior": false
+        },
+        {
+          "id": "04-checkable",
+          "title": "Checkable items",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-meter",
+      "title": "Meter",
+      "source": "apps/docs/docs/components/display/ui-meter.mdx",
+      "component": "ui-meter",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Default",
+          "behavior": false
+        },
+        {
+          "id": "02-tone",
+          "title": "tone",
+          "behavior": false
+        },
+        {
+          "id": "03-in-a-table",
+          "title": "In a table",
+          "behavior": false
+        },
+        {
+          "id": "04-checklist",
+          "title": "Checklist progress",
+          "behavior": false
+        },
+        {
+          "id": "05-steps",
+          "title": "Steps",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-nav-item",
+      "title": "Nav Item",
+      "source": "apps/docs/docs/components/display/ui-nav-item.mdx",
+      "component": "ui-nav-item",
+      "examples": [
+        {
+          "id": "01-sidebar",
+          "title": "Sidebar",
+          "behavior": false
+        },
+        {
+          "id": "02-description",
+          "title": "Description",
+          "behavior": false
+        },
+        {
+          "id": "03-step",
+          "title": "Current step",
+          "behavior": false
+        },
+        {
+          "id": "04-selection",
+          "title": "Surface and line selection",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-page-header",
+      "title": "Page Header",
+      "source": "apps/docs/docs/components/display/ui-page-header.mdx",
+      "component": "ui-page-header",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Default",
+          "behavior": false
+        },
+        {
+          "id": "02-centered",
+          "title": "Centered, with an eyebrow",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-popover",
+      "title": "Popover",
+      "source": "apps/docs/docs/components/overlay/ui-popover.mdx",
+      "component": "ui-popover",
+      "examples": [
+        {
+          "id": "01-trigger-binding",
+          "title": "Trigger binding",
+          "behavior": false
+        },
+        {
+          "id": "02-placement-top-end",
+          "title": "placement=\"top-end\"",
+          "behavior": false
+        },
+        {
+          "id": "03-side-placement-and-offset",
+          "title": "Side placement and offset",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-radio",
+      "title": "Radio",
+      "source": "apps/docs/docs/components/forms/ui-radio.mdx",
+      "component": "ui-radio",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Default",
+          "behavior": false
+        },
+        {
+          "id": "02-checked-and-disabled",
+          "title": "checked and disabled",
+          "behavior": false
+        },
+        {
+          "id": "03-with-description",
+          "title": "With a description",
+          "behavior": false
+        },
+        {
+          "id": "04-size",
+          "title": "size",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-radio-group",
+      "title": "Radio Group",
+      "source": "apps/docs/docs/components/forms/ui-radio-group.mdx",
+      "component": "ui-radio-group",
+      "examples": [
+        {
+          "id": "01-default-horizontal",
+          "title": "Default horizontal",
+          "behavior": false
+        },
+        {
+          "id": "02-vertical-required-and-value",
+          "title": "Vertical, required, and value",
+          "behavior": false
+        },
+        {
+          "id": "03-disabled",
+          "title": "disabled",
+          "behavior": false
+        },
+        {
+          "id": "04-invalid",
+          "title": "Invalid group",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-reel",
+      "title": "Reel",
+      "source": "apps/docs/docs/components/layout/ui-reel.mdx",
+      "component": "ui-reel",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Default",
+          "behavior": false
+        },
+        {
+          "id": "02-gap-item-width-and-snap",
+          "title": "Gap, item width, and snap",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-scroll-area",
+      "title": "Scroll Area",
+      "source": "apps/docs/docs/components/layout/ui-scroll-area.mdx",
+      "component": "ui-scroll-area",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Default",
+          "behavior": false
+        },
+        {
+          "id": "02-horizontal",
+          "title": "Horizontal",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-search-result-row",
+      "title": "Search Result Row",
+      "source": "apps/docs/docs/parts/ui-search-result-row.mdx",
+      "component": "ui-search-result-row",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Default",
+          "behavior": false
+        },
+        {
+          "id": "02-selected-and-disabled",
+          "title": "selected and disabled",
+          "behavior": false
+        },
+        {
+          "id": "04-compact",
+          "title": "Compact results",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-search-shell",
+      "title": "Search Shell",
+      "source": "apps/docs/docs/components/overlay/ui-search-shell.mdx",
+      "component": "ui-search-shell",
+      "examples": [
+        {
+          "id": "01-open",
+          "title": "open",
+          "behavior": false
+        },
+        {
+          "id": "02-label-dismissible-status-and-footer",
+          "title": "label, dismissible, status, and footer",
+          "behavior": true
+        }
+      ]
+    },
+    {
+      "path": "components/ui-section",
+      "title": "Section",
+      "source": "apps/docs/docs/components/display/ui-section.mdx",
+      "component": "ui-section",
+      "examples": [
+        {
+          "id": "01-plain",
+          "title": "Plain",
+          "behavior": false
+        },
+        {
+          "id": "02-card-and-danger",
+          "title": "Cards and danger",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-select",
+      "title": "Select",
+      "source": "apps/docs/docs/components/forms/ui-select.mdx",
+      "component": "ui-select",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Default",
+          "behavior": false
+        },
+        {
+          "id": "02-value-required-and-invalid",
+          "title": "value, required, and invalid",
+          "behavior": false
+        },
+        {
+          "id": "03-disabled",
+          "title": "disabled",
+          "behavior": false
+        },
+        {
+          "id": "04-size",
+          "title": "size",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-separator",
+      "title": "Separator",
+      "source": "apps/docs/docs/components/layout/ui-separator.mdx",
+      "component": "ui-separator",
+      "examples": [
+        {
+          "id": "01-default-horizontal",
+          "title": "Default horizontal",
+          "behavior": false
+        },
+        {
+          "id": "02-orientation-vertical",
+          "title": "orientation=\"vertical\"",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-sidebar",
+      "title": "Sidebar",
+      "source": "apps/docs/docs/components/layout/ui-sidebar.mdx",
+      "component": "ui-sidebar",
+      "examples": [
+        {
+          "id": "01-app-shell",
+          "title": "App shell",
+          "behavior": false
+        },
+        {
+          "id": "02-end-side-resizable",
+          "title": "End side, resizable",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-spinner",
+      "title": "Spinner",
+      "source": "apps/docs/docs/components/display/ui-spinner.mdx",
+      "component": "ui-spinner",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Default",
+          "behavior": false
+        },
+        {
+          "id": "02-beside-text",
+          "title": "Beside text",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-stack",
+      "title": "Stack",
+      "source": "apps/docs/docs/components/layout/ui-stack.mdx",
+      "component": "ui-stack",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Default",
+          "behavior": false
+        },
+        {
+          "id": "02-gap-xl-and-align-center",
+          "title": "gap=\"xl\" and align=\"center\"",
+          "behavior": false
+        },
+        {
+          "id": "03-justify-between",
+          "title": "justify=\"between\"",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-status-message",
+      "title": "Status Message",
+      "source": "apps/docs/docs/components/display/ui-status-message.mdx",
+      "component": "ui-status-message",
+      "examples": [
+        {
+          "id": "01-kinds",
+          "title": "Empty, loading, and error",
+          "behavior": false
+        },
+        {
+          "id": "02-panel",
+          "title": "Panel",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-switch",
+      "title": "Switch",
+      "source": "apps/docs/docs/components/forms/ui-switch.mdx",
+      "component": "ui-switch",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Default",
+          "behavior": false
+        },
+        {
+          "id": "02-checked-and-disabled",
+          "title": "checked and disabled",
+          "behavior": false
+        },
+        {
+          "id": "03-name-value-and-required",
+          "title": "name, value, and required",
+          "behavior": false
+        },
+        {
+          "id": "04-with-description",
+          "title": "With a description",
+          "behavior": false
+        },
+        {
+          "id": "05-size",
+          "title": "size",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-switcher",
+      "title": "Switcher",
+      "source": "apps/docs/docs/components/layout/ui-switcher.mdx",
+      "component": "ui-switcher",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Default",
+          "behavior": false
+        },
+        {
+          "id": "02-gap-threshold-and-alignment",
+          "title": "Gap, threshold, and alignment",
+          "behavior": false
+        },
+        {
+          "id": "03-item-limit",
+          "title": "Limit a row",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-table",
+      "title": "Table",
+      "source": "apps/docs/docs/components/display/ui-table.mdx",
+      "component": "ui-table",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Default",
+          "behavior": false
+        },
+        {
+          "id": "02-compact-with-controls",
+          "title": "Compact, with controls",
+          "behavior": false
+        },
+        {
+          "id": "03-sticky-header",
+          "title": "Sticky header",
+          "behavior": false
+        },
+        {
+          "id": "04-wide",
+          "title": "Wider than its container",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-tabs",
+      "title": "Tabs",
+      "source": "apps/docs/docs/components/display/ui-tabs.mdx",
+      "component": "ui-tabs",
+      "examples": [
+        {
+          "id": "01-default-horizontal",
+          "title": "Default horizontal",
+          "behavior": false
+        },
+        {
+          "id": "02-stretch",
+          "title": "stretch",
+          "behavior": false
+        },
+        {
+          "id": "03-overflow-on-narrow-screens",
+          "title": "Overflow on narrow screens",
+          "behavior": false
+        },
+        {
+          "id": "04-orientation-vertical",
+          "title": "orientation=\"vertical\"",
+          "behavior": false
+        },
+        {
+          "id": "05-manual-activation",
+          "title": "Manual activation",
+          "behavior": false
+        },
+        {
+          "id": "06-authored-tab-labels",
+          "title": "Rich tab labels",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-text",
+      "title": "Text",
+      "source": "apps/docs/docs/components/display/ui-text.mdx",
+      "component": "ui-text",
+      "examples": [
+        {
+          "id": "01-tones",
+          "title": "Tones",
+          "behavior": false
+        },
+        {
+          "id": "02-variants",
+          "title": "Eyebrow and code",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-textarea",
+      "title": "Textarea",
+      "source": "apps/docs/docs/components/forms/ui-textarea.mdx",
+      "component": "ui-textarea",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Default",
+          "behavior": false
+        },
+        {
+          "id": "02-rows-invalid-and-readonly",
+          "title": "rows, invalid, and readonly",
+          "behavior": false
+        },
+        {
+          "id": "03-disabled-and-required",
+          "title": "disabled and required",
+          "behavior": false
+        },
+        {
+          "id": "04-size",
+          "title": "size",
+          "behavior": false
+        },
+        {
+          "id": "05-autosize",
+          "title": "Grow with content",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-toast",
+      "title": "Toast",
+      "source": "apps/docs/docs/parts/ui-toast.mdx",
+      "component": "ui-toast",
+      "examples": [
+        {
+          "id": "01-authored",
+          "title": "Authored status and action",
+          "behavior": false
+        },
+        {
+          "id": "02-danger",
+          "title": "Danger alert",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-toast-region",
+      "title": "Toast Region",
+      "source": "apps/docs/docs/components/overlay/ui-toast-region.mdx",
+      "component": "ui-toast-region",
+      "examples": [
+        {
+          "id": "01-default-closed",
+          "title": "Show a notification",
+          "behavior": false
+        },
+        {
+          "id": "02-multiple-messages",
+          "title": "Multiple messages",
+          "behavior": false
+        },
+        {
+          "id": "03-auto-and-duration-3000",
+          "title": "Timed notification",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-tooltip",
+      "title": "Tooltip",
+      "source": "apps/docs/docs/components/overlay/ui-tooltip.mdx",
+      "component": "ui-tooltip",
+      "examples": [
+        {
+          "id": "01-target-binding",
+          "title": "Target binding",
+          "behavior": false
+        },
+        {
+          "id": "02-placement-and-delays",
+          "title": "Placement and delays",
+          "behavior": false
+        },
+        {
+          "id": "03-inverse",
+          "title": "inverse",
+          "behavior": false
+        },
+        {
+          "id": "04-side-placement",
+          "title": "Side placement",
+          "behavior": false
+        },
+        {
+          "id": "05-shortcut",
+          "title": "Keyboard shortcut",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-top-bar",
+      "title": "Top Bar",
+      "source": "apps/docs/docs/components/display/ui-top-bar.mdx",
+      "component": "ui-top-bar",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Default",
+          "behavior": false
+        },
+        {
+          "id": "02-leading-search-and-actions-slots",
+          "title": "leading, search, and actions slots",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "components/ui-tree",
+      "title": "Tree",
+      "source": "apps/docs/docs/components/display/ui-tree.mdx",
+      "component": "ui-tree",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Default",
+          "behavior": false
+        },
+        {
+          "id": "02-expanded-and-selected-items",
+          "title": "Expanded and selected items",
+          "behavior": false
+        },
+        {
+          "id": "03-max-depth-2-and-hover-expand-delay-300",
+          "title": "max-depth=\"2\" and hover-expand-delay=\"300\"",
+          "behavior": true
+        },
+        {
+          "id": "04-marquee",
+          "title": "marquee",
+          "behavior": false
+        },
+        {
+          "id": "05-link-rows",
+          "title": "Link rows",
+          "behavior": false
+        },
+        {
+          "id": "06-move-without-dragging",
+          "title": "Move with clicks or keys",
+          "behavior": true
+        },
+        {
+          "id": "07-multiple-selection",
+          "title": "Multiple selection",
+          "behavior": true
+        }
+      ]
+    },
+    {
+      "path": "components/ui-tree-item",
+      "title": "Tree Item",
+      "source": "apps/docs/docs/parts/ui-tree-item.mdx",
+      "component": "ui-tree-item",
+      "examples": [
+        {
+          "id": "01-default",
+          "title": "Default",
+          "behavior": false
+        },
+        {
+          "id": "02-container",
+          "title": "container",
+          "behavior": true
+        },
+        {
+          "id": "03-disabled",
+          "title": "disabled",
+          "behavior": false
+        },
+        {
+          "id": "04-actions-slot",
+          "title": "Actions slot",
+          "behavior": false
+        },
+        {
+          "id": "05-lazy",
+          "title": "Lazy branch",
+          "behavior": false
+        }
+      ]
+    },
+    {
+      "path": "conventions",
+      "title": "Conventions",
+      "source": "apps/docs/docs/conventions.md",
+      "component": null,
+      "examples": []
+    },
+    {
+      "path": "docs-api-sync",
+      "title": "Docs/API Sync Workflow",
+      "source": "apps/docs/docs/docs-api-sync.md",
+      "component": null,
+      "examples": []
+    },
+    {
+      "path": "editor",
+      "title": "Editor",
+      "source": "apps/docs/docs/editor.mdx",
+      "component": null,
+      "examples": []
+    },
+    {
+      "path": "editor/looma-editor",
+      "title": "Turnkey editor",
+      "source": "apps/docs/docs/editor/looma-editor.mdx",
+      "component": null,
+      "examples": []
+    },
+    {
+      "path": "getting-started",
+      "title": "Getting Started",
+      "source": "apps/docs/docs/getting-started.md",
+      "component": null,
+      "examples": []
+    },
+    {
+      "path": "overlay-contract",
+      "title": "Overlay Contract",
+      "source": "apps/docs/docs/overlay-contract.md",
+      "component": null,
+      "examples": []
+    },
+    {
+      "path": "release-1-support",
+      "title": "Release 1 Support and Limitations",
+      "source": "apps/docs/docs/release-1-support.md",
+      "component": null,
+      "examples": []
+    },
+    {
+      "path": "tokens",
+      "title": "Tokens",
+      "source": "apps/docs/docs/tokens.md",
+      "component": null,
+      "examples": []
+    }
+  ]
+}

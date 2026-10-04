@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./docs-fixture";
 
 test("tree demos keep controlled selection and apply a keyboard reorder", async ({ page }) => {
   await page.goto("components/ui-tree", { waitUntil: "domcontentloaded" });
