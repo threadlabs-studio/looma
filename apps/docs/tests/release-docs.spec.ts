@@ -465,8 +465,9 @@ test("the component catalog exposes the complete library and filters live previe
     "Core, layout, form, display, and overlay building blocks"
   );
   await expect(page.locator(".looma-catalog-hero")).not.toContainText("Forty-nine");
-  await expect(page.locator(".looma-component-card")).toHaveCount(53);
-  await expect(page.getByText("Showing 53 components", { exact: true })).toBeVisible();
+  await expect(page.locator(".looma-component-card")).toHaveCount(54);
+  await expect(page.getByText("Showing 54 components", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Image", exact: true })).toHaveCount(1);
   await expect(page.getByRole("heading", { level: 2, name: "Chip" })).toHaveCount(0);
   await expect(page.getByRole("heading", { level: 2, name: "Floating Action Button" })).toHaveCount(0);
   await expect(page.getByRole("heading", { level: 2, name: "Menu Item" })).toHaveCount(0);

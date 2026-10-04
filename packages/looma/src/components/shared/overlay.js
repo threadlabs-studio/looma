@@ -32,7 +32,7 @@ function requestClose(document, reason, trigger) {
 function ensureListeners(document, state) {
   if (state.listening) return;
   state.onKeydown = (event) => {
-    if (event.key === "Escape") requestClose(document, "escape", "keyboard");
+    if (event.key === "Escape" && !event.defaultPrevented && requestClose(document, "escape", "keyboard")) event.preventDefault();
   };
   state.onPointerdown = (event) => {
     const top = state.records.at(-1);

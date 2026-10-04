@@ -106,7 +106,7 @@ export default function controller(host) {
   const onClick = (event) => select(menuItemFrom(event.target), triggerFor(event));
   const onKeydown = (event) => {
     if (event.key === "Escape") {
-      if (host.props.inline.value) return;
+      if (host.props.inline.value || event.defaultPrevented) return;
       event.preventDefault();
       requestTopOverlayClose(document, "escape", "keyboard");
       return;

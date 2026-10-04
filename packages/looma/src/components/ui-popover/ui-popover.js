@@ -82,7 +82,10 @@ export default function controller(host) {
     lastOpen = open;
   };
   const onKeydown = (event) => {
-    if (event.key === "Escape") requestTopOverlayClose(document, "escape", "keyboard");
+    if (event.key === "Escape" && !event.defaultPrevented) {
+      event.preventDefault();
+      requestTopOverlayClose(document, "escape", "keyboard");
+    }
   };
   element.addEventListener("keydown", onKeydown);
   const stop = host.effect(apply);
