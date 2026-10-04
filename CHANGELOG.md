@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- IconButton can match an adjacent Button’s height with `matchButton` (`match-button` in HTML), including themed sizes and touch controls. Compact icon buttons keep their existing sizes.
+
 - Touch tree rows keep labels separate from actions after tapping, including RTL and multiple selection.
 - Touch input text stays readable inside small captions without disabling browser zoom.
 - Editors can opt into a contextual toolbar with full commands at a focused caret or text selection; the existing mobile dock remains unchanged.
