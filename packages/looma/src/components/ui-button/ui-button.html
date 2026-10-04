@@ -1,9 +1,11 @@
 <link rel="component" href="../ui-spinner/ui-spinner.html">
+<link rel="component" href="../ui-icon/ui-icon.html">
 <template component="ui-button" controller="./ui-button.js">
   <defs>
-    <prop name="variant" type="keyword" values="outline, solid, danger, ghost, link" default="outline"
+    <prop name="variant" type="keyword" values="outline, solid, danger, ghost, link, card" default="outline"
     >Emphasis: how loudly the button asks. solid fills with its tone, outline draws its tone at the edge over a wash of it, ghost carries only text until it is
-      hovered, and link is an inline text action that reads as a link. danger is solid in the danger tone, kept for the call sites that name it.</prop>
+      hovered, and link is an inline text action that reads as a link. danger is solid in the danger tone, kept for the call sites that name it. card uses the
+      same tone on a full-width action with an icon slot, wrapping content, and a centered action slot.</prop>
     <prop name="size" type="keyword" values="xs, sm, md, lg" default="md"
     >Height, padding, and type size. xs is 1.5rem with the smallest text, for a control inside a line of small text; sm is the small control height (2rem by
       default) with tighter padding and smaller text, md is the standard control height (2.5rem), and lg is taller (3rem) with roomier padding. Under touch, sm
@@ -37,6 +39,34 @@
          table keyed by a boolean's text picks each value, and null leaves the attribute off. -->
   </defs>
   <template $match>
+    <a
+      $when="variant = 'card' and as = 'a'"
+      from:href="{ true: null, false: href }[concat(disabled or loading or pending)]"
+      from:target="target"
+      from:rel="rel"
+      from:aria-disabled="{ true: 'true', false: null }[concat(disabled or loading or pending)]"
+      from:aria-busy="loading or pending"
+      from:tabindex="{ true: '0', false: null }[concat((loading or pending) and not disabled)]"
+    >
+      <span class="card-icon"><ui-spinner $if="loading or pending" size="sm"></ui-spinner><template $if="not (loading or pending)"><slot
+            name="icon"
+          ></slot></template></span>
+      <span class="card-content"><slot></slot></span>
+      <span class="card-action"><slot name="action"><ui-icon name="chevron-right" aria-hidden="true"></ui-icon></slot></span>
+    </a>
+    <button
+      $when="variant = 'card'"
+      from:type="type"
+      from:disabled="disabled"
+      from:aria-disabled="{ true: 'true', false: null }[concat(loading or pending)]"
+      from:aria-busy="loading or pending"
+    >
+      <span class="card-icon"><ui-spinner $if="loading or pending" size="sm"></ui-spinner><template $if="not (loading or pending)"><slot
+            name="icon"
+          ></slot></template></span>
+      <span class="card-content"><slot></slot></span>
+      <span class="card-action"><slot name="action"><ui-icon name="chevron-right" aria-hidden="true"></ui-icon></slot></span>
+    </button>
     <a
       $when="as = 'a'"
       from:href="{ true: null, false: href }[concat(disabled or loading or pending)]"
@@ -231,6 +261,42 @@
       min-block-size: var(--ui-control-size-lg);
       padding: var(--ui-space-3) var(--ui-space-4);
       font-size: var(--ui-font-size-md);
+    }
+
+    /* Card actions inherit Button's palette and behavior; only their shared layout changes.
+       The icon may contain any decorative composition. Empty icons remove their column. */
+    :host-state([variant="card"]) {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: start;
+      gap: var(--ui-space-3);
+      inline-size: 100%;
+      min-block-size: max(var(--ui-control-min-block-size), var(--ui-control-size-md));
+      text-align: start;
+      white-space: normal;
+      box-shadow: none;
+      background-image: none;
+    }
+    :host-state([variant="card"][size="lg"]) {
+      min-block-size: max(var(--ui-control-min-block-size), var(--ui-control-size-lg));
+    }
+    :host-state([variant="card"]):has(.card-icon:empty) {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+    .card-icon {
+      display: flex;
+      align-items: flex-start;
+    }
+    .card-icon:empty {
+      display: none;
+    }
+    .card-content {
+      min-inline-size: 0;
+    }
+    .card-action {
+      display: flex;
+      align-items: center;
+      align-self: center;
     }
 
     /* A link is never :enabled, so interactive states test "not unavailable" instead: for a button that
