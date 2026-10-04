@@ -131,6 +131,14 @@ unchanged; a browser test checks TOC highlighting after height changes and ancho
 navigation in all three engines. The dark desktop reference now records the
 settled inactive first link at the 900px viewport. No styles or TOC classes are
 changed for capture.
+
+The 0.24 reference refresh updates the navbar version and editor guide copy.
+The dark Text HTML/API and List API references also record the settled active
+first TOC link seen in both the update and independent comparison runs. Those
+headings remain visible outside the example/API tabs; their source and layout
+are unchanged. References retain this native highlight without changing styles,
+TOC classes, or the zero-pixel comparison.
+
 Visual assertions allow 15 seconds and visual cases 60 seconds for long pages;
 the pixel comparison remains unchanged. Focus, open overlays, and selections remain
 intact. Screenshots disable animations and hide the
