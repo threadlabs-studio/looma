@@ -1,4 +1,5 @@
 import BrowserOnly from "@docusaurus/BrowserOnly";
+import useBaseUrl from "@docusaurus/useBaseUrl";
 import React, { useEffect, useRef, useState } from "react";
 
 import { examplesFor } from "../examples";
@@ -8,6 +9,28 @@ import { useLoomaRuntime } from "./LiveExample";
 interface ComponentPreviewProps {
   component: string;
   compact?: boolean;
+}
+
+// Always-open floating examples are separate viewports, not CSS exceptions that move popups inline.
+const isolatedPopups = new Set(["ui-search-shell", "ui-editor-mention-menu", "ui-editor-slash-menu", "ui-editor-table-context-menu"]);
+
+function PopupViewport({ component, markup }: { component: string; markup: string }): JSX.Element {
+  const runtime = useBaseUrl("/preview-runtime/runtime.js");
+  const styles = useBaseUrl("/preview-runtime/runtime.css");
+  const [theme, setTheme] = useState("light");
+  useEffect(() => {
+    const sync = () => setTheme(document.documentElement.dataset.theme ?? "light");
+    const observer = new MutationObserver(sync);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    sync();
+    return () => observer.disconnect();
+  }, []);
+  // Only repository-authored markup reaches this isolated document.
+  const srcDoc = `<!doctype html><html data-theme="${theme}"><head><meta charset="utf-8"><link rel="stylesheet" href="${styles}"><style>
+    html, body { margin: 0; min-height: 100%; color: var(--ui-text-primary); background: var(--ui-surface); font-family: var(--ui-font-family-sans); }
+    body { padding: 12px; box-sizing: border-box; }
+  </style></head><body>${markup}<script src="${runtime}"></script></body></html>`;
+  return <iframe className="looma-popup-viewport" title={`${component} preview viewport`} srcDoc={srcDoc} />;
 }
 
 /**
@@ -43,7 +66,9 @@ function ComponentPreviewClient({ component, compact = false }: ComponentPreview
     <div ref={rootRef} className={`looma-component-preview${compact ? " looma-component-preview--compact" : ""}`}>
       {compact ? (
         // Only repository-authored example files reach this sink.
-        <div dangerouslySetInnerHTML={{ __html: examples[0]?.markup ?? "" }} />
+        isolatedPopups.has(component)
+          ? <PopupViewport component={component} markup={examples[0]?.markup ?? ""} />
+          : <div dangerouslySetInnerHTML={{ __html: examples[0]?.markup ?? "" }} />
       ) : (
         <div className="looma-preview-scenarios">
           {examples.map((example) => (
@@ -71,12 +96,18 @@ function ComponentPreviewClient({ component, compact = false }: ComponentPreview
                   <output>{previewWidth}px</output>
                 </label>
               ) : null}
-              <div
-                className="looma-preview-scenario__stage"
-                data-component-preview={component}
-                style={example.resizable ? { "--looma-preview-width": `${previewWidth}px` } as React.CSSProperties : undefined}
-                dangerouslySetInnerHTML={{ __html: example.markup }}
-              />
+              {isolatedPopups.has(component) ? (
+                <div className="looma-preview-scenario__stage" data-component-preview={component}>
+                  <PopupViewport component={component} markup={example.markup} />
+                </div>
+              ) : (
+                <div
+                  className="looma-preview-scenario__stage"
+                  data-component-preview={component}
+                  style={example.resizable ? { "--looma-preview-width": `${previewWidth}px` } as React.CSSProperties : undefined}
+                  dangerouslySetInnerHTML={{ __html: example.markup }}
+                />
+              )}
               <ScenarioModeExample
                 examples={example.frameworks}
                 markup={example.frameworkMarkup}

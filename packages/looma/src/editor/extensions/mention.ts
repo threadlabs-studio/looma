@@ -198,6 +198,7 @@ export function createLoomaMentionExtension(
             selectedIndex,
             query: props.query,
             rect: props.clientRect?.() ?? null,
+            getRect: () => props.clientRect?.() ?? null,
             loading,
             highlight: (index) => {
               if (index >= 0 && index < props.items.length) {

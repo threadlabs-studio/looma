@@ -517,7 +517,7 @@ test("editor table menus use one action capability set", async ({ page }) => {
   for (const tag of ["ui-editor-table-context-menu", "ui-editor-table-toolbar"] as const) {
     await page.goto(`components/${tag}`, { waitUntil: "domcontentloaded" });
     const configured = page.locator("[data-preview-scenario='Actions']");
-    await expect(configured.locator("[data-action^='add-row']").first()).toBeVisible();
+    await expect((tag === "ui-editor-table-context-menu" ? configured.frameLocator("iframe") : configured).locator("[data-action^='add-row']").first()).toBeVisible();
     const code = configured.locator(".looma-mode-code").first();
     await expect(code).toContainText("actions='[");
     await expect(code).not.toContainText("can-add-row");
@@ -566,7 +566,9 @@ test("every component page renders distinct, visible, coded scenarios", async ({
       `${component.tag} scenario stages should have visible geometry`
     ).toBe(true);
     expect(
-      await page.locator(`[data-component~="${component.tag}"]`).count(),
+      await (["ui-search-shell", "ui-editor-mention-menu", "ui-editor-slash-menu", "ui-editor-table-context-menu"].includes(component.tag)
+        ? page.locator("[data-preview-scenario]").first().frameLocator("iframe").locator(`[data-component~="${component.tag}"]`)
+        : page.locator(`[data-component~="${component.tag}"]`)).count(),
       `${component.tag} should lower to its live native root`
     ).toBeGreaterThan(0);
     await expect(page.getByRole("heading", { name: "SSR Markup" })).toHaveCount(0);
@@ -745,43 +747,46 @@ test("search shell owns native dialog visibility and exposes configured regions 
   await page.goto("components/ui-search-shell", { waitUntil: "domcontentloaded" });
 
   const openScenario = page.locator("[data-preview-scenario='open']");
-  const dialog = openScenario.getByRole("dialog", { name: "Search commands" });
+  const openViewport = openScenario.frameLocator("iframe");
+  const dialog = openViewport.getByRole("dialog", { name: "Search commands" });
   await expect(dialog).toBeVisible();
-  await expect(openScenario.getByRole("searchbox", { name: "Search commands" })).toBeVisible();
-  await expect(openScenario.locator(".status")).toBeHidden();
-  await expect(openScenario.locator(".footer")).toBeHidden();
+  await expect(openViewport.getByRole("searchbox", { name: "Search commands" })).toBeVisible();
+  await expect(openViewport.locator(".status")).toBeHidden();
+  await expect(openViewport.locator(".footer")).toBeHidden();
   await expect(openScenario.locator(".looma-mode-code")).not.toContainText('slot="backdrop"');
   await expect(openScenario.locator(".looma-mode-code")).toContainText("<ui-search-shell open");
 
   const configured = page.locator("[data-preview-scenario='label, dismissible, status, and footer']");
-  const configuredDialog = configured.getByRole("dialog", { name: "Search documentation" });
+  const configuredViewport = configured.frameLocator("iframe");
+  const configuredDialog = configuredViewport.getByRole("dialog", { name: "Search documentation" });
   await expect(configuredDialog).toBeVisible();
   await expect(configuredDialog.getByText("3 results", { exact: true })).toBeVisible();
-  await expect(configured.getByRole("button", { name: "Close" })).toBeVisible();
-  const panelBounds = await configured.locator(".panel").boundingBox();
-  const inputBounds = await configured.getByRole("searchbox").boundingBox();
+  await expect(configuredViewport.getByRole("button", { name: "Close" })).toBeVisible();
+  const panelBounds = await configuredViewport.locator(".panel").boundingBox();
+  const inputBounds = await configuredViewport.getByRole("searchbox").boundingBox();
   expect(panelBounds).not.toBeNull();
   expect(inputBounds).not.toBeNull();
   expect(panelBounds!.width).toBeGreaterThanOrEqual(400);
   expect(inputBounds!.width).toBeGreaterThan(panelBounds!.width * 0.85);
   const [stageBounds, closeBounds] = await Promise.all([
-    configured.locator(".looma-preview-scenario__stage").boundingBox(),
-    configured.getByRole("button", { name: "Close" }).boundingBox()
+    configured.locator("iframe").boundingBox(),
+    configuredViewport.getByRole("button", { name: "Close" }).boundingBox()
   ]);
   expect(stageBounds).not.toBeNull();
   expect(closeBounds).not.toBeNull();
   expect(closeBounds!.y + closeBounds!.height).toBeLessThanOrEqual(stageBounds!.y + stageBounds!.height + 1);
-  const search = configured.getByRole("searchbox", { name: "Search documentation" });
+  const search = configuredViewport.getByRole("searchbox", { name: "Search documentation" });
   await search.fill("tokens");
-  await expect(configured.getByText("2 results", { exact: true })).toBeVisible();
-  await expect(configured.getByRole("button", { name: /Design tokens/ })).toBeVisible();
-  await expect(configured.getByRole("button", { name: /Token overrides/ })).toBeVisible();
-  await expect(configured.getByRole("button", { name: /Button variants/ })).toBeHidden();
+  await expect(configuredViewport.getByText("2 results", { exact: true })).toBeVisible();
+  await expect(configuredViewport.getByRole("button", { name: /Design tokens/ })).toBeVisible();
+  await expect(configuredViewport.getByRole("button", { name: /Token overrides/ })).toBeVisible();
+  await expect(configuredViewport.getByRole("button", { name: /Button variants/ })).toBeHidden();
   await search.fill("no matching component");
-  await expect(configured.getByText("0 results", { exact: true })).toBeVisible();
-  await expect(configured.locator("#docs-search-empty")).toBeVisible();
+  await expect(configuredViewport.getByText("0 results", { exact: true })).toBeVisible();
+  await expect(configuredViewport.locator("#docs-search-empty")).toBeVisible();
   await expect(configured.locator(".looma-mode-code").first()).toContainText("addEventListener(\"input\"");
-  await configured.getByRole("button", { name: "Close" }).click();
+  await configured.locator("iframe").scrollIntoViewIfNeeded();
+  await configuredViewport.getByRole("button", { name: "Close" }).click();
   await expect(configuredDialog).toBeHidden();
 });
 
@@ -1165,6 +1170,69 @@ test("ui-reel exposes a discoverable, keyboard-scrollable overflow viewport", as
   await expect.poll(() => reel.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
 });
 
+for (const theme of ["light", "dark"] as const) {
+  for (const width of [1100, 375]) {
+    test(`catalog dialog stays in the top layer with stable layout: ${theme}, ${width}px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 812 });
+      // Real motion matters: the original hover transform repeatedly changed the containing block.
+      await page.emulateMedia({ reducedMotion: "no-preference", colorScheme: theme });
+      await page.goto("components", { waitUntil: "domcontentloaded" });
+      await page.getByRole("button", { name: /^Overlay/ }).click();
+      const card = page.locator('[data-component-card="ui-dialog"]');
+      await card.scrollIntoViewIfNeeded();
+      await card.getByRole("button", { name: "Open dialog" }).click();
+      const dialog = card.locator("dialog");
+      await expect(dialog).toBeVisible();
+      await expect(dialog).toHaveJSProperty("open", true);
+      await expect.poll(() => dialog.evaluate((element) => element.getAnimations().length)).toBe(0);
+      // Park over the viewport dialog, where the old inline/viewport hover feedback loop began.
+      const box = (await dialog.boundingBox())!;
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+      const samples = await dialog.evaluate(async (element) => {
+        const samples = [];
+        for (let frame = 0; frame < 60; frame++) {
+          await new Promise(requestAnimationFrame);
+          const rect = element.getBoundingClientRect();
+          samples.push({ x: rect.x, y: rect.y, width: rect.width, height: rect.height,
+            topLayer: element.matches(":popover-open"),
+            paintedAbove: element.contains(document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2)),
+          });
+        }
+        return samples;
+      });
+      expect(samples.every((sample) => sample.topLayer && sample.paintedAbove)).toBe(true);
+      for (const sample of samples) {
+        expect(Math.abs(sample.x + sample.width / 2 - width / 2)).toBeLessThan(2);
+        expect(Math.abs(sample.y + sample.height / 2 - 406)).toBeLessThan(2);
+      }
+      const spacing = await dialog.evaluate((element) => {
+        const body = element.querySelector(".body")!;
+        const paragraph = body.querySelector("p")!;
+        const bodyRect = body.getBoundingClientRect();
+        const textRect = paragraph.getBoundingClientRect();
+        const dialogRect = element.getBoundingClientRect();
+        const footer = element.querySelector("footer")!;
+        const actionRect = footer.querySelector("button")!.getBoundingClientRect();
+        const border = parseFloat(getComputedStyle(element).borderBottomWidth);
+        return { padding: parseFloat(getComputedStyle(body).paddingLeft), textInset: textRect.left - bodyRect.left, textBottom: textRect.bottom, footerTop: footer.getBoundingClientRect().top,
+          bottomInset: dialogRect.bottom - border - actionRect.bottom,
+          trailingMargin: parseFloat(getComputedStyle(paragraph).marginBottom),
+        };
+      });
+      expect(spacing.padding).toBeGreaterThan(0);
+      expect(spacing.textInset).toBeGreaterThanOrEqual(spacing.padding);
+      expect(spacing.textBottom).toBeLessThanOrEqual(spacing.footerTop);
+      expect(spacing.bottomInset).toBeCloseTo(spacing.padding, 0);
+      expect(spacing.trailingMargin).toBe(0);
+      await expect(dialog).toHaveScreenshot(`catalog-dialog-${theme}-${width}.png`, { animations: "disabled", maxDiffPixelRatio: 0.01 });
+      await dialog.getByRole("button", { name: "Cancel" }).click();
+      await expect(dialog).not.toBeVisible();
+      expect(await dialog.evaluate((element) => element.matches(":popover-open"))).toBe(false);
+      await expect(card.getByRole("button", { name: "Open dialog" })).toBeFocused();
+    });
+  }
+}
+
 test("dialog closes via header button, actions, Escape, and outside press, with pinned chrome", async ({ page }) => {
   await page.goto("components/ui-dialog", { waitUntil: "domcontentloaded" });
   await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
@@ -1203,7 +1271,7 @@ test("dialog closes via header button, actions, Escape, and outside press, with 
   await expect(dialog).not.toHaveAttribute("open", "");
 
   dialog = await open("Long content");
-  const body = dialog.locator(".body");
+  const body = dialog.locator(".body [data-component~=ui-scroll-area]");
   expect(await body.evaluate((element) => element.scrollHeight > element.clientHeight)).toBe(true);
   await body.evaluate((element) => { element.scrollTop = element.scrollHeight; });
   await expect(dialog.locator("header")).toBeInViewport();

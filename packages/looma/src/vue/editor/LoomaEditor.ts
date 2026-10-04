@@ -1,7 +1,7 @@
 import "./looma-editor.css";
 import type { AnyExtension, Editor, JSONContent } from "@tiptap/core";
 import { BubbleMenu, EditorContent, useEditor } from "@tiptap/vue-3";
-import { announceOverlayOpen } from "../../components/shared/overlay.js";
+import { announceOverlayOpen, createViewportSurface, observeOverlayViewport } from "../../components/shared/overlay.js";
 import { closeHistory } from "@tiptap/pm/history";
 import { createLowlight } from "lowlight";
 import { TextSelection, type SelectionBookmark } from "@tiptap/pm/state";
@@ -1170,11 +1170,47 @@ export const LoomaEditor = defineComponent({
       // A menu's own scroll does not move its anchor or change the active table.
       if (event?.type === "scroll" && event.target instanceof Node
         && (tableToolbarShell.value?.contains(event.target) || tableMenuShell.value?.contains(event.target))) return;
+      if (slash.active && slash.getRect) slash.rect = slash.getRect();
+      if (mention.active && mention.getRect) mention.rect = mention.getRect();
       updateMobileViewport();
       updateTableUi();
       updateCodeUi();
       tableUi.menuOpen = false;
     };
+
+    let stopViewport: (() => void) | undefined;
+    const popupRef = (target: { value: HTMLElement | null }, preserveChrome = false) => {
+      let presentation: ReturnType<typeof createViewportSurface> | undefined;
+      return (node: unknown) => {
+        const element = node instanceof HTMLElement ? node : null;
+        if (target.value === element) return;
+        presentation?.destroy();
+        target.value = element;
+        presentation = element ? createViewportSurface(element, { bare: true, preserveChrome }) : undefined;
+        presentation?.show();
+      };
+    };
+    const tableToolbarRef = popupRef(tableToolbarShell);
+    const codeLanguageRef = popupRef(codeLanguageShell, true);
+    const mobileToolbarRef = popupRef(mobileToolbarShell, true);
+    const tippyPresentations = new WeakMap<HTMLElement, ReturnType<typeof createViewportSurface>>();
+    const floatingTippyOptions = (placement: "top" | "bottom") => ({
+      appendTo: () => root.value?.closest<HTMLElement>("dialog[open], [popover]") ?? document.body,
+      popperOptions: { strategy: "fixed" as const, modifiers: [{ name: "eventListeners", enabled: false }] },
+      onShow: () => announceOverlayOpen(root.value?.ownerDocument ?? document, root.value),
+      onMount: (instance: { popper: HTMLElement; popperInstance: { update(): unknown } | null }) => {
+        let presentation = tippyPresentations.get(instance.popper);
+        if (!presentation) {
+          presentation = createViewportSurface(instance.popper, { bare: true, position: () => { void instance.popperInstance?.update(); } });
+          tippyPresentations.set(instance.popper, presentation);
+        }
+        presentation.show();
+      },
+      onHidden: (instance: { popper: HTMLElement }) => tippyPresentations.get(instance.popper)?.hide(),
+      onDestroy: (instance: { popper: HTMLElement }) => tippyPresentations.get(instance.popper)?.destroy(),
+      duration: 100,
+      placement,
+    });
 
     const onDocumentPointerDown = (event: PointerEvent) => {
       const path = typeof event.composedPath === "function" ? event.composedPath() : [];
@@ -1290,20 +1326,14 @@ export const LoomaEditor = defineComponent({
 
     onMounted(() => {
       updateMobileViewport();
-      window.addEventListener("resize", onViewportChange);
-      window.addEventListener("scroll", onViewportChange, true);
-      window.visualViewport?.addEventListener("resize", onViewportChange);
-      window.visualViewport?.addEventListener("scroll", onViewportChange);
+      stopViewport = observeOverlayViewport(document, onViewportChange);
       document.addEventListener("pointerdown", onDocumentPointerDown, true);
       document.addEventListener("pointerdown", onResizePointerDown, true);
       document.addEventListener("pointerup", onResizePointerUp, true);
       root.value?.addEventListener("error", onImageError, true);
     });
     onBeforeUnmount(() => {
-      window.removeEventListener("resize", onViewportChange);
-      window.removeEventListener("scroll", onViewportChange, true);
-      window.visualViewport?.removeEventListener("resize", onViewportChange);
-      window.visualViewport?.removeEventListener("scroll", onViewportChange);
+      stopViewport?.();
       document.removeEventListener("pointerdown", onDocumentPointerDown, true);
       document.removeEventListener("pointerdown", onResizePointerDown, true);
       document.removeEventListener("pointerup", onResizePointerUp, true);
@@ -1696,14 +1726,7 @@ export const LoomaEditor = defineComponent({
               shouldShow: ({ editor: menuEditor, from, to }: { editor: Editor; from: number; to: number }) =>
                 (props.toolbarMode !== "popover" || !props.toolbarOpen)
                 && shouldShowTextFormattingToolbar(menuEditor, from, to),
-              tippyOptions: {
-                // Escape clipped panels, but stay in the top layer when the editor is in a dialog or popover.
-                appendTo: () => root.value?.closest<HTMLElement>("dialog[open], [popover]") ?? document.body,
-                onShow: () => announceOverlayOpen(root.value?.ownerDocument ?? document, root.value),
-                duration: 100,
-                maxWidth: "none",
-                placement: "top",
-              },
+              tippyOptions: { ...floatingTippyOptions("top"), maxWidth: "none" },
             }, { default: () => renderToolbar(instance, true, props.toolbarMode === "popover") })
           : null,
         instance && props.editable && !mobile.value
@@ -1712,13 +1735,7 @@ export const LoomaEditor = defineComponent({
               pluginKey: "looma-link-context-menu",
               shouldShow: ({ editor: menuEditor, from, to }: { editor: Editor; from: number; to: number }) =>
                 from === to && menuEditor.isActive("link") && !linkOpen.value,
-              tippyOptions: {
-                appendTo: () => root.value?.closest<HTMLElement>("dialog[open], [popover]") ?? document.body,
-                onShow: () => announceOverlayOpen(root.value?.ownerDocument ?? document, root.value),
-                duration: 100,
-                maxWidth: Math.min(480, window.innerWidth - 24),
-                placement: "bottom",
-              },
+              tippyOptions: { ...floatingTippyOptions("bottom"), maxWidth: Math.min(480, window.innerWidth - 24) },
             }, { default: () => h(Card, {
               variant: "elevated", padding: linkContextEditing.value ? "sm" : "xs", size: linkContextEditing.value ? "sm" : "content",
               class: ["looma-editor__link-context", { "looma-editor__link-context--editing": linkContextEditing.value }],
@@ -1747,7 +1764,7 @@ export const LoomaEditor = defineComponent({
         instance ? h(EditorContent, { editor: instance }) : null,
         codeUi.open
           ? h("div", {
-              ref: codeLanguageShell,
+              ref: codeLanguageRef,
               class: "looma-editor__code-language",
               style: codeUi.style,
               onFocusout: () => updateCodeUi(),
@@ -1763,7 +1780,7 @@ export const LoomaEditor = defineComponent({
           : null,
         instance && props.editable && mobile.value && (editorFocused.value || linkOpen.value)
           ? h("div", {
-              ref: mobileToolbarShell,
+              ref: mobileToolbarRef,
               class: "looma-editor__mobile-toolbar-shell",
               "data-mode": mobileToolbarMode.value,
               style: mobileToolbarStyle.value,
@@ -1929,7 +1946,7 @@ export const LoomaEditor = defineComponent({
           : null,
         tableUi.toolbarOpen
           ? h("div", {
-              ref: tableToolbarShell,
+              ref: tableToolbarRef,
               class: "looma-editor__table-toolbar-shell",
               style: tableUi.toolbarStyle,
             }, [h(EditorTableToolbar, tableProps)])
@@ -1961,8 +1978,7 @@ export const LoomaEditor = defineComponent({
           ? h("div", {
               ref: tableMenuShell,
               class: "looma-editor__table-menu-shell",
-              style: tableUi.menuStyle,
-            }, [h(EditorTableContextMenu, { ...tableProps, scope: tableUi.menuScope })])
+            }, [h(EditorTableContextMenu, { ...tableProps, scope: tableUi.menuScope, style: tableUi.menuStyle })])
           : null,
       ]);
     };

@@ -1,8 +1,56 @@
-import { closeOverlay, createIdResolver, openOverlay, requestTopOverlayClose } from "../shared/overlay.js";
+import { closeDialog, closeOverlay, createIdResolver, openOverlay, requestTopOverlayClose, showDialog } from "../shared/overlay.js";
 
 function inferredLabel(element, explicit) {
   if (String(explicit ?? "").trim()) return String(explicit).trim();
   return element.querySelector("h1, h2, h3, h4, h5, h6")?.textContent?.trim() || "Dialog";
+}
+
+/** Animates intrinsic content changes while leaving CSS in charge of the final viewport cap. */
+function observeContentHeight(dialog, refs) {
+  const owner = dialog.ownerDocument.defaultView;
+  const motion = owner.matchMedia("(prefers-reduced-motion: reduce)");
+  let lastHeight = null;
+  let animation = null;
+  const reset = () => {
+    animation?.cancel();
+    animation = null;
+    lastHeight = null;
+  };
+  const observer = new owner.ResizeObserver(() => {
+    if (!dialog.open) { reset(); return; }
+    const previous = animation ? parseFloat(owner.getComputedStyle(dialog).height) : lastHeight;
+    animation?.cancel();
+    animation = null;
+    // Cancel before measuring: auto sizing now includes the latest content and native CSS constraints.
+    const style = owner.getComputedStyle(dialog);
+    const next = parseFloat(style.height);
+    lastHeight = next;
+    if (previous === null || !Number.isFinite(previous) || !Number.isFinite(next) || Math.abs(next - previous) < 1 || motion.matches) return;
+    const time = style.transitionDuration.split(",")[0].trim();
+    const duration = parseFloat(time) * (time.endsWith("ms") ? 1 : 1000);
+    if (!(duration > 0)) return;
+    const current = dialog.animate([{ height: `${previous}px` }, { height: `${next}px` }], {
+      duration, easing: style.getPropertyValue("--ui-motion-ease").trim() || "ease",
+    });
+    animation = current;
+    current.onfinish = () => {
+      if (animation !== current) return;
+      animation = null;
+      current.cancel();
+      lastHeight = dialog.open ? parseFloat(owner.getComputedStyle(dialog).height) : null;
+    };
+  });
+  // Observe Scroll Area's intrinsic flow wrapper, not its constrained scrolling viewport.
+  // Watching the dialog or body would feed animation frames back into the resize observer.
+  for (const region of [refs.header, refs.body?.firstElementChild?.firstElementChild, refs.footer]) {
+    if (region) observer.observe(region);
+  }
+  const onMotionChange = () => {
+    reset();
+    if (dialog.open) lastHeight = parseFloat(owner.getComputedStyle(dialog).height);
+  };
+  motion.addEventListener("change", onMotionChange);
+  return { reset, destroy() { reset(); observer.disconnect(); motion.removeEventListener("change", onMotionChange); } };
 }
 
 export default function controller(host) {
@@ -23,6 +71,15 @@ export default function controller(host) {
   };
   const closeButton = host.refs.close;
   const onCloseClick = (event) => requestClose("action", event.detail === 0 ? "keyboard" : "pointer");
+  // A popover dialog does not receive native dialog command defaults in every browser.
+  // Keep authored close actions equivalent in both presentation modes.
+  const onActionClick = (event) => {
+    if (event.defaultPrevented) return;
+    const action = event.target.closest?.('button[command="close"]');
+    if (!action || !dialog?.id || action.getAttribute("commandfor") !== dialog.id) return;
+    event.preventDefault();
+    onCloseClick(event);
+  };
   const onTriggerClick = (event) => {
     if (host.state.internalOpen) return;
     host.state.internalOpen = true;
@@ -67,14 +124,11 @@ export default function controller(host) {
     if (!dialog) return;
     dialog.setAttribute("closedby", closedBy);
     if (open) {
-      if (dialog.open && dialog.matches(":modal") !== modal) dialog.close();
-      if (!dialog.open) {
-        if (modal) dialog.showModal();
-        else dialog.show();
-      }
+      showDialog(dialog, modal);
       openOverlay({ id: overlayId, modal, element, modalElement: dialog, dismissible: true, canClose: (reason) => reason === "light-dismiss" ? closedBy === "any" : reason !== "escape" || closedBy !== "none", requestClose });
     } else {
-      if (dialog.open) dialog.close();
+      resize.reset();
+      closeDialog(dialog);
       closeOverlay(document, overlayId);
     }
     if (lastOpen !== undefined && lastOpen !== open) {
@@ -112,17 +166,22 @@ export default function controller(host) {
   dialog?.addEventListener("cancel", onCancel);
   closeButton?.addEventListener("click", onCloseClick);
   element.addEventListener("keydown", onKeydown);
+  document.addEventListener("click", onActionClick);
+  const resize = observeContentHeight(dialog, host.refs);
   const stop = host.effect(apply);
   apply();
   return () => {
     stop();
     ids.stop();
     observer.disconnect();
+    resize.destroy();
     dialog?.removeEventListener("close", onClose, true);
     dialog?.removeEventListener("cancel", onCancel);
     closeButton?.removeEventListener("click", onCloseClick);
     trigger?.removeEventListener("click", onTriggerClick);
     element.removeEventListener("keydown", onKeydown);
+    document.removeEventListener("click", onActionClick);
+    closeDialog(dialog);
     closeOverlay(document, overlayId);
   };
 }
