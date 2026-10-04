@@ -25,6 +25,12 @@ async function historyShortcut(direction: "undo" | "redo") {
   await userEvent.keyboard(`{${modifier}>}${shift}z${releaseShift}{/${modifier}}`);
 }
 
+async function codeLanguageInput(host: HTMLElement) {
+  const input = host.querySelector<HTMLInputElement>('.looma-editor__code-language [role="combobox"]')!;
+  await vi.waitFor(() => expect(input.id).toMatch(/^ui-combobox-\d+-input$/));
+  return input;
+}
+
 async function mountEditor(options: { controlled?: boolean; editable?: boolean; toolbarMode?: "bubble" | "sticky" | "contextual"; disableHighlight?: boolean; codeLanguages?: Record<string, typeof common.sql> } = {}) {
   vi.spyOn(window, "innerWidth", "get").mockReturnValue(1280);
   const modelValue = ref<JSONContent>({ type: "doc", content: [{ type: "paragraph" }] });
@@ -156,7 +162,7 @@ describe("LoomaEditor history (real browser)", () => {
     editor.commands.focus("start");
     await flushBrowser();
 
-    const language = host.querySelector<HTMLInputElement>('.looma-editor__code-language [role="combobox"]')!;
+    const language = await codeLanguageInput(host);
     expect(language).toBeTruthy();
     language.focus();
     await userEvent.keyboard("{ArrowDown}");
@@ -181,7 +187,7 @@ describe("LoomaEditor history (real browser)", () => {
     editor.commands.focus("start");
     await flushBrowser();
 
-    const language = host.querySelector<HTMLInputElement>('.looma-editor__code-language [role="combobox"]')!;
+    const language = await codeLanguageInput(host);
     language.focus();
     language.select();
     await userEvent.keyboard("dockerfile");
