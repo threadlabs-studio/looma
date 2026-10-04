@@ -5008,6 +5008,47 @@ describe("HTML components", () => {
   });
 });
 
+describe("Radio group initial selection", () => {
+  const check = async (page: Page) => {
+    await page.waitForSelector('#plan input[value="pro"]');
+    assert.deepEqual(await page.locator("#plan input").evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).checked)), [false, true], "the group's value takes precedence over a child's checked prop");
+    assert.deepEqual(await page.locator("#empty input").evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).checked)), [false, false], "an empty group value checks no radio");
+    assert.deepEqual(await page.locator("#plan input").evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).defaultChecked)), [false, true], "native reset defaults also belong to the group");
+    assert.equal(await page.locator("#standalone input").isChecked(), true, "an authored standalone checked radio stays checked");
+    await page.locator('#plan input[value="free"]').check();
+    await page.locator("#form").evaluate((form) => (form as HTMLFormElement).reset());
+    await page.waitForFunction(() => (document.querySelector('#plan input[value="pro"]') as HTMLInputElement).checked);
+    assert.deepEqual(await page.locator("#plan input").evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).checked)), [false, true], "form reset restores the group's authored value");
+  };
+
+  it("honors group selection when a child is authored checked, in HTML", async () => {
+    const path = await bundle("html-radio-initial-selection", `import "@threadlabs/looma";`);
+    const page = await open(path, `<form id="form">
+      <ui-radio-group id="plan" name="plan" value="pro"><ui-radio value="free" checked>Free</ui-radio><ui-radio value="pro">Pro</ui-radio></ui-radio-group>
+      <ui-radio-group id="empty" name="empty"><ui-radio value="free" checked>Free</ui-radio><ui-radio value="pro">Pro</ui-radio></ui-radio-group>
+      <fieldset role="radiogroup"><ui-radio id="standalone" name="standalone" checked>Standalone</ui-radio></fieldset>
+    </form>`, [join(root, "tokens.css")]);
+    await check(page);
+    await page.close();
+  });
+
+  it("honors group selection when a child is authored checked, in Vue", async () => {
+    const path = await bundle("vue-radio-initial-selection", `
+      import { createApp, h } from "vue";
+      import { Radio, RadioGroup } from "@threadlabs/looma/vue";
+      const radios = () => [h(Radio, { value: "free", checked: true }, () => "Free"), h(Radio, { value: "pro" }, () => "Pro")];
+      createApp({ render: () => h("form", { id: "form" }, [
+        h(RadioGroup, { id: "plan", name: "plan", value: "pro" }, radios),
+        h(RadioGroup, { id: "empty", name: "empty" }, radios),
+        h("fieldset", { role: "radiogroup" }, [h(Radio, { id: "standalone", name: "standalone", checked: true }, () => "Standalone")]),
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await check(page);
+    await page.close();
+  });
+});
+
 describe("Radio group required", () => {
   // As on native radios: one required radio makes its whole group required.
   const check = async (page: Page) => {
