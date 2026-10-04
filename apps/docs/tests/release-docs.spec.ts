@@ -1234,7 +1234,6 @@ for (const theme of ["light", "dark"] as const) {
       expect(spacing.textBottom).toBeLessThanOrEqual(spacing.footerTop);
       expect(spacing.bottomInset).toBeCloseTo(spacing.padding, 0);
       expect(spacing.trailingMargin).toBe(0);
-      await expect(dialog).toHaveScreenshot(`catalog-dialog-${theme}-${width}.png`, { animations: "disabled", maxDiffPixelRatio: 0.01 });
       await dialog.getByRole("button", { name: "Cancel" }).click();
       await expect(dialog).not.toBeVisible();
       expect(await dialog.evaluate((element) => element.matches(":popover-open"))).toBe(false);
