@@ -388,7 +388,7 @@
               from:disabled="disabled or readonly or item.disabled"
               from:aria-label="concat(item.label, ', press Delete or Backspace to remove')"
             >
-              <slot from:name="concat('item-', item.id)"><ui-badge $value="item.label"></ui-badge></slot>
+              <slot from:name="concat('item-', item.id)"><ui-badge>{$item.label}</ui-badge></slot>
             </button>
           </template>
           <input
@@ -467,7 +467,7 @@
     <div class="popup" $ref="popup" from:hidden="not expanded">
       <div role="listbox" $ref="listbox" from:id="concat(uid, '-listbox')" from:aria-label="concat(label, ' suggestions')" from:aria-busy="loading">
         <div $each="group of groups" $key="group.name" from:role="group.role" from:aria-label="group.label">
-          <div $if="group.name" class="group" $value="group.name"></div>
+          <div $if="group.name" class="group">{$group.name}</div>
           <div
             $each="row of group.rows"
             $key="row.id"
@@ -486,15 +486,14 @@
             <slot from:name="concat('option-', row.id)">
               <span $if="row.detail" class="detail">
                 <span class="line">
-                  <span class="primary" from:id="concat(uid, '-option-', row.index, '-label')" $value="row.label"></span>
+                  <span class="primary" from:id="concat(uid, '-option-', row.index, '-label')">{$row.label}</span>
                   <ui-badge $if="row.tag" from:tone="row.tag.tone" style:--ui-badge-color="row.tag.color"><span
                       from:id="concat(uid, '-option-', row.index, '-tag')"
-                      $value="row.tag.label"
-                    ></span></ui-badge>
+                    >{$row.tag.label}</span></ui-badge>
                 </span>
-                <span $if="row.description" class="description" from:id="concat(uid, '-option-', row.index, '-description')" $value="row.description"></span>
+                <span $if="row.description" class="description" from:id="concat(uid, '-option-', row.index, '-description')">{$row.description}</span>
               </span>
-              <span $if="not row.detail" class="primary" $value="row.label"></span>
+              <span $if="not row.detail" class="primary">{$row.label}</span>
             </slot>
           </div>
         </div>
@@ -517,7 +516,7 @@
       <slot name="footer"></slot>
     </div>
     <div class="message" from:id="concat(uid, '-validation')" from:hidden="not validation.issues.length">
-      <div $each="issue of validation.issues" $value="issue.message"></div>
+      <div $each="issue of validation.issues">{$issue.message}</div>
     </div>
     <div class="sr-only" role="status" aria-live="polite" aria-atomic="true">{$statusText}</div>
     <div class="authored-options" $ref="options" hidden aria-hidden="true"><slot></slot></div>
