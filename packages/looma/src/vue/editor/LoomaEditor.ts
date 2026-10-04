@@ -400,6 +400,8 @@ export const LoomaEditor = defineComponent({
     const tooltipLabel = ref("");
     const tooltipShortcut = ref("");
     const tooltipOpen = ref(false);
+    const resizeHintFor = ref("");
+    let resizeHintSequence = 0;
     let tooltipTimer = 0;
     const clearTooltipTimer = () => {
       if (tooltipTimer) window.clearTimeout(tooltipTimer);
@@ -1475,6 +1477,13 @@ export const LoomaEditor = defineComponent({
     };
 
     const onEditorPointerOver = (event: PointerEvent) => {
+      const handle = event.pointerType !== "touch" && event.target instanceof HTMLElement
+        ? event.target.closest<HTMLElement>(".column-resize-handle")
+        : null;
+      if (handle) {
+        if (!handle.id) handle.id = `${toolbarScope}-resize-${++resizeHintSequence}`;
+        resizeHintFor.value = handle.id;
+      }
       const cell = event.target instanceof HTMLElement
         ? event.target.closest<HTMLTableCellElement>("td, th")
         : null;
@@ -1489,6 +1498,10 @@ export const LoomaEditor = defineComponent({
     };
 
     const onEditorPointerOut = (event: PointerEvent) => {
+      const handle = event.target instanceof HTMLElement
+        ? event.target.closest<HTMLElement>(".column-resize-handle")
+        : null;
+      if (handle && (!(event.relatedTarget instanceof Node) || !handle.contains(event.relatedTarget))) resizeHintFor.value = "";
       const fromCell = event.target instanceof HTMLElement
         ? event.target.closest<HTMLTableCellElement>("td, th")
         : null;
@@ -1503,6 +1516,7 @@ export const LoomaEditor = defineComponent({
     };
 
     const onEditorPointerLeave = (event: PointerEvent) => {
+      resizeHintFor.value = "";
       const next = event.relatedTarget;
       if (
         next instanceof Node
@@ -1738,6 +1752,15 @@ export const LoomaEditor = defineComponent({
         onDblclick: onImageDoubleClick,
         onKeydown: onImageKeyDown,
       }, [
+        // Top-layer Tooltip owns hint geometry; a pseudo-element inside the table
+        // would contribute overflow even while its opacity is zero.
+        resizeHintFor.value ? h(Tooltip, {
+          for: resizeHintFor.value,
+          open: true,
+          trigger: "focus",
+          placement: "top",
+          inverse: true,
+        }, () => "Drag to resize column") : null,
         instance && props.editable && !mobile.value
           && (props.toolbarMode === "bubble" || props.toolbarMode === "popover" || props.toolbarMode === "contextual")
           ? h(BubbleMenu, {

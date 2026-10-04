@@ -205,6 +205,8 @@ export function createAnchoredSurface(surface, options = {}) {
   let point = null;
   let open = false;
   let frame = null;
+  let anchorFrame = null;
+  let lastAnchorRect = null;
   let abort = null;
   let sizeObserver = null;
   surface.setAttribute("popover", "manual");
@@ -218,12 +220,31 @@ export function createAnchoredSurface(surface, options = {}) {
       return;
     }
     if (!anchor) return;
-    fallbackPosition(surface, anchor.getBoundingClientRect(), placement, gap(), viewportGap);
+    lastAnchorRect = anchor.getBoundingClientRect();
+    fallbackPosition(surface, lastAnchorRect, placement, gap(), viewportGap);
   };
   const schedule = () => {
     if (open && frame === null) frame = owner.requestAnimationFrame(position);
   };
+  // Resize and scroll events do not report an ancestor's transition or layout shift.
+  // While visible, sample the anchor and only re-position when its bounds change.
+  const trackAnchor = () => {
+    anchorFrame = null;
+    if (!open || !anchor || point) return;
+    const rect = anchor.getBoundingClientRect();
+    if (!lastAnchorRect || rect.left !== lastAnchorRect.left || rect.top !== lastAnchorRect.top
+      || rect.width !== lastAnchorRect.width || rect.height !== lastAnchorRect.height) schedule();
+    anchorFrame = owner.requestAnimationFrame(trackAnchor);
+  };
+  const stopTracking = () => {
+    if (anchorFrame !== null) owner.cancelAnimationFrame(anchorFrame);
+    anchorFrame = null;
+    lastAnchorRect = null;
+  };
   const syncListeners = () => {
+    if (open && anchor && !point) {
+      if (anchorFrame === null) anchorFrame = owner.requestAnimationFrame(trackAnchor);
+    } else stopTracking();
     const needed = open && (point || anchor);
     if (!needed) {
       abort?.abort();
@@ -251,7 +272,7 @@ export function createAnchoredSurface(surface, options = {}) {
     showAtPoint(next) { point = next; open = true; syncListeners(); show(surface); position(); schedule(); observeSize(); },
     hide() { open = false; point = null; syncListeners(); stopSize(); if (frame !== null) owner.cancelAnimationFrame(frame); frame = null; hide(surface); },
     refresh: schedule,
-    destroy() { open = false; abort?.abort(); abort = null; stopSize(); if (frame !== null) owner.cancelAnimationFrame(frame); frame = null; hide(surface); anchor = null; },
+    destroy() { open = false; stopTracking(); abort?.abort(); abort = null; stopSize(); if (frame !== null) owner.cancelAnimationFrame(frame); frame = null; hide(surface); anchor = null; },
   };
 }
 
