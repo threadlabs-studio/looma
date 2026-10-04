@@ -36,8 +36,8 @@
         from:data-index="index"
         from:data-value="row.id"
       >
-        <span class="avatar" aria-hidden="true" $value="row.initials"></span>
-        <span class="body"><span class="label" $value="row.label"></span><span $if="row.detail" class="detail" $value="row.detail"></span></span>
+        <span class="avatar" aria-hidden="true">{$row.initials}</span>
+        <span class="body"><span class="label">{$row.label}</span><span $if="row.detail" class="detail">{$row.detail}</span></span>
       </li>
       <slot></slot>
     </ul>
