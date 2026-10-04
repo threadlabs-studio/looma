@@ -272,6 +272,7 @@ describe("Anchored overlay placement", () => {
       import { LoomaEditor } from "@threadlabs/looma/vue/editor";
       createApp({ render: () => h(LoomaEditor, {
         label: "Writing",
+        ref: instance => { window.selectionEditor = instance; },
         modelValue: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Select some words" }] }] },
       }) }).mount("#app");
     `);
@@ -282,7 +283,12 @@ describe("Anchored overlay placement", () => {
     `, [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "vue/components.css")], { reducedMotion: "reduce" });
     const editor = page.getByRole("textbox", { name: "Writing" });
     await editor.focus();
+    // Set the editor model too; a browser-only caret can be restored from stale selection state.
+    await page.waitForFunction(() => (window as any).selectionEditor?.editor);
+    await page.evaluate(() => (window as any).selectionEditor.editor.commands.setTextSelection(1));
+    assert.equal(await page.locator("#hint").evaluate((element) => element.matches(":popover-open")), true);
     await editor.press("Shift+ArrowRight");
+    await page.waitForFunction(() => window.getSelection()?.toString() === "S");
     await page.waitForFunction(() => document.querySelector("[data-tippy-root]")?.getBoundingClientRect().width);
     assert.equal(await page.locator("#hint").evaluate((element) => element.matches(":popover-open")), false);
     await page.close();
