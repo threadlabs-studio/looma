@@ -324,27 +324,54 @@ export function createViewportSurface(surface, options = {}) {
 }
 
 export function createAnchoredSurface(surface, options = {}) {
+  const owner = surface.ownerDocument.defaultView;
   let placement = options.placement ?? "bottom-start";
   const gap = () => Math.max(0, Number(typeof options.gap === "function" ? options.gap() : options.gap ?? 4) || 0);
   const viewportGap = Math.max(0, options.viewportGap ?? 8);
   let anchor = options.anchor ?? null;
   let point = null;
+  let open = false;
+  let destroyed = false;
+  let anchorFrame = null;
+  let lastAnchorRect = null;
+  const anchorRect = () => typeof anchor === "function" ? anchor() : anchor?.getBoundingClientRect();
   const position = () => {
-    const rect = point ? { left: point.x, right: point.x, top: point.y, bottom: point.y, width: 0, height: 0 }
-      : typeof anchor === "function" ? anchor() : anchor?.getBoundingClientRect();
-    if (rect) positionAnchoredSurface(surface, rect, { placement: point ? "bottom-start" : placement, gap: gap(), viewportGap });
+    const rect = point ? { left: point.x, right: point.x, top: point.y, bottom: point.y, width: 0, height: 0 } : anchorRect();
+    if (!rect) return;
+    lastAnchorRect = { left: rect.left, top: rect.top, width: rect.width, height: rect.height };
+    positionAnchoredSurface(surface, rect, { placement: point ? "bottom-start" : placement, gap: gap(), viewportGap });
   };
   surface.style.position = "fixed";
   surface.style.margin = "0";
   const presentation = createViewportSurface(surface, { position });
+  // Resize and scroll events do not report an ancestor's transition or layout shift.
+  // While visible, sample the live anchor and only re-position when its bounds change.
+  const trackAnchor = () => {
+    anchorFrame = null;
+    if (!open || !anchor || point) return;
+    const rect = anchorRect();
+    if (rect && (!lastAnchorRect || rect.left !== lastAnchorRect.left || rect.top !== lastAnchorRect.top
+      || rect.width !== lastAnchorRect.width || rect.height !== lastAnchorRect.height)) presentation.refresh();
+    anchorFrame = owner.requestAnimationFrame(trackAnchor);
+  };
+  const stopTracking = () => {
+    if (anchorFrame !== null) owner.cancelAnimationFrame(anchorFrame);
+    anchorFrame = null;
+    lastAnchorRect = null;
+  };
+  const syncTracking = () => {
+    if (open && anchor && !point) {
+      if (anchorFrame === null) anchorFrame = owner.requestAnimationFrame(trackAnchor);
+    } else stopTracking();
+  };
   return {
-    setAnchor(next) { point = null; anchor = next; presentation.refresh(); },
+    setAnchor(next) { point = null; anchor = next; syncTracking(); presentation.refresh(); },
     setPlacement(next) { placement = next || "bottom-start"; presentation.refresh(); },
-    show() { point = null; presentation.show(); },
-    showAtPoint(next) { point = next; presentation.show(); },
-    hide() { point = null; presentation.hide(); },
+    show() { if (destroyed) return; point = null; open = true; presentation.show(); syncTracking(); },
+    showAtPoint(next) { if (destroyed) return; point = next; open = true; syncTracking(); presentation.show(); },
+    hide() { open = false; point = null; syncTracking(); presentation.hide(); },
     refresh: presentation.refresh,
-    destroy() { presentation.destroy(); anchor = null; },
+    destroy() { destroyed = true; open = false; stopTracking(); presentation.destroy(); anchor = null; },
   };
 }
 
