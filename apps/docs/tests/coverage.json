@@ -944,6 +944,24 @@
       ]
     },
     {
+      "path": "components/ui-image",
+      "title": "Image",
+      "source": "apps/docs/docs/components/display/ui-image.mdx",
+      "component": "ui-image",
+      "examples": [
+        {
+          "id": "01-image",
+          "title": "Image",
+          "behavior": false
+        },
+        {
+          "id": "02-selected",
+          "title": "Selected and resizable",
+          "behavior": false
+        }
+      ]
+    },
+    {
       "path": "components/ui-input",
       "title": "Input",
       "source": "apps/docs/docs/components/forms/ui-input.mdx",
