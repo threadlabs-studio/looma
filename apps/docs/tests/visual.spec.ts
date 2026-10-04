@@ -68,6 +68,19 @@ for (const theme of ["light", "dark"] as const) {
         await expect(page.getByRole("heading", { name: "No components found", exact: true })).toBeVisible();
         await screenshot(page, `${viewport.name}-${theme}/states/catalog-empty.png`, true);
       });
+      test("catalog dialog in the top layer", async ({ page }) => {
+        await page.goto("components/", { waitUntil: "domcontentloaded" });
+        await ready(page);
+        await page.getByRole("button", { name: /^Overlay/ }).click();
+        const card = page.locator('[data-component-card="ui-dialog"]');
+        await card.scrollIntoViewIfNeeded();
+        await card.getByRole("button", { name: "Open dialog", exact: true }).click();
+        const dialog = card.locator("dialog");
+        await expect(dialog).toBeVisible();
+        await expect.poll(() => dialog.evaluate(element => element.getAnimations().length)).toBe(0);
+        await page.mouse.move(0, 0);
+        await expect(dialog).toHaveScreenshot(`${viewport.name}-${theme}/states/catalog-dialog.png`);
+      });
       test("editor guide selection toolbar and mention suggestions", async ({ page }) => {
         await page.goto("editor/");
         await ready(page);

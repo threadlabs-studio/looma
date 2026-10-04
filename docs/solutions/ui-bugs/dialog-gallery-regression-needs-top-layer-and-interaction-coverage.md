@@ -69,6 +69,6 @@ Green main CI allowed docs deployment because its assertions missed these failur
 
 ## Prevention
 
-The pending gallery tests in `apps/docs/tests/release-docs.spec.ts:1182` enable normal motion, move the pointer across the affected card/dialog, sample position and hit testing over 60 frames, and verify padding and focus return. They compare inspected desktop/mobile, light/dark Dialog baselines on macOS and Linux. Package tests also exercise transformed/clipped parents and covering siblings. CI retains failed browser images and traces.
+The gallery tests in `apps/docs/tests/release-docs.spec.ts` enable normal motion, move the pointer across the affected card/dialog, sample position and hit testing over 60 frames, and verify padding and focus return. The canonical visual suite in `apps/docs/tests/visual.spec.ts` compares desktop/mobile, light/dark Dialog baselines in the pinned Linux rendering environment. Package tests also exercise transformed/clipped parents and covering siblings. CI retains failed browser images and traces.
 
 When changing an overlay's presentation path or replacing a styled wrapper with a nested component, inspect the composed gallery context and assert actual computed geometry and paint order. An isolated example and a green interaction suite are insufficient evidence.
