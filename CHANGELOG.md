@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Resizing a table column no longer adds a one-pixel scrollbar when the drag ends. Repeated reconciliation keeps fitting tables within the editor and preserves scrolling for wide tables.
+
 - Badge and combobox chip labels retain room for their full text, including descenders, while long labels still ellipsize.
 - Long badge and combobox chip labels truncate with an ellipsis inside their surface, preserving their full accessible text.
 
