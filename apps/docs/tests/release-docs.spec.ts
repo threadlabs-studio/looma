@@ -540,8 +540,8 @@ test("editor table menus use one action capability set", async ({ page }) => {
 });
 
 test("every component page renders distinct, visible, coded scenarios", async ({ page }) => {
-  // Visits every component page in one test.
-  test.setTimeout(90_000);
+  // Give each route its normal readiness allowance; the library-wide loop grows with the catalog.
+  test.setTimeout(Math.max(90_000, componentApi.components.length * 5_000));
   for (const component of componentApi.components) {
     await page.goto(`components/${component.tag}`, { waitUntil: "domcontentloaded" });
     await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);

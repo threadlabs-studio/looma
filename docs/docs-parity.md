@@ -127,6 +127,17 @@ the pixel comparison remains unchanged. Focus, open overlays, and selections rem
 intact. Screenshots disable animations and hide the
 caret without hiding content. Keep the Playwright version, image digest, font
 fixtures, and baseline review together when changing the rendering environment.
+The two desktop Table HTML captures have additional `--github-actions.png`
+references, selected only when `GITHUB_ACTIONS` is exactly `true`. Two independent
+GitHub runs and their retries produced identical sticky-header glyph pixels that
+differ from local container captures. Both full-page variants were reviewed;
+layout, content, API/Vue views, and accessibility assertions remain shared. Each
+variant still allows zero changed pixels. This records an observed environment
+difference, not a proven hardware cause or a browser correction. Playwright
+[documents rendering variation across environments, including hardware](https://playwright.dev/docs/test-snapshots).
+Review those two references from GitHub's uploaded actual images when that
+rendering environment changes; local updates continue to use the local references.
+
 Vue-code views reload the persisted lens before capture, matching the initial
 HTML view's fresh paint. API/Examples transitions and lens persistence still
 receive separate behavior assertions.
