@@ -371,7 +371,7 @@
     <method name="focusInput" export="focusInput" returns="promise(undefined)"></method>
   </defs>
   <div>
-    <label from:for="format('%s-input', uid)" class:sr-only="labelVisibility = 'sr-only'"><template $value="label"></template><template $if="required">
+    <label from:for="concat(uid, '-input')" class:sr-only="labelVisibility = 'sr-only'">{$label}<template $if="required">
         *</template></label>
     <div class="control">
       <div class="field" $ref="field">
@@ -386,18 +386,18 @@
               tabindex="-1"
               from:data-index="index"
               from:disabled="disabled or readonly or item.disabled"
-              from:aria-label="format('%s, press Delete or Backspace to remove', item.label)"
+              from:aria-label="concat(item.label, ', press Delete or Backspace to remove')"
             >
-              <slot from:name="format('item-%s', item.id)"><ui-badge $value="item.label"></ui-badge></slot>
+              <slot from:name="concat('item-', item.id)"><ui-badge $value="item.label"></ui-badge></slot>
             </button>
           </template>
           <input
             $ref="input"
-            from:id="format('%s-input', uid)"
+            from:id="concat(uid, '-input')"
             role="combobox"
             aria-autocomplete="list"
             autocomplete="off"
-            from:aria-controls="format('%s-listbox', uid)"
+            from:aria-controls="concat(uid, '-listbox')"
             from:aria-expanded="expanded"
             from:aria-invalid="invalid or validationStatus = 'error'"
             from:aria-busy="loading or validationStatus = 'pending'"
@@ -429,7 +429,7 @@
           data-combobox-action="disclosure"
           tabindex="-1"
           aria-label="Show suggestions"
-          from:aria-controls="format('%s-listbox', uid)"
+          from:aria-controls="concat(uid, '-listbox')"
           from:disabled="disabled or readonly"
         >
           <svg
@@ -446,7 +446,7 @@
           </svg>
         </button>
       </div>
-      <button $if="help" class="help" from:id="format('%s-help', uid)" type="button" aria-label="Help" from:disabled="disabled">
+      <button $if="help" class="help" from:id="concat(uid, '-help')" type="button" aria-label="Help" from:disabled="disabled">
         <svg
           class="help-icon"
           aria-hidden="true"
@@ -463,11 +463,9 @@
         </svg>
       </button>
     </div>
-    <ui-tooltip $if="help" trigger="click" from:id="format('%s-help-text', uid)" from:for="format('%s-help', uid)"><template
-        $value="help"
-      ></template></ui-tooltip>
+    <ui-tooltip $if="help" trigger="click" from:id="concat(uid, '-help-text')" from:for="concat(uid, '-help')">{$help}</ui-tooltip>
     <div class="popup" $ref="popup" from:hidden="not expanded">
-      <div role="listbox" $ref="listbox" from:id="format('%s-listbox', uid)" from:aria-label="format('%s suggestions', label)" from:aria-busy="loading">
+      <div role="listbox" $ref="listbox" from:id="concat(uid, '-listbox')" from:aria-label="concat(label, ' suggestions')" from:aria-busy="loading">
         <div $each="group of groups" $key="group.name" from:role="group.role" from:aria-label="group.label">
           <div $if="group.name" class="group" $value="group.name"></div>
           <div
@@ -478,23 +476,23 @@
             role="option"
             data-ui-choice-option
             from:data-multiple="multiple"
-            from:id="format('%s-option-%s', uid, row.index)"
+            from:id="concat(uid, '-option-', row.index)"
             from:aria-selected="row.selected"
             from:aria-disabled="row.disabled"
             from:data-index="row.index"
             from:aria-labelledby="row.labelledBy"
             from:aria-describedby="row.detail"
           >
-            <slot from:name="format('option-%s', row.id)">
+            <slot from:name="concat('option-', row.id)">
               <span $if="row.detail" class="detail">
                 <span class="line">
-                  <span class="primary" from:id="format('%s-option-%s-label', uid, row.index)" $value="row.label"></span>
+                  <span class="primary" from:id="concat(uid, '-option-', row.index, '-label')" $value="row.label"></span>
                   <ui-badge $if="row.tag" from:tone="row.tag.tone" style:--ui-badge-color="row.tag.color"><span
-                      from:id="format('%s-option-%s-tag', uid, row.index)"
+                      from:id="concat(uid, '-option-', row.index, '-tag')"
                       $value="row.tag.label"
                     ></span></ui-badge>
                 </span>
-                <span $if="row.description" class="description" from:id="format('%s-option-%s-description', uid, row.index)" $value="row.description"></span>
+                <span $if="row.description" class="description" from:id="concat(uid, '-option-', row.index, '-description')" $value="row.description"></span>
               </span>
               <span $if="not row.detail" class="primary" $value="row.label"></span>
             </slot>
@@ -508,20 +506,20 @@
           data-ui-choice-option
           from:data-multiple="multiple"
           aria-selected="false"
-          from:id="format('%s-option-%s', uid, createIndex)"
+          from:id="concat(uid, '-option-', createIndex)"
           from:data-index="createIndex"
-          $value="format('Create “%s”', raw)"
+          $value="concat('Create “', raw, '”')"
         >
         </div>
-        <div $if="message" class="message" $value="message"></div>
+        <div $if="message" class="message">{$message}</div>
         <div $if="not loading and not rows.0 and not creatable and not lookupError" class="message"><slot name="empty">No suggestions.</slot></div>
       </div>
       <slot name="footer"></slot>
     </div>
-    <div class="message" from:id="format('%s-validation', uid)" from:hidden="not validation.issues.length">
+    <div class="message" from:id="concat(uid, '-validation')" from:hidden="not validation.issues.length">
       <div $each="issue of validation.issues" $value="issue.message"></div>
     </div>
-    <div class="sr-only" role="status" aria-live="polite" aria-atomic="true" $value="statusText"></div>
+    <div class="sr-only" role="status" aria-live="polite" aria-atomic="true">{$statusText}</div>
     <div class="authored-options" $ref="options" hidden aria-hidden="true"><slot></slot></div>
   </div>
   <style>

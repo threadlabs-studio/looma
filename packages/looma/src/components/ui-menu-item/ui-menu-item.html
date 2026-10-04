@@ -25,7 +25,7 @@
       tabindex="-1"
       from:aria-disabled="disabled"
       from:data-value="value"
-      from:href="{ true: null, false: href }[format('%s', disabled)]"
+      from:href="{ true: null, false: href }[concat(disabled)]"
     >
       <span class="label"><slot></slot></span>
       <span class="shortcut" aria-hidden="true"><slot name="shortcut"></slot></span>
