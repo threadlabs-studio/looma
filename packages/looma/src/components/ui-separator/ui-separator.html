@@ -1,5 +1,7 @@
 <template component="ui-separator">
   <defs>
+    <prop name="emphasis" type="keyword" values="normal, strong" default="normal"
+    >Normal uses the decorative divider color; strong uses the stronger enclosing-edge color for clearer separation.</prop>
     <prop name="orientation" type="keyword" values="horizontal, vertical" default="horizontal"
     >Whether the separator divides stacked content (horizontal) or inline content (vertical).</prop>
     <prop name="selectable" type="boolean" default="false">Gives a document divider a pointer-sized hit area. The editor owns selection and deletion.</prop>
@@ -19,13 +21,17 @@
       align-self: stretch;
       margin: 0;
       border: 0;
-      border-block-start: var(--ui-border-width) solid var(--ui-separator-color, var(--ui-border-divider));
+      border-block-start: var(--ui-border-width) solid var(--ui-separator-color, var(--_separator-color, var(--ui-border-divider)));
+    }
+
+    :host-state([emphasis="strong"]) {
+      --_separator-color: var(--ui-border-strong);
     }
 
     :host[aria-orientation="vertical"] {
       block-size: auto;
       border-block-start: 0;
-      border-inline-start: var(--ui-border-width) solid var(--ui-separator-color, var(--ui-border-divider));
+      border-inline-start: var(--ui-border-width) solid var(--ui-separator-color, var(--_separator-color, var(--ui-border-divider)));
     }
 
     :host-state([selectable]) {

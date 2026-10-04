@@ -44,7 +44,7 @@ test("API metadata keeps base types, choices, and selected types readable", asyn
   const groups = await readDeclarativeContractGroups();
   const contracts = groups[0].contracts;
   assert.equal(contracts["ui-button"].propValueTypes.variant, "keyword");
-  assert.deepEqual(contracts["ui-button"].propOptions.variant, ["outline", "solid", "danger", "ghost", "link"]);
+  assert.deepEqual(contracts["ui-button"].propOptions.variant, ["outline", "solid", "danger", "ghost", "link", "card"]);
   assert.equal(contracts["ui-input"].propValueTypes.value, "type=number, range → number; otherwise → string");
   assert.equal(contracts["ui-checkbox"].events[0].detailShape, "object");
   assert.deepEqual(contracts["ui-checkbox"].events[0].fields.find((field) => field.path === "trigger"), {
@@ -116,7 +116,7 @@ test("a button renders as a link through its polymorphic root, not a second comp
   // An `as` prop chooses between explicit native roots; the prop does not retag an element.
   assert.equal(contracts["ui-button"].props.as?.type, "keyword");
   assert.deepEqual(contracts["ui-button"].propOptions.as, ["button", "a"]);
-  assert.match(source, /<template \$match>\s*<a\s+\$when="as = 'a'"/);
+  assert.match(source, /<a\s+\$when="as = 'a'"/);
   assert.match(source, /<button\s+\$else\b/);
   assert.equal(contracts["ui-button"].root, "button");
   for (const name of ["href", "target", "rel"]) {
@@ -221,7 +221,7 @@ test("semantic tones use one public vocabulary", async () => {
     "utf8",
   );
 
-  assert.deepEqual(contracts["ui-button"].propOptions.variant, ["outline", "solid", "danger", "ghost", "link"]);
+  assert.deepEqual(contracts["ui-button"].propOptions.variant, ["outline", "solid", "danger", "ghost", "link", "card"]);
   assert.deepEqual(contracts["ui-callout"].propOptions.tone, ["info", "neutral", "note", "warning", "success", "danger"]);
   assert.deepEqual(contracts["ui-badge"].propOptions.tone, ["neutral", "accent", "info", "success", "warning", "danger"]);
   assert.deepEqual(contracts["ui-badge"].propOptions.shape, ["pill", "tag", "dot", "square"]);

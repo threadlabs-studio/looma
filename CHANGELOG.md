@@ -285,6 +285,9 @@
   block remains code text.
 - The focused empty-editor placeholder remains readable when the active-block marker is enabled.
 
+- Button’s CardButton variant uses Button with its existing tones, an arbitrary icon slot, flexible top-aligned content, and a vertically centered action slot that defaults to a caret. Card borders and inline padding stay uniform.
+- Separator can use strong emphasis when a composition needs clearer separation.
+
 ## v0.15.4
 
 - Warning text (`--ui-warning-subtle-text`, used by subtle warning Badges and warning Text) mixes 55%
