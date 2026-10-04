@@ -1,0 +1,11 @@
+[
+  {
+    "id": "scrollable-region-focusable",
+    "impact": "serious",
+    "targets": [
+      [
+        "section[data-preview-scenario=\"Default\"] > .looma-preview-scenario__stage[data-component-preview=\"ui-scroll-area\"] > div[data-component=\"ui-scroll-area\"][data-valid=\"\"]"
+      ]
+    ]
+  }
+]

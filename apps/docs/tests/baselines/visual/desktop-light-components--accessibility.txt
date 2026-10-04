@@ -1,0 +1,41 @@
+[
+  {
+    "id": "landmark-main-is-top-level",
+    "impact": "moderate",
+    "targets": [
+      [
+        ".demo-app-main"
+      ]
+    ]
+  },
+  {
+    "id": "landmark-no-duplicate-main",
+    "impact": "moderate",
+    "targets": [
+      [
+        ".docMainContainer_HQ6G"
+      ]
+    ]
+  },
+  {
+    "id": "landmark-unique",
+    "impact": "moderate",
+    "targets": [
+      [
+        ".docMainContainer_HQ6G"
+      ],
+      [
+        ".theme-layout-navbar"
+      ]
+    ]
+  },
+  {
+    "id": "scrollable-region-focusable",
+    "impact": "serious",
+    "targets": [
+      [
+        ".looma-component-preview.looma-component-preview--compact > div > div[data-component=\"ui-scroll-area\"][data-valid=\"\"]"
+      ]
+    ]
+  }
+]
