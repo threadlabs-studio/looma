@@ -1,6 +1,6 @@
 # Documentation parity checks
 
-The documentation baseline is the site built from main at `23c21932`, with the
+The documentation baseline is the site built from main at `3e0d7dda`, with the
 Docusaurus iterable-spread correction in `apps/docs/babel.config.js` and the
 catalog/editor MDX paragraph correction and shared Vue highlighting registration.
 Nested paragraphs and server/browser Prism grammar differences previously
@@ -19,7 +19,7 @@ reset defaults. Ordinary ARIA fieldsets retain independently authored radios;
 the coordination does not depend on compiler or adapter markers.
 
 `apps/docs/tests/coverage.json` inventories the 84 built documentation routes and
-258 authored scenarios. The inventory check compares built router metadata
+259 authored scenarios. The inventory check compares built router metadata
 and source example metadata with this reviewed file. It also checks the complete
 built router against the docs metadata, so a custom page cannot bypass coverage.
 The generated not-found fallback has no authored route metadata. Adding, removing, or
