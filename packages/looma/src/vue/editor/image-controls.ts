@@ -48,7 +48,7 @@ export const ImageControls = defineComponent({
         ...placements.map(option => h(IconButton, {
           id: `${id}-${option.value}`, label: option.label, size: "sm", variant: placement.value === option.value ? "outline" : "ghost",
           "aria-pressed": placement.value === option.value,
-          onClick: () => update({ placement: option.value }),
+          onClick: () => update({ placement: option.value, ...(option.value.startsWith("wrap-") ? { width: null, height: null } : {}) }),
         }, () => h(Icon, { name: option.icon, size: "sm" }))),
         h(IconButton, { id, label: "Image description", size: "sm", variant: "ghost" }, () => h(Icon, { name: "file-text", size: "sm" })),
         h(IconButton, { id: `${id}-delete`, label: "Delete image", size: "sm", variant: "ghost", onClick: () => { if (selected() && props.editor.isEditable) props.editor.chain().focus().deleteSelection().run(); } }, () => h(Icon, { name: "trash", size: "sm" })),

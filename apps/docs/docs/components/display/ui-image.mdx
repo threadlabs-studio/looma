@@ -18,6 +18,9 @@ Escape and pointer cancellation discard a preview. Focus a handle and use arrow 
 keyboard resizing, or Shift plus an arrow for a larger increment.
 
 Placement supports `block`, `center`, `wrap-left`, and `wrap-right`. A wrapping image floats;
-its surrounding layout owns float containment and the space between content blocks.
+its surrounding layout owns float containment and the space between content blocks. Without an
+explicit width, a wrapping image occupies one-third of its column on desktop. Explicit dimensions
+supplied by a consumer or dragging take precedence on desktop. Below 768px, wrapping images
+stack at full column width.
 
 <ComponentExamplesApiTabs component="ui-image" />
