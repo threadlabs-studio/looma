@@ -883,6 +883,11 @@ export const LoomaEditor = defineComponent({
       ]);
     };
 
+    const renderLinkContextCard = (instance: Editor) => h(Card, {
+      variant: "elevated", padding: linkContextEditing.value ? "sm" : "xs", size: linkContextEditing.value ? "sm" : "content",
+      class: ["looma-editor__link-context", { "looma-editor__link-context--editing": linkContextEditing.value }],
+    }, () => [renderLinkContext(instance)]);
+
     const captureBlockAction = () => {
       const instance = editor.value;
       const head = instance?.state.selection.$head;
@@ -1697,7 +1702,7 @@ export const LoomaEditor = defineComponent({
               shouldShow: ({ editor: menuEditor, from, to }: { editor: Editor; from: number; to: number }) =>
                 (props.toolbarMode !== "popover" || !props.toolbarOpen)
                 && (props.toolbarMode === "contextual"
-                  ? menuEditor.isFocused
+                  ? menuEditor.isFocused || linkContextEditing.value
                   : shouldShowTextFormattingToolbar(menuEditor, from, to)),
               tippyOptions: {
                 // Escape clipped panels, but stay in the top layer when the editor is in a dialog or popover.
@@ -1706,10 +1711,25 @@ export const LoomaEditor = defineComponent({
                 duration: 100,
                 maxWidth: "none",
                 placement: "top",
+                ...(props.toolbarMode === "contextual" && root.value ? {
+                  popperOptions: {
+                    modifiers: [
+                      { name: "flip", options: { boundary: root.value } },
+                      { name: "preventOverflow", options: { boundary: root.value, altAxis: true } },
+                    ],
+                  },
+                } : {}),
               },
-            }, { default: () => renderToolbar(instance, true, props.toolbarMode === "popover") })
+            }, { default: () => props.toolbarMode === "contextual"
+              ? h(Stack, { gap: "xs" }, () => [
+                  renderToolbar(instance, true),
+                  (linkContextEditing.value || instance.state.selection.empty && instance.isActive("link")) && !linkOpen.value
+                    ? renderLinkContextCard(instance)
+                    : null,
+                ])
+              : renderToolbar(instance, true, props.toolbarMode === "popover") })
           : null,
-        instance && props.editable && !mobile.value
+        instance && props.editable && !mobile.value && props.toolbarMode !== "contextual"
           ? h(BubbleMenu, {
               editor: instance,
               pluginKey: "looma-link-context-menu",
@@ -1722,10 +1742,7 @@ export const LoomaEditor = defineComponent({
                 maxWidth: Math.min(480, window.innerWidth - 24),
                 placement: "bottom",
               },
-            }, { default: () => h(Card, {
-              variant: "elevated", padding: linkContextEditing.value ? "sm" : "xs", size: linkContextEditing.value ? "sm" : "content",
-              class: ["looma-editor__link-context", { "looma-editor__link-context--editing": linkContextEditing.value }],
-            }, () => [renderLinkContext(instance)]) })
+            }, { default: () => renderLinkContextCard(instance) })
           : null,
         instance && props.editable && !mobile.value && props.toolbarMode === "popover" && props.toolbarTriggerId
           ? h(Popover, {

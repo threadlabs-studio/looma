@@ -4,6 +4,7 @@ import { common } from "lowlight";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, ref, type App } from "vue";
 import { LoomaEditor } from "../src/vue/editor/LoomaEditor";
+import { Button } from "../vue/index";
 import "../vue/components.css";
 import "../tokens.css";
 import "../theme-light.css";
@@ -70,6 +71,45 @@ afterEach(async () => {
 });
 
 describe("LoomaEditor history (real browser)", () => {
+  it.each([768, 1280])("keeps contextual controls below document details at %ipx", async (width) => {
+    await page.viewport(width, 720);
+    const host = document.createElement("section");
+    host.style.marginBlockStart = "180px";
+    document.body.append(host);
+    let editor: Editor | null = null;
+    const detailsClicked = ref(false);
+    const app = createApp({
+      render: () => h("div", [
+        h(Button, { onClick: () => { detailsClicked.value = true; } }, () => "Document details"),
+        h(LoomaEditor, {
+          modelValue: { type: "doc", content: [{ type: "paragraph" }] },
+          toolbarMode: "contextual",
+          onReady: (instance: Editor) => { editor = instance; },
+        }),
+      ]),
+    });
+    apps.push(app);
+    app.mount(host);
+    await flushBrowser();
+    editor!.commands.focus("start");
+    editor!.commands.insertContent("A first paragraph.");
+    await flushBrowser();
+    const toolbar = page.getByRole("toolbar", { name: "Editor toolbar", exact: true });
+    await expect.element(toolbar).toBeVisible();
+    await vi.waitFor(() => {
+      const bounds = toolbar.element().getBoundingClientRect();
+      const content = host.querySelector<HTMLElement>(".looma-editor")!.getBoundingClientRect();
+      expect(bounds.top).toBeGreaterThanOrEqual(content.top);
+      expect(bounds.bottom).toBeLessThanOrEqual(content.bottom);
+    });
+    await userEvent.click(page.getByRole("button", { name: "Document details", exact: true }));
+    expect(detailsClicked.value).toBe(true);
+    await vi.waitFor(() => {
+      const popup = document.querySelector('[aria-label="Editor toolbar"]')?.closest<HTMLElement>("[data-tippy-root]");
+      expect(popup?.style.visibility).not.toBe("visible");
+    });
+  });
+
   it("offers full contextual commands at an empty caret and a text selection", async () => {
     await page.viewport(768, 720);
     const { editor } = await mountEditor({ toolbarMode: "contextual" });
@@ -96,6 +136,15 @@ describe("LoomaEditor history (real browser)", () => {
     expect(document.querySelector('[aria-label="Open link"]')?.getAttribute("href")).toBe("https://example.com");
     expect(document.querySelector('[aria-label="Edit link"]')).toBeTruthy();
     expect(document.querySelector('[aria-label="Remove link"]')).toBeTruthy();
+    const heading = page.getByRole("button", { name: "Heading 1", exact: true }).element();
+    const headingBounds = heading.getBoundingClientRect();
+    expect(document.elementFromPoint(headingBounds.x + headingBounds.width / 2,
+      headingBounds.y + headingBounds.height / 2)?.closest("button")).toBe(heading);
+    await userEvent.click(page.getByRole("button", { name: "Edit link", exact: true }));
+    await expect.element(page.getByRole("form", { name: "Edit link" })).toBeVisible();
+    await userEvent.click(page.getByRole("button", { name: "Cancel", exact: true }));
+    await expect.element(page.getByRole("group", { name: "Link actions", exact: true })).toBeVisible();
+    expect(editor.isActive("link")).toBe(true);
   });
 
   it("lazily offers HTML and highlights markup in a default editor", async () => {
