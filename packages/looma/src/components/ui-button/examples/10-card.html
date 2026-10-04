@@ -1,0 +1,14 @@
+<!--
+title: card action
+description: Button's card variant keeps its tone palette and places top-aligned icon and content beside a centered action. The action slot defaults to a caret.
+-->
+<ui-stack gap="s">
+  <ui-button variant="card" tone="accent"><ui-icon slot="icon" name="book-user" aria-hidden="true"></ui-icon>Read the latest project notes and
+    decisions</ui-button>
+  <ui-button variant="card" tone="neutral">Open document history</ui-button>
+  <ui-button variant="card" tone="warning"><ui-icon slot="icon" name="triangle-alert" aria-hidden="true"></ui-icon>Inspect items that need attention<ui-icon
+      slot="action"
+      name="chevron-down"
+      aria-hidden="true"
+    ></ui-icon></ui-button>
+</ui-stack>
