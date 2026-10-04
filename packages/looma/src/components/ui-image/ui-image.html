@@ -1,0 +1,177 @@
+<template component="ui-image" controller="./ui-image.js">
+  <defs>
+    <prop name="src" type="string" default="">The image source, used by the default media.</prop>
+    <prop name="alt" type="string" default="">A text alternative for the image.</prop>
+    <prop name="width" type="integer" nullable
+    >Image width in CSS pixels; omitted uses intrinsic size in block/center placement or responsive sizing when wrapping.</prop>
+    <prop name="height" type="integer" nullable>Image height in CSS pixels; resizing preserves the intrinsic aspect ratio.</prop>
+    <prop name="placement" type="keyword" values="block, center, wrap-left, wrap-right" default="block"
+    >Block keeps text below; center centers the image; wrap-left and wrap-right let following text flow beside it.</prop>
+    <prop name="selected" type="boolean" default="false">Outlines the media as the current selection.</prop>
+    <prop name="resizable" type="boolean" default="false"
+    >Shows four corner handles while selected. Drag to resize, or focus a handle and use arrow keys; Shift uses a larger increment.</prop>
+    <event name="resize" type="object">
+      <prop name="width" type="integer" required></prop>
+      <prop name="height" type="integer" required></prop>
+      <prop name="phase" type="keyword" values="preview, commit, cancel" required></prop>
+      <prop name="trigger" type="keyword" values="pointer, keyboard" required></prop>
+      Reports resize intent. Preview is transient; the consumer persists a commit. Escape and pointer cancellation restore the original size.
+    </event>
+  </defs>
+  <figure>
+    <div class="frame" $ref="frame">
+      <slot name="media"><img from:src="src" from:alt="alt" from:width="width" from:height="height"></slot>
+      <div class="handles" from:hidden="not (selected and resizable)">
+        <button type="button" class="handle" data-corner="top-left" aria-label="Resize image from top left"></button>
+        <button type="button" class="handle" data-corner="top-right" aria-label="Resize image from top right"></button>
+        <button type="button" class="handle" data-corner="bottom-left" aria-label="Resize image from bottom left"></button>
+        <button type="button" class="handle" data-corner="bottom-right" aria-label="Resize image from bottom right"></button>
+      </div>
+      <slot name="controls"></slot>
+    </div>
+  </figure>
+  <style>
+    :host {
+      display: flex;
+      justify-content: flex-start;
+      box-sizing: border-box;
+      max-inline-size: 100%;
+      min-inline-size: 0;
+      margin: 0;
+      padding: var(--ui-space-3) 0;
+    }
+    :host-state([placement="center"]) {
+      justify-content: center;
+    }
+    :host-state([placement="wrap-left"]) {
+      float: left;
+      padding-inline-end: var(--ui-space-4);
+    }
+    :host-state([placement="wrap-right"]) {
+      float: right;
+      padding-inline-start: var(--ui-space-4);
+    }
+    :host:is(:host-state([placement="wrap-left"]), :host-state([placement="wrap-right"])) {
+      inline-size: calc(var(--_ui-image-width, calc(100% / 3)) + var(--ui-space-4));
+    }
+    :host:is(:host-state([placement="wrap-left"]), :host-state([placement="wrap-right"])) .frame {
+      inline-size: 100%;
+    }
+    :host:is(:host-state([placement="wrap-left"]), :host-state([placement="wrap-right"])) .frame img,
+    :host:is(:host-state([placement="wrap-left"]), :host-state([placement="wrap-right"])) .frame :slotted(img) {
+      inline-size: 100%;
+    }
+    .frame {
+      position: relative;
+      flex: 0 1 auto;
+      inline-size: var(--_ui-image-width, fit-content);
+      max-inline-size: 100%;
+      min-inline-size: 0;
+      align-self: flex-start;
+      border-radius: var(--ui-radius-md);
+    }
+    .frame img, .frame :slotted(img) {
+      display: block;
+      max-inline-size: 100%;
+      block-size: auto;
+      margin: 0;
+      border-radius: inherit;
+    }
+    :host[data-resizing] .frame img, :host[data-resizing] .frame :slotted(img) {
+      inline-size: 100%;
+    }
+    :host-state([selected]) .frame {
+      outline: var(--ui-focus-width) solid var(--ui-focus-ring);
+      outline-offset: var(--ui-border-width);
+    }
+    .handle {
+      position: absolute;
+      z-index: 1;
+      inline-size: 24px;
+      block-size: 24px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      touch-action: none;
+    }
+    .handle::after {
+      content: "";
+      position: absolute;
+      inset: 8px;
+      background: var(--ui-surface);
+      border: var(--ui-border-width) solid var(--ui-focus-ring);
+      border-radius: var(--ui-radius-sm);
+    }
+    .handle:focus-visible {
+      outline: var(--ui-focus-width) solid var(--ui-focus-ring);
+      border-radius: var(--ui-radius-sm);
+    }
+    .handle[data-corner="top-left"] {
+      top: -12px;
+      left: -12px;
+      cursor: nwse-resize;
+    }
+    .handle[data-corner="top-right"] {
+      top: -12px;
+      right: -12px;
+      cursor: nesw-resize;
+    }
+    .handle[data-corner="bottom-left"] {
+      bottom: -12px;
+      left: -12px;
+      cursor: nesw-resize;
+    }
+    .handle[data-corner="bottom-right"] {
+      bottom: -12px;
+      right: -12px;
+      cursor: nwse-resize;
+    }
+    .handles[hidden], :host[hidden] {
+      display: none;
+    }
+    @media (max-width: 767px) {
+      :host:is(:host-state([placement="wrap-left"]), :host-state([placement="wrap-right"])) {
+        float: none;
+        inline-size: 100%;
+        padding-inline: 0;
+      }
+      :host:is(:host-state([placement="wrap-left"]), :host-state([placement="wrap-right"])) .handles {
+        display: none;
+      }
+    }
+    @media (pointer: coarse) {
+      .handle {
+        inline-size: 44px;
+        block-size: 44px;
+      }
+      .handle::after {
+        inset: 18px;
+      }
+      .handle[data-corner="top-left"] {
+        top: -22px;
+        left: -22px;
+      }
+      .handle[data-corner="top-right"] {
+        top: -22px;
+        right: -22px;
+      }
+      .handle[data-corner="bottom-left"] {
+        bottom: -22px;
+        left: -22px;
+      }
+      .handle[data-corner="bottom-right"] {
+        bottom: -22px;
+        right: -22px;
+      }
+    }
+    @media (forced-colors: active) {
+      :host-state([selected]) .frame, .handle:focus-visible {
+        outline-color: Highlight;
+      }
+      .handle::after {
+        border-color: Highlight;
+        background: Canvas;
+      }
+    }
+  </style>
+</template>
