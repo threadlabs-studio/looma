@@ -6,6 +6,7 @@
 - Touch input text stays readable inside small captions without disabling browser zoom.
 - Editors can opt into a contextual toolbar with full commands at a focused caret or text selection; the existing mobile dock remains unchanged.
 
+- Badge and combobox chip labels retain room for their full text, including descenders, while long labels still ellipsize.
 - Long badge and combobox chip labels truncate with an ellipsis inside their surface, preserving their full accessible text.
 
 - Combobox can highlight a sole authored suggestion and commit it with Tab while preserving normal focus movement. Both behaviors are opt-in.

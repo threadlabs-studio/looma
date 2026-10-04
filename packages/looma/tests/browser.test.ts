@@ -6936,6 +6936,20 @@ describe("Combobox completion", () => {
 
 describe("Combobox chip truncation", () => {
   const label = "workspace:averylongidentifierthatmuststayinsideitsbadge";
+  const checkTextRoom = async (page: Page) => {
+    const bounds = await page.locator(".item .label").evaluateAll((labels) => labels.map((label) => {
+      const box = label.getBoundingClientRect();
+      const range = document.createRange();
+      range.selectNodeContents(label);
+      const text = range.getBoundingClientRect();
+      return { label: label.textContent, top: box.top, bottom: box.bottom, textTop: text.top, textBottom: text.bottom };
+    }));
+    assert.ok(bounds.length > 0);
+    for (const box of bounds) {
+      assert.ok(box.textBottom <= box.bottom + 1, `${box.label}: the label does not crop descenders`);
+      assert.ok(box.textTop >= box.top - 1, `${box.label}: the label leaves room above its text`);
+    }
+  };
   const check = async (page: Page) => {
     for (const width of [1280, 375]) {
       await page.setViewportSize({ width, height: 812 });
@@ -6955,6 +6969,7 @@ describe("Combobox chip truncation", () => {
       assert.equal(geometry.overflow, "hidden");
       assert.equal(geometry.ellipsis, "ellipsis");
       assert.equal(geometry.text, label, "full label remains available to assistive technology");
+      await checkTextRoom(page);
       await page.screenshot({ path: join(root, ".build", `chip-ellipsis-${width}.png`) });
     }
     await page.getByRole("combobox", { name: "Filter" }).focus();
@@ -6972,4 +6987,22 @@ describe("Combobox chip truncation", () => {
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
     try { await check(page); } finally { await page.close(); }
   });
+  for (const adapter of ["native", "Vue"]) {
+    it(`keeps short ${adapter} chip text and descenders visible at desktop and 375px`, async () => {
+      const items = [{ id: "date", value: "date", label: "date:today" }, { id: "entry", value: "entry", label: "entry:review" }];
+      const options = items.map((item) => `<option value="${item.value}">${item.label}</option>`).join("");
+      const source = adapter === "native" ? `import "@threadlabs/looma";`
+        : `import { createApp, h } from "vue"; import { Combobox } from "@threadlabs/looma/vue"; createApp({ render: () => h(Combobox, { label: "Filter", multiple: true, items: ${JSON.stringify(items)} }, () => ${JSON.stringify(items)}.map(item => h("option", {value: item.value}, item.label))) }).mount("#app");`;
+      const path = await bundle(`${adapter}-chip-descenders`, source);
+      const page = await open(path, adapter === "native" ? `<ui-combobox label="Filter" multiple items='${JSON.stringify(items)}'>${options}</ui-combobox>` : `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+      try {
+        for (const width of [1280, 375]) {
+          await page.setViewportSize({ width, height: 812 });
+          await page.locator(".item .label").first().waitFor();
+          await checkTextRoom(page);
+          await page.screenshot({ path: join(root, ".build", `chip-descenders-${adapter}-${width}.png`) });
+        }
+      } finally { await page.close(); }
+    });
+  }
 });
