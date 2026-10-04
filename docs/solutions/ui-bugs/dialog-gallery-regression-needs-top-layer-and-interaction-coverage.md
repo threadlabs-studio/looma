@@ -55,6 +55,8 @@ Dialog now owns an ordinary padded wrapper around the nested ScrollArea (`packag
 
 Always-open floating docs examples use isolated preview documents with real top layers. Triggered Dialog examples use the gallery document's top layer.
 
+Isolation checks the authored example tree too: a Menu Item or command group can be wrapped in an open popup even when the documented component is not itself floating. Restricting isolation to the outer component's tag left these compound-part examples at page coordinates; full-catalog visual review exposed the empty stages and displaced menus before merge.
+
 The first correction still left the action bottom gutter at 12px against 24px sides, and accumulated body padding plus a trailing paragraph margin made short dialogs too tall. The initial visual review missed these differences. Footer padding now matches the side gutter; ScrollArea owns an additive `trim` option because Dialog's CSS cannot cross the nested component boundary to reset projected margins. Gallery tests assert the bottom gutter and trailing margin as well as comparing images.
 
 Content height remains intrinsic, with only the body scrolling at the viewport cap. A ResizeObserver watches the intrinsic content wrapper and pinned regions, rather than the constrained viewport, to avoid animation feedback. Height transitions retarget from the current rendered height, release their override on completion, and cancel for reduced motion. HTML and Vue checks sample intermediate heights during growth, shrinkage, interrupted resizing, and transitions to and from the viewport cap.

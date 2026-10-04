@@ -551,10 +551,24 @@ test("table context menus fit a narrow presentation viewport", async ({ page }) 
   })).toBe(true);
 });
 
-test("every component page renders distinct, visible, coded scenarios", async ({ page }) => {
-  // Give each route its normal readiness allowance; the library-wide loop grows with the catalog.
-  test.setTimeout(Math.max(90_000, componentApi.components.length * 5_000));
-  for (const component of componentApi.components) {
+test("static popup part examples stay inside their own presentation viewport", async ({ page }) => {
+  for (const tag of ["ui-menu-item", "ui-menu-group", "ui-editor-mention-menu-item", "ui-editor-slash-menu-item", "ui-editor-slash-menu-group"]) {
+    await page.goto(`components/${tag}`, { waitUntil: "domcontentloaded" });
+    await ready(page);
+    const scenarios = page.locator("[data-preview-scenario]");
+    for (const scenario of await scenarios.all()) {
+      const preview = scenario.locator("iframe");
+      await expect(preview).toHaveCount(1);
+      const popup = preview.contentFrame().locator(":popover-open");
+      await expect(popup).toBeVisible();
+      await expect(scenario.locator(":popover-open")).toHaveCount(0);
+    }
+  }
+});
+
+// Each route gets the fixture's own page, asset diagnostics, and failure trace.
+for (const component of componentApi.components) {
+  test(`every component page renders distinct, visible, coded scenarios: ${component.tag}`, async ({ page }) => {
     await page.goto(`components/${component.tag}`, { waitUntil: "domcontentloaded" });
     await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
     const scenarios = page.locator("[data-preview-scenario]");
@@ -581,16 +595,15 @@ test("every component page renders distinct, visible, coded scenarios", async ({
       ),
       `${component.tag} scenario stages should have visible geometry`
     ).toBe(true);
-    expect(
-      await (["ui-search-shell", "ui-editor-mention-menu", "ui-editor-slash-menu", "ui-editor-table-context-menu"].includes(component.tag)
-        ? page.locator("[data-preview-scenario]").first().frameLocator("iframe").locator(`[data-component~="${component.tag}"]`)
-        : page.locator(`[data-component~="${component.tag}"]`)).count(),
-      `${component.tag} should lower to its live native root`
-    ).toBeGreaterThan(0);
+    const firstScenario = scenarios.first();
+    const nativeRoots = await firstScenario.locator("iframe").count()
+      ? firstScenario.frameLocator("iframe").locator(`[data-component~="${component.tag}"]`)
+      : page.locator(`[data-component~="${component.tag}"]`);
+    await expect(nativeRoots.first(), `${component.tag} should lower to its live native root`).toBeAttached();
     await expect(page.getByRole("heading", { name: "SSR Markup" })).toHaveCount(0);
     await expect(page.getByRole("heading", { name: "Framework Snippets" })).toHaveCount(0);
-  }
-});
+  });
+}
 
 test("component pages supply a live preview when no bespoke example exists", async ({
   page
@@ -1202,7 +1215,9 @@ for (const theme of ["light", "dark"] as const) {
       await page.getByRole("button", { name: /^Overlay/ }).click();
       const card = page.locator('[data-component-card="ui-dialog"]');
       await card.scrollIntoViewIfNeeded();
-      await card.getByRole("button", { name: "Open dialog" }).click();
+      const trigger = card.getByRole("button", { name: "Open dialog" });
+      await expect(trigger).toHaveAttribute("aria-haspopup", "dialog");
+      await trigger.click();
       const dialog = card.locator("dialog");
       await expect(dialog).toBeVisible();
       await expect(dialog).toHaveJSProperty("open", true);
