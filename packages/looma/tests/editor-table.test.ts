@@ -143,6 +143,30 @@ afterAll(async () => {
   if (directory) await rm(directory, { recursive: true, force: true });
 });
 
+describe("LoomaEditor column resize hints", () => {
+  it("shows a standard tooltip without widening a fitting phone table", async () => {
+    const page = await openEditor("<table><tr><td>First</td><td>Second</td></tr></table>");
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.locator("#app").evaluate((element) => {
+      element.style.width = "303px";
+      element.style.setProperty("--ui-font-size-xs", "16px");
+    });
+    const first = cell(page, 0, 0);
+    const bounds = (await first.boundingBox())!;
+    await page.mouse.move(bounds.x + bounds.width - 2, bounds.y + bounds.height / 2);
+    const handle = prose(page).locator(".column-resize-handle");
+    await handle.waitFor();
+    await handle.hover();
+    const hint = page.getByRole("tooltip").filter({ hasText: "Drag to resize column" });
+    await hint.waitFor();
+    assert.equal(await hint.evaluate((element) => element.matches(":popover-open")), true);
+    assert.equal(await prose(page).locator(".tableWrapper").evaluate((element) => element.scrollWidth - element.clientWidth), 0);
+    await page.locator("#outside").hover();
+    await hint.waitFor({ state: "hidden" });
+    await page.close();
+  });
+});
+
 describe("LoomaEditor links", () => {
   it("uses one standard form hierarchy with flat results and a primary save action", async () => {
     const page = await openEditor("<p>Hello</p>", "sticky", true);
