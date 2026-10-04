@@ -71,7 +71,7 @@
     <div $if="structure" class="group" role="group" aria-label="Table structure">
       <button $each="item of structure" $key="item.action" type="button" from:data-action="item.action">
         <ui-icon from:name="item.icon"></ui-icon>
-        <span $value="item.label"></span>
+        <span>{$item.label}</span>
       </button>
     </div>
     <div $if="(alignments or structure) and hasOverflow" class="sep" aria-hidden="true"></div>
@@ -96,12 +96,12 @@
               from:data-action="swatch.action"
             >
               <span class="swatch" class:default="not swatch.color" style:--_swatch="swatch.color"></span>
-              <span $value="swatch.label"></span>
+              <span>{$swatch.label}</span>
             </button>
           </div>
         </div>
         <div $each="section of sections" $key="section.heading" class="menu-section divided" role="none">
-          <div class="menu-heading" role="presentation" $value="section.heading"></div>
+          <div class="menu-heading" role="presentation">{$section.heading}</div>
           <button
             $each="item of section.items"
             $key="item.action"
@@ -112,7 +112,7 @@
             from:data-action="item.action"
           >
             <ui-icon from:name="item.icon"></ui-icon>
-            <span $value="item.label"></span>
+            <span>{$item.label}</span>
           </button>
         </div>
       </div>

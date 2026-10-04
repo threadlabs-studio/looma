@@ -5,6 +5,7 @@
 - Tooltips and popovers follow moving controls so hints do not cover their triggers.
 - Column-resize hints stay inside fitting tables, including narrow screens and larger text.
 
+- Repeated component rows use inline text expressions; the updated converter emits the same direct Vue bindings as `$value`, without per-row text components.
 - Contextual formatting gives slash-command and mention suggestions priority, so their results remain clickable.
 - Trees retain a keyboard entry point when row controllers load later or a hidden tree becomes visible, preserving the last focused row.
 - Contextual editor controls stay inside the document area rather than covering actions above it; link actions share that surface without covering formatting commands.
