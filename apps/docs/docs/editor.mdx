@@ -55,7 +55,7 @@ first integration.
 Select text for bold, italic, underline, strike, highlight, inline code, and links. The editor
 also supports headings, lists, quotes, code blocks, tables, images, undo, and redo. Set
 `toolbarMode="sticky"` to keep the toolbar above the document, `popover` to open it from your own
-button, or use the default `bubble` mode beside a selection. On narrow screens the toolbar docks at the bottom and scrolls sideways when
+button, `contextual` for the full command set beside a focused caret or selection, or use the default `bubble` mode beside a selection. On narrow screens the toolbar docks at the bottom and scrolls sideways when
 its controls do not fit.
 
 ## Slash commands and blocks
@@ -140,7 +140,7 @@ leaves the original URL visible and editable. Pass `linkBaseUrl` (for example, `
 | `placeholder` | `Type “/” for commands, or start writing…` | Empty document prompt |
 | `label` | `Document` | Accessible name for the editing surface |
 | `extensions` | `[]` | Additional Tiptap extensions |
-| `toolbarMode` | `bubble` | `bubble`, `sticky`, or `popover` toolbar placement |
+| `toolbarMode` | `bubble` | `bubble`, `sticky`, `popover`, or `contextual` toolbar placement |
 | `toolbarTriggerId`, `toolbarOpen` | `""`, `false` | The button that opens the `popover` toolbar, and whether it is open (`v-model:toolbar-open`) |
 | `codeLanguages` | Built-in catalog | Replace the default code languages with an application-owned grammar map; `{}` keeps code plain |
 | `mentionItems`, `mentionProvider`, `mentionLimit` | Empty, none, 8 | Fixed or searched mention candidates |

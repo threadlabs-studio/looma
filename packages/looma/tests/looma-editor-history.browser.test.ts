@@ -24,7 +24,7 @@ async function historyShortcut(direction: "undo" | "redo") {
   await userEvent.keyboard(`{${modifier}>}${shift}z${releaseShift}{/${modifier}}`);
 }
 
-async function mountEditor(options: { controlled?: boolean; editable?: boolean; toolbarMode?: "bubble" | "sticky"; disableHighlight?: boolean; codeLanguages?: Record<string, typeof common.sql> } = {}) {
+async function mountEditor(options: { controlled?: boolean; editable?: boolean; toolbarMode?: "bubble" | "sticky" | "contextual"; disableHighlight?: boolean; codeLanguages?: Record<string, typeof common.sql> } = {}) {
   vi.spyOn(window, "innerWidth", "get").mockReturnValue(1280);
   const modelValue = ref<JSONContent>({ type: "doc", content: [{ type: "paragraph" }] });
   const editable = ref(options.editable ?? true);
@@ -70,6 +70,31 @@ afterEach(async () => {
 });
 
 describe("LoomaEditor history (real browser)", () => {
+  it("offers full contextual commands at an empty caret and a text selection", async () => {
+    await page.viewport(768, 720);
+    const { editor } = await mountEditor({ toolbarMode: "contextual" });
+    editor.commands.focus("start");
+    await flushBrowser();
+    for (const label of ["Bold", "Heading 1", "Insert table", "Undo", "Redo"]) {
+      expect(document.querySelector(`[aria-label="${label}"]`)).toBeTruthy();
+    }
+    editor.commands.setContent("<p>Select some text</p>");
+    editor.commands.setTextSelection({ from: 1, to: 7 });
+    await flushBrowser();
+    expect(document.querySelector('[aria-label="Heading 1"]')).toBeTruthy();
+    const toolbar = document.querySelector<HTMLElement>('[role="toolbar"]')!;
+    const bounds = toolbar.getBoundingClientRect();
+    expect(bounds.left).toBeGreaterThanOrEqual(0);
+    expect(bounds.right).toBeLessThanOrEqual(document.documentElement.clientWidth);
+    await userEvent.click(document.querySelector<HTMLElement>('[aria-label="Bold"]')!);
+    expect(editor.getHTML()).toContain("<strong>Select</strong>");
+    editor.commands.setLink({ href: "https://example.com" });
+    editor.commands.setTextSelection(3);
+    await flushBrowser();
+    expect(document.querySelector('[aria-label="Heading 1"]')).toBeTruthy();
+    expect(document.querySelector('.looma-editor__link-context')?.closest('[data-tippy-root]')).toBeFalsy();
+  });
+
   it("lazily offers HTML and highlights markup in a default editor", async () => {
     const { editor, host } = await mountEditor();
     const lowlight = editor.extensionManager.extensions.find((extension) => extension.name === "codeBlock")!

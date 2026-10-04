@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Touch tree rows keep labels separate from actions after tapping, including RTL and multiple selection.
+- Touch input text stays readable inside small captions without disabling browser zoom.
+- Editors can opt into a contextual toolbar with full commands at a focused caret or text selection; the existing mobile dock remains unchanged.
+
 - Long badge and combobox chip labels truncate with an ellipsis inside their surface, preserving their full accessible text.
 
 - Combobox can highlight a sole authored suggestion and commit it with Tab while preserving normal focus movement. Both behaviors are opt-in.

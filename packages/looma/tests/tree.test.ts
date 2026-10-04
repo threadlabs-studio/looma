@@ -156,7 +156,7 @@ beforeAll(async () => {
     import { Tree, TreeItem } from "@threadlabs/looma/vue";
     const name = "A name long enough to run past the end of its row and under the controls";
     createApp({
-      render: () => h(Tree, { label: "Files", marquee: true }, () => [
+      render: () => h(Tree, { label: "Files", marquee: true, ...window.spec.tree }, () => [
         h(TreeItem, { itemId: "short", label: "Short" }),
         h(TreeItem, { itemId: "long", label: name }, {
           leading: () => h("span", { "data-testid": "icon", style: "display:block;width:16px;height:16px" }),
@@ -587,6 +587,50 @@ describe("Tree selection", () => {
 describe("Tree marquee", () => {
   const row = (page: Page) => item(page, "long").locator(":scope > :first-child");
   const moving = async (page: Page) => (await row(page).getAttribute("data-ui-marquee")) !== null;
+
+  it("keeps a touch-focused label clear of its separate actions without a desktop mask", async () => {
+    const page = await open({ items: [] }, marqueePath, {
+      viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true,
+    });
+    const target = row(page);
+    const bounds = (await target.boundingBox())!;
+    await page.touchscreen.tap(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+    const geometry = await target.evaluate((element) => {
+      const label = element.querySelector<HTMLElement>(".label")!;
+      const actions = element.querySelector<HTMLElement>(".actions")!;
+      return { mask: getComputedStyle(label).maskImage,
+        labelEnd: label.getBoundingClientRect().right,
+        actionsStart: actions.getBoundingClientRect().left };
+    });
+    assert.equal(geometry.mask, "none");
+    assert.ok(geometry.labelEnd <= geometry.actionsStart + 1);
+    assert.equal(await moving(page), false);
+    await page.close();
+  });
+
+  it("reserves an actions column for RTL touch rows and touch multiple selection", async () => {
+    for (const direction of ["ltr", "rtl"]) {
+      const page = await open({ tree: { selection: "multiple" }, items: [] }, marqueePath, {
+        viewport: { width: 375, height: 812 }, hasTouch: true, reducedMotion: "reduce",
+      });
+      await page.evaluate((value) => {
+        document.documentElement.dir = value;
+        document.documentElement.dataset.uiInputModality = "touch";
+      }, direction);
+      await row(page).locator('.selection-checkbox').focus();
+      const geometry = await row(page).evaluate((element) => {
+        const label = element.querySelector<HTMLElement>(".label")!;
+        const actions = element.querySelector<HTMLElement>(".actions")!;
+        const labelBounds = label.getBoundingClientRect();
+        const actionsBounds = actions.getBoundingClientRect();
+        return { labelWidth: labelBounds.width, start: labelBounds.left, end: labelBounds.right,
+          actionsStart: actionsBounds.left, actionsEnd: actionsBounds.right };
+      });
+      assert.ok(geometry.labelWidth > 20);
+      assert.ok(direction === "ltr" ? geometry.end <= geometry.actionsStart + 1 : geometry.start >= geometry.actionsEnd - 1);
+      await page.close();
+    }
+  });
 
   it("moves a slotted link title only as far as its visible letters require", async () => {
     const page = await open({ items: [] }, paddedMarqueePath, { reducedMotion: "no-preference" });
