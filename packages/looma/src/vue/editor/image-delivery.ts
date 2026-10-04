@@ -2,6 +2,8 @@ import { Extension, type Editor, type JSONContent } from "@tiptap/core";
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
 import { Plugin, PluginKey, type Transaction } from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
+import { normalizeImageDimension } from "../../editor/extensions/image";
+export { normalizeImageDimension } from "../../editor/extensions/image";
 /** What caused an overlay to open or close. */
 type OverlayTrigger = "keyboard" | "pointer" | "programmatic";
 
@@ -61,17 +63,13 @@ export interface LoomaImageRenditionErrorDetail extends LoomaImageDescriptor {
 
 interface LoomaImageDeliveryExtensionOptions {
   resolveAttributes: () => LoomaImageAttributeResolver | undefined;
+  isEditable: () => boolean;
 }
 
 function optionalString(value: unknown): string | undefined {
   return typeof value === "string" && value.length > 0 ? value : undefined;
 }
 
-export function normalizeImageDimension(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isSafeInteger(value) && value > 0
-    ? value
-    : undefined;
-}
 
 export function imageDescriptorFromAttrs(attrs: Record<string, unknown>): LoomaImageDescriptor | null {
   const src = optionalString(attrs.src);
@@ -91,13 +89,13 @@ export function imageDescriptorFromAttrs(attrs: Record<string, unknown>): LoomaI
 function transientAttributes(
   resolver: LoomaImageAttributeResolver | undefined,
   image: LoomaImageDescriptor,
+  editable: boolean,
 ): Record<string, string> {
   const attributes: Record<string, string> = {
-    "aria-label": image.alt ? `Open image: ${image.alt}` : "Open image",
+    ...(editable ? {} : { "aria-label": image.alt ? `Open image: ${image.alt}` : "Open image", role: "button" }),
     "data-looma-image": "",
-    role: "button",
     src: image.src,
-    tabindex: "0",
+    tabindex: editable ? "-1" : "0",
   };
   if (!image.responsive || !resolver) return attributes;
 
@@ -132,6 +130,7 @@ function createDecorations(
   doc: Parameters<typeof DecorationSet.create>[0],
   resolver: LoomaImageAttributeResolver | undefined,
   failedRenditions: Set<string>,
+  editable: boolean,
 ): DecorationSet {
   const decorations: Decoration[] = [];
   const currentSources = new Set<string>();
@@ -143,7 +142,8 @@ function createDecorations(
     decorations.push(Decoration.node(
       position,
       position + node.nodeSize,
-      transientAttributes(failedRenditions.has(image.src) ? undefined : resolver, image),
+      {},
+      { loomaImageAttributes: transientAttributes(failedRenditions.has(image.src) ? undefined : resolver, image, editable) },
     ));
   });
   for (const src of failedRenditions) {
@@ -191,34 +191,6 @@ export function createLoomaImageDeliveryController(
   };
   const extension = Extension.create({
     name: "loomaImageDelivery",
-    addGlobalAttributes() {
-      return [{
-        types: ["image"],
-        attributes: {
-          width: {
-            default: null,
-            parseHTML: (element) => normalizeImageDimension(Number(element.getAttribute("width"))) ?? null,
-            renderHTML: (attributes) => normalizeImageDimension(attributes.width)
-              ? { width: normalizeImageDimension(attributes.width) }
-              : {},
-          },
-          height: {
-            default: null,
-            parseHTML: (element) => normalizeImageDimension(Number(element.getAttribute("height"))) ?? null,
-            renderHTML: (attributes) => normalizeImageDimension(attributes.height)
-              ? { height: normalizeImageDimension(attributes.height) }
-              : {},
-          },
-          responsive: {
-            default: null,
-            parseHTML: (element) => element.hasAttribute("data-looma-responsive") || null,
-            renderHTML: (attributes) => attributes.responsive === true
-              ? { "data-looma-responsive": "" }
-              : {},
-          },
-        },
-      }];
-    },
     addProseMirrorPlugins() {
       return [new Plugin<DecorationSet>({
         key: pluginKey,
@@ -227,6 +199,7 @@ export function createLoomaImageDeliveryController(
             state.doc,
             options.resolveAttributes(),
             failedRenditions,
+            options.isEditable(),
           ),
           apply: (transaction, previous) => {
             if (!transaction.getMeta(pluginKey) && !transactionChangesImages(transaction)) {
@@ -236,6 +209,7 @@ export function createLoomaImageDeliveryController(
               transaction.doc,
               options.resolveAttributes(),
               failedRenditions,
+              options.isEditable(),
             );
           },
         },

@@ -35,8 +35,9 @@ test("derives the public contract from one maintained declarative definition", (
 test("loads every component contract from its folder", async () => {
   const groups = await readDeclarativeContractGroups();
   assert.deepEqual(groups.map(({ name }) => name), ["components"]);
-  assert.equal(Object.values(groups).flatMap(({ contracts }) => Object.keys(contracts)).length, 73);
+  assert.equal(Object.values(groups).flatMap(({ contracts }) => Object.keys(contracts)).length, 74);
   assert.equal(groups[0].contracts["ui-select"].root, "select");
+  assert.equal(groups[0].contracts["ui-image"].root, "figure");
 });
 
 test("API metadata keeps base types, choices, and selected types readable", async () => {
