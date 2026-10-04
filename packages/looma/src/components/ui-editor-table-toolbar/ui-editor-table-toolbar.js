@@ -1,3 +1,4 @@
+import { closeOverlay, createViewportSurface, openOverlay, positionAnchoredSurface } from "../shared/overlay.js";
 import { backgrounds } from "../shared/editor.js";
 
 const overflowSections = [
@@ -9,9 +10,12 @@ const overflowSections = [
 // Lists the actions the table selection permits; the overflow menu opens and closes here.
 export default function controller(host) {
   const element = host.element;
+  let alive = true;
+  let menu = null;
+  let surface = null;
+  const document = element.ownerDocument;
   const positionMenu = () => {
     const button = element.querySelector(".more");
-    const menu = element.querySelector(".menu");
     if (!button || !menu) return;
     const rect = button.getBoundingClientRect();
     const viewport = window.visualViewport;
@@ -20,9 +24,34 @@ export default function controller(host) {
     const above = rect.top - top - 20;
     const below = bottom - rect.bottom - 20;
     menu.style.maxHeight = `${Math.max(80, Math.floor(Math.max(above, below)))}px`;
-    menu.style.top = below >= above ? "calc(100% + var(--ui-space-2))" : "auto";
-    menu.style.bottom = below >= above ? "auto" : "calc(100% + var(--ui-space-2))";
+    positionAnchoredSurface(menu, rect, { placement: "bottom-end", gap: 8, viewportGap: 12 });
   };
+  const close = (reason) => {
+    host.state.overflowOpen = false;
+    if (reason === "escape") element.querySelector(".more")?.focus();
+  };
+  const releasePresentation = () => {
+    surface?.destroy();
+    surface = null;
+    menu = null;
+    closeOverlay(document, element);
+  };
+  const syncPresentation = () => {
+    if (!alive || !host.state.overflowOpen) return;
+    const next = element.querySelector(".menu");
+    if (!next) return;
+    if (next !== menu) {
+      releasePresentation();
+      menu = next;
+      surface = createViewportSurface(menu, { position: positionMenu });
+    }
+    surface.show();
+    openOverlay({ id: element, modal: false, element: menu, relatedElements: [element], dismissible: true, requestClose: close });
+  };
+  const stopPresentation = host.effect(() => {
+    if (host.state.overflowOpen) queueMicrotask(syncPresentation);
+    else releasePresentation();
+  });
   const stop = host.effect(() => {
     const enabled = new Set(Array.isArray(host.props.actions.value) ? host.props.actions.value : []);
     const alignment = host.props.cellAlignment.value === "center" || host.props.cellAlignment.value === "right" ? host.props.cellAlignment.value : "left";
@@ -50,34 +79,17 @@ export default function controller(host) {
     if (!action) return;
     if (action === "toggle-overflow") {
       host.state.overflowOpen = !host.state.overflowOpen;
-      if (host.state.overflowOpen) requestAnimationFrame(positionMenu);
       return;
     }
     host.state.overflowOpen = false;
     host.dispatch("action", { action });
   };
-  const onOutside = (event) => {
-    if (host.state.overflowOpen && !event.composedPath().includes(element)) host.state.overflowOpen = false;
-  };
-  const onKeydown = (event) => {
-    if (event.key === "Escape" && host.state.overflowOpen) {
-      host.state.overflowOpen = false;
-      event.preventDefault();
-      event.stopPropagation();
-      element.querySelector(".more")?.focus();
-    }
-  };
   element.addEventListener("click", onClick);
-  document.addEventListener("pointerdown", onOutside, true);
-  document.addEventListener("keydown", onKeydown, true);
-  window.addEventListener("resize", positionMenu);
-  window.visualViewport?.addEventListener("resize", positionMenu);
   return () => {
+    alive = false;
     stop();
+    stopPresentation();
+    releasePresentation();
     element.removeEventListener("click", onClick);
-    document.removeEventListener("pointerdown", onOutside, true);
-    document.removeEventListener("keydown", onKeydown, true);
-    window.removeEventListener("resize", positionMenu);
-    window.visualViewport?.removeEventListener("resize", positionMenu);
   };
 }

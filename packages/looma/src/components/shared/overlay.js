@@ -1,10 +1,11 @@
-const stacks = new WeakMap();
+const dialogInvokers = new WeakMap();
 
 function stateFor(document) {
-  let state = stacks.get(document);
+  const key = Symbol.for("@threadlabs/looma/overlay-stack/v1");
+  let state = document[key];
   if (state) return state;
   state = { records: [], modalCount: 0, listening: false };
-  stacks.set(document, state);
+  Object.defineProperty(document, key, { value: state });
   return state;
 }
 
@@ -132,6 +133,29 @@ function hide(surface) {
   surface.hidden = true;
 }
 
+/** Keeps both dialog modes in the native top layer; modality only controls inertness and backdrop. */
+export function showDialog(dialog, modal) {
+  if (dialog.open && dialog.matches(":modal") !== modal) closeDialog(dialog);
+  if (!dialog.open) dialogInvokers.set(dialog, dialog.ownerDocument.activeElement);
+  if (modal) {
+    dialog.removeAttribute("popover");
+    if (!dialog.open) dialog.showModal();
+  } else {
+    dialog.setAttribute("popover", "manual");
+    if (!dialog.open) dialog.show();
+    if (!topLayerOpen(dialog)) dialog.showPopover();
+  }
+}
+
+/** Releases popover presentation before native close restores focus and reports the close event. */
+export function closeDialog(dialog) {
+  if (topLayerOpen(dialog)) dialog.hidePopover();
+  if (dialog.open) dialog.close();
+  const invoker = dialogInvokers.get(dialog);
+  dialogInvokers.delete(dialog);
+  if (invoker?.isConnected) invoker.focus({ preventScroll: true });
+}
+
 function viewport(owner) {
   const visual = owner.visualViewport;
   const left = visual?.offsetLeft ?? 0;
@@ -196,62 +220,131 @@ function fallbackPosition(surface, anchor, placement, gap, viewportGap, surfaceR
   surface.style.bottom = "auto";
 }
 
-export function createAnchoredSurface(surface, options = {}) {
+/** Applies the shared flip/shift policy to a live element or consumer-supplied virtual rectangle. */
+export function positionAnchoredSurface(surface, rect, options = {}) {
+  fallbackPosition(surface, rect, options.placement ?? "bottom-start", options.gap ?? 4, options.viewportGap ?? 8);
+}
+
+/**
+ * One document-scoped scroll/resize listener and one frame for all active floating surfaces.
+ * The registry lives on the document so HTML and Vue bundles share the same coordinator.
+ * Each subscriber rereads its own live anchor and applies its viewport containment policy.
+ */
+export function observeOverlayViewport(document, update) {
+  const key = Symbol.for("@threadlabs/looma/overlay-viewport/v1");
+  const owner = document.defaultView;
+  let state = document[key];
+  if (!state) {
+    state = { clients: new Set(), pending: new Map(), frame: null, abort: null };
+    Object.defineProperty(document, key, { value: state });
+  }
+  const schedule = (event) => {
+    for (const client of state.clients) state.pending.set(client, event);
+    if (state.frame !== null) return;
+    state.frame = owner.requestAnimationFrame(() => {
+      state.frame = null;
+      const pending = Array.from(state.pending);
+      state.pending.clear();
+      for (const [client, event] of pending) if (state.clients.has(client)) client(event);
+    });
+  };
+  state.clients.add(update);
+  if (!state.abort) {
+    state.abort = new owner.AbortController();
+    const signal = state.abort.signal;
+    owner.addEventListener("resize", schedule, { passive: true, signal });
+    owner.addEventListener("scroll", schedule, { passive: true, capture: true, signal });
+    owner.visualViewport?.addEventListener("resize", schedule, { passive: true, signal });
+    owner.visualViewport?.addEventListener("scroll", schedule, { passive: true, signal });
+  }
+  return () => {
+    state.clients.delete(update);
+    state.pending.delete(update);
+    if (state.clients.size) return;
+    state.abort?.abort();
+    state.abort = null;
+    if (state.frame !== null) owner.cancelAnimationFrame(state.frame);
+    state.frame = null;
+  };
+}
+
+/** Presents an unanchored or virtual-anchor surface in the top layer, using the shared viewport pass. */
+export function createViewportSurface(surface, options = {}) {
   const owner = surface.ownerDocument.defaultView;
+  let destroyed = false;
+  let stop = null;
+  let sizeObserver = null;
+  let frame = null;
+  const position = () => {
+    frame = null;
+    if (stop) options.position?.();
+  };
+  const refresh = () => {
+    if (stop && frame === null) frame = owner.requestAnimationFrame(position);
+  };
+  const chrome = options.preserveChrome ? owner.getComputedStyle(surface) : null;
+  const absentBorders = chrome ? ["Top", "Right", "Bottom", "Left"].filter(side => chrome[`border${side}Width`] === "0px") : [];
+  surface.setAttribute("popover", "manual");
+  if (options.bare) {
+    // Foreign shells need the UA positioning reset. Some own chrome; others delegate it to a child.
+    Object.assign(surface.style, {
+      position: "fixed", margin: "0",
+      top: surface.style.top || "auto", right: surface.style.right || "auto",
+      bottom: surface.style.bottom || "auto", left: surface.style.left || "auto",
+    });
+    if (chrome) {
+      // Suppress newly introduced UA borders without overriding authored theme-dependent chrome.
+      for (const side of absentBorders) surface.style[`border${side}Width`] = "0";
+    } else {
+      Object.assign(surface.style, { padding: "0", border: "0", background: "transparent" });
+    }
+  }
+  const hideSurface = () => {
+    stop?.(); stop = null;
+    sizeObserver?.disconnect(); sizeObserver = null;
+    if (frame !== null) owner.cancelAnimationFrame(frame);
+    frame = null;
+    hide(surface);
+  };
+  return {
+    show() {
+      if (destroyed) return;
+      show(surface);
+      stop ??= observeOverlayViewport(surface.ownerDocument, position);
+      options.position?.();
+      if (!sizeObserver && owner.ResizeObserver) {
+        sizeObserver = new owner.ResizeObserver(refresh);
+        sizeObserver.observe(surface);
+      }
+    },
+    hide: hideSurface,
+    refresh,
+    destroy() { destroyed = true; hideSurface(); },
+  };
+}
+
+export function createAnchoredSurface(surface, options = {}) {
   let placement = options.placement ?? "bottom-start";
   const gap = () => Math.max(0, Number(typeof options.gap === "function" ? options.gap() : options.gap ?? 4) || 0);
   const viewportGap = Math.max(0, options.viewportGap ?? 8);
   let anchor = options.anchor ?? null;
   let point = null;
-  let open = false;
-  let frame = null;
-  let abort = null;
-  let sizeObserver = null;
-  surface.setAttribute("popover", "manual");
+  const position = () => {
+    const rect = point ? { left: point.x, right: point.x, top: point.y, bottom: point.y, width: 0, height: 0 }
+      : typeof anchor === "function" ? anchor() : anchor?.getBoundingClientRect();
+    if (rect) positionAnchoredSurface(surface, rect, { placement: point ? "bottom-start" : placement, gap: gap(), viewportGap });
+  };
   surface.style.position = "fixed";
   surface.style.margin = "0";
-  const position = () => {
-    frame = null;
-    if (!open) return;
-    if (point) {
-      fallbackPosition(surface, { left: point.x, right: point.x, top: point.y, bottom: point.y, width: 0, height: 0 }, "bottom-start", gap(), viewportGap);
-      return;
-    }
-    if (!anchor) return;
-    fallbackPosition(surface, anchor.getBoundingClientRect(), placement, gap(), viewportGap);
-  };
-  const schedule = () => {
-    if (open && frame === null) frame = owner.requestAnimationFrame(position);
-  };
-  const syncListeners = () => {
-    const needed = open && (point || anchor);
-    if (!needed) {
-      abort?.abort();
-      abort = null;
-      return;
-    }
-    if (abort) return;
-    abort = new AbortController();
-    const signal = abort.signal;
-    owner.addEventListener("resize", schedule, { passive: true, signal });
-    owner.addEventListener("scroll", schedule, { passive: true, capture: true, signal });
-    owner.visualViewport?.addEventListener("resize", schedule, { passive: true, signal });
-    owner.visualViewport?.addEventListener("scroll", schedule, { passive: true, signal });
-  };
-  const observeSize = () => {
-    if (sizeObserver || !owner.ResizeObserver) return;
-    sizeObserver = new owner.ResizeObserver(schedule);
-    sizeObserver.observe(surface);
-  };
-  const stopSize = () => { sizeObserver?.disconnect(); sizeObserver = null; };
+  const presentation = createViewportSurface(surface, { position });
   return {
-    setAnchor(next) { point = null; anchor = next; syncListeners(); schedule(); },
-    setPlacement(next) { placement = next || "bottom-start"; schedule(); },
-    show() { point = null; open = true; syncListeners(); show(surface); position(); schedule(); observeSize(); },
-    showAtPoint(next) { point = next; open = true; syncListeners(); show(surface); position(); schedule(); observeSize(); },
-    hide() { open = false; point = null; syncListeners(); stopSize(); if (frame !== null) owner.cancelAnimationFrame(frame); frame = null; hide(surface); },
-    refresh: schedule,
-    destroy() { open = false; abort?.abort(); abort = null; stopSize(); if (frame !== null) owner.cancelAnimationFrame(frame); frame = null; hide(surface); anchor = null; },
+    setAnchor(next) { point = null; anchor = next; presentation.refresh(); },
+    setPlacement(next) { placement = next || "bottom-start"; presentation.refresh(); },
+    show() { point = null; presentation.show(); },
+    showAtPoint(next) { point = next; presentation.show(); },
+    hide() { point = null; presentation.hide(); },
+    refresh: presentation.refresh,
+    destroy() { presentation.destroy(); anchor = null; },
   };
 }
 

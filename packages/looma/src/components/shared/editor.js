@@ -1,3 +1,5 @@
+import { positionAnchoredSurface } from "./overlay.js";
+
 export const backgrounds = [
   ["background-none", "Default", ""], ["background-gray", "Gray", "#f3f4f6"],
   ["background-yellow", "Yellow", "#fef3c7"], ["background-blue", "Blue", "#dbeafe"],
@@ -37,9 +39,6 @@ export function positionMenu(element, rect, width) {
     Object.assign(element.style, { left: `${view.left}px`, right: "", bottom: "", top: `${view.top + view.height - height - 56}px`, width: `${view.width}px`, maxHeight: `${height}px` });
     return;
   }
-  const below = view.bottom - rect.bottom - 8;
-  const above = rect.top - view.top - 8;
-  const top = below >= 320 || below >= above ? rect.bottom + 8 : rect.top - 328;
-  const left = Math.max(view.left + 8, Math.min(rect.left, view.right - width - 8));
-  Object.assign(element.style, { top: `${Math.max(view.top + 8, top)}px`, left: `${left}px`, right: "", bottom: "", width: `${width}px`, maxHeight: "" });
+  Object.assign(element.style, { width: `${Math.min(width, Math.max(0, view.width - 16))}px`, maxHeight: `${Math.max(0, view.height - 16)}px` });
+  positionAnchoredSurface(element, rect, { placement: "bottom-start", gap: 8, viewportGap: 8 });
 }

@@ -42,6 +42,8 @@ export interface LoomaSlashMenuSnapshot {
   selectedIndex: number;
   query: string;
   rect: DOMRect | null;
+  /** Re-measures the current virtual anchor after scrolling; valid for this snapshot only. */
+  getRect?: () => DOMRect | null;
   select: ((index: number) => void) | null;
 }
 
@@ -284,6 +286,7 @@ export const LoomaSlashCommand = Extension.create<LoomaSlashCommandOptions>({
         selectedIndex,
         query: props.query,
         rect: props.clientRect?.() ?? null,
+        getRect: () => props.clientRect?.() ?? null,
         select: (index) => {
           const item = props.items[index];
           if (item) props.command(item);

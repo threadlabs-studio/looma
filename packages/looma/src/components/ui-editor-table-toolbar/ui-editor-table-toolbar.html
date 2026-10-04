@@ -140,14 +140,6 @@
       background: var(--ui-accent-soft, var(--ui-accent-subtle));
     }
 
-    .looma-editor__mobile-toolbar-shell :host .menu {
-      top: auto;
-      right: 0;
-      bottom: calc(100% + var(--ui-space-2));
-      max-height: min(50dvh, 22rem);
-      overflow-y: auto;
-      overscroll-behavior: contain;
-    }
     :host {
       display: inline-flex;
       align-items: center;
@@ -238,9 +230,9 @@
 
     .menu {
       box-sizing: border-box;
-      position: absolute;
-      top: calc(100% + var(--ui-space-2));
-      right: 0;
+      position: fixed;
+      inset: auto;
+      margin: 0;
       min-width: 12rem;
       max-width: min(17rem, calc(100vw - 24px));
       padding: var(--ui-space-1);

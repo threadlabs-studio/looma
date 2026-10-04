@@ -660,10 +660,10 @@ body {
 }
 
 .looma-component-card__meta code { padding: 0; color: var(--looma-ink-soft); background: transparent; font-size: var(--looma-text-xs); text-transform: none; }
-.looma-component-card h2 { margin: 0; padding: 0; border: 0; font-size: var(--looma-text-lg); letter-spacing: -0.035em; }
-.looma-component-card h2 a { color: var(--looma-ink); text-decoration: none !important; }
+.looma-component-card__body > h2 { margin: 0; padding: 0; border: 0; font-size: var(--looma-text-lg); letter-spacing: -0.035em; }
+.looma-component-card__body > h2 a { color: var(--looma-ink); text-decoration: none !important; }
 
-.looma-component-card p {
+.looma-component-card__body > p {
   display: -webkit-box;
   min-height: 3.8rem;
   margin: 0.6rem 0 0.9rem;
@@ -743,25 +743,14 @@ body {
 .looma-component-preview > div { max-width: 100%; }
 .looma-component-preview svg { width: 1.15rem; height: 1.15rem; }
 
-/* Catalog previews are miniature stages, not application viewports. Editor
- * suggestion surfaces normally use fixed viewport coordinates supplied by an
- * editor selection, so pin those two compact previews to their card instead
- * of allowing their production positioning model to escape across the docs. */
-.looma-component-preview--compact :is(
-  [data-component~="ui-editor-mention-menu"],
-  [data-component~="ui-editor-slash-menu"]
-) {
-  position: absolute !important;
-  z-index: 1 !important;
-  inset: 50% auto auto 50% !important;
-  max-width: calc(100% - 2rem);
-  transform: translate(-50%, -50%);
+/* Static floating examples have a real document and native top layer of their own. */
+.looma-popup-viewport {
+  display: block;
+  width: 100%;
+  height: 26rem;
+  border: 0;
 }
-
-.looma-component-preview--compact [data-component~="ui-editor-table-context-menu"] {
-  max-height: calc(13rem - 2rem);
-  translate: none !important;
-}
+.looma-component-preview--compact > .looma-popup-viewport { height: 13rem; }
 
 .looma-preview-scenarios {
   display: grid;
@@ -784,13 +773,13 @@ body {
   border-bottom: 1px solid var(--looma-line);
 }
 
-.looma-preview-scenario h2 {
+.looma-preview-scenario > header > h2 {
   margin: 0;
   color: var(--looma-ink);
   font-size: var(--looma-text-md);
 }
 
-.looma-preview-scenario p {
+.looma-preview-scenario > header > p {
   margin: 0.25rem 0 0;
   color: var(--looma-ink-soft);
   font-size: var(--looma-text-sm);
@@ -978,58 +967,6 @@ body {
 
 .looma-responsive-preview-control input { width: 100%; }
 .looma-responsive-preview-control output { text-align: end; font-variant-numeric: tabular-nums; }
-
-/* A dialog escapes its card to the viewport unless every preview surface contains it. */
-.looma-component-card__preview :is(ui-search-shell, [data-component~="ui-search-shell"]) {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.looma-component-card__preview :is(ui-search-shell, [data-component~="ui-search-shell"]) > dialog {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 1rem;
-  background: color-mix(in srgb, var(--looma-ink) 30%, transparent);
-}
-
-.looma-component-preview :is(ui-search-shell, [data-component~="ui-search-shell"]) {
-  position: relative;
-  inset: auto;
-  z-index: 1;
-  width: 100%;
-  min-height: 11rem;
-}
-
-.looma-preview-scenario__stage[data-component-preview="ui-search-shell"] {
-  min-height: 28rem;
-  overflow: hidden;
-  isolation: isolate;
-}
-
-.looma-preview-scenario[data-preview-scenario="open"]
-  .looma-preview-scenario__stage[data-component-preview="ui-search-shell"] {
-  min-height: 15rem;
-}
-
-.looma-preview-scenario__stage[data-component-preview="ui-search-shell"]
-  [data-component~="ui-search-shell"] {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.looma-preview-scenario__stage[data-component-preview="ui-search-shell"]
-  [data-component~="ui-search-shell"] > dialog {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  padding: 1rem;
-  background: color-mix(in srgb, var(--looma-ink) 30%, transparent);
-}
 
 .looma-component-preview :is(ui-top-bar, [data-component~="ui-top-bar"]) {
   position: relative;

@@ -16,7 +16,6 @@ const EXEMPT = {
   "ui-context-menu .menu": SURFACE,
   "ui-editor-table-context-menu :host": SURFACE,
   "ui-editor-table-toolbar .menu": SURFACE,
-  "ui-editor-table-toolbar .looma-editor__mobile-toolbar-shell :host .menu": SURFACE,
   "ui-menu .surface": SURFACE,
   "ui-popover .surface": SURFACE,
   "ui-search-shell dialog": "the whole-screen dialog only scrolls as a last resort; its body is the scroller",

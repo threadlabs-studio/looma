@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Correct Dialog's action bottom gutter, optically balance the header inset, and compact intrinsic sizing. Its body uses Scroll Area's additive `trim` option to remove outer projected margins while preserving spacing between items. Content growth and shrinkage animate over the dialog motion duration, retarget active resizing, and remain immediate for reduced-motion users.
+
+- Dialog and non-modal Search Shell now render in the native top layer, escaping clipping, transformed parents, and page stacking contexts while preserving non-modal interaction and focus return. Dialog body spacing remains intact around its nested Scroll Area.
+- Floating controls share one document scroll/viewport coordinator. Editor menus and floating toolbars also use the native top layer; suggestion snapshots can remeasure their caret anchor with `getRect()`. Static docs popup examples use isolated viewports instead of overriding production positioning. Dialog checks now compare desktop/mobile screenshots in both themes and sample real-motion positioning and stacking.
+
 - Long badge and combobox chip labels truncate with an ellipsis inside their surface, preserving their full accessible text.
 
 - Combobox can highlight a sole authored suggestion and commit it with Tab while preserving normal focus movement. Both behaviors are opt-in.

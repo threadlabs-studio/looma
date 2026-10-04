@@ -1,3 +1,4 @@
+import { createViewportSurface } from "../shared/overlay.js";
 import { backgrounds, viewport } from "../shared/editor.js";
 
 const sections = [
@@ -28,9 +29,7 @@ const sections = [
 // Lists the actions the selection permits, and nudges the open menu back inside the viewport.
 export default function controller(host) {
   const element = host.element;
-  let frame;
   const nudge = () => {
-    frame = undefined;
     element.style.translate = "";
     const rect = element.getBoundingClientRect();
     const view = viewport();
@@ -43,10 +42,7 @@ export default function controller(host) {
     else if (rect.bottom > view.bottom - inset) y = view.bottom - inset - rect.bottom;
     if (x || y) element.style.translate = `${x}px ${y}px`;
   };
-  const schedule = () => {
-    if (frame) cancelAnimationFrame(frame);
-    frame = requestAnimationFrame(nudge);
-  };
+  const surface = createViewportSurface(element, { position: nudge });
   const stop = host.effect(() => {
     const scope = String(host.props.scope.value || "cell");
     const enabled = new Set((Array.isArray(host.props.actions.value) ? host.props.actions.value : []).filter((action) =>
@@ -62,22 +58,17 @@ export default function controller(host) {
           .map(([action, label, icon, tone]) => ({ action, label, icon, danger: tone === "danger", checkable: action.startsWith("toggle-header-"), checked: action === "toggle-header-row" ? Boolean(host.props.headerRow.value) : action === "toggle-header-column" ? Boolean(host.props.headerColumn.value) : false })),
       }))
       .filter((section) => section.items.length);
-    if (host.props.open.value) schedule();
+    if (host.props.open.value) queueMicrotask(() => { if (host.props.open.value) surface.show(); });
+    else surface.hide();
   });
   const onClick = (event) => {
     const action = event.target.closest?.("[data-action]")?.dataset.action;
     if (action) host.dispatch("action", { action });
   };
   element.addEventListener("click", onClick);
-  window.addEventListener("resize", schedule);
-  window.visualViewport?.addEventListener("resize", schedule);
-  window.visualViewport?.addEventListener("scroll", schedule);
   return () => {
     stop();
+    surface.destroy();
     element.removeEventListener("click", onClick);
-    window.removeEventListener("resize", schedule);
-    window.visualViewport?.removeEventListener("resize", schedule);
-    window.visualViewport?.removeEventListener("scroll", schedule);
-    if (frame) cancelAnimationFrame(frame);
   };
 }

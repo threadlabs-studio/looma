@@ -1,3 +1,5 @@
+import { observeOverlayViewport } from "../shared/overlay.js";
+
 function fallbackBoundaries(segments, length) {
   return Array.from({ length: segments + 1 }, (_, index) => (index * length) / segments);
 }
@@ -36,15 +38,11 @@ function createProximity(scope, selector = ".handle[data-ui-affordance]", radius
     point = event.pointerType === "touch" ? null : { x: event.clientX, y: event.clientY }; schedule();
   };
   pointerTarget.addEventListener("pointermove", onPointermove, { passive: true });
-  owner.addEventListener("resize", refresh, { passive: true });
-  owner.addEventListener("scroll", refresh, { passive: true, capture: true });
-  owner.visualViewport?.addEventListener("resize", refresh, { passive: true });
-  owner.visualViewport?.addEventListener("scroll", refresh, { passive: true });
+  const stopViewport = observeOverlayViewport(scope.ownerDocument, refresh);
   measure();
   return { refresh, destroy() {
     pointerTarget.removeEventListener("pointermove", onPointermove);
-    owner.removeEventListener("resize", refresh); owner.removeEventListener("scroll", refresh, true);
-    owner.visualViewport?.removeEventListener("resize", refresh); owner.visualViewport?.removeEventListener("scroll", refresh);
+    stopViewport();
     if (frame !== null) owner.cancelAnimationFrame(frame); clear();
   } };
 }
