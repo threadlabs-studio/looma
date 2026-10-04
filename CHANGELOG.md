@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Resizing a table column no longer adds a one-pixel scrollbar when the drag ends. Repeated reconciliation keeps fitting tables within the editor and preserves scrolling for wide tables.
+
 - Long badge and combobox chip labels truncate with an ellipsis inside their surface, preserving their full accessible text.
 
 - Combobox can highlight a sole authored suggestion and commit it with Tab while preserving normal focus movement. Both behaviors are opt-in.
