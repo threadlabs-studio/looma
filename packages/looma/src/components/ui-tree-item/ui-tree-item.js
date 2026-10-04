@@ -211,6 +211,9 @@ export default function controller(host) {
   });
   if (actions) actionsSize.observe(actions);
 
+  // A parent may have sent its initial roving state before this controller loaded.
+  element.dispatchEvent(new CustomEvent("ui-tree-item-ready", { bubbles: true }));
+
   return () => {
     clearTimeout(marqueeRestart);
     stop?.();

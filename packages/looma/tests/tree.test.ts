@@ -6,7 +6,7 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium, type Browser, type BrowserContextOptions, type Page } from "playwright";
-import { build } from "vite";
+import { build, type Plugin } from "vite";
 import { afterAll, beforeAll, describe, it } from "vitest";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -15,14 +15,16 @@ let browser: Browser;
 let bundlePath = "";
 let marqueePath = "";
 let paddedMarqueePath = "";
+let lateItemsPath = "";
 
-async function bundle(name: string, source: string): Promise<string> {
+async function bundle(name: string, source: string, plugins: Plugin[] = []): Promise<string> {
   const entry = join(directory, `${name}.js`);
   await writeFile(entry, source);
   await build({
     configFile: false,
     logLevel: "silent",
     root: directory,
+    plugins,
     resolve: { alias: { "@threadlabs/looma": root } },
     define: { "process.env.NODE_ENV": JSON.stringify("production") },
     build: {
@@ -39,7 +41,7 @@ type Spec = { tree?: Record<string, unknown>; items: Node[] };
 type Detail = Record<string, unknown>;
 
 // Renders `spec` as a Vue Tree. Every item is sortable unless it says otherwise.
-async function open(spec: Spec, script = bundlePath, options: BrowserContextOptions = { reducedMotion: "reduce" }): Promise<Page> {
+async function open(spec: Spec, script = bundlePath, options: BrowserContextOptions = { reducedMotion: "reduce" }, state: "visible" | "attached" = "visible"): Promise<Page> {
   // Reduced motion turns the rows' style transitions off, so computed styles settle immediately.
   const page = await browser.newPage(options);
   const errors: string[] = [];
@@ -48,7 +50,7 @@ async function open(spec: Spec, script = bundlePath, options: BrowserContextOpti
   for (const path of [join(root, "tokens.css"), join(root, "vue/components.css")]) await page.addStyleTag({ path });
   await page.evaluate((value) => { (window as unknown as { spec: Spec }).spec = value; }, spec);
   await page.addScriptTag({ path: script });
-  await page.waitForSelector('[data-component="ui-tree"] [role="treeitem"]');
+  await page.waitForSelector('[data-component="ui-tree"] [role="treeitem"]', { state });
   await page.waitForTimeout(50);
   assert.deepEqual(errors, []);
   return page;
@@ -151,6 +153,24 @@ beforeAll(async () => {
       }, () => window.spec.items.map(render)),
     }).mount("#app");
   `);
+  lateItemsPath = await bundle("vue-tree-late-items", `
+    import { createApp, h } from "vue";
+    import { Tree, TreeItem } from "@threadlabs/looma/vue";
+    window.treeItemGate = new Promise(resolve => { window.releaseTreeItems = resolve; });
+    window.events = [];
+    createApp({ render: () => h(Tree, {
+      label: "Files", selection: "single",
+      onSelect: event => window.events.push(["select", event.detail]),
+    }, () => window.spec.items.map(({ id, ...props }) => h(TreeItem, { itemId: id, ...props }))) }).mount("#app");
+  `, [{
+    name: "delay-tree-item-controller",
+    transform(code, id) {
+      if (!id.endsWith("/components/ui-tree-item/ui-tree-item.js")) return;
+      const declaration = "export default function controller(host) {";
+      assert.ok(code.includes(declaration), "delay the real Tree Item controller");
+      return code.replace(declaration, "export default async function controller(host) { await window.treeItemGate;");
+    },
+  }]);
   marqueePath = await bundle("vue-tree-marquee", `
     import { createApp, h } from "vue";
     import { Tree, TreeItem } from "@threadlabs/looma/vue";
@@ -192,6 +212,38 @@ afterAll(async () => {
 });
 
 describe("Tree drag and drop", () => {
+  it("restores a keyboard entry point when row controllers initialize after the tree", async () => {
+    const page = await open({ items: [{ id: "first", label: "First" }, { id: "second", label: "Second" }] }, lateItemsPath);
+    assert.equal(await page.locator('[role="treeitem"][tabindex="0"]').count(), 0);
+    await page.evaluate(() => (window as unknown as { releaseTreeItems: () => void }).releaseTreeItems());
+    await page.waitForFunction(() => document.querySelector<HTMLElement>('[role="treeitem"]')?.tabIndex === 0, undefined, { timeout: 2_000 });
+    await page.keyboard.press("Tab");
+    assert.equal(await item(page, "first").evaluate(element => element === document.activeElement), true);
+    await page.keyboard.press("ArrowDown");
+    assert.equal(await item(page, "second").evaluate(element => element === document.activeElement), true);
+    await item(page, "second").click();
+    assert.deepEqual((await events(page)).filter(([name]) => name === "select"), [["select", { ids: ["second"], trigger: "pointer" }]]);
+    await page.close();
+  });
+
+  it("restores the keyboard entry point when an initially hidden tree becomes visible", async () => {
+    const page = await open({ tree: { style: "display:none" }, items: [{ id: "first", label: "First", sortable: false }, { id: "second", label: "Second", sortable: false }] }, bundlePath, { reducedMotion: "reduce" }, "attached");
+    await page.locator('[role="tree"]').evaluate((element: HTMLElement) => { element.style.display = "block"; });
+    await page.waitForFunction(() => document.querySelector<HTMLElement>('[role="treeitem"]')?.tabIndex === 0, undefined, { timeout: 2_000 });
+    await page.keyboard.press("Tab");
+    assert.equal(await item(page, "first").evaluate(element => element === document.activeElement), true);
+    await page.keyboard.press("ArrowDown");
+    for (const display of ["none", "block"]) {
+      await page.locator('[role="tree"]').evaluate(async (element: HTMLElement, value) => {
+        element.style.display = value;
+        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      }, display);
+    }
+    assert.equal(await item(page, "second").getAttribute("tabindex"), "0");
+    assert.equal(await item(page, "first").getAttribute("tabindex"), "-1");
+    await page.close();
+  });
+
   it("renders a tree with levels and expansion state", async () => {
     const page = await open({ items: files });
     assert.equal(await page.locator('[data-component="ui-tree"]').getAttribute("role"), "tree");
