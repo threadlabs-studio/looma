@@ -76,13 +76,48 @@ for (const theme of ["light", "dark"] as const) {
         await page.getByRole("button", { name: /^Overlay/ }).click();
         const card = page.locator('[data-component-card="ui-dialog"]');
         await card.scrollIntoViewIfNeeded();
-        await card.getByRole("button", { name: "Open dialog", exact: true }).click();
+        const trigger = card.getByRole("button", { name: "Open dialog", exact: true });
+        await expect(trigger).toHaveAttribute("aria-haspopup", "dialog");
+        await trigger.click();
         const dialog = card.locator("dialog");
         await expect(dialog).toBeVisible();
         await expect.poll(() => dialog.evaluate(element => element.getAnimations().length)).toBe(0);
         await page.mouse.move(0, 0);
         // Keep the containing page and dialog together; fractional locator crops can vary at rounded corners.
         await screenshot(page, `${viewport.name}-${theme}/states/catalog-dialog.png`);
+      });
+      if (viewport.name === "mobile") test("dialog content growth, body scrolling, and shrinkage", async ({ page }) => {
+        await page.emulateMedia({ reducedMotion: "no-preference" });
+        await page.goto("components/ui-dialog", { waitUntil: "domcontentloaded" });
+        await ready(page);
+        const example = page.locator('[data-preview-scenario="Default"]');
+        const trigger = example.getByRole("button", { name: /^Open/ });
+        await expect(trigger).toHaveAttribute("aria-haspopup", "dialog");
+        await trigger.click();
+        const dialog = example.locator("dialog");
+        await expect(dialog).toBeVisible();
+        const paragraph = dialog.locator(".body p").first();
+        const original = await paragraph.textContent();
+        await paragraph.evaluate((element) => {
+          element.textContent = Array.from({ length: 24 }, (_, index) => `Review note ${index + 1}: Additional content belongs in the scrolling body while the title and actions stay visible.`).join(" ");
+        });
+        const body = dialog.locator('.body [data-component~="ui-scroll-area"]');
+        await expect.poll(() => body.evaluate(element => element.scrollHeight > element.clientHeight)).toBe(true);
+        await expect.poll(() => dialog.evaluate(element => element.getAnimations().length)).toBe(0);
+        await expect(dialog.locator("header")).toBeInViewport();
+        await expect(dialog.getByRole("button", { name: "Publish", exact: true })).toBeInViewport();
+        const grown = await dialog.boundingBox();
+        expect(grown!.height).toBeGreaterThan(viewport.height * 0.85);
+        expect(grown!.y).toBeGreaterThanOrEqual(0);
+        expect(grown!.y + grown!.height).toBeLessThanOrEqual(viewport.height);
+        await screenshot(page, `${viewport.name}-${theme}/states/dialog-content-grown.png`);
+        await body.evaluate(element => { element.scrollTop = element.scrollHeight / 2; });
+        await screenshot(page, `${viewport.name}-${theme}/states/dialog-body-scrolled.png`);
+        await paragraph.evaluate((element, text) => { element.textContent = text; }, original);
+        await expect.poll(() => dialog.evaluate(element => element.getBoundingClientRect().height)).toBeLessThan(300);
+        await expect.poll(() => dialog.evaluate(element => element.getAnimations().length)).toBe(0);
+        expect(await body.evaluate(element => element.scrollHeight > element.clientHeight)).toBe(false);
+        await screenshot(page, `${viewport.name}-${theme}/states/dialog-content-shrunk.png`);
       });
       test("editor guide selection toolbar and mention suggestions", async ({ page }) => {
         await page.goto("editor/");
