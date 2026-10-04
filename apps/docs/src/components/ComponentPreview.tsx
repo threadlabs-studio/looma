@@ -14,6 +14,13 @@ interface ComponentPreviewProps {
 // Always-open floating examples are separate viewports, not CSS exceptions that move popups inline.
 const isolatedPopups = new Set(["ui-search-shell", "ui-editor-mention-menu", "ui-editor-slash-menu", "ui-editor-table-context-menu"]);
 
+/** Compound-part examples can also author an open popup around the component being documented. */
+function needsPopupViewport(component: string, markup: string): boolean {
+  if (isolatedPopups.has(component)) return true;
+  const example = new DOMParser().parseFromString(markup, "text/html");
+  return example.querySelector("ui-menu[open], ui-dialog[open], ui-popover[open], ui-tooltip[open], ui-search-shell[open], ui-editor-mention-menu[open], ui-editor-slash-menu[open], ui-editor-table-context-menu[open]") !== null;
+}
+
 function PopupViewport({ component, markup }: { component: string; markup: string }): JSX.Element {
   const runtime = useBaseUrl("/preview-runtime/runtime.js");
   const styles = useBaseUrl("/preview-runtime/runtime.css");
@@ -66,7 +73,7 @@ function ComponentPreviewClient({ component, compact = false }: ComponentPreview
     <div ref={rootRef} className={`looma-component-preview${compact ? " looma-component-preview--compact" : ""}`}>
       {compact ? (
         // Only repository-authored example files reach this sink.
-        isolatedPopups.has(component)
+        needsPopupViewport(component, examples[0]?.markup ?? "")
           ? <PopupViewport component={component} markup={examples[0]?.markup ?? ""} />
           : <div dangerouslySetInnerHTML={{ __html: examples[0]?.markup ?? "" }} />
       ) : (
@@ -96,7 +103,7 @@ function ComponentPreviewClient({ component, compact = false }: ComponentPreview
                   <output>{previewWidth}px</output>
                 </label>
               ) : null}
-              {isolatedPopups.has(component) ? (
+              {needsPopupViewport(component, example.markup) ? (
                 <div className="looma-preview-scenario__stage" data-component-preview={component}>
                   <PopupViewport component={component} markup={example.markup} />
                 </div>
