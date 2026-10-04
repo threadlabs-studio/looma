@@ -789,11 +789,25 @@ describe("LoomaEditor tables", () => {
     await page.mouse.move(bounds.x + bounds.width - 2, y);
     await page.mouse.down();
     await page.mouse.move(bounds.x + bounds.width + 96, y, { steps: 6 });
+    const during = await table(page).evaluate(element => {
+      const wrapper = element.closest(".tableWrapper")!;
+      return { table: element.getBoundingClientRect().width, client: wrapper.clientWidth, scroll: wrapper.scrollWidth,
+        columns: Array.from(element.querySelectorAll("col")).map(column => column.getBoundingClientRect().width) };
+    });
     await page.mouse.up();
+    // Release reconciliation runs on the next frame, after Tiptap persists the drag.
+    await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+    const after = await table(page).evaluate(element => {
+      const wrapper = element.closest(".tableWrapper")!;
+      return { table: element.getBoundingClientRect().width, client: wrapper.clientWidth, scroll: wrapper.scrollWidth,
+        columns: Array.from(element.querySelectorAll("col")).map(column => column.getBoundingClientRect().width) };
+    });
+    assert.equal(during.scroll, during.client, "table fits while the pointer is down");
+    assert.equal(after.scroll, after.client, "release must not add a one-pixel scrollbar");
     await until(() => first.evaluate((element) => element.getBoundingClientRect().width), (width) => width > bounds.width + 80, "column widens by about the drag");
     const [editorBox, tableBox] = await Promise.all([prose(page).boundingBox(), table(page).boundingBox()]);
     assert.ok(editorBox && tableBox);
-    assert.ok(tableBox.width - editorBox.width <= 1, `table (${tableBox.width}px) fits the editor (${editorBox.width}px)`);
+    assert.ok(tableBox.width <= editorBox.width, `table (${tableBox.width}px) fits the editor (${editorBox.width}px)`);
     await page.close();
   });
 

@@ -403,6 +403,17 @@ export default function controller(host) {
   const focusItem = (item) => { syncTabStop(item); item.focus(); };
   const onFocusin = (event) => { if (!interactive(event)) { const item = itemFromEvent(event); if (item) syncTabStop(item); } };
   const onExpansion = () => requestAnimationFrame(() => syncTabStop());
+  let structureFrame = 0;
+  const requestStructureSync = () => {
+    if (structureFrame) return;
+    structureFrame = requestAnimationFrame(() => {
+      structureFrame = 0;
+      if (element.isConnected) syncStructure();
+    });
+  };
+  const onItemReady = (event) => {
+    if (event.target.closest('[role="tree"]') === element) requestStructureSync();
+  };
   const onKeydown = (event) => {
     if (onMoveKeydown(event)) return;
     if (interactive(event)) return;
@@ -441,7 +452,7 @@ export default function controller(host) {
       if (match) { event.preventDefault(); focusItem(match); }
     }
   };
-  const listeners = { dragstart: onDragStart, drag: onDrag, dragenter: onDragOver, dragover: onDragOver, dragleave: onDragLeave, drop: onDrop, dragend: onDragEnd, keydown: onKeydown, focusin: onFocusin, pointerdown: onHandlePointerDown, pointermove: onMovePointer, "ui-tree-expansion-change": onExpansion };
+  const listeners = { dragstart: onDragStart, drag: onDrag, dragenter: onDragOver, dragover: onDragOver, dragleave: onDragLeave, drop: onDrop, dragend: onDragEnd, keydown: onKeydown, focusin: onFocusin, pointerdown: onHandlePointerDown, pointermove: onMovePointer, "ui-tree-expansion-change": onExpansion, "ui-tree-item-ready": onItemReady };
   for (const [name, listener] of Object.entries(listeners)) element.addEventListener(name, listener);
   element.addEventListener("click", onMoveClick, true);
   const observer = new MutationObserver((records) => {
@@ -449,6 +460,12 @@ export default function controller(host) {
     else syncSelection();
   });
   observer.observe(element, { childList: true, subtree: true, attributes: true, attributeFilter: ["aria-selected"] });
+  // Responsive panels can reveal existing rows without changing the DOM. Keep
+  // the previous roving item while hidden, then reconcile the visible layout.
+  const size = new ResizeObserver(() => {
+    if (element.isConnected && element.getClientRects().length) requestStructureSync();
+  });
+  size.observe(element);
   const stop = host.effect(() => {
     element.setAttribute("aria-label", String(host.props.label.value || "Tree"));
     syncSelection();
@@ -458,6 +475,8 @@ export default function controller(host) {
     finish();
     stop();
     observer.disconnect();
+    size.disconnect();
+    cancelAnimationFrame(structureFrame);
     cancelHover();
     announcer.remove();
     for (const [name, listener] of Object.entries(listeners)) element.removeEventListener(name, listener);

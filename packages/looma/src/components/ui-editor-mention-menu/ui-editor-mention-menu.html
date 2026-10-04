@@ -24,11 +24,11 @@
   </defs>
   <div role="listbox" from:aria-busy="loading" from:hidden="not visible">
     <div class="header"><slot name="header"></slot></div>
-    <div $if="searching" class="loading" role="status" $value="loadingLabel"></div>
+    <div $if="searching" class="loading" role="status">{$loadingLabel}</div>
     <ul $if="not searching" class="list" role="presentation">
       <li
         $each="row, index of rows"
-        from:id="format('%s-option-%s', prefix, index)"
+        from:id="concat(prefix, '-option-', index)"
         class="item"
         class:active="index = active"
         role="option"

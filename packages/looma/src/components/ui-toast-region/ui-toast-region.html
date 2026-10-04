@@ -39,7 +39,7 @@
     >
       <span class="message" $value="toast.message"></span>
       <span class="dismiss" from:data-toast="toast.id">
-        <ui-icon-button size="sm" variant="ghost" from:round="true" from:label="format('Dismiss %s', toast.message)">
+        <ui-icon-button size="sm" variant="ghost" from:round="true" from:label="concat('Dismiss ', toast.message)">
           <ui-icon name="x"></ui-icon>
         </ui-icon-button>
       </span>

@@ -5,8 +5,8 @@
     <prop name="initials" type="string" default="">Text fallback for the start slot when no avatar is supplied.</prop>
   </defs>
   <li role="option" tabindex="-1" from:data-value="value">
-    <span class="avatar" aria-hidden="true"><slot name="start"><template $value="initials"></template></slot></span>
-    <span class="body"><span class="label"><slot></slot></span><span $if="detail" class="detail" $value="detail"></span></span>
+    <span class="avatar" aria-hidden="true"><slot name="start">{$initials}</slot></span>
+    <span class="body"><span class="label"><slot></slot></span><span $if="detail" class="detail">{$detail}</span></span>
   </li>
   <style>
     :host {
