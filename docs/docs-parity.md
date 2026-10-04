@@ -1,6 +1,6 @@
 # Documentation parity checks
 
-The documentation baseline is the site built from main at `7fafb64a`, with the
+The documentation baseline is the site built from main at `3c0aac1a`, with the
 Docusaurus iterable-spread correction in `apps/docs/babel.config.js` and the
 catalog/editor MDX paragraph correction and shared Vue highlighting registration.
 Nested paragraphs and server/browser Prism grammar differences previously
