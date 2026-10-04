@@ -35,3 +35,7 @@ Image attributes round-trip in JSON and HTML; transient rendition URLs, roles, t
 handles never enter saved content. Headless hosts retain the existing image name/insertion
 command and may provide their own node view. The new primitive's two source files are the only
 new style owners; frozen editor CSS and inline-style exceptions remain unchanged.
+
+Choosing either wrap placement resets dimensions to responsive sizing: one-third of the column
+on desktop, stacked at full column width below 768px. A subsequent corner drag sets an explicit
+custom desktop size; small screens still fill the column. Every icon action uses the standard Tooltip on hover and keyboard focus.

@@ -223,6 +223,8 @@ leaves the document unchanged and emits `uploadError`, so the app can show recov
 
 Click or tap an editable image to select the entire node and show one **Image actions** bar.
 Choose in-line block placement, centering, or text wrapping on either side directly in the bar.
+Choosing wrapping resets the image to one-third of the content column. Below 768px it stacks
+above the text at full column width. Corner dragging sets a custom desktop size; small screens still use the full column.
 Drag any corner handle to resize; the intrinsic aspect ratio stays locked and the width stays
 within the document. Release commits one undo step. **Escape** cancels a drag; focused handles
 also accept arrow keys (**Shift** uses a larger increment). **Image description** opens the
