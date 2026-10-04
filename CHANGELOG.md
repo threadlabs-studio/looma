@@ -5,6 +5,7 @@
 - Touch tree rows keep labels separate from actions after tapping, including RTL and multiple selection.
 - Touch input text stays readable inside small captions without disabling browser zoom.
 - Editors can opt into a contextual toolbar with full commands at a focused caret or text selection; the existing mobile dock remains unchanged.
+- Resizing a table column no longer adds a one-pixel scrollbar when the drag ends. Repeated reconciliation keeps fitting tables within the editor and preserves scrolling for wide tables.
 
 - Badge and combobox chip labels retain room for their full text, including descenders, while long labels still ellipsize.
 - Long badge and combobox chip labels truncate with an ellipsis inside their surface, preserving their full accessible text.

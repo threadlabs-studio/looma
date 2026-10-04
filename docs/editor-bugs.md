@@ -123,7 +123,7 @@ Resolution:
 - Cell background is now a shared cell-scoped action in the right-click menu instead of being mixed into the quick toolbar or structural overflow.
 - The heavier row/column delete, merge/split, and other overflow actions are now available from a grouped toolbar overflow menu as well as the right-click menu.
 - The right-click menu now hides unavailable actions and groups the remaining actions by structure/table intent instead of presenting one long partially-disabled list.
-- Looma now also normalizes resized column widths back into the active table so the table stays full-width inside the editor after drag-resize completes.
+- Looma normalizes resized column widths back into the active table using column geometry, excluding the outer table border. A fitting table must not acquire a scrollbar when the drag ends or grow on repeated reconciliation; deliberately wide tables remain scrollable.
 - `LoomaEditor` owns the complete selection, focus, command, overlay, toolbar, and context-menu interaction instead of requiring each host app to reconstruct it.
 
 Release evidence:
