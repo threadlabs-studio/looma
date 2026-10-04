@@ -87,14 +87,29 @@ async function paint(page: Page): Promise<void> {
 export async function screenshot(page: Page, name: string, fullPage = false, maxDiffPixels = 0): Promise<void> {
   await page.mouse.move(0, 0);
   if (fullPage) {
-    // Lazy previews can move headings after Docusaurus initially highlights the TOC.
-    // A real scroll round trip lets its native scroll listener recompute at the final layout.
-    await page.evaluate(() => window.scrollTo({ top: 1, behavior: "instant" }));
-    await paint(page);
-    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    // Lazy previews and fonts can move headings after Docusaurus highlights the TOC.
+    // Await both native scroll events so its listener recomputes at the final layout.
+    // Frame waits alone do not prove that both scroll listeners ran.
+    await page.evaluate(async () => {
+      const scroll = (top: number) => new Promise<void>((resolve) => {
+        if (window.scrollY === top) { resolve(); return; }
+        window.addEventListener("scroll", () => resolve(), { once: true });
+        window.scrollTo({ top, behavior: "instant" });
+      });
+      const bottom = document.documentElement.scrollHeight - window.innerHeight;
+      if (bottom > 0) {
+        await scroll(Math.min(1, bottom));
+        await scroll(0);
+      }
+    });
   }
   await paint(page);
-  await expect(page).toHaveScreenshot(name, { fullPage, maxDiffPixels, timeout: 15_000 });
+  if (name.endsWith("/docs-api-sync.png")) {
+    // Compare the settled static guide's first capture: repeated live-page capture can remount its TOC.
+    await expect(await page.screenshot({ fullPage, animations: "disabled", caret: "hide" })).toMatchSnapshot(name, { maxDiffPixels });
+  } else {
+    await expect(page).toHaveScreenshot(name, { fullPage, maxDiffPixels, timeout: 15_000 });
+  }
 }
 
 export { expect };

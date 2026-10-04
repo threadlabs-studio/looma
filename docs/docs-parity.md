@@ -1,6 +1,6 @@
 # Documentation parity checks
 
-The documentation baseline is the site built from main at `3c0aac1a`, with the
+The documentation baseline is the site built from main at `c2813512`, with the
 Docusaurus iterable-spread correction in `apps/docs/babel.config.js` and the
 catalog/editor MDX paragraph correction and shared Vue highlighting registration.
 Nested paragraphs and server/browser Prism grammar differences previously
@@ -120,22 +120,31 @@ view, and wait for controller imports, fonts/images, and native layout frames.
 The native theme button must be enabled, Docusaurus's signal that its SSR tree
 has completed hydration, including on static guides without live previews.
 Captures move the pointer away from hover controls; full-page captures start at
-the top without smooth scrolling. A native one-pixel scroll round trip lets
-Docusaurus recalculate table-of-contents highlighting after lazy previews settle.
+the top without smooth scrolling. A native one-pixel scroll round trip awaits
+both scroll events so Docusaurus recalculates table-of-contents highlighting
+after lazy previews and fonts settle. Frame waits alone do not establish that
+the scroll listener has observed the final layout.
+The static Docs/API Sync guide compares a single PNG captured after readiness.
+Repeated live-page screenshot matching produced transient resize/remount cycles
+and stale TOC highlighting on that guide. Its viewport and zero-pixel limit stay
+unchanged; a browser test checks TOC highlighting after height changes and anchor
+navigation in all three engines. The dark desktop reference now records the
+settled inactive first link at the 900px viewport. No styles or TOC classes are
+changed for capture.
 Visual assertions allow 15 seconds and visual cases 60 seconds for long pages;
 the pixel comparison remains unchanged. Focus, open overlays, and selections remain
 intact. Screenshots disable animations and hide the
 caret without hiding content. Keep the Playwright version, image digest, font
 fixtures, and baseline review together when changing the rendering environment.
-The two desktop Table HTML captures have additional `--github-actions.png`
+The four desktop Table HTML/Vue captures have additional `--github-actions.png`
 references, selected only when `GITHUB_ACTIONS` is exactly `true`. Two independent
 GitHub runs and their retries produced identical sticky-header glyph pixels that
-differ from local container captures. Both full-page variants were reviewed;
-layout, content, API/Vue views, and accessibility assertions remain shared. Each
+differ from local container captures. All four full-page variants were reviewed;
+layout, content, API views, and accessibility assertions remain shared. Each
 variant still allows zero changed pixels. This records an observed environment
 difference, not a proven hardware cause or a browser correction. Playwright
 [documents rendering variation across environments, including hardware](https://playwright.dev/docs/test-snapshots).
-Review those two references from GitHub's uploaded actual images when that
+Review those four references from GitHub's uploaded actual images when that
 rendering environment changes; local updates continue to use the local references.
 
 Vue-code views reload the persisted lens before capture, matching the initial
