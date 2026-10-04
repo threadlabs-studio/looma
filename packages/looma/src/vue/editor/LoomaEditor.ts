@@ -111,9 +111,10 @@ export type LoomaImageUploader = (
 /**
  * Chooses whether formatting controls follow a selection, occupy persistent
  * editor chrome, or open from an app-owned button (`popover`, with a text-only
- * bubble for selections); it does not alter document commands or stored content.
+ * bubble for selections). `contextual` exposes all commands at a focused caret
+ * as well as a selection; it does not alter document commands or stored content.
  */
-export type LoomaEditorToolbarMode = "bubble" | "sticky" | "popover";
+export type LoomaEditorToolbarMode = "bubble" | "sticky" | "popover" | "contextual";
 
 /** A destination supplied by the host application, such as a page or record. */
 export interface LoomaLinkTarget {
@@ -1689,13 +1690,15 @@ export const LoomaEditor = defineComponent({
         onKeydown: onImageKeyDown,
       }, [
         instance && props.editable && !mobile.value
-          && (props.toolbarMode === "bubble" || props.toolbarMode === "popover")
+          && (props.toolbarMode === "bubble" || props.toolbarMode === "popover" || props.toolbarMode === "contextual")
           ? h(BubbleMenu, {
               editor: instance,
               pluginKey: "looma-text-formatting-menu",
               shouldShow: ({ editor: menuEditor, from, to }: { editor: Editor; from: number; to: number }) =>
                 (props.toolbarMode !== "popover" || !props.toolbarOpen)
-                && shouldShowTextFormattingToolbar(menuEditor, from, to),
+                && (props.toolbarMode === "contextual"
+                  ? menuEditor.isFocused
+                  : shouldShowTextFormattingToolbar(menuEditor, from, to)),
               tippyOptions: {
                 // Escape clipped panels, but stay in the top layer when the editor is in a dialog or popover.
                 appendTo: () => root.value?.closest<HTMLElement>("dialog[open], [popover]") ?? document.body,
@@ -1711,7 +1714,7 @@ export const LoomaEditor = defineComponent({
               editor: instance,
               pluginKey: "looma-link-context-menu",
               shouldShow: ({ editor: menuEditor, from, to }: { editor: Editor; from: number; to: number }) =>
-                from === to && menuEditor.isActive("link") && !linkOpen.value,
+                props.toolbarMode !== "contextual" && from === to && menuEditor.isActive("link") && !linkOpen.value,
               tippyOptions: {
                 appendTo: () => root.value?.closest<HTMLElement>("dialog[open], [popover]") ?? document.body,
                 onShow: () => announceOverlayOpen(root.value?.ownerDocument ?? document, root.value),

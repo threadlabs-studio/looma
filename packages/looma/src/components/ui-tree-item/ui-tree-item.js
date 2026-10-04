@@ -143,7 +143,8 @@ export default function controller(host) {
     labelText.style.flex = labelText.style.inlineSize = "";
     const cell = label.getBoundingClientRect();
     const icon = leading?.getBoundingClientRect();
-    const stop = (actions?.offsetWidth ?? 0) + parseFloat(getComputedStyle(label).columnGap);
+    const overlayActions = actions && getComputedStyle(actions).position === "absolute";
+    const stop = overlayActions ? actions.offsetWidth + parseFloat(getComputedStyle(label).columnGap) : 0;
     const distance = Math.ceil(rightToLeft ? cell.left + stop - end : end - (cell.right - stop));
     if (distance <= 0) return;
     const lead = icon?.width ? (rightToLeft ? icon.right - cell.right : cell.left - icon.left) : 0;
