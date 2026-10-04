@@ -21,6 +21,7 @@ Placement supports `block`, `center`, `wrap-left`, and `wrap-right`. A wrapping 
 its surrounding layout owns float containment and the space between content blocks. Without an
 explicit width, a wrapping image occupies one-third of its column on desktop. Explicit dimensions
 supplied by a consumer or dragging take precedence on desktop. Below 768px, wrapping images
-stack at full column width.
+stack at full column width and hide corner handles because wrapping fixes their width.
+Use block or center placement to resize an image on a small screen.
 
 <ComponentExamplesApiTabs component="ui-image" />
