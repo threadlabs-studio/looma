@@ -5,6 +5,7 @@
 - Button’s CardButton variant uses Button with its existing tones, an arbitrary icon slot, flexible top-aligned content, and a vertically centered action slot that defaults to a caret. Card borders and inline padding stay uniform.
 - Separator can use strong emphasis when a composition needs clearer separation.
 
+- Repeated component rows use inline text expressions; the updated converter emits the same direct Vue bindings as `$value`, without per-row text components.
 - Contextual formatting gives slash-command and mention suggestions priority, so their results remain clickable.
 - Trees retain a keyboard entry point when row controllers load later or a hidden tree becomes visible, preserving the last focused row.
 - Contextual editor controls stay inside the document area rather than covering actions above it; link actions share that surface without covering formatting commands.
