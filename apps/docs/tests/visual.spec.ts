@@ -119,6 +119,8 @@ for (const theme of ["light", "dark"] as const) {
         expect(grown!.y + grown!.height).toBeLessThanOrEqual(viewport.height);
         await screenshot(page, `${viewport.name}-${theme}/states/dialog-content-grown.png`);
         await body.evaluate(element => { element.scrollTop = Math.floor((element.scrollHeight - element.clientHeight) / 2); });
+        // Let the scroll event and Scroll Area's scheduled mask update paint before capturing its fade.
+        await body.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
         await screenshot(page, `${viewport.name}-${theme}/states/dialog-body-scrolled.png`);
         await paragraph.evaluate((element, text) => { element.textContent = text; }, original);
         await expect.poll(() => dialog.evaluate(element => element.getAnimations().length), { intervals: [10, 20, 50] }).toBeGreaterThan(0);
