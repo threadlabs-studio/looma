@@ -7,8 +7,14 @@
     "build": "pnpm generate:api && node build-preview.mjs && BROWSERSLIST_IGNORE_OLD_DATA=true docusaurus build",
     "generate:api": "pnpm --dir ../.. generate:api",
     "lint": "echo \"docs: lint not configured\"",
-    "test": "echo \"docs: tests not configured yet\"",
-    "test:browser": "playwright test",
+    "test": "echo \"docs: run test:parity and test:visual for browser checks\"",
+    "test:browser": "playwright test --workers=1 --project=chromium",
+    "test:parity": "playwright test --workers=1 --project=chromium --project=firefox --project=webkit",
+    "test:visual": "node scripts/browser.mjs visual",
+    "test:parity:container": "node scripts/browser.mjs behavior",
+    "typecheck:tests": "tsc --project tsconfig.tests.json",
+    "docs:coverage": "node ../../tools/scripts/docs-coverage.mjs",
+    "docs:coverage:update": "node ../../tools/scripts/docs-coverage.mjs --write",
     "typecheck": "echo \"docs: typecheck not configured\""
   },
   "dependencies": {
@@ -26,6 +32,7 @@
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^3.9.2",
     "@playwright/test": "~1.60.0",
+    "@types/node": "^22.15.30",
     "axe-core": "^4.10.3",
     "typescript": "^5.9.2"
   }

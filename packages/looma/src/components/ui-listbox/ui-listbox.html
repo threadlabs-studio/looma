@@ -25,7 +25,7 @@
   </defs>
   <div
     role="listbox"
-    from:tabindex="{ true: '-1', false: '0' }[format('%s', disabled)]"
+    from:tabindex="{ true: '-1', false: '0' }[concat(disabled)]"
     from:aria-multiselectable="multiple"
     from:aria-disabled="disabled"
     from:aria-required="required"
@@ -41,7 +41,7 @@
         role="option"
         data-ui-choice-option
         from:data-multiple="multiple"
-        from:id="format('%s-option-%s', uid, choice.index)"
+        from:id="concat(uid, '-option-', choice.index)"
         from:data-index="choice.index"
         from:aria-selected="choice.selected"
         from:aria-disabled="choice.disabled"

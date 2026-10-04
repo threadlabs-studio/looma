@@ -38,8 +38,8 @@
   <div>
     <div class="field">
       <button class="preview" $ref="preview" type="button" from:disabled="disabled">
-        <span class="text" $value="internalValue"></span>
-        <span $if="hint" class="hint" aria-hidden="true" $value="hint"></span>
+        <span class="text">{$internalValue}</span>
+        <span $if="hint" class="hint" aria-hidden="true">{$hint}</span>
       </button>
       <input
         class="input"
@@ -53,8 +53,8 @@
       >
     </div>
     <div $if="actions" class="actions">
-      <button class="save" type="button" $value="saveLabel"></button>
-      <button class="cancel" type="button" $value="cancelLabel"></button>
+      <button class="save" type="button">{$saveLabel}</button>
+      <button class="cancel" type="button">{$cancelLabel}</button>
     </div>
   </div>
   <style>

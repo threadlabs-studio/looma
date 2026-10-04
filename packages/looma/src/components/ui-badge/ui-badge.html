@@ -113,9 +113,8 @@
       text-overflow: ellipsis;
     }
 
-    /* Centre the glyphs, not the line box: a label without descenders otherwise reads high.
-     * Trimming applies to block containers; an inline-block is one and, like the inline-flex it
-     * replaces, still sizes to its label rather than filling its container. */
+    /* Trim leading while retaining the font's ascent and descent. A cap-to-baseline box
+       would crop glyphs where the label clips horizontal overflow for ellipsis. */
     @supports (text-box-trim: trim-both) {
       :host {
         display: inline-block;
@@ -123,7 +122,7 @@
         text-align: center;
         align-content: center;
         text-box-trim: trim-both;
-        text-box-edge: cap alphabetic;
+        text-box-edge: text;
       }
     }
 

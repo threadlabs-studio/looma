@@ -111,9 +111,10 @@ export type LoomaImageUploader = (
 /**
  * Chooses whether formatting controls follow a selection, occupy persistent
  * editor chrome, or open from an app-owned button (`popover`, with a text-only
- * bubble for selections); it does not alter document commands or stored content.
+ * bubble for selections). `contextual` exposes all commands at a focused caret
+ * as well as a selection; it does not alter document commands or stored content.
  */
-export type LoomaEditorToolbarMode = "bubble" | "sticky" | "popover";
+export type LoomaEditorToolbarMode = "bubble" | "sticky" | "popover" | "contextual";
 
 /** A destination supplied by the host application, such as a page or record. */
 export interface LoomaLinkTarget {
@@ -882,6 +883,11 @@ export const LoomaEditor = defineComponent({
       ]);
     };
 
+    const renderLinkContextCard = (instance: Editor) => h(Card, {
+      variant: "elevated", padding: linkContextEditing.value ? "sm" : "xs", size: linkContextEditing.value ? "sm" : "content",
+      class: ["looma-editor__link-context", { "looma-editor__link-context--editing": linkContextEditing.value }],
+    }, () => [renderLinkContext(instance)]);
+
     const captureBlockAction = () => {
       const instance = editor.value;
       const head = instance?.state.selection.$head;
@@ -1194,9 +1200,15 @@ export const LoomaEditor = defineComponent({
     const codeLanguageRef = popupRef(codeLanguageShell, true);
     const mobileToolbarRef = popupRef(mobileToolbarShell, true);
     const tippyPresentations = new WeakMap<HTMLElement, ReturnType<typeof createViewportSurface>>();
-    const floatingTippyOptions = (placement: "top" | "bottom") => ({
+    const floatingTippyOptions = (placement: "top" | "bottom", boundary: HTMLElement | null = null) => ({
       appendTo: () => root.value?.closest<HTMLElement>("dialog[open], [popover]") ?? document.body,
-      popperOptions: { strategy: "fixed" as const, modifiers: [{ name: "eventListeners", enabled: false }] },
+      popperOptions: { strategy: "fixed" as const, modifiers: [
+        { name: "eventListeners", enabled: false },
+        ...(boundary ? [
+          { name: "flip", options: { boundary } },
+          { name: "preventOverflow", options: { boundary, altAxis: true } },
+        ] : []),
+      ] },
       onShow: () => announceOverlayOpen(root.value?.ownerDocument ?? document, root.value),
       onMount: (instance: { popper: HTMLElement; popperInstance: { update(): unknown } | null }) => {
         let presentation = tippyPresentations.get(instance.popper);
@@ -1719,27 +1731,33 @@ export const LoomaEditor = defineComponent({
         onKeydown: onImageKeyDown,
       }, [
         instance && props.editable && !mobile.value
-          && (props.toolbarMode === "bubble" || props.toolbarMode === "popover")
+          && (props.toolbarMode === "bubble" || props.toolbarMode === "popover" || props.toolbarMode === "contextual")
           ? h(BubbleMenu, {
               editor: instance,
               pluginKey: "looma-text-formatting-menu",
               shouldShow: ({ editor: menuEditor, from, to }: { editor: Editor; from: number; to: number }) =>
                 (props.toolbarMode !== "popover" || !props.toolbarOpen)
-                && shouldShowTextFormattingToolbar(menuEditor, from, to),
-              tippyOptions: { ...floatingTippyOptions("top"), maxWidth: "none" },
-            }, { default: () => renderToolbar(instance, true, props.toolbarMode === "popover") })
+                && (props.toolbarMode === "contextual"
+                  ? !slash.active && !mention.active && (menuEditor.isFocused || linkContextEditing.value)
+                  : shouldShowTextFormattingToolbar(menuEditor, from, to)),
+              tippyOptions: { ...floatingTippyOptions("top", props.toolbarMode === "contextual" ? root.value : null), maxWidth: "none" },
+            }, { default: () => props.toolbarMode === "contextual"
+              ? h(Stack, { gap: "xs" }, () => [
+                  renderToolbar(instance, true),
+                  (linkContextEditing.value || instance.state.selection.empty && instance.isActive("link")) && !linkOpen.value
+                    ? renderLinkContextCard(instance)
+                    : null,
+                ])
+              : renderToolbar(instance, true, props.toolbarMode === "popover") })
           : null,
-        instance && props.editable && !mobile.value
+        instance && props.editable && !mobile.value && props.toolbarMode !== "contextual"
           ? h(BubbleMenu, {
               editor: instance,
               pluginKey: "looma-link-context-menu",
               shouldShow: ({ editor: menuEditor, from, to }: { editor: Editor; from: number; to: number }) =>
                 from === to && menuEditor.isActive("link") && !linkOpen.value,
               tippyOptions: { ...floatingTippyOptions("bottom"), maxWidth: Math.min(480, window.innerWidth - 24) },
-            }, { default: () => h(Card, {
-              variant: "elevated", padding: linkContextEditing.value ? "sm" : "xs", size: linkContextEditing.value ? "sm" : "content",
-              class: ["looma-editor__link-context", { "looma-editor__link-context--editing": linkContextEditing.value }],
-            }, () => [renderLinkContext(instance)]) })
+            }, { default: () => renderLinkContextCard(instance) })
           : null,
         instance && props.editable && !mobile.value && props.toolbarMode === "popover" && props.toolbarTriggerId
           ? h(Popover, {

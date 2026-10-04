@@ -16,7 +16,7 @@
     <event name="insert" type="object({ rows: integer, cols: integer, withHeaderRow: boolean })"></event>
   </defs>
   <div from:hidden="not open">
-    <p class="hint" $value="hint"></p>
+    <p class="hint">{$hint}</p>
     <div class="grid" $ref="grid" role="group" aria-label="Table dimensions" style:--_rows="rows" style:--_cols="cols">
       <button
         $each="cell of cells"

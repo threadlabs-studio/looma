@@ -269,6 +269,30 @@ describe("Anchored overlay placement", () => {
   });
 });
 
+describe("Touch input typography", () => {
+  it("keeps editable fields readable inside caption typography", async () => {
+    const path = await bundle("touch-caption-input", `
+      import { createApp, h } from "vue";
+      import { Input } from "@threadlabs/looma/vue";
+      createApp({ render: () => h("div", { style: "font-size:12px" }, () => [
+        h(Input, { id: "normal", placeholder: "Search people" }),
+        h(Input, { id: "small", size: "sm", placeholder: "Search pages" }),
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, '<div id="app"></div>', [join(root, "tokens.css"), join(root, "vue/components.css")], {
+      viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true,
+    });
+    for (const id of ["normal", "small"]) {
+      const field = page.locator(`#${id}`);
+      assert.ok(await field.evaluate((element) => parseFloat(getComputedStyle(element).fontSize)) >= 16);
+      await field.tap();
+      await field.fill("Readable");
+      assert.equal(await field.inputValue(), "Readable");
+    }
+    await page.close();
+  });
+});
+
 describe("Tooltip shortcut", () => {
   it("shows a shortcut after the label behind a divider, and nothing when there is none", async () => {
     const path = await bundle("html-tooltip-shortcut", `import "@threadlabs/looma";`);
@@ -4329,6 +4353,44 @@ describe("Icon", () => {
 });
 
 describe("Icon Button", () => {
+  it("matches adjacent Buttons when requested without resizing compact icon controls", async () => {
+    for (const adapter of ["vue", "html"]) {
+      const path = await bundle(`${adapter}-matched-icon-button`, adapter === "vue" ? `
+        import { createApp, h } from "vue";
+        import { Button, IconButton, Icon } from "@threadlabs/looma/vue";
+        createApp({ render: () => h("div", {}, [
+          ...["sm", "md", "lg"].map(size => h("div", { style: "display: flex; align-items: stretch", id: size }, [
+            h(Button, { id: size + "-primary", size }, () => "Save changes"),
+            h(IconButton, { id: size + "-more", size, matchButton: true, variant: "outline", label: "More options" }, () => h(Icon, { name: "chevron-down" })),
+          ])),
+          h(IconButton, { id: "compact", size: "sm", label: "Toolbar options" }, () => h(Icon, { name: "chevron-down" })),
+        ]) }).mount("#app");
+      ` : `import "@threadlabs/looma";`);
+      const body = adapter === "vue" ? '<div id="app"></div>' : `
+        ${["sm", "md", "lg"].map(size => `<div style="display: flex; align-items: stretch" id="${size}">
+          <ui-button id="${size}-primary" size="${size}">Save changes</ui-button>
+          <ui-icon-button id="${size}-more" size="${size}" match-button variant="outline" label="More options"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
+        </div>`).join("")}
+        <ui-icon-button id="compact" size="sm" label="Toolbar options"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>`;
+      for (const touch of [false, true]) {
+        const page = await open(path, body, [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])],
+          { viewport: { width: touch ? 375 : 1280, height: 900 }, hasTouch: touch, isMobile: touch });
+        // Custom control tokens must work, too; no hard-coded matching dimensions.
+        await page.addStyleTag({ content: ":root { --ui-control-size-sm: 36px; --ui-control-size-md: 44px; --ui-control-size-lg: 52px; }" });
+        for (const size of ["sm", "md", "lg"]) {
+          const bounds = await page.evaluate(size => {
+            const primary = document.getElementById(size + "-primary")!.getBoundingClientRect();
+            const more = document.getElementById(size + "-more")!.getBoundingClientRect();
+            return { primary: { top: primary.top, bottom: primary.bottom }, more: { top: more.top, bottom: more.bottom } };
+          }, size);
+          assert.deepEqual(bounds.more, bounds.primary, `${adapter} ${size}, touch=${touch}: both edges align`);
+        }
+        assert.equal(await page.locator("#compact").evaluate(element => element.getBoundingClientRect().height), 28);
+        await page.close();
+      }
+    }
+  });
+
   it("grows its hit area, not its size, once touch is used", async () => {
     const path = await bundle("vue-icon-button-touch", `
       import { createApp, h } from "vue";
@@ -5161,6 +5223,47 @@ describe("HTML components", () => {
 
     await page.waitForSelector('[data-component~="ui-form-field"]');
     assert.equal(await page.locator("#field-label").evaluate((element) => getComputedStyle(element).fontSize), "14px");
+    await page.close();
+  });
+});
+
+describe("Radio group initial selection", () => {
+  const check = async (page: Page) => {
+    await page.waitForSelector('#plan input[value="pro"]');
+    assert.deepEqual(await page.locator("#plan input").evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).checked)), [false, true], "the group's value takes precedence over a child's checked prop");
+    assert.deepEqual(await page.locator("#empty input").evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).checked)), [false, false], "an empty group value checks no radio");
+    assert.deepEqual(await page.locator("#plan input").evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).defaultChecked)), [false, true], "native reset defaults also belong to the group");
+    assert.equal(await page.locator("#standalone input").isChecked(), true, "an authored standalone checked radio stays checked");
+    await page.locator('#plan input[value="free"]').check();
+    await page.locator("#form").evaluate((form) => (form as HTMLFormElement).reset());
+    await page.waitForFunction(() => (document.querySelector('#plan input[value="pro"]') as HTMLInputElement).checked);
+    assert.deepEqual(await page.locator("#plan input").evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).checked)), [false, true], "form reset restores the group's authored value");
+  };
+
+  it("honors group selection when a child is authored checked, in HTML", async () => {
+    const path = await bundle("html-radio-initial-selection", `import "@threadlabs/looma";`);
+    const page = await open(path, `<form id="form">
+      <ui-radio-group id="plan" name="plan" value="pro"><ui-radio value="free" checked>Free</ui-radio><ui-radio value="pro">Pro</ui-radio></ui-radio-group>
+      <ui-radio-group id="empty" name="empty"><ui-radio value="free" checked>Free</ui-radio><ui-radio value="pro">Pro</ui-radio></ui-radio-group>
+      <fieldset role="radiogroup"><ui-radio id="standalone" name="standalone" checked>Standalone</ui-radio></fieldset>
+    </form>`, [join(root, "tokens.css")]);
+    await check(page);
+    await page.close();
+  });
+
+  it("honors group selection when a child is authored checked, in Vue", async () => {
+    const path = await bundle("vue-radio-initial-selection", `
+      import { createApp, h } from "vue";
+      import { Radio, RadioGroup } from "@threadlabs/looma/vue";
+      const radios = () => [h(Radio, { value: "free", checked: true }, () => "Free"), h(Radio, { value: "pro" }, () => "Pro")];
+      createApp({ render: () => h("form", { id: "form" }, [
+        h(RadioGroup, { id: "plan", name: "plan", value: "pro" }, radios),
+        h(RadioGroup, { id: "empty", name: "empty" }, radios),
+        h("fieldset", { role: "radiogroup" }, [h(Radio, { id: "standalone", name: "standalone", checked: true }, () => "Standalone")]),
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await check(page);
     await page.close();
   });
 });
@@ -6707,6 +6810,32 @@ describe("Theme levels", () => {
 });
 
 describe("Meter", () => {
+  it("localizes its spoken percentage in native HTML and Vue while keeping CSS numeric", async () => {
+    for (const target of ["html", "vue"]) {
+      const path = await bundle(`localized-meter-${target}`, target === "html"
+        ? `import "@threadlabs/looma";`
+        : `import { createApp, h, ref } from "vue";
+           import { Meter } from "@threadlabs/looma/vue";
+           const value = ref(0.29);
+           window.localizedMeterValue = value;
+           createApp({ render: () => h(Meter, { value: value.value, label: "Progress" }) }).mount("#app");`);
+      const page = await open(path, target === "html"
+        ? '<ui-meter id="meter" value="0.29" label="Progress"></ui-meter>'
+        : '<div id="app"></div>', css, { locale: "de-DE" });
+      const meter = page.getByRole("meter", { name: "Progress" });
+      assert.equal(await meter.getAttribute("aria-valuetext"), "29\u00a0%");
+      const fill = await meter.locator(".fill").evaluate((element) => (element as HTMLElement).style.inlineSize);
+      assert.ok(fill.endsWith("%") && Math.abs(parseFloat(fill) - 29) < 0.000001, fill);
+      if (target === "vue") {
+        await page.evaluate(() => {
+          (window as unknown as { localizedMeterValue: { value: number } }).localizedMeterValue.value = 0.5;
+        });
+        await page.waitForFunction(() => document.querySelector('[role="meter"]')?.getAttribute("aria-valuetext") === "50\u00a0%");
+        assert.equal(await meter.locator(".fill").evaluate((element) => (element as HTMLElement).style.inlineSize), "50%");
+      }
+      await page.close();
+    }
+  });
   const tones = ["neutral", "accent", "info", "success", "warning", "danger"];
   const meters: [string, Record<string, unknown>][] = [
     ["partial", { value: 750, max: 1240, tone: "info", label: "Collected", valueText: "$750 of $1,240 collected" }],
@@ -7131,6 +7260,20 @@ describe("Combobox completion", () => {
 
 describe("Combobox chip truncation", () => {
   const label = "workspace:averylongidentifierthatmuststayinsideitsbadge";
+  const checkTextRoom = async (page: Page) => {
+    const bounds = await page.locator(".item .label").evaluateAll((labels) => labels.map((label) => {
+      const box = label.getBoundingClientRect();
+      const range = document.createRange();
+      range.selectNodeContents(label);
+      const text = range.getBoundingClientRect();
+      return { label: label.textContent, top: box.top, bottom: box.bottom, textTop: text.top, textBottom: text.bottom };
+    }));
+    assert.ok(bounds.length > 0);
+    for (const box of bounds) {
+      assert.ok(box.textBottom <= box.bottom + 1, `${box.label}: the label does not crop descenders`);
+      assert.ok(box.textTop >= box.top - 1, `${box.label}: the label leaves room above its text`);
+    }
+  };
   const check = async (page: Page) => {
     for (const width of [1280, 375]) {
       await page.setViewportSize({ width, height: 812 });
@@ -7150,6 +7293,7 @@ describe("Combobox chip truncation", () => {
       assert.equal(geometry.overflow, "hidden");
       assert.equal(geometry.ellipsis, "ellipsis");
       assert.equal(geometry.text, label, "full label remains available to assistive technology");
+      await checkTextRoom(page);
       await page.screenshot({ path: join(root, ".build", `chip-ellipsis-${width}.png`) });
     }
     await page.getByRole("combobox", { name: "Filter" }).focus();
@@ -7167,4 +7311,22 @@ describe("Combobox chip truncation", () => {
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
     try { await check(page); } finally { await page.close(); }
   });
+  for (const adapter of ["native", "Vue"]) {
+    it(`keeps short ${adapter} chip text and descenders visible at desktop and 375px`, async () => {
+      const items = [{ id: "date", value: "date", label: "date:today" }, { id: "entry", value: "entry", label: "entry:review" }];
+      const options = items.map((item) => `<option value="${item.value}">${item.label}</option>`).join("");
+      const source = adapter === "native" ? `import "@threadlabs/looma";`
+        : `import { createApp, h } from "vue"; import { Combobox } from "@threadlabs/looma/vue"; createApp({ render: () => h(Combobox, { label: "Filter", multiple: true, items: ${JSON.stringify(items)} }, () => ${JSON.stringify(items)}.map(item => h("option", {value: item.value}, item.label))) }).mount("#app");`;
+      const path = await bundle(`${adapter}-chip-descenders`, source);
+      const page = await open(path, adapter === "native" ? `<ui-combobox label="Filter" multiple items='${JSON.stringify(items)}'>${options}</ui-combobox>` : `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+      try {
+        for (const width of [1280, 375]) {
+          await page.setViewportSize({ width, height: 812 });
+          await page.locator(".item .label").first().waitFor();
+          await checkTextRoom(page);
+          await page.screenshot({ path: join(root, ".build", `chip-descenders-${adapter}-${width}.png`) });
+        }
+      } finally { await page.close(); }
+    });
+  }
 });

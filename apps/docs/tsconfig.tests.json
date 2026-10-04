@@ -1,0 +1,17 @@
+{
+  "extends": "../../tools/tsconfig/base.json",
+  "compilerOptions": {
+    "types": [
+      "node"
+    ],
+    "resolveJsonModule": true
+  },
+  "include": [
+    "playwright.config.ts",
+    "tests/**/*.ts"
+  ],
+  "exclude": [
+    "tests/release-docs.spec.ts",
+    "tests/interactive-guides.spec.ts"
+  ]
+}
