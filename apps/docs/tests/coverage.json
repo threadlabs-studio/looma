@@ -930,6 +930,11 @@
           "id": "06-loading",
           "title": "Loading icon action",
           "behavior": false
+        },
+        {
+          "id": "07-match-button",
+          "title": "Match a text button",
+          "behavior": false
         }
       ]
     },
