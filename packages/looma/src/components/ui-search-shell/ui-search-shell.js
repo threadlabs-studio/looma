@@ -2,7 +2,7 @@ import { closeOverlay, openOverlay } from "../shared/overlay.js";
 import { trackTrigger } from "../shared/trigger.js";
 
 /** Owns native dialog state while leaving query and result state to the application. */
-export default function controller(host) {
+function connect(host) {
   const dialog = host.refs.dialog;
   const document = dialog.ownerDocument;
   const overlayId = `ui-search-shell-${Math.random().toString(36).slice(2, 11)}`;
@@ -94,4 +94,9 @@ export default function controller(host) {
     closeNative();
     closeOverlay(document, overlayId);
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

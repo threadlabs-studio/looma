@@ -30,9 +30,9 @@
 
     /* Stacked, grid, and tiles set each term above its value, passing the shape to the items through
        private properties, which cross into each item. */
-    :host-state([layout="stacked"]),
-    :host-state([layout="grid"]),
-    :host-state([layout="tiles"]) {
+    :host([layout="stacked"]),
+    :host([layout="grid"]),
+    :host([layout="tiles"]) {
       --_ui-description-display: flex;
       --_ui-description-column: auto;
       --_ui-description-align: stretch;
@@ -43,13 +43,13 @@
 
     /* A column is at least --_min wide; with columns set, at least its share of the width, so no more
        than that many fit. */
-    :host-state([layout="grid"]),
-    :host-state([layout="tiles"]) {
+    :host([layout="grid"]),
+    :host([layout="tiles"]) {
       inline-size: 100%;
       grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--_track)), 1fr));
     }
 
-    :host-state([layout="tiles"]) {
+    :host([layout="tiles"]) {
       --_ui-description-align: flex-start;
       --_ui-description-value-size: var(--ui-font-size-lg);
       --_ui-description-padding: var(--_tile-padding);
@@ -60,18 +60,18 @@
       --_column-gap: var(--_gap);
     }
 
-    :host-state([columns="2"]) {
+    :host([columns="2"]) {
       --_track: max(var(--_min), (100% - var(--_column-gap)) / 2);
     }
-    :host-state([columns="3"]) {
+    :host([columns="3"]) {
       --_track: max(var(--_min), (100% - 2 * var(--_column-gap)) / 3);
     }
-    :host-state([columns="4"]) {
+    :host([columns="4"]) {
       --_track: max(var(--_min), (100% - 3 * var(--_column-gap)) / 4);
     }
 
     /* Compact takes each layout's closer spacing. */
-    :host-state([density="compact"]) {
+    :host([density="compact"]) {
       --_gap: var(--_gap-compact);
       --_tile-padding: var(--ui-space-2);
     }

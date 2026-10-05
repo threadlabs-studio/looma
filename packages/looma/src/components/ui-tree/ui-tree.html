@@ -75,12 +75,12 @@
 
     /* Reaches the items the way density does, so the setting lives on the tree the way a reader
        thinks about it: this list scrolls its long names. */
-    :host-state([marquee]) {
+    :host([marquee]) {
       --_ui-default-tree-item-marquee: 1;
     }
 
     /* The items' defaults for this density: an item's own hook still wins. */
-    :host-state([density="compact"]) {
+    :host([density="compact"]) {
       --_ui-default-tree-item-min-block-size: var(--ui-control-size-sm);
       --_ui-default-tree-item-font-size: var(--ui-font-size-sm);
       --_ui-default-tree-item-label-padding-block: 0;

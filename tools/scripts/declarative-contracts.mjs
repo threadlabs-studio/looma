@@ -190,10 +190,6 @@ export function parseDeclarativeContract(source, expectedTag) {
     props: parseProps(defs),
     propDescriptions: parsePropDescriptions(defs),
     slots: parseSlots(source),
-    methods: parseNamedDefinitions(defs, "method", (attributes) => ({
-      name: attributes.name,
-      returns: attributes.returns ?? "promise(undefined)",
-    })),
     events: parseNamedDefinitions(defs, "event", (attributes) => ({
       name: attributes.name,
       type: attributes.type ?? "unknown",

@@ -185,12 +185,12 @@
       color: var(--_tone-text);
     }
 
-    :host-state([align="start"]) {
+    :host([align="start"]) {
       justify-content: flex-start;
       text-align: start;
     }
 
-    :host-state([stretch]) {
+    :host([stretch]) {
       display: flex;
       inline-size: 100%;
     }
@@ -241,23 +241,23 @@
       }
     }
 
-    :host-state([size="xs"]) {
+    :host([size="xs"]) {
       min-block-size: 1.5rem;
       padding: calc(var(--ui-space-0-5) * 1.5) calc(var(--ui-space-1) * 1.25);
       font-size: var(--ui-font-size-xs);
     }
 
-    :host-state([shape="pill"]) {
+    :host([shape="pill"]) {
       border-radius: var(--ui-button-radius, var(--ui-radius-round));
     }
 
-    :host-state([size="sm"]) {
+    :host([size="sm"]) {
       min-block-size: var(--ui-control-size-sm);
       padding: var(--ui-space-1) var(--ui-space-2);
       font-size: var(--ui-font-size-sm);
     }
 
-    :host-state([size="lg"]) {
+    :host([size="lg"]) {
       min-block-size: var(--ui-control-size-lg);
       padding: var(--ui-space-3) var(--ui-space-4);
       font-size: var(--ui-font-size-md);
@@ -265,7 +265,7 @@
 
     /* Card actions inherit Button's palette and behavior; only their shared layout changes.
        The icon may contain any decorative composition. Empty icons remove their column. */
-    :host-state([variant="card"]) {
+    :host([variant="card"]) {
       display: grid;
       grid-template-columns: auto minmax(0, 1fr) auto;
       align-content: center;
@@ -278,10 +278,10 @@
       box-shadow: none;
       background-image: none;
     }
-    :host-state([variant="card"][size="lg"]) {
+    :host([variant="card"][size="lg"]) {
       min-block-size: max(var(--ui-control-min-block-size), var(--ui-control-size-lg));
     }
-    :host-state([variant="card"]):has(.card-icon:empty) {
+    :host([variant="card"]):has(.card-icon:empty) {
       grid-template-columns: minmax(0, 1fr) auto;
     }
     .card-icon {
@@ -314,19 +314,19 @@
       box-shadow: var(--ui-pressed);
     }
 
-    :host-state([variant="solid"]), :host-state([variant="danger"]) {
+    :host([variant="solid"]), :host([variant="danger"]) {
       border-color: var(--_tone);
       background-color: var(--_tone);
       color: var(--_on-tone);
       box-shadow: var(--ui-button-solid-shadow, var(--ui-raised));
     }
 
-    :is(:host-state([variant="solid"]), :host-state([variant="danger"])):hover:not(:disabled, [aria-disabled="true"]) {
+    :is(:host([variant="solid"]), :host([variant="danger"])):hover:not(:disabled, [aria-disabled="true"]) {
       background-color: var(--_tone-hover);
       border-color: var(--_tone-hover);
     }
 
-    :is(:host-state([variant="solid"]), :host-state([variant="danger"])):active:not(:disabled, [aria-disabled="true"]) {
+    :is(:host([variant="solid"]), :host([variant="danger"])):active:not(:disabled, [aria-disabled="true"]) {
       background-color: var(--_tone-active);
       border-color: var(--_tone-active);
       background-image: none;
@@ -335,7 +335,7 @@
 
     /* Tone is the colour, variant is the volume. Every pairing works: a danger outline is a
        destructive secondary action, not a special case. */
-    :host-state([tone="neutral"]) {
+    :host([tone="neutral"]) {
       --_hue: var(--ui-text);
       --_hue-hover: var(--ui-text);
       --_hue-active: var(--ui-text);
@@ -343,7 +343,7 @@
       --_on-hue: var(--ui-surface);
     }
 
-    :host-state([tone="danger"]), :host-state([variant="danger"]) {
+    :host([tone="danger"]), :host([variant="danger"]) {
       --_hue: var(--ui-danger);
       --_hue-hover: var(--ui-danger-hover);
       --_hue-active: var(--ui-danger-hover);
@@ -351,7 +351,7 @@
       --_on-hue: var(--ui-on-danger);
     }
 
-    :host-state([tone="success"]) {
+    :host([tone="success"]) {
       --_hue: var(--ui-success);
       --_hue-hover: color-mix(in srgb, var(--ui-success) 85%, #000);
       --_hue-active: color-mix(in srgb, var(--ui-success) 75%, #000);
@@ -359,7 +359,7 @@
       --_on-hue: var(--ui-surface);
     }
 
-    :host-state([tone="warning"]) {
+    :host([tone="warning"]) {
       --_hue: var(--ui-warning);
       --_hue-hover: color-mix(in srgb, var(--ui-warning) 85%, #000);
       --_hue-active: color-mix(in srgb, var(--ui-warning) 75%, #000);
@@ -367,7 +367,7 @@
       --_on-hue: var(--ui-surface);
     }
 
-    :host-state([tone="info"]) {
+    :host([tone="info"]) {
       --_hue: var(--ui-info);
       --_hue-hover: color-mix(in srgb, var(--ui-info) 85%, #000);
       --_hue-active: color-mix(in srgb, var(--ui-info) 75%, #000);
@@ -375,7 +375,7 @@
       --_on-hue: var(--ui-surface);
     }
 
-    :host-state([variant="ghost"]) {
+    :host([variant="ghost"]) {
       border-color: transparent;
       background: transparent;
       box-shadow: none;
@@ -383,14 +383,14 @@
     }
 
     /* Tints derive from the text colour, not a surface token, so hover and press show on any background. */
-    :host-state([variant="ghost"]):hover:not(:disabled, [aria-disabled="true"]) {
+    :host([variant="ghost"]):hover:not(:disabled, [aria-disabled="true"]) {
       background-color: var(--ui-button-ghost-hover-surface, oklch(from var(--_tone) l c h / 10%));
       border-color: transparent;
     }
 
     /* Pressed, or holding its menu open, a ghost button sinks slightly: a light surface with a faint
        edge and a soft inner shadow. Lighter than hover, so an open menu's trigger never reads as heavy. */
-    :host-state([variant="ghost"]):is(:active, [aria-expanded="true"]):not(:disabled, [aria-disabled="true"]) {
+    :host([variant="ghost"]):is(:active, [aria-expanded="true"]):not(:disabled, [aria-disabled="true"]) {
       background-color: var(--ui-button-ghost-active-surface, color-mix(in oklch, var(--ui-surface), var(--_tone) 3%));
       border-color: transparent;
       box-shadow: inset 0 0 0 1px oklch(from var(--_tone) l c h / 10%), inset 0 1px 2px oklch(from var(--_tone) l c h / 8%);
@@ -404,7 +404,7 @@
         var(--ui-focus-halo);
     }
 
-    :host-state([variant="solid"]):focus-visible {
+    :host([variant="solid"]):focus-visible {
       box-shadow:
         var(--ui-button-solid-shadow, var(--ui-raised)),
         var(--ui-focus-halo);
@@ -423,19 +423,19 @@
       box-shadow: none;
     }
 
-    :is(:host-state([loading]), :host-state([pending])):focus-visible {
+    :is(:host([loading]), :host([pending])):focus-visible {
       box-shadow: var(--ui-focus-halo);
     }
 
     /* Ghost keeps no border, but gains the same neutral surface as other disabled buttons. */
-    :host-state([variant="ghost"]):is(:disabled, [aria-disabled="true"]:not([aria-busy="true"])) {
+    :host([variant="ghost"]):is(:disabled, [aria-disabled="true"]:not([aria-busy="true"])) {
       background-color: var(--ui-disabled-surface);
       border-color: transparent;
     }
 
     /* The size states outrank :host, so sm is named too, or a small button would stay small. */
     @media (pointer: coarse) {
-      :host, :host-state([size="sm"]) {
+      :host, :host([size="sm"]) {
         min-block-size: var(--ui-control-min-block-size);
       }
     }
@@ -445,13 +445,13 @@
        a link-style one keeps its text size, so a standalone one ("See all" under a list) needs the
        area. xs sits inside a line of text the same way, so it keeps its size and gains the area too.
        Only these need it: a hit area on every button would reach over its neighbours. */
-    html[data-ui-input-modality="touch"] :host-state([variant="link"]),
-    html[data-ui-input-modality="touch"] :host-state([size="xs"]) {
+    html[data-ui-input-modality="touch"] :host([variant="link"]),
+    html[data-ui-input-modality="touch"] :host([size="xs"]) {
       position: relative;
     }
 
-    html[data-ui-input-modality="touch"] :host-state([variant="link"])::after,
-    html[data-ui-input-modality="touch"] :host-state([size="xs"])::after {
+    html[data-ui-input-modality="touch"] :host([variant="link"])::after,
+    html[data-ui-input-modality="touch"] :host([size="xs"])::after {
       position: absolute;
       inset: 50% auto auto 50%;
       inline-size: max(100%, var(--ui-control-min-block-size));
@@ -462,7 +462,7 @@
 
     /* Link: an inline text action. No box, padding, or minimum height (inline targets are exempt under
        WCAG 2.5.8); the inherited font; an underline that strengthens on hover; a visible focus ring. */
-    :host-state([variant="link"]) {
+    :host([variant="link"]) {
       display: inline;
       min-block-size: 0;
       padding: 0;
@@ -479,24 +479,24 @@
       transition: color var(--ui-motion-fast) var(--ui-motion-ease), text-decoration-color var(--ui-motion-fast) var(--ui-motion-ease);
     }
 
-    :host-state([variant="link"]):hover:not(:disabled, [aria-disabled="true"]) {
+    :host([variant="link"]):hover:not(:disabled, [aria-disabled="true"]) {
       color: var(--ui-button-link-hover-text, var(--ui-text-primary));
       text-decoration-color: currentColor;
       background: none;
       transform: none;
     }
 
-    :host-state([variant="link"]):active:not(:disabled, [aria-disabled="true"]) {
+    :host([variant="link"]):active:not(:disabled, [aria-disabled="true"]) {
       background: none;
       transform: none;
     }
 
-    :host-state([variant="link"]):is(:disabled, [aria-disabled="true"]:not([aria-busy="true"])) {
+    :host([variant="link"]):is(:disabled, [aria-disabled="true"]:not([aria-busy="true"])) {
       background: none;
       border-color: transparent;
     }
 
-    :host-state([variant="link"]):focus-visible {
+    :host([variant="link"]):focus-visible {
       box-shadow: none;
       /* Fallback keeps the ring if the token is missing: an unresolved var() would void the outline. */
       outline: var(--ui-focus-width) solid var(--ui-focus-ring);

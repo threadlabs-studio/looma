@@ -5,7 +5,7 @@ function inferredLabel(element, explicit) {
   return element.querySelector("h1, h2, h3, h4, h5, h6")?.textContent?.trim() || "Dialog";
 }
 
-export default function controller(host) {
+function connect(host) {
   const element = host.element;
   const document = element.ownerDocument;
   const dialog = element.localName === "dialog" ? element : element.querySelector("dialog");
@@ -125,4 +125,9 @@ export default function controller(host) {
     element.removeEventListener("keydown", onKeydown);
     closeOverlay(document, overlayId);
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

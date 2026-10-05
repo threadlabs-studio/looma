@@ -24,7 +24,7 @@
       border-block-start: var(--ui-border-width) solid var(--ui-separator-color, var(--_separator-color, var(--ui-border-divider)));
     }
 
-    :host-state([emphasis="strong"]) {
+    :host([emphasis="strong"]) {
       --_separator-color: var(--ui-border-strong);
     }
 
@@ -34,17 +34,17 @@
       border-inline-start: var(--ui-border-width) solid var(--ui-separator-color, var(--_separator-color, var(--ui-border-divider)));
     }
 
-    :host-state([selectable]) {
+    :host([selectable]) {
       min-block-size: var(--ui-control-size-sm);
       border: 0;
       background: linear-gradient(var(--ui-separator-color, var(--ui-border-divider)), var(--ui-separator-color, var(--ui-border-divider))) center / 100%
         var(--ui-border-width) no-repeat;
       cursor: pointer;
     }
-    :host-state([selectable]):hover {
+    :host([selectable]):hover {
       background-color: var(--ui-surface-hover);
     }
-    :host-state([selected]) {
+    :host([selected]) {
       outline: var(--ui-focus-width) solid var(--ui-focus-ring);
       outline-offset: var(--ui-focus-width);
       border-radius: var(--ui-radius-sm);

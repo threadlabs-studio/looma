@@ -49,37 +49,37 @@
       flex-basis: 100%;
     }
 
-    :host-state([gap="xs"]) {
+    :host([gap="xs"]) {
       --_switcher-gap: var(--ui-space-2);
     }
-    :host-state([gap="s"]) {
+    :host([gap="s"]) {
       --_switcher-gap: var(--ui-space-3);
     }
-    :host-state([gap="m"]) {
+    :host([gap="m"]) {
       --_switcher-gap: var(--ui-space-4);
     }
-    :host-state([gap="l"]) {
+    :host([gap="l"]) {
       --_switcher-gap: var(--ui-space-5);
     }
-    :host-state([gap="xl"]) {
+    :host([gap="xl"]) {
       --_switcher-gap: var(--ui-space-6);
     }
-    :host-state([threshold="xs"]) > :slotted(*) {
+    :host([threshold="xs"]) > :slotted(*) {
       flex-basis: calc((var(--_ui-switcher-threshold, 20rem) - 100%) * 999);
     }
-    :host-state([threshold="md"]) > :slotted(*) {
+    :host([threshold="md"]) > :slotted(*) {
       flex-basis: calc((var(--_ui-switcher-threshold, 45rem) - 100%) * 999);
     }
-    :host-state([threshold="lg"]) > :slotted(*) {
+    :host([threshold="lg"]) > :slotted(*) {
       flex-basis: calc((var(--_ui-switcher-threshold, 60rem) - 100%) * 999);
     }
-    :host-state([align="start"]) {
+    :host([align="start"]) {
       align-items: flex-start;
     }
-    :host-state([align="center"]) {
+    :host([align="center"]) {
       align-items: center;
     }
-    :host-state([align="end"]) {
+    :host([align="end"]) {
       align-items: flex-end;
     }
 

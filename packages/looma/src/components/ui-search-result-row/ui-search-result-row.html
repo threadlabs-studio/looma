@@ -71,7 +71,7 @@
       transition: background-color var(--ui-motion-fast) var(--ui-motion-ease);
     }
 
-    :host-state([density="compact"]) {
+    :host([density="compact"]) {
       min-block-size: var(--ui-search-result-row-min-height, 3.125rem);
       padding-block: var(--ui-search-result-row-padding-block, var(--ui-space-1));
       padding-inline: var(--ui-search-result-row-padding-inline, var(--ui-space-2));
@@ -81,12 +81,12 @@
     }
 
     /* Slot wrappers own their line boxes even when an app makes buttons inherit body typography. */
-    :host-state([density="compact"]) .title {
+    :host([density="compact"]) .title {
       font-size: var(--ui-font-size-sm);
       line-height: var(--ui-line-height);
     }
 
-    :host-state([density="compact"]) .meta {
+    :host([density="compact"]) .meta {
       font-size: var(--ui-font-size-xs);
       line-height: var(--ui-line-height);
     }
@@ -95,7 +95,7 @@
       background: var(--ui-search-result-row-hover-surface, color-mix(in srgb, var(--ui-surface) 85%, black 3%));
     }
 
-    :host-state([selected]) {
+    :host([selected]) {
       background: var(
         --ui-search-result-row-selected-bg,
         var(--ui-selection-surface)
@@ -151,7 +151,7 @@
     }
 
     @media (forced-colors: active) {
-      :host-state([selected]):not(:focus-visible):not(:disabled) {
+      :host([selected]):not(:focus-visible):not(:disabled) {
         outline: var(--ui-border-width) solid Highlight;
         outline-offset: calc(-1 * var(--ui-border-width));
       }

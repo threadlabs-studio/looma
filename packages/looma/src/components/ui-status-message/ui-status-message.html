@@ -30,17 +30,17 @@
       line-height: var(--ui-line-height);
     }
 
-    :host-state([kind="error"]) {
+    :host([kind="error"]) {
       color: var(--ui-danger);
     }
 
-    :host-state([layout="panel"]) {
+    :host([layout="panel"]) {
       padding: var(--ui-space-6);
       border: var(--ui-border-width) dashed var(--ui-border-strong);
       border-radius: var(--ui-radius-lg);
     }
 
-    :host-state([layout="fill"]) {
+    :host([layout="fill"]) {
       flex: 1;
       flex-direction: column;
       justify-content: center;
@@ -56,7 +56,7 @@
       min-inline-size: 0;
     }
 
-    :host-state([layout="fill"]) .copy {
+    :host([layout="fill"]) .copy {
       flex: none;
       align-items: center;
     }

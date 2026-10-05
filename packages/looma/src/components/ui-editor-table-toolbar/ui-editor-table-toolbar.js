@@ -7,7 +7,7 @@ const overflowSections = [
 ];
 
 // Lists the actions the table selection permits; the overflow menu opens and closes here.
-export default function controller(host) {
+function connect(host) {
   const element = host.element;
   const positionMenu = () => {
     const button = element.querySelector(".more");
@@ -80,4 +80,9 @@ export default function controller(host) {
     window.removeEventListener("resize", positionMenu);
     window.visualViewport?.removeEventListener("resize", positionMenu);
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

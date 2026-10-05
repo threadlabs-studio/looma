@@ -16,7 +16,7 @@ function parentItem(item, tree) {
   return parent && tree.contains(parent) ? parent : null;
 }
 
-export default function controller(host) {
+function connect(host) {
   const element = host.element;
   const document = element.ownerDocument;
   const itemSelector = '[role="treeitem"]';
@@ -482,4 +482,9 @@ export default function controller(host) {
     for (const [name, listener] of Object.entries(listeners)) element.removeEventListener(name, listener);
     element.removeEventListener("click", onMoveClick, true);
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

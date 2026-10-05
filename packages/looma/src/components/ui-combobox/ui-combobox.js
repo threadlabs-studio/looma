@@ -1,8 +1,6 @@
 import { afterFormReset } from "../shared/form-reset.js";
 import { closeOverlay, createAnchoredSurface, openOverlay } from "../shared/overlay.js";
 
-const instances = new WeakMap();
-
 let comboboxes = 0;
 
 // An option's secondary line and tag ride on data-* attributes: <option> holds only text, so markup inside
@@ -23,15 +21,7 @@ function authoredOptions(container) {
   });
 }
 
-export async function validate(host) {
-  return instances.get(host.element)?.validate();
-}
-
-export async function focusInput(host) {
-  instances.get(host.element)?.input?.focus();
-}
-
-export default function controller(host) {
+function connect(host) {
   const element = host.element;
   const document = element.ownerDocument;
   const uid = `ui-combobox-${++comboboxes}`;
@@ -514,9 +504,13 @@ export default function controller(host) {
   host.state.validation = { status: "pristine", touched: false, dirty: false, issues: [] };
   surface = createAnchoredSurface(popup, { anchor: field, placement: "bottom-start" });
 
-  const api = { get input() { return input; }, validate: validateCurrent };
-  instances.set(element, api);
-  const listeners = { input: onInput, keydown: onKeydown, click: onClick, pointerdown: onPointerdown, focusin: onFocusin, focusout: onFocusout, compositionstart: onCompositionstart, compositionend: onCompositionend, open: onTooltipOpen, close: onTooltipClose };
+  const onCommand = (event) => {
+    if (event.target === element && event.command === "--validate") void validateCurrent();
+  };
+  const onValidate = (event) => {
+    if (event.target === element) void validateCurrent();
+  };
+  const listeners = { input: onInput, keydown: onKeydown, click: onClick, pointerdown: onPointerdown, focusin: onFocusin, focusout: onFocusout, compositionstart: onCompositionstart, compositionend: onCompositionend, open: onTooltipOpen, close: onTooltipClose, command: onCommand, validate: onValidate };
   for (const [name, listener] of Object.entries(listeners)) element.addEventListener(name, listener);
   // Authored options can change after mount (renamed, replaced, or arriving late). A selected value
   // then shows its current label, unless the user is editing the text.
@@ -582,6 +576,10 @@ export default function controller(host) {
     close();
     validationRun?.abort();
     surface.destroy();
-    instances.delete(element);
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

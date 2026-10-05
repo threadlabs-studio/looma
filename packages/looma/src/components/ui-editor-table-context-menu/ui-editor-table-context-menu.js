@@ -26,7 +26,7 @@ const sections = [
 ];
 
 // Lists the actions the selection permits, and nudges the open menu back inside the viewport.
-export default function controller(host) {
+function connect(host) {
   const element = host.element;
   let frame;
   const nudge = () => {
@@ -80,4 +80,9 @@ export default function controller(host) {
     window.visualViewport?.removeEventListener("scroll", schedule);
     if (frame) cancelAnimationFrame(frame);
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }
