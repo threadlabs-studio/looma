@@ -6,14 +6,38 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 # Toast Region
 
-Toast Region stacks authored `<ui-toast>` children and messages added with `show()` or the
+Toast Region stacks authored `<ui-toast>` children and messages added with the `show-toast` event or the
 `--show-toast` command. It appears while it contains messages. Use `placement="top|top-start|top-end|bottom|bottom-start|bottom-end"`
 to choose the screen edge; start and end follow the writing direction.
 
 `duration="0"` keeps generated messages until dismissed. A positive duration starts a timer for
-each, paused by hover or focus. An individual `show()` call can override the duration and tone.
+each, paused by hover or focus. An individual `show-toast` request can override the duration and tone.
 Commands take their message from the invoking button's `value`. For authored content, see
 [Toast](../../parts/ui-toast.mdx): the application owns its removal after `dismiss`.
 
 
 <ComponentExamplesApiTabs component="ui-toast-region" />
+
+## Add a message from JavaScript
+
+Dispatch a native event on the region's rendered element. Its `detail` contains
+`message` and optional `id`, `tone`, and `duration`. Tone is `neutral`, `info`,
+`success`, `warning`, or `danger`; it defaults to `neutral`. Duration falls back
+to the region's `duration` prop. Supply an ID when a later `dismiss` event must
+be matched to the request; otherwise the region generates one.
+
+```js
+const region = document.getElementById("notifications");
+region.addEventListener("dismiss", (event) => {
+  if (event.detail.id === "saved-notice") console.log("Save notice dismissed");
+});
+region.dispatchEvent(new CustomEvent("show-toast", {
+  detail: { message: "Saved", id: "saved-notice", tone: "success", duration: 3000 },
+}));
+```
+
+This replaces `await region.show(message, options)`. Event dispatch does not
+return a toast ID; put an ID in the payload when you need one. The region
+removes generated messages after dismissal, and pauses their timers while
+hovered or focused. The existing button `command="--show-toast"` path still
+reads its message from the invoking button's `value`.

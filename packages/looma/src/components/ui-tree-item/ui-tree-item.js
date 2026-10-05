@@ -17,7 +17,7 @@ const CONTROLS = [
     "radio", "switch", "tab", "slider", "spinbutton", "combobox", "textbox", "dialog"].map((role) => `[role="${role}"]`),
 ].join(", ");
 
-export default function controller(host) {
+function connect(host) {
   const element = host.element;
   const { row, disclosure, children, leading, label, actions, labelText } = host.refs;
   // Touch use enlarges rows and hides drag handles (see the template's styles).
@@ -232,4 +232,9 @@ export default function controller(host) {
     disclosure.removeEventListener("click", onDisclosureClick);
     row.removeEventListener("click", onRowClick);
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

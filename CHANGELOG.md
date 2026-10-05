@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Vue consumers require Vue 3.5.43 or later so compiled generic Input declarations accept their declared modes. Input now declares the native file mode; file selection is read from the native change event’s `target.files`. Uncontrolled Vue Select components retain the browser’s first-option or authored selection.
+
+- **Breaking: controller commands replace generated element methods.** Combobox's `validate()` and `focusInput()` and Toast Region's `show()` depended on `<method>`, an unsupported HTML Next construct outside the public proposal’s controller/event model. This removes that named-export bridge; aliases would require maintaining a separate imperative library adapter. Request combobox validation with a native `validate` event or `CommandEvent("command", { command: "--validate" })` and read `validation-change`; focus its native input directly. Add programmatic toasts with `CustomEvent("show-toast", { detail: { message, id?, tone?, duration? } })`; supply `id` when correlating `dismiss`. The existing `--show-toast` button command remains available. Controller connection subscriptions preserve setup and cleanup through reconnects. Component CSS now distinguishes resolved props with `:host([prop])` from mutable/computed state with `:host-state([state])`.
+
 - Floating formatting supports Select All. Link and table pickers keep their toolbar anchor while editing; anchored surfaces retain their last valid position when a trigger becomes unavailable and wait for usable bounds before first opening.
 
 - Holding a table column resize handle keeps floating text formatting closed.

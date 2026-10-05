@@ -442,11 +442,13 @@ describe("Toast composition and placement", () => {
     await page.close();
   });
 
-  it("adds generated messages with tone and duration through the public method", async () => {
+  it("adds generated messages with tone and duration through a native event", async () => {
     const path = await bundle("html-generated-toast", `import "@threadlabs/looma";`);
     const page = await open(path, `<ui-toast-region id="region" placement="top-start" duration="0"></ui-toast-region>`, [join(root, "tokens.css")]);
-    const id = await page.locator("#region").evaluate(async (element: any) => element.show("Saved", { tone: "success", duration: 0 }));
-    assert.equal(typeof id, "string");
+    await page.locator("#region").evaluate((element) => element.dispatchEvent(new CustomEvent("show-toast", {
+      detail: { message: "Saved", id: "saved-notice", tone: "success", duration: 0 },
+    })));
+    assert.equal(await page.locator("#region #saved-notice").count(), 1);
     assert.equal(await page.locator("#region .toast[role='status'][data-tone='success']").count(), 1);
     const region = page.locator("#region");
     assert.equal(await region.evaluate((element) => element.matches(":popover-open")), true);
@@ -2198,7 +2200,21 @@ describe("Combobox validation message", () => {
     const path = await bundle("html-combobox-validation", `import "@threadlabs/looma";`);
     const page = await open(path, `<ui-combobox id="fruit" label="Fruit" required></ui-combobox>`, [join(root, "tokens.css")]);
     await page.waitForSelector('#fruit[data-component~="ui-combobox"]');
-    await page.evaluate(() => (document.querySelector("#fruit") as unknown as { validate(): Promise<unknown> }).validate());
+    assert.equal(await page.locator('#fruit input[role="combobox"]').evaluate((input) => {
+      (input as HTMLInputElement).focus();
+      return input.ownerDocument.activeElement === input;
+    }), true);
+    const validation = await page.locator("#fruit").evaluate((element) => new Promise<{ status: string }>((resolve) => {
+      const onValidation = (event: Event) => {
+        const detail = (event as CustomEvent<{ status: string }>).detail;
+        if (detail.status === "pending") return;
+        element.removeEventListener("validation-change", onValidation);
+        resolve(detail);
+      };
+      element.addEventListener("validation-change", onValidation);
+      element.dispatchEvent(new CommandEvent("command", { command: "--validate" }));
+    }));
+    assert.equal(validation.status, "error");
     const message = page.locator("#fruit [id$=\"-validation\"]");
     await message.waitFor({ state: "visible" });
     assert.match((await message.textContent()) ?? "", /A value is required/);
@@ -7314,4 +7330,59 @@ describe("Image surface", () => {
     assert.match(html, /<img[^>]*alt="Landscape"[^>]*width="160"[^>]*height="80"/);
     assert.match(html, /class="handles" hidden/);
   });
+});
+
+describe("Input with files", () => {
+  for (const mode of ["HTML", "Vue"] as const) {
+    it(`keeps ${mode} file selection and its native change event through prop updates`, async () => {
+      const path = await bundle(`file-input-${mode.toLowerCase()}`, mode === "HTML" ? `import "@threadlabs/looma";` : `
+        import { createApp, h, ref } from "vue";
+        import { Input } from "@threadlabs/looma/vue";
+        const disabled = ref(false);
+        window.setFileDisabled = (value) => { disabled.value = value; };
+        createApp({ render: () => h(Input, { id: "upload", type: "file", name: "upload", disabled: disabled.value }) }).mount("#app");
+      `);
+      const page = await open(path, mode === "HTML"
+        ? '<form><ui-input id="upload" type="file" name="upload"></ui-input></form>'
+        : '<form><div id="app"></div></form>', []);
+      const errors: string[] = [];
+      page.on("pageerror", (error) => errors.push(error.message));
+      try {
+        await page.evaluate(() => {
+          const input = document.querySelector<HTMLInputElement>("input[type=file]")!;
+          input.addEventListener("change", (event) => {
+            (window as unknown as { selectedFile: string }).selectedFile = (event.target as HTMLInputElement).files?.[0]?.name ?? "";
+          });
+        });
+        const input = page.locator("input[type=file]");
+        await input.setInputFiles({ name: "records.csv", mimeType: "text/csv", buffer: Buffer.from("name\nAda\n") });
+        assert.equal(await page.evaluate(() => (window as unknown as { selectedFile: string }).selectedFile), "records.csv");
+        for (const disabled of [true, false]) {
+          await page.evaluate(({ mode, disabled }) => {
+            if (mode === "HTML") document.querySelector("#upload")!.toggleAttribute("disabled", disabled);
+            else (window as unknown as { setFileDisabled(value: boolean): void }).setFileDisabled(disabled);
+          }, { mode, disabled });
+          await page.waitForFunction((disabled) => document.querySelector<HTMLInputElement>("input[type=file]")!.disabled === disabled, disabled);
+          assert.equal(await input.evaluate((element) => (element as HTMLInputElement).files?.[0]?.name), "records.csv");
+        }
+        assert.equal(await page.evaluate(() => (new FormData(document.querySelector("form")!).get("upload") as File).name), "records.csv");
+        await input.evaluate((element) => { (element as HTMLInputElement).value = ""; });
+        assert.equal(await input.evaluate((element) => (element as HTMLInputElement).files?.length), 0);
+        assert.deepEqual(errors, []);
+      } finally { await page.close(); }
+    });
+  }
+});
+
+it("preserves the native first option when Select has no controlled value", async () => {
+  const htmlPath = await bundle("html-select-uncontrolled", 'import "@threadlabs/looma";');
+  const vuePath = await bundle("vue-select-uncontrolled", `import { createApp, h } from "vue"; import { Select } from "@threadlabs/looma/vue"; createApp({ render: () => h(Select, { value: null }, () => [h('option', { value: 'a' }, 'A'), h('option', { value: 'b' }, 'B')]) }).mount('#app');`);
+  const html = await open(htmlPath, '<ui-select><option value="a">A</option><option value="b">B</option></ui-select>', []);
+  const vue = await open(vuePath, '<div id="app"></div>', []);
+  try {
+    const native = await html.locator('select').inputValue();
+    const converted = await vue.locator('select').inputValue();
+    assert.equal(native, "a");
+    assert.equal(converted, native);
+  } finally { await html.close(); await vue.close(); }
 });

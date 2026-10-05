@@ -34,7 +34,7 @@ function leaveGroup(document, name, member) {
 }
 
 // `open` sets the disclosure initially and whenever it changes; the trigger toggles the state.
-export default function controller(host) {
+function connect(host) {
   const document = host.element.ownerDocument;
   const [trigger, stopTracking] = trackTrigger(host);
   host.state.contentId = `ui-disclosure-${++disclosures}`;
@@ -118,4 +118,9 @@ export default function controller(host) {
     host.refs.trigger.removeEventListener("click", onClick);
     host.refs.panel.removeEventListener("beforematch", onBeforematch);
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

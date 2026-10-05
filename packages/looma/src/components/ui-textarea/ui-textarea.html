@@ -117,20 +117,20 @@
       cursor: not-allowed;
     }
 
-    :host-state([size="sm"]) {
+    :host([size="sm"]) {
       --_padding-block: var(--ui-space-1);
       padding: var(--ui-space-1) var(--ui-space-2);
       font-size: var(--ui-font-size-sm);
     }
 
-    :host-state([size="lg"]) {
+    :host([size="lg"]) {
       --_padding-block: var(--ui-space-3);
       padding: var(--ui-space-3) var(--ui-space-4);
       font-size: var(--ui-font-size-md);
     }
 
     @supports (field-sizing: content) {
-      :host-state([autosize]) {
+      :host([autosize]) {
         field-sizing: content;
         min-block-size: calc(var(--_rows) * 1lh + var(--_padding-block) + var(--_padding-block) + 2px);
       }
@@ -138,7 +138,7 @@
 
     /* Below 16px, iOS zooms the page into the focused field, so touch keeps body-size text. */
     @media (pointer: coarse) {
-      :host-state([size="sm"]) {
+      :host([size="sm"]) {
         font-size: inherit;
       }
     }

@@ -1,7 +1,7 @@
 const selector = 'button, a[href], [role="button"], select, input:not([type="hidden"])';
 
 /** Keep one Tab stop in the toolbar; arrow keys move among its enabled authored controls. */
-export default function controller(host) {
+function connect(host) {
   const strip = host.refs.strip;
   let current = null;
   const controls = () => Array.from(strip.querySelectorAll(selector)).filter((element) =>
@@ -43,4 +43,9 @@ export default function controller(host) {
     strip.removeEventListener("focusin", onFocusin);
     strip.removeEventListener("keydown", onKeydown);
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

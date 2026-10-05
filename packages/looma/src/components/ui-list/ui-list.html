@@ -41,16 +41,16 @@
       list-style: none;
     }
 
-    :host-state([as="ol"]),
-    :host-state([markers="disc"]) {
+    :host([as="ol"]),
+    :host([markers="disc"]) {
       padding-inline-start: var(--ui-space-5);
     }
 
-    :host-state([as="ol"]) {
+    :host([as="ol"]) {
       list-style: decimal;
     }
 
-    :host-state([markers="disc"]) {
+    :host([markers="disc"]) {
       list-style: disc;
     }
 
@@ -72,7 +72,7 @@
     }
 
     /* Compact passes its size to the items through private properties, which cross into each item. */
-    :host-state([density="compact"]) {
+    :host([density="compact"]) {
       --_list-gap: var(--ui-list-gap, var(--ui-space-2));
       --_ui-list-item-min-size: 0;
       --_ui-list-item-padding-block: 0;
@@ -82,7 +82,7 @@
       --_ui-list-native-padding-inline: 0;
     }
 
-    :host-state([layout="grid"]) {
+    :host([layout="grid"]) {
       --_list-gap: var(--ui-list-gap, var(--ui-space-3));
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--_list-min-item-width)), 1fr));
