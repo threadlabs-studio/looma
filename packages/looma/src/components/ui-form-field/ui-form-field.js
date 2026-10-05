@@ -11,7 +11,7 @@ function descriptionIds(input) {
   return Array.from(new Set((input.getAttribute("aria-describedby") ?? "").split(/\s+/).filter(Boolean)));
 }
 
-export default function controller(host) {
+function connect(host) {
   const element = host.element;
   let activeInput = null;
   let owned = new Set();
@@ -73,4 +73,9 @@ export default function controller(host) {
     observer.disconnect();
     removeOwned(activeInput);
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

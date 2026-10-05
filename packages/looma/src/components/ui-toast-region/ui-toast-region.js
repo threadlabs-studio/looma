@@ -1,18 +1,13 @@
 import { announceOverlayOpen } from "../shared/overlay.js";
 import { trackTrigger } from "../shared/trigger.js";
 
-const instances = new WeakMap();
 let toastIds = 0;
-
-export async function show(host, message, options = {}) {
-  return instances.get(host.element)?.show(message, options);
-}
 
 /**
  * Shows the region while it has authored or generated messages. Generated messages dismiss by
  * action or timeout; authored ui-toast children own their removal through the dismiss event.
  */
-export default function controller(host) {
+function connect(host) {
   const element = host.element;
   const [trigger, stopTracking] = trackTrigger(host);
   const toasts = () => host.state.toasts ?? [];
@@ -85,24 +80,28 @@ export default function controller(host) {
     if (id) dismiss(id, "action", trigger());
   };
   const onCommand = (event) => {
-    if (event.command === "--show-toast" && event.source?.value) add(event.source.value);
+    if (event.target === element && event.command === "--show-toast" && event.source?.value) add(event.source.value);
+  };
+  const onShowToast = (event) => {
+    if (event.target === element && typeof event.detail?.message === "string") add(event.detail.message, event.detail);
   };
   const stop = host.effect(sync);
   const observer = new MutationObserver(sync);
   observer.observe(element, { childList: true });
   element.addEventListener("click", onClick);
   element.addEventListener("command", onCommand);
+  element.addEventListener("show-toast", onShowToast);
   element.addEventListener("pointerenter", pauseTimers);
   element.addEventListener("pointerleave", resumeTimers);
   element.addEventListener("focusin", pauseTimers);
   element.addEventListener("focusout", resumeTimers);
-  instances.set(element, { show: add });
   return () => {
     stop();
     stopTracking();
     observer.disconnect();
     element.removeEventListener("click", onClick);
     element.removeEventListener("command", onCommand);
+    element.removeEventListener("show-toast", onShowToast);
     element.removeEventListener("pointerenter", pauseTimers);
     element.removeEventListener("pointerleave", resumeTimers);
     element.removeEventListener("focusin", pauseTimers);
@@ -110,6 +109,10 @@ export default function controller(host) {
     for (const timer of timers.values()) clearTimeout(timer.handle);
     timers.clear();
     if (element.matches(":popover-open")) element.hidePopover();
-    instances.delete(element);
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

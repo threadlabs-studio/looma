@@ -2,7 +2,7 @@
 
 The component API source of truth is each package's maintained `src/declarative/components/*.html`
 definition and adjacent controller. The API generator reads prop types and defaults, native roots,
-property-only structured inputs, methods, events, slots, dependencies, and component CSS directly
+property-only structured inputs, events, slots, dependencies, and component CSS directly
 from those files. It reads only the intro line from each component MDX page for a human-readable
 description. Legacy classes and source decorators are not API inputs, and no migration converter
 runs during normal development.

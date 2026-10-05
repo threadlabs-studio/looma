@@ -55,7 +55,7 @@
 
     /* Compact sets its items' defaults, so nothing has to rescale a global; an item's own hooks
        still win. */
-    :host-state([density="compact"]) {
+    :host([density="compact"]) {
       --_ui-default-menu-item-padding-block: var(--ui-space-1);
       --_ui-default-menu-item-padding-inline: var(--ui-space-2);
       --_ui-default-menu-item-font-size: var(--ui-font-size-sm);
@@ -65,7 +65,7 @@
     }
 
     /* Small follows its trigger down: an item's own hooks still win. */
-    :host-state([size="sm"]) {
+    :host([size="sm"]) {
       --_ui-default-menu-item-padding-block: var(--ui-space-0-5);
       --_ui-default-menu-item-padding-inline: var(--ui-space-2);
       --_ui-default-menu-item-font-size: var(--ui-font-size-xs);
@@ -126,7 +126,7 @@
       border-block-start: var(--ui-border-width) solid var(--ui-border-divider);
     }
 
-    :host:not(:host-state([internalOpen])):not(:host-state([inline])) {
+    :host:not(:host-state([internalOpen])):not(:host([inline])) {
       display: none;
     }
 

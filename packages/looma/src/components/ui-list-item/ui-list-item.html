@@ -66,7 +66,7 @@
       transition: background-color var(--ui-motion-fast) var(--ui-motion-ease), border-color var(--ui-motion-fast) var(--ui-motion-ease);
     }
 
-    :host-state([variant="card"]) {
+    :host([variant="card"]) {
       padding-block: var(--ui-list-item-padding-block, var(--ui-space-3));
       padding-inline: var(--ui-list-item-padding-inline, var(--ui-space-4));
       border: var(--ui-border-width) solid var(--ui-border-strong);
@@ -78,15 +78,15 @@
       background: var(--ui-surface-hover);
     }
 
-    :host-state([variant="card"]):has(.title a[href]:hover) {
+    :host([variant="card"]):has(.title a[href]:hover) {
       border-color: var(--ui-border-strong);
     }
 
-    :host-state([highlighted]) {
+    :host([highlighted]) {
       background: var(--ui-selection-surface);
     }
 
-    :host-state([current]) {
+    :host([current]) {
       background: var(--ui-selection-surface);
       color: var(--ui-selection-text);
     }
@@ -108,7 +108,7 @@
       font-size: var(--_ui-list-item-icon-size, var(--ui-font-size-lg));
     }
 
-    :host-state([current]) .leading {
+    :host([current]) .leading {
       color: var(--ui-selection-text);
     }
 
@@ -137,8 +137,8 @@
       white-space: nowrap;
     }
 
-    :host-state([wrap]) .title,
-    :host-state([wrap]) .description {
+    :host([wrap]) .title,
+    :host([wrap]) .description {
       white-space: normal;
       overflow-wrap: anywhere;
     }
@@ -184,7 +184,7 @@
         outline: var(--ui-focus-width) solid Highlight;
         outline-offset: calc(-1 * var(--ui-focus-width));
       }
-      :is(:host-state([current]), :host-state([highlighted])):not(:has(a:focus-visible)) {
+      :is(:host([current]), :host([highlighted])):not(:has(a:focus-visible)) {
         outline: var(--ui-border-width) solid Highlight;
         outline-offset: calc(-1 * var(--ui-border-width));
       }

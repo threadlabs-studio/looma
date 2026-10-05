@@ -4,7 +4,7 @@ function bounded(value, fallback) {
 }
 
 // Lays out the grid cells and inserts the chosen size by pointer or keyboard.
-export default function controller(host) {
+function connect(host) {
   const element = host.element;
   let selected = { rows: 3, cols: 3 };
   let preview = null;
@@ -102,4 +102,9 @@ export default function controller(host) {
     element.removeEventListener("keydown", onKeydown);
     host.refs.header.removeEventListener("change", onChange);
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

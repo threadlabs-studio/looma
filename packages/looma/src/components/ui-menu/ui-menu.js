@@ -11,7 +11,7 @@ function disabled(item) {
   return item.getAttribute("aria-disabled") === "true" || item.hasAttribute("disabled") || item.getAttribute("disabled") === "true";
 }
 
-export default function controller(host) {
+function connect(host) {
   const element = host.element;
   const document = element.ownerDocument;
   const overlayId = `ui-menu-${Math.random().toString(36).slice(2, 11)}`;
@@ -135,4 +135,9 @@ export default function controller(host) {
     closeOverlay(document, overlayId);
     releaseAnchor();
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

@@ -40,25 +40,25 @@
       margin: 0;
       padding: var(--ui-space-3) 0;
     }
-    :host-state([placement="center"]) {
+    :host([placement="center"]) {
       justify-content: center;
     }
-    :host-state([placement="wrap-left"]) {
+    :host([placement="wrap-left"]) {
       float: left;
       padding-inline-end: var(--ui-space-4);
     }
-    :host-state([placement="wrap-right"]) {
+    :host([placement="wrap-right"]) {
       float: right;
       padding-inline-start: var(--ui-space-4);
     }
-    :host:is(:host-state([placement="wrap-left"]), :host-state([placement="wrap-right"])) {
+    :host:is(:host([placement="wrap-left"]), :host([placement="wrap-right"])) {
       inline-size: calc(var(--_ui-image-width, calc(100% / 3)) + var(--ui-space-4));
     }
-    :host:is(:host-state([placement="wrap-left"]), :host-state([placement="wrap-right"])) .frame {
+    :host:is(:host([placement="wrap-left"]), :host([placement="wrap-right"])) .frame {
       inline-size: 100%;
     }
-    :host:is(:host-state([placement="wrap-left"]), :host-state([placement="wrap-right"])) .frame img,
-    :host:is(:host-state([placement="wrap-left"]), :host-state([placement="wrap-right"])) .frame :slotted(img) {
+    :host:is(:host([placement="wrap-left"]), :host([placement="wrap-right"])) .frame img,
+    :host:is(:host([placement="wrap-left"]), :host([placement="wrap-right"])) .frame :slotted(img) {
       inline-size: 100%;
     }
     .frame {
@@ -80,7 +80,7 @@
     :host[data-resizing] .frame img, :host[data-resizing] .frame :slotted(img) {
       inline-size: 100%;
     }
-    :host-state([selected]) .frame {
+    :host([selected]) .frame {
       outline: var(--ui-focus-width) solid var(--ui-focus-ring);
       outline-offset: var(--ui-border-width);
     }
@@ -130,12 +130,12 @@
       display: none;
     }
     @media (max-width: 767px) {
-      :host:is(:host-state([placement="wrap-left"]), :host-state([placement="wrap-right"])) {
+      :host:is(:host([placement="wrap-left"]), :host([placement="wrap-right"])) {
         float: none;
         inline-size: 100%;
         padding-inline: 0;
       }
-      :host:is(:host-state([placement="wrap-left"]), :host-state([placement="wrap-right"])) .handles {
+      :host:is(:host([placement="wrap-left"]), :host([placement="wrap-right"])) .handles {
         display: none;
       }
     }
@@ -165,7 +165,7 @@
       }
     }
     @media (forced-colors: active) {
-      :host-state([selected]) .frame, .handle:focus-visible {
+      :host([selected]) .frame, .handle:focus-visible {
         outline-color: Highlight;
       }
       .handle::after {

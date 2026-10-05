@@ -178,7 +178,7 @@ test("generates public API metadata from declarative contracts", async () => {
   const input = metadata.components.find(({ tag }) => tag === "ui-input");
   const menuItem = metadata.components.find(({ tag }) => tag === "ui-menu-item");
 
-  assert.equal(metadata.schemaVersion, 3);
+  assert.equal(metadata.schemaVersion, 4);
   assert.equal(
     metadata.components.some(({ tag }) => tag === "ui-chip"),
     false,
@@ -194,7 +194,7 @@ test("generates public API metadata from declarative contracts", async () => {
   assert.equal(input.root, "input");
   assert.equal(menuItem.navigationParent, "ui-menu");
   assert.ok(!input.slots.some(({ name }) => name === "default"));
-  assert.deepEqual(combobox.methods.map(({ name }) => name), ["validate", "focusInput"]);
+  assert.equal("methods" in combobox, false);
   // Props are attributes: structured props appear as attributes too, and nothing is property-only.
   assert.ok(!combobox.properties.some(({ name }) => name === "config"));
   assert.ok(mentionMenu.attributes.some(({ property }) => property === "items"));
