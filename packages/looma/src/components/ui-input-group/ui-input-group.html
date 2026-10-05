@@ -1,5 +1,6 @@
 <template component="ui-input-group" controller="./ui-input-group.js">
   <defs>
+    <prop name="multiline" type="boolean" default="false">Groups a Textarea with an action below its text inside the shared frame.</prop>
     <prop name="prefixKind" type="keyword" values="text, icon" default="text"
     >Text affixes have their own framing. An icon prefix shares the field surface and uses one compact icon-to-value gap.</prop>
     <prop name="disabled" type="boolean" default="false">Fades the group's framing to match a disabled input inside it. Disable the input itself too.</prop>
@@ -46,6 +47,17 @@
       --_ui-default-input-focus-outline: none;
       --_ui-default-input-radius: 0;
       --_ui-default-input-surface: transparent;
+      --_ui-default-textarea-border-width: 0;
+      --_ui-default-textarea-border: transparent;
+      --_ui-default-textarea-border-hover: transparent;
+      --_ui-default-textarea-focus-border: transparent;
+      --_ui-default-textarea-invalid-border: transparent;
+      --_ui-default-textarea-invalid-focus-shadow: none;
+      --_ui-default-textarea-shadow: none;
+      --_ui-default-textarea-focus-shadow: none;
+      --_ui-default-textarea-focus-outline: none;
+      --_ui-default-textarea-radius: 0;
+      --_ui-default-textarea-surface: transparent;
 
       display: flex;
       align-items: stretch;
@@ -79,13 +91,13 @@
       }
     }
 
-    :host:hover:not(:has(input:focus, input:disabled, input:read-only, [aria-invalid="true"], :user-invalid)) {
+    :host:hover:not(:has(:is(input, textarea):focus, :is(input, textarea):disabled, :is(input, textarea):read-only, [aria-invalid="true"], :user-invalid)) {
       border-color: var(--ui-control-border-hover, var(--ui-text-secondary));
     }
 
     /* The ring shows when the field's input would show its own: when it is focus-visible, which a
        text input is for a pointer as well as a keyboard. A focused action button draws its own. */
-    :host:has(.field input:focus-visible) {
+    :host:has(.field :is(input, textarea):focus-visible) {
       border-color: var(--ui-control-focus, var(--ui-accent-solid));
       box-shadow:
         var(--ui-control-inset),
@@ -96,7 +108,7 @@
       border-color: var(--ui-input-group-invalid-border, var(--ui-field-danger, var(--ui-danger-solid)));
     }
 
-    :host:has(input:is([aria-invalid="true"], :user-invalid):focus-visible) {
+    :host:has(:is(input, textarea):is([aria-invalid="true"], :user-invalid):focus-visible) {
       box-shadow: var(
         --ui-input-group-invalid-focus-shadow,
         var(--ui-control-inset),
@@ -110,14 +122,14 @@
 
     /* Forced colors drop box shadows, so the focus ring becomes an outline. */
     @media (forced-colors: active) {
-      :host:has(input:focus-visible) {
+      :host:has(:is(input, textarea):focus-visible) {
         outline: var(--ui-focus-width) solid Highlight;
         outline-offset: var(--ui-border-width);
       }
     }
 
     :host([disabled]),
-    :host:has(input:disabled) {
+    :host:has(:is(input, textarea):disabled) {
       background: var(--ui-control-surface-disabled, var(--ui-surface-muted));
       box-shadow: none;
       cursor: not-allowed;
@@ -170,6 +182,23 @@
       flex: none;
       align-items: center;
       padding-inline: var(--ui-space-1);
+    }
+
+    /* Multiline text owns the first row; its action remains inside the same frame below it. */
+    :host([multiline]) {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+    }
+
+    :host([multiline]) .field {
+      grid-column: 2;
+    }
+
+    :host([multiline]) .action {
+      grid-column: 1 / -1;
+      justify-content: end;
+      padding: var(--ui-space-2);
+      padding-block-start: 0;
     }
 
     .affix:empty,

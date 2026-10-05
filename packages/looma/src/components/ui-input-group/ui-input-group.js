@@ -21,7 +21,7 @@ function connect(host) {
   let described = null;
   const warned = new Set();
   const wire = () => {
-    const input = element.querySelector(".field input");
+    const input = element.querySelector(".field :is(input, textarea)");
     const affixes = Array.from(element.querySelectorAll(":scope > .affix")).filter((affix) => {
       const text = affix.textContent.trim() !== "" && !affix.querySelector(INTERACTIVE);
       if (text) affix.setAttribute("aria-hidden", "true");
@@ -50,7 +50,7 @@ function connect(host) {
   };
   // Click, not pointerdown: a tap's click is a user activation, so a touch keyboard opens.
   const onClick = (event) => {
-    if (pressedAround(event) && !host.props.disabled.value) element.querySelector(".field input")?.focus();
+    if (pressedAround(event) && !host.props.disabled.value) element.querySelector(".field :is(input, textarea)")?.focus();
   };
   element.addEventListener("mousedown", onMousedown);
   element.addEventListener("click", onClick);

@@ -18,6 +18,17 @@ field and focus ring around the input and its affixes.
 </InputGroup>
 ```
 
+## Multiline text with an action
+
+Use `multiline` to put a Textarea and its action inside one frame. The action sits below the text at the inline end. The textarea keeps its label, form behavior and sizing; the group shows focus, invalid and disabled states.
+
+```vue
+<InputGroup multiline>
+  <Textarea id="message" v-model="message" name="message" :rows="3" autosize />
+  <template #action><Button type="submit">Send</Button></template>
+</InputGroup>
+```
+
 ## What the group guarantees
 
 - **Only the value is submitted.** The affixes are not form controls; the form's data holds the
