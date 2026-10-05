@@ -219,8 +219,16 @@ export function createAnchoredSurface(surface, options = {}) {
       fallbackPosition(surface, { left: point.x, right: point.x, top: point.y, bottom: point.y, width: 0, height: 0 }, "bottom-start", gap(), viewportGap);
       return;
     }
-    if (!anchor) return;
-    lastAnchorRect = anchor.getBoundingClientRect();
+    const rect = anchor?.getBoundingClientRect();
+    // A disappearing trigger has no usable position. Keep the last valid position, or wait before first opening.
+    if (!anchor || anchor.isConnected === false || !rect || rect.width === 0 && rect.height === 0
+      || anchor instanceof owner.Element && owner.getComputedStyle(anchor).visibility !== "visible") {
+      if (lastAnchorRect) fallbackPosition(surface, lastAnchorRect, placement, gap(), viewportGap);
+      else hide(surface);
+      return;
+    }
+    lastAnchorRect = rect;
+    show(surface);
     fallbackPosition(surface, lastAnchorRect, placement, gap(), viewportGap);
   };
   const schedule = () => {
