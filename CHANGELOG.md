@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Floating formatting supports Select All. Link and table pickers keep their toolbar anchor while editing; anchored surfaces retain their last valid position when a trigger becomes unavailable and wait for usable bounds before first opening.
+
 - Holding a table column resize handle keeps floating text formatting closed.
 
 - **Desktop floating toolbar behavior changes (0.24):** formatting opens on text selection or a held primary press and dismisses with Escape or caret movement. Previously, contextual tools appeared on every caret focus and obscured the writing surface. This shared default keeps floating tools tied to intent; an app-specific option would leave the obstructive default in other consumers. Apps needing persistent controls can use `toolbarMode="sticky"` or their explicit formatting popover. Small viewports retain the editing dock; toolbar placement defaults and document commands are unchanged.

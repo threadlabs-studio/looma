@@ -1,5 +1,6 @@
 import { page, userEvent } from "@vitest/browser/context";
 import type { Editor, JSONContent } from "@tiptap/core";
+import { AllSelection } from "@tiptap/pm/state";
 import { common } from "lowlight";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, ref, type App } from "vue";
@@ -85,6 +86,78 @@ afterEach(async () => {
 });
 
 describe("LoomaEditor history (real browser)", () => {
+  it.each(["bubble", "contextual", "popover"] as const)("%s floating tools support Select All and dismiss it with Escape", async (toolbarMode) => {
+    await page.viewport(1280, 720);
+    const { editor } = await mountEditor({ toolbarMode });
+    editor.commands.setContent("<p>Select the whole paragraph</p>");
+    editor.commands.focus("start");
+    await flushBrowser();
+    const modifier = navigator.userAgent.includes("Mac OS X") ? "Meta" : "Control";
+    await userEvent.keyboard(`{${modifier}>}a{/${modifier}}`);
+    expect(editor.state.selection).toBeInstanceOf(AllSelection);
+    await expect.element(page.getByRole("toolbar", { name: "Editor toolbar", exact: true })).toBeVisible();
+    await userEvent.click(page.getByRole("button", { name: "Bold", exact: true }));
+    expect(editor.getHTML()).toContain("<strong>Select the whole paragraph</strong>");
+    await userEvent.keyboard("{Escape}");
+    await expectFloatingToolbarHidden();
+    await vi.waitFor(() => expect(document.activeElement).toBe(editor.view.dom));
+    await userEvent.keyboard("{ArrowDown}");
+    await vi.waitFor(() => expect(editor.state.selection.empty).toBe(true));
+    await userEvent.keyboard(`{${modifier}>}a{/${modifier}}`);
+    await expect.element(page.getByRole("toolbar", { name: "Editor toolbar", exact: true })).toBeVisible();
+  });
+
+  it("keeps a held-caret link picker anchored when its field takes focus", async () => {
+    await page.viewport(1280, 720);
+    const { editor, host } = await mountEditor({ toolbarMode: "contextual" });
+    host.style.marginInlineStart = "300px";
+    host.style.marginBlockStart = "180px";
+    host.style.width = "680px";
+    editor.commands.setContent("<p>Hold here to add a link</p>");
+    editor.commands.focus("start");
+    await flushBrowser();
+    const bounds = editor.view.dom.getBoundingClientRect();
+    const press = (type: string) => editor.view.dom.dispatchEvent(new PointerEvent(type, {
+      bubbles: true, pointerId: 1, pointerType: "mouse", button: 0, isPrimary: true,
+      clientX: bounds.left + 10, clientY: bounds.top + 10,
+    }));
+    press("pointerdown");
+    await new Promise((resolve) => setTimeout(resolve, 550));
+    press("pointerup");
+    const toolbar = page.getByRole("toolbar", { name: "Editor toolbar", exact: true });
+    await expect.element(toolbar).toBeVisible();
+    await userEvent.click(toolbar.getByRole("button", { name: "Link", exact: true }));
+    const form = page.getByRole("form", { name: "Edit link" });
+    await expect.element(form).toBeVisible();
+    const formElement = form.element();
+    await userEvent.fill(page.getByRole("textbox", { name: "URL", exact: true }), "https://example.com");
+    await flushBrowser();
+    await expect.element(toolbar).toBeVisible();
+    await vi.waitFor(() => {
+      expect(form.element().getBoundingClientRect().left).toBeGreaterThan(200);
+      expect(toolbar.element().getBoundingClientRect().width).toBeGreaterThan(0);
+    });
+    await userEvent.keyboard("{Escape}");
+    await expect.element(formElement).not.toBeVisible();
+    await expectFloatingToolbarHidden();
+
+    editor.commands.focus("start");
+    await flushBrowser();
+    press("pointerdown");
+    await new Promise((resolve) => setTimeout(resolve, 550));
+    press("pointerup");
+    await expect.element(toolbar).toBeVisible();
+    await userEvent.click(toolbar.getByRole("button", { name: "Link", exact: true }));
+    await expect.element(form).toBeVisible();
+    const reopenedForm = form.element();
+    const outside = document.createElement("button");
+    outside.textContent = "Leave editor";
+    document.body.append(outside);
+    await userEvent.click(page.getByRole("button", { name: "Leave editor", exact: true }));
+    await expect.element(reopenedForm).not.toBeVisible();
+    await expectFloatingToolbarHidden();
+  });
+
   it.each(["bubble", "contextual", "popover"] as const)("%s floating tools hide at a caret, dismiss with Escape, and reopen on a new selection", async (toolbarMode) => {
     await page.viewport(1280, 720);
     const { editor } = await mountEditor({ toolbarMode });
