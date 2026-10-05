@@ -15,6 +15,21 @@ spinner, exposes `aria-disabled` and `aria-busy`, and blocks clicks and form sub
 prop when the action finishes. This also works with `as="a"`: the loading link keeps its focus
 position but cannot navigate.
 
+## CardButton variant
+
+Use `variant="card"` for one whole-card action. It reuses Button's `tone`, loading, disabled,
+link and form behavior. Its uniform border and equal inline padding use the standard Button
+palette and spacing; there is no emphasized side edge.
+
+Put arbitrary decorative content in the `icon` slot. Icon and main content align at the top;
+the content receives the remaining grid width. The `action` slot centers vertically and defaults
+to the shared right caret. Both column gaps use the standard spacing token. Without an icon,
+its column and extra gap disappear. A custom action stays decorative within the one control;
+do not put another button or link inside it.
+
+In Vue, use `<Button variant="card" tone="accent">` with `#icon` and optional `#action` slots.
+In HTML, use `<ui-button variant="card">` and children with `slot="icon"` or `slot="action"`.
+
 ## Theming
 
 Set `--ui-accent` or `--ui-danger` on the theme root to change the action palette. Set the inherited

@@ -25,6 +25,7 @@
 - Touch input text stays readable inside small captions without disabling browser zoom.
 - Editors can opt into a contextual toolbar with full commands at a focused caret or text selection; the existing mobile dock remains unchanged.
 - Resizing a table column no longer adds a one-pixel scrollbar when the drag ends. Repeated reconciliation keeps fitting tables within the editor and preserves scrolling for wide tables.
+- Column-resize hints stay inside fitting tables, including narrow screens and larger text.
 
 - Badge and combobox chip labels retain room for their full text, including descenders, while long labels still ellipsize.
 - Long badge and combobox chip labels truncate with an ellipsis inside their surface, preserving their full accessible text.
@@ -36,6 +37,7 @@
 - Navigation disclosure labels, icons, and carets stay neutral when expanded; selection color remains reserved for current destinations.
 
 - Sidebar resize handles report the requested width while layout animation settles, including when restoring a saved width.
+- Tooltips and popovers follow moving controls so hints do not cover their triggers.
 
 - Disclosures can require one named-group member to stay open, animate bounded fill transfers, and rotate custom indicators without replacing them. Navigation headers and Nav Items share icon columns, spacing, and hover treatment; Nav Items support a trailing slot. Navigation icon columns now keep the body-size width at either density rather than shrinking compact icons below their neighbours.
 - Feedback, reveal, and layout motion derive from shared duration and easing tokens. Docked sidebars animate occupied width, keep their content canvas stable, disable hidden controls, and support a collapsed-width hook for a separate rail. Drag resizing remains immediate and reduced motion disables transitions.
@@ -286,6 +288,9 @@
   A paste containing only such elements leaves the document unchanged. Literal HTML inside a code
   block remains code text.
 - The focused empty-editor placeholder remains readable when the active-block marker is enabled.
+
+- Button’s CardButton variant uses Button with its existing tones, an arbitrary icon slot, flexible top-aligned content, and a vertically centered action slot that defaults to a caret. Card borders and inline padding stay uniform.
+- Separator can use strong emphasis when a composition needs clearer separation.
 
 ## v0.15.4
 
