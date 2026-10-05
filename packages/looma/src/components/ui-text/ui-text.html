@@ -53,64 +53,64 @@
       font-weight: inherit;
     }
 
-    :host-state([size="xs"]) {
+    :host([size="xs"]) {
       font-size: var(--ui-font-size-xs);
       line-height: var(--ui-line-height);
     }
-    :host-state([size="sm"]) {
+    :host([size="sm"]) {
       font-size: var(--ui-font-size-sm);
       line-height: var(--ui-line-height);
     }
-    :host-state([size="md"]) {
+    :host([size="md"]) {
       font-size: var(--ui-font-size-md);
       line-height: var(--ui-line-height);
     }
-    :host-state([size="lg"]) {
+    :host([size="lg"]) {
       font-size: var(--ui-font-size-lg);
       line-height: var(--ui-line-height-relaxed);
     }
 
-    :host-state([tone="secondary"]) {
+    :host([tone="secondary"]) {
       color: var(--ui-text-secondary);
     }
-    :host-state([tone="muted"]) {
+    :host([tone="muted"]) {
       color: var(--ui-text-muted);
     }
-    :host-state([tone="accent"]) {
+    :host([tone="accent"]) {
       color: var(--ui-accent-active);
     }
     /* Every status tone uses the text-safe token a subtle badge sets its words in, so text and badges
        in one tone match, and each holds 4.5:1 on sunken surfaces where some base colours fall short. */
-    :host-state([tone="danger"]) {
+    :host([tone="danger"]) {
       color: var(--ui-danger-subtle-text);
     }
-    :host-state([tone="success"]) {
+    :host([tone="success"]) {
       color: var(--ui-success-subtle-text);
     }
-    :host-state([tone="info"]) {
+    :host([tone="info"]) {
       color: var(--ui-info-subtle-text);
     }
-    :host-state([tone="warning"]) {
+    :host([tone="warning"]) {
       color: var(--ui-warning-subtle-text);
     }
 
-    :host-state([weight="normal"]) {
+    :host([weight="normal"]) {
       font-weight: var(--ui-font-normal);
     }
-    :host-state([weight="medium"]) {
+    :host([weight="medium"]) {
       font-weight: var(--ui-font-medium);
     }
-    :host-state([weight="semibold"]) {
+    :host([weight="semibold"]) {
       font-weight: var(--ui-font-semibold);
     }
 
-    :host-state([variant="eyebrow"]) {
+    :host([variant="eyebrow"]) {
       font-size: var(--ui-font-size-xs);
       font-weight: var(--ui-font-semibold);
       letter-spacing: 0.06em;
       text-transform: uppercase;
     }
-    :host-state([variant="code"]) {
+    :host([variant="code"]) {
       font-family: var(--ui-font-family-mono);
     }
 
@@ -123,21 +123,21 @@
       text-underline-offset: 0.18em;
     }
 
-    :host-state([truncate]) {
+    :host([truncate]) {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
 
-    :host-state([align="center"]) {
+    :host([align="center"]) {
       text-align: center;
     }
 
-    :host-state([font="sans"]) {
+    :host([font="sans"]) {
       font-family: var(--ui-font-family-sans, sans-serif);
     }
 
-    :host-state([wrap="anywhere"]) {
+    :host([wrap="anywhere"]) {
       overflow-wrap: anywhere;
     }
 

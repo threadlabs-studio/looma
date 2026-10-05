@@ -132,21 +132,21 @@
       outline-offset: var(--ui-focus-width);
     }
 
-    :host-state([disabled]) {
+    :host([disabled]) {
       color: var(--ui-disabled-text);
       cursor: not-allowed;
     }
-    :host-state([disabled]) .description {
+    :host([disabled]) .description {
       color: var(--ui-disabled-text);
     }
-    :host-state([disabled]) input {
+    :host([disabled]) input {
       border-color: var(--ui-disabled-border);
       background-color: var(--ui-disabled-surface);
       box-shadow: none;
       cursor: not-allowed;
     }
 
-    :host-state([disabled]) input::after {
+    :host([disabled]) input::after {
       background-color: var(--ui-disabled-text);
       box-shadow: none;
     }
@@ -160,31 +160,31 @@
     /* A sized switch keeps its track and aligns instead: the label takes that size's field type size,
        and the first line centres in that control height, so the label shares a row's baseline.
        Multi-line labels and descriptions still grow downward from that first line. */
-    :host-state([size="sm"]) {
+    :host([size="sm"]) {
       --_font: var(--ui-font-size-sm);
       --_row: var(--ui-control-size-sm);
     }
 
-    :host-state([size="lg"]) {
+    :host([size="lg"]) {
       --_font: var(--ui-font-size-md);
       --_row: var(--ui-control-size-lg);
     }
 
-    :host-state([size="sm"]),
-    :host-state([size="lg"]) {
+    :host([size="sm"]),
+    :host([size="lg"]) {
       --_line: calc(var(--_font) * var(--ui-line-height-md));
       font-size: var(--_font);
       padding-block: calc((var(--_row) - var(--ui-switch-track-height, 1.5rem)) / 2);
     }
 
     /* The label centres on the track. */
-    :host-state([size="sm"]) .text,
-    :host-state([size="lg"]) .text {
+    :host([size="sm"]) .text,
+    :host([size="lg"]) .text {
       margin-top: calc((var(--_ui-switch-track-height, 1.5rem) - var(--_line)) / 2);
     }
 
     @media (pointer: coarse) {
-      :host-state([size="sm"]) {
+      :host([size="sm"]) {
         --_row: var(--ui-control-min-block-size);
       }
     }

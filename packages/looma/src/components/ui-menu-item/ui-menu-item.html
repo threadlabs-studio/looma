@@ -113,18 +113,18 @@
       --_ui-default-icon-size: 0.75rem;
     }
 
-    :host-state([type="action"]) .indicator {
+    :host([type="action"]) .indicator {
       display: none;
     }
 
-    :host-state([type="checkbox"])[aria-checked="true"] .indicator {
+    :host([type="checkbox"])[aria-checked="true"] .indicator {
       border-color: var(--ui-accent);
       background: var(--ui-accent);
     }
 
     /* A menu marks its chosen item with a check, as menus conventionally do; a radio circle reads
        as a form control. The empty slot keeps unchosen labels aligned with the chosen one. */
-    :host-state([type="radio"]) .indicator {
+    :host([type="radio"]) .indicator {
       border-color: transparent;
       color: var(--ui-text-secondary);
     }

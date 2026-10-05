@@ -126,7 +126,7 @@
       }
     }
 
-    :host-state([size="xs"]) {
+    :host([size="xs"]) {
       box-sizing: border-box;
       min-inline-size: 1rem;
       min-block-size: var(--ui-badge-min-block-size, 1rem);
@@ -135,61 +135,61 @@
       line-height: var(--ui-badge-line-height, 1);
     }
 
-    :host-state([tone="accent"]) {
+    :host([tone="accent"]) {
       --_badge-surface: var(--ui-accent-strong-surface, var(--ui-accent-solid));
       --_badge-border: var(--ui-accent-strong-surface, var(--ui-accent-solid));
       --_badge-text: var(--ui-accent-on-strong, var(--ui-text-on-accent));
     }
 
-    :host-state([tone="danger"]) {
+    :host([tone="danger"]) {
       --_badge-surface: var(--ui-danger-strong-surface, var(--ui-danger-solid));
       --_badge-border: var(--ui-danger-strong-surface, var(--ui-danger-solid));
       --_badge-text: var(--ui-danger-on-strong, var(--ui-text-on-accent));
     }
 
-    :host-state([tone="success"]) {
+    :host([tone="success"]) {
       --_badge-surface: var(--ui-success-strong-surface, var(--ui-success-solid));
       --_badge-border: var(--ui-success-strong-surface, var(--ui-success-solid));
       --_badge-text: var(--ui-success-on-strong, var(--ui-text-on-accent));
     }
 
-    :host-state([tone="warning"]) {
+    :host([tone="warning"]) {
       --_badge-surface: var(--ui-warning-strong-surface, var(--ui-warning-solid));
       --_badge-border: var(--ui-warning-strong-surface, var(--ui-warning-solid));
       --_badge-text: var(--ui-warning-on-strong, var(--ui-text-on-accent));
     }
 
-    :host-state([tone="info"]) {
+    :host([tone="info"]) {
       --_badge-surface: var(--ui-info-strong-surface, var(--ui-info-solid));
       --_badge-border: var(--ui-info-strong-surface, var(--ui-info-solid));
       --_badge-text: var(--ui-info-on-strong, var(--ui-text-on-accent));
     }
 
-    :host-state([variant="subtle"][tone="accent"]) {
+    :host([variant="subtle"][tone="accent"]) {
       --_badge-surface: color-mix(in srgb, var(--ui-accent-solid) 19%, var(--ui-surface-default));
       --_badge-border: color-mix(in srgb, var(--ui-accent-solid) 25%, var(--ui-surface-default));
       --_badge-text: var(--ui-accent-subtle-text, var(--ui-accent-solid));
     }
 
-    :host-state([variant="subtle"][tone="danger"]) {
+    :host([variant="subtle"][tone="danger"]) {
       --_badge-surface: color-mix(in srgb, var(--ui-danger-solid) 19%, var(--ui-surface-default));
       --_badge-border: color-mix(in srgb, var(--ui-danger-solid) 25%, var(--ui-surface-default));
       --_badge-text: var(--ui-danger-subtle-text, var(--ui-danger-solid));
     }
 
-    :host-state([variant="subtle"][tone="success"]) {
+    :host([variant="subtle"][tone="success"]) {
       --_badge-surface: color-mix(in srgb, var(--ui-success-solid) 19%, var(--ui-surface-default));
       --_badge-border: color-mix(in srgb, var(--ui-success-solid) 25%, var(--ui-surface-default));
       --_badge-text: var(--ui-success-subtle-text, var(--ui-success-solid));
     }
 
-    :host-state([variant="subtle"][tone="warning"]) {
+    :host([variant="subtle"][tone="warning"]) {
       --_badge-surface: color-mix(in srgb, var(--ui-warning-solid) 19%, var(--ui-surface-default));
       --_badge-border: color-mix(in srgb, var(--ui-warning-solid) 25%, var(--ui-surface-default));
       --_badge-text: var(--ui-warning-subtle-text, var(--ui-warning-solid));
     }
 
-    :host-state([variant="subtle"][tone="info"]) {
+    :host([variant="subtle"][tone="info"]) {
       --_badge-surface: color-mix(in srgb, var(--ui-info-solid) 19%, var(--ui-surface-default));
       --_badge-border: color-mix(in srgb, var(--ui-info-solid) 25%, var(--ui-surface-default));
       --_badge-text: var(--ui-info-subtle-text, var(--ui-info-solid));
@@ -197,13 +197,13 @@
 
     /* A solid colour fills with the ink. Its text is the page surface, mixed at 0% only so that it too is
        invalid while the hook is unset. */
-    :host-state([variant="solid"]) {
+    :host([variant="solid"]) {
       --_badge-color-surface: var(--_badge-color-ink);
       --_badge-color-border: var(--_badge-color-ink);
       --_badge-color-text: color-mix(in oklab, var(--_ui-badge-color) 0%, var(--ui-surface-default));
     }
 
-    :host-state([variant="outline"]) {
+    :host([variant="outline"]) {
       --_badge-surface: var(--ui-surface-default);
       --_badge-border: var(--ui-border-strong);
       --_badge-text: var(--ui-text-secondary);
@@ -212,33 +212,33 @@
       --_badge-color-border: var(--_badge-color-ink);
     }
 
-    :host-state([variant="outline"][tone="accent"]) {
+    :host([variant="outline"][tone="accent"]) {
       --_badge-border: var(--ui-accent-solid);
       --_badge-text: var(--ui-accent-subtle-text, var(--ui-accent-solid));
     }
 
-    :host-state([variant="outline"][tone="danger"]) {
+    :host([variant="outline"][tone="danger"]) {
       --_badge-border: var(--ui-danger-solid);
       --_badge-text: var(--ui-danger-subtle-text, var(--ui-danger-solid));
     }
 
-    :host-state([variant="outline"][tone="success"]) {
+    :host([variant="outline"][tone="success"]) {
       --_badge-border: var(--ui-success-solid);
       --_badge-text: var(--ui-success-subtle-text, var(--ui-success-solid));
     }
 
-    :host-state([variant="outline"][tone="warning"]) {
+    :host([variant="outline"][tone="warning"]) {
       --_badge-border: var(--ui-warning-solid);
       --_badge-text: var(--ui-warning-subtle-text, var(--ui-warning-solid));
     }
 
-    :host-state([variant="outline"][tone="info"]) {
+    :host([variant="outline"][tone="info"]) {
       --_badge-border: var(--ui-info-solid);
       --_badge-text: var(--ui-info-subtle-text, var(--ui-info-solid));
     }
 
     /* An icon mark keeps the existing tone recipe and follows the global spacing and radius. */
-    :host-state([shape="square"]) {
+    :host([shape="square"]) {
       --_badge-square-size: var(--ui-badge-square-size, calc(var(--ui-space-4) * 2));
       display: inline-flex;
       box-sizing: border-box;
@@ -252,18 +252,18 @@
       text-box-trim: none;
     }
 
-    :host-state([shape="square"][size="xs"]) {
+    :host([shape="square"][size="xs"]) {
       --_badge-square-size: var(--ui-badge-square-size, calc(var(--ui-space-3) * 2));
     }
 
-    :host-state([shape="square"]) .label {
+    :host([shape="square"]) .label {
       display: inline-flex;
       align-items: center;
       justify-content: center;
     }
 
     /* A dot uses the badge's tone recipe; only its silhouette and visible label change. */
-    :host-state([shape="dot"]) {
+    :host([shape="dot"]) {
       position: relative;
       box-sizing: border-box;
       flex: none;
@@ -276,7 +276,7 @@
       text-box-trim: none;
     }
 
-    :host-state([shape="dot"]) .label {
+    :host([shape="dot"]) .label {
       position: absolute;
       inline-size: 1px;
       block-size: 1px;
@@ -287,7 +287,7 @@
 
     /* The clipped point needs an inset surface over an outer border-colour shape: a native border
        has no diagonal edge to follow. Keep this edge for every tag variant. */
-    :host-state([shape="tag"]) {
+    :host([shape="tag"]) {
       --_badge-point: var(--ui-badge-point, var(--ui-space-2));
 
       position: relative;
@@ -299,7 +299,7 @@
       clip-path: polygon(0 0, calc(100% - var(--_badge-point)) 0, 100% 50%, calc(100% - var(--_badge-point)) 100%, 0 100%);
     }
 
-    :host-state([shape="tag"])::before {
+    :host([shape="tag"])::before {
       content: "";
       position: absolute;
       inset: 0;
@@ -309,30 +309,30 @@
       pointer-events: none;
     }
 
-    :host-state([shape="tag"]):dir(rtl) {
+    :host([shape="tag"]):dir(rtl) {
       padding-inline-end: var(--ui-badge-padding-inline, var(--ui-space-2));
       padding-inline-start: calc(var(--ui-badge-padding-inline, var(--ui-space-2)) + var(--_badge-point));
       clip-path: polygon(var(--_badge-point) 0, 100% 0, 100% 100%, var(--_badge-point) 100%, 0 50%);
     }
 
-    :host-state([shape="tag"]):dir(rtl)::before {
+    :host([shape="tag"]):dir(rtl)::before {
       clip-path: polygon(var(--_badge-point) 0, 100% 0, 100% 100%, var(--_badge-point) 100%, 0 50%);
     }
 
     @media (forced-colors: active) {
-      :host-state([shape="dot"]) {
+      :host([shape="dot"]) {
         forced-color-adjust: none;
         border-color: CanvasText;
         background: CanvasText;
       }
 
-      :host-state([shape="tag"]) {
+      :host([shape="tag"]) {
         forced-color-adjust: none;
         background: CanvasText;
         color: CanvasText;
       }
 
-      :host-state([shape="tag"])::before {
+      :host([shape="tag"])::before {
         background: Canvas;
       }
     }

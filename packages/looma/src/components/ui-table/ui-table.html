@@ -55,7 +55,7 @@
       outline-offset: calc(-1 * var(--ui-focus-width));
     }
 
-    :host-state([density="compact"]) {
+    :host([density="compact"]) {
       --_pad-block: var(--ui-space-0-5);
       --_pad-inline: var(--ui-space-2);
       --_row-size: var(--ui-control-size-sm);
@@ -117,7 +117,7 @@
       text-align: end;
     }
 
-    :host-state([stickyHeader]) :slotted(thead th) {
+    :host([stickyHeader]) :slotted(thead th) {
       position: sticky;
       inset-block-start: 0;
       z-index: 1;

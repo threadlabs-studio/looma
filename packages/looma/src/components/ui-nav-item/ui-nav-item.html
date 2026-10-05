@@ -113,7 +113,7 @@
       color: var(--ui-selection-text);
     }
 
-    :host-state([variant="line"]) {
+    :host([variant="line"]) {
       border-radius: 0;
     }
 
@@ -130,14 +130,14 @@
       border-inline-start: var(--_indicator-width) solid var(--_indicator-color);
     }
 
-    :host-state([variant="line"])[aria-current] .indicator {
+    :host([variant="line"])[aria-current] .indicator {
       display: block;
     }
 
     @media (forced-colors: active) {
       /* System colors may erase the selected fill. Trace the complete surface, without
          creating an edge stripe; the stronger keyboard focus outline keeps precedence. */
-      :host-state([variant="surface"])[aria-current]:not(:focus-visible) {
+      :host([variant="surface"])[aria-current]:not(:focus-visible) {
         outline: var(--ui-border-width) solid Highlight;
         outline-offset: calc(-1 * var(--ui-border-width));
       }
@@ -186,17 +186,17 @@
       line-height: var(--ui-line-height-tight);
     }
 
-    :host-state([density="compact"]) {
+    :host([density="compact"]) {
       min-block-size: var(--ui-nav-compact-min-block-size);
       padding-block: var(--ui-nav-compact-padding-block);
       padding-inline: var(--ui-nav-compact-padding-inline);
     }
-    :host-state([density="compact"]) .label {
+    :host([density="compact"]) .label {
       font-size: var(--ui-font-size-sm);
     }
 
     @media (pointer: coarse) {
-      :host-state([density="compact"]) {
+      :host([density="compact"]) {
         min-block-size: var(--ui-control-min-block-size);
       }
     }

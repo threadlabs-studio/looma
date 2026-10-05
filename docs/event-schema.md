@@ -133,6 +133,29 @@ placement in addition to dragging.
 
 **Components:** ui-tree-item
 
+## Controller requests
+
+Toast Region accepts a native `show-toast` CustomEvent dispatched on its rendered
+root, with detail `{ message: string, id?: string, tone?: 'neutral' | 'info' |
+'success' | 'warning' | 'danger', duration?: number }`. `id` identifies the
+later `dismiss` event; event dispatch does not return the generated ID. The
+existing `--show-toast` invoker command reads the source button's `value`.
+
+Combobox accepts a native `validate` event or a `command` event with `command: '--validate'` and
+reports validation through its existing `validation-change` event. Focus its
+native `input[role="combobox"]` directly. These replace generated `show()`,
+`validate()`, and `focusInput()` element methods; controllers have only a default
+instance initializer and use connection subscriptions for DOM setup/cleanup.
+
+An HTML Next parent can target a child through its own local ref. For example,
+`<dispatch target="customer" event="validate">` addresses
+`<ui-combobox $ref="customer">`; a repeated ref addresses every rendered child.
+Declare the outgoing `validate` event with type `unknown` in the parent, and
+attach `on:validation-change` to the combobox to read its result through
+`$$event.detail`. JavaScript requests the same interaction with
+`combobox.dispatchEvent(new Event('validate'))` and listens with
+`combobox.addEventListener('validation-change', callback)`.
+
 ## Adapter Generation
 
 Adapters map:

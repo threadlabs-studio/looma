@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Vue consumers require Vue 3.5.43 or later so compiled generic Input declarations accept their declared modes. Input now declares the native file mode; file selection is read from the native change event’s `target.files`. Uncontrolled Vue Select components retain the browser’s first-option or authored selection.
+
+- **Breaking: controller commands replace generated element methods.** Combobox's `validate()` and `focusInput()` and Toast Region's `show()` depended on `<method>`, an unsupported HTML Next construct outside the public proposal’s controller/event model. This removes that named-export bridge; aliases would require maintaining a separate imperative library adapter. Request combobox validation with a native `validate` event or `CommandEvent("command", { command: "--validate" })` and read `validation-change`; focus its native input directly. Add programmatic toasts with `CustomEvent("show-toast", { detail: { message, id?, tone?, duration? } })`; supply `id` when correlating `dismiss`. The existing `--show-toast` button command remains available. Controller connection subscriptions preserve setup and cleanup through reconnects. Component CSS now distinguishes resolved props with `:host([prop])` from mutable/computed state with `:host-state([state])`.
+
 - Holding a table column resize handle keeps floating text formatting closed.
 
 - **Desktop floating toolbar behavior changes (0.24):** formatting opens on text selection or a held primary press and dismisses with Escape or caret movement. Previously, contextual tools appeared on every caret focus and obscured the writing surface. This shared default keeps floating tools tied to intent; an app-specific option would leave the obstructive default in other consumers. Apps needing persistent controls can use `toolbarMode="sticky"` or their explicit formatting popover. Small viewports retain the editing dock; toolbar placement defaults and document commands are unchanged.
