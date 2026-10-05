@@ -131,6 +131,14 @@ unchanged; a browser test checks TOC highlighting after height changes and ancho
 navigation in all three engines. The dark desktop reference now records the
 settled inactive first link at the 900px viewport. No styles or TOC classes are
 changed for capture.
+
+The 0.24 reference refresh updates the navbar version and editor guide copy.
+The dark Text HTML/API and List API references also record the settled active
+first TOC link seen in both the update and independent comparison runs. Those
+headings remain visible outside the example/API tabs; their source and layout
+are unchanged. References retain this native highlight without changing styles,
+TOC classes, or the zero-pixel comparison.
+
 Visual assertions allow 15 seconds and visual cases 60 seconds for long pages;
 the pixel comparison remains unchanged. Focus, open overlays, and selections remain
 intact. Screenshots disable animations and hide the
@@ -161,10 +169,11 @@ Inspect the expected/actual/diff images and accessibility finding changes, then
 run the same command without `--update-snapshots` and the complete comparison.
 Ordinary runs disable snapshot creation, including missing references. Screenshots
 use Playwright's default perceptual threshold (0.2) and allow zero changed pixels
-above that threshold. The sole exception is `mobile-dark/components.png`: three
-pixels on the search shortcut slash glyph vary across repeated Chromium captures,
-so that image allows at most three changed pixels. No other image gets this
-allowance. Force the targeted update above when even a subtler change
+above that threshold. The catalog search shortcut slash uses a vector stroke
+with the same accessible text and monospace character width. Font rasterization
+previously varied at two light-mode or three dark-mode pixels; the vector removes
+that instability and the prior dark-mode pixel allowance. All comparisons require
+zero changed pixels. Force the targeted update above when even a subtler change
 is intentional; inspect the result afterward. Never regenerate baselines as part
 of an ordinary CI or migration build. New
 routes and examples also require `docs:coverage:update` after a docs build.

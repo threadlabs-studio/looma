@@ -132,7 +132,12 @@ export function ComponentCatalog(): JSX.Element {
             onChange={(event) => setQuery(event.target.value)}
             placeholder={`Search all ${components.length} components`}
           />
-          <kbd>/</kbd>
+          <kbd>
+            <span className="sr-only">/</span>
+            <svg aria-hidden="true" viewBox="0 0 8 13" fill="none" stroke="currentColor" strokeWidth="1">
+              <path d="M6 1.5 1.5 11.5" />
+            </svg>
+          </kbd>
         </label>
         <div className="looma-catalog__filters" aria-label="Filter by category">
           {(["All", ...categoryOrder] as const).map((category) => (
