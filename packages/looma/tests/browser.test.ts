@@ -56,6 +56,48 @@ afterAll(async () => {
 });
 
 describe("Anchored overlay placement", () => {
+  it("keeps an open popover at its last valid anchor when the trigger becomes unavailable", async () => {
+    const path = await bundle("html-popover-unavailable-anchor", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <button id="anchor" style="position: fixed; left: 500px; top: 250px; width: 100px; height: 40px">Anchor</button>
+      <ui-popover id="popover" for="anchor" open placement="bottom-start">Popover content</ui-popover>
+    `, [join(root, "tokens.css")], { reducedMotion: "reduce" });
+    await page.waitForFunction(() => document.querySelector("#popover")!.matches(":popover-open"));
+    const previous = await page.locator("#popover").boundingBox();
+    assert.ok(previous);
+    for (const action of ["hide", "remove"]) {
+      await page.locator("#anchor").evaluate((element, action) => {
+        if (action === "hide") (element as HTMLElement).style.display = "none";
+        else element.remove();
+      }, action);
+      await page.waitForTimeout(100);
+      const current = await page.locator("#popover").boundingBox();
+      assert.ok(current);
+      assert.ok(Math.abs(current.x - previous.x) < 1, `${action} must not move the popover horizontally`);
+      assert.ok(Math.abs(current.y - previous.y) < 1, `${action} must not move the popover vertically`);
+    }
+    await page.setViewportSize({ width: 375, height: 720 });
+    await page.waitForFunction(() => {
+      const rect = document.querySelector("#popover")!.getBoundingClientRect();
+      return rect.left >= 0 && rect.right <= window.innerWidth;
+    });
+    await page.close();
+  });
+
+  it("waits for a usable anchor instead of opening at zero-size trigger bounds", async () => {
+    const path = await bundle("html-popover-hidden-anchor", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <button id="anchor" style="display: none; position: fixed; left: 500px; top: 250px; width: 100px; height: 40px">Anchor</button>
+      <ui-popover id="popover" for="anchor" open placement="bottom-start">Popover content</ui-popover>
+    `, [join(root, "tokens.css")], { reducedMotion: "reduce" });
+    assert.equal(await page.locator("#popover").evaluate(element => element.matches(":popover-open")), false);
+    await page.locator("#anchor").evaluate(element => { (element as HTMLElement).style.display = "block"; });
+    await page.waitForFunction(() => document.querySelector("#popover")!.matches(":popover-open"));
+    const current = await page.locator("#popover").boundingBox();
+    assert.ok(current && current.x >= 499 && current.y >= 290);
+    await page.close();
+  });
+
   it("positions Popover and Tooltip on every side and alignment, then flips at an edge", async () => {
     const path = await bundle("html-overlay-placement", `import "@threadlabs/looma";`);
     const placements = ["top", "top-start", "top-end", "bottom", "bottom-start", "bottom-end", "left", "left-start", "left-end", "right", "right-start", "right-end"];
@@ -232,7 +274,11 @@ describe("Anchored overlay placement", () => {
     `, [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "vue/components.css")], { reducedMotion: "reduce" });
     const editor = page.getByRole("textbox", { name: "Writing" });
     await editor.focus();
+    // Set a known caret before selecting a real character.
+    await editor.press("End");
+    await editor.press("ArrowLeft");
     await editor.press("Shift+ArrowRight");
+    await page.waitForFunction(() => (window.getSelection()?.toString().length ?? 0) > 0);
     await page.waitForFunction(() => document.querySelector("[data-tippy-root]")?.getBoundingClientRect().width);
     assert.equal(await page.locator("#hint").evaluate((element) => element.matches(":popover-open")), false);
     await page.close();
