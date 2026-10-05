@@ -116,15 +116,15 @@
       animation: ui-dialog-enter var(--ui-dialog-duration, var(--ui-motion-base)) var(--ui-motion-ease);
     }
 
-    :host-state([size="sm"]) {
+    :host([size="sm"]) {
       --_ui-dialog-size: 360px;
     }
 
-    :host-state([size="lg"]) {
+    :host([size="lg"]) {
       --_ui-dialog-size: 640px;
     }
 
-    :host-state([size="fullscreen"]) {
+    :host([size="fullscreen"]) {
       inset: 0;
       inline-size: 100%;
       block-size: 100dvh;
@@ -133,7 +133,7 @@
       border-radius: var(--ui-dialog-radius, 0);
     }
 
-    :host-state([alert]) .close {
+    :host([alert]) .close {
       display: none;
     }
 

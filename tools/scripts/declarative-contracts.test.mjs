@@ -16,7 +16,6 @@ test("derives the public contract from one maintained declarative definition", (
         <prop name="disabled" type="boolean" default="false">Whether editing is disabled.</prop>
         <prop name="items" type="list(object({ id: string }))">Structured items.</prop>
         <event name="change" type="object({ value: string })"></event>
-        <method name="focus" returns="promise(undefined)"></method>
       </defs>
       <input from:disabled="disabled">
       <style>:scope { color: var(--ui-text-primary); }</style>
@@ -27,7 +26,7 @@ test("derives the public contract from one maintained declarative definition", (
   assert.deepEqual(contract.props.disabled, { type: "boolean", default: false });
   assert.ok(!("channel" in contract.props.items));
   assert.deepEqual(contract.events, [{ name: "change", type: "object({ value: string })" }]);
-  assert.deepEqual(contract.methods, [{ name: "focus", returns: "promise(undefined)" }]);
+  assert.equal("methods" in contract, false);
   assert.deepEqual(contract.dependencies, ["ui-child"]);
   assert.deepEqual(contract.slots, []);
 });

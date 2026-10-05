@@ -74,7 +74,7 @@ the same components:
 
 ## Render with a framework adapter
 
-The mode control above changes the syntax, not the component model. The Vue components are converted from the same definitions: each renders the component's native root with Vue, with the same props, events, slots, methods, and behavior, and no HTML Next runtime.
+The mode control above changes the syntax, not the component model. The Vue components are converted from the same definitions: each renders the component's native root with Vue, with the same props, events, slots, and behavior, and no HTML Next runtime.
 
 ```vue
 <script setup lang="ts">
