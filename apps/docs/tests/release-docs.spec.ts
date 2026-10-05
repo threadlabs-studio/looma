@@ -489,6 +489,10 @@ test("the component catalog exposes the complete library and filters live previe
   await expect(anticipatoryControl.locator(".content")).toHaveCSS("opacity", "1");
 
   const search = page.getByRole("searchbox", { name: "Search components" });
+  await page.getByRole("heading", { level: 1, name: "Components" }).click();
+  await page.keyboard.press("/");
+  await expect(search).toBeFocused();
+  await expect(search).toHaveValue("");
   await search.fill("toast");
   await expect(page.getByText("Showing 1 component", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { level: 2, name: "Toast Region" })).toBeVisible();
