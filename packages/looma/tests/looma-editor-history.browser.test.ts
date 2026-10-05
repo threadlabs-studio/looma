@@ -18,6 +18,13 @@ async function flushBrowser() {
   }
 }
 
+async function expectFloatingToolbarHidden() {
+  await vi.waitFor(() => {
+    const popup = document.querySelector('[aria-label="Editor toolbar"]')?.closest<HTMLElement>("[data-tippy-root]");
+    expect(popup?.style.visibility).not.toBe("visible");
+  });
+}
+
 async function historyShortcut(direction: "undo" | "redo") {
   const modifier = navigator.userAgent.includes("Mac OS X") ? "Meta" : "Control";
   const shift = direction === "redo" ? "{Shift>}" : "";
@@ -31,8 +38,8 @@ async function codeLanguageInput(host: HTMLElement) {
   return input;
 }
 
-async function mountEditor(options: { controlled?: boolean; editable?: boolean; toolbarMode?: "bubble" | "sticky" | "contextual"; disableHighlight?: boolean; codeLanguages?: Record<string, typeof common.sql>; mentionItems?: Array<{ id: string; label: string }> } = {}) {
-  vi.spyOn(window, "innerWidth", "get").mockReturnValue(1280);
+async function mountEditor(options: { controlled?: boolean; editable?: boolean; width?: number; toolbarMode?: "bubble" | "sticky" | "contextual" | "popover"; disableHighlight?: boolean; codeLanguages?: Record<string, typeof common.sql>; mentionItems?: Array<{ id: string; label: string }> } = {}) {
+  vi.spyOn(window, "innerWidth", "get").mockReturnValue(options.width ?? 1280);
   const modelValue = ref<JSONContent>({ type: "doc", content: [{ type: "paragraph" }] });
   const editable = ref(options.editable ?? true);
   const host = document.createElement("div");
@@ -78,13 +85,107 @@ afterEach(async () => {
 });
 
 describe("LoomaEditor history (real browser)", () => {
+  it.each(["bubble", "contextual", "popover"] as const)("%s floating tools hide at a caret, dismiss with Escape, and reopen on a new selection", async (toolbarMode) => {
+    await page.viewport(1280, 720);
+    const { editor } = await mountEditor({ toolbarMode });
+    editor.commands.setContent("<p>Select some text</p>");
+    editor.commands.focus("start");
+    const toolbar = page.getByRole("toolbar", { name: "Editor toolbar", exact: true });
+    await expectFloatingToolbarHidden();
+    editor.commands.setTextSelection({ from: 1, to: 7 });
+    await expect.element(toolbar).toBeVisible();
+    await userEvent.keyboard("{Escape}");
+    await expectFloatingToolbarHidden();
+    editor.commands.setTextSelection({ from: 1, to: 8 });
+    await expect.element(toolbar).toBeVisible();
+    await userEvent.click(page.getByRole("button", { name: "Bold", exact: true }));
+    expect(editor.getHTML()).toContain("<strong>Select </strong>");
+    editor.commands.setTextSelection(10);
+    await expectFloatingToolbarHidden();
+  });
+
+  it("selection activation supports a held press and cancels moving or released presses", async () => {
+    await page.viewport(1280, 720);
+    const { editor } = await mountEditor({ toolbarMode: "contextual" });
+    editor.commands.setContent("<p>Hold here</p>");
+    editor.commands.focus("start");
+    const toolbar = page.getByRole("toolbar", { name: "Editor toolbar", exact: true });
+    const press = (type: string, x = 20) => editor.view.dom.dispatchEvent(new PointerEvent(type, {
+      bubbles: true, pointerId: 1, pointerType: "mouse", button: 0, isPrimary: true, clientX: x, clientY: 20,
+    }));
+    press("pointerdown");
+    press("pointerup");
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    await expectFloatingToolbarHidden();
+    press("pointerdown");
+    press("pointercancel");
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    await expectFloatingToolbarHidden();
+    press("pointerdown");
+    press("pointermove", 40);
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    press("pointerup");
+    await expectFloatingToolbarHidden();
+    press("pointerdown");
+    await new Promise((resolve) => setTimeout(resolve, 550));
+    await expect.element(toolbar).toBeVisible();
+    press("pointerup");
+    window.dispatchEvent(new Event("resize"));
+    await expect.element(toolbar).toBeVisible();
+    editor.commands.setTextSelection(3);
+    await expectFloatingToolbarHidden();
+    press("pointerdown");
+    await new Promise((resolve) => setTimeout(resolve, 550));
+    await expect.element(toolbar).toBeVisible();
+    press("pointerup");
+    await userEvent.keyboard("{Escape}");
+    await expectFloatingToolbarHidden();
+  });
+
+  it("does not activate floating formatting while holding a table resize handle", async () => {
+    await page.viewport(1280, 720);
+    const { editor } = await mountEditor({ toolbarMode: "contextual" });
+    editor.commands.insertTable({ rows: 2, cols: 2, withHeaderRow: false });
+    editor.commands.focus("start");
+    editor.commands.setTextSelection(3);
+    await flushBrowser();
+    const cell = editor.view.dom.querySelector<HTMLTableCellElement>("td")!;
+    const bounds = cell.getBoundingClientRect();
+    cell.dispatchEvent(new MouseEvent("mousemove", {
+      bubbles: true, clientX: bounds.right - 1, clientY: bounds.top + bounds.height / 2,
+    }));
+    await flushBrowser();
+    const handle = cell.querySelector<HTMLElement>(".column-resize-handle")!;
+    expect(handle).toBeTruthy();
+    handle.dispatchEvent(new PointerEvent("pointerdown", {
+      bubbles: true, pointerId: 1, pointerType: "mouse", button: 0, isPrimary: true,
+      clientX: bounds.right - 1, clientY: bounds.top + bounds.height / 2,
+    }));
+    await new Promise((resolve) => setTimeout(resolve, 550));
+    await expectFloatingToolbarHidden();
+    handle.dispatchEvent(new PointerEvent("pointerup", { bubbles: true, pointerId: 1 }));
+    await flushBrowser();
+  });
+
+  it.each([375, 767])("selection activation keeps the formatting dock available at a caret on %ipx viewports", async (width) => {
+    await page.viewport(width, 720);
+    const { editor } = await mountEditor({ width, toolbarMode: "contextual" });
+    editor.commands.focus("start");
+    const dock = page.getByRole("toolbar", { name: "Text formatting", exact: true });
+    await expect.element(dock).toBeVisible();
+    await userEvent.keyboard("{Escape}");
+    await expect.element(dock).toBeVisible();
+    editor.commands.insertContent("Writing");
+    await expect.element(dock).toBeVisible();
+  });
+
   it.each(["slash", "mention"])("gives %s suggestions priority over contextual formatting", async (kind) => {
     await page.viewport(1280, 720);
     const { editor } = await mountEditor({ toolbarMode: "contextual", mentionItems: [{ id: "ada", label: "Ada Lovelace" }] });
     editor.commands.focus("start");
     await flushBrowser();
     const toolbar = page.getByRole("toolbar", { name: "Editor toolbar", exact: true });
-    await expect.element(toolbar).toBeVisible();
+    await expectFloatingToolbarHidden();
     await userEvent.keyboard(kind === "slash" ? "Article /chip" : "Article @ada");
     const option = page.getByRole("option", { name: kind === "slash" ? /chip/i : /Ada Lovelace/ });
     await expect.element(option).toBeVisible();
@@ -99,7 +200,7 @@ describe("LoomaEditor history (real browser)", () => {
       expect(editor.getJSON().content?.[0]?.content).toEqual(expect.arrayContaining([
         expect.objectContaining({ type: "mention", attrs: expect.objectContaining({ id: "ada", label: "Ada Lovelace" }) }),
       ]));
-      await expect.element(toolbar).toBeVisible();
+      await expectFloatingToolbarHidden();
     }
   });
 
@@ -125,6 +226,7 @@ describe("LoomaEditor history (real browser)", () => {
     await flushBrowser();
     editor!.commands.focus("start");
     editor!.commands.insertContent("A first paragraph.");
+    editor!.commands.setTextSelection({ from: 1, to: 6 });
     await flushBrowser();
     const toolbar = page.getByRole("toolbar", { name: "Editor toolbar", exact: true });
     await expect.element(toolbar).toBeVisible();
@@ -142,11 +244,17 @@ describe("LoomaEditor history (real browser)", () => {
     });
   });
 
-  it("offers full contextual commands at an empty caret and a text selection", async () => {
+  it("offers full contextual commands on selection and held press at a link caret", async () => {
     await page.viewport(768, 720);
     const { editor } = await mountEditor({ toolbarMode: "contextual" });
     editor.commands.focus("start");
     await flushBrowser();
+    editor.view.dom.dispatchEvent(new PointerEvent("pointerdown", {
+      bubbles: true, pointerId: 2, pointerType: "mouse", button: 0, isPrimary: true,
+    }));
+    await new Promise((resolve) => setTimeout(resolve, 550));
+    await expect.element(page.getByRole("toolbar", { name: "Editor toolbar", exact: true })).toBeVisible();
+    editor.view.dom.dispatchEvent(new PointerEvent("pointerup", { bubbles: true, pointerId: 2 }));
     for (const label of ["Bold", "Heading 1", "Insert table", "Undo", "Redo"]) {
       expect(document.querySelector(`[aria-label="${label}"]`)).toBeTruthy();
     }
@@ -163,15 +271,23 @@ describe("LoomaEditor history (real browser)", () => {
     editor.commands.setLink({ href: "https://example.com" });
     editor.commands.setTextSelection(3);
     await flushBrowser();
-    expect(document.querySelector('[aria-label="Heading 1"]')).toBeTruthy();
+    await expectFloatingToolbarHidden();
+    editor.view.dom.dispatchEvent(new PointerEvent("pointerdown", {
+      bubbles: true, pointerId: 2, pointerType: "mouse", button: 0, isPrimary: true,
+    }));
+    await new Promise((resolve) => setTimeout(resolve, 550));
+    await expect.element(page.getByRole("toolbar", { name: "Editor toolbar", exact: true })).toBeVisible();
+    editor.view.dom.dispatchEvent(new PointerEvent("pointerup", { bubbles: true, pointerId: 2 }));
     expect(document.querySelector('.looma-editor__link-context')?.closest('[data-tippy-root]')).toBeTruthy();
     expect(document.querySelector('[aria-label="Open link"]')?.getAttribute("href")).toBe("https://example.com");
     expect(document.querySelector('[aria-label="Edit link"]')).toBeTruthy();
     expect(document.querySelector('[aria-label="Remove link"]')).toBeTruthy();
     const heading = page.getByRole("button", { name: "Heading 1", exact: true }).element();
-    const headingBounds = heading.getBoundingClientRect();
-    expect(document.elementFromPoint(headingBounds.x + headingBounds.width / 2,
-      headingBounds.y + headingBounds.height / 2)?.closest("button")).toBe(heading);
+    await vi.waitFor(() => {
+      const headingBounds = heading.getBoundingClientRect();
+      expect(document.elementFromPoint(headingBounds.x + headingBounds.width / 2,
+        headingBounds.y + headingBounds.height / 2)?.closest("button")).toBe(heading);
+    });
     await userEvent.click(page.getByRole("button", { name: "Edit link", exact: true }));
     await expect.element(page.getByRole("form", { name: "Edit link" })).toBeVisible();
     await userEvent.click(page.getByRole("button", { name: "Cancel", exact: true }));
