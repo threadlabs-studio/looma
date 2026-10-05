@@ -1019,6 +1019,11 @@
           "id": "04-icon-prefix",
           "title": "Icon prefix",
           "behavior": false
+        },
+        {
+          "id": "05-multiline",
+          "title": "Multiline message",
+          "behavior": false
         }
       ]
     },
