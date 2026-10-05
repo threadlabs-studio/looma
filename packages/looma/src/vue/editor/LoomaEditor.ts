@@ -4,7 +4,7 @@ import { BubbleMenu, EditorContent, useEditor } from "@tiptap/vue-3";
 import { announceOverlayOpen } from "../../components/shared/overlay.js";
 import { closeHistory } from "@tiptap/pm/history";
 import { createLowlight } from "lowlight";
-import { NodeSelection, TextSelection, type SelectionBookmark } from "@tiptap/pm/state";
+import { AllSelection, NodeSelection, TextSelection, type Selection, type SelectionBookmark } from "@tiptap/pm/state";
 import {
   computed,
   defineComponent,
@@ -436,7 +436,7 @@ export const LoomaEditor = defineComponent({
     const mobile = ref(typeof window !== "undefined" && window.innerWidth <= 767);
     const editorFocused = ref(false);
     // These snapshots affect chrome only, never the document or undo history.
-    let dismissedFormattingSelection: TextSelection | null = null;
+    let dismissedFormattingSelection: Selection | null = null;
     let heldFormattingSelection: TextSelection | null = null;
     let formattingPopup: {
       show: () => void;
@@ -448,6 +448,7 @@ export const LoomaEditor = defineComponent({
     let heldPress: { id: number; x: number; y: number } | null = null;
     const floatingFormattingMode = () => props.toolbarMode !== "sticky"
       && !(props.toolbarMode === "popover" && props.toolbarOpen) && !mobile.value;
+    const formattingPickerOpen = () => linkOpen.value || tablePickerOpen.value;
     const cancelHeldPress = () => {
       clearTimeout(heldPressTimer);
       heldPressTimer = undefined;
@@ -455,7 +456,7 @@ export const LoomaEditor = defineComponent({
     };
     const formattingSelectionActive = (instance: Editor) => {
       const selection = instance.state.selection;
-      return selection instanceof TextSelection
+      return (selection instanceof TextSelection || selection instanceof AllSelection && Boolean(instance.state.doc.textContent))
         && !dismissedFormattingSelection?.eq(selection)
         && (!selection.empty || Boolean(heldFormattingSelection?.eq(selection)));
     };
@@ -1007,6 +1008,12 @@ export const LoomaEditor = defineComponent({
       });
       if (!editable) chipOpen.value = false;
     });
+    watch([linkOpen, tablePickerOpen], ([link, table]) => {
+      if (link || table || !floatingFormattingMode() || editor.value?.isFocused
+        || formattingPopup?.popper.contains(document.activeElement)) return;
+      heldFormattingSelection = null;
+      formattingPopup?.hide();
+    });
     watch(() => props.label, (label) => {
       editor.value?.setOptions({
         editorProps: { attributes: { role: "textbox", "aria-multiline": "true", "aria-label": label } },
@@ -1223,7 +1230,7 @@ export const LoomaEditor = defineComponent({
       updateCodeUi();
       setTimeout(() => {
         if (!tableInteractionActive && !editor.value?.isFocused) editorFocused.value = false;
-        if (!editor.value?.isFocused && !formattingPopup?.popper.contains(document.activeElement)) {
+        if (!editor.value?.isFocused && !formattingPickerOpen() && !formattingPopup?.popper.contains(document.activeElement)) {
           heldFormattingSelection = null;
         }
       }, 0);
@@ -1318,7 +1325,7 @@ export const LoomaEditor = defineComponent({
       if (event.key !== "Escape" || !floatingFormattingMode() || !(event.target instanceof Node)
         || !(root.value?.contains(event.target) || formattingPopup?.popper.contains(event.target))) return;
       const selection = editor.value?.state.selection;
-      dismissedFormattingSelection = selection instanceof TextSelection ? selection : null;
+      dismissedFormattingSelection = selection instanceof TextSelection || selection instanceof AllSelection ? selection : null;
       heldFormattingSelection = null;
       formattingPopup?.hide();
       hideTool();
@@ -1860,7 +1867,7 @@ export const LoomaEditor = defineComponent({
               shouldShow: ({ editor: menuEditor }: { editor: Editor }) =>
                 (props.toolbarMode !== "popover" || !props.toolbarOpen)
                 && !slash.active && !mention.active
-                && (menuEditor.isFocused || linkContextEditing.value)
+                && (menuEditor.isFocused || linkContextEditing.value || formattingPickerOpen())
                 && formattingSelectionActive(menuEditor),
               tippyOptions: {
                 onCreate: (popup) => { formattingPopup = popup; },
@@ -1868,6 +1875,9 @@ export const LoomaEditor = defineComponent({
                 // Escape clipped panels, but stay in the top layer when the editor is in a dialog or popover.
                 appendTo: () => root.value?.closest<HTMLElement>("dialog[open], [popover]") ?? document.body,
                 onShow: () => announceOverlayOpen(root.value?.ownerDocument ?? document, root.value),
+                // A picker owns the active editing gesture while its field has focus; retain its toolbar anchor.
+                onHide: () => instance.isEditable && floatingFormattingMode() && formattingPickerOpen() && formattingSelectionActive(instance)
+                  ? false : undefined,
                 duration: 100,
                 maxWidth: "none",
                 placement: "top",
