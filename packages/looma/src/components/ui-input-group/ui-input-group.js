@@ -15,7 +15,7 @@ const affixProblem = (affix) =>
 // instead, so the input's name stays its label and the affix is read once, with the input. The
 // consumer's own aria-describedby (or a Form Field's) is kept. A press on an affix, or anywhere in
 // the box outside the input, focuses the input without moving its caret or selecting the affix.
-export default function controller(host) {
+function connect(host) {
   const element = host.element;
   let owned = [];
   let described = null;
@@ -64,4 +64,9 @@ export default function controller(host) {
     element.removeEventListener("mousedown", onMousedown);
     element.removeEventListener("click", onClick);
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

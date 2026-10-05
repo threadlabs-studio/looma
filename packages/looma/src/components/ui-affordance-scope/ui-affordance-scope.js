@@ -4,7 +4,7 @@ function distance(point, rect) {
   return Math.hypot(dx, dy);
 }
 
-export default function controller(host) {
+function connect(host) {
   const element = host.element;
   const owner = element.ownerDocument.defaultView;
   let anchors = [];
@@ -73,4 +73,9 @@ export default function controller(host) {
     if (frame !== null) owner.cancelAnimationFrame(frame);
     clear();
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

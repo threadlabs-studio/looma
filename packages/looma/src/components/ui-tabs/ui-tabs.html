@@ -68,7 +68,7 @@
       --_tab-padding-inline: var(--ui-space-3);
     }
 
-    :host-state([density="compact"]) {
+    :host([density="compact"]) {
       --_tab-min-block-size: var(--ui-control-size-sm);
       --_tab-padding-block: var(--ui-space-1);
       --_tab-padding-inline: var(--ui-space-2);
@@ -130,7 +130,7 @@
       }
     }
 
-    :host-state([stretch]) .list {
+    :host([stretch]) .list {
       grid-auto-columns: minmax(max-content, 1fr);
     }
 
@@ -164,28 +164,28 @@
       padding: var(--ui-space-4);
     }
 
-    :host-state([orientation="vertical"]) {
+    :host([orientation="vertical"]) {
       grid-template-columns: max-content minmax(0, 1fr);
       align-items: start;
     }
 
-    :host-state([orientation="vertical"]) .list {
+    :host([orientation="vertical"]) .list {
       grid-auto-flow: row;
       grid-auto-columns: auto;
       border-block-end: 0;
       border-inline-end: var(--ui-border-width) solid var(--ui-border-divider);
     }
 
-    :host-state([orientation="vertical"]) .list button,
-    :host-state([orientation="vertical"]) .list > :slotted(button[slot="tab"]) {
+    :host([orientation="vertical"]) .list button,
+    :host([orientation="vertical"]) .list > :slotted(button[slot="tab"]) {
       margin: 0 calc(-1 * var(--ui-border-width)) 0 0;
       border-block-end: 0;
       border-inline-end: var(--ui-accent-line-width) solid transparent;
       text-align: start;
     }
 
-    :host-state([orientation="vertical"]) .list button[aria-selected="true"],
-    :host-state([orientation="vertical"]) .list > :slotted(button[slot="tab"][aria-selected="true"]) {
+    :host([orientation="vertical"]) .list button[aria-selected="true"],
+    :host([orientation="vertical"]) .list > :slotted(button[slot="tab"][aria-selected="true"]) {
       border-inline-end-color: var(--ui-accent-solid);
     }
 

@@ -12,7 +12,7 @@ const componentsRoot = path.join(repoRoot, "packages/looma/src/components");
 const SURFACE = "the scroller is the bordered, shadowed surface; it needs an inner scroller to fade";
 const EXEMPT = {
   "ui-combobox .popup": SURFACE,
-  "ui-combobox :host-state([multiple]) .entry": "the single-line chip strip keeps the text cursor fully visible while it scrolls",
+  "ui-combobox :host([multiple]) .entry": "the single-line chip strip keeps the text cursor fully visible while it scrolls",
   "ui-context-menu .menu": SURFACE,
   "ui-editor-table-context-menu :host": SURFACE,
   "ui-editor-table-toolbar .menu": SURFACE,

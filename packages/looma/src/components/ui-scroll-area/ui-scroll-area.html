@@ -36,7 +36,7 @@
       display: flow-root;
     }
 
-    :host-state([orientation="horizontal"]) {
+    :host([orientation="horizontal"]) {
       overflow-x: auto;
       overflow-y: hidden;
       --_ui-scroll-fade-direction: var(--_ui-scroll-fade-inline);
@@ -46,13 +46,13 @@
       --_ui-scroll-fade-inline: to left;
     }
 
-    :host-state([size="sm"]) {
+    :host([size="sm"]) {
       max-block-size: calc(9.375rem + var(--ui-scroll-fade-size, 24px));
     }
-    :host-state([size="md"]) {
+    :host([size="md"]) {
       max-block-size: 20rem;
     }
-    :host-state([size="lg"]) {
+    :host([size="lg"]) {
       max-block-size: 30rem;
     }
 

@@ -116,7 +116,7 @@
       }
     }
 
-    :host-state([disabled]),
+    :host([disabled]),
     :host:has(input:disabled) {
       background: var(--ui-control-surface-disabled, var(--ui-surface-muted));
       box-shadow: none;
@@ -154,10 +154,10 @@
       border-inline-start: var(--ui-border-width) solid var(--ui-border-divider);
     }
 
-    :host-state([prefixKind="icon"]) {
+    :host([prefixKind="icon"]) {
       --_ui-default-input-padding-inline-start: var(--ui-space-2);
     }
-    :host-state([prefixKind="icon"]) .affix:first-child {
+    :host([prefixKind="icon"]) .affix:first-child {
       padding-inline-end: 0;
       border-inline-end: 0;
       background: transparent;
