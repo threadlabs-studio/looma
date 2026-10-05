@@ -1,0 +1,13 @@
+<!--
+title: Multiline message
+description: A message and its Send action share one frame. The action stays below the textarea as the text grows.
+-->
+<form>
+  <ui-form-field>
+    <label slot="label" for="multiline-message">Message</label>
+    <ui-input-group multiline>
+      <ui-textarea id="multiline-message" name="message" rows="3" autosize placeholder="Write a message…"></ui-textarea>
+      <ui-button slot="action" type="submit" variant="solid">Send</ui-button>
+    </ui-input-group>
+  </ui-form-field>
+</form>

@@ -1707,6 +1707,40 @@ describe("Vue components", () => {
     await page.close();
   });
 
+  it("frames a multiline textarea and its bottom action in one accessible input group", async () => {
+    const path = await bundle("vue-multiline-input-group", `
+      import { createApp, h } from "vue";
+      import { Button, Textarea, InputGroup } from "@threadlabs/looma/vue";
+      createApp({ render: () => h("form", { id: "form" }, [
+        h(InputGroup, { id: "multiline", multiline: true }, {
+          default: () => h(Textarea, { id: "message", name: "message", rows: 3, value: "A draft", "aria-label": "Message" }),
+          suffix: () => "Plain text",
+          action: () => h(Button, { id: "send", type: "submit" }, () => "Send"),
+        }),
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")], { viewport: { width: 375, height: 812 } });
+    await page.addStyleTag({ content: "* { transition: none !important; }" });
+    const group = page.locator("#multiline"), textarea = page.getByRole("textbox", { name: "Message" });
+    assert.equal(await textarea.evaluate(element => getComputedStyle(element).borderTopWidth), "0px", "the textarea shares the outer frame");
+    const frame = (await group.boundingBox())!, field = (await textarea.boundingBox())!, action = (await page.locator("#send").boundingBox())!;
+    assert.ok(action.y >= field.y + field.height, "the action sits below the text");
+    assert.ok(action.x >= frame.x && action.x + action.width <= frame.x + frame.width, "the action stays inside the frame");
+    await group.locator(".action").click({ position: { x: 2, y: 2 } });
+    assert.equal(await textarea.evaluate(element => element === document.activeElement), true, "a press around the action focuses the textarea");
+    const focusShadow = await group.evaluate(element => getComputedStyle(element).boxShadow);
+    assert.notEqual(focusShadow, "none");
+    await textarea.evaluate(element => element.setAttribute("aria-invalid", "true"));
+    assert.notEqual(await group.evaluate(element => getComputedStyle(element).boxShadow), focusShadow, "invalid focus reaches the frame");
+    await page.emulateMedia({ forcedColors: "active" });
+    assert.equal(await group.evaluate(element => getComputedStyle(element).outlineStyle), "solid");
+    await page.emulateMedia({ forcedColors: "none" });
+    await textarea.evaluate(element => { element.removeAttribute("aria-invalid"); (element as HTMLTextAreaElement).disabled = true; });
+    assert.equal(await group.evaluate(element => getComputedStyle(element).cursor), "not-allowed");
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+    await page.close();
+  });
+
   it("put an input group's action at its end, inside its border, at the field's height", async () => {
     const path = await bundle("vue-input-group-action", `
       import { createApp, h } from "vue";
@@ -2380,6 +2414,53 @@ describe("Input group", () => {
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
     await checkGroup(page);
+    await page.close();
+  });
+});
+
+describe("Multiline input group behavior", () => {
+  it("shares frame, labeling and native form behavior for a multiline HTML textarea at 375px", async () => {
+    const path = await bundle("html-multiline-input-group", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <form id="form">
+        <label for="message">Message</label>
+        <ui-input-group id="multiline" multiline>
+          <ui-textarea id="message" name="message" rows="3" value="A draft"></ui-textarea>
+          <span slot="suffix">Plain text</span>
+          <ui-button id="send" slot="action" type="submit">Send</ui-button>
+        </ui-input-group>
+      </form>
+      <ui-textarea id="standalone" aria-label="Standalone"></ui-textarea>
+    `, [join(root, "tokens.css")], { viewport: { width: 375, height: 812 } });
+    await page.addStyleTag({ content: "* { transition: none !important; }" });
+    const group = page.locator("#multiline"), textarea = page.getByRole("textbox", { name: "Message" });
+    assert.equal(await textarea.evaluate(element => getComputedStyle(element).borderTopWidth), "0px");
+    assert.notEqual(await page.getByRole("textbox", { name: "Standalone" }).evaluate(element => getComputedStyle(element).borderTopWidth), "0px", "standalone textarea framing is unchanged");
+    const frame = (await group.boundingBox())!, field = (await textarea.boundingBox())!, action = (await page.locator("#send").boundingBox())!;
+    assert.ok(action.y >= field.y + field.height);
+    assert.ok(action.x >= frame.x && action.x + action.width <= frame.x + frame.width);
+    await group.locator(".action").click({ position: { x: 2, y: 2 } });
+    assert.equal(await textarea.evaluate(element => element === document.activeElement), true);
+    assert.match(await textarea.getAttribute("aria-describedby") ?? "", /affix/);
+    const focusShadow = await group.evaluate(element => getComputedStyle(element).boxShadow);
+    assert.notEqual(focusShadow, "none");
+    await textarea.fill("First line\nSecond line");
+    assert.equal(await page.locator("#form").evaluate(element => new FormData(element as HTMLFormElement).get("message")), "First line\nSecond line");
+    await page.locator("#form").evaluate(element => {
+      element.addEventListener("submit", event => { event.preventDefault(); element.setAttribute("data-submitted", "true"); });
+    });
+    await page.getByRole("button", { name: "Send", exact: true }).click();
+    assert.equal(await page.locator("#form").getAttribute("data-submitted"), "true");
+    await textarea.focus();
+    await textarea.evaluate(element => element.setAttribute("aria-invalid", "true"));
+    assert.notEqual(await group.evaluate(element => getComputedStyle(element).boxShadow), focusShadow);
+    await page.emulateMedia({ forcedColors: "active" });
+    assert.equal(await group.evaluate(element => getComputedStyle(element).outlineStyle), "solid");
+    await page.emulateMedia({ forcedColors: "none" });
+    await textarea.evaluate(element => { element.removeAttribute("aria-invalid"); (element as HTMLTextAreaElement).disabled = true; });
+    assert.equal(await group.evaluate(element => getComputedStyle(element).cursor), "not-allowed");
+    assert.equal(await page.locator("#form").evaluate(element => new FormData(element as HTMLFormElement).has("message")), false);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
     await page.close();
   });
 });
