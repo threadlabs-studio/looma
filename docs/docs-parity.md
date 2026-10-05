@@ -132,6 +132,15 @@ navigation in all three engines. The dark desktop reference now records the
 settled inactive first link at the 900px viewport. No styles or TOC classes are
 changed for capture.
 
+The 0.25 reference refresh updates the navbar version, removes the unsupported
+Methods section from component API tabs, and records the native-event migration
+guides and file-input type. The GitHub Table captures were regenerated in the
+same pinned GitHub environment; all four remain pixel-identical below the navbar.
+An independent comparison with updates disabled checked the changed guides and
+representative API tabs, focus states, overlays, and editor selection in all four
+viewport/theme combinations. The ordinary complete CI comparison retains zero
+changed pixels.
+
 The 0.24 reference refresh updates the navbar version and editor guide copy.
 The dark Text HTML/API and List API references also record the settled active
 first TOC link seen in both the update and independent comparison runs. Those
