@@ -169,10 +169,11 @@ Inspect the expected/actual/diff images and accessibility finding changes, then
 run the same command without `--update-snapshots` and the complete comparison.
 Ordinary runs disable snapshot creation, including missing references. Screenshots
 use Playwright's default perceptual threshold (0.2) and allow zero changed pixels
-above that threshold. The sole exception is `mobile-dark/components.png`: three
-pixels on the search shortcut slash glyph vary across repeated Chromium captures,
-so that image allows at most three changed pixels. No other image gets this
-allowance. Force the targeted update above when even a subtler change
+above that threshold. The catalog search shortcut slash uses a vector stroke
+with the same accessible text and monospace character width. Font rasterization
+previously varied at two light-mode or three dark-mode pixels; the vector removes
+that instability and the prior dark-mode pixel allowance. All comparisons require
+zero changed pixels. Force the targeted update above when even a subtler change
 is intentional; inspect the result afterward. Never regenerate baselines as part
 of an ordinary CI or migration build. New
 routes and examples also require `docs:coverage:update` after a docs build.
