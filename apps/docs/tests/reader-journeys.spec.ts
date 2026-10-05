@@ -50,7 +50,7 @@ test("theme and framework selection survive a reload and another page", async ({
   await page.reload();
   await ready(page);
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-  await expect(page.locator('.looma-mode-code[data-framework-mode="vue"]')).toHaveCount(9);
+  await expect(page.locator('.looma-mode-code[data-framework-mode="vue"]')).toHaveCount(10);
   await page.goto("components/ui-checkbox/");
   await ready(page);
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
