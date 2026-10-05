@@ -1291,14 +1291,14 @@ export const LoomaEditor = defineComponent({
     const onFormattingPointerDown = (event: PointerEvent) => {
       cancelHeldPress();
       const instance = editor.value;
-      if (!floatingFormattingMode() || !props.editable || !instance || event.button !== 0 || !event.isPrimary
+      if (!floatingFormattingMode() || tableResizeActive || !props.editable || !instance || event.button !== 0 || !event.isPrimary
         || !(event.target instanceof Element) || !instance.view.dom.contains(event.target)
         || event.target.closest("button, input, select, textarea, [data-looma-image-node]")) return;
       heldPress = { id: event.pointerId, x: event.clientX, y: event.clientY };
       heldPressTimer = setTimeout(() => {
         heldPressTimer = undefined;
         const selection = instance.state.selection;
-        if (!heldPress || !floatingFormattingMode() || !props.editable || !instance.isFocused
+        if (!heldPress || !floatingFormattingMode() || tableResizeActive || !props.editable || !instance.isFocused
           || slash.active || mention.active || !(selection instanceof TextSelection)) return;
         dismissedFormattingSelection = null;
         heldFormattingSelection = selection;
