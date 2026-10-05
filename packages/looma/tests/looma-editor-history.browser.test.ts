@@ -142,6 +142,31 @@ describe("LoomaEditor history (real browser)", () => {
     await expectFloatingToolbarHidden();
   });
 
+  it("does not activate floating formatting while holding a table resize handle", async () => {
+    await page.viewport(1280, 720);
+    const { editor } = await mountEditor({ toolbarMode: "contextual" });
+    editor.commands.insertTable({ rows: 2, cols: 2, withHeaderRow: false });
+    editor.commands.focus("start");
+    editor.commands.setTextSelection(3);
+    await flushBrowser();
+    const cell = editor.view.dom.querySelector<HTMLTableCellElement>("td")!;
+    const bounds = cell.getBoundingClientRect();
+    cell.dispatchEvent(new MouseEvent("mousemove", {
+      bubbles: true, clientX: bounds.right - 1, clientY: bounds.top + bounds.height / 2,
+    }));
+    await flushBrowser();
+    const handle = cell.querySelector<HTMLElement>(".column-resize-handle")!;
+    expect(handle).toBeTruthy();
+    handle.dispatchEvent(new PointerEvent("pointerdown", {
+      bubbles: true, pointerId: 1, pointerType: "mouse", button: 0, isPrimary: true,
+      clientX: bounds.right - 1, clientY: bounds.top + bounds.height / 2,
+    }));
+    await new Promise((resolve) => setTimeout(resolve, 550));
+    await expectFloatingToolbarHidden();
+    handle.dispatchEvent(new PointerEvent("pointerup", { bubbles: true, pointerId: 1 }));
+    await flushBrowser();
+  });
+
   it.each([375, 767])("selection activation keeps the formatting dock available at a caret on %ipx viewports", async (width) => {
     await page.viewport(width, 720);
     const { editor } = await mountEditor({ width, toolbarMode: "contextual" });
