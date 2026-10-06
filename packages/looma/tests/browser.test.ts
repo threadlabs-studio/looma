@@ -7733,10 +7733,11 @@ describe("Prop-driven reading surfaces", () => {
       await page.getByRole("textbox", {name:"Compact excerpt",exact:true}).waitFor();
       const state = await page.evaluate(() => ["Default excerpt","Compact excerpt"].map(label => {
         const node=document.querySelector<HTMLElement>(`[aria-label="${label}"]`)!;
-        return {height:node.getBoundingClientRect().height,padding:getComputedStyle(node).padding,bold:node.querySelector("strong")?.textContent};
+        return {height:node.getBoundingClientRect().height,boundaryHeight:node.closest(".looma-editor")!.getBoundingClientRect().height,padding:getComputedStyle(node).padding,bold:node.querySelector("strong")?.textContent};
       }));
       assert.ok(state[0].height >= 300);
       assert.ok(state[1].height > 0 && state[1].height < 60);
+      assert.ok(state[1].boundaryHeight < 60);
       assert.equal(state[1].padding,"0px");
       assert.equal(state[1].bold,state[0].bold);
       if (process.env.LOOMA_SCREENSHOT_DIR) await page.screenshot({path:join(process.env.LOOMA_SCREENSHOT_DIR, `editor-excerpts-${width}.png`)});
