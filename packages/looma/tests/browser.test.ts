@@ -7703,4 +7703,22 @@ describe("Prop-driven reading surfaces", () => {
     }
   });
 
+  it("caps a growing textarea through maxRows in HTML and Vue", async () => {
+    for (const framework of ["html", "vue"]) {
+      const path = await bundle(`bounded-field-${framework}`, framework === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Textarea } from "@threadlabs/looma/vue";
+        createApp({ render: () => h(Textarea, {rows:3, maxRows:6, autosize:true}) }).mount("#app");
+      `);
+      const page = await open(path, framework === "html" ? `<ui-textarea rows="3" max-rows="6" autosize></ui-textarea>` : `<div id="app"></div>`, [join(root,"tokens.css"), join(root,"vue/components.css")], {viewport:{width:375,height:812}});
+      const field = page.locator("textarea");
+      await field.fill(Array.from({length:40}, (_, i) => "Line " + i).join("\n"));
+      const state = await field.evaluate(element => ({height:element.getBoundingClientRect().height, scrollable:element.scrollHeight > element.clientHeight, maximum:parseFloat(getComputedStyle(element).maxHeight)}));
+      assert.ok(state.height <= state.maximum + 1);
+      assert.ok(state.height > 60 && state.height < 250);
+      assert.equal(state.scrollable,true);
+      await page.close();
+    }
+  });
+
 });

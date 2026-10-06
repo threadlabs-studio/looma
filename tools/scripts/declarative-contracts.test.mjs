@@ -147,7 +147,7 @@ test("redundant layout aliases stay compatible without remaining public componen
   )).tags;
   const { navigationTags } = await readRepositoryProjectionTags();
 
-  assert.deepEqual(Object.keys(layout.contracts["ui-cluster"].props).sort(), ["align", "gap", "justify", "wrap"]);
+  assert.deepEqual(Object.keys(layout.contracts["ui-cluster"].props).sort(), ["align", "fixed", "gap", "justify", "padding", "paddingEnd", "wrap"]);
   assert.equal(classifications["ui-floating-action-button"].status, "deferred");
   assert.ok(!navigationTags.includes("ui-floating-action-button"));
   assert.equal(classifications["ui-search-result-row"].navigationParent, "ui-search-shell");
