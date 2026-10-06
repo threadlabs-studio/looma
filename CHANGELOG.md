@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Collapsed tree branches keep their own disclosure direction beneath expanded ancestors, matching the files they actually show.
+
 - Multiline Input Group offers an upper-end action position with text space reserved for changing labels and pending indicators, keeping the native textarea resize grip clear. Existing below-text placement remains the default.
 
 - Input Group supports multiline Textarea fields with an action below the text, sharing one border and accessible focus/invalid/disabled treatment in HTML and Vue.
