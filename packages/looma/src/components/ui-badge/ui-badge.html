@@ -117,6 +117,10 @@
       text-overflow: ellipsis;
     }
 
+    .label:empty {
+      display: none;
+    }
+
     /* Icon content has its own flex item so label ellipsis never clips its strokes. */
     .icon {
       display: inline-flex;
@@ -148,12 +152,23 @@
       text-box-trim: none;
     }
 
-    /* Trim only label leading. Keep the root a flex row so an icon and label share a center. */
+    /* Text-only badges retain their trimmed inline baseline. Icon content needs a flex row;
+       trimming its label separately keeps the glyph centered without changing adjacent lines. */
     @supports (text-box-trim: trim-both) {
       :host {
+        display: inline-block;
         min-block-size: var(--ui-badge-min-block-size, 1.5rem);
+        text-align: center;
+        align-content: center;
+        text-box-trim: trim-both;
+        text-box-edge: text;
       }
-      .label {
+      :host:has(.icon:not(:empty)),
+      :host:has(.label svg) {
+        display: inline-flex;
+        text-box-trim: none;
+      }
+      :host:has(.icon:not(:empty)) .label {
         text-box-trim: trim-both;
         text-box-edge: text;
       }
@@ -293,6 +308,14 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
+    }
+
+    :host([shape="square"]) .label :slotted(svg) {
+      margin-inline-end: 0;
+    }
+
+    :host([shape="square"]) .label:empty {
+      display: none;
     }
 
     /* A dot uses the badge's tone recipe; only its silhouette and visible label change. */
