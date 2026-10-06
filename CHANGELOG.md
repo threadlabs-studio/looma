@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Multiline Input Group offers an upper-end action position with text space reserved for changing labels and pending indicators, keeping the native textarea resize grip clear. Existing below-text placement remains the default.
+
 - Input Group supports multiline Textarea fields with an action below the text, sharing one border and accessible focus/invalid/disabled treatment in HTML and Vue.
 
 - Vue consumers require Vue 3.5.43 or later so compiled generic Input declarations accept their declared modes. Input now declares the native file mode; file selection is read from the native change event’s `target.files`. Uncontrolled Vue Select components retain the browser’s first-option or authored selection.
