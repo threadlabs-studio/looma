@@ -7721,4 +7721,27 @@ describe("Prop-driven reading surfaces", () => {
     }
   });
 
+  it("fits compact read-only editor excerpts while preserving the default canvas", async () => {
+    const path = await bundle("compact-editor-surface", `
+      import { createApp, h } from "vue";
+      import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+      const content = {type:"doc",content:[{type:"paragraph",content:[{type:"text",text:"Rich excerpt",marks:[{type:"bold"}]}]}]};
+      createApp({render: () => h("div", {}, [h(LoomaEditor,{modelValue:content,editable:false,label:"Default excerpt"}),h(LoomaEditor,{modelValue:content,editable:false,contentDensity:"compact",label:"Compact excerpt"})])}).mount("#app");
+    `);
+    for (const width of [375,1280]) {
+      const page = await open(path, `<div id="app"></div>`, [join(root,"tokens.css"), join(root,"vue/components.css")], {viewport:{width,height:812}});
+      await page.getByRole("textbox", {name:"Compact excerpt",exact:true}).waitFor();
+      const state = await page.evaluate(() => ["Default excerpt","Compact excerpt"].map(label => {
+        const node=document.querySelector<HTMLElement>(`[aria-label="${label}"]`)!;
+        return {height:node.getBoundingClientRect().height,padding:getComputedStyle(node).padding,bold:node.querySelector("strong")?.textContent};
+      }));
+      assert.ok(state[0].height >= 300);
+      assert.ok(state[1].height > 0 && state[1].height < 60);
+      assert.equal(state[1].padding,"0px");
+      assert.equal(state[1].bold,state[0].bold);
+      if (process.env.LOOMA_SCREENSHOT_DIR) await page.screenshot({path:join(process.env.LOOMA_SCREENSHOT_DIR, `editor-excerpts-${width}.png`)});
+      await page.close();
+    }
+  });
+
 });
