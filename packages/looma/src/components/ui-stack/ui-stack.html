@@ -1,5 +1,7 @@
 <template component="ui-stack">
   <defs>
+    <prop name="fill" type="boolean" default="false">Grows into the remaining space of a flex layout and allows its scrolling children to shrink.</prop>
+    <prop name="height" type="number">An optional measured height in CSS pixels, for a viewport-bounded composition. Omit it to retain intrinsic sizing.</prop>
     <prop name="gap" type="keyword" values="none, xs, s, m, l, xl"
     >Space between items, on the spacing scale: none is zero, xs is 0.5rem, s 0.75rem, m 1rem (also the default), l 1.5rem, and xl 2rem. The --ui-stack-gap
       custom property, set on the stack itself, overrides it; set on an ancestor, it does nothing.</prop>
@@ -10,7 +12,7 @@
     >Where items sit along a stack that is taller than its content: start (the default), center, end, or between, which spreads the spare space between items.
       It has no effect unless the stack is given a height or stretched to one.</prop>
   </defs>
-  <div><slot></slot></div>
+  <div style:--ui-stack-height="height"><slot></slot></div>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
     @property --ui-stack-gap {
@@ -27,6 +29,15 @@
       min-inline-size: 0;
       max-inline-size: 100%;
       margin: 0;
+    }
+
+    :host([fill]) {
+      flex: 1;
+      min-block-size: 0;
+    }
+    :host([height]) {
+      block-size: calc(var(--ui-stack-height) * 1px);
+      min-block-size: 0;
     }
 
     :host([gap="none"]) {
