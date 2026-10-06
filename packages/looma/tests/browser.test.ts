@@ -2210,9 +2210,9 @@ describe("Badge box", () => {
         import { createApp, h } from "vue";
         import { Badge, Button } from "@threadlabs/looma/vue";
         const icon = () => h("svg", { width: 16, height: 16, viewBox: "0 0 24 24", "aria-hidden": "true" }, [h("path", { d: "m5 12 4 4 10-10", fill: "none", stroke: "currentColor", "stroke-width": 2 })]);
-        createApp({ render: () => [h(Badge, { id: "ordinary-badge" }, () => [icon(), "Ready"]), h(Button, { id: "ordinary-button" }, () => [icon(), "Save"])] }).mount("#app");
+        createApp({ render: () => [h(Badge, { id: "ordinary-badge" }, () => [icon(), "Ready"]), h(Button, { id: "ordinary-button" }, () => [icon(), "Save"]), h(Badge, { id: "ordinary-square", shape: "square" }, () => icon()), h(Badge, { id: "slot-square", shape: "square" }, { icon })] }).mount("#app");
       `);
-      const page = await open(path, adapter === "html" ? `<ui-badge id="ordinary-badge">${icon}Ready</ui-badge><ui-button id="ordinary-button">${icon}Save</ui-button>` : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
+      const page = await open(path, adapter === "html" ? `<ui-badge id="ordinary-badge">${icon}Ready</ui-badge><ui-button id="ordinary-button">${icon}Save</ui-button><ui-badge id="ordinary-square" shape="square">${icon}</ui-badge><ui-badge id="slot-square" shape="square">${icon.replace('<svg', '<svg slot="icon"')}</ui-badge>` : '<div id="app"></div>', [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])]);
       await page.waitForSelector('[data-component~="ui-badge"]');
       for (const width of [1280, 375]) {
         await page.setViewportSize({ width, height: 720 });
@@ -2227,6 +2227,13 @@ describe("Badge box", () => {
           assert.ok(geometry.alignment <= 2, `${adapter}/${width}/${id}: ordinary icon aligns with text: ${JSON.stringify(geometry)}`);
           assert.ok(geometry.gap >= 3, `${adapter}/${width}/${id}: ordinary icon has spacing: ${JSON.stringify(geometry)}`);
           assert.ok(geometry.top >= -1 && geometry.bottom >= -1, `${adapter}/${width}/${id}: ordinary icon is fully visible: ${JSON.stringify(geometry)}`);
+        }
+        for (const id of ['ordinary-square', 'slot-square']) {
+          const centering = await page.locator(`#${id}`).evaluate(element => {
+            const icon = element.querySelector('svg')!.getBoundingClientRect(), badge = element.getBoundingClientRect();
+            return { x: Math.abs((icon.left + icon.right - badge.left - badge.right) / 2), y: Math.abs((icon.top + icon.bottom - badge.top - badge.bottom) / 2) };
+          });
+          assert.ok(centering.x < 1 && centering.y < 1, `${adapter}/${width}/${id}: an icon without text is centered: ${JSON.stringify(centering)}`);
         }
       }
       await page.close();
