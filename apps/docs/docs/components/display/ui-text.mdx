@@ -8,4 +8,20 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 Running text on the type scale, in a tone that says what it is: default for content, `secondary` for supporting prose, `muted` for metadata and hints, `info` for something moving forward normally, `warning` for something that needs attention, `danger` for an error, `success` to confirm one. The words must carry the meaning too, since colour alone does not. `variant="eyebrow"` is a short uppercase label that names a group; `variant="code"` sets a value to read exactly, such as an address. A view never styles text of its own: it picks a size and a tone. A link inside Text is underlined, so it reads as a link by more than its colour.
 
+## Headings
+
+A view's one `h1` is its [Page Header](/components/ui-page-header), and a
+[Section](/components/ui-section)'s `heading` is an `h2`. For any other heading, such as a group
+inside a section, give Text a heading level with `as`, `h2` to `h6`, and pick its size and weight.
+Choose the level for the outline, one below the heading it sits under, not for its look: the
+browser's heading size and weight do not apply, so a heading is only as large and as strong as its
+`size` and `weight` say.
+
+```vue
+<Section heading="Billing">
+  <Text as="h3" size="md" weight="semibold">Payment method</Text>
+  …
+</Section>
+```
+
 <ComponentExamplesApiTabs component="ui-text" />

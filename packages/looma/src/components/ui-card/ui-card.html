@@ -1,12 +1,15 @@
 <template component="ui-card">
   <defs>
-    <prop name="variant" type="outlined | subtle | elevated" default="outlined"
+    <prop name="size" type="keyword" values="content, sm, md, lg" default="content"
+    >Optional size preset. content keeps the existing intrinsic sizing; the other sizes constrain the surface for compact, medium, or large content.</prop>
+    <prop name="variant" type="keyword" values="outlined, subtle, elevated" default="outlined"
     >The surface. outlined is a bordered panel on the page; subtle is a quiet filled one with no border, for supporting details set apart from the flow;
       elevated floats above the page with a shadow, for a view's one card, such as sign-in.</prop>
-    <prop name="padding" type="sm | md | lg" default="md"
-    >The space inside the card: sm is snug (0.75rem), md is the default (1.5rem), and lg is roomy (2rem).</prop>
-    <prop name="tone" type="neutral | danger" default="neutral">danger draws an outlined card's border in the danger colour.</prop>
-    <prop name="as" type="div | section | article | aside" default="div"
+    <prop name="padding" type="keyword" values="xs, sm, md, lg" default="md"
+    >The space inside the card: xs is compact (0.5rem), sm is snug (0.75rem), md is the default (1.5rem), and lg is roomy (2rem).</prop>
+    <prop name="tone" type="keyword" values="neutral, danger" default="neutral"
+    >danger adds a soft danger surface and a strong leading edge for consequential content.</prop>
+    <prop name="as" type="keyword" values="div, section, article, aside" default="div"
     >The native element the card renders. Choose the one that names the content: a section of a page, a self-contained article, or an aside.</prop>
   </defs>
   <template $match>
@@ -25,33 +28,52 @@
       box-sizing: border-box;
       min-inline-size: 0;
       padding: var(--ui-space-5);
-      border: 1px solid var(--ui-border-default);
+      border: var(--ui-border-width) solid var(--ui-border-strong);
       border-radius: var(--ui-radius-lg);
       background: var(--ui-surface-raised);
       color: var(--ui-text-primary);
     }
 
-    :host-state([padding="sm"]) {
+    :host([padding="xs"]) {
+      gap: var(--ui-space-1);
+      padding: var(--ui-space-2);
+    }
+    :host([padding="sm"]) {
       gap: var(--ui-space-2);
       padding: var(--ui-space-3);
     }
 
-    :host-state([padding="lg"]) {
+    :host([padding="lg"]) {
       padding: var(--ui-space-6);
     }
 
-    :host-state([variant="subtle"]) {
+    :host([variant="subtle"]) {
       border-color: transparent;
       background: var(--ui-surface-muted);
     }
 
-    :host-state([variant="elevated"]) {
+    :host([variant="elevated"]) {
       border-color: var(--ui-border-subtle);
       box-shadow: var(--ui-shadow-lg);
     }
 
-    :host-state([tone="danger"]) {
-      border-color: var(--ui-danger);
+    :host([tone="danger"]) {
+      border-color: color-mix(in srgb, var(--ui-danger) 45%, var(--ui-border-default));
+      border-inline-start: var(--ui-accent-line-width) solid var(--ui-danger);
+      background: var(--ui-danger-soft);
+    }
+
+    :host([size="sm"]) {
+      inline-size: min(22rem, calc(100vw - var(--ui-space-2) * 2));
+      max-inline-size: min(22rem, calc(100vw - var(--ui-space-2) * 2));
+    }
+    :host([size="md"]) {
+      inline-size: min(28rem, calc(100vw - var(--ui-space-2) * 2));
+      max-inline-size: min(28rem, calc(100vw - var(--ui-space-2) * 2));
+    }
+    :host([size="lg"]) {
+      inline-size: min(36rem, calc(100vw - var(--ui-space-2) * 2));
+      max-inline-size: min(36rem, calc(100vw - var(--ui-space-2) * 2));
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */

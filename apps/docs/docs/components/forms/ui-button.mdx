@@ -8,10 +8,28 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 Essential button primitive that enhances semantic button markup and styling hooks.
 
-Set `pending` while an action is running. The button keeps its label and keyboard focus, shows a
+<ComponentExamplesApiTabs component="ui-button" />
+
+Set `loading` while an action is running. The button keeps its label and keyboard focus, shows a
 spinner, exposes `aria-disabled` and `aria-busy`, and blocks clicks and form submission. Clear the
-prop when the action finishes. This also works with `as="a"`: the pending link keeps its focus
+prop when the action finishes. This also works with `as="a"`: the loading link keeps its focus
 position but cannot navigate.
+
+## CardButton variant
+
+Use `variant="card"` for one whole-card action. It reuses Button's `tone`, loading, disabled,
+link and form behavior. Its uniform border and equal inline padding use the standard Button
+palette and spacing; there is no emphasized side edge.
+
+Put arbitrary decorative content in the `icon` slot. Icon and main content align at the top;
+the grid row centers within spare height so single-line labels look vertically centered, and
+the content receives the remaining grid width. The `action` slot centers vertically and defaults
+to the shared right caret. Both column gaps use the standard spacing token. Without an icon,
+its column and extra gap disappear. A custom action stays decorative within the one control;
+do not put another button or link inside it.
+
+In Vue, use `<Button variant="card" tone="accent">` with `#icon` and optional `#action` slots.
+In HTML, use `<ui-button variant="card">` and children with `slot="icon"` or `slot="action"`.
 
 ## Theming
 
@@ -20,6 +38,10 @@ Set `--ui-accent` or `--ui-danger` on the theme root to change the action palett
 `--ui-button-radius` on one Button for an exception. The [theming guide](/tokens) explains the global,
 group, and component levels.
 
+A label wraps as its container's text does. To keep one on a single line, such as in a narrow table
+cell, set `--ui-button-white-space: nowrap` on that button through a class of your own. It takes
+any `white-space` value; unset, the button inherits its container's.
+
 
 ## Touch targets
 
@@ -27,5 +49,3 @@ Under touch input, every button takes presses within the control minimum, 44px. 
 to it under a coarse pointer. A link-style button keeps its text size and gets an invisible hit area of
 that size centred on it, as Icon Button does, so a standalone one ("See all" under a list) is easy to
 press. Only the link-style button gets the area, so close neighbours never take each other's presses.
-
-<ComponentExamplesApiTabs component="ui-button" />

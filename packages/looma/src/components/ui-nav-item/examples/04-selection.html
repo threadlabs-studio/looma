@@ -1,0 +1,14 @@
+<!--
+title: Surface and line selection
+description: Surface selection uses shared corners without a stripe. Line selection uses a square, continuous start edge. Both keep the resting label weight.
+-->
+<ui-stack gap="l">
+  <nav aria-label="Surface navigation">
+    <ui-nav-item as="a" href="#overview" current="page" density="compact"><ui-icon slot="leading" name="compass"></ui-icon>Overview</ui-nav-item>
+    <ui-nav-item as="a" href="#activity" density="compact"><ui-icon slot="leading" name="history"></ui-icon>Activity</ui-nav-item>
+  </nav>
+  <nav aria-label="Line navigation">
+    <ui-nav-item as="a" href="#introduction" current="location" variant="line" density="compact">Introduction</ui-nav-item>
+    <ui-nav-item as="a" href="#details" variant="line" density="compact">Details</ui-nav-item>
+  </nav>
+</ui-stack>

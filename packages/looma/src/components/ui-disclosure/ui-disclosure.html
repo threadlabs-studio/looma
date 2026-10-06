@@ -1,6 +1,16 @@
 <template component="ui-disclosure" controller="./ui-disclosure.js">
   <defs>
-    <prop name="density" type="comfortable | compact" default="comfortable">Compact trades padding and type size for rows that fit more on screen.</prop>
+    <prop name="density" type="keyword" values="comfortable, compact" default="comfortable"
+    >Compact trades padding and type size for rows that fit more on screen.</prop>
+    <prop name="variant" type="keyword" values="plain, navigation" default="plain"
+    >Navigation shares icon columns, spacing, type, hover, and corners with Nav Item, while keeping expanded sections neutral: opening content is not route
+      selection. Plain retains the standard disclosure treatment.</prop>
+    <prop name="requiredOpen" type="boolean" default="false"
+    >In a named exclusive group, keeps at least one member open. Clicking the last open trigger does not close it; opening another member transfers the open
+      state.</prop>
+    <prop name="fill" type="boolean" default="false"
+    >In a column with a bounded height, an open disclosure fills the remaining space and keeps its trigger visible. The content slot can contain a Scroll Area.
+      Closed items keep only their trigger height.</prop>
     <prop name="summary" type="string" default="Details"
     >The text of the trigger row that opens and closes the disclosure. It is the trigger button's accessible name, so name what the content is.</prop>
     <prop name="open" type="boolean" default="false"
@@ -12,27 +22,36 @@
       items.</prop>
     <prop name="headingLevel" type="integer" default="0"
     >Adds heading semantics around the trigger at level 2 through 6. Zero leaves it a plain disclosure; choose a level that matches the page outline.</prop>
-    <state name="internalOpen" :value="false"></state>
-    <state name="contentId" :value="''"></state>
-    <state name="headingRole" :value="null"></state>
-    <state name="headingAriaLevel" :value="null"></state>
+    <state type="boolean" name="internalOpen" value="false"></state>
+    <state type="string" name="contentId" value=""></state>
+    <state type="keyword" name="headingRole"></state>
+    <state type="integer" name="headingAriaLevel"></state>
     <event
       name="open"
-      type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"
-    ></event>
+      type="object"
+    >
+      <prop name="open" required type="boolean"></prop>
+      <prop name="reason" required type="keyword" values="action, programmatic, light-dismiss, escape"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
     <event
       name="close"
-      type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"
-    ></event>
+      type="object"
+    >
+      <prop name="open" required type="boolean"></prop>
+      <prop name="reason" required type="keyword" values="action, programmatic, light-dismiss, escape"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
   </defs>
   <div>
-    <div class="heading" :role="headingRole" :aria-level="headingAriaLevel">
-      <button class="trigger" type="button" $ref="trigger" :aria-controls="contentId" :aria-expanded="internalOpen" :disabled="disabled">
-        <span class="summary"><slot name="summary"><template $value="summary"></template></slot></span>
-        <span class="chevron" aria-hidden="true"></span>
+    <div class="heading" $ref="heading" from:role="headingRole" from:aria-level="headingAriaLevel">
+      <button class="trigger" type="button" $ref="trigger" from:aria-controls="contentId" from:aria-expanded="internalOpen" from:disabled="disabled">
+        <span class="leading"><slot name="leading"></slot></span>
+        <span class="summary"><slot name="summary">{$summary}</slot></span>
+        <span class="indicator" aria-hidden="true"><slot name="indicator"><span class="chevron"></span></slot></span>
       </button>
     </div>
-    <div class="panel" $ref="panel" :id="contentId"><div class="panel-inner"><slot></slot></div></div>
+    <div class="panel" $ref="panel" from:id="contentId"><div class="panel-inner"><slot></slot></div></div>
   </div>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
@@ -61,7 +80,7 @@
       --_trigger-padding-inline: var(--ui-space-3);
     }
 
-    :host-state([density="compact"]) {
+    :host([density="compact"]) {
       --_trigger-min-block-size: var(--ui-control-size-sm);
       --_trigger-padding-block: var(--ui-space-1);
       --_trigger-padding-inline: var(--ui-space-2);
@@ -73,13 +92,12 @@
       display: block;
       inline-size: 100%;
       overflow: clip;
-      border-block-end: 1px solid var(--ui-border-default);
+      border-block-end: var(--ui-border-width) solid var(--ui-border-divider);
       color: var(--ui-text-primary);
     }
 
     .trigger {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
+      display: flex;
       gap: var(--ui-space-3);
       align-items: center;
       inline-size: 100%;
@@ -98,15 +116,37 @@
     }
 
     .trigger:hover:not(:disabled) {
-      background: var(--ui-surface-muted);
+      background: color-mix(in srgb, currentColor 6%, transparent);
     }
     .trigger:focus-visible {
       outline: none;
-      box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--ui-focus-ring) 45%, transparent);
+      box-shadow: inset 0 0 0 var(--ui-focus-width) color-mix(in srgb, var(--ui-focus-ring) 45%, transparent);
     }
     .trigger:disabled {
       color: var(--ui-disabled-text);
       cursor: not-allowed;
+    }
+
+    .summary {
+      flex: 1;
+      min-inline-size: 0;
+    }
+
+    .leading,
+    .indicator {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: none;
+    }
+    .leading:empty {
+      display: none;
+    }
+    .indicator {
+      transition: transform var(--ui-motion-feedback) var(--ui-motion-feedback-ease);
+    }
+    :host-state([internalOpen]) .indicator {
+      transform: rotate(180deg);
     }
 
     .chevron {
@@ -115,13 +155,12 @@
       border-inline-end: 2px solid currentColor;
       border-block-end: 2px solid currentColor;
       transform: rotate(45deg) translate(-1px, -1px);
-      transition: transform var(--ui-motion-fast) var(--ui-motion-ease);
     }
 
     .panel {
       display: grid;
       grid-template-rows: 0fr;
-      transition: grid-template-rows var(--ui-motion-fast) var(--ui-motion-ease-out, var(--ui-motion-ease));
+      transition: grid-template-rows var(--ui-motion-reveal) var(--ui-motion-reveal-ease), content-visibility var(--ui-motion-reveal) allow-discrete;
     }
 
     .panel-inner {
@@ -136,13 +175,73 @@
     :host-state([internalOpen]) .panel-inner {
       padding-block: 0 var(--ui-space-3);
     }
-    :host-state([internalOpen]) .chevron {
-      transform: rotate(225deg) translate(-1px, -1px);
+
+    /* A bounded accordion owns one flexible body, so its trigger never scrolls away. The
+     * normal content-sized layout and its animation remain unchanged when fill is omitted. */
+    :host([fill]) {
+      display: flex;
+      flex-direction: column;
+      flex: 0 0 var(--_ui-disclosure-heading-size, var(--_trigger-min-block-size));
+      min-block-size: calc(var(--_ui-disclosure-heading-size, var(--_trigger-min-block-size)) + var(--ui-border-width));
+      transition: flex-grow var(--ui-motion-layout) var(--ui-motion-layout-ease);
+      border-block-end: 0;
+      border-block-start: var(--ui-border-width) solid var(--ui-border-divider);
+    }
+    :host([fill]):host-state([internalOpen]) {
+      flex-grow: 1;
+    }
+    :host([fill]) .heading {
+      flex: none;
+    }
+    :host([fill]) .trigger {
+      border-radius: 0;
+    }
+    :host([fill]) .panel {
+      flex: 1;
+      min-block-size: 0;
+    }
+    :host([fill]) .panel-inner {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-block-size: 0;
+      padding: 0;
+    }
+
+    :host([variant="navigation"]) .trigger {
+      gap: var(--ui-nav-gap);
+      padding-inline: var(--ui-nav-padding-inline);
+      min-block-size: var(--ui-nav-min-block-size);
+      padding-block: var(--ui-nav-padding-block);
+      border-radius: var(--ui-selection-radius);
+      font-size: var(--ui-font-size-md);
+      font-weight: var(--ui-font-normal);
+      color: var(--ui-text-secondary);
+    }
+    :host([variant="navigation"][density="compact"]) .trigger {
+      padding-inline: var(--ui-nav-compact-padding-inline);
+      padding-block: var(--ui-nav-compact-padding-block);
+      min-block-size: var(--ui-nav-compact-min-block-size);
+      font-size: var(--ui-font-size-sm);
+    }
+    :host([variant="navigation"]) .trigger:hover:not(:disabled) {
+      background: var(--ui-nav-hover-surface);
+      color: var(--ui-text-primary);
+    }
+    :host([variant="navigation"]) :is(.leading, .indicator) {
+      inline-size: var(--ui-nav-icon-size);
+      font-size: var(--ui-nav-icon-size);
+    }
+    @media (pointer: coarse) {
+      :host([variant="navigation"][density="compact"]) .trigger {
+        min-block-size: var(--ui-control-min-block-size);
+      }
     }
 
     @media (prefers-reduced-motion: reduce) {
+      :host([fill]),
       .panel,
-      .chevron {
+      .indicator {
         transition: none;
       }
     }

@@ -49,11 +49,57 @@ function createProximity(scope, selector = ".handle[data-ui-affordance]", radius
   } };
 }
 
-export default function controller(host) {
+function connect(host) {
   const element = host.element;
   const proximity = createProximity(element);
+  let drag = null;
+  let suppressClick = false;
+  const indicator = () => element.querySelector("[data-drop-indicator]");
+  const clearDrag = () => {
+    drag = null;
+    const guide = indicator();
+    if (guide) {
+      guide.hidden = true;
+      guide.classList.remove("row", "column");
+    }
+  };
+  const onPointerDown = (event) => {
+    const button = event.target.closest?.("button.selector[data-action]");
+    if (!button || event.button !== 0) return;
+    const axis = button.dataset.action === "select-row" ? "row" : "column";
+    drag = { pointerId: event.pointerId, axis, from: Number(button.dataset[axis === "row" ? "rowIndex" : "columnIndex"]), x: event.clientX, y: event.clientY, to: null };
+    button.setPointerCapture(event.pointerId);
+    event.preventDefault();
+  };
+  const onPointerMove = (event) => {
+    if (!drag || event.pointerId !== drag.pointerId) return;
+    if (Math.hypot(event.clientX - drag.x, event.clientY - drag.y) < 5 && drag.to === null) return;
+    const rect = element.getBoundingClientRect();
+    const values = boundaries(drag.axis);
+    const coordinate = drag.axis === "row" ? event.clientY - rect.top : event.clientX - rect.left;
+    const found = values.findIndex((_, index) => index < values.length - 1 && coordinate < values[index + 1]);
+    const to = found < 0 ? values.length - 2 : found;
+    drag.to = to;
+    const guide = indicator();
+    if (!guide) return;
+    guide.hidden = false;
+    guide.classList.toggle("row", drag.axis === "row");
+    guide.classList.toggle("column", drag.axis === "column");
+    const boundary = to > drag.from ? values[to + 1] : values[to];
+    if (drag.axis === "row") guide.style.top = `${boundary}px`;
+    else guide.style.left = `${boundary}px`;
+  };
+  const onPointerUp = (event) => {
+    if (!drag || event.pointerId !== drag.pointerId) return;
+    const { axis, from, to } = drag;
+    clearDrag();
+    if (to === null) return;
+    suppressClick = true;
+    setTimeout(() => { suppressClick = false; }, 0);
+    if (to !== from) host.dispatch(axis === "row" ? "reorder-row" : "reorder-column", { fromIndex: from, toIndex: to });
+  };
   const boundaries = (axis) => {
-    const values = host.state.geometry?.[axis === "row" ? "rowBoundaries" : "columnBoundaries"];
+    const values = host.props.geometry.value?.[axis === "row" ? "rowBoundaries" : "columnBoundaries"];
     if (Array.isArray(values) && values.length >= 2 && values.every(Number.isFinite)) return values;
     const rect = element.getBoundingClientRect();
     return fallbackBoundaries(3, axis === "row" ? rect.height : rect.width);
@@ -72,40 +118,45 @@ export default function controller(host) {
     };
   });
   const stop = host.effect(() => {
-    if (!host.state.open) {
+    if (!host.props.open.value) {
       host.state.activeKey = "";
       return;
     }
     host.state.rows = controls("row");
     host.state.cols = controls("col");
-    const hovered = host.state.geometry?.hoveredCell ?? null;
+    const hovered = host.props.geometry.value?.hoveredCell ?? null;
     host.state.hovered = hovered && {
       ...hovered,
       rowOffset: `${hovered.top + hovered.height / 2}px`,
       columnOffset: `${hovered.left + hovered.width / 2}px`,
     };
-    const active = host.state.geometry?.activeCell ?? null;
+    const active = host.props.geometry.value?.activeCell ?? null;
     host.state.active = active && { ...active, menuLeft: `${active.left + active.width - 30}px`, menuTop: `${active.top + 6}px` };
     queueMicrotask(proximity.refresh);
   });
   const onClick = (event) => {
+    if (suppressClick) { event.preventDefault(); return; }
     const button = event.target.closest?.("button[data-action]");
     if (!button) return;
     const action = button.dataset.action;
     const cell = { rowIndex: Number(button.dataset.rowIndex), columnIndex: Number(button.dataset.columnIndex) };
     if (action === "select-row" || action === "select-column") {
-      host.dispatch("action", { action, ...cell });
+      host.dispatch(action, cell);
       const rect = button.getBoundingClientRect();
-      host.dispatch("action", { action: action === "select-row" ? "open-row-menu" : "open-column-menu", ...cell, anchor: { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom } });
+      host.dispatch(action === "select-row" ? "open-row-menu" : "open-column-menu", { ...cell, anchor: { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom } });
     } else if (action === "open-cell-menu") {
       const rect = button.getBoundingClientRect();
-      host.dispatch("action", { action, ...cell, anchor: { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom } });
-    } else host.dispatch("action", { action, boundaryIndex: Number(button.dataset.boundaryIndex) });
+      host.dispatch(action, { ...cell, anchor: { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom } });
+    } else host.dispatch(action, { boundaryIndex: Number(button.dataset.boundaryIndex) });
   };
   const keyOf = (target) => target instanceof Element ? target.closest("[data-control-key]")?.dataset.controlKey ?? "" : "";
   const enter = (event) => { host.state.activeKey = keyOf(event.target); };
   const leave = (event) => { host.state.activeKey = keyOf(event.relatedTarget); };
   element.addEventListener("click", onClick);
+  element.addEventListener("pointerdown", onPointerDown);
+  document.addEventListener("pointermove", onPointerMove, true);
+  document.addEventListener("pointerup", onPointerUp, true);
+  document.addEventListener("pointercancel", clearDrag, true);
   element.addEventListener("pointerover", enter);
   element.addEventListener("pointerout", leave);
   element.addEventListener("focusin", enter);
@@ -114,9 +165,18 @@ export default function controller(host) {
     stop();
     proximity.destroy();
     element.removeEventListener("click", onClick);
+    element.removeEventListener("pointerdown", onPointerDown);
+    document.removeEventListener("pointermove", onPointerMove, true);
+    document.removeEventListener("pointerup", onPointerUp, true);
+    document.removeEventListener("pointercancel", clearDrag, true);
     element.removeEventListener("pointerover", enter);
     element.removeEventListener("pointerout", leave);
     element.removeEventListener("focusin", enter);
     element.removeEventListener("focusout", leave);
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

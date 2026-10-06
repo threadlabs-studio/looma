@@ -1,15 +1,17 @@
-<template component="ui-scroll-area">
+<template component="ui-scroll-area" controller="./ui-scroll-area.js">
   <defs>
-    <prop name="orientation" type="vertical | horizontal" default="vertical"
+    <prop name="size" type="keyword" values="content, sm, md, lg" default="content"
+    >Optional height preset. content keeps intrinsic sizing; sm fits three compact 3.125rem result rows before the overflow fade, md is 20rem, and lg is
+      30rem.</prop>
+    <prop name="orientation" type="keyword" values="vertical, horizontal" default="vertical"
     >The direction the content scrolls. Vertical scrolls up and down and clips sideways overflow; horizontal scrolls sideways and clips vertical
       overflow.</prop>
   </defs>
-  <div><slot></slot></div>
+  <div><div class="content" $ref="content"><slot></slot></div></div>
   <style>
-    /* A region that scrolls when its content outgrows it. Each edge that hides content fades, growing
-       in as the content leaves that edge (the scroll fade in tokens.css), so the reader can tell there
-       is more; an edge with nothing past it stays crisp, and content that fits shows no fade. The
-       fade is a mask, so it blends into whatever is behind the area without knowing its colour. */
+    /* The controller sets each fade length from overflow and scroll position. The mask blends
+       into whatever is behind the area without needing to know its colour. Before upgrade, its
+       zero-length defaults leave the authored scroll area fully visible. */
     :host {
       display: block;
       box-sizing: border-box;
@@ -28,24 +30,30 @@
         #000 calc(100% - var(--_ui-scroll-fade-end)),
         transparent
       );
-      animation: ui-scroll-fade-start linear, ui-scroll-fade-start-hold linear, ui-scroll-fade-end-hold linear, ui-scroll-fade-end linear;
-      animation-timeline: scroll(self block);
-      animation-range:
-        0 var(--_ui-scroll-fade-size),
-        var(--_ui-scroll-fade-size) calc(100% + 1px),
-        -1px calc(100% - var(--_ui-scroll-fade-size)),
-        calc(100% - var(--_ui-scroll-fade-size)) 100%;
     }
 
-    :host-state([orientation="horizontal"]) {
+    .content {
+      display: flow-root;
+    }
+
+    :host([orientation="horizontal"]) {
       overflow-x: auto;
       overflow-y: hidden;
       --_ui-scroll-fade-direction: var(--_ui-scroll-fade-inline);
-      animation-timeline: scroll(self inline);
     }
 
     :host:dir(rtl) {
       --_ui-scroll-fade-inline: to left;
+    }
+
+    :host([size="sm"]) {
+      max-block-size: calc(9.375rem + var(--ui-scroll-fade-size, 24px));
+    }
+    :host([size="md"]) {
+      max-block-size: 20rem;
+    }
+    :host([size="lg"]) {
+      max-block-size: 30rem;
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */

@@ -2,30 +2,56 @@
 <template component="ui-editor-table-toolbar" controller="./ui-editor-table-toolbar.js">
   <defs>
     <prop name="open" type="boolean" default="false">Shows the toolbar while a table selection is active.</prop>
-    <prop name="cellAlignment" type="left | center | right" default="left">Marks the alignment command that is active for the current cell.</prop>
+    <prop name="cellAlignment" type="keyword" values="left, center, right" default="left"
+    >Marks the alignment command that is active for the current cell.</prop>
     <prop name="cellBackground" type="string" default="">Identifies the background choice that is active for the current cell.</prop>
     <prop name="headerRow" type="boolean" default="false">Whether the table's first row currently uses header cells.</prop>
     <prop name="headerColumn" type="boolean" default="false">Whether the table's first column currently uses header cells.</prop>
     <prop
       name="actions"
-      type="list(align-left | align-center | align-right | background-none | background-gray | background-yellow | background-blue | background-green | background-red | add-row-before | add-row-after | add-column-before | add-column-after | toggle-header-row | toggle-header-column | move-row-up | move-row-down | move-column-left | move-column-right | clear-cells | merge-cells | split-cell | delete-row | delete-column | delete-table)"
-    >The complete set of commands the current selection permits.</prop>
-    <state name="alignments" type="list(object({ action: align-left | align-center | align-right, label: string, active: boolean }))" :value="[]"></state>
-    <state name="structure" type="list(object({ action: add-row-after | add-column-after, label: string, icon: string }))" :value="[]"></state>
-    <state name="swatches" type="list(object({ action: string, label: string, color: string, selected: boolean }))" :value="[]"></state>
+      type="list"
+    >
+      <prop
+        type="keyword"
+        values="align-left, align-center, align-right, background-none, background-gray, background-yellow, background-blue, background-green, background-red, add-row-before, add-row-after, add-column-before, add-column-after, toggle-header-row, toggle-header-column, move-row-up, move-row-down, move-column-left, move-column-right, clear-cells, merge-cells, split-cell, delete-row, delete-column, delete-table"
+      ></prop>
+      The complete set of commands the current selection permits.
+    </prop>
+    <state name="alignments" type="list" value="[]">
+      <prop type="object">
+        <prop name="action" required type="keyword" values="align-left, align-center, align-right"></prop>
+        <prop name="label" required type="string"></prop>
+        <prop name="active" required type="boolean"></prop>
+      </prop>
+    </state>
+    <state name="structure" type="list" value="[]">
+      <prop type="object">
+        <prop name="action" required type="keyword" values="add-row-after, add-column-after"></prop>
+        <prop name="label" required type="string"></prop>
+        <prop name="icon" required type="string"></prop>
+      </prop>
+    </state>
+    <state name="swatches" type="list(object({ action: string, label: string, color: string, selected: boolean }))" value="[]"></state>
     <state
       name="sections"
       type="list(object({ heading: string, items: list(object({ action: string, label: string, icon: string, danger: boolean, checkable: boolean, checked: boolean })) }))"
-      :value="[]"
+      value="[]"
     ></state>
-    <state name="hasOverflow" :value="false"></state>
-    <state name="overflowOpen" :value="false"></state>
+    <state type="boolean" name="hasOverflow" value="false"></state>
+    <state type="boolean" name="overflowOpen" value="false"></state>
     <event
       name="action"
-      type="object({ action: align-left | align-center | align-right | background-none | background-gray | background-yellow | background-blue | background-green | background-red | add-row-before | add-row-after | add-column-before | add-column-after | toggle-header-row | toggle-header-column | move-row-up | move-row-down | move-column-left | move-column-right | clear-cells | merge-cells | split-cell | delete-row | delete-column | delete-table })"
-    ></event>
+      type="object"
+    >
+      <prop
+        name="action"
+        required
+        type="keyword"
+        values="align-left, align-center, align-right, background-none, background-gray, background-yellow, background-blue, background-green, background-red, add-row-before, add-row-after, add-column-before, add-column-after, toggle-header-row, toggle-header-column, move-row-up, move-row-down, move-column-left, move-column-right, clear-cells, merge-cells, split-cell, delete-row, delete-column, delete-table"
+      ></prop>
+    </event>
   </defs>
-  <div role="toolbar" aria-label="Table actions" :hidden="not open">
+  <div role="toolbar" aria-label="Table actions" from:hidden="not open">
     <div $if="alignments" class="group" role="group" aria-label="Cell alignment">
       <button
         $each="item of alignments"
@@ -33,24 +59,24 @@
         type="button"
         class="icon-button"
         class:active="item.active"
-        :data-action="item.action"
-        :aria-label="item.label"
-        :title="item.label"
-        :aria-pressed="item.active"
+        from:data-action="item.action"
+        from:aria-label="item.label"
+        from:title="item.label"
+        from:aria-pressed="item.active"
       >
-        <ui-icon :name="item.action"></ui-icon>
+        <ui-icon from:name="item.action"></ui-icon>
       </button>
     </div>
     <div $if="alignments and structure" class="sep" aria-hidden="true"></div>
     <div $if="structure" class="group" role="group" aria-label="Table structure">
-      <button $each="item of structure" $key="item.action" type="button" :data-action="item.action">
-        <ui-icon :name="item.icon"></ui-icon>
-        <span $value="item.label"></span>
+      <button $each="item of structure" $key="item.action" type="button" from:data-action="item.action">
+        <ui-icon from:name="item.icon"></ui-icon>
+        <span>{$item.label}</span>
       </button>
     </div>
     <div $if="(alignments or structure) and hasOverflow" class="sep" aria-hidden="true"></div>
     <div $if="hasOverflow" class="overflow">
-      <button type="button" class="more" data-action="toggle-overflow" aria-haspopup="menu" :aria-expanded="overflowOpen">
+      <button type="button" class="more" data-action="toggle-overflow" aria-haspopup="menu" from:aria-expanded="overflowOpen">
         <ui-icon name="table"></ui-icon>
         <span>Table options</span>
         <span class="chevron"><ui-icon name="chevron-down"></ui-icon></span>
@@ -66,27 +92,27 @@
               class="swatch-button"
               class:selected="swatch.selected"
               role="menuitemradio"
-              :aria-checked="swatch.selected"
-              :data-action="swatch.action"
+              from:aria-checked="swatch.selected"
+              from:data-action="swatch.action"
             >
               <span class="swatch" class:default="not swatch.color" style:--_swatch="swatch.color"></span>
-              <span $value="swatch.label"></span>
+              <span>{$swatch.label}</span>
             </button>
           </div>
         </div>
         <div $each="section of sections" $key="section.heading" class="menu-section divided" role="none">
-          <div class="menu-heading" role="presentation" $value="section.heading"></div>
+          <div class="menu-heading" role="presentation">{$section.heading}</div>
           <button
             $each="item of section.items"
             $key="item.action"
             type="button"
-            :role="{ true: 'menuitemcheckbox', false: 'menuitem' }[format('%s', item.checkable)]"
-            :aria-checked="{ true: item.checked, false: null }[format('%s', item.checkable)]"
+            from:role="{ true: 'menuitemcheckbox', false: 'menuitem' }[concat(item.checkable)]"
+            from:aria-checked="{ true: item.checked, false: null }[concat(item.checkable)]"
             class:danger="item.danger"
-            :data-action="item.action"
+            from:data-action="item.action"
           >
-            <ui-icon :name="item.icon"></ui-icon>
-            <span $value="item.label"></span>
+            <ui-icon from:name="item.icon"></ui-icon>
+            <span>{$item.label}</span>
           </button>
         </div>
       </div>
@@ -128,8 +154,8 @@
       gap: var(--ui-space-1);
       padding: var(--ui-space-1);
       background: color-mix(in srgb, var(--ui-surface) 94%, transparent);
-      border: 1px solid var(--ui-border);
-      border-radius: calc(var(--ui-radius-md) + 2px);
+      border: var(--ui-border-width) solid var(--ui-border-strong);
+      border-radius: calc(var(--ui-radius-md) + 2 * var(--ui-border-width));
       box-shadow: var(--ui-shadow-lg, 0 10px 15px -3px rgb(0 0 0 / 0.1));
       backdrop-filter: blur(10px);
     }
@@ -144,7 +170,7 @@
     .sep {
       width: 1px;
       align-self: stretch;
-      background: var(--ui-border);
+      background: var(--ui-border-divider);
     }
 
     .overflow {
@@ -211,25 +237,30 @@
     }
 
     .menu {
+      box-sizing: border-box;
       position: absolute;
       top: calc(100% + var(--ui-space-2));
       right: 0;
       min-width: 12rem;
+      max-width: min(17rem, calc(100vw - 24px));
       padding: var(--ui-space-1);
       background: var(--ui-surface);
-      border: 1px solid var(--ui-border);
+      border: var(--ui-border-width) solid var(--ui-border-strong);
       border-radius: var(--ui-radius-md);
       box-shadow: var(--ui-shadow-lg, 0 10px 15px -3px rgb(0 0 0 / 0.1));
       display: flex;
       flex-direction: column;
       gap: 2px;
       z-index: 2;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
     }
 
     .menu-section + .menu-section {
       margin-top: var(--ui-space-1);
       padding-top: var(--ui-space-1);
-      border-top: 1px solid color-mix(in srgb, var(--ui-border) 80%, transparent);
+      border-top: var(--ui-border-width) solid var(--ui-border-divider);
     }
 
     .menu-heading {
@@ -250,7 +281,7 @@
 
     .swatches {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 2px;
     }
 
@@ -263,8 +294,8 @@
       width: 14px;
       height: 14px;
       flex: 0 0 14px;
-      border: 1px solid color-mix(in srgb, var(--ui-border) 80%, #000);
-      border-radius: 3px;
+      border: var(--ui-border-width) solid color-mix(in srgb, var(--ui-border) 80%, #000);
+      border-radius: var(--ui-radius-round);
       background: var(--_swatch);
     }
 

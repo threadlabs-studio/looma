@@ -1,3 +1,5 @@
+import { announceOverlayOpen } from "../shared/overlay.js";
+
 const BREAKPOINTS = { sm: "40rem", md: "48rem", lg: "64rem" };
 
 function positive(value, fallback) {
@@ -10,20 +12,20 @@ function positive(value, fallback) {
  * off-canvas drawer (a popover). A button toggles it with the platform's invoker commands:
  * `<button commandfor="nav" command="--toggle">`.
  */
-export default function controller(host) {
+function connect(host) {
   const element = host.element;
   const document = element.ownerDocument;
   const view = document.defaultView;
   let pointerAbort;
   let media;
-  let lastCollapsed = Boolean(host.state.collapsed);
-  let lastWidth = Number(host.state.width) || 0;
+  let lastCollapsed = Boolean(host.props.collapsed.value);
+  let lastWidth = Number(host.props.width.value) || 0;
   host.state.internalCollapsed = lastCollapsed;
   host.state.drawer = false;
 
   const bounds = () => {
-    const min = positive(host.state.minWidth, 200);
-    return { min, max: Math.max(min, positive(host.state.maxWidth, 480)), step: positive(host.state.resizeStep, 16) };
+    const min = positive(host.props.minWidth.value, 200);
+    return { min, max: Math.max(min, positive(host.props.maxWidth.value, 480)), step: positive(host.props.resizeStep.value, 16) };
   };
   const currentWidth = () => element.getBoundingClientRect().width || 280;
   const setWidth = (value, trigger = "programmatic") => {
@@ -44,7 +46,7 @@ export default function controller(host) {
     if (event.key === "End") next = max;
     if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
       const delta = event.key === "ArrowRight" ? step : -step;
-      next = currentWidth() + (host.state.side === "end" ? -delta : delta);
+      next = currentWidth() + (host.props.side.value === "end" ? -delta : delta);
     }
     if (next === null) return;
     event.preventDefault();
@@ -55,12 +57,14 @@ export default function controller(host) {
     event.preventDefault();
     const startX = event.clientX;
     const startWidth = currentWidth();
-    const multiplier = host.state.side === "end" ? -1 : 1;
+    const multiplier = host.props.side.value === "end" ? -1 : 1;
+    host.state.resizing = true;
     pointerAbort = new AbortController();
     const signal = pointerAbort.signal;
     const finish = () => {
       pointerAbort?.abort();
       pointerAbort = undefined;
+      host.state.resizing = false;
     };
     view.addEventListener("pointermove", (move) => {
       setWidth(startWidth + ((move.clientX - startX) * multiplier), "pointer");
@@ -73,13 +77,18 @@ export default function controller(host) {
   const endPointer = () => {
     pointerAbort?.abort();
     pointerAbort = undefined;
+    host.state.resizing = false;
   };
   const syncHandle = () => {
-    if (!host.state.resizable || host.state.drawer || host.state.internalCollapsed) { endPointer(); return; }
+    element.toggleAttribute("inert", host.state.internalCollapsed && !host.state.drawer);
+    if (host.state.internalCollapsed && !host.state.drawer) element.setAttribute("aria-hidden", "true");
+    else element.removeAttribute("aria-hidden");
+    if (!host.props.resizable.value || host.state.drawer || host.state.internalCollapsed) { endPointer(); return; }
     const { min, max } = bounds();
     handle.setAttribute("aria-valuemin", String(min));
     handle.setAttribute("aria-valuemax", String(max));
-    handle.setAttribute("aria-valuenow", String(Math.round(currentWidth())));
+    const requestedWidth = Number.parseFloat(element.style.getPropertyValue("--_sidebar-width"));
+    handle.setAttribute("aria-valuenow", String(Math.round(positive(requestedWidth, currentWidth()))));
   };
   const onDoubleClick = () => {
     element.style.removeProperty("--_sidebar-width");
@@ -103,7 +112,7 @@ export default function controller(host) {
     media?.removeEventListener("change", applyMode);
     // Without media queries (a non-browser DOM) the sidebar simply stays docked.
     if (typeof view.matchMedia !== "function") return;
-    const width = BREAKPOINTS[host.state.breakpoint] ?? BREAKPOINTS.md;
+    const width = BREAKPOINTS[host.props.breakpoint.value] ?? BREAKPOINTS.md;
     media = view.matchMedia(`(width < ${width})`);
     media.addEventListener("change", applyMode);
     applyMode();
@@ -134,16 +143,17 @@ export default function controller(host) {
   // report it again, forever. Only the drawer's own popover ToggleEvent, which has a newState, counts.
   const onPopoverToggle = (event) => {
     if (!host.state.drawer || event.target !== element || typeof event.newState !== "string") return;
+    if (event.newState === "open") announceOverlayOpen(document, element);
     host.dispatch("toggle", { open: event.newState === "open", mode: "drawer", trigger: "programmatic" });
   };
 
   const apply = () => {
-    const collapsed = Boolean(host.state.collapsed);
+    const collapsed = Boolean(host.props.collapsed.value);
     if (collapsed !== lastCollapsed) {
       lastCollapsed = collapsed;
       host.state.internalCollapsed = collapsed;
     }
-    const width = Number(host.state.width) || 0;
+    const width = Number(host.props.width.value) || 0;
     if (width !== lastWidth) {
       lastWidth = width;
       if (width > 0) setWidth(width);
@@ -160,9 +170,9 @@ export default function controller(host) {
   if (!invokerCommands) document.addEventListener("click", onDocumentClick);
   if (lastWidth > 0) setWidth(lastWidth);
   watchBreakpoint();
-  let lastBreakpoint = host.state.breakpoint;
+  let lastBreakpoint = host.props.breakpoint.value;
   const stop = host.effect(() => {
-    if (host.state.breakpoint !== lastBreakpoint) { lastBreakpoint = host.state.breakpoint; watchBreakpoint(); }
+    if (host.props.breakpoint.value !== lastBreakpoint) { lastBreakpoint = host.props.breakpoint.value; watchBreakpoint(); }
     apply();
   });
   apply();
@@ -177,4 +187,9 @@ export default function controller(host) {
     element.removeEventListener("toggle", onPopoverToggle);
     document.removeEventListener("click", onDocumentClick);
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

@@ -6,16 +6,32 @@
     <prop name="disabled" type="boolean" default="false">Prevents selection and form submission.</prop>
     <prop name="invalid" type="boolean" default="false">Exposes invalid state to assistive technology and styling.</prop>
     <prop name="required" type="boolean" default="false">Requires a non-empty option for form validation.</prop>
-    <prop name="size" type="sm | md | lg" default="md"
+    <prop name="size" type="keyword" values="sm, md, lg" default="md"
     >Height, padding, chevron, and type size, matching Button's sizes so a field and a button of one size share a row. sm is the small control height (2rem by
       default) with smaller text and a smaller chevron, for compact rows such as a table row or a filter bar; md is the standard control height; lg is taller
       with roomier padding. Under a coarse pointer, sm grows to the 44px touch minimum and keeps body-size text. It is not the native size attribute: a select
       is always a single-choice dropdown. Change it after render through this option; the element's size property is the native one.</prop>
   </defs>
-  <select :disabled="disabled" :required="required" :aria-invalid="invalid"><slot></slot></select>
+  <select from:disabled="disabled" from:required="required" from:aria-invalid="invalid"><slot></slot></select>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-select-border {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-select-border-hover {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-select-focus-border {
+      syntax: "*";
+      inherits: false;
+    }
     @property --ui-select-focus-shadow {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-select-inline-size {
       syntax: "*";
       inherits: false;
     }
@@ -35,18 +51,22 @@
       syntax: "*";
       inherits: false;
     }
+    @property --ui-select-surface {
+      syntax: "*";
+      inherits: false;
+    }
 
     :host {
       box-sizing: border-box;
       display: inline-block;
-      inline-size: 100%;
+      inline-size: var(--ui-select-inline-size, 100%);
       min-inline-size: 0;
       min-block-size: var(--ui-control-size-md);
       margin: 0;
       padding: var(--ui-space-2) var(--ui-space-3);
-      border: 1px solid var(--ui-control-border, var(--ui-border-strong));
+      border: var(--ui-border-width) solid var(--ui-select-border, var(--ui-control-border, var(--ui-border-strong)));
       border-radius: var(--ui-select-radius, var(--ui-field-radius, var(--ui-radius-md)));
-      background-color: var(--ui-control-surface, var(--ui-surface-elevated));
+      background-color: var(--ui-select-surface, var(--ui-control-surface, var(--ui-surface-elevated)));
       color: var(--ui-text-primary);
       color-scheme: light dark;
       font: inherit;
@@ -72,12 +92,12 @@
       background-size: 1.125rem 1.125rem;
     }
 
-    :host:hover:not(:focus):not(:disabled) {
-      border-color: var(--ui-control-border-hover, var(--ui-text-secondary));
+    :host:hover:not(:focus):not(:disabled):not([aria-invalid="true"]):not(:user-invalid) {
+      border-color: var(--ui-select-border-hover, var(--ui-control-border-hover, var(--ui-text-secondary)));
     }
 
     :host:focus-visible {
-      border-color: var(--ui-control-focus, var(--ui-accent-solid));
+      border-color: var(--ui-select-focus-border, var(--ui-control-focus, var(--ui-accent-solid)));
       outline: none;
       box-shadow: var(--ui-select-focus-shadow, var(--ui-control-inset), var(--ui-control-focus-halo-shadow));
     }
@@ -92,7 +112,11 @@
       box-shadow: var(
         --ui-select-invalid-focus-shadow,
         var(--ui-control-inset),
-        0 0 0 3px color-mix(in srgb, var(--ui-select-invalid-border, var(--ui-field-danger, var(--ui-danger-solid))) 22%, transparent)
+        0 0 0 calc(var(--ui-focus-width) * 1.5) color-mix(
+          in srgb,
+          var(--ui-select-invalid-border, var(--ui-field-danger, var(--ui-danger-solid))) 22%,
+          transparent
+        )
       );
     }
 
@@ -103,7 +127,7 @@
       cursor: not-allowed;
     }
 
-    :host-state([size="sm"]) {
+    :host([size="sm"]) {
       min-block-size: var(--ui-control-size-sm);
       padding: var(--ui-space-1) var(--ui-space-2);
       padding-inline-end: calc(var(--ui-space-2) + var(--ui-icon-size-sm) + var(--ui-space-1));
@@ -112,7 +136,7 @@
       font-size: var(--ui-font-size-sm);
     }
 
-    :host-state([size="lg"]) {
+    :host([size="lg"]) {
       min-block-size: var(--ui-control-size-lg);
       padding: var(--ui-space-3) var(--ui-space-4);
       padding-inline-end: calc(var(--ui-space-4) + 1.5rem);
@@ -123,7 +147,7 @@
     /* Under touch a small field is still a touch-sized target, as a small button is, and keeps
        body-size text: below 16px, iOS zooms the page into the focused field. */
     @media (pointer: coarse) {
-      :host-state([size="sm"]) {
+      :host([size="sm"]) {
         min-block-size: var(--ui-control-min-block-size);
         font-size: inherit;
       }

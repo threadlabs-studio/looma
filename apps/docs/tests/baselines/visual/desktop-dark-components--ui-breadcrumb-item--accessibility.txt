@@ -1,0 +1,11 @@
+[
+  {
+    "id": "landmark-unique",
+    "impact": "moderate",
+    "targets": [
+      [
+        "section[data-preview-scenario=\"Default\"] > .looma-preview-scenario__stage[data-component-preview=\"ui-breadcrumb-item\"] > nav[aria-label=\"Breadcrumb\"][data-component=\"ui-breadcrumbs\"]"
+      ]
+    ]
+  }
+]

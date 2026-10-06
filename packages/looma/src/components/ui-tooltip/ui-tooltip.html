@@ -4,26 +4,38 @@
     <prop name="open" type="boolean" default="false">Whether the tooltip is open initially or when set externally.</prop>
     <prop
       name="placement"
-      type="top | top-start | top-end | bottom | bottom-start | bottom-end | left | left-start | left-end | right | right-start | right-end"
+      type="keyword"
+      values="top, top-start, top-end, bottom, bottom-start, bottom-end, left, left-start, left-end, right, right-start, right-end"
       default="top"
     >Positions the description around its trigger. Start and end on top or bottom follow the writing direction.</prop>
-    <prop name="trigger" type="hover | click | focus" default="hover"
+    <prop name="trigger" type="keyword" values="hover, click, focus" default="hover"
     >How the trigger opens it. hover also opens on keyboard focus; click toggles it and suits a help button, where hovering a question mark says nothing; focus
       opens only while the trigger holds focus.</prop>
     <prop name="showDelay" type="number" default="500">Waits this many milliseconds before showing after pointer entry.</prop>
     <prop name="hideDelay" type="number" default="100">Waits this many milliseconds before hiding after pointer exit.</prop>
     <prop name="inverse" type="boolean" default="false">Use the high-contrast inverse surface (dark on light themes, light on dark themes).</prop>
-    <state name="internalOpen" :value="false"></state>
+    <state type="boolean" name="internalOpen" value="false"></state>
     <event
       name="open"
-      type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"
-    ></event>
+      type="object"
+    >
+      <prop name="open" required type="boolean"></prop>
+      <prop name="reason" required type="keyword" values="action, programmatic, light-dismiss, escape"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
     <event
       name="close"
-      type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"
-    ></event>
+      type="object"
+    >
+      <prop name="open" required type="boolean"></prop>
+      <prop name="reason" required type="keyword" values="action, programmatic, light-dismiss, escape"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
   </defs>
-  <span role="tooltip" :hidden="not internalOpen"><div class="surface"><slot></slot></div></span>
+  <span role="tooltip" from:hidden="not internalOpen"><div class="surface">
+      <slot></slot>
+      <span class="shortcut"><slot name="shortcut"></slot></span>
+    </div></span>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
     @property --ui-tooltip-arrow-size {
@@ -101,22 +113,46 @@
     }
 
     .surface {
-      --_tooltip-line: var(--_ui-tooltip-border, var(--ui-overlay-border, var(--ui-border-default)));
+      --_tooltip-line: var(--_ui-tooltip-border, var(--ui-overlay-border, var(--ui-border-strong)));
       position: relative;
       box-sizing: border-box;
       max-inline-size: var(--_ui-tooltip-max-inline-size, 18rem);
-      border: 1px solid var(--_tooltip-line);
-      border-radius: var(--_ui-tooltip-radius, var(--ui-overlay-radius, var(--ui-radius-sm)));
+      border: var(--ui-border-width) solid var(--_tooltip-line);
+      border-radius: var(--_ui-tooltip-radius, var(--ui-overlay-radius, var(--ui-radius-md)));
       background: var(--_ui-tooltip-surface, var(--ui-overlay-surface, var(--ui-surface-elevated)));
       color: var(--_ui-tooltip-text, var(--ui-text-primary));
-      padding: var(--ui-space-1) var(--ui-space-2);
+      padding: var(--ui-space-2) var(--ui-space-3);
       font-family: var(--ui-font-family-sans);
       font-size: var(--ui-font-size-sm);
       line-height: var(--ui-line-height-tight);
       box-shadow: var(--_ui-tooltip-shadow, var(--ui-overlay-shadow, var(--ui-elevation-tooltip, var(--ui-shadow-md))));
     }
 
-    :host-state([inverse]) .surface {
+    /* A keyboard shortcut follows the label after a thin divider, smaller and quieter, as menus show
+       it. The label stays first in the description, so a screen reader hears the name, then the keys. */
+    .shortcut {
+      display: inline-flex;
+      align-items: center;
+      margin-inline-start: var(--ui-space-2);
+      padding-inline-start: var(--ui-space-2);
+      border-inline-start: 1px solid color-mix(in oklab, currentColor 28%, transparent);
+      color: color-mix(in oklab, currentColor 72%, transparent);
+      font-size: var(--ui-font-size-xs);
+      font-weight: var(--ui-font-normal);
+      white-space: nowrap;
+      vertical-align: baseline;
+    }
+
+    .shortcut:empty {
+      display: none;
+    }
+
+    /* A <kbd> takes the browser's monospace; the hint reads in the tooltip's own type. */
+    .shortcut :slotted(kbd) {
+      font: inherit;
+    }
+
+    :host([inverse]) .surface {
       --_tooltip-line: var(--_ui-tooltip-inverse-surface, var(--ui-text-primary));
       background: var(--_ui-tooltip-inverse-surface, var(--ui-text-primary));
       color: var(--_ui-tooltip-inverse-text, var(--ui-surface-default));
@@ -129,31 +165,31 @@
       position: absolute;
       z-index: 1;
       inset-inline-start: var(--ui-space-3);
-      inset-block-end: calc(var(--_ui-tooltip-arrow-size, 0.5rem) / -2 - 0.5px);
-      inline-size: var(--_ui-tooltip-arrow-size, 0.5rem);
-      block-size: var(--_ui-tooltip-arrow-size, 0.5rem);
+      inset-block-end: calc(var(--_ui-tooltip-arrow-size, 0.625rem) / -2 - var(--ui-border-width) / 2);
+      inline-size: var(--_ui-tooltip-arrow-size, 0.625rem);
+      block-size: var(--_ui-tooltip-arrow-size, 0.625rem);
       box-sizing: border-box;
       background: inherit;
       border: 0 solid var(--_tooltip-line);
-      border-inline-end-width: 1px;
-      border-block-end-width: 1px;
-      border-end-end-radius: 1px;
-      transform: rotate(45deg);
+      border-inline-end-width: var(--ui-border-width);
+      border-block-end-width: var(--ui-border-width);
+      border-end-end-radius: var(--ui-border-width);
+      transform: rotate(45deg) scaleX(1.25) scaleY(0.85);
     }
 
     :host[data-ui-actual-placement="bottom"] .surface::after {
-      inset-block-start: calc(var(--_ui-tooltip-arrow-size, 0.5rem) / -2 - 0.5px);
+      inset-block-start: calc(var(--_ui-tooltip-arrow-size, 0.625rem) / -2 - var(--ui-border-width) / 2);
       inset-block-end: auto;
       border-inline-end-width: 0;
       border-block-end-width: 0;
-      border-inline-start-width: 1px;
-      border-block-start-width: 1px;
+      border-inline-start-width: var(--ui-border-width);
+      border-block-start-width: var(--ui-border-width);
       border-end-end-radius: 0;
-      border-start-start-radius: 1px;
+      border-start-start-radius: var(--ui-border-width);
     }
 
     :host[data-ui-actual-align="center"] .surface::after {
-      inset-inline-start: calc(50% - var(--_ui-tooltip-arrow-size, 0.5rem) / 2);
+      inset-inline-start: calc(50% - var(--_ui-tooltip-arrow-size, 0.625rem) / 2);
     }
 
     :host[data-ui-actual-align="end"] .surface::after {
@@ -163,23 +199,23 @@
 
     :host[data-ui-actual-placement="left"] .surface::after,
     :host[data-ui-actual-placement="right"] .surface::after {
-      inset-block-start: calc(50% - var(--_ui-tooltip-arrow-size, 0.5rem) / 2);
+      inset-block-start: calc(50% - var(--_ui-tooltip-arrow-size, 0.625rem) / 2);
       inset-block-end: auto;
       border: 0 solid var(--_tooltip-line);
     }
 
     :host[data-ui-actual-placement="left"] .surface::after {
       inset-inline-start: auto;
-      inset-inline-end: calc(var(--_ui-tooltip-arrow-size, 0.5rem) / -2 - 0.5px);
-      border-inline-end-width: 1px;
-      border-block-end-width: 1px;
+      inset-inline-end: calc(var(--_ui-tooltip-arrow-size, 0.625rem) / -2 - var(--ui-border-width) / 2);
+      border-inline-end-width: var(--ui-border-width);
+      border-block-start-width: var(--ui-border-width);
     }
 
     :host[data-ui-actual-placement="right"] .surface::after {
-      inset-inline-start: calc(var(--_ui-tooltip-arrow-size, 0.5rem) / -2 - 0.5px);
+      inset-inline-start: calc(var(--_ui-tooltip-arrow-size, 0.625rem) / -2 - var(--ui-border-width) / 2);
       inset-inline-end: auto;
-      border-inline-start-width: 1px;
-      border-block-start-width: 1px;
+      border-inline-start-width: var(--ui-border-width);
+      border-block-end-width: var(--ui-border-width);
     }
 
     :host[data-ui-actual-placement="left"][data-ui-actual-align="start"] .surface::after,

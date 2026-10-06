@@ -1,6 +1,6 @@
 import { closeOverlay, createAnchoredSurface, createIdResolver, openOverlay, requestTopOverlayClose } from "../shared/overlay.js";
 
-export default function controller(host) {
+function connect(host) {
   const element = host.element;
   const document = element.ownerDocument;
   const offset = () => {
@@ -13,11 +13,12 @@ export default function controller(host) {
   };
   const overlayId = `ui-popover-${Math.random().toString(36).slice(2, 11)}`;
   let anchor = null;
+  let anchorExpanded = null;
   let surface = null;
   let lastFor;
   let lastPlacement;
   let lastOpen;
-  let lastExternalOpen = Boolean(host.state.open);
+  let lastExternalOpen = Boolean(host.props.open.value);
   host.state.internalOpen = lastExternalOpen;
 
   const close = (reason, trigger) => {
@@ -37,26 +38,36 @@ export default function controller(host) {
     host.dispatch("open", { open: true, reason: "action", trigger });
   };
   const ids = createIdResolver(document, () => apply());
+  const releaseAnchor = () => {
+    if (!anchor) return;
+    anchor.removeEventListener("click", onAnchorClick);
+    if (anchorExpanded === null) anchor.removeAttribute("aria-expanded");
+    else anchor.setAttribute("aria-expanded", anchorExpanded);
+    anchor = null;
+    anchorExpanded = null;
+  };
   const setup = () => {
-    const nextFor = String(host.state.for ?? "");
-    const nextPlacement = String(host.state.placement ?? "bottom-start");
+    const nextFor = String(host.props.for.value ?? "");
+    const nextPlacement = String(host.props.placement.value ?? "bottom-start");
     if (surface && nextFor === lastFor && nextPlacement === lastPlacement) return;
     lastFor = nextFor;
     lastPlacement = nextPlacement;
     surface?.destroy();
-    anchor?.removeEventListener("click", onAnchorClick);
+    releaseAnchor();
     anchor = ids.get(nextFor);
+    if (anchor) anchorExpanded = anchor.getAttribute("aria-expanded");
     anchor?.addEventListener("click", onAnchorClick);
     surface = anchor ? createAnchoredSurface(element, { anchor, placement: nextPlacement, gap: offset }) : null;
   };
   const apply = () => {
-    const externalOpen = Boolean(host.state.open);
+    const externalOpen = Boolean(host.props.open.value);
     if (externalOpen !== lastExternalOpen) {
       lastExternalOpen = externalOpen;
       host.state.internalOpen = externalOpen;
     }
     setup();
     const open = Boolean(host.state.internalOpen);
+    if (anchor) anchor.setAttribute("aria-expanded", String(open));
     if (open) {
       surface?.show();
       openOverlay({ id: overlayId, modal: false, element, relatedElements: anchor ? [anchor] : [], dismissible: true, requestClose: close });
@@ -70,7 +81,10 @@ export default function controller(host) {
     lastOpen = open;
   };
   const onKeydown = (event) => {
-    if (event.key === "Escape") requestTopOverlayClose(document, "escape", "keyboard");
+    if (event.key === "Escape" && !event.defaultPrevented) {
+      event.preventDefault();
+      requestTopOverlayClose(document, "escape", "keyboard");
+    }
   };
   element.addEventListener("keydown", onKeydown);
   const stop = host.effect(apply);
@@ -79,8 +93,13 @@ export default function controller(host) {
     stop();
     ids.stop();
     element.removeEventListener("keydown", onKeydown);
-    anchor?.removeEventListener("click", onAnchorClick);
     surface?.destroy();
     closeOverlay(document, overlayId);
+    releaseAnchor();
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

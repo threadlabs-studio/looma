@@ -2,15 +2,15 @@ function radioScope(item) {
   return item.closest('[role="group"]') ?? item.closest('[role="menu"]');
 }
 
-export default function controller(host) {
+function connect(host) {
   const item = host.element;
-  let external = Boolean(host.state.checked);
+  let external = Boolean(host.props.checked.value);
   host.state.internalChecked = external;
 
   const setChecked = (checked, trigger, announce) => {
     if (Boolean(host.state.internalChecked) === checked) return;
     host.state.internalChecked = checked;
-    if (announce) host.dispatch("change", { checked, value: String(host.state.value ?? ""), type: String(host.state.type), trigger });
+    if (announce) host.dispatch("change", { checked, value: String(host.props.value.value ?? ""), type: String(host.props.type.value), trigger });
   };
   const clearOtherRadios = (trigger, announce) => {
     const scope = radioScope(item);
@@ -21,8 +21,8 @@ export default function controller(host) {
     }
   };
   const onActivate = (event) => {
-    const type = String(host.state.type);
-    if (host.state.disabled || type === "action") return;
+    const type = String(host.props.type.value);
+    if (host.props.disabled.value || type === "action") return;
     const checked = type === "radio" ? true : !host.state.internalChecked;
     if (type === "radio") clearOtherRadios(event.detail.trigger, true);
     setChecked(checked, event.detail.trigger, true);
@@ -30,18 +30,23 @@ export default function controller(host) {
   };
   const onClear = (event) => setChecked(false, event.detail.trigger, event.detail.announce);
   const stop = host.effect(() => {
-    const checked = Boolean(host.state.checked);
+    const checked = Boolean(host.props.checked.value);
     if (checked === external) return;
     external = checked;
-    if (checked && host.state.type === "radio") clearOtherRadios("programmatic", false);
+    if (checked && host.props.type.value === "radio") clearOtherRadios("programmatic", false);
     setChecked(checked, "programmatic", false);
   });
   item.addEventListener("ui-menu-item-activate", onActivate);
   item.addEventListener("ui-menu-item-clear", onClear);
-  if (external && host.state.type === "radio") queueMicrotask(() => clearOtherRadios("programmatic", false));
+  if (external && host.props.type.value === "radio") queueMicrotask(() => clearOtherRadios("programmatic", false));
   return () => {
     stop();
     item.removeEventListener("ui-menu-item-activate", onActivate);
     item.removeEventListener("ui-menu-item-clear", onClear);
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

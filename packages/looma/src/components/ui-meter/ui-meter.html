@@ -5,11 +5,11 @@
     <prop name="max" type="number" default="1"
     >The value of a full bar, as on a native meter: 1 for a fraction, or the whole amount (a total, a count of items) with value as the part of it. Must be
       above 0; otherwise the bar is empty.</prop>
-    <prop name="tone" type="neutral | accent | info | success | warning | danger" default="neutral"
+    <prop name="tone" type="keyword" values="neutral, accent, info, success, warning, danger" default="neutral"
     >Which colour the filled part speaks in, as on Badge: neutral is a quiet grey, accent draws the eye, and info, success, warning, and danger mark a state
       (such as nothing yet, partial, complete, or needs attention). Colour alone says nothing to assistive technology or in forced colours, so say the state in
       valueText or in text beside the meter too.</prop>
-    <prop name="size" type="sm | md" default="md"
+    <prop name="size" type="keyword" values="sm, md" default="md"
     >Thickness. sm is a thin bar that sits in a line of text, such as a table cell beside an amount; md stands on its own.</prop>
     <prop name="segments" type="number" default="0"
     >How many equal segments to draw the bar as, from 2 to 12, for a count of steps: set max to the same number and value to the steps done, so whole segments
@@ -18,23 +18,22 @@
     <prop name="label" type="string" default=""
     >What the meter measures, as its accessible name ("Collected"). Leave it empty only when aria-labelledby names the meter from visible text.</prop>
     <prop name="valueText" type="string" default=""
-    >The value as assistive technology reads it ("$750 of $1,240 collected", "3 of 5 done, overdue"). Empty reads the percentage.</prop>
+    >The value as assistive technology reads it ("$750 of $1,240 collected", "3 of 5 done, overdue"). Empty reads the whole percentage in the current
+      locale.</prop>
     <!-- Derived as it renders, so every render path, a server render included, draws the bar and states its value without JavaScript. -->
     <computed name="amount" from="clamp(0, value, max)"></computed>
-    <computed name="percent" from="{ true: amount / max * 100, false: 0 }[format('%s', max > 0)]"></computed>
-    <!-- percent rounded half up, for the text: round() on a derived number does not compile to Vue yet. -->
-    <computed name="whole" from="percent + 0.5 - (percent + 0.5) % 1"></computed>
+    <computed name="percent" from="{ true: amount / max * 100, false: 0 }[concat(max > 0)]"></computed>
   </defs>
   <span
     role="meter"
     aria-valuemin="0"
-    :aria-valuemax="max"
-    :aria-valuenow="amount"
-    :aria-valuetext="{ true: valueText, false: format('%s%', whole) }[format('%s', valueText != '')]"
-    :aria-label="{ true: label, false: null }[format('%s', label != '')]"
-    :data-ui-meter-segments="{ true: segments, false: null }[format('%s', segments > 1)]"
+    from:aria-valuemax="max"
+    from:aria-valuenow="amount"
+    from:aria-valuetext="{ true: valueText, false: format($percent / 100, 'percent', { maximumFractionDigits: 0 }) }[concat(valueText != '')]"
+    from:aria-label="{ true: label, false: null }[concat(label != '')]"
+    from:data-ui-meter-segments="{ true: segments, false: null }[concat(segments > 1)]"
   >
-    <span class="fill" style:inline-size="format('%s%', percent)"></span>
+    <span class="fill" style:inline-size="concat(percent, '%')"></span>
   </span>
   <style>
     /* How far along something is: a track, filled from the start in the tone's colour. The track is a
@@ -57,11 +56,12 @@
       overflow: hidden;
       border-radius: var(--ui-radius-round);
       background: var(--ui-border);
+      box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.1), inset 0 -1px rgb(255 255 255 / 0.22);
       /* Unseen until forced colours draw it, where the track's own colour is gone. */
-      outline: 1px solid transparent;
+      outline: var(--ui-border-width) solid transparent;
     }
 
-    :host-state([size="sm"]) {
+    :host([size="sm"]) {
       inline-size: var(--ui-meter-inline-size, 5rem);
       block-size: var(--ui-space-1);
     }
@@ -69,26 +69,28 @@
     .fill {
       display: block;
       block-size: 100%;
-      background: var(--_meter-fill);
+      background-color: var(--_meter-fill);
+      background-image: linear-gradient(to bottom, rgb(255 255 255 / 0.26), transparent 70%);
+      box-shadow: inset 0 1px rgb(255 255 255 / 0.26), inset 0 -1px rgb(0 0 0 / 0.1);
     }
 
-    :host-state([tone="accent"]) {
+    :host([tone="accent"]) {
       --_meter-fill: var(--ui-accent-solid);
     }
 
-    :host-state([tone="info"]) {
+    :host([tone="info"]) {
       --_meter-fill: var(--ui-info-solid);
     }
 
-    :host-state([tone="success"]) {
+    :host([tone="success"]) {
       --_meter-fill: var(--ui-success-solid);
     }
 
-    :host-state([tone="warning"]) {
+    :host([tone="warning"]) {
       --_meter-fill: var(--ui-warning-solid);
     }
 
-    :host-state([tone="danger"]) {
+    :host([tone="danger"]) {
       --_meter-fill: var(--ui-danger-solid);
     }
 
@@ -152,7 +154,7 @@
       mask-image: repeating-linear-gradient(to right, #000 0 var(--_meter-segment), transparent 0 var(--_meter-period));
     }
 
-    :host-state([size="sm"])[data-ui-meter-segments] {
+    :host([size="sm"])[data-ui-meter-segments] {
       --_meter-gap: var(--ui-space-0-5);
     }
 

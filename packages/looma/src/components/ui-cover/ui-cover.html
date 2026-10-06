@@ -1,6 +1,6 @@
 <template component="ui-cover">
   <defs>
-    <prop name="size" type="screen | fill" default="screen"
+    <prop name="size" type="keyword" values="screen, fill" default="screen"
     >How tall the cover is. screen is at least the viewport's height, for a view that is one centred card, such as sign-in; fill takes the space its parent
       gives it.</prop>
   </defs>
@@ -19,7 +19,7 @@
       padding: var(--ui-space-6) var(--ui-space-4);
     }
 
-    :host-state([size="fill"]) {
+    :host([size="fill"]) {
       flex: 1;
       min-block-size: 100%;
     }

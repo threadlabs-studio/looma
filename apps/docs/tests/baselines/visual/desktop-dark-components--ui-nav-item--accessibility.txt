@@ -1,0 +1,11 @@
+[
+  {
+    "id": "landmark-unique",
+    "impact": "moderate",
+    "targets": [
+      [
+        ".theme-layout-navbar"
+      ]
+    ]
+  }
+]

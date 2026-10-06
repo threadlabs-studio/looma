@@ -6,9 +6,10 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 # Combobox
 
-A normal text field with contextual rich suggestions and integrated optional help
-and validation. Labels and option titles use restrained medium weight; metadata and
-messages use regular weight. Domain lookups and persistence stay in the application.
+A searchable text field with authored `<option>` suggestions. It supports descriptions, tags,
+multiple selections, and validation.
+
+<ComponentExamplesApiTabs component="ui-combobox" />
 
 Use `open-on-focus` when browsing should start before typing. `filter="label"` narrows
 authored options by label; `filter="none"` displays every option currently supplied by the
@@ -16,6 +17,11 @@ application, which is useful for server-filtered results. While those results lo
 the list announces its busy state and hides the empty state. Provide an `empty` slot for the
 settled no-results message. Set `invalid` when validation is owned by the form; it remains in
 effect until the application clears it.
+
+For an initial HTML selection, put `selected` on an authored `<option>` (on several options in
+`multiple` mode). A form reset restores those defaults. Use `value`, `items`, or `selected-values`
+when the application owns the selection; `selected-values` is the controlled multiple-selection
+API, so the application must accept each reported change to keep it.
 
 ## Descriptions and tags
 
@@ -37,7 +43,7 @@ mixes kinds of result, such as people, businesses, and places:
   once chosen. The tag and the description are the option's accessible description, so a screen
   reader announces the name first and the context after it.
 - Options report them as `description` and `tag: { label, tone?, color? }` in `options-change`,
-  `value-change`, and the other item events. An option without them reports the same shape as
+  `value-change`, `items-change`, and the other item events. An option without them reports the same shape as
   before.
 
 ## Server search
@@ -54,5 +60,27 @@ Leaving the field commits an option whose label matches the text, or the only on
 </ui-combobox>
 ```
 
+## Request validation and focus
 
-<ComponentExamplesApiTabs component="ui-combobox" />
+Use the native command channel to request the same validation used when the
+field loses focus. `validation-change` reports a pending state followed by the
+result, including its issues; application validation remains owned by the form.
+
+```js
+const combobox = document.getElementById("fruit");
+combobox.addEventListener("validation-change", (event) => {
+  if (event.detail.status !== "pending") console.log(event.detail.issues);
+});
+combobox.dispatchEvent(new CommandEvent("command", { command: "--validate" }));
+combobox.querySelector('input[role="combobox"]').focus();
+```
+
+A button can request validation without JavaScript:
+
+```html
+<ui-button commandfor="fruit" command="--validate">Check selection</ui-button>
+```
+
+This replaces `await combobox.validate()` and `combobox.focusInput()`. Listen
+before dispatching the command: a validation result may be reported
+synchronously. Focusing uses the native input's focus behavior and options.

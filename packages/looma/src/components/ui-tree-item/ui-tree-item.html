@@ -1,3 +1,4 @@
+<link rel="component" href="../ui-button/ui-button.html">
 <template component="ui-tree-item" controller="./ui-tree-item.js">
   <defs>
     <prop name="itemId" type="string" default=""
@@ -17,8 +18,8 @@
     >Keeps an empty item expandable while its children are supplied later. Expanding emits expand; the item is aria-busy until child Tree Items are appended.
       Clear lazy if loading finishes with no children.</prop>
     <prop name="sortable" type="boolean" default="false"
-    >Gives the item a move handle. Drag it, or activate it and choose a target by a second click or the keyboard. The tree reports reorder and leaves moving the
-      item to you. Needs itemId; disabled items show no handle.</prop>
+    >Gives the item a move handle. Drag it, or activate it according to the tree's moveActivation and choose a target by a second click or the keyboard. A
+      guided move exposes Cancel on this row. The tree reports reorder and leaves moving the item to you. Needs itemId; disabled items show no handle.</prop>
     <prop name="dragType" type="string" default="item"
     >The item's kind, for drag rules: it can be dropped before or after only items of the same type, and inside a branch only if that branch's accepts allows
       it. Reported as sourceType and targetType.</prop>
@@ -35,28 +36,34 @@
     >Marks the item selected: it sets aria-selected and highlights the row. This is controlled state; respond to the parent Tree's select request by updating
       it.</prop>
     <prop name="marquee" type="boolean" default="false"
-    >Scrolls a name too long for its row while the row is hovered or focused, then puts it back. Off by default: a tree of short names should not move, and a
-      product decides whether reading the whole name matters more than a still list.</prop>
+    >Scrolls a name too long for its row while a pointer hovers the row or keyboard focus is in it, rests at the end, then scrolls it again from the start. A
+      touch does not start it. Off by default: a tree of short names should not move, and a product decides whether reading the whole name matters more than a
+      still list.</prop>
     <prop name="disabled" type="boolean" default="false"
     >Makes the item unavailable: faded, skipped by keyboard navigation, unable to expand or be dragged, and closed to drops inside it.</prop>
-    <state name="internalExpanded" :value="false"></state>
-    <state name="structuralLevel" :value="1"></state>
-    <state name="tabStop" :value="false"></state>
-    <state name="isContainer" :value="false"></state>
-    <event name="expand" bubbles="false" type="object({ id: string, expanded: boolean, trigger: keyboard | pointer | programmatic })"></event>
+    <state type="boolean" name="internalExpanded" value="false"></state>
+    <state type="integer" name="structuralLevel" value="1"></state>
+    <state type="boolean" name="tabStop" value="false"></state>
+    <state type="boolean" name="isContainer" value="false"></state>
+    <state type="boolean" name="moving" value="false"></state>
+    <event name="expand" bubbles="false" type="object">
+      <prop name="id" required type="string"></prop>
+      <prop name="expanded" required type="boolean"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
   </defs>
   <div
     role="treeitem"
-    :aria-label="label"
-    :aria-level="structuralLevel"
-    :aria-selected="selected"
-    :aria-disabled="disabled"
-    :data-item-id="itemId"
-    :data-drag-type="dragType"
-    :data-drop-scope="dropScope"
-    :data-accepts="accepts"
-    :data-drop-depth="dropDepth"
-    :data-subtree-depth="subtreeDepth"
+    from:aria-label="label"
+    from:aria-level="structuralLevel"
+    from:aria-selected="selected"
+    from:aria-disabled="disabled"
+    from:data-item-id="itemId"
+    from:data-drag-type="dragType"
+    from:data-drop-scope="dropScope"
+    from:data-accepts="accepts"
+    from:data-drop-depth="dropDepth"
+    from:data-subtree-depth="subtreeDepth"
   >
     <div class="row" $ref="row">
       <button
@@ -65,7 +72,7 @@
         $ref="dragHandle"
         type="button"
         draggable="true"
-        :aria-label="format('Drag %s to reorder', label)"
+        from:aria-label="{ true: concat('Cancel moving ', label), false: concat('Drag ', label, ' to reorder') }[concat(moving)]"
       >
         <svg
           aria-hidden="true"
@@ -85,23 +92,26 @@
           <circle cx="15" cy="19" r="1"></circle>
         </svg>
       </button>
-      <button class="disclosure" $ref="disclosure" type="button" :disabled="disabled" :hidden="not isContainer">
+      <button class="disclosure" $ref="disclosure" type="button" from:disabled="disabled" from:hidden="not isContainer">
         <span class="disclosure-icon" aria-hidden="true"></span>
       </button>
       <label class="selection-hit"><input
           class="selection-checkbox"
           type="checkbox"
           tabindex="-1"
-          :checked="selected"
-          :disabled="disabled"
-          :aria-label="format('Select %s', label)"
+          from:checked="selected"
+          from:disabled="disabled"
+          from:aria-label="concat('Select ', label)"
         ></label>
       <span class="leading" $ref="leading"><slot name="leading"></slot></span>
-      <span class="label" $ref="label"><span class="label-text" $ref="labelText"><slot name="label"><template $value="label"></template></slot></span></span>
-      <span class="actions" $ref="actions"><slot name="actions"></slot></span>
+      <span class="label" $ref="label"><span class="label-text" $ref="labelText"><slot name="label">{$label}</slot></span></span>
+      <span class="actions" $ref="actions">
+        <ui-button $if="moving" data-tree-cancel-move variant="ghost" tone="neutral" size="sm" aria-label="Cancel move">Cancel</ui-button>
+        <span $else><slot name="actions"></slot></span>
+      </span>
       <span class="drop-indicator row-drop-indicator" aria-hidden="true"></span>
     </div>
-    <div class="children" $ref="children" role="group" :hidden="not (isContainer and internalExpanded)"><slot></slot></div>
+    <div class="children" $ref="children" role="group" from:hidden="not (isContainer and internalExpanded)"><slot></slot></div>
     <span class="drop-indicator subtree-drop-indicator" aria-hidden="true"></span>
   </div>
   <style>
@@ -141,7 +151,7 @@
       position: relative;
       display: block;
       min-inline-size: 0;
-      margin-inline-start: calc(var(--ui-tree-item-depth, 0) * var(--_ui-tree-indent, 16px));
+      margin-inline-start: calc(var(--_ui-tree-item-indent-step, 0) * var(--_ui-tree-indent, 16px));
     }
 
     .row {
@@ -152,7 +162,7 @@
       min-block-size: var(--_ui-tree-item-min-block-size, var(--_tree-row-min-height));
       min-inline-size: 0;
       font-size: var(--_ui-tree-item-font-size, var(--ui-font-size-sm));
-      border-radius: var(--ui-radius-md);
+      border-radius: var(--ui-selection-radius);
       color: var(--ui-text-secondary);
       transition:
         background-color var(--ui-motion-fast) var(--ui-motion-ease),
@@ -163,17 +173,31 @@
     }
 
     .row:hover,
-    :host-state([selected]) .row,
     .row:focus-within {
       color: var(--ui-text-primary);
       background: var(--ui-surface-muted);
     }
 
-    :host-state([disabled]) .row {
-      opacity: 0.55;
+    /* Selection is the same surface recipe as destination and choice rows. */
+    :host([selected]) > .row {
+      color: var(--ui-selection-text);
+      background: var(--ui-selection-surface);
+    }
+    :host([selected]):not([aria-disabled="true"]) > .row > .leading {
+      color: var(--ui-selection-text);
     }
 
-    :host[data-dragging] .row {
+    :host([disabled]) .row {
+      color: var(--ui-disabled-text);
+      background: var(--ui-disabled-surface);
+    }
+
+    :host[data-dragging]:not([data-move-source]) .row {
+      opacity: 0.42;
+    }
+
+    :host[data-move-source] > .row > .label,
+    :host[data-move-source] > .row > .leading {
       opacity: 0.42;
     }
 
@@ -182,13 +206,13 @@
     }
 
     :host:focus-visible .row {
-      box-shadow: 0 0 0 2px var(--ui-focus-ring);
+      box-shadow: 0 0 0 var(--ui-focus-width) var(--ui-focus-ring);
     }
 
     /* Child combinators: drop feedback belongs to this item's own row, not the rows nested in it. */
     :host[data-drop-position="inside"] > .row {
       background: var(--ui-accent-subtle);
-      box-shadow: inset 0 0 0 1px var(--_ui-tree-drop-color, var(--ui-accent-solid));
+      box-shadow: inset 0 0 0 var(--ui-accent-line-width) var(--_ui-tree-drop-color, var(--ui-accent-solid));
     }
 
     .disclosure,
@@ -269,7 +293,7 @@
       transform: translateY(-20%) rotate(45deg);
     }
 
-    :host[aria-expanded="true"] .disclosure-icon {
+    :host[aria-expanded="true"] > .row > .disclosure > .disclosure-icon {
       transform: rotate(0deg);
     }
 
@@ -322,7 +346,7 @@
       padding: var(--_ui-tree-item-label-padding-block, var(--ui-space-1)) var(--_ui-tree-item-label-padding-inline, var(--ui-space-2));
       /* The length of the fade before the controls. The label's one flex child lays out no gap; this
          is where the controller reads the length in pixels to stop a sliding name before the fade. */
-      column-gap: var(--ui-space-3);
+      column-gap: var(--ui-space-1);
     }
 
     /* Slotted label content fills the cell, so a link is the row's hit area rather than sizing to
@@ -346,47 +370,49 @@
     /* The controls sit over the label's end, so the text fades out where they begin. The fade is
        the truncation mark while it shows: an ellipsis under it would read as a second one. */
     .row:hover > .label,
-    .row:focus-within > .label {
+    .row:focus-within > .label,
+    :host[data-move-source] > .row > .label {
       text-overflow: clip;
       mask-image: linear-gradient(
         to right,
-        #000 calc(100% - var(--_tree-actions-width, 1.75rem) - var(--ui-space-3)),
+        #000 calc(100% - var(--_tree-actions-width, 1.75rem) - var(--ui-space-1)),
         transparent calc(100% - var(--_tree-actions-width, 1.75rem))
       );
     }
 
     .row:hover > .label:dir(rtl),
-    .row:focus-within > .label:dir(rtl) {
+    .row:focus-within > .label:dir(rtl),
+    :host[data-move-source] > .row > .label:dir(rtl) {
       mask-image: linear-gradient(
         to left,
-        #000 calc(100% - var(--_tree-actions-width, 1.75rem) - var(--ui-space-3)),
+        #000 calc(100% - var(--_tree-actions-width, 1.75rem) - var(--ui-space-1)),
         transparent calc(100% - var(--_tree-actions-width, 1.75rem))
       );
     }
 
-    /* A hovered row reads its whole name: the label slides far enough to show the end, waits
-       there, and comes back. Only when it actually overflows — the controller measures by how
+    /* A hovered row reads its whole name: the label slides far enough to show the end, rests
+       there, and starts again. Only when it actually overflows — the controller measures by how
        much — after the controls have taken their place over its end — and hands over the distance
        and a duration from it, so every name moves at the same speed. */
     .row[data-ui-marquee] > .label > .label-text {
-      /* Once, and it stays at the end while the pointer is there: a name that keeps sliding back
-         and forth under the pointer is harder to read than one that arrives and holds. */
+      /* Once per pass: the controller restarts it after a rest at the end, so the name holds still
+         long enough to read rather than sliding back and forth. */
       animation: ui-tree-item-marquee var(--_marquee-duration) linear 0.5s 1 normal forwards;
       will-change: transform;
     }
 
     /* This comes after the hover fade, which it replaces at the same specificity. While the name
        slides, the label reaches back under the icon (the controller measures how far) with its text
-       where it was, and fades out across that stretch, gone by the icon's middle: the name slips
-       under the icon rather than stopping at a hard edge beside it. */
+       where it was, and fades out across the gap before the icon, fully gone where the icon begins
+       to cover it: the name slips under the icon rather than stopping at a hard edge beside it. */
     .row[data-ui-marquee] > .label {
       margin-inline-start: calc(-1 * var(--_marquee-lead, 0px));
       padding-inline-start: calc(var(--_marquee-lead, 0px) + var(--_ui-tree-item-label-padding-inline, var(--ui-space-2)));
       mask-image: linear-gradient(
         to right,
-        transparent calc(var(--_marquee-lead, 0px) / 2),
+        transparent var(--_marquee-icon-width, 0px),
         #000 calc(var(--_marquee-lead, 0px) + var(--_ui-tree-item-label-padding-inline, var(--ui-space-2))),
-        #000 calc(100% - var(--_tree-actions-width, 1.75rem) - var(--ui-space-3)),
+        #000 calc(100% - var(--_tree-actions-width, 1.75rem) - var(--ui-space-1)),
         transparent calc(100% - var(--_tree-actions-width, 1.75rem))
       );
     }
@@ -394,9 +420,9 @@
     .row[data-ui-marquee] > .label:dir(rtl) {
       mask-image: linear-gradient(
         to left,
-        transparent calc(var(--_marquee-lead, 0px) / 2),
+        transparent var(--_marquee-icon-width, 0px),
         #000 calc(var(--_marquee-lead, 0px) + var(--_ui-tree-item-label-padding-inline, var(--ui-space-2))),
-        #000 calc(100% - var(--_tree-actions-width, 1.75rem) - var(--ui-space-3)),
+        #000 calc(100% - var(--_tree-actions-width, 1.75rem) - var(--ui-space-1)),
         transparent calc(100% - var(--_tree-actions-width, 1.75rem))
       );
     }
@@ -437,13 +463,14 @@
     }
 
     .row:hover > .actions,
-    .row:focus-within > .actions {
+    .row:focus-within > .actions,
+    :host[data-move-source] > .row > .actions {
       opacity: 1;
       pointer-events: auto;
     }
 
     /* Without hover there is no reveal, so the controls keep their own column. */
-    @media (hover: none) {
+    @media (hover: none), (pointer: coarse) {
       .row {
         grid-template-columns: var(--_tree-disclosure-size) auto minmax(0, 1fr) auto;
       }
@@ -456,6 +483,37 @@
         background: none;
         opacity: 1;
         pointer-events: auto;
+      }
+
+      .row:is(:hover, :focus-within) > .label,
+      .row:is(:hover, :focus-within) > .label:dir(rtl),
+      :host[data-move-source] > .row > .label,
+      :host[data-move-source] > .row > .label:dir(rtl) {
+        mask-image: none;
+      }
+
+      .row[data-ui-marquee] > .label {
+        mask-image: linear-gradient(
+          to right,
+          transparent var(--_marquee-icon-width, 0px),
+          #000 calc(var(--_marquee-lead, 0px) + var(--_ui-tree-item-label-padding-inline, var(--ui-space-2)))
+        );
+      }
+
+      .row[data-ui-marquee] > .label:dir(rtl) {
+        mask-image: linear-gradient(
+          to left,
+          transparent var(--_marquee-icon-width, 0px),
+          #000 calc(var(--_marquee-lead, 0px) + var(--_ui-tree-item-label-padding-inline, var(--ui-space-2)))
+        );
+      }
+
+      :host[data-selection-mode="multiple"] > .row {
+        grid-template-columns: var(--_tree-disclosure-size) 1.25rem auto minmax(0, 1fr) auto;
+      }
+
+      :host[data-selection-mode="multiple"] > .row > .actions {
+        grid-column: 5;
       }
     }
 
@@ -511,7 +569,7 @@
       z-index: 3;
       inset-inline: 1px;
       display: none;
-      block-size: 2px;
+      block-size: var(--ui-accent-line-width);
       border-radius: var(--ui-radius-round);
       background: var(--_ui-tree-drop-color, var(--ui-accent-solid));
       pointer-events: none;
@@ -524,7 +582,7 @@
       inset-block-start: 50%;
       inline-size: 7px;
       block-size: 7px;
-      border: 2px solid var(--_ui-tree-drop-color, var(--ui-accent-solid));
+      border: var(--ui-accent-line-width) solid var(--_ui-tree-drop-color, var(--ui-accent-solid));
       border-radius: var(--ui-radius-round);
       background: var(--ui-surface-elevated);
       transform: translateY(-50%);
@@ -539,12 +597,12 @@
 
     :host[data-drop-position="before"] > .row > .row-drop-indicator {
       display: block;
-      inset-block-start: -1px;
+      inset-block-start: calc(-0.5 * var(--ui-accent-line-width));
     }
 
     :host[data-drop-position="after"] > .subtree-drop-indicator {
       display: block;
-      inset-block-end: -1px;
+      inset-block-end: calc(-0.5 * var(--ui-accent-line-width));
     }
 
     .children[hidden] {
@@ -598,11 +656,40 @@
       grid-column: 5;
     }
 
+    @media (hover: none), (pointer: coarse) {
+      html[data-ui-input-modality="touch"] :host .row {
+        grid-template-columns: 44px var(--_tree-disclosure-size) auto minmax(0, 1fr) auto;
+      }
+
+      html[data-ui-input-modality="touch"] :host .actions {
+        grid-column: 5;
+      }
+
+      html[data-ui-input-modality="touch"] :host[data-selection-mode="multiple"] > .row {
+        grid-template-columns: 44px var(--_tree-disclosure-size) 44px auto minmax(0, 1fr) auto;
+      }
+
+      html[data-ui-input-modality="touch"] :host[data-selection-mode="multiple"] > .row > .actions {
+        grid-column: 6;
+      }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       .row,
       .disclosure-icon,
       .drag-handle {
         transition: none;
+      }
+    }
+
+    @media (forced-colors: active) {
+      :host:focus-visible > .row {
+        outline: var(--ui-focus-width) solid Highlight;
+        outline-offset: calc(-1 * var(--ui-focus-width));
+      }
+      :host([selected]):not(:focus-visible):not([aria-disabled="true"]) > .row {
+        outline: var(--ui-border-width) solid Highlight;
+        outline-offset: calc(-1 * var(--ui-border-width));
       }
     }
 

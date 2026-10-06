@@ -1,8 +1,8 @@
-import { closeOverlay, createAnchoredSurface, createIdResolver, openOverlay } from "../shared/overlay.js";
+import { closeOverlay, createAnchoredSurface, createIdResolver, onOverlayOpen, openOverlay } from "../shared/overlay.js";
 
 const warmTooltips = new WeakMap();
 
-export default function controller(host) {
+function connect(host) {
   const element = host.element;
   const document = element.ownerDocument;
   const warm = warmTooltips.get(document) ?? { active: 0, until: 0 };
@@ -20,7 +20,7 @@ export default function controller(host) {
   const offset = () => {
     const value = getComputedStyle(element).getPropertyValue("--ui-tooltip-offset").trim();
     const amount = Number.parseFloat(value);
-    if (!Number.isFinite(amount)) return 4;
+    if (!Number.isFinite(amount)) return 10;
     if (value.endsWith("rem")) return amount * Number.parseFloat(getComputedStyle(document.documentElement).fontSize);
     if (value.endsWith("em")) return amount * Number.parseFloat(getComputedStyle(element).fontSize);
     return amount;
@@ -34,7 +34,7 @@ export default function controller(host) {
   let hideTimer = null;
   let lastFor;
   let lastPlacement;
-  let lastExternalOpen = Boolean(host.state.open);
+  let lastExternalOpen = Boolean(host.props.open.value);
   host.state.internalOpen = lastExternalOpen;
 
   const clearShow = () => { if (showTimer !== null) clearTimeout(showTimer); showTimer = null; };
@@ -44,14 +44,14 @@ export default function controller(host) {
     if (Boolean(host.state.internalOpen) === open) return;
     host.state.internalOpen = open;
     trackVisible(open);
-    if (trigger && host.state.trigger === "click") trigger.setAttribute("aria-expanded", String(open));
+    if (trigger && host.props.trigger.value === "click") trigger.setAttribute("aria-expanded", String(open));
     host.dispatch(open ? "open" : "close", { open, reason: "action", trigger: input });
   };
   const onKeydown = (event) => {
     if (event.key !== "Escape") return;
     clearTimers();
     // A tooltip the reader opened is theirs to close.
-    if (host.state.trigger === "click" && host.state.internalOpen) setOpen(false, "keyboard");
+    if (host.props.trigger.value === "click" && host.state.internalOpen) setOpen(false, "keyboard");
   };
   const onEnter = (event) => {
     if (event.pointerType === "touch") return;
@@ -60,7 +60,7 @@ export default function controller(host) {
     showTimer = setTimeout(() => {
       showTimer = null;
       setOpen(true, "pointer");
-    }, warm.active > 0 || warm.until > Date.now() ? 0 : Math.max(0, Number(host.state.showDelay ?? 500)));
+    }, warm.active > 0 || warm.until > Date.now() ? 0 : Math.max(0, Number(host.props.showDelay.value ?? 500)));
   };
   const onLeave = () => {
     clearShow();
@@ -68,7 +68,7 @@ export default function controller(host) {
     hideTimer = setTimeout(() => {
       hideTimer = null;
       setOpen(false, "pointer");
-    }, Math.max(0, Number(host.state.hideDelay ?? 100)));
+    }, Math.max(0, Number(host.props.hideDelay.value ?? 100)));
   };
   const onFocusin = () => {
     focused = true;
@@ -104,7 +104,7 @@ export default function controller(host) {
     ids.add(element.id);
     trigger.setAttribute("aria-describedby", [...ids].join(" "));
     trigger.addEventListener("keydown", onKeydown);
-    const how = host.state.trigger ?? "hover";
+    const how = host.props.trigger.value ?? "hover";
     if (how === "click") {
       // A question-mark button says nothing on hover: it opens when pressed, and closes the same way.
       trigger.addEventListener("click", onClick);
@@ -123,8 +123,8 @@ export default function controller(host) {
     apply();
   });
   const setup = () => {
-    const nextFor = String(host.state.for ?? "");
-    const nextPlacement = String(host.state.placement ?? "top");
+    const nextFor = String(host.props.for.value ?? "");
+    const nextPlacement = String(host.props.placement.value ?? "top");
     if (surface && nextFor === lastFor && nextPlacement === lastPlacement) return;
     lastFor = nextFor;
     lastPlacement = nextPlacement;
@@ -138,14 +138,24 @@ export default function controller(host) {
     surface = createAnchoredSurface(element, { anchor: trigger, placement: nextPlacement, gap: offset });
   };
   const close = (reason, input) => {
-    if (reason !== "escape" && reason !== "light-dismiss") return;
+    if (reason !== "escape" && reason !== "light-dismiss" && reason !== "programmatic") return;
     clearTimers();
+    if (!host.state.internalOpen) return;
     host.state.internalOpen = false;
     trackVisible(false);
+    surface?.hide();
+    closeOverlay(document, overlayId);
+    if (trigger && host.props.trigger.value === "click") trigger.setAttribute("aria-expanded", "false");
     host.dispatch("close", { open: false, reason, trigger: input });
   };
+  const stopOverlayOpen = onOverlayOpen(document, (id) => {
+    if (id === overlayId) return;
+    clearTimers();
+    focused = false;
+    close("programmatic", "programmatic");
+  });
   const apply = () => {
-    const externalOpen = Boolean(host.state.open);
+    const externalOpen = Boolean(host.props.open.value);
     if (externalOpen !== lastExternalOpen) {
       lastExternalOpen = externalOpen;
       host.state.internalOpen = externalOpen;
@@ -169,6 +179,7 @@ export default function controller(host) {
   apply();
   return () => {
     stop();
+    stopOverlayOpen();
     ids.stop();
     clearTimers();
     trackVisible(false);
@@ -178,4 +189,9 @@ export default function controller(host) {
     element.removeEventListener("pointerleave", onLeave);
     closeOverlay(document, overlayId);
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

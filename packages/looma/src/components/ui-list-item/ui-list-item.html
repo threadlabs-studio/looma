@@ -1,13 +1,18 @@
 <template component="ui-list-item">
   <defs>
-    <prop name="variant" type="row | card" default="row"
+    <prop name="variant" type="keyword" values="row, card" default="row"
     >How the item is drawn. A row is flat and takes a hover surface when it is a link, for items read down a list. A card sits on a raised, bordered surface,
       for items set in a grid (a List with layout="grid"). Both have the same parts: leading, title, description, and trailing.</prop>
+    <prop name="wrap" type="boolean" default="false"
+    >Lets the title and description wrap so explanatory text stays readable on narrow screens. Omit it for the default equal-height, one-line rows.</prop>
     <prop name="current" type="boolean" default="false"
     >Marks the item as the current one, such as the site you are in: it takes the selected surface and aria-current="true", which assistive technology
       announces. Set it on one item at a time.</prop>
+    <prop name="highlighted" type="boolean" default="false"
+    >Gives an item a quiet accent wash without changing its text or announcing selection. Several items may be highlighted, such as new messages. Describe the
+      reason in the item's text; use current only for the current destination.</prop>
   </defs>
-  <li :aria-current="current">
+  <li from:aria-current="current">
     <span class="leading"><slot name="leading"></slot></span>
     <span class="content">
       <span class="title"><slot></slot></span>
@@ -56,15 +61,15 @@
       min-block-size: var(--_ui-list-item-min-size, var(--ui-control-size, 2.5rem));
       padding-block: var(--ui-list-item-padding-block, var(--_ui-list-item-padding-block, var(--ui-space-2)));
       padding-inline: var(--ui-list-item-padding-inline, var(--_ui-list-item-padding-inline, var(--ui-space-3)));
-      border-radius: var(--ui-radius-md);
+      border-radius: var(--ui-selection-radius);
       color: var(--ui-text-primary);
       transition: background-color var(--ui-motion-fast) var(--ui-motion-ease), border-color var(--ui-motion-fast) var(--ui-motion-ease);
     }
 
-    :host-state([variant="card"]) {
+    :host([variant="card"]) {
       padding-block: var(--ui-list-item-padding-block, var(--ui-space-3));
       padding-inline: var(--ui-list-item-padding-inline, var(--ui-space-4));
-      border: 1px solid var(--ui-border-default);
+      border: var(--ui-border-width) solid var(--ui-border-strong);
       border-radius: var(--ui-radius-lg);
       background: var(--ui-surface-raised);
     }
@@ -73,16 +78,21 @@
       background: var(--ui-surface-hover);
     }
 
-    :host-state([variant="card"]):has(.title a[href]:hover) {
+    :host([variant="card"]):has(.title a[href]:hover) {
       border-color: var(--ui-border-strong);
     }
 
-    :host-state([current]) {
-      background: var(--ui-surface-hover);
+    :host([highlighted]) {
+      background: var(--ui-selection-surface);
+    }
+
+    :host([current]) {
+      background: var(--ui-selection-surface);
+      color: var(--ui-selection-text);
     }
 
     :host:has(.title a[href]:focus-visible) {
-      box-shadow: 0 0 0 2px var(--ui-focus-ring);
+      box-shadow: 0 0 0 var(--ui-focus-width) var(--ui-focus-ring);
     }
 
     .leading,
@@ -96,6 +106,10 @@
     .leading {
       color: var(--ui-text-muted);
       font-size: var(--_ui-list-item-icon-size, var(--ui-font-size-lg));
+    }
+
+    :host([current]) .leading {
+      color: var(--ui-selection-text);
     }
 
     /* Trailing controls take their own clicks, above the title link's stretched hit area. */
@@ -121,6 +135,12 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+
+    :host([wrap]) .title,
+    :host([wrap]) .description {
+      white-space: normal;
+      overflow-wrap: anywhere;
     }
 
     .title {
@@ -157,6 +177,17 @@
     .description:empty,
     .trailing:empty {
       display: none;
+    }
+
+    @media (forced-colors: active) {
+      :host:has(a:focus-visible) {
+        outline: var(--ui-focus-width) solid Highlight;
+        outline-offset: calc(-1 * var(--ui-focus-width));
+      }
+      :is(:host([current]), :host([highlighted])):not(:has(a:focus-visible)) {
+        outline: var(--ui-border-width) solid Highlight;
+        outline-offset: calc(-1 * var(--ui-border-width));
+      }
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */

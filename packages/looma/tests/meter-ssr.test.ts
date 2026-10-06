@@ -2,6 +2,7 @@
 // fill and its ARIA values come from the props as it renders, so the server's HTML shows and states
 // the value with no JavaScript.
 import { createSSRApp, h } from "vue";
+import { execFileSync } from "node:child_process";
 import { renderToString } from "vue/server-renderer";
 import { describe, expect, it } from "vitest";
 import Meter from "../vue/UiMeter.js";
@@ -15,6 +16,16 @@ const render = async (props: Record<string, unknown>) => {
 };
 
 describe("Meter server render", () => {
+  it("formats its default spoken percentage using the server locale", () => {
+    const html = execFileSync(process.execPath, ["--input-type=module", "--eval", `
+      import { createSSRApp, h } from 'vue';
+      import { renderToString } from 'vue/server-renderer';
+      import Meter from './vue/UiMeter.js';
+      process.stdout.write(await renderToString(createSSRApp({ render: () => h(Meter, { value: 0.29 }) })));
+    `], { cwd: new URL("../", import.meta.url), env: { ...process.env, LANG: "de_DE.UTF-8", LC_ALL: "de_DE.UTF-8" }, encoding: "utf8" });
+    expect(html).toContain('aria-valuetext="29\u00a0%"');
+    expect(Number(/inline-size:([\d.]+)%;/.exec(html)?.[1])).toBeCloseTo(29, 6);
+  });
   it("draws the fill and states its value, name, and bounds", async () => {
     const meter = await render({ value: 750, max: 1240, label: "Collected", valueText: "$750 of $1,240 collected" });
     expect(meter.fill).toBeCloseTo(60.48, 2);
@@ -58,7 +69,11 @@ describe("Meter server render", () => {
 
   it("renders a continuous meter as before unless segments is 2 or more, and records the count for its styles", async () => {
     const plain = (await render({ value: 4, max: 6 })).html;
-    for (const segments of [0, 1]) expect((await render({ value: 4, max: 6, segments })).html).toBe(plain);
+    for (const segments of [0, 1]) {
+      const meter = await render({ value: 4, max: 6, segments });
+      expect(meter.attribute("data-ui-meter-segments")).toBeUndefined();
+      expect(meter.fill).toBeCloseTo(66.67, 2);
+    }
     expect(plain).not.toContain("data-ui-meter-segments");
 
     const steps = await render({ value: 4, max: 6, segments: 6, label: "Status", valueText: "Shipped, step 4 of 6" });
