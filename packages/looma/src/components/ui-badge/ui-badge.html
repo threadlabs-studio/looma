@@ -14,7 +14,10 @@
     <prop name="size" type="keyword" values="xs, md" default="md"
     >Scale. xs is a compact count beside small controls; md is the usual text badge. A square is 24px at xs and 32px at md with default spacing.</prop>
   </defs>
-  <span><span class="label"><slot></slot></span></span>
+  <span>
+    <span class="icon" aria-hidden="true"><slot name="icon"></slot></span>
+    <span class="label"><slot></slot></span>
+  </span>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
     @property --ui-badge-border {
@@ -89,6 +92,7 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      gap: var(--ui-space-1);
       box-sizing: border-box;
       min-inline-size: 0;
       max-inline-size: 100%;
@@ -113,14 +117,43 @@
       text-overflow: ellipsis;
     }
 
-    /* Trim leading while retaining the font's ascent and descent. A cap-to-baseline box
-       would crop glyphs where the label clips horizontal overflow for ellipsis. */
+    /* Icon content has its own flex item so label ellipsis never clips its strokes. */
+    .icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: none;
+    }
+
+    .icon:empty {
+      display: none;
+    }
+
+    .icon :slotted(svg) {
+      display: block;
+      inline-size: 1em;
+      block-size: 1em;
+      flex: none;
+    }
+
+    /* Ordinary icon-plus-text children keep inline ellipsis, with explicit glyph spacing. */
+    .label :slotted(svg) {
+      inline-size: 1em;
+      block-size: 1em;
+      vertical-align: middle;
+      margin-inline-end: var(--ui-space-1);
+    }
+
+    .label:has(svg) {
+      text-box-trim: none;
+    }
+
+    /* Trim only label leading. Keep the root a flex row so an icon and label share a center. */
     @supports (text-box-trim: trim-both) {
       :host {
-        display: inline-block;
         min-block-size: var(--ui-badge-min-block-size, 1.5rem);
-        text-align: center;
-        align-content: center;
+      }
+      .label {
         text-box-trim: trim-both;
         text-box-edge: text;
       }
