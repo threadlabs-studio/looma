@@ -2419,6 +2419,62 @@ describe("Input group", () => {
 });
 
 describe("Multiline input group behavior", () => {
+  for (const adapter of ["HTML", "Vue"] as const) {
+    it(`reserves textarea text space for a top-end action in ${adapter}, including changing labels at narrow widths`, async () => {
+      const source = adapter === "HTML" ? `import "@threadlabs/looma";` : `
+        import { createApp, h, ref } from "vue";
+        import { Button, InputGroup, Textarea } from "@threadlabs/looma/vue";
+        const pending = ref(false);
+        window.setPending = value => { pending.value = value; };
+        createApp({ render: () => h(InputGroup, { id: "group", multiline: true, actionPosition: "top-end" }, {
+          default: () => h(Textarea, { id: "message", rows: 4, "aria-label": "Message" }),
+          action: () => h(Button, { id: "send", pending: pending.value }, () => "Send"),
+        }) }).mount("#app");`;
+      const path = await bundle(`top-end-${adapter}`, source);
+      const page = await open(path, adapter === "HTML" ? `
+        <ui-input-group id="group" multiline action-position="top-end">
+          <ui-textarea id="message" rows="4" aria-label="Message"></ui-textarea>
+          <ui-button id="send" slot="action">Send</ui-button>
+        </ui-input-group>` : `<div id="app"></div>`, adapter === "HTML" ? [join(root, "tokens.css")] : [join(root, "tokens.css"), join(root, "vue/components.css")]);
+      const field = page.getByRole("textbox", { name: "Message" }), send = page.locator("#send");
+      for (const width of [800, 375, 240]) {
+        await page.setViewportSize({ width, height: 812 });
+        await field.fill("A long first line that must wrap before it reaches the action.\nAnother line.");
+        for (const label of ["Send", "Send message", "En cours…"]) {
+          await send.evaluate((element, text) => { element.textContent = text; }, label);
+          await page.waitForTimeout(50);
+          const textBox = (await field.boundingBox())!, action = (await send.boundingBox())!;
+          assert.ok(action.y >= textBox.y && action.y < textBox.y + 16, "action is inside the textarea at its top");
+          assert.ok(action.x >= textBox.x && action.x + action.width <= textBox.x + textBox.width, "action is inside its right edge");
+          const padding = await field.evaluate(element => parseFloat(getComputedStyle(element).paddingRight));
+          assert.ok(textBox.x + textBox.width - padding < action.x, "textarea text ends before the action");
+          assert.ok(action.y + action.height < textBox.y + textBox.height - 16, "native bottom-right resize grip remains clear");
+          assert.equal(await field.evaluate(element => getComputedStyle(element).resize), "vertical");
+          assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+        }
+      }
+      await page.evaluate(native => {
+        if (native) document.querySelector("#send")!.setAttribute("pending", "");
+        else (window as unknown as { setPending: (value: boolean) => void }).setPending(true);
+      }, adapter === "HTML");
+      await page.waitForTimeout(50);
+      const pendingField = (await field.boundingBox())!, pendingAction = (await send.boundingBox())!;
+      const pendingPadding = await field.evaluate(element => parseFloat(getComputedStyle(element).paddingRight));
+      assert.ok(pendingField.x + pendingField.width - pendingPadding < pendingAction.x, "actual pending indicator has reserved space");
+      await page.locator("#group").evaluate(element => element.setAttribute("dir", "rtl"));
+      await page.waitForTimeout(50);
+      const rtlField = (await field.boundingBox())!, rtlAction = (await send.boundingBox())!;
+      const rtlPadding = await field.evaluate(element => parseFloat(getComputedStyle(element).paddingLeft));
+      assert.ok(rtlField.x + rtlPadding > rtlAction.x + rtlAction.width, "logical end padding follows RTL placement");
+      await page.locator("#group .action").evaluate(element => element.remove());
+      await page.waitForTimeout(50);
+      assert.ok(await field.evaluate(element => parseFloat(getComputedStyle(element).paddingLeft)) < 20, "removing the action restores normal text space");
+      await field.focus();
+      assert.notEqual(await page.locator("#group").evaluate(element => getComputedStyle(element).boxShadow), "none");
+      await page.close();
+    });
+  }
+
   it("shares frame, labeling and native form behavior for a multiline HTML textarea at 375px", async () => {
     const path = await bundle("html-multiline-input-group", `import "@threadlabs/looma";`);
     const page = await open(path, `
