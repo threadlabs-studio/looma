@@ -1861,8 +1861,11 @@ test("every badge tone remains legible and visually distinct in light and dark t
     await page.waitForLoadState("networkidle");
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
     const badges = page.locator("[data-preview-scenario] [data-component~='ui-badge']:not([data-ui-badge-state~='shape=dot'])");
-    // Text treatments retain their order; the three square icon marks extend the gallery.
-    await expect(badges).toHaveCount(26);
+    // Text treatments retain their order; leading icons and square marks extend the gallery.
+    await expect(badges).toHaveCount(29);
+    const leading = page.locator('[data-preview-example="07-icon"] [data-component~="ui-badge"]');
+    await expect(leading).toHaveCount(3);
+    for (const badge of await leading.all()) await expect(badge.locator("svg")).toBeVisible();
     const treatments = await badges.evaluateAll((surfaces) => surfaces.map((surface) => {
       const style = getComputedStyle(surface);
       const canvas = document.createElement("canvas");
