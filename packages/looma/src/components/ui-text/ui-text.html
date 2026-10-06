@@ -1,5 +1,6 @@
 <template component="ui-text">
   <defs>
+    <prop name="grow" type="boolean" default="false">Lets this text use remaining inline space in a flex row, including when truncated.</prop>
     <prop name="font" type="keyword" values="inherit, sans" default="inherit"
     >Use sans for UI text rendered outside its original font context; inherit preserves the surrounding typeface.</prop>
     <prop name="wrap" type="keyword" values="normal, anywhere" default="normal"
@@ -39,6 +40,10 @@
     /* Running text, set on the type scale and in a tone that says what it is, so a view never styles
        text of its own. The root is a paragraph unless as= names a span, div, small, strong, label, or
        heading. */
+    :host([grow]) {
+      flex: 1;
+    }
+
     :host {
       margin: 0;
       min-inline-size: 0;

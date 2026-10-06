@@ -1,5 +1,10 @@
 <template component="ui-cluster">
   <defs>
+    <prop name="padding" type="keyword" values="none, s, m, l" default="none"
+    >Optional internal space for an action group, using the shared spacing scale.</prop>
+    <prop name="paddingEnd" type="keyword" values="none, s, m, l, xl" default="none"
+    >Optional extra space at the inline end, such as clearance beside another control. xl is 4rem.</prop>
+    <prop name="fixed" type="boolean" default="false">Keeps this group at its content size inside a flex layout.</prop>
     <prop name="gap" type="keyword" values="xs, s, m, l, xl"
     >Space between items, on the spacing scale: xs is 0.5rem, s 0.75rem (also the default), m 1rem, l 1.5rem, and xl 2rem. The --ui-cluster-gap custom property,
       set on the cluster itself, overrides it; set on an ancestor, it does nothing.</prop>
@@ -31,6 +36,31 @@
       min-inline-size: 0;
       max-inline-size: 100%;
       margin: 0;
+    }
+
+    :host([fixed]) {
+      flex: none;
+    }
+    :host([padding="s"]) {
+      padding: var(--ui-space-2);
+    }
+    :host([padding="m"]) {
+      padding: var(--ui-space-3);
+    }
+    :host([padding="l"]) {
+      padding: var(--ui-space-4);
+    }
+    :host([paddingEnd="s"]) {
+      padding-inline-end: var(--ui-space-2);
+    }
+    :host([paddingEnd="m"]) {
+      padding-inline-end: var(--ui-space-3);
+    }
+    :host([paddingEnd="l"]) {
+      padding-inline-end: var(--ui-space-4);
+    }
+    :host([paddingEnd="xl"]) {
+      padding-inline-end: calc(var(--ui-space-4) * 4);
     }
 
     :host([gap="xs"]) {
