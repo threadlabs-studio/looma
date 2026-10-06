@@ -1,15 +1,15 @@
 <template component="ui-cluster">
   <defs>
-    <prop name="gap" type="xs | s | m | l | xl"
+    <prop name="gap" type="keyword" values="xs, s, m, l, xl"
     >Space between items, on the spacing scale: xs is 0.5rem, s 0.75rem (also the default), m 1rem, l 1.5rem, and xl 2rem. The --ui-cluster-gap custom property,
       set on the cluster itself, overrides it; set on an ancestor, it does nothing.</prop>
-    <prop name="align" type="start | center | end | stretch"
+    <prop name="align" type="keyword" values="start, center, end, stretch"
     >How items line up within each row: center (the default) aligns their middles, start their tops, end their bottoms, and stretch makes every item as tall as
       its row.</prop>
-    <prop name="justify" type="start | center | end | between"
+    <prop name="justify" type="keyword" values="start, center, end, between"
     >Where items sit along each row: start (the default), center, end, or between, which pushes the first and last items to the ends of the row and spreads the
       spare space between them, as for a title with its actions.</prop>
-    <prop name="wrap" type="wrap | nowrap"
+    <prop name="wrap" type="keyword" values="wrap, nowrap"
     >Whether items move onto a new row when they run out of space: wrap (the default) or nowrap, which keeps them on one row at their own sizes. Use nowrap for
       a small group that must read as one unit, such as a meter and its value in a table cell, so the cell grows to fit it; a whole row of actions should keep
       wrapping so it fits narrow screens.</prop>
@@ -33,40 +33,40 @@
       margin: 0;
     }
 
-    :host-state([gap="xs"]) {
+    :host([gap="xs"]) {
       --_layout-gap: var(--ui-space-2);
     }
-    :host-state([gap="s"]) {
+    :host([gap="s"]) {
       --_layout-gap: var(--ui-space-3);
     }
-    :host-state([gap="m"]) {
+    :host([gap="m"]) {
       --_layout-gap: var(--ui-space-4);
     }
-    :host-state([gap="l"]) {
+    :host([gap="l"]) {
       --_layout-gap: var(--ui-space-5);
     }
-    :host-state([gap="xl"]) {
+    :host([gap="xl"]) {
       --_layout-gap: var(--ui-space-6);
     }
-    :host-state([align="start"]) {
+    :host([align="start"]) {
       align-items: flex-start;
     }
-    :host-state([align="end"]) {
+    :host([align="end"]) {
       align-items: flex-end;
     }
-    :host-state([align="stretch"]) {
+    :host([align="stretch"]) {
       align-items: stretch;
     }
-    :host-state([justify="center"]) {
+    :host([justify="center"]) {
       justify-content: center;
     }
-    :host-state([justify="end"]) {
+    :host([justify="end"]) {
       justify-content: flex-end;
     }
-    :host-state([justify="between"]) {
+    :host([justify="between"]) {
       justify-content: space-between;
     }
-    :host-state([wrap="nowrap"]) {
+    :host([wrap="nowrap"]) {
       flex-wrap: nowrap;
     }
 

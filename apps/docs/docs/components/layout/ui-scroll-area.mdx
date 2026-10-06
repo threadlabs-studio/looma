@@ -11,7 +11,7 @@ A region that scrolls when its content outgrows it, and fades each edge that hid
 - **Only the edges that hide content fade.** At the top of a list only its bottom edge fades; scrolled to the end, only the top does. Content that fits shows no fade at all.
 - **The fade grows in.** As content leaves an edge, that edge's fade grows with the distance scrolled, up to its full size, rather than snapping on.
 - **It is a mask.** The fade blends into whatever is behind the area, so it needs no background colour and works on any surface.
-- **No script.** A CSS scroll-driven animation draws the fade, so it works before JavaScript runs. A browser without scroll-driven animations shows no fade, and scrolls as usual.
+- **Consistent edges.** The control measures its overflow and scroll position to fade only edges that hide content. Before its controller loads, the authored content remains scrollable without a mask.
 
 Every Looma component that scrolls its own content (Sidebar, Reel, the editor toolbar, a dialog's body, search results, and the editor's slash and mention menus) fades its edges this same way.
 

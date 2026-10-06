@@ -28,7 +28,7 @@ test("every workspace and release fixture reports the root release version", asy
   }
 });
 
-test("release qualification is wired to Node 20, Chromium, and non-placeholder gates", async () => {
+test("release qualification is wired to Node 24, Chromium, and non-placeholder gates", async () => {
   const [workflow, rootPackage, loomaPackage, consumerPackage] = await Promise.all([
     readFile(path.join(repoRoot, ".github/workflows/ci.yml"), "utf8"),
     readFile(path.join(repoRoot, "package.json"), "utf8"),
@@ -36,7 +36,7 @@ test("release qualification is wired to Node 20, Chromium, and non-placeholder g
     readFile(path.join(repoRoot, "tests/release/consumer/package.json"), "utf8"),
   ]);
 
-  assert.match(workflow, /node-version: 20/);
+  assert.match(workflow, /node-version: 24/);
   assert.match(workflow, /playwright install --with-deps chromium/);
   assert.match(workflow, /pnpm test:browser/);
   assert.match(
@@ -52,7 +52,7 @@ test("release qualification is wired to Node 20, Chromium, and non-placeholder g
   assert.doesNotMatch(
     JSON.parse(consumerPackage).scripts["verify:ssr"],
     /experimental-strip-types/,
-    "the public consumer must execute on the Node 20 release runtime"
+    "the public consumer must execute on the Node 24 release runtime"
   );
 });
 

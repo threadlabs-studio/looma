@@ -1,19 +1,44 @@
 <template component="ui-input" controller="./ui-input.js">
   <defs>
-    <prop name="value" type="string"
-    >The input's text. Setting or changing it replaces the live text; between changes the user's typing stands, so follow input events to keep it in step. It is
-      also the input's default, so a form reset returns to it.</prop>
+    <prop
+      name="type"
+      type="keyword"
+      values="text, search, tel, url, email, password, date, month, week, time, datetime-local, number, range, color, file"
+      default="text"
+    >The native input mode. Number and range modes accept numeric values; the other supported modes accept strings. File inputs expose selected files through
+      the native change event's target.files. Their value can only be set to an empty string to clear the selection.</prop>
+    <type name="input-value" from="type">
+      <option value="text" type="string"></option>
+      <option value="search" type="string"></option>
+      <option value="tel" type="string"></option>
+      <option value="url" type="string"></option>
+      <option value="email" type="string"></option>
+      <option value="password" type="string"></option>
+      <option value="date" type="string"></option>
+      <option value="month" type="string"></option>
+      <option value="week" type="string"></option>
+      <option value="time" type="string"></option>
+      <option value="datetime-local" type="string"></option>
+      <option value="number" type="number"></option>
+      <option value="range" type="number"></option>
+      <option value="color" type="string"></option>
+      <option value="file" type="string"></option>
+    </type>
+    <prop name="value" type="input-value"
+    >The input's value: text, or a number for type="number" and type="range" fields. Setting or changing it replaces the live text; between changes the user's
+      typing stands, so follow input events to keep it in step. A number field keeps text that means the same number, such as 1.0 for 1. It is also the input's
+      default, so a form reset returns to it.</prop>
     <prop name="disabled" type="boolean" default="false">Prevents editing and form submission.</prop>
     <prop name="invalid" type="boolean" default="false">Exposes invalid state to assistive technology and styling.</prop>
     <prop name="readonly" type="boolean" default="false">Allows selection without allowing edits.</prop>
     <prop name="required" type="boolean" default="false">Marks the control as required for form validation.</prop>
-    <prop name="size" type="sm | md | lg" default="md"
+    <prop name="size" type="keyword" values="sm, md, lg" default="md"
     >Height, padding, and type size, matching Button's sizes so a field and a button of one size share a row. sm is the small control height (2rem by default)
       with smaller text, for compact rows such as a table row or a filter bar; md is the standard control height; lg is taller with roomier padding. Under a
       coarse pointer, sm grows to the 44px touch minimum and keeps body-size text. Change it after render through this option; the element's size property is
       the native one.</prop>
   </defs>
-  <input :value="value" :disabled="disabled" :readonly="readonly" :required="required" :aria-invalid="invalid">
+  <input from:type="type" from:value="value" from:disabled="disabled" from:readonly="readonly" from:required="required" from:aria-invalid="invalid">
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. An Input
        Group sets --_ui-default-input-* for the input inside it, below the input's own hooks. */
@@ -38,6 +63,10 @@
       inherits: false;
     }
     @property --ui-input-focus-shadow {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-input-inline-size {
       syntax: "*";
       inherits: false;
     }
@@ -69,13 +98,14 @@
     :host {
       box-sizing: border-box;
       display: inline-block;
-      inline-size: 100%;
+      inline-size: var(--ui-input-inline-size, 100%);
       min-inline-size: 0;
       min-block-size: var(--ui-input-min-block-size, var(--_ui-default-input-min-block-size, var(--ui-control-size-md)));
       margin: 0;
       padding: var(--ui-space-2) var(--ui-space-3);
       appearance: none;
-      border: var(--ui-input-border-width, var(--_ui-default-input-border-width, 1px)) solid
+      padding-inline-start: var(--_ui-default-input-padding-inline-start, var(--ui-space-3));
+      border: var(--ui-input-border-width, var(--_ui-default-input-border-width, var(--ui-border-width))) solid
         var(--ui-input-border, var(--_ui-default-input-border, var(--ui-control-border, var(--ui-border-strong))));
       border-radius: var(--ui-input-radius, var(--_ui-default-input-radius, var(--ui-field-radius, var(--ui-radius-md))));
       background: var(--ui-input-surface, var(--_ui-default-input-surface, var(--ui-control-surface, var(--ui-surface-elevated))));
@@ -90,13 +120,13 @@
     }
 
     /* Each size reads the hook and then an Input Group's default first, so a group, which draws the frame, can zero it. */
-    :host-state([size="sm"]) {
+    :host([size="sm"]) {
       min-block-size: var(--ui-input-min-block-size, var(--_ui-default-input-min-block-size, var(--ui-control-size-sm)));
       padding: var(--ui-space-1) var(--ui-space-2);
       font-size: var(--ui-font-size-sm);
     }
 
-    :host-state([size="lg"]) {
+    :host([size="lg"]) {
       min-block-size: var(--ui-input-min-block-size, var(--_ui-default-input-min-block-size, var(--ui-control-size-lg)));
       padding: var(--ui-space-3) var(--ui-space-4);
       font-size: var(--ui-font-size-md);
@@ -105,9 +135,14 @@
     /* Under touch a small field is still a touch-sized target, as a small button is, and keeps
        body-size text: below 16px, iOS zooms the page into the focused field. */
     @media (pointer: coarse) {
-      :host-state([size="sm"]) {
+      :host,
+      :host([size="sm"]),
+      :host([size="lg"]) {
+        font-size: var(--ui-font-size-md);
+      }
+
+      :host([size="sm"]) {
         min-block-size: var(--ui-input-min-block-size, var(--_ui-default-input-min-block-size, var(--ui-control-min-block-size)));
-        font-size: inherit;
       }
     }
 
@@ -122,7 +157,7 @@
       opacity: 1;
     }
 
-    :host:hover:not(:focus):not(:disabled) {
+    :host:hover:not(:focus):not(:disabled):not(:read-only):not([aria-invalid="true"]):not(:user-invalid) {
       border-color: var(--ui-input-border-hover, var(--_ui-default-input-border-hover, var(--ui-control-border-hover, var(--ui-text-secondary))));
     }
 
@@ -144,7 +179,11 @@
         var(
           --_ui-default-input-invalid-focus-shadow,
           var(--ui-control-inset),
-          0 0 0 3px color-mix(in srgb, var(--ui-input-invalid-border, var(--ui-field-danger, var(--ui-danger-solid))) 22%, transparent)
+          0 0 0 calc(var(--ui-focus-width) * 1.5) color-mix(
+            in srgb,
+            var(--ui-input-invalid-border, var(--ui-field-danger, var(--ui-danger-solid))) 22%,
+            transparent
+          )
         )
       );
     }
@@ -159,8 +198,8 @@
     /* Forced colors drop box shadows, so the focus ring becomes an outline. */
     @media (forced-colors: active) {
       :host:focus-visible {
-        outline: var(--ui-input-focus-outline, var(--_ui-default-input-focus-outline, 2px solid Highlight));
-        outline-offset: 1px;
+        outline: var(--ui-input-focus-outline, var(--_ui-default-input-focus-outline, var(--ui-focus-width) solid Highlight));
+        outline-offset: var(--ui-border-width);
       }
     }
 

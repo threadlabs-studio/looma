@@ -1,17 +1,17 @@
 <template component="ui-status-message">
   <defs>
-    <prop name="kind" type="empty | loading | error" default="empty"
+    <prop name="kind" type="keyword" values="empty, loading, error" default="empty"
     >What the view is saying. empty: there is nothing here yet (announced politely); loading: it is on its way, with a spinner (announced politely); error: it
       could not be shown, in the danger tone (announced at once).</prop>
     <prop name="heading" type="string" default="">A short heading above the message, such as "No pages yet". Optional.</prop>
-    <prop name="layout" type="inline | panel | fill" default="inline"
+    <prop name="layout" type="keyword" values="inline, panel, fill" default="inline"
     >Where it sits. inline takes its place in the view's flow; panel sits it on a dashed surface, for an empty area in a page; fill centres it in all the space
       it is given, for a whole view that is loading or failed.</prop>
   </defs>
-  <div :role="{ true: 'alert', false: 'status' }[format('%s', kind = 'error')]">
-    <ui-spinner size="sm" :hidden="kind != 'loading'"></ui-spinner>
+  <div from:role="{ true: 'alert', false: 'status' }[concat(kind = 'error')]">
+    <ui-spinner size="sm" from:hidden="kind != 'loading'"></ui-spinner>
     <span class="copy">
-      <strong class="heading" :hidden="not heading"><template $value="heading"></template></strong>
+      <strong class="heading" from:hidden="not heading">{$heading}</strong>
       <span class="message"><slot></slot></span>
     </span>
     <span class="action"><slot name="action"></slot></span>
@@ -30,17 +30,17 @@
       line-height: var(--ui-line-height);
     }
 
-    :host-state([kind="error"]) {
+    :host([kind="error"]) {
       color: var(--ui-danger);
     }
 
-    :host-state([layout="panel"]) {
+    :host([layout="panel"]) {
       padding: var(--ui-space-6);
-      border: 1px dashed var(--ui-border-default);
+      border: var(--ui-border-width) dashed var(--ui-border-strong);
       border-radius: var(--ui-radius-lg);
     }
 
-    :host-state([layout="fill"]) {
+    :host([layout="fill"]) {
       flex: 1;
       flex-direction: column;
       justify-content: center;
@@ -56,7 +56,7 @@
       min-inline-size: 0;
     }
 
-    :host-state([layout="fill"]) .copy {
+    :host([layout="fill"]) .copy {
       flex: none;
       align-items: center;
     }

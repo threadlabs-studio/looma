@@ -1,23 +1,22 @@
+import { announceOverlayOpen } from "../shared/overlay.js";
 import { trackTrigger } from "../shared/trigger.js";
 
-const instances = new WeakMap();
 let toastIds = 0;
-
-export async function show(host, message, options = {}) {
-  return instances.get(host.element)?.show(message, options);
-}
 
 /**
  * Shows the region while it has authored or generated messages. Generated messages dismiss by
  * action or timeout; authored ui-toast children own their removal through the dismiss event.
  */
-export default function controller(host) {
+function connect(host) {
   const element = host.element;
   const [trigger, stopTracking] = trackTrigger(host);
   const toasts = () => host.state.toasts ?? [];
   const authored = () => Array.from(element.children).some((child) => !child.classList.contains("toast"));
+  let announcedVisible = false;
   const sync = () => {
     const visible = authored() || toasts().length > 0;
+    if (visible && !announcedVisible) announceOverlayOpen(element.ownerDocument, element);
+    announcedVisible = visible;
     if (visible && !element.matches(":popover-open")) element.showPopover();
     else if (!visible && element.matches(":popover-open")) element.hidePopover();
   };
@@ -68,7 +67,7 @@ export default function controller(host) {
     const id = String(options.id || `ui-toast-${++toastIds}`);
     const tone = ["neutral", "info", "success", "warning", "danger"].includes(options.tone) ? options.tone : "neutral";
     host.state.toasts = [...toasts(), { id, message: String(message), tone, role: tone === "danger" ? "alert" : "status", closing: false }];
-    const duration = Math.max(0, Number(options.duration ?? host.state.duration ?? 0));
+    const duration = Math.max(0, Number(options.duration ?? host.props.duration.value ?? 0));
     if (duration > 0) {
       timers.set(id, { remaining: duration, started: 0, handle: 0 });
       startTimer(id);
@@ -81,24 +80,28 @@ export default function controller(host) {
     if (id) dismiss(id, "action", trigger());
   };
   const onCommand = (event) => {
-    if (event.command === "--show-toast" && event.source?.value) add(event.source.value);
+    if (event.target === element && event.command === "--show-toast" && event.source?.value) add(event.source.value);
+  };
+  const onShowToast = (event) => {
+    if (event.target === element && typeof event.detail?.message === "string") add(event.detail.message, event.detail);
   };
   const stop = host.effect(sync);
   const observer = new MutationObserver(sync);
   observer.observe(element, { childList: true });
   element.addEventListener("click", onClick);
   element.addEventListener("command", onCommand);
+  element.addEventListener("show-toast", onShowToast);
   element.addEventListener("pointerenter", pauseTimers);
   element.addEventListener("pointerleave", resumeTimers);
   element.addEventListener("focusin", pauseTimers);
   element.addEventListener("focusout", resumeTimers);
-  instances.set(element, { show: add });
   return () => {
     stop();
     stopTracking();
     observer.disconnect();
     element.removeEventListener("click", onClick);
     element.removeEventListener("command", onCommand);
+    element.removeEventListener("show-toast", onShowToast);
     element.removeEventListener("pointerenter", pauseTimers);
     element.removeEventListener("pointerleave", resumeTimers);
     element.removeEventListener("focusin", pauseTimers);
@@ -106,6 +109,10 @@ export default function controller(host) {
     for (const timer of timers.values()) clearTimeout(timer.handle);
     timers.clear();
     if (element.matches(":popover-open")) element.hidePopover();
-    instances.delete(element);
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

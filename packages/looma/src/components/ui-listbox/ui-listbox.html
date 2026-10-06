@@ -1,14 +1,80 @@
+<link rel="component" href="../ui-scroll-area/ui-scroll-area.html">
 <template component="ui-listbox" controller="./ui-listbox.js">
   <defs>
-    <prop name="rows" type="number" default="5">The number of option rows visible at once. Use at least two.</prop>
-    <prop name="multiple" type="boolean" default="false">Allows several options to be selected with native keyboard and pointer behavior.</prop>
+    <prop name="rows" type="number" default="5">The maximum number of choices visible before the list scrolls. Use at least two.</prop>
+    <prop name="multiple" type="boolean" default="false">Allows several choices, each shown with a checkmark when selected.</prop>
+    <prop name="name" type="string" default="">The form field name used for each selected value.</prop>
     <prop name="value" type="string">The initial or externally set single selection. Authored selected options work when it is omitted.</prop>
     <prop name="values" type="list(string)">The initial or externally set selections in multiple mode. Authored selected options work when it is omitted.</prop>
     <prop name="disabled" type="boolean" default="false">Prevents selection and form submission.</prop>
-    <prop name="required" type="boolean" default="false">Requires at least one selection for form validation.</prop>
+    <prop name="required" type="boolean" default="false">Requires at least one choice before form submission.</prop>
     <prop name="invalid" type="boolean" default="false">Exposes invalid state to assistive technology and styling.</prop>
+    <state name="choices" type="list(object({ value: string, label: string, disabled: boolean, selected: boolean, index: integer }))" value="[]"></state>
+    <state name="selection" type="list(string)" value="[]"></state>
+    <state name="hasSelection" type="boolean" value="false"></state>
+    <state name="active" type="integer" value="-1"></state>
+    <state name="uid" type="string" value=""></state>
+    <state name="validationError" type="boolean" value="false"></state>
+    <event name="change" type="object">
+      <prop name="value" required nullable type="string"></prop>
+      <prop name="values" required type="list">
+        <prop type="string"></prop>
+      </prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer"></prop>
+    </event>
   </defs>
-  <select :size="rows" :multiple="multiple" :disabled="disabled" :required="required" :aria-invalid="invalid"><slot></slot></select>
+  <div
+    role="listbox"
+    from:tabindex="{ true: '-1', false: '0' }[concat(disabled)]"
+    from:aria-multiselectable="multiple"
+    from:aria-disabled="disabled"
+    from:aria-required="required"
+    from:aria-invalid="invalid or validationError"
+    style:--_rows="rows"
+  >
+    <ui-scroll-area class="choices" $ref="choices">
+      <div
+        $each="choice of choices"
+        $key="choice.index"
+        class="option"
+        class:active="choice.index = active"
+        role="option"
+        data-ui-choice-option
+        from:data-multiple="multiple"
+        from:id="concat(uid, '-option-', choice.index)"
+        from:data-index="choice.index"
+        from:aria-selected="choice.selected"
+        from:aria-disabled="choice.disabled"
+      >
+        <span>{$choice.label}</span>
+      </div>
+    </ui-scroll-area>
+    <select
+      class="fallback"
+      $ref="options"
+      from:size="rows"
+      from:multiple="multiple"
+      from:disabled="disabled"
+      from:required="required"
+      from:name="name"
+      aria-label="Choices"
+    >
+      <slot></slot>
+    </select>
+    <template $if="name and not disabled">
+      <input $each="selected of selection" type="hidden" from:name="name" from:value="selected">
+    </template>
+    <input
+      class="validity"
+      $ref="validity"
+      type="checkbox"
+      from:required="required and not hasSelection and not disabled"
+      from:checked="hasSelection"
+      from:disabled="disabled"
+      aria-hidden="true"
+      tabindex="-1"
+    >
+  </div>
   <style>
     @property --ui-listbox-radius {
       syntax: "*";
@@ -32,42 +98,67 @@
     }
 
     :host {
+      position: relative;
       box-sizing: border-box;
       display: block;
       inline-size: 100%;
       min-inline-size: 0;
-      min-block-size: var(--ui-control-min-block-size);
       margin: 0;
       padding: var(--ui-space-1);
-      border: 1px solid var(--ui-listbox-border, var(--ui-control-border));
+      border: var(--ui-border-width) solid var(--ui-listbox-border, var(--ui-control-border));
       border-radius: var(--ui-listbox-radius, var(--ui-field-radius, var(--ui-radius-md)));
       background: var(--ui-listbox-surface, var(--ui-control-surface));
       color: var(--ui-text-primary);
-      color-scheme: light dark;
       font: inherit;
       line-height: var(--ui-line-height-md);
       box-shadow: var(--ui-control-inset);
+      outline: none;
     }
 
-    :host option,
-    :host optgroup {
-      padding: var(--ui-space-2);
+    .choices {
+      max-block-size: calc(max(2, var(--_rows, 5)) * var(--ui-control-size-md));
+    }
+
+    :host:not([data-enhanced]) {
+      padding: 0;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    :host:not([data-enhanced]) .choices,
+    :host[data-enhanced] .fallback {
+      display: none;
+    }
+
+    .fallback {
+      box-sizing: border-box;
+      inline-size: 100%;
       font: inherit;
+    }
+
+    .validity {
+      position: absolute;
+      inline-size: 1px;
+      block-size: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      opacity: 0;
+      pointer-events: none;
     }
 
     :host:focus-visible {
       border-color: var(--ui-control-focus);
-      outline: 2px solid var(--ui-focus-ring);
-      outline-offset: 2px;
+      outline: var(--ui-focus-width) solid var(--ui-focus-ring);
+      outline-offset: var(--ui-focus-width);
       box-shadow: var(--ui-listbox-focus-shadow, var(--ui-focus-halo));
     }
 
-    :host[aria-invalid="true"],
-    :host:user-invalid {
+    :host[aria-invalid="true"] {
       border-color: var(--ui-listbox-invalid-border, var(--ui-field-danger, var(--ui-danger)));
     }
 
-    :host:disabled {
+    :host[aria-disabled="true"] {
       background: var(--ui-control-surface-disabled);
       color: var(--ui-disabled-text);
       box-shadow: none;

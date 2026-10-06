@@ -11,13 +11,45 @@
     <prop name="autosize" type="boolean" default="false"
     >Grow with the text while keeping rows as the minimum visible height. Uses CSS field sizing where supported; other browsers keep the native rows
       behavior.</prop>
-    <prop name="size" type="sm | md | lg" default="md"
+    <prop name="size" type="keyword" values="sm, md, lg" default="md"
     >Padding and type size, matching Input's sizes so a textarea sits with fields of the same size; rows sets its height. sm has tighter padding and smaller
       text, for compact forms; lg has roomier padding. Under a coarse pointer, sm keeps body-size text.</prop>
   </defs>
-  <textarea :value="value" :disabled="disabled" :readonly="readonly" :required="required" :aria-invalid="invalid" :rows="rows" style:--_rows="rows"></textarea>
+  <textarea
+    from:value="value"
+    from:disabled="disabled"
+    from:readonly="readonly"
+    from:required="required"
+    from:aria-invalid="invalid"
+    from:rows="rows"
+    style:--_rows="rows"
+  ></textarea>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-textarea-border-width {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-textarea-border {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-textarea-border-hover {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-textarea-focus-border {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-textarea-focus-outline {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-textarea-surface {
+      syntax: "*";
+      inherits: false;
+    }
     @property --ui-textarea-focus-shadow {
       syntax: "*";
       inherits: false;
@@ -38,6 +70,10 @@
       syntax: "*";
       inherits: false;
     }
+    @property --ui-textarea-padding-inline-end {
+      syntax: "*";
+      inherits: false;
+    }
 
     :host {
       box-sizing: border-box;
@@ -48,15 +84,17 @@
       margin: 0;
       --_padding-block: var(--ui-space-2);
       padding: var(--ui-space-2) var(--ui-space-3);
+      padding-inline-end: var(--ui-textarea-padding-inline-end, var(--_ui-default-textarea-padding-inline-end, var(--ui-space-3)));
       appearance: none;
       resize: vertical;
-      border: 1px solid var(--ui-control-border, var(--ui-border-strong));
-      border-radius: var(--ui-textarea-radius, var(--ui-field-radius, var(--ui-radius-md)));
-      background: var(--ui-control-surface, var(--ui-surface-elevated));
+      border: var(--ui-textarea-border-width, var(--_ui-default-textarea-border-width, var(--ui-border-width))) solid
+        var(--ui-textarea-border, var(--_ui-default-textarea-border, var(--ui-control-border, var(--ui-border-strong))));
+      border-radius: var(--ui-textarea-radius, var(--_ui-default-textarea-radius, var(--ui-field-radius, var(--ui-radius-md))));
+      background: var(--ui-textarea-surface, var(--_ui-default-textarea-surface, var(--ui-control-surface, var(--ui-surface-elevated))));
       color: var(--ui-text-primary);
       font: inherit;
       line-height: var(--ui-line-height-md);
-      box-shadow: var(--ui-textarea-shadow, var(--ui-control-inset));
+      box-shadow: var(--ui-textarea-shadow, var(--_ui-default-textarea-shadow, var(--ui-control-inset)));
       transition:
         border-color var(--ui-motion-fast) var(--ui-motion-ease),
         box-shadow var(--ui-motion-fast) var(--ui-motion-ease),
@@ -74,27 +112,34 @@
       opacity: 1;
     }
 
-    :host:hover:not(:focus):not(:disabled) {
-      border-color: var(--ui-control-border-hover, var(--ui-text-secondary));
+    :host:hover:not(:focus):not(:disabled):not(:read-only):not([aria-invalid="true"]):not(:user-invalid) {
+      border-color: var(--ui-textarea-border-hover, var(--_ui-default-textarea-border-hover, var(--ui-control-border-hover, var(--ui-text-secondary))));
     }
 
     :host:focus-visible {
-      border-color: var(--ui-control-focus, var(--ui-accent-solid));
-      outline: none;
-      box-shadow: var(--ui-textarea-focus-shadow, var(--ui-control-inset), var(--ui-control-focus-halo-shadow));
+      border-color: var(--ui-textarea-focus-border, var(--_ui-default-textarea-focus-border, var(--ui-control-focus, var(--ui-accent-solid))));
+      outline: var(--ui-textarea-focus-outline, var(--_ui-default-textarea-focus-outline, none));
+      box-shadow: var(--ui-textarea-focus-shadow, var(--_ui-default-textarea-focus-shadow, var(--ui-control-inset), var(--ui-control-focus-halo-shadow)));
     }
 
     /* The app's invalid flag, or the browser's own verdict once the user has left an invalid field. */
     :host[aria-invalid="true"],
     :host:user-invalid {
-      border-color: var(--ui-textarea-invalid-border, var(--ui-field-danger, var(--ui-danger-solid)));
+      border-color: var(--ui-textarea-invalid-border, var(--_ui-default-textarea-invalid-border, var(--ui-field-danger, var(--ui-danger-solid))));
     }
 
     :host:is([aria-invalid="true"], :user-invalid):focus-visible {
       box-shadow: var(
         --ui-textarea-invalid-focus-shadow,
-        var(--ui-control-inset),
-        0 0 0 3px color-mix(in srgb, var(--ui-textarea-invalid-border, var(--ui-field-danger, var(--ui-danger-solid))) 22%, transparent)
+        var(
+          --_ui-default-textarea-invalid-focus-shadow,
+          var(--ui-control-inset),
+          0 0 0 calc(var(--ui-focus-width) * 1.5) color-mix(
+            in srgb,
+            var(--ui-textarea-invalid-border, var(--_ui-default-textarea-invalid-border, var(--ui-field-danger, var(--ui-danger-solid)))) 22%,
+            transparent
+          )
+        )
       );
     }
 
@@ -105,20 +150,22 @@
       cursor: not-allowed;
     }
 
-    :host-state([size="sm"]) {
+    :host([size="sm"]) {
       --_padding-block: var(--ui-space-1);
       padding: var(--ui-space-1) var(--ui-space-2);
+      padding-inline-end: var(--ui-textarea-padding-inline-end, var(--_ui-default-textarea-padding-inline-end, var(--ui-space-2)));
       font-size: var(--ui-font-size-sm);
     }
 
-    :host-state([size="lg"]) {
+    :host([size="lg"]) {
       --_padding-block: var(--ui-space-3);
       padding: var(--ui-space-3) var(--ui-space-4);
+      padding-inline-end: var(--ui-textarea-padding-inline-end, var(--_ui-default-textarea-padding-inline-end, var(--ui-space-4)));
       font-size: var(--ui-font-size-md);
     }
 
     @supports (field-sizing: content) {
-      :host-state([autosize]) {
+      :host([autosize]) {
         field-sizing: content;
         min-block-size: calc(var(--_rows) * 1lh + var(--_padding-block) + var(--_padding-block) + 2px);
       }
@@ -126,7 +173,7 @@
 
     /* Below 16px, iOS zooms the page into the focused field, so touch keeps body-size text. */
     @media (pointer: coarse) {
-      :host-state([size="sm"]) {
+      :host([size="sm"]) {
         font-size: inherit;
       }
     }

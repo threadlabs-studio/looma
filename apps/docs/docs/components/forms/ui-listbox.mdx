@@ -6,19 +6,10 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 # Listbox
 
-Use Listbox when choices should stay visible. It is a native `<select>` with a visible `rows`
-count, so arrow keys, typeahead, Shift and Command or Control selection, form submission, reset,
-and assistive technology semantics work without JavaScript. Use [Select](/components/ui-select)
-for a compact single-choice dropdown or [Combobox](/components/ui-combobox) for a searchable list.
-
-Put native `<option>` and `<optgroup>` children inside it, and give it a visible `<label>` or an
-accessible name. `multiple` permits several selections and submits one entry per selected option.
-Read `selectedOptions` from the native `change` event; `value` and `values` set single and multiple
-selections from application state. When those props are omitted, native `selected` options own the
-initial state. Listbox follows `--ui-field-radius` and `--ui-field-danger`; local
-`--ui-listbox-*` hooks override its surface, border, radius, focus shadow, or invalid border.
-
-Native options are text only. Use a different composed collection when each choice needs rich
-interactive content.
+Keep choices visible in a styled list. A selected choice stays visible; in `multiple` mode, each row uses the same checkmark treatment as Combobox suggestions. Click to choose, use arrow keys to move, and press Space to toggle a multiple choice.
 
 <ComponentExamplesApiTabs component="ui-listbox" />
+
+Author `<option>` and `<optgroup>` children for the labels, values, disabled state, and initial `selected` state. Give the list an accessible name with `aria-label` or `aria-labelledby`. `value` and `values` set its selection from application state; `change` reports the new values. A named list contributes one form entry per selection and returns to its initial selection on form reset.
+
+The `required` prop prevents form submission with no selection. A disabled list cannot change or submit a value. Use [Select](/components/ui-select) when one choice belongs in a compact dropdown, or [Combobox](/components/ui-combobox) when users need to search choices.

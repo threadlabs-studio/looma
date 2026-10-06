@@ -1,10 +1,10 @@
 <!--
 title: Checkable context choices
-description: Context Menu uses the same checkbox and radio items as Menu; changing a choice leaves the context menu open.
+description: Right-click or long-press the button, or focus it and press Shift+F10. Checkboxes and radio choices show their state before and after a change; choosing one leaves the menu open.
 -->
-<button id="view-target" type="button">More view options</button>
+<ui-button id="view-target" type="button">Right-click for view options</ui-button>
 <ui-context-menu for="view-target">
-  <ui-menu-item type="checkbox" value="grid">Show grid</ui-menu-item>
+  <ui-menu-item type="checkbox" value="grid" checked>Show grid</ui-menu-item>
   <ui-menu-group label="Density">
     <ui-menu-item type="radio" value="comfortable" checked>Comfortable</ui-menu-item>
     <ui-menu-item type="radio" value="compact">Compact</ui-menu-item>

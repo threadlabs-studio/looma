@@ -1,16 +1,33 @@
 <template component="ui-menu" controller="./ui-menu.js">
   <defs>
-    <prop name="density" type="comfortable | compact" default="comfortable">Compact trades padding and type size for rows that fit more on screen.</prop>
+    <prop name="density" type="keyword" values="comfortable, compact" default="comfortable"
+    >Compact trades padding and type size for rows that fit more on screen.</prop>
+    <prop name="size" type="keyword" values="sm, md" default="md"
+    >sm sizes the menu to a small trigger, such as an xs or sm button: smallest text, short rows, a small check, and a narrower minimum width. md is the
+      standard size.</prop>
     <prop name="open" type="boolean" default="false">Whether the menu is open initially or when set externally.</prop>
+    <prop name="inline" type="boolean" default="false">Displays the menu in the page flow without an overlay or trigger, for an embedded list of actions.</prop>
     <prop name="for" type="string" default="">ID of the control that toggles and anchors the menu.</prop>
     <prop name="placement" type="string" default="bottom-start">Positions an associated menu relative to its trigger.</prop>
-    <state name="internalOpen" :value="false"></state>
-    <event name="select" type="object({ value: string, checked?: boolean, trigger: keyboard | pointer | programmatic })"></event>
-    <event name="open" type="object({ open: boolean, reason: action | programmatic, trigger: keyboard | pointer | programmatic })"></event>
+    <state type="boolean" name="internalOpen" value="false"></state>
+    <event name="select" type="object">
+      <prop name="value" required type="string"></prop>
+      <prop name="checked" type="boolean"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
+    <event name="open" type="object">
+      <prop name="open" required type="boolean"></prop>
+      <prop name="reason" required type="keyword" values="action, programmatic"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
     <event
       name="close"
-      type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"
-    ></event>
+      type="object"
+    >
+      <prop name="open" required type="boolean"></prop>
+      <prop name="reason" required type="keyword" values="action, programmatic, light-dismiss, escape"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
   </defs>
   <div role="menu" aria-orientation="vertical"><div class="surface"><slot></slot></div></div>
   <style>
@@ -38,11 +55,24 @@
 
     /* Compact sets its items' defaults, so nothing has to rescale a global; an item's own hooks
        still win. */
-    :host-state([density="compact"]) {
+    :host([density="compact"]) {
       --_ui-default-menu-item-padding-block: var(--ui-space-1);
       --_ui-default-menu-item-padding-inline: var(--ui-space-2);
       --_ui-default-menu-item-font-size: var(--ui-font-size-sm);
       --_ui-default-menu-item-radius: var(--ui-radius-sm);
+      padding: var(--ui-space-1);
+      gap: 0;
+    }
+
+    /* Small follows its trigger down: an item's own hooks still win. */
+    :host([size="sm"]) {
+      --_ui-default-menu-item-padding-block: var(--ui-space-0-5);
+      --_ui-default-menu-item-padding-inline: var(--ui-space-2);
+      --_ui-default-menu-item-font-size: var(--ui-font-size-xs);
+      --_ui-default-menu-item-radius: var(--ui-radius-sm);
+      --_ui-default-menu-item-min-block-size: 1.5rem;
+      --_ui-default-menu-indicator-size: 0.75rem;
+      min-inline-size: min(8rem, calc(100vw - var(--ui-menu-viewport-gap, var(--ui-space-2)) * 2));
       padding: var(--ui-space-1);
       gap: 0;
     }
@@ -57,6 +87,8 @@
       --_ui-default-menu-item-padding-inline: initial;
       --_ui-default-menu-item-font-size: initial;
       --_ui-default-menu-item-radius: initial;
+      --_ui-default-menu-item-min-block-size: initial;
+      --_ui-default-menu-indicator-size: initial;
       display: flex;
       flex-direction: column;
       box-sizing: border-box;
@@ -79,7 +111,7 @@
       max-inline-size: inherit;
       padding: var(--ui-space-1);
       background: var(--_ui-menu-surface, var(--ui-overlay-surface, var(--ui-surface-elevated)));
-      border: 1px solid var(--_ui-menu-border, var(--ui-overlay-border, var(--ui-border-default)));
+      border: var(--ui-border-width) solid var(--_ui-menu-border, var(--ui-overlay-border, var(--ui-border-strong)));
       border-radius: var(--_ui-menu-radius, var(--ui-overlay-radius, var(--ui-radius-lg)));
       box-shadow: var(--_ui-menu-shadow, var(--ui-overlay-shadow, var(--ui-elevation-overlay, var(--ui-shadow-lg))));
       max-block-size: inherit;
@@ -91,10 +123,10 @@
       block-size: 0;
       margin: var(--ui-space-1) 0;
       border: 0;
-      border-block-start: 1px solid var(--ui-border-default);
+      border-block-start: var(--ui-border-width) solid var(--ui-border-divider);
     }
 
-    :host:not(:host-state([internalOpen])) {
+    :host:not(:host-state([internalOpen])):not(:host([inline])) {
       display: none;
     }
 

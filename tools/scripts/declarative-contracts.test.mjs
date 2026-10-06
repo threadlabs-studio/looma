@@ -16,9 +16,8 @@ test("derives the public contract from one maintained declarative definition", (
         <prop name="disabled" type="boolean" default="false">Whether editing is disabled.</prop>
         <prop name="items" type="list(object({ id: string }))">Structured items.</prop>
         <event name="change" type="object({ value: string })"></event>
-        <method name="focus" returns="promise(undefined)"></method>
       </defs>
-      <input :disabled="disabled">
+      <input from:disabled="disabled">
       <style>:scope { color: var(--ui-text-primary); }</style>
     </template>
   `, "ui-example");
@@ -27,7 +26,7 @@ test("derives the public contract from one maintained declarative definition", (
   assert.deepEqual(contract.props.disabled, { type: "boolean", default: false });
   assert.ok(!("channel" in contract.props.items));
   assert.deepEqual(contract.events, [{ name: "change", type: "object({ value: string })" }]);
-  assert.deepEqual(contract.methods, [{ name: "focus", returns: "promise(undefined)" }]);
+  assert.equal("methods" in contract, false);
   assert.deepEqual(contract.dependencies, ["ui-child"]);
   assert.deepEqual(contract.slots, []);
 });
@@ -35,8 +34,23 @@ test("derives the public contract from one maintained declarative definition", (
 test("loads every component contract from its folder", async () => {
   const groups = await readDeclarativeContractGroups();
   assert.deepEqual(groups.map(({ name }) => name), ["components"]);
-  assert.equal(Object.values(groups).flatMap(({ contracts }) => Object.keys(contracts)).length, 73);
+  assert.equal(Object.values(groups).flatMap(({ contracts }) => Object.keys(contracts)).length, 74);
   assert.equal(groups[0].contracts["ui-select"].root, "select");
+  assert.equal(groups[0].contracts["ui-image"].root, "figure");
+});
+
+test("API metadata keeps base types, choices, and selected types readable", async () => {
+  const groups = await readDeclarativeContractGroups();
+  const contracts = groups[0].contracts;
+  assert.equal(contracts["ui-button"].propValueTypes.variant, "keyword");
+  assert.deepEqual(contracts["ui-button"].propOptions.variant, ["outline", "solid", "danger", "ghost", "link", "card"]);
+  assert.equal(contracts["ui-input"].propValueTypes.value, "type=number, range → number; otherwise → string");
+  assert.equal(contracts["ui-checkbox"].events[0].detailShape, "object");
+  assert.deepEqual(contracts["ui-checkbox"].events[0].fields.find((field) => field.path === "trigger"), {
+    path: "trigger", type: "keyword", required: true, values: ["keyboard", "pointer", "programmatic"],
+  });
+  assert.match(contracts["ui-checkbox"].events[0].detailType, /trigger: "keyboard" \| "pointer" \| "programmatic"/);
+  assert.ok(contracts["ui-combobox"].propFields.items.some((field) => field.path === "[].tag.tone"));
 });
 
 test("raw HTML contracts use native state names and false-default booleans", async () => {
@@ -99,9 +113,10 @@ test("a button renders as a link through its polymorphic root, not a second comp
   );
 
   // An `as` prop chooses between explicit native roots; the prop does not retag an element.
-  assert.equal(contracts["ui-button"].props.as?.type, "button | a");
-  assert.match(source, /<template \$match>\s*<a\s+\$when="as = 'a'"/);
-  assert.match(source, /<button \$else\b/);
+  assert.equal(contracts["ui-button"].props.as?.type, "keyword");
+  assert.deepEqual(contracts["ui-button"].propOptions.as, ["button", "a"]);
+  assert.match(source, /<a\s+\$when="as = 'a'"/);
+  assert.match(source, /<button\s+\$else\b/);
   assert.equal(contracts["ui-button"].root, "button");
   for (const name of ["href", "target", "rel"]) {
     assert.equal(contracts["ui-button"].props[name]?.type, "string", `ui-button declares ${name}`);
@@ -171,7 +186,8 @@ test("primitive contracts do not own application policy or a second interaction 
       false,
       `${tag} should not expose one boolean per editor command`,
     );
-    assert.match(props.actions.type, /^list\(.+\|.+\)$/);
+    assert.equal(props.actions.type, "list");
+    assert.match(contracts[tag].propTypes.actions, /readonly.*"align-left".*"align-right"/);
   }
 });
 
@@ -204,10 +220,10 @@ test("semantic tones use one public vocabulary", async () => {
     "utf8",
   );
 
-  assert.equal(contracts["ui-button"].props.variant.type, "outline | solid | danger | ghost | link");
-  assert.equal(contracts["ui-callout"].props.tone.type, "info | neutral | note | warning | success | danger");
-  assert.equal(contracts["ui-badge"].props.tone.type, "neutral | accent | info | success | warning | danger");
-  assert.equal(contracts["ui-badge"].props.shape.type, "pill | tag");
+  assert.deepEqual(contracts["ui-button"].propOptions.variant, ["outline", "solid", "danger", "ghost", "link", "card"]);
+  assert.deepEqual(contracts["ui-callout"].propOptions.tone, ["info", "neutral", "note", "warning", "success", "danger"]);
+  assert.deepEqual(contracts["ui-badge"].propOptions.tone, ["neutral", "accent", "info", "success", "warning", "danger"]);
+  assert.deepEqual(contracts["ui-badge"].propOptions.shape, ["pill", "tag", "dot", "square"]);
   assert.equal(contracts["ui-badge"].props.shape.default, "pill");
   assert.doesNotMatch(previewSource, /variant=["']destructive["']|tone=["']error["']/);
 });
@@ -219,7 +235,7 @@ test("events describe the interaction instead of repeating the package and compo
     .flatMap(([, contract]) => contract.events.map(({ name }) => name));
   assert.deepEqual(
     [...new Set(editorEventNames)].sort(),
-    ["action", "highlight", "insert", "select"],
+    ["action", "add-column-after", "add-column-before", "add-row-after", "add-row-before", "highlight", "insert", "open-cell-menu", "open-column-menu", "open-row-menu", "reorder-column", "reorder-row", "select", "select-column", "select-row"],
   );
   assert.equal(editorEventNames.some((name) => name.startsWith("looma-editor-")), false);
 

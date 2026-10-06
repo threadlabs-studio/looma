@@ -1,13 +1,19 @@
 <template component="ui-list">
   <defs>
-    <prop name="layout" type="rows | grid" default="rows"
+    <prop name="as" type="keyword" values="ul, ol" default="ul">The native list element. Use ol when item order matters; its native numbers are shown.</prop>
+    <prop name="markers" type="keyword" values="none, disc" default="none"
+    >Show disc bullets for a ul of native li elements. An ol always shows native numbers.</prop>
+    <prop name="layout" type="keyword" values="rows, grid" default="rows"
     >How the items are laid out. Rows stack the items one per line, for a list read top to bottom. Grid sets them in as many columns as fit, each at least
       --ui-list-min-item-width (14rem) wide, for card items such as pinned or featured entries.</prop>
-    <prop name="density" type="comfortable | compact" default="comfortable"
+    <prop name="density" type="keyword" values="comfortable, compact" default="comfortable"
     >How much room each item takes. comfortable is a full row, easy to point at, for lists of things to open; compact sets items close together with no row
       padding, for a short list of facts inside other content, such as the features a plan includes.</prop>
   </defs>
-  <ul role="list"><slot></slot></ul>
+  <template $match>
+    <ol $when="as = 'ol'"><slot></slot></ol>
+    <ul $else role="list"><slot></slot></ul>
+  </template>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
     @property --ui-list-gap {
@@ -19,32 +25,67 @@
       inherits: false;
     }
 
-    /* A list of items (ui-list-item). It owns the spacing between them, so a view never sets it. The
+    /* A list of native li elements or structured ui-list-item components. It owns the spacing between them, so a view never sets it. The
        explicit list role keeps the list announced as one: some browsers drop it from a list with no
        markers. */
     :host {
+      --_list-gap: var(--ui-list-gap, var(--ui-space-1));
+      --_list-min-item-width: var(--ui-list-min-item-width, 14rem);
       display: flex;
       flex-direction: column;
-      gap: var(--ui-list-gap, var(--ui-space-1));
+      inline-size: 100%;
+      gap: var(--_list-gap);
       min-inline-size: 0;
       margin: 0;
       padding: 0;
       list-style: none;
     }
 
+    :host([as="ol"]),
+    :host([markers="disc"]) {
+      padding-inline-start: var(--ui-space-5);
+    }
+
+    :host([as="ol"]) {
+      list-style: decimal;
+    }
+
+    :host([markers="disc"]) {
+      list-style: disc;
+    }
+
+    :host > :slotted(li) {
+      box-sizing: border-box;
+      min-inline-size: 0;
+      padding: var(--_ui-list-native-padding-block, var(--ui-space-2)) var(--_ui-list-native-padding-inline, var(--ui-space-3));
+      border-radius: var(--ui-radius-md);
+      color: var(--ui-text-primary);
+      list-style: inherit;
+    }
+
+    :host > :slotted(li.card) {
+      padding: var(--_ui-list-native-padding-block, var(--ui-space-3)) var(--_ui-list-native-padding-inline, var(--ui-space-4));
+      border: var(--ui-border-width) solid var(--ui-border-strong);
+      border-radius: var(--ui-radius-lg);
+      background: var(--ui-surface-raised);
+      list-style: none;
+    }
+
     /* Compact passes its size to the items through private properties, which cross into each item. */
-    :host-state([density="compact"]) {
+    :host([density="compact"]) {
+      --_list-gap: var(--ui-list-gap, var(--ui-space-2));
       --_ui-list-item-min-size: 0;
       --_ui-list-item-padding-block: 0;
       --_ui-list-item-padding-inline: 0;
       --_ui-list-item-title-weight: var(--ui-font-normal);
-      gap: var(--ui-list-gap, var(--ui-space-2));
+      --_ui-list-native-padding-block: 0;
+      --_ui-list-native-padding-inline: 0;
     }
 
-    :host-state([layout="grid"]) {
+    :host([layout="grid"]) {
+      --_list-gap: var(--ui-list-gap, var(--ui-space-3));
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--ui-list-min-item-width, 14rem)), 1fr));
-      gap: var(--ui-list-gap, var(--ui-space-3));
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--_list-min-item-width)), 1fr));
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */

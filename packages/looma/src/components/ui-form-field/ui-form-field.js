@@ -11,7 +11,7 @@ function descriptionIds(input) {
   return Array.from(new Set((input.getAttribute("aria-describedby") ?? "").split(/\s+/).filter(Boolean)));
 }
 
-export default function controller(host) {
+function connect(host) {
   const element = host.element;
   let activeInput = null;
   let owned = new Set();
@@ -44,7 +44,7 @@ export default function controller(host) {
       if (!help.id) help.id = id("form-field-help");
       described.push(help.id);
     }
-    if (error && host.state.invalid) {
+    if (error && host.props.invalid.value) {
       if (!error.id) error.id = id("form-field-error");
       described.push(error.id);
     }
@@ -52,9 +52,9 @@ export default function controller(host) {
     const next = Array.from(new Set([...external, ...described])).join(" ");
     if (next && input.getAttribute("aria-describedby") !== next) input.setAttribute("aria-describedby", next);
     else if (!next && input.hasAttribute("aria-describedby")) input.removeAttribute("aria-describedby");
-    input.disabled = Boolean(host.state.disabled);
-    input.required = Boolean(host.state.required);
-    input.setAttribute("aria-invalid", String(Boolean(host.state.invalid)));
+    input.disabled = Boolean(host.props.disabled.value);
+    input.required = Boolean(host.props.required.value);
+    input.setAttribute("aria-invalid", String(Boolean(host.props.invalid.value)));
   };
   const schedule = () => {
     if (queued) return;
@@ -73,4 +73,9 @@ export default function controller(host) {
     observer.disconnect();
     removeOwned(activeInput);
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

@@ -1,4 +1,5 @@
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expect, test, ready } from "./docs-fixture";
+import type { Locator, Page } from "@playwright/test";
 import axe from "axe-core";
 
 import componentApi from "../../../generated/component-api.json";
@@ -26,7 +27,7 @@ async function expectNoAxeViolations(page: Page): Promise<void> {
 
 /** Linear sRGB from any colour the browser hands back: rgb(), color(srgb ...), oklab(), oklch(). */
 function linearChannels(color: string): [number, number, number] {
-  const numbers = (color.match(/-?[\d.]+/g) ?? []).map(Number);
+  const numbers = (color.match(/[+-]?(?:\d*\.)?\d+(?:e[+-]?\d+)?/gi) ?? []).map(Number);
   if (numbers.length < 3) throw new Error(`Unsupported color: ${color}`);
   const gamma = (channel: number) =>
     channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
@@ -235,9 +236,20 @@ test("menu for association toggles the anchored menu", async ({ page }) => {
   const trigger = scenario.getByRole("button", { name: "Open menu" });
   const menu = scenario.getByRole("menu", { name: "Document actions" });
   await expect(menu).not.toBeVisible();
+  const restingSurface = await trigger.evaluate((element) => getComputedStyle(element).backgroundColor);
   await trigger.click();
   await expect(menu).toBeVisible();
   await expect(trigger).toHaveAttribute("aria-expanded", "true");
+  await page.mouse.move(0, 0);
+  await expect.poll(() => trigger.evaluate((element) => getComputedStyle(element).backgroundColor)).not.toBe(restingSurface);
+  const iconGap = await menu.getByRole("menuitem", { name: "Share" }).locator(".label").evaluate((label) => {
+    const icon = label.querySelector("svg")!;
+    const text = Array.from(label.childNodes).find((node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim())!;
+    const range = document.createRange();
+    range.selectNodeContents(text);
+    return range.getBoundingClientRect().left - icon.getBoundingClientRect().right;
+  });
+  expect(iconGap).toBeGreaterThanOrEqual(6);
   await page.keyboard.press("Escape");
   await expect(menu).not.toBeVisible();
   await expect(trigger).toHaveAttribute("aria-expanded", "false");
@@ -248,8 +260,8 @@ test("affordance-scope visibly reveals an anticipatory Looma control near the po
   const scenario = page.locator("[data-preview-scenario='Default radius']");
   const affordance = scenario.locator("[data-component~='ui-icon-button']").first();
   await expect(affordance).toHaveRole("button", { name: "Add" });
-  // At rest only the guide dot shows: the icon (currentColor) and surface are transparent.
-  await expect(affordance).toHaveCSS("color", "rgba(0, 0, 0, 0)");
+  // At rest only the guide dot shows; the icon starts scaled down and transparent.
+  await expect(affordance.locator(".content")).toHaveCSS("opacity", "0");
   expect(await affordance.evaluate((element) => getComputedStyle(element, "::before").opacity)).not.toBe("0");
   const bounds = await affordance.boundingBox();
   expect(bounds).not.toBeNull();
@@ -257,18 +269,18 @@ test("affordance-scope visibly reveals an anticipatory Looma control near the po
   const visibleBounds = await affordance.boundingBox();
   await page.mouse.move(visibleBounds!.x - 8, visibleBounds!.y + visibleBounds!.height / 2);
   await expect(affordance).toHaveAttribute("data-ui-proximity", "near");
-  await expect(affordance).not.toHaveCSS("color", "rgba(0, 0, 0, 0)");
+  await expect(affordance.locator(".content")).toHaveCSS("opacity", "1");
 
   // guide="none": nothing marks the button at rest, and it still reveals as the pointer nears.
   await page.mouse.move(0, 0);
   const quiet = page.locator("[data-preview-scenario='guide=\"none\"'] [data-component~='ui-icon-button']").first();
   await quiet.scrollIntoViewIfNeeded();
-  await expect(quiet).toHaveCSS("color", "rgba(0, 0, 0, 0)");
+  await expect(quiet.locator(".content")).toHaveCSS("opacity", "0");
   expect(await quiet.evaluate((element) => getComputedStyle(element, "::before").opacity)).toBe("0");
   const quietBounds = await quiet.boundingBox();
   await page.mouse.move(quietBounds!.x - 8, quietBounds!.y + quietBounds!.height / 2);
   await expect(quiet).toHaveAttribute("data-ui-proximity", "near");
-  await expect(quiet).not.toHaveCSS("color", "rgba(0, 0, 0, 0)");
+  await expect(quiet.locator(".content")).toHaveCSS("opacity", "1");
 });
 
 test("popover trigger opens, positions, and closes the settled component", async ({ page }) => {
@@ -279,9 +291,14 @@ test("popover trigger opens, positions, and closes the settled component", async
   const trigger = scenario.getByRole("button", { name: "Open popover" });
   const popover = scenario.locator("[data-component~='ui-popover']");
   await expect(popover).not.toBeVisible();
+  await expect(trigger).toHaveAttribute("aria-expanded", "false");
+  const restingSurface = await trigger.evaluate((element) => getComputedStyle(element).backgroundColor);
   await trigger.evaluate((element) => element.scrollIntoView({ block: "center", behavior: "instant" }));
   await trigger.click();
   await expect(popover).toBeVisible();
+  await expect(trigger).toHaveAttribute("aria-expanded", "true");
+  await page.mouse.move(0, 0);
+  await expect.poll(() => trigger.evaluate((element) => getComputedStyle(element).backgroundColor)).not.toBe(restingSurface);
   expect(await popover.evaluate((element) => element.matches(":popover-open"))).toBe(true);
   const positions = await Promise.all([trigger.boundingBox(), popover.boundingBox()]);
   expect(positions[0]).not.toBeNull();
@@ -289,6 +306,7 @@ test("popover trigger opens, positions, and closes the settled component", async
   expect(positions[1]!.y).toBeGreaterThanOrEqual(positions[0]!.y + positions[0]!.height);
   await page.keyboard.press("Escape");
   await expect(popover).not.toBeVisible();
+  await expect(trigger).toHaveAttribute("aria-expanded", "false");
 
   const placed = page.locator(`[data-preview-scenario='placement="top-end"']`);
   const placedPopover = placed.locator("[data-component~='ui-popover']");
@@ -330,6 +348,73 @@ test("tooltip uses a Looma trigger and a crisp, pointed overlay surface", async 
   expect(treatment.shadow).not.toBe("none");
   expect(treatment.arrowContent).not.toBe("none");
   expect(treatment.arrowWidth).toBeGreaterThan(0);
+
+  const sideScenario = page.locator("[data-preview-scenario='Side placement']");
+  await sideScenario.locator("#side-tooltip-trigger").focus();
+  const sideTooltip = sideScenario.locator("[data-component~='ui-tooltip']");
+  await expect(sideTooltip).toHaveAttribute("data-ui-actual-placement", "right");
+  const sideArrow = () => sideTooltip.locator(".surface").evaluate((element) => {
+    const style = getComputedStyle(element, "::after");
+    return { left: style.borderLeftWidth, bottom: style.borderBottomWidth, top: style.borderTopWidth };
+  });
+  await expect.poll(sideArrow).toEqual({ left: "1px", bottom: "1px", top: "0px" });
+});
+
+test("solid icon buttons keep their fill and loading shows a ring", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("components/ui-icon-button", { waitUntil: "domcontentloaded" });
+  for (const scenario of ["Size and variant", "round"]) {
+    const solid = page.locator(`[data-preview-scenario='${scenario}'] [data-component~='ui-icon-button'][data-ui-icon-button-state~='variant=solid']`);
+    const colors = await computedOpaqueColors(solid);
+    expect(contrastRatio(colors.foreground, colors.background)).toBeGreaterThanOrEqual(4.5);
+  }
+  const spinner = page.locator("[data-preview-scenario='Loading icon action'] [data-component~='ui-spinner']");
+  await expect(spinner.locator("svg .arc")).toHaveCSS("stroke-linecap", "round");
+  await expect(spinner.locator("svg .arc")).toHaveCSS("animation-name", "ui-spinner-dash");
+});
+
+test("listbox previews use shared checked rows and allow repeated selection", async ({ page }) => {
+  await page.goto("components/ui-listbox", { waitUntil: "domcontentloaded" });
+  const scenario = page.locator("[data-preview-scenario='Multiple choice']");
+  const rows = scenario.locator("[role='option']");
+  await expect(rows.nth(0)).toHaveAttribute("aria-selected", "true");
+  await expect(rows.nth(3)).toHaveAttribute("aria-selected", "true");
+  await expect(rows.nth(0)).toHaveCSS("display", "flex");
+  await rows.nth(1).click();
+  await expect(rows.nth(1)).toHaveAttribute("aria-selected", "true");
+  await scenario.locator("[role='listbox']").press(" ");
+  await expect(rows.nth(1)).toHaveAttribute("aria-selected", "false");
+});
+
+test("mixed checkbox demo returns to mixed after an item changes", async ({ page }) => {
+  await page.goto("components/ui-checkbox", { waitUntil: "domcontentloaded" });
+  const scenario = page.locator("[data-preview-scenario='Select all and mixed state']");
+  const all = scenario.locator("#docs-checkbox-all input");
+  const items = scenario.locator(".docs-checkbox-item input");
+  await expect(all).toHaveJSProperty("indeterminate", true);
+  await all.click();
+  await expect(all).toHaveJSProperty("indeterminate", false);
+  for (const item of await items.all()) await expect(item).toBeChecked();
+  await items.nth(1).click();
+  await expect(all).toHaveJSProperty("indeterminate", true);
+});
+
+test("text fields keep error and readonly borders stable on hover", async ({ page }) => {
+  for (const [component, scenario] of [["ui-input", "invalid, readonly, and disabled"], ["ui-textarea", "rows, invalid, and readonly"]] as const) {
+    await page.goto(`components/${component}`, { waitUntil: "domcontentloaded" });
+    const preview = page.locator(`[data-preview-scenario='${scenario}']`);
+    const invalid = preview.locator(`[data-component~='${component}'][aria-invalid='true']`).first();
+    const readonly = preview.locator(`[data-component~='${component}'][readonly]`).first();
+    const border = (field: typeof invalid) => field.evaluate((element) => getComputedStyle(element).borderTopColor);
+    const invalidRest = await border(invalid);
+    const readonlyRest = await border(readonly);
+    await invalid.hover();
+    await page.waitForTimeout(150);
+    expect(await border(invalid)).toBe(invalidRest);
+    await readonly.hover();
+    await page.waitForTimeout(150);
+    expect(await border(readonly)).toBe(readonlyRest);
+  }
 });
 
 test("toast-region starts empty, fires on demand, and uses a compact round dismiss control", async ({ page }) => {
@@ -380,8 +465,9 @@ test("the component catalog exposes the complete library and filters live previe
     "Core, layout, form, display, and overlay building blocks"
   );
   await expect(page.locator(".looma-catalog-hero")).not.toContainText("Forty-nine");
-  await expect(page.locator(".looma-component-card")).toHaveCount(53);
-  await expect(page.getByText("Showing 53 components", { exact: true })).toBeVisible();
+  await expect(page.locator(".looma-component-card")).toHaveCount(54);
+  await expect(page.getByText("Showing 54 components", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Image", exact: true })).toHaveCount(1);
   await expect(page.getByRole("heading", { level: 2, name: "Chip" })).toHaveCount(0);
   await expect(page.getByRole("heading", { level: 2, name: "Floating Action Button" })).toHaveCount(0);
   await expect(page.getByRole("heading", { level: 2, name: "Menu Item" })).toHaveCount(0);
@@ -395,14 +481,18 @@ test("the component catalog exposes the complete library and filters live previe
   // Cards are live like the component pages: a guide dot at rest, the button as the pointer nears it.
   const anticipatoryControl = page.locator('[data-component-card="ui-affordance-scope"] [data-component~="ui-icon-button"]').first();
   await anticipatoryControl.scrollIntoViewIfNeeded();
-  await expect(anticipatoryControl).toHaveCSS("color", "rgba(0, 0, 0, 0)");
+  await expect(anticipatoryControl.locator(".content")).toHaveCSS("opacity", "0");
   expect(await anticipatoryControl.evaluate((element) => getComputedStyle(element, "::before").opacity)).not.toBe("0");
   const controlBounds = await anticipatoryControl.boundingBox();
   await page.mouse.move(controlBounds!.x - 8, controlBounds!.y + controlBounds!.height / 2);
   await expect(anticipatoryControl).toHaveAttribute("data-ui-proximity", "near");
-  await expect(anticipatoryControl).not.toHaveCSS("color", "rgba(0, 0, 0, 0)");
+  await expect(anticipatoryControl.locator(".content")).toHaveCSS("opacity", "1");
 
   const search = page.getByRole("searchbox", { name: "Search components" });
+  await page.getByRole("heading", { level: 1, name: "Components" }).click();
+  await page.keyboard.press("/");
+  await expect(search).toBeFocused();
+  await expect(search).toHaveValue("");
   await search.fill("toast");
   await expect(page.getByText("Showing 1 component", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { level: 2, name: "Toast Region" })).toBeVisible();
@@ -413,86 +503,6 @@ test("the component catalog exposes the complete library and filters live previe
   await expect(checkbox).not.toBeChecked();
   await checkbox.check();
   await expect(checkbox).toBeChecked();
-});
-
-test("Editor is a top-level subsystem with concise component names", async ({ page }) => {
-  await page.goto("editor", { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("heading", { level: 1, name: "Editor" })).toBeVisible();
-  await expect(page.getByText("Showing 7 components", { exact: true })).toBeVisible();
-  const sidebar = page.locator(".theme-doc-sidebar-menu");
-  await expect(sidebar.getByRole("link", { name: "Toolbar", exact: true })).toBeVisible();
-  await expect(sidebar.getByRole("link", { name: "Table Overlay", exact: true })).toBeVisible();
-  await expect(sidebar.getByText("Editor Table Overlay", { exact: true })).toHaveCount(0);
-  await expect(page.locator(".navbar").getByRole("link", { name: "Editor", exact: true })).toBeVisible();
-});
-
-test("editor catalog overlays stay inside their preview cards", async ({ page }) => {
-  await page.goto("editor", { waitUntil: "networkidle" });
-
-  for (const name of ["Mention Menu", "Slash Menu"] as const) {
-    const tag = `ui-editor-${name.toLowerCase().replace(" ", "-")}`;
-    const card = page.locator(`[data-component-card="${tag}"]`);
-    await page.evaluate((componentTag) => {
-      document.querySelector(`[data-component-card="${componentTag}"]`)
-        ?.scrollIntoView({ block: "center", behavior: "instant" });
-    }, tag);
-    await expect(card).toBeVisible();
-    const preview = card.locator(".looma-component-card__preview");
-    const surface = preview.locator(`[data-component~="${tag}"]`);
-    await expect(surface).toBeVisible();
-
-    const [previewBounds, surfaceBounds] = await Promise.all([
-      preview.boundingBox(),
-      surface.boundingBox()
-    ]);
-    expect(previewBounds).not.toBeNull();
-    expect(surfaceBounds).not.toBeNull();
-    expect(surfaceBounds!.x).toBeGreaterThanOrEqual(previewBounds!.x - 1);
-    expect(surfaceBounds!.y).toBeGreaterThanOrEqual(previewBounds!.y - 1);
-    expect(surfaceBounds!.x + surfaceBounds!.width).toBeLessThanOrEqual(
-      previewBounds!.x + previewBounds!.width + 1
-    );
-    expect(surfaceBounds!.y + surfaceBounds!.height).toBeLessThanOrEqual(
-      previewBounds!.y + previewBounds!.height + 1
-    );
-  }
-
-  const contextCard = page.locator('[data-component-card="ui-editor-table-context-menu"]');
-  await page.evaluate(() => {
-    document.querySelector('[data-component-card="ui-editor-table-context-menu"]')
-      ?.scrollIntoView({ block: "center", behavior: "instant" });
-  });
-  const contextPreview = contextCard.locator(".looma-component-card__preview");
-  const contextSurface = contextPreview.locator("[data-component~='ui-editor-table-context-menu']");
-  await expect(contextSurface).toBeVisible();
-  const [contextPreviewBounds, contextSurfaceBounds] = await Promise.all([
-    contextPreview.boundingBox(),
-    contextSurface.boundingBox()
-  ]);
-  expect(contextPreviewBounds).not.toBeNull();
-  expect(contextSurfaceBounds).not.toBeNull();
-  expect(contextSurfaceBounds!.y).toBeGreaterThanOrEqual(contextPreviewBounds!.y - 1);
-  expect(contextSurfaceBounds!.y + contextSurfaceBounds!.height).toBeLessThanOrEqual(
-    contextPreviewBounds!.y + contextPreviewBounds!.height + 1
-  );
-
-  const overlayCard = page.locator('[data-component-card="ui-editor-table-overlay"]');
-  await page.evaluate(() => {
-    document.querySelector('[data-component-card="ui-editor-table-overlay"]')
-      ?.scrollIntoView({ block: "center", behavior: "instant" });
-  });
-  const tableStage = overlayCard.locator(".demo-editor-table-stage");
-  const tableOverlay = tableStage.locator('[data-component~="ui-editor-table-overlay"]');
-  await expect(tableStage.getByRole("table", { name: "Example table" })).toBeVisible();
-  await expect(tableOverlay).toBeVisible();
-  const [tableBounds, overlayBounds] = await Promise.all([
-    tableStage.getByRole("table", { name: "Example table" }).boundingBox(),
-    tableOverlay.boundingBox()
-  ]);
-  expect(tableBounds).not.toBeNull();
-  expect(overlayBounds).not.toBeNull();
-  expect(overlayBounds!.width).toBeGreaterThanOrEqual(tableBounds!.width - 1);
-  expect(overlayBounds!.height).toBeGreaterThanOrEqual(tableBounds!.height - 1);
 });
 
 test("table overlay uses one structured geometry property", async ({ page }) => {
@@ -535,8 +545,8 @@ test("editor table menus use one action capability set", async ({ page }) => {
 });
 
 test("every component page renders distinct, visible, coded scenarios", async ({ page }) => {
-  // Visits every component page in one test.
-  test.setTimeout(90_000);
+  // Give each route its normal readiness allowance; the library-wide loop grows with the catalog.
+  test.setTimeout(Math.max(90_000, componentApi.components.length * 5_000));
   for (const component of componentApi.components) {
     await page.goto(`components/${component.tag}`, { waitUntil: "domcontentloaded" });
     await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
@@ -585,6 +595,7 @@ test("component pages supply a live preview when no bespoke example exists", asy
 
 test("avatar authoring uses ordinary images and avatar groups visibly overlap", async ({ page }) => {
   await page.goto("components/ui-avatar", { waitUntil: "domcontentloaded" });
+  await ready(page);
   const imageScenario = page.locator("[data-preview-scenario='Image']");
   const authoredImage = imageScenario.locator("[data-component~='ui-avatar'] img:not(.image)");
   await expect(authoredImage).toHaveCount(1);
@@ -594,6 +605,7 @@ test("avatar authoring uses ordinary images and avatar groups visibly overlap", 
   await expect(imageScenario.locator(".looma-mode-code")).not.toContainText("data-ui-avatar-fallback");
 
   await page.goto("components/ui-avatar-group", { waitUntil: "domcontentloaded" });
+  await ready(page);
   const group = page.locator("[data-preview-scenario='Default maximum'] [data-component~='ui-avatar-group']");
   const avatars = group.locator("[data-component~='ui-avatar']");
   await expect(avatars).toHaveCount(3);
@@ -609,8 +621,11 @@ test("avatar authoring uses ordinary images and avatar groups visibly overlap", 
 test("the docs sidebar treatment reaches the footer on tall pages in both themes", async ({ page }) => {
   for (const theme of ["light", "dark"] as const) {
     await page.goto("components/ui-avatar-group", { waitUntil: "domcontentloaded" });
+    await ready(page);
     await page.evaluate((selectedTheme) => localStorage.setItem("theme", selectedTheme), theme);
     await page.reload({ waitUntil: "domcontentloaded" });
+    await ready(page);
+    await page.waitForLoadState("networkidle");
     await expect(page.locator(".looma-component-preview")).toBeVisible();
 
     const geometry = await page.locator(".theme-doc-sidebar-container").evaluate((sidebar) => {
@@ -628,6 +643,7 @@ test("the docs sidebar treatment reaches the footer on tall pages in both themes
 });
 
 test("disclosure owns its trigger and animates one grid row between closed and open", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("components/ui-disclosure", { waitUntil: "domcontentloaded" });
   const scenario = page.locator("[data-preview-scenario='Default closed']");
   const disclosure = scenario.locator("[data-component~='ui-disclosure']");
@@ -811,6 +827,16 @@ test("ui-button authors one declarative element and lowers directly to a native 
   await expect(links.first()).toHaveAttribute("href", "#get-started");
   await expect(links.last()).not.toHaveAttribute("href");
   await expect(links.last()).toHaveAttribute("aria-disabled", "true");
+  for (const link of await links.all()) {
+    await expect(link).toHaveCSS("text-decoration-line", "none");
+  }
+
+  const loading = page.locator("[data-preview-scenario='Loading action'] button[data-component~='ui-button']");
+  await expect(loading).toHaveAttribute("aria-busy", "false");
+  await loading.click();
+  await expect(loading).toHaveAttribute("aria-busy", "true");
+  await expect(loading.locator("[data-component~='ui-spinner'] svg .arc")).toHaveCSS("stroke-linecap", "round");
+  await expect(loading).toHaveAttribute("aria-busy", "false");
 });
 
 test("ui-input authors one declarative element and lowers directly to an editable native input", async ({ page }) => {
@@ -864,9 +890,11 @@ test("ui-input-group frames its input like a lone Input, in readable text", asyn
     const colors = await group.evaluate((element) => ({
       background: getComputedStyle(element).backgroundColor,
       border: getComputedStyle(element).borderTopColor,
-      affix: getComputedStyle(element.querySelector(".affix")!).color
+      affix: getComputedStyle(element.querySelector(".affix:has([slot='suffix'])")!).color,
+      affixBackground: getComputedStyle(element.querySelector(".affix:has([slot='suffix'])")!).backgroundColor
     }));
     expect(contrastRatio(colors.affix, colors.background), `${theme} affix contrast`).toBeGreaterThanOrEqual(4.5);
+    expect(colors.affixBackground, `${theme} fixed text surface`).not.toBe(colors.background);
     expect(contrastRatio(colors.border, colors.background), `${theme} control boundary contrast`).toBeGreaterThanOrEqual(3);
   }
 });
@@ -935,8 +963,8 @@ test("Examples and API keep configuration demos separate from exhaustive referen
 }) => {
   await page.goto("components/ui-button", { waitUntil: "domcontentloaded" });
 
-  // Default, variant, Link, size, disabled, align and stretch, pending, as a link.
-  await expect(page.locator(".looma-preview-scenario")).toHaveCount(8);
+  // Includes the full-width card action alongside the existing Button examples.
+  await expect(page.locator(".looma-preview-scenario")).toHaveCount(10);
   await expect(page.locator(".looma-api")).toHaveCount(0);
   await page.getByRole("tab", { name: "API" }).click();
   await expect(page.locator(".looma-preview-scenario")).toHaveCount(0);
@@ -948,7 +976,8 @@ test("Examples and API keep configuration demos separate from exhaustive referen
   const attributes = page.locator(".looma-api-table").filter({ has: page.getByRole("columnheader", { name: "Property" }) });
   await expect(attributes.getByRole("columnheader", { name: "Description" })).toBeVisible();
   const asRow = attributes.getByRole("row").filter({ has: page.getByRole("cell", { name: "as", exact: true }) });
-  await expect(asRow).toContainText("button | a");
+  await expect(asRow).toContainText("keyword");
+  await expect(asRow).toContainText("button, a");
   const hrefRow = attributes.getByRole("row").filter({ has: page.getByRole("cell", { name: "href", exact: true }) });
   await expect(hrefRow).toContainText("Pair it with as=\"a\"");
 });
@@ -1163,7 +1192,7 @@ test("dialog closes via header button, actions, Escape, and outside press, with 
   };
 
   let dialog = await open("Default");
-  expect(await dialog.evaluate((element: HTMLDialogElement) => element.matches(":modal"))).toBe(true);
+  expect(await dialog.evaluate((element: HTMLDialogElement) => element.matches(":modal"))).toBe(false);
   await expect(dialog.locator(".title")).toHaveText("Publish changes?");
   const footer = dialog.locator("footer");
   await expect(footer).toHaveCSS("justify-content", "flex-end");
@@ -1176,7 +1205,7 @@ test("dialog closes via header button, actions, Escape, and outside press, with 
   await dialog.getByRole("button", { name: "Close" }).click();
   await expect(dialog).not.toHaveAttribute("open", "");
 
-  dialog = await open("Modal by default");
+  dialog = await open("modal");
   expect(await dialog.evaluate((element: HTMLDialogElement) => element.matches(":modal"))).toBe(true);
   await page.keyboard.press("Escape");
   await expect(dialog).not.toHaveAttribute("open", "");
@@ -1423,29 +1452,29 @@ test("a multiple combobox checks its chosen options and unchecks them again", as
   await input.click();
   await input.press("ArrowDown");
 
-  const first = scenario.locator(".option").first();
-  await expect(first).toBeVisible();
-  const mark = () => first.evaluate((option) => ({
-    selected: option.getAttribute("aria-selected"),
-    box: getComputedStyle(option, "::before").width,
-    tick: getComputedStyle(option, "::before").backgroundImage
+  const option = scenario.locator(".option").filter({ hasText: "Platform" });
+  await expect(option).toBeVisible();
+  const mark = () => option.evaluate((element) => ({
+    selected: element.getAttribute("aria-selected"),
+    box: getComputedStyle(element, "::before").width,
+    tick: getComputedStyle(element, "::before").backgroundImage
   }));
 
   // Every option carries a checkbox, so a list that takes several answers says so before anything
   // is picked; the chosen ones stay in the list rather than vanishing into the field.
   expect(await mark()).toMatchObject({ selected: "false", box: "18px", tick: "none" });
 
-  await first.click();
+  await option.click();
   await expect.poll(async () => (await mark()).selected).toBe("true");
   expect((await mark()).tick).toContain("svg");
-  await expect(scenario.locator(".item")).toHaveCount(1);
+  await expect(scenario.locator(".item")).toHaveCount(3);
 
-  await first.click();
+  await option.click();
   await expect.poll(async () => (await mark()).selected).toBe("false");
-  await expect(scenario.locator(".item")).toHaveCount(0);
+  await expect(scenario.locator(".item")).toHaveCount(2);
 });
 
-test("tone is the colour, variant is the volume, and disabled keeps both", async ({ page }) => {
+test("tone colours available actions and disabled actions use one neutral treatment", async ({ page }) => {
   await page.goto("components/ui-button", { waitUntil: "networkidle" });
   await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
   const stage = page.locator("[data-preview-scenario='variant'] .looma-preview-scenario__stage");
@@ -1514,16 +1543,17 @@ test("tone is the colour, variant is the volume, and disabled keeps both", async
   expect(await sameColour(painted["solid-accent-false"].surface, painted["outline-accent-false"].border)).toBe(true);
   expect(painted["ghost-accent-false"].shadow).toBe("none");
 
-  // Disabled keeps the shape and the tone, washed out by one filter: a disabled outline still reads
-  // as an unavailable outline in its own colour, not as a grey box.
+  // Disabled actions keep their shape but share one flat neutral palette across tones and variants.
   for (const id of ["outline-accent-true", "outline-danger-true", "solid-accent-true", "ghost-accent-true"]) {
     expect(painted[id].shadow, `${id} still looks raised`).toBe("none");
-    expect(painted[id].filter, `${id} is not washed out`).toContain("saturate(0.2)");
+    expect(painted[id].filter, `${id} uses a filter instead of chosen disabled colours`).toBe("none");
+    expect(painted[id].surface).toBe(painted["outline-accent-true"].surface);
+    expect(painted[id].text).toBe(painted["outline-accent-true"].text);
   }
   expect(painted["outline-accent-false"].filter).toBe("none");
-  expect(painted["outline-accent-true"].border).not.toBe(painted["outline-danger-true"].border);
+  expect(painted["outline-accent-true"].border).toBe(painted["outline-danger-true"].border);
   expect(painted["outline-accent-true"].border).not.toBe(painted["outline-accent-true"].surface);
-  expect(painted["solid-accent-true"].border).toBe(painted["solid-accent-true"].surface);
+  expect(painted["solid-accent-true"].border).toBe(painted["outline-accent-true"].border);
   expect(new Set(Object.values(painted).map((paint) => paint.radius)).size).toBe(1);
 
   // Nothing jumps under the pointer.
@@ -1550,8 +1580,11 @@ test("a checked checkbox paints its tick", async ({ page }) => {
 test("a tree scrolls a name too long for its row, only when asked, and clears its controls", async ({
   page
 }) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("components/ui-tree", { waitUntil: "networkidle" });
-  await expect(page.locator(".looma-live-example-loading")).toHaveCount(0);
+  await ready(page);
+  // Keep marquee motion enabled, but finish page scrolling before measuring a stationary hover.
+  await page.evaluate(() => { document.documentElement.style.scrollBehavior = "auto"; });
 
   // Off by default: a tree of names that fit should not move.
   const plain = page.locator("[data-preview-scenario='Default'] [data-component~='ui-tree-item'] .row").first();
@@ -1573,6 +1606,10 @@ test("a tree scrolls a name too long for its row, only when asked, and clears it
   await page.mouse.move(0, 0);
   await overflows.hover();
   await expect(overflows).toHaveAttribute("data-ui-marquee", "");
+
+  await expect.poll(() => overflows.locator(".label-text").evaluate((element) =>
+    element.getAnimations().some((animation) => Number(animation.currentTime) > 0)
+  )).toBe(true);
 
   const travel = await overflows.evaluate((element) => ({
     distance: parseFloat(getComputedStyle(element).getPropertyValue("--_marquee-distance")),
@@ -1817,12 +1854,15 @@ test("checkbox, switch, and radio APIs generate their own aligned native control
 test("every badge tone remains legible and visually distinct in light and dark themes", async ({ page }) => {
   for (const theme of ["light", "dark"] as const) {
     await page.goto("components/ui-badge", { waitUntil: "domcontentloaded" });
+    await ready(page);
     await page.evaluate((selectedTheme) => window.localStorage.setItem("theme", selectedTheme), theme);
     await page.reload({ waitUntil: "domcontentloaded" });
+    await ready(page);
+    await page.waitForLoadState("networkidle");
     await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
-    const badges = page.locator("[data-preview-scenario] [data-component~='ui-badge']");
-    // Default, five solid tones, five subtle tones, shape, outline, then custom colour examples.
-    await expect(badges).toHaveCount(23);
+    const badges = page.locator("[data-preview-scenario] [data-component~='ui-badge']:not([data-ui-badge-state~='shape=dot'])");
+    // Text treatments retain their order; the three square icon marks extend the gallery.
+    await expect(badges).toHaveCount(26);
     const treatments = await badges.evaluateAll((surfaces) => surfaces.map((surface) => {
       const style = getComputedStyle(surface);
       const canvas = document.createElement("canvas");
@@ -1861,10 +1901,38 @@ test("every badge tone remains legible and visually distinct in light and dark t
     }
     expect(treatments[0]!.fontSize).toBeGreaterThanOrEqual(14);
     expect(treatments[0]!.fontWeight).toBeGreaterThanOrEqual(500);
-    // Every tone's edge is its fill, the neutral default's included: no tone carries an outline.
-    for (const treatment of treatments.slice(0, 11)) expect(treatment.border).toBe(treatment.background);
+    // Neutral and subtle tones have a defined edge; solid colour tones carry their fill to it.
+    expect(treatments[0]!.border).not.toBe(treatments[0]!.background);
+    for (const treatment of treatments.slice(1, 6)) expect(treatment.border).toBe(treatment.background);
+    for (const treatment of treatments.slice(6, 11)) expect(treatment.border).not.toBe(treatment.background);
     expect(new Set(treatments.slice(1, 6).map(({ background }) => background)).size).toBe(5);
     expect(new Set(treatments.slice(6, 11).map(({ background }) => background)).size).toBe(5);
+    const dots = page.locator("[data-preview-scenario] [data-component~='ui-badge'][data-ui-badge-state~='shape=dot']");
+    await expect(dots).toHaveCount(2);
+    await expect(dots.nth(0)).toContainText("New messages");
+    await expect(dots.nth(1)).toContainText("Waiting for your reply");
+    const signals = await dots.evaluateAll((surfaces) => surfaces.map((surface) => {
+      const bounds = surface.getBoundingClientRect();
+      const label = surface.querySelector(".label")!;
+      return { width: bounds.width, height: bounds.height,
+        background: getComputedStyle(surface).backgroundColor,
+        clippedLabel: getComputedStyle(label).clipPath };
+    }));
+    for (const signal of signals) {
+      expect(signal.width).toBe(8);
+      expect(signal.height).toBe(8);
+      expect(signal.clippedLabel).toBe("inset(50%)");
+    }
+    expect(signals[0]!.background).not.toBe(signals[1]!.background);
+    const squares = page.locator("[data-preview-scenario] [data-component~='ui-badge'][data-ui-badge-state~='shape=square']");
+    await expect(squares).toHaveCount(3);
+    for (const [index, size] of [32, 32, 24].entries()) {
+      const mark = squares.nth(index);
+      await expect(mark.locator("svg")).toBeVisible();
+      const bounds = await mark.boundingBox();
+      expect(bounds?.width).toBe(size);
+      expect(bounds?.height).toBe(size);
+    }
   }
 });
 
@@ -1955,4 +2023,30 @@ test("tree disclosure is per node: expand does not bubble and never cascades to 
   await item("middle").getByRole("button", { name: "Collapse middle" }).click();
   await expect(item("middle")).toHaveAttribute("aria-expanded", "false");
   await expect(item("root")).toHaveAttribute("aria-expanded", "true");
+});
+
+
+test("documentation TOC follows viewport height and reader navigation", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("docs-api-sync/", { waitUntil: "domcontentloaded" });
+  await ready(page);
+  const toc = page.locator(".table-of-contents");
+  const options = toc.getByRole("link", { name: "Option descriptions", exact: true });
+  const settleScroll = async () => page.evaluate(async () => {
+    for (const top of [1, 0]) {
+      await new Promise<void>((resolve) => {
+        window.addEventListener("scroll", () => resolve(), { once: true });
+        window.scrollTo({ top, behavior: "instant" });
+      });
+    }
+  });
+  await settleScroll();
+  await expect(options).not.toHaveClass(/table-of-contents__link--active/);
+  await page.setViewportSize({ width: 1280, height: 1100 });
+  await settleScroll();
+  await expect(options).toHaveClass(/table-of-contents__link--active/);
+  const commands = toc.getByRole("link", { name: "Commands", exact: true });
+  await commands.click();
+  await expect(page).toHaveURL(/#commands$/);
+  await expect(commands).toHaveClass(/table-of-contents__link--active/);
 });

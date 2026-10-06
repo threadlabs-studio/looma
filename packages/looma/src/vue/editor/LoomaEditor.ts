@@ -1,7 +1,10 @@
 import "./looma-editor.css";
-import type { AnyExtension, Editor, JSONContent } from "@tiptap/core";
+import { posToDOMRect, type AnyExtension, type Editor, type JSONContent } from "@tiptap/core";
 import { BubbleMenu, EditorContent, useEditor } from "@tiptap/vue-3";
-import { TextSelection, type SelectionBookmark } from "@tiptap/pm/state";
+import { announceOverlayOpen } from "../../components/shared/overlay.js";
+import { closeHistory } from "@tiptap/pm/history";
+import { createLowlight } from "lowlight";
+import { AllSelection, NodeSelection, TextSelection, type Selection, type SelectionBookmark } from "@tiptap/pm/state";
 import {
   computed,
   defineComponent,
@@ -23,16 +26,22 @@ import {
   DEFAULT_MENTION_RESULT_LIMIT,
   getActiveTableUiState,
   getDefaultEditorExtensions,
+  getDefaultSlashCommands,
   handleTableAction,
   handleTableOverlayAction,
   measureTableOverlayGeometry,
   normalizeActiveTableColumnWidths,
   resolveTableCellAt,
-  shouldShowTextFormattingToolbar,
   type LoomaSlashMenuSnapshot,
+  type LoomaSlashCommand,
   type LoomaMentionItem,
   type LoomaMentionMenuSnapshot,
   type LoomaMentionProvider,
+  type LoomaCodeLanguages,
+  LOOMA_CHIP_COLORS,
+  normalizeLoomaChipColor,
+  siteRelativeHref,
+  type LoomaChipColor,
   type SlashMenuAnchorRect,
   type TableOverlayGeometry,
   type TableCellAlignment,
@@ -40,12 +49,14 @@ import {
   type TableActionCapabilities,
   type TableContextMenuAction,
 } from "@threadlabs/looma/editor";
-import { IconButton, Menu, MenuItem, Popover, Tooltip } from "@threadlabs/looma/vue";
+import { Button, Card, Checkbox, Cluster, Combobox, FormField, Input, InputGroup, IconButton, Menu, MenuItem, Popover, ScrollArea, SearchResultRow, Separator, Stack, Text, Tooltip } from "@threadlabs/looma/vue";
 import { getVisualViewportRect, LOOMA_ICONS, type LoomaIconName } from "@threadlabs/looma/editor";
 import {
   EditorInsertTableGrid,
   EditorMentionMenu,
   EditorSlashMenu,
+  EditorSlashMenuGroup,
+  EditorSlashMenuItem,
   EditorTableContextMenu,
   EditorTableOverlay,
   EditorTableToolbar,
@@ -61,6 +72,28 @@ import {
   type LoomaImageDescriptor,
   type LoomaImageRenditionErrorDetail,
 } from "./image-delivery";
+import { autoCodeLanguageNames, codeLanguageCatalog } from "./code-language-catalog";
+import { tableOfContentsNodeView } from "./table-of-contents";
+import { expandNodeView } from "./expand";
+import { dividerNodeView } from "./divider";
+import { ImageControls } from "./image-controls";
+import { imageNodeView } from "./image";
+
+/**
+ * Shows a key binding in ProseMirror notation ("Mod-Shift-8") the way the reader's platform writes
+ * it: modifier symbols in Apple's order on Apple devices (⇧⌘8), and Ctrl+Shift+8 elsewhere.
+ */
+function formatEditorShortcut(keys: string, apple: boolean): string {
+  const parts = keys.split("-");
+  const key = (parts.pop() ?? "").toUpperCase();
+  const has = (name: string) => parts.includes(name);
+  if (apple) return `${has("Ctrl") ? "⌃" : ""}${has("Alt") ? "⌥" : ""}${has("Shift") ? "⇧" : ""}${has("Mod") ? "⌘" : ""}${key}`;
+  return [has("Mod") || has("Ctrl") ? "Ctrl" : "", has("Alt") ? "Alt" : "", has("Shift") ? "Shift" : "", key].filter(Boolean).join("+");
+}
+
+// Client Hints report "macOS" in a secure context; navigator.platform reports "MacIntel" or "iPhone".
+const isApplePlatform = () => typeof navigator !== "undefined"
+  && /mac|iphone|ipad|ipod/i.test((navigator as Navigator & { userAgentData?: { platform?: string } }).userAgentData?.platform || navigator.platform || navigator.userAgent);
 
 /**
  * Host upload result normalized into the editor's durable image descriptor.
@@ -84,10 +117,42 @@ export type LoomaImageUploader = (
 ) => Promise<string | LoomaImageUploadResult>;
 
 /**
- * Chooses whether formatting controls follow a selection or occupy persistent
- * editor chrome; it does not alter document commands or stored content.
+ * Chooses whether formatting controls follow a selection, occupy persistent
+ * editor chrome, or open from an app-owned button (`popover`, with a text-only
+ * bubble for selections). Floating tools open on text selection or a held press
+ * and dismiss on Escape/caret movement. `contextual` includes the full command
+ * set. Narrow viewports retain a dock; document commands/content are unchanged.
  */
-export type LoomaEditorToolbarMode = "bubble" | "sticky";
+export type LoomaEditorToolbarMode = "bubble" | "sticky" | "popover" | "contextual";
+
+/**
+ * Replace the slash inventory, or return retained defaults plus host commands.
+ * @ownership The host owns its command objects and mutations; Looma supplies
+ * fresh defaults and invokes this factory when the inventory prop changes.
+ */
+export type LoomaEditorSlashCommands = LoomaSlashCommand[] | ((defaults: LoomaSlashCommand[]) => LoomaSlashCommand[]);
+
+/** A destination supplied by the host application, such as a page or record. */
+export interface LoomaLinkTarget {
+  id: string;
+  label: string;
+  detail?: string;
+  href: string;
+}
+
+/**
+ * Finds host records for a link without teaching the editor how they are stored.
+ * @ownership The host checks access and returns durable, openable href values.
+ * @failure A rejection leaves the existing document untouched and shows a retryable search error.
+ */
+export type LoomaLinkSearch = (query: string) => Promise<LoomaLinkTarget[]>;
+
+/**
+ * Describes a saved host link so a renamed record can show its current label.
+ * @ownership The host resolves identity and access; Looma keeps the saved href as is.
+ * @failure A rejection leaves the original href visible and editable.
+ */
+export type LoomaLinkResolve = (href: string) => Promise<LoomaLinkTarget | null>;
 
 const EMPTY_DOCUMENT: JSONContent = { type: "doc", content: [] };
 let editorInstanceSequence = 0;
@@ -140,12 +205,17 @@ function managedMenuAnchorRect(rect: DOMRect | null): SlashMenuAnchorRect | null
   };
 }
 
-function managedSlashMenuItems(items: LoomaSlashMenuSnapshot["items"]) {
-  return items.map(({ title, description, icon }) => ({
-    title,
-    description,
-    icon,
-  }));
+function slashMenuRows(items: LoomaSlashCommand[]) {
+  const groups: Array<{ label?: string; rows: VNode[] }> = [];
+  for (const [index, item] of items.entries()) {
+    if (!groups.length || groups.at(-1)!.label !== item.group) groups.push({ label: item.group, rows: [] });
+    groups.at(-1)!.rows.push(h(EditorSlashMenuItem, {
+      key: item.id ?? `${item.title}-${index}`, value: item.id ?? item.title,
+      description: item.description, icon: item.icon, keywords: [...item.keywords, item.id ?? ""].join(" "),
+    }, () => item.title));
+  }
+  return groups.flatMap(({ label, rows }, index) => label
+    ? [h(EditorSlashMenuGroup, { key: `${label}-${index}`, label }, () => rows)] : rows);
 }
 
 function selectedTableElement(editor: Editor): HTMLTableElement | null {
@@ -167,6 +237,7 @@ function loomaIcon(name: LoomaIconName) {
     "aria-hidden": "true",
     focusable: "false",
     viewBox: "0 0 24 24",
+    width: 16, height: 16,
     fill: "none",
     stroke: "currentColor",
     "stroke-width": 2,
@@ -211,6 +282,16 @@ export const LoomaEditor = defineComponent({
       type: Array as PropType<AnyExtension[]>,
       default: () => [],
     },
+    /** One inventory for the existing slash extension; an empty array intentionally supplies no commands. */
+    slashCommands: {
+      type: [Array, Function] as PropType<LoomaEditorSlashCommands>,
+      default: undefined,
+    },
+    /** Override the lazy built-in catalog with application-owned code grammars. An empty object disables highlighting. */
+    codeLanguages: {
+      type: Object as PropType<LoomaCodeLanguages | null>,
+      default: null,
+    },
     mentionItems: {
       type: Array as PropType<LoomaMentionItem[]>,
       default: () => [],
@@ -222,6 +303,21 @@ export const LoomaEditor = defineComponent({
     mentionLimit: {
       type: Number,
       default: DEFAULT_MENTION_RESULT_LIMIT,
+    },
+    /** Site origin for relative links. Applied to newly inserted links, including paste over selected text. */
+    linkBaseUrl: { type: String, default: "" },
+    /** Host-owned search and identity lookup for links to application records. */
+    linkSearch: {
+      type: Function as PropType<LoomaLinkSearch | undefined>,
+      default: undefined,
+    },
+    linkResolve: {
+      type: Function as PropType<LoomaLinkResolve | undefined>,
+      default: undefined,
+    },
+    linkTargetLabel: {
+      type: String,
+      default: "Item",
     },
     uploadImage: {
       type: Function as PropType<LoomaImageUploader | undefined>,
@@ -235,9 +331,31 @@ export const LoomaEditor = defineComponent({
       type: String as PropType<LoomaEditorToolbarMode>,
       default: "bubble",
     },
+    /**
+     * In `popover` mode, the ID of the app's button that toggles the full toolbar and anchors it.
+     * The button needs no click handler of its own.
+     */
+    toolbarTriggerId: {
+      type: String,
+      default: "",
+    },
+    /** In `popover` mode, whether the full toolbar is open. Use with `v-model:toolbar-open`. */
+    toolbarOpen: {
+      type: Boolean,
+      default: false,
+    },
+    /**
+     * Authors can't highlight: no toolbar button, shortcut, `==text==` rule, or `<mark>` paste.
+     * Highlights already in the document still show. Read once, when the editor is created.
+     */
+    disableHighlight: {
+      type: Boolean,
+      default: false,
+    },
   },
   emits: {
     "update:modelValue": (_value: JSONContent) => true,
+    "update:toolbarOpen": (_value: boolean) => true,
     update: (_value: JSONContent) => true,
     ready: (_editor: Editor) => true,
     uploadError: (_error: unknown, _file: File) => true,
@@ -251,28 +369,49 @@ export const LoomaEditor = defineComponent({
     const blockActionAnchorId = `ui-block-tools-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
     let blockActionTarget: { position: number; node: Editor["state"]["doc"]["firstChild"] } | null = null;
     const linkAnchorId = `looma-editor-link-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
-    const linkUrlInput = ref<HTMLInputElement | null>(null);
+    const linkPopoverAnchorId = ref(linkAnchorId);
+    const linkDestinationInput = () => linkFormRoot.value?.querySelector<HTMLInputElement>("[data-link-destination]");
+    const linkFormRoot = ref<HTMLFormElement | null>(null);
     const linkOpen = ref(false);
+    const linkContextEditing = ref(false);
     const linkHref = ref("");
     const linkText = ref("");
     const linkNewTab = ref(true);
     const linkError = ref("");
+    const linkMode = ref<"target" | "url">("url");
+    const linkQuery = ref("");
+    const linkResults = ref<LoomaLinkTarget[]>([]);
+    const linkSearching = ref(false);
+    const linkSelectedTarget = ref<LoomaLinkTarget | null>(null);
+    const linkContextTarget = ref<LoomaLinkTarget | null>(null);
+    const linkTargetCache = new Map<string, LoomaLinkTarget | null>();
+    let linkSearchSequence = 0;
+    let linkResolveSequence = 0;
+    const chipAnchorId = `looma-editor-chip-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
+    const chipInput = ref<HTMLInputElement | null>(null);
+    const chipOpen = ref(false);
+    const chipLabel = ref("");
+    const chipColor = ref<LoomaChipColor>("neutral");
     let linkSelection: { from: number; to: number; existing: boolean } | null = null;
     // One tooltip follows the row: the first button waits, and moving along the row is immediate,
     // which is what a toolbar needs and what the native `title` attribute cannot do.
     const toolbarScope = `looma-editor-tool-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
     const tooltipFor = ref("");
     const tooltipLabel = ref("");
+    const tooltipShortcut = ref("");
     const tooltipOpen = ref(false);
+    const resizeHintFor = ref("");
+    let resizeHintSequence = 0;
     let tooltipTimer = 0;
     const clearTooltipTimer = () => {
       if (tooltipTimer) window.clearTimeout(tooltipTimer);
       tooltipTimer = 0;
     };
-    const showTool = (id: string, label: string, immediate: boolean) => {
+    const showTool = (id: string, label: string, immediate: boolean, shortcut = "") => {
       clearTooltipTimer();
       tooltipFor.value = id;
       tooltipLabel.value = label;
+      tooltipShortcut.value = shortcut ? formatEditorShortcut(shortcut, isApplePlatform()) : "";
       if (immediate || tooltipOpen.value) {
         tooltipOpen.value = true;
         return;
@@ -288,6 +427,7 @@ export const LoomaEditor = defineComponent({
     const tableOverlayShell = ref<HTMLElement | null>(null);
     const tableMenuShell = ref<HTMLElement | null>(null);
     const mobileToolbarShell = ref<HTMLElement | null>(null);
+    const codeLanguageShell = ref<HTMLElement | null>(null);
     const dragOver = ref(false);
     const uploading = ref(false);
     const failedUpload = ref<{ file: File } | null>(null);
@@ -295,6 +435,32 @@ export const LoomaEditor = defineComponent({
     const mobileToolbarStyle = ref<CSSProperties>({});
     const mobile = ref(typeof window !== "undefined" && window.innerWidth <= 767);
     const editorFocused = ref(false);
+    // These snapshots affect chrome only, never the document or undo history.
+    let dismissedFormattingSelection: Selection | null = null;
+    let heldFormattingSelection: TextSelection | null = null;
+    let formattingPopup: {
+      show: () => void;
+      hide: () => void;
+      popper: HTMLElement;
+      setProps: (props: { getReferenceClientRect: () => DOMRect }) => void;
+    } | null = null;
+    let heldPressTimer: ReturnType<typeof setTimeout> | undefined;
+    let heldPress: { id: number; x: number; y: number } | null = null;
+    const floatingFormattingMode = () => props.toolbarMode !== "sticky"
+      && !(props.toolbarMode === "popover" && props.toolbarOpen) && !mobile.value;
+    const formattingPickerOpen = () => linkOpen.value || tablePickerOpen.value;
+    const cancelHeldPress = () => {
+      clearTimeout(heldPressTimer);
+      heldPressTimer = undefined;
+      heldPress = null;
+    };
+    const formattingSelectionActive = (instance: Editor) => {
+      const selection = instance.state.selection;
+      return (selection instanceof TextSelection || selection instanceof AllSelection && Boolean(instance.state.doc.textContent))
+        && !dismissedFormattingSelection?.eq(selection)
+        && (!selection.empty || Boolean(heldFormattingSelection?.eq(selection)));
+    };
+
     const editorStateVersion = ref(0);
     const mobileToolbarMode = ref<"formatting" | "table">("formatting");
     let dragLeaveTimer: ReturnType<typeof setTimeout> | null = null;
@@ -343,8 +509,40 @@ export const LoomaEditor = defineComponent({
       capabilities: { ...EMPTY_CAPABILITIES },
     });
 
+    const openChipEditor = (instance: Editor, position: number) => {
+      if (!props.editable) return;
+      const node = instance.state.doc.nodeAt(position);
+      const element = instance.view.nodeDOM(position);
+      if (node?.type.name !== "loomaChip" || !(element instanceof HTMLElement)) return;
+      root.value?.querySelector(`#${chipAnchorId}`)?.removeAttribute("id");
+      element.id = chipAnchorId;
+      chipLabel.value = String(node.attrs.label ?? "");
+      chipColor.value = normalizeLoomaChipColor(node.attrs.color);
+      chipOpen.value = true;
+      void nextTick(() => chipInput.value?.focus());
+    };
+    const changeChip = (changes: { label?: string; color?: LoomaChipColor }) => {
+      const instance = editor.value;
+      const element = root.value?.querySelector<HTMLElement>(`#${chipAnchorId}`);
+      if (!instance || !element) { chipOpen.value = false; return; }
+      const position = instance.view.posAtDOM(element, 0);
+      const node = instance.state.doc.nodeAt(position);
+      if (node?.type.name !== "loomaChip") { chipOpen.value = false; return; }
+      instance.view.dispatch(instance.state.tr.setNodeMarkup(position, undefined, { ...node.attrs, ...changes }));
+    };
+    const closeChip = (focusChip = false) => {
+      chipOpen.value = false;
+      if (focusChip) root.value?.querySelector<HTMLElement>(`#${chipAnchorId}`)?.focus();
+    };
+    const resolveSlashCommands = () => {
+      const defaults = getDefaultSlashCommands(props.uploadImage ? () => fileInput.value?.click() : undefined, openChipEditor, () => openLinkEditor());
+      return typeof props.slashCommands === "function" ? props.slashCommands(defaults) : props.slashCommands ?? defaults;
+    };
     const slashExtension = createLoomaSlashCommandExtension({
+      commands: resolveSlashCommands(),
       onOpenImagePicker: () => fileInput.value?.click(),
+      onOpenChipEditor: openChipEditor,
+      onOpenLinkEditor: () => openLinkEditor(),
       onStateChange: (state) => {
         Object.assign(slash, state);
       },
@@ -366,6 +564,7 @@ export const LoomaEditor = defineComponent({
     });
     const imageDelivery = createLoomaImageDeliveryController({
       resolveAttributes: () => props.resolveImageAttributes,
+      isEditable: () => props.editable,
     });
     let lastFocusedSelection: {
       bookmark: SelectionBookmark;
@@ -373,6 +572,7 @@ export const LoomaEditor = defineComponent({
       to: number;
       text: boolean;
     } | null = null;
+    let linkPressedSelection: { from: number; to: number } | null = null;
     const rememberSelection = (instance: Editor) => {
       if (!instance.isFocused) return;
       const selection = instance.view.state.selection;
@@ -384,11 +584,72 @@ export const LoomaEditor = defineComponent({
       };
     };
 
+    const authorHighlight = !props.disableHighlight;
+    const codeLowlight = createLowlight(props.codeLanguages ?? undefined);
+    const codeHighlightLowlight = props.codeLanguages === null
+      ? {
+          ...codeLowlight,
+          highlightAuto: (value: string) => codeLowlight.highlightAuto(value, { subset: [...autoCodeLanguageNames] }),
+        }
+      : codeLowlight;
+    const codeLanguageNames = props.codeLanguages === null
+      ? [
+          ...autoCodeLanguageNames,
+          ...Object.keys(codeLanguageCatalog).filter((name) =>
+            !autoCodeLanguageNames.includes(name as typeof autoCodeLanguageNames[number])
+          ).sort(),
+        ]
+      : Object.keys(props.codeLanguages).sort();
+    const codeUi = reactive({ open: false, pos: 0, language: "auto", text: "", grammarVersion: 0, style: {} as CSSProperties });
+    const grammarLoads = new Map<string, Promise<void>>();
+    let catalogLoad: Promise<void> | undefined;
+    const refreshCodeHighlights = (instance: Editor) => {
+      if (instance.isDestroyed) return;
+      codeUi.grammarVersion += 1;
+      // Tiptap refreshes lowlight decorations only after a document change.
+      const tr = instance.state.tr;
+      instance.state.doc.descendants((node, pos) => {
+        if (node.type.name === "codeBlock") tr.setNodeMarkup(pos, undefined, node.attrs);
+      });
+      if (tr.docChanged) instance.view.dispatch(tr.setMeta("addToHistory", false));
+    };
+    const loadGrammar = (name: keyof typeof codeLanguageCatalog) => {
+      const existing = grammarLoads.get(name);
+      if (existing) return existing;
+      const pending = codeLanguageCatalog[name]().then((grammar) => {
+        codeLowlight.register({ [name]: grammar });
+      }).catch((error: unknown) => {
+        grammarLoads.delete(name);
+        throw error;
+      });
+      grammarLoads.set(name, pending);
+      return pending;
+    };
+    const loadForCodeBlock = (instance: Editor, language: unknown, value: string) => {
+      if (props.codeLanguages !== null || instance.isDestroyed) return;
+      if (typeof language === "string" && Object.hasOwn(codeLanguageCatalog, language)) {
+        if (codeLowlight.registered(language) || grammarLoads.has(language)) return;
+        void loadGrammar(language as keyof typeof codeLanguageCatalog)
+          .then(() => refreshCodeHighlights(instance)).catch(() => {});
+      } else if (!language && value.trim()) {
+        catalogLoad ??= Promise.all(autoCodeLanguageNames.map((name) =>
+          loadGrammar(name)
+        )).then(() => refreshCodeHighlights(instance)).catch(() => { catalogLoad = undefined; });
+      }
+    };
     const editor = useEditor({
       extensions: [
         ...getDefaultEditorExtensions({
           placeholder: props.placeholder,
+          linkBaseUrl: props.linkBaseUrl,
           mention: mentionExtension ?? false,
+          disableHighlight: props.disableHighlight,
+          codeLanguages: props.codeLanguages ?? undefined,
+          codeLowlight: codeHighlightLowlight,
+          tableOfContentsNodeView,
+          expandNodeView,
+          dividerNodeView,
+          imageNodeView,
         }),
         imageDelivery.extension,
         slashExtension,
@@ -397,9 +658,25 @@ export const LoomaEditor = defineComponent({
       content: props.modelValue,
       editable: props.editable,
       editorProps: { attributes: { role: "textbox", "aria-multiline": "true", "aria-label": props.label } },
-      onCreate: ({ editor: instance }) => emit("ready", instance),
+      onCreate: ({ editor: instance }) => {
+        emit("ready", instance);
+        instance.state.doc.descendants((node) => {
+          if (node.type.name === "codeBlock") loadForCodeBlock(instance, node.attrs.language, node.textContent);
+        });
+      },
       onFocus: ({ editor: instance }) => rememberSelection(instance),
-      onSelectionUpdate: ({ editor: instance }) => rememberSelection(instance),
+      onSelectionUpdate: ({ editor: instance }) => {
+        rememberSelection(instance);
+        if (floatingFormattingMode()) {
+          const selection = instance.state.selection;
+          if (!dismissedFormattingSelection?.eq(selection)) dismissedFormattingSelection = null;
+          if (!heldFormattingSelection?.eq(selection)) heldFormattingSelection = null;
+          if (!formattingSelectionActive(instance)) formattingPopup?.hide();
+        }
+        if (linkContextEditing.value && instance.state.selection.from !== linkSelection?.from) {
+          linkContextEditing.value = false;
+        }
+      },
       onTransaction: () => { editorStateVersion.value += 1; },
       onUpdate: ({ editor: instance }) => {
         const value = instance.getJSON();
@@ -408,14 +685,70 @@ export const LoomaEditor = defineComponent({
       },
     });
 
-    const openLinkEditor = () => {
+    watch(() => {
+      editorStateVersion.value;
+      return editor.value?.isActive("link") ? editor.value.getAttributes("link").href as string : null;
+    }, async (href) => {
+      const sequence = ++linkResolveSequence;
+      linkContextTarget.value = null;
+      if (!href || !props.linkResolve) return;
+      if (linkTargetCache.has(href)) {
+        linkContextTarget.value = linkTargetCache.get(href) ?? null;
+        return;
+      }
+      try {
+        const target = await props.linkResolve(href);
+        linkTargetCache.set(href, target);
+        if (sequence === linkResolveSequence) linkContextTarget.value = target;
+      } catch {
+        // A failed lookup leaves the original destination visible and editable.
+      }
+    });
+
+    watch([linkQuery, linkMode, linkOpen, linkContextEditing], async ([query, mode, open, contextEditing]) => {
+      const sequence = ++linkSearchSequence;
+      linkResults.value = [];
+      linkSearching.value = false;
+      if (!props.linkSearch || mode !== "target" || (!open && !contextEditing)
+        || query.trim().length < 2 || (linkSelectedTarget.value && query === linkSelectedTarget.value.label)) return;
+      linkSearching.value = true;
+      try {
+        const results = await props.linkSearch(query.trim());
+        if (sequence === linkSearchSequence) linkResults.value = results.filter(target => validLinkHref(target.href));
+      } catch {
+        if (sequence === linkSearchSequence) linkError.value = "Search is unavailable. Try again.";
+      } finally {
+        if (sequence === linkSearchSequence) linkSearching.value = false;
+      }
+    });
+
+    const selectLinkTarget = (target: LoomaLinkTarget) => {
+      linkSelectedTarget.value = target;
+      linkTargetCache.set(target.href, target);
+      linkHref.value = target.href;
+      linkQuery.value = target.label;
+      linkResults.value = [];
+      linkNewTab.value = false;
+      linkError.value = "";
+    };
+    const moveLinkResultFocus = (event: KeyboardEvent, offset: number) => {
+      const buttons = [...(linkFormRoot.value?.querySelectorAll<HTMLButtonElement>("[data-link-result]") ?? [])];
+      const at = buttons.indexOf(event.target as HTMLButtonElement);
+      const next = buttons[at + offset];
+      if (next) { event.preventDefault(); next.focus(); }
+      else if (offset < 0) { event.preventDefault(); linkFormRoot.value?.querySelector<HTMLInputElement>("[data-link-search]")?.focus(); }
+    };
+
+    const openLinkEditor = (context = false) => {
       const instance = editor.value;
       if (!instance || !props.editable) return;
       const current = instance.state.selection;
       const preserved = lastFocusedSelection?.text && lastFocusedSelection.from !== lastFocusedSelection.to
         ? lastFocusedSelection : null;
-      const from = current.empty && preserved ? preserved.from : current.from;
-      const to = current.empty && preserved ? preserved.to : current.to;
+      const selection = linkPressedSelection ?? (current.empty ? preserved : null);
+      linkPressedSelection = null;
+      const from = selection?.from ?? current.from;
+      const to = selection?.to ?? current.to;
       const empty = from === to;
       const existing = instance.isActive("link");
       linkSelection = { from, to, existing };
@@ -424,20 +757,43 @@ export const LoomaEditor = defineComponent({
       linkNewTab.value = attrs.target !== "_self";
       linkText.value = empty && !existing ? "" : instance.state.doc.textBetween(from, to);
       linkError.value = "";
-      linkOpen.value = true;
-      void nextTick(() => linkUrlInput.value?.focus());
+      linkSelectedTarget.value = linkTargetCache.get(linkHref.value) ?? null;
+      linkMode.value = props.linkSearch && (!existing || linkSelectedTarget.value) ? "target" : "url";
+      linkQuery.value = linkSelectedTarget.value?.label ?? linkHref.value;
+      linkContextEditing.value = context;
+      linkOpen.value = !context;
+      if (existing && props.linkResolve && !linkTargetCache.has(linkHref.value)) {
+        const href = linkHref.value;
+        void props.linkResolve(href).then((target) => {
+          linkTargetCache.set(href, target);
+          if (linkHref.value === href && target) {
+            linkSelectedTarget.value = target;
+            linkMode.value = "target";
+            linkQuery.value = target.label;
+          }
+        }).catch(() => {});
+      }
+      void nextTick(() => (linkMode.value === "url"
+        ? linkDestinationInput()
+        : linkFormRoot.value?.querySelector<HTMLInputElement>("[data-link-search]"))?.focus());
     };
     const saveLink = () => {
       const instance = editor.value;
       const selection = linkSelection;
       if (!instance || !selection) return;
-      const href = validLinkHref(linkHref.value);
+      const href = linkMode.value === "target" ? validLinkHref(linkSelectedTarget.value?.href ?? "") : validLinkHref(linkHref.value);
       if (!href) {
-        linkError.value = "Enter an http, https, mailto, tel, or relative URL.";
-        linkUrlInput.value?.focus();
+        linkError.value = linkMode.value === "target" ? "Choose a destination from the results." : "Enter an http, https, mailto, tel, or relative URL.";
+        (linkMode.value === "url" ? linkDestinationInput() : linkFormRoot.value?.querySelector<HTMLInputElement>("[data-link-search]"))?.focus();
         return;
       }
-      const attrs = { href, target: linkNewTab.value ? "_blank" : "_self", rel: linkNewTab.value ? "noopener noreferrer" : null };
+      if (linkMode.value === "url" && props.linkSearch && !selection.existing && !/^(https?:|mailto:|tel:)/i.test(href)) {
+        linkError.value = "Enter a full website, email, or phone URL, or choose a destination.";
+        linkDestinationInput()?.focus();
+        return;
+      }
+      const destination = props.linkBaseUrl ? siteRelativeHref(href, props.linkBaseUrl) : href;
+      const attrs = { href: destination, target: linkNewTab.value ? "_blank" : "_self", rel: linkNewTab.value ? "noopener noreferrer" : null };
       const chain = instance.chain().focus().setTextSelection({ from: selection.from, to: selection.to });
       if (selection.from === selection.to && !selection.existing) {
         const text = linkText.value.trim();
@@ -445,17 +801,163 @@ export const LoomaEditor = defineComponent({
         chain.insertContent({ type: "text", text, marks: [{ type: "link", attrs }] }).run();
       } else {
         if (selection.existing && selection.from === selection.to) chain.extendMarkRange("link");
-        chain.setLink(attrs).run();
+        chain.setLink(attrs).setTextSelection(selection.to).run();
       }
       linkOpen.value = false;
+      linkContextEditing.value = false;
     };
     const removeLink = () => {
       const instance = editor.value;
       const selection = linkSelection;
       if (!instance || !selection?.existing) return;
-      instance.chain().focus().setTextSelection({ from: selection.from, to: selection.to }).extendMarkRange("link").unsetLink().run();
+      instance.chain().focus().setTextSelection({ from: selection.from, to: selection.to }).extendMarkRange("link").unsetLink().setTextSelection(selection.to).run();
       linkOpen.value = false;
+      linkContextEditing.value = false;
     };
+    const removeCurrentLink = () => {
+      const instance = editor.value;
+      if (!instance?.isActive("link")) return;
+      instance.chain().focus().extendMarkRange("link").unsetLink().run();
+      linkContextEditing.value = false;
+    };
+    const cancelLink = () => {
+      linkOpen.value = false;
+      linkContextEditing.value = false;
+      const selection = linkSelection;
+      if (selection) editor.value?.chain().focus().setTextSelection(selection.to).run();
+    };
+    const renderLinkDestination = (mode: "target" | "url") => [
+      h(FormField, { invalid: Boolean(linkError.value) }, {
+        label: () => h("label", props.linkSearch ? "Link destination" : "URL"),
+        default: () => {
+          const input = h(Input, {
+            "data-link-destination": "",
+            ...(props.linkSearch ? { "data-link-search": "", type: "text", role: "searchbox", autocomplete: "off", placeholder: `Search ${props.linkTargetLabel.toLowerCase()}s or paste a URL…` } : { type: "text", inputmode: "url", placeholder: "https://example.com" }),
+            size: props.linkSearch ? "md" : "sm",
+            value: props.linkSearch ? linkQuery.value : linkHref.value,
+            onInput: (event: Event) => {
+              const value = (event.target as HTMLInputElement).value;
+              if (props.linkSearch) {
+                linkQuery.value = value;
+                linkMode.value = /^(https?:\/\/|mailto:|tel:)/i.test(value.trim())
+                  || (linkSelection?.existing && /^(\/|\.\.?\/|#|\?)/.test(value.trim())) ? "url" : "target";
+                linkSelectedTarget.value = null;
+              }
+              linkHref.value = value;
+              linkError.value = "";
+            },
+            onKeydown: (event: KeyboardEvent) => {
+              if (mode === "target" && event.key === "ArrowDown") moveLinkResultFocus(event, 1);
+            },
+          });
+          return props.linkSearch ? h(InputGroup, { prefixKind: "icon" }, {
+            prefix: () => loomaIcon(mode === "target" ? "search" : "link"),
+            default: () => input,
+            action: () => linkQuery.value ? h(IconButton, {
+              label: "Clear search", variant: "ghost", size: "sm", onClick: () => {
+                linkQuery.value = ""; linkHref.value = ""; linkMode.value = "target"; linkSelectedTarget.value = null; linkError.value = "";
+                void nextTick(() => linkFormRoot.value?.querySelector<HTMLInputElement>("[data-link-search]")?.focus());
+              },
+            }, () => loomaIcon("x")) : null,
+          }) : input;
+        },
+      }),
+      mode === "target"
+        ? h(ScrollArea, { size: "sm", "aria-label": "Destination search results" }, () => [
+            linkSearching.value ? h(Text, { size: "sm", tone: "secondary", role: "status" }, () => "Searching…") : null,
+            !linkSearching.value && !linkSelectedTarget.value && linkQuery.value.trim().length < 2
+              ? h(Text, { size: "sm", tone: "secondary" }, () => "Type at least two letters to search.") : null,
+            !linkSearching.value && !linkSelectedTarget.value && linkQuery.value.trim().length >= 2 && !linkResults.value.length && !linkError.value
+              ? h(Text, { size: "sm", tone: "secondary" }, () => "No results found.") : null,
+            ...(linkSelectedTarget.value ? [linkSelectedTarget.value] : linkResults.value).map((target) => h(SearchResultRow, {
+              key: target.id, density: "compact",
+              selected: target.id === linkSelectedTarget.value?.id,
+              "data-link-result": "",
+              onClick: () => selectLinkTarget(target),
+              onKeydown: (event: KeyboardEvent) => {
+                if (event.key === "ArrowDown") moveLinkResultFocus(event, 1);
+                if (event.key === "ArrowUp") moveLinkResultFocus(event, -1);
+              },
+            }, {
+              leading: () => loomaIcon("file-text"),
+              title: () => h(Text, { as: "strong", size: "sm", weight: "medium", truncate: true, title: target.label }, () => target.label),
+              meta: () => target.detail ? h(Text, { as: "span", size: "xs", tone: "secondary", truncate: true, title: target.detail }, () => target.detail) : null,
+              trailing: () => target.id === linkSelectedTarget.value?.id ? loomaIcon("check") : null,
+            })),
+          ])
+        : h(Checkbox, {
+            size: "sm", checked: linkNewTab.value,
+            onChange: (event: CustomEvent<{ checked: boolean }>) => { linkNewTab.value = event.detail.checked; },
+          }, () => "Open in new tab"),
+    ];
+    const renderLinkForm = () => h("form", {
+      ref: linkFormRoot,
+      class: "looma-editor__link-form",
+      "aria-label": "Edit link",
+      onSubmit: (event: Event) => { event.preventDefault(); saveLink(); },
+    }, [h(Stack, { gap: "s" }, () => [
+      h(Text, { as: "h3", size: "sm", weight: "semibold" }, () => linkSelection?.existing ? "Edit link" : "Add link"),
+      h(Stack, { gap: "s" }, () => renderLinkDestination(linkMode.value)),
+      linkSelection?.from === linkSelection?.to && !linkSelection?.existing
+        ? h(FormField, {}, {
+            label: () => h("label", "Text"),
+            default: () => h(Input, { size: "sm", value: linkText.value, onInput: (event: Event) => { linkText.value = (event.target as HTMLInputElement).value; linkError.value = ""; } }),
+          }) : null,
+      linkError.value ? h(Text, { size: "sm", tone: "danger", role: "alert" }, () => linkError.value) : null,
+      h(Separator),
+      h(Cluster, { gap: "xs", justify: "between" }, () => [
+        h(Cluster, { gap: "xs" }, () => [
+          linkSelection?.existing ? h(Button, { type: "button", variant: "ghost", tone: "danger", size: "sm", onClick: removeLink }, () => "Remove link") : null,
+          linkMode.value === "url" && validLinkHref(linkHref.value) ? h(Button, {
+            as: "a", variant: "link", size: "sm", href: validLinkHref(linkHref.value), target: "_blank", rel: "noopener noreferrer",
+          }, () => "Preview link") : null,
+        ]),
+        h(Cluster, { gap: "xs" }, () => [
+          h(Button, { type: "button", variant: "ghost", tone: "neutral", size: "sm", onClick: cancelLink }, () => "Cancel"),
+          h(Button, { type: "submit", variant: "solid", size: "sm" }, () => "Save link"),
+        ]),
+      ]),
+    ])]);
+    const renderLinkContext = (instance: Editor) => {
+      if (linkContextEditing.value) return renderLinkForm();
+      const rawHref = instance.getAttributes("link").href;
+      const href = typeof rawHref === "string" ? rawHref : "";
+      const safeHref = validLinkHref(href);
+      const editId = `${toolbarScope}-link-edit`;
+      const removeId = `${toolbarScope}-link-remove`;
+      const openId = `${toolbarScope}-link-open`;
+      const target = linkContextTarget.value;
+      return h(Cluster, { gap: "xs", wrap: "nowrap", role: "group", "aria-label": "Link actions" }, () => [
+        loomaIcon(target ? "file-text" : "link"),
+        h(Stack, { gap: "none", title: href, "aria-label": `${target ? props.linkTargetLabel : "URL"}: ${target?.label ?? href}` }, () => [
+          h(Text, { as: "strong", size: "sm", weight: "medium", font: "sans", wrap: "anywhere" }, () => target?.label ?? href),
+          target?.detail ? h(Text, { as: "small", size: "xs", tone: "secondary", font: "sans" }, () => target.detail) : null,
+        ]),
+        safeHref ? h(Button, {
+          id: openId, as: "a", variant: "ghost", tone: "neutral", size: "sm",
+          href: safeHref, target: "_blank", rel: "noopener noreferrer", "aria-label": "Open link",
+        }, () => loomaIcon("external-link")) : null,
+        safeHref ? h(Tooltip, { for: openId }, () => "Open link") : null,
+        h(IconButton, {
+          id: editId, label: "Edit link", variant: "ghost", size: "sm",
+          onPointerdown: (event: PointerEvent) => event.preventDefault(),
+          onClick: () => openLinkEditor(true),
+        }, () => loomaIcon("pencil")),
+        h(Tooltip, { for: editId }, () => "Edit link"),
+        h(IconButton, {
+          id: removeId, label: "Remove link", variant: "ghost", size: "sm",
+          onPointerdown: (event: PointerEvent) => event.preventDefault(),
+          onClick: removeCurrentLink,
+        }, () => loomaIcon("unlink")),
+        h(Tooltip, { for: removeId }, () => "Remove link"),
+      ]);
+    };
+
+    const renderLinkContextCard = (instance: Editor) => h(Card, {
+      variant: "elevated", padding: linkContextEditing.value ? "sm" : "xs", size: linkContextEditing.value ? "sm" : "content",
+      class: ["looma-editor__link-context", { "looma-editor__link-context--editing": linkContextEditing.value }],
+    }, () => [renderLinkContext(instance)]);
+
     const captureBlockAction = () => {
       const instance = editor.value;
       const head = instance?.state.selection.$head;
@@ -491,7 +993,27 @@ export const LoomaEditor = defineComponent({
       instance.commands.focus();
     };
 
-    watch(() => props.editable, (editable) => editor.value?.setEditable(editable));
+    watch([() => props.slashCommands, () => props.uploadImage], () => {
+      slashExtension.options.commands = resolveSlashCommands();
+      editor.value?.commands.dismissLoomaSlashMenu();
+    });
+    watch(() => props.editable, (editable) => {
+      cancelHeldPress();
+      heldFormattingSelection = null;
+      editor.value?.setEditable(editable);
+      if (!editable) formattingPopup?.hide();
+      if (editor.value) imageDelivery.reset(editor.value);
+      root.value?.querySelectorAll<HTMLElement>("[data-looma-chip]").forEach((chip) => {
+        chip.setAttribute("aria-disabled", String(!editable));
+      });
+      if (!editable) chipOpen.value = false;
+    });
+    watch([linkOpen, tablePickerOpen], ([link, table]) => {
+      if (link || table || !floatingFormattingMode() || editor.value?.isFocused
+        || formattingPopup?.popper.contains(document.activeElement)) return;
+      heldFormattingSelection = null;
+      formattingPopup?.hide();
+    });
     watch(() => props.label, (label) => {
       editor.value?.setOptions({
         editorProps: { attributes: { role: "textbox", "aria-multiline": "true", "aria-label": label } },
@@ -573,12 +1095,76 @@ export const LoomaEditor = defineComponent({
       });
     };
 
+    // Like the table toolbar, the language picker floats above the code block holding the cursor.
+    let codeBlurTimer: ReturnType<typeof setTimeout> | undefined;
+    const updateCodeUi = (focusSettled = false) => {
+      const instance = editor.value?.isDestroyed ? undefined : editor.value;
+      const selection = instance?.state.selection;
+      const block = selection?.$from.parent;
+      const dom = instance && block?.type.name === "codeBlock" && selection!.$from.sameParent(selection!.$to)
+        ? instance.view.nodeDOM(selection!.$from.before())
+        : null;
+      if (!instance || !props.editable || !codeLanguageNames.length || !(dom instanceof HTMLElement)) {
+        codeUi.open = false;
+        return;
+      }
+      loadForCodeBlock(instance, block!.attrs.language, block!.textContent);
+      if (!instance.isFocused && !codeLanguageShell.value?.contains(document.activeElement)) {
+        // The editor blurs before focus lands; the picker stays if that focus lands in it.
+        clearTimeout(codeBlurTimer);
+        if (codeUi.open && !focusSettled) codeBlurTimer = setTimeout(() => updateCodeUi(true), 0);
+        else codeUi.open = false;
+        return;
+      }
+      const rect = dom.getBoundingClientRect();
+      const above = rect.top > 76;
+      codeUi.open = true;
+      codeUi.pos = selection!.$from.before();
+      codeUi.language = typeof block!.attrs.language === "string" && block!.attrs.language ? block!.attrs.language : "auto";
+      codeUi.text = block!.textContent;
+      codeUi.style = {
+        top: `${above ? rect.top - 8 : rect.bottom + 8}px`,
+        left: `${rect.left + rect.width / 2}px`,
+        transform: `translate(-50%, ${above ? "-100%" : "0"})`,
+      };
+    };
+    const codeLanguageOptions = computed(() => {
+      // The lowlight registry is mutable rather than reactive; this version tracks async imports.
+      void codeUi.grammarVersion;
+      const detected = codeUi.open && codeUi.text.trim() ? codeHighlightLowlight.highlightAuto(codeUi.text).data?.language : null;
+      return [
+        { value: "auto", label: typeof detected === "string" ? `Auto (${detected.toUpperCase()})` : "Auto" },
+        ...(codeUi.language !== "auto" && !codeLanguageNames.includes(codeUi.language)
+          ? [{ value: codeUi.language, label: `${codeUi.language.toUpperCase()} (unavailable)` }]
+          : []),
+        ...codeLanguageNames.map((name) => ({ value: name, label: name.toUpperCase() })),
+      ];
+    });
+    const chooseCodeLanguage = (detail: { value: string | null; kind: string }) => {
+      const instance = editor.value;
+      if (!instance || detail.kind !== "selection" || !detail.value) return;
+      const language = detail.value === "auto" ? null : detail.value;
+      if (language !== null && !codeLanguageNames.includes(language)) return;
+      const node = instance.state.doc.nodeAt(codeUi.pos);
+      if (node?.type.name !== "codeBlock") return;
+      // Each choice is its own undo step, separate from typing around it.
+      instance.view.dispatch(closeHistory(instance.state.tr));
+      instance.view.dispatch(instance.state.tr.setNodeMarkup(codeUi.pos, undefined, { ...node.attrs, language }));
+      instance.view.dispatch(closeHistory(instance.state.tr));
+    };
+    const onCodeTransaction = () => updateCodeUi();
+    watch(() => props.editable, () => nextTick(onCodeTransaction));
+    onBeforeUnmount(() => clearTimeout(codeBlurTimer));
+
     const updateTableUi = () => {
       const instance = editor.value;
+      const focusInTableUi = [tableToolbarShell.value, tableOverlayShell.value, tableMenuShell.value]
+        .some((shell) => shell?.contains(document.activeElement));
       if (
         !instance
+        || instance.isDestroyed
         || !props.editable
-        || (!instance.isFocused && !tableInteractionActive && !hoveredTableCell)
+        || (!instance.isFocused && !tableInteractionActive && !hoveredTableCell && !focusInTableUi)
       ) {
         closeTableUi();
         return;
@@ -634,13 +1220,19 @@ export const LoomaEditor = defineComponent({
     const onEditorFocus = () => {
       editorFocused.value = true;
       updateTableUi();
+      updateCodeUi();
       updateMobileViewport();
     };
 
     const onEditorBlur = () => {
-      updateTableUi();
+      cancelHeldPress();
+      queueMicrotask(updateTableUi);
+      updateCodeUi();
       setTimeout(() => {
         if (!tableInteractionActive && !editor.value?.isFocused) editorFocused.value = false;
+        if (!editor.value?.isFocused && !formattingPickerOpen() && !formattingPopup?.popper.contains(document.activeElement)) {
+          heldFormattingSelection = null;
+        }
       }, 0);
     };
 
@@ -648,6 +1240,7 @@ export const LoomaEditor = defineComponent({
       if (!instance) return;
       instance.on("selectionUpdate", updateTableUi);
       instance.on("transaction", updateTableUi);
+      instance.on("transaction", onCodeTransaction);
       instance.on("focus", onEditorFocus);
       instance.on("blur", onEditorBlur);
       nextTick(updateTableUi);
@@ -657,6 +1250,7 @@ export const LoomaEditor = defineComponent({
       if (!instance) return;
       instance.off("selectionUpdate", updateTableUi);
       instance.off("transaction", updateTableUi);
+      instance.off("transaction", onCodeTransaction);
       instance.off("focus", onEditorFocus);
       instance.off("blur", onEditorBlur);
     };
@@ -666,9 +1260,17 @@ export const LoomaEditor = defineComponent({
       bindEditorUi(instance);
     }, { immediate: true });
 
-    const onViewportChange = () => {
+    const onViewportChange = (event?: Event) => {
+      // A menu's own scroll does not move its anchor or change the active table.
+      if (event?.type === "scroll" && event.target instanceof Node
+        && (tableToolbarShell.value?.contains(event.target) || tableMenuShell.value?.contains(event.target))) return;
+      cancelHeldPress();
+      const wasMobile = mobile.value;
       updateMobileViewport();
+      if (wasMobile !== mobile.value) heldFormattingSelection = null;
       updateTableUi();
+      updateCodeUi();
+      if (floatingFormattingMode() && editor.value && !formattingSelectionActive(editor.value)) formattingPopup?.hide();
       tableUi.menuOpen = false;
     };
 
@@ -693,6 +1295,42 @@ export const LoomaEditor = defineComponent({
       }
     };
 
+    const onFormattingPointerDown = (event: PointerEvent) => {
+      cancelHeldPress();
+      const instance = editor.value;
+      if (!floatingFormattingMode() || tableResizeActive || !props.editable || !instance || event.button !== 0 || !event.isPrimary
+        || !(event.target instanceof Element) || !instance.view.dom.contains(event.target)
+        || event.target.closest("button, input, select, textarea, [data-looma-image-node]")) return;
+      heldPress = { id: event.pointerId, x: event.clientX, y: event.clientY };
+      heldPressTimer = setTimeout(() => {
+        heldPressTimer = undefined;
+        const selection = instance.state.selection;
+        if (!heldPress || !floatingFormattingMode() || tableResizeActive || !props.editable || !instance.isFocused
+          || slash.active || mention.active || !(selection instanceof TextSelection)) return;
+        dismissedFormattingSelection = null;
+        heldFormattingSelection = selection;
+        formattingPopup?.setProps({ getReferenceClientRect: () => posToDOMRect(instance.view, selection.from, selection.to) });
+        formattingPopup?.show();
+      }, 500);
+    };
+    const onFormattingPointerMove = (event: PointerEvent) => {
+      if (heldPress?.id === event.pointerId
+        && Math.hypot(event.clientX - heldPress.x, event.clientY - heldPress.y) > 8) cancelHeldPress();
+    };
+    const onFormattingPointerEnd = (event: PointerEvent) => {
+      if (heldPress?.id === event.pointerId) cancelHeldPress();
+    };
+    const onFormattingKeyDown = (event: KeyboardEvent) => {
+      cancelHeldPress();
+      if (event.key !== "Escape" || !floatingFormattingMode() || !(event.target instanceof Node)
+        || !(root.value?.contains(event.target) || formattingPopup?.popper.contains(event.target))) return;
+      const selection = editor.value?.state.selection;
+      dismissedFormattingSelection = selection instanceof TextSelection || selection instanceof AllSelection ? selection : null;
+      heldFormattingSelection = null;
+      formattingPopup?.hide();
+      hideTool();
+    };
+
     const onResizePointerDown = (event: PointerEvent) => {
       tableResizeActive = event.target instanceof HTMLElement
         && event.target.classList.contains("column-resize-handle");
@@ -713,7 +1351,10 @@ export const LoomaEditor = defineComponent({
       const instance = editor.value;
       if (!instance) return null;
       try {
-        const position = instance.view.posAtDOM(element, 0);
+        const frame = element.closest("[data-looma-image-node]");
+        const position = frame?.parentNode
+          ? instance.view.posAtDOM(frame.parentNode, Array.from(frame.parentNode.childNodes).indexOf(frame))
+          : instance.view.posAtDOM(element, 0);
         const node = instance.state.doc.nodeAt(position);
         return node?.type.name === "image" ? imageDescriptorFromAttrs(node.attrs) : null;
       } catch {
@@ -733,6 +1374,23 @@ export const LoomaEditor = defineComponent({
       if (image) emit("imageActivate", { ...image, trigger });
     };
 
+    const chipElementForEvent = (event: Event): HTMLElement | null => {
+      const element = event.target instanceof Element
+        ? event.target.closest<HTMLElement>("[data-looma-chip]") : null;
+      return element && root.value?.contains(element) ? element : null;
+    };
+
+    const onChipClickCapture = (event: MouseEvent) => {
+      const chip = chipElementForEvent(event);
+      if (chip && editor.value && props.editable) {
+        event.preventDefault();
+        // ui-popover attaches its own anchor click toggle. Handle chips here so
+        // a click on the open chip cannot close and immediately reopen it.
+        event.stopPropagation();
+        openChipEditor(editor.value, editor.value.view.posAtDOM(chip, 0));
+      }
+    };
+
     const onImageClick = (event: MouseEvent) => {
       const element = imageElementForEvent(event);
       if (element && !props.editable) activateImage(element, "pointer");
@@ -745,8 +1403,14 @@ export const LoomaEditor = defineComponent({
 
     const onImageKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Enter" && event.key !== " ") return;
+      const chip = chipElementForEvent(event);
+      if (chip && editor.value && props.editable) {
+        event.preventDefault();
+        openChipEditor(editor.value, editor.value.view.posAtDOM(chip, 0));
+        return;
+      }
       const element = imageElementForEvent(event);
-      if (!element) return;
+      if (!element || props.editable) return;
       event.preventDefault();
       activateImage(element, "keyboard");
     };
@@ -768,6 +1432,11 @@ export const LoomaEditor = defineComponent({
       window.visualViewport?.addEventListener("resize", onViewportChange);
       window.visualViewport?.addEventListener("scroll", onViewportChange);
       document.addEventListener("pointerdown", onDocumentPointerDown, true);
+      document.addEventListener("pointerdown", onFormattingPointerDown);
+      document.addEventListener("pointermove", onFormattingPointerMove);
+      document.addEventListener("pointerup", onFormattingPointerEnd);
+      document.addEventListener("pointercancel", onFormattingPointerEnd);
+      document.addEventListener("keydown", onFormattingKeyDown);
       document.addEventListener("pointerdown", onResizePointerDown, true);
       document.addEventListener("pointerup", onResizePointerUp, true);
       root.value?.addEventListener("error", onImageError, true);
@@ -777,7 +1446,14 @@ export const LoomaEditor = defineComponent({
       window.removeEventListener("scroll", onViewportChange, true);
       window.visualViewport?.removeEventListener("resize", onViewportChange);
       window.visualViewport?.removeEventListener("scroll", onViewportChange);
+      cancelHeldPress();
+      formattingPopup = null;
       document.removeEventListener("pointerdown", onDocumentPointerDown, true);
+      document.removeEventListener("pointerdown", onFormattingPointerDown);
+      document.removeEventListener("pointermove", onFormattingPointerMove);
+      document.removeEventListener("pointerup", onFormattingPointerEnd);
+      document.removeEventListener("pointercancel", onFormattingPointerEnd);
+      document.removeEventListener("keydown", onFormattingKeyDown);
       document.removeEventListener("pointerdown", onResizePointerDown, true);
       document.removeEventListener("pointerup", onResizePointerUp, true);
       root.value?.removeEventListener("error", onImageError, true);
@@ -857,6 +1533,8 @@ export const LoomaEditor = defineComponent({
       if (!table) return;
       const targetCell = "rowIndex" in detail
         ? resolveTableCellAt(table, detail.rowIndex, detail.columnIndex)
+        : "fromIndex" in detail
+          ? resolveTableCellAt(table, detail.action === "reorder-row" ? detail.fromIndex : 0, detail.action === "reorder-column" ? detail.fromIndex : 0)
         : resolveTableCellAt(
             table,
             detail.action.startsWith("add-row") ? Math.max(0, detail.boundaryIndex - 1) : 0,
@@ -896,6 +1574,13 @@ export const LoomaEditor = defineComponent({
     };
 
     const onEditorPointerOver = (event: PointerEvent) => {
+      const handle = event.pointerType !== "touch" && event.target instanceof HTMLElement
+        ? event.target.closest<HTMLElement>(".column-resize-handle")
+        : null;
+      if (handle) {
+        if (!handle.id) handle.id = `${toolbarScope}-resize-${++resizeHintSequence}`;
+        resizeHintFor.value = handle.id;
+      }
       const cell = event.target instanceof HTMLElement
         ? event.target.closest<HTMLTableCellElement>("td, th")
         : null;
@@ -910,6 +1595,10 @@ export const LoomaEditor = defineComponent({
     };
 
     const onEditorPointerOut = (event: PointerEvent) => {
+      const handle = event.target instanceof HTMLElement
+        ? event.target.closest<HTMLElement>(".column-resize-handle")
+        : null;
+      if (handle && (!(event.relatedTarget instanceof Node) || !handle.contains(event.relatedTarget))) resizeHintFor.value = "";
       const fromCell = event.target instanceof HTMLElement
         ? event.target.closest<HTMLTableCellElement>("td, th")
         : null;
@@ -924,6 +1613,7 @@ export const LoomaEditor = defineComponent({
     };
 
     const onEditorPointerLeave = (event: PointerEvent) => {
+      resizeHintFor.value = "";
       const next = event.relatedTarget;
       if (
         next instanceof Node
@@ -960,12 +1650,14 @@ export const LoomaEditor = defineComponent({
       if (action) event.preventDefault();
     };
 
+
     const commandButton = (
       label: string,
       icon: LoomaIconName,
       active: boolean,
       disabled: boolean,
       run: () => void,
+      shortcut = "",
     ) => {
       const syncNativeDisabled = (vnode: VNode) => {
         if (!(vnode.el instanceof Element)) return;
@@ -980,9 +1672,9 @@ export const LoomaEditor = defineComponent({
         class: "looma-editor__toolbar-button",
         label,
         size: "sm",
-        onPointerenter: () => showTool(id, label, false),
+        onPointerenter: () => showTool(id, label, false, shortcut),
         onPointerleave: hideTool,
-        onFocusin: () => showTool(id, label, true),
+        onFocusin: () => showTool(id, label, true, shortcut),
         onFocusout: hideTool,
         variant: "ghost",
         disabled,
@@ -995,18 +1687,23 @@ export const LoomaEditor = defineComponent({
       }, () => loomaIcon(icon));
     };
 
-    const renderToolbar = (instance: Editor, floating = true) => {
+    const renderToolbar = (instance: Editor, floating = true, textOnly = false) => {
       // One row at page width: checklists and dividers are inserted from the slash menu or typed
       // ([ ] and ---), so they do not take toolbar room.
-      const buttons = [
-        commandButton("Bold", "bold", instance.isActive("bold"), !instance.can().toggleBold(), () => instance.chain().focus().toggleBold().run()),
-        commandButton("Italic", "italic", instance.isActive("italic"), !instance.can().toggleItalic(), () => instance.chain().focus().toggleItalic().run()),
-        commandButton("Underline", "underline", instance.isActive("underline"), !instance.can().toggleUnderline(), () => instance.chain().focus().toggleUnderline().run()),
-        commandButton("Strike", "strikethrough", instance.isActive("strike"), !instance.can().toggleStrike(), () => instance.chain().focus().toggleStrike().run()),
-        commandButton("Highlight", "highlighter", instance.isActive("highlight"), !instance.can().toggleHighlight(), () => instance.chain().focus().toggleHighlight().run()),
-        commandButton("Inline code", "code-xml", instance.isActive("code"), !instance.can().toggleCode(), () => instance.chain().focus().toggleCode().run()),
+      const textButtons = [
+        commandButton("Bold", "bold", instance.isActive("bold"), !instance.can().toggleBold(), () => instance.chain().focus().toggleBold().run(), "Mod-b"),
+        commandButton("Italic", "italic", instance.isActive("italic"), !instance.can().toggleItalic(), () => instance.chain().focus().toggleItalic().run(), "Mod-i"),
+        commandButton("Underline", "underline", instance.isActive("underline"), !instance.can().toggleUnderline(), () => instance.chain().focus().toggleUnderline().run(), "Mod-u"),
+        commandButton("Strike", "strikethrough", instance.isActive("strike"), !instance.can().toggleStrike(), () => instance.chain().focus().toggleStrike().run(), "Mod-Shift-s"),
+        ...(authorHighlight
+          ? [commandButton("Highlight", "highlighter", instance.isActive("highlight"), !instance.can().toggleHighlight(), () => instance.chain().focus().toggleHighlight().run(), "Mod-Shift-h")]
+          : []),
+        commandButton("Inline code", "code-xml", instance.isActive("code"), !instance.can().toggleCode(), () => instance.chain().focus().toggleCode().run(), "Mod-e"),
+      ];
+      const linkTriggerId = textOnly ? `${linkAnchorId}-selection` : linkAnchorId;
+      textButtons.push(
         h(IconButton, {
-          id: linkAnchorId,
+          id: linkTriggerId,
           class: "looma-editor__toolbar-button",
           label: "Link",
           size: "sm",
@@ -1014,19 +1711,28 @@ export const LoomaEditor = defineComponent({
           "aria-expanded": linkOpen.value ? "true" : "false",
           "aria-pressed": instance.isActive("link") ? "true" : "false",
           "data-active": instance.isActive("link") ? "true" : "false",
-          onPointerenter: () => showTool(linkAnchorId, "Link", false),
+          onPointerenter: () => showTool(linkTriggerId, "Link", false),
           onPointerleave: hideTool,
-          onFocusin: () => showTool(linkAnchorId, "Link", true),
+          onPointerdown: (event: PointerEvent) => {
+            event.preventDefault();
+            linkPopoverAnchorId.value = linkTriggerId;
+            const selection = instance.state.selection;
+            linkPressedSelection = selection.empty ? null : { from: selection.from, to: selection.to };
+          },
+          onFocusin: () => { linkPopoverAnchorId.value = linkTriggerId; showTool(linkTriggerId, "Link", true); },
           onFocusout: hideTool,
-        }, () => loomaIcon("link")),
+        }, () => loomaIcon("link"))
+      );
+      const buttons = textOnly ? textButtons : [
+        ...textButtons,
         h("span", { class: "divider", "aria-hidden": "true" }),
-        commandButton("Heading 1", "heading-1", instance.isActive("heading", { level: 1 }), false, () => instance.chain().focus().toggleHeading({ level: 1 }).run()),
-        commandButton("Heading 2", "heading-2", instance.isActive("heading", { level: 2 }), false, () => instance.chain().focus().toggleHeading({ level: 2 }).run()),
-        commandButton("Heading 3", "heading-3", instance.isActive("heading", { level: 3 }), false, () => instance.chain().focus().toggleHeading({ level: 3 }).run()),
-        commandButton("Bullet list", "list", instance.isActive("bulletList"), false, () => instance.chain().focus().toggleBulletList().run()),
-        commandButton("Numbered list", "list-ordered", instance.isActive("orderedList"), false, () => instance.chain().focus().toggleOrderedList().run()),
-        commandButton("Blockquote", "quote", instance.isActive("blockquote"), !instance.can().toggleBlockquote(), () => instance.chain().focus().toggleBlockquote().run()),
-        commandButton("Code block", "braces", instance.isActive("codeBlock"), !instance.can().toggleCodeBlock(), () => instance.chain().focus().toggleCodeBlock().run()),
+        commandButton("Heading 1", "heading-1", instance.isActive("heading", { level: 1 }), false, () => instance.chain().focus().toggleHeading({ level: 1 }).run(), "Mod-Alt-1"),
+        commandButton("Heading 2", "heading-2", instance.isActive("heading", { level: 2 }), false, () => instance.chain().focus().toggleHeading({ level: 2 }).run(), "Mod-Alt-2"),
+        commandButton("Heading 3", "heading-3", instance.isActive("heading", { level: 3 }), false, () => instance.chain().focus().toggleHeading({ level: 3 }).run(), "Mod-Alt-3"),
+        commandButton("Bullet list", "list", instance.isActive("bulletList"), false, () => instance.chain().focus().toggleBulletList().run(), "Mod-Shift-8"),
+        commandButton("Numbered list", "list-ordered", instance.isActive("orderedList"), false, () => instance.chain().focus().toggleOrderedList().run(), "Mod-Shift-7"),
+        commandButton("Blockquote", "quote", instance.isActive("blockquote"), !instance.can().toggleBlockquote(), () => instance.chain().focus().toggleBlockquote().run(), "Mod-Shift-b"),
+        commandButton("Code block", "braces", instance.isActive("codeBlock"), !instance.can().toggleCodeBlock(), () => instance.chain().focus().toggleCodeBlock().run(), "Mod-Alt-c"),
         h(IconButton, {
           id: blockActionAnchorId,
           class: "looma-editor__toolbar-button",
@@ -1055,8 +1761,8 @@ export const LoomaEditor = defineComponent({
         }, () => loomaIcon("table")),
         commandButton(uploading.value ? "Uploading image" : "Insert image", "image", false, uploading.value || !props.uploadImage, () => fileInput.value?.click()),
         h("span", { class: "divider", "aria-hidden": "true" }),
-        commandButton("Undo", "undo", false, !instance.can().undo(), () => instance.chain().focus().undo().run()),
-        commandButton("Redo", "redo", false, !instance.can().redo(), () => instance.chain().focus().redo().run()),
+        commandButton("Undo", "undo", false, !instance.can().undo(), () => instance.chain().focus().undo().run(), "Mod-z"),
+        commandButton("Redo", "redo", false, !instance.can().redo(), () => instance.chain().focus().redo().run(), isApplePlatform() ? "Mod-Shift-z" : "Mod-y"),
       ];
       return h(EditorToolbar, { floating }, () => [
         ...buttons,
@@ -1066,7 +1772,10 @@ export const LoomaEditor = defineComponent({
           open: tooltipOpen.value,
           placement: floating ? "top" : "bottom",
           trigger: "focus",
-        }, () => tooltipLabel.value),
+        }, {
+          default: () => tooltipLabel.value,
+          shortcut: () => (tooltipShortcut.value ? h("kbd", tooltipShortcut.value) : null),
+        }),
       ]);
     };
 
@@ -1115,7 +1824,7 @@ export const LoomaEditor = defineComponent({
         headerRow: tableUi.headerRow,
         headerColumn: tableUi.headerColumn,
         actions: tableActions,
-        onAction: runTableAction,
+        onAction: (event: CustomEvent<Parameters<typeof handleTableAction>[1]>) => runTableAction(event.detail),
       };
 
       return h("div", {
@@ -1135,23 +1844,88 @@ export const LoomaEditor = defineComponent({
           dragLeaveTimer = setTimeout(() => { dragOver.value = false; }, 100);
         },
         onDrop,
+        onClickCapture: onChipClickCapture,
         onClick: onImageClick,
         onDblclick: onImageDoubleClick,
         onKeydown: onImageKeyDown,
       }, [
-        instance && props.editable && !mobile.value && props.toolbarMode === "bubble"
+        // Top-layer Tooltip owns hint geometry; a pseudo-element inside the table
+        // would contribute overflow even while its opacity is zero.
+        resizeHintFor.value ? h(Tooltip, {
+          for: resizeHintFor.value,
+          open: true,
+          trigger: "focus",
+          placement: "top",
+          inverse: true,
+        }, () => "Drag to resize column") : null,
+        instance && props.editable && !mobile.value
+          && (props.toolbarMode === "bubble" || props.toolbarMode === "popover" || props.toolbarMode === "contextual")
           ? h(BubbleMenu, {
               editor: instance,
               pluginKey: "looma-text-formatting-menu",
-              shouldShow: ({ editor: menuEditor, from, to }: { editor: Editor; from: number; to: number }) =>
-                shouldShowTextFormattingToolbar(menuEditor, from, to),
+              updateDelay: 0,
+              shouldShow: ({ editor: menuEditor }: { editor: Editor }) =>
+                (props.toolbarMode !== "popover" || !props.toolbarOpen)
+                && !slash.active && !mention.active
+                && (menuEditor.isFocused || linkContextEditing.value || formattingPickerOpen())
+                && formattingSelectionActive(menuEditor),
               tippyOptions: {
-                appendTo: () => root.value ?? document.body,
+                onCreate: (popup) => { formattingPopup = popup; },
+                onDestroy: () => { formattingPopup = null; },
+                // Escape clipped panels, but stay in the top layer when the editor is in a dialog or popover.
+                appendTo: () => root.value?.closest<HTMLElement>("dialog[open], [popover]") ?? document.body,
+                onShow: () => announceOverlayOpen(root.value?.ownerDocument ?? document, root.value),
+                // A picker owns the active editing gesture while its field has focus; retain its toolbar anchor.
+                onHide: () => instance.isEditable && floatingFormattingMode() && formattingPickerOpen() && formattingSelectionActive(instance)
+                  ? false : undefined,
                 duration: 100,
                 maxWidth: "none",
                 placement: "top",
+                ...(props.toolbarMode === "contextual" && root.value ? {
+                  popperOptions: {
+                    modifiers: [
+                      { name: "flip", options: { boundary: root.value } },
+                      { name: "preventOverflow", options: { boundary: root.value, altAxis: true } },
+                    ],
+                  },
+                } : {}),
               },
-            }, { default: () => renderToolbar(instance) })
+            }, { default: () => props.toolbarMode === "contextual"
+              ? h(Stack, { gap: "xs" }, () => [
+                  renderToolbar(instance, true),
+                  (linkContextEditing.value || instance.state.selection.empty && instance.isActive("link")) && !linkOpen.value
+                    ? renderLinkContextCard(instance)
+                    : null,
+                ])
+              : renderToolbar(instance, true, props.toolbarMode === "popover") })
+          : null,
+        instance && props.editable && !mobile.value && props.toolbarMode !== "contextual"
+          ? h(BubbleMenu, {
+              editor: instance,
+              pluginKey: "looma-link-context-menu",
+              shouldShow: ({ editor: menuEditor, from, to }: { editor: Editor; from: number; to: number }) =>
+                from === to && menuEditor.isActive("link") && !linkOpen.value,
+              tippyOptions: {
+                appendTo: () => root.value?.closest<HTMLElement>("dialog[open], [popover]") ?? document.body,
+                onShow: () => announceOverlayOpen(root.value?.ownerDocument ?? document, root.value),
+                duration: 100,
+                maxWidth: Math.min(480, window.innerWidth - 24),
+                placement: "bottom",
+              },
+            }, { default: () => renderLinkContextCard(instance) })
+          : null,
+        instance && props.editable && !mobile.value && props.toolbarMode === "popover" && props.toolbarTriggerId
+          ? h(Popover, {
+              class: "looma-editor__formatting-popover",
+              role: "region",
+              "aria-label": "Formatting tools",
+              open: props.toolbarOpen,
+              for: props.toolbarTriggerId,
+              placement: "bottom-end",
+              // The popover owns its trigger's toggle; the app only binds v-model:toolbar-open.
+              onOpen: () => emit("update:toolbarOpen", true),
+              onClose: () => emit("update:toolbarOpen", false),
+            }, () => [renderToolbar(instance, true)])
           : null,
         instance && props.editable && !mobile.value && props.toolbarMode === "sticky"
           ? h("div", {
@@ -1160,8 +1934,39 @@ export const LoomaEditor = defineComponent({
               "aria-label": "Editor tools",
             }, [renderToolbar(instance, false)])
           : null,
-        instance ? h(EditorContent, { editor: instance }) : null,
-        instance && props.editable && mobile.value && editorFocused.value
+        instance && props.editable
+          ? h(BubbleMenu, {
+              editor: instance,
+              pluginKey: "looma-image-actions",
+              shouldShow: ({ editor: menuEditor }: { editor: Editor }) => menuEditor.isEditable
+                && menuEditor.state.selection instanceof NodeSelection && menuEditor.state.selection.node.type.name === "image",
+              tippyOptions: {
+                appendTo: () => root.value?.closest<HTMLElement>("dialog[open], [popover]") ?? document.body,
+                placement: "top", duration: 100, maxWidth: window.innerWidth - 24,
+                getReferenceClientRect: () => {
+                  const dom = instance.view.nodeDOM(instance.state.selection.from);
+                  return (dom instanceof Element ? dom.querySelector("img") ?? dom : instance.view.dom).getBoundingClientRect();
+                },
+              },
+            }, { default: () => h(ImageControls, { editor: instance }) }) : null,
+        instance ? h(Stack, { gap: "none" }, () => h(EditorContent, { editor: instance })) : null,
+        codeUi.open
+          ? h("div", {
+              ref: codeLanguageShell,
+              class: "looma-editor__code-language",
+              style: codeUi.style,
+              onFocusout: () => updateCodeUi(),
+            }, [h(Combobox, {
+              label: "Code language",
+              labelVisibility: "sr-only",
+              size: "sm",
+              disclosure: true,
+              filter: "label",
+              value: codeUi.language,
+              onValueChange: (event: CustomEvent<{ value: string | null; kind: string }>) => chooseCodeLanguage(event.detail),
+            }, () => codeLanguageOptions.value.map((option) => h("option", { value: option.value }, option.label)))])
+          : null,
+        instance && props.editable && mobile.value && (editorFocused.value || linkOpen.value)
           ? h("div", {
               ref: mobileToolbarShell,
               class: "looma-editor__mobile-toolbar-shell",
@@ -1219,53 +2024,64 @@ export const LoomaEditor = defineComponent({
             ])
           : null,
         h(Popover, {
-          class: "looma-editor__link-popover",
-          open: linkOpen.value,
-          for: linkAnchorId,
-          placement: mobile.value ? "top-start" : "bottom-start",
-          onOpen: openLinkEditor,
-          onClose: () => { linkOpen.value = false; },
-        }, () => h("form", {
-          class: "looma-editor__link-form",
-          "aria-label": "Edit link",
-          onSubmit: (event: Event) => { event.preventDefault(); saveLink(); },
-        }, [
-          linkSelection?.from === linkSelection?.to && !linkSelection?.existing
-            ? h("label", [h("span", "Text"), h("input", {
-                value: linkText.value,
-                onInput: (event: Event) => { linkText.value = (event.target as HTMLInputElement).value; linkError.value = ""; },
-              })])
-            : null,
-          h("label", [h("span", "URL"), h("input", {
-            ref: linkUrlInput,
+          class: "looma-editor__chip-popover",
+          open: chipOpen.value,
+          for: chipAnchorId,
+          placement: "bottom-start",
+          onClose: () => { chipOpen.value = false; },
+        }, () => h("div", { class: "looma-editor__chip-form", role: "dialog", "aria-label": "Edit chip" }, [
+          h("input", {
+            ref: chipInput,
             type: "text",
-            inputmode: "url",
-            value: linkHref.value,
-            "aria-invalid": linkError.value ? "true" : undefined,
-            onInput: (event: Event) => { linkHref.value = (event.target as HTMLInputElement).value; linkError.value = ""; },
-          })]),
-          h("label", { class: "looma-editor__link-new-tab" }, [h("input", {
-            type: "checkbox",
-            checked: linkNewTab.value,
-            onChange: (event: Event) => { linkNewTab.value = (event.target as HTMLInputElement).checked; },
-          }), h("span", "Open in new tab")]),
-          linkError.value ? h("p", { class: "looma-editor__link-error", role: "alert" }, linkError.value) : null,
-          validLinkHref(linkHref.value) ? h("a", {
-            class: "looma-editor__link-preview",
-            href: validLinkHref(linkHref.value),
-            target: "_blank",
-            rel: "noopener noreferrer",
-          }, "Preview link") : null,
-          h("div", { class: "looma-editor__link-actions" }, [
-            linkSelection?.existing ? h("button", { type: "button", onClick: removeLink }, "Remove link") : null,
-            h("button", { type: "submit" }, "Save link"),
-          ]),
+            value: chipLabel.value,
+            placeholder: "Set a label",
+            "aria-label": "Chip text",
+            onInput: (event: Event) => {
+              chipLabel.value = (event.target as HTMLInputElement).value;
+              changeChip({ label: chipLabel.value });
+            },
+            onKeydown: (event: KeyboardEvent) => {
+              if (event.key === "Enter" || event.key === "Escape") {
+                event.preventDefault();
+                closeChip(true);
+              }
+            },
+          }),
+          h("div", { class: "looma-editor__chip-colors", role: "group", "aria-label": "Chip color" },
+            LOOMA_CHIP_COLORS.map((color) => h("button", {
+              type: "button",
+              class: "looma-editor__chip-color",
+              "data-color": color,
+              "aria-label": `${color[0].toUpperCase()}${color.slice(1)} chip`,
+              "aria-pressed": chipColor.value === color,
+              onClick: () => {
+                if (chipColor.value === color) { chipInput.value?.focus(); return; }
+                chipColor.value = color;
+                changeChip({ color });
+                chipInput.value?.focus();
+              },
+            }, chipColor.value === color ? "✓" : ""))),
         ])),
+        h(Popover, {
+          class: "looma-editor__link-popover",
+          size: "sm",
+          open: linkOpen.value,
+          for: linkPopoverAnchorId.value,
+          placement: mobile.value ? "top-start" : "bottom-start",
+          onOpen: () => openLinkEditor(),
+          onClose: () => {
+            linkOpen.value = false; linkPressedSelection = null;
+            const current = editor.value?.state.selection;
+            if (current && !current.empty && linkSelection && current.from === linkSelection.from && current.to === linkSelection.to) {
+              editor.value?.commands.setTextSelection(current.to);
+            }
+          },
+        }, renderLinkForm),
         h(Menu, {
           for: blockActionAnchorId,
           placement: mobile.value ? "top-start" : "bottom-start",
           onOpen: captureBlockAction,
-          onSelect: ({ value }: { value: string }) => runBlockAction(value),
+          onSelect: (event: CustomEvent<{ value: string }>) => runBlockAction(event.detail.value),
         }, () => [
           h(MenuItem, { value: "insert-below" }, () => "Insert paragraph below"),
           h(MenuItem, { value: "duplicate" }, () => "Duplicate block"),
@@ -1280,22 +2096,24 @@ export const LoomaEditor = defineComponent({
           onClose: () => { tablePickerOpen.value = false; },
         }, () => [h(EditorInsertTableGrid, {
               open: true,
-              onInsert: (detail: { rows: number; cols: number; withHeaderRow: boolean }) => {
-                instance?.chain().focus().insertTable(detail).run();
+              onInsert: (event: CustomEvent<{ rows: number; cols: number; withHeaderRow: boolean }>) => {
+                instance?.chain().focus().insertTable(event.detail).run();
                 tablePickerOpen.value = false;
               },
             })]),
-        slash.active && slash.items.length > 0
+        slash.active
           ? h(EditorSlashMenu, {
               open: true,
               query: slash.query,
-              items: managedSlashMenuItems(slash.items),
               selectedIndex: slash.selectedIndex,
               anchorRect: managedMenuAnchorRect(slash.rect),
-              onHighlight: ({ index }: { index: number }) => { slash.selectedIndex = index; },
-              onSelect: ({ index }: { index: number }) => {
-                slash.select?.(index);
+              onHighlight: (event: CustomEvent<{ index: number }>) => { slash.highlight?.(event.detail.index); },
+              onSelect: (event: CustomEvent<{ index: number }>) => {
+                slash.select?.(event.detail.index);
               },
+            }, {
+              default: () => slashMenuRows(slash.items),
+              empty: () => h(Text, { role: "status", size: "sm", tone: "muted" }, () => "No commands found."),
             })
           : null,
         mention.active && (mention.loading || mention.items.length > 0)
@@ -1307,12 +2125,12 @@ export const LoomaEditor = defineComponent({
               selectedIndex: mention.selectedIndex,
               anchorRect: managedMenuAnchorRect(mention.rect),
               loading: mention.loading,
-              onHighlight: ({ index }: { index: number }) => {
-                mention.selectedIndex = index;
-                mention.highlight?.(index);
+              onHighlight: (event: CustomEvent<{ index: number }>) => {
+                mention.selectedIndex = event.detail.index;
+                mention.highlight?.(event.detail.index);
               },
-              onSelect: ({ index }: { index: number }) => {
-                mention.select?.(index);
+              onSelect: (event: CustomEvent<{ index: number }>) => {
+                mention.select?.(event.detail.index);
               },
             })
           : null,
@@ -1333,7 +2151,17 @@ export const LoomaEditor = defineComponent({
             }, [h(EditorTableOverlay, {
               open: true,
               geometry: tableUi.geometry,
-              onAction: runOverlayAction,
+              onAddRowBefore: (event: CustomEvent<{ boundaryIndex: number }>) => runOverlayAction({ action: "add-row-before", boundaryIndex: event.detail.boundaryIndex }),
+              onAddRowAfter: (event: CustomEvent<{ boundaryIndex: number }>) => runOverlayAction({ action: "add-row-after", boundaryIndex: event.detail.boundaryIndex }),
+              onAddColumnBefore: (event: CustomEvent<{ boundaryIndex: number }>) => runOverlayAction({ action: "add-column-before", boundaryIndex: event.detail.boundaryIndex }),
+              onAddColumnAfter: (event: CustomEvent<{ boundaryIndex: number }>) => runOverlayAction({ action: "add-column-after", boundaryIndex: event.detail.boundaryIndex }),
+              onSelectRow: (event: CustomEvent<{ rowIndex: number; columnIndex: number }>) => runOverlayAction({ action: "select-row", ...event.detail }),
+              onSelectColumn: (event: CustomEvent<{ rowIndex: number; columnIndex: number }>) => runOverlayAction({ action: "select-column", ...event.detail }),
+              onReorderRow: (event: CustomEvent<{ fromIndex: number; toIndex: number }>) => runOverlayAction({ action: "reorder-row", ...event.detail }),
+              onReorderColumn: (event: CustomEvent<{ fromIndex: number; toIndex: number }>) => runOverlayAction({ action: "reorder-column", ...event.detail }),
+              onOpenCellMenu: (event: CustomEvent<{ rowIndex: number; columnIndex: number; anchor: { left: number; top: number; right: number; bottom: number } }>) => runOverlayAction({ action: "open-cell-menu", ...event.detail }),
+              onOpenRowMenu: (event: CustomEvent<{ rowIndex: number; columnIndex: number; anchor: { left: number; top: number; right: number; bottom: number } }>) => runOverlayAction({ action: "open-row-menu", ...event.detail }),
+              onOpenColumnMenu: (event: CustomEvent<{ rowIndex: number; columnIndex: number; anchor: { left: number; top: number; right: number; bottom: number } }>) => runOverlayAction({ action: "open-column-menu", ...event.detail }),
             })])
           : null,
         tableUi.menuOpen

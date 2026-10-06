@@ -1,22 +1,26 @@
 <template component="ui-text">
   <defs>
-    <prop name="size" type="inherit | xs | sm | md | lg" default="inherit"
+    <prop name="font" type="keyword" values="inherit, sans" default="inherit"
+    >Use sans for UI text rendered outside its original font context; inherit preserves the surrounding typeface.</prop>
+    <prop name="wrap" type="keyword" values="normal, anywhere" default="normal"
+    >Use anywhere for unbroken values such as long destinations; ordinary prose keeps its normal wrapping.</prop>
+    <prop name="size" type="keyword" values="inherit, xs, sm, md, lg" default="inherit"
     >The step on the type scale. inherit (the default) keeps the size of the text around it; xs is for fine print, sm for supporting text such as help and
       metadata, md is body text, and lg is a lead paragraph.</prop>
-    <prop name="tone" type="default | secondary | muted | accent | danger | success | info | warning" default="default"
+    <prop name="tone" type="keyword" values="default, secondary, muted, accent, danger, success, info, warning" default="default"
     >The text's colour, by meaning. secondary is supporting prose such as a description; muted is quieter still, for metadata and hints; accent draws the eye;
       danger states an error; success confirms one; info marks something moving forward normally; warning marks something that needs attention. Colour alone
       does not carry the meaning, so the words must say it too.</prop>
-    <prop name="weight" type="inherit | normal | medium | semibold" default="inherit"
+    <prop name="weight" type="keyword" values="inherit, normal, medium, semibold" default="inherit"
     >The weight. inherit keeps the surrounding weight; medium and semibold emphasise a name or a figure.</prop>
-    <prop name="variant" type="body | eyebrow | code" default="body"
+    <prop name="variant" type="keyword" values="body, eyebrow, code" default="body"
     >body is running text. eyebrow is a short, uppercase, tracked label that names what follows, such as a group of links; code sets a value to copy or read
       exactly, such as an address, in the monospace face.</prop>
     <prop name="truncate" type="boolean" default="false">Keeps the text on one line, ending in an ellipsis when it does not fit.</prop>
-    <prop name="align" type="start | center" default="start">Aligns the text within its line.</prop>
-    <prop name="as" type="p | span | div | small | strong | label" default="p"
-    >The native element the text renders: a paragraph by default, inline span, small, or strong within a line, a div for a block, or a label for a
-      control.</prop>
+    <prop name="align" type="keyword" values="start, center" default="start">Aligns the text within its line.</prop>
+    <prop name="as" type="keyword" values="p, span, div, small, strong, label, h2, h3, h4, h5, h6" default="p"
+    >The native element the text renders: a paragraph by default, inline span, small, or strong within a line, a div for a block, a label for a control, or a
+      heading, h2 to h6, below a Page Header's h1 and a Section's h2. A heading takes its size and weight from size and weight, like any other text.</prop>
   </defs>
   <template $match>
     <span $when="as = 'span'"><slot></slot></span>
@@ -24,11 +28,17 @@
     <small $when="as = 'small'"><slot></slot></small>
     <strong $when="as = 'strong'"><slot></slot></strong>
     <label $when="as = 'label'"><slot></slot></label>
+    <h2 $when="as = 'h2'"><slot></slot></h2>
+    <h3 $when="as = 'h3'"><slot></slot></h3>
+    <h4 $when="as = 'h4'"><slot></slot></h4>
+    <h5 $when="as = 'h5'"><slot></slot></h5>
+    <h6 $when="as = 'h6'"><slot></slot></h6>
     <p $else><slot></slot></p>
   </template>
   <style>
     /* Running text, set on the type scale and in a tone that says what it is, so a view never styles
-       text of its own. The root is a paragraph unless as= names a span, div, small, strong, or label. */
+       text of its own. The root is a paragraph unless as= names a span, div, small, strong, label, or
+       heading. */
     :host {
       margin: 0;
       min-inline-size: 0;
@@ -36,64 +46,71 @@
       text-align: start;
     }
 
-    :host-state([size="xs"]) {
+    /* A heading drops the browser's heading size and weight, so size and weight set it as they set
+       any text, and inherit keeps the text around it. */
+    :host:is(h2, h3, h4, h5, h6) {
+      font-size: inherit;
+      font-weight: inherit;
+    }
+
+    :host([size="xs"]) {
       font-size: var(--ui-font-size-xs);
       line-height: var(--ui-line-height);
     }
-    :host-state([size="sm"]) {
+    :host([size="sm"]) {
       font-size: var(--ui-font-size-sm);
       line-height: var(--ui-line-height);
     }
-    :host-state([size="md"]) {
+    :host([size="md"]) {
       font-size: var(--ui-font-size-md);
       line-height: var(--ui-line-height);
     }
-    :host-state([size="lg"]) {
+    :host([size="lg"]) {
       font-size: var(--ui-font-size-lg);
       line-height: var(--ui-line-height-relaxed);
     }
 
-    :host-state([tone="secondary"]) {
+    :host([tone="secondary"]) {
       color: var(--ui-text-secondary);
     }
-    :host-state([tone="muted"]) {
+    :host([tone="muted"]) {
       color: var(--ui-text-muted);
     }
-    :host-state([tone="accent"]) {
+    :host([tone="accent"]) {
       color: var(--ui-accent-active);
     }
     /* Every status tone uses the text-safe token a subtle badge sets its words in, so text and badges
        in one tone match, and each holds 4.5:1 on sunken surfaces where some base colours fall short. */
-    :host-state([tone="danger"]) {
+    :host([tone="danger"]) {
       color: var(--ui-danger-subtle-text);
     }
-    :host-state([tone="success"]) {
+    :host([tone="success"]) {
       color: var(--ui-success-subtle-text);
     }
-    :host-state([tone="info"]) {
+    :host([tone="info"]) {
       color: var(--ui-info-subtle-text);
     }
-    :host-state([tone="warning"]) {
+    :host([tone="warning"]) {
       color: var(--ui-warning-subtle-text);
     }
 
-    :host-state([weight="normal"]) {
+    :host([weight="normal"]) {
       font-weight: var(--ui-font-normal);
     }
-    :host-state([weight="medium"]) {
+    :host([weight="medium"]) {
       font-weight: var(--ui-font-medium);
     }
-    :host-state([weight="semibold"]) {
+    :host([weight="semibold"]) {
       font-weight: var(--ui-font-semibold);
     }
 
-    :host-state([variant="eyebrow"]) {
+    :host([variant="eyebrow"]) {
       font-size: var(--ui-font-size-xs);
       font-weight: var(--ui-font-semibold);
       letter-spacing: 0.06em;
       text-transform: uppercase;
     }
-    :host-state([variant="code"]) {
+    :host([variant="code"]) {
       font-family: var(--ui-font-family-mono);
     }
 
@@ -106,14 +123,22 @@
       text-underline-offset: 0.18em;
     }
 
-    :host-state([truncate]) {
+    :host([truncate]) {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
 
-    :host-state([align="center"]) {
+    :host([align="center"]) {
       text-align: center;
+    }
+
+    :host([font="sans"]) {
+      font-family: var(--ui-font-family-sans, sans-serif);
+    }
+
+    :host([wrap="anywhere"]) {
+      overflow-wrap: anywhere;
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */

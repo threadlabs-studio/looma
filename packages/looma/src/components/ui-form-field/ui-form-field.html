@@ -25,7 +25,27 @@
       syntax: "*";
       inherits: false;
     }
+    @property --ui-form-field-help-font-size {
+      syntax: "*";
+      inherits: false;
+    }
     @property --ui-form-field-help-min-block-size {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-form-field-help-text {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-form-field-label-font-size {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-form-field-label-text {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-form-field-min-inline-size {
       syntax: "*";
       inherits: false;
     }
@@ -34,10 +54,14 @@
       /* Hooks do not inherit, so the parts below read them from the root. */
       --_ui-form-field-danger: var(--ui-form-field-danger);
       --_ui-form-field-help-min-block-size: var(--ui-form-field-help-min-block-size);
+      --_ui-form-field-label-text: var(--ui-form-field-label-text);
+      --_ui-form-field-label-font-size: var(--ui-form-field-label-font-size);
+      --_ui-form-field-help-text: var(--ui-form-field-help-text);
+      --_ui-form-field-help-font-size: var(--ui-form-field-help-font-size);
 
       display: grid;
       gap: var(--ui-space-2);
-      min-inline-size: 0;
+      min-inline-size: var(--ui-form-field-min-inline-size, 0);
       align-content: start;
       color: var(--ui-text-primary);
     }
@@ -51,8 +75,8 @@
     }
 
     .label {
-      color: var(--ui-text-secondary);
-      font-size: var(--ui-font-size-sm);
+      color: var(--_ui-form-field-label-text, var(--ui-text-secondary));
+      font-size: var(--_ui-form-field-label-font-size, var(--ui-font-size-sm));
     }
 
     /* A label action, such as a small help button, sits after the label text in a box one line
@@ -75,8 +99,8 @@
     }
 
     .help {
-      color: var(--ui-text-muted);
-      font-size: var(--ui-font-size-sm);
+      color: var(--_ui-form-field-help-text, var(--ui-text-muted));
+      font-size: var(--_ui-form-field-help-font-size, var(--ui-font-size-sm));
       line-height: var(--ui-line-height-md);
     }
 
@@ -88,7 +112,7 @@
       display: none;
     }
 
-    :host-state([invalid]) .error {
+    :host([invalid]) .error {
       display: contents;
     }
 

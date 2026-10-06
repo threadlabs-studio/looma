@@ -6,16 +6,28 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 # Input Group
 
-An Input with fixed text before or after it: the domain a site's address ends in, the slashes
-around a path. The group draws one field around the input and its affixes, with one border and one
-focus ring, and an invalid input marks the whole group. The input inside is still a `ui-input`, so it
-submits with its form and takes its own `id`, `name`, and `v-model`. Name it with a label that says
-what the whole value is ("Site address"); the affixes are plain text beside it.
+An Input with fixed text before or after the value, such as a domain suffix. The group draws one
+field and focus ring around the input and its affixes.
+
+<ComponentExamplesApiTabs component="ui-input-group" />
 
 ```vue
 <InputGroup>
   <Input id="subdomain" v-model="subdomain" name="subdomain" required />
   <template #suffix>.example.com</template>
+</InputGroup>
+```
+
+## Multiline text with an action
+
+Use `multiline` to put a Textarea and its action inside one frame. The action sits below the text at the inline end. The textarea keeps its label, form behavior and sizing; the group shows focus, invalid and disabled states.
+
+Set `actionPosition="top-end"` to put the action inside the textarea at its upper inline end. The group reserves text padding for the actual action width, including a changing label or pending indicator. The native lower resize grip stays clear. Omit the option to retain the below-text placement.
+
+```vue
+<InputGroup multiline action-position="top-end">
+  <Textarea id="message" v-model="message" name="message" :rows="3" autosize />
+  <template #action><Button type="submit">Send</Button></template>
 </InputGroup>
 ```
 
@@ -50,5 +62,3 @@ what the whole value is ("Site address"); the affixes are plain text beside it.
 - **Narrow and right to left.** Affixes never wrap or shrink; a long value scrolls inside the input
   while they stay in view. The prefix is at the inline start, so in a right-to-left page it sits on
   the right.
-
-<ComponentExamplesApiTabs component="ui-input-group" />

@@ -19,11 +19,22 @@ export {
   LOOMA_CALLOUT_TONES,
   type LoomaCalloutTone,
 } from "./callout";
+export { LoomaChip, LOOMA_CHIP_COLORS, normalizeLoomaChipColor, type LoomaChipColor } from "./chip";
+export { LoomaExpand, revealLoomaExpandAt, type LoomaExpandAttributes } from "./expand";
+export {
+  LoomaTableOfContents,
+  getTableOfContentsEntries,
+  normalizeTableOfContentsConfig,
+  type LoomaTableOfContentsConfig,
+  type LoomaTableOfContentsEntry,
+  type LoomaTableOfContentsFormat,
+} from "./table-of-contents";
 export {
   getDefaultEditorExtensions,
   getLoomaTableExtensions,
   LoomaTableKit,
   type DefaultEditorExtensionsOptions,
+  type LoomaCodeLanguages,
 } from "./preset";
 export { LoomaSmartPaste } from "./smart-paste";
 export {
@@ -65,9 +76,14 @@ export {
 export {
   createLoomaSlashCommandExtension,
   getDefaultSlashCommands,
+  filterLoomaSlashCommands,
   LoomaSlashCommand,
   type LoomaSlashCommand as LoomaSlashCommandItem,
   type LoomaSlashCommandContext,
   type LoomaSlashCommandOptions,
   type LoomaSlashMenuSnapshot,
 } from "./slash-command";
+
+export { siteRelativeHref, createSiteRelativeLinks } from "./relative-links";
+
+export { LoomaImage, normalizeImageDimension, normalizeImagePlacement, type LoomaImagePlacement } from "./image";

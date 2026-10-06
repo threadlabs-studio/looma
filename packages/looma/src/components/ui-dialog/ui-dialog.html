@@ -1,30 +1,46 @@
+<link rel="component" href="../ui-scroll-area/ui-scroll-area.html">
 <template component="ui-dialog" controller="./ui-dialog.js">
   <defs>
     <prop name="open" type="boolean" default="false">Whether the dialog is open initially or when set externally.</prop>
-    <prop name="modeless" type="boolean" default="false">Open without a backdrop or making the rest of the page inert; dialogs are modal by default.</prop>
-    <prop name="closedby" type="any | closerequest | none" default="closerequest"
-    >Which user close requests work: any includes outside presses, closerequest includes Escape, and none requires an action.</prop>
-    <prop name="alert" type="boolean" default="false">Use alert dialog semantics and require an explicit action instead of the header close button.</prop>
-    <prop name="size" type="sm | md | lg | fullscreen" default="md">Choose a compact, standard, wide, or viewport-filling dialog.</prop>
+    <prop name="modal" type="boolean" default="false"
+    >Open in the top layer with a backdrop and make the rest of the page inert until it closes, like native showModal(). Without it the dialog is non-modal,
+      like native show().</prop>
+    <prop name="modeless" type="boolean" default="false"
+    >Deprecated: does nothing, since dialogs are non-modal unless modal is set. Accepted so markup written for 0.15 keeps working; modal wins when both are
+      set.</prop>
+    <prop name="closedby" type="keyword" values="any, closerequest, none"
+    >Which user close requests work: any includes outside presses, closerequest includes Escape, and none requires an action. Unset follows native dialog:
+      closerequest when modal, none when not.</prop>
+    <prop name="alert" type="boolean" default="false"
+    >Use alert dialog semantics and require an explicit action instead of the header close button. An alert dialog is always modal.</prop>
+    <prop name="size" type="keyword" values="sm, md, lg, fullscreen" default="md">Choose a compact, standard, wide, or viewport-filling dialog.</prop>
     <prop name="label" type="string">Visible title in the dialog header; also its accessible name.</prop>
     <prop name="for" type="string" default="">ID of the control that opens the dialog.</prop>
-    <state name="internalOpen" :value="false"></state>
-    <state name="accessibleLabel" :value="'Dialog'"></state>
+    <state type="boolean" name="internalOpen" value="false"></state>
+    <state type="string" name="accessibleLabel" value="Dialog"></state>
     <event
       name="open"
-      type="object({ open: boolean, reason: action | programmatic, trigger: keyboard | pointer | programmatic })"
-    ></event>
+      type="object"
+    >
+      <prop name="open" required type="boolean"></prop>
+      <prop name="reason" required type="keyword" values="action, programmatic"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
     <event
       name="close"
-      type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"
-    ></event>
+      type="object"
+    >
+      <prop name="open" required type="boolean"></prop>
+      <prop name="reason" required type="keyword" values="action, programmatic, light-dismiss, escape"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
   </defs>
-  <dialog :aria-label="accessibleLabel">
+  <dialog from:aria-label="accessibleLabel">
     <header>
-      <h2 class="title" $if="label" $value="label"></h2>
+      <h2 class="title" $if="label">{$label}</h2>
       <button class="close" $ref="close" type="button" aria-label="Close"></button>
     </header>
-    <div class="body"><slot></slot></div>
+    <ui-scroll-area class="body"><slot></slot></ui-scroll-area>
     <footer><slot name="actions"></slot></footer>
   </dialog>
   <style>
@@ -76,7 +92,7 @@
       overflow: hidden;
       flex-direction: column;
       background: var(--ui-dialog-surface, var(--ui-overlay-surface, var(--ui-surface-elevated)));
-      border: 1px solid var(--ui-dialog-border, var(--ui-overlay-border, var(--ui-border-default)));
+      border: var(--ui-border-width) solid var(--ui-dialog-border, var(--ui-overlay-border, var(--ui-border-strong)));
       border-radius: var(--ui-dialog-radius, var(--ui-overlay-radius, var(--ui-radius-dialog)));
       box-shadow: var(--ui-dialog-shadow, var(--ui-overlay-shadow, var(--ui-elevation-dialog, var(--ui-shadow-xl))));
       visibility: hidden;
@@ -100,15 +116,15 @@
       animation: ui-dialog-enter var(--ui-dialog-duration, var(--ui-motion-base)) var(--ui-motion-ease);
     }
 
-    :host-state([size="sm"]) {
+    :host([size="sm"]) {
       --_ui-dialog-size: 360px;
     }
 
-    :host-state([size="lg"]) {
+    :host([size="lg"]) {
       --_ui-dialog-size: 640px;
     }
 
-    :host-state([size="fullscreen"]) {
+    :host([size="fullscreen"]) {
       inset: 0;
       inline-size: 100%;
       block-size: 100dvh;
@@ -117,7 +133,7 @@
       border-radius: var(--ui-dialog-radius, 0);
     }
 
-    :host-state([alert]) .close {
+    :host([alert]) .close {
       display: none;
     }
 
@@ -128,7 +144,6 @@
       gap: var(--ui-space-3);
       flex: none;
       padding: var(--ui-space-3) var(--ui-space-3) var(--ui-space-3) var(--ui-space-5);
-      border-block-end: 1px solid var(--ui-border-default);
     }
 
     /* :host-qualified so page heading rules that reach in cannot outrank the dialog chrome. */
@@ -183,8 +198,8 @@
     }
 
     .close:focus-visible {
-      outline: 2px solid var(--ui-focus-ring);
-      outline-offset: 2px;
+      outline: var(--ui-focus-width) solid var(--ui-focus-ring);
+      outline-offset: var(--ui-focus-width);
     }
 
     /* A touch target, like Button on coarse pointers. */
@@ -203,26 +218,7 @@
     .body {
       flex: 1 1 auto;
       min-block-size: 0;
-      overflow: auto;
-      overscroll-behavior: contain;
       padding: var(--ui-space-5);
-      /* Each edge that hides content fades: the scroll fade every Looma scroller uses (see ui-scroll-area). */
-      --_ui-scroll-fade-direction: to bottom;
-      --_ui-scroll-fade-size: var(--ui-scroll-fade-size, 24px);
-      mask-image: linear-gradient(
-        var(--_ui-scroll-fade-direction),
-        transparent,
-        #000 var(--_ui-scroll-fade-start),
-        #000 calc(100% - var(--_ui-scroll-fade-end)),
-        transparent
-      );
-      animation: ui-scroll-fade-start linear, ui-scroll-fade-start-hold linear, ui-scroll-fade-end-hold linear, ui-scroll-fade-end linear;
-      animation-timeline: scroll(self block);
-      animation-range:
-        0 var(--_ui-scroll-fade-size),
-        var(--_ui-scroll-fade-size) calc(100% + 1px),
-        -1px calc(100% - var(--_ui-scroll-fade-size)),
-        calc(100% - var(--_ui-scroll-fade-size)) 100%;
     }
 
     footer {
@@ -232,7 +228,6 @@
       justify-content: flex-end;
       gap: var(--ui-space-2);
       padding: var(--ui-space-3) var(--ui-space-5);
-      border-block-start: 1px solid var(--ui-border-default);
     }
 
     footer:empty {
@@ -257,6 +252,12 @@
     :host[open]::backdrop {
       background-color: var(--ui-overlay-backdrop);
       animation: ui-dialog-backdrop-enter var(--_ui-dialog-duration, var(--ui-motion-base)) var(--ui-motion-ease);
+    }
+
+    :host[open][data-ui-backdrop-hidden]::backdrop {
+      background-color: transparent;
+      animation: none;
+      transition: none;
     }
 
     @keyframes ui-dialog-backdrop-enter {

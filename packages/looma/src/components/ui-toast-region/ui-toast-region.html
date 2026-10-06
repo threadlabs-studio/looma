@@ -3,23 +3,48 @@
 <template component="ui-toast-region" controller="./ui-toast-region.js">
   <defs>
     <prop name="duration" type="number" default="0"
-    >Default milliseconds for toasts added with show() or the show command; 0 keeps each until dismissed. Hover or focus pauses a timer.</prop>
-    <prop name="placement" type="top | top-start | top-end | bottom | bottom-start | bottom-end" default="top"
+    >Default milliseconds for toasts added with the show-toast event or command; 0 keeps each until dismissed. Hover or focus pauses a timer.</prop>
+    <prop name="placement" type="keyword" values="top, top-start, top-end, bottom, bottom-start, bottom-end" default="top"
     >Screen edge where the stack appears. Start and end follow the writing direction.</prop>
     <state
       name="toasts"
-      type="list(object({ id: string, message: string, tone: neutral | info | success | warning | danger, role: alert | status, closing: boolean }))"
-      :value="[]"
-    ></state>
-    <event name="dismiss" type="object({ id: string, reason: action | timeout, trigger: keyboard | pointer | programmatic })"></event>
-    <method name="show" export="show" returns="promise(string)"></method>
+      type="list"
+      value="[]"
+    >
+      <prop type="object">
+        <prop name="id" required type="string"></prop>
+        <prop name="message" required type="string"></prop>
+        <prop name="tone" required type="keyword" values="neutral, info, success, warning, danger"></prop>
+        <prop name="role" required type="keyword" values="alert, status"></prop>
+        <prop name="closing" required type="boolean"></prop>
+      </prop>
+    </state>
+    <event name="dismiss" type="object">
+      <prop name="id" required type="string"></prop>
+      <prop name="reason" required type="keyword" values="action, timeout"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
+    <event name="show-toast" type="object">
+      <prop name="message" required type="string"></prop>
+      <prop name="id" type="string"></prop>
+      <prop name="tone" type="keyword" values="neutral, info, success, warning, danger"></prop>
+      <prop name="duration" type="number"></prop>
+    </event>
   </defs>
   <div role="region" aria-label="Notifications" aria-live="polite" popover="manual">
     <slot></slot>
-    <div $each="toast of toasts" $key="toast.id" class="toast" class:closing="toast.closing" :id="toast.id" :role="toast.role" :data-tone="toast.tone">
-      <span class="message" $value="toast.message"></span>
-      <span class="dismiss" :data-toast="toast.id">
-        <ui-icon-button size="sm" variant="ghost" :round="true" :label="format('Dismiss %s', toast.message)">
+    <div
+      $each="toast of toasts"
+      $key="toast.id"
+      class="toast"
+      class:closing="toast.closing"
+      from:id="toast.id"
+      from:role="toast.role"
+      from:data-tone="toast.tone"
+    >
+      <span class="message">{$toast.message}</span>
+      <span class="dismiss" from:data-toast="toast.id">
+        <ui-icon-button size="sm" variant="ghost" from:round="true" from:label="concat('Dismiss ', toast.message)">
           <ui-icon name="x"></ui-icon>
         </ui-icon-button>
       </span>
@@ -87,25 +112,25 @@
       display: none;
     }
 
-    :host-state([placement="top-start"]),
-    :host-state([placement="bottom-start"]) {
+    :host([placement="top-start"]),
+    :host([placement="bottom-start"]) {
       left: auto;
       right: auto;
       inset-inline-start: calc(var(--ui-space-4) + env(safe-area-inset-left));
       transform: none;
     }
 
-    :host-state([placement="top-end"]),
-    :host-state([placement="bottom-end"]) {
+    :host([placement="top-end"]),
+    :host([placement="bottom-end"]) {
       left: auto;
       right: auto;
       inset-inline-end: calc(var(--ui-space-4) + env(safe-area-inset-right));
       transform: none;
     }
 
-    :host-state([placement="bottom"]),
-    :host-state([placement="bottom-start"]),
-    :host-state([placement="bottom-end"]) {
+    :host([placement="bottom"]),
+    :host([placement="bottom-start"]),
+    :host([placement="bottom-end"]) {
       top: auto;
       bottom: calc(var(--ui-space-4) + env(safe-area-inset-bottom));
     }
@@ -120,7 +145,7 @@
       grid-template-columns: 1fr auto;
       gap: var(--ui-space-2);
       align-items: start;
-      border: 1px solid var(--_ui-toast-region-border, var(--ui-overlay-border, var(--ui-border-default)));
+      border: var(--ui-border-width) solid var(--_ui-toast-region-border, var(--ui-overlay-border, var(--ui-border-strong)));
       border-radius: var(--_ui-toast-region-radius, var(--ui-overlay-radius, var(--ui-radius-lg)));
       padding: var(--ui-space-3) var(--ui-space-4);
       background: var(--_ui-toast-region-surface, var(--ui-overlay-surface, var(--ui-surface-elevated)));
@@ -130,16 +155,16 @@
     }
 
     .toast[data-tone="info"] {
-      border-inline-start: 3px solid var(--ui-info-solid);
+      border-inline-start: var(--ui-accent-line-width) solid var(--ui-info-solid);
     }
     .toast[data-tone="success"] {
-      border-inline-start: 3px solid var(--ui-success-solid);
+      border-inline-start: var(--ui-accent-line-width) solid var(--ui-success-solid);
     }
     .toast[data-tone="warning"] {
-      border-inline-start: 3px solid var(--ui-warning-solid);
+      border-inline-start: var(--ui-accent-line-width) solid var(--ui-warning-solid);
     }
     .toast[data-tone="danger"] {
-      border-inline-start: 3px solid var(--ui-danger-solid);
+      border-inline-start: var(--ui-accent-line-width) solid var(--ui-danger-solid);
     }
 
     /* Leaving slides on down and fades; the controller removes the toast when this ends. */
@@ -148,11 +173,11 @@
       pointer-events: none;
     }
 
-    :is(:host-state([placement="bottom"]), :host-state([placement="bottom-start"]), :host-state([placement="bottom-end"])) .toast {
+    :is(:host([placement="bottom"]), :host([placement="bottom-start"]), :host([placement="bottom-end"])) .toast {
       animation-name: ui-toast-enter-bottom;
     }
 
-    :is(:host-state([placement="bottom"]), :host-state([placement="bottom-start"]), :host-state([placement="bottom-end"])) .toast.closing {
+    :is(:host([placement="bottom"]), :host([placement="bottom-start"]), :host([placement="bottom-end"])) .toast.closing {
       animation-name: ui-toast-exit-bottom;
     }
 

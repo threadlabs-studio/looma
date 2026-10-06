@@ -12,15 +12,19 @@
     <prop name="value" type="string" default="on"
     >The value this radio stands for: submitted with a form, reported in its change event, and matched against a ui-radio-group's value to decide which radio is
       checked.</prop>
-    <prop name="size" type="sm | md | lg" default="md"
+    <prop name="size" type="keyword" values="sm, md, lg" default="md"
     >Aligns the radio with fields and buttons of the same size. It keeps its box size; the label takes that size's field type size and its first line centres in
       that control height (sm 2rem, lg 3rem by default), so in a row of inputs, selects, and buttons of one size it shares their height and their text baseline.
       Under a coarse pointer an sm row grows to the 44px touch minimum, as they do. md is the standard layout.</prop>
-    <state name="internalChecked" :value="false"></state>
-    <event name="change" type="object({ checked: boolean, value: string, trigger: keyboard | pointer | programmatic })"></event>
+    <state type="boolean" name="internalChecked" value="false"></state>
+    <event name="change" type="object">
+      <prop name="checked" required type="boolean"></prop>
+      <prop name="value" required type="string"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
   </defs>
   <label>
-    <input type="radio" $ref="input" .checked="internalChecked" :disabled="disabled" :required="required" :value="value" :name="name">
+    <input type="radio" $ref="input" .checked="internalChecked" from:disabled="disabled" from:required="required" from:value="value" from:name="name">
     <span class="text">
       <span class="label"><slot></slot></span>
       <span class="description" $ref="description" aria-hidden="true"><slot name="description"></slot></span>
@@ -76,51 +80,54 @@
       flex: 0 0 auto;
       inline-size: var(--_ui-radio-size, 1.125rem);
       block-size: var(--_ui-radio-size, 1.125rem);
-      margin: 0.125em 0 0;
+      margin: calc(0.125em + 1px) 0 0;
       accent-color: var(--ui-accent-solid);
       cursor: pointer;
     }
 
     input:focus-visible {
-      outline: 2px solid var(--ui-focus-ring, var(--ui-accent-solid));
-      outline-offset: 2px;
+      outline: var(--ui-focus-width) solid var(--ui-focus-ring, var(--ui-accent-solid));
+      outline-offset: var(--ui-focus-width);
     }
 
-    :host-state([disabled]) {
+    :host([disabled]) {
       color: var(--ui-disabled-text);
       cursor: not-allowed;
     }
-    :host-state([disabled]) input {
+    :host([disabled]) .description {
+      color: var(--ui-disabled-text);
+    }
+    :host([disabled]) input {
       cursor: not-allowed;
     }
 
     /* A sized choice keeps its box and aligns instead: the label takes that size's field type size,
        and the first line centres in that control height, so the label shares a row's baseline.
        Multi-line labels and descriptions still grow downward from that first line. */
-    :host-state([size="sm"]) {
+    :host([size="sm"]) {
       --_font: var(--ui-font-size-sm);
       --_row: var(--ui-control-size-sm);
     }
 
-    :host-state([size="lg"]) {
+    :host([size="lg"]) {
       --_font: var(--ui-font-size-md);
       --_row: var(--ui-control-size-lg);
     }
 
-    :host-state([size="sm"]),
-    :host-state([size="lg"]) {
+    :host([size="sm"]),
+    :host([size="lg"]) {
       --_line: calc(var(--_font) * var(--ui-line-height-md));
       font-size: var(--_font);
       padding-block: calc((var(--_row) - var(--_line)) / 2);
     }
 
-    :host-state([size="sm"]) input,
-    :host-state([size="lg"]) input {
-      margin-top: calc((var(--_line) - var(--_ui-radio-size, 1.125rem)) / 2);
+    :host([size="sm"]) input,
+    :host([size="lg"]) input {
+      margin-top: calc((var(--_line) - var(--_ui-radio-size, 1.125rem)) / 2 + 1px);
     }
 
     @media (pointer: coarse) {
-      :host-state([size="sm"]) {
+      :host([size="sm"]) {
         --_row: var(--ui-control-min-block-size);
       }
     }

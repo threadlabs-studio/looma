@@ -1,6 +1,6 @@
 <template component="ui-sidebar" controller="./ui-sidebar.js">
   <defs>
-    <prop name="side" type="start | end" default="start">The edge the sidebar sits on. The page places it beside its main content.</prop>
+    <prop name="side" type="keyword" values="start, end" default="start">The edge the sidebar sits on. The page places it beside its main content.</prop>
     <prop name="width" type="number" default="0">Docked width in pixels. 0 uses --ui-sidebar-width (280px by default); dragging the handle updates it.</prop>
     <prop name="minWidth" type="number" default="200">The narrowest width the resize handle allows, in pixels.</prop>
     <prop name="maxWidth" type="number" default="480">The widest width the resize handle allows, in pixels.</prop>
@@ -8,15 +8,23 @@
     <prop name="resizeStep" type="number" default="16">Arrow-key resize step in pixels.</prop>
     <prop name="resizeLabel" type="string" default="Resize sidebar">Accessible name of the resize handle.</prop>
     <prop name="collapsed" type="boolean" default="false">Whether the docked sidebar is collapsed.</prop>
-    <prop name="breakpoint" type="sm | md | lg" default="md"
+    <prop name="breakpoint" type="keyword" values="sm, md, lg" default="md"
     >Below this viewport width (40rem, 48rem, 64rem) the sidebar becomes an off-canvas drawer, closed until toggled.</prop>
-    <state name="internalCollapsed" :value="false"></state>
-    <state name="drawer" :value="false"></state>
-    <event name="resize" type="object({ width: number, trigger: keyboard | pointer | programmatic })"></event>
-    <event name="toggle" type="object({ open: boolean, mode: docked | drawer, trigger: keyboard | pointer | programmatic })"></event>
+    <state type="boolean" name="internalCollapsed" value="false"></state>
+    <state type="boolean" name="drawer" value="false"></state>
+    <state type="boolean" name="resizing" value="false"></state>
+    <event name="resize" type="object">
+      <prop name="width" required type="number"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
+    <event name="toggle" type="object">
+      <prop name="open" required type="boolean"></prop>
+      <prop name="mode" required type="keyword" values="docked, drawer"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
   </defs>
   <aside>
-    <div class="content"><slot></slot></div>
+    <div class="viewport"><div class="content"><slot></slot></div></div>
     <div
       class="resizer"
       $ref="resizer"
@@ -24,8 +32,8 @@
       aria-orientation="vertical"
       tabindex="0"
       data-ui-affordance="resize"
-      :aria-label="resizeLabel"
-      :hidden="not resizable or drawer or internalCollapsed"
+      from:aria-label="resizeLabel"
+      from:hidden="not resizable or drawer or internalCollapsed"
     >
       <span class="guide" aria-hidden="true"></span>
     </div>
@@ -48,10 +56,15 @@
       syntax: "*";
       inherits: false;
     }
+    @property --ui-sidebar-collapsed-width {
+      syntax: "*";
+      inherits: false;
+    }
 
     :host {
       /* Hooks do not inherit, so the parts below read them from the root. */
       --_ui-sidebar-backdrop: var(--ui-sidebar-backdrop);
+      --_ui-sidebar-expanded-width: var(--_sidebar-width, var(--ui-sidebar-width, 280px));
 
       position: relative;
       box-sizing: border-box;
@@ -62,20 +75,28 @@
       max-inline-size: 100%;
       min-block-size: 0;
       background: var(--ui-sidebar-surface, var(--ui-surface-default));
-      border-inline-end: 1px solid var(--ui-sidebar-border, var(--ui-border-default));
+      border-inline-end: var(--ui-border-width) solid var(--ui-sidebar-border, var(--ui-border-divider));
+      transition: inline-size var(--ui-motion-layout) var(--ui-motion-layout-ease), visibility var(--ui-motion-layout);
     }
 
-    :host-state([side="end"]) {
+    :host([side="end"]) {
       border-inline-end: 0;
-      border-inline-start: 1px solid var(--ui-sidebar-border, var(--ui-border-default));
+      border-inline-start: var(--ui-border-width) solid var(--ui-sidebar-border, var(--ui-border-divider));
     }
 
     /* The panel's content scrolls, and each edge that hides content fades: the scroll fade every
        Looma scroller uses (see ui-scroll-area). */
-    .content {
+    .viewport {
       flex: 1;
       min-block-size: 0;
+      overflow: clip;
+    }
+    .content {
+      block-size: 100%;
+      inline-size: calc(var(--_ui-sidebar-expanded-width) - var(--ui-border-width));
+      min-block-size: 0;
       overflow: auto;
+      transition: transform var(--ui-motion-layout) var(--ui-motion-layout-ease);
       --_ui-scroll-fade-direction: to bottom;
       --_ui-scroll-fade-size: var(--ui-scroll-fade-size, 24px);
       mask-image: linear-gradient(
@@ -96,7 +117,17 @@
 
     /* Collapsed while docked. */
     :host-state([internalCollapsed]):not([popover]) {
-      display: none;
+      inline-size: var(--ui-sidebar-collapsed-width, 0px);
+      visibility: hidden;
+    }
+    :host-state([resizing]) {
+      transition: none;
+    }
+    :host-state([internalCollapsed]):not([popover]) .content {
+      transform: translateX(-100%);
+    }
+    :host([side="end"]):host-state([internalCollapsed]):not([popover]) .content {
+      transform: translateX(100%);
     }
 
     .resizer {
@@ -117,7 +148,7 @@
       display: none;
     }
 
-    :host-state([side="end"]) .resizer {
+    :host([side="end"]) .resizer {
       inset-inline-end: auto;
       inset-inline-start: 0;
       transform: translateX(-50%);
@@ -142,7 +173,7 @@
       inset-inline-start: 50%;
       inline-size: 6px;
       block-size: 22px;
-      border: 1px solid var(--ui-border-strong);
+      border: var(--ui-border-width) solid var(--ui-border-strong);
       border-radius: var(--ui-radius-round);
       background: var(--ui-surface-elevated);
       opacity: 0;
@@ -175,9 +206,9 @@
       box-shadow: var(--ui-elevation-overlay, var(--ui-shadow-lg));
       transform: translateX(0);
       transition:
-        transform var(--ui-motion-base) var(--ui-motion-ease-out),
-        display var(--ui-motion-base) allow-discrete,
-        overlay var(--ui-motion-base) allow-discrete;
+        transform var(--ui-motion-reveal) var(--ui-motion-reveal-ease),
+        display var(--ui-motion-reveal) allow-discrete,
+        overlay var(--ui-motion-reveal) allow-discrete;
     }
 
     /* The author display above would otherwise override the UA rule that hides a closed popover. */
@@ -186,12 +217,12 @@
       transform: translateX(-100%);
     }
 
-    :host-state([side="end"])[popover] {
+    :host([side="end"])[popover] {
       inset-inline-start: auto;
       inset-inline-end: 0;
     }
 
-    :host-state([side="end"])[popover]:not(:popover-open) {
+    :host([side="end"])[popover]:not(:popover-open) {
       transform: translateX(100%);
     }
 
@@ -199,7 +230,7 @@
       :host[popover]:popover-open {
         transform: translateX(-100%);
       }
-      :host-state([side="end"])[popover]:popover-open {
+      :host([side="end"])[popover]:popover-open {
         transform: translateX(100%);
       }
     }
@@ -207,9 +238,14 @@
     :host[popover]::backdrop {
       background: var(--_ui-sidebar-backdrop, rgb(0 0 0 / 0.32));
     }
+    :host[popover] .content {
+      inline-size: 100%;
+    }
 
     @media (prefers-reduced-motion: reduce) {
-      :host[popover] {
+      :host,
+      :host[popover],
+      .content {
         transition: none;
       }
     }

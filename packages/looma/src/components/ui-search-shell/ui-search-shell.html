@@ -4,19 +4,23 @@
     <prop name="modal" type="boolean" default="false">Makes the rest of the page inert while the search surface is open.</prop>
     <prop name="dismissible" type="boolean" default="false">Allows backdrop activation to close the search surface. Escape always closes it.</prop>
     <prop name="label" type="string" default="Search">Provides the native dialog's accessible name.</prop>
-    <state name="internalOpen" :value="false"></state>
+    <state type="boolean" name="internalOpen" value="false"></state>
     <event
       name="close"
-      type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"
-    ></event>
+      type="object"
+    >
+      <prop name="open" required type="boolean"></prop>
+      <prop name="reason" required type="keyword" values="action, programmatic, light-dismiss, escape"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
   </defs>
   <div>
-    <dialog $ref="dialog" :aria-label="label">
+    <dialog $ref="dialog" from:aria-label="label">
       <div class="panel">
         <div class="search"><slot name="search"></slot></div>
         <div class="status"><slot name="status"></slot></div>
         <div class="body"><slot name="body"></slot></div>
-        <div class="footer"><slot name="footer"></slot></div>
+        <div class="actions"><slot name="footer"></slot></div>
       </div>
     </dialog>
   </div>
@@ -101,6 +105,14 @@
       background: var(--ui-overlay-backdrop);
     }
 
+    dialog:modal {
+      background: transparent;
+    }
+
+    dialog[data-ui-backdrop-hidden]::backdrop {
+      background: transparent;
+    }
+
     .panel {
       position: relative;
       display: flex;
@@ -110,21 +122,13 @@
       margin-inline: auto;
       overflow: hidden;
       background: var(--_ui-search-shell-surface, var(--ui-overlay-surface, var(--ui-surface-elevated)));
-      border: 1px solid var(--_ui-search-shell-border, var(--ui-overlay-border, var(--ui-border-default)));
+      border: var(--ui-border-width) solid var(--_ui-search-shell-border, var(--ui-overlay-border, var(--ui-border-strong)));
       border-radius: var(--_ui-search-shell-radius, var(--ui-overlay-radius, var(--ui-radius-dialog)));
       box-shadow: var(--_ui-search-shell-shadow, var(--ui-overlay-shadow, var(--ui-elevation-dialog, var(--ui-shadow-xl))));
     }
 
     .search {
       padding: var(--ui-space-3);
-      border-block-end: 1px solid var(--ui-border-default);
-      transition: border-color var(--ui-motion-fast) var(--ui-motion-ease), box-shadow var(--ui-motion-fast) var(--ui-motion-ease);
-    }
-
-    /* The search region shows where typing goes, whatever the author put in it. */
-    .search:focus-within {
-      border-block-end-color: var(--_ui-search-shell-focus-color, var(--ui-control-focus));
-      box-shadow: inset 0 -1px 0 var(--_ui-search-shell-focus-color, var(--ui-control-focus));
     }
 
     :slotted(input[slot="search"]) {
@@ -132,7 +136,7 @@
       inline-size: 100%;
       min-block-size: var(--ui-control-min-block-size);
       padding: var(--ui-space-2) var(--ui-space-3);
-      border: 1px solid var(--ui-control-border);
+      border: var(--ui-border-width) solid var(--ui-control-border);
       border-radius: var(--ui-field-radius, var(--ui-radius-md));
       background: var(--ui-control-surface);
       color: var(--ui-text-primary);
@@ -141,13 +145,13 @@
     }
 
     :slotted(input[slot="search"]:focus-visible) {
-      border-color: var(--ui-control-focus);
-      outline: 2px solid var(--ui-focus-ring);
-      outline-offset: 2px;
+      border-color: var(--_ui-search-shell-focus-color, var(--ui-control-focus));
+      outline: var(--ui-focus-width) solid var(--ui-focus-ring);
+      outline-offset: var(--ui-focus-width);
     }
 
     .status,
-    .footer {
+    .actions {
       flex-shrink: 0;
       padding: var(--ui-space-2) var(--ui-space-4);
       color: var(--ui-text-secondary);
@@ -155,22 +159,21 @@
     }
 
     .status {
-      border-block-end: 1px solid var(--ui-border-default);
+      padding-block-start: 0;
     }
 
     /* Laid out like the dialog's action row: actions right-aligned, spaced as buttons, no fill. */
-    .footer {
+    .actions {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       justify-content: flex-end;
       gap: var(--ui-space-2);
       padding: var(--ui-space-3) var(--ui-space-4);
-      border-block-start: 1px solid var(--ui-border-default);
     }
 
     .status:empty,
-    .footer:empty {
+    .actions:empty {
       display: none;
     }
 

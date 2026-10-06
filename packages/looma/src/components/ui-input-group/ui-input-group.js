@@ -15,13 +15,28 @@ const affixProblem = (affix) =>
 // instead, so the input's name stays its label and the affix is read once, with the input. The
 // consumer's own aria-describedby (or a Form Field's) is kept. A press on an affix, or anywhere in
 // the box outside the input, focuses the input without moving its caret or selecting the affix.
-export default function controller(host) {
+function connect(host) {
   const element = host.element;
   let owned = [];
   let described = null;
   const warned = new Set();
+  let action = null;
+  const measureAction = () => {
+    const width = action?.getBoundingClientRect().width ?? 0;
+    element.style.setProperty("--_ui-input-group-action-inline-size", `${width}px`);
+  };
+  // Observe the actual slot surface rather than estimating a label's width. This also catches
+  // pending indicators, font loading, touch target sizing and translated labels.
+  const actionObserver = new ResizeObserver(measureAction);
   const wire = () => {
-    const input = element.querySelector(".field input");
+    const nextAction = element.querySelector(":scope > .action");
+    if (action !== nextAction) {
+      if (action) actionObserver.unobserve(action);
+      action = nextAction;
+      if (action) actionObserver.observe(action);
+    }
+    measureAction();
+    const input = element.querySelector(".field :is(input, textarea)");
     const affixes = Array.from(element.querySelectorAll(":scope > .affix")).filter((affix) => {
       const text = affix.textContent.trim() !== "" && !affix.querySelector(INTERACTIVE);
       if (text) affix.setAttribute("aria-hidden", "true");
@@ -50,7 +65,7 @@ export default function controller(host) {
   };
   // Click, not pointerdown: a tap's click is a user activation, so a touch keyboard opens.
   const onClick = (event) => {
-    if (pressedAround(event) && !host.state.disabled) element.querySelector(".field input")?.focus();
+    if (pressedAround(event) && !host.props.disabled.value) element.querySelector(".field :is(input, textarea)")?.focus();
   };
   element.addEventListener("mousedown", onMousedown);
   element.addEventListener("click", onClick);
@@ -61,7 +76,14 @@ export default function controller(host) {
   wire();
   return () => {
     observer.disconnect();
+    actionObserver.disconnect();
+    element.style.removeProperty("--_ui-input-group-action-inline-size");
     element.removeEventListener("mousedown", onMousedown);
     element.removeEventListener("click", onClick);
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

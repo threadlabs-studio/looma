@@ -276,7 +276,7 @@ function arrayEquals(left: number[] | null | undefined, right: number[]): boolea
 function readRenderedColumnWidths(tableElement: HTMLTableElement): number[] {
   const colElements = Array.from(tableElement.querySelectorAll("colgroup col"));
   if (colElements.length > 0) {
-    return colElements.map((column) => Math.max(1, Math.round(column.getBoundingClientRect().width)));
+    return colElements.map((column) => Math.max(1, column.getBoundingClientRect().width));
   }
 
   const firstRow = tableElement.rows.item(0);
@@ -284,7 +284,7 @@ function readRenderedColumnWidths(tableElement: HTMLTableElement): number[] {
     return [];
   }
 
-  return Array.from(firstRow.cells).map((cell) => Math.max(1, Math.round(cell.getBoundingClientRect().width)));
+  return Array.from(firstRow.cells).map((cell) => Math.max(1, cell.getBoundingClientRect().width));
 }
 
 function distributeWidthDelta(widths: number[], availableWidth: number, minWidth: number): number[] {
@@ -438,8 +438,8 @@ export function insertTableAtRange(
  * Browser layout is the source of truth at the end of a pointer resize, but
  * ProseMirror must persist integer widths in the document. The algorithm keeps
  * proportions, enforces a minimum, and distributes rounding error so the final
- * sum still equals the rendered table width. Spanning cells are updated once at
- * their top-left map coordinate rather than once per covered grid position.
+ * sum fits the rendered column grid, excluding the outer table border. Spanning
+ * cells are updated once at their top-left map coordinate rather than once per covered grid position.
  *
  * @invariant Every persisted width is an integer at least `minWidth`, and each
  * spanning cell receives one width per logical column from its top-left origin.
@@ -461,7 +461,10 @@ export function normalizeActiveTableColumnWidths(
     return false;
   }
 
-  const availableWidth = Math.max(1, Math.round(tableElement.getBoundingClientRect().width));
+  const availableWidth = Math.max(
+    1,
+    Math.floor(renderedColumnWidths.reduce((sum, width) => sum + width, 0))
+  );
   const normalizedColumnWidths = normalizeColumnWidths(
     renderedColumnWidths,
     availableWidth,
@@ -521,7 +524,7 @@ export function normalizeActiveTableColumnWidths(
  *
  * Boundary indices address the visual grid edges measured by the overlay. The
  * helper maps them into the current table transaction, rejects indices that do
- * not represent a legal insertion edge, dispatches once, and restores editor
+ * not represent a legal insertion edge or reorder destination, dispatches once, and restores editor
  * focus. `open-cell-menu` returns handled without editing because menu ownership
  * remains with the application/adapter.
  *
@@ -538,6 +541,22 @@ export function handleTableOverlayAction(
   if (!tableInfo) return false;
 
   const { action } = detail;
+  if (action === "reorder-row" || action === "reorder-column") {
+    const { fromIndex, toIndex } = detail;
+    const { pos: tablePos, node: table } = tableInfo;
+    const map = TableMap.get(table);
+    const axis = action === "reorder-row" ? "row" : "column";
+    const limit = axis === "row" ? map.height : map.width;
+    if (!Number.isInteger(fromIndex) || !Number.isInteger(toIndex)
+      || fromIndex < 0 || toIndex < 0 || fromIndex >= limit || toIndex >= limit || fromIndex === toIndex) return false;
+    const cellPos = tablePos + 1 + map.map[axis === "row" ? fromIndex * map.width : fromIndex]!;
+    const command = axis === "row" ? moveTableRow : moveTableColumn;
+    try {
+      const moved = command({ from: fromIndex, to: toIndex, pos: cellPos })(editor.state, editor.view.dispatch);
+      if (moved) editor.view.focus();
+      return moved;
+    } catch { return false; }
+  }
   if (action === "select-row" || action === "select-column") {
     return selectTableAxis(
       editor,

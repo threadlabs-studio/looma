@@ -13,24 +13,25 @@
     <prop name="fallback" type="string" default=""
     >Text shown instead of the initials derived from name or alt, whenever there is no image. It is uppercased; keep it to a couple of characters, because the
       circle clips anything wider.</prop>
-    <prop name="size" type="sm | md" default="md"
-    >md is 2.5rem, for a person on their own (a profile, a comment); sm is 1.75rem with smaller initials, for a row of people in a toolbar or header.</prop>
-    <prop name="shape" type="circle | square" default="circle">Circle by default; square uses the theme's medium radius.</prop>
+    <prop name="size" type="keyword" values="xs, sm, md" default="md"
+    >md is 2.5rem, for a person on their own (a profile, a comment); sm is 1.75rem with smaller initials, for a row of people in a toolbar or header; xs is
+      1.25rem with small initials, for a person named inline in a line of small text.</prop>
+    <prop name="shape" type="keyword" values="circle, square" default="circle">Circle by default; square uses the theme's medium radius.</prop>
     <prop name="decorative" type="boolean" default="false">Hides the avatar from assistive technology when adjacent text already identifies the person.</prop>
     <prop name="active" type="boolean" default="false"
-    >Marks the person as active now, such as editing the same page: a ring in the success colour around the avatar. The ring is not announced, so say what it
-      means in alt ("Ada Lovelace, editing").</prop>
-    <state name="hasImage" :value="false"></state>
-    <state name="hasAuthoredImage" :value="false"></state>
-    <state name="initials" :value="'?'"></state>
-    <state name="showGlyph" :value="false"></state>
+    >Marks the person as active now, such as editing the same page: a fine accent ring around the avatar. The ring is not announced, so say what it means in alt
+      ("Ada Lovelace, editing").</prop>
+    <state type="boolean" name="hasImage" value="false"></state>
+    <state type="boolean" name="hasAuthoredImage" value="false"></state>
+    <state type="string" name="initials" value="?"></state>
+    <state type="boolean" name="showGlyph" value="false"></state>
   </defs>
   <span>
     <slot></slot>
-    <img class="image" $ref="image" :src="src" alt="" aria-hidden="true" :hidden="hasAuthoredImage or not hasImage">
-    <span class="fallback" :aria-hidden="hasImage" :hidden="hasImage">
-      <span :hidden="showGlyph" $value="initials"></span>
-      <span :hidden="not showGlyph"><ui-icon name="user-round"></ui-icon></span>
+    <img class="image" $ref="image" from:src="src" alt="" aria-hidden="true" from:hidden="hasAuthoredImage or not hasImage">
+    <span class="fallback" from:aria-hidden="hasImage" from:hidden="hasImage">
+      <span from:hidden="showGlyph">{$initials}</span>
+      <span from:hidden="not showGlyph"><ui-icon name="user-round"></ui-icon></span>
     </span>
   </span>
   <style>
@@ -64,31 +65,46 @@
       inline-size: 2.5rem;
       block-size: 2.5rem;
       border-radius: var(--ui-avatar-radius, var(--ui-radius-round));
-      border: 1px solid var(--ui-avatar-border, var(--ui-border-strong));
+      border: var(--ui-border-width) solid var(--ui-avatar-border, color-mix(in srgb, var(--ui-accent-solid) 35%, var(--ui-surface-default)));
       background: var(--ui-avatar-surface, var(--ui-accent-soft));
       color: var(--ui-avatar-text, var(--ui-accent-subtle-text, var(--ui-accent-solid)));
       font: inherit;
       font-size: var(--ui-font-size-sm);
       font-weight: 600;
+      /* The initials centre in the circle wherever it sits, whatever line height surrounds it. */
+      line-height: 1;
       text-transform: uppercase;
     }
 
-    :host-state([size="sm"]) {
+    :host([size="sm"]) {
       --_ui-default-icon-size: 1rem;
       inline-size: 1.75rem;
       block-size: 1.75rem;
       font-size: var(--ui-font-size-xs);
     }
 
-    :host-state([shape="square"]) {
+    :host([size="xs"]) {
+      --_ui-default-icon-size: 0.75rem;
+      inline-size: 1.25rem;
+      block-size: 1.25rem;
+      /* Below the type scale on purpose: two initials need room inside a 1.25rem circle. */
+      font-size: calc(var(--ui-font-size) * 0.5625);
+      letter-spacing: 0.02em;
+    }
+
+    :host-state([hasImage]) {
+      border-color: var(--ui-avatar-border, var(--ui-border-strong));
+    }
+
+    :host([shape="square"]) {
       border-radius: var(--ui-avatar-radius, var(--ui-radius-md));
     }
 
     /* An outline, not a dot: the avatar clips its content to the circle, and an outline is drawn
        outside the box, so the ring survives the clip and the overlap in an Avatar Group. */
-    :host-state([active]) {
-      outline: 2px solid var(--ui-avatar-active-ring, var(--ui-success));
-      outline-offset: 1px;
+    :host([active]) {
+      outline: var(--ui-border-width) solid var(--ui-avatar-active-ring, var(--ui-accent-solid));
+      outline-offset: var(--ui-border-width);
     }
 
     .image,

@@ -30,8 +30,9 @@ async function bundle(name: string, source: string, mode = "production"): Promis
   return join(directory, name, "bundle.js");
 }
 
-async function open(bundlePath: string, body: string, css: readonly string[], options: BrowserContextOptions = {}): Promise<Page> {
+async function open(bundlePath: string, body: string, css: readonly string[], options: BrowserContextOptions = {}, beforeLoad?: (page: Page) => Promise<void>): Promise<Page> {
   const page = await browser.newPage(options);
+  await beforeLoad?.(page);
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.setContent(`<!doctype html><html><body>${body}</body></html>`);
@@ -55,6 +56,48 @@ afterAll(async () => {
 });
 
 describe("Anchored overlay placement", () => {
+  it("keeps an open popover at its last valid anchor when the trigger becomes unavailable", async () => {
+    const path = await bundle("html-popover-unavailable-anchor", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <button id="anchor" style="position: fixed; left: 500px; top: 250px; width: 100px; height: 40px">Anchor</button>
+      <ui-popover id="popover" for="anchor" open placement="bottom-start">Popover content</ui-popover>
+    `, [join(root, "tokens.css")], { reducedMotion: "reduce" });
+    await page.waitForFunction(() => document.querySelector("#popover")!.matches(":popover-open"));
+    const previous = await page.locator("#popover").boundingBox();
+    assert.ok(previous);
+    for (const action of ["hide", "remove"]) {
+      await page.locator("#anchor").evaluate((element, action) => {
+        if (action === "hide") (element as HTMLElement).style.display = "none";
+        else element.remove();
+      }, action);
+      await page.waitForTimeout(100);
+      const current = await page.locator("#popover").boundingBox();
+      assert.ok(current);
+      assert.ok(Math.abs(current.x - previous.x) < 1, `${action} must not move the popover horizontally`);
+      assert.ok(Math.abs(current.y - previous.y) < 1, `${action} must not move the popover vertically`);
+    }
+    await page.setViewportSize({ width: 375, height: 720 });
+    await page.waitForFunction(() => {
+      const rect = document.querySelector("#popover")!.getBoundingClientRect();
+      return rect.left >= 0 && rect.right <= window.innerWidth;
+    });
+    await page.close();
+  });
+
+  it("waits for a usable anchor instead of opening at zero-size trigger bounds", async () => {
+    const path = await bundle("html-popover-hidden-anchor", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <button id="anchor" style="display: none; position: fixed; left: 500px; top: 250px; width: 100px; height: 40px">Anchor</button>
+      <ui-popover id="popover" for="anchor" open placement="bottom-start">Popover content</ui-popover>
+    `, [join(root, "tokens.css")], { reducedMotion: "reduce" });
+    assert.equal(await page.locator("#popover").evaluate(element => element.matches(":popover-open")), false);
+    await page.locator("#anchor").evaluate(element => { (element as HTMLElement).style.display = "block"; });
+    await page.waitForFunction(() => document.querySelector("#popover")!.matches(":popover-open"));
+    const current = await page.locator("#popover").boundingBox();
+    assert.ok(current && current.x >= 499 && current.y >= 290);
+    await page.close();
+  });
+
   it("positions Popover and Tooltip on every side and alignment, then flips at an edge", async () => {
     const path = await bundle("html-overlay-placement", `import "@threadlabs/looma";`);
     const placements = ["top", "top-start", "top-end", "bottom", "bottom-start", "bottom-end", "left", "left-start", "left-end", "right", "right-start", "right-end"];
@@ -111,6 +154,25 @@ describe("Anchored overlay placement", () => {
     await edge.close();
   });
 
+  it("keeps a Tooltip beside its trigger after an ancestor moves without resizing", async () => {
+    const path = await bundle("html-tooltip-moving-anchor", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <div id="moving" style="position: fixed; left: 100px; top: 200px; transition: transform 100ms linear">
+        <button id="anchor" style="width: 40px; height: 40px">Anchor</button>
+      </div>
+      <ui-tooltip id="tooltip" for="anchor" open placement="right">A helpful hint</ui-tooltip>
+    `, [join(root, "tokens.css")], { reducedMotion: "reduce" });
+    await page.evaluate(() => { document.querySelector<HTMLElement>("#moving")!.style.transform = "translateX(150px)"; });
+    await page.waitForFunction(() => document.querySelector("#anchor")!.getBoundingClientRect().left >= 249);
+    await page.waitForFunction(() => {
+      const anchor = document.querySelector("#anchor")!.getBoundingClientRect();
+      const hint = document.querySelector("#tooltip")!.getBoundingClientRect();
+      return Math.abs(hint.left - anchor.right - 10) <= 1;
+    }, undefined, { timeout: 2000 });
+    await page.locator("#anchor").click();
+    await page.close();
+  });
+
   it("lets one Popover set its main-axis offset in CSS", async () => {
     const path = await bundle("html-popover-offset", `import "@threadlabs/looma";`);
     const page = await open(path, `
@@ -127,7 +189,7 @@ describe("Anchored overlay placement", () => {
     const page = await open(path, `
       <button id="one" style="position: fixed; left: 300px; top: 200px">One</button>
       <button id="two" style="position: fixed; left: 500px; top: 200px">Two</button>
-      <ui-tooltip id="first" for="one" show-delay="300" hide-delay="0">First hint</ui-tooltip>
+      <ui-tooltip id="first" for="one" show-delay="300" hide-delay="400">First hint</ui-tooltip>
       <ui-tooltip id="second" for="two" show-delay="300" hide-delay="0" placement="bottom" style="--ui-tooltip-offset: 16px">Second hint</ui-tooltip>
     `, [join(root, "tokens.css")], { reducedMotion: "reduce" });
     await page.locator("#one").hover();
@@ -135,8 +197,168 @@ describe("Anchored overlay placement", () => {
     await page.locator("#two").hover();
     await page.waitForTimeout(80);
     assert.equal(await page.locator("#second").evaluate((element) => element.matches(":popover-open")), true);
+    assert.equal(await page.locator("#first").evaluate((element) => element.matches(":popover-open")), false, "the previous tooltip closes as soon as the next opens");
     const gap = await page.evaluate(() => document.querySelector("#second")!.getBoundingClientRect().top - document.querySelector("#two")!.getBoundingClientRect().bottom);
     assert.ok(Math.abs(gap - 16) <= 1, `Tooltip offset is ${gap}px`);
+    await page.close();
+  });
+
+  it("closes a tooltip when another popup opens and cancels delayed tooltips", async () => {
+    const path = await bundle("html-tooltip-overlay-coordination", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <button id="hint-trigger">Hint</button>
+      <ui-tooltip id="hint" for="hint-trigger" show-delay="0">Helpful hint</ui-tooltip>
+      <button id="popup-trigger">Popup</button>
+      <ui-popover id="popup" for="popup-trigger">Popup content</ui-popover>
+    `, [join(root, "tokens.css")], { reducedMotion: "reduce" });
+    await page.locator("#hint-trigger").hover();
+    await page.waitForFunction(() => document.querySelector("#hint")!.matches(":popover-open"));
+    await page.locator("#popup-trigger").evaluate((element: HTMLButtonElement) => element.click());
+    await page.waitForFunction(() => document.querySelector("#popup")!.matches(":popover-open"));
+    assert.equal(await page.locator("#hint").evaluate((element) => element.matches(":popover-open")), false, "opening a popup closes the tooltip");
+    await page.close();
+
+    const pending = await open(path, `
+      <button id="hint-trigger">Hint</button>
+      <ui-tooltip id="hint" for="hint-trigger" show-delay="150">Helpful hint</ui-tooltip>
+      <button id="dialog-trigger">Dialog</button>
+      <ui-dialog id="dialog" for="dialog-trigger" modal label="Dialog">Dialog content</ui-dialog>
+    `, [join(root, "tokens.css")], { reducedMotion: "reduce" });
+    await pending.locator("#hint-trigger").hover();
+    await pending.locator("#dialog-trigger").evaluate((element: HTMLButtonElement) => element.click());
+    await pending.waitForFunction(() => document.querySelector("#dialog")!.matches(":modal"));
+    await pending.waitForTimeout(200);
+    assert.equal(await pending.locator("#hint").evaluate((element) => element.matches(":popover-open")), false, "a queued tooltip does not appear over a modal");
+    await pending.close();
+
+    for (const [name, popup] of [
+      ["search shell", `<ui-search-shell open modal label="Search"><input slot="search" aria-label="Search"></ui-search-shell>`],
+      ["toast", `<ui-toast-region><ui-toast>Saved</ui-toast></ui-toast-region>`],
+    ] as const) {
+      const other = await open(path, `
+        <button id="hint-trigger">Hint</button>
+        <ui-tooltip id="hint" for="hint-trigger" open>Helpful hint</ui-tooltip>
+        ${popup}
+      `, [join(root, "tokens.css")], { reducedMotion: "reduce" });
+      await other.waitForFunction(() => document.querySelector("dialog")?.open || document.querySelector("ui-toast-region, [data-component~='ui-toast-region']")?.matches(":popover-open"));
+      assert.equal(await other.locator("#hint").evaluate((element) => element.matches(":popover-open")), false, `${name} closes an existing tooltip`);
+      await other.close();
+    }
+
+    const drawer = await open(path, `
+      <button id="hint-trigger">Hint</button>
+      <ui-tooltip id="hint" for="hint-trigger" open>Helpful hint</ui-tooltip>
+      <ui-sidebar id="navigation" label="Navigation">Navigation content</ui-sidebar>
+    `, [join(root, "tokens.css")], { viewport: { width: 600, height: 800 }, reducedMotion: "reduce" });
+    await drawer.waitForFunction(() => document.querySelector("#navigation")?.hasAttribute("popover"));
+    await drawer.locator("#navigation").evaluate((element: HTMLElement) => element.showPopover());
+    await drawer.waitForFunction(() => document.querySelector("#navigation")?.matches(":popover-open"));
+    assert.equal(await drawer.locator("#hint").evaluate((element) => element.matches(":popover-open")), false, "opening a sidebar drawer closes the tooltip");
+    await drawer.close();
+  });
+
+  it("closes a tooltip when the editor selection toolbar opens", async () => {
+    const path = await bundle("vue-editor-tooltip-coordination", `
+      import "@threadlabs/looma";
+      import { createApp, h } from "vue";
+      import { LoomaEditor } from "@threadlabs/looma/vue/editor";
+      createApp({ render: () => h(LoomaEditor, {
+        label: "Writing",
+        modelValue: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Select some words" }] }] },
+      }) }).mount("#app");
+    `);
+    const page = await open(path, `
+      <button id="hint-trigger">Hint</button>
+      <ui-tooltip id="hint" for="hint-trigger" open>Helpful hint</ui-tooltip>
+      <div id="app"></div>
+    `, [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "vue/components.css")], { reducedMotion: "reduce" });
+    const editor = page.getByRole("textbox", { name: "Writing" });
+    await editor.focus();
+    // Set a known caret before selecting a real character.
+    await editor.press("End");
+    await editor.press("ArrowLeft");
+    await editor.press("Shift+ArrowRight");
+    await page.waitForFunction(() => (window.getSelection()?.toString().length ?? 0) > 0);
+    await page.waitForFunction(() => document.querySelector("[data-tippy-root]")?.getBoundingClientRect().width);
+    assert.equal(await page.locator("#hint").evaluate((element) => element.matches(":popover-open")), false);
+    await page.close();
+  });
+});
+
+describe("Touch input typography", () => {
+  it("keeps editable fields readable inside caption typography", async () => {
+    const path = await bundle("touch-caption-input", `
+      import { createApp, h } from "vue";
+      import { Input } from "@threadlabs/looma/vue";
+      createApp({ render: () => h("div", { style: "font-size:12px" }, () => [
+        h(Input, { id: "normal", placeholder: "Search people" }),
+        h(Input, { id: "small", size: "sm", placeholder: "Search pages" }),
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, '<div id="app"></div>', [join(root, "tokens.css"), join(root, "vue/components.css")], {
+      viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true,
+    });
+    for (const id of ["normal", "small"]) {
+      const field = page.locator(`#${id}`);
+      assert.ok(await field.evaluate((element) => parseFloat(getComputedStyle(element).fontSize)) >= 16);
+      await field.tap();
+      await field.fill("Readable");
+      assert.equal(await field.inputValue(), "Readable");
+    }
+    await page.close();
+  });
+});
+
+describe("Tooltip shortcut", () => {
+  it("shows a shortcut after the label behind a divider, and nothing when there is none", async () => {
+    const path = await bundle("html-tooltip-shortcut", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <button id="one" style="position: fixed; left: 200px; top: 200px">Search</button>
+      <button id="two" style="position: fixed; left: 500px; top: 200px">Close</button>
+      <ui-tooltip id="with" for="one" open placement="bottom">Search<kbd slot="shortcut">⌘K</kbd></ui-tooltip>
+      <ui-tooltip id="without" for="two" placement="bottom">Close</ui-tooltip>
+    `, [join(root, "tokens.css")], { reducedMotion: "reduce" });
+    const layout = await page.evaluate(() => {
+      const tip = document.querySelector("#with")!;
+      const surface = tip.querySelector(".surface")!;
+      const kbd = tip.querySelector("kbd")!;
+      const shortcut = kbd.closest(".shortcut")!;
+      const label = document.createRange();
+      label.selectNodeContents(document.createTreeWalker(surface, NodeFilter.SHOW_TEXT).nextNode()!);
+      const style = getComputedStyle(shortcut);
+      const empty = document.querySelector("#without .shortcut");
+      return {
+        afterLabel: kbd.getBoundingClientRect().left > label.getBoundingClientRect().right,
+        sameLine: Math.abs((kbd.getBoundingClientRect().top + kbd.getBoundingClientRect().bottom) / 2 - (label.getBoundingClientRect().top + label.getBoundingClientRect().bottom) / 2) < 3,
+        divider: style.borderInlineStartWidth,
+        smaller: Number.parseFloat(style.fontSize) < Number.parseFloat(getComputedStyle(surface).fontSize),
+        text: tip.textContent?.trim(),
+        emptyHidden: !empty || getComputedStyle(empty).display === "none",
+      };
+    });
+    assert.deepEqual(layout, { afterLabel: true, sameLine: true, divider: "1px", smaller: true, text: "Search⌘K", emptyHidden: true });
+    await page.close();
+  });
+
+  it("sets a slotted kbd in the label's type, not the browser's monospace, in Vue", async () => {
+    const path = await bundle("vue-shortcut-kbd", `
+      import { createApp, h } from "vue";
+      import { Menu, MenuItem, Tooltip } from "@threadlabs/looma/vue";
+      createApp({ render: () => h("main", [
+        h("button", { id: "one", style: { position: "fixed", left: "200px", top: "200px" } }, "Search"),
+        h(Tooltip, { for: "one", open: true, placement: "bottom" }, { default: () => "Search", shortcut: () => h("kbd", "⌘K") }),
+        h(Menu, { inline: true, "aria-label": "File" }, () => [
+          h(MenuItem, { value: "new" }, { default: () => "New file", shortcut: () => h("kbd", "⌘N") }),
+        ]),
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")], { reducedMotion: "reduce" });
+    const fonts = await page.evaluate(() => Array.from(document.querySelectorAll("kbd"), (kbd) => ({
+      kbd: getComputedStyle(kbd).fontFamily,
+      region: getComputedStyle(kbd.parentElement!).fontFamily,
+    })));
+    assert.equal(fonts.length, 2);
+    for (const font of fonts) assert.equal(font.kbd, font.region);
     await page.close();
   });
 });
@@ -220,11 +442,13 @@ describe("Toast composition and placement", () => {
     await page.close();
   });
 
-  it("adds generated messages with tone and duration through the public method", async () => {
+  it("adds generated messages with tone and duration through a native event", async () => {
     const path = await bundle("html-generated-toast", `import "@threadlabs/looma";`);
     const page = await open(path, `<ui-toast-region id="region" placement="top-start" duration="0"></ui-toast-region>`, [join(root, "tokens.css")]);
-    const id = await page.locator("#region").evaluate(async (element: any) => element.show("Saved", { tone: "success", duration: 0 }));
-    assert.equal(typeof id, "string");
+    await page.locator("#region").evaluate((element) => element.dispatchEvent(new CustomEvent("show-toast", {
+      detail: { message: "Saved", id: "saved-notice", tone: "success", duration: 0 },
+    })));
+    assert.equal(await page.locator("#region #saved-notice").count(), 1);
     assert.equal(await page.locator("#region .toast[role='status'][data-tone='success']").count(), 1);
     const region = page.locator("#region");
     assert.equal(await region.evaluate((element) => element.matches(":popover-open")), true);
@@ -370,23 +594,184 @@ describe("Tabs activation", () => {
 });
 
 describe("Disclosure composition", () => {
+  it("initializes required groups independently and transfers ownership when an open member is removed", async () => {
+    const path = await bundle("html-disclosure-required", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-disclosure id="first" name="required" required-open summary="First"><a href="#first-link">First link</a></ui-disclosure>
+      <ui-disclosure id="second" name="required" required-open summary="Second"><a href="#second-link">Second link</a></ui-disclosure>
+      <ui-disclosure id="independent" name="other" required-open summary="Independent">Other</ui-disclosure>
+      <ui-disclosure id="optional" name="optional" summary="Optional" open>Optional</ui-disclosure>
+    `, [join(root, "tokens.css")], { reducedMotion: "reduce" });
+    assert.equal(await page.locator("#first button").getAttribute("aria-expanded"), "true");
+    assert.equal(await page.locator("#second button").getAttribute("aria-expanded"), "false");
+    assert.equal(await page.locator("#independent button").getAttribute("aria-expanded"), "true");
+    await page.locator("#first button").click();
+    assert.equal(await page.locator("#first button").getAttribute("aria-expanded"), "true");
+    await page.locator("#optional button").click();
+    assert.equal(await page.locator("#optional button").getAttribute("aria-expanded"), "false");
+    await page.evaluate(() => document.querySelector("#first")!.remove());
+    await page.waitForFunction(() => document.querySelector("#second button")?.getAttribute("aria-expanded") === "true");
+    await page.close();
+  });
+
+  it("shares neutral navigation colors, columns, typography, hover, and corners in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const path = await bundle(`${adapter}-navigation-geometry`, adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Disclosure, NavItem, Icon } from "@threadlabs/looma/vue";
+        createApp({ render: () => h("div", { style: "width:240px" }, [
+          h(Disclosure, { id: "section", variant: "navigation", density: "compact", fill: true, open: true, summary: "Library" }, {
+            leading: () => h(Icon, { name: "files" }), indicator: () => h(Icon, { name: "chevron-up" }),
+          }),
+          h(NavItem, { id: "destination", density: "compact" }, {
+            leading: () => h(Icon, { name: "trash" }), trailing: () => h(Icon, { name: "chevrons-up-down" }), default: () => "Archived",
+          }),
+        ]) }).mount("#app");
+      `);
+      const page = await open(path, adapter === "html" ? `
+        <div style="width:240px">
+          <ui-disclosure id="section" variant="navigation" density="compact" fill open summary="Library"><ui-icon slot="leading" name="files"></ui-icon><ui-icon slot="indicator" name="chevron-up"></ui-icon></ui-disclosure>
+          <ui-nav-item id="destination" density="compact"><ui-icon slot="leading" name="trash"></ui-icon>Archived<ui-icon slot="trailing" name="chevrons-up-down"></ui-icon></ui-nav-item>
+        </div>
+      ` : `<div id="app"></div>`, [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { reducedMotion: "reduce" });
+      const geometry = await page.evaluate(() => {
+        const summary = document.querySelector("#section button")!;
+        const nav = document.querySelector("#destination")!;
+        const center = (element: Element) => { const box = element.getBoundingClientRect(); return box.x + box.width / 2; };
+        return {
+          leading: [center(summary.querySelector(".leading")!), center(nav.querySelector(".leading")!)],
+          trailing: [center(summary.querySelector(".indicator")!), center(nav.querySelector(".trailing")!)],
+          label: [summary.querySelector(".summary")!.getBoundingClientRect().x, nav.querySelector(".label")!.getBoundingClientRect().x],
+          radius: [getComputedStyle(summary).borderRadius, getComputedStyle(nav).borderRadius],
+          weight: [getComputedStyle(summary).fontWeight, getComputedStyle(nav).fontWeight],
+        };
+      });
+      for (const values of Object.values(geometry)) assert.equal(values[0], values[1], `${adapter}: ${JSON.stringify(geometry)}`);
+      const neutral = await page.locator("#destination").evaluate(element => getComputedStyle(element).color);
+      for (const selector of ["#section button", "#section .leading svg", "#section .indicator svg"]) {
+        assert.equal(await page.locator(selector).evaluate(element => getComputedStyle(element).color), neutral);
+      }
+      await page.locator("#section button").click();
+      await page.mouse.move(0, 0);
+      assert.equal(await page.locator("#section button").evaluate(element => getComputedStyle(element).color), neutral);
+      await page.locator("#section button").hover();
+      const sectionHover = await page.locator("#section button").evaluate(element => getComputedStyle(element).backgroundColor);
+      await page.locator("#destination").hover();
+      assert.equal(await page.locator("#destination").evaluate(element => getComputedStyle(element).backgroundColor), sectionHover);
+      await page.close();
+    }
+  });
+
+  it("fills the remaining height with unboxed headers and a scrolling body in HTML and Vue", async () => {
+    for (const adapter of ["html", "vue"]) {
+      const source = adapter === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Disclosure, Icon } from "@threadlabs/looma/vue";
+        createApp({ render: () => h("div", { id: "panels", style: "display:flex;flex-direction:column;height:480px;width:240px" }, [
+          h(Disclosure, { id: "first", fill: true, requiredOpen: true, name: "panels", summary: "Overview", open: true }, {
+            indicator: () => h(Icon, { name: "chevron-down", "aria-hidden": "true" }),
+            default: () => h("div", { id: "scroll", style: "flex:1;min-height:0;overflow:auto" }, h("p", { style: "height:1800px" }, "Overview content")),
+          }),
+          h(Disclosure, { id: "second", fill: true, requiredOpen: true, name: "panels", summary: "Library" }, () => h("p", "Library content")),
+        ]) }).mount("#app");
+      `;
+      const path = await bundle(`${adapter}-disclosure-fill`, source);
+      const body = adapter === "html" ? `
+        <div id="panels" style="display:flex;flex-direction:column;height:480px;width:240px">
+          <ui-disclosure id="first" fill required-open name="panels" summary="Overview" open>
+            <ui-icon slot="indicator" name="chevron-down" aria-hidden="true"></ui-icon>
+            <div id="scroll" style="flex:1;min-height:0;overflow:auto"><p style="height:1800px">Overview content</p></div>
+          </ui-disclosure>
+          <ui-disclosure id="second" fill required-open name="panels" summary="Library"><p>Library content</p></ui-disclosure>
+        </div>` : `<div id="app"></div>`;
+      const page = await open(path, body, [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])], { reducedMotion: "reduce" });
+      assert.equal(await page.locator("#first .chevron").count(), 0, "custom indicator replaces the default");
+      const measure = () => page.evaluate(() => {
+        const first = document.querySelector("#first")!;
+        const second = document.querySelector("#second")!;
+        const trigger = first.querySelector("button")!;
+        const scroll = document.querySelector("#scroll")!;
+        return {
+          first: first.getBoundingClientRect().height, second: second.getBoundingClientRect().height,
+          width: first.getBoundingClientRect().width, triggerWidth: trigger.getBoundingClientRect().width,
+          background: getComputedStyle(trigger).backgroundColor, shadow: getComputedStyle(trigger).boxShadow,
+          scrollHeight: scroll.scrollHeight, visibleHeight: scroll.clientHeight,
+        };
+      });
+      const opened = await measure();
+      assert.ok(opened.first > 400 && opened.second < 64, `${adapter}: ${JSON.stringify(opened)}`);
+      assert.equal(opened.width, opened.triggerWidth);
+      assert.equal(opened.background, "rgba(0, 0, 0, 0)");
+      assert.equal(opened.shadow, "none");
+      assert.ok(opened.visibleHeight > 300 && opened.scrollHeight > opened.visibleHeight);
+      await page.locator("#second button").focus();
+      await page.keyboard.press("Enter");
+      assert.equal(await page.locator("#first button").getAttribute("aria-expanded"), "false");
+      assert.equal(await page.locator("#second button").getAttribute("aria-expanded"), "true");
+      const swapped = await measure();
+      assert.ok(swapped.second > 400 && swapped.first < 64);
+      await page.locator("#second button").click();
+      assert.equal(await page.locator("#second button").getAttribute("aria-expanded"), "true", "the required group keeps its final panel open");
+      await page.close();
+    }
+  });
+
+  it("animates bounded fill transfer and a persistent custom indicator", async () => {
+    const path = await bundle("html-disclosure-motion", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <div style="display:flex;flex-direction:column;height:480px;width:240px;--ui-motion-layout:1000ms;--ui-motion-reveal:1000ms">
+        <ui-disclosure id="first" fill name="motion" summary="Overview" open><p>Overview content</p></ui-disclosure>
+        <ui-disclosure id="second" fill name="motion" summary="Library">
+          <ui-icon slot="indicator" name="chevron-up"></ui-icon><p>Library content</p>
+        </ui-disclosure>
+      </div>
+    `, [join(root, "tokens.css")], { reducedMotion: "no-preference" });
+    await page.locator("#second button").click();
+    await page.waitForTimeout(60);
+    const intermediate = await page.evaluate(() => {
+      const first = document.querySelector("#first")!;
+      const second = document.querySelector("#second")!;
+      return {
+        first: first.getBoundingClientRect().height,
+        second: second.getBoundingClientRect().height,
+        indicatorAnimating: Boolean(second.querySelector(".indicator")?.getAnimations().length),
+        panelAnimating: Boolean(second.querySelector(".panel")?.getAnimations().length),
+      };
+    });
+    assert.ok(intermediate.first > 64 && intermediate.first < 440, JSON.stringify(intermediate));
+    assert.ok(intermediate.second > 64 && intermediate.second < 440, JSON.stringify(intermediate));
+    assert.equal(intermediate.indicatorAnimating, true);
+    assert.equal(intermediate.panelAnimating, true);
+    await page.locator("#first button").click();
+    await page.waitForTimeout(1100);
+    assert.equal(await page.locator("#first button").getAttribute("aria-expanded"), "true");
+    assert.equal(await page.locator("#second button").getAttribute("aria-expanded"), "false");
+    assert.ok((await page.locator("#first").boundingBox())!.height > 400);
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.locator("#second button").click();
+    assert.ok((await page.locator("#second").boundingBox())!.height > 400);
+    await page.close();
+  });
+
   it("reveals closed content when a fragment targets it and closes its named peer", async () => {
     const path = await bundle("html-disclosure-beforematch", `
       import "@threadlabs/looma";
       window.opens = [];
       document.querySelector("#target").addEventListener("open", (event) => window.opens.push(event.detail));
     `);
-    const page = await open(path, `
-      <ui-disclosure id="peer" name="faq" summary="Peer" open><p>Peer answer</p></ui-disclosure>
-      <ui-disclosure id="target" name="faq" summary="Target"><p id="answer">Findable answer</p></ui-disclosure>
-    `, [join(root, "tokens.css")], { reducedMotion: "reduce" });
-    assert.equal(await page.locator("#target .panel").getAttribute("hidden"), "until-found");
-    await page.evaluate(() => { location.hash = "answer"; });
-    await page.waitForFunction(() => document.querySelector("#target .trigger")?.getAttribute("aria-expanded") === "true");
-    assert.equal(await page.locator("#target .panel").getAttribute("hidden"), null);
-    assert.equal(await page.locator("#peer .trigger").getAttribute("aria-expanded"), "false");
-    assert.deepEqual(await page.evaluate(() => (window as any).opens), [{ open: true, reason: "programmatic", trigger: "programmatic" }]);
-    await page.close();
+    for (const fill of [false, true]) {
+      const page = await open(path, `
+        <ui-disclosure ${fill ? "fill" : ""} id="peer" name="faq" summary="Peer" open><p>Peer answer</p></ui-disclosure>
+        <ui-disclosure ${fill ? "fill" : ""} id="target" name="faq" summary="Target"><p id="answer">Findable answer</p></ui-disclosure>
+      `, [join(root, "tokens.css")], { reducedMotion: "reduce" });
+      assert.equal(await page.locator("#target .panel").getAttribute("hidden"), "until-found");
+      await page.evaluate(() => { location.hash = "answer"; });
+      await page.waitForFunction(() => document.querySelector("#target .trigger")?.getAttribute("aria-expanded") === "true");
+      assert.equal(await page.locator("#target .panel").getAttribute("hidden"), null);
+      assert.equal(await page.locator("#peer .trigger").getAttribute("aria-expanded"), "false");
+      assert.deepEqual(await page.evaluate(() => (window as any).opens), [{ open: true, reason: "programmatic", trigger: "programmatic" }]);
+      await page.close();
+    }
   });
 
   it("uses named exclusive groups, a rich summary, and an optional heading in HTML", async () => {
@@ -437,6 +822,101 @@ describe("Disclosure composition", () => {
 });
 
 describe("Menu structure and navigation", () => {
+  it("dismisses only the top menu when Escape bubbles through its containing popover", async () => {
+    const path = await bundle("html-nested-menu-escape", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-button id="settings-trigger">Settings</ui-button>
+      <ui-popover id="settings" for="settings-trigger">
+        <ui-button id="format-trigger">Formatting</ui-button>
+        <ui-menu id="format" for="format-trigger" aria-label="Formatting">
+          <ui-menu-item value="plain" type="radio">Plain</ui-menu-item>
+          <ui-menu-item value="numbered" type="radio">Numbered</ui-menu-item>
+        </ui-menu>
+      </ui-popover>
+    `, [join(root, "tokens.css")]);
+    await page.locator("#settings-trigger").click();
+    await page.locator("#format-trigger").click();
+    await page.getByRole("menuitemradio", { name: "Plain" }).focus();
+    await page.keyboard.press("Escape");
+    assert.equal(await page.locator("#format-trigger").getAttribute("aria-expanded"), "false");
+    assert.equal(await page.locator("#settings-trigger").getAttribute("aria-expanded"), "true");
+    await page.keyboard.press("Escape");
+    assert.equal(await page.locator("#settings-trigger").getAttribute("aria-expanded"), "false");
+    await page.close();
+  });
+
+  it("spaces slotted icons and keeps ghost triggers pressed while overlays are open", async () => {
+    const path = await bundle("html-menu-icon-and-ghost-trigger", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-icon-button id="menu-trigger" variant="ghost" label="Page actions"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5" /></svg></ui-icon-button>
+      <ui-menu id="actions" for="menu-trigger" density="compact" aria-label="Page actions">
+        <ui-menu-item id="move" value="move"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16"><path d="M2 8h12" /></svg>Move to…</ui-menu-item>
+      </ui-menu>
+      <ui-button id="popover-trigger" variant="ghost">Details</ui-button>
+      <ui-popover id="details" for="popover-trigger">More details.</ui-popover>
+    `, [join(root, "tokens.css")]);
+    const menuTrigger = page.locator("#menu-trigger");
+    const popoverTrigger = page.locator("#popover-trigger");
+    const background = (selector: string) => page.locator(selector).evaluate((element) => getComputedStyle(element).backgroundColor);
+    const menuRest = await background("#menu-trigger");
+    const popoverRest = await background("#popover-trigger");
+
+    await menuTrigger.click();
+    await page.mouse.move(0, 0);
+    await page.waitForTimeout(250);
+    assert.equal(await menuTrigger.getAttribute("aria-expanded"), "true");
+    assert.notEqual(await background("#menu-trigger"), menuRest, "open menu keeps the ghost trigger pressed");
+    const gap = await page.locator("#move .label").evaluate((label) => {
+      const icon = label.querySelector("svg")!;
+      const text = Array.from(label.childNodes).find((node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim())!;
+      const range = document.createRange();
+      range.selectNodeContents(text);
+      return range.getBoundingClientRect().left - icon.getBoundingClientRect().right;
+    });
+    assert.ok(gap >= 6, `menu icon and label need a visible gap, got ${gap}px`);
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(250);
+    assert.equal(await menuTrigger.getAttribute("aria-expanded"), "false");
+    assert.equal(await background("#menu-trigger"), menuRest);
+
+    await popoverTrigger.click();
+    await page.mouse.move(0, 0);
+    await page.waitForTimeout(250);
+    assert.equal(await popoverTrigger.getAttribute("aria-expanded"), "true");
+    assert.notEqual(await background("#popover-trigger"), popoverRest, "open popover keeps the ghost trigger pressed");
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(250);
+    assert.equal(await popoverTrigger.getAttribute("aria-expanded"), "false");
+    assert.equal(await background("#popover-trigger"), popoverRest);
+    await page.close();
+  });
+
+  it("clears trigger expansion when a Vue menu or popover unmounts", async () => {
+    const path = await bundle("vue-overlay-trigger-cleanup", `
+      import { createApp, h, ref } from "vue";
+      import { Button, IconButton, Menu, MenuItem, Popover } from "@threadlabs/looma/vue";
+      const menuVisible = ref(true);
+      const popoverVisible = ref(true);
+      window.hideOverlays = () => { menuVisible.value = false; popoverVisible.value = false; };
+      createApp({ render: () => h("div", [
+        h(IconButton, { id: "menu-trigger", label: "Actions", variant: "ghost" }, () => "…"),
+        menuVisible.value ? h(Menu, { id: "menu", for: "menu-trigger", open: true }, () => h(MenuItem, { value: "edit" }, () => "Edit")) : null,
+        h(Button, { id: "popover-trigger", variant: "ghost" }, () => "Details"),
+        popoverVisible.value ? h(Popover, { id: "popover", for: "popover-trigger", open: true }, () => "Details") : null,
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const menuTrigger = page.locator("#menu-trigger");
+    const popoverTrigger = page.locator("#popover-trigger");
+    assert.equal(await menuTrigger.getAttribute("aria-expanded"), "true");
+    assert.equal(await popoverTrigger.getAttribute("aria-expanded"), "true");
+    await page.evaluate(() => (window as any).hideOverlays());
+    await page.waitForFunction(() => !document.querySelector("#menu") && !document.querySelector("#popover"));
+    assert.notEqual(await menuTrigger.getAttribute("aria-expanded"), "true");
+    assert.notEqual(await popoverTrigger.getAttribute("aria-expanded"), "true");
+    await page.close();
+  });
+
   it("keeps link semantics, groups and separators, and moves through enabled items in HTML", async () => {
     const path = await bundle("html-menu-structure", `
       import "@threadlabs/looma";
@@ -526,6 +1006,11 @@ describe("Menu structure and navigation", () => {
     assert.equal(await page.locator("#grid").getAttribute("role"), "menuitemcheckbox");
     assert.equal(await page.locator("#name").getAttribute("role"), "menuitemradio");
     assert.equal(await page.locator("#name").getAttribute("aria-checked"), "true");
+    for (const id of ["grid", "date"]) {
+      const indicator = page.locator(`#${id} .indicator`);
+      assert.equal(await indicator.evaluate((element) => getComputedStyle(element).borderStyle), "solid", `${id} shows an unchecked control`);
+      assert.ok((await indicator.boundingBox())?.width, `${id} reserves a visible control`);
+    }
     await page.locator("#grid").click();
     assert.equal(await page.locator("#grid").getAttribute("aria-checked"), "true");
     assert.equal(await menu.evaluate((element) => getComputedStyle(element).display === "none"), false, "checkable choice keeps menu open");
@@ -555,7 +1040,7 @@ describe("Menu structure and navigation", () => {
       const checked = ref(false);
       window.changes = [];
       createApp({ render: () => h(ContextMenu, { id: "menu", open: true, for: "target" }, () =>
-        h(MenuItem, { id: "grid", type: "checkbox", checked: checked.value, value: "grid", onChange: (detail) => { window.changes.push(detail); checked.value = detail.checked; } }, () => "Show grid"))
+        h(MenuItem, { id: "grid", type: "checkbox", checked: checked.value, value: "grid", onChange: (event) => { window.changes.push(event.detail); checked.value = event.detail.checked; } }, () => "Show grid"))
       }).mount("#app");
     `);
     const page = await open(path, `<button id="target">Target</button><div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
@@ -581,7 +1066,7 @@ describe("Menu structure and navigation", () => {
           });
           return red! * 0.2126 + green! * 0.7152 + blue! * 0.0722;
         };
-        const indicator = luminance(getComputedStyle(item.querySelector(".indicator")!).color);
+        const indicator = luminance(getComputedStyle(item.querySelector(".indicator")!).backgroundColor);
         const surface = luminance(getComputedStyle(item.closest(".surface")!).backgroundColor);
         return { ratio: (Math.max(indicator, surface) + 0.05) / (Math.min(indicator, surface) + 0.05), icon: Boolean(item.querySelector(".indicator svg")) };
       });
@@ -599,7 +1084,86 @@ describe("Menu structure and navigation", () => {
 });
 
 describe("Dialog close policy and presentation", () => {
-  it("opens modally, closes on Escape, and reports trigger and close events", async () => {
+  const isOpen = (id: string) => `document.querySelector("#${id}").open`;
+
+  it("keeps nested modal dialogs open with only one visible backdrop", async () => {
+    const path = await bundle("html-dialog-nested-backdrops", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-dialog id="parent" open modal label="Parent">
+        <button id="child-trigger">Open child</button>
+        <ui-dialog id="child" for="child-trigger" modal label="Child">Child content</ui-dialog>
+      </ui-dialog>
+    `, [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "styles/ui-dialog.css")], { reducedMotion: "reduce" });
+    await page.locator("#child-trigger").click();
+    await page.waitForFunction(() => document.querySelector("#child")!.matches(":modal"));
+    const backdrops = () => page.evaluate(() => ["parent", "child"].map((id) => getComputedStyle(document.getElementById(id)!, "::backdrop").backgroundColor));
+    const [parent, child] = await backdrops();
+    assert.equal(parent, "rgba(0, 0, 0, 0)", "the lower modal backdrop is transparent");
+    assert.notEqual(child, "rgba(0, 0, 0, 0)", "the top modal supplies the backdrop");
+    assert.equal(await page.locator("#parent").evaluate((element) => (element as HTMLDialogElement).open), true);
+    await page.locator("#child").getByRole("button", { name: "Close" }).click();
+    await page.waitForFunction(() => !document.querySelector("#child")!.matches(":modal"));
+    assert.notEqual((await backdrops())[0], "rgba(0, 0, 0, 0)", "the parent backdrop returns when the child closes");
+    await page.locator("#child-trigger").click();
+    await page.waitForFunction(() => document.querySelector("#child")!.matches(":modal"));
+    await page.keyboard.press("Escape");
+    await page.waitForFunction(() => !document.querySelector("#child")!.matches(":modal"));
+    assert.equal(await page.locator("#parent").evaluate((element) => (element as HTMLDialogElement).open), true, "Escape closes only the top modal");
+    await page.close();
+  });
+
+  it("shares one backdrop when a modal Search Shell opens inside a modal Dialog", async () => {
+    const path = await bundle("html-dialog-search-shell-backdrop", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-dialog id="parent" open modal label="Parent">
+        <ui-search-shell id="search" open modal label="Search"><input slot="search" aria-label="Query"></ui-search-shell>
+      </ui-dialog>
+    `, [join(root, "tokens.css"), join(root, "theme-light.css"), join(root, "styles/ui-dialog.css"), join(root, "styles/ui-search-shell.css")], { reducedMotion: "reduce" });
+    const search = page.locator("#search dialog");
+    await page.waitForFunction(() => document.querySelector("#search dialog")?.matches(":modal"));
+    assert.equal(await page.locator("#parent").evaluate((element) => getComputedStyle(element, "::backdrop").backgroundColor), "rgba(0, 0, 0, 0)");
+    assert.notEqual(await search.evaluate((element) => getComputedStyle(element, "::backdrop").backgroundColor), "rgba(0, 0, 0, 0)");
+    assert.equal(await search.evaluate((element) => getComputedStyle(element).backgroundColor), "rgba(0, 0, 0, 0)");
+    await search.evaluate((element: HTMLDialogElement) => element.close());
+    await page.waitForFunction(() => !document.querySelector("#search dialog")?.open);
+    await page.waitForFunction(() => getComputedStyle(document.querySelector("#parent")!, "::backdrop").backgroundColor !== "rgba(0, 0, 0, 0)");
+    assert.notEqual(await page.locator("#parent").evaluate((element) => getComputedStyle(element, "::backdrop").backgroundColor), "rgba(0, 0, 0, 0)");
+    await page.close();
+  });
+
+  it("is non-modal by default, like native show(): no backdrop, no scroll lock, Escape and outside presses do not close it", async () => {
+    const path = await bundle("html-dialog-default", `
+      import "@threadlabs/looma";
+      const dialog = document.querySelector("#dialog");
+      window.dialogEvents = [];
+      dialog.addEventListener("open", (event) => window.dialogEvents.push({ type: "open", ...event.detail }));
+      dialog.addEventListener("close", (event) => window.dialogEvents.push({ type: "close", ...event.detail }));
+    `);
+    const page = await open(path, `<ui-button id="trigger">Open</ui-button><button id="outside">Outside</button><ui-dialog id="dialog" for="trigger" label="Details"><button id="inside">Inside</button></ui-dialog>`, [join(root, "tokens.css")]);
+    await page.locator("#trigger").click();
+    const dialog = page.locator("#dialog");
+    await page.waitForFunction(isOpen("dialog"));
+    assert.equal(await dialog.evaluate((element) => element.matches(":modal")), false);
+    assert.equal(await dialog.getAttribute("closedby"), "none");
+    assert.equal(await page.evaluate(() => document.documentElement.hasAttribute("data-ui-scroll-lock")), false);
+    // Focus moves into the dialog, and the rest of the page stays usable.
+    assert.equal(await page.evaluate(() => document.querySelector("#dialog")!.contains(document.activeElement)), true);
+    await page.keyboard.press("Escape");
+    await page.locator("#outside").click();
+    assert.equal(await page.evaluate(() => document.activeElement?.id), "outside");
+    assert.equal(await dialog.evaluate((element) => (element as HTMLDialogElement).open), true);
+    // The header close button is the visible exit.
+    await dialog.getByRole("button", { name: "Close" }).click();
+    await page.waitForFunction(`!${isOpen("dialog")}`);
+    assert.equal(await page.evaluate(() => document.activeElement?.closest("#trigger") !== null), true, "focus returns to the trigger");
+    assert.deepEqual(await page.evaluate(() => (window as any).dialogEvents), [
+      { type: "open", open: true, reason: "action", trigger: "pointer" },
+      { type: "close", open: false, reason: "action", trigger: "pointer" },
+    ]);
+    await page.close();
+  });
+
+  it("opens modally with modal, locks scroll, closes on Escape, returns focus, and reports trigger and close events", async () => {
     const path = await bundle("html-dialog-close-policy", `
       import "@threadlabs/looma";
       const dialog = document.querySelector("#dialog");
@@ -607,13 +1171,17 @@ describe("Dialog close policy and presentation", () => {
       dialog.addEventListener("open", (event) => window.dialogEvents.push({ type: "open", ...event.detail }));
       dialog.addEventListener("close", (event) => window.dialogEvents.push({ type: "close", ...event.detail }));
     `);
-    const page = await open(path, `<ui-button id="trigger">Open</ui-button><ui-dialog id="dialog" for="trigger" label="Details">Body</ui-dialog>`, [join(root, "tokens.css")]);
+    const page = await open(path, `<ui-button id="trigger">Open</ui-button><ui-dialog id="dialog" for="trigger" modal label="Details"><button id="inside">Inside</button></ui-dialog>`, [join(root, "tokens.css")]);
     await page.locator("#trigger").click();
     const dialog = page.locator("#dialog");
     assert.equal(await dialog.evaluate((element) => element.matches(":modal")), true);
     assert.equal(await dialog.getAttribute("closedby"), "closerequest");
+    assert.equal(await page.evaluate(() => document.documentElement.hasAttribute("data-ui-scroll-lock")), true);
+    assert.equal(await page.evaluate(() => document.querySelector("#dialog")!.contains(document.activeElement)), true);
     await page.keyboard.press("Escape");
-    await page.waitForFunction(() => !(document.querySelector("#dialog") as HTMLDialogElement).open);
+    await page.waitForFunction(`!${isOpen("dialog")}`);
+    assert.equal(await page.evaluate(() => document.documentElement.hasAttribute("data-ui-scroll-lock")), false);
+    assert.equal(await page.evaluate(() => document.activeElement?.closest("#trigger") !== null), true);
     assert.deepEqual(await page.evaluate(() => (window as any).dialogEvents), [
       { type: "open", open: true, reason: "action", trigger: "pointer" },
       { type: "close", open: false, reason: "escape", trigger: "keyboard" },
@@ -621,34 +1189,102 @@ describe("Dialog close policy and presentation", () => {
     await page.close();
   });
 
-  it("separates outside dismissal from Escape and keeps alerts action-only when requested", async () => {
+  it("keeps modeless as a no-op: non-modal alone, and modal wins when both are set", async () => {
+    const path = await bundle("html-dialog-modeless", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-dialog id="modeless" open modeless label="Modeless">Body</ui-dialog>
+      <ui-dialog id="both" open modal modeless label="Both">Body</ui-dialog>
+    `, [join(root, "tokens.css")]);
+    assert.equal(await page.locator("#modeless").evaluate((element) => element.matches(":modal")), false);
+    assert.equal(await page.locator("#modeless").getAttribute("closedby"), "none");
+    assert.equal(await page.locator("#both").evaluate((element) => element.matches(":modal")), true);
+    assert.equal(await page.locator("#both").getAttribute("closedby"), "closerequest");
+    await page.close();
+  });
+
+  it("follows closedby in each mode", async () => {
+    const path = await bundle("html-dialog-closedby", `import "@threadlabs/looma";`);
+    for (const modal of [false, true]) {
+      const attribute = modal ? " modal" : "";
+      const page = await open(path, `
+        <ui-dialog id="any" open${attribute} closedby="any" label="Any">Body</ui-dialog>
+        <ui-dialog id="request" open${attribute} closedby="closerequest" label="Request">Body</ui-dialog>
+        <ui-dialog id="none" open${attribute} closedby="none" label="None">Body</ui-dialog>
+      `, [join(root, "tokens.css")]);
+      // The last opened dialog is on top of the stack; each close uncovers the next.
+      await page.keyboard.press("Escape");
+      await page.mouse.click(4, 4);
+      assert.equal(await page.evaluate(isOpen("none")), true, `closedby="none" ignores Escape and outside presses (modal: ${modal})`);
+      await page.locator("#none").getByRole("button", { name: "Close" }).click();
+      await page.waitForFunction(`!${isOpen("none")}`);
+      await page.mouse.click(4, 4);
+      await page.waitForTimeout(50);
+      assert.equal(await page.evaluate(isOpen("request")), true, `closedby="closerequest" ignores outside presses (modal: ${modal})`);
+      await page.keyboard.press("Escape");
+      await page.waitForFunction(`!${isOpen("request")}`);
+      await page.mouse.click(4, 4);
+      await page.waitForFunction(`!${isOpen("any")}`);
+      await page.close();
+    }
+  });
+
+  it("switches between non-modal and modal while open in Vue, and keeps the close default in step", async () => {
+    const path = await bundle("vue-dialog-modal-switch", `
+      import { createApp, h, ref } from "vue";
+      import { Dialog } from "@threadlabs/looma/vue";
+      const modal = ref(false);
+      window.dialogModal = modal;
+      createApp({ render: () => h(Dialog, { id: "dialog", open: true, modal: modal.value, label: "Switch" }, () => "Body") }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const dialog = page.locator("#dialog");
+    assert.equal(await dialog.evaluate((element) => element.matches(":modal")), false);
+    assert.equal(await dialog.getAttribute("closedby"), "none");
+    await page.evaluate(() => { (window as any).dialogModal.value = true; });
+    await page.waitForFunction(() => document.querySelector("#dialog")!.matches(":modal"));
+    assert.equal(await dialog.getAttribute("closedby"), "closerequest");
+    await page.evaluate(() => { (window as any).dialogModal.value = false; });
+    await page.waitForFunction(() => !document.querySelector("#dialog")!.matches(":modal"));
+    assert.equal(await dialog.getAttribute("closedby"), "none");
+    assert.equal(await page.evaluate(isOpen("dialog")), true);
+    await page.close();
+  });
+
+  it("separates outside dismissal from Escape and keeps alerts modal and action-only when requested", async () => {
     const path = await bundle("html-dialog-alert", `import "@threadlabs/looma";`);
     const page = await open(path, `
-      <ui-dialog id="dialog" open closedby="any" label="Info">Body</ui-dialog>
+      <ui-dialog id="dialog" open modal closedby="any" label="Info">Body</ui-dialog>
       <ui-button id="alert-trigger">Show alert</ui-button>
       <ui-dialog id="alert" for="alert-trigger" alert closedby="none" label="Delete?">Body<button commandfor="alert" command="close">Cancel</button></ui-dialog>
+      <ui-button id="alert-default-trigger">Discard</ui-button>
+      <ui-dialog id="alert-default" for="alert-default-trigger" alert label="Discard?">Body</ui-dialog>
     `, [join(root, "tokens.css")]);
-    const dialog = page.locator("#dialog");
     await page.mouse.click(4, 4);
-    await page.waitForFunction(() => !(document.querySelector("#dialog") as HTMLDialogElement).open);
+    await page.waitForFunction(`!${isOpen("dialog")}`);
     const alert = page.locator("#alert");
     await page.locator("#alert-trigger").click();
     assert.equal(await alert.getAttribute("role"), "alertdialog");
+    assert.equal(await alert.evaluate((element) => element.matches(":modal")), true);
     assert.equal(await alert.locator(".close").evaluate((element) => getComputedStyle(element).display), "none");
     await page.keyboard.press("Escape");
     assert.equal(await alert.evaluate((element) => (element as HTMLDialogElement).open), true);
     await alert.getByText("Cancel").click();
-    await page.waitForFunction(() => !(document.querySelector("#alert") as HTMLDialogElement).open);
+    await page.waitForFunction(`!${isOpen("alert")}`);
+    // An alert without modal is still modal, with the modal close default.
+    await page.locator("#alert-default-trigger").click();
+    await page.waitForFunction(isOpen("alert-default"));
+    assert.equal(await page.locator("#alert-default").evaluate((element) => element.matches(":modal")), true);
+    assert.equal(await page.locator("#alert-default").getAttribute("closedby"), "closerequest");
     await page.close();
   });
 
-  it("supports modeless and size choices while retaining the local width hook", async () => {
+  it("supports size choices while retaining the local width hook", async () => {
     const path = await bundle("html-dialog-size", `import "@threadlabs/looma";`);
     const page = await open(path, `
-      <ui-dialog id="small" open modeless size="sm" label="Small">Body</ui-dialog>
-      <ui-dialog id="large" open modeless size="lg" label="Large">Body</ui-dialog>
-      <ui-dialog id="custom" open modeless size="sm" style="--ui-dialog-max-width: 520px" label="Custom">Body</ui-dialog>
-      <ui-dialog id="full" open modeless size="fullscreen" label="Full">Body</ui-dialog>
+      <ui-dialog id="small" open size="sm" label="Small">Body</ui-dialog>
+      <ui-dialog id="large" open size="lg" label="Large">Body</ui-dialog>
+      <ui-dialog id="custom" open size="sm" style="--ui-dialog-max-width: 520px" label="Custom">Body</ui-dialog>
+      <ui-dialog id="full" open size="fullscreen" label="Full">Body</ui-dialog>
     `, [join(root, "tokens.css")]);
     const measure = async (id: string) => page.locator(id).evaluate((element) => ({ modal: element.matches(":modal"), width: Number.parseFloat(getComputedStyle(element).width), height: Number.parseFloat(getComputedStyle(element).height) }));
     const small = await measure("#small");
@@ -670,7 +1306,7 @@ describe("Dialog close policy and presentation", () => {
       window.dialogEvents = [];
       createApp({ render: () => [
         h("button", { id: "show", onClick: () => { open.value = true; } }, "Show"),
-        h(Dialog, { id: "dialog", open: open.value, modeless: true, label: "Details", onOpen: (detail) => window.dialogEvents.push(detail) }, () => "Body"),
+        h(Dialog, { id: "dialog", open: open.value, label: "Details", onOpen: (event) => window.dialogEvents.push(event.detail) }, () => "Body"),
       ] }).mount("#app");
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
@@ -877,13 +1513,13 @@ describe("Combobox option modes", () => {
   });
 });
 
-describe("Pending actions", () => {
+describe("Loading actions", () => {
   it("keeps focus and labels while blocking button submits, icon clicks, and link navigation in HTML", async () => {
-    const path = await bundle("html-pending-actions", `import "@threadlabs/looma";`);
+    const path = await bundle("html-loading-actions", `import "@threadlabs/looma";`);
     const page = await open(path, `
-      <form id="form"><ui-button id="save" type="submit" pending>Save</ui-button></form>
-      <ui-icon-button id="more" label="More" pending><ui-icon name="ellipsis"></ui-icon></ui-icon-button>
-      <ui-button id="link" as="a" href="#target" pending>Open</ui-button>
+      <form id="form"><ui-button id="save" type="submit" loading><span>Save</span></ui-button></form>
+      <ui-icon-button id="more" label="More" loading><ui-icon name="ellipsis"></ui-icon></ui-icon-button>
+      <ui-button id="link" as="a" href="#target" loading>Open</ui-button>
     `, [join(root, "tokens.css")]);
     await page.evaluate(() => {
       (window as unknown as { activations: number }).activations = 0;
@@ -905,20 +1541,29 @@ describe("Pending actions", () => {
     assert.equal(await page.locator("#more").getAttribute("aria-label"), "More");
     assert.equal(await page.locator("#link").getAttribute("href"), null);
     assert.equal(await page.locator("#link").getAttribute("tabindex"), "0");
+    const spinner = await page.locator("#save ui-spinner, #save [data-component='ui-spinner']").boundingBox();
+    const spinnerWrap = await page.locator("#save .spinner-wrap").boundingBox();
+    const label = await page.locator("#save span").last().boundingBox();
+    assert.ok(spinner && spinnerWrap && label);
+    assert.ok(Math.abs(spinnerWrap.width - spinnerWrap.height) < 1, "spinner rotates inside a square box");
+    const arc = page.locator("#save [data-component~='ui-spinner'] svg .arc");
+    assert.equal(await arc.evaluate((element) => getComputedStyle(element).strokeLinecap), "round");
+    assert.equal(await arc.evaluate((element) => getComputedStyle(element).animationName), "ui-spinner-dash");
+    assert.ok(label.x - (spinnerWrap.x + spinnerWrap.width) >= 7, "loading spinner has space before the label");
     assert.equal(await page.evaluate(() => (window as unknown as { activations: number }).activations), 0);
     assert.equal(await page.evaluate(() => location.hash), "");
     await page.close();
   });
 
-  it("reactivates when a Vue consumer clears pending", async () => {
-    const path = await bundle("vue-pending-actions", `
+  it("reactivates when a Vue consumer clears loading", async () => {
+    const path = await bundle("vue-loading-actions", `
       import { createApp, h, ref } from "vue";
       import { Button, IconButton } from "@threadlabs/looma/vue";
-      const pending = ref(true);
-      window.finish = () => { pending.value = false; };
+      const loading = ref(true);
+      window.finish = () => { loading.value = false; };
       createApp({ render: () => h("div", [
-        h(Button, { id: "save", pending: pending.value }, () => "Save"),
-        h(IconButton, { id: "more", label: "More", pending: pending.value }, () => h("svg", { viewBox: "0 0 24 24" })),
+        h(Button, { id: "save", loading: loading.value }, () => "Save"),
+        h(IconButton, { id: "more", label: "More", loading: loading.value }, () => h("svg", { viewBox: "0 0 24 24" })),
       ]) }).mount("#app");
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
@@ -934,6 +1579,33 @@ describe("Pending actions", () => {
     await page.locator("#more").click();
     assert.equal(await page.evaluate(() => (window as unknown as { activations: number }).activations), 2);
     assert.equal(await page.locator("#save").getAttribute("aria-disabled"), null);
+    await page.close();
+  });
+});
+
+describe("Disabled action appearance", () => {
+  it("uses a flat neutral palette instead of retaining active button tones", async () => {
+    const path = await bundle("html-disabled-actions", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-button id="active">Publish</ui-button>
+      <ui-button id="outline" disabled>Publish</ui-button>
+      <ui-button id="danger" variant="danger" disabled>Delete</ui-button>
+      <ui-icon-button id="icon" label="More" variant="outline" disabled><ui-icon name="ellipsis"></ui-icon></ui-icon-button>
+    `, [join(root, "tokens.css"), join(root, "theme-light.css")]);
+    const style = (id: string) => page.locator(`#${id}`).evaluate((element) => {
+      const css = getComputedStyle(element);
+      return { color: css.color, background: css.backgroundColor, border: css.borderTopColor, shadow: css.boxShadow };
+    });
+    const active = await style("active");
+    const outline = await style("outline");
+    const danger = await style("danger");
+    const icon = await style("icon");
+    assert.notEqual(outline.color, active.color);
+    assert.notEqual(outline.border, active.border);
+    assert.equal(outline.color, danger.color);
+    assert.equal(outline.background, danger.background);
+    assert.equal(icon.color, outline.color);
+    assert.equal(outline.shadow, "none");
     await page.close();
   });
 });
@@ -1035,6 +1707,40 @@ describe("Vue components", () => {
     await page.close();
   });
 
+  it("frames a multiline textarea and its bottom action in one accessible input group", async () => {
+    const path = await bundle("vue-multiline-input-group", `
+      import { createApp, h } from "vue";
+      import { Button, Textarea, InputGroup } from "@threadlabs/looma/vue";
+      createApp({ render: () => h("form", { id: "form" }, [
+        h(InputGroup, { id: "multiline", multiline: true }, {
+          default: () => h(Textarea, { id: "message", name: "message", rows: 3, value: "A draft", "aria-label": "Message" }),
+          suffix: () => "Plain text",
+          action: () => h(Button, { id: "send", type: "submit" }, () => "Send"),
+        }),
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")], { viewport: { width: 375, height: 812 } });
+    await page.addStyleTag({ content: "* { transition: none !important; }" });
+    const group = page.locator("#multiline"), textarea = page.getByRole("textbox", { name: "Message" });
+    assert.equal(await textarea.evaluate(element => getComputedStyle(element).borderTopWidth), "0px", "the textarea shares the outer frame");
+    const frame = (await group.boundingBox())!, field = (await textarea.boundingBox())!, action = (await page.locator("#send").boundingBox())!;
+    assert.ok(action.y >= field.y + field.height, "the action sits below the text");
+    assert.ok(action.x >= frame.x && action.x + action.width <= frame.x + frame.width, "the action stays inside the frame");
+    await group.locator(".action").click({ position: { x: 2, y: 2 } });
+    assert.equal(await textarea.evaluate(element => element === document.activeElement), true, "a press around the action focuses the textarea");
+    const focusShadow = await group.evaluate(element => getComputedStyle(element).boxShadow);
+    assert.notEqual(focusShadow, "none");
+    await textarea.evaluate(element => element.setAttribute("aria-invalid", "true"));
+    assert.notEqual(await group.evaluate(element => getComputedStyle(element).boxShadow), focusShadow, "invalid focus reaches the frame");
+    await page.emulateMedia({ forcedColors: "active" });
+    assert.equal(await group.evaluate(element => getComputedStyle(element).outlineStyle), "solid");
+    await page.emulateMedia({ forcedColors: "none" });
+    await textarea.evaluate(element => { element.removeAttribute("aria-invalid"); (element as HTMLTextAreaElement).disabled = true; });
+    assert.equal(await group.evaluate(element => getComputedStyle(element).cursor), "not-allowed");
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
+    await page.close();
+  });
+
   it("put an input group's action at its end, inside its border, at the field's height", async () => {
     const path = await bundle("vue-input-group-action", `
       import { createApp, h } from "vue";
@@ -1107,7 +1813,7 @@ describe("Vue components", () => {
       createApp({
         render: () => h(Stack, { gap: "s" }, () => [
           h(Button, { id: "save", variant: "solid", class: "consumer" }, () => "Save"),
-          h(Checkbox, { id: "agree", checked: checked.value, onChange: (detail) => changes.push(detail) }, () => "Agree"),
+          h(Checkbox, { id: "agree", checked: checked.value, onChange: (event) => changes.push(event.detail) }, () => "Agree"),
           h(Tabs, { id: "tabs", label: "Views" }, () => [
             h("section", { "aria-label": "One" }, "First"),
             h("section", { "aria-label": "Two" }, "Second"),
@@ -1130,7 +1836,7 @@ describe("Vue components", () => {
     // The state's tokens, not their order: the order follows how the adapter applied them.
     assert.deepEqual(
       (await button.getAttribute("data-ui-button-state"))?.split(" ").toSorted(),
-      ["align", "align=center", "size", "size=md", "tone", "tone=accent", "variant", "variant=solid"]
+      ["align", "align=center", "shape", "shape=rounded", "size", "size=md", "tone", "tone=accent", "variant", "variant=solid"]
     );
     assert.notEqual(await button.evaluate((element) => getComputedStyle(element).backgroundColor), "rgba(0, 0, 0, 0)");
     assert.equal(await page.evaluate(() => "HtmlRuntime" in window), false);
@@ -1399,7 +2105,7 @@ describe("Badge colour", () => {
     const tone = await paint("#tone"), coloured = await paint("#coloured");
     assert.notEqual(coloured.surface, tone.surface, "the colour replaces the tone's surface");
     assert.notEqual(coloured.text, tone.text, "the colour replaces the tone's text");
-    assert.equal(coloured.border, coloured.surface, "a coloured badge's edge is its fill, as a tone's is");
+    assert.notEqual(coloured.border, coloured.surface, "a coloured subtle badge has a stronger edge than its fill");
     assert.deepEqual(await paint("#explicit"), { surface: "rgb(1, 2, 3)", text: "rgb(4, 5, 6)", border: "rgb(7, 8, 9)" });
     assert.deepEqual(await paint("#nested"), await paint("#neutral"), "the hook styles only the badge it is set on");
 
@@ -1438,10 +2144,12 @@ describe("Badge box", () => {
   const tones = ["neutral", "accent", "info", "success", "warning", "danger"];
   const variants = ["subtle", "solid"];
 
-  // Sizes to its label in a plain block (a table cell), as in a flex row; each variant's edge is its
-  // fill in every tone, and forced colors draw that edge in every tone.
+  // Sizes to its label in a plain block (a table cell), as in a flex row. Subtle variants have a
+  // distinct edge; solid variants carry their fill to the edge. Forced colors draw every edge.
   async function checkBadges(page: Page) {
     await page.waitForSelector('#flex [data-component~="ui-badge"]');
+    const compact = await page.locator('#compact [data-component~="ui-badge"]').boundingBox();
+    assert.ok(compact && compact.height <= 18 && compact.width <= 18, `compact count badge is ${JSON.stringify(compact)}`);
     const width = (selector: string) => page.locator(selector).evaluate((element) => element.getBoundingClientRect().width);
     const sizes = async () => {
       const block = await width('#block [data-component~="ui-badge"]');
@@ -1455,11 +2163,15 @@ describe("Badge box", () => {
 
     const edges = () => page.locator('#tones [data-component~="ui-badge"]').evaluateAll((elements) => elements.map((element) => {
       const style = getComputedStyle(element);
-      return { badge: element.getAttribute("data-ui-badge-state") ?? element.outerHTML, border: style.borderTopColor, surface: style.backgroundColor };
+      const badge = element.getAttribute("data-ui-badge-state") ?? element.outerHTML;
+      return { badge, border: style.borderTopColor, surface: style.backgroundColor };
     }));
     const drawn = await edges();
     assert.equal(drawn.length, tones.length * variants.length);
-    for (const { badge, border, surface } of drawn) assert.equal(border, surface, `${badge} has an edge of its own`);
+    for (const { badge, border, surface } of drawn) {
+      if (badge.includes("variant=subtle") || badge.includes("tone=neutral")) assert.notEqual(border, surface, `${badge} has a defined edge`);
+      else assert.equal(border, surface, `${badge} carries its solid fill to the edge`);
+    }
 
     await page.emulateMedia({ forcedColors: "active" });
     for (const { badge, border, surface } of await edges()) {
@@ -1485,24 +2197,26 @@ describe("Badge box", () => {
   }
 
   const body = (badge: (attributes: string, label: string) => string) => `
+    <div id="compact">${badge('size="xs" variant="solid" tone="warning"', "1")}</div>
     <div id="block" style="width: 400px">${badge("", "Open")}</div>
     <div id="flex" style="display: flex; width: 400px">${badge("", "Open")}</div>
     <div id="narrow" style="width: 60px">${badge("", "A label longer than its container")}</div>
     <div id="tones">${variants.flatMap((variant) => tones.map((tone) => badge(`variant="${variant}" tone="${tone}"`, tone))).join("")}</div>`;
 
-  it("sizes to its label and draws the same edge in every tone, in HTML", async () => {
+  it("sizes to its label and shades subtle edges in every tone, in HTML", async () => {
     const path = await bundle("html-badge-box", `import "@threadlabs/looma";`);
     const page = await open(path, body((attributes, label) => `<ui-badge ${attributes}>${label}</ui-badge>`), [join(root, "tokens.css")]);
     await checkBadges(page);
     await page.close();
   });
 
-  it("sizes to its label and draws the same edge in every tone, in Vue", async () => {
+  it("sizes to its label and shades subtle edges in every tone, in Vue", async () => {
     const path = await bundle("vue-badge-box", `
       import { createApp, h } from "vue";
       import { Badge } from "@threadlabs/looma/vue";
       const tones = ${JSON.stringify(tones)}, variants = ${JSON.stringify(variants)};
       createApp({ render: () => [
+        h("div", { id: "compact" }, [h(Badge, { size: "xs", variant: "solid", tone: "warning" }, () => "1")]),
         h("div", { id: "block", style: "width: 400px" }, [h(Badge, null, () => "Open")]),
         h("div", { id: "flex", style: "display: flex; width: 400px" }, [h(Badge, null, () => "Open")]),
         h("div", { id: "narrow", style: "width: 60px" }, [h(Badge, null, () => "A label longer than its container")]),
@@ -1520,7 +2234,21 @@ describe("Combobox validation message", () => {
     const path = await bundle("html-combobox-validation", `import "@threadlabs/looma";`);
     const page = await open(path, `<ui-combobox id="fruit" label="Fruit" required></ui-combobox>`, [join(root, "tokens.css")]);
     await page.waitForSelector('#fruit[data-component~="ui-combobox"]');
-    await page.evaluate(() => (document.querySelector("#fruit") as unknown as { validate(): Promise<unknown> }).validate());
+    assert.equal(await page.locator('#fruit input[role="combobox"]').evaluate((input) => {
+      (input as HTMLInputElement).focus();
+      return input.ownerDocument.activeElement === input;
+    }), true);
+    const validation = await page.locator("#fruit").evaluate((element) => new Promise<{ status: string }>((resolve) => {
+      const onValidation = (event: Event) => {
+        const detail = (event as CustomEvent<{ status: string }>).detail;
+        if (detail.status === "pending") return;
+        element.removeEventListener("validation-change", onValidation);
+        resolve(detail);
+      };
+      element.addEventListener("validation-change", onValidation);
+      element.dispatchEvent(new CommandEvent("command", { command: "--validate" }));
+    }));
+    assert.equal(validation.status, "error");
     const message = page.locator("#fruit [id$=\"-validation\"]");
     await message.waitFor({ state: "visible" });
     assert.match((await message.textContent()) ?? "", /A value is required/);
@@ -1686,6 +2414,109 @@ describe("Input group", () => {
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
     await checkGroup(page);
+    await page.close();
+  });
+});
+
+describe("Multiline input group behavior", () => {
+  for (const adapter of ["HTML", "Vue"] as const) {
+    it(`reserves textarea text space for a top-end action in ${adapter}, including changing labels at narrow widths`, async () => {
+      const source = adapter === "HTML" ? `import "@threadlabs/looma";` : `
+        import { createApp, h, ref } from "vue";
+        import { Button, InputGroup, Textarea } from "@threadlabs/looma/vue";
+        const pending = ref(false);
+        window.setPending = value => { pending.value = value; };
+        createApp({ render: () => h(InputGroup, { id: "group", multiline: true, actionPosition: "top-end" }, {
+          default: () => h(Textarea, { id: "message", rows: 4, "aria-label": "Message" }),
+          action: () => h(Button, { id: "send", pending: pending.value }, () => "Send"),
+        }) }).mount("#app");`;
+      const path = await bundle(`top-end-${adapter}`, source);
+      const page = await open(path, adapter === "HTML" ? `
+        <ui-input-group id="group" multiline action-position="top-end">
+          <ui-textarea id="message" rows="4" aria-label="Message"></ui-textarea>
+          <ui-button id="send" slot="action">Send</ui-button>
+        </ui-input-group>` : `<div id="app"></div>`, adapter === "HTML" ? [join(root, "tokens.css")] : [join(root, "tokens.css"), join(root, "vue/components.css")]);
+      const field = page.getByRole("textbox", { name: "Message" }), send = page.locator("#send");
+      for (const width of [800, 375, 240]) {
+        await page.setViewportSize({ width, height: 812 });
+        await field.fill("A long first line that must wrap before it reaches the action.\nAnother line.");
+        for (const label of ["Send", "Send message", "En cours…"]) {
+          await send.evaluate((element, text) => { element.textContent = text; }, label);
+          await page.waitForTimeout(50);
+          const textBox = (await field.boundingBox())!, action = (await send.boundingBox())!;
+          assert.ok(action.y >= textBox.y && action.y < textBox.y + 16, "action is inside the textarea at its top");
+          assert.ok(action.x >= textBox.x && action.x + action.width <= textBox.x + textBox.width, "action is inside its right edge");
+          const padding = await field.evaluate(element => parseFloat(getComputedStyle(element).paddingRight));
+          assert.ok(textBox.x + textBox.width - padding < action.x, "textarea text ends before the action");
+          assert.ok(action.y + action.height < textBox.y + textBox.height - 16, "native bottom-right resize grip remains clear");
+          assert.equal(await field.evaluate(element => getComputedStyle(element).resize), "vertical");
+          assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+        }
+      }
+      await page.evaluate(native => {
+        if (native) document.querySelector("#send")!.setAttribute("pending", "");
+        else (window as unknown as { setPending: (value: boolean) => void }).setPending(true);
+      }, adapter === "HTML");
+      await page.waitForTimeout(50);
+      const pendingField = (await field.boundingBox())!, pendingAction = (await send.boundingBox())!;
+      const pendingPadding = await field.evaluate(element => parseFloat(getComputedStyle(element).paddingRight));
+      assert.ok(pendingField.x + pendingField.width - pendingPadding < pendingAction.x, "actual pending indicator has reserved space");
+      await page.locator("#group").evaluate(element => element.setAttribute("dir", "rtl"));
+      await page.waitForTimeout(50);
+      const rtlField = (await field.boundingBox())!, rtlAction = (await send.boundingBox())!;
+      const rtlPadding = await field.evaluate(element => parseFloat(getComputedStyle(element).paddingLeft));
+      assert.ok(rtlField.x + rtlPadding > rtlAction.x + rtlAction.width, "logical end padding follows RTL placement");
+      await page.locator("#group .action").evaluate(element => element.remove());
+      await page.waitForTimeout(50);
+      assert.ok(await field.evaluate(element => parseFloat(getComputedStyle(element).paddingLeft)) < 20, "removing the action restores normal text space");
+      await field.focus();
+      assert.notEqual(await page.locator("#group").evaluate(element => getComputedStyle(element).boxShadow), "none");
+      await page.close();
+    });
+  }
+
+  it("shares frame, labeling and native form behavior for a multiline HTML textarea at 375px", async () => {
+    const path = await bundle("html-multiline-input-group", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <form id="form">
+        <label for="message">Message</label>
+        <ui-input-group id="multiline" multiline>
+          <ui-textarea id="message" name="message" rows="3" value="A draft"></ui-textarea>
+          <span slot="suffix">Plain text</span>
+          <ui-button id="send" slot="action" type="submit">Send</ui-button>
+        </ui-input-group>
+      </form>
+      <ui-textarea id="standalone" aria-label="Standalone"></ui-textarea>
+    `, [join(root, "tokens.css")], { viewport: { width: 375, height: 812 } });
+    await page.addStyleTag({ content: "* { transition: none !important; }" });
+    const group = page.locator("#multiline"), textarea = page.getByRole("textbox", { name: "Message" });
+    assert.equal(await textarea.evaluate(element => getComputedStyle(element).borderTopWidth), "0px");
+    assert.notEqual(await page.getByRole("textbox", { name: "Standalone" }).evaluate(element => getComputedStyle(element).borderTopWidth), "0px", "standalone textarea framing is unchanged");
+    const frame = (await group.boundingBox())!, field = (await textarea.boundingBox())!, action = (await page.locator("#send").boundingBox())!;
+    assert.ok(action.y >= field.y + field.height);
+    assert.ok(action.x >= frame.x && action.x + action.width <= frame.x + frame.width);
+    await group.locator(".action").click({ position: { x: 2, y: 2 } });
+    assert.equal(await textarea.evaluate(element => element === document.activeElement), true);
+    assert.match(await textarea.getAttribute("aria-describedby") ?? "", /affix/);
+    const focusShadow = await group.evaluate(element => getComputedStyle(element).boxShadow);
+    assert.notEqual(focusShadow, "none");
+    await textarea.fill("First line\nSecond line");
+    assert.equal(await page.locator("#form").evaluate(element => new FormData(element as HTMLFormElement).get("message")), "First line\nSecond line");
+    await page.locator("#form").evaluate(element => {
+      element.addEventListener("submit", event => { event.preventDefault(); element.setAttribute("data-submitted", "true"); });
+    });
+    await page.getByRole("button", { name: "Send", exact: true }).click();
+    assert.equal(await page.locator("#form").getAttribute("data-submitted"), "true");
+    await textarea.focus();
+    await textarea.evaluate(element => element.setAttribute("aria-invalid", "true"));
+    assert.notEqual(await group.evaluate(element => getComputedStyle(element).boxShadow), focusShadow);
+    await page.emulateMedia({ forcedColors: "active" });
+    assert.equal(await group.evaluate(element => getComputedStyle(element).outlineStyle), "solid");
+    await page.emulateMedia({ forcedColors: "none" });
+    await textarea.evaluate(element => { element.removeAttribute("aria-invalid"); (element as HTMLTextAreaElement).disabled = true; });
+    assert.equal(await group.evaluate(element => getComputedStyle(element).cursor), "not-allowed");
+    assert.equal(await page.locator("#form").evaluate(element => new FormData(element as HTMLFormElement).has("message")), false);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true);
     await page.close();
   });
 });
@@ -1948,20 +2779,22 @@ describe("Input group behavior", () => {
 
 
 describe("Button touch target", () => {
-  it("takes a press within the control minimum under touch, link-style included", async () => {
+  it("takes a press within the control minimum under touch, link-style and xs included", async () => {
     const path = await bundle("html-button-touch", `import "@threadlabs/looma";`);
-    const page = await open(path, `<div style="padding: 80px"><ui-button id="see-all" variant="link" size="sm">See all activity</ui-button><ui-button id="boxed" variant="outline" size="sm">Tag</ui-button></div>`, [join(root, "tokens.css")]);
+    const page = await open(path, `<div style="padding: 80px"><ui-button id="see-all" variant="link" size="sm">See all activity</ui-button><ui-button id="boxed" variant="outline" size="sm">Tag</ui-button><p style="margin-top: 80px">Looked after by <ui-button id="pill" variant="ghost" size="xs" shape="pill">Grace</ui-button></p></div>`, [join(root, "tokens.css")]);
     await page.waitForSelector('#see-all[data-component~="ui-button"]');
     await page.evaluate(() => document.documentElement.setAttribute("data-ui-input-modality", "touch"));
-    const reaches = await page.locator("#see-all").evaluate((element) => {
-      const rect = element.getBoundingClientRect();
-      const x = rect.x + rect.width / 2;
-      const y = rect.y + rect.height / 2;
-      const lands = (dy: number) => { const hit = document.elementFromPoint(x, y + dy); return Boolean(hit && (hit === element || element.contains(hit))); };
-      return { height: rect.height, above: lands(-21), below: lands(21) };
-    });
-    assert.ok(reaches.height < 44, "the button itself stays small");
-    assert.deepEqual({ above: reaches.above, below: reaches.below }, { above: true, below: true });
+    for (const id of ["#see-all", "#pill"]) {
+      const reaches = await page.locator(id).evaluate((element) => {
+        const rect = element.getBoundingClientRect();
+        const x = rect.x + rect.width / 2;
+        const y = rect.y + rect.height / 2;
+        const lands = (dy: number) => { const hit = document.elementFromPoint(x, y + dy); return Boolean(hit && (hit === element || element.contains(hit))); };
+        return { height: rect.height, above: lands(-21), below: lands(21) };
+      });
+      assert.ok(reaches.height < 44, `${id} itself stays small`);
+      assert.deepEqual({ above: reaches.above, below: reaches.below }, { above: true, below: true }, `${id} takes a press within the touch minimum`);
+    }
     // A boxed button gets no hit area, so it cannot reach over a neighbour.
     assert.equal(await page.locator("#boxed").evaluate((element) => getComputedStyle(element, "::after").content), "none");
     await page.close();
@@ -2326,7 +3159,8 @@ describe("View primitives", () => {
     // Loading is a polite status with a spinner; an error is an alert.
     assert.equal(await page.locator("#loading").getAttribute("role"), "status");
     assert.equal(await page.locator("#failed").getAttribute("role"), "alert");
-    assert.equal(await page.locator("#loading svg").count() > 0, true);
+    assert.equal(await page.locator("#loading [data-component~='ui-spinner'] svg .track").count(), 1);
+    assert.equal(await page.locator("#loading [data-component~='ui-spinner'] svg .arc").count(), 1);
     // A trail is a navigation landmark of an ordered list; the current step is marked; the first
     // step has no separator before it.
     assert.equal(await page.getByRole("navigation", { name: "Breadcrumb" }).count(), 1);
@@ -2442,7 +3276,7 @@ describe("Action bar", () => {
     const page = await open(path, `
       ${bars.map(({ id, style, dir }) => `<div style="${style}"${dir ? ` dir="${dir}"` : ""}>${bar(id)}</div>`).join("")}
       <div style="width: 600px"><ui-action-bar id="solo"><ui-button id="solo-p" slot="primary">Save</ui-button></ui-action-bar></div>
-      <ui-dialog id="dialog" open modeless label="Unsaved changes">Body${bar("dialog").replace("<ui-action-bar", '<ui-action-bar slot="actions"')}</ui-dialog>`,
+      <ui-dialog id="dialog" open label="Unsaved changes">Body${bar("dialog").replace("<ui-action-bar", '<ui-action-bar slot="actions"')}</ui-dialog>`,
     [join(root, "tokens.css")]);
     await checkActionBar(page);
     await page.close();
@@ -2460,7 +3294,7 @@ describe("Action bar", () => {
       createApp({ render: () => [
         ...${JSON.stringify(bars)}.map(({ id, style, dir }) => h("div", { style, dir }, [bar(id)])),
         h("div", { style: "width: 600px" }, [h(ActionBar, { id: "solo" }, { primary: () => h(Button, { id: "solo-p" }, () => "Save") })]),
-        h(Dialog, { id: "dialog", open: true, modeless: true, label: "Unsaved changes" }, { default: () => "Body", actions: () => bar("dialog") }),
+        h(Dialog, { id: "dialog", open: true, label: "Unsaved changes" }, { default: () => "Body", actions: () => bar("dialog") }),
       ] }).mount("#app");
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
@@ -2542,6 +3376,200 @@ describe("List item", () => {
   });
 });
 
+describe("Square icon badges", () => {
+  it("centres equal-size heading marks in HTML and Vue and follows shared radius and spacing", async () => {
+    for (const framework of ["html", "vue"]) {
+      const path = await bundle(`${framework}-square-badges`, framework === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Badge, Icon } from "@threadlabs/looma/vue";
+        createApp({ render: () => [
+          h(Badge, { id: "square", shape: "square", tone: "success", "aria-hidden": "true" }, () => h(Icon, { name: "bell" })),
+          h(Badge, { id: "small", shape: "square", size: "xs", tone: "accent", "aria-hidden": "true" }, () => h(Icon, { name: "bell" })),
+          h(Badge, { id: "pill" }, () => "Published"),
+        ] }).mount("#app");
+      `);
+      const body = framework === "vue" ? `<div id="app"></div>` : `
+        <ui-badge id="square" shape="square" tone="success" aria-hidden="true"><ui-icon name="bell"></ui-icon></ui-badge>
+        <ui-badge id="small" shape="square" size="xs" tone="accent" aria-hidden="true"><ui-icon name="bell"></ui-icon></ui-badge>
+        <ui-badge id="pill">Published</ui-badge>`;
+      const page = await open(path, body, [join(root, "tokens.css"), join(root, "vue/components.css")], { viewport: { width: 375, height: 812 } });
+      await page.waitForSelector('#square[data-component~="ui-badge"]');
+      for (const [id, size] of [["square", 32], ["small", 24]] as const) {
+        const box = await page.locator(`#${id}`).boundingBox();
+        const icon = await page.locator(`#${id} svg`).boundingBox();
+        assert.ok(box && icon && box.width === size && box.height === size, `${framework} ${id} is a square`);
+        assert.ok(Math.abs(box.x + box.width / 2 - icon.x - icon.width / 2) < 1);
+        assert.ok(Math.abs(box.y + box.height / 2 - icon.y - icon.height / 2) < 1);
+        assert.equal(await page.locator(`#${id}`).getAttribute("aria-hidden"), "true");
+      }
+      assert.equal(await page.locator('#square').evaluate(el => getComputedStyle(el).borderRadius), '8px');
+      assert.notEqual(await page.locator('#square').evaluate(el => getComputedStyle(el).backgroundColor), await page.locator('#pill').evaluate(el => getComputedStyle(el).backgroundColor));
+      assert.ok((await page.locator('#pill').boundingBox())!.width > 32, "ordinary badges still fit their text");
+      await page.locator('body').evaluate(el => { el.style.setProperty('--ui-radius-md', '3px'); el.style.setProperty('--ui-space-4', '20px'); });
+      assert.equal((await page.locator('#square').boundingBox())!.width, 40);
+      assert.equal(await page.locator('#square').evaluate(el => getComputedStyle(el).borderRadius), '3px');
+      await page.locator('#square').evaluate(el => { (el as HTMLElement).style.setProperty('--ui-badge-square-size', '36px'); });
+      assert.equal((await page.locator('#square').boundingBox())!.height, 36);
+      await page.emulateMedia({ forcedColors: 'active' });
+      assert.equal(await page.locator('#square').evaluate(el => getComputedStyle(el).forcedColorAdjust), 'auto');
+      await page.close();
+    }
+  });
+});
+
+describe("Quiet attention presentation", () => {
+  it("uses the same highlighted rows and accessible dot geometry in HTML and Vue", async () => {
+    for (const framework of ["html", "vue"]) {
+      const path = await bundle(`${framework}-quiet-attention`, framework === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Badge, List, ListItem } from "@threadlabs/looma/vue";
+        createApp({ render: () => h("div", [
+          h(List, () => [
+            h(ListItem, { id: "plain" }, () => h("a", { href: "#plain" }, "Earlier message")),
+            h(ListItem, { id: "new-one", highlighted: true }, () => h("a", { href: "#one" }, "New message")),
+            h(ListItem, { id: "new-two", highlighted: true }, () => h("a", { href: "#two" }, "Another new message")),
+          ]),
+          h(Badge, { id: "new-dot", shape: "dot", tone: "accent", variant: "solid" }, () => "New messages"),
+          h(Badge, { id: "pending-dot", shape: "dot", tone: "warning" }, () => "Waiting for your reply"),
+        ]) }).mount("#app");
+      `);
+      const body = framework === "vue" ? `<div id="app"></div>` : `
+        <ui-list>
+          <ui-list-item id="plain"><a href="#plain">Earlier message</a></ui-list-item>
+          <ui-list-item id="new-one" highlighted><a href="#one">New message</a></ui-list-item>
+          <ui-list-item id="new-two" highlighted><a href="#two">Another new message</a></ui-list-item>
+        </ui-list>
+        <ui-badge id="new-dot" shape="dot" tone="accent" variant="solid">New messages</ui-badge>
+        <ui-badge id="pending-dot" shape="dot" tone="warning">Waiting for your reply</ui-badge>`;
+      const page = await open(path, body, [join(root, "tokens.css"), join(root, "vue/components.css")], { viewport: { width: 375, height: 812 } });
+      await page.waitForSelector('#new-one[data-component~="ui-list-item"]');
+      const style = (selector: string, property: string) => page.locator(selector).evaluate((element, name) => getComputedStyle(element).getPropertyValue(name), property);
+      assert.notEqual(await style("#new-one", "background-color"), await style("#plain", "background-color"));
+      assert.equal(await style("#new-one", "color"), await style("#plain", "color"));
+      assert.equal(await style("#new-one .title", "font-weight"), await style("#plain .title", "font-weight"));
+      for (const selector of ["#new-one", "#new-two"]) {
+        assert.notEqual(await page.locator(selector).getAttribute("aria-current"), "true");
+        assert.equal(await page.locator(selector).getAttribute("aria-selected"), null);
+      }
+      for (const selector of ["#new-dot", "#pending-dot"]) {
+        const box = await page.locator(selector).boundingBox();
+        assert.ok(box && box.width === box.height && box.width <= 10, "a signal stays a small circle regardless of its label");
+        assert.ok((await page.locator(selector).ariaSnapshot()).includes(selector === "#new-dot" ? "New messages" : "Waiting for your reply"));
+      }
+      assert.notEqual(await style("#new-dot", "background-color"), await style("#pending-dot", "background-color"));
+      await page.locator("#new-one a").focus();
+      await page.keyboard.press("Enter");
+      assert.equal(await page.evaluate(() => location.hash), "#one");
+      // Both options follow their existing theme owner, without changing text or action geometry.
+      await page.locator("body").evaluate(element => {
+        element.style.setProperty("--ui-selection-surface", "rgb(245, 240, 255)");
+      });
+      await page.waitForFunction(() => getComputedStyle(document.querySelector("#new-one")!).backgroundColor === "rgb(245, 240, 255)");
+      assert.equal(await style("#new-one", "background-color"), "rgb(245, 240, 255)");
+      await page.emulateMedia({ forcedColors: "active" });
+      assert.equal(await style("#pending-dot", "forced-color-adjust"), "none");
+      await page.close();
+    }
+  });
+});
+
+describe("Readable explanatory lists", () => {
+  it("wraps full titles and descriptions at 375px in HTML and Vue", async () => {
+    const title = "A person asked you to review the updated account recovery guide";
+    const description = "Check the recovery steps, device checks, and the contact details before continuing.";
+    for (const framework of ["html", "vue"] as const) {
+      const path = await bundle(`${framework}-wrapped-list`, framework === "html" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { List, ListItem, Button, Icon, IconButton } from "@threadlabs/looma/vue";
+        createApp({ render: () => [
+          h(IconButton, { id: "bell", label: "Notifications" }, () => h(Icon, { name: "bell" })),
+          h(List, {}, () => [
+            h(ListItem, { id: "wrapped", wrap: true }, { default: () => ${JSON.stringify(title)}, description: () => ${JSON.stringify(description)}, trailing: () => h(Button, { size: "sm" }, () => "Review") }),
+            h(ListItem, { id: "ordinary" }, () => ${JSON.stringify(title)}),
+          ]),
+        ] }).mount("#app");
+      `);
+      const page = await open(path, framework === "vue" ? '<div id="app"></div>' : `
+        <ui-icon-button id="bell" label="Notifications"><ui-icon name="bell"></ui-icon></ui-icon-button>
+        <ui-list>
+          <ui-list-item id="wrapped" wrap>${title}<span slot="description">${description}</span><ui-button slot="trailing" size="sm">Review</ui-button></ui-list-item>
+          <ui-list-item id="ordinary">${title}</ui-list-item>
+        </ui-list>
+      `, [join(root, "tokens.css"), join(root, "vue/components.css")], { viewport: { width: 375, height: 812 } });
+      const geometry = await page.evaluate(() => {
+        const title = document.querySelector("#wrapped .title")! as HTMLElement;
+        const description = document.querySelector("#wrapped .description")! as HTMLElement;
+        const ordinary = document.querySelector("#ordinary .title")!;
+        return { title: { wrap: getComputedStyle(title).whiteSpace, height: title.clientHeight, scroll: title.scrollWidth, width: title.clientWidth },
+          description: { wrap: getComputedStyle(description).whiteSpace, height: description.clientHeight, scroll: description.scrollWidth, width: description.clientWidth },
+          ordinary: getComputedStyle(ordinary).whiteSpace, width: document.documentElement.scrollWidth,
+          icon: document.querySelectorAll("#bell svg path").length };
+      });
+      assert.equal(geometry.ordinary, "nowrap");
+      for (const text of [geometry.title, geometry.description]) {
+        assert.equal(text.wrap, "normal");
+        assert.ok(text.height > 24, `${framework}: explanatory text has multiple visible lines`);
+        assert.ok(text.scroll <= text.width, `${framework}: full text fits without horizontal clipping`);
+      }
+      assert.ok(geometry.width <= 375);
+      assert.ok(geometry.icon > 0);
+      await page.close();
+    }
+  });
+});
+
+describe("Shared visual geometry", () => {
+  it("themes border, accent, focus, and row corners through global semantic dimensions", async () => {
+    const path = await bundle("html-global-visual-geometry", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <div id="theme" style="--ui-border-width:3px;--ui-accent-line-width:5px;--ui-focus-width:4px;--ui-selection-radius:13px;--ui-selection-surface:rgb(245,240,255);--ui-selection-text:rgb(81,50,140)">
+        <ui-button id="action" variant="outline">Save</ui-button>
+        <ui-input id="field" aria-label="Name"></ui-input>
+        <ui-separator id="divider"></ui-separator>
+        <ui-disclosure id="disclosure" summary="Details">Body</ui-disclosure>
+        <ui-card id="card" tone="danger">Notice</ui-card>
+        <ui-callout id="callout">Note</ui-callout>
+        <ui-nav-item id="nav" current="page">Overview</ui-nav-item>
+        <ui-nav-item id="line-nav" variant="line" current="page">Reports</ui-nav-item>
+        <ui-tree label="Documents"><ui-tree-item id="tree-row" selected label="Guide"></ui-tree-item></ui-tree>
+        <ui-list><ui-list-item id="list-row" current><a href="#guide">Guide</a></ui-list-item></ui-list>
+        <ui-search-result-row id="search-row" selected><span slot="title">Guide</span></ui-search-result-row>
+        <ui-listbox id="choices"><option selected>Guide</option><option>Notes</option></ui-listbox>
+        <div class="looma-editor"><div class="ProseMirror"><blockquote id="quote">Quote</blockquote><aside id="editor-callout" data-looma-callout data-tone="info">Note</aside></div></div>
+      </div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const css = (selector: string, property: string) => page.locator(selector).evaluate((el, p) => getComputedStyle(el).getPropertyValue(p), property);
+    for (const selector of ["#action", "#field", "#card", "#callout", "#editor-callout"]) {
+      assert.equal(await css(selector, "border-top-width"), "3px", `${selector} follows ordinary border width`);
+    }
+    assert.equal(await css("#divider", "border-top-width"), "3px");
+    assert.equal(await css("#disclosure", "border-bottom-width"), "3px");
+    for (const selector of ["#card", "#callout", "#editor-callout", "#quote"]) {
+      assert.equal(await css(selector, "border-inline-start-width"), "5px", `${selector} follows accent-line width`);
+    }
+    assert.equal(await css("#line-nav .indicator", "border-inline-start-width"), "5px");
+    for (const selector of ["#nav", "#tree-row > .row", "#list-row", "#search-row", '#choices [role="option"][aria-selected="true"]']) {
+      assert.equal(await css(selector, "border-top-left-radius"), "13px", `${selector} follows row corners`);
+      assert.equal(await css(selector, "background-color"), "rgb(245, 240, 255)", `${selector} follows selected surface`);
+      assert.equal(await css(selector, "color"), "rgb(81, 50, 140)", `${selector} follows selected text`);
+    }
+    await page.keyboard.press("Tab");
+    await page.locator("#nav").focus();
+    assert.equal(await css("#nav", "outline-width"), "4px", "keyboard focus has its own semantic weight");
+    assert.equal(await css("#nav", "outline-offset"), "-4px", "the ring remains inside the row at any configured width");
+    // Theme values remain live, rather than being copied into component declarations.
+    await page.locator("#theme").evaluate(el => (el as HTMLElement).style.setProperty("--ui-selection-radius", "7px"));
+    assert.equal(await css("#nav", "border-top-left-radius"), "7px");
+    assert.equal(await css("#tree-row > .row", "border-top-left-radius"), "7px");
+    await page.emulateMedia({ forcedColors: "active" });
+    for (const [target, surface] of [["#tree-row", "#tree-row > .row"], ["#list-row a", "#list-row"]]) {
+      await page.locator(target).focus();
+      assert.equal(await css(surface, "outline-width"), "4px", "forced colors keep the independent keyboard-focus weight");
+      assert.equal(await css(surface, "outline-style"), "solid");
+    }
+    await page.close();
+  });
+});
+
 describe("Nav item", () => {
   const longDescription = "A description long enough that it cannot fit on one line of a narrow rail and must end in an ellipsis";
 
@@ -2554,6 +3582,56 @@ describe("Nav item", () => {
     return computed;
   }, color);
 
+  it("shares configurable selection colors between compact navigation and tree rows", async () => {
+    const path = await bundle("html-shared-navigation-selection", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <div style="--ui-selection-surface:rgb(230,220,255);--ui-selection-text:rgb(81,50,140);width:240px">
+        <ui-nav-item id="compact-nav" density="compact" current="page" as="a" href="#overview">Overview</ui-nav-item>
+        <ui-nav-item id="plain-nav" density="compact" as="a" href="#activity">Activity</ui-nav-item>
+        <ui-tree density="compact" label="Documents">
+          <ui-tree-item id="selected-tree" selected label="Guide"><ui-icon slot="leading" name="file-text" aria-hidden="true"></ui-icon></ui-tree-item>
+          <ui-tree-item id="colored-tree" selected label="Reference"><ui-icon slot="leading" name="file-text" aria-hidden="true" style="color:rgb(180,60,40)"></ui-icon></ui-tree-item>
+          <ui-tree-item id="plain-tree" label="Notes"></ui-tree-item>
+        </ui-tree>
+      </div>`, [join(root, "tokens.css")], { reducedMotion: "reduce" });
+    const look = (selector: string) => page.locator(selector).evaluate(el => {
+      const s = getComputedStyle(el);
+      return { surface: s.backgroundColor, text: s.color, size: s.fontSize, height: el.getBoundingClientRect().height };
+    });
+    const nav = await look("#compact-nav");
+    const tree = await look("#selected-tree > .row");
+    assert.equal(nav.surface, "rgb(230, 220, 255)");
+    assert.equal(tree.surface, nav.surface);
+    assert.equal(tree.text, nav.text);
+    assert.equal(nav.text, "rgb(81, 50, 140)");
+    assert.equal((await look("#compact-nav .label")).size, tree.size);
+    assert.equal(nav.height, tree.height);
+    assert.notEqual((await look("#plain-nav")).surface, nav.surface);
+    assert.notEqual((await look("#plain-tree > .row")).surface, tree.surface);
+    assert.equal(await page.locator("#selected-tree .leading svg").evaluate(el => getComputedStyle(el).color), nav.text);
+    assert.equal(await page.locator("#colored-tree .leading svg").evaluate(el => getComputedStyle(el).color), "rgb(180, 60, 40)");
+    await page.close();
+  });
+
+  it("separates rounded surface selection from straight continuous line selection", async () => {
+    const path = await bundle("html-navigation-selection-geometry", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <div style="--ui-accent-line-width:5px;--ui-selection-radius:13px">
+        <ui-nav-item id="surface" current="page">Overview</ui-nav-item>
+        <ui-nav-item id="line" variant="line" current="page">Reports</ui-nav-item>
+      </div>`, [join(root, "tokens.css")]);
+    await page.waitForSelector('#surface[data-component~="ui-nav-item"]');
+    assert.equal(await page.locator("#surface .indicator").isVisible(), false, "rounded surface selection has no edge stripe");
+    assert.equal(await page.locator("#surface").evaluate(el => getComputedStyle(el).borderRadius), "13px");
+    assert.equal(await page.locator("#line").evaluate(el => getComputedStyle(el).borderRadius), "0px");
+    const row = (await page.locator("#line").boundingBox())!;
+    const marker = (await page.locator("#line .indicator").boundingBox())!;
+    assert.equal(marker.width, 5);
+    assert.equal(marker.y, row.y);
+    assert.equal(marker.height, row.height);
+    await page.close();
+  });
+
   async function checkNavItem(page: Page) {
     await page.locator("#page").waitFor();
     const box = async (selector: string) => (await page.locator(selector).boundingBox())!;
@@ -2564,30 +3642,26 @@ describe("Nav item", () => {
     assert.equal(await page.locator("#step").getAttribute("aria-current"), "step");
     assert.equal(await page.locator("#other").getAttribute("aria-current"), null);
 
-    // The current item carries a solid bar on its start edge, inset from its top and bottom.
-    const checkBar = async (id: string, edge: "start" | "end") => {
-      const item = await box(`#${id}`);
-      const bar = await box(`#${id} .indicator`);
-      near(bar.width, 3, `${id}: the bar is 3px wide`);
-      if (edge === "start") near(bar.x, item.x, `${id}: the bar is on the left edge`);
-      else near(bar.x + bar.width, item.x + item.width, `${id}: the bar is on the right edge`);
-      assert.ok(bar.y > item.y && bar.y + bar.height < item.y + item.height && bar.height > 0, `${id}: the bar is inset vertically`);
-    };
-    await checkBar("page", "start");
-    assert.equal(await page.locator("#other .indicator").isVisible(), false, "an item that is not current has no bar");
+    // Surface rows use one shape: all corners follow the shared radius and no inset stripe.
+    assert.equal(await page.locator("#page .indicator").isVisible(), false);
+    assert.equal(await page.locator("#rtl .indicator").isVisible(), false);
     const look = (id: string) => page.locator(id).evaluate((element) => {
       const style = getComputedStyle(element);
-      const bar = getComputedStyle(element.querySelector(".indicator")!);
-      return { surface: style.backgroundColor, weight: Number(style.fontWeight), bar: bar.borderInlineStartColor, barStyle: bar.borderInlineStartStyle };
+      return { surface: style.backgroundColor, weight: Number(style.fontWeight), radius: style.borderRadius };
     });
     const [current, other] = [await look("#page"), await look("#other")];
     assert.notEqual(current.surface, other.surface, "the current item takes the selected surface");
-    assert.ok(current.weight > other.weight, "the current label is stronger");
-    assert.equal(current.barStyle, "solid");
-    assert.equal(current.bar, await resolveColor(page, "var(--ui-accent)"), "the bar is the accent colour");
-
-    // In a right-to-left page the bar mirrors to the right edge.
-    await checkBar("rtl", "end");
+    assert.equal(current.weight, other.weight, "selection keeps the resting label weight");
+    assert.equal(current.radius, "8px");
+    const line = await box("#line");
+    const marker = await box("#line .indicator");
+    near(marker.width, 1, "the line uses the shared 1px accent weight");
+    near(marker.y, line.y, "the line begins at the top");
+    near(marker.height, line.height, "the line spans the complete row");
+    assert.equal((await look("#line")).radius, "0px");
+    const rtlLine = await box("#rtl-line");
+    const rtlMarker = await box("#rtl-line .indicator");
+    near(rtlMarker.x + rtlMarker.width, rtlLine.x + rtlLine.width, "a continuous line mirrors in RTL");
 
     // A link item is a real link: it navigates, and target and rel reach it.
     const link = page.locator("#other");
@@ -2627,35 +3701,40 @@ describe("Nav item", () => {
     assert.deepEqual(lines[1], { overflowing: true, ellipsis: "ellipsis", wrap: "nowrap" });
     assert.deepEqual([lines[0].ellipsis, lines[0].wrap], ["ellipsis", "nowrap"]);
 
-    // Forced colors drop backgrounds; the bar is a border, so it stays, in the system highlight.
+    // System colors keep a complete surface outline or a continuous line; focus stays separate.
     await page.emulateMedia({ forcedColors: "active" });
-    await checkBar("page", "start");
-    const forced = await page.locator("#page .indicator").evaluate((element) => getComputedStyle(element).borderInlineStartColor);
-    assert.equal(forced, await resolveColor(page, "Highlight"), "the bar takes the system highlight colour");
+    const selectedOutline = await page.locator("#page").evaluate((element) => {
+      const s = getComputedStyle(element);
+      return { width: s.outlineWidth, color: s.outlineColor };
+    });
+    assert.deepEqual(selectedOutline, { width: "1px", color: await resolveColor(page, "Highlight") });
+    assert.equal(await page.locator("#page .indicator").isVisible(), false);
+    assert.equal(await page.locator("#line .indicator").evaluate(el => getComputedStyle(el).borderInlineStartColor), await resolveColor(page, "Highlight"));
     await page.emulateMedia({ forcedColors: "none" });
   }
 
-  it("marks the current item with a start-edge bar and works as a link or a button, in HTML", async () => {
+  it("marks the current item with coherent surface or line geometry and works as a link or a button, in HTML", async () => {
     const path = await bundle("html-nav-item", `import "@threadlabs/looma";`);
     const page = await open(path, `
       <script>window.clicks = 0;</script>
       <nav aria-label="Main" style="width: 240px">
         <ui-list>
-          <li><ui-nav-item id="page" as="a" href="#shipments" target="_self" rel="bookmark" current><span slot="leading">*</span>Shipments</ui-nav-item></li>
+          <li><ui-nav-item id="page" as="a" href="#shipments" target="_self" rel="bookmark" current="true"><span slot="leading">*</span>Shipments</ui-nav-item></li>
           <li><ui-nav-item id="other" as="a" href="#invoices">Invoices</ui-nav-item></li>
           <li><ui-nav-item id="view" onclick="window.clicks += 1">Overview</ui-nav-item></li>
           <li><ui-nav-item id="step" current="step">Team</ui-nav-item></li>
+          <li><ui-nav-item id="line" variant="line" current="page">Reports</ui-nav-item></li>
           <li><ui-nav-item id="long">Customer<span slot="description">${longDescription}</span></ui-nav-item></li>
         </ui-list>
       </nav>
-      <nav aria-label="RTL" dir="rtl" style="width: 240px"><ui-nav-item id="rtl" current>Shipments</ui-nav-item></nav>`,
+      <nav aria-label="RTL" dir="rtl" style="width: 240px"><ui-nav-item id="rtl" current="true">Shipments</ui-nav-item><ui-nav-item id="rtl-line" variant="line" current="true">Reports</ui-nav-item></nav>`,
     [join(root, "tokens.css")]);
     await page.waitForSelector('#long[data-component~="ui-nav-item"]');
     await checkNavItem(page);
     await page.close();
   });
 
-  it("marks the current item with a start-edge bar and works as a link or a button, in Vue", async () => {
+  it("marks the current item with coherent surface or line geometry and works as a link or a button, in Vue", async () => {
     const path = await bundle("vue-nav-item", `
       import { createApp, h } from "vue";
       import { List, NavItem } from "@threadlabs/looma/vue";
@@ -2663,13 +3742,14 @@ describe("Nav item", () => {
       const item = (props, slots) => h("li", [h(NavItem, props, slots)]);
       createApp({ render: () => [
         h("nav", { "aria-label": "Main", style: "width: 240px" }, [h(List, null, () => [
-          item({ id: "page", as: "a", href: "#shipments", target: "_self", rel: "bookmark", current: true }, { leading: () => h("span", "*"), default: () => "Shipments" }),
+          item({ id: "page", as: "a", href: "#shipments", target: "_self", rel: "bookmark", current: "true" }, { leading: () => h("span", "*"), default: () => "Shipments" }),
           item({ id: "other", as: "a", href: "#invoices" }, () => "Invoices"),
           item({ id: "view", onClick: () => { window.clicks += 1; } }, () => "Overview"),
           item({ id: "step", current: "step" }, () => "Team"),
+          item({ id: "line", variant: "line", current: "page" }, () => "Reports"),
           item({ id: "long" }, { default: () => "Customer", description: () => h("span", ${JSON.stringify(longDescription)}) }),
         ])]),
-        h("nav", { "aria-label": "RTL", dir: "rtl", style: "width: 240px" }, [h(NavItem, { id: "rtl", current: true }, () => "Shipments")]),
+        h("nav", { "aria-label": "RTL", dir: "rtl", style: "width: 240px" }, [h(NavItem, { id: "rtl", current: "true" }, () => "Shipments"), h(NavItem, { id: "rtl-line", variant: "line", current: "true" }, () => "Reports")]),
       ] }).mount("#app");
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
@@ -2765,6 +3845,194 @@ describe("Editor toolbar row", () => {
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
     await checkRow(page);
+    await page.close();
+  });
+});
+
+describe("Vue bare boolean props", () => {
+  it("reads a bare boolean attribute as true, as Vue does", async () => {
+    const path = await bundle("vue-bare-boolean", `
+      import { createApp } from "vue/dist/vue.esm-bundler.js";
+      import { Avatar } from "@threadlabs/looma/vue";
+      createApp({ components: { Avatar }, template: '<Avatar id="bare" name="Ada Lovelace" decorative /><Avatar id="named" name="Ada Lovelace" />' }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await page.waitForSelector("#named");
+    assert.equal(await page.locator("#bare").getAttribute("aria-hidden"), "true");
+    assert.notEqual(await page.locator("#named").getAttribute("aria-hidden"), "true");
+    await page.close();
+  });
+});
+
+describe("Mention rows", () => {
+  it("keep the highlighted row's initials circle distinct from the highlight", async () => {
+    const path = await bundle("html-mention-row-contrast", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ul role="listbox">
+        <ui-editor-mention-menu-item id="active" value="ada" initials="AL" aria-selected="true">Ada Lovelace</ui-editor-mention-menu-item>
+        <ui-editor-mention-menu-item id="photo" value="grace" aria-selected="true"><ui-avatar slot="start" name="Grace Hopper" size="sm"></ui-avatar>Grace Hopper</ui-editor-mention-menu-item>
+      </ul>`, [join(root, "tokens.css"), join(root, "theme-light.css")]);
+    await page.waitForSelector('#photo [data-component~="ui-avatar"]');
+    const colours = (id: string) => page.evaluate((selector) => {
+      const row = document.querySelector<HTMLElement>(selector)!;
+      return { row: getComputedStyle(row).backgroundColor, circle: getComputedStyle(row.querySelector(".avatar")!).backgroundColor };
+    }, id);
+    const active = await colours("#active");
+    assert.notEqual(active.circle, active.row, "the initials circle stands apart from the highlighted row");
+    assert.equal((await colours("#photo")).circle, "rgba(0, 0, 0, 0)", "a slotted photo avatar brings its own circle");
+    await page.close();
+  });
+});
+
+describe("Vue editor entry point", () => {
+  it("renders authored mention rows from the editor entry alone", async () => {
+    const path = await bundle("vue-editor-mention-rows", `
+      import { createApp, h } from "vue";
+      import { EditorMentionMenuItem } from "@threadlabs/looma/vue/editor";
+      createApp({ render: () => h("ul", { role: "listbox" }, [h(EditorMentionMenuItem, { id: "ada", value: "ada", initials: "AL", detail: "ada@example.com" }, () => "Ada Lovelace")]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await page.waitForSelector("#ada");
+    assert.equal(await page.locator("#ada").getAttribute("role"), "option");
+    assert.match(await page.locator("#ada").innerText(), /Ada Lovelace\s+ada@example.com/);
+    await page.close();
+  });
+});
+
+describe("Avatar group xs", () => {
+  it("overlaps xs avatars and sizes the +N badge to match", async () => {
+    const path = await bundle("html-avatar-group-xs", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-avatar-group id="xs" size="xs" max="2" label="Looked after by">
+        <ui-avatar name="Ada Lovelace" size="xs"></ui-avatar>
+        <ui-avatar name="Grace Hopper" size="xs"></ui-avatar>
+        <ui-avatar name="Alan Turing" size="xs"></ui-avatar>
+      </ui-avatar-group>
+      <ui-avatar-group id="md" label="People"><ui-avatar name="Ada Lovelace"></ui-avatar><ui-avatar name="Grace Hopper"></ui-avatar></ui-avatar-group>`, [join(root, "tokens.css"), join(root, "theme-light.css")]);
+    await page.waitForSelector('#xs [data-component~="ui-avatar"]');
+    const layout = (id: string) => page.evaluate((selector) => {
+      const group = document.querySelector(selector)!;
+      const avatars = [...group.querySelectorAll<HTMLElement>('[data-component~="ui-avatar"]')].filter((element) => element.getBoundingClientRect().width > 0);
+      const badge = group.querySelector<HTMLElement>(".overflow")!;
+      const [first, second] = avatars.map((element) => element.getBoundingClientRect());
+      return { overlap: first!.right - second!.left, avatar: first!.height, badge: badge.hidden ? 0 : badge.getBoundingClientRect().height, text: badge.textContent?.trim() };
+    }, id);
+    const [xs, md] = [await layout("#xs"), await layout("#md")];
+    assert.equal(xs.badge, xs.avatar, "the +N badge is the xs avatar's size");
+    assert.ok(xs.avatar < 24, "the avatars are xs");
+    assert.equal(xs.text, "+1");
+    assert.ok(xs.overlap > 0 && xs.overlap < md.overlap, `xs avatars overlap less (${xs.overlap}px) than md (${md.overlap}px)`);
+    await page.close();
+  });
+});
+
+describe("Small pill button and small menu", () => {
+  it("draws an xs pill at 24px with fully rounded ends", async () => {
+    const path = await bundle("html-button-xs-pill", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-button id="xs" variant="ghost" tone="neutral" size="xs" shape="pill">On track</ui-button>
+      <ui-button id="sm" size="sm">Small</ui-button>`, [join(root, "tokens.css"), join(root, "theme-light.css")]);
+    await page.waitForSelector('#xs[data-component~="ui-button"]');
+    const xs = await page.evaluate(() => {
+      const button = document.querySelector<HTMLElement>("#xs")!;
+      const style = getComputedStyle(button);
+      return { height: button.getBoundingClientRect().height, radius: parseFloat(style.borderTopLeftRadius), font: parseFloat(style.fontSize) };
+    });
+    const smFont = await page.evaluate(() => parseFloat(getComputedStyle(document.querySelector("#sm")!).fontSize));
+    assert.equal(xs.height, 24);
+    const padding = await page.evaluate(() => { const style = getComputedStyle(document.querySelector("#xs")!); return [style.paddingTop, style.paddingLeft]; });
+    assert.deepEqual(padding, ["3px", "5px"], "an avatar inside the pill keeps a pixel of room from its edge");
+    assert.ok(xs.radius >= xs.height / 2, `pill radius ${xs.radius}px rounds the ends fully`);
+    assert.ok(xs.font < smFont, "xs text is smaller than sm text");
+    await page.close();
+  });
+
+  it("holds an open menu's ghost trigger lighter than its hover", async () => {
+    const path = await bundle("html-ghost-open", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-button id="hovered" variant="ghost" tone="neutral">Hovered</ui-button>
+      <ui-button id="open" variant="ghost" tone="neutral" aria-expanded="true">Open</ui-button>`, [join(root, "tokens.css"), join(root, "theme-light.css")]);
+    await page.waitForSelector('#open[data-component~="ui-button"]');
+    await page.hover("#hovered");
+    await page.waitForTimeout(300);
+    const lightness = (id: string) => page.evaluate((selector) => {
+      const canvas = document.createElement("canvas").getContext("2d")!;
+      canvas.fillStyle = getComputedStyle(document.querySelector(selector)!).backgroundColor;
+      canvas.fillRect(0, 0, 1, 1);
+      const [r, g, b] = canvas.getImageData(0, 0, 1, 1).data;
+      return r + g + b;
+    }, id);
+    assert.ok(await lightness("#open") > await lightness("#hovered"), "the open trigger is lighter than hover");
+    await page.close();
+  });
+
+  it("sizes a small menu's rows and checks the chosen radio item", async () => {
+    const path = await bundle("html-menu-sm", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-menu id="sm" inline size="sm" aria-label="Stage">
+        <ui-menu-item type="radio" value="early">Early</ui-menu-item>
+        <ui-menu-item type="radio" value="on" checked>On track</ui-menu-item>
+      </ui-menu>
+      <ui-menu id="md" inline aria-label="Standard">
+        <ui-menu-item value="a">Standard</ui-menu-item>
+      </ui-menu>`, [join(root, "tokens.css"), join(root, "theme-light.css")]);
+    await page.waitForSelector('#md [data-component~="ui-menu-item"]');
+    const row = (selector: string) => page.evaluate((target) => {
+      const item = document.querySelector<HTMLElement>(target)!;
+      return { height: item.getBoundingClientRect().height, font: parseFloat(getComputedStyle(item).fontSize) };
+    }, selector);
+    const [small, standard] = [await row('#sm [data-component~="ui-menu-item"]'), await row('#md [data-component~="ui-menu-item"]')];
+    assert.ok(small.height < standard.height, `small rows (${small.height}px) are shorter than standard (${standard.height}px)`);
+    assert.ok(small.font < standard.font, "small rows use smaller text");
+    const widths = await page.evaluate(() => ["#sm", "#md"].map((id) => document.querySelector(id)!.getBoundingClientRect().width));
+    assert.ok(widths[0]! < widths[1]!, `a small menu (${widths[0]}px) is narrower than a standard one (${widths[1]}px)`);
+    const checks = await page.evaluate(() => [...document.querySelectorAll('#sm [data-component~="ui-menu-item"]')]
+      .map((item) => Boolean(item.querySelector(".indicator svg"))));
+    assert.deepEqual(checks, [false, true]);
+    await page.close();
+  });
+});
+
+describe("Avatar sizes", () => {
+  it("steps down from md to sm to xs, with initials that still fit", async () => {
+    const path = await bundle("html-avatar-sizes", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-avatar id="md" name="Ada Lovelace"></ui-avatar>
+      <ui-avatar id="sm" name="Ada Lovelace" size="sm"></ui-avatar>
+      <ui-avatar id="xs" name="Ada Lovelace" size="xs"></ui-avatar>`, [join(root, "tokens.css"), join(root, "theme-light.css")]);
+    await page.waitForSelector('#xs[data-component~="ui-avatar"]');
+    const measure = (id: string) => page.evaluate((selector) => {
+      const element = document.querySelector<HTMLElement>(selector)!;
+      // The sizes are the circle inside its 1px border.
+      return { width: element.clientWidth, height: element.clientHeight, fontSize: parseFloat(getComputedStyle(element).fontSize), fits: element.scrollWidth <= element.clientWidth };
+    }, id);
+    const [md, sm, xs] = [await measure("#md"), await measure("#sm"), await measure("#xs")];
+    assert.deepEqual([md.width, sm.width, xs.width], [40, 28, 20]);
+    assert.equal(xs.height, 20);
+    assert.ok(xs.fontSize < sm.fontSize && sm.fontSize < md.fontSize, "initials shrink with each size");
+    assert.ok(xs.fits, "xs initials fit inside the circle");
+    await page.close();
+  });
+
+  it("centres the initials in the circle whatever line of text surrounds it", async () => {
+    const path = await bundle("html-avatar-centred", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <span style="font-size: 12px; line-height: 2.2">Looked after by: <ui-avatar id="inline" name="Grace Hopper" size="xs"></ui-avatar> Grace</span>
+      <ui-avatar id="alone" name="Grace Hopper" size="xs"></ui-avatar>`, [join(root, "tokens.css"), join(root, "theme-light.css")]);
+    await page.waitForSelector('#inline[data-component~="ui-avatar"]');
+    const offset = (id: string) => page.evaluate((selector) => {
+      const avatar = document.querySelector<HTMLElement>(selector)!;
+      const text = [...avatar.querySelectorAll("*"), avatar].map((element) => [...element.childNodes])
+        .flat().find((node) => node.nodeType === Node.TEXT_NODE && node.textContent?.trim())!;
+      const range = document.createRange();
+      range.selectNodeContents(text);
+      const glyphs = range.getBoundingClientRect();
+      const circle = avatar.getBoundingClientRect();
+      return (glyphs.top + glyphs.height / 2) - (circle.top + circle.height / 2);
+    }, id);
+    const [inline, alone] = [await offset("#inline"), await offset("#alone")];
+    assert.ok(Math.abs(inline) <= 1, `initials sit ${inline}px off centre inside a line of text`);
+    assert.ok(Math.abs(inline - alone) <= 0.5, "an avatar's initials sit the same in a line of text as on their own");
     await page.close();
   });
 });
@@ -3000,6 +4268,64 @@ describe("Tree link rows", () => {
   });
 });
 
+describe("Nested Tree disclosure state", () => {
+  async function checkDisclosureState(page: Page) {
+    const parent = page.locator('#parent[data-component~="ui-tree-item"]');
+    const branch = page.locator('#branch[data-component~="ui-tree-item"]');
+    const leaf = page.locator('#leaf[data-component~="ui-tree-item"]');
+    await parent.waitFor({ state: "visible" });
+    assert.equal(await parent.getAttribute("aria-expanded"), "true");
+    assert.equal(await branch.getAttribute("aria-expanded"), "false");
+    assert.equal(await leaf.isVisible(), false);
+    const arrow = async (id: string) => page.locator(`#${id} > .row > .disclosure > .disclosure-icon`)
+      .evaluate(element => getComputedStyle(element).transform);
+    const expanded = await arrow("parent");
+    const collapsed = await arrow("branch");
+    assert.notEqual(collapsed, expanded, "an expanded ancestor must not rotate a collapsed descendant's disclosure");
+
+    await branch.getByRole("button", { name: "Expand Branch", exact: true }).click();
+    await page.waitForFunction(() => document.querySelector("#branch")?.getAttribute("aria-expanded") === "true");
+    assert.equal(await leaf.isVisible(), true);
+    assert.equal(await arrow("branch"), expanded);
+    await branch.getByRole("button", { name: "Collapse Branch", exact: true }).click();
+    await page.waitForFunction(() => document.querySelector("#branch")?.getAttribute("aria-expanded") === "false");
+    assert.equal(await leaf.isVisible(), false);
+    assert.equal(await arrow("branch"), collapsed);
+    assert.equal(await arrow("parent"), expanded, "a descendant's collapse must leave its ancestor's disclosure expanded");
+  }
+
+  it("shows a collapsed descendant's own state under an expanded ancestor in HTML", async () => {
+    const path = await bundle("html-nested-tree-disclosure", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-tree label="Files">
+        <ui-tree-item id="parent" item-id="parent" label="Parent" container expanded>
+          <ui-tree-item id="branch" item-id="branch" label="Branch" container>
+            <ui-tree-item id="leaf" item-id="leaf" label="File"></ui-tree-item>
+          </ui-tree-item>
+        </ui-tree-item>
+      </ui-tree>`, [join(root, "tokens.css")], { reducedMotion: "reduce" });
+    await checkDisclosureState(page);
+    await page.close();
+  });
+
+  it("shows a collapsed descendant's own state under an expanded ancestor in Vue", async () => {
+    const path = await bundle("vue-nested-tree-disclosure", `
+      import { createApp, h } from "vue";
+      import { Tree, TreeItem } from "@threadlabs/looma/vue";
+      createApp({ render: () => h(Tree, { label: "Files" }, () => [
+        h(TreeItem, { id: "parent", itemId: "parent", label: "Parent", container: true, expanded: true }, () => [
+          h(TreeItem, { id: "branch", itemId: "branch", label: "Branch", container: true }, () => [
+            h(TreeItem, { id: "leaf", itemId: "leaf", label: "File" }),
+          ]),
+        ]),
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")], { reducedMotion: "reduce" });
+    await checkDisclosureState(page);
+    await page.close();
+  });
+});
+
 describe("Tree drag handle", () => {
   async function checkHandles(page: Page) {
     await page.waitForSelector('#leaf[data-component~="ui-tree-item"]');
@@ -3109,6 +4435,44 @@ describe("Icon", () => {
 });
 
 describe("Icon Button", () => {
+  it("matches adjacent Buttons when requested without resizing compact icon controls", async () => {
+    for (const adapter of ["vue", "html"]) {
+      const path = await bundle(`${adapter}-matched-icon-button`, adapter === "vue" ? `
+        import { createApp, h } from "vue";
+        import { Button, IconButton, Icon } from "@threadlabs/looma/vue";
+        createApp({ render: () => h("div", {}, [
+          ...["sm", "md", "lg"].map(size => h("div", { style: "display: flex; align-items: stretch", id: size }, [
+            h(Button, { id: size + "-primary", size }, () => "Save changes"),
+            h(IconButton, { id: size + "-more", size, matchButton: true, variant: "outline", label: "More options" }, () => h(Icon, { name: "chevron-down" })),
+          ])),
+          h(IconButton, { id: "compact", size: "sm", label: "Toolbar options" }, () => h(Icon, { name: "chevron-down" })),
+        ]) }).mount("#app");
+      ` : `import "@threadlabs/looma";`);
+      const body = adapter === "vue" ? '<div id="app"></div>' : `
+        ${["sm", "md", "lg"].map(size => `<div style="display: flex; align-items: stretch" id="${size}">
+          <ui-button id="${size}-primary" size="${size}">Save changes</ui-button>
+          <ui-icon-button id="${size}-more" size="${size}" match-button variant="outline" label="More options"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>
+        </div>`).join("")}
+        <ui-icon-button id="compact" size="sm" label="Toolbar options"><ui-icon name="chevron-down"></ui-icon></ui-icon-button>`;
+      for (const touch of [false, true]) {
+        const page = await open(path, body, [join(root, "tokens.css"), ...(adapter === "vue" ? [join(root, "vue/components.css")] : [])],
+          { viewport: { width: touch ? 375 : 1280, height: 900 }, hasTouch: touch, isMobile: touch });
+        // Custom control tokens must work, too; no hard-coded matching dimensions.
+        await page.addStyleTag({ content: ":root { --ui-control-size-sm: 36px; --ui-control-size-md: 44px; --ui-control-size-lg: 52px; }" });
+        for (const size of ["sm", "md", "lg"]) {
+          const bounds = await page.evaluate(size => {
+            const primary = document.getElementById(size + "-primary")!.getBoundingClientRect();
+            const more = document.getElementById(size + "-more")!.getBoundingClientRect();
+            return { primary: { top: primary.top, bottom: primary.bottom }, more: { top: more.top, bottom: more.bottom } };
+          }, size);
+          assert.deepEqual(bounds.more, bounds.primary, `${adapter} ${size}, touch=${touch}: both edges align`);
+        }
+        assert.equal(await page.locator("#compact").evaluate(element => element.getBoundingClientRect().height), 28);
+        await page.close();
+      }
+    }
+  });
+
   it("grows its hit area, not its size, once touch is used", async () => {
     const path = await bundle("vue-icon-button-touch", `
       import { createApp, h } from "vue";
@@ -3173,18 +4537,15 @@ describe("Overlays", () => {
       createApp({
         render: () => h(SearchShell, {
           id: "search", open: open.value, modal: true, dismissible: true, label: "Search",
-          onClose: (detail) => { closes.push(detail); open.value = false; },
+          onClose: (event) => { closes.push(event.detail); open.value = false; },
         }, { search: () => h("input", { id: "query", type: "search", "aria-label": "Search" }) }),
       }).mount("#app");
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
-    const region = page.locator("#search .search");
-    const edge = () => region.evaluate((element) => getComputedStyle(element).borderBottomColor);
-    const idle = await edge();
-    await page.locator("#query").fill("wel");
-    // The edge colour transitions in; wait for it rather than sampling mid-transition.
-    await page.waitForFunction((before) => getComputedStyle(document.querySelector("#search .search")!).borderBottomColor !== before, idle, { timeout: 2000 });
-    assert.notEqual(await edge(), idle, "the search region shows focus");
+    const field = page.locator("#query");
+    await field.fill("wel");
+    assert.equal(await field.evaluate((element) => element === document.activeElement), true);
+    assert.notEqual(await field.evaluate((element) => getComputedStyle(element).outlineStyle), "none", "the search field shows focus");
     await page.keyboard.press("Escape");
     assert.deepEqual(await page.evaluate(() => (window as unknown as { closes: unknown[] }).closes), [
       { open: false, reason: "escape", trigger: "keyboard" },
@@ -3204,8 +4565,8 @@ describe("Overlays", () => {
           h(Button, { id: "trigger" }, () => "Icon"),
           h(Popover, {
             id: "picker", for: "trigger", open: open.value,
-            onOpen: (detail) => { events.push(["open", detail]); open.value = true; },
-            onClose: (detail) => { events.push(["close", detail]); open.value = false; },
+            onOpen: (event) => { events.push(["open", event.detail]); open.value = true; },
+            onClose: (event) => { events.push(["close", event.detail]); open.value = false; },
           }, () => "Choose an icon"),
         ]),
       }).mount("#app");
@@ -3344,7 +4705,8 @@ describe("Combobox with multiple", () => {
           id: "tags", label: "Tags", multiple: true, allowCreate: true, items: items.value,
           query: query.value, "onUpdate:query": (value) => { query.value = value; },
           // Created optimistically: offered and selected at once, confirmed later.
-          onCreateItem: ({ query: name }) => {
+          onCreateItem: (event) => {
+            const { query: name } = event.detail;
             created.push(name);
             const option = { value: name.toLowerCase(), label: name };
             options.value = [...options.value, option];
@@ -3380,7 +4742,8 @@ describe("Combobox with multiple", () => {
         render: () => h(Combobox, {
           id: "tags", label: "Tags", multiple: true, allowCreate: true, items: items.value,
           // A consumer creates asynchronously, then offers and selects the new option.
-          onCreateItem: ({ query }) => {
+          onCreateItem: (event) => {
+            const { query } = event.detail;
             created.push(query);
             setTimeout(() => {
               const option = { value: query.toLowerCase(), label: query };
@@ -3502,7 +4865,7 @@ describe("Light dismiss", () => {
     const path = await bundle("vue-light-dismiss", `
       import { createApp, h } from "vue";
       import { Dialog } from "@threadlabs/looma/vue";
-      createApp({ render: () => h(Dialog, { id: "dialog", open: true, closedby: "any", label: "Details" }, () => "Body") }).mount("#app");
+      createApp({ render: () => h(Dialog, { id: "dialog", open: true, modal: true, closedby: "any", label: "Details" }, () => "Body") }).mount("#app");
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
     const dialog = page.locator("#dialog");
@@ -3547,7 +4910,7 @@ describe("Compact controls on touch", () => {
 });
 
 describe("Button tone and disabled", () => {
-  it("paints every variant in its tone, and keeps a trace of it when disabled", async () => {
+  it("paints available variants in their tone and gives disabled actions one neutral treatment", async () => {
     const path = await bundle("vue-tone", `
       import { createApp, h } from "vue";
       import { Button } from "@threadlabs/looma/vue";
@@ -3590,25 +4953,27 @@ describe("Button tone and disabled", () => {
     const solid = await paint("solid");
     assert.equal(solid.background, accent.border, "solid fills with the outline's tone");
 
-    // Disabled keeps the shape and a trace of the tone, washes out, and stops looking raised.
+    // Disabled actions share a flat neutral palette so no tone still looks actionable.
     const off = await paint("off");
     const offDanger = await paint("off-danger");
     const offSolid = await paint("off-solid");
     assert.equal(off.opacity, "1", "disabled is a colour decision, not a transparency one");
     assert.equal(off.shadow, "none", "a disabled button does not look raised");
-    assert.notEqual(off.border, off.background, "a disabled outline is still an outline");
-    assert.equal(offSolid.border, offSolid.background, "a disabled solid is still filled");
-    assert.notEqual(offDanger.border, off.border, "a disabled button still says which action it was");
-    assert.equal(off.filter, "saturate(0.2) contrast(0.75) brightness(1.25)", "and it is washed out, so it no longer reads as available");
+    assert.notEqual(off.border, off.background, "a disabled outline keeps its shape");
+    for (const variant of [offDanger, offSolid]) {
+      assert.equal(variant.background, off.background, "disabled variants share a neutral surface");
+      assert.equal(variant.border, off.border, "disabled variants share a neutral border");
+      assert.equal(variant.color, off.color, "disabled variants share muted text");
+    }
+    assert.equal(off.filter, "none", "disabled colours are chosen directly");
     assert.equal(accent.filter, "none", "an available button is not");
 
-    // A disabled ghost states itself with a surface, but a wash of its tone, as hover is: an opaque
-    // mix toward the ink came out a mid-grey slab for neutral, louder than the enabled button.
-    const alpha = (color: string) => Number(/\/\s*([\d.]+)\)$/.exec(color)?.[1] ?? 1);
+    // Ghosts keep their borderless shape but gain the same muted fill and text.
     for (const id of ["off-ghost", "off-ghost-neutral"]) {
       const ghost = await paint(id);
-      assert.ok(alpha(ghost.background) > 0, `${id} still has a surface`);
-      assert.ok(alpha(ghost.background) < 0.3, `${id} is a wash, not a slab: ${ghost.background}`);
+      assert.equal(ghost.background, off.background);
+      assert.equal(ghost.color, off.color);
+      assert.equal(ghost.border, "rgba(0, 0, 0, 0)");
     }
     await page.close();
   });
@@ -3749,12 +5114,12 @@ describe("Vue editor components", () => {
         render: () => h("div", [
           h(EditorSlashMenu, { id: "slash", open: true, query: "ta", anchorRect: { left: 800, top: 20, right: 820, bottom: 40 },
             items: [{ title: "Table", description: "Rows and columns", icon: "table" }, { title: "Text", description: "Paragraph", icon: "pilcrow" }],
-            onSelect: (detail) => events.push(["select", detail]) }),
+            onSelect: (event) => events.push(["select", event.detail]) }),
           h(EditorTableToolbar, { id: "toolbar", open: true, cellAlignment: "center",
             actions: ["align-left", "align-center", "add-row-after", "background-yellow", "delete-table"],
-            onAction: (detail) => events.push(["action", detail]) }),
+            onAction: (event) => events.push(["action", event.detail]) }),
           h(EditorInsertTableGrid, { id: "grid", open: true, maxRows: 4, maxCols: 5,
-            onInsert: (detail) => events.push(["insert", detail]) }),
+            onInsert: (event) => events.push(["insert", event.detail]) }),
         ]),
       }).mount("#app");
     `);
@@ -3846,12 +5211,22 @@ describe("Editor toolbar tooltips", () => {
     await bold.hover();
     await tip.waitFor({ state: "visible" });
     assert.match((await tip.textContent()) ?? "", /Bold/);
+    // The command's own key binding follows the label, written for this platform.
+    const apple = await page.evaluate(() => /Mac|iPhone|iPad|iPod/.test(navigator.platform));
+    assert.equal(await tip.locator("kbd").textContent(), apple ? "⌘B" : "Ctrl+B");
+
+    // In a secure context Client Hints name the platform "macOS", lowercase "mac", and still mean ⌘.
+    await page.evaluate(() => {
+      Object.defineProperty(navigator, "userAgentData", { configurable: true, value: { platform: "macOS" } });
+      Object.defineProperty(navigator, "platform", { configurable: true, value: "" });
+    });
 
     // Moving along the row re-points the same tooltip without waiting again.
     const italic = page.locator('[data-component~="ui-editor-toolbar"] button').nth(1);
     await italic.hover();
     await page.waitForFunction(() => /Italic/.test(document.querySelector('[data-component~="ui-tooltip"]')?.textContent ?? ""));
     assert.equal(await tip.isVisible(), true);
+    assert.equal(await tip.locator("kbd").textContent(), "⌘I");
     await page.close();
   });
 });
@@ -3933,6 +5308,47 @@ describe("HTML components", () => {
   });
 });
 
+describe("Radio group initial selection", () => {
+  const check = async (page: Page) => {
+    await page.waitForSelector('#plan input[value="pro"]');
+    assert.deepEqual(await page.locator("#plan input").evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).checked)), [false, true], "the group's value takes precedence over a child's checked prop");
+    assert.deepEqual(await page.locator("#empty input").evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).checked)), [false, false], "an empty group value checks no radio");
+    assert.deepEqual(await page.locator("#plan input").evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).defaultChecked)), [false, true], "native reset defaults also belong to the group");
+    assert.equal(await page.locator("#standalone input").isChecked(), true, "an authored standalone checked radio stays checked");
+    await page.locator('#plan input[value="free"]').check();
+    await page.locator("#form").evaluate((form) => (form as HTMLFormElement).reset());
+    await page.waitForFunction(() => (document.querySelector('#plan input[value="pro"]') as HTMLInputElement).checked);
+    assert.deepEqual(await page.locator("#plan input").evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).checked)), [false, true], "form reset restores the group's authored value");
+  };
+
+  it("honors group selection when a child is authored checked, in HTML", async () => {
+    const path = await bundle("html-radio-initial-selection", `import "@threadlabs/looma";`);
+    const page = await open(path, `<form id="form">
+      <ui-radio-group id="plan" name="plan" value="pro"><ui-radio value="free" checked>Free</ui-radio><ui-radio value="pro">Pro</ui-radio></ui-radio-group>
+      <ui-radio-group id="empty" name="empty"><ui-radio value="free" checked>Free</ui-radio><ui-radio value="pro">Pro</ui-radio></ui-radio-group>
+      <fieldset role="radiogroup"><ui-radio id="standalone" name="standalone" checked>Standalone</ui-radio></fieldset>
+    </form>`, [join(root, "tokens.css")]);
+    await check(page);
+    await page.close();
+  });
+
+  it("honors group selection when a child is authored checked, in Vue", async () => {
+    const path = await bundle("vue-radio-initial-selection", `
+      import { createApp, h } from "vue";
+      import { Radio, RadioGroup } from "@threadlabs/looma/vue";
+      const radios = () => [h(Radio, { value: "free", checked: true }, () => "Free"), h(Radio, { value: "pro" }, () => "Pro")];
+      createApp({ render: () => h("form", { id: "form" }, [
+        h(RadioGroup, { id: "plan", name: "plan", value: "pro" }, radios),
+        h(RadioGroup, { id: "empty", name: "empty" }, radios),
+        h("fieldset", { role: "radiogroup" }, [h(Radio, { id: "standalone", name: "standalone", checked: true }, () => "Standalone")]),
+      ]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await check(page);
+    await page.close();
+  });
+});
+
 describe("Radio group required", () => {
   // As on native radios: one required radio makes its whole group required.
   const check = async (page: Page) => {
@@ -3988,8 +5404,8 @@ describe("Combobox events", () => {
       createApp({
         render: () => h(Combobox, {
           label: "Fruit",
-          onOptionsChange: (detail) => window.events.push(["options", detail]),
-          onValueChange: (detail) => window.events.push(["value", detail]),
+          onOptionsChange: (event) => window.events.push(["options", event.detail]),
+          onValueChange: (event) => window.events.push(["value", event.detail]),
         }, () => [h("option", { value: "apple" }, "Apple"), h("option", { value: "pear" }, "Pear")]),
       }).mount("#app");
     `);
@@ -4081,7 +5497,7 @@ describe("Combobox option detail", () => {
       import { Combobox } from "@threadlabs/looma/vue";
       window.changes = [];
       createApp({
-        render: () => h(Combobox, { id: "people", label: "Directory", onValueChange: (detail) => window.changes.push(detail) }, () => [
+        render: () => h(Combobox, { id: "people", label: "Directory", onValueChange: (event) => window.changes.push(event.detail) }, () => [
           h("optgroup", { label: "People" }, [
             h("option", { value: "riley", "data-description": "Harbor Supply Co.", "data-tag": "Contact" }, "Riley Kim"),
             h("option", { value: "sam", "data-description": "Harbor Supply Co." }, "Sam Ortiz"),
@@ -4156,7 +5572,7 @@ describe("Combobox filter", () => {
       window.changes = [];
       const riley = () => h("option", { value: "riley", "data-description": "Harbor Auto Group" }, "Riley Kim");
       const harbor = () => h("option", { value: "harbor" }, "Harbor Auto Group");
-      const onValueChange = (detail) => window.changes.push(detail);
+      const onValueChange = (event) => window.changes.push(event.detail);
       createApp({
         render: () => [
           h(Combobox, { id: "server", label: "Server", filter: "none", onValueChange }, () => [riley(), harbor()]),
@@ -4168,6 +5584,48 @@ describe("Combobox filter", () => {
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
     await check(page);
+    await page.close();
+  });
+});
+
+describe("Controlled strict Combobox search", () => {
+  it("keeps a typed search draft, restores an unmatched draft on blur, and commits a chosen option", async () => {
+    const path = await bundle("vue-controlled-combobox-search", `
+      import { createApp, h, ref } from "vue";
+      import { Combobox } from "@threadlabs/looma/vue";
+      const selected = ref("apple");
+      window.changes = [];
+      createApp({ render: () => h(Combobox, {
+        id: "fruit", label: "Fruit", name: "fruit", value: selected.value,
+        onValueChange: (event) => {
+          window.changes.push(event.detail);
+          if (event.detail.kind === "selection") selected.value = event.detail.value;
+        },
+      }, () => [h("option", { value: "apple" }, "Apple"), h("option", { value: "pear" }, "Pear")]) }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div><button id="after">After</button>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const input = page.locator('#fruit input[role="combobox"]');
+    assert.equal(await input.inputValue(), "Apple");
+    await input.fill("pea");
+    assert.equal(await input.inputValue(), "pea", "a search draft stays visible while the selection is controlled");
+    assert.equal(await page.locator('#fruit input[type="hidden"][name="fruit"]').inputValue(), "apple", "searching keeps the committed form value");
+    assert.deepEqual(await page.locator('#fruit [role="option"]').allTextContents(), ["Pear"]);
+    assert.deepEqual(await page.evaluate(() => (window as unknown as { changes: { kind: string }[] }).changes.map(({ kind }) => kind)), [], "typing does not clear the committed value");
+    await input.fill("zz");
+    assert.equal(await input.inputValue(), "zz");
+    await page.locator("#after").focus();
+    assert.equal(await input.inputValue(), "Apple", "an unmatched draft restores the previous selection on blur");
+    assert.deepEqual(await page.evaluate(() => (window as unknown as { changes: unknown[] }).changes), [], "restoring a draft is not a new selection");
+    await input.fill("");
+    await page.locator("#after").focus();
+    assert.equal(await input.inputValue(), "Apple", "an empty draft also restores the selection; Clear is a separate action");
+    await input.fill("zz");
+    await input.press("Tab");
+    assert.equal(await input.inputValue(), "Apple", "keyboard focus departure restores an unmatched draft too");
+    await input.fill("pea");
+    await page.locator('#fruit [role="option"]').getByText("Pear").click();
+    assert.equal(await input.inputValue(), "Pear");
+    assert.deepEqual(await page.evaluate(() => (window as unknown as { changes: { kind: string; value: string }[] }).changes.map(({ kind, value }) => ({ kind, value }))), [{ kind: "selection", value: "pear" }]);
     await page.close();
   });
 });
@@ -4208,7 +5666,7 @@ describe("Combobox disabled", () => {
       import { Combobox } from "@threadlabs/looma/vue";
       window.changes = [];
       const options = () => [h("option", { value: "apple" }, "Apple"), h("option", { value: "pear" }, "Pear")];
-      const onValueChange = (detail) => window.changes.push(detail);
+      const onValueChange = (event) => window.changes.push(event.detail);
       createApp({
         render: () => h("div", [
           h(Combobox, { id: "locked", label: "Tags", multiple: true, clearable: true, disclosure: true, help: "Pick tags.", disabled: true,
@@ -4219,6 +5677,51 @@ describe("Combobox disabled", () => {
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
     await check(page);
+    await page.close();
+  });
+});
+
+describe("Combobox authored defaults and affordances", () => {
+  it("starts from selected options, disables empty Clear, and keeps multiple selections on one row", async () => {
+    const path = await bundle("html-combobox-authored-defaults", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <form id="form">
+        <ui-combobox id="single" name="region" label="Region" clearable disclosure>
+          <option value="north" selected>North</option><option value="south">South</option>
+        </ui-combobox>
+        <ui-combobox id="empty" label="Empty" clearable disclosure></ui-combobox>
+        <ui-combobox id="multi" name="teams" label="Teams" multiple clearable disclosure style="width: 19rem">
+          <option value="design" selected>Design</option><option value="docs" selected>Docs</option><option value="platform">Platform</option>
+        </ui-combobox>
+        <ui-combobox id="locked" label="Locked" disabled disclosure><option value="north">North</option></ui-combobox>
+        <ui-combobox id="read" label="Read" readonly disclosure><option value="north" selected>North</option></ui-combobox>
+      </form>
+    `, [join(root, "tokens.css")]);
+    const entries = () => page.locator("#form").evaluate((form: HTMLFormElement) => ({
+      region: new FormData(form).get("region"), teams: new FormData(form).getAll("teams"),
+    }));
+    assert.deepEqual(await entries(), { region: "north", teams: ["design", "docs"] });
+    assert.equal(await page.locator("#empty [data-combobox-action='clear']").isDisabled(), true);
+    assert.equal(await page.locator("#multi [data-combobox-action='clear']").isDisabled(), true);
+    assert.equal(await page.locator("#single [data-combobox-action='clear']").isEnabled(), true);
+    for (const id of ["locked", "read"]) {
+      assert.equal(await page.locator(`#${id} [data-combobox-action='disclosure']`).isVisible(), true);
+      assert.equal(await page.locator(`#${id} [data-combobox-action='disclosure']`).isDisabled(), true);
+    }
+    const initialHeight = await page.locator("#multi .field").evaluate((field) => field.getBoundingClientRect().height);
+    await page.locator("#multi [data-combobox-action='disclosure']").click();
+    await page.locator("#multi [role='option']").filter({ hasText: "Platform" }).click();
+    const selectedHeight = await page.locator("#multi .field").evaluate((field) => field.getBoundingClientRect().height);
+    assert.ok(Math.abs(selectedHeight - initialHeight) < 1, "adding chips does not grow the field");
+    await page.locator("#empty input[role='combobox']").fill("north");
+    assert.equal(await page.locator("#empty [data-combobox-action='clear']").isEnabled(), true);
+    await page.locator("#empty [data-combobox-action='clear']").click();
+    assert.equal(await page.locator("#empty [data-combobox-action='clear']").isDisabled(), true);
+    await page.locator("#single [data-combobox-action='clear']").click();
+    assert.equal(await page.locator("#single [data-combobox-action='clear']").isDisabled(), true);
+    await page.locator("#form").evaluate((form: HTMLFormElement) => form.reset());
+    await page.waitForTimeout(30);
+    assert.deepEqual(await entries(), { region: "north", teams: ["design", "docs"] });
     await page.close();
   });
 });
@@ -4381,6 +5884,24 @@ describe("Search Result Row selected", () => {
   });
 });
 
+describe("Search Shell ignores a close from inside it", () => {
+  it("stays open when a tooltip or menu inside it reports close", async () => {
+    const path = await bundle("html-search-shell-inner-close", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <ui-search-shell id="shell" open label="Search">
+        <span slot="search"><input type="search" aria-label="Search"><button id="clear" type="button">x</button></span>
+      </ui-search-shell>`, [join(root, "tokens.css")]);
+    await page.waitForSelector("dialog[open]");
+    await page.evaluate(() => { (window as any).closes = 0; document.querySelector("#shell")!.addEventListener("close", () => { (window as any).closes += 1; }); });
+    // Components report their own "close" as a bubbling event, as a Tooltip does when its button goes away.
+    await page.evaluate(() => document.querySelector("#clear")!.dispatchEvent(new CustomEvent("close", { bubbles: true, detail: { open: false } })));
+    await page.waitForTimeout(200);
+    assert.equal(await page.locator("dialog").evaluate((element: HTMLDialogElement) => element.open), true);
+    assert.equal(await page.evaluate(() => (window as any).closes), 1, "only the inner event itself reached the shell");
+    await page.close();
+  });
+});
+
 describe("Search Shell keyboard results", () => {
   const check = async (page: Page) => {
     const search = page.getByRole("searchbox", { name: "Search" });
@@ -4430,23 +5951,29 @@ describe("Search Shell keyboard results", () => {
   });
 });
 
-describe("Listbox native selection", () => {
+describe("Listbox choice rows", () => {
   const check = async (page: Page) => {
     const listbox = page.locator("#regions");
-    assert.equal(await listbox.evaluate((element) => element.localName), "select");
-    assert.equal(await listbox.getAttribute("size"), "4");
-    assert.deepEqual(await listbox.evaluate((element: HTMLSelectElement) =>
-      Array.from(element.selectedOptions, (option) => option.value)), ["north", "west"]);
+    assert.equal(await listbox.evaluate((element) => element.localName), "div");
+    assert.equal(await listbox.getAttribute("role"), "listbox");
+    assert.equal(await listbox.getAttribute("data-enhanced"), "");
+    assert.equal(await listbox.locator("select.fallback").isVisible(), false);
+    assert.equal(await listbox.locator("select.fallback").isDisabled(), true);
+    assert.equal(await listbox.locator('[role="option"]').count(), 3);
+    assert.deepEqual((await listbox.locator('[role="option"][aria-selected="true"]').allTextContents()).map((label) => label.toLowerCase()), ["north", "west"]);
+    assert.equal(await listbox.locator('[role="option"]').first().evaluate((element) => getComputedStyle(element, "::before").content), '""');
     const entries = () => page.locator("#form").evaluate((form: HTMLFormElement) =>
       Array.from(new FormData(form).getAll("regions"), String));
     assert.deepEqual(await entries(), ["north", "west"]);
-    await listbox.selectOption(["south"]);
-    assert.deepEqual(await entries(), ["south"]);
+    await listbox.locator('[role="option"]').nth(1).click();
+    assert.deepEqual(await entries(), ["north", "south", "west"]);
+    await listbox.press(" ");
+    assert.deepEqual(await entries(), ["north", "west"]);
     await page.locator("#form").evaluate((form: HTMLFormElement) => form.reset());
     assert.deepEqual(await entries(), ["north", "west"]);
   };
 
-  it("uses native multi-selection and form reset in HTML", async () => {
+  it("uses checked choice rows and form reset in HTML", async () => {
     const path = await bundle("html-listbox", `import "@threadlabs/looma";`);
     const page = await open(path, `
       <form id="form"><ui-listbox id="regions" name="regions" rows="4" multiple values='["north","west"]'>
@@ -4457,7 +5984,7 @@ describe("Listbox native selection", () => {
     await page.close();
   });
 
-  it("uses native multi-selection and form reset in Vue", async () => {
+  it("uses checked choice rows and form reset in Vue", async () => {
     const path = await bundle("vue-listbox", `
       import { createApp, h } from "vue";
       import { Listbox } from "@threadlabs/looma/vue";
@@ -4467,6 +5994,24 @@ describe("Listbox native selection", () => {
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
     await check(page);
+    await page.close();
+  });
+
+  it("keeps required form validation and a native label association", async () => {
+    const path = await bundle("html-required-listbox", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <form id="form"><label for="plan">Plan</label><ui-listbox id="plan" name="plan" required>
+        <option value="basic">Basic</option><option value="team">Team</option>
+      </ui-listbox></form>
+    `, [join(root, "tokens.css")]);
+    const listbox = page.locator("#plan");
+    assert.equal(await listbox.getAttribute("aria-labelledby"), await page.locator("label").getAttribute("id"));
+    assert.equal(await page.locator("#form").evaluate((form: HTMLFormElement) => form.checkValidity()), false);
+    await listbox.locator('[role="option"]').nth(1).click();
+    assert.equal(await page.locator("#form").evaluate((form: HTMLFormElement) => form.checkValidity()), true);
+    assert.deepEqual(await page.locator("#form").evaluate((form: HTMLFormElement) => Array.from(new FormData(form).getAll("plan"))), ["team"]);
+    await page.locator("#form").evaluate((form: HTMLFormElement) => form.reset());
+    assert.equal(await page.locator("#form").evaluate((form: HTMLFormElement) => form.checkValidity()), false);
     await page.close();
   });
 });
@@ -4724,7 +6269,9 @@ describe("Form participation", () => {
     await page.locator("#site").fill("wiki");
     await page.locator("#body").fill("Hi there");
     await page.locator("#topic").selectOption("problem");
-    await page.locator("#regions").selectOption(["south"]);
+    await page.locator('#regions [data-index="0"]').click();
+    await page.locator('#regions [data-index="2"]').click();
+    await page.locator('#regions [data-index="1"]').click();
     await page.locator("#agree input").check();
     await page.locator("#news input").uncheck();
     await page.locator("#alerts input").check();
@@ -4934,7 +6481,8 @@ describe("Table", () => {
     const html = await renderToString(createSSRApp({
       render: () => h(Table, { density: "compact", stickyHeader: true }, () => h("table", [h("caption", "Orders"), h("tbody", h("tr", h("td", "1")))])),
     }));
-    assert.match(html, /^<div data-component="ui-table" data-ui-table-state="density density=compact stickyHeader"/);
+    assert.match(html, /^<div data-component="ui-table"/);
+    assert.match(html, /data-ui-table-state="density density=compact stickyHeader"/);
     assert.match(html, /<table[^>]*><caption[^>]*>Orders<\/caption>/);
     assert.doesNotMatch(html, /role=|tabindex=/);
   });
@@ -5013,6 +6561,40 @@ describe("Description list layouts", () => {
 });
 
 describe("Sidebar", () => {
+  it("animates docked occupancy with a fixed content canvas and follows pointer resizing immediately", async () => {
+    const path = await bundle("html-sidebar-layout-motion", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <div style="display:flex;width:900px;height:480px;--ui-motion-layout:1000ms">
+        <ui-sidebar id="nav" width="280" resizable style="--ui-sidebar-collapsed-width:56px"><a href="#content">Navigation</a></ui-sidebar>
+        <main id="content" style="flex:1">Content</main>
+      </div>
+      <button id="toggle" commandfor="nav" command="--toggle">Toggle</button>
+    `, [join(root, "tokens.css")], { viewport: { width: 1280, height: 800 }, reducedMotion: "no-preference" });
+    await page.locator("#toggle").click();
+    await page.waitForTimeout(80);
+    const intermediate = await page.evaluate(() => ({
+      sidebar: document.querySelector("#nav")!.getBoundingClientRect().width,
+      canvas: document.querySelector("#nav .content")!.getBoundingClientRect().width,
+      main: document.querySelector("#content")!.getBoundingClientRect().width,
+      inert: document.querySelector("#nav")!.hasAttribute("inert"),
+    }));
+    assert.ok(intermediate.sidebar > 56 && intermediate.sidebar < 280, JSON.stringify(intermediate));
+    assert.equal(intermediate.canvas, 279);
+    assert.ok(intermediate.main > 620 && intermediate.main < 844);
+    assert.equal(intermediate.inert, true);
+    await page.locator("#toggle").click();
+    await page.waitForTimeout(1100);
+    const handle = await page.locator("#nav .resizer").boundingBox();
+    await page.mouse.move(handle!.x + 4, handle!.y + 40);
+    await page.mouse.down();
+    await page.mouse.move(handle!.x + 84, handle!.y + 40);
+    assert.equal((await page.locator("#nav").boundingBox())!.width, 360);
+    await page.mouse.up();
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.locator("#toggle").click();
+    assert.equal((await page.locator("#nav").boundingBox())!.width, 56);
+    await page.close();
+  });
   type Probe = { toggles: unknown[]; resizes: unknown[] };
   const probe = (page: Page) => page.evaluate(() => (window as unknown as { probe: Probe }).probe);
   const watchErrors = (page: Page) => {
@@ -5064,7 +6646,7 @@ describe("Sidebar", () => {
       window.probe = { toggles: [], resizes: [] };
       createApp({ render: () => [
         h("button", { id: "menu", commandfor: "nav", command: "--toggle" }, "Menu"),
-        h(Sidebar, { id: "nav", "aria-label": "Workspace", width: 256, onToggle: (detail) => window.probe.toggles.push(detail) },
+        h(Sidebar, { id: "nav", "aria-label": "Workspace", width: 256, onToggle: (event) => window.probe.toggles.push(event.detail) },
           () => h("a", { href: "#inbox" }, "Inbox")),
       ] }).mount("#app");
     `);
@@ -5082,7 +6664,7 @@ describe("Sidebar", () => {
       window.width = width;
       createApp({ render: () => h(Sidebar, {
         id: "nav", "aria-label": "Workspace", width: width.value, resizable: true,
-        onResize: (detail) => window.probe.resizes.push(detail),
+        onResize: (event) => window.probe.resizes.push(event.detail),
       }, () => h("a", { href: "#inbox" }, "Inbox")) }).mount("#app");
     `);
     const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
@@ -5090,8 +6672,9 @@ describe("Sidebar", () => {
     const width = () => page.locator("#nav").evaluate((element) => element.getBoundingClientRect().width);
     assert.equal(await width(), 256);
     await page.evaluate(() => { (window as unknown as { width: { value: number } }).width.value = 300; });
-    await page.waitForTimeout(50);
+    await page.waitForFunction(() => document.querySelector("#nav")!.getBoundingClientRect().width === 300);
     assert.equal(await width(), 300);
+    assert.equal(await page.locator("#nav .resizer").getAttribute("aria-valuenow"), "300");
     assert.deepEqual(errors, []);
     assert.deepEqual((await probe(page)).resizes, [{ width: 256, trigger: "programmatic" }, { width: 300, trigger: "programmatic" }]);
     await page.close();
@@ -5127,16 +6710,16 @@ describe("Component hooks", () => {
     ["div", hook("--ui-input-radius", "7px"), [["Input", { id: "input-nested", "aria-label": "Nested" }]]],
     ["Input", { id: "input-plain", "aria-label": "Plain" }],
     ["Input", { id: "input-own", "aria-label": "Own", ...hook("--ui-input-radius", "7px") }],
-    ["nav", { "aria-label": "Hooked", ...hook("--ui-nav-item-indicator-color", mark) }, [["NavItem", { id: "nav-nested", current: true }, ["Home"]]]],
-    ["NavItem", { id: "nav-plain", current: true }, ["Home"]],
-    ["NavItem", { id: "nav-own", current: true, ...hook("--ui-nav-item-indicator-color", mark) }, ["Home"]],
+    ["nav", { "aria-label": "Hooked", ...hook("--ui-nav-item-indicator-color", mark) }, [["NavItem", { id: "nav-nested", variant: "line", current: "true" }, ["Home"]]]],
+    ["NavItem", { id: "nav-plain", variant: "line", current: "true" }, ["Home"]],
+    ["NavItem", { id: "nav-own", variant: "line", current: "true", ...hook("--ui-nav-item-indicator-color", mark) }, ["Home"]],
     // A hook a component reads on an inner part reaches that part from the root, and no further.
     ["Callout", { id: "callout-outer", ...hook("--ui-callout-icon", mark) }, [["Callout", { id: "callout-nested" }, ["Inner"]]]],
     ["Callout", { id: "callout-plain" }, ["Plain"]],
     // Theme tokens still theme a subtree.
     ["div", { style: `--ui-space-5: 40px; --ui-accent: ${mark}` }, [
       ["Stack", { id: "stack-themed", gap: "l" }, [["span", {}, ["a"]], ["span", {}, ["b"]]]],
-      ["NavItem", { id: "nav-themed", current: true }, ["Home"]],
+      ["NavItem", { id: "nav-themed", variant: "line", current: "true" }, ["Home"]],
     ]],
   ];
 
@@ -5308,6 +6891,32 @@ describe("Theme levels", () => {
 });
 
 describe("Meter", () => {
+  it("localizes its spoken percentage in native HTML and Vue while keeping CSS numeric", async () => {
+    for (const target of ["html", "vue"]) {
+      const path = await bundle(`localized-meter-${target}`, target === "html"
+        ? `import "@threadlabs/looma";`
+        : `import { createApp, h, ref } from "vue";
+           import { Meter } from "@threadlabs/looma/vue";
+           const value = ref(0.29);
+           window.localizedMeterValue = value;
+           createApp({ render: () => h(Meter, { value: value.value, label: "Progress" }) }).mount("#app");`);
+      const page = await open(path, target === "html"
+        ? '<ui-meter id="meter" value="0.29" label="Progress"></ui-meter>'
+        : '<div id="app"></div>', css, { locale: "de-DE" });
+      const meter = page.getByRole("meter", { name: "Progress" });
+      assert.equal(await meter.getAttribute("aria-valuetext"), "29\u00a0%");
+      const fill = await meter.locator(".fill").evaluate((element) => (element as HTMLElement).style.inlineSize);
+      assert.ok(fill.endsWith("%") && Math.abs(parseFloat(fill) - 29) < 0.000001, fill);
+      if (target === "vue") {
+        await page.evaluate(() => {
+          (window as unknown as { localizedMeterValue: { value: number } }).localizedMeterValue.value = 0.5;
+        });
+        await page.waitForFunction(() => document.querySelector('[role="meter"]')?.getAttribute("aria-valuetext") === "50\u00a0%");
+        assert.equal(await meter.locator(".fill").evaluate((element) => (element as HTMLElement).style.inlineSize), "50%");
+      }
+      await page.close();
+    }
+  });
   const tones = ["neutral", "accent", "info", "success", "warning", "danger"];
   const meters: [string, Record<string, unknown>][] = [
     ["partial", { value: 750, max: 1240, tone: "info", label: "Collected", valueText: "$750 of $1,240 collected" }],
@@ -5413,7 +7022,8 @@ describe("Meter", () => {
     for (let index = 0; index < 5; index++) assert.equal(at(drawn, segment(index) + 48), page0, `gap ${index + 1} shows the page`);
     const done = [0, 1, 2, 3].map((index) => at(drawn, segment(index) + 23));
     const todo = [4, 5].map((index) => at(drawn, segment(index) + 23));
-    assert.equal(new Set(done).size, 1, "the steps done are one colour");
+    const near = (left: string, right: string) => left.split(",").every((channel, index) => Math.abs(Number(channel) - Number(right.split(",")[index])) <= 2);
+    assert.ok(done.every((pixel) => near(pixel, done[0]!)), `the shaded steps done share one fill: ${done}`);
     assert.equal(new Set(todo).size, 1, "the steps to do are one colour");
     assert.notEqual(done[0], todo[0], "the fill differs from the track");
     assert.notEqual(todo[0], page0, "the track differs from the page");
@@ -5464,4 +7074,510 @@ describe("Meter", () => {
     assert.equal(fill, 1);
     await page.close();
   });
+});
+
+describe("Input with numbers", () => {
+  // A number field's model is a number. v-model reads the field as a number, so text the user is
+  // still typing that means the model's number (12., 1.0, 1e3, empty) is never written over. Chromium
+  // reports "12." as "12", so the check is that nothing writes the field's value while it has focus.
+  const spyOnWrites = `
+    window.writes = [];
+    const value = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");
+    Object.defineProperty(HTMLInputElement.prototype, "value", {
+      ...value,
+      set(text) {
+        if (document.activeElement === this) window.writes.push(text);
+        value.set.call(this, text);
+      },
+    });
+  `;
+  const numberField = (name: string, binding: string) => bundle(name, `
+    import { createApp, h, ref } from "vue";
+    import { Input } from "@threadlabs/looma/vue";
+    ${spyOnWrites}
+    const amount = ref(12);
+    const updates = [];
+    window.updates = updates;
+    const record = (value) => { updates.push(value); amount.value = value; };
+    createApp({
+      render: () => h(Input, { id: "amount", type: "number", "aria-label": "Amount", ${binding} }),
+    }).mount("#app");
+  `);
+  const read = (page: Page) => page.evaluate(() => {
+    const { updates, writes } = window as unknown as { updates: unknown[]; writes: string[] };
+    return { updates: [...updates], writes: [...writes] };
+  });
+
+  const typing = async (page: Page) => {
+    const input = page.locator("#amount");
+    assert.equal(await input.inputValue(), "12");
+    await input.click();
+    await input.press("ControlOrMeta+a");
+    await input.press("Backspace");
+    // 12.5, then Backspace leaves "12.", and 8 makes 12.8, not 128 or 812.
+    await input.pressSequentially("12.5");
+    await input.press("Backspace");
+    await input.pressSequentially("8");
+    assert.equal(await input.inputValue(), "12.8");
+    for (const text of ["1.0", "1e3", "0.50"]) {
+      await input.press("ControlOrMeta+a");
+      await input.press("Backspace");
+      await input.pressSequentially(text);
+      assert.equal(await input.inputValue(), text);
+    }
+    // 1e3 less its 3 is not yet a number, so the field reads as empty; its 1 is 1 again.
+    await input.press("ControlOrMeta+a");
+    await input.pressSequentially("1e3");
+    await input.press("Backspace");
+    await input.press("Backspace");
+    assert.equal(await input.inputValue(), "1");
+    await input.press("Backspace");
+    assert.equal(await input.inputValue(), "");
+    return read(page);
+  };
+
+  it("reports numbers through v-model and never rewrites the text being typed", async () => {
+    const path = await numberField("vue-input-number-model", `modelValue: amount.value, "onUpdate:modelValue": record`);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const { updates, writes } = await typing(page);
+    assert.deepEqual(writes, []);
+    // The declared numeric value is null while the field holds no number.
+    assert.ok(updates.every((value) => typeof value === "number" || value === null), JSON.stringify(updates));
+    for (const value of [12.5, 12.8, 1, 1000, 0.5]) assert.ok(updates.includes(value), `reports ${value}`);
+    assert.equal(updates.at(-1), null);
+    await page.close();
+  });
+
+  it("takes a number value and follows input events without rewriting the text being typed", async () => {
+    const path = await numberField("vue-input-number-value", `value: amount.value, onInput: (event) => record(event.target.value === "" ? null : Number(event.target.value))`);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    const { writes } = await typing(page);
+    assert.deepEqual(writes, []);
+    await page.close();
+  });
+});
+
+describe("App styling hooks", () => {
+  // An app styles a component from a plain class of its own, through the component's hooks: no
+  // selector of Looma's markup and no specificity to win. Each check runs on both targets.
+  const appCss = `
+    :root { --ui-motion-fast: 0s; }
+    .frame { inline-size: 400px; }
+    .narrow-input { --ui-input-inline-size: 150px; }
+    .narrow-select {
+      --ui-select-inline-size: 160px;
+      --ui-select-surface: rgb(1, 2, 3);
+      --ui-select-border: rgb(4, 5, 6);
+      --ui-select-focus-border: rgb(7, 8, 9);
+    }
+    .narrow-nav { --ui-nav-item-inline-size: 170px; }
+    .wide-field {
+      --ui-form-field-min-inline-size: 300px;
+      --ui-form-field-label-text: rgb(10, 20, 30);
+      --ui-form-field-label-font-size: 18px;
+      --ui-form-field-help-text: rgb(40, 50, 60);
+      --ui-form-field-help-font-size: 11px;
+    }
+    .one-line { --ui-button-white-space: nowrap; }
+    .tight { inline-size: 60px; }
+  `;
+  const label = "Save all the changes";
+
+  async function check(page: Page) {
+    await page.addStyleTag({ content: appCss });
+    await page.locator("#heading-sized").waitFor();
+    const style = (selector: string, property: string) =>
+      page.locator(selector).evaluate((element, name) => getComputedStyle(element).getPropertyValue(name), property);
+    const width = async (selector: string) => Math.round((await page.locator(selector).boundingBox())!.width);
+
+    // Widths: the hook sizes the component; unset, it fills its container as before.
+    assert.equal(await width("#input"), 150);
+    assert.equal(await width("#input-default"), 400);
+    assert.equal(await width("#select"), 160);
+    assert.equal(await width("#select-default"), 400);
+    assert.equal(await width("#nav"), 170);
+    assert.equal(await width("#nav-default"), 400);
+    assert.equal(await width("#field"), 300, "a field keeps its minimum in a narrower track");
+
+    // Select takes Input's surface and border hooks.
+    assert.equal(await style("#select", "background-color"), "rgb(1, 2, 3)");
+    assert.equal(await style("#select", "border-top-color"), "rgb(4, 5, 6)");
+    await page.locator("#select").focus();
+    await page.keyboard.press("Shift+Tab");
+    await page.keyboard.press("Tab");
+    assert.equal(await style("#select", "border-top-color"), "rgb(7, 8, 9)");
+
+    // Form Field's label and help text.
+    assert.equal(await style("#field-label", "color"), "rgb(10, 20, 30)");
+    assert.equal(await style("#field-label", "font-size"), "18px");
+    assert.equal(await style("#field-help", "color"), "rgb(40, 50, 60)");
+    assert.equal(await style("#field-help", "font-size"), "11px");
+
+    // A label kept on one line; unset, a button still wraps as its container does.
+    assert.equal(await style("#one-line", "white-space"), "nowrap");
+    assert.equal(await style("#wraps", "white-space"), "normal");
+    const height = async (selector: string) => (await page.locator(selector).boundingBox())!.height;
+    assert.ok(await height("#wraps") > await height("#one-line"), "the unset label wraps in a narrow row");
+
+    // A heading level on Text: its size and weight come from its options, not the browser's.
+    assert.equal(await page.locator("#heading").evaluate((element) => element.tagName), "H3");
+    assert.equal(await style("#heading", "font-size"), await style(".frame", "font-size"));
+    assert.equal(await style("#heading", "font-weight"), await style(".frame", "font-weight"));
+    assert.equal(await page.locator("#heading-sized").evaluate((element) => element.tagName), "H2");
+    assert.equal(await style("#heading-sized", "font-size"), await page.evaluate(() => {
+      const probe = document.body.appendChild(document.createElement("i"));
+      probe.style.fontSize = "var(--ui-font-size-lg)";
+      const size = getComputedStyle(probe).fontSize;
+      probe.remove();
+      return size;
+    }));
+    assert.equal(await style("#heading-sized", "font-weight"), "600");
+  }
+
+  it("apply from an app class in HTML", async () => {
+    const path = await bundle("html-app-hooks", `import "@threadlabs/looma";`);
+    const page = await open(path, `
+      <div class="frame">
+        <ui-input id="input" class="narrow-input" aria-label="Amount"></ui-input>
+        <ui-input id="input-default" aria-label="Note"></ui-input>
+        <ui-select id="select" class="narrow-select" aria-label="Status"><option>Open</option></ui-select>
+        <ui-select id="select-default" aria-label="Owner"><option>Ada</option></ui-select>
+        <ui-nav-item id="nav" class="narrow-nav">Shipments</ui-nav-item>
+        <ui-nav-item id="nav-default">Orders</ui-nav-item>
+        <div class="tight"><ui-form-field id="field" class="wide-field">
+          <label slot="label" id="field-label" for="name">Name</label>
+          <ui-input id="name"></ui-input>
+          <p slot="help" id="field-help">As it appears on the invoice.</p>
+        </ui-form-field></div>
+        <div class="tight"><ui-button id="one-line" class="one-line">${label}</ui-button></div>
+        <div class="tight"><ui-button id="wraps">${label}</ui-button></div>
+        <ui-text id="heading" as="h3">Billing</ui-text>
+        <ui-text id="heading-sized" as="h2" size="lg" weight="semibold">Billing</ui-text>
+      </div>`, [join(root, "tokens.css")]);
+    await check(page);
+    await page.close();
+  });
+
+  it("apply from an app class in Vue", async () => {
+    const path = await bundle("vue-app-hooks", `
+      import { createApp, h } from "vue";
+      import { Button, FormField, Input, NavItem, Select, Text } from "@threadlabs/looma/vue";
+      createApp({
+        render: () => h("div", { class: "frame" }, [
+          h(Input, { id: "input", class: "narrow-input", "aria-label": "Amount" }),
+          h(Input, { id: "input-default", "aria-label": "Note" }),
+          h(Select, { id: "select", class: "narrow-select", "aria-label": "Status" }, () => [h("option", "Open")]),
+          h(Select, { id: "select-default", "aria-label": "Owner" }, () => [h("option", "Ada")]),
+          h(NavItem, { id: "nav", class: "narrow-nav" }, () => "Shipments"),
+          h(NavItem, { id: "nav-default" }, () => "Orders"),
+          h("div", { class: "tight" }, [h(FormField, { id: "field", class: "wide-field" }, {
+            label: () => h("label", { id: "field-label", for: "name" }, "Name"),
+            default: () => h(Input, { id: "name" }),
+            help: () => h("p", { id: "field-help" }, "As it appears on the invoice."),
+          })]),
+          h("div", { class: "tight" }, [h(Button, { id: "one-line", class: "one-line" }, () => "${label}")]),
+          h("div", { class: "tight" }, [h(Button, { id: "wraps" }, () => "${label}")]),
+          h(Text, { id: "heading", as: "h3" }, () => "Billing"),
+          h(Text, { id: "heading-sized", as: "h2", size: "lg", weight: "semibold" }, () => "Billing"),
+        ]),
+      }).mount("#app");
+    `);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    await check(page);
+    await page.close();
+  });
+});
+
+describe("Combobox completion", () => {
+  const check = async (page: Page) => {
+    const input = page.locator('#choices input[role="combobox"]');
+    await input.fill("Des");
+    await page.waitForFunction(() => Boolean(document.querySelector('#choices input')?.getAttribute('aria-activedescendant')));
+    assert.equal(await page.locator('#choices [role="option"].active').textContent(), "Design");
+    await input.press("Tab");
+    assert.equal(await page.locator('#choices .item').count(), 1);
+    assert.equal(await input.inputValue(), "");
+    assert.equal(await page.locator('#after').evaluate(element => element === document.activeElement), true);
+    await input.fill("Des");
+    await input.press("Tab");
+    assert.equal(await page.locator('#choices .item').count(), 1, "completion never toggles off a selected item");
+    await input.fill("Pla");
+    await input.press("Shift+Tab");
+    assert.equal(await page.locator('#choices .item').count(), 1, "reverse focus does not commit");
+    await input.fill("D");
+    assert.equal(await input.getAttribute("aria-activedescendant"), null, "ambiguous results stay unhighlighted");
+    await input.press("Tab");
+    assert.equal(await page.locator('#choices .item').count(), 1);
+  };
+  it("keeps default multiple completion manual and excludes disabled suggestions", async () => {
+    const path = await bundle("html-combobox-completion-default", `import "@threadlabs/looma";`);
+    const page = await open(path, `<ui-combobox id="manual" label="Manual" multiple><option value="design">Design</option></ui-combobox><ui-combobox id="disabled" label="Disabled" multiple auto-highlight="single" select-on-tab><option value="design" disabled>Design</option></ui-combobox><button>After</button>`, [join(root, "tokens.css")]);
+    try {
+      for (const id of ["manual", "disabled"]) {
+        const input = page.locator(`#${id} input[role="combobox"]`);
+        await input.fill("Des");
+        assert.equal(await input.getAttribute("aria-activedescendant"), null);
+        await input.press("Tab");
+        assert.equal(await page.locator(`#${id} .item`).count(), 0);
+      }
+    } finally { await page.close(); }
+  });
+  it("highlights a sole authored result and commits Tab in HTML", async () => {
+    const path = await bundle("html-combobox-completion", `import "@threadlabs/looma";`);
+    const page = await open(path, `<button id="before">Before</button><ui-combobox id="choices" label="Teams" multiple auto-highlight="single" select-on-tab><option value="design">Design</option><option value="docs">Docs</option><option value="platform">Platform</option></ui-combobox><button id="after">After</button>`, [join(root, "tokens.css")]);
+    try { await check(page); } finally { await page.close(); }
+  });
+  it("highlights a sole authored result and commits Tab in controlled Vue", async () => {
+    const path = await bundle("vue-combobox-completion", `
+      import { createApp, h, ref } from "vue";
+      import { Combobox } from "@threadlabs/looma/vue";
+      const selected = ref([]);
+      createApp({ render: () => h("div", [h("button", { id: "before" }, "Before"), h(Combobox, { id: "choices", label: "Teams", multiple: true, autoHighlight: "single", selectOnTab: true, selectedValues: selected.value, "onUpdate:selectedValues": values => selected.value = values }, () => [["design", "Design"], ["docs", "Docs"], ["platform", "Platform"]].map(([value,label]) => h("option", {value}, label))), h("button", {id:"after"}, "After")]) }).mount("#app");`);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    try { await check(page); } finally { await page.close(); }
+  });
+});
+
+
+describe("Combobox chip truncation", () => {
+  const label = "workspace:averylongidentifierthatmuststayinsideitsbadge";
+  const checkTextRoom = async (page: Page) => {
+    const bounds = await page.locator(".item .label").evaluateAll((labels) => labels.map((label) => {
+      const box = label.getBoundingClientRect();
+      const range = document.createRange();
+      range.selectNodeContents(label);
+      const text = range.getBoundingClientRect();
+      return { label: label.textContent, top: box.top, bottom: box.bottom, textTop: text.top, textBottom: text.bottom };
+    }));
+    assert.ok(bounds.length > 0);
+    for (const box of bounds) {
+      assert.ok(box.textBottom <= box.bottom + 1, `${box.label}: the label does not crop descenders`);
+      assert.ok(box.textTop >= box.top - 1, `${box.label}: the label leaves room above its text`);
+    }
+  };
+  const check = async (page: Page) => {
+    for (const width of [1280, 375]) {
+      await page.setViewportSize({ width, height: 812 });
+      const chip = page.getByRole("button", { name: `${label}, press Delete or Backspace to remove` });
+      await chip.waitFor();
+      const geometry = await chip.evaluate((item) => {
+        const badge = item.querySelector<HTMLElement>('[data-component~="ui-badge"]')!;
+        const label = badge.querySelector<HTMLElement>(".label")!;
+        const box = item.getBoundingClientRect();
+        const badgeBox = badge.getBoundingClientRect();
+        const labelBox = label.getBoundingClientRect();
+        return { itemWidth: box.width, badgeWidth: badgeBox.width, labelInside: labelBox.right <= badgeBox.right && labelBox.left >= badgeBox.left, clipped: label.scrollWidth > label.clientWidth, overflow: getComputedStyle(label).overflow, ellipsis: getComputedStyle(label).textOverflow, text: label.textContent };
+      });
+      assert.ok(geometry.badgeWidth <= geometry.itemWidth + 1, "badge stays within the capped chip");
+      assert.ok(geometry.labelInside, "label stays inside the badge");
+      assert.ok(geometry.clipped, "long label is constrained");
+      assert.equal(geometry.overflow, "hidden");
+      assert.equal(geometry.ellipsis, "ellipsis");
+      assert.equal(geometry.text, label, "full label remains available to assistive technology");
+      await checkTextRoom(page);
+      await page.screenshot({ path: join(root, ".build", `chip-ellipsis-${width}.png`) });
+    }
+    await page.getByRole("combobox", { name: "Filter" }).focus();
+    await page.keyboard.press("ArrowLeft");
+    await page.keyboard.press("Backspace");
+    assert.equal(await page.locator(".item").count(), 0, "truncation preserves keyboard removal");
+  };
+  it("ellipsizes native chip labels inside their badge at desktop and 375px", async () => {
+    const path = await bundle("html-chip-truncation", `import "@threadlabs/looma";`);
+    const page = await open(path, `<ui-combobox label="Filter" multiple items='[{"id":"long","value":"long","label":"${label}"}]'><option value="long">${label}</option></ui-combobox>`, [join(root, "tokens.css")]);
+    try { await check(page); } finally { await page.close(); }
+  });
+  it("ellipsizes Vue chip labels inside their badge at desktop and 375px", async () => {
+    const path = await bundle("vue-chip-truncation", `import { createApp, h } from "vue"; import { Combobox } from "@threadlabs/looma/vue"; createApp({ render: () => h(Combobox, { label: "Filter", multiple: true, items: [{id: "long", value: "long", label: ${JSON.stringify(label)}}] }, () => h("option", {value: "long"}, ${JSON.stringify(label)})) }).mount("#app");`);
+    const page = await open(path, `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+    try { await check(page); } finally { await page.close(); }
+  });
+  for (const adapter of ["native", "Vue"]) {
+    it(`keeps short ${adapter} chip text and descenders visible at desktop and 375px`, async () => {
+      const items = [{ id: "date", value: "date", label: "date:today" }, { id: "entry", value: "entry", label: "entry:review" }];
+      const options = items.map((item) => `<option value="${item.value}">${item.label}</option>`).join("");
+      const source = adapter === "native" ? `import "@threadlabs/looma";`
+        : `import { createApp, h } from "vue"; import { Combobox } from "@threadlabs/looma/vue"; createApp({ render: () => h(Combobox, { label: "Filter", multiple: true, items: ${JSON.stringify(items)} }, () => ${JSON.stringify(items)}.map(item => h("option", {value: item.value}, item.label))) }).mount("#app");`;
+      const path = await bundle(`${adapter}-chip-descenders`, source);
+      const page = await open(path, adapter === "native" ? `<ui-combobox label="Filter" multiple items='${JSON.stringify(items)}'>${options}</ui-combobox>` : `<div id="app"></div>`, [join(root, "tokens.css"), join(root, "vue/components.css")]);
+      try {
+        for (const width of [1280, 375]) {
+          await page.setViewportSize({ width, height: 812 });
+          await page.locator(".item .label").first().waitFor();
+          await checkTextRoom(page);
+          await page.screenshot({ path: join(root, ".build", `chip-descenders-${adapter}-${width}.png`) });
+        }
+      } finally { await page.close(); }
+    });
+  }
+});
+
+describe("CardButton layout", () => {
+  for (const adapter of ["native", "Vue"]) {
+    it(`keeps ${adapter} icon/content top-aligned and action centered with equal edges at 375px and RTL`, async () => {
+      const label = "Read the latest project notes and decisions, including the changes that need another look.";
+      const source = adapter === "native" ? `import "@threadlabs/looma";`
+        : `import {createApp,h} from "vue"; import {Button,Icon} from "@threadlabs/looma/vue"; createApp({render:()=>h(Button,{variant:"card",tone:"accent",id:"card"},{default:()=>${JSON.stringify(label)},icon:()=>h(Icon,{name:"book-user","aria-hidden":"true"})})}).mount("#app");`;
+      const path = await bundle(`card-button-${adapter}`, source);
+      const page = await open(path, adapter === "native" ? `<ui-button id="card" variant="card" tone="accent"><ui-icon slot="icon" name="book-user" aria-hidden="true"></ui-icon>${label}</ui-button>` : `<div id="app"></div>`, [join(root,"tokens.css"),join(root,"vue/components.css")]);
+      try {
+        for (const width of [1280,375]) for (const dir of ["ltr","rtl"]) {
+          await page.setViewportSize({width,height:812});
+          await page.locator("html").evaluate((el,dir)=>el.setAttribute("dir",dir),dir);
+          const geometry = await page.locator("#card").evaluate(el => {
+            const style=getComputedStyle(el), box=el.getBoundingClientRect();
+            const icon=el.querySelector(".card-icon")!.getBoundingClientRect(), content=el.querySelector(".card-content")!.getBoundingClientRect(), action=el.querySelector(".card-action")!.getBoundingClientRect();
+            return {contentHeight:content.height,lineHeight:parseFloat(style.lineHeight),contentMiddle:(content.top+content.bottom)/2,iconHeight:icon.height,height:box.height,overflow:document.documentElement.scrollWidth>innerWidth,iconTop:icon.top,contentTop:content.top,actionMiddle:(action.top+action.bottom)/2,middle:(box.top+box.bottom)/2,paddingStart:style.paddingInlineStart,paddingEnd:style.paddingInlineEnd,borders:[style.borderTopWidth,style.borderRightWidth,style.borderBottomWidth,style.borderLeftWidth],colors:[style.borderTopColor,style.borderRightColor,style.borderBottomColor,style.borderLeftColor],gap:style.columnGap};
+          });
+          assert.ok(geometry.height>=44); assert.ok(geometry.iconHeight>0); assert.equal(geometry.overflow,false);
+          assert.ok(Math.abs(geometry.iconTop-geometry.contentTop)<=1);
+          assert.ok(Math.abs(geometry.actionMiddle-geometry.middle)<=1);
+          if (geometry.contentHeight <= geometry.lineHeight + 1) {
+            assert.ok(Math.abs(geometry.contentMiddle-geometry.middle)<=1, "a single-line label is vertically centered within the card");
+          }
+          assert.equal(geometry.paddingStart,geometry.paddingEnd);
+          assert.equal(new Set(geometry.borders).size,1); assert.equal(new Set(geometry.colors).size,1);
+          assert.notEqual(geometry.gap,"normal");
+        }
+        await page.locator("#card").evaluate(el=>{ (window as unknown as {cardClicks:number}).cardClicks=0; el.addEventListener("click",()=>{(window as unknown as {cardClicks:number}).cardClicks++}); });
+        await page.locator("#card").focus();
+        await page.keyboard.press("Enter");
+        assert.equal(await page.locator("#card").evaluate(el=>el===document.activeElement),true);
+        assert.equal(await page.evaluate(()=>(window as unknown as {cardClicks:number}).cardClicks),1);
+        await page.locator("html").evaluate(el=>el.setAttribute("dir","ltr"));
+        await page.screenshot({path:join(root,".build",`card-button-${adapter}-375.png`)});
+        await page.locator("#card .card-icon").evaluate(el=>el.replaceChildren());
+        assert.equal(await page.locator("#card .card-icon").evaluate(el=>getComputedStyle(el).display),"none");
+
+
+      } finally {await page.close();}
+    });
+  }
+});
+
+describe("Image surface", () => {
+  const source = "https://example.test/primitive-image.svg";
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="160" height="80"><rect width="160" height="80" fill="#569d86"/></svg>';
+  for (const adapter of ["HTML", "Vue"]) {
+    it(`owns corner resize, cancellation, and bounds in ${adapter}`, async () => {
+      const path = await bundle(`image-surface-${adapter}`, adapter === "HTML" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Image } from "@threadlabs/looma/vue";
+        createApp({ render: () => h(Image, { id: "image", src: ${JSON.stringify(source)}, alt: "Landscape", width: 160, height: 80, selected: true, resizable: true }) }).mount("#mount");
+      `);
+      const page = await open(path, `<div style="width: 260px; padding: 20px; box-sizing: border-box">${adapter === "HTML" ? `<ui-image id="image" src="${source}" alt="Landscape" width="160" height="80" selected resizable></ui-image>` : '<div id="mount"></div>'}</div>`, [join(root, "tokens.css"), ...(adapter === "Vue" ? [join(root, "vue/components.css")] : [])], {}, async page => {
+        await page.route(source, route => route.fulfill({ contentType: "image/svg+xml", body: svg }));
+      });
+      await page.locator("#image img").evaluate(async element => { await (element as HTMLImageElement).decode(); });
+      await page.evaluate(() => {
+        (window as unknown as { resizeEvents: unknown[] }).resizeEvents = [];
+        document.querySelector("#image")!.addEventListener("resize", event => {
+          (window as unknown as { resizeEvents: unknown[] }).resizeEvents.push((event as CustomEvent).detail);
+        });
+      });
+      for (const corner of ["top-left", "top-right", "bottom-left", "bottom-right"]) {
+        const handle = page.locator(`#image [data-corner="${corner}"]`);
+        const box = (await handle.boundingBox())!;
+        await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+        await page.mouse.down();
+        await page.mouse.move(box.x + box.width / 2 + (corner.endsWith("left") ? -40 : 40), box.y + box.height / 2 + (corner.startsWith("top") ? -20 : 20));
+        assert.ok(Math.abs((await page.locator("#image img").boundingBox())!.width - 200) < 1);
+        await page.mouse.up();
+        const event = await page.evaluate(() => (window as unknown as { resizeEvents: { width: number; height: number; phase: string; trigger: string }[] }).resizeEvents.at(-1));
+        assert.deepEqual(event, { width: 200, height: 100, phase: "commit", trigger: "pointer" });
+      }
+      const handle = page.locator('#image [data-corner="bottom-right"]');
+      const box = (await handle.boundingBox())!;
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+      await page.mouse.down();
+      await page.mouse.move(box.x + box.width / 2 + 600, box.y + box.height / 2 + 300);
+      assert.ok((await page.locator("#image img").boundingBox())!.width <= 220);
+      await handle.dispatchEvent("pointercancel", { pointerId: 1 });
+      await page.mouse.up();
+      assert.ok(Math.abs((await page.locator("#image img").boundingBox())!.width - 160) < 1);
+      const cancelled = await page.evaluate(() => (window as unknown as { resizeEvents: { phase: string }[] }).resizeEvents.at(-1)?.phase);
+      assert.equal(cancelled, "cancel");
+      await page.close();
+    });
+  }
+  for (const adapter of ["HTML", "Vue"]) {
+    it(`fits narrow grid tracks without horizontal scrolling in ${adapter}`, async () => {
+      const path = await bundle(`image-grid-${adapter}`, adapter === "HTML" ? `import "@threadlabs/looma";` : `
+        import { createApp, h } from "vue";
+        import { Image } from "@threadlabs/looma/vue";
+        createApp({ render: () => h(Image, { src: ${JSON.stringify(source)}, alt: "Landscape", width: 480, height: 240 }) }).mount("#grid");
+      `);
+      const page = await open(path, `<div id="grid" style="display: grid; place-items: center; width: 260px; padding: 20px; box-sizing: border-box">${adapter === "HTML" ? `<ui-image src="${source}" alt="Landscape" width="480" height="240"></ui-image>` : '<div id="mount"></div>'}</div>`, [join(root, "tokens.css"), ...(adapter === "Vue" ? [join(root, "vue/components.css")] : [])], {}, async page => {
+        await page.route(source, route => route.fulfill({ contentType: "image/svg+xml", body: svg }));
+      });
+      await page.locator("#grid img").evaluate(async element => { await (element as HTMLImageElement).decode(); });
+      assert.ok((await page.locator("#grid img").boundingBox())!.width <= 220);
+      assert.ok(await page.locator("#grid").evaluate(el => el.scrollWidth <= el.clientWidth));
+      await page.close();
+    });
+  }
+  it("renders semantic media on the server before controllers run", async () => {
+    const { createSSRApp, h } = await import("vue");
+    const { renderToString } = await import("vue/server-renderer");
+    const { Image } = await import("@threadlabs/looma/vue");
+    const html = await renderToString(createSSRApp({ render: () => h(Image, { src: source, alt: "Landscape", width: 160, height: 80 }) }));
+    assert.match(html, /^<figure data-component="ui-image"/);
+    assert.match(html, /<img[^>]*alt="Landscape"[^>]*width="160"[^>]*height="80"/);
+    assert.match(html, /class="handles" hidden/);
+  });
+});
+
+describe("Input with files", () => {
+  for (const mode of ["HTML", "Vue"] as const) {
+    it(`keeps ${mode} file selection and its native change event through prop updates`, async () => {
+      const path = await bundle(`file-input-${mode.toLowerCase()}`, mode === "HTML" ? `import "@threadlabs/looma";` : `
+        import { createApp, h, ref } from "vue";
+        import { Input } from "@threadlabs/looma/vue";
+        const disabled = ref(false);
+        window.setFileDisabled = (value) => { disabled.value = value; };
+        createApp({ render: () => h(Input, { id: "upload", type: "file", name: "upload", disabled: disabled.value }) }).mount("#app");
+      `);
+      const page = await open(path, mode === "HTML"
+        ? '<form><ui-input id="upload" type="file" name="upload"></ui-input></form>'
+        : '<form><div id="app"></div></form>', []);
+      const errors: string[] = [];
+      page.on("pageerror", (error) => errors.push(error.message));
+      try {
+        await page.evaluate(() => {
+          const input = document.querySelector<HTMLInputElement>("input[type=file]")!;
+          input.addEventListener("change", (event) => {
+            (window as unknown as { selectedFile: string }).selectedFile = (event.target as HTMLInputElement).files?.[0]?.name ?? "";
+          });
+        });
+        const input = page.locator("input[type=file]");
+        await input.setInputFiles({ name: "records.csv", mimeType: "text/csv", buffer: Buffer.from("name\nAda\n") });
+        assert.equal(await page.evaluate(() => (window as unknown as { selectedFile: string }).selectedFile), "records.csv");
+        for (const disabled of [true, false]) {
+          await page.evaluate(({ mode, disabled }) => {
+            if (mode === "HTML") document.querySelector("#upload")!.toggleAttribute("disabled", disabled);
+            else (window as unknown as { setFileDisabled(value: boolean): void }).setFileDisabled(disabled);
+          }, { mode, disabled });
+          await page.waitForFunction((disabled) => document.querySelector<HTMLInputElement>("input[type=file]")!.disabled === disabled, disabled);
+          assert.equal(await input.evaluate((element) => (element as HTMLInputElement).files?.[0]?.name), "records.csv");
+        }
+        assert.equal(await page.evaluate(() => (new FormData(document.querySelector("form")!).get("upload") as File).name), "records.csv");
+        await input.evaluate((element) => { (element as HTMLInputElement).value = ""; });
+        assert.equal(await input.evaluate((element) => (element as HTMLInputElement).files?.length), 0);
+        assert.deepEqual(errors, []);
+      } finally { await page.close(); }
+    });
+  }
+});
+
+it("preserves the native first option when Select has no controlled value", async () => {
+  const htmlPath = await bundle("html-select-uncontrolled", 'import "@threadlabs/looma";');
+  const vuePath = await bundle("vue-select-uncontrolled", `import { createApp, h } from "vue"; import { Select } from "@threadlabs/looma/vue"; createApp({ render: () => h(Select, { value: null }, () => [h('option', { value: 'a' }, 'A'), h('option', { value: 'b' }, 'B')]) }).mount('#app');`);
+  const html = await open(htmlPath, '<ui-select><option value="a">A</option><option value="b">B</option></ui-select>', []);
+  const vue = await open(vuePath, '<div id="app"></div>', []);
+  try {
+    const native = await html.locator('select').inputValue();
+    const converted = await vue.locator('select').inputValue();
+    assert.equal(native, "a");
+    assert.equal(converted, native);
+  } finally { await html.close(); await vue.close(); }
 });

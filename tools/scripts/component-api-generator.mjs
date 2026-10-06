@@ -20,6 +20,7 @@ const EVENT_DETAIL_DOCS = {
   select: "Emitted when a selectable option becomes active.",
   change: "Emitted when a toggleable control changes checked state.",
   dismiss: "Emitted when a toast item is dismissed from its region.",
+  "show-toast": "Dispatch on the region to add a message; an optional id identifies its later dismiss event.",
   toggle: "Emitted once each time the panel opens or closes, docked or as a drawer.",
 };
 
@@ -469,9 +470,11 @@ function contractMetadata(tag, packageName, contract, description, designTokens)
   const properties = Object.entries(contract.props ?? {}).map(([name, declaration]) => ({
     name,
     description: describe(name),
-    type: declarativeTypeToTypeScript(declaration.type),
+    type: contract.propTypes?.[name] ?? declarativeTypeToTypeScript(declaration.type),
+    ...(contract.propFields?.[name] ? { fields: contract.propFields[name] } : {}),
     ...(Object.hasOwn(declaration, "default") ? { default: declaration.default } : {}),
-    ...(literalOptions(declaration.type) ? { options: literalOptions(declaration.type) } : {}),
+    ...(contract.propOptions?.[name] ?? (contract.propTypes?.[name] ? undefined : literalOptions(declaration.type))
+      ? { options: contract.propOptions?.[name] ?? literalOptions(declaration.type) } : {}),
   }));
   // Every prop is an HTML attribute (structured shapes as JSON text); there is no property-only channel.
   const attributes = Object.entries(contract.props ?? {})
@@ -479,16 +482,19 @@ function contractMetadata(tag, packageName, contract, description, designTokens)
       name: publicAttributeName(name, declaration),
       property: name,
       description: describe(name),
-      type: declarativeTypeToTypeScript(declaration.type),
+      type: contract.propValueTypes?.[name] ?? declarativeTypeToTypeScript(declaration.type),
+      ...(contract.propFields?.[name] ? { fields: contract.propFields[name] } : {}),
       ...(Object.hasOwn(declaration, "default") ? { default: declaration.default } : {}),
-      ...(literalOptions(declaration.type) ? { options: literalOptions(declaration.type) } : {}),
+      ...(contract.propOptions?.[name] ?? (contract.propTypes?.[name] ? undefined : literalOptions(declaration.type))
+        ? { options: contract.propOptions?.[name] ?? literalOptions(declaration.type) } : {}),
     }));
   const events = (contract.events ?? []).map((event) => {
-    const type = declarativeTypeToTypeScript(event.type ?? "unknown");
+    const type = event.detailType ?? declarativeTypeToTypeScript(event.type ?? "unknown");
     return {
       name: event.name,
       detailType: type,
-      detailSchema: type,
+      detailSchema: event.detailShape ?? type,
+      ...(event.fields?.length ? { fields: event.fields } : {}),
       detailDocs: EVENT_DETAIL_DOCS[event.name] ?? "Emitted with the declared detail payload.",
     };
   });
@@ -501,10 +507,6 @@ function contractMetadata(tag, packageName, contract, description, designTokens)
     designTokens,
     attributes: attributes.sort((left, right) => left.name.localeCompare(right.name)),
     properties: properties.sort((left, right) => left.name.localeCompare(right.name)),
-    methods: (contract.methods ?? []).map((method) => ({
-      name: method.name,
-      returns: declarativeTypeToTypeScript(method.returns ?? "promise(undefined)"),
-    })),
     events: events.sort((left, right) => left.name.localeCompare(right.name)),
     slots: (contract.slots ?? []).map((name) => ({ name, description: slotDescription(name) })),
   };
@@ -559,5 +561,5 @@ export async function generateComponentApiMetadata() {
     adapterTags: repositoryProjections.adapterTags.filter((tag) => classificationStatus(classifications[tag]) === "published"),
   });
 
-  return { schemaVersion: 3, components };
+  return { schemaVersion: 4, components };
 }

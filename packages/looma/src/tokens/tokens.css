@@ -11,9 +11,9 @@
        the two surfaces either side of it, and the ink. Everything else — hovers, tints, borders,
        muted text, disabled — is mixed from them further down, so a theme sets these and stops. */
     --ui-accent: #5b55d6;
-    --ui-danger: #b4233f;
+    --ui-danger: #c92d1e;
     --ui-success: #007a33;
-    --ui-warning: #b45309;
+    --ui-warning: #ba5b0b;
     --ui-info: #0066cc;
     --ui-on-accent: #ffffff;
     --ui-on-danger: #ffffff;
@@ -23,7 +23,7 @@
     --ui-surface-raised: #ffffff;
     --ui-surface-sunken: #f0f0ec;
     --ui-text: #1a1a1a;
-    --ui-focus-halo: 0 0 0 3px color-mix(in srgb, var(--ui-focus-ring) 40%, transparent);
+    --ui-focus-halo: 0 0 0 calc(var(--ui-focus-width) * 1.5) color-mix(in srgb, var(--ui-focus-ring) 40%, transparent);
 
     /* Type. */
     --ui-font-sans:
@@ -47,6 +47,11 @@
     --ui-space-2: 0.5rem;
     --ui-space-3: 0.75rem;
     --ui-space-4: 1rem;
+
+    /* Line dimensions by role. Accent edges follow ordinary lines unless deliberately themed;
+       keyboard focus is independent so a quiet border theme cannot erase the focus indicator. */
+    --ui-border-width: 1px;
+    --ui-focus-width: 2px;
 
     /* Radius. */
     --ui-radius-sm: 0.25rem;
@@ -80,6 +85,8 @@
      never has to: these exist so components share one vocabulary, not to be configured. */
   :root,
   :where([data-theme], [data-contrast]) {
+    --ui-accent-line-width: var(--ui-border-width);
+
     /* Type scale, from the base size. */
     --ui-font-size-2xs: calc(var(--ui-font-size) * 0.6875);
     --ui-font-size-xs: calc(var(--ui-font-size) * 0.75);
@@ -115,12 +122,18 @@
     --ui-elevation-dialog: var(--ui-shadow-lg);
     --ui-overlay-backdrop: rgba(0, 0, 0, 0.4);
     --ui-control-inset: inset 0 1px 2px rgb(0 0 0 / 0.07), inset 0 1px 0 rgb(0 0 0 / 0.02);
-    --ui-raised: 0 1px 2px rgb(0 0 0 / 0.07), 0 1px 1px rgb(0 0 0 / 0.04);
+    --ui-raised: 0 2px 4px rgb(0 0 0 / 0.12), 0 1px 1px rgb(0 0 0 / 0.06);
     --ui-raised-highlight: linear-gradient(rgb(255 255 255 / 0.16), rgb(255 255 255 / 0));
     /* The counterpart to --ui-raised: a pressed control takes its shadow inside. */
     --ui-pressed: inset 0 1px 2px rgb(0 0 0 / 0.12);
 
     --ui-motion-base: calc(var(--ui-motion-fast) * 1.5);
+    --ui-motion-feedback: var(--ui-motion-fast);
+    --ui-motion-reveal: var(--ui-motion-base);
+    --ui-motion-layout: calc(var(--ui-motion-base) * 1.5);
+    --ui-motion-feedback-ease: var(--ui-motion-ease);
+    --ui-motion-reveal-ease: var(--ui-motion-ease-out);
+    --ui-motion-layout-ease: var(--ui-motion-ease-out);
     /* Fast start, gentle settle: for reveals that should feel immediate. */
     --ui-motion-ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
 
@@ -131,8 +144,10 @@
     --ui-text-secondary: color-mix(in oklab, var(--ui-text) 80%, var(--ui-surface));
     --ui-text-muted: color-mix(in oklab, var(--ui-text) 62%, var(--ui-surface));
     --ui-border: color-mix(in oklab, var(--ui-text) 12%, var(--ui-surface));
+    /* Lines divide content; stronger edges enclose surfaces; control edges identify inputs. */
+    --ui-border-divider: color-mix(in oklab, var(--ui-border) 50%, var(--ui-border-strong));
     --ui-border-strong: color-mix(in oklab, var(--ui-text) 25%, var(--ui-surface));
-    --ui-control-border: color-mix(in oklab, var(--ui-text) 48%, var(--ui-surface));
+    --ui-control-border: color-mix(in oklab, var(--ui-text) 43%, var(--ui-surface));
 
     /* States: toward the ink for pressure, toward the page for a tint. In a dark theme the ink is
        light, so the same mixes brighten instead of darkening, without a second set of values. */
@@ -146,9 +161,10 @@
        Lighter than muted text, which must stay readable; disabled text is exempt from contrast. */
     --ui-disabled-surface: var(--ui-surface-sunken);
     --ui-disabled-text: color-mix(in oklab, var(--ui-text) 45%, var(--ui-surface));
-    /* A disabled button keeps its own look, washed out: less colour, less contrast, toward the page.
-       A filter rather than a second palette, so every variant and tone fades the same way. */
-    --ui-disabled-filter: saturate(0.2) contrast(0.75) brightness(1.25);
+    --ui-disabled-border: color-mix(in oklab, var(--ui-text) 20%, var(--ui-surface));
+    /* Component filter hooks remain available, but the default disabled state uses the explicit
+       neutral surface, text, and border above so a colored outline cannot still look active. */
+    --ui-disabled-filter: none;
 
     --ui-focus-ring: var(--ui-accent);
 
@@ -165,6 +181,21 @@
 
     /* Intent tones: a solid surface, its foreground, and a soft tint of each. */
     --ui-accent-solid: var(--ui-accent);
+    /* One quiet selection recipe for destination/content rows. Hue derives from the brand;
+       corners derive from the scale, and selected labels retain their resting weight. */
+    --ui-selection-surface: color-mix(in oklab, var(--ui-accent) 6%, var(--ui-surface));
+    --ui-selection-text: var(--ui-accent-subtle-text);
+    --ui-selection-radius: var(--ui-radius-md);
+    --ui-nav-icon-size: var(--ui-font-size-md);
+    --ui-nav-gap: var(--ui-space-3);
+    --ui-nav-padding-inline: var(--ui-space-3);
+    --ui-nav-padding-block: var(--ui-space-2);
+    --ui-nav-min-block-size: var(--ui-control-size);
+    --ui-nav-compact-padding-inline: var(--ui-space-2);
+    --ui-nav-compact-padding-block: var(--ui-space-1);
+    --ui-nav-compact-min-block-size: var(--ui-control-size-sm);
+    --ui-nav-hover-surface: var(--ui-surface-hover);
+
     --ui-accent-soft: var(--ui-accent-subtle);
     --ui-accent-contrast: var(--ui-on-accent);
     --ui-accent-strong-surface: var(--ui-accent);
@@ -202,12 +233,12 @@
     --ui-action-secondary-text: var(--ui-text);
     --ui-control-surface: var(--ui-surface);
     --ui-control-surface-disabled: var(--ui-surface-muted);
-    --ui-control-border-hover: var(--ui-border-strong);
+    --ui-control-border-hover: color-mix(in oklab, var(--ui-text) 50%, var(--ui-surface));
     --ui-control-placeholder: var(--ui-text-secondary);
     --ui-control-focus: var(--ui-focus-ring);
     /* Derived from the ring, not a near-white tint, so the halo shows on any surface. */
     --ui-control-focus-halo: color-mix(in srgb, var(--ui-focus-ring) 24%, transparent);
-    --ui-control-focus-halo-shadow: 0 0 0 3px var(--ui-control-focus-halo);
+    --ui-control-focus-halo-shadow: 0 0 0 calc(var(--ui-focus-width) * 1.5) var(--ui-control-focus-halo);
     --ui-control-size-md: var(--ui-control-size);
     --ui-control-size-lg: calc(var(--ui-control-size) * 1.2);
 
@@ -282,5 +313,78 @@
 @layer base {
   [tabindex="-1"]:not(a[href], area[href], audio, button, iframe, input, select, summary, textarea, video, [contenteditable], [role]):focus-visible {
     outline: none;
+  }
+}
+
+/* Combobox suggestions and visible Listbox choices share the same row and checkmark. */
+@layer components {
+  [data-ui-choice-option] {
+    padding: var(--ui-space-2) var(--ui-space-3);
+    border-radius: var(--ui-selection-radius);
+    color: var(--ui-text-primary);
+    cursor: pointer;
+    overflow-wrap: anywhere;
+  }
+
+  [data-ui-choice-option]:is(:hover, .active) {
+    background: var(--ui-surface-muted);
+    outline: var(--ui-border-width) solid var(--ui-focus-ring);
+    outline-offset: calc(-1 * var(--ui-border-width));
+  }
+
+  [data-ui-choice-option][aria-disabled="true"],
+  [data-ui-choice-option][aria-disabled="true"]:hover {
+    color: var(--ui-disabled-text);
+    background: transparent;
+    outline: none;
+    cursor: not-allowed;
+  }
+
+  [data-ui-choice-option][aria-selected="true"]:not([aria-disabled="true"]) {
+    background: var(--ui-selection-surface);
+    color: var(--ui-selection-text);
+  }
+
+  [data-ui-choice-option][data-multiple] {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-2);
+  }
+
+  [data-ui-choice-option][data-multiple]::before {
+    content: "";
+    flex: none;
+    inline-size: 1.125rem;
+    block-size: 1.125rem;
+    border: var(--ui-border-width) solid var(--ui-control-border-hover, var(--ui-border-strong));
+    border-radius: var(--ui-radius-sm);
+    background-color: var(--ui-control-surface);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 0.7rem;
+  }
+
+  [data-ui-choice-option][data-multiple][aria-selected="true"]::before {
+    border-color: var(--ui-accent-solid);
+    background-color: var(--ui-accent-solid);
+    background-image: var(
+      --_ui-combobox-option-check,
+      var(
+        --ui-choice-check-icon,
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12 5 5 9-9'/%3E%3C/svg%3E")
+      )
+    );
+  }
+
+  @media (forced-colors: active) {
+    [data-ui-choice-option][aria-selected="true"]:not([aria-disabled="true"]):not(.active) {
+      outline: var(--ui-border-width) solid Highlight;
+      outline-offset: calc(-1 * var(--ui-border-width));
+    }
+  }
+
+  [aria-disabled="true"] [data-ui-choice-option] {
+    color: var(--ui-disabled-text);
+    cursor: not-allowed;
   }
 }

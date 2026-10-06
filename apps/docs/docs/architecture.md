@@ -30,7 +30,7 @@ deferred adapters remain internal workspaces.
 - Public entry points must evaluate without browser globals.
 - Authored semantic content remains meaningful before lowering and if JavaScript fails.
 - Each framework-neutral contract declares props and defaults, property-only structured inputs,
-  methods, slots, events, internal state, dependencies, and a native root.
+  slots, events, internal state, dependencies, and a native root.
 - Browser imports lower direct `ui-*` invocations to native light-DOM roots and attach the matching
   controller. They do not register custom elements or create shadow roots.
 - Framework adapters create those native roots directly and attach the same contract instead of

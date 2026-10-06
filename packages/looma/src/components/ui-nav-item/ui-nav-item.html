@@ -1,15 +1,21 @@
 <template component="ui-nav-item">
   <defs>
-    <prop name="current" type="boolean | page | step | location" default="false"
-    >Marks the item as where you are: it takes the selected surface, a stronger label, and a bar on its start edge, and states aria-current, which assistive
-      technology announces. true means the current page (aria-current="page"); step marks the current step of a process, and location the current place in a
-      set, such as a section of a record. Set it on one item at a time.</prop>
+    <prop name="variant" type="keyword" values="surface, line" default="surface"
+    >surface marks the current row with a quiet filled surface and shared corners. line uses square corners and a continuous logical start edge. Both retain the
+      resting label weight and expose aria-current.</prop>
+    <prop name="density" type="keyword" values="comfortable, compact" default="comfortable"
+    >Compact uses smaller type and row spacing to sit alongside a compact tree; comfortable keeps the regular navigation row.</prop>
+    <prop name="current" type="keyword" values="true, false, page, step, location" default="false"
+    >Marks the item as where you are: it takes the selected surface, the selected text, and the chosen surface or line treatment, and states aria-current, which
+      assistive technology announces. "true" means the current page (aria-current="page"); "step" marks the current step of a process, and "location" the
+      current place in a set, such as a section of a record. Set it on one item at a time.</prop>
     <prop name="href" type="string"
     >The link's destination. Pair it with as="a" so the item renders as a real link: a router, a modified click, and "open in new tab" all work. Without it the
       item is a button, for switching views inside the app.</prop>
     <prop name="target" type="string">Where a link opens, as on a native link. Only meaningful with as="a".</prop>
     <prop name="rel" type="string">The link's relationship to its destination, as on a native link. Only meaningful with as="a".</prop>
-    <prop name="as" type="button | a" default="button">The native element the item renders: a button, or a link (a) that navigates to href.</prop>
+    <prop name="as" type="keyword" values="button, a" default="button"
+    >The native element the item renders: a button, or a link (a) that navigates to href.</prop>
     <!-- A button or a link, as Button does. A button never submits a form; a link carries no type. The
          language has no conditional expression, so a table keyed by a value's text picks each attribute,
          and null leaves it off. -->
@@ -17,10 +23,10 @@
   <template $match>
     <a
       $when="as = 'a'"
-      :href="href"
-      :target="target"
-      :rel="rel"
-      :aria-current="{ true: 'page', false: null, page: 'page', step: 'step', location: 'location' }[format('%s', current)]"
+      from:href="href"
+      from:target="target"
+      from:rel="rel"
+      from:aria-current="{ true: 'page', false: null, page: 'page', step: 'step', location: 'location' }[concat(current)]"
     >
       <span class="indicator" aria-hidden="true"></span>
       <span class="leading"><slot name="leading"></slot></span>
@@ -28,14 +34,16 @@
         <span class="label"><slot></slot></span>
         <span class="description"><slot name="description"></slot></span>
       </span>
+      <span class="trailing"><slot name="trailing"></slot></span>
     </a>
-    <button $else type="button" :aria-current="{ true: 'page', false: null, page: 'page', step: 'step', location: 'location' }[format('%s', current)]">
+    <button $else type="button" from:aria-current="{ true: 'page', false: null, page: 'page', step: 'step', location: 'location' }[concat(current)]">
       <span class="indicator" aria-hidden="true"></span>
       <span class="leading"><slot name="leading"></slot></span>
       <span class="content">
         <span class="label"><slot></slot></span>
         <span class="description"><slot name="description"></slot></span>
       </span>
+      <span class="trailing"><slot name="trailing"></slot></span>
     </button>
   </template>
   <style>
@@ -52,31 +60,35 @@
       syntax: "*";
       inherits: false;
     }
+    @property --ui-nav-item-inline-size {
+      syntax: "*";
+      inherits: false;
+    }
 
     /* One destination in a side or rail navigation: an icon to find it by (leading), its name (the
        default slot), and an optional line under it (description), such as the record a section
        belongs to. Label and description are one line each and end in an ellipsis, so every item in a
        navigation has the same height and the rail never grows sideways. */
     :host {
-      --_indicator-width: var(--ui-nav-item-indicator-width, 3px);
+      --_indicator-width: var(--ui-nav-item-indicator-width, var(--ui-accent-line-width));
       --_indicator-color: var(--ui-nav-item-indicator-color, var(--ui-accent));
       position: relative;
       box-sizing: border-box;
       display: flex;
       align-items: center;
-      gap: var(--ui-space-3);
-      inline-size: 100%;
+      gap: var(--ui-nav-gap);
+      inline-size: var(--ui-nav-item-inline-size, 100%);
       min-inline-size: 0;
-      min-block-size: var(--ui-control-size, 2.5rem);
+      min-block-size: var(--ui-nav-min-block-size);
       margin: 0;
-      padding-block: var(--ui-space-2);
-      padding-inline: var(--ui-space-3);
+      padding-block: var(--ui-nav-padding-block);
+      padding-inline: var(--ui-nav-padding-inline);
       border: 0;
-      border-radius: var(--ui-radius-md);
+      border-radius: var(--ui-selection-radius);
       background: transparent;
       color: var(--ui-text-secondary);
       font: inherit;
-      font-weight: var(--ui-font-medium);
+      font-weight: var(--ui-font-normal);
       text-align: start;
       text-decoration: none;
       cursor: pointer;
@@ -85,51 +97,64 @@
     }
 
     :host:hover:not([aria-current]) {
-      background: var(--ui-surface-hover);
+      background: var(--ui-nav-hover-surface);
       color: var(--ui-text-primary);
     }
 
     /* The ring is an outline, drawn inside the item: forced colors keep an outline where they drop a
        box shadow, and a scrolling rail cannot clip a ring that stays within the item. */
     :host:focus-visible {
-      outline: 2px solid var(--ui-focus-ring);
-      outline-offset: -2px;
+      outline: var(--ui-focus-width) solid var(--ui-focus-ring);
+      outline-offset: calc(-1 * var(--ui-focus-width));
     }
 
     :host[aria-current] {
-      background: var(--ui-nav-item-current-surface, var(--ui-accent-soft));
-      color: var(--ui-accent-subtle-text, var(--ui-text-primary));
-      font-weight: var(--ui-font-semibold);
+      background: var(--ui-nav-item-current-surface, var(--ui-selection-surface));
+      color: var(--ui-selection-text);
     }
 
-    /* The bar on the start edge is a border, not a fill: forced colors replace backgrounds but keep a
+    :host([variant="line"]) {
+      border-radius: 0;
+    }
+
+    /* A line treatment has straight corners and a continuous edge. Surface treatment has
+       shared rounded corners and no edge marker; never combine the two geometries.
+       The line is a border, not a fill: forced colors replace backgrounds but keep a
        border, so the current item stays marked in high contrast. Logical edges mirror it in a
        right-to-left page. */
     .indicator {
       position: absolute;
-      inset-block: var(--ui-space-2);
+      inset-block: 0;
       inset-inline-start: 0;
       display: none;
       border-inline-start: var(--_indicator-width) solid var(--_indicator-color);
-      border-radius: var(--ui-radius-round);
     }
 
-    :host[aria-current] .indicator {
+    :host([variant="line"])[aria-current] .indicator {
       display: block;
     }
 
     @media (forced-colors: active) {
+      /* System colors may erase the selected fill. Trace the complete surface, without
+         creating an edge stripe; the stronger keyboard focus outline keeps precedence. */
+      :host([variant="surface"])[aria-current]:not(:focus-visible) {
+        outline: var(--ui-border-width) solid Highlight;
+        outline-offset: calc(-1 * var(--ui-border-width));
+      }
       .indicator {
         border-inline-start-color: Highlight;
       }
     }
 
-    .leading {
+    .leading,
+    .trailing {
       display: inline-flex;
       flex: none;
       align-items: center;
+      justify-content: center;
+      inline-size: var(--ui-nav-icon-size);
       color: inherit;
-      font-size: var(--ui-font-size-lg);
+      font-size: var(--ui-nav-icon-size);
     }
 
     .content {
@@ -161,8 +186,24 @@
       line-height: var(--ui-line-height-tight);
     }
 
+    :host([density="compact"]) {
+      min-block-size: var(--ui-nav-compact-min-block-size);
+      padding-block: var(--ui-nav-compact-padding-block);
+      padding-inline: var(--ui-nav-compact-padding-inline);
+    }
+    :host([density="compact"]) .label {
+      font-size: var(--ui-font-size-sm);
+    }
+
+    @media (pointer: coarse) {
+      :host([density="compact"]) {
+        min-block-size: var(--ui-control-min-block-size);
+      }
+    }
+
     /* An unused region takes no space. */
     .leading:empty,
+    .trailing:empty,
     .description:empty {
       display: none;
     }

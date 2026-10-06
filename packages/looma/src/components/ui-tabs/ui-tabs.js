@@ -3,7 +3,7 @@ import { trackTrigger } from "../shared/trigger.js";
 let panelIds = 0;
 
 /** Lists the authored panels (each labelled by its aria-label) as tabs and shows the selected one. */
-export default function controller(host) {
+function connect(host) {
   const { list, panels: container } = host.refs;
   const [trigger, stopTracking] = trackTrigger(host);
   const panels = () => Array.from(container.children).filter((child) => child instanceof HTMLElement);
@@ -12,7 +12,7 @@ export default function controller(host) {
     for (const tab of tabButtons()) tab.tabIndex = tab === button ? 0 : -1;
     button.focus();
   };
-  let external = String(host.state.value || "");
+  let external = String(host.props.value.value || "");
   host.state.internalValue = external;
 
   const readPanels = () => {
@@ -45,7 +45,7 @@ export default function controller(host) {
     }
   };
   const stop = host.effect(() => {
-    const value = String(host.state.value || "");
+    const value = String(host.props.value.value || "");
     if (value !== external) {
       external = value;
       host.state.internalValue = value;
@@ -69,10 +69,10 @@ export default function controller(host) {
     const button = event.target.closest?.('[role="tab"]');
     if (!button || !list.contains(button)) return;
     const buttons = tabButtons().filter((candidate) => !candidate.disabled);
-    const vertical = host.state.orientation === "vertical";
+    const vertical = host.props.orientation.value === "vertical";
     const previousKey = vertical ? "ArrowUp" : "ArrowLeft";
     const nextKey = vertical ? "ArrowDown" : "ArrowRight";
-    if (host.state.activation === "manual" && (event.key === "Enter" || event.key === " ")) {
+    if (host.props.activation.value === "manual" && (event.key === "Enter" || event.key === " ")) {
       event.preventDefault();
       select(button, "keyboard");
       return;
@@ -81,7 +81,7 @@ export default function controller(host) {
     event.preventDefault();
     const index = buttons.indexOf(button);
     const next = event.key === "Home" ? buttons[0] : event.key === "End" ? buttons.at(-1) : buttons[(index + (event.key === nextKey ? 1 : buttons.length - 1)) % buttons.length];
-    if (host.state.activation !== "manual") select(next, "keyboard");
+    if (host.props.activation.value !== "manual") select(next, "keyboard");
     focusTab(next);
   };
   const onFocusout = (event) => {
@@ -114,4 +114,9 @@ export default function controller(host) {
     list.removeEventListener("focusout", onFocusout);
     list.removeEventListener("wheel", onWheel);
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

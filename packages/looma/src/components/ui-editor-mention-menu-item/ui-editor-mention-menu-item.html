@@ -4,9 +4,9 @@
     <prop name="detail" type="string" default="">Secondary text, such as a team or role.</prop>
     <prop name="initials" type="string" default="">Text fallback for the start slot when no avatar is supplied.</prop>
   </defs>
-  <li role="option" tabindex="-1" :data-value="value">
-    <span class="avatar" aria-hidden="true"><slot name="start"><template $value="initials"></template></slot></span>
-    <span class="body"><span class="label"><slot></slot></span><span $if="detail" class="detail" $value="detail"></span></span>
+  <li role="option" tabindex="-1" from:data-value="value">
+    <span class="avatar" aria-hidden="true"><slot name="start">{$initials}</slot></span>
+    <span class="body"><span class="label"><slot></slot></span><span $if="detail" class="detail">{$detail}</span></span>
   </li>
   <style>
     :host {
@@ -21,6 +21,19 @@
 
     :host[aria-selected="true"] {
       background: var(--ui-accent-subtle);
+    }
+
+    /* The highlight and the initials circle share a tint; on the highlighted row the circle takes
+       the surface and a fine accent ring, so the initials stay visible. */
+    :host[aria-selected="true"] .avatar {
+      background: var(--ui-surface);
+      box-shadow: inset 0 0 0 1px var(--ui-accent-soft);
+    }
+
+    /* A slotted Avatar (a person's photo) is its own circle. */
+    :host .avatar:has(> [data-component~="ui-avatar"]) {
+      background: none;
+      box-shadow: none;
     }
 
     .avatar {

@@ -7,35 +7,39 @@
     >The value the enclosing menu reports in its select event when this item is chosen. Give each item a distinct value so one handler can tell them
       apart.</prop>
     <prop name="href" type="string" default="">A destination makes an action item a real link, with native navigation and link context actions.</prop>
-    <prop name="type" type="action | checkbox | radio" default="action"
+    <prop name="type" type="keyword" values="action, checkbox, radio" default="action"
     >An action closes its menu; a checkbox toggles, and a radio chooses one item within its nearest Menu Group. Checkable items keep the menu open.</prop>
     <prop name="checked" type="boolean" default="false">Initial or externally controlled checked state of a checkbox or radio item.</prop>
-    <state name="internalChecked" :value="false"></state>
-    <event name="change" type="object({ checked: boolean, value: string, type: checkbox | radio, trigger: keyboard | pointer | programmatic })"></event>
+    <state type="boolean" name="internalChecked" value="false"></state>
+    <event name="change" type="object">
+      <prop name="checked" required type="boolean"></prop>
+      <prop name="value" required type="string"></prop>
+      <prop name="type" required type="keyword" values="checkbox, radio"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
   </defs>
   <template $match>
     <a
       $when="href and type = 'action'"
       role="menuitem"
       tabindex="-1"
-      :aria-disabled="disabled"
-      :data-value="value"
-      :href="{ true: null, false: href }[format('%s', disabled)]"
+      from:aria-disabled="disabled"
+      from:data-value="value"
+      from:href="{ true: null, false: href }[concat(disabled)]"
     >
       <span class="label"><slot></slot></span>
       <span class="shortcut" aria-hidden="true"><slot name="shortcut"></slot></span>
     </a>
     <div
       $else
-      :role="{ action: 'menuitem', checkbox: 'menuitemcheckbox', radio: 'menuitemradio' }[type]"
-      :aria-checked="{ action: null, checkbox: internalChecked, radio: internalChecked }[type]"
+      from:role="{ action: 'menuitem', checkbox: 'menuitemcheckbox', radio: 'menuitemradio' }[type]"
+      from:aria-checked="{ action: null, checkbox: internalChecked, radio: internalChecked }[type]"
       tabindex="-1"
-      :aria-disabled="disabled"
-      :data-value="value"
+      from:aria-disabled="disabled"
+      from:data-value="value"
     >
       <span class="indicator" aria-hidden="true">
-        <ui-icon $if="type = 'checkbox' and internalChecked" name="check"></ui-icon>
-        <ui-icon $if="type = 'radio' and internalChecked" name="circle-dot"></ui-icon>
+        <ui-icon $if="(type = 'checkbox' or type = 'radio') and internalChecked" name="check"></ui-icon>
       </span>
       <span class="label"><slot></slot></span>
       <span class="shortcut" aria-hidden="true"><slot name="shortcut"></slot></span>
@@ -71,13 +75,13 @@
     :host {
       display: flex;
       align-items: center;
-      gap: var(--ui-space-5);
+      gap: var(--ui-space-2);
       box-sizing: border-box;
       width: 100%;
       padding: var(--ui-menu-item-padding-block, var(--_ui-default-menu-item-padding-block, var(--ui-space-2)))
         var(--ui-menu-item-padding-inline, var(--_ui-default-menu-item-padding-inline, var(--ui-space-3)));
       text-align: left;
-      border-radius: var(--ui-menu-item-radius, var(--_ui-default-menu-item-radius, var(--ui-radius-md)));
+      border-radius: var(--ui-menu-item-radius, var(--_ui-default-menu-item-radius, var(--ui-selection-radius)));
       color: var(--ui-text-primary);
       font-size: var(--ui-menu-item-font-size, var(--_ui-default-menu-item-font-size, var(--ui-font-size-md)));
       font-weight: var(--ui-font-medium);
@@ -88,20 +92,41 @@
     }
 
     .label {
+      display: flex;
+      align-items: center;
+      gap: var(--ui-space-2);
       flex: 1;
       min-inline-size: 0;
     }
 
     .indicator {
       display: inline-flex;
-      place-items: center;
+      align-items: center;
+      justify-content: center;
       flex: none;
-      inline-size: var(--ui-icon-size-md);
-      color: var(--ui-accent-solid);
+      box-sizing: border-box;
+      inline-size: var(--_ui-default-menu-indicator-size, var(--ui-icon-size-sm));
+      block-size: var(--_ui-default-menu-indicator-size, var(--ui-icon-size-sm));
+      border: var(--ui-border-width) solid var(--ui-control-border);
+      border-radius: var(--ui-radius-sm);
+      color: var(--ui-surface);
+      --_ui-default-icon-size: 0.75rem;
     }
 
-    :host-state([type="action"]) .indicator {
+    :host([type="action"]) .indicator {
       display: none;
+    }
+
+    :host([type="checkbox"])[aria-checked="true"] .indicator {
+      border-color: var(--ui-accent);
+      background: var(--ui-accent);
+    }
+
+    /* A menu marks its chosen item with a check, as menus conventionally do; a radio circle reads
+       as a form control. The empty slot keeps unchosen labels aligned with the chosen one. */
+    :host([type="radio"]) .indicator {
+      border-color: transparent;
+      color: var(--ui-text-secondary);
     }
 
     .shortcut {
@@ -115,10 +140,15 @@
       display: none;
     }
 
+    /* A <kbd> takes the browser's monospace; the hint reads in the item's own type. */
+    .shortcut :slotted(kbd) {
+      font: inherit;
+    }
+
     /* Keep the text row at the shared control height where cap trimming is available. */
     @supports (text-box-trim: trim-both) {
       :host {
-        min-block-size: var(--ui-menu-item-min-block-size, var(--ui-control-size-md, 2.5rem));
+        min-block-size: var(--ui-menu-item-min-block-size, var(--_ui-default-menu-item-min-block-size, var(--ui-control-size-md, 2.5rem)));
         text-box-trim: trim-both;
         text-box-edge: cap alphabetic;
       }
@@ -129,13 +159,24 @@
     }
 
     :host:focus-visible {
-      outline: 2px solid var(--ui-focus-ring);
-      outline-offset: -2px;
+      outline: var(--ui-focus-width) solid var(--ui-focus-ring);
+      outline-offset: calc(-1 * var(--ui-focus-width));
     }
 
     :host[aria-disabled="true"] {
-      opacity: 0.6;
+      background: var(--ui-disabled-surface);
+      color: var(--ui-disabled-text);
       cursor: not-allowed;
+    }
+
+    :host[aria-disabled="true"] .indicator {
+      border-color: var(--ui-disabled-border);
+      background: transparent;
+      color: var(--ui-disabled-text);
+    }
+
+    :host[aria-disabled="true"] .indicator::after {
+      background: var(--ui-disabled-text);
     }
 
     @media (forced-colors: active) {

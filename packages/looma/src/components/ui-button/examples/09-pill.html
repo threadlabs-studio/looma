@@ -1,0 +1,13 @@
+<!--
+title: Pill
+description: shape="pill" rounds the ends fully. A small ghost pill suits a compact choice in a line of text, such as a status or a person, and opens its menu like any button.
+-->
+<ui-cluster gap="s" align="center">
+  <ui-button id="pill-stage" variant="ghost" tone="neutral" size="xs" shape="pill">On track</ui-button>
+  <ui-menu for="pill-stage" size="sm" aria-label="Stage">
+    <ui-menu-item type="radio" value="early">Early</ui-menu-item>
+    <ui-menu-item type="radio" value="on-track" checked>On track</ui-menu-item>
+    <ui-menu-item type="radio" value="stable">Stable</ui-menu-item>
+  </ui-menu>
+  <ui-button shape="pill">Pill</ui-button>
+</ui-cluster>

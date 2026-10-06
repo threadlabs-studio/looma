@@ -1,0 +1,17 @@
+[
+  {
+    "id": "scrollable-region-focusable",
+    "impact": "serious",
+    "targets": [
+      [
+        ".looma-preview-scenario__stage[data-component-preview=\"ui-table\"] > div > div[data-ui-table-state=\"density density=comfortable\"][data-component=\"ui-table\"][data-valid=\"\"] > table"
+      ],
+      [
+        ".looma-preview-scenario__stage[data-component-preview=\"ui-table\"] > div[data-ui-table-state=\"density density=comfortable\"][data-component=\"ui-table\"][data-valid=\"\"] > table"
+      ],
+      [
+        "section[data-preview-scenario=\"Wider than its container\"] > .looma-preview-scenario__stage[data-component-preview=\"ui-table\"]"
+      ]
+    ]
+  }
+]

@@ -3,7 +3,7 @@
     <prop name="current" type="boolean" default="false"
     >Marks the step as the view you are on: it is plain text with aria-current="page". Every other step holds a link.</prop>
   </defs>
-  <li :aria-current="{ true: 'page', false: null }[format('%s', current)]">
+  <li from:aria-current="{ true: 'page', false: null }[concat(current)]">
     <span class="separator" aria-hidden="true"><ui-icon name="chevron-right"></ui-icon></span>
     <span class="content"><slot></slot></span>
   </li>
@@ -15,12 +15,13 @@
       align-items: center;
       gap: var(--ui-space-2);
       min-inline-size: 0;
+      margin: 0;
     }
 
     .separator {
       display: inline-flex;
       color: var(--ui-text-muted);
-      font-size: var(--ui-font-size-xs);
+      font-size: var(--ui-font-size-sm);
     }
 
     :host:first-child .separator {
@@ -47,7 +48,7 @@
       text-decoration: underline;
     }
 
-    :host-state([current]) .content {
+    :host([current]) .content {
       color: var(--ui-text-primary);
       font-weight: var(--ui-font-medium);
     }

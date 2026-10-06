@@ -26,8 +26,20 @@ describe("Icon server render", () => {
     ]);
   });
 
-  it("draws an icon another component renders", async () => {
-    expect(shapes(await render(h(Spinner)))).toEqual(['<path d="M21 12a9 9 0 1 1-6.219-8.56">']);
+  it("draws a notification bell before JavaScript runs", async () => {
+    const html = await render(h(Icon, { name: "bell" }));
+    expect(shapes(html).length).toBeGreaterThan(0);
+    expect(html).toContain('aria-hidden="true"');
+  });
+
+  it("renders the spinner's SVG track and arc without requiring an external asset", async () => {
+    const html = await render(h(Spinner));
+    expect(html).toContain('class="ring"');
+    expect(html).toContain('aria-hidden="true"');
+    expect(shapes(html)).toEqual([
+      '<circle class="track" cx="25" cy="25" r="20">',
+      '<circle class="arc" cx="25" cy="25" r="20">',
+    ]);
   });
 
   it("draws nothing for an unknown or empty name, and stays hidden from assistive technology", async () => {

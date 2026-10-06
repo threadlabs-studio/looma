@@ -1,19 +1,31 @@
 <template component="ui-badge">
   <defs>
-    <prop name="variant" type="solid | subtle | outline" default="subtle"
+    <prop name="variant" type="keyword" values="solid, subtle, outline" default="subtle"
     >Emphasis. subtle sets toned text over a soft wash; solid fills with the tone and uses contrasting text; outline keeps the surface with a toned edge.
-      Neutral looks the same in solid and subtle.</prop>
-    <prop name="tone" type="neutral | accent | info | success | warning | danger" default="neutral"
+      Neutral looks the same in solid and subtle. When space is constrained, the label truncates with an ellipsis while its full text remains available.</prop>
+    <prop name="tone" type="keyword" values="neutral, accent, info, success, warning, danger" default="neutral"
     >Which colour the badge speaks in. neutral is a quiet grey for plain labels; accent draws the eye in the accent colour; info, success, warning, and danger
       mark a status, so match the tone to what the badge says. For a category rather than a status, set the --ui-badge-color hook on the badge instead: any CSS
       colour, which overrides the tone.</prop>
-    <prop name="shape" type="pill | tag" default="pill"
-    >Silhouette. pill is rounded at both ends; tag is a label: flat at the start and coming to a point at the end, for a tag or a chosen chip.</prop>
+    <prop name="shape" type="keyword" values="pill, tag, dot, square" default="pill"
+    >Silhouette. pill is rounded at both ends; tag is a pointed label. dot is a compact circular signal with visually hidden text: include a state label, or set
+      aria-hidden when the surrounding control already names that state. square is a fixed rounded square for an icon or single glyph beside a heading; hide a
+      decorative icon when adjacent words name it.</prop>
+    <prop name="size" type="keyword" values="xs, md" default="md"
+    >Scale. xs is a compact count beside small controls; md is the usual text badge. A square is 24px at xs and 32px at md with default spacing.</prop>
   </defs>
-  <span><slot></slot></span>
+  <span><span class="label"><slot></slot></span></span>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
     @property --ui-badge-border {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-badge-square-size {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-badge-dot-size {
       syntax: "*";
       inherits: false;
     }
@@ -59,27 +71,29 @@
     }
 
     :host {
-      --_badge-surface: var(--ui-surface-subtle);
+      --_badge-surface: color-mix(in srgb, var(--ui-surface-subtle) 80%, var(--ui-surface-default));
       --_badge-text: var(--ui-text-secondary);
-      /* Every tone's edge is its fill, so it is unseen until forced colors draw it. */
-      --_badge-border: var(--ui-surface-subtle);
+      /* Sit between the soft fill and its stronger theme ink. */
+      --_badge-border: color-mix(in srgb, var(--_badge-surface) 75%, var(--_badge-text) 25%);
       /* --ui-badge-color derives a wash and an ink from one colour, between the tone and the explicit
          surface, text, and border hooks. Each value is invalid, so the tone shows, while it is unset. The
          mixes keep 4.5:1 text contrast for any colour, in a light theme or a dark one. */
       --_ui-badge-color: var(--ui-badge-color);
-      --_badge-color-wash: color-mix(in oklab, var(--_ui-badge-color) 15%, var(--ui-surface-default));
+      --_badge-color-wash: color-mix(in oklab, var(--_ui-badge-color) 13%, var(--ui-surface-default));
       --_badge-color-ink: color-mix(in oklab, var(--_ui-badge-color) 35%, var(--ui-text-primary));
       --_badge-color-surface: var(--_badge-color-wash);
-      --_badge-color-border: var(--_badge-color-wash);
+      --_badge-color-border: color-mix(in srgb, var(--_badge-color-wash) 75%, var(--_badge-color-ink) 25%);
       --_badge-color-text: var(--_badge-color-ink);
       --_badge-outline-surface: var(--ui-badge-surface, var(--_badge-color-surface, var(--_badge-surface)));
 
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      max-width: 100%;
+      box-sizing: border-box;
+      min-inline-size: 0;
+      max-inline-size: 100%;
       padding: var(--ui-badge-padding-block, var(--ui-space-0-5)) var(--ui-badge-padding-inline, var(--ui-space-2));
-      border: 1px solid var(--ui-badge-border, var(--_badge-color-border, var(--_badge-border)));
+      border: var(--ui-border-width) solid var(--ui-badge-border, var(--_badge-color-border, var(--_badge-border)));
       border-radius: var(--ui-radius-round);
       background: var(--_badge-outline-surface);
       color: var(--ui-badge-text, var(--_badge-color-text, var(--_badge-text)));
@@ -90,9 +104,17 @@
       white-space: nowrap;
     }
 
-    /* Centre the glyphs, not the line box: a label without descenders otherwise reads high.
-     * Trimming applies to block containers; an inline-block is one and, like the inline-flex it
-     * replaces, still sizes to its label rather than filling its container. */
+    /* A constrained badge keeps its surface intact and ellipsizes only its label. The full
+       text stays in the DOM for accessible names and consumers' selected values. */
+    .label {
+      display: block;
+      min-inline-size: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Trim leading while retaining the font's ascent and descent. A cap-to-baseline box
+       would crop glyphs where the label clips horizontal overflow for ellipsis. */
     @supports (text-box-trim: trim-both) {
       :host {
         display: inline-block;
@@ -100,79 +122,88 @@
         text-align: center;
         align-content: center;
         text-box-trim: trim-both;
-        text-box-edge: cap alphabetic;
+        text-box-edge: text;
       }
     }
 
-    :host-state([tone="accent"]) {
+    :host([size="xs"]) {
+      box-sizing: border-box;
+      min-inline-size: 1rem;
+      min-block-size: var(--ui-badge-min-block-size, 1rem);
+      padding: var(--ui-badge-padding-block, 0) var(--ui-badge-padding-inline, 0.125rem);
+      font-size: var(--ui-badge-font-size, var(--ui-font-size-2xs));
+      line-height: var(--ui-badge-line-height, 1);
+    }
+
+    :host([tone="accent"]) {
       --_badge-surface: var(--ui-accent-strong-surface, var(--ui-accent-solid));
       --_badge-border: var(--ui-accent-strong-surface, var(--ui-accent-solid));
       --_badge-text: var(--ui-accent-on-strong, var(--ui-text-on-accent));
     }
 
-    :host-state([tone="danger"]) {
+    :host([tone="danger"]) {
       --_badge-surface: var(--ui-danger-strong-surface, var(--ui-danger-solid));
       --_badge-border: var(--ui-danger-strong-surface, var(--ui-danger-solid));
       --_badge-text: var(--ui-danger-on-strong, var(--ui-text-on-accent));
     }
 
-    :host-state([tone="success"]) {
+    :host([tone="success"]) {
       --_badge-surface: var(--ui-success-strong-surface, var(--ui-success-solid));
       --_badge-border: var(--ui-success-strong-surface, var(--ui-success-solid));
       --_badge-text: var(--ui-success-on-strong, var(--ui-text-on-accent));
     }
 
-    :host-state([tone="warning"]) {
+    :host([tone="warning"]) {
       --_badge-surface: var(--ui-warning-strong-surface, var(--ui-warning-solid));
       --_badge-border: var(--ui-warning-strong-surface, var(--ui-warning-solid));
       --_badge-text: var(--ui-warning-on-strong, var(--ui-text-on-accent));
     }
 
-    :host-state([tone="info"]) {
+    :host([tone="info"]) {
       --_badge-surface: var(--ui-info-strong-surface, var(--ui-info-solid));
       --_badge-border: var(--ui-info-strong-surface, var(--ui-info-solid));
       --_badge-text: var(--ui-info-on-strong, var(--ui-text-on-accent));
     }
 
-    :host-state([variant="subtle"][tone="accent"]) {
-      --_badge-surface: var(--ui-accent-soft);
-      --_badge-border: var(--ui-accent-soft);
+    :host([variant="subtle"][tone="accent"]) {
+      --_badge-surface: color-mix(in srgb, var(--ui-accent-solid) 19%, var(--ui-surface-default));
+      --_badge-border: color-mix(in srgb, var(--ui-accent-solid) 25%, var(--ui-surface-default));
       --_badge-text: var(--ui-accent-subtle-text, var(--ui-accent-solid));
     }
 
-    :host-state([variant="subtle"][tone="danger"]) {
-      --_badge-surface: var(--ui-danger-soft);
-      --_badge-border: var(--ui-danger-soft);
+    :host([variant="subtle"][tone="danger"]) {
+      --_badge-surface: color-mix(in srgb, var(--ui-danger-solid) 19%, var(--ui-surface-default));
+      --_badge-border: color-mix(in srgb, var(--ui-danger-solid) 25%, var(--ui-surface-default));
       --_badge-text: var(--ui-danger-subtle-text, var(--ui-danger-solid));
     }
 
-    :host-state([variant="subtle"][tone="success"]) {
-      --_badge-surface: var(--ui-success-soft);
-      --_badge-border: var(--ui-success-soft);
+    :host([variant="subtle"][tone="success"]) {
+      --_badge-surface: color-mix(in srgb, var(--ui-success-solid) 19%, var(--ui-surface-default));
+      --_badge-border: color-mix(in srgb, var(--ui-success-solid) 25%, var(--ui-surface-default));
       --_badge-text: var(--ui-success-subtle-text, var(--ui-success-solid));
     }
 
-    :host-state([variant="subtle"][tone="warning"]) {
-      --_badge-surface: var(--ui-warning-soft);
-      --_badge-border: var(--ui-warning-soft);
+    :host([variant="subtle"][tone="warning"]) {
+      --_badge-surface: color-mix(in srgb, var(--ui-warning-solid) 19%, var(--ui-surface-default));
+      --_badge-border: color-mix(in srgb, var(--ui-warning-solid) 25%, var(--ui-surface-default));
       --_badge-text: var(--ui-warning-subtle-text, var(--ui-warning-solid));
     }
 
-    :host-state([variant="subtle"][tone="info"]) {
-      --_badge-surface: var(--ui-info-soft);
-      --_badge-border: var(--ui-info-soft);
+    :host([variant="subtle"][tone="info"]) {
+      --_badge-surface: color-mix(in srgb, var(--ui-info-solid) 19%, var(--ui-surface-default));
+      --_badge-border: color-mix(in srgb, var(--ui-info-solid) 25%, var(--ui-surface-default));
       --_badge-text: var(--ui-info-subtle-text, var(--ui-info-solid));
     }
 
     /* A solid colour fills with the ink. Its text is the page surface, mixed at 0% only so that it too is
        invalid while the hook is unset. */
-    :host-state([variant="solid"]) {
+    :host([variant="solid"]) {
       --_badge-color-surface: var(--_badge-color-ink);
       --_badge-color-border: var(--_badge-color-ink);
       --_badge-color-text: color-mix(in oklab, var(--_ui-badge-color) 0%, var(--ui-surface-default));
     }
 
-    :host-state([variant="outline"]) {
+    :host([variant="outline"]) {
       --_badge-surface: var(--ui-surface-default);
       --_badge-border: var(--ui-border-strong);
       --_badge-text: var(--ui-text-secondary);
@@ -181,79 +212,127 @@
       --_badge-color-border: var(--_badge-color-ink);
     }
 
-    :host-state([variant="outline"][tone="accent"]) {
+    :host([variant="outline"][tone="accent"]) {
       --_badge-border: var(--ui-accent-solid);
       --_badge-text: var(--ui-accent-subtle-text, var(--ui-accent-solid));
     }
 
-    :host-state([variant="outline"][tone="danger"]) {
+    :host([variant="outline"][tone="danger"]) {
       --_badge-border: var(--ui-danger-solid);
       --_badge-text: var(--ui-danger-subtle-text, var(--ui-danger-solid));
     }
 
-    :host-state([variant="outline"][tone="success"]) {
+    :host([variant="outline"][tone="success"]) {
       --_badge-border: var(--ui-success-solid);
       --_badge-text: var(--ui-success-subtle-text, var(--ui-success-solid));
     }
 
-    :host-state([variant="outline"][tone="warning"]) {
+    :host([variant="outline"][tone="warning"]) {
       --_badge-border: var(--ui-warning-solid);
       --_badge-text: var(--ui-warning-subtle-text, var(--ui-warning-solid));
     }
 
-    :host-state([variant="outline"][tone="info"]) {
+    :host([variant="outline"][tone="info"]) {
       --_badge-border: var(--ui-info-solid);
       --_badge-text: var(--ui-info-subtle-text, var(--ui-info-solid));
     }
 
-    /* A tag is flat at the start and points at the end. The point is cut from the box, so it has no
-       outline to follow: the edge is the fill. The end padding grows by the point's depth so the
-       label never runs into it. */
-    :host-state([shape="tag"]) {
+    /* An icon mark keeps the existing tone recipe and follows the global spacing and radius. */
+    :host([shape="square"]) {
+      --_badge-square-size: var(--ui-badge-square-size, calc(var(--ui-space-4) * 2));
+      display: inline-flex;
+      box-sizing: border-box;
+      flex: none;
+      inline-size: var(--_badge-square-size);
+      block-size: var(--_badge-square-size);
+      min-inline-size: var(--_badge-square-size);
+      min-block-size: var(--_badge-square-size);
+      padding: 0;
+      border-radius: var(--ui-radius-md);
+      text-box-trim: none;
+    }
+
+    :host([shape="square"][size="xs"]) {
+      --_badge-square-size: var(--ui-badge-square-size, calc(var(--ui-space-3) * 2));
+    }
+
+    :host([shape="square"]) .label {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* A dot uses the badge's tone recipe; only its silhouette and visible label change. */
+    :host([shape="dot"]) {
+      position: relative;
+      box-sizing: border-box;
+      flex: none;
+      inline-size: var(--ui-badge-dot-size, var(--ui-space-2));
+      block-size: var(--ui-badge-dot-size, var(--ui-space-2));
+      min-inline-size: var(--ui-badge-dot-size, var(--ui-space-2));
+      min-block-size: var(--ui-badge-dot-size, var(--ui-space-2));
+      padding: 0;
+      border-radius: var(--ui-radius-round);
+      text-box-trim: none;
+    }
+
+    :host([shape="dot"]) .label {
+      position: absolute;
+      inline-size: 1px;
+      block-size: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    /* The clipped point needs an inset surface over an outer border-colour shape: a native border
+       has no diagonal edge to follow. Keep this edge for every tag variant. */
+    :host([shape="tag"]) {
       --_badge-point: var(--ui-badge-point, var(--ui-space-2));
 
+      position: relative;
+      isolation: isolate;
       border-color: transparent;
       border-radius: 0;
+      background: var(--ui-badge-border, var(--_badge-color-border, var(--_badge-border)));
       padding-inline-end: calc(var(--ui-badge-padding-inline, var(--ui-space-2)) + var(--_badge-point));
       clip-path: polygon(0 0, calc(100% - var(--_badge-point)) 0, 100% 50%, calc(100% - var(--_badge-point)) 100%, 0 100%);
     }
 
-    :host-state([shape="tag"]):dir(rtl) {
-      padding-inline-end: var(--ui-badge-padding-inline, var(--ui-space-2));
-      padding-inline-start: calc(var(--ui-badge-padding-inline, var(--ui-space-2)) + var(--_badge-point));
-      clip-path: polygon(var(--_badge-point) 0, 100% 0, 100% 100%, var(--_badge-point) 100%, 0 50%);
-    }
-
-    /* The tag clips its point, including the native border. Draw the outer shape in the border
-       colour and an inset inner shape in the surface colour to keep a visible diagonal edge. */
-    :host-state([variant="outline"][shape="tag"]) {
-      position: relative;
-      isolation: isolate;
-      background: var(--ui-badge-border, var(--_badge-color-border, var(--_badge-border)));
-    }
-
-    :host-state([variant="outline"][shape="tag"])::before {
+    :host([shape="tag"])::before {
       content: "";
       position: absolute;
-      inset: 1px;
+      inset: 0;
       z-index: -1;
       background: var(--_badge-outline-surface);
       clip-path: polygon(0 0, calc(100% - var(--_badge-point)) 0, 100% 50%, calc(100% - var(--_badge-point)) 100%, 0 100%);
       pointer-events: none;
     }
 
-    :host-state([variant="outline"][shape="tag"]):dir(rtl)::before {
+    :host([shape="tag"]):dir(rtl) {
+      padding-inline-end: var(--ui-badge-padding-inline, var(--ui-space-2));
+      padding-inline-start: calc(var(--ui-badge-padding-inline, var(--ui-space-2)) + var(--_badge-point));
+      clip-path: polygon(var(--_badge-point) 0, 100% 0, 100% 100%, var(--_badge-point) 100%, 0 50%);
+    }
+
+    :host([shape="tag"]):dir(rtl)::before {
       clip-path: polygon(var(--_badge-point) 0, 100% 0, 100% 100%, var(--_badge-point) 100%, 0 50%);
     }
 
     @media (forced-colors: active) {
-      :host-state([variant="outline"][shape="tag"]) {
+      :host([shape="dot"]) {
+        forced-color-adjust: none;
+        border-color: CanvasText;
+        background: CanvasText;
+      }
+
+      :host([shape="tag"]) {
         forced-color-adjust: none;
         background: CanvasText;
         color: CanvasText;
       }
 
-      :host-state([variant="outline"][shape="tag"])::before {
+      :host([shape="tag"])::before {
         background: Canvas;
       }
     }

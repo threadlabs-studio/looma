@@ -19,18 +19,22 @@ export type TableOverlayAction =
   | TableInsertionAction
   | "select-row"
   | "select-column"
+  | "reorder-row"
+  | "reorder-column"
   | "open-cell-menu"
   | "open-row-menu"
   | "open-column-menu";
 
 /**
- * Discriminated action payload.
- * Boundary indices refer to entries in the measured boundary arrays. Cell
- * indices refer to the logical grid after row/column spans are expanded. The
+ * Discriminated command payload assembled by editor adapters from the overlay's named events.
+ * Boundary indices refer to entries in the measured boundary arrays. Reorder
+ * indices refer to source and destination rows or columns. Cell indices refer
+ * to the logical grid after row/column spans are expanded. The
  * menu anchor uses CSS-pixel viewport coordinates suitable for fixed surfaces.
  */
 export type TableOverlayActionEventDetail =
   | { action: TableInsertionAction; boundaryIndex: number }
+  | { action: "reorder-row" | "reorder-column"; fromIndex: number; toIndex: number }
   | { action: "select-row" | "select-column"; rowIndex: number; columnIndex: number }
   | {
       action: "open-cell-menu" | "open-row-menu" | "open-column-menu";

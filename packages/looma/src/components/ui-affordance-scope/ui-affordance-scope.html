@@ -1,10 +1,10 @@
 <template component="ui-affordance-scope" controller="./ui-affordance-scope.js">
   <defs>
     <prop name="nearRadius" type="number" default="16">How close, in pixels, the pointer must come to reveal an affordance.</prop>
-    <prop name="guide" type="dot | none" default="dot"
+    <prop name="guide" type="keyword" values="dot, none" default="dot"
     >What marks an anticipatory control at rest. dot shows a small guide dot where it will appear; none shows nothing until the pointer nears it, it is hovered,
       or it takes focus. Every guide inside the scope follows it, including a sidebar's resize line and the editor table's handles.</prop>
-    <state name="engaged" :value="false"></state>
+    <state type="boolean" name="engaged" value="false"></state>
   </defs>
   <span><slot></slot></span>
   <style>
@@ -19,7 +19,7 @@
     }
 
     /* Published to descendants: each guide multiplies its opacity by it, so none reaches them all. */
-    :host-state([guide="none"]) {
+    :host([guide="none"]) {
       --ui-affordance-scope-guide: 0;
     }
 

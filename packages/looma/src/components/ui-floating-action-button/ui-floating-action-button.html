@@ -1,12 +1,12 @@
 <template component="ui-floating-action-button">
   <defs>
-    <prop name="disabled" type="boolean" default="false">Disables the button, so it cannot be pressed or focused, and fades it to 60% opacity.</prop>
+    <prop name="disabled" type="boolean" default="false">Disables the button, so it cannot be pressed or focused, and gives it a flat muted treatment.</prop>
     <prop name="mobileOnly" type="boolean" default="false"
     >Hides the button on viewports 768px wide and wider, for a shortcut that only phones need. Make sure the action is reachable another way at those
       widths.</prop>
     <prop name="label" type="string" default="">The button's accessible name. The button usually holds only an icon, so name the action it performs.</prop>
   </defs>
-  <button type="button" :aria-label="label" :disabled="disabled"><slot></slot></button>
+  <button type="button" from:aria-label="label" from:disabled="disabled"><slot></slot></button>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
     @property --ui-floating-action-button-inset-block-end {
@@ -64,12 +64,14 @@
     }
 
     :host:focus-visible {
-      outline: 2px solid var(--ui-focus-ring);
-      outline-offset: 2px;
+      outline: var(--ui-focus-width) solid var(--ui-focus-ring);
+      outline-offset: var(--ui-focus-width);
     }
 
     :host:disabled {
-      opacity: 0.6;
+      background: var(--ui-disabled-surface);
+      color: var(--ui-disabled-text);
+      box-shadow: none;
       cursor: not-allowed;
     }
 
@@ -80,7 +82,7 @@
     }
 
     @media (min-width: 768px) {
-      :host-state([mobileOnly]) {
+      :host([mobileOnly]) {
         display: none;
       }
     }

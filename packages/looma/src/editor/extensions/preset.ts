@@ -3,7 +3,7 @@
  * Uses the Vanilla JS Tiptap API; apps provide @tiptap/core and Looma ships the preset extensions.
  */
 
-import { Extension, type AnyExtension } from "@tiptap/core";
+import { Extension, mergeAttributes, textblockTypeInputRule, type AnyExtension, type NodeViewRenderer } from "@tiptap/core";
 import Document from "@tiptap/extension-document";
 import Paragraph from "@tiptap/extension-paragraph";
 import Text from "@tiptap/extension-text";
@@ -24,20 +24,28 @@ import History from "@tiptap/extension-history";
 import Dropcursor from "@tiptap/extension-dropcursor";
 import Gapcursor from "@tiptap/extension-gapcursor";
 import Link from "@tiptap/extension-link";
-import Image from "@tiptap/extension-image";
+import { LoomaImage } from "./image";
 import Highlight from "@tiptap/extension-highlight";
 import Typography from "@tiptap/extension-typography";
 import Placeholder from "@tiptap/extension-placeholder";
 import Code from "@tiptap/extension-code";
 import { CodeBlockLowlight } from "@tiptap/extension-code-block-lowlight";
-import { common, createLowlight } from "lowlight";
+import { createLowlight } from "lowlight";
 import TableRow from "@tiptap/extension-table-row";
+import { LoomaBlockSelection } from "./block-selection";
 import { LoomaActiveBlock } from "./active-block";
 import { LoomaCallout } from "./callout";
+import { LoomaChip } from "./chip";
+import { LoomaExpand } from "./expand";
+import { LoomaTableOfContents } from "./table-of-contents";
 import { LoomaListBehavior } from "./list-behavior";
 import { createLoomaMentionExtension } from "./mention";
+import { createSiteRelativeLinks } from "./relative-links";
 import { LoomaSmartPaste } from "./smart-paste";
 import { LoomaTable, LoomaTableCell, LoomaTableHeader } from "./table-formatting";
+
+/** Grammars supplied by the host; importing a language remains the host's choice. */
+export type LoomaCodeLanguages = NonNullable<Parameters<typeof createLowlight>[0]>;
 
 /**
  * Deliberate policy knobs in Looma's default extension set.
@@ -49,13 +57,62 @@ export interface DefaultEditorExtensionsOptions {
   placeholder?: string;
   /** Passed to Tiptap Link; defaults false to keep editing clicks in the editor. */
   linkOpenOnClick?: boolean;
+  /** Site origin whose newly inserted links become relative, across paste and editor commands. */
+  linkBaseUrl?: string;
   /** Passed to Tiptap Image; block images are the default document policy. */
   imageInline?: boolean;
+  /** Optional image selection and sizing UI; durable formatting stays in the shared schema. */
+  imageNodeView?: NodeViewRenderer;
+  /** Optional selected-state UI for document dividers. */
+  dividerNodeView?: NodeViewRenderer;
   /** Custom mention extension, the Looma default, or false to omit mentions. */
   mention?: AnyExtension | false;
+  /**
+   * Removes every way for authors to apply the highlight mark: the Mod-Shift-H
+   * shortcut, `==text==` typing and paste rules, and `<mark>` parsing from
+   * pasted or HTML content. Highlights already stored in a document still load
+   * and render. Use it when the application reserves highlighting for itself.
+   */
+  disableHighlight?: boolean;
+  /** Code block grammars to register. None are loaded by default. */
+  codeLanguages?: LoomaCodeLanguages;
+  /** Shared highlighter that can receive grammars after editor creation. */
+  codeLowlight?: ReturnType<typeof createLowlight>;
+  /** Optional presentation for a code block; the Vue editor supplies its language control. */
+  codeBlockNodeView?: NodeViewRenderer;
+  /** Optional TOC settings UI; schema, entries, and heading anchors remain shared. */
+  tableOfContentsNodeView?: NodeViewRenderer;
+  /** Optional section settings; the shared schema owns summary and body content. */
+  expandNodeView?: NodeViewRenderer;
 }
 
-const lowlight = createLowlight(common);
+const LoomaCodeBlock = CodeBlockLowlight.extend({
+  renderHTML({ node, HTMLAttributes }) {
+    return [
+      "pre",
+      mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, { spellcheck: "false" }),
+      ["code", {
+        class: node.attrs.language ? `${this.options.languageClassPrefix}${node.attrs.language}` : null,
+        spellcheck: "false",
+      }, 0],
+    ];
+  },
+  addInputRules() {
+    return [
+      ...(this.parent?.() ?? []),
+      textblockTypeInputRule({ find: /^```$/, type: this.type }),
+    ];
+  },
+});
+
+// Removing the mark from the schema would make Tiptap discard any stored
+// document that uses it, so disabling it strips only the ways to create it.
+const StoredOnlyHighlight = Highlight.extend({
+  parseHTML: () => [],
+  addKeyboardShortcuts: () => ({}),
+  addInputRules: () => [],
+  addPasteRules: () => [],
+});
 
 /**
  * Complete Looma table schema as one Tiptap extension.
@@ -86,6 +143,9 @@ export function getLoomaTableExtensions(): AnyExtension[] {
  * can be replaced without coupling UI chrome to an application directory.
  * Use with `new Editor({ extensions: getDefaultEditorExtensions(), ... })` or a
  * framework's Tiptap editor hook.
+ * @contract Code blocks accept three backticks in an empty paragraph as an
+ * immediate typing shortcut. An optional node view changes presentation only;
+ * the code and explicit language stay in the document schema.
  */
 export function getDefaultEditorExtensions(
   options: DefaultEditorExtensionsOptions = {}
@@ -93,9 +153,21 @@ export function getDefaultEditorExtensions(
   const {
     placeholder = "Type “/” for commands, or start writing…",
     linkOpenOnClick = false,
+    linkBaseUrl,
     imageInline = false,
+    imageNodeView,
+    dividerNodeView,
     mention = createLoomaMentionExtension(),
+    disableHighlight = false,
+    codeLanguages,
+    codeLowlight,
+    codeBlockNodeView,
+    tableOfContentsNodeView,
+    expandNodeView,
   } = options;
+
+  const image = LoomaImage.configure({ inline: imageInline });
+  const codeBlock = LoomaCodeBlock.configure({ lowlight: codeLowlight ?? createLowlight(codeLanguages) });
 
   return [
     Document,
@@ -113,7 +185,10 @@ export function getDefaultEditorExtensions(
     TaskItem.configure({ nested: false }),
     Blockquote,
     LoomaCallout,
-    HorizontalRule,
+    LoomaChip,
+    LoomaExpand.configure({ nodeView: expandNodeView ?? null }),
+    LoomaTableOfContents.configure({ nodeView: tableOfContentsNodeView ?? null }),
+    dividerNodeView ? HorizontalRule.extend({ addNodeView: () => dividerNodeView }) : HorizontalRule,
     HardBreak,
     History,
     Dropcursor,
@@ -122,11 +197,12 @@ export function getDefaultEditorExtensions(
       openOnClick: linkOpenOnClick,
       HTMLAttributes: { rel: "noopener noreferrer", target: "_blank" },
     }),
-    Image.configure({ inline: imageInline }),
-    Highlight.configure({ multicolor: false }),
+    ...(linkBaseUrl ? [createSiteRelativeLinks(linkBaseUrl)] : []),
+    imageNodeView ? image.extend({ addNodeView: () => imageNodeView }) : image,
+    (disableHighlight ? StoredOnlyHighlight : Highlight).configure({ multicolor: false }),
     Code,
     LoomaSmartPaste,
-    CodeBlockLowlight.configure({ lowlight }),
+    codeBlockNodeView ? codeBlock.extend({ addNodeView: () => codeBlockNodeView }) : codeBlock,
     Typography,
     Placeholder.configure({
       placeholder: ({ node }) =>
@@ -137,5 +213,6 @@ export function getDefaultEditorExtensions(
     LoomaTableKit,
     LoomaListBehavior,
     LoomaActiveBlock,
+    LoomaBlockSelection,
   ];
 }

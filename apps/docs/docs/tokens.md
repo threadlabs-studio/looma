@@ -5,6 +5,12 @@ values when a family of components needs a different treatment; set a component 
 instance needs to differ. A component's fallback chain reads **component → group → global** where
 that group applies. The group and component levels are optional.
 
+Borders and elevation follow [one visual role guide](https://github.com/threadlabs-studio/looma/blob/main/docs/visual-system.md):
+`--ui-border-divider` separates content, `--ui-border-strong` encloses panels and floating
+surfaces, and `--ui-control-border` marks interactive controls. Actions use a modest highlight and
+raised shadow that settle when pressed; disabled controls are flat. Tone changes the colour, not
+the border or elevation role.
+
 | Level | Example | Reach | Use it for |
 | --- | --- | --- | --- |
 | Global theme | `--ui-accent`, `--ui-radius-md` | The whole theme or a theme boundary | A brand palette, type and spacing scale, default corners, elevation and motion |
@@ -65,9 +71,9 @@ stopping.
 :root {
   /* Intent: what an action means. */
   --ui-accent: #5b55d6;
-  --ui-danger: #b4233f;
+  --ui-danger: #c92d1e;
   --ui-success: #007a33;
-  --ui-warning: #b45309;
+  --ui-warning: #ba5b0b;
   --ui-info: #0066cc;
 
   /* The readable foreground on a filled accent or danger surface. */
@@ -91,11 +97,11 @@ because each is mixed from it.
 | Derived | From | How |
 | --- | --- | --- |
 | `--ui-text-secondary`, `--ui-text-muted` | ink + page | the ink mixed into the page, 80% and 62%: muted is the lightest step that still reads at 4.5:1 on the sunken surface |
-| `--ui-border`, `-strong`, `--ui-control-border` | ink + page | the same ramp, at 12%, 25%, and 48% |
+| `--ui-border`, `-strong`, `--ui-control-border` | ink + page | the same ramp: 12% for separators, 25% for overlay edges, 48% for enabled control edges |
 | `--ui-accent-hover`, `-active` | accent + ink | toward the ink, for pressure |
 | `--ui-accent-subtle`, `--ui-danger-soft` | accent + page | toward the page, for a tint |
-| `--ui-disabled-surface`, `--ui-disabled-text` | sunken surface, ink + page | one decision, not a per-component one; the ink at 45%, lighter than muted text |
-| `--ui-disabled-filter` | `saturate(0.2) contrast(0.75) brightness(1.25)` | how a disabled button washes out; dark dims (`brightness(0.8)`), high contrast only drops colour (`saturate(0)`) |
+| `--ui-disabled-surface`, `--ui-disabled-text`, `--ui-disabled-border` | sunken surface, ink + page | flat surface, pale ink, and a low-contrast edge distinguish a disabled control from every enabled tone |
+| `--ui-disabled-filter` | `none` | compatibility hook for custom disabled treatments |
 | `--ui-focus-ring` | accent | the focus ring is the accent |
 | `--ui-warning-subtle-text` | warning + ink | 55% warning toward the ink. Amber is the lightest intent, so it takes more ink to read at 4.5:1, and a theme can keep a bright, saturated warning for tints, borders, and icons |
 
@@ -103,11 +109,9 @@ The mixes are directional rather than absolute: they move *toward the ink* or *t
 In a dark theme the ink is light, so the same mix brightens where it darkened in a light one, and
 one set of rules serves both.
 
-A disabled button keeps its own look and is washed out by one filter, `--ui-disabled-filter`:
-less colour, less contrast, and a step toward the page. Every variant and tone fades the same way,
-so a disabled danger button still reads as danger, and a retheme carries through without a second
-palette to keep in step. Button and Icon Button take it through `--ui-button-disabled-filter` and
-`--ui-icon-button-disabled-filter`.
+A disabled Button or Icon Button uses the shared neutral surface, text, and border instead of its
+active tone. Its shadow and highlight disappear. The compatibility filter hook remains available
+through `--ui-button-disabled-filter` and `--ui-icon-button-disabled-filter`.
 
 ### The rest of the contract
 
@@ -119,6 +123,36 @@ palette to keep in step. Button and Icon Button take it through `--ui-button-dis
 | Elevation | `--ui-shadow-sm`, `--ui-shadow-lg` |
 | Motion | `--ui-motion-fast`, `--ui-motion-ease` |
 | Controls | `--ui-control-size`, `-size-sm`, `--ui-control-min-block-size` |
+
+## Line weights and selection
+
+Use semantic dimensions for visual edges. `--ui-border-width` defaults to `1px` for ordinary
+borders and dividers. `--ui-accent-line-width` aliases it for emphasis edges and line selection.
+`--ui-focus-width` defaults to `2px` for keyboard focus. Changing the border width therefore
+changes the emphasis width too, unless a theme deliberately sets them independently.
+
+Selected navigation, tree, list, search, and choice rows share `--ui-selection-surface`,
+`--ui-selection-text`, and `--ui-selection-radius`. They derive from the accent, page surface,
+readable accent text, and medium radius. The default tint is 6%; selected navigation keeps its
+resting label weight. A Nav Item's `variant="line"` is a discrete square-edge treatment, not a
+radius override.
+
+```css
+:root {
+  --ui-border-width: 1px;
+  --ui-focus-width: 2px;
+  --ui-radius-md: 0.5rem;
+}
+
+/* A deliberate independent emphasis weight at a theme boundary. */
+[data-theme="dark"] {
+  --ui-accent-line-width: 2px;
+}
+```
+
+A component hook can still override its own edge or surface. Glyph strokes, circular shapes,
+shadow lighting, and positioning corrections are not surface-border roles; they retain their
+own geometry. The shared focus role never doubles as the selected-state marker.
 
 ## Derived values
 
@@ -141,7 +175,7 @@ ancestor, and work only in the components listed here. They are intentionally ab
 | `--ui-field-danger` | Invalid Input, Input Group, Select, Listbox, Textarea, Combobox, Checkbox, Radio Group legend, Form Field message, editor link form | `--ui-danger` and its solid alias |
 | `--ui-action-radius` | Button, Icon Button, except the Icon Button's explicit `round` shape | `--ui-radius-md` |
 | `--ui-overlay-radius` | Dialog, Menu, Context Menu, Popover, Tooltip, Search Shell panel, Toast and Toast Region's generated toast, Combobox popup | Each component's former radius default |
-| `--ui-overlay-surface`, `--ui-overlay-border`, `--ui-overlay-shadow` | The same overlay surfaces, except an inverse Tooltip uses its own surface and border | The existing elevated surface, border and elevation tokens |
+| `--ui-overlay-surface`, `--ui-overlay-border`, `--ui-overlay-shadow` | The same overlay surfaces, except an inverse Tooltip uses its own surface and border | The elevated surface, strong border, and elevation tokens |
 
 For example, one form can have tighter corners and a distinct danger shade while destructive
 buttons elsewhere continue to use the global danger value:
@@ -232,6 +266,16 @@ loses to the component's own declaration, which usually reads as the override be
 .row-action { --ui-icon-button-size: 0; }
 ```
 
+Widths work the same way. Input, Select, and Nav Item fill their container, and a Form Field can
+shrink to nothing; each reads a hook for it:
+
+```css
+.quantity { --ui-input-inline-size: 8ch; }
+.status-filter { --ui-select-inline-size: 12rem; }
+.rail-item { --ui-nav-item-inline-size: auto; }
+.address-field { --ui-form-field-min-inline-size: 16rem; }
+```
+
 Name the component with a class of your own and set its hooks there. Do not select the markers a
 runtime renders on a component, such as `data-component` or its state attributes: they are how a
 runtime draws it, an implementation detail that can change, not API. The component's API tab lists the
@@ -263,6 +307,33 @@ semantic values, not at fixed colours. A pinned colour stops adapting: a hover t
 surface's colour disappears on every other surface, and a pinned tone ignores a later change of
 accent. A hook set on a component beats its props, so these buttons ignore `tone`; where a product
 needs both, apply the class only to the buttons it means.
+
+## Motion and navigation
+
+Motion uses three roles: `--ui-motion-feedback` for control state and caret rotation,
+`--ui-motion-reveal` for panels and drawers, and `--ui-motion-layout` for occupied
+space such as a docked sidebar. Each has a matching `-ease` token. They derive
+from the existing fast/base durations and ease/ease-out curves, so a theme can
+set one seed or tune a role once. Reduced-motion preferences disable component
+transitions even when a containing group overrides a duration.
+
+Nav Item and Disclosure's `variant="navigation"` share the `--ui-nav-*` semantic
+tokens: icon size, gap, padding, minimum row height, and hover surface. Both use
+the shared `--ui-selection-radius` for corners.
+Compact density uses the `--ui-nav-compact-*` padding and height values, not a
+different icon column. Nav Item's leading and trailing slots center their content
+on those columns; Disclosure's leading and indicator slots use the same columns.
+
+Use a unique `name` for each independent disclosure group. Add `requiredOpen`
+to keep one member open, including on initialization and after removing the open
+member. Unnamed disclosures and groups without this option remain freely
+collapsible. `fill` works within a bounded flex column and animates the flexible
+space transfer without scrolling its headers away. Custom indicators stay
+mounted and rotate a half-turn when opened; provide the closed-state icon.
+
+Sidebar's `--ui-sidebar-collapsed-width` hook defaults to zero. A separate rail
+can occupy that width while the sidebar's content remains inert and clipped.
+Its fixed-width content canvas avoids wrapping navigation text during collapse.
 
 ## Typography
 
@@ -299,7 +370,7 @@ shadows if depth should read differently on its surfaces:
   --ui-on-accent: #1a1a1a;
   --ui-on-danger: #1a1a1a;
   --ui-accent: #a99bf5;
-  --ui-danger: #ef6f86;
+  --ui-danger: #ff6b6b;
   --ui-success: #33cc66;
   --ui-warning: #ffaa22;
   --ui-info: #4d9fff;

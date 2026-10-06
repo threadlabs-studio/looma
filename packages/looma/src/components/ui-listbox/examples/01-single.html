@@ -1,10 +1,9 @@
 <!--
 title: Visible single choice
-description: A permanently visible native option collection with keyboard selection and form participation.
+description: A visible list of choices. Arrow keys move the selection; click a row to choose it.
 -->
-<label for="plan">Choose a plan</label>
-<ui-listbox id="plan" name="plan" rows="4" required>
-  <option value="">Choose a plan</option>
+<div id="plan-label">Choose a plan</div>
+<ui-listbox id="plan" name="plan" aria-labelledby="plan-label" rows="3" required>
   <option value="basic">Basic</option>
   <option value="team">Team</option>
   <option value="enterprise">Enterprise</option>

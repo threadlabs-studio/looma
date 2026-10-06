@@ -2,16 +2,20 @@
 <link rel="component" href="../ui-icon/ui-icon.html">
 <template component="ui-toast" controller="./ui-toast.js">
   <defs>
-    <prop name="tone" type="neutral | info | success | warning | danger" default="neutral"
+    <prop name="tone" type="keyword" values="neutral, info, success, warning, danger" default="neutral"
     >Semantic accent for this message. Danger uses an assertive alert role; the other tones use polite status semantics.</prop>
     <prop name="duration" type="number" default="0"
     >Milliseconds before requesting dismissal; 0 keeps the toast until an action dismisses it. The timer pauses on hover or focus.</prop>
-    <event name="dismiss" type="object({ id: string, reason: action | timeout, trigger: keyboard | pointer | programmatic })"></event>
+    <event name="dismiss" type="object">
+      <prop name="id" required type="string"></prop>
+      <prop name="reason" required type="keyword" values="action, timeout"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
   </defs>
-  <div :role="{ neutral: 'status', info: 'status', success: 'status', warning: 'status', danger: 'alert' }[tone]">
+  <div from:role="{ neutral: 'status', info: 'status', success: 'status', warning: 'status', danger: 'alert' }[tone]">
     <div class="message"><slot></slot></div>
     <div class="action" $ref="action"><slot name="action"></slot></div>
-    <ui-icon-button class="dismiss" size="sm" variant="ghost" :round="true" label="Dismiss notification">
+    <ui-icon-button class="dismiss" size="sm" variant="ghost" from:round="true" label="Dismiss notification">
       <ui-icon name="x"></ui-icon>
     </ui-icon-button>
   </div>
@@ -48,8 +52,8 @@
       inline-size: 100%;
       margin: 0;
       padding: var(--ui-space-3) var(--ui-space-4);
-      border: 1px solid var(--ui-toast-border, var(--ui-overlay-border, var(--ui-border-default)));
-      border-inline-start: 3px solid var(--ui-toast-accent, var(--_ui-toast-accent));
+      border: var(--ui-border-width) solid var(--ui-toast-border, var(--ui-overlay-border, var(--ui-border-strong)));
+      border-inline-start: var(--ui-accent-line-width) solid var(--ui-toast-accent, var(--_ui-toast-accent));
       border-radius: var(--ui-toast-radius, var(--ui-overlay-radius, var(--ui-radius-lg)));
       background: var(--ui-toast-surface, var(--ui-overlay-surface, var(--ui-surface-elevated)));
       color: var(--ui-text-primary);
@@ -57,16 +61,16 @@
       pointer-events: auto;
     }
 
-    :host-state([tone="info"]) {
+    :host([tone="info"]) {
       --_ui-toast-accent: var(--ui-info-solid);
     }
-    :host-state([tone="success"]) {
+    :host([tone="success"]) {
       --_ui-toast-accent: var(--ui-success-solid);
     }
-    :host-state([tone="warning"]) {
+    :host([tone="warning"]) {
       --_ui-toast-accent: var(--ui-warning-solid);
     }
-    :host-state([tone="danger"]) {
+    :host([tone="danger"]) {
       --_ui-toast-accent: var(--ui-danger-solid);
     }
 

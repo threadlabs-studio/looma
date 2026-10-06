@@ -37,9 +37,21 @@ importers:
       '@threadlabs/looma':
         specifier: workspace:*
         version: link:../../packages/looma
+      '@tiptap/core':
+        specifier: ^2.11.5
+        version: 2.27.2(@tiptap/pm@2.27.2)
+      '@tiptap/pm':
+        specifier: ^2.11.5
+        version: 2.27.2
+      '@tiptap/vue-3':
+        specifier: ^2.11.5
+        version: 2.27.2(@tiptap/core@2.27.2(@tiptap/pm@2.27.2))(@tiptap/pm@2.27.2)(vue@3.5.43(typescript@5.9.3))
       prismjs:
         specifier: ^1.30.0
         version: 1.30.0
+      vue:
+        specifier: ^3.5.43
+        version: 3.5.43(typescript@5.9.3)
     devDependencies:
       '@docusaurus/module-type-aliases':
         specifier: ^3.9.2
@@ -47,6 +59,9 @@ importers:
       '@playwright/test':
         specifier: ~1.60.0
         version: 1.60.0
+      '@types/node':
+        specifier: ^22.15.30
+        version: 22.19.15
       axe-core:
         specifier: ^4.10.3
         version: 4.13.0
@@ -106,8 +121,14 @@ importers:
   packages/looma:
     dependencies:
       '@nextwebwg/html-next':
-        specifier: 1.0.0-alpha.7
-        version: 1.0.0-alpha.7
+        specifier: 1.0.0-alpha.29
+        version: 1.0.0-alpha.29
+      dompurify:
+        specifier: 3.4.15
+        version: 3.4.15
+      highlight.js:
+        specifier: 11.11.2
+        version: 11.11.2
       lowlight:
         specifier: ^3.3.0
         version: 3.3.0
@@ -1876,6 +1897,18 @@ packages:
       '@noble/hashes':
         optional: true
 
+  '@formatjs/bigdecimal@0.2.7':
+    resolution: {integrity: sha512-B4+XY/e4u5v261r3a37Kq2ax91gPZSKGyVpx8X5dygAggLlUz+6MeBpmAhaBFGB8WQ4JB1qD+QtKHk9aJkEb9Q==}
+
+  '@formatjs/fast-memoize@3.1.7':
+    resolution: {integrity: sha512-zXfhLpvA6T7+efdt9JLbBwZ00tT7NsBMDVnDu8rpHeNNv8KfRZAMo2gkG0k9lK/Nzc//3kJ9pImsfuJxk3KhUA==}
+
+  '@formatjs/intl-durationformat@0.11.1':
+    resolution: {integrity: sha512-Mkuc+Q8/96Hb0w4Pwa9sqkKVQVl75TCaqaXIXHgsVsLDko+FKQhw9n/7BnbonueqPxkQkGYvn8/G2IKzT970og==}
+
+  '@formatjs/intl-localematcher@0.9.0':
+    resolution: {integrity: sha512-Z7TD3ssNry1Av1dVDoq/mzpxGyxqWwU0ClWEo+BB3k0JQTeQvUGmeK9WZGYvlqStS0UqkaKXk3dfjsb6NaHAxw==}
+
   '@hapi/hoek@9.3.0':
     resolution: {integrity: sha512-/c6rf4UJlmHlC9b5BaNvzAcFv7HZ2QHaV0D4/HNlBdvFnvQq8RI4kYdhyPCl7Xj+oWvTWQ8ujhqS53LIgAe6KQ==}
 
@@ -2056,8 +2089,8 @@ packages:
       '@types/react': '>=16'
       react: '>=16'
 
-  '@nextwebwg/html-next@1.0.0-alpha.7':
-    resolution: {integrity: sha512-iEwjA1FLaMuu/oFJJRyM/xgLLpXCeZMZnBaTzoDEoIHXFKNkc5b8Q3a3fLoRvJy1uulVEnlLUEmLiaO0MWQB6Q==}
+  '@nextwebwg/html-next@1.0.0-alpha.29':
+    resolution: {integrity: sha512-4ft4d0wvmvTjWmc+lW6wD6znOmC4R8R6yBg+4GM8ih9FsiidV6x6TYQ8hFi3DVX2O+j4fpkvdPL2QoMMny5L0A==}
     engines: {node: '>=22.13 <23 || >=24 <25'}
     hasBin: true
 
@@ -4215,6 +4248,9 @@ packages:
     resolution: {integrity: sha512-cgwlv/1iFQiFnU96XXgROh8xTeetsnJiDsTc7TYCLFd9+/WNkIqPTxiM/8pSd8VIrhXGTf1Ny1q1hquVqDJB5w==}
     engines: {node: '>= 4'}
 
+  dompurify@3.4.15:
+    resolution: {integrity: sha512-EUBjM+B+lkDE41iE82DDSCfkoPGfXx8IxFxPMjNzm/Uk4xDet77rTN9wqlxlVg71kK7XGuUMv6wUxJUwwv+Xyw==}
+
   domutils@2.8.0:
     resolution: {integrity: sha512-w96Cjofp72M5IIhpjgobBimYEfoPjx1Vx0BSX9P30WBdZW2WIKU0T1Bd0kz2eNZ9ikjKgHbEyKx8BB6H1L3h3A==}
 
@@ -4231,8 +4267,8 @@ packages:
   dprint-plugin-malva@0.16.0:
     resolution: {integrity: sha512-cHisdhrNcBHfvTG/jgHUkVyL6zeY+C5yLO+E/UyiTbp6wzauB3d25YyPZeMlsd7M/PDT8W4Yre8jKJ/xMwthiw==}
 
-  dprint-plugin-markup@0.27.3:
-    resolution: {integrity: sha512-uN0An1G9qyETguOTGg50JKsOeX77HJ3wLpTLYFeFNqBgVDN63eSxh4kU/S95MskpY1iBzMTsXG233ummLue9iw==}
+  dprint-plugin-markup@0.27.5:
+    resolution: {integrity: sha512-kvydX+uwpqVddbC18VJDG8baC6BB4Kdi2GONX3xbMws8ebyy9FL4m7WecJ207eB7oqtFJNdEOw93EklkuJCqag==}
 
   dprint@0.57.4:
     resolution: {integrity: sha512-iiorgfJrrV7DDf7S9AB/d5ZB59Jn5idMDQoU7o6H9m6AvGVaLAPrGTAslmTwykkft9CYbWzqUrKjmKT80KWmAA==}
@@ -5788,11 +5824,6 @@ packages:
 
   multicast-dns@7.2.5:
     resolution: {integrity: sha512-2eznPJP8z2BFLX50tf0LuODrpINqP1RVIm/CObbTcBRITQgmC/TjcREF1NeTBzIcR5XO/ukWo+YHOjBbFwIupg==}
-    hasBin: true
-
-  nanoid@3.3.11:
-    resolution: {integrity: sha512-N8SpfPUnUp1bK+PMYW8qSWdl9U+wwNWI4QKxOYDy9JAro3WMX7p2OeVRF9v+347pnakNevPmiHhNmZ2HbFA76w==}
-    engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
   nanoid@3.3.19:
@@ -10166,6 +10197,19 @@ snapshots:
 
   '@exodus/bytes@1.15.0': {}
 
+  '@formatjs/bigdecimal@0.2.7': {}
+
+  '@formatjs/fast-memoize@3.1.7': {}
+
+  '@formatjs/intl-durationformat@0.11.1':
+    dependencies:
+      '@formatjs/bigdecimal': 0.2.7
+      '@formatjs/intl-localematcher': 0.9.0
+
+  '@formatjs/intl-localematcher@0.9.0':
+    dependencies:
+      '@formatjs/fast-memoize': 3.1.7
+
   '@hapi/hoek@9.3.0': {}
 
   '@hapi/topo@5.1.0':
@@ -10390,15 +10434,23 @@ snapshots:
       '@types/react': 19.2.14
       react: 19.2.4
 
-  '@nextwebwg/html-next@1.0.0-alpha.7':
+  '@nextwebwg/html-next@1.0.0-alpha.29':
     dependencies:
       '@dprint/formatter': 0.5.1
       '@dprint/typescript': 0.96.1
+      '@formatjs/intl-durationformat': 0.11.1
       dprint-plugin-malva: 0.16.0
-      dprint-plugin-markup: 0.27.3
+      dprint-plugin-markup: 0.27.5
+      jsdom: 27.4.0
       parse5: 8.0.1
       postcss: 8.5.28
       typescript-compiler: '@typescript/typescript6@6.0.2'
+    transitivePeerDependencies:
+      - '@noble/hashes'
+      - bufferutil
+      - canvas
+      - supports-color
+      - utf-8-validate
 
   '@noble/hashes@1.4.0': {}
 
@@ -12809,6 +12861,10 @@ snapshots:
     dependencies:
       domelementtype: 2.3.0
 
+  dompurify@3.4.15:
+    optionalDependencies:
+      '@types/trusted-types': 2.0.7
+
   domutils@2.8.0:
     dependencies:
       dom-serializer: 1.4.1
@@ -12832,7 +12888,7 @@ snapshots:
 
   dprint-plugin-malva@0.16.0: {}
 
-  dprint-plugin-markup@0.27.3: {}
+  dprint-plugin-markup@0.27.5: {}
 
   dprint@0.57.4:
     optionalDependencies:
@@ -14842,8 +14898,6 @@ snapshots:
       dns-packet: 5.6.1
       thunky: 1.1.0
 
-  nanoid@3.3.11: {}
-
   nanoid@3.3.19: {}
 
   negotiator@0.6.3: {}
@@ -15573,7 +15627,7 @@ snapshots:
 
   postcss@8.5.8:
     dependencies:
-      nanoid: 3.3.11
+      nanoid: 3.3.19
       picocolors: 1.1.1
       source-map-js: 1.2.1
 

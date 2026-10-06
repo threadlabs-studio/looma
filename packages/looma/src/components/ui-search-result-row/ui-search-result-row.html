@@ -1,11 +1,14 @@
 <template component="ui-search-result-row">
   <defs>
-    <prop name="disabled" type="boolean" default="false">Disables the row's button, so it cannot be chosen or focused, and fades it to 60% opacity.</prop>
+    <prop name="density" type="keyword" values="comfortable, compact" default="comfortable"
+    >Compact keeps a title and location together in a 3.125rem row for small destination pickers; comfortable preserves the existing rich result spacing.</prop>
+    <prop name="disabled" type="boolean" default="false"
+    >Disables the row's button, so it cannot be chosen or focused, and gives it a flat muted treatment.</prop>
     <prop name="selected" type="boolean" default="false"
     >Marks the row as the current result: it gets the hover surface and aria-current="true", which assistive technology announces as current. Set it on one row
       at a time, such as the result the arrow keys have moved to.</prop>
   </defs>
-  <button type="button" :disabled="disabled" :aria-current="selected">
+  <button type="button" from:disabled="disabled" from:aria-current="selected">
     <span class="leading"><slot name="leading"></slot></span>
     <span class="content">
       <span class="title"><slot name="title"></slot></span>
@@ -60,36 +63,54 @@
       align-items: flex-start;
       gap: var(--ui-search-result-row-gap, var(--ui-space-3));
       background: var(--ui-search-result-row-surface, transparent);
-      border: none;
-      border-block-end: 1px solid var(--ui-search-result-row-border, var(--ui-border));
+      border: var(--ui-border-width) solid var(--ui-search-result-row-border, transparent);
+      border-radius: var(--ui-selection-radius);
       color: inherit;
       cursor: pointer;
       text-align: left;
       transition: background-color var(--ui-motion-fast) var(--ui-motion-ease);
     }
 
-    :host:last-child {
-      border-block-end: none;
+    :host([density="compact"]) {
+      min-block-size: var(--ui-search-result-row-min-height, 3.125rem);
+      padding-block: var(--ui-search-result-row-padding-block, var(--ui-space-1));
+      padding-inline: var(--ui-search-result-row-padding-inline, var(--ui-space-2));
+      gap: var(--ui-search-result-row-gap, var(--ui-space-2));
+      align-items: center;
+      font-family: var(--ui-font-family-sans, sans-serif);
+    }
+
+    /* Slot wrappers own their line boxes even when an app makes buttons inherit body typography. */
+    :host([density="compact"]) .title {
+      font-size: var(--ui-font-size-sm);
+      line-height: var(--ui-line-height);
+    }
+
+    :host([density="compact"]) .meta {
+      font-size: var(--ui-font-size-xs);
+      line-height: var(--ui-line-height);
     }
 
     :host:hover:enabled {
       background: var(--ui-search-result-row-hover-surface, color-mix(in srgb, var(--ui-surface) 85%, black 3%));
     }
 
-    :host-state([selected]) {
+    :host([selected]) {
       background: var(
         --ui-search-result-row-selected-bg,
-        var(--ui-search-result-row-hover-surface, color-mix(in srgb, var(--ui-surface) 85%, black 3%))
+        var(--ui-selection-surface)
       );
+      color: var(--ui-selection-text);
     }
 
     :host:focus-visible {
-      outline: 2px solid var(--ui-focus-ring);
-      outline-offset: -2px;
+      outline: var(--ui-focus-width) solid var(--ui-focus-ring);
+      outline-offset: calc(-1 * var(--ui-focus-width));
     }
 
     :host:disabled {
-      opacity: 0.6;
+      background: var(--ui-disabled-surface);
+      color: var(--ui-disabled-text);
       cursor: not-allowed;
     }
 
@@ -127,6 +148,13 @@
     :slotted([slot="excerpt"]) {
       display: block;
       margin: 0;
+    }
+
+    @media (forced-colors: active) {
+      :host([selected]):not(:focus-visible):not(:disabled) {
+        outline: var(--ui-border-width) solid Highlight;
+        outline-offset: calc(-1 * var(--ui-border-width));
+      }
     }
 
     /* A component that sets its display still honours the hidden attribute on its root. */

@@ -2,15 +2,19 @@
 <template component="ui-icon-button" controller="./ui-icon-button.js">
   <defs>
     <prop name="disabled" type="boolean" default="false"
-    >Disables the button, so it cannot be pressed or focused, and washes it out: the same shape, with less colour and contrast (--ui-disabled-filter).</prop>
-    <prop name="pending" type="boolean" default="false"
+    >Disables the button, so it cannot be pressed or focused, and gives it a flat neutral surface and muted icon.</prop>
+    <prop name="loading" type="boolean" default="false"
     >Keeps the button focusable and named while work is in progress. It shows a spinner, states aria-disabled and aria-busy, and prevents activation until
       cleared.</prop>
+    <prop name="pending" type="boolean" default="false">Deprecated alias for loading.</prop>
     <prop name="label" type="string">Accessible name for the icon.</prop>
-    <prop name="size" type="sm | md | lg" default="md"
+    <prop name="size" type="keyword" values="sm, md, lg" default="md"
     >Button and icon size together: sm is 1.75rem with a small icon, md is 2rem, and lg is 2.5rem with a large icon. On touch, every size gets an invisible hit
       area of at least 44px.</prop>
-    <prop name="variant" type="ghost | outline | solid" default="ghost"
+    <prop name="matchButton" type="boolean" default="false"
+    >Matches a boxed Button of the same size when the two share a flex row. Uses the control-size theme tokens and stretches to the row's height, including
+      touch-sized controls. Leave it off for compact toolbar and inline icon buttons.</prop>
+    <prop name="variant" type="keyword" values="ghost, outline, solid" default="ghost"
     >Emphasis. ghost shows only the icon until it is hovered, for toolbars and dense rows; outline adds a border on the default surface; solid fills with the
       accent colour, for the one primary action in a group.</prop>
     <prop name="anticipatory" type="boolean" default="false"
@@ -18,13 +22,24 @@
       the pointer comes near inside a ui-affordance-scope. Touch devices and the solid variant always show it.</prop>
     <prop name="round" type="boolean" default="false">Use a fully circular shape.</prop>
   </defs>
-  <button :disabled="disabled" type="button" :aria-label="label" :aria-disabled="{ true: 'true', false: null }[format('%s', pending)]" :aria-busy="pending">
-    <ui-spinner $if="pending" size="sm"></ui-spinner>
+  <button
+    from:disabled="disabled"
+    type="button"
+    from:aria-label="label"
+    from:data-match-button="matchButton"
+    from:aria-disabled="{ true: 'true', false: null }[concat(loading or pending)]"
+    from:aria-busy="loading or pending"
+  >
+    <ui-spinner $if="loading or pending" size="sm"></ui-spinner>
     <span class="content"><slot></slot></span>
   </button>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
     @property --ui-icon-button-active-scale {
+      syntax: "*";
+      inherits: false;
+    }
+    @property --ui-icon-button-active-surface {
       syntax: "*";
       inherits: false;
     }
@@ -106,11 +121,11 @@
       color: var(--ui-text-secondary);
     }
 
-    :host-state([anticipatory]) {
+    :host([anticipatory]) {
       position: relative;
     }
 
-    :host-state([anticipatory])::before {
+    :host([anticipatory])::before {
       content: "";
       position: absolute;
       inset: 50% auto auto 50%;
@@ -125,19 +140,34 @@
       pointer-events: none;
     }
 
-    /* At rest an anticipatory button shows only its guide dot; proximity, hover, or focus reveals the
-     * surface and icon. The root is the native button, so hiding it outright would hide the dot
-     * too, and slotted icons sit outside this scope; `color: transparent` hides currentColor icons. */
+    :host([anticipatory]):disabled::before {
+      opacity: 0;
+    }
+
+    /* At rest an anticipatory button shows only its guide dot. The icon grows into place when
+       proximity, hover, or focus reveals it; the button's hit area and guide remain stable. */
+    :host([anticipatory]) .content {
+      opacity: 1;
+      transform: scale(1);
+      transition: opacity var(--ui-motion-fast) var(--ui-motion-ease), transform calc(var(--ui-motion-fast) * 2) cubic-bezier(0.2, 1.4, 0.35, 1);
+    }
+
     @media (hover: hover) and (pointer: fine) {
-      :host-state([anticipatory]):not(:host-state([variant="solid"]), [data-ui-proximity="near"], :hover, :focus-visible) {
+      :host([anticipatory]):not(:host([variant="solid"]), :host([loading]), :host([pending]), :disabled, [data-ui-proximity="near"], :hover, :focus-visible) {
         border-color: transparent;
-        background: transparent;
+        background-color: transparent;
         box-shadow: none;
-        color: transparent;
+      }
+
+      :host([anticipatory]):not(:host([variant="solid"]), :host([loading]), :host([pending]), :disabled, [data-ui-proximity="near"], :hover, :focus-visible)
+        .content {
+        opacity: 0;
+        transform: scale(0.65);
+        transition-duration: var(--ui-motion-fast);
       }
     }
 
-    :host-state([anticipatory]):is(:host-state([variant="solid"]), [data-ui-proximity="near"], :hover, :focus-visible)::before {
+    :host([anticipatory]):is(:host([variant="solid"]), [data-ui-proximity="near"], :hover, :focus-visible)::before {
       opacity: 0;
     }
 
@@ -151,9 +181,9 @@
       min-block-size: var(--ui-icon-button-size, var(--_size));
       padding: 0;
       margin: 0;
-      border: 1px solid transparent;
+      border: var(--ui-border-width) solid transparent;
       border-radius: var(--ui-icon-button-radius, var(--ui-action-radius, var(--ui-radius-md)));
-      background: var(--ui-icon-button-surface, transparent);
+      background-color: var(--ui-icon-button-surface, transparent);
       color: inherit;
       display: inline-flex;
       align-items: center;
@@ -163,12 +193,12 @@
         background-color var(--ui-motion-fast) var(--ui-motion-ease),
         border-color var(--ui-motion-fast) var(--ui-motion-ease),
         color var(--ui-motion-fast) var(--ui-motion-ease),
-        box-shadow var(--ui-motion-fast) var(--ui-motion-ease),
+        box-shadow var(--ui-motion-base) var(--ui-motion-ease),
         transform var(--ui-motion-fast) var(--ui-motion-ease);
     }
 
     @media (hover: none), (pointer: coarse) {
-      :host-state([anticipatory])::before {
+      :host([anticipatory])::before {
         opacity: 0;
       }
     }
@@ -203,7 +233,7 @@
       transform: translate(-50%, -50%);
     }
 
-    :host-state([size="sm"]) {
+    :host([size="sm"]) {
       --_size: 1.75rem;
       inline-size: var(--ui-icon-button-size, var(--_size));
       block-size: var(--ui-icon-button-size, var(--_size));
@@ -211,7 +241,7 @@
       min-block-size: var(--ui-icon-button-size, var(--_size));
     }
 
-    :host-state([size="lg"]) {
+    :host([size="lg"]) {
       --_size: 2.5rem;
       inline-size: var(--ui-icon-button-size, var(--_size));
       block-size: var(--ui-icon-button-size, var(--_size));
@@ -219,18 +249,44 @@
       min-block-size: var(--ui-icon-button-size, var(--_size));
     }
 
-    :host-state([round]) {
+    /* A text button's companion uses control geometry; compact icon buttons keep their own density. */
+    :host([matchButton]) {
+      --_size: var(--ui-control-size-md);
+      block-size: auto;
+      align-self: stretch;
+    }
+
+    :host([matchButton][size="sm"]) {
+      --_size: var(--ui-control-size-sm);
+    }
+
+    :host([matchButton][size="lg"]) {
+      --_size: var(--ui-control-size-lg);
+    }
+
+    @media (pointer: coarse) {
+      :host([matchButton]) {
+        inline-size: max(var(--ui-icon-button-size, var(--_size)), var(--ui-control-min-block-size));
+        min-inline-size: max(var(--ui-icon-button-size, var(--_size)), var(--ui-control-min-block-size));
+        min-block-size: max(var(--ui-icon-button-size, var(--_size)), var(--ui-control-min-block-size));
+      }
+    }
+
+    :host([round]) {
       border-radius: var(--ui-radius-round);
     }
 
-    :host-state([variant="outline"]) {
-      border-color: var(--ui-icon-button-border, var(--ui-border-default));
-      background: var(--ui-icon-button-outline-surface, var(--ui-surface-default));
+    :host([variant="outline"]) {
+      border-color: var(--ui-icon-button-border, var(--ui-control-border, var(--ui-border-strong)));
+      background-color: var(--ui-icon-button-outline-surface, var(--ui-surface-default));
+      background-image: var(--ui-raised-highlight);
       color: var(--ui-icon-button-outline-text, var(--ui-text-primary));
+      box-shadow: var(--ui-raised);
     }
 
-    :host-state([variant="solid"]) {
-      background: var(--ui-icon-button-solid-surface, var(--ui-accent-solid));
+    :host([variant="solid"]) {
+      background-color: var(--ui-icon-button-solid-surface, var(--ui-accent-solid));
+      background-image: var(--ui-raised-highlight);
       color: var(--ui-icon-button-solid-text, var(--ui-text-on-accent));
       box-shadow: var(
         --ui-icon-button-solid-shadow,
@@ -240,32 +296,46 @@
 
     :host:hover:enabled:not([aria-disabled="true"]) {
       /* Derived from the text colour so the ghost hover shows on any background. */
-      background: var(--ui-icon-button-hover-surface, color-mix(in srgb, currentColor 8%, transparent));
+      background-color: var(--ui-icon-button-hover-surface, color-mix(in srgb, currentColor 8%, transparent));
       color: var(--ui-icon-button-hover-text, var(--ui-text-primary));
     }
 
-    :host-state([variant="outline"]):hover:enabled:not([aria-disabled="true"]) {
-      border-color: var(--ui-icon-button-hover-border, var(--ui-border-strong));
+    :host([variant="outline"]):hover:enabled:not([aria-disabled="true"]) {
+      border-color: var(--ui-icon-button-hover-border, var(--ui-control-border-hover, var(--ui-control-border)));
     }
 
-    :host-state([variant="solid"]):hover:enabled:not([aria-disabled="true"]) {
-      background: var(--ui-icon-button-solid-hover-surface, var(--ui-accent-hover));
+    :host([variant="solid"]):hover:enabled:not([aria-disabled="true"]) {
+      background-color: var(--ui-icon-button-solid-hover-surface, var(--ui-accent-hover));
+    }
+
+    :host([variant="ghost"])[aria-expanded="true"]:enabled:not([aria-disabled="true"]) {
+      background-color: var(--ui-icon-button-active-surface, color-mix(in srgb, currentColor 16%, transparent));
+      color: var(--ui-icon-button-hover-text, var(--ui-text-primary));
+      box-shadow: var(--ui-pressed);
     }
 
     :host:active:enabled:not([aria-disabled="true"]) {
       transform: scale(var(--ui-icon-button-active-scale, 0.96));
     }
 
-    :host-state([pending]) {
+    :is(:host([loading]), :host([pending])) {
       cursor: progress;
     }
 
     .content {
-      display: contents;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    :host-state([pending]) .content {
+    :is(:host([loading]), :host([pending])) .content {
       display: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      :host([anticipatory]) .content {
+        transition: none;
+      }
     }
 
     :host:focus-visible {
@@ -273,13 +343,20 @@
       box-shadow: var(--ui-focus-halo);
     }
 
-    /* Disabled colours fall back to each variant's own; ghost takes only the icon colour. */
-    /* Disabled washes the button out the way Button does: the same shape, one filter. */
+    /* Disabled is a flat neutral control, independent of the active variant's tone. */
     :host:disabled {
+      border-color: var(--ui-disabled-border);
+      background-color: var(--ui-disabled-surface);
+      color: var(--ui-disabled-text);
       filter: var(--ui-icon-button-disabled-filter, var(--ui-disabled-filter));
       opacity: var(--ui-icon-button-disabled-opacity, 1);
       cursor: not-allowed;
       box-shadow: none;
+      background-image: none;
+    }
+
+    :host([variant="ghost"]):disabled {
+      border-color: transparent;
     }
 
     :host {
@@ -290,11 +367,11 @@
       --_ui-default-icon-stroke-width: var(--_ui-icon-button-icon-stroke-width, 1.75);
     }
 
-    :host-state([size="sm"]) {
+    :host([size="sm"]) {
       --_icon-button-icon-default: var(--ui-icon-size-sm);
     }
 
-    :host-state([size="lg"]) {
+    :host([size="lg"]) {
       --_icon-button-icon-default: var(--ui-icon-size-lg);
     }
 

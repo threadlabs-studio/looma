@@ -2,16 +2,28 @@
   <defs>
     <prop name="open" type="boolean" default="false">Whether the context menu is open initially or when set externally.</prop>
     <prop name="for" type="string" default="">ID of the element whose context click (right-click, long-press, Shift+F10, or the Menu key) opens the menu.</prop>
-    <state name="internalOpen" :value="false"></state>
+    <state type="boolean" name="internalOpen" value="false"></state>
     <event
       name="open"
-      type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"
-    ></event>
+      type="object"
+    >
+      <prop name="open" required type="boolean"></prop>
+      <prop name="reason" required type="keyword" values="action, programmatic, light-dismiss, escape"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
     <event
       name="close"
-      type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"
-    ></event>
-    <event name="select" type="object({ value: string, checked?: boolean, trigger: keyboard | pointer | programmatic })"></event>
+      type="object"
+    >
+      <prop name="open" required type="boolean"></prop>
+      <prop name="reason" required type="keyword" values="action, programmatic, light-dismiss, escape"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
+    <event name="select" type="object">
+      <prop name="value" required type="string"></prop>
+      <prop name="checked" type="boolean"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
   </defs>
   <span><div class="menu" $ref="menu" role="menu" aria-orientation="vertical"><slot></slot></div></span>
   <style>
@@ -57,7 +69,7 @@
       box-sizing: border-box;
       padding: var(--ui-space-1);
       background: var(--_ui-context-menu-surface, var(--ui-overlay-surface, var(--ui-surface-elevated)));
-      border: 1px solid var(--_ui-context-menu-border, var(--ui-overlay-border, var(--ui-border-default)));
+      border: var(--ui-border-width) solid var(--_ui-context-menu-border, var(--ui-overlay-border, var(--ui-border-strong)));
       border-radius: var(--_ui-context-menu-radius, var(--ui-overlay-radius, var(--ui-radius-lg)));
       box-shadow: var(--_ui-context-menu-shadow, var(--ui-overlay-shadow, var(--ui-elevation-overlay, var(--ui-shadow-lg))));
       outline: 0;
@@ -78,7 +90,7 @@
       block-size: 0;
       margin: var(--ui-space-1) 0;
       border: 0;
-      border-block-start: 1px solid var(--ui-border-default);
+      border-block-start: var(--ui-border-width) solid var(--ui-border-divider);
     }
 
     .menu:popover-open {
