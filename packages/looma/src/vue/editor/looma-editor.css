@@ -11,25 +11,6 @@
   font-family: var(--ui-font-family-sans);
 }
 
-.looma-editor .ProseMirror {
-  min-height: var(--ui-editor-content-min-height, 300px);
-  padding:
-    var(--ui-editor-content-padding-block, var(--ui-space-4))
-    var(--ui-editor-content-padding-inline, var(--ui-space-6));
-  outline: none;
-  color: var(--ui-editor-content-color, var(--ui-text-primary));
-  caret-color: var(--ui-editor-caret-color, var(--ui-accent-solid));
-  font-family: var(--ui-editor-font-family, var(--ui-font-family-sans));
-  font-size: var(--ui-editor-font-size, var(--ui-font-size-md));
-  line-height: var(--ui-editor-line-height, var(--ui-line-height-relaxed));
-}
-
-@media (max-width: 767px) {
-  .looma-editor .ProseMirror {
-    padding-bottom: var(--ui-editor-mobile-bottom-space, 80px);
-  }
-}
-
 /*
  * Marker for the block being edited, drawn in the gutter beside the text rather
  * than around it: a border or fill on the reading column reads as a form field.

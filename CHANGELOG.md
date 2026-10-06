@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Cards offer soft accent, info, success and warning tones without changing the appearance of their child controls. Layout props let Stack accept a measured height or fill remaining space, Scroll Area fill remaining space, Cluster reserve action spacing, and Text grow beside other content. Textarea can cap visible rows while allowing extra text to scroll.
+- Cards offer soft accent, info, success and warning tones without changing the appearance of their child controls. Layout props let Stack accept a measured height or fill remaining space, Scroll Area fill remaining space, Cluster reserve action spacing, and Text grow beside other content. Textarea can cap visible rows while allowing extra text to scroll. Read-only editor excerpts can fit their content through contentDensity.
 
 - Badges align and space ordinary icon-and-text content without clipping glyphs, and offer a leading `icon` slot that stays visible when labels truncate. Buttons now space ordinary icons and text consistently.
 
