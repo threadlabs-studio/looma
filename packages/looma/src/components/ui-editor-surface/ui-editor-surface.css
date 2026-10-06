@@ -18,3 +18,6 @@
   }
 }
 
+
+[data-component~="ui-editor-surface"][data-density="compact"] .ProseMirror > :first-child { margin-block-start: 0; }
+[data-component~="ui-editor-surface"][data-density="compact"] .ProseMirror > :last-child { margin-block-end: 0; }

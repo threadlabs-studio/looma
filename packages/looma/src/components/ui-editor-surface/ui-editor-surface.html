@@ -7,7 +7,10 @@
   <div><slot></slot></div>
   <style>
     :host {
+      display: flex;
+      flex-direction: column;
       min-inline-size: 0;
+      max-inline-size: 100%;
     }
     /* The document renderer consumes these inherited surface settings. They do not style controls. */
     :host([density="compact"]) {
