@@ -20,7 +20,22 @@ function connect(host) {
   let owned = [];
   let described = null;
   const warned = new Set();
+  let action = null;
+  const measureAction = () => {
+    const width = action?.getBoundingClientRect().width ?? 0;
+    element.style.setProperty("--_ui-input-group-action-inline-size", `${width}px`);
+  };
+  // Observe the actual slot surface rather than estimating a label's width. This also catches
+  // pending indicators, font loading, touch target sizing and translated labels.
+  const actionObserver = new ResizeObserver(measureAction);
   const wire = () => {
+    const nextAction = element.querySelector(":scope > .action");
+    if (action !== nextAction) {
+      if (action) actionObserver.unobserve(action);
+      action = nextAction;
+      if (action) actionObserver.observe(action);
+    }
+    measureAction();
     const input = element.querySelector(".field :is(input, textarea)");
     const affixes = Array.from(element.querySelectorAll(":scope > .affix")).filter((affix) => {
       const text = affix.textContent.trim() !== "" && !affix.querySelector(INTERACTIVE);
@@ -61,6 +76,8 @@ function connect(host) {
   wire();
   return () => {
     observer.disconnect();
+    actionObserver.disconnect();
+    element.style.removeProperty("--_ui-input-group-action-inline-size");
     element.removeEventListener("mousedown", onMousedown);
     element.removeEventListener("click", onClick);
   };
