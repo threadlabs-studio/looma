@@ -1,6 +1,9 @@
 <template component="ui-input-group" controller="./ui-input-group.js">
   <defs>
     <prop name="multiline" type="boolean" default="false">Groups a Textarea with an action below its text inside the shared frame.</prop>
+    <prop name="actionPosition" type="keyword" values="below, top-end" default="below"
+    >In a multiline group, below keeps the action under the text. top-end places it inside the textarea at its upper end and reserves text padding for its
+      measured width.</prop>
     <prop name="prefixKind" type="keyword" values="text, icon" default="text"
     >Text affixes have their own framing. An icon prefix shares the field surface and uses one compact icon-to-value gap.</prop>
     <prop name="disabled" type="boolean" default="false">Fades the group's framing to match a disabled input inside it. Disable the input itself too.</prop>
@@ -199,6 +202,24 @@
       justify-content: end;
       padding: var(--ui-space-2);
       padding-block-start: 0;
+    }
+
+    /* The same textarea keeps its full resizeable box. Its text reserves the action's live width,
+       so a translated label or pending indicator cannot cover what the person types. */
+    :host([multiline][actionPosition="top-end"]) {
+      --_ui-default-textarea-padding-inline-end: calc(var(--_ui-input-group-action-inline-size, 7rem) + var(--ui-space-3));
+    }
+
+    :host([multiline][actionPosition="top-end"]) .field {
+      grid-row: 1;
+    }
+
+    :host([multiline][actionPosition="top-end"]) .action {
+      grid-column: 2;
+      grid-row: 1;
+      align-self: start;
+      justify-self: end;
+      padding: var(--ui-space-2);
     }
 
     .affix:empty,
