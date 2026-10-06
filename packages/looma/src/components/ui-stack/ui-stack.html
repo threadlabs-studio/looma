@@ -15,6 +15,11 @@
   <div style:--ui-stack-height="height"><slot></slot></div>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
+    @property --ui-stack-height {
+      syntax: "*";
+      inherits: false;
+    }
+
     @property --ui-stack-gap {
       syntax: "*";
       inherits: false;
@@ -36,7 +41,7 @@
       min-block-size: 0;
     }
     :host([height]) {
-      block-size: calc(var(--ui-stack-height) * 1px);
+      block-size: calc(var(--ui-stack-height, 0) * 1px);
       min-block-size: 0;
     }
 
