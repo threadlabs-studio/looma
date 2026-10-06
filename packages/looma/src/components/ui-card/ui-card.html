@@ -7,8 +7,9 @@
       elevated floats above the page with a shadow, for a view's one card, such as sign-in.</prop>
     <prop name="padding" type="keyword" values="xs, sm, md, lg" default="md"
     >The space inside the card: xs is compact (0.5rem), sm is snug (0.75rem), md is the default (1.5rem), and lg is roomy (2rem).</prop>
-    <prop name="tone" type="keyword" values="neutral, danger" default="neutral"
-    >danger adds a soft danger surface and a strong leading edge for consequential content.</prop>
+    <prop name="tone" type="keyword" values="neutral, accent, info, success, warning, danger" default="neutral"
+    >accent, info, success and warning add a quiet semantic surface. danger retains its strong leading edge for consequential content. Tone never changes child
+      controls.</prop>
     <prop name="as" type="keyword" values="div, section, article, aside" default="div"
     >The native element the card renders. Choose the one that names the content: a section of a page, a self-contained article, or an aside.</prop>
   </defs>
@@ -55,6 +56,30 @@
     :host([variant="elevated"]) {
       border-color: var(--ui-border-subtle);
       box-shadow: var(--ui-shadow-lg);
+    }
+
+    :host([tone="accent"]) {
+      border-color: color-mix(in srgb, var(--ui-accent) 25%, var(--ui-border-default));
+      background: color-mix(in srgb, var(--ui-accent) 6%, var(--ui-surface-default));
+    }
+
+    :host([tone="info"]) {
+      border-color: color-mix(in srgb, var(--ui-info) 25%, var(--ui-border-default));
+      background: color-mix(in srgb, var(--ui-info) 6%, var(--ui-surface-default));
+    }
+
+    :host([tone="success"]) {
+      border-color: color-mix(in srgb, var(--ui-success) 25%, var(--ui-border-default));
+      background: color-mix(in srgb, var(--ui-success) 6%, var(--ui-surface-default));
+    }
+
+    :host([tone="warning"]) {
+      border-color: color-mix(in srgb, var(--ui-warning) 25%, var(--ui-border-default));
+      background: color-mix(in srgb, var(--ui-warning) 6%, var(--ui-surface-default));
+    }
+
+    :host([variant="subtle"]:is([tone="accent"], [tone="info"], [tone="success"], [tone="warning"])) {
+      border-color: transparent;
     }
 
     :host([tone="danger"]) {

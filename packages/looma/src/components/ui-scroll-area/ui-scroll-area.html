@@ -1,5 +1,6 @@
 <template component="ui-scroll-area" controller="./ui-scroll-area.js">
   <defs>
+    <prop name="fill" type="boolean" default="false">Grows into remaining space within a flex layout while keeping content independently scrollable.</prop>
     <prop name="size" type="keyword" values="content, sm, md, lg" default="content"
     >Optional height preset. content keeps intrinsic sizing; sm fits three compact 3.125rem result rows before the overflow fade, md is 20rem, and lg is
       30rem.</prop>
@@ -12,6 +13,10 @@
     /* The controller sets each fade length from overflow and scroll position. The mask blends
        into whatever is behind the area without needing to know its colour. Before upgrade, its
        zero-length defaults leave the authored scroll area fully visible. */
+    :host([fill]) {
+      flex: 1;
+    }
+
     :host {
       display: block;
       box-sizing: border-box;
