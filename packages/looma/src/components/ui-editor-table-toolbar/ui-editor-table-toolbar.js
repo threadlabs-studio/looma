@@ -7,35 +7,50 @@ const overflowSections = [
 ];
 
 // Lists the actions the table selection permits; the overflow menu opens and closes here.
-export default function controller(host) {
+function connect(host) {
   const element = host.element;
+  const positionMenu = () => {
+    const button = element.querySelector(".more");
+    const menu = element.querySelector(".menu");
+    if (!button || !menu) return;
+    const rect = button.getBoundingClientRect();
+    const viewport = window.visualViewport;
+    const top = viewport?.offsetTop ?? 0;
+    const bottom = top + (viewport?.height ?? window.innerHeight);
+    const above = rect.top - top - 20;
+    const below = bottom - rect.bottom - 20;
+    menu.style.maxHeight = `${Math.max(80, Math.floor(Math.max(above, below)))}px`;
+    menu.style.top = below >= above ? "calc(100% + var(--ui-space-2))" : "auto";
+    menu.style.bottom = below >= above ? "auto" : "calc(100% + var(--ui-space-2))";
+  };
   const stop = host.effect(() => {
-    const enabled = new Set(Array.isArray(host.state.actions) ? host.state.actions : []);
-    const alignment = host.state.cellAlignment === "center" || host.state.cellAlignment === "right" ? host.state.cellAlignment : "left";
+    const enabled = new Set(Array.isArray(host.props.actions.value) ? host.props.actions.value : []);
+    const alignment = host.props.cellAlignment.value === "center" || host.props.cellAlignment.value === "right" ? host.props.cellAlignment.value : "left";
     host.state.alignments = [["align-left", "Align left"], ["align-center", "Align center"], ["align-right", "Align right"]]
       .filter(([action]) => enabled.has(action))
       .map(([action, label]) => ({ action, label, active: action === `align-${alignment}` }));
     host.state.structure = [["add-row-after", "Add row", "rows"], ["add-column-after", "Add column", "columns"]]
       .filter(([action]) => enabled.has(action))
       .map(([action, label, icon]) => ({ action, label, icon }));
-    const background = String(host.state.cellBackground ?? "");
+    const background = String(host.props.cellBackground.value ?? "");
     host.state.swatches = backgrounds.filter(([action]) => enabled.has(action))
       .map(([action, label, color]) => ({ action, label, color, selected: color === background }));
     host.state.sections = overflowSections
       .map(([heading, items]) => ({
         heading,
         items: items.filter(([action]) => enabled.has(action))
-          .map(([action, label, icon, tone]) => ({ action, label, icon, danger: tone === "danger", checkable: action.startsWith("toggle-header-"), checked: action === "toggle-header-row" ? Boolean(host.state.headerRow) : action === "toggle-header-column" ? Boolean(host.state.headerColumn) : false })),
+          .map(([action, label, icon, tone]) => ({ action, label, icon, danger: tone === "danger", checkable: action.startsWith("toggle-header-"), checked: action === "toggle-header-row" ? Boolean(host.props.headerRow.value) : action === "toggle-header-column" ? Boolean(host.props.headerColumn.value) : false })),
       }))
       .filter((section) => section.items.length);
     host.state.hasOverflow = host.state.swatches.length > 0 || host.state.sections.length > 0;
-    if (!host.state.open || !host.state.hasOverflow) host.state.overflowOpen = false;
+    if (!host.props.open.value || !host.state.hasOverflow) host.state.overflowOpen = false;
   });
   const onClick = (event) => {
     const action = event.target.closest?.("[data-action]")?.dataset.action;
     if (!action) return;
     if (action === "toggle-overflow") {
       host.state.overflowOpen = !host.state.overflowOpen;
+      if (host.state.overflowOpen) requestAnimationFrame(positionMenu);
       return;
     }
     host.state.overflowOpen = false;
@@ -44,11 +59,30 @@ export default function controller(host) {
   const onOutside = (event) => {
     if (host.state.overflowOpen && !event.composedPath().includes(element)) host.state.overflowOpen = false;
   };
+  const onKeydown = (event) => {
+    if (event.key === "Escape" && host.state.overflowOpen) {
+      host.state.overflowOpen = false;
+      event.preventDefault();
+      event.stopPropagation();
+      element.querySelector(".more")?.focus();
+    }
+  };
   element.addEventListener("click", onClick);
   document.addEventListener("pointerdown", onOutside, true);
+  document.addEventListener("keydown", onKeydown, true);
+  window.addEventListener("resize", positionMenu);
+  window.visualViewport?.addEventListener("resize", positionMenu);
   return () => {
     stop();
     element.removeEventListener("click", onClick);
     document.removeEventListener("pointerdown", onOutside, true);
+    document.removeEventListener("keydown", onKeydown, true);
+    window.removeEventListener("resize", positionMenu);
+    window.visualViewport?.removeEventListener("resize", positionMenu);
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

@@ -5,14 +5,14 @@ function inferredLabel(element, explicit) {
   return element.querySelector("h1, h2, h3, h4, h5, h6")?.textContent?.trim() || "Dialog";
 }
 
-export default function controller(host) {
+function connect(host) {
   const element = host.element;
   const document = element.ownerDocument;
   const dialog = element.localName === "dialog" ? element : element.querySelector("dialog");
   const overlayId = `ui-dialog-${Math.random().toString(36).slice(2, 11)}`;
   let trigger = null;
   let lastFor = "";
-  let lastExternalOpen = Boolean(host.state.open);
+  let lastExternalOpen = Boolean(host.props.open.value);
   let lastOpen;
   host.state.internalOpen = lastExternalOpen;
 
@@ -34,7 +34,7 @@ export default function controller(host) {
     apply();
   });
   const syncTrigger = () => {
-    const nextFor = String(host.state.for ?? "");
+    const nextFor = String(host.props.for.value ?? "");
     if (nextFor === lastFor) return;
     lastFor = nextFor;
     trigger?.removeEventListener("click", onTriggerClick);
@@ -47,20 +47,22 @@ export default function controller(host) {
     }
   };
   const apply = () => {
-    const externalOpen = Boolean(host.state.open);
+    const externalOpen = Boolean(host.props.open.value);
     if (externalOpen !== lastExternalOpen) {
       lastExternalOpen = externalOpen;
       host.state.internalOpen = externalOpen;
     }
-    host.state.accessibleLabel = inferredLabel(element, host.state.label);
+    host.state.accessibleLabel = inferredLabel(element, host.props.label.value);
     dialog?.setAttribute("aria-label", String(host.state.accessibleLabel));
-    if (host.state.alert) dialog?.setAttribute("role", "alertdialog");
+    if (host.props.alert.value) dialog?.setAttribute("role", "alertdialog");
     else dialog?.removeAttribute("role");
     syncTrigger();
     const open = Boolean(host.state.internalOpen);
-    const modal = !host.state.modeless;
-    const requestedClosedBy = String(host.state.closedby ?? "closerequest");
-    const closedBy = host.state.alert && requestedClosedBy === "any" ? "closerequest" : requestedClosedBy;
+    // `modeless` is a deprecated no-op: non-modal is the default. An alert dialog is always modal (APG alertdialog).
+    const modal = Boolean(host.props.modal.value || host.props.alert.value);
+    // An unset or unknown closedby follows native <dialog>'s auto state: closerequest when modal, none otherwise.
+    const requestedClosedBy = ["any", "closerequest", "none"].includes(host.props.closedby.value) ? host.props.closedby.value : modal ? "closerequest" : "none";
+    const closedBy = host.props.alert.value && requestedClosedBy === "any" ? "closerequest" : requestedClosedBy;
     trigger?.setAttribute("aria-expanded", String(open));
     if (!dialog) return;
     dialog.setAttribute("closedby", closedBy);
@@ -70,7 +72,7 @@ export default function controller(host) {
         if (modal) dialog.showModal();
         else dialog.show();
       }
-      openOverlay({ id: overlayId, modal, element, dismissible: true, canClose: (reason) => reason === "light-dismiss" ? closedBy === "any" : reason !== "escape" || closedBy !== "none", requestClose });
+      openOverlay({ id: overlayId, modal, element, modalElement: dialog, dismissible: true, canClose: (reason) => reason === "light-dismiss" ? closedBy === "any" : reason !== "escape" || closedBy !== "none", requestClose });
     } else {
       if (dialog.open) dialog.close();
       closeOverlay(document, overlayId);
@@ -81,7 +83,7 @@ export default function controller(host) {
     lastOpen = open;
   };
   const onClose = (event) => {
-    if (event instanceof CustomEvent) return;
+    if (event instanceof CustomEvent || event.target !== dialog) return;
     // Consumers receive one Looma close event with a reason, not an additional native close event.
     event.stopImmediatePropagation();
     if (dialog.open || !host.state.internalOpen) return;
@@ -102,7 +104,7 @@ export default function controller(host) {
     requestTopOverlayClose(document, "escape", "keyboard");
   };
   const observer = new MutationObserver(() => {
-    const label = inferredLabel(element, host.state.label);
+    const label = inferredLabel(element, host.props.label.value);
     if (label !== host.state.accessibleLabel) host.state.accessibleLabel = label;
   });
   observer.observe(element, { childList: true, subtree: true, characterData: true });
@@ -123,4 +125,9 @@ export default function controller(host) {
     element.removeEventListener("keydown", onKeydown);
     closeOverlay(document, overlayId);
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

@@ -26,7 +26,7 @@ const sections = [
 ];
 
 // Lists the actions the selection permits, and nudges the open menu back inside the viewport.
-export default function controller(host) {
+function connect(host) {
   const element = host.element;
   let frame;
   const nudge = () => {
@@ -48,10 +48,10 @@ export default function controller(host) {
     frame = requestAnimationFrame(nudge);
   };
   const stop = host.effect(() => {
-    const scope = String(host.state.scope || "cell");
-    const enabled = new Set((Array.isArray(host.state.actions) ? host.state.actions : []).filter((action) =>
+    const scope = String(host.props.scope.value || "cell");
+    const enabled = new Set((Array.isArray(host.props.actions.value) ? host.props.actions.value : []).filter((action) =>
       scope === "cell" || (scope === "row" ? !action.includes("column") : !action.includes("row"))));
-    const background = String(host.state.cellBackground ?? "");
+    const background = String(host.props.cellBackground.value ?? "");
     const swatches = backgrounds.filter(([action]) => enabled.has(action))
       .map(([action, label, color]) => ({ action, label, color, selected: color === background }));
     host.state.swatches = swatches.length ? swatches : null;
@@ -59,10 +59,10 @@ export default function controller(host) {
       .map(([heading, items]) => ({
         heading,
         items: items.filter(([action]) => enabled.has(action))
-          .map(([action, label, icon, tone]) => ({ action, label, icon, danger: tone === "danger", checkable: action.startsWith("toggle-header-"), checked: action === "toggle-header-row" ? Boolean(host.state.headerRow) : action === "toggle-header-column" ? Boolean(host.state.headerColumn) : false })),
+          .map(([action, label, icon, tone]) => ({ action, label, icon, danger: tone === "danger", checkable: action.startsWith("toggle-header-"), checked: action === "toggle-header-row" ? Boolean(host.props.headerRow.value) : action === "toggle-header-column" ? Boolean(host.props.headerColumn.value) : false })),
       }))
       .filter((section) => section.items.length);
-    if (host.state.open) schedule();
+    if (host.props.open.value) schedule();
   });
   const onClick = (event) => {
     const action = event.target.closest?.("[data-action]")?.dataset.action;
@@ -80,4 +80,9 @@ export default function controller(host) {
     window.visualViewport?.removeEventListener("scroll", schedule);
     if (frame) cancelAnimationFrame(frame);
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

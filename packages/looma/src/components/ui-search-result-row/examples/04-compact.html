@@ -1,0 +1,26 @@
+<!--
+title: Compact results
+description: Three compact title-and-location rows fit in a small scroll area; the remaining results scroll.
+-->
+<ui-scroll-area size="sm">
+  <ui-search-result-row density="compact">
+    <ui-icon slot="leading" name="file-text"></ui-icon>
+    <ui-text slot="title" as="strong" size="sm" weight="medium">Guide</ui-text>
+    <ui-text slot="meta" as="span" size="xs" tone="secondary">Team / Guides</ui-text>
+  </ui-search-result-row>
+  <ui-search-result-row density="compact">
+    <ui-icon slot="leading" name="file-text"></ui-icon>
+    <ui-text slot="title" as="strong" size="sm" weight="medium">Handbook</ui-text>
+    <ui-text slot="meta" as="span" size="xs" tone="secondary">Team / References</ui-text>
+  </ui-search-result-row>
+  <ui-search-result-row density="compact">
+    <ui-icon slot="leading" name="file-text"></ui-icon>
+    <ui-text slot="title" as="strong" size="sm" weight="medium">Glossary</ui-text>
+    <ui-text slot="meta" as="span" size="xs" tone="secondary">Team / References</ui-text>
+  </ui-search-result-row>
+  <ui-search-result-row density="compact">
+    <ui-icon slot="leading" name="file-text"></ui-icon>
+    <ui-text slot="title" as="strong" size="sm" weight="medium">Notes</ui-text>
+    <ui-text slot="meta" as="span" size="xs" tone="secondary">Personal / Notes</ui-text>
+  </ui-search-result-row>
+</ui-scroll-area>

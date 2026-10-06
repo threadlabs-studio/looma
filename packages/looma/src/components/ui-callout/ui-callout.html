@@ -1,6 +1,6 @@
 <template component="ui-callout">
   <defs>
-    <prop name="tone" type="info | neutral | note | warning | success | danger" default="info"
+    <prop name="tone" type="keyword" values="info, neutral, note, warning, success, danger" default="info"
     >Which kind of message the callout carries, shown by its icon and colour: info (the default) for information, neutral for a muted aside, warning for a
       caution, success for a confirmation, and danger for a harmful consequence. note remains as an alias for neutral.</prop>
   </defs>
@@ -103,9 +103,12 @@
       gap: var(--ui-callout-gap, calc(var(--ui-space-2) * 0.75));
       align-items: start;
       max-width: 100%;
-      padding: var(--ui-callout-padding-block, var(--ui-space-2)) var(--ui-callout-padding-inline, var(--ui-space-3));
-      border: var(--ui-callout-border-width, 1px) solid color-mix(in srgb, var(--ui-callout-border, var(--_callout-border)) 35%, transparent);
-      border-inline-start: var(--ui-callout-leading-border-width, 4px) solid var(--ui-callout-border, var(--_callout-border));
+      padding-block: var(--ui-callout-padding-block, var(--ui-space-2));
+      padding-inline-start: var(--ui-callout-padding-inline, var(--ui-space-2));
+      padding-inline-end: var(--ui-callout-padding-inline, var(--ui-space-3));
+      border: var(--ui-callout-border-width, var(--ui-border-width)) solid
+        color-mix(in srgb, var(--ui-callout-border, var(--_callout-border)) 35%, transparent);
+      border-inline-start: var(--ui-callout-leading-border-width, var(--ui-accent-line-width)) solid var(--ui-callout-border, var(--_callout-border));
       border-radius: var(--ui-radius-md);
       background: var(--ui-callout-surface, var(--_callout-surface));
       color: var(--ui-callout-text, var(--ui-text-primary));
@@ -133,25 +136,25 @@
       min-inline-size: 0;
     }
 
-    :host-state([tone="neutral"]), :host-state([tone="note"]) {
+    :host([tone="neutral"]), :host([tone="note"]) {
       --_callout-surface: var(--ui-surface-muted);
       --_callout-border: var(--ui-border-strong);
       --_callout-icon: var(--ui-text-secondary);
     }
 
-    :host-state([tone="warning"]) {
+    :host([tone="warning"]) {
       --_callout-surface: var(--ui-warning-soft);
       --_callout-border: var(--ui-warning-solid);
       --_callout-icon: var(--ui-warning-solid);
     }
 
-    :host-state([tone="success"]) {
+    :host([tone="success"]) {
       --_callout-surface: var(--ui-success-soft);
       --_callout-border: var(--ui-success-solid);
       --_callout-icon: var(--ui-success-solid);
     }
 
-    :host-state([tone="danger"]) {
+    :host([tone="danger"]) {
       --_callout-surface: var(--ui-danger-soft);
       --_callout-border: var(--ui-danger-solid);
       --_callout-icon: var(--ui-danger-solid);

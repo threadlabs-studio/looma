@@ -21,10 +21,15 @@ formatting commands, selection and focus, and every editor control. See
 | `placeholder` | `Type “/” for commands, or start writing…` | Shown in an empty document. |
 | `label` | `Document` | The editing surface's accessible name. |
 | `extensions` | `[]` | Extra Tiptap extensions, added after Looma's own. |
+| `codeLanguages` | built-in catalog | Override the built-in code language list with application-owned grammars. Pass `{}` to disable syntax highlighting. |
 | `mentionItems`, `mentionProvider`, `mentionLimit` | none, none, 8 | People to suggest after `@`: a fixed list, or a function that searches. |
+| `linkSearch`, `linkResolve`, `linkTargetLabel` | none, none, `Item` | Search host destinations for links and describe a saved destination from its `href`. |
 | `uploadImage` | none | Uploads a chosen image and returns its URL and alt text. Without it, Insert image is disabled. |
 | `resolveImageAttributes` | none | Adjusts an image's attributes, such as a responsive `srcset`, before it renders. |
-| `toolbarMode` | `bubble` | `bubble` shows the toolbar beside a selection; `sticky` keeps it pinned above the document. |
+| `toolbarMode` | `bubble` | `bubble` shows the toolbar beside a selection; `sticky` keeps it pinned above the document; `popover` opens it from your own button (see [Opening the toolbar from your own button](#opening-the-toolbar-from-your-own-button)). |
+| `toolbarTriggerId` | `""` | In `popover` mode, the ID of the button that toggles the toolbar and anchors it. |
+| `toolbarOpen` | `false` | In `popover` mode, whether the toolbar is open. Bind it with `v-model:toolbar-open`. |
+| `disableHighlight` | `false` | Authors can't highlight text. Highlights already in the document still show; see [Reserving highlight](#reserving-highlight). |
 
 ## Toolbar
 
@@ -42,9 +47,69 @@ bottom of the viewport. Its buttons follow the [Toolbar](/components/ui-editor-t
 `--ui-editor-toolbar-icon-size`, and the active-state `--ui-editor-toolbar-active-surface`,
 `--ui-editor-toolbar-active-text`, and `--ui-editor-toolbar-active-border`.
 
+### Opening the toolbar from your own button
+
+Set `toolbar-mode="popover"` when the page already has a place for tools, such as a page bar. Give
+the editor the ID of your button: clicking it opens the full toolbar in a popover anchored there, and
+clicking again, pressing Escape, or clicking elsewhere closes it. The button needs no click handler.
+Selecting text still shows a small bubble with the text controls (Bold through Inline code).
+
+```vue
+<IconButton id="formatting" label="Formatting">…</IconButton>
+<LoomaEditor toolbar-mode="popover" toolbar-trigger-id="formatting" v-model:toolbar-open="formattingOpen" />
+```
+
+### Reserving highlight
+
+Set `disable-highlight` when the application uses highlighting for its own purposes, such as
+marking what changed, and an author's highlight would be mistaken for it. The editor then offers
+no Highlight button, `Mod-Shift-H` does nothing, typing or pasting `==text==` stays plain text,
+and pasted HTML `<mark>` keeps its text without the highlight. Highlights already stored in the
+document's JSON still load and render as `<mark>`; the mark stays in the schema because removing
+it would make the editor discard any document that uses it. The setting is read when the editor
+is created. Outside `LoomaEditor`, pass `disableHighlight: true` to
+`getDefaultEditorExtensions`.
+
+### Code block syntax
+
+Code blocks keep their language in the document, whether or not a matching grammar is loaded.
+The searchable picker offers every bundled Highlight.js grammar. An explicitly chosen language
+loads only its own grammar when needed. **Auto** compares 20 common languages (Bash, C, C++, C#,
+CSS, Go, HTML, Java, JavaScript, JSON, Kotlin, Markdown, PHP, Python, Ruby, Rust, SQL, Swift,
+TypeScript, and YAML) when its code block has text. Documents without code do not download the
+grammars. HTML uses Highlight.js's XML grammar under the name `html`.
+
+An application can replace that list with its own grammars by passing `codeLanguages` when the
+editor is created:
+
+```ts
+import sql from 'highlight.js/lib/languages/sql'
+
+const codeLanguages = { sql }
+```
+
+```vue
+<LoomaEditor :code-languages="codeLanguages" />
+```
+
+Install `highlight.js` in the application that imports a grammar. The example offers only SQL;
+pass an empty object to keep code blocks plain. For a headless editor,
+`getDefaultEditorExtensions({ codeLanguages })` takes an explicit grammar map. Untagged code blocks
+can be detected from the registered languages.
+Paste SQL into a code block to keep it as code. Plain text pasted into a paragraph stays prose.
+While the cursor is in an editable code block, a language selector floats above it, like the table
+toolbar, when languages are available. **Auto** shows the detected language; choosing a language saves that choice with the
+document. Choose **Auto** again to resume detection. Type three backticks at the start of an empty
+paragraph to create a code block and place the cursor inside it.
+Token colors use the theme's semantic text colors and can be overridden with
+`--ui-editor-code-keyword`, `--ui-editor-code-string`, `--ui-editor-code-number`,
+`--ui-editor-code-name`, and `--ui-editor-code-comment`.
+
 ### Links
 
-Select text and choose **Link** to add one, or place the caret in a link to edit or remove it.
+Select text and choose **Link** to add one. On desktop, placing the caret in an existing link shows
+nearby actions to open, edit, or remove it. The mobile toolbar's **Link** button also edits the
+link at the caret.
 With no selection, the form also asks for link text. It accepts `http:`, `https:`, `mailto:`,
 `tel:`, and relative URLs beginning with `/`, `#`, or `?`; other schemes are rejected before the
 document changes. A preview opens separately with `noopener noreferrer`. The **Open in new tab**
@@ -66,11 +131,27 @@ menu provides insertion choices. This keeps block actions reachable without a ho
 
 ## Slash menu
 
-Typing `/` opens the [slash menu](/components/ui-editor-slash-menu), which inserts every block the
-editor supports, including those without a toolbar button: headings, Info, Note, and Warning
-callouts, bullet, numbered, and checklist lists, blockquote, inline and block code, table, divider,
-and image. Markdown-style typing works too: `#` for headings, `-` for bullets, `[ ]` for a checklist,
-and `---` for a divider.
+Typing `/` opens the [slash menu](/components/ui-editor-slash-menu), which inserts headings,
+Info, Note, and Warning callouts, bullet, numbered, and checklist lists, blockquote, a clickable
+inline chip, inline and block code, table, divider, and image. Markdown-style typing works too:
+`#` for headings, `-` for bullets, `[ ]` for a checklist, and `---` for a divider.
+
+**Chip** inserts an inline label without splitting its paragraph. Choosing `/chip` opens a focused
+popover: enter the label and choose neutral, blue, green, yellow, red, or purple. Click the chip to
+reopen that popover. The headless `editor.commands.insertLoomaChip()` command turns selected words
+into one chip or inserts an empty one at the caret. Chips are atomic editor nodes stored as semantic
+`<span data-looma-chip data-label="…" data-color="…">…</span>` elements, so their labels survive
+HTML and plain-text copy. Their borders sit between the soft fill and the stronger theme tone;
+hosts can override surface, border, text, and font size with `--ui-editor-chip-*`
+tokens. Plain pasted HTML spans do not turn into chips.
+
+## Pasting documents
+
+Looma detects recognizable Markdown and HTML copied as source, including source wrapped in a
+clipboard code block, and turns supported headings, lists, links, tables, and code blocks into
+editable nodes. Pasting inside an existing code block stays literal. When a clipboard already
+contains recognizable formatted HTML, Looma keeps that formatting even if the plain-text copy happens to begin
+with a Markdown marker. Content copied from another editor page keeps its native structure.
 
 ## Active-block marker
 

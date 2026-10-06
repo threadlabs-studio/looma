@@ -14,6 +14,13 @@ function syncScrollLock(document, state) {
   else document.documentElement.style.removeProperty("overflow");
 }
 
+function syncModalBackdrops(state) {
+  const topModal = state.records.findLast((record) => record.modal);
+  for (const record of state.records) {
+    (record.modalElement ?? record.element).toggleAttribute("data-ui-backdrop-hidden", Boolean(record.modal && record !== topModal));
+  }
+}
+
 function requestClose(document, reason, trigger) {
   const record = stateFor(document).records.at(-1);
   if (!record || (record.dismissible === false && (reason === "escape" || reason === "light-dismiss")) || record.canClose?.(reason) === false) return false;
@@ -24,7 +31,7 @@ function requestClose(document, reason, trigger) {
 function ensureListeners(document, state) {
   if (state.listening) return;
   state.onKeydown = (event) => {
-    if (event.key === "Escape") requestClose(document, "escape", "keyboard");
+    if (event.key === "Escape" && !event.defaultPrevented && requestClose(document, "escape", "keyboard")) event.preventDefault();
   };
   state.onPointerdown = (event) => {
     const top = state.records.at(-1);
@@ -55,13 +62,36 @@ function removeListeners(document, state) {
 export function openOverlay(record) {
   const document = record.element.ownerDocument;
   const state = stateFor(document);
-  closeOverlay(document, record.id);
+  const index = state.records.findIndex((entry) => entry.id === record.id);
+  if (index >= 0) {
+    const previous = state.records[index];
+    state.records[index] = record;
+    if (previous.modal !== record.modal) {
+      state.modalCount += record.modal ? 1 : -1;
+      syncScrollLock(document, state);
+    }
+    if (previous.modalElement && previous.modalElement !== record.modalElement) previous.modalElement.removeAttribute("data-ui-backdrop-hidden");
+    syncModalBackdrops(state);
+    return;
+  }
   state.records.push(record);
   if (record.modal) {
     state.modalCount += 1;
     syncScrollLock(document, state);
   }
+  syncModalBackdrops(state);
   ensureListeners(document, state);
+  announceOverlayOpen(document, record.id);
+}
+
+export function onOverlayOpen(document, listener) {
+  const onOpen = (event) => listener(event.detail.id);
+  document.addEventListener("ui-overlay-open", onOpen);
+  return () => document.removeEventListener("ui-overlay-open", onOpen);
+}
+
+export function announceOverlayOpen(document, id) {
+  document.dispatchEvent(new CustomEvent("ui-overlay-open", { detail: { id } }));
 }
 
 export function closeOverlay(document, id) {
@@ -69,10 +99,12 @@ export function closeOverlay(document, id) {
   const index = state.records.findIndex((record) => record.id === id);
   if (index >= 0) {
     const [record] = state.records.splice(index, 1);
+    (record.modalElement ?? record.element).removeAttribute("data-ui-backdrop-hidden");
     if (record?.modal) {
       state.modalCount = Math.max(0, state.modalCount - 1);
       syncScrollLock(document, state);
     }
+    syncModalBackdrops(state);
   }
   removeListeners(document, state);
 }
@@ -173,6 +205,8 @@ export function createAnchoredSurface(surface, options = {}) {
   let point = null;
   let open = false;
   let frame = null;
+  let anchorFrame = null;
+  let lastAnchorRect = null;
   let abort = null;
   let sizeObserver = null;
   surface.setAttribute("popover", "manual");
@@ -185,13 +219,40 @@ export function createAnchoredSurface(surface, options = {}) {
       fallbackPosition(surface, { left: point.x, right: point.x, top: point.y, bottom: point.y, width: 0, height: 0 }, "bottom-start", gap(), viewportGap);
       return;
     }
-    if (!anchor) return;
-    fallbackPosition(surface, anchor.getBoundingClientRect(), placement, gap(), viewportGap);
+    const rect = anchor?.getBoundingClientRect();
+    // A disappearing trigger has no usable position. Keep the last valid position, or wait before first opening.
+    if (!anchor || anchor.isConnected === false || !rect || rect.width === 0 && rect.height === 0
+      || anchor instanceof owner.Element && owner.getComputedStyle(anchor).visibility !== "visible") {
+      if (lastAnchorRect) fallbackPosition(surface, lastAnchorRect, placement, gap(), viewportGap);
+      else hide(surface);
+      return;
+    }
+    lastAnchorRect = rect;
+    show(surface);
+    fallbackPosition(surface, lastAnchorRect, placement, gap(), viewportGap);
   };
   const schedule = () => {
     if (open && frame === null) frame = owner.requestAnimationFrame(position);
   };
+  // Resize and scroll events do not report an ancestor's transition or layout shift.
+  // While visible, sample the anchor and only re-position when its bounds change.
+  const trackAnchor = () => {
+    anchorFrame = null;
+    if (!open || !anchor || point) return;
+    const rect = anchor.getBoundingClientRect();
+    if (!lastAnchorRect || rect.left !== lastAnchorRect.left || rect.top !== lastAnchorRect.top
+      || rect.width !== lastAnchorRect.width || rect.height !== lastAnchorRect.height) schedule();
+    anchorFrame = owner.requestAnimationFrame(trackAnchor);
+  };
+  const stopTracking = () => {
+    if (anchorFrame !== null) owner.cancelAnimationFrame(anchorFrame);
+    anchorFrame = null;
+    lastAnchorRect = null;
+  };
   const syncListeners = () => {
+    if (open && anchor && !point) {
+      if (anchorFrame === null) anchorFrame = owner.requestAnimationFrame(trackAnchor);
+    } else stopTracking();
     const needed = open && (point || anchor);
     if (!needed) {
       abort?.abort();
@@ -219,7 +280,7 @@ export function createAnchoredSurface(surface, options = {}) {
     showAtPoint(next) { point = next; open = true; syncListeners(); show(surface); position(); schedule(); observeSize(); },
     hide() { open = false; point = null; syncListeners(); stopSize(); if (frame !== null) owner.cancelAnimationFrame(frame); frame = null; hide(surface); },
     refresh: schedule,
-    destroy() { open = false; abort?.abort(); abort = null; stopSize(); if (frame !== null) owner.cancelAnimationFrame(frame); frame = null; hide(surface); anchor = null; },
+    destroy() { open = false; stopTracking(); abort?.abort(); abort = null; stopSize(); if (frame !== null) owner.cancelAnimationFrame(frame); frame = null; hide(surface); anchor = null; },
   };
 }
 

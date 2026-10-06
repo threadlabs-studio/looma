@@ -4,35 +4,109 @@
     <prop name="open" type="boolean" default="false">Shows the controls after the editor has supplied current geometry.</prop>
     <prop
       name="geometry"
-      type="object({ rowBoundaries: list(number), columnBoundaries: list(number), activeCell: object({ left: number, top: number, width: number, height: number, rowIndex: integer, columnIndex: integer }) | null, hoveredCell?: object({ left: number, top: number, width: number, height: number, rowIndex: integer, columnIndex: integer }) | null }) | null"
-    >The authoritative editor-measured table boundaries and active or hovered cell rectangles.</prop>
+      type="object"
+    >
+      <prop name="rowBoundaries" required type="list">
+        <prop type="number"></prop>
+      </prop>
+      <prop name="columnBoundaries" required type="list">
+        <prop type="number"></prop>
+      </prop>
+      <prop name="activeCell" required nullable type="object">
+        <prop name="left" required type="number"></prop>
+        <prop name="top" required type="number"></prop>
+        <prop name="width" required type="number"></prop>
+        <prop name="height" required type="number"></prop>
+        <prop name="rowIndex" required type="integer"></prop>
+        <prop name="columnIndex" required type="integer"></prop>
+      </prop>
+      <prop name="hoveredCell" nullable type="object">
+        <prop name="left" required type="number"></prop>
+        <prop name="top" required type="number"></prop>
+        <prop name="width" required type="number"></prop>
+        <prop name="height" required type="number"></prop>
+        <prop name="rowIndex" required type="integer"></prop>
+        <prop name="columnIndex" required type="integer"></prop>
+      </prop>
+      The authoritative editor-measured table boundaries and active or hovered cell rectangles.
+    </prop>
     <state
       name="rows"
-      type="list(object({ key: string, index: integer, offset: string, affordance: insert-row | insert-column, action: add-row-before | add-row-after | add-column-before | add-column-after, label: string }))"
-      :value="[]"
-    ></state>
+      type="list"
+      value="[]"
+    >
+      <prop type="object">
+        <prop name="key" required type="string"></prop>
+        <prop name="index" required type="integer"></prop>
+        <prop name="offset" required type="string"></prop>
+        <prop name="affordance" required type="keyword" values="insert-row, insert-column"></prop>
+        <prop name="action" required type="keyword" values="add-row-before, add-row-after, add-column-before, add-column-after"></prop>
+        <prop name="label" required type="string"></prop>
+      </prop>
+    </state>
     <state
       name="cols"
-      type="list(object({ key: string, index: integer, offset: string, affordance: insert-row | insert-column, action: add-row-before | add-row-after | add-column-before | add-column-after, label: string }))"
-      :value="[]"
-    ></state>
+      type="list"
+      value="[]"
+    >
+      <prop type="object">
+        <prop name="key" required type="string"></prop>
+        <prop name="index" required type="integer"></prop>
+        <prop name="offset" required type="string"></prop>
+        <prop name="affordance" required type="keyword" values="insert-row, insert-column"></prop>
+        <prop name="action" required type="keyword" values="add-row-before, add-row-after, add-column-before, add-column-after"></prop>
+        <prop name="label" required type="string"></prop>
+      </prop>
+    </state>
     <state
       name="hovered"
-      type="object({ left: number, top: number, width: number, height: number, rowIndex: integer, columnIndex: integer, rowOffset: string, columnOffset: string }) | null"
-      :value="null"
-    ></state>
+      type="object"
+    >
+      <prop name="left" required type="number"></prop>
+      <prop name="top" required type="number"></prop>
+      <prop name="width" required type="number"></prop>
+      <prop name="height" required type="number"></prop>
+      <prop name="rowIndex" required type="integer"></prop>
+      <prop name="columnIndex" required type="integer"></prop>
+      <prop name="rowOffset" required type="string"></prop>
+      <prop name="columnOffset" required type="string"></prop>
+    </state>
     <state
       name="active"
-      type="object({ left: number, top: number, width: number, height: number, rowIndex: integer, columnIndex: integer, menuLeft: string, menuTop: string }) | null"
-      :value="null"
-    ></state>
-    <state name="activeKey" :value="''"></state>
+      type="object"
+    >
+      <prop name="left" required type="number"></prop>
+      <prop name="top" required type="number"></prop>
+      <prop name="width" required type="number"></prop>
+      <prop name="height" required type="number"></prop>
+      <prop name="rowIndex" required type="integer"></prop>
+      <prop name="columnIndex" required type="integer"></prop>
+      <prop name="menuLeft" required type="string"></prop>
+      <prop name="menuTop" required type="string"></prop>
+    </state>
+    <state type="string" name="activeKey" value=""></state>
+    <event name="add-row-before" type="object({ boundaryIndex: integer })"></event>
+    <event name="add-row-after" type="object({ boundaryIndex: integer })"></event>
+    <event name="add-column-before" type="object({ boundaryIndex: integer })"></event>
+    <event name="add-column-after" type="object({ boundaryIndex: integer })"></event>
+    <event name="select-row" type="object({ rowIndex: integer, columnIndex: integer })"></event>
+    <event name="select-column" type="object({ rowIndex: integer, columnIndex: integer })"></event>
+    <event name="reorder-row" type="object({ fromIndex: integer, toIndex: integer })"></event>
+    <event name="reorder-column" type="object({ fromIndex: integer, toIndex: integer })"></event>
     <event
-      name="action"
-      type="object({ action: add-row-before | add-row-after | add-column-before | add-column-after, boundaryIndex: integer }) | object({ action: select-row | select-column, rowIndex: integer, columnIndex: integer }) | object({ action: open-cell-menu | open-row-menu | open-column-menu, rowIndex: integer, columnIndex: integer, anchor: object({ left: number, top: number, right: number, bottom: number }) })"
+      name="open-cell-menu"
+      type="object({ rowIndex: integer, columnIndex: integer, anchor: object({ left: number, top: number, right: number, bottom: number }) })"
+    ></event>
+    <event
+      name="open-row-menu"
+      type="object({ rowIndex: integer, columnIndex: integer, anchor: object({ left: number, top: number, right: number, bottom: number }) })"
+    ></event>
+    <event
+      name="open-column-menu"
+      type="object({ rowIndex: integer, columnIndex: integer, anchor: object({ left: number, top: number, right: number, bottom: number }) })"
     ></event>
   </defs>
-  <div aria-label="Table controls" :hidden="not open">
+  <div aria-label="Table controls" from:hidden="not open">
     <div class="rows">
       <div
         $each="control of rows"
@@ -40,20 +114,20 @@
         class="control row"
         class:active="control.key = activeKey"
         style:top="control.offset"
-        :data-control-key="control.key"
+        from:data-control-key="control.key"
       >
         <span class="line" aria-hidden="true"></span>
         <span class="guide" data-ui-guide aria-hidden="true"></span>
         <button
           type="button"
           class="handle"
-          :data-ui-affordance="control.affordance"
-          :data-action="control.action"
-          :data-boundary-index="control.index"
-          :aria-label="control.label"
+          from:data-ui-affordance="control.affordance"
+          from:data-action="control.action"
+          from:data-boundary-index="control.index"
+          from:aria-label="control.label"
         >
           <ui-icon name="plus"></ui-icon>
-          <span class="tooltip" role="tooltip" $value="control.label"></span>
+          <span class="tooltip" role="tooltip">{$control.label}</span>
         </button>
       </div>
     </div>
@@ -64,20 +138,20 @@
         class="control col"
         class:active="control.key = activeKey"
         style:left="control.offset"
-        :data-control-key="control.key"
+        from:data-control-key="control.key"
       >
         <span class="line" aria-hidden="true"></span>
         <span class="guide" data-ui-guide aria-hidden="true"></span>
         <button
           type="button"
           class="handle"
-          :data-ui-affordance="control.affordance"
-          :data-action="control.action"
-          :data-boundary-index="control.index"
-          :aria-label="control.label"
+          from:data-ui-affordance="control.affordance"
+          from:data-action="control.action"
+          from:data-boundary-index="control.index"
+          from:aria-label="control.label"
         >
           <ui-icon name="plus"></ui-icon>
-          <span class="tooltip" role="tooltip" $value="control.label"></span>
+          <span class="tooltip" role="tooltip">{$control.label}</span>
         </button>
       </div>
     </div>
@@ -87,9 +161,9 @@
         class="selector row"
         style:top="hovered.rowOffset"
         data-action="select-row"
-        :data-row-index="hovered.rowIndex"
-        :data-column-index="hovered.columnIndex"
-        title="Row actions"
+        from:data-row-index="hovered.rowIndex"
+        from:data-column-index="hovered.columnIndex"
+        title="Drag row to reorder; click for actions"
         aria-label="Row actions"
       >
         <span class="glyph"><ui-icon name="grip-vertical"></ui-icon></span>
@@ -99,9 +173,9 @@
         class="selector column"
         style:left="hovered.columnOffset"
         data-action="select-column"
-        :data-row-index="hovered.rowIndex"
-        :data-column-index="hovered.columnIndex"
-        title="Column actions"
+        from:data-row-index="hovered.rowIndex"
+        from:data-column-index="hovered.columnIndex"
+        title="Drag column to reorder; click for actions"
         aria-label="Column actions"
       >
         <span class="glyph"><ui-icon name="grip-horizontal"></ui-icon></span>
@@ -114,13 +188,14 @@
       style:left="active.menuLeft"
       style:top="active.menuTop"
       data-action="open-cell-menu"
-      :data-row-index="active.rowIndex"
-      :data-column-index="active.columnIndex"
+      from:data-row-index="active.rowIndex"
+      from:data-column-index="active.columnIndex"
       title="Cell actions"
       aria-label="Cell actions"
     >
       <ui-icon name="chevron-down"></ui-icon>
     </button>
+    <span class="drop-indicator" data-drop-indicator hidden aria-hidden="true"></span>
   </div>
   <style>
     :host {
@@ -169,7 +244,7 @@
       width: 24px;
       height: 24px;
       padding: 0;
-      border: 1px solid var(--ui-affordance-near-color, var(--ui-border-strong));
+      border: var(--ui-border-width) solid var(--ui-affordance-near-color, var(--ui-border-strong));
       border-radius: var(--ui-radius-round);
       background: color-mix(in srgb, var(--ui-surface-elevated) 96%, transparent);
       color: var(--ui-affordance-near-color, var(--ui-text-secondary));
@@ -212,8 +287,8 @@
     .handle:focus-visible,
     .selector:focus-visible,
     .cell-menu:focus-visible {
-      outline: 2px solid var(--ui-focus-ring);
-      outline-offset: 2px;
+      outline: var(--ui-focus-width) solid var(--ui-focus-ring);
+      outline-offset: var(--ui-focus-width);
     }
 
     .control.row {
@@ -246,13 +321,13 @@
     }
 
     .control.row .line {
-      inset: -1px 0 auto;
-      height: 2px;
+      inset: calc(-0.5 * var(--ui-accent-line-width)) 0 auto;
+      height: var(--ui-accent-line-width);
     }
 
     .control.col .line {
-      inset: 0 auto 0 -1px;
-      width: 2px;
+      inset: 0 auto 0 calc(-0.5 * var(--ui-accent-line-width));
+      width: var(--ui-accent-line-width);
     }
 
     .control.active .line {
@@ -324,7 +399,7 @@
       align-items: center;
       justify-content: center;
       padding: 0;
-      border: 1px solid transparent;
+      border: var(--ui-border-width) solid transparent;
       background: transparent;
       color: var(--ui-text-secondary);
       box-shadow: none;
@@ -346,6 +421,12 @@
 
     .selector {
       border-radius: var(--ui-radius-round);
+      touch-action: none;
+      cursor: grab;
+    }
+
+    .selector:active {
+      cursor: grabbing;
     }
 
     .selector::before {
@@ -429,6 +510,30 @@
     .cell-menu {
       --_ui-default-icon-size: 15px;
       --_ui-default-icon-stroke-width: 2;
+    }
+
+    .drop-indicator {
+      position: absolute;
+      z-index: 3;
+      background: var(--ui-accent-solid);
+      box-shadow: 0 0 0 var(--ui-border-width) var(--ui-surface);
+      pointer-events: none;
+    }
+
+    .drop-indicator.row {
+      left: 0;
+      width: 100%;
+      height: var(--ui-accent-line-width);
+    }
+
+    .drop-indicator.column {
+      top: 0;
+      width: var(--ui-accent-line-width);
+      height: 100%;
+    }
+
+    .drop-indicator[hidden] {
+      display: none;
     }
 
     :host[hidden] {

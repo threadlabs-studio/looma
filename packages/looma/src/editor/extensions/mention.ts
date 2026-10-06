@@ -105,6 +105,27 @@ export function createLoomaMentionExtension(
       char: "@",
       allowSpaces: false,
       startOfLine: false,
+      // A search starts only when the author types "@" where a mention can go, and keeps going
+      // while they type the name. "@" text that was pasted, loaded, or clicked into, or that sits
+      // in code, stays plain.
+      allow: ({ editor, state, range, isActive }) => {
+        const $from = state.doc.resolve(range.from);
+        const mentionType = state.schema.nodes.mention;
+        if (!mentionType || !$from.parent.type.contentMatch.matchType(mentionType)) return false;
+        for (let depth = $from.depth; depth >= 0; depth -= 1) {
+          if ($from.node(depth).type.spec.code) return false;
+        }
+        const codeMark = state.schema.marks.code;
+        if (codeMark && state.doc.rangeHasMark(range.from, range.to, codeMark)) return false;
+        const previous = LoomaMentionSuggestionPluginKey.getState(editor.view.state);
+        if (isActive && previous?.range?.from === range.from) return true;
+        const before = editor.view.state.doc.content;
+        const start = before.findDiffStart(state.doc.content);
+        const end = before.findDiffEnd(state.doc.content);
+        // The change may also create the paragraph around the "@" when the document was empty.
+        if (start === null || !end || range.from < start || range.from >= end.b) return false;
+        return state.doc.textBetween(start, end.b) === "@";
+      },
       items: ({ query }) => resolveMentionItems(options.items, query, limit),
       render: () => {
         let selectedIndex = 0;

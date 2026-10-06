@@ -1,81 +1,137 @@
 import { Extension } from "@tiptap/core";
-import { DOMParser as ProseMirrorDOMParser, type Schema, type Slice } from "@tiptap/pm/model";
+import { DOMParser as ProseMirrorDOMParser, type Schema, Slice } from "@tiptap/pm/model";
 import { Plugin } from "@tiptap/pm/state";
+import DOMPurify from "dompurify";
 import MarkdownIt from "markdown-it";
 
-const DOCUMENT_MARKUP_MODES = new Set(["html", "markdown", "md", "mdx"]);
-const MARKDOWN_MODES = new Set(["markdown", "md", "mdx"]);
-const DOCUMENT_HTML_PATTERN = /<(?:html|body|main|article|section|header|footer|h[1-6]|p|ul|ol|li|blockquote|table|thead|tbody|tfoot|tr|th|td|figure|figcaption|img|hr|aside)\b/i;
-const MARKDOWN_STRUCTURE_PATTERN = /(?:^|\n)(?:#{1,6}\s+|>\s+|(?:[-+*]|\d+\.)\s+|```|~~~)|!\[[^\]]*]\([^)]*\)|\[[^\]]+]\([^)]*\)/;
-const UNSAFE_HTML_SELECTOR = "script, style, noscript, iframe, object, embed, template";
+const HTML_DOCUMENT_PATTERN = /<!doctype\s+html\b|<(?:html|body)\b[^>]*>/i;
+const HTML_PAIRED_TAG_PATTERN = /<(h[1-6]|p|ul|ol|li|blockquote|table|thead|tbody|tfoot|tr|th|td|figure|figcaption|article|section|header|footer|main|div|span|strong|em|b|i|a|code|pre)\b[^>]*>[\s\S]*?<\/\1\s*>/i;
+const HTML_VOID_TAG_PATTERN = /<(?:img|hr|br)\b[^>]*\/?\s*>/i;
 
 const markdown = new MarkdownIt({
-  html: false,
-  linkify: true,
+  html: true,
+  linkify: false,
   typographer: false,
 });
-
-function sourceEditorMode(event: ClipboardEvent): string | null {
-  const metadata = event.clipboardData?.getData("vscode-editor-data");
-  if (!metadata) return null;
-  try {
-    const value = JSON.parse(metadata) as { mode?: unknown };
-    return typeof value.mode === "string" ? value.mode.toLowerCase() : null;
-  } catch {
-    return null;
-  }
-}
 
 function selectionIsInsideCodeBlock(parentTypeName: string): boolean {
   return parentTypeName === "codeBlock";
 }
 
 function looksLikeDocumentHtml(value: string): boolean {
-  return /<!doctype\s+html/i.test(value) || DOCUMENT_HTML_PATTERN.test(value);
+  const match = value.match(HTML_DOCUMENT_PATTERN)
+    ?? value.match(HTML_PAIRED_TAG_PATTERN)
+    ?? value.match(HTML_VOID_TAG_PATTERN);
+  if (!match) return false;
+
+  // Leading whitespace, comments, declarations, and ordinary prose are valid
+  // around an HTML fragment. A tag inside a source-code string is not a document.
+  const prefix = value.slice(0, match.index)
+    .replace(/<!--[^]*?-->/g, "")
+    .replace(/<\?[^]*?\?>/g, "")
+    .trim();
+  return !/[={};`"']|=>|\b(?:const|let|var|return|function|class|import|export)\b/.test(prefix);
 }
 
 function looksLikeMarkdown(value: string): boolean {
-  return MARKDOWN_STRUCTURE_PATTERN.test(value);
+  const tokens = markdown.parse(value, {});
+  return tokens.some((token, index) => {
+    if (token.type === "heading_open") {
+      return Boolean(tokens[index + 1]?.content.trim());
+    }
+    if (["bullet_list_open", "ordered_list_open", "blockquote_open", "fence", "table_open"].includes(token.type)) {
+      return true;
+    }
+    return token.type === "inline" && Boolean(token.children?.some((child) =>
+      ["link_open", "image", "strong_open"].includes(child.type)));
+  });
+}
+
+function hasRichClipboardStructure(value: string): boolean {
+  if (!value.trim()) return false;
+  const body = new globalThis.DOMParser().parseFromString(value, "text/html").body;
+  // A source editor may provide HTML merely to preserve its literal lines.
+  // Its pre/code wrapper is not evidence that those lines were formatted.
+  const pre = body.querySelector("pre");
+  if (pre && body.textContent?.trim() === pre.textContent?.trim()) return false;
+  const outsideSource = (selector: string) => [...body.querySelectorAll(selector)]
+    .some((element) => !element.closest("pre, code"));
+  if (outsideSource("h1, h2, h3, h4, h5, h6, ul, ol, li, blockquote, table, th, td, strong, em, b, i, a, img, hr, [data-looma-chip], [data-looma-mention]")) {
+    return true;
+  }
+  if (outsideSource("[style]")) return true;
+  if (body.querySelector("[data-pm-slice]") && !body.querySelector("pre")) return true;
+  return body.querySelectorAll("p").length > 1;
 }
 
 function parseHtmlSlice(schema: Schema, value: string): Slice | null {
   const parsed = new globalThis.DOMParser().parseFromString(value, "text/html");
-  parsed.querySelectorAll(UNSAFE_HTML_SELECTOR).forEach((element) => element.remove());
+  if (parsed.body.style.display === "none") return Slice.empty;
+  for (const element of parsed.body.querySelectorAll<HTMLElement>("[style]")) {
+    if (element.style.display === "none") element.remove();
+  }
+  // Layout wrappers often place separate labels in sibling spans without
+  // source whitespace. Their visual gap disappears when the wrappers become
+  // plain editor text, so retain one readable separator before reconstruction.
+  for (const wrapper of parsed.body.querySelectorAll("div")) {
+    for (const child of wrapper.children) {
+      const next = child.nextSibling;
+      if (child.localName !== "span" || next?.nodeType !== 1 || (next as Element).localName !== "span") continue;
+      if (!child.textContent?.trim() || !next.textContent?.trim()) continue;
+      if (/\s$/.test(child.textContent) || /^\s/.test(next.textContent)) continue;
+      wrapper.insertBefore(parsed.createTextNode(" "), next);
+    }
+  }
+  // Markdown and most HTML sources end code with the newline that closes its
+  // last line. Kept, it becomes an empty last line in the code block.
+  for (const pre of parsed.body.querySelectorAll("pre")) {
+    let last: Node = pre;
+    while (last.lastChild) last = last.lastChild;
+    if (last.nodeType === Node.TEXT_NODE) last.textContent = last.textContent?.replace(/\r?\n$/, "") ?? "";
+  }
   const container = document.createElement("div");
-  container.append(...Array.from(parsed.body.childNodes, (node) => node.cloneNode(true)));
-  if (!container.textContent?.trim() && !container.querySelector("img, hr")) return null;
+  container.append(DOMPurify.sanitize(parsed.body.innerHTML, {
+    USE_PROFILES: { html: true },
+    FORBID_TAGS: ["style", "script", "iframe", "object", "embed", "template"],
+    FORBID_ATTR: ["style"],
+    RETURN_DOM_FRAGMENT: true,
+  }));
+  if (!container.textContent?.trim() && !container.querySelector("img, hr")) return Slice.empty;
   return ProseMirrorDOMParser.fromSchema(schema).parseSlice(container, {
     preserveWhitespace: false,
   });
 }
 
-function documentSlice(
-  schema: Schema,
-  plainText: string,
-  richHtml: string,
-  mode: string | null,
-): Slice | null {
-  if (mode && MARKDOWN_MODES.has(mode)) {
-    return parseHtmlSlice(schema, markdown.render(plainText));
+function markdownFrontmatter(value: string): { source: string; body: string } | null {
+  const match = /^---[ \t]*\r?\n([\s\S]*?)\r?\n(?:---|\.\.\.)[ \t]*(?:\r?\n|$)/.exec(value.slice(0, 8_192));
+  if (!match || !/^[A-Za-z][\w-]*:[ \t]*\S/m.test(match[1])) return null;
+  return { source: match[0].trimEnd(), body: value.slice(match[0].length) };
+}
+
+function escapeHtmlText(value: string): string {
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
+function documentSlice(schema: Schema, plainText: string): Slice | null {
+  const frontmatter = markdownFrontmatter(plainText);
+  if (frontmatter || looksLikeMarkdown(plainText)) {
+    return parseHtmlSlice(schema, frontmatter
+      ? `<pre><code class="language-yaml">${escapeHtmlText(frontmatter.source)}</code></pre>${markdown.render(frontmatter.body)}`
+      : markdown.render(plainText));
   }
-  if (mode === "html") {
+  if (looksLikeDocumentHtml(plainText)) {
     return parseHtmlSlice(schema, plainText);
-  }
-  if (!mode && !richHtml && looksLikeDocumentHtml(plainText)) {
-    return parseHtmlSlice(schema, plainText);
-  }
-  if (!mode && !richHtml && looksLikeMarkdown(plainText)) {
-    return parseHtmlSlice(schema, markdown.render(plainText));
   }
   return null;
 }
 
 /**
- * Interprets document markup copied from source-oriented tools before Tiptap's
- * generic VS Code handler can turn it into a literal code block.
+ * Interprets recognizable document markup before Tiptap's generic paste
+ * handling can turn preformatted clipboard HTML into a literal code block.
  *
- * Source-editor metadata remains authoritative for non-document languages.
- * Explicit code-block context is never reinterpreted.
+ * Document content is detected from text, not source-editor clipboard metadata.
+ * Unrecognized source code and explicit code-block context remain literal.
  *
  * @contract Recognized document markup is sanitized and dispatched as one paste
  * transaction; every unrecognized or code-oriented payload returns control to
@@ -97,11 +153,10 @@ export const LoomaSmartPaste = Extension.create({
 
             const plainText = event.clipboardData.getData("text/plain");
             if (!plainText.trim()) return false;
-            const richHtml = event.clipboardData.getData("text/html");
-            const mode = sourceEditorMode(event);
-            if (mode && !DOCUMENT_MARKUP_MODES.has(mode)) return false;
-            const slice = documentSlice(view.state.schema, plainText, richHtml, mode);
+            if (hasRichClipboardStructure(event.clipboardData.getData("text/html"))) return false;
+            const slice = documentSlice(view.state.schema, plainText);
             if (!slice) return false;
+            if (slice.size === 0) return true;
 
             const transaction = view.state.tr
               .replaceSelection(slice)

@@ -1,0 +1,16 @@
+<script type="module">
+  import "@threadlabs/looma";
+  import { updateComponentProps } from "@nextwebwg/html-next/runtime";
+
+  const button = document.querySelector("#docs-save-changes");
+  button.addEventListener("click", async () => {
+    updateComponentProps(button, { loading: true });
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+    } finally {
+      updateComponentProps(button, { loading: false });
+    }
+  });
+</script>
+
+<ui-button id="docs-save-changes" variant="solid">Save changes</ui-button>

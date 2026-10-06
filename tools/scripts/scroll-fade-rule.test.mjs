@@ -12,8 +12,10 @@ const componentsRoot = path.join(repoRoot, "packages/looma/src/components");
 const SURFACE = "the scroller is the bordered, shadowed surface; it needs an inner scroller to fade";
 const EXEMPT = {
   "ui-combobox .popup": SURFACE,
+  "ui-combobox :host([multiple]) .entry": "the single-line chip strip keeps the text cursor fully visible while it scrolls",
   "ui-context-menu .menu": SURFACE,
   "ui-editor-table-context-menu :host": SURFACE,
+  "ui-editor-table-toolbar .menu": SURFACE,
   "ui-editor-table-toolbar .looma-editor__mobile-toolbar-shell :host .menu": SURFACE,
   "ui-menu .surface": SURFACE,
   "ui-popover .surface": SURFACE,
@@ -23,7 +25,7 @@ const EXEMPT = {
 
 /**
  * Every Looma scroller fades the edges that hide content the same way: the scroll fade in tokens.css,
- * driven by the scroller's own scroll timeline (see ui-scroll-area). A new scroller gets the fade or a
+ * driven by the scroller's own position (see ui-scroll-area). A new scroller gets the fade or a
  * reason here.
  */
 test("every scroller fades its edges with the shared scroll fade", async () => {
@@ -37,7 +39,9 @@ test("every scroller fades its edges with the shared scroll fade", async () => {
       if (!/overflow(?:-[xy])?:\s*(?:auto|scroll)/.test(body)) continue;
       const key = `${tag} ${selector}`;
       seen.add(key);
-      const fades = blocks.some((block) => block.selector === selector && /animation-timeline:\s*scroll\(self/.test(block.body));
+      const fades = blocks.some((block) => block.selector === selector && /animation-timeline:\s*scroll\(self/.test(block.body))
+        || (tag === "ui-scroll-area" && source.includes('controller="./ui-scroll-area.js"')
+          && blocks.some((block) => block.selector === ":host" && /mask-image:\s*linear-gradient/.test(block.body)));
       if (!fades && !EXEMPT[key]) missing.push(key);
     }
   }

@@ -15,6 +15,14 @@ interface ComponentApiAttribute {
   type: string;
   default?: unknown;
   options?: string[];
+  fields?: ComponentApiField[];
+}
+
+interface ComponentApiField {
+  path: string;
+  type: string;
+  required: boolean;
+  values?: string[];
 }
 
 interface ComponentApiProperty {
@@ -22,11 +30,7 @@ interface ComponentApiProperty {
   type: string;
   default?: unknown;
   options?: string[];
-}
-
-interface ComponentApiMethod {
-  name: string;
-  returns: string;
+  fields?: ComponentApiField[];
 }
 
 interface ComponentApiSlot {
@@ -39,6 +43,7 @@ interface ComponentApiEvent {
   detailType: string;
   detailSchema?: string;
   detailDocs?: string;
+  fields?: ComponentApiField[];
 }
 
 interface ComponentDesignToken {
@@ -62,7 +67,6 @@ interface ComponentApiRecord {
   designTokens: ComponentDesignTokens;
   attributes: ComponentApiAttribute[];
   properties: ComponentApiProperty[];
-  methods: ComponentApiMethod[];
   events: ComponentApiEvent[];
   slots: ComponentApiSlot[];
 }
@@ -81,6 +85,21 @@ function SectionHeader({ title }: { title: string }): JSX.Element {
 
 function TokenValues({ values }: { values?: string[] }): JSX.Element {
   return <code>{values?.length ? values.join(" | ") : "-"}</code>;
+}
+
+function ShapeFields({ fields }: { fields?: ComponentApiField[] }): JSX.Element | null {
+  if (!fields?.length) return null;
+  return (
+    <ul className="looma-api-fields">
+      {fields.map((field) => (
+        <li key={field.path}>
+          <code>{field.path}</code>: <code>{field.type}</code>
+          {!field.required ? " (optional)" : null}
+          {field.values?.length ? <> · allowed values: <code>{field.values.join(", ")}</code></> : null}
+        </li>
+      ))}
+    </ul>
+  );
 }
 
 function DesignTokenTable({
@@ -130,34 +149,6 @@ export function ComponentApi({ component }: ComponentApiProps): JSX.Element {
         <strong>Native root:</strong> <code>{`<${api.root}>`}</code>
       </p>
 
-      <SectionHeader title="Design tokens" />
-      <p>
-        Extracted from <code>{api.designTokens.sources.join(", ")}</code>. Component tokens are
-        scoped customization points or variables declared by this component. Shared tokens include
-        optional inherited group values and global theme values. The <Link to="/tokens">theming guide</Link>
-        explains their precedence and where to set them.
-      </p>
-      <h3>Component tokens</h3>
-      {api.designTokens.component.length === 0 ? (
-        <p>No component-scoped custom properties.</p>
-      ) : (
-        <DesignTokenTable
-          tokens={api.designTokens.component}
-          firstColumn="Component token"
-          showDeclarations
-        />
-      )}
-      <h3>Inherited group and global tokens consumed</h3>
-      {api.designTokens.shared.length === 0 ? (
-        <p>No shared tokens consumed.</p>
-      ) : (
-        <DesignTokenTable
-          tokens={api.designTokens.shared}
-          firstColumn="Shared token"
-          showDeclarations={false}
-        />
-      )}
-
       <SectionHeader title="Attributes" />
       {api.attributes.length === 0 ? (
         <p>No observed attributes.</p>
@@ -170,7 +161,7 @@ export function ComponentApi({ component }: ComponentApiProps): JSX.Element {
               <th>Property</th>
               <th>Type</th>
               <th>Default</th>
-              <th>Options</th>
+              <th>Allowed values</th>
             </tr>
           </thead>
           <tbody>
@@ -185,12 +176,13 @@ export function ComponentApi({ component }: ComponentApiProps): JSX.Element {
                 </td>
                 <td>
                   <code>{attribute.type}</code>
+                  <ShapeFields fields={attribute.fields} />
                 </td>
                 <td>
                   <code>{typeof attribute.default === "undefined" ? "-" : String(attribute.default)}</code>
                 </td>
                 <td>
-                  <code>{attribute.options?.length ? attribute.options.join(" | ") : "-"}</code>
+                  <code>{attribute.options?.length ? attribute.options.join(", ") : "-"}</code>
                 </td>
               </tr>
             ))}
@@ -210,7 +202,7 @@ export function ComponentApi({ component }: ComponentApiProps): JSX.Element {
               <th>Name</th>
               <th>Type</th>
               <th>Default</th>
-              <th>Options</th>
+              <th>Allowed values</th>
             </tr>
           </thead>
           <tbody>
@@ -221,40 +213,19 @@ export function ComponentApi({ component }: ComponentApiProps): JSX.Element {
                 </td>
                 <td>
                   <code>{property.type}</code>
+                  <ShapeFields fields={property.fields} />
                 </td>
                 <td>
                   <code>{typeof property.default === "undefined" ? "-" : String(property.default)}</code>
                 </td>
                 <td>
-                  <code>{property.options?.length ? property.options.join(" | ") : "-"}</code>
+                  <code>{property.options?.length ? property.options.join(", ") : "-"}</code>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
         </>
-      )}
-
-      <SectionHeader title="Methods" />
-      {api.methods.length === 0 ? (
-        <p>No public methods.</p>
-      ) : (
-        <table className="looma-api-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Returns</th>
-            </tr>
-          </thead>
-          <tbody>
-            {api.methods.map((method) => (
-              <tr key={method.name}>
-                <td><code>{method.name}</code></td>
-                <td><code>{method.returns}</code></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
       )}
 
       <SectionHeader title="Events" />
@@ -265,8 +236,8 @@ export function ComponentApi({ component }: ComponentApiProps): JSX.Element {
           <thead>
             <tr>
               <th>Name</th>
-              <th>Detail Type</th>
-              <th>Detail Schema</th>
+              <th>JavaScript detail</th>
+              <th>Declared detail</th>
               <th>Notes</th>
             </tr>
           </thead>
@@ -277,10 +248,11 @@ export function ComponentApi({ component }: ComponentApiProps): JSX.Element {
                   <code>{event.name}</code>
                 </td>
                 <td>
-                  <code>{event.detailType}</code>
+                  <details><summary><code>{event.detailSchema ?? event.detailType}</code></summary><code>{event.detailType}</code></details>
                 </td>
                 <td>
-                  <code>{event.detailSchema ?? "-"}</code>
+                  <ShapeFields fields={event.fields} />
+                  {!event.fields?.length ? <code>{event.detailSchema ?? "-"}</code> : null}
                 </td>
                 <td>{event.detailDocs ?? "-"}</td>
               </tr>
@@ -309,6 +281,34 @@ export function ComponentApi({ component }: ComponentApiProps): JSX.Element {
             ))}
           </tbody>
         </table>
+      )}
+
+      <SectionHeader title="Design tokens" />
+      <p>
+        Extracted from <code>{api.designTokens.sources.join(", ")}</code>. Component tokens are
+        scoped customization points or variables declared by this component. Shared tokens include
+        optional inherited group values and global theme values. The <Link to="/tokens">theming guide</Link>
+        explains their precedence and where to set them.
+      </p>
+      <h3>Component tokens</h3>
+      {api.designTokens.component.length === 0 ? (
+        <p>No component-scoped custom properties.</p>
+      ) : (
+        <DesignTokenTable
+          tokens={api.designTokens.component}
+          firstColumn="Component token"
+          showDeclarations
+        />
+      )}
+      <h3>Inherited group and global tokens consumed</h3>
+      {api.designTokens.shared.length === 0 ? (
+        <p>No shared tokens consumed.</p>
+      ) : (
+        <DesignTokenTable
+          tokens={api.designTokens.shared}
+          firstColumn="Shared token"
+          showDeclarations={false}
+        />
       )}
 
       {metadata.components

@@ -5,11 +5,11 @@ function inputFor(event) {
 }
 
 /** Authored toasts request dismissal; their consumer owns removal from the rendered list. */
-export default function controller(host) {
+function connect(host) {
   const element = host.element;
   const { action } = host.refs;
   if (!element.id) element.id = `ui-toast-authored-${++toastSequence}`;
-  let remaining = Math.max(0, Number(host.state.duration) || 0);
+  let remaining = Math.max(0, Number(host.props.duration.value) || 0);
   let started = 0;
   let timer = null;
   let paused = false;
@@ -37,7 +37,7 @@ export default function controller(host) {
   const resume = () => {
     if (!paused || element.matches(":hover, :focus-within")) return;
     paused = false;
-    if (host.state.duration > 0 && remaining <= 0) { dismiss("timeout", "programmatic"); return; }
+    if (host.props.duration.value > 0 && remaining <= 0) { dismiss("timeout", "programmatic"); return; }
     start();
   };
   const onFocusOut = () => queueMicrotask(resume);
@@ -45,7 +45,7 @@ export default function controller(host) {
     if (event.target.closest?.(".dismiss") || action?.contains(event.target)) dismiss("action", inputFor(event));
   };
   const stop = host.effect(() => {
-    const duration = Math.max(0, Number(host.state.duration) || 0);
+    const duration = Math.max(0, Number(host.props.duration.value) || 0);
     if (duration === remaining || dismissed) return;
     remaining = duration;
     start();
@@ -65,4 +65,9 @@ export default function controller(host) {
     element.removeEventListener("focusin", pause);
     element.removeEventListener("focusout", onFocusOut);
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

@@ -10,16 +10,15 @@
     >Accessible label for the overflow badge. Replace {count} with the number of people beyond the visible avatars.</prop>
     <prop name="label" type="string" default="People"
     >The group's accessible name, announced for the set of avatars as a whole. Name who they are rather than repeating the default.</prop>
-    <prop name="size" type="sm | md" default="md"
-    >The size of the avatars inside, matched by the +N badge and the overlap. Give each Avatar the same size.</prop>
-    <state name="overflowCount" :value="0"></state>
-    <state name="overflowAnnouncement" :value="''"></state>
+    <prop name="size" type="keyword" values="xs, sm, md" default="md"
+    >The size of the avatars inside, matched by the +N badge and the overlap. Give each Avatar the same size. xs suits a group inside a line of small text, such
+      as the people listed under a title.</prop>
+    <state type="integer" name="overflowCount" value="0"></state>
+    <state type="string" name="overflowAnnouncement" value=""></state>
   </defs>
-  <div role="group" :aria-label="label">
+  <div role="group" from:aria-label="label">
     <slot></slot>
-    <span class="overflow" $ref="overflow" role="img" :hidden="not overflowCount" :aria-label="overflowAnnouncement"><template
-        $value="format('+%s', overflowCount)"
-      ></template></span>
+    <span class="overflow" $ref="overflow" role="img" from:hidden="not overflowCount" from:aria-label="overflowAnnouncement">+{$overflowCount}</span>
   </div>
   <style>
     /* This component's hooks style the element they are set on, and never a nested one. */
@@ -37,10 +36,9 @@
       --_ui-avatar-group-overlap-shadow: var(--ui-avatar-group-overlap-shadow);
       --_ui-avatar-group-edge-ring: var(--ui-avatar-group-edge-ring);
 
-      /* Each avatar is ringed in the surface colour, so where one overlaps the next it reads as a
-       * whole circle set on top, not a shape cut into the one beneath. */
-      --_overlap-shadow: 0 0 0 0 transparent;
-      --_edge-ring: 0 0 0 2px var(--ui-surface);
+      /* A one-pixel shadow on the leading edge separates overlapping circles without cutting
+       * a white gap out of the avatar underneath. */
+      --_overlap-shadow: -1px 0 0 0 rgb(0 0 0 / 0.22);
 
       display: flex;
       align-items: center;
@@ -59,6 +57,10 @@
       margin-inline-start: 0;
     }
 
+    :host:dir(rtl) {
+      --_overlap-shadow: 1px 0 0 0 rgb(0 0 0 / 0.22);
+    }
+
     .overflow {
       margin-inline-start: -0.5rem;
       display: inline-flex;
@@ -67,22 +69,31 @@
       inline-size: 2.5rem;
       block-size: 2.5rem;
       border-radius: var(--ui-radius-round);
-      border: 1px solid var(--ui-border-strong);
+      border: var(--ui-border-width) solid var(--ui-border-strong);
       background: var(--ui-surface-elevated);
       color: var(--ui-text-primary);
       box-shadow:
         var(--_ui-avatar-group-overlap-shadow, var(--_overlap-shadow)),
-        var(--_ui-avatar-group-edge-ring, var(--_edge-ring));
+        var(--_ui-avatar-group-edge-ring, 0 0 0 0 transparent);
       font: inherit;
       font-size: var(--ui-font-size-xs);
       font-weight: 600;
       flex-shrink: 0;
     }
 
-    :host-state([size="sm"]) .overflow {
+    :host([size="sm"]) .overflow {
       margin-inline-start: -0.25rem;
       inline-size: 1.75rem;
       block-size: 1.75rem;
+    }
+
+    :host([size="xs"]) .overflow {
+      margin-inline-start: -0.1875rem;
+      inline-size: 1.25rem;
+      block-size: 1.25rem;
+      /* Matches the xs Avatar's initials. */
+      font-size: calc(var(--ui-font-size) * 0.5625);
+      line-height: 1;
     }
 
     .overflow[hidden] {

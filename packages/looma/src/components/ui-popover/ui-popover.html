@@ -1,21 +1,32 @@
 <template component="ui-popover" controller="./ui-popover.js">
   <defs>
+    <prop name="size" type="keyword" values="content, sm, md, lg" default="content"
+    >Optional size preset. content keeps the existing intrinsic sizing; the other sizes constrain the surface for compact, medium, or large content.</prop>
     <prop name="open" type="boolean" default="false">Whether the popover is open initially or when set externally.</prop>
     <prop name="for" type="string" default="">ID of the control that toggles and anchors the popover.</prop>
     <prop
       name="placement"
-      type="top | top-start | top-end | bottom | bottom-start | bottom-end | left | left-start | left-end | right | right-start | right-end"
+      type="keyword"
+      values="top, top-start, top-end, bottom, bottom-start, bottom-end, left, left-start, left-end, right, right-start, right-end"
       default="bottom-start"
     >Positions the surface around its trigger. Start and end on top or bottom follow the writing direction.</prop>
-    <state name="internalOpen" :value="false"></state>
+    <state type="boolean" name="internalOpen" value="false"></state>
     <event
       name="open"
-      type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"
-    ></event>
+      type="object"
+    >
+      <prop name="open" required type="boolean"></prop>
+      <prop name="reason" required type="keyword" values="action, programmatic, light-dismiss, escape"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
     <event
       name="close"
-      type="object({ open: boolean, reason: action | programmatic | light-dismiss | escape, trigger: keyboard | pointer | programmatic })"
-    ></event>
+      type="object"
+    >
+      <prop name="open" required type="boolean"></prop>
+      <prop name="reason" required type="keyword" values="action, programmatic, light-dismiss, escape"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
   </defs>
   <span><div class="surface"><slot></slot></div></span>
   <style>
@@ -44,12 +55,17 @@
       syntax: "*";
       inherits: false;
     }
+    @property --ui-popover-padding {
+      syntax: "*";
+      inherits: false;
+    }
 
     :host {
       --_ui-popover-surface: var(--ui-popover-surface);
       --_ui-popover-border: var(--ui-popover-border);
       --_ui-popover-radius: var(--ui-popover-radius);
       --_ui-popover-shadow: var(--ui-popover-shadow);
+      --_ui-popover-padding: var(--ui-popover-padding);
       box-sizing: border-box;
       max-inline-size: min(
         20rem,
@@ -70,9 +86,9 @@
       max-inline-size: inherit;
       max-block-size: inherit;
       overflow: auto;
-      padding: var(--ui-space-3);
+      padding: var(--_ui-popover-padding, var(--ui-space-3));
       background: var(--_ui-popover-surface, var(--ui-overlay-surface, var(--ui-surface-elevated)));
-      border: 1px solid var(--_ui-popover-border, var(--ui-overlay-border, var(--ui-border-default)));
+      border: var(--ui-border-width) solid var(--_ui-popover-border, var(--ui-overlay-border, var(--ui-border-strong)));
       border-radius: var(--_ui-popover-radius, var(--ui-overlay-radius, var(--ui-radius-lg)));
       box-shadow: var(--_ui-popover-shadow, var(--ui-overlay-shadow, var(--ui-elevation-overlay, var(--ui-shadow-lg))));
     }
@@ -104,6 +120,19 @@
         opacity: 0;
         transform: translateY(-4px) scale(0.99);
       }
+    }
+
+    :host([size="sm"]) {
+      inline-size: min(22rem, calc(100vw - var(--ui-space-2) * 2));
+      max-inline-size: min(22rem, calc(100vw - var(--ui-space-2) * 2));
+    }
+    :host([size="md"]) {
+      inline-size: min(28rem, calc(100vw - var(--ui-space-2) * 2));
+      max-inline-size: min(28rem, calc(100vw - var(--ui-space-2) * 2));
+    }
+    :host([size="lg"]) {
+      inline-size: min(36rem, calc(100vw - var(--ui-space-2) * 2));
+      max-inline-size: min(36rem, calc(100vw - var(--ui-space-2) * 2));
     }
 
     :host[hidden] {

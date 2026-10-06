@@ -11,16 +11,17 @@ function disabled(item) {
   return item.getAttribute("aria-disabled") === "true" || item.hasAttribute("disabled") || item.getAttribute("disabled") === "true";
 }
 
-export default function controller(host) {
+function connect(host) {
   const element = host.element;
   const document = element.ownerDocument;
   const overlayId = `ui-menu-${Math.random().toString(36).slice(2, 11)}`;
   const items = () => menuItems(element);
   let anchor = null;
+  let anchorAria = null;
   let surface = null;
   let lastFor;
   let lastPlacement;
-  let lastExternalOpen = Boolean(host.state.open);
+  let lastExternalOpen = Boolean(host.props.open.value);
   host.state.internalOpen = lastExternalOpen;
 
   const onAnchorClick = (event) => {
@@ -39,31 +40,46 @@ export default function controller(host) {
     if (reason === "escape") anchor?.focus();
   };
   const ids = createIdResolver(document, () => apply());
+  const releaseAnchor = () => {
+    if (!anchor) return;
+    anchor.removeEventListener("click", onAnchorClick);
+    for (const [name, value] of Object.entries(anchorAria ?? {})) {
+      if (value === null) anchor.removeAttribute(name);
+      else anchor.setAttribute(name, value);
+    }
+    anchor = null;
+    anchorAria = null;
+  };
   const setup = () => {
-    const nextFor = String(host.state.for ?? "");
-    const nextPlacement = String(host.state.placement ?? "bottom-start");
+    const nextFor = host.props.inline.value ? "" : String(host.props.for.value ?? "");
+    const nextPlacement = String(host.props.placement.value ?? "bottom-start");
     if (nextFor === lastFor && nextPlacement === lastPlacement && surface) return;
     lastFor = nextFor;
     lastPlacement = nextPlacement;
     surface?.destroy();
-    anchor?.removeEventListener("click", onAnchorClick);
+    releaseAnchor();
     anchor = ids.get(nextFor);
+    if (anchor) anchorAria = { "aria-haspopup": anchor.getAttribute("aria-haspopup"), "aria-expanded": anchor.getAttribute("aria-expanded") };
     anchor?.addEventListener("click", onAnchorClick);
     surface = anchor ? createAnchoredSurface(element, { anchor, placement: nextPlacement }) : null;
   };
   const apply = () => {
-    const externalOpen = Boolean(host.state.open);
+    const inline = Boolean(host.props.inline.value);
+    const externalOpen = Boolean(host.props.open.value);
     if (externalOpen !== lastExternalOpen) {
       lastExternalOpen = externalOpen;
       host.state.internalOpen = externalOpen;
     }
     setup();
-    const open = Boolean(host.state.internalOpen);
+    const open = inline || Boolean(host.state.internalOpen);
     if (anchor) {
       anchor.setAttribute("aria-haspopup", "menu");
       anchor.setAttribute("aria-expanded", String(open));
     }
-    if (open) {
+    if (inline) {
+      surface?.hide();
+      closeOverlay(document, overlayId);
+    } else if (open) {
       surface?.show();
       openOverlay({ id: overlayId, modal: false, element, relatedElements: anchor ? [anchor] : [], dismissible: true, requestClose: close });
     } else {
@@ -81,12 +97,14 @@ export default function controller(host) {
       return;
     }
     host.dispatch("select", { value, trigger });
+    if (host.props.inline.value) return;
     host.dispatch("close", { open: false, reason: "action", trigger });
     host.state.internalOpen = false;
   };
   const onClick = (event) => select(menuItemFrom(event.target), triggerFor(event));
   const onKeydown = (event) => {
     if (event.key === "Escape") {
+      if (host.props.inline.value || event.defaultPrevented) return;
       event.preventDefault();
       requestTopOverlayClose(document, "escape", "keyboard");
       return;
@@ -113,8 +131,13 @@ export default function controller(host) {
     ids.stop();
     element.removeEventListener("click", onClick);
     element.removeEventListener("keydown", onKeydown);
-    anchor?.removeEventListener("click", onAnchorClick);
     surface?.destroy();
     closeOverlay(document, overlayId);
+    releaseAnchor();
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

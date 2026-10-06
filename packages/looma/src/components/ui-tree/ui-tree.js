@@ -16,7 +16,7 @@ function parentItem(item, tree) {
   return parent && tree.contains(parent) ? parent : null;
 }
 
-export default function controller(host) {
+function connect(host) {
   const element = host.element;
   const document = element.ownerDocument;
   const itemSelector = '[role="treeitem"]';
@@ -32,6 +32,7 @@ export default function controller(host) {
   let typed = "";
   let lastTyped = 0;
   let moveMode = false;
+  let handlePointerType = null;
   const announcer = document.createElement("span");
   announcer.setAttribute("role", "status");
   announcer.style.cssText = "position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap";
@@ -41,7 +42,7 @@ export default function controller(host) {
   const allItems = () => Array.from(element.querySelectorAll(itemSelector));
   const visibleItems = () => allItems().filter((item) => item.getClientRects().length > 0 && item.getAttribute("aria-disabled") !== "true");
   const rowFor = (item) => item.querySelector(":scope > .row");
-  const selectionMode = () => String(host.state.selection || "none");
+  const selectionMode = () => String(host.props.selection.value || "none");
   // Only a branch has aria-expanded.
   const acceptsChildren = (item) => item.hasAttribute("aria-expanded") && item.getAttribute("aria-disabled") !== "true";
   const metadata = (item) => ({
@@ -70,7 +71,7 @@ export default function controller(host) {
     if (nextPosition === "inside") {
       if (!acceptsChildren(to) || (toMeta.accepts.length && !toMeta.accepts.includes(fromMeta.type))) return { reason: "incompatible" };
     } else if (fromMeta.type !== toMeta.type) return { reason: "incompatible" };
-    const maxDepth = Math.max(0, Math.floor(Number(host.state.maxDepth ?? 0)));
+    const maxDepth = Math.max(0, Math.floor(Number(host.props.maxDepth.value ?? 0)));
     if (maxDepth > 0) {
       const resultingDepth = Math.max(0, Math.floor(depth(to))) + (nextPosition === "inside" ? 1 : 0) + subtreeDepth(from);
       if (resultingDepth > maxDepth) return { reason: "max-depth", maxDepth, resultingDepth };
@@ -91,7 +92,7 @@ export default function controller(host) {
       hoverTimer = null;
       hoverKey = null;
       if (key) expandTarget(key);
-    }, Math.max(0, Number(host.state.hoverExpandDelay ?? 700)));
+    }, Math.max(0, Number(host.props.hoverExpandDelay.value ?? 700)));
   };
   const clearTarget = () => {
     target?.removeAttribute("data-drop-position");
@@ -103,6 +104,8 @@ export default function controller(host) {
     moveMode = false;
     element.removeAttribute("data-move-mode");
     source?.removeAttribute("data-dragging");
+    source?.removeAttribute("data-move-source");
+    source?.dispatchEvent(new CustomEvent("ui-tree-move-state", { detail: { moving: false } }));
     source = null;
     clearTarget();
     rejection = null;
@@ -165,8 +168,16 @@ export default function controller(host) {
     moveMode = true;
     source = item;
     source.setAttribute("data-dragging", "true");
+    source.setAttribute("data-move-source", "");
+    source.dispatchEvent(new CustomEvent("ui-tree-move-state", { detail: { moving: true } }));
     element.setAttribute("data-move-mode", "");
-    announce(`Moving ${nameOf(item)}. Choose a destination by click or the arrow keys. Press Enter to place or Escape to cancel.`);
+    announce(`Moving ${nameOf(item)}. Choose a destination by click or the arrow keys. Press Enter to place, or use Cancel or Escape to cancel.`);
+  };
+  const cancelMove = () => {
+    const handle = source && rowFor(source)?.querySelector(".drag-handle");
+    finish();
+    handle?.focus();
+    announce("Move cancelled.");
   };
   const commitMove = (how) => {
     if (!source) return;
@@ -182,12 +193,21 @@ export default function controller(host) {
     } else announce("Choose another destination row.");
   };
   const onMoveClick = (event) => {
+    if (moveMode && event.composedPath().some((node) => node instanceof HTMLElement && node.hasAttribute("data-tree-cancel-move"))) {
+      event.preventDefault();
+      event.stopPropagation();
+      cancelMove();
+      return;
+    }
     const handle = event.composedPath().find((node) => node instanceof HTMLElement && node.classList.contains("drag-handle"));
     if (handle) {
       event.preventDefault();
       event.stopPropagation();
       const item = itemFromEvent(event);
-      if (item) beginMove(item);
+      if (moveMode && item === source) cancelMove();
+      else if (item && (host.props.moveActivation.value !== "keyboard-touch" || event.detail === 0
+        || (event.pointerType ?? handlePointerType) === "touch")) beginMove(item);
+      handlePointerType = null;
       return;
     }
     if (!moveMode) {
@@ -202,6 +222,8 @@ export default function controller(host) {
       event.stopPropagation();
       selectItem(item, "pointer");
       focusItem(item);
+      if (selectionMode() === "single" && !checkbox) host.dispatch("activate", { id: itemId(item), trigger: "pointer" });
+      if (checkbox) requestAnimationFrame(syncSelection);
       return;
     }
     const item = itemFromEvent(event);
@@ -212,6 +234,7 @@ export default function controller(host) {
     else if (rejection) commitMove("pointer");
     else announce("Choose another destination row.");
   };
+  const onHandlePointerDown = (event) => { handlePointerType = event.pointerType; };
   const onMovePointer = (event) => {
     if (!moveMode) return;
     const item = itemFromEvent(event);
@@ -221,13 +244,15 @@ export default function controller(host) {
     if (!moveMode) return false;
     if (event.key === "Escape") {
       event.preventDefault();
-      finish();
-      announce("Move cancelled.");
+      cancelMove();
       return true;
     }
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
-      commitMove("keyboard");
+      const cancelling = event.composedPath().some((node) => node instanceof HTMLElement
+        && (node.hasAttribute("data-tree-cancel-move") || (node.classList.contains("drag-handle") && itemFromEvent(event) === source)));
+      if (cancelling) cancelMove();
+      else commitMove("keyboard");
       return true;
     }
     if (event.key === "ArrowRight" && target) {
@@ -252,6 +277,7 @@ export default function controller(host) {
       const candidate = items[index];
       const side = step < 0 ? "before" : "after";
       if (candidate !== source && chooseTarget(candidate, side)) {
+        focusItem(candidate);
         announce(`Move ${nameOf(source)} ${side} ${nameOf(candidate)}. Press Enter to place.`);
         break;
       }
@@ -326,6 +352,7 @@ export default function controller(host) {
       else item.removeAttribute("data-selection-mode");
       const checkbox = rowFor(item)?.querySelector(".selection-checkbox");
       if (checkbox) {
+        checkbox.checked = item.getAttribute("aria-selected") === "true";
         const descendants = Array.from(item.querySelectorAll(itemSelector));
         checkbox.indeterminate = mode === "multiple" && descendants.some((child) => child.getAttribute("aria-selected") === "true")
           && (item.getAttribute("aria-selected") !== "true" || descendants.some((child) => child.getAttribute("aria-selected") !== "true"));
@@ -342,7 +369,8 @@ export default function controller(host) {
     }
     const items = allItems();
     const selected = new Set(items.filter((candidate) => candidate.getAttribute("aria-selected") === "true").map(itemId).filter(Boolean));
-    const subtree = [item, ...item.querySelectorAll(itemSelector)].filter((candidate) => candidate.getAttribute("aria-disabled") !== "true");
+    const subtree = [item, ...Array.from(item.querySelectorAll(itemSelector))]
+      .filter((candidate) => candidate.getAttribute("aria-disabled") !== "true");
     const adding = !selected.has(id);
     for (const candidate of subtree) {
       const candidateId = itemId(candidate);
@@ -360,6 +388,7 @@ export default function controller(host) {
     host.dispatch("select", { ids: items.map(itemId).filter((candidate) => candidate && selected.has(candidate)), trigger: how });
   };
   const syncStructure = () => {
+    if (source && !element.contains(source)) finish();
     for (const item of allItems()) item.dispatchEvent(new CustomEvent("ui-tree-structure-sync"));
     syncTabStop();
     syncSelection();
@@ -374,11 +403,29 @@ export default function controller(host) {
   const focusItem = (item) => { syncTabStop(item); item.focus(); };
   const onFocusin = (event) => { if (!interactive(event)) { const item = itemFromEvent(event); if (item) syncTabStop(item); } };
   const onExpansion = () => requestAnimationFrame(() => syncTabStop());
+  let structureFrame = 0;
+  const requestStructureSync = () => {
+    if (structureFrame) return;
+    structureFrame = requestAnimationFrame(() => {
+      structureFrame = 0;
+      if (element.isConnected) syncStructure();
+    });
+  };
+  const onItemReady = (event) => {
+    if (event.target.closest('[role="tree"]') === element) requestStructureSync();
+  };
   const onKeydown = (event) => {
     if (onMoveKeydown(event)) return;
     if (interactive(event)) return;
     const current = itemFromEvent(event);
     if (!current) return;
+    if (event.key === "Enter" && selectionMode() === "single" && !event.altKey && !event.ctrlKey && !event.metaKey) {
+      if (current.getAttribute("aria-disabled") === "true") return;
+      event.preventDefault();
+      selectItem(current, "keyboard");
+      host.dispatch("activate", { id: itemId(current), trigger: "keyboard" });
+      return;
+    }
     if (event.key === " " && selectionMode() !== "none") {
       event.preventDefault();
       selectItem(current, "keyboard");
@@ -405,7 +452,7 @@ export default function controller(host) {
       if (match) { event.preventDefault(); focusItem(match); }
     }
   };
-  const listeners = { dragstart: onDragStart, drag: onDrag, dragenter: onDragOver, dragover: onDragOver, dragleave: onDragLeave, drop: onDrop, dragend: onDragEnd, keydown: onKeydown, focusin: onFocusin, pointermove: onMovePointer, "ui-tree-expansion-change": onExpansion };
+  const listeners = { dragstart: onDragStart, drag: onDrag, dragenter: onDragOver, dragover: onDragOver, dragleave: onDragLeave, drop: onDrop, dragend: onDragEnd, keydown: onKeydown, focusin: onFocusin, pointerdown: onHandlePointerDown, pointermove: onMovePointer, "ui-tree-expansion-change": onExpansion, "ui-tree-item-ready": onItemReady };
   for (const [name, listener] of Object.entries(listeners)) element.addEventListener(name, listener);
   element.addEventListener("click", onMoveClick, true);
   const observer = new MutationObserver((records) => {
@@ -413,17 +460,31 @@ export default function controller(host) {
     else syncSelection();
   });
   observer.observe(element, { childList: true, subtree: true, attributes: true, attributeFilter: ["aria-selected"] });
+  // Responsive panels can reveal existing rows without changing the DOM. Keep
+  // the previous roving item while hidden, then reconcile the visible layout.
+  const size = new ResizeObserver(() => {
+    if (element.isConnected && element.getClientRects().length) requestStructureSync();
+  });
+  size.observe(element);
   const stop = host.effect(() => {
-    element.setAttribute("aria-label", String(host.state.label || "Tree"));
+    element.setAttribute("aria-label", String(host.props.label.value || "Tree"));
     syncSelection();
   });
   syncStructure();
   return () => {
+    finish();
     stop();
     observer.disconnect();
+    size.disconnect();
+    cancelAnimationFrame(structureFrame);
     cancelHover();
     announcer.remove();
     for (const [name, listener] of Object.entries(listeners)) element.removeEventListener(name, listener);
     element.removeEventListener("click", onMoveClick, true);
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

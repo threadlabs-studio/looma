@@ -1,11 +1,11 @@
 // Marks an anticipatory button for the enclosing ui-affordance-scope, which reveals it on proximity.
-export default function controller(host) {
+function connect(host) {
   const stop = host.effect(() => {
-    if (host.state.anticipatory) host.element.setAttribute("data-ui-affordance", "button");
+    if (host.props.anticipatory.value) host.element.setAttribute("data-ui-affordance", "button");
     else host.element.removeAttribute("data-ui-affordance");
   });
   const onClick = (event) => {
-    if (!host.state.pending) return;
+    if (!host.props.loading.value && !host.props.pending.value) return;
     event.preventDefault();
     event.stopImmediatePropagation();
   };
@@ -14,4 +14,9 @@ export default function controller(host) {
     stop();
     host.element.removeEventListener("click", onClick, true);
   };
+}
+
+/** Keep DOM setup and its cleanup tied to each connection, including reconnects. */
+export default function controller(host) {
+  host.on("connect", () => connect(host));
 }

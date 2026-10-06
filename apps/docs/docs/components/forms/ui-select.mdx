@@ -8,5 +8,26 @@ import { ComponentExamplesApiTabs } from "@site/src/components/ComponentExamples
 
 Select control that lowers directly to a native `<select>`; author `<option>` children directly inside it.
 
-
 <ComponentExamplesApiTabs component="ui-select" />
+
+## Styling hooks
+
+A select follows the global control tokens and the inherited `--ui-field-radius` and
+`--ui-field-danger`, as [Input](/components/ui-input) does. To restyle one select, set its own hooks
+on it through a class of your own. They match Input's and do not inherit:
+
+| Hook | Sets |
+| --- | --- |
+| `--ui-select-border`, `--ui-select-border-hover`, `--ui-select-focus-border` | the border at rest, under the pointer, and when focused |
+| `--ui-select-surface` | the fill |
+| `--ui-select-inline-size` | the width (`100%`, the container's) |
+| `--ui-select-radius` | the corner radius |
+| `--ui-select-shadow`, `--ui-select-focus-shadow` | the inset shadow at rest and the focus ring |
+| `--ui-select-invalid-border`, `--ui-select-invalid-focus-shadow` | the border and focus ring of an invalid select |
+
+```css
+.status-filter {
+  --ui-select-inline-size: 12rem;
+  --ui-select-surface: var(--ui-surface-sunken);
+}
+```

@@ -12,7 +12,7 @@ import { DeclarativeModel } from "@site/src/components/DeclarativeModel";
 
 Looma is published on npm for Vue 3 and direct declarative HTML use. It is pre-1.0, so the surface can still change between minor versions. React support is in development.
 
-Use Node 20 or newer:
+Use Node 22.13 or Node 24:
 
 ```bash npm2yarn
 pnpm add @threadlabs/looma
@@ -74,7 +74,7 @@ the same components:
 
 ## Render with a framework adapter
 
-The mode control above changes the syntax, not the component model. The Vue components are converted from the same definitions: each renders the component's native root with Vue, with the same props, events, slots, methods, and behavior, and no HTML Next runtime.
+The mode control above changes the syntax, not the component model. The Vue components are converted from the same definitions: each renders the component's native root with Vue, with the same props, events, slots, and behavior, and no HTML Next runtime.
 
 ```vue
 <script setup lang="ts">

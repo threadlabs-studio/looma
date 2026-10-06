@@ -14,36 +14,47 @@
     <prop name="placeholder" type="string" default="">Hint shown in the text input while the draft is empty.</prop>
     <prop name="required" type="boolean" default="false">Prevent an empty draft from being saved.</prop>
     <prop name="maxLength" type="number" default="0">Maximum draft length; 0 leaves the length unrestricted.</prop>
-    <state name="internalEdit" :value="false"></state>
-    <state name="internalValue" :value="''"></state>
-    <state name="draft" :value="''"></state>
-    <event name="input" type="object({ value: string, trigger: keyboard | pointer | programmatic })"></event>
-    <event name="change" type="object({ value: string, previousValue: string, trigger: keyboard | pointer | programmatic })"></event>
+    <state type="boolean" name="internalEdit" value="false"></state>
+    <state type="string" name="internalValue" value=""></state>
+    <state type="string" name="draft" value=""></state>
+    <event name="input" type="object">
+      <prop name="value" required type="string"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
+    <event name="change" type="object">
+      <prop name="value" required type="string"></prop>
+      <prop name="previousValue" required type="string"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
     <event
       name="edit-change"
-      type="object({ edit: boolean, reason: activate | commit | cancel | light-dismiss | escape | programmatic, trigger: keyboard | pointer | programmatic })"
-    ></event>
+      type="object"
+    >
+      <prop name="edit" required type="boolean"></prop>
+      <prop name="reason" required type="keyword" values="activate, commit, cancel, light-dismiss, escape, programmatic"></prop>
+      <prop name="trigger" required type="keyword" values="keyboard, pointer, programmatic"></prop>
+    </event>
   </defs>
   <div>
     <div class="field">
-      <button class="preview" $ref="preview" type="button" :disabled="disabled">
-        <span class="text" $value="internalValue"></span>
-        <span $if="hint" class="hint" aria-hidden="true" $value="hint"></span>
+      <button class="preview" $ref="preview" type="button" from:disabled="disabled">
+        <span class="text">{$internalValue}</span>
+        <span $if="hint" class="hint" aria-hidden="true">{$hint}</span>
       </button>
       <input
         class="input"
         $ref="input"
         type="text"
         .value="draft"
-        :aria-label="label"
-        :placeholder="placeholder"
-        :required="required"
-        :disabled="disabled or not internalEdit"
+        from:aria-label="label"
+        from:placeholder="placeholder"
+        from:required="required"
+        from:disabled="disabled or not internalEdit"
       >
     </div>
     <div $if="actions" class="actions">
-      <button class="save" type="button" $value="saveLabel"></button>
-      <button class="cancel" type="button" $value="cancelLabel"></button>
+      <button class="save" type="button">{$saveLabel}</button>
+      <button class="cancel" type="button">{$cancelLabel}</button>
     </div>
   </div>
   <style>
@@ -71,7 +82,7 @@
       min-block-size: var(--ui-control-size-sm);
       margin: 0;
       padding: var(--ui-space-1) var(--ui-space-2);
-      border: 1px solid transparent;
+      border: var(--ui-border-width) solid transparent;
       border-radius: var(--ui-radius-md);
       font: inherit;
       line-height: var(--ui-line-height-md);
@@ -144,7 +155,7 @@
     .actions button {
       min-block-size: var(--ui-control-size-sm);
       padding: 0 var(--ui-space-3);
-      border: 1px solid var(--ui-border-strong);
+      border: var(--ui-border-width) solid var(--ui-border-strong);
       border-radius: var(--ui-radius-md);
       background: var(--ui-surface-elevated);
       background-image: var(--ui-raised-highlight);
@@ -166,7 +177,7 @@
       box-shadow: var(--ui-focus-halo);
     }
 
-    :host-state([disabled]) .preview {
+    :host([disabled]) .preview {
       color: var(--ui-disabled-text);
       cursor: not-allowed;
     }

@@ -45,7 +45,9 @@ describe("LoomaEditor managed suggestion menus", () => {
     try {
       app.mount(host);
       await flushBrowser();
-      editor!.chain().focus().insertContent("@ad").run();
+      // Suggestions start only from a typed "@".
+      await userEvent.click(editor!.view.dom);
+      await userEvent.keyboard("@ad");
 
       await vi.waitFor(() => {
         const menu = host.querySelector<HTMLElement>(
